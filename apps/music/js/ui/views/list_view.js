@@ -166,7 +166,7 @@ var ListView = {
 
     this.dataSource.push(result);
 
-    if (option !== 'playlist' && option !== 'my-playlists-header') {
+    if (option !== 'playlist' && option !== 'my-playlists-header' && option !== 'create-playlist') {
       var header = this.createHeader(option, result);
       if (header) {
         this.anchor.appendChild(header);
@@ -348,6 +348,13 @@ var ListView = {
 
   activateSubListView: function lv_activateSubListView(target) {
     var option = target.dataset.option;
+
+    if (option === 'create-playlist') {
+        var playlistName = prompt('Name for the playlist?');
+        this.addToPlaylist(playlistName, null);
+        return;
+    }
+
     var index = target.dataset.index;
     var data = this.dataSource[index];
 
@@ -397,11 +404,23 @@ var ListView = {
   },
 
   addToPlaylist: function lv_addToPlaylist(playlistName, index) {
-    this.getSongData(index, function(songData) {
-      musicdb.addToPlaylist(playlistName, songData, function() {
-        this.showBanner(navigator.mozL10n.get('playlist-added'));
+    if (index !== null) {
+      this.getSongData(index, function(songData) {
+        musicdb.addToPlaylist(playlistName, songData, function() {
+          this.showBanner(navigator.mozL10n.get('playlist-added'));
+        });
+      });
+    } else {
+      musicdb.addToPlaylist(playlistName, null, function(playlist) {
+        if (playlist) {
+          this.showBanner(navigator.mozL10n.get('playlist-created'));
+          this.update('playlist', playlist);
+          App.showCorrectOverlay();
+        } else {
+            this.showBanner(navigator.mozL10n.get('playlist-already-exists'));
+        }
       }.bind(this));
-    }.bind(this));
+    }
   },
 
   activatePlaylist: function lv_activatePlaylist(data) {

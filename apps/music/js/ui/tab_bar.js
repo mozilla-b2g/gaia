@@ -95,6 +95,7 @@ var TabBar = {
               }.bind(this));
 
               ListView.update('my-playlists-header');
+              ListView.update('create-playlist');
 
               musicdb.getAllPlaylists(function(playlists) {
                 playlists.forEach(function(playlist) {

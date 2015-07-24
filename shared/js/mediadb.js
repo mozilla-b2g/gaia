@@ -1400,23 +1400,30 @@ var MediaDB = (function() {
 
       this.getPlaylistSongs(playlistName, function(result) {
         if (!result) {
-          store = this.db.transaction('playlists', 'readwrite').objectStore('playlists');
-
-          var request = store.add({
-            songs: [songData],
+          var playlist = {
+            songs: ( songData ? [songData] : [] ),
             name: playlistName
-          });
+          };
+
+          store = this.db.transaction('playlists', 'readwrite').objectStore('playlists');
+          var request = store.add(playlist);
 
           request.onsuccess = function(evt) {
-            callback();
+            callback(playlist);
           }.bind(this);
         } else {
+          if (!songData) {
+            //XXX: Error: playlist already exists
+            callback(null);
+            return;
+          }
+
           result.songs.push(songData);
           store = this.db.transaction('playlists', 'readwrite').objectStore('playlists');
 
           var requestUpdate = store.put(result);
           requestUpdate.onsuccess = function(evt) {
-            callback();
+            callback(result);
           }.bind(this);
         }
       }.bind(this));
