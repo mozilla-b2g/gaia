@@ -1,8 +1,7 @@
-/* global TimeIcon, MockL10n, MockService */
+/* global TimeIcon, MockService */
 'use strict';
 
 
-require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('system/shared/test/unit/mocks/mock_service.js');
 requireApp('system/js/base_ui.js');
 requireApp('system/js/base_icon.js');
@@ -10,13 +9,11 @@ requireApp('system/js/clock.js');
 requireApp('system/js/time_icon.js');
 
 suite('system/TimeIcon', function() {
-  var subject, manager, realMozL10n, realService;
+  var subject, manager, realService;
 
   setup(function() {
     realService = window.Service;
     window.Service = MockService;
-    realMozL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
     manager = {
       _ampm: false,
       active: true
@@ -34,22 +31,37 @@ suite('system/TimeIcon', function() {
 
   suite('Time format', function() {
     test('should be 24 hour', function() {
-      var timeFormat = subject._getTimeFormat('shortTimeFormat24');
-      assert.equal(timeFormat, 'shortTimeFormat24');
+      navigator.mozHour12 = false;
+      subject._start();
+
+      var timeFormat = subject.timeFormatter.resolvedOptions().hour12;
+      assert.isFalse(timeFormat);
     });
 
     test('should be 12 hour with AM/PM', function() {
       manager._ampm = true;
+      navigator.mozHour12 = true;
+      subject._start();
 
-      var timeFormat = subject._getTimeFormat('123 %p');
-      assert.equal(timeFormat, '123 <span>%p</span>');
+      var timeFormat = subject.timeFormatter.resolvedOptions().hour12;
+      assert.isTrue(timeFormat);
+
+      var amPm = (new Date()).toLocaleFormat('%p');
+
+      assert.notEqual(subject.element.innerHTML.indexOf(amPm), -1);
     });
 
     test('should be 12 hour without AM/PM', function() {
       manager._ampm = false;
+      navigator.mozHour12 = true;
+      subject._start();
 
-      var timeFormat = subject._getTimeFormat('123 %p');
-      assert.equal(timeFormat, '123');
+      var timeFormat = subject.timeFormatter.resolvedOptions().hour12;
+      assert.isTrue(timeFormat);
+
+      var amPm = (new Date()).toLocaleFormat('%p');
+
+      assert.equal(subject.element.innerHTML.indexOf(amPm), -1);
     });
 
     test('Should ask operator icon to update and publish changed', function() {

@@ -151,7 +151,6 @@ apps/system/js/quick_settings.js
 apps/system/js/screenshot.js
 apps/system/js/sleep_menu.js
 apps/system/js/device_storage_watcher.js
-apps/system/js/time_icon.js
 apps/system/js/update_manager.js
 apps/system/js/value_selector/spin_date_picker.js
 apps/system/js/value_selector/value_selector.js
