@@ -224,7 +224,7 @@ function getOperatorByServiceId(index) {
 
 var VIEWS = {
   group: {
-    name: 'participants',
+    name: 'group-view',
     contactFlavor: 'group-view',
 
     render: function renderGroup() {
@@ -244,14 +244,16 @@ var VIEWS = {
 
         ConversationView.promptContact({
           number: target.dataset.number
-        });
+        }).then(
+          () => Navigation.toPanel('thread', { id: Threads.currentId })
+        );
       });
     },
 
     elements: ['contact-list', 'header', 'header-text']
   },
   report: {
-    name: 'report',
+    name: 'report-view',
     contactFlavor: 'report-view',
 
     init: function() {
@@ -259,12 +261,16 @@ var VIEWS = {
     },
 
     beforeEnter: function() {
+      this.constructor.prototype.beforeEnter.apply(this, arguments);
+
       MESSAGE_EVENTS.forEach((event) => {
         MessageManager.on(event, this.onStatusChanged);
       });
     },
 
     afterLeave: function() {
+      this.constructor.prototype.afterLeave.apply(this, arguments);
+
       MESSAGE_EVENTS.forEach((event) => {
         MessageManager.off(event, this.onStatusChanged);
       });
@@ -387,7 +393,7 @@ var Information = function(type) {
     this.init();
   }
 
-  this.panel = document.getElementById('information-' + this.name);
+  this.panel = document.querySelector('.panel-' + this.name);
 
   this.elements.forEach(function(name) {
     this[Utils.camelCase(name)] = this.panel.querySelector('.' + name);
@@ -404,30 +410,27 @@ var Information = function(type) {
 Information.prototype = {
   constructor: Information,
 
-  afterEnter: function(args) {
-    this.id = args.id;
+  beforeEnter: function(args) {
+    this.id = +args.id;
     this.show();
   },
 
-  beforeLeave: function() {
+  afterLeave: function() {
     this.reset();
     this.id = null;
   },
 
   show: function() {
-    this.panel.classList.remove('hide');
     this.render();
   },
 
   refresh: function() {
-    if (!this.panel.classList.contains('hide')) {
+    if (Navigation.isCurrentPanel(this.name)) {
       this.render();
     }
   },
 
   reset: function() {
-    this.panel.classList.add('hide');
-
     // Remove all LIs
     if (this.contactList) {
       this.contactList.textContent = '';
@@ -435,7 +438,7 @@ Information.prototype = {
   },
 
   backOrClose: function() {
-    Navigation.toPanel('thread', { id: Threads.currentId });
+    Navigation.back();
   },
 
   // Incrementing ID for each rendering request to avoid possible race when next

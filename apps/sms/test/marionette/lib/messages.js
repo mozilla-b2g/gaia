@@ -30,12 +30,12 @@ var ConversationAccessor = require('./views/conversation/accessors');
     },
 
     Report: {
-      main: '#information-report',
+      main: '.panel-report-view',
       header: '#information-report-header'
     },
 
     Participants: {
-      main: '#information-participants',
+      main: '.panel-group-view',
       header: '#information-group-header'
     }
   });

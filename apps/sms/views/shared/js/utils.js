@@ -475,6 +475,25 @@
       });
       return parsed;
     },
+    url(base, params) {
+      if (base.indexOf('?') === -1) {
+        base += '?';
+      } else {
+        base += '&';
+      }
+
+      for (var key in params) {
+        if (params[key] == null) { // null or undefined
+          continue;
+        }
+
+        base +=
+          encodeURIComponent(key) + '=' +
+          encodeURIComponent(params[key]) + '&';
+      }
+
+      return base.slice(0, -1);
+    },
     basicContact: function(number, records) {
       var record;
       if (Array.isArray(records)) {

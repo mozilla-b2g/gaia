@@ -156,6 +156,7 @@
     store: function() {
       asyncStorage.setItem('draft index', [...draftIndex], () => {
         InterInstanceEventDispatcher.emit('drafts-changed');
+        this.emit('stored');
       });
     },
 
@@ -191,7 +192,9 @@
     }
   };
 
-  exports.Drafts = EventDispatcher.mixin(Drafts, ['saved', 'deleted']);
+  exports.Drafts = EventDispatcher.mixin(
+    Drafts, ['saved', 'deleted', 'stored']
+  );
 
   /**
    * Draft
