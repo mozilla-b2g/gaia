@@ -480,7 +480,7 @@ suite('controllers/camera', function() {
     test('Should not start countdown if now timer setting is set', function() {
       this.app.settings.timer.selected.returns(0);
       this.app.get.withArgs('timerActive').returns(false);
-      this.app.get.withArgs('recording').returns(false);
+      this.app.get.withArgs('recording').returns('stopped');
       this.controller.capture();
       assert.ok(!this.app.emit.calledWith('startcountdown'));
     });
@@ -488,7 +488,7 @@ suite('controllers/camera', function() {
     test('Should not start countdown if timer is already active', function() {
       this.app.settings.timer.selected.returns(5);
       this.app.get.withArgs('timerActive').returns(true);
-      this.app.get.withArgs('recording').returns(false);
+      this.app.get.withArgs('recording').returns('stopped');
       this.controller.capture();
       assert.ok(!this.app.emit.calledWith('startcountdown'));
     });
@@ -496,7 +496,7 @@ suite('controllers/camera', function() {
     test('Should not start countdown if recording', function() {
       this.app.settings.timer.selected.returns(5);
       this.app.get.withArgs('timerActive').returns(false);
-      this.app.get.withArgs('recording').returns(true);
+      this.app.get.withArgs('recording').returns('started');
       this.controller.capture();
       assert.ok(!this.app.emit.calledWith('startcountdown'));
     });
@@ -504,7 +504,7 @@ suite('controllers/camera', function() {
     test('Should otherwise start countdown', function() {
       this.app.settings.timer.selected.returns(5);
       this.app.get.withArgs('timerActive').returns(false);
-      this.app.get.withArgs('recording').returns(false);
+      this.app.get.withArgs('recording').returns('stopped');
       this.controller.capture();
       assert.ok(this.app.emit.calledWith('startcountdown'));
     });

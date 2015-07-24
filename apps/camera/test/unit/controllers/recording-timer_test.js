@@ -43,12 +43,12 @@ suite('controllers/recording-timer', function() {
 
   suite('RecordingTimerController#onRecordingChange()', function() {
     test('Should hide the view if not recording', function() {
-      this.controller.onRecordingChange(false);
+      this.controller.onRecordingChange('stopped');
       assert.isTrue(this.view.hide.called);
     });
 
     test('Should show and reset the view if recording', function() {
-      this.controller.onRecordingChange(true);
+      this.controller.onRecordingChange('started');
       assert.isTrue(this.view.show.called);
       assert.isTrue(this.view.value.calledWith(0));
     });
@@ -72,11 +72,11 @@ suite('controllers/recording-timer', function() {
       assert.isFalse(view.el.classList.contains('visible'));
 
       // Fire start recording event
-      controller.onRecordingChange(true);
+      controller.onRecordingChange('started');
       assert.isTrue(view.el.classList.contains('visible'));
 
       // Fire stop recording event
-      controller.onRecordingChange(false);
+      controller.onRecordingChange('stopped');
       assert.isFalse(view.el.classList.contains('visible'));
     });
 

@@ -153,10 +153,18 @@ ControlsController.prototype.onCaptureClick = function() {
  * @private
  */
 ControlsController.prototype.onRecordingChange = function(recording) {
-  this.view.set('recording', recording);
+  var active;
+  if (recording === 'started') {
+    active = true;
+  } else if (recording === 'stopped') {
+    active = false;
+  } else {
+    return;
+  }
+  this.view.set('recording', active);
   if (!recording) { this.onRecordingEnd(); }
   // Update capture button label when recording changes.
-  this.view.setCaptureLabel(recording);
+  this.view.setCaptureLabel(active);
 };
 
 /**

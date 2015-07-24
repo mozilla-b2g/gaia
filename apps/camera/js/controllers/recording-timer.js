@@ -66,13 +66,12 @@ RecordingTimerController.prototype.bindEvents = function() {
  */
 RecordingTimerController.prototype.onRecordingChange = function(recording) {
   debug('recording: %s', recording);
-  if (!recording) {
+  if (recording === 'stopped') {
     this.view.hide();
-    return;
+  } else if (recording === 'started') {
+    this.view.value(0);
+    this.view.show();
   }
-
-  this.view.value(0);
-  this.view.show();
 };
 
 });
