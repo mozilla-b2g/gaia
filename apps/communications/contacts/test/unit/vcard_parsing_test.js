@@ -488,7 +488,7 @@ suite('vCard parsing settings', function() {
             assert.strictEqual(true, contact.tel[0].pref);
             assert.strictEqual('(123) 456-7890', contact.tel[0].value);
             assert.strictEqual('(123) 666-7890', contact.tel[1].value);
-            assert.ok(!contact.org[0]);
+            assert.ok(!contact.org || !contact.org[0]);
             assert.strictEqual('home', contact.email[0].type[0]);
             assert.strictEqual('example@example.org', contact.email[0].value);
             done();
@@ -667,6 +667,18 @@ suite('vCard parsing settings', function() {
           assert.equal(result[0].id, 1);
           matchStub.restore();
           mergeStub.restore();
+          done();
+        });
+      });
+    });
+    test('- vcard with fields with empty values', function(done) {
+      initializeVCFReader('vcard_undefined.vcf', function(reader) {
+        reader.onread = stub();
+        reader.onimported = stub();
+        reader.onerror = stub();
+        reader.process(function(result) {
+          assert.equal(result.length, 1);
+          assert.ok(!result[0].org);
           done();
         });
       });
