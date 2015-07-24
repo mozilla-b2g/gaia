@@ -87,7 +87,14 @@ var TabBar = {
 
               this.playlistArray.forEach(function(playlist) {
                 ListView.update(this.option, playlist);
+              }.bind(this));this.playlistArray.forEach(function(playlist, idx, playlists) {
+                //Don't give bottom border to last element. We use -2 here,
+                //because the array's last element is null
+                var noborder = (idx === playlists.length - 2);
+                ListView.update(this.option, playlist, noborder);
               }.bind(this));
+
+              ListView.update('my-playlists-header');
 
               musicdb.getAllPlaylists(function(playlists) {
                 playlists.forEach(function(playlist) {

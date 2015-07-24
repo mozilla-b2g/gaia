@@ -158,7 +158,7 @@ var ListView = {
     }.bind(this));
   },
 
-  update: function lv_update(option, result) {
+  update: function lv_update(option, result, noborder) {
     if (result === null) {
       App.showCorrectOverlay();
       return;
@@ -166,15 +166,14 @@ var ListView = {
 
     this.dataSource.push(result);
 
-    if (option !== 'playlist') {
+    if (option !== 'playlist' && option !== 'my-playlists-header') {
       var header = this.createHeader(option, result);
       if (header) {
         this.anchor.appendChild(header);
       }
     }
 
-    this.anchor.appendChild(createListElement(option, result, this.index));
-
+    this.anchor.appendChild(createListElement(option, result, this.index, false, noborder));
     this.index++;
   },
 
