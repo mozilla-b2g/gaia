@@ -85,7 +85,7 @@ contacts.Settings = (function() {
     var value = newOrderByLastName === null ? orderByLastName :
       newOrderByLastName;
     orderCheckBox.checked = value;
-    orderItem.setAttribute('aria-checked', value);
+    orderCheckBox.setAttribute('aria-checked', value);
   };
 
   var updateImportTitle = function updateImportTitle(l10nString) {
@@ -96,7 +96,7 @@ contacts.Settings = (function() {
   var initContainers = function initContainers() {
     orderItem = document.getElementById('settingsOrder');
     orderCheckBox = orderItem.querySelector('[name="order.lastname"]');
-    orderItem.addEventListener('click', onOrderingChange.bind(this));
+    orderCheckBox.addEventListener('change', onOrderingChange.bind(this));
     // Creating a navigation handler from this view
     navigationHandler = new navigationStack('view-settings');
 
@@ -447,7 +447,7 @@ contacts.Settings = (function() {
 
   // Listens for any change in the ordering preferences
   var onOrderingChange = function onOrderingChange(evt) {
-    newOrderByLastName = !orderCheckBox.checked;
+    newOrderByLastName = orderCheckBox.checked;
     utils.cookie.update({order: newOrderByLastName});
     updateOrderingUI();
     Cache.evict();

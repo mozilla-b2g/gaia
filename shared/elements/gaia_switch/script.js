@@ -45,8 +45,8 @@ window.GaiaSwitch = (function(win) {
   };
 
   proto.handleClick = function(e) {
-    e.preventDefault();
-    e.stopImmediatePropagation();
+    e && e.preventDefault();
+    e && e.stopImmediatePropagation();
 
     // Dispatch a click event.
     var event = new MouseEvent('click', {
@@ -65,6 +65,13 @@ window.GaiaSwitch = (function(win) {
       bubbles: true,
       cancelable: false
     }));
+  };
+
+  /**
+   * Allows users to simulate clicking through javascript.
+   */
+  proto.click = function() {
+    this.handleClick();
   };
 
   /**

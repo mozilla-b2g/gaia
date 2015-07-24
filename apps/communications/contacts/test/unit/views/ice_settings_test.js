@@ -19,6 +19,8 @@ requireApp('communications/contacts/js/utilities/ice_data.js');
 requireApp('communications/contacts/js/views/ice_settings.js');
 requireApp('communications/contacts/test/unit/mock_contacts_list_obj.js');
 requireApp('communications/contacts/test/unit/mock_contacts_settings.js');
+require('/shared/js/component_utils.js');
+require('/shared/elements/gaia_switch/script.js');
 require('/shared/test/unit/mocks/mock_confirm_dialog.js');
 require('/shared/test/unit/mocks/mock_ice_store.js');
 
@@ -133,8 +135,8 @@ suite('ICE Settings view', function() {
 
     var iceCheck1 = document.querySelector('[name="ice-contact-1-enabled"]');
     var iceCheck2 = document.querySelector('[name="ice-contact-2-enabled"]');
-    assert.isFalse(iceCheck1.disabled);
-    assert.isFalse(iceCheck2.disabled);
+    assert.ok(!iceCheck1.disabled);
+    assert.ok(!iceCheck2.disabled);
   }
 
   suite('> Initialization', function() {
@@ -341,7 +343,7 @@ suite('ICE Settings view', function() {
 
     test('> change state saves ICE Datastore', function(done) {
       subject.refresh(function() {
-        var switch1 = document.getElementById('ice-contacts-1-switch');
+        var switch1 = document.querySelector('[name=ice-contact-1-enabled]');
         // Disable 1
         switch1.click();
 
