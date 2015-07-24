@@ -1368,6 +1368,58 @@ var MediaDB = (function() {
       freereq.onsuccess = function() {
         callback(freereq.result);
       };
+    },
+
+    getPlaylistSongs: function getPlaylistSongs(playlistName, callback) {
+        var store = this.db.transaction('playlists').objectStore('playlists');
+
+        store.get(playlistName).onsuccess = function(evt) {
+          callback(evt.target.result);
+        };
+    },
+
+    getAllPlaylists: function getAllPlaylists(callback) {
+        var store = this.db.transaction('playlists').objectStore('playlists');
+
+        var request = store.openCursor();
+        var playlists = [];
+
+        request.onsuccess = function(evt) {
+            var cursor = evt.target.result;
+            if (cursor) {
+                playlists.push(cursor.value);
+                cursor.continue();
+            } else {
+                callback(playlists);
+            }
+        };
+    },
+
+    addToPlaylist: function addToPlaylist(playlistName, songData, callback) {
+      var store = this.db.transaction('playlists', 'readwrite').objectStore('playlists');
+
+      this.getPlaylistSongs(playlistName, function(result) {
+        if (!result) {
+          store = this.db.transaction('playlists', 'readwrite').objectStore('playlists');
+
+          var request = store.add({
+            songs: [songData],
+            name: playlistName
+          });
+
+          request.onsuccess = function(evt) {
+            callback();
+          }.bind(this);
+        } else {
+          result.songs.push(songData);
+          store = this.db.transaction('playlists', 'readwrite').objectStore('playlists');
+
+          var requestUpdate = store.put(result);
+          requestUpdate.onsuccess = function(evt) {
+            callback();
+          }.bind(this);
+        }
+      }.bind(this));
     }
   };
 
