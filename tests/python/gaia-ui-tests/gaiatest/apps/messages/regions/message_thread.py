@@ -19,7 +19,7 @@ class MessageThread(Base):
     _message_header_locator = (By.ID, 'messages-header-text')
     _call_button_locator = (By.ID, 'messages-call-number-button')
 
-    def wait_for_received_messages(self, timeout=180):
+    def wait_for_received_messages(self, interval=5, timeout=300):
         Wait(self.marionette, timeout).until(expected.element_displayed(
             Wait(self.marionette, timeout).until(expected.element_present(
                 *self._received_message_content_locator))))
