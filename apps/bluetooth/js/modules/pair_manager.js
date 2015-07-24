@@ -1,5 +1,4 @@
-/* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+/* global NotificationHelper */
 
 define(function(require) {
   'use strict';
@@ -8,7 +7,6 @@ define(function(require) {
   var BtContext = require('modules/bluetooth/bluetooth_context');
   var PairExpiredDialog = require('views/pair_expired_dialog');
 
-  var _ = window.navigator.mozL10n.get;
   var _debug = false;
   var Debug = function() {};
   if (_debug) {
@@ -98,6 +96,7 @@ define(function(require) {
 
       this._defaultAdapter.pairingReqs.addEventListener('displaypasskeyreq',
         (evt) => {
+        Debug('_watchOndisplaypasskeyreq');
         this._handlePairingRequest({
           method: 'displaypasskey',
           evt: evt
@@ -120,6 +119,7 @@ define(function(require) {
 
       this._defaultAdapter.pairingReqs.addEventListener('enterpincodereq',
         (evt) => {
+        Debug('_watchOnenterpincodereq');
         this._handlePairingRequest({
           method: 'enterpincode',
           evt: evt
@@ -143,6 +143,7 @@ define(function(require) {
 
       this._defaultAdapter.pairingReqs.addEventListener(
         'pairingconfirmationreq', (evt) => {
+        Debug('_watchOnpairingconfirmationreq: evt = ' + JSON.stringify(evt));
         this._handlePairingRequest({
           method: 'confirmation',
           evt: evt
@@ -166,6 +167,7 @@ define(function(require) {
 
       this._defaultAdapter.pairingReqs.addEventListener('pairingconsentreq',
         (evt) => {
+        Debug('_watchOnpairingconsentreq: evt = ' + JSON.stringify(evt));
         this._handlePairingRequest({
           method: 'consent',
           evt: evt
@@ -282,21 +284,20 @@ define(function(require) {
         showPairviewCallback: this.showPairview.bind(this, pairingInfo)
       };
       // Prepare notification toast.
-      var title = _('bluetooth-pairing-request-now-title');
-      var body = pairingInfo.evt.deviceName || _('unnamed-device');
+      var body = pairingInfo.evt.deviceName || 'unnamed-device';
       var iconUrl =
         'app://bluetooth.gaiamobile.org/style/images/icon_bluetooth.png';
-      // We always use tag "pairing-request" to manage these notifications.
       var notificationId = 'pairing-request';
-      var notification = new Notification(title, {
-        body: body,
-        icon: iconUrl,
-        tag: notificationId
+      // We always use tag "pairing-request" to manage these notifications.
+      NotificationHelper.send('bluetooth-pairing-request-now-title', {
+        'bodyL10n': body,
+        'icon': iconUrl,
+        'tag': notificationId
+      }).then((notification) => {
+        notification.addEventListener('click',
+          this.pairingRequestExpiredNotificationHandler
+            .bind(this, notification));
       });
-
-      // set onclick handler for the notification
-      notification.onclick =
-        this.pairingRequestExpiredNotificationHandler.bind(this, notification);
     },
 
     // According to user story, it won't notify user again
@@ -334,7 +335,9 @@ define(function(require) {
     // If there is a pending pairing request while a user just unlocks screen,
     // we will show pair view immediately. Then, we clear up the notification.
     showPendingPairing: function(screenLocked) {
+      Debug('showPendingPairing when screenLocked:' + screenLocked);
       if (!screenLocked && this.pendingPairing) {
+        Debug(' and has pendingPairing');
         // show pair view from the callback function
         if (this.pendingPairing.showPairviewCallback) {
           this.pendingPairing.showPairviewCallback();

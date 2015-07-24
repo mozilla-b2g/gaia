@@ -50,7 +50,7 @@ var Pairview = {
     this.closeButton.addEventListener('click', this);
     window.addEventListener('resize', this);
 
-    var truncatedDeviceName = getTruncated(this._device.name, {
+    var truncatedDeviceName = getTruncated(_(this._device.name), {
       node: this.nameLabel,
       maxLine: 2,
       ellipsisIndex: 3
