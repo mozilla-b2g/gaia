@@ -298,7 +298,7 @@ function singletap(e) {
          isPhone) {
       fullscreenView.classList.toggle('toolbar-hidden');
     }
-  } else if (currentView === LAYOUT_MODE.list &&
+  } else if (!isPhone && currentView === LAYOUT_MODE.list &&
              !files[currentFileIndex].metadata.video) {
     // We don't separate cases by screen size, because we don't show
     // preview screen on tiny device.
