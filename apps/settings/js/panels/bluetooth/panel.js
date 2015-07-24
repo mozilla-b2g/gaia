@@ -251,8 +251,8 @@ define(function(require) {
       },
 
       _onRenameButtonClick: function() {
-        var messageL10nId = 'change-phone-name-desc';
-        var titleL10nId = 'change-device-name';
+        var messageL10nId = 'change-btdevice-name-desc';
+        var titleL10nId = 'change-btdevice-name';
         var myDeviceName = BtContext.name;
         Debug('_onRenameButtonClick(): myDeviceName = ' + myDeviceName);
         DialogService.prompt(messageL10nId, {
