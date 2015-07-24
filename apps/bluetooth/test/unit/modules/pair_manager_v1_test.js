@@ -320,8 +320,17 @@ suite('Bluetooth app > PairManager ', function() {
         mockNotification = null;
       });
 
+      test('notification should be close, confirm dialog should not be ' +
+        'called if pair request not expired yet', function() {
+        PairManager._isExpired = false;
+        assert.isTrue(mockNotification.close.called);
+        MockNavigatormozApps.mTriggerLastRequestSuccess();
+        assert.isFalse(PairExpiredDialog.showConfirm.called);
+      });
+
       test('notification should be close, confirm dialog should be called ' +
         'if it is not visible', function() {
+        PairManager._isExpired = true;
         assert.isTrue(mockNotification.close.called);
         MockNavigatormozApps.mTriggerLastRequestSuccess();
         assert.isTrue(PairExpiredDialog.showConfirm.called);
