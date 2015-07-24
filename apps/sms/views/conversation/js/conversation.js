@@ -1611,9 +1611,14 @@ var ConversationView = {
     // assuming that incoming message only has one deliveryInfo
     var status = message.deliveryInfo[0].deliveryStatus;
 
-    var expireFormatted = Utils.date.format.localeFormat(
-      new Date(+message.expiryDate), navigator.mozL10n.get('expiry-date-format')
-    );
+    var dateTimeOptions = {
+      weekday: 'long',
+      month: 'short',
+      day: '2-digit',
+    };
+    var formatter = 
+      new Intl.DateTimeFormat(navigator.languages, dateTimeOptions);
+    var expireFormatted = formatter.format(new Date(+message.expiryDate));
 
     var expired = +message.expiryDate < Date.now();
 
@@ -1635,7 +1640,7 @@ var ConversationView = {
       messageL10nId: messageL10nId,
       messageL10nArgs: JSON.stringify({ date: expireFormatted }),
       messageL10nDate: message.expiryDate.toString(),
-      messageL10nDateFormat: 'expiry-date-format',
+      messageL10nDateFormat: JSON.stringify(dateTimeOptions),
       downloadL10nId: downloadL10nId
     });
   },

@@ -9,7 +9,7 @@ var MockUtils = {
   camelCase: Utils.camelCase,
   date: Utils.date,
   getDayDate: Utils.getDayDate,
-  getHeaderDate: Utils.getHeaderDate,
+  setHeaderDate: Utils.setHeaderDate,
   getFormattedHour: Utils.getFormattedHour,
   // real code needed here to map types
   typeFromMimeType: Utils.typeFromMimeType,

@@ -63,8 +63,7 @@
     -->
     <!-- Shared code -->
     <script defer src="shared/js/l10n.js"></script>
-    <script defer src="shared/js/l10n_date.js"></script>
-    <!-- Should be removed while gecko support navigator.mozHour12 API -->
+    <!-- Should be removed when bug 1172732 lands -->
     <script defer src="shared/js/date_time_helper.js"></script>
     <script defer src="shared/js/template.js"></script>
     <script defer src="shared/js/async_storage.js"></script>
@@ -271,7 +270,7 @@
                 </div>
                 <div class="composer-message-input-container">
                   <div id="messages-input" contentEditable="true" name="message"
-                       x-inputmode="-moz-sms" class="js-l10n-placeholder"
+                       x-inputmode="-moz-sms" data-l10n-id="messagesInput"
                        role="textbox" aria-multiline="true">
                   </div>
                 </div>
@@ -445,8 +444,7 @@
       <span data-l10n-id="${titleL10n}"></span>
       <span class="timestamp l10n-contains-date"
             data-l10n-date="${timestamp}"
-            data-l10n-date-format12="${messageL10nDateFormat12}"
-            data-l10n-date-format24="${messageL10nDateFormat24}"
+            data-l10n-date-format="${messageL10nDateFormat}"
             >${reportDateL10n}</span>
       -->
     </div>

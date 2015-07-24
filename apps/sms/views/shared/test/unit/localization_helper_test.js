@@ -1,10 +1,8 @@
 /*global LocalizationHelper,
-         MockL10n,
-         Utils
+         MockL10n
 */
 'use strict';
 
-require('/views/shared/js/utils.js');
 require('/views/shared/js/localization_helper.js');
 
 require('/shared/test/unit/mocks/mock_l10n.js');
@@ -54,31 +52,6 @@ suite('LocalizationHelper >', function() {
     });
   });
 
-  test('localizes placeholders', function() {
-    var placeHolder1 = document.createElement('div');
-    placeHolder1.classList.add('js-l10n-placeholder');
-    placeHolder1.id = 'first-placeholder';
-
-    var placeHolder2 = document.createElement('div');
-    placeHolder2.classList.add('js-l10n-placeholder');
-    placeHolder2.id = 'second-placeholder';
-
-    document.body.appendChild(placeHolder1);
-    document.body.appendChild(placeHolder2);
-
-    navigator.mozL10n.ready.yield();
-
-    sinon.assert.calledTwice(navigator.mozL10n.translateFragment);
-    assert.equal(
-      placeHolder1.dataset.placeholder,
-      navigator.mozL10n.get(Utils.camelCase(placeHolder1.id) + '_placeholder')
-    );
-    assert.equal(
-      placeHolder2.dataset.placeholder,
-      navigator.mozL10n.get(Utils.camelCase(placeHolder2.id) + '_placeholder')
-    );
-  });
-
   [onL10nReady, onTimeFormatChange].forEach(function(forceUpdateMethod) {
     suite('localizes date & time ' + forceUpdateMethod.name +' >', function() {
       var node;
@@ -117,8 +90,16 @@ suite('LocalizationHelper >', function() {
 
       test('correctly formats node content', function() {
         var timestamp = Date.now();
+        var options = {
+          month: 'long',
+          day: '2-digit',
+          year: 'numeric',
+        };
 
-        function assertChange(format, doNotFormat) {
+        function assertChange(options, doNotFormat) {
+          options.hour12 = navigator.mozHour12;
+          var formatter =
+            new Intl.DateTimeFormat(navigator.languages, options);
           // In case of time format change date-only elements aren't updated
           if (doNotFormat) {
             assert.equal(
@@ -127,7 +108,7 @@ suite('LocalizationHelper >', function() {
           } else {
             assert.equal(
               node.textContent,
-              Utils.date.format.localeFormat(new Date(timestamp), format)
+              formatter.format(new Date(timestamp))
             );
           }
 
@@ -136,29 +117,37 @@ suite('LocalizationHelper >', function() {
         }
 
         node.dataset.l10nDate = timestamp;
-        node.dataset.l10nDateFormat = 'format';
-
+        node.dataset.l10nDateFormat = JSON.stringify(options);
         // In case of time format change date-only elements shouldn't be updated
-        assertChange(node.dataset.l10nDateFormat, forceUpdateMethod());
+        assertChange(options, forceUpdateMethod());
 
-        node.dataset.l10nDateFormat12 = 'format12';
-        node.dataset.l10nDateFormat24 = 'format24';
+        options.hour = 'numeric';
+        options.minute = 'numeric';
+        node.dataset.l10nDateFormat = JSON.stringify(options);
 
         navigator.mozHour12 = true;
         forceUpdateMethod();
-
-        assertChange(node.dataset.l10nDateFormat12);
+        assertChange(options);
 
         navigator.mozHour12 = false;
         forceUpdateMethod();
 
-        assertChange(node.dataset.l10nDateFormat24);
+        assertChange(options);
       });
 
       test('correctly formats node l10n attributes', function() {
         var timestamp = Date.now();
+        var options = {
+          month: 'long',
+          day: '2-digit',
+          year: 'numeric',
+        };
 
-        function assertChange(format, doNotFormat) {
+        function assertChange(options, doNotFormat) {
+          options.hour12 = navigator.mozHour12;
+          var formatter =
+            new Intl.DateTimeFormat(navigator.languages, options);
+
           var l10nAttributes = navigator.mozL10n.getAttributes(node);
           // In case of time format change date-only elements aren't updated
           if (doNotFormat) {
@@ -168,7 +157,7 @@ suite('LocalizationHelper >', function() {
           } else {
             assert.deepEqual(l10nAttributes.args, {
               data: 'custom',
-              date: Utils.date.format.localeFormat(new Date(timestamp), format)
+              date: formatter.format(new Date(timestamp))
             });
           }
 
@@ -180,24 +169,24 @@ suite('LocalizationHelper >', function() {
           data: 'custom'
         });
         node.dataset.l10nDate = timestamp;
-        node.dataset.l10nDateFormat = 'format';
+        node.dataset.l10nDateFormat = JSON.stringify(options);
         node.textContent = 'not-changed-content';
-
         // In case of time format change date-only elements shouldn't be updated
-        assertChange(node.dataset.l10nDateFormat, forceUpdateMethod());
+        assertChange(options, forceUpdateMethod());
 
-        node.dataset.l10nDateFormat12 = 'format12';
-        node.dataset.l10nDateFormat24 = 'format24';
+        options.hour = 'numeric';
+        options.minute = 'numeric';
+        node.dataset.l10nDateFormat = JSON.stringify(options);
 
         navigator.mozHour12 = true;
         forceUpdateMethod();
 
-        assertChange(node.dataset.l10nDateFormat12);
+        assertChange(options);
 
         navigator.mozHour12 = false;
         forceUpdateMethod();
 
-        assertChange(node.dataset.l10nDateFormat24);
+        assertChange(options);
       });
     });
   });

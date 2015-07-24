@@ -1,5 +1,3 @@
-/* global Utils */
-
 /* exported LocalizationHelper */
 (function(exports) {
   'use strict';
@@ -25,32 +23,29 @@
    * changed and we need to update only elements with time aware formats.
    */
   function localizeDateTime(isTimeFormatChanged) {
-    var dateTimeElements = document.querySelectorAll(isTimeFormatChanged ?
-      '.l10n-contains-date[data-l10n-date-format12][data-l10n-date-format24]' :
-      '.l10n-contains-date'
-    );
+    var dateTimeElements = document.querySelectorAll('.l10n-contains-date');
+
     Array.forEach(dateTimeElements, function(element) {
       if (!element.dataset.l10nDate) {
         return;
       }
 
-      // If element contains time-aware format then we should respect current
-      // time format setting
       var formatL10nId = element.dataset.l10nDateFormat;
-      if (element.dataset.l10nDateFormat12 &&
-          element.dataset.l10nDateFormat24) {
-        formatL10nId = navigator.mozHour12 ?
-          element.dataset.l10nDateFormat12 : element.dataset.l10nDateFormat24;
-      }
 
       if (!formatL10nId) {
         return;
       }
 
-      var localeData = Utils.date.format.localeFormat(
-        new Date(+element.dataset.l10nDate),
-        navigator.mozL10n.get(formatL10nId)
-      );
+      formatL10nId = JSON.parse(formatL10nId);
+      
+      if (isTimeFormatChanged && !formatL10nId.hour) {
+        return;
+      }
+      formatL10nId.hour12 = navigator.mozHour12;
+
+      var formatter = 
+        new Intl.DateTimeFormat(navigator.languages, formatL10nId);
+      var localeData = formatter.format(new Date(+element.dataset.l10nDate));
 
       if (element.hasAttribute('data-l10n-id') &&
           element.hasAttribute('data-l10n-args')) {
@@ -63,18 +58,6 @@
     });
   }
 
-   /**
-   * Re-translate the placeholder messages
-   */
-  function localizePlaceholders() {
-    var placeholderElements = document.querySelectorAll('.js-l10n-placeholder');
-    Array.forEach(placeholderElements, function(element) {
-      element.dataset.placeholder = navigator.mozL10n.get(
-        Utils.camelCase(element.id) + '_placeholder'
-      );
-    });
-  }
-
   exports.LocalizationHelper = {
     init: function () {
       // This will be called during startup, and every time the language is
@@ -82,7 +65,6 @@
       navigator.mozL10n.ready(function localized() {
         localizeIFrames();
         localizeDateTime();
-        localizePlaceholders();
       });
 
       // This event is fired when time format (12h/24h) is changed

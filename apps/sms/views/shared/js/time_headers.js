@@ -43,23 +43,26 @@
         return;
       }
 
-      var newElement;
-
       // only date
       if (element.dataset.dateOnly === 'true') {
-        newElement = Utils.getHeaderDate(ts);
+        Utils.setHeaderDate({
+          time: ts,
+          element: element,
+          withTime: false
+        });
 
       // only time
       } else if (element.dataset.timeOnly === 'true') {
-        newElement = Utils.getFormattedHour(ts);
+        element.removeAttribute('data-l10n-id');
+        element.textContent = Utils.getFormattedHour(ts);
 
       // date + time
       } else {
-        newElement = Utils.getHeaderDate(ts) + ' ' + Utils.getFormattedHour(ts);
-      }
-
-      if (newElement !== element.textContent) {
-        element.textContent = newElement;
+        Utils.setHeaderDate({
+          time: ts,
+          element: element,
+          withTime: true
+        });
       }
     }
   };

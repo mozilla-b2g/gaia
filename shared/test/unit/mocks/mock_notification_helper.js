@@ -7,17 +7,15 @@ var MockNotificationHelper = {
     this.mTitleL10n = titleL10n;
     var self = this;
 
-    return {
-      then: function(resolve) {
-        var notification = {
-          addEventListener: function(type, cb) {
-            self.mEvents[type] = cb;
-          }
-        };
-        resolve(notification);
-        return Promise.resolve();
-      }
+    var notification = {
+      addEventListener: function(type, cb) {
+        self.mEvents[type] = cb;
+      },
+      close: sinon.stub()
     };
+    sinon.spy(notification, 'addEventListener');
+
+    return Promise.resolve(notification);
   },
 
   getIconURI: function nc_getIconURI(app, entryPoint) {
