@@ -22,20 +22,10 @@
         settings: {
           'lockscreen.enabled': true
         },
-        apps: apps,
-        prefs: {
-          'focusmanager.testmode': true
-        }
+        apps: apps
       }
     });
 
-    var getAppHeight = function(origin) {
-      client.switchToFrame();
-      client.apps.switchToApp(origin);
-      return client.executeScript(function() {
-        return window.wrappedJSObject.innerHeight;
-      });
-    };
 
     var getWindowName = function() {
       client.switchToFrame();
@@ -211,109 +201,6 @@
         assert.equal(getWindowName(), 'Fake Activity Caller');
         assert.isTrue(getActiveAppWindowState());
       });
-    });
-
-    suite('Value selector', function() {
-      setup(function() {
-        system = client.loader.getAppClass('system');
-        system.waitForFullyLoaded();
-        lockscreen.unlock();
-      });
-
-      test('Focus a date input in an app should trigger value selector',
-        function() {
-          activitycaller.launch();
-          activitycaller.focusDateInput();
-
-          client.helper.waitForElement('.appWindow .value-selector');
-        });
-
-      test('Focus a date input in system dialog should trigger value selector',
-        function() {
-          activitycaller.launch();
-          fxASystemDialog.show();
-          fxASystemDialog.goToCOPPA();
-          fxASystemDialog.focusAge();
-          client.switchToFrame();
-          client.helper.waitForElement('.fxa-dialog .value-selector');
-        });
-    });
-
-    test('Focus during init logo does not invoke keyboard', function() {
-      fxASystemDialog.show();
-      var h1 = fxASystemDialog.getHeight();
-      fxASystemDialog.focus();
-      var h2 = fxASystemDialog.getHeight();
-      assert.equal(h1, h2);
-    });
-
-    suite('Keyboard resize', function() {
-      setup(function() {
-        system = client.loader.getAppClass('system');
-        system.waitForFullyLoaded();
-        lockscreen.unlock();
-      });
-
-      // XXX: See bug 1103944
-      test.skip('App should not change its height when focusing attention',
-        function() {
-          fakeDialerApp.launch();
-          var apph1 = getAppHeight(fakeDialerApp.origin);
-          client.switchToFrame();
-          var h1 = fakeDialerApp.getCallHeight();
-          client.findElement('#input').click();
-          client.switchToFrame();
-          system.waitForKeyboard();
-          var apph2 = getAppHeight(fakeDialerApp.origin);
-          var h2 = fakeDialerApp.getCallHeight();
-          assert.notEqual(h1, h2);
-          assert.equal(apph1, apph2);
-        });
-
-      test('App with input is focused should change height', function() {
-        activitycaller.launch();
-        var h1 = getAppHeight('app://' + CALLER_APP);
-        activitycaller.focusTextInput();
-        system.waitForKeyboard();
-        var h2 = getAppHeight('app://' + CALLER_APP);
-        assert.notEqual(h1, h2);
-
-        // Ensure the height is restored.
-        activitycaller.blurFocusedInput();
-        system.waitForKeyboardToDisappear();
-        var h3 = getAppHeight('app://' + CALLER_APP);
-        assert.equal(h1, h3);
-      });
-
-      test('App height is restored instantly when activity opens', function() {
-        activitycaller.launch();
-        var h1 = getAppHeight('app://' + CALLER_APP);
-        activitycaller.focusTextInput();
-        system.waitForKeyboard();
-        var h2 = getAppHeight('app://' + CALLER_APP);
-        assert.notEqual(h1, h2);
-
-        activitycaller.startActivity();
-
-        var h3 = getAppHeight('app://' + CALLER_APP);
-        assert.equal(h1, h3);
-      });
-
-      test('App should not change its height if system dialog is focused',
-        function() {
-          activitycaller.launch();
-          var h1 = getAppHeight('app://' + CALLER_APP);
-          fxASystemDialog.show();
-          var systemDialogHeight1 = fxASystemDialog.getHeight();
-          fxASystemDialog.focus();
-          client.switchToFrame();
-          system.waitForKeyboard();
-
-          var systemDialogHeight2 = fxASystemDialog.getHeight();
-          var h2 = getAppHeight('app://' + CALLER_APP);
-          assert.equal(h1, h2);
-          assert.notEqual(systemDialogHeight1, systemDialogHeight2);
-        });
     });
   });
 }());
