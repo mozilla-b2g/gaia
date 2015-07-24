@@ -28,22 +28,21 @@
   var LockScreenInputpad = function(lockScreen) {
     this.lockScreen = lockScreen;
     this.configs = {
-      passcodeDecoratingTimeout: 500,
-      padVibrationDuration: 50,
+      padVibrationDuration: 50
     };
     this.states = {
       // Keep in sync with Dialer and Keyboard vibration
       padVibrationEnabled: false,
       passCodeEntered: '',
-      passcodeErrorCounter: 0
+      passCodeErrorTimeoutPending: false
     };
   };
   LockScreenInputpad.prototype.start = function() {
     this.addEventListener('lockscreen-notify-passcode-validationfailed');
+    this.addEventListener('lockscreen-notify-passcode-validationreset');
     this.addEventListener('lockscreen-notify-passcode-validationsuccess');
-    // Need these to reset status.
-    this.addEventListener('lockscreen-appclosed', this);
     this.addEventListener('lockscreen-inputappclosed', this);
+    this.addEventListener('lockscreen-inputappopened', this);
 
     this.passcodeCode = document.getElementById('lockscreen-passcode-code');
     this.passcodePad = document.getElementById('lockscreen-passcode-pad');
@@ -92,20 +91,19 @@
   LockScreenInputpad.prototype.handleEvent = function(evt) {
     switch (evt.type) {
       case 'lockscreen-notify-passcode-validationfailed':
-        return this.decorateErrorPasscodeUI()
-          .then(() => {
-            this.removeErrorPasscodeUI();
-            this.updatePassCodeUI();
-          });
+        this.states.passCodeErrorTimeoutPending = true;
+        this.updatePassCodeUI();
+        break;
+      case 'lockscreen-notify-passcode-validationreset':
       case 'lockscreen-notify-passcode-validationsuccess':
-        this.resetPasscodeStatus();
+        this.states.passCodeEntered = '';
+        this.states.passCodeErrorTimeoutPending = false;
         this.updatePassCodeUI();
-      break;
+        break;
+      case 'lockscreen-inputappopened':
       case 'lockscreen-inputappclosed':
-      case 'lockscreen-appclosed':
-        this.removeErrorPasscodeUI();
         this.updatePassCodeUI();
-      break;
+        break;
       case 'click':
         var key = evt.target.dataset.key;
         if (!key &&
@@ -117,11 +115,11 @@
         if (!key) {
           break;
         }
-
         // Cancel the default action of <a>
         evt.preventDefault();
         this.handlePassCodeInput(key);
-      break;
+        // .handlePassCodeInput() triggers .updatePassCode()
+        break;
     }
   };
 
@@ -139,34 +137,6 @@
     window.removeEventListener(name, cb);
   };
 
-  LockScreenInputpad.prototype.decorateErrorPasscodeUI = function() {
-    var promise = new Promise((resolve) => {
-      //double delay if >5 failed attempts
-      this.states.passcodeErrorCounter ++;
-      if (this.states.passcodeErrorCounter > 5) {
-        this.configs.passcodeDecoratingTimeout =
-          this.configs.passcodeDecoratingTimeout << 1;
-      }
-      this.passcodeCode.classList.add('error');
-      setTimeout(() => {
-        this.removeErrorPasscodeUI();
-        resolve();
-      }, this.configs.passcodeDecoratingTimeout);
-    });
-    return promise;
-  };
-
-  LockScreenInputpad.prototype.removeErrorPasscodeUI = function() {
-    this.states.passCodeEntered = '';
-    this.passcodeCode.classList.remove('error');
-  };
-
-  LockScreenInputpad.prototype.resetPasscodeStatus = function() {
-    this.configs.passcodeDecoratingTimeout = 500;
-    this.states.passcodeErrorCounter = 0;
-    this.states.passCodeEntered = '';
-  };
-
   LockScreenInputpad.prototype.updatePassCodeUI =
   function() {
     if (this.states.passCodeEntered) {
@@ -177,6 +147,11 @@
     if (this.states.passCodeEntered.length !== 4 &&
         this.passcodePad.classList.contains('passcode-fulfilled')) {
       this.passcodePad.classList.remove('passcode-fulfilled');
+    }
+    if (this.states.passCodeErrorTimeoutPending) {
+      this.passcodeCode.classList.add('error');
+    } else {
+      this.passcodeCode.classList.remove('error');
     }
     var i = 4;
     while (i--) {
@@ -215,19 +190,18 @@
         break;
 
       case 'b': // 'B'ackspace for correction
-        // XXX: Directly access LockScreen for workaround.
-        if (this.lockScreen.overlay.dataset.passcodeStatus) {
-          return;
+        if (this.states.passCodeErrorTimeoutPending) {
+          break;
         }
         this.states.passCodeEntered =
           this.states.passCodeEntered.substr(0,
             this.states.passCodeEntered.length - 1);
         this.updatePassCodeUI();
-
         break;
+
       default:
-        if (this.lockScreen.overlay.dataset.passcodeStatus) {
-          return;
+        if (this.states.passCodeErrorTimeoutPending) {
+          break;
         }
         // If it's already 4 digits and this is the > 5th one,
         // don't do anything.
