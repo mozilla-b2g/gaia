@@ -47,6 +47,10 @@
   }
 
   function close(messageId, additionalMessageId) {
+    // Aborting the close if was closed previously, ie: no contacts
+    if (!extensionFrame.classList.contains('opening')) {
+      return;
+    }
     extensionFrame.addEventListener('transitionend', function tclose() {
       extensionFrame.removeEventListener('transitionend', tclose);
       extensionFrame.classList.add('hidden');
