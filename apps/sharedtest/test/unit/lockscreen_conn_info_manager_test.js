@@ -59,6 +59,22 @@ suite('system/LockScreenConnInfoManager >', function() {
     MockNavigatorSettings.mTeardown();
   });
 
+  suite('Initialization', function() {
+    setup(function() {
+      subject = new LockScreenConnInfoManager();
+    });
+
+    teardown(function() {
+      subject.teardown();
+    });
+
+    test('Ensure that the UI is immediately updated when starting', function() {
+      this.sinon.spy(subject, 'updateConnStates');
+      subject._initialize(domConnStates);
+      sinon.assert.calledOnce(subject.updateConnStates);
+    });
+  });
+
   suite('Update conn states when events', function() {
     var mockMobileConnection;
     var iccObj;

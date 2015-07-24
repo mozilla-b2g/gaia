@@ -113,6 +113,10 @@
           this.updateConnStates();
         }).bind(this);
       }).bind(this);
+
+      /* Immediately update the UI, this will display default data which will
+       * soon be updated once the various event handlers start triggering. */
+      this.updateConnStates();
   };
 
   LockScreenConnInfoManagerPrototype.teardown =
