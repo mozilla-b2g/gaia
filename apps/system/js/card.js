@@ -143,6 +143,7 @@
     this.closeButtonVisibility = 'visible';
     this.viewClassList = ['card', 'appIconPreview'];
     this.titleId = 'card-title-' + this.instanceID;
+    this.isHomescreen = Boolean(app.isHomescreen);
 
     if (app.isPrivate) {
       this.viewClassList.push('private');
@@ -333,9 +334,62 @@
                                       app.appChrome.isMaximized());
       }
     }
-    screenshotView.style.backgroundImage =
-      (cachedLayer ? 'url(' + cachedLayer + ')' : 'none' ) + ',' +
+
+    elem.classList.toggle('homescreen', this.isHomescreen);
+
+    if (this.isHomescreen) {
+      this.drawHomeScreenScreenshot(cachedLayer);
+    } else {
+      this.drawScreenshot(cachedLayer);
+    }
+  };
+
+  Card.prototype.drawScreenshot = function(screenshotUrl) {
+    screenshotUrl = screenshotUrl ? 'url(' + screenshotUrl + ')' : 'none';
+    this.screenshotView.style.backgroundImage =
+      screenshotUrl + ',' +
       '-moz-element(#' + this.app.instanceID + ')';
+  };
+
+  Card.prototype.drawHomeScreenScreenshot = function() {
+    // draw 3 background with wallpaper first
+    var app = this.app;
+    var cachedScreenshotUrl = app.requestScreenshotURL();
+    var screenshotView = this.screenshotView;
+
+    var wallpaperUrl = Service.query('getWallpaper');
+    var wallpaperValue = wallpaperUrl ? 'url(' + wallpaperUrl + ')' : 'none';
+    var screenshotValue = cachedScreenshotUrl ?
+                          'url(' + cachedScreenshotUrl + ')' : 'none';
+    var backgrounds = [
+      wallpaperValue,
+      screenshotValue,
+      '-moz-element(#' + app.instanceID + ')'
+    ];
+
+    function onScreenshotReady(evt) {
+      cachedScreenshotUrl = app.requestScreenshotURL();
+      window.removeEventListener('homescreenscreenshotready',
+                                 onScreenshotReady);
+      console.log('drawHomeScreenScreenshot, ' + evt.type, cachedScreenshotUrl);
+      if (screenshotView && screenshotView.parentNode &&
+          cachedScreenshotUrl) {
+        // should now be defined
+        backgrounds[1] = 'url(' + cachedScreenshotUrl + ')';
+        screenshotView.style.backgroundImage = backgrounds.join(', ');
+      }
+    }
+
+    screenshotView.style.backgroundImage = backgrounds.join(', ');
+    if (cachedScreenshotUrl) {
+      console.log('drawHomeScreenScreenshot using cachedScreenshotUrl');
+    } else {
+      app.getScreenshot(function onGettingRealtimeScreenshot() {
+        console.log('homescreen getScreenshot callback');
+      }, 0, 0, 400);
+      // update background when the homescreen screenshot is ready
+      window.addEventListener('homescreenscreenshotready', onScreenshotReady);
+    }
   };
 
   Card.prototype._fetchElements = function c__fetchElements() {

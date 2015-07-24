@@ -108,6 +108,7 @@
           var topMostWindow = Service.query('getTopMostWindow');
           if (topMostUI && topMostUI.name === 'AppWindowManager') {
             if (topMostWindow &&
+                !topMostWindow.getBottomMostWindow().isHomescreen &&
                 !Service.query('isFtuRunning')) {
               this.lifecycleEnabled = true;
               break;

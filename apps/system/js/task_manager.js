@@ -171,6 +171,12 @@
 
   TaskManager.prototype._registerEvents = function() {
     window.addEventListener('taskmanagershow', this);
+    window.addEventListener('appscreenshotready', function(evt) {
+      console.log('appscreenshotready:', evt.detail);
+    });
+    window.addEventListener('homescreenscreenshotready', function(evt) {
+      console.log('homescreenscreenshotready:', evt.detail);
+    });
   };
 
   TaskManager.prototype._unregisterEvents = function() {
@@ -234,11 +240,16 @@
       this.element.classList.add('filtered');
     }
 
-    // First add an item to the cardsList for each running app
     var stack = this.stack;
-    stack.forEach(function(app, position) {
-      this.addCard(position, app);
-    }, this);
+    // treat as empty if only the homescreen is on the stack,
+    var isEmpty = stack.length <= 1; //
+
+    if (!isEmpty) {
+      // First add an item to the cardsList for each running app
+      stack.forEach(function(app, position) {
+        this.addCard(position, app);
+      }, this);
+    }
 
     this.unfilteredStack.forEach(function(app, position) {
       app.enterTaskManager();
