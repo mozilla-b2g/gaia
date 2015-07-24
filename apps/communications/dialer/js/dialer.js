@@ -491,13 +491,15 @@ var CallHandler = (function callHandler() {
 
     if (!document.hidden || evt.session) {
       MmiManager.handleMMIReceived(evt.message, evt.session, evt.serviceId);
-    } else {
+    } else if (evt.message) {
       /* If the dialer is not visible and the session ends with this message
        * then this is most likely an unsollicited message. To prevent
        * interrupting the user we post a notification for it instead of
        * displaying the dialer UI. */
       MmiManager.sendNotification(evt.message, evt.serviceId)
                 .then(releaseWakeLock);
+    } else {
+      releaseWakeLock();
     }
   }
 
