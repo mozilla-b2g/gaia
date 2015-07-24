@@ -1,6 +1,6 @@
 /* exported TabBar */
 /* global AccessibilityHelper, ListView, TilesView,
-          MODE_TILES, MODE_LIST, ModeManager */
+          MODE_TILES, MODE_LIST, ModeManager, musicdb */
 'use strict';
 
 var TabBar = {
@@ -88,8 +88,13 @@ var TabBar = {
               this.playlistArray.forEach(function(playlist) {
                 ListView.update(this.option, playlist);
               }.bind(this));
-            }.bind(this));
 
+              musicdb.getAllPlaylists(function(playlists) {
+                playlists.forEach(function(playlist) {
+                  ListView.update(this.option, playlist);
+                }.bind(this));
+              }.bind(this));
+            }.bind(this));
             break;
           case 'tabs-artists':
           case 'tabs-albums':
