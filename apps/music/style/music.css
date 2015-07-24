@@ -1173,6 +1173,7 @@ html[dir="rtl"] .list-song-length {
   z-index: -1;
   opacity: 0;
   transition: all 600ms ease;
+  bottom: 4.5rem;
 }
 
 #info-banner.visible {

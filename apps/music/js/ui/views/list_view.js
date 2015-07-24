@@ -36,9 +36,14 @@ var ListView = {
   init: function lv_init() {
     this.clean();
 
+    this.banner = document.getElementById('info-banner');
+    this.bannerChild = document.getElementById('banner-child');
+
     this.view.addEventListener('click', this);
     this.view.addEventListener('touchmove', this);
     this.view.addEventListener('scroll', this);
+    this.view.addEventListener('contextmenu', this);
+
     this.searchInput.addEventListener('focus', this);
   },
 
@@ -346,6 +351,12 @@ var ListView = {
     var option = target.dataset.option;
     var index = target.dataset.index;
     var data = this.dataSource[index];
+
+    if (!data.metadata) {
+      // we have a custom playlist...
+      return this.activatePlaylist(data);
+    }
+
     var keyRange = (target.dataset.keyRange != 'all') ?
       IDBKeyRange.only(target.dataset.keyRange) : null;
     var l10nId = data.metadata.l10nId;
@@ -361,6 +372,42 @@ var ListView = {
       SubListView.activate(option, data, index, keyRange, direction, () => {
         ModeManager.push(MODE_SUBLIST);
       });
+    });
+  },
+
+  getSongData: function lv_getSongData(index, callback) {
+    var info = this.DBInfo;
+    var songData = this.dataSource[index];
+
+    if (songData) {
+      callback(songData);
+    } else {
+      // Cancel the ongoing enumeration so that it will not
+      // slow down the next enumeration if we start a new one.
+      ListView.cancelEnumeration();
+
+      var handle =
+        musicdb.advancedEnumerate(
+          info.key, info.range, info.direction, index, function(record) {
+            musicdb.cancelEnumeration(handle);
+            this.dataSource[index] = record;
+            callback(record);
+          }.bind(this)
+        );
+    }
+  },
+
+  addToPlaylist: function lv_addToPlaylist(playlistName, index) {
+    this.getSongData(index, function(songData) {
+      musicdb.addToPlaylist(playlistName, songData, function() {
+        this.showBanner(navigator.mozL10n.get('playlist-added'));
+      }.bind(this));
+    }.bind(this));
+  },
+
+  activatePlaylist: function lv_activatePlaylist(data) {
+    SubListView.activatePlaylist(data, function() {
+      ModeManager.push(MODE_SUBLIST);
     });
   },
 
@@ -444,8 +491,25 @@ var ListView = {
         }.bind(this), 500);
         break;
 
+      case 'contextmenu':
+        var option = target.dataset.option;
+
+        if (option === 'title') {
+          var playlistName = prompt("Add to playlist?");
+          this.addToPlaylist(playlistName, target.dataset.index);
+        }
+        break;
+
       default:
         return;
     }
+  },
+  showBanner: function lv_showBanner(msg) {
+    this.banner.classList.add('visible');
+    this.bannerChild.textContent = msg;
+
+    setTimeout (function hideBanner() {
+      this.banner.classList.remove('visible');
+    }.bind(this), 3000);
   }
 };

@@ -64,18 +64,25 @@ function createListElement(option, data, index, highlight) {
     case 'playlist':
       titleBdi = document.createElement('bdi');
       titleBdi.className = 'list-playlist-title';
-      if (data.metadata.l10nId) {
-        titleBdi.textContent = navigator.mozL10n.get(data.metadata.l10nId);
-        titleBdi.dataset.l10nId = data.metadata.l10nId;
-      } else {
-        titleBdi.textContent =
-          data.metadata.title || navigator.mozL10n.get('unknownTitle');
-        titleBdi.dataset.l10nId =
-          data.metadata.title ? '' : 'unknownTitle';
-      }
 
       a.dataset.keyRange = 'all';
       a.dataset.option = data.option;
+
+      if (data.metadata) {
+        if (data.metadata.l10nId) {
+          titleBdi.textContent = navigator.mozL10n.get(data.metadata.l10nId);
+          titleBdi.dataset.l10nId = data.metadata.l10nId;
+        } else {
+          titleBdi.textContent =
+            data.metadata.title || navigator.mozL10n.get('unknownTitle');
+          titleBdi.dataset.l10nId =
+            data.metadata.title ? '' : 'unknownTitle';
+        }
+      } else if (data.name) {
+        //custom playlists.
+        titleBdi.textContent = data.name;
+        a.dataset.option = data.name;
+      }
 
       a.appendChild(titleBdi);
 

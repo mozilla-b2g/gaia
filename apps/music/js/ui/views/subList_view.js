@@ -143,6 +143,20 @@ var SubListView = {
     this.index++;
   },
 
+  activatePlaylist: function(data, callback) {
+    this.clean();
+
+    this.dataSource = data.songs;
+
+    data.songs.forEach(function(songData) {
+      this.update(songData);
+    }.bind(this));
+
+    if (callback) {
+      callback();
+    }
+  },
+
   handleEvent: function slv_handleEvent(evt) {
     var target = evt.target;
 
