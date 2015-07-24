@@ -156,18 +156,10 @@ class Keyboard(Base):
     # this is to switch to the frame of keyboard
     def switch_to_keyboard(self, focus=False):
         self.marionette.switch_to_frame()
-        input_window = self.marionette.find_element(*self._input_window_locator)
-
-        # if we have software buttons, keyboar's y will not be 0 but the minus height of the button container.
-        expected_y = -System(self.marionette).software_buttons_height
-
-        Wait(self.marionette).until(
-            lambda m: 'active' in input_window.get_attribute('class') and input_window.location['y'] == expected_y,
-            message='Keyboard inputWindow not interpreted as displayed. Debug is_displayed(): %s, class: %s.'
-            % (input_window.is_displayed(), input_window.get_attribute('class')))
+        Wait(self.marionette).until(lambda m: self.is_keyboard_displayed is True)
 
         keybframe = self.marionette.find_element(*self._keyboard_active_frame_locator)
-        return self.marionette.switch_to_frame(keybframe, focus)
+        self.marionette.switch_to_frame(keybframe, focus)
 
     @property
     def current_keyboard(self):
@@ -335,15 +327,7 @@ class Keyboard(Base):
         self.marionette.execute_script("""
 var keyboard = navigator.mozKeyboard || navigator.mozInputMethod;
 keyboard.removeFocus();""")
-        input_window = self.marionette.find_element(*self._input_window_locator)
-
-        # if we have software buttons, keyboar's y will not be 0 but the minus height of the button container.
-        expected_y = int(input_window.size['height']) - System(self.marionette).software_buttons_height
-
-        Wait(self.marionette).until(
-            lambda m: 'inactive' in input_window.get_attribute('class') and
-            not input_window.is_displayed() and
-            (int(input_window.location['y']) == expected_y))
+        Wait(self.marionette).until(lambda m: self.is_keyboard_displayed is False)
         self.apps.switch_to_displayed_app()
 
     def tap_first_predictive_word(self):
@@ -438,4 +422,9 @@ keyboard.removeFocus();""")
 
     @property
     def is_keyboard_displayed(self):
-        return 'active' in self.marionette.find_element(*self._input_window_locator).get_attribute('class')
+        input_window = self.marionette.find_element(*self._input_window_locator)
+
+        # if we have software buttons, keyboard's y will not be 0 but the minus height of the button container.
+        expected_y = -System(self.marionette).software_buttons_height
+
+        return (input_window.is_displayed() and (int(input_window.location['y']) == expected_y))
