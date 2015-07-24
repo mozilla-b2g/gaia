@@ -6,6 +6,7 @@
 require('/shared/js/collections_database.js');
 requireApp('collection/test/unit/mock_xmlhttprequest.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
+require('/shared/js/lazy_loader.js');
 
 var mocksHelperForInitialized = new MocksHelper([
   'XMLHttpRequest'
