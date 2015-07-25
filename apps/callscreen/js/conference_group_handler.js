@@ -1,5 +1,4 @@
-/* globals CallsHandler, CallScreen, ConferenceGroupUI, FontSizeManager,
-           LazyL10n */
+/* globals CallsHandler, CallScreen, ConferenceGroupUI, FontSizeManager */
 
 /* exported ConferenceGroupHandler */
 
@@ -47,11 +46,12 @@ var ConferenceGroupHandler = (function() {
       ConferenceGroupUI.hideGroupDetails();
     }
 
-    LazyL10n.get(function localized(_) {
-      var groupDetailsHeaderText = _('conferenceCall', {n: calls.length});
-      bdiCount.textContent = groupDetailsHeaderText;
-      ConferenceGroupUI.setGroupDetailsHeader(bdiCount.textContent);
-    });
+    var l10nAttrs = {
+      id: 'conferenceCall',
+      args: {n: calls.length}
+    };
+    navigator.mozL10n.setAttributes(bdiCount, l10nAttrs.id, l10nAttrs.args);
+    ConferenceGroupUI.setGroupDetailsHeader(l10nAttrs);
 
     // When hanging up phones on conferenceGroup.calls.length >= 2,
     // we need to update handledCalls here since conferenceGroup.oncallschanged
@@ -79,9 +79,7 @@ var ConferenceGroupHandler = (function() {
   function end() {
     groupTotalDurationChildNode.textContent =
       groupDurationChildNode.textContent;
-    LazyL10n.get(function localized(_) {
-      groupDurationChildNode.textContent = _('callEnded');
-    });
+    groupDurationChildNode.setAttribute('data-l10n-id', 'callEnded');
     groupLine.classList.add('ended');
     groupLine.classList.remove('held');
     FontSizeManager.adaptToSpace(

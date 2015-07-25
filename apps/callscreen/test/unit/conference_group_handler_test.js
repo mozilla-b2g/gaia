@@ -1,14 +1,14 @@
 /* globals ConferenceGroupHandler, FontSizeManager, MockCall, MockCallScreen,
-           MockCallsHandler, MockConferenceGroupUI, MockLazyL10n, MockMozL10n,
+           MockCallsHandler, MockConferenceGroupUI, MockL10n,
            MockNavigatorMozTelephony, MocksHelper, telephonyAddCall */
 
 'use strict';
 
 require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/dialer/mock_call.js');
 require('/shared/test/unit/mocks/dialer/mock_handled_call.js');
 require('/shared/test/unit/mocks/dialer/mock_calls_handler.js');
-require('/shared/test/unit/mocks/dialer/mock_lazy_l10n.js');
 require('/test/unit/mock_call_screen.js');
 require('/test/unit/mock_conference_group_ui.js');
 require('/shared/test/unit/mocks/dialer/mock_font_size_manager.js');
@@ -18,7 +18,6 @@ require('/shared/test/unit/mocks/dialer/mock_font_size_manager.js');
 var mocksHelperForConferenceGroupHandler = new MocksHelper([
   'HandledCall',
   'CallsHandler',
-  'LazyL10n',
   'CallScreen',
   'ConferenceGroupUI',
   'FontSizeManager'
@@ -27,7 +26,6 @@ var mocksHelperForConferenceGroupHandler = new MocksHelper([
 suite('conference group handler', function() {
   var realMozTelephony;
   var realMozL10n;
-  var _;
 
   mocksHelperForConferenceGroupHandler.attachTestHelpers();
 
@@ -43,8 +41,7 @@ suite('conference group handler', function() {
     navigator.mozTelephony = MockNavigatorMozTelephony;
 
     realMozL10n = navigator.mozL10n;
-    navigator.mozL10n = MockMozL10n;
-    _ = MockMozL10n.get;
+    navigator.mozL10n = MockL10n;
 
     fakeDOM = document.createElement('div');
     fakeDOM.innerHTML = `<section id="group-call" hidden>
@@ -121,19 +118,23 @@ suite('conference group handler', function() {
       });
 
       test('should update the conference group details header', function() {
-        var bdiCompare = document.createElement('bdi');
-        bdiCompare.textContent = _('conferenceCall');
+        var l10nAttrs = {
+          id: 'conferenceCall',
+          args: {n :2}
+        };
         this.sinon.spy(MockConferenceGroupUI, 'setGroupDetailsHeader');
         flush();
         sinon.assert.calledWith(
-          MockConferenceGroupUI.setGroupDetailsHeader, bdiCompare.textContent);
-        assert.deepEqual(MockLazyL10n.keys.conferenceCall, {n: 2});
+          MockConferenceGroupUI.setGroupDetailsHeader, l10nAttrs);
       });
 
       test('should update the group label', function() {
         flush();
-        assert.equal(fakeGroupLabel.textContent, 'conferenceCall');
-        assert.deepEqual(MockLazyL10n.keys.conferenceCall, {n: 2});
+        var bdiCount = fakeGroupLabel.getElementsByTagName('bdi')[0];
+        var l10nAttrs = navigator.mozL10n.getAttributes(bdiCount);
+
+        assert.equal(l10nAttrs.id, 'conferenceCall');
+        assert.deepEqual(l10nAttrs.args, {n: 2});
       });
 
       test('should update call screen in CDMA network', function() {
@@ -158,8 +159,11 @@ suite('conference group handler', function() {
 
         test('should update the group label', function() {
           flush();
-          assert.equal(fakeGroupLabel.textContent, 'conferenceCall');
-          assert.deepEqual(MockLazyL10n.keys.conferenceCall, {n: 3});
+          var bdiCount = fakeGroupLabel.getElementsByTagName('bdi')[0];
+          var l10nAttrs = navigator.mozL10n.getAttributes(bdiCount);
+
+          assert.equal(l10nAttrs.id, 'conferenceCall');
+          assert.deepEqual(l10nAttrs.args, {n: 3});
         });
 
         test('should update single line status', function() {
@@ -179,8 +183,11 @@ suite('conference group handler', function() {
 
           test('should update the group label', function() {
             flush();
-            assert.equal(fakeGroupLabel.textContent, 'conferenceCall');
-            assert.deepEqual(MockLazyL10n.keys.conferenceCall, {n: 2});
+            var bdiCount = fakeGroupLabel.getElementsByTagName('bdi')[0];
+            var l10nAttrs = navigator.mozL10n.getAttributes(bdiCount);
+
+            assert.equal(l10nAttrs.id, 'conferenceCall');
+            assert.deepEqual(l10nAttrs.args, {n: 2});
           });
         });
 
@@ -195,8 +202,11 @@ suite('conference group handler', function() {
 
           test('should update the group label', function() {
             flush();
-            assert.equal(fakeGroupLabel.textContent, 'conferenceCall');
-            assert.deepEqual(MockLazyL10n.keys.conferenceCall, {n: 2});
+            var bdiCount = fakeGroupLabel.getElementsByTagName('bdi')[0];
+            var l10nAttrs = navigator.mozL10n.getAttributes(bdiCount);
+
+            assert.equal(l10nAttrs.id, 'conferenceCall');
+            assert.deepEqual(l10nAttrs.args, {n: 2});
           });
 
           test('should call CallsHandler.checkCalls if two more phones remains',
@@ -343,7 +353,8 @@ suite('conference group handler', function() {
     test('should show call ended when exiting conference call', function() {
       MockNavigatorMozTelephony.conferenceGroup.state = '';
       MockNavigatorMozTelephony.mTriggerGroupStateChange();
-      assert.equal(fakeDurationChildNode.textContent, 'callEnded');
+      assert.equal(fakeDurationChildNode.getAttribute('data-l10n-id'),
+        'callEnded');
     });
 
     test('should show call the duration when exiting conference call',

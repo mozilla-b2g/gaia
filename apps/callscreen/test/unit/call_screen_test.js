@@ -1,12 +1,12 @@
-/* globals CallScreen, FontSizeManager, MockCallsHandler, Utils,
+/* globals CallScreen, FontSizeManager, MockCallsHandler, Utils, MockL10n,
            MockHandledCall, MockMozActivity, MockNavigatorMozTelephony,
-           MockMozL10n, MocksHelper, MockSettingsListener */
+           MocksHelper, MockSettingsListener */
 
 'use strict';
 
 require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
 require('/shared/test/unit/mocks/mock_moz_activity.js');
-require('/shared/test/unit/mocks/dialer/mock_lazy_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/dialer/mock_handled_call.js');
 require('/shared/test/unit/mocks/dialer/mock_call.js');
 require('/shared/test/unit/mocks/dialer/mock_calls_handler.js');
@@ -21,7 +21,6 @@ var mocksHelperForCallScreen = new MocksHelper([
   'CallsHandler',
   'ConferenceGroupUI',
   'MozActivity',
-  'LazyL10n',
   'FontSizeManager',
   'KeypadManager',
   'Utils'
@@ -69,7 +68,7 @@ suite('call screen', function() {
     realSettingsListener = window.SettingsListener;
     window.SettingsListener = MockSettingsListener;
     realMozL10n = navigator.mozL10n;
-    navigator.mozL10n = MockMozL10n;
+    navigator.mozL10n = MockL10n;
   });
 
   suiteTeardown(function() {
@@ -812,9 +811,6 @@ suite('call screen', function() {
       addEventListenerSpy = this.sinon.spy(statusMessage, 'addEventListener');
       removeEventListenerSpy =
         this.sinon.spy(statusMessage, 'removeEventListener');
-      this.sinon.stub(MockMozL10n, 'setAttributes', function(element, id) {
-        element.setAttribute('data-l10n-id', id);
-      });
 
       CallScreen.showStatusMessage('message');
     });
