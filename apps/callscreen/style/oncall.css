@@ -284,25 +284,28 @@
     background-image: url('images/call_screen/Ico_call_merge_40x40.png');
   }
 
+  /* When active show the light blue icon */
   .co-advanced-option.active-state .icon.icon-mute,
   .co-advanced-option.active-state .icon.icon-speaker,
-  .co-advanced-option.active-state .icon.icon-bt,
-  .co-advanced-option.active-state:active .icon.icon-on-hold {
-    background-position: 0 4rem;
+  .co-advanced-option.active-state .icon.icon-bt {
+    background-position: 0 -4rem;
   }
 
-  .co-advanced-option.active-state .icon.icon-on-hold {
-    background-position: 0 8rem;
-  }
-
-  .co-advanced-option:active .icon.icon-mute,
-  .co-advanced-option:active .icon.icon-speaker,
-  .co-advanced-option:active .icon.icon-bt {
+  /* When pressed show the grey icon if the control is enabled */
+  .co-advanced-option:not([disabled]):active .icon.icon-mute,
+  .co-advanced-option:not([disabled]):active .icon.icon-speaker,
+  .co-advanced-option:not([disabled]):active .icon.icon-bt {
     background-position: 0 0;
   }
 
-  .co-advanced-option.active-state:active .icon.icon-on-hold {
-    background-position: 0 4rem;
+  /* When active show the light blue icon */
+  .co-advanced-option.active-state .icon.icon-on-hold {
+    background-position: 0 -4rem;
+  }
+
+  /* When pressed show the grey icon if the control is enabled */
+  .co-advanced-option.active-state:not([disabled]):active .icon.icon-on-hold {
+    background-position: 0 -8rem;
   }
   
   #callbar {
