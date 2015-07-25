@@ -29,27 +29,7 @@ var MocksHelperForUtilsUnitTest = new MocksHelper([
 suite('Utils', function() {
   MocksHelperForUtilsUnitTest.attachTestHelpers();
 
-  var nativeMozL10n = navigator.mozL10n;
   var nmpns = navigator.mozPhoneNumberService;
-
-  suiteSetup(function() {
-    navigator.mozL10n = MockL10n;
-  });
-
-  suiteTeardown(function() {
-    navigator.mozL10n = nativeMozL10n;
-  });
-
-  setup(function() {
-    // Override generic mozL10n.get for this test
-    this.sinon.stub(navigator.mozL10n, 'get',
-      function get(key, params) {
-        if (params) {
-          return key + JSON.stringify(params);
-        }
-        return key;
-    });
-  });
 
   suite('Utils.escapeRegex', function() {
 
@@ -91,10 +71,12 @@ suite('Utils', function() {
       [true, false].forEach(function(isMozHour12) {
         navigator.mozHour12 = isMozHour12;
 
-        var expect = Utils.date.format.localeFormat(
-          new Date(time),
-          isMozHour12 ? 'shortTimeFormat12' : 'shortTimeFormat24'
-        );
+        var formatter = new Intl.DateTimeFormat(navigator.languages, {
+          hour12: isMozHour12,
+          hour: 'numeric',
+          minute: 'numeric'
+        });
+        var expect = formatter.format(new Date(time));
 
         var fixtures = {
           string: time + '',
@@ -121,14 +103,10 @@ suite('Utils', function() {
   });
 
   suite('Utils.getHeaderDate', function() {
-    var spy;
-
     setup(function() {
       // choose a date that is far away from a DST change
       var today = new Date('Tue Jan 29 2013 14:18:15 GMT+0100 (CET)').getTime();
       this.sinon.useFakeTimers(today);
-      spy = this.sinon.spy(MockL10n.DateTimeFormat.prototype,
-        'localeFormat');
     });
 
     test('(today [String|Number|Date])', function() {
@@ -140,9 +118,22 @@ suite('Utils', function() {
         date: new Date()
       };
 
-      assert.equal(Utils.getHeaderDate(fixtures.string), expect);
-      assert.equal(Utils.getHeaderDate(fixtures.number), expect);
-      assert.equal(Utils.getHeaderDate(fixtures.date), expect);
+      var element = document.createElement('div');
+      Utils.setHeaderDate({
+        time: fixtures.string,
+        element: element
+      });
+      assert.equal(element.getAttribute('data-l10n-id'), expect);
+      Utils.setHeaderDate({
+        time: fixtures.number,
+        element: element
+      });
+      assert.equal(element.getAttribute('data-l10n-id'), expect);
+      Utils.setHeaderDate({
+        time: fixtures.date,
+        element: element
+      });
+      assert.equal(element.getAttribute('data-l10n-id'), expect);
     });
 
     test('(yesterday [String|Number|Date])', function() {
@@ -154,35 +145,107 @@ suite('Utils', function() {
         date: new Date(yesterday)
       };
 
-      assert.equal(Utils.getHeaderDate(fixtures.string), expect);
-      assert.equal(Utils.getHeaderDate(fixtures.number), expect);
-      assert.equal(Utils.getHeaderDate(fixtures.date), expect);
+      var element = document.createElement('div');
+      Utils.setHeaderDate({
+        time: fixtures.string,
+        element: element
+      });
+      assert.equal(element.getAttribute('data-l10n-id'), expect);
+      Utils.setHeaderDate({
+        time: fixtures.number,
+        element: element
+      });
+      assert.equal(element.getAttribute('data-l10n-id'), expect);
+      Utils.setHeaderDate({
+        time: fixtures.date,
+        element: element
+      });
+      assert.equal(element.getAttribute('data-l10n-id'), expect);
     });
 
     test('between 2 and 5 days ago', function() {
-      for (var days = 2; days <= 5; days++) {
-        var date = Date.now() - 86400000 * days;
-        Utils.getHeaderDate(date);
-        assert.ok(spy.called);
-        assert.equal(+spy.args[0][0], +date);
-        assert.equal(spy.args[0][1], '%A');
-      }
+      [true, false].forEach(function(withTime) {
+        for (var days = 2; days <= 5; days++) {
+          var date = Date.now() - 86400000 * days;
+
+          var options = {
+            weekday: 'long'
+          };
+          if (withTime) {
+            options.hour12 = navigator.mozHour12;
+            options.hour = 'numeric';
+            options.minute = 'numeric';
+          }
+          var formatter =
+            new Intl.DateTimeFormat(navigator.languages, options);
+          var expect = formatter.format(new Date(date));
+
+          var element = document.createElement('div');
+          Utils.setHeaderDate({
+            time: date,
+            element: element,
+            withTime: withTime
+          });
+
+          assert.equal(element.textContent, expect); 
+        }
+      });
     });
 
     test('more than 6 days ago', function() {
       var date = Date.now() - 86400000 * 6;
-      Utils.getHeaderDate(date);
-      assert.ok(spy.called);
-      assert.equal(+spy.args[0][0], +date);
-      assert.equal(spy.args[0][1], '%x');
+      [true, false].forEach(function(withTime) {
+        var options = {
+          month: '2-digit',
+          day: '2-digit',
+          year: 'numeric',
+        };
+        if (withTime) {
+          options.hour12 = navigator.mozHour12;
+          options.hour = 'numeric';
+          options.minute = 'numeric';
+        }
+        var formatter =
+          new Intl.DateTimeFormat(navigator.languages, options);
+        var expect = formatter.format(new Date(date));
+
+        var element = document.createElement('div');
+        Utils.setHeaderDate({
+          time: date,
+          element: element,
+          withTime: withTime
+        });
+
+        assert.equal(element.textContent, expect); 
+      });
     });
 
     test('future time case', function() {
       var date = Date.now() + 86400000 * 3;
-      Utils.getHeaderDate(date);
-      assert.ok(spy.called);
-      assert.equal(+spy.args[0][0], +date);
-      assert.equal(spy.args[0][1], '%x');
+      [true, false].forEach(function(withTime) {
+        var options = {
+          month: '2-digit',
+          day: '2-digit',
+          year: 'numeric',
+        };
+        if (withTime) {
+          options.hour12 = navigator.mozHour12;
+          options.hour = 'numeric';
+          options.minute = 'numeric';
+        }
+        var formatter =
+          new Intl.DateTimeFormat(navigator.languages, options);
+        var expect = formatter.format(new Date(date));
+
+        var element = document.createElement('div');
+        Utils.setHeaderDate({
+          time: date,
+          element: element,
+          withTime: withTime
+        });
+
+        assert.equal(element.textContent, expect); 
+      });
     });
 
     /*
@@ -1356,11 +1419,18 @@ suite('Utils', function() {
   });
 
   suite('getSimNameByIccId', function() {
+    var nativeMozL10n = navigator.mozL10n;
+
     setup(function () {
+      navigator.mozL10n = MockL10n;
       this.sinon.stub(Settings, 'getServiceIdByIccId');
       this.sinon.stub(navigator.mozL10n, 'formatValue').returns(
         Promise.resolve('SIM name')
       );
+    });
+
+    teardown(function() {
+       navigator.mozL10n = nativeMozL10n;
     });
 
     test('returns the correct name when service id existed', function(done) {
@@ -1390,23 +1460,6 @@ suite('Utils', function() {
 
 suite('getDisplayObject', function() {
   MocksHelperForUtilsUnitTest.attachTestHelpers();
-
-  var nativeMozL10n = navigator.mozL10n;
-  setup(function() {
-    navigator.mozL10n = MockL10n;
-    // Override generic mozL10n.get for this test
-    this.sinon.stub(navigator.mozL10n, 'get',
-      function get(key, params) {
-        if (params) {
-          return key + JSON.stringify(params);
-        }
-        return key;
-    });
-  });
-
-  teardown(function() {
-    navigator.mozL10n = nativeMozL10n;
-  });
 
   test('Tel object with carrier title and type', function() {
     var myTitle = 'My title';

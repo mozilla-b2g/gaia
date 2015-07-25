@@ -302,7 +302,6 @@ suite('Information view', function() {
         };
         return request;
       });
-      this.sinon.spy(Utils.date.format, 'localeFormat');
       reportView.beforeEnter();
     });
 
@@ -558,18 +557,18 @@ suite('Information view', function() {
           assert.isFalse(
             reportView.container.classList.contains('no-valid-sent-timestamp')
           );
+
+          var formatter = new Intl.DateTimeFormat(
+            navigator.languages,
+            JSON.parse(sentTimestampNode.dataset.l10nDateFormat));
+
           assert.equal(
             sentTimestampNode.textContent,
-            Utils.date.format.localeFormat(
-              new Date(messageOpts.sentTimestamp),
-              'report-dateTimeFormat' + hourPostfix
-            )
+            formatter.format(new Date(messageOpts.sentTimestamp))
           );
           assert.equal(
             sentTimestampNode.dataset.l10nDate, messageOpts.sentTimestamp
           );
-          assert.ok(sentTimestampNode.dataset.l10nDateFormat12);
-          assert.ok(sentTimestampNode.dataset.l10nDateFormat24);
         });
       });
     });
@@ -735,8 +734,13 @@ suite('Information view', function() {
           titleL10n: '',
           reportDateL10n: '',
           timestamp: '',
-          messageL10nDateFormat12: 'report-dateTimeFormat12',
-          messageL10nDateFormat24: 'report-dateTimeFormat24'
+          messageL10nDateFormat: JSON.stringify({
+            month: 'long',
+            day: '2-digit',
+            year: 'numeric',
+            hour: 'numeric',
+            minute: 'numeric'
+          })
         };
       });
 
@@ -792,10 +796,13 @@ suite('Information view', function() {
             reportView.render();
 
             data.titleL10n = 'report-status-delivered';
-            data.reportDateL10n = Utils.date.format.localeFormat(
-              new Date(messageOpts.deliveryTimestamp),
-              navigator.mozL10n.get('report-dateTimeFormat' + hourPostfix)
-            );
+
+            var formatter = new Intl.DateTimeFormat(
+              navigator.languages,
+              JSON.parse(data.messageL10nDateFormat));
+
+            data.reportDateL10n = formatter.format(
+              new Date(messageOpts.deliveryTimestamp));
             data.timestamp = '' + messageOpts.deliveryTimestamp;
             sinon.assert.calledWith(Template.prototype.interpolate, data);
             reportDiv = getInfoBlock(reportView.renderContactList);
@@ -848,8 +855,13 @@ suite('Information view', function() {
           titleL10n: '',
           reportDateL10n: sinon.match.any,
           timestamp: '',
-          messageL10nDateFormat12: 'report-dateTimeFormat12',
-          messageL10nDateFormat24: 'report-dateTimeFormat24'
+          messageL10nDateFormat: JSON.stringify({
+            month: 'long',
+            day: '2-digit',
+            year: 'numeric',
+            hour: 'numeric',
+            minute: 'numeric'
+          })
         };
       });
 
@@ -978,10 +990,13 @@ suite('Information view', function() {
               block = getInfoBlock(reportView.renderContactList);
               data.titleL10n = 'report-status-read';
               data.timestamp = '' + deliveryInfo.deliveryTimestamp;
-              data.reportDateL10n = Utils.date.format.localeFormat(
-                new Date(messageOpts.deliveryInfo[0].readTimestamp),
-                navigator.mozL10n.get('report-dateTimeFormat' + hourPostfix)
-              );
+
+              var formatter = new Intl.DateTimeFormat(
+                navigator.languages,
+                JSON.parse(data.messageL10nDateFormat));
+
+              data.reportDateL10n = formatter.format(
+                new Date(messageOpts.deliveryInfo[0].readTimestamp));
               data.timestamp = '' + messageOpts.deliveryInfo[0].readTimestamp;
 
               assert.equal(block.dataset.deliveryStatus, 'read');

@@ -55,7 +55,8 @@ var MockMessages = {
         receiver: 'receiver',
         deliveryStatus: 'success',
         readStatus: 'success',
-        deliveryTimestamp: +now
+        deliveryTimestamp: +now,
+        readTimestamp: +now,
       }],
       type: 'mms',
       timestamp: +now,

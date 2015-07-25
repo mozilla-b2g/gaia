@@ -2723,10 +2723,6 @@ suite('conversation.js >', function() {
     }
 
     setup(function() {
-      // we do this here because of sinon fake timers
-      this.sinon.stub(Utils.date.format, 'localeFormat', function() {
-        return 'date_stub';
-      });
       this.sinon.stub(MessageManager, 'retrieveMMS', function() {
         return {};
       });
@@ -2771,15 +2767,24 @@ suite('conversation.js >', function() {
         assert.equal(notDownloadedMessage.dataset.l10nId,
           'tobedownloaded-attachment',
           'localization id set correctly');
+        var formatter = new Intl.DateTimeFormat(navigator.languages, {
+          weekday: 'long',
+          month: 'short',
+          day: '2-digit',
+        });
         assert.equal(notDownloadedMessage.dataset.l10nArgs,
-          '{"date":"date_stub"}',
+          JSON.stringify({'date': formatter.format(message.expiryDate)}),
           'localization arguments set correctly');
       });
       test('date is correctly determined', function() {
-        assert.equal(+Utils.date.format.localeFormat.args[0][0],
-          message.expiryDate);
-        assert.equal(Utils.date.format.localeFormat.args[0][1],
-          'expiry-date-format');
+        assert.deepEqual(
+          JSON.parse(notDownloadedMessage.dataset.l10nDateFormat),
+          {
+            weekday: 'long',
+            month: 'short',
+            day: '2-digit',
+          }
+        );
       });
       test('button text is correct', function() {
         assert.equal(button.dataset.l10nId, 'downloading-attachment');
@@ -2829,15 +2834,24 @@ suite('conversation.js >', function() {
         assert.equal(notDownloadedMessage.dataset.l10nId,
           'tobedownloaded-attachment',
           'localization id set correctly');
+        var formatter = new Intl.DateTimeFormat(navigator.languages, {
+          weekday: 'long',
+          month: 'short',
+          day: '2-digit',
+        });
         assert.equal(notDownloadedMessage.dataset.l10nArgs,
-          '{"date":"date_stub"}',
+          JSON.stringify({'date': formatter.format(message.expiryDate)}),
           'localization arguments set correctly');
       });
       test('date is correctly determined', function() {
-        assert.equal(+Utils.date.format.localeFormat.args[0][0],
-          message.expiryDate);
-        assert.equal(Utils.date.format.localeFormat.args[0][1],
-          'expiry-date-format');
+        assert.deepEqual(
+          JSON.parse(notDownloadedMessage.dataset.l10nDateFormat),
+          {
+            weekday: 'long',
+            month: 'short',
+            day: '2-digit',
+          }
+        );
       });
       test('button text is correct', function() {
         assert.equal(button.dataset.l10nId, 'download-attachment');
@@ -3028,27 +3042,34 @@ suite('conversation.js >', function() {
         assert.isFalse(element.classList.contains('pending'));
       });
       test('message is correct', function() {
-        assert.equal(
-          notDownloadedMessage.dataset.l10nId,
+        assert.equal(notDownloadedMessage.dataset.l10nId,
           'tobedownloaded-attachment',
-          'localization id set correctly'
-        );
-        assert.equal(
-          notDownloadedMessage.dataset.l10nArgs,
-          '{"date":"date_stub"}',
-          'localization arguments set correctly'
-        );
+          'localization id set correctly');
+        var l10nFormat = {
+          weekday: 'long',
+          month: 'short',
+          day: '2-digit',
+        };
+        var formatter =
+          new Intl.DateTimeFormat(navigator.languages, l10nFormat);
+        assert.equal(notDownloadedMessage.dataset.l10nArgs,
+          JSON.stringify({'date': formatter.format(message.expiryDate)}),
+          'localization arguments set correctly');
         assert.equal(
           notDownloadedMessage.dataset.l10nDateFormat,
-          'expiry-date-format',
+          JSON.stringify(l10nFormat),
           'localization date format set correctly'
         );
       });
       test('date is correctly determined', function() {
-        assert.equal(+Utils.date.format.localeFormat.args[0][0],
-          message.expiryDate);
-        assert.equal(Utils.date.format.localeFormat.args[0][1],
-          'expiry-date-format');
+        assert.deepEqual(
+          JSON.parse(notDownloadedMessage.dataset.l10nDateFormat),
+          {
+            weekday: 'long',
+            month: 'short',
+            day: '2-digit',
+          }
+        );
       });
       test('button text is correct', function() {
         assert.equal(button.dataset.l10nId, 'download-attachment');
@@ -3140,15 +3161,26 @@ suite('conversation.js >', function() {
         assert.equal(notDownloadedMessage.dataset.l10nId,
           'expired-attachment',
           'localization id set correctly');
+        var l10nFormat = {
+          weekday: 'long',
+          month: 'short',
+          day: '2-digit',
+        };
+        var formatter =
+          new Intl.DateTimeFormat(navigator.languages, l10nFormat);
         assert.equal(notDownloadedMessage.dataset.l10nArgs,
-          '{"date":"date_stub"}',
+          JSON.stringify({'date': formatter.format(message.expiryDate)}),
           'localization arguments set correctly');
       });
       test('date is correctly determined', function() {
-        assert.equal(+Utils.date.format.localeFormat.args[0][0],
-          message.expiryDate);
-        assert.equal(Utils.date.format.localeFormat.args[0][1],
-          'expiry-date-format');
+        assert.deepEqual(
+          JSON.parse(notDownloadedMessage.dataset.l10nDateFormat),
+          {
+            weekday: 'long',
+            month: 'short',
+            day: '2-digit',
+          }
+        );
       });
       suite('clicking', function() {
         setup(function() {

@@ -855,11 +855,6 @@ var InboxView = {
    * @return Boolean true if a time container was created, false otherwise
    */
   appendThread: function inbox_appendThread(thread) {
-    if (navigator.mozL10n.readyState !== 'complete') {
-      navigator.mozL10n.once(this.appendThread.bind(this, thread));
-      return;
-    }
-
     var timestamp = +thread.timestamp;
     var firstThreadInContainer = false;
 
@@ -930,7 +925,10 @@ var InboxView = {
     threadsContainerDOM.id = 'threadsContainer_' +
                               Utils.getDayDate(timestamp);
     // Add text
-    headerDOM.innerHTML = Utils.getHeaderDate(timestamp);
+    Utils.setHeaderDate({
+      time: timestamp,
+      element: headerDOM
+    });
 
     // Add to DOM all elements
     threadContainer.appendChild(headerDOM);

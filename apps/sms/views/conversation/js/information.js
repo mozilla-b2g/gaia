@@ -81,20 +81,24 @@ const MESSAGE_EVENTS = [
   'message-sending'
 ];
 
+const reportDateTimeFormatOptions = {
+  month: 'long',
+  day: '2-digit',
+  year: 'numeric',
+  hour: 'numeric',
+  minute: 'numeric'
+};
+
 function completeLocaleFormat(timestamp) {
-  return Utils.date.format.localeFormat(
-    new Date(+timestamp),
-    navigator.mozL10n.get(
-      navigator.mozHour12 ? 'report-dateTimeFormat12' :
-        'report-dateTimeFormat24'
-    )
+  return new Date(+timestamp).toLocaleString(
+    navigator.languages,
+    reportDateTimeFormatOptions
   );
 }
 
 function l10nContainsDateSetup(element, timestamp) {
   element.dataset.l10nDate = timestamp;
-  element.dataset.l10nDateFormat12 = 'report-dateTimeFormat12';
-  element.dataset.l10nDateFormat24 = 'report-dateTimeFormat24';
+  element.dataset.l10nDateFormat = JSON.stringify(reportDateTimeFormatOptions);
   element.textContent = completeLocaleFormat(timestamp);
 }
 
@@ -108,9 +112,8 @@ function createReportDiv(reports) {
   var data = {
     titleL10n: '',
     reportDateL10n: '',
-    timestamp: '',
-    messageL10nDateFormat12: 'report-dateTimeFormat12',
-    messageL10nDateFormat24: 'report-dateTimeFormat24'
+    messageL10nDateFormat: JSON.stringify(reportDateTimeFormatOptions),
+    timestamp: ''
   };
   var status;
   var deliveryStatus = reports.deliveryStatus;

@@ -35,40 +35,91 @@
     },
     getFormattedHour: function ut_getFormattedHour(time) {
       this.date.shared.setTime(+time);
-      return this.date.format.localeFormat(
-        this.date.shared,
-        navigator.mozL10n.get(
-          navigator.mozHour12 ? 'shortTimeFormat12' : 'shortTimeFormat24'
-        )
-      );
+      return this.date.shared.toLocaleString(navigator.languages, {
+        hour12: navigator.mozHour12,
+        hour: 'numeric',
+        minute: 'numeric',
+      });
     },
     getDayDate: function re_getDayDate(time) {
       this.date.shared.setTime(+time);
       this.date.shared.setHours(0, 0, 0, 0);
       return this.date.shared.getTime();
     },
-    getHeaderDate: function ut_giveHeaderDate(time) {
-      var _ = navigator.mozL10n.get;
+    _getFormatter: function ut_getFormatter({options, withTime}) {
+      if (withTime) {
+        options.hour12 = navigator.mozHour12;
+        options.hour = 'numeric';
+        options.minute = 'numeric';
+      }
+      return new Intl.DateTimeFormat(navigator.languages, options);
+    },
+    setHeaderDate: function ut_setHeaderDate({time, element, withTime}) {
+      var formatter;
       var today = Utils.getDayDate(Date.now());
       var otherDay = Utils.getDayDate(time);
       var dayDiff = (today - otherDay) / 86400000;
       this.date.shared.setTime(+time);
 
       if (isNaN(dayDiff)) {
-        return _('incorrectDate');
+        element.setAttribute('data-l10n-id', 'incorrectDate');
+        return;
       }
 
       if (dayDiff < 0) {
         // future time
-        return this.date.format.localeFormat(
-          this.date.shared, '%x'
-        );
+        formatter = this._getFormatter({
+          options: {
+            month: '2-digit',
+            day: '2-digit',
+            year: 'numeric',
+          },
+          withTime: withTime
+        });
+        element.removeAttribute('data-l10n-id');
+        element.textContent = formatter.format(this.date.shared);
+        return;
       }
 
-      return dayDiff === 0 && _('today') ||
-        dayDiff === 1 && _('yesterday') ||
-        dayDiff < 6 && this.date.format.localeFormat(this.date.shared, '%A') ||
-        this.date.format.localeFormat(this.date.shared, '%x');
+      if (dayDiff === 0) {
+        if (withTime) {
+          navigator.mozL10n.setAttributes(
+            element, 'todayWithTime', {
+              time: this.getFormattedHour(this.date.shared)
+            });
+        } else {
+          element.setAttribute('data-l10n-id', 'today');
+        }
+      } else if (dayDiff === 1) {
+        if (withTime) {
+          navigator.mozL10n.setAttributes(
+            element, 'yesterdayWithTime', {
+              time: this.getFormattedHour(this.date.shared)
+            });
+        } else {
+          element.setAttribute('data-l10n-id', 'yesterday');
+        }
+      } else if (dayDiff < 6) {
+        formatter = this._getFormatter({
+          options: {
+            weekday: 'long'
+          },
+          withTime: withTime
+        });
+        element.removeAttribute('data-l10n-id');
+        element.textContent = formatter.format(this.date.shared);
+      } else {
+        formatter = Utils._getFormatter({
+          options: {
+            month: '2-digit',
+            day: '2-digit',
+            year: 'numeric',
+          },
+          withTime: withTime
+        });
+        element.removeAttribute('data-l10n-id');
+        element.textContent = formatter.format(this.date.shared);
+      }
     },
 
     // We will apply createObjectURL for details.photoURL if contact image exist

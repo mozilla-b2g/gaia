@@ -1,4 +1,4 @@
-/*global Utils, TimeHeaders, MockL10n */
+/*global TimeHeaders, MockL10n */
 
 'use strict';
 
@@ -66,7 +66,7 @@ suite('TimeHeaders > ', function() {
 
       var headers = document.querySelectorAll('header');
       for (var i = 0; i < headers.length; i++) {
-        existingHeaders[i] = headers[i].textContent;
+        existingHeaders[i] = navigator.mozL10n.getAttributes(headers[i]);
       }
 
       var timeElements = document.querySelectorAll('time');
@@ -94,7 +94,10 @@ suite('TimeHeaders > ', function() {
 
         var headers = document.querySelectorAll('header');
         for (i = 0, l = headers.length; i < l; i++) {
-          assert.equal(headers[i].textContent, existingHeaders[i]);
+          assert.deepEqual(
+            navigator.mozL10n.getAttributes(headers[i]),
+            existingHeaders[i]
+          );
         }
 
         for (i = 0, l = timeElements.length; i < l; i++) {
@@ -117,7 +120,10 @@ suite('TimeHeaders > ', function() {
 
         var headers = document.querySelectorAll('header');
         for (i = 0, l = headers.length; i < l; i++) {
-          assert.equal(headers[i].textContent, existingHeaders[i]);
+          assert.deepEqual(
+            navigator.mozL10n.getAttributes(headers[i]),
+            existingHeaders[i]
+          );
         }
 
         for (i = 0, l = timeElements.length; i < l; i++) {
@@ -139,7 +145,10 @@ suite('TimeHeaders > ', function() {
 
         var headers = document.querySelectorAll('header');
         for (i = 0, l = headers.length; i < l; i++) {
-          assert.notEqual(headers[i].textContent, existingHeaders[i]);
+          assert.notDeepEqual(
+            navigator.mozL10n.getAttributes(headers[i]),
+            existingHeaders[i]
+          );
         }
 
         for (i = 0, l = timeElements.length; i < l; i++) {
@@ -168,7 +177,10 @@ suite('TimeHeaders > ', function() {
 
         var headers = document.querySelectorAll('header');
         for (i = 0, l = headers.length; i < l; i++) {
-          assert.equal(headers[i].textContent, existingHeaders[i]);
+          assert.deepEqual(
+            navigator.mozL10n.getAttributes(headers[i]),
+            existingHeaders[i]
+          );
         }
 
         for (i = 0, l = timeElements.length; i < l; i++) {
@@ -193,7 +205,10 @@ suite('TimeHeaders > ', function() {
 
         var headers = document.querySelectorAll('header');
         for (i = 0, l = headers.length; i < l; i++) {
-          assert.equal(headers[i].textContent, existingHeaders[i]);
+          assert.deepEqual(
+            navigator.mozL10n.getAttributes(headers[i]),
+            existingHeaders[i]
+          );
         }
 
         for (i = 0, l = timeElements.length; i < l; i++) {
@@ -218,11 +233,10 @@ suite('TimeHeaders > ', function() {
 
         var headers = document.querySelectorAll('header');
         for (i = 0, l = headers.length; i < l; i++) {
-          assert.notEqual(headers[i].textContent, existingHeaders[i]);
-        }
-
-        for (i = 0, l = timeElements.length; i < l; i++) {
-          assert.notEqual(timeElements[i].textContent, existingTimes[i]);
+          assert.notDeepEqual(
+            navigator.mozL10n.getAttributes(headers[i]),
+            existingHeaders[i]
+          );
         }
 
         //should call update total 18 times
@@ -233,43 +247,61 @@ suite('TimeHeaders > ', function() {
   });
 
   suite('TimeHeaders.update', function() {
-    var subject, formattedTime, formattedDate;
+    var subject, time;
 
     setup(function() {
       subject = document.createElement('header');
       subject.dataset.timeUpdate = 'repeat';
-      var time = Date.parse('2013-01-01');
+      time = Date.parse('2013-01-01');
       subject.dataset.time = time;
-      formattedTime = Utils.getFormattedHour(time);
-      formattedDate = Utils.getHeaderDate(time);
     });
 
     test('date and time header', function() {
       TimeHeaders.update(subject);
 
+      var formatter = new Intl.DateTimeFormat(navigator.languges, {
+        month: '2-digit',
+        day: '2-digit',
+        year: 'numeric',
+        hour12: navigator.mozHour12,
+        hour: 'numeric',
+        minute: 'numeric'
+      });
+
       var content = subject.textContent;
-      assert.include(content, formattedTime);
-      assert.include(content, formattedDate);
+      assert.equal(content, formatter.format(time));
     });
 
     test('date header', function() {
       subject.dataset.dateOnly = 'true';
       TimeHeaders.update(subject);
 
+      var formatter = new Intl.DateTimeFormat(navigator.languges, {
+        month: '2-digit',
+        day: '2-digit',
+        year: 'numeric',
+      });
+
       var content = subject.textContent;
-      assert.isTrue(content.indexOf(formattedTime) === -1,
+      assert.equal(content, formatter.format(time),
                     'subject.textContent should not contain formattedTime');
-      assert.include(content, formattedDate);
     });
 
     test('time header', function() {
       subject.dataset.timeOnly = 'true';
       TimeHeaders.update(subject);
 
+      var formatter = new Intl.DateTimeFormat(navigator.languges, {
+        hour12: navigator.mozHour12,
+        hour: 'numeric',
+        minute: 'numeric'
+      });
+
       var content = subject.textContent;
-      assert.include(content, formattedTime);
-      assert.isTrue(content.indexOf(formattedDate) === -1,
-                    'subject.textContent should not contain formattedDate');
+      assert.equal(
+        content, formatter.format(time),
+        'subject.textContent should not contain formattedDate'
+      );
     });
   });
 
