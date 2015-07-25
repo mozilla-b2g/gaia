@@ -81,6 +81,11 @@
   padding: 1.5rem;
 }
 
+[role="dialog"] gaia-checkbox label {
+  /* !important to get around scoped styles from gaia-checkbox */
+  color: #fbfbfb !important;
+}
+
 [role="dialog"].generic-dialog menu:not([type="toolbar"]) {
   white-space: nowrap;
   margin: 0;

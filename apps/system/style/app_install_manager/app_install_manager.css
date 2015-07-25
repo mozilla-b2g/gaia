@@ -136,25 +136,4 @@ ul#ime-list > li label {
   text-transform: none;
 }
 
-ul#ime-list > li > label:not([for]),
-ul#ime-list > li > label.pack-checkbox.ime {
-  /* Positioning */
-  position: absolute;
-  top: 0;
-  left: 0;
-
-  /* Display & Box Model */
-  width: 100%;
-  height: 100%;
-}
-
-ul#ime-list > li > label.pack-checkbox.ime > span {
-  left: auto;
-  right: 3rem;
-}
-
-ul#ime-list > li > label.pack-checkbox.ime ~ a {
-  padding-right: 6.1rem;
-}
-
 /* ... end of keyboard layout */

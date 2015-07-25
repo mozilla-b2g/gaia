@@ -15,6 +15,8 @@ requireApp('system/test/unit/mock_utility_tray.js');
 requireApp('system/test/unit/mock_modal_dialog.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 
+require('/shared/js/component_utils.js');
+require('/shared/elements/gaia_checkbox/script.js');
 require('/shared/js/sanitizer.js');
 require('/shared/js/homescreens/confirm_dialog_helper.js');
 require('/shared/test/unit/mocks/mock_service.js');
@@ -1654,7 +1656,7 @@ suite('system/AppInstallManager >', function() {
       assert.equal(1, AppInstallManager.setupQueue.length);
 
       // check the first layout
-      var checkbox = AppInstallManager.imeList.querySelector('input');
+      var checkbox = AppInstallManager.imeList.querySelector('gaia-checkbox');
       checkbox.checked = true;
 
       AppInstallManager.handleImeConfirmAction();
