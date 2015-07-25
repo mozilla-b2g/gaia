@@ -1,5 +1,5 @@
 /* globals CallsHandler, FontSizeManager, KeypadManager,
-           LazyL10n, LockScreenSlide, MozActivity, SettingsListener, Utils */
+           LockScreenSlide, MozActivity, SettingsListener, Utils */
 /* jshint nonew: false */
 
 'use strict';
@@ -176,10 +176,8 @@ var CallScreen = {
 
     /* mobile connection state on lock screen */
     if (window.navigator.mozMobileConnections) {
-      LazyL10n.get(function localized(_) {
-          new window.LockScreenConnInfoManager(CallScreen.lockscreenConnStates);
-        CallScreen._connInfoManagerInitialized = true;
-      });
+      new window.LockScreenConnInfoManager(CallScreen.lockscreenConnStates);
+      CallScreen._connInfoManagerInitialized = true;
     }
   },
 
@@ -494,14 +492,12 @@ var CallScreen = {
     durationChildNode.textContent = '00:00';
     durationNode.classList.add('isTimer');
 
-    LazyL10n.get(function localized(_) {
-      var ticker = setInterval(function ut_updateTimer(startTime) {
-        // Bug 834334: Ensure that 28.999 -> 29.000
-        var delta = Math.round((Date.now() - startTime) / 1000) * 1000;
-        Utils.prettyDuration(durationChildNode, delta);
-      }, 1000, Date.now());
-      durationNode.dataset.tickerId = ticker;
-    });
+    var ticker = setInterval(function ut_updateTimer(startTime) {
+      // Bug 834334: Ensure that 28.999 -> 29.000
+      var delta = Math.round((Date.now() - startTime) / 1000) * 1000;
+      Utils.prettyDuration(durationChildNode, delta);
+    }, 1000, Date.now());
+    durationNode.dataset.tickerId = ticker;
     return true;
   },
 

@@ -154,9 +154,13 @@ var ConferenceGroupUI = (function() {
    * Sets the title of the ongoing conference call details information overlay.
    * @param {String} text The text to set as the title.
    */
-  function setGroupDetailsHeader(text) {
+  function setGroupDetailsHeader(l10nAttrs) {
     _init(function() {
-      bdiGroupCallsCountElt.textContent = text;
+      navigator.mozL10n.setAttributes(
+        bdiGroupCallsCountElt,
+        l10nAttrs.id,
+        l10nAttrs.args
+      );
     });
   }
 

@@ -1,7 +1,7 @@
 /* globals AudioCompetingHelper, ConferenceGroupHandler, FontSizeManager,
            HandledCall, MockCall, MockCallScreen, MockCallsHandler,
            MockContactPhotoHelper, MockContacts, MockFontSizeUtils,
-           MockLazyL10n, MockMozL10n, MockNavigatorMozIccManager,
+           MockL10n, MockNavigatorMozIccManager,
            MockNavigatorSettings, MocksHelper, MockTonePlayer, MockUtils,
            MockVoicemail */
 
@@ -11,13 +11,13 @@ require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/test/unit/mock_call_screen.js');
 require('/test/unit/mock_conference_group_handler.js');
 require('/shared/test/unit/mocks/mock_audio.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 require('/shared/test/unit/mocks/mock_font_size_utils.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
 require('/shared/test/unit/mocks/dialer/mock_contacts.js');
 require('/shared/test/unit/mocks/dialer/mock_keypad.js');
 require('/shared/test/unit/mocks/dialer/mock_utils.js');
-require('/shared/test/unit/mocks/dialer/mock_lazy_l10n.js');
 require('/shared/test/unit/mocks/dialer/mock_call.js');
 require('/shared/test/unit/mocks/dialer/mock_calls_handler.js');
 require('/shared/test/unit/mocks/dialer/mock_tone_player.js');
@@ -37,7 +37,6 @@ var mocksHelperForHandledCall = new MocksHelper([
   'FontSizeUtils',
   'KeypadManager',
   'Utils',
-  'LazyL10n',
   'ContactPhotoHelper',
   'TonePlayer',
   'FontSizeManager',
@@ -63,11 +62,11 @@ suite('dialer/handled_call', function() {
   mocksHelperForHandledCall.attachTestHelpers();
 
   suiteSetup(function() {
-    realMozL10n = navigator.l10n;
-    navigator.mozL10n = MockMozL10n;
-
     realNavigatorSettings = navigator.mozSettings;
     navigator.mozSettings = MockNavigatorSettings;
+
+    realMozL10n = navigator.mozL10n;
+    navigator.mozL10n = MockL10n;
 
     realMozIccManager = navigator.mozIccManager;
     navigator.mozIccManager = MockNavigatorMozIccManager;
@@ -216,7 +215,8 @@ suite('dialer/handled_call', function() {
 
     test('duration outgoing', function() {
       assert.ok(subject.durationChildNode);
-      assert.equal(subject.durationChildNode.textContent, 'connecting');
+      assert.equal(subject.durationChildNode.getAttribute('data-l10n-id'),
+        'connecting');
     });
 
     test('duration incoming', function() {
@@ -224,7 +224,8 @@ suite('dialer/handled_call', function() {
       subject = new HandledCall(mockCall);
 
       assert.ok(subject.durationChildNode);
-      assert.equal(subject.durationChildNode.textContent, 'incoming');
+      assert.equal(subject.durationChildNode.getAttribute('data-l10n-id'),
+        'incoming');
     });
 
     test('number', function() {
@@ -398,10 +399,6 @@ suite('dialer/handled_call', function() {
 
       test('should show call ended', function() {
         var span = subject.node.querySelector('.duration span');
-
-        this.sinon.stub(MockMozL10n, 'setAttributes', function(element, id) {
-          element.setAttribute('data-l10n-id', id);
-        });
 
         mockCall._disconnect();
         assert.isTrue(span.hasAttribute('data-l10n-id'));
@@ -621,7 +618,7 @@ suite('dialer/handled_call', function() {
         mockCall._connect();
         assert.isTrue(subject.node.classList.contains('ongoing'));
         assert.isTrue(subject.node.classList.contains('outgoing'));
-        assert.equal(subject.node.getAttribute('aria-label'), 'outgoing');
+        assert.equal(subject.node.getAttribute('data-l10n-id'), 'outgoing');
       });
     });
 
@@ -637,7 +634,7 @@ suite('dialer/handled_call', function() {
         mockCall._connect();
         assert.isTrue(subject.node.classList.contains('ongoing'));
         assert.isTrue(subject.node.classList.contains('incoming'));
-        assert.equal(subject.node.getAttribute('aria-label'), 'incoming');
+        assert.equal(subject.node.getAttribute('data-l10n-id'), 'incoming');
       });
     });
   });
@@ -654,7 +651,8 @@ suite('dialer/handled_call', function() {
     mockCall = new MockCall('', 'incoming');
     subject = new HandledCall(mockCall);
 
-    assert.equal(subject.numberNode.textContent, 'withheld-number');
+    assert.equal(subject.numberNode.getAttribute('data-l10n-id'),
+      'withheld-number');
   });
 
   test('should display switch-calls l10n key', function() {
@@ -663,7 +661,8 @@ suite('dialer/handled_call', function() {
     mockCall.secondId = { number: '999' };
     subject.updateCallNumber();
 
-    assert.equal(subject.numberNode.textContent, 'switch-calls');
+    assert.equal(subject.numberNode.getAttribute('data-l10n-id'),
+      'switch-calls');
   });
 
   suite('Emergency Call layout', function() {
@@ -683,7 +682,8 @@ suite('dialer/handled_call', function() {
       mockCall.emergency = true;
       subject = new HandledCall(mockCall);
 
-      assert.equal(subject.additionalTelNode.textContent, 'emergencyNumber');
+      assert.equal(subject.additionalTelNode.getAttribute('data-l10n-id'),
+        'emergencyNumber');
     });
   });
 
@@ -692,7 +692,7 @@ suite('dialer/handled_call', function() {
     subject = new HandledCall(mockCall);
     MockVoicemail.mResolvePromise(true);
 
-    assert.equal(subject.numberNode.textContent, 'voiceMail');
+    assert.equal(subject.numberNode.getAttribute('data-l10n-id'), 'voiceMail');
   });
 
   suite('additional information', function() {
@@ -726,7 +726,8 @@ suite('dialer/handled_call', function() {
       suite('when there are additional infos to display', function() {
         setup(function() {
           subject.replaceAdditionalContactInfo(
-            'test additional tel', 'test additional tel-type');
+              {raw: 'test additional tel'},
+              {raw: 'test additional tel-type'});
         });
 
         test('should update the text content', function() {
@@ -822,7 +823,8 @@ suite('dialer/handled_call', function() {
       subject = new HandledCall(mockCall);
 
       subject.restorePhoneNumber();
-      assert.equal(subject.numberNode.textContent, 'withheld-number');
+      assert.equal(subject.numberNode.getAttribute('data-l10n-id'),
+        'withheld-number');
     });
 
    test('check restore voicemail number', function() {
@@ -831,7 +833,8 @@ suite('dialer/handled_call', function() {
       MockVoicemail.mResolvePromise(true);
 
       subject.restorePhoneNumber();
-      assert.equal(subject.numberNode.textContent, 'voiceMail');
+      assert.equal(subject.numberNode.getAttribute('data-l10n-id'),
+        'voiceMail');
     });
 
    test('check restore emergency number', function() {
@@ -1024,11 +1027,13 @@ suite('dialer/handled_call', function() {
         assert.isFalse(subject.viaSimNode.hidden);
         assert.isFalse(subject.simNumberNode.hidden);
 
-        assert.equal(subject.viaSimNode.textContent, 'via-sim');
-        assert.deepEqual(MockLazyL10n.keys['via-sim'], {n: 2});
+        var l10nAttrs = navigator.mozL10n.getAttributes(subject.viaSimNode);
+        assert.equal(l10nAttrs.id, 'via-sim');
+        assert.deepEqual(l10nAttrs.args, {n: 2});
 
-        assert.equal(subject.simNumberNode.textContent, 'sim-number');
-        assert.deepEqual(MockLazyL10n.keys['sim-number'], {n: 2});
+        l10nAttrs = navigator.mozL10n.getAttributes(subject.simNumberNode);
+        assert.equal(l10nAttrs.id, 'sim-number');
+        assert.deepEqual(l10nAttrs.args, {n: 2});
       });
     });
   });
@@ -1069,7 +1074,8 @@ suite('dialer/handled_call', function() {
       mockCall._connect();
       MockVoicemail.mResolvePromise(true);
 
-      assert.equal(subject.numberNode.textContent, 'voiceMail');
+      assert.equal(subject.numberNode.getAttribute('data-l10n-id'),
+        'voiceMail');
     });
 
     test('should correctly identify emergency', function() {
@@ -1081,7 +1087,8 @@ suite('dialer/handled_call', function() {
       mockCall.emergency = true;
       mockCall._connect();
 
-      assert.equal(subject.additionalTelNode.textContent, 'emergencyNumber');
+      assert.equal(subject.additionalTelNode.getAttribute('data-l10n-id'),
+        'emergencyNumber');
       assert.isTrue(subject.node.classList.contains('emergency'));
       assert.isTrue(subject.node.textContent.includes('112'));
     });

@@ -1,7 +1,7 @@
 /* globals AudioCompetingHelper, CallsHandler, FontSizeManager, HandledCall,
            MockAudioContext, MockBluetoothHelperInstance, MockCall,
-           MockCallScreen, MockConferenceGroupHandler, MockLazyL10n,
-           MockMozL10n, MockNavigatormozApps, MockNavigatorMozIccManager,
+           MockCallScreen, MockConferenceGroupHandler, MockL10n,
+           MockNavigatormozApps, MockNavigatorMozIccManager,
            MockNavigatorMozMobileConnections, MockNavigatormozSetMessageHandler,
            MockNavigatorMozTelephony, MockNavigatorWakeLock, MocksHelper,
            MockTonePlayer, telephonyAddCall, telephonyAddCdmaCall */
@@ -23,7 +23,7 @@ require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
 require('/shared/test/unit/mocks/dialer/mock_call.js');
 require('/shared/test/unit/mocks/dialer/mock_handled_call.js');
-require('/shared/test/unit/mocks/dialer/mock_lazy_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/dialer/mock_contacts.js');
 require('/shared/test/unit/mocks/dialer/mock_tone_player.js');
 require('/shared/test/unit/mocks/dialer/mock_utils.js');
@@ -36,7 +36,6 @@ var mocksHelperForCallsHandler = new MocksHelper([
   'SettingsListener',
   'CallScreen',
   'ConferenceGroupHandler',
-  'LazyL10n',
   'Contacts',
   'TonePlayer',
   'SettingsURL',
@@ -76,7 +75,7 @@ suite('calls handler', function() {
     navigator.mozSetMessageHandler = MockNavigatormozSetMessageHandler;
 
     realMozL10n = navigator.mozL10n;
-    navigator.mozL10n = MockMozL10n;
+    navigator.mozL10n = MockL10n;
 
     realMozMobileConnections = navigator.mozMobileConnections;
     navigator.mozMobileConnections = MockNavigatorMozMobileConnections;
@@ -420,7 +419,8 @@ suite('calls handler', function() {
             MockCallScreen.incomingNumber, false, 'end');
           sinon.assert.notCalled(FontSizeManager.ensureFixedBaseline);
           assert.equal(
-            MockCallScreen.incomingNumber.textContent, 'withheld-number');
+            MockCallScreen.incomingNumber.getAttribute('data-l10n-id'),
+            'withheld-number');
         });
 
         test('should only call FontSizeManager.adaptToSpace if the second ' +
@@ -443,7 +443,8 @@ suite('calls handler', function() {
             MockCallScreen.incomingNumber, false, 'end');
           sinon.assert.notCalled(FontSizeManager.ensureFixedBaseline);
           assert.equal(
-            MockCallScreen.incomingNumber.textContent, 'withheld-number');
+            MockCallScreen.incomingNumber.getAttribute('data-l10n-id'),
+            'withheld-number');
         });
       });
 
@@ -511,8 +512,11 @@ suite('calls handler', function() {
 
           test('should show the receiving sim', function() {
             MockNavigatorMozTelephony.mTriggerCallsChanged();
-            assert.equal(MockCallScreen.incomingSim.textContent, 'sim-number');
-            assert.deepEqual(MockLazyL10n.keys['sim-number'], {n: 2});
+            var l10nAttrs =
+              navigator.mozL10n.getAttributes(MockCallScreen.incomingSim);
+
+            assert.equal(l10nAttrs.id, 'sim-number');
+            assert.deepEqual(l10nAttrs.args, {n: 2});
           });
         });
       });
