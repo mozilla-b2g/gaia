@@ -44,7 +44,6 @@ marionette('First Time Use > Pseudo Localization', function() {
     quickly.helper.waitForElement('#languages');
     var header = quickly.helper.waitForElement(Ftu.Selectors.header);
     ftu.selectLanguage('qps-ploc');
-    ftu.waitForL10nReady();
 
     var translatedHeader = quickly.executeScript('' +
       'var qps = window.wrappedJSObject.navigator.mozL10n.qps;' +
