@@ -860,50 +860,44 @@ suite('call screen', function() {
   });
 
   suite('showClock in screen locked status', function() {
-    var formatArgs = [],
-        currentDate,
-        fakeClockTime12 = '12:02',
-        fakeClockTime24 = '13:14',
-        fakeDate = 'Monday, September 16';
-
-    setup(function() {
-      this.sinon.stub(navigator.mozL10n, 'DateTimeFormat', function() {
-        this.localeFormat = function(date, format) {
-          formatArgs.push(arguments);
-          if (format === 'shortTimeFormat12') {
-            return fakeClockTime12;
-          } else if (format === 'shortTimeFormat24') {
-            return fakeClockTime24;
-          }
-
-          return fakeDate;
-        };
-      });
-    });
-
     test('clock and date should display current date info', function() {
-      currentDate = new Date();
+      var currentDate = new Date();
+      window.navigator.mozHour12 = false;
       CallScreen.showClock(currentDate);
       var dateStr = CallScreen.lockedDate.textContent;
-      // The date parameter here should be equal to clock setup date.
-      assert.equal(formatArgs.length, 2);
-      assert.equal(formatArgs[0][0], currentDate);
-      assert.equal(formatArgs[1][0], currentDate);
-      assert.equal(dateStr, fakeDate);
+      var clockStr = CallScreen.lockedClockTime.textContent;
+
+      assert.equal(dateStr,
+        currentDate.toLocaleString(navigator.languages, {
+          weekday: 'long',
+          month: 'short',
+          day: 'numeric'
+        })
+      );
+
+      assert.equal(clockStr,
+        currentDate.toLocaleString(navigator.languages, {
+          hour12: navigator.mozHour12,
+          hour: 'numeric',
+          minute: 'numeric'
+        })
+      );
     });
 
     test('clock should display current 12 hour time info', function() {
+      var currentDate = new Date();
       window.navigator.mozHour12 = true;
       CallScreen.showClock(currentDate);
-      var clockTime = CallScreen.lockedClockTime.textContent;
-      assert.equal(clockTime, fakeClockTime12);
-    });
+      var clockStr = CallScreen.lockedClockTime.textContent;
+      var amPm = currentDate.toLocaleFormat('%p');
 
-    test('clock should display current 24 hour time info', function() {
-      window.navigator.mozHour12 = false;
-      CallScreen.showClock(currentDate);
-      var clockTime = CallScreen.lockedClockTime.textContent;
-      assert.equal(clockTime, fakeClockTime24);
+      var refStr = currentDate.toLocaleString(navigator.languages, {
+        hour12: navigator.mozHour12,
+        hour: 'numeric',
+        minute: 'numeric'
+      }).replace(amPm, '').trim();
+
+      assert.equal(clockStr, refStr);
     });
   });
 

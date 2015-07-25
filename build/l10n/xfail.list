@@ -147,8 +147,6 @@ apps/system/js/update_manager.js
 apps/system/js/value_selector/spin_date_picker.js
 apps/system/js/value_selector/value_selector.js
 apps/system/js/voicemail.js
-apps/system/lockscreen/js/lockscreen_media_playback.js
-apps/system/lockscreen/js/widgets/clock/lockscreen_clock_widget.js
 apps/system/mobile_id/js/ui.js
 apps/system/test/unit/external_storage_monitor_test.js
 apps/system/test/unit/fxa_test/screens/fxam_signup_success_test.js

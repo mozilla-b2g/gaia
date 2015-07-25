@@ -19,7 +19,6 @@
     this.configs.name = 'LockScreenClockWidgetSetup';
     // Just to prevent stream without stream would throw error.
     this.configs.stream.sources = [ new DOMEventSource({}) ];
-    this.component._timeFormat = this.component.getTimeformat();
   };
   LockScreenClockWidgetSetup.prototype =
     Object.create(LockScreenBasicState.prototype);
@@ -27,6 +26,7 @@
   LockScreenClockWidgetSetup.prototype.start = function() {
     return LockScreenBasicState.prototype.start.call(this)
       .next(this.queryElements.bind(this))
+      .next(this.component.updateFormatters.bind(this.component))
       .next(this.component.updateClock.bind(this.component))
       .next(this.transferToTick.bind(this));
   };
