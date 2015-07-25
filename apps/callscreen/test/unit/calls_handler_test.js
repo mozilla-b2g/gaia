@@ -778,12 +778,6 @@ suite('calls handler', function() {
         assert.isTrue(answerSpy.calledOnce);
       });
 
-      test('should render the CallScreen in connected mode', function() {
-        var renderSpy = this.sinon.spy(MockCallScreen, 'render');
-        CallsHandler.answer();
-        assert.isTrue(renderSpy.calledWith('connected'));
-      });
-
       test('should enable the place new call button', function() {
         this.sinon.spy(MockCallScreen, 'enablePlaceNewCallButton');
         CallsHandler.answer();
@@ -1276,12 +1270,6 @@ suite('calls handler', function() {
           CallsHandler.holdOrResumeSingleCall();
           sinon.assert.calledOnce(MockNavigatorMozTelephony.active.hold);
         });
-
-        test('should render the call screen in on hold mode', function() {
-          this.sinon.spy(MockCallScreen, 'render');
-          CallsHandler.holdOrResumeSingleCall();
-          sinon.assert.calledWith(MockCallScreen.render, 'connected-hold');
-        });
       });
 
       suite('resume held 1 to 1 ongoing call', function() {
@@ -1295,12 +1283,6 @@ suite('calls handler', function() {
           this.sinon.spy(firstCall, 'resume');
           CallsHandler.holdOrResumeSingleCall();
           sinon.assert.calledOnce(firstCall.resume);
-        });
-
-        test('should render the call screen in connected mode', function() {
-          this.sinon.spy(MockCallScreen, 'render');
-          CallsHandler.holdOrResumeSingleCall();
-          sinon.assert.calledWith(MockCallScreen.render, 'connected');
         });
       });
     });
@@ -1401,12 +1383,6 @@ suite('calls handler', function() {
             CallsHandler.toggleCalls();
             assert.isTrue(resumeSpy.calledOnce);
           });
-
-          test('should render the CallScreen in connected mode', function() {
-            var renderSpy = this.sinon.spy(MockCallScreen, 'render');
-            CallsHandler.toggleCalls();
-            assert.isTrue(renderSpy.calledWith('connected'));
-          });
         });
       });
 
@@ -1444,12 +1420,6 @@ suite('calls handler', function() {
                              'resume');
             CallsHandler.toggleCalls();
             assert.isTrue(resumeSpy.calledOnce);
-          });
-
-          test('should render the CallScreen in connected mode', function() {
-            var renderSpy = this.sinon.spy(MockCallScreen, 'render');
-            CallsHandler.toggleCalls();
-            assert.isTrue(renderSpy.calledWith('connected'));
           });
         });
       });

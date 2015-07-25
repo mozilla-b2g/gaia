@@ -78,7 +78,7 @@ function HandledCall(aCall) {
                                 this.mutationObserverConfig);
 
   LazyL10n.get((function localized(_) {
-    var durationMessage = (this.call.state == 'incoming') ?
+    var durationMessage = (this.call.state === 'incoming') ?
                            _('incoming') : _('connecting');
     this.durationChildNode.textContent = durationMessage;
     this.updateDirection();
@@ -209,6 +209,7 @@ HandledCall.prototype.handleEvent = function hc_handle(evt) {
     case 'held':
       AudioCompetingHelper.leaveCompetition();
       this.node.classList.add('held');
+      CallScreen.render('connected-hold');
       break;
   }
 };
@@ -395,7 +396,7 @@ HandledCall.prototype.restorePhoneNumber =
 HandledCall.prototype.updateDirection = function hc_updateDirection() {
   var self = this;
   var classList = this.node.classList;
-  if (this._initialState == 'incoming') {
+  if (this._initialState === 'incoming') {
     classList.add('incoming');
     LazyL10n.get(function localized(_) {
       self.node.setAttribute('aria-label', _('incoming'));
@@ -407,7 +408,7 @@ HandledCall.prototype.updateDirection = function hc_updateDirection() {
     });
   }
 
-  if (this.call.state == 'connected') {
+  if (this.call.state === 'connected') {
     classList.add('ongoing');
   }
 };

@@ -96,12 +96,13 @@ var ConferenceGroupHandler = (function() {
 
   function onStateChange() {
     switch (telephony.conferenceGroup.state) {
-      case 'resuming':
       case 'connected':
         show();
+        CallScreen.render('connected');
         break;
       case 'held':
         groupLine.classList.add('held');
+        CallScreen.render('connected-hold');
         break;
       case '':
         // Exiting conference call

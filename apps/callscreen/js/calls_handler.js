@@ -101,7 +101,7 @@ var CallsHandler = (function callsHandler() {
     // Adding any new calls to handledCalls
     telephony.calls.forEach(function callIterator(call) {
       var alreadyAdded = handledCalls.some(function hcIterator(hc) {
-        return (hc.call == call);
+        return (hc.call === call);
       });
 
       if (!alreadyAdded) {
@@ -111,7 +111,7 @@ var CallsHandler = (function callsHandler() {
 
     // Removing any ended calls to handledCalls
     function hcIterator(call) {
-      return (call == hc.call);
+      return (call === hc.call);
     }
 
     for (var index = (handledCalls.length - 1); index >= 0; index--) {
@@ -197,7 +197,7 @@ var CallsHandler = (function callsHandler() {
       }
     } else {
       if (window.location.hash.startsWith('#locked') &&
-          (call.state == 'incoming')) {
+          (call.state === 'incoming')) {
         CallScreen.render('incoming-locked');
       } else {
         CallScreen.render(call.state);
@@ -217,14 +217,14 @@ var CallsHandler = (function callsHandler() {
     CallScreen.hideIncoming();
 
     var remainingCall = handledCalls[0];
-    if (remainingCall.call.state == 'incoming') {
+    if (remainingCall.call.state === 'incoming') {
       // The active call ended, showing the incoming call
       remainingCall.show();
 
       // This is the difference between an endAndAnswer() and
       // the active call being disconnected while a call is waiting
       setTimeout(function nextTick() {
-        if (remainingCall.call.state == 'incoming') {
+        if (remainingCall.call.state === 'incoming') {
           CallScreen.render('incoming');
         }
       });
@@ -451,8 +451,6 @@ var CallsHandler = (function callsHandler() {
     }
 
     handledCalls[0].call.answer();
-
-    CallScreen.render('connected');
   }
 
   function holdAndAnswer() {
@@ -495,7 +493,7 @@ var CallsHandler = (function callsHandler() {
       return;
     }
 
-    if (telephony.active == telephony.conferenceGroup) {
+    if (telephony.active === telephony.conferenceGroup) {
       endConferenceCall().then(function() {
         CallScreen.hideIncoming();
       }, function() {});
@@ -582,13 +580,11 @@ var CallsHandler = (function callsHandler() {
 
     if (telephony.active) {
       telephony.active.hold();
-      CallScreen.render('connected-hold');
     } else {
       var line = telephony.calls.length ?
         telephony.calls[0] : telephony.conferenceGroup;
 
       line.resume();
-      CallScreen.render('connected');
     }
   }
 
@@ -763,8 +759,8 @@ var CallsHandler = (function callsHandler() {
    * @return {Boolean} Returns true if we're in CDMA call waiting mode.
    */
   function cdmaCallWaiting() {
-    return ((telephony.calls.length == 1) &&
-            (telephony.calls[0].state == 'connected') &&
+    return ((telephony.calls.length === 1) &&
+            (telephony.calls[0].state === 'connected') &&
             (telephony.calls[0].secondId));
   }
 
@@ -841,7 +837,7 @@ var CallsHandler = (function callsHandler() {
    */
   function isEstablishingCall() {
     return telephony.calls.some(function(call) {
-      return call.state == 'dialing' || call.state == 'alerting';
+      return call.state === 'dialing' || call.state === 'alerting';
     });
   }
 
