@@ -51,13 +51,10 @@ Input.prototype.installBinary = function() {
  * @returns {Promise}
  */
 Input.prototype.trigger = function() {
-  var shellCommand = util.format('/data/local/orng %s /data/local/tmp/orng-cmd',
+  var shellCommand = util.format('shell /data/local/orng %s /data/local/tmp/orng-cmd',
     this.inputEvent);
 
-  return new Command()
-    .env('ANDROID_SERIAL', this.serial)
-    .adbShell(shellCommand)
-    .exec();
+  return this.device.util.executeWithDeviceTime(shellCommand);
 };
 
 /**

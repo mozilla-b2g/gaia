@@ -14,6 +14,7 @@ var GAIA_MAX_ROW_HEIGHT_FACTOR = 5;
 var GAIA_MIN_ICON_DISTANCE = 36;
 var GAIA_MAX_ICON_DISTANCE = 38;
 var VERTICAL_CONTEXT = 'verticalhome.gaiamobile.org';
+var SYSTEM_CONTEXT = 'system.gaiamobile.org';
 
 /**
  * Create a suite runner which achieves a ready state when an application is
@@ -110,7 +111,12 @@ ColdLaunch.prototype.setCoordinates = function() {
  * @returns {Promise}
  */
 ColdLaunch.prototype.launch = function() {
-  return this.device.input.tap(this.appX, this.appY, 1);
+  var runner = this;
+
+  return this.device.input.tap(this.appX, this.appY, 1)
+    .then(function(time) {
+      return runner.device.log.mark('tapAppIcon', time);
+    });
 };
 
 /**
@@ -353,8 +359,8 @@ ColdLaunch.prototype.handleRun = function() {
   var manifestURL = this.manifestURL;
 
   var results = this.format(this.results.filter(function(entry) {
-    return entry.context === manifestURL;
-  }), 'coldlaunch', 'appLaunch');
+    return entry.context === manifestURL || entry.context === SYSTEM_CONTEXT;
+  }), 'coldlaunch', 'tapAppIcon');
 
   return this.report(results);
 };
