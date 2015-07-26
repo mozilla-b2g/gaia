@@ -351,13 +351,15 @@
       // bug 992277. We don't need to use SettingsListener because
       // we're only interested in changes to the setting, and don't
       // keep track of its value.
-      navigator.mozSettings.addObserver('lockscreen.lock-immediately',
-        (function(event) {
-        if (event.settingValue === true) {
+      window.SettingsListener.observe('lockscreen.lock-immediately',
+        false, (function ls_observeImmediately(value) {
+        if (value === true) {
           this.lock(true);
-          // Enforce immediate pass code unlock
-          this.resetTimeoutForcibly();
-        }
+          if (this.passCodeEnabled) {
+            // Enforce immediate pass code unlock
+            this.resetTimeoutForcibly();
+          }
+		}
       }).bind(this));
 
       navigator.mozL10n.ready(this.l10nInit.bind(this));
