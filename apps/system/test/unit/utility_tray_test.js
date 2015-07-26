@@ -344,8 +344,12 @@ suite('system/UtilityTray', function() {
     });
   });
 
-  test('setHierarchy', function() {
-    assert.isFalse(UtilityTray.setHierarchy());
+  suite('setHierarchy', function() {
+    test('handle setHierarchy only when shown', function() {
+      assert.isFalse(UtilityTray.setHierarchy(true));
+      UtilityTray.show(true);
+      assert.isTrue(UtilityTray.setHierarchy(true));
+    });
   });
 
   // handleEvent
