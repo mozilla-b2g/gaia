@@ -83,10 +83,9 @@
       templateDuplicateContact: function(contact) {
         return Sanitizer.createSafeHTML `<li data-uuid="${contact.id}"
           class="block-item">
-          <label class="pack-checkbox">
-            <input type="checkbox" checked>
-            <span></span>
-          </label>
+          <gaia-checkbox class="inline" checked>
+            <label></label>
+          </gaia-checkbox>
           <aside class="pack-end">
             <img data-src="${contact.thumb}">
           </aside>
@@ -110,7 +109,7 @@
 
             // Use a template node so we can append it and also access the node
             var item = document.createElement('template');
-            item.innerHTML = 
+            item.innerHTML =
               Sanitizer.unwrapSafeHTML(this.templateDuplicateContact(contact));
 
             this.contactsList.appendChild(item.content);
@@ -238,7 +237,7 @@
 
       onClick: function(e) {
         var el = e.target;
-        if (el.tagName !== 'INPUT') {
+        if (el.nodeName.toLowerCase() !== 'gaia-checkbox') {
           return;
         }
         var uuid = el.parentNode.parentNode.dataset.uuid;

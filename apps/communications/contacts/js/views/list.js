@@ -1685,33 +1685,26 @@ contacts.List = (function() {
     }
 
     var result = clonableSelectCheck.cloneNode(true);
-    var check = result.firstChild;
-    check.setAttribute('value', uuid);
+    result.setAttribute('value', uuid);
 
     return result;
   };
 
   /*
     Generates the dom structure for the selectable check:
-
-    <label class="pack-checkbox">
-      <input type="checkbox" name="selectIds[]" value="#uid#"></input>
-      <span></span>
-    </label>
+    <gaia-checkbox name="selectIds[]" value="#uid#">
+      <label></label>
+    </gaia-checkbox>
   */
   var buildSelectCheck = function buildSelectCheck() {
+    var checkbox = document.createElement('gaia-checkbox');
+    checkbox.className = 'contact-checkbox inline';
+    checkbox.name = 'selectIds[]';
+
     var label = document.createElement('label');
-    label.classList.add('contact-checkbox');
-    label.classList.add('pack-checkbox');
+    checkbox.appendChild(label);
 
-    var input = document.createElement('input');
-    input.name = 'selectIds[]';
-    input.type = 'checkbox';
-    label.appendChild(input);
-    var span = document.createElement('span');
-    label.appendChild(span);
-
-    return label;
+    return checkbox;
   };
 
   /*
@@ -2085,7 +2078,7 @@ contacts.List = (function() {
   // Given a row, and the contact id, setup the value of the selection check
   var updateSingleRowSelection = function updateSingleRowSelection(row, id) {
     id = id || row.dataset.uuid;
-    var check = row.querySelector('input[value="' + id + '"]');
+    var check = row.querySelector('gaia-checkbox[value="' + id + '"]');
     if (!check) {
       return;
     }

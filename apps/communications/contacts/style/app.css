@@ -530,6 +530,9 @@ nav[data-type="scrollbar"] ol > li > * {
 .contact-checkbox {
   left: 0 !important;
   display: none !important;
+  float: left;
+  position: absolute;
+  top: 2rem;
 }
 
 .contact-checkbox-selecting {
@@ -550,7 +553,7 @@ nav[data-type="scrollbar"] ol > li > * {
 
 #groups-list.selecting .group-section li,
 #search-list.selecting li {
-  -moz-padding-start: 2rem;  
+  -moz-padding-start: 2rem;
 }
 
 form[role="dialog"].no-overlay {
