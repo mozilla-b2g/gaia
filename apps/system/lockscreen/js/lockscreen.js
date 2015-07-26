@@ -582,22 +582,6 @@
     }
   };
 
-  LockScreen.prototype.resetTimeoutForcibly =
-  function ls_resetTimeoutForcibly() {
-    // Pass code unlock requirement is checked against timeout of
-    // either timestamp. Resetting these to epoch 0 ensures that both
-    // will timeout even if one timestamp is set to Date.now()
-    // due to lockscreen activation or deactivation in a different
-    // code path, avoiding a potential race condition. The respective
-    // pre-calculated intervals are adjusted accordingly.
-    // Fixes bug 1186100
-    var now = Date.now();
-    this._lastLockedTimeStamp = 0;
-    this._lastLockedInterval = now;
-    this._lastUnlockedTimeStamp = 0;
-    this._lastUnlockedInterval = now;
-  };
-
   LockScreen.prototype.loadPanel =
   function ls_loadPanel(panel, callback) {
     this._loadingPanel = true;
@@ -924,6 +908,26 @@
       } else {
         return true;
       }
+    };
+
+  /**
+   * Reset lock/unlock time stamps such that checkPassCodeTimeout
+   * will return that pass code must be checked.
+   */
+  LockScreen.prototype.resetTimeoutForcibly =
+    function ls_resetTimeoutForcibly() {
+      // Pass code unlock requirement is checked against timeout of
+      // either timestamp. Resetting these to epoch 0 ensures that both
+      // will timeout even if one timestamp is set to Date.now()
+      // due to lockscreen activation or deactivation in a different
+      // code path, avoiding a potential race condition. The respective
+      // pre-calculated intervals are adjusted accordingly.
+      // Fixes bug 1186100
+      var now = Date.now();
+      this._lastLockedTimeStamp = 0;
+      this._lastLockedInterval = now;
+      this._lastUnlockedTimeStamp = 0;
+      this._lastUnlockedInterval = now;
     };
 
   /**
