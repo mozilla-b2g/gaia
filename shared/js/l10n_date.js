@@ -163,15 +163,6 @@ navigator.mozL10n.DateTimeFormat = function(locales, options) {
 
   // API
   return {
-    localeDateString: function localeDateString(d) {
-      return localeFormat(d, '%x');
-    },
-    localeTimeString: function localeTimeString(d) {
-      return localeFormat(d, '%X');
-    },
-    localeString: function localeString(d) {
-      return localeFormat(d, '%c');
-    },
     localeFormat: localeFormat,
     fromNow: prettyDate,
     relativeParts: relativeParts
