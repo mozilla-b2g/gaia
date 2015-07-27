@@ -136,7 +136,7 @@
         touch = evt.changedTouches[0];
         target = document.elementFromPoint(touch.clientX, touch.clientY);
         key = this._keyForTarget(target);
-        if (target !== this.lastTouched) {
+        if (target.textContent !== this.lastTouched.textContent) {
           if (this.lastTouched) {
             this._makeKeyInactive(this.lastTouched);
           }
