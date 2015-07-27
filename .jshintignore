@@ -21,6 +21,7 @@ apps/calendar/js/common/presets.js
 apps/email/js/alameda.js
 apps/email/js/tmpl_builder.js
 apps/clock/js/alameda.js
+apps/clock/js/ext/**
 apps/clock/js/text_builder.js
 shared/js/uuid.js
 shared/js/l20n.js

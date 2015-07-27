@@ -29,9 +29,9 @@ suite('Timer.Panel', function() {
 
   test('shape:prototype ', function() {
     assert.ok(Timer.Panel);
-    assert.ok(Timer.Panel.prototype.dialog);
+    assert.ok(Timer.Panel.prototype.showDialog);
+    assert.ok(Timer.Panel.prototype.hideDialog);
     assert.ok(Timer.Panel.prototype.update);
-    assert.ok(Timer.Panel.prototype.toggle);
     assert.ok(Timer.Panel.prototype.onclick);
   });
 
@@ -45,12 +45,11 @@ suite('Timer.Panel', function() {
     var panel = new Timer.Panel(document.createElement('div'));
     var dialog = View.instance(panel.nodes.dialog);
 
-    // Defaults to isVisible = true;
-    panel.dialog();
+    panel.showDialog();
 
     assert.isTrue(dialog.visible);
 
-    panel.dialog({ isVisible: false });
+    panel.hideDialog();
 
     assert.isFalse(dialog.visible);
   });
@@ -59,37 +58,43 @@ suite('Timer.Panel', function() {
     var panel = new Timer.Panel(document.createElement('div'));
 
     // The timer panel should display rounded seconds.
-    panel.update(10000);
+    var timer = { remaining: 10000 };
+    panel.timer = timer;
+    panel.update();
     assert.equal(panel.nodes.time.textContent, '00:00:10');
-    panel.update( 9555);
+    timer.remaining = 9555;
+    panel.update();
     assert.equal(panel.nodes.time.textContent, '00:00:10');
-    panel.update( 9499);
+    timer.remaining = 9499;
+    panel.update();
     assert.equal(panel.nodes.time.textContent, '00:00:09');
-    panel.update(  500);
+    timer.remaining = 500;
+    panel.update();
     assert.equal(panel.nodes.time.textContent, '00:00:01');
-    panel.update(    0);
+    timer.remaining = 0;
+    panel.update();
     assert.equal(panel.nodes.time.textContent, '00:00:00');
   });
 
-  test('toggle(show, hide) ', function() {
+  test('toggleButtons ', function() {
     var panel = new Timer.Panel(document.createElement('div'));
     var start = panel.nodes.start;
     var pause = panel.nodes.pause;
 
-    panel.toggle(start, pause);
+    panel.timer = {};
+
+    panel.timer.state = Timer.PAUSED;
+    panel.toggleButtons();
 
     assert.isFalse(isHidden(start));
     assert.isTrue(isHidden(pause));
 
-    panel.toggle(pause, start);
+    panel.timer.state = Timer.STARTED;
+    panel.toggleButtons();
 
     assert.isTrue(isHidden(start));
     assert.isFalse(isHidden(pause));
   });
-
-  function fakeTick(timerpanel) {
-    timerpanel.update(timerpanel.timer.remaining);
-  }
 
   test('Set timer state (paused)', function() {
     var now = Date.now();
@@ -103,19 +108,20 @@ suite('Timer.Panel', function() {
     panel.timer = timer;
     panel.onvisibilitychange({ detail: { isVisible: true } });
 
-    fakeTick(panel);
+    panel.update();
     assert.equal(panel.nodes.time.textContent, '01:00:00');
 
     clock.tick(5000);
-    fakeTick(panel);
+    panel.update();
 
     assert.equal(panel.nodes.time.textContent, '00:59:55');
 
     panel.onclick({
       target: panel.nodes.pause
     });
+    panel.onTimerEvent({ type: 'timer-pause' });
 
-    fakeTick(panel);
+    panel.update();
 
     assert.isTrue(isHidden(panel.nodes.dialog));
     assert.isTrue(isHidden(panel.nodes.pause));
@@ -126,7 +132,7 @@ suite('Timer.Panel', function() {
 
     assert.equal(panel.nodes.time.textContent, '00:59:55');
     clock.tick(5000);
-    fakeTick(panel);
+    panel.update();
     assert.equal(panel.nodes.time.textContent, '00:59:55');
 
   });
@@ -152,10 +158,10 @@ suite('Timer.Panel', function() {
 
     assert.equal(panel.nodes.time.textContent, '01:00:00');
     clock.tick(5000);
-    fakeTick(panel);
+    panel.update();
     assert.equal(panel.nodes.time.textContent, '00:59:55');
   });
- 
+
   test('Create button is disabled when picker is set to 0:00', function() {
     var panel = new Timer.Panel(document.createElement('div'));
     var create = panel.nodes.create;
@@ -165,7 +171,7 @@ suite('Timer.Panel', function() {
       setAttribute: function() {},
       removeAttribute: function() {}
     };
-    
+
     this.sinon.spy(create, 'removeAttribute');
     this.sinon.spy(create, 'setAttribute');
 
@@ -175,7 +181,7 @@ suite('Timer.Panel', function() {
     nodes.hours.dispatchEvent(
       new CustomEvent('transitionend')
     );
-    
+
     assert.isFalse(panel.nodes.create.disabled);
 
     panel.picker.value = '0:00';
@@ -189,7 +195,7 @@ suite('Timer.Panel', function() {
     nodes.minutes.dispatchEvent(
       new CustomEvent('transitionend')
     );
-    
+
     assert.isFalse(panel.nodes.create.disabled);
 
     panel.picker.value = '0:00';
