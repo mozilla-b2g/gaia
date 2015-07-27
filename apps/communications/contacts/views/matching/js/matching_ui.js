@@ -470,11 +470,9 @@
           if (value) {
             ++this.checked;
             this.checkedContacts[uuid] = uuid;
-            item.setAttribute('aria-disabled', false);
           } else {
             --this.checked;
             delete this.checkedContacts[uuid];
-            item.setAttribute('aria-disabled', true);
           }
         }
         element.checked = value;

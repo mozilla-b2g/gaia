@@ -46,16 +46,8 @@
 
 /* BB overrides */
 
-[data-type="list"] li[aria-disabled="true"] {
-  pointer-events: auto;
-}
-
 .match-main-reason {
   color: #008eab;
-}
-
-li[aria-disabled="true"] .match-main-reason {
-  color: #5b5b5b;
 }
 
 form[role="dialog"][data-type="edit"] #duplicate-msg > p {
@@ -128,4 +120,9 @@ form[role="dialog"][data-type="edit"] #main {
 html[dir="rtl"] #contacts-list-container label {
   left: unset;
   right: 0;
+}
+
+
+#matching-details[data-type="confirm"] > section {
+  display: inline-block;
 }

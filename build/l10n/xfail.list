@@ -36,7 +36,6 @@ apps/collection/js/create_collection.js
 apps/collection/js/objects.js
 apps/collection/js/suggestions.js
 apps/collection/js/view_apps.js
-apps/communications/contacts/js/contacts_matching_ui.js
 apps/communications/contacts/js/export/bt.js
 apps/communications/contacts/js/tag_options.js
 apps/communications/contacts/js/utilities/normalizer.js
@@ -52,6 +51,7 @@ apps/communications/contacts/test/unit/multiple_contact_del_test.js
 apps/communications/contacts/test/unit/views/form_test.js
 apps/communications/contacts/views/form/js/form_controller.js
 apps/communications/contacts/views/form/js/form_ui.js
+apps/communications/contacts/views/matching/js/matching_ui.js
 apps/communications/dialer/js/mmi.js
 apps/communications/dialer/js/mmi_ui.js
 apps/communications/facebook/js/fb_sync_init.js
