@@ -147,13 +147,13 @@ suite('dialer/keypad', function() {
   });
 
   suite('Keypad Manager', function() {
-    test('initializates the TonePlayer to use the notification audio channel',
+    test('initializates the TonePlayer to use the system audio channel',
     function() {
       this.sinon.spy(MockTonePlayer, 'init');
       KeypadManager.init(/* oncall */ false);
 
       sinon.assert.calledOnce(MockTonePlayer.init);
-      sinon.assert.calledWithExactly(MockTonePlayer.init, 'notification');
+      sinon.assert.calledWithExactly(MockTonePlayer.init, 'system');
     });
 
     test('sanitizePhoneNumber', function(done) {

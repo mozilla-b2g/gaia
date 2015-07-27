@@ -20,6 +20,7 @@
     "settings":{ "access": "readwrite" },
     "time": {},
     "audio-channel-telephony":{},
+    "audio-channel-system":{},
     "idle":{},
     "device-storage:sdcard": { "access": "readonly" },
     "phonenumberservice": {}
