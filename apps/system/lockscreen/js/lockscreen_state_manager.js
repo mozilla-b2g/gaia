@@ -73,6 +73,16 @@
   LockScreenStateManager.prototype.start =
   function lssm_start(lockScreen) {
     this.lockScreen = lockScreen;
+    this.lockScreen.init();
+    // Since we have async setups. We need to pass them to states.
+    // This is because in design the manager should collect all information
+    // to determinate which state should be transferr in, and before the
+    // transferring the information should all be collected. However since
+    // some info are gathered asynchronously, we need these promises to
+    // let state to do decision when it could to transferTo or transferOut.
+    this.setups = {
+      passcodeEnabledRead: this.createSetupPendingRequest()
+    };
     this.logger = (new LockScreenStateLogger()).start({
       debug: false,
       error: true
@@ -104,22 +114,30 @@
     // The state 'templates'. This component would do transfer among
     // these states.
     this.states = {
-      slideRestore: (new LockScreenStateSlideRestore()).start(this.lockScreen),
-      slideShow: (new LockScreenStateSlideShow()).start(this.lockScreen),
-      slideHide: (new LockScreenStateSlideHide()).start(this.lockScreen),
-      keypadShow: (new LockScreenStateKeypadShow()).start(this.lockScreen),
-      keypadHiding: (new LockScreenStateKeypadHiding()).start(this.lockScreen),
-      keypadRising: (new LockScreenStateKeypadRising()).start(this.lockScreen),
-      panelHide: (new LockScreenStatePanelHide()).start(this.lockScreen),
-      unlock: (new LockScreenStateUnlock()).start(this.lockScreen),
+      slideRestore: (new LockScreenStateSlideRestore())
+        .start(this.lockScreen, this.setups),
+      slideShow: (new LockScreenStateSlideShow())
+        .start(this.lockScreen, this.setups),
+      slideHide: (new LockScreenStateSlideHide())
+        .start(this.lockScreen, this.setups),
+      keypadShow: (new LockScreenStateKeypadShow())
+        .start(this.lockScreen, this.setups),
+      keypadHiding: (new LockScreenStateKeypadHiding())
+        .start(this.lockScreen, this.setups),
+      keypadRising: (new LockScreenStateKeypadRising())
+        .start(this.lockScreen, this.setups),
+      panelHide: (new LockScreenStatePanelHide())
+        .start(this.lockScreen, this.setups),
+      unlock: (new LockScreenStateUnlock())
+        .start(this.lockScreen, this.setups),
       secureAppLaunching: (new LockScreenStateSecureAppLaunching())
-        .start(this.lockScreen)
+        .start(this.lockScreen, this.setups)
     };
 
     // Default values
     this.lockScreenDefaultStates = {
       screenOn: true,   // We assume that the screen is on after booting
-      passcodeEnabled: false,
+      passcodeEnabled: null, // It costs 3 or more seconds to read.
       passcodeTimeout: true, // If timeout, do show the keypad
       homePressed: false,
       activateUnlock: false,
@@ -149,6 +167,15 @@
     return this;
   };
 
+  LockScreenStateManager.prototype.createSetupPendingRequest =
+  function lssm_createSetupPendingRequest() {
+    var r;
+    var p = new Promise((res, rej) => {
+      r = res;
+    });
+    return { promise: p, resolve: r };
+  };
+
   /**
    * Set up all basic transferring rules. When we invoke the 'transfer'
    * method, it would test if there is anyone rule match the
@@ -163,6 +190,7 @@
   LockScreenStateManager.prototype.setupRules =
   function lssm_setupRules() {
     this.rules = new Map();
+
     this.registerRule({
       secureAppOpen: true
     },
@@ -191,7 +219,8 @@
       activateUnlock: true
     },
     ['slideShow'],
-    this.states.slideHide,
+    //this.states.slideHide,
+    this.states.unlock,
     'When it activate to unlock without passcode, unlock and animates.');
 
     this.registerRule({
@@ -480,6 +509,11 @@
     this.transfer(inputs);
   };
 
+  LockScreenStateManager.prototype.onBlockingSlidingEnded =
+  function lssm_onBlockingSlidingEnded() {
+    this.transfer(this.lockScreenStates);
+  };
+
   LockScreenStateManager.prototype.onUnlock =
   function lssm_onUnlock(detail) {
     var inputs = this.extend(this.lockScreenStates, {
@@ -601,11 +635,18 @@
    */
   LockScreenStateManager.prototype.onPasscodeEnabledChanged =
   function lssm_onPasscodeEnabledChanged(value) {
+    var val;
     if ('string' === typeof value) {
-      this.lockScreenStates.passcodeEnabled = 'false' === value ? false : true;
+      val = 'false' === value ? false : true;
     } else {
-      this.lockScreenStates.passcodeEnabled = value;
+      val = value;
     }
+    // It's first time we read it.
+    if (null === this.lockScreenStates.passcodeEnabled) {
+      this.lockScreenStates.passcodeEnabled = val;
+      this.setups.passcodeEnabledRead.resolve(val);
+    }
+    this.lockScreenStates.passcodeEnabled = val;
   };
 
   LockScreenStateManager.prototype.onPasscodeValidated =

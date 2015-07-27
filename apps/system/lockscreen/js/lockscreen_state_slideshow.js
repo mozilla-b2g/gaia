@@ -29,25 +29,60 @@
   LockScreenStateSlideShow.prototype =
     Object.create(LockScreenBaseState.prototype);
 
-  LockScreenStateSlideShow.prototype.start = function(lockScreen) {
+  LockScreenStateSlideShow.prototype.start = function(lockScreen, setups) {
     this.type = 'slideShow';
     this.lockScreen = lockScreen;
+    this.setups = setups;
     return this;
   };
 
   LockScreenStateSlideShow.prototype.transferTo =
   function lssss_transferTo(inputs) {
-    return new Promise((resolve, reject) => {
-      // Clear passcode while the keypad is hiding.
-      window.dispatchEvent(
-        new CustomEvent('lockscreen-request-inputpad-close'));
-      // Resetting slider before we want to show it again
-      this.lockScreen._unlocker.reset();
-      // Copy from the original switching method.
-      this.lockScreen.overlay.classList.add('no-transition');
-      this.lockScreen.overlay.dataset.panel = 'main';
-      resolve();
+    this._passcodeEnabled = inputs.passcodeEnabled;
+    // Must make sure this state happens after LockScreen bootstraps itself.
+    // Since it's an async bootstrapping process.
+    return this.lockScreen.bootstrapping.then(() => {
+      return new Promise((resolve, reject) => {
+        // Clear passcode while the keypad is hiding.
+        window.dispatchEvent(
+          new CustomEvent('lockscreen-request-inputpad-close'));
+        // Resetting slider before we want to show it again
+        this.lockScreen._unlocker.reset();
+        // Copy from the original switching method.
+        this.lockScreen.overlay.classList.add('no-transition');
+        this.lockScreen.overlay.dataset.panel = 'main';
+        resolve();
+      });
     });
   };
+
+  LockScreenStateSlideShow.prototype.transferOut =
+  function lssss_transferOut() {
+    // Stop the unlock when the state want to transfer out.
+    return Promise.resolve().then(() => {
+        // If we need to read the passcode enabled value:
+        // 1. Since we need to wait reading, stop it to prevent advanced
+        //    user manipulations
+        // 2. Until we read it, resume the unlocker to prevent we forget
+        //    to resume it.
+        //
+        // Else, we just ignore it.
+        this.lockScreen._unlocker._stop();
+
+        if ('undefined' === typeof this._passcodeEnabled) {
+          // No need such value, pass by.
+          this.lockScreen._unlocker._start();
+        } else if (null !== this._passcodeEnabled) {
+          // Already read it.
+          this.lockScreen._unlocker._start();
+        } else {
+          // Need to wait it.
+          return this.setups.passcodeEnabledRead.promise.then((enabled) => {
+            this.lockScreen._unlocker._start();
+          });
+        }
+      });
+  };
+
   exports.LockScreenStateSlideShow = LockScreenStateSlideShow;
 })(window);

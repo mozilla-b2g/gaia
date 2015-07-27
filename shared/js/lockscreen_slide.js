@@ -588,6 +588,20 @@
       this.states.slideReachEnd = false;
     };
 
+  LockScreenSlidePrototype._stop =
+    function lss_stop() {
+      window.removeEventListener('touchmove', this);
+      window.removeEventListener('touchend', this);
+      this.area.removeEventListener('touchstart', this);
+    };
+
+  LockScreenSlidePrototype._start =
+    function lss_stop() {
+      window.addEventListener('touchmove', this);
+      window.addEventListener('touchend', this);
+      this.area.addEventListener('touchstart', this);
+    };
+
   /**
    * When user released the finger, bounce it back.
    *

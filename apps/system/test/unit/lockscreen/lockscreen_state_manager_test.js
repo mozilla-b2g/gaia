@@ -61,6 +61,7 @@ suite('system/LockScreenStateManager', function() {
     };
 
     mockLockScreen = function() {
+      this.init = function() {};
       this.overlay = document.createElement('div');
     };
     subject = (new LockScreenStateManager())
