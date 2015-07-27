@@ -55,22 +55,23 @@ suite('system/Rocketbar', function() {
   });
 
   suite('Hierarchy functions', function() {
-    test('setHierarchy: false', function() {
+    test('setHierarchy', function() {
       var searchWindow = new MockSearchWindow();
       subject.searchWindow = searchWindow;
       this.sinon.stub(searchWindow, 'setVisibleForScreenReader');
       subject.setHierarchy(false);
       assert.isTrue(searchWindow.setVisibleForScreenReader.calledWith(false));
+      searchWindow.setVisibleForScreenReader.reset();
+      subject.setHierarchy(true);
+      assert.isTrue(searchWindow.setVisibleForScreenReader.calledWith(true));
     });
 
-    test('setHierarchy: true', function() {
+    test('setFocus', function() {
       var searchWindow = new MockSearchWindow();
       subject.searchWindow = searchWindow;
-      this.sinon.stub(searchWindow, 'setVisibleForScreenReader');
       this.sinon.stub(subject, 'focus');
-      subject.setHierarchy(true);
+      subject.setFocus(true);
       assert.isTrue(subject.focus.called);
-      assert.isTrue(searchWindow.setVisibleForScreenReader.calledWith(true));
     });
 
     test('Should register hierarchy on start', function() {

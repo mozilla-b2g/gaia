@@ -76,13 +76,18 @@
   };
 
   SystemDialogManager.prototype.setHierarchy = function(active) {
+    if (this.states.activeDialog) {
+      this.states.activeDialog._setVisibleForScreenReader(active);
+    }
+  };
+
+  SystemDialogManager.prototype.setFocus = function(active) {
     if (!this.states.activeDialog) {
       return false;
     }
     if (active) {
       this.states.activeDialog.focus();
     }
-    this.states.activeDialog._setVisibleForScreenReader(active);
     return true;
   };
 

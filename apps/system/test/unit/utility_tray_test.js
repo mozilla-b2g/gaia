@@ -344,8 +344,8 @@ suite('system/UtilityTray', function() {
     });
   });
 
-  test('setHierarchy', function() {
-    assert.isFalse(UtilityTray.setHierarchy());
+  test('setFocus', function() {
+    assert.isFalse(UtilityTray.setFocus());
   });
 
   // handleEvent

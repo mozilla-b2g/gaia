@@ -23,6 +23,7 @@ suite('system/HierarchyManager', function() {
     isActive: function() {},
     getActiveWindow: function() {},
     setHierarchy: function() {},
+    setFocus: function() {},
     respondToHierarchyEvent: function() {}
   };
   var fakeAppWindowManager = {
@@ -31,6 +32,7 @@ suite('system/HierarchyManager', function() {
     isActive: function() {},
     getActiveWindow: function() {},
     setHierarchy: function() {},
+    setFocus: function() {},
     respondToHierarchyEvent: function() {}
   };
   var fakeActionMenu = {
@@ -39,6 +41,7 @@ suite('system/HierarchyManager', function() {
     isActive: function() {},
     getActiveWindow: function() {},
     setHierarchy: function() {},
+    setFocus: function() {},
     respondToHierarchyEvent: function() {}
   };
   var fakeSystemDialogManager = {
@@ -46,6 +49,7 @@ suite('system/HierarchyManager', function() {
     EVENT_PREFIX: 'sdm',
     isActive: function() {},
     setHierarchy: function() {},
+    setFocus: function() {},
     respondToHierarchyEvent: function() {}
   };
   var fakeRocketbar = {
@@ -54,6 +58,7 @@ suite('system/HierarchyManager', function() {
     isActive: function() {},
     getActiveWindow: function() {},
     setHierarchy: function() {},
+    setFocus: function() {},
     respondToHierarchyEvent: function() {}
   };
   var fakeInitLogoHandler = {
@@ -61,6 +66,7 @@ suite('system/HierarchyManager', function() {
     EVENT_PREFIX: 'il',
     isActive: function() {},
     setHierarchy: function() {},
+    setFocus: function() {},
     respondToHierarchyEvent: function() {}
   };
   var fakeTaskManager = {
@@ -68,6 +74,7 @@ suite('system/HierarchyManager', function() {
     EVENT_PREFIX: 'tm',
     isActive: function() {},
     setHierarchy: function() {},
+    setFocus: function() {},
     respondToHierarchyEvent: function() {}
   };
 
@@ -194,6 +201,52 @@ suite('system/HierarchyManager', function() {
       });
   });
 
+  suite('setHierarchy and setFocus in updateHierarchy', function() {
+    setup(function() {
+      this.sinon.stub(fakeAppWindowManager, 'isActive').returns(true);
+      this.sinon.stub(fakeAppWindowManager, 'setHierarchy');
+      this.sinon.stub(fakeAppWindowManager, 'setFocus').returns(true);
+      this.sinon.stub(fakeSystemDialogManager, 'isActive').returns(true);
+      this.sinon.stub(fakeSystemDialogManager, 'setHierarchy');
+      this.sinon.stub(fakeSystemDialogManager, 'setFocus');
+      subject.registerHierarchy(fakeAppWindowManager);
+    });
+
+    teardown(function() {
+      subject.unregisterHierarchy(fakeAppWindowManager);
+      subject.unregisterHierarchy(fakeSystemDialogManager);
+    });
+
+    test('should invoke "setHierarchy" of modules', function() {
+      assert.isTrue(fakeAppWindowManager.setHierarchy.calledWith(true));
+      fakeAppWindowManager.setHierarchy.reset();
+
+      subject.registerHierarchy(fakeSystemDialogManager);
+      assert.isTrue(fakeAppWindowManager.setHierarchy.calledWith(false));
+      assert.isTrue(fakeSystemDialogManager.setHierarchy.calledWith(true));
+    });
+
+    test('should invoke "setFocus" of modules', function() {
+      assert.isTrue(fakeAppWindowManager.setFocus.calledWith(true));
+      fakeAppWindowManager.setFocus.reset();
+      fakeSystemDialogManager.setFocus.returns(true);
+      subject.registerHierarchy(fakeSystemDialogManager);
+      assert.isTrue(fakeAppWindowManager.setFocus.calledWith(false));
+      assert.isTrue(fakeSystemDialogManager.setFocus.calledWith(true));
+      assert.isTrue(fakeSystemDialogManager.setFocus.calledTwice);
+    });
+
+    test('should not blur lower priority module when higher priority module ' +
+         'is not focused successfully', function() {
+      fakeAppWindowManager.setFocus.reset();
+      fakeSystemDialogManager.setFocus.returns(false);
+      subject.registerHierarchy(fakeSystemDialogManager);
+      assert.isTrue(fakeSystemDialogManager.setFocus.calledWith(true));
+      assert.isTrue(fakeSystemDialogManager.setFocus.calledOnce);
+      assert.isFalse(fakeAppWindowManager.setFocus.called);
+    });
+  });
+
   suite('focus request', function() {
     test('should not focus when lower priority module ' +
       'requests to be focused', function() {
@@ -216,18 +269,6 @@ suite('system/HierarchyManager', function() {
         subject.registerHierarchy(fakeSystemDialogManager);
         subject.focus(fakeSystemDialogManager);
         assert.isTrue(fakeSystemDialogManager.setHierarchy.calledWith(true));
-      });
-
-    test('should not blur lower priority module ' +
-      'when higher priority module is not focused successfully', function() {
-        this.sinon.stub(fakeAppWindowManager, 'setHierarchy');
-        this.sinon.stub(fakeAppWindowManager, 'isActive').returns(true);
-        this.sinon.stub(fakeSystemDialogManager, 'isActive').returns(true);
-        this.sinon.stub(fakeSystemDialogManager, 'setHierarchy').returns(false);
-        subject.registerHierarchy(fakeAppWindowManager);
-        subject.registerHierarchy(fakeSystemDialogManager);
-        subject.focus(fakeAppWindowManager);
-        assert.isFalse(fakeAppWindowManager.setHierarchy.calledOnce);
       });
 
     test('should focus top most without a module', function() {

@@ -75,14 +75,19 @@ suite('system/SystemDialogManager', function() {
   suite('Hierarchy functions', function() {
     test('setHierarchy', function() {
       this.sinon.stub(dialogFake, '_setVisibleForScreenReader');
-      this.sinon.stub(dialogFake, 'focus');
       window.systemDialogManager.activateDialog(dialogFake);
-      assert.isTrue(window.systemDialogManager.setHierarchy(true));
+      window.systemDialogManager.setHierarchy(true);
       assert.isTrue(dialogFake._setVisibleForScreenReader.calledWith(true));
-      assert.isTrue(dialogFake.focus.called);
 
       window.systemDialogManager.setHierarchy(false);
       assert.isTrue(dialogFake._setVisibleForScreenReader.calledWith(false));
+    });
+
+    test('setFocus', function() {
+      this.sinon.stub(dialogFake, 'focus');
+      window.systemDialogManager.activateDialog(dialogFake);
+      assert.isTrue(window.systemDialogManager.setFocus(true));
+      assert.isTrue(dialogFake.focus.called);
     });
 
     test('Should be inactive', function() {
@@ -118,7 +123,7 @@ suite('system/SystemDialogManager', function() {
         detail: dialogFake});
       assert.isNull(window.systemDialogManager.states.activeDialog,
         'the dialog should not be activated');
-      assert.isFalse(window.systemDialogManager.setHierarchy(true));
+      assert.isFalse(window.systemDialogManager.setFocus(true));
       var createdDialog =
       window.systemDialogManager.states.runningDialogs[dialogFake.instanceID];
       window.assert.isObject(createdDialog,

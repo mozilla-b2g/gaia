@@ -107,17 +107,21 @@
           this.debug('next top most is null.');
         }
 
-        if (this._topMost && this._topMost.setHierarchy &&
-            this._topMost.setHierarchy(true)) {
+        if (this._topMost && this._topMost.setFocus &&
+            this._topMost.setFocus(true)) {
           // Blur previous module only when current module is successfully
           // focused.
-          lastTopMost && lastTopMost.setHierarchy &&
-          lastTopMost.setHierarchy(false);
-
+          lastTopMost && lastTopMost.setFocus &&
+            lastTopMost.setFocus(false);
+          this._topMost && this._topMost.setFocus &&
+            this._topMost.setFocus(true);
         }
 
+        lastTopMost && lastTopMost.setHierarchy &&
+          lastTopMost.setHierarchy(false);
         this._topMost && this._topMost.setHierarchy &&
-        this._topMost.setHierarchy(true);
+          this._topMost.setHierarchy(true);
+
         this.publish('changed');
       } else {
         this.debug('top most is the same.', this._topMost ?
@@ -136,10 +140,8 @@
     },
 
     focus: function(module) {
-      if (!module) {
-        this._topMost.setHierarchy(true);
-      } else if (this._topMost === module) {
-        module.setHierarchy(true);
+      if (!module || module === this._topMost) {
+        this._topMost.setFocus && this._topMost.setFocus(true);
       }
     },
 
