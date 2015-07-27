@@ -1444,7 +1444,6 @@ suite('system/UpdateManager', function() {
             connected: true
           }
         ],
-
         update2g: true,
         forbiddenDwnload: false
       },
@@ -1508,7 +1507,8 @@ suite('system/UpdateManager', function() {
         forbiddenDwnload: false
       },
       {
-        title: 'no WIFI, 2G, no Setting update2G -> download forbidden',
+        title: 'no WIFI, 2G, no Setting update2G, ' +
+               'System update available -> download forbidden',
         wifi: false,
         conns: [
           {
@@ -1519,10 +1519,28 @@ suite('system/UpdateManager', function() {
             connected: false
           }
         ],
+        systemUpdate: true,
         forbiddenDwnload: true
       },
       {
-        title: 'no WIFI, 2G, Setting update2G is true -> download available',
+        title: 'no WIFI, 2G, no Setting update2G, ' +
+               'System update unavailable -> download available',
+        wifi: false,
+        conns: [
+          {
+            type: 'gprs',
+            connected: true
+          },
+          {
+            connected: false
+          }
+        ],
+        systemUpdate: false,
+        forbiddenDwnload: false
+      },
+      {
+        title: 'no WIFI, 2G, Setting update2G is true, ' +
+               'System update available -> download available',
         wifi: false,
         conns: [
           {
@@ -1534,10 +1552,29 @@ suite('system/UpdateManager', function() {
           }
         ],
         update2g: true,
+        systemUpdate: true,
         forbiddenDwnload: false
       },
       {
-        title: 'no WIFI, 2G, Setting update2G is false -> download forbidden',
+        title: 'no WIFI, 2G, Setting update2G is true, ' +
+               'System update unavailable -> download available',
+        wifi: false,
+        conns: [
+          {
+            connected: false
+          },
+          {
+            type: 'gprs',
+            connected: true
+          }
+        ],
+        update2g: true,
+        systemUpdate: false,
+        forbiddenDwnload: false
+      },
+      {
+        title: 'no WIFI, 2G, Setting update2G is false, ' +
+               'System update available -> download forbidden',
         wifi: false,
         conns: [
           {
@@ -1549,12 +1586,32 @@ suite('system/UpdateManager', function() {
           }
         ],
         update2g: false,
+        systemUpdate: true,
         forbiddenDwnload: true
+      },
+      {
+        title: 'no WIFI, 2G, Setting update2G is false, ' +
+               'System update unavailable -> download available',
+        wifi: false,
+        conns: [
+          {
+            type: 'gprs',
+            connected: true
+          },
+          {
+            connected: false
+          }
+        ],
+        update2g: false,
+        systemUpdate: false,
+        forbiddenDwnload: false
       }
     ];
 
     testCases.forEach(function(testCase) {
       test(testCase.title, function() {
+        var systemUpdatable, appUpdatable;
+
         if (testCase.update2g === undefined) {
           delete MockNavigatorSettings.mSettings[UpdateManager.UPDATE_2G_SETT];
         } else {
@@ -1571,6 +1628,16 @@ suite('system/UpdateManager', function() {
             connected: testCase.conns[i].connected,
             type: testCase.conns[i].type
           };
+        }
+
+        appUpdatable = new MockAppUpdatable(new MockApp());
+        appUpdatable.name = 'Angry birds';
+        appUpdatable.size = '423459';
+        UpdateManager.addToUpdatableApps(appUpdatable);
+        UpdateManager.addToUpdatesQueue(appUpdatable);
+        if (testCase.systemUpdate) {
+          systemUpdatable = new MockSystemUpdatable();
+          UpdateManager.addToUpdatesQueue(systemUpdatable);
         }
 
         UpdateManager.launchDownload();
