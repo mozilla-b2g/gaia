@@ -252,12 +252,12 @@ suite('LockScreenInputpad', function() {
           preventDefault: function() {}
         };
         evt.target = {
-          tagName: 'div',
+          tagName: 'DIV',
           parentNode: {
             dataset: {
               key: 'f'
             },
-            tagName: 'a'
+            tagName: 'A'
           },
           dataset: {}
         };
@@ -270,7 +270,7 @@ suite('LockScreenInputpad', function() {
         assert.isTrue(stubHandlePassCodeInput.calledWith('f'));
       });
       test('it would vibrate', function() {
-        var method = subject.handlePassCodeInput;
+        var method = subject.handle;
         var mockThis = {
           passcodePad: document.createElement('div'),
           lockScreen: {

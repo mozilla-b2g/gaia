@@ -47,8 +47,12 @@
     this.passcodeCode = document.getElementById('lockscreen-passcode-code');
     this.passcodePad = document.getElementById('lockscreen-passcode-pad');
     this.emergencyCallBtn = this.passcodePad.querySelector('a[data-key=e]');
+    this.lastTouched = null;
 
     this.passcodePad.addEventListener('click', this);
+    this.passcodePad.addEventListener('touchstart', this);
+    this.passcodePad.addEventListener('touchmove', this);
+    this.passcodePad.addEventListener('touchend', this);
 
     window.SettingsListener.observe('keyboard.vibration',
       false, (function(value) {
@@ -89,6 +93,7 @@
   };
 
   LockScreenInputpad.prototype.handleEvent = function(evt) {
+    var touch, target, key;
     switch (evt.type) {
       // The event flow from lockscreen.js is:
       // on pass code fail:
@@ -111,23 +116,103 @@
       case 'lockscreen-inputappclosed':
         this.updatePassCodeUI();
         break;
+      case 'touchstart':
+        touch = evt.changedTouches[0];
+        target = document.elementFromPoint(touch.clientX, touch.clientY);
+        key = this._keyForTarget(target);
+        if (!key) {
+          break;
+        }
+        if (this.lastTouched) {
+          this._makeKeyInactive(this.lastTouched);
+        }
+        this._makeKeyActive(target);
+        this.lastTouched = target;
+        if (this.states.padVibrationEnabled) {
+          navigator.vibrate(this.configs.padVibrationDuration);
+        }
+        break;
+      case 'touchmove':
+        touch = evt.changedTouches[0];
+        target = document.elementFromPoint(touch.clientX, touch.clientY);
+        key = this._keyForTarget(target);
+        if (target !== this.lastTouched) {
+          if (this.lastTouched) {
+            this._makeKeyInactive(this.lastTouched);
+          }
+          if (key) {
+            this._makeKeyActive(target);
+            this.lastTouched = target;
+          } else {
+            this.lastTouched = null;
+          }
+        }
+        break;
+      case 'touchend':
       case 'click':
-        var key = evt.target.dataset.key;
-        if (!key &&
-            ('div' === evt.target.tagName.toLowerCase() &&
-             'a' === evt.target.parentNode.tagName.toLowerCase())
-           ) {
-          key = evt.target.parentNode.dataset.key;
+        if (evt.type == 'touchend') {
+          evt.preventDefault();  // prevent the 'click'
+          touch = evt.changedTouches[0];
+          target = document.elementFromPoint(touch.clientX, touch.clientY);
+        } else {  // 'click'
+          target = evt.target;
+        }
+        key = this._keyForTarget(target);
+        if (this.lastTouched) {
+          this._makeKeyInactive(this.lastTouched);
+          this.lastTouched = null;
         }
         if (!key) {
           break;
         }
-        // Cancel the default action of <a>
-        evt.preventDefault();
-        // handlePassCodeInput triggers updatePassCode
         this.handlePassCodeInput(key);
         break;
     }
+  };
+
+  LockScreenInputpad.prototype._keyForTarget = function(target) {
+    // find ancestorial a
+    // current structure: a > div > span
+    if (target.tagName !== 'A') {
+      target = target.parentNode;
+    }
+    if (target.tagName !== 'A') {
+      target = target.parentNode;
+    }
+    if (target.tagName !== 'A') {
+      return undefined;
+    }
+    return target.dataset.key;
+  };
+
+  LockScreenInputpad.prototype._makeKeyActive = function(target) {
+    // find ancestorial a
+    // current structure: a > div > span
+    if (target.tagName !== 'A') {
+      target = target.parentNode;
+    }
+    if (target.tagName !== 'A') {
+      target = target.parentNode;
+    }
+    if (target.tagName !== 'A') {
+      return;
+    }
+    target.classList.add('active-key');
+  };
+
+  LockScreenInputpad.prototype._makeKeyInactive = function(target) {
+    // find ancestorial a
+    // current structure: a > div > span
+    if (target.tagName !== 'A') {
+      target = target.parentNode;
+    }
+    if (target.tagName !== 'A') {
+      target = target.parentNode;
+    }
+    if (target.tagName !== 'A') {
+      return;
+    }
+    target.classList.remove('active-key');
   };
 
   LockScreenInputpad.prototype.dispatchEvent = function(evt) {
@@ -218,10 +303,6 @@
 
         this.states.passCodeEntered += key;
         this.updatePassCodeUI();
-
-        if (this.states.padVibrationEnabled) {
-          navigator.vibrate(this.configs.padVibrationDuration);
-        }
 
         if (this.states.passCodeEntered.length === 4) {
           this.passcodePad.classList.add('passcode-fulfilled');
