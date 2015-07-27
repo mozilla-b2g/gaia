@@ -166,7 +166,7 @@ function spawnPythonChild() {
   var pythonChild = spawnVirtualEnv(
     'gaia-integration',
     ['--path=' + socketPath],
-    { stdio: ['pipe', 'pipe', 'pipe', 'pipe'] }  // Swallow python stderr
+    { stdio: [0, 'pipe', 'pipe'] }  // Swallow python stderr
   );
 
   var failOnChildError = new Promise(function(accept, reject) {

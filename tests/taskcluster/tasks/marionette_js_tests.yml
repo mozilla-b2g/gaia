@@ -25,6 +25,7 @@ task:
       REPORTER: 'mocha-tbpl-reporter'
       TEST_MANIFEST: '{{gaia}}/shared/test/integration/tbpl-manifest.json'
       NODE_MODULES_SRC: npm-cache
+      HOST_LOG: 'gecko-debug.log'
 
     command:
       - entrypoint
