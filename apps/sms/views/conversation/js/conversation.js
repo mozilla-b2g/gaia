@@ -79,6 +79,7 @@ var ConversationView = {
   shouldChangePanelNextEvent: false,
   showErrorInFailedEvent: '',
   previousSegment: 0,
+  buildingMessages: {},
 
   timeouts: {
     update: null,
@@ -856,8 +857,9 @@ var ConversationView = {
     // Update the stored thread data
     Threads.registerMessage(message);
 
-    this.appendMessage(message);
-    TimeHeaders.updateAll('header[data-time-update]');
+    return this.appendMessage(message).then(
+      () => TimeHeaders.updateAll('header[data-time-update]')
+    );
   },
 
   /**
@@ -1768,11 +1770,14 @@ var ConversationView = {
 
     var result;
     if (message.type === 'mms' && !isNotDownloaded && !noAttachment) { // MMS
+      this.buildingMessages[message.id] = messageDOM;
+
       result = SMIL.parse(message).then(
         (slideArray) => this.createMmsContent(slideArray)
-      ).then(
-        (mmsContent) => pElement.appendChild(mmsContent)
-      ).then(
+      ).then((mmsContent) => {
+        pElement.appendChild(mmsContent);
+        delete this.buildingMessages[message.id];
+      }).then(
         () => messageDOM
       );
     } else {
@@ -2452,7 +2457,8 @@ var ConversationView = {
   },
 
   setMessageStatus: function(id, status) {
-    var messageDOM = document.getElementById('message-' + id);
+    var messageDOM =
+      document.getElementById('message-' + id) || this.buildingMessages[id];
 
     if (!messageDOM || messageDOM.classList.contains(status)) {
       return;

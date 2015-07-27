@@ -1543,183 +1543,213 @@ suite('conversation.js >', function() {
       );
     }
 
-    setup(function(done) {
-      fakeMessage = MockMessages.sms({
+    setup(function() {
+      this.sinon.stub(Navigation, 'isCurrentPanel');
+      this.sinon.spy(ConversationView, 'appendMessage');
+    });
+
+
+    test('onMessageSent for MMS', function(done) {
+      fakeMessage = MockMessages.mms({
         id: 24601,
         delivery: 'sending'
       });
 
-      this.sinon.stub(Navigation, 'isCurrentPanel').
-        withArgs('thread', { id: fakeMessage.threadId }).
-        returns(true);
-
-      this.sinon.spy(ConversationView, 'appendMessage');
+      Navigation.isCurrentPanel.withArgs(
+        'thread', { id: fakeMessage.threadId }
+      ).returns(true);
 
       MessageManager.on.withArgs('message-sending').yield({
         message: fakeMessage
       });
 
-      ConversationView.appendMessage.returnValues[0].then(() => {
+      MessageManager.on.withArgs('message-failed-to-send').yield({
+        message: fakeMessage
+      });
+
+      ConversationView.appendMessage.lastCall.returnValue.then(() => {
         container = document.getElementById('message-' + fakeMessage.id);
+        assertMessageStatus('error');
       }).then(done, done);
     });
 
-    teardown(function() {
-      container.remove();
-    });
+    suite('waiting for message rendering >', function() {
+      setup(function(done) {
+        fakeMessage = MockMessages.sms({
+          id: 24601,
+          delivery: 'sending'
+        });
 
-    suite('onMessageSending >', function() {
-      test('sets correct status for message element', function() {
-        assertMessageStatus('sending');
-      });
-    });
+        Navigation.isCurrentPanel.withArgs(
+          'thread', { id: fakeMessage.threadId }
+        ).returns(true);
 
-    suite('onMessageSent >', function() {
-      test('sets correct status for message element', function() {
-        MessageManager.on.withArgs('message-sent').yield({
+        MessageManager.on.withArgs('message-sending').yield({
           message: fakeMessage
         });
 
-        assertMessageStatus('sent');
-      });
-    });
-
-    suite('onMessageFailed >', function() {
-      test('sets correct status for message element', function() {
-        MessageManager.on.withArgs('message-failed-to-send').yield({
-          message: fakeMessage
-        });
-
-        assertMessageStatus('error');
+        ConversationView.appendMessage.returnValues[0].then(() => {
+          container = document.getElementById('message-' + fakeMessage.id);
+        }).then(done, done);
       });
 
-      suite('Show error dialog while sending failed',
-        function() {
-        setup(function() {
-          this.sinon.spy(ConversationView, 'showMessageError');
-          this.sinon.stub(Settings, 'switchMmsSimHandler')
-            .returns(Promise.resolve());
+      teardown(function() {
+        container.remove();
+      });
+
+      suite('onMessageSending >', function() {
+        test('sets correct status for message element', function() {
+          assertMessageStatus('sending');
         });
-        test('does not show dialog if error is not NonActiveSimCardError',
-          function() {
+      });
+
+      suite('onMessageSent >', function() {
+        test('sets correct status for message element', function() {
+          MessageManager.on.withArgs('message-sent').yield({
+            message: fakeMessage
+          });
+
+          assertMessageStatus('sent');
+        });
+      });
+
+      suite('onMessageFailed >', function() {
+        test('sets correct status for message element', function() {
           MessageManager.on.withArgs('message-failed-to-send').yield({
             message: fakeMessage
           });
-          sinon.assert.notCalled(ConversationView.showMessageError);
+
+          assertMessageStatus('error');
         });
-        test('Show dialog if error is NonActiveSimCardError',
+
+        suite('Show error dialog while sending failed',
           function() {
-          ConversationView.showErrorInFailedEvent = 'NonActiveSimCardError';
-          MessageManager.on.withArgs('message-failed-to-send').yield({
+          setup(function() {
+            this.sinon.spy(ConversationView, 'showMessageError');
+            this.sinon.stub(Settings, 'switchMmsSimHandler')
+              .returns(Promise.resolve());
+          });
+          test('does not show dialog if error is not NonActiveSimCardError',
+            function() {
+            MessageManager.on.withArgs('message-failed-to-send').yield({
+              message: fakeMessage
+            });
+            sinon.assert.notCalled(ConversationView.showMessageError);
+          });
+          test('Show dialog if error is NonActiveSimCardError',
+            function() {
+            ConversationView.showErrorInFailedEvent = 'NonActiveSimCardError';
+            MessageManager.on.withArgs('message-failed-to-send').yield({
+              message: fakeMessage
+            });
+            sinon.assert.called(ConversationView.showMessageError);
+            assert.equal(ConversationView.showErrorInFailedEvent, '');
+            MockErrorDialog.calls[0][1].confirmHandler();
+
+            assertMessageStatus('sending');
+            sinon.assert.called(Settings.switchMmsSimHandler);
+          });
+        });
+      });
+
+      suite('onDeliverySuccess >', function() {
+        test('sms delivery success', function() {
+          fakeMessage.type = 'sms';
+          fakeMessage.delivery = 'sent';
+          fakeMessage.deliveryStatus = 'success';
+          MessageManager.on.withArgs('message-delivered').yield({
             message: fakeMessage
           });
-          sinon.assert.called(ConversationView.showMessageError);
-          assert.equal(ConversationView.showErrorInFailedEvent, '');
-          MockErrorDialog.calls[0][1].confirmHandler();
+
+          assertMessageStatus('delivered');
+        });
+        test('mms delivery success', function() {
+          fakeMessage.type = 'mms';
+          fakeMessage.delivery = 'sent';
+          fakeMessage.deliveryInfo = [{
+            receiver: null, deliveryStatus: 'success'}];
+          MessageManager.on.withArgs('message-delivered').yield({
+            message: fakeMessage
+          });
+
+          assertMessageStatus('delivered');
+        });
+        test('multiple recipients mms delivery success', function() {
+          fakeMessage.type = 'mms';
+          fakeMessage.delivery = 'sent';
+          fakeMessage.deliveryInfo = [
+            {receiver: null, deliveryStatus: 'success'},
+            {receiver: null, deliveryStatus: 'success'}];
+          MessageManager.on.withArgs('message-delivered').yield({
+            message: fakeMessage
+          });
+
+          assertMessageStatus('delivered');
+        });
+        test('not all recipients return mms delivery success', function() {
+          fakeMessage.type = 'mms';
+          fakeMessage.delivery = 'sent';
+          fakeMessage.deliveryInfo = [
+            {receiver: null, deliveryStatus: 'success'},
+            {receiver: null, deliveryStatus: 'pending'}];
+          MessageManager.on.withArgs('message-delivered').yield({
+            message: fakeMessage
+          });
 
           assertMessageStatus('sending');
-          sinon.assert.called(Settings.switchMmsSimHandler);
         });
       });
-    });
 
-    suite('onDeliverySuccess >', function() {
-      test('sms delivery success', function() {
-        fakeMessage.type = 'sms';
-        fakeMessage.delivery = 'sent';
-        fakeMessage.deliveryStatus = 'success';
-        MessageManager.on.withArgs('message-delivered').yield({
-          message: fakeMessage
+      suite('onReadSuccess >', function() {
+        test('mms read success', function() {
+          fakeMessage.type = 'mms';
+          fakeMessage.delivery = 'sent';
+          fakeMessage.deliveryInfo = [{
+            receiver: null, readStatus: 'success'}];
+          MessageManager.on.withArgs('message-read').yield({
+            message: fakeMessage
+          });
+
+          assertMessageStatus('read');
         });
+        test('display read icon when both delivery/read success', function() {
+          fakeMessage.type = 'mms';
+          fakeMessage.delivery = 'sent';
+          fakeMessage.deliveryInfo = [{
+            receiver: null, deliveryStatus: 'success', readStatus: 'success'}];
+          MessageManager.on.withArgs('message-delivered').yield({
+            message: fakeMessage
+          });
+          MessageManager.on.withArgs('message-read').yield({
+            message: fakeMessage
+          });
 
-        assertMessageStatus('delivered');
-      });
-      test('mms delivery success', function() {
-        fakeMessage.type = 'mms';
-        fakeMessage.delivery = 'sent';
-        fakeMessage.deliveryInfo = [{
-          receiver: null, deliveryStatus: 'success'}];
-        MessageManager.on.withArgs('message-delivered').yield({
-          message: fakeMessage
+          assertMessageStatus('read');
         });
+        test('multiple recipients mms read success', function() {
+          fakeMessage.type = 'mms';
+          fakeMessage.delivery = 'sent';
+          fakeMessage.deliveryInfo = [
+            {receiver: null, readStatus: 'success'},
+            {receiver: null, readStatus: 'success'}];
+          MessageManager.on.withArgs('message-read').yield({
+            message: fakeMessage
+          });
 
-        assertMessageStatus('delivered');
-      });
-      test('multiple recipients mms delivery success', function() {
-        fakeMessage.type = 'mms';
-        fakeMessage.delivery = 'sent';
-        fakeMessage.deliveryInfo = [
-          {receiver: null, deliveryStatus: 'success'},
-          {receiver: null, deliveryStatus: 'success'}];
-        MessageManager.on.withArgs('message-delivered').yield({
-          message: fakeMessage
+          assertMessageStatus('read');
         });
+        test('not all recipients return mms read success', function() {
+          fakeMessage.type = 'mms';
+          fakeMessage.delivery = 'sent';
+          fakeMessage.deliveryInfo = [
+            {receiver: null, readStatus: 'success'},
+            {receiver: null, readStatus: 'pending'}];
+          MessageManager.on.withArgs('message-read').yield({
+            message: fakeMessage
+          });
 
-        assertMessageStatus('delivered');
-      });
-      test('not all recipients return mms delivery success', function() {
-        fakeMessage.type = 'mms';
-        fakeMessage.delivery = 'sent';
-        fakeMessage.deliveryInfo = [
-          {receiver: null, deliveryStatus: 'success'},
-          {receiver: null, deliveryStatus: 'pending'}];
-        MessageManager.on.withArgs('message-delivered').yield({
-          message: fakeMessage
+          assertMessageStatus('sending');
         });
-
-        assertMessageStatus('sending');
-      });
-    });
-
-    suite('onReadSuccess >', function() {
-      test('mms read success', function() {
-        fakeMessage.type = 'mms';
-        fakeMessage.delivery = 'sent';
-        fakeMessage.deliveryInfo = [{
-          receiver: null, readStatus: 'success'}];
-        MessageManager.on.withArgs('message-read').yield({
-          message: fakeMessage
-        });
-
-        assertMessageStatus('read');
-      });
-      test('display read icon when both delivery/read success', function() {
-        fakeMessage.type = 'mms';
-        fakeMessage.delivery = 'sent';
-        fakeMessage.deliveryInfo = [{
-          receiver: null, deliveryStatus: 'success', readStatus: 'success'}];
-        MessageManager.on.withArgs('message-delivered').yield({
-          message: fakeMessage
-        });
-        MessageManager.on.withArgs('message-read').yield({
-          message: fakeMessage
-        });
-
-        assertMessageStatus('read');
-      });
-      test('multiple recipients mms read success', function() {
-        fakeMessage.type = 'mms';
-        fakeMessage.delivery = 'sent';
-        fakeMessage.deliveryInfo = [
-          {receiver: null, readStatus: 'success'},
-          {receiver: null, readStatus: 'success'}];
-        MessageManager.on.withArgs('message-read').yield({
-          message: fakeMessage
-        });
-
-        assertMessageStatus('read');
-      });
-      test('not all recipients return mms read success', function() {
-        fakeMessage.type = 'mms';
-        fakeMessage.delivery = 'sent';
-        fakeMessage.deliveryInfo = [
-          {receiver: null, readStatus: 'success'},
-          {receiver: null, readStatus: 'pending'}];
-        MessageManager.on.withArgs('message-read').yield({
-          message: fakeMessage
-        });
-
-        assertMessageStatus('sending');
       });
     });
   });
@@ -6216,7 +6246,9 @@ suite('conversation.js >', function() {
     // some more tests are in the "sending behavior" part
 
     setup(function() {
-      this.sinon.stub(ConversationView, 'appendMessage');
+      this.sinon.stub(ConversationView, 'appendMessage').returns(
+        Promise.resolve()
+      );
       this.sinon.stub(ConversationView, 'isCurrentConversation').returns(false);
 
       this.sinon.spy(Navigation, 'toPanel');
