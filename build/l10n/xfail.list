@@ -36,7 +36,7 @@ apps/collection/js/create_collection.js
 apps/collection/js/objects.js
 apps/collection/js/suggestions.js
 apps/collection/js/view_apps.js
-apps/communications/contacts/js/contacts_matching_ui.js
+apps/communications/contacts/views/matching/js/matching_ui.js
 apps/communications/contacts/js/export/bt.js
 apps/communications/contacts/js/tag_options.js
 apps/communications/contacts/js/utilities/normalizer.js

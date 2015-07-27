@@ -5,7 +5,6 @@
 /* global MockContactsService */
 /* global LazyLoader */
 /* global Curtain */
-/* global MatchingController */
 /* global Matcher */
 /* global ContactsService */
 /* global MergeHelper */
@@ -83,8 +82,6 @@ suite('MatchingController', function() {
       hideMenuSpy = this.sinon.spy(Curtain, 'hideMenu');
       hideSpy = this.sinon.spy(Curtain, 'hide');
       mergeSpy = this.sinon.spy(MergeHelper, 'merge');
-
-      MatchingController.init();
     });
 
     test('On merge event received', function() {
@@ -93,11 +90,8 @@ suite('MatchingController', function() {
           'checkedContacts': {'1a': '1a'}
         }
       }));
-      // When MatchingController is initialized, start method is called with
-      // the timestamp of the test, so the method thinks that it's a contact id.
-      // In this case, the specific code will be executed causing 
-      // that Curtain.show will be called twice
-      assert.isTrue(showSpy.calledTwice);
+
+      assert.isTrue(showSpy.calledOnce);
       assert.isTrue(hideMenuSpy.calledOnce);
       assert.isTrue(mergeSpy.calledOnce);
       assert.isTrue(hideSpy.calledOnce);
@@ -125,11 +119,15 @@ suite('MatchingController', function() {
         done();
       });
 
-      MatchingController.init();
+      window.postMessage({
+        type: 'sync'
+      }, location.origin);
 
-      assert.isTrue(showSpy.calledOnce);
-      assert.isTrue(getContactStub.calledOnce);
-      assert.isTrue(matchStub.calledOnce);
+      setTimeout(function() {
+        assert.isTrue(showSpy.calledOnce);
+        assert.isTrue(getContactStub.calledOnce);
+        assert.isTrue(matchStub.calledOnce);
+      });
     });
   });
 

@@ -6,8 +6,7 @@
 
 #main {
   position: fixed;
-  top: 5rem;
-  height: calc(100% - 11.8rem);
+  height: 100%;
   width: calc(100% + 0.8rem);
   overflow-x: hidden;
   overflow-y: auto;

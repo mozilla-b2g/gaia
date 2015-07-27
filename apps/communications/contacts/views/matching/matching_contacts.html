@@ -16,6 +16,7 @@
 
     <script type="text/javascript" src="/shared/js/lazy_loader.js"></script>
     <script type="text/javascript" src="/contacts/views/matching/js/boot.js"></script>
+    <script type="text/javascript" src="/contacts/views/matching/js/matching_controller.js"></script>
     <script type="text/javascript" src="/shared/pages/import/js/curtain_panel.js"></script>
 
     <!-- Lazy loaded, when rendering duplicate list
@@ -43,7 +44,6 @@
     <script defer src="/shared/elements/config.js"></script>
     <!-- <link rel="stylesheet" type="text/css" href="/shared/elements/gaia-icons/gaia-icons.css" /> -->
     <link rel="stylesheet" type="text/css" href="app://theme.gaiamobile.org/shared/elements/gaia-theme/gaia-theme.css" />
-    <script defer src="/shared/elements/gaia-header/dist/gaia-header.js"></script>
 
     <link rel="localization" href="/shared/locales/facebook/facebook.en-US.properties">
 
@@ -54,10 +54,6 @@
 
   <body role="application" class="skin-comms">
     <section role="region">
-      <gaia-header id="merge-header" action="close">
-        <h1 id="title" data-l10n-id="mergeDuplicateTitle"></h1>
-      </gaia-header>
-
       <section id="main">
         <section id="duplicate-msg">
           <p></p>
