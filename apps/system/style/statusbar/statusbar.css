@@ -30,7 +30,7 @@
 /* Hide the statusbar out of the viewport in order
 to be available for moz-elements */
 #statusbar.hidden,
-#screen.utility-tray-in-transition > #statusbar {
+#screen:not(.attention).utility-tray-in-transition > #statusbar {
   transform: translateY(-100%);
 }
 
