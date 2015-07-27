@@ -213,7 +213,6 @@ class NewContact(ContactForm):
         statusbar = self.marionette.find_element(*self._statusbar_locator)
         self.marionette.find_element(*self._screen_locator).tap(x, y + statusbar.rect['height'])
 
-        self.apps.switch_to_displayed_app()
         return self.wait_for_done(return_contacts)
 
     def a11y_click_done(self, return_contacts=True):
@@ -221,13 +220,12 @@ class NewContact(ContactForm):
         return self.wait_for_done(return_contacts)
 
     def wait_for_done(self, return_contacts=True):
+        self.wait_for_element_not_displayed(*self._done_button_locator)
+        from gaiatest.apps.contacts.app import Contacts
         # NewContact can be opened as an Activity from other apps. In this scenario we don't return Contacts
         if return_contacts:
-            self.wait_for_element_not_displayed(*self._done_button_locator)
-            from gaiatest.apps.contacts.app import Contacts
             return Contacts(self.marionette)
         else:
-            from gaiatest.apps.contacts.app import Contacts
             Wait(self.marionette).until(lambda m: self.apps.displayed_app.name != Contacts.name)
             # Fall back to the underlying app
             self.apps.switch_to_displayed_app()
