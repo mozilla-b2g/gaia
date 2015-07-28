@@ -17,7 +17,7 @@ marionette('Browser - App /w Fullscreen Navigation Chrome', function() {
   });
 
   var actions, home, rocketbar, search, system, frame, server;
-  var halfScreenHeight;
+  var quarterScreenHeight;
 
   setup(function(done) {
     actions = client.loader.getActions();
@@ -27,9 +27,9 @@ marionette('Browser - App /w Fullscreen Navigation Chrome', function() {
     system = client.loader.getAppClass('system');
     system.waitForFullyLoaded();
 
-    halfScreenHeight = client.executeScript(function() {
+    quarterScreenHeight = client.executeScript(function() {
       return window.innerHeight;
-    }) / 2;
+    }) / 4;
 
     var appOrigin = 'app://fullscreennavapp.gaiamobile.org';
     frame = system.waitForLaunch(appOrigin);
@@ -57,7 +57,7 @@ marionette('Browser - App /w Fullscreen Navigation Chrome', function() {
   }
 
   function expandRocketbar() {
-    actions.flick(system.topPanel, 0, 0, 0, halfScreenHeight).perform();
+    actions.flick(system.topPanel, 0, 0, 0, quarterScreenHeight, 500).perform();
     assert.ok(system.appUrlbar.displayed(), 'Rocketbar is displayed.');
   }
 
