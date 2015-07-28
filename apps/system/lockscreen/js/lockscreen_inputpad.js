@@ -117,8 +117,8 @@
         }
         // Cancel the default action of <a>
         evt.preventDefault();
+        // handlePassCodeInput triggers updatePassCode
         this.handlePassCodeInput(key);
-        // .handlePassCodeInput() triggers .updatePassCode()
         break;
     }
   };
