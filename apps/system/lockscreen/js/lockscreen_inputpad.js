@@ -90,12 +90,19 @@
 
   LockScreenInputpad.prototype.handleEvent = function(evt) {
     switch (evt.type) {
+      // The event flow from lockscreen.js is:
+      // on pass code fail:
+      //   - 'validationfailed' -> (validation timeout) -> 'validationreset'
+      // on pass code success:
+      //   - 'validationsuccess'
       case 'lockscreen-notify-passcode-validationfailed':
         this.states.passCodeErrorTimeoutPending = true;
         this.updatePassCodeUI();
         break;
       case 'lockscreen-notify-passcode-validationreset':
       case 'lockscreen-notify-passcode-validationsuccess':
+        // Currently both validationreset and validationsuccess
+        // just need to reset Inputpad's internal state.
         this.states.passCodeEntered = '';
         this.states.passCodeErrorTimeoutPending = false;
         this.updatePassCodeUI();
