@@ -1,12 +1,6 @@
 'use strict';
 
-/* global Browser */
-
-// https://developer.mozilla.org/en-US/docs/Web/API/IDBDatabaseException
-// IDBDatabaseException obselete
-/* global IDBDatabaseException */
-
-/** Support different browser versions of IndexedDB */
+// Support different versions of IndexedDB
 var idb = window.indexedDB || window.webkitIndexedDB ||
   window.mozIndexedDB || window.msIndexedDB;
 
@@ -21,33 +15,24 @@ var BrowserDB = {
    * Default to 1 day.
    */
   DEFAULT_ICON_EXPIRATION: 86400000, // One day
+  DEFAULT_TYPE_HISTORY: 'History',
+  DEFAULT_TYPE_BOOKMARK: 'Bookmark',
   /**
    * Maximum icon file size allowed.
    * Default to 100kB.
    */
   MAX_ICON_SIZE: 102400, // 100kB
   /** Number of top sites to keep screenshots for. Default to 4. */
-  TOP_SITE_SCREENSHOTS: 4,
   variantObserver: null,
-
-  /**
-   * Init system message handler of 'first-run-with-sim'.
-   * On 'first-run-with-sim' populates bookmarks from configuration data to
-   * database.
-   */
-  waitFirstRunWithSim: function browserDB_waitFirstRunWithSim() {
-    window.navigator.mozSetMessageHandler('first-run-with-sim', (function(msg) {
-      Browser.getConfigurationData({ mcc: msg.mcc, mnc: msg.mnc },
-                                   this.populateBookmarks);
-    }).bind(this));
-  },
-
+  browserTitle: null,
   /**
    * Initialization. Open a database.
    * @param {Function} callback The callback to be run on success
    */
   init: function browserDB_init(callback) {
-    this.db.open(callback);
+    this.db.open(function() {
+      callback();
+    }.bind(this));
   },
 
   /**
@@ -55,6 +40,10 @@ var BrowserDB = {
    * Populate topsites data from mozSettings to database.
    */
   initSingleVariant: function browserDB_initSingleVariant() {
+    // XXX: This method is not in use for TV. It was used for operators to
+    //      customise default browser top sites. Leave it here for now after
+    //      customisation for the TV browser is done.
+/* TODO: mozSettings to indexedDB
     this.variantObserver = this.handleSingleVariant.bind(this);
     navigator.mozSettings.addObserver('operatorResources.data.topsites',
                                       this.variantObserver);
@@ -64,15 +53,16 @@ var BrowserDB = {
     request.onsuccess = (function() {
       this.handleTopSites(request.result['operatorResources.data.topsites']);
     }.bind(this));
+*/
   },
 
   /**
    * Listener of mozSettingsEvent on 'operatorResources.data.topsites'.
    * Populate topsites data with event.settingValue.
    */
-  handleSingleVariant: function browserDB_handleSingleVariant(event) {
-    this.handleTopSites(event.settingValue);
-  },
+  //handleSingleVariant: function browserDB_handleSingleVariant(event) {
+  //  this.handleTopSites(event.settingValue);
+  //},
 
   /**
    * Remove listener of mozSettingsEvent on 'operatorResources.data.topsites'.
@@ -80,18 +70,18 @@ var BrowserDB = {
    * 'operatorResources.data.topsites' in mozSettings.
    * @param {Object} data Topsites data
    */
-  handleTopSites: function browserDB_handleTopSites(data) {
-    if (data && Object.keys(data).length !== 0) {
-      navigator.mozSettings.removeObserver('operatorResources.data.topsites',
-                                           this.variantObserver);
-
-      this.populateTopSites(data.topSites, -1);
-
-      navigator.mozSettings.createLock()
-               .set({'operatorResources.data.topsites': {}});
-      return;
-    }
-  },
+  //handleTopSites: function browserDB_handleTopSites(data) {
+  //  if (data && Object.keys(data).length !== 0) {
+  //    navigator.mozSettings.removeObserver('operatorResources.data.topsites',
+  //                                         this.variantObserver);
+  //
+  //    this.populateTopSites(data.topSites, -1);
+  //
+  //    navigator.mozSettings.createLock()
+  //             .set({'operatorResources.data.topsites': {}});
+  //    return;
+  //  }
+  //},
 
   /**
    * Populate browser database with top sites data.
@@ -100,31 +90,31 @@ var BrowserDB = {
    * @param {Number} frequency
    */
   populateTopSites: function browserDB_populateTopSites(data, frequency) {
-    var index = frequency;
-
-    data.forEach(function(topSite) {
-      if (!topSite.uri || ! topSite.title) {
-        return;
-      }
-      this.addTopSite(topSite.uri, topSite.title, index);
-      index--;
-      if (topSite.iconUri) {
-        if (topSite.iconUri instanceof Blob) {
-          var reader = new FileReader();
-          reader.onloadend = (function() {
-            topSite.iconUri = reader.result;
-            this.setAndLoadIconForPage(topSite.uri, topSite.iconUri);
-          }.bind(this));
-          reader.onerror = function() {
-            console.error('Unable to read iconUri from blob');
-          };
-          reader.readAsDataURL(topSite.iconUri);
-          return;
-        }
-
-        this.setAndLoadIconForPage(topSite.uri, topSite.iconUri);
-      }
-    }, this);
+   var index = frequency;
+   console.log("### populateTopsite data.iconUri=" + data.iconUri);
+   data.forEach(function(topSite) {
+     if (!topSite.uri || ! topSite.title) {
+       return;
+     }
+     this.addTopSite(topSite.uri, topSite.title, index);
+     index--;
+     if (topSite.iconUri) {
+       if (topSite.iconUri instanceof Blob) {
+         var reader = new FileReader();
+         reader.onloadend = (function() {
+           topSite.iconUri = reader.result;
+           this.setAndLoadIconForPage(topSite.uri, topSite.iconUri);
+         }.bind(this));
+         reader.onerror = function() {
+           console.error('Unable to read iconUri from blob');
+         };
+         reader.readAsDataURL(topSite.iconUri);
+         return;
+       }
+       console.log("### setAndLoadIconForPage topSite.iconUri=" + topSite.iconUri);
+       this.setAndLoadIconForPage(topSite.uri, topSite.iconUri);
+     }
+   }, this);
   },
 
   /**
@@ -185,8 +175,6 @@ var BrowserDB = {
 
     });
 
-    Browser.getConfigurationData({ mcc: '000', mnc: '000' },
-                                 this.populateBookmarks);
   },
 
   /**
@@ -195,7 +183,9 @@ var BrowserDB = {
    * @param {Function} callback Runs when it finishs
    */
   addPlace: function browserDB_addPlace(uri, callback) {
-    this.db.createPlace(uri, callback);
+    this.db.placeMaxCheck(uri, (function() {
+      this.db.createPlace(uri, callback);
+    }).bind(this));
   },
 
   /**
@@ -214,14 +204,49 @@ var BrowserDB = {
    * @param {Function} callback Runs on frequency (view count) updated
    */
   addVisit: function browserDB_addVisit(uri, callback) {
+
+    var urlTitle = uri;
+    if( (BrowserDB.browserTitle != "") && (BrowserDB.browserTitle != null) ) {
+      var urlTitle = BrowserDB.browserTitle;
+    }
+
     var visit = {
       uri: uri,
+      title: urlTitle,
       timestamp: new Date().getTime()
     };
     this.addPlace(uri, (function() {
-      this.db.saveVisit(visit, (function() {
-        this.updateFrecency(uri, callback);
+      this.db.visitMaxCheck(uri, (function() {
+        this.db.saveVisit(visit, (function() {
+          this.updateFrecency(uri, callback);
+        }).bind(this));
       }).bind(this));
+    }).bind(this));
+  },
+
+  /**
+   * Remove visit to the oldest of URL.
+   * @param {String} uri A visited URI to be saved
+   * @param {Function} callback Runs on topsite delete
+   */
+  oldVisitDelete: function browserDB_oldVisitDelete(uri, callback) {
+      this.removeHistory(uri,callback);
+  },
+
+  /**
+   * Update the visit(title) of the specified URI,
+   * @param {String} uri A visited URI to be saved
+   * @param {String} title A visited title to be saved
+   * @param {Function} callback Runs on frequency (view count) updated
+   */
+  updateVisit: function browserDB_updateVisit(uri, title, callback) {
+    var visit = {
+      uri: uri,
+      title: title,
+      timestamp: new Date().getTime()
+    };
+    this.db.visitMaxCheck(uri, (function() {
+      this.db.saveVisit(visit, callback);
     }).bind(this));
   },
 
@@ -244,7 +269,7 @@ var BrowserDB = {
    * @param {Function} callback Runs on success
    */
   updateScreenshot: function place_updateScreenshot(uri, screenshot, callback) {
-    var maximum = this.TOP_SITE_SCREENSHOTS;
+    var maximum = Browser.MAX_TOPSITE_LIST;
     this.db.getPlaceUrisByFrecency(maximum + 1, (function(topSites) {
       var runnerUp;
       // Get the site that isn't quite a top site, if there is one
@@ -319,9 +344,33 @@ var BrowserDB = {
    * @param {Function} callback
    */
   removeBookmark: function browserDB_removeBookmark(uri, callback) {
-    this.db.deleteBookmark(uri, callback);
+    this.db.deleteBookmark(uri, (function() {
+      this.db.deleteIconUrl(uri, this.DEFAULT_TYPE_BOOKMARK, callback);
+    }).bind(this));
   },
 
+  /**
+   * Delete a history by URI
+   * @param {String} uri URI
+   * @param {Function} callback
+   */
+  removeHistory: function browserDB_removeHistory(uri, callback) {
+    this.db.deleteHistory(uri, (function() {
+      this.db.deleteIconUrl(uri, this.DEFAULT_TYPE_HISTORY, callback);
+    }).bind(this));
+  },
+
+
+
+
+  /**
+   * Delete a topste by URI
+   * @param {String} uri URI
+   * @param {Function} callback
+   */
+  removeTopsite: function browserDB_removeTopsite(uri, callback) {
+    this.db.deleteTopsite(uri, callback);
+  },
   /**
    * Add/Update a bookmark in database.
    * @param {String} uri URI
@@ -346,7 +395,16 @@ var BrowserDB = {
    * @param {Function} callback Runs on success
    */
   setPageTitle: function browserDB_setPageTitle(uri, title, callback) {
-    this.db.updatePlaceTitle(uri, title, callback);
+    BrowserDB.browserTitle = title;
+    if((title == "") || (title == null)){
+      title = uri;
+    }
+    this.db.placeMaxCheck(uri, (function() {
+      this.db.updatePlaceTitle(uri, title, (function() {
+        this.updateVisit(uri, title, callback);
+      }).bind(this));
+    }).bind(this));
+
   },
 
   /**
@@ -355,6 +413,8 @@ var BrowserDB = {
    * @param {String} iconUri Base64 encoded image string
    * @param {Function} callback Runs on success
    */
+
+
   setPageIconUri: function browserDB_setPageIconUri(uri, iconUri, callback) {
     this.db.updatePlaceIconUri(uri, iconUri, callback);
   },
@@ -367,10 +427,11 @@ var BrowserDB = {
    * @param {Boolean} failed Specify if the image Blob data is successfully
    *                         saved
    */
-  setIconData: function browserDB_setIconData(iconUri, data, callback, failed) {
+  setIconData: function browserDB_setIconData(uri, iconUri, data, callback, failed) {
     var now = new Date().valueOf();
     var iconEntry = {
-      uri: iconUri,
+      uri: uri,
+      iconUri: iconUri,
       data: data,
       expiration: now + this.DEFAULT_ICON_EXPIRATION,
       failed: failed
@@ -389,9 +450,9 @@ var BrowserDB = {
     this.setPageIconUri(uri, iconUri);
     // If icon is not already cached or has expired, load it
     var now = new Date().valueOf();
-    this.db.getIcon(iconUri, (function(icon) {
+    this.db.getIcon(uri, iconUri, (function(icon) {
       if (icon && icon.expiration > now) {
-        return;
+        //return;
       }
       var xhr = new XMLHttpRequest({mozSystem: true});
       xhr.open('GET', iconUri, true);
@@ -400,7 +461,8 @@ var BrowserDB = {
         // Check icon was successfully downloded
         // 0 is due to https://bugzilla.mozilla.org/show_bug.cgi?id=716491
         if (!(xhr.status === 200 || xhr.status === 0)) {
-          this.setIconData(iconUri, null, callback, true);
+          //this.setIconData(iconUri, null, callback, true);
+          this.setIconData(uri, Awesomescreen.DEFAULT_FAVICON, null, callback, true);
           console.log('error downloading icon: ' + xhr.status);
           return;
         }
@@ -409,7 +471,7 @@ var BrowserDB = {
         // Check the file is served as an image and isn't too big
         if (blob.type.split('/')[0] != 'image' ||
         blob.size > this.MAX_ICON_SIZE) {
-          this.setIconData(iconUri, null, callback, true);
+          this.setIconData(uri, iconUri, null, callback, true);
           console.log('Icon was not an image or was too big');
           return;
         }
@@ -420,15 +482,15 @@ var BrowserDB = {
         img.src = src;
         img.onload = (function() {
           if (img.naturalWidth > 0) {
-            this.setIconData(iconUri, blob, callback);
+            this.setIconData(uri, iconUri, blob, callback);
           } else {
-           this.setIconData(iconUri, null, callback, true);
+           this.setIconData(uri, iconUri, null, callback, true);
            console.log('Icon not saved because less than 1px wide');
           }
           window.URL.revokeObjectURL(src);
         }).bind(this);
         img.onerror = (function() {
-          this.setIconData(iconUri, null, callback, true);
+          this.setIconData(uri, iconUri, null, callback, true);
           console.log('Icon not saved because can not be decoded');
           window.URL.revokeObjectURL(src);
         }).bind(this);
@@ -462,7 +524,7 @@ var BrowserDB = {
    *                            as arguments.
    */
   getTopSites: function browserDB_getTopSites(maximum, filter, callback) {
-    // Get the top 20 sites
+    // Get the top 9 sites
     this.db.getPlacesByFrecency(maximum, filter, callback);
   },
 
@@ -480,7 +542,7 @@ var BrowserDB = {
    */
   getHistory: function browserDB_getHistory(callback) {
     // Just get the most recent 20 for now
-    this.db.getHistory(20, callback);
+    this.db.getHistory(Browser.MAX_HISTORY_LIST, callback);
   },
 
   /**
@@ -489,9 +551,8 @@ var BrowserDB = {
    */
   clearHistory: function browserDB_clearHistory(callback) {
     // Get a list of bookmarks
-    this.db.getAllBookmarkUris((function(bookmarks) {
-      this.db.clearHistoryExcluding(bookmarks, callback);
-    }).bind(this));
+    this.db.clearHistoryExcluding(callback);
+
   },
 
   /**
@@ -594,12 +655,11 @@ BrowserDB.db = {
   upgrade: function db_upgrade() {
     var db = this._db;
     var upgradeFrom = this.upgradeFrom;
-
     if (upgradeFrom < 1) {
       var placesStore = db.createObjectStore('places', { keyPath: 'uri' });
       // Index places by frecency
       placesStore.createIndex('frecency', 'frecency', { unique: false });
-      var visitStore = db.createObjectStore('visits', { autoIncrement: true });
+      var visitStore = db.createObjectStore('visits', {keyPath: 'uri' , autoIncrement: true });
       // Index visits by timestamp
       visitStore.createIndex('timestamp', 'timestamp', { unique: false });
       db.createObjectStore('icons', { keyPath: 'uri' });
@@ -620,6 +680,12 @@ BrowserDB.db = {
    *                            created
    */
   createPlace: function db_createPlace(uri, callback) {
+    var title = uri;
+    if( (BrowserDB.browserTitle != "") && (BrowserDB.browserTitle != null) ){
+      title = BrowserDB.browserTitle;
+      BrowserDB.browserTitle = null;
+    }
+
     var transaction = this._db.transaction(['places'], 'readwrite');
 
     var objectStore = transaction.objectStore('places');
@@ -634,7 +700,7 @@ BrowserDB.db = {
       } else {
         place = {
           uri: uri,
-          title: uri
+          title: title
         };
       }
 
@@ -654,6 +720,67 @@ BrowserDB.db = {
     transaction.onerror = function dbTransactionError(e) {
       console.log('Transaction error while trying to save place ' +
         uri);
+    };
+  },
+
+  /**
+   * Save an places object store entry in database
+   * @param {Object} places A visits entry
+   * @param {Function} callback Runs on success
+   */
+  placeMaxCheck: function db_placeMaxCheck(uri, callback) {
+    var db = this._db;
+    var transaction = this._db.transaction(['places'], 'readwrite');
+    transaction.onerror = function dbTransactionError(e) {
+      console.log('Transaction error while trying to count places');
+    };
+
+    var objectStore = transaction.objectStore('places');
+    var readRequest = objectStore.get(uri);
+    readRequest.onsuccess = function onReadSuccess(event) {
+      var places = event.target.result;
+      if (places) {
+        if (callback) {
+          callback();
+        }
+      } else {
+        //count check
+        var request = objectStore.count();
+        request.onsuccess = function onReadSuccess(event) {
+          var count = event.target.result;
+          if (count < Browser.MAX_TOPSITE_LIST) {
+            if (callback) {
+              callback();
+            }
+          }else{
+            var transaction = db.transaction(['places']);
+            var placesStore = transaction.objectStore('places');
+            var placesIndex = placesStore.index('frecency');
+
+            placesIndex.openCursor(null, 'next').onsuccess =
+            function onSuccess(e) {
+              var cursor = e.target.result;
+              if (cursor) {
+                var places = cursor.value;
+                BrowserDB.removeTopsite(places.uri, callback);
+              } else {
+                console.log('error get places');
+              }
+              if (callback) {
+                callback();
+              }
+            }
+          }
+        }
+
+        request.onerror = function onReadError(event) {
+            console.log('error reading place');
+        };
+      }
+    };
+
+    readRequest.onerror = function onError(event) {
+      console.log('error writing places');
     };
   },
 
@@ -679,29 +806,60 @@ BrowserDB.db = {
   },
 
   /**
-   * Update a places entry.
-   * @param {Object} place A place entry
+   * Save an visits object store entry in database
+   * @param {Object} visit A visits entry
    * @param {Function} callback Runs on success
    */
-  updatePlace: function db_updatePlace(place, callback) {
-    var transaction = this._db.transaction(['places'], 'readwrite');
+  visitMaxCheck: function db_visitMaxCheck(uri, callback) {
+    var db = this._db;
+    var transaction = this._db.transaction(['visits'], 'readwrite');
     transaction.onerror = function dbTransactionError(e) {
-      console.log('Transaction error while trying to update place: ' +
-        place.uri);
+      console.log('Transaction error while trying to count visit');
     };
 
-    var objectStore = transaction.objectStore('places');
-    var request = objectStore.put(place);
+    var objectStore = transaction.objectStore('visits');
+    var readRequest = objectStore.get(uri);
+    readRequest.onsuccess = function onReadSuccess(event) {
+      var visits = event.target.result;
+      if (visits) {
+        if (callback) {
+          callback();
+        }
+      } else {
+        //count check
+        var request = objectStore.count();
+        request.onsuccess = function onReadSuccess(event) {
+          var count = event.target.result;
+          if (count < Browser.MAX_HISTORY_LIST) {
+            if (callback) {
+              callback();
+            }
+          }else{
+            var transaction = db.transaction(['visits']);
+            var visitsStore = transaction.objectStore('visits');
+            var visitsIndex = visitsStore.index('timestamp');
 
-    request.onsuccess = function onSuccess(e) {
-      if (callback) {
-        callback();
+            visitsIndex.openCursor(null, 'next').onsuccess =
+            function onSuccess(e) {
+              var cursor = e.target.result;
+              if (cursor) {
+                var visit = cursor.value;
+                BrowserDB.oldVisitDelete(visit.uri, callback);
+              } else {
+                console.log('error get visits');
+              }
+            }
+          }
+        }
+
+        request.onerror = function onReadError(event) {
+            console.log('error reading visit');
+        };
       }
     };
 
-    request.onerror = function onError(e) {
-      console.log('Error while updating place in global history store: ' +
-        place.uri);
+    readRequest.onerror = function onError(event) {
+      console.log('error writing visit');
     };
   },
 
@@ -715,19 +873,42 @@ BrowserDB.db = {
     transaction.onerror = function dbTransactionError(e) {
       console.log('Transaction error while trying to save visit');
     };
+    var objectStore = transaction.objectStore('visits');
+    var readRequest = objectStore.get(visit.uri);
+    readRequest.onsuccess = function onReadSuccess(event) {
+      var visits = event.target.result;
+      if (visits) {
+        if(( visits.title != visit.title ) &&
+           ( visits.title == visit.uri )) {
+          visits.title = visit.title;
+          visits.timestamp = visit.timestamp;
+        } else {
+          visits.timestamp = visit.timestamp;
+        }
+      } else {
+        //TODO num check
+        visits = {
+          uri: visit.uri,
+          title: visit.title,
+          timestamp: visit.timestamp
+        };
+      }
 
-     var objectStore = transaction.objectStore('visits');
-     var request = objectStore.add(visit);
+      var writeRequest = objectStore.put(visits);
+      writeRequest.onsuccess = function onWriteSuccess(event) {
+        if (callback) {
+          callback();
+        }
+      };
 
-     request.onerror = function onError(e) {
-       console.log('Error while adding visit to global history store');
-     };
+      writeRequest.onerror = function onError(event) {
+        console.log('error writing place');
+      };
+    };
 
-     request.onsuccess = function onSuccess(e) {
-       if (callback) {
-         callback();
-       }
-     };
+    readRequest.onerror = function onReadError(event) {
+        console.log('error reading place');
+    };
   },
 
   /**
@@ -741,22 +922,27 @@ BrowserDB.db = {
 
     function makeVisitProcessor(visit) {
       return function(e) {
-          var place = e.target.result;
-          visit.title = place.title;
-          visit.iconUri = place.iconUri;
+          var object = e.target.result;
+          if(object){
+            visit.iconUri = object.iconUri;
+          }else{
+            visit.iconUri = Awesomescreen.DEFAULT_FAVICON;
+          }
           history.push(visit);
         };
     }
 
-    var transaction = db.transaction(['visits', 'places']);
+    var transaction = db.transaction(['visits', 'icons']);
     var visitsStore = transaction.objectStore('visits');
-    var placesStore = transaction.objectStore('places');
-    visitsStore.openCursor(null, 'prev').onsuccess =
+    var objectStore = transaction.objectStore('icons');
+    var visitsIndex = visitsStore.index('timestamp');
+
+    visitsIndex.openCursor(null, 'prev').onsuccess =
       function onSuccess(e) {
       var cursor = e.target.result;
       if (cursor && history.length < maximum) {
         var visit = cursor.value;
-        placesStore.get(visit.uri).onsuccess = makeVisitProcessor(visit);
+        objectStore.get(visit.uri).onsuccess = makeVisitProcessor(visit);
         cursor.continue();
       } else {
         callback(history);
@@ -810,7 +996,9 @@ BrowserDB.db = {
             self.matchesFilter(place.title, filter);
         }
         if (matched || !filter) {
-          topSites.push(cursor.value);
+          if(cursor.value.frecency >= 1){
+            topSites.push(cursor.value);
+          }
         }
         cursor.continue();
       } else {
@@ -818,7 +1006,6 @@ BrowserDB.db = {
       }
     };
   },
-
   /**
    * Check if the URI matches the regular expression filter.
    * @param {String} uri
@@ -883,14 +1070,29 @@ BrowserDB.db = {
       console.log('Transaction error while trying to clear visits');
     };
     var objectStore = transaction.objectStore('visits');
-    var request = objectStore.clear();
-    request.onsuccess = function onSuccess() {
-      if (callback) {
-        callback();
+    objectStore.openCursor().onsuccess =
+      function onSuccess(e) {
+      var cursor = e.target.result;
+      if (cursor) {
+        var visit = cursor.value;
+        BrowserDB.db.deleteIconUrl(visit.uri, BrowserDB.DEFAULT_TYPE_HISTORY, null);
+        cursor.continue();
+      }else{
+        var request = objectStore.clear();
+        request.onsuccess = function onSuccess() {
+          if (callback) {
+            callback();
+          }
+        };
+        request.onerror = function onError(e) {
+          console.log('Error clearing visits object store');
+        };
       }
     };
-    request.onerror = function onError(e) {
-      console.log('Error clearing visits object store');
+
+    objectStore.openCursor(null, 'prev').onerror =
+      function onError(e) {
+      console.log('Error Delete visits Icon object store');
     };
   },
 
@@ -965,9 +1167,9 @@ BrowserDB.db = {
    * @param {Function} callback Invoked with an icon object as argument on
    *                            success. Invoked without arguments on error.
    */
-  getIcon: function db_getIcon(iconUri, callback) {
+  getIcon: function db_getIcon(uri, iconUri, callback) {
     var request = this._db.transaction('icons').objectStore('icons').
-      get(iconUri);
+      get(uri);
 
     request.onsuccess = function onSuccess(event) {
       callback(event.target.result);
@@ -1053,31 +1255,139 @@ BrowserDB.db = {
   },
 
   /**
+   * Delete a history by URI from database.
+   * @param {String} uri URI query parameter
+   * @param {Function} callback Runs on success
+   */
+  deleteHistory: function db_deleteHistory(uri, callback) {
+    var db = BrowserDB.db._db;
+    var transaction = db.transaction('visits', 'readwrite');
+    transaction.onerror = function dbTransactionError(e) {
+      console.log('Transaction error while trying to clear visits');
+    };
+    var objectStore = transaction.objectStore('visits');
+    var request = objectStore.delete(uri);
+    request.onsuccess = function onSuccess() {
+      if (callback) {
+        callback();
+      }
+    };
+    request.onerror = function onError(e) {
+      console.log('Error clearing visits object store');
+    };
+  },
+
+  /**
+   * Delete a iconUrl by URI from database.
+   * @param {String} uri URI query parameter
+   * @param {Function} callback Runs on success
+   */
+  deleteIconUrl: function db_deleteIconUrl(uri, type, callback) {
+
+    var transaction = null;
+    var objectStore = null;
+    //In the case of history, it searches the same URL is to bookmark
+    if(type == BrowserDB.DEFAULT_TYPE_HISTORY){
+      transaction = this._db.transaction(['bookmarks'], 'readwrite');
+      objectStore = transaction.objectStore('bookmarks');
+    }else{
+      transaction = this._db.transaction(['visits'], 'readwrite');
+      objectStore = transaction.objectStore('visits');
+    }
+
+    var readRequest = objectStore.get(uri);
+    readRequest.onsuccess = function onReadSuccess(event) {
+      var objList = event.target.result;
+      if (objList) {
+        if(callback){
+          callback();
+        }
+      }else{
+
+        var db = BrowserDB.db._db;
+        var transaction = db.transaction('icons', 'readwrite');
+        transaction.onerror = function dbTransactionError(e) {
+          console.log('Transaction error while trying to clear icons');
+        };
+        var objectStore = transaction.objectStore('icons');
+        var request = objectStore.delete(uri);
+        request.onsuccess = function onSuccess() {
+          if (callback) {
+            callback();
+          }
+        };
+        request.onerror = function onError(e) {
+          console.log('Error clearing icons object store');
+        };
+      }
+    }
+
+    readRequest.onerror = function onError(e) {
+      console.log('Error while read bookamrk or history');
+    };
+
+  },
+
+  /**
+   * Delete a topsite by URI from database.
+   * @param {String} uri URI query parameter
+   * @param {Function} callback Runs on success
+   */
+  deleteTopsite: function db_deleteTopsite(uri, callback) {
+    var transaction = this._db.transaction(['places'], 'readwrite');
+    transaction.onerror = function dbTransactionError(e) {
+      console.log('Transaction error while trying to delete topsite');
+    };
+
+    var objectStore = transaction.objectStore('places');
+    var request = objectStore.delete(uri);
+
+    request.onsuccess = function onSuccess(event) {
+      if (callback) {
+        callback();
+      }
+    };
+
+    request.onerror = function onError(e) {
+      console.log('Error while deleting topsite');
+    };
+  },
+
+  /**
    * Get bookmarks
    * @param {Function} callback Runs on complete with an array of bookmarks
    */
   getAllBookmarks: function db_getAllBookmarks(callback) {
     var bookmarks = [];
     var db = this._db;
+    var icons = "";
 
     function makeBookmarkProcessor(bookmark) {
       return function(e) {
-        var place = e.target.result;
-        bookmark.iconUri = place.iconUri;
+       icons = e.target.result;
+        if(icons){
+          if(icons.iconUri){
+             bookmark.iconUri = icons.iconUri;
+
+          }else{
+             bookmark.iconUri = Awesomescreen.DEFAULT_FAVICON;
+          }
+        }
         bookmarks.push(bookmark);
       };
     }
 
-    var transaction = db.transaction(['bookmarks', 'places']);
+    var transaction = db.transaction(['bookmarks', 'icons']);
     var bookmarksStore = transaction.objectStore('bookmarks');
     var bookmarksIndex = bookmarksStore.index('timestamp');
-    var placesStore = transaction.objectStore('places');
+
+    var objectStore = transaction.objectStore('icons');
     bookmarksIndex.openCursor(null, 'prev').onsuccess =
       function onSuccess(e) {
       var cursor = e.target.result;
       if (cursor) {
         var bookmark = cursor.value;
-        placesStore.get(bookmark.uri).onsuccess =
+        objectStore.get(bookmark.uri).onsuccess =
           makeBookmarkProcessor(bookmark);
         cursor.continue();
       }
@@ -1234,7 +1544,7 @@ BrowserDB.db = {
         return;
       }
 
-      place.frecency = null;
+      place.frecency = 0;
 
       var writeRequest = objectStore.put(place);
 
@@ -1394,8 +1704,7 @@ BrowserDB.db = {
    * @param {Array} exceptions URIs to be excluded from clearing
    * @param {Function} callback Runs on success
    */
-  clearHistoryExcluding: function db_clearHistoryExcluding(exceptions,
-    callback) {
+  clearHistoryExcluding: function db_clearHistoryExcluding(callback) {
     // Clear all visits
     this.clearVisits();
 
@@ -1409,15 +1718,10 @@ BrowserDB.db = {
       if (cursor) {
         var place = cursor.value;
         // If not one of the exceptions then delete place and icon
-        if (exceptions.indexOf(place.uri) == -1) {
           placesStore.delete(place.uri);
           if (place.iconUri) {
             iconStore.delete(place.iconUri);
           }
-        } else {
-          // For exceptions, just reset frecency
-          BrowserDB.db.resetPlaceFrecency(place.uri);
-        }
         cursor.continue();
       }
     };
@@ -1589,6 +1893,137 @@ BrowserDB.db = {
     };
     request.onerror = function onError(e) {
       console.log('Error clearing settings object store');
+    };
+  },
+
+  /**
+   * indexedDB MaxNum Check.
+   * @param {type} Bookmark or History or Topsite
+   * @param {maxNum} Object-specific maximum number
+   */
+  idbMaxCheck: function db_idbMaxCheck(objType, maxNum) {
+    var db = this._db;
+    var transaction = this._db.transaction([objType], 'readwrite');
+
+    transaction.onerror = function dbTransactionError(e) {
+      console.log('Transaction error while trying to ' + objType);
+    };
+
+    var objectStore = transaction.objectStore(objType);
+    var objectIndex = null;
+
+    //count check
+    var request = objectStore.count();
+    request.onsuccess = function onReadSuccess(event) {
+      var count = event.target.result;
+      var checkCount = count - maxNum;
+      if(checkCount <= 0) {
+        return;
+      }else{
+        switch(objType){
+          case 'bookmarks':
+          case 'visits' :
+            objectIndex = objectStore.index('timestamp');
+            break;
+          case 'places' :
+            objectIndex = objectStore.index('frecency');
+            break;
+          default:
+            break;
+        }
+
+        objectIndex.openCursor(null, 'next').onsuccess =
+        function onSuccess(e) {
+          var cursor = e.target.result;
+          if (cursor) {
+            var objData = cursor.value;
+            switch(objType){
+              case 'bookmarks':
+                BrowserDB.removeBookmark(objData.uri)
+                break;
+              case 'visits' :
+                BrowserDB.removeHistory(objData.uri);
+                break;
+              case 'places' :
+                BrowserDB.removeTopsite(objData.uri);
+                break;
+              default:
+                break;
+            }
+            checkCount -= 1
+            if(checkCount > 0) {
+              cursor.continue();
+            }else{
+              cursor = null;
+            }
+          }
+        }
+      }
+    }
+
+    request.onerror = function onReadError(event) {
+        console.log('error reading object count');
+    };
+
+
+  },
+
+  /**
+   * indexedDB icons MaxNum Check.
+   */
+  iconMaxCheck: function db_iconMaxCheck(maxNum) {
+    var db = this._db;
+    var transaction = this._db.transaction(['icons', 'bookmarks', 'visits'], 'readwrite');
+    transaction.onerror = function dbTransactionError(e) {
+      console.log('Transaction error while trying to icons');
+    };
+
+    var iconsStore = transaction.objectStore('icons');
+    var bookmarksStore = transaction.objectStore('bookmarks');
+    var visitsStore = transaction.objectStore('visits');
+
+    //count check
+    var request = iconsStore.count();
+    request.onsuccess = function onReadSuccess(event) {
+      var count = event.target.result;
+      if(count > maxNum){
+         iconsStore.openCursor().onsuccess =
+         function onSuccess(e) {
+           var cursor = e.target.result;
+           if (cursor) {
+             var icon = cursor.value;
+             var requestBookmark = bookmarksStore.get(icon.uri);
+             requestBookmark.onsuccess = function onReadSuccess(event) {
+             var bookmarks = event.target.result;
+               if(!bookmarks){
+                 var requestVisits = visitsStore.get(icon.uri);
+                 requestVisits.onsuccess = function onReadSuccess(event) {
+                 var visits = event.target.result;
+                   if(!visits){
+                     var requestIcons = iconsStore.delete(icon.uri);
+                     requestIcons.onerror = function onError(e) {
+                       console.log('Error delete icons object store');
+                     };
+                   }
+                 }
+                 requestVisits.onerror = function onReadError(event) {
+                     console.log('error reading visit');
+                 };
+               }
+             }
+             requestBookmark.onerror = function onReadError(event) {
+                 console.log('error reading bookmarks');
+             };
+
+             cursor.continue();
+           }
+
+         }
+       }
+    }
+
+    request.onerror = function onReadError(event) {
+        console.log('error reading object icon count');
     };
   }
 
