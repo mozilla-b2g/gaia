@@ -67,7 +67,10 @@ var SubListView = {
 
   setAlbumName: function slv_setAlbumName(name, l10nId) {
     this.albumName.textContent = name;
-    this.albumName.dataset.l10nId = l10nId;
+
+    if (l10nId) {
+      this.albumName.dataset.l10nId = l10nId;
+    }
   },
 
   activate: function(option, data, index, keyRange, direction, callback) {
@@ -147,7 +150,10 @@ var SubListView = {
     this.clean();
 
     this.dataSource = data.songs;
-    this.setAlbumName(data.name, data.name);
+    this.setAlbumName(data.name, null);
+
+    //Don't keep previous image.
+    this.albumImage.classList.remove('fadeIn');
 
     data.songs.forEach(function(songData) {
       this.update(songData);
