@@ -46,17 +46,17 @@
     },
 
     /**
-     * getHomescreen returns the homescreen app window based and optionally
-     * makes sure it's loaded (ensure).
+     * getHomescreen returns the homescreen app window based on if it is
+     * triggered by home event.
      *
      * @memberOf HomescreenWindowManager.prototype
      */
-    getHomescreen: function getHomescreen(ensure) {
+    getHomescreen: function getHomescreen(isHomeEvent) {
       if (!this.homescreenLauncher) {
         return null;
       }
-      var home  = this.homescreenLauncher.getHomescreen();
-      if (ensure) {
+      var home  = this.homescreenLauncher.getHomescreen(true);
+      if (isHomeEvent) {
         home.ensure(true);
       }
       return home;
