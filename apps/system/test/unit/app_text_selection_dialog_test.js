@@ -323,13 +323,6 @@ suite('system/AppTextSelectionDialog', function() {
         assert.isTrue(td._triggerShortcutTimeout.calledOnce);
       });
 
-    test('should render when first show', function() {
-      td._injected = false;
-      td.handleEvent(fakeTextSelectInAppEvent);
-      assert.isTrue(stubRender.calledOnce);
-      assert.isTrue(td._injected);
-    });
-
     test('should not render when bubble has showed before', function() {
       td._injected = true;
       td.handleEvent(fakeTextSelectInAppEvent);
