@@ -1210,3 +1210,34 @@ html[dir="rtl"] .list-song-length {
   text-overflow: ellipsis;
 }
 
+#empty-playlist-overlay {
+  height: 100%;
+  width:  100%;
+  position: absolute;
+  text-align: center;
+  z-index: 100;
+  background-color:#111111;
+  color:#F7F7F7;
+  padding-top: 8rem;
+}
+
+#empty-playlist-overlay h1 {
+  margin: 0;
+}
+
+#empty-playlist-overlay p {
+  color: #9A9A9A;
+  font-size: 1.7rem;
+  margin: 0.2rem;
+}
+
+#empty-playlist-overlay button {
+  margin-top: 2rem;
+  font-size: 1.8rem;
+  padding: 1rem;
+  background-color: #323232;
+  border: 0.2rem solid transparent;
+  border-radius: 1rem;
+  background-image: none;
+  color: white;
+}

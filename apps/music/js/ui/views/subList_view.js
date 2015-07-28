@@ -148,6 +148,7 @@ var SubListView = {
 
   activatePlaylist: function(data, callback) {
     this.clean();
+    document.getElementById('empty-playlist-overlay').classList.add('hidden');
 
     this.dataSource = data.songs;
     this.setAlbumName(data.name, null);
@@ -158,6 +159,12 @@ var SubListView = {
     data.songs.forEach(function(songData) {
       this.update(songData);
     }.bind(this));
+
+    if (data.songs.length === 0) {
+      document.getElementById('empty-playlist-overlay').classList.remove('hidden');
+    } else {
+      document.getElementById('empty-playlist-overlay').classList.add('hidden');
+    }
 
     if (callback) {
       callback();
