@@ -106,13 +106,6 @@ define(function(require) {
       SettingsCache.getSettings(results => {
         var unrestricted = results[DEVTOOLS_UNRESTRICTED_KEY];
         if (unrestricted) {
-          DialogService.show('full-developer-mode-warning').then((result) => {
-            if (result.type === 'submit' &&
-                result.value === 'final_warning') {
-              DialogService.show('full-developer-mode-final-warning');
-            }
-          });
-        } else {
           DialogService.confirm('reset-devtools-warning-body', {
             title: 'reset-devtools-warning-title',
             submitButton: 'factory-reset',
@@ -120,7 +113,14 @@ define(function(require) {
           }).then((result) => {
             var type = result.type;
             if (type === 'submit') {
-              this._wipe('root');
+              this._wipe('normal');
+            }
+          });
+        } else {
+          DialogService.show('full-developer-mode-warning').then((result) => {
+            if (result.type === 'submit' &&
+                result.value === 'final_warning') {
+              DialogService.show('full-developer-mode-final-warning');
             }
           });
         }
