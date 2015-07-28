@@ -825,7 +825,7 @@ caldav-server-install:
 
 .PHONY: raptor
 raptor: node_modules
-	PERF_LOGGING=1 DEVICE_DEBUG=1 GAIA_OPTIMIZE=1 NOFTU=1 SCREEN_TIMEOUT=0 GAIA_DISTRIBUTION_DIR=node_modules/raptor/dist PROFILE_FOLDER=profile-raptor make reset-gaia
+	PERF_LOGGING=1 DEVICE_DEBUG=1 GAIA_OPTIMIZE=1 NOFTU=1 SCREEN_TIMEOUT=0 make reset-gaia
 
 .PHONY: tests
 tests: app offline
