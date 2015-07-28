@@ -828,6 +828,12 @@ suite('system/AppWindowManager', function() {
       window.dispatchEvent(new CustomEvent('rocketbar-overlayclosed'));
       sinon.assert.calledOnce(subject.switchApp);
     });
+
+    test('Go back to the homescreen', function() {
+      this.sinon.spy(MockService, 'query');
+      subject.display();
+      sinon.assert.calledWith(MockService.query, 'getHomescreen', true);
+    });
   });
 
   suite('Switch app', function() {
