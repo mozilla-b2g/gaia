@@ -53,12 +53,22 @@ marionette('Contacts > Merge contacts', function() {
     selectors = Contacts.Selectors;
   });
 
-  test('Selection count should be correct after merging contacts', function() {
-    addTestContact('Contact1', aTelNumber);
-    addTestContact('Contact2', anotherTelNumber);
-    mergeContact('Contact3', anotherTelNumber);
-    selectAll(function() {
-      checkHeaderCount(2);
-    });
-  });
+  // Disabling these tests by now due to we need a way to switch to a
+  // different window instead of switching to an app, due to paths can
+  // differ.
+  // More info in [1].
+  // These test must be recovered once this bug will be landed.
+
+  // [1] https://bugzilla.mozilla.org/show_bug.cgi?id=1140344#c9
+  test.skip(
+    'Selection count should be correct after merging contacts',
+    function() {
+      addTestContact('Contact1', aTelNumber);
+      addTestContact('Contact2', anotherTelNumber);
+      mergeContact('Contact3', anotherTelNumber);
+      selectAll(function() {
+        checkHeaderCount(2);
+      });
+    }
+  );
 });

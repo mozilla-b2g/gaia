@@ -39,22 +39,9 @@
         this.duplicateMessage = document.querySelector('#duplicate-msg > p');
         this.contactsList =
           document.querySelector('#contacts-list-container > ol');
-        this.title = document.getElementById('title');
 
-        this.mergeHeader = document.getElementById('merge-header');
-        this.mergeHeader.addEventListener('action', this.onClose);
         this.contactsList.addEventListener('click', this.onClick.bind(this));
         this.mergeButton.addEventListener('click', this.onMerge.bind(this));
-
-        this.matchingDetails = document.querySelector('#matching-details');
-        this.matchingFigure = document.querySelector('#matching-figure');
-        this.matchingDetailList =
-          this.matchingDetails.querySelector('#matching-list');
-        this.matchingImg = this.matchingDetails.querySelector('img');
-        this.matchingName = this.matchingDetails.querySelector('figcaption');
-
-        this.matchingDetails.querySelector('button').onclick =
-          this.hideMatchingDetails.bind(this);
 
         window.addEventListener('initUI', evt => {
           this.load(evt.detail.type, evt.detail.contact, evt.detail.results);
@@ -82,7 +69,7 @@
                                           'suggestedDuplicatesMessage',
                                           params);
         } else {
-          this.title.setAttribute('data-l10n-id', 'duplicatesFoundTitle');
+          document.title = this._('duplicatesFoundTitle');
           // "xxx duplicates information in the following contacts"
           navigator.mozL10n.setAttributes(this.duplicateMessage,
                                           'foundDuplicatesMessage',
@@ -249,120 +236,21 @@
         }, CONTACTS_APP_ORIGIN);
       },
 
-      // Obtains the action from the contacts list from the click coordinates
-      // The action can be: 'check' or 'detail'
-      // If it is 'check' the input check will be toggled
-      // If it is 'detail' the matching contact details overlay will be show
-      getActionOverList: function(event) {
-        // 40% percent of the horizontal width will be consider 'check' area
-        var CHECKING_AREA_WIDTH = 0.4;
-        var shouldShowDetail = true;
-
-        // In case of an RTL language we need to swap the areas
-        if (document.dir === 'rtl') {
-          CHECKING_AREA_WIDTH = 0.6;
-          shouldShowDetail = false;
-        }
-
-        if (event.clientX <= window.innerWidth * CHECKING_AREA_WIDTH) {
-          shouldShowDetail = !shouldShowDetail;
-        }
-
-        return shouldShowDetail ? 'detail' : 'check';
-      },
-
       onClick: function(e) {
-        var target = e.target;
-
-        var uuid;
-        if (target && target.dataset.uuid) {
-          uuid = target.dataset.uuid;
+        var el = e.target;
+        if (el.tagName !== 'INPUT') {
+          return;
+        }
+        var uuid = el.parentNode.parentNode.dataset.uuid;
+        if (el.checked) {
+          ++this.checked;
+          this.checkedContacts[uuid] = uuid;
+        } else {
+          --this.checked;
+          delete this.checkedContacts[uuid];
         }
 
-        var targetAction = this.getActionOverList(e);
-        if (targetAction === 'check') {
-          var checkbox = target.querySelector('input[type="checkbox"]');
-          this.setChecked(target, checkbox, !checkbox.checked, uuid);
-          this.checkMergeButton();
-        }
-        else if (uuid) {
-          this.showMatchingDetails(uuid);
-          this.renderMatchingDetails(uuid);
-        }
-      },
-
-      resetContentDetails: function() {
-        this.matchingName.classList.remove('selected');
-        if (this.matchingImg.src) {
-          window.URL.revokeObjectURL(this.matchingImg.src);
-          this.matchingImg.src = '';
-          this.matchingImg.classList.add('hide');
-        }
-        this.matchingName.textContent = '';
-        this.matchingDetailList.innerHTML = '';
-      },
-
-      hideMatchingDetails: function() {
-        this.matchingDetails.classList.remove('fade-in');
-        this.matchingDetails.classList.add('fade-out');
-        var self = this;
-
-        this.matchingDetails.addEventListener('animationend',
-          function cd_fadeOut(ev) {
-          self.matchingDetails.removeEventListener('animationend', cd_fadeOut);
-          self.matchingDetails.classList.add('no-opacity');
-          self.matchingDetails.classList.add('hide');
-
-          self.resetContentDetails();
-        });
-      },
-
-      imageLoaded: function() {
-        this.matchingImg.classList.remove('hide');
-        this.doShowMatchingDetails();
-      },
-
-      imageLoadingError: function() {
-        this.matchingImg.classList.add('hide');
-        this.doShowMatchingDetails();
-      },
-
-      showMatchingDetails: function(uuid) {
-        var theContact = this.matchingResults[uuid].matchingContact;
-        var photo = ContactPhotoHelper.getThumbnail(theContact);
-        if (photo) {
-          // If the contact has a photo, preload it before showing the overlay.
-          var url = window.URL.createObjectURL(photo);
-
-          // Check to see if the image is already loaded, if so process
-          // it immediately.  We won't get another 'load' event by resetting the
-          // same url.
-          if (this.matchingImg.src === url && this.matchingImg.naturalWidth) {
-            window.URL.revokeObjectURL(url);
-            this.imageLoaded();
-            return;
-          }
-
-          this.matchingImg.onload = this.imageLoaded.bind(this);
-          this.matchingImg.onerror = this.imageLoadingError.bind(this);
-          this.matchingImg.src = url;
-        }
-        else {
-          this.doShowMatchingDetails();
-        }
-      },
-
-      doShowMatchingDetails: function() {
-        this.matchingDetails.classList.remove('hide');
-        this.matchingDetails.classList.remove('fade-out');
-        this.matchingDetails.classList.add('fade-in');
-        var self = this;
-
-        this.matchingDetails.addEventListener('animationend',
-          function cd_fadeIn(ev) {
-          self.matchingDetails.removeEventListener('animationend', cd_fadeIn);
-          self.matchingDetails.classList.remove('no-opacity');
-        });
+        this.checkMergeButton();
       },
 
       isMatch: function(matchings, aField, fieldValue) {
@@ -380,102 +268,11 @@
         return !noMatch;
       },
 
-      renderMatchingDetails: function(uuid) {
-        var fields = ['name', 'photo', 'org', 'tel', 'email', 'adr'];
-        var self = this;
-
-        var theContact = this.matchingResults[uuid].matchingContact;
-        var matchings = this.matchingResults[uuid].matchings;
-        if (!this.hasName(theContact)) {
-          theContact.name = [this.getDisplayName(theContact)];
-        }
-        fields.forEach(function(aField) {
-          if (!Array.isArray(theContact[aField]) || !theContact[aField][0]) {
-            return;
-          }
-
-          theContact[aField].forEach(function(fieldValue) {
-            if (!fieldValue) {
-              return;
-            }
-
-            var item;
-            switch (aField) {
-              case 'name':
-                self.matchingName.textContent = fieldValue;
-                if (self.isMatch(matchings, aField, fieldValue)) {
-                  self.matchingName.classList.add('selected');
-                }
-              break;
-              case 'photo':
-                self.matchingImg.alt = self.getDisplayName(theContact);
-              break;
-              case 'tel':
-              case 'email':
-                item = document.createElement('li');
-                if (self.isMatch(matchings, aField, fieldValue)) {
-                  item.classList.add('selected');
-                }
-                navigator.mozL10n.setAttributes(item, 'itemWithLabel', {
-                  label: self._(fieldValue.type),
-                  item: fieldValue.value
-                });
-                self.matchingDetailList.appendChild(item);
-              break;
-              case 'adr':
-                item = document.createElement('li');
-                if (self.isMatch(matchings, aField, fieldValue)) {
-                  item.classList.add('selected');
-                }
-                var adrFields = ['streetAddress', 'locality',
-                                 'region', 'countryName'];
-                adrFields.forEach(function(addrField) {
-                  if (fieldValue[addrField]) {
-                    var li = document.createElement('li');
-                    li.textContent = fieldValue[addrField];
-                    item.appendChild(li);
-                  }
-                });
-                self.matchingDetailList.appendChild(item);
-              break;
-              default:
-                item = document.createElement('li');
-                item.textContent = fieldValue.value || fieldValue || '';
-                self.matchingDetailList.appendChild(item);
-              break;
-            }
-          });
-        });
-      },
-
-      /*
-       * Displays the details of a contact matching in an overlay.
-       * @param {String} Unique user id.
-       */
-      displayMatchingDetails: function(uuid) {
-        this.showMatchingDetails(uuid);
-        this.renderMatchingDetails(uuid);
-      },
-
       checkMergeButton: function() {
         navigator.mozL10n.setAttributes(this.mergeButton,
                                         'mergeActionButtonLabel',
                                         { n: this.checked });
         this.mergeButton.disabled = (this.checked === 0);
-      },
-
-      setChecked: function(item, element, value, uuid) {
-        if (element.checked !== value) {
-          // We have to take into account the action whether the value changes
-          if (value) {
-            ++this.checked;
-            this.checkedContacts[uuid] = uuid;
-          } else {
-            --this.checked;
-            delete this.checkedContacts[uuid];
-          }
-        }
-        element.checked = value;
       },
 
       onMerge: function(e) {

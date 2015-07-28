@@ -2,7 +2,6 @@
 /* global CORRECT_MATCHED_VALUE */
 /* global dataImage */
 /* global dupContacts */
-/* global matchingDetailsData */
 /* global MockMatchingContactsHtml */
 /* global MocksHelper */
 /* global MockImageLoader */
@@ -37,8 +36,7 @@ suite('MatchingUI', function() {
   mocksHelperForContactMatchingUI.attachTestHelpers();
 
   var wrapper = null,
-    realImageLoader, realURL, list, matchingDetails, matchingName, matchingImg,
-    matchingDetailList, mergeAction, realL10n;
+    realImageLoader, realURL, list, mergeAction, realL10n;
 
   var masterContact = {
     givenName: ['Manolo'],
@@ -117,7 +115,7 @@ suite('MatchingUI', function() {
   });
 
   test('Users are able to un-select contacts ', function(done) {
-    var firstItem = list.querySelector('li[data-uuid="1a"]');
+    var firstItem = list.querySelector('li[data-uuid="1a"] label');
     var checkbox = firstItem.querySelector('input[type="checkbox"]');
     assert.isTrue(checkbox.checked);
     firstItem.click();
@@ -131,7 +129,7 @@ suite('MatchingUI', function() {
   });
 
   test('Users are able to select contacts ', function(done) {
-    var firstItem = list.querySelector('li[data-uuid="1a"]');
+    var firstItem = list.querySelector('li[data-uuid="1a"] label');
     var checkbox = firstItem.querySelector('input[type="checkbox"]');
     assert.isFalse(checkbox.checked);
     firstItem.click();
@@ -146,8 +144,8 @@ suite('MatchingUI', function() {
 
   test('Merge button throws an event ', function(done) {
     // We are un-selecting the two first ones
-    list.querySelector('li[data-uuid="1a"]').click();
-    list.querySelector('li[data-uuid="2b"]').click();
+    list.querySelector('li[data-uuid="1a"] label').click();
+    list.querySelector('li[data-uuid="2b"] label').click();
 
     window.addEventListener('merge', function(evt) {
       assert.equal(Object.keys(evt.detail.checkedContacts).length, 1);
@@ -155,160 +153,5 @@ suite('MatchingUI', function() {
     });
 
     mergeAction.click();
-  });
-
-  suite('duplicate contact details', function() {
-    var observerConfig = {
-      attributes: true,
-      attributeFilter: ['class']
-    };
-
-    setup(function(done) {
-      document.body.removeChild(wrapper);
-      wrapper.innerHTML = MockMatchingContactsHtml;
-      document.body.appendChild(wrapper);
-      MatchingUI.init();
-      matchingDetails = wrapper.querySelector('#matching-details');
-      matchingName = matchingDetails.querySelector('figcaption');
-      matchingImg = matchingDetails.querySelector('img');
-      matchingDetailList = matchingDetails.querySelector('#matching-list');
-      // Add a photo to the matching contact with id 'user_id_1'.
-      matchingDetailsData.user_id_1.matchingContact.photo[0] =
-        matchingImg.src;
-
-      window.addEventListener('UIReady', function fn() {
-        window.removeEventListener('UIReady', fn);
-        done();
-      });
-      MatchingUI.load('matching', masterContact, matchingDetailsData);
-    });
-
-    test('should show the duplicate contact details overlay', function(done) {
-      var checkAssertions = function() {
-        observer.disconnect();
-        assert.isFalse(matchingDetails.classList.contains('hide'));
-        done();
-      };
-      var observer = new MutationObserver(checkAssertions);
-      observer.observe(matchingDetails, observerConfig);
-      MatchingUI.displayMatchingDetails('user_id_1');
-    });
-
-    test('should show the duplicate contact name and highlight it',
-         function(done) {
-      var checkAssertions = function() {
-        observer.disconnect();
-        assert.equal(matchingName.textContent, 'The Name The Surname');
-        assert.isTrue(matchingName.classList.contains('selected'));
-        done();
-      };
-      var observer = new MutationObserver(checkAssertions);
-      observer.observe(matchingDetails, observerConfig);
-      MatchingUI.displayMatchingDetails('user_id_1');
-    });
-
-    test('should show the duplicate contact name but not highlight it',
-         function(done) {
-      var checkAssertions = function() {
-        observer.disconnect();
-        assert.equal(matchingName.textContent, 'The Name Another Surname');
-        assert.isFalse(matchingName.classList.contains('selected'));
-        done();
-      };
-      var observer = new MutationObserver(checkAssertions);
-      observer.observe(matchingDetails, observerConfig);
-      MatchingUI.displayMatchingDetails('user_id_2');
-    });
-
-    test('should show the duplicate contact image', function(done) {
-      var checkAssertions = function() {
-        observer.disconnect();
-        assert.isFalse(matchingImg.classList.contains('hide'));
-        done();
-      };
-      var observer = new MutationObserver(checkAssertions);
-      observer.observe(matchingDetails, observerConfig);
-      MatchingUI.displayMatchingDetails('user_id_1');
-    });
-
-    test('should hide the duplicate contact image', function(done) {
-      var checkAssertions = function() {
-        observer.disconnect();
-        assert.isTrue(matchingImg.classList.contains('hide'));
-        done();
-      };
-      var observer = new MutationObserver(checkAssertions);
-      observer.observe(matchingDetails, observerConfig);
-      // 'user_id_2' has no photo.
-      MatchingUI.displayMatchingDetails('user_id_2');
-    });
-
-    test('should show the phone number but not highlight it', function(done) {
-      var checkAssertions = function() {
-        observer.disconnect();
-        var listItems = matchingDetailList.querySelectorAll('li');
-        var l10nAttrs = navigator.mozL10n.getAttributes(listItems[0]);
-        assert.deepEqual(l10nAttrs.args, {
-          'label': 'type_1',
-          'item': '111111111'
-        });
-        assert.isFalse(listItems[0].classList.contains('selected'));
-        done();
-      };
-      var observer = new MutationObserver(checkAssertions);
-      observer.observe(matchingDetails, observerConfig);
-      MatchingUI.displayMatchingDetails('user_id_1');
-    });
-
-    test('should show the phone number and highlight it', function(done) {
-      var checkAssertions = function() {
-        observer.disconnect();
-        var listItems = matchingDetailList.querySelectorAll('li');
-        var l10nAttrs = navigator.mozL10n.getAttributes(listItems[1]);
-        assert.deepEqual(l10nAttrs.args, {
-          'label': 'type_2',
-          'item': '222222222'
-        });
-        assert.isTrue(listItems[1].classList.contains('selected'));
-        done();
-      };
-      var observer = new MutationObserver(checkAssertions);
-      observer.observe(matchingDetails, observerConfig);
-      MatchingUI.displayMatchingDetails('user_id_1');
-    });
-
-    test('should show the email but not highlight it', function(done) {
-      var checkAssertions = function() {
-        observer.disconnect();
-        var listItems = matchingDetailList.querySelectorAll('li');
-        var l10nAttrs = navigator.mozL10n.getAttributes(listItems[2]);
-        assert.deepEqual(l10nAttrs.args, {
-          'label': 'email_type_1',
-          'item': 'email_1@acme.com'
-        });
-        assert.isFalse(listItems[2].classList.contains('selected'));
-        done();
-      };
-      var observer = new MutationObserver(checkAssertions);
-      observer.observe(matchingDetails, observerConfig);
-      MatchingUI.displayMatchingDetails('user_id_1');
-    });
-
-    test('should show the email and highlight it', function(done) {
-      var checkAssertions = function() {
-        observer.disconnect();
-        var listItems = matchingDetailList.querySelectorAll('li');
-        var l10nAttrs = navigator.mozL10n.getAttributes(listItems[3]);
-        assert.deepEqual(l10nAttrs.args, {
-          'label': 'email_type_2',
-          'item': 'email_2@acme.com'
-        });
-        assert.isTrue(listItems[3].classList.contains('selected'));
-        done();
-      };
-      var observer = new MutationObserver(checkAssertions);
-      observer.observe(matchingDetails, observerConfig);
-      MatchingUI.displayMatchingDetails('user_id_1');
-    });
   });
 });

@@ -1,45 +1,63 @@
 'use strict';
-/* global utils */
-
+/*
+ * This code is in charge of launching a diferent window
+ * to handle if one or more contacts have the same info
+ * that the one we are trying to save.
+ */
+ 
 (function(exports) {
   var matchService = {};
 
   const CONTACTS_APP_ORIGIN = location.origin;
-
-  var extensionFrame = document.createElement('iframe');
-  extensionFrame.id = 'match-extension';
-  document.body.appendChild(extensionFrame);
   
-  var currentURI;
+  var matcherWindow = null;
+  var currentURL;
+
+  function openWindow(url) {
+    if (!url) {
+      return;
+    }
+    matcherWindow = window.open(url);
+    currentURL = url;
+    init();
+  }
+
+  function closeWindow(messageId, additionalMessageId) {
+    matcherWindow.close();
+    unload();
+  }
 
   matchService.match = function(contactId) {
-    extensionFrame.src = currentURI = 
-      '/contacts/views/matching/matching_contacts.html?contactId=' + contactId;
+    var url =
+      '/contacts/views/matching/matching_contacts.html?contactId=' +
+      contactId;
+    openWindow(url);
   };
 
   matchService.showDuplicateContacts = function() {
-    extensionFrame.src = currentURI = 
+    var url =
       '/contacts/views/matching/matching_contacts.html';
+    openWindow(url);
   };
 
-  function close(messageId, additionalMessageId) {
-    extensionFrame.addEventListener('transitionend', function tclose() {
-      extensionFrame.removeEventListener('transitionend', tclose);
-      extensionFrame.classList.add('hidden');
-      unload();
-
-      if (messageId) {
-        utils.status.show(messageId, additionalMessageId);
-      }
-    // Otherwise we do nothing as the sync process will finish sooner or later
-    });
-    extensionFrame.classList.remove('opening');
+  function init(){
+    matcherWindow.addEventListener('load', function fn(){
+      matcherWindow.removeEventListener('load', fn);
+      matcherWindow.postMessage({
+        type: 'sync'
+      }, CONTACTS_APP_ORIGIN);
+      matcherWindow.onunload = function(){
+        window.postMessage({
+          type: 'window_close'
+        }, CONTACTS_APP_ORIGIN);
+      };
+    }, false);
   }
 
   // This function can also be executed when other messages arrive
   // That's why we cannot call notifySettings outside the switch block
   function messageHandler(e) {
-    if (!currentURI || e.origin !== CONTACTS_APP_ORIGIN) {
+    if (!currentURL || e.origin !== CONTACTS_APP_ORIGIN) {
       return;
     }
 
@@ -47,38 +65,28 @@
 
     switch (data.type) {
       case 'ready':
-        extensionFrame.classList.remove('hidden');
-        window.setTimeout(function displaying() {
-          extensionFrame.classList.add('opening');
-          extensionFrame.addEventListener('transitionend', function topen() {
-            extensionFrame.removeEventListener('transitionend', topen);
-            extensionFrame.contentWindow.postMessage({
-              type: 'dom_transition_end',
-              data: ''
-            }, CONTACTS_APP_ORIGIN);
-            // Stop scrolling listeners on the contact list's image loader to
-            // prevent images cancelled while friends are being imported
-            window.dispatchEvent(new CustomEvent('image-loader-pause'));
-          });
-        }, 0);
-      break;
-      case 'window_close':
-        close(data.messageId, data.additionalMessageId);
-      break;
-      case 'show_duplicate_contacts':
-        extensionFrame.contentWindow.postMessage(data, CONTACTS_APP_ORIGIN);
+        matcherWindow.postMessage({
+          type: 'dom_transition_end',
+          data: ''
+        }, CONTACTS_APP_ORIGIN);
+        window.dispatchEvent(new CustomEvent('image-loader-pause'));
         break;
-
+      case 'window_close':
+        closeWindow(data.messageId, data.additionalMessageId);
+        break;
+      case 'show_duplicate_contacts':
+        matcherWindow.postMessage(data, CONTACTS_APP_ORIGIN);
+        break;
       case 'duplicate_contacts_merged':
-        extensionFrame.contentWindow.postMessage(data, CONTACTS_APP_ORIGIN);
-      break;
+        matcherWindow.postMessage(data, CONTACTS_APP_ORIGIN);
+        break;
     }
   }
 
   function unload() {
     // Attaching again scrolling handlers on the contact list's image loader
+    matcherWindow = currentURL = null;
     window.dispatchEvent(new CustomEvent('image-loader-resume'));
-    extensionFrame.src = currentURI = null;
   }
 
   window.addEventListener('message', messageHandler);
