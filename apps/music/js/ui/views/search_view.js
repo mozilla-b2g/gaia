@@ -98,8 +98,14 @@ var SearchView = {
         lists[option].classList.remove('hidden');
         lists[option].getElementsByClassName('search-result-count')[0]
                      .textContent = numResults[option];
+
         lists[option].getElementsByClassName('search-results')[0].appendChild(
-          createListElement(option, result, this.dataSource.length - 1, query)
+          createListElement({
+            option: option,
+            data: result,
+            index: this.dataSource.length - 1,
+            highlight: query
+          })
         );
       }
 

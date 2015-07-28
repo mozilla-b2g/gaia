@@ -173,7 +173,13 @@ var ListView = {
       }
     }
 
-    this.anchor.appendChild(createListElement(option, result, this.index, false, noborder));
+    this.anchor.appendChild(createListElement({
+      option: option,
+      data: result,
+      index: this.index,
+      noborder: noborder
+    }));
+
     this.index++;
   },
 
@@ -240,7 +246,12 @@ var ListView = {
           fragment.appendChild(header);
         }
 
-        fragment.appendChild(createListElement(option, data, this.index));
+        fragment.appendChild(createListElement({
+          option: option,
+          data: data,
+          index: this.index
+        }));
+
         this.index++;
       }
     }

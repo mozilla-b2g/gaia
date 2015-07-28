@@ -30,7 +30,18 @@ function formatTime(secs) {
 
 // In Music, visually we have three styles of list
 // Here we use one function to create different style lists
-function createListElement(option, data, index, highlight, noborder) {
+function createListElement(opts) {
+  var option = opts.option;
+  var data = opts.data;
+  var index = opts.index;
+  var highlight = opts.highlight;
+  var noborder = opts.noborder;
+
+  if (option === undefined || data === undefined || index === undefined) {
+    console.error("Please include at least the following options: 'option', 'data', 'index'.");
+    return;
+  }
+
   var li = document.createElement('li');
   li.className = 'list-item';
   li.setAttribute('role', 'presentation');

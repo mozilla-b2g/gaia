@@ -141,7 +141,11 @@ var SubListView = {
     }
 
     var option = useIndexNumber ? 'song-index' : 'song';
-    this.anchor.appendChild(createListElement(option, result, this.index));
+    this.anchor.appendChild(createListElement({
+      option: option,
+      data: result,
+      index: this.index
+    }));
 
     this.index++;
   },
