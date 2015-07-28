@@ -110,7 +110,6 @@
      * occurs.
      * @param {string} eventName Name of the event to listen for.
      * @param {function} handler Handler to be executed once event occurs.
-     * @returns {Promise} Resolved when the event is sent once.
      */
     once: function(eventName, handler) {
       ensureValidHandler(handler);
@@ -118,7 +117,7 @@
       var once = (parameters) => {
         eventDispatcher.off.call(this, eventName, once);
 
-        handler && handler(parameters);
+        handler(parameters);
       };
 
       eventDispatcher.on.call(this, eventName, once);

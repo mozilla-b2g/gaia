@@ -1059,7 +1059,7 @@ suite('Utils', function() {
 
         params = Object.assign({ test: null }, params);
         assert.equal(
-          Utils.url(base, params), expected, 
+          Utils.url(base, params), expected,
           'with a null value: ' + search
         );
       });

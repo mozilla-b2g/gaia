@@ -528,6 +528,8 @@ var ConversationView = {
   beforeEnter: function conv_beforeEnter(args) {
     this.clearConvertNoticeBanners();
     this.setHeaderAction(ActivityClient.hasPendingRequest() ? 'close' : 'back');
+
+    // This is useful only the first time it's called. Then it's a no-op.
     this.header.removeAttribute('no-font-fit');
     this.editHeader.removeAttribute('no-font-fit');
 
@@ -685,17 +687,20 @@ var ConversationView = {
     // to slide correctly. Bug 1009541
     this.cancelEdit();
 
-    // Revoke thumbnail URL for every image attachment rendered within thread
-    var nodes = this.container.querySelectorAll(
-      '.attachment-container[data-thumbnail]'
-    );
-    Array.from(nodes).forEach((node) => {
-      window.URL.revokeObjectURL(node.dataset.thumbnail);
-    });
+    if (Navigation.isCurrentPanel('thread')) {
+      // Revoke thumbnail URL for every image attachment rendered within thread
+      // Executed only when moving out of a conversation.
+      var nodes = this.container.querySelectorAll(
+        '.attachment-container[data-thumbnail]'
+      );
+      Array.from(nodes).forEach((node) => {
+        window.URL.revokeObjectURL(node.dataset.thumbnail);
+      });
+    }
 
     // TODO move most of back() here: Bug 1010223
     if (!this.isConversationPanel(Threads.currentId, nextPanel)) {
-      // clean fields when moving out of a conversation
+      // Clean fields when moving out of a conversation.
       this.cleanFields();
     }
   },
@@ -709,7 +714,7 @@ var ConversationView = {
       Threads.currentId = null;
     }
     if (!Navigation.isCurrentPanel('composer')) {
-      // cleaning things up when moving from composer to conversation
+      // Cleaning things up when moving from composer to conversation.
       this.threadMessages.classList.remove('new');
 
       if (this.recipients) {
@@ -720,7 +725,7 @@ var ConversationView = {
     }
 
     if (!Navigation.isCurrentPanel('thread')) {
-      // things we do when we move from composer to inbox
+      // Things we do when we move from composer to inbox.
       // When we're in a thread, we already changed these things in beforeEnter.
       this.threadMessages.classList.remove('has-carrier');
       this.callNumberButton.classList.add('hide');
@@ -1175,6 +1180,7 @@ var ConversationView = {
         // for the specified number.
         return MessageManager.findThreadFromNumber(parameters.number);
       }
+
       return Promise.reject();
     }).then(
       (id) => Navigation.toPanel('thread', { id: id, focusComposer: true }),

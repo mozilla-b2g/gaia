@@ -1132,11 +1132,9 @@ suite('message_manager.js >', function() {
       Threads.has.withArgs(threadId).returns(false);
 
       MessageManager.ensureThreadRegistered(threadId).then(
-        () => Promise.reject(new Error('Should not return a resolved promise')),
-        () => {}
-      ).then(() => {
-        sinon.assert.notCalled(Threads.registerMessage);
-      }).then(done, done);
+        () => { throw new Error('Should not return a resolved promise'); },
+        () => sinon.assert.notCalled(Threads.registerMessage)
+      ).then(done, done);
 
       MockNavigatormozMobileMessage.mTriggerMessagesRequest([]);
     });

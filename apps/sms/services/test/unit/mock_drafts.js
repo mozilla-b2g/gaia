@@ -17,8 +17,5 @@ var MockDrafts = {
 };
 
 function MockDraft(draft) {
-  Object.assign(this, draft);
-  if (!this.id) {
-    this.id = 'draftId';
-  }
+  Object.assign(this, { id: 'draftId' }, draft);
 }

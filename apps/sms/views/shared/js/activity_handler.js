@@ -150,13 +150,16 @@ var ActivityHandler = {
   /**
    * Store a draft for this message, and returns a draftId.
    *
-   * @param {Object} message to save
+   * @param {Object} message Message to save
+   * @param {Number} message.threadId Conversation where this messages is
+   * located.
+   * @param {String} message.number The recipient as a phone number or email
+   * address.
    * @param {(String|Attachment|Array.<Attachment>)} [message.body] The data to
    * add to the message's body.
-   * @param {String} [message.number] The recipient for this message.
    * @returns {Promise.<Number>} The new draft id.
    */
-  _storeDraft(message) {
+  _storeDraftFromMessage(message) {
     var content = message.body || null;
 
     var isSimpleContent = !content || typeof content === 'string';
@@ -220,21 +223,20 @@ var ActivityHandler = {
       // If we have appropriate thread then let's forward user there, otherwise
       // open new message composer.
       if (message.threadId) {
-        Navigation.toPanel('thread', {
+        return Navigation.toPanel('thread', {
           id: message.threadId,
           focusComposer: focusComposer
         });
-        return;
       }
 
-      return this._storeDraft(message).then(
+      return this._storeDraftFromMessage(message).then(
         (draftId) => Navigation.toPanel('composer', { draftId, focusComposer })
       );
     };
 
     if (!document.hidden) {
       // Case of calling from Notification
-      return Promise.resolve(navigateToView());
+      return navigateToView();
     }
 
     var defer = Utils.Promise.defer();
