@@ -122,11 +122,9 @@
 
     imeListView: function({displayName, imeName}) {
       return Sanitizer.escapeHTML `<li>
-         <a>${displayName}</a>
-         <label class="pack-checkbox ime">
-           <input type="checkbox" name="keyboards" value="${imeName}">
-           <span></span>
-         </label>
+         <gaia-checkbox class="ime inline" name="keyboards" value="${imeName}">
+           <label>${displayName}</label>
+         </gaia-checkbox>
        </li>`;
    },
 
@@ -438,11 +436,12 @@
 
     handleImeConfirmAction: function ai_handleImeConfirmAction() {
       var manifestURL = this.setupQueue[0].manifestURL;
-      var keyboards = this.imeList.getElementsByTagName('input');
+      var keyboards = this.imeList.getElementsByTagName('gaia-checkbox');
       for (var i = 0, l = keyboards.length; i < l; i++) {
         var keyboardIME = keyboards[i];
         if (keyboardIME.checked) {
-          KeyboardHelper.setLayoutEnabled(manifestURL, keyboardIME.value, true);
+          KeyboardHelper.setLayoutEnabled(manifestURL,
+            keyboardIME.getAttribute('value'), true);
           KeyboardHelper.saveToSettings();
         }
       }
