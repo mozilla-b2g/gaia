@@ -235,17 +235,26 @@ var PlayerView = {
       // it will not be initialised.
       var titleBar = document.querySelector('#title-text bdi');
 
-      titleBar.textContent =
-        metadata.title || navigator.mozL10n.get('unknownTitle');
-      titleBar.dataset.l10nId = metadata.title ? '' : 'unknownTitle';
+      if (metadata.title) {
+        titleBar.removeAttribute('data-l10n-id');
+        titleBar.textContent = metadata.title;
+      } else {
+        titleBar.setAttribute('data-l10n-id', 'unknownTitle');
+      }
     }
 
-    this.artistText.textContent =
-      metadata.artist || navigator.mozL10n.get('unknownArtist');
-    this.artistText.dataset.l10nId = metadata.artist ? '' : 'unknownArtist';
-    this.albumText.textContent =
-      metadata.album || navigator.mozL10n.get('unknownAlbum');
-    this.albumText.dataset.l10nId = metadata.album ? '' : 'unknownAlbum';
+    if (metadata.artist) {
+      this.artistText.removeAttribute('data-l10n-id');
+      this.artistText.textContent = metadata.artist;
+    } else {
+      this.artistText.setAttribute('data-l10n-id', 'unknownArtist');
+    }
+    if (metadata.album) {
+      this.albumText.removeAttribute('data-l10n-id');
+      this.albumText.textContent = metadata.album;
+    } else {
+      this.albumText.setAttribute('data-l10n-id', 'unknownAlbum');
+    }
 
     this.setCoverImage(fileinfo);
   },
@@ -408,6 +417,42 @@ var PlayerView = {
     this.setSeekBar(0, 0);
   },
 
+  getNotifyMetadata: function pv_getNotifyMetadata(metadata) {
+    const formatValue = navigator.mozL10n.formatValue;
+
+    return Promise.all([
+      metadata.title || formatValue('unknownTitle'),
+      metadata.artist || formatValue('unknownArtist'),
+      metadata.album || formatValue('unknownAlbum'),
+    ]).then(([title, artist, album]) => {
+      return {
+        title: title,
+        artist: artist,
+        album: album
+      };
+    });
+  },
+
+  // Grab the album art if this is a new song; otherwise, don't bother, since
+  // listeners should already have the album art. Note: if no .picture
+  // attribute is in the metadata, then listeners should reuse the previous
+  // picture. If .picture is null, something went wrong and listeners should
+  // probably use a blank picture (or their own placeholder).
+  addPictureToMetadata: function pv_addPictureToMetadata(
+    fileinfo, currentTime, notifyMetadata) {
+    
+    if (currentTime !== 0) {
+      return Promise.resolve();
+    }
+
+    return LazyLoader.load('js/metadata/album_art_cache.js').then(() => {
+      return AlbumArtCache.getThumbnailBlob(fileinfo);
+    }).then((blob) => {
+      notifyMetadata.picture = blob;
+    });
+
+  },
+
   updateRemoteMetadata: function pv_updateRemoteMetadata() {
     // If MusicComms does not exist or data source is empty, we don't have to
     // update the metadata.
@@ -420,31 +465,15 @@ var PlayerView = {
     var metadata = fileinfo.metadata;
 
     // AVRCP expects the duration in ms, note that it's converted from s to ms.
-    var notifyMetadata = {
-      title: metadata.title || navigator.mozL10n.get('unknownTitle'),
-      artist: metadata.artist || navigator.mozL10n.get('unknownArtist'),
-      album: metadata.album || navigator.mozL10n.get('unknownAlbum'),
-
-      duration: this.audio.duration * 1000,
-      mediaNumber: this.currentIndex + 1,
-      totalMediaCount: this.dataSource.length
-    };
-
-    // Grab the album art if this is a new song; otherwise, don't bother, since
-    // listeners should already have the album art. Note: if no .picture
-    // attribute is in the metadata, then listeners should reuse the previous
-    // picture. If .picture is null, something went wrong and listeners should
-    // probably use a blank picture (or their own placeholder).
-    if (this.audio.currentTime === 0) {
-      LazyLoader.load('js/metadata/album_art_cache.js').then(() => {
-        return AlbumArtCache.getThumbnailBlob(fileinfo);
-      }).then((blob) => {
-        notifyMetadata.picture = blob;
-        MusicComms.notifyMetadataChanged(notifyMetadata);
-      });
-    } else {
-      MusicComms.notifyMetadataChanged(notifyMetadata);
-    }
+    this.getNotifyMetadata(metadata).then((l10nMeta) => {
+      return Object.assign({
+        duration: this.audio.duration * 1000,
+        mediaNumber: this.currentIndex + 1,
+        totalMediaCount: this.dataSource.length
+      }, l10nMeta);
+    }).then(this.addPictureToMetadata.bind(this, fileinfo,
+        this.audio.currentTime))
+      .then(MusicComms.notifyMetadataChanged.bind(MusicComms));
   },
 
   updateRemotePlayStatus: function pv_updateRemotePlayStatus() {

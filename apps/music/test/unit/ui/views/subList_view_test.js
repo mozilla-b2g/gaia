@@ -1,4 +1,4 @@
-/* global SubListView, Sanitizer, MocksHelper, ModeManager, MockL10n */
+/* global SubListView, Sanitizer, MocksHelper, ModeManager */
 'use strict';
 
 require('/shared/js/sanitizer.js');
@@ -11,7 +11,6 @@ require('/test/unit/metadata/mock_album_art_cache.js');
 require('/test/unit/ui/mock_tab_bar.js');
 require('/test/unit/ui/views/mock_modemanager.js');
 require('/test/unit/mock_lazy_loader.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
 
 var mocksForSubListViewHelper = new MocksHelper([
   'LazyLoader',
@@ -22,13 +21,9 @@ var mocksForSubListViewHelper = new MocksHelper([
 ]).init();
 
 suite('SubListView test', function() {
-  var realL10n = navigator.mozL10n;
-
   mocksForSubListViewHelper.attachTestHelpers();
 
   suiteSetup(function(done) {
-    navigator.mozL10n = MockL10n;
-
     ModeManager._view = SubListView;
 
     this.element = document.createElement('div');
@@ -71,8 +66,6 @@ suite('SubListView test', function() {
   suiteTeardown(function() {
     document.body.removeChild(this.element);
     this.element = null;
-
-    navigator.mozL10n = realL10n;
   });
 
   suite('activate', function() {

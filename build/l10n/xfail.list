@@ -73,12 +73,6 @@ apps/ftu/js/import_services.js
 apps/ftu/js/language.js
 apps/ftu/js/ui.js
 apps/keyboard/js/settings/layout_item_view.js
-apps/music/js/open.js
-apps/music/js/ui/views/mode_manager.js
-apps/music/js/ui/views/player_view.js
-apps/music/js/ui/views/subList_view.js
-apps/music/js/ui/views/tiles_view.js
-apps/music/js/utils.js
 apps/network-alerts/js/attention/attention.js
 apps/pdfjs/content/web/viewer.js
 apps/privacy-panel/js/ala/define_custom_location.js

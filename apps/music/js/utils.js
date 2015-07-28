@@ -65,13 +65,13 @@ function createListElement(option, data, index, highlight) {
       titleBdi = document.createElement('bdi');
       titleBdi.className = 'list-playlist-title';
       if (data.metadata.l10nId) {
-        titleBdi.textContent = navigator.mozL10n.get(data.metadata.l10nId);
-        titleBdi.dataset.l10nId = data.metadata.l10nId;
+        titleBdi.setAttribute('data-l10n-id', data.metadata.l10nId);
       } else {
-        titleBdi.textContent =
-          data.metadata.title || navigator.mozL10n.get('unknownTitle');
-        titleBdi.dataset.l10nId =
-          data.metadata.title ? '' : 'unknownTitle';
+        if (data.metadata.title) {
+          titleBdi.textContent = data.metadata.title;
+        } else {
+          titleBdi.setAttribute('data-l10n-id', 'unknownTitle');
+        }
       }
 
       a.dataset.keyRange = 'all';
@@ -108,10 +108,11 @@ function createListElement(option, data, index, highlight) {
       if (option === 'artist') {
         artistBdi = document.createElement('bdi');
         artistBdi.className = 'list-single-title';
-        artistBdi.textContent =
-          data.metadata.artist || navigator.mozL10n.get('unknownArtist');
-        artistBdi.dataset.l10nId =
-          data.metadata.artist ? '' : 'unknownArtist';
+        if (data.metadata.artist) {
+          artistBdi.textContent = data.metadata.artist;
+        } else {
+          artistBdi.setAttribute('data-l10n-id', 'unknownArtist');
+        }
 
         // Highlight the text when the highlight argument is passed
         // This should only happens when we are creating searched results
@@ -126,20 +127,23 @@ function createListElement(option, data, index, highlight) {
         albumOrTitleBdi.className = 'list-main-title';
         artistBdi.className = 'list-sub-title';
         if (option === 'album') {
-          albumOrTitleBdi.textContent =
-            data.metadata.album || navigator.mozL10n.get('unknownAlbum');
-          albumOrTitleBdi.dataset.l10nId =
-            data.metadata.album ? '' : 'unknownAlbum';
+          if (data.metadata.album) {
+            albumOrTitleBdi.textContent = data.metadata.album;
+          } else {
+            albumOrTitleBdi.setAttribute('data-l10n-id', 'unknownAlbum');
+          }
         } else {
-          albumOrTitleBdi.textContent =
-            data.metadata.title || navigator.mozL10n.get('unknownTitle');
-          albumOrTitleBdi.dataset.l10nId =
-            data.metadata.title ? '' : 'unknownTitle';
+          if (data.metadata.title) {
+            albumOrTitleBdi.textContent = data.metadata.title;
+          } else {
+            albumOrTitleBdi.setAttribute('data-l10n-id', 'unknownTitle');
+          }
         }
-        artistBdi.textContent =
-          data.metadata.artist || navigator.mozL10n.get('unknownArtist');
-        artistBdi.dataset.l10nId =
-          data.metadata.artist ? '' : 'unknownArtist';
+        if (data.metadata.artist) {
+          artistBdi.textContent = data.metadata.artist;
+        } else {
+          artistBdi.setAttribute('data-l10n-id', 'unknownArtist');
+        }
 
         // Highlight the text when the highlight argument is passed
         // This should only happens when we are creating searched results
@@ -158,9 +162,6 @@ function createListElement(option, data, index, highlight) {
 
     case 'song':
     case 'song-index':
-      var songTitle =
-        data.metadata.title || navigator.mozL10n.get('unknownTitle');
-
       var indexBdi = document.createElement('bdi');
       indexBdi.className = 'list-song-index';
       // 'song-index' mean we want the index and not the track #
@@ -177,8 +178,11 @@ function createListElement(option, data, index, highlight) {
 
       titleBdi = document.createElement('bdi');
       titleBdi.className = 'list-song-title';
-      titleBdi.textContent = songTitle;
-      titleBdi.dataset.l10nId = data.metadata.title ? '' : 'unknownTitle';
+      if (data.metadata.title) {
+        titleBdi.textContent = data.metadata.title;
+      } else {
+        titleBdi.setAttribute('data-l10n-id', 'unknownTitle');
+      }
 
       var lengthBdi = document.createElement('bdi');
       lengthBdi.className = 'list-song-length';

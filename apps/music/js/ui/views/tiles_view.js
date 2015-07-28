@@ -104,13 +104,16 @@ var TilesView = {
     albumName.className = 'tile-title-album';
     var albumNameText = document.createElement('bdi');
     albumName.appendChild(albumNameText);
-    artistNameText.textContent =
-      result.metadata.artist || navigator.mozL10n.get('unknownArtist');
-    artistNameText.dataset.l10nId =
-      result.metadata.artist ? '' : 'unknownArtist';
-    albumNameText.textContent =
-      result.metadata.album || navigator.mozL10n.get('unknownAlbum');
-    albumNameText.dataset.l10nId = result.metadata.album ? '' : 'unknownAlbum';
+    if (result.metadata.artist) {
+      artistNameText.textContent = result.metadata.artist;
+    } else {
+      artistNameText.setAttribute('data-l10n-id', 'unknownArtist');
+    }
+    if (result.metadata.album) {
+      albumNameText.textContent = result.metadata.album;
+    } else {
+      albumNameText.setAttribute('data-l10n-id', 'unknownAlbum');
+    }
     titleBar.appendChild(artistName);
 
     // There are 6 tiles in one group
@@ -151,6 +154,7 @@ var TilesView = {
     if (!result.metadata.picture) {
       container.appendChild(titleBar);
     } else {
+      // This will be empty for the unknown artist/album.
       container.setAttribute('aria-label', artistName.textContent + ' ' +
                                            albumName.textContent);
     }

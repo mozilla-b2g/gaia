@@ -190,34 +190,42 @@ var ModeManager = {
   },
 
   updateTitle: function() {
-    var title;
+    var titleL10n;
 
     switch (this.currentMode) {
       case MODE_TILES:
-        title = this.playerTitle || navigator.mozL10n.get('music');
+        if (this.playerTitle) {
+          titleL10n = {raw: this.playerTitle};
+        } else {
+          titleL10n = 'music';
+        }
         break;
       case MODE_LIST:
       case MODE_SUBLIST:
         switch (TabBar.option) {
           case 'playlist':
-            title = navigator.mozL10n.get('playlists');
+            titleL10n = 'playlists';
             break;
           case 'artist':
-            title = navigator.mozL10n.get('artists');
+            titleL10n = 'artists';
             break;
           case 'album':
-            title = navigator.mozL10n.get('albums');
+            titleL10n = 'albums';
             break;
           case 'title':
-            title = navigator.mozL10n.get('songs');
+            titleL10n = 'songs';
             break;
         }
         break;
       case MODE_PLAYER:
-        title = this.playerTitle || navigator.mozL10n.get('unknownTitle');
+        if (this.playerTitle) {
+          titleL10n = {raw: this.playerTitle};
+        } else {
+          titleL10n = 'unknownTitle';
+        }
         break;
       case MODE_PICKER:
-        title = navigator.mozL10n.get('picker-title');
+        titleL10n = 'picker-title';
         break;
     }
 
@@ -226,8 +234,8 @@ var ModeManager = {
     // because the title is already localized in HTML
     // And if title does exist, it should be the localized "Music"
     // so it will be just fine to update changeTitleText() again
-    if (title) {
-      TitleBar.changeTitleText(title);
+    if (titleL10n) {
+      TitleBar.changeTitleText(titleL10n);
     }
 
     // Hide the title bar when music is in search modes.

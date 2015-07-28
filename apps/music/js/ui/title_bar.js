@@ -45,8 +45,15 @@ var TitleBar = {
     this.view.addEventListener('action', this.onActionBack);
   },
 
-  changeTitleText: function tb_changeTitleText(content) {
-    this.titleText.textContent = content;
+  changeTitleText: function tb_changeTitleText(l10n) {
+    if (typeof l10n === 'string') {
+      this.titleText.setAttribute('data-l10n-id', l10n);
+    } else if (l10n.raw) {
+      this.titleText.removeAttribute('data-l10n-id');
+      this.titleText.textContent = l10n.raw;
+    } else {
+      navigator.mozL10n.setAttributes(this.titleText, l10n.id, l10n.args);
+    }
   },
 
   showBackArrow: function(show) {
