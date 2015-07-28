@@ -391,7 +391,7 @@ var CallScreen = {
 
     var dateText = now.toLocaleString(navigator.languages, {
       weekday: 'long',
-      month: 'short',
+      month: 'long',
       day: 'numeric'
     });
 
