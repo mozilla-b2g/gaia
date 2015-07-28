@@ -131,7 +131,9 @@ module.exports = {
       // XXX: Most cmds should run synchronously, we should use either promise
       //      pattern inside each script or find a sync module which doesn't
       //      require recompile again since TPBL doesn't support that.
-      childProcess.exec(cmds, function(err, stdout) {
+      childProcess.exec(cmds,
+                        { maxBuffer: (4096 * 1024) },
+                        function(err, stdout) {
         if (err === null && typeof callback === 'function') {
           callback(stdout);
         }
