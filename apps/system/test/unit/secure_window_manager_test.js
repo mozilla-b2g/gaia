@@ -55,15 +55,23 @@ suite('system/SecureWindowManager', function() {
       var fakeSecureWindow = new MockSecureWindow();
       this.sinon.stub(fakeSecureWindow, 'setVisibleForScreenReader');
       this.sinon.stub(fakeSecureWindow, 'isActive').returns(true);
-      this.sinon.stub(fakeSecureWindow, 'focus');
       window.secureWindowManager.activateApp(fakeSecureWindow);
-      assert.isTrue(window.secureWindowManager.setHierarchy(true));
+      window.secureWindowManager.setHierarchy(true);
       assert.isTrue(
         fakeSecureWindow.setVisibleForScreenReader.calledWith(true));
-      assert.isTrue(fakeSecureWindow.focus.called);
+      fakeSecureWindow.setVisibleForScreenReader.reset();
       window.secureWindowManager.setHierarchy(false);
       assert.isTrue(
         fakeSecureWindow.setVisibleForScreenReader.calledWith(false));
+    });
+
+    test('setFocus', function() {
+      var fakeSecureWindow = new MockSecureWindow();
+      this.sinon.stub(fakeSecureWindow, 'isActive').returns(true);
+      this.sinon.stub(fakeSecureWindow, 'focus');
+      window.secureWindowManager.activateApp(fakeSecureWindow);
+      assert.isTrue(window.secureWindowManager.setFocus(true));
+      assert.isTrue(fakeSecureWindow.focus.called);
     });
   });
 
@@ -97,7 +105,7 @@ suite('system/SecureWindowManager', function() {
       assert.isNull(
         window.secureWindowManager.states.activeApp,
         'the app was still activated');
-      assert.isFalse(window.secureWindowManager.setHierarchy(true));
+      assert.isFalse(window.secureWindowManager.setFocus(true));
       assert.isUndefined(window.secureWindowManager
           .states.runningApps[appFake.instanceID],
         'the app was still registered in the maanger');

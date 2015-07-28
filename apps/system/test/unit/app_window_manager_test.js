@@ -1138,18 +1138,29 @@ suite('system/AppWindowManager', function() {
       this.sinon.stub(MockWrapperFactory, 'isLaunchingWindow').returns(false);
       this.sinon.stub(MockAppWindowFactory, 'isLaunchingWindow').returns(false);
       subject._activeApp = app1;
-      this.sinon.stub(app1, 'focus');
-      this.sinon.stub(app1, 'blur');
       this.sinon.stub(app1, 'setVisibleForScreenReader');
-      this.sinon.stub(app1, 'setNFCFocus');
+
       subject.setHierarchy(true);
-      assert.isTrue(app1.focus.called);
       assert.isTrue(app1.setVisibleForScreenReader.calledWith(true));
-      assert.isTrue(app1.setNFCFocus.calledWith(true));
 
       subject.setHierarchy(false);
-      assert.isTrue(app1.blur.calledOnce);
       assert.isTrue(app1.setVisibleForScreenReader.calledWith(false));
+    });
+
+    test('setFocus', function() {
+      this.sinon.stub(MockWrapperFactory, 'isLaunchingWindow').returns(false);
+      this.sinon.stub(MockAppWindowFactory, 'isLaunchingWindow').returns(false);
+      subject._activeApp = app1;
+      this.sinon.stub(app1, 'focus');
+      this.sinon.stub(app1, 'blur');
+      this.sinon.stub(app1, 'setNFCFocus');
+
+      subject.setFocus(true);
+      assert.isTrue(app1.focus.called);
+      assert.isTrue(app1.setNFCFocus.calledWith(true));
+
+      subject.setFocus(false);
+      assert.isTrue(app1.blur.calledOnce);
     });
 
     test('setHierarchy(true) while launching a new window', function() {
@@ -1160,22 +1171,6 @@ suite('system/AppWindowManager', function() {
 
       subject.setHierarchy(true);
       assert.isFalse(app1.focus.called);
-    });
-
-    test('setHierarchy', function() {
-      subject._activeApp = app1;
-      this.sinon.stub(app1, 'focus');
-      this.sinon.stub(app1, 'blur');
-      this.sinon.stub(app1, 'setVisibleForScreenReader');
-      this.sinon.stub(app1, 'setNFCFocus');
-      subject.setHierarchy(true);
-      assert.isTrue(app1.focus.called);
-      assert.isTrue(app1.setVisibleForScreenReader.calledWith(true));
-      assert.isTrue(app1.setNFCFocus.calledWith(true));
-
-      subject.setHierarchy(false);
-      assert.isTrue(app1.blur.calledOnce);
-      assert.isTrue(app1.setVisibleForScreenReader.calledWith(false));
     });
 
     test('focus is redirected', function() {

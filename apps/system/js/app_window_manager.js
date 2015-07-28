@@ -120,6 +120,10 @@
     },
 
     setHierarchy: function(active) {
+      this._activeApp && this._activeApp.setVisibleForScreenReader(active);
+    },
+
+    setFocus: function(active) {
       if (!this._activeApp) {
         this.debug('No active app.');
         return false;
@@ -134,7 +138,6 @@
         this._activeApp.blur();
         this._activeApp.setNFCFocus(false);
       }
-      this._activeApp.setVisibleForScreenReader(active);
       return true;
     },
 

@@ -58,11 +58,13 @@
     },
 
     setHierarchy: function(active) {
+      this.searchWindow && this.searchWindow.setVisibleForScreenReader(active);
+    },
+
+    setFocus: function(active) {
       if (active) {
         this.focus();
       }
-      this.searchWindow &&
-      this.searchWindow.setVisibleForScreenReader(active);
       return true;
     },
 

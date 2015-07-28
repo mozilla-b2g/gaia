@@ -139,7 +139,7 @@ window.UtilityTray = {
   ambientHeight: 0,
   hideStartCallback: null,
 
-  setHierarchy: function() {
+  setFocus: function() {
     return false;
   },
 

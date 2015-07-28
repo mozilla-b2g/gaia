@@ -120,7 +120,7 @@
   TaskManager.prototype.EVENT_PREFIX = 'taskmanager';
   TaskManager.prototype.name = 'TaskManager';
 
-  TaskManager.prototype.setHierarchy = function() {
+  TaskManager.prototype.setFocus = function() {
     return true;
   };
   /**
