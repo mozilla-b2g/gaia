@@ -6,7 +6,6 @@ import time
 
 from marionette_driver import expected, By, Wait
 from marionette_driver.marionette import Actions
-from marionette_driver.errors import FrameSendFailureError, NoSuchWindowException
 
 from gaiatest.apps.base import Base
 
