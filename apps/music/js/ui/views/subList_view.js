@@ -147,6 +147,7 @@ var SubListView = {
     this.clean();
 
     this.dataSource = data.songs;
+    this.setAlbumName(data.name, data.name);
 
     data.songs.forEach(function(songData) {
       this.update(songData);
