@@ -12,6 +12,7 @@
   "fullscreen": true,
   "permissions": {
     "audio-channel-notification":{},
+    "audio-channel-system":{},
     "themeable":{},
     "telephony": {},
     "mobileconnection": {},

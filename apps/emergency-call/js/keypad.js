@@ -170,7 +170,7 @@ var KeypadManager = {
                                                 this.hangUpCallFromKeypad);
     }
 
-    TonePlayer.init('notification');
+    TonePlayer.init('system');
 
     this.render();
 
