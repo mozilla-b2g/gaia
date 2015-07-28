@@ -117,6 +117,7 @@
         this.updatePassCodeUI();
         break;
       case 'touchstart':
+        // TODO: ignore while on error timeout
         touch = evt.changedTouches[0];
         target = document.elementFromPoint(touch.clientX, touch.clientY);
         key = this._keyForTarget(target);
@@ -133,6 +134,7 @@
         }
         break;
       case 'touchmove':
+        // TODO: ignore while on error timeout
         touch = evt.changedTouches[0];
         target = document.elementFromPoint(touch.clientX, touch.clientY);
         key = this._keyForTarget(target);
@@ -150,6 +152,7 @@
         break;
       case 'touchend':
       case 'click':
+        // TODO: ignore while on error timeout
         if (evt.type == 'touchend') {
           evt.preventDefault();  // prevent the 'click'
           touch = evt.changedTouches[0];
@@ -170,49 +173,51 @@
     }
   };
 
+  LockScreenInputpad.prototype._anchorForTarget = function(target) {
+    // Find ancestorial anchor that has info on the key
+    // Current structure: a > div > span
+    try {
+      if (target.tagName !== 'A') {
+        target = target.parentNode;
+      }
+      if (target.tagName !== 'A') {
+        target = target.parentNode;
+      }
+      if (target.tagName == 'A') {
+        return target;
+      }
+      return null;
+    }
+    catch (e) {
+      return null;
+    }
+  };
+
   LockScreenInputpad.prototype._keyForTarget = function(target) {
-    // find ancestorial a
-    // current structure: a > div > span
-    if (target.tagName !== 'A') {
-      target = target.parentNode;
+    var anchor = this._anchorForTarget(target);
+    if (anchor) {
+      return anchor.dataset.key;
+    } else {
+      return null;
     }
-    if (target.tagName !== 'A') {
-      target = target.parentNode;
-    }
-    if (target.tagName !== 'A') {
-      return undefined;
-    }
-    return target.dataset.key;
   };
 
   LockScreenInputpad.prototype._makeKeyActive = function(target) {
-    // find ancestorial a
-    // current structure: a > div > span
-    if (target.tagName !== 'A') {
-      target = target.parentNode;
+    var anchor = this._anchorForTarget(target);
+    if (anchor) {
+      anchor.classList.add('active-key');
+    } else {
+      throw Error('lsip_makeKeyActive called with non-key node');
     }
-    if (target.tagName !== 'A') {
-      target = target.parentNode;
-    }
-    if (target.tagName !== 'A') {
-      return;
-    }
-    target.classList.add('active-key');
   };
 
   LockScreenInputpad.prototype._makeKeyInactive = function(target) {
-    // find ancestorial a
-    // current structure: a > div > span
-    if (target.tagName !== 'A') {
-      target = target.parentNode;
+    var anchor = this._anchorForTarget(target);
+    if (anchor) {
+      anchor.classList.remove('active-key');
+    } else {
+      throw Error('lsip_makeKeyInactive called with non-key node');
     }
-    if (target.tagName !== 'A') {
-      target = target.parentNode;
-    }
-    if (target.tagName !== 'A') {
-      return;
-    }
-    target.classList.remove('active-key');
   };
 
   LockScreenInputpad.prototype.dispatchEvent = function(evt) {
