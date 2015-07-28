@@ -25,7 +25,7 @@
   LockScreenClockWidget.prototype.updateFormatters = function() {
     this.dateFormatter = new Intl.DateTimeFormat(navigator.languages, {
       weekday: 'long',
-      month: 'short',
+      month: 'long',
       day: 'numeric'
     });
 

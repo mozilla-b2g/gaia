@@ -870,7 +870,7 @@ suite('call screen', function() {
       assert.equal(dateStr,
         currentDate.toLocaleString(navigator.languages, {
           weekday: 'long',
-          month: 'short',
+          month: 'long',
           day: 'numeric'
         })
       );
