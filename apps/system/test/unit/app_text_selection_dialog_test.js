@@ -262,7 +262,7 @@ suite('system/AppTextSelectionDialog', function() {
     assert.isTrue(td._resetShortcutTimeout.called);
   });
 
-  suite('handleEven selectionstatechanged event', function() {
+  suite('handleEvent caretstatechanged event', function() {
     var stubClose, stubHide, stubShow, stubRender, stubEvent;
     var testDetail;
     setup(function() {
@@ -322,13 +322,6 @@ suite('system/AppTextSelectionDialog', function() {
         assert.isFalse(testDetail.commands.canSelectAll);
         assert.isTrue(td._triggerShortcutTimeout.calledOnce);
       });
-
-    test('should render when first show', function() {
-      td._injected = false;
-      td.handleEvent(fakeTextSelectInAppEvent);
-      assert.isTrue(stubRender.calledOnce);
-      assert.isTrue(td._injected);
-    });
 
     test('should not render when bubble has showed before', function() {
       td._injected = true;
@@ -583,7 +576,7 @@ suite('system/AppTextSelectionDialog', function() {
       });
     });
 
-    test('if the utility bubble is triggerer in app and appChrome is maxmized',
+    test('if the utility bubble is triggered in app and appChrome is maxmized',
       function() {
         var positionDetail = {
           rect: {}
@@ -615,8 +608,8 @@ suite('system/AppTextSelectionDialog', function() {
         });
       });
 
-    test('if the utility bubble is triggerer in app and appChrome is ' +
-         'not maxmized',
+    test('if the utility bubble is triggered in app and appChrome is ' +
+         'not maximized',
       function() {
         var positionDetail = {
           rect: {}

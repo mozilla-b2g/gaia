@@ -123,10 +123,6 @@
       }
       this.debug('on receive caret state change event');
       this.debug(JSON.stringify(detail));
-      if (!this._injected) {
-        this.render();
-        this._injected = true;
-      }
       if (detail.reason === 'visibilitychange' && !detail.caretVisible) {
          this.hide();
          return;
@@ -354,6 +350,12 @@
     this._resetShortcutTimeout();
     var numOfSelectOptions = 0;
     var options = [ 'Paste', 'Copy', 'Cut', 'SelectAll' ];
+
+    // Check this._injected here to make sure this.elements is initialized.
+    if (!this._injected) {
+      this.render();
+      this._injected = true;
+    }
 
     // Based on UI spec, we should have dividers ONLY between each select option
     // So, we use css to put divider in pseudo element and set the last visible
