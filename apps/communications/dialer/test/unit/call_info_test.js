@@ -547,12 +547,15 @@ suite('Call Info', function(argument) {
 
       test('viewing contact details work', function() {
         detailsButton.click();
-        assert.equal(window.location.hash, '#contacts-view');
-        this.sinon.clock.tick();
-        var url = 'index.html#view-contact-details?id=' +
-        groupReturn.contact.id + '&tel=' + groupReturn.number +
-        '&back_to_previous_tab=1';
-        assert.include(contactsIframe.src, url);
+        sinon.assert.calledWith(window.MozActivity, {
+          name: 'open',
+          data: {
+            type: 'webcontacts/contact',
+            params: {
+              'id': groupReturn.contact.id
+            }
+          }
+        });
       });
     });
   });

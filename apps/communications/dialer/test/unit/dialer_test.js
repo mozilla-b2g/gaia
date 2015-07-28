@@ -5,7 +5,7 @@
    NavbarManager, NotificationHelper, MockKeypadManager, MockVoicemail,
    MockCallLog, MockCallLogDBManager, MockNavigatorWakeLock, MockMmiManager,
    LazyLoader, AccessibilityHelper, MockSimSettingsHelper, MockTelephonyHelper,
-   MockSettingsListener, CustomElementsHelper  */
+   MockSettingsListener, CustomElementsHelper, Navigation  */
 
 require(
   '/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js'
@@ -35,9 +35,11 @@ require('/shared/test/unit/mocks/mock_moz_activity.js');
 require(
   '/shared/test/unit/mocks/elements/gaia_sim_picker/mock_gaia_sim_picker.js');
 
+require('/dialer/test/unit/mock_navigation.js');
 require('/dialer/js/dialer.js');
 
 var mocksHelperForDialer = new MocksHelper([
+  'Navigation',
   'TelephonyHelper',
   'AccessibilityHelper',
   'Contacts',
@@ -105,14 +107,17 @@ suite('navigation bar', function() {
 
     domOptionRecents = document.createElement('a');
     domOptionRecents.id = 'option-recents';
+    domOptionRecents.dataset.destination = 'recents';
     domViews.appendChild(domOptionRecents);
 
     domOptionContacts = document.createElement('a');
     domOptionContacts.id = 'option-contacts';
+    domOptionContacts.dataset.destination = 'contacts';
     domViews.appendChild(domOptionContacts);
 
     domOptionKeypad = document.createElement('a');
     domOptionKeypad.id = 'option-keypad';
+    domOptionKeypad.dataset.destination = 'keypad';
     domViews.appendChild(domOptionKeypad);
 
     domContactsIframe = document.createElement('iframe');
@@ -713,6 +718,7 @@ suite('navigation bar', function() {
       }
 
       setup(function() {
+        Navigation.showCalllog();
         originalHash = window.location.hash;
 
         activity = {
@@ -726,10 +732,6 @@ suite('navigation bar', function() {
         };
       });
 
-      teardown(function() {
-        window.location.hash = originalHash;
-      });
-
       suite('> dial activity with a number', function() {
         test('should fill the phone number view', function() {
           var spy = this.sinon.spy(MockKeypadManager, 'updatePhoneNumber');
@@ -739,7 +741,7 @@ suite('navigation bar', function() {
 
         test('should show the keypad view', function() {
           triggerActivity(activity);
-          assert.equal(window.location.hash, '#keyboard-view');
+          assert.equal(Navigation.currentView, 'keypad');
         });
       });
 
@@ -750,7 +752,7 @@ suite('navigation bar', function() {
         });
 
         test('should show the contacts view', function() {
-          assert.equal(window.location.hash, '#contacts-view');
+          assert.equal(Navigation.currentView, 'contacts');
         });
 
         test('should go to home of contacts', function() {
@@ -779,18 +781,15 @@ suite('navigation bar', function() {
 
     suite('Second tap on contacts tab', function() {
       test('Listens to click events', function() {
-        this.sinon.spy(domOptionContacts, 'addEventListener');
-        window.removeEventListener('hashchange', NavbarManager.update);
         NavbarManager.init();
-        sinon.assert.calledWith(domOptionContacts.addEventListener, 'click',
-                                NavbarManager.contactsTabTap);
+        this.sinon.spy(Navigation, 'show');
+
+        domOptionContacts.click();
+
+        sinon.assert.called(Navigation.show);
       });
 
       suite('contactsTabTap', function() {
-        teardown(function() {
-          window.location.hash = '';
-        });
-
         test('only works when it is a second tap', function() {
           NavbarManager.contactsTabTap();
           assert.isFalse(
@@ -799,7 +798,7 @@ suite('navigation bar', function() {
         });
 
         test('goes to home list', function() {
-          window.location.hash = '#contacts-view';
+          Navigation.showCalllog();
           NavbarManager.contactsTabTap();
           assert.isTrue(
             domContactsIframe.src.includes('/contacts/index.html#home')
@@ -840,41 +839,38 @@ suite('navigation bar', function() {
 
   suite('accessibility helper', function() {
     var loadSpy;
-    var hash;
-
+  
     setup(function() {
       loadSpy = this.sinon.spy(LazyLoader, 'load');
       this.sinon.spy(AccessibilityHelper, 'setAriaSelected');
-
-      hash = window.location.hash;
-
       NavbarManager.resourcesLoaded = false;
     });
 
-    teardown(function() {
-      window.location.hash = hash;
+    test('should load accessibility helper before using it in view contacts',
+      function() {
+      domOptionContacts.click();
+      assert.isTrue(loadSpy.getCall(0).args[0].indexOf(
+        '/shared/js/accessibility_helper.js') !== -1);
+      sinon.assert.callOrder(
+        loadSpy, AccessibilityHelper.setAriaSelected);
     });
 
-    ['#call-log-view',
-     '#contacts-view',
-     '#keyboard-view'].forEach(function(view) {
-      test('should load accessibility helper before using it in view ' + view,
-      function(done) {
-        function handleHashChange(event) {
-          window.removeEventListener('hashchange', handleHashChange);
+    test('should load accessibility helper before using it in view calllog',
+      function() {
+      domOptionRecents.click();
+      assert.isTrue(loadSpy.getCall(0).args[0].indexOf(
+        '/shared/js/accessibility_helper.js') !== -1);
+      sinon.assert.callOrder(
+        loadSpy, AccessibilityHelper.setAriaSelected);
+    });
 
-          assert.isTrue(loadSpy.getCall(0).args[0].indexOf(
-            '/shared/js/accessibility_helper.js') !== -1);
-          sinon.assert.callOrder(
-            loadSpy, AccessibilityHelper.setAriaSelected);
-
-          done();
-        }
-
-        window.addEventListener('hashchange', handleHashChange);
-
-        window.location.hash = view;
-      });
+    test('should load accessibility helper before using it in view keyboard',
+      function() {
+      domOptionKeypad.click();
+      assert.isTrue(loadSpy.getCall(0).args[0].indexOf(
+        '/shared/js/accessibility_helper.js') !== -1);
+      sinon.assert.callOrder(
+        loadSpy, AccessibilityHelper.setAriaSelected);
     });
   });
 });

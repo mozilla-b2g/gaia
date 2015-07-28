@@ -185,17 +185,13 @@
   }
 
   function viewContact() {
-    window.location.hash = '#contacts-view';
-    setTimeout(function nextTick() { /* we'll have the iframe by then */
-      var contactsIframe = document.getElementById('iframe-contacts');
-      var src = '/contacts/index.html';
-      src += '#view-contact-details?id=' + currentGroup.contact.id;
-      src += '&tel=' + currentGroup.number;
-      // Enable the function of receiving the messages posted from the iframe.
-      src += '&back_to_previous_tab=1';
-
-      var timestamp = new Date().getTime();
-      contactsIframe.src = src + '&timestamp=' + timestamp;
+    /*jshint nonew: false */
+    new MozActivity({
+      name: 'open',
+      data: {
+        type: 'webcontacts/contact',
+        params: {id: currentGroup.contact.id}
+      }
     });
   }
 
