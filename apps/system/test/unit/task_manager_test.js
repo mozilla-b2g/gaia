@@ -314,6 +314,10 @@ suite('system/TaskManager >', function() {
     scrollProperties['cards-view'] = {
       scrollLeft: 0, scrollTop: 0
     };
+
+    this.sinon.stub(AppWindow.prototype, 'getSiteIconUrl')
+        .returns(Promise.resolve('data:image/png;base64,abc+'));
+
     taskManager = new TaskManager();
     taskManager.start();
   });
@@ -473,8 +477,6 @@ suite('system/TaskManager >', function() {
 
     suite('display cardsview >', function() {
       setup(function() {
-        this.sinon.stub(AppWindow.prototype, 'getSiteIconUrl')
-            .returns(Promise.resolve('data:image/png;base64,abc+'));
         MockService.mockQueryWith('getTopMostWindow', apps.search);
         MockStackManager.mCurrent = MockStackManager.mStack.length -1;
         showTaskManager(this.sinon.clock);
@@ -838,8 +840,6 @@ suite('system/TaskManager >', function() {
 
   suite('setActive', function() {
     setup(function() {
-      this.sinon.stub(AppWindow.prototype, 'getSiteIconUrl')
-          .returns(Promise.resolve('data:image/png;base64,abc+'));
       MockService.mockQueryWith('getTopMostWindow', apps.search);
       MockStackManager.mStack = [];
       MockStackManager.mCurrent = MockStackManager.mStack.length -1;
@@ -1140,8 +1140,6 @@ suite('system/TaskManager >', function() {
 
   suite('filtering > ', function() {
     setup(function() {
-      this.sinon.stub(AppWindow.prototype, 'getSiteIconUrl')
-          .returns(Promise.resolve('data:image/png;base64,abc+'));
       MockStackManager.mStack = [
         appConfigs.sms,
         appConfigs.browser1,
@@ -1196,8 +1194,6 @@ suite('system/TaskManager >', function() {
 
   suite('filtering > /w search role', function() {
     setup(function() {
-      this.sinon.stub(AppWindow.prototype, 'getSiteIconUrl')
-          .returns(Promise.resolve('data:image/png;base64,abc+'));
       MockService.mockQueryWith('AppWindowManager.getActiveWindow',
         apps.search);
 

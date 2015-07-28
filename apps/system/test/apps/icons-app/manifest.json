@@ -1,0 +1,11 @@
+{
+  "name": "Icons Test Web App",
+  "short_name": "Icons Test",
+  "icons": [
+    {
+      "src": "/icons/64x64.png",
+      "sizes": "64x64",
+      "type": "image/png"
+    }
+  ]
+}

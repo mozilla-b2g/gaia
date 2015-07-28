@@ -22,7 +22,12 @@
         var status = xhr.status;
         var webManifest;
         if (status == 200) {
-          webManifest = processRawManifest(xhr.response, url);
+          if (!xhr.response) {
+            // syntax error in the JSON can cause an empty response
+            reject(new Error('Empty JSON response to '+ url + ', ' +
+                             'possibly syntax error'));
+          }
+          webManifest = processRawManifest(xhr.response || {}, url);
           resolve(webManifest);
         } else {
           reject(status);

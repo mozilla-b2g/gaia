@@ -9,7 +9,8 @@
     selectors: {
       element: '#cards-view',
       cards: '#cards-view li',
-      screenshot: '.screenshotView'
+      screenshot: '.screenshotView',
+      icon: '.appIcon'
     },
     get element() {
       return this.client.helper.waitForElement(this.selectors.element);
@@ -41,6 +42,13 @@
         });
         win.dispatchEvent(new CustomEvent('home'));
       });
+    },
+    getIconForCard: function(idx) {
+      var card = this.cards[idx];
+      this.client.waitFor(card.displayed.bind(card));
+      var icon = card.findElement(this.selectors.icon);
+      this.client.waitFor(icon.displayed.bind(icon));
+      return icon;
     }
   };
 
