@@ -20,10 +20,8 @@ marionette('creating events', function() {
   var app;
 
   var startDate = new Date('Sep 08 1991 12:34:56');
-  var startDateNextHour = new Date(startDate);
-  startDateNextHour.setHours(startDate.getHours() + 1);
-  var startDateNextDay = new Date(startDate);
-  startDateNextDay.setDate(startDate.getDate() + 1);
+  var startDateNextHour = new Date('Sep 08 1991 13:34:56');
+  var startDateNextDay = new Date('Sep 09 1991 12:34:56');
 
   var scenarios = [
     {
