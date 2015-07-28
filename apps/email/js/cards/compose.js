@@ -367,6 +367,18 @@ return [
       };
     },
 
+    haveAddressesChanged: function() {
+      var addrs = this.extractAddresses();
+      function addressesDiffer(a, b) {
+        return a.length !== b.length || a.some(function(e, i) {
+          return e !== b[i].address;
+        });
+      }
+      return addressesDiffer(this.composer.to, addrs.to) ||
+        addressesDiffer(this.composer.cc, addrs.cc) ||
+        addressesDiffer(this.composer.bcc, addrs.bcc);
+    },
+
     _saveStateToComposer: function() {
       var addrs = this.extractAddresses();
       this.composer.to = addrs.to;
@@ -386,17 +398,6 @@ return [
     },
 
     _saveNeeded: function() {
-      var self = this;
-      var checkAddressEmpty = function() {
-        var bubbles = self.querySelectorAll('.cmp-peep-bubble');
-        if (bubbles.length === 0 && !self.toNode.value && !self.ccNode.value &&
-            !self.bccNode.value) {
-          return true;
-        } else {
-          return false;
-        }
-      };
-
       // If no composer, then it means the card was destroyed before full
       // setup, which means there is nothing to save.
       if (!this.composer) {
@@ -411,7 +412,7 @@ return [
       // guy in which case we really want to provide the option to delete the
       // draft.
       return (this.subjectNode.value || hasNewContent ||
-          !checkAddressEmpty() || this.composer.attachments.length ||
+          this.haveAddressesChanged() || this.composer.attachments.length ||
           this.composer.hasDraft);
     },
 
