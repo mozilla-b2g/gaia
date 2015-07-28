@@ -476,6 +476,9 @@ TEST_COMMON=dev_apps/test-agent/common
 ifeq ($(strip $(NODEJS)),)
   NODEJS := `which node`
 endif
+ifeq ($(strip $(NODEJS)),)
+  NODEJS := `which nodejs`
+endif
 
 ifeq ($(strip $(NPM)),)
   NPM := `which npm`
