@@ -242,18 +242,18 @@
     _nfcHandler: null,
 
     /**
-     * Switch to a different app, when called with no parameters will switch to
-     * the homescreen
-     * @param {AppWindow} [newApp] The new app window instance.
+     * Switch to a different app
+     * @param {AppWindow} newApp The new app window instance.
      * @param {String} [openAnimation] The open animation for opening app.
      * @param {String} [closeAnimation] The close animation for closing app.
+     * @param {String} [eventType] The event type of displaying app.
      * @memberOf module:AppWindowManager
      */
     display: function awm_display(newApp, openAnimation, closeAnimation,
                                   eventType) {
       this._dumpAllWindows();
-      var appCurrent = this._activeApp;
-      var appNext = newApp || this.service.query('getHomescreen', true);
+      var appCurrent = this._activeApp, appNext = newApp ||
+        this.service.query('getHomescreen', 'home' === eventType);
 
       if (!appNext) {
         this.debug('no next app.');
@@ -458,7 +458,7 @@
       } else if (this.taskManager && this.taskManager.isActive()) {
         return true;
       } else {
-        this.display();
+        this.display(null, null, null, 'home');
         return false;
       }
     },
