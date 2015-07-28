@@ -35,6 +35,31 @@ var App = (function() {
           window.performance.mark('navigationInteractive');
         }
       });
+
+      document.getElementById('btn-add-songs').addEventListener('click', function onClick(e) {
+        var info = {
+          key: 'metadata.title',
+          range: null,
+          direction:'next',
+          option: 'title',
+          editMode: true
+        };
+
+        ModeManager.start(MODE_LIST);
+        ListView.activate(info);
+
+        document.getElementById('empty-playlist-overlay').classList.add('hidden');
+        document.getElementById('title-edit-done').classList.remove('hidden');
+        document.getElementById('title-edit-done').addEventListener('click', function() {
+          var selected = document.getElementsByName('selected');
+
+          console.log(selected);
+
+          for (var i = 0; i < selected.length; i++) {
+            console.log(selected[i], selected[i].checked);
+          }
+        });
+      });
     });
   }
 
@@ -242,13 +267,14 @@ var App = (function() {
   var hidSearchBox = false;
 
   function refreshViews(callback) {
-    function showListView() {
+    function showListView(editMode) {
       var option = TabBar.option;
       var info = {
         key: 'metadata.' + option,
         range: null,
         direction: (option === 'title') ? 'next' : 'nextunique',
-        option: option
+        option: option,
+        editMode: editMode
       };
 
       ModeManager.waitForView(MODE_PICKER, () => {

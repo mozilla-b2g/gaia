@@ -36,11 +36,7 @@ function createListElement(opts) {
   var index = opts.index;
   var highlight = opts.highlight;
   var noborder = opts.noborder;
-
-  if (option === undefined || data === undefined || index === undefined) {
-    console.error("Please include at least the following options: 'option', 'data', 'index'.");
-    return;
-  }
+  var editMode = opts.editMode;
 
   var li = document.createElement('li');
   li.className = 'list-item';
@@ -52,6 +48,14 @@ function createListElement(opts) {
   a.setAttribute('role', 'option');
 
   var titleBdi;
+
+  if (editMode) {
+    var checkbox = document.createElement('input');
+    checkbox.type = "checkbox";
+    checkbox.name = "selected";
+    checkbox.value = index;
+    li.appendChild(checkbox);
+  }
 
   li.appendChild(a);
 

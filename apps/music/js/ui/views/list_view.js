@@ -110,6 +110,10 @@ var ListView = {
       return;
     }
 
+    if (info.editMode) {
+      this.editMode = true;
+    }
+
     // Choose one of the indexes to get the count and it should be the
     // correct count because failed records don't contain metadata, so
     // here we just pick the album, artist or title as indexes.
@@ -177,7 +181,8 @@ var ListView = {
       option: option,
       data: result,
       index: this.index,
-      noborder: noborder
+      noborder: noborder,
+      editMode: this.editMode
     }));
 
     this.index++;
@@ -249,7 +254,8 @@ var ListView = {
         fragment.appendChild(createListElement({
           option: option,
           data: data,
-          index: this.index
+          index: this.index,
+          editMode: this.editMode
         }));
 
         this.index++;

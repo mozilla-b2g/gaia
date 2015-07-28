@@ -1004,7 +1004,7 @@ li.list-item a {
   display: block;
   text-decoration: none;
   margin: 0;
-  width: 100%;
+  width: calc(100% - 2rem);
   height: 6rem;
   background-color: transparent;
   transition: background-color 200ms ease;
@@ -1240,4 +1240,9 @@ html[dir="rtl"] .list-song-length {
   border-radius: 1rem;
   background-image: none;
   color: white;
+}
+
+input[type=checkbox] {
+  height: 6rem;
+  width: 2rem;
 }
