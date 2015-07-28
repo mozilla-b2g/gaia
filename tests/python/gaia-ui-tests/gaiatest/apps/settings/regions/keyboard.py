@@ -38,7 +38,7 @@ class KeyboardAddMoreKeyboards(Base):
     _section_locator = (By.ID, 'keyboard-selection-addMore')
     _select_language_locator = (
         By.XPATH,
-        "//div[contains(@class,'keyboardAppContainer')]//li[label[span[bdi[text()='%s']]]]"
+        "//div[contains(@class,'keyboardAppContainer')]//li//gaia-checkbox[contains(., '%s')]"
     )
     _header_locator = (By.CSS_SELECTOR, '.current gaia-header')
 
@@ -56,8 +56,11 @@ class KeyboardAddMoreKeyboards(Base):
             expected.element_present(*language_locator))
         Wait(self.marionette).until(expected.element_displayed(element))
         element.tap()
-        checkbox = element.find_element(By.TAG_NAME, 'input')
-        Wait(self.marionette).until(expected.element_selected(checkbox))
+
+        # The following should work, but doesn't, see bug 1113742. We use execute_script instead, for now
+        # Wait(self.marionette).until(expected.element_selected(element)
+        Wait(self.marionette).until(lambda m:
+            m.execute_script("return arguments[0].wrappedJSObject.checked", [element]) is True)
 
     def go_back(self):
         # TODO: remove tap with coordinates after Bug 1061698 is fixed
