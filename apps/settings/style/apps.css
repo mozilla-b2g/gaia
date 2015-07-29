@@ -2,7 +2,7 @@
  * Application Permissions
  */
 #appPermissions ul li img,
-#homescreens ul li img {
+.my-home-screens li img {
   position: absolute;
   width: 3rem;
   height: 3rem;
@@ -10,9 +10,12 @@
   top: 1.5rem;
 }
 
+.my-home-screens li img {
+  left: 3rem;
+}
+
 #addon-detail-toggle,
-#appPermissions ul li > a,
-#homescreens ul li > a  {
+#appPermissions ul li > a {
   -moz-padding-start: 7.4rem;
 }
 
@@ -129,7 +132,7 @@ ul li > label:not([for]).addon-details-info {
  */
 html:-moz-dir(rtl) #addons ul li img,
 html:-moz-dir(rtl) #appPermissions ul li img,
-html:-moz-dir(rtl) #homescreens ul li img,
+html:-moz-dir(rtl) .my-home-screens li img,
 html:-moz-dir(rtl) .addon-details-icon {
   left: unset;
   right: 1.6rem;

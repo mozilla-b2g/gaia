@@ -1,0 +1,26 @@
+<element name="homescreens-list" extends="section">
+  <template>
+
+    <gaia-header action="back" data-href="#homescreens">
+      <h1 data-l10n-id="change-home-screen"></h1>
+    </gaia-header>
+
+    <div>
+      <ul>
+        <li>
+          <a class="menu-item get-more-home-screens" href="#">
+            <span data-l10n-id="get-more-home-screens"></span>
+          </a>
+        </li>
+      </ul>
+
+      <header>
+        <h2 data-l10n-id="my-home-screens"></h2>
+      </header>
+      <ul class="my-home-screens"></ul>
+    </div>
+
+    <panel data-path="panels/homescreens_list/panel"></panel>
+
+  </template>
+</element>

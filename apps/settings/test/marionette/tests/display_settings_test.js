@@ -74,16 +74,6 @@ marionette('manipulate display settings', function() {
       });
     });
 
-    suite('change wallpaper', function() {
-      test('tap wallpaper', function() {
-        displayPanel.tapWallpaper();
-        assert.ok(
-          systemApp.isActionMenuVisible(),
-          'action menu shows up'
-        );
-      });
-    });
-
     suite('check brightness functionality', function() {
       var defaultAutoBrightnessEnabled;
 

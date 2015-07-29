@@ -87,6 +87,7 @@ apps/ringtones/js/sd_card_ringtones.js
 apps/ringtones/js/share.js
 apps/search/js/providers/marketplace.js
 apps/search/js/providers/places.js
+apps/settings/js/panels/homescreen_list/update_check.js
 apps/sharedtest/test/unit/l10n/l10n_test.js
 apps/system/fxa/js/fxam_errors.js
 apps/system/fxa/js/screens/fxam_enter_email.js
