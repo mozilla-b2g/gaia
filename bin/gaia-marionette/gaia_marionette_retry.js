@@ -8,6 +8,7 @@ var Promise = require('es6-promise').Promise;
 var format = require('util').format;
 var path = require('path');
 var spawn = require('child_process').spawn;
+var debug = require('util').debuglog('gaia-marionette-retry');
 
 /**
  * Here we just parse whatever gets passed to ./bin/gaia-marionette so
@@ -115,6 +116,9 @@ function runTests(filenames, args, retry) {
     // Now we have to output our result and package it
     // so that it can be aggregated for final results.
     var stdout = result.stdout;
+
+    // For debugging when things go wrong.
+    debug('unprocessed stdout = ', stdout);
 
     // This is the bit before the test run's mocha "epilogue".
     var incremental = stdout.slice(0, stdout.indexOf('*~*~*'));
