@@ -1,0 +1,27 @@
+#homescreens-list li.pack-split .name {
+  position: relative;
+  width: calc(100% - 4rem);
+  padding-inline-end: 0;
+}
+
+ul li.pack-split::after {
+  right: 4rem;
+}
+
+#homescreen-details .version,
+#homescreen-details .description {
+  font-size: 1.4rem;
+  padding-bottom: 0;
+}
+
+#homescreen-details .version {
+  font-weight: bold;
+}
+
+#legacy-homescreen-layout {
+  display: none;
+}
+
+#legacy-homescreen-layout.visible {
+  display: block;
+}

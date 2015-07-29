@@ -277,7 +277,8 @@ ul li label {
 }
 
 ul li > label:not([for]),
-ul li > label.pack-switch {
+ul li > label.pack-switch,
+ul li > label.pack-radio {
   -moz-margin-start: -1.5rem;
   -moz-margin-end: -1.5rem;
   -moz-padding-start: 1.5rem;
@@ -300,7 +301,8 @@ ul li > label.pack-switch > input ~ span:after {
   right: 1.5rem;
 }
 
-ul li > label.pack-switch:active {
+ul li > label.pack-switch:active,
+ul li > label.pack-radio:active {
   background-color: #b2f2ff;
   color: #222;
 }
@@ -331,7 +333,8 @@ ul li.pack-split > span {
   background-color: transparent;
 }
 
-ul li.pack-split > label.pack-switch {
+ul li.pack-split > label.pack-switch,
+ul li.pack-split > label.pack-radio {
   position: absolute;
 }
 

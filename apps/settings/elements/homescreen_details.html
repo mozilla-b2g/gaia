@@ -1,0 +1,58 @@
+<element name="homescreen-details" extends="section">
+  <template>
+
+    <gaia-header action="back" data-href="#homescreen-list">
+      <h1 class="detail-title"></h1>
+    </gaia-header>
+
+    <div>
+      <header>
+        <h2 data-l10n-id="author"></h2>
+      </header>
+      <ul>
+        <li id="developer-infos" class="developer-infos">
+          <a target="_blank" href="#">
+            <span class="name"></span>
+            <small class="url"></small>
+          </a>
+        </li>
+      </ul>
+
+      <header>
+        <h2 data-l10n-id="description"></h2>
+      </header>
+      <ul>
+        <li>
+          <p class="version"></p>
+
+          <p class="description"></p>
+        </li>
+      </ul>
+
+      <div id="legacy-homescreen-layout">
+        <header>
+          <h2 data-l10n-id="vertical-homescreen-layout"></h2>
+        </header>
+        <ul>
+          <li>
+            <p data-l10n-id="vertical-homescreen-icon-layout"></p>
+
+            <div class="button icon icon-dialog">
+              <select name="grid.layout.cols">
+                <option value="3" data-l10n-id="vertical-homescreen-three-columns"></option>
+                <option value="4" data-l10n-id="vertical-homescreen-four-columns"></option>
+              </select>
+            </div>
+          </li>
+        </ul>
+      </div>
+
+      <div class="uninstall-app">
+        <button class="danger uninstall-homescreen" data-l10n-id="uninstall-home-screen-button"></button>
+      </div>
+    </div>
+
+    <panel data-path="panels/homescreen_details/panel"></panel>
+
+  </template>
+</element>
