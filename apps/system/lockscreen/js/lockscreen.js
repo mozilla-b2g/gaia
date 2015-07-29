@@ -266,9 +266,6 @@
       case 'holdcamera':
         this._activateCamera();
         break;
-      case 'lockscreenslide-activate-right':
-        this._activateUnlock();
-        break;
       case 'emergency-call-leave':
         this.handleEmergencyCallLeave();
         break;
@@ -335,125 +332,127 @@
      * setting this parameter to true causes the LockScreenSlide to render
      * the slider specified in that bugzilla issue
      */
-    LazyLoader.load(['shared/js/lockscreen_slide.js',
-                     'shared/js/passcode_helper.js']).then(() => {
+    this.bootstrapping =
+      LazyLoader.load(['shared/js/lockscreen_slide.js',
+                       'shared/js/passcode_helper.js']).then(() => {
       this._unlocker = new LockScreenSlide({useNewStyle: true});
-    }).catch(function(err) {console.error(err);});
-    this.getAllElements();
-    this.notificationsContainer =
-      document.getElementById('notifications-lockscreen-container');
+      this.getAllElements();
+      this.notificationsContainer =
+        document.getElementById('notifications-lockscreen-container');
 
-    this.lockIfEnabled(true);
-    this.initUnlockerEvents();
+      this.lockIfEnabled(true);
+      this.initUnlockerEvents();
 
-    // This component won't know when the it get locked unless
-    // it listens to this event.
-    window.addEventListener('lockscreen-appopened', this);
+      // This component won't know when the it get locked unless
+      // it listens to this event.
+      window.addEventListener('lockscreen-appopened', this);
 
-    /* Status changes */
-    window.addEventListener(
-      'lockscreen-notification-request-activate-unlock', this);
-    window.addEventListener('screenchange', this);
+      /* Status changes */
+      window.addEventListener(
+        'lockscreen-notification-request-activate-unlock', this);
+      window.addEventListener('screenchange', this);
 
-    /* Incoming and normal mode would be different */
-    window.addEventListener('lockscreen-mode-switch', this);
+      /* Incoming and normal mode would be different */
+      window.addEventListener('lockscreen-mode-switch', this);
 
-    /* Gesture */
-    this.area.addEventListener('touchstart', this);
-    this.altCameraButton.addEventListener('click', this);
-    this.iconContainer.addEventListener('touchstart', this);
+      /* Gesture */
+      this.area.addEventListener('touchstart', this);
+      this.altCameraButton.addEventListener('click', this);
+      this.iconContainer.addEventListener('touchstart', this);
 
-    /* Unlock & camera panel clean up */
-    this.overlay.addEventListener('transitionend', this);
+      /* Unlock & camera panel clean up */
+      this.overlay.addEventListener('transitionend', this);
 
-    /* switching panels */
-    window.addEventListener('home', this);
+      /* switching panels */
+      window.addEventListener('home', this);
 
-    /* blocking holdhome and prevent Cards View from show up */
-    window.addEventListener('holdhome', this, true);
-    window.addEventListener('ftudone', this);
-    window.addEventListener('moztimechange', this);
-    window.addEventListener('timeformatchange', this);
+      /* blocking holdhome and prevent Cards View from show up */
+      window.addEventListener('holdhome', this, true);
+      window.addEventListener('ftudone', this);
+      window.addEventListener('moztimechange', this);
+      window.addEventListener('timeformatchange', this);
 
-    /* media playback widget */
-    this.mediaPlaybackWidget =
-      new window.LockScreenMediaPlaybackWidget(this.mediaContainer);
+      /* media playback widget */
+      this.mediaPlaybackWidget =
+        new window.LockScreenMediaPlaybackWidget(this.mediaContainer);
 
-    // listen to media playback events to adjust notification container height
-    window.addEventListener('iac-mediacomms', this);
-    window.addEventListener('appterminated', this);
+      // listen to media playback events to adjust notification container height
+      window.addEventListener('iac-mediacomms', this);
+      window.addEventListener('appterminated', this);
 
-    // Listen to event to start the Camera app
-    window.addEventListener('holdcamera', this);
+      // Listen to event to start the Camera app
+      window.addEventListener('holdcamera', this);
 
-    window.SettingsListener.observe('lockscreen.enabled', true,
-      (function(value) {
-        this.setEnabled(value);
-    }).bind(this));
+      window.SettingsListener.observe('lockscreen.enabled', true,
+        (function(value) {
+          this.setEnabled(value);
+      }).bind(this));
 
-    // it is possible that lockscreen is initialized after wallpapermanager
-    // (e.g. user turns on lockscreen in settings after system is booted);
-    // if this is the case, then the wallpaperchange event might not be captured
-    //   and the lockscreen would initialize into empty wallpaper
-    // so we need to see if there is already a wallpaper blob available
-    if (Service.query('getWallpaper')) {
-      var wallpaperURL = Service.query('getWallpaper');
-      if (wallpaperURL) {
-        this.updateBackground(wallpaperURL);
+      // it is possible that lockscreen is initialized after wallpapermanager
+      // (e.g. user turns on lockscreen in settings after system is booted);
+      // if this is the case, then the wallpaperchange event might not be
+      //   captured and the lockscreen would initialize into empty wallpaper
+      // so we need to see if there is already a wallpaper blob available
+      if (Service.query('getWallpaper')) {
+        var wallpaperURL = Service.query('getWallpaper');
+        if (wallpaperURL) {
+          this.updateBackground(wallpaperURL);
+          this.overlay.classList.remove('uninit');
+        }
+      }
+      window.addEventListener('wallpaperchange', (function(evt) {
+        this.updateBackground(evt.detail.url);
         this.overlay.classList.remove('uninit');
+      }).bind(this));
+
+      window.SettingsListener.observe(
+          'lockscreen.passcode-lock.enabled', false, (function(value) {
+        this.setPassCodeEnabled(value);
+      }).bind(this));
+
+      window.SettingsListener.observe('lockscreen.unlock-sound.enabled',
+        true, (function(value) {
+        this.setUnlockSoundEnabled(value);
+      }).bind(this));
+
+      window.SettingsListener.observe('lockscreen.passcode-lock.timeout',
+        0, (function(value) {
+        this.setPassCodeLockTimeout(value);
+      }).bind(this));
+
+      window.SettingsListener.observe('lockscreen.lock-message',
+        '', (function(value) {
+        this.setLockMessage(value);
+      }).bind(this));
+
+
+      // FIXME(ggp) this is currently used by Find My Device
+      // to force locking. Should be replaced by a proper IAC API in
+      // bug 992277. We don't need to use SettingsListener because
+      // we're only interested in changes to the setting, and don't
+      // keep track of its value.
+      navigator.mozSettings.addObserver('lockscreen.lock-immediately',
+        (function(event) {
+        if (event.settingValue === true) {
+          this.lockIfEnabled(true);
+        }
+      }).bind(this));
+
+      this.notificationsContainer.addEventListener('scroll', this);
+
+      navigator.mozL10n.ready(this.l10nInit.bind(this));
+
+      // when lockscreen is just initialized,
+      // it will lock itself (if enabled) before calling updatebackground,
+      // so we need to generate overlay if needed here
+      if(this._checkGenerateMaskedBackgroundColor()){
+        this._generateMaskedBackgroundColor();
       }
-    }
-    window.addEventListener('wallpaperchange', (function(evt) {
-      this.updateBackground(evt.detail.url);
-      this.overlay.classList.remove('uninit');
-    }).bind(this));
-
-    window.SettingsListener.observe(
-        'lockscreen.passcode-lock.enabled', false, (function(value) {
-      this.setPassCodeEnabled(value);
-    }).bind(this));
-
-    window.SettingsListener.observe('lockscreen.unlock-sound.enabled',
-      true, (function(value) {
-      this.setUnlockSoundEnabled(value);
-    }).bind(this));
-
-    window.SettingsListener.observe('lockscreen.passcode-lock.timeout',
-      0, (function(value) {
-      this.setPassCodeLockTimeout(value);
-    }).bind(this));
-
-    window.SettingsListener.observe('lockscreen.lock-message',
-      '', (function(value) {
-      this.setLockMessage(value);
-    }).bind(this));
-
-
-    // FIXME(ggp) this is currently used by Find My Device
-    // to force locking. Should be replaced by a proper IAC API in
-    // bug 992277. We don't need to use SettingsListener because
-    // we're only interested in changes to the setting, and don't
-    // keep track of its value.
-    navigator.mozSettings.addObserver('lockscreen.lock-immediately',
-      (function(event) {
-      if (event.settingValue === true) {
-        this.lockIfEnabled(true);
-      }
-    }).bind(this));
-
-    this.notificationsContainer.addEventListener('scroll', this);
-
-    navigator.mozL10n.ready(this.l10nInit.bind(this));
-
-    // when lockscreen is just initialized,
-    // it will lock itself (if enabled) before calling updatebackground,
-    // so we need to generate overlay if needed here
-    if(this._checkGenerateMaskedBackgroundColor()){
-      this._generateMaskedBackgroundColor();
-    }
-    this.chargingStatus.start();
-    Service.register('setPassCodeEnabled', this);
-    Service.register('setPassCodeLockTimeout', this);
+      this.chargingStatus.start();
+      Service.register('setPassCodeEnabled', this);
+      Service.register('setPassCodeLockTimeout', this);
+    }).catch(function(err) {console.error(err);});
+    return this.bootstrapping;
   };
 
   LockScreen.prototype.initUnlockerEvents =
@@ -513,6 +512,19 @@
         this._lockscreenConnInfoManager =
           new LockScreenConnInfoManager(this.connStates);
       }).catch(function(err) {console.error(err);});
+  };
+
+  /**
+   * Concat step and handle `capture`.
+   */
+  LockScreen.prototype.nextStep =
+  function ls_nextStep(step) {
+    this.bootstrapping =
+      this.bootstrapping.then(step)
+      .catch((err) => {
+        console.error('LockScreen Error: ', err);
+      });
+    return this.bootstrapping;
   };
 
   /*
