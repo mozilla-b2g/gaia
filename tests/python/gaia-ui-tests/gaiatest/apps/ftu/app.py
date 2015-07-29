@@ -77,6 +77,9 @@ class Ftu(Base):
     _section_tutorial_finish_locator = (By.ID, 'tutorial-finish-tiny')
     _lets_go_button_locator = (By.ID, 'tutorialFinished')
 
+    _screen_locator = (By.ID, 'screen')
+    _statusbar_locator = (By.ID, 'statusbar')
+
     # Pattern for import sim contacts message
     _pattern_contacts = re.compile("^No contacts detected on SIM to import$|^Imported one contact$|^Imported [0-9]+ contacts$")
     _pattern_contacts_0 = re.compile("^No contacts detected on SIM to import$")
@@ -392,11 +395,14 @@ class Ftu(Base):
                 *self._section_finish_locator))))
 
     def tap_skip_tour(self):
-        try:
-            self.marionette.find_element(*self._skip_tour_button_locator).tap()
-        except (FrameSendFailureError, NoSuchWindowException):
-            # The frame may close for Marionette but that's expected so we can continue - Bug 1065933
-            pass
+        element = self.marionette.find_element(*self._skip_tour_button_locator)
+        # Workaround for bug 1109213, where tapping on the button inside the app itself
+        # makes Marionette spew out NoSuchWindowException errors
+        x = element.rect['x'] + element.rect['width']//2
+        y = element.rect['y'] + element.rect['height']//2
+        self.marionette.switch_to_frame()
+        statusbar = self.marionette.find_element(*self._statusbar_locator)
+        self.marionette.find_element(*self._screen_locator).tap(x, y + statusbar.rect['height'])
 
     def a11y_click_skip_tour(self):
         self.accessibility.click(self.marionette.find_element(*self._skip_tour_button_locator))
@@ -479,8 +485,11 @@ class Ftu(Base):
                 *self._section_tutorial_finish_locator))))
 
     def tap_lets_go_button(self):
-        try:
-            self.marionette.find_element(*self._lets_go_button_locator).tap()
-        except (FrameSendFailureError, NoSuchWindowException):
-            # The frame may close for Marionette but that's expected so we can continue - Bug 1065933
-            pass
+        element = self.marionette.find_element(*self._lets_go_button_locator)
+        # Workaround for bug 1109213, where tapping on the button inside the app itself
+        # makes Marionette spew out NoSuchWindowException errors
+        x = element.rect['x'] + element.rect['width']//2
+        y = element.rect['y'] + element.rect['height']//2
+        self.marionette.switch_to_frame()
+        statusbar = self.marionette.find_element(*self._statusbar_locator)
+        self.marionette.find_element(*self._screen_locator).tap(x, y + statusbar.rect['height'])
