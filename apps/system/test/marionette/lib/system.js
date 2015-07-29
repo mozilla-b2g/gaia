@@ -49,7 +49,6 @@ System.Selector = Object.freeze({
   downloadDialog: '#downloadConfirmUI',
   imeMenu: '.ime-menu',
   inlineActivity: '.appWindow.inline-activity',
-  pinDialog: '.appWindow.active .chrome .pin-dialog',
   sleepMenuContainer: '#sleep-menu-container',
   softwareButtons: '#software-buttons',
   softwareHome: '#software-home-button',
@@ -68,7 +67,6 @@ System.Selector = Object.freeze({
   trustedWindowChrome: '.appWindow.active.trustedwindow .chrome',
   leftPanel: '#left-panel',
   rightPanel: '#right-panel',
-  siteIcon: '.appWindow.active .chrome .site-icon',
   utilityTray: '#utility-tray',
   visibleForm: '#action-menu > form.visible',
   cancelActivity: '#action-menu form.visible button[data-action="cancel"]',
@@ -220,10 +218,6 @@ System.prototype = {
     return this.client.helper.waitForElement(System.Selector.inlineActivity);
   },
 
-  get pinDialog() {
-    return this.client.helper.waitForElement(System.Selector.pinDialog);
-  },
-
   get sleepMenuContainer() {
     return this.client.helper.waitForElement(
       System.Selector.sleepMenuContainer);
@@ -302,10 +296,6 @@ System.prototype = {
 
   get screenSize() {
     return this.client.findElement(System.Selector.screen).size();
-  },
-
-  get siteIcon() {
-    return this.client.helper.waitForElement(System.Selector.siteIcon);
   },
 
   get nfcIcon() {

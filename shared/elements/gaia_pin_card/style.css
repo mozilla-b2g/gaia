@@ -8,6 +8,7 @@
   background-color: #FBFBFB;
   background-size: cover;
   color: #000;
+  margin: 2rem 0.5rem 1rem 0.5rem;
   font-weight: 500;
   font-family: sans-serif;
 }
@@ -44,17 +45,11 @@
   z-index: 1;
 }
 
-/* We should use a shared component for this.
- See Bug 1188285 */
-i.small {
-  background: #cfcfcf no-repeat center / 1.6rem;
-  border-radius: 100%;
-}
-
 .pin-card header {
   position: relative;
   text-align: center;
   margin-top: 2.5rem;
+  font-size: 1.6rem;
   overflow: hidden;
   line-height: 1.6rem;
 }
