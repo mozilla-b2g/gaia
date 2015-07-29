@@ -50,5 +50,9 @@
   "facebook": {
     "username": "",
     "password": ""
+  },
+  "bugzilla": {
+    "user": "",
+    "password": ""
   }
 }
