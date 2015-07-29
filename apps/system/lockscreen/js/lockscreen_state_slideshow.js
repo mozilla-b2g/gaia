@@ -14,7 +14,7 @@
   limitations under the License.
 */
 
-/* global LockScreenBaseState */
+/* global Promise, LockScreenBaseState */
 
 'use strict';
 
@@ -32,49 +32,22 @@
   LockScreenStateSlideShow.prototype.start = function(lockScreen) {
     this.type = 'slideShow';
     this.lockScreen = lockScreen;
-    this.lockScreen.nextStep(() => {
-      this.stopWhenActivated(this.lockScreen._unlocker);
-    });
     return this;
-  };
-
-  /**
-   * Slider should be stopped until the manager do
-   * the decision to transfer to which state. And we
-   * stop it because the slideshow is the only state
-   * that shows the slider, so to stop it before doing
-   * any decision.
-   **/
-  LockScreenStateSlideShow.prototype.stopWhenActivated =
-  function lssss_stopWhenActivated(unlocker) {
-    var stopIt = function stopIt() {
-      unlocker._stop();
-      window.removeEventListener('lockscreenslide-activate-left', stopIt);
-      window.removeEventListener('lockscreenslide-activate-right', stopIt);
-    };
-    window.addEventListener('lockscreenslide-activate-left', stopIt);
-    window.addEventListener('lockscreenslide-activate-right', stopIt);
   };
 
   LockScreenStateSlideShow.prototype.transferTo =
   function lssss_transferTo(inputs) {
-    // Only when the lockscreen is ready, we do the things.
-    return this.lockScreen.nextStep(() => {
-      var unlocker = this.lockScreen._unlocker;
+    return new Promise((resolve, reject) => {
       // Clear passcode while the keypad is hiding.
       window.dispatchEvent(
         new CustomEvent('lockscreen-request-inputpad-close'));
       // Resetting slider before we want to show it again
-      unlocker.reset();
-      // Start it because the slideshow is the only state
-      // that shows the slider, so start it here.
-      unlocker._start();
-
+      this.lockScreen._unlocker.reset();
       // Copy from the original switching method.
       this.lockScreen.overlay.classList.add('no-transition');
       this.lockScreen.overlay.dataset.panel = 'main';
+      resolve();
     });
   };
-
   exports.LockScreenStateSlideShow = LockScreenStateSlideShow;
 })(window);

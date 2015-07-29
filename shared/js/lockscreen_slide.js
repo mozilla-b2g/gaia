@@ -23,7 +23,6 @@
   };
 
   var LockScreenSlidePrototype = {
-    stopped: false,
     canvas: null,
     layout: '',
     /**
@@ -587,24 +586,6 @@
       this._resetTouchStates();
       this.overlay.classList.remove('touched');
       this.states.slideReachEnd = false;
-    };
-
-  LockScreenSlidePrototype._stop =
-    function lss_stop() {
-      if (this._stopped) { return; }
-      window.removeEventListener('touchmove', this);
-      window.removeEventListener('touchend', this);
-      this.area.removeEventListener('touchstart', this);
-      this._stopped = true;
-    };
-
-  LockScreenSlidePrototype._start =
-    function lss_stop() {
-      if (!this._stopped) { return; }
-      window.addEventListener('touchmove', this);
-      window.addEventListener('touchend', this);
-      this.area.addEventListener('touchstart', this);
-      this._stopped = false;
     };
 
   /**

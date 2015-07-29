@@ -10,26 +10,12 @@ suite('sytem/LockScreenStateSlideShow', function() {
   var mockLockScreen;
   setup(function() {
     mockLockScreen = {
-      _unlocker: {
-        reset: function() {},
-        _start: function() {}
-      },
-      nextStep: function(cb) {
-        cb();
-        return Promise.resolve();
-      },
-      bootstrapping: {
-        then: function(cb) {
-          cb();
-          return Promise.resolve();
-        }
-      },
       overlay: document.createElement('div')
     };
     subject = (new LockScreenStateSlideShow()).start(mockLockScreen);
   });
   test('it would change the DOM status as it expects', function() {
-    subject.transferTo({ 'passcodeEnabled': true }).then(function() {
+    subject.transferTo().then(function() {
       assert.isTrue(mockLockScreen.overlay.classList.contains('no-transition'),
         'it still play transition even though we needn\'t it');
       assert.equal(mockLockScreen.overlay.dataset.panel, 'main',

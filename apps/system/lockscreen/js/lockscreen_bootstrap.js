@@ -24,13 +24,9 @@
     window.lockScreen = this.lockscreen;
     window.lockScreenStateManager = new window.LockScreenStateManager();
     window.lockScreenStateManager.start(window.lockScreen);
+    this.lockscreen.init();
     window.lockScreenNotifications = new LockScreenNotifications();
-    // After Bug 1094759, screen locker initialises itself asynchronously,
-    // so we need to make sure everthing is ready for the components depends
-    // on it.
-    this.lockscreen.bootstrapping.then(() => {
-      window.lockScreenNotifications.start(this.lockscreen,
-        this.lockscreen.notificationsContainer);
-    });
+    window.lockScreenNotifications.start(this.lockscreen,
+      this.lockscreen.notificationsContainer);
   });
 })();
