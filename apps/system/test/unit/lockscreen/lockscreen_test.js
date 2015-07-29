@@ -116,6 +116,12 @@ suite('system/LockScreen >', function() {
     subject.overlay = domOverlay;
     subject.mainScreen = domMainScreen;
     subject.camera = domCamera;
+
+    /* Disable detection of race conditions with settings observer
+     * callbacks. Testing this requires setting value to false.
+     */
+    subject._passCodeEnabledSynced = true;
+
     subject.lock();
   });
 
@@ -279,6 +285,28 @@ suite('system/LockScreen >', function() {
     'it didn\'t update "_lastLockedInterval" when it ends the locked session');
     assert.isTrue(subject._lastUnlockedTimeStamp > -1,
     'it didn\'t update "_lastUnlockedTimeStamp" when it unlocks');
+  });
+
+  test('Unlock: can prevent settings race conditions', function() {
+    subject._lastLockedInterval = -1;
+    subject._lastLockedTimeStamp = 0;
+    subject._lastUnlockedTimeStamp = -1;
+
+    subject.overlay = domOverlay;
+
+    // Trigger race condition detection:
+    subject._passCodeEnabledSynced = false;
+
+    var errorLogStub = this.sinon.stub(console, 'error');
+
+    subject.unlock(true);
+
+    assert.isTrue(errorLogStub.called,
+      'it failed to log a race condition');
+    assert.isTrue(subject.locked,
+      'it fell for a settings observer race condition');
+
+    errorLogStub.restore();
   });
 
   test('Unlock: uses PasscodeHelper', function() {
