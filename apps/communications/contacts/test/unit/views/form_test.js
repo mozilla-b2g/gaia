@@ -11,6 +11,7 @@
 /* global MockMozContactsObj */
 /* global MockThumbnailImage */
 /* global Matcher */
+/* global Search */
 /* global utils */
 /* exported _ */
 
@@ -849,15 +850,15 @@ suite('Render contact form', function() {
     suiteSetup(function() {
       deleteButton = document.querySelector('#delete-contact');
 
-      realSearch = contacts.Search;
-      contacts.Search = MockContactsSearch;
+      realSearch = window.Search;
+      window.Search = MockContactsSearch;
 
       realMozContacts = navigator.mozContacts;
       navigator.mozContacts = new MockMozContactsObj([]);
     });
 
     suiteTeardown(function() {
-      contacts.Search = realSearch;
+      window.Search = realSearch;
       navigator.mozContacts = realMozContacts;
     });
 
@@ -878,12 +879,12 @@ suite('Render contact form', function() {
     test('delete contact while in search mode', function(done) {
       deleteButton.click();
 
-      sinon.stub(contacts.Search,
+      sinon.stub(Search,
         'isInSearchMode', function() {
         return true;
       });
 
-      var exitSearchModeStub = sinon.stub(contacts.Search,
+      var exitSearchModeStub = sinon.stub(Search,
         'exitSearchMode', function() {
         assert.isTrue(true);
         contactsStub.restore();

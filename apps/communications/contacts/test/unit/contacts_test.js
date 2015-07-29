@@ -3,7 +3,7 @@
 /* global Contacts, contacts, Loader, ActivityHandler, LazyLoader,
           MockContactsListObj, MockCookie, MockMozL10n,
           MockNavigationStack, MockUtils, MocksHelper,
-          MockContactAllFields, MockContactDetails,
+          MockContactAllFields, MockContactDetails, Search,
           MockContactsSearch, MockContactsSettings, Mockfb, MockLoader,
           MockImportStatusData, MockMozContacts, ContactsService, HeaderUI
 */
@@ -87,7 +87,7 @@ suite('Contacts', function() {
     window.contacts = {};
     window.contacts.List = MockContactsListObj;
     window.contacts.Details = MockContactDetails;
-    window.contacts.Search = MockContactsSearch;
+    window.Search = MockContactsSearch;
     window.contacts.Settings = MockContactsSettings;
 
     realUtils = window.utils;
@@ -366,19 +366,19 @@ suite('Contacts', function() {
     );
 
     test('> in search navigate deeper from search', function() {
-      sinon.stub(contacts.Search, 'isInSearchMode', function() {
+      sinon.stub(Search, 'isInSearchMode', function() {
         return true;
       });
 
       Contacts.showContactDetail('1');
 
       sinon.assert.called(contacts.Details.render);
-      sinon.assert.called(contacts.Search.isInSearchMode);
+      sinon.assert.called(Search.isInSearchMode);
       sinon.assert.calledWith(navigation.go,
        'view-contact-details', 'go-deeper-search');
       sinon.assert.notCalled(ActivityHandler.dataPickHandler);
 
-      contacts.Search.isInSearchMode.restore();
+      Search.isInSearchMode.restore();
     });
   });
 

@@ -3,6 +3,7 @@
 /* global ConfirmDialog */
 /* global ContactsService */
 /* global HeaderUI */
+/* global Search */
 
 /**
  * ICE Settings view. In charge of selecting
@@ -205,8 +206,8 @@ contacts.ICE = (function() {
       resetIceGroupStates();
     }
 
-    if (contacts.Search && contacts.Search.isInSearchMode()) {
-      contacts.Search.exitSearchMode();
+    if (window.Search && Search.isInSearchMode()) {
+      Search.exitSearchMode();
     }
 
     contacts.Settings.navigation.back(() => {
