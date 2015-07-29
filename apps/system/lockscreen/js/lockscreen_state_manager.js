@@ -72,7 +72,9 @@
 
   LockScreenStateManager.prototype.start =
   function lssm_start(lockScreen) {
+    this.promiseQueue = Promise.resolve();
     this.lockScreen = lockScreen;
+    this.lockScreen.init();
     this.logger = (new LockScreenStateLogger()).start({
       debug: false,
       error: true
@@ -119,7 +121,6 @@
     // Default values
     this.lockScreenDefaultStates = {
       screenOn: true,   // We assume that the screen is on after booting
-      passcodeEnabled: false,
       passcodeTimeout: true, // If timeout, do show the keypad
       homePressed: false,
       activateUnlock: false,
@@ -130,7 +131,10 @@
       passcodeValidated: false,
       secureAppOpen: false,
       secureAppClose: false,
-      unlockingAppActivated: false
+      unlockingAppActivated: false,
+
+      // Would be replaced with true/false when it got read.
+      passcodeEnabled: new LockScreenStateManager.Deferred()
     };
     Object.freeze(this.lockScreenDefaultStates);
 
@@ -141,6 +145,7 @@
         return result;  // Reduce with slight side-effect.
       }, {});
 
+    // The default state is slideShow.
     this.previousState = this.states.slideShow;
     this.listenEvents();
     this.observeSettings();
@@ -163,6 +168,7 @@
   LockScreenStateManager.prototype.setupRules =
   function lssm_setupRules() {
     this.rules = new Map();
+
     this.registerRule({
       secureAppOpen: true
     },
@@ -191,7 +197,7 @@
       activateUnlock: true
     },
     ['slideShow'],
-    this.states.slideHide,
+    this.states.unlock,
     'When it activate to unlock without passcode, unlock and animates.');
 
     this.registerRule({
@@ -317,6 +323,49 @@
   };
 
   /**
+   * Before transferring, we need to resolve all conditions and postpone
+   * the transferring until they're resolved.
+   */
+  LockScreenStateManager.prototype.resolveInnerStates =
+  function lssm_resolveInnerStates(states) {
+    // We filter and collect those waiting states.
+    var waitings = Object.keys(states).reduce((waitingStates, name) => {
+      var state = states[name];
+      if (state && state instanceof LockScreenStateManager.Deferred) {
+        waitingStates.push(state.promise.then((resolvedValue) => {
+          // Must update the closured states before do
+          // the deferred transferring.
+          states[name] = resolvedValue;
+        }));
+      }
+      return waitingStates;
+    }, []);
+    return Promise.all(waitings);
+  };
+
+  /**
+   * Concat the step into the main promise, and handle the `catch`.
+   */
+  LockScreenStateManager.prototype.nextStep =
+  function lssm_nextStep(step) {
+    this.promiseQueue = this.promiseQueue
+      .then(step)
+      .catch(this.onTransferringError.bind(this));
+  };
+
+  /**
+   * It would wait all promised states to be resolved
+   * before we do transferring.
+   */
+  LockScreenStateManager.prototype.transfer =
+  function lssm_transfer(currentStates) {
+    return this.resolveInnerStates(currentStates)
+    .then(() => {
+      this.doTransfer(currentStates);
+    });
+  };
+
+  /**
    * This function would try to match the 'currentStates', which
    * may include the new outputs from the previous state, to see
    * if we need to transfer to a new state. If we can't find a
@@ -330,7 +379,7 @@
    *
    * @param currentStates {object} - the current LockScreen states
    */
-  LockScreenStateManager.prototype.transfer =
+  LockScreenStateManager.prototype.doTransfer =
   function lssm_transfer(currentStates) {
     this.logger
       .debug('Do transfer; input: ', currentStates)
@@ -468,7 +517,7 @@
     var inputs = this.extend(this.lockScreenStates, {
       screenOn: value
     });
-    this.transfer(inputs);
+    this.nextStep(this.transfer.bind(this, inputs));
     this.lockScreenStates.screenOn = value;
   };
 
@@ -477,7 +526,7 @@
     var inputs = this.extend(this.lockScreenStates, {
       homePressed: true
     });
-    this.transfer(inputs);
+    this.nextStep(this.transfer.bind(this, inputs));
   };
 
   LockScreenStateManager.prototype.onUnlock =
@@ -486,7 +535,7 @@
       unlocking: true,
     });
     this.lockScreenStates.unlocking = true;  // We're now unlocking.
-    this.transfer(inputs);
+    this.nextStep(this.transfer.bind(this, inputs));
   };
 
   LockScreenStateManager.prototype.onForciblyUnlock =
@@ -496,7 +545,7 @@
     });
     // Forcibly unlock should come without animation,
     // so we don't keep state.
-    this.transfer(inputs);
+    this.nextStep(this.transfer.bind(this, inputs));
   };
 
   LockScreenStateManager.prototype.onLock =
@@ -505,7 +554,8 @@
     if (this.lockScreenStates.unlocking) {
       this.lockScreenStates.unlocking = false;
     }
-    this.transfer(this.extend(this.lockScreenStates, {}));
+    this.nextStep(this.transfer.bind(this,
+      this.extend(this.lockScreenStates, {})));
   };
 
   LockScreenStateManager.prototype.onAppClosed =
@@ -514,7 +564,7 @@
       unlocking: false
     });
     this.lockScreenStates.unlocking = false;  // We're now not unlocking.
-    this.transfer(inputs);
+    this.nextStep(this.transfer.bind(this, inputs));
   };
 
   LockScreenStateManager.prototype.onInputAppOpening =
@@ -522,7 +572,7 @@
     var inputs = this.extend(this.lockScreenStates, {
       inputpad: 'open'
     });
-    this.transfer(inputs);
+    this.nextStep(this.transfer.bind(this, inputs));
   };
 
   LockScreenStateManager.prototype.onInputAppOpened =
@@ -530,7 +580,7 @@
     var inputs = this.extend(this.lockScreenStates, {
       inputpad: 'show'
     });
-    this.transfer(inputs);
+    this.nextStep(this.transfer.bind(this, inputs));
   };
 
   LockScreenStateManager.prototype.onInputAppClosed =
@@ -538,7 +588,7 @@
     var inputs = this.extend(this.lockScreenStates, {
       inputpad: 'close'
     });
-    this.transfer(inputs);
+    this.nextStep(this.transfer.bind(this, inputs));
   };
 
   LockScreenStateManager.prototype.onSecureAppOpened =
@@ -546,7 +596,7 @@
     var inputs = this.extend(this.lockScreenStates, {
       secureAppOpen: true
     });
-    this.transfer(inputs);
+    this.nextStep(this.transfer.bind(this, inputs));
   };
 
   LockScreenStateManager.prototype.onSecureAppClosing =
@@ -555,7 +605,7 @@
       secureAppOpen: false,
       secureAppClose: true
     });
-    this.transfer(inputs);
+    this.nextStep(this.transfer.bind(this, inputs));
   };
 
   LockScreenStateManager.prototype.onUnlockingApp =
@@ -563,7 +613,7 @@
     var inputs = this.extend(this.lockScreenStates, {
       unlockingAppActivated: true
     });
-    this.transfer(inputs);
+    this.nextStep(this.transfer.bind(this, inputs));
   };
 
   LockScreenStateManager.prototype.onActivateUnlock =
@@ -573,7 +623,7 @@
     var inputs = this.extend(this.lockScreenStates, {
       activateUnlock: true
     });
-    this.transfer(inputs);
+    this.nextStep(this.transfer.bind(this, inputs));
   };
 
   LockScreenStateManager.prototype.onKeypadInput =
@@ -587,7 +637,7 @@
       break;
     }
     if (inputs) {
-      this.transfer(inputs);
+      this.nextStep(this.transfer.bind(this, inputs));
     }
   };
 
@@ -601,10 +651,18 @@
    */
   LockScreenStateManager.prototype.onPasscodeEnabledChanged =
   function lssm_onPasscodeEnabledChanged(value) {
+    var val;
     if ('string' === typeof value) {
-      this.lockScreenStates.passcodeEnabled = 'false' === value ? false : true;
+      val = 'false' === value ? false : true;
     } else {
-      this.lockScreenStates.passcodeEnabled = value;
+      val = value;
+    }
+    if (this.lockScreenStates.passcodeEnabled instanceof
+        LockScreenStateManager.Deferred) {
+      // So those waiting the promise can go on.
+      this.lockScreenStates.passcodeEnabled.resolve(val);
+    } else {
+      this.lockScreenStates.passcodeEnabled = val;
     }
   };
 
@@ -615,7 +673,7 @@
       unlocking: true
     });
     this.lockScreenStates.unlocking = true;  // We're now unlocking.
-    this.transfer(inputs);
+    this.nextStep(this.transfer.bind(this, inputs));
   };
 
   /**
@@ -633,7 +691,7 @@
     var inputs = this.extend(this.lockScreenStates, transferringOutput);
     this.logger.debug('Transferring done; will transfer to new state');
     // Feed it as new input to do the transferring.
-    this.transfer(inputs);
+    this.nextStep(this.transfer.bind(this, inputs));
   };
 
   /**
@@ -797,6 +855,19 @@
     return sortedOne.reduce((prevMatchResult, current, index) => {
       return prevMatchResult && (current === sortedTwo[index]);
     }, true);
+  };
+
+  /**
+   * Classic solution to provide a "deferred".
+   * Put it under the constructor to prevent leaking, and avoid using closure
+   * which is hard to test.
+   */
+  LockScreenStateManager.Deferred = function() {
+    this.promise = new Promise((res, rej) => {
+      this.resolve = res;
+      this.reject = rej;
+    });
+    return this;
   };
 
   exports.LockScreenStateManager = LockScreenStateManager;
