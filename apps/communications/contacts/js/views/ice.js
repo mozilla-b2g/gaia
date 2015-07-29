@@ -2,7 +2,6 @@
 /* global ImageLoader */
 /* global LazyLoader */
 /* global MainNavigation */
-/* global fb */
 'use strict';
 
 (function(exports) {
@@ -38,10 +37,6 @@
     }
 
     initialized = true;
-
-    LazyLoader.load(['/contacts/js/fb_resolver.js'], function() {
-      imgLoader.setResolver(fb.resolver);
-    });
 
     // Initialise common controls
     document.getElementById('ice-header').addEventListener(
@@ -108,6 +103,6 @@
     }
   };
 
-  exports.contacts.ICEView = ICEView;
+  exports.ICEView = ICEView;
 
 })(window);

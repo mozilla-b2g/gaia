@@ -2,6 +2,7 @@
 /* global MocksHelper */
 /* global loadBodyHTML */
 /* global ICEData */
+/* global ICEView */
 
 'use strict';
 
@@ -16,15 +17,8 @@ var mocksForICe = new MocksHelper([
   'Contacts', 'ICEData', 'LazyLoader'
 ]).init();
 
-var fbResolver = {
-  resolver: {}
-};
-
-
 suite('ICE contacts view', function() {
   mocksForICe.attachTestHelpers();
-
-  var realFb;
 
   function dummyRowBuilder(id, node) {
     return node.cloneNode(true);
@@ -47,11 +41,8 @@ suite('ICE contacts view', function() {
   ];
 
   suiteSetup(function(done) {
-    window.contacts = {};
     realImageLoader = window.ImageLoader;
     window.ImageLoader = MockImageLoader;
-    realFb = window.fb;
-    window.fb = fbResolver;
     requireApp('communications/contacts/js/views/ice.js', done);
   });
 
@@ -61,8 +52,6 @@ suite('ICE contacts view', function() {
 
   suiteTeardown(function() {
     window.ImageLoader = realImageLoader;
-    window.fb = realFb;
-    delete window.contacts;
   });
 
   function cleanHTML() {
@@ -100,7 +89,7 @@ suite('ICE contacts view', function() {
     });
 
     test('> init with ids', function() {
-      window.contacts.ICEView.init([1,2], dummyRowBuilder);
+      ICEView.init([1,2], dummyRowBuilder);
       var ice1 = document.querySelector('#ice-list [data-uuid="1"]');
       var ice2 = document.querySelector('#ice-list [data-uuid="2"]');
 
@@ -109,7 +98,7 @@ suite('ICE contacts view', function() {
     });
 
     test('> init with invalid ice contacts', function() {
-      window.contacts.ICEView.init([1,2], dummyRowBuilder);
+      ICEView.init([1,2], dummyRowBuilder);
 
       var ice3 = document.querySelector('#ice-list [data-uuid="3"]');
       assert.isNull(ice3);
@@ -120,7 +109,7 @@ suite('ICE contacts view', function() {
   suite('> Contacts changed', function() {
     setup(function() {
       defaultContacts();
-      window.contacts.ICEView.init([1,2], dummyRowBuilder);
+      ICEView.init([1,2], dummyRowBuilder);
       this.clock = sinon.useFakeTimers();
     });
 
