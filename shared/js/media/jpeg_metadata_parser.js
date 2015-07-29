@@ -20,6 +20,10 @@ function parseJPEGMetadata(file, metadataCallback, metadataError) {
   // This is the object we'll pass to metadataCallback
   var metadata = {};
 
+  // this is the start offset for the data in exif. Should be
+  // where to find the TIFF magic header.
+  var TIFFHeaderOffset = 0;
+
   // Start off reading a 16kb slice of the JPEG file.
   // Hopefully, this will be all we need and everything else will
   // be synchronous
@@ -117,7 +121,8 @@ function parseJPEGMetadata(file, metadataCallback, metadataError) {
       var exif = parseEXIFData(data);
 
       if (exif.THUMBNAIL && exif.THUMBNAILLENGTH) {
-        var start = data.sliceOffset + data.viewOffset + 10 + exif.THUMBNAIL;
+        var start = data.sliceOffset + data.viewOffset + TIFFHeaderOffset +
+            exif.THUMBNAIL;
         metadata.preview = {
           start: start,
           end: start + exif.THUMBNAILLENGTH
@@ -179,6 +184,9 @@ function parseJPEGMetadata(file, metadataCallback, metadataError) {
       throw Error('invalid byteorder in EXIF segment');
     }
 
+    // The TIFF magic started at +10.
+    TIFFHeaderOffset = 10;
+
     if (data.getUint16(12, byteorder) !== 42) { // magic number
       throw Error('bad magic number in EXIF segment');
     }
@@ -187,28 +195,28 @@ function parseJPEGMetadata(file, metadataCallback, metadataError) {
 
      // This is how we would parse all EXIF metadata more generally.
      // Especially need for iamge orientation
-    parseIFD(data, offset + 10, byteorder, exif, true);
+    parseIFD(data, offset + TIFFHeaderOffset, byteorder, exif, true);
 
     // I'm leaving this code in as a comment in case we need other EXIF
     // data in the future.
     // if (exif.EXIFIFD) {
-    //   parseIFD(data, exif.EXIFIFD + 10, byteorder, exif);
+    //   parseIFD(data, exif.EXIFIFD + TIFFHeaderOffset, byteorder, exif);
     //   delete exif.EXIFIFD;
     // }
 
     // if (exif.GPSIFD) {
-    //   parseIFD(data, exif.GPSIFD + 10, byteorder, exif);
+    //   parseIFD(data, exif.GPSIFD + TIFFHeaderOffset, byteorder, exif);
     //   delete exif.GPSIFD;
     // }
 
     // Instead of a general purpose EXIF parse, we're going to drill
     // down directly to the thumbnail image.
     // We're in IFD0 here. We want the offset of IFD1
-    var ifd0entries = data.getUint16(offset + 10, byteorder);
+    var ifd0entries = data.getUint16(offset + TIFFHeaderOffset, byteorder);
     var ifd1 = data.getUint32(offset + 12 + 12 * ifd0entries, byteorder);
     // If there is an offset for IFD1, parse that
     if (ifd1 !== 0) {
-      parseIFD(data, ifd1 + 10, byteorder, exif, true);
+      parseIFD(data, ifd1 + TIFFHeaderOffset, byteorder, exif, true);
     }
 
     return exif;
@@ -226,7 +234,7 @@ function parseJPEGMetadata(file, metadataCallback, metadataError) {
 
     var next = data.getUint32(offset + 2 + 12 * numentries, byteorder);
     if (next !== 0 && next < file.size) {
-      parseIFD(data, next + 10, byteorder, exif);
+      parseIFD(data, next + TIFFHeaderOffset, byteorder, exif);
     }
   }
 
@@ -305,7 +313,7 @@ function parseJPEGMetadata(file, metadataCallback, metadataError) {
 
     var total = count * typesize[type];
     var valueOffset = total <= 4 ? offset + 8 :
-      data.getUint32(offset + 8, byteorder);
+        data.getUint32(offset + 8, byteorder) + TIFFHeaderOffset;
     exif[tagname] = parseValue(data, valueOffset, type, count, byteorder);
   }
 
