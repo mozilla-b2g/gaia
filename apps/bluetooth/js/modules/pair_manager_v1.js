@@ -1,5 +1,4 @@
-/* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+/* global NotificationHelper */
 
 define(function(require) {
   'use strict';
@@ -7,7 +6,6 @@ define(function(require) {
   var PairExpiredDialog = require('views/pair_expired_dialog');
   var BluetoothHelper = require('shared/bluetooth_helper');
 
-  var _ = window.navigator.mozL10n.get;
   var _debug = false;
   var Debug = function() {};
   if (_debug) {
@@ -93,21 +91,20 @@ define(function(require) {
         showPairviewCallback: this.showPairview.bind(this, pairingInfo)
       };
       // Prepare notification toast.
-      var title = _('bluetooth-pairing-request-now-title');
-      var body = pairingInfo.name || _('unnamed-device');
+      var body = pairingInfo.name || 'unnamed-device';
       var iconUrl =
         'app://bluetooth.gaiamobile.org/style/images/icon_bluetooth.png';
       // We always use tag "pairing-request" to manage these notifications.
       var notificationId = 'pairing-request';
-      var notification = new Notification(title, {
-        body: body,
-        icon: iconUrl,
-        tag: notificationId
+      NotificationHelper.send('bluetooth-pairing-request-now-title', {
+        'bodyL10n': body,
+        'icon': iconUrl,
+        'tag': notificationId
+      }).then((notification) => {
+        notification.addEventListener('click',
+          this.pairingRequestExpiredNotificationHandler
+            .bind(this, notification));
       });
-
-      // set onclick handler for the notification
-      notification.onclick =
-        this.pairingRequestExpiredNotificationHandler.bind(this, notification);
     },
 
     // According to user story, it won't notify user again
@@ -191,7 +188,7 @@ define(function(require) {
       var evt = pairingInfo;
       var device = {
         address: evt.address,
-        name: evt.name || _('unnamed-device'),
+        name: evt.name || 'unnamed-device',
         icon: evt.icon || 'bluetooth-default'
       };
 
