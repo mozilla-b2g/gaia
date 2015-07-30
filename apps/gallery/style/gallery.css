@@ -850,7 +850,7 @@ a.filter-faded {
   width: 3.6rem;
   height: 2.6rem;
   -moz-margin-start: calc(3.9rem - 1.8rem);
-  background: url(images/slider-scrubber.png) no-repeat center center;
+  background: url(images/slider-scrubber.png) no-repeat center center / 100%;
   font: 0/0 a;
 }
 
