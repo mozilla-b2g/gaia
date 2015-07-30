@@ -24,6 +24,7 @@ class Contacts(Base):
     _no_contacts_message_locator = (By.CSS_SELECTOR, '*[data-l10n-id="no-contacts"]')
     _group_container_selector = "#groups-container"
     _contact_locator = (By.CSS_SELECTOR, 'li[data-uuid]:not([data-group="ice"])')
+    _screen_locator = (By.ID, 'view-contacts-list')
 
     def launch(self):
         Base.launch(self)
@@ -100,6 +101,7 @@ class Contacts(Base):
         Wait(self.marionette).until(expected.element_displayed(delete_button))
         delete_button.tap()
 
+
     @property
     def is_favorites_list_displayed(self):
         return self.marionette.find_element(*self._favorites_list_locator).is_displayed()
@@ -114,6 +116,11 @@ class Contacts(Base):
     @property
     def is_no_contacts_message_displayed(self):
         return self.marionette.find_element(*self._no_contacts_message_locator).is_displayed()
+
+
+    @property
+    def screen_element(self):
+        return self.marionette.find_element(*self._screen_locator)
 
     class Contact(PageRegion):
 
