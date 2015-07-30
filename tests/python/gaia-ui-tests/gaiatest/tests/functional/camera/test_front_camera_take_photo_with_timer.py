@@ -25,7 +25,7 @@ class TestCamera(GaiaTestCase):
         
         
         # Switch to Front Facing Camera
-        
+        self.camera.tap_switch_to_front_camera()
         
         # Take a photo
         self.camera.take_photo()

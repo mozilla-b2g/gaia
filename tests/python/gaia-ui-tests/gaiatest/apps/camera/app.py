@@ -41,6 +41,9 @@ class Camera(Base):
     _hud_locator = (By.CSS_SELECTOR, '.hud')
     _loading_screen_locator = (By.CSS_SELECTOR, '.loading-screen')
     _toggle_flash_button_locator = (By.CSS_SELECTOR, '.test-flash-button')
+    ## These are named equal to current view
+    _camera_switch_to_rear = (By.CSS_SELECTOR, '.toggle-camera-front')
+    _camera_switch_to_front = (By.CSS_SELECTOR, '.toggle-camera-rear')
 
     _viewfinder_video_locator = (By.CLASS_NAME, 'viewfinder-video')
 
@@ -130,6 +133,14 @@ class Camera(Base):
         Wait(self.marionette).until(lambda m: not current_camera_mode == self.camera_mode)
         self.wait_for_capture_ready()
 
+    def tap_switch_to_front_camera(self):
+	self.marionette.find_element(*self._camera_switch_to_front).tap()
+	Wait(self.marionette).until(lambda m: self.marionette.find_element(*self._camera_switch_to_rear) == true)
+	
+    def tap_switch_to_rear_camera(self):
+	self.marionette.find_element(*self._camera_switch_to_rear).tap()
+	Wait(self.marionette).until(lambda m: self.marionette.find_element(*self._camera_switch_to_front) == true)
+	
     def tap_toggle_flash_button(self):
         initial_flash_mode = self.current_flash_mode
         toggle = self.marionette.find_element(*self._toggle_flash_button_locator)
