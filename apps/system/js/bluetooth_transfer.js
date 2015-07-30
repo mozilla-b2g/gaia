@@ -185,7 +185,8 @@ var BluetoothTransfer = {
 
       NotificationHelper.send(title, {
         'bodyL10n': 'transfer-confirmation-description',
-        'icon': this.bluetoothIcon
+        'icon': this.bluetoothIcon,
+        'mozbehavior': {noclear: true}
       }).then((notification) => {
         notification.addEventListener('click', () => {
           UtilityTray.hide();
