@@ -139,6 +139,7 @@ function runTests(filenames, args, retry) {
           'Couldn\'t find ' + string + ' count in marionette-mocha output:\n' +
           stdout
         );
+        console.error('stdout length =', stdout.length);
 
         return;
       }
@@ -209,6 +210,10 @@ function runTest(filename, args, retry) {
  * Checks whether a single test file failed.
  */
 function testDidFailOnTbpl(stdout, stderr) {
+  // ACHTUNG!!! DEBUGGING CODE!!! REMOVE!!!
+  console.log('stdout.length =', stdout.length);
+  console.log('stderr.length =', stderr.length);
+
   // Ensure we captured output before deciding if the test failed or not.
   return stdout.length && stdout.indexOf('TEST-UNEXPECTED-FAIL') !== -1;
 }
