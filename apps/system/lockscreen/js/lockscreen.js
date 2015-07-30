@@ -62,14 +62,7 @@
     * in Settings API.
     * Will be ignored if 'enabled' is set to false.
     */
-    passCodeEnabled: false,
-
-    /*
-    * Flag to signal that initializing observer callback has fired and
-    * that the state of passCodeEnabled now reflects the Settings value.
-    * Helps detecting unlock race conditions.
-    */
-    _passCodeEnabledSynced: false,
+    passCodeEnabled: true,
 
     /*
     * Boolean returns whether the screen is enabled, as mutated by screenchange
@@ -414,7 +407,6 @@
 
       window.SettingsListener.observe(
           'lockscreen.passcode-lock.enabled', false, (function(value) {
-        this._passCodeEnabledSynced = true;
         this.setPassCodeEnabled(value);
       }).bind(this));
 
@@ -695,18 +687,6 @@
 
   LockScreen.prototype.unlock =
   function ls_unlock(instant, detail) {
-    // Do not unlock before Settings values have been synced
-    // via observer callbacks. Avoids race condition.
-    if (!this._passCodeEnabledSynced) {
-      console.error('Ignoring unlock attempt during settings race condition');
-      return;
-    }
-    return this.forceUnlock(instant, detail);
-  };
-
-  LockScreen.prototype.forceUnlock =
-  function ls_forceUnlock(instant, detail) {
-
     var wasAlreadyUnlocked = !this.locked;
     this.locked = false;
 
