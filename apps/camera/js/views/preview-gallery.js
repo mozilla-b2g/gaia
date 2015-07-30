@@ -301,8 +301,8 @@ return View.extend({
     this.frame.displayVideo(
       video.blob,
       video.poster.blob,
-      video.width,
-      video.height,
+      video.poster.width,
+      video.poster.height,
       video.rotation);
   },
 

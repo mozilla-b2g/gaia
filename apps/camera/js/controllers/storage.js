@@ -133,38 +133,18 @@ StorageController.prototype.storePicture = function(picture) {
 /**
  * Store a video.
  *
- * Store the poster image,
- * then emit the app 'newvideo'
- * event. This signifies the video
- * fully ready.
- *
  * We don't store the video blob like
  * we do for images, as it is recorded
  * directly to the final location.
- * This is for memory reason.
+ * This is for memory reason. The poster
+ * is also automatically created.
  *
  * @param  {Object} video
  */
 StorageController.prototype.storeVideo = function(video) {
   debug('new video', video);
-  var poster = video.poster;
-  var self = this;
-
-  // Add the poster image to the image storage
-  poster.filepath = video.filepath.replace('.3gp', '.jpg');
   video.isVideo = true;
-
-  this.storage.addPicture(
-    poster.blob,
-    { filepath: poster.filepath },
-    function(error, path, absolutePath, fileBlob) {
-      // Replace the memory-backed Blob with the DeviceStorage file-backed File.
-      // Note that "video" references "poster", so video previews will use this
-      // File.
-      poster.blob = fileBlob;
-      debug('new video', video);
-      self.app.emit('newmedia', video);
-  });
+  this.app.emit('newmedia', video);
 };
 
 /**

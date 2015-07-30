@@ -399,6 +399,7 @@ PreviewGalleryController.prototype.updateThumbnail = function() {
 
     // If it is a video we can create a thumbnail from the poster image
     blob = media.poster.blob;
+    media = media.poster;
   } else {
 
     // If it is a photo we want to use the EXIF preview rather than

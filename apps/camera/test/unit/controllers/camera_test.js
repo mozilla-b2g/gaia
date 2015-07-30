@@ -622,9 +622,14 @@ suite('controllers/camera', function() {
   });
 
   suite('CameraController#onStorageChanged()', function() {
-    test('Should stop recording', function() {
-      this.controller.onStorageChanged();
+    test('Should stop recording if not available', function() {
+      this.controller.onStorageChanged('unavailable');
       assert.isTrue(this.camera.stopRecording.called);
+    });
+
+    test('Should not stop recording if available', function() {
+      this.controller.onStorageChanged('available');
+      assert.isTrue(this.camera.stopRecording.notCalled);
     });
   });
 

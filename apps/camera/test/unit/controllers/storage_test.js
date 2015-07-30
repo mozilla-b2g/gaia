@@ -108,35 +108,12 @@ suite('controllers/storage', function() {
 
   suite('StorageController#storeVideo()', function() {
     setup(function() {
-      this.storage.addPicture.callsArgWith(2, null, '<filepath>', '<abspath>', '<file-blob>');
-
-      this.video = {
-        blob: '<file-blob>',
-        filepath: 'path/to/video.3gp',
-        poster: { blob: '<poster-memory-blob>' }
-      };
-
+      this.video = {};
       this.controller.storeVideo(this.video);
-    });
-
-    test('Should store the picture', function() {
-      assert.isTrue(this.storage.addPicture.calledWith('<poster-memory-blob>'));
-    });
-
-    test('Should store the poster image', function() {
-      var blob = this.storage.addPicture.args[0][0];
-      var options = this.storage.addPicture.args[0][1];
-
-      assert.equal(blob, '<poster-memory-blob>');
-      assert.equal(options.filepath, 'path/to/video.jpg');
     });
 
     test('Should emit a `newmedia` app event', function() {
       assert.isTrue(this.app.emit.calledWith('newmedia', this.video));
-    });
-
-    test('Should switch the <poster-memory-blob> with the <file-blob>', function() {
-      assert.equal(this.video.poster.blob, '<file-blob>');
     });
 
     test('Should flag it as `isVideo`', function() {
