@@ -6,7 +6,6 @@
  */
 var Promise = require('es6-promise').Promise;
 var format = require('util').format;
-var inspect = require('util').inspect;
 var path = require('path');
 var spawn = require('child_process').spawn;
 
@@ -210,17 +209,6 @@ function runTest(filename, args, retry) {
  * Checks whether a single test file failed.
  */
 function testDidFailOnTbpl(stdout, stderr) {
-  // ACHTUNG!!! DEBUGGING CODE!!! REMOVE!!!
-  console.log('stdout =', stdout);
-  console.log('stdout.length =', stdout.length);
-  console.log('stdout inspection =',
-              util.inspect(stdout, {colors: true, hidden: true}));
-
-  console.log('stderr =', stderr);
-  console.log('stderr.length =', stderr.length);
-  console.log('stderr inspection =',
-              util.inspect(stderr, {colors: true, hidden: true}));
-
   // Ensure we captured output before deciding if the test failed or not.
   return stdout.length && stdout.indexOf('TEST-UNEXPECTED-FAIL') !== -1;
 }
