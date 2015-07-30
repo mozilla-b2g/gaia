@@ -51,6 +51,10 @@ suite('lib/camera/camera', function() {
       removeEventListener: sinon.stub()
     };
 
+    this.mozCamera.release.returns({
+      then: function(onSuccess) { setTimeout(onSuccess); }
+    });
+
     this.options = {
       configStorage: {
         setItem: sinon.stub(),

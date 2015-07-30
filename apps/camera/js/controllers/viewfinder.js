@@ -351,9 +351,7 @@ ViewfinderController.prototype.onZoomChanged = function(zoom) {
 };
 
 ViewfinderController.prototype.onViewfinderClicked = function(e) {
-  if (!this.touchFocusEnabled || this.app.get('timerActive')) {
-    return;
-  }
+  if (!this.touchFocusEnabled) { return; }
   this.views.faces.hide();
   this.changeFocusPoint(e.pageX, e.pageY);
 };

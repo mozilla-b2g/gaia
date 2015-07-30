@@ -5,7 +5,7 @@ define(function(require, exports, module) {
  * Dependencies
  */
 
-var debug = require('debug')('view:timer');
+var debug = require('debug')('view:countdown');
 var View = require('view');
 
 /**
@@ -13,13 +13,12 @@ var View = require('view');
  */
 
 /**
- * Timer
+ * Countdown
  *
  * @constructor
  */
 module.exports = View.extend({
-  name:'timer',
-  immanent: 3,
+  name: 'countdown',
 
   initialize: function() {
     this.render();
@@ -37,7 +36,6 @@ module.exports = View.extend({
   },
 
   set: function(time) {
-    var isImmanent = time <= this.immanent;
 
     // Update the number
     this.els.count.textContent = time;
@@ -47,11 +45,7 @@ module.exports = View.extend({
     this.reflow = this.el.offsetTop;
     this.el.classList.add('shrink');
 
-    // Flag immanent & emit event
-    this.el.classList.toggle('immanent', isImmanent);
-    if (isImmanent) { this.emit('timer:immanent'); }
-
-    debug('set time: %s, near: %s', time, isImmanent);
+    debug('set time: %s, near: %s', time);
     return this;
   },
 
@@ -60,20 +54,27 @@ module.exports = View.extend({
     this.el.classList.add('visible');
   },
 
-  hide: function() {
+  hide: function(callback) {
     this.el.classList.remove('visible');
     this.el.classList.add('hidden');
+    setTimeout(callback, 200);
+    return this;
+  },
+
+  setImmanent: function(value) {
+    this.el.classList.toggle('immanent', value);
   },
 
   reset: function() {
     this.els.count.textContent = '';
-    this.el.classList.remove('immanent');
+    this.el.classList.remove('immanent', 'shrink');
+    return this;
   },
 
   template: function() {
-    return '<div class="timer_circle-1"></div>' +
-      '<div class="timer_circle-2"></div>' +
-      '<div class="timer_count">' +
+    return '<div class="countdown_circle-1"></div>' +
+      '<div class="countdown_circle-2"></div>' +
+      '<div class="countdown_count">' +
         '<div class="rotates js-count"></div>' +
       '</div>';
   }

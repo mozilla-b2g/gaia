@@ -69,15 +69,15 @@
 }
 
 /**
- * Timer
+ * Countdown
  */
 
-.controls[data-timer="active"] {
+.controls[data-countdown="active"] {
   pointer-events: none;
 }
 
-.controls[data-timer="active"] .controls-left,
-.controls[data-timer="active"] .controls-right {
+.controls[data-countdown="active"] .controls-left,
+.controls[data-countdown="active"] .controls-right {
   opacity: 0;
   transition-duration: 300ms;
 }

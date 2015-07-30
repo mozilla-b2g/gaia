@@ -83,10 +83,9 @@ HudController.prototype.bindEvents = function() {
   this.view.on('click:settings', this.app.firer('settings:toggle'));
   this.view.on('click:flash', this.onFlashClick);
 
-  // Timer
-  this.app.on('timer:cleared', this.view.setter('timer', 'inactive'));
-  this.app.on('timer:started', this.view.setter('timer', 'active'));
-  this.app.on('timer:ended', this.view.setter('timer', 'inactive'));
+  // Countdown
+  this.app.on('countdown:started', this.view.setter('countdown', 'active'));
+  this.app.on('countdown:ended', this.view.setter('countdown', 'inactive'));
 
   // Settings
   this.app.on('settings:opened', this.view.hide);

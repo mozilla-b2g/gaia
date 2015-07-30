@@ -6,7 +6,6 @@ var mocksHelperForSounds = new MocksHelper([
 
 suite('Sounds', function() {
   /*jshint maxlen:false*/
-  /*global req*/
   'use strict';
 
   /**
@@ -21,8 +20,8 @@ suite('Sounds', function() {
       setting: 'camera.sound.enabled'
     },
     {
-      name: 'timer',
-      url: 'resources/sounds/timer.opus',
+      name: 'countdown',
+      url: 'resources/sounds/countdown.opus',
       setting: 'camera.sound.enabled'
     },
     {
@@ -98,7 +97,7 @@ suite('Sounds', function() {
       this.sounds.add(list[2]);
       this.sounds.add(list[3]);
       assert.ok(this.sounds.items.shutter);
-      assert.ok(this.sounds.items.timer);
+      assert.ok(this.sounds.items.countdown);
       assert.ok(this.sounds.items.recordingStart);
       assert.ok(this.sounds.items.recordingEnd);
     });

@@ -76,8 +76,8 @@ module.exports = {
         setting: 'camera.sound.enabled'
       },
       {
-        name: 'timer',
-        url: './resources/sounds/timer.opus',
+        name: 'countdown',
+        url: './resources/sounds/countdown.opus',
         setting: 'camera.sound.enabled'
       },
       {
@@ -269,7 +269,7 @@ module.exports = {
     persistent: true
   },
 
-  timer: {
+  countdown: {
     title: 'self-timer',
     header: 'self-timer-header',
     icon: 'self-timer',
@@ -365,7 +365,7 @@ module.exports = {
         key: 'hdr'
       },
       {
-        key: 'timer'
+        key: 'countdown'
       },
       // {
       //   key: 'pictureSizes'
