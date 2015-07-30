@@ -23,6 +23,8 @@ class BugzillaLite(Base):
     _description_input = (By.ID, 'description')
     _attachment_link = (By.CSS_SELECTOR, ".btn-file")
     _button_submit = (By.CSS_SELECTOR, "#createBug input[type='submit']")
+    _thumbnail_photo_locator = (By.CSS_SELECTOR, ".attachBtn")
+
     def login (self, username, password):
         username_element = self.marionette.find_element(*self._given_username)
         username_element.tap()
@@ -69,8 +71,13 @@ class BugzillaLite(Base):
         description_element = self.marionette.find_element(*self._description_input)
         description_element.tap()
         description_element.send_keys(description)
-        submit_element = self.marionette.find_element(*self._button_submit)
-        submit_element.tap()
+        add_photo_element = self.marionette.find_element(*self._thumbnail_photo_locator)
+        add_photo_element.tap()
+        from gaiatest.apps.system.regions.activities import Activities
+        return Activities(self.marionette)
+        #submit_element = self.marionette.find_element(*self._button_submit)
+        #submit_element.tap()
+
     @property
     def is_logged_in(self):
         self.wait_for_dashboard_navigator_to_be_displayed()
@@ -81,5 +88,7 @@ class BugzillaLite(Base):
             Wait(self.marionette).until(expected.element_present(*self._dashboard_login_locator))))
 
     def dismiss_tooltip(self):
-        tooltip_element = self.marionette.find_element(*self._popup_intro).find_element(*self._button_popup_intro)
-        tooltip_element.tap()
+        tooltip_element = self.marionette.find_element(*self._popup_intro)
+        confirm_element = Wait(self.marionette).until(expected.element_present(*self._button_popup_intro))
+        Wait(self.marionette).until(expected.element_displayed(confirm_element))
+        confirm_element.tap()
