@@ -6,11 +6,13 @@
 /* global MozActivity */
 /* global SettingsListener */
 /* global Service */
+/* global GaiaPinCard */
 
 'use strict';
 
 (function(exports) {
   const DEFAULT_ICON_URL = '/style/chrome/images/default_icon.png';
+  const PINNING_PREF = 'dev.gaia.pinning_the_web';
 
   var _id = 0;
 
@@ -101,7 +103,7 @@
     }
 
     if (chrome.maximized) {
-      this.element.classList.add('maximized');
+      this.expand();
 
       if (!this.app.isBrowser() && !this.app.isHomescreen) {
         this.app.element.classList.add('scrollable');
@@ -122,6 +124,22 @@
                 <button type="button" class="forward-button"
                         data-l10n-id="forward-button" disabled></button>
                 <div class="urlbar js-chrome-ssl-information">
+                  <section role="dialog" class="pin-dialog hidden">
+                    <a href="#" data-action="cancel"></a>
+                    <header>
+                      <h2 data-l10n-id="pinning.pin-page">Pin Page</h2>
+                    </header>
+                    <div class="card-container"></div>
+                    <div class="footer-container">
+                      <button data-l10n-id="pinning.pin" data-action="pin">
+                        Pin
+                      </button>
+                      <footer>
+                        <span data-l10n-id="from">from</span>
+                        <span class="origin"></span>
+                      </footer>
+                    </div>
+                  </section>
                   <span class="pb-icon"></span>
                   <div class="site-icon"></div>
                   <div class="chrome-ssl-indicator chrome-title-container">
@@ -198,6 +216,14 @@
     this.windowsButton = this.element.querySelector('.windows-button');
     this.title = this.element.querySelector('.chrome-title-container > .title');
     this.siteIcon = this.element.querySelector('.site-icon');
+
+    if (this.useCombinedChrome()) {
+      this.pinDialog = this.element.querySelector('.pin-dialog');
+      this.closePin = this.pinDialog.querySelector('a[data-action="cancel"]');
+      this.originElement = this.pinDialog.querySelector('.origin');
+      this.pinCardContainer = this.pinDialog.querySelector('.card-container');
+    }
+
     this.sslIndicator =
       this.element.querySelector('.js-chrome-ssl-information');
 
@@ -214,10 +240,12 @@
   AppChrome.prototype.handleEvent = function ac_handleEvent(evt) {
     switch (evt.type) {
       case 'rocketbar-overlayclosed':
+        window.removeEventListener('rocketbar-overlayclosed', this);
         this.collapse();
         break;
 
       case 'click':
+        this.hidePinDialogCard();
         this.handleClickEvent(evt);
         break;
 
@@ -252,6 +280,7 @@
         break;
 
       case '_locationchange':
+        this.hidePinDialogCard();
         this.handleLocationChange();
         break;
 
@@ -291,6 +320,11 @@
         this.app.forward();
         break;
 
+      case this.siteIcon:
+        evt.stopImmediatePropagation();
+        this.onClickSiteIcon();
+        break;
+
       case this.title:
         this.titleClicked();
         break;
@@ -323,10 +357,6 @@
         evt.stopImmediatePropagation();
         this.onShare();
         break;
-
-      case this.siteIcon:
-        evt.stopImmediatePropagation();
-        break;
     }
   };
 
@@ -338,6 +368,67 @@
       return;
     }
     window.dispatchEvent(new CustomEvent('global-search-request'));
+  };
+
+  AppChrome.prototype.onClickSiteIcon = function onClickSiteIcon() {
+    if (!this.app.isBrowser() || this.app.loading || !this.isMaximized()) {
+      this.app.debug('Pinning is only enabled in the browser');
+      return;
+    }
+    this.setPinDialogCard();
+  };
+
+  AppChrome.prototype.setPinDialogCard = function ac_setPinDialogCard(url) {
+    var card = new GaiaPinCard();
+    card.title = this.app.title;
+    card.icon = {
+      url: this.siteIcon.style.backgroundImage,
+      small: this.siteIcon.classList.contains('small-icon')
+    };
+    this.pinCardContainer.innerHTML = '';
+    this.app.getScreenshot(function() {
+      card.background = {
+        src: URL.createObjectURL(this.app._screenshotBlob),
+        themeColor: this.app.themeColor
+      };
+    }.bind(this));
+    this.pinCardContainer.appendChild(card);
+    this.setOrigin();
+    this.pinDialog.classList.remove('hidden');
+  };
+
+  AppChrome.prototype.setOrigin = function ac_setOrigin() {
+    var origin = this._currentOrigin.split('://')[1].split('.');
+    var tld = this.originElement.querySelector('.tld');
+
+    if (!tld) {
+      tld = document.createElement('span');
+      tld.className = 'tld';
+    } else {
+      tld.remove();
+    }
+
+    tld.textContent = origin.slice(origin.length - 2, origin.length).join('.');
+
+    if (origin.length > 2) {
+      var subdomains = origin.slice(0, origin.length - 2).join('.');
+      this.originElement.textContent = subdomains + '.';
+    }
+
+    this.originElement.appendChild(tld);
+  };
+
+  AppChrome.prototype.hidePinDialogCard = function ac_setPinDialogCard(url) {
+    this.pinDialog && this.pinDialog.classList.add('hidden');
+  };
+
+  AppChrome.prototype.expand = function ac_expand() {
+    this.element.classList.add('maximized');
+  };
+
+  AppChrome.prototype.collapse = function ac_collapse() {
+    this.hidePinDialogCard();
+    this.element.classList.remove('maximized');
   };
 
   AppChrome.prototype.handleActionEvent = function ac_handleActionEvent(evt) {
@@ -358,11 +449,10 @@
     // XXX Open a bug since I wonder if there is scrollgrab rounding issue
     // somewhere. While panning from the bottom to the top, there is often
     // a scrollTop position of scrollTopMax - 1, which triggers the transition!
-    var element = this.element;
     if (this.scrollable.scrollTop >= this.scrollable.scrollTopMax - 1) {
-      element.classList.remove('maximized');
+      this.collapse();
     } else {
-      element.classList.add('maximized');
+      this.expand();
     }
 
     if (this.app.isActive()) {
@@ -387,7 +477,17 @@
       this.scrollable.addEventListener('scroll', this);
       this.menuButton.addEventListener('click', this);
       this.windowsButton.addEventListener('click', this);
-      this.siteIcon.addEventListener('click', this);
+
+      // Adding or removing the click listener, depending on
+      // the 'Pinning the Web' setting enabled or disabled
+      SettingsListener.observe(PINNING_PREF, '', function(enabled) {
+        var targets = [this.siteIcon, this.closePin];
+        var method = enabled ? 'addEventListener' : 'removeEventListener';
+        targets.forEach(function(element) {
+          element[method]('click', this);
+        }.bind(this));
+      }.bind(this));
+
     } else {
       this.header.addEventListener('action', this);
     }
@@ -687,7 +787,7 @@
 
         // Expand
         if (!this.isMaximized()) {
-          this.element.classList.add('maximized');
+          this.expand();
         }
         this.scrollable.scrollTop = 0;
       }
@@ -721,25 +821,20 @@
     }
     if (this.useCombinedChrome() && this.app.config.chrome.scrollable) {
       // When we get an error, keep the rocketbar maximized.
-      this.element.classList.add('maximized');
+      this.expand();
       this.containerElement.classList.remove('scrollable');
     }
   };
 
   AppChrome.prototype.maximize = function ac_maximize(callback) {
     var element = this.element;
-    element.classList.add('maximized');
+    this.expand();
     window.addEventListener('rocketbar-overlayclosed', this);
 
     if (!callback) {
       return;
     }
     eventSafety(element, 'transitionend', callback, 250);
-  };
-
-  AppChrome.prototype.collapse = function ac_collapse() {
-    window.removeEventListener('rocketbar-overlayclosed', this);
-    this.element.classList.remove('maximized');
   };
 
   AppChrome.prototype.isMaximized = function ac_isMaximized() {
@@ -900,6 +995,7 @@
     if (url) {
       this.siteIcon.classList.remove('small-icon');
       this.siteIcon.style.backgroundImage = `url("${url}")`;
+      this._currentIconUrl = url;
       return;
     }
 
