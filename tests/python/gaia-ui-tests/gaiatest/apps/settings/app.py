@@ -89,8 +89,7 @@ class Settings(Base):
             expected.element_present(*self._bluetooth_l10n_locator))
 
     def switch_to_settings_app(self):
-        Wait(self.marionette).until(
-            lambda m: self.apps.displayed_app.name == self.name)
+        Wait(self.marionette).until(lambda m: self.apps.displayed_app.name == self.name)
         self.apps.switch_to_displayed_app()
 
     def wait_for_airplane_toggle_ready(self):
@@ -205,7 +204,7 @@ class Settings(Base):
         return self._open_subpage(self._bluetooth_menu_item_locator, 'bluetooth', 'Bluetooth')
 
     def open_internet_sharing(self):
-        return self._open_subpage(self._internet_sharing_menu_item_locator)
+        return self._open_subpage(self._internet_sharing_menu_item_locator, 'internet_sharing', 'InternetSharing')
 
     def open_sound(self):
         return self._open_subpage(self._sound_menu_item_locator, 'sound', 'Sound')
@@ -215,10 +214,10 @@ class Settings(Base):
 
     def open_homescreen(self):
         return self._open_subpage(self._homescreen_menu_item_locator, 'homescreen_settings',
-                                           'HomescreenSettings')
+                                  'HomescreenSettings')
 
     def open_search(self):
-        return self._open_subpage(self._search_menu_item_locator)
+        return self._open_subpage(self._search_menu_item_locator, 'search', 'Search')
 
     def open_navigation(self):
         return self._open_subpage(self._navigation_menu_item_locator)
@@ -241,7 +240,7 @@ class Settings(Base):
         return self._open_subpage(self._theme_menu_item_locator)
 
     def open_addons(self):
-        return self._open_subpage(self._addon_menu_item_locator)
+        return self._open_subpage(self._addon_menu_item_locator, 'addons', 'Addons')
 
     def open_achievements(self):
         return self._open_subpage(self._achievements_menu_item_locator)
@@ -300,7 +299,7 @@ class Settings(Base):
     def _get_class_by_name(self, file_name=None, class_name=None):
         if file_name is not None:
             package_path = 'gaiatest.apps.settings.regions.{}'.format(file_name.lower())
-            mod = __import__(package_path, fromlist=[class_name])
+            mod = __import__(package_path, fromlist = [class_name])
             class_defn = getattr(mod, class_name)
             return class_defn
 
@@ -350,7 +349,10 @@ class Settings(Base):
 
         # TODO: remove tap with coordinates after Bug 1061698 is fixed
         if gaia_header:
-            self.marionette.find_element(*self._header_locator).tap(25, 25)
+            _back_locator = self._header_locator
         else:
-            self.marionette.find_element(*self._non_gaia_header_locator).tap(25, 25)
+            _back_locator = self._non_gaia_header_locator
+
+        Wait(self.marionette).until(expected.element_displayed(*_back_locator))
+        self.marionette.find_element(*_back_locator).tap(25, 25)
         Wait(self.marionette).until(expected.element_displayed(parent_view))
