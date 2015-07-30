@@ -985,6 +985,7 @@
   };
 
   simulation.failState = function() {
+    var MessagesDebugError = 'string';
     return typeof window.MessagesDebugError === 'string';
   };
 
@@ -1048,7 +1049,7 @@
 
     var initiateSend = function() {
       messagesDb.messages.push(sendInfo.message);
-      trigger('sending', sendInfo);
+      //trigger('sending', sendInfo);
 
       setTimeout(completeSend, simulation.delay());
     };
