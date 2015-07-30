@@ -219,8 +219,8 @@ suite('system/DialerAgent', function() {
         callschanged();
       });
 
-      test('it should not play the ringtone', function() {
-        assert.isTrue(mockAudio.play.notCalled);
+      test('it should play the silent ringtone', function() {
+        sinon.assert.calledOnce(mockAudio.play);
       });
     });
 
@@ -270,13 +270,35 @@ suite('system/DialerAgent', function() {
       callschanged();
     });
 
-    suite('even if the vibration is enabled', function() {
+    suite('if the vibration is enabled', function() {
       setup(function() {
         MockSettingsListener.mTriggerCallback('vibration.enabled', true);
+        callschanged();
       });
 
-      test('it should not vibrate', function() {
-        assert.isTrue(vibrateSpy.notCalled);
+      test('it should start vibrating', function() {
+        sinon.assert.calledWith(vibrateSpy, [200]);
+      });
+
+      test('it should vibrate every 600ms', function() {
+        this.sinon.clock.tick(600);
+        sinon.assert.calledTwice(vibrateSpy);
+        this.sinon.clock.tick(600);
+        sinon.assert.calledThrice(vibrateSpy);
+      });
+
+      test('it should stop when the call state changes', function() {
+        secondCall.addEventListener.yield();
+        vibrateSpy.reset();
+        this.sinon.clock.tick(600);
+        sinon.assert.notCalled(vibrateSpy);
+      });
+
+      test('it should stop when the user presses volume down', function() {
+        window.dispatchEvent(new CustomEvent('volumedown'));
+        vibrateSpy.reset();
+        this.sinon.clock.tick(600);
+        sinon.assert.notCalled(vibrateSpy);
       });
     });
 
@@ -285,13 +307,9 @@ suite('system/DialerAgent', function() {
         MockSettingsListener.mTriggerCallback('audio.volume.notification', 7);
       });
 
-      test('it should not play', function() {
-        assert.isTrue(mockAudio.play.notCalled);
+      test('it should play the silent ringtone', function() {
+        sinon.assert.called(mockAudio.play);
       });
-    });
-
-    test('it should not listen to the state changes of the call', function() {
-      assert.isTrue(secondCall.addEventListener.notCalled);
     });
   });
 

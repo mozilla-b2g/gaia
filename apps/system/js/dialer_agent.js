@@ -39,7 +39,6 @@
     this._telephony = telephony;
 
     this._started = false;
-    this._shouldRing = null;
     this._shouldVibrate = true;
     this._alerting = false;
     this._vibrateInterval = null;
@@ -78,10 +77,7 @@
     this._started = true;
 
     SettingsListener.observe('audio.volume.notification', 7, function(value) {
-      this._shouldRing = !!value;
-      if (this._shouldRing && this._alerting) {
-        this._player.play();
-      }
+      this._playRing();
     }.bind(this));
 
     SettingsListener.observe('dialer.ringtone', '', function(value) {
@@ -90,10 +86,7 @@
 
         this._player.pause();
         this._player.src = phoneSoundURL.set(value);
-
-        if (this._shouldRing && this._alerting) {
-          this._player.play();
-        }
+        this._playRing();
       }.bind(this)).catch((err) => {
         console.error(err);
       });
@@ -176,11 +169,11 @@
       this.openCallscreen();
     }
 
-    if (this._alerting || calls[0].state !== 'incoming') {
+    var incomingCall = calls[calls.length - 1];
+    if (this._alerting || incomingCall.state !== 'incoming') {
       return;
     }
 
-    var incomingCall = calls[0];
     var self = this;
 
     self._startAlerting();
@@ -190,6 +183,16 @@
 
       self._stopAlerting();
     });
+  };
+
+  DialerAgent.prototype._playRing = function da_playRing () {
+    // Notice that, even we are in the vibration mode, we would still play the
+    // silence ringer. That is because when the incoming call is coming, other
+    // playing sound should be paused. Therefore, we need to a silence ringer
+    // to compete for the audio output.
+    if (this._alerting) {
+      this._player.play();
+    }
   };
 
   DialerAgent.prototype._startAlerting = function da_startAlerting() {
@@ -202,9 +205,7 @@
       navigator.vibrate([200]);
     }
 
-    if (this._shouldRing) {
-      this._player.play();
-    }
+    this._playRing();
   };
 
   DialerAgent.prototype._stopAlerting = function da_stopAlerting() {
