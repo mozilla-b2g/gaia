@@ -10,7 +10,7 @@
   },
 
   "scripts": {
-    "install": "./tools/copy.js || node-gyp configure build"
+    "install": "./tools/copy.js || node-gyp configure build --verbose"
   }
 }
 
