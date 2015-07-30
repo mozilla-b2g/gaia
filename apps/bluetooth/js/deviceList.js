@@ -141,7 +141,6 @@ navigator.mozL10n.once(function deviceList() {
     // do default actions (start discover avaliable devices)
     // when DefaultAdapter is ready.
     function initial(adapter, deviceSelectedCallback, exitBtnClickedCallback) {
-      deviceList.hidden = false;
       header.addEventListener('action', cancelActivity);
       defaultAdapter = adapter;
       defaultAdapter.onpairedstatuschanged = function bt_getPairedMessage(evt) {
@@ -172,7 +171,6 @@ navigator.mozL10n.once(function deviceList() {
     }
 
     function uninit() {
-      deviceList.hidden = true;
       defaultAdapter = null;
       header.removeEventListener('action', cancelActivity);
     }
