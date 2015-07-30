@@ -124,7 +124,8 @@ var NotificationScreen = {
         'noclear': behavior.noclear,
         'noscreen': behavior.noscreen,
         'soundFile': behavior.soundFile,
-        'vibrationPattern': behavior.vibrationPattern
+        'vibrationPattern': behavior.vibrationPattern,
+        'silent': behavior.silent
       },
       'noNotify': detail.noNotify,
       'priority': this.PRIORITY_APPLICATIONS.indexOf(detail.manifestURL) !== -1,
