@@ -18,8 +18,9 @@ define(function() {
   function btTemplate(deviceType, onItemClick, observableItem) {
     var device = observableItem;
 
-    var nameSpan = document.createElement('span');
-    _updateItemName(nameSpan, device.name);
+    // Use bdi tag for string that may have its own directionality
+    var nameElement = document.createElement('bdi');
+    _updateItemName(nameElement, device.name);
 
     var descSmall = document.createElement('small');
     if (deviceType === 'remote') {
@@ -37,7 +38,7 @@ define(function() {
     // According to 'descriptionText' property to give description.
     _updateItemDescriptionText(li, descSmall, device.descriptionText);
 
-    anchor.appendChild(nameSpan);
+    anchor.appendChild(nameElement);
     anchor.appendChild(descSmall); // should append this first
     li.appendChild(anchor);
 
@@ -51,7 +52,7 @@ define(function() {
     // Observe name property for update device name
     // while device 'onattributechanged' event is coming.
     device.observe('name', function(newName) {
-      _updateItemName(nameSpan, newName);
+      _updateItemName(nameElement, newName);
     });
 
     // Observe descriptionText property for update device description
