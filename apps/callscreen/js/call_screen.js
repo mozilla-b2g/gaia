@@ -19,6 +19,7 @@ var CallScreen = {
 
   mainContainer: document.getElementById('main-container'),
   contactBackground: document.getElementById('contact-background'),
+  callOptions: document.getElementById('call-options'),
   callToolbar: document.getElementById('co-advanced'),
 
   muteButton: document.getElementById('mute'),
@@ -402,14 +403,14 @@ var CallScreen = {
   showIncoming: function cs_showIncoming() {
     this.body.classList.remove('showKeypad');
 
-    this.callToolbar.classList.add('transparent');
+    this.callOptions.classList.add('transparent');
     this.incomingContainer.classList.add('displayed');
 
     this._screenWakeLock = navigator.requestWakeLock('screen');
   },
 
   hideIncoming: function cs_hideIncoming() {
-    this.callToolbar.classList.remove('transparent');
+    this.callOptions.classList.remove('transparent');
     this.incomingContainer.classList.remove('displayed');
 
     if (this._screenWakeLock) {

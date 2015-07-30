@@ -45,6 +45,7 @@ suite('call screen', function() {
   var calls;
   var groupCalls;
   var groupCallsList;
+  var callOptions;
   var callToolbar;
   var hideBarMuteButton;
   var muteButton;
@@ -106,9 +107,13 @@ suite('call screen', function() {
     groupCallsList.id = 'group-call-details-list';
     groupCalls.appendChild(groupCallsList);
 
+    callOptions = document.createElement('footer');
+    callOptions.id = 'call-options';
+    screen.appendChild(callOptions);
+
     callToolbar = document.createElement('section');
     callToolbar.id = 'co-advanced';
-    screen.appendChild(callToolbar);
+    callOptions.appendChild(callToolbar);
 
     muteButton = document.createElement('button');
     muteButton.id = 'mute';
@@ -173,6 +178,7 @@ suite('call screen', function() {
       CallScreen.mainContainer = container;
       CallScreen.contactBackground = contactBackground;
       CallScreen.calls = calls;
+      CallScreen.callOptions = callOptions;
       CallScreen.callToolbar = callToolbar;
       CallScreen.muteButton = muteButton;
       CallScreen.speakerButton = speakerButton;
@@ -777,12 +783,12 @@ suite('call screen', function() {
       CallScreen.showIncoming();
     });
 
-    test('should remove class of callToolbar and incomingContainer',
+    test('should remove class of callOptions and incomingContainer',
     function() {
-      assert.isTrue(callToolbar.classList.contains('transparent'));
+      assert.isTrue(callOptions.classList.contains('transparent'));
       assert.isTrue(incomingContainer.classList.contains('displayed'));
       CallScreen.hideIncoming();
-      assert.isFalse(callToolbar.classList.contains('transparent'));
+      assert.isFalse(callOptions.classList.contains('transparent'));
       assert.isFalse(incomingContainer.classList.contains('displayed'));
     });
 
