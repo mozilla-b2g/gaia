@@ -224,6 +224,7 @@ class NewContact(ContactForm):
         from gaiatest.apps.contacts.app import Contacts
         # NewContact can be opened as an Activity from other apps. In this scenario we don't return Contacts
         if return_contacts:
+            self.apps.switch_to_displayed_app()
             return Contacts(self.marionette)
         else:
             Wait(self.marionette).until(lambda m: self.apps.displayed_app.name != Contacts.name)
