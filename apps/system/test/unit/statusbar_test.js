@@ -29,8 +29,8 @@ var mocksForStatusbar = new MocksHelper([
 ]).init();
 
 suite('system/Statusbar', function() {
-  var fakeStatusbarNode, fakeTopPanel, fakeStatusbarBackground,
-      fakeStatusbarIcons, fakeStatusbarIconsMaxWrapper, fakeStatusbarIconsMax,
+  var fakeStatusbarNode, fakeTopPanel, fakeStatusbarIconsMax,
+      fakeStatusbarIcons, fakeStatusbarIconsMaxWrapper,
       fakeStatusbarIconsMinWrapper, fakeStatusbarIconsMin;
   var realMozL10n, realService;
 
@@ -65,10 +65,6 @@ suite('system/Statusbar', function() {
     fakeTopPanel = document.createElement('div');
     fakeTopPanel.id = 'top-panel';
     document.body.appendChild(fakeTopPanel);
-
-    fakeStatusbarBackground = document.createElement('div');
-    fakeStatusbarBackground.id = 'statusbar-background';
-    document.body.appendChild(fakeStatusbarBackground);
 
     fakeStatusbarIcons = document.createElement('div');
     fakeStatusbarIcons.id = 'statusbar-icons';

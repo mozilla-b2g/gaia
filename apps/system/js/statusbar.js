@@ -554,7 +554,6 @@
       this._icons = new Map();
 
       this.element = document.getElementById('statusbar');
-      this.background = document.getElementById('statusbar-background');
       this.statusbarIcons = document.getElementById('statusbar-icons');
       this.statusbarIconsMax = document.getElementById('statusbar-maximized');
       this.screen = document.getElementById('screen');
