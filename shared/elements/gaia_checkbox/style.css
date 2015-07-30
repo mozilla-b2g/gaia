@@ -46,6 +46,12 @@ gaia-checkbox {
   margin: -1.2rem 0 0 -1.2rem;
 }
 
+#checkbox.inline[dir="rtl"] span:after {
+  right: 0;
+  left: unset;
+  margin: -1.2rem 0 0 1.2rem;
+}
+
 #checkbox.inline span {
   -moz-padding-start: 3rem;
   -moz-padding-end: 0;
