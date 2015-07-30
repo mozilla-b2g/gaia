@@ -3,16 +3,15 @@ define(function(require) {
 
 var Abstract = require('store/abstract');
 var Factory = require('test/support/factory');
+var core = require('core');
 
 suite('store/ical_component', function() {
   var subject;
   var db;
-  var app;
 
   setup(function(done) {
-    app = testSupport.calendar.app();
-    db = app.db;
-    subject = db.getStore('IcalComponent');
+    db = core.db;
+    subject = core.storeFactory.get('IcalComponent');
 
     db.open(function(err) {
       assert.ok(!err);
@@ -22,7 +21,7 @@ suite('store/ical_component', function() {
 
   teardown(function(done) {
     testSupport.calendar.clearStore(
-      subject.db,
+      core.db,
       ['icalComponents'],
       done
     );
@@ -34,7 +33,6 @@ suite('store/ical_component', function() {
 
   test('initialization', function() {
     assert.instanceOf(subject, Abstract);
-    assert.equal(subject.db, db);
     assert.deepEqual(subject._cached, {});
   });
 

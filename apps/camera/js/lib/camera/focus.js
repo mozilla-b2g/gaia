@@ -274,6 +274,7 @@ Focus.prototype.pause = function() {
   this.stopContinuousFocus();
   this.stopFaceDetection();
   this.paused = true;
+  delete this.focusState;
 };
 
 Focus.prototype.resume = function() {

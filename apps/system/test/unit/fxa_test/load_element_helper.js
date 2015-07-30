@@ -1,4 +1,5 @@
 'use strict';
+/* exported LoadElementHelper */
 
 require('/shared/js/html_imports.js');
 

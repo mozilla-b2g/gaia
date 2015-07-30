@@ -5,14 +5,12 @@ var StatusBar = require('./lib/statusbar');
 marionette('Status Bar icons - Debugging', function() {
 
   var client = marionette.client({
-    prefs: {
-      'dom.w3c_touch_events.enabled': 1
+    profile: {
+      settings: {
+        'debugger.remote-mode': 'disabled'
+      }
     },
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false,
-      'debugger.remote-mode': 'disabled'
-    }
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
   });
 
   var system;
@@ -20,8 +18,8 @@ marionette('Status Bar icons - Debugging', function() {
 
   setup(function() {
     system = client.loader.getAppClass('system');
+    system.waitForFullyLoaded();
     statusBar = new StatusBar(client);
-    system.waitForStartup();
   });
 
   test('should appear when debugging is enabled', function() {

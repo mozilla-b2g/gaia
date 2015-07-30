@@ -79,6 +79,7 @@
     "alarms": {},
     "systemXHR": {},
     "audio-channel-notification":{},
+    "audio-channel-system":{},
     "idle":{},
     "device-storage:sdcard": { "access": "readcreate" },
     "phonenumberservice": {},
@@ -93,8 +94,8 @@
           "required": true,
           "value": ["webcontacts/contact","webcontacts/email",
                     "webcontacts/tel","webcontacts/select",
-                    "text/vcard", "text/x-vcard"]
-        }
+                    "text/vcard", "text/x-vcard", "text/directory"]
+         }
        },
       "disposition": "inline",
       "href": "/contacts/index.html?pick",
@@ -102,26 +103,39 @@
     },
     "import": {
       "filters": {
-        "type": "text/vcard"
+        "type": {
+          "required": true,
+          "value": ["text/vcard", "text/x-vcard", "text/directory"]
+        }
       },
       "disposition": "inline",
-      "href": "/contacts/index.html?open",
+      "href": "/contacts/index.html?import",
       "returnValue": true
     },
-    "open": {
+    "open": [
+    {
       "filters": {
-        "type": ["webcontacts/contact", "text/vcard", "text/x-vcard"]
+        "type": ["webcontacts/contact"]
+      },
+      "disposition": "inline",
+      "href": "/contacts/views/details/details.html",
+      "returnValue": true
+    },
+    {
+      "filters": {
+        "type": ["text/vcard", "text/x-vcard", "text/directory"]
       },
       "disposition": "inline",
       "href": "/contacts/index.html?open",
       "returnValue": true
-    },
+    }
+    ],
     "new": {
       "filters": {
         "type": "webcontacts/contact"
       },
       "disposition": "inline",
-      "href": "/contacts/index.html?new",
+      "href": "/contacts/views/form/form.html",
       "returnValue": true
     },
     "update": {

@@ -7,7 +7,9 @@ var Server = require('../../../../shared/test/integration/server');
 
 marionette('Search - Rocketbar Test', function() {
 
-  var client = marionette.client(require(__dirname + '/client_options.js'));
+  var client = marionette.client({
+    profile: require(__dirname + '/client_options.js')
+  });
   var home, search, rocketbar, system, server;
 
   var providers;
@@ -26,10 +28,10 @@ marionette('Search - Rocketbar Test', function() {
     system = client.loader.getAppClass('system');
     search = client.loader.getAppClass('search');
     rocketbar = new Rocketbar(client);
-    system.waitForStartup();
+    system.waitForFullyLoaded();
 
     providers = {
-      version: 2,
+      version: search.searchDataVersion(),
       providers: {
         'first': {
           title: 'first',

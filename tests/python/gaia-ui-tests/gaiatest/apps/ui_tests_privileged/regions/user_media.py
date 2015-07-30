@@ -2,29 +2,31 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-try:
-    from marionette.by import By
-except:
-    from marionette_driver.by import By
+from marionette_driver import expected, By, Wait
 
 from gaiatest.apps.base import Base
 
 
 class UserMediaPage(Base):
-    _audio_button_locator = (By.CSS_SELECTOR, 'button[data-type="startAudioButton"]')
-    _video_button_locator = (By.CSS_SELECTOR, 'button[data-type="startVideoButton"]')
+    _audio_button_locator = (By.XPATH, '//button[text()="Audio1"]')
+    _video_button_locator = (By.XPATH, '//button[text()="Video1"]')
 
     _frame_locator = (By.CSS_SELECTOR, "#test-iframe[src*='getusermedia']")
 
     def switch_to_frame(self):
-        self.wait_for_element_displayed(*self._frame_locator)
-        get_user_media_frame = self.marionette.find_element(*self._frame_locator)
-        self.marionette.switch_to_frame(get_user_media_frame)
+        frame = Wait(self.marionette).until(
+            expected.element_present(*self._frame_locator))
+        Wait(self.marionette).until(expected.element_displayed(frame))
+        self.marionette.switch_to_frame(frame)
 
     def tap_audio1_button(self):
-        self.wait_for_element_displayed(*self._audio_button_locator)
-        self.marionette.find_element(*self._audio_button_locator).tap()
+        element = Wait(self.marionette).until(
+            expected.element_present(*self._audio_button_locator))
+        Wait(self.marionette).until(expected.element_displayed(element))
+        element.tap()
 
     def tap_video1_button(self):
-        self.wait_for_element_displayed(*self._video_button_locator)
-        self.marionette.find_element(*self._video_button_locator).tap()
+        element = Wait(self.marionette).until(
+            expected.element_present(*self._video_button_locator))
+        Wait(self.marionette).until(expected.element_displayed(element))
+        element.tap()

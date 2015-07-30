@@ -6,10 +6,7 @@ var TARGET_APP = 'app://sms.gaiamobile.org';
 
 marionette('mozPhoneNumberService: ', function() {
   var client = marionette.client({
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
-    }
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
   });
 
   var fuzzyMatchTests = [

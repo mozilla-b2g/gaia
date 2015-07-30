@@ -20,6 +20,7 @@ gaia-confirm {
   align-items: stretch;
   flex-direction: column;
   justify-content: center;
+  transition: transform ease-in-out 0.3s, visibility 0.3s;
   /**
   magic number ideally to place confirm dialogs on top.
   */
@@ -35,7 +36,9 @@ html[dir="rtl"] gaia-confirm {
 }
 
 gaia-confirm[hidden] {
-  display: none;
+  transform: translateY(100%);
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .confirm section {
@@ -47,7 +50,6 @@ gaia-confirm[hidden] {
   -moz-box-sizing: padding-box;
   width: 100%;
   display: inline-block;
-  overflow-y: scroll;
   max-height: 100%;
   vertical-align: middle;
   white-space: normal;

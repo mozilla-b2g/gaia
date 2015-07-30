@@ -11,7 +11,9 @@ var getIconId = require('./lib/icon_id');
 
 marionette('Vertical - App uninstall while pending', function() {
 
-  var client = marionette.client(require(__dirname + '/client_options.js'));
+  var client = marionette.client({
+    profile: require(__dirname + '/client_options.js')
+  });
   var actions, home, system, appInstall;
   var selectors;
 
@@ -36,7 +38,7 @@ marionette('Vertical - App uninstall while pending', function() {
     server.cork(server.applicationZipUri);
 
     // wait for the system app to be running
-    system.waitForStartup();
+    system.waitForFullyLoaded();
     client.apps.launch(home.URL);
     home.waitForLaunch();
 

@@ -131,6 +131,8 @@ suite('LayoutItem', function() {
       item = new LayoutItem(layoutItemListStub, layout);
       item.onstatechange = this.sinon.stub();
       item.onprogress = this.sinon.stub();
+      item.oninstall = this.sinon.stub();
+      item.onerror = this.sinon.stub();
       item.start();
 
       assert.equal(item.state, item.STATE_INSTALLABLE);
@@ -195,6 +197,10 @@ suite('LayoutItem', function() {
         assert.equal(item.onstatechange.callCount, 3);
         assert.equal(item.state, item.STATE_INSTALLED);
         assert.isTrue(closeLockStub.unlock.calledOnce);
+
+        assert.isTrue(item.oninstall.calledOnce);
+
+        assert.isFalse(item.onerror.called);
       }).then(done, done);
     });
 
@@ -209,13 +215,21 @@ suite('LayoutItem', function() {
         return p;
       }).then(function() {
         throw 'Should not resolve.';
-      }, function() {
+      }, function(e) {
+        if (e && e !== 'mocked reject') { throw e; }
+
         assert.isFalse(navigator.mozInputMethod.addInput.calledOnce);
         assert.isFalse(layoutItemListStub.setLayoutAsInstalled.calledOnce);
         assert.isTrue(closeLockStub.unlock.calledOnce);
 
         assert.equal(item.onstatechange.callCount, 2);
         assert.equal(item.state, item.STATE_INSTALLABLE);
+
+        assert.isTrue(item.onerror.calledOnce);
+        assert.isFalse(item.oninstall.calledOnce);
+        assert.equal(
+          item.onerror.firstCall.args[0].error,
+          item.onerror.firstCall.args[0].ERROR_DOWNLOADERROR);
       }).then(done, done);
     });
 
@@ -244,7 +258,9 @@ suite('LayoutItem', function() {
         return p;
       }).then(function() {
         throw 'Should not resolve.';
-      }, function() {
+      }, function(e) {
+        if (e && e !== 'Failed') { throw e; }
+
         assert.isFalse(layoutItemListStub.setLayoutAsInstalled.calledOnce);
         assert.isTrue(closeLockStub.unlock.calledOnce);
 
@@ -254,6 +270,11 @@ suite('LayoutItem', function() {
         assert.equal(item.downloadLoadedSize, 0);
         assert.equal(item.downloadTotalSize, 0);
 
+        assert.isTrue(item.onerror.calledOnce);
+        assert.isFalse(item.oninstall.calledOnce);
+        assert.equal(
+          item.onerror.firstCall.args[0].error,
+          item.onerror.firstCall.args[0].ERROR_INSTALLERROR);
       }).then(done, done);
     });
 
@@ -288,13 +309,20 @@ suite('LayoutItem', function() {
         return p;
       }).then(function() {
         throw 'Should not resolve.';
-      }, function() {
+      }, function(e) {
+        if (e && e !== 'Failed') { throw e; }
+
         assert.equal(item.onstatechange.callCount, 3);
         assert.equal(item.state, item.STATE_INSTALLABLE);
         assert.equal(item.downloadLoadedSize, 0);
         assert.equal(item.downloadTotalSize, 0);
         assert.isTrue(closeLockStub.unlock.calledOnce);
 
+        assert.isTrue(item.onerror.calledOnce);
+        assert.isFalse(item.oninstall.calledOnce);
+        assert.equal(
+          item.onerror.firstCall.args[0].error,
+          item.onerror.firstCall.args[0].ERROR_INSTALLERROR);
       }).then(done, done);
     });
   });
@@ -318,6 +346,7 @@ suite('LayoutItem', function() {
       item = new LayoutItem(layoutItemListStub, layout);
       item.onstatechange = this.sinon.stub();
       item.onprogress = this.sinon.stub();
+      item.onerror = this.sinon.stub();
       item.start();
 
       assert.equal(item.state, item.STATE_INSTALLED);
@@ -360,6 +389,7 @@ suite('LayoutItem', function() {
         assert.equal(item.onstatechange.callCount, 2);
         assert.equal(item.state, item.STATE_INSTALLABLE);
         assert.isTrue(closeLockStub.unlock.calledOnce);
+        assert.isFalse(item.onerror.called);
       }).then(done, done);
     });
 
@@ -382,6 +412,11 @@ suite('LayoutItem', function() {
         assert.equal(item.onstatechange.callCount, 2);
         assert.equal(item.state, item.STATE_INSTALLED);
         assert.isTrue(closeLockStub.unlock.calledOnce);
+
+        assert.isTrue(item.onerror.calledOnce);
+        assert.equal(
+          item.onerror.firstCall.args[0].error,
+          item.onerror.firstCall.args[0].ERROR_REMOVEERROR);
       }).then(done, done);
     });
 
@@ -412,6 +447,7 @@ suite('LayoutItem', function() {
         assert.equal(item.onstatechange.callCount, 2);
         assert.equal(item.state, item.STATE_INSTALLABLE);
         assert.isTrue(closeLockStub.unlock.calledOnce);
+        assert.isFalse(item.onerror.called);
       }).then(done, done);
     });
 
@@ -441,6 +477,7 @@ suite('LayoutItem', function() {
         assert.equal(item.onstatechange.callCount, 2);
         assert.equal(item.state, item.STATE_INSTALLABLE);
         assert.isTrue(closeLockStub.unlock.calledOnce);
+        assert.isFalse(item.onerror.called);
       }).then(done, done);
     });
   });
@@ -463,6 +500,7 @@ suite('LayoutItem', function() {
       item = new LayoutItem(layoutItemListStub, layout);
       item.onstatechange = this.sinon.stub();
       item.onprogress = this.sinon.stub();
+      item.onerror = this.sinon.stub();
       item.start();
 
       assert.equal(item.state, item.STATE_INSTALLABLE);
@@ -485,13 +523,15 @@ suite('LayoutItem', function() {
       installForLayoutDeferred.reject('mocked reject');
 
       p.then(function() {
-          throw 'Should not resolve';
+        throw 'Should not resolve';
       }, function() {
         assert.equal(item.state, item.STATE_INSTALLABLE);
         assert.isTrue(closeLockStub.unlock.calledOnce);
 
         assert.equal(item.downloadLoadedSize, 0);
         assert.equal(item.downloadTotalSize, 0);
+
+        assert.isFalse(item.onerror.called);
       })
       .then(done, done);
     });

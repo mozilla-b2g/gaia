@@ -2,7 +2,7 @@
 
 /* exported ContactsButtons */
 
-/* globals Contacts, LazyLoader, MozActivity, MultiSimActionButton, Normalizer,
+/* globals LazyLoader, MozActivity, MultiSimActionButton, Normalizer,
            SmsIntegration, TelephonyHelper, utils */
 
 var ContactsButtons = {
@@ -31,8 +31,10 @@ var ContactsButtons = {
   _call: function call(phoneNumber, cardIndex) {
     this._disableCalls();
     var enableCalls = this._enableCalls.bind(this);
-    TelephonyHelper.call(phoneNumber, cardIndex, enableCalls, enableCalls,
+    LazyLoader.load('/dialer/js/telephony_helper.js', () => {
+      TelephonyHelper.call(phoneNumber, cardIndex, enableCalls, enableCalls,
                          enableCalls, enableCalls);
+    });
   },
 
   /* For security reasons we cannot directly call MmiManager.send() thus we
@@ -88,14 +90,16 @@ var ContactsButtons = {
   },
 
   _onSendSmsClicked: function onSendSmsClicked(evt) {
-    var target = evt.target.dataset.target;
-    SmsIntegration.sendSms(target);
+    var tel = evt.target.dataset.tel;
+    LazyLoader.load('/shared/js/contacts/sms_integration.js', () => {
+      SmsIntegration.sendSms(tel);
+    });
   },
 
   _onEmailOrPickClick: function onEmailOrPickClick(evt) {
     evt.preventDefault();
     var email = evt.target.dataset.email;
-    Contacts.sendEmailOrPick(email);
+    this.sendEmailOrPick(email);
     return false;
   },
 
@@ -103,7 +107,7 @@ var ContactsButtons = {
     if (!contact.tel) {
       return;
     }
-    var telLength = Contacts.getLength(contact.tel);
+    var telLength = this._getLength(contact.tel);
     for (var tel = 0; tel < telLength; tel++) {
       var currentTel = contact.tel[tel];
       var typeKey = currentTel.type;
@@ -128,7 +132,7 @@ var ContactsButtons = {
 
       // Add event listeners to the phone template components
       var sendSmsButton = template.querySelector('#send-sms-button-' + tel);
-      sendSmsButton.dataset.target = telField.value;
+      sendSmsButton.dataset.tel = telField.value;
       sendSmsButton.addEventListener('click',
                                      this._onSendSmsClicked.bind(this));
 
@@ -149,7 +153,7 @@ var ContactsButtons = {
     if (!contact.email) {
       return;
     }
-    var emailLength = Contacts.getLength(contact.email);
+    var emailLength = this._getLength(contact.email);
     for (var email = 0; email < emailLength; email++) {
       var currentEmail = contact.email[email];
       var escapedType = Normalizer.escapeHTML(currentEmail.type, true);
@@ -163,12 +167,6 @@ var ContactsButtons = {
       var emailsTemplate =
         document.querySelector('#email-details-template-\\#i\\#');
       var template = utils.templates.render(emailsTemplate, emailField);
-
-      var sendSmsButton = template.querySelector('#send-sms-to-email-button-' +
-                                                 email);
-      sendSmsButton.dataset.target = emailField.value;
-      sendSmsButton.addEventListener('click',
-                                     this._onSendSmsClicked.bind(this));
 
       // Add event listeners to the phone template components
       var emailButton = template.querySelector('#email-or-pick-' + email);
@@ -190,6 +188,30 @@ var ContactsButtons = {
 
     for (var i = 0; i < elements.length; i++) {
       elements[i].classList.add(remarkClass);
+    }
+  },
+
+  _getLength: function(prop) {
+    if (!prop || !prop.length) {
+      return 0;
+    }
+    return prop.length;
+  },
+
+  sendEmailOrPick: function(address) {
+    try {
+      // We don't check the email format, lets the email
+      // app do that
+      /* jshint nonew: false */
+      new MozActivity({
+        name: 'new',
+        data: {
+          type: 'mail',
+          URI: 'mailto:' + address
+        }
+      });
+    } catch (e) {
+      console.error('WebActivities unavailable? : ' + e);
     }
   }
 };

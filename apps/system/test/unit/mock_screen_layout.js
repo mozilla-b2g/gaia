@@ -1,4 +1,5 @@
 'use strict';
+/* exported MockScreenLayout */
 
 var MockScreenLayout = {
   setting: {},
@@ -9,7 +10,7 @@ var MockScreenLayout = {
   },
 
   isOnRealDevice: function msl_isOnRealDevice() {
-    return this.setting['isonrealdevice'];
+    return this.setting.isonrealdevice;
   },
 
   getCurrentLayout: function msl_getCurrentLayout(type) {

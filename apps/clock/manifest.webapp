@@ -41,6 +41,22 @@
     "284": "/style/icons/clock_284.png"
   },
   "orientation": "default",
+  "connections": {
+    "gaia_alarm": {
+      "handler_path": "/index.html",
+      "description": "Create alarm",
+      "rules": {
+        "manifestURLs": ["app://vaani.gaiamobile.org/manifest.webapp"]
+      }
+    },
+    "gaia_timer": {
+      "handler_path": "/index.html",
+      "description": "Create, pause, start and cancel Timer",
+      "rules": {
+        "manifestURLs": ["app://vaani.gaiamobile.org/manifest.webapp"]
+      }
+    }
+  },
   "messages": [
      { "alarm": "/index.html" }
   ]

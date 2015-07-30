@@ -2,7 +2,7 @@
   <template>
 
     <gaia-header>
-      <button type="reset"><span data-icon="close"></span></button>
+      <button type="reset"><span data-icon="close" data-l10n-id="closeButton"></span></button>
       <h1 data-l10n-id="hotspotSettings-header"></h1>
       <button class="save-hotspotSettings" type="submit"><span data-l10n-id="ok">OK</span></button>
     </gaia-header>
@@ -25,10 +25,9 @@
         <li class="password">
           <p data-l10n-id="wifi-password">Password</p>
           <input type="password" name="password" x-inputmode="verbatim" data-setting="tethering.wifi.security.password" />
-          <label class="pack-checkbox">
-            <input type="checkbox" data-ignore name="show_password">
-            <span data-l10n-id="showPassword">Show password</span>
-          </label>
+          <gaia-checkbox data-ignore name="show_password">
+            <label data-l10n-id="showPassword"></label>
+          </gaia-checkbox>
         </li>
       </ul>
     </div>

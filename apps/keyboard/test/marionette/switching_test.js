@@ -32,14 +32,14 @@ marionette('switch Keyboard App', function() {
   };
 
   client = marionette.client({
-    apps: apps,
-    prefs: {
-      'focusmanager.testmode': true
-    },
-    settings: {
-      'keyboard.enabled-layouts': keyboardSettings,
-      'lockscreen.enabled': false,
-      'ftu.manifestURL': null
+    profile: {
+      apps: apps,
+      prefs: {
+        'focusmanager.testmode': true
+      },
+      settings: {
+        'keyboard.enabled-layouts': keyboardSettings
+      }
     }
   });
 
@@ -86,7 +86,7 @@ marionette('switch Keyboard App', function() {
     var imeSwitchingKey = keyboard.imeSwitchingKey;
 
     // Long press to show IME menu
-    actions.longPress(imeSwitchingKey, 1.0).perform();
+    actions.longPress(imeSwitchingKey, 0.7).perform();
 
     // switch back to system
     client.switchToFrame();

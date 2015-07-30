@@ -2,12 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-try:
-    from marionette import expected
-    from marionette.by import By
-except:
-    from marionette_driver import expected
-    from marionette_driver.by import By
+from marionette_driver import expected, By, Wait
 
 from gaiatest.apps.base import Base
 
@@ -22,7 +17,9 @@ class Sound(Base):
 
     @property
     def current_ring_tone(self):
-        return self.marionette.find_element(*self._current_ring_tone_locator).text
+        element = self.marionette.find_element(*self._current_ring_tone_locator)
+        Wait(self.marionette).until(lambda m: element.text != '')
+        return element.text
 
     def tap_ring_tone_selector(self):
         self.marionette.find_element(*self._ring_tone_selector_locator).tap()

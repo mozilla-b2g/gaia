@@ -1,14 +1,16 @@
 define(function(require, exports, module) {
 'use strict';
 
-var Calc = require('calc');
+var Calc = require('common/calc');
 var GestureDetector = require('shared/gesture_detector');
 var SingleMonth = require('./single_month');
 var View = require('view');
+var core = require('core');
 var dateFromId = Calc.dateFromId;
 var monthStart = Calc.monthStart;
 var performance = require('performance');
 var router = require('router');
+var timeObserver = require('time_observer');
 
 // minimum difference between X and Y axis to be considered an horizontal swipe
 var XSWIPE_OFFSET = window.innerWidth / 10;
@@ -17,6 +19,7 @@ function Month() {
   View.apply(this, arguments);
   this.frames = new Map();
   window.addEventListener('localized', this);
+  this._setPresentDate = this._setPresentDate.bind(this);
 }
 module.exports = Month;
 
@@ -34,7 +37,10 @@ Month.prototype = {
   /** @type {SingleMonth} */
   currentFrame: null,
 
-  /** @type {DOMElement} used to detect if dbltap happened on same date */
+  /**
+   * used to detect if dbltap happened on same date
+   * @type {DOMElement}
+   */
   _lastTarget: null,
 
   /**
@@ -46,7 +52,7 @@ Month.prototype = {
 
   onactive: function() {
     View.prototype.onactive.apply(this, arguments);
-    this.app.timeController.scale = this.SCALE;
+    core.timeController.scale = this.SCALE;
     if (this.currentFrame) {
       this.currentFrame.activate();
     }
@@ -70,7 +76,7 @@ Month.prototype = {
   },
 
   _move: function(isNext) {
-    var controller = this.app.timeController;
+    var controller = core.timeController;
     var date = isNext ? this._nextTime() : this._previousTime();
     // If we changed months, set the selected day to the 1st
     controller.selectedDay = date;
@@ -86,13 +92,15 @@ Month.prototype = {
   },
 
   _initEvents: function() {
-    this.controller = this.app.timeController;
+    this.controller = core.timeController;
 
     this.element.addEventListener('swipe', this);
     this.element.addEventListener('wheel', this);
     this.controller.on('monthChange', this);
-    this.delegate(this.element, 'click', '[data-date]', this);
-    this.delegate(this.element, 'dbltap', '[data-date]', this);
+    this.delegate(this.element, 'click', '.month-day', this);
+    this.delegate(this.element, 'dbltap', '.month-day', this);
+
+    timeObserver.on('day', this._setPresentDate);
 
     this.gd = new GestureDetector(this.element);
     this.gd.startDetecting();
@@ -155,7 +163,6 @@ Month.prototype = {
     var frame = this.frames.get(id);
     if (!frame) {
       frame = new SingleMonth({
-        app: this.app,
         date: date,
         container: this.element
       });
@@ -187,6 +194,20 @@ Month.prototype = {
     Array.from(this.frames.keys())
     .sort((a, b) => a - b)
     .forEach(key => this.frames.get(key).append());
+  },
+
+  _setPresentDate: function() {
+    var id = Calc.getDayId(new Date());
+    var presentDate = this.element.querySelector('[data-date="' + id + '"]');
+    var previousDate = this.element.querySelector('.present');
+
+    if (previousDate) {
+      previousDate.classList.remove('present');
+      previousDate.classList.add('past');
+    }
+    if (presentDate) {
+      presentDate.classList.add('present');
+    }
   },
 
   oninactive: function() {

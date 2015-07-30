@@ -84,55 +84,6 @@ gaia-buttons.forward-only .icon-previous {
   display: none !important;
 }
 
-/******************************************************************************
- * Boolean inputs
- */
-
-/* custom styles for boolean inputs (see /shared/style/switches.css)
- * (incremental parity with Settings)
- */
-
-[data-type="list"] li > label.pack-switch {
-  text-transform: none;
-  -moz-margin-start: -1.5rem;
-  -moz-margin-end: -1.5rem;
-  width: 100%;
-  min-height: 5rem;
-  overflow: visible;
-  display: flex;
-  /* override switches.css treatment */
-  pointer-events: auto;
-  position: relative;
-  top: auto;
-  right: auto;
-  bottom: auto;
-  left: auto;
-}
-
-[data-type="list"] li > label.pack-switch > span {
-  text-decoration: none;
-  outline: 0;
-  color: #000;
-  -moz-box-sizing: border-box;
-  font-size: 1.9rem;
-  padding: 1rem 1.5rem;
-  -moz-padding-end: 9rem;
-  margin: 0 -1.5rem;
-  line-height: normal;
-  height: auto;
-  overflow: hidden;
-  display: block;
-}
-
-[data-type="list"] li > .pack-switch input ~ span::after {
-  left: auto;
-  right: 0;
-}
-[dir="rtl"][data-type="list"] li > .pack-switch input ~ span::after {
-  left: 0;
-  right: auto;
-}
-
 /*
   Header conditional button
 */
@@ -367,13 +318,23 @@ gaia-buttons.forward-only .icon-previous {
 
 #wifi [data-type="list"] li > p {
   pointer-events: none;
-  -moz-padding-end: 6.2rem;
+  line-height: 1.33;
+}
+#wifi:-moz-dir(ltr) [data-type="list"] li > p {
+  /* using padding-right/left on purpose as strings may be bidi,
+     which can change the meaning of -moz-padding-end */
+  padding-right: 6.2rem;
+}
+#wifi:-moz-dir(rtl) [data-type="list"] li > p {
+  padding-left: 6.2rem;
 }
 
+
 #wifi li {
-  padding: 0 1.5rem;
+  padding: 0 1.5rem 0.5rem 1.5rem;
   display: flex;
   flex-direction: column;
+  -moz-box-sizing: padding-box;
 }
 #wifi li.connected p {
   color: #00AACC;
@@ -501,12 +462,18 @@ aside.connecting {
   height: auto;
 }
 
-#hidden-wifi-authentication form label,
-#configure_network_params form label {
+/* Target only the labels outside of web components. */
+#hidden-wifi-authentication form li > label,
+#configure_network_params form li > label {
   display: block;
   width: 100%;
   -moz-box-sizing: border-box;
   padding: 1.5rem 1.5rem 0.5rem 1.5rem;
+}
+
+#hidden-wifi-authentication form label,
+#configure_network_params form label,
+#welcome_browser #form_share_statistics label {
   font-size: 1.5rem;
 }
 
@@ -517,18 +484,6 @@ aside.connecting {
 /* The hide class is needed by the custom_dialog.js library */
 .hidden, .hide {
   display: none !important;
-}
-
-/* 'show password' checkboxes */
-#hidden-wifi-authentication .pack-checkbox,
-#configure_network_params .pack-checkbox {
-  position: relative;
-  left: 0;
-  padding-top: 1rem;
-  padding-bottom: 1rem;
-  -moz-padding-start: 3rem;
-  -moz-padding-end: 0;
-  pointer-events: auto;
 }
 
 /*
@@ -734,6 +689,13 @@ aside.connecting {
   font-size: 1.4rem;
   font-weight: 500;
   margin: auto;
+  box-sizing: content-box;
+  display: inline-block;
+  width: auto;
+  min-width: 4.5rem;
+  max-width: 40%;
+  padding: 0 0.8rem;
+  -moz-padding-end: 1.8rem;
 }
 
 
@@ -751,16 +713,12 @@ aside.connecting {
   border-bottom: none;
 }
 
-#import_contacts #fb_import, #import_contacts #fb_after_import2 {
-  margin-top: 1rem;
-}
-
 /* Needed due to the .icon class which is overriding this property */
 #import_contacts button:active {
   background-color: #008aaa !important;
 }
 
-#no-sim, #no-memorycard, #no-network, #fb_after_import2 p {
+#no-sim, #no-memorycard, #no-network {
   color: #5B5B5B;
   font-size: 1.5rem;
   line-height: 2rem;
@@ -775,10 +733,6 @@ aside.connecting {
 }
 
 /* Extending icon types*/
-#import_contacts [data-type="list"] li button.icon-fb:before {
-  background-image: url('images/f_logo.png');
-}
-
 #import_contacts [data-type="list"] li button.icon-sim:before {
   background-image: url('images/import_sim.png');
 }
@@ -812,10 +766,12 @@ aside.connecting {
   margin-top: 1.6rem;
 }
 
-
-#fb_after_import1 {
-  background: url('images/import_fb.png') no-repeat center left / 3rem;
+#import_contacts [data-type="list"] li p {
+  text-overflow: unset;
+  overflow: unset;
+  white-space: unset;
 }
+
 
 #statusMsg.ftu {
   bottom: 6.5rem;
@@ -854,14 +810,6 @@ aside.connecting {
   width: 20rem;
 }
 
-#welcome_browser label {
-  position: absolute;
-  margin-top: -1.5rem;
-  margin-bottom: 0;
-  -moz-margin-start: -1.5rem;
-  -moz-margin-end: 0;
-}
-
 #welcome_browser section p a {
   -moz-margin-start: 0.3rem;
 }
@@ -884,15 +832,6 @@ aside.connecting {
 
 #welcome_browser #form_share_statistics {
   clear: both;
-}
-
-#welcome_browser #form_share_statistics label {
-  width: 100%;
-  height: auto;
-  margin: 0;
-  -moz-margin-start: 0;
-  -moz-margin-end: 3rem;
-  -moz-padding-end: 3rem;
 }
 
 #form_share_statistics span:after {
@@ -1057,72 +996,13 @@ i.hack-first-child {
   padding-top: 1.5rem;
 }
 
+[data-type="list"] li p:last-of-type {
+  padding-bottom: 1rem;
+}
+
 [data-type="list"] li > a {
   padding: 0 1.5rem;
 }
-
-/* .pack-value-selector make checkbox fit the whole li */
-/* .pack-value-selector should be part of "BB lists" */
-[data-type="list"] li {
-  transition: none;
-}
-
-[data-type="list"].pack-value-selector li:after {
-  content: "";
-  transition: opacity 0.2s ease;
-  background: #008aaa;
-  opacity: 0;
-  pointer-events: none;
-  position: absolute;
-  left: 0;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 0;
-}
-
-[data-type="list"].pack-value-selector li:active:after {
-  opacity: 0.6;
-}
-
-[data-type="list"].pack-value-selector li[aria-disabled="true"]:after {
-  background-color: #e6e6e6;
-  opacity: 0.7;
-  z-index: 1;
-}
-
-[data-type="list"].pack-value-selector li label:not([for]) {
-  background: none;
-  height: 100%;
-  position: absolute;
-  left: 1.5rem;
-  right: 1.5rem;
-  pointer-events: auto;
-  width: calc(100% - 4rem);
-}
-
-[data-type="list"].pack-value-selector li label:not([for]) input {
-  height: 100%
-}
-
-[data-type="list"].pack-value-selector li label:not([for]) input + span:after {
-  background: none;
-  left: 100%;
-  -moz-margin-start: -2.2rem;
-}
-
-[data-type="list"].pack-value-selector li label:not([for]) input:checked + span:after {
-  background: url("images/checked.png") no-repeat right center / 100%;
-}
-
-[data-type="list"].pack-value-selector li label:not([for]) input + span + p {
-  font-weight: normal;
-}
-
-[data-type="list"].pack-value-selector li label:not([for]) input:checked + span + p {
-  font-weight: 500;
-}
-
 
 #date_and_time [data-type="list"] select,
 #date_and_time [data-type="list"] input {
@@ -1148,7 +1028,7 @@ i.hack-first-child {
 
 #data_3g [data-type="list"] li,
 #geolocation [data-type="list"] li {
-  -moz-padding-start: 3rem;
+  -moz-padding-start: 1.5rem;
 }
 
 #data_3g .content,
@@ -1230,19 +1110,8 @@ html[dir="rtl"] .privacy-menuitem:before {
   right: 1.4rem;
 }
 
-html[dir="rtl"] [data-type="list"].pack-value-selector li label:not([for]) input + span:after {
-  left: unset;
-  right: 100%;
-}
-
 html[dir="rtl"] #date_and_time [data-type="list"] select,
 html[dir="rtl"] #date_and_time [data-type="list"] input {
   left: 1.5rem;
   right: unset;
-}
-
-html[dir="rtl"] #hidden-wifi-authentication .pack-checkbox,
-html[dir="rtl"] #configure_network_params .pack-checkbox {
-  left: unset;
-  right: auto;
 }

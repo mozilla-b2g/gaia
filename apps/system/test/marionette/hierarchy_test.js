@@ -8,60 +8,54 @@
   var TaskManager = require('./lib/task_manager');
   var CALLER_APP = 'activitycaller.gaiamobile.org';
   var FakeDialerApp = require('./lib/fakedialerapp.js');
+  var ActivityCallerApp = require('./lib/activitycallerapp');
 
   marionette('hierarchyManager', function() {
     var apps = {};
-    apps['activitycaller.gaiamobile.org'] = __dirname + '/activitycaller';
-    apps['activitycallee.gaiamobile.org'] = __dirname + '/activitycallee';
-    apps[FakeDialerApp.DEFAULT_ORIGIN] = __dirname + '/fakedialerapp';
+    apps['activitycaller.gaiamobile.org'] =
+      __dirname + '/../apps/activitycaller';
+    apps['activitycallee.gaiamobile.org'] =
+      __dirname + '/../apps/activitycallee';
+    apps[FakeDialerApp.DEFAULT_ORIGIN] = __dirname + '/../apps/fakedialerapp';
     var client = marionette.client({
-      settings: {
-        'ftu.manifestURL': null,
-        'lockscreen.enabled': true
-      },
-      apps: apps,
-      prefs: {
-        'focusmanager.testmode': true
+      profile: {
+        settings: {
+          'lockscreen.enabled': true
+        },
+        apps: apps
       }
     });
 
-    var getAppHeight = function(origin) {
-      client.switchToFrame();
-      client.apps.switchToApp(origin);
-      return client.executeScript(function() {
-        return window.wrappedJSObject.innerHeight;
-      });
-    };
 
     var getWindowName = function() {
       client.switchToFrame();
       return client.executeScript(function() {
-        return window.wrappedJSObject.core
-                     .hierarchyManager.getTopMostWindow().name;
+        return window.wrappedJSObject.Service.query('getTopMostWindow').name;
       });
     };
 
     var getActiveAppWindowState = function() {
       client.switchToFrame();
       return client.executeScript(function() {
-        return window.wrappedJSObject
-                     .appWindowManager.getActiveWindow().isActive();
+        return window.wrappedJSObject.Service
+                     .query('AppWindowManager.getActiveWindow').isActive();
       });
     };
 
     var getWindowType = function() {
       client.switchToFrame();
       return client.executeScript(function() {
-        return window.wrappedJSObject.core
-                     .hierarchyManager.getTopMostWindow().CLASS_NAME;
+        return window.wrappedJSObject.Service.query('getTopMostWindow')
+                     .CLASS_NAME;
       });
     };
 
     var getActiveAppWindowAriaHidden = function() {
       client.switchToFrame();
       return client.executeScript(function() {
-        return window.wrappedJSObject
-                     .appWindowManager.getActiveWindow().getTopMostWindow()
+        return window.wrappedJSObject.Service
+                     .query('AppWindowManager.getActiveWindow')
+                     .getTopMostWindow()
                      .element.getAttribute('aria-hidden');
       });
     };
@@ -69,7 +63,7 @@
     var getTopMost = function() {
       client.switchToFrame();
       return client.executeScript(function() {
-        return window.wrappedJSObject.core.hierarchyManager.getTopMostUI().name;
+        return window.wrappedJSObject.Service.query('getTopMostUI').name;
       });
     };
 
@@ -81,18 +75,19 @@
     lockscreen.start(client);
     var taskManager = new TaskManager(client);
     var fakeDialerApp = new FakeDialerApp(client);
+    var activitycaller = new ActivityCallerApp(client);
 
     suite('Test aria-hidden and top most UI', function() {
       setup(function() {
         utilityTray = new UtilityTray(client);
         system = client.loader.getAppClass('system');
-        system.waitForStartup();
+        system.waitForFullyLoaded();
         lockscreen.unlock();
       });
 
 
       test('Lockscreen window is active', function() {
-        client.apps.launch('app://' + CALLER_APP);
+        activitycaller.launch();
         lockscreen.lock();
         assert.equal(getTopMost(), 'LockScreenWindowManager');
         assert.equal(getActiveAppWindowAriaHidden(), 'true');
@@ -107,9 +102,8 @@
       });
 
       test('Inline activity', function() {
-        client.apps.launch('app://' + CALLER_APP);
-        client.apps.switchToApp('app://' + CALLER_APP);
-        client.findElement('#testchainactivity').click();
+        activitycaller.launch();
+        activitycaller.startChainActivity();
         assert.equal(getWindowName(),
           'Fake Activity Callee with inline deposition');
         assert.equal(getTopMost(), 'AppWindowManager');
@@ -125,7 +119,7 @@
       });
 
       test('Launch an app', function() {
-        client.apps.launch('app://' + CALLER_APP);
+        activitycaller.launch();
         assert.equal(getTopMost(), 'AppWindowManager');
         assert.equal(getWindowName(), 'Fake Activity Caller');
         assert.equal(getActiveAppWindowAriaHidden(), 'false');
@@ -135,8 +129,7 @@
         client.apps.launch('app://' + CALLER_APP);
         utilityTray.open();
         assert.equal(getTopMost(), 'UtilityTray');
-        // Don't blur current app when utilityTray is pulled down.
-        assert.equal(getActiveAppWindowAriaHidden(), 'false');
+        assert.equal(getActiveAppWindowAriaHidden(), 'true');
         utilityTray.close();
         assert.equal(getTopMost(), 'AppWindowManager');
         assert.equal(getActiveAppWindowAriaHidden(), 'false');
@@ -155,7 +148,7 @@
       });
 
       test('Launch an app and invoke task manager', function() {
-        client.apps.launch('app://' + CALLER_APP);
+        activitycaller.launch();
         taskManager.show();
         assert.equal(getActiveAppWindowAriaHidden(), 'true');
         taskManager.hide();
@@ -166,18 +159,18 @@
     suite('home event', function() {
       setup(function() {
         system = client.loader.getAppClass('system');
-        system.waitForStartup();
+        system.waitForFullyLoaded();
         lockscreen.unlock();
       });
 
       test('Press home while active app is not home', function() {
-        client.apps.launch('app://' + CALLER_APP);
+        activitycaller.launch();
         system.tapHome();
         assert.equal(getWindowName(), 'Homescreen');
       });
 
       test('Lockscreen window is active', function() {
-        client.apps.launch('app://' + CALLER_APP);
+        activitycaller.launch();
         lockscreen.lock();
         system.tapHome();
         lockscreen.unlock();
@@ -188,111 +181,25 @@
     suite('holdhome event', function() {
       setup(function() {
         system = client.loader.getAppClass('system');
-        system.waitForStartup();
+        system.waitForFullyLoaded();
         lockscreen.unlock();
       });
 
       test('Press holdhome', function() {
-        client.apps.launch('app://' + CALLER_APP);
+        activitycaller.launch();
         system.holdHome();
         client.helper.wait(3000);
         assert.isFalse(getActiveAppWindowState());
       });
 
       test('Lockscreen window is active', function() {
-        client.apps.launch('app://' + CALLER_APP);
+        activitycaller.launch();
         lockscreen.lock();
         system.holdHome();
         lockscreen.unlock();
         assert.equal(getWindowName(), 'Fake Activity Caller');
         assert.isTrue(getActiveAppWindowState());
       });
-    });
-
-    suite('Value selector', function() {
-      setup(function() {
-        system = client.loader.getAppClass('system');
-        system.waitForStartup();
-        lockscreen.unlock();
-      });
-
-      test('Focus a date input in an app should trigger value selector',
-        function() {
-          client.apps.launch('app://' + CALLER_APP);
-          client.apps.switchToApp('app://' + CALLER_APP);
-          client.findElement('#dateinput').click();
-          client.switchToFrame();
-          client.helper.waitForElement('.appWindow .value-selector');
-        });
-
-      test('Focus a date input in system dialog should trigger value selector',
-        function() {
-          client.apps.launch('app://' + CALLER_APP);
-          fxASystemDialog.show();
-          fxASystemDialog.goToCOPPA();
-          fxASystemDialog.focusAge();
-          client.switchToFrame();
-          client.helper.waitForElement('.fxa-dialog .value-selector');
-        });
-    });
-
-    test('Focus during init logo does not invoke keyboard', function() {
-      fxASystemDialog.show();
-      var h1 = fxASystemDialog.getHeight();
-      fxASystemDialog.focus();
-      var h2 = fxASystemDialog.getHeight();
-      assert.equal(h1, h2);
-    });
-
-    suite('Keyboard resize', function() {
-      setup(function() {
-        system = client.loader.getAppClass('system');
-        system.waitForStartup();
-        lockscreen.unlock();
-      });
-
-      // XXX: See bug 1103944
-      test.skip('App should not change its height when focusing attention',
-        function() {
-          fakeDialerApp.launch();
-          var apph1 = getAppHeight(fakeDialerApp.origin);
-          client.switchToFrame();
-          var h1 = fakeDialerApp.getCallHeight();
-          client.findElement('#input').click();
-          client.switchToFrame();
-          system.waitForKeyboard();
-          var apph2 = getAppHeight(fakeDialerApp.origin);
-          var h2 = fakeDialerApp.getCallHeight();
-          assert.notEqual(h1, h2);
-          assert.equal(apph1, apph2);
-        });
-
-      test('App with input is focused should change height', function() {
-        client.apps.launch('app://' + CALLER_APP);
-        var h1 = getAppHeight('app://' + CALLER_APP);
-        client.findElement('#input').click();
-        client.switchToFrame();
-        system.waitForKeyboard();
-        var h2 = getAppHeight('app://' + CALLER_APP);
-        assert.notEqual(h1, h2);
-      });
-
-      test('App should not change its height if system dialog is focused',
-        function() {
-          client.apps.launch('app://' + CALLER_APP);
-          var h1 = getAppHeight('app://' + CALLER_APP);
-          client.switchToFrame();
-          fxASystemDialog.show();
-          var systemDialogHeight1 = fxASystemDialog.getHeight();
-          fxASystemDialog.focus();
-          client.switchToFrame();
-          system.waitForKeyboard();
-
-          var systemDialogHeight2 = fxASystemDialog.getHeight();
-          var h2 = getAppHeight('app://' + CALLER_APP);
-          assert.equal(h1, h2);
-          assert.notEqual(systemDialogHeight1, systemDialogHeight2);
-        });
     });
   });
 }());

@@ -7,7 +7,8 @@ var fldFolderItemNode = require('tmpl!./fld/folder_item.html'),
     FOLDER_DEPTH_CLASSES = require('folder_depth_classes'),
     cards = require('cards'),
     model = require('model'),
-    evt = require('evt');
+    evt = require('evt'),
+    transitionEnd = require('transition_end');
 
 require('css!style/folder_cards');
 
@@ -24,7 +25,7 @@ return [
       this.bindContainerHandler(this.accountListContainer, 'click',
                                 this.onClickAccount.bind(this));
 
-      this.addEventListener('transitionend', this.onTransitionEnd.bind(this));
+      transitionEnd(this, this.onTransitionEnd.bind(this));
 
       // If more than one account, need to show the account dropdown
       var accountCount = model.getAccountCount();

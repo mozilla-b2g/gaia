@@ -9,16 +9,14 @@
     <div>
       <ul>
         <li>
-          <label class="pack-switch">
-            <input type="checkbox" class="uninit" name="geolocation.enabled">
-            <span data-l10n-id="geolocation"></span>
-          </label>
+          <gaia-switch name="geolocation.enabled">
+            <label data-l10n-id="geolocation"></label>
+          </gaia-switch>
         </li>
         <li class="show-when-geolocation-on">
-          <label class="pack-switch">
-            <input type="checkbox" class="uninit" name="ala.settings.enabled">
-            <span data-l10n-id="location-adjustment"></span>
-          </label>
+          <gaia-switch name="ala.settings.enabled">
+            <label data-l10n-id="location-adjustment"></label>
+          </gaia-switch>
         </li>
         <li class="hide-when-ala-on">
           <p class="description"></p>

@@ -1,0 +1,13 @@
+#service-workers-empty-section {
+  height: calc(100% - 5rem);
+  text-align: center;
+}
+
+#empty-text {
+  font-size: 1.8rem;
+  color: #1CABCB;
+}
+
+.hidden {
+  display: none
+}

@@ -1,5 +1,5 @@
-/* global Tutorial, FinishScreen,
-          MocksHelper, MockL10n
+/* global Tutorial, FinishScreen, LazyLoader,
+          MocksHelper, MockL10n, MockNavigatormozApps,
           MockNavigatorSettings */
 'use strict';
 

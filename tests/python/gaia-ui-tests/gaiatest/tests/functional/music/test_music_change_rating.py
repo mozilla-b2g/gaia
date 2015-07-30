@@ -4,10 +4,7 @@
 
 import time
 
-try:
-    from marionette import Wait
-except:
-    from marionette_driver import Wait
+from marionette_driver import Wait
 
 from gaiatest import GaiaTestCase
 from gaiatest.apps.music.app import Music

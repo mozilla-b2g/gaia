@@ -1,4 +1,5 @@
-/* global _, addNetworkUsageAlarm, Common, Formatting, SimManager */
+/* global _, addNetworkUsageAlarm, Common, Formatting, SimManager,
+          CostControl */
 /* exported dataLimitConfigurer */
 'use strict';
 
@@ -33,8 +34,9 @@ function dataLimitConfigurer(guiWidget, settings, viewManager, widgetRoot) {
       var dataLimit = Common.getDataLimit({'dataLimitValue': value,
                                            'dataLimitUnit': currentUnit});
       SimManager.requestDataSimIcc(function(dataSim) {
-        addNetworkUsageAlarm(Common.getDataSIMInterface(dataSim.iccId),
-                             dataLimit);
+        var simInterface = Common.getDataSIMInterface(dataSim.iccId);
+        addNetworkUsageAlarm(simInterface, dataLimit, null,
+          () => checkDataLimit(dataLimit));
       });
       viewManager.closeCurrentView();
     });
@@ -54,6 +56,25 @@ function dataLimitConfigurer(guiWidget, settings, viewManager, widgetRoot) {
         viewManager.closeCurrentView();
       }
     );
+  }
+
+  function checkDataLimit(dataLimit) {
+    CostControl.getInstance(function _onCostControl(costcontrol) {
+      var requestObj = {
+        type: 'datausage'
+      };
+      costcontrol.request(requestObj, function _onDataStats(result) {
+        var stats = result.data.mobile.total;
+        if (stats > dataLimit) {
+          var mobileUsage = {
+            limit: Formatting.formatData(Formatting.roundData(dataLimit))
+          };
+          var message = _('data-limit-notification-title2', mobileUsage) +
+            '\n' + _('data-limit-notification-text2');
+          window.alert(message);
+        }
+      });
+    });
   }
 
   function isNotRemovingChar(newChar) {
@@ -122,7 +143,7 @@ function dataLimitConfigurer(guiWidget, settings, viewManager, widgetRoot) {
   dataLimitInput.addEventListener('input',
     function cc_ondataLimitInputChange(evt) {
       var lowLimitValue = evt.target.value.trim();
-      var isNumericLowLimit = !Number.isNaN(lowLimitValue);
+      var isNumericLowLimit = !Number.isNaN(Number(lowLimitValue));
 
       if (isNumericLowLimit &&
           lowLimitValue.indexOf('.0') !== lowLimitValue.length - 2 &&

@@ -8,6 +8,8 @@ require('/test/unit/mock_config_manager.js');
 require('/test/unit/mock_debug.js');
 require('/js/utils/toolkit.js');
 require('/test/unit/mock_common.js');
+require('/shared/js/component_utils.js');
+require('/shared/elements/gaia_radio/script.js');
 require('/shared/test/unit/load_body_html_helper.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/js/views/BalanceLowLimitView.js');
@@ -60,7 +62,7 @@ suite('FTE Test Suite >', function() {
 
   teardown(function() {
     autoSettingsSpy.restore();
-    parent.postMessage.restore();    
+    parent.postMessage.restore();
     window.location.hash = '';
   });
 
@@ -105,7 +107,7 @@ suite('FTE Test Suite >', function() {
       if (data.hasOwnProperty('type') && data.type == 'fte_ready') {
         assertingFunction(autoSettingsSpy);
         done();
-      } 
+      }
     });
   }
 

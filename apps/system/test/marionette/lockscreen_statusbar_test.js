@@ -12,21 +12,24 @@ marionette('LockScreen status bar', function() {
   var firstApp;
   var firstAppOrigin = 'fakeapp.gaiamobile.org';
   var apps = {};
-  apps[firstAppOrigin] = __dirname + '/fakeapp';
+  apps[firstAppOrigin] = __dirname + '/../apps/fakeapp';
   var client = marionette.client({
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': true
+    profile: {
+      settings: {
+        'lockscreen.enabled': true
+      },
+
+      apps: apps
     },
-    apps: apps
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
   });
 
   setup(function() {
     system = client.loader.getAppClass('system');
+    system.waitForFullyLoaded();
     lockScreen = (new LockScreen()).start(client);
     statusBar = new StatusBar(client);
 
-    system.waitForStartup();
     firstApp = new FakeApp(client, 'app://' + firstAppOrigin);
   });
 

@@ -3,26 +3,26 @@ var FakeDialerApp = require('./lib/fakedialerapp.js');
 
 marionette('Software Home Button - Call screen Appearance', function() {
   var apps = {};
-  apps[FakeDialerApp.DEFAULT_ORIGIN] = __dirname + '/fakedialerapp';
+  apps[FakeDialerApp.DEFAULT_ORIGIN] = __dirname + '/../apps/fakedialerapp';
 
   var client = marionette.client({
-    prefs: {
-      'focusmanager.testmode': true,
-      'dom.w3c_touch_events.enabled': 1
+    profile: {
+      prefs: {
+        'focusmanager.testmode': true
+      },
+      settings: {
+        'software-button.enabled': true
+      },
+      apps: apps
     },
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false,
-      'software-button.enabled': true
-    },
-    apps: apps
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
   });
   var system;
   var fakedialer;
 
   setup(function() {
     system = client.loader.getAppClass('system');
-    system.waitForStartup();
+    system.waitForFullyLoaded();
 
     fakedialer = new FakeDialerApp(client);
   });

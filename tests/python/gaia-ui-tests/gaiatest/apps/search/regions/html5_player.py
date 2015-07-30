@@ -4,14 +4,7 @@
 
 import time
 
-try:
-    from marionette import (expected,
-                            Wait)
-    from marionette.by import By
-except:
-    from marionette_driver import (expected,
-                                   Wait)
-    from marionette_driver.by import By
+from marionette_driver import expected, By, Wait
 
 from gaiatest.apps.base import Base
 from gaiatest.apps.base import PageRegion
@@ -67,18 +60,18 @@ class HTML5Player(PageRegion):
     def show_controls(self):
         Wait(self.marionette).until(lambda m: not self.controls_visible)
         self.marionette.execute_script("""
-           var a = SpecialPowers.Cc["@mozilla.org/inspector/dom-utils;1"]
-               .getService(SpecialPowers.Ci.inIDOMUtils)
+           var a = Components.classes["@mozilla.org/inspector/dom-utils;1"]
+               .getService(Components.interfaces.inIDOMUtils)
                .getChildrenForNode(document.getElementsByTagName('video')[0], true);
            var x = a[1].ownerDocument.getAnonymousElementByAttribute(a[1],'class', 'controlBar');
            x.removeAttribute('hidden');
-         """)
+         """, sandbox='system')
         Wait(self.marionette).until(lambda m: self.controls_visible)
 
     def get_location(self, class_name):
         return self.marionette.execute_script("""
-           var a = SpecialPowers.Cc["@mozilla.org/inspector/dom-utils;1"]
-               .getService(SpecialPowers.Ci.inIDOMUtils)
+           var a = Components.classes["@mozilla.org/inspector/dom-utils;1"]
+               .getService(Components.interfaces.inIDOMUtils)
                .getChildrenForNode(document.getElementsByTagName('video')[0], true);
            var x1 = document.getElementsByTagName('video')[0].getBoundingClientRect().left;
            var x2 = a[1].ownerDocument
@@ -89,7 +82,7 @@ class HTML5Player(PageRegion):
            var y2 = a[1].ownerDocument.getAnonymousElementByAttribute(a[1],'class', '%s')
                         .getBoundingClientRect().top;
            return (Math.floor(x2-x1) + ',' + Math.floor(y2-y1));
-         """ % (class_name, class_name)).split(',')
+         """ % (class_name, class_name), sandbox='system').split(',')
 
     def tap_video_control(self, class_name):
         location = self.get_location(class_name)

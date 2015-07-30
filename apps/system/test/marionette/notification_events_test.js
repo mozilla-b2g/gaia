@@ -11,10 +11,7 @@ var EMAIL_APP_MANIFEST = EMAIL_APP + '/manifest.webapp';
 marionette('Notification events', function() {
 
   var client = marionette.client({
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
-    }
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
   });
   var details = {tag: 'test tag',
                  body: 'test body',
@@ -22,6 +19,12 @@ marionette('Notification events', function() {
                         string: '123',
                         array: [1, 2, 3],
                         obj: {test: 'test'}}};
+
+  var system;
+  setup(function() {
+    system = client.loader.getAppClass('system');
+    system.waitForFullyLoaded();
+  });
 
   test('click event starts application', function(done) {
     var notificationTitle = 'Title:' + Date.now();

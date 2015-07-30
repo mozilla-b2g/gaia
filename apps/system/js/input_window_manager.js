@@ -1,6 +1,7 @@
 'use strict';
 
-/* global applications, InputWindow, SettingsListener, KeyboardManager */
+/* global applications, InputWindow, SettingsListener, KeyboardManager,
+   Service, Promise */
 
 (function(exports) {
 
@@ -79,12 +80,18 @@
     // The InputWindow that's being displayed
     this._currentWindow = null;
 
+    // This points to an InputWindow that should be closed but displayed during
+    // the timeout.
+    this._windowToClose = null;
+
     // The switched-out InputWindow that we need to deactivate when the
     // switched-in InputWindow finishes activation.
     this._lastWindow = null;
 
     this._onDebug = false;
   };
+
+  InputWindowManager.prototype.name = 'InputWindowManager';
 
   InputWindowManager.prototype._debug = function iwm__debug(msg) {
     if (this._onDebug) {
@@ -99,7 +106,6 @@
       this._oopSettingCallbackBind);
 
     window.addEventListener('input-appopened', this);
-    window.addEventListener('input-appclosing', this);
     window.addEventListener('input-appclosed', this);
     window.addEventListener('input-apprequestclose', this);
     window.addEventListener('input-appready', this);
@@ -121,8 +127,13 @@
     window.addEventListener('notification-clicked', this);
     window.addEventListener('applicationsetupdialogshow', this);
     window.addEventListener('sheets-gesture-begin', this);
+    window.addEventListener('cardviewbeforeshow', this);
     window.addEventListener('lockscreen-appopened', this);
     window.addEventListener('mozmemorypressure', this);
+    Service.registerState('getHeight', this);
+    Service.registerState('isOutOfProcessEnabled', this);
+    Service.register('hideInputWindow', this);
+    Service.register('hideInputWindowImmediately', this);
   };
 
   InputWindowManager.prototype.stop = function iwm_stop() {
@@ -131,7 +142,6 @@
     this._oopSettingCallbackBind = null;
 
     window.removeEventListener('input-appopened', this);
-    window.removeEventListener('input-appclosing', this);
     window.removeEventListener('input-appclosed', this);
     window.removeEventListener('input-apprequestclose', this);
     window.removeEventListener('input-appready', this);
@@ -149,6 +159,7 @@
     window.removeEventListener('notification-clicked', this);
     window.removeEventListener('applicationsetupdialogshow', this);
     window.removeEventListener('sheets-gesture-begin', this);
+    window.removeEventListener('cardviewbeforeshow', this);
     window.removeEventListener('lockscreen-appopened', this);
     window.removeEventListener('mozmemorypressure', this);
   };
@@ -180,13 +191,6 @@
             this._lastWindow.close('immediate');
           }
           this._lastWindow = null;
-        }
-        break;
-      case 'input-appclosing':
-        // for closing/closed events, make sure we don't have any displayed
-        // InputWindow, to send out this system-wide event.
-        if (!this._currentWindow) {
-          this._kbPublish('keyboardhide', undefined);
         }
         break;
       case 'input-appclosed':
@@ -237,9 +241,16 @@
         break;
       case 'lockscreen-appopened':
       case 'sheets-gesture-begin':
+      case 'cardviewbeforeshow':
         if (this._hasActiveInputApp()) {
           // Instead of hideInputWindow(), we should removeFocus() here.
           // (and removing the focus cause Gecko to ask us to hideInputWindow())
+
+          // We need to blur the app to prevent the keyboard from refocusing
+          // right away.
+          // See: https://bugzilla.mozilla.org/show_bug.cgi?id=1138977
+          var app = Service.query('getTopMostWindow');
+          app && app.blur();
           navigator.mozInputMethod.removeFocus();
         }
         break;
@@ -259,14 +270,9 @@
   };
 
   InputWindowManager.prototype._getMemory = function iwm_getMemory() {
-    if ('getFeature' in navigator) {
-      navigator.getFeature('hardware.memory').then(mem => {
-        this._totalMemory = mem;
-      }, () => {
-        console.error('InputWindowManager: ' +
-          'Failed to retrieve total memory of the device.');
-      });
-    }
+    Service.request('getDeviceMemory').then((mem) => {
+      this._totalMemory = mem;
+    });
   };
 
   InputWindowManager.prototype._oopSettingCallback =
@@ -420,29 +426,83 @@
     this._currentWindow = nextWindow;
   };
 
+  InputWindowManager.prototype.HIDE_INPUT_WINDOW_TIMEOUT = 200;
+
   InputWindowManager.prototype.hideInputWindow =
   function iwm_hideInputWindow() {
     if (!this._currentWindow){
       return;
     }
 
-    var windowToClose = this._currentWindow;
+    var windowToClose = this._windowToClose = this._currentWindow;
     this._currentWindow = null;
-    windowToClose.close();
+
+    // If the focus is regain within a short time, we would not want to resize
+    // the forground app viewport, which creates suboptimal experiences
+    // (see bug 1176926 and bug 1176771).
+    //
+    // Previously we tried to remove this timeout by delay the blurring message
+    // with a next tick from forms.js (bug 1057898), but this is suboptimal
+    // for the following reasons: While the focus is regain before next tick
+    // when switching between two inputs (see the case in bug 1057898),
+    // That will not work when the focus is removed by tapping a button and
+    // regain at the click event of the button (which is the case of Message app
+    // composer). In this case, the focus is removed at mousedown/touchstart
+    // event; next tick of the blur would happen *before* touchend and click
+    // events of the button.
+    //
+    // This timeout also happen to absorb the event order differences between
+    // oop/inproc environment (see bug 1171950 comment 2).
+    return new Promise(function(resolve) {
+        setTimeout(resolve, this.HIDE_INPUT_WINDOW_TIMEOUT);
+      }.bind(this))
+      .then(function iwm_publishKeyboardHideEventSync() {
+        // We should not close ourselves if we are being set back to become
+        // the currentWindow again, which implies we have already regain the
+        // focus.
+        if (this._currentWindow === windowToClose) {
+          this._windowToClose = null;
+          return;
+        }
+
+        // We also should abort if _windowToClose is already null, indicating
+        // the keyboardhide event is already dispatched.
+        if (this._windowToClose === null) {
+          return;
+        }
+
+        // Set this flag to null so that keyboardhide event will not be
+        // dispatched again in another call.
+        this._windowToClose = null;
+
+        // Publish an keyboardhide event that would cause the
+        // foreground app to resize.
+        // The promise will resolve when all the promises passed to waitUntil()
+        // have resolved.
+        return this._kbPublish('keyboardhide', undefined);
+      }.bind(this))
+      .then(function iwm_hideInputWindowSync() {
+        // We should not close ourselves if we are being set back to become
+        // the currentWindow again.
+        if (this._currentWindow === windowToClose) {
+          return;
+        }
+
+        windowToClose.close();
+      }.bind(this))
+      .catch((e) => { console.error(e); });
   };
 
   InputWindowManager.prototype.hideInputWindowImmediately =
   function iwm_hideInputWindowImmediately() {
-    if (!this._currentWindow){
+    if (!this._currentWindow && !this._windowToClose){
       return;
     }
 
-    var windowToClose = this._currentWindow;
-    this._currentWindow = null;
-
-    // simulate anything we would do in 'closing' event
     this._kbPublish('keyboardhide', undefined);
 
+    var windowToClose = this._currentWindow || this._windowToClose;
+    this._currentWindow = this._windowToClose = null;
     windowToClose.close('immediate');
   };
 
@@ -453,13 +513,35 @@
 
   // As per bug 952441, we want to use a special way to broadcast system-wide
   // keyboard-related events
+  // This function returns a promise and it will only resolves when all
+  // promises passed into evt.detail.waitUntil() is resolved.
   InputWindowManager.prototype._kbPublish =
-  function iwm_kbPublish(type, height){
+  function iwm_kbPublish(type, height) {
+    var chainedPromise = Promise.resolve();
+    var returned = false;
+
     var eventInitDict = {
       bubbles: true,
       cancelable: true,
       detail: {
-        height: height
+        height: height,
+        waitUntil: function(p) {
+          // Need an extra protection here since waitUntil will be an no-op
+          // when chainedPromise is already returned.
+          if (returned) {
+            throw new Error('InputWindowManager: You must call waitUntil()' +
+              ' within the event handling loop.');
+          }
+
+          // No point to put it into the queue if it's not a then-able.
+          if (!p || typeof p.then !== 'function') {
+            return;
+          }
+
+          chainedPromise = chainedPromise
+            .then(function() { return p; })
+            .catch((e) => { console.error(e); });
+        }
       }
     };
 
@@ -467,6 +549,9 @@
     // them and prevent page resizing where desired.
     var evt = new CustomEvent(type, eventInitDict);
     document.body.dispatchEvent(evt);
+
+    returned = true;
+    return chainedPromise;
   };
 
   exports.InputWindowManager = InputWindowManager;

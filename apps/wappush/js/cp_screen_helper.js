@@ -9,8 +9,6 @@
 'use strict';
 
 var CpScreenHelper = (function() {
-  var _ = null;
-
   /** Content provisioning screen node */
   var cpScreen = null;
 
@@ -100,8 +98,6 @@ var CpScreenHelper = (function() {
   var headerDetails = null;
 
   function cpsh_init() {
-    _ = navigator.mozL10n.get;
-
     // Let's consider the message is completely processed once the settings are
     // stored into the database.
     processed = false;
@@ -172,10 +168,10 @@ var CpScreenHelper = (function() {
   function cpsh_populateScreen(message) {
     cpScreen.hidden = false;
 
-    var _title = Utils.prepareMessageTitle(message);
-    titleApn.textContent = _title;
-    titleDetails.textContent = _title;
-    titlePin.textContent = _title;
+    var title = Utils.prepareMessageTitle(message);
+    navigator.mozL10n.setAttributes(titleApn, title.id, title.args);
+    navigator.mozL10n.setAttributes(titleDetails, title.id, title.args);
+    navigator.mozL10n.setAttributes(titlePin, title.id, title.args);
 
     iccCardIndex = message.serviceId;
     messageTag = message.timestamp;
@@ -192,7 +188,8 @@ var CpScreenHelper = (function() {
     // Multimedia Messaging System Enabler). In this case we must not continue.
     if (apns.length === 0) {
       message = finishConfirmDialog.querySelector('strong');
-      message.textContent = _('cp-finish-confirm-dialog-message-no-apns');
+      navigator.mozL10n.setAttributes(message,
+        'cp-finish-confirm-dialog-message-no-apns');
       finishConfirmDialog.hidden = false;
       return;
     }
@@ -213,11 +210,11 @@ var CpScreenHelper = (function() {
     if (showPINInput) {
       // If the document has not been authenticated yet and the PIN code is
       // needed, show some info and the PIN input element to the user.
-      pinHelp.textContent = _('cp-accept-help-pin');
+      navigator.mozL10n.setAttributes(pinHelp, 'cp-accept-help-pin');
       pin.type = 'number';
       acceptPinButton.disabled = true;
     } else {
-      pinHelp.textContent = _('cp-done-help');
+      navigator.mozL10n.setAttributes(pinHelp, 'cp-done-help');
       pin.type = 'hidden';
       pin.blur();
       acceptPinButton.disabled = false;
@@ -249,6 +246,8 @@ var CpScreenHelper = (function() {
       var aside = document.createElement('aside');
       aside.className = 'pack-end';
       aside.setAttribute('data-icon', 'forward');
+      // Icon is for presentation only.
+      aside.setAttribute('aria-hidden', true);
 
       var p = document.createElement('p');
       p.textContent = apns[i].carrier;
@@ -455,7 +454,7 @@ var CpScreenHelper = (function() {
                                                      authInfo);
       } catch (e) {
         message = finishConfirmDialog.querySelector('strong');
-        message.textContent = _(e.message);
+        navigator.mozL10n.setAttributes(message, e.message);
         finishConfirmDialog.hidden = false;
         return;
       }

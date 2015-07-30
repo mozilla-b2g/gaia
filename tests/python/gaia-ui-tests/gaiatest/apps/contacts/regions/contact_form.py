@@ -2,14 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-try:
-    from marionette import (expected,
-                            Wait)
-    from marionette.by import By
-except:
-    from marionette_driver import (expected,
-                                   Wait)
-    from marionette_driver.by import By
+from marionette_driver import expected, By, Wait
+
 from gaiatest.apps.base import Base
 
 
@@ -26,6 +20,11 @@ class ContactForm(Base):
     _city_locator = (By.ID, 'locality_0')
     _country_locator = (By.ID, 'countryName_0')
     _comment_locator = (By.ID, 'note_0')
+    _add_new_email_locator = (By.ID, 'add-new-email')
+    _add_new_address_locator = (By.ID, 'add-new-address')
+    _add_new_note_locator = (By.ID, 'add-new-note')
+    _screen_locator = (By.ID, 'screen')
+    _statusbar_locator = (By.ID, 'statusbar')
 
     _thumbnail_photo_locator = (By.ID, 'thumbnail-photo')
 
@@ -61,6 +60,8 @@ class ContactForm(Base):
         return self.marionette.find_element(*self._email_locator).text
 
     def type_email(self, value):
+        Wait(self.marionette).until(
+            expected.element_present(*self._add_new_email_locator)).tap()
         element = self.marionette.find_element(*self._email_locator)
         element.clear()
         element.send_keys(value)
@@ -70,6 +71,7 @@ class ContactForm(Base):
         return self.marionette.find_element(*self._street_locator).text
 
     def type_street(self, value):
+        self.marionette.find_element(*self._add_new_address_locator).tap()
         element = self.marionette.find_element(*self._street_locator)
         element.clear()
         element.send_keys(value)
@@ -106,11 +108,13 @@ class ContactForm(Base):
         return self.marionette.find_element(*self._comment_locator).text
 
     def type_comment(self, value):
+        self.marionette.find_element(*self._add_new_note_locator).tap()
         element = self.marionette.find_element(*self._comment_locator)
         element.clear()
         element.send_keys(value)
 
     def tap_comment(self):
+        self.marionette.find_element(*self._add_new_note_locator).tap()
         element = self.marionette.find_element(*self._comment_locator)
         element.tap()
 
@@ -183,7 +187,7 @@ class EditContact(ContactForm):
 
 class NewContact(ContactForm):
 
-    _src = 'app://communications.gaiamobile.org/contacts/index.html?new'
+    _src = 'app://communications.gaiamobile.org/contacts/views/form/form.html'
     _done_button_locator = (By.ID, 'save-button')
 
     def __init__(self, marionette):
@@ -200,7 +204,15 @@ class NewContact(ContactForm):
         Wait(self.marionette).until(lambda m: done.location['y'] == 0)
 
     def tap_done(self, return_contacts=True):
-        self.marionette.find_element(*self._done_button_locator).tap()
+        # Workaround for bug 1109213, where tapping on the button inside the app itself
+        # makes Marionette spew out NoSuchWindowException errors
+        element = self.marionette.find_element(*self._done_button_locator)
+        x = element.rect['x'] + element.rect['width']//2
+        y = element.rect['y'] + element.rect['height']//2
+        self.marionette.switch_to_frame()
+        statusbar = self.marionette.find_element(*self._statusbar_locator)
+        self.marionette.find_element(*self._screen_locator).tap(x, y + statusbar.rect['height'])
+
         return self.wait_for_done(return_contacts)
 
     def a11y_click_done(self, return_contacts=True):
@@ -208,13 +220,13 @@ class NewContact(ContactForm):
         return self.wait_for_done(return_contacts)
 
     def wait_for_done(self, return_contacts=True):
+        self.wait_for_element_not_displayed(*self._done_button_locator)
+        from gaiatest.apps.contacts.app import Contacts
         # NewContact can be opened as an Activity from other apps. In this scenario we don't return Contacts
         if return_contacts:
-            self.wait_for_element_not_displayed(*self._done_button_locator)
-            from gaiatest.apps.contacts.app import Contacts
+            self.apps.switch_to_displayed_app()
             return Contacts(self.marionette)
         else:
-            from gaiatest.apps.contacts.app import Contacts
             Wait(self.marionette).until(lambda m: self.apps.displayed_app.name != Contacts.name)
             # Fall back to the underlying app
             self.apps.switch_to_displayed_app()

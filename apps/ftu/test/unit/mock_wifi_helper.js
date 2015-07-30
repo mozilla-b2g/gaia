@@ -1,4 +1,6 @@
 'use strict';
+/* global MockNavigatorMozWifiManager */
+/* exported MockWifiHelper */
 
 require('/shared/test/unit/mock_navigator_moz_wifi_manager.js');
 

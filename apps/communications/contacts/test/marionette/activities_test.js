@@ -8,7 +8,7 @@ var assert = require('assert');
 var fs = require('fs');
 
 marionette('Contacts > Activities', function() {
-  var client = marionette.client(Contacts.config);
+  var client = marionette.client({ profile: Contacts.config });
 
   var dialerSubject;
 
@@ -29,115 +29,18 @@ marionette('Contacts > Activities', function() {
   });
 
   suite('open text/vcard activity', function() {
-    function assertFormData() {
-      var formSelectors = [
-        selectors.formGivenName,
-        selectors.formFamilyName,
-        selectors.formOrg,
-        selectors.formTel,
-        selectors.formEmailFirst
-      ];
-
-      var dataArray = [
-        'Forrest',
-        'Gump',
-        'Bubba Gump Shrimp Co.',
-        '+1-111-555-1212',
-        'forrestgump@example.com'
-      ];
-
-      var testObject = {};
-
-      for (var i = 0, len = dataArray.length; i < len; i++) {
-        testObject[formSelectors[i]] = dataArray[i];
-      }
-
-      for (var key in testObject) {
-        var value = client.findElement(key).getAttribute('value');
-        assert.equal(value, testObject[key]);
-      }
-    }
-
-    function assertDetailsData() {
-      var detailsSelectors = [
-        selectors.detailsContactName,
-        selectors.detailsOrg,
-        selectors.detailsTelButtonFirst + ' b',
-        selectors.detailsEmail
-      ];
-
-      var dataArray = [
-        'Forrest Gump',
-        'Bubba Gump Shrimp Co.',
-        '+1-111-555-1212',
-        'forrestgump@example.com'
-      ];
-
-      var testObject = {};
-
-      for (var i = 0, len = dataArray.length; i < len; i++) {
-        testObject[detailsSelectors[i]] = dataArray[i];
-      }
-
-      for (var key in testObject) {
-        var value = client.findElement(key).text();
-        assert.equal(value, testObject[key]);
-      }
-    }
-
-    function assertHidden(selector) {
-      var classes = client.findElement(selector).getAttribute('class');
-      assert.ok(classes.indexOf('hide') !== -1);
-    }
 
     setup(function() {
       smsSubject.launch(); // We open some app to start a Marionette session.
     });
 
-    test('open text/vcard activity (!allowSave) opens vCard in details view',
-        function() {
-      client.executeScript(function(vCardFile) {
-        new MozActivity({
-          name: 'open',
-          data: {
-            type: 'text/vcard',
-            filename: 'vcard_4.vcf',
-            blob: new Blob([vCardFile], {type: 'text/vcard'}),
-            allowSave: false
-          }
-        });
-      }, [fs.readFileSync(__dirname + '/data/vcard_4.vcf', 'utf8')]);
+    function getListItems() {
+      return client.executeScript(function() {
+        return document.querySelectorAll('#multiple-select-container li');
+      });
+    }
 
-      client.switchToFrame();
-      client.apps.switchToApp(Contacts.URL, 'contacts');
-      client.helper.waitForElement(selectors.details);
-
-      assertDetailsData();
-      assertHidden(selectors.detailsSocialTemplate);
-    });
-
-    test('open text/vcard activity (allowSave) opens form filled', function() {
-      client.executeScript(function(vCardFile) {
-        new MozActivity({
-          name: 'open',
-          data: {
-            type: 'text/vcard',
-            filename: 'vcard_4.vcf',
-            blob: new Blob([vCardFile], {type: 'text/vcard'}),
-            allowSave: true
-          }
-        });
-      }, [fs.readFileSync(__dirname + '/data/vcard_4.vcf', 'utf8')]);
-
-      client.switchToFrame();
-      client.apps.switchToApp(Contacts.URL, 'contacts');
-      client.helper.waitForElement(selectors.form);
-
-      assertFormData();
-      assert.ok(client.findElement(selectors.formSave).enabled);
-    });
-
-    test('open text/vcard activity defaults to details view', function() {
+    test('> with only one contact', function() {
       client.executeScript(function(vCardFile) {
         new MozActivity({
           name: 'open',
@@ -151,14 +54,41 @@ marionette('Contacts > Activities', function() {
 
       client.switchToFrame();
       client.apps.switchToApp(Contacts.URL, 'contacts');
-      client.helper.waitForElement(selectors.details);
+      client.helper.waitForElement(selectors.multipleSelectSave);
 
-      assertDetailsData();
+      assert.ok(getListItems().length === 1); // vcard has one element
+    });
+
+    test('> with multiple contacts', function() {
+      client.executeScript(function(vCardFile) {
+        new MozActivity({
+          name: 'open',
+          data: {
+            type: 'text/vcard',
+            filename: 'vcard_21_multiple.vcf',
+            blob: new Blob([vCardFile], {type: 'text/vcard'})
+          }
+        });
+      }, [fs.readFileSync(__dirname + '/data/vcard_21_multiple.vcf', 'utf8')]);
+
+      client.switchToFrame();
+      client.apps.switchToApp(Contacts.URL, 'contacts');
+      client.helper.waitForElement(selectors.multipleSelectSave);
+
+      assert.ok(getListItems().length === 2); // vcard has one element
     });
   });
 
   suite('webcontacts/contact activity', function() {
-    test('a contact with duplicate number shows merge page', function() {
+
+    // Disabling these tests by now due to we need a way to switch to an
+    // activity instead of switching to an app, due to paths can differ.
+    // More info in [1].
+    // These test must be recovered once this bug will be landed.
+
+    // [1] https://bugzilla.mozilla.org/show_bug.cgi?id=1140344#c9
+
+    test.skip('a contact with duplicate number shows merge page', function() {
 
       subject.launch();
 
@@ -197,7 +127,7 @@ marionette('Contacts > Activities', function() {
       var duplicateHeader = client.helper.
         waitForElement(selectors.duplicateHeader);
       var expectedResult = subject.l10n(
-        '/locales-obj/en-US.json',
+        '/locales-obj/contacts.matching_contacts.en-US.json',
         'duplicatesFoundTitle');
 
       assert.equal(duplicateHeader.text(), expectedResult);
@@ -205,7 +135,13 @@ marionette('Contacts > Activities', function() {
   });
 
   suite('webcontacts/tel activity', function() {
-    test('Error message when no contacts', function() {
+    // Disabling these tests by now due to we need a way to switch to an
+    // activity instead of switching to an app, due to paths can differ.
+    // More info in [1].
+    // These test must be recovered once this bug will be landed.
+
+    // [1] https://bugzilla.mozilla.org/show_bug.cgi?id=1140344#c9
+    test.skip('Error message when no contacts', function() {
 
       smsSubject.launch();
 
@@ -225,7 +161,7 @@ marionette('Contacts > Activities', function() {
 
       var confirmMsg = client.findElement(selectors.confirmBody);
       var expectedResult = subject.l10n(
-        '/locales-obj/en-US.json',
+        '/locales-obj/contacts.index.en-US.json',
         'noContactsActivity2');
       assert.equal(confirmMsg.text(), expectedResult);
     });
@@ -262,7 +198,7 @@ marionette('Contacts > Activities', function() {
         .text();
 
       var expectedResult = subject.l10n(
-        '/locales-obj/en-US.json',
+        '/locales-obj/contacts.index.en-US.json',
         'no_contact_phones');
       assert.equal(confirmText, expectedResult);
     });

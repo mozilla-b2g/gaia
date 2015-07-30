@@ -1,6 +1,7 @@
+/* global applications, ManifestHelper */
 'use strict';
 
-(function(window) {
+(function(exports) {
   var isOutOfProcessDisabled = false;
   /**
    * This class generates browser configuration object
@@ -39,7 +40,7 @@
    * @param {DOMFRAMEElement} [config.iframe] - optionalThe exisiting frame to
    *                                            inject.
    */
-  window.BrowserConfigHelper = function(config) {
+  var BrowserConfigHelper = function(config) {
     var app = config.manifestURL &&
               applications.getByManifestURL(config.manifestURL);
     this.url = config.url;
@@ -114,4 +115,6 @@
       this.manifest = null;
     }
   };
-})(this);
+
+  exports.BrowserConfigHelper = BrowserConfigHelper;
+})(window);

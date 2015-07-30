@@ -1,3 +1,7 @@
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+
 <element name="developer" extends="section">
   <template>
 
@@ -21,10 +25,13 @@
           </span>
         </li>
         <li data-show-name="devtools.remote.wifi.visible" hidden>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="devtools.remote.wifi.enabled">
-            <span data-l10n-id="dev-tools-wifi"></span>
-          </label>
+          <gaia-checkbox name="devtools.remote.wifi.enabled">
+            <label data-l10n-id="devtools-wifi"></label>
+          </gaia-checkbox>
+        </li>
+        <li data-show-name="devtools.remote.wifi.visible" hidden>
+            <p data-l10n-id="devtools-device-name"></p>
+            <input type="text" name="devtools.discovery.device" dir="auto">
         </li>
         <li>
           <a class="menu-item" href="#developer-hud">
@@ -32,81 +39,70 @@
           </a>
         </li>
         <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="devtools.qps.enabled">
-            <span data-l10n-id="dev-tools-qps"></span>
-          </label>
+          <a class="menu-item" href="#developer-service-workers">
+            Service Workers
+          </a>
         </li>
+
       </ul>
       <header>
         <h2 data-l10n-id="graphics"></h2>
       </header>
       <ul>
         <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="debug.paint-flashing.enabled">
-            <span data-l10n-id="paint-flashing"></span>
-          </label>
+          <gaia-checkbox name="debug.paint-flashing.enabled">
+            <label data-l10n-id="paint-flashing"></label>
+          </gaia-checkbox>
         </li>
         <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="apz.overscroll.enabled">
-            <span data-l10n-id="apz-overscroll"></span>
-          </label>
+          <gaia-checkbox name="apz.overscroll.enabled">
+            <label data-l10n-id="apz-overscroll"></label>
+          </gaia-checkbox>
         </li>
         <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="layers.enable-tiles">
-            <span data-l10n-id="tiling"></span>
-          </label>
+          <gaia-checkbox name="layers.enable-tiles">
+            <label data-l10n-id="tiling"></label>
+          </gaia-checkbox>
         </li>
         <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="layers.low-precision">
-            <span data-l10n-id="low-precision"></span>
-          </label>
+          <gaia-checkbox name="layers.low-precision">
+            <label data-l10n-id="low-precision"></label>
+          </gaia-checkbox>
         </li>
         <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="layers.low-opacity">
-            <span data-l10n-id="low-opacity"></span>
-          </label>
+          <gaia-checkbox name="layers.low-opacity">
+            <label data-l10n-id="low-opacity"></label>
+          </gaia-checkbox>
         </li>
         <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="layers.composer2d.enabled">
-            <span data-l10n-id="hardware-composer"></span>
-          </label>
+          <gaia-checkbox name="layers.composer2d.enabled">
+            <label data-l10n-id="hardware-composer"></label>
+          </gaia-checkbox>
         </li>
         <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="layers.draw-tile-borders">
-            <span data-l10n-id="draw-tile-borders"></span>
-          </label>
+          <gaia-checkbox name="layers.draw-tile-borders">
+            <label data-l10n-id="draw-tile-borders"></label>
+          </gaia-checkbox>
         </li>
         <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="layers.draw-borders">
-            <span data-l10n-id="draw-layer-borders"></span>
-          </label>
+          <gaia-checkbox name="layers.draw-borders">
+            <label data-l10n-id="draw-layer-borders"></label>
+          </gaia-checkbox>
         </li>
         <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="layers.dump">
-            <span data-l10n-id="dumps-layers"></span>
-          </label>
+          <gaia-checkbox name="layers.dump">
+            <label data-l10n-id="dumps-layers"></label>
+          </gaia-checkbox>
         </li>
         <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="gfx.layerscope.enabled">
-            <span data-l10n-id="dumps-layerscope"></span>
-          </label>
+          <gaia-checkbox name="gfx.layerscope.enabled">
+            <label data-l10n-id="dumps-layerscope"></label>
+          </gaia-checkbox>
         </li>
         <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="app.cards_view.screenshots.enabled">
-            <span data-l10n-id="cards-view-screenshots"></span>
-          </label>
+          <gaia-checkbox name="app.cards_view.screenshots.enabled">
+            <label data-l10n-id="cards-view-screenshots"></label>
+          </gaia-checkbox>
         </li>
       </ul>
       <header>
@@ -114,40 +110,39 @@
       </header>
       <ul>
         <li class="software-home-button">
-          <label class="pack-checkbox">
-            <input type="checkbox" name="software-button.enabled">
-            <span data-l10n-id="software-home-button"></span>
-          </label>
+          <gaia-checkbox name="software-button.enabled">
+            <label data-l10n-id="software-home-button"></label>
+          </gaia-checkbox>
         </li>
         <li class="homegesture">
-          <label class="pack-checkbox">
-            <input type="checkbox" name="homegesture.enabled">
-            <span data-l10n-id="home-gesture"></span>
-          </label>
+          <gaia-checkbox name="homegesture.enabled">
+            <label data-l10n-id="home-gesture"></label>
+          </gaia-checkbox>
         </li>
         <li id="continuoustransition">
-          <label class="pack-checkbox">
-            <input type="checkbox" name="continuous-transition.enabled">
-            <span data-l10n-id="continuous-transition"></span>
-          </label>
+          <gaia-checkbox name="continuous-transition.enabled">
+            <label data-l10n-id="continuous-transition"></label>
+          </gaia-checkbox>
         </li>
         <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="app-transition.enabled">
-            <span data-l10n-id="app-transition"></span>
-          </label>
+          <gaia-checkbox name="app-transition.enabled">
+            <label data-l10n-id="app-transition"></label>
+          </gaia-checkbox>
         </li>
         <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="app-suspending.enabled">
-            <span data-l10n-id="app-suspending"></span>
-          </label>
+          <gaia-checkbox name="app-suspending.enabled">
+            <label data-l10n-id="app-suspending"></label>
+          </gaia-checkbox>
         </li>
         <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="copypaste.enabled">
-            <span data-l10n-id="copypaste"></span>
-          </label>
+          <gaia-checkbox name="copypaste.enabled">
+            <label data-l10n-id="copypaste"></label>
+          </gaia-checkbox>
+        </li>
+        <li>
+          <gaia-checkbox name="multiscreen.enabled">
+            <label data-l10n-id="multi-screen"></label>
+          </gaia-checkbox>
         </li>
       </ul>
       <header>
@@ -155,88 +150,99 @@
       </header>
       <ul>
         <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="debug.log-animations.enabled">
-            <span data-l10n-id="log-animations"></span>
-          </label>
+          <gaia-checkbox name="devtools.qps.enabled">
+            <label data-l10n-id="devtools-qps"></label>
+          </gaia-checkbox>
         </li>
         <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="geolocation.debugging.enabled">
-            <span data-l10n-id="geolocation-debugging-enabled"></span>
-          </label>
+          <gaia-checkbox name="debug.log-animations.enabled">
+            <label data-l10n-id="log-animations"></label>
+          </gaia-checkbox>
         </li>
         <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="geolocation.debugging.gps-locations-ignored">
-            <span data-l10n-id="geolocation-debugging-gps-locations-ignored"></span>
-          </label>
+          <gaia-checkbox name="geolocation.debugging.enabled">
+            <label data-l10n-id="geolocation-debugging-enabled"></label>
+          </gaia-checkbox>
         </li>
         <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="wifi.debugging.enabled">
-            <span data-l10n-id="wifi-debugging"></span>
-          </label>
+          <gaia-checkbox name="geolocation.debugging.gps-locations-ignored">
+            <label data-l10n-id="geolocation-debugging-gps-locations-ignored"></label>
+          </gaia-checkbox>
         </li>
         <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="bluetooth.debugging.enabled">
-            <span data-l10n-id="bluetooth-debugging"></span>
-          </label>
+          <gaia-checkbox name="wifi.debugging.enabled">
+            <label data-l10n-id="wifi-debugging"></label>
+          </gaia-checkbox>
         </li>
         <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="bluetooth.snoop.enabled">
-            <span data-l10n-id="bluetooth-snoop-debugging"></span>
-          </label>
+          <gaia-checkbox name="bluetooth.debugging.enabled">
+            <label data-l10n-id="bluetooth-debugging"></label>
+          </gaia-checkbox>
         </li>
         <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="nfc.debugging.enabled">
-            <span data-l10n-id="nfc-debugging"></span>
-          </label>
+          <gaia-checkbox name="bluetooth.snoop.enabled">
+            <label data-l10n-id="bluetooth-snoop-debugging"></label>
+          </gaia-checkbox>
         </li>
         <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="ril.debugging.enabled">
-            <span data-l10n-id="ril-debugging"></span>
-          </label>
+          <gaia-checkbox name="nfc.debugging.enabled">
+            <label data-l10n-id="nfc-debugging"></label>
+          </gaia-checkbox>
         </li>
         <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="debug.console.enabled">
-            <span data-l10n-id="console-enabled"></span>
-          </label>
+          <gaia-checkbox name="ril.debugging.enabled">
+            <label data-l10n-id="ril-debugging"></label>
+          </gaia-checkbox>
         </li>
         <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="debug.gaia.enabled">
-            <span data-l10n-id="debug-gaia-enabled"></span>
-          </label>
+          <gaia-checkbox name="network.debugging.enabled">
+            <label data-l10n-id="network-debugging"></label>
+          </gaia-checkbox>
         </li>
         <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="accessibility.screenreader-show-settings">
-            <span data-l10n-id="showScreenReaderSettings"></span>
-          </label>
+          <gaia-checkbox name="mms.debugging.enabled">
+            <label data-l10n-id="mms-debugging"></label>
+          </gaia-checkbox>
         </li>
         <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="dom.mozApps.use_reviewer_certs">
-            <span data-l10n-id="use-reviewer-certs"></span>
-          </label>
+          <gaia-checkbox name="debug.console.enabled">
+            <label data-l10n-id="console-enabled"></label>
+          </gaia-checkbox>
         </li>
         <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="devtools.logshake">
-            <span data-l10n-id="shake-to-log"></span>
-          </label>
+          <gaia-checkbox name="debug.gaia.enabled">
+            <label data-l10n-id="debug-gaia-enabled"></label>
+          </gaia-checkbox>
         </li>
         <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="debug.verbose_app_permissions">
-            <span data-l10n-id="verbose-app-permissions"></span>
-          </label>
+          <gaia-checkbox name="accessibility.screenreader-show-settings">
+            <label data-l10n-id="showScreenReaderSettings"></label>
+          </gaia-checkbox>
+        </li>
+        <li>
+          <gaia-checkbox name="dom.mozApps.use_reviewer_certs">
+            <label data-l10n-id="use-reviewer-certs"></label>
+          </gaia-checkbox>
+        </li>
+        <li>
+          <gaia-checkbox name="devtools.logshake.enabled">
+            <label data-l10n-id="shake-to-log"></label>
+          </gaia-checkbox>
+        </li>
+        <li>
+          <gaia-checkbox name="devtools.logshake.qa_enabled">
+            <label data-l10n-id="enable-logshake-qa"></label>
+          </gaia-checkbox>
+        </li>
+        <li>
+          <gaia-checkbox name="debug.verbose_app_permissions">
+            <label data-l10n-id="verbose-app-permissions"></label>
+          </gaia-checkbox>
+        </li>
+        <li>
+          <gaia-checkbox name="dev.gaia.pinning_the_web">
+            <label data-l10n-id="pinning-the-web"></label>
+          </gaia-checkbox>
         </li>
         <li>
           <button class="ftuLauncher" data-l10n-id="launch-ftu"></button>
@@ -247,7 +253,10 @@
       </header>
       <ul>
         <li>
-          <button class="reset-devtools" data-l10n-id="reset-devtools"></button>
+          <label class="pack-switch">
+            <input type="checkbox" name="devtools.unrestricted" class="reset-devtools">
+            <span data-l10n-id="factory-reset-devtools"></span>
+          </label>
         </li>
       </ul>
       <header>

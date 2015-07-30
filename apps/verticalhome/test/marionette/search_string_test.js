@@ -8,7 +8,9 @@ var Server = require('../../../../shared/test/integration/server');
 
 marionette('Vertical - Search Terms: URI scheme', function() {
 
-  var client = marionette.client(require(__dirname + '/client_options.js'));
+  var client = marionette.client({
+    profile: require(__dirname + '/client_options.js')
+  });
   var home, rocketbar, search, system, server;
 
   suiteSetup(function(done) {
@@ -27,7 +29,7 @@ marionette('Vertical - Search Terms: URI scheme', function() {
     search = client.loader.getAppClass('search');
     rocketbar = new Rocketbar(client);
     system = client.loader.getAppClass('system');
-    system.waitForStartup();
+    system.waitForFullyLoaded();
   });
 
   function searchAndVerifyBrowser(searchTerms) {

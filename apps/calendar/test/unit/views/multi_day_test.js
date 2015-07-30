@@ -2,22 +2,20 @@ define(function(require) {
 'use strict';
 
 var MultiDay = require('views/multi_day');
+var core = require('core');
 
 suite('Views.MultiDay', function() {
-  var app;
   var subject;
-
-  suiteSetup(function() {
-    app = testSupport.calendar.app();
-  });
+  var timeController;
 
   setup(function() {
-    subject = new MultiDay({app: app});
+    subject = new MultiDay();
     subject.element = document.createElement('div');
     subject.element.innerHTML = '<div class="md__sidebar"></div>';
     subject._currentTime = {
       refresh: this.sinon.spy()
     };
+    timeController = core.timeController;
   });
 
   suite('#onactive', function() {
@@ -49,7 +47,7 @@ suite('Views.MultiDay', function() {
     });
 
     test('Do not scroll when come back from other screen', function() {
-      subject.baseDate = subject.timeController.position;
+      subject.baseDate = timeController.position;
       subject.seen = true;
       subject.onactive();
       assert.isFalse(stubOnFirstSeen.called);
@@ -58,35 +56,50 @@ suite('Views.MultiDay', function() {
     });
   });
 
-  test('localized', function() {
-    var sidebar = subject.sidebar;
-    subject._visibleRange = 123;
-    subject.handleEvent({type: 'localized'});
+  suite('localized and timeformatchange', function() {
+    var sidebar;
 
-    // make sure we rebuild all hours during localize
-    var i = -1, date = new Date(), hour;
-    while (++i < 24) {
-      date.setHours(i, 0, 0, 0);
-      hour = sidebar.querySelector('.md__hour-' + i);
-      assert.equal(hour.textContent, i, 'display hour');
+    setup(function() {
+      sidebar = subject.sidebar;
+      subject._visibleRange = 123;
+    });
+
+    function assertTimeRefresh() {
+      // make sure we rebuild all hours during localize
+      var i = -1, date = new Date(0), hour;
+      while (++i < 24) {
+        date.setHours(i, 0, 0, 0);
+        hour = sidebar.querySelector('.md__hour-' + i);
+        assert.equal(hour.textContent, i, 'display hour');
+        assert.equal(
+          hour.querySelector('.md__display-hour').dataset.date,
+          date,
+          'date data'
+        );
+      }
+
+      // make sure we update the current time
+      assert.ok(
+        subject._currentTime.refresh.calledOnce,
+        'called refresh'
+      );
+
       assert.equal(
-        hour.querySelector('.md__display-hour').dataset.date,
-        date,
-        'date data'
+        subject._currentTime.timespan,
+        subject._visibleRange,
+        'current time timespan matches the _visibleRange'
       );
     }
 
-    // make sure we update the current time
-    assert.ok(
-      subject._currentTime.refresh.calledOnce,
-      'called refresh'
-    );
+    test('localized', function() {
+      subject.handleEvent({type: 'localized'});
+      assertTimeRefresh();
+    });
 
-    assert.equal(
-      subject._currentTime.timespan,
-      subject._visibleRange,
-      'current time timespan matches the _visibleRange'
-    );
+    test('timeformatchange', function() {
+      subject.handleEvent({type: 'timeformatchange'});
+      assertTimeRefresh();
+    });
   });
 
   test('#_updateBaseDateAfterScroll', function() {
@@ -97,12 +110,12 @@ suite('Views.MultiDay', function() {
     subject._updateBaseDateAfterScroll(-3);
     var expected = (new Date(2014, 6, 20)).toISOString();
     assert.equal(
-      subject.timeController.position.toISOString(),
+      timeController.position.toISOString(),
       expected,
       'position'
     );
     assert.equal(
-      subject.timeController.selectedDay.toISOString(),
+      timeController.selectedDay.toISOString(),
       expected,
       'selectedDay'
     );

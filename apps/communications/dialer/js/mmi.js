@@ -1,5 +1,5 @@
-/* globals LazyL10n, LazyLoader, MmiUI, MobileOperator, Notification,
-           NotificationHelper, Promise */
+/* globals LazyLoader, MmiUI, MobileOperator, Notification, NotificationHelper,
+           Promise */
 
 /* exported MmiManager */
 
@@ -30,6 +30,8 @@ var MmiManager = {
       return Promise.resolve();
     }
 
+    this._ = navigator.mozL10n.get;
+
     var self = this;
     var lazyFiles = ['/shared/js/icc_helper.js',
                      '/shared/style/input_areas.css',
@@ -37,12 +39,9 @@ var MmiManager = {
 
     return new Promise(function(resolve, reject) {
       LazyLoader.load(lazyFiles, function() {
-        LazyL10n.get(function localized(_) {
-          MmiUI.init(_);
-          self._ = _;
-          self._ready = true;
-          resolve();
-        });
+        MmiUI.init();
+        self._ready = true;
+        resolve();
       });
     });
   },
@@ -164,6 +163,11 @@ var MmiManager = {
     var additionalInformation = mmiResult.additionalInformation;
 
     switch (mmiResult.serviceCode) {
+      case 'scCall':
+        /* Call control, no need to show a result page as the command will
+         * already have been executed (hang up a call, etc...). */
+        MmiUI.cancel();
+        return;
       case 'scUssd':
         // Bail out if there is nothing to show or if we got the .onsuccess
         // event after the .onussdevent.

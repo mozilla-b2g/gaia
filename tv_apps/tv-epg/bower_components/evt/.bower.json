@@ -1,0 +1,29 @@
+{
+  "name": "evt",
+  "main": "index.js",
+  "version": "0.4.0",
+  "homepage": "https://github.com/wilsonpage/evt",
+  "authors": [
+    "Wilson Page <wilsonpage@me.com>"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "package.json",
+    "test",
+    "tests",
+    "README.md"
+  ],
+  "_release": "0.4.0",
+  "_resolution": {
+    "type": "version",
+    "tag": "v0.4.0",
+    "commit": "3593dd6b4dd19f683d00fd0eaf2581c11a128da6"
+  },
+  "_source": "git://github.com/gaia-components/evt.git",
+  "_target": "~0.4.0",
+  "_originalSource": "gaia-components/evt",
+  "_direct": true
+}

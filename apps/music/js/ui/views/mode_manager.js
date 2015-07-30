@@ -1,7 +1,6 @@
 /* exported ModeManager */
-/* global TitleBar, TabBar,
-          LazyLoader, PlayerView,
-          App, displayingScanProgress:true */
+/* global TitleBar, TabBar, LazyLoader, TilesView, ListView, SubListView,
+          PlayerView, SearchView, App, asyncStorage */
 'use strict';
 
 // This Application has five modes: TILES, SEARCH, LIST, SUBLIST, and PLAYER
@@ -19,7 +18,19 @@ var MODE_SEARCH_FROM_TILES = 5;
 var MODE_SEARCH_FROM_LIST = 6;
 var MODE_PICKER = 7;
 
+// Key for store the player options of repeat and shuffle
+var SETTINGS_OPTION_KEY = 'settings_option_key';
+
 var ModeManager = {
+  views: {
+    1: {id: 'views-tiles', path: 'js/ui/views/tiles_view.js'},
+    2: {id: 'views-list', path: 'js/ui/views/list_view.js'},
+    3: {id: 'views-sublist', path: 'js/ui/views/subList_view.js'},
+    4: {id: 'views-player', path: 'js/ui/views/player_view.js'},
+    5: {id: 'views-search', path: 'js/ui/views/search_view.js'},
+    6: {id: 'views-search', path: 'js/ui/views/search_view.js'},
+    7: {id: 'views-list', path: 'js/ui/views/list_view.js'}
+  },
   _modeStack: [],
   playerTitle: null,
 
@@ -27,25 +38,146 @@ var ModeManager = {
     return this._modeStack[this._modeStack.length - 1];
   },
 
+  get previousMode() {
+    return this._modeStack[this._modeStack.length - 2];
+  },
+
   start: function(mode, callback) {
-    this._modeStack = [mode];
-    this._updateMode(callback);
+    this._modeStack = [];
+    this._resetViews();
+    this._pushMode(mode, false, function() {
+      this._modeStack = [mode];
+      this._updateMode(callback);
+    }.bind(this));
   },
 
   push: function(mode, callback) {
-    this._modeStack.push(mode);
-    this._updateMode(callback);
+    this._pushMode(mode, true, function() {
+      this._modeStack.push(mode);
+      this._updateMode(callback);
+    }.bind(this));
   },
 
   pop: function() {
     if (this._modeStack.length <= 1) {
       return;
     }
+    this._popMode();
     this._modeStack.pop();
     this._updateMode();
   },
 
-  updateBackArrow: function() {
+  _resetViews: function() {
+    for (var mode in this.views) {
+      var sheet = document.getElementById(this.views[mode].id);
+      sheet.classList.remove('animated');
+      sheet.classList.remove('current');
+      sheet.classList.add('next');
+    }
+  },
+
+  waitForView: function(mode, callback) {
+    var view = this.views[mode];
+    if (view.isLoaded) {
+      if (callback) {
+        callback(view);
+        return;
+      }
+    }
+
+    LazyLoader.load(view.path).then(() => {
+      // Our view might have been loaded while we were waiting so check again.
+      if (view.isLoaded) {
+        return;
+      }
+
+      // Remove the view's hidden style before pushing it.
+      var sheet = document.getElementById(view.id);
+      sheet.classList.remove('hidden');
+
+      switch(view.id) {
+        case 'views-tiles':
+          TilesView.init();
+          break;
+        case 'views-list':
+          ListView.init();
+          break;
+        case 'views-sublist':
+          SubListView.init();
+          break;
+        case 'views-player':
+          PlayerView.init();
+          break;
+        case 'views-search':
+          SearchView.init();
+          break;
+      }
+
+      // The PlayerView needs the settings values before use it.
+      if (view.id === 'views-player') {
+        asyncStorage.getItem(SETTINGS_OPTION_KEY, (settings) => {
+          App.playerSettings = settings;
+          PlayerView.setOptions(App.playerSettings);
+        });
+      } else if (view.id === 'views-search') {
+        // The text normalizer is needed in search view.
+        return LazyLoader.load('shared/js/text_normalizer.js');
+      }
+    }).then(() => {
+      view.isLoaded = true;
+      if (callback) {
+        callback(view);
+      }
+    });
+  },
+
+  _pushMode: function(mode, animated, callback) {
+    this.waitForView(mode, (view) => {
+      var nextId = view.id;
+      var currentId = this.currentMode ?
+                      this.views[this.currentMode].id : null;
+      var nextSheet = document.getElementById(nextId);
+      var currentSheet = document.getElementById(currentId);
+
+      if (nextSheet) {
+        nextSheet.classList.toggle('animated', animated);
+
+        nextSheet.classList.remove('previous');
+        nextSheet.classList.remove('next');
+        nextSheet.classList.add('current');
+      }
+
+      if (currentSheet) {
+        currentSheet.classList.toggle('animated', animated);
+
+        currentSheet.classList.remove('current');
+        currentSheet.classList.add('previous');
+      }
+
+      if (callback) {
+        callback();
+      }
+    });
+  },
+
+  _popMode: function(callback) {
+    var currentId = this.views[this.currentMode].id;
+    var previousId = this.views[this.previousMode].id;
+    var currentSheet = document.getElementById(currentId);
+    var previousSheet = document.getElementById(previousId);
+
+    currentSheet.classList.remove('current');
+    currentSheet.classList.add('next');
+
+    previousSheet.classList.remove('previous');
+    previousSheet.classList.add('current');
+
+    if (callback) {
+      callback();
+    }
+  },
+
+  _updateBackArrow: function() {
     var noBackArrow = [
       MODE_TILES,
       MODE_LIST,
@@ -98,87 +230,49 @@ var ModeManager = {
       TitleBar.changeTitleText(title);
     }
 
-
+    // Hide the title bar when music is in search modes.
+    TitleBar.view.hidden =
+      this.currentMode === MODE_SEARCH_FROM_TILES ||
+      this.currentMode === MODE_SEARCH_FROM_LIST;
   },
 
-  _updateMode: function(callback) {
-    var mode = this.currentMode;
-    var playerLoaded = (typeof PlayerView != 'undefined');
+  updatePlayerIcon: function() {
+    var isPlayerMode = (this.currentMode === MODE_PLAYER);
+    var isPlayerQueued =
+      (this.views[MODE_PLAYER].isLoaded && PlayerView.dataSource.length > 0);
 
-    this.updateTitle();
-    this.updateBackArrow();
-
-    if (mode === MODE_PLAYER) {
-      // Here if Player is not loaded yet and we are going to play
-      // load player_view.js then we can use the PlayerView object
-      document.getElementById('views-player').classList.remove('hidden');
-      LazyLoader.load('js/ui/views/player_view.js', function() {
-        if (!playerLoaded) {
-          PlayerView.init();
-          PlayerView.setOptions(App.playerSettings);
-        }
-
-        // Music only share the playing file when it's in player mode.
-        this.enableNFCSharing(true);
-
-        if (callback) {
-          callback();
-        }
-      }.bind(this));
-    } else {
-      if (mode === MODE_LIST || mode === MODE_PICKER) {
-        document.getElementById('views-list').classList.remove('hidden');
-      } else if (mode === MODE_SUBLIST) {
-        document.getElementById('views-sublist').classList.remove('hidden');
-      } else if (mode === MODE_SEARCH_FROM_TILES ||
-               mode === MODE_SEARCH_FROM_LIST) {
-        document.getElementById('search').classList.remove('hidden');
-        // XXX Please see Bug 857674 and Bug 886254 for detail.
-        // There is some unwanted logic that will automatically adjust
-        // the input element(search box) while users input characters
-        // This only happens on sublist and player views show up,
-        // so we just hide sublist and player when we are in search mode.
-        document.getElementById('views-sublist').classList.add('hidden');
-        document.getElementById('views-player').classList.add('hidden');
-      }
-
-      // Disable the NFC sharing when it's in the other modes.
-      this.enableNFCSharing(false);
-
-      if (callback) {
-        callback();
-      }
-    }
-
+    TitleBar.playerIcon.hidden = isPlayerMode || !isPlayerQueued;
     // We have to show the done button when we are in picker mode
     // and previewing the selecting song
     if (App.pendingPick) {
-      document.getElementById('title-done').hidden = (mode !== MODE_PLAYER);
-    }
-
-    // Remove all mode classes before applying a new one
-    var modeClasses = ['tiles-mode', 'list-mode', 'sublist-mode', 'player-mode',
-                       'search-from-tiles-mode', 'search-from-list-mode',
-                       'picker-mode'];
-
-    modeClasses.forEach(function resetMode(targetClass) {
-      document.body.classList.remove(targetClass);
-    });
-
-    document.body.classList.add(modeClasses[mode - 1]);
-
-    // Don't display scan progress if we're in sublist or player mode.
-    // In these modes the user needs to see the regular titlebar so they
-    // can use the back button. If the user returns to tiles or list
-    // mode and we get more scan results we'll resume the progress display.
-    if (displayingScanProgress &&
-        (mode === MODE_SUBLIST || mode === MODE_PLAYER)) {
-      document.getElementById('scan-progress').classList.add('hidden');
-      displayingScanProgress = false;
+      TitleBar.doneButton.hidden = !isPlayerMode;
     }
   },
 
-  enableNFCSharing: function(enabled) {
+  _updateTabs: function() {
+    var hideTabs = this.currentMode === MODE_PLAYER ||
+                   this.currentMode === MODE_SEARCH_FROM_TILES ||
+                   this.currentMode === MODE_SEARCH_FROM_LIST;
+
+    TabBar.view.classList.toggle('away', hideTabs);
+  },
+
+  _updateMode: function(callback) {
+    this._updateBackArrow();
+    this.updateTitle();
+    this.updatePlayerIcon();
+    this._updateTabs();
+
+    // Music only share the playing file when it's in player mode.
+    // Disable the NFC sharing when it's in the other modes.
+    this._enableNFCSharing((this.currentMode === MODE_PLAYER));
+
+    if (callback) {
+      callback();
+    }
+  },
+
+  _enableNFCSharing: function(enabled) {
     if (!navigator.mozNfc) {
       return;
     }

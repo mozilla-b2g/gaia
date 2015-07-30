@@ -1,5 +1,5 @@
 'use strict';
-/* global AppWindow, PopupWindow, ActivityWindow, SettingsListener,
+/* global AppWindow, PopupWindow, ActivityWindow, SettingsListener, Service,
           AttentionWindow, MozActivity, GlobalOverlayWindow, TrustedWindow */
 
 (function(exports) {
@@ -42,6 +42,7 @@
 
   ChildWindowFactory.prototype.handleEvent =
     function cwf_handleEvent(evt) {
+      this.app.debug('[cwf] handling ' + evt.type);
       // Handle event from child window.
       if (evt.detail && evt.detail.instanceID &&
           evt.detail.instanceID !== this.app.instanceID) {
@@ -59,7 +60,7 @@
       // <a href="" target="_blank"> should never be part of the app
       // except while FTU is running: windows must be closable & parented by FTU
       if (evt.detail.name == '_blank' &&
-          !window.Service.runningFTU &&
+          !Service.query('isFtuRunning') &&
           evt.detail.features !== 'attention' &&
           evt.detail.features !== 'global-clickthrough-overlay') {
         this.createNewWindow(evt);
@@ -229,6 +230,15 @@
     return true;
   };
 
+  ChildWindowFactory.prototype._handle_child__opened = function(evt) {
+    // Do nothing if we are not active or we are being killing.
+    if (!this.app.isVisible() || this.app._killed) {
+      return;
+    }
+
+    this.app.setVisible(false, true);
+  };
+
   ChildWindowFactory.prototype._handle_child__closing = function(evt) {
     // Do nothing if we are not active or we are being killing.
     if (!this.app.isVisible() || this.app._killed) {
@@ -236,12 +246,17 @@
     }
 
     this.app.setOrientation();
-    this.app.requestForeground();
+    if (Service.query('getTopMostWindow').getBottomMostWindow() ===
+        this.app.getBottomMostWindow()) {
+      this.app.setVisible(true, true);
+    }
 
     // An activity handled by ActivityWindow is always an inline activity.
     // All window activities are handled by AppWindow. All inline
     // activities have a rearWindow. Once this inline activity is killed,
-    // the focus should be transfered to its rear window.
+    // make rear window visible to screen reader and the focus should be
+    // transfered to its rear window.
+    evt.detail.rearWindow._setVisibleForScreenReader(true);
     evt.detail.rearWindow.focus();
   };
 
@@ -254,9 +269,14 @@
         top.url == configuration.url) {
       return;
     }
+    // We need to blur the opener before opening the new one.
+    top.setNFCFocus(false);
     var activity = new ActivityWindow(configuration, top);
     activity.element.addEventListener('_closing', this);
+    activity.element.addEventListener('_opened', this);
     activity.open();
+    // Make topmost window browser element invisibile to screen reader.
+    top._setVisibleForScreenReader(false);
   };
 
   ChildWindowFactory.prototype.createTrustedWindow = function(evt) {

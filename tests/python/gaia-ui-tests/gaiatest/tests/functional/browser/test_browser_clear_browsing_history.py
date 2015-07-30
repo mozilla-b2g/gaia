@@ -2,10 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-try:
-    from marionette import Wait
-except:
-    from marionette_driver import Wait
+from marionette_driver import Wait
 
 from gaiatest import GaiaTestCase
 from gaiatest.apps.search.app import Search
@@ -38,7 +35,7 @@ class TestBrowserClearHistory(GaiaTestCase):
 
         settings = Settings(self.marionette)
         settings.launch()
-        browsing_privacy = settings.open_browsing_privacy_settings()
+        browsing_privacy = settings.open_browsing_privacy()
 
         browsing_privacy.tap_clear_browsing_history()
         browsing_privacy.tap_clear()

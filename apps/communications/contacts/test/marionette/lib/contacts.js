@@ -16,10 +16,10 @@ function Contacts(client) {
 Contacts.URL = 'app://communications.gaiamobile.org';
 
 Contacts.config = {
-  settings: {
-    // disable FTU because it blocks our display
-    'ftu.manifestURL': null,
-    'lockscreen.enabled': false
+  prefs: {
+    'device.storage.enabled': true,
+    'device.storage.testing': true,
+    'device.storage.prompt.testing': true
   }
 };
 
@@ -36,7 +36,7 @@ Contacts.Selectors = {
   details: '#view-contact-details',
   detailsEditContact: '#edit-contact-button',
   detailsTelLabelFirst: '#phone-details-template-0 h2',
-  detailsTelButtonFirst: 'button.icon-call[data-tel]',
+  detailsTelButtonFirst: '.button.icon-call[data-tel]',
   detailsEmail: '#contact-detail-inner #email-details-template-0 div.item',
   detailsAddress: '#contact-detail-inner #address-details-template-0 div.item',
   detailsOrg: '#contact-detail-inner #org-title',
@@ -48,11 +48,7 @@ Contacts.Selectors = {
   detailsSocialLabel: '#contact-detail-inner #details-list #social-label',
   detailsSocialTemplate: '#contact-detail-inner #details-list .social-actions',
   detailsCoverImage: '#cover-img',
-  detailsLinkButton: '#contact-detail-inner #link_button',
   detailsShareButton: '#contact-detail-inner #share_button',
-  fbMsgButton: '#contact-detail-inner #msg_button',
-  fbWallButton: '#contact-detail-inner #wall_button',
-  fbProfileButton: '#contact-detail-inner #profile_button',
 
   findDupsButton: '#details-list #find-merge-button',
 
@@ -83,8 +79,11 @@ Contacts.Selectors = {
   formPhotoButton: '#photo-button',
   formAddNewTel: '#add-new-phone',
   formAddNewEmail: '#add-new-email',
+  formHeader: '#contact-form-header',
+  formPhotoImg: '#thumbnail-photo',
 
   groupList: ' #groups-list',
+  contacts: '#groups-list .contact-item',
   list: '#view-contacts-list',
   listContactFirst: 'li:not([data-group="ice"]).contact-item',
   listContactFirstText: 'li:not([data-group="ice"]).contact-item p',
@@ -104,6 +103,7 @@ Contacts.Selectors = {
 
   editForm: '#selectable-form',
   editMenu: '#select-all-wrapper',
+  selectAllButton: '#select-all',
 
   clearOrgButton: '#clear-org',
   setIceButton: '#set-ice',
@@ -126,8 +126,14 @@ Contacts.Selectors = {
 
   multipleSelectSave: '#save-button',
   multipleSelectStatus: '#statusMsg p',
+  multipleSelectList: '#multiple-select-container',
 
-  systemMenu: 'form[data-z-index-level="action-menu"]'
+  systemMenu: 'form[data-z-index-level="action-menu"]',
+
+  galleryImage: '.thumbnail img',
+  galleryDone: '#crop-done-button',
+
+  header: '#edit-title'
 };
 
 Contacts.prototype = {
@@ -136,13 +142,23 @@ Contacts.prototype = {
    */
   launch: function() {
     this.client.apps.launch(Contacts.URL, 'contacts');
-    this.client.apps.switchToApp(Contacts.URL, 'contacts');
+    this.switchTo();
     this.client.helper.waitForElement(Contacts.Selectors.bodyReady);
   },
 
   relaunch: function() {
-    this.client.apps.close(Contacts.URL, 'contacts');
+    this.close();
     this.launch();
+  },
+
+  close: function() {
+    this.client.apps.close(Contacts.URL, 'contacts');
+  },
+
+  switchTo: function() {
+    this.client.switchToFrame();
+    // switchToApp already waits for the app to be displayed
+    this.client.apps.switchToApp(Contacts.URL, 'contacts');
   },
 
   /**
@@ -216,9 +232,23 @@ Contacts.prototype = {
   },
 
   waitForFormTransition: function() {
-    var selectors = Contacts.Selectors,
-        form = this.client.findElement(selectors.form);
-    this.client.helper.waitForElementToDisappear(form);
+    var selectors = Contacts.Selectors;
+    var form = this.client.findElement(selectors.form);
+    try {
+      this.client.helper.waitForElementToDisappear(form);
+    } catch (e) {
+      // When the contact details pages was created in an activity and we close
+      // it, we might encounter errors like "GenericError: can't access dead
+      // object" or 'JavaScriptError: unload was called'. So we drop them as it
+      // makes the tests crash.
+      var isKnownError = e.message.indexOf(
+          'GenericError: can\'t access dead object') > -1 ||
+        e.message.indexOf('JavaScriptError: unload was called') > -1;
+
+      if (!isKnownError) {
+        throw e;
+      }
+    }
   },
 
   editContact: function() {
@@ -261,7 +291,6 @@ Contacts.prototype = {
     }
 
     this.client.findElement(selectors.formSave).click();
-
     this.waitForFormTransition();
   },
 
@@ -276,6 +305,26 @@ Contacts.prototype = {
     this.client.helper.waitForElement(selectors.list);
   },
 
+  mergeContact: function(details) {
+    var selectors = Contacts.Selectors;
+
+    var addContact = this.client.findElement(selectors.formNew);
+    addContact.click();
+
+    this.enterContactDetails(details);
+
+    var duplicateFrame = this.client.findElement(selectors.duplicateFrame);
+    this.waitForSlideUp(duplicateFrame);
+    this.client.switchToFrame(duplicateFrame);
+
+    var mergeAction =
+      this.client.helper.waitForElement(selectors.duplicateMerge);
+    this.clickOn(mergeAction);
+
+    this.switchTo();
+    this.waitForSlideDown(duplicateFrame);
+  },
+
   addContactMultipleEmails: function(details) {
     var selectors = Contacts.Selectors;
 
@@ -286,6 +335,34 @@ Contacts.prototype = {
     this.enterContactDetails(details);
 
     this.client.helper.waitForElement(selectors.list);
+  },
+
+  tapContact: function(contactName) {
+    // There are currently no way to search on the text of an HTML Element
+    // That's why this function do the filter and check that no more than 1
+    // contact has the name we look up.
+    var elements = this.client.findElements(Contacts.Selectors.contacts);
+    var contactsWithName = elements.filter(function(el) {
+      var data = el.text();
+      return data && data.indexOf(contactName) > -1;
+    });
+
+    if (contactsWithName.length === 1) {
+      contactsWithName[0].tap();
+    } else if (contactsWithName.length > 1) {
+      throw new Error('There are more than 1 contact that contains "' +
+        contactName + '"');
+    } else {
+      throw new Error('"' + contactName + '" was not found');
+    }
+  },
+
+  tapSave: function() {
+    this.client.helper.waitForElement(Contacts.Selectors.formSave).click();
+  },
+
+  tapUpdate: function() {
+    this.tapSave();
   },
 
   get systemMenu() {

@@ -1,5 +1,5 @@
 /* global it, assert:true, describe, before, beforeEach */
-/* global navigator, process */
+/* global navigator */
 'use strict';
 
 var assert;
@@ -19,14 +19,10 @@ describe('pseudo strategy', function() {
       });
     } else {
       assert = require('assert');
-      PSEUDO = process.env.L20N_COV ?
-        require('../../build/cov/lib/l20n/pseudo').PSEUDO
-        : require('../../lib/l20n/pseudo').PSEUDO;
-      walkContent = require('../../lib/l20n/util').walkContent;
-
-      PropertiesParser = process.env.L20N_COV ?
-        require('../../build/cov/lib/l20n/parser')
-        : require('../../lib/l20n/format/properties/parser');
+      PSEUDO = require('../../src/lib/pseudo').PSEUDO;
+      walkContent = require('../../src/lib/util').walkContent;
+      PropertiesParser =
+        require('../../src/lib/format/properties/parser');
       done();
     }
   });
@@ -73,6 +69,8 @@ describe('pseudo strategy', function() {
         'parens3=Foo (and) bar',
         'unicode=Foo \u0066\u006f\u006f\u0020',
         'nonascii=Naïve coöperation résumé dæmon phœnix',
+        'html1=visit <a>url</a>',
+        'html2=type <input placeholder="your name"/>',
       ].join('\n');
     });
 
@@ -103,6 +101,9 @@ describe('pseudo strategy', function() {
       assert.strictEqual(
         walked.nonascii.$v,
         'Ƞȧȧïṽḗḗ ƈǿǿöƥḗḗřȧȧŧīīǿǿƞ řéşŭŭḿé ḓæḿǿǿƞ ƥħœƞīīẋ');
+      assert.strictEqual(walked.html1.$v, 'ṽīīşīīŧ <a>ŭŭřŀ</a>');
+      assert.strictEqual(
+        walked.html2.$v, 'ŧẏƥḗḗ <input placeholder="your name"/>');
     });
 
   });
@@ -134,6 +135,8 @@ describe('pseudo strategy', function() {
         'parens3=Foo (and) bar',
         'unicode=Foo \u0066\u006f\u006f\u0020',
         'nonascii=Naïve coöperation résumé dæmon phœnix',
+        'html1=visit <a>url</a>',
+        'html2=type <input placeholder="your name"/>',
       ].join('\n');
     });
 
@@ -172,6 +175,11 @@ describe('pseudo strategy', function() {
       assert.strictEqual(
         walked.unicode.$v,
         '‮ɟoo‬ ‮ɟoo‬ ');
+      assert.strictEqual(
+        walked.html1.$v, '‮ʌısıʇ‬ <a>‮nɹʅ‬</a>');
+      assert.strictEqual(
+        walked.html2.$v,
+        '‮ʇʎdǝ‬ <input placeholder="your name"/>');
     });
 
     // XXX this requires Unicode support for JavaSript RegExp objects

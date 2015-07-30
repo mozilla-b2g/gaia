@@ -6,15 +6,7 @@ var Rocketbar = require('./lib/rocketbar');
 
 marionette('Browser - Site loading background', function() {
 
-  var client = marionette.client({
-    prefs: {
-      'dom.w3c_touch_events.enabled': 1
-    },
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
-    }
-  });
+  var client = marionette.client();
 
   var home, rocketbar, search, server, system;
 
@@ -34,7 +26,7 @@ marionette('Browser - Site loading background', function() {
     rocketbar = new Rocketbar(client);
     search = client.loader.getAppClass('search');
     system = client.loader.getAppClass('system');
-    system.waitForStartup();
+    system.waitForFullyLoaded();
 
     // Need to wait for the homescreen to be ready as this test takes a
     // screenshot. Without the homescreen, we may take a screenshot of the
@@ -50,7 +42,7 @@ marionette('Browser - Site loading background', function() {
 
     // Use the home-screen search box to open up the system browser
     rocketbar.homescreenFocus();
-    rocketbar.enterText(url + '\uE006');
+    rocketbar.enterText(url, true);
 
     var frame = client.helper.waitForElement(
       'div[transition-state="opened"] iframe[src="' + url + '"]');

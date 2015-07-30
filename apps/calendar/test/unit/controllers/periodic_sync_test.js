@@ -7,18 +7,18 @@
 define(function(require) {
 'use strict';
 
-var createDOMPromise = require('create_dom_promise');
+var createDOMPromise = require('common/create_dom_promise');
 var mockAlarms = require('test/support/mock_alarms');
 var periodicSync = require('controllers/periodic_sync');
 
 suite('controllers/periodic_sync', function() {
-  var app, db;
+  var db, storeFactory;
 
   setup(function(done) {
     mockAlarms.setup();
-    app = testSupport.calendar.app();
-    periodicSync.app = app;
-    db = app.db;
+    var core = testSupport.calendar.core();
+    db = core.db;
+    storeFactory = core.storeFactory;
     db.open(done);
   });
 
@@ -38,13 +38,19 @@ suite('controllers/periodic_sync', function() {
   });
 
   suite('periodic sync', function() {
+    var settings;
+
     setup(function(done) {
-      var settings = app.store('Setting');
+      settings = storeFactory.get('Setting');
       settings.set('syncFrequency', 1).then(() => done());
     });
 
     setup(function(done) {
       periodicSync.observe().then(() => done());
+    });
+
+    teardown(function() {
+      settings._clearCache();
     });
 
     teardown(function(done) {
@@ -57,12 +63,12 @@ suite('controllers/periodic_sync', function() {
 
     suite('without initial caldav calendar', function() {
       setup(function() {
-        var accounts = app.store('Account');
+        var accounts = storeFactory.get('Account');
         sinon.stub(accounts, 'syncableAccounts').returns(Promise.resolve([]));
       });
 
       teardown(function() {
-        var accounts = app.store('Account');
+        var accounts = storeFactory.get('Account');
         accounts.syncableAccounts.restore();
       });
 
@@ -78,7 +84,7 @@ suite('controllers/periodic_sync', function() {
 
     suite('with initial caldav calendar', function() {
      setup(function() {
-        var accounts = app.store('Account');
+        var accounts = storeFactory.get('Account');
         sinon.stub(accounts, 'syncableAccounts').returns(Promise.resolve([
           { _id: 'one', providerType: 'Caldav' }
         ]));
@@ -86,12 +92,12 @@ suite('controllers/periodic_sync', function() {
 
       setup(function(done) {
         periodicSync.events.once('schedule', () => done());
-        var accounts = app.store('Account');
+        var accounts = storeFactory.get('Account');
         accounts.emit('persist');
       });
 
      teardown(function() {
-       var accounts = app.store('Account');
+       var accounts = storeFactory.get('Account');
        accounts.syncableAccounts.restore();
      });
 
@@ -121,7 +127,7 @@ suite('controllers/periodic_sync', function() {
         getAll.then(result => {
           var alarm = result[0];
           first = alarm.alarmId;
-          var settings = app.store('Setting');
+          var settings = storeFactory.get('Setting');
           settings.set('syncFrequency', 2);
         });
       });
@@ -135,7 +141,7 @@ suite('controllers/periodic_sync', function() {
           });
         });
 
-        var accounts = app.store('Account');
+        var accounts = storeFactory.get('Account');
         accounts.syncableAccounts.restore();
         sinon.stub(accounts, 'syncableAccounts').returns(Promise.resolve([]));
         accounts.emit('remove');

@@ -7,32 +7,44 @@ suite('SimPinDialog > ', function() {
 
   var simPinDialog;
   var mockSettingsUtils;
+  var mockDialogService;
 
   var modules = [
     'panels/simpin_dialog/simpin_dialog',
-    'unit/mock_settings_utils'
+    'modules/settings_utils',
+    'modules/dialog_service'
   ];
 
   var map = {
     '*': {
-      'modules/settings_utils': 'unit/mock_settings_utils'
+      'modules/settings_utils': 'unit/mock_settings_utils',
+      'modules/dialog_service': 'MockDialogService'
     }
   };
   
   setup(function(done) {
+    define('MockDialogService', function() {
+      return {
+        alert: function() {}
+      };
+    });
+
     window.navigator.mozL10n = MockL10n;
 
     var requireCtx = testRequire([], map, function() {});
-    requireCtx(modules, function(SimPinDialog, MockSettingsUtils) {
-      mockSettingsUtils = MockSettingsUtils;
+    requireCtx(modules, function(SimPinDialog, MockSettingsUtils,
+      MockDialogService) {
+        mockSettingsUtils = MockSettingsUtils;
+        mockDialogService = MockDialogService;
 
-      simPinDialog = new SimPinDialog({
-        pinInput: createInput(),
-        pukInput: createInput(),
-        newPinInput: createInput(),
-        confirmPinInput: createInput()
-      });
-      done();
+        simPinDialog = new SimPinDialog({
+          pinInput: createInput(),
+          pukInput: createInput(),
+          newPinInput: createInput(),
+          confirmPinInput: createInput(),
+          dialogDone: createButton()
+        });
+        done();
     });
   });
 
@@ -40,7 +52,9 @@ suite('SimPinDialog > ', function() {
     test('if no lockType, close dialog', function() {
       var needToCloseDialog = simPinDialog._handleCardLockError({
         lockType: '',
-        retryCount: 3
+        error: {
+          retryCount: 3
+        }
       });
       assert.isTrue(needToCloseDialog);
     });
@@ -50,7 +64,10 @@ suite('SimPinDialog > ', function() {
       this.sinon.stub(simPinDialog, '_showRetryCount');
       var needToCloseDialog = simPinDialog._handleCardLockError({
         lockType: 'pin',
-        retryCount: 4
+        error: {
+          name: 'IncorrectPassword',
+          retryCount: 4
+        }
       });
 
       assert.isFalse(needToCloseDialog);
@@ -62,7 +79,10 @@ suite('SimPinDialog > ', function() {
       'dialog and leave this to system app', function() {
         var needToCloseDialog = simPinDialog._handleCardLockError({
           lockType: 'pin',
-          retryCount: 0
+          error: {
+            name: 'IncorrectPassword',
+            retryCount: 0
+          }
         });
         assert.isTrue(needToCloseDialog);
     });
@@ -73,7 +93,10 @@ suite('SimPinDialog > ', function() {
           this.sinon.stub(simPinDialog, '_initUI');
           var needToCloseDialog = simPinDialog._handleCardLockError({
             lockType: lockType,
-            retryCount: 0
+            error: {
+              name: 'IncorrectPassword',
+              retryCount: 0
+            }
           });
           assert.isFalse(needToCloseDialog);
           assert.isTrue(simPinDialog._initUI.calledWith('unlock_puk2'));
@@ -84,9 +107,95 @@ suite('SimPinDialog > ', function() {
       'then we will just close the dialog', function() {
         var needToCloseDialog = simPinDialog._handleCardLockError({
           lockType: 'i_dont_know',
-          retryCount: 0
+          error: {
+            retryCount: 0
+          }
         });
         assert.isTrue(needToCloseDialog);
+    });
+  });
+
+  suite('_updateDoneButtonState > ', function() {
+    test('in change_pin mode, but length of pinInput is less than 4',
+      function() {
+        simPinDialog._mode = 'change_pin';
+        simPinDialog._elements.pinInput.value = '1';
+        simPinDialog._updateDoneButtonState();
+        assert.isTrue(simPinDialog._elements.dialogDone.disabled);
+    });
+
+    test('in change_pin mode, but length of newPinInput is less than 4',
+      function() {
+        simPinDialog._mode = 'change_pin';
+        simPinDialog._elements.pinInput.value = '1234';
+        simPinDialog._elements.newPinInput.value = '1';
+        simPinDialog._updateDoneButtonState();
+        assert.isTrue(simPinDialog._elements.dialogDone.disabled);
+    });
+
+    test('in change_pin mode, but length of confirmPinInput is less than 4',
+      function() {
+        simPinDialog._mode = 'change_pin';
+        simPinDialog._elements.pinInput.value = '1234';
+        simPinDialog._elements.newPinInput.value = '5678';
+        simPinDialog._elements.confirmPinInput.value = '1';
+        simPinDialog._updateDoneButtonState();
+        assert.isTrue(simPinDialog._elements.dialogDone.disabled);
+    });
+
+    test('in change_pin mode, ' +
+      'but length of confirmPinInput & newPinInput is different', function() {
+        simPinDialog._mode = 'change_pin';
+        simPinDialog._elements.pinInput.value = '1234';
+        simPinDialog._elements.newPinInput.value = '5678';
+        simPinDialog._elements.confirmPinInput.value = '567';
+        simPinDialog._updateDoneButtonState();
+        assert.isTrue(simPinDialog._elements.dialogDone.disabled);
+    });
+
+    test('in change_pin mode, ' +
+      'and length of confirmPinInput & newPinInput is the same', function() {
+        simPinDialog._mode = 'change_pin';
+        simPinDialog._elements.pinInput.value = '1234';
+        simPinDialog._elements.newPinInput.value = '5678';
+        simPinDialog._elements.confirmPinInput.value = '5679';
+        simPinDialog._updateDoneButtonState();
+        assert.isFalse(simPinDialog._elements.dialogDone.disabled);
+    });
+
+    test('in pin mode, and length of pinInput is less than 4', function() {
+      simPinDialog._mode = 'pin';
+      simPinDialog._elements.pinInput.value = '1';
+      simPinDialog._updateDoneButtonState();
+      assert.isTrue(simPinDialog._elements.dialogDone.disabled);
+    });
+
+    test('in pin mode, but length of pinInput is >= 4', function() {
+      simPinDialog._mode = 'pin';
+      simPinDialog._elements.pinInput.value = '1234';
+      simPinDialog._updateDoneButtonState();
+      assert.isFalse(simPinDialog._elements.dialogDone.disabled);
+    });
+
+    test('in puk mode, and length of pukInput is less than 4', function() {
+      simPinDialog._mode = 'puk';
+      simPinDialog._elements.pukInput.value = '1';
+      simPinDialog._updateDoneButtonState();
+      assert.isTrue(simPinDialog._elements.dialogDone.disabled);
+    });
+
+    test('in puk mode, but length of pukInput is >= 4', function() {
+      simPinDialog._mode = 'puk';
+      simPinDialog._elements.pukInput.value = '1234';
+      simPinDialog._updateDoneButtonState();
+      assert.isFalse(simPinDialog._elements.dialogDone.disabled);
+    });
+
+    test('in unknown mode, but length of pukInput is >= 4', function() {
+      this.sinon.stub(window.console, 'error');
+      simPinDialog._mode = 'unknown_mode';
+      simPinDialog._updateDoneButtonState();
+      assert.isTrue(window.console.error.called);
     });
   });
 
@@ -94,5 +203,10 @@ suite('SimPinDialog > ', function() {
     var input = document.createElement('input');
     input.type = 'text';
     return input;
+  }
+
+  function createButton() {
+    var button = document.createElement('button');
+    return button;
   }
 });

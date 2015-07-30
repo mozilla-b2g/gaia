@@ -25,6 +25,12 @@ define(function(require) {
    *      cancel from remote devices, timeout, or other..
    */
   var PairManager = {
+    /**
+     * Indicate if the pair request is expired
+     * @type {Boolean}
+     */
+    _isExpired: false,
+
     init: function() {
       // require mozBluetooth from BluetoothHelper
       this.bluetoothHelper = BluetoothHelper();
@@ -61,34 +67,33 @@ define(function(require) {
       Debug('onRequestPairing(): pairingInfo = ' + pairingInfo);
 
       var req = navigator.mozSettings.createLock().get('lockscreen.locked');
-      var self = this;
-      req.onsuccess = function bt_onGetLocksuccess() {
+      req.onsuccess = () => {
         if (req.result['lockscreen.locked']) {
           // notify user that we are receiving pairing request
-          self.fireNotification(pairingInfo);
+          this.fireNotification(pairingInfo);
         } else {
           // We have clear up pending one before show the new pairing requst.
           // Becasue the pending pairing request is no longer usefull.
-          self.cleanPendingPairing();
+          this.cleanPendingPairing();
 
           // show pair view directly while lock screen is unlocked
-          self.showPairview(pairingInfo);
+          this.showPairview(pairingInfo);
         }
       };
-      req.onerror = function bt_onGetLockError() {
+      req.onerror = () => {
         // We have clear up pending one before show the new pairing requst.
         // Becasue the pending pairing request is no longer usefull.
-        self.cleanPendingPairing();
+        this.cleanPendingPairing();
 
         // fallback to default value 'unlocked'
-        self.showPairview(pairingInfo);
+        this.showPairview(pairingInfo);
       };
     },
 
     fireNotification: function(pairingInfo) {
       // Once we received a pairing request in screen locked mode,
       // overwrite the object with the latest pairing request. Because the
-      // later pairing request might be timeout and useless now.
+      // older pairing request might be timeout and useless now.
       this.pendingPairing = {
         showPairviewCallback: this.showPairview.bind(this, pairingInfo)
       };
@@ -116,7 +121,7 @@ define(function(require) {
     // The handler will pop out a pairing request expired prompt only.
     pairingRequestExpiredNotificationHandler: function(notification) {
       var req = navigator.mozSettings.createLock().get('lockscreen.locked');
-      req.onsuccess = function bt_onGetLocksuccess() {
+      req.onsuccess = () => {
         // Avoid to do nothting while the notification toast is showing
         // and a user is able to trigger onclick event. Make sure screen
         // is unlocked, then show the prompt in bluetooth app.
@@ -124,14 +129,15 @@ define(function(require) {
           // Clean the pairing request notficiation which is expired.
           notification.close();
 
-          navigator.mozApps.getSelf().onsuccess = function(evt) {
+          navigator.mozApps.getSelf().onsuccess = (evt) => {
             var app = evt.target.result;
 
             // launch bluetooth app to foreground for showing the prompt
             app.launch();
 
             // show an alert with the overdue message
-            if (!PairExpiredDialog.isVisible) {
+            if (!PairExpiredDialog.isVisible && this._isExpired) {
+              Debug('show expired dialog');
               PairExpiredDialog.showConfirm(function() {
                 // Have to close Bluetooth app after the dialog is closed.
                 window.close();
@@ -144,14 +150,20 @@ define(function(require) {
 
     // If there is a pending pairing request while a user just unlocks screen,
     // we will show pair view immediately. Then, we clear up the notification.
+    // If pendingPairing object is not exist, it means pair request is expired.
     showPendingPairing: function(screenLocked) {
-      if (!screenLocked && this.pendingPairing) {
-        // show pair view from the callback function
-        if (this.pendingPairing.showPairviewCallback) {
-          this.pendingPairing.showPairviewCallback();
-        }
+      if (!screenLocked) {
+        if (this.pendingPairing) {
+          this._isExpired = false;
+          // show pair view from the callback function
+          if (this.pendingPairing.showPairviewCallback) {
+            this.pendingPairing.showPairviewCallback();
+          }
 
-        this.cleanPendingPairing();
+          this.cleanPendingPairing();
+        } else {
+          this._isExpired = true;
+        }
       }
     },
 
@@ -207,9 +219,8 @@ define(function(require) {
       var host = window.location.host;
       this.childWindow = window.open(protocol + '//' + host + '/onpair_v1.html',
                   'pair_screen', 'attention');
-      var self = this;
-      this.childWindow.onload = function childWindowLoaded() {
-        self.childWindow.Pairview.init(pairingMode, method, device, passkey);
+      this.childWindow.onload = () => {
+        this.childWindow.Pairview.init(pairingMode, method, device, passkey);
       };
     },
 

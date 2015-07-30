@@ -179,3 +179,10 @@ terminal:
 APP=sms make test-agent-test
 ```
 
+## JSDOC
+
+Generated jsdoc is hosted on [http://mozilla-b2g.github.io/gaia/sms/](http://mozilla-b2g.github.io/gaia/sms/). You can generate it locally with the following command:
+
+```
+$ gulp jsdoc:sms
+```

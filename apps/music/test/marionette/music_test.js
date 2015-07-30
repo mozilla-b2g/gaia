@@ -9,24 +9,24 @@ marionette('Music ui tests', function() {
   apps[FakeActivityCaller.DEFAULT_ORIGIN] = __dirname + '/fakeactivitycaller';
 
   var client = marionette.client({
-    prefs: {
-      'device.storage.enabled': true,
-      'device.storage.testing': true,
-      'device.storage.prompt.testing': true
-    },
+    profile: {
+      prefs: {
+        'device.storage.enabled': true,
+        'device.storage.testing': true,
+        'device.storage.prompt.testing': true
+      },
 
-    settings: {
-      'lockscreen.enabled': false,
-      'ftu.manifestURL': null
+      apps: apps
     },
-
-    apps: apps
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
   });
 
-  var music;
+  var music, system;
 
   setup(function() {
     music = new Music(client);
+    system = client.loader.getAppClass('system');
+    system.waitForFullyLoaded();
   });
 
   suite('Launch regular music with no audio files', function() {

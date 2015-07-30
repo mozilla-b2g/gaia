@@ -1,5 +1,5 @@
-/* globals CallHandler, Contacts, fb, KeypadManager, LazyL10n, LazyLoader,
-           SimplePhoneMatcher, SimSettingsHelper */
+/* globals CallHandler, Contacts, fb, KeypadManager, LazyLoader,
+           SimplePhoneMatcher, SimSettingsHelper, Sanitizer */
 
 // Suggestion_bar.js will be loaded on init of KeypadManager through
 // lazy loader. So we call its init() directly at the end of file.
@@ -254,14 +254,37 @@ var SuggestionBar = {
   },
 
   _setItem: function sb_setItem(node, tel, type, name) {
+    var phoneTypes = [
+      'mobile',
+      'home',
+      'work',
+      'personal',
+      'faxHome',
+      'faxOffice',
+      'faxOther',
+      'other'
+    ];
     var typeTag = node.querySelector('.js-tel-type');
     var telTag = node.querySelector('.js-tel');
     var nameTag = node.querySelector('.js-name');
     nameTag.textContent = name ? name : null;
-    LazyL10n.get(function localized(_) {
-      typeTag.textContent = _(type) || type;
-    });
-    telTag.innerHTML = tel ? tel : null;
+    if (tel) {
+      telTag.innerHTML = Sanitizer.unwrapSafeHTML(tel);
+    } else {
+      telTag.innerHTML = '';
+    }
+
+    if (type) {
+      if (phoneTypes.some(element => element == type)) {
+        navigator.mozL10n.setAttributes(typeTag, type);
+      } else {
+        // No localization found, use the type string as-is
+        typeTag.removeAttribute('data-l10n-id');
+        typeTag.textContent = type;
+      }
+    } else {
+      typeTag.textContent = null;
+    }
   },
 
   clear: function sb_clear(isHardClear) {
@@ -307,8 +330,11 @@ var SuggestionBar = {
         end = i;
       }
     }
-    return str.substr(0, start) + '<mark class="ci__mark">' +
-           str.substr(start, end - start + 1) + '</mark>' + str.substr(end + 1);
+    var startStr = str.substr(0, start);
+    var middleStr = str.substr(start, end - start + 1);
+    var endStr = str.substr(end + 1);
+    return Sanitizer.createSafeHTML(`${startStr}<mark class="ci__mark"
+      >${middleStr}</mark>${endStr}`);
   },
 
   _initOverlay: function() {

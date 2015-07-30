@@ -1,14 +1,14 @@
-/* global MocksHelper, LayoutManager, TextSelectionDialog,
+/* global MocksHelper, MockService, TextSelectionDialog,
           MockSettingsListener */
 'use strict';
 
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
-requireApp('system/test/unit/mock_layout_manager.js');
+requireApp('system/shared/test/unit/mocks/mock_service.js');
 requireApp('system/test/unit/mock_app_window.js');
 
 var mocksForTextSelectionDialog = new MocksHelper([
   'SettingsListener',
-  'LayoutManager'
+  'Service'
 ]).init();
 
 suite('system/TextSelectionDialog', function() {
@@ -17,10 +17,8 @@ suite('system/TextSelectionDialog', function() {
   mocksForTextSelectionDialog.attachTestHelpers();
   var mockDetail = {};
   setup(function(done) {
-    window.layoutManager = new LayoutManager();
-    window.layoutManager.start();
-    window.layoutManager.width = 360;
-    window.layoutManager.height = 480;
+    MockService.mockQueryWith('LayoutManager.width', 360);
+    MockService.mockQueryWith('LayoutManager.height', 480);
     mockDetail = {
       type: 'selectionstatechanged',
       detail: {
@@ -31,7 +29,6 @@ suite('system/TextSelectionDialog', function() {
       isCollapsed: false
     };
 
-    requireApp('system/js/service.js');
     requireApp('system/js/base_ui.js');
 
     requireApp('system/js/text_selection_dialog.js',
@@ -54,7 +51,6 @@ suite('system/TextSelectionDialog', function() {
   });
 
   teardown(function() {
-    delete window.layoutManager;
     // navigator.mozL10n = realL10n;
     document.body.removeChild(fragment);
     fragment = null;
@@ -376,14 +372,6 @@ suite('system/TextSelectionDialog', function() {
       assert.isFalse(stubRender.calledOnce);
     });
 
-    test('should render when first show', function() {
-      testDetail.visible = true;
-      testDetail.isCollapsed = false;
-      td.handleEvent(fakeTextSelectInAppEvent);
-      assert.isTrue(stubRender.calledOnce);
-      assert.isTrue(td._injected);
-    });
-
     test('should not render when bubble has showed before', function() {
       td._injected = true;
       td.handleEvent(fakeTextSelectInAppEvent);
@@ -688,10 +676,11 @@ suite('system/TextSelectionDialog', function() {
     var windowHeight;
     var windowWidth;
     setup(function() {
-      windowHeight = window.layoutManager.height;
-      windowWidth = window.layoutManager.width;
+      windowHeight = MockService.mockQueryWith('LayoutManager.height');
+      windowWidth = MockService.mockQueryWith('LayoutManager.width');
       td.DISTANCE_FROM_SELECTEDAREA_TO_MENUTOP = 12;
-      td.DISTANCE_FROM_MENUBOTTOM_TO_SELECTEDAREA = 34;
+      td.DISTANCE_FROM_MENUBOTTOM_TO_SELECTEDAREA = 43;
+      td.DISTANCE_FROM_BOUNDARY = 5;
       td.TEXTDIALOG_WIDTH = 52;
       td.TEXTDIALOG_HEIGHT = 48;
     });
@@ -776,7 +765,7 @@ suite('system/TextSelectionDialog', function() {
         assert.deepEqual(result, {
           top: posTop,
           left: windowWidth - td.numOfSelectOptions * td.TEXTDIALOG_WIDTH +
-            positionDetail.offsetX
+            positionDetail.offsetX - td.DISTANCE_FROM_BOUNDARY
         });
       });
 
@@ -799,7 +788,7 @@ suite('system/TextSelectionDialog', function() {
         assert.deepEqual(result, {
           top: positionDetail.rect.bottom * positionDetail.zoomFactor +
             td.DISTANCE_FROM_SELECTEDAREA_TO_MENUTOP + positionDetail.offsetY,
-          left: positionDetail.offsetX
+          left: positionDetail.offsetX + td.DISTANCE_FROM_BOUNDARY
         });
       });
 
@@ -823,7 +812,8 @@ suite('system/TextSelectionDialog', function() {
           top: positionDetail.rect.bottom * positionDetail.zoomFactor +
             td.DISTANCE_FROM_SELECTEDAREA_TO_MENUTOP + positionDetail.offsetY,
           left: windowWidth + positionDetail.offsetX -
-            td.numOfSelectOptions * td.TEXTDIALOG_WIDTH
+            td.numOfSelectOptions * td.TEXTDIALOG_WIDTH -
+            td.DISTANCE_FROM_BOUNDARY
         });
       });
 

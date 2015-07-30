@@ -1,0 +1,57 @@
+<element name="curtain" extends="section">
+  <template>
+    <form role="dialog" data-type="confirm">
+      <!-- Progress activity card -->
+      <section id="progress">
+        <h1 id="progressTitle"></h1>
+        <p role="status">
+          <span id="progressMsg"></span>
+          <progress id="progressElement" class="pack-activity" value="0" max="100"></progress>
+        </p>
+      </section>
+
+      <!-- Message card -->
+      <section id="message">
+        <h1 id="messageMsg"></h1>
+        <p role="status">
+          <span></span>
+          <progress class="pack-activity" max="100" value="0"></progress>
+        </p>
+      </section>
+
+      <!-- Waiting card -->
+      <section id="wait">
+        <h1 id="waitMsg" data-l10n-id="wait1">Please wait</h1>
+        <p role="status">
+          <span></span>
+          <progress class="pack-activity" max="100" value="0"></progress>
+        </p>
+      </section>
+
+      <!-- Error card -->
+      <section id="error">
+        <h1 id="errorMsg">Error</h1>
+        <p data-l10n-id="error2">Do you want to retry?</p>
+      </section>
+
+      <!-- Timeout card -->
+      <section id="timeout">
+        <h1 id="timeoutMsg">Exceeded timeout</h1>
+        <p data-l10n-id="timeout2">Do you want to retry?</p>
+      </section>
+
+      <!-- Alert card -->
+      <section id="alert">
+        <h1 id="alertMsg"></h1>
+        <p></p>
+      </section>
+
+      <menu>
+        <button data-l10n-id="curtainCancel" id="cancel">Cancel</button>
+        <button data-l10n-id="curtainRetry" id="retry" class="recommend">Retry</button>
+        <button data-l10n-id="curtainOK" id="ok" class="recommend">OK</button>
+      </menu>
+    </form>
+  </template>
+</element>
+

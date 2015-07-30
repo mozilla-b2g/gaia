@@ -39,8 +39,10 @@
  *  normal app termination from abnormal and I can't figure out any way
  *  to tell when an app has crashed.
  */
+
 /* global asyncStorage, SettingsListener, performance, SIMSlotManager,
-          MobileOperator, uuid, TelemetryRequest */
+          MobileOperator, uuid, TelemetryRequest, applications,
+          LazyLoader */
 (function(exports) {
   'use strict';
 
@@ -73,6 +75,7 @@
   const ATTENTIONCLOSED = 'attentionclosed';
   const IDLE = 'idle';
   const ACTIVE = 'active';
+  const IACMETRICS = 'iac-app-metrics';
 
   // This is the list of event types we register handlers for
   const EVENT_TYPES = [
@@ -88,7 +91,8 @@
     OFFLINE,
     TIMECHANGE,
     ATTENTIONOPENED,
-    ATTENTIONCLOSED
+    ATTENTIONCLOSED,
+    IACMETRICS
   ];
 
 
@@ -128,6 +132,9 @@
   // What setting do we listen to to turn app usage metrics on or off.
   // This default value is the same setting that turns telemetry on and off.
   AUM.TELEMETRY_ENABLED_KEY = 'debug.performance_data.shared';
+
+  // For Dogfooders
+  AUM.ISDOGFOODER = false;
 
   // Base URL for sending data reports
   // Can be overridden with metrics.appusage.reportURL setting.
@@ -172,24 +179,26 @@
   // opted in to telemetry.
   //
   AUM.prototype.start = function start() {
-    this.reset();  // initialize our state variables
+    LazyLoader.load('shared/js/telemetry.js').then(() => {
+      this.reset();  // initialize our state variables
 
-    // Query and listen for changes on the telemetry setting. Start data
-    // collection if or when it becomes set, and stop data collection if
-    // it is not set. Note that we do very little initialization here.
-    // That happens in the startCollecting() method which is only called if
-    // telemetry is actually enabled
-    this.metricsEnabledListener = function metricsEnabledListener(enabled) {
-      if (enabled) {
-        this.startCollecting();
-      }
-      else {
-        this.stopCollecting();
-      }
-    }.bind(this);
+      // Query and listen for changes on the telemetry setting. Start data
+      // collection if or when it becomes set, and stop data collection if
+      // it is not set. Note that we do very little initialization here.
+      // That happens in the startCollecting() method which is only called if
+      // telemetry is actually enabled
+      this.metricsEnabledListener = function metricsEnabledListener(enabled) {
+        if (enabled) {
+          this.startCollecting();
+        }
+        else {
+          this.stopCollecting();
+        }
+      }.bind(this);
 
-    SettingsListener.observe(AUM.TELEMETRY_ENABLED_KEY,
-                             false, this.metricsEnabledListener);
+      SettingsListener.observe(AUM.TELEMETRY_ENABLED_KEY,
+                               false, this.metricsEnabledListener);
+    });
   };
 
   // This method shuts everything down and is only exposed for unit testing.
@@ -294,32 +303,11 @@
         self.metrics = loadedMetrics;
 
         // Now move on to step two in the startup process
-        getDeviceID();
-      });
-    }
-
-    // Step 2: Look up, or generate a unique identifier for this device
-    // so that the periodic metrics reports we send can be linked together
-    // to allow analysis over a longer period of time. If the user ever turns
-    // off telemetry we will delete this id, so that if it is turned back
-    // on, they start off with a clean history
-    function getDeviceID() {
-      asyncStorage.getItem(DEVICE_ID_KEY, function(value) {
-        if (value) {
-          self.deviceID = value;
-        }
-        else {
-          // Our device id does not need to be unique, just probably unique.
-          self.deviceID = uuid();
-          asyncStorage.setItem(DEVICE_ID_KEY, self.deviceID);
-        }
-
-        // Move on to the next step in the startup process
         getConfigurationSettings();
       });
     }
 
-    // Step 3: Configure the server url and other variables by
+    // Step 2: Configure the server url and other variables by
     // allowing values in the settings database to override the defaults.
     function getConfigurationSettings() {
       // Settings to query, mapped to default values
@@ -338,13 +326,46 @@
         AUM.REPORT_INTERVAL = result['metrics.appusage.reportInterval'];
         AUM.REPORT_TIMEOUT = result['metrics.appusage.reportTimeout'];
         AUM.RETRY_INTERVAL = result['metrics.appusage.retryInterval'];
+        AUM.ISDOGFOODER = result['debug.performance_data.dogfooding'];
 
         // Move on to the next step in the startup process
+        getUniqueIdentifier();
+      });
+    }
+
+    // Step 3: Look up, or generate a unique identifier for this device
+    // so that the periodic metrics reports we send can be linked together
+    // to allow analysis over a longer period of time. If the user ever turns
+    // off telemetry we will delete this id, so that if it is turned back
+    // on, they start off with a clean history
+    function getUniqueIdentifier() {
+      var promise = TelemetryRequest.getDeviceID(DEVICE_ID_KEY);
+      promise.then(function(deviceID) {
+        self.deviceID = deviceID;
+        waitForApplicationsReady();
+      }).catch(function(error) {
+        self.deviceID = uuid();
+        debug('uuid: ' + self.deviceID);
+        asyncStorage.setItem(DEVICE_ID_KEY, self.deviceID);
+        waitForApplicationsReady();
+      });
+    }
+
+    // Step 4: Ensure the applications cache is ready
+    function waitForApplicationsReady() {
+      if (applications.ready) {
+        registerHandlers();
+        return;
+      }
+
+      debug('Waiting for applications to be ready');
+      window.addEventListener('applicationready', function onAppsReady(evt) {
+        window.removeEventListener('applicationready', onAppsReady);
         registerHandlers();
       });
     }
 
-    // Step 4: register the various event handlers we need
+    // Step 5: register the various event handlers we need
     function registerHandlers() {
       // Basic event handlers
       EVENT_TYPES.forEach(function(type) {
@@ -402,7 +423,7 @@
   //
   AUM.prototype.handleEvent = function handleEvent(e) {
     var now = performance.now();
-
+    debug('got an event: ', e.type);
     switch (e.type) {
 
     case APPOPENED:
@@ -552,6 +573,15 @@
               new Date(newStartTime).toString());
       }
       break;
+
+    case IACMETRICS:
+      //We need to check this here as we now have a helper module and we
+      //don't want to accept any actions we don't handle.
+      if (e.detail.action === 'websearch') {
+        debug('got a search event for provider: ', e.detail.data);
+        this.metrics.recordSearch(e.detail.data);
+      }
+      break;
     }
 
     /*
@@ -624,20 +654,26 @@
       'developer.menu.enabled': false, // If true, data is probably an outlier
       'deviceinfo.hardware': 'unknown',
       'deviceinfo.os': 'unknown',
+      'deviceinfo.product_model': 'unknown',
+      'deviceinfo.software': 'unknown'
+    };
+
+    var urlInfoQuery = {
       'deviceinfo.platform_build_id': 'unknown',
       'deviceinfo.platform_version': 'unknown',
-      'deviceinfo.product_model': 'unknown',
-      'deviceinfo.software': 'unknown',
-      'deviceinfo.update_channel': 'unknown'
+      'app.update.channel': 'unknown'
     };
 
     // Query the settings db to get some more device-specific information
     AUM.getSettings(deviceInfoQuery, function(deviceInfo) {
       data.deviceinfo = deviceInfo;
       data.simInfo = getSIMInfo();
+    });
 
+    // Query the settings db for parameters for hte URL
+    AUM.getSettings(urlInfoQuery, function(urlInfoResponse) {
       // Now transmit the data
-      send(data);
+      send(data, urlInfoResponse);
     });
 
     function getSIMInfo() {
@@ -691,20 +727,20 @@
       return simInfo;
     }
 
-    function send(data) {
-      var info = data.deviceinfo;
+    function send(data, urlInfo) {
       var request = new TelemetryRequest({
         reason: AUM.TELEMETRY_REASON,
         deviceID: self.deviceID,
         ver: AUM.TELEMETRY_VERSION,
         url: AUM.REPORT_URL,
-        appUpdateChannel: info['deviceinfo.update_channel'],
-        appVersion: info['deviceinfo.platform_version'],
-        appBuildID: info['deviceinfo.platform_build_id']
+        appUpdateChannel: urlInfo['app.update.channel'],
+        appVersion: urlInfo['deviceinfo.platform_version'],
+        appBuildID: urlInfo['deviceinfo.platform_build_id']
       }, data);
 
       // We don't actually have to do anything if the data is transmitted
-      // successfully. We are already set up to collect the next batch of data.
+      // successfully.
+      // We are already set up to collect the next batch of data.
       function onload() {
         debug('Transmitted app usage data to', request.url);
       }
@@ -740,7 +776,8 @@
   function UsageData() {
     this.data = {
       start: Date.now(),
-      apps: {} // Maps app URLs to usage data
+      apps: {}, // Maps app URLs to usage data
+      searches: {}
     };
     this.needsSave = false;
     // Record the relative start time, which we can use to adjust
@@ -780,6 +817,24 @@
     return dayKey.replace(/-/g, '');
   };
 
+  UsageData.prototype.getSearchCounts = function(provider) {
+    var search = this.data.searches[provider];
+    var dayKey = this.getDayKey();
+    if (!search) {
+      // If no usage exists for this provider, create a new empty object for it.
+      this.data.searches[provider] = search = {};
+      debug('creating new object for provider', provider);
+    }
+
+    var daySearch = search[dayKey];
+    if (!daySearch) {
+      daySearch = search[dayKey] = {
+        count: 0
+      };
+    }
+    return daySearch;
+  };
+
   UsageData.prototype.startTime = function() {
     return this.data.start;
   };
@@ -796,12 +851,34 @@
       return false;
     }
 
+    // Bug 1134998: Don't track apps that are marked as private windows
+    // Some app-like objects may not have the isPrivateBrowser function,
+    // so we also check to make sure it exists here.
+    if (typeof app.isPrivateBrowser === 'function' && app.isPrivateBrowser()) {
+      return false;
+    }
+
+    // Gecko and the app window state machine do not send certain app properties
+    // along in webapp-launch or appopened events, causing marketplace app usage
+    // to not be properly recorded. We fall back on the system app's application
+    // cache in these situations. See Bug 1137063
+    var cachedApp = applications.getByManifestURL(app.manifestURL);
     var manifest = app.manifest || app.updateManifest;
-    if (manifest && manifest.type === 'certified') {
+    if (!manifest && cachedApp) {
+      manifest = cachedApp.manifest || cachedApp.updateManifest;
+    }
+
+    var installOrigin = app.installOrigin;
+    if (!installOrigin && cachedApp) {
+      installOrigin = cachedApp.installOrigin;
+    }
+
+    var type = manifest ? manifest.type : 'unknown';
+    if (type === 'certified') {
       return true;
     }
 
-    if (MARKETPLACE_ORIGINS.indexOf(app.installOrigin) >= 0) {
+    if (MARKETPLACE_ORIGINS.indexOf(installOrigin) >= 0) {
       return true;
     }
 
@@ -827,9 +904,27 @@
       usage.invocations++;
       usage.usageTime += time;
       this.needsSave = true;
-      debug(app, 'ran for', time);
+      debug(app.manifestURL, 'ran for', time);
     }
     return time > 0;
+  };
+
+  UsageData.prototype.recordSearch = function(provider) {
+    debug('recordSearch', provider);
+
+    if (provider == null) {
+      return;
+    }
+
+    // We don't want to report search metrics for local search and any other
+    // situation where we might be offline.  Check this here as this may change
+    // in the future.
+    if (navigator.onLine) {
+      var search = this.getSearchCounts(provider);
+      search.count++;
+      debug('Search Count for: ' + provider + ': ', search.count);
+      this.needsSave = true;
+    }
   };
 
   UsageData.prototype.recordInstall = function(app) {
@@ -840,7 +935,7 @@
     var usage = this.getAppUsage(app.manifestURL);
     usage.installs++;
     this.needsSave = true;
-    debug(app, 'installed');
+    debug(app.manifestURL, 'installed');
     return true;
   };
 
@@ -852,7 +947,7 @@
     var usage = this.getAppUsage(app.manifestURL);
     usage.uninstalls++;
     this.needsSave = true;
-    debug(app, 'uninstalled');
+    debug(app.manifestURL, 'uninstalled');
     return true;
   };
 
@@ -865,7 +960,7 @@
     var count = usage.activities[url] || 0;
     usage.activities[url] = ++count;
     this.needsSave = true;
-    debug(app, 'invoked activity', url);
+    debug(app.manifestURL, 'invoked activity', url);
     return true;
   };
 
@@ -900,6 +995,30 @@
         }
       }
     }
+
+    // loop through all the search providers that we have data for
+    // and merge the new searches into the old searches.
+    for (var provider in newbatch.data.searches) {
+      var newsearch = newbatch.data.searches[provider];
+      var oldsearch = this.data.searches[provider];
+
+      if (!oldsearch) {
+        // If no usage exists for this provider, create a new empty object.
+        this.data.searches[provider] = {};
+        debug('creating new object for provider', provider);
+      }
+
+      for (var daykey in newsearch) {
+        var daySearch = oldsearch[daykey];
+        if (!daySearch) {
+          oldsearch[daykey] = newsearch[daykey];
+        } else {
+          var newsearchcount = newsearch[daykey].count;
+          var oldsearchcount = oldsearch[daykey].count || 0;
+          oldsearch[daykey].count = oldsearchcount + newsearchcount;
+        }
+      }
+    }
   };
 
   // Persist the current batch of metrics so we don't lose it if the user
@@ -919,6 +1038,11 @@
       var usage = new UsageData();
       if (data) {
         usage.data = data;
+        //Handle a scenario with old app data that does not have searches
+        if (typeof usage.data.searches === 'undefined') {
+          usage.data.searches = {};
+        }
+
         // If we loaded persisted data, then the absolute start time can
         // and should no longer be adjusted. So remove the relative time.
         delete usage.relativeStartTime;

@@ -3,7 +3,8 @@
   <head>
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
     <meta charset="utf-8">
-    <meta name="theme-color" content="#eeeeee">
+    <meta name="theme-group" content="theme-settings">
+    <meta name="theme-color" content="var(--header-background)">
     <title data-l10n-id="usage">
       Usage
     </title>
@@ -12,7 +13,6 @@
     <link rel="stylesheet" type="text/css" href="shared/style/headers.css">
     <link rel="stylesheet" type="text/css" href="shared/style/buttons.css">
     <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css">
-    <link rel="stylesheet" type="text/css" href="shared/style/switches.css">
     <link rel="stylesheet" type="text/css" href="shared/style/lists.css">
     <link rel="stylesheet" type="text/css" href="shared/style/progress_activity.css">
     <link rel="stylesheet" type="text/css" href="shared/style/tabs.css">
@@ -23,6 +23,8 @@
     <link rel="localization" href="/shared/locales/date/date.{locale}.properties">
     <link rel="stylesheet" type="text/css" href="/shared/elements/gaia-icons/gaia-icons.css">
     <link rel="stylesheet" type="text/css" href="app://theme.gaiamobile.org/shared/elements/gaia-theme/gaia-theme.css">
+    <script defer src="/shared/js/component_utils.js"></script>
+    <script defer src="/shared/elements/gaia_checkbox/script.js"></script>
 
     <!-- App and Views -->
     <link rel="stylesheet" type="text/css" href="style/app.css">
@@ -58,14 +60,11 @@
     <script type="text/javascript" defer src="shared/js/settings_listener.js"></script>
     <script type="text/javascript" defer src="shared/js/lazy_loader.js"></script>
     <script type="text/javascript" defer src="shared/js/format.js"></script>
-    <script type="text/javascript" defer src="/shared/js/performance_testing_helper.js"></script>
     <script type="text/javascript" defer src="/shared/js/url_helper.js"></script>
 
     <!-- Gaia Components -->
     <script defer src="/shared/elements/config.js"></script>
-    <script defer src="/shared/js/component_utils.js"></script>
     <script defer src="/shared/elements/gaia-header/dist/gaia-header.js"></script>
-    <script defer src="/shared/elements/gaia_checkbox/script.js"></script>
 
     <script type="text/javascript" defer src="js/app.js"></script>
     <script type="text/javascript" defer src="js/application_init.js"></script>
@@ -94,7 +93,7 @@
              the overlays) and we should distinguish between TABS and OVERLAY VIEWS -->
         <gaia-header>
           <h1 data-l10n-id="usage"></h1>
-          <button class="settings-button" data-icon="settings"></button>
+          <button class="settings-button" data-icon="settings" data-l10n-id="settings-button"></button>
         </gaia-header>
 
         <!-- Bottom filters (Telephony / Cost Control and Data Usage) -->

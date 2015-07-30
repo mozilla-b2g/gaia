@@ -5,19 +5,32 @@
 /* global contacts */
 /* global asyncStorage */
 /* global MockContactsListObj */
-/* global ICEData, MockContactsSettings, Contacts */
+/* global ContactsService */
+/* global ConfirmDialog */
+/* global ICEData, MockContactsSettings */
 
+requireApp('communications/contacts/test/unit/mock_header_ui.js');
+requireApp('communications/contacts/services/contacts.js');
 requireApp('communications/contacts/test/unit/mock_navigation.js');
 requireApp('communications/contacts/test/unit/mock_asyncstorage.js');
 requireApp('communications/contacts/test/unit/mock_contacts.js');
+requireApp('communications/contacts/test/unit/mock_cache.js');
 requireApp('communications/contacts/js/utilities/ice_data.js');
 requireApp('communications/contacts/js/views/ice_settings.js');
 requireApp('communications/contacts/test/unit/mock_contacts_list_obj.js');
 requireApp('communications/contacts/test/unit/mock_contacts_settings.js');
+require('/shared/js/component_utils.js');
+require('/shared/elements/gaia_switch/script.js');
+require('/shared/test/unit/mocks/mock_confirm_dialog.js');
 require('/shared/test/unit/mocks/mock_ice_store.js');
 
 var mocksHelper = new MocksHelper([
-  'asyncStorage', 'ICEStore', 'Contacts'
+  'asyncStorage',
+  'Cache',
+  'ConfirmDialog',
+  'Contacts',
+  'ICEStore',
+  'HeaderUI'
 ]);
 mocksHelper.init();
 
@@ -26,7 +39,6 @@ suite('ICE Settings view', function() {
   var realContactsList;
   var realContactsSettings;
   var defaultLabel = 'ICESelectContact';
-  var getContactByIdStub;
 
   var cid1 = '1', cid2 = '2', fbcid3 = '3';
 
@@ -46,37 +58,44 @@ suite('ICE Settings view', function() {
 
   setup(function() {
     setupHTML();
-    getContactByIdStub = sinon.stub(contacts.List, 'getContactById',
-      function(id, cb) {
+    this.sinon.stub(
+      ContactsService,
+      'get',
+      function(id, successCB, errorCB) {
         if (!id) {
-          cb();
+          successCB();
           return;
         }
-        var contacts = [
-        {
+
+        var contacts = [];
+        contacts.push({
           id: cid1,
           givenName: ['John'],
           familyName: ['Doe']
-        },{
+        });
+        contacts.push({
           id: cid2,
           givenName: ['Albert'],
           familyName: ['Pla']
-        },{
+        });
+        contacts.push({
           id: fbcid3,
           givenName: ['Cristian'],
           familyName: ['Martin'],
           isFB: true
-        }];
-        // Hoping ide 1 and 2
+        });
+
         var contact = contacts[id - 1];
-        cb(contact, contact.isFB);
-    });
+        successCB(contact, contact.isFB);
+      }
+    );
+
   });
 
   teardown(function() {
     subject.reset();
     window.asyncStorage.clear();
-    getContactByIdStub.restore();
+    ContactsService.get.restore();
   });
 
   function setupHTML() {
@@ -116,8 +135,8 @@ suite('ICE Settings view', function() {
 
     var iceCheck1 = document.querySelector('[name="ice-contact-1-enabled"]');
     var iceCheck2 = document.querySelector('[name="ice-contact-2-enabled"]');
-    assert.isFalse(iceCheck1.disabled);
-    assert.isFalse(iceCheck2.disabled);
+    assert.ok(!iceCheck1.disabled);
+    assert.ok(!iceCheck2.disabled);
   }
 
   suite('> Initialization', function() {
@@ -151,7 +170,7 @@ suite('ICE Settings view', function() {
       };
 
       subject.refresh(function() {
-        sinon.assert.calledTwice(contacts.List.getContactById);
+        sinon.assert.calledTwice(ContactsService.get);
 
         assertIceContacts([{ contactId: cid1, label: 'John Doe', active: true},
                          { contactId: '', active: false}]);
@@ -159,7 +178,7 @@ suite('ICE Settings view', function() {
       });
     });
 
-     test('> With 1 contact enabled. ICE Contact 2', function(done) {
+    test('> With 1 contact enabled. ICE Contact 2', function(done) {
       window.asyncStorage.keys = {
         'ice-contacts': [
           {},
@@ -171,7 +190,7 @@ suite('ICE Settings view', function() {
       };
 
       subject.refresh(function() {
-        sinon.assert.calledTwice(contacts.List.getContactById);
+        sinon.assert.calledTwice(ContactsService.get);
 
         assertIceContacts([{ contactId: '', active: false},
                       { contactId: cid2, label: 'Albert Pla', active: true}]);
@@ -192,26 +211,37 @@ suite('ICE Settings view', function() {
 
         var targetTelNumber = '678987654';
 
-        contacts.List.getContactById.restore();
-        this.sinon.stub(contacts.List, 'getContactById', function(id, cb) {
-          var contacts = [
-          {
-            id: cid1,
-            givenName: [],
-            familyName: null,
-            tel: [
-              {
-                type: ['other'],
-                value: targetTelNumber
-              }
-            ]
-          }];
-          // Hoping ide 1 and 2
-          cb(contacts[id - 1]);
-        });
+        ContactsService.get.restore();
+
+        this.sinon.stub(
+          ContactsService,
+          'get',
+          function(id, successCB, errorCB) {
+            if (!id) {
+              successCB();
+              return;
+            }
+
+            var contacts = [];
+            contacts.push({
+              id: cid1,
+              givenName: [],
+              familyName: null,
+              tel: [
+                {
+                  type: ['other'],
+                  value: targetTelNumber
+                }
+              ]
+            });
+            var contact = contacts[id - 1];
+            successCB(contact);
+          }
+        );
+
 
         subject.refresh(function() {
-          sinon.assert.calledTwice(contacts.List.getContactById);
+          sinon.assert.calledTwice(ContactsService.get);
 
           assertIceContacts([{
             label: targetTelNumber, contactId: cid1, active: true
@@ -234,7 +264,7 @@ suite('ICE Settings view', function() {
       };
 
       subject.refresh(function() {
-        sinon.assert.calledTwice(contacts.List.getContactById);
+        sinon.assert.calledTwice(ContactsService.get);
 
         assertIceContacts([{ contactId: '', active: false},
                          { contactId: '', active: false}]);
@@ -255,7 +285,7 @@ suite('ICE Settings view', function() {
       };
 
       subject.refresh(function() {
-        sinon.assert.calledTwice(contacts.List.getContactById);
+        sinon.assert.calledTwice(ContactsService.get);
 
         assertIceContacts([{ contactId: '', active: false},
                             { contactId: '', active: false}]);
@@ -278,7 +308,7 @@ suite('ICE Settings view', function() {
       };
 
       subject.refresh(function() {
-        sinon.assert.calledTwice(contacts.List.getContactById);
+        sinon.assert.calledTwice(ContactsService.get);
 
         assertIceContacts([{ contactId: cid1, label: 'John Doe', active: true},
                       { contactId: cid2, label: 'Albert Pla', active: true}]);
@@ -313,7 +343,7 @@ suite('ICE Settings view', function() {
 
     test('> change state saves ICE Datastore', function(done) {
       subject.refresh(function() {
-        var switch1 = document.getElementById('ice-contacts-1-switch');
+        var switch1 = document.querySelector('[name=ice-contact-1-enabled]');
         // Disable 1
         switch1.click();
 
@@ -345,17 +375,12 @@ suite('ICE Settings view', function() {
 
     var handleClick;
 
-    suiteSetup(function() {
-      sinon.stub(contacts.List, 'handleClick', function(cb) {
+    setup(function() {
+
+      this.sinon.stub(contacts.List, 'handleClick', function(cb) {
         handleClick = cb;
       });
-    });
 
-    suiteTeardown(function() {
-      contacts.List.handleClick.restore();
-    });
-
-    setup(function() {
       window.asyncStorage.keys = {
         'ice-contacts': [
           {
@@ -364,6 +389,12 @@ suite('ICE Settings view', function() {
           }
         ]
       };
+
+
+    });
+
+    teardown(function() {
+      handleClick = null;
     });
 
     function clickOnList(id) {
@@ -373,14 +404,14 @@ suite('ICE Settings view', function() {
 
     function assertErrorMessage(code, expectedCode, cb) {
       assert.equal(code, expectedCode);
-      Contacts.confirmDialog.restore();
+      ConfirmDialog.show.restore();
       cb();
     }
 
     test(' repeated contact', function(done) {
       subject.refresh(function() {
         clickOnList(cid1);
-        sinon.stub(Contacts, 'confirmDialog', function(param1, code) {
+        sinon.stub(ConfirmDialog, 'show', function(param1, code) {
           assertErrorMessage(code, 'ICERepeatedContact', done);
         });
       });
@@ -389,7 +420,7 @@ suite('ICE Settings view', function() {
     test(' facebook contact', function(done) {
       subject.refresh(function() {
         clickOnList(fbcid3);
-        sinon.stub(Contacts, 'confirmDialog', function(param1, code) {
+        sinon.stub(ConfirmDialog, 'show', function(param1, code) {
           assertErrorMessage(code, 'ICEFacebookContactNotAllowed', done);
         });
       });

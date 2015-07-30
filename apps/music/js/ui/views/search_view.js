@@ -1,7 +1,8 @@
 /* exported SearchView */
-/* global Normalizer, createListElement, App, musicdb, ModeManager,
-          MODE_PLAYER, PlayerView, TYPE_SINGLE, TYPE_LIST, SubListView,
-          MODE_SUBLIST */
+/* global App, createListElement, Database, ListView, ModeManager, MODE_LIST,
+          MODE_PLAYER, MODE_SEARCH_FROM_TILES, MODE_SUBLIST, MODE_TILES,
+          Normalizer, PlayerView, SubListView, TabBar, TYPE_SINGLE, TYPE_LIST,
+          TilesView */
 'use strict';
 
 var SearchView = {
@@ -15,7 +16,11 @@ var SearchView = {
   searchContext: 'ALL',
 
   get view() {
-    return document.getElementById('search');
+    return document.getElementById('views-search');
+  },
+
+  get searchInput() {
+    return document.getElementById('views-search-input');
   },
 
   get searchArtistsView() {
@@ -40,10 +45,32 @@ var SearchView = {
     this.searchHandles = { artist: null, album: null, title: null };
 
     this.view.addEventListener('click', this);
+    this.view.addEventListener('touchend', this);
+    this.searchInput.addEventListener('focus', this);
+    this.searchInput.addEventListener('input', this);
+    this.searchInput.addEventListener('keypress', this);
+  },
+
+  switchContext: function sv_switchContext() {
+    switch (TabBar.option) {
+      case 'mix':
+      case 'playlist':
+        this.searchContext = SearchView.context.ALL;
+        break;
+      case 'artist':
+        this.searchContext = SearchView.context.ARTISTS;
+        break;
+      case 'album':
+        this.searchContext = SearchView.context.ALBUMS;
+        break;
+      case 'title':
+        this.searchContext = SearchView.context.SONGS;
+        break;
+    }
   },
 
   search: function sv_search(query) {
-    this.clearSearch();
+    this.clear();
     if (!query) {
       return;
     }
@@ -84,14 +111,14 @@ var SearchView = {
     if (!App.pendingPick) {
       if (this.searchContext === this.context.ALL ||
           this.searchContext === this.context.ARTISTS) {
-        this.searchHandles.artist = musicdb.enumerate(
+        this.searchHandles.artist = Database.enumerate(
           'metadata.artist', null, 'nextunique',
           sv_showResult.bind(this, 'artist')
         );
       }
       if (this.searchContext === this.context.ALL ||
           this.searchContext === this.context.ALBUMS) {
-        this.searchHandles.album = musicdb.enumerate(
+        this.searchHandles.album = Database.enumerate(
           'metadata.album', null, 'nextunique',
           sv_showResult.bind(this, 'album')
         );
@@ -100,18 +127,18 @@ var SearchView = {
 
     if (this.searchContext === this.context.ALL ||
         this.searchContext === this.context.SONGS) {
-      this.searchHandles.title = musicdb.enumerate(
+      this.searchHandles.title = Database.enumerate(
         'metadata.title',
         sv_showResult.bind(this, 'title')
       );
     }
   },
 
-  clearSearch: function sv_clearSearch() {
+  clear: function sv_clear() {
     for (var option in this.searchHandles) {
       var handle = this.searchHandles[option];
       if (handle) {
-        musicdb.cancelEnumeration(handle);
+        Database.cancelEnumeration(handle);
       }
     }
 
@@ -125,52 +152,100 @@ var SearchView = {
     this.dataSource = [];
   },
 
+  hide: function sv_hide() {
+    this.searchInput.value = '';
+    this.clear();
+
+    if (ModeManager.currentMode === MODE_SEARCH_FROM_TILES) {
+      ModeManager.start(MODE_TILES, function() {
+        TilesView.hideSearch();
+      });
+    } else {
+      ModeManager.start(MODE_LIST, function() {
+        ListView.hideSearch();
+      });
+    }
+  },
+
+  openResult: function sv_openResult(target) {
+    var index = target.dataset.index;
+
+    var option = target.dataset.option;
+    var keyRange = target.dataset.keyRange;
+    var data = this.dataSource[index];
+
+    if (option === 'title') {
+      ModeManager.push(MODE_PLAYER, function() {
+        if (App.pendingPick) {
+          PlayerView.setSourceType(TYPE_SINGLE);
+          PlayerView.dataSource = this.dataSource;
+          PlayerView.play(index);
+        } else {
+          PlayerView.setSourceType(TYPE_LIST);
+          PlayerView.dataSource = [data];
+          PlayerView.play(0);
+        }
+      }.bind(this));
+    } else {
+      // SubListView needs to prepare the songs data before entering it,
+      // So here we initialize the SubListView before push the view.
+      ModeManager.waitForView(MODE_SUBLIST, () => {
+        SubListView.activate(option, data, index, keyRange, 'next', () => {
+          ModeManager.push(MODE_SUBLIST);
+        });
+      });
+    }
+  },
+
   handleEvent: function sv_handleEvent(evt) {
     var target = evt.target;
     switch (evt.type) {
+      case 'touchend':
+        if (target.id === 'views-search-clear') {
+          evt.preventDefault();
+          this.searchInput.value = '';
+          this.clear();
+        }
+
+        break;
+
       case 'click':
         if (!target) {
           return;
         }
 
+        if (target.id === 'views-search-close') {
+          evt.preventDefault();
+          this.hide();
+        }
+
         if (target.dataset.index) {
-          var handler;
-          var index = target.dataset.index;
+          this.openResult(target);
+        }
 
-          var option = target.dataset.option;
-          var keyRange = target.dataset.keyRange;
-          var data = this.dataSource[index];
-          handler = sv_openResult.bind(this, option, data, index, keyRange);
+        break;
 
-          target.addEventListener('transitionend', handler);
+      case 'focus':
+        this.switchContext();
+        break;
+
+      case 'input':
+        if (target.id === 'views-search-input') {
+          this.search(target.value);
+        }
+
+        break;
+
+      case 'keypress':
+        if (target.id === 'views-search-input') {
+          if (evt.keyCode === evt.DOM_VK_RETURN) {
+            evt.preventDefault();
+          }
         }
         break;
 
       default:
         return;
-    }
-
-    function sv_openResult(option, data, index, keyRange) {
-      /* jshint validthis:true */
-      if (option === 'title') {
-        ModeManager.push(MODE_PLAYER, function() {
-          if (App.pendingPick) {
-            PlayerView.setSourceType(TYPE_SINGLE);
-            PlayerView.dataSource = this.dataSource;
-            PlayerView.play(index);
-          } else {
-            PlayerView.setSourceType(TYPE_LIST);
-            PlayerView.dataSource = [data];
-            PlayerView.play(0);
-          }
-        }.bind(this));
-      } else {
-        SubListView.activate(option, data, index, keyRange, 'next', function() {
-          ModeManager.push(MODE_SUBLIST);
-        });
-      }
-
-      target.removeEventListener('transitionend', handler);
     }
   }
 };

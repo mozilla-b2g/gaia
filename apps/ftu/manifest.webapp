@@ -48,12 +48,6 @@
   "orientation": "default",
 
   "redirects": [
-    {"from": "facebook",
-    "to": "/shared/pages/import/redirects/redirect.html"},
-    {"from": "facebook_dialogs",
-    "to": "/shared/pages/import/redirects/dialogs_end.html"},
-    {"from": "facebook_logout",
-    "to": "/shared/pages/import/redirects/dialogs_end.html"},
     {"from": "live",
     "to": "/shared/pages/import/redirects/redirect.html"},
     {"from": "gmail",
@@ -66,10 +60,6 @@
     }
   },
   "datastores-access": {
-    "Gaia_Facebook_Friends": {
-      "readonly": false,
-      "description": "Facebook contacts"
-    },
     "Import_Status_Data": {
       "readonly": false,
       "description": "Import status data shared between FTU and Contacts"

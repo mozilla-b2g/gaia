@@ -123,10 +123,10 @@
           break;
 
         case 'system-resize':
-          if (this._instance != overlay) {
-            return;
+          var p = this._instance.resize();
+          if (typeof evt.detail.waitUntil === 'function') {
+            evt.detail.waitUntil(p);
           }
-          this._instance.resize();
           break;
       }
     },

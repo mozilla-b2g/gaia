@@ -7,7 +7,9 @@ var assert = require('chai').assert;
 
 marionette('Browser test', function() {
 
-  var client = marionette.client(require(__dirname + '/client_options.js'));
+  var client = marionette.client({
+    profile: require(__dirname + '/client_options.js')
+  });
   var search, system, server, home, rocketbar;
 
   suiteSetup(function(done) {
@@ -22,7 +24,7 @@ marionette('Browser test', function() {
     search = client.loader.getAppClass('search');
     rocketbar = new Rocketbar(client);
     system = client.loader.getAppClass('system');
-    system.waitForStartup();
+    system.waitForFullyLoaded();
   });
 
 

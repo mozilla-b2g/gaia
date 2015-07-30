@@ -11,7 +11,10 @@ var createAppServer = require('./server/parent');
 var iconAppState = require('./lib/icon_app_state');
 
 marionette('Vertical Home - Packaged App Update', function() {
-  var client = marionette.client(require(__dirname + '/client_options.js'));
+  var client = marionette.client({
+    profile: require(__dirname + '/client_options.js'),
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
+  });
 
   var server;
   setup(function(done) {
@@ -31,7 +34,7 @@ marionette('Vertical Home - Packaged App Update', function() {
     appInstall = new AppInstall(client);
 
     // wait for the system app to be running
-    system.waitForStartup();
+    system.waitForFullyLoaded();
     client.apps.launch(subject.URL);
     subject.waitForLaunch();
 

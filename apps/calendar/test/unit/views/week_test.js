@@ -1,16 +1,14 @@
 define(function(require) {
 'use strict';
 
-var Calc = require('calc');
+var Calc = require('common/calc');
 var Week = require('views/week');
 
 suite('Views.Week', function() {
   var subject;
-  var app;
 
   setup(function() {
-    app = testSupport.calendar.app();
-    subject = new Week({ app: app });
+    subject = new Week();
   });
 
   suite('#_calcBaseDate', function() {

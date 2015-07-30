@@ -115,7 +115,8 @@ var FontSizeManager = (function fontSizeManager() {
     if (view.value) {
       view.value = value;
     } else {
-      view.textContent = value;
+      var el = view.querySelector('bdi') || view;
+      el.textContent = value;
     }
   }
 

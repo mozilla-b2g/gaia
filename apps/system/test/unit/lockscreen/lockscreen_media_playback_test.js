@@ -101,6 +101,22 @@ suite('system/media playback widget', function() {
       var metadata = { title: 'title', artist: 'artist' };
       widget.updateNowPlaying(metadata);
       assert.equal(widget.track.textContent, 'title — artist');
+      assert.equal(widget.track.innerHTML,
+                   'title — <bdi>artist</bdi>');
+    });
+
+    test('Update now playing, no artist', function() {
+      var metadata = { title: 'title', artist: '' };
+      widget.updateNowPlaying(metadata);
+      assert.equal(widget.track.textContent, 'title');
+      assert.equal(widget.track.innerHTML, 'title');
+    });
+
+    test('Update now playing, no title', function() {
+      var metadata = { title: '', artist: 'artist' };
+      widget.updateNowPlaying(metadata);
+      assert.equal(widget.track.textContent, 'artist');
+      assert.equal(widget.track.innerHTML, 'artist');
     });
   });
 

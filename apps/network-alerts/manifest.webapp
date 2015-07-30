@@ -19,7 +19,8 @@
     "attention":{},
     "desktop-notification":{},
     "cellbroadcast":{},
-    "settings":{ "access": "readonly" }
+    "settings":{ "access": "readonly" },
+    "audio-channel-notification":{}
   },
   "locales": {
     "en-US": {}

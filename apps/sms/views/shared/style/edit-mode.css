@@ -1,0 +1,108 @@
+/*
+ * This file contains styles shared between views when they're in edit mode.
+ * View edit mode is activated via Options -> Select threads/messages.
+ */
+
+
+/* Override Building Block [Edit mode] styles */
+form[role="dialog"][data-type="edit"] gaia-header {
+  transform: translateY(-110%);
+}
+
+form[role="dialog"][data-type="edit"] > menu {
+  transform: translateY(110%);
+}
+
+/* Add a margin at the end of the last thread or message node to avoid overlay
+ * with the edit mode menu */
+.edit .edit-container {
+  padding-bottom: 7rem;
+}
+
+#main-wrapper.edit [data-type="list"] li a {
+  pointer-events: none;
+}
+
+.edit .bottom-tab[role="region"] {
+  visibility: visible;
+}
+
+/* Override Building Block Tabs styles */
+form[role="dialog"][data-type="edit"] .bb-tablist:before {
+  bottom: 5.5rem ;
+}
+
+form[role="dialog"][data-type="edit"] .bb-tablist > li {
+  height: 5.5rem ;
+}
+
+.bb-tablist > li button {
+  background-position: 50% 50% ;
+}
+
+.bb-tablist > li button[data-action="delete-button"] {
+  background-image: url("images/icons/delete.png");
+}
+
+/* Lists: edit mode */
+.edit [data-type="list"] li > a {
+  transform: translateX(-1.5rem);
+}
+
+.edit [data-type="list"] li > label {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(2rem);
+}
+
+.edit [data-type="list"] li > .pack-checkbox input ~ span:after {
+  opacity: 1;
+  transform: translateX(2.5rem);
+}
+
+.edit [data-type="list"] li > a > p {
+  transform: translateX(5.0rem);
+  -moz-margin-end: 3.4rem;
+}
+
+/* Currently is used in ConversationView only */
+.edit [data-type="list"] .danger {
+  transform: translateX(2.5rem);
+}
+
+form[role="dialog"][data-type="edit"] {
+  visibility: hidden;
+}
+
+.edit form[role="dialog"][data-type="edit"] {
+  visibility: visible;
+}
+
+.edit form[role="dialog"][data-type="edit"] > menu {
+  transform: translateY(0);
+}
+
+.edit form[role="dialog"][data-type="edit"] gaia-header {
+  transform: translateY(0);
+}
+
+/* RTL View */
+html[dir="rtl"] .edit [data-type="list"] li > a {
+  transform: translateX(1.5rem);
+}
+
+html[dir="rtl"] .edit [data-type="list"] li > label {
+  transform: translateX(-2rem);
+}
+
+html[dir="rtl"] .edit [data-type="list"] li > .pack-checkbox input ~ span:after {
+  transform: translateX(-2.5rem);
+}
+
+html[dir="rtl"] .edit [data-type="list"] li > a > p {
+  transform: translateX(-5rem);
+}
+
+html[dir="rtl"] .edit [data-type="list"] .danger {
+  transform: translateX(-2.5rem);
+}

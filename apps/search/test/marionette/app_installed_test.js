@@ -9,7 +9,7 @@ var createAppServer =
 
 marionette('Search - Installed Apps Test', function() {
   var clientOptions = require(__dirname + '/client_options.js');
-  var client = marionette.client(clientOptions);
+  var client = marionette.client({ profile: clientOptions });
   var appInstall, home, rocketbar, search, server, system;
 
   setup(function(done) {
@@ -18,7 +18,7 @@ marionette('Search - Installed Apps Test', function() {
     system = client.loader.getAppClass('system');
     search = client.loader.getAppClass('search');
     rocketbar = new Rocketbar(client);
-    system.waitForStartup();
+    system.waitForFullyLoaded();
 
     var app = __dirname + '/fixtures/installed_app';
     createAppServer(app, client, function(err, _server) {
@@ -30,7 +30,6 @@ marionette('Search - Installed Apps Test', function() {
   test('app result after install/uninstall', function() {
     home.waitForLaunch();
     home.focusRocketBar();
-    search.triggerFirstRun(rocketbar);
     rocketbar.enterText('Calendar');
     search.goToResults();
 

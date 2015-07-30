@@ -1,22 +1,30 @@
 'use strict';
-/* global MocksHelper, MockApplications, MockL10n, ActionMenu, Activities */
+/* global MocksHelper, MockApplications, MockL10n, MockDefaultActivityHelper,
+          ActionMenu, BaseModule, DefaultActivityHelper, MockService
+*/
 
-requireApp('system/test/unit/mock_applications.js');
-requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
-requireApp('system/js/action_menu.js');
+require('/shared/test/unit/mocks/mock_default_activity_helper.js');
+requireApp('system/test/unit/mock_lazy_loader.js');
+requireApp('system/test/unit/mock_applications.js');
+requireApp('system/test/unit/mock_lazy_loader.js');
+requireApp('system/shared/test/unit/mocks/mock_service.js');
+requireApp('system/test/unit/mock_action_menu.js');
 requireApp('system/shared/js/manifest_helper.js');
-requireApp('system/js/activities.js');
+requireApp('system/js/base_module.js');
+
 var mocksForActivities = new MocksHelper([
-  'Applications'
+  'Applications',
+  'LazyLoader',
+  'ActionMenu'
 ]).init();
 
 suite('system/Activities', function() {
   var realL10n;
+  var realDefaultActivityHelper;
   var subject;
-  var stubById;
-  var fakeElement;
   var realApplications;
+  var realService;
 
   var fakeLaunchConfig1 = {
     'isActivity': false,
@@ -31,40 +39,51 @@ suite('system/Activities', function() {
   };
 
   mocksForActivities.attachTestHelpers();
-  suiteSetup(function() {
+
+  suiteSetup(function(done) {
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
     realApplications = window.applications;
+    realDefaultActivityHelper = window.DefaultActivityHelper;
+    realService = window.Service;
+    window.Service = MockService;
     window.applications = MockApplications;
+    window.DefaultActivityHelper = MockDefaultActivityHelper;
+    requireApp('system/js/activities.js', done);
   });
 
   suiteTeardown(function() {
     navigator.mozL10n = realL10n;
     window.applications = realApplications;
+    window.Service = realService;
+    window.DefaultActivityHelper = realDefaultActivityHelper;
     realApplications = null;
   });
 
   setup(function() {
     this.sinon.useFakeTimers();
-
-    fakeElement = document.createElement('div');
-    fakeElement.style.cssText = 'height: 100px; display: block;';
-    stubById = this.sinon.stub(document, 'getElementById')
-                          .returns(fakeElement.cloneNode(true));
-
-    subject = new Activities();
-  });
-
-  teardown(function() {
-    this.sinon.clock.restore();
-    stubById.restore();
   });
 
   suite('constructor', function() {
     test('adds event listeners', function() {
-      var addEventStub = this.sinon.stub(window, 'addEventListener');
-      subject = new Activities();
-      assert.ok(addEventStub.withArgs('mozChromeEvent').calledOnce);
+      var expected = [];
+      subject = BaseModule.instantiate('Activities');
+      this.sinon.stub(subject, 'handleEvent', function(evt) {
+        expected.push(evt.type);
+      });
+      subject.start();
+      var events = {};
+      var eventsToListen = [
+        'mozChromeEvent',
+        'appopened',
+        'applicationinstall'
+      ];
+
+      eventsToListen.forEach(function(name) {
+        events[name] = new CustomEvent(name);
+        window.dispatchEvent(events[name]);
+        assert.isTrue(expected[expected.length - 1] === name);
+      });
     });
   });
 
@@ -82,16 +101,25 @@ suite('system/Activities', function() {
     });
 
     test('hides actionMenu on appopended if it exists', function() {
-      var stub = this.sinon.stub(ActionMenu.prototype, 'hide');
+      this.sinon.stub(ActionMenu.prototype, 'hide');
       subject.actionMenu = new ActionMenu();
       subject.handleEvent({type: 'appopened'});
-      assert.ok(stub.calledOnce);
+      assert.ok(ActionMenu.prototype.hide.calledOnce);
     });
   });
 
-  suite('chooseActivity', function() {
-    test('chooses with 1 item', function() {
-      var stub = this.sinon.stub(subject, 'choose');
+  suite('activity (multi)selection', function() {
+    setup(function() {
+      this.sinon.stub(DefaultActivityHelper, 'getDefaultAction')
+        .returns({ // instead of Promise.resolve() to return in same cycle
+          then: function(cb) { cb(null); }
+        });
+    });
+
+    test('choice when only one item', function() {
+      var stub = this.sinon.stub(subject, 'choose', function(obj) {
+        console.log('called with ' + obj);
+      });
       subject.chooseActivity({
         id: 'single',
         choices: ['first']
@@ -99,17 +127,36 @@ suite('system/Activities', function() {
       assert.ok(stub.calledWith('0'));
     });
 
-    test('opens action menu with multiple items', function() {
-      var dispatchStub = this.sinon.stub(window, 'dispatchEvent');
+    test('opens action menu with multiple choice', function() {
+      this.sinon.stub(window, 'dispatchEvent');
       subject.chooseActivity({
         id: 'single',
         choices: ['first', 'second']
       });
       this.sinon.clock.tick();
-      assert.equal(dispatchStub.getCall(0).args[0].type,
+      assert.equal(window.dispatchEvent.getCall(0).args[0].type,
         'activityrequesting');
-      assert.equal(dispatchStub.getCall(1).args[0].type,
+      assert.equal(window.dispatchEvent.getCall(1).args[0].type,
         'activitymenuwillopen');
+    });
+
+    test('only opens once if we get two activity-choice events', function() {
+      subject.actionMenu = null;
+      this.sinon.stub(ActionMenu.prototype, 'show', function() {
+        subject.actionMenu.active = true;
+      });
+      var evt = {
+        type: 'mozChromeEvent',
+        detail: {
+          type: 'activity-choice',
+          choices: ['first', 'second']
+        }
+      };
+      subject.handleEvent(evt);
+      this.sinon.clock.tick();
+      subject.handleEvent(evt);
+      this.sinon.clock.tick();
+      assert.ok(ActionMenu.prototype.show.calledOnce);
     });
 
     test('does not allow a choice that would subvert forward lock', function() {
@@ -135,7 +182,7 @@ suite('system/Activities', function() {
                       'activitymenuwillopen');
     });
 
-    test('does not allow another choice that would subvert forward lock', 
+    test('does not allow another choice that would subvert forward lock',
       function() {
         var stub = this.sinon.stub(subject, 'choose');
         var dispatchStub = this.sinon.stub(window, 'dispatchEvent');
@@ -198,33 +245,227 @@ suite('system/Activities', function() {
       assert.equal(stub.secondCall.args[0].type, 'activitymenuwillopen');
     });
 
-  });
-
-  suite('choose', function() {
-    test('calls _sendEvent', function() {
-      subject._id = 'foo';
-      var stub = this.sinon.stub(subject, '_sendEvent');
-      var formatted = {
-        id: 'foo',
-        type: 'activity-choice',
-        value: 0
+    test('checks for default app on the list', function() {
+      var activity = {
+        id: 'single',
+        name: 'view',
+        activityType: 'image/*',
+        choices: [{
+          manifest: 'app://gallery.gaiamobile.org/manifest.webapp'
+        },{
+          manifest: 'app://camera.gaiamobile.org/manifest.webapp'
+        }]
       };
-      subject.choose(0);
-      assert.ok(stub.calledWith(formatted));
+
+      subject.chooseActivity(activity);
+      assert.ok(DefaultActivityHelper.getDefaultAction.calledWith(
+        activity.name, activity.activityType));
+    });
+
+    test('if not on the list, ignore', function() {
+      this.sinon.spy(subject, '_gotDefaultAction');
+
+      var activity = {
+        id: 'single',
+        name: 'pick',
+        activityType: 'image/*',
+        choices: [{
+          manifest: 'app://gallery.gaiamobile.org/manifest.webapp'
+        },{
+          manifest: 'app://camera.gaiamobile.org/manifest.webapp'
+        }]
+      };
+
+      subject.chooseActivity(activity);
+      assert.ok(DefaultActivityHelper.getDefaultAction.calledWith(
+        activity.name, activity.activityType));
+      assert.ok(subject._gotDefaultAction.calledWith(null));
+    });
+
+    test('if on the list, check for default launch associated', function() {
+      DefaultActivityHelper.getDefaultAction
+        .returns({
+          then: function(cb) { cb('fakeManifest'); }
+        });
+      this.sinon.spy(subject, '_gotDefaultAction');
+
+      var activity = {
+        id: 'single',
+        name: 'pick',
+        activityType: 'image/*',
+        choices: [{
+          manifest: 'app://gallery.gaiamobile.org/manifest.webapp'
+        },{
+          manifest: 'app://camera.gaiamobile.org/manifest.webapp'
+        }]
+      };
+
+      subject.chooseActivity(activity);
+      assert.ok(DefaultActivityHelper.getDefaultAction.calledWith(
+        activity.name, activity.activityType));
+      assert.ok(subject._gotDefaultAction.calledWith('fakeManifest'));
+    });
+
+    suite('choosing an activity ', function() {
+      var sendEvent,
+          defaultAct,
+          formatted;
+
+      setup(function() {
+        subject._detail = {
+          id: 'foo',
+          name: 'testactivity',
+          activityType: 'testtype',
+          choices: [{
+            manifest: 'manifest'
+          }]
+        };
+
+        formatted = {
+          id: 'foo',
+          type: 'activity-choice',
+          value: 0,
+          setAsDefault: false
+        };
+
+        sendEvent = this.sinon.stub(subject, '_sendEvent');
+        defaultAct = this.sinon.stub(DefaultActivityHelper, 'setDefaultAction');
+      });
+
+      test('without default activity set >', function() {
+        var set_default = false;
+        formatted.setAsDefault = set_default;
+        subject.choose(0, set_default);
+
+        assert.ok(sendEvent.calledWith(formatted),
+          'calls _sendEvent WITHOUT default activity set');
+        assert.isFalse(defaultAct.called, 'should not call the helper');
+      });
+
+      test('with a default activity set >', function() {
+        var set_default = true;
+        formatted.setAsDefault = set_default;
+        subject.choose(0, set_default);
+
+        assert.ok(sendEvent.calledWith(formatted),
+          'calls _sendEvent WITH default activity set');
+        assert.ok(defaultAct.calledWith('testactivity', 'testtype', 'manifest'),
+          'should call the helper with the proper values');
+      });
+    });
+
+    suite('cancel selection', function() {
+      test('calls _sendEvent', function() {
+        subject._detail = {
+          id: 'foo'
+        };
+        var stub = this.sinon.stub(subject, '_sendEvent');
+        var formatted = {
+          id: 'foo',
+          type: 'activity-choice',
+          value: -1
+        };
+        subject.cancel();
+        assert.ok(stub.calledWith(formatted));
+      });
+
+      test('does not destroy the action menu', function() {
+        subject._detail = {
+          id: 'foo'
+        };
+        var stub = this.sinon.stub(subject.actionMenu, 'hide');
+        subject.cancel();
+        assert.ok(stub.called);
+      });
     });
   });
 
-  suite('cancel', function() {
-    test('calls _sendEvent', function() {
-      subject._id = 'foo';
-      var stub = this.sinon.stub(subject, '_sendEvent');
-      var formatted = {
-        id: 'foo',
-        type: 'activity-choice',
-        value: -1
+  suite('when a new app is installed', function() {
+    var app,
+        listedName,
+        listedType;
+
+    setup(function() {
+      this.sinon.stub(DefaultActivityHelper, 'getDefaultAction');
+      this.sinon.stub(DefaultActivityHelper, 'setDefaultAction');
+
+      app = {
+        'manifest': {
+          'activities': {
+            'browse': {
+              'filters': {
+                'type': 'photos'
+               }
+            },
+            'pick': {
+              'filters': {
+                'type': ['image/*']
+               }
+            },
+            'open': {
+              'filters': {
+                'type': ['video/*']
+               }
+            }
+          }
+        }
       };
-      subject.cancel();
-      assert.ok(stub.calledWith(formatted));
+
+      listedName = 'pick';
+      listedType = 'image/*';
+
+      subject = BaseModule.instantiate('Activities');
+    });
+
+    teardown(function() {
+      subject.destroy();
+    });
+
+    test('correctly handles apps without activities', function() {
+      var appWithoutActivities = {
+        'manifest': {}
+      };
+
+      assert.doesNotThrow(
+        () => subject._onNewAppInstalled(appWithoutActivities)
+      );
+    });
+
+    test('manages the default launch for the app\'s activities', function() {
+      DefaultActivityHelper.getDefaultAction
+        .returns({ // instead of Promise.resolve() to return in same cycle
+          then: function(cb) {
+            cb(null);
+          }
+        })
+        .withArgs(listedName, listedType).returns({
+          then: function(cb) {
+            cb('app://fakeapp1.gaiamobile.org/manifest.webapp');
+          }
+        });
+
+      window.dispatchEvent(new CustomEvent('applicationinstall',{
+        detail: {
+          application: app
+        }
+      }));
+
+      assert.ok(DefaultActivityHelper.getDefaultAction
+        .calledWith('browse', 'photos'),
+        'check the list for the first activity');
+      assert.ok(DefaultActivityHelper.getDefaultAction
+        .calledWith('pick', 'image/*'),
+        'check the list for the second activity');
+      assert.ok(DefaultActivityHelper.getDefaultAction
+        .calledWith('open', 'video/*'),
+        'check the list for the third activity');
+
+      assert.ok(DefaultActivityHelper.setDefaultAction
+        .calledWith(listedName, listedType, null),
+        'removes the default app when the activity has it associated');
+
+      assert.ok(DefaultActivityHelper.setDefaultAction.calledOnce,
+        'not called for any other activity');
     });
   });
 
@@ -252,24 +493,6 @@ suite('system/Activities', function() {
         }
       ]);
       assert.equal(result.length, 1);
-    });
-  });
-
-  suite('opens action menu', function() {
-    test('only opens once if we get two activity-choice events', function() {
-      var actionMenuStub = this.sinon.stub(ActionMenu.prototype, 'start');
-      var evt = {
-        type: 'mozChromeEvent',
-        detail: {
-          type: 'activity-choice',
-          choices: []
-        }
-      };
-      subject.handleEvent(evt);
-      this.sinon.clock.tick();
-      subject.handleEvent(evt);
-      this.sinon.clock.tick();
-      assert.ok(actionMenuStub.calledOnce);
     });
   });
 });

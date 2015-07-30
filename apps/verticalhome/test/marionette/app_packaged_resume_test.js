@@ -10,27 +10,28 @@ var iconAppState = require('./lib/icon_app_state');
 var launchIcon = require('./lib/launch_icon');
 
 marionette('Vertical Home - Packaged App Resuming Downloads', function() {
-  var client = marionette.client(require(__dirname + '/client_options.js'));
+  var client = marionette.client({
+    profile: require(__dirname + '/client_options.js')
+  });
 
   var server;
+  var subject;
+  var system;
+  var appInstall;
   setup(function(done) {
     var app = __dirname + '/fixtures/template_app';
     createAppServer(app, client, function(err, _server) {
       server = _server;
+
+      subject = client.loader.getAppClass('verticalhome');
+      system = client.loader.getAppClass('system');
+      appInstall = new AppInstall(client);
+
+      system.waitForFullyLoaded();
+      subject.waitForLaunch();
+
       done(err);
     });
-  });
-
-  var subject;
-  var system;
-  var appInstall;
-  setup(function() {
-    subject = client.loader.getAppClass('verticalhome');
-    system = client.loader.getAppClass('system');
-    appInstall = new AppInstall(client);
-
-    system.waitForStartup();
-    subject.waitForLaunch();
   });
 
   teardown(function(done) {

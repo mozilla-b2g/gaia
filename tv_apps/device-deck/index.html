@@ -5,7 +5,32 @@
     <meta charset="utf-8">
     <title>Devices</title>
 
+    <!-- building blocks -->
+    <link rel="stylesheet" type="text/css" href="bower_components/smart-icons/smart-icons.css">
+    <link rel="stylesheet" type="text/css" href="bower_components/smart-button/style.css">
+
     <link rel="stylesheet" type="text/css" href="style/devices.css">
+
+    <!-- Helper libraries -->
+    <script defer src="bower_components/evt/index.js"></script>
+
+    <!-- building blocks -->
+    <script defer src="bower_components/smart-button/script.js"></script>
+
+    <!-- For test purpose on phone only -->
+    <script defer src="shared/js/gesture_detector.js"></script>
+    <script defer src="shared/js/smart-screen/init_gesture.js"></script>
+
+    <!-- Shared libraries -->
+    <script defer src="shared/js/smart-screen/shared_utils.js"></script>
+    <script defer src="shared/js/smart-screen/spatial_navigator.js"></script>
+    <script defer src="shared/js/smart-screen/key_navigation_adapter.js"></script>
+
+    <!-- Specific code -->
+    <script defer src="js/bluetooth_loader.js"></script>
+    <script defer src="js/bluetooth_cod_mapper.js"></script>
+    <script defer src="js/bluetooth_manager.js"></script>
+    <script defer src="js/device_deck.js"></script>
 
     <!-- Shared L10n libraries -->
     <script src="shared/js/l10n.js"></script>
@@ -20,6 +45,21 @@
   </head>
 
   <body>
+    <article id="main-section">
+      <section role="region" class="skin-dark" id="header">
+        <smart-button id="refresh-button" type="text-and-icon" data-icon="refresh" data-l10n-id="refresh" class="navigable"></smart-button>
+      </section>
+      <section role="region" class="skin-dark" id="grid">
+        <div id="connected-devices-container" class="devices-container">
+          <div class="devices-caption" data-l10n-id="connected"></div>
+          <div id="connected-devices-list" class="devices-list"></div>
+        </div>
+        <div id="newly-found-device-container" class="devices-container">
+          <div class="devices-caption" data-l10n-id="newly-found"></div>
+          <div id="newly-found-devices-list" class="devices-list"></div>
+        </div>
+      </section>
+    </article>
   </body>
 
 </html>

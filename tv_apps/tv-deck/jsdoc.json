@@ -1,0 +1,10 @@
+{
+  "tv-deck": {
+    "src": [
+      "tv_apps/tv-deck/js/**/*.js"
+    ],
+    "options": {
+      "destination": "docs/tv-deck"
+    }
+  }
+}

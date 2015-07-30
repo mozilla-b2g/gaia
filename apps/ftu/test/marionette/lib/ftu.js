@@ -10,11 +10,10 @@ function Ftu(client) {
 
 Ftu.clientOptions = {
   prefs: {
-    'focusmanager.testmode': true,
-    'dom.w3c_touch_events.enabled': 1
+    'focusmanager.testmode': true
   },
   settings: {
-    'lockscreen.enabled': false
+    'ftu.manifestURL': 'app://ftu.gaiamobile.org/manifest.webapp'
   }
 };
 
@@ -77,6 +76,14 @@ Ftu.prototype = {
         el.scrollIntoView(false);
       });
       item.tap();
+
+      this.client.waitFor(function() {
+        var docLang = this.client.executeScript(function() {
+          return document.documentElement.lang;
+        });
+        return docLang === language;
+      }.bind(this));
+
     } else {
       throw new Error('Option '+ language +
                       ' could not be found in select wrapper');

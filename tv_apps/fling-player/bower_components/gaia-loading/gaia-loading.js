@@ -29,9 +29,9 @@ module.exports = component.register('gaia-loading', {
     :host {
       position: relative;
       display: block;
-      width: 100%;
-      height: 100%;
-      margin: auto;
+      width: 40px;
+      height: 40px;
+      margin: var(--base-l, 24px) auto;
     }
 
     /** Circle
@@ -39,9 +39,9 @@ module.exports = component.register('gaia-loading', {
 
     .circle {
       position: absolute;
-      top: 25%; left: 25%;
-      width: 50%;
-      height: 50%;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
       border-radius: 50%;
 
       animation-name: gaia-loading-animation;

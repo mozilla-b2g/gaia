@@ -8,10 +8,9 @@
     <div>
       <ul>
         <li class="vibration-setting">
-          <label class="pack-switch">
-            <input type="checkbox" name="vibration.enabled" checked class="uninit">
-            <span data-l10n-id="vibrate">Vibrate</span>
-          </label>
+          <gaia-switch name="vibration.enabled" checked>
+            <label data-l10n-id="vibrate"></label>
+          </gaia-switch>
         </li>
       </ul>
 
@@ -22,21 +21,21 @@
         <li class="sound-setting">
           <label class="range-icons volume media">
             <p data-l10n-id="media-sound">Media</p>
-            <span data-icon="sound-max"></span>
+            <span data-icon="sound-max" aria-hidden="true"></span>
             <input type="range" step="1" min="0" value="8" max="15">
           </label>
         </li>
         <li class="sound-setting">
           <label class="range-icons volume notification">
             <p data-l10n-id="ringtone-and-notification-sound">Ringtones & Notifications</p>
-            <span data-icon="call-ringing"></span>
+            <span data-icon="call-ringing" aria-hidden="true"></span>
             <input type="range" step="1" min="0" value="8" max="15">
           </label>
         </li>
         <li class="sound-setting">
           <label class="range-icons volume alarm">
             <p data-l10n-id="alarm-sound">Alarm</p>
-            <span data-icon="alarm-clock"></span>
+            <span data-icon="alarm-clock" aria-hidden="true"></span>
             <input type="range" step="1" min="0" value="8" max="15">
           </label>
         </li>
@@ -49,13 +48,13 @@
         <li class="ringer" hidden>
           <a class="menu-item ring-tone-selection" href="#">
             <span data-l10n-id="ringtones">Ringtones</span>
-            <small class="desc"></small>
+            <small><bdi class="desc"></bdi></small>
           </a>
         </li>
         <li id="alerts">
           <a class="menu-item alert-tone-selection" href="#">
             <span data-l10n-id="alerts">Alerts</span>
-            <small class="desc"></small>
+            <small><bdi class="desc"></bdi></small>
           </a>
         </li>
         <li class="touch-tone-selector" hidden>
@@ -79,28 +78,24 @@
       </header>
       <ul>
         <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="phone.ring.keypad" checked>
-            <span data-l10n-id="dialpad">Dial Pad</span>
-          </label>
+          <gaia-checkbox name="phone.ring.keypad" checked>
+            <label data-l10n-id="dialpad"></label>
+          </gaia-checkbox>
         </li>
         <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="camera.sound.enabled" checked>
-            <span data-l10n-id="camera">Camera</span>
-          </label>
+          <gaia-checkbox name="camera.sound.enabled" checked>
+            <label data-l10n-id="camera"></label>
+          </gaia-checkbox>
         </li>
         <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="message.sent-sound.enabled" checked>
-            <span data-l10n-id="sent-message">Sent Message</span>
-          </label>
+          <gaia-checkbox name="message.sent-sound.enabled" checked>
+            <label data-l10n-id="sent-message"></label>
+          </gaia-checkbox>
         </li>
         <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="lockscreen.unlock-sound.enabled" checked>
-            <span data-l10n-id="unlock-screen">Unlock Screen</span>
-          </label>
+          <gaia-checkbox name="lockscreen.unlock-sound.enabled" checked>
+            <label data-l10n-id="unlock-screen"></label>
+          </gaia-checkbox>
         </li>
       </ul>
     </div>

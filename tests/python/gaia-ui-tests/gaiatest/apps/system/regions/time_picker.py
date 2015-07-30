@@ -4,16 +4,8 @@
 
 import time
 
-try:
-    from marionette import (expected,
-                            Wait)
-    from marionette.by import By
-    from marionette.marionette import Actions
-except:
-    from marionette_driver import (expected,
-                                   Wait)
-    from marionette_driver.by import By
-    from marionette_driver.marionette import Actions
+from marionette_driver import expected, By, Wait
+from marionette_driver.marionette import Actions
 
 from gaiatest.apps.base import Base
 
@@ -56,7 +48,7 @@ class TimePicker(Base):
         next = current.find_element(By.XPATH, 'following-sibling::*')
         # TODO: Bug 1129907 - Unable to use precise actions to select timepicker values in Gaia
         # TODO: Bug 1031456 - invoking js event without release() loses context
-        Actions(self.marionette).press(next).move(current).perform()
+        Actions(self.marionette).press(next).move_by_offset(0, -5 * next.rect['height']).perform()
         Wait(self.marionette).until(lambda m: self.minute != minute)
 
     @property

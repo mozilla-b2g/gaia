@@ -1,6 +1,5 @@
-/* globals LockScreenAgent */
-/* global softwareButtonManager */
-/* global OrientationManager */
+/* globals LockScreenAgent, LazyLoader */
+/* global Service */
 'use strict';
 
 (function(exports) {
@@ -31,11 +30,21 @@
       }
     };
     this.iframe = this.createFrame();
+    if (!this.iframe || !this.iframe.parentNode) {
+      // XXX: Lockscreen DOM elements are not copied.
+      return;
+    }
 
-    this.lockScreenAgent = new LockScreenAgent(this.iframe);
-    this.lockScreenAgent.start();
+    LazyLoader.load(['js/lockscreen_agent.js']).then(() => {
+      this.lockScreenAgent = new LockScreenAgent(this.iframe);
+      this.lockScreenAgent.start();
+    }).catch((err) => {
+      console.error(err);
+    });
     AppWindow.call(this, this.configs);
-    window.dispatchEvent(new CustomEvent('lockscreen-frame-bootstrap'));
+    window.dispatchEvent(new CustomEvent('lockscreen-frame-bootstrap', {
+      detail: this
+    }));
   };
 
   /**
@@ -46,9 +55,11 @@
 
   LockScreenWindow.prototype.constructor = LockScreenWindow;
 
+  LockScreenWindow.prototype.isLockscreen = true;
+
   LockScreenWindow.SUB_COMPONENTS = {
-    'transitionController': window.AppTransitionController,
-    'statusbar': window.AppStatusbar
+    'transitionController': 'AppTransitionController',
+    'statusbar': 'AppStatusbar'
   };
 
   LockScreenWindow.REGISTERED_EVENTS = AppWindow.REGISTERED_EVENTS;
@@ -101,9 +112,9 @@
   LockScreenWindow.prototype._resize = function aw__resize() {
     var height, width;
 
-    // We want the lockscreen to go below the StatusBar
-    height = self.layoutManager.height;
-    width = self.layoutManager.width;
+    // We want the lockscreen to go below the Statusbar
+    height = Service.query('LayoutManager.height') || window.innerHeight;
+    width = Service.query('LayoutManager.width') || window.innerWidth;
 
     this.width = width;
     this.height = height;
@@ -131,6 +142,11 @@
       // XXX: Before we can make LockScreen as a real app,
       // we need these.
       var frame = document.getElementById('lockscreen-frame');
+      if (!frame) {
+        // XXX: This means we failed to build the system app.
+        // So from now on we will try to go without lockscreen.
+        frame = document.createElement('div');
+      }
       frame.setVisible = function() {};
       // XXX: real mozbrowser iframes would own these methods.
       frame.addNextPaintListener = function(cb) {
@@ -216,7 +232,7 @@
         return window.innerHeight;
       }
       var softwareButtonHeight = this.isActive()  ?
-        0 : softwareButtonManager.height;
+        0 : (Service.query('SoftwareButtonManager.height') || 0);
       var inputWindowHeight = 0;
       if (this.states.instance && this.states.instance.inputWindow.isActive()) {
         inputWindowHeight = this.configs.inputWindow.height;
@@ -255,7 +271,7 @@
           this.orientationLockID = null;
         }
       };
-      if (OrientationManager.isOnRealDevice()) {
+      if (Service.query('isOnRealDevice')) {
         if (this.orientationLockID) {
           // The previous one still present and was not cleared,
           // so do nothing.

@@ -32,7 +32,7 @@ class TestSettingsChangeTimeFormat(GaiaTestCase):
         settings = Settings(self.marionette)
         settings.launch()
 
-        date_and_time = settings.open_date_and_time_settings()
+        date_and_time = settings.open_date_and_time()
 
         date_and_time.select_time_format('24-hour')
 

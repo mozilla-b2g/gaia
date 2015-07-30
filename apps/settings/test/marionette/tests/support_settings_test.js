@@ -4,10 +4,7 @@ var Settings = require('../app/app'),
 
 marionette('manipulate support settings', function() {
   var client = marionette.client({
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
-    }
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
   });
   var settingsApp;
   var supportPanel;

@@ -1,13 +1,14 @@
 'use strict';
 
 /* global AppUsageMetrics, MockasyncStorage, MockNavigatorSettings,
-          MockSIMSlotManager, MockAppsMgmt, MockApp */
-
+          MockSIMSlotManager, MockAppsMgmt, MockApp, MockApplications,
+          MockNavigatorMozTelephony, TelemetryRequest, MockLazyLoader  */
 
 require('/shared/js/settings_listener.js');
 require('/shared/js/telemetry.js');
 require('/shared/js/uuid.js');
 requireApp('system/test/unit/mock_asyncStorage.js');
+requireApp('system/test/unit/mock_lazy_loader.js');
 requireApp('system/js/app_usage_metrics.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 
@@ -16,6 +17,9 @@ require('/shared/test/unit/mocks/mock_simslot.js');
 
 requireApp('system/test/unit/mock_apps_mgmt.js');
 requireApp('system/test/unit/mock_app.js');
+requireApp('system/test/unit/mock_applications.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
+
 /*
  * This test suite has several sub-suites that verify that:
  * 1) methods of the UsageData class properly record data
@@ -28,7 +32,7 @@ requireApp('system/test/unit/mock_app.js');
  */
 suite('AppUsageMetrics:', function() {
   var realMozSettings, realOnLine, realSIMSlotManager, realPerformanceNow,
-      realMozApps;
+      realMozApps, realApplications, realMozTelephony;
   var isOnLine = true;
 
   function navigatorOnLine() {
@@ -39,13 +43,28 @@ suite('AppUsageMetrics:', function() {
     isOnLine = value;
   }
 
+  function stubDial(self) {
+    self.sinon.stub(navigator.mozTelephony, 'dial', function() {
+      return Promise.resolve({
+        result: Promise.resolve({
+          success: true,
+          serviceCode: 'scImei',
+          statusMessage: 'fakeImei'
+        })
+      });
+    });
+  }
+
   suiteSetup(function() {
     realMozSettings = navigator.mozSettings;
     realSIMSlotManager = window.SIMSlotManager;
     realMozApps = navigator.mozApps;
+    realMozTelephony = navigator.mozTelephony;
     navigator.mozSettings = MockNavigatorSettings;
     window.asyncStorage = MockasyncStorage;
     window.SIMSlotManager = MockSIMSlotManager;
+    navigator.mozTelephony = MockNavigatorMozTelephony;
+    window.LazyLoader = MockLazyLoader;
 
     navigator.mozApps = { mgmt: MockAppsMgmt };
     navigator.addIdleObserver = function(o) {
@@ -65,6 +84,9 @@ suite('AppUsageMetrics:', function() {
     realPerformanceNow = window.performance.now;
     window.performance.now = function() { return Date.now(); };
 
+    realApplications = window.applications;
+    window.applications = MockApplications;
+    window.applications.ready = true;
     AppUsageMetrics.DEBUG = false; // Shut up console output in test logs
   });
 
@@ -72,6 +94,7 @@ suite('AppUsageMetrics:', function() {
     navigator.mozSettings = realMozSettings;
     window.SIMSlotManager = realSIMSlotManager;
     navigator.mozApps = realMozApps;
+    navigator.mozTelephony = realMozTelephony;
     delete window.asyncStorage;
 
     delete navigator.addIdleObserver;
@@ -84,6 +107,7 @@ suite('AppUsageMetrics:', function() {
     }
 
     window.performance.now = realPerformanceNow;
+    window.applications = realApplications;
   });
 
   teardown(function() {
@@ -111,7 +135,7 @@ suite('AppUsageMetrics:', function() {
     });
 
     function getUsage(metrics, app) {
-      return metrics.getAppUsage(app.manifestURL);
+      return metrics.getAppUsage(app ? app.manifestURL : null);
     }
 
     test('isEmpty method', function() {
@@ -139,19 +163,29 @@ suite('AppUsageMetrics:', function() {
     });
 
     suite('should track app', function() {
-      var metrics, invalidApp;
-
+      var metrics, invalidApp, undefOriginApp, privateBrowserApp;
+      var invalidApps = [];
       setup(function() {
         metrics = new UsageData();
         invalidApp = new MockApp({
           manifestURL: 'foobar',
           installOrigin: 'http://www.foo.com'
         });
-      });
 
-      function getInvalidAppUsage() {
-        return getUsage(metrics, invalidApp);
-      }
+        undefOriginApp = {
+          installOrigin: 'https://marketplace.firefox.com',
+          manifestURL: 'https://marketplace.firefox.com/app/1-2-3-4'
+        };
+
+        privateBrowserApp = new MockApp({
+          isPrivateBrowser: function() {
+            return true;
+          }
+        });
+
+        invalidApps = [null, invalidApp, privateBrowserApp];
+        MockApplications.mRegisterMockApp(undefOriginApp);
+      });
 
       test('valid apps', function() {
         // Certified app w/o marketplace origin
@@ -172,34 +206,64 @@ suite('AppUsageMetrics:', function() {
 
         // Non-certified gaiamobile app
         assert.ok(metrics.shouldTrackApp(new MockApp()));
+
+        // Marketplace app w/o installOrigin. This ensures we
+        // get the installOrigin from the applications cache if
+        // the installOrigin is not sent in an appopened event.
+        // See Bug 1137063
+        assert.ok(metrics.shouldTrackApp(new MockApp({
+          manifestURL: undefOriginApp.manifestURL
+        })));
       });
 
-      test('invalid apps', function() {
-        assert.ok(!metrics.shouldTrackApp(null));
-        assert.ok(!metrics.shouldTrackApp(invalidApp));
+      test('don\'t track invalid apps', function() {
+        invalidApps.forEach(function(app) {
+          assert.ok(!metrics.shouldTrackApp(app));
+        });
       });
 
       test('doesn\'t record install/uninstall', function() {
-        var recorded = metrics.recordInstall(invalidApp);
-        assert.equal(getInvalidAppUsage().installs, 0);
-        assert.ok(!recorded);
+        invalidApps.forEach(function(app) {
+            var recorded = metrics.recordInstall(app);
+            assert.equal(getUsage(metrics, app).installs, 0);
+            assert.ok(!recorded);
 
-        recorded = metrics.recordInstall(invalidApp);
-        assert.equal(getInvalidAppUsage().uninstalls, 0);
-        assert.ok(!recorded);
+            recorded = metrics.recordUninstall(app);
+            assert.equal(getUsage(metrics, app).uninstalls, 0);
+            assert.ok(!recorded);
+        });
       });
 
       test('doesn\'t record invocation/activity', function() {
-        var recorded = metrics.recordInvocation(invalidApp, 10000);
-        assert.equal(getInvalidAppUsage().invocations, 0);
-        assert.equal(getInvalidAppUsage().usageTime, 0);
-        assert.ok(!recorded);
+        invalidApps.forEach(function(app) {
+          var recorded = metrics.recordInvocation(app, 10000);
+          var usage = getUsage(metrics, app);
+          assert.equal(usage.invocations, 0);
+          assert.equal(usage.usageTime, 0);
+          assert.ok(!recorded);
 
-        recorded = metrics.recordActivity(invalidApp, 'activity');
-        assert.equal(Object.keys(getInvalidAppUsage().activities).length, 0);
-        assert.ok(!('activity' in getInvalidAppUsage().activities));
-        assert.ok(!recorded);
+          recorded = metrics.recordActivity(app, 'activity');
+          usage = getUsage(metrics, app);
+          assert.equal(Object.keys(usage.activities).length, 0);
+          assert.ok(!('activity' in usage.activities));
+          assert.ok(!recorded);
+        });
       });
+
+      test('valid then invalid still counts valid app', function() {
+        metrics.recordInvocation(app1, 10000);
+        metrics.recordInvocation(privateBrowserApp, 10000);
+        metrics.recordInvocation(app1, 5000);
+
+        var usage1 = getUsage(metrics, app1);
+        assert.equal(usage1.invocations, 2);
+        assert.equal(usage1.usageTime, 15);
+
+        var usagePb = getUsage(metrics, privateBrowserApp);
+        assert.equal(usagePb.invocations, 0);
+        assert.equal(usagePb.usageTime, 0);
+      });
+
     });
 
     test('record install', function() {
@@ -254,6 +318,7 @@ suite('AppUsageMetrics:', function() {
       usage.recordInvocation(app1, 10000);
       usage.recordInvocation(app2, 20000);
       usage.recordActivity(app2, 'app3');
+      usage.recordSearch('provider1');
     }
 
     test('merge', function() {
@@ -305,6 +370,17 @@ suite('AppUsageMetrics:', function() {
       var data = new UsageData();
       assert.equal(data.getDayKey(new Date(2015, 0, 12)), '20150112');
     });
+
+    test('record search', function() {
+      var metrics = new UsageData();
+      metrics.recordSearch('provider1');
+      metrics.recordSearch('provider2');
+      assert.equal(metrics.getSearchCounts('provider1').count, 1);
+      assert.equal(metrics.getSearchCounts('provider2').count, 1);
+
+      metrics.recordSearch('provider2');
+      assert.equal(metrics.getSearchCounts('provider2').count, 2);
+    });
   });
 
   /*
@@ -316,7 +392,7 @@ suite('AppUsageMetrics:', function() {
   suite('event handling:', function() {
     var aum;
     var realSettingsListener;
-    var installSpy, uninstallSpy, invocationSpy, activitySpy;
+    var installSpy, uninstallSpy, invocationSpy, activitySpy, searchSpy;
     var app1, app2, app3, homescreen, lockscreen, callscreen, attention1;
     var clock;
 
@@ -336,6 +412,7 @@ suite('AppUsageMetrics:', function() {
       uninstallSpy = this.sinon.spy(proto, 'recordUninstall');
       invocationSpy = this.sinon.spy(proto, 'recordInvocation');
       activitySpy = this.sinon.spy(proto, 'recordActivity');
+      searchSpy = this.sinon.spy(proto, 'recordSearch');
 
       // Create and initialize an AUM instance. It won't start automatically
       aum = new AppUsageMetrics();
@@ -354,6 +431,10 @@ suite('AppUsageMetrics:', function() {
       attention1 = new MockApp({ manifest: { type: 'certified' } });
 
       clock = this.sinon.useFakeTimers();
+      this.sinon.stub(TelemetryRequest, 'getDeviceID').returns(
+        Promise.resolve(function(resolve) {
+          resolve();
+        }));
     });
 
     teardown(function() {
@@ -375,6 +456,7 @@ suite('AppUsageMetrics:', function() {
       assert.equal(uninstallSpy.callCount, 0);
       assert.equal(invocationSpy.callCount, 0);
       assert.equal(activitySpy.callCount, 0);
+      assert.equal(searchSpy.callCount, 0);
     });
 
     test('install event', function() {
@@ -384,6 +466,7 @@ suite('AppUsageMetrics:', function() {
       assert.equal(uninstallSpy.callCount, 0);
       assert.equal(invocationSpy.callCount, 0);
       assert.equal(activitySpy.callCount, 0);
+      assert.equal(searchSpy.callCount, 0);
     });
 
     test('uninstall event', function() {
@@ -393,6 +476,7 @@ suite('AppUsageMetrics:', function() {
       assert.equal(installSpy.callCount, 0);
       assert.equal(invocationSpy.callCount, 0);
       assert.equal(activitySpy.callCount, 0);
+      assert.equal(searchSpy.callCount, 0);
     });
 
     test('app transition', function() {
@@ -628,6 +712,15 @@ suite('AppUsageMetrics:', function() {
       });
       assert.equal(invocationSpy.callCount, lastCallCount);
     });
+
+    test('search request', function() {
+      dispatch('iac-app-metrics', {
+        action: 'websearch',
+        data: 'provider3'
+      });
+      assert.ok(searchSpy.calledOnce);
+      assert.equal(searchSpy.getCall(0).args[0], 'provider3');
+    });
   });
 
   /*
@@ -647,6 +740,10 @@ suite('AppUsageMetrics:', function() {
       mockSettings.y = '2';
     });
 
+    setup(function() {
+      stubDial(this);
+    });
+
     test('getSettings()', function(done) {
       getSettings({x: '3', y: '4', z: '5'}, function(result) {
         done(assert.deepEqual(result, {x: '1', y: '2', z: '5'}));
@@ -659,6 +756,7 @@ suite('AppUsageMetrics:', function() {
     setup(function() {
       aum = new AppUsageMetrics();
       mockSettings = MockNavigatorSettings.mSettings;
+      stubDial(this);
     });
 
     test('ftu.pingURL is used as a base URL by default', function(done) {
@@ -793,6 +891,7 @@ suite('AppUsageMetrics:', function() {
     var app1, homescreen;
 
     setup(function(done) {
+      stubDial(this);
       // Use fakes
       clock = this.sinon.useFakeTimers();
       XHR = sinon.useFakeXMLHttpRequest();
@@ -906,6 +1005,7 @@ suite('AppUsageMetrics:', function() {
       metrics.recordUninstall(app1);
       metrics.recordInvocation(homescreen, 10000);
       metrics.recordActivity(homescreen, 'app4');
+      metrics.recordSearch('provider1');
 
       // Transmit the data
       var sendTime = Date.now();
@@ -946,6 +1046,8 @@ suite('AppUsageMetrics:', function() {
         assert.equal(keys[0], dayKey);
       });
 
+      assert.deepEqual(info.searches, metrics.data.searches);
+      assert.property(info.searches, 'provider1');
       assert.equal(info.start, metrics.data.start);
       assert.equal(info.stop, sendTime);
       assert.equal(info.deviceID, aum.deviceID);
@@ -953,16 +1055,16 @@ suite('AppUsageMetrics:', function() {
       assert.equal(info.screen.width, screen.width);
       assert.equal(info.screen.height, screen.height);
       assert.equal(info.screen.devicePixelRatio, window.devicePixelRatio);
+      assert.equal(info.appBuildID, 'unknown');
+      assert.equal(info.appVersion, 'unknown');
+      assert.equal(info.appUpdateChannel, 'unknown');
 
       var deviceInfo = info.deviceinfo;
       assert.equal(deviceInfo['developer.menu.enabled'], 'true');
       assert.equal(deviceInfo['deviceinfo.hardware'], 'hardware');
       assert.equal(deviceInfo['deviceinfo.product_model'], 'model');
       assert.equal(deviceInfo['deviceinfo.os'], 'unknown');
-      assert.equal(deviceInfo['deviceinfo.platform_build_id'], 'unknown');
-      assert.equal(deviceInfo['deviceinfo.platform_version'], 'unknown');
       assert.equal(deviceInfo['deviceinfo.software'], 'unknown');
-      assert.equal(deviceInfo['deviceinfo.update_channel'], 'unknown');
 
       // Make sure we're recording a new batch of metrics
       assert.notEqual(metrics, aum.metrics);
@@ -973,6 +1075,7 @@ suite('AppUsageMetrics:', function() {
 
       // Record some data
       metrics.recordInstall(app1);
+      metrics.recordSearch('provider1');
 
       // start a transmission
       aum.transmit();
@@ -1010,6 +1113,7 @@ suite('AppUsageMetrics:', function() {
 
       // Record some data
       metrics.recordInstall(app1);
+      metrics.recordSearch('provider1');
 
       // start a transmission
       aum.transmit();
@@ -1035,6 +1139,63 @@ suite('AppUsageMetrics:', function() {
 
       // Now we've retried
       assert.equal(transmit.callCount, 2);
+    });
+  });
+  suite('Metrics transmission for Dogfooders', function() {
+    var aum, clock, XHR, xhr, transmit, mockSettings;
+    var app1, homescreen;
+
+    setup(function(done) {
+      stubDial(this);
+      // Use fakes
+      clock = this.sinon.useFakeTimers();
+      XHR = sinon.useFakeXMLHttpRequest();
+      XHR.onCreate = function(instance) { xhr = instance; };
+
+      mockSettings = MockNavigatorSettings.mSettings;
+      mockSettings['debug.performance_data.dogfooding'] = '1';
+
+      // Create an AUM instance
+      aum = new AppUsageMetrics();
+      aum.start();
+      aum.startCollecting(done);
+
+      transmit = this.sinon.spy(AppUsageMetrics.prototype, 'transmit');
+
+      app1 = new MockApp({ manifest: { type: 'certified' } });
+      homescreen = new MockApp({ manifest: { type: 'certified' } });
+      aum.idle = true;
+      isOnLine = true;
+      clock.tick(); // to make the start call complete
+    });
+
+    teardown(function() {
+      XHR.restore();
+      aum.stop();
+    });
+
+    test('transmit sends IMEI for dogfooder', function() {
+      // Record some data
+      mockSettings['deviceinfo.hardware'] = 'hardware';
+      mockSettings['developer.menu.enabled'] = 'true';
+      mockSettings['deviceinfo.product_model'] = 'model';
+
+      var metrics = aum.metrics;
+      metrics.recordInstall(app1);
+
+      // Transmit the data
+      aum.transmit();
+      clock.tick();
+
+      // Make sure that the payload has imei for dogfooders
+      var payload = JSON.parse(xhr.requestBody);
+      var info = payload.info;
+      assert.equal(info.deviceID, 'fakeImei');
+      // Make sure that the URL has the imei for dogfooders
+      var baseURL = AppUsageMetrics.REPORT_URL;
+      assert.ok(xhr.url.indexOf(baseURL) === 0);
+      var path = xhr.url.substring(baseURL.length + 1).split('/');
+      assert.equal(path[0], 'fakeImei');
     });
   });
 });

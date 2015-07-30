@@ -14,12 +14,12 @@
     <link rel="resource" type="application/json" href="shared/resources/media/notifications/"/>
     <!-- Localization -->
     <meta name="defaultLanguage" content="en-US">
-    <meta name="availableLanguages" content="ar, en-US, fr, zh-TW">
+    <meta name="availableLanguages" content="en-US">
     <link rel="localization" href="/shared/locales/branding/branding.{locale}.properties">
     <link rel="localization" href="/shared/locales/sounds/sounds.{locale}.properties">
     <link rel="localization" href="locales/ringtones.{locale}.properties">
     <script type="text/javascript" src="shared/js/l10n.js"></script>
-    <script type="text/javascript" defer src="shared/js/template.js"></script>
+    <script type="text/javascript" defer src="shared/js/sanitizer.js"></script>
     <script type="text/javascript" defer src="shared/js/device_storage/enumerate_all.js"></script>
 
     <!-- <link rel="stylesheet" type="text/css" href="shared/elements/gaia-icons/gaia-icons.css" /> -->
@@ -31,6 +31,7 @@
     <script defer type="text/javascript" src="shared/js/component_utils.js"></script>
     <script defer type="text/javascript" src="shared/elements/gaia_subheader/script.js"></script>
 
+    <script type="text/javascript" defer src="js/pick_templates.js"></script>
     <script type="text/javascript" defer src="js/null_ringtone.js"></script>
     <script type="text/javascript" defer src="js/built_in_ringtones.js"></script>
     <script type="text/javascript" defer src="js/custom_ringtones.js"></script>
@@ -48,26 +49,5 @@
       </gaia-header>
       <article id="list-parent"></article>
     </section>
-
-    <div id="sound-list-template" hidden>
-      <!-- <section hidden>
-        <gaia-subheader skin="organic">
-          <span data-l10n-id="${l10nID}"></span>
-        </gaia-subheader>
-        <section data-type="list">
-          <ul data-type="edit"></ul>
-        </section>
-      </section> -->
-    </div>
-
-    <div id="sound-item-template" hidden>
-      <!-- <li>
-        <label class="pack-radio">
-          <input type="radio" name="sounds"/>
-          <span></span>
-        </label>
-        <p class="name" data-l10n-id="${l10nID}">${name}</p>
-      </li> -->
-  </div>
   </body>
 </html>

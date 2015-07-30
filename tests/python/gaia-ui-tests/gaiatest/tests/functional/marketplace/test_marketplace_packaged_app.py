@@ -2,10 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-try:
-    from marionette import Wait
-except:
-    from marionette_driver import Wait
+from marionette_driver import Wait
+
 from gaiatest import GaiaTestCase
 from gaiatest.apps.homescreen.app import Homescreen
 from gaiatest.apps.marketplace.app import Marketplace
@@ -16,6 +14,7 @@ class TestSearchMarketplaceAndInstallApp(GaiaTestCase):
 
     app_search = 'test-webapi-permissions :packaged'
     app_title = 'Privileged App Test'
+    app_name = 'premium packaged app'
 
     def setUp(self):
         GaiaTestCase.setUp(self)
@@ -26,11 +25,9 @@ class TestSearchMarketplaceAndInstallApp(GaiaTestCase):
         marketplace = Marketplace(self.marionette)
         marketplace.launch()
 
-        marketplace.search(self.app_search)
-        # Make sure All apps is chosen as search filter
-        results = marketplace.filter_search_all_apps()
+        results = marketplace.search(self.app_search)
         first_result = results.search_results[0]
-        app_name = first_result.get_app_name()
+        self.assertEqual(first_result.get_app_name(), self.app_name)
         first_result.tap_install_button()
 
         # Confirm the installation and wait for the app icon to be present
@@ -43,9 +40,14 @@ class TestSearchMarketplaceAndInstallApp(GaiaTestCase):
 
         # Check that the icon of the app is on the homescreen
         homescreen = Homescreen(self.marionette)
-        homescreen.wait_for_app_icon_present(app_name)
+        homescreen.wait_for_app_icon_present(self.app_name)
 
-        installed_app = homescreen.installed_app(app_name)
+        installed_app = homescreen.installed_app(self.app_name)
         installed_app.tap_icon()
 
         Wait(self.marionette).until(lambda m: m.title == self.app_title)
+
+    def tearDown(self):
+        self.apps.uninstall(self.app_name)
+
+        GaiaTestCase.tearDown(self)

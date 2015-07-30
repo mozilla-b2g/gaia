@@ -18,6 +18,7 @@ module.exports = View.extend({
 
   initialize: function() {
     this.value(0);
+    this.el.setAttribute('role', 'timer');
   },
 
   value: function(value) {

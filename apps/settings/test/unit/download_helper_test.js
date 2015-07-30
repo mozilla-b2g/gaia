@@ -1,3 +1,7 @@
+/* global MocksHelper, MockL10n, MockGetDeviceStorages, MockMozDownloads,
+          MockDownload, DownloadHelper, MockGetDeviceStorage,
+          DownloadFormatter  */
+
 'use strict';
 
 require('/shared/test/unit/mocks/mock_l10n.js');
@@ -97,7 +101,9 @@ suite('DownloadHelper', function() {
         'get' : function(path) {
           return {
             set onsuccess(cb) {},
-            set onerror(cb) {setTimeout(cb, 0)},
+            set onerror(cb) {
+              setTimeout(cb, 0);
+            },
             error: { 'name': 'custom error' }
           };
         },
@@ -218,6 +224,19 @@ suite('DownloadHelper', function() {
       download.state = 'succeeded';
       var req = DownloadHelper.open(download);
       assertSuccess(req, done);
+    });
+
+    test('Success with canceled Activity', function(done) {
+      download.state = 'succeeded';
+      DownloadHelper.handlerError({ message: 'canceled' },
+                                  null,
+                                  function(data) {
+                                    if (data === null) {
+                                      done();
+                                      return;
+                                    }
+                                    assert.ok(false, 'should get null data');
+                                  });
     });
 
     test('Unmounted sdcard -> try to open and remove ', function(done) {

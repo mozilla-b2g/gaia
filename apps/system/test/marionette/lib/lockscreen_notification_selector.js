@@ -96,9 +96,9 @@
       return {
         title: node.querySelector('.title-container .title')
                .innerHTML,
-        body: node.querySelector('.detail').innerHTML,
+        body: node.querySelector('.detail .detail-content').innerHTML,
         lang: node.getAttribute('lang'),
-        dir: node.getAttribute('dir'),
+        dir: node.getAttribute('data-predefined-dir'),
         manifestURL: node.getAttribute('data-manifest-u-r-l')
       };
     });
@@ -117,9 +117,6 @@
       return false;
     }
     if (detailsA.lang && detailsB.lang !== detailsA.lang) {
-      return false;
-    }
-    if (detailsA.bidi && detailsB.bidi !== detailsA.bidi) {
       return false;
     }
     if (detailsA.dir && detailsB.dir !== detailsA.dir) {

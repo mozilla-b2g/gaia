@@ -210,5 +210,17 @@ suite('STK Item >', function() {
         document.querySelector('#icc-entries li:nth-child(2) > span'),
         'span with icon should not be added to the DOM');
     });
+
+    test('Update menu in ICC panel.', function() {
+      window.Settings.currentPanel = '#icc';
+      updateMenu(false);
+      assert.equal(window.Settings.currentPanel, '#root');
+    });
+
+    test('Update menu in other panel.', function() {
+      window.Settings.currentPanel = '#developer';
+      updateMenu(false);
+      assert.equal(window.Settings.currentPanel, '#developer');
+    });
   });
 });

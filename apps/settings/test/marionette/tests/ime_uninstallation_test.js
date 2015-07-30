@@ -8,21 +8,22 @@ marionette('Uninstall an ime app', function() {
 
   var preloadApps = {};
   // And a testing 3rd-party IME app
-  preloadApps[IME_TEST_APP_ORIGIN] = __dirname + '/../imetestapp';
+  preloadApps[IME_TEST_APP_ORIGIN] = __dirname + '/../../fixtures/imetestapp';
 
   var client = marionette.client({
-    apps: preloadApps,
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
+    profile: {
+      apps: preloadApps
     }
   });
 
   var confirmDialog;
   var settingsApp;
   var appPermissionPanel;
+  var system;
 
   setup(function() {
+    system = client.loader.getAppClass('system');
+    system.waitForFullyLoaded();
     confirmDialog = client.loader.getAppClass('system', 'confirm_dialog');
     settingsApp = new Settings(client);
 
@@ -43,6 +44,7 @@ marionette('Uninstall an ime app', function() {
 
     var imeAppItem = apps[0];
     imeAppItem.click();
+    imeAppItem.tap(5, 5);
     appPermissionPanel.uninstallButton.click();
 
     // confirm to uninstall

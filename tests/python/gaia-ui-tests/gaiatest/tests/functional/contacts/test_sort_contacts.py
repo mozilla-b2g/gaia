@@ -24,12 +24,16 @@ class TestContacts(GaiaTestCase):
         self.sorted_contacts_name_by_last = sorted(self._contacts_name_list, key=lambda name: name[1])
 
     def test_sort_contacts(self):
+        order_by_last_name_default = False
+
         contacts_app = Contacts(self.marionette)
         contacts_app.launch()
 
         # if "Order by last name" switch is on, turn off it
         contacts_settings = contacts_app.tap_settings()
-        if contacts_settings.order_by_last_name:
+        self.assertEqual(contacts_settings.order_by_last_name, order_by_last_name_default)
+        # This test starts from when order_by_last_name is false
+        if order_by_last_name_default:
             contacts_settings.tap_order_by_last_name()
         contacts_settings.tap_done()
 

@@ -4,7 +4,9 @@ var assert = require('assert');
 var Rocketbar = require('../../../system/test/marionette/lib/rocketbar.js');
 
 marionette('Search - Home Button Press', function() {
-  var client = marionette.client(require(__dirname + '/client_options.js'));
+  var client = marionette.client({
+    profile: require(__dirname + '/client_options.js')
+  });
   var home, search, rocketbar, system;
 
   setup(function() {
@@ -12,13 +14,12 @@ marionette('Search - Home Button Press', function() {
     system = client.loader.getAppClass('system');
     search = client.loader.getAppClass('search');
     rocketbar = new Rocketbar(client);
-    system.waitForStartup();
+    system.waitForFullyLoaded();
   });
 
   test('Home button returns to home screen', function() {
     home.waitForLaunch();
     home.focusRocketBar();
-    search.triggerFirstRun(rocketbar);
     rocketbar.enterText('calendar');
 
     // Ensure search results are displayed.

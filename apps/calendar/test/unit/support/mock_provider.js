@@ -2,7 +2,7 @@ define(function(require, exports, module) {
 'use strict';
 
 var Parent = require('provider/abstract');
-var nextTick = require('next_tick');
+var nextTick = require('common/next_tick');
 
 function accountGeneric(mockName) {
   return function(account, callback) {

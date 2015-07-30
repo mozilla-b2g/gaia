@@ -5,14 +5,11 @@ Settings app is a single place that
 
 For new settings key that will be used in system, please do the key migration in `apps/system/js/migrators/settings_migrator.js`.
 
+To change the default settings value, edit `build/config/common-settings.json` in gaia folder.
+
 ## Current Status
-We are in the middle of the refactoring that targets on the following problem.
 
-### The Problem
-Currently basic settings services (mozSettings/UI bindings, panel navigation...) used across the app and root panel specific logic are defined together in a few modules (Settings, Connectivity). There are also cases that multiple panels are supported by a single script. These prevent settings app from being launched with only the required scripts and also imapct the perfrmance of loading panels.
-
-### The Goal
-The goal is to ensure that each panel loads only the required scripts. This could be done by breaking existing modules into smaller and reusable ones. Meanwhile, large scripts should also be splited into modules. By doing this we could achieve:
+The settings app architecture is to ensure that each panel loads only the required scripts. Settings app breaks modules into smaller and reusable ones. Large scripts should also be splited into modules. By doing this we could achieve:
 
 1. Module separation
 2. Panel separation
@@ -22,7 +19,7 @@ The goal is to ensure that each panel loads only the required scripts. This coul
 
 ## Architecture
 ### Modules
-We are using [AMD](http://en.wikipedia.org/wiki/Asynchronous_module_definition) modules, loaded using 'Alemeda' (a lighter version of [RequireJS](http://requirejs.org)) and building/optimizing using ['r.js'](http://requirejs.org/docs/optimization.html) (the RequireJS optimizer). We have dependencies on files (`shared/js`)  which aren't AMD modules. For those we use the ['shim'](http://requirejs.org/docs/api.html#config-shim) options in our [`requirejs_config.js`](js/config/require.js)
+We are using [AMD](http://en.wikipedia.org/wiki/Asynchronous_module_definition) modules, loaded using 'Alemeda' (a lighter version of [RequireJS](http://requirejs.org)) and building/optimizing using ['r.js'](http://requirejs.org/docs/optimization.html) (the RequireJS optimizer). We have dependencies on files (`shared/js`) which aren't AMD modules. For those we use the ['shim'](http://requirejs.org/docs/api.html#config-shim) options in our [`requirejs_config.js`](js/config/require.js)
 
 Module should not aware the existence of any UI elements, it should only expose the general functionalities that used by panels.
 
@@ -43,7 +40,8 @@ A few fundamental modules are listed below:
 - show:       called when the panel is navigated into the viewport
 - hide:       called when the panel is navigated out of the viewport
 
-The internal functions, _onInit, _onBeforeShow, _onShow, _onBeforeHide, _onHide, and _onUninit, are called respectively in the basic functions. The syntax of the functions are:
+The internal functions, `_onInit`, `_onBeforeShow`, `_onShow`, `_onBeforeHide`, `_onHide`, and `_onUninit`, are called respectively in the basic functions. The syntax of the functions are:
+
 ```js
 function _onInit(panelElement [, initOptions])
 function _onBeforeShow(panelElement [, beforeShowOptions])
@@ -54,6 +52,7 @@ function _onUninit()
 ```
 
 We are able to override the internal functions by passing an option object into the constructor of `Panel`. For example,
+
 ```js
 Panel({
   onInit: function(panelElement, initOptions) { //... },
@@ -65,20 +64,21 @@ Panel({
 })
 ```
 
-Typically we can create DOM element references in onInit, update UI elements and add listeners in onShow or onBeforeShow, remove listeners in onHide, and do the cleanup in onUninit. The difference between onShow and onBeforeShow is that onBeforeShow is called before the transition, which makes updating the UI before displaying it to users possible. 
+Typically we can create DOM element references in `onInit`, update UI elements and add listeners in `onShow` or `onBeforeShow`, remove listeners in `onHide`, and do the cleanup in `onUninit`. The difference between `onShow` and `onBeforeShow` is that `onBeforeShow` is called before the transition, which makes updating the UI before displaying it to users possible.
 
-Note that the transition happens right after onBeforeShow, please avoid heavy things in onBeforeShow and onBeforeHide, or it may drag down the performance of the transition.
+Note that the transition happens right after `onBeforeShow`, please avoid heavy things in `onBeforeShow` and `onBeforeHide`, or it may drag down the performance of the transition.
 
 ## module/settings_panel.js
-`SettingsPanel` extends `Panel` with basic settings services. It presets the UI elements based on the values in mozSettings and add listeners responding to mozSettings changes in onBeforeShow. In onInit it parses the panel element for activating links. It also removes listeners in onHide so that we can avoid unwanted UI updates when the panel is outside of the viewport.
+`SettingsPanel` extends `Panel` with basic settings services. It presets the UI elements based on the values in mozSettings and add listeners responding to mozSettings changes in onBeforeShow. In `onInit` it parses the panel element for activating links. It also removes listeners in onHide so that we can avoid unwanted UI updates when the panel is outside of the viewport.
 
-As we are using require.js for module management, scripts used in a panel should be wrapped in an AMD module or loaded from it, and which should extends from `SettingsPanel` to have basic settings services. Similar to `Panel`, we are able override onShow, onHide, onBeforeShow, onBeforeHide, onInit, and onUninit by passing an option object to the constructor of `SettingsPanel`.
+As we are using `require.js` for module management, scripts used in a panel should be wrapped in an AMD module or loaded from it, and which should extends from `SettingsPanel` to have basic settings services. Similar to `Panel`, we are able override `onShow`, `onHide`, `onBeforeShow`, `onBeforeHide`, `onInit`, and `onUninit` by passing an option object to the constructor of `SettingsPanel`.
 
 
 ## Implementation Guide
 ### How to create a new panel in Settings?
 #### 1. Create an HTML template
 Create the template with the following format and place it under `elements/`.
+
 ```html
 <element name="{panel_name}" extends="section">
   <template>
@@ -89,12 +89,14 @@ Create the template with the following format and place it under `elements/`.
 
 #### 2. Import the HTML template to index.html
 Add the following `link` tag to the head element of index.html.
+
 ```html
 <link rel="import" href="{path_to_html_template}">
 ```
 
 #### 3. Create the placeholder for populating the HTML template
 Add the following `section` tag in the body element of index.html. Typically `panel_id` and `panel_name` is identical.
+
 ```html
 <section is="{panel_name}" role="region" id="{panel_id}"></section>
 ```
@@ -102,6 +104,7 @@ Add the following `section` tag in the body element of index.html. Typically `pa
 ### How to load scripts for a panel?
 #### 1. Define an AMD module for the panel
 All dependent scripts should be loaded following the AMD pattern. Usually a panel module is extended from `SettingsPanel` to have the ability of automatic binding to the settings database. You can choose to extend from `Panel` if you would like to handing the binding by yourself or the panel does not need the database at all. Require other depedent modules in the modeul definition. A simple module looks like:
+
 ```js
 define(function(require) {
   var SettingsPanel = require('modules/SettingsPanel');
@@ -127,6 +130,7 @@ define(function(require) {
 
 #### 2. Add the module to the HTML template
 A panel module could be loaded by adding a <panel> tag with a `data-path` attrbute specifying the panel module in the end of the template. The template will look like:
+
 ```html
 <element name="{panel_name}" extends="section">
   <template>
@@ -135,6 +139,7 @@ A panel module could be loaded by adding a <panel> tag with a `data-path` attrbu
   </template>
 </element>
 ```
+
 Note that there should be only one panel module specified in the template. All other dependent modules should be required in the panel module. `SettingsPanel` is used by default if no panel module is specified.
 
 All panels should be defined in the folder under `panels/` with the name identical to the panel's name. ex: battery panel should be defined in `panels/battery` folder.
@@ -153,18 +158,22 @@ The panel module created in the first step is the start point of each panel and 
 
 #### 4. Configure module settings
 Settings app utilizes r.js in the build process. It produces module scripts based on the configuration file, `settings/js/config/require.js`. The following object in the `modules` array in the configuration file specifies a module:   
+
 ```js
 {
   name: '{path_to_panel_module}',
   exclude: ['main']
 }
 ```
+
 All dependent modules of the specified module except for the modules listed in the exclude array will be merged into one file in the build process. This allows that all code required code could be loaded at once when a panel is navigated.
 
 #### 5. Run integration tests
 Run the tests with the following command to ensure the refactoring does not break the anything.
 
-    $ make test-integration APP=settings
+```
+$ make test-integration APP=settings
+```
 
 ## Build Steps
 Settings app has it's own [`Makefile`](Makefile). A Makefile is similar to Grunt, but written in bash. It is essentially a list of tasks that can be run (via `make <task-name>`). When a Gaia application has its own `apps/<app-name>/Makefile`, it will be automatically run when Gaia builds.
@@ -174,6 +183,14 @@ Our `Makefile` has two tasks, one to **'build'** and one to **'clean'** (delete 
 1. Remove any previous settings build from the `build_stage/`
 2. Create an new directory `build_stage/settings`
 3. Run the `r.js` (RequireJS optimizer), pointing it at our `require_config.jslike` file (`.jslike` because we don't want Gaia builds to mess with it [I think]). This copies our entire application (JS and all) and bundles our JS (tracing `require()` calls) and CSS (tracing `@import`) in two single files.
+
+## JSDOC
+
+Generated jsdoc is hosted on [http://mozilla-b2g.github.io/gaia/settings/](http://mozilla-b2g.github.io/gaia/settings/). You can generate it locally with the following command:
+
+```
+$ gulp jsdoc:settings
+```
 
 ## Q&A
 

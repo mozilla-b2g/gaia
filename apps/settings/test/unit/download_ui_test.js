@@ -1,3 +1,5 @@
+/* global MocksHelper, MockL10n, MockDownload, DownloadUI, DownloadFormatter */
+
 
 'use strict';
 
@@ -32,11 +34,18 @@ suite('DownloadUI', function() {
   });
 
   suiteTeardown(function() {
+    var screen = document.getElementById('screen');
+    document.body.removeChild(screen);
+
     navigator.mozL10n = realL10n;
     realL10n = null;
   });
 
   setup(function() {
+    var screen = document.createElement('div');
+    screen.id = 'screen';
+    document.body.appendChild(screen);
+
     download = new MockDownload();
     this.sinon.useFakeTimers();
   });

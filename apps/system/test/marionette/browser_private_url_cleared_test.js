@@ -6,17 +6,9 @@ var Rocketbar = require('./lib/rocketbar');
 
 marionette('Private Browser - URL Persistence', function() {
 
-  var client = marionette.client({
-    prefs: {
-      'dom.w3c_touch_events.enabled': 1
-    },
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
-    }
-  });
+  var client = marionette.client();
 
-  var home, rocketbar, search, server, system;
+  var home, rocketbar, server, system;
 
   suiteSetup(function(done) {
     Server.create(__dirname + '/fixtures/', function(err, _server) {
@@ -32,9 +24,8 @@ marionette('Private Browser - URL Persistence', function() {
   setup(function() {
     home = client.loader.getAppClass('verticalhome');
     rocketbar = new Rocketbar(client);
-    search = client.loader.getAppClass('search');
     system = client.loader.getAppClass('system');
-    system.waitForStartup();
+    system.waitForFullyLoaded();
   });
 
   test('Url is cleared after submitting and pressing home in private window',
@@ -42,9 +33,7 @@ marionette('Private Browser - URL Persistence', function() {
     // Use the home-screen search box to open up the system browser
     var url = server.url('sample.html');
     rocketbar.homescreenFocus();
-    search.triggerFirstRun(rocketbar);
-    rocketbar.enterText(url + '\uE006');
-    system.gotoBrowser(url);
+    rocketbar.enterText(url, true);
 
     client.switchToFrame();
     system.appChromeContextLink.tap();
@@ -53,7 +42,7 @@ marionette('Private Browser - URL Persistence', function() {
 
     client.switchToFrame();
     system.appUrlbar.tap();
-    rocketbar.enterText(url + '\uE006');
+    rocketbar.enterText(url, true);
     system.gotoBrowser(url);
 
     system.goHome();

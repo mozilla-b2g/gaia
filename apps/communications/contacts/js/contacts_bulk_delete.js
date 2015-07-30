@@ -1,4 +1,4 @@
-/* globals Contacts, utils, contactsRemover, Promise, ConfirmDialog */
+/* globals Contacts, utils, contactsRemover, Promise, ConfirmDialog, Loader */
 'use strict';
 
 var contacts = window.contacts || {};
@@ -11,7 +11,7 @@ contacts.BulkDelete = (function() {
    * Loads the overlay class before showing
    */
   function requireOverlay(callback) {
-    Contacts.utility('Overlay', callback, Contacts.SHARED_UTILITIES);
+    Loader.utility('Overlay', callback);
   }
 
   // Shows a dialog to confirm the bulk delete
@@ -34,7 +34,7 @@ contacts.BulkDelete = (function() {
         }
       };
 
-      Contacts.confirmDialog(null,
+      ConfirmDialog.show(null,
         {'id': 'ContactConfirmDel', 'args': {n: n}}, cancelObject,
           removeObject);
     });
@@ -67,7 +67,7 @@ contacts.BulkDelete = (function() {
 
     contactsRemoverObj.onError = function onError() {
       Contacts.hideOverlay();
-      Contacts.showStatus({
+      utils.status.show({
         id: 'deleteError-general'
       });
       contacts.Settings.refresh();
@@ -75,7 +75,7 @@ contacts.BulkDelete = (function() {
 
     contactsRemoverObj.onFinished = function onFinished() {
       Contacts.hideOverlay();
-      Contacts.showStatus({
+      utils.status.show({
         id: 'DeletedTxt',
         args: {n: contactsRemoverObj.getDeletedCount()}
       });

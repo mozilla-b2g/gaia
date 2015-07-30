@@ -1,8 +1,0 @@
-{
-  "name": "music",
-  "dependencies": {
-    "gaia-header": "gaia-components/gaia-header#~0.5.0",
-    "gaia-icons": "gaia-components/gaia-icons#~0.7.0",
-    "gaia-theme": "gaia-components/gaia-theme#~0.4.1"
-  }
-}

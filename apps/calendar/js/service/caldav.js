@@ -4,10 +4,10 @@ define(function(require, exports, module) {
 var Caldav = require('ext/caldav');
 var ICAL = require('ext/ical');
 var IcalRecurExpansion = require('./ical_recur_expansion');
-var Presets = require('presets');
-var Responder = require('responder');
-var debug = require('debug')('service/caldav');
-var extend = require('extend');
+var Presets = require('common/presets');
+var Responder = require('common/responder');
+var debug = require('common/debug')('service/caldav');
+var extend = require('common/extend');
 var uuid = require('ext/uuid');
 
 /* TODO: ugly hack to enable system XHR fix upstream in Caldav lib */
@@ -535,7 +535,7 @@ Service.prototype = {
    *      ...
    *    ]
    *
-   * @param {Array[icalComponent]} components list of icalComponents.
+   * @param {Array.<icalComponent>} components list of icalComponents.
    * @param {Calendar.Responder} stream to emit events.
    * @param {Object} options list of options.
    * @param {Object} options.maxDate maximum date to expand to.

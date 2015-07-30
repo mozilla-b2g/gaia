@@ -17,9 +17,47 @@
     <link rel="localization" href="locales/dashboard.{locale}.properties"/>
     <link rel="localization" href="shared/locales/date/date.{locale}.properties"/>
 
+    <!-- Helper libraries -->
+    <script defer src="bower_components/evt/index.js"></script>
+
+    <!-- Shared TV library for keyboard-based navigating -->
+    <script defer src="shared/js/smart-screen/key_navigation_adapter.js"></script>
+
+    <!-- Specific code -->
+    <script defer src="js/app_widget.js"></script>
+    <script defer src="js/digital_clock.js"></script>
+    <script defer src="js/dashboard.js"></script>
+    <script defer src="js/bootstrap.js"></script>
+
   </head>
 
   <body>
+    <div id="background" class="background"></div>
+    <div id="background-mask" class="background-mask"></div>
+    <div role="region" id="main-section" tabIndex="-1">
+      <section id="center-panel">
+        <div id="digital-clock">
+          <p id="time-now" class='time'>
+            <span id="hours-tens-digit" class="hours-tens-digit"></span>
+            <span id="hours-units-digit" class="hours-units-digit"></span>
+            <span class="colons">:</span>
+            <span id="minutes-tens-digit" class="minutes-tens-digit"></span>
+            <span id="minutes-units-digit" class="minutes-units-digit"></span>
+            <span class="colons">:</span>
+            <span id="seconds-tens-digit" class="seconds-tens-digit"></span>
+            <span id="seconds-units-digit" class="seconds-units-digit"></span>
+          </p>
+          <p id="date-now" class='date'>
+            <span id="today-is" data-l10n-id="today-is" data-l10n-args="{}"></span><br>
+            <span id="greeting" data-l10n-id=""></span>
+          </p>
+        </div>
+      </section>
+      <section id="top-panel"></section>
+      <section id="right-panel"></section>
+      <section id="bottom-panel"></section>
+      <section id="left-panel"></section>
+    </div>
   </body>
 
 </html>

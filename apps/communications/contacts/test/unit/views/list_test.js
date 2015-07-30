@@ -17,6 +17,7 @@
 /* global Normalizer */
 /* global ICEStore */
 /* global LazyLoader */
+/* global MockMozL10n */
 
 require('/shared/js/lazy_loader.js');
 require('/shared/js/text_normalizer.js');
@@ -26,6 +27,9 @@ require('/shared/js/contacts/utilities/templates.js');
 require('/shared/js/contacts/utilities/event_listeners.js');
 require('/shared/test/unit/mocks/mock_contact_all_fields.js');
 require('/shared/js/contacts/utilities/ice_store.js');
+requireApp('communications/contacts/test/unit/mock_l10n.js');
+requireApp('communications/contacts/test/unit/mock_header_ui.js');
+requireApp('communications/contacts/services/contacts.js');
 requireApp('communications/contacts/js/views/list.js');
 requireApp('communications/contacts/test/unit/mock_cookie.js');
 requireApp('communications/contacts/test/unit/mock_asyncstorage.js');
@@ -35,6 +39,7 @@ requireApp('communications/contacts/test/unit/mock_contacts_list.js');
 requireApp('communications/contacts/test/unit/mock_contacts_shortcuts.js');
 requireApp('communications/contacts/test/unit/mock_fb.js');
 requireApp('communications/contacts/test/unit/mock_extfb.js');
+requireApp('communications/contacts/test/unit/mock_cache.js');
 requireApp('communications/contacts/test/unit/mock_activities.js');
 requireApp('communications/contacts/test/unit/mock_utils.js');
 require('/shared/test/unit/mocks/mock_mozContacts.js');
@@ -72,13 +77,11 @@ if (!window.asyncStorage) {
   window.asyncStorage = null;
 }
 
-if (!window.asyncScriptsLoaded) {
-  window.asyncScriptsLoaded = null;
-}
-
 var mocksForListView = new MocksHelper([
   'ContactPhotoHelper',
-  'ActivityHandler'
+  'ActivityHandler',
+  'Cache',
+  'HeaderUI'
 ]).init();
 
 suite('Render contacts list', function() {
@@ -279,8 +282,6 @@ suite('Render contacts list', function() {
     noContacts = document.getElementById('no-contacts');
 
     updateDomReferences();
-
-    window.asyncScriptsLoaded = true;
   }
 
   function updateDomReferences() {
@@ -302,24 +303,15 @@ suite('Render contacts list', function() {
     containerUnd = container.querySelector('#contacts-list-und');
   }
 
-  suiteSetup(function() {
+  suiteSetup(function(done) {
     realL10n = navigator.mozL10n;
-    navigator.mozL10n = {
-      get: function get(key) {
-        return key;
-      },
-      DateTimeFormat: function() {
-        this.localeFormat = function(date, format) {
-          return date;
-        };
-      }
-    };
+    navigator.mozL10n = MockMozL10n;
 
     realContacts = window.Contacts;
     window.Contacts = MockContacts;
     realFb = window.fb;
     window.fb = Mockfb;
-    window.Contacts.extServices = MockExtFb;
+    window.ExtServices = MockExtFb;
     realImageLoader = window.ImageLoader;
     window.ImageLoader = MockImageLoader;
     realURL = window.URL || {};
@@ -341,6 +333,8 @@ suite('Render contacts list', function() {
     window.asyncStorage = MockasyncStorage;
 
     resetDom(window.document);
+
+    requireApp('communications/contacts/js/header_ui.js', done);
 
     subject.setOrderByLastName(true);
     subject.init(list);
@@ -368,7 +362,7 @@ suite('Render contacts list', function() {
       subject.getAllContacts();
       assert.isTrue(noContacts.classList.contains('hide'));
       for (var i = 0; i <= limit; i++) {
-        var toCheck = container.innerHTML.contains('GIVENNAME ' + i);
+        var toCheck = container.innerHTML.includes('GIVENNAME ' + i);
         assert.isTrue(toCheck, 'contains ' + i);
       }
     });
@@ -379,7 +373,7 @@ suite('Render contacts list', function() {
       subject.getAllContacts();
       assert.isTrue(noContacts.classList.contains('hide'));
       for (var i = 0; i <= limit; i++) {
-        var toCheck = container.innerHTML.contains('GIVENNAME ' + i);
+        var toCheck = container.innerHTML.includes('GIVENNAME ' + i);
         assert.isTrue(toCheck, 'contains ' + i);
       }
     });
@@ -390,7 +384,7 @@ suite('Render contacts list', function() {
       subject.getAllContacts();
       assert.isTrue(noContacts.classList.contains('hide'));
       for (var i = 0; i <= limit; i++) {
-        var toCheck = container.innerHTML.contains('GIVENNAME ' + i);
+        var toCheck = container.innerHTML.includes('GIVENNAME ' + i);
         assert.isTrue(toCheck, 'contains ' + i);
       }
     });
@@ -408,21 +402,21 @@ suite('Render contacts list', function() {
 
     test('first time', function() {
       mockContacts = new MockContactsList();
-      subject.load(mockContacts);
+      subject.load(mockContacts, false, () => {
+        updateDomReferences();
 
-      updateDomReferences();
-
-      assert.isTrue(noContacts.classList.contains('hide'));
-      assertNoGroup(groupFav, containerFav);
-      assertGroup(groupA, containerA, 1);
-      assertGroup(groupB, containerB, 1);
-      assertGroup(groupC, containerC, 1);
-      assertNoGroup(groupD, containerD);
-      assertNoGroup(groupGreek, containerGreek);
-      assertNoGroup(groupCyrillic, containerCyrillic);
-      sinon.assert.calledOnce(
-        window.utils.PerformanceHelper.contentInteractive);
-      sinon.assert.calledOnce(window.utils.PerformanceHelper.loadEnd);
+        assert.isTrue(noContacts.classList.contains('hide'));
+        assertNoGroup(groupFav, containerFav);
+        assertGroup(groupA, containerA, 1);
+        assertGroup(groupB, containerB, 1);
+        assertGroup(groupC, containerC, 1);
+        assertNoGroup(groupD, containerD);
+        assertNoGroup(groupGreek, containerGreek);
+        assertNoGroup(groupCyrillic, containerCyrillic);
+        sinon.assert.calledOnce(
+          window.utils.PerformanceHelper.contentInteractive);
+        sinon.assert.calledOnce(window.utils.PerformanceHelper.loadEnd);
+      });
     });
 
     test('adding one at the beginning', function() {
@@ -812,9 +806,9 @@ suite('Render contacts list', function() {
         doRefreshContact(subject, c);
       }
       var list = assertGroup(groupA, containerA, 3);
-      assert.isTrue(list[0].innerHTML.contains('Aa'), 'order of Aa');
-      assert.isTrue(list[1].innerHTML.contains('AB'), 'order of AB');
-      assert.isTrue(list[2].innerHTML.contains('Ac'), 'order of Ac');
+      assert.isTrue(list[0].innerHTML.includes('Aa'), 'order of Aa');
+      assert.isTrue(list[1].innerHTML.includes('AB'), 'order of AB');
+      assert.isTrue(list[2].innerHTML.includes('Ac'), 'order of Ac');
       done();
     });
 
@@ -836,16 +830,18 @@ suite('Render contacts list', function() {
       doLoad(subject, list, function() {
         var favList = assertGroup(groupFav, containerFav, names.length);
         var lastFav = favList[favList.length - 1];
-        doOnscreen(subject, lastFav, function() {
-          assert.equal(lastFav.dataset.rendered, 'true',
-                     'contact should be rendered in "favorites" list');
+        subject.loadVisibilityMonitor().then(() => {
+          doOnscreen(subject, lastFav, function() {
+            assert.equal(lastFav.dataset.rendered, 'true',
+                         'contact should be rendered in "favorites" list');
 
-          var aList = assertGroup(groupA, containerA, names.length);
-          var lastA = aList[aList.length - 1];
-          doOnscreen(subject, lastA, function() {
-            assert.equal(lastA.dataset.rendered, 'true',
-                       'contact should be rendered in "A" list');
-            done();
+            var aList = assertGroup(groupA, containerA, names.length);
+            var lastA = aList[aList.length - 1];
+            doOnscreen(subject, lastA, function() {
+              assert.equal(lastA.dataset.rendered, 'true',
+                           'contact should be rendered in "A" list');
+              done();
+            });
           });
         });
       });
@@ -862,7 +858,7 @@ suite('Render contacts list', function() {
             assertNoGroup(groupD, containerD);
             assertNoGroup(groupFav, containerFav);
             assertNoGroup(groupUnd, containerUnd);
-          });    
+          });
         });
       });
     });
@@ -871,13 +867,13 @@ suite('Render contacts list', function() {
       var newList = new MockContactsList();
       doLoad(subject, newList, function() {
         done(function() {
-          var originalNumber = 
+          var originalNumber =
             container.querySelectorAll('.contact-item').length;
           assert.isNotNull(container.querySelector('[data-uuid="2"]'));
 
           subject.remove('2');
 
-          var afterDelNumber = 
+          var afterDelNumber =
             container.querySelectorAll('.contact-item').length;
           assert.equal(originalNumber, afterDelNumber + 1);
           assert.isNotNull(container.querySelector('[data-uuid="1"]'));
@@ -1196,7 +1192,7 @@ suite('Render contacts list', function() {
       var numFilteredContacts = 3;
 
       subject.selectFromList('', null, function onSelectMode() {
-        var stub = sinon.stub(window.Contacts, 'updateSelectCountTitle',
+        var stub = sinon.stub(window.HeaderUI, 'updateSelectCountTitle',
          function(count) {
             stub.restore();
             subject.exitSelectMode();
@@ -1456,7 +1452,7 @@ suite('Render contacts list', function() {
       ICEStore.onChange.restore();
     });
 
-    test('> ICE group is always build but is hidden', function() {
+    test('> ICE group is always built but is hidden', function() {
       var stub = ICEStore.getContacts;
       ICEStore.getContacts = function() {
         return {
@@ -1467,18 +1463,19 @@ suite('Render contacts list', function() {
       };
 
       mockContacts = new MockContactsList();
-      subject.load(mockContacts);
-      // ICE group created, even if we don't have contacts
-      var iceGroup = document.getElementById('section-group-ice');
-      assert.isNotNull(iceGroup);
-      // ICE group not visible
-      assert.isTrue(iceGroup.classList.contains('hide'));
-
-      ICEStore.getContacts = stub;
+      subject.load(mockContacts, false, () => {
+        // ICE group created, even if we don't have contacts
+        var iceGroup = document.getElementById('section-group-ice');
+        assert.isNotNull(iceGroup);
+        // ICE group not visible
+        assert.isTrue(iceGroup.classList.contains('hide'));
+        ICEStore.getContacts = stub;
+      });
     });
 
     test('Display the ICE group if ICE contacts present', function(done) {
       mockContacts = new MockContactsList();
+      subject.ICELoaded = false;
       subject.load(mockContacts, false, callback);
 
       function callback() {
@@ -1495,13 +1492,16 @@ suite('Render contacts list', function() {
     });
 
     test('> after a list reload, the ice group appears', function() {
-      subject.load(null, true);
-      var iceGroup = document.getElementById('section-group-ice');
-      assert.isNotNull(iceGroup);
+      subject.ICELoaded = false;
+      subject.load(null, true, () => {
+        var iceGroup = document.getElementById('section-group-ice');
+        assert.isNotNull(iceGroup);
+      });
     });
 
     test('toggleICEGroup hides group', function(done) {
       mockContacts = new MockContactsList();
+      subject.ICELoaded = false;
       subject.load(mockContacts, false, () => {
         var iceGroup = document.getElementById('section-group-ice');
         assert.isFalse(iceGroup.classList.contains('hide'));

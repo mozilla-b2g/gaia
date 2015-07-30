@@ -5,7 +5,7 @@
 var utils = require('utils');
 
 function removeDesktopOnlyFolder(appStageDir) {
-  var desktopOnlyDir = utils.getFile(appStageDir, 'js', 'desktop-only');
+  var desktopOnlyDir = utils.getFile(appStageDir, 'desktop-mock');
 
   if (desktopOnlyDir.exists()) {
     desktopOnlyDir.remove(true);
@@ -13,13 +13,26 @@ function removeDesktopOnlyFolder(appStageDir) {
 }
 
 function removeDesktopOnlyScripts(appStageDir) {
-  var indexFile = utils.getFile(appStageDir, 'index.html');
-  var desktopOnlyScriptsRegex = /<script.+desktop\-only.+<\/script>/g;
+  // Picking every file specifically since we may have "index.html" files from
+  // a bunch of places we don't want process to (shared, node modules, bower..).
+  [
+    'index.html',
+    'views/inbox/index.html',
+    'views/conversation/index.html'
+  ].forEach((indexFilePath) => {
+    var indexFile = utils.getFile(appStageDir, indexFilePath);
+    var indexDocument = utils.getDocument(utils.getFileContent(indexFile));
 
-  utils.writeContent(
-    indexFile,
-    utils.getFileContent(indexFile).replace(desktopOnlyScriptsRegex, '')
-  );
+    var mockScripts = indexDocument.querySelectorAll(
+      'script[src*="desktop-mock"]'
+    );
+
+    for (var mockScript of mockScripts) {
+      mockScript.remove();
+    }
+
+    utils.writeContent(indexFile, utils.serializeDocument(indexDocument));
+  });
 }
 
 exports.execute = function(options) {

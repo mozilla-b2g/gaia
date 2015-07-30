@@ -3,10 +3,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from marionette import SkipTest
-try:
-    from marionette.wait import Wait
-except:
-    from marionette_driver.wait import Wait
+from marionette_driver import Wait
 
 from gaiatest import GaiaTestCase
 from gaiatest.apps.phone.regions.call_screen import CallScreen
@@ -59,6 +56,7 @@ class TestReceiveCallFromKnownContactNotification(GaiaTestCase):
 
         # Check if the screen is turned on
         self.assertTrue(self.device.is_screen_enabled)
+        lock_screen.switch_to_frame()
 
         # Verify the user sees a missed call notification message
         # and the known contacts info is shown.

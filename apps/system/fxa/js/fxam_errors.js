@@ -49,6 +49,10 @@
     };
   }
 
+  // Tracks whether or not we have registered the coppa element.
+  // Registering a custom element twice will throw an error.
+  var coppaElementRegistered = false;
+
   /**
    * Define a custom element for the coppa link.
    * A custom element is used as an easy way to survive the current FxA
@@ -56,6 +60,11 @@
    * EntrySheet is opened.
    */
   function registerCoppaLinkElement() {
+    if (coppaElementRegistered) {
+      return;
+    }
+
+    coppaElementRegistered = true;
     var _ = navigator.mozL10n.get;
     var learnMore = _('fxa-learn-more');
     var coppaUrl = 'http://www.ftc.gov/news-events/media-resources/' +
@@ -82,7 +91,10 @@
 
         this.entrySheet = new EntrySheet(
           window.top.document.getElementById('screen'),
-          coppaUrl,
+          // Prefix url with LRM character
+          // This ensures truncation occurs correctly in an RTL document
+          // We can remove this when bug 1154438 is fixed.
+          '\u200E URL:' + coppaUrl,
           new BrowserFrame({
             url: coppaUrl,
             oop: true

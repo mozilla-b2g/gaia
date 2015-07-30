@@ -1,29 +1,28 @@
 'use strict';
 
-/* global require, exports */
+/**
+ * Filter images/video by GAIA_DEV_PIXELS_PER_PX.
+ */
 
 var utils = require('./utils');
 
 var MediaResolution = function() {
-  this.config = null;
-  this.webapp = null;
-  this.buildDir = null;
+  this.options = null;
 };
 
-MediaResolution.prototype.setOptions = function(option) {
-  this.config = option.config;
-  this.webapp = this.config.webapp;
-  this.buildDir = utils.getFile(this.webapp.buildDirectoryFilePath);
+MediaResolution.prototype.setOptions = function(options) {
+  this.options = options;
 };
 
-// If config.GAIA_DEV_PIXELS_PER_PX is not 1 and the file is a bitmap or video
+// If options.GAIA_DEV_PIXELS_PER_PX is not 1 and the file is a bitmap or video
 // let's check if there is a bigger version in the directory.
 // If so let's ignore the file in order to use the bigger version later.
 MediaResolution.prototype.pickMediaByResolution = function(file) {
   if (!/\.(png|gif|jpg|webm|mp4|m4v|ogg|ogv)$/.test(file.path)) {
     return;
   }
-  var gaiaPixelsPerPx = this.config.GAIA_DEV_PIXELS_PER_PX;
+
+  var gaiaPixelsPerPx = this.options.GAIA_DEV_PIXELS_PER_PX;
   var suffix = '@' + gaiaPixelsPerPx + 'x';
   var matchResult = /@([0-9]+\.?[0-9]*)x/.exec(file.path);
 
@@ -36,7 +35,7 @@ MediaResolution.prototype.pickMediaByResolution = function(file) {
     if (matchResult && matchResult[1] === gaiaPixelsPerPx) {
       // Save the hidpi file to the zip, strip the name to be more generic.
       utils.copyFileTo(file.path, file.parent.path,
-        utils.basename(file.path).replace(suffix, ''), true);
+        utils.basename(file.path).replace(suffix, ''));
       if (file.exists()) {
         file.remove(true);
       }
@@ -53,16 +52,13 @@ MediaResolution.prototype.pickMediaByResolution = function(file) {
   }
 };
 
-MediaResolution.prototype.fileProcess = function(file) {
-  this.pickMediaByResolution(file);
-};
-
 MediaResolution.prototype.execute = function(options) {
   this.setOptions(options);
 
-  // sort listing by path to ensure hidpi files are processed *after* the
+  // Sort listing by path to ensure hidpi files are processed *after* the
   // corresponding 1x file
-  var files = utils.ls(this.buildDir, true).sort(function(a, b) {
+  var buildDir = utils.getFile(options.webapp.buildDirectoryFilePath);
+  var files = utils.ls(buildDir, true).sort(function(a, b) {
     if(a.path < b.path) {
       return -1;
     }
@@ -71,11 +67,11 @@ MediaResolution.prototype.execute = function(options) {
     }
     return 0;
   });
-  files.forEach(this.fileProcess.bind(this));
+  files.forEach(this.pickMediaByResolution, this);
 };
 
-function execute(options, webapp) {
-  (new MediaResolution()).execute({ config: options });
+function execute(options) {
+  (new MediaResolution()).execute(options);
 }
 
 exports.execute = execute;

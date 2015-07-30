@@ -5,6 +5,15 @@
   transform: translateY(-16rem);
 }
 
+#main-section[data-mode="arrange"] #card-viewer.current-scrollable {
+  z-index: 1;
+}
+
+#main-section[data-mode="edit"] #folder-list-frame,
+#main-section[data-mode="arrange"] #folder-list-frame {
+  height: 0;
+}
+
 #main-section[data-mode="arrange"] .app-button.focused {
   transform: scale(1.72);
 }
@@ -13,8 +22,27 @@
   visibility: visible;
 }
 
+#main-section[data-mode="edit"] .card.delete > .card-panel {
+  display: none;
+}
+
 #main-section[data-mode="edit"] .card.focused > smart-button {
   transform: scale(1.4);
+}
+
+#main-section[data-mode="arrange"] .card.hovered > smart-button {
+  transform: scale(1.75);
+  transition-delay: 0.1s;
+}
+
+#main-section[data-mode="arrange"] .card.focused.hover > smart-button {
+  transform: scale(1.2);
+  transition-delay: 0.1s;
+}
+
+#main-section[data-mode="edit"] .card.delete > smart-button {
+  transform: scale(1.4) translateY(20rem);
+  opacity: 0;
 }
 
 #main-section[data-mode="edit"] .card.focused > .card-panel smart-button {
@@ -67,14 +95,45 @@
   background: url(images/animated_arrows_right.png) no-repeat right center / 13rem;
 }
 
+#main-section[data-mode="arrange"] .card.focused.up_arrow:after {
+  background: url(images/animated_arrows_up.png) no-repeat top center / 13rem;
+}
+
+#main-section[data-mode="arrange"] .card.focused.left_arrow.down_arrow:after {
+  background: url(images/animated_arrows_left.png) no-repeat left center / 13rem,
+              url(images/animated_arrows_down.png) no-repeat bottom center / 13rem;
+}
+
+#main-section[data-mode="arrange"] .card.focused.right_arrow.down_arrow:after {
+  background: url(images/animated_arrows_right.png) no-repeat right center / 13rem,
+              url(images/animated_arrows_down.png) no-repeat bottom center / 13rem;
+}
+
+#main-section[data-mode="arrange"] .card.focused.left_arrow.up_arrow:after {
+  background: url(images/animated_arrows_left.png) no-repeat left center / 13rem,
+              url(images/animated_arrows_up.png) no-repeat top center / 13rem;
+}
+
+#main-section[data-mode="arrange"] .card.focused.right_arrow.up_arrow:after {
+  background: url(images/animated_arrows_right.png) no-repeat right center / 13rem,
+              url(images/animated_arrows_up.png) no-repeat top center / 13rem;
+}
+
 #main-section[data-mode="arrange"] .card.focused.left_arrow.right_arrow:after {
   background: url(images/animated_arrows_left.png) no-repeat left center / 13rem,
               url(images/animated_arrows_right.png) no-repeat right center / 13rem;
 }
 
-#add-new-folder-button {
-  /* This is not displayed until folder features are implemented. */
-  display: none;
+#main-section[data-mode="arrange"] .card.focused.left_arrow.right_arrow.down_arrow:after {
+  background: url(images/animated_arrows_left.png) no-repeat left center / 13rem,
+              url(images/animated_arrows_right.png) no-repeat right center / 13rem,
+              url(images/animated_arrows_down.png) no-repeat bottom center / 13rem;
+}
+
+#main-section[data-mode="arrange"] .card.focused.left_arrow.right_arrow.up_arrow:after {
+  background: url(images/animated_arrows_left.png) no-repeat left center / 13rem,
+              url(images/animated_arrows_right.png) no-repeat right center / 13rem,
+              url(images/animated_arrows_up.png) no-repeat top center / 13rem;
 }
 
 #main-section[data-mode="edit"] .background,

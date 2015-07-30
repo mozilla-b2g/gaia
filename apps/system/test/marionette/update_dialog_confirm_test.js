@@ -7,14 +7,13 @@ var SHARED_PATH = __dirname + '/../../../../shared/test/integration/';
 marionette('Software Home Button - Update Dialog Confirm', function() {
 
   var client = marionette.client({
-    prefs: {
-      'focusmanager.testmode': true,
-      'dom.w3c_touch_events.enabled': 1
-    },
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false,
-      'software-button.enabled': false
+    profile: {
+      prefs: {
+        'focusmanager.testmode': true
+      },
+      settings: {
+        'software-button.enabled': false
+      }
     }
   });
 
@@ -22,7 +21,7 @@ marionette('Software Home Button - Update Dialog Confirm', function() {
   setup(function() {
     home = client.loader.getAppClass('verticalhome');
     system = client.loader.getAppClass('system');
-    system.waitForStartup();
+    system.waitForFullyLoaded();
     home.waitForLaunch();
     client.switchToFrame();
   });
@@ -74,7 +73,7 @@ marionette('Software Home Button - Update Dialog Confirm', function() {
   });
 
   test('Rocketbar should not be expandable in update dialog', function() {
-    var input = client.findElement('#homescreen .titlebar');
+    var input = client.findElement('#statusbar');
     client.waitFor(input.displayed.bind(input));
     triggerUpdateDownload();
     client.helper.waitForElement('#dialog-screen');

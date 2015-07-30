@@ -2,14 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-try:
-    from marionette import (expected,
-                            Wait)
-    from marionette.by import By
-except:
-    from marionette_driver import (expected,
-                                   Wait)
-    from marionette_driver.by import By
+from marionette_driver import expected, By, Wait
 
 from gaiatest.apps.base import Base
 
@@ -187,10 +180,12 @@ class ManualSetupEmail(Base):
         # rather than the default value of 100 seconds
         # The UI data layer of the UI is changed, because the minimum check mail time value is 5 min,
         # which is far too long to check for in a test. This allows us to check earlier
+        with self.marionette.using_context('chrome'):
+            self.marionette.execute_script(
+                "Services.prefs.setIntPref('dom.requestSync.minInterval', 1);")
         self.marionette.execute_script("""
-            SpecialPowers.setIntPref('dom.requestSync.minInterval', 1);
             document.querySelector("[data-l10n-id = settings-check-every-5min]").value = '%s';
-        """ % value, special_powers=True)
+        """ % value)
         self.marionette.find_element(*self._check_for_new_messages_locator).tap()
         self.select('Every 5 minutes')
 

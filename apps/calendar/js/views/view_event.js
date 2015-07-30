@@ -3,8 +3,8 @@ define(function(require, exports, module) {
 
 var DurationTime = require('templates/duration_time');
 var EventBase = require('./event_base');
-var Local = require('provider/local');
 var alarmTemplate = require('templates/alarm');
+var localCalendarId = require('common/constants').localCalendarId;
 var router = require('router');
 
 require('dom!event-view');
@@ -87,7 +87,7 @@ ViewEvent.prototype = {
         this.originalCalendar.color;
 
       var calendarId = this.originalCalendar.remote.id;
-      var isLocalCalendar = calendarId === Local.calendarId;
+      var isLocalCalendar = calendarId === localCalendarId;
       var calendarName = isLocalCalendar ?
         navigator.mozL10n.get('calendar-local') :
         this.originalCalendar.remote.name;

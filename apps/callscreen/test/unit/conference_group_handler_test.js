@@ -47,31 +47,31 @@ suite('conference group handler', function() {
     _ = MockMozL10n.get;
 
     fakeDOM = document.createElement('div');
-    fakeDOM.innerHTML = '<section id="group-call" hidden>' +
-                            '<div class="numberWrapper">' +
-                            '<div id="group-show"></div>' +
-                            '<div id="group-call-label" ' +
-                              'class="number font-light"></div>' +
-                          '</div>' +
-                          '<div id="group-call-summary" ' +
-                            'class="additionalContactInfo font-light"></div>' +
-                          '<div class="duration">' +
-                            '<span class="font-light"></span>' +
-                            '<div class="total-duration"></div>' +
-                            '<div class="direction"></div>' +
-                          '</div>' +
-                        '</section>' +
-                        '<form id="group-call-details" role="dialog" ' +
-                          'data-type="action" class="overlay">' +
-                          '<header></header>' +
-                          '<menu>' +
-                            '<ul id="group-call-details-list">' +
-                            '</ul>' +
-                            '<button id="group-hide" data-l10n-id="close">' +
-                              'Close' +
-                            '</button>' +
-                          '</menu>' +
-                        '</form>';
+    fakeDOM.innerHTML = `<section id="group-call" hidden>
+                             <div class="numberWrapper">
+                             <div id="group-show"></div>
+                             <div id="group-call-label"   +
+                               class="number font-light"></div>
+                           </div>
+                           <div id="group-call-summary"   +
+                             class="additionalContactInfo font-light"></div>
+                           <div class="duration">
+                             <span class="font-light"></span>
+                             <div class="total-duration"></div>
+                             <div class="direction"></div>
+                           </div>
+                         </section>
+                         <form id="group-call-details" role="dialog"   +
+                           data-type="action" class="overlay">
+                           <header></header>
+                           <menu>
+                             <ul id="group-call-details-list">
+                             </ul>
+                             <button id="group-hide" data-l10n-id="close">
+                               Close
+                             </button>
+                           </menu>
+                         </form>`;
 
     document.body.appendChild(fakeDOM);
     fakeGroupLine = document.getElementById('group-call');
@@ -281,13 +281,6 @@ suite('conference group handler', function() {
       assert.isTrue(MockCallScreen.mSetCallerContactImageCalled);
     });
 
-    test('should set photo when resuming', function() {
-      MockNavigatorMozTelephony.conferenceGroup.state = 'resuming';
-      MockNavigatorMozTelephony.mTriggerGroupStateChange();
-
-      assert.isTrue(MockCallScreen.mSetCallerContactImageCalled);
-    });
-
     test('should stop timer when groupcall ends', function() {
       assert.isFalse(MockCallScreen.mCalledStopTicker);
 
@@ -319,13 +312,13 @@ suite('conference group handler', function() {
       assert.isTrue(fakeGroupLine.classList.contains('held'));
     });
 
-    test('should remove the held class while resuming', function() {
+    test('should remove the held class when connected', function() {
       MockNavigatorMozTelephony.conferenceGroup.state = 'held';
       MockNavigatorMozTelephony.mTriggerGroupStateChange();
 
       assert.isTrue(fakeGroupLine.classList.contains('held'));
 
-      MockNavigatorMozTelephony.conferenceGroup.state = 'resuming';
+      MockNavigatorMozTelephony.conferenceGroup.state = 'connected';
       MockNavigatorMozTelephony.mTriggerGroupStateChange();
 
       assert.isFalse(fakeGroupLine.classList.contains('held'));
@@ -369,20 +362,6 @@ suite('conference group handler', function() {
 
       this.sinon.clock.tick(2000);
       assert.isTrue(fakeGroupLine.hidden);
-    });
-  });
-
-  suite('telephony.conferenceGroup.onerror handling', function() {
-    test('error when merging calls', function() {
-      var showStatusSpy = this.sinon.spy(MockCallScreen, 'showStatusMessage');
-      MockNavigatorMozTelephony.conferenceGroup.onerror({name: 'addError'});
-      assert.isTrue(showStatusSpy.calledWith('conferenceAddError'));
-    });
-
-    test('error when unmerging calls', function() {
-      var showStatusSpy = this.sinon.spy(MockCallScreen, 'showStatusMessage');
-      MockNavigatorMozTelephony.conferenceGroup.onerror({name: 'removeError'});
-      assert.isTrue(showStatusSpy.calledWith('conferenceRemoveError'));
     });
   });
 

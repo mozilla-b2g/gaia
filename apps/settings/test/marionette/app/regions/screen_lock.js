@@ -17,10 +17,10 @@ function ScreenLockPanel(client) {
 module.exports = ScreenLockPanel;
 
 ScreenLockPanel.Selectors = {
-  'screenLockLabel': 'span[data-l10n-id="lockScreen"]',
+  'screenLockLabel': 'label[data-l10n-id="lockScreen"]',
   'screenLockCheckbox': '.lockscreen-enable',
   'header': 'gaia-header',
-  'passcodeLockLabel': 'span[data-l10n-id="passcode-lock"]',
+  'passcodeLockLabel': 'label[data-l10n-id="passcode-lock"]',
   'passcodeInput': '.passcode-input',
   'passcodeCheckbox': '.passcode-enable',
   'passcodeIsNotMatchedLabel': 'div[data-l10n-id="passcode-doesnt-match"]',
@@ -66,10 +66,6 @@ ScreenLockPanel.prototype = {
 
   isScreenLockHeaderLabelVisible: function() {
     return this.findElement('screenLockHeaderLabel').displayed();
-  },
-
-  getPasscode: function() {
-    return this.client.settings.get('lockscreen.passcode-lock.code');
   },
 
   enableScreenLock: function() {

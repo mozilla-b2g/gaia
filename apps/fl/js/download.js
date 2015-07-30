@@ -50,6 +50,51 @@
  *   - For ringtones and wallpaper, set them as the default
  */
 
+'use strict';
+/* global
+  _,
+  $,
+  BinaryStringView,
+  debug,
+  DOWNLOAD_ERROR,
+  ERR_BAD_AUDIO,
+  ERR_BAD_DESCRIPTOR,
+  ERR_BAD_DRM_MESSAGE,
+  ERR_BAD_IMAGE,
+  ERR_BAD_TYPE,
+  ERR_CONTENT_DOWNLOAD_FAILED,
+  ERR_DS_SAVE_FAILURE,
+  ERR_DB_STORE_FAILURE,
+  ERR_DESCRIPTOR_DOWNLOAD_FAILED,
+  ERR_NO_SDCARD,
+  ERR_NO_SPACE,
+  ERR_SDCARD_IN_USE,
+  ERR_TOO_BIG,
+  ERR_UNSUPPORTED_TYPE,
+  ForwardLock,
+  getStorageIfAvailable,
+  getUnusedFilename,
+  INSTALL_ERROR,
+  MAX_DOWNLOAD_SIZE,
+  MediaUtils,
+  MimeTypeAliases,
+  objectStore,
+  OMADownloadStatus,
+  RINGTONE,
+  RINGTONE_KEY,
+  RINGTONE_NAME_KEY,
+  showDialog,
+  SONG,
+  SUCCESS_RINGTONE,
+  SUCCESS_SONG,
+  SUCCESS_WALLPAPER,
+  SupportedAudioTypes,
+  SupportedImageTypes,
+  systemXHR,
+  WALLPAPER,
+  WALLPAPER_KEY
+*/
+
 // Wait until we're loaded, localized, and get an activity request
 window.addEventListener('load', function() {
   navigator.mozL10n.once(function() {
@@ -70,8 +115,6 @@ window.addEventListener('load', function() {
 //   activity.source.data.url set to the url of the download ".dm" file.
 //
 function view(activity) {
-  'use strict';
-
   debug('view() invoked for activity', activity.source.name,
         'with data', JSON.stringify(activity.source.data));
 
@@ -535,7 +578,7 @@ function view(activity) {
 
     // The boundary string begins right after that newline
     var boundaryString = dataString.slice(end + 2, -2).toString() + '\r\n';
-    var dataString = dataString.slice(0, end);
+    dataString = dataString.slice(0, end);
 
     debug('Boundary string is', boundaryString);
 
@@ -768,13 +811,14 @@ function view(activity) {
       function storageSuccess(storage) {
         debug('got music storage');
         var filename = 'locked/';
-        if (descriptor.vendor)
+        if (descriptor.vendor) {
           filename += fixPath(descriptor.vendor) + '/';
+        }
         filename += fixPath(descriptor.name) + '.lcka';
         debug('trying filename', filename);
 
         // Remove characters in s that might be significant in a filename
-        function fixPath(s) { return s.replace(/[\/\\\.\,\?\*\:]/g, '') }
+        function fixPath(s) { return s.replace(/[\/\\\.\,\?\*\:]/g, ''); }
 
         getUnusedFilename(storage, filename, function(filename) {
           debug('using filename', filename);
@@ -836,10 +880,11 @@ function view(activity) {
 
         lock.set(settings).onsuccess = function() {
           var msgid;
-          if (installType === RINGTONE)
+          if (installType === RINGTONE) {
             msgid = SUCCESS_RINGTONE;
-          else
+          } else {
             msgid = SUCCESS_WALLPAPER;
+          }
 
           showDialog({
             message: _(msgid),

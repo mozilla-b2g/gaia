@@ -5,8 +5,9 @@ define(function(require) {
   var AirplaneModeHelper = require('shared/airplane_mode_helper');
   var SIMSlotManager = require('shared/simslot_manager');
   var DialogService = require('modules/dialog_service');
-  var Template = require('shared/template');
+  var Sanitizer = require('shared/sanitizer');
   var Toaster = require('shared/toaster');
+  var SimSecurity = require('modules/sim_security');
 
   var SimPin = function(elements) {
     this._elements = elements;
@@ -18,7 +19,6 @@ define(function(require) {
         this.conns = window.navigator.mozMobileConnections;
         this.iccManager = window.navigator.mozIccManager;
         this.isAirplaneMode = (AirplaneModeHelper.getStatus() === 'enabled');
-        this.simPinTemplate = new Template(this._elements.simPinTmpl);
 
         this._elements.simPinContainer.addEventListener('click', this);
         this.addIccDetectedEvent();
@@ -31,6 +31,25 @@ define(function(require) {
         this.addChangeEventOnIccs();
       });
     },
+    simPinView: function({simIndex, simName, changeSimLabel}) {
+      return Sanitizer.escapeHTML `
+        <li class="simpin-enabled simpin-enabled-${simIndex}
+          simpin-${simIndex}">
+          <label class="pack-switch">
+            <input type="checkbox" data-ignore data-sim-index="${simIndex}"
+              data-type="checkSimPin"/>
+            <span>${simName}</span>
+        </label>
+        </li>
+        <li class="simpin-change simpin-change-${simIndex} simpin-${simIndex}"
+          hidden>
+          <a class="menu-item" href="#" data-sim-index="${simIndex}"
+            data-type="changeSimPin">
+            <span data-l10n-id="changeSimPin">${changeSimLabel}</span>
+          </a>
+        </li>`;
+    },
+
     initSimPinBack: function simpin_initSimPinBack() {
       // Because this panel is used in one-sim & two-sim structures,
       // the entry point of sim security is different.
@@ -51,10 +70,10 @@ define(function(require) {
         }
 
         simPinHTMLs.push(
-          this.simPinTemplate.interpolate({
-            'sim-index': index.toString(),
-            'sim-name': _('simPinWithIndex', { 'index': simPinIndex }),
-            'change-sim-label': _('changeSimPin')
+          this.simPinView({
+            'simIndex': index.toString(),
+            'simName': _('simPinWithIndex', { 'index': simPinIndex }),
+            'changeSimLabel': _('changeSimPin')
           })
         );
       });
@@ -80,21 +99,19 @@ define(function(require) {
       if (!isSimAvailable || this.isAirplaneMode) {
         simPinCheckbox.disabled = true;
         changeSimPinItem.hidden = true;
-        return;
+        return Promise.resolve();
       }
 
       // with SIM card, query its status
-      var req = icc.getCardLock('pin');
-      req.onsuccess = function() {
-        var enabled = req.result.enabled;
+      return SimSecurity.getCardLock(cardIndex, 'pin').then((result) => {
+        var enabled = result.enabled;
         simPinCheckbox.disabled = false;
         simPinCheckbox.checked = enabled;
         changeSimPinItem.hidden = !enabled;
-      };
-      req.onerror = function() {
+      }, () => {
         console.log('onerror');
         console.log('cardIndex', cardIndex);
-      };
+      });
     },
     updateSimPinsUI: function simpin_updateSimPinsUI() {
       [].forEach.call(this.conns, (simcard, cardIndex) => {

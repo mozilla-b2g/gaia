@@ -2,31 +2,23 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-try:
-    from marionette import (expected,
-                            Wait)
-    from marionette.by import By
-except:
-    from marionette_driver import (expected,
-                                   Wait)
-    from marionette_driver.by import By
+from marionette_driver import expected, By, Wait
 
 from gaiatest.apps.base import Base
 
 
 class Bluetooth(Base):
 
-    _bluetooth_checkbox_locator = (By.CSS_SELECTOR, '#bluetooth-status input')
-    _bluetooth_label_locator = (By.CSS_SELECTOR, '#bluetooth-status span')
+    _bluetooth_checkbox_locator = (By.CSS_SELECTOR, '#bluetooth_v2 .bluetooth-status input')
+    _bluetooth_label_locator = (By.CSS_SELECTOR, '#bluetooth_v2 .bluetooth-status span')
 
-    _visible_to_all_checkbox_locator = (By.CSS_SELECTOR, '#device-visible input')
-    _visible_to_all_label_locator = (By.CSS_SELECTOR, '#device-visible span')
+    _visible_to_all_checkbox_locator = (By.CSS_SELECTOR, '#bluetooth_v2 .device-visible input')
+    _visible_to_all_label_locator = (By.CSS_SELECTOR, '#bluetooth_v2 .device-visible label')
 
-    _device_name_locator = (By.ID, 'bluetooth-device-name')
-    _rename_my_device_button_locator = (By.ID, 'rename-device')
-    _update_device_name_form_locator = (By.ID, 'update-device-name')
-    _update_device_name_input_locator = (By.ID, 'update-device-name-input')
-    _update_device_name_ok_locator = (By.ID, 'update-device-name-confirm')
+    _device_name_locator = (By.CSS_SELECTOR, '.bluetooth-device-name')
+    _rename_my_device_button_locator = (By.CSS_SELECTOR, 'button.rename-device')
+    _update_device_name_input_locator = (By.CSS_SELECTOR, 'input.settings-dialog-input')
+    _update_device_name_ok_locator = (By.CSS_SELECTOR, 'button[data-l10n-id="ok"]')
 
     @property
     def is_bluetooth_enabled(self):
@@ -56,7 +48,7 @@ class Bluetooth(Base):
     def tap_rename_my_device(self):
         self.marionette.find_element(*self._rename_my_device_button_locator).tap()
         Wait(self.marionette).until(
-            expected.element_displayed(*self._update_device_name_form_locator))
+            expected.element_displayed(*self._update_device_name_input_locator))
 
     def type_phone_name(self, name):
         element = self.marionette.find_element(
@@ -65,7 +57,6 @@ class Bluetooth(Base):
         element.send_keys(name)
 
     def tap_update_device_name_ok(self):
-        element = Wait(self.marionette).until(
-            expected.element_present(*self._update_device_name_form_locator))
-        self.marionette.find_element(*self._update_device_name_ok_locator).tap()
+        element = self.marionette.find_element(*self._update_device_name_ok_locator)
+        element.tap()
         Wait(self.marionette).until(expected.element_not_displayed(element))

@@ -29,8 +29,10 @@ suite('conference group ui', function() {
 
     loadBodyHTML('/test/unit/mock_group_call.html');
 
-    document.getElementById('group-call-details').innerHTML =
-      conferenceGroupDetailsTemplate.innerHTML;
+    var groupCallDetails = document.getElementById('group-call-details');
+    groupCallDetails.innerHTML = '';
+    groupCallDetails.appendChild(
+      conferenceGroupDetailsTemplate.content.cloneNode(true));
 
     require('/js/conference_group_ui.js', done);
   });

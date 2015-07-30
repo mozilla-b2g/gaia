@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
+    <meta charset="utf-8">
+    <title>Dashboard</title>
+
+    <link rel="stylesheet" type="text/css" href="style/weather-widget.css">
+    <link rel="stylesheet" type="text/css" href="web_components/smart-weather.css">
+    <link rel="stylesheet" type="text/css" href="bower_components/smart-icons/smart-icons.css">
+
+
+    <!-- Shared L10n libraries -->
+    <script src="shared/js/l10n.js"></script>
+    <script src="shared/js/l10n_date.js"></script>
+    <script defer src="shared/js/smart-screen/clock.js"></script>
+    <script defer src="web_components/smart-weather.js"></script>
+    <script defer src="js/weather-widget.js"></script>
+
+
+    <!-- L10n properties -->
+    <meta name="defaultLanguage" content="en-US">
+    <meta name="availableLanguages" content="en-US">
+    <link rel="localization" href="locales/dashboard.{locale}.properties"/>
+    <link rel="localization" href="shared/locales/date/date.{locale}.properties"/>
+
+  </head>
+
+  <body>
+    <article id="panel" data-count="1">
+      <section class="weather-icon-panel">
+        <!-- TODO: Change the following icons to correct ones -->
+        <div class="forecast" data-icon="keyboard"></div>
+        <div class="air-temperature" data-icon="keyboard"></div>
+        <div class="humidity" data-icon="keyboard"></div>
+        <div class="wind-velocity" data-icon="keyboard"></div>
+      </section>
+    </article>
+  </body>
+
+</html>

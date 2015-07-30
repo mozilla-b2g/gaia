@@ -8,10 +8,9 @@
     <div>
       <ul>
         <li>
-          <label class="pack-switch">
-            <input type="checkbox" name="screen.orientation.lock" class="uninit">
-            <span data-l10n-id="lock-orientation">Lock screen orientation</span>
-          </label>
+          <gaia-switch name="screen.orientation.lock">
+            <label data-l10n-id="lock-orientation"></label>
+          </gaia-switch>
         </li>
       </ul>
 
@@ -20,23 +19,22 @@
       </header>
       <div class="wallpaper">
         <img class="wallpaper-preview" alt="wallpaper preview"/>
-        <button class="wallpaper-button"><span data-icon="change-wallpaper"></span></button>
+        <button class="wallpaper-button"><span data-icon="change-wallpaper" data-l10n-id="changeWallpaperButton"></span></button>
       </div>
       <header>
         <h2 id="brightness-heading" data-l10n-id="brightness">Brightness</h2>
       </header>
       <ul>
         <li class="brightness-auto">
-          <label class="pack-checkbox">
-            <input type="checkbox" name="screen.automatic-brightness">
-            <span data-l10n-id="brightness-autoAdjust">Adjust Automatically</span>
-          </label>
+          <gaia-checkbox name="screen.automatic-brightness">
+            <label data-l10n-id="brightness-autoAdjust"></label>
+          </gaia-checkbox>
         </li>
         <li class="brightness-manual">
           <label class="range-icons brightness">
-            <span data-icon="moon"></span>
+            <span data-icon="moon" aria-hidden="true"></span>
             <input aria-labelledby="brightness-heading" type="range" name="screen.brightness" step="0.01" min="0.1" value="0.5" max="1" />
-            <span data-icon="brightness"></span>
+            <span data-icon="brightness" aria-hidden="true"></span>
           </label>
         </li>
         <li id="screen-timeout">

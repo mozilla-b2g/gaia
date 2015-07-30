@@ -170,8 +170,7 @@
 }
 
 [role="dialog"][data-type="date-selector"] .animation-on {
-  transition-duration: 0.5s;
-  transition-property: transform;
+  transition: transform var(--transition-duration) cubic-bezier(0, 0, 0.4, 1);
 }
 
 [role="dialog"][data-type="date-selector"]  .picker-unit {

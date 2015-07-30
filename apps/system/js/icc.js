@@ -1,6 +1,4 @@
-/* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-/* global LazyLoader, DUMP, inputWindowManager */
+/* global DUMP, LazyLoader, icc_worker, MozActivity, Service, STKHelper */
 'use strict';
 
 var icc = {
@@ -43,7 +41,6 @@ var icc = {
     this.protectForms();
     this.getIccInfo();
 
-    var self = this;
     // Update displayTextTimeout with settings parameter
     var reqDisplayTimeout = window.navigator.mozSettings.createLock().get(
       'icc.displayTextTimeout');
@@ -164,7 +161,7 @@ var icc = {
 
     DUMP('STK Proactive Command for SIM ' + message.iccId + ': ',
       message.command);
-    if (FtuLauncher.isFtuRunning()) {
+    if (Service.query('isFtuRunning')) {
       // Delay the stk command until FTU is done
       var self = this;
       window.addEventListener('ftudone', function ftudone() {
@@ -192,7 +189,7 @@ var icc = {
   handleEvent: function icc_handleEvent(evt) {
     switch (evt.type) {
       case 'home':
-        if (this.icc_view.classList.contains('visible')) {
+        if (this.isVisible()) {
           this.hideViews();
         }
         break;
@@ -308,11 +305,12 @@ var icc = {
   keyboardChangedEvent: function(viewId, hidden) {
     var keyboardHeight = 0;
     if (!hidden) {
-      keyboardHeight = inputWindowManager.getHeight();
+      keyboardHeight = Service.query('InputWindowManager.getHeight') || 0;
     }
     var form = viewId.getElementsByTagName('form');
-    var height = (window.innerHeight - keyboardHeight - StatusBar.height);
-    height -= softwareButtonManager.height;
+    var height = (window.innerHeight - keyboardHeight);
+    height -= (Service.query('Statusbar.height') || 0);
+    height -= (Service.query('SoftwareButtonManager.height') || 0);
     viewId.style.height = height + 'px';
     if (form && viewId.clientHeight > 0) {
       var input = viewId.getElementsByTagName('input')[0];
@@ -322,15 +320,18 @@ var icc = {
       var formHeight = viewId.clientHeight;
       formHeight -= (header.clientHeight + headerSubtitle.clientHeight);
       formHeight -= menu.clientHeight;
-      formHeight -= softwareButtonManager.height;
       form[0].style.height = formHeight + 'px';
       input.scrollIntoView();
     }
   },
 
   resize: function() {
-    var height = window.layoutManager.height - StatusBar.height;
-    this.icc_view.style.height = height + 'px';
+    if (!this.isVisible()) {
+      return;
+    }
+    this.icc_view.style.top = Service.query('Statusbar.height') + 'px';
+    this.icc_view.style.bottom =
+      Service.query('SoftwareButtonManager.height') + 'px';
   },
 
   alert: function icc_alert(stkMessage, message, icons) {
@@ -368,6 +369,11 @@ var icc = {
     this._screen.classList.add('icc');
     this.icc_alert.classList.add('visible');
     this.icc_view.classList.add('visible');
+    this.resize();
+  },
+
+  isVisible: function() {
+    return this.icc_view.classList.contains('visible');
   },
 
   /**
@@ -381,8 +387,8 @@ var icc = {
       this.icc_confirm_icons = document.getElementById('icc-confirm-icons');
       this.icc_confirm_msg = document.getElementById('icc-confirm-msg');
       this.icc_confirm_btn = document.getElementById('icc-confirm-btn');
-      this.icc_confirm_btn_back =
-        document.getElementById('icc-confirm-btn_back');
+      this.icc_confirm_header =
+        document.getElementById('icc-confirm-header');
       this.icc_confirm_btn_close =
         document.getElementById('icc-confirm-btn_close');
       this.setupView(this.icc_confirm);
@@ -404,12 +410,12 @@ var icc = {
     var self = this;
 
     // STK Default response (BACK and CLOSE)
-    this.icc_confirm_btn_back.onclick = function() {
+    this.icc_confirm_header.addEventListener('action', function() {
       clearTimeout(timeoutId);
       self.hideViews();
       self.backResponse(stkMessage);
       callback(null);
-    };
+    });
     this.icc_confirm_btn_close.onclick = function() {
       clearTimeout(timeoutId);
       self.hideViews();
@@ -442,6 +448,7 @@ var icc = {
     this._screen.classList.add('icc');
     this.icc_confirm.classList.add('visible');
     this.icc_view.classList.add('visible');
+    this.resize();
   },
 
   asyncConfirm: function(stkMessage, message, icons, callback) {
@@ -504,6 +511,7 @@ var icc = {
     this._screen.classList.add('icc');
     this.icc_asyncconfirm.classList.add('visible');
     this.icc_view.classList.add('visible');
+    this.resize();
   },
 
   /**
@@ -517,17 +525,18 @@ var icc = {
         // Our url doesn't contains the protocol
         url = 'http://' + url;
       }
+      /* jshint nonew: false */
       new MozActivity({
         name: 'view',
         data: { type: 'url', url: url }
       });
     }
-    if (url == null || url.length == 0) {
+    if (url === null || url.length === 0) {
       url = this._defaultURL;
     }
     DUMP('Final URL to open: ' + url);
-    if (url != null || url.length != 0) {
-      if (confirmMessage) {
+    if (url !== null || url.length !== 0) {
+      if (icons || confirmMessage) {
         this.asyncConfirm(stkMessage, confirmMessage, icons, function(res) {
           if (res) {
             openURL(url);
@@ -702,6 +711,7 @@ var icc = {
     this._screen.classList.add('icc');
     this.icc_input.classList.add('visible');
     this.icc_view.classList.add('visible');
+    this.resize();
 
     var actionHandler = function() {
       clearInputTimeout();

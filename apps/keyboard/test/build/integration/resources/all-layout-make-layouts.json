@@ -22,7 +22,7 @@
       "text",
       "url"
     ],
-    "dictFileSize": 1697,
+    "dictFileSize": 1711,
     "preloaded": true
   },
   {
@@ -88,7 +88,7 @@
       "text",
       "url"
     ],
-    "dictFileSize": 3488,
+    "dictFileSize": 3502,
     "preloaded": true
   },
   {
@@ -151,6 +151,21 @@
     "dictFilePath": "dictionaries/cs.dict"
   },
   {
+    "id": "cy",
+    "name": "Cymraeg",
+    "imEngineId": "latin",
+    "types": [
+      "email",
+      "password",
+      "text",
+      "url"
+    ],
+    "dictFileSize": 933192,
+    "preloaded": true,
+    "dictFilename": "cy.dict",
+    "dictFilePath": "dictionaries/cy.dict"
+  },
+  {
     "id": "da",
     "name": "Dansk",
     "imEngineId": "latin",
@@ -188,7 +203,7 @@
       "text",
       "url"
     ],
-    "dictFileSize": 3698,
+    "dictFileSize": 3712,
     "preloaded": true
   },
   {
@@ -306,7 +321,7 @@
       "text",
       "url"
     ],
-    "dictFileSize": 1446,
+    "dictFileSize": 1460,
     "preloaded": true
   },
   {
@@ -364,8 +379,10 @@
       "text",
       "url"
     ],
-    "dictFileSize": 1307,
-    "preloaded": true
+    "dictFileSize": 336161,
+    "preloaded": true,
+    "dictFilename": "ff.dict",
+    "dictFilePath": "dictionaries/ff.dict"
   },
   {
     "id": "fr",
@@ -426,6 +443,21 @@
     "preloaded": true,
     "dictFilename": "fr.dict",
     "dictFilePath": "dictionaries/fr.dict"
+  },
+  {
+    "id": "fy",
+    "name": "Frysk",
+    "imEngineId": "latin",
+    "types": [
+      "email",
+      "password",
+      "text",
+      "url"
+    ],
+    "dictFileSize": 2813460,
+    "preloaded": true,
+    "dictFilename": "fy.dict",
+    "dictFilePath": "dictionaries/fy.dict"
   },
   {
     "id": "ga",
@@ -495,7 +527,7 @@
       "text",
       "url"
     ],
-    "dictFileSize": 970,
+    "dictFileSize": 984,
     "preloaded": true
   },
   {
@@ -541,6 +573,19 @@
     "dictFilePath": "dictionaries/hu.dict"
   },
   {
+    "id": "ig",
+    "name": "Asụsụ Igbo",
+    "imEngineId": "latin",
+    "types": [
+      "email",
+    "password",
+    "text",
+    "url"
+      ],
+    "dictFileSize": 1147,
+    "preloaded": true
+  },
+  {
     "id": "it",
     "name": "Italiano",
     "imEngineId": "latin",
@@ -564,7 +609,7 @@
       "text",
       "url"
     ],
-    "dictFileSize": 24924864,
+    "dictFileSize": 24924648,
     "preloaded": true
   },
   {
@@ -576,7 +621,7 @@
       "text",
       "url"
     ],
-    "dictFileSize": 9642,
+    "dictFileSize": 9562,
     "preloaded": true
   },
   {
@@ -619,19 +664,19 @@
       "text",
       "url"
     ],
-    "dictFileSize": 1139,
+    "dictFileSize": 1153,
     "preloaded": true
   },
   {
     "id": "my",
     "name": "မြန်မာ",
-    "imEngineId": "latin",
+    "imEngineId": "myanmar",
     "types": [
       "email",
       "text",
       "url"
     ],
-    "dictFileSize": 4876,
+    "dictFileSize": 8301,
     "preloaded": true
   },
   {
@@ -846,7 +891,7 @@
       "text",
       "url"
     ],
-    "dictFileSize": 2426,
+    "dictFileSize": 2440,
     "preloaded": true
   },
   {
@@ -880,6 +925,18 @@
     "dictFilePath": "dictionaries/tr.dict"
   },
   {
+    "id": "uk",
+    "name": "Українська",
+    "imEngineId": "latin",
+    "types": [
+      "email",
+      "text",
+      "url"
+    ],
+    "dictFileSize": 2518,
+    "preloaded": true
+  },
+  {
     "id": "vi-Qwerty",
     "name": "Tiếng Việt (QWERTY)",
     "imEngineId": "vietnamese",
@@ -888,7 +945,7 @@
       "text",
       "url"
     ],
-    "dictFileSize": 13595,
+    "dictFileSize": 13908,
     "preloaded": true
   },
   {
@@ -912,7 +969,7 @@
       "text",
       "url"
     ],
-    "dictFileSize": 13595,
+    "dictFileSize": 13908,
     "preloaded": true
   },
   {
@@ -925,7 +982,7 @@
       "text",
       "url"
     ],
-    "dictFileSize": 1314,
+    "dictFileSize": 1328,
     "preloaded": true
   },
   {
@@ -947,7 +1004,7 @@
       "text",
       "url"
     ],
-    "dictFileSize": 2139384,
+    "dictFileSize": 2139624,
     "preloaded": true
   },
   {
@@ -959,7 +1016,7 @@
       "text",
       "url"
     ],
-    "dictFileSize": 4591555,
+    "dictFileSize": 4591642,
     "preloaded": true
   }
 ]

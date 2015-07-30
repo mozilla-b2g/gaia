@@ -2,10 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-try:
-    from marionette import Wait
-except ImportError:
-    from marionette_driver import Wait
+from marionette_driver import Wait
 
 from gaiatest import GaiaTestCase
 from gaiatest.apps.homescreen.app import Homescreen
@@ -32,7 +29,7 @@ class TestHomescreenLayout(GaiaTestCase):
         settings = Settings(self.marionette)
         settings.launch()
 
-        homescreen_settings = settings.open_homescreen_settings()
+        homescreen_settings = settings.open_homescreen()
         homescreen_settings.select_icon_layout('Four Columns')
         self.device.touch_home_button()
 

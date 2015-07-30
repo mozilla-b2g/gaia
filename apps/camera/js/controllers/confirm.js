@@ -42,26 +42,24 @@ function ConfirmController(app) {
 }
 
 ConfirmController.prototype.renderView = function() {
-  if (!this.activity.pick) {
-    return;
+  if (!this.activity.pick) { return; }
+
+  if (!this.view) {
+    this.view = new this.ConfirmView();
+    this.view.maxPreviewSize = window.CONFIG_MAX_IMAGE_PIXEL_SIZE;
+    this.view.render().appendTo(this.container);
+
+    // We want to listen to select events exactly once
+    // The media is selected, the confirm view dismissed
+    // and the activity returns
+    this.view.once('click:select', this.onSelectMedia);
+    this.view.on('click:retake', this.onRetakeMedia);
+    this.view.on('loadingvideo', this.app.firer('busy'));
+    this.view.on('playingvideo', this.app.firer('ready'));
   }
 
-  if (this.confirmView) {
-    this.confirmView.show();
-    return;
-  }
-
-  this.confirmView = new this.ConfirmView();
-  this.confirmView.maxPreviewSize = window.CONFIG_MAX_IMAGE_PIXEL_SIZE;
-  this.confirmView.render().appendTo(this.container);
-
-  // We want to listen to select events exactly once
-  // The media is selected, the confirm view dismissed
-  // and the activity returns
-  this.confirmView.once('click:select', this.onSelectMedia);
-  this.confirmView.on('click:retake', this.onRetakeMedia);
-  this.confirmView.on('loadingvideo', this.app.firer('busy'));
-  this.confirmView.on('playingvideo', this.app.firer('ready'));
+  this.view.show();
+  this.app.set('confirmViewVisible', true);
 };
 
 /**
@@ -98,9 +96,9 @@ ConfirmController.prototype.onNewMedia = function(newMedia) {
 
   this.newMedia = newMedia;
   if (newMedia.isVideo) { // Is video
-    this.confirmView.showVideo(newMedia);
+    this.view.showVideo(newMedia);
   } else { // Is Image
-    this.prepareBlob(this.newMedia.blob, this.confirmView.showImage);
+    this.prepareBlob(this.newMedia.blob, this.view.showImage);
   }
 };
 
@@ -109,8 +107,9 @@ ConfirmController.prototype.onSelectMedia = function() {
 };
 
 ConfirmController.prototype.onRetakeMedia = function() {
-  this.confirmView.hide();
-  this.confirmView.clearMediaFrame();
+  this.view.hide();
+  this.view.clearMediaFrame();
+  this.app.set('confirmViewVisible', false);
 };
 
 });

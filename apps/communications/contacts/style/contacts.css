@@ -6,10 +6,15 @@
 }
 
 /* Fav star in header */
-#contact-name-title.favorite {
-  background: url(/contacts/style/gphx/bitmap/default/vw-header/icons/fav-star.png) no-repeat right 1rem / 3rem;
-  padding-right: 3rem;
-  margin-right: -1rem;
+.favorite-indicator {
+  display: none;
+
+  background: url(/contacts/style/gphx/bitmap/default/vw-header/icons/fav-star.png) no-repeat center / 3rem;
+  padding: 0 1rem;
+}
+
+.favorite .favorite-indicator {
+  display: unset;
 }
 
 section[role="region"] > gaia-header .icon.icon-edit-contact {
@@ -96,7 +101,7 @@ section[role="region"] > gaia-header .icon.icon-edit-contact {
 }
 
 .view-contact-profile .view-body-inner.up {
-  transition: transform 0.5s ease-out;
+  transition: transform var(--transition-duration) ease-out;
 }
 
 .view-contact-profile .view-body-inner hr {
@@ -438,12 +443,6 @@ gaia-header [data-icon] {
   display: flex;
   justify-content: space-between;
 }
-#view-settings [data-type="list"] li#settingsOrder aside {
-  top: 0.5rem;
-  margin: 0;
-  pointer-events: none;
-  align-self: center;
-}
 
 /* Cutom FB item */
 #view-settings [data-type="list"] .fb-item {
@@ -544,6 +543,7 @@ html[dir=ltr] #view-settings [data-type="list"] .fb-item aside label {
   display: block;
   line-height: 2rem;
   margin-top: -1.5rem;
+  margin-right: 1.5rem;
   color: #5B5B5B;
   font-size: 1.5rem;
   height: auto;
@@ -1019,16 +1019,12 @@ li button[data-field-type]:active {
  * of the shared style to make the ellipsis display always at the end
  * (ie right for LTR string and left for RTL string)
  * while keeping alignment of the current system-wide language */
-[data-type="list"] li.contact-item bdi {
+[data-type="list"] li.contact-item bdi,
+li button.icon-email bdi {
   overflow: hidden;
   text-overflow: ellipsis;
   display: inline-block;
   max-width: 100%;
-}
-
-/* emails are always LTR */
-li button.icon-email > b {
-  direction: ltr;
 }
 
 /* RTL View */
@@ -1092,6 +1088,13 @@ html[dir="rtl"] nav[data-type="scrollbar"] p {
   right: 10rem;
 }
 
+/* TODO: Remove this workaround once bug 883884 fixed */
+.ellipsis-dir-fix {
+  display: block;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
 /* Overwrite input-areas bb */
 #custom-tag-reset {
   right: 1rem;
@@ -1100,4 +1103,19 @@ html[dir="rtl"] nav[data-type="scrollbar"] p {
 html[dir="rtl"] #custom-tag-reset {
   left: 1rem;
   right: unset;
+}
+
+#multiple-select-view aside {
+  border-bottom: 0.1rem solid #FFFFFF;
+  margin-right: 0;
+  padding-right: 1.5rem;
+}
+
+/* Force align with system because dir="auto" will ignore text-align: start*/
+.force-align[dir="auto"] {
+  text-align: left;
+}
+
+html[dir="rtl"] .force-align[dir="auto"] {
+  text-align: right;
 }

@@ -10,14 +10,17 @@ marionette('Vertical Home - App manifest', function() {
   var clientOptions = require(__dirname + '/client_options.js');
   clientOptions.apps = {};
   clientOptions.apps[manifestName] = __dirname + '/fixtures/short_name_app';
-  var client = marionette.client(clientOptions);
+  var client = marionette.client({
+    profile: clientOptions,
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
+  });
 
   var home, system;
 
   setup(function() {
     home = client.loader.getAppClass('verticalhome');
     system = client.loader.getAppClass('system');
-    system.waitForStartup();
+    system.waitForFullyLoaded();
 
     client.apps.launch(home.URL);
     home.waitForLaunch();

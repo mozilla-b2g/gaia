@@ -2,10 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-try:
-    from marionette.by import By
-except:
-    from marionette_driver.by import By
+from marionette_driver import By, Wait
 
 from gaiatest.apps.base import Base
 
@@ -17,8 +14,9 @@ class Wallpaper(Base):
     _stock_wallpapers_locator = (By.CLASS_NAME, 'wallpaper')
 
     def tap_wallpaper_by_index(self, index):
-        self.wait_for_condition(lambda m: len(m.find_elements(*self._stock_wallpapers_locator)) >= index,
-            message = '%s Wallpapers not present after timeout' % index)
+        Wait(self.marionette).until(
+            lambda m: len(m.find_elements(*self._stock_wallpapers_locator)) >= (index + 1),
+            message='%d wallpaper(s) not present after timeout' % (index + 1))
         self.marionette.find_elements(*self._stock_wallpapers_locator)[index].tap()
-        self.wait_for_condition(lambda m: self.apps.displayed_app.name != self.name)
+        Wait(self.marionette).until(lambda m: self.apps.displayed_app.name != self.name)
         self.apps.switch_to_displayed_app()

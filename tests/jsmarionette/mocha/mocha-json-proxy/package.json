@@ -1,0 +1,15 @@
+{
+  "name": "mocha-json-proxy",
+  "version": "0.0.7",
+  "author": "James Lal [:lightsofapollo]",
+  "description": "Mocha JSON proxy reporter",
+  "main": "consumer",
+
+  "dependencies": {
+    "debug": "*"
+  },
+
+  "peerDependencies": {
+    "mocha": ">=1.0"
+  }
+}

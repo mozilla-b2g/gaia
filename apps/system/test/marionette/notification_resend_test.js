@@ -8,12 +8,14 @@ var CALENDAR_APP = 'app://calendar.gaiamobile.org';
 var CALENDAR_APP_MANIFEST = CALENDAR_APP + '/manifest.webapp';
 
 marionette('mozChromeNotifications:', function() {
-
   var client = marionette.client({
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
-    }
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
+  });
+
+  var system;
+  setup(function() {
+    system = client.loader.getAppClass('system');
+    system.waitForFullyLoaded();
   });
 
   test('Checking mozResendAllNotifications API', function(done) {

@@ -4,18 +4,13 @@
 var Calendar = require('./lib/calendar'),
     Radicale = require('./lib/radicale'),
     assert = require('chai').assert,
-    debug = require('debug')('marionette:server_test');
+    debug = require('common/debug')('marionette:server_test');
 
 var calendarName = 'firefox-os';
 
 marionette('interop basic', function() {
   var app, server;
-  var client = marionette.client({
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
-    }
-  });
+  var client = marionette.client();
 
   var vanillaEvent = Object.freeze({
     title: 'Vanilla event',

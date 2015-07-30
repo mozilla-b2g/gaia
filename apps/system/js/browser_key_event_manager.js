@@ -20,7 +20,8 @@
     ]),
     APP_CANCELLED_KEYS: Object.freeze([
       'volumeup',
-      'volumedown'
+      'volumedown',
+      'camera'
     ]),
     // Home key has different .key values on different devices.
     HOME_KEY_ALIAS: Object.freeze([
@@ -34,7 +35,8 @@
       'home': 'home-button',
       'mozhomescreen': 'home-button',
       'volumeup': 'volume-up-button',
-      'volumedown': 'volume-down-button'
+      'volumedown': 'volume-down-button',
+      'camera': 'camera-button'
     }),
     _getLowerCaseKeyName: function bkem_getLowerCaseKeyName(event) {
       return event.key && event.key.toLowerCase();

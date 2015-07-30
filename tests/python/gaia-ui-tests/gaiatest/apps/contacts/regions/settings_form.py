@@ -2,14 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-try:
-    from marionette import (expected,
-                            Wait)
-    from marionette.by import By
-except:
-    from marionette_driver import (expected,
-                                   Wait)
-    from marionette_driver.by import By
+from marionette_driver import expected, By, Wait
 from gaiatest.apps.base import Base
 
 
@@ -18,8 +11,7 @@ class SettingsForm(Base):
     _settings_view_locator = (By.ID, 'view-settings')
     _loading_overlay_locator = (By.ID, 'loading-overlay')
     _settings_close_button_locator = (By.ID, 'settings-close')
-    _order_by_last_name_locator = (By.CSS_SELECTOR, 'p[data-l10n-id="contactsOrderBy"]')
-    _order_by_last_name_switch_locator = (By.CSS_SELECTOR, 'input[name="order.lastname"]')
+    _order_by_last_name_switch_locator = (By.CSS_SELECTOR, 'gaia-switch[name="order.lastname"]')
     _import_from_sim_button_locator = (By.CSS_SELECTOR, "li[id*='import-sim-option'] button")
     _import_from_sdcard_locator = (By.CSS_SELECTOR, 'button.icon-sd')
     _import_from_gmail_button_locator = (By.CSS_SELECTOR, 'button.icon-gmail')
@@ -46,9 +38,16 @@ class SettingsForm(Base):
 
     def tap_order_by_last_name(self):
         last_name = Wait(self.marionette).until(
-            expected.element_present(*self._order_by_last_name_locator))
+            expected.element_present(*self._order_by_last_name_switch_locator))
         Wait(self.marionette).until(expected.element_displayed(last_name))
-        last_name.click()
+        # The following should work, but doesn't, see bug 1113742. We use execute_script instead, for now
+        # is_checked = last_name.is_selected()
+        initial_state = self.marionette.execute_script("return arguments[0].wrappedJSObject.checked", [last_name])
+        last_name.tap()
+        # The following should work, but doesn't, see bug 1113742. We use execute_script instead, for now
+        # Wait(self.marionette).until(lambda m: last_name.is_selected() is not initial_state)
+        Wait(self.marionette).until(lambda m:
+            m.execute_script("return arguments[0].wrappedJSObject.checked", [last_name]) is not initial_state)
 
     @property
     def order_by_last_name(self):

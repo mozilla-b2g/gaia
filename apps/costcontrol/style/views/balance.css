@@ -15,7 +15,7 @@
 
 #balance-tab .overview .info {
   transform: translateX(-4.0rem);
-  transition: transform 0.5s;
+  transition: transform var(--transition-duration);
 }
 
 #balance-tab .overview .end {

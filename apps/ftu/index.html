@@ -6,7 +6,6 @@
   <meta name="theme-color" content="#eeeeee">
 
   <!-- Common style -->
-  <link rel="stylesheet" href="/shared/style/switches.css">
   <link rel="stylesheet" href="/shared/style/input_areas.css">
   <link rel="stylesheet" href="/shared/style/buttons.css">
   <link rel="stylesheet" href="/shared/style/confirm.css">
@@ -19,7 +18,7 @@
   <link rel="stylesheet" href="style/style.css">
   <link rel="stylesheet" href="style/status.css">
   <link rel="stylesheet" href="style/overlay.css">
-  <link rel="stylesheet" href="style/fb_extensions.css">
+  <link rel="stylesheet" href="style/extensions.css">
   <link rel="stylesheet" href="style/tutorial.css">
   <link rel="stylesheet" href="style/responsive.css">
   <link rel="stylesheet" href="/shared/pages/import/style/curtain_frame.css">
@@ -31,9 +30,9 @@
   <link rel="resource" type="image/png" href="/shared/resources/branding/powered.png"/>
   <link rel="resource" type="image/png" href="/shared/resources/branding/privacy_sprite.png"/>
   <meta name="defaultLanguage" content="en-US">
-  <meta name="availableLanguages" content="ar, en-US, fr, zh-TW">
+  <meta name="availableLanguages" content="en-US">
   <link rel="localization" href="/shared/locales/branding/branding.{locale}.properties">
-  <!-- This is needed for not duplicating SIM Import and FB Import locales -->
+  <!-- This is needed for not duplicating SIM Import locales -->
   <link rel="localization" href="/shared/locales/import_contacts/import_contacts.{locale}.properties">
   <link rel="localization" href="locales/ftu.{locale}.properties">
   <link rel="localization" href="/shared/locales/date/date.{locale}.properties">
@@ -50,6 +49,7 @@
   <script defer src="/shared/js/input_mgmt/input_app_list.js"></script>
   <script defer src="/shared/js/keyboard_helper.js"></script>
   <script defer src="/shared/js/language_list.js"></script>
+  <script defer src="/shared/js/settings_listener.js"></script>
   <script defer src="/shared/js/version_helper.js"></script>
 
   <!-- Import contacts help files -->
@@ -69,12 +69,6 @@
   <script defer src="/shared/js/font_size_utils.js"></script>
   <script defer src="/shared/js/basket_client.js"></script>
   <script defer src="js/services_launcher.js"></script>
-  <script defer src="/shared/js/fb/fb_request.js"></script>
-  <script defer src="/shared/js/contacts/import/facebook/fb_data.js"></script>
-  <script defer src="/shared/js/contacts/import/facebook/fb_utils.js"></script>
-  <script defer src="/shared/js/contacts/import/facebook/fb_query.js"></script>
-  <script defer src="/shared/js/fb/fb_reader_utils.js"></script>
-  <script defer src="/shared/js/contacts/import/facebook/fb_contact_utils.js"></script>
   <script defer src="/shared/js/contacts/import/import_status_data.js"></script>
   <script defer src="/shared/js/async_storage.js"></script>
   <script defer src="/shared/js/mobile_operator.js"></script>
@@ -88,7 +82,6 @@
   <script defer src="js/utils.js"></script>
   <script defer src="js/finish_screen.js"></script>
   <script defer src="js/tutorial.js"></script>
-  <script defer src="js/external_links.js"></script>
   <script defer src="js/navigation.js"></script>
   <script defer src="js/data_mobile.js"></script>
   <script defer src="js/time.js"></script>
@@ -102,6 +95,9 @@
 
   <!-- Components -->
   <script defer src="/shared/js/component_utils.js"></script>
+  <script defer src="/shared/elements/gaia_switch/script.js"></script>
+  <script defer src="/shared/elements/gaia_checkbox/script.js"></script>
+  <script defer src="/shared/elements/gaia_radio/script.js"></script>
   <script defer src="/shared/elements/gaia_buttons/script.js"></script>
   <script defer src="/shared/elements/gaia_subheader/script.js"></script>
   <script defer src="/shared/elements/config.js"></script>
@@ -247,7 +243,7 @@
     </gaia-header>
     <article role="main">
       <section role="region" id="languages">
-        <article data-type="list" class="pack-value-selector">
+        <article data-type="list">
           <ul>
             <!-- filled by js/language.js -->
           </ul>
@@ -257,10 +253,9 @@
         <article data-type="list">
           <ul>
             <li>
-              <label class="pack-switch" id="data-connection-switch">
-                <input class="uninit" id="data-connection-checkbox" type="checkbox">
-                <span data-l10n-id="dataConnection"></span>
-              </label>
+              <gaia-switch id="data-connection-switch">
+                <label data-l10n-id="dataConnection"></label>
+              </gaia-switch>
             </li>
           </ul>
         </article>
@@ -294,10 +289,9 @@
               <li>
                 <label for="wifi_password" data-l10n-id="password">Password</label>
                 <input type="password" id="wifi_password" data-l10n-id="passwordInput" placeholder="Password" value="" maxlength="63" x-inputmode="verbatim"></input>
-                <label class="pack-checkbox" id="label_show_password">
-                  <input type="checkbox" data-ignore name="show_password" />
-                  <span id="wifi_show_password" data-l10n-id="showPassword">Show Password</span>
-                </label>
+                <gaia-checkbox class="inline" id="label_show_password" name="show_password">
+                  <label id="wifi_show_password" data-l10n-id="showPassword"></label>
+                </gaia-checkbox>
               </li>
             </ul>
           </form>
@@ -337,12 +331,9 @@
                   Password
                 </label>
                 <input type="password" name="wifi_hidden_password" id="hidden-wifi-password" value="" x-inputmode="verbatim" maxlength="63" />
-                <label class="pack-checkbox" id="label_hidden_show_password" for="hidden-wifi-show-password">
-                  <input type="checkbox" id="hidden-wifi-show-password">
-                  <span data-l10n-id="showPassword">
-                    Show Password
-                  </span>
-                </label>
+                <gaia-checkbox class="inline" id="hidden-wifi-show-password">
+                  <label data-l10n-id="showPassword"></label>
+                </gaia-checkbox>
               </li>
             </ul>
           </form>
@@ -399,10 +390,9 @@
         <article data-type="list">
           <ul>
             <li>
-              <label class="pack-switch" id="geolocation-switch">
-                <input class="uninit" id="geolocation-checkbox" name="geolocation.enabled" type="checkbox" checked>
-                <span data-l10n-id="geolocationCheckbox">Geolocation</span>
-              </label>
+              <gaia-switch id="geolocation-switch" name="geolocation.enabled" checked>
+                <label data-l10n-id="geolocationCheckbox"></label>
+              </gaia-switch>
             </li>
           </ul>
         </article>
@@ -439,28 +429,6 @@
               <button id="live-import-button" class="icon icon-wlive" data-l10n-id="importOutlook">
                 Outlook
               </button>
-            </li>
-          </ul>
-        </article>
-        <gaia-subheader skin="organic">
-          <span data-l10n-id="otherAccount">Other accounts</span>
-        </gaia-subheader>
-        <article data-type="list">
-          <ul id="fb_container">
-            <li id="fb_import" class="importOption">
-              <button id="fb-import-button" class="icon icon-fb" data-l10n-id="importFb2">
-                  Facebook
-              </button>
-              <p id="no-network" class="hidden" data-l10n-id="noConnection11">
-                To import Facebook friends connect to Wi-Fi or data network
-              </p>
-            </li>
-            <li id="fb_after_import1" class="hidden">
-              <p data-l10n-id="importFb2">Facebook</p>
-              <p id="fb_import_feedback"></p>
-            </li>
-            <li class="importOption hidden" id="fb_after_import2">
-              <p data-l10n-id="afterFbImport"></p>
             </li>
           </ul>
         </article>
@@ -518,7 +486,7 @@
           <ul>
             <li>
               <a class="privacy-menuitem privacy-browserOS external"
-                href="https://www.mozilla.org/privacy/firefox-os/"
+                href="https://www.mozilla.org/privacy/firefox-os"
                 data-l10n-id="privacy-b2g"
                 title="B2G OS">Browser OS</a>
             </li>
@@ -554,11 +522,13 @@
           faster and more responsive.
         </p>
         <!-- Links destinations are discussed in https://bugzilla.mozilla.org/show_bug.cgi?id=812956 -->
-        <p id='external-link-telemetry'>
-          Learn more at www.mozilla.org/telemetry
+        <p data-l10n-id='learn-more-telemetry2'
+           data-l10n-args='{"url": "www.mozilla.org/telemetry"}'>
+          <a href="http://www.mozilla.org/telemetry" class="external"></a>
         </p>
-        <p id='external-link-information'>Learn how Mozilla handles your
-          information at www.mozilla.org/privacy
+        <p data-l10n-id='learn-more-information2'
+           data-l10n-args='{"url": "www.mozilla.org/privacy"}'>
+          <a href="http://www.mozilla.org/privacy" class="external"></a>
         </p>
       </section>
       <section role="region" id="SIM_mandatory">
@@ -584,33 +554,24 @@
             Email successfully added!
           </p>
         </section>
-        <p id="external-link-privacy">
-          Learn how Mozilla handles your information in our privacy policy.
+        <p data-l10n-id="learn-more-privacy2">
+          <a href="http://www.mozilla.org/privacy/firefox-os" class="external"></a>
         </p>
       </section>
       <section role="region" id="welcome_browser">
         <section id="browser_logo_horizontal">
           <img src="/shared/resources/branding/logosmall.png" role="presentation">
         </section>
-        <p id="browser_os_welcome">
-          Welcome to Browser OS, the free and
-          open source operating system from
-          Mozilla. Our mission is to promote
-          openness, innovation and opportunity
-          by keeping the power of the Web in
-          your hands.
+        <p data-l10n-id="htmlWelcome2">
+          <a href="#about-your-rights"></a>
         </p>
-        <p id="browser_os_improve">
-          You can help us improve our products and services by automatically
-          sending analytics data. See our Privacy Notice to learn how we
-          handle data from your device.
+        <p data-l10n-id="helpImprove2">
+          <a href="https://www.mozilla.org/privacy/firefox-os" class="external"></a>
         </p>
         <section id="form_share_statistics">
-          <label class="pack-checkbox">
-            <input type="checkbox" id="share-performance" name="debug.performance_data.shared"/>
-            <span></span>
-            <p data-l10n-id="sharePerformanceAndUsageData2">Yes! Send data.</p>
-          </label>
+          <gaia-checkbox class="inline" id="share-performance" name="debug.performance_data.shared">
+            <label data-l10n-id="sharePerformanceAndUsageData2"></label>
+          </gaia-checkbox>
         </section>
       </section>
     </article>
@@ -683,7 +644,7 @@
       </section>
       <section id="tutorial-step-media">
         <img id="tutorial-step-image" class="step-img-base" role="presentation">
-        <video id="tutorial-step-video" class="step-video-base" role="presentation" preload="auto" hidden loop></video>
+        <video id="tutorial-step-video" class="step-video-base" role="presentation" autoplay hidden loop></video>
       </section>
     </article>
     <gaia-buttons id="tutorial-nav-bar" class="nav" skin="dark">
@@ -781,8 +742,8 @@
     <p></p>
   </section>
 
-  <iframe id="fb-curtain" src="/shared/pages/import/curtain.html"></iframe>
-  <iframe id="fb-oauth" hidden src="/shared/pages/import/oauth.html"></iframe>
-  <iframe id="fb-extensions"></iframe>
+  <iframe id="iframe_curtain" src="/shared/pages/import/curtain.html"></iframe>
+  <iframe id="iframe_oauth" hidden src="/shared/pages/import/oauth.html"></iframe>
+  <iframe id="iframe_extensions"></iframe>
 </body>
 </html>

@@ -1,4 +1,5 @@
 'use strict';
+/* global BinaryStringView */
 
 requireApp('fl/js/binary_string_view.js');
 

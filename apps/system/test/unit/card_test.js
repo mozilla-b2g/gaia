@@ -1,7 +1,7 @@
 /* global AppWindow, Card, MocksHelper, CardsHelper */
 'use strict';
 
-require('/shared/js/tagged.js');
+require('/shared/js/sanitizer.js');
 requireApp('system/test/unit/mock_app_window.js');
 
 var mocksForCard = new MocksHelper([
@@ -10,33 +10,41 @@ var mocksForCard = new MocksHelper([
 
 suite('system/Card', function() {
 
+  function createTouchEvent(type, target, x, y) {
+    var touch = document.createTouch(window, target, 1, x, y, x, y);
+    var touchList = document.createTouchList(touch);
+
+    var evt = document.createEvent('TouchEvent');
+    evt.initTouchEvent(type, true, true, window,
+                       0, false, false, false, false,
+                       touchList, touchList, touchList);
+    return evt;
+  }
+
   function makeApp(config) {
-    return new AppWindow({
+    var appWindow = new AppWindow({
       launchTime: 4,
       name: config.name || 'dummyapp',
-      shortName: config.shortName,
-      frame: document.createElement('div'),
-      iframe: document.createElement('iframe'),
       manifest: {
         orientation: config.orientation || 'portrait-primary'
       },
       rotatingDegree: config.rotatingDegree || 0,
-      requestScreenshotURL: function() {
-        return null;
-      },
       getScreenshot: function(callback) {
         callback();
       },
-      origin: config.origin || 'http://' +
+      origin: config.origin || 'app://' +
               (config.name || 'dummyapp') + '.gaiamobile.org',
       url: config.url,
       blur: function() {}
     });
+    appWindow.browser.element.src = appWindow.origin + '/index.html';
+    return appWindow;
   }
 
   mocksForCard.attachTestHelpers();
   var mockManager = {
-    useAppScreenshotPreviews: true
+    useAppScreenshotPreviews: true,
+    SWIPE_UP_THRESHOLD: 480/4
   };
   var cardsList;
 
@@ -96,12 +104,15 @@ suite('system/Card', function() {
                 '.screenshotView');
       assert.ok(header, 'h1');
       assert.ok(header.id, 'h1.id');
+      assert.isFalse(card.element.classList.contains('show-subtitle'),
+                     'no show-subtitle by default');
     });
 
     test('has expected aria values', function(){
       var card = this.card;
 
       assert.equal(card.screenshotView.getAttribute('role'), 'link');
+      assert.equal(card.element.getAttribute('role'), 'presentation');
       assert.strictEqual(card.iconButton.getAttribute('aria-hidden'), 'true');
     });
 
@@ -157,16 +168,6 @@ suite('system/Card', function() {
       assert.equal(appCard.titleNode.textContent, 'otherapp');
     });
 
-    test('app short name', function() {
-      var appCard = new Card({
-        app: makeApp({ name: 'shortname', shortName: 'short' }),
-        manager: mockManager
-      });
-      appCard.app.title = 'Some long title';
-      appCard.render();
-      assert.equal(appCard.titleNode.textContent, 'short');
-    });
-
     test('app security for browser windows', function() {
       var browserCard = new Card({
         app: makeApp({ name: 'browserwindow' }),
@@ -197,6 +198,8 @@ suite('system/Card', function() {
         return true;
       });
       browserCard.render();
+      assert.ok(browserCard.element.classList.contains('show-subtitle'),
+                'show-subtitle class added');
       assert.equal(browserCard.subTitle, 'someorigin.org/foo');
     });
     test('getDisplayURLString', function() {
@@ -216,7 +219,6 @@ suite('system/Card', function() {
     test('subTitle when private browser splash', function() {
       var app = makeApp({
         name: 'shortname',
-        shortName: 'short',
         origin: 'app://system.gaiamobile.org',
         url: 'app://system.gaiamobile.org/private_browser.html'
       });
@@ -227,6 +229,7 @@ suite('system/Card', function() {
       });
       appCard.render();
       assert.equal(appCard.subTitle, '');
+      assert.isFalse(appCard.element.classList.contains('show-subtitle'));
     });
   });
 
@@ -281,56 +284,29 @@ suite('system/Card', function() {
     });
   });
 
-  suite('orientation >', function() {
-    var cards = {};
-    var orientationDegrees = {
-      'landscape-primary' : 90,
-      'portrait-primary' : 0,
-      'portrait-secondary' : 270,
-      'landscape-secondary' : 180
-    };
-    suiteSetup(function() {
-      for (var orientation in orientationDegrees) {
-        cards[orientation] = new Card({
-          manager: mockManager,
-          app: makeApp({
-            'orientation': orientation,
-            'rotatingDegree': orientationDegrees[orientation]
-          })
-        });
-      }
+  suite('killApp >', function() {
+    setup(function() {
+      this.card = new Card({
+        app: makeApp({ name: 'dummyapp' }),
+        manager: mockManager
+      });
+      this.card.render();
     });
-
-    teardown(function() {
-      this.cards = null;
+    test('kills app', function() {
+      var card = this.card;
+      this.sinon.stub(card.app, 'kill');
+      card.killApp();
+      assert.ok(card.app.kill.calledOnce, 'kill was called');
     });
-
-    function testForCardOrientation(orientation) {
-      return function() {
-        var card = cards[orientation];
-        card.render();
-        var orientationNode = card.screenshotView;
-
-        card.element.dispatchEvent(new CustomEvent('onviewport'));
-        assert.isTrue(
-          orientationNode.classList.contains(
-            'rotate-'+orientationDegrees[orientation]
-          ),'corrent orientation in classList');
-      };
-    }
-
-    test('cardsview defines a landscape-primary app',
-         testForCardOrientation('landscape-primary')
-    );
-    test('cardsview defines a landscape-secondary app',
-         testForCardOrientation('landscape-secondary')
-    );
-    test('cardsview defines a portrait app in portrait-primary',
-         testForCardOrientation('portrait-primary')
-    );
-    test('cardsview defines a portrait-secondary app',
-         testForCardOrientation('portrait-secondary')
-    );
+    test('stops event listeners', function() {
+      var card = this.card;
+      this.sinon.stub(card, 'handleEvent');
+      card.killApp();
+      var touchStartEvt = createTouchEvent('touchstart',
+                                           card.element, 100, 100);
+      card.element.dispatchEvent(touchStartEvt);
+      assert.equal(card.handleEvent.callCount, 0, 'handleEvent not called');
+    });
   });
 
   suite('previews > ', function() {
@@ -379,50 +355,52 @@ suite('system/Card', function() {
     });
   });
 
-  suite('move > ', function() {
-    var realIW;
-    suiteSetup(function() {
-      realIW = window.innerWidth;
-      Object.defineProperty(window, 'innerWidth', {
-        configurable: true,
-        get: function() { return 320; }
-      });
-    });
-
-    suiteTeardown(function() {
-      Object.defineProperty(window, 'innerWidth', {
-        configurable: true,
-        get: function() { return realIW; }
-      });
-    });
-
+  suite('events > ', function() {
     setup(function(){
       this.card = new Card({
         app: makeApp({ name: 'dummyapp' }),
         manager: mockManager
       });
       this.card.render();
-      this.card.position = 0;
-      this.card.manager.position = 0;
+    });
+    test('touch', function() {
+      var card = this.card,
+          element = this.card.element,
+          yOffset;
+      this.sinon.spy(card, 'handleEvent');
+      this.sinon.spy(card, 'onCrossSlide');
+      var touchStartEvt = createTouchEvent('touchstart',
+                                           element, 100, 100);
+      element.dispatchEvent(touchStartEvt);
+      assert.ok(card.handleEvent.calledOnce, 'touchstart handled');
+      assert.ok(Array.isArray(card.startTouchPosition));
+      card.handleEvent.reset();
+
+      var touchMoveEvt = createTouchEvent('touchmove',
+                                           element, 90, 10);
+      card.element.dispatchEvent(touchMoveEvt);
+      assert.ok(card.handleEvent.calledOnce, 'touchmove handled');
+      assert.ok(card.deltaX, 'deltaX');
+      assert.ok(card.deltaY, 'deltaY');
+      assert.ok(card.onCrossSlide.calledOnce,
+                'vertical touchmove called onCrossSlide');
+      yOffset = card.element.style.transform
+                    .replace(/translateY\(([^\)]+)\)/, '$1');
+      assert.ok(yOffset && parseInt(yOffset) < 0,
+                'transform: translateY is negative');
+      card.handleEvent.reset();
+      assert.equal(card.element.style.transition, 'transform 0s linear 0s');
+
+
+      var touchEndEvt = createTouchEvent('touchend',
+                                           element, 10, 10);
+      card.element.dispatchEvent(touchEndEvt);
+      assert.ok(card.handleEvent.calledOnce, 'touchend handled');
+      yOffset = card.element.style.transform
+                    .replace(/translateY\(([^\)]+)\)/, '$1');
+      assert.ok(!yOffset || yOffset === '0px');
+      assert.ok(!card.element.style.transition, 'transition is removed');
     });
 
-    test('should apply a transform', function() {
-      this.card.move(100, 0);
-      var style = this.card.element.style;
-      var expected = 'translateX(100px)';
-      assert.equal(style.transform, expected);
-    });
-
-    test('but trick gecko by always keeping it barely in the viewport',
-    function() {
-      this.card.move(400, 0);
-      var style = this.card.element.style;
-      var expected = 'translateX(236.799px)';
-      assert.equal(style.transform, expected);
-
-      var dataset = this.card.element.dataset;
-      assert.equal(dataset.positionX, 400);
-      assert.equal(dataset.keepLayerDelta, 163.201);
-    });
   });
 });

@@ -15,10 +15,12 @@
     this.operatorVariantHandlers = [];
   };
   OperatorVariantManager.IMPORTS = [
-    'js/operator_variant_handler.js'
+    'js/operator_variant_handler.js',
+    'shared/js/operator_variant_helper.js'
   ];
   OperatorVariantManager.EVENTS = [
-    'simslotupdated'
+    'simslot-updated',
+    'simslot-iccinfochange'
   ];
   BaseModule.create(OperatorVariantManager, {
     name: 'OperatorVariantManager',
@@ -38,29 +40,35 @@
       this._operatorVariantHandlers = [];
     },
 
-    _handle_simslotupdated: function(evt) {
+    '_handle_simslot-updated': function(evt) {
       var simslot = evt.detail;
-      if (!simslot.simCard) {
+      this._updateOperatorVariantHandler(simslot);
+    },
+
+    '_handle_simslot-iccinfochange': function(evt) {
+      var simslot = evt.detail;
+      this._updateOperatorVariantHandler(simslot);
+    },
+
+    _updateOperatorVariantHandler: function(simslot) {
+      if (!simslot.simCard ||
+          !simslot.simCard.iccInfo ||
+          !simslot.simCard.iccInfo.iccid) {
         this.operatorVariantHandlers[simslot.index] = null;
         return;
       }
-      this.operatorVariantHandlers[simslot.index] =
-        new OperatorVariantHandler(simslot.simCard.iccInfo.iccid,
-          simslot.index, this);
-      this.operatorVariantHandlers[simslot.index].start();
+
+      if (!this.operatorVariantHandlers[simslot.index]) {
+        this.operatorVariantHandlers[simslot.index] =
+          new OperatorVariantHandler(simslot.simCard.iccInfo.iccid,
+            simslot.index, this);
+        this.operatorVariantHandlers[simslot.index].start();
+      }
     },
 
     init: function() {
-      SIMSlotManager.getSlots().forEach(function(slot, index) {
-        if (!slot.simCard) {
-          this.operatorVariantHandlers[index] = null;
-          return;
-        }
-        this.operatorVariantHandlers[index] =
-          new OperatorVariantHandler(slot.simCard.iccInfo.iccid,
-                                     slot.index,
-                                     this);
-        this.operatorVariantHandlers[index].start();
+      SIMSlotManager.getSlots().forEach(function(slot) {
+        this._updateOperatorVariantHandler(slot);
       }, this);
     },
 

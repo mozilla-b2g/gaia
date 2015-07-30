@@ -1,5 +1,12 @@
 'use strict';
 
+/* global
+   asyncStorage,
+   ManifestHelper,
+   Service,
+   UpdateManager
+ */
+
 /*
  * An Updatable object represents an application *or* system update.
  * It takes care of the interaction with the UpdateManager and observes
@@ -75,8 +82,9 @@ AppUpdatable.prototype.availableCallBack = function() {
 
 AppUpdatable.prototype.successCallBack = function() {
   var app = this.app;
-  if (Service.currentApp &&
-      Service.currentApp.origin !== app.origin) {
+  if (Service.query('AppWindowManager.getActiveWindow') &&
+      Service.query('AppWindowManager.getActiveWindow').origin !==
+      app.origin) {
     this.applyUpdate();
   } else {
     var self = this;
@@ -92,7 +100,7 @@ AppUpdatable.prototype.successCallBack = function() {
 };
 
 AppUpdatable.prototype.applyUpdate = function() {
-  appWindowManager.kill(this.app.origin);
+  Service.request('kill', this.app.origin);
   this._mgmt.applyDownload(this.app);
 };
 
@@ -135,6 +143,7 @@ function SystemUpdatable() {
   this.size = 0;
   this.downloading = false;
   this.paused = false;
+  this.showingApplyPrompt = false;
 
   // XXX: this state should be kept on the platform side
   // https://bugzilla.mozilla.org/show_bug.cgi?id=827090
@@ -168,12 +177,14 @@ SystemUpdatable.prototype.uninit = function() {
 };
 
 SystemUpdatable.prototype.handleEvent = function(evt) {
-  if (evt.type !== 'mozChromeEvent')
+  if (evt.type !== 'mozChromeEvent') {
     return;
+  }
 
   var detail = evt.detail;
-  if (!detail.type)
+  if (!detail.type) {
     return;
+  }
 
   switch (detail.type) {
     case 'update-error':
@@ -199,10 +210,10 @@ SystemUpdatable.prototype.handleEvent = function(evt) {
     case 'update-downloaded':
       this.downloading = false;
       UpdateManager.downloaded(this);
-      this.showApplyPrompt();
+      this.showApplyPrompt(detail.isOSUpdate);
       break;
     case 'update-prompt-apply':
-      this.showApplyPrompt();
+      this.showApplyPrompt(detail.isOSUpdate);
       break;
   }
 };
@@ -213,10 +224,15 @@ SystemUpdatable.prototype.errorCallBack = function() {
   this.downloading = false;
 };
 
-SystemUpdatable.prototype.showApplyPrompt = function() {
+// isOsUpdate comes from Gecko's update object passed in the mozChromeEvent
+// and is expected to be true in case of an update package that gets applied
+// in recovery mode (FOTA). We want to show the battery warning only in this
+// case as described in bug 959195
+SystemUpdatable.prototype.showApplyPrompt = function(isOsUpdate) {
   var batteryLevel = window.navigator.battery.level * 100;
   this.getBatteryPercentageThreshold().then(function(threshold) {
-    if (batteryLevel < threshold) {
+    this.showingApplyPrompt = true;
+    if (isOsUpdate && batteryLevel < threshold) {
       this.showApplyPromptBatteryNok(threshold);
     } else {
       this.showApplyPromptBatteryOk();
@@ -259,17 +275,13 @@ SystemUpdatable.prototype.showApplyPromptBatteryNok = function(minBattery) {
     callback: this.declineInstallBattery.bind(this)
   };
 
-  var screen = document.getElementById('screen');
-
-  UtilityTray.hide();
-  CustomDialog.show(
+  Service.request('UtilityTray:hide');
+  Service.request('showCustomDialog',
     'systemUpdateReady',
     { id: 'systemUpdateLowBatteryThreshold', args: { threshold: minBattery } },
     ok,
-    null,
-    screen
-  )
-  .setAttribute('data-z-index-level', 'system-dialog');
+    null
+  );
 };
 
 SystemUpdatable.prototype.showApplyPromptBatteryOk = function() {
@@ -287,17 +299,13 @@ SystemUpdatable.prototype.showApplyPromptBatteryOk = function() {
     recommend: true
   };
 
-  var screen = document.getElementById('screen');
-
-  UtilityTray.hide();
-  CustomDialog.show(
+  Service.request('UtilityTray:hide');
+  Service.request('showCustomDialog',
     'systemUpdateReady',
     'wantToInstallNow',
     cancel,
-    confirm,
-    screen
-  )
-  .setAttribute('data-z-index-level', 'system-dialog');
+    confirm
+  );
 };
 
 /**
@@ -309,7 +317,8 @@ SystemUpdatable.prototype.showApplyPromptBatteryOk = function() {
  * @param {String} reason
  */
 SystemUpdatable.prototype.declineInstall = function(reason) {
-  CustomDialog.hide();
+  this.showingApplyPrompt = false;
+  Service.request('hideCustomDialog');
   this._dispatchEvent('update-prompt-apply-result', reason);
 
   UpdateManager.removeFromDownloadsQueue(this);
@@ -325,7 +334,7 @@ SystemUpdatable.prototype.declineInstallWait = function() {
 
 
 SystemUpdatable.prototype.acceptInstall = function() {
-  CustomDialog.hide();
+  Service.request('hideCustomDialog');
 
   // Display a splash-screen so the user knows an update is being applied
   var splash = document.createElement('form');

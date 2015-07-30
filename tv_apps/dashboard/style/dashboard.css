@@ -1,15 +1,306 @@
 html {
   font-size: 10px;
   /* We have Fira Sans as default font in real device. But it isn't default in
-   *    * browser. That's the main reason this line is here.*/
+   * browser. That's the main reason this line is here.*/
   font-family: "Fira Sans";
 }
 
 html, body {
+  position: relative;
   width: 100%;
   height: 100%;
   overflow: hidden;
   margin: 0;
   padding: 0;
-  background-image: url(dummy/dashboard_background.jpg);
+}
+
+body {
+  transform-style: preserve-3d;
+  perspective: 25rem;
+}
+
+a {
+  outline: 0;
+}
+
+a:hover, a:active, a:focus {
+  outline: 0;
+}
+
+#main-section {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  transition: transform 1s cubic-bezier(0.5, 0.0, 0.0, 1.0);
+}
+
+/* Activate widgets */
+
+body[data-active-direction="up"] #main-section {
+  transform: translateY(25rem);
+}
+
+body[data-active-direction="right"] #main-section {
+  transform: translateX(-32.8rem);
+}
+
+body[data-active-direction="down"] #main-section {
+  transform: translateY(-28.2rem);
+}
+
+body[data-active-direction="left"] #main-section {
+  transform: translateX(39rem);
+}
+
+body[data-active-direction="up"] #center-panel,
+body[data-active-direction="right"] #center-panel,
+body[data-active-direction="down"] #center-panel,
+body[data-active-direction="left"] #center-panel {
+  opacity: 0.5;
+}
+
+body[data-active-direction="up"] #right-panel,
+body[data-active-direction="up"] #bottom-panel,
+body[data-active-direction="up"] #left-panel,
+body[data-active-direction="right"] #top-panel,
+body[data-active-direction="right"] #bottom-panel,
+body[data-active-direction="right"] #left-panel,
+body[data-active-direction="down"] #top-panel,
+body[data-active-direction="down"] #right-panel,
+body[data-active-direction="down"] #left-panel,
+body[data-active-direction="left"] #top-panel,
+body[data-active-direction="left"] #right-panel,
+body[data-active-direction="left"] #bottom-panel {
+  opacity: 0;
+}
+
+.background {
+  position: fixed;
+  top: -14.1rem;
+  left: -16.4rem;
+  width: calc(100% + 36.2rem);
+  height: calc(100% + 26.6rem);
+  background-image: url(images/Default_wallpaper_02.jpg);
+  background-position: center;
+  background-size: cover;
+  transition: transform 1s cubic-bezier(0.5, 0.0, 0.0, 1.0);
+}
+
+body[data-active-direction="up"] .background {
+  transform: translateY(-12.5rem);
+}
+
+body[data-active-direction="right"] .background {
+  transform: translateX(16.4rem);
+}
+
+body[data-active-direction="down"] .background {
+  transform: translateY(14.1rem);
+}
+
+body[data-active-direction="left"] .background {
+  transform: translateX(-19.6rem);
+}
+
+.background-mask {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to right, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0) 26%, rgba(0,0,0,0) 74%, rgba(0,0,0,0.3) 100%),
+              linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0) 46%, rgba(0,0,0,0) 54%, rgba(0,0,0,0.3) 100%);
+}
+
+#center-panel,
+#top-panel,
+#right-panel,
+#bottom-panel,
+#left-panel {
+  position: absolute;
+  transition: opacity 1s cubic-bezier(0.5, 0.0, 0.0, 1.0);
+}
+
+/* center-panel */
+
+#center-panel {
+  width: 100%;
+  height: 100%;
+}
+
+/* digital clock */
+
+#digital-clock {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin: -20.9rem 0 0 -57.5rem;
+  width: 115rem;
+  height: 41.8rem;
+  color: white;
+  font-weight: 100;
+  text-align: center;
+}
+
+#digital-clock .time {
+  display: flex;
+  justify-content: center;
+  margin: 0;
+  font-size: 34rem;
+  line-height: 34rem;
+  white-space: nowrap;
+}
+
+#digital-clock .time span {
+  width: 17rem;
+}
+
+#digital-clock .time span.colons {
+  position: relative;
+  top: -3rem;
+  width: 6rem;
+}
+
+#digital-clock .date {
+  position: relative;
+  margin-top: 4.4rem;
+  font-size: 3.4rem;
+  line-height: 3.4rem;
+  overflow: hidden;
+}
+
+#today-is {
+  position: relative;
+  /*top: -4rem;*/
+}
+
+#greeting {
+  position: relative;
+  top: 4rem;
+}
+
+/* top-panel */
+
+#top-panel {
+  width: 100%;
+  height: 34.8rem;
+  top: -25rem;
+}
+
+/* right-panel */
+
+#right-panel {
+  width: 48rem;
+  height: 100%;
+  right: -32.8rem;
+}
+
+/* bottom-panel */
+
+#bottom-panel {
+  width: 100%;
+  height: 44.2rem;
+  bottom: -28.2rem;
+}
+
+/* left-panel */
+
+#left-panel {
+  width: 58.2rem;
+  height: 100%;
+  left: -39rem;
+}
+
+iframe {
+  border: none;
+  width: 100%;
+  height: 100%;
+}
+
+/* Intro animation */
+
+/*
+ * Animation for background.
+ */
+
+.active .background {
+  animation: shrink 1s cubic-bezier(0.0, 0.0, 0.0, 1.0) 1.2s;
+}
+
+@keyframes shrink {
+  from { transform: translateZ(10rem); }
+  to { transform: translateZ(0); }
+}
+
+/*
+ * Animations for greetings and date.
+ */
+
+/* XXX: 'both' will keep the animation at running state, not sure if it'll affect performance. ; */
+/*      Come back to this if there's a performance issue. */
+.active #today-is {
+  animation: slidedown 0.3s cubic-bezier(0.0, 0.0, 0.0, 1.0) 4.5s both;
+}
+
+.active #greeting {
+  animation: slideupdown 2.6s cubic-bezier(0.0, 0.0, 0.0, 1.0) 2.2s both;
+}
+
+@keyframes slidedown {
+  from {
+    top: -4rem;
+  }
+  to {
+    top: 0;
+  }
+}
+
+@keyframes slideupdown {
+  0% {
+    top: 4rem;
+  }
+  11.54% {
+    top: -3.4rem;
+  }
+  88.46% {
+    top: -3.4rem;
+  }
+  100% { top: 4rem;}
+}
+
+/*
+ * The following rules set transform origin to central point of the screen.
+ * For the formula calc(XXrem +/- 50vh/vw), they locate to respective screen
+ * edges by the former term XXrem, then componsate 50vh/50vw for centeral point.
+ */
+
+.active #bottom-panel {
+  /* 16rem is the height of its preview area. */
+  transform-origin: 50vw calc(16rem - 50vh);
+  animation: zoomin 1s cubic-bezier(0.0, 0.0, 0.0, 1.0) 1.2s both;
+}
+
+.active #top-panel {
+  /* 25rem is the height of its hidden area. */
+  transform-origin: 50vw calc(25rem + 50vh);
+  animation: zoomin 1s cubic-bezier(0.0, 0.0, 0.0, 1.0) 1.2s both;
+}
+
+.active #left-panel {
+  /* 39rem is the width of its hidden area. */
+  transform-origin: calc(39rem + 50vw) 50vh;
+  animation: zoomin 1s cubic-bezier(0.0, 0.0, 0.0, 1.0) 1.2s both;
+}
+
+.active #right-panel {
+  /* 15.2rem is the width of its preview area. */
+  transform-origin: calc(15.2rem - 50vw) 50vh;
+  animation: zoomin 1s cubic-bezier(0.0, 0.0, 0.0, 1.0) 1.2s both;
+}
+
+@keyframes zoomin {
+  from {
+    transform: scale(1.7);
+  }
+  to {
+    transform: scale(1);
+  }
 }

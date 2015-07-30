@@ -1,7 +1,7 @@
 /* -*- Mode: js2; js2-basic-offset: 2; indent-tabs-mode: nil -*- */
 /* vim: set ft=javascript sw=2 ts=2 autoindent cindent expandtab: */
 
-/* global AppWindowManager, KeyboardManager */
+/* global AppWindowManager, KeyboardManager, focusManager */
 'use strict';
 
 var TrustedUIManager = {
@@ -62,6 +62,7 @@ var TrustedUIManager = {
     window.addEventListener('keyboardchange', this);
     this.header.addEventListener('action', this);
     this.errorClose.addEventListener('click', this);
+    focusManager.addUI(this);
   },
 
   open: function trui_open(name, frame, chromeEventId, onCancelCB) {
@@ -111,10 +112,8 @@ var TrustedUIManager = {
       // event ultimately to be fired.
       this._hide();
 
-      // focus back to the top most window.
-      // XXX: we focus back to active app. But we should call the fallback
-      // algorithm to find the top-most overlay or app.
-      AppWindowManager.getActiveApp().getTopMostWindow().focus();
+      // focus back to the top most window/overlay.
+      focusManager.focus();
     } else {
       this._closeDialog(chromeEventId, origin);
     }
@@ -124,18 +123,23 @@ var TrustedUIManager = {
     return this.screen.classList.contains('trustedui');
   },
 
-  getOrder: function trui_getOrder() {
-    var zIndex = window.getComputedStyle(this.overlay).zIndex;
-    return zIndex === 'auto' ? 0 : zIndex;
+  isFocusable: function trui_isFocusable() {
+    return this.isVisible();
+  },
+
+  getElement: function trui_getElement() {
+    return this.popupContainer;
   },
 
   focus: function trui_focus() {
     var dialog = this._getTopDialog();
     if (dialog) {
-      window.setTimeout(function() {
-        document.activeElement.blur();
+      document.activeElement.blur();
+      if (dialog.frame.dataset.error) {
+        this.errorClose.focus();
+      } else {
         dialog.frame.focus();
-      });
+      }
     }
   },
 
@@ -268,6 +272,8 @@ var TrustedUIManager = {
     // ensure the frame is visible and the dialog title is correct.
     dialog.frame.classList.add('selected');
     this.dialogTitle.setAttribute('data-l10n-id', dialog.name);
+    // move focus to the displayed frame
+    focusManager.focus();
   },
 
   _makeDialogHidden: function trui_makeDialogHidden(dialog) {
@@ -276,8 +282,6 @@ var TrustedUIManager = {
     }
     this._restoreOrientation();
     dialog.frame.classList.remove('selected');
-    // move focus to the displayed frame
-    this.focus();
   },
 
   _restoreOrientation: function trui_restoreOrientation() {
@@ -387,6 +391,7 @@ var TrustedUIManager = {
     );
 
     this.container.classList.add('error');
+    focusManager.focus();
   },
 
   handleEvent: function trui_handleEvent(evt) {

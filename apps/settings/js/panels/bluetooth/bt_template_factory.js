@@ -18,8 +18,9 @@ define(function() {
   function btTemplate(deviceType, onItemClick, observableItem) {
     var device = observableItem;
 
-    var nameSpan = document.createElement('span');
-    _updateItemName(nameSpan, device.name);
+    // Use bdi tag for string that may have its own directionality
+    var nameElement = document.createElement('bdi');
+    _updateItemName(nameElement, device.name);
 
     var descSmall = document.createElement('small');
     if (deviceType === 'remote') {
@@ -34,7 +35,10 @@ define(function() {
     Debug('device.type = ' + device.type);
     li.classList.add('bluetooth-type-' + device.type);
 
-    anchor.appendChild(nameSpan);
+    // According to 'descriptionText' property to give description.
+    _updateItemDescriptionText(li, descSmall, device.descriptionText);
+
+    anchor.appendChild(nameElement);
     anchor.appendChild(descSmall); // should append this first
     li.appendChild(anchor);
 
@@ -48,13 +52,13 @@ define(function() {
     // Observe name property for update device name
     // while device 'onattributechanged' event is coming.
     device.observe('name', function(newName) {
-      _updateItemName(nameSpan, newName);
+      _updateItemName(nameElement, newName);
     });
 
-    // Observe paired property for update device state
-    // while device starts pairing or 'onattributechanged' event is coming.
-    device.observe('paired', function(statePaired) {
-      _updateItemState(li, descSmall, statePaired);
+    // Observe descriptionText property for update device description
+    // while the connection status changed.
+    device.observe('descriptionText', function(descriptionText) {
+      _updateItemDescriptionText(li, descSmall, descriptionText);
     });
 
     return li;
@@ -69,16 +73,52 @@ define(function() {
     }
   }
 
-  function _updateItemState(li, element, statePaired) {
-    if (statePaired === false) {
-      li.removeAttribute('aria-disabled');
-      element.setAttribute('data-l10n-id', 'device-status-tap-connect');
-    } else if (statePaired === 'pairing') {
-      li.setAttribute('aria-disabled', true);
-      element.setAttribute('data-l10n-id', 'device-status-pairing');
-    } else if (statePaired === true) {
-      li.removeAttribute('aria-disabled');
-      element.setAttribute('data-l10n-id', 'device-status-paired');
+  function _updateItemDescriptionText(li, element, descriptionText) {
+    Debug('_updateItemDescriptionText(): descriptionText = ' + descriptionText);
+    switch (descriptionText) {
+      case 'tapToConnect':
+        li.removeAttribute('aria-disabled');
+        element.setAttribute('data-l10n-id', 'device-status-tap-connect');
+        break;
+      case 'pairing':
+        li.setAttribute('aria-disabled', true);
+        element.setAttribute('data-l10n-id', 'device-status-pairing');
+        break;
+      case 'paired':
+        li.removeAttribute('aria-disabled');
+        element.setAttribute('data-l10n-id', 'device-status-paired');
+        break;
+      case 'connecting':
+        li.setAttribute('aria-disabled', true);
+        element.setAttribute('data-l10n-id', 'device-status-connecting');
+        break;
+      case 'connectedWithDeviceMedia':
+        li.removeAttribute('aria-disabled');
+        element.setAttribute('data-l10n-id',
+          'device-status-connected-device-media');
+        break;
+      case 'connectedWithDevice':
+        li.removeAttribute('aria-disabled');
+        element.setAttribute('data-l10n-id',
+          'device-status-connected-device');
+        break;
+      case 'connectedWithMedia':
+        li.removeAttribute('aria-disabled');
+        element.setAttribute('data-l10n-id',
+          'device-status-connected-media');
+        break;
+      case 'connectedWithNoProfileInfo':
+        li.removeAttribute('aria-disabled');
+        element.setAttribute('data-l10n-id',
+          'device-status-connected');
+        break;
+      case 'disconnected':
+        li.removeAttribute('aria-disabled');
+        element.removeAttribute('data-l10n-id');
+        element.textContent = '';
+        break;
+      default:
+        break;
     }
   }
 

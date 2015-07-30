@@ -1,4 +1,4 @@
-/* global Bluetooth, IACHandler, appWindowManager */
+/* global IACHandler, Service */
 
 'use strict';
 
@@ -89,9 +89,9 @@ MediaPlaybackWidget.prototype = {
     var name = event.detail.name;
     var connected = event.detail.connected;
 
-    if (name === Bluetooth.Profiles.SCO) {
+    if (name === 'sco') {
       this.container.classList.toggle('disabled', connected);
-    } else if (name === Bluetooth.Profiles.A2DP) {
+    } else if (name === 'a2dp') {
       this.handleAudioRouteChange(event, 'bluetooth');
     }
   },
@@ -128,7 +128,7 @@ MediaPlaybackWidget.prototype = {
       isWiredHeadphonesConnected = navigator.mozAudioChannelManager &&
         navigator.mozAudioChannelManager.headphones;
       isBluetoothHeadsetConnected =
-        Bluetooth.isProfileConnected(Bluetooth.Profiles.A2DP);
+        Service.query('Bluetooth.isA2DPProfileConnected');
 
       // Save the correct audio routing for next unplugged/disconnected event
       if (isWiredHeadphonesConnected) {
@@ -156,18 +156,27 @@ MediaPlaybackWidget.prototype = {
 
     var title = metadata.title.trim();
     var artist = metadata.artist.trim();
-    var track = [];
 
-    if (title) {
-      track.push(title);
-    }
-    if (artist) {
-      track.push(artist);
-    }
-    track = track.join(' — '); // Using a &mdash; here.
-    if (track) {
+    if (title || artist) {
       this.track.removeAttribute('data-l10n-id');
-      this.track.textContent = track;
+      this.track.textContent= '';
+
+      if (title) {
+        var titleNode = document.createTextNode(title);
+        this.track.appendChild(titleNode);
+      }
+
+      if (title && artist) {
+        var emDashNode = document.createTextNode(' — '); // Using a &mdash;
+        var artistNode = document.createTextNode(artist);
+        var artistBdiNode = document.createElement('bdi');
+        this.track.appendChild(emDashNode);
+        artistBdiNode.appendChild(artistNode);
+        this.track.appendChild(artistBdiNode);
+      }
+      else if (artist) { // but no title
+        this.track.appendChild(document.createTextNode(artist));
+      }
     } else {
       this.track.setAttribute('data-l10n-id', 'UnknownTrack');
     }
@@ -201,7 +210,7 @@ MediaPlaybackWidget.prototype = {
       var evt = new CustomEvent('displayapp', {
         bubbles: true,
         cancelable: true,
-        detail: appWindowManager.getApp(this.origin)
+        detail: Service.query('getApp', this.origin)
       });
       window.dispatchEvent(evt);
     }

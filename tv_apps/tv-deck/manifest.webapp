@@ -1,0 +1,39 @@
+{
+  "name": "TV",
+  "description": "Smart Screen TV Deck",
+  "launch_path": "/index.html",
+  "type": "certified",
+  "role": "deck",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/mozilla-b2g/gaia"
+  },
+  "locales": {
+    "en-US": {
+      "name": "TV",
+      "description": "Smart Screen TV Deck"
+    }
+  },
+  "default_locale": "en-US",
+  "icons": {
+    "354": "/style/icons/ic_default_app.png"
+  },
+  "orientation": "landscape",
+  "permissions": {
+    "tv": {},
+    "webapps-manage": {},
+    "systemXHR": {}
+  },
+  "datastores-access": {
+    "home_cards": {
+      "access": "readonly",
+      "description": "Read card list"
+    }
+  },
+  "connections": {
+    "tvdeck-getmeta": {
+      "description": "get app information of tvdeck",
+      "rules": {}
+    }
+  }
+}

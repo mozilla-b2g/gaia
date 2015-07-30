@@ -1,5 +1,6 @@
 gaia-checkbox {
   display: inline-block;
+  width: 100%;
 }
 
 #checkbox {
@@ -11,15 +12,17 @@ gaia-checkbox {
 }
 
 #checkbox span {
-  font-size: 1.8rem;
-  color: #333;
+  font-size: 1.9rem;
+  color: #000;
   line-height: 3rem;
   box-sizing: border-box;
   display: block;
   min-width: 2.2rem;
   min-height: 2.2rem;
   width: 100%;
-  padding-right: 2.2rem;
+  -moz-padding-end: 2.2rem;
+  /* Override inheriting nowrap from legacy lists building blocks. */
+  white-space: normal;
 }
 
 #checkbox span:after {
@@ -30,6 +33,22 @@ gaia-checkbox {
   margin: -1.2rem 0 0 -1.2rem;
   width: 2.2rem;
   height: 2.2rem;
+}
+
+#checkbox[dir="rtl"] span:after {
+  left: 1.2rem;
+  right: unset;
+}
+
+#checkbox.inline:not([dir="rtl"]) span:after {
+  left: 1.2rem;
+  right: unset;
+  margin: -1.2rem 0 0 -1.2rem;
+}
+
+#checkbox.inline span {
+  -moz-padding-start: 3rem;
+  -moz-padding-end: 0;
 }
 
 #checkbox span:after {

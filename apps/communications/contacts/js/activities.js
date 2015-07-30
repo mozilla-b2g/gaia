@@ -1,8 +1,20 @@
-/* globals ConfirmDialog, Contacts, LazyLoader, utils, ActionMenu,
-   ContactToVcardBlob, VcardFilename, VcardActivityHandler */
+/* globals ConfirmDialog, Contacts, LazyLoader, utils, ActionMenu, HeaderUI,
+   ContactToVcardBlob, VcardFilename, VcardActivityHandler, MainNavigation */
 /* exported ActivityHandler */
 
 'use strict';
+
+/**
+ * Per RFC 6350, text/vcard is the canonical MIME media type for vCards, but
+ * there are also deprecated types as well.  Whenever we disambiguate what an
+ * activity is requesting based on its MIME media type, we need to check if it
+ * is any of these, and not just text/vcard.
+ */
+const VCARD_MIME_TYPES = [
+  'text/vcard',
+  'text/x-vcard',
+  'text/directory'
+];
 
 var ActivityHandler = {
   _currentActivity: null,
@@ -65,13 +77,21 @@ var ActivityHandler = {
     return this.currentlyHandling && list.indexOf(this.activityName) === -1;
   },
 
+  isCancelable: function() {
+    return new Promise(resolve => {
+      resolve(!!this.currentlyHandling);
+    });
+  },
+
   launch_activity: function ah_launch(activity, action) {
     if (this._launchedAsInlineActivity) {
       return;
     }
 
     this._currentActivity = activity;
-    Contacts.checkCancelableActivity();
+    this.isCancelable().then(isCancelable => {
+      HeaderUI.updateHeader(isCancelable);
+    });
 
     var hash = action;
     var param, params = [];
@@ -94,14 +114,11 @@ var ActivityHandler = {
       case 'new':
         this.launch_activity(activity, 'view-contact-form');
         break;
+      case 'import':
       case 'open':
-        if (this.isvCardActivity(activity)) {
-          LazyLoader.load(VCARD_DEPS, () => {
-            VcardActivityHandler.handle(activity, this);
-          });
-        } else {
-          this.launch_activity(activity, 'view-contact-details');
-        }
+        LazyLoader.load(VCARD_DEPS, () => {
+          VcardActivityHandler.handle(activity, this);
+        });
         break;
       case 'update':
         this.launch_activity(activity, 'add-parameters');
@@ -111,24 +128,14 @@ var ActivityHandler = {
           return;
         }
         this._currentActivity = activity;
-        Contacts.checkCancelableActivity();
-        Contacts.navigation.home();
-        break;
-      case 'import':
-        this.importContactsFromFile(activity);
+        this.isCancelable().then(isCancelable => {
+          HeaderUI.updateHeader(isCancelable);
+        });
+        MainNavigation.home();
         break;
     }
-
   },
 
-  isvCardActivity: function ah_isvCardActivity(activity) {
-    return !!(activity.source &&
-              activity.source.data &&
-              !activity.source.data.params &&
-              activity.source.data.type &&
-              activity.source.data.type.indexOf('vcard') !== -1 &&
-              activity.source.data.blob);
-  },
 
   importContactsFromFile: function ah_importContactFromVcard(activity) {
     var self = this;
@@ -174,7 +181,16 @@ var ActivityHandler = {
       return;
     }
 
-    if (this.activityDataType.indexOf('text/vcard') !== -1) {
+    // Was this a request for vCard export as a blob?  Check all supported MIME
+    // types.
+    var isVcardDataType = VCARD_MIME_TYPES.some((mime) => {
+      return this.activityDataType.indexOf(mime) !== -1;
+    });
+
+    if (isVcardDataType) {
+      // Normalize the type to text/vcard so other places that check MIME types
+      // (ex: the Facebook guards) experience a consistent MIME type.
+      this._currentActivity.source.data.type = 'text/vcard';
       LazyLoader.load([
                        '/shared/js/text_normalizer.js',
                        '/shared/js/contact2vcard.js',
@@ -186,8 +202,8 @@ var ActivityHandler = {
             blob: vcardBlob
           });
         }, {
-            // Some MMS gateways prefer this MIME type for vcards
-            type: 'text/x-vcard'
+          // Some MMS gateways prefer this MIME type for vcards
+          type: 'text/x-vcard'
         });
       });
       return;
@@ -241,7 +257,7 @@ var ActivityHandler = {
             ConfirmDialog.hide();
           }
         };
-        Contacts.confirmDialog(null, noDataStr, dismiss);
+        ConfirmDialog.show(null, noDataStr, dismiss);
         break;
       case 1:
         // if one required type of data

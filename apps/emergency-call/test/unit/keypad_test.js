@@ -76,12 +76,12 @@ suite('Keypad', function() {
   });
 
   suite('Keypad Manager', function() {
-    test('initializates the TonePlayer to use the "notification" channel',
+    test('initializates the TonePlayer to use the "system" channel',
     function() {
       this.sinon.spy(MockTonePlayer, 'init');
       KeypadManager.init(/* oncall */ false);
 
-      sinon.assert.calledWith(MockTonePlayer.init, 'notification');
+      sinon.assert.calledWith(MockTonePlayer.init, 'system');
     });
 
     test('sanitizePhoneNumber', function(done) {
@@ -114,6 +114,7 @@ suite('Keypad', function() {
     test('Adds active class to keys when pressed', function() {
       var fakeEvent = {
         target: document.createElement('div'),
+        preventDefault: function() {},
         stopPropagation: function() {},
         type: null
       };

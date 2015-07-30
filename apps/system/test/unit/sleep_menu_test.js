@@ -1,18 +1,15 @@
 'use strict';
 /* global MocksHelper */
 /* global MockL10n */
-/* global MockMozPower */
 /* global MockNavigatorMozTelephony */
 /* global SleepMenu */
+/* global MockService */
 
 require('/shared/test/unit/mocks/mock_l10n.js');
-requireApp('system/test/unit/mock_navigator_moz_power.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_power.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
 require('/shared/test/unit/mocks/mock_service.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
-requireApp('system/js/logo_loader.js');
-requireApp('system/js/init_logo_handler.js');
-requireApp('system/js/orientation_manager.js');
 requireApp('system/js/sleep_menu.js');
 
 var mocksForSleepMenu = new MocksHelper([
@@ -23,7 +20,6 @@ suite('system/SleepMenu', function() {
   mocksForSleepMenu.attachTestHelpers();
   var fakeElement;
   var realL10n;
-  var realMozPower;
   var realTelephony;
   var stubById;
   var stubByQuerySelector;
@@ -33,20 +29,14 @@ suite('system/SleepMenu', function() {
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
 
-    realMozPower = navigator.mozPower;
-    navigator.mozPower = MockMozPower;
-
     realTelephony = navigator.mozTelephony;
 
     fakeElement = document.createElement('div');
     stubById = stubById = this.sinon.stub(document, 'getElementById',
-      function(id) {
-      if (id === 'poweroff-splash') {
-        return null;
-      } else {
+      function() {
         return fakeElement.cloneNode(true);
       }
-    });
+    );
 
     stubByQuerySelector = this.sinon.stub(document, 'querySelector')
                          .returns(fakeElement.cloneNode(true));
@@ -55,7 +45,6 @@ suite('system/SleepMenu', function() {
 
   teardown(function() {
     navigator.mozL10n = realL10n;
-    navigator.mozPower = realMozPower;
     navigator.mozTelephony = realTelephony;
     stubById.restore();
     stubByQuerySelector.restore();
@@ -110,18 +99,13 @@ suite('system/SleepMenu', function() {
   });
 
   suite('After showing the menu', function() {
-    var myLogoLoader = {};
-
     setup(function() {
       subject.start();
       subject.show();
-      myLogoLoader = {};
-      this.sinon.stub(window, 'LogoLoader')
-        .returns(myLogoLoader);
     });
 
     test('restart requested', function() {
-      var stub = this.sinon.stub(navigator.mozPower, 'reboot');
+      this.sinon.stub(MockService, 'request');
       subject.handleEvent({
         type: 'click',
         target: {
@@ -130,12 +114,7 @@ suite('system/SleepMenu', function() {
           }
         }
       });
-
-      var element = document.createElement('div');
-      var transitionStub = this.sinon.stub(element, 'addEventListener');
-      myLogoLoader.onload(element);
-      transitionStub.getCall(0).args[1]();
-      assert.ok(stub.calledOnce);
+      assert.isTrue(MockService.request.calledWith('poweroff', true));
     });
 
     test('hide on attention window is opened', function() {
@@ -146,19 +125,6 @@ suite('system/SleepMenu', function() {
     test('hide on home button pressed', function() {
       window.dispatchEvent(new CustomEvent('home'));
       assert.isFalse(subject.visible);
-    });
-
-    test('triggers will-shutdown event on shutdown', function() {
-      this.sinon.stub(subject, 'publish');
-      subject.handleEvent({
-        type: 'click',
-        target: {
-          dataset: {
-            value: 'restart'
-          }
-        }
-      });
-      assert.isTrue(subject.publish.calledWith('will-shutdown'));
     });
 
     test('Turn on airplane mode request', function() {
@@ -191,24 +157,6 @@ suite('system/SleepMenu', function() {
       });
       var airplaneDisableEvent = 'request-airplane-mode-disable';
       assert.isTrue(subject.publish.calledWith(airplaneDisableEvent));
-    });
-
-    test('poweroff requested', function() {
-      var stub = this.sinon.stub(navigator.mozPower, 'powerOff');
-      subject.handleEvent({
-        type: 'click',
-        target: {
-          dataset: {
-            value: 'power'
-          }
-        }
-      });
-
-      var element = document.createElement('div');
-      var transitionStub = this.sinon.stub(element, 'addEventListener');
-      myLogoLoader.onload(element);
-      transitionStub.getCall(0).args[1]();
-      assert.ok(stub.calledOnce);
     });
 
   });

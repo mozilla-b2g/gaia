@@ -30,6 +30,9 @@ window.EntrySheet = (function invocation() {
 
       // Here we remove entire element once the close button is pressed.
       this.container.removeChild(this.element);
+      if (this.onCloseCallback) {
+        this.onCloseCallback();
+      }
     }.bind(this));
     this.element.classList.add('disappearing');
   };
@@ -52,7 +55,7 @@ window.EntrySheet = (function invocation() {
     '</div';
   }
 
-  function render(container, title, content) {
+  function render(container, title, content, onCloseCallback) {
     this.container = container;
     this.title = title;
     this.container.insertAdjacentHTML('beforeend', view.apply(this));
@@ -66,6 +69,7 @@ window.EntrySheet = (function invocation() {
       this.container.querySelector('.' + EntrySheet.className + ' .content');
     this.element = this.container.querySelector('.' + EntrySheet.className);
     this.element.dataset.zIndexLevel = 'dialog-overlay';
+    this.onCloseCallback = onCloseCallback;
 
     var self = this;
     // XXX: We may make entry sheet to generate browser frame by itself,

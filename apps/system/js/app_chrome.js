@@ -6,12 +6,15 @@
 /* global MozActivity */
 /* global SettingsListener */
 /* global Service */
+/* global GaiaPinCard */
 
 'use strict';
 
 (function(exports) {
+  const DEFAULT_ICON_URL = '/style/chrome/images/default_icon.png';
+  const PINNING_PREF = 'dev.gaia.pinning_the_web';
+
   var _id = 0;
-  var _ = navigator.mozL10n.get;
 
   var newTabManifestURL = null;
   SettingsListener.observe('rocketbar.newTabAppURL', '',
@@ -34,22 +37,19 @@
     this.app = app;
     this.instanceID = _id++;
     this.containerElement = app.element;
-    this._recentTitle = false;
-    this._titleTimeout = null;
+    this._themeChanged = false;
     this.scrollable = app.browserContainer;
+    this._currentOrigin = app.origin || '';
+    this._currentIconUrl = '';
     this.render();
 
-    if (this.app.themeColor) {
-      this.setThemeColor(this.app.themeColor);
-    }
+    if (this.app.themeColor && this.app.themeColor !== '') {
+      // If titlestatechanged is fired during creation, appChrome won't have
+      // been set yet.
+      app.appChrome = this;
 
-    var chrome = this.app.config.chrome;
-    if (!this.app.isBrowser() && chrome && !chrome.scrollable) {
-      this._fixedTitle = true;
-      this.title.dataset.l10nId = 'search-the-web';
-    } else if (!this.app.isBrowser() && this.app.name) {
-      this._gotName = true;
-      this.setFreshTitle(this.app.name);
+      this._themeChanged = true;
+      this.setThemeColor(this.app.themeColor);
     }
 
     this.reConfig();
@@ -61,10 +61,6 @@
 
   AppChrome.prototype.EVENT_PREFIX = 'chrome';
 
-  AppChrome.prototype.FRESH_TITLE = 500;
-
-  AppChrome.prototype.LOCATION_COALESCE = 250;
-
   AppChrome.prototype._DEBUG = false;
 
   AppChrome.prototype.reConfig = function() {
@@ -74,10 +70,19 @@
     }
 
     if (this.isSearchApp()) {
+      this._fixedTitle = true;
       this.app.element.classList.add('search-app');
-      this.title.setAttribute('data-l10n-id', 'search-or-enter-address');
     } else {
+      this._fixedTitle = false;
       this.app.element.classList.remove('search-app');
+
+      if (!this.app.isHomescreen) {
+        this.title.textContent = this.app.name;
+      }
+    }
+
+    if (this.app.isHomescreen || this.isSearchApp()) {
+      this.title.setAttribute('data-l10n-id', 'search-or-enter-address');
     }
 
     if (chrome.bar) {
@@ -90,7 +95,7 @@
 
       if (this.app.isPrivateBrowser()) {
         this.element.classList.add('private');
-      } else {
+      } else if (!this.app.themeColor) {
         this.app.element.classList.add('light');
       }
 
@@ -98,27 +103,48 @@
     }
 
     if (chrome.maximized) {
-      this.element.classList.add('maximized');
+      this.expand();
 
-      if (!this.app.isBrowser()) {
+      if (!this.app.isBrowser() && !this.app.isHomescreen) {
         this.app.element.classList.add('scrollable');
       }
     }
+
+    this.setSiteIcon();
   };
 
   AppChrome.prototype.combinedView = function an_combinedView() {
     var className = this.CLASS_NAME + this.instanceID;
 
-    return `<div class="chrome" id="${className}">
+    return `<div class="chrome chrome-combined" id="${className}">
               <gaia-progress></gaia-progress>
               <div class="controls">
                 <button type="button" class="back-button"
                         data-l10n-id="back-button" disabled></button>
                 <button type="button" class="forward-button"
                         data-l10n-id="forward-button" disabled></button>
-                <div class="urlbar">
+                <div class="urlbar js-chrome-ssl-information">
+                  <section role="dialog" class="pin-dialog hidden">
+                    <a href="#" data-action="cancel"></a>
+                    <header>
+                      <h2 data-l10n-id="pinning.pin-page">Pin Page</h2>
+                    </header>
+                    <div class="card-container"></div>
+                    <div class="footer-container">
+                      <button data-l10n-id="pinning.pin" data-action="pin">
+                        Pin
+                      </button>
+                      <footer>
+                        <span data-l10n-id="from">from</span>
+                        <span class="origin"></span>
+                      </footer>
+                    </div>
+                  </section>
                   <span class="pb-icon"></span>
-                  <div class="title" data-ssl=""></div>
+                  <div class="site-icon"></div>
+                  <div class="chrome-ssl-indicator chrome-title-container">
+                    <span class="title" dir="auto"></span>
+                  </div>
                   <button type="button" class="reload-button"
                           data-l10n-id="reload-button" disabled></button>
                   <button type="button" class="stop-button"
@@ -134,11 +160,17 @@
   AppChrome.prototype.view = function an_view() {
     var className = this.CLASS_NAME + this.instanceID;
 
-    return `<div class="chrome" id="${className}">
+    return `<div class="chrome chrome-plain" id="${className}">
             <gaia-progress></gaia-progress>
             <section role="region" class="bar">
-              <gaia-header action="close">
-                <h1 class="title"></h1>
+              <gaia-header action="close" class='js-chrome-ssl-information'>
+                <div class="chrome-ssl-indicator chrome-ssl-indicator-ltr">
+                </div>
+                <h1 class="chrome-title-container">
+                  <bdi dir="auto" class="title"></bdi>
+                </h1>
+                <div class="chrome-ssl-indicator chrome-ssl-indicator-rtl">
+                </div>
               </gaia-header>
             </section>
           </div>`;
@@ -182,7 +214,18 @@
     this.backButton = this.element.querySelector('.back-button');
     this.menuButton = this.element.querySelector('.menu-button');
     this.windowsButton = this.element.querySelector('.windows-button');
-    this.title = this.element.querySelector('.title');
+    this.title = this.element.querySelector('.chrome-title-container > .title');
+    this.siteIcon = this.element.querySelector('.site-icon');
+
+    if (this.useCombinedChrome()) {
+      this.pinDialog = this.element.querySelector('.pin-dialog');
+      this.closePin = this.pinDialog.querySelector('a[data-action="cancel"]');
+      this.originElement = this.pinDialog.querySelector('.origin');
+      this.pinCardContainer = this.pinDialog.querySelector('.card-container');
+    }
+
+    this.sslIndicator =
+      this.element.querySelector('.js-chrome-ssl-information');
 
     this.bar = this.element.querySelector('.bar');
     if (this.bar) {
@@ -197,10 +240,12 @@
   AppChrome.prototype.handleEvent = function ac_handleEvent(evt) {
     switch (evt.type) {
       case 'rocketbar-overlayclosed':
+        window.removeEventListener('rocketbar-overlayclosed', this);
         this.collapse();
         break;
 
       case 'click':
+        this.hidePinDialogCard();
         this.handleClickEvent(evt);
         break;
 
@@ -234,8 +279,9 @@
         this.handleError(evt);
         break;
 
-      case 'mozbrowserlocationchange':
-        this.handleLocationChanged(evt);
+      case '_locationchange':
+        this.hidePinDialogCard();
+        this.handleLocationChange();
         break;
 
       case 'mozbrowserscrollareachanged':
@@ -246,16 +292,12 @@
         this.handleSecurityChanged(evt);
         break;
 
-      case 'mozbrowsertitlechange':
-        this.handleTitleChanged(evt);
+      case '_namechanged':
+        this.handleNameChanged();
         break;
 
       case 'mozbrowsermetachange':
         this.handleMetaChange(evt);
-        break;
-
-      case '_namechanged':
-        this.handleNameChanged(evt);
         break;
     }
   };
@@ -278,11 +320,13 @@
         this.app.forward();
         break;
 
+      case this.siteIcon:
+        evt.stopImmediatePropagation();
+        this.onClickSiteIcon();
+        break;
+
       case this.title:
-        if (Service && Service.locked) {
-          return;
-        }
-        window.dispatchEvent(new CustomEvent('global-search-request'));
+        this.titleClicked();
         break;
 
       case this.menuButton:
@@ -316,6 +360,77 @@
     }
   };
 
+  AppChrome.prototype.titleClicked = function ac_titleClicked() {
+    var contextMenu = this.app.contextmenu && this.app.contextmenu.isShown();
+    var locked = Service && Service.query('locked');
+
+    if (locked || contextMenu) {
+      return;
+    }
+    window.dispatchEvent(new CustomEvent('global-search-request'));
+  };
+
+  AppChrome.prototype.onClickSiteIcon = function onClickSiteIcon() {
+    if (!this.app.isBrowser() || this.app.loading || !this.isMaximized()) {
+      this.app.debug('Pinning is only enabled in the browser');
+      return;
+    }
+    this.setPinDialogCard();
+  };
+
+  AppChrome.prototype.setPinDialogCard = function ac_setPinDialogCard(url) {
+    var card = new GaiaPinCard();
+    card.title = this.app.title;
+    card.icon = {
+      url: this.siteIcon.style.backgroundImage,
+      small: this.siteIcon.classList.contains('small-icon')
+    };
+    this.pinCardContainer.innerHTML = '';
+    this.app.getScreenshot(function() {
+      card.background = {
+        src: URL.createObjectURL(this.app._screenshotBlob),
+        themeColor: this.app.themeColor
+      };
+    }.bind(this));
+    this.pinCardContainer.appendChild(card);
+    this.setOrigin();
+    this.pinDialog.classList.remove('hidden');
+  };
+
+  AppChrome.prototype.setOrigin = function ac_setOrigin() {
+    var origin = this._currentOrigin.split('://')[1].split('.');
+    var tld = this.originElement.querySelector('.tld');
+
+    if (!tld) {
+      tld = document.createElement('span');
+      tld.className = 'tld';
+    } else {
+      tld.remove();
+    }
+
+    tld.textContent = origin.slice(origin.length - 2, origin.length).join('.');
+
+    if (origin.length > 2) {
+      var subdomains = origin.slice(0, origin.length - 2).join('.');
+      this.originElement.textContent = subdomains + '.';
+    }
+
+    this.originElement.appendChild(tld);
+  };
+
+  AppChrome.prototype.hidePinDialogCard = function ac_setPinDialogCard(url) {
+    this.pinDialog && this.pinDialog.classList.add('hidden');
+  };
+
+  AppChrome.prototype.expand = function ac_expand() {
+    this.element.classList.add('maximized');
+  };
+
+  AppChrome.prototype.collapse = function ac_collapse() {
+    this.hidePinDialogCard();
+    this.element.classList.remove('maximized');
+  };
+
   AppChrome.prototype.handleActionEvent = function ac_handleActionEvent(evt) {
     if (evt.detail.type === 'close') {
       this.app.kill();
@@ -334,11 +449,10 @@
     // XXX Open a bug since I wonder if there is scrollgrab rounding issue
     // somewhere. While panning from the bottom to the top, there is often
     // a scrollTop position of scrollTopMax - 1, which triggers the transition!
-    var element = this.element;
     if (this.scrollable.scrollTop >= this.scrollable.scrollTopMax - 1) {
-      element.classList.remove('maximized');
+      this.collapse();
     } else {
-      element.classList.add('maximized');
+      this.expand();
     }
 
     if (this.app.isActive()) {
@@ -348,9 +462,11 @@
 
   AppChrome.prototype._registerEvents = function ac__registerEvents() {
     if (this.useCombinedChrome()) {
-      LazyLoader.load('shared/js/bookmarks_database.js', function() {
+      LazyLoader.load('shared/js/bookmarks_database.js').then(() => {
         this.updateAddToHomeButton();
-      }.bind(this));
+      }).catch((err) => {
+        console.error(err);
+      });
       LazyLoader.load('shared/elements/gaia_overflow_menu/script.js');
 
       this.stopButton.addEventListener('click', this);
@@ -361,6 +477,17 @@
       this.scrollable.addEventListener('scroll', this);
       this.menuButton.addEventListener('click', this);
       this.windowsButton.addEventListener('click', this);
+
+      // Adding or removing the click listener, depending on
+      // the 'Pinning the Web' setting enabled or disabled
+      SettingsListener.observe(PINNING_PREF, '', function(enabled) {
+        var targets = [this.siteIcon, this.closePin];
+        var method = enabled ? 'addEventListener' : 'removeEventListener';
+        targets.forEach(function(element) {
+          element[method]('click', this);
+        }.bind(this));
+      }.bind(this));
+
     } else {
       this.header.addEventListener('action', this);
     }
@@ -368,14 +495,13 @@
     this.app.element.addEventListener('mozbrowserloadstart', this);
     this.app.element.addEventListener('mozbrowserloadend', this);
     this.app.element.addEventListener('mozbrowsererror', this);
-    this.app.element.addEventListener('mozbrowserlocationchange', this);
-    this.app.element.addEventListener('mozbrowsertitlechange', this);
     this.app.element.addEventListener('mozbrowsermetachange', this);
     this.app.element.addEventListener('mozbrowserscrollareachanged', this);
+    this.app.element.addEventListener('_locationchange', this);
+    this.app.element.addEventListener('_namechanged', this);
     this.app.element.addEventListener('_securitychange', this);
     this.app.element.addEventListener('_loading', this);
     this.app.element.addEventListener('_loaded', this);
-    this.app.element.addEventListener('_namechanged', this);
 
     var element = this.element;
 
@@ -424,33 +550,22 @@
     this.app.element.removeEventListener('mozbrowserloadstart', this);
     this.app.element.removeEventListener('mozbrowserloadend', this);
     this.app.element.removeEventListener('mozbrowsererror', this);
-    this.app.element.removeEventListener('mozbrowserlocationchange', this);
-    this.app.element.removeEventListener('mozbrowsertitlechange', this);
     this.app.element.removeEventListener('mozbrowsermetachange', this);
+    this.app.element.removeEventListener('_locationchange', this);
+    this.app.element.removeEventListener('_namechanged', this);
     this.app.element.removeEventListener('_loading', this);
     this.app.element.removeEventListener('_loaded', this);
-    this.app.element.removeEventListener('_namechanged', this);
     this.app = null;
   };
 
   // Name has priority over the rest
   AppChrome.prototype.handleNameChanged =
     function ac_handleNameChanged(evt) {
+      if (this._fixedTitle) {
+        return;
+      }
       this.title.textContent = this.app.name;
-      this._gotName = true;
     };
-
-  AppChrome.prototype.setFreshTitle = function ac_setFreshTitle(title) {
-    if (this.isSearchApp()) {
-      return;
-    }
-    this.title.textContent = title;
-    clearTimeout(this._titleTimeout);
-    this._recentTitle = true;
-    this._titleTimeout = setTimeout((function() {
-      this._recentTitle = false;
-    }).bind(this), this.FRESH_TITLE);
-  };
 
   AppChrome.prototype.handleScrollAreaChanged = function(evt) {
     // Check if the page has become scrollable and add the scrollable class.
@@ -473,16 +588,11 @@
   };
 
   AppChrome.prototype.handleSecurityChanged = function(evt) {
-    this.title.dataset.ssl = this.app.getSSLState();
-  };
-
-  AppChrome.prototype.handleTitleChanged = function(evt) {
-    if (this._gotName || this._fixedTitle) {
-      return;
-    }
-
-    this.setFreshTitle(evt.detail || this._currentURL);
-    this._titleChanged = true;
+    var sslState = this.app.getSSLState();
+    this.sslIndicator.dataset.ssl = sslState;
+    this.sslIndicator.classList.toggle(
+      'chrome-has-ssl-indicator', sslState === 'broken' || sslState === 'secure'
+    );
   };
 
   AppChrome.prototype.handleMetaChange =
@@ -500,23 +610,38 @@
         color = detail.content;
       }
 
+      this._themeChanged = true;
       this.setThemeColor(color);
     };
 
   AppChrome.prototype.setThemeColor = function ac_setThemColor(color) {
-
     // Do not set theme color for private windows
     if (this.app.isPrivateBrowser()) {
       return;
     }
 
+    var bottomApp = this.app.getBottomMostWindow();
+
+    if (this.app.CLASS_NAME === 'PopupWindow' &&
+      bottomApp &&
+      bottomApp.themeColor) {
+      color = bottomApp.themeColor;
+    }
+
+    this.app.themeColor = color;
     this.element.style.backgroundColor = color;
 
     if (!this.app.isHomescreen) {
       this.scrollable.style.backgroundColor = color;
     }
 
-    if (color === 'transparent' || color === '') {
+    if (color === '') {
+      this.app.element.classList.add('light');
+      this.app.publish('titlestatechanged');
+      return;
+    }
+
+    if (color === 'transparent') {
       this.app.element.classList.remove('light');
       this.app.publish('titlestatechanged');
       return;
@@ -524,11 +649,15 @@
 
     var self = this;
     var finishedFade = false;
-    var endBackgroundFade = function() {
+    var endBackgroundFade = function(evt) {
+      if (evt && evt.propertyName != 'background-color') {
+        return;
+      }
       finishedFade = true;
-      self.element.removeEventListener('transitionend', endBackgroundFade);
+      if (self.element) {
+        self.element.removeEventListener('transitionend', endBackgroundFade);
+      }
     };
-    this.element.addEventListener('transitionend', endBackgroundFade);
     eventSafety(this.element, 'transitionend', endBackgroundFade, 1000);
 
     window.requestAnimationFrame(function updateAppColor() {
@@ -549,7 +678,7 @@
         Math.sqrt((r*r) * 0.241 + (g*g) * 0.691 + (b*b) * 0.068);
 
       var wasLight = self.app.element.classList.contains('light');
-      var isLight  = brightness > 200;
+      var isLight = brightness > 200;
       if (wasLight != isLight) {
         self.app.element.classList.toggle('light', isLight);
         self.app.publish('titlestatechanged');
@@ -585,15 +714,6 @@
     return this.app.config.chrome && !this.app.config.chrome.bar;
   };
 
-  AppChrome.prototype._updateLocation =
-    function ac_updateTitle(title) {
-      if (this._titleChanged || this._gotName || this._recentTitle ||
-          this._fixedTitle) {
-        return;
-      }
-      this.title.textContent = title;
-    };
-
   AppChrome.prototype.updateAddToHomeButton =
     function ac_updateAddToHomeButton() {
       if (!this.addToHomeButton || !BookmarksDatabase) {
@@ -609,25 +729,24 @@
       }.bind(this));
     };
 
-  AppChrome.prototype.handleLocationChanged =
-    function ac_handleLocationChange(evt) {
+  AppChrome.prototype.handleLocationChange =
+    function ac_handleLocationChange() {
       if (!this.app) {
         return;
       }
 
       // Check if this is just a location-change to an anchor tag.
       var anchorChange = false;
-      if (this._currentURL && evt.detail) {
+      if (this._currentURL && this.app.config.url) {
         anchorChange =
           this._currentURL.replace(/#.*/g, '') ===
-          evt.detail.replace(/#.*/g, '');
+          this.app.config.url.replace(/#.*/g, '');
       }
 
-      // We wait a small while because if we get a title/name it's even better
-      // and we don't want the label to flash
-      setTimeout(this._updateLocation.bind(this, evt.detail),
-                 this.LOCATION_COALESCE);
-      this._currentURL = evt.detail;
+      this._currentURL = this.app.config.url;
+      if (!this._fixedTitle && !this.app.isHomescreen) {
+        this.title.textContent = this.app.name;
+      }
 
       if (this.backButton && this.forwardButton) {
         this.app.canGoForward(function forwardSuccess(result) {
@@ -647,12 +766,19 @@
 
       this.updateAddToHomeButton();
 
+      // We only change the icon back to the default one if the new page is not
+      // on the same domain than the previous one.
+      // In both cases, we look for the best icon after `mozbrowserloadend`.
+      var origin = new URL(this._currentURL).origin;
+
+      if (this._currentOrigin !== origin) {
+        this.setSiteIcon(DEFAULT_ICON_URL);
+        this._currentOrigin = origin;
+      }
+
       if (!this.app.isBrowser()) {
         return;
       }
-
-      // We havent got a name for this location
-      this._gotName = false;
 
       if (!anchorChange) {
         // Make the rocketbar unscrollable until the page resizes to the
@@ -661,19 +787,32 @@
 
         // Expand
         if (!this.isMaximized()) {
-          this.element.classList.add('maximized');
+          this.expand();
         }
         this.scrollable.scrollTop = 0;
+      }
+
+      // Set the title for the private browser landing page.
+      // This is explicitly placed in the locationchange handler as it's
+      // currently possibly to navigate back to the landing page with the
+      // back button. Otherwise it could be in the constructor.
+      if (this.app.isPrivateBrowser() &&
+        this.app.config.url.startsWith('app:')) {
+        this.title.dataset.l10nId = 'search-or-enter-address';
       }
     };
 
   AppChrome.prototype.handleLoadStart = function ac_handleLoadStart(evt) {
     this.containerElement.classList.add('loading');
-    this._titleChanged = false;
+    this._themeChanged = false;
   };
 
   AppChrome.prototype.handleLoadEnd = function ac_handleLoadEnd(evt) {
     this.containerElement.classList.remove('loading');
+    if (!this._themeChanged) {
+      this.setThemeColor('');
+    }
+    this.setSiteIcon();
   };
 
   AppChrome.prototype.handleError = function ac_handleError(evt) {
@@ -682,32 +821,20 @@
     }
     if (this.useCombinedChrome() && this.app.config.chrome.scrollable) {
       // When we get an error, keep the rocketbar maximized.
-      this.element.classList.add('maximized');
+      this.expand();
       this.containerElement.classList.remove('scrollable');
     }
   };
 
   AppChrome.prototype.maximize = function ac_maximize(callback) {
     var element = this.element;
-    element.classList.add('maximized');
+    this.expand();
     window.addEventListener('rocketbar-overlayclosed', this);
 
     if (!callback) {
       return;
     }
-
-    var finish = function(evt) {
-      if (evt && evt.target !== element) {
-        return;
-      }
-      callback();
-    };
-    eventSafety(element, 'transitionend', finish, 250);
-  };
-
-  AppChrome.prototype.collapse = function ac_collapse() {
-    window.removeEventListener('rocketbar-overlayclosed', this);
-    this.element.classList.remove('maximized');
+    eventSafety(element, 'transitionend', callback, 250);
   };
 
   AppChrome.prototype.isMaximized = function ac_isMaximized() {
@@ -741,7 +868,7 @@
     }
     var url = this._currentURL;
 
-    LazyLoader.load('shared/js/icons_helper.js', (function() {
+    LazyLoader.load('shared/js/icons_helper.js').then(() => {
       IconsHelper.getIcon(url, null, {icons: favicons}).then(icon => {
         var activity = new MozActivity({
           name: 'save-bookmark',
@@ -760,7 +887,9 @@
           }.bind(this);
         }
       });
-    }).bind(this));
+    }).catch((err) => {
+      console.error(err);
+    });
   };
 
   AppChrome.prototype.onAddBookmark = function ac_onAddBookmark() {
@@ -771,19 +900,27 @@
       }
     }
 
-    var data = {
-      title: _('add-to-home-screen'),
-      options: []
-    };
+    var title = 'add-to-home-screen';
+    var options = [];
 
     if (this.isSearch()) {
       var dataset = this.app.config;
-      data.options.push({ id: 'search', text: dataset.searchName });
+      options.push({
+        id: 'search',
+        text: {
+          raw: dataset.searchName
+        }
+      });
     } else {
-      data.options.push({ id: 'origin', text: this.title.textContent });
+      options.push({
+        id: 'origin',
+        text: {
+          raw: this.title.textContent
+        }
+      });
     }
 
-    ModalDialog.selectOne(data, selected);
+    ModalDialog.selectOne(title, options, selected);
   };
 
   AppChrome.prototype.showWindows = function ac_showWindows() {
@@ -840,6 +977,42 @@
         this.app.config.searchName : this.title.textContent;
       this.app.contextmenu.showDefaultMenu(newTabManifestURL, name);
     }
+  };
+
+
+  /**
+   * Display the website icon in the URL bar, if any.
+   * If the url parameter is specified, it is loaded immediately. Otherwise,
+   * we look for the best possible icon for this website.
+   *
+   * @param {string?} url
+   */
+  AppChrome.prototype.setSiteIcon = function ac_setSiteIcon(url) {
+    if (!this.siteIcon || this.app.isPrivateBrowser()) {
+      return;
+    }
+
+    if (url) {
+      this.siteIcon.classList.remove('small-icon');
+      this.siteIcon.style.backgroundImage = `url("${url}")`;
+      this._currentIconUrl = url;
+      return;
+    }
+
+    this.app.getSiteIconUrl()
+      .then(iconObject => {
+        this.siteIcon.classList.toggle('small-icon', iconObject.isSmall);
+
+        // We compare the original icon URL, otherwise there is a flickering
+        // effect because a different object url is created each time.
+        if (this._currentIconUrl !== iconObject.originalUrl) {
+          this.siteIcon.style.backgroundImage = `url("${iconObject.url}")`;
+          this._currentIconUrl = iconObject.originalUrl;
+        }
+      })
+      .catch((err) => {
+        this.app.debug('setSiteIcon, error from getSiteIcon: %s', err);
+      });
   };
 
   exports.AppChrome = AppChrome;

@@ -7,6 +7,7 @@
 require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
+require('/shared/test/unit/mocks/mock_lazy_loader.js');
 requireApp('system/test/unit/mock_system_banner.js');
 
 var _HTML = `
@@ -51,7 +52,8 @@ var _HTML = `
 
 var TICK = 1000;
 var mocksForCrashReporter = new MocksHelper(['SettingsListener',
-                                             'SystemBanner']);
+                                             'SystemBanner',
+                                             'LazyLoader']);
 
 suite('system/CrashReporter', function() {
   var app, clock, screen, dialog, realL10n, realMozSettings, spyL10n;
@@ -121,8 +123,8 @@ suite('system/CrashReporter', function() {
     clock.tick(TICK);
 
     assert.equal(MockSystemBanner.mShowCount, 1);
-    assert.isTrue(
-      MockSystemBanner.mMessage.contains('crash-dialog-app-noname')
+    assert.equal(
+      MockSystemBanner.mMessage.args.name, 'crash-dialog-app-noname'
     );
   });
 });

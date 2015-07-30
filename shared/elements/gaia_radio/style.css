@@ -1,3 +1,8 @@
+gaia-radio {
+  display: inline-block;
+  width: 100%;
+}
+
 #radio {
   display: inline-block;
   vertical-align: middle;
@@ -9,6 +14,16 @@
 
 #radio.inline {
   width: 5rem;
+}
+
+#radio span {
+  font-size: 1.9rem;
+  color: #000;
+  padding: 1rem 0 0;
+  height: 6rem;
+  line-height: 4rem;
+  box-sizing: border-box;
+  display: block;
 }
 
 #radio span:after {
@@ -32,4 +47,26 @@
 /* 'Dangerous' radio */
 #radio.danger span:after {
   background-image: url(images/danger.png);
+}
+
+/* 'checkone' radio */
+#radio.checkone span:after {
+  background: none;
+}
+
+#radio.checkone.checked span:after {
+  background: url(images/checked.png) no-repeat right center / 100%;
+}
+
+#radio.checkone.checked span {
+  font-weight: 500;
+}
+
+/******************************************************************************
+ * Right-To-Left tweaks
+ */
+
+#radio[dir="rtl"] span:after {
+  left: 1.1rem;
+  right: unset;
 }

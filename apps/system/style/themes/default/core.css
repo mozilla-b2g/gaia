@@ -23,7 +23,7 @@
    the layout manager does not account for SHB in this case. */
 #screen.fullscreen-layout-app.software-button-enabled [role="dialog"].generic-dialog,
 #screen.software-button-enabled > #dialog-screen,
-#screen.software-button-enabled + #downloadConfirmUI,
+#screen.software-button-enabled > #downloadConfirmUI,
 #screen.software-button-enabled > #dialog-overlay {
   bottom: var(--software-home-button-height);
 }
@@ -31,14 +31,13 @@
 @media (orientation: landscape) {
   #screen.software-button-enabled [role="dialog"].generic-dialog,
   #screen.software-button-enabled > #dialog-screen,
-  #screen.software-button-enabled + #downloadConfirmUI,
-  #screen.software-button-enabled > #dialog-overlay {
+  #screen.software-button-enabled > #downloadConfirmUI {
     right: var(--software-home-button-height);
   }
 
   #screen.fullscreen-layout-app.software-button-enabled [role="dialog"].generic-dialog,
   #screen.software-button-enabled > #dialog-screen,
-  #screen.software-button-enabled + #downloadConfirmUI,
+  #screen.software-button-enabled > #downloadConfirmUI,
   #screen.software-button-enabled > #dialog-overlay {
     bottom: 0;
   }
@@ -75,11 +74,16 @@
 [role="dialog"].generic-dialog h3 {
   font-weight: normal;
   font-size: 1.6rem;
-  line-height: 1.5rem;
+  line-height: 2rem;
   color: #fff;
   border-bottom: 0.1rem solid #686868;
   margin: 0 0 1rem;
-  padding: 0 1.5rem 1.5rem;
+  padding: 1.5rem;
+}
+
+[role="dialog"] gaia-checkbox label {
+  /* !important to get around scoped styles from gaia-checkbox */
+  color: #fbfbfb !important;
 }
 
 [role="dialog"].generic-dialog menu:not([type="toolbar"]) {

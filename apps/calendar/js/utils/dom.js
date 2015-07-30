@@ -35,4 +35,27 @@ function matches(el, selector) {
     el.mozMatchesSelector(selector);
 }
 
+/**
+ * converts HTML string into a DOM element
+ */
+exports.buildElement = function(html) {
+  var fragment = document.createElement('div');
+  fragment.innerHTML = html;
+  return fragment.firstChild;
+};
+
+/**
+ * detach elements from DOM
+ * supports single element or array-like objects
+ */
+exports.removeElements = function(els) {
+  if (!els) {
+    return;
+  }
+  els = 'length' in els ? Array.from(els) : Array.from(arguments);
+  els.forEach(el => {
+    el && el.parentNode && el.parentNode.removeChild(el);
+  });
+};
+
 });

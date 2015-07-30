@@ -32,7 +32,6 @@ var ConferenceGroupHandler = (function() {
   if (telephony.conferenceGroup) {
     telephony.conferenceGroup.oncallschanged = onCallsChanged;
     telephony.conferenceGroup.onstatechange = onStateChange;
-    telephony.conferenceGroup.onerror = onConferenceError;
   }
 
   /**
@@ -97,12 +96,13 @@ var ConferenceGroupHandler = (function() {
 
   function onStateChange() {
     switch (telephony.conferenceGroup.state) {
-      case 'resuming':
       case 'connected':
         show();
+        CallScreen.render('connected');
         break;
       case 'held':
         groupLine.classList.add('held');
+        CallScreen.render('connected-hold');
         break;
       case '':
         // Exiting conference call
@@ -110,18 +110,6 @@ var ConferenceGroupHandler = (function() {
         CallsHandler.checkCalls();
         break;
     }
-  }
-
-  function onConferenceError(evt) {
-    LazyL10n.get(function localized(_) {
-      var errorMsg;
-      if (evt.name == 'addError') {
-        errorMsg = _('conferenceAddError');
-      } else {
-        errorMsg = _('conferenceRemoveError');
-      }
-      CallScreen.showStatusMessage(errorMsg);
-    });
   }
 
   /**

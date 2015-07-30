@@ -2,7 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from marionette import By
+from marionette_driver import By
 
 from gaiatest.gaia_graphics_test import GaiaImageCompareTestCase
 from gaiatest.apps.homescreen.app import Homescreen
@@ -19,7 +19,6 @@ class testDragDrop(GaiaImageCompareTestCase):
 
     def test_drag_drop(self):
 
-        self.take_screenshot()
         self.homescreen.wait_for_number_of_apps(1)
 
         # Assert that we are not in edit mode.

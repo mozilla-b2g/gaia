@@ -125,12 +125,8 @@ button::-moz-focus-inner {
   border-left: 0.1rem solid transparent;
 }
 
-.keyboard-type-container:not(.lowercase) .key-element.lowercase {
-  visibility: hidden;
-}
-
-.keyboard-type-container:not(.uppercase-only).lowercase .key-element:not(.lowercase) {
-  visibility: hidden;
+.keyboard-type-container.lowercase .key-element {
+  text-transform: lowercase;
 }
 
 .popup {
@@ -916,6 +912,162 @@ bubble above the key when you tap and hold. */
   .keyboard-key.tamil > .visual-wrapper > span[data-label="ௌ"] {
     font-size: 1.1rem;
   }
+}
+
+.emoji {
+  font-family: sans-serif;
+  border: none;
+  background: none;
+  font-size: 3rem;
+  min-height: 5rem;
+  min-width: 5rem;
+  padding: 0;
+  flex: 1;
+}
+
+.emoji.highlighted {
+  background-color: #4a5255;
+}
+
+.swipe-panel {
+  position: relative;
+  height: 16.2rem;
+}
+
+.swipe-section {
+  position: absolute;
+  width: 100%;
+  transform: translateX(99.99%);
+  will-change: transform;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.swipe-section:first-child {
+  transform: translateX(0);
+}
+
+.emoji-ime-switch {
+  background: url('images/emoji/keyboard_ic_ime_emoji_off.png') center center / 3rem no-repeat,
+              url('images/icon_alternate_keyboard.png') left 50% bottom 0.4rem / 1.4rem no-repeat;
+}
+
+.emoji-ime-switch.highlighted {
+  background-image: url('images/emoji/keyboard_ic_ime_emoji_pressed.png');
+}
+
+/* styles for the switching keys of different emoji categories */
+.swipe-switching-buttons {
+  background-color: #525a5d;
+}
+
+.swipe-switching-buttons > .active {
+  background-color: #606b6e;
+  border-bottom: 0.2rem solid #00aacb;
+}
+
+.swipe-switching-buttons > .keyboard-key > .visual-wrapper > .key-element {
+  border-right: 0.1rem solid transparent;
+}
+
+.emoji-recent {
+  background: #576367 url('images/emoji/keyboard_ic_recent_off.png') center center / 3rem no-repeat;
+}
+
+.keyboard-key.emoji-recent > .visual-wrapper > .key-element {
+  border-right: 0.1rem solid transparent;
+  border-left: 0.1rem solid #525a5d;
+}
+
+.emoji-recent.highlighted {
+  background-image: url('images/emoji/keyboard_ic_recent_pressed.png');
+}
+
+.emoji-people {
+  background: #576367 url('images/emoji/keyboard_ic_ppl_off.png') center center / 3rem no-repeat;
+}
+
+.emoji-people.active {
+  background-image: url('images/emoji/keyboard_ic_ppl_on.png');
+}
+
+.emoji-people.highlighted {
+  background-image: url('images/emoji/keyboard_ic_ppl_pressed.png');
+}
+
+.emoji-nature {
+  background: #576367 url('images/emoji/keyboard_ic_nature_off.png') center center / 3rem no-repeat;
+}
+
+.emoji-nature.active {
+  background-image: url('images/emoji/keyboard_ic_nature_on.png');
+}
+
+.emoji-nature.highlighted {
+  background-image: url('images/emoji/keyboard_ic_nature_pressed.png');
+}
+
+.emoji-object {
+  background: #576367 url('images/emoji/keyboard_ic_object_off.png') center center / 3rem no-repeat;
+}
+
+.emoji-object.active {
+  background-image: url('images/emoji/keyboard_ic_object_on.png');
+}
+
+.emoji-object.highlighted {
+  background-image: url('images/emoji/keyboard_ic_object_pressed.png');
+}
+
+.emoji-place {
+  background: #576367 url('images/emoji/keyboard_ic_place_off.png') center center / 3rem no-repeat;
+}
+
+.emoji-place.active {
+  background-image: url('images/emoji/keyboard_ic_place_on.png');
+}
+
+.emoji-place.highlighted {
+  background-image: url('images/emoji/keyboard_ic_place_pressed.png');
+}
+
+.emoji-symbol {
+  background: #576367 url('images/emoji/keyboard_ic_symbol_off.png') center center / 3rem no-repeat;
+}
+
+.emoji-symbol.active {
+  background-image: url('images/emoji/keyboard_ic_symbol_on.png');
+}
+
+.emoji-symbol.highlighted {
+  background-image: url('images/emoji/keyboard_ic_symbol_pressed.png');
+}
+
+.keyboard-key.emoji-symbol > .visual-wrapper > .key-element {
+  border-right: 0.1rem solid #525a5d ;
+  border-left: 0.1rem solid transparent;
+}
+
+/* Section indicator for emoji sections */
+.section-indicator-container {
+  bottom: 0;
+  position: absolute;
+  width: 100%;
+  height: 1.7rem;
+  text-align: center;
+}
+
+.section-indicator {
+  display: inline-block;
+  background-color: #545d60;
+  width: 0.3rem;
+  height: 0.3rem;
+  border-radius: 50%;
+  margin: 0.7rem 0.3rem 0.7rem 0;
+}
+
+.section-indicator.active {
+  background-color: #3e4446;
 }
 
 @media (orientation:landscape) {

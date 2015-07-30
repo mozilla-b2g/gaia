@@ -4,23 +4,15 @@
 
 import time
 
-try:
-    from marionette import (expected,
-                            Wait)
-    from marionette.by import By
-except:
-    from marionette_driver import (expected,
-                                   Wait)
-    from marionette_driver.by import By
+from marionette_driver import expected, By, Wait
 from gaiatest.apps.cost_control.app import CostControl
 
 
 class FTUStep3(CostControl):
 
     _view_locator = (By.ID, 'non-vivo-step-2')
-    _data_alert_switch_locator = (By.CSS_SELECTOR, '#non-vivo-step-2 label.end input')
-    _data_alert_label_locator = (By.CSS_SELECTOR, '#non-vivo-step-2 label.end')
-    _data_alert_selector_locator = (By.CSS_SELECTOR, '#non-vivo-step-2 button[data-widget-type="data-limit"] .tag')
+    _data_alert_switch_locator = (By.CSS_SELECTOR, '#non-vivo-step-2 gaia-switch[data-option="dataLimit"]')
+    _data_alert_selector_locator = (By.CSS_SELECTOR, '#non-vivo-step-2 button[data-widget-type="data-limit"]')
 
     # Data limit popup for changing limit volume and unit
     _data_limit_view_locator = (By.ID, 'data-limit-dialog')
@@ -35,14 +27,21 @@ class FTUStep3(CostControl):
         view = self.marionette.find_element(*self._view_locator)
         Wait(self.marionette).until(lambda m: view.location['x'] == 0)
 
-    def enable_data_alert_toggle(self):
-        switch = self.marionette.find_element(*self._data_alert_switch_locator)
-        if not switch.is_selected():
-            self.marionette.find_element(*self._data_alert_label_locator).tap()
+    def toggle_data_alert(self):
+        self.marionette.find_element(*self._data_alert_switch_locator).tap()
         # Wait for Usage section to hide/display as required
         Wait(self.marionette).until(expected.element_displayed(
             Wait(self.marionette).until(expected.element_present(
                 *self._data_alert_selector_locator))))
+
+    @property
+    def is_data_alert_switch_checked(self):
+        # The following should work, but doesn't, see bug 1113742, hence the execute_script
+        # return self.marionette.find_element(
+        #     *self._data_alert_switch_locator).is_selected()
+        return self.marionette.execute_script("""
+            return window.wrappedJSObject.document.querySelector('#non-vivo-step-2 gaia-switch[data-option="dataLimit"]').checked;
+        """)
 
     def select_when_use_is_above_unit_and_value(self, unit, value):
         self.marionette.find_element(*self._data_alert_selector_locator).tap()

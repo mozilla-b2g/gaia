@@ -10,8 +10,13 @@
   "default_locale": "en-US",
   "icons": {
     "60": "/collections/music/icon.png",
+    "84": "/collections/music/icon_84.png",
     "90": "/collections/music/icon_90.png",
     "120": "/collections/music/icon_120.png",
-    "135": "/collections/music/icon_135.png"
+    "126": "/collections/music/icon_126.png",
+    "135": "/collections/music/icon_135.png",
+    "142": "/collections/music/icon_142.png",
+    "189": "/collections/music/icon_189.png",
+    "284": "/collections/music/icon_284.png"
   }
 }

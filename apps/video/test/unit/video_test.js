@@ -1,3 +1,18 @@
+/* global clearTimeout:true,currentVideo:true,storageState:true,
+  thumbnailList:true,LazyLoader:true,pendingPick:true,isPhone:true,
+  firstScanEnded:true,metadataQueue:true,MediaDB:true,isPortrait:true,
+  currentLayoutMode:true,playerShowing:true,processingQueue:true,
+  pendingUpdateTitleText:true,controlShowing:true,touchStartID:true,
+  selectedFileNames:true,selectedFileNamesToBlobs:true,dragging:true,
+  sliderRect:true,updateVideoControlSlider:true,setControlsVisibility:true,
+  controlFadeTimeout:true,handleSliderTouchMove:true */
+/* global handleScreenLayoutChange,HAVE_NOTHING,handleSliderKeypress,
+  hideOptionsView,MockLazyLoader,MockVideoPlayer,ThumbnailList,
+  toggleVideoControls,showOptionsView,ScreenLayout,MocksHelper,dom,
+  MockThumbnailGroup,MediaUtils,showInfoView,hideInfoView,
+  updateSelection,setButtonPaused,handleSliderTouchStart,MockMediaDB,
+  handleSliderTouchEnd,loadingChecker,MockL10n,VideoUtils,
+  updateDialog,LAYOUT_MODE,showPlayer,hidePlayer,MockThumbnailItem */
 'use strict';
 
 require('/shared/js/lazy_loader.js');
@@ -99,11 +114,13 @@ suite('Video App Unit Tests', function() {
 
     test('#Test show info view', function() {
       assert.isFalse(dom.infoView.classList[0] === 'hidden');
+      assert.isTrue(document.body.classList.contains('info-view'));
     });
 
     test('#Test hide info view', function() {
       hideInfoView();
       assert.isTrue(dom.infoView.classList[0] === 'hidden');
+      assert.isFalse(document.body.classList.contains('info-view'));
     });
   });
 
@@ -112,11 +129,13 @@ suite('Video App Unit Tests', function() {
     test('#Test show option view', function() {
       showOptionsView();
       assert.isFalse(dom.optionsView.classList[0] === 'hidden');
+      assert.isTrue(document.body.classList.contains('options-view'));
     });
 
     test('#Test hide option view', function() {
       hideOptionsView();
       assert.isTrue(dom.optionsView.classList[0] === 'hidden');
+      assert.isFalse(document.body.classList.contains('options-view'));
     });
   });
 
@@ -467,6 +486,19 @@ suite('Video App Unit Tests', function() {
       playerPauseSpy.reset();
     });
 
+    function testTimeSliderAccessibility() {
+      assert.equal(dom.timeSlider.getAttribute('data-l10n-id'), 'seek-bar');
+      assert.deepEqual(
+        JSON.parse(dom.timeSlider.getAttribute('data-l10n-args')),
+        { duration: '00:01' });
+      assert.equal(dom.timeSlider.getAttribute('aria-valuemin'), '0');
+      assert.equal(dom.timeSlider.getAttribute('aria-valuemax'),
+        dom.player.duration);
+      assert.equal(dom.timeSlider.getAttribute('aria-valuenow'),
+        dom.player.currentTime);
+      assert.equal(dom.timeSlider.getAttribute('aria-valuetext'), '00:00');
+    }
+
     /**
      * autoPlay=false, enterFullscreen=false, keepControls=true, current
      * video exists, video is NOT seeking
@@ -502,10 +534,12 @@ suite('Video App Unit Tests', function() {
       thumbnailList.addItem(currentVideo);
       var currentThumbnail = thumbnailList.thumbnailMap[currentVideo.name];
       currentThumbnail.htmlNode.classList.add('focused');
-      dom.play.classList.add('paused');
+      setButtonPaused(true);
 
       document.body.classList.add(LAYOUT_MODE.list); // Stage list layout
-      dom.videoControls.classList.add('hidden'); // Stage controls being hidden
+      // Stage controls being hidden
+      dom.playerView.classList.add('video-controls-hidden');
+      dom.videoContainer.setAttribute('data-l10n-id', 'show-controls-button');
       dom.player.setSeeking(false);
       dom.player.setDuration(videoDuration);
 
@@ -538,14 +572,18 @@ suite('Video App Unit Tests', function() {
                                  LAYOUT_MODE.fullscreenPlayer), false);
       assert.equal(dom.durationText.textContent, '00:01');
       assert.equal(dom.player.currentTime, currentVideo.metadata.currentTime);
+      testTimeSliderAccessibility();
       //
       // video is not seeking -- 'doneSeeking' is called syncronously
       //   * autoPlay is false -- video is paused
       //   * keepControls is true -- controls not hidden
       //
       assert.isTrue(containsClass(dom.play, 'paused'));
+      assert.equal(dom.play.getAttribute('data-l10n-id'), 'play-button');
       assert.isTrue(playerPauseSpy.calledOnce);
-      assert.isFalse(containsClass(dom.videoControls, 'hidden'));
+      assert.isFalse(containsClass(dom.playerView, 'video-controls-hidden'));
+      assert.equal(dom.videoContainer.getAttribute('data-l10n-id'),
+        'hide-controls-button');
       assert.isNull(dom.player.onseeked);
     });
 
@@ -593,8 +631,11 @@ suite('Video App Unit Tests', function() {
       //   * keepControls is true -- controls not hidden
       //
       assert.isTrue(containsClass(dom.play, 'paused'));
+      assert.equal(dom.play.getAttribute('data-l10n-id'), 'play-button');
       assert.isTrue(playerPauseSpy.calledOnce);
-      assert.isFalse(containsClass(dom.videoControls, 'hidden'));
+      assert.isFalse(containsClass(dom.playerView, 'video-controls-hidden'));
+      assert.equal(dom.videoContainer.getAttribute('data-l10n-id'),
+        'hide-controls-button');
       assert.isNull(dom.player.onseeked);
     });
 
@@ -618,7 +659,9 @@ suite('Video App Unit Tests', function() {
       dom.player.setDuration(videoDuration);
 
       document.body.classList.add(LAYOUT_MODE.list); // Stage list layout
-      dom.videoControls.classList.add('hidden'); // Stage controls being hidden
+      // Stage controls being hidden
+      dom.playerView.classList.add('video-controls-hidden');
+      dom.videoContainer.setAttribute('data-l10n-id', 'show-controls-button');
 
       showPlayer(selectedVideo,
                  false, /* autoPlay */
@@ -652,11 +695,13 @@ suite('Video App Unit Tests', function() {
 
       assert.equal(dom.durationText.textContent, '00:01');
       assert.equal(dom.player.currentTime, 0);
+      testTimeSliderAccessibility();
       assert.equal(containsClass(document.body,
                    LAYOUT_MODE.list), true);
       assert.equal(containsClass(document.body,
                    LAYOUT_MODE.fullscreenPlayer), false);
       assert.isTrue(dom.play.classList.contains('paused'));
+      assert.equal(dom.play.getAttribute('data-l10n-id'), 'play-button');
       assert.isTrue(playerPauseSpy.calledOnce);
     });
 
@@ -679,7 +724,8 @@ suite('Video App Unit Tests', function() {
       dom.player.setSeeking(false);
 
       document.body.classList.add(LAYOUT_MODE.list); // Not fullscreen
-      dom.videoControls.classList.add('hidden');
+      dom.playerView.classList.add('video-controls-hidden');
+      dom.videoContainer.setAttribute('data-l10n-id', 'show-controls-button');
 
       showPlayer(selectedVideo,
                  true, /* autoPlay */
@@ -690,8 +736,11 @@ suite('Video App Unit Tests', function() {
 
       assert.isTrue(containsClass(document.body, LAYOUT_MODE.list));
       assert.isFalse(containsClass(dom.play, 'paused'));
+      assert.equal(dom.play.getAttribute('data-l10n-id'), 'pause-button');
       assert.isTrue(playerPlaySpy.calledOnce);
-      assert.isFalse(containsClass(dom.videoControls, 'hidden'));
+      assert.isFalse(containsClass(dom.playerView, 'video-controls-hidden'));
+      assert.equal(dom.videoContainer.getAttribute('data-l10n-id'),
+        'hide-controls-button');
     });
 
    /**
@@ -718,7 +767,8 @@ suite('Video App Unit Tests', function() {
       currentLayoutMode = LAYOUT_MODE.list;
       document.body.classList.add(LAYOUT_MODE.list);
 
-      dom.videoControls.classList.add('hidden');
+      dom.playerView.classList.add('video-controls-hidden');
+      dom.videoContainer.setAttribute('data-l10n-id', 'show-controls-button');
 
       showPlayer(selectedVideo,
                  true, /* autoPlay */
@@ -732,9 +782,12 @@ suite('Video App Unit Tests', function() {
       assert.equal(containsClass(document.body,
                    LAYOUT_MODE.fullscreenPlayer), true);
       assert.isFalse(containsClass(dom.play, 'paused'));
+      assert.equal(dom.play.getAttribute('data-l10n-id'), 'pause-button');
       assert.isTrue(playerPlaySpy.calledOnce);
       assert.equal(playerPauseSpy.callCount, 0);
-      assert.isFalse(containsClass(dom.videoControls, 'hidden'));
+      assert.isFalse(containsClass(dom.playerView, 'video-controls-hidden'));
+      assert.equal(dom.videoContainer.getAttribute('data-l10n-id'),
+        'hide-controls-button');
     });
 
    /**
@@ -762,7 +815,8 @@ suite('Video App Unit Tests', function() {
       currentLayoutMode = LAYOUT_MODE.list;
       document.body.classList.add(LAYOUT_MODE.list);
 
-      dom.videoControls.classList.remove('hidden');
+      dom.playerView.classList.remove('video-controls-hidden');
+      dom.videoContainer.setAttribute('data-l10n-id', 'hide-controls-button');
 
       showPlayer(selectedVideo,
                  true, /* autoPlay */
@@ -776,12 +830,15 @@ suite('Video App Unit Tests', function() {
       assert.equal(containsClass(document.body,
                    LAYOUT_MODE.fullscreenPlayer), true);
       assert.isFalse(containsClass(dom.play, 'paused'));
+      assert.equal(dom.play.getAttribute('data-l10n-id'), 'pause-button');
       assert.isTrue(playerPlaySpy.calledOnce);
       assert.equal(playerPauseSpy.callCount, 0);
 
       fakeTimer.tick(300);
 
-      assert.isTrue(containsClass(dom.videoControls, 'hidden'));
+      assert.isTrue(containsClass(dom.playerView, 'video-controls-hidden'));
+      assert.equal(dom.videoContainer.getAttribute('data-l10n-id'),
+        'show-controls-button');
     });
 
     /**
@@ -986,7 +1043,7 @@ suite('Video App Unit Tests', function() {
       // hidePlayer pauses the video and removes the 'paused' class; TODO: why?
       // In the 'playerShowing' flow, dom.play has 'paused' attribute,
       // which gets removed during the flow
-      dom.play.classList.add('paused');
+      setButtonPaused(true);
 
       // In the 'playerShowing' flow, dom.player has 'src' attribute,
       // which gets removed during the flow
@@ -995,6 +1052,7 @@ suite('Video App Unit Tests', function() {
       hidePlayer(false);
 
       assert.isFalse(containsClass(dom.play, 'paused'));
+      assert.equal(dom.play.getAttribute('data-l10n-id'), 'pause-button');
       assert.isFalse(dom.player.hasAttribute('src'));
       assert.isFalse(playerShowing);
       assert.isTrue(playerLoadSpy.calledOnce);
@@ -1012,7 +1070,7 @@ suite('Video App Unit Tests', function() {
       pendingPick = false;
 
       // hidePlayer pauses video and then removes 'paused' class - TODO: why?
-      dom.play.classList.add('paused');
+      setButtonPaused(true);
       dom.player.src = 'about:blank';
 
       //
@@ -1033,6 +1091,7 @@ suite('Video App Unit Tests', function() {
       hidePlayer(true);
 
       assert.isFalse(containsClass(dom.play, 'paused'));
+      assert.equal(dom.play.getAttribute('data-l10n-id'), 'pause-button');
       assert.isFalse(dom.player.hasAttribute('src'));
       assert.isFalse(playerShowing);
       assert.isTrue(playerLoadSpy.calledOnce);
@@ -1054,7 +1113,7 @@ suite('Video App Unit Tests', function() {
       playerShowing = true;
       pendingPick = false;
 
-      dom.play.classList.add('paused');
+      setButtonPaused(true);
       dom.player.src = 'about:blank';
 
       //
@@ -1075,6 +1134,7 @@ suite('Video App Unit Tests', function() {
       hidePlayer(true);
 
       assert.isFalse(containsClass(dom.play, 'paused'));
+      assert.equal(dom.play.getAttribute('data-l10n-id'), 'pause-button');
       assert.isFalse(dom.player.hasAttribute('src'));
       assert.isFalse(playerShowing);
       assert.isTrue(playerLoadSpy.calledOnce);
@@ -1095,7 +1155,7 @@ suite('Video App Unit Tests', function() {
       playerShowing = true;
       pendingPick = true;
 
-      dom.play.classList.add('paused');
+      setButtonPaused(true);
       dom.player.src = 'about:blank';
 
       //
@@ -1119,6 +1179,7 @@ suite('Video App Unit Tests', function() {
       hidePlayer(true);
 
       assert.isFalse(containsClass(dom.play, 'paused'));
+      assert.equal(dom.play.getAttribute('data-l10n-id'), 'pause-button');
       assert.isTrue(playerPauseSpy.calledOnce);
       assert.isFalse(dom.player.hasAttribute('src'));
       assert.isTrue(playerLoadSpy.calledOnce);
@@ -1140,7 +1201,7 @@ suite('Video App Unit Tests', function() {
       playerShowing = true;
       pendingPick = false;
 
-      dom.play.classList.add('paused');
+      setButtonPaused(true);
       dom.player.src = 'about:blank';
 
       // dom.player.currentTime is not set for this test because
@@ -1155,6 +1216,7 @@ suite('Video App Unit Tests', function() {
       hidePlayer(true);
 
       assert.isFalse(containsClass(dom.play, 'paused'));
+      assert.equal(dom.play.getAttribute('data-l10n-id'), 'pause-button');
       assert.isTrue(playerPauseSpy.calledOnce);
       assert.isFalse(dom.player.hasAttribute('src'));
       assert.isFalse(playerShowing);
@@ -1175,7 +1237,7 @@ suite('Video App Unit Tests', function() {
       playerShowing = true;
       pendingPick = false;
 
-      dom.play.classList.add('paused');
+      setButtonPaused(true);
       dom.player.src = 'about:blank';
 
       //
@@ -1195,6 +1257,7 @@ suite('Video App Unit Tests', function() {
 
       hidePlayer(true, function() {
         assert.isFalse(containsClass(dom.play, 'paused'));
+        assert.equal(dom.play.getAttribute('data-l10n-id'), 'pause-button');
         assert.isTrue(playerPauseSpy.calledOnce);
         assert.isFalse(dom.player.hasAttribute('src'));
         assert.isFalse(playerShowing);
@@ -1220,7 +1283,7 @@ suite('Video App Unit Tests', function() {
 
       // In the 'playerShowing' flow, dom.play has 'paused' attribute,
       // which gets removed during the flow
-      dom.play.classList.add('paused');
+      setButtonPaused(true);
 
       // In the 'playerShowing' flow, dom.player has 'src' attribute,
       // which gets removed during the flow
@@ -1233,6 +1296,7 @@ suite('Video App Unit Tests', function() {
 
       hidePlayer(false, function() {
         assert.isFalse(containsClass(dom.play, 'paused'));
+        assert.equal(dom.play.getAttribute('data-l10n-id'), 'pause-button');
         assert.isTrue(playerPauseSpy.calledOnce);
         assert.isFalse(dom.player.hasAttribute('src'));
         assert.isFalse(playerShowing);
@@ -1254,7 +1318,7 @@ suite('Video App Unit Tests', function() {
       // In the 'playerShowing' flow, dom.play has 'paused' attribute
       // and dom.player has 'src' attribute. Set these to test that
       // in the !playerShowing flow these attributes are not changed.
-      dom.play.classList.add('paused');
+      setButtonPaused(true);
       dom.player.src = 'about:blank';
 
       // dom.player.currentTime is not set for this test because
@@ -1266,6 +1330,7 @@ suite('Video App Unit Tests', function() {
 
       hidePlayer(false, function() {
         assert.isTrue(containsClass(dom.play, 'paused'));
+        assert.equal(dom.play.getAttribute('data-l10n-id'), 'play-button');
         assert.isFalse(playerPauseSpy.calledOnce);
         assert.isTrue(dom.player.hasAttribute('src'));
         assert.isFalse(playerShowing);
@@ -1289,7 +1354,7 @@ suite('Video App Unit Tests', function() {
       // In the 'playerShowing' flow, dom.play has 'paused' attribute
       // and dom.player has 'src' attribute. Set these to test that
       // in the !playerShowing flow these attributes are not changed.
-      dom.play.classList.add('paused');
+      setButtonPaused(true);
       dom.player.src = 'about:blank';
 
       // dom.player.currentTime is not set for this test because
@@ -1302,6 +1367,7 @@ suite('Video App Unit Tests', function() {
       hidePlayer(false);
 
       assert.isTrue(containsClass(dom.play, 'paused'));
+      assert.equal(dom.play.getAttribute('data-l10n-id'), 'play-button');
       assert.isFalse(playerPauseSpy.calledOnce);
       assert.isTrue(dom.player.hasAttribute('src'));
       assert.isFalse(playerShowing);
@@ -1322,7 +1388,7 @@ suite('Video App Unit Tests', function() {
       // In the 'playerShowing' flow, dom.play has 'paused' attribute
       // and dom.player has 'src' attribute. Set these to test that
       // in the !playerShowing flow these attributes are not changed.
-      dom.play.classList.add('paused');
+      setButtonPaused(true);
       dom.player.src = 'about:blank';
 
       // dom.player.currentTime is not set for this test because
@@ -1334,6 +1400,7 @@ suite('Video App Unit Tests', function() {
 
       hidePlayer(true, function() {
         assert.isTrue(containsClass(dom.play, 'paused'));
+        assert.equal(dom.play.getAttribute('data-l10n-id'), 'play-button');
         assert.isFalse(playerPauseSpy.calledOnce);
         assert.isTrue(dom.player.hasAttribute('src'));
         assert.isFalse(playerShowing);
@@ -1356,7 +1423,7 @@ suite('Video App Unit Tests', function() {
       // In the 'playerShowing' flow, dom.play has 'paused' attribute
       // and dom.player has 'src' attribute. Set these to test that
       // in the !playerShowing flow these attributes are not changed.
-      dom.play.classList.add('paused');
+      setButtonPaused(true);
       dom.player.src = 'about:blank';
 
       // dom.player.currentTime is not set for this test because
@@ -1369,6 +1436,7 @@ suite('Video App Unit Tests', function() {
       hidePlayer(true);
 
       assert.isTrue(containsClass(dom.play, 'paused'));
+      assert.equal(dom.play.getAttribute('data-l10n-id'), 'play-button');
       assert.isFalse(playerPauseSpy.calledOnce);
       assert.isTrue(dom.player.hasAttribute('src'));
       assert.isFalse(playerShowing);
@@ -1427,6 +1495,8 @@ suite('Video App Unit Tests', function() {
 
       assert.isFalse(containsClass(dom.spinnerOverlay, 'hidden'));
       assert.isTrue(containsClass(dom.playerView, 'disabled'));
+      assert.equal(dom.playerView.getAttribute('aria-disabled'), 'true',
+        'aria-disabled attribute should be set to true');
       assert.equal(ThumbnailItem.titleMaxLines, 2);
     });
 
@@ -1443,6 +1513,8 @@ suite('Video App Unit Tests', function() {
 
       assert.isTrue(containsClass(dom.spinnerOverlay, 'hidden'));
       assert.isFalse(containsClass(dom.playerView, 'disabled'));
+      assert.equal(dom.playerView.getAttribute('aria-disabled'), 'false',
+        'aria-disabled attribute should be set to false');
       assert.equal(ThumbnailItem.titleMaxLines, 2);
     });
 
@@ -1573,6 +1645,28 @@ suite('Video App Unit Tests', function() {
       handleScreenLayoutChange();
 
       assert.equal(rescaleSpy.callCount, 0);
+    });
+  });
+
+  suite('handleSliderKeypress', function() {
+    var keyEvent;
+
+    setup(function() {
+      dom.player.currentTime = 0;
+      dom.player.duration = 10;
+      dom.player.currentTime = 5;
+      keyEvent = document.createEvent('KeyboardEvent');
+    });
+
+    test('test seek up and seek down based on key up and key down', function() {
+      [{ key: 38 /* DOM_VK_UP */, step: 2 },
+       { key: 40 /* DOM_VK_UP */, step: -2 }].forEach(function(testSpec) {
+        var currentTime = dom.player.currentTime;
+        keyEvent.initKeyEvent('keypress', true, true, window, false, false,
+          false, false, testSpec.key, 0);
+        handleSliderKeypress(keyEvent);
+        assert.equal(dom.player.currentTime, currentTime + testSpec.step);
+      });
     });
   });
 
@@ -1727,27 +1821,18 @@ suite('Video App Unit Tests', function() {
       assert.isTrue(event.cancelBubble);
     });
 
-    test('#toggleVideoControls: toggle control not showing, target not vc',
-        function() {
+    test('#toggleVideoControls: toggle control not showing',
+      function() {
       pendingPick = false;
       controlShowing = true;
-      event.originalTarget = 'some target';
-      toggleVideoControls(event);
-      assert.equal(setControlsVisibilitySpy.callCount, 0);
-    });
-
-    test('#toggleVideoControls: toggle control not showing, target vc',
-        function() {
-      pendingPick = false;
-      controlShowing = true;
-      event.originalTarget = dom.videoControls;
       toggleVideoControls(event);
       assert.isTrue(setControlsVisibilitySpy.calledOnce);
       assert.isTrue(setControlsVisibilitySpy.calledWith(false));
+      assert.isFalse(event.cancelBubble);
     });
 
     test('#toggleVideoControls: pending pick, no toggle',
-        function() {
+      function() {
       pendingPick = true;
       toggleVideoControls(event);
       assert.equal(setControlsVisibilitySpy.callCount, 0);
@@ -1784,49 +1869,48 @@ suite('Video App Unit Tests', function() {
       selectedFileNamesToBlobs = {};
     });
 
-    test('#updateSelection: toggle thumbnail as selected', function() {
-      var thumbnail = thumbnailList.thumbnailMap[videodata.name];
-      thumbnail.htmlNode.classList.remove('selected'); // not selected
-      updateSelection(videodata);
-      assert.isTrue(thumbnail.htmlNode.classList.contains('selected'),
-                    'thumbnail should contain \'selected\' class');
+    test('#updateSelection: toggle thumbnail as selected and add to selected ' +
+      'filenames', function() {
+        var thumbnail = thumbnailList.thumbnailMap[videodata.name];
+        thumbnail.htmlNode.classList.remove('selected'); // not selected
+        thumbnail.htmlNode.setAttribute('aria-selected', false);
+        updateSelection(videodata);
+        assert.isTrue(thumbnail.htmlNode.classList.contains('selected'),
+                      'thumbnail should contain \'selected\' class');
+        assert.equal(thumbnail.htmlNode.getAttribute('aria-selected'), 'true',
+                     'thumbnail aria-selected attribute should be set to true');
+        assert.equal(selectedFileNames.length, 1,
+                     'should be one selected file');
+        assert.equal(selectedFileNames[0], videodata.name,
+                     'name of selected file should be name of videodata');
+        assert.equal(selectedFileNamesToBlobs[videodata.name], videoBlob,
+          'blob associated with videodata name should be video blob');
     });
 
-    test('#updateSelection: toggle thumbnail as not selected', function() {
-      var thumbnail = thumbnailList.thumbnailMap[videodata.name];
-      thumbnail.htmlNode.classList.add('selected'); // selected
-      updateSelection(videodata);
-      assert.isFalse(thumbnail.htmlNode.classList.contains('selected'),
-                     'thumbnail should not contain \'selected\' class');
-    });
-
-    test('#updateSelection: update (add to) selected filenames', function() {
-      var thumbnail = thumbnailList.thumbnailMap[videodata.name];
-      thumbnail.htmlNode.classList.remove('selected'); // not selected
-      updateSelection(videodata);
-      assert.equal(selectedFileNames.length, 1,
-                   'should be one selected file');
-      assert.equal(selectedFileNames[0], videodata.name,
-                   'name of selected file should be name of videodata');
-      assert.equal(selectedFileNamesToBlobs[videodata.name], videoBlob,
-                   'blob associated with videodata name should be video blob');
-    });
-
-    test('#updateSelection: update (remove) selected filenames', function() {
-      var thumbnail = thumbnailList.thumbnailMap[videodata.name];
-      thumbnail.htmlNode.classList.add('selected'); // selected
-      updateSelection(videodata);
-      assert.equal(selectedFileNames.length, 0,
-                   'shouldnt be any selected files');
-      assert.equal(selectedFileNamesToBlobs[videodata.name], undefined,
-                   'no blob associated with videodata name');
+    test('#updateSelection: toggle thumbnail as not selected and remove ' +
+      'selected filenames', function() {
+        var thumbnail = thumbnailList.thumbnailMap[videodata.name];
+        thumbnail.htmlNode.classList.add('selected'); // selected
+        thumbnail.htmlNode.setAttribute('aria-selected', true);
+        updateSelection(videodata);
+        assert.isFalse(thumbnail.htmlNode.classList.contains('selected'),
+                       'thumbnail should not contain \'selected\' class');
+        assert.equal(thumbnail.htmlNode.getAttribute('aria-selected'), 'false',
+          'thumbnail aria-selected attribute should be set to false');
+        assert.equal(selectedFileNames.length, 0,
+                     'shouldnt be any selected files');
+        assert.equal(selectedFileNamesToBlobs[videodata.name], undefined,
+                     'no blob associated with videodata name');
     });
 
     test('#updateSelection: update UI, thumbnail is selected', function() {
       dom.thumbnailsDeleteButton.classList.add('disabled');
       dom.thumbnailsShareButton.classList.add('disabled');
+      dom.thumbnailsDeleteButton.setAttribute('aria-disabled', true);
+      dom.thumbnailsShareButton.setAttribute('aria-disabled', true);
       var thumbnail = thumbnailList.thumbnailMap[videodata.name];
       thumbnail.htmlNode.classList.remove('selected'); // not selected
+      thumbnail.htmlNode.setAttribute('aria-selected', false);
 
       updateSelection(videodata);
       assert.equal(dom.thumbnailsNumberSelected.textContent,
@@ -1836,11 +1920,16 @@ suite('Video App Unit Tests', function() {
                      'thumbnail delete button should be enabled');
       assert.isFalse(containsClass(dom.thumbnailsShareButton, 'disabled'),
                      'thumbnail share button should be enabled');
+      assert.equal(dom.thumbnailsDeleteButton.getAttribute('aria-disabled'),
+        'false', 'aria-disabled attribute should be set to false');
+      assert.equal(dom.thumbnailsShareButton.getAttribute('aria-disabled'),
+        'false', 'aria-disabled attribute should be set to false');
     });
 
     test('#updateSelection: update UI, no thumbnail is selected', function() {
       var thumbnail = thumbnailList.thumbnailMap[videodata.name];
       thumbnail.htmlNode.classList.add('selected'); // selected
+      thumbnail.htmlNode.setAttribute('aria-selected', true);
 
       updateSelection(videodata);
       assert.equal(dom.thumbnailsNumberSelected.textContent,
@@ -1850,6 +1939,10 @@ suite('Video App Unit Tests', function() {
                     'thumbnail delete button should be disabled');
       assert.isTrue(containsClass(dom.thumbnailsShareButton, 'disabled'),
                     'thumbnail share button should be disabled');
+      assert.equal(dom.thumbnailsDeleteButton.getAttribute('aria-disabled'),
+        'true', 'aria-disabled attribute should be set to true');
+      assert.equal(dom.thumbnailsShareButton.getAttribute('aria-disabled'),
+        'true', 'aria-disabled attribute should be set to true');
     });
   });
 

@@ -10,24 +10,32 @@
     this.blacklist;
 
     var mozApps = navigator.mozApps.mgmt;
-    var self = this;
 
-    mozApps.oninstall = function oninstall(e) {
-      self.apps[e.application.manifestURL] = e.application;
-      self.createAppListing();
+    mozApps.oninstall = e => {
+      var app = e.application;
+      var processApp = () => {
+        this.apps[app.manifestURL] = app;
+        this.createAppListing();
+      };
+
+      if (app.downloading) {
+        app.ondownloadapplied = processApp;
+      } else {
+        processApp();
+      }
     };
 
-    mozApps.onuninstall = function oninstall(e) {
-      delete self.apps[e.application.manifestURL];
-      self.createAppListing();
+    mozApps.onuninstall = e => {
+      delete this.apps[e.application.manifestURL];
+      this.createAppListing();
     };
 
-    mozApps.getAll().onsuccess = function r_getApps(e) {
-      e.target.result.forEach(function r_AppsForEach(app) {
-        self.apps[app.manifestURL] = app;
+    mozApps.getAll().onsuccess = e => {
+      e.target.result.forEach(app => {
+        this.apps[app.manifestURL] = app;
       });
-      self.createBlacklist().then(() => {
-        self.createAppListing();
+      this.createBlacklist().then(() => {
+        this.createAppListing();
       });
     };
   }
@@ -64,7 +72,8 @@
         var manifest = app.manifest || app.updateManifest;
 
         var HIDDEN_ROLES = [
-          'system', 'input', 'homescreen', 'search', 'addon', 'langpack'
+          'system', 'input', 'homescreen', 'search', 'theme', 'addon',
+          'langpack'
         ];
         if (HIDDEN_ROLES.indexOf(manifest.role) !== -1) {
           return;

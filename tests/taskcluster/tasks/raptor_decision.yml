@@ -1,0 +1,27 @@
+reruns: 4
+task:
+  metadata:
+    name: 'Gaia Raptor Decision Task'
+    description: 'Raptor performance tests'
+
+  workerType: 'gaia-decision'
+  provisionerId: 'aws-provisioner-v1'
+  scopes:
+    # Source caches contains various sources (including a tarball of gaia source
+    # tree)
+    - docker-worker:cache:tc-vcs
+
+  payload:
+    maxRunTime:
+    cache:
+      tc-vcs: /home/worker/.tc-vcs
+    command:
+      - entrypoint
+      - npm install taskcluster-client promise && node tests/taskcluster/bin/raptor_graph > /raptor_graph.json && cat /raptor_graph.json
+
+    graphs: ["/raptor_graph.json"]
+
+  extra:
+    treeherder:
+      symbol: 'R'
+      groupSymbol: "?"

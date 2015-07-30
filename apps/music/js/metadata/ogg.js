@@ -73,39 +73,40 @@ var OggMetadata = (function() {
     var sum = function(a, b) { return a + b; };
     var comment_length = Array.reduce(header.segment_table, sum, 0);
 
-    return new Promise(function(resolve, reject) {
-      page.getMore(page.index, comment_length, function(fullpage, err) {
+    return new Promise((resolve, reject) => {
+      page.getMore(page.index, comment_length, (fullpage, err) => {
         if (err) {
           reject(err);
           return;
         }
 
-        // Look for a comment header from a supported codec
-        var first_byte = fullpage.readByte();
-        var valid = false;
-        switch (first_byte) {
-        case 3:
-          valid = fullpage.readASCIIText(6) === 'vorbis';
-          metadata.tag_format = 'vorbis';
-          break;
-        case 79:
-          valid = fullpage.readASCIIText(7) === 'pusTags';
-          metadata.tag_format = 'opus';
-          break;
-        }
-        if (!valid) {
-          reject('malformed ogg comment packet');
-          return;
-        }
+        try {
+          // Look for a comment header from a supported codec
+          var first_byte = fullpage.readByte();
+          var valid = false;
+          switch (first_byte) {
+          case 3:
+            valid = fullpage.readASCIIText(6) === 'vorbis';
+            metadata.tag_format = 'vorbis';
+            break;
+          case 79:
+            valid = fullpage.readASCIIText(7) === 'pusTags';
+            metadata.tag_format = 'opus';
+            break;
+          }
+          if (!valid) {
+            reject('malformed ogg comment packet');
+            return;
+          }
 
-        readAllComments(fullpage, metadata);
+          readAllComments(fullpage, metadata);
 
-        LazyLoader.load('js/metadata/vorbis_picture.js', function() {
-          VorbisPictureComment.parsePictureComment(metadata).
-            then(function(metadata) {
-              resolve(metadata);
-            });
-        });
+          LazyLoader.load('js/metadata/vorbis_picture.js').then(() => {
+            return VorbisPictureComment.parsePictureComment(metadata);
+          }).then(resolve);
+        } catch(e) {
+          reject(e);
+        }
       });
     });
   }

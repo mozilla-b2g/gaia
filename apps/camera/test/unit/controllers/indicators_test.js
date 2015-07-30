@@ -50,6 +50,13 @@ suite('controllers/indicators', function() {
       assert.ok(this.app.settings.hdr.on.calledWith('change:selected'));
       assert.ok(this.app.on.calledWith('change:batteryStatus'));
       assert.ok(this.app.on.calledWith('settings:configured'));
+      assert.ok(this.app.on.calledWith('settings:opened'));
+      assert.ok(this.app.on.calledWith('settings:closed'));
+
+      assert.ok(this.app.on.calledWith('previewgallery:opened',
+        this.view.hide));
+      assert.ok(this.app.on.calledWith('previewgallery:closed',
+        this.view.show));
     });
 
     test('It sets the battery status initially', function() {
@@ -66,6 +73,14 @@ suite('controllers/indicators', function() {
 
     test('It reconfigures when the settings change', function() {
       sinon.assert.calledWith(this.app.on, 'settings:configured', this.controller.configure);
+    });
+
+    test('It binds view setter for aria-hidden true', function() {
+      sinon.assert.calledWith(this.view.setter, 'ariaHidden', true);
+    });
+
+    test('It binds view setter for aria-hidden false', function() {
+      sinon.assert.calledWith(this.view.setter, 'ariaHidden', false);
     });
   });
 

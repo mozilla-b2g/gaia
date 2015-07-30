@@ -1,22 +1,24 @@
+'use strict';
+
 var Gallery = require('./lib/gallery.js'),
+    Fullscreen_View = require('./lib/fullscreen_view.js'),
     Marionette = require('marionette-client'),
     assert = require('assert');
 
 marionette('editing an image', function() {
 
-  var app, actions, client, chrome;
+  var app, actions, fullscreen_view, client;
 
   client = marionette.client({
-    prefs: {
-      'device.storage.enabled': true,
-      'device.storage.testing': true,
-      'device.storage.prompt.testing': true,
-      'webgl.force-enabled': true
+    profile: {
+      prefs: {
+        'device.storage.enabled': true,
+        'device.storage.testing': true,
+        'device.storage.prompt.testing': true,
+        'webgl.force-enabled': true
+      }
     },
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
-    }
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
   });
 
   setup(function() {
@@ -28,39 +30,44 @@ marionette('editing an image', function() {
       filePath: 'test_media/Pictures/firefoxOS.png'
     });
     app = new Gallery(client);
+    fullscreen_view = new Fullscreen_View(client);
     actions = new Marionette.Actions(client);
     app.launch();
   });
 
   test('should have crop options', function() {
-    app.enterMainEditScreen();
-    app.editCropButton.click();
-    assert.ok(app.cropOptions.displayed());
+    app.tapFirstThumbnail();
+    fullscreen_view.editButton.click();
+    fullscreen_view.editCropButton.click();
+    assert.ok(fullscreen_view.cropOptions.displayed());
 
   });
 
   test('should have exposure options', function() {
-    app.enterMainEditScreen();
-    app.editExposureButton.click();
-    assert.ok(app.exposureOptions.displayed());
+    app.tapFirstThumbnail();
+    fullscreen_view.editButton.click();
+    fullscreen_view.editExposureButton.click();
+    assert.ok(fullscreen_view.exposureOptions.displayed());
 
   });
 
   test('should have effect options', function() {
-    app.enterMainEditScreen();
-    app.editEffectButton.click();
-    assert.ok(app.effectOptions.displayed());
+    app.tapFirstThumbnail();
+    fullscreen_view.editButton.click();
+    fullscreen_view.editEffectButton.click();
+    assert.ok(fullscreen_view.effectOptions.displayed());
   });
 
   test('should change exposure', function() {
     // Changing the exposure of an image creates a new modified
     // version of original.
-    app.enterMainEditScreen();
-    app.editExposureButton.click();
+    app.tapFirstThumbnail();
+    fullscreen_view.editButton.click();
+    fullscreen_view.editExposureButton.click();
 
     //Change Exposure and get the updated value
-    actions.flick(app.exposureSlider, 0, 0, 50, 0).perform();
-    var current = app.getExposureSliderPosition();
+    actions.flick(fullscreen_view.exposureSlider, 0, 0, 50, 0).perform();
+    var current = fullscreen_view.getExposureSliderPosition();
     assert.ok(
       current == 0.8125,
       'Exposure slider is at updated position'
@@ -69,36 +76,50 @@ marionette('editing an image', function() {
 
   test('should crop image', function() {
     // Croping an image creates a new modified version of original.
-    app.enterMainEditScreen();
-    app.editCropButton.click();
+    app.tapFirstThumbnail();
+    fullscreen_view.editButton.click();
+    fullscreen_view.editCropButton.click();
 
     //Choose crop aspect portrait crop option
-    app.editCropAspectPortraitButton.click();
-    app.applyEditToolOptions();
+    fullscreen_view.editCropAspectPortraitButton.click();
+    fullscreen_view.applyEditToolOptions();
 
     // Enter Crop edit tool to check selected crop option
-    app.editCropButton.click();
+    fullscreen_view.editCropButton.click();
     // Check crop aspect portrait is selected
-    app.waitForCropAspectPortraitSelected();
+    fullscreen_view.waitForCropAspectPortraitSelected();
   });
 
   test('should apply effect', function() {
-    app.enterMainEditScreen();
-    app.editEffectButton.click();
+    app.tapFirstThumbnail();
+    fullscreen_view.editButton.click();
+    fullscreen_view.editEffectButton.click();
 
     // Choose sepia effect edit option
-    app.editEffectSepiaButton.click();
-    app.applyEditToolOptions();
+    fullscreen_view.editEffectSepiaButton.click();
+    fullscreen_view.applyEditToolOptions();
 
     // Enter effect edit tool to check selected effect
-    app.editEffectButton.click();
+    fullscreen_view.editEffectButton.click();
     // Check Sepia Effect is selected
-    app.waitForSepiaEffectSelected();
+    fullscreen_view.waitForSepiaEffectSelected();
   });
 
   test('check default enhance', function() {
-    app.enterMainEditScreen();
+    app.tapFirstThumbnail();
+    fullscreen_view.editButton.click();
     // Check auto enhance is turned off
-    app.waitForAutoEnhanceButtonOff();
+    fullscreen_view.waitForAutoEnhanceButtonOff();
+  });
+
+  test('Apply auto enhance and cancel to exit main edit screen', function() {
+    app.tapFirstThumbnail();
+    fullscreen_view.editButton.click();
+    fullscreen_view.applyAutoEnhance();
+
+    // Click on cancel after applying auto enhance should take user
+    // out of edit screen and display image in full screen view
+    fullscreen_view.performEditHeaderCancelAction();
+    assert.ok(fullscreen_view.displayed);
   });
 });

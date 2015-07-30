@@ -6,17 +6,15 @@ var Calendar = require('./lib/calendar'),
 marionette('modify event view', function() {
   var app;
   var client = marionette.client({
-    prefs: {
-      // we need to disable the keyboard to avoid intermittent failures on
-      // Travis (transitions might take longer to run and block UI)
-      'dom.mozInputMethod.enabled': false,
-      // Do not require the B2G-desktop app window to have focus (as per the
-      // system window manager) in order for it to do focus-related things.
-      'focusmanager.testmode': true
-    },
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
+    profile: {
+      prefs: {
+        // we need to disable the keyboard to avoid intermittent failures on
+        // Travis (transitions might take longer to run and block UI)
+        'dom.mozInputMethod.enabled': false,
+        // Do not require the B2G-desktop app window to have focus (as per the
+        // system window manager) in order for it to do focus-related things.
+        'focusmanager.testmode': true
+      }
     }
   });
   var editEvent;
@@ -26,6 +24,8 @@ marionette('modify event view', function() {
     editEvent = app.editEvent;
     app.launch();
     app.openModifyEventView();
+    // we need a title or location otherwise event can't be saved
+    editEvent.title = 'Reminder Test';
   });
 
   suite('reminders', function() {

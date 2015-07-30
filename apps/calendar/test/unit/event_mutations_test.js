@@ -1,13 +1,13 @@
 define(function(require) {
 'use strict';
 
-var Calc = require('calc');
+var Calc = require('common/calc');
 var EventMutations = require('event_mutations');
 var Factory = require('test/support/factory');
+var core = require('core');
 
 suite('EventMutations', function() {
   var subject;
-  var app;
   var db;
 
   var controller;
@@ -17,22 +17,22 @@ suite('EventMutations', function() {
   var alarmStore;
   var componentStore;
   var shouldDisplay;
+  var storeFactory;
 
   setup(function(done) {
     subject = EventMutations;
-    app = testSupport.calendar.app();
-    subject.app = app;
-    db = app.db;
-    controller = app.timeController;
+    db = core.db;
+    controller = core.timeController;
     shouldDisplay = controller._shouldDisplayBusytime;
     controller._shouldDisplayBusytime = function() {
       return true;
     };
 
-    eventStore = db.getStore('Event');
-    busytimeStore = db.getStore('Busytime');
-    alarmStore = db.getStore('Alarm');
-    componentStore = db.getStore('IcalComponent');
+    storeFactory = core.storeFactory;
+    eventStore = storeFactory.get('Event');
+    busytimeStore = storeFactory.get('Busytime');
+    alarmStore = storeFactory.get('Alarm');
+    componentStore = storeFactory.get('IcalComponent');
 
     db.open(done);
   });

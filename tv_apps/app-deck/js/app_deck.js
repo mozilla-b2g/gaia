@@ -37,7 +37,7 @@
                              that.onCardListChanged.bind(that));
       });
 
-      Applications.init(function() {
+      var afterApplicationsInit = function() {
         var apps = Applications.getAllAppEntries();
         var appGridElements = apps.map(that._createAppGridElement.bind(that));
         appGridElements.forEach(function(appGridElem) {
@@ -76,6 +76,10 @@
         Applications.on('install', that.onAppInstalled.bind(that));
         Applications.on('update', that.onAppUpdated.bind(that));
         Applications.on('uninstall', that.onAppUninstalled.bind(that));
+      };
+
+      navigator.mozL10n.once(function() {
+        Applications.init(afterApplicationsInit);
       });
     },
 
@@ -151,7 +155,7 @@
           }
         }
         this._focusElem = elem;
-        elem.catchFocus();
+        elem.focus();
       } else if (elem.nodeName) {
 
         // When we move focus back to app-deck-grid-view area

@@ -4,7 +4,8 @@
 
 <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
 <meta charset="utf-8">
-<meta name="theme-color" content="#ff7d14">
+<meta name="theme-group" content="theme-productivity">
+<meta name="theme-color" content="var(--header-background)" data-default="var(--header-background)" data-settings="#eeeeee">
 <title>Calendar</title>
 
 <!-- stylesheets -->
@@ -25,7 +26,7 @@
 
 <!-- localization -->
 <meta name="defaultLanguage" content="en-US">
-<meta name="availableLanguages" content="ar, en-US, fr, zh-TW">
+<meta name="availableLanguages" content="en-US">
 <link rel="localization" href="locales/calendar.{locale}.properties">
 <link rel="localization" href="/shared/locales/date/date.{locale}.properties">
 <script defer src="/shared/js/date_time_helper.js"></script>
@@ -38,11 +39,11 @@
 <!-- <script defer src="/shared/js/input_parser.js"></script> -->
 <!-- <script defer src="/shared/js/lazy_loader.js"></script> -->
 <!-- <script defer src="/shared/js/notification_helper.js"></script> -->
-<!-- <script defer src="/shared/js/performance_testing_helper.js"></script> -->
 
 <!-- Web Components -->
 <script defer src="shared/js/component_utils.js"></script>
 <script defer src="shared/elements/gaia_subheader/script.js"></script>
+<script defer src="/shared/elements/gaia_switch/script.js"></script>
 <script defer src="shared/elements/config.js"></script>
 <link rel="stylesheet" type="text/css" href="app://theme.gaiamobile.org/shared/elements/gaia-theme/gaia-theme.css" />
 <script defer src="shared/elements/gaia-header/dist/gaia-header.js"></script>
@@ -73,9 +74,7 @@
 <section id="time-views" role="region">
   <gaia-header id="time-header" action="menu">
     <h1 id="current-month-year" aria-labelledby="current-time-indicator"></h1>
-    <a href="/event/add/" data-icon="add">
-      <span data-l10n-id="new-event"></span>
-    </a>
+    <a href="/event/add/" data-icon="add" data-l10n-id="new-event-link"></a>
   </gaia-header>
 
   <div id="progress-indicator">

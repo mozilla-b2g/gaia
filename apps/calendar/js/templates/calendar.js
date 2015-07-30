@@ -1,8 +1,8 @@
 define(function(require, exports, module) {
 'use strict';
 
-var Local = require('provider/local');
 var create = require('template').create;
+var localCalendarId = require('common/constants').localCalendarId;
 
 module.exports = create({
   item: function() {
@@ -13,7 +13,7 @@ module.exports = create({
 
     // localize only the default calendar; there is no need to set the name
     // the [data-l10n-id] will take care of setting the proper value
-    if (id && Local.calendarId === id) {
+    if (id && localCalendarId === id) {
       // localize the default calendar name
       l10n = 'data-l10n-id="calendar-local"';
     } else {

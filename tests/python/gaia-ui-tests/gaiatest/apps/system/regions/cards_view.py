@@ -4,16 +4,8 @@
 
 import time
 
-try:
-    from marionette import (expected,
-                            Wait)
-    from marionette.by import By
-    from marionette.marionette import Actions
-except:
-    from marionette_driver import (expected,
-                                   Wait)
-    from marionette_driver.by import By
-    from marionette_driver.marionette import Actions
+from marionette_driver import expected, By, Wait
+from marionette_driver.marionette import Actions
 
 from gaiatest.apps.base import Base
 from gaiatest.apps.base import PageRegion
@@ -49,10 +41,17 @@ class CardsView(Base):
         return self.accessibility.is_hidden(self.marionette.find_element(
             *self._cards_view_locator))
 
+    def _card_is_centered(self, card):
+        screen_width = int(self.marionette.execute_script('return window.innerWidth'))
+        left = card.location['x']
+        width = card.size['width']
+        # center of card should be within 1px of viewport center
+        return 1 >= abs(screen_width / 2 - (left + width / 2))
+
     def wait_for_card_ready(self, app):
-        cards = self.marionette.find_element(*self._cards_view_locator)
         card = self.marionette.find_element(*self._app_card_locator(app))
-        Wait(self.marionette).until(lambda m: cards.size['width'] - card.size['width'] == 2 * card.location['x'])
+        Wait(self.marionette).until(lambda m: self._card_is_centered(card))
+
         # TODO: Remove sleep when we find a better wait
         time.sleep(0.2)
 

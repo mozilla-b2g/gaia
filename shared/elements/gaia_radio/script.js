@@ -7,7 +7,7 @@ window.GaiaRadio = (function(win) {
 
   // Allow baseurl to be overridden (used for demo page)
   var baseurl = window.GaiaRadioBaseurl ||
-    '/shared/elements/gaia_Radio/';
+    '/shared/elements/gaia_radio/';
 
   proto.createdCallback = function() {
     var shadow = this.createShadowRoot();
@@ -46,6 +46,23 @@ window.GaiaRadio = (function(win) {
     }.bind(this));
 
     ComponentUtils.style.call(this, baseurl);
+
+    // Proxy RTL changes to the shadow root so we can style for RTL.
+    var dirObserver = new MutationObserver(this.updateInternalDir.bind(this));
+    dirObserver.observe(document.documentElement, {
+      attributeFilter: ['dir'],
+      attributes: true
+    });
+    this.updateInternalDir();
+  };
+
+  proto.updateInternalDir = function() {
+    var internal = this.shadowRoot.firstElementChild;
+    if (document.documentElement.dir === 'rtl') {
+      internal.setAttribute('dir', 'rtl');
+    } else {
+      internal.removeAttribute('dir');
+    }
   };
 
   /**
@@ -77,6 +94,12 @@ window.GaiaRadio = (function(win) {
       cancelable: true
     });
     this.dispatchEvent(event);
+
+    // Dispatch a change event for the gaia-switch.
+    this.dispatchEvent(new CustomEvent('change', {
+      bubbles: true,
+      cancelable: false
+    }));
   };
 
   /**
@@ -84,6 +107,7 @@ window.GaiaRadio = (function(win) {
    */
   proto.configureClass = function() {
     this._wrapper.className = this.className;
+    this._wrapper.classList.toggle('checked', this._checked);
   };
 
   /**
@@ -97,6 +121,39 @@ window.GaiaRadio = (function(win) {
       this._wrapper.classList.toggle('checked', value);
       this._wrapper.setAttribute('aria-checked', value);
       this._checked = value;
+    }
+  });
+
+  /**
+   * Proxy the name property to the input element.
+   */
+  Object.defineProperty( proto, 'name', {
+    get: function() {
+      return this.getAttribute('name');
+    },
+    set: function(value) {
+      this.setAttribute('name', value);
+    }
+  });
+
+  /**
+   * Proxy the value property to the input element.
+   */
+  Object.defineProperty( proto, 'value', {
+    get: function() {
+      return this.getAttribute('value');
+    },
+    set: function(value) {
+      this.setAttribute('value', value);
+    }
+  });
+
+  /**
+   * Proxy the input type.
+   */
+  Object.defineProperty( proto, 'type', {
+    get: function() {
+      return 'gaia-radio';
     }
   });
 

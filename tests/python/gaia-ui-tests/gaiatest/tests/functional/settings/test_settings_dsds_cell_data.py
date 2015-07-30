@@ -2,10 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-try:
-    from marionette.by import By
-except:
-    from marionette_driver.by import By
+from marionette_driver import By
 from gaiatest import GaiaTestCase
 from gaiatest.apps.settings.app import Settings
 
@@ -22,7 +19,7 @@ class TestDSDSCellData(GaiaTestCase):
         settings.launch()
 
         # Open cell data settings
-        cell_and_data_settings = settings.open_cell_and_data_settings()
+        cell_and_data_settings = settings.open_cell_and_data()
 
         # verify that a carrier is displayed
         self.assertTrue(len(cell_and_data_settings.carrier_name) > 0)

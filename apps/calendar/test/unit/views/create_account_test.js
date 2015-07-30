@@ -3,12 +3,13 @@ define(function(require) {
 
 var AccountTemplate = require('templates/account');
 var CreateAccount = require('views/create_account');
-var Presets = require('presets');
+var Presets = require('common/presets');
+var core = require('core');
 
 suite('Views.CreateAccount', function() {
   var subject;
   var template;
-  var app;
+  var storeFactory;
 
   teardown(function() {
     var el = document.getElementById('test');
@@ -29,19 +30,19 @@ suite('Views.CreateAccount', function() {
 
     document.body.appendChild(div);
 
-    app = testSupport.calendar.app();
-
+    storeFactory = core.storeFactory;
     template = AccountTemplate;
-    subject = new CreateAccount({ app: app });
-    app.db.open(done);
+    subject = new CreateAccount();
+    core.db.open(done);
   });
 
   teardown(function(done) {
+    subject.destroy();
     testSupport.calendar.clearStore(
-      app.db,
+      core.db,
       ['accounts'],
       function() {
-        app.db.close();
+        core.db.close();
         done();
       }
     );
@@ -62,29 +63,21 @@ suite('Views.CreateAccount', function() {
   });
 
   suite('#_initEvents', function() {
-
-    test('when an account is added', function() {
-      var store = app.store('Account');
-      var renderCalled = false;
-      subject.render = function() {
-        renderCalled = true;
-      };
-
-      store.emit('add');
-
-      assert.equal(renderCalled, true);
+    setup(function(done) {
+      subject.render = done;
+      subject._initEvents();
     });
 
-    test('when an account is removed', function() {
-      var store = app.store('Account');
-      var renderCalled = false;
-      subject.render = function() {
-        renderCalled = true;
-      };
+    test('when an account is added', function(done) {
+      var store = storeFactory.get('Account');
+      subject.render = done;
+      store.emit('add');
+    });
 
+    test('when an account is removed', function(done) {
+      var store = storeFactory.get('Account');
+      subject.render = done;
       store.emit('remove');
-
-      assert.equal(renderCalled, true);
     });
   });
 
@@ -98,8 +91,7 @@ suite('Views.CreateAccount', function() {
 
       setup(function(done) {
         presets = Object.keys(Presets);
-        subject.render();
-        subject.onrender = done;
+        subject.render().then(done).catch(done);
       });
 
       test('each preset is displayed', function() {
@@ -129,11 +121,10 @@ suite('Views.CreateAccount', function() {
           }
         };
 
-        var accountStore = app.store('Account');
+        var accountStore = storeFactory.get('Account');
 
         accountStore.persist({ preset: 'one' }, function() {
-          subject.render();
-          subject.onrender = done;
+          subject.render().then(done).catch(done);
         });
       });
 

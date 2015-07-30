@@ -87,10 +87,8 @@ var MetadataFormats = (function() {
      */
     parse: function(header) {
       var info = this._formatInfo;
-      return new Promise(function(resolve, reject) {
-        LazyLoader.load(info.file, function() {
-          resolve(info.module.parse(header));
-        });
+      return LazyLoader.load(info.file).then(() => {
+        return info.module.parse(header);
       });
     }
   };

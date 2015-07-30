@@ -18,10 +18,30 @@
 // screenshot and display it, and unload the video. If shown again
 // and if the user clicks play again, we resume the video where we left off.
 //
+// WARNING (bug 1135278):
+//
+// The VideoPlayer object registers event listeners on the window object
+// and never unregisters them. This means that VideoPlayer objects will
+// never be garbage collected since the window will always have a reference
+// to every one that has been created.
+//
+// A conscious decision has been made to not fix this issue because:
+//
+// 1) Currently only gallery and camera use the object and they use a
+//    fixed number of objects whose lifetime is the same as that of the
+//    app.
+// 2) We are moving towards replacing this VideoPlayer object with web
+//    components (bug 1117885, bug 1131321)
+//
 function VideoPlayer(container) {
   if (typeof container === 'string') {
     container = document.getElementById(container);
   }
+
+  // Add a class to the container so we could find it later and use it as
+  // a key in the instance weakmap.
+  container.classList.add('video-player-container');
+  VideoPlayer.instancesToLocalize.set(container, this);
 
   function newelt(parent, type, classes, l10n_id, attributes) {
     var e = document.createElement(type);
@@ -42,7 +62,11 @@ function VideoPlayer(container) {
 
   // This copies the controls structure of the Video app
   var poster = newelt(container, 'img', 'videoPoster');
-  var player = newelt(container, 'video', 'videoPlayer');
+  var player = newelt(container, 'video', 'videoPlayer', null,
+                      { 'aria-hidden': true }); // Since Video Player controls
+                                                // are custom, we need to hide
+                                                // the video element to not
+                                                // confuse screen reader users.
   var controls = newelt(container, 'div', 'videoPlayerControls');
   var playbutton = newelt(controls, 'button', 'videoPlayerPlayButton',
                           'playbackPlay');
@@ -77,27 +101,40 @@ function VideoPlayer(container) {
   var videourl;   // the url of the video to play
   var posterurl;  // the url of the poster image to display
   var rotation;   // Do we have to rotate the video? Set by load()
+  var videotimestamp;
   var orientation = 0; // current player orientation
 
   // These are the raw (unrotated) size of the poster image, which
-  // must have the same size as the video.
+  // may have the same size as the video. We may find when we actually
+  // load the video they are different and resize the video element.
   var videowidth, videoheight;
+  var posterwidth, posterheight;
 
   var playbackTime;
   var capturedFrame;
 
-  this.load = function(video, posterimage, width, height, rotate) {
+  this.load = function(video, posterimage, width, height, rotate, timestamp) {
     this.reset();
     videourl = video;
     posterurl = posterimage;
     rotation = rotate || 0;
     videowidth = width;
     videoheight = height;
+    posterwidth = width;
+    posterheight = height;
+    videotimestamp = timestamp;
+
+    // If a locale is present and ready, go ahead and localize now.
+    if (navigator.mozL10n.readyState === 'complete') {
+      this.localize();
+    }
+
     this.init();
     setPlayerSize();
   };
 
   this.reset = function() {
+    videotimestamp = 0;
     hidePlayer();
     hidePoster();
   };
@@ -124,6 +161,19 @@ function VideoPlayer(container) {
     player.style.display = 'block';
     player.src = videourl;
     self.playerShowing = true;
+
+    // Verify that our guess at the video size is correct once we have loaded
+    // the metadata. This will happen if the poster image size differs.
+    player.onloadedmetadata = function() {
+      player.onloadedmetadata = null;
+      if (videowidth != player.videoWidth ||
+          videoheight != player.videoHeight)
+      {
+        videowidth = player.videoWidth;
+        videoheight = player.videoHeight;
+        setPlayerSize(true);
+      }
+    };
 
     // The only place we call showPlayer() is from the play() function.
     // If play() has to show the player, call it again when we're ready to play.
@@ -233,8 +283,8 @@ function VideoPlayer(container) {
 
   // A click anywhere else on the screen should toggle the footer
   // But only when the video is playing.
-  controls.addEventListener('tap', function(e) {
-    if (e.target === controls && !player.paused) {
+  container.addEventListener('tap', function(e) {
+    if ((e.target === player || e.target === container) && !player.paused) {
       footer.classList.toggle('hidden');
       controlsHidden = !controlsHidden;
     }
@@ -358,28 +408,20 @@ function VideoPlayer(container) {
     canvas.toBlob(callback);
   }
 
-  // Make the video fit the container
-  function setPlayerSize() {
-    var containerWidth = container.clientWidth;
-    var containerHeight = container.clientHeight;
-
-    // Don't do anything if we don't know our size.
-    // This could happen if we get a resize event before our metadata loads
-    if (!videowidth || !videoheight) {
-      return;
-    }
-
+  function createTransform(containerWidth, containerHeight,
+                           givenWidth, givenHeight)
+  {
     var width, height; // The size the video will appear, after rotation
     switch (rotation) {
     case 0:
     case 180:
-      width = videowidth;
-      height = videoheight;
+      width = givenWidth;
+      height = givenHeight;
       break;
     case 90:
     case 270:
-      width = videoheight;
-      height = videowidth;
+      width = givenHeight;
+      height = givenWidth;
     }
 
     var xscale = containerWidth / width;
@@ -417,9 +459,26 @@ function VideoPlayer(container) {
     }
 
     transform += ' scale(' + scale + ')';
+    return transform;
+  }
 
-    poster.style.transform = transform;
-    player.style.transform = transform;
+  // Make the video fit the container
+  function setPlayerSize(playerOnly) {
+    var containerWidth = container.clientWidth;
+    var containerHeight = container.clientHeight;
+
+    // Don't do anything if we don't know our size.
+    // This could happen if we get a resize event before our metadata loads
+    if (!videowidth || !videoheight || !posterwidth || !posterheight) {
+      return;
+    }
+    player.style.transform = createTransform(containerWidth, containerHeight,
+                                             videowidth, videoheight);
+    if (playerOnly) {
+      return;
+    }
+    poster.style.transform = createTransform(containerWidth, containerHeight,
+                                             posterwidth, posterheight);
   }
 
   // Update current player orientation
@@ -526,6 +585,32 @@ function VideoPlayer(container) {
       }
     });
   }
+
+  this.localize = function() {
+    // XXX: Ideally, we would add the duration too, but that is not
+    // available via fileinfo metadata yet.
+    var label;
+    var portrait = videowidth < videoheight;
+    if (rotation == 90 || rotation == 270) {
+      // If rotated sideways, then width and height are swapped.
+      portrait = !portrait;
+    }
+
+    var orientation = navigator.mozL10n.get(
+      portrait ? 'orientationPortrait' : 'orientationLandscape');
+    if (videotimestamp) {
+      var locale_entry = navigator.mozL10n.get(
+        'videoDescription', { orientation: orientation });
+      if (!self.dtf) {
+        self.dtf = new navigator.mozL10n.DateTimeFormat();
+      }
+      label = self.dtf.localeFormat(videotimestamp, locale_entry);
+    } else {
+      label = navigator.mozL10n.get(
+        'videoDescriptionNoTimestamp', { orientation: orientation });
+    }
+    poster.setAttribute('aria-label', label);
+  };
 }
 
 VideoPlayer.prototype.hide = function() {
@@ -537,3 +622,15 @@ VideoPlayer.prototype.show = function() {
   // Call init() to show the poster
   this.controls.style.display = 'block';
 };
+
+VideoPlayer.instancesToLocalize = new WeakMap();
+
+navigator.mozL10n.ready(function() {
+  // Retrieve VideoPlayer instances by searching for container nodes.
+  for (var container of document.querySelectorAll('.video-player-container')) {
+    var instance = VideoPlayer.instancesToLocalize.get(container);
+    if (instance) {
+      instance.localize();
+    }
+  }
+});

@@ -1,0 +1,218 @@
+body {
+  margin: 0;
+  font-size: 17px;
+  font-family: "FiraSans";
+  height: 100%;
+  overflow: hidden;
+  background-color: var(--background);
+  color: var(--title-color);
+
+  --header-height: 50px;
+  --tabs-height: 45px;
+  --offline-height: 78px;
+  --slide-transition: transform 0.2s ease;
+}
+
+.red {
+  color: red;
+}
+
+gaia-header {
+  --header-background: #9ab0c0;
+  --header-icon-color: #ffffff;
+  --header-title-color: #ffffff;
+  height: var(--header-height);
+}
+
+gaia-header #upload-link {
+  right: 3px;
+  background: url(../img/upload.svg) no-repeat 50% 50% / 32px !important;
+  filter: invert(100%);
+}
+
+#tabs-container {
+  --border-color: transparent;
+  border-bottom: 1px solid #e7e7e7 !important;
+  height: var(--tabs-height);
+}
+
+#tabs-container a {
+  font-weight: normal !important;
+}
+
+.install-list {
+  position: absolute !important;
+  width: 100%;
+  height: calc(100vh - var(--header-height) - var(--tabs-height));
+  overflow: scroll !important;
+}
+
+body:not(.online) .install-list:not(.info-list) {
+  height: calc(100vh - var(--header-height) - var(--tabs-height) - var(--offline-height));
+}
+
+.install-list .description {
+  overflow: hidden;
+}
+
+.install-list .icon {
+  max-height: 50px;
+  float: left;
+  margin-right: 13px;
+}
+
+.install-list .name {
+  margin: 0;
+  font-size: 19px !important;
+  color: var(--text-color);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.author {
+  margin: 0;
+  font-size: 15px !important;
+  color: var(--title-color);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.install-list {
+  transition: var(--slide-transition);
+}
+
+.install-list .item {
+  height: 70px;
+}
+
+.install-list .install-button {
+  font-size: 12px !important;
+  height: 30px !important;
+  min-width: 70px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  --button-color: var(--title-color);
+}
+
+.install-list .addon.installed .install-button {
+  display: none !important;
+}
+
+.install-list .item:not(.installed) .install-button {
+  --button-background: var(--color-blue);
+  --button-box-shadow: none;
+  --button-color: white;
+  --button-background-active: white;
+  --button-box-shadow-active: none;
+  --button-color-active: var(--title-color);
+}
+
+.install-list .install-info {
+  font-size: 14px;
+  font-style: italic;
+  color: var(--title-color);
+  display: none;
+  padding: 0 9px;
+}
+
+.install-list .addon.installed .install-info {
+  display: inline;
+}
+
+#app-list {
+  transform: translateX(-100%);
+}
+
+#addon-list {
+  transform: translateX(100%);
+}
+
+#app-list.active,
+#addon-list.active {
+  transform: translateX(0);
+}
+
+.popup {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 3;
+  background-color: var(--background);
+  color: var(--text-color);
+  --header-icon-color: var(--text-color);
+  transition: var(--slide-transition);
+  transform: translateY(100%);
+}
+
+.popup.active {
+  transform: translateY(0);
+}
+
+.popup .close {
+  left: -10px;
+}
+
+gaia-list.info-list {
+  height: 70px;
+  margin-top: 14px;
+  position: relative !important;
+}
+
+#app-details #full-description,
+#app-details #affected-apps,
+#app-details #repo {
+  font-size: 15px;
+  line-height: 20px;
+  padding: 2px 16px;
+}
+
+#upload-list.install-list {
+  height: calc(100vh - var(--header-height));
+}
+
+.form #upload-list.install-list {
+  transform: translateX(-100%);
+}
+
+#upload-form {
+  position: absolute;
+  top: var(--header-height);
+  left: 0;
+  transform: translateX(100%);
+  width: 100%;
+  height: calc(100vh - var(--header-height));
+  transition: var(--slide-transition);
+}
+
+#form-fields {
+  margin-top: 13px;
+  padding: 0 16px;
+}
+
+.form #upload-form {
+  transform: translateX(0);
+}
+
+#upload-buttons {
+  display: flex;
+  justify-content: space-around;
+}
+
+#upload-buttons gaia-button {
+  width: 45% !important;
+  display: inline !important;
+}
+
+#offline-container {
+  --text-color: white;
+  height: var(--offline-height);
+  background: #F0AD4E;
+}
+
+body.online #offline-container {
+  display: none !important;
+}

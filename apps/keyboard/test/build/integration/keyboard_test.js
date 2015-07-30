@@ -10,6 +10,25 @@ var helper = require('helper');
 var AdmZip = require('adm-zip');
 var jsdom = require('jsdom-nogyp').jsdom;
 
+function checkLayoutsJSON(zipPath, expectedArr) {
+  var zip = new AdmZip(zipPath);
+  var entry = zip.getEntry('js/settings/layouts.json');
+  var actualArr = JSON.parse(zip.readAsText(entry));
+
+  actualArr.forEach(function(layout) {
+    assert.isTrue(
+      !!layout.dictFileSize,
+      'Expect layout contain to non-zero dictFileSize, id=' + layout.id);
+    delete layout.dictFileSize;
+  });
+
+  expectedArr.forEach(function(layout) {
+    delete layout.dictFileSize;
+  });
+
+  assert.deepEqual(actualArr, expectedArr);
+}
+
 suite('Keyboard layouts building tests', function() {
   suiteSetup(helper.cleanupWorkspace);
   teardown(helper.cleanupWorkspace);
@@ -21,7 +40,39 @@ suite('Keyboard layouts building tests', function() {
       helper.checkError(error, stdout, stderr);
 
       var config = JSON.parse(process.env.BUILD_CONFIG);
-      var layoutIds = config.GAIA_KEYBOARD_LAYOUTS.split(',').sort();
+      var layoutIds = ['ar',
+                       'bn-Avro',
+                       'bn-Probhat',
+                       'de',
+                       'dz-BT',
+                       'en',
+                       'en-Colemak',
+                       'en-Dvorak',
+                       'en-Neo',
+                       'eo',
+                       'es',
+                       'es-Americas',
+                       'fr',
+                       'fr-CA',
+                       'fr-CH',
+                       'fr-Dvorak-bepo',
+                       'he',
+                       'hi',
+                       'ig',
+                       'ko',
+                       'mk',
+                       'my',
+                       'pl',
+                       'pt-BR',
+                       'ta',
+                       'te',
+                       'th',
+                       'uk',
+                       'vi-Qwerty',
+                       'vi-Telex',
+                       'vi-Typewriter',
+                       'wo',
+                       'zh-Hans-Pinyin'];
       var zipPath = path.join(process.cwd(), 'profile',
         'webapps', 'keyboard.gaiamobile.org', 'application.zip');
       var appDirPath = config.GAIA_DIR + '/apps/keyboard';
@@ -73,18 +124,15 @@ suite('Keyboard layouts building tests', function() {
             '/test/build/integration/resources/' +
             'default-make-layouts.json'));
 
-      helper.checkFileContentInZip(
-        zipPath, 'js/settings/layouts.json', dictJSON, true);
+      checkLayoutsJSON(zipPath, dictJSON);
 
       done();
     });
   });
 
   // Build with all layouts and dictionaries
-  test('APP=keyboard GAIA_KEYBOARD_LAYOUTS=* ' +
-    'GAIA_KEYBOARD_PRELOAD_DICT_LAYOUTS=* make', function(done) {
-    var cmd = 'APP=keyboard GAIA_KEYBOARD_LAYOUTS=* ' +
-    'GAIA_KEYBOARD_PRELOAD_DICT_LAYOUTS=* make';
+  test('APP=keyboard GAIA_KEYBOARD_LAYOUTS=* make', function(done) {
+    var cmd = 'APP=keyboard GAIA_KEYBOARD_LAYOUTS=* make';
     helper.exec(cmd, function(error, stdout, stderr) {
       helper.checkError(error, stdout, stderr);
 
@@ -97,6 +145,9 @@ suite('Keyboard layouts building tests', function() {
           return (path.extname(filename) === '.js');
         }).map(function(filename) {
           return path.basename(filename, '.js');
+        }).filter(function(layoutId) {
+          // Exclude noIncludeInExpandLayoutIdSet layouts
+          return (['emoji'].indexOf(layoutId) === -1);
         });
 
       var layouts = layoutIds.map(function(layout) {
@@ -114,7 +165,8 @@ suite('Keyboard layouts building tests', function() {
         'js/imes/jskanji/jskanji.js',
         'js/imes/jspinyin/jspinyin.js',
         'js/imes/latin/latin.js',
-        'js/imes/vietnamese/vietnamese.js'
+        'js/imes/vietnamese/vietnamese.js',
+        'js/imes/myanmar/myanmar.js'
       ];
 
       var dicts = [
@@ -175,19 +227,19 @@ suite('Keyboard layouts building tests', function() {
             '/test/build/integration/resources/' +
             'all-layout-make-layouts.json'));
 
-      helper.checkFileContentInZip(
-        zipPath, 'js/settings/layouts.json', dictJSON, true);
+      checkLayoutsJSON(zipPath, dictJSON);
 
       done();
     });
   });
 
   // Build with all layouts with no dictionaries
-  test('APP=keyboard GAIA_KEYBOARD_LAYOUTS=noPreloadDictRequired ' +
-    'GAIA_KEYBOARD_PRELOAD_DICT_LAYOUTS="" make',
+  // (preload ko layout here to avoid empty check.)
+  test('APP=keyboard GAIA_KEYBOARD_LAYOUTS=ko ' +
+    'GAIA_KEYBOARD_DOWNLOADABLE_LAYOUTS=noPreloadDictRequired make',
   function(done) {
-    var cmd = 'APP=keyboard GAIA_KEYBOARD_LAYOUTS=noPreloadDictRequired ' +
-    'GAIA_KEYBOARD_PRELOAD_DICT_LAYOUTS="" make';
+    var cmd = 'APP=keyboard GAIA_KEYBOARD_LAYOUTS=ko ' +
+    'GAIA_KEYBOARD_DOWNLOADABLE_LAYOUTS=noPreloadDictRequired make';
     helper.exec(cmd, function(error, stdout, stderr) {
       helper.checkError(error, stdout, stderr);
 
@@ -219,17 +271,20 @@ suite('Keyboard layouts building tests', function() {
             '/test/build/integration/resources/' +
             'no-preload-dict-required-make-layouts.json'));
 
-      helper.checkFileContentInZip(
-        zipPath, 'js/settings/layouts.json', dictJSON, true);
+      checkLayoutsJSON(zipPath, dictJSON);
 
       done();
     });
   });
 
   // Build default layouts with only en dictionary, and extra IMEs
-  test('APP=keyboard GAIA_KEYBOARD_PRELOAD_DICT_LAYOUTS=en make',
+  test('APP=keyboard GAIA_KEYBOARD_LAYOUTS=en ' +
+    'GAIA_KEYBOARD_DOWNLOADABLE_LAYOUTS=' +
+    'en,pt-BR,es,de,fr,fr-CA,pl,ko,zh-Hans-Pinyin,en-Dvorak make',
   function(done) {
-    var cmd = 'APP=keyboard GAIA_KEYBOARD_PRELOAD_DICT_LAYOUTS=en make';
+    var cmd = 'APP=keyboard GAIA_KEYBOARD_LAYOUTS=en ' +
+      'GAIA_KEYBOARD_DOWNLOADABLE_LAYOUTS=' +
+      'en,pt-BR,es,de,fr,fr-CA,pl,ko,zh-Hans-Pinyin,en-Dvorak make';
     helper.exec(cmd, function(error, stdout, stderr) {
       helper.checkError(error, stdout, stderr);
 
@@ -293,8 +348,7 @@ suite('Keyboard layouts building tests', function() {
             '/test/build/integration/resources/' +
             'default-make-en-dict-layouts.json'));
 
-      helper.checkFileContentInZip(
-        zipPath, 'js/settings/layouts.json', dictJSON, true);
+      checkLayoutsJSON(zipPath, dictJSON);
 
       done();
     });
@@ -369,79 +423,6 @@ suite('Keyboard settings building tests', function() {
           return elem.id === 'handwriting-settings';
         }),
           'Some section in general panel should include handwriting settings');
-
-        done();
-      });
-    });
-  });
-
-  suite('User dictionary', function() {
-    // return an array of <li> in the root panel's first section's ui
-    var getLIsFromGeneralPanel = function(domDoc) {
-      return Array.prototype.slice.call(
-               domDoc.querySelectorAll('#general-settings > ul > li'));
-    };
-
-    // default: there shouldn't be user dictionary elements in resulting file
-    test('APP=keyboard make', function(done) {
-      var cmd = 'APP=keyboard make';
-      helper.exec(cmd, function(error, stdout, stderr) {
-        helper.checkError(error, stdout, stderr);
-
-        var settingsDOMDoc = getSettingsDomDoc();
-
-        assert.isTrue(getScriptsFromDomDoc(settingsDOMDoc).every(function(elem){
-          return elem.src !== 'js/settings/user_dictionary_edit_dialog.js';
-        }), 'No script should include user_dictionary_edit_dialog.js');
-
-        assert.isTrue(getScriptsFromDomDoc(settingsDOMDoc).every(function(elem){
-          return elem.src !== 'js/settings/user_dictionary_list_panel.js';
-        }), 'No script should include user_dictionary_list_panel.js');
-
-        assert.isTrue(getScriptsFromDomDoc(settingsDOMDoc).every(function(elem){
-          return elem.src !== 'js/settings/word_list_converter.js';
-        }), 'No script should include word_list_converter.js');
-
-        assert.isTrue(getScriptsFromDomDoc(settingsDOMDoc).every(function(elem){
-          return elem.src !== 'js/settings/user_dictionary.js';
-        }), 'No script should include user_dictionary.js');
-
-        assert.isTrue(
-        getLIsFromGeneralPanel(settingsDOMDoc).every(function(elem){
-          return elem.querySelector('a#menu-userdict') === null;
-        }), 'No <li> in general panel should include user dict settings');
-
-        done();
-      });
-    });
-
-    test('GAIA_KEYBOARD_ENABLE_USER_DICT=1 APP=keyboard make', function(done) {
-      var cmd = 'GAIA_KEYBOARD_ENABLE_USER_DICT=1 APP=keyboard make';
-      helper.exec(cmd, function(error, stdout, stderr) {
-        helper.checkError(error, stdout, stderr);
-
-        var settingsDOMDoc = getSettingsDomDoc();
-
-        assert.isTrue(getScriptsFromDomDoc(settingsDOMDoc).some(function(elem){
-          return elem.src === 'js/settings/user_dictionary_edit_dialog.js';
-        }), 'Some script should include user_dictionary_edit_dialog.js');
-
-        assert.isTrue(getScriptsFromDomDoc(settingsDOMDoc).some(function(elem){
-          return elem.src === 'js/settings/user_dictionary_list_panel.js';
-        }), 'Some script should include user_dictionary_list_panel.js');
-
-        assert.isTrue(getScriptsFromDomDoc(settingsDOMDoc).some(function(elem){
-          return elem.src === 'js/settings/word_list_converter.js';
-        }), 'Some script should include word_list_converter.js');
-
-        assert.isTrue(getScriptsFromDomDoc(settingsDOMDoc).some(function(elem){
-          return elem.src === 'js/settings/user_dictionary.js';
-        }), 'Some script should include user_dictionary.js');
-
-        assert.isTrue(
-        getLIsFromGeneralPanel(settingsDOMDoc).some(function(elem){
-          return elem.querySelector('a#menu-userdict') !== null;
-        }), 'Some <li> in general panel should include user dict settings');
 
         done();
       });

@@ -6,7 +6,9 @@ var assert = require('assert');
 
 marionette('Places tests', function() {
 
-  var client = marionette.client(require(__dirname + '/client_options.js'));
+  var client = marionette.client({
+    profile: require(__dirname + '/client_options.js')
+  });
   var home, search, server, rocketbar, system;
 
   suiteSetup(function(done) {
@@ -25,7 +27,7 @@ marionette('Places tests', function() {
     search = client.loader.getAppClass('search');
     rocketbar = new Rocketbar(client);
     system = client.loader.getAppClass('system');
-    system.waitForStartup();
+    system.waitForFullyLoaded();
   });
 
   test('Test url searching', function() {

@@ -35,6 +35,7 @@
   LockScreenClockWidgetTick.prototype.start = function() {
     this.stream = new Stream(this.configs.stream);
     return this.stream.start(this.handleSourceEvent)
+      .next(this.component.updateFormatters.bind(this.component))
       .next(this.component.updateClock.bind(this.component))
       .next(this.stream.ready.bind(this.stream));
   };
@@ -47,8 +48,11 @@
   LockScreenClockWidgetTick.prototype.handleSourceEvent =
   function(evt) {
     switch (evt.type) {
-      case 'ftudone':
       case 'moztimechange':
+        this.component.updateFormatters();
+        this.component.updateClock();
+        break;
+      case 'ftudone':
       case 'lockscreen-notification-clock-tick':
         this.component.updateClock();
         break;

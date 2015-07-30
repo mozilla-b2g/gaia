@@ -8,53 +8,51 @@
     <div>
       <ul class="time-auto" data-state="auto" hidden>
         <li>
-          <label class="pack-switch">
-            <input type="checkbox" name="time.clock.automatic-update.enabled" class="uninit">
-            <span data-l10n-id="setTimeAutomatically">Set Automatically</span>
-          </label>
+          <gaia-switch name="time.clock.automatic-update.enabled">
+            <label data-l10n-id="setTimeAutomatically"></label>
+          </gaia-switch>
         </li>
       </ul>
       <ul class="time-manual">
         <li>
-          <label>
-            <input type="date" class="date-picker" min="1970-1-1" max="2037-12-31"/>
-          </label>
-          <p data-l10n-id="dateMessage">Date</p>
+          <input type="date" class="date-picker" min="1970-1-1" max="2035-12-31"/>
+          <p data-l10n-id="dateMessage"></p>
           <span class="clock-date button icon icon-dialog"></span>
         </li>
         <li>
-          <label>
-            <input type="time" class="time-picker" />
-          </label>
-          <p data-l10n-id="timeMessage">Time</p>
+          <input type="time" class="time-picker"/>
+          <p data-l10n-id="timeMessage"></p>
           <span class="clock-time button icon icon-dialog"></span>
         </li>
       </ul>
 
       <header>
-        <h2 data-l10n-id="timezoneMessage">Time Zone</h2>
+        <h2 data-l10n-id="timezoneMessage"></h2>
       </header>
       <ul class="timezone">
-        <li>
-          <p data-l10n-id="tz-region">Region</p>
+        <li class="timezone-picker">
+          <p data-l10n-id="tz-region"></p>
           <span class="button icon icon-dialog">
             <select class="timezone-region"></select>
           </span>
         </li>
-        <li>
-          <p data-l10n-id="tz-city">City</p>
+        <li class="timezone-picker">
+          <p data-l10n-id="tz-city"></p>
           <span class="button icon icon-dialog">
             <select class="timezone-city"></select>
           </span>
         </li>
+        <li class="timezone-info" hidden>
+          <span class="timezone-info-text"></span>
+        </li>
       </ul>
 
       <header>
-        <h2 data-l10n-id="time-format">Format</h2>
+        <h2 data-l10n-id="time-format"></h2>
       </header>
       <ul class="timeformat">
         <li>
-          <p data-l10n-id="time-format-time">Time Format</p>
+          <p data-l10n-id="time-format-time"></p>
           <span class="button icon icon-dialog">
             <select class="time-format-time"></select>
           </span>

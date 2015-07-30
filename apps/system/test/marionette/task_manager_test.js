@@ -4,24 +4,22 @@ var TaskManager = require('./lib/task_manager');
 var FakeApp = require('./lib/fakeapp');
 var assert = require('assert');
 var ReflowHelper =
-    require('../../../../tests/js-marionette/reflow_helper.js');
+    require('../../../../tests/jsmarionette/plugins/reflow_helper.js');
 
 marionette('Task Manager', function() {
-  var firstAppOrigin = 'fakeapp.gaiamobile.org';
+  var firstAppOrigin  = 'fakeapp.gaiamobile.org';
   var secondAppOrigin = 'fakegreenapp.gaiamobile.org';
+  var slowAppOrigin   = 'fakecamera.gaiamobile.org';
   var apps = {};
-  apps[firstAppOrigin] = __dirname + '/fakeapp';
-  apps[secondAppOrigin] = __dirname + '/fakegreenapp';
+  apps[firstAppOrigin]  = __dirname + '/../apps/fakeapp';
+  apps[secondAppOrigin] = __dirname + '/../apps/fakegreenapp';
+  apps[slowAppOrigin]   = __dirname + '/../apps/fakecamera';
+
 
   var client = marionette.client({
-    prefs: {
-      'dom.w3c_touch_events.enabled': 1
-    },
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
-    },
-    apps: apps
+    profile: {
+      apps: apps
+    }
   });
 
   var actions;
@@ -35,9 +33,9 @@ marionette('Task Manager', function() {
   setup(function() {
     actions = client.loader.getActions();
     system = client.loader.getAppClass('system');
-    taskManager = new TaskManager(client);
 
-    system.waitForStartup();
+    system.waitForFullyLoaded();
+    taskManager = new TaskManager(client);
 
     // Launching 2 apps and wait for their screenshots to be ready
     firstApp = new FakeApp(client, 'app://' + firstAppOrigin);
@@ -85,7 +83,7 @@ marionette('Task Manager', function() {
 
       client.waitFor(function(){
         return client.findElement(system.Selector.activeHomescreenFrame)
-          .displayed();
+          .getAttribute('aria-hidden') !== 'true';
       });
     });
   });
@@ -96,7 +94,7 @@ marionette('Task Manager', function() {
       taskManager.show();
     });
 
-    test('should display a blob screenshot for the current app',
+    test('should display a blob screenshot only for the current app',
     function() {
       var current = taskManager.cards[1];
       var screenshot = current.findElement(taskManager.selectors.screenshot);
@@ -110,7 +108,8 @@ marionette('Task Manager', function() {
       var otherScreenshot = app.findElement(taskManager.selectors.screenshot);
       client.waitFor(function() {
         return otherScreenshot.scriptWith(function(div) {
-          return div.style.backgroundImage.contains('-moz-element');
+          return div.style.backgroundImage.contains('-moz-element') &&
+                 !div.style.backgroundImage.contains('blob:');
         });
       });
     });
@@ -124,8 +123,59 @@ marionette('Task Manager', function() {
 
       client.waitFor(function(){
         return client.findElement(system.Selector.activeHomescreenFrame)
-          .displayed();
+          .getAttribute('aria-hidden') !== 'true';
       });
+    });
+  });
+
+  suite('when launched while an app is still initializing', function() {
+    var slowApp;
+    setup(function() {
+      // launch a 3rd app which we can mock easily
+      slowApp = new FakeApp(client, 'app://' + slowAppOrigin);
+      slowApp.launch();
+
+      var iframeId = slowApp.iframe.getAttribute('id');
+      // mock iframe.getScreenshot so the screenshot never appears
+      client.executeScript(function(iframeId) {
+        var win = window.wrappedJSObject;
+        win.document.getElementById(iframeId).getScreenshot = function() {
+          var reqReject;
+          var req = {
+            then: function(cb, eb) {
+              return new window.Promise(function(resolve, reject) {
+                reqReject = reject;
+              });
+            }
+          };
+          setTimeout(function() {
+            req.error = new Error('mocked');
+            reqReject(req.error);
+          });
+          return req;
+        };
+        // reset screenshotBlob state
+        var app = win.Service.query('AppWindowManager.getActiveWindow');
+        app._screenshotBlob = null;
+      }, [iframeId]);
+
+      taskManager.show();
+    });
+
+    test('should display identification overlay when theres no blob screenshot',
+    function() {
+      var card = taskManager.cards[taskManager.cards.length -1];
+      var screenshot = client.helper
+                       .waitForChild(card, taskManager.selectors.screenshot);
+      var backgroundImage = screenshot.cssProperty('background-image');
+      assert(backgroundImage.indexOf('blob') == -1);
+
+      var instanceId = card.getAttribute('data-app-instance-id');
+      var idOverlay =  client.findElement(
+        '#'+ instanceId +
+        '.appWindow.in-task-manager.overlay.no-screenshot ' +
+        '> .identification-overlay');
+      assert(idOverlay);
     });
   });
 
@@ -138,7 +188,8 @@ marionette('Task Manager', function() {
     element.tap();
 
     client.waitFor(function() {
-      return firstApp.iframe.displayed() && !secondApp.iframe.displayed();
+      return firstApp.iframe.getAttribute('aria-hidden') !== 'true' &&
+             secondApp.iframe.getAttribute('aria-hidden') === 'true';
     });
   });
 

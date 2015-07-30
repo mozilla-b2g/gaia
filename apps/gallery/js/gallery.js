@@ -1,7 +1,37 @@
-/* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-
 'use strict';
+/* global
+  $,
+  clearFrames,
+  currentFrame,
+  Dialogs,
+  files,
+  LazyLoader,
+  Pick,
+  picking,
+  MediaDB,
+  MozActivity,
+  NFC,
+  Overlay,
+  photodb,
+  resizeFrames,
+  ScreenLayout,
+  setFramesPosition,
+  showFile
+*/
+/* exported
+  compareFilesByDate,
+  deleteSelectedItems,
+  doNotScanInBackgroundHack,
+  fileCreated,
+  fileDeleted,
+  fullscreenView,
+  launchCameraApp,
+  resizeHandler,
+  shareSelectedItems,
+  thumbnailClickHandler,
+  TRANSITION_FRACTION,
+  TRANSITION_SPEED
+*/
 
 /*
  * This app displays photos and videos that are stored on the phone.
@@ -71,9 +101,9 @@ var isPhone = ScreenLayout.getCurrentLayout('tiny');
 var fullscreenButtonIds = ['back', 'delete', 'edit', 'share', 'camera', 'info'];
 var fullscreenButtons = {};
 for (var i = 0; i < fullscreenButtonIds.length; i++) {
-  var name = 'fullscreen-' + fullscreenButtonIds[i] + '-button';
-  name += (isPhone ? '-tiny' : '-large');
-  fullscreenButtons[fullscreenButtonIds[i]] = document.getElementById(name);
+  var selector = 'fullscreen-' + fullscreenButtonIds[i] + '-button';
+  selector += (isPhone ? '-tiny' : '-large');
+  fullscreenButtons[fullscreenButtonIds[i]] = document.getElementById(selector);
 }
 
 var currentFileIndex = 0;       // What file is currently displayed
@@ -92,10 +122,6 @@ var videostorage = navigator.getDeviceStorage('videos');
 
 // Flag that indicates that we've edited a picture and just saved it
 var justSavedEditedImage = false;
-
-// We store the last focused thumbnail so that we can quickly get the
-// selected thumbnails.
-var lastFocusedThumbnail = null;
 
 // Pass the filename of the poster image and get the video file back
 function getVideoFile(filename, callback) {
@@ -135,10 +161,11 @@ function getCurrentFile() {
 // This comparison function is used for sorting arrays and doing binary
 // search on the resulting sorted arrays.
 function compareFilesByDate(a, b) {
-  if (a.date < b.date)
+  if (a.date < b.date) {
     return 1;  // larger (newer) dates come first
-  else if (a.date > b.date)
+  } else if (a.date > b.date) {
     return -1;
+  }
   return 0;
 }
 
@@ -175,12 +202,14 @@ function fileDeleted(filename) {
   var fileIndex = currentFileIndex;
   // Find the deleted file in our files array
   for (var n = 0; n < files.length; n++) {
-    if (files[n].name === filename)
+    if (files[n].name === filename) {
       break;
+    }
   }
 
-  if (n >= files.length)  // It was a file we didn't know about
+  if (n >= files.length) {  // It was a file we didn't know about
     return;
+  }
 
   // Remove the image from the array
   files.splice(n, 1)[0];
@@ -189,16 +218,19 @@ function fileDeleted(filename) {
   thumbnailList.removeItem(filename);
 
   // Adjust currentFileIndex, too, if we have to.
-  if (n < fileIndex)
+  if (n < fileIndex) {
     fileIndex--;
+  }
 
   // If we remove the last item in files[],
   // we need to show the previous image, not the next image.
-  if (fileIndex >= files.length)
+  if (fileIndex >= files.length) {
     fileIndex = files.length - 1;
+  }
 
-  if (n < editedPhotoIndex)
+  if (n < editedPhotoIndex) {
     editedPhotoIndex--;
+  }
 
   // If we're in fullscreen mode or has preview screen, then the only way
   // this function gets called is when we delete the currently displayed photo.
@@ -211,15 +243,17 @@ function fileDeleted(filename) {
 
   // If there are no more photos show the "no pix" overlay
   if (files.length === 0) {
-    if (currentView !== LAYOUT_MODE.pick)
+    if (currentView !== LAYOUT_MODE.pick) {
       setView(LAYOUT_MODE.list);
+    }
     Overlay.show('emptygallery');
   }
 }
 
 function deleteFile(n) {
-  if (n < 0 || n >= files.length)
+  if (n < 0 || n >= files.length) {
     return;
+  }
 
   // Delete the file from the MediaDB. This removes the db entry and
   // deletes the file in device storage. This will generate an change
@@ -246,8 +280,9 @@ function deleteFile(n) {
 function fileCreated(fileinfo) {
   // If the new file is a video and we're handling an image pick activity
   // then we won't display the new file.
-  if (picking && fileinfo.metadata.video)
+  if (picking && fileinfo.metadata.video) {
     return;
+  }
 
   // The fileinfo object that MediaDB sends us has a thumbnail blob in it,
   // fresh from the metadata parser. This blob has been stored in the db, but
@@ -260,22 +295,26 @@ function fileCreated(fileinfo) {
     var insertPosition;
 
     // If we were showing the 'no pictures' overlay, hide it
-    if (Overlay.current === 'emptygallery' || Overlay.current === 'scanning')
+    if (Overlay.current === 'emptygallery' || Overlay.current === 'scanning') {
       Overlay.hide();
+    }
 
     // Create a thumbnailItem for this image and insert it at the right spot
-    var thumbnailItem = thumbnailList.addItem(fileinfo);
+    thumbnailList.addItem(fileinfo);
     insertPosition = getFileIndex(fileinfo.name);
-    if (insertPosition < 0)
+    if (insertPosition < 0) {
       return;
+    }
 
     // Insert the image info into the array
     files.splice(insertPosition, 0, fileinfo);
 
-    if (currentFileIndex >= insertPosition)
+    if (currentFileIndex >= insertPosition) {
       currentFileIndex++;
-    if (editedPhotoIndex >= insertPosition)
+    }
+    if (editedPhotoIndex >= insertPosition) {
       editedPhotoIndex++;
+    }
 
     // Redisplay the current photo if we're in photo view. The current
     // photo should not change, but the content of the next or previous frame
@@ -284,7 +323,8 @@ function fileCreated(fileinfo) {
     if (currentView === LAYOUT_MODE.fullscreen) {
       if (justSavedEditedImage) {
         var banner = $('edit-copy-save-banner');
-        showFile(0);
+        // Show latest saved file inserted at index insertPosition
+        showFile(insertPosition);
         navigator.mozL10n.setAttributes($('edit-copy-save-status'),
                                         'edit-copy-saved');
         banner.hidden = false;
@@ -299,8 +339,9 @@ function fileCreated(fileinfo) {
 
 // Make the thumbnail for image n visible
 function scrollToShowThumbnail(n) {
-  if (!files[n])
+  if (!files[n]) {
     return;
+  }
   var selector = 'img[data-filename="' + files[n].name + '"]';
   var thumbnail = thumbnails.querySelector(selector);
   if (thumbnail) {
@@ -324,8 +365,9 @@ function scrollToShowThumbnail(n) {
 }
 
 function setView(view) {
-  if (currentView === view)
+  if (currentView === view) {
     return;
+  }
   // define each view's layout based on data-view of body
   document.body.classList.remove(currentView);
   document.body.classList.add(view);
@@ -337,8 +379,9 @@ function setView(view) {
                     function(elt) { elt.classList.remove('selected'); });
       // On large devices we need to display the new current file after deletion
       // But if we just deleted the last file then we don't do this
-      if (!isPhone && currentFileIndex !== -1)
+      if (!isPhone && currentFileIndex !== -1) {
         showFile(currentFileIndex);
+      }
       break;
     case LAYOUT_MODE.fullscreen:
       if (!isPhone && (view === LAYOUT_MODE.list) && !isPortrait &&
@@ -373,8 +416,9 @@ function setView(view) {
     case LAYOUT_MODE.select:
       clearSelection();
       // When entering select view, we pause the video
-      if (!isPhone && currentFrame.video && !isPortrait)
+      if (!isPhone && currentFrame.video && !isPortrait) {
         currentFrame.video.pause();
+      }
       break;
     case LAYOUT_MODE.edit:
       NFC.unshare();
@@ -404,16 +448,18 @@ function setView(view) {
 // 3. On tiny/large with listView -> go to fullscreen image
 function thumbnailClickHandler(evt) {
   var target = evt.target;
-  if (!target)
+  if (!target) {
     return;
+  }
 
   // Bug 1106877 - Handle tap for clicks in gray area of containing
   // div for thumbnail images smaller than thumbnail container.
   target = target.classList.contains('thumbnail') ?
     target.firstElementChild : target;
 
-  if (!target || !target.classList.contains('thumbnailImage'))
+  if (!target || !target.classList.contains('thumbnailImage')) {
     return;
+  }
 
   // If the MediaDB is not fully ready yet, then ignore the event
   if (photodb.state !== MediaDB.READY) {
@@ -440,24 +486,28 @@ function thumbnailClickHandler(evt) {
 function updateFocusThumbnail(n) {
   var previousIndex = currentFileIndex;
   currentFileIndex = n;
-  if (isPhone || currentFileIndex === -1)
+  if (isPhone || currentFileIndex === -1) {
     return;
+  }
 
   // If file is delted on select mode, the currentFileIndex may
   // be the same as previousIndex. We need to hightlight it again.
   var newTarget =
     thumbnailList.thumbnailMap[files[currentFileIndex].name];
-  if (newTarget)
+  if (newTarget) {
     newTarget.htmlNode.classList.add('focus');
+  }
 
-  if (previousIndex === currentFileIndex)
+  if (previousIndex === currentFileIndex) {
     return;
+  }
   var oldTarget =
     files[previousIndex] ?
     thumbnailList.thumbnailMap[files[previousIndex].name] :
     undefined;
-  if (oldTarget)
+  if (oldTarget) {
     oldTarget.htmlNode.classList.remove('focus');
+  }
 }
 
 function clearSelection() {
@@ -487,8 +537,9 @@ function updateSelection(thumbnail) {
   // based on whether we selected or deselected the thumbnail
   var selected = thumbnail.classList.contains('selected');
   var index = getFileIndex(thumbnail.dataset.filename);
-  if (index < 0)
+  if (index < 0) {
     return;
+  }
 
   var filename = files[index].name;
 
@@ -507,14 +558,16 @@ function updateSelection(thumbnail) {
         selectedFileNamesToBlobs[filename] = file;
       });
     }
-    if (!isPhone)
+    if (!isPhone) {
       showFile(currentFileIndex);
+    }
   }
   else {
     delete selectedFileNamesToBlobs[filename];
     var i = selectedFileNames.indexOf(filename);
-    if (i !== -1)
+    if (i !== -1) {
       selectedFileNames.splice(i, 1);
+    }
 
     if (currentFileIndex === index && !isPhone) {
       if (i > 0) {
@@ -560,6 +613,8 @@ function launchCameraApp() {
       type: 'photos'
     }
   });
+  // Assign an onsuccess function to the activity so jshint doesn't complain.
+  a.onsuccess = () => {};
 
   // Wait 2000ms before re-enabling the Camera buttons to prevent
   // hammering them and causing a crash (Bug 957709)
@@ -572,8 +627,9 @@ function launchCameraApp() {
 
 function deleteSelectedItems() {
   var selected = thumbnails.querySelectorAll('.selected.thumbnailImage');
-  if (selected.length === 0)
+  if (selected.length === 0) {
     return;
+  }
 
   Dialogs.confirm({
     messageId: 'delete-n-items?',
@@ -611,8 +667,9 @@ function shareSelectedItems() {
 // single image, we sometimes pass an in-memory blob to handle EXIF orientation
 // issues. In that case, use the second name argument for the unnamed blob
 function share(blobs, blobName) {
-  if (blobs.length === 0)
+  if (blobs.length === 0) {
     return;
+  }
 
   var names = [], types = [], fullpaths = [];
 
@@ -621,8 +678,9 @@ function share(blobs, blobName) {
     var name = blob.name;
 
     // Special case for blobs that are not File objects
-    if (!name && blobs.length === 1)
+    if (!name && blobs.length === 1) {
       name = blobName;
+    }
 
     // We try to fix Bug 814323 by using
     // current workaround of bluetooth transfer
@@ -635,20 +693,23 @@ function share(blobs, blobName) {
 
     // And we just want the first component of the type "image" or "video"
     var type = blob.type;
-    if (type)
+    if (type) {
       type = type.substring(0, type.indexOf('/'));
+    }
     types.push(type);
   });
 
   // If there is just one type, or if all types are the same, then use
-  // that type plus '/*'. Otherwise, use 'multipart/mixed'
+  // that type plus '/*'. Otherwise, use 'application/*'
   // If all the blobs are image we use 'image/*'. If all are videos
-  // we use 'video/*'. Otherwise, 'multipart/mixed'.
+  // we use 'video/*'. Otherwise, 'application/*'.
   var type;
-  if (types.length === 1 || types.every(function(t) { return t === types[0]; }))
+  if (types.length === 1 ||
+      types.every(function(t) { return t === types[0]; })) {
     type = types[0] + '/*';
-  else
-    type = 'multipart/mixed';
+  } else {
+    type = 'application/*';
+  }
 
   var a = new MozActivity({
     name: 'share',
@@ -663,8 +724,7 @@ function share(blobs, blobName) {
 
   a.onerror = function(e) {
     if (a.error.name === 'NO_PROVIDER') {
-      var msg = navigator.mozL10n.get('share-noprovider');
-      alert(msg);
+      navigator.mozL10n.formatValue('share-noprovider').then(alert);
     }
     else {
       console.warn('share activity error:', a.error.name);
@@ -702,16 +762,6 @@ function resizeHandler() {
     setFramesPosition();
   }
 }
-
-// Change the thumbnails quality while scrolling using the scrollstart/scrollend
-// events from shared/js/scroll_detector.js.
-window.addEventListener('scrollstart', function onScrollStart(e) {
-  thumbnails.classList.add('scrolling');
-});
-
-window.addEventListener('scrollend', function onScrollEnd(e) {
-  thumbnails.classList.remove('scrolling');
-});
 
 /*
  * This is a temporary workaround to bug 1039943: when the user launches

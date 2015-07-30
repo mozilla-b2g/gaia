@@ -5,17 +5,13 @@ var FakeLoopApp = require('./lib/fakeloopapp.js');
 
 marionette('AttentionWindow - Permission Prompt', function() {
   var apps = {};
-  apps[FakeLoopApp.DEFAULT_ORIGIN] = __dirname + '/fakeloopapp';
+  apps[FakeLoopApp.DEFAULT_ORIGIN] = __dirname + '/../apps/fakeloopapp';
 
   var client = marionette.client({
-    prefs: {
-      'dom.w3c_touch_events.enabled': 1
+    profile: {
+      apps: apps
     },
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
-    },
-    apps: apps
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
   });
 
   var system;
@@ -23,7 +19,7 @@ marionette('AttentionWindow - Permission Prompt', function() {
 
   setup(function() {
     system = client.loader.getAppClass('system');
-    system.waitForStartup();
+    system.waitForFullyLoaded();
 
     fakeLoop = new FakeLoopApp(client);
   });

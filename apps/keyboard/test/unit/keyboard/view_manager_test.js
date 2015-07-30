@@ -60,7 +60,7 @@ suite('View Manager', function() {
 
     container.appendChild(activeIme);
 
-    Object.defineProperty(container, 'clientWidth', makeDescriptor(300));
+    Object.defineProperty(container, 'clientWidth', makeDescriptor(320));
 
     app = {
       layoutRenderingManager: fakeRenderingManager
@@ -125,9 +125,7 @@ suite('View Manager', function() {
       };
 
       viewManager.render(layout);
-
       viewManager.resize();
-      stubRequestAnimationFrame.getCall(0).args[0]();
 
       var all = [].map.call(document.querySelectorAll('.visual-wrapper'),
         function(el) {
@@ -208,56 +206,14 @@ suite('View Manager', function() {
       stubRequestAnimationFrame.getCall(0).args[0]();
     });
 
-    test('GetKeyArray sanity', function(next) {
-      var layout = {
-        width: 10,
-        keys: [
-          [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}]
-        ]
+    test('getKeyArray()', function() {
+      viewManager.currentPageView = {
+        getVisualData: sinon.stub()
       };
 
-      viewManager.render(layout, null, function() {
-        var keyArray = viewManager.getKeyArray();
+      viewManager.getKeyArray();
 
-        var visuals = [].slice.call(
-          document.querySelectorAll('.visual-wrapper'));
-
-        visuals.forEach(function(v, ix) {
-          assert.equal(v.offsetLeft, keyArray[ix].x, 'x for ' + ix);
-          assert.equal(v.offsetTop, keyArray[ix].y, 'y for ' + ix);
-          assert.equal(v.clientWidth, keyArray[ix].width, 'width for ' + ix);
-          assert.equal(v.clientHeight, keyArray[ix].height, 'height for ' + ix);
-        });
-
-        next();
-      });
-      stubRequestAnimationFrame.getCall(0).args[0]();
-    });
-
-    test('GetKeyArray sanity for filled up space', function(next) {
-      var layout = {
-        width: 4,
-        keys: [
-          [{}, {}, {}]
-        ]
-      };
-
-      viewManager.render(layout, null, function() {
-        var keyArray = viewManager.getKeyArray();
-
-        var visuals = [].slice.call(
-          document.querySelectorAll('.visual-wrapper'));
-
-        visuals.forEach(function(v, ix) {
-          assert.equal(v.offsetLeft, keyArray[ix].x, 'x for ' + ix);
-          assert.equal(v.offsetTop, keyArray[ix].y, 'y for ' + ix);
-          assert.equal(v.clientWidth, keyArray[ix].width, 'width for ' + ix);
-          assert.equal(v.clientHeight, keyArray[ix].height, 'height for ' + ix);
-        });
-
-        next();
-      });
-      stubRequestAnimationFrame.getCall(0).args[0]();
+      assert.ok(viewManager.currentPageView.getVisualData.called);
     });
   });
 

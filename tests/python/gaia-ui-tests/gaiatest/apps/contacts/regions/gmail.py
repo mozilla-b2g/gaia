@@ -2,14 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-try:
-    from marionette import (expected,
-                            Wait)
-    from marionette.by import By
-except:
-    from marionette_driver import (expected,
-                                   Wait)
-    from marionette_driver.by import By
+from marionette_driver import expected, By, Wait
 from gaiatest.apps.base import Base
 
 
@@ -20,6 +13,7 @@ class GmailLogin(Base):
     _password_locator = (By.ID, 'Passwd')
     _sign_in_locator = (By.ID, 'signIn')
     _grant_access_button_locator = (By.ID, 'submit_approve_access')
+    _next_locator = (By.ID, 'next')
 
     def switch_to_gmail_login_frame(self):
         self.marionette.switch_to_frame()
@@ -32,7 +26,10 @@ class GmailLogin(Base):
         Wait(self.marionette).until(expected.element_displayed(email))
         email.tap()
         email.send_keys(user)
-        password = self.marionette.find_element(*self._password_locator)
+        self.marionette.find_element(*self._next_locator).tap()
+        password = Wait(self.marionette).until(
+            expected.element_present(*self._password_locator))
+        Wait(self.marionette).until(expected.element_displayed(password))
         password.tap()
         password.send_keys(passwd)
         self.keyboard.dismiss()

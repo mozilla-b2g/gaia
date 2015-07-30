@@ -3,16 +3,15 @@ define(function(require, exports, module) {
 
 var Abstract = require('store/abstract');
 var Factory = require('test/support/factory');
-var Responder = require('responder');
+var Responder = require('common/responder');
+var core = require('core');
 
 suite('store/abstract', function() {
   var subject;
   var db;
-  var app;
 
   setup(function(done) {
-    app = testSupport.calendar.app();
-    db = app.db;
+    db = core.db;
     subject = new Abstract(db);
 
     // set _store to accounts so we can actually
@@ -44,7 +43,6 @@ suite('store/abstract', function() {
   });
 
   test('initialization', function() {
-    assert.equal(subject.db, db);
     assert.instanceOf(subject, Responder);
     assert.deepEqual(subject._cached, {});
   });
@@ -163,7 +161,7 @@ suite('store/abstract', function() {
           });
         }
 
-        trans = subject.db.transaction(
+        trans = core.db.transaction(
           subject._store,
           'readwrite'
         );
@@ -319,7 +317,7 @@ suite('store/abstract', function() {
 
   suite('#count', function() {
     setup(function(done) {
-      var trans = subject.db.transaction(
+      var trans = core.db.transaction(
         subject._store,
         'readwrite'
       );

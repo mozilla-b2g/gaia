@@ -5,12 +5,11 @@ require('/shared/elements/gaia-header/dist/gaia-header.js');
 var EventBase = require('views/event_base');
 var EventModel = require('models/event');
 var View = require('view');
-var providerFactory = require('provider/provider_factory');
 var router = require('router');
 
 suite('Views.EventBase', function() {
+  var core;
   var subject;
-  var app;
   var triggerEvent;
   var last = router.last;
 
@@ -19,6 +18,7 @@ suite('Views.EventBase', function() {
   }
 
   suiteSetup(function() {
+    core = testSupport.calendar.core();
     triggerEvent = testSupport.calendar.triggerEvent;
     last = router.last;
   });
@@ -27,7 +27,6 @@ suite('Views.EventBase', function() {
     var el = document.getElementById('test');
     el.parentNode.removeChild(el);
     router.last = last;
-    delete providerFactory.providers.Test;
   });
 
   setup(function(done) {
@@ -42,10 +41,8 @@ suite('Views.EventBase', function() {
     ].join('');
 
     document.body.appendChild(div);
-    app = testSupport.calendar.app();
 
     subject = new EventBase({
-      app: app,
       selectors: {
         element: '#event-test',
         header: '#event-test-header',
@@ -53,7 +50,7 @@ suite('Views.EventBase', function() {
       }
     });
 
-    app.db.open(done);
+    core.db.open(done);
   });
 
   // setup this.account / this.calendar
@@ -64,10 +61,10 @@ suite('Views.EventBase', function() {
 
   teardown(function(done) {
     testSupport.calendar.clearStore(
-      app.db,
+      core.db,
       ['accounts', 'calendars', 'events', 'busytimes'],
       function() {
-        app.db.close();
+        core.db.close();
         done();
       }
     );
@@ -97,7 +94,7 @@ suite('Views.EventBase', function() {
     assert.ok(subject.uiSelector);
   });
 
-  suite('#useModel', function() {
+  suite('#_useModel', function() {
     var callsUpdateUI;
     setup(function() {
       callsUpdateUI = false;
@@ -106,56 +103,33 @@ suite('Views.EventBase', function() {
       };
     });
 
-    test('multiple pending operations', function(done) {
-      function throwsError() {
-        done(new Error('incorrect callback fired...'));
-      }
+    test('readonly', function() {
+      var record = {
+        busytime: this.busytime,
+        event: this.event,
+        capabilities: { canUpdate: false }
+      };
 
-      subject.useModel(this.busytime, this.event, throwsError);
-      subject.useModel(this.busytime, this.event, throwsError);
-      subject.useModel(this.busytime, this.event, done);
+      subject._useModel(record);
+      assert.isTrue(hasClass(subject.READONLY), 'is readonly');
+      assert.isTrue(callsUpdateUI, 'updates ui');
     });
 
-    test('readonly', function(done) {
-      var provider = providerFactory.get('Mock');
+    test('normal', function() {
+      var record = {
+        busytime: this.busytime,
+        event: this.event,
+        calendar: { _id: this.event.calendarId },
+        capabilities: { canUpdate: true }
+      };
 
-      provider.stageEventCapabilities(this.event._id, null, {
-        canUpdate: false
-      });
-
-      subject.useModel(this.busytime, this.event, function() {
-        done(function() {
-          assert.isTrue(hasClass(subject.READONLY), 'is readonly');
-          assert.isTrue(callsUpdateUI, 'updates ui');
-        });
-      });
-    });
-
-    test('normal', function(done) {
-      var isDone = false;
-      subject.useModel(this.busytime, this.event, function() {
-        done(function() {
-          assert.ok(isDone, 'not async');
-          assert.ok(
-            !subject.element.classList.contains(subject.LOADING),
-            'is not loading'
-          );
-
-          assert.equal(
-            subject.originalCalendar._id,
-            this.event.calendarId
-          );
-
-          assert.isTrue(callsUpdateUI, 'updates ui');
-          assert.isFalse(hasClass(subject.READONLY), 'is readonly');
-        }.bind(this));
-      }.bind(this));
-
-      assert.ok(
-        subject.element.classList.contains(subject.LOADING),
-        'is loading'
+      subject._useModel(record);
+      assert.equal(
+        subject.originalCalendar._id,
+        record.event.calendarId
       );
-      isDone = true;
+      assert.isTrue(callsUpdateUI, 'updates ui');
+      assert.isFalse(hasClass(subject.READONLY), 'is readonly');
     });
   });
 
@@ -178,7 +152,7 @@ suite('Views.EventBase', function() {
       setup(function(done) {
         headerFontSize = this.sinon.stub(subject.header, 'runFontFitSoon');
 
-        app.timeController.move(date);
+        core.timeController.move(date);
         subject.dispatch({ params: {} });
 
         subject.ondispatch = done;

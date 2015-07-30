@@ -46,7 +46,7 @@ class TestPersonaStandard(GaiaTestCase):
         assertionUtil = AssertionUtil()
         unpacked = assertionUtil.unpackAssertion(assertion)
 
-        self.assertEqual(AUDIENCE, unpacked['payload']['aud'])
+        self.assertIn(AUDIENCE, unpacked['payload']['aud'], "expected app://uitest.gaiamobile.org in the result")
         self.assertEqual(self.user.email, unpacked['claim']['principal']['email'])
 
         verified = assertionUtil.verifyAssertion(assertion, AUDIENCE, VERIFIER_URL)

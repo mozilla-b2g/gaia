@@ -1,4 +1,4 @@
-#fb-extensions {
+#iframe_extensions {
   position: fixed;
   top: 100%;
   left: 0;
@@ -12,18 +12,17 @@
   background: #f4f4f4;
 }
 
-#fb-extensions.opening {
+#iframe_extensions.opening {
   -moz-transform: translateY(-100%);
 }
 
-#fb-extensions.hidden {
+#iframe_extensions.hidden {
   visibility: hidden;
 }
 
 /* FB info (non-editable) */
 .view-edit-contact .facebook fieldset legend,
 .view-edit-contact .facebook fieldset input[type="date"] {
-  width: 100%;
   border-color: #acbee4;
   color: #8d9abb;
   background-image: url(fb/dialog.svg);

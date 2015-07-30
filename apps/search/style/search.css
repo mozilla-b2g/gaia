@@ -1,3 +1,7 @@
+/* Only include gaia-theme to get CSS variables, the transition-duration one
+   in particular. Other parts of gaia-theme are not used. */
+@import url('../shared/elements/gaia-theme/gaia-theme.css');
+
 /**
  * Disable selection by default except for elements with
  * "contenteditable".
@@ -17,12 +21,6 @@ html, body {
   font-size: 10px;
 }
 
-
-/* RTL fixes being tracked in bug 1008013 */
-html[dir="rtl"] {
-  direction: ltr;
-}
-
 body, a {
   color: rgba(255, 255, 255, 0.9);
 }
@@ -30,7 +28,10 @@ body, a {
 #offline-message {
   font-size: 1.4rem;
   font-style: italic;
-  margin: 1rem 1rem 0;
+  margin: 0;
+  -moz-margin-end: 1rem;
+  height: 4.2rem;
+  padding-bottom: 1.3rem;
   text-align: center;
   display: none;
   justify-content: center;
@@ -38,11 +39,11 @@ body, a {
 }
 
 #settings-connectivity {
-  background: url("/style/icons/settings.png") no-repeat 50% 50% / 1.4rem;
+  background: url(/style/icons/settings.png) no-repeat 50% 50% / 1.4rem;
   width: 1.4rem;
   height: 1.4rem;
   margin-top: -0.1rem;
-  padding-right: 0.8rem;
+  -moz-padding-end: 0.8rem;
 }
 
 #search-results {
@@ -60,16 +61,20 @@ body, a {
 #suggestions-provider {
   color: #00aac5;
   position: relative;
-  padding: 0 2rem 0 1rem;
+  padding: 0;
+  -moz-padding-end: 2rem;
+  -moz-padding-start: 1rem;
 }
 
-#suggestions-provider::before {
+#suggestions-provider-dropdown {
   content: ' ';
   position: absolute;
-  bottom: 0.2rem;
-  right: .8rem;
+  top: -.4rem;
+  -moz-margin-start: -1.4rem;
   width: 0;
   height: 0;
+  background: none;
+  padding: 0;
   border-style: solid;
   border-width: 0 0 .8rem .8rem;
   border-color: transparent transparent #00aac5 transparent;
@@ -78,13 +83,13 @@ body, a {
 #suggestions {
   font-size: 1.6rem;
   overflow-x: hidden;
-  margin-right: 1.6rem;
+  -moz-margin-end: 1.6rem;
 }
 
 #suggestions ul {
   list-style: none;
   white-space: nowrap;
-  padding-left: 0;
+  -moz-padding-start: 0;
 }
 
 #suggestions li {
@@ -94,8 +99,10 @@ body, a {
   border-bottom: 0.1rem solid rgba(255, 255, 255, 0.05);
   background-image: url(/style/icons/search.png);
   background-repeat: no-repeat;
-  background-position: 0.8rem center;
+  background-position: left 0.8rem center;
+  background-size: 3rem;
   text-indent: 4.5rem;
+  width: 100%;
 }
 
 section .result * {
@@ -108,7 +115,10 @@ h2 {
   border-top: 0.3rem solid #5f5f5f;
   font-size: 1.4rem;
   color: #858585;
-  margin: 0.9rem 0.6rem -0.9rem 0.5rem;
+  margin-top: 0.9rem;
+  margin-bottom: -0.9rem;
+  -moz-margin-start: 0.5rem;
+  -moz-margin-end: 0.6rem;
 }
 
 /* The select box is hidden behind search provider label since we
@@ -146,11 +156,12 @@ h2 span, h2 label {
 .local .result:after {
   position: absolute;
   bottom: 0;
-  left: 0.5rem;
   content: " ";
   width: calc(100% - 1rem);
   height: 0.1rem;
   background: #535353;
+  left: 0.5rem;
+  right: 0.5rem;
 }
 
 .local .result:last-child:after {
@@ -162,7 +173,9 @@ h2 span, h2 label {
 }
 
 .local .icon {
-  margin: 0.4rem 1.6rem 0 0;
+  margin: 0;
+  margin-top: 0.4rem;
+  -moz-margin-end: 1.6rem;
   display: block;
   flex: 0 0 32px;
   width: 32px;
@@ -185,7 +198,7 @@ h2 span, h2 label {
 
 .local .title, .local .meta {
   display: block;
-  white-space:nowrap;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -268,8 +281,7 @@ gaia-grid {
   border-width: 0 1rem 1rem 1rem;
   border-color: transparent transparent rgba(45, 45, 45, 0.94) transparent;
   top: -1rem;
-  left: 50%;
-  margin-left: -1rem;
+  -moz-margin-start: calc(50% - 1rem);
   z-index: -1;
 }
 
@@ -289,4 +301,24 @@ gaia-grid {
 
 [data-loading=true] .loading {
   display: block;
+}
+
+html[dir="rtl"] #suggestions-provider {
+  padding: 0 1rem 0 2rem;
+}
+
+html[dir="rtl"] #suggestions li {
+  background-position: right 0.8rem center;
+}
+
+html[dir="rtl"] #suggestions-provider-dropdown {
+  transform: scaleX(-1);
+}
+
+html[dir="rtl"] #places .description {
+  text-align: right;
+}
+
+html[dir="rtl"] #places .meta {
+  direction: ltr;
 }

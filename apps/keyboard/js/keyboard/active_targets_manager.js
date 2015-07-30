@@ -238,11 +238,14 @@ ActiveTargetsManager.prototype._handlePressEnd = function(press, id) {
   if (this.doubleTapTimer && this.doubleTapPreviousTarget === target) {
     window.clearTimeout(this.doubleTapTimer);
     this.doubleTapTimer = undefined;
+    this.doubleTapPreviousTarget = null;
 
     if (typeof this.ontargetdoubletapped === 'function') {
       this.ontargetdoubletapped(target);
     }
   } else {
+    window.clearTimeout(this.doubleTapTimer);
+
     this.doubleTapTimer = window.setTimeout(function() {
       this.doubleTapTimer = undefined;
       this.doubleTapPreviousTarget = null;

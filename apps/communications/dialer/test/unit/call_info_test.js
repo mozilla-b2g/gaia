@@ -1,9 +1,10 @@
 'use strict';
 
-/* globals CallInfo, CallLogDBManager, MockL10n, MocksHelper, Utils, LazyLoader,
-           MockContactsButtons, MockSimplePhoneMatcher,
+/* globals CallInfo, CallLog, CallLogDBManager, MockL10n, MocksHelper, Utils,
+           LazyLoader, MockContactsButtons, MockSimplePhoneMatcher,
            MockSimplePhoneMatcherBestMatches */
 
+require('/dialer/test/unit/mock_call_log.js');
 require('/dialer/test/unit/mock_call_log_db_manager.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
@@ -16,6 +17,7 @@ require('/shared/test/unit/mocks/mock_simple_phone_matcher.js');
 require('/dialer/js/call_info.js');
 
 var mocksHelperForCallInfoView = new MocksHelper([
+  'CallLog',
   'CallLogDBManager',
   'LazyLoader',
   'MozActivity',
@@ -42,26 +44,27 @@ suite('Call Info', function(argument) {
 
   var injectFragmentAsSection = function(name) {
     var section = document.createElement('section');
-    section = document.createElement('section');
     section.setAttribute('role', 'region');
     section.id = name;
     section.hidden = true;
-    var html = section.innerHTML =
-      document.body.querySelector(
-        'element[name="' + name + '"] template').innerHTML;
+    var template = document.body.querySelector(
+      'element[name="' + name + '"] template');
+    section.appendChild(template.content.cloneNode(true));
     document.body.appendChild(section);
-    return html;
+
+    return section.innerHTML;
   };
 
   var initCallInfo = function() {
     document.body.innerHTML = '';
 
     loadBodyHTML('/contacts/elements/phone_details.html');
-    var phoneDetailsTemplate = document.body.innerHTML;
+    var phoneDetailsTemplate = document.querySelector('element');
     loadBodyHTML('/contacts/elements/email_details.html');
-    var emailDetailsTemplate = document.body.innerHTML;
+    var emailDetailsTemplate = document.querySelector('element');
     loadBodyHTML('/dialer/elements/call-info-view.html');
-    document.body.innerHTML += phoneDetailsTemplate + emailDetailsTemplate;
+    document.body.appendChild(phoneDetailsTemplate);
+    document.body.appendChild(emailDetailsTemplate);
 
     phoneDetailsHTML = injectFragmentAsSection('phone-details');
     emailDetailsHTML = injectFragmentAsSection('email-details');
@@ -304,6 +307,10 @@ suite('Call Info', function(argument) {
       assert.isFalse(document.getElementById('call-info-view').hidden);
     });
 
+    test('hide the call log edit button', function() {
+      assert.isTrue(CallLog.mCallLogEditModeButtonHidden);
+    });
+
     test('looks up the right group', function() {
       sinon.assert.calledWith(CallLogDBManager.getGroup,
         fakeNumber, parseInt(fakeDate, 10), fakeType, fakeStatus);
@@ -312,6 +319,7 @@ suite('Call Info', function(argument) {
     test('tapping the close button closes the view', function() {
       dispatchCloseViewEvent();
       assert.isTrue(document.getElementById('call-info-view').hidden);
+      assert.isFalse(CallLog.mCallLogEditModeButtonHidden);
     });
 
     test('sets day for call list', function() {

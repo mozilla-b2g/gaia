@@ -7,16 +7,15 @@ import time
 from marionette import SkipTest
 
 from gaiatest import GaiaTestCase
+from gaiatest import GaiaTestEnvironment
 from gaiatest.apps.email.app import Email
 
 
 class TestSetupAndSendActiveSyncEmail(GaiaTestCase):
 
     def setUp(self):
-        try:
-            self.testvars['email']['activesync']
-        except KeyError:
-            raise SkipTest('account details not present in test variables')
+        if not GaiaTestEnvironment(self.testvars).email.get('activesync'):
+            raise SkipTest('ActiveSync account details not present in test variables.')
 
         GaiaTestCase.setUp(self)
         self.connect_to_local_area_network()
@@ -30,7 +29,7 @@ class TestSetupAndSendActiveSyncEmail(GaiaTestCase):
         https://moztrap.mozilla.org/manage/case/2475/
         """
         # setup ActiveSync account
-        self.email.setup_active_sync_email(self.testvars['email']['activesync'])
+        self.email.setup_active_sync_email(self.environment.email['activesync'])
 
         # check header area
         self.assertTrue(self.email.header.is_compose_visible)
@@ -49,7 +48,7 @@ class TestSetupAndSendActiveSyncEmail(GaiaTestCase):
         _body = 'b%s' % curr_time
         new_email = self.email.header.tap_compose()
 
-        new_email.type_to(self.testvars['email']['activesync']['email'])
+        new_email.type_to(self.environment.email['activesync']['email'])
         new_email.type_subject(_subject)
         new_email.type_body(_body)
 

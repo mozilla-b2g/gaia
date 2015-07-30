@@ -399,6 +399,9 @@
           // We must de-reference element explicitly so we can re-use item
           // objects the next time we call render.
           item.element = null;
+          item.lastX = null;
+          item.lastY = null;
+          item.lastScale = null;
         }
       }
       this.items = [];
@@ -422,7 +425,8 @@
         var xPosition = (coordinates[0] + i) * this.layout.gridItemWidth;
         if (isRTL) {
           xPosition =
-            (this.layout.gridWidth - this.layout.gridItemWidth) - xPosition;
+            (this.layout.constraintSize - this.layout.gridItemWidth) -
+            xPosition;
         }
         item.setCoordinates(xPosition, this.layout.offsetY);
 
@@ -446,6 +450,7 @@
       this.cleanItems(options.skipDivider);
 
       // Reset offset steps
+      var oldHeight = this.layout.offsetY;
       this.layout.offsetY = 0;
 
       // Grid render coordinates
@@ -478,7 +483,7 @@
       var nextDivider = null;
       var oddDivider = true;
       var isRTL = (document.documentElement.dir === 'rtl');
-      for (var idx = 0; idx <= this.items.length - 1; idx++) {
+      for (var idx = 0; idx < this.items.length; idx++) {
         var item = this.items[idx];
 
         // Remove the element if we are re-rendering.
@@ -539,7 +544,8 @@
           var xPosition = x * this.layout.gridItemWidth;
           if (isRTL) {
             xPosition =
-              (this.layout.gridWidth - this.layout.gridItemWidth) - xPosition;
+              (this.layout.constraintSize - this.layout.gridItemWidth) -
+              xPosition;
           }
           item.setCoordinates(xPosition, this.layout.offsetY);
           if (!item.active) {
@@ -558,17 +564,24 @@
         // Increment the x-step by the sizing of the item.
         // If we go over the current boundary, reset it, and step the y-axis.
         x += item.gridWidth;
-        if (x >= this.layout.cols) {
+        if ((x >= this.layout.cols) && (idx < this.items.length - 1)) {
           step(item);
         }
       }
 
       // All the children of this element are absolutely positioned and then
-      // transformed, so manually set a height for the convenience of
-      // embedders.
-      var padding = window.getComputedStyle ?
-        parseInt(window.getComputedStyle(this.element).paddingBottom) : 0;
-      this.element.style.height = (this.layout.offsetY + padding) + 'px';
+      // transformed, so the grid actually has no height. Fire an event that
+      // embedders can listen to discover the grid height.
+      if (this.layout.offsetY != oldHeight) {
+        if (this.dragdrop && this.dragdrop.inDragAction) {
+          // Delay size changes during drags to avoid jankiness when dragging
+          // items around due to touch positions changing.
+          this.layout.offsetY = oldHeight;
+        } else {
+          this.element.dispatchEvent(new CustomEvent('gaiagrid-resize',
+                                       { detail: this.layout.offsetY }));
+        }
+      }
 
       this.element.setAttribute('cols', this.layout.cols);
       pendingCachedIcons === 0 && onCachedIconRendered();

@@ -443,10 +443,11 @@ var HTMLParser = (function(){
         if ( html.lastIndexOf("<!--", 0) == 0 ) {
           index = html.indexOf("-->");
 
-                                        // WHATWG spec says the text can't start
-                                        // with the closing tag.
-          if ( index >= 5 ) {
-            if ( handler.comment )
+          // WHATWG spec says the text can't start with the closing tag.
+          // Of course, this is not obeyed, and it arguably is harmless to
+          // interpret the string "<!---->" as just a one-off dumb comment.
+          if ( index >= 4 ) {
+            if ( handler.comment)
               handler.comment( html.substring( 4, index ) );
             html = html.substring( index + 3 );
             chars = false;

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
+    <meta charset="utf-8">
+    <title>Apps</title>
+
+    <!-- stylesheets of building blocks -->
+    <link rel="stylesheet" type="text/css" href="shared/style/smart-screen/navigation.css">
+    <link rel="stylesheet" type="text/css" href="shared/style/smart-screen/icons.css">
+    <link rel="stylesheet" type="text/css" href="style/epg_program.css">
+    <link rel="stylesheet" type="text/css" href="style/tv_epg.css">
+
+    <!-- For test purpose on phone only -->
+    <script defer src="shared/js/gesture_detector.js"></script>
+    <script defer src="shared/js/smart-screen/init_gesture.js"></script>
+
+    <!-- Shared libraries -->
+    <script src="shared/js/l10n.js"></script>
+    <script src="shared/js/manifest_helper.js"></script>
+    <script defer src="/shared/js/l10n_date.js"></script>
+    <script defer src="bower_components/evt/index.js"></script>
+    <script defer src="shared/js/async_semaphore.js"></script>
+    <script defer src="shared/js/async_storage.js"></script>
+    <script defer src="shared/js/smart-screen/key_navigation_adapter.js"></script>
+    <script defer src="shared/js/smart-screen/spatial_navigator.js"></script>
+    <script defer src="shared/js/smart-screen/shared_utils.js"></script>
+    <script defer src="shared/js/smart-screen/applications.js"></script>
+    <script defer src="shared/js/smart-screen/piped_promise.js"></script>
+    <script defer src="shared/js/smart-screen/card_store.js"></script>
+    <script defer src="shared/js/smart-screen/cards/card.js"></script>
+    <script defer src="shared/js/smart-screen/cards/application.js"></script>
+    <script defer src="shared/js/smart-screen/cards/deck.js"></script>
+    <script defer src="shared/js/smart-screen/cards/folder.js"></script>
+    <script defer src="shared/js/smart-screen/card_manager.js"></script>
+    <script defer src="shared/js/smart-screen/channel_manager.js"></script>
+    <script defer src="shared/js/smart-screen/fake_tv_service.js"></script>
+    <script defer src="shared/js/smart-screen/pin_card.js"></script>
+    <script defer src="shared/js/smart-screen/clock.js"></script>
+
+    <!-- building blocks -->
+
+    <!-- Specific code -->
+    <script defer src="js/context_menu.js"></script>
+    <script defer src="js/epg_program.js"></script>
+    <script defer src="js/epg_controller.js"></script>
+    <script defer src="js/epg.js"></script>
+    <script defer src="js/index.js"></script>
+
+    <!-- L10n properties -->
+    <meta name="defaultLanguage" content="en-US">
+    <meta name="availableLanguages" content="en-US">
+    <link rel="localization" href="locales/tv-epg.{locale}.properties"/>
+    <link rel="localization" href="shared/locales/date/date.{locale}.properties"/>
+  </head>
+
+  <body>
+    <article id="main-section" contextmenu="context-menu">
+      <section role="region" id="main-container">
+        <div id="top-container">
+          <div id="header">
+            <div id="label">TV Guide</div>
+            <div id="time"></div>
+            <div id="time-prefix-container">
+              <div id="time-prefix"></div>
+            </div>
+          </div>
+          <div id="epg-container">
+            <div id="epg-left">
+              <div id="date"></div>
+              <div id="channel-list-container">
+                <ul id="channel-list">
+                </ul>
+              </div>
+            </div>
+            <div id="epg-right">
+              <div id="time-marker-container">
+                <div id="time-marker"></div>
+              </div>
+              <div id="timeline-container">
+                <ul id="timeline">
+                </ul>
+              </div>
+              <div id="program-list-container">
+                <div id="program-list">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="bottom-container">
+          <video id="video-thumbnail"></video>
+          <div id="detail-container">
+            <div id="program-title-container">
+              <div id="program-title"></div>
+            </div>
+            <ul id="program-meta">
+            </ul>
+            <div id="program-detail"></div>
+            <div id="progress-bar-back"></div>
+            <div id="progress-bar"></div>
+          </div>
+        </div>
+      </section>
+      <menu type="context" id="context-menu">
+        <menuitem icon="style/icons/ic_pin.png" data-l10n-id="pin-to-home" id="pin-button-contextmenu"></menuitem>
+      </menu>
+    </article>
+  </body>
+</html>

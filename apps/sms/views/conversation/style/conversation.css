@@ -1,0 +1,167 @@
+#messages-container {
+  /* We'll set flex-basis with a shrink factor of 0 to do min-height.
+   * formula: flex-basis = a % + b)
+   * a = (gap2 - gap1) / keyboard_height
+   * b = gap2 - (gap2 - gap1) * (buri_height - header) / keyboard_height + subheader + time_header
+   *
+   * with :
+   * gap1 = 4rem
+   *   minimal visible part of a thread when the keyboard is displayed, on buri
+   * gap2 = 8rem
+   *   minimal visible part of a thread when the keyboard is hidden, on a buri
+   * keyboard_height = 26rem
+   *   measured on a buri, standard english keyboard with suggestions
+   * header = 5rem
+   * subheader = 2rem
+   * buri_height = 48rem
+   * time_header = 2rem
+   *
+   * See https://bugzilla.mozilla.org/show_bug.cgi?id=1015867#c12 for more
+   * information
+   */
+  flex: 1 0 calc(15.4% + 5.38rem);
+  overflow: auto;
+}
+
+#messages-new-message-notice {
+  display: flex;
+  flex-direction: row;
+
+  padding: 1rem;
+  -moz-padding-start: 2rem;
+  -moz-padding-end: 1.5rem;
+  overflow: hidden;
+
+  white-space: nowrap;
+  line-height: 2rem;
+  font-size: 1.8rem;
+}
+
+#messages-new-message-notice a {
+  margin: 0;
+}
+
+#messages-new-message-notice .contact {
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#messages-new-message-notice > .text-container {
+  flex: auto;
+
+  overflow: hidden;
+}
+
+#messages-new-message-notice > .button-container {
+  flex: none;
+
+  padding: 0.2rem;
+  -moz-padding-start: 1.5rem;
+  -moz-padding-end: 0;
+}
+
+/* remove margin for notice-button class of button */
+.notice-button {
+  margin: 0;
+}
+
+.group-header-title {
+  display: flex;
+  justify-content: center;
+}
+
+.carrier-wrapper {
+  display: none;
+
+  box-sizing: border-box;
+  height: 2.2rem;
+  padding: 0 1.5rem;
+
+  font-size: 1.4rem;
+  line-height: 2.2rem;
+  text-align: start;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+
+  background: rgba(255, 255, 255, 0.95);
+  color: #333;
+}
+
+.carrier-wrapper .phone-carrier {
+  color: #008787;
+}
+
+.has-carrier .carrier-wrapper {
+  display: block;
+}
+
+#messages-container .messages-date-group-header {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+
+  height: 2.2rem;
+  margin: 0;
+  padding: 0.6rem 3rem;
+
+  font-size: 1.4rem;
+  line-height: 2.2rem;
+  text-transform: uppercase;
+
+  background: rgba(225, 240, 236, 0.85);
+  color: #008787;
+}
+
+/* If has carrier change top position */
+.has-carrier #messages-container .messages-date-group-header {
+  top: 2.2rem;
+}
+
+.has-carrier #messages-container > .messages-date-group:first-child > .messages-date-group-header {
+  margin-top: 2.2rem;
+}
+
+/* TODO: check whether we need this rule */
+#messages-container .messages-date-group-header.hidden {
+  display: none;
+}
+
+.article-list[data-type="list"] .message {
+  z-index: 0; /* bug 970422 */
+
+  overflow: hidden;
+  width: 100%;
+  height: auto;
+  padding-bottom: 1rem;
+  border-bottom: none;
+}
+
+.article-list[data-type="list"] .message.hidden {
+  display: none;
+}
+
+#messages-container[data-type="list"] .message.mms .bubble img {
+  height: auto;
+  width: auto;
+}
+
+/* transition in and out edit mode, both for LTR and RTL contexts */
+.message .bubble {
+  transition: transform var(--transition-duration) ease 0s;
+}
+
+/* RTL View */
+#messages-header-text .ellipsis-dir-fix {
+  width: auto;
+}
+
+.conversation-view .panel {
+  left: 0;
+}
+
+#main-wrapper[data-position="left"].conversation-view .panel {
+  transform: translateX(0);
+}

@@ -112,11 +112,18 @@ suite('about device info >', function() {
         iccIds = ['12345', '22345'];
         navigator.mozMobileConnections[0].iccId = iccIds[0];
         navigator.mozMobileConnections[1].iccId = iccIds[1];
+        this.sinon.stub(navigator.mozL10n, 'setAttributes');
         deviceInfo._loadIccId();
         var spans = deviceInfo._elements.deviceInfoIccIds
           .querySelectorAll('span');
-        assert.equal(spans[0].textContent, 'SIM 1: ' + iccIds[0]);
-        assert.equal(spans[1].textContent, 'SIM 2: ' + iccIds[1]);
+        iccIds.forEach(function(iccId, index) {
+          assert.ok(navigator.mozL10n.setAttributes.calledWith(
+            spans[index], 'deviceInfo-ICCID-with-index', {
+              index: index + 1,
+              iccid: iccId
+            }
+          ));
+        });
       });
 
       test('should show unavailable sim indicator', function() {
@@ -153,6 +160,7 @@ suite('about device info >', function() {
 
     test('should show correct value when getting an IMEI successfully',
       function(done) {
+        this.sinon.stub(navigator.mozL10n, 'setAttributes');
         this.sinon.stub(deviceInfo, '_getImeiCode', function() {
           return Promise.resolve('fakeImei');
         });
@@ -161,8 +169,13 @@ suite('about device info >', function() {
 
         promise.then(function() {
           var span = deviceInfo._elements.deviceInfoImeis.querySelector('span');
-          assert.equal(span.textContent, 'IMEI 1: fakeImei');
           assert.equal(span.dataset.slot, 0);
+          assert.ok(navigator.mozL10n.setAttributes.calledWith(
+            span, 'deviceInfo-IMEI-with-index', {
+              index: 1,
+              imei: 'fakeImei'
+            }
+          ));
         }).then(done, done);
     });
 
@@ -186,6 +199,7 @@ suite('about device info >', function() {
 
       test('should show multiple IMEI codes', function(done) {
         var count = 0;
+        this.sinon.stub(navigator.mozL10n, 'setAttributes');
         this.sinon.stub(deviceInfo, '_getImeiCode', function() {
           count += 1;
           return Promise.resolve('fakeImei' + count);
@@ -196,9 +210,13 @@ suite('about device info >', function() {
           var spans = deviceInfo._elements.deviceInfoImeis
             .querySelectorAll('span');
           for (var index = 0; index < 2; index++) {
-            assert.equal(spans[index].textContent,
-              'IMEI ' + (index + 1) + ': fakeImei' + (index + 1));
             assert.equal(spans[index].dataset.slot, index);
+            assert.ok(navigator.mozL10n.setAttributes.calledWith(
+              spans[index], 'deviceInfo-IMEI-with-index', {
+                index: index + 1,
+                imei: 'fakeImei' + (index + 1)
+              }
+            ));
           }
         }).then(done, done);
       });

@@ -1,7 +1,7 @@
 define([
-  'rdcommon/log', '../a64', '../accountmixins', '../mailslice',
+  'logic', '../a64', '../accountmixins', '../mailslice',
   '../searchfilter', '../util', '../db/folder_info_rep', 'require', 'exports'],
-  function(log, $a64, $acctmixins, $mailslice,
+  function(logic, $a64, $acctmixins, $mailslice,
   $searchfilter, $util, $folder_info, require, exports) {
 
 var bsearchForInsert = $util.bsearchForInsert;
@@ -27,7 +27,7 @@ function cmpFolderPubPath(a, b) {
 function CompositeIncomingAccount(
       FolderSyncer,
       universe, compositeAccount, accountId, credentials,
-      connInfo, folderInfos, dbConn, _parentLog, existingProtoConn) {
+      connInfo, folderInfos, dbConn, existingProtoConn) {
 
   this.universe = universe;
   this.compositeAccount = compositeAccount;
@@ -115,7 +115,7 @@ function CompositeIncomingAccount(
 
     folderStorages[folderId] =
       new $mailslice.FolderStorage(this, folderId, folderInfo, this._db,
-                                   FolderSyncer, this._LOG);
+                                   FolderSyncer);
     folderPubs.push(folderInfo.$meta);
   }
   this.folders.sort(function(a, b) {
@@ -178,7 +178,7 @@ CompositeIncomingAccount.prototype = {
     };
     this._folderStorages[folderId] =
       new $mailslice.FolderStorage(this, folderId, folderInfo, this._db,
-                                   this.FolderSyncer, this._LOG);
+                                   this.FolderSyncer);
 
     var folderMeta = folderInfo.$meta;
     var idx = bsearchForInsert(this.folders, folderMeta, cmpFolderPubPath);
@@ -215,7 +215,7 @@ CompositeIncomingAccount.prototype = {
    * implementation.
    */
   _recreateFolder: function(folderId, callback) {
-    this._LOG.recreateFolder(folderId);
+    logic(this, 'recreateFolder', { folderId: folderId });
     var folderInfo = this._folderInfos[folderId];
     folderInfo.$impl = {
       nextId: 0,
@@ -234,8 +234,7 @@ CompositeIncomingAccount.prototype = {
     this.saveAccountState(null, function() {
       var newStorage =
         new $mailslice.FolderStorage(self, folderId, folderInfo, self._db,
-                                     self.FolderSyncer,
-                                     self._LOG);
+                                     self.FolderSyncer);
       for (var iter in Iterator(self._folderStorages[folderId]._slices)) {
         var slice = iter[1];
         slice._storage = newStorage;
@@ -295,7 +294,7 @@ CompositeIncomingAccount.prototype = {
         rawConn = null;
       }
       if (!errString) {
-        self._LOG.deleteFolder(folderMeta.path);
+        logic(self, 'deleteFolder', { path: folderMeta.path });
         self._forgetFolder(folderId);
       }
       if (callback)
@@ -329,7 +328,7 @@ CompositeIncomingAccount.prototype = {
    */
   sliceFolderMessages: function(folderId, bridgeHandle) {
     var storage = this._folderStorages[folderId],
-        slice = new $mailslice.MailSlice(bridgeHandle, storage, this._LOG);
+        slice = new $mailslice.MailSlice(bridgeHandle, storage);
 
     storage.sliceOpenMostRecent(slice);
   },
@@ -337,7 +336,7 @@ CompositeIncomingAccount.prototype = {
   searchFolderMessages: function(folderId, bridgeHandle, phrase, whatToSearch) {
     var storage = this._folderStorages[folderId],
         slice = new $searchfilter.SearchSlice(bridgeHandle, storage, phrase,
-                                              whatToSearch, this._LOG);
+                                              whatToSearch);
     storage.sliceOpenSearch(slice);
     return slice;
   },
@@ -371,57 +370,6 @@ CompositeIncomingAccount.prototype = {
                                              'connection', 'incoming');
         break;
     }
-  },
-};
-
-exports.LOGFAB_DEFINITION = {
-  CompositeIncomingAccount: {
-    type: log.ACCOUNT,
-    events: {
-      createFolder: {},
-      deleteFolder: {},
-      recreateFolder: { id: false },
-
-      createConnection: {},
-      reuseConnection: {},
-      releaseConnection: {},
-      deadConnection: { why: true },
-      unknownDeadConnection: {},
-      connectionMismatch: {},
-
-      /**
-       * XXX: this is really an error/warning, but to make the logging less
-       * confusing, treat it as an event.
-       */
-      accountDeleted: { where: false },
-
-      /**
-       * The maximum connection limit has been reached, we are intentionally
-       * not creating an additional one.
-       */
-      maximumConnsNoNew: {},
-    },
-    TEST_ONLY_events: {
-      deleteFolder: { path: false },
-
-      createConnection: { label: false },
-      reuseConnection: { label: false },
-      releaseConnection: { folderId: false, label: false },
-      deadConnection: { folder: false },
-      connectionMismatch: {},
-    },
-    errors: {
-      connectionError: {},
-      folderAlreadyHasConn: { folderId: false },
-      opError: { mode: false, type: false, ex: log.EXCEPTION },
-    },
-    asyncJobs: {
-      checkAccount: { err: null },
-      runOp: { mode: true, type: true, error: true, op: false },
-      saveAccountState: { reason: true, folderSaveCount: true },
-    },
-    TEST_ONLY_asyncJobs: {
-    },
   },
 };
 

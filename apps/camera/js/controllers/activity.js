@@ -263,7 +263,6 @@ ActivityController.prototype.onActivityCanceled = function() {
 ActivityController.prototype.onActivityConfirmed = function(newMedia) {
   var self = this;
   var activity = this.activity;
-  var needsResizing;
   var media = {
     blob: newMedia.blob
   };
@@ -276,33 +275,33 @@ ActivityController.prototype.onActivityConfirmed = function(newMedia) {
   if (newMedia.isVideo) {
     media.type = 'video/3gpp';
     media.poster = newMedia.poster.blob;
+    activity.postResult(media);
+    this.app.clearSpinner();
   }
 
   // Image
   else {
     media.type = 'image/jpeg';
-    needsResizing = activity.source.data.width || activity.source.data.height;
-    debug('needs resizing: %s', needsResizing);
 
-    if (needsResizing) {
-      resizeImageAndSave({
+    // We need to call resizeImageAndSave() unconditionally even if
+    // the image does not need to be resized because if the camera
+    // produces images with EXIF orientation, we need to rotate the
+    // image before returning it from the pick activity. If the image
+    // does not need to be resized or rotated, then resizeImageAndSave
+    // will return it unchanged, and will not re-save it.
+    resizeImageAndSave(
+      {
         blob: newMedia.blob,
         width: activity.source.data.width,
         height: activity.source.data.height
-      }, onImageResized);
-      return;
-    }
+      },
+      function onImageResized(resizedBlob) {
+        media.blob = resizedBlob;
+        activity.postResult(media);
+        self.app.clearSpinner();
+      }
+    );
   }
-
-  function onImageResized(resizedBlob) {
-    media.blob = resizedBlob;
-    activity.postResult(media);
-    self.app.clearSpinner();
-  }
-
-  activity.postResult(media);
-  this.app.clearSpinner();
-
 };
 
 });

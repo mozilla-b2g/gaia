@@ -61,3 +61,8 @@ class TestAirplaneMode(GaiaTestCase):
 
         # check GPS is enabled
         self.assertTrue(self.data_layer.get_setting('geolocation.enabled'), "GPS was not enabled after switching off Airplane mode")
+
+    def tearDown(self):
+        self.marionette.switch_to_frame()
+        self.data_layer.disable_cell_data()
+        GaiaTestCase.tearDown(self)

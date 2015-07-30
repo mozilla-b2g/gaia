@@ -1,5 +1,4 @@
 /* exported MockActivityHandler */
-
 'use strict';
 
 var MockActivityHandler = {
@@ -13,5 +12,12 @@ var MockActivityHandler = {
   },
   postPickSuccess: function(data) {},
   postCancel: function() {},
-  dataPickHandler: function() {}
+  dataPickHandler: function() {},
+  isCancelable: function() {
+    return {
+      then: function(cb) {
+        cb();
+      }
+    };
+  }
 };

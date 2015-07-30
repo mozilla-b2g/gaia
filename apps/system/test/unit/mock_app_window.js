@@ -58,6 +58,9 @@
         element: this._iframe
       };
     },
+    set browser(browser) {
+      this._iframe = browser.element;
+    },
     get frame() {
       return this.element;
     },
@@ -147,8 +150,16 @@
     handleStatusbarTouch: function() {},
     setNFCFocus: function() {},
     setActive: function() {},
-    getSSLState: function() { return ''; }
+    getSSLState: function() { return ''; },
+    getCachedScreenshotBlob: function() {},
+    requestScreenshotURL: function() {},
+    getSiteIconUrl: function() {},
+    _showFrame: function() {},
+    _hideFrame: function() {}
   };
+
+  MockAppWindow.addMixin = function() {};
+
   MockAppWindow.mTeardown = function() {
     MockAppWindowHelper.mInstances = [];
     MockAppWindowHelper.mLatest = null;

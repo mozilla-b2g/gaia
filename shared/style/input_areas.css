@@ -24,6 +24,7 @@ textarea {
   color: #333;
   background: #fff;
   margin: 0 0 1rem 0;
+  unicode-bidi: -moz-plaintext;
 }
 
 label:active {

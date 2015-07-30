@@ -2,15 +2,16 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from marionette.wait import Wait
+from marionette_driver import Wait
 
 from gaiatest.gaia_graphics_test import GaiaImageCompareTestCase
+from gaiatest import PasscodeTestCase
 from gaiatest.apps.lockscreen.app import LockScreen
 
 
-class TestLockScreen(GaiaImageCompareTestCase):
+class TestLockScreen(GaiaImageCompareTestCase, PasscodeTestCase):
 
-    _input_passcode = '7931'
+    _input_passcode = '1337'
     _seconds_since_epoch = 1357043430
 
     def setUp(self):
@@ -23,15 +24,14 @@ class TestLockScreen(GaiaImageCompareTestCase):
         self.data_layer.set_time(self._seconds_since_epoch * 1000)
         self.data_layer.set_setting('time.timezone', 'Atlantic/Reykjavik')
 
-        # set passcode-lock
-        self.data_layer.set_setting('lockscreen.passcode-lock.code', self._input_passcode)
+        self.set_passcode_to_1337()
+
         self.data_layer.set_setting('lockscreen.passcode-lock.enabled', True)
 
         # this time we need it locked!
         self.device.lock()
 
         # 1st try
-
         lock_screen = LockScreen(self.marionette)
         lock_screen.switch_to_frame()
         lock_screen.unlock_to_passcode_pad()
@@ -40,8 +40,8 @@ class TestLockScreen(GaiaImageCompareTestCase):
 
         # 2nd try
         self.device.turn_screen_on()
-        passcode_pad = lock_screen.unlock_to_passcode_pad()
-        homescreen = passcode_pad.type_passcode(self._input_passcode)
+        lock_screen.switch_to_frame()
+        homescreen = lock_screen.unlock_to_homescreen_using_passcode(self._input_passcode)
 
         Wait(self.marionette).until(lambda m: self.apps.displayed_app.name == homescreen.name)
         self.take_screenshot()

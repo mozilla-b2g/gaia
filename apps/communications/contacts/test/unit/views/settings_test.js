@@ -1,18 +1,20 @@
 'use strict';
+
 /* global contacts */
 /* global Contacts */
-/* global MockImportStatusData */
-/* global MockCookie */
+/* global MockMozContacts */
 /* global MockContactsIndexHtml */
+/* global MockCookie */
 /* global MockgetDeviceStorage */
 /* global MocksHelper */
 /* global MockIccManager */
-/* global MockMozContacts */
-/* global MockNavigatorMozMobileConnections */
+/* global MockImportStatusData */
 /* global MockMozL10n */
-/* global MockSdCard */
-/* global utils */
+/* global MockNavigatorMozMobileConnections */
 /* global MockNavigatorSettings */
+/* global MockSdCard */
+/* global MockLoader */
+/* global utils */
 
 require('/shared/js/lazy_loader.js');
 require('/shared/js/contacts/import/utilities/misc.js');
@@ -20,16 +22,19 @@ require('/shared/js/contacts/utilities/event_listeners.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 require('/shared/test/unit/mocks/mock_iccmanager.js');
+requireApp('communications/contacts/services/contacts.js');
+requireApp('communications/contacts/test/unit/mock_service_extensions.js');
+requireApp('communications/contacts/test/unit/mock_cache.js');
 requireApp('communications/contacts/test/unit/mock_contacts_index.html.js');
 requireApp('communications/contacts/test/unit/mock_navigation.js');
 requireApp('communications/contacts/test/unit/mock_contacts.js');
 requireApp('communications/contacts/test/unit/mock_import_status_data.js');
 requireApp('communications/contacts/test/unit/mock_asyncstorage.js');
-requireApp('communications/contacts/test/unit/mock_fb.js');
 requireApp('communications/contacts/test/unit/mock_cookie.js');
 requireApp('communications/contacts/test/unit/mock_get_device_storage.js');
 requireApp('communications/contacts/test/unit/mock_sdcard.js');
 requireApp('communications/contacts/test/unit/mock_icc_helper.js');
+requireApp('communications/contacts/test/unit/mock_loader.js');
 require('/shared/test/unit/mocks/mock_confirm_dialog.js');
 require('/shared/test/unit/mocks/mock_mozContacts.js');
 requireApp('communications/contacts/test/unit/mock_l10n.js');
@@ -52,15 +57,15 @@ if (!window.Rest) {
 
 window.self = null;
 
-var fb,
-    real_,
+var real_,
     realMozL10n,
     realMozContacts,
     realUtils,
     realCookie,
     realOnLine,
     realMozIccManager,
-    realMozMobileConnections;
+    realMozMobileConnections,
+    realLoader;
 
 if (!window.realMozContacts) {
   realMozContacts = null;
@@ -71,8 +76,12 @@ if (!window.realMozIccManager) {
 }
 
 var mocksHelperForContactSettings = new MocksHelper([
-  'Contacts', 'ImportStatusData', 'asyncStorage', 'fb', 'ConfirmDialog',
-  'IccHelper'
+  'ExtServices',
+  'asyncStorage',
+  'Cache',
+  'Contacts',
+  'IccHelper',
+  'ImportStatusData'
 ]);
 mocksHelperForContactSettings.init();
 
@@ -105,6 +114,9 @@ suite('Contacts settings >', function() {
     window.utils = window.utils || {};
     window.utils.cookie = MockCookie;
 
+    realLoader = window.Loader;
+    window.Loader = MockLoader;
+
     if (!window.utils) {
       window.utils = { sdcard: MockSdCard };
     } else {
@@ -126,6 +138,7 @@ suite('Contacts settings >', function() {
     window._ = real_;
     window.utils = realUtils;
     window.utils.cookie = realCookie;
+    window.Loader = realLoader;
 
     if (realOnLine) {
       Object.defineProperty(navigator, 'onLine', realOnLine);
@@ -535,171 +548,15 @@ suite('Contacts settings >', function() {
     });
   });
 
-  suite('FB data synced from FTU', function() {
-    var STORAGE_KEY = 'tokenData';
-    var CACHE_FRIENDS_KEY = 'numFacebookFriends';
-
-    setup(function() {
-      document.body.innerHTML = MockContactsIndexHtml;
-      contacts.Settings.init();
-    });
-
-    teardown(function(done) {
-      MockImportStatusData.clear().then(done, done);
-    });
-
-    test('FB active if token already synced', function(done) {
-      var fbImportCheck = document.querySelector('[name="fb.imported"]');
-
-      function assertChecked() {
-        document.removeEventListener('facebookEnabled', assertChecked);
-        done(function() {
-          assert.isTrue(fbImportCheck.checked);
-        });
-      }
-
-      document.addEventListener('facebookEnabled', assertChecked);
-
-      MockImportStatusData.put(STORAGE_KEY, {access_token: '1'})
-          .then(function() {
-        contacts.Settings.refresh();
-      });
-    });
-
-    test('Show the right number of total & synced friends', function(done) {
-      var fbTotalsMsg = document.querySelector('#fb-totals');
-
-      var observer = new MutationObserver(function() {
-        observer.disconnect();
-        done(function() {
-          assert.isTrue(fbTotalsMsg.getAttribute('data-l10n-args').
-                        indexOf('50') !== -1);
-        });
-      });
-
-      observer.observe(fbTotalsMsg, {attributes: true});
-
-      MockImportStatusData.put(CACHE_FRIENDS_KEY, 50).then(function() {
-        MockImportStatusData.put(STORAGE_KEY, {access_token: '1'})
-            .then(function() {
-          contacts.Settings.refresh();
-        });
-      });
-    });
-  });
-
-  suite('Facebook actions reflected in UI', function() {
-    var mockFbUtils;
-
-    setup(function() {
-      document.body.innerHTML = MockContactsIndexHtml;
-      contacts.Settings.init();
-    });
-
-    teardown(function(done) {
-      MockImportStatusData.clear().then(done, done);
-    });
-
-    suiteSetup(function(done) {
-      mockFbUtils = fb.utils;
-      require('/shared/js/contacts/import/facebook/fb_utils.js', function() {
-        sinon.stub(Contacts, 'confirmDialog', function(attr, msg, no, yes) {
-          yes.callback();
-        });
-
-        sinon.stub(Contacts, 'utility', function(attr1, cb) {
-          cb();
-        });
-
-        // Stub needed to fake event target id.
-        sinon.stub(window, 'addEventListener', function(eventType, cb) {
-          if (eventType === 'transitionend') {
-            cb({'target': {'id': 'span-check-fb'}, data: ''});
-          }
-        });
-
-        sinon.stub(Contacts, 'showOverlay', function() {
-          return { setTotal: function() {} };
-        });
-
-        sinon.stub(fb.utils, 'clearFbData', function() {
-          return {
-            'result': {
-              set onsuccess(cb) {
-                cb();
-              },
-              lcontacts: []
-            },
-            set onsuccess(cb) {
-              cb();
-            }
-          };
-        });
-
-        sinon.stub(fb.utils, 'logout', function() {
-          return {
-            set onsuccess(cb) {
-              cb();
-            }
-          };
-        });
-
-        done();
-      });
-    });
-
-    suiteTeardown(function() {
-      fb.utils = mockFbUtils;
-      Contacts.confirmDialog.restore();
-      Contacts.utility.restore();
-      window.addEventListener.restore();
-      Contacts.showOverlay.restore();
-      fb.utils.clearFbData.restore();
-      fb.utils.logout.restore();
-    });
-
-    test('Cached friend number is correctly deleted on logout', function(done) {
-      MockImportStatusData.put(fb.utils.CACHE_FRIENDS_KEY, 50).then(function() {
-        MockImportStatusData.put(fb.utils.STORAGE_KEY, {access_token: '1'})
-            .then(function() {
-          contacts.Settings.refresh();
-
-          var spy = sinon.spy(fb.utils, 'removeCachedNumFriends');
-
-          document.querySelector('#settingsFb > .fb-item').click();
-
-          done(function() {
-            assert.isTrue(spy.called);
-            spy.restore();
-          });
-        });
-      });
-    });
-
-  });
-
   suite('Network status change', function() {
-    var fbImportOption,
-        fbOfflineMsg,
-        fbUpdateButton,
-        importGmailOption,
+    var importGmailOption,
         importLiveOption;
-    var fbValue;
 
     suiteSetup(function() {
-      fbValue = fb.isEnabled;
-      fb.setIsEnabled(true);
       contacts.Settings.init();
 
-      fbImportOption = document.querySelector('#settingsFb');
-      fbOfflineMsg = document.querySelector('#no-connection');
-      fbUpdateButton = document.querySelector('#import-fb');
       importGmailOption = document.getElementById('import-gmail-option');
       importLiveOption = document.getElementById('import-live-option');
-    });
-
-    suiteTeardown(function() {
-      fb.setIsEnabled(fbValue);
     });
 
     suite('Online', function() {
@@ -709,18 +566,6 @@ suite('Contacts settings >', function() {
         window.dispatchEvent(customEvent);
       });
 
-      test('Import Facebook enabled', function() {
-        assert.isFalse(
-          fbImportOption.querySelector('li').hasAttribute('aria-disabled'));
-      });
-      test('Import Facebook error hidden', function() {
-        assert.isTrue(
-          fbOfflineMsg.classList.contains('hide'));
-      });
-      test('Update Facebook shown', function() {
-        assert.isFalse(
-          fbUpdateButton.classList.contains('hide'));
-      });
       test('Import Gmail enabled', function() {
         assert.isFalse(
           importGmailOption.firstElementChild.hasAttribute('disabled'));
@@ -744,18 +589,6 @@ suite('Contacts settings >', function() {
         navigator.onLine = false;
         var customEvent = new CustomEvent('offline');
         window.dispatchEvent(customEvent);
-      });
-      test('Import Facebook disabled', function() {
-        assert.isTrue(
-          fbImportOption.querySelector('li').hasAttribute('aria-disabled'));
-      });
-      test('Import Facebook error shown', function() {
-        assert.isFalse(
-          fbOfflineMsg.classList.contains('hide'));
-      });
-      test('Update Facebook hidden', function() {
-        assert.isTrue(
-          fbUpdateButton.classList.contains('hide'));
       });
       test('Import Gmail disabled', function() {
         assert.isTrue(
@@ -799,31 +632,6 @@ suite('Contacts settings >', function() {
       var bulkDelContacts = document.
                             getElementById('bulkDelete');
       assert.isNull(bulkDelContacts.getAttribute('disabled'));
-    });
-
-    test('If FB contacts are deleted but some contacts remain,' +
-                                ' bulk Delete option is enabled', function() {
-      document.addEventListener('fb_cleaned', function cleaned() {
-        document.removeEventListener('fb_cleaned', cleaned);
-        navigator.mozContacts.number = 50;
-        contacts.Settings.refresh();
-      });
-      document.dispatchEvent(new CustomEvent('fb_cleaned'));
-      contacts.Settings.refresh();
-      var bulkDelContacts = document.getElementById('bulkDelete');
-      assert.isNull(bulkDelContacts.getAttribute('disabled'));
-    });
-
-    test('If there are only FB contacts and they are deleted,' +
-                               ' bulk Delete option is disabled', function() {
-      document.addEventListener('fb_cleaned', function cleaned() {
-        document.removeEventListener('fb_cleaned', cleaned);
-        navigator.mozContacts.number = 0;
-        contacts.Settings.refresh();
-      });
-      document.dispatchEvent(new CustomEvent('fb_cleaned'));
-      var bulkDelContacts = document.getElementById('bulkDelete');
-      assert.equal(bulkDelContacts.getAttribute('disabled'), 'disabled');
     });
 
     suiteTeardown(function() {

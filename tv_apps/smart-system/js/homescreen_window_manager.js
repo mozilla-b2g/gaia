@@ -1,5 +1,5 @@
 /* global homescreenLauncher, Service, FtuLauncher, LandingAppLauncher,
-          AppWindowManager */
+          AppWindowManager, focusManager */
 
 'use strict';
 (function(exports) {
@@ -137,7 +137,12 @@
           if (this._underlayApp) {
             // If we have _underlayApp but another app is launching, we need to
             // close the _underlayApp.
-            this._underlayApp.close('immediate');
+            if (this._underlayApp.manifestURL ===
+                AppWindowManager.getActiveApp().manifestURL) {
+              focusManager.focus();
+            } else {
+              this._underlayApp.close('immediate');
+            }
             this._underlayApp = null;
           }
           break;
@@ -158,8 +163,6 @@
             // and focus back. switchApp in app window manager will handle
             // home close.
 
-            this._underlayApp.focus();
-            this._underlayApp = null;
             this._activeHome = null;
           }
           break;
@@ -228,7 +231,7 @@
         // If we open an activity at home and press home, the originApp is home
         // app and the next app is also home app. In this case, we don't need
         // to reopen it again.
-        homeApp.focus();
+        focusManager.focus();
         return;
       }
       homeApp.ready((function() {

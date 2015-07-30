@@ -2,14 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-try:
-    from marionette import (expected,
-                            Wait)
-    from marionette.by import By
-except:
-    from marionette_driver import (expected,
-                                   Wait)
-    from marionette_driver.by import By
+from marionette_driver import expected, By, Wait
 
 from gaiatest.apps.base import Base
 from gaiatest.apps.settings.regions.cell_data_prompt import CellDataPrompt
@@ -17,11 +10,17 @@ from gaiatest.apps.settings.regions.cell_data_prompt import CellDataPrompt
 
 class CellData(Base):
 
+    _carrier_container_locator = (By.ID, 'carrier')
     _carrier_name_locator = (By.CSS_SELECTOR, '#menuItem-carrier-sim1 small')
     _cell_data_enabled_input_locator = (By.CSS_SELECTOR, '#menuItem-enableDataCall input')
     _cell_data_enabled_label_locator = (By.CSS_SELECTOR, '#menuItem-enableDataCall label')
     _menuItem_carrier_sim1_locator = (By.ID, "menuItem-carrier-sim1")
     _menuItem_carrier_sim2_locator = (By.ID, "menuItem-carrier-sim2")
+
+    def __init__(self, marionette):
+        Base.__init__(self, marionette)
+        element = self.marionette.find_element(*self._carrier_container_locator)
+        Wait(self.marionette).until(lambda m: 'current' in element.get_attribute('class'))
 
     @property
     def carrier_name(self):

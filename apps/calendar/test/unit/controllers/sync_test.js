@@ -1,10 +1,11 @@
 define(function(require) {
 'use strict';
 
-var CalendarError = require('error');
+var CalendarError = require('common/error');
 var Factory = require('test/support/factory');
 var SyncController = require('controllers/sync');
-var nextTick = require('next_tick');
+var core = require('core');
+var nextTick = require('common/next_tick');
 
 suite('Controllers.Sync', function() {
   var account;
@@ -12,27 +13,18 @@ suite('Controllers.Sync', function() {
   var event;
 
   var subject;
-  var app;
   var db;
 
   var accModel;
 
-  function stageAccountSyncError(err) {
-    account.sync = function() {
-      var args = Array.slice(arguments);
-      var cb = args.pop();
-      nextTick(cb.bind(this, err));
-    };
-  }
-
   setup(function(done) {
-    app = testSupport.calendar.app();
-    db = app.db;
-    subject = new SyncController(app);
+    db = core.db;
+    subject = new SyncController();
 
-    calendar = app.store('Calendar');
-    account = app.store('Account');
-    event = app.store('Event');
+    var storeFactory = core.storeFactory;
+    calendar = storeFactory.get('Calendar');
+    account = storeFactory.get('Account');
+    event = storeFactory.get('Event');
 
     accModel = Factory('account', {
       _id: 'one'
@@ -60,7 +52,6 @@ suite('Controllers.Sync', function() {
   });
 
   test('initialization', function() {
-    assert.equal(subject.app, app);
     assert.equal(subject.pending, 0);
   });
 
@@ -179,26 +170,40 @@ suite('Controllers.Sync', function() {
 
     suite('#account', function() {
 
+      var err;
+
+      setup(function() {
+        err = new CalendarError();
+        account.sync = function() {
+          var args = Array.slice(arguments);
+          var cb = args.pop();
+          nextTick(cb.bind(this, err));
+        };
+      });
+
+      teardown(function() {
+        delete account.sync;
+        delete core.errorController.dispatch;
+      });
+
       test('error without a callback', function(done) {
-        app.errorController.dispatch = function(given) {
+        core.errorController.dispatch = function(given) {
           done(function() {
-            assert.ok(!subject.pending);
+            assert.equal(subject.pending, 0);
             assert.equal(err, given);
           });
         };
 
-        var err = new CalendarError();
-        stageAccountSyncError(err);
+        assert.equal(subject.pending, 0);
         subject.account(accModel);
         assert.equal(subject.pending, 1);
       });
 
       test('error with a callback', function(done) {
-        var err = new Error();
-        stageAccountSyncError(err);
         subject.account(accModel, function(givenErr) {
           done(function() {
             assert.equal(givenErr, err, 'sends error');
+            assert.equal(subject.pending, 0, 'pending');
           });
         });
       });

@@ -1,6 +1,8 @@
 'use strict';
 
-/* global KeyboardEvent */
+/* global KeyboardEvent, KeyEvent, PAGE_INDEX_DEFAULT, PromiseStorage */
+
+require('/js/shared/promise_storage.js');
 
 window.PAGE_INDEX_DEFAULT = 0;
 window.InputMethods = {};
@@ -29,6 +31,14 @@ suite('latin.js', function() {
     this.sinon.stub(workerStub, 'postMessage');
 
     this.sinon.stub(window, 'Worker').returns(workerStub);
+
+    var stubPromiseStorage =
+      this.sinon.stub(Object.create(PromiseStorage.prototype));
+    this.sinon.stub(window, 'PromiseStorage')
+      .returns(stubPromiseStorage);
+
+    // object is what we'd used to resolve into (see getData below)
+    stubPromiseStorage.getItem.returns(Promise.resolve({user: 'user'}));
 
     glue = {
       mOutput: '',
@@ -257,10 +267,9 @@ suite('latin.js', function() {
     };
 
     var constructTest =
-    function constructTest(input, type, mode, statename, options) {
+    function constructTest(input, type, mode, statename) {
       var modeTitle = '-' + (mode ? mode : 'default');
-      var optionsTitle = options ? '-' + JSON.stringify(options) : '';
-      var testname = type + modeTitle + '-' + statename + optionsTitle +
+      var testname = type + modeTitle + '-' + statename +
                      '-' + input;
       var state = contentStates[statename];
       var expected =
@@ -283,35 +292,21 @@ suite('latin.js', function() {
 
         // Wait for getData() to resolve.
         Promise.resolve().then(function() {
-          if (options && options.continuous) {
-            var lastPromise;
-            input.split('').forEach(function(c) {
-              lastPromise =
-                engine.click(c.charCodeAt(0), c.toUpperCase().charCodeAt(0));
+          var promise = Promise.resolve();
+          input.split('').forEach(function(c) {
+            promise = promise.then(function() {
+              if (glue.mIsUpperCase) {
+                c = c.toUpperCase();
+              }
+              return engine.click(c.charCodeAt(0));
             });
+          });
 
-            return lastPromise.then(function() {
-              assert.equal(
-                glue.mOutput, expected,
-                'expected "' + expected + '" for input "' + input + '"');
-            }, function(e) {
-              throw e || 'should not reject';
-            });
-          } else {
-            var promise = Promise.resolve();
-            input.split('').forEach(function(c) {
-              promise = promise.then(function() {
-                return engine.click(
-                  c.charCodeAt(0), c.toUpperCase().charCodeAt(0));
-              });
-            });
-
-            return promise.then(function() {
-              assert.equal(
-                glue.mOutput, expected,
-                'expected "' + expected + '" for input "' + input + '"');
-            });
-          }
+          return promise.then(function() {
+            assert.equal(
+              glue.mOutput, expected,
+              'expected "' + expected + '" for input "' + input + '"');
+          });
         }).then(done, done);
       });
     };
@@ -341,23 +336,11 @@ suite('latin.js', function() {
         }
       }
     });
-
-    suite('Input keys continuously', function() {
-      for (var t = 0; t < types.length; t++) {
-        var type = types[t];
-        for (var m = 0; m < modes.length; m++) {
-          var mode = modes[m];
-          for (var statename in contentStates) {
-            for (var input in inputs) {
-              constructTest(input, type, mode, statename, {continuous: true});
-            }
-          }
-        }
-      }
-    });
   });
 
   suite('Suggestions', function() {
+    // For most tests here we ignore user dictionary predictions (i.e. testing
+    // old behaviors). We explicitly test it as noted.
     var activateEngineWithState =
     function activateEngineWithState(value, cursorStart, cursorEnd) {
       engine.activate('en', {
@@ -388,142 +371,252 @@ suite('latin.js', function() {
       });
     };
 
+    // for most tests we deliberately ignore all user-dictionary mechanisms to
+    // ease testing of flow, by directly intercepting the last Promise.all call
+    setup(function() {
+      // the empty {} was what we'd resolved into for built-in dictionary (see
+      // getData above for glue stub)
+      this.sinon.stub(Promise, 'all').returns(Promise.resolve([{}]));
+    });
+
     teardown(function() {
+      Promise.all.restore();
       engine.deactivate();
     });
 
-    test('After activation (and do nothing)', function(done) {
-      activateEngineWithState('').then(function() {
-        // maybe we shouldnt call this at all? don't know...
-        sinon.assert.callCount(glue.sendCandidates, 1);
-        sinon.assert.calledWith(glue.sendCandidates, []);
+    suite('Handling user dictionary blob', function() {
+      test('correctly passed to worker through setLanguageSync',
+      function(done) {
+        // test strategy is a bit complex: we want to test that the blob from
+        // PromiseStorage is propogated to the Promise.all call and we want to
+        // know the setLanguage call used results from Promise.all call.
+        // The former is tested by then()'ing the Promise.all argument, and the
+        // latter by asserting worker postMessage stub. However, since the
+        // former one will happen in the next tick, we'll also need to wrap
+        // ourselves in Promise.all. So proper restoration on Promise.all is
+        // very important.
 
-        // Also, a space should not be inserted
-        sinon.assert.callCount(glue.sendKey, 0);
-      }).then(done, done);
+        var resolvePromiseStorageBlob, rejectPromiseStorageBlob;
+        var resolveWorkerPostMessage;
+
+        var pPromiseStorageBlob = new Promise(function(resolve, reject) {
+          resolvePromiseStorageBlob = resolve;
+          rejectPromiseStorageBlob = reject;
+        });
+
+        var pWorkerPostMessage = new Promise(function(resolve) {
+          resolveWorkerPostMessage = resolve;
+
+          resolve();
+        });
+
+        Promise.all.restore();
+
+        var pAll = Promise.all([pPromiseStorageBlob, pWorkerPostMessage]);
+
+        this.sinon.stub(Promise, 'all')
+          .returns(Promise.resolve([{}, {user: 'user'}]));
+
+        activateEngineWithState('').then(function(){
+          Promise.all.firstCall.args[0][1].then(blob => {
+            assert.deepEqual(blob, {user: 'user'});
+            resolvePromiseStorageBlob();
+          }).catch(e => {
+            rejectPromiseStorageBlob(e);
+          });
+
+          sinon.assert.calledWith(
+            workerStub.postMessage,
+            { args: ['en', {}, {user: 'user'}], cmd: 'setLanguage' },
+            [{}, {user: 'user'}]);
+          resolveWorkerPostMessage();
+        });
+
+        // calling then(done) (the first parameter) will make done receive an
+        // array of Promise resolutions and trigger mocha fail, so let's wrap it
+        pAll.then(() => {
+          done();
+        }, done);
+      });
+
+      test('call setUserDictionary on activation', function(done) {
+        // activate the engine twice to make sure worker is there at the second
+        // time.
+        activateEngineWithState('').then(function(){
+          activateEngineWithState('').then(function(){
+            sinon.assert.calledWith(
+              workerStub.postMessage,
+              { args: [{user: 'user'}], cmd: 'setUserDictionary'},
+              [{user: 'user'}]);
+            done();
+          });
+        });
+      });
     });
 
-    test('Suggestion data doesnt match input? Ignore.', function(done) {
-      activateAndTestPrediction('janj', 'jan', [
-        ['Jan', 1],
-        ['jan', 1],
-        ['Pietje', 1]
-      ]).then(function() {
-        // maybe we shouldnt call this at all? don't know...
-        sinon.assert.callCount(glue.sendCandidates, 1);
-        sinon.assert.calledWith(glue.sendCandidates, []);
-      }).then(done, done);
-    });
+    suite('Without handling user dictionary', function() {
+      test('After activation (and do nothing)', function(done) {
+        activateEngineWithState('').then(function() {
+          // maybe we shouldnt call this at all? don't know...
+          sinon.assert.callCount(glue.sendCandidates, 1);
+          sinon.assert.calledWith(glue.sendCandidates, []);
 
-    test('One char input "n" should not autocorrect to a multichar word',
-    function(done) {
-      activateAndTestPrediction('n', 'n', [
-        ['no', 1], // we want to ensure that this first suggestion is not
-                // marked (with * prefix) as an autocorrection
-        ['not', 1],
-        ['now', 1]
-      ]).then(function() {
-        sinon.assert.callCount(glue.sendCandidates, 1);
-        // maybe we shouldnt call this at all? don't know...
-        sinon.assert.calledWith(glue.sendCandidates,
-          ['no', 'not', 'now']); // Make sure we do not get "*no"
-      }).then(done, done);
-    });
+          // Also, a space should not be inserted
+          sinon.assert.callCount(glue.sendKey, 0);
+        }).then(done, done);
+      });
 
-    test('One char input "i" should autocorrect to a multichar word',
-    function(done) {
-      // But we also want to be sure that single letters like i do get
-      // autocorrected to single letter words like I
-      activateAndTestPrediction('i', 'i', [
-        ['I', 1], // we want to ensure that this first suggestion is not
-                // marked (with * prefix) as an autocorrection
-        ['in', 1],
-        ['it', 1]
-      ]).then(function() {
-        sinon.assert.calledWith(
-          glue.sendCandidates, ['*I', 'in', 'it']);
-      }).then(done, done);
-    });
+      test('Suggestion data doesnt match input? Ignore.', function(done) {
+        activateAndTestPrediction('janj', 'jan', [
+          ['Jan', 1],
+          ['jan', 1],
+          ['Pietje', 1]
+        ]).then(function() {
+          // maybe we shouldnt call this at all? don't know...
+          sinon.assert.callCount(glue.sendCandidates, 1);
+          sinon.assert.calledWith(glue.sendCandidates, []);
+        }).then(done, done);
+      });
 
-    test('Space to accept suggestion', function(done) {
-      activateAndTestPrediction('jan', 'jan', [
-        ['Jan'],
-        ['han'],
-        ['Pietje']
-      ]).then(function() {
-        return engine.click(KeyboardEvent.DOM_VK_SPACE).then(function() {
+      test('One char input "n" should not autocorrect to a multichar word',
+      function(done) {
+        activateAndTestPrediction('n', 'n', [
+          ['no', 1], // we want to ensure that this first suggestion is not
+                  // marked (with * prefix) as an autocorrection
+          ['not', 1],
+          ['now', 1]
+        ]).then(function() {
+          sinon.assert.callCount(glue.sendCandidates, 1);
+          // maybe we shouldnt call this at all? don't know...
+          sinon.assert.calledWith(glue.sendCandidates,
+            ['no', 'not', 'now']); // Make sure we do not get "*no"
+        }).then(done, done);
+      });
+
+      test('One char input "i" should autocorrect to a multichar word',
+      function(done) {
+        // But we also want to be sure that single letters like i do get
+        // autocorrected to single letter words like I
+        activateAndTestPrediction('i', 'i', [
+          ['I', 1], // we want to ensure that this first suggestion is not
+                  // marked (with * prefix) as an autocorrection
+          ['in', 1],
+          ['it', 1]
+        ]).then(function() {
+          sinon.assert.calledWith(
+            glue.sendCandidates, ['*I', 'in', 'it']);
+        }).then(done, done);
+      });
+
+      test('Input "im" should autocorrect to "I\'m", not "in"',
+      function(done) {
+        activateAndTestPrediction('im', 'im', [
+          ['in', 21],
+          ['I\'m', 16],
+          ['km', 9],
+          ['um', 9]
+        ]).then(function() {
+          sinon.assert.calledWith(
+            glue.sendCandidates, ['*I\'m', 'in', 'km']);
+        }).then(done, done);
+      });
+
+      test('Input "id" should autocorrect to "I\'d", not "is"',
+      function(done) {
+        activateAndTestPrediction('id', 'id', [
+          ['is', 20],
+          ['I\'d', 19],
+          ['if', 17],
+          ['ID', 16]
+        ]).then(function() {
+          sinon.assert.calledWith(
+            glue.sendCandidates, ['*I\'d', 'ID', 'is']);
+        }).then(done, done);
+      });
+
+      test('Space to accept suggestion', function(done) {
+        activateAndTestPrediction('jan', 'jan', [
+          ['Jan'],
+          ['han'],
+          ['Pietje']
+        ]).then(function() {
+          return engine.click(KeyboardEvent.DOM_VK_SPACE).then(function() {
+            sinon.assert.callCount(glue.replaceSurroundingText, 1);
+            sinon.assert.calledWith(glue.replaceSurroundingText, 'Jan', -3, 3);
+            sinon.assert.calledWith(glue.sendKey, KeyboardEvent.DOM_VK_SPACE);
+          });
+        }).then(done, done);
+      });
+
+      test('Should communicate updated text to worker', function(done) {
+        function clickAndAssert(key, assertion) {
+          return engine.click(key.charCodeAt(0)).then(function() {
+            sinon.assert.calledWith(workerStub.postMessage,
+                            { args: [assertion], cmd: 'predict' });
+          });
+        }
+
+        activateEngineWithState('').then(function() {
+          return clickAndAssert('p', 'p');
+        }).then(function() {
+          return clickAndAssert('a', 'pa');
+        }).then(function() {
+          return clickAndAssert('i', 'pai');
+        }).then(function() {
+          // 4 because we have one extra setUserDictionary call
+          sinon.assert.callCount(workerStub.postMessage, 4);
+        }).then(done, done);
+      });
+
+      test('Two spaces after suggestion should autopunctuate', function(done) {
+        activateAndTestPrediction('jan', 'jan', [
+          ['Jan'],
+          ['han'],
+          ['Pietje']
+        ]).then(function() {
+          return engine.click(KeyboardEvent.DOM_VK_SPACE);
+        }).then(function() {
+          return engine.click(KeyboardEvent.DOM_VK_SPACE);
+        }).then(function() {
           sinon.assert.callCount(glue.replaceSurroundingText, 1);
           sinon.assert.calledWith(glue.replaceSurroundingText, 'Jan', -3, 3);
-          sinon.assert.calledWith(glue.sendKey, KeyboardEvent.DOM_VK_SPACE);
-        });
-      }).then(done, done);
-    });
 
-    test('Should communicate updated text to worker', function(done) {
-      function clickAndAssert(key, assertion) {
-        return engine.click(key.charCodeAt(0)).then(function() {
-          sinon.assert.calledWith(workerStub.postMessage,
-                          { args: [assertion], cmd: 'predict' });
-        });
-      }
+          sinon.assert.callCount(glue.sendKey, 4);
+          assert.equal(glue.sendKey.args[0][0], KeyboardEvent.DOM_VK_SPACE);
+          assert.equal(glue.sendKey.args[1][0],
+            KeyboardEvent.DOM_VK_BACK_SPACE);
+          assert.equal(glue.sendKey.args[2][0], '.'.charCodeAt(0));
+          assert.equal(glue.sendKey.args[3][0], ' '.charCodeAt(0));
+        }).then(done, done);
+      });
 
-      activateEngineWithState('').then(function() {
-        return clickAndAssert('p', 'p');
-      }).then(function() {
-        return clickAndAssert('a', 'pa');
-      }).then(function() {
-        return clickAndAssert('i', 'pai');
-      }).then(function() {
-        sinon.assert.callCount(workerStub.postMessage, 3);
-      }).then(done, done);
-    });
+      test('New line then dot should not remove newline', function(done) {
+        activateEngineWithState('Hello').then(function() {
+          return engine.click(KeyboardEvent.DOM_VK_RETURN);
+        }).then(function() {
+          return engine.click('.'.charCodeAt(0));
+        }).then(function() {
+          sinon.assert.callCount(glue.replaceSurroundingText, 0);
+          sinon.assert.callCount(glue.sendKey, 2);
+          assert.equal(glue.sendKey.args[0][0], KeyboardEvent.DOM_VK_RETURN);
+          assert.equal(glue.sendKey.args[1][0], '.'.charCodeAt(0));
+        }).then(done, done);
+      });
 
-    test('Two spaces after suggestion should autopunctuate', function(done) {
-      activateAndTestPrediction('jan', 'jan', [
-        ['Jan'],
-        ['han'],
-        ['Pietje']
-      ]).then(function() {
-        return engine.click(KeyboardEvent.DOM_VK_SPACE);
-      }).then(function() {
-        return engine.click(KeyboardEvent.DOM_VK_SPACE);
-      }).then(function() {
-        sinon.assert.callCount(glue.replaceSurroundingText, 1);
-        sinon.assert.calledWith(glue.replaceSurroundingText, 'Jan', -3, 3);
+      test('dismissSuggestions hides suggestions', function(done) {
+        activateEngineWithState('').then(function() {
+          engine.dismissSuggestions();
 
-        sinon.assert.callCount(glue.sendKey, 4);
-        assert.equal(glue.sendKey.args[0][0], KeyboardEvent.DOM_VK_SPACE);
-        assert.equal(glue.sendKey.args[1][0], KeyboardEvent.DOM_VK_BACK_SPACE);
-        assert.equal(glue.sendKey.args[2][0], '.'.charCodeAt(0));
-        assert.equal(glue.sendKey.args[3][0], ' '.charCodeAt(0));
-      }).then(done, done);
-    });
+          // Send candidates should be called once with an empty array
+          // to clear the list of word suggestions
+          sinon.assert.callCount(glue.sendCandidates, 2);
+          sinon.assert.calledWith(glue.sendCandidates, []);
 
-    test('New line then dot should not remove newline', function(done) {
-      activateEngineWithState('Hello').then(function() {
-        return engine.click(KeyboardEvent.DOM_VK_RETURN);
-      }).then(function() {
-        return engine.click('.'.charCodeAt(0));
-      }).then(function() {
-        sinon.assert.callCount(glue.replaceSurroundingText, 0);
-        sinon.assert.callCount(glue.sendKey, 2);
-        assert.equal(glue.sendKey.args[0][0], KeyboardEvent.DOM_VK_RETURN);
-        assert.equal(glue.sendKey.args[1][0], '.'.charCodeAt(0));
-      }).then(done, done);
-    });
+          // Also, a space should not be inserted
+          sinon.assert.callCount(glue.sendKey, 0);
+        }).then(done, done);
+      });
 
-    test('dismissSuggestions hides suggestions', function(done) {
-      activateEngineWithState('').then(function() {
-        engine.dismissSuggestions();
-
-        // Send candidates should be called once with an empty array
-        // to clear the list of word suggestions
-        sinon.assert.callCount(glue.sendCandidates, 2);
-        sinon.assert.calledWith(glue.sendCandidates, []);
-
-        // Also, a space should not be inserted
-        sinon.assert.callCount(glue.sendKey, 0);
-      }).then(done, done);
     });
 
     suite('Uppercase suggestions', function(done) {
@@ -666,6 +759,94 @@ suite('latin.js', function() {
           }).then(done, done);
         });
       });
+
+      suite('Always keep at least one user dictionary word', function() {
+        test('User dictionary word frequency is high', function(done){
+          activateAndTestPrediction('ster', 'ster', [
+            ['stery', 4],
+            ['star', 3, true],
+            ['stak', 2],
+            ['stack', 1]
+          ]).then(function() {
+            sinon.assert.callCount(glue.sendCandidates, 1);
+            sinon.assert.calledWith(
+              glue.sendCandidates, ['stery', 'star', 'stak']);
+          }).then(done, done);
+        });
+        suite('User dictionary word frequency is low but not too low',
+        function(){
+          var testWithLastUDSuggestionFreq = function(freq, done) {
+            activateAndTestPrediction('ster', 'ster', [
+              ['stery', 4],
+              ['star', 3],
+              ['stak', 2],
+              ['stack', freq, true]
+            ]).then(function() {
+              sinon.assert.callCount(glue.sendCandidates, 1);
+              sinon.assert.calledWith(
+                glue.sendCandidates, ['stery', 'star', 'stack']);
+            }).then(done, done);
+          };
+
+          test('UD word freq = 1.5', function(done){
+            testWithLastUDSuggestionFreq(1.5, done);
+          });
+          test('UD word req = 1', function(done){
+            testWithLastUDSuggestionFreq(1, done);
+          });
+        });
+        suite('User dictionary word frequency is too low',
+        function(){
+          var testWithLastUDSuggestionFreq = function(freq, done) {
+            activateAndTestPrediction('ster', 'ster', [
+              ['stery', 4],
+              ['star', 3],
+              ['stak', 2],
+              ['stack', freq, true]
+            ]).then(function() {
+              sinon.assert.callCount(glue.sendCandidates, 1);
+              sinon.assert.calledWith(
+                glue.sendCandidates, ['stery', 'star', 'stak']);
+            }).then(done, done);
+          };
+
+          test('UD word freq = 0.99', function(done){
+            testWithLastUDSuggestionFreq(0.99, done);
+          });
+          test('UD word req = 0.1', function(done){
+            testWithLastUDSuggestionFreq(0.1, done);
+          });
+          test('UD word req = 0.01', function(done){
+            testWithLastUDSuggestionFreq(0.01, done);
+          });
+        });
+        test('A frequent user dictionary word is input', function(done){
+          activateAndTestPrediction('ster', 'ster', [
+            ['ster', 10, true],
+            ['star', 3],
+            ['stak', 2],
+            ['stack', 1]
+          ]).then(function() {
+            sinon.assert.callCount(glue.sendCandidates, 1);
+            sinon.assert.calledWith(
+              glue.sendCandidates, ['star', 'stak', 'stack']);
+          }).then(done, done);
+        });
+        test(`User dictionary word frequency is too low but still higher than
+              next built-in dictionary's frequency`,
+        function(done){
+          activateAndTestPrediction('ster', 'ster', [
+            ['stery', 4],
+            ['star', 3],
+            ['stack', 0.99, true],
+            ['stak', 0.95],
+          ]).then(function() {
+            sinon.assert.callCount(glue.sendCandidates, 1);
+            sinon.assert.calledWith(
+              glue.sendCandidates, ['stery', 'star', 'stack']);
+          }).then(done, done);
+        });
+      });
     });
   });
 
@@ -745,6 +926,68 @@ suite('latin.js', function() {
 
       // will clear the suggestions since cursor changed
       sinon.assert.calledOnce(glue.sendCandidates);
+    });
+  });
+
+  suite('layout handling', function() {
+    setup(function() {
+      engine.activate('en', {
+        type: 'text',
+        inputmode: '',
+        value: '',
+        selectionStart: 0,
+        selectionEnd: 0
+      },{ suggest: false, correct: false });
+    });
+
+    teardown(function() {
+      engine.deactivate();
+    });
+
+    test('Do not switch layout if current layout is default', function(done) {
+      engine.click(KeyEvent.DOM_VK_RETURN)
+        .then(() => sinon.assert.notCalled(glue.setLayoutPage))
+        .then(done, done);
+    });
+
+    test('Do not switch layout if current layout is default', function(done) {
+      engine.setLayoutPage(1);
+      engine.setLayoutPage(PAGE_INDEX_DEFAULT);
+      engine.click(KeyEvent.DOM_VK_RETURN)
+        .then(() => sinon.assert.notCalled(glue.setLayoutPage))
+        .then(done, done);
+    });
+
+    test('Do not switch layout if a normal key was not clicked before',
+    function(done) {
+      engine.setLayoutPage(1);
+      engine.click(KeyEvent.DOM_VK_SPACE)
+        .then(() => sinon.assert.notCalled(glue.setLayoutPage))
+        .then(done, done);
+    });
+
+    test('Switch layout if a normal key then space clicked', function(done) {
+      engine.setLayoutPage(1);
+      engine.click('1'.charCodeAt(0))
+        .then(() => engine.click(KeyEvent.DOM_VK_SPACE))
+        .then(
+          () => sinon.assert.calledWith(glue.setLayoutPage, PAGE_INDEX_DEFAULT)
+        )
+        .then(done, done);
+    });
+
+    test('Switch layout if a normal key is clicked on one non-default layout, '+
+         'then space clicked on another non-default layout', function(done) {
+      engine.setLayoutPage(1);
+      engine.click('1'.charCodeAt(0))
+        .then(() => {
+          engine.setLayoutPage(2);
+          return engine.click(KeyEvent.DOM_VK_SPACE);
+        })
+        .then(
+          () => sinon.assert.calledWith(glue.setLayoutPage, PAGE_INDEX_DEFAULT)
+        )
+        .then(done, done);
     });
   });
 });

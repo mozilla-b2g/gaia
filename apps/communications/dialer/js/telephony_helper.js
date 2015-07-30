@@ -36,20 +36,6 @@ var TelephonyHelper = (function() {
       return;
     }
 
-    var telephony = navigator.mozTelephony;
-    var openLines = telephony.calls.length +
-        ((telephony.conferenceGroup &&
-          telephony.conferenceGroup.calls.length) ? 1 : 0);
-    // User can make call only when there are less than 2 calls by spec.
-    // If the limit reached, return early to prevent holding active call.
-    if (openLines >= 2) {
-      loadTelephonyMessages(function() {
-        TelephonyMessages.displayMessage('UnableToCall');
-      });
-
-      return;
-    }
-
     startDial(cardIndex, conn, sanitizedNumber, oncall, onconnected,
               ondisconnected, onerror);
   };
@@ -59,7 +45,7 @@ var TelephonyHelper = (function() {
     return number.split(',');
   }
 
-  function playDtmfToneGroups(dtmfToneGroups) {
+  function playDtmfToneGroups(dtmfToneGroups, cardIndex) {
     var length;
 
     // Remove the dialed number from the beginning of the array.
@@ -89,14 +75,18 @@ var TelephonyHelper = (function() {
       }
       // Send a new group of tones as well as the pauses to play before it.
       promise = promise.then(playDtmfToneGroup.bind(null,
-        dtmfToneGroups[counter++], pauses));
+        dtmfToneGroups[counter++], pauses, cardIndex));
     }
     return promise;
   }
 
-  function playDtmfToneGroup(toneGroup, pauses) {
+  function playDtmfToneGroup(toneGroup, pauses, cardIndex) {
     return navigator.mozTelephony.sendTones(
-      toneGroup, DTMF_SEPARATOR_PAUSE_DURATION * pauses);
+      toneGroup,
+      DTMF_SEPARATOR_PAUSE_DURATION * pauses,
+      null /* tone duration */,
+      cardIndex
+    );
   }
 
   function startDial(cardIndex, conn, sanitizedNumber, oncall, onconnected,
@@ -154,8 +144,8 @@ var TelephonyHelper = (function() {
 
       callPromise.then(function(obj) {
         if (obj instanceof TelephonyCall) {
-          installHandlers(obj, sanitizedNumber, emergencyOnly, oncall,
-                          onconnected, ondisconnected, onerror);
+          installHandlers(obj, sanitizedNumber, emergencyOnly, cardIndex,
+                          oncall, onconnected, ondisconnected, onerror);
         } else {
           /* This is an MMICall object, manually invoke the handlers to provide
            * feedback to the user, the rest of the UX will be dealt with by the
@@ -179,8 +169,8 @@ var TelephonyHelper = (function() {
     });
   }
 
-  function installHandlers(call, number, emergencyOnly, oncall, onconnected,
-                           ondisconnected, onerror) {
+  function installHandlers(call, number, emergencyOnly, cardIndex,
+                           oncall, onconnected, ondisconnected, onerror) {
     if (oncall) {
       oncall();
     }
@@ -188,7 +178,7 @@ var TelephonyHelper = (function() {
     if (dtmfToneGroups.length > 1) {
       call.addEventListener('connected', function dtmfToneGroupPlayer() {
         call.removeEventListener('connected', dtmfToneGroupPlayer);
-        playDtmfToneGroups(dtmfToneGroups);
+        playDtmfToneGroups(dtmfToneGroups, cardIndex);
       });
     }
     call.addEventListener('connected', onconnected);

@@ -4,6 +4,8 @@
 
 import time
 
+from marionette_driver import Wait
+
 from gaiatest.gaia_graphics_test import GaiaImageCompareTestCase
 from gaiatest.apps.videoplayer.app import VideoPlayer
 
@@ -21,11 +23,9 @@ class TestPlay3GPVideo(GaiaImageCompareTestCase):
     def test_play_3gp_video(self):
         """https://moztrap.mozilla.org/manage/case/2478/"""
 
-        self.take_screenshot()
-
         video_player = VideoPlayer(self.marionette)
         video_player.launch()
-        video_player.wait_for_thumbnails_to_load(1, 'Video files found on device: %s' % self.data_layer.video_files)
+        video_player.wait_for_thumbnails_to_load(1)
 
         # Assert that there is at least one video available
         self.assertGreater(video_player.total_video_count, 0)
@@ -54,7 +54,11 @@ class TestPlay3GPVideo(GaiaImageCompareTestCase):
 
         # go back to the beginning by tapping rewind twice, since each tap is in 10 second increment
         fullscreen_video.tap_rewind()
+        # wait until the elapsed_time goes 10 seconds back
+        Wait(self.marionette).until(lambda m: fullscreen_video.elapsed_time == time.strptime('00:03', '%M:%S'))
         fullscreen_video.tap_rewind()
+        # wait until the counter goes back to the beginning
+        Wait(self.marionette).until(lambda m: fullscreen_video.elapsed_time == begin_time)
 
         # seek forward
         fullscreen_video.move_seek_slider(100)

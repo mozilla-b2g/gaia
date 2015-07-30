@@ -2,10 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-try:
-    from marionette import Wait
-except:
-    from marionette_driver import Wait
+from marionette_driver import Wait
 
 from gaiatest import GaiaTestCase
 from gaiatest.apps.homescreen.app import Homescreen
@@ -53,3 +50,8 @@ class TestLaunchApp(GaiaTestCase):
         self.homescreen.installed_app(self.test_data['name']).tap_icon()
         Wait(self.marionette).until(
             lambda m: m.title == self.test_data['name'])
+
+    def tearDown(self):
+        self.apps.uninstall(self.test_data['name'])
+
+        GaiaTestCase.tearDown(self)

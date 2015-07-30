@@ -368,4 +368,24 @@ suite('system/BrowserKeyEventManager', function() {
     assert.isFalse(evt.preventDefault.called);
   });
 
+  test('translate (mozbrowserafterkeydown, Camera) into camera-button-press',
+    function() {
+      var evt = this.sinon.stub(createHardwareKeyEvent(
+        'mozbrowserafterkeydown', 'Camera', false));
+      assert.isFalse(evt.preventDefault.called);
+      var actualTranslatedType =
+        browserKeyEventManager.getButtonEventType(evt);
+      assert.equal(actualTranslatedType, 'camera-button-press');
+      assert.isFalse(evt.preventDefault.called);
+    });
+
+  test('no translation for embeddedCancelled (mozbrowserafterkeydown, Camera)',
+    function() {
+      var evt = this.sinon.stub(
+        createHardwareKeyEvent('mozbrowserafterkeydown', 'Camera', true));
+      assert.isFalse(evt.preventDefault.called);
+      var actualTranslatedType = browserKeyEventManager.getButtonEventType(evt);
+      assert.isUndefined(actualTranslatedType);
+      assert.isFalse(evt.preventDefault.called);
+    });
 });

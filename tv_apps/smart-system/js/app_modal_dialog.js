@@ -1,4 +1,5 @@
-/* global AppModalDialog, AirplaneMode, SimpleKeyNavigation, KeyEvent */
+/* global AppModalDialog, AirplaneMode, SimpleKeyNavigation,
+          SmartModalDialog, SmartInputDialog, focusManager */
 'use strict';
 
 (function(exports) {
@@ -19,6 +20,10 @@
   exports.AppModalDialog = function AppModalDialog(app) {
     this.app = app;
     this.containerElement = app.element;
+    this.smartBubble = document.createElement('smart-bubbles');
+    this.smartBubble.addEventListener('all-items-bubbled', function() {
+      focusManager.focus();
+    });
     this.events = [];
     // One to one mapping.
     this.instanceID = _id++;
@@ -46,18 +51,50 @@
 
   AppModalDialog.prototype.handleEvent = function amd_handleEvent(evt) {
     this.app.debug('handling ' + evt.type);
-    evt.preventDefault();
-    evt.stopPropagation();
-    this.events.push(evt);
-    if (!this._injected) {
-      this.render();
+    switch (evt.type) {
+      case 'mozbrowsershowmodalprompt':
+        evt.preventDefault();
+        evt.stopPropagation();
+        this.events.push(evt);
+        if (!this._injected) {
+          focusManager.addUI(this);
+          this.render();
+        }
+        this.show();
+        this._injected = true;
+        break;
+      case 'modal-dialog-will-open':
+      case 'modal-dialog-closed':
+        if (this.isSmartModalDialog) {
+          focusManager.focus();
+        }
+        break;
     }
-    this.show();
-    this._injected = true;
   };
 
   AppModalDialog.prototype._fetchElements = function amd__fetchElements() {
+    // XXX: Place another container outside of the original element to prevent
+    // smart-dialog being opened twice, we should have this removed when
+    // prompt and value selector moving into smart-modal-dialog after
+    // bug 1168252 landed.
+    this.container = document.getElementById(
+      this.CLASS_NAME + 'Container' + this.instanceID);
+    this.smartModalDialog = new SmartModalDialog(this.container);
+    this.smartInputDialog = new SmartInputDialog(this.container);
+    this.container.addEventListener('modal-dialog-will-open', this);
+    this.container.addEventListener('modal-dialog-closed', this);
+    this.isSmartModalDialog = false;
+    this.isSmartInputDialog = false;
+
     this.element = document.getElementById(this.CLASS_NAME + this.instanceID);
+    this.element.setAttribute('tabIndex', -1);
+    this.element.addEventListener('opened', function() {
+      this._makeBubbleAnimation();
+    }.bind(this));
+    this.element.addEventListener('closed', function() {
+      focusManager.focus();
+    }.bind(this));
+
     this.elements = {};
 
     var toCamelCase = function toCamelCase(str) {
@@ -66,13 +103,11 @@
       });
     };
 
-    this.elementClasses = ['alert', 'alert-ok', 'alert-message',
-      'prompt', 'prompt-ok', 'prompt-cancel', 'prompt-input', 'prompt-message',
-      'confirm', 'confirm-ok', 'confirm-cancel', 'confirm-message',
+    this.elementClasses = [
       'select-one', 'select-one-cancel', 'select-one-menu', 'select-one-title',
-      'alert-title', 'confirm-title', 'prompt-title',
       'custom-prompt', 'custom-prompt-message', 'custom-prompt-buttons',
-      'custom-prompt-checkbox'];
+      'custom-prompt-checkbox'
+    ];
 
 
     // Loop and add element with camel style name to Modal Dialog attribute.
@@ -96,17 +131,11 @@
       }
     }
 
-    // For prompt dialog
-    this.elements.promptInput.addEventListener('keyup', function(evt) {
-      if (evt.keyCode === KeyEvent.DOM_VK_RETURN) {
-        this.confirmHandler(evt);
-      }
-    }.bind(this));
     // XXX: Since we are trying to keep enter key actioning on keyup; submit
     // event should be prevented since it works on keydown. We can remove this
     // workaround after changing containers from <form> to other DOM elements.
     this.element.addEventListener('submit', function(evt){
-      evt.explicitOriginalTarget.focus();
+      focusManager.focus();
       evt.preventDefault();
     }.bind(this));
   };
@@ -132,91 +161,61 @@
   };
 
   AppModalDialog.prototype.view = function amd_view() {
-    return '<div class="modal-dialog"' +
-            ' id="' + this.CLASS_NAME + this.instanceID + '">' +
-            '<form class="modal-dialog-alert generic-dialog" ' +
-            'role="dialog" tabindex="-1">' +
-            '<div class="modal-dialog-message-container inner">' +
-              '<h3 class="modal-dialog-alert-title"></h3>' +
-              '<p>' +
-                '<span class="modal-dialog-alert-message"></span>' +
-              '</p>' +
-            '</div>' +
-            '<menu>' +
-              '<smart-button type="circle-text" ' +
-                'class="modal-dialog-alert-ok confirm affirmative" ' +
-                'data-l10n-id="ok">OK</smart-button>' +
-            '</menu>' +
-          '</form>' +
-          '<form class="modal-dialog-confirm generic-dialog" ' +
-          'role="dialog" tabindex="-1">' +
-            '<div class="modal-dialog-message-container inner">' +
-              '<h3 class="modal-dialog-confirm-title"></h3>' +
-              '<p>' +
-                '<span class="modal-dialog-confirm-message"></span>' +
-              '</p>' +
-            '</div>' +
-            '<menu data-items="2">' +
-              '<smart-button type="circle-text"' +
-                'class="modal-dialog-confirm-cancel cancel"' +
-                'data-l10n-id="cancel">Cancel</smart-button>' +
-              '<smart-button type="circle-text"' +
-                'class="modal-dialog-confirm-ok confirm affirmative"' +
-                'data-l10n-id="ok">OK</smart-button>' +
-            '</menu>' +
-          '</form>' +
-          '<form class="modal-dialog-prompt generic-dialog" ' +
-            'role="dialog" tabindex="-1">' +
-            '<div class="modal-dialog-message-container inner">' +
-              '<h3 class="modal-dialog-prompt-title"></h3>' +
-              '<p>' +
-                '<span class="modal-dialog-prompt-message"></span>' +
-                '<input class="modal-dialog-prompt-input" />' +
-              '</p>' +
-            '</div>' +
-            '<menu data-items="2">' +
-              '<smart-button type="circle-text" ' +
-                'class="modal-dialog-prompt-cancel cancel"' +
-                'data-l10n-id="cancel">Cancel</smart-button>' +
-              '<smart-button type="circle-text" ' +
-                'class="modal-dialog-prompt-ok confirm affirmative" ' +
-                'data-l10n-id="ok">OK</smart-button>' +
-            '</menu>' +
-          '</form>' +
-          '<form class="modal-dialog-select-one generic-dialog" ' +
-            'role="dialog" ' +
-            'tabindex="-1">' +
-            '<div class="modal-dialog-message-container inner">' +
-              '<h3 class="modal-dialog-select-one-title"></h3>' +
-              '<ul class="modal-dialog-select-one-menu"></ul>' +
-            '</div>' +
-            '<menu>' +
-              '<smart-button type="circle-text" ' +
-              'class="modal-dialog-select-one-cancel cancel" ' +
-              'data-l10n-id="cancel">Cancel</smart-button>' +
-            '</menu>' +
-          '</form>' +
-          '<form class="modal-dialog-custom-prompt generic-dialog" ' +
-            'role="dialog" ' +
-            'tabindex="-1">' +
-            '<div class="modal-dialog-message-container inner">' +
-              '<h3 class="modal-dialog-custom-prompt-title"></h3>' +
-              '<p class="modal-dialog-custom-prompt-message"></p>' +
-              '<label class="pack-checkbox">' +
-                '<input class="modal-dialog-custom-prompt-checkbox" ' +
-                'type="checkbox"/>' +
-                '<span></span>' +
-              '</label>' +
-            '</div>' +
-            '<menu class="modal-dialog-custom-prompt-buttons"></menu>' +
-          '</form>' +
-        '</div>';
+    return '<smart-dialog class="modal-dialog" esc-close="false"' +
+            ' id="' + this.CLASS_NAME + this.instanceID + '"' +
+            ' smart-bubbles="true">' +
+            '<form class="modal-dialog-select-one generic-dialog" ' +
+              'role="dialog" ' +
+              'tabindex="-1">' +
+              '<div class="modal-dialog-message-container inner">' +
+                '<h3 class="modal-dialog-select-one-title"></h3>' +
+              '</div>' +
+              '<div class="modal-dialog-section-container">' +
+                '<section>' +
+                  '<div class="inner">' +
+                    '<ul class="modal-dialog-select-one-menu"></ul>' +
+                  '</div>' +
+                  '<menu>' +
+                    '<smart-button type="circle-text" ' +
+                    'class="modal-dialog-select-one-cancel cancel" ' +
+                    'data-l10n-id="cancel">Cancel</smart-button>' +
+                  '</menu>' +
+                '</section>' +
+              '</div>' +
+            '</form>' +
+            '<form class="modal-dialog-custom-prompt generic-dialog" ' +
+              'role="dialog" ' +
+              'tabindex="-1">' +
+              '<div class="modal-dialog-message-container inner">' +
+                '<h3 class="modal-dialog-custom-prompt-title"></h3>' +
+              '</div>' +
+              '<div class="modal-dialog-section-container">' +
+                '<section>' +
+                  '<div class="inner">' +
+                    '<p class="modal-dialog-custom-prompt-message"></p>' +
+                    '<label class="pack-checkbox">' +
+                      '<input class="modal-dialog-custom-prompt-checkbox" ' +
+                      'type="checkbox"/>' +
+                      '<span></span>' +
+                    '</label>' +
+                  '</div>' +
+                  '<menu class="modal-dialog-custom-prompt-buttons"></menu>' +
+                '</section>' +
+              '</div>' +
+            '</form>' +
+          '</smart-dialog>' +
+          '<div id="' + this.CLASS_NAME + 'Container' + this.instanceID + '"' +
+          ' class="smart-modal-dialog-container">' +
+          '</div>';
   };
 
   AppModalDialog.prototype.processNextEvent = function amd_processNextEvent() {
     this.events.splice(0, 1);
     if (this.events.length) {
       this.show();
+      // Bubble animation is handled in smart-modal-dialog, we will only make
+      // bubble animation for prompt and value selector dialog.
+      !this.isSmartModalDialog && this._makeBubbleAnimation();
     } else {
       this.hide();
     }
@@ -224,10 +223,100 @@
 
   AppModalDialog.prototype.kill = function amd_kill() {
     this.containerElement.removeChild(this.element);
+    focusManager.removeUI(this);
+  };
+
+  // Handle alert/confirm/prompt modal dialog that
+  // uses smart-modal-dialog component
+  AppModalDialog.prototype._show = function amd_show(evt) {
+    var self = this;
+    var message = evt.detail.message || '';
+    var type = evt.detail.promptType || evt.detail.type;
+
+    var option;
+    switch (type) {
+      case 'alert':
+        option = {
+          buttonSettings: [{
+            defaultFocus: true
+          }],
+          message: { textRaw: message },
+          onCancel: self.cancelHandler.bind(self)
+        };
+
+        if (evt.yesText) {
+          option.buttonSettings[0].textRaw = evt.yesText;
+        } else {
+          option.buttonSettings[0].textL10nId = 'ok';
+        }
+        this.smartModalDialog.open(option);
+        break;
+
+      case 'confirm':
+        option = {
+          message: { textRaw: message },
+          buttonSettings: [{
+            onClick: self.cancelHandler.bind(self)
+          },{
+            defaultFocus: true,
+            onClick: self.confirmHandler.bind(self)
+          }],
+          onCancel: self.cancelHandler.bind(self)
+        };
+
+        if (evt.yesText) {
+          option.buttonSettings[1].textRaw = evt.yesText;
+        } else {
+          option.buttonSettings[1].textL10nId = 'ok';
+        }
+
+        if (evt.noText) {
+          option.buttonSettings[0].textRaw = evt.noText;
+        } else {
+          option.buttonSettings[0].textL10nId = 'cancel';
+        }
+        this.smartModalDialog.open(option);
+        break;
+
+      case 'prompt':
+        option = {
+          message: { textRaw: message },
+          initialInputValue: evt.detail.initialValue,
+          buttonSettings: [{
+            onClick: self.cancelHandler.bind(self)
+          },{
+            onClick: self.confirmHandler.bind(self)
+          }],
+          onCancel: self.cancelHandler.bind(self),
+          onReturned: function() {
+            self.smartInputDialog.buttonElements[1].click();
+          }.bind(self)
+        };
+
+        if (evt.yesText) {
+          option.buttonSettings[1].textRaw = evt.yesText;
+        } else {
+          option.buttonSettings[1].textL10nId = 'ok';
+        }
+
+        if (evt.noText) {
+          option.buttonSettings[0].textRaw = evt.noText;
+        } else {
+          option.buttonSettings[0].textL10nId = 'cancel';
+        }
+        this.smartInputDialog.open(option);
+        break;
+    }
+
+    this.app.publish('modaldialog-' + type + '-shown');
+    this.app.browser.element.setAttribute('aria-hidden', true);
   };
 
   // Show relative dialog and set message/input value well
   AppModalDialog.prototype.show = function amd_show() {
+    // If a alert/confirm/prompt... events are called during closing state,
+    // we should not show it until the dialog is closed, which will be handled
+    // in closed event in _fetchElements function.
     if (!this.events.length) {
       return;
     }
@@ -235,126 +324,42 @@
     var evt = this.events[0];
 
     var message = evt.detail.message || '';
-    var title = this._getTitle(evt.detail.title);
     var elements = this.elements;
 
-    function escapeHTML(str) {
-      var stringHTML = str;
-      stringHTML = stringHTML.replace(/</g, '&#60;');
-      stringHTML = stringHTML.replace(/(\r\n|\n|\r)/gm, '<br/>');
-      stringHTML = stringHTML.replace(/\s\s/g, ' &nbsp;');
-
-      return stringHTML.replace(/"/g, '&quot;').replace(/'/g, '&#x27;');
-    }
-
     var type = evt.detail.promptType || evt.detail.type;
-    if (type !== 'selectone') {
-      message = escapeHTML(message);
-    }
 
+    this._dialogType = type;
     // TODO: Currently we only implmented key navigation for prompt dialog.
     // Other dialogs also need to be implemented.
     switch (type) {
       case 'alert':
-        elements.alertTitle.innerHTML = title;
-        elements.alertMessage.innerHTML = message;
-        elements.alert.classList.add('visible');
-        if (evt.yesText) {
-          elements.alertOk.removeAttribute('data-l10n-id');
-          elements.alertOk.textContent = evt.yesText;
-        } else {
-          elements.alertOk.setAttribute('data-l10n-id', 'ok');
-        }
-
-        this.simpleKeyNavigation.start(
-          [elements.alertOk],
-          SimpleKeyNavigation.DIRECTION.HORIZONTAL,
-          {target: elements.alert});
-
-        // XXX: Focusing smart-button fails at the second time popup if we don't
-        // postpone it. We need to find the root cause.
-        setTimeout(function() {
-          document.activeElement.blur();
-          this.simpleKeyNavigation.focus();
-        }.bind(this), 100);
-        break;
+      case 'confirm':
+        this.isSmartModalDialog = true;
+        this.isSmartInputDialog = false;
+        this._show(evt);
+        // Early return because we don't need to handle key navigation and
+        // smart-dialog open in smart-modal-dialog.
+        return;
 
       case 'prompt':
-        elements.prompt.classList.add('visible');
-        elements.promptInput.value = evt.detail.initialValue;
-        elements.promptTitle.innerHTML = title;
-        elements.promptMessage.innerHTML = message;
-
-        if (evt.yesText) {
-          elements.promptOk.removeAttribute('data-l10n-id');
-          elements.promptOk.textContent = evt.yesText;
-        } else {
-          elements.promptOk.setAttribute('data-l10n-id', 'ok');
-        }
-
-        if (evt.noText) {
-          elements.promptCancel.removeAttribute('data-l10n-id');
-          elements.promptCancel.textContent = evt.noText;
-        } else {
-          elements.promptCancel.setAttribute('data-l10n-id', 'cancel');
-        }
-
-        document.activeElement.blur();
-        var horizontalButtonNavigation = new SimpleKeyNavigation();
-        horizontalButtonNavigation.start(
-          [elements.promptCancel, elements.promptOk],
-          SimpleKeyNavigation.DIRECTION.HORIZONTAL,
-          {isChild: true});
-        this.simpleKeyNavigation.start(
-          [elements.promptInput, horizontalButtonNavigation],
-          SimpleKeyNavigation.DIRECTION.VERTICAL,
-          {target: elements.prompt});
-        elements.promptInput.select();
-        break;
-
-      case 'confirm':
-        elements.confirm.classList.add('visible');
-        elements.confirmTitle.innerHTML = title;
-        elements.confirmMessage.innerHTML = message;
-
-        if (evt.yesText) {
-          elements.confirmOk.removeAttribute('data-l10n-id');
-          elements.promptOk.textContent = evt.yesText;
-        } else {
-          elements.confirmOk.setAttribute('data-l10n-id', 'ok');
-        }
-
-        if (evt.noText) {
-          elements.confirmCancel.removeAttribute('data-l10n-id');
-          elements.confirmCancel.textContent = evt.noText;
-        } else {
-          elements.confirmCancel.setAttribute('data-l10n-id', 'cancel');
-        }
-
-        document.activeElement.blur();
-        this.simpleKeyNavigation.start(
-          [elements.confirmCancel, elements.confirmOk],
-          SimpleKeyNavigation.DIRECTION.HORIZONTAL,
-          {target: elements.confirm});
-
-        // XXX: Focusing smart-button fails at the second time popup if we don't
-        // postpone it. We need to find the root cause.
-        setTimeout(function() {
-          document.activeElement.blur();
-          this.simpleKeyNavigation.focus();
-        }.bind(this), 100);
-        break;
+        this.isSmartModalDialog = true;
+        this.isSmartInputDialog = true;
+        this._show(evt);
+        // Early return because we don't need to handle key navigation and
+        // smart-dialog open in smart-modal-dialog.
+        return;
 
       case 'selectone':
+        this.isSmartModalDialog = false;
         this.buildSelectOneDialog(message);
         elements.selectOne.classList.add('visible');
-        elements.selectOne.focus();
         break;
 
       case 'custom-prompt':
+        this.isSmartModalDialog = false;
         var customPrompt = evt.detail;
         elements.customPrompt.classList.add('visible');
-        elements.customPromptMessage.innerHTML = customPrompt.message;
+        elements.customPromptMessage.textContent = customPrompt.message;
         // Display custom list of buttons
         elements.customPromptButtons.innerHTML = '';
         elements.customPromptButtons.setAttribute('data-items',
@@ -393,38 +398,87 @@
           checkbox.parentNode.classList.add('hidden');
         }
 
-        elements.customPrompt.focus();
         break;
     }
+    // simpleKeyNavigation.start will focus the default element, however, we do
+    // not want to have any button or input focused before bubbling animation.
+    this.simpleKeyNavigation.blur();
 
+    this.app.publish('modaldialog-' + type + '-shown');
     this.app.browser.element.setAttribute('aria-hidden', true);
-    this.element.classList.add('visible');
+    this.element.open();
   };
 
   AppModalDialog.prototype.hide = function amd_hide() {
-    this.simpleKeyNavigation.blur();
-    this.simpleKeyNavigation.stop();
-    this.app.browser.element.removeAttribute('aria-hidden');
-    this.element.classList.remove('visible');
-    if (this.app) {
-      this.app.focus();
+    if (!this.isSmartModalDialog) {
+      // Only start/stop simple key navigation when it's not smart-modal-dialog.
+      this.simpleKeyNavigation.blur();
+      this.simpleKeyNavigation.stop();
+      this.element.close();
     }
+    this.app.browser.element.removeAttribute('aria-hidden');
+    focusManager.focus();
+
     if (!this.events.length) {
       return;
     }
 
     var evt = this.events[0];
     var type = evt.detail.promptType;
+
+    this.app.publish('modaldialog-' + type + '-hidden');
     this.elements[type].classList.remove('visible');
   };
 
-  AppModalDialog.prototype.isVisible = function amd_isVisible() {
-    return !!this.element && this.element.classList.contains('visible');
+  AppModalDialog.prototype.isFocusable = function amd_isFocusable() {
+    if (this.isSmartModalDialog && !this.isSmartInputDialog) {
+      return !!this.smartModalDialog.element &&
+        !this.smartModalDialog.element.classList.contains('closed');
+    } else if (this.isSmartModalDialog && this.isSmartInputDialog) {
+      return !!this.smartInputDialog.element &&
+        !this.smartInputDialog.element.classList.contains('closed');
+    } else if (!this.isSmartModalDialog) {
+      return !!this.element &&
+        !this.element.classList.contains('closed');
+    }
   };
 
   AppModalDialog.prototype.focus = function amd_show() {
+    // XXX: Focusing smart-button fails at the second time popup if we don't
+    // postpone it. We need to find the root cause.
     document.activeElement.blur();
-    this.simpleKeyNavigation && this.simpleKeyNavigation.focus();
+    if (this.isSmartModalDialog && !this.isSmartInputDialog) {
+      this.smartModalDialog.focus();
+      return;
+    } else if (this.isSmartModalDialog && this.isSmartInputDialog) {
+      this.smartInputDialog.focus();
+      return;
+    } else if (!this.isSmartModalDialog) {
+      this.element.focus();
+      return;
+    }
+
+    switch(this._dialogType) {
+      case 'selectone':
+        this.elements.selectOne.focus();
+        break;
+      case 'custom-prompt':
+        this.elements.customPrompt.focus();
+        break;
+      default:
+        this.simpleKeyNavigation && this.simpleKeyNavigation.focus();
+        break;
+    }
+  };
+
+  AppModalDialog.prototype.getElement = function amd_getElement() {
+    if (this.isSmartModalDialog && !this.isSmartInputDialog) {
+      return this.smartModalDialog.element;
+    } else if (this.isSmartModalDialog && this.isSmartInputDialog) {
+      return this.smartInputDialog.element;
+    } else if (!this.isSmartModalDialog) {
+      return this.element;
+    }
   };
 
   // When user clicks OK button on alert/confirm/prompt
@@ -434,7 +488,9 @@
         return;
       }
 
-      clickEvt.preventDefault();
+      if (clickEvt && clickEvt.preventDefault) {
+        clickEvt.preventDefault();
+      }
 
       var elements = this.elements;
 
@@ -442,18 +498,12 @@
 
       var type = evt.detail.promptType || evt.detail.type;
       switch (type) {
-        case 'alert':
-          elements.alert.classList.remove('visible');
-          break;
-
         case 'prompt':
-          evt.detail.returnValue = elements.promptInput.value;
-          elements.prompt.classList.remove('visible');
+          evt.detail.returnValue = this.smartInputDialog.textInput.value;
           break;
 
         case 'confirm':
           evt.detail.returnValue = true;
-          elements.confirm.classList.remove('visible');
           break;
 
         case 'custom-prompt':
@@ -469,7 +519,7 @@
       }
 
       if (evt.detail.unblock) {
-        evt.detail.unblock();
+        this._unblock(evt.detail.unblock);
       }
 
       this.processNextEvent();
@@ -483,26 +533,23 @@
         return;
       }
 
-      clickEvt.preventDefault();
+      if (clickEvt && clickEvt.preventDefault) {
+        clickEvt.preventDefault();
+      }
+
       var evt = this.events[0];
       var elements = this.elements;
 
       var type = evt.detail.promptType || evt.detail.type;
       switch (type) {
-        case 'alert':
-          elements.alert.classList.remove('visible');
-          break;
-
         case 'prompt':
           /* return null when click cancel */
           evt.detail.returnValue = null;
-          elements.prompt.classList.remove('visible');
           break;
 
         case 'confirm':
           /* return false when click cancel */
           evt.detail.returnValue = false;
-          elements.confirm.classList.remove('visible');
           break;
 
         case 'selectone':
@@ -513,7 +560,7 @@
       }
 
       if (evt.detail.unblock) {
-        evt.detail.unblock();
+        this._unblock(evt.detail.unblock);
       }
 
       this.processNextEvent();
@@ -560,4 +607,27 @@
 
       return title;
     };
+
+  AppModalDialog.prototype._makeBubbleAnimation =
+    function amd__makeBubbleAnimation(target) {
+      var menuElement = this.elements[this._dialogType].querySelector('menu');
+      var buttons = [];
+      for(var i = 0; i < menuElement.children.length; i++) {
+        buttons.push(menuElement.children[i]);
+      }
+      this.smartBubble.play(buttons);
+    };
+
+  AppModalDialog.prototype._unblock = function amd__unblock(callback) {
+    // If smart-dialog is opened, we should wait for close event from
+    // smart-dialog, let the animation completes before continue to unblock.
+    if (this.element.classList.contains('opened')) {
+      this.element.addEventListener('closed', function onDialogClose() {
+        this.element.removeEventListener('closed', onDialogClose);
+        callback();
+      }.bind(this));
+    } else {
+      callback();
+    }
+  };
 }(window));

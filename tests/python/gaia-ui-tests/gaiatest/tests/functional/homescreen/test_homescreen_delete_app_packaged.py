@@ -48,8 +48,14 @@ class TestDeleteApp(GaiaTestCase):
 
         self.wait_for_condition(lambda m: self.apps.displayed_app.name == self.homescreen.name)
         self.apps.switch_to_displayed_app()
+        self.homescreen.tap_edit_done()
         self.homescreen.wait_for_app_icon_not_present(self.test_data['name'])
 
         # Check that the app is no longer available
         with self.assertRaises(AssertionError):
             self.apps.launch(self.test_data['name'])
+
+    def tearDown(self):
+        self.apps.uninstall(self.test_data['name'])
+
+        GaiaTestCase.tearDown(self)

@@ -1,19 +1,30 @@
 'use strict';
-/* global MockNavigatorMozMobileConnections, BaseModule */
+/* global MockNavigatorMozMobileConnections, BaseModule,
+          MocksHelper, MockLazyLoader, EmergencyCallbackIcon */
 
 requireApp('system/js/service.js');
 requireApp('system/js/base_module.js');
+requireApp('system/js/base_ui.js');
+requireApp('system/js/base_icon.js');
+requireApp('system/js/emergency_callback_icon.js');
 requireApp('system/js/emergency_callback_manager.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 require('/shared/test/unit/load_body_html_helper.js');
+requireApp('system/test/unit/mock_lazy_loader.js');
+
+var mocksForEmergencyCallbackManager = new MocksHelper([
+  'LazyLoader'
+]).init();
 
 suite('system/emergency_callback_manager', function() {
   var subject;
+  mocksForEmergencyCallbackManager.attachTestHelpers();
   suiteSetup(function() {
     loadBodyHTML('/index.html');
   });
 
   setup(function() {
+    this.sinon.spy(MockLazyLoader, 'load');
     subject = BaseModule.instantiate('EmergencyCallbackManager',
       {
         mobileConnections: MockNavigatorMozMobileConnections
@@ -22,6 +33,12 @@ suite('system/emergency_callback_manager', function() {
 
   teardown(function() {
     subject.stop();
+  });
+
+  test('Should lazy load icon', function() {
+    subject.start();
+    assert.isTrue(MockLazyLoader.load.calledWith(
+      ['js/emergency_callback_icon.js']));
   });
 
   suite('EmergencyCbManager init', function() {
@@ -46,6 +63,8 @@ suite('system/emergency_callback_manager', function() {
       subject.publish = this.sinon.stub();
       this.sinon.useFakeTimers();
       subject.start();
+      subject.icon = new EmergencyCallbackIcon(subject);
+      this.sinon.stub(subject.icon, 'update');
     });
 
     test('EmergencyCbMode changes to active with 1 min duration', function() {
@@ -63,6 +82,7 @@ suite('system/emergency_callback_manager', function() {
       // Toaster should hide after timeout
       this.sinon.clock.tick(subject.TOASTER_TIMEOUT + 1);
       assert.isFalse(subject.toaster.classList.contains('displayed'));
+      assert.isTrue(subject.icon.update.called);
 
       // clear timeoutController after 1 min
       this.sinon.clock.tick(60 * 1000);
@@ -76,6 +96,7 @@ suite('system/emergency_callback_manager', function() {
       assert.isNull(subject.timeoutController);
       assert.isNull(subject._conn.ondataerror);
       assert.isFalse(subject.notification.classList.contains('displayed'));
+      assert.isTrue(subject.icon.update.called);
     });
   });
 });

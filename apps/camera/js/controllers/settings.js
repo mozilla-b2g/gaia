@@ -56,7 +56,6 @@ function SettingsController(app) {
  *
  * You can always use the underlying settings
  * directly if you need that kind of control.
- * @return {[type]} [description]
  */
 SettingsController.prototype.configure = function() {
   this.setupRecorderProfilesAlias();
@@ -304,24 +303,24 @@ SettingsController.prototype.notify = function(setting, flashDeactivated) {
   if (dontNotify) { return; }
 
   var localizeOption = setting.get('optionsLocalizable') !== false;
-  var title = this.l10nGet(setting.get('title'));
-  var optionTitle = setting.selected('title');
-  var html;
-
+  var title = '<span data-l10n-id="' + setting.get('title') + '"></span>';
   // Localize option title only if not specified in the config
-  optionTitle = localizeOption ? this.l10nGet(optionTitle) : optionTitle;
+  var optionTitle = localizeOption ? 
+    '<span data-l10n-id="' + setting.selected('title') + '"></span>' :
+    '<span>' + optionTitle + '</span>';
+  var html;
 
   // Check if the `flashMode` setting is going to be deactivated as part
   // of the change in the `hdr` setting and display a specialized
   // notification if that is the case
   if (flashDeactivated) {
     html = title + ' ' + optionTitle + '<br/>' +
-      this.l10nGet('flash-deactivated');
+      '<span data-l10n-id="flash-deactivated"></span>';
   } else {
     html = title + '<br/>' + optionTitle;
   }
 
-  this.notification.display({ text: html });
+  this.notification.display({ text: {html: html} });
 };
 
 /**

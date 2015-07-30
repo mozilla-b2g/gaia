@@ -19,34 +19,33 @@ suite('LockScreenClockWidget > ', function() {
   });
 
   test(`it would update the clock`, function() {
-    window.Date = this.sinon.stub().returns('dummy-date');
-    navigator.mozL10n = {
-      DateTimeFormat: function() {
-        return {
-          'localeFormat': navigator.mozL10n.dummyLocaleFormat
-        };
-      },
-      dummyLocaleFormat: this.sinon.stub().returns('dummy-locale-format'),
-      get: this.sinon.stub().returns('dummy-l10n-string')
-    };
     var mockThis = {
       logger: {
         debug: function() {}
       },
-      _timeFormat: '%p',
+      timeFormatter: new Intl.DateTimeFormat('en-US', {
+        hour12: false,
+        hour: 'numeric',
+        minute: 'numeric'
+      }),
+      dateFormatter: new Intl.DateTimeFormat('en-US', {
+        weekday: 'long',
+        month: 'long',
+        day: 'numeric'
+      }),
       resources: {
         elements: {
-          time: { innerHTML: 'dummy-innerHTML'},
+          time: { textContent: 'dummy-textContent'},
           date: { textContent: 'dummy-textContent' }
       }}
     };
     var method = LockScreenClockWidget.prototype.updateClock;
+    var now = new Date();
     method.call(mockThis);
-    assert.equal(navigator.mozL10n.dummyLocaleFormat(),
-      mockThis.resources.elements.time.innerHTML,
-      `it doesn't update the time.innerHTML with the time in locale format`);
-
-    assert.equal(navigator.mozL10n.dummyLocaleFormat(),
+    assert.equal(mockThis.timeFormatter.format(now),
+      mockThis.resources.elements.time.textContent,
+      `it doesn't update the time.textContent with the time in locale format`);
+    assert.equal(mockThis.dateFormatter.format(now),
       mockThis.resources.elements.date.textContent,
       `it doesn't update the date.textContent with the date in locale format`);
   });

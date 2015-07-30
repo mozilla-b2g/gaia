@@ -190,3 +190,26 @@ html[dir="rtl"] #search-list label {
   left: unset;
   right: 0;
 }
+
+html[dir="rtl"] nav[data-type="scrollbar"] {
+  direction: ltr;
+  right: 0;
+  left: unset;
+}
+
+html[dir="rtl"] nav[data-type="scrollbar"] p {
+  left: unset;
+  right: 10rem;
+}
+
+html[dir="rtl"] .block-item {
+  left: unset;
+  right: 1rem;
+}
+
+[data-type="list"] li.block-item bdi {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: inline-block;
+  max-width: 100%;
+}

@@ -4,14 +4,9 @@ define(function(require) {
 var CurrentTime = require('views/current_time');
 
 suite('Views.CurrentTime', function() {
-  var app;
   var subject;
   var container;
   var timespan;
-
-  suiteSetup(function() {
-    app = testSupport.calendar.app();
-  });
 
   setup(function() {
     var startOfDay = new Date();
@@ -118,7 +113,7 @@ suite('Views.CurrentTime', function() {
   suite('#_maybeActivateInTheFuture', function() {
     var clock;
     var start;
-    var offset = 123456;
+    var offset = 24 * 60 * 60 * 1000;
 
     setup(function() {
       clock = sinon.useFakeTimers();

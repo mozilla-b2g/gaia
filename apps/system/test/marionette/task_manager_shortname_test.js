@@ -7,17 +7,13 @@ var assert = require('assert');
 marionette('Task Manager w/Short Name', function() {
   var shortAppOrigin = 'shortnameapp.gaiamobile.org';
   var apps = {};
-  apps[shortAppOrigin] = __dirname + '/shortnameapp';
+  apps[shortAppOrigin] = __dirname + '/../apps/shortnameapp';
 
   var client = marionette.client({
-    prefs: {
-      'dom.w3c_touch_events.enabled': 1
+    profile: {
+      apps: apps
     },
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
-    },
-    apps: apps
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
   });
 
   var actions;
@@ -30,7 +26,7 @@ marionette('Task Manager w/Short Name', function() {
     system = client.loader.getAppClass('system');
     taskManager = new TaskManager(client);
 
-    system.waitForStartup();
+    system.waitForFullyLoaded();
 
     shortApp = new FakeApp(client, 'app://' + shortAppOrigin);
     shortApp.launch();

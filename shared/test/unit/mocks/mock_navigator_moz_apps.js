@@ -30,7 +30,7 @@ var MockNavigatormozApps = {
       var evt = {
         target: request
       };
-      request.onsuccess(evt);
+      return request.onsuccess(evt);
     }
   },
 
@@ -50,7 +50,10 @@ var MockNavigatormozApps = {
         }
       };
     },
-    uninstall: function() {}
+    uninstall: function() {},
+    addEventListener: function() {
+
+    }
   },
 
   mLastRequest: null,

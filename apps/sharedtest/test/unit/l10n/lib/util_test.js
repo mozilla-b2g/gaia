@@ -1,5 +1,5 @@
 /* global it, assert:true, describe, before, beforeEach */
-/* global navigator, process */
+/* global navigator */
 'use strict';
 
 var assert, PropertiesParser;
@@ -30,13 +30,8 @@ describe('walkContent', function() {
     } else {
       assert = require('assert');
       L10n = {};
-      L10n.walkContent = process.env.L20N_COV ?
-        require('../../build/cov/lib/l20n/util').walkContent
-        : require('../../lib/l20n/util').walkContent;
-
-      PropertiesParser = process.env.L20N_COV ?
-        require('../../build/cov/lib/l20n/parser')
-        : require('../../lib/l20n/format/properties/parser');
+      L10n.walkContent = require('../../src/lib/util').walkContent;
+      PropertiesParser = require('../../src/lib/format/properties/parser');
       done();
     }
   });

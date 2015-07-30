@@ -93,6 +93,13 @@ module.exports = {
     ]
   },
 
+  keyDownEvents: {
+    camera: 'capture',
+    volumeup: 'capture',
+    volumedown: 'capture',
+    mozcamerafocusadjust: 'focus',
+  },
+
   activity: {
 
     // The amount to scale pixelSize derived from
@@ -159,11 +166,13 @@ module.exports = {
     options: [
       {
         key: 'back',
-        icon: 'toggle-camera-rear'
+        icon: 'toggle-camera-rear',
+        title: 'toggle-camera-rear'
       },
       {
         key: 'front',
-        icon: 'toggle-camera-front'
+        icon: 'toggle-camera-front',
+        title: 'toggle-camera-front'
       }
     ],
     persistent: false
@@ -207,7 +216,7 @@ module.exports = {
     header: 'video-resolution-header',
     icon: 'video-size',
     options: [],
-    exclude: ['high', '1080p'],
+    exclude: ['high', '1080p', '4kuhd'],
     persistent: true,
     optionsLocalizable: false,
   },

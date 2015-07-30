@@ -27,37 +27,11 @@ var VcardActivityHandler = (function() {
     }
 
     function readvCard(vCardReader) {
-      var firstContact;
       var cursor = vCardReader.getAll();
       cursor.onsuccess = function(event) {
         var contact = event.target.result;
-        // We check if there is only one contact to know what function
-        // we should call. If not, we render the contacts one by one.
-        if (contact) {
-          if (!firstContact) {
-            firstContact = contact;
-            cursor.continue();
-          } else {
-            render([firstContact, contact], activity, cursor);
-          }
-        } else if (firstContact) {
-          renderOneContact(firstContact, activity);
-        }
+        render([contact], activity, cursor);
       };
-    }
-
-    function renderOneContact(contact, activity) {
-      parentHandler.mozContactParam = contact;
-      var data = activity.source.data;
-      data.params = {
-        'mozContactParam': true
-      };
-
-      if (data.allowSave === true) {
-        parentHandler.launch_activity(activity, 'view-contact-form');
-      } else {
-        parentHandler.launch_activity(activity, 'view-contact-details');
-      }
     }
 
     function getFileName(path) {
@@ -74,9 +48,14 @@ var VcardActivityHandler = (function() {
         '/contacts/js/views/multiple_select.js'
       ];
       LazyLoader.load(DEPENDENCIES, function() {
-        var filename = getFileName(activity.source.data.filename);
+        var name;
+        if (activity.source.data.filename) {
+          name = getFileName(activity.source.data.filename);
+        } else {
+          name = activity.source.data.src;
+        }
         Contacts.MultipleSelect.init();
-        Contacts.MultipleSelect.render(contacts, cursor, filename);
+        Contacts.MultipleSelect.render(contacts, cursor, name);
       });
     }
   };

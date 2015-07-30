@@ -165,9 +165,10 @@ define(function(require) {
      */
     initializeAuthFields: function(panel, network) {
       var key = WifiHelper.getKeyManagement(network);
+      var ssid = panel.querySelector('input[name=ssid]');
       var identity = panel.querySelector('input[name=identity]');
       var password = panel.querySelector('input[name=password]');
-      var showPassword = panel.querySelector('input[name=show-pwd]');
+      var showPassword = panel.querySelector('gaia-checkbox[name=show-pwd]');
       var eap = panel.querySelector('li.eap select');
       var certificate = panel.querySelector('li.server-certificate select');
       var submitButton = panel.querySelector('button[type=submit]');
@@ -186,15 +187,27 @@ define(function(require) {
       };
 
       var checkPassword = function() {
+        var isSSIDInvalid = function() {
+          if (ssid) {
+            return (ssid.value.length === 0);
+          } else {
+            return false;
+          }
+        };
+
         submitButton.disabled =
           !WifiHelper.isValidInput(key, password.value, identity.value,
-            eap.value);
+            eap.value) || isSSIDInvalid();
       };
 
       eap.onchange = function() {
         checkPassword();
         WifiUtils.changeDisplay(panel, key);
       };
+
+      if (ssid) {
+        ssid.oninput = checkPassword;
+      }
 
       password.oninput = checkPassword;
       identity.oninput = checkPassword;
@@ -222,7 +235,8 @@ define(function(require) {
         var certificateList = certList.ServerCert;
 
         // reset the option to be <option value="none">--</option> only
-        for (i = 0; i < select.options.length - 1; i++) {
+        var originLengthOfOptions = select.options.length;
+        for (i = 0; i < originLengthOfOptions - 1; i++) {
           select.remove(1);
         }
 

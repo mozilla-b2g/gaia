@@ -1,16 +1,17 @@
-/* global AppWindow, ActivityWindow, MocksHelper */
+/* global AppWindow, ActivityWindow, MocksHelper, BaseModule, MockContextMenu */
 'use strict';
 
-requireApp('system/test/unit/mock_orientation_manager.js');
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/test/unit/mock_applications.js');
+requireApp('system/shared/test/unit/mocks/mock_service.js');
+requireApp('system/test/unit/mock_context_menu.js');
 
 requireApp('system/shared/test/unit/mocks/mock_screen_layout.js');
 
 var mocksForActivityWindow = new MocksHelper([
-  'OrientationManager', 'Applications', 'SettingsListener',
-  'ManifestHelper'
+  'Applications', 'SettingsListener',
+  'ManifestHelper', 'Service'
 ]).init();
 
 suite('system/ActivityWindow', function() {
@@ -50,12 +51,19 @@ suite('system/ActivityWindow', function() {
 
       return element;
     });
-    requireApp('system/js/service.js');
     requireApp('system/js/browser_config_helper.js');
     requireApp('system/js/browser_frame.js');
+    requireApp('system/js/base_module.js');
     requireApp('system/js/app_window.js');
     requireApp('system/js/browser_mixin.js');
-    requireApp('system/js/activity_window.js', done);
+    requireApp('system/js/activity_window.js', function() {
+      this.sinon.stub(BaseModule, 'instantiate', function(name) {
+        if (name === 'BrowserContextMenu') {
+          return MockContextMenu;
+        }
+      });
+      done();
+    }.bind(this));
   });
 
   teardown(function() {

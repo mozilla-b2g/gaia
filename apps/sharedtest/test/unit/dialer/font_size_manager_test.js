@@ -17,6 +17,8 @@ suite('font size manager', function() {
   var realMozL10n;
 
   var view;
+  var bdiNode;
+  var innerEl;
 
   mocksHelperForCallScreen.attachTestHelpers();
 
@@ -67,13 +69,16 @@ suite('font size manager', function() {
       {
         element: 'input',
         textField: 'value'
+      },
+      {
+        element: 'div',
+        childElement: 'bdi',
+        textField: 'textContent'
       }
     ];
 
     viewElements.forEach(function(viewElement) {
       suite('on ' + viewElement.element, function() {
-        var originalInnerHTML;
-
         var getExpectedEllipsizedText = function(side, direction) {
           // MockL10n does not invert text when in RTL mode, but FSM will
           // treat the left side as the end for the purpose of ellipses.
@@ -81,15 +86,21 @@ suite('font size manager', function() {
         };
 
         setup(function() {
-          originalInnerHTML = document.body.innerHTML;
           document.documentElement.style.fontSize = ROOT_FONT_SIZE + 'px';
+
           view = document.createElement(viewElement.element);
-          view[viewElement.textField] = 'foobar';
+          if(viewElement.childElement) {
+            innerEl = document.createElement(viewElement.childElement);
+            view.appendChild(innerEl);
+          } else {
+            innerEl = view;
+          }
+          innerEl[viewElement.textField] = 'foobar';
           document.body.appendChild(view);
         });
 
         teardown(function() {
-          document.body.innerHTML = originalInnerHTML;
+          document.body.innerHTML = '';
         });
 
         test('calls FSU with the proper arguments', function() {
@@ -183,10 +194,9 @@ suite('font size manager', function() {
     });
 
     suite('special view cases', function() {
-      var originalInnerHTML;
+      var originalFontSize;
 
       setup(function() {
-        originalInnerHTML = document.body.innerHTML;
         document.documentElement.style.fontSize = ROOT_FONT_SIZE + 'px';
 
         FontSizeUtils.getMaxFontSizeInfo.returns({
@@ -196,7 +206,7 @@ suite('font size manager', function() {
       });
 
       teardown(function() {
-        document.body.innerHTML = originalInnerHTML;
+        document.body.innerHTML = '';
       });
 
       suite('on <input> with no value', function() {
@@ -208,6 +218,38 @@ suite('font size manager', function() {
         test('no adaptation is made', function() {
           FontSizeManager.adaptToSpace(FontSizeManager.DIAL_PAD, view);
           assert.notEqual(view.style.fontSize, '42px');
+        });
+      });
+
+      suite('on child <bdi>', function() {
+        setup(function() {
+          originalFontSize = document.documentElement.style.fontSize;
+
+          document.documentElement.style.fontSize = ROOT_FONT_SIZE + 'px';
+
+          bdiNode = document.createElement('bdi');
+          bdiNode.textContent = 'testing';
+
+          view = document.createElement('div');
+          view.appendChild(bdiNode);
+
+          document.body.appendChild(view);
+        });
+
+        teardown(function() {
+          document.body.innerHTML = '';
+          document.documentElement.style.fontSize = originalFontSize;
+        });
+
+        test('bdi Node is preserved', function() {
+          FontSizeUtils.getMaxFontSizeInfo.returns({
+            fontSize: 42,
+            overflow: true
+          });
+
+          FontSizeManager.adaptToSpace(FontSizeManager.SINGLE_CALL, view);
+          var el = view.querySelector('bdi');
+          assert.isNotNull(el);
         });
       });
 
@@ -244,10 +286,7 @@ suite('font size manager', function() {
   });
 
   suite('ensureFixedBaseline', function() {
-    var originalInnerHTML;
-
     setup(function() {
-      originalInnerHTML = document.body.innerHTML;
       document.documentElement.style.fontSize = ROOT_FONT_SIZE + 'px';
       view = document.createElement('div');
       view.textContent = 'foobar';
@@ -255,7 +294,7 @@ suite('font size manager', function() {
     });
 
     teardown(function() {
-      document.body.innerHTML = originalInnerHTML;
+      document.body.innerHTML = '';
     });
 
     test('sets correct line heights', function() {
@@ -269,14 +308,15 @@ suite('font size manager', function() {
   });
 
   suite('resetFixedBaseline', function() {
-    var originalInnerHTML;
-
     setup(function() {
-      originalInnerHTML = document.body.innerHTML;
       view = document.createElement('div');
       view.textContent = 'foobar';
       view.style.lineHeight = '12px';
       document.body.appendChild(view);
+    });
+
+    teardown(function() {
+      document.body.innerHTML = '';
     });
 
     test('resets line heights', function() {

@@ -1,7 +1,7 @@
 'use strict';
 
 var ReflowHelper =
-    require('../../../../tests/js-marionette/reflow_helper.js');
+    require('../../../../tests/jsmarionette/plugins/reflow_helper.js');
 
 var assert = require('assert');
 
@@ -10,17 +10,17 @@ var CALENDAR_APP = 'app://calendar.gaiamobile.org';
 
 marionette('Edges gesture >', function() {
   var client = marionette.client({
-    prefs: {
-      'dom.w3c_touch_events.enabled': 1,
-      'devtools.debugger.forbid-certified-apps': false
-    },
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false,
-      'edgesgesture.debug': true,
-      'edgesgesture.enabled': true,
-      'devtools.overlay': true,
-      'hud.reflows': true
+    profile: {
+      prefs: {
+        'browser.safebrowsing.enabled': false,
+        'browser.safebrowsing.malware.enabled': false,
+        'devtools.debugger.forbid-certified-apps': false,
+        'privacy.trackingprotection.enabled': false
+      },
+      settings: {
+        'devtools.overlay': true,
+        'hud.reflows': true
+      }
     }
   });
 
@@ -32,14 +32,14 @@ marionette('Edges gesture >', function() {
     actions = client.loader.getActions();
 
     sys = client.loader.getAppClass('system');
-    sys.waitForStartup();
+    sys.waitForFullyLoaded();
 
     settings = sys.waitForLaunch(SETTINGS_APP);
     calendar = sys.waitForLaunch(CALENDAR_APP);
 
     // Making sure the opening transition for the calendar app is over.
     client.waitFor(function() {
-      return calendar.displayed() && !settings.displayed();
+      return calendar.ariaDisplayed() && !settings.ariaDisplayed();
     });
 
     var width = client.executeScript(function() {
@@ -61,7 +61,7 @@ marionette('Edges gesture >', function() {
     }
 
     client.waitFor(function() {
-      return !from.displayed() && to.displayed();
+      return !from.ariaDisplayed() && to.ariaDisplayed();
     });
   }
 
@@ -74,8 +74,8 @@ marionette('Edges gesture >', function() {
     sys.stopClock();
     sys.stopStatusbar();
 
-    assert(calendar.displayed(), 'calendar is visible');
-    assert(!settings.displayed(), 'settings is invisible');
+    assert(calendar.ariaDisplayed(), 'calendar is visible');
+    assert(!settings.ariaDisplayed(), 'settings is invisible');
 
     reflowHelper.startTracking(sys.URL);
     edgeSwipeToApp(sys.leftPanel, 0, halfWidth, calendar, settings);
@@ -84,7 +84,7 @@ marionette('Edges gesture >', function() {
     // Overflow swipe
     edgeSwipeToApp(sys.leftPanel, 0, halfWidth);
     client.waitFor(function() {
-      return settings.displayed();
+      return settings.ariaDisplayed();
     });
     assert(true, 'settings is still visible');
 
@@ -99,25 +99,28 @@ marionette('Edges gesture >', function() {
     // Going to the beginning of the stack first
     edgeSwipeToApp(sys.leftPanel, 0, halfWidth, calendar, settings);
 
-    assert(settings.displayed(), 'settings is visible');
-    assert(!calendar.displayed(), 'calendar is invisible');
+    assert(settings.ariaDisplayed(), 'settings is visible');
+    assert(!calendar.ariaDisplayed(), 'calendar is invisible');
 
     edgeSwipeToApp(sys.rightPanel, 5, -1 * halfWidth, settings, calendar);
     assert(true, 'swiped to calendar');
 
     // Overflow swipe
     edgeSwipeToApp(sys.rightPanel, 5, -1 * halfWidth);
-    assert(calendar.displayed(), 'calendar is still visible');
+    client.waitFor(function() {
+      return calendar.ariaDisplayed() && !settings.ariaDisplayed();
+    });
+    assert(calendar.ariaDisplayed(), 'calendar is still visible');
   });
 
   test('Swiping vertically', function() {
     // Going to the settings app first
     edgeSwipeToApp(sys.leftPanel, 0, halfWidth, calendar, settings);
-    assert(settings.displayed(), 'settings is visible');
+    assert(settings.ariaDisplayed(), 'settings is visible');
 
     // Mostly vertical swipe starting on the edge zone
     actions.flick(sys.leftPanel, 5, halfHeight + 40, 45, 40, 50).perform();
-    assert(settings.displayed(), 'settings is still visible');
+    assert(settings.ariaDisplayed(), 'settings is still visible');
 
     // The actual amount scrolled depends on the scrolling physics,
     // BrowserElementPanning or APZ... but we only care about the
@@ -137,13 +140,13 @@ marionette('Edges gesture >', function() {
   });
 
   test('Swiping below the threshold', function() {
-    assert(calendar.displayed(), 'calendar is visible');
+    assert(calendar.ariaDisplayed(), 'calendar is visible');
     edgeSwipeToApp(sys.leftPanel, 0, 20);
 
     // Waiting for iframes to settle down
     client.waitFor(function() {
-      return !settings.displayed();
+      return !settings.ariaDisplayed() && calendar.ariaDisplayed();
     });
-    assert(calendar.displayed(), 'calendar is still visible');
+    assert(calendar.ariaDisplayed(), 'calendar is still visible');
   });
 });

@@ -199,7 +199,7 @@ InputMethodGlue.prototype.sendKey = function(keyCode, isRepeat) {
 
   var promise;
 
-  this.app.console.info('inputContext.sendKey()');
+  this.app.console.info('inputContext.sendKey(), code:' + keyCode);
   switch (keyCode) {
     case KeyEvent.DOM_VK_BACK_SPACE:
       promise = this.app.inputContext.sendKey(keyCode, 0, 0, isRepeat);
@@ -252,11 +252,6 @@ InputMethodGlue.prototype.setUpperCase = function(state) {
     return;
   }
   this.app.upperCaseStateManager.switchUpperCaseState(state);
-};
-
-InputMethodGlue.prototype.isCapitalized = function() {
-  this.app.console.trace();
-  return this.app.upperCaseStateManager.isUpperCase;
 };
 
 InputMethodGlue.prototype.replaceSurroundingText = function(text, offset,
@@ -360,7 +355,6 @@ InputMethodLoader.prototype.initInputMethod = function(imEngineName) {
 };
 
 var InputMethodManager = function InputMethodManager(app) {
-  this._targetIMEngineName = null;
   this.currentIMEngine = null;
   this.app = app;
 };
@@ -426,7 +420,7 @@ InputMethodManager.prototype.updateInputContextData = function() {
 };
 
 /*
- * Switch switchCurrentIMEngine() will switch the current method to the
+ * activateIMEngine() will switch the current method to the
  * desired IMEngine.
  *
  * This method returns a promise.
@@ -434,29 +428,17 @@ InputMethodManager.prototype.updateInputContextData = function() {
  * will be the default IMEngine so we won't block keyboard rendering.
  *
  */
-InputMethodManager.prototype.switchCurrentIMEngine = function(imEngineName) {
+InputMethodManager.prototype.activateIMEngine = function(imEngineName) {
   this.app.console.log(
-    'InputMethodManager.switchCurrentIMEngine()', imEngineName);
+    'InputMethodManager.activateIMEngine()', imEngineName);
 
   // dataPromise is the one we previously created with updateInputContextData()
   var dataPromise = this._inputContextData;
 
-  if (!dataPromise && imEngineName !== 'default') {
-    console.warn('InputMethodManager: switchCurrentIMEngine() called ' +
+  if (!dataPromise) {
+    console.warn('InputMethodManager: activateIMEngine() called ' +
       'without calling updateInputContextData() first.');
   }
-
-  // Deactivate and switch the currentIMEngine to 'default' first.
-  if (this.currentIMEngine && this.currentIMEngine.deactivate) {
-    this.app.console.log(
-      'InputMethodManager::currentIMEngine.deactivate()');
-    this.currentIMEngine.deactivate();
-  }
-  if (this.app.inputContext) {
-    this.app.inputContext.removeEventListener('selectionchange', this);
-    this.app.inputContext.removeEventListener('surroundingtextchange', this);
-  }
-  this.currentIMEngine = this.loader.getInputMethod('default');
 
   // Create our own promise by resolving promise from loader and the passed
   // dataPromise, then do our things.
@@ -501,6 +483,24 @@ InputMethodManager.prototype.switchCurrentIMEngine = function(imEngineName) {
   }.bind(this));
 
   return p;
+};
+
+/*
+ * deactivateIMEngine() will deactivate the current IMEngine.
+ *
+ */
+InputMethodManager.prototype.deactivateIMEngine = function() {
+  // Deactivate and switch the currentIMEngine to 'default'.
+  if (this.currentIMEngine && this.currentIMEngine.deactivate) {
+    this.app.console.log(
+      'InputMethodManager::currentIMEngine.deactivate()');
+    this.currentIMEngine.deactivate();
+  }
+  if (this.app.inputContext) {
+    this.app.inputContext.removeEventListener('selectionchange', this);
+    this.app.inputContext.removeEventListener('surroundingtextchange', this);
+  }
+  this.currentIMEngine = this.loader.getInputMethod('default');
 };
 
 InputMethodManager.prototype.handleEvent = function(evt) {

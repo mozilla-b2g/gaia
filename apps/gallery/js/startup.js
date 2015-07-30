@@ -3,10 +3,9 @@
 /* global Overlay, isPhone, doNotScanInBackgroundHack, fullscreenButtons */
 /* global launchCameraApp, deleteSelectedItems, shareSelectedItems */
 /* global resizeHandler, currentFrame, showFile, fileCreated, fileDeleted */
-/* global files, thumbnailClickHandler, PerformanceTestingHelper */
+/* global files, thumbnailClickHandler */
 
-// When the document is loaded and localized, we can start running
-navigator.mozL10n.once(function startup() {
+(function startup() {
   'use strict';
 
   var firstScanDone = false;          // Have we completed our first scan yet?
@@ -30,7 +29,6 @@ navigator.mozL10n.once(function startup() {
 
     // Tell performance monitors that our chrome is visible
     window.performance.mark('navigationLoaded');
-    window.dispatchEvent(new CustomEvent('moz-chrome-dom-loaded'));
   }
 
   function registerEventHandlers() {
@@ -74,7 +72,6 @@ navigator.mozL10n.once(function startup() {
     // All our buttons and UI elements are hooked up, so we've reached
     // the "interactive" mark.
     window.performance.mark('navigationInteractive');
-    window.dispatchEvent(new CustomEvent('moz-chrome-interactive'));
   }
 
   // We created the MediaDB in thumbnails.js. Now we need to finish
@@ -129,7 +126,7 @@ navigator.mozL10n.once(function startup() {
       // Prevents user to edit images when scanning pictures from storage
       fullscreenButtons.edit.classList.add('disabled');
       // Show the scanning indicator
-      $('progress').classList.remove('hidden');
+      $('throbber').classList.remove('hidden');
       $('throbber').classList.add('throb');
     };
 
@@ -148,15 +145,15 @@ navigator.mozL10n.once(function startup() {
       }
 
       // Hide the scanning indicator
-      $('progress').classList.add('hidden');
+      // setTimeout() is to workaround Bug 1166500
       $('throbber').classList.remove('throb');
+      setTimeout(function() { $('throbber').classList.add('hidden'); }, 100);
 
       // If this was the first scan after startup, then tell
       // performance monitors that the app is finally fully loaded and stable.
       if (!firstScanDone) {
         firstScanDone = true;
         window.performance.mark('fullyLoaded');
-        window.dispatchEvent(new CustomEvent('moz-app-loaded'));
       }
     };
 
@@ -267,9 +264,7 @@ navigator.mozL10n.once(function startup() {
       // Tell performance monitors that "above the fold" content is displayed
       // and is ready to interact with.
       window.performance.mark('visuallyLoaded');
-      window.dispatchEvent(new CustomEvent('moz-app-visually-complete'));
       window.performance.mark('contentInteractive');
-      window.dispatchEvent(new CustomEvent('moz-content-interactive'));
     });
 
     // When all the thumbnails have been created, we can start a scan
@@ -278,12 +273,11 @@ navigator.mozL10n.once(function startup() {
         Overlay.show('scanning');
       }
 
-      // Send a custom event to performance monitors to note that we're done
+      // Send a custom mark to performance monitors to note that we're done
       // enumerating the database at this point. We won't send the final
-      // moz-app-loaded event until we're completely stable and have
+      // fullyLoaded marker until we're completely stable and have
       // finished scanning.
       window.performance.mark('mediaEnumerated');
-      PerformanceTestingHelper.dispatch('media-enumerated');
 
       // Now that we've enumerated all the photos and videos we already know
       // about it is time to go and scan the filesystem for new ones. If the
@@ -295,4 +289,4 @@ navigator.mozL10n.once(function startup() {
       }
     });
   }
-});
+})();

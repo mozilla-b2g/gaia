@@ -4,7 +4,9 @@
 var assert = require('chai').assert;
 
 var Messages = require('./lib/messages.js');
+var InboxView = require('./lib/views/inbox/view');
 var MessagesActivityCaller = require('./lib/messages_activity_caller.js');
+var Storage = require('./lib/storage.js');
 
 marionette('Messages Composer', function() {
   var apps = {};
@@ -12,15 +14,13 @@ marionette('Messages Composer', function() {
   apps[MessagesActivityCaller.ORIGIN] = __dirname + '/apps/activitycaller';
 
   var client = marionette.client({
-    prefs: {
-      'focusmanager.testmode': true
-    },
-    settings: {
-      'lockscreen.enabled': false,
-      'ftu.manifestURL': null
-    },
+    profile: {
+      prefs: {
+        'focusmanager.testmode': true
+      },
 
-    apps: apps
+      apps: apps
+    }
   });
 
   var messagesApp, activityCallerApp;
@@ -52,15 +52,15 @@ marionette('Messages Composer', function() {
   });
 
   suite('Preserve message input while navigating', function() {
-    var composer, threadList, thread;
+    var composer, inbox, conversation;
     var message = 'test message';
 
-    function waitForThreadList() {
-      client.helper.waitForElement(threadList.mmsThread);
+    function waitForInbox() {
+      client.helper.waitForElement(inbox.mmsConversation);
     }
 
-    function createMMSThread() {
-      threadList.navigateToComposer();
+    function createMMSConversation() {
+      inbox.navigateToComposer();
       messagesApp.addRecipient('a@b.c');
       messagesApp.addRecipient('s@p.c');
       composer.messageInput.sendKeys('MMS thread.');
@@ -68,15 +68,15 @@ marionette('Messages Composer', function() {
     }
 
     setup(function() {
-      thread = messagesApp.Thread;
+      conversation = messagesApp.Conversation;
       composer = messagesApp.Composer;
-      threadList = messagesApp.ThreadList;
+      inbox = messagesApp.Inbox;
 
       messagesApp.launch();
-      createMMSThread();
+      createMMSConversation();
       messagesApp.performHeaderAction();
-      waitForThreadList();
-      threadList.mmsThread.tap();
+      waitForInbox();
+      inbox.mmsConversation.tap();
 
       composer.messageInput.tap();
       composer.messageInput.sendKeys(message);
@@ -84,7 +84,7 @@ marionette('Messages Composer', function() {
 
     test('Message input is preserved when navigating to and from group-view',
     function() {
-      thread.headerTitle.tap();
+      conversation.headerTitle.tap();
       client.helper.waitForElement(messagesApp.Participants.main);
       messagesApp.performHeaderAction();
       assert.equal(composer.messageInput.text(), message);
@@ -92,7 +92,7 @@ marionette('Messages Composer', function() {
 
     test('Message input is preserved when navigating to and from ' +
     'message-report', function() {
-      messagesApp.contextMenu(thread.message);
+      messagesApp.contextMenu(conversation.message);
       messagesApp.selectAppMenuOption('View message report');
       client.helper.waitForElement(messagesApp.Report.main);
       messagesApp.performHeaderAction();
@@ -107,7 +107,7 @@ marionette('Messages Composer', function() {
 
     setup(function() {
       messagesApp.launch();
-      messagesApp.ThreadList.navigateToComposer();
+      messagesApp.Inbox.navigateToComposer();
     });
 
     test('Message char counter and MMS label', function() {
@@ -224,7 +224,7 @@ marionette('Messages Composer', function() {
       client.helper.wait(600);
 
       composer.attachment.tap();
-      messagesApp.selectAttachmentMenuOption('Remove image');
+      messagesApp.selectAppMenuOption('Remove image');
 
       client.helper.waitForElementToDisappear(composer.mmsLabel);
       client.helper.waitForElement(composer.charCounter);
@@ -258,6 +258,90 @@ marionette('Messages Composer', function() {
 
       composer.subjectInput.sendKeys(Messages.Chars.BACKSPACE);
       assertIsFocused(composer.messageInput, 'Message input should be focused');
+    });
+  });
+
+
+  suite('Recipients', function() {
+    var newMessage, storage;
+    var contact = {
+      name: ['Existing Contact'],
+      givenName: ['Existing'],
+      familyName: ['Contact'],
+      tel: [{
+        value: '5551234567',
+        type: 'Mobile'
+      }]
+    };
+    var MOCKS = [
+      '/mocks/mock_test_storages.js',
+      '/mocks/mock_navigator_moz_contacts.js'
+    ];
+
+    setup(function() {
+      storage = Storage.create(client);
+
+      MOCKS.forEach(function(mock) {
+        client.contentScript.inject(__dirname + mock);
+      });
+
+      messagesApp.launch();
+      storage.setMessagesStorage();
+      storage.setContactsStorage([contact]);
+
+      var inbox = new InboxView(client);
+      newMessage = inbox.createNewMessage();
+    });
+
+    test('should match an existing contact', function() {
+      newMessage.addNewRecipient('Existing Contact');
+      assert.deepEqual(contact.name, newMessage.recipients);
+      assert.equal(contact.tel[0].value, newMessage.recipientsPhoneNumbers);
+    });
+
+    suite('Invalid recipients', function() {
+      suite('Recipients list', function() {
+        test('should display that a non existing contact is invalid',
+        function() {
+          newMessage.addNewRecipient('non_exisiting_contact');
+          assert.isTrue(newMessage.containsInvalidRecipients());
+        });
+
+        test('should allow to correct an invalid contact', function() {
+          newMessage.addNewRecipient('non_exisiting_contact');
+          newMessage.clearRecipients();
+          newMessage.addNewRecipient(123);
+          assert.lengthOf(newMessage.recipients, 1);
+          assert.equal(newMessage.recipients[0], '123');
+          assert.isFalse(newMessage.containsInvalidRecipients());
+        });
+      });
+
+      suite('Content composer', function() {
+        test('should not enable send button if the contact is invalid',
+        function() {
+          newMessage.addNewRecipient('invalidContact');
+          newMessage.typeMessage('Test message');
+          assert.isFalse(newMessage.isSendButtonEnabled());
+        });
+      });
+    });
+
+    suite('Semicolon as separator', function() {
+      var separator = ';';
+
+      test('should complete the entered recipients', function() {
+        newMessage.addNewRecipient(123, separator);
+        assert.lengthOf(newMessage.recipients, 1);
+        assert.notInclude(newMessage.recipients[0], separator);
+      });
+
+      test('should leave the input ready to accept another recipient',
+      function() {
+        newMessage.addNewRecipient(123, separator);
+        newMessage.addNewRecipient(456, separator);
+        assert.lengthOf(newMessage.recipients, 2);
+      });
     });
   });
 });

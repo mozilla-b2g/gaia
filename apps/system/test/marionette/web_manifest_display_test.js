@@ -5,27 +5,26 @@ var assert = require('assert');
 marionette('Web Manifest Display Modes >', function() {
 
   var client = marionette.client({
-    prefs: {
-      'dom.w3c_touch_events.enabled': 1
+    profile: {
+      apps: {
+        'web_app_minimal_ui.gaiamobile.org':
+          __dirname + '/../apps/web_app_minimal_ui',
+        'web_app_standalone.gaiamobile.org':
+          __dirname + '/../apps/web_app_standalone',
+        'web_app_fullscreen.gaiamobile.org':
+          __dirname + '/../apps/web_app_fullscreen'
+      }
     },
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
-    },
-    apps: {
-      'web_app_minimal_ui.gaiamobile.org': __dirname + '/web_app_minimal_ui',
-      'web_app_standalone.gaiamobile.org': __dirname + '/web_app_standalone',
-      'web_app_fullscreen.gaiamobile.org': __dirname + '/web_app_fullscreen'
-    }
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
   });
 
   var system, frame;
 
   setup(function() {
     system = client.loader.getAppClass('system');
-    system.waitForStartup();
+    system.waitForFullyLoaded();
   });
-  
+
   test('minimal-ui', function() {
     var appOrigin = 'app://web_app_minimal_ui.gaiamobile.org';
     frame = system.waitForLaunch(appOrigin);
@@ -36,7 +35,7 @@ marionette('Web Manifest Display Modes >', function() {
     assert.ok(windowClass.indexOf('collapsible') != -1);
     assert.ok(windowClass.indexOf('scrollable') != -1);
   });
-  
+
   test('standalone', function() {
     var appOrigin = 'app://web_app_standalone.gaiamobile.org';
     frame = system.waitForLaunch(appOrigin);
@@ -47,7 +46,7 @@ marionette('Web Manifest Display Modes >', function() {
     assert.ok(windowClass.indexOf('collapsible') == -1);
     assert.ok(windowClass.indexOf('scrollable') == -1);
   });
-  
+
   test('fullscreen', function() {
     var appOrigin = 'app://web_app_fullscreen.gaiamobile.org';
     frame = system.waitForLaunch(appOrigin);

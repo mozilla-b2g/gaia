@@ -2,9 +2,6 @@
 'use strict';
 
 var SettingsListener = {
-  /* Timer to remove the lock. */
-  _timer: null,
-
   /* lock stores here */
   _lock: null,
 

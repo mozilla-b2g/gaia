@@ -29,6 +29,10 @@ body[role="application"] section[role="dialog"].banner p {
   margin: 0;
 }
 
+body[role="application"] section[role="dialog"].banner p span {
+  display: block;
+}
+
 body[role="application"] section[role="dialog"].banner p strong {
   text-transform: uppercase;
   color: #0995b0;

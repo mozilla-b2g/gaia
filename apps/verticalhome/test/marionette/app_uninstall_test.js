@@ -11,7 +11,9 @@ var getIconId = require('./lib/icon_id');
 
 marionette('Vertical - App Uninstall', function() {
 
-  var client = marionette.client(require(__dirname + '/client_options.js'));
+  var client = marionette.client({
+    profile: require(__dirname + '/client_options.js')
+  });
   var actions, home, system, appInstall;
   var selectors;
 
@@ -30,7 +32,7 @@ marionette('Vertical - App Uninstall', function() {
     actions = client.loader.getActions();
     home = client.loader.getAppClass('verticalhome');
     system = client.loader.getAppClass('system');
-    system.waitForStartup();
+    system.waitForFullyLoaded();
 
     selectors = home.Selectors;
 

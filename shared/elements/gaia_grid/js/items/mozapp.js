@@ -19,6 +19,19 @@
   var APP_PAUSED = 'paused';
   var APP_READY = 'ready';
 
+  function localizeString(str) {
+    var userLang = document.documentElement.lang;
+
+    // We want to make sure that we translate only if we're using
+    // a runtime pseudolocale.
+    // mozL10n.ctx.qps contains only runtime pseudolocales
+    if (navigator.mozL10n &&
+        navigator.mozL10n.ctx.qps.indexOf(userLang) !== -1) {
+      return navigator.mozL10n.qps[userLang].translate(str);
+    }
+    return str;
+  }
+
   /**
    * Represents  single app icon on the homepage.
    */
@@ -184,6 +197,23 @@
       return localized || this.descriptor.short_name || this.descriptor.name;
     },
 
+    asyncName: function() {
+      var userLang = document.documentElement.lang;
+
+      var ep = this.entryPoint || undefined;
+
+      if (!this.app.getLocalizedValue) {
+        return new Promise((resolve, reject) => { reject(); });
+      }
+
+      return this.app.getLocalizedValue('short_name', userLang, ep).then(
+        shortName => localizeString(shortName),
+        this.app.getLocalizedValue.bind(this.app, 'name', userLang, ep)).then(
+          name => localizeString(name),
+          () => this.name
+        );
+    },
+
     /**
      * Returns the icon image path.
      */
@@ -308,11 +338,7 @@
           return this.cancel();
       }
 
-      var appContext = app.manifestURL
-        .replace('app://', '')
-        .replace('/manifest.webapp', '');
-
-      window.performance.mark('appLaunch@' + appContext);
+      window.performance.mark('appLaunch@' + app.origin);
 
       if (this.entryPoint) {
         return app.launch(this.entryPoint);

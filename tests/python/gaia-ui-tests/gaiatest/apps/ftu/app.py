@@ -3,17 +3,10 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import re
+import time
 
-try:
-    from marionette import (expected,
-                            Wait)
-    from marionette.by import By
-    from marionette.errors import FrameSendFailureError
-except:
-    from marionette_driver import (expected,
-                                   Wait)
-    from marionette_driver.by import By
-    from marionette_driver.errors import FrameSendFailureError
+from marionette_driver import expected, By, Wait
+from marionette_driver.errors import FrameSendFailureError, NoSuchWindowException
 
 from gaiatest.apps.base import Base
 
@@ -26,11 +19,11 @@ class Ftu(Base):
 
     # Step Languages section
     _section_languages_locator = (By.ID, 'languages')
-    _listed_languages_locator = (By.CSS_SELECTOR, "#languages ul li input[name='language.current']")
-    _language_locator = (By.CSS_SELECTOR, "#languages ul li input[name='language.current'][value='%s'] ~ p")
+    _listed_languages_locator = (By.CSS_SELECTOR, "#languages ul li")
+    _language_locator = (By.CSS_SELECTOR, "#languages ul li[data-value='%s']")
     _language_input_locator = (By.CSS_SELECTOR,
-                               "#languages ul li input[name='language.current'][value='%s']")
-    _selected_language_input_locator = (By.CSS_SELECTOR, "#languages ul li input:checked")
+                               "#languages ul li gaia-radio[name='language.current'][value='%s']")
+    _selected_language_input_locator = (By.CSS_SELECTOR, "#languages ul li gaia-radio:checked")
 
     # Step Cell data section
     _section_cell_data_locator = (By.ID, 'data_3g')
@@ -51,7 +44,7 @@ class Ftu(Base):
 
     # Step Geolocation
     _section_geolocation_locator = (By.ID, 'geolocation')
-    _enable_geolocation_checkbox_locator = (By.CSS_SELECTOR, '#geolocation-switch > span')
+    _enable_geolocation_checkbox_locator = (By.ID, 'geolocation-switch')
 
     # Section Import contacts
     _section_import_contacts_locator = (By.ID, 'import_contacts')
@@ -83,6 +76,9 @@ class Ftu(Base):
     # Section Tutorial Finish
     _section_tutorial_finish_locator = (By.ID, 'tutorial-finish-tiny')
     _lets_go_button_locator = (By.ID, 'tutorialFinished')
+
+    _screen_locator = (By.ID, 'screen')
+    _statusbar_locator = (By.ID, 'statusbar')
 
     # Pattern for import sim contacts message
     _pattern_contacts = re.compile("^No contacts detected on SIM to import$|^Imported one contact$|^Imported [0-9]+ contacts$")
@@ -125,6 +121,8 @@ class Ftu(Base):
             expected.element_present(*self._next_button_locator))
         Wait(self.marionette).until(expected.element_displayed(next_button))
         Wait(self.marionette).until(expected.element_enabled(next_button))
+        # In b2g desktop builds, this sleep prevents intermittent failures
+        time.sleep(0.2)
         next_button.tap()
 
     def a11y_click_next(self):
@@ -262,12 +260,21 @@ class Ftu(Base):
             Wait(self.marionette).until(expected.element_present(
                 *self._section_geolocation_locator))))
 
-    def disable_geolocation(self):
+    def toggle_geolocation(self):
         element = Wait(self.marionette).until(
             expected.element_present(*self._enable_geolocation_checkbox_locator))
         Wait(self.marionette).until(expected.element_displayed(element))
         # TODO: Remove y parameter when Bug 932804 is fixed
         element.tap(y=30)
+
+    @property
+    def is_geolocation_enabled(self):
+        # The following should work, but doesn't, see bug 1113742, hence the execute_script
+        # return self.marionette.find_element(
+        #     *self._statistic_checkbox_locator).is_selected()
+        element = self.marionette.find_element(*self._enable_geolocation_checkbox_locator)
+        return self.marionette.execute_script(
+            "return window.wrappedJSObject.document.getElementById('geolocation-switch').checked;")
 
     def a11y_disable_geolocation(self):
         element = Wait(self.marionette).until(
@@ -340,6 +347,22 @@ class Ftu(Base):
     def a11y_click_statistics_checkbox(self):
         self.accessibility.click(self.marionette.find_element(*self._statistic_checkbox_locator))
 
+    @property
+    def is_share_data_enabled(self):
+        # The following should work, but doesn't, see bug 1113742, hence the execute_script
+        # return self.marionette.find_element(
+        #     *self._statistic_checkbox_locator).is_selected()
+        element = self.marionette.find_element(*self._statistic_checkbox_locator)
+        return self.marionette.execute_script(
+            "return window.wrappedJSObject.document.getElementById('share-performance').checked;")
+
+    def toggle_share_data(self):
+        # Use for functional operation vs. UI operation
+        initial_state = self.is_share_data_enabled
+        self.tap_statistics_checkbox()
+        Wait(self.marionette).until(
+            lambda m: self.is_share_data_enabled is not initial_state)
+
     def tap_next_to_privacy_browser_section(self):
         self.tap_next()
         Wait(self.marionette).until(expected.element_displayed(
@@ -355,6 +378,9 @@ class Ftu(Base):
     def enter_email_address(self, email):
         # TODO assert that this is preserved in the system somewhere. Currently it is not used
         self.marionette.find_element(*self._email_field_locator).send_keys(email)
+        self.marionette.switch_to_frame()
+        Wait(self.marionette).until(lambda m: self.keyboard.is_keyboard_displayed)
+        self.apps.switch_to_displayed_app()
 
     def tap_next_to_finish_section(self):
         self.tap_next()
@@ -369,11 +395,14 @@ class Ftu(Base):
                 *self._section_finish_locator))))
 
     def tap_skip_tour(self):
-        try:
-            self.marionette.find_element(*self._skip_tour_button_locator).tap()
-        except FrameSendFailureError:
-            # The frame may close for Marionette but that's expected so we can continue - Bug 1065933
-            pass
+        element = self.marionette.find_element(*self._skip_tour_button_locator)
+        # Workaround for bug 1109213, where tapping on the button inside the app itself
+        # makes Marionette spew out NoSuchWindowException errors
+        x = element.rect['x'] + element.rect['width']//2
+        y = element.rect['y'] + element.rect['height']//2
+        self.marionette.switch_to_frame()
+        statusbar = self.marionette.find_element(*self._statusbar_locator)
+        self.marionette.find_element(*self._screen_locator).tap(x, y + statusbar.rect['height'])
 
     def a11y_click_skip_tour(self):
         self.accessibility.click(self.marionette.find_element(*self._skip_tour_button_locator))
@@ -456,8 +485,11 @@ class Ftu(Base):
                 *self._section_tutorial_finish_locator))))
 
     def tap_lets_go_button(self):
-        try:
-            self.marionette.find_element(*self._lets_go_button_locator).tap()
-        except FrameSendFailureError:
-            # The frame may close for Marionette but that's expected so we can continue - Bug 1065933
-            pass
+        element = self.marionette.find_element(*self._lets_go_button_locator)
+        # Workaround for bug 1109213, where tapping on the button inside the app itself
+        # makes Marionette spew out NoSuchWindowException errors
+        x = element.rect['x'] + element.rect['width']//2
+        y = element.rect['y'] + element.rect['height']//2
+        self.marionette.switch_to_frame()
+        statusbar = self.marionette.find_element(*self._statusbar_locator)
+        self.marionette.find_element(*self._screen_locator).tap(x, y + statusbar.rect['height'])

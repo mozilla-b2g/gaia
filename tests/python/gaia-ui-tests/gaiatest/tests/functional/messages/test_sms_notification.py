@@ -19,7 +19,7 @@ class TestSmsNotification(GaiaTestCase):
         system = System(self.marionette)
 
         # Send a SMS to the device
-        self.data_layer.send_sms(self.environment.phone_numbers[0], _text_message_content)
+        self.data_layer.send_sms(self.environment.phone_numbers[0], _text_message_content, skip_verification=True)
 
         # We will wait upto 300 seconds for the SMS to arrive due to network latency
         system.wait_for_notification_toaster_displayed(timeout=300,

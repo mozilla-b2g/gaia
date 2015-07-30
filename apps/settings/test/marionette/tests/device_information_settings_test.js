@@ -4,10 +4,10 @@ var Settings = require('../app/app'),
 
 marionette('check device information settings', function() {
   var client = marionette.client({
-    settings: {
-      'developer.menu.enabled': false,
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
+    profile: {
+      settings: {
+        'developer.menu.enabled': false
+      }
     }
   });
   var settingsApp;

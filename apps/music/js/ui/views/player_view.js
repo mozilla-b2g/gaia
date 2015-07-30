@@ -1,7 +1,7 @@
 /* exported PlayerView */
-/* global TitleBar, MusicComms, musicdb, ModeManager, App, AlbumArtCache,
-          AudioMetadata, ListView, ForwardLock, formatTime, MozActivity,
-          asyncStorage, SETTINGS_OPTION_KEY, MODE_PLAYER */
+/* global AlbumArtCache, App, asyncStorage, AudioMetadata, Database, formatTime,
+          ForwardLock, LazyLoader, ListView, MusicComms, ModeManager,
+          MODE_PLAYER, MozActivity, SETTINGS_OPTION_KEY */
 'use strict';
 
 // We have four types of the playing sources
@@ -37,6 +37,14 @@ var PlayerView = {
     return document.getElementById('player-audio');
   },
 
+  get foreCoverImage() {
+    return document.querySelector('.cover-image.visible');
+  },
+
+  get backCoverImage() {
+    return document.querySelector('.cover-image:not(.visible)');
+  },
+
   get playStatus() {
     return this._playStatus;
   },
@@ -56,10 +64,6 @@ var PlayerView = {
       if (this.sourceType === TYPE_MIX || this.sourceType === TYPE_LIST) {
         // Shuffle button will be disabled if an album only contains one song
         this.shuffleButton.disabled = (this._dataSource.length < 2);
-
-        // Also, show or hide the Now Playing button depending on
-        // whether content is queued
-        TitleBar.playerIcon.hidden = (this._dataSource.length < 1);
       } else {
         // These buttons aren't necessary when playing a blob or a single track
         this.shuffleButton.disabled = true;
@@ -73,11 +77,12 @@ var PlayerView = {
   init: function pv_init() {
     this.artist = document.getElementById('player-cover-artist');
     this.album = document.getElementById('player-cover-album');
+    this.artistText = document.querySelector('#player-cover-artist bdi');
+    this.albumText = document.querySelector('#player-cover-album bdi');
 
     this.timeoutID;
     this.cover = document.getElementById('player-cover');
-    this.coverImage = document.getElementById('player-cover-image');
-    this.offscreenImage = new Image();
+    this.coverImageURL = null;
     this.shareButton = document.getElementById('player-cover-share');
 
     this.repeatButton = document.getElementById('player-album-repeat');
@@ -85,6 +90,7 @@ var PlayerView = {
 
     this.ratings = document.getElementById('player-album-rating').children;
 
+    this.seekSlider = document.getElementById('player-seek');
     this.seekRegion = document.getElementById('player-seek-bar');
     this.seekBar = document.getElementById('player-seek-bar-progress');
     this.seekIndicator = document.getElementById('player-seek-bar-indicator');
@@ -105,7 +111,7 @@ var PlayerView = {
     this.dataSource = [];
     this.playingBlob = null;
     this.currentIndex = 0;
-    this.setSeekBar(0, 0, 0); // Set 0 to default seek position
+    this.setSeekBar(0, 0); // Set 0 to default seek position
     this.intervalID = null;
 
     this.view.addEventListener('click', this);
@@ -116,6 +122,7 @@ var PlayerView = {
     this.seekRegion.addEventListener('touchstart', this);
     this.seekRegion.addEventListener('touchmove', this);
     this.seekRegion.addEventListener('touchend', this);
+    this.seekSlider.addEventListener('keypress', this);
     this.previousControl.addEventListener('touchend', this);
     this.nextControl.addEventListener('touchend', this);
 
@@ -140,10 +147,6 @@ var PlayerView = {
     // bug 894744 once we have better solution.
     window.addEventListener('storage', this._handleInterpageMessage.bind(this));
 
-    // A timer we use to work around
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=783512
-    this.endedTimer = null;
-
     // Listen to language changes to update the language direction accordingly
     navigator.mozL10n.ready(this.updateL10n.bind(this));
   },
@@ -167,11 +170,13 @@ var PlayerView = {
   clean: function pv_clean() {
     // Cancel a pending enumeration before start a new one
     if (this.handle) {
-      musicdb.cancelEnumeration(this.handle);
+      Database.cancelEnumeration(this.handle);
     }
 
     this.dataSource = [];
     this.playingBlob = null;
+    this.coverImageURL = null;
+    this.foreCoverImage.style.backgroundImage = '';
   },
 
   setSourceType: function pv_setSourceType(type) {
@@ -226,40 +231,38 @@ var PlayerView = {
         this.album.classList.remove('hidden-cover-share');
       }
     } else {
-      var titleBar = document.getElementById('title-text');
+      // we can't use TitleBar here as if we are in the activity
+      // it will not be initialised.
+      var titleBar = document.querySelector('#title-text bdi');
 
       titleBar.textContent =
         metadata.title || navigator.mozL10n.get('unknownTitle');
       titleBar.dataset.l10nId = metadata.title ? '' : 'unknownTitle';
     }
 
-    this.artist.textContent =
+    this.artistText.textContent =
       metadata.artist || navigator.mozL10n.get('unknownArtist');
-    this.artist.dataset.l10nId = metadata.artist ? '' : 'unknownArtist';
-    this.album.textContent =
+    this.artistText.dataset.l10nId = metadata.artist ? '' : 'unknownArtist';
+    this.albumText.textContent =
       metadata.album || navigator.mozL10n.get('unknownAlbum');
-    this.album.dataset.l10nId = metadata.album ? '' : 'unknownAlbum';
+    this.albumText.dataset.l10nId = metadata.album ? '' : 'unknownAlbum';
 
     this.setCoverImage(fileinfo);
   },
 
   setCoverImage: function pv_setCoverImage(fileinfo) {
-    // Reset the image to be ready for fade-in
-    this.offscreenImage.src = '';
-    this.coverImage.classList.remove('fadeIn');
+    LazyLoader.load('js/metadata/album_art_cache.js').then(() => {
+      return AlbumArtCache.getFullSizeURL(fileinfo);
+    }).then((url) => {
+      if (this.coverImageURL !== url) {
+        this.coverImageURL = url;
 
-    AlbumArtCache.getCoverURL(fileinfo).then(function(url) {
-      this.offscreenImage.addEventListener('load', pv_showImage.bind(this));
-      this.offscreenImage.src = url;
-    }.bind(this));
-
-    function pv_showImage(evt) {
-      /* jshint validthis:true */
-      evt.target.removeEventListener('load', pv_showImage);
-      var url = 'url(' + this.offscreenImage.src + ')';
-      this.coverImage.style.backgroundImage = url;
-      this.coverImage.classList.add('fadeIn');
-    }
+        var back = this.backCoverImage, fore = this.foreCoverImage;
+        back.style.backgroundImage = 'url(' + url + ')';
+        back.classList.add('visible');
+        fore.classList.remove('visible');
+      }
+    });
   },
 
   setOptions: function pv_setOptions(settings) {
@@ -402,12 +405,7 @@ var PlayerView = {
     // this can prevent showing wrong duration
     // due to b2g cannot get some mp3's duration
     // and the seekBar can still show 00:00 to -00:00
-    this.setSeekBar(0, 0, 0);
-
-    if (this.endedTimer) {
-      clearTimeout(this.endedTimer);
-      this.endedTimer = null;
-    }
+    this.setSeekBar(0, 0);
   },
 
   updateRemoteMetadata: function pv_updateRemoteMetadata() {
@@ -438,12 +436,13 @@ var PlayerView = {
     // picture. If .picture is null, something went wrong and listeners should
     // probably use a blank picture (or their own placeholder).
     if (this.audio.currentTime === 0) {
-      AlbumArtCache.getCoverBlob(fileinfo).then(function(blob) {
+      LazyLoader.load('js/metadata/album_art_cache.js').then(() => {
+        return AlbumArtCache.getThumbnailBlob(fileinfo);
+      }).then((blob) => {
         notifyMetadata.picture = blob;
         MusicComms.notifyMetadataChanged(notifyMetadata);
       });
-    }
-    else {
+    } else {
       MusicComms.notifyMetadataChanged(notifyMetadata);
     }
   },
@@ -488,9 +487,9 @@ var PlayerView = {
       ListView.cancelEnumeration();
 
       var handle =
-        musicdb.advancedEnumerate(
+        Database.advancedEnumerate(
           info.key, info.range, info.direction, index, function(record) {
-            musicdb.cancelEnumeration(handle);
+            Database.cancelEnumeration(handle);
             this.dataSource[index] = record;
             callback(record);
           }.bind(this)
@@ -499,24 +498,20 @@ var PlayerView = {
   },
 
   /*
-   * Get a blob for the specified song, decrypting it if necessary,
-   * and pass it to the specified callback
+   * Get a blob for the specified song, decrypting it if necessary, and return
+   * it in a Promise.
    */
-  getFile: function pv_getFile(songData, callback) {
-    if (!songData.metadata.locked) {
-      musicdb.getFile(songData.name, callback);
-      return;
-    }
+  getFile: function pv_getFile(songData) {
+    return Database.getFile(songData.name).then(function(blob) {
+      if (!songData.metadata.locked) {
+        return blob;
+      }
 
-    // If here, then this is a locked music file, so we have
-    // to decrypt it before playing it.
-    musicdb.getFile(songData.name, function(locked) {
-      ForwardLock.getKey(function(secret) {
-        ForwardLock.unlockBlob(secret, locked, function(unlocked) {
-          callback(unlocked);
-        }, null, function(msg) {
-          console.error(msg);
-          callback(null);
+      // If here, then this is a locked music file, so we have
+      // to decrypt it before playing it.
+      return new Promise(function(resolve, reject) {
+        ForwardLock.getKey(function(secret) {
+          ForwardLock.unlockBlob(secret, blob, resolve, null, reject);
         });
       });
     });
@@ -559,10 +554,9 @@ var PlayerView = {
         this.setRatings(songData.metadata.rated);
 
         // update the metadata of the current song
-        songData.metadata.played++;
-        musicdb.updateMetadata(songData.name, songData.metadata);
+        Database.incrementPlayCount(songData);
 
-        this.getFile(songData, function(file) {
+        this.getFile(songData).then(function(file) {
           this.setAudioSrc(file);
           // When we need to preview an audio like in picker mode,
           // we will not autoplay the picked song unless the user taps to play
@@ -573,14 +567,16 @@ var PlayerView = {
           if (this.sourceType === TYPE_SINGLE || MusicComms.isSCOEnabled) {
             this.pause();
           }
-        }.bind(this));
+        }.bind(this)).catch(function(msg) {
+          console.error(msg);
+        });
       }.bind(this));
     } else if (this.sourceType === TYPE_BLOB && !this.audio.src) {
       // When we have to play a blob, we need to parse the metadata
       this.getMetadata(this.dataSource, function(metadata) {
-        // Add the blob from the dataSource to the fileinfo
-        // because we want use the cover image which embedded in that blob
-        // so that we don't have to count on the musicdb
+        // Add the blob from the dataSource to the fileinfo because we want use
+        // the cover image which embedded in that blob so that we don't have to
+        // count on the database.
         this.setInfo({metadata: metadata,
                       name: this.dataSource.name,
                       blob: this.dataSource});
@@ -588,8 +584,19 @@ var PlayerView = {
         this.setAudioSrc(this.dataSource);
       }.bind(this));
     } else {
-      // If we reach here, the player is paused so resume it
-      this.audio.play();
+      // If we reach here, the player is paused so resume it.
+      // But if we're very close to the end of the song (and if the song
+      // is not really short) then just skip to the next song rather than
+      // finishing this one. (This works around Bug 1157118 where if we're
+      // within a fraction of a second of the end of a .m4a file, it takes
+      // a long time to get an ended event and move to the next song.)
+      if (this.audio.duration > 20 &&
+          this.audio.duration - this.audio.currentTime < 1) {
+        this.next(true);
+      }
+      else {
+        this.audio.play();
+      }
     }
   },
 
@@ -614,6 +621,7 @@ var PlayerView = {
         ModeManager.pop();
       } else {
         ModeManager.updateTitle();
+        ModeManager.updatePlayerIcon();
       }
     }
 
@@ -755,33 +763,28 @@ var PlayerView = {
       this.audio.currentTime = Math.floor(seekTime);
     }
 
-    var startTime = this.audio.startTime;
-
-    var endTime;
-    // The audio element's duration might be NaN or 'Infinity' if it's not ready
-    // We should get the duration from the buffered parts before the duration
-    // is ready, and be sure to get the buffered parts if there is data in it.
-    if (isNaN(this.audio.duration)) {
-      endTime = 0;
-    } else if (this.audio.duration === Infinity) {
-      endTime = (this.audio.buffered.length > 0) ?
-        this.audio.buffered.end(this.audio.buffered.length - 1) : 0;
-    } else {
-      endTime = this.audio.duration;
-    }
-
-    var currentTime = this.audio.currentTime;
-
-    this.setSeekBar(startTime, endTime, currentTime);
+    this.setSeekBar(this.audio.duration, this.audio.currentTime);
   },
 
-  setSeekBar: function pv_setSeekBar(startTime, endTime, currentTime) {
-    this.seekBar.min = startTime;
-    this.seekBar.max = endTime;
+  setSeekBar: function pv_setSeekBar(endTime, currentTime) {
+    if (this.seekBar.max != endTime) {
+      // Duration changed, update accessibility label.
+      navigator.mozL10n.setAttributes(this.seekSlider,
+        'playbackSeekBar', {'duration': formatTime(endTime)});
+    }
+
+    this.seekBar.max = isFinite(endTime) ? endTime : 0;
     this.seekBar.value = currentTime;
 
+    var formattedCurrentTime = formatTime(currentTime);
+    // Adjust values for accessibility
+    this.seekSlider.setAttribute('aria-valuetext', formattedCurrentTime);
+    this.seekSlider.setAttribute('aria-valuemax', this.seekBar.max);
+    this.seekSlider.setAttribute('aria-valuenow', currentTime);
+
     // if endTime is 0, that's a reset of seekBar
-    var ratio = (endTime !== 0) ? (currentTime / endTime) : 0;
+    var ratio = (isFinite(endTime) && endTime !== 0) ?
+        (currentTime / endTime) : 0;
     // The width of the seek indicator must be also considered
     // so we divide the width of seek indicator by 2 to find the center point
     var x = (ratio * this.seekBar.offsetWidth -
@@ -799,7 +802,7 @@ var PlayerView = {
 
     this.seekIndicator.style.transform = 'translateX(' + x + ')';
 
-    this.seekElapsed.textContent = formatTime(currentTime);
+    this.seekElapsed.textContent = formattedCurrentTime;
     var remainingTime = endTime - currentTime;
     // Check if there is remaining time to show, avoiding to display "-00:00"
     // while song is loading (Bug 833710)
@@ -808,115 +811,119 @@ var PlayerView = {
   },
 
   share: function pv_shareFile() {
-    // We try to fix Bug 814323 by using
-    // current workaround of bluetooth transfer
-    // so we will pass both filenames and filepaths
-    // The filepaths can be removed after Bug 811615 is fixed
+    // We try to fix Bug 814323 by using current workaround of bluetooth
+    // transfer so we will pass both filenames and filepaths. The filepaths can
+    // be removed after Bug 811615 is fixed.
     var songData = this.dataSource[this.currentIndex];
 
     if (songData.metadata.locked) {
       return;
     }
 
-    musicdb.getFile(songData.name, function(file) {
-      AlbumArtCache.getCoverBlob(songData).then(function(pictureBlob) {
-        var filename = songData.name,
-        name = filename.substring(filename.lastIndexOf('/') + 1);
+    LazyLoader.load('js/metadata/album_art_cache.js').then(() => {
+      return Promise.all([
+        Database.getFile(songData.name),
+        AlbumArtCache.getThumbnailBlob(songData)
+      ]);
+    }).then(function([file, pictureBlob]) {
+      var filename = songData.name,
+      name = filename.substring(filename.lastIndexOf('/') + 1);
 
-        var activityData = {
-          type: 'audio/*',
-          number: 1,
-          blobs: [file],
-          filenames: [name],
-          filepaths: [filename],
-          // We only pass some metadata attributes so we don't share personal
-          // details like # of times played and ratings
-          metadata: [{
-            title: songData.metadata.title,
-            artist: songData.metadata.artist,
-            album: songData.metadata.album,
-            picture: pictureBlob
-          }]
+      var activityData = {
+        type: 'audio/*',
+        number: 1,
+        blobs: [file],
+        filenames: [name],
+        filepaths: [filename],
+        // We only pass some metadata attributes so we don't share personal
+        // details like # of times played and ratings
+        metadata: [{
+          title: songData.metadata.title,
+          artist: songData.metadata.artist,
+          album: songData.metadata.album,
+          picture: pictureBlob
+        }]
+      };
+
+      if (PlayerView.playStatus !== PLAYSTATUS_PLAYING) {
+        var a = new MozActivity({
+          name: 'share',
+          data: activityData
+        });
+
+        a.onerror = function(e) {
+          console.warn('share activity error:', a.error.name);
         };
+      }
+      else {
+        // HACK HACK HACK
+        //
+        // Bug 956811: If we are currently playing music and share the
+        // music with an inline activity handler (like the set
+        // ringtone app) that wants to play music itself, we have a
+        // problem because we have two foreground apps playing music
+        // and neither one takes priority over the other. This is an
+        // underlying bug in the way that inline activities are
+        // handled and in our "audio competing policy". See bug
+        // 892371.
+        //
+        // To work around this problem, if the music app is currently
+        // playing anything, then before we launch the activity we start
+        // listening for changes on a property in the settings database.
+        // If the setting changes, we pause our playback and don't resume
+        // until the activity returns. Then we pass the name of this magic
+        // setting as a secret undocumented property of the activity so that
+        // the ringtones app can use it.
+        //
+        // This done as much as possible in a self-invoking function to make
+        // it easier to remove the hack when we have a real bug fix.
+        //
+        // See also the corresponding code in apps/ringtones/js/share.js
+        //
+        // HACK HACK HACK
+        (function() {
+          // This are the magic names we'll use for this hack
+          var hack_activity_property = '_hack_hack_shut_up';
+          var hack_setting_property = 'music._hack.pause_please';
 
-        if (PlayerView.playStatus !== PLAYSTATUS_PLAYING) {
+          // Listen for changes to the magic setting
+          navigator.mozSettings.addObserver(hack_setting_property,
+                                            observer);
+
+          // Pass the magic setting name as part of the activity request
+          activityData[hack_activity_property] = hack_setting_property;
+
+          // Now initiate the activity. This code is the same as the
+          // normal non-hack code in the if clause above.
           var a = new MozActivity({
             name: 'share',
             data: activityData
           });
 
-          a.onerror = function(e) {
-            console.warn('share activity error:', a.error.name);
-          };
-        }
-        else {
-          // HACK HACK HACK
-          //
-          // Bug 956811: If we are currently playing music and share the
-          // music with an inline activity handler (like the set
-          // ringtone app) that wants to play music itself, we have a
-          // problem because we have two foreground apps playing music
-          // and neither one takes priority over the other. This is an
-          // underlying bug in the way that inline activities are
-          // handled and in our "audio competing policy". See bug
-          // 892371.
-          //
-          // To work around this problem, if the music app is currently
-          // playing anything, then before we launch the activity we start
-          // listening for changes on a property in the settings database.
-          // If the setting changes, we pause our playback and don't resume
-          // until the activity returns. Then we pass the name of this magic
-          // setting as a secret undocumented property of the activity so that
-          // the ringtones app can use it.
-          //
-          // This done as much as possible in a self-invoking function to make
-          // it easier to remove the hack when we have a real bug fix.
-          //
-          // See also the corresponding code in apps/ringtones/js/share.js
-          //
-          // HACK HACK HACK
-          (function() {
-            // This are the magic names we'll use for this hack
-            var hack_activity_property = '_hack_hack_shut_up';
-            var hack_setting_property = 'music._hack.pause_please';
+          a.onerror = a.onsuccess = cleanup;
 
-            // Listen for changes to the magic setting
-            navigator.mozSettings.addObserver(hack_setting_property, observer);
+          // This is the function that pauses the music if the activity
+          // handler sets the magic settings property.
+          function observer(e) {
+            // If the value of the setting has changed, then we pause the
+            // music. Note that we don't care what the new value of the
+            // setting is.  We only care whether it has changed. The
+            // ringtones app will just toggle it back and forth between
+            // true and false.
+            PlayerView.pause();
+          }
 
-            // Pass the magic setting name as part of the activity request
-            activityData[hack_activity_property] = hack_setting_property;
-
-            // Now initiate the activity. This code is the same as the
-            // normal non-hack code in the if clause above.
-            var a = new MozActivity({
-              name: 'share',
-              data: activityData
-            });
-
-            a.onerror = a.onsuccess = cleanup;
-
-            // This is the function that pauses the music if the activity
-            // handler sets the magic settings property.
-            function observer(e) {
-              // If the value of the setting has changed, then we pause the
-              // music. Note that we don't care what the new value of the
-              // setting is.  We only care whether it has changed. The ringtones
-              // app will just toggle it back and forth between true and false.
-              PlayerView.pause();
+          // When the activity is done, we stop observing the setting.
+          // And if we have been paused, then we resume playing.
+          function cleanup() {
+            navigator.mozSettings.removeObserver(hack_setting_property,
+                                                 observer);
+            if (PlayerView.playStatus === PLAYSTATUS_PAUSED) {
+              PlayerView.play();
             }
-
-            // When the activity is done, we stop observing the setting.
-            // And if we have been paused, then we resume playing.
-            function cleanup() {
-              navigator.mozSettings.removeObserver(hack_setting_property,
-                                                   observer);
-              if (PlayerView.playStatus === PLAYSTATUS_PAUSED) {
-                PlayerView.play();
-              }
-            }
-          }());
-        }
-      });
+          }
+        }());
+      }
     });
   },
 
@@ -930,7 +937,8 @@ var PlayerView = {
       case 'click':
         switch (target.id) {
           case 'player-cover':
-          case 'player-cover-image':
+          case 'player-cover-image-1':
+          case 'player-cover-image-2':
             this.showInfo();
             break;
           case 'player-controls-play':
@@ -977,9 +985,7 @@ var PlayerView = {
           var newRating = (targetRating === songData.metadata.rated) ?
             targetRating - 1 : targetRating;
 
-          songData.metadata.rated = newRating;
-
-          musicdb.updateMetadata(songData.name, songData.metadata);
+          Database.setSongRating(songData, newRating);
           this.setRatings(newRating);
         }
 
@@ -1019,8 +1025,7 @@ var PlayerView = {
           } else {
             this.seekTime = this.audio.duration - x * this.seekBar.max;
           }
-          this.setSeekBar(this.audio.startTime,
-            this.audio.duration, this.seekTime);
+          this.setSeekBar(this.audio.duration, this.seekTime);
         }
         break;
       case 'touchend':
@@ -1042,6 +1047,21 @@ var PlayerView = {
           this.next();
         }
         break;
+      case 'keypress':
+        // The standard accessible control for sliders is arrow up/down keys.
+        // Our screenreader synthesizes those events on swipe up/down gestures.
+        // Currently, we only allow screen reader users to adjust sliders with a
+        // constant step size (there is no page up/down equivalent). In the case
+        // of music, we make sure that the maximum amount of steps for the
+        // entire duration is 20, or 2 second increments if the duration is less
+        // then 40 seconds.
+        var step = Math.max(this.audio.duration / 20, 2);
+        if (evt.keyCode == evt.DOM_VK_DOWN) {
+          this.seekAudio(this.audio.currentTime - step);
+        } else if (evt.keyCode == evt.DOM_VK_UP) {
+          this.seekAudio(this.audio.currentTime + step);
+        }
+        break;
       case 'contextmenu':
         if (target.id === 'player-controls-next') {
           this.startFastSeeking(1);
@@ -1059,27 +1079,9 @@ var PlayerView = {
         if (evt.type === 'durationchange' || this.audio.currentTime === 0) {
           this.updateRemoteMetadata();
         }
-
-        // Since we don't always get reliable 'ended' events, see if
-        // we've reached the end this way.
-        // See: https://bugzilla.mozilla.org/show_bug.cgi?id=783512
-        // If we're within 1 second of the end of the song, register
-        // a timeout to skip to the next song one second after the song ends
-        if (this.audio.currentTime >= this.audio.duration - 1 &&
-            this.endedTimer == null) {
-          var timeToNext = (this.audio.duration - this.audio.currentTime + 1);
-          this.endedTimer = setTimeout(function() {
-                                         this.next(true);
-                                       }.bind(this),
-                                       timeToNext * 1000);
-        }
         break;
       case 'ended':
-        // Because of the workaround above, we have to ignore real ended
-        // events if we already have a timer set to emulate them
-        if (!this.endedTimer) {
-          this.next(true);
-        }
+        this.next(true);
         break;
 
       case 'visibilitychange':

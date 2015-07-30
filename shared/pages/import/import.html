@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
 
     <meta name="defaultLanguage" content="en-US">
-    <meta name="availableLanguages" content="ar, en-US, fr, zh-TW">
+    <meta name="availableLanguages" content="en-US">
     <link rel="localization" href="/shared/locales/facebook/facebook.{locale}.properties">
     <script type="text/javascript" src="/shared/js/l10n.js"></script>
 
@@ -135,9 +135,9 @@
                   <aside class="pack-end">
                     <span data-type="img" data-src="#contactPictureUri#"></span>
                   </aside>
-                  <p data-order-by="firstName" class="contact-text"><strong>#givenName#</strong> #familyName#</p>
-                  <p data-order-by="lastName" class="contact-text">#givenName# <strong>#familyName#</strong></p>
-                  <p>#email1#</p>
+                  <p data-order-by="firstName" class="contact-text"><bdi><strong>#givenName#</strong> #familyName#</bdi></p>
+                  <p data-order-by="lastName" class="contact-text"><bdi>#givenName# <strong>#familyName#</strong></bdi></p>
+                  <p><bdi>#email1#</bdi></p>
                 </li>
               </ol>
             </section> <!-- group template content -->

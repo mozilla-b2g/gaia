@@ -5,6 +5,7 @@
 from marionette import SkipTest
 
 from gaiatest import GaiaTestCase
+from gaiatest import GaiaTestEnvironment
 from gaiatest.apps.email.app import Email
 from gaiatest.mocks.mock_email import MockEmail
 from gaiatest.utils.email.email_util import EmailUtil
@@ -14,11 +15,11 @@ from gaiatest.apps.system.app import System
 class TestEmailNotification(GaiaTestCase):
 
     def setUp(self):
-        try:
-            self.testvars['email']['imap']
-            self.testvars['email']['smtp']
-        except KeyError:
-            raise SkipTest('account details not present in test variables')
+        email = GaiaTestEnvironment(self.testvars).email
+        if not email.get('imap'):
+            raise SkipTest('IMAP account details not present in test variables.')
+        elif not email.get('smtp'):
+            raise SkipTest('SMTP account details not present in test variables.')
 
         GaiaTestCase.setUp(self)
         self.connect_to_local_area_network()
@@ -30,8 +31,8 @@ class TestEmailNotification(GaiaTestCase):
     def test_IMAP_email_notification(self):
         """ https://moztrap.mozilla.org/manage/case/10744/"""
         # setup email account
-        self.email.setup_IMAP_email(self.testvars['email']['imap'],
-                                    self.testvars['email']['smtp'])
+        self.email.setup_IMAP_email(self.environment.email['imap'],
+                                    self.environment.email['smtp'])
 
         # check account has emails
         self.email.wait_for_emails_to_sync()
@@ -41,15 +42,15 @@ class TestEmailNotification(GaiaTestCase):
         self.device.touch_home_button()
 
         # send email to IMAP account
-        mock_email = MockEmail(self.testvars['email']['imap']['email'],
-                               self.testvars['email']['imap']['email'])
-        EmailUtil().send(self.testvars['email']['smtp'], mock_email)
+        mock_email = MockEmail(self.environment.host['smtp']['email'],
+                               self.environment.email['imap']['email'])
+        EmailUtil().send(self.environment.host['smtp'], mock_email)
 
         self.marionette.switch_to_frame()
         system = System(self.marionette)
 
         # Wait for email notification
-        system.wait_for_notification_toaster_displayed(timeout=60)
+        system.wait_for_notification_toaster_displayed(timeout=60, for_app='email')
         system.wait_for_notification_toaster_not_displayed()
 
         # Expand the notification bar
@@ -57,9 +58,8 @@ class TestEmailNotification(GaiaTestCase):
         utility_tray = system.open_utility_tray()
         utility_tray.wait_for_notification_container_displayed()
 
-        # Assert there is one notification and is listed in notifications-container
-        notifications = utility_tray.notifications
-        self.assertEqual(1, len(notifications), 'Expected one notification.')
+        notifications = utility_tray.get_notifications(for_app='email')
+        self.assertEqual(1, len(notifications), 'Expected one email notification.')
         email = notifications[0].tap_notification()
 
         self.wait_for_condition(lambda m: self.apps.displayed_app.name == self.email.name)
@@ -87,7 +87,5 @@ class TestEmailNotification(GaiaTestCase):
                          '"%s".' % (mock_email['message'], email.body))
 
     def tearDown(self):
-        self.marionette.execute_script("SpecialPowers.setIntPref('dom.requestSync.minInterval', 100);",
-                                        special_powers=True)
-
+        self.data_layer.set_int_pref('dom.requestSync.minInterval', 100)
         GaiaTestCase.tearDown(self)

@@ -5,7 +5,7 @@ var ContactsData = require('./lib/contacts_data');
 var assert = require('assert');
 
 marionette('Contacts > Search', function() {
-  var client = marionette.client(Contacts.config);
+  var client = marionette.client({ profile: Contacts.config });
   var contactsData = new ContactsData(client);
   var subject;
   var selectors;

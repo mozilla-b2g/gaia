@@ -10,6 +10,7 @@
     'ftuopen',
     'appopened',
     'lockscreen-request-unlock',
+    'simslot-updated',
     'simslot-cardstatechange',
     'simslot-iccinfochange',
     'attentionopening',
@@ -17,7 +18,8 @@
     'simlockskip',
     'simlockback',
     'simlockrequestclose',
-    'airplanemode-enabled'
+    'airplanemode-enabled',
+    'rocketbar-activating'
   ];
   SimLockManager.SUB_MODULES = [
     'SimLockSystemDialog'
@@ -36,6 +38,10 @@
       this.showIfLocked();
     },
 
+    '_handle_simslot-updated': function(evt) {
+      this.showIfLocked(evt.detail.index);
+    },
+
     '_handle_simslot-iccinfochange': function(evt) {
       this.showIfLocked(evt.detail.index);
     },
@@ -45,7 +51,7 @@
     },
 
     '_handle_ftuopen': function() {
-      if (this.service.query('isFtuUpgrading') === false) {
+      if (this.service.query('justUpgraded') === false) {
         this.simLockSystemDialog.close();
       } else {
         this.showIfLocked();
@@ -111,7 +117,7 @@
       }
       var self = this;
       // We should wait for lockscreen-appclosed event sent before checking
-      // the value of Service.locked in showIfLocked method.
+      // the value of Service.query('locked') in showIfLocked method.
       window.addEventListener('lockscreen-appclosed',
         function lockscreenOnClosed() {
           window.removeEventListener('lockscreen-appclosed',
@@ -162,6 +168,11 @@
       this._alreadyShown = false;
     },
 
+    '_handle_rocketbar-activating': function(evt) {
+      this.simLockSystemDialog.close();
+      this._alreadyShown = false;
+    },
+
     isBothSlotsLocked: function sl_isBothSlotsLocked() {
       if (!SIMSlotManager.isMultiSIM() ||
           SIMSlotManager.hasOnlyOneSIMCardDetected()) {
@@ -172,7 +183,7 @@
       var isBothLocked = true;
       for (var i = 0; i < simSlots.length; i++) {
         var currentSlot = simSlots[i];
-        var unknownState = currentSlot.getCardState() === 'unknown';
+        var unknownState = currentSlot.isUnknownState();
         var currentLocked = currentSlot.isLocked() || unknownState;
         isBothLocked = isBothLocked && currentLocked;
       }
@@ -190,7 +201,7 @@
         return false;
       }
 
-      if (Service.locked) {
+      if (Service.query('locked')) {
         this.warn('Lockscreen is on so hidden.');
         return false;
       }
@@ -202,7 +213,7 @@
 
       // FTU has its specific SIM PIN UI
       if (this.service.query('isFtuRunning') &&
-          !this.service.query('isFtuUpgrading')) {
+          !this.service.query('justUpgraded')) {
         this.warn('Running full ftu.');
         this.simLockSystemDialog.close();
         return false;

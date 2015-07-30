@@ -1,6 +1,10 @@
 'use strict';
 
-const utils = require('./utils');
+/**
+ * Copy common files such as webapps.json
+ */
+
+var utils = require('./utils');
 
 function cleanProfile(webappsDir) {
   // Profile can contain folders with a generated uuid that need to be deleted
@@ -33,7 +37,7 @@ function genWebappJSON(config) {
 function execute(options) {
   var webappsJSON = {};
   var gaia = utils.gaia.getInstance(options);
-  var webappsBaseDir = utils.getFile(options.PROFILE_DIR, 'webapps');
+  var webappsBaseDir = utils.getFile(options.COREWEBAPPS_DIR, 'webapps');
   var stageDir = gaia.stageDir;
 
   var webappsJSONFile = utils.getFile(stageDir.path, 'webapps_stage.json');

@@ -1,11 +1,13 @@
 'use strict';
 
-/* global KeyboardSettingsApp, PanelController, DialogController */
+/* global KeyboardSettingsApp, PanelController, DialogController,
+          PromiseStorage */
 
 require('/js/settings/close_locks.js');
 require('/js/settings/base_view.js');
 require('/js/settings/general_panel.js');
 require('/js/settings/panel_controller.js');
+require('/js/shared/promise_storage.js');
 
 require('/js/settings/keyboard_settings_app.js');
 
@@ -16,6 +18,7 @@ suite('KeyboardSettingsApp', function() {
 
   var stubPanelController;
   var stubDialogController;
+  var stubPerferencesStore;
 
   var isHidden;
 
@@ -54,6 +57,11 @@ suite('KeyboardSettingsApp', function() {
     this.sinon.stub(window, 'DialogController')
       .returns(stubDialogController);
 
+    stubPerferencesStore =
+      this.sinon.stub(Object.create(PromiseStorage.prototype));
+    this.sinon.stub(window, 'PromiseStorage')
+      .returns(stubPerferencesStore);
+
     app = new KeyboardSettingsApp();
   });
 
@@ -76,6 +84,10 @@ suite('KeyboardSettingsApp', function() {
       assert.isTrue(stubDialogController.start.calledOnce);
 
       assert.isTrue(
+        window.PromiseStorage.calledWith(app.PREFERENCES_STORE_NAME));
+      assert.isTrue(stubPerferencesStore.start.calledOnce);
+
+      assert.isTrue(
         document.addEventListener.calledWith('visibilitychange', app));
     });
 
@@ -86,6 +98,7 @@ suite('KeyboardSettingsApp', function() {
 
       assert.isTrue(stubPanelController.stop.calledOnce);
       assert.isTrue(stubDialogController.stop.calledOnce);
+      assert.isTrue(stubPerferencesStore.stop.calledOnce);
 
       assert.isTrue(
         document.removeEventListener.calledWith('visibilitychange', app));

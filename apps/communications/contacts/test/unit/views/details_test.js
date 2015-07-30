@@ -1,5 +1,8 @@
 'use strict';
+
+/* global ActivityHandler */
 /* global contacts */
+/* global ContactsService */
 /* global MockContactAllFields */
 /* global MockContacts */
 /* global MockContactsButtons */
@@ -7,19 +10,24 @@
 /* global MockDetailsDom */
 /* global MockExtFb */
 /* global Mockfb */
+/* global MockMozNfc */
+/* global MockContactsNfc */
 /* global MocksHelper */
-/* global MockUtils */
-/* global Normalizer */
-/* global utils */
-/* global MockWebrtcClient */
-/* global ActivityHandler */
-/* global triggerEvent */
-/* export TAG_OPTIONS */
-/* exported SCALE_RATIO */
-/* exported _ */
+/* global MainNavigation */
 /* global MockMozContacts */
+/* global MockUtils */
+/* global MockWebrtcClient */
+/* global Normalizer */
+/* export TAG_OPTIONS */
+/* global triggerEvent */
+/* exported SCALE_RATIO */
+/* global utils */
+/* global NFC */
+
+/* exported _ */
 
 //Avoiding lint checking the DOM file renaming it to .html
+requireApp('communications/contacts/services/contacts.js');
 requireApp('communications/contacts/test/unit/mock_details_dom.js.html');
 requireApp(
   'communications/contacts/test/unit/webrtc-client/mock_webrtc_client.js');
@@ -35,18 +43,23 @@ require('/shared/test/unit/mocks/contacts/mock_contacts_buttons.js');
 
 require('/shared/test/unit/mocks/mock_mozContacts.js');
 requireApp('communications/contacts/js/views/details.js');
+requireApp('communications/contacts/test/unit/mock_contacts_nfc.js');
+requireApp('communications/contacts/test/unit/mock_cache.js');
 requireApp('communications/contacts/test/unit/mock_navigation.js');
+requireApp('communications/contacts/test/unit/mock_main_navigation.js');
 requireApp('communications/contacts/test/unit/mock_contacts.js');
 requireApp('communications/contacts/test/unit/mock_contacts_list_obj.js');
 requireApp('communications/contacts/test/unit/mock_fb.js');
 requireApp('communications/contacts/test/unit/mock_extfb.js');
 requireApp('communications/contacts/test/unit/mock_activities.js');
 requireApp('communications/contacts/test/unit/helper.js');
+requireApp('communications/contacts/js/utilities/mozContact.js');
 requireApp('communications/contacts/js/utilities/extract_params.js');
 
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 
 require('/shared/test/unit/mocks/mock_moz_contact.js');
+require('/shared/test/unit/mocks/mock_moz_nfc.js');
 
 var _ = function(key) { return key; },
     subject,
@@ -58,6 +71,7 @@ var _ = function(key) { return key; },
     contactDetails,
     listContainer,
     detailsName,
+    detailsNameText,
     orgTitle,
     phonesTemplate,
     emailsTemplate,
@@ -68,28 +82,29 @@ var _ = function(key) { return key; },
     favoriteMessage,
     detailsInner,
     TAG_OPTIONS,
-    Contacts,
     realContacts,
     realFb,
     mockContact,
-    fbButtons,
-    linkButtons,
     realContactsList,
     mozL10nGetSpy,
     header,
-    realListeners;
+    realListeners,
+    realNFC,
+    realMozNFC;
 
 requireApp('communications/contacts/js/tag_optionsstem.js');
 
 var SCALE_RATIO = 1;
 
 var mocksHelperForDetailView = new MocksHelper([
-  'ContactPhotoHelper',
-  'WebrtcClient',
-  'LazyLoader',
+  'MainNavigation',
   'ActivityHandler',
+  'LazyLoader',
+  'Cache',
   'ContactsButtons',
-  'mozContact'
+  'ContactPhotoHelper',
+  'mozContact',
+  'WebrtcClient'
 ]).init();
 
 suite('Render contact', function() {
@@ -143,9 +158,13 @@ suite('Render contact', function() {
     contacts.List = MockContactsListObj;
     realContacts = window.Contacts;
     window.Contacts = MockContacts;
+    realNFC = window.NFC;
+    window.NFC = MockContactsNfc;
+    realMozNFC = window.navigator.mozNfc;
+    window.navigator.mozNfc = MockMozNfc;
     realFb = window.fb;
     window.fb = Mockfb;
-    window.Contacts.extServices = MockExtFb;
+    window.ExtServices = MockExtFb;
     dom = document.createElement('section');
     dom.id = 'view-contact-details';
     dom.innerHTML = MockDetailsDom;
@@ -156,6 +175,7 @@ suite('Render contact', function() {
     contactDetails = dom.querySelector('#contact-detail');
     listContainer = dom.querySelector('#details-list');
     detailsName = dom.querySelector('#contact-name-title');
+    detailsNameText = dom.querySelector('#contact-name-title bdi');
     orgTitle = dom.querySelector('#org-title');
     phonesTemplate = dom.querySelector('#phone-details-template-\\#i\\#');
     emailsTemplate = dom.querySelector('#email-details-template-\\#i\\#');
@@ -166,16 +186,6 @@ suite('Render contact', function() {
     detailsInner = dom.querySelector('#contact-detail-inner');
     favoriteMessage = dom.querySelector('#toggle-favorite');
     header = dom.querySelector('#details-view-header');
-
-    fbButtons = [
-      '#profile_button',
-      '#msg_button',
-      '#wall_button'
-    ];
-
-    linkButtons = [
-      '#link_button'
-    ];
   });
 
   suiteTeardown(function() {
@@ -185,6 +195,9 @@ suite('Render contact', function() {
 
     mozL10nGetSpy.restore();
     window.mozL10n = realL10n;
+
+    window.NFC = realNFC;
+    window.navigator.mozNfc = realMozNFC;
 
     utils.listeners = realListeners;
 
@@ -208,7 +221,7 @@ suite('Render contact', function() {
   suite('Render name', function() {
     test('with name', function() {
       subject.render(null, TAG_OPTIONS);
-      assert.equal(detailsName.textContent, mockContact.name[0]);
+      assert.equal(detailsNameText.textContent, mockContact.name[0]);
     });
 
     test('without name, with phone', function() {
@@ -216,7 +229,7 @@ suite('Render contact', function() {
       contactWoName.name = null;
       subject.setContact(contactWoName);
       subject.render(null, TAG_OPTIONS);
-      assert.equal(detailsName.textContent, contactWoName.tel[0].value);
+      assert.equal(detailsNameText.textContent, contactWoName.tel[0].value);
     });
 
     test('without name, without phone, with email', function() {
@@ -225,7 +238,7 @@ suite('Render contact', function() {
       contactWoName.tel = null;
       subject.setContact(contactWoName);
       subject.render(null, TAG_OPTIONS);
-      assert.equal(detailsName.textContent, contactWoName.email[0].value);
+      assert.equal(detailsNameText.textContent, contactWoName.email[0].value);
     });
 
     test('no name, no phone, no email', function() {
@@ -235,27 +248,38 @@ suite('Render contact', function() {
       contactWoName.email = null;
       subject.setContact(contactWoName);
       subject.render(null, TAG_OPTIONS);
-      assert.notEqual(detailsName.textContent, '');
+      assert.notEqual(detailsNameText.textContent, '');
       assert.isTrue(mozL10nGetSpy.calledWith('noName'));
     });
-
   });
 
   suite('Render favorite', function() {
     test('with favorite contact', function() {
       subject.render(null, TAG_OPTIONS);
-      assert.isTrue(detailsName.classList.contains('favorite'));
+      assert.isTrue(header.classList.contains('favorite'));
     });
     test('without favorite contact', function() {
       var contactWoFav = new MockContactAllFields(true);
       contactWoFav.category = [];
       subject.setContact(contactWoFav);
       subject.render(null, TAG_OPTIONS);
-      assert.isFalse(detailsName.classList.contains('favorite'));
+      assert.isFalse(header.classList.contains('favorite'));
     });
     test('change in favorite not render the window', function(done) {
       var contactWoPhoto = new MockContactAllFields();
       contactWoPhoto.photo = null;
+      // Stub so save is working as if it was successful
+      this.sinon.stub(ContactsService, 'save', function(contact, cb) {
+        cb();
+      });
+      // Stub find, so request is working
+      this.sinon.stub(navigator.mozContacts, 'find', function(options) {
+        return {
+          onsuccess: function(){},
+          onerror: function() {}
+        };
+      });
+
       subject.setContact(contactWoPhoto);
       subject.render(null, TAG_OPTIONS);
       var spy = sinon.spy(subject, 'toggleFavorite');
@@ -283,119 +307,11 @@ suite('Render contact', function() {
   });
 
   suite('Render social', function() {
-     teardown(function() {
-      window.fb.setIsFbContact(false);
-      window.fb.setIsFbLinked(false);
-    });
-
-    function assertFbButtons(buttons, mode, state) {
-      buttons.forEach(function(buttonid) {
-        var selector = buttonid;
-        if (state) {
-          selector += '[' + state + ']';
-        }
-        if (mode === 'present') {
-          assert.isNotNull(container.querySelector(selector));
-        }
-        else {
-          assert.isNull(container.querySelector(selector));
-        }
-      });
-    }
-
-    test('It is not a Facebook Contact', function() {
-      window.fb.setIsEnabled(true);
-      window.fb.setIsFbContact(false);
+    test('Share button must be renderer properly', function() {
       subject.render(null, TAG_OPTIONS);
       assert.include(container.innerHTML, 'social-template');
-      assert.isFalse(container.querySelector('#link_button').
-                    classList.contains('hide'));
       assert.isFalse(container.querySelector('#share_button').
                     classList.contains('hide'));
-      assert.isTrue(container.
-                       querySelector('#profile_button').
-                       classList.contains('hide')
-      );
-    });
-
-    test('It is a Facebook Contact', function() {
-      window.fb.setIsFbContact(true);
-
-      // The edit mode should be disabled
-      subject.render();
-      assert.equal('FB', orgTitle.textContent);
-
-      assert.isFalse(container.
-                       querySelector('#profile_button').
-                       classList.contains('hide')
-      );
-
-      assert.isFalse(container.
-                       querySelector('#msg_button').
-                       classList.contains('hide')
-      );
-
-      assert.isFalse(container.
-                       querySelector('#wall_button').
-                       classList.contains('hide')
-      );
-
-      assert.isTrue(container.
-                       querySelector('#share_button').
-                       classList.contains('hide')
-      );
-
-      window.fb.setIsFbContact(false);
-    });
-
-    test('Facebook is not enabled', function() {
-      window.fb.setIsEnabled(false);
-
-      subject.render(null, TAG_OPTIONS);
-      var incSocial = container.innerHTML.indexOf('social-template');
-      assert.isTrue(incSocial === -1);
-
-      assertFbButtons(linkButtons, 'absent');
-
-      window.fb.setIsEnabled(true);
-    });
-
-    test('FB Contact. Device is offline', function() {
-      navigator.onLine = false;
-      window.fb.setIsFbContact(true);
-
-      subject.render(null, TAG_OPTIONS);
-
-      assertFbButtons(fbButtons, 'present');
-    });
-
-    test('FB Contact. Device is online', function() {
-      navigator.onLine = true;
-      window.fb.setIsFbContact(true);
-
-      subject.render(null, TAG_OPTIONS);
-
-      assertFbButtons(fbButtons, 'present');
-      assertFbButtons(fbButtons, 'absent', 'disabled');
-    });
-
-    test('Not FB Contact. Device is offline', function() {
-      navigator.onLine = false;
-      window.fb.setIsFbContact(false);
-
-      subject.render(null, TAG_OPTIONS);
-
-      assertFbButtons(linkButtons, 'present', 'disabled');
-    });
-
-    test('Not FB Contact. Device is online', function() {
-      navigator.onLine = true;
-      window.fb.setIsFbContact(false);
-
-      subject.render(null, TAG_OPTIONS);
-
-      assertFbButtons(linkButtons, 'present');
-      assertFbButtons(linkButtons, 'absent', 'disabled');
     });
   });
 
@@ -667,7 +583,7 @@ suite('Render contact', function() {
         //assert.include(dom.innerHTML, contact.photo[0]);
 
         observer.disconnect();
-        var spy = sinon.spy(Contacts, 'updatePhoto');
+        var spy = sinon.spy(utils.dom, 'updatePhoto');
 
         var observer2 = new MutationObserver(function() {
           observer2.disconnect();
@@ -690,11 +606,37 @@ suite('Render contact', function() {
     });
   });
 
+  suite('NFC activation', function() {
+    setup(function() {
+      this.sinon.spy(NFC, 'startListening');
+      this.sinon.spy(NFC, 'stopListening');
+    });
+
+    test('> start listening when render a contact', function() {
+      subject.render(null, TAG_OPTIONS);
+      sinon.assert.calledOnce(NFC.startListening);
+    });
+
+    test('> stop listening when opening edit mode', function() {
+      // subject.render(null, TAG_OPTIONS);
+      // sinon.assert.calledOnce(NFC.startListening);
+      editContactButton.click();
+      sinon.assert.calledOnce(NFC.stopListening);
+    });
+
+    test('> stop listening when closing details', function() {
+      // subject.render(null, TAG_OPTIONS);
+      // sinon.assert.calledOnce(NFC.startListening);
+      triggerEvent(header, 'action');
+      sinon.assert.calledOnce(NFC.stopListening);
+    });
+  });
+
   suite('> Handle back button', function() {
     setup(function () {
       this.sinon.spy(MockWebrtcClient, 'stop');
       this.sinon.spy(window.ActivityHandler, 'postCancel');
-      this.sinon.spy(Contacts.navigation, 'back');
+      this.sinon.spy(MainNavigation, 'back');
     });
 
     test('> going back from details', function () {
@@ -702,7 +644,7 @@ suite('Render contact', function() {
 
       sinon.assert.calledOnce(MockWebrtcClient.stop);
       sinon.assert.notCalled(ActivityHandler.postCancel);
-      sinon.assert.calledOnce(Contacts.navigation.back);
+      sinon.assert.calledOnce(MainNavigation.back);
     });
 
     test('> going back from details during an activity', function () {
@@ -711,7 +653,7 @@ suite('Render contact', function() {
 
       sinon.assert.calledOnce(MockWebrtcClient.stop);
       sinon.assert.calledOnce(ActivityHandler.postCancel);
-      sinon.assert.notCalled(Contacts.navigation.back);
+      sinon.assert.notCalled(MainNavigation.back);
 
       ActivityHandler.currentlyHandling = false;
     });
@@ -723,7 +665,7 @@ suite('Render contact', function() {
 
       sinon.assert.calledOnce(MockWebrtcClient.stop);
       sinon.assert.notCalled(ActivityHandler.postCancel);
-      sinon.assert.calledOnce(Contacts.navigation.back);
+      sinon.assert.calledOnce(MainNavigation.back);
 
       ActivityHandler.currentlyHandling = false;
       ActivityHandler.activityName = 'view';
@@ -739,7 +681,7 @@ suite('Render contact', function() {
 
       test('> should not navigate back', function() {
         triggerEvent(header, 'action');
-        sinon.assert.notCalled(Contacts.navigation.back);
+        sinon.assert.notCalled(MainNavigation.back);
       });
     });
   });

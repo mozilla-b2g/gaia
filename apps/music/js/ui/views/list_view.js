@@ -1,9 +1,7 @@
 /* exported ListView */
-/* global musicdb, App,
-          createListElement, TabBar, ModeManager,
-          MODE_PLAYER, PlayerView, TYPE_MIX, TYPE_SINGLE, IDBKeyRange,
-          SubListView,
-          MODE_SUBLIST, SearchView, MODE_SEARCH_FROM_LIST */
+/* global App, createListElement, Database, IDBKeyRange, ModeManager,
+          MODE_PLAYER, MODE_SUBLIST, MODE_SEARCH_FROM_LIST, PlayerView,
+          SearchView, SubListView, TabBar, TYPE_MIX, TYPE_SINGLE */
 'use strict';
 
 // Assuming the ListView will prepare 5 pages for batch loading.
@@ -39,12 +37,9 @@ var ListView = {
     this.clean();
 
     this.view.addEventListener('click', this);
-    this.view.addEventListener('input', this);
     this.view.addEventListener('touchmove', this);
-    this.view.addEventListener('touchend', this);
     this.view.addEventListener('scroll', this);
     this.searchInput.addEventListener('focus', this);
-    this.searchInput.addEventListener('keypress', this);
   },
 
   clean: function lv_clean() {
@@ -69,7 +64,7 @@ var ListView = {
   cancelEnumeration: function lv_cancelEnumeration() {
     // Cancel a pending enumeration before start a new one
     if (this.handle) {
-      musicdb.cancelEnumeration(this.handle);
+      Database.cancelEnumeration(this.handle);
     }
   },
 
@@ -95,6 +90,8 @@ var ListView = {
       headerLi = document.createElement('li');
       headerLi.className = 'list-header';
       headerLi.textContent = this.lastFirstLetter || '?';
+      headerLi.setAttribute('role', 'heading');
+      headerLi.setAttribute('aria-level', '2');
     }
 
     return headerLi;
@@ -111,13 +108,13 @@ var ListView = {
     // Choose one of the indexes to get the count and it should be the
     // correct count because failed records don't contain metadata, so
     // here we just pick the album, artist or title as indexes.
-    musicdb.count('metadata.' + info.option, null, function(count) {
+    Database.count('metadata.' + info.option, null, function(count) {
       this.clean();
       this.info = info;
       // Keep the count with the info for later use in PlayerView.
       this.info.count = count;
 
-      this.handle = musicdb.enumerate(info.key, info.range, info.direction,
+      this.handle = Database.enumerate(info.key, info.range, info.direction,
         function(record) {
           if (record) {
             // Check if music is in picker mode because we don't to allow the
@@ -202,18 +199,17 @@ var ListView = {
         var info = this.info;
         var index = this.lastDataIndex + 1;
 
-        this.handle =
-          musicdb.advancedEnumerate(info.key, info.range, info.direction, index,
-            function(record) {
-              if (record) {
-                this.dataSource[index] = record;
-                this.lastDataIndex = index;
-                index++;
-              } else {
-                this.lastDataIndex = -1;
-              }
-            }.bind(this)
-          );
+        this.handle = Database.advancedEnumerate(
+          info.key, info.range, info.direction, index, function(record) {
+            if (record) {
+              this.dataSource[index] = record;
+              this.lastDataIndex = index;
+              index++;
+            } else {
+              this.lastDataIndex = -1;
+            }
+          }.bind(this)
+        );
       }
     }
   },
@@ -292,7 +288,9 @@ var ListView = {
 
   playWithShuffleAll: function lv_playWithShuffleAll() {
     ModeManager.push(MODE_PLAYER, function() {
-      musicdb.count('metadata.title', null, function(count) {
+      PlayerView.clean();
+
+      Database.count('metadata.title', null, function(count) {
         var info = {
           key: 'metadata.title',
           range: null,
@@ -315,6 +313,8 @@ var ListView = {
 
   playWithIndex: function lv_playWithIndex(index) {
     ModeManager.push(MODE_PLAYER, function() {
+      PlayerView.clean();
+
       if (App.pendingPick) {
         PlayerView.setSourceType(TYPE_SINGLE);
       } else {
@@ -355,44 +355,22 @@ var ListView = {
        l10nId === 'playlists-highest-rated') ?
        'prev' : 'next';
 
-    SubListView.activate(
-      option, data, index, keyRange, direction, function() {
+    // SubListView needs to prepare the songs data before entering it,
+    // So here we initialize the SubListView before push the view.
+    ModeManager.waitForView(MODE_SUBLIST, () => {
+      SubListView.activate(option, data, index, keyRange, direction, () => {
         ModeManager.push(MODE_SUBLIST);
-      }
-    );
+      });
+    });
   },
 
   handleEvent: function lv_handleEvent(evt) {
-    function lv_resetSearch(self) {
-      evt.preventDefault();
-      self.searchInput.value = '';
-      SearchView.clearSearch();
-    }
     var target = evt.target;
     if (!target) {
       return;
     }
 
     switch (evt.type) {
-      case 'touchend':
-        // Check for tap on parent form element with event origin as clear buton
-        // This is workaround for a bug in input_areas BB. See Bug 920770
-        if (target.id === 'views-list-search') {
-          var id = evt.originalTarget.id;
-          if (id && id !== 'views-list-search-input' &&
-            id !== 'views-list-search-close') {
-            lv_resetSearch(this);
-            return;
-          }
-        }
-
-        if (target.id === 'views-list-search-clear') {
-          lv_resetSearch(this);
-          return;
-        }
-
-        break;
-
       case 'click':
         if (target.id === 'views-list-search-close') {
           if (ModeManager.currentMode === MODE_SEARCH_FROM_LIST) {
@@ -419,26 +397,13 @@ var ListView = {
       case 'focus':
         if (target.id === 'views-list-search-input') {
           if (ModeManager.currentMode !== MODE_SEARCH_FROM_LIST) {
-            ModeManager.push(MODE_SEARCH_FROM_LIST);
-            SearchView.search(target.value);
+            ModeManager.start(MODE_SEARCH_FROM_LIST, function() {
+              // Let the search view gets the focus.
+              SearchView.searchInput.focus();
+            });
           }
         }
 
-        break;
-
-      case 'input':
-        if (target.id === 'views-list-search-input') {
-          SearchView.search(target.value);
-        }
-
-        break;
-
-      case 'keypress':
-        if (target.id === 'views-list-search-input') {
-          if (evt.keyCode === evt.DOM_VK_RETURN) {
-            evt.preventDefault();
-          }
-        }
         break;
 
       case 'touchmove':

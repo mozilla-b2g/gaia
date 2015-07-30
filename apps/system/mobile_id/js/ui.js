@@ -445,10 +445,14 @@
         }
         typeIcon.className = iconClasses;
 
+        name.removeAttribute('data-l10n-id');
         name.textContent =
           identifications[i].msisdn ||
-          identifications[i].operator ||
-          'SIM ' + (+identifications[i].serviceId + 1);
+          identifications[i].operator;
+        if (!name.textContent) {
+          navigator.mozL10n.setAttributes(name, 'simLabel', {
+            id: +identifications[i].serviceId + 1 });
+        }
 
         radio.name = 'msisdn-option';
         radio.type = 'radio';

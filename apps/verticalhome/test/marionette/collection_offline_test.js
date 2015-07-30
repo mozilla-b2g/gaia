@@ -6,7 +6,9 @@ var EmeServer = require(
 
 marionette('Vertical - Collection', function() {
 
-  var client = marionette.client(require(__dirname + '/client_options.js'));
+  var client = marionette.client({
+    profile: require(__dirname + '/client_options.js')
+  });
   var collection, home, selectors, server, system;
 
   suiteSetup(function(done) {
@@ -25,7 +27,7 @@ marionette('Vertical - Collection', function() {
     collection = new Collection(client);
     home = client.loader.getAppClass('verticalhome');
     system = client.loader.getAppClass('system');
-    system.waitForStartup();
+    system.waitForFullyLoaded();
 
     client.apps.launch(home.URL);
 
@@ -45,7 +47,7 @@ marionette('Vertical - Collection', function() {
     server.unfailAll();
 
     var expectedMsg = home.l10n(
-      '/locales-obj/en-US.json',
+      '/locales-obj/index.en-US.json',
       'network-error-message'
     );
 

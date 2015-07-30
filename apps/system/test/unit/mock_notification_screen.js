@@ -1,3 +1,6 @@
+'use strict';
+/* exported MockNotificationScreen */
+
 var MockNotificationScreen = {
   wasMethodCalled: {},
 

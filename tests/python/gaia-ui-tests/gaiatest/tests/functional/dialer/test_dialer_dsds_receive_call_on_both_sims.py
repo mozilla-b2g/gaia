@@ -3,11 +3,8 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from marionette import SkipTest
-try:
-    from marionette.wait import Wait
-except:
-    from marionette_driver.wait import Wait
 from marionette.marionette_test import parameterized
+from marionette_driver import Wait
 
 from gaiatest import GaiaTestCase
 from gaiatest.apps.phone.regions.call_screen import CallScreen

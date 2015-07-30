@@ -1,228 +1,137 @@
 'use strict';
-/* global ActionMenu, Event, MockL10n */
+/* global ActionMenu, SystemDialog, MockL10n */
 
 require('/shared/test/unit/load_body_html_helper.js');
+requireApp('system/js/base_ui.js');
+requireApp('system/js/system_dialog.js');
 requireApp('system/js/action_menu.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/js/event_safety.js');
 
 suite('ActionMenu', function() {
-  var activitiesMockup, realL10n, genericActionsMockup;
-  var iconUrl = 'images/icon.png', title = 'Title';
-  var screenElement;
+  var rafStub, realL10n, stubById, actionMenu, systemHideStub,
+    controller, renderStub, publishStub, systemShowStub;
 
-  function getMenu() {
-    return screenElement.querySelector('[data-type="action"]');
+  function getListItems(number) {
+    var items = [];
+    for (var i = 0; i < number; i++) {
+      items.push({
+        label: 'label' + i,
+        icon: null,
+        manifest: null,
+        value: i
+      });
+    }
+    return items;
   }
 
-  suiteSetup(function() {
-    activitiesMockup = [
-      {
-        value: 1,
-        label: 'Activity',
-        icon: iconUrl
-      },
-      {
-        value: 2,
-        label: 'Activity',
-        icon: iconUrl
-      }
-    ];
-
-    genericActionsMockup = [
-      {
-        value: 1,
-        label: 'Action'
-      },
-      {
-        value: 2,
-        label: 'Action',
-        icon: iconUrl
-      },
-      {
-        value: 3,
-        label: 'Action'
-      }
-    ];
-
+  setup(function() {
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
-    loadBodyHTML('/index.html');
-    screenElement = document.getElementById('screen');
+
+    rafStub = this.sinon.stub(window, 'requestAnimationFrame',
+                         function(callback) { callback(); });
+
+    stubById = this.sinon.stub(document, 'getElementById');
+    stubById.returns(document.createElement('div'));
+    ActionMenu.prototype.containerElement =
+      document.createElement('div');
+
+    renderStub = this.sinon.stub(ActionMenu.prototype, 'render');
+    publishStub = this.sinon.stub(ActionMenu.prototype, 'publish');
+    systemShowStub = this.sinon.stub(SystemDialog.prototype, 'show');
+    systemHideStub = this.sinon.stub(SystemDialog.prototype, 'hide');
+    controller = {
+      successCb: this.sinon.stub(),
+      cancelCb: this.sinon.stub()
+    };
+    actionMenu = new ActionMenu(controller);
+    actionMenu.element = document.createElement('div');
+    actionMenu._fetchElements();
   });
 
-  suiteTeardown(function() {
+  teardown(function() {
     navigator.mozL10n = realL10n;
-    document.body.innerHTML = '';
   });
 
-
-  suite(' > Structure & Basic methods', function() {
-    test(' > init', function() {
-      // We must have *only* one action menu in system
-      var menu = new ActionMenu(genericActionsMockup, title);
-      menu.start();
-
-      // We should have only one 'action' menu in system
-      var actionMenus = screenElement.querySelectorAll('[data-type="action"]');
-      assert.equal(actionMenus.length, 1);
-
-      // Check header
-      var headers = getMenu().getElementsByTagName('header');
-      assert.equal(headers.length, 1);
-
-      // Check menu
-      var menus = getMenu().getElementsByTagName('menu');
-      assert.equal(menus.length, 1);
-      menu.stop();
+  suite('Instantation > ', function() {
+    test('renders the view and publish created', function() {
+      assert.isTrue(renderStub.called);
+      assert.isTrue(publishStub.calledWith('created'));
     });
-
-    test(' > setTitle', function() {
-      var menu = new ActionMenu(activitiesMockup, title);
-      menu.start();
-      assert.equal(
-        getMenu().querySelector('header').getAttribute('data-l10n-id'), title);
-      menu.stop();
-    });
-
-    test(' > open > activities', function() {
-      // Activities have their own icons
-      var menu = new ActionMenu(activitiesMockup, title);
-      menu.start();
-      var actions = getMenu().getElementsByTagName('button');
-      // We check that actions.length + cancel button are
-      // the same number of items than expected.
-      assert.equal(actions.length, activitiesMockup.length + 1);
-      // We need only icons in the actions, not in the cancel
-      var icons = getMenu().getElementsByClassName('icon');
-      assert.equal(icons.length, activitiesMockup.length);
-      menu.stop();
-    });
-
-    test(' > open > buildMenu', function() {
-      // Call to show activities
-      var menu = new ActionMenu(activitiesMockup, title);
-      menu.start();
-      var actions = getMenu().getElementsByTagName('button');
-      // We check that actions.length + cancel button are
-      // the same number of items than expected.
-      assert.equal(actions.length, activitiesMockup.length + 1);
-      menu.stop();
-
-      // Call to show other activities
-      var menu2 = new ActionMenu(genericActionsMockup);
-      menu2.start();
-      // Now the layout should be clean and with a new number of options
-      actions = getMenu().getElementsByTagName('button');
-      // We check that actions.length + cancel button are
-      // the same number of items than expected.
-      assert.equal(actions.length, genericActionsMockup.length + 1);
-      menu2.stop();
-    });
-
-    test(' > open > show', function() {
-      // Call to show activities
-      var menu = new ActionMenu(activitiesMockup, title);
-      menu.start();
-      assert.ok(getMenu().classList.contains('visible'));
-      assert.isTrue(screenElement.classList.contains('action-menu'));
-      menu.stop();
-    });
-
-    test(' > open > hide', function() {
-      // Call to show activities
-      var menu = new ActionMenu(activitiesMockup, title);
-      menu.start();
-      // Hide. Calls stop
-      var stub = this.sinon.stub(menu, 'stop');
-      menu.hide();
-      assert.ok(stub.calledOnce);
-      stub.restore();
-      menu.stop();
-      assert.isFalse(screenElement.classList.contains('action-menu'));
-    });
-
   });
 
-  suite(' > handleEvent', function() {
-    var clickEvent;
-    var menu;
-
+  suite('Show > ', function() {
     setup(function() {
-      menu = new ActionMenu(activitiesMockup, title);
-      menu.start();
-      this.sinon.spy(menu, 'handleEvent');
-      this.sinon.spy(menu, 'hide');
-      clickEvent = new Event('click', {
-        cancelable: true,
-        bubbles: true
-      });
+      actionMenu.element = document.createElement('div');
+      actionMenu._fetchElements();
     });
 
-    test(' > click > action', function() {
-      getMenu().querySelector('menu').firstChild.dispatchEvent(clickEvent);
-      assert.isTrue(menu.handleEvent.called);
-      assert.isTrue(menu.hide.called);
-      assert.isTrue(clickEvent.defaultPrevented);
+    test('Calls to parent .show method', function() {
+      actionMenu.show([]);
+      assert.isTrue(systemShowStub.called);
+      assert.isTrue(actionMenu.form.classList.contains('visible'));
     });
 
-    test(' > click > cancel', function() {
-      getMenu().querySelector('menu').lastChild.dispatchEvent(clickEvent);
-      assert.isTrue(menu.handleEvent.called);
-      assert.isTrue(menu.hide.called);
-      assert.isTrue(clickEvent.defaultPrevented);
+    test('Renders the list of items and the cancel button', function() {
+      var numberActions = 2;
+      actionMenu.show(getListItems(numberActions));
+      var menu = actionMenu.menu;
+      var buttons = menu.getElementsByTagName('button');
+      assert.isTrue(buttons.length === (numberActions + 1));
+      assert.ok(buttons[numberActions].dataset.action === 'cancel');
+    });
+
+    test('Renders the default option', function() {
+      actionMenu.show(getListItems(1), 'title', true);
+
+      var input = actionMenu.menu.getElementsByTagName('input');
+      assert.ok(input);
+    });
+
+    test('Sets the title', function() {
+      var title = 'title';
+      actionMenu.show(getListItems(1), title);
+      assert.isTrue(actionMenu.header.dataset.l10nId === title);
     });
   });
 
-  suite('events that dismiss action menu', function() {
-    var successCBStub;
-    var cancelCBStub;
-    var menu;
-
-    setup(function() {
-      successCBStub = this.sinon.spy();
-      cancelCBStub = this.sinon.spy();
-      menu = new ActionMenu(
-        genericActionsMockup, title, successCBStub, cancelCBStub);
-      menu.start();
-      this.sinon.spy(menu, 'hide');
-    });
-    test('home event dismisses action menu', function() {
-      assert.isFalse(menu.hide.called);
-      assert.isFalse(cancelCBStub.called);
-      menu.handleEvent({
-        type: 'home'
-      });
-      assert.isTrue(menu.hide.called);
-      assert.isTrue(cancelCBStub.called);
-    });
-    test('sheets-gesture-begin event dismisses action menu', function() {
-      assert.isFalse(menu.hide.called);
-      assert.isFalse(cancelCBStub.called);
-      menu.handleEvent({
-        type: 'sheets-gesture-begin'
-      });
-      assert.isTrue(menu.hide.called);
-      assert.isTrue(cancelCBStub.called);
-    });
-    test('attention window dismisses the action menu', function() {
-      assert.isFalse(menu.hide.called);
-      assert.isFalse(cancelCBStub.called);
-      menu.handleEvent({
-        type: 'attentionopened'
-      });
-      assert.isTrue(menu.hide.called);
-      assert.isTrue(cancelCBStub.called);
+  suite('Hide > ', function() {
+    test('Calls to parent .hide method after transition', function() {
+      actionMenu.hide();
+      var evt = new CustomEvent('transitionend');
+      actionMenu.form.dispatchEvent(evt);
+      assert.isTrue(systemHideStub.called);
+      assert.isFalse(actionMenu.form.classList.contains('visible'));
     });
   });
 
-  suite('preventFocusChange', function() {
-    test('focus is not changed when specified', function() {
-      var menu = new ActionMenu(genericActionsMockup, title, null, null, true);
-      this.sinon.spy(menu, 'preventFocusChange');
-      menu.start();
-      menu.menu.dispatchEvent(new CustomEvent('mousedown',
-        { bubbles: true, cancelable: true }));
-      assert.isTrue(menu.preventFocusChange.called);
+  suite('Events > ', function() {
+    test('calls to successCb on item click', function() {
+      actionMenu.show(getListItems(2));
+      var selected = 1;
+      var items = actionMenu.menu.getElementsByTagName('button');
+      items[selected].click();
+      assert.isTrue(controller.successCb.calledWith(selected, false));
+    });
+
+    test('calls to cancelCb on cancel click', function() {
+      actionMenu.show(getListItems(2));
+      var selected = 2;
+      var items = actionMenu.menu.getElementsByTagName('button');
+      items[selected].click();
+      assert.isTrue(controller.cancelCb.called);
+    });
+
+    test('sends the default checkbox value', function() {
+      actionMenu.show(getListItems(2), '', true);
+      var selected = 1;
+      var items = actionMenu.menu.getElementsByTagName('button');
+      var selector = '[data-action="set-default-action"]';
+      var defaultInput = actionMenu.menu.querySelector(selector);
+      defaultInput.click();
+      items[selected].click();
+      assert.isTrue(controller.successCb.calledWith(selected, true));
     });
   });
 });

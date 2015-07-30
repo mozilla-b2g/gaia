@@ -3,6 +3,7 @@
 
 var assert = require('assert');
 
+var PROVIDERS_VERSION = 3;
 /**
  * Abstraction around search app.
  * @constructor
@@ -122,6 +123,10 @@ Search.prototype = {
     this.client.switchToFrame();
     this.client.apps.switchToApp.apply(this.client.apps, arguments);
     this.client.helper.waitForElement('body');
+  },
+
+  searchDataVersion: function() {
+    return PROVIDERS_VERSION;
   },
 
   /**

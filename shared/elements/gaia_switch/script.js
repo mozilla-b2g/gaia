@@ -19,24 +19,59 @@ window.GaiaSwitch = (function(win) {
       this._input.checked = true;
     }
 
-    var label = this._template.getElementById('switch-label');
-    label.addEventListener('click', this.handleClick.bind(this));
+    var wrapper = this._template.getElementById('switch');
+    wrapper.addEventListener('click', this.handleClick.bind(this));
 
     shadow.appendChild(this._template);
 
     ComponentUtils.style.call(this, baseurl);
+
+    // Proxy RTL changes to the shadow root so we can style for RTL.
+    var dirObserver = new MutationObserver(this.updateInternalDir.bind(this));
+    dirObserver.observe(document.documentElement, {
+      attributeFilter: ['dir'],
+      attributes: true
+    });
+    this.updateInternalDir();
+  };
+
+  proto.updateInternalDir = function() {
+    var internal = this.shadowRoot.firstElementChild;
+    if (document.documentElement.dir === 'rtl') {
+      internal.setAttribute('dir', 'rtl');
+    } else {
+      internal.removeAttribute('dir');
+    }
   };
 
   proto.handleClick = function(e) {
-    e.preventDefault();
-    e.stopImmediatePropagation();
-    this.checked = !this.checked;
+    e && e.preventDefault();
+    e && e.stopImmediatePropagation();
+
+    // Dispatch a click event.
     var event = new MouseEvent('click', {
       view: window,
       bubbles: true,
       cancelable: true
     });
     this.dispatchEvent(event);
+
+    if (!event.defaultPrevented) {
+      this.checked = !this.checked;
+    }
+
+    // Dispatch a change event for the gaia-switch.
+    this.dispatchEvent(new CustomEvent('change', {
+      bubbles: true,
+      cancelable: false
+    }));
+  };
+
+  /**
+   * Allows users to simulate clicking through javascript.
+   */
+  proto.click = function() {
+    this.handleClick();
   };
 
   /**
@@ -63,6 +98,15 @@ window.GaiaSwitch = (function(win) {
     }
   });
 
+  /**
+   * Proxy the input type.
+   */
+  Object.defineProperty( proto, 'type', {
+    get: function() {
+      return 'gaia-switch';
+    }
+  });
+
   // HACK: Create a <template> in memory at runtime.
   // When the custom-element is created we clone
   // this template and inject into the shadow-root.
@@ -74,10 +118,10 @@ window.GaiaSwitch = (function(win) {
   // hack until we can import entire custom-elements
   // using HTML Imports (bug 877072).
   var template = document.createElement('template');
-  template.innerHTML = `<label id="switch-label" class="pack-switch">
+  template.innerHTML = `<span id="switch">
       <input type="checkbox">
       <span><content select="label"></content></span>
-    </label>`;
+    </span>`;
 
   // Register and return the constructor
   return document.registerElement('gaia-switch', { prototype: proto });

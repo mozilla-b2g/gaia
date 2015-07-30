@@ -1,4 +1,4 @@
-/* global BlobView */
+/* global BlobView, ID3v1Metadata, LazyLoader */
 /* exported ID3v2Metadata */
 'use strict';
 
@@ -36,13 +36,20 @@ var ID3v2Metadata = (function() {
       console.warn('mp3 file with unknown metadata version');
       return Promise.resolve({});
     }
-    return new Promise(function(resolve, reject) {
-      blobview.getMore(blobview.index, header.length, function(moreview, err) {
+    return new Promise((resolve, reject) => {
+      blobview.getMore(blobview.index, header.length, (moreview, err) => {
         if (err) {
           reject(err);
           return;
         }
-        resolve(parseFrames(header, moreview));
+        try {
+          resolve(parseFrames(header, moreview));
+        } catch(e) {
+          console.warn('Invalid ID3v2 data for', blobview.blob.name, ':', e);
+          LazyLoader.load('js/metadata/id3v1.js').then(() => {
+            resolve(ID3v1Metadata.parse(blobview));
+          });
+        }
       });
     });
   }
@@ -85,7 +92,7 @@ var ID3v2Metadata = (function() {
    *
    * @param {Object} header The header object for this ID3 tag.
    * @param {BlobView} blobview The audio file to parse.
-   * @return {Promise} A Promise returning the parsed metadata object.
+   * @return {Object} The metadata extracted from the ID3 tag.
    */
   function parseFrames(header, blobview) {
     var metadata = {};
@@ -106,8 +113,7 @@ var ID3v2Metadata = (function() {
         // In id3v2.4, the size includes itself, i.e. the rest of the header
         // is |extended_header_size - 4|.
         extended_header_size = blobview.readID3Uint28BE() - 4;
-      }
-      else { // id3version === 3
+      } else { // id3version === 3
         // In id3v2.3, the size *excludes* itself, i.e. the rest of the header
         // is |extended_header_size|.
         extended_header_size = blobview.readUnsignedInt();
@@ -132,52 +138,70 @@ var ID3v2Metadata = (function() {
    * @param {Object} header The header object for this ID3 tag.
    * @param {BlobView} blobview The audio file being parsed.
    * @param {Metadata} metadata The (partially filled-in) metadata object.
-   * @return {Promise} A Promise returning the parsed metadata object.
    */
   function parseFrame(header, blobview, metadata) {
-    var frameid, framesize, frameflags, frame_unsynchronized = false;
+    var frameid, framesize, frame_format_flags, frame_unsynchronized = false,
+        data_len_indicator = false, unsupported_flags = false;
 
     switch (header.version) {
     case 2:
       frameid = blobview.readASCIIText(3);
       framesize = blobview.readUint24();
-      frameflags = 0;
       break;
     case 3:
       frameid = blobview.readASCIIText(4);
       framesize = blobview.readUnsignedInt();
-      frameflags = blobview.readUnsignedShort();
+      // Ignore the frame status flags, since they only apply when modifying the
+      // file/tag.
+      blobview.readUnsignedByte();
+      frame_format_flags = blobview.readUnsignedByte();
+
+      unsupported_flags = (frame_format_flags !== 0);
       break;
     case 4:
       frameid = blobview.readASCIIText(4);
       framesize = blobview.readID3Uint28BE();
-      frameflags = blobview.readUnsignedShort();
-      frame_unsynchronized = ((frameflags & 0x02) !== 0);
+      blobview.readUnsignedByte(); // As above, ignore the frame status flags.
+      frame_format_flags = blobview.readUnsignedByte();
+
+      data_len_indicator   = ((frame_format_flags & 0b00000001) !== 0);
+      frame_unsynchronized = ((frame_format_flags & 0b00000010) !== 0);
+      unsupported_flags    = ((frame_format_flags & 0b11111100) !== 0);
       break;
     }
 
     var nextframe = blobview.index + framesize;
     var propname = ID3V2FRAMES[frameid];
 
-    // Skip frames we don't care about
+    // Skip frames we don't care about.
     if (!propname) {
       blobview.seek(nextframe);
       return;
     }
 
-    // Skip compressed, encrypted, or grouped frames that we can't decode.
-    if ((frameflags & 0xFD) !== 0) {
-      console.warn('Skipping', frameid, 'frame with flags', frameflags);
+    // Skip frames with flags we don't understand.
+    if (unsupported_flags) {
+      console.warn('Skipping', frameid, 'frame with unsupported format flags',
+                   '0b' + frame_format_flags.toString(2));
       blobview.seek(nextframe);
       return;
     }
 
     try {
-      var frameview, framevalue;
+      var frameview, framevalue, data_len;
+
+      if (data_len_indicator) {
+        data_len = blobview.readID3Uint28BE();
+        framesize -= 4;
+      }
 
       if (frame_unsynchronized) {
         frameview = deunsync(blobview, framesize);
         framesize = frameview.sliceLength;
+        if (data_len !== undefined && framesize != data_len) {
+          console.warn('de-unsynced frame size (' + framesize + ') doesn\'t' +
+                       'match data length indicator (' + data_len + ')');
+        }
       } else {
         frameview = blobview;
       }

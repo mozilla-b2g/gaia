@@ -18,7 +18,7 @@ class TestSliderVisibilityAccessibility(GaiaTestCase):
         self.settings.launch()
 
     def test_a11y_slider_visibility(self):
-        accessibility_settings = self.settings.a11y_open_accessibility_settings()
+        accessibility_settings = self.settings.open_accessibility()
         screenreader_settings = accessibility_settings.a11y_open_screenreader_settings()
 
         # Rate and volume settings should be invisible when screen reader is disabled

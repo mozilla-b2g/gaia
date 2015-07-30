@@ -3,11 +3,28 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 
+class AttrDict(dict):
+    """Dictionary that allows accessing items as if they were attributes."""
+
+    def __getattr__(self, attr):
+        return self[attr]
+
+
 class GaiaTestEnvironment(object):
     """Test environment for Gaia."""
 
     def __init__(self, testvars):
         self._testvars = testvars
+
+    @property
+    def email(self):
+        """Dictionary of e-mail protocol settings."""
+        return AttrDict(self._testvars.get('email', {}))
+
+    @property
+    def host(self):
+        """Dictionary of host specific values."""
+        return AttrDict(self._testvars.get('host', {}))
 
     @property
     def imei_numbers(self):

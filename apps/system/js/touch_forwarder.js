@@ -12,6 +12,8 @@
 (function(exports) {
   'use strict';
 
+  const kSignificant = 5 * window.devicePixelRatio;
+
   var TouchForwarder = function TouchForwarder() {
     this.destination = null;
     this._resetState();
@@ -20,6 +22,11 @@
   TouchForwarder.prototype.forward = function(e) {
     var iframe = this.destination;
     var touch;
+
+    // Should not forward to a frame that's not displayed
+    if (iframe.getAttribute('aria-hidden') == 'true') {
+      return;
+    }
 
     switch (e.type) {
       case 'touchstart':
@@ -32,13 +39,7 @@
         break;
 
       case 'touchmove':
-        // We only forward one touchmove for APZ enabled iframes
-        // the potention subsequent ones are ignored.
-        if (!this._firstMoveForwarded) {
-          sendTouchEvent(iframe, e);
-          this._firstMoveForwarded = true;
-        }
-
+        sendTouchEvent(iframe, e);
         touch = e.touches[0];
         this._updateShouldTap(touch);
         break;
@@ -62,14 +63,13 @@
     this._startX = null;
     this._startY = null;
     this._shouldTap = false;
-    this._firstMoveForwarded = false;
   };
 
   TouchForwarder.prototype._updateShouldTap = function(touch) {
     var deltaX = Math.abs(touch.clientX - this._startX);
     var deltaY = Math.abs(touch.clientY - this._startY);
 
-    if (deltaX > 5 || deltaY > 5) {
+    if (deltaX > kSignificant || deltaY > kSignificant) {
       this._shouldTap = false;
     }
   };

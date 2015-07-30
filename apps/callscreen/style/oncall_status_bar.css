@@ -31,7 +31,10 @@
   }
 
   .handled-call.ended .duration > span {
+    flex: 1;
     font-weight: 500;
+    overflow: hidden;
+    white-space: nowrap;
   }
 
   .handled-call.ended .total-duration {

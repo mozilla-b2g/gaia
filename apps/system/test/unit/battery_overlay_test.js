@@ -1,10 +1,11 @@
 'use strict';
-/* global BatteryOverlay */
+/* global BaseModule */
 /* global MocksHelper */
 /* global MockL10n */
 /* global MockNavigatorBattery */
 /* global MockNavigatorSettings */
 
+requireApp('system/test/unit/mock_lazy_loader.js');
 requireApp('system/test/unit/mock_navigator_battery.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
@@ -12,13 +13,19 @@ requireApp('system/test/unit/mock_sleep_menu.js');
 requireApp('system/test/unit/mock_screen_manager.js');
 require('/shared/test/unit/mocks/mock_gesture_detector.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
+requireApp('system/js/service.js');
+requireApp('system/js/base_module.js');
+requireApp('system/js/base_ui.js');
+requireApp('system/js/base_icon.js');
+requireApp('system/js/battery_icon.js');
 requireApp('system/js/power_save.js');
 requireApp('system/js/battery_overlay.js');
 
 var mocksForBatteryOverlay = new MocksHelper([
   'SettingsListener',
   'sleepMenu',
-  'GestureDetector'
+  'GestureDetector',
+  'LazyLoader'
 ]).init();
 
 suite('battery manager >', function() {
@@ -32,16 +39,9 @@ suite('battery manager >', function() {
 
   mocksForBatteryOverlay.attachTestHelpers();
   suiteSetup(function() {
-    subject = window.batteryOverlay = new BatteryOverlay();
-    realBattery = subject._battery;
-    subject._battery = MockNavigatorBattery;
-
     realMozSettings = navigator.mozSettings;
     navigator.mozSettings = MockNavigatorSettings;
 
-    // must be big enough, otherwise the BatteryOverlay timeout occurs
-    // before the different suites execute.
-    subject.TOASTER_TIMEOUT = tinyTimeout;
     // for PowerSave
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
@@ -56,6 +56,12 @@ suite('battery manager >', function() {
   });
 
   setup(function() {
+    subject = BaseModule.instantiate('BatteryOverlay');
+    realBattery = subject._battery;
+    subject._battery = MockNavigatorBattery;
+    // must be big enough, otherwise the BatteryOverlay timeout occurs
+    // before the different suites execute.
+    subject.TOASTER_TIMEOUT = tinyTimeout;
     var batteryNotificationMarkup =
       '<div id="system-overlay" data-z-index-level="system-overlay">' +
         '<div id="battery">' +
@@ -80,10 +86,10 @@ suite('battery manager >', function() {
     notifNode = document.getElementById('battery');
 
     MockNavigatorBattery.level = 1;
-    subject.start();
   });
 
   teardown(function() {
+    subject.stop();
     screenNode.parentNode.removeChild(screenNode);
   });
 
@@ -143,6 +149,7 @@ suite('battery manager >', function() {
     suite('battery goes empty >', function() {
       setup(function() {
         sendLevelChange(0.05);
+        subject.start();
       });
 
       test('display notification', function() {
@@ -204,6 +211,7 @@ suite('battery manager >', function() {
 
     suite('screen goes off > battery goes empty >', function() {
       setup(function() {
+        subject.start();
         sendScreenChange(false);
         sendLevelChange(0.05);
       });

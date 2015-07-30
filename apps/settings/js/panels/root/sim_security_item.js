@@ -9,12 +9,25 @@ define(function(require) {
 
   var SIMSlotManager = require('shared/simslot_manager');
   var AirplaneModeHelper = require('shared/airplane_mode_helper');
+  var SimSecurity = require('modules/sim_security');
 
   function SimSecurityItem(element) {
     this._element = element;
     this._itemEnabled = false;
+    this._cardIndex = 0;
     this._activeSlot = this._getActiveSlot();
     this._boundUpdateUI = this._updateUI.bind(this);
+
+    // Note
+    // Because we can't rely on Gecko's oncardstatechange, we have to
+    // update UI based on our customized events.
+    SimSecurity.addEventListener('pin-enabled', () => {
+      this._boundUpdateUI();
+    });
+
+    SimSecurity.addEventListener('pin-disabled', () => {
+      this._boundUpdateUI();
+    });
   }
 
   SimSecurityItem.prototype = {
@@ -38,13 +51,9 @@ define(function(require) {
       this._itemEnabled = enabled;
       if (this._itemEnabled) {
         this._boundUpdateUI();
-        this._activeSlot.conn.addEventListener('cardstatechange',
-          this._boundUpdateUI);
         AirplaneModeHelper.addEventListener('statechange',
           this._boundUpdateUI);
       } else {
-        this._activeSlot.conn.removeEventListener('cardstatechange',
-          this._boundUpdateUI);
         AirplaneModeHelper.removeEventListener('statechange',
           this._boundUpdateUI);
       }
@@ -67,40 +76,41 @@ define(function(require) {
      * @memberOf SimSecurityItem
      */
     _updateUI: function() {
-      var self = this;
-      AirplaneModeHelper.ready(function() {
-        // if disabled
-        self._element.style.fontStyle = 'italic';
+      var promise = new Promise((resolve) => {
+        AirplaneModeHelper.ready(() => {
+          // if disabled
+          this._element.style.fontStyle = 'italic';
 
-        // if APM is enabled
-        var airplaneModeStatus = AirplaneModeHelper.getStatus();
-        if (airplaneModeStatus === 'enabled') {
-          self._element.setAttribute('data-l10n-id', 'simCardNotReady');
-          return;
-        }
+          // if APM is enabled
+          var airplaneModeStatus = AirplaneModeHelper.getStatus();
+          if (airplaneModeStatus === 'enabled') {
+            this._element.setAttribute('data-l10n-id', 'simCardNotReady');
+            return resolve();
+          }
 
-        var cardState = self._activeSlot.simCard.cardState;
-        switch(cardState) {
-          case null:
-            self._element.setAttribute('data-l10n-id', 'noSimCard');
-            return;
-          case 'unknown':
-            self._element.setAttribute('data-l10n-id', 'unknownSimCardState');
-            return;
-        }
+          var cardState = this._activeSlot.simCard.cardState;
+          switch(cardState) {
+            case null:
+              this._element.setAttribute('data-l10n-id', 'noSimCard');
+              return resolve();
+            case 'unknown':
+              this._element.setAttribute('data-l10n-id', 'unknownSimCardState');
+              return resolve();
+          }
 
-        // enabled instead
-        self._element.style.fontStyle = 'normal';
+          // enabled instead
+          this._element.style.fontStyle = 'normal';
 
-        // with SIM card, query its status
-        var icc = self._activeSlot.simCard;
-        var req = icc.getCardLock('pin');
-        req.onsuccess = function spl_checkSuccess() {
-          var enabled = req.result.enabled;
-          self._element.setAttribute('data-l10n-id',
-            enabled ? 'enabled' : 'disabled');
-        };
+          SimSecurity.getCardLock(this._cardIndex, 'pin').then((result) => {
+            var enabled = result.enabled;
+            this._element.setAttribute('data-l10n-id',
+              enabled ? 'enabled' : 'disabled');
+            return resolve();
+          });
+        });
       });
+
+      return promise;
     },
 
     /**
@@ -110,13 +120,10 @@ define(function(require) {
      * @memberOf SimSecurityItem
      */
     _getActiveSlot: function() {
-      var activeSlot;
-      SIMSlotManager.getSlots().forEach(function(SIMSlot) {
-        if (!SIMSlot.isAbsent()) {
-          activeSlot = SIMSlot;
-        }
-      });
-      return activeSlot;
+      var slot = SIMSlotManager.get(this._cardIndex);
+      if (slot && !slot.isAbsent()) {
+        return slot;
+      }
     }
   };
 

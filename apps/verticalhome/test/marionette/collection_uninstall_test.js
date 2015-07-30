@@ -7,7 +7,9 @@ var EmeServer = require(
 
 marionette('Vertical - Uninstall Collection', function() {
 
-  var client = marionette.client(require(__dirname + '/client_options.js'));
+  var client = marionette.client({
+    profile: require(__dirname + '/client_options.js')
+  });
   var actions, collection, home, selectors, server, system;
 
   suiteSetup(function(done) {
@@ -28,7 +30,7 @@ marionette('Vertical - Uninstall Collection', function() {
     collection = new Collection(client);
     home = client.loader.getAppClass('verticalhome');
     system = client.loader.getAppClass('system');
-    system.waitForStartup();
+    system.waitForFullyLoaded();
 
     home.waitForLaunch();
     EmeServer.setServerURL(client, server);
@@ -43,7 +45,12 @@ marionette('Vertical - Uninstall Collection', function() {
   test('uninstall collection', function() {
     home.enterEditMode();
 
-    var remove = icon.findElement('.remove');
+    var remove;
+    client.waitFor(function() {
+      remove = icon.findElement('.remove');
+      return remove && remove.displayed();
+    });
+
     var id = icon.scriptWith(function(el) {
       return el.dataset.identifier;
     });

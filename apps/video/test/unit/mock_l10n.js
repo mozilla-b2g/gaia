@@ -26,6 +26,11 @@
       return key;
     },
 
+    setAttributes: function(elem, key, params) {
+      elem.setAttribute('data-l10n-id', key);
+      elem.setAttribute('data-l10n-args', JSON.stringify(params));
+    },
+
     DateTimeFormat: DateTimeFormat,
 
     once: function once() {

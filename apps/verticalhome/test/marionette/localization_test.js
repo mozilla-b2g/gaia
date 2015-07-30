@@ -3,14 +3,17 @@ var assert = require('assert');
 
 marionette('Vertical - Localization', function() {
 
-  var client = marionette.client(require(__dirname + '/client_options.js'));
+  var client = marionette.client({
+    profile: require(__dirname + '/client_options.js'),
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
+  });
   var actions, home, system;
 
   setup(function() {
     actions = client.loader.getActions();
     home = client.loader.getAppClass('verticalhome');
     system = client.loader.getAppClass('system');
-    system.waitForStartup();
+    system.waitForFullyLoaded();
     home.waitForLaunch();
   });
 
@@ -39,10 +42,14 @@ marionette('Vertical - Localization', function() {
     var selectors = home.Selectors;
 
     // Change the language to french
-    client.executeScript(function() {
-      navigator.mozSettings.createLock().set({
+    client.executeAsyncScript(function() {
+      var req = navigator.mozSettings.createLock().set({
         'language.current': 'qps-ploc'
       });
+
+      req.onsuccess = function() {
+        marionetteScriptFinished();
+      };
     });
 
     home.openContextMenu();

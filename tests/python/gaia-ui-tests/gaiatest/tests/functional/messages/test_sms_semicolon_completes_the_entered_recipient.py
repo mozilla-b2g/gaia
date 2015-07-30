@@ -18,7 +18,9 @@ class TestSMSContactInput(GaiaTestCase):
 
         new_message = self.messages.tap_create_new_message()
 
-        keyboard = new_message.tap_recipient_section()
+        from gaiatest.apps.keyboard.app import Keyboard
+        keyboard = Keyboard(self.marionette)
+
         keyboard.send('074')
         keyboard.send(';')
 
@@ -26,7 +28,6 @@ class TestSMSContactInput(GaiaTestCase):
         self.assertNotIn('invalid', new_message.recipient_css_class)
         self.assertTrue(new_message.is_recipient_name_editable == 'false')
 
-        keyboard = new_message.tap_recipient_section()
         keyboard.send('777')
         keyboard.send(';')
 

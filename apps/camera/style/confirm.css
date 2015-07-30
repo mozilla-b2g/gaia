@@ -11,7 +11,7 @@
   border-width: 0;
   background: #000; /* opaque */
   z-index: 100;     /* on top of all the camera stuff */
-  transition: transform 0.5s linear;
+  transition: transform var(--transition-duration) linear;
   overflow: hidden;
   transform-origin: 0 0;
 }
@@ -52,20 +52,17 @@
   bottom: 0;
   height: 5rem;
   z-index: 100; /* above the dynamically inserted frame elements */
+  padding: 0 1.5rem;
+  display: flex;
 }
 
-.retake-button {
-  position: absolute;
-  width: calc((100% - 3rem) / 2);
-  left: 1rem;
-  top: .6rem;
+.confirm-controls > button {
   height: 3.8rem;
+  -moz-margin-end: 1rem;
+  /* override shared/style/buttons.css, until strings can be shortened */
+  padding: 0 0.2rem;
 }
 
-.select-button {
-  position: absolute;
-  width: calc((100% - 3rem) / 2);
-  right: 1rem;
-  top: .6rem;
-  height: 3.8rem;
+.confirm-controls > button:last-child {
+  -moz-margin-end: 0;
 }

@@ -4,22 +4,24 @@
    AppWindow,
    HomescreenLauncher,
    appWindowFactory,
-   MockAppWindowManager
+   MockAppWindow,
+   MockService
  */
 
 'use strict';
 
+requireApp('system/shared/test/unit/mocks/mock_service.js');
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 requireApp('system/test/unit/mock_applications.js');
-requireApp('system/test/unit/mock_app_window_manager.js');
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_homescreen_window.js');
 requireApp('system/test/unit/mock_homescreen_launcher.js');
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
+requireApp('system/shared/test/unit/mocks/mock_service.js');
 
 var mocksForAppWindowFactory = new MocksHelper([
-  'AppWindow', 'AppWindowManager', 'HomescreenLauncher',
-  'HomescreenWindow', 'Applications', 'ManifestHelper'
+  'AppWindow', 'HomescreenLauncher',
+  'HomescreenWindow', 'Applications', 'ManifestHelper', 'Service'
 ]).init();
 
 suite('system/AppWindowFactory', function() {
@@ -118,6 +120,20 @@ suite('system/AppWindowFactory', function() {
     target: {}
   };
 
+  var fakeLaunchConfig8 = {
+    'isActivity': false,
+    'showApp': false,
+    'url': 'app://findmydevice.gaiamobile.org/index.html',
+    'name': 'Find my device',
+    'manifestURL': 'app://findmydevice.gaiamobile.org/manifest.webapp',
+    'origin': 'app://findmydevice.gaiamobile.org',
+    'manifest': {
+      'name': 'Find my device',
+      'role': 'system',
+    },
+    target: {}
+  };
+
   var realApplications;
 
   setup(function(done) {
@@ -135,8 +151,6 @@ suite('system/AppWindowFactory', function() {
     window.homescreenLauncher = new HomescreenLauncher();
     window.homescreenLauncher.start();
 
-    window.appWindowManager = new MockAppWindowManager();
-    requireApp('system/js/service.js');
     requireApp('system/js/browser_config_helper.js');
     requireApp('system/js/app_window_factory.js', function() {
       window.appWindowFactory = new AppWindowFactory();
@@ -151,6 +165,32 @@ suite('system/AppWindowFactory', function() {
     stubById.restore();
     window.applications = realApplications;
     realApplications = null;
+  });
+
+  suite('isLaunchingWindow', function() {
+    var app;
+    setup(function() {
+      app = new MockAppWindow();
+      this.sinon.stub(window, 'AppWindow').returns(app);
+      window.applications.ready = true;
+      window.appWindowFactory.start();
+    });
+
+    test('Launching app', function() {
+      window.dispatchEvent(new CustomEvent('webapps-launch',
+        {detail: fakeLaunchConfig1}));
+      assert.isTrue(window.appWindowFactory.isLaunchingWindow());
+      app.element.dispatchEvent(new CustomEvent('_opened', {
+        detail: app
+      }));
+      assert.isFalse(window.appWindowFactory.isLaunchingWindow());
+    });
+
+    test('Ignore background app', function() {
+      window.dispatchEvent(new CustomEvent('open-app',
+        {detail: fakeLaunchConfig8}));
+      assert.isFalse(window.appWindowFactory.isLaunchingWindow());
+    });
   });
 
   suite('check for open-app queueing', function() {
@@ -320,6 +360,22 @@ suite('system/AppWindowFactory', function() {
         fakeLaunchConfig3.url);
     });
 
+    test('app launch with multiscreen.enabled', function() {
+      this.sinon.stub(MockService, 'query', function(key) {
+        return key == 'MultiScreenController.enabled';
+      });
+      this.sinon.stub(MockService, 'request', function() {
+        return Promise.resolve(1);
+      });
+      appWindowFactory.handleEvent({
+        type: 'webapps-launch',
+        detail: fakeLaunchConfig1
+      });
+      assert.isTrue(MockService.request.calledWith('chooseDisplay'));
+      assert.equal(MockService.request.getCall(0).args[1].url,
+        fakeLaunchConfig1.url);
+    });
+
     test('opening a first activity', function() {
       var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
       appWindowFactory.handleEvent({
@@ -365,10 +421,9 @@ suite('system/AppWindowFactory', function() {
     });
 
     test('launch an already-running app', function() {
-      var spy = this.sinon.stub(window.appWindowManager, 'getApp');
       var app = new AppWindow();
       var stubReviveBrowser = this.sinon.stub(app, 'reviveBrowser');
-      spy.returns(app);
+      MockService.mockQueryWith('getApp', app);
       appWindowFactory.handleEvent({
         type: 'open-app',
         detail: fakeLaunchConfig5

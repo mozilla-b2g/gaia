@@ -5,9 +5,12 @@ var RootPanel = require('./lib/panels/root');
 
 marionette('root panel', function() {
   var client = marionette.client({
-    settings: {
-      'privacy-panel-gt-complete': true
-    }
+    profile: {
+      settings: {
+        'privacy-panel-gt-complete': true
+      }
+    },
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
   });
   var subject;
 

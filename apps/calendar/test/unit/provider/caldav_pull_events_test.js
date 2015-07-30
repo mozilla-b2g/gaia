@@ -5,9 +5,10 @@ var AccountModel = require('models/account');
 var CalendarModel = require('models/calendar');
 var CaldavPullEvents = require('provider/caldav_pull_events');
 var CaldavService = require('service/caldav');
-var Responder = require('responder');
+var Responder = require('common/responder');
 var Factory = require('test/support/factory');
 var ServiceSupport = require('test/service/helper');
+var core = require('core');
 
 suite('Provider.CaldavPullEvents', function() {
   var fixtures;
@@ -15,8 +16,8 @@ suite('Provider.CaldavPullEvents', function() {
   var subject;
   var stream;
   var db;
-  var app;
   var service;
+  var storeFactory;
 
   function createSubject(options) {
     if (typeof(options) === 'undefined') {
@@ -32,8 +33,6 @@ suite('Provider.CaldavPullEvents', function() {
     }
 
     stream = new Responder();
-
-    options.app = app;
 
     return new CaldavPullEvents(stream, options);
   }
@@ -77,8 +76,8 @@ suite('Provider.CaldavPullEvents', function() {
   }
 
   setup(function(done) {
-    app = testSupport.calendar.app();
-    db = app.db;
+    db = core.db;
+    storeFactory = core.storeFactory;
 
     db.open(function(err) {
       assert.ok(!err);
@@ -90,7 +89,7 @@ suite('Provider.CaldavPullEvents', function() {
 
   setup(function(done) {
     account = Factory.create('account');
-    app.store('Account').persist(account, done);
+    storeFactory.get('Account').persist(account, done);
   });
 
   var calendar;
@@ -100,7 +99,7 @@ suite('Provider.CaldavPullEvents', function() {
     calendar.accountId = account._id;
     calendar.remote.syncToken = 'not-same-as-other';
     calendar.syncToken = 'neq';
-    app.store('Calendar').persist(calendar, done);
+    storeFactory.get('Calendar').persist(calendar, done);
   });
 
   setup(function() {
@@ -125,7 +124,6 @@ suite('Provider.CaldavPullEvents', function() {
 
     assert.instanceOf(subject.account, AccountModel, '.account');
     assert.instanceOf(subject.calendar, CalendarModel, '.calendar');
-    assert.equal(subject.app, app);
   });
 
   suite('#eventIdFromRemote', function() {
@@ -238,7 +236,7 @@ suite('Provider.CaldavPullEvents', function() {
 
         var result = subject.formatBusytime(time);
         var modelCopy = Object.create(result);
-        modelCopy = app.store('Busytime').initRecord(modelCopy);
+        modelCopy = storeFactory.get('Busytime').initRecord(modelCopy);
 
         assert.hasProperties(
           result,
@@ -294,7 +292,7 @@ suite('Provider.CaldavPullEvents', function() {
     var account;
 
     setup(function(done) {
-      accountStore = app.store('Account');
+      accountStore = storeFactory.get('Account');
       account = Factory.create('account');
       accountStore.persist(account, done);
     });
@@ -306,7 +304,7 @@ suite('Provider.CaldavPullEvents', function() {
       calendar.accountId = account._id;
       calendar.remote.syncToken = 'bug-809607';
       calendar.syncToken = 'bug-809607';
-      app.store('Calendar').persist(calendar, done);
+      storeFactory.get('Calendar').persist(calendar, done);
     });
 
     var subject;
@@ -324,7 +322,7 @@ suite('Provider.CaldavPullEvents', function() {
 
       // Set up to count events persisted.
       eventPersistCt = 0;
-      eventStore = app.store('Event');
+      eventStore = storeFactory.get('Event');
       eventStore.on('persist', function(id) {
         eventPersistCt++;
       });
@@ -391,8 +389,8 @@ suite('Provider.CaldavPullEvents', function() {
 
     setup(function() {
       removed.length = 0;
-      eventStore = app.store('Event');
-      componentStore = app.store('IcalComponent');
+      eventStore = storeFactory.get('Event');
+      componentStore = storeFactory.get('IcalComponent');
 
       eventStore.remove = function(id) {
         removed.push(id);

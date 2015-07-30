@@ -1,23 +1,17 @@
 define(function(require) {
 'use strict';
 
-var AccountStore = require('store/account');
 var Db = require('db');
 var Factory = require('test/support/factory');
-var Responder = require('responder');
+var Responder = require('common/responder');
+var core = require('core');
 
 suite('db', function() {
   var subject;
-  var app;
+  var storeFactory;
 
-  var dbName = 'calendar-db-test-db';
-
-  suiteSetup(function() {
-    app = testSupport.calendar.app();
-  });
-
-  suiteSetup(function(done) {
-    var db = new Db(dbName);
+  setup(function(done) {
+    var db = core.db;
     db.deleteDatabase(function(err, success) {
       assert.ok(!err, 'should not have an error when deleting db');
       assert.ok(success, 'should be able to delete the db');
@@ -25,20 +19,13 @@ suite('db', function() {
     });
   });
 
-  suiteTeardown(function() {
+  teardown(function() {
     subject.close();
   });
 
   setup(function() {
-    subject = new Db(dbName);
-  });
-
-  test('#getStore', function() {
-    var result = subject.getStore('Account');
-    assert.instanceOf(result, AccountStore);
-
-    assert.equal(result.db, subject);
-    assert.equal(subject._stores.Account, result);
+    subject = core.db;
+    storeFactory = core.storeFactory;
   });
 
   test('initialization', function() {
@@ -48,20 +35,11 @@ suite('db', function() {
     assert.ok(subject.store);
 
     assert.instanceOf(subject, Responder);
-    assert.deepEqual(subject._stores, {});
     assert.isTrue(Object.isFrozen(subject.store));
   });
 
   suite('#transaction', function() {
-    setup(function(done) {
-      subject.open(function() {
-        done();
-      });
-    });
-
-    teardown(function() {
-      subject.close();
-    });
+    setup(done => subject.open(done));
 
     test('result', function(done) {
       var trans = subject.transaction(['events'], 'readonly');
@@ -79,32 +57,24 @@ suite('db', function() {
 
   suite('#open', function() {
     suite('on version change', function() {
-      setup(function(done) {
-        subject.deleteDatabase(done);
-      });
-
       suite('#setupDefaults', function() {
         var accountStore;
         var calendarStore;
+        var storeLoads;
 
-        var storeLoads = {};
-
-        teardown(function() {
+        setup(function() {
           storeLoads = {};
-          subject.close();
         });
 
         setup(function(done) {
-          accountStore = subject.getStore('Account');
-          calendarStore = subject.getStore('Calendar');
-          subject.load(function() {
-            done();
-          });
+          accountStore = storeFactory.get('Account');
+          calendarStore = storeFactory.get('Calendar');
+          subject.load(done);
         });
 
         ['Calendar', 'Account'].forEach(function(storeName) {
           setup(function(done) {
-            var store = subject.getStore(storeName);
+            var store = storeFactory.get(storeName);
             var humanName = storeName.toLowerCase() + 's';
 
             store.all(function(err, all) {
@@ -147,7 +117,8 @@ suite('db', function() {
 
         assert.ok(!subject.connection, 'connection should be closed');
 
-        subject.on('open', function() {
+        subject.on('open', function onopen() {
+          subject.off('open', onopen);
           if (!finishedOpen) {
             done(new Error(
               'fired callback/event out of order ' +
@@ -231,9 +202,9 @@ suite('db', function() {
           EVENT_THREE_ID = 'evt3';
           BUSYTIME_THREE_ID = 'bt3';
 
-          busytimeStore = subject.getStore('Busytime');
-          calendarStore = subject.getStore('Calendar');
-          eventStore = subject.getStore('Event');
+          busytimeStore = storeFactory.get('Busytime');
+          calendarStore = storeFactory.get('Calendar');
+          eventStore = storeFactory.get('Event');
 
 
           subject.open(OLD_VERSION, function() {
@@ -397,9 +368,9 @@ suite('db', function() {
           EVENT_THREE_ID = 'evt3';
           BUSYTIME_THREE_ID = 'bt3';
 
-          busytimeStore = subject.getStore('Busytime');
-          calendarStore = subject.getStore('Calendar');
-          eventStore = subject.getStore('Event');
+          busytimeStore = storeFactory.get('Busytime');
+          calendarStore = storeFactory.get('Calendar');
+          eventStore = storeFactory.get('Event');
 
 
           subject.open(OLD_VERSION, function() {

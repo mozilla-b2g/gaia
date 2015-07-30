@@ -1,6 +1,8 @@
 .DS_Store
 *.rej
+*.log
 *.orig
+*.pyc
 *.swp
 *.swn
 *.swo
@@ -8,7 +10,7 @@
 *~
 manifest.appcache
 
-/apps/calendar/js/presets.js
+/apps/calendar/js/common/presets.js
 /apps/camera/js/config.js
 /apps/gallery/js/config.js
 /apps/findmydevice/js/config.js
@@ -51,6 +53,7 @@ manifest.appcache
 /build/config/custom-extensions.json
 /build/config/custom-prefs.js
 /build/config/custom-settings.json
+/build/eslint/xfail.list.tmp
 /build_stage/
 /coverage/
 /local.mk
@@ -60,10 +63,11 @@ manifest.appcache
 /tools/xpcwindow/vendor/
 
 /outoftree_apps/
+/distros/spark/outoftree_apps/
 
 /distribution/
-/node_modules/
 /.modules.tar
+/modules_tar_cachedir
 ENV/
 .env
 modules.tar
@@ -74,5 +78,5 @@ mozilla-b2g-gaia-node-modules-*
 /.project
 /.settings
 
+node_modules/
 venv/
-

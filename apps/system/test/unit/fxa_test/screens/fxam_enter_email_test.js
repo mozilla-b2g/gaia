@@ -1,3 +1,6 @@
+/* global FxaModuleEnterEmail, FxaModuleErrorOverlay, FxaModuleOverlay,
+          FxModuleServerRequest, FxaModuleStates, FxaModuleUI,
+          HtmlImports, LoadElementHelper, MocksHelper, MockL10n */
 'use strict';
 
 // Helper for loading the elements

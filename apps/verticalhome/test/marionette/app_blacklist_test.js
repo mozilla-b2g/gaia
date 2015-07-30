@@ -3,13 +3,15 @@ var assert = require('assert');
 
 marionette('Vertical - App Blacklist', function() {
 
-  var client = marionette.client(require(__dirname + '/client_options.js'));
+  var client = marionette.client({
+    profile: require(__dirname + '/client_options.js')
+  });
   var home, system;
 
   setup(function() {
     home = client.loader.getAppClass('verticalhome');
     system = client.loader.getAppClass('system');
-    system.waitForStartup();
+    system.waitForFullyLoaded();
 
     client.apps.launch(home.URL);
     home.waitForLaunch();

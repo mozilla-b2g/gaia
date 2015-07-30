@@ -1,7 +1,7 @@
 'use strict';
 
 /* global SettingsListener, SettingsURL, CallscreenWindow, applications */
-/* global VersionHelper, LazyLoader, toneUpgrader */
+/* global Service, LazyLoader, toneUpgrader */
 /* r=? dialer+system peers for changes in this file. */
 
 (function(exports) {
@@ -25,7 +25,7 @@
    * @class    DialerAgent
    * @requires SettingsListener
    * @requires SettingsURL
-   * @requires VersionHelper
+   * @requires Service
    * @requires LazyLoader
    *
    **/
@@ -39,7 +39,6 @@
     this._telephony = telephony;
 
     this._started = false;
-    this._shouldRing = null;
     this._shouldVibrate = true;
     this._alerting = false;
     this._vibrateInterval = null;
@@ -56,7 +55,13 @@
   };
 
   DialerAgent.prototype.freeCallscreenWindow = function() {
-    if (this._callscreenWindow) {
+    var numOpenLines = this._telephony.calls.length +
+      (this._telephony.conferenceGroup.calls.length ? 1 : 0);
+
+    /* Free the callscreen window unless there are active calls or the
+     * callscreen is visible. */
+    if (this._callscreenWindow && (numOpenLines === 0) &&
+        !this._callscreenWindow.isVisible()) {
       this._callscreenWindow.free();
     }
   };
@@ -72,34 +77,28 @@
     this._started = true;
 
     SettingsListener.observe('audio.volume.notification', 7, function(value) {
-      this._shouldRing = !!value;
-      if (this._shouldRing && this._alerting) {
-        this._player.play();
-      }
+      this._playRing();
     }.bind(this));
 
     SettingsListener.observe('dialer.ringtone', '', function(value) {
-      var phoneSoundURL = new SettingsURL();
+      LazyLoader.load(['shared/js/settings_url.js']).then(function() {
+        var phoneSoundURL = new SettingsURL();
 
-      this._player.pause();
-      this._player.src = phoneSoundURL.set(value);
-
-      if (this._shouldRing && this._alerting) {
-        this._player.play();
-      }
+        this._player.pause();
+        this._player.src = phoneSoundURL.set(value);
+        this._playRing();
+      }.bind(this)).catch((err) => {
+        console.error(err);
+      });
     }.bind(this));
 
     // We have new default ringtones in 2.0, so check if the version is upgraded
     // then execute the necessary migration.
-    VersionHelper.getVersionInfo().then(function(versionInfo) {
-      if (versionInfo.isUpgrade()) {
-        LazyLoader.load('js/tone_upgrader.js', function() {
-          toneUpgrader.perform('ringtone');
-        });
-      }
-    }, function(err) {
-      console.error('VersionHelper failed to lookup version settings.');
-    });
+    if (Service.query('justUpgraded')) {
+      LazyLoader.load('js/tone_upgrader.js').then(() => {
+        toneUpgrader.perform('ringtone');
+      });
+    }
 
     SettingsListener.observe('vibration.enabled', true, function(value) {
       this._shouldVibrate = !!value;
@@ -170,11 +169,11 @@
       this.openCallscreen();
     }
 
-    if (this._alerting || calls[0].state !== 'incoming') {
+    var incomingCall = calls[calls.length - 1];
+    if (this._alerting || incomingCall.state !== 'incoming') {
       return;
     }
 
-    var incomingCall = calls[0];
     var self = this;
 
     self._startAlerting();
@@ -184,6 +183,16 @@
 
       self._stopAlerting();
     });
+  };
+
+  DialerAgent.prototype._playRing = function da_playRing () {
+    // Notice that, even we are in the vibration mode, we would still play the
+    // silence ringer. That is because when the incoming call is coming, other
+    // playing sound should be paused. Therefore, we need to a silence ringer
+    // to compete for the audio output.
+    if (this._alerting) {
+      this._player.play();
+    }
   };
 
   DialerAgent.prototype._startAlerting = function da_startAlerting() {
@@ -196,9 +205,7 @@
       navigator.vibrate([200]);
     }
 
-    if (this._shouldRing) {
-      this._player.play();
-    }
+    this._playRing();
   };
 
   DialerAgent.prototype._stopAlerting = function da_stopAlerting() {

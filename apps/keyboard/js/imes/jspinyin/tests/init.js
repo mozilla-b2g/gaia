@@ -8,11 +8,13 @@ var emEngineWrapper = {
   _initialized: false,
 
   post: function(id, param, callback) {
-    if (!this._initialized && id != 'init')
+    if (!this._initialized && id != 'init') {
       throw 'Database not ready!';
+    }
 
-    if (!this._callback[id])
+    if (!this._callback[id]) {
       this._callback[id] = [];
+    }
 
     this._callback[id].push(callback);
     this._worker.postMessage({
@@ -24,8 +26,9 @@ var emEngineWrapper = {
   },
 
   init: function(path, byteArray, callback) {
-    if (this._initialized)
+    if (this._initialized) {
       callback(true);
+    }
 
     var self = this;
 
@@ -41,8 +44,9 @@ var emEngineWrapper = {
         break;
       default:
         var msgCallback = self._callback[data.id].shift();
-        if (msgCallback)
+        if (msgCallback) {
           msgCallback(data.returnValue);
+        }
       }
     };
 
@@ -59,8 +63,9 @@ var emEngineWrapper = {
   },
 
   uninit: function() {
-    if (this._worker)
+    if (this._worker) {
       this._worker.terminate();
+    }
     this._worker = null;
     this._callback = null;
     this._initialized = false;
@@ -159,7 +164,6 @@ function initTest() {
       log('search ' + testRepeatCount + ' times keyword ' + keyword);
 
       var startTime = new Date().getTime();
-      var size = 0;
       var counter = 0;
 
       var doTest = function() {

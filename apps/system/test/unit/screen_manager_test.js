@@ -1,15 +1,16 @@
 /* globals ScreenManager, ScreenBrightnessTransition,
-           ScreenWakeLockManager, ScreenAutoBrightness,
-           MocksHelper, MockLockScreen, MockMozPower,
+           ScreenWakeLockManager, ScreenAutoBrightness, MockService,
+           MockAppWindow, MocksHelper, MockLockScreen, MockMozPower,
            MockSettingsListener, MocksleepMenu */
 
 'use strict';
 
-require('/test/unit/mock_app_window_manager.js');
+require('/test/unit/mock_app_window.js');
+require('/test/unit/mock_lazy_loader.js');
 require('/test/unit/mock_lock_screen.js');
 require('/test/unit/mock_statusbar.js');
-require('/test/unit/mock_bluetooth.js');
 require('/test/unit/mock_navigator_moz_power.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_power.js');
 require('/test/unit/mock_sleep_menu.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/shared/test/unit/mocks/mock_service.js');
@@ -38,8 +39,7 @@ function restoreProperty(originObject, prop, reals, useDefineProperty) {
 }
 
 var mocksForScreenManager = new MocksHelper([
-  'SettingsListener', 'Bluetooth', 'StatusBar',
-  'Service'
+  'SettingsListener', 'Service', 'LazyLoader'
 ]).init();
 
 require('/js/screen_auto_brightness.js');
@@ -85,37 +85,33 @@ suite('system/ScreenManager', function() {
   suite('init()', function() {
     setup(function() {
       var stubTelephony = {};
-      var stubLockscreen = {};
       var stubById = this.sinon.stub(document, 'getElementById');
       stubById.withArgs('screen').returns(document.createElement('div'));
 
       this.sinon.stub(MockSettingsListener, 'observe');
       stubTelephony.addEventListener = this.sinon.stub();
-      stubLockscreen.locked = true;
 
       this.sinon.stub(ScreenManager, 'turnScreenOn');
       this.sinon.stub(ScreenManager, '_reconfigScreenTimeout');
       this.sinon.stub(ScreenManager, '_setIdleTimeout');
 
       switchProperty(navigator, 'mozTelephony', stubTelephony, reals);
-      switchProperty(window, 'lockScreen', stubLockscreen, reals);
     });
 
     teardown(function() {
       restoreProperty(navigator, 'mozTelephony', reals);
-      restoreProperty(window, 'lockScreen', reals);
     });
 
     test('Event listener adding', function() {
       var eventListenerStub = this.sinon.stub(window, 'addEventListener');
-      ScreenManager.init();
+      ScreenManager.start();
       assert.isTrue(eventListenerStub.withArgs('sleep').calledOnce);
       assert.isTrue(eventListenerStub.withArgs('wake').calledOnce);
       assert.isTrue(eventListenerStub.withArgs('requestshutdown').calledOnce);
     });
 
     test('wake lock handling', function() {
-      ScreenManager.init();
+      ScreenManager.start();
       assert.isTrue(stubScreenWakeLockManager.start.calledOnce);
 
       stubScreenWakeLockManager.onwakelockchange(true);
@@ -128,7 +124,7 @@ suite('system/ScreenManager', function() {
       MockSettingsListener.observe.withArgs('screen.timeout')
           .callsArgWith(2, 50);
 
-      ScreenManager.init();
+      ScreenManager.start();
       assert.isTrue(ScreenManager._firstOn);
       assert.equal(MockMozPower.screenBrightness, 0.5);
       assert.isTrue(ScreenManager.turnScreenOn.called);
@@ -141,14 +137,14 @@ suite('system/ScreenManager', function() {
         .callsArgWith(2, true);
       this.sinon.stub(ScreenManager, 'setDeviceLightEnabled');
 
-      ScreenManager.init();
+      ScreenManager.start();
       assert.isTrue(ScreenManager.setDeviceLightEnabled.called);
     });
 
     test('Testing callback of telephony.addEventListener', function() {
       navigator.mozTelephony.addEventListener.reset();
       navigator.mozTelephony.addEventListener.withArgs('callschanged');
-      ScreenManager.init();
+      ScreenManager.start();
       assert.isTrue(navigator.mozTelephony.addEventListener.called);
     });
   });
@@ -229,29 +225,22 @@ suite('system/ScreenManager', function() {
     });
 
     suite('Testing userproximity event', function() {
-      var stubTelephony, stubBluetooth, stubStatusBar, stubTurnOn, stubTurnOff;
+      var stubTelephony, stubTurnOn, stubTurnOff;
 
       setup(function() {
         stubTelephony = {};
-        stubBluetooth = { isProfileConnected: function() {} };
-        stubStatusBar = {};
         stubTurnOn = this.sinon.stub(ScreenManager, 'turnScreenOn');
         stubTurnOff = this.sinon.stub(ScreenManager, 'turnScreenOff');
 
-        switchProperty(window, 'Bluetooth', stubBluetooth, reals);
-        switchProperty(window, 'StatusBar', stubStatusBar, reals);
         switchProperty(navigator, 'mozTelephony', stubTelephony, reals);
       });
 
       teardown(function() {
-        restoreProperty(window, 'Bluetooth', reals);
-        restoreProperty(window, 'StatusBar', reals);
         restoreProperty(navigator, 'mozTelephony', reals);
       });
 
       test('if Bluetooth SCO connected', function() {
-        stubBluetooth.Profiles = {};
-        this.sinon.stub(stubBluetooth, 'isProfileConnected').returns(true);
+        this.sinon.stub(MockService, 'query').returns(true);
         ScreenManager._screenOffBy = 'proximity';
         ScreenManager.handleEvent({'type': 'userproximity'});
         assert.isTrue(stubTurnOn.called);
@@ -259,10 +248,9 @@ suite('system/ScreenManager', function() {
       });
 
       test('if Bluetooth SCO disconnected', function() {
-        stubBluetooth.Profiles = {};
-        this.sinon.stub(stubBluetooth, 'isProfileConnected').returns(false);
+        this.sinon.stub(MockService, 'query').returns(false);
         stubTelephony.speakerEnabled = false;
-        stubStatusBar.headponesActive = false;
+        MockService.mockQueryWith('isHeadsetConnected', false);
 
         ScreenManager.handleEvent({'type': 'userproximity'});
         assert.isTrue(stubTurnOn.called);
@@ -270,16 +258,15 @@ suite('system/ScreenManager', function() {
       });
 
       test('if evt.near is yes', function() {
-        stubBluetooth.Profiles = {};
-        this.sinon.stub(stubBluetooth, 'isProfileConnected').returns(false);
+        MockService.mockQueryWith('Bluetooth.isSCOProfileConnected', false);
+        MockService.mockQueryWith('isHeadsetConnected', false);
         ScreenManager.handleEvent({'type': 'userproximity', 'near': 'yes'});
         assert.isFalse(stubTurnOn.called);
         assert.isTrue(stubTurnOff.calledWith(true, 'proximity'));
       });
 
       test('if earphone is connected', function() {
-        stubBluetooth.Profiles = {};
-        stubStatusBar.headponesActive = true;
+        MockService.mockQueryWith('isHeadsetConnected', true);
         ScreenManager._screenOffBy = 'proximity';
         ScreenManager.handleEvent({'type': 'userproximity'});
         assert.isTrue(stubTurnOn.called);
@@ -409,6 +396,46 @@ suite('system/ScreenManager', function() {
       assert.isTrue(ScreenManager.turnScreenOn.calledOnce);
       assert.isTrue(powerOffSpy.withArgs(false).calledOnce);
     });
+
+    suite('Testing logohidden event', function() {
+      var fakeAppConfig1 = {
+        url: 'app://www.fake/index.html',
+        manifest: {},
+        manifestURL: 'app://wwww.fake/ManifestURL',
+        origin: 'app://www.fake'
+      };
+
+      setup(function() {
+        MockService.mockQueryWith('locked', true);
+        MockService.mockQueryWith('getTopMostWindow', {
+          CLASS_NAME: 'LockScreenWindow'
+        });
+        this.sinon.spy(ScreenManager, '_setIdleTimeout');
+        this.sinon.stub(window, 'removeEventListener');
+      });
+
+      test('Lockscreen is displayed', function() {
+        MockService.mockQueryWith('locked', true);
+        window.dispatchEvent(new CustomEvent('logohidden'));
+
+        assert.ok(ScreenManager._setIdleTimeout
+          .withArgs(ScreenManager.LOCKING_TIMEOUT, true).calledOnce);
+      });
+
+      test('An app is displayed', function() {
+        MockService.mockQueryWith('getTopMostWindow',
+          new MockAppWindow(fakeAppConfig1));
+        window.dispatchEvent(new CustomEvent('logohidden'));
+        assert.ok(ScreenManager._setIdleTimeout
+          .withArgs(ScreenManager._idleTimeout, false).calledOnce);
+      });
+
+      test('Remove the event listener', function() {
+        window.dispatchEvent(new CustomEvent('logohidden'));
+        assert.ok(window.removeEventListener
+          .withArgs('logohidden', ScreenManager).calledOnce);
+      });
+    });
   });
 
   suite('turnScreenOff()', function() {
@@ -455,6 +482,7 @@ suite('system/ScreenManager', function() {
       assert.isTrue(stubScnClassListAdd.calledWith('screenoff'));
       assert.isTrue(stubSetBrightness.calledWith(0, true));
       assert.isFalse(MockMozPower.screenEnabled);
+      assert.isFalse(MockMozPower.keyLightEnabled);
       assert.isTrue(ScreenManager.fireScreenChangeEvent.called);
     });
 
@@ -466,6 +494,7 @@ suite('system/ScreenManager', function() {
       this.sinon.clock.tick(10);
       assert.isTrue(ScreenManager.screenEnabled);
       assert.isTrue(MockMozPower.screenEnabled);
+      assert.isTrue(MockMozPower.keyLightEnabled);
       assert.isTrue(stubScnClassListAdd.calledWith('screenoff'));
       assert.isTrue(stubScnClassListRemove.calledWith('screenoff'));
       sinon.assert.callOrder(stubScnClassListAdd, stubScnClassListRemove);

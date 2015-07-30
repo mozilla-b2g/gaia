@@ -3,10 +3,7 @@ var Settings = require('../app/app');
 
 marionette('manipulate date time settings', function() {
   var client = marionette.client({
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
-    }
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
   });
   var settingsApp;
   var dateTimePanel;
@@ -17,10 +14,10 @@ marionette('manipulate date time settings', function() {
     dateTimePanel = settingsApp.dateTimePanel;
   });
 
-  test('manipulate region', function() {
-    // Simply change the value in the timezone region to
+  test('manipulate time format', function() {
+    // Simply select the value in the time format to
     // ensure the menu is is populated.
-    dateTimePanel.selectRegion('Europe');
+    dateTimePanel.selectTimeFormat('12-hour');
   });
 
 });

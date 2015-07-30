@@ -38,7 +38,7 @@
 
     loading(false);
 
-    /* jshint -W031 */
+    /* jshint nonew: false */
     new Contextmenu(collection);
     new ViewApps(collection);
     new ViewBgImage(collection);
@@ -47,6 +47,7 @@
 
   navigator.mozSetMessageHandler('activity', function onActivity(activity) {
     if (activity.source.name === 'view-collection') {
+      navigator.mozSetMessageHandler('activity', null);
       HandleView(activity);
     }
   });

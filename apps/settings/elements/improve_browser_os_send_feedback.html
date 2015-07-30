@@ -7,54 +7,43 @@
     <div>
       <ul>
         <li class="description">
-          <p data-l10n-id="feedback-mood-explain">
-              Please tell us in detail.
-          </p>
+          <p data-l10n-id="feedback-mood-explain"></p>
           <textarea id="feedback-description" name="description" x-inputmode="latin-prose" dir="auto"></textarea>
-          <p data-l10n-id="feedback-public-description">
-            The content of your feedback will be public, so please be sure not to include any personal information.
-          </p>
+          <p data-l10n-id="feedback-public-description"></p>
         </li>
         <li class="description">
-          <label class="pack-checkbox">
-            <input id="email-enable" type="checkbox" />
-            <span data-l10n-id="feedback-contactyou" id="feedback-contactyou">
-              Check here to let us contact you with your email.
-            </span>
+          <gaia-checkbox id="email-enable">
+            <label data-l10n-id="feedback-contactyou" id="feedback-contactyou"></label>
           </label>
         </li>
         <li id="feedback-emailbar" class="description" hidden="false">
-          <p data-l10n-id="email-address1">
-            Email address:
-          </p>
-          <input id="feedback-email" type="email" />
-          <p data-l10n-id="email-keepprivate">
-            Don't worry. Your email will always be kept private.
-          </p>
+          <p data-l10n-id="email-address1"></p>
+          <input id="feedback-email" type="email"/>
+          <p data-l10n-id="email-keepprivate"></p>
         </li>
         <li>
-          <button id="feedback-send-btn" data-l10n-id="feedback-sendbtn">Send Feedback</button>
+          <button id="feedback-send-btn" data-l10n-id="feedback-sendbtn"></button>
         </li>
       </ul>
     </div>
     <form role="dialog" data-type="confirm" hidden id="feedback-alert">
       <section>
         <p>
-          <strong id="feedback-alert-msg">The device is currently unable to communicate with the carrier. Try setting the preference again.</strong>
+          <strong id="feedback-alert-msg"></strong>
         </p>
       </section>
       <menu>
-        <button class="full" id="feedback-alert-btn" data-l10n-id="ok">OK</button>
+        <button class="full" id="feedback-alert-btn" data-l10n-id="ok"></button>
       </menu>
     </form>
     <form role="dialog" data-type="confirm" hidden id="feedback-done">
       <section>
         <p>
-          <strong data-l10n-id="feedback-complete-msg">Thanks for the feedback! We use it to help create better experiences in future releases of Firefox OS.</strong>
+          <strong data-l10n-id="feedback-complete-msg"></strong>
         </p>
       </section>
       <menu>
-        <button id="feedback-done-btn" class="full" data-l10n-id="done">Done</button>
+        <button id="feedback-done-btn" class="full" data-l10n-id="done"></button>
       </menu>
     </form>
     <panel data-path="panels/feedback_send/panel"></panel>

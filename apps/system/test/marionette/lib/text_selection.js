@@ -29,6 +29,39 @@ TextSelection.prototype = {
 
   },
 
+  startCountVisibilityChanged: function() {
+    this.client.switchToFrame();
+    this.client.executeScript(function(query) {
+      var element = document.querySelector(query);
+      element.dataset.showSummary = 0;
+      var bubbleInitActive = element.classList.contains('visible');
+      element.addEventListener('DOMAttrModified',
+        function DOMAttrModifiedListener(evt) {
+          var active = element.classList.contains('active');
+          if (bubbleInitActive !== active) {
+            bubbleInitActive = active;
+            element.dataset.showSummary =
+              parseInt(element.dataset.showSummary, 10) + 1;
+          }
+        });
+    }, [TextSelection.Selector.textSelectionDialog]);
+    this.client.apps.switchToApp(this._getDisplayedAppInfo().origin);
+  },
+
+  stopCountVisibilityChanged: function() {
+    this.client.switchToFrame();
+    var result = this.client.executeScript(function(query) {
+      var element = document.querySelector(query);
+      element.removeEventListener('DOMAttrModified',
+        window.wrappedJSObject.DOMAttrModifiedListener);
+      var showSummary = element.dataset.showSummary;
+      delete element.dataset.showSummary;
+      return parseInt(showSummary, 10);
+    }, [TextSelection.Selector.textSelectionDialog]);
+    this.client.apps.switchToApp(this._getDisplayedAppInfo().origin);
+    return result;
+  },
+
   /**
    * Get dialog width from previous operation.
    */
@@ -69,7 +102,8 @@ TextSelection.prototype = {
     var displayApp;
     this.client.waitFor(function() {
       displayApp = this.client.executeScript(function() {
-        var app = window.wrappedJSObject.Service.currentApp;
+        var app = window.wrappedJSObject.Service.query(
+          'AppWindowManager.getActiveWindow');
         var frame = (app.browser) ? app.browser.element : app.frame.firstChild;
         return {
           appWindowId: frame.id,
@@ -88,7 +122,7 @@ TextSelection.prototype = {
  
   longPressByPosition: function(element, x, y) {
     // Add moveByOffset to prevent contextmenu event be fired.
-    this.actions.tap(element, x, y).wait(2).press(element, x, y).
+    this.actions.tap(element, x, y).wait(5).press(element, x, y).
       moveByOffset(0, 0).wait(2).release().perform();
   },
 

@@ -7,7 +7,9 @@ var Server = require('../../../../shared/test/integration/server');
 
 marionette('Search - Notice Test', function() {
 
-  var client = marionette.client(require(__dirname + '/client_options.js'));
+  var client = marionette.client({
+    profile: require(__dirname + '/client_options.js')
+  });
   var home, search, rocketbar, system, server;
 
   var providers;
@@ -24,10 +26,10 @@ marionette('Search - Notice Test', function() {
     system = client.loader.getAppClass('system');
     search = client.loader.getAppClass('search');
     rocketbar = new Rocketbar(client);
-    system.waitForStartup();
+    system.waitForFullyLoaded();
 
     providers = {
-      version: 2,
+      version: search.searchDataVersion(),
       providers: {
         'first': {
           title: 'first',
@@ -70,8 +72,8 @@ marionette('Search - Notice Test', function() {
 
     // Notice should be dismissed if we press enter
     client.switchToFrame();
-    var searchText = 'abc\uE006';
-    rocketbar.enterText(searchText);
+    var searchText = 'abc';
+    rocketbar.enterText(searchText, true);
     rocketbar.switchToSearchFrame(server.url('sample.html'), searchText);
     client.switchToFrame();
     home.pressHomeButton();

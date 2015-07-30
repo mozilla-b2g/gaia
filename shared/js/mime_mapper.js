@@ -41,7 +41,7 @@ var MimeMapper = {
     'video/3gpp2': '3g2',
     // Application
     // If we want to support some types, like pdf, just add
-    // 'application/pdf': 'pdf'
+    'application/pdf': 'pdf',
     'application/vcard': 'vcf',
     // Text
     'text/vcard': 'vcf',
@@ -79,7 +79,7 @@ var MimeMapper = {
     'ogg': 'video/ogg',
     // Application
     // If we want to support some extensions, like pdf, just add
-    // 'pdf': 'application/pdf'
+    'pdf': 'application/pdf',
     // Text
     'vcf': 'text/vcard'
   },

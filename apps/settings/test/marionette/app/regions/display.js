@@ -17,14 +17,11 @@ module.exports = DisplayPanel;
 
 DisplayPanel.Selectors = {
   'wallpaper': '.wallpaper',
-  'lockOrientationCheckbox': '#display input[name="screen.orientation.lock"]',
-  'lockOrientationSpan':
-    '#display input[name="screen.orientation.lock"] ~ span',
+  'lockOrientationCheckbox':
+    '#display gaia-switch[name="screen.orientation.lock"]',
   'autoBrightnessItem': '.brightness-auto',
   'autoBrightnessCheckbox':
-    '#display input[name="screen.automatic-brightness"]',
-  'autoBrightnessSpan':
-    '#display input[name="screen.automatic-brightness"] ~ span',
+    '#display gaia-checkbox[name="screen.automatic-brightness"]',
   'manualBrightnessItem': '.brightness-manual',
   'screenTimeoutSelectorItem': '#screen-timeout',
   'screenTimeoutSelector': '#screen-timeout select'
@@ -35,12 +32,19 @@ DisplayPanel.prototype = {
   __proto__: Base.prototype,
 
   get isLockOrientationChecked() {
-    return !!this.findElement('lockOrientationCheckbox')
-      .getAttribute('checked');
+    // Marionette has trouble returning custom properties on shadow roots.
+    // For now query the shadowRoot for checked status.
+    return this.findElement('lockOrientationCheckbox')
+      .scriptWith(function(el) {
+        return el.shadowRoot.querySelector('input[type="checkbox"]').checked;
+      });
   },
 
   get isAutoBrightnessChecked() {
-    return !!this.findElement('autoBrightnessCheckbox').getAttribute('checked');
+    return !!this.findElement('autoBrightnessCheckbox')
+      .scriptWith(function(el) {
+        return el.wrappedJSObject.checked;
+      });
   },
 
   get isAutoBrightnessItemVisible() {
@@ -64,7 +68,7 @@ DisplayPanel.prototype = {
   },
 
   tapLockOrientationCheckbox: function() {
-    this.waitForElement('lockOrientationSpan').tap();
+    this.waitForElement('lockOrientationCheckbox').tap();
   },
 
   tapWallpaper: function() {
@@ -72,7 +76,7 @@ DisplayPanel.prototype = {
   },
 
   tapAutoBrightnessCheckbox: function() {
-    this.waitForElement('autoBrightnessSpan').tap();
+    this.waitForElement('autoBrightnessCheckbox').tap();
   },
 
   tapScreenTimeoutSelector: function() {

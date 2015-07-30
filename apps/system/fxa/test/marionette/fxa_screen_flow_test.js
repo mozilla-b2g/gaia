@@ -12,15 +12,14 @@ marionette('Firefox Accounts Screen Flow Test (UITest app)', function() {
       server,
       fxaUser,
       client = marionette.client({
-        prefs: {
-          'identity.fxaccounts.auth.uri': 'http://' +
-            config.SERVER_HOST + ':' +
-            config.SERVER_PORT + '/' +
-            config.SERVER_PATH
-          },
-          settings: {
-            'lockscreen.enabled': false
-          }
+        profile: {
+          prefs: {
+            'identity.fxaccounts.auth.uri': 'http://' +
+              config.SERVER_HOST + ':' +
+              config.SERVER_PORT + '/' +
+              config.SERVER_PATH
+            }
+        }
       });
 
   setup(function() {

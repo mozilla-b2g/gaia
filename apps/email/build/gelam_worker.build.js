@@ -93,10 +93,6 @@
     }
   ],
 
-  // This is now passed via Makefile's GAIA_EMAIL_MINIFY
-  // but default is uglify2 if not passed at all.
-  // optimize: 'none',
-
   // Just strip comments, no code compression or mangling.
   // Only active if optimize: 'uglify2'
   uglify2: {

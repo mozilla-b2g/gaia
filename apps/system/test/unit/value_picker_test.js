@@ -1,3 +1,4 @@
+/* global ValuePicker */
 'use strict';
 
 requireApp('system/js/value_selector/value_picker.js');
@@ -72,6 +73,18 @@ suite('value selector/value picker', function() {
       subject.setRange(0, 11);
       assert.equal(subject._lower, 0);
       assert.equal(subject._upper, 11);
+    });
+
+    test('animation-on removed when touching', function() {
+      var fakeEvent = { stopPropagation: function() {},
+                        touches: [{ pageX: 0, pageY: 0 }],
+                        timeStamp: 0 };
+
+      subject.element.classList.add('animation-on');
+      subject.touchstartHandler(fakeEvent);
+      assert.isFalse(subject.element.classList.contains('animation-on'));
+      subject.touchendHandler(fakeEvent);
+      assert.isTrue(subject.element.classList.contains('animation-on'));
     });
   });
 

@@ -1,0 +1,25 @@
+{
+  "name": "smart-dialog",
+  "homepage": "https://github.com/smart-components/smart-dialog",
+  "main": "script.js",
+  "license": "MPL",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests",
+    "examples",
+    "LICENSE",
+    "README.md"
+  ],
+  "_release": "8910d99b8f",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "8910d99b8fb7c624b32ac494fea63c0898e886df"
+  },
+  "_source": "git://github.com/smart-components/smart-dialog.git",
+  "_target": "*",
+  "_originalSource": "smart-components/smart-dialog"
+}

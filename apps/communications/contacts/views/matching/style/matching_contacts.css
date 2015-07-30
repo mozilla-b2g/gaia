@@ -1,0 +1,115 @@
+@import url("/contacts/style/root.css");
+
+.hide, *[data-template] {
+  display: none;
+}
+
+#main {
+  position: fixed;
+  height: 100%;
+  width: calc(100% + 0.8rem);
+  overflow-x: hidden;
+  overflow-y: auto;
+  background: #F4F4F4;
+}
+
+#contacts-list-container.active li:not(:active):after {
+  display: none;
+}
+
+#contacts-list-container label {
+  left: 0;
+}
+
+#contacts-list-container > ol > li[data-uuid] {
+  display: block;
+  -moz-padding-start: 4rem;
+  border-top: none;
+}
+
+/*#contacts-list-container > ol > li[data-uuid] aside,
+#contacts-list-container > ol > li[data-uuid] label,
+#contacts-list-container > ol > li[data-uuid] p {
+  pointer-events: none;
+}*/
+
+#contacts-list-container > ol > li[data-uuid] aside > img {
+  box-shadow: none;
+  border: none;
+}
+
+#contacts-list-container > ol > li[data-uuid]:last-child {
+  border-bottom: none;
+}
+
+/* BB overrides */
+
+.match-main-reason {
+  color: #008eab;
+}
+
+form[role="dialog"][data-type="edit"] #duplicate-msg > p {
+  color: #000;
+  overflow: visible;
+  white-space: normal;
+}
+
+form[role="dialog"][data-type="edit"] #main {
+  pointer-events: auto;
+}
+
+#duplicate-msg {
+  width: 100%;
+  z-index: 1;
+  padding: 0.4rem 0;
+}
+
+#duplicate-msg > p {
+  font-size: 1.8rem;
+  line-height: 2.2rem;
+  margin: 1rem 3rem;
+}
+
+#footer {
+  background: none;
+  pointer-events: none;
+  position: fixed;
+}
+
+#footer menu {
+  border-top: #d8d8d8 0.1rem solid;
+  background: #e8e8e8;
+}
+
+#footer button:not([disabled]) {
+  pointer-events: auto;
+}
+
+[data-type="list"] aside img {
+  border-style: hidden;
+}
+
+[data-type="list"] li[data-visited="true"] aside img {
+  border-style: solid;
+}
+
+/* Ellipsis direction hack before bug 883884 is fixed */
+.ellipsis-dir-fix {
+  display: block;
+  width: -moz-fit-content;
+  max-width: 100%;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* RTL View */
+
+html[dir="rtl"] #contacts-list-container label {
+  left: unset;
+  right: 0;
+}
+
+#contacts-list-container > ol > li[data-uuid] label {
+  pointer-events: auto;
+}

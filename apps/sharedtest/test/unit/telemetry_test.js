@@ -1,18 +1,52 @@
 'use strict';
 
-/* global TelemetryRequest */
+/* global TelemetryRequest, MockasyncStorage, MockNavigatorMozTelephony,
+          MockNavigatorSettings */
 
 require('/shared/js/telemetry.js');
+requireApp('system/test/unit/mock_asyncStorage.js');
+requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
+
+const DOGFOOD_KEY = 'debug.performance_data.dogfooding';
+const FAKE_STORAGE_KEY = 'my.asynch.fake';
+
+
+function stubDial(self, retVal) {
+  self.sinon.stub(navigator.mozTelephony, 'dial', function() {
+    return Promise.resolve({
+      result: Promise.resolve({
+        success: true,
+        serviceCode: 'scImei',
+        statusMessage: retVal
+      })
+    });
+  });
+}
 
 suite('Telemetry:', function() {
   var xhr, XHR;
+  var realMozSettings, realMozTelephony;
 
-  suiteSetup(function() {
+  suiteSetup(function () {
+    realMozSettings = navigator.mozSettings;
+    realMozTelephony = navigator.mozTelephony;
+
+    window.asyncStorage = MockasyncStorage;
+    navigator.mozSettings = MockNavigatorSettings;
+    navigator.mozTelephony = MockNavigatorMozTelephony;
+
     XHR = sinon.useFakeXMLHttpRequest();
-    XHR.onCreate = function(instance) { xhr = instance; };
+    XHR.onCreate = function (instance) {
+      xhr = instance;
+    };
   });
 
-  suiteTeardown(function() {
+  suiteTeardown(function () {
+    navigator.mozSettings = realMozSettings;
+    navigator.mozTelephony = realMozTelephony;
+    delete window.asyncStorage;
+
     XHR.restore();
   });
 
@@ -120,6 +154,79 @@ suite('Telemetry:', function() {
       assert.ok(xhr.ontimeout);
       assert.ok(xhr.onerror);
       assert.ok(xhr.onabort);
+    });
+  });
+
+  suite('getDeviceID', function () {
+
+    setup(function() {
+      MockNavigatorSettings.mSetup();
+    });
+
+    teardown(function() {
+      MockNavigatorSettings.mTeardown();
+      MockasyncStorage.mTeardown();
+    });
+
+    test('Should reject if not a dogfooder and no stored key',
+    function (done) {
+      MockNavigatorSettings.mSettings[DOGFOOD_KEY] = false;
+
+      stubDial(this, 'fake');
+      TelemetryRequest.getDeviceID(FAKE_STORAGE_KEY).then(function(value) {
+        assert(0); // Failure Case here.
+        done();
+      }).catch(function(value) {
+        done();
+      });
+    });
+
+    test('Should resolve if non-dogfooder and stored deviceID',
+    function (done) {
+      MockNavigatorSettings.mSettings[DOGFOOD_KEY] = false;
+      MockasyncStorage.mItems[FAKE_STORAGE_KEY] = '123434';
+
+      stubDial(this, 'fake');
+      TelemetryRequest.getDeviceID(FAKE_STORAGE_KEY).then(function(value) {
+        assert.equal(value, '123434');
+        done();
+      }).catch(function(value) {
+        assert(0); // Failure Case here.
+        done();
+      });
+    });
+
+    test('Should resolve if a dogfooder and dial succeeds', function (done) {
+      MockNavigatorSettings.mSettings[DOGFOOD_KEY] = true;
+
+      stubDial(this, 'fake');
+      TelemetryRequest.getDeviceID(FAKE_STORAGE_KEY).then(function(value) {
+        assert.equal(value, 'fake');
+        done();
+      }).catch(function(value) {
+        assert(0); // Failure Case here.
+        done();
+      });
+    });
+
+    test('Should reject if a dogfooder and dial data fails',
+    function (done) {
+      this.sinon.stub(navigator.mozTelephony, 'dial', function() {
+        return Promise.resolve({
+          result: Promise.reject({
+            success: false,
+            statusMessage: 'error'
+          })
+        });
+      });
+
+      MockNavigatorSettings.mSettings[DOGFOOD_KEY] = true;
+
+      TelemetryRequest.getDeviceID(FAKE_STORAGE_KEY).then(function(value) {
+      }).catch(function(value) {
+        assert.equal(value.statusMessage, 'error');
+        done();
+      });
     });
   });
 });

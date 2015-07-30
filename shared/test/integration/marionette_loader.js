@@ -31,11 +31,14 @@ MarionetteLoader.prototype = {
    * Includes the main entry point for an application.
    * @param {String} app
    * @param {String} region
+   * @param {String} [baseFolder=apps] base folder of app.
    */
-  getAppClass: function(app, region) {
+  getAppClass: function(app, region, baseFolder) {
     region = region || app;
+    baseFolder = baseFolder || 'apps';
     var AppClass = require(
-      __dirname + '/../../../apps/' + app + '/test/marionette/lib/' + region);
+      __dirname + '/../../../' +
+      baseFolder + '/' + app + '/test/marionette/lib/' + region);
     return new AppClass(this.client);
   },
 

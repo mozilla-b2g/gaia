@@ -1,0 +1,12 @@
+{
+  "name": "Marionette JS Client",
+  "description": "JavaScript API/Client for Marionette (https://developer.mozilla.org/en-US/docs/Marionette)",
+  "version": "1.7.1",
+  "url": "https://github.com/mozilla-b2g/marionette-js-client",
+  "logo": "none",
+  "options": {
+    "paths": "lib/marionette/",
+    "themedir": "docs/theme",
+    "linkNatives": true
+  }
+}

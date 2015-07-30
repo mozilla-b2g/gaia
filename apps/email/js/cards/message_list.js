@@ -187,6 +187,7 @@ return [
 
       this.editMode = false;
       this.selectedMessages = null;
+      this.isFirstTimeVisible = true;
 
       this.curFolder = null;
       this.isIncomingFolder = true;
@@ -380,9 +381,6 @@ return [
       // be smaller which messes up our logic a bit.  We trigger metric
       // gathering in non-search cases too for consistency.
       this.vScroll.captureScreenMetrics();
-      if (this.mode === 'search') {
-        this.searchInput.focus();
-      }
     },
 
     onSearchButton: function() {
@@ -759,6 +757,15 @@ return [
       if (!headerCursor.messagesSlice) {
         return;
       }
+
+      // For accessibility purposes, focus on the first newly loaded item in the
+      // messages list. This will ensure that screen reader's cursor position
+      // will get updated to the right place.
+      this.vScroll.once('recalculated', function(calledFromTop, refIndex) {
+        // refIndex is the index of the first new message item.
+        this.messagesContainer.querySelector(
+          '[data-index="' + refIndex + '"]').focus();
+      }.bind(this));
 
       headerCursor.messagesSlice.requestGrowth(1, true);
     },
@@ -1548,6 +1555,14 @@ return [
         if (inboxFolder === this.curFolder) {
           evt.emit('inboxShown', account.id);
         }
+
+        // If user tapped in search box on message_list before the JS for the
+        // card is attached, then treat that as the signal to go to search. Only
+        // do this when first starting up though.
+        if (this.mode === 'nonsearch' &&
+            document.activeElement === this.searchTextTease) {
+          this.onSearchButton();
+        }
       }
     },
 
@@ -1569,6 +1584,16 @@ return [
         this._whenVisible = null;
         fn();
       }
+
+      // First time this card is visible, want the search field focused if this
+      // is a search. Do not want to do it on every cardVisible, as the user
+      // could be scrolled/have their own place in the search results, and are
+      // likely going back and forth between this card and message_reader.
+      if (this.mode === 'search' && this.isFirstTimeVisible) {
+        this.searchInput.focus();
+      }
+
+      this.isFirstTimeVisible = false;
 
       // In case the vScroll was initialized when the card was not visible, like
       // in an activity/notification flow when this card is created in the

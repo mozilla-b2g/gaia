@@ -1,3 +1,127 @@
+.appWindow > .modal-dialog > form {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh; /* avoid keyboard app pushing up the dialog */;
+  padding: 0;
+  margin: 0;
+  visibility: hidden;
+  text-align: center;
+  background-color: transparent;
+}
+
+.appWindow > .modal-dialog > form > .modal-dialog-section-container {
+  height: 100%;
+  width: 100%;
+  display: inline-block;
+  text-align: left;
+}
+
+.appWindow > .modal-dialog > form > .modal-dialog-section-container:before {
+  content: "";
+  display: inline-block;
+  width: 0.1rem;
+  height: 100%;
+  margin-left: 0.1rem;
+  vertical-align: middle;
+}
+
+.appWindow > .modal-dialog > form p {
+  padding: 0;
+  overflow: visible;
+}
+
+.appWindow > .modal-dialog > form.visible {
+  visibility: visible;
+}
+
+.appWindow > .modal-dialog > form.modal-dialog-prompt > .inner {
+  width: 70rem;
+  height: auto;
+  padding: 0;
+  text-align: center;
+  margin-left: auto;
+  margin-right: auto;
+  position: relative;
+  top: calc(50% - 26.4rem);
+}
+
+.appWindow > .modal-dialog > form.modal-dialog-prompt > menu {
+  top: calc(50% + 5.4rem);
+  width: 70rem;
+  height: 21.6rem;
+  margin-left: auto;
+  margin-right: auto;
+  background: none;
+  text-align: center;
+  overflow: visible;
+  border: none;
+}
+
+.appWindow > .modal-dialog > form.modal-dialog-prompt > menu > smart-button:not(:last-child) {
+  margin-right: 4.4rem;
+}
+
+.appWindow > .modal-dialog > form section {
+  display: inline-block;
+  vertical-align: middle;
+  text-align: center;
+  width: 100%;
+}
+
+.appWindow > .modal-dialog .generic-dialog[role="dialog"] menu {
+  position: relative;
+  background-color: transparent;
+  border: 0;
+  padding: 0;
+  margin-top: 13rem;
+  overflow: visible;
+}
+
+.appWindow > .modal-dialog .generic-dialog[role="dialog"] menu > * {
+  margin-right: 4.4rem;
+}
+
+.appWindow > .modal-dialog .generic-dialog[role="dialog"] menu > *:last-child {
+  margin-right: 0;
+}
+
+.appWindow > .modal-dialog input {
+  border: none;
+  height: 11.4rem;
+  font-size: 3.8rem;
+  font-style: italic;
+  text-align: center;
+  width: 100%;
+  color: #5f5f5f;
+  background: none;
+  margin: 2.4rem 0 1.8rem 0;
+  -moz-box-sizing: border-box;
+  border-radius: 0;
+  overflow: visible;
+}
+
+.appWindow > .modal-dialog input:focus {
+  font-style: normal;
+  color: #e7e7e7;
+}
+
+.appWindow > .smart-modal-dialog-container .modal-dialog .modal-dialog-message {
+  font-weight: normal;
+  font-style: italic;
+  font-size: 3.8rem;
+  line-height: 3.8rem;
+  color: #f9f9f9;
+  padding: 0 0 3.4rem 0;
+  text-align: center;
+  white-space: pre-wrap;
+}
+
+.appWindow > .smart-modal-dialog-container .modal-dialog input {
+  box-shadow: none; /* override the box-shadow from the input_areas.css */
+}
+
 #modal-dialog-alert,
 #modal-dialog-confirm,
 #modal-dialog-prompt,

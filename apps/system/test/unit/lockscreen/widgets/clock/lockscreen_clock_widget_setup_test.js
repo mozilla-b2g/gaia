@@ -37,6 +37,9 @@ suite('LockScreenClockWidgetSetup > ', function() {
       component: {
         updateClock: {
           bind: this.sinon.stub().returns('component.updateClock')
+        },
+        updateFormatters: {
+          bind: this.sinon.stub().returns('component.updateFormatters')
         }
       },
       transferToTick: {
@@ -49,6 +52,8 @@ suite('LockScreenClockWidgetSetup > ', function() {
         `it doesn't scheudle to query the elements`);
     assert.include(mockThis.stream.steps, 'component.updateClock',
         `it doesn't schedule to update the clock at the setup`);
+    assert.include(mockThis.stream.steps, 'component.updateFormatters',
+        `it doesn't schedule to update the date/time formatters at the setup`);
     assert.include(mockThis.stream.steps, 'transferToTick',
         `it doesn't schedule to transfer to the tick state after it's done`);
   });

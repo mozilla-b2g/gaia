@@ -5,8 +5,13 @@
   "default_locale": "en-US",
   "icons": {
     "60": "/collections/news/icon.png",
+    "84": "/collections/news/icon_84.png",
     "90": "/collections/news/icon_90.png",
     "120": "/collections/news/icon_120.png",
-    "135": "/collections/news/icon_135.png"
+    "126": "/collections/news/icon_126.png",
+    "135": "/collections/news/icon_135.png",
+    "142": "/collections/news/icon_142.png",
+    "189": "/collections/news/icon_189.png",
+    "284": "/collections/news/icon_284.png"
   }
 }

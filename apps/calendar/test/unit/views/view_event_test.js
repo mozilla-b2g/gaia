@@ -5,13 +5,12 @@ define(function(require) {
 var EventBase = require('views/event_base');
 var View = require('view');
 var ViewEvent = require('views/view_event');
-var providerFactory = require('provider/provider_factory');
+var core = require('core');
 var router = require('router');
 
 require('dom!show_event');
 
 suite('Views.ViewEvent', function() {
-  var app;
   var subject;
   var controller;
 
@@ -37,6 +36,7 @@ suite('Views.ViewEvent', function() {
 
   var triggerEvent;
   suiteSetup(function() {
+    testSupport.calendar.core();
     triggerEvent = testSupport.calendar.triggerEvent;
   });
 
@@ -45,7 +45,6 @@ suite('Views.ViewEvent', function() {
 
   teardown(function() {
     router.go = realGo;
-    delete providerFactory.providers.Test;
   });
 
   suiteTemplate('show-event', {
@@ -54,28 +53,26 @@ suite('Views.ViewEvent', function() {
 
   setup(function(done) {
     realGo = router.go;
-    app = testSupport.calendar.app();
 
-    eventStore = app.store('Event');
-    accountStore = app.store('Account');
-    calendarStore = app.store('Calendar');
-    provider = providerFactory.get('Mock');
+    var storeFactory = core.storeFactory;
+    eventStore = storeFactory.get('Event');
+    accountStore = storeFactory.get('Account');
+    calendarStore = storeFactory.get('Calendar');
+    provider = core.providerFactory.get('Mock');
 
-    controller = app.timeController;
+    controller = core.timeController;
 
-    subject = new ViewEvent({
-      app: app
-    });
+    subject = new ViewEvent();
 
-    app.db.open(done);
+    core.db.open(done);
   });
 
   teardown(function(done) {
     testSupport.calendar.clearStore(
-      app.db,
+      core.db,
       ['accounts', 'calendars', 'events', 'busytimes', 'alarms'],
       function() {
-        app.db.close();
+        core.db.close();
         done();
       }
     );
@@ -157,7 +154,8 @@ suite('Views.ViewEvent', function() {
       list = subject.element.classList;
     });
 
-    function updatesValues(overrides, isAllDay, done) {
+    function updatesValues(overrides, isAllDay, capabilities) {
+      capabilities = capabilities || { canUpdate: true };
 
       var expected = {
         title: remote.title,
@@ -178,7 +176,7 @@ suite('Views.ViewEvent', function() {
       }
 
       function verify() {
-        if (subject.provider.canCreateEvent) {
+        if (capabilities.canCreateEvent) {
           expected.calendarId = event.calendarId;
         }
 
@@ -198,7 +196,6 @@ suite('Views.ViewEvent', function() {
           }
 
           if (expected.hasOwnProperty(key)) {
-
             assert.equal(
               contentValue(fieldKey),
               expected[key],
@@ -207,37 +204,37 @@ suite('Views.ViewEvent', function() {
           }
         }
       }
-
       subject.onfirstseen();
-      subject.useModel(busytime, event, function() {
-        done(verify);
+      subject._useModel({
+        busytime: busytime,
+        event: event,
+        calendar: calendar,
+        capabilities: capabilities
       });
+      verify();
     }
 
-    test('event view fields', function(done) {
-      updatesValues(null, null, done);
+    test('event view fields', function() {
+      updatesValues(null, null);
     });
 
-    test('readonly', function(done) {
-      provider.stageCalendarCapabilities(calendar._id, {
+    test('readonly', function() {
+      updatesValues(null, null, {
         canUpdateEvent: false,
         canCreateEvent: false
       });
-
-      updatesValues(null, null, done);
     });
 
-    test('event description with html', function(done) {
+    test('event description with html', function() {
       event.remote.description = '<strong>hamburger</strong>';
 
       updatesValues(
         { description: '<strong>hamburger</strong>' },
-        null,
-        done
+        null
       );
     });
 
-    test('alarms are displayed', function(done) {
+    test('alarms are displayed', function() {
 
       event.remote.alarms = [
         {trigger: 0},
@@ -245,26 +242,28 @@ suite('Views.ViewEvent', function() {
       ];
 
       subject.onfirstseen();
-      subject.useModel(busytime, event, function() {
-
-        var alarmChildren = getEl('alarms').querySelector('.content').children;
-
-        assert.equal(
-          alarmChildren.length,
-          2
-        );
-
-        assert.equal(
-          alarmChildren[0].textContent.trim(),
-          navigator.mozL10n.get('alarm-at-event-standard')
-        );
-        assert.equal(
-          alarmChildren[1].textContent.trim(),
-          navigator.mozL10n.get('minutes-before', {value: 1})
-        );
-
-        done();
+      subject._useModel({
+        busytime: busytime,
+        event: event,
+        capabilities: { canUpdate: true }
       });
+
+      var alarmChildren = getEl('alarms').querySelector('.content').children;
+
+      assert.equal(
+        alarmChildren.length,
+        2
+      );
+
+      assert.equal(
+        alarmChildren[0].textContent.trim(),
+        navigator.mozL10n.get('alarm-at-event-standard')
+      );
+      assert.equal(
+        alarmChildren[1].textContent.trim(),
+        navigator.mozL10n.get('minutes-before', {value: 1})
+      );
+
     });
   });
 

@@ -31,18 +31,6 @@ var Bluetooth = {
     }
   },
 
-  getCurrentProfiles: function bt_getCurrentProfiles() {
-    var profiles = this.Profiles;
-    var connectedProfiles = [];
-    for (var name in profiles) {
-      var profile = profiles[name];
-      if (this.isProfileConnected(profile)) {
-        connectedProfiles.push(profile);
-      }
-    }
-    return connectedProfiles;
-  },
-
   isProfileConnected: function bt_isProfileConnected(profile) {
     var isConnected = this['_' + profile + 'Connected'];
     if (isConnected === undefined) {

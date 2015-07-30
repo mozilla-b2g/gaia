@@ -1,4 +1,5 @@
 'use strict';
+/* exported Mockutils */
 
 var Mockutils = {
   overlay: {

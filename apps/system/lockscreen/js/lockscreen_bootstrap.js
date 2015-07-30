@@ -14,22 +14,23 @@
   limitations under the License.
  */
 /* global LockScreen, LockScreenNotifications, LockScreenFrameAgent */
-/* global WallpaperManager */
 'use strict';
 (function() {
   window.addEventListener('lockscreen-frame-bootstrap', function startup() {
     // XXX: Because we don't have real app bootstraping yet.
-    window.wallpaperManager = new WallpaperManager();
-    window.wallpaperManager.start();
     window.lockScreenFrameAgent = new LockScreenFrameAgent(window.parent);
     window.lockScreenFrameAgent.start();
     this.lockscreen = new LockScreen();
     window.lockScreen = this.lockscreen;
     window.lockScreenStateManager = new window.LockScreenStateManager();
     window.lockScreenStateManager.start(window.lockScreen);
-    this.lockscreen.init();
     window.lockScreenNotifications = new LockScreenNotifications();
-    window.lockScreenNotifications.start(this.lockscreen,
-      this.lockscreen.notificationsContainer);
+    // After Bug 1094759, screen locker initialises itself asynchronously,
+    // so we need to make sure everthing is ready for the components depends
+    // on it.
+    this.lockscreen.bootstrapping.then(() => {
+      window.lockScreenNotifications.start(this.lockscreen,
+        this.lockscreen.notificationsContainer);
+    });
   });
 })();

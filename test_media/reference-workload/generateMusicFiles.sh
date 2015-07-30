@@ -2,7 +2,7 @@
 
 SCRIPT_DIR=$(cd $(dirname $0); pwd)
 
-if [ -z "$1" ]; then 
+if [ -z "$1" ]; then
   echo "Must provide number of iterations"
   exit 1
 fi
@@ -26,7 +26,7 @@ TRACKS_PER_ALBUM=1
 # REMOTE_DIR="/sdcard/Music"
 REMOTE_DIR=
 for dir in /sdcard /storage/sdcard /storage/sdcard0; do
-  if [ -n "$(adb shell "test -d $dir && echo found")" ]; then
+  if [ -n "$($ADB_REF shell "test -d $dir && echo found")" ]; then
     REMOTE_DIR=$dir
     break
   fi
@@ -41,7 +41,7 @@ for i in `seq -f '%04g' 2 $1` ; do
   FILENAME=SONG_$i.mp3
 
   mid3v2 -t "Song ${i}" -a "Artist ${ARTIST}" -A "Album ${ALBUM}" -T "${TRACK}" ${SCRIPT_DIR}/${SONG_NAME} || exit 1
-  adb push ${SCRIPT_DIR}/${SONG_NAME} ${REMOTE_DIR}/Music/${FILENAME} || exit 1
+  $ADB_REF push ${SCRIPT_DIR}/${SONG_NAME} ${REMOTE_DIR}/Music/${FILENAME} || exit 1
 
   let TRACK=TRACK+1
   if [ ${TRACK} -gt ${TRACKS_PER_ALBUM} ]; then

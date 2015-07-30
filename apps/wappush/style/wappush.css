@@ -74,7 +74,7 @@ html,body {
   position: absolute;
   top: 0;
   transform: translateX(0 );
-  transition: transform 0.4s;
+  transition: transform var(--transition-duration);
 }
 
 .view.right {

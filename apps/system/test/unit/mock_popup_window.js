@@ -11,6 +11,7 @@
   MockPopupWindow.prototype =
     Object.create(window.MockAppWindow.prototype);
   MockPopupWindow.prototype.prefix = 'mock-popup-';
+  MockPopupWindow.prototype.CLASS_NAME = 'PopupWindow';
   MockPopupWindow.mTeardown = function() {};
   exports.MockPopupWindow = MockPopupWindow;
 }(window));

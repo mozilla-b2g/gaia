@@ -3,24 +3,22 @@ define(function(require) {
 
 var Abstract = require('store/abstract');
 var AccountModel = require('models/account');
-var CalendarError = require('error');
+var CalendarError = require('common/error');
 var CalendarModel = require('models/calendar');
 var CalendarStore = require('store/calendar');
 var Factory = require('test/support/factory');
-var Local = require('provider/local');
-var providerFactory = require('provider/provider_factory');
+var core = require('core');
+var localCalendarId = require('common/constants').localCalendarId;
 
 suite('store/calendar', function() {
   var subject;
   var db;
   var model;
-  var app;
 
   setup(function(done) {
-    app = testSupport.calendar.app();
-    db = app.db;
+    db = core.db;
 
-    subject = db.getStore('Calendar');
+    subject = core.storeFactory.get('Calendar');
 
     model = Factory('calendar', {
       _id: 1,
@@ -51,7 +49,6 @@ suite('store/calendar', function() {
   test('initialization', function() {
     assert.instanceOf(subject, Abstract);
     assert.equal(subject._store, 'calendars');
-    assert.equal(subject.db, db);
   });
 
   suite('cache handling', function() {
@@ -212,7 +209,7 @@ suite('store/calendar', function() {
     });
 
     setup(function(done) {
-      subject.db.getStore('Account').persist(account, done);
+      core.storeFactory.get('Account').persist(account, done);
     });
 
     setup(function(done) {
@@ -237,11 +234,11 @@ suite('store/calendar', function() {
 
     setup(function(done) {
       // setup fixtures
-      eventStore = subject.db.getStore('Event');
+      eventStore = core.storeFactory.get('Event');
       events = {};
 
       // transaction for initial creation of records.
-      var trans = subject.db.transaction(
+      var trans = core.db.transaction(
         subject._dependentStores,
         'readwrite'
       );
@@ -314,7 +311,7 @@ suite('store/calendar', function() {
   test('#providerFor', function(done) {
     subject.providerFor(this.calendar, function(err, provider) {
       done(function() {
-        assert.equal(provider, providerFactory.get('Mock'));
+        assert.equal(provider, core.providerFactory.get('Mock'));
       });
     });
   });
@@ -332,7 +329,7 @@ suite('store/calendar', function() {
     test('> local calendar', function() {
       var calendar = Factory('calendar', {
         color: '#BADA55',
-        _id: Local.calendarId
+        _id: localCalendarId
       });
       subject._updateCalendarColor(calendar);
       assert.equal(

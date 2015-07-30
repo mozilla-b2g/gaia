@@ -1,4 +1,4 @@
-/* globals Contacts, ActivityHandler, ConfirmDialog,
+/* globals ActivityHandler, VcardActivityHandler, ConfirmDialog,
            MockContactAllFields, MocksHelper, MockMozL10n
  */
 
@@ -11,9 +11,12 @@ require('/shared/js/contact2vcard.js');
 require('/shared/js/text_normalizer.js');
 require('/shared/js/setImmediate.js');
 
+requireApp('communications/contacts/test/unit/mock_header_ui.js');
 requireApp('communications/contacts/js/activities.js');
+requireApp('communications/contacts/js/activities_vcard.js');
 requireApp('communications/contacts/test/unit/mock_l10n.js');
 requireApp('communications/contacts/test/unit/mock_navigation.js');
+requireApp('communications/contacts/test/unit/mock_main_navigation.js');
 requireApp('communications/contacts/test/unit/mock_contacts.js');
 requireApp('communications/contacts/test/unit/mock_action_menu.js');
 require('/shared/test/unit/mocks/mock_confirm_dialog.js');
@@ -28,10 +31,12 @@ if (!window.utils) {
 }
 
 var mocksHelperForActivities = new MocksHelper([
+  'MainNavigation',
   'Contacts',
   'ConfirmDialog',
   'LazyLoader',
-  'mozContact'
+  'mozContact',
+  'HeaderUI'
 ]).init();
 
 suite('Test Activities', function() {
@@ -71,6 +76,12 @@ suite('Test Activities', function() {
     window.utils.importFromVcard = realImport;
   });
 
+  function assertIsOpened(activity, viewName) {
+    ActivityHandler.handle(activity);
+    assert.include(document.location.hash, viewName);
+    assert.equal(ActivityHandler._currentActivity, activity);
+  }
+
   suite('Activity launching', function() {
     setup(function() {
       ActivityHandler._currentActivity = null;
@@ -78,7 +89,8 @@ suite('Test Activities', function() {
       window.utils.importedID = null;
       document.location.hash = '';
 
-      this.sinon.spy(Contacts, 'checkCancelableActivity');
+      this.sinon.spy(ActivityHandler, 'isCancelable');
+      this.sinon.spy(VcardActivityHandler, 'handle');
     });
 
     test('New contact', function() {
@@ -88,12 +100,10 @@ suite('Test Activities', function() {
           data: {}
         }
       };
-      ActivityHandler.handle(activity);
-      assert.include(document.location.hash, 'view-contact-form');
-      assert.equal(ActivityHandler._currentActivity, activity);
+      assertIsOpened(activity, 'view-contact-form');
     });
 
-    test('Open contact', function() {
+    test('Open contact calls for vcard handling', function() {
       var activity = {
         source: {
           name: 'open',
@@ -101,26 +111,21 @@ suite('Test Activities', function() {
         }
       };
       ActivityHandler.handle(activity);
-      assert.include(document.location.hash, 'view-contact-details');
-      assert.equal(ActivityHandler._currentActivity, activity);
+      assert.isTrue(VcardActivityHandler.handle.called);
     });
 
-
-    test('Open text/vcard with allowSave', function() {
+    test('Import contact calls for vcard handling', function() {
       var activity = {
         source: {
-          name: 'open',
+          name: 'import',
           data: {
-            type: ['text/vcard'],
-            allowSave: true
+            blob: 'blob'
           }
         }
       };
       ActivityHandler.handle(activity);
-      assert.include(document.location.hash, 'view-contact-details');
-      assert.equal(ActivityHandler._currentActivity, activity);
+      assert.isTrue(VcardActivityHandler.handle.called);
     });
-
 
     test('Update contact', function() {
       var activity = {
@@ -129,11 +134,9 @@ suite('Test Activities', function() {
           data: {}
         }
       };
-      ActivityHandler.handle(activity);
-      assert.include(document.location.hash, 'add-parameters');
-      assert.isTrue(Contacts.checkCancelableActivity.called,
+      assertIsOpened(activity, 'add-parameters');
+      assert.isTrue(ActivityHandler.isCancelable.called,
                                             'checks for activity UI specifics');
-      assert.equal(ActivityHandler._currentActivity, activity);
     });
 
     test('Pick contact', function() {
@@ -145,49 +148,9 @@ suite('Test Activities', function() {
         }
       };
       ActivityHandler.handle(activity);
-      assert.isTrue(Contacts.checkCancelableActivity.called,
+      assert.isTrue(ActivityHandler.isCancelable.called,
                                             'checks for activity UI specifics');
       assert.equal(ActivityHandler._currentActivity, activity);
-    });
-
-    test('Import one contact', function() {
-      var activity = {
-        source: {
-          name: 'import',
-          data: {
-            blob: 'blob'
-          }
-        }
-      };
-      window.utils.importedCount = 1;
-      window.utils.importedID = '1';
-      ActivityHandler.handle(activity);
-      assert.equal(ActivityHandler._currentActivity, activity);
-      assert.include(document.location.hash, 'view-contact-details',
-        'showing contact details screen');
-      assert.include(document.location.hash, 'id=1',
-        'with the proper contact id');
-    });
-
-    test('Import multiple contacts', function() {
-      var activity = {
-        source: {
-          name: 'import',
-          data: {
-            blob: 'blob'
-          }
-        }
-      };
-      window.utils.importedCount = 2;
-      ActivityHandler.handle(activity);
-      assert.equal(ActivityHandler._currentActivity, activity,
-        'handling as an activity');
-      assert.include(document.location.hash, 'view-contact-list',
-        'showing list view screen');
-      assert.equal(document.location.hash.indexOf('id'), -1,
-        'no contact id as parameter');
-      assert.isTrue(Contacts.checkCancelableActivity.called,
-        'checks for activity UI specifics');
     });
   });
 

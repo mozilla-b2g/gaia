@@ -1,17 +1,20 @@
 'use strict';
 
-/* global LazyLoader, ContactToVcard, MozNDEFRecord, fb, Contacts,
-          NDEF, NfcUtils */
+/* global LazyLoader, ContactToVcard, MozNDEFRecord, fb, utils,
+          NDEF, NfcUtils, utils*/
+/* exported NFC */
 
-var contacts = window.contacts || {};
-
-contacts.NFC = (function() {
+(function(exports) {
   var mozNfc = window.navigator.mozNfc;
   var currentContact;
   var vCardContact;
   var mozNfcPeer;
 
   var startListening = function(contact) {
+    if (!mozNfc) {
+      return;
+    }
+
     currentContact = contact;
     // We cannot share Facebook data via NFC so we check if the contact
     // is an FB contacts. However, if the contact is linked to a regular
@@ -24,6 +27,10 @@ contacts.NFC = (function() {
   };
 
   var stopListening = function() {
+    if (!mozNfc) {
+      return;
+    }
+
     mozNfc.onpeerready = null;
     currentContact = null;
     vCardContact = null;
@@ -72,13 +79,16 @@ contacts.NFC = (function() {
   };
 
   var handlePeerReadyForFb = function() {
-    Contacts.showStatus({
+    utils.status.show({
       id: 'facebook-export-forbidden'
     });
   };
 
-  return {
+  var nfc_tools = {
     startListening: startListening,
     stopListening: stopListening
   };
-})();
+
+  exports.NFC = nfc_tools;
+
+}(window));

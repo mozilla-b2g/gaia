@@ -44,6 +44,23 @@ FakeDialerApp.prototype = {
     });
   },
 
+  focusAndWaitForResize: function() {
+    this.client.switchToFrame();
+    var oncallframe =
+      this.client.helper.waitForElement('.attentionWindow.active iframe');
+    this.client.switchToFrame(oncallframe);
+
+    this.client.findElement('#input').click();
+
+    this.client.executeAsyncScript(function() {
+      var win = window.wrappedJSObject;
+      win.addEventListener('resize', function resizeWait() {
+        win.removeEventListener('resize', resizeWait);
+        marionetteScriptFinished();
+      });
+    });
+  },
+
   close: function() {
     this.client.apps.close(this.origin);
   }

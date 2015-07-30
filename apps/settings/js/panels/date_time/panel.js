@@ -23,39 +23,46 @@ define(function(require) {
           clockTime: panel.querySelector('.clock-time'),
           timeManual: panel.querySelector('.time-manual'),
           timezone: panel.querySelector('.timezone'),
+          timezonePickers: [].slice.apply(
+            panel.querySelectorAll('.timezone-picker')),
+          timezoneInfo: panel.querySelector('.timezone-info'),
+          timezoneInfoText: panel.querySelector('.timezone-info-text'),
           timeFormat: panel.querySelector('.time-format-time')
         };
 
         // update date/clock periodically
-        this._boundSetDate = function() {
+        this._boundSetDate = () => {
           this._elements.clockDate.textContent = DateTime.date;
-        }.bind(this);
+        };
 
-        this._boundSetTime = function() {
+        this._boundSetTime = () => {
           this._elements.clockTime.textContent = DateTime.time;
-        }.bind(this);
+        };
+
+        this._boundSetTimezoneInfo = () => {
+          // Only display the timezone info when auto time is enabled.
+          var info = DateTime.clockAutoEnabled ? DateTime.timezone : '';
+          this._elements.timezoneInfoText.textContent = info;
+        };
 
         // Reset the timezone to the previous user selected value
-        this._boundSetSelectedTimeZone = function(selected) {
+        this._boundSetSelectedTimeZone = (selected) => {
           DateTime.setUserSelectedTimezone(selected);
-        }.bind(this);
+        };
 
         this._boundUpdateUI = this._updateUI.bind(this);
+        this._boundDatePickerChange = this._datePickerChange.bind(this);
+        this._boundTimePickerChange = this._timePickerChange.bind(this);
 
-        this._boundDatePickerChange =
-          this._datePickerChange.bind(this);
-
-        this._boundTimePickerChange =
-          this._timePickerChange.bind(this);
-
-        this._boundTimeFormatChange = function() {
+        this._boundTimeFormatChange = () => {
           var value = (this._elements.timeFormat.value === HOUR_12);
           DateTime.setCurrentHour12(value);
-        }.bind(this);
+        };
       },
       onBeforeShow: function() {
         DateTime.observe('date', this._boundSetDate);
         DateTime.observe('time', this._boundSetTime);
+        DateTime.observe('timezone', this._boundSetTimezoneInfo);
         DateTime.observe('clockAutoEnabled', this._boundUpdateUI);
         DateTime.observe('clockAutoAvailable', this._boundUpdateUI);
         DateTime.observe('timezoneAutoAvailable', this._boundUpdateUI);
@@ -72,6 +79,7 @@ define(function(require) {
         this._renderTimeZone();
         this._boundSetDate();
         this._boundSetTime();
+        this._boundSetTimezoneInfo();
         if (DateTime.userSelectedTimezone && !DateTime.clockAutoEnabled) {
           this._boundSetSelectedTimeZone(DateTime.userSelectedTimezone);
         }
@@ -84,6 +92,7 @@ define(function(require) {
       onHide: function() {
         DateTime.unobserve('date', this._boundSetDate);
         DateTime.unobserve('time', this._boundSetTime);
+        DateTime.unobserve('timezone', this._boundSetTimezoneInfo);
         DateTime.unobserve('clockAutoEnabled', this._boundUpdateUI);
         DateTime.unobserve('clockAutoAvailable', this._boundUpdateUI);
         DateTime.unobserve('timezoneAutoAvailable', this._boundUpdateUI);
@@ -132,24 +141,9 @@ define(function(require) {
       handleEvent: function dt_handleEvent(evt) {
         switch (evt.type) {
           case 'localized':
-            this._localized(
-              this._elements.clockDate, this._elements.clockTime);
+            this._renderTimeZone();
             break;
         }
-      },
-
-      /**
-       * Update date and time format, list of timezone regions
-       * when language is changed
-       */
-      _localized: function dt_localized(clockDate, clockTime) {
-        var d = new Date();
-        var f = new navigator.mozL10n.DateTimeFormat();
-        var _ = navigator.mozL10n.get;
-        var format = _('shortTimeFormat');
-        clockDate.textContent = f.localeFormat(d, '%x');
-        clockTime.textContent = f.localeFormat(d, format);
-        this._renderTimeZone();
       },
 
       /**
@@ -158,27 +152,49 @@ define(function(require) {
       _updateUI: function dt_updateUI() {
         this._elements.timeAutoSwitch.dataset.state =
             DateTime.clockAutoEnabled ? 'auto' : 'manual';
-        this._elements.timeAutoSwitch.hidden =
-            !(DateTime.clockAutoAvailable || DateTime.timezoneAutoAvailable);
+        // There are three possible combinations:
+        // - clockAutoAvailable is true, timezoneAutoAvailable is true
+        // - clockAutoAvailable is false, timezoneAutoAvailable is false
+        // - clockAutoAvailable is true, timezoneAutoAvailable is false
+        // We show the auto time switch only when clockAutoAvailable is true.
+        this._elements.timeAutoSwitch.hidden = !DateTime.clockAutoAvailable;
 
-        this._elements.datePicker.disabled = DateTime.clockAutoEnabled &&
-          !this._elements.timeAutoSwitch.hidden;
-        this._elements.timePicker.disabled = DateTime.clockAutoEnabled &&
-          !this._elements.timeAutoSwitch.hidden;
+        // DataTime.clockAutoEnabled is a user preference and in some cases it
+        // can be true while DateTime.clockAutoAvailable is false. The reason is
+        // the device may not connect to the network to retrieve the correct
+        // time automatically after startup. That being said, we should always
+        // check both `DateTime.clockAutoEnabled` and
+        // `DateTime.clockAutoAvailable` to determine whether the device is in
+        // the auto time mode.
+        var autoTimeMode =
+          DateTime.clockAutoEnabled && DateTime.clockAutoAvailable;
+
+        this._elements.datePicker.disabled = autoTimeMode;
+        this._elements.timePicker.disabled = autoTimeMode;
         this._elements.timezoneRegion.disabled =
-          (DateTime.timezoneAutoAvailable && DateTime.clockAutoEnabled);
+          DateTime.timezoneAutoAvailable && autoTimeMode;
         this._elements.timezoneCity.disabled =
-          (DateTime.timezoneAutoAvailable && DateTime.clockAutoEnabled);
+          DateTime.timezoneAutoAvailable && autoTimeMode;
 
-        if (DateTime.clockAutoEnabled &&
-          !this._elements.timeAutoSwitch.hidden) {
+        // XXX: Force to trigger the selector change so that tz_select is able
+        //      to write the previous user-selected value back to time.timezone.
+        if (!DateTime.clockAutoEnabled) {
+          this._elements.timezoneRegion.dispatchEvent(new Event('change'));
+          this._elements.timezoneCity.dispatchEvent(new Event('change'));
+        }
+
+        if (autoTimeMode) {
           this._elements.timeManual.classList.add('disabled');
-          if (DateTime.timezoneAutoAvailable) {
-            this._elements.timezone.classList.add('disabled');
-          }
+          this._elements.timezonePickers.forEach((picker) => {
+            picker.hidden = DateTime.timezoneAutoAvailable;
+          });
+          this._elements.timezoneInfo.hidden = !DateTime.timezoneAutoAvailable;
         } else {
           this._elements.timeManual.classList.remove('disabled');
-          this._elements.timezone.classList.remove('disabled');
+          this._elements.timezonePickers.forEach((picker) => {
+            picker.hidden = false;
+          });
+          this._elements.timezoneInfo.hidden = true;
         }
       },
 

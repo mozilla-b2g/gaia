@@ -1,0 +1,1 @@
+define(['./fxos-mvc/mvc'], function(m) { return m; });

@@ -1,6 +1,6 @@
 'use strict';
 
-/* globals client, mozContact */
+/* globals mozContact */
 
 var fs = require('fs');
 
@@ -107,7 +107,7 @@ ContactsData.prototype = {
     };
 
     var contactID;
-    client.executeAsyncScript(saveMozContact, [contactData, withPhoto],
+    this.client.executeAsyncScript(saveMozContact, [contactData, withPhoto],
       function(err, val) {
         if (err) {
           console.error(err);
@@ -115,7 +115,7 @@ ContactsData.prototype = {
         contactID = val;
     });
 
-    client.waitFor(function() {
+    this.client.waitFor(function() {
       return contactID;
     });
 

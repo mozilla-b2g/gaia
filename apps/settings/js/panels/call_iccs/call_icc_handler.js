@@ -2,12 +2,13 @@ define(function(require) {
   'use strict';
 
   var DsdsSettings = require('dsds_settings');
+  var SettingsService = require('modules/settings_service');
 
   /**
    * Singleton object that helps to populate and manage the 'Select a SIM card'
    * panel in the call settings panel.
    */
-  var CallIccHandler = (function(window, document) {
+  var CallIccHandler = (function() {
 
     /** Card state mapping const. */
     var CARDSTATE_MAPPING = {
@@ -85,9 +86,11 @@ define(function(require) {
         var selector = document.getElementById(id);
         var element = selector.querySelector('a');
         element.addEventListener('click', function eventListenerHandler() {
-          DsdsSettings.setIccCardIndexForCallSettings(
-            _menuItemIds.indexOf(id)
-          );
+          var cardIndex = _menuItemIds.indexOf(id);
+          DsdsSettings.setIccCardIndexForCallSettings(cardIndex);
+          SettingsService.navigate('call', {
+            cardIndex: cardIndex
+          });
         });
       });
 
@@ -271,7 +274,7 @@ define(function(require) {
     return {
       init: ihfcs_init
     };
-  })(this, document);
+  })();
 
   return CallIccHandler;
 });

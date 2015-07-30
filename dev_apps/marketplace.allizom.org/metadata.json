@@ -1,8 +1,8 @@
 {
   "external": true,
-  "etag": "\"9ec80eab584b25c6d95d42b18599109588ba72c4b686089ac7ba692e7efae465\"",
-  "manifestURL": "https://marketplace.firefox.com/app/1007e041-7d37-4eb7-b445-ff077a2bba42/manifest.webapp",
-  "packageEtag": "\"f91a178dc4b8c67b6cfe7fcb556b9c9371170b6e8bb2f67601bd1f7d49da5de9\"",
+  "etag": "\"969f0ad1055c75999a33e307ccab139e3bc0062c4b40c982a5364cde727ab966\"",
+  "manifestURL": "https://marketplace.firefox.com/app/3cf61cd6-7ab6-4329-83dc-275b47c8c873/manifest.webapp",
+  "packageEtag": "\"5bec63ab6a8f3b37acff57668b183a8c444bcadb0e564c489f364239fe5871ad\"",
   "installOrigin": "https://marketplace.firefox.com",
   "removable": true,
   "type": "privileged"

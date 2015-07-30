@@ -11,12 +11,15 @@
   background: rgba(0,0,0,0.85);
   overflow: hidden;
   opacity: 1;
-  transition: opacity 150ms linear;
+  transition: opacity 150ms linear, visibility 0s;
+  visibility: visible;
   will-change: opacity;
 }
 
 .settings.hidden {
   opacity: 0;
+  visibility: hidden;
+  transition-delay: 0s, 150ms;
 }
 
 /**
@@ -108,6 +111,7 @@
 
 [show-pane=pane-2] .pane-1 {
   transform: translateX(-100%);
+  visibility: hidden;
 }
 
 /** Pane 2
@@ -115,6 +119,7 @@
 
 .pane-2 {
   transform: translateX(100%);
+  visibility: hidden;
 }
 
 /**
@@ -123,6 +128,7 @@
 
 [show-pane=pane-2] .pane-2 {
   transform: translateX(0);
+  visibility: visible;
 }
 
 /** Inner
@@ -152,8 +158,12 @@
 /** Title
  ---------------------------------------------------------*/
 
+/**
+ * 1. In case of the title being longer than the header
+ *    we show ellipsis and prevent line wrapping
+ */
 .settings_title {
-  padding: 0 1.5rem;
+  padding: 0 1.5rem 0 3rem;
   font-size: 2.4rem;
   font-weight: 300;
   font-style: italic;
@@ -162,6 +172,7 @@
   pointer-events: none;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap; /* 1 */
 }
 
 /**

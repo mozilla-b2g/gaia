@@ -1,11 +1,9 @@
-/* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-
+/* global SettingsListener, SystemBanner, LazyLoader */
+/* exported CrashReporter */
 'use strict';
 
 // This file calls getElementById without waiting for an onload event, so it
 // must have a defer attribute or be included at the end of the <body>.
-
 var CrashReporter = (function() {
   var _ = navigator.mozL10n.get;
   var settings = navigator.mozSettings;
@@ -29,7 +27,7 @@ var CrashReporter = (function() {
   function showDialog(crashID, isChrome) {
     var elem = document.getElementById('crash-dialog-title');
     if (isChrome) {
-      navigator.mozL10n.setAttributes(elem, 'crash-dialog-os2');
+      navigator.mozL10n.setAttributes(elem, 'crash-dialog2-os');
     } else {
       navigator.mozL10n.setAttributes(
         elem,
@@ -86,13 +84,13 @@ var CrashReporter = (function() {
 
   function showBanner(crashID, isChrome) {
     var appName = crashedAppName || _('crash-dialog-app-noname');
-    var message = isChrome ? _('crash-banner-os2') :
-      _('crash-banner-app', { name: appName });
+    var message = isChrome ? 'crash-banner-os2' :
+      {id: 'crash-banner-app', args: { name: appName }};
 
     var button = null;
     if (showReportButton) {
       button = {
-        label: _('crash-banner-report'),
+        label: 'crash-banner-report',
         callback: function reportCrash() {
           submitCrash(crashID);
         },
@@ -101,9 +99,12 @@ var CrashReporter = (function() {
         }
       };
     }
-
-    var systemBanner = new SystemBanner();
-    systemBanner.show(message, button);
+    LazyLoader.load(['js/system_banner.js']).then(() => {
+      var systemBanner = new SystemBanner();
+      systemBanner.show(message, button);
+    }).catch((err) => {
+      console.error(err);
+    });
   }
 
   function deleteCrash(crashID) {

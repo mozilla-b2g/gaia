@@ -1,26 +1,31 @@
-/* global AppWindow, ScreenLayout, MockOrientationManager, MockService,
-      LayoutManager, MocksHelper, MockContextMenu, layoutManager, Service,
+/* global AppWindow, ScreenLayout, MockService, IconsHelper,
+      MocksHelper, BaseModule, MockContextMenu,
       MockAppTransitionController, MockPermissionSettings, DocumentFragment,
-      AppChrome */
+      MockAudioChannelController, AppChrome,
+      MockWebManifestHelper, MockPromise */
 'use strict';
 
-requireApp('system/test/unit/mock_orientation_manager.js');
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_helper.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/test/unit/mock_context_menu.js');
 requireApp('system/test/unit/mock_applications.js');
-requireApp('system/test/unit/mock_layout_manager.js');
 requireApp('system/test/unit/mock_app_chrome.js');
 requireApp('system/test/unit/mock_screen_layout.js');
+requireApp('system/test/unit/mock_lazy_loader.js');
 requireApp('system/test/unit/mock_app_transition_controller.js');
+requireApp('system/test/unit/mock_audio_channel_controller.js');
 requireApp('system/shared/test/unit/mocks/mock_service.js');
 requireApp('system/shared/test/unit/mocks/mock_permission_settings.js');
+require('/shared/test/unit/mocks/mock_web_manifest_helper.js');
+require('/shared/test/unit/mocks/mock_promise.js');
+require('/shared/test/unit/mocks/mock_icons_helper.js');
 
 var mocksForAppWindow = new MocksHelper([
-  'OrientationManager', 'Applications', 'SettingsListener',
-  'ManifestHelper', 'LayoutManager', 'ScreenLayout', 'AppChrome',
-  'AppTransitionController', 'Service'
+  'Applications', 'SettingsListener',
+  'ManifestHelper', 'WebManifestHelper',
+  'ScreenLayout', 'AppChrome', 'IconsHelper',
+  'AppTransitionController', 'Service', 'LazyLoader'
 ]).init();
 
 suite('system/AppWindow', function() {
@@ -44,32 +49,38 @@ suite('system/AppWindow', function() {
     this.sinon.useFakeTimers();
 
     window.Service = MockService;
-    window.layoutManager = new LayoutManager();
-    window.layoutManager.start();
 
     realPermissionSettings = navigator.mozPermissionSettings;
     navigator.mozPermissionSettings = MockPermissionSettings;
     MockPermissionSettings.mSetup();
 
-    this.sinon.stub(document, 'getElementById').
-      returns(document.createElement('div'));
-    this.sinon.stub(DocumentFragment.prototype, 'getElementById').
-      returns(document.createElement('div'));
+    this.sinon.stub(document, 'getElementById', function() {
+      return document.createElement('div');
+    });
+    this.sinon.stub(DocumentFragment.prototype, 'getElementById', function() {
+      return document.createElement('div');
+    });
 
     this.sinon.stub(HTMLElement.prototype, 'querySelector',
     function() {
       return document.createElement('div');
     });
-    requireApp('system/js/service.js');
     requireApp('system/js/browser_config_helper.js');
     requireApp('system/js/browser_frame.js');
+    requireApp('system/js/base_module.js');
     requireApp('system/js/app_window.js');
-    requireApp('system/js/browser_mixin.js', done);
+    requireApp('system/js/browser_mixin.js', function() {
+      this.sinon.stub(BaseModule, 'instantiate', function(name) {
+        if (name === 'BrowserContextMenu') {
+          return MockContextMenu;
+        }
+      });
+      done();
+    }.bind(this));
   });
 
   teardown(function() {
     navigator.mozPermissionSettings = realPermissionSettings;
-    delete window.layoutManager;
     delete window.Service;
   });
 
@@ -102,7 +113,7 @@ suite('system/AppWindow', function() {
 
   var fakePrivateConfig = {
     url: 'http://www.private/index.html',
-    manifest: {},
+    manifest: null,
     origin: 'http://www.private',
     isPrivate: true
   };
@@ -180,6 +191,14 @@ suite('system/AppWindow', function() {
     origin: 'app://www.fake4'
   };
 
+  var fakeAppWithName = {
+    url: 'http://fakeapp.com/index.html',
+    manifest: {
+      name: 'Fake App Name'
+    },
+    origin: 'http://fakeapp.com'
+  };
+
   var fakeInputAppConfig = {
     url: 'app://www.fakeinput/index.html',
     manifest: {},
@@ -187,6 +206,12 @@ suite('system/AppWindow', function() {
     origin: 'app://www.fakeinput',
     isInputMethod: true
   };
+
+  test('Sanity check instances dont share .element', function() {
+    var app1 = new AppWindow(fakeAppConfig1);
+    var app2 = new AppWindow(fakeAppConfig2);
+    assert.isFalse(app1.element === app2.element);
+  });
 
   test('App created with instanceID', function() {
     var app1 = new AppWindow(fakeAppConfig1);
@@ -212,16 +237,23 @@ suite('system/AppWindow', function() {
     var app1;
     setup(function() {
       app1 = new AppWindow(fakeAppConfig1);
+      // Inject mozBrowser API to app iframe
+      injectFakeMozBrowserAPI(app1.browser.element);
+      this.sinon.stub(app1.browser.element, 'addNextPaintListener');
     });
     teardown(function() {});
 
-    test('Resize in foreground', function() {
+    test('Resize in foreground', function(done) {
       var stubIsActive = this.sinon.stub(app1, 'isActive');
       this.sinon.stub(app1, 'reviveBrowser');
       stubIsActive.returns(true);
-      app1.resize();
+      var p = app1.resize();
       assert.isTrue(app1.resized);
       assert.isTrue(app1.reviveBrowser.called);
+
+      assert.isTrue(app1.browser.element.addNextPaintListener.calledOnce);
+      app1.browser.element.addNextPaintListener.firstCall.args[0]();
+      p.catch((e) => { throw e || 'Should not reject'; }).then(done, done);
     });
 
     test('Resize in background', function() {
@@ -229,50 +261,73 @@ suite('system/AppWindow', function() {
       stubIsActive.returns(false);
       app1.resize();
       assert.isUndefined(app1.resized);
+
+      assert.isFalse(app1.browser.element.addNextPaintListener.calledOnce);
     });
 
-    test('Resize if we are fullscreen', function() {
+    test('Resize if we are fullscreen', function(done) {
+      MockService.mockQueryWith('getHeightFor', 480);
       var stubIsFullScreen = this.sinon.stub(app1, 'isFullScreen');
       stubIsFullScreen.returns(true);
       var stubIsActive = this.sinon.stub(app1, 'isActive');
       stubIsActive.returns(true);
-      app1.resize();
-      assert.equal(app1.height, layoutManager.height);
+      var p = app1.resize();
+      assert.equal(app1.height, MockService.mockQueryWith('getHeightFor'));
+
+      assert.isTrue(app1.browser.element.addNextPaintListener.calledOnce);
+      app1.browser.element.addNextPaintListener.firstCall.args[0]();
+      p.catch((e) => { throw e || 'Should not reject'; }).then(done, done);
     });
 
-    test('Resize if we are not fullscreen', function() {
+    test('Resize if we are not fullscreen', function(done) {
+      MockService.mockQueryWith('getHeightFor', 430);
       var stubIsFullScreen = this.sinon.stub(app1, 'isFullScreen');
       stubIsFullScreen.returns(false);
       var stubIsActive = this.sinon.stub(app1, 'isActive');
       stubIsActive.returns(true);
-      app1.resize();
-      assert.equal(app1.height, layoutManager.height);
+      var p = app1.resize();
+      assert.equal(app1.height, MockService.mockQueryWith('getHeightFor'));
+
+      assert.isTrue(app1.browser.element.addNextPaintListener.calledOnce);
+      app1.browser.element.addNextPaintListener.firstCall.args[0]();
+      p.catch((e) => { throw e || 'Should not reject'; }).then(done, done);
     });
 
-    test('Send message to appChrome: w/o keyboard', function() {
-      layoutManager.keyboardEnabled = false;
+    test('Send message to appChrome: w/o keyboard', function(done) {
+      MockService.mockQueryWith('keyboardEnabled', false);
       var stubIsActive = this.sinon.stub(app1, 'isActive');
       var stubbroadcast = this.sinon.stub(app1, 'broadcast');
       stubIsActive.returns(true);
-      app1.resize();
+      var p = app1.resize();
       assert.isTrue(stubbroadcast.calledWith('withoutkeyboard'));
+
+      assert.isTrue(app1.browser.element.addNextPaintListener.calledOnce);
+      app1.browser.element.addNextPaintListener.firstCall.args[0]();
+      p.catch((e) => { throw e || 'Should not reject'; }).then(done, done);
     });
 
-    test('Send message to appChrome: w/ keyboard', function() {
-      layoutManager.keyboardEnabled = true;
+    test('Send message to appChrome: w/ keyboard', function(done) {
+      MockService.mockQueryWith('keyboardEnabled', true);
       var stubIsActive = this.sinon.stub(app1, 'isActive');
       var stubbroadcast = this.sinon.stub(app1, 'broadcast');
       stubIsActive.returns(true);
-      app1.resize();
+      var p = app1.resize();
       assert.isTrue(stubbroadcast.calledWith('withkeyboard'));
+
+      app1.browser.element.addNextPaintListener.firstCall.args[0]();
+      p.catch((e) => { throw e || 'Should not reject'; }).then(done, done);
     });
 
-    test('Reset the screenshot overlay visibilty', function() {
+    test('Reset the screenshot overlay visibilty', function(done) {
       app1.screenshotOverlay.style.visibility = 'hidden';
       var stubIsActive = this.sinon.stub(app1, 'isActive');
       stubIsActive.returns(true);
-      app1.resize();
+      var p = app1.resize();
       assert.equal(app1.screenshotOverlay.style.visibility, '');
+
+      assert.isTrue(app1.browser.element.addNextPaintListener.calledOnce);
+      app1.browser.element.addNextPaintListener.firstCall.args[0]();
+      p.catch((e) => { throw e || 'Should not reject'; }).then(done, done);
     });
 
     test('No navigation setting in manifest', function() {
@@ -302,21 +357,35 @@ suite('system/AppWindow', function() {
       assert.isTrue(spy.calledWithNew());
     });
 
-    test('resize to bottom window thru top most window', function() {
+    test('resize to bottom window thru top most window', function(done) {
       var popups = openPopups(5);
-      var stubTop1Resize = this.sinon.stub(popups[4], '_resize');
-      var stubTop2Resize = this.sinon.stub(popups[3], '_resize');
-      var stubTop3Resize = this.sinon.stub(popups[2], '_resize');
-      var stubTop4Resize = this.sinon.stub(popups[1], '_resize');
-      var stubBottomResize = this.sinon.stub(popups[0], '_resize');
+      injectFakeMozBrowserAPI(popups[0].browser.element);
+      this.sinon.stub(popups[0].browser.element, 'addNextPaintListener');
+      injectFakeMozBrowserAPI(popups[1].browser.element);
+      this.sinon.stub(popups[1].browser.element, 'addNextPaintListener');
+      injectFakeMozBrowserAPI(popups[2].browser.element);
+      this.sinon.stub(popups[2].browser.element, 'addNextPaintListener');
+      injectFakeMozBrowserAPI(popups[3].browser.element);
+      this.sinon.stub(popups[3].browser.element, 'addNextPaintListener');
+      injectFakeMozBrowserAPI(popups[4].browser.element);
+      this.sinon.stub(popups[4].browser.element, 'addNextPaintListener');
       var stubAppIsActive = this.sinon.stub(popups[0], 'isActive');
       stubAppIsActive.returns(true);
-      popups[0].resize();
-      assert.isTrue(stubTop1Resize.called);
-      assert.isTrue(stubTop2Resize.called);
-      assert.isTrue(stubTop3Resize.called);
-      assert.isTrue(stubTop4Resize.called);
-      assert.isTrue(stubBottomResize.called);
+      var p = popups[0].resize();
+
+      assert.isTrue(popups[0].browser.element.addNextPaintListener.calledOnce);
+      popups[0].browser.element.addNextPaintListener.firstCall.args[0]();
+      assert.isTrue(popups[1].browser.element.addNextPaintListener.calledOnce);
+      popups[1].browser.element.addNextPaintListener.firstCall.args[0]();
+      assert.isTrue(popups[2].browser.element.addNextPaintListener.calledOnce);
+      popups[2].browser.element.addNextPaintListener.firstCall.args[0]();
+      assert.isTrue(popups[3].browser.element.addNextPaintListener.calledOnce);
+      popups[3].browser.element.addNextPaintListener.firstCall.args[0]();
+      assert.isTrue(popups[4].browser.element.addNextPaintListener.calledOnce);
+      popups[4].browser.element.addNextPaintListener.firstCall.args[0]();
+
+      p.then(() => undefined, (e) => { throw e || 'Should not reject'; })
+        .then(done, done);
     });
   });
 
@@ -426,16 +495,12 @@ suite('system/AppWindow', function() {
     var stubScreenMozLockOrientation, stubScreenMozUnlockOrientation;
     suite('lockOrientation()', function() {
       setup(function() {
-        MockOrientationManager.defaultOrientation = 'portrait-primary';
-        MockOrientationManager.globalOrientation = null;
+        MockService.mockQueryWith('defaultOrientation', 'portrait-primary');
+        MockService.mockQueryWith('globalOrientation', null);
         stubScreenMozLockOrientation =
           this.sinon.stub(screen, 'mozLockOrientation');
         stubScreenMozUnlockOrientation =
           this.sinon.stub(screen, 'mozUnlockOrientation');
-      });
-      teardown(function() {
-        stubScreenMozLockOrientation.restore();
-        stubScreenMozUnlockOrientation.restore();
       });
       test('No orientation entry in manifest should unlock screen orientation.',
         function() {
@@ -494,7 +559,8 @@ suite('system/AppWindow', function() {
     });
 
     test('rotatingDegree on / default is portrait-primary', function() {
-      MockOrientationManager.defaultOrientation = 'portrait-primary';
+      MockService.mockQueryWith('defaultOrientation', 'portrait-primary');
+      MockService.mockQueryWith('isDefaultPortrait', true);
       var app1 = new AppWindow(fakeAppConfig1);
       assert.isTrue(typeof(app1.rotatingDegree) !== 'undefined');
       var app2 = new AppWindow(fakeAppConfigWithDefaultOrientation);
@@ -514,7 +580,8 @@ suite('system/AppWindow', function() {
     });
 
     test('rotatingDegree on / default is landscape-primary', function() {
-      MockOrientationManager.defaultOrientation = 'landscape-primary';
+      MockService.mockQueryWith('defaultOrientation', 'landscape-primary');
+      MockService.mockQueryWith('isDefaultPortrait', false);
       var app1 = new AppWindow(fakeAppConfig1);
       assert.isTrue(typeof(app1.rotatingDegree) !== 'undefined');
       var app3 = new AppWindow(fakeAppConfigWithPortraitOrientation);
@@ -532,45 +599,47 @@ suite('system/AppWindow', function() {
     });
 
     test('closing Rotation Degree / default is portrait-primary', function() {
-      MockOrientationManager.defaultOrientation = 'portrait-primary';
-      var stubCurrentOrientation =
-        this.sinon.stub(MockOrientationManager, 'fetchCurrentOrientation');
-      stubCurrentOrientation.returns('portrait-primary');
+      MockService.mockQueryWith('defaultOrientation', 'portrait-primary');
+      MockService.mockQueryWith('fetchCurrentOrientation', 'portrait-primary');
+      MockService.mockQueryWith('isDefaultPortrait', true);
       var app1 = new AppWindow(fakeAppConfig1);
       var angle1 = app1.determineClosingRotationDegree();
       assert.equal(angle1, 0);
 
-      stubCurrentOrientation.returns('portrait-secondary');
+      MockService.mockQueryWith('fetchCurrentOrientation',
+        'portrait-secondary');
       var angle2 = app1.determineClosingRotationDegree();
       assert.equal(angle2, 180);
 
-      stubCurrentOrientation.returns('landscape-primary');
+      MockService.mockQueryWith('fetchCurrentOrientation', 'landscape-primary');
       var angle3 = app1.determineClosingRotationDegree();
       assert.equal(angle3, 270);
 
-      stubCurrentOrientation.returns('landscape-secondary');
+      MockService.mockQueryWith('fetchCurrentOrientation',
+        'landscape-secondary');
       var angle4 = app1.determineClosingRotationDegree();
       assert.equal(angle4, 90);
     });
 
     test('closing Rotation Degree / default is landscape-primary', function() {
-      MockOrientationManager.defaultOrientation = 'landscape-primary';
-      var stubCurrentOrientation =
-        this.sinon.stub(MockOrientationManager, 'fetchCurrentOrientation');
-      stubCurrentOrientation.returns('portrait-primary');
+      MockService.mockQueryWith('defaultOrientation', 'landscape-primary');
+      MockService.mockQueryWith('fetchCurrentOrientation', 'portrait-primary');
+      MockService.mockQueryWith('isDefaultPortrait', false);
       var app1 = new AppWindow(fakeAppConfig1);
       var angle1 = app1.determineClosingRotationDegree();
       assert.equal(angle1, 90);
 
-      stubCurrentOrientation.returns('portrait-secondary');
+      MockService.mockQueryWith('fetchCurrentOrientation',
+        'portrait-secondary');
       var angle2 = app1.determineClosingRotationDegree();
       assert.equal(angle2, 270);
 
-      stubCurrentOrientation.returns('landscape-primary');
+      MockService.mockQueryWith('fetchCurrentOrientation', 'landscape-primary');
       var angle3 = app1.determineClosingRotationDegree();
       assert.equal(angle3, 0);
 
-      stubCurrentOrientation.returns('landscape-secondary');
+      MockService.mockQueryWith('fetchCurrentOrientation',
+        'landscape-secondary');
       var angle4 = app1.determineClosingRotationDegree();
       assert.equal(angle4, 180);
     });
@@ -658,7 +727,7 @@ suite('system/AppWindow', function() {
       manifestURL: 'app://wwww.fake/ManifestURL',
       origin: 'app://www.fake'
     };
-    
+
     test('minimal-ui', function() {
       var app1 = new AppWindow(fakeAppConfigDisplayMinimalUi);
       assert.isFalse(app1.isFullScreen());
@@ -692,13 +761,35 @@ suite('system/AppWindow', function() {
     });
 
     test('when cards view is shown and hidden', function() {
+      var fakeScreenshotBlob = 'blob:d3958f5c-0777-0845-9dcf-2cb28783acaf';
+      this.sinon.stub(app1, 'requestScreenshotURL', function() {
+        return fakeScreenshotBlob;
+      });
+
       app1.element.dispatchEvent(new CustomEvent('_cardviewbeforeshow'));
       assert.isTrue(app1.screenshotOverlay.classList.contains('visible'),
                     'Overlay should be visible after beforeshow is received');
+      assert.isFalse(app1.element.classList.contains('no-screenshot'),
+                    'Shouldnt have no-screenshot class when there is one');
 
       app1.element.dispatchEvent(new CustomEvent('_cardviewclosed'));
       assert.isFalse(app1.screenshotOverlay.classList.contains('visible'),
                      'Overlay should be hidden after closed is received');
+    });
+
+    test('when cards view is shown and theres no screenshot', function() {
+      this.sinon.stub(app1, 'requestScreenshotURL', function() {
+        return null;
+      });
+      app1.element.dispatchEvent(new CustomEvent('_cardviewbeforeshow'));
+      assert.isTrue(app1.element.classList.contains('no-screenshot'),
+                    'has no-screenshot class ' +
+                    'when requestScreenshotURL returns falsey');
+
+      app1.element.dispatchEvent(new CustomEvent('_cardviewshown'));
+      app1.element.dispatchEvent(new CustomEvent('_cardviewclosed'));
+      assert.isFalse(app1.element.classList.contains('no-screenshot'),
+                    'removes no-screenshot class');
     });
 
     test('show overlay when revealed by an edge swipe', function() {
@@ -748,6 +839,16 @@ suite('system/AppWindow', function() {
       this.sinon.stub(app2, 'isActive').returns(false);
       app1._showScreenshotOverlay();
       assert.isFalse(app2.screenshotOverlay.classList.contains('visible'));
+    });
+
+    test('should return promise and resolve directly if the frontest app is' +
+         ' active and its screenshot is visible', function(done) {
+      app1.frontWindow = app2;
+      this.sinon.stub(app2, 'isActive').returns(true);
+      app2.screenshotOverlay.classList.add('visible');
+      app1._showScreenshotOverlay().then(() => {
+        done();
+      });
     });
 
     test('hideScreenshotOverlay', function() {
@@ -1062,10 +1163,10 @@ suite('system/AppWindow', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       injectFakeMozBrowserAPI(app1.browser.element);
       this.sinon.stub(app1.browser.element, 'setActive');
-      MockService.mTopMostUI = { name: 'Rocketbar' };
+      MockService.mockQueryWith('getTopMostUI', { name: 'Rocketbar' });
       app1._setActive(false);
       assert.isTrue(app1.browser.element.setActive.calledWith(false));
-      MockService.mTopMostUI = { name: 'AppWindowManager' };
+      MockService.mockQueryWith('getTopMostUI', { name: 'AppWindowManager' });
       app1._setActive(true);
       assert.isTrue(app1.browser.element.setActive.calledWith(true));
     });
@@ -1073,14 +1174,11 @@ suite('system/AppWindow', function() {
     test('MozBrowser API: simple methods', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       injectFakeMozBrowserAPI(app1.browser.element);
-      var stubBlur = this.sinon.stub(app1.browser.element, 'blur');
       var stubBack = this.sinon.stub(app1.browser.element, 'goBack');
       var stubForward = this.sinon.stub(app1.browser.element, 'goForward');
       var stubReload = this.sinon.stub(app1.browser.element, 'reload');
       var stubStop = this.sinon.stub(app1.browser.element, 'stop');
 
-      app1.blur();
-      assert.isTrue(stubBlur.called);
       app1.back();
       assert.isTrue(stubBack.called);
       app1.forward();
@@ -1091,7 +1189,60 @@ suite('system/AppWindow', function() {
       assert.isTrue(stubStop.called);
     });
 
-    suite('focus', function() {
+    suite('focus/blur', function() {
+      var app1;
+      var stubBlur;
+      var stubFocus;
+
+      setup(function() {
+        app1 = new AppWindow(fakeAppConfig1);
+        stubBlur = this.sinon.stub(app1.browser.element, 'blur');
+        stubFocus = this.sinon.stub(app1.browser.element, 'focus');
+      });
+
+      teardown(function() {
+        stubBlur.restore();
+        stubFocus.restore();
+      });
+
+      test('blur should not be called without focus', function() {
+        var stub = this.sinon.stub(app1, 'getActiveElement', function() {
+          return document.body;
+        });
+        app1.blur();
+        assert.isFalse(stubBlur.called);
+        stub.restore();
+      });
+
+      test('blur should be called with focus', function() {
+        var stub = this.sinon.stub(app1, 'getActiveElement', function() {
+          return app1.browser.element;
+        });
+        app1.blur();
+        assert.isTrue(stubBlur.called);
+        stub.restore();
+      });
+
+      test('focus should be called without focus', function() {
+        var stub = this.sinon.stub(app1, 'getActiveElement', function() {
+          return document.body;
+        });
+        app1.focus();
+        assert.isTrue(stubFocus.called);
+        stub.restore();
+      });
+
+      test('focus should not be called with focus', function() {
+        var stub = this.sinon.stub(app1, 'getActiveElement', function() {
+          return app1.browser.element;
+        });
+        app1.focus();
+        assert.isFalse(stubFocus.called);
+        stub.restore();
+      });
+    });
+
+    suite('focus and context menu', function() {
       var app1;
       var stubFocus;
 
@@ -1115,14 +1266,23 @@ suite('system/AppWindow', function() {
         app1.contextmenu = {
           isShown: function() {
             return true;
+          },
+          focus: function() {
+
           }
         };
+
+        var stubContextMenuFocus = this.sinon.stub(app1.contextmenu, 'focus');
         app1.focus();
         assert.isFalse(stubFocus.called);
+        assert.isTrue(stubContextMenuFocus.called);
+        stubContextMenuFocus.restore();
       });
     });
 
     test('MozBrowser API: getScreenshot', function() {
+      MockService.mockQueryWith('LayoutManager.width', 320);
+      MockService.mockQueryWith('LayoutManager.height', 480);
       var app1 = new AppWindow(fakeAppConfig1);
       injectFakeMozBrowserAPI(app1.browser.element);
       var stubScreenshot = this.sinon.stub(app1.browser.element,
@@ -1167,7 +1327,34 @@ suite('system/AppWindow', function() {
       assert.isTrue(callback1.called);
     });
 
+    test('MozBrowser API: getScreenshot (ignore frontWindow)', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      var app2 = new AppWindow(fakeAppConfig2);
+
+      injectFakeMozBrowserAPI(app1.browser.element);
+      injectFakeMozBrowserAPI(app2.browser.element);
+      var stubScreenshot = this.sinon.stub(app1.browser.element,
+        'getScreenshot').returns(fakeDOMRequest);
+      var stubScreenshot2 = this.sinon.stub(app2.browser.element,
+        'getScreenshot').returns(fakeDOMRequest);
+
+      var callback1 = this.sinon.spy();
+      app1.frontWindow = app2;
+      app1.getScreenshot(callback1, null, null, null, true);
+
+      assert.isTrue(stubScreenshot.called);
+      assert.isFalse(stubScreenshot2.called);
+      fakeDOMRequest.onsuccess({ target: { result: 'fakeBlob' } });
+      assert.equal(app1._screenshotBlob, 'fakeBlob');
+      assert.isTrue(callback1.calledWith('fakeBlob'));
+
+      fakeDOMRequest.onerror();
+      assert.isTrue(callback1.called);
+    });
+
     test('MozBrowser API: getScreenshot for homescreen', function() {
+      MockService.mockQueryWith('LayoutManager.width', 320);
+      MockService.mockQueryWith('LayoutManager.height', 480);
       var home = new AppWindow(fakeAppConfig1);
       home.isHomescreen = true;
 
@@ -1222,7 +1409,7 @@ suite('system/AppWindow', function() {
       assert.isTrue(callback.called);
     });
 
-    test('MozBrowser API: NextPaint', function() {
+    test('MozBrowser API: NextPaint (pass callback)', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       injectFakeMozBrowserAPI(app1.browser.element);
       var callback = this.sinon.spy();
@@ -1239,12 +1426,30 @@ suite('system/AppWindow', function() {
       this.sinon.clock.tick(app1.NEXTPAINT_TIMEOUT);
       assert.isTrue(callback2.called);
     });
+
+    test('MozBrowser API: NextPaint (Promise)', function(done) {
+      var app1 = new AppWindow(fakeAppConfig1);
+      injectFakeMozBrowserAPI(app1.browser.element);
+      var stubAddNextPaintListener = this.sinon.stub(app1.browser.element,
+        'addNextPaintListener');
+
+      var p = app1.waitForNextPaint();
+      assert.isTrue(stubAddNextPaintListener.called);
+      stubAddNextPaintListener.getCall(0).args[0]();
+      p.then(function() {
+        var p2 = app1.waitForNextPaint();
+        this.sinon.clock.tick(app1.NEXTPAINT_TIMEOUT);
+
+        return p2;
+      }.bind(this)).then(done, done);
+    });
   });
 
   suite('setVisible', function() {
     test('setVisible: true should revive browser', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       injectFakeMozBrowserAPI(app1.browser.element);
+      app1.setVisible(false);
       this.sinon.stub(app1, 'reviveBrowser');
 
       app1.setVisible(true);
@@ -1254,30 +1459,77 @@ suite('system/AppWindow', function() {
     test('setVisible: true', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       injectFakeMozBrowserAPI(app1.browser.element);
+      app1.setVisible(false);
+      var spyShowFrame = this.sinon.spy(app1,
+        '_showFrame');
+
+      var mozBrowserSetVisible = this.sinon.stub(app1.browser.element,
+                                                 'setVisible');
+
+      app1.setVisible(true);
+      assert.isFalse(app1.screenshotOverlay.classList.contains('visible'));
+      assert.isTrue(spyShowFrame.called);
+      assert.isFalse(app1.element.classList.contains('inactive'));
+      assert.equal(app1.browser.element.getAttribute('aria-hidden'), 'false');
+      assert.isTrue(mozBrowserSetVisible.calledOnce);
+      assert.isTrue(mozBrowserSetVisible.calledWith(true));
+    });
+
+    test('setVisible: true, multiple times', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      injectFakeMozBrowserAPI(app1.browser.element);
+      app1.setVisible(false);
+
       var stub_showFrame = this.sinon.stub(app1,
         '_showFrame');
 
       app1.setVisible(true);
+      this.sinon.clock.tick();
+      app1.setVisible(true);
       assert.isFalse(app1.screenshotOverlay.classList.contains('visible'));
-      assert.isTrue(stub_showFrame.called);
+      assert.isTrue(stub_showFrame.calledOnce);
     });
 
     test('setVisible: false', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      injectFakeMozBrowserAPI(app1.browser.element);
+      var spyHideFrame = this.sinon.spy(app1,
+        '_hideFrame');
+
+      var mozBrowserSetVisible = this.sinon.stub(app1.browser.element,
+                                                 'setVisible');
+
+
+      app1.setVisible(false);
+      assert.isTrue(spyHideFrame.called);
+      assert.isTrue(app1.element.classList.contains('inactive'));
+      assert.equal(app1.browser.element.getAttribute('aria-hidden'), 'true');
+      assert.isTrue(mozBrowserSetVisible.calledOnce);
+      assert.isTrue(mozBrowserSetVisible.calledWith(false));
+    });
+
+    test('setVisible: false, multiple times', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       injectFakeMozBrowserAPI(app1.browser.element);
       var stub_hideFrame = this.sinon.stub(app1,
         '_hideFrame');
 
       app1.setVisible(false);
-      assert.isTrue(stub_hideFrame.called);
+      this.sinon.clock.tick();
+      app1.setVisible(false);
+      assert.isTrue(stub_hideFrame.calledOnce);
     });
 
     test('setVisible to front window', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       var app2 = new AppWindow(fakeAppConfig2);
+      app1.setVisible(false);
+
       var stubApp2SetVisible = this.sinon.stub(app2, 'setVisible');
       app1.frontWindow = app2;
+      this.sinon.stub(app2, 'isActive').returns(true);
       app2.rearWindow = app1;
+
       app1.setVisible(true);
       assert.isTrue(stubApp2SetVisible.calledWith(true));
 
@@ -1285,16 +1537,31 @@ suite('system/AppWindow', function() {
       assert.isTrue(stubApp2SetVisible.calledWith(false));
     });
 
+    test('doNotPropagate', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      var app2 = new AppWindow(fakeAppConfig2);
+      app1.setVisible(false);
+
+      this.sinon.stub(app2, 'setVisible');
+      app1.frontWindow = app2;
+      this.sinon.stub(app2, 'isActive').returns(true);
+      app2.rearWindow = app1;
+      app1.setVisible(true, true);
+      assert.isFalse(app2.setVisible.called);
+    });
+
     test('setVisible: homescreen', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       injectFakeMozBrowserAPI(app1.browser.element);
+      app1.isHomescreen = true;
+      app1.setVisible(true);
+
       var stub_hideFrame = this.sinon.stub(app1,
         '_hideFrame');
-      app1.isHomescreen = true;
 
       app1.setVisible(false);
       assert.isFalse(app1.screenshotOverlay.classList.contains('visible'));
-      assert.isTrue(stub_hideFrame.called);
+      assert.isTrue(stub_hideFrame.calledOnce);
     });
 
     test('setVisible: homescreen child', function() {
@@ -1312,7 +1579,7 @@ suite('system/AppWindow', function() {
     test('setVisible: called twice', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       injectFakeMozBrowserAPI(app1.browser.element);
-      app1.browser.element.classList.add('hidden');
+      app1.setVisible(false);
       var stubMixinSetVisible = this.sinon.stub(app1, '_setVisible');
 
       app1.setVisible(true);
@@ -1579,7 +1846,7 @@ suite('system/AppWindow', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       var stubKill = this.sinon.stub(app1, 'kill');
       var stubPublish = this.sinon.stub(app1, 'publish');
-      AppWindow.SUSPENDING_ENABLED = false;
+      MockService.mockQueryWith('suspendingAppWindow', false);
       app1.handleEvent({
         type: 'mozbrowsererror',
         detail: {
@@ -1602,6 +1869,7 @@ suite('system/AppWindow', function() {
         var stubIsActive = this.sinon.stub(app1, 'isActive');
 
         stubIsActive.returns(false);
+        MockService.mockQueryWith('suspendingAppWindow', true);
         AppWindow.SUSPENDING_ENABLED = true;
         app1.handleEvent({
           type: 'mozbrowsererror',
@@ -1651,7 +1919,7 @@ suite('system/AppWindow', function() {
       app1.isHomescreen = true;
       var app2 = new AppWindow(fakeAppConfig2);
 
-      this.sinon.stub(Service, 'isBusyLoading').returns(true);
+      MockService.mockQueryWith('isBusyLoading', true);
       injectFakeMozBrowserAPI(app1.browser.element);
       injectFakeMozBrowserAPI(app2.browser.element);
       var stubScreenshot = this.sinon.stub(app1.browser.element,
@@ -1763,22 +2031,29 @@ suite('system/AppWindow', function() {
       assert.isFalse(app1.loading);
     });
 
-    test('Load event before _opened', function() {
+    test('mozbrowser events before _opened', function() {
       var spy = this.sinon.spy(window, 'AppChrome');
       var app1 = new AppWindow(fakeChromeConfigWithNavigationBar);
-      app1.handleEvent({
-        type: 'mozbrowserloadstart'
-      });
+      var events = [{ type: 'mozbrowserloadstart' },
+                    { type: 'mozbrowsererror',
+                      detail: { type: '' } },
+                    { type: 'mozbrowsermetachange',
+                      detail: {} }];
+      var expected = [{ type: 'mozbrowserloadstart' },
+                      { type: '_loading' },
+                      { type: 'mozbrowsererror' },
+                      { type: 'mozbrowsermetachange',
+                        detail: {} }];
+
+      events.forEach(app1.handleEvent, app1);
       assert.isFalse(spy.calledWithNew());
 
       var chromeEventSpy = this.sinon.stub(AppChrome.prototype, 'handleEvent');
-
-      app1.inError = true;
       app1.element.dispatchEvent(new CustomEvent('_opened'));
 
-      sinon.assert.calledWith(chromeEventSpy, {type: 'mozbrowsererror'});
-      sinon.assert.calledWith(chromeEventSpy, {type: 'mozbrowserloadstart'});
-      sinon.assert.calledWith(chromeEventSpy, {type: '_loading'});
+      expected.forEach((event) => {
+        sinon.assert.calledWith(chromeEventSpy, event);
+      });
     });
 
     test('Locationchange event', function() {
@@ -1818,6 +2093,18 @@ suite('system/AppWindow', function() {
       });
       assert.equal(Object.keys(app1.favicons).length, 0);
       app1.config.url = url;
+    });
+
+    test('Locationchange event resets name and title', function() {
+      var app1 = new AppWindow(fakeWrapperConfig);
+
+      app1.handleEvent({
+        type: 'mozbrowserlocationchange',
+        detail: 'http://example.com/page.html'
+      });
+
+      assert.equal(app1.name, 'example.com');
+      assert.equal(app1.title, 'http://example.com/page.html');
     });
 
     test('Scroll event', function() {
@@ -1862,6 +2149,7 @@ suite('system/AppWindow', function() {
       var spyManifestHelper = this.sinon.stub(window, 'ManifestHelper');
       spyManifestHelper.returns({
         name: 'Mon Application',
+        displayName: 'Bref',
         short_name: 'Bref'
       });
       var stubPublish = this.sinon.stub(app1, 'publish');
@@ -1873,8 +2161,8 @@ suite('system/AppWindow', function() {
       assert.isTrue(spyManifestHelper.calledWithNew());
       assert.isTrue(spyManifestHelper.calledWithExactly(app1.manifest));
       assert.isTrue(stubPublish.calledWithExactly('namechanged'));
-      assert.equal(app1.identificationTitle.textContent, 'Mon Application');
-      assert.equal(app1.shortName, 'Bref');
+      assert.equal(app1.identificationTitle.textContent, 'Bref');
+      assert.equal(app1.name, 'Bref');
     });
 
     test('focus event', function() {
@@ -1899,7 +2187,7 @@ suite('system/AppWindow', function() {
       assert.isTrue(stubBlur.calledOnce);
     });
 
-    test('Titilechange event', function() {
+    test('titlechange event', function() {
       var app1 = new AppWindow(fakeWrapperConfig);
       var stubPublish = this.sinon.stub(app1, 'publish');
 
@@ -1923,6 +2211,17 @@ suite('system/AppWindow', function() {
         app2.identificationTitle.textContent, '',
         'title should not be changed since it is an app'
       );
+    });
+
+    test('titlechange event > private browser', function() {
+      var defaultPbTitle = 'Private Browser Splash';
+      var privateApp = new AppWindow(fakePrivateConfig);
+      privateApp.identificationTitle.textContent = defaultPbTitle;
+      privateApp.handleEvent({
+        type: 'mozbrowsertitlechange',
+        detail: 'new title - does not update overlay'
+      });
+      assert.equal(privateApp.identificationTitle.textContent, defaultPbTitle);
     });
 
     test('iconchange event', function() {
@@ -1974,8 +2273,9 @@ suite('system/AppWindow', function() {
       this.sinon.stub(app1, 'isActive').returns(false);
       app1.width = 320;
       app1.height = 460;
-      layoutManager.width = 480;
-      layoutManager.height = 300;
+      MockService.mockQueryWith('keyboardEnabled', false);
+      MockService.mockQueryWith('LayoutManager.width', 480);
+      MockService.mockQueryWith('getHeightFor', 300);
 
       app1.handleEvent({
         type: '_orientationchange'
@@ -1992,8 +2292,8 @@ suite('system/AppWindow', function() {
       this.sinon.stub(app1, 'isActive').returns(false);
       app1.width = 320;
       app1.height = 460;
-      layoutManager.width = 320;
-      layoutManager.height = 460;
+      MockService.mockQueryWith('LayoutManager.width', 320);
+      MockService.mockQueryWith('getHeightFor', 460);
 
       app1.screenshotOverlay.style.visibility = 'hidden';
 
@@ -2005,39 +2305,53 @@ suite('system/AppWindow', function() {
     });
 
     test('Orientation change event on active app', function() {
+      MockService.mockQueryWith('LayoutManager.width', 320);
+      MockService.mockQueryWith('getHeightFor', 480);
       var app1 = new AppWindow(fakeAppConfig1);
       var app2 = new AppWindow(fakeAppConfig2);
+      // Inject mozBrowser API to app iframe
+      injectFakeMozBrowserAPI(app1.browser.element);
+      injectFakeMozBrowserAPI(app2.browser.element);
 
       app1.frontWindow = app2;
       this.sinon.stub(app1, 'isActive').returns(true);
       this.sinon.stub(app2, 'broadcast');
 
-      layoutManager.mKeyboardHeight = 100;
+      MockService.mockQueryWith('getHeightFor', 380);
       app1.handleEvent({
         type: '_orientationchange'
       });
 
       assert.isTrue(app2.broadcast.calledWith('orientationchange'));
-      assert.equal(app1.element.style.width, layoutManager.width + 'px');
-      assert.equal(app1.element.style.height,
-        (layoutManager.height - 100) + 'px');
+      assert.equal(app1.element.style.width,
+        MockService.mQueries['LayoutManager.width'] + 'px');
+      assert.equal(app1.element.style.height, '380px');
     });
 
     test('Orientation change event on active but not top most app', function() {
+      MockService.mockQueryWith('LayoutManager.width', 480);
+      MockService.mockQueryWith('getHeightFor', 320);
       var app1 = new AppWindow(fakeAppConfig1);
+      // Inject mozBrowser API to app iframe
+      injectFakeMozBrowserAPI(app1.browser.element);
+
       this.sinon.stub(app1, 'isActive').returns(true);
 
-      layoutManager.mKeyboardHeight = 100;
+      MockService.mockQueryWith('keyboardHeight', 100);
       app1.handleEvent({
         type: '_orientationchange',
         detail: true
       });
 
-      assert.equal(app1.element.style.width, layoutManager.width + 'px');
-      assert.equal(app1.element.style.height, layoutManager.height + 'px');
+      assert.equal(app1.element.style.width,
+        MockService.mQueries['LayoutManager.width'] + 'px');
+      assert.equal(app1.element.style.height,
+        MockService.mQueries.getHeightFor + 'px');
     });
 
     test('Orientation change event on active homescreen app', function() {
+      MockService.mockQueryWith('LayoutManager.width', 480);
+      MockService.mockQueryWith('getHeightFor', 320);
       var app1 = new AppWindow(fakeAppConfig1);
       var stubLockOrientation = this.sinon.stub(app1, 'lockOrientation');
       this.sinon.stub(app1, 'isActive').returns(true);
@@ -2045,9 +2359,9 @@ suite('system/AppWindow', function() {
       app1.width = 320;
       app1.height = 460;
 
-      layoutManager.width = 460;
-      layoutManager.height = 320;
-      MockService.currentApp = app1;
+      MockService.mockQueryWith('LayoutManager.width', 460);
+      MockService.mockQueryWith('LayoutManager.height', 320);
+      MockService.mockQueryWith('getTopMostWindow', app1);
 
       app1.handleEvent({
         type: '_orientationchange'
@@ -2058,17 +2372,19 @@ suite('system/AppWindow', function() {
         'prevent it is modified by other background app');
       assert.equal(app1.element.style.width, '460px');
       assert.equal(app1.element.style.height, '320px');
-      MockService.currentApp = null;
+      MockService.mockQueryWith('getTopMostWindow', null);
     });
 
     test('Orientation change event on fullscreen app', function() {
+      MockService.mockQueryWith('LayoutManager.width', 480);
+      MockService.mockQueryWith('getHeightFor', 320);
       var app1 = new AppWindow(fakeAppConfig1);
       this.sinon.stub(app1, 'isActive').returns(false);
       this.sinon.stub(app1, 'isFullScreen').returns(true);
       app1.width = 320;
       app1.height = 480;
-      layoutManager.width = 480;
-      layoutManager.height = 320;
+      MockService.mockQueryWith('LayoutManager.width', 480);
+      MockService.mockQueryWith('LayoutManager.height', 320);
 
       app1.handleEvent({
         type: '_orientationchange'
@@ -2144,7 +2460,12 @@ suite('system/AppWindow', function() {
         // calls all the necessary methods
         (callback) => { callback(); }
       );
-      var stubShowScreenshot = this.sinon.stub(app1, '_showScreenshotOverlay');
+      this.sinon.stub(app1, '_showScreenshotOverlay')
+        .returns(new Promise(function(resolve) {
+          resolve();
+          assert.isTrue(stubSetVisible.calledWith(false),
+            'setVisble in callback');
+        }));
       var stubSetVisible = this.sinon.stub(app1, 'setVisible');
       var stubBroadcast = this.sinon.stub(app1, 'broadcast');
 
@@ -2154,9 +2475,6 @@ suite('system/AppWindow', function() {
 
       assert.isTrue(stubBroadcast.calledWith('blur'));
       assert.isTrue(stubGetScreenshot.calledOnce, 'getScreenshot');
-      assert.isTrue(stubShowScreenshot.calledOnce,
-                    '_showScreenshotOverlay in callback');
-      assert.isTrue(stubSetVisible.calledWith(false), 'setVisble in callback');
     });
 
     test('Shrinking stop event', function() {
@@ -2192,6 +2510,114 @@ suite('system/AppWindow', function() {
         assert.equal(publishStub.getCall(i).args[1], state);
       });
     });
+
+    suite('mozbrowsermanifestchange event', function() {
+      var manifestURL = 'https://examples.com/webapp.json';
+      var manifestResult = {
+        'short_name': 'App', 'name': 'My App',
+        'icons': [{ src: new window.URL('icon.png', manifestURL) }]
+      };
+
+      setup(function() {
+        this.sinon.stub(window, 'Promise', MockPromise);
+      });
+
+      test('valid web manifest', function() {
+        var app1 = new AppWindow(fakeAppConfig1);
+        var fakeManifestResultPromise = new MockPromise();
+        this.sinon.stub(window.Promise, 'resolve')
+                        .returns(fakeManifestResultPromise);
+        app1.handleEvent({
+          type: 'mozbrowsermanifestchange',
+          detail: {
+            'href': manifestURL
+          }
+        });
+        fakeManifestResultPromise.mFulfillToValue(manifestResult);
+
+        assert.equal(app1.webManifestURL, manifestURL);
+        assert.ok(app1.webManifest);
+        assert.equal(app1.webManifest.name, 'My App');
+        assert.equal(app1.name, 'App');
+        assert.ok(app1.webManifest.icons[0]);
+      });
+
+      test('invalid web manifest url', function() {
+        var app1 = new AppWindow(fakeAppConfig1);
+        this.sinon.stub(MockWebManifestHelper, 'getManifest').throws();
+        app1.handleEvent({
+          type: 'mozbrowsermanifestchange',
+          detail: {
+            'href': null
+          }
+        });
+
+        assert.ok(!app1.webManifest,
+                  'webManifest property not populated without webManifestURL');
+      });
+    });
+  });
+
+  test('getIconBlob', function() {
+    var blobPromise = new MockPromise();
+    this.sinon.stub(window, 'Promise', MockPromise);
+    this.sinon.stub(IconsHelper, 'getIconBlob', function() {
+      return blobPromise;
+    });
+    var app1 = new AppWindow(fakeAppConfig1);
+    var dataURI = 'data:image/png;base64,abc+';
+    this.sinon.stub(app1, 'getIconBlob').returns(blobPromise);
+
+    var promisedIcon = app1.getSiteIconUrl();
+    promisedIcon.then(function(icon) {
+      assert.ok(icon && icon.url);
+      assert.equal(icon.url, dataURI);
+    });
+    blobPromise.mFulfillToValue({ url: dataURI });
+  });
+
+  suite('getSiteIconUrl', function() {
+    var app1;
+    var SIZE = 64;
+    var origin = 'http://test.com';
+
+    setup(function() {
+      app1 = new AppWindow(fakeAppConfig1);
+    });
+
+
+    test('getSiteIconUrl', function() {
+      this.sinon.stub(window, 'Promise', MockPromise);
+      app1.webManifestURL = 'https://example.com/webapp.json';
+      app1.webManifest = {};
+      var blobPromise = new MockPromise();
+      var dataURI = 'data:image/png;base64,abc+';
+      this.sinon.stub(app1, 'getIconBlob').returns(blobPromise);
+
+      var promisedIcon = app1.getSiteIconUrl();
+      promisedIcon.then(function(icon) {
+        assert.ok(icon && icon.url);
+        assert.equal(icon.url, dataURI);
+      });
+      blobPromise.mFulfillToValue({ url: dataURI });
+    });
+
+    test('getSiteIconUrl uses manifest icons if available', function() {
+      app1.manifestURL = 'https://example.com/webapp.json';
+      app1.manifest = {
+        origin: origin,
+        icons: {
+          '64': '/test.png'
+        }
+      };
+
+      this.sinon.stub(app1, 'getIconBlob', function (url, size, place, site) {
+        assert.isTrue(size === SIZE);
+        assert.isTrue(site.manifest === app1.manifest);
+      });
+
+      app1.getSiteIconUrl(SIZE);
+    });
   });
 
   test('Change URL at run time', function() {
@@ -2206,11 +2632,19 @@ suite('system/AppWindow', function() {
     assert.isTrue(app1.browser.element.src.indexOf('http://changed.url') >= 0);
   });
 
-  test('Launch wrapper should have name from title config', function() {
+  test('Launch wrapper should take title from app name', function() {
+    var app1 = new AppWindow(fakeAppWithName);
+    this.sinon.clock.tick();
+    assert.equal(app1.name, 'Fake App Name');
+    assert.equal(app1.identificationTitle.textContent, 'Fake App Name');
+  });
+
+  test('Launch wrapper should take title from hostname if no name provided',
+    function() {
     var app1 = new AppWindow(fakeWrapperConfig);
     this.sinon.clock.tick();
-    assert.equal(app1.name, 'Fakebook');
-    assert.equal(app1.identificationTitle.textContent, 'Fakebook');
+    assert.equal(app1.name, 'www.fake5');
+    assert.equal(app1.identificationTitle.textContent, 'www.fake5');
   });
 
   test('revive browser', function() {
@@ -2413,10 +2847,49 @@ suite('system/AppWindow', function() {
     var url = 'http://changed.url';
 
     this.sinon.stub(app1, 'reConfig');
+    this.sinon.stub(app1, '_unregisterAudioChannels');
+    this.sinon.stub(app1, '_registerAudioChannels');
     app1.navigate(url);
 
     assert.ok(app1.reConfig.calledOnce);
+    assert.ok(app1._unregisterAudioChannels.calledOnce);
+    assert.ok(app1._registerAudioChannels.calledOnce);
     assert.ok(app1.element.classList.contains('browser'));
+  });
+
+  suite('Sub component', function() {
+    var app;
+    setup(function() {
+      window.AudioChannelController = MockAudioChannelController;
+      app = new AppWindow(fakeAppConfig1);
+      var element = app.browser.element;
+      element.allowedAudioChannels = [
+        { name: 'normal' }, { name: 'content' }
+      ];
+      app.installSubComponents();
+      element.dispatchEvent(new CustomEvent('mozbrowserloadend'));
+    });
+
+    teardown(function() {
+      delete window.AudioChannelController;
+    });
+
+    test('installSubComponents', function() {
+      assert.equal(app.audioChannels.size, 2);
+      assert.equal(app.audioChannels.get('normal').name, 'normal');
+      assert.equal(app.audioChannels.get('content').name, 'content');
+    });
+
+    test('uninstallSubComponents', function() {
+      var normalChannel = app.audioChannels.get('normal');
+      var contentChannel = app.audioChannels.get('content');
+      this.sinon.spy(normalChannel, 'destroy');
+      this.sinon.spy(contentChannel, 'destroy');
+      app.uninstallSubComponents();
+      assert.ok(normalChannel.destroy.calledOnce);
+      assert.ok(contentChannel.destroy.calledOnce);
+      assert.deepEqual(app.audioChannels, null);
+    });
   });
 
   suite('fadeOut', function() {
@@ -2600,7 +3073,7 @@ suite('system/AppWindow', function() {
       });
       popups[1].publish('fake');
       assert.isTrue(caught);
-      assert.isTrue(caughtOnParent);
+      assert.isFalse(caughtOnParent);
     });
 
   suite('Theme Color', function() {
@@ -2668,6 +3141,84 @@ suite('system/AppWindow', function() {
       });
 
       assert.equal(app1.themeColor, '');
+      assert.isTrue(stubPublish.calledOnce);
+    });
+  });
+
+  suite('Theme Group', function() {
+    test('Added', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      var stubPublish = this.sinon.stub(app1, 'publish');
+
+      app1.handleEvent({
+        type: 'mozbrowsermetachange',
+        detail: {
+          name: 'theme-group',
+          content: 'theme-media',
+          type: 'added'
+        }
+      });
+
+      assert.isTrue(app1.element.classList.contains('theme-media'));
+      assert.isTrue(stubPublish.calledOnce);
+    });
+
+    test('Sanitazation', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+
+      app1.handleEvent({
+        type: 'mozbrowsermetachange',
+        detail: {
+          name: 'theme-group',
+          content: 'hidden',
+          type: 'added'
+        }
+      });
+
+      assert.isFalse(app1.element.classList.contains('hidden'));
+    });
+
+    test('Changed', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      var stubPublish = this.sinon.stub(app1, 'publish');
+
+      app1.handleEvent({
+        type: 'mozbrowsermetachange',
+        detail: {
+          name: 'theme-group',
+          content: 'theme-settings',
+          type: 'changed'
+        }
+      });
+
+      assert.isTrue(app1.element.classList.contains('theme-settings'));
+      assert.isTrue(stubPublish.calledOnce);
+    });
+
+    test('Removed', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+
+      app1.handleEvent({
+        type: 'mozbrowsermetachange',
+        detail: {
+          name: 'theme-group',
+          content: 'theme-media',
+          type: 'added'
+        }
+      });
+
+      var stubPublish = this.sinon.stub(app1, 'publish');
+
+      app1.handleEvent({
+        type: 'mozbrowsermetachange',
+        detail: {
+          name: 'theme-group',
+          content: 'theme-media',
+          type: 'removed'
+        }
+      });
+
+      assert.isFalse(app1.element.classList.contains('theme-media'));
       assert.isTrue(stubPublish.calledOnce);
     });
   });

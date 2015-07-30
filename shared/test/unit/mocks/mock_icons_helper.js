@@ -7,10 +7,13 @@ var MockIconsHelper = {
     return new Promise(resolve => { resolve(); });
   },
 
-  getBestIcon: function(size) {
+  getIconBlob: function() {},
 
-  },
-  getSizes: function() {
+  getBestIconFromWebManifest: function() {},
 
-  }
+  getBestIconFromMetaTags: function() {},
+
+  fetchIcon: function() {},
+
+  clear: function() {}
 };

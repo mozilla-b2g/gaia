@@ -1,6 +1,6 @@
 
 'use strict';
-
+/* exported MockDownloadUI */
 var MockDownloadUI = {
 
   ERRORS: {},

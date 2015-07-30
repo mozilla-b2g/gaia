@@ -1,0 +1,140 @@
+/*
+  Styles for new message
+*/
+
+section[role="region"].new > gaia-header h1 {
+  pointer-events: none;
+}
+
+.new .article-list {
+  z-index: 5;
+
+  padding: 0;
+}
+
+.new .flex-composer {
+  position: relative;
+  top: 4rem;   /* 4rem is the default size of the recipient panel */
+
+  height: calc(100% - 4rem);
+}
+
+.subheader menu {
+  position: relative;
+  flex-shrink: 0;
+
+  width: 5rem;
+  height: 4rem;
+}
+
+/* Render this container outside of the document flow so that it does not
+ * effect the height of the containing subheader, and therefore does not effect
+ * the height of the Compose field. */
+.subheader .overlay {
+  position: absolute;
+  width: 100%;
+}
+
+.multiline-recipients-mode.new .flex-composer {
+  top: 5.5rem;
+
+  height: calc(100% - 5.5rem);
+}
+
+.new #messages-container {
+  flex-basis: 0;
+}
+
+/* TODO: Remove this once panel markup split */
+#messages-contact-pick-button {
+  display: none;
+}
+
+.new #messages-contact-pick-button {
+  display: block;
+
+  width: 5rem;
+  height: 4rem;
+}
+
+#messages-contact-pick-button .icon-user {
+  position: absolute;
+  top: 0.6rem;
+  right: 1rem;
+
+  display: block;
+  width: 2.8rem;
+  height: 2.8rem;
+  border-radius: 50%;
+
+  color: #575757;
+  background-color: #FFF;
+}
+
+#messages-contact-pick-button .icon-user:after {
+  content: "+";
+  position: absolute;
+
+  display: block;
+  width: 2.8rem;
+  height: 2.8rem;
+
+  line-height: 2.8rem;
+  font-size: 2.1rem;
+  font-weight: 500;
+  text-align: center;
+}
+
+#messages-contact-pick-button .icon-user:active {
+  color: #FFF;
+  background-color: #29bbb5;
+}
+
+section[role="region"].new .subheader {
+  /* The subheader contains the recipients part and because of the fact that it
+   * has "overflow: visible" we can see it. We should revise it.
+   */
+  height: 0;
+}
+
+/** To be seen below the To: field when we are creating a new message **/
+.new .overlay {
+  /* recipient's panel default size; be careful as this value depends on To:
+   * field height */
+  top: 4rem;
+}
+
+.new.multiline-recipients-mode .overlay {
+  top: 5.5rem;
+}
+
+#messages-recipient-suggestions {
+  position: absolute;
+  /* 9rem (5 rem from app header + 4rem from "To" panel heights) */
+  top: 9rem;
+
+  overflow-y: auto;
+
+  max-height: calc(100% - 9rem);
+  width: 100%;
+}
+
+.recipient-suggestions-list {
+  border-bottom: 0.1rem solid #E7E7E7;
+}
+
+.multiline-recipients-mode #messages-recipient-suggestions {
+  top: 10.5rem;
+
+  max-height: calc(100% - 10.5rem);
+}
+
+#messages-recipient-suggestions li {
+  pointer-events: auto;
+}
+
+/* RTL modifications */
+html[dir="rtl"] #messages-contact-pick-button .icon-user {
+  left: 1rem;
+  right: unset;
+}

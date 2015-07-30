@@ -7,12 +7,14 @@ var assert = require('assert');
 var CALENDAR_APP = 'app://calendar.gaiamobile.org';
 
 marionette('mozChromeNotifications:', function() {
-
   var client = marionette.client({
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
-    }
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
+  });
+  var system;
+
+  setup(function() {
+    system = client.loader.getAppClass('system');
+    system.waitForFullyLoaded();
   });
 
   test('Sending one notification, resends none', function(done) {

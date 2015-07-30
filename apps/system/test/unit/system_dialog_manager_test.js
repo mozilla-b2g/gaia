@@ -33,7 +33,8 @@ suite('system/SystemDialogManager', function() {
 
     dialogFake = new window.SystemDialog(optionsFake);
     window.systemDialogManager = new window.SystemDialogManager();
-    window.systemDialogManager.init();
+    window.systemDialogManager.start();
+    this.sinon.stub(dialogFake, 'resize');
   });
 
   teardown(function() {
@@ -41,34 +42,52 @@ suite('system/SystemDialogManager', function() {
   });
 
   suite('Should change fullscreen state when appWindow opened', function() {
+    var app;
+
+    setup(function() {
+      app = new MockAppWindow();
+      this.sinon.stub(app, 'getTopMostWindow').returns(app);
+    });
+
     test('Launch a non-fullscreen app', function() {
-      var app = new MockAppWindow();
       this.sinon.stub(app, 'isFullScreen').returns(false);
-      window.dispatchEvent(new CustomEvent('appopened', { detail:app }));
+      var event = new CustomEvent('hierarchytopmostwindowchanged', {
+        detail: app
+      });
+      window.dispatchEvent(event);
       assert.isFalse(window.systemDialogManager.elements.containerElement
                     .classList.contains('fullscreen'));
     });
 
     test('Launch a fullscreen app', function() {
-      var app = new MockAppWindow();
       this.sinon.stub(app, 'isFullScreen').returns(true);
-      window.dispatchEvent(new CustomEvent('appopened', { detail:app }));
+      window.systemDialogManager.states.activeDialog = dialogFake;
+      var event = new CustomEvent('hierarchytopmostwindowchanged', {
+        detail: app
+      });
+      window.dispatchEvent(event);
       assert.isTrue(window.systemDialogManager.elements.containerElement
                     .classList.contains('fullscreen'));
+      assert.isTrue(dialogFake.resize.called);
     });
   });
 
   suite('Hierarchy functions', function() {
     test('setHierarchy', function() {
       this.sinon.stub(dialogFake, '_setVisibleForScreenReader');
-      this.sinon.stub(dialogFake, 'focus');
       window.systemDialogManager.activateDialog(dialogFake);
-      assert.isTrue(window.systemDialogManager.setHierarchy(true));
+      window.systemDialogManager.setHierarchy(true);
       assert.isTrue(dialogFake._setVisibleForScreenReader.calledWith(true));
-      assert.isTrue(dialogFake.focus.called);
 
       window.systemDialogManager.setHierarchy(false);
       assert.isTrue(dialogFake._setVisibleForScreenReader.calledWith(false));
+    });
+
+    test('setFocus', function() {
+      this.sinon.stub(dialogFake, 'focus');
+      window.systemDialogManager.activateDialog(dialogFake);
+      assert.isTrue(window.systemDialogManager.setFocus(true));
+      assert.isTrue(dialogFake.focus.called);
     });
 
     test('Should be inactive', function() {
@@ -104,7 +123,7 @@ suite('system/SystemDialogManager', function() {
         detail: dialogFake});
       assert.isNull(window.systemDialogManager.states.activeDialog,
         'the dialog should not be activated');
-      assert.isFalse(window.systemDialogManager.setHierarchy(true));
+      assert.isFalse(window.systemDialogManager.setFocus(true));
       var createdDialog =
       window.systemDialogManager.states.runningDialogs[dialogFake.instanceID];
       window.assert.isObject(createdDialog,
@@ -142,20 +161,18 @@ suite('system/SystemDialogManager', function() {
     });
 
     test('Resize dialog while received "system-resize" event', function() {
-      var stubResize = this.sinon.stub(dialogFake, 'resize');
       window.systemDialogManager.handleEvent({type: 'system-dialog-created',
         detail: dialogFake});
       window.systemDialogManager.handleEvent({type: 'system-dialog-show',
         detail: dialogFake});
       window.systemDialogManager.respondToHierarchyEvent(
         new CustomEvent('system-resize'));
-      assert.isTrue(stubResize.called,
+      assert.isTrue(dialogFake.resize.called,
         'the dialog was not "resize" after received "system-resize" event');
       var isContainDialog =
         window.systemDialogManager.elements.screen.classList.contains('dialog');
       assert.isTrue(isContainDialog,
         'the "dialog" was not in screen stylesheet after resize a dialog');
-      stubResize.restore();
     });
 
     test('Deactivate dialog while received ' +

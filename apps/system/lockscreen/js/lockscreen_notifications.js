@@ -1,8 +1,6 @@
-/* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 'use strict';
 
-/* global LockScreenNotificationBuilder */
+/* global LockScreenNotificationBuilder, LazyLoader */
 
 (function(exports) {
   /**
@@ -18,9 +16,12 @@
   function lsn_start(lockScreen, container){
     this._lockScreen = lockScreen;
     this.container = container;
-    this._lockScreenNotificationBuilder =
-      new LockScreenNotificationBuilder(this.container);
-    this._lockScreenNotificationBuilder.start();
+    LazyLoader.load(['lockscreen/js/lockscreen_notification_builder.js'])
+      .then(() => {
+        this._lockScreenNotificationBuilder =
+          new LockScreenNotificationBuilder(this.container);
+        this._lockScreenNotificationBuilder.start();
+      });
     this.arrow =
       document.getElementById('lockscreen-notification-arrow');
     // The 'scroll' event can't be forwarded via 'window'.
@@ -34,6 +35,8 @@
         'lockscreen-notification-request-append',
         'lockscreen-notification-request-remove',
         'lockscreen-notification-request-clear',
+        'lockscreen-appopened',
+        'lockscreen-appclosed',
         'touchstart',
         'visibilitychange',
         'scroll'
@@ -94,12 +97,25 @@
           this.onNotificationsBlur();
         }
       break;
+      case 'lockscreen-appopened':
+        // When it's visible because of locking, bind the listener.
+        window.addEventListener('touchstart', this);
+      break;
+      case 'lockscreen-appclosed':
+        // When it's invisible because of unlocking, unbind the listener.
+        window.removeEventListener('touchstart', this);
+      break;
       case 'scroll':
         this.onContainerScrolling();
       break;
       case 'visibilitychange':
         if (!document.hidden) {
+          // When it's visible, bind the listener.
+          window.addEventListener('touchstart', this);
           this.updateTimestamps();
+        } else {
+          // When it's invisible, unbind the listener.
+          window.removeEventListener('touchstart', this);
         }
       break;
     }

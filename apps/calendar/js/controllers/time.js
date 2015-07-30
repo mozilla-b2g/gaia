@@ -7,11 +7,10 @@ define(function(require, exports, module) {
 // a new value, should do it through this module (eg. day/week/month views and
 // DayObserver)
 
-var isSameDate = require('calc').isSameDate;
-var Responder = require('responder');
+var isSameDate = require('common/calc').isSameDate;
+var Responder = require('common/responder');
 
-function Time(app) {
-  this.app = app;
+function Time() {
   Responder.call(this);
 
   this._timeCache = Object.create(null);

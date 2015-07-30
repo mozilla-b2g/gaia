@@ -34,6 +34,7 @@ function PreviewGalleryController(app) {
 
 PreviewGalleryController.prototype.bindEvents = function() {
   this.app.on('storage:itemdeleted', this.onItemDeleted);
+  this.app.on('storage:changed', this.onStorageChanged);
   this.app.on('preview', this.openPreview);
   this.app.on('newmedia', this.onNewMedia);
   this.app.on('hidden', this.onHidden);
@@ -325,6 +326,19 @@ PreviewGalleryController.prototype.previewItem = function() {
 };
 
 /**
+ * Delete all items in the preview gallery
+ * when storage becomes unavailable.
+ *
+ * @param  {String} status
+ */
+PreviewGalleryController.prototype.onStorageChanged = function(status) {
+  if (status === 'unavailable') {
+    this.configure();
+    this.updateThumbnail();
+  }
+};
+
+/**
  * Delete and update items in the preview gallery
  * when images/videos are deleted by others
  *
@@ -385,6 +399,7 @@ PreviewGalleryController.prototype.updateThumbnail = function() {
 
     // If it is a video we can create a thumbnail from the poster image
     blob = media.poster.blob;
+    media = media.poster;
   } else {
 
     // If it is a photo we want to use the EXIF preview rather than

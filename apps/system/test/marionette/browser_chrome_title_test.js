@@ -1,20 +1,17 @@
 'use strict';
 
+var urlUtility = require('url');
 var Server = require('../../../../shared/test/integration/server');
 var Rocketbar = require('./lib/rocketbar');
 
 marionette('Browser Chrome - Title content', function() {
 
   var client = marionette.client({
-    prefs: {
-      'dom.w3c_touch_events.enabled': 1
-    },
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
-    },
-    apps: {
-      'fakechromenavapp.gaiamobile.org': __dirname + '/fakechromenavapp',
+    profile: {
+      apps: {
+        'fakechromenavapp.gaiamobile.org':
+          __dirname + '/../apps/fakechromenavapp',
+      }
     }
   });
 
@@ -37,12 +34,12 @@ marionette('Browser Chrome - Title content', function() {
     rocketbar = new Rocketbar(client);
     search = client.loader.getAppClass('search');
     system = client.loader.getAppClass('system');
-    system.waitForStartup();
+    system.waitForFullyLoaded();
   });
 
-  test('app w/o chrome should use placeholder', function() {
-    // Open up the dialer and check for the title.
-    var expectedTitle = 'Search the web';
+  test('app w/o chrome should use name from manifest', function() {
+    // Open up the calendar and check for the title.
+    var expectedTitle = 'Calendar';
     var appOrigin = 'app://calendar.gaiamobile.org';
     client.apps.launch(appOrigin);
 
@@ -51,7 +48,7 @@ marionette('Browser Chrome - Title content', function() {
     });
   });
 
-  test('app /w chrome navigation should use manifest title', function() {
+  test('app /w chrome navigation should use name from manifest', function() {
     // Hard-coded from app fixture.
     var expectedTitle = 'Fake Chrome Navigation';
     var appOrigin = 'app://fakechromenavapp.gaiamobile.org';
@@ -62,18 +59,17 @@ marionette('Browser Chrome - Title content', function() {
     });
   });
 
-  test('website title uses page title', function() {
+  test('website without app name should use hostname', function() {
     // Use the home-screen search box to open up the system browser
     var url = server.url('sample.html');
+    var hostname = urlUtility.parse(url).hostname;
     rocketbar.homescreenFocus();
-    rocketbar.enterText(url + '\uE006');
+    rocketbar.enterText(url, true);
     system.gotoBrowser(url);
     client.switchToFrame();
 
     client.waitFor(function(){
-      // Hard-coded from the fixture.
-      var expectedTitle = 'Sample page';
-      return system.appUrlbar.text() === expectedTitle;
+      return system.appUrlbar.text() === hostname;
     });
   });
 
@@ -82,9 +78,10 @@ marionette('Browser Chrome - Title content', function() {
     // Use the home-screen search box to open up the system browser
     var customAppUrl = server.url('app-name.html');
     var sampleUrl = server.url('sample.html');
+    var sampleHostname = urlUtility.parse(sampleUrl).hostname;
 
     rocketbar.homescreenFocus();
-    rocketbar.enterText(customAppUrl + '\uE006');
+    rocketbar.enterText(customAppUrl, true);
     system.gotoBrowser(customAppUrl);
     client.switchToFrame();
 
@@ -93,12 +90,12 @@ marionette('Browser Chrome - Title content', function() {
     });
 
     system.appUrlbar.tap();
-    rocketbar.enterText(sampleUrl + '\uE006');
+    rocketbar.enterText(sampleUrl, true);
     system.gotoBrowser(sampleUrl);
     client.switchToFrame();
 
     client.waitFor(function(){
-      return system.appUrlbar.text() === 'Sample page';
+      return system.appUrlbar.text() === sampleHostname;
     });
   });
 

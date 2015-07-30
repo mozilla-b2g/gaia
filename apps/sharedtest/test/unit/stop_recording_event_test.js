@@ -45,26 +45,8 @@ suite('StopRecordingEvent', function() {
          assert.ok(this.handler.calledOnce);
        });
 
-  test('setting private.broadcast.attention_screen_opening triggers event',
-       function() {
-         // Setting this property to true should send an event
-         navigator.mozSettings.createLock().set({
-           'private.broadcast.attention_screen_opening': true
-         });
-         assert.ok(this.handler.calledOnce);
-
-         // Resetting to false should not send another event
-         navigator.mozSettings.createLock().set({
-           'private.broadcast.attention_screen_opening': false
-         });
-         assert.ok(this.handler.calledOnce);
-       });
-
   test('no events triggered after stop() called', function() {
     StopRecordingEvent.stop();
-    navigator.mozSettings.createLock().set({
-      'private.broadcast.attention_screen_opening': true
-    });
     navigator.mozSettings.createLock().set({
       'private.broadcast.stop_recording': true
     });

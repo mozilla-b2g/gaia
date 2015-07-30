@@ -1,4 +1,4 @@
-reruns: 4
+reruns: 2
 task:
   metadata:
     name: Gaia unit tests in b2g-desktop chunk {{chunk}}
@@ -20,6 +20,7 @@ task:
       THIS_CHUNK: '{{chunk}}'
       TOTAL_CHUNKS: '{{totalChunks}}'
       REPORTER: 'mocha-tbpl-reporter'
+      NODE_MODULES_SRC: npm-cache
 
     command:
       - entrypoint

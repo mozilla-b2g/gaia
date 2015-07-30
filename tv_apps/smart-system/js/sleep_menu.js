@@ -5,7 +5,7 @@
 /* global LogoLoader */
 /* global OrientationManager */
 /* global SettingsCache */
-/* global AppWindowManager */
+/* global focusManager */
 
 (function(exports) {
 
@@ -66,26 +66,31 @@
      * @memberof SleepMenu.prototype
      * @return {Boolean}
      */
-    isVisible: function sm_isVisible() {
+    get visible() {
       return this.elements.overlay.classList.contains('visible');
     },
 
     /**
-     * Check if the sleep menu is visible and returns its z-index if visible.
+     * Whether or not the sleep menu is focusable.
      */
-    getOrder: function sm_getOrder() {
-      var zIndex = window.getComputedStyle(this.elements.overlay).zIndex;
-      return zIndex === 'auto' ? 0 : zIndex;
+    isFocusable() {
+      return this.visible;
+    },
+
+    /**
+     * returns the sleep menu dom element.
+     * @return {HTMLElement}
+     */
+    getElement: function sm_getElement() {
+      return this.elements.overlay;
     },
 
     /**
      * focus back to its buttons.
      */
     focus: function sm_focus() {
-      setTimeout(function() {
-        document.activeElement.blur();
-        this.elements.cancel.focus();
-      }.bind(this));
+      document.activeElement.blur();
+      this.elements.cancel.focus();
     },
 
     /**
@@ -135,6 +140,7 @@
       SettingsCache.observe('audio.volume.notification', 7, function(value) {
         self.isSilentModeEnabled = (value === 0);
       });
+      focusManager.addUI(this);
     },
 
     /**
@@ -195,7 +201,8 @@
       this.elements.overlay.classList.add('visible');
       // Lock to default orientation
       screen.mozLockOrientation(OrientationManager.defaultOrientation);
-      this.focus();
+      // let focus manager to calculate the top most and focus for us.
+      focusManager.focus();
     },
 
     /**
@@ -223,10 +230,8 @@
       }
       this.elements.overlay.classList.remove('visible');
       window.dispatchEvent(new Event('sleepmenuhide'));
-      // focus back to the top most window.
-      // XXX: we focus back to active app. But we should call the fallback
-      // algorithm to find the top-most overlay or app.
-      AppWindowManager.getActiveApp().getTopMostWindow().focus();
+      // focus back to the top most window/overlay.
+      focusManager.focus();
     },
 
     /**
@@ -252,7 +257,7 @@
           break;
 
         case 'click':
-          if (!this.isVisible()) {
+          if (!this.visible) {
             return;
           }
 
@@ -270,7 +275,7 @@
 
         case 'home':
         case 'attentionopened':
-          if (this.isVisible()) {
+          if (this.visible) {
             this.hide();
           }
           break;

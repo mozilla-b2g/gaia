@@ -2,20 +2,13 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-try:
-    from marionette import (expected,
-                            Wait)
-    from marionette.by import By
-except:
-    from marionette_driver import (expected,
-                                   Wait)
-    from marionette_driver.by import By
+from marionette_driver import expected, By, Wait
 from gaiatest.apps.base import Base
 
 
 class ContactImportPicker(Base):
 
-    _contact_import_picker_frame_locator = (By.ID, 'fb-extensions')
+    _contact_import_picker_frame_locator = (By.ID, 'iframe_extensions')
     _import_button_locator = (By.ID, 'import-action')
     _friends_list_locator = (By.ID, 'friends-list')
 
@@ -28,7 +21,7 @@ class ContactImportPicker(Base):
         self.marionette.switch_to_frame(select_contacts)
 
     def tap_import_button(self, wait_for_import = True):
-        self.marionette.execute_script('window.wrappedJSObject.importer.ui.importAll();', special_powers=True)
+        self.marionette.execute_script('window.wrappedJSObject.importer.ui.importAll();')
         # TODO uncomment this when Bug 932804 is resolved
         # self.marionette.find_element(*self._import_button_locator).tap()
         self.apps.switch_to_displayed_app()
@@ -42,12 +35,12 @@ class ContactImportPicker(Base):
         self.marionette.execute_script("""
             window.wrappedJSObject.document.getElementById("friends-list")
                   .getElementsByTagName("a")[1].click()
-        """, special_powers=True)
+        """)
         self.wait_for_element_not_displayed(*self._friends_list_locator)
         self.apps.switch_to_displayed_app()
 
     def tap_select_all(self):
         # TODO replace this with proper tap when Bug 932804 is resolved
-        self.marionette.execute_script('window.wrappedJSObject.importer.ui.selectAll();', special_powers=True)
+        self.marionette.execute_script('window.wrappedJSObject.importer.ui.selectAll();')
         el = self.marionette.find_element(*self._import_button_locator)
         Wait(self.marionette).until(expected.element_enabled(el))

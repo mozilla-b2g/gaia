@@ -476,16 +476,19 @@ function startup(data, reason) {
                  aBaseURI);
         return uri.QueryInterface(Ci.nsIURI);
       },
-      newChannel: function(aURI) {
+      newChannel2: function(aURI, aLoadInfo) {
         let url = aURI.QueryInterface(Ci.nsIURL);
         let appId = aURI.host;
         let fileSpec = url.filePath;
-        let uri;
-        uri = 'http://' + appId + ':' + GAIA_PORT + fileSpec;
-        let channel = Services.io.newChannel(uri, null, null);
+        let spec = 'http://' + appId + ':' + GAIA_PORT + fileSpec;
+        let uri = Services.io.newURI(spec, null, null);
+        let channel = Services.io.newChannelFromURIWithLoadInfo(uri, aLoadInfo);
         channel.QueryInterface(Ci.nsIChannel).originalURI = aURI;
         return channel;
       },
+      newChannel: function(aURI) {
+        return newChannel2(aURI, null);
+      }
     };
 
     let newFactory = {

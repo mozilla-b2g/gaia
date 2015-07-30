@@ -1,4 +1,4 @@
-/* globals BaseUI, CardsHelper, Tagged */
+/* globals BaseUI, CardsHelper, Sanitizer, Service */
 
 /* exported Card */
 
@@ -7,6 +7,11 @@
 (function(exports) {
 
   var _id = 0;
+
+  /* Corresponds to the icon size in the footer.
+   * Used to determine the proper icon size from the manifest.
+   */
+  const CARD_FOOTER_ICON_SIZE = 40;
 
   /**
    * A card in a card view, representing a single app
@@ -24,12 +29,18 @@
     }
 
     this.instanceID = _id++;
-
     return this;
   }
 
   Card.prototype = Object.create(BaseUI.prototype);
   Card.prototype.constructor = Card;
+
+  /**
+   * The point at which we take a swipe to be intentional
+   * @type {String}
+   * @memberof Card.prototype
+   */
+  Card.prototype.SWIPE_WOBBLE_THRESHOLD = 4 * window.devicePixelRatio;
 
   /**
    * @type {String}
@@ -85,16 +96,16 @@
    * @memberOf Card.prototype
    */
   Card.prototype.template = function() {
-    // fix a jshint issue with tagged template strings
-    // https://github.com/jshint/jshint/issues/2000
-    /* jshint -W033 */
-    return Tagged.escapeHTML `<div class="titles">
-     <h1 id="${this.titleId}" class="title">${this.title}</h1>
-     <p class="subtitle">${this.subTitle}</p>
+    return Sanitizer.escapeHTML `<div class="titles">
+     <h1 id="${this.titleId}" dir="auto" class="title">${this.title}</h1>
+     <p class="subtitle">
+      <span class="subtitle-url">${this.subTitle}</span>
+     </p>
     </div>
 
     <div class="screenshotView bb-button" data-l10n-id="openCard"
       role="link"></div>
+    <div class="privateOverlay"></div>
     <div class="appIconView" style="background-image:${this.iconValue}"></div>
 
     <footer class="card-tray">
@@ -109,7 +120,6 @@
         style="visibility: ${this.favoriteButtonVisibility}"></button>
      </menu>
     </footer>`;
-    /* jshint +W033 */
   };
 
   /**
@@ -126,8 +136,7 @@
    */
   Card.prototype._populateViewData = function() {
     var app = this.app;
-    this.title = (app.isBrowser() && app.title) ?
-                  app.title : app.shortName || app.name;
+    this.title = (app.isBrowser() && app.title) ? app.title : app.name;
     this.sslState = app.getSSLState();
     this.subTitle = '';
     this.iconValue = '';
@@ -141,9 +150,10 @@
 
     // app icon overlays screenshot by default
     // and will be removed if/when we display the screenshot
-    var iconURI = CardsHelper.getIconURIForApp(this.app);
+    var size = CARD_FOOTER_ICON_SIZE * window.devicePixelRatio;
+    var iconURI = CardsHelper.getIconURIForApp(this.app, size);
     if (iconURI) {
-        this.iconValue = 'url(' + iconURI + ')';
+      this.iconValue = 'url(' + iconURI + ')';
     }
 
     var origin = app.origin;
@@ -164,46 +174,18 @@
     }
     if (displayUrl) {
       this.subTitle = this.getDisplayURLString(displayUrl);
+      this.viewClassList.push('show-subtitle');
     }
 
     var topMostWindow = app.getTopMostWindow();
     if (topMostWindow && topMostWindow.CLASS_NAME === 'TrustedWindow') {
       var name = topMostWindow.name;
-      this.title = CardsHelper.escapeHTML(name || '', true);
+      this.title = name || '';
       this.viewClassList.push('trustedui');
     } else if (!this.app.killable()) {
       // unclosable app
       this.closeButtonVisibility = 'hidden';
     }
-  };
-
-  Card.prototype.move = function(deltaX, deltaY) {
-    deltaX = deltaX || 0;
-    deltaY = deltaY || 0;
-
-    var windowWidth = this.manager.windowWidth || window.innerWidth;
-    var offset = this.position - this.manager.position;
-    var positionX = deltaX + offset * (windowWidth * 0.55);
-    var appliedX = positionX;
-
-    var rightLimit =  windowWidth / 2 + windowWidth * 0.24 - 0.001;
-    appliedX = Math.min(appliedX, rightLimit);
-    appliedX = Math.max(appliedX, -1 * rightLimit);
-
-    this.element.dataset.positionX = positionX;
-    this.element.dataset.keepLayerDelta = Math.abs(positionX - appliedX);
-
-    var style = { transform: '' };
-
-    if (deltaX || offset) {
-      style.transform = 'translateX(' + appliedX + 'px)';
-    }
-
-    if (deltaY) {
-      style.transform = 'translateY(' + deltaY + 'px)';
-    }
-
-    this.applyStyle(style);
   };
 
   /**
@@ -228,12 +210,13 @@
 
     // Label the card by title (for screen reader).
     elem.setAttribute('aria-labelledby', this.titleId);
-
+    // define role presentation for the card (for screen reader) in order to not
+    // land on the card container.
+    elem.setAttribute('role', 'presentation');
     // Indicate security state where applicable & available
     if (this.sslState) {
       elem.dataset.ssl = this.sslState;
     }
-    elem.setAttribute('aria-labelledby', this.titleId);
 
     this.viewClassList.forEach(function(cls) {
       elem.classList.add(cls);
@@ -245,6 +228,7 @@
 
     this._fetchElements();
     this._updateDisplay();
+    this._registerEvents();
 
     this.publish('rendered');
     return elem;
@@ -282,6 +266,9 @@
    * @memberOf Card.prototype
    */
   Card.prototype.killApp = function() {
+    // we dont want any further events between now and
+    // when appterminated causes the card to be destroyed
+    this._unregisterEvents();
     this.app.kill();
   };
 
@@ -291,6 +278,8 @@
    */
   Card.prototype.destroy = function() {
     this.publish('willdestroy');
+    this._unregisterEvents();
+
     var element = this.element;
     if (element && element.parentNode) {
       element.parentNode.removeChild(element);
@@ -326,50 +315,153 @@
       this.iconButton.style.backgroundImage = this.iconValue;
     }
 
-    // Handling cards in different orientations
-    var degree = app.rotatingDegree;
-    var isLandscape = (degree == 90 || degree == 270);
-
-    // Rotate screenshotView if needed
-    screenshotView.classList.add('rotate-' + degree);
-
     if (isIconPreview) {
       return;
     }
 
-    if (isLandscape) {
-      // We must exchange width and height if it's landscape mode
-      var width = elem.clientHeight;
-      var height = elem.clientWidth;
-      screenshotView.style.width = width + 'px';
-      screenshotView.style.height = height + 'px';
-      screenshotView.style.left = ((height - width) / 2) + 'px';
-      screenshotView.style.top = ((width - height) / 2) + 'px';
-    }
-
-    // If we have a cached screenshot, use that first
-    var cachedLayer = app.requestScreenshotURL();
-
-    if (cachedLayer && app.isActive()) {
+    // Use a cached screenshot if we have one for the active app
+    var cachedLayer;
+    // We may already enter the closed state.
+    if (Service.query('AppWindowManager.getActiveWindow') ===
+        this.app.getBottomMostWindow()) {
+      // will be null or blob url
+      cachedLayer = app.requestScreenshotURL();
       screenshotView.classList.toggle('fullscreen',
                                       app.isFullScreen());
-      screenshotView.classList.toggle('maximized',
+      if (app.appChrome) {
+        screenshotView.classList.toggle('maximized',
                                       app.appChrome.isMaximized());
-      screenshotView.style.backgroundImage =
-        'url(' + cachedLayer + '),' +
-        '-moz-element(#' + this.app.instanceID + ')';
-    } else {
-      screenshotView.style.backgroundImage =
-        'url(none),' +
-        '-moz-element(#' + this.app.instanceID + ')';
+      }
     }
-
+    screenshotView.style.backgroundImage =
+      (cachedLayer ? 'url(' + cachedLayer + ')' : 'none' ) + ',' +
+      '-moz-element(#' + this.app.instanceID + ')';
   };
 
   Card.prototype._fetchElements = function c__fetchElements() {
     this.screenshotView = this.element.querySelector('.screenshotView');
     this.titleNode = this.element.querySelector('h1.title');
     this.iconButton = this.element.querySelector('.appIcon');
+  };
+
+  Card.prototype._registerEvents = function c__registerEvents() {
+    this.element.addEventListener('touchstart', this);
+    this.element.addEventListener('touchmove', this);
+    this.element.addEventListener('touchend', this);
+    this._eventsRegistered = true;
+  };
+
+  Card.prototype._unregisterEvents = function c__unregisterEvents() {
+    if (!this._eventsRegistered || !this.element) {
+      return;
+    }
+    this.element.removeEventListener('touchstart', this);
+    this.element.removeEventListener('touchmove', this);
+    this.element.removeEventListener('touchend', this);
+    this._eventsRegistered = false;
+  };
+
+  Card.prototype.handleEvent = function(evt) {
+    var verticalY;
+    var tapThreshold = 1;
+    switch (evt.type) {
+      case 'touchstart':
+        evt.stopPropagation();
+        this._dragPhase = '';
+        this.deltaX = 0;
+        this.deltaY = 0;
+        this.startTouchPosition = [evt.touches[0].pageX, evt.touches[0].pageY];
+        break;
+
+      case 'touchmove':
+        evt.stopPropagation();
+        this.deltaX = evt.touches[0].pageX - this.startTouchPosition[0];
+        this.deltaY = this._ease(
+          evt.touches[0].pageY - this.startTouchPosition[1],
+          this.manager.SWIPE_UP_THRESHOLD
+        );
+        verticalY = -1 * this.deltaY;
+        switch (this._dragPhase) {
+          case '':
+            if (verticalY > Math.abs(this.deltaX) &&
+                verticalY > this.SWIPE_WOBBLE_THRESHOLD) {
+              this._dragPhase = 'cross-slide';
+              // dont try and transition while dragging
+              this.element.style.transition = 'transform 0s linear';
+              this.onCrossSlide(evt);
+            }
+            break;
+
+          case 'cross-slide':
+            this.onCrossSlide(evt);
+            break;
+        }
+        break;
+
+      case 'touchend':
+        this.deltaX = evt.changedTouches[0].pageX - this.startTouchPosition[0];
+        this.deltaY = this._ease(
+          evt.changedTouches[0].pageY - this.startTouchPosition[1],
+          this.manager.SWIPE_UP_THRESHOLD
+        );
+        if (Math.abs(this.deltaX) <= tapThreshold ||
+            Math.abs(this.deltaY) <= tapThreshold) {
+          this._resetY();
+          return;
+        }
+        verticalY = -1 * this.deltaY;
+        // cross-slide should be more up than across
+        if (verticalY > Math.abs(this.deltaX) &&
+            verticalY > this.manager.SWIPE_UP_THRESHOLD &&
+            this.app.killable()) {
+          // leave the card where it is if it will be destroyed
+          this.killApp();
+        } else {
+          // return it to vertical center
+          this._resetY();
+        }
+        break;
+    }
+  };
+
+  /**
+   * @memberOf Card.prototype
+   * @param {DOMEvent} evt
+   */
+  Card.prototype.onCrossSlide = function(evt) {
+    // move card up by the delta - the threshold
+    var offsetY = this.deltaY - this.SWIPE_WOBBLE_THRESHOLD;
+    this.element.style.transform = 'translateY(' + offsetY + 'px)';
+  };
+
+  /**
+   * Ease for y-axis movement to damp start of the cross-slide
+   * @memberOf Card.prototype
+   * @param x {number} incremental value from 0 to max
+   * @param max {number}
+   */
+  Card.prototype._ease = function(x, max) {
+    var y;
+    var pt = Math.abs(x)/max;
+    var sign = x >= 0 ? 1 : -1;
+    var q1 = 0.25 - Math.pow(0.25, 1.675);
+    if (pt <= 0.25) {
+      // ease in at first
+      y = Math.pow(pt, 1.675);
+    } else {
+      // linear (minus offet)
+      y = pt - q1;
+    }
+    return sign * max * y;
+  };
+
+  /**
+   * @memberOf Card.prototype
+   */
+  Card.prototype._resetY = function(evt) {
+    // remove the inline transition so we transition per the stylesheet
+    this.element.style.removeProperty('transition');
+    this.element.style.transform = 'translateY(0)';
   };
 
   Card.prototype.getDisplayURLString = function(url) {

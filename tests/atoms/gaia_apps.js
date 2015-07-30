@@ -36,11 +36,10 @@ var GaiaApps = {
   },
 
   getApps: function(includeSystemApps) {
-    let manager = window.wrappedJSObject.appWindowManager ||
-                  new window.wrappedJSObject.AppWindowManager();
+    let service = window.wrappedJSObject.Service;
     let apps = includeSystemApps ?
-                manager.getApps() :
-                window.wrappedJSObject.StackManager.snapshot();
+                service.query('getApps') :
+                service.query('snapshot');
     return apps;
   },
 
@@ -245,9 +244,7 @@ var GaiaApps = {
         );
       });
       console.log('terminating app with origin \'' + aOrigin + '\'');
-      let manager = window.wrappedJSObject.appWindowManager ||
-                    new window.wrappedJSObject.AppWindowManager();
-      manager.kill(aOrigin);
+      window.wrappedJSObject.Service.request('AppWindowManager:kill', aOrigin);
     }
   },
 
@@ -304,8 +301,8 @@ var GaiaApps = {
         console.log('app with origin \'' + origin + '\' is already running');
         sendResponse();
       } else {
-        window.addEventListener('appopen', function appOpen() {
-          window.removeEventListener('appopen', appOpen);
+        window.addEventListener('windowopened', function appOpen() {
+          window.removeEventListener('windowopened', appOpen);
           waitFor(
             function() {
               console.log('app with origin \'' + origin + '\' has launched');
@@ -368,15 +365,11 @@ var GaiaApps = {
    * as we return what frame the user is interacting with
    */
   getDisplayedApp: function() {
-    let app = window.wrappedJSObject.rocketbar.active ?
-        window.wrappedJSObject.rocketbar.searchWindow.getTopMostWindow() :
-        window.wrappedJSObject.Service.currentApp;
-
-    // If frontWindow is not null then a modal activityWindow 
-    // containing an app is in focus
-    // (only applicable with AppWindowManager)
-    while (app.frontWindow && app.frontWindow.isActive()) {
-      app = app.frontWindow;
+    let app = window.wrappedJSObject.Service.query('getTopMostWindow');
+    if (!app || app.isLockscreen) {
+      // fallback to app window.
+      app = window.wrappedJSObject.Service
+         .query('AppWindowManager.getActiveWindow').getTopMostWindow();
     }
 
     let origin = app.origin;
@@ -395,8 +388,18 @@ var GaiaApps = {
    */
   uninstallWithName: function(name) {
     GaiaApps.locateWithName(name, function uninstall(app) {
-      navigator.mozApps.mgmt.uninstall(app);
-      marionetteScriptFinished(false);
+      if (typeof(app) === 'object') {
+        let req = navigator.mozApps.mgmt.uninstall(app);
+          req.onsuccess = function() {
+          marionetteScriptFinished(true);
+        };
+        req.onerror = function() {
+          marionetteScriptFinished(req.error);
+        };
+      } else {
+        // App was never installed, so nothing to do here
+        marionetteScriptFinished(true);
+      }
     });
   }
 };

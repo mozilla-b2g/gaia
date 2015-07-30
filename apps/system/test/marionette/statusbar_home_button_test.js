@@ -5,13 +5,10 @@ marionette('Closing statusbar via home button >', function() {
   var assert = require('assert');
 
   var client = marionette.client({
-    prefs: {
-      'dom.w3c_touch_events.enabled': 1,
-      'devtools.debugger.forbid-certified-apps': false
-    },
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
+    profile: {
+      prefs: {
+        'devtools.debugger.forbid-certified-apps': false
+      }
     }
   });
 
@@ -20,10 +17,10 @@ marionette('Closing statusbar via home button >', function() {
       actions;
 
   setup(function() {
-    actions = client.loader.getActions();
     system = client.loader.getAppClass('system');
+    system.waitForFullyLoaded();
+    actions = client.loader.getActions();
     client.switchToFrame();
-    system.waitForStartup();
   });
 
   function getScrollTop() {

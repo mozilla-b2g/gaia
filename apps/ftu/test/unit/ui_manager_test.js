@@ -1,12 +1,15 @@
 /* global MockFxAccountsIACHelper, MocksHelper, MockL10n, MockMozApps,
-          MockTzSelect, Navigation, UIManager, WifiManager, WifiUI */
+          MockTzSelect, Navigation, UIManager, WifiManager, WifiUI,
+          MockSettingsListener, MockNavigatorSettings */
 'use strict';
 
 require('/shared/test/unit/load_body_html_helper.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_settings_listener.js');
 
+require('/shared/js/component_utils.js');
+require('/shared/elements/gaia_switch/script.js');
 requireApp('ftu/js/ui.js');
-requireApp('ftu/js/external_links.js');
 requireApp('ftu/js/navigation.js');
 
 requireApp('ftu/test/unit/mock_tutorial.js');
@@ -26,7 +29,8 @@ var mocksHelperForUI = new MocksHelper([
   'WifiManager',
   'OperatorVariant',
   'utils',
-  'DataMobile'
+  'DataMobile',
+  'SettingsListener'
 ]).init();
 
 if (!window.tzSelect) {
@@ -37,7 +41,9 @@ suite('UI Manager > ', function() {
   var realL10n,
       realMozApps,
       realFxAccountsIACHelper,
-      realTzSelect;
+      realTzSelect,
+      realSettings,
+      realSettingsListener;
   var mocksHelper = mocksHelperForUI;
 
   suiteSetup(function() {
@@ -52,6 +58,13 @@ suite('UI Manager > ', function() {
 
     realFxAccountsIACHelper = window.FxAccountsIACHelper;
     window.FxAccountsIACHelper = MockFxAccountsIACHelper;
+
+    realSettings = navigator.mozSettings;
+    navigator.mozSettings = window.MockNavigatorSettings;
+    navigator.mozSettings.mSettings['geolocation.enabled'] = true;
+
+    realSettingsListener = window.SettingsListener;
+    window.SettingsListener = MockSettingsListener;
 
     mocksHelper.suiteSetup();
     loadBodyHTML('/index.html');
@@ -77,6 +90,9 @@ suite('UI Manager > ', function() {
 
     window.FxAccountsIACHelper = realFxAccountsIACHelper;
     realFxAccountsIACHelper = null;
+
+    navigator.mozSettings = realSettings;
+    window.SettingsListener = realSettingsListener;
   });
 
   suite('Date & Time >', function() {
@@ -151,6 +167,31 @@ suite('UI Manager > ', function() {
         assert.isTrue(localeFormatSpy.called);
       });
     });
+  });
+
+  suite('Geolocation section', function() {
+
+    setup(function() {
+      Navigation.currentStep = 5;
+      Navigation.manageStep();
+    });
+
+    suiteTeardown(function() {
+      Navigation.currentStep = 1;
+      Navigation.manageStep();
+    });
+
+    test('initial value', function() {
+      assert.isTrue(MockNavigatorSettings.mSettings['geolocation.enabled']);
+      // we set initial value at suite startup
+      assert.isTrue(UIManager.geolocationSwitch.checked);
+    });
+
+    test('setting observer updates checked value', function() {
+      MockSettingsListener.mTriggerCallback('geolocation.enabled', false);
+      assert.isFalse(UIManager.geolocationSwitch.checked);
+    });
+
   });
 
   suite('Firefox Accounts section', function() {

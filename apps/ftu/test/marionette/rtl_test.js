@@ -5,7 +5,7 @@ var assert = require('assert');
 
 marionette('First Time Use >', function() {
   var ftu;
-  var client = marionette.client(Ftu.clientOptions);
+  var client = marionette.client({ profile: Ftu.clientOptions });
   var quickly;
 
   setup(function() {
@@ -23,7 +23,6 @@ marionette('First Time Use >', function() {
     quickly.helper.waitForElement('#languages');
     var header = quickly.helper.waitForElement(Ftu.Selectors.header);
     ftu.selectLanguage('qps-plocm');
-    ftu.waitForL10nReady();
 
     assert.equal(quickly.settings.get('language.current'), 'qps-plocm');
     var translatedHeader = quickly.executeScript('' +
@@ -44,7 +43,6 @@ marionette('First Time Use >', function() {
     quickly.apps.switchToApp(Ftu.URL);
     quickly.helper.waitForElement('#languages');
     ftu.selectLanguage('qps-plocm');
-    ftu.waitForL10nReady();
 
     var direction = quickly.helper.waitForElement('#nav-bar')
                     .scriptWith(function(el) {

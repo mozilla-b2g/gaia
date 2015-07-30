@@ -52,6 +52,8 @@ define(function(require) {
     var addonsItem;
     var stkItem;
 
+    var activityDoneButton;
+
     var lowPriorityRoots = null;
     var initLowPriorityItemsPromise = null;
     var initLowPriorityItems = function(rootElements) {
@@ -106,6 +108,11 @@ define(function(require) {
             // navigate new bluetooth panel..
             SettingsService.navigate('bluetooth_v2');
           }
+        });
+
+        activityDoneButton = panel.querySelector('#activityDoneButton');
+        activityDoneButton.addEventListener('click', function() {
+          SettingsService.back();
         });
 
         // If the device supports dsds, callSettings must be changed 'href' for 

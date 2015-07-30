@@ -1,20 +1,17 @@
 'use strict';
 /* global MocksHelper */
-/* global MockHomescreenLauncher */
 /* global MockStackManager */
 /* global SheetsTransition */
 
 requireApp('system/js/sheets_transition.js');
 
+requireApp('system/shared/test/unit/mocks/mock_service.js');
 requireApp('system/test/unit/mock_stack_manager.js');
-requireApp('system/test/unit/mock_app_window_manager.js');
-requireApp('system/test/unit/mock_homescreen_launcher.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 
 var mocksForSheetsTransition = new MocksHelper([
+  'Service',
   'StackManager',
-  'AppWindowManager',
-  'HomescreenLauncher',
   'SettingsListener'
 ]).init();
 
@@ -45,8 +42,6 @@ suite('system/SheetsTransition >', function() {
   var getPrevStub, getNextStub;
 
   setup(function() {
-    window.homescreenLauncher = new MockHomescreenLauncher();
-    window.homescreenLauncher.start();
     getPrevStub = this.sinon.stub(MockStackManager, 'getPrev');
     getPrevStub.returns(dialer);
     dialerFrame = document.createElement('div');
@@ -229,7 +224,7 @@ suite('system/SheetsTransition >', function() {
     });
 
     test('it should set the transition duration on the sheets', function() {
-      var transition = 'transform 105ms linear 0s';
+      var transition = 'transform 90ms linear 0s';
       assert.equal(settingsFrame.style.transition, transition);
       assert.equal(dialerFrame.style.transition, transition);
     });
@@ -278,7 +273,7 @@ suite('system/SheetsTransition >', function() {
       SheetsTransition.moveInDirection('ltr', 0.7);
       SheetsTransition.snapBack(0.0001);
 
-      var transition = 'transform 90ms linear 0s';
+      var transition = 'transform 60ms linear 0s';
       assert.equal(settingsFrame.style.transition, transition);
       assert.equal(dialerFrame.style.transition, transition);
     });
@@ -333,7 +328,7 @@ suite('system/SheetsTransition >', function() {
       SheetsTransition.moveInDirection('rtl', 0.7);
       SheetsTransition.snapBack(0.0001);
 
-      var transition = 'transform 90ms linear 0s';
+      var transition = 'transform 60ms linear 0s';
       assert.equal(settingsFrame.style.transition, transition);
       assert.equal(contactsFrame.style.transition, transition);
     });

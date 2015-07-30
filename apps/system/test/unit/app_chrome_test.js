@@ -1,17 +1,20 @@
 /* global AppWindow, AppChrome, MocksHelper, MockL10n, PopupWindow,
-          MockModalDialog, MockService */
+          MockModalDialog, MockService, MockPromise, MockSettingsListener */
 /* exported MockBookmarksDatabase */
 'use strict';
 
 require('/shared/js/component_utils.js');
 require('/shared/js/event_safety.js');
 require('/shared/elements/gaia_progress/script.js');
+require('/shared/elements/gaia_pin_card/script.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_service.js');
+require('/shared/test/unit/mocks/mock_promise.js');
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_popup_window.js');
 requireApp('system/test/unit/mock_modal_dialog.js');
+requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 
 var MockBookmarksDatabase = {
   get: function(resolve, reject) {
@@ -19,13 +22,15 @@ var MockBookmarksDatabase = {
   }
 };
 
+const PINNING_PREF = 'dev.gaia.pinning_the_web';
+
 var mocksForAppChrome = new MocksHelper([
   'AppWindow', 'ModalDialog', 'PopupWindow', 'BookmarksDatabase',
-  'Service', 'LazyLoader'
+  'Service', 'LazyLoader', 'SettingsListener'
 ]).init();
 
 suite('system/AppChrome', function() {
-  var stubById, realL10n;
+  var stubById, realL10n, app, chrome;
   mocksForAppChrome.attachTestHelpers();
 
   setup(function(done) {
@@ -35,10 +40,17 @@ suite('system/AppChrome', function() {
 
     stubById = this.sinon.stub(document, 'getElementById');
     stubById.returns(document.createElement('div'));
-    requireApp('system/js/base_ui.js');
-    requireApp('system/js/app_chrome.js', done);
 
-    window.SettingsListener = { observe: function() {} };
+    requireApp('system/js/base_ui.js');
+    requireApp('system/js/app_chrome.js', function() {
+      this.sinon.stub(AppChrome.prototype, 'setSiteIcon');
+      app = new AppWindow(cloneConfig(fakeWebSite));
+      app.contextmenu = {
+        isShown: function() {return false;}
+      };
+      chrome = new AppChrome(app);
+      done();
+    }.bind(this));
   });
 
   teardown(function() {
@@ -46,6 +58,9 @@ suite('system/AppChrome', function() {
     stubById.restore();
   });
 
+  function cloneConfig(config) {
+    return JSON.parse(JSON.stringify(config));
+  }
   var fakeWebSite = {
     url: 'http://google.com/index.html',
     origin: 'app://google.com',
@@ -70,13 +85,19 @@ suite('system/AppChrome', function() {
     name: 'Browser',
     manifest: {
       name: 'Browser',
-      role: 'search',
+      role: 'search'
     },
     manifestURL: 'app://search.gaiamobile.org/manifest.webapp',
     origin: 'app://search.gaiamobile.org',
     chrome: {
         navigation: true
     }
+  };
+
+  var fakePrivateLandingPage = {
+    url: 'app://system.gaiamobile.org/private_browser.html',
+    origin: 'app://www.fake',
+    isPrivate: true
   };
 
   var fakeAppConfigBar = {
@@ -93,47 +114,64 @@ suite('system/AppChrome', function() {
     }
   };
 
+  var fadeTransitionEndEvent = new CustomEvent('transitionend');
+  fadeTransitionEndEvent.propertyName = 'background-color';
+
+  test('it sets currentOrigin to the app origin', function() {
+    assert.isTrue(chrome._currentOrigin === app.origin);
+  });
+
   suite('Old Navigation - Application events', function() {
     test('app is loading', function() {
-      var app = new AppWindow(fakeWebSite);
-      var chrome = new AppChrome(app);
       var stubShowProgress = this.sinon.stub(chrome, 'show');
-      var progressStart = this.sinon.stub(chrome.progress, 'start');
+      var spyProgressStart = this.sinon.spy(chrome.progress, 'start');
       assert.isFalse(chrome.progress.hasAttribute('animated'));
       chrome.handleEvent({ type: '_loading' });
+      assert.equal(chrome.progress.getAttribute('data-l10n-id'),
+        'gaia-progress-loading');
       assert.isTrue(stubShowProgress.calledWith(chrome.progress));
-      assert.isTrue(progressStart.calledOnce);
+      assert.isTrue(spyProgressStart.calledOnce);
     });
 
     test('app is loaded', function() {
-      var app = new AppWindow(fakeWebSite);
-      var chrome = new AppChrome(app);
       var stubHideProgress = this.sinon.stub(chrome, 'hide');
-      var progressStop = this.sinon.stub(chrome.progress, 'stop');
+      var spyProgressStop = this.sinon.spy(chrome.progress, 'stop');
       chrome.handleEvent({ type: '_loaded' });
+      assert.equal(chrome.progress.getAttribute('data-l10n-id'),
+        'gaia-progress-loaded');
       assert.isTrue(stubHideProgress.calledWith(chrome.progress));
-      assert.isTrue(progressStop.calledOnce);
+      assert.isTrue(spyProgressStop.calledOnce);
     });
 
     test('app location is changed', function() {
-      var app = new AppWindow(fakeWebSite);
+      this.sinon.stub(chrome, 'hidePinDialogCard');
+      var stubHandleLocationChange =
+        this.sinon.stub(chrome, 'handleLocationChange');
+      chrome.handleEvent({ type: '_locationchange' });
+      assert.isTrue(stubHandleLocationChange.called);
+      assert.isTrue(chrome.hidePinDialogCard.called);
+    });
+
+    test('app location is changed - private browser landing page', function() {
+      var app = new AppWindow(fakePrivateLandingPage);
+      this.sinon.stub(app, 'isBrowser').returns(true);
+      this.sinon.stub(app, 'isPrivateBrowser').returns(true);
+
       var chrome = new AppChrome(app);
-      var stubHandleLocationChanged =
-        this.sinon.stub(chrome, 'handleLocationChanged');
-      chrome.handleEvent({ type: 'mozbrowserlocationchange' });
-      assert.isTrue(stubHandleLocationChanged.called);
+      this.sinon.stub(chrome, 'hidePinDialogCard');
+      chrome.handleEvent({ type: '_locationchange' });
+      assert.equal(chrome.title.dataset.l10nId, 'search-or-enter-address');
+      assert.isTrue(chrome.hidePinDialogCard.called);
     });
 
     test('add bookmark', function() {
-      var app = new AppWindow(fakeWebSite);
-      var chrome = new AppChrome(app);
       var stubSelectOne = this.sinon.stub(MockModalDialog, 'selectOne');
       chrome.onAddBookmark();
       assert.isTrue(stubSelectOne.called);
     });
 
     test('app ssl state is changed', function() {
-      var app = new AppWindow(fakeWebSite);
+      var app = new AppWindow(cloneConfig(fakeWebSite));
       this.sinon.stub(app, 'getSSLState', function() {
         return 'broken';
       });
@@ -142,7 +180,7 @@ suite('system/AppChrome', function() {
         this.sinon.spy(chrome, 'handleSecurityChanged');
       chrome.handleEvent({ type: '_securitychange' });
       assert.isTrue(stubHandleSecurityChanged.called);
-      assert.equal(chrome.title.dataset.ssl, 'broken');
+      assert.equal(chrome.sslIndicator.dataset.ssl, 'broken');
     });
   });
 
@@ -156,7 +194,7 @@ suite('system/AppChrome', function() {
     });
 
     test('Combined view for navigation + bar', function() {
-      var app = new AppWindow(fakeWebSite);
+      var app = new AppWindow(cloneConfig(fakeWebSite));
 
       var spyView = this.sinon.spy(AppChrome.prototype, 'combinedView');
       new AppChrome(app); // jshint ignore:line
@@ -167,8 +205,6 @@ suite('system/AppChrome', function() {
 
   suite('Button events', function() {
     test('back', function() {
-      var app = new AppWindow(fakeWebSite);
-      var chrome = new AppChrome(app);
       var stubBack = this.sinon.stub(app, 'back');
       assert.equal(chrome.backButton.getAttribute('data-l10n-id'),
         'back-button');
@@ -177,8 +213,6 @@ suite('system/AppChrome', function() {
     });
 
     test('forward', function() {
-      var app = new AppWindow(fakeWebSite);
-      var chrome = new AppChrome(app);
       var stubForward = this.sinon.stub(app, 'forward');
       assert.equal(chrome.forwardButton.getAttribute('data-l10n-id'),
         'forward-button');
@@ -187,8 +221,6 @@ suite('system/AppChrome', function() {
     });
 
     test('reload', function() {
-      var app = new AppWindow(fakeWebSite);
-      var chrome = new AppChrome(app);
       var stubReload = this.sinon.stub(app, 'reload');
       assert.equal(chrome.reloadButton.getAttribute('data-l10n-id'),
         'reload-button');
@@ -197,8 +229,6 @@ suite('system/AppChrome', function() {
     });
 
     test('stop', function() {
-      var app = new AppWindow(fakeWebSite);
-      var chrome = new AppChrome(app);
       var stubStop = this.sinon.stub(app, 'stop');
       assert.equal(chrome.stopButton.getAttribute('data-l10n-id'),
         'stop-button');
@@ -218,14 +248,11 @@ suite('system/AppChrome', function() {
     });
 
     test('location changed', function() {
-      var app = new AppWindow(fakeWebSite);
-      var chrome = new AppChrome(app);
       this.sinon.stub(app, 'isBrowser').returns(true);
       var stub1 = this.sinon.stub(app, 'canGoForward');
       var stub2 = this.sinon.stub(app, 'canGoBack');
 
-      chrome.handleEvent({ type: 'mozbrowserlocationchange',
-                           detail: 'new.location' });
+      chrome.handleEvent({ type: '_locationchange' });
 
       stub1.getCall(0).args[0](true);
       assert.equal(chrome.forwardButton.disabled, false);
@@ -239,13 +266,11 @@ suite('system/AppChrome', function() {
     });
 
     test('location#anchor changed', function() {
-      var app = new AppWindow(fakeWebSite);
-      var chrome = new AppChrome(app);
       this.sinon.stub(app, 'isBrowser').returns(true);
 
       chrome._currentURL = fakeWebSite.url;
       chrome.containerElement.classList.add('scrollable');
-      chrome.handleEvent({ type: 'mozbrowserlocationchange',
+      chrome.handleEvent({ type: '_locationchange',
                            detail: fakeWebSite.url + '#anchor' });
       assert.isTrue(chrome.containerElement.classList.contains('scrollable'));
     });
@@ -257,9 +282,7 @@ suite('system/AppChrome', function() {
       var stub1 = this.sinon.stub(app, 'canGoForward');
       var stub2 = this.sinon.stub(app, 'canGoBack');
 
-      var evt = new CustomEvent('mozbrowserlocationchange', {
-        detail: 'http://mozilla.org'
-      });
+      var evt = new CustomEvent('_locationchange');
       app.element.dispatchEvent(evt);
 
       stub1.getCall(0).args[0](true);
@@ -276,45 +299,36 @@ suite('system/AppChrome', function() {
 
 
   suite('Navigation events', function() {
+    setup(function() {
+      chrome.setSiteIcon.reset();
+    });
+
     test('loadstart', function() {
-      var app = new AppWindow(fakeWebSite);
-      var chrome = new AppChrome(app);
       chrome.handleEvent({ type: 'mozbrowserloadstart' });
       assert.isTrue(chrome.containerElement.classList.contains('loading'));
+      assert.isFalse(chrome.setSiteIcon.calledOnce);
     });
 
     test('loadend', function() {
-      var app = new AppWindow(fakeWebSite);
-      var chrome = new AppChrome(app);
       chrome.handleEvent({ type: 'mozbrowserloadend' });
       assert.isFalse(chrome.containerElement.classList.contains('loading'));
+      assert.isTrue(chrome.setSiteIcon.calledOnce);
+      assert.equal(0, chrome.setSiteIcon.getCall(0).args.length,
+                'setSiteIcon passed 0 argument');
     });
 
-    test('titlechange', function() {
-      var app = new AppWindow(fakeWebSite);
-      var chrome = new AppChrome(app);
-
-      assert.equal(chrome.title.textContent, '');
-
-      chrome.handleEvent({ type: 'mozbrowserlocationchange',
-                           detail: app.config.url });
-
-      chrome.handleEvent({ type: 'mozbrowsertitlechange',
-                           detail: '' });
-
-      assert.equal(chrome.title.textContent, app.config.url);
-
-      chrome.handleEvent({ type: 'mozbrowsertitlechange',
-                           detail: 'Hello' });
-
-      assert.equal(chrome.title.textContent, 'Hello');
+    test('namechanged - does not set when we have a fixed title', function() {
+      chrome._fixedTitle = true;
+      chrome.title.textContent = 'foo';
+      chrome.handleEvent({ type: '_namechanged' });
+      assert.equal(chrome.title.textContent, 'foo');
     });
 
     suite('error', function() {
       var app, chrome;
 
       setup(function() {
-        app = new AppWindow(fakeWebSite);
+        app = new AppWindow(cloneConfig(fakeWebSite));
       });
 
       test('scrollable chrome without bar', function() {
@@ -350,25 +364,121 @@ suite('system/AppChrome', function() {
     });
   });
 
+  suite('handleScrollEvent', function() {
+    var app, chrome;
+
+    setup(function() {
+      app = new AppWindow(cloneConfig(fakeWebSite));
+      app.config.chrome.bar = true;
+      chrome = new AppChrome(app);
+      this.sinon.stub(chrome, 'expand');
+      this.sinon.stub(chrome, 'collapse');
+    });
+
+    test('does nothing if is not scrollable', function() {
+      chrome.containerElement.classList.remove('scrollable');
+      chrome.scrollable = {
+        scrollTop: 100,
+        scrollTopMax: 1
+      };
+      chrome.handleEvent({ type: 'scroll'});
+      assert.isFalse(chrome.expand.called);
+      assert.isFalse(chrome.collapse.called);
+    });
+
+    test('collapses when scrollTop > scrollTopMax', function() {
+      chrome.containerElement.classList.add('scrollable');
+      chrome.scrollable = {
+        scrollTop: 100,
+        scrollTopMax: 55
+      };
+      chrome.handleEvent({ type: 'scroll'});
+      assert.isFalse(chrome.expand.called);
+      assert.isTrue(chrome.collapse.called);
+    });
+
+    test('expands when scrollTop > scrollTopMax', function() {
+      chrome.containerElement.classList.add('scrollable');
+      chrome.scrollable = {
+        scrollTop: 50,
+        scrollTopMax: 55
+      };
+      chrome.handleEvent({ type: 'scroll'});
+      assert.isTrue(chrome.expand.called);
+      assert.isFalse(chrome.collapse.called);
+    });
+  });
+
+  suite('setPinDialogCard', function() {
+    setup(function() {
+      this.sinon.stub(chrome, 'setOrigin');
+      chrome.pinDialog.classList.add('hidden');
+      chrome.app.getScreenshot = this.sinon.stub();
+      chrome.setPinDialogCard();
+    });
+
+    test('sets the origin', function() {
+      assert.isTrue(chrome.setOrigin.called);
+    });
+
+    test('sets the background as screenshot', function() {
+      assert.isTrue(chrome.app.getScreenshot.called);
+    });
+
+    test('appends the card to the cardContainer', function() {
+      var container = chrome.pinCardContainer.innerHTML;
+      assert.isTrue(container.contains('gaia-pin-card'));
+    });
+
+     test('shows the pinDialog', function() {
+      assert.isFalse(chrome.pinDialog.classList.contains('hidden'));
+    });
+  });
+
+  suite('setOrigin', function() {
+    var DOMAIN, SUBDOMAIN;
+
+    setup(function() {
+      DOMAIN = 'firefox.org';
+      SUBDOMAIN = 'test.';
+    });
+
+    test('no subdomains', function() {
+      chrome._currentOrigin = 'http://' + DOMAIN;
+      chrome.setOrigin();
+      var tld = chrome.originElement.querySelector('.tld');
+      assert.equal(tld.textContent, DOMAIN);
+      chrome.originElement.removeChild(tld);
+      assert.equal(chrome.originElement.textContent, '');
+    });
+
+    test('with subdomains', function() {
+      chrome._currentOrigin = 'http://' + SUBDOMAIN + DOMAIN;
+      chrome.setOrigin();
+      var tld = chrome.originElement.querySelector('.tld');
+      assert.equal(tld.textContent, DOMAIN);
+      chrome.originElement.removeChild(tld);
+      assert.equal(chrome.originElement.textContent, SUBDOMAIN);
+    });
+  });
 
   suite('URLBar', function() {
     test('click', function() {
-      var app = new AppWindow(fakeWebSite);
-      var chrome = new AppChrome(app);
+      MockService.mockQueryWith('locked', false);
       var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
       chrome.handleEvent({ type: 'click', target: chrome.title });
       assert.isTrue(stubDispatchEvent.called);
     });
 
     test('should set the name when created', function() {
-      var app = new AppWindow(fakeWebSite);
+      var app = new AppWindow(cloneConfig(fakeWebSite));
       app.name = 'Phone';
       var chrome = new AppChrome(app);
       assert.equal(chrome.title.textContent, 'Phone');
     });
 
     test('should update the name when it changes', function() {
-      var app = new AppWindow(fakeWebSite);
+      var app = new AppWindow(cloneConfig(fakeWebSite));
       app.name = 'Phone';
       var chrome = new AppChrome(app);
       assert.equal(chrome.title.textContent, 'Phone');
@@ -381,7 +491,7 @@ suite('system/AppChrome', function() {
 
     test('localized app is not immediately overridden by titlechange event',
       function() {
-      var app = new AppWindow(fakeWebSite);
+      var app = new AppWindow(cloneConfig(fakeWebSite));
       app.name = 'Phone';
 
       var chrome = new AppChrome(app);
@@ -394,7 +504,7 @@ suite('system/AppChrome', function() {
   suite('mozbrowserlocationchange', function() {
     var subject = null;
     setup(function() {
-      var website = new AppWindow(fakeWebSite);
+      var website = new AppWindow(cloneConfig(fakeWebSite));
       subject = new AppChrome(website);
       subject._registerEvents();
     });
@@ -416,36 +526,6 @@ suite('system/AppChrome', function() {
       chrome._unregisterEvents();
     });
 
-    test('should wait before updating the title', function() {
-      subject.title.textContent = 'Google';
-      var evt = new CustomEvent('mozbrowserlocationchange', {
-        detail: 'http://bing.com'
-      });
-      subject.app.element.dispatchEvent(evt);
-
-      assert.equal(subject.title.textContent, 'Google');
-      this.sinon.clock.tick(500);
-      assert.equal(subject.title.textContent, 'http://bing.com');
-    });
-
-    test('should not update the title if we get a titlechange right after',
-    function() {
-      subject.title.textContent = 'Google';
-      var evt = new CustomEvent('mozbrowserlocationchange', {
-        detail: 'http://bing.com'
-      });
-      subject.app.element.dispatchEvent(evt);
-
-      assert.equal(subject.title.textContent, 'Google');
-      this.sinon.clock.tick(100);
-      var titleEvent = new CustomEvent('mozbrowsertitlechange', {
-        detail: 'Bing'
-      });
-      subject.app.element.dispatchEvent(titleEvent);
-      this.sinon.clock.tick(500);
-      assert.equal(subject.title.textContent, 'Bing');
-    });
-
     test('browser start page should always have the same title',
     function() {
       var app = new AppWindow(fakeSearchApp);
@@ -463,9 +543,7 @@ suite('system/AppChrome', function() {
         return true;
       });
       subject.collapse();
-      var evt = new CustomEvent('mozbrowserlocationchange', {
-        detail: 'http://example.com'
-      });
+      var evt = new CustomEvent('_locationchange');
       subject.app.element.dispatchEvent(evt);
       assert.isTrue(subject.element.classList.contains('maximized'));
       assert.equal(subject.scrollable.scrollTop, 0);
@@ -477,7 +555,7 @@ suite('system/AppChrome', function() {
     var subject = null;
     var cbSpy = null;
     setup(function() {
-      var app = new AppWindow(fakeWebSite);
+      var app = new AppWindow(cloneConfig(fakeWebSite));
       subject = new AppChrome(app);
       cbSpy = this.sinon.spy();
 
@@ -501,7 +579,7 @@ suite('system/AppChrome', function() {
     });
 
     test('collapse should remove the maximized css class', function() {
-      var app = new AppWindow(fakeWebSite);
+      var app = new AppWindow(cloneConfig(fakeWebSite));
       var subject = new AppChrome(app);
       subject.element.classList.add('maximized');
 
@@ -510,7 +588,7 @@ suite('system/AppChrome', function() {
     });
 
     test('rocketbar-overlayclosed should collapse the urlbar', function() {
-      var app = new AppWindow(fakeWebSite);
+      var app = new AppWindow(cloneConfig(fakeWebSite));
       var subject = new AppChrome(app);
       subject.maximize();
 
@@ -524,7 +602,7 @@ suite('system/AppChrome', function() {
 
     setup(function() {
       this.sinon.clock.restore();
-      app = new AppWindow(fakeWebSite);
+      app = new AppWindow(cloneConfig(fakeWebSite));
       chrome = new AppChrome(app);
       stubRequestAnimationFrame =
         this.sinon.stub(window, 'requestAnimationFrame').yieldsAsync();
@@ -546,7 +624,7 @@ suite('system/AppChrome', function() {
       // finished. Individual tests are responsible for firing a
       // transitionend event at the element of any additional AppChrome
       // objects they create.
-      chrome.element.dispatchEvent(new CustomEvent('transitionend'));
+      chrome.element.dispatchEvent(fadeTransitionEndEvent);
 
       // To ensure the transitionend event has been processed, wait for a
       // *real* requestAnimationFrame tick.
@@ -584,6 +662,7 @@ suite('system/AppChrome', function() {
         }
       });
       assert.equal(chrome.element.style.backgroundColor, '');
+      assert.isTrue(app.element.classList.contains('light'));
     });
 
     test('metachange changed', function() {
@@ -598,11 +677,18 @@ suite('system/AppChrome', function() {
       assert.equal(chrome.element.style.backgroundColor, 'red');
     });
 
+    test('theme resets on navigation', function() {
+      chrome.setThemeColor('orange');
+      chrome.handleEvent({type: 'mozbrowserloadstart'});
+      chrome.handleEvent({type: 'mozbrowserloadend'});
+      assert.equal(chrome.element.style.backgroundColor, '');
+    });
+
     test('dark color have light icons', function(done) {
       var initiallyLight = app.element.classList.contains('light');
       chrome.setThemeColor('black');
       window.setTimeout(function() {
-        chrome.element.dispatchEvent(new CustomEvent('transitionend'));
+        chrome.element.dispatchEvent(fadeTransitionEndEvent);
         assert.isTrue(stubRequestAnimationFrame.called);
         assert.isFalse(app.element.classList.contains('light'));
         assert.isFalse(chrome.useLightTheming());
@@ -616,7 +702,7 @@ suite('system/AppChrome', function() {
       var initiallyLight = app.element.classList.contains('light');
       chrome.setThemeColor('white');
       window.setTimeout(function() {
-        chrome.element.dispatchEvent(new CustomEvent('transitionend'));
+        chrome.element.dispatchEvent(fadeTransitionEndEvent);
         assert.isTrue(stubRequestAnimationFrame.called);
         assert.isTrue(app.element.classList.contains('light'));
         assert.isTrue(chrome.useLightTheming());
@@ -627,20 +713,22 @@ suite('system/AppChrome', function() {
     });
 
     test('popup window will use rear window color theme', function(done) {
-      var popup = new PopupWindow(fakeWebSite);
+      var popup = new PopupWindow(cloneConfig(fakeWebSite));
       var popupChrome = new AppChrome(popup);
+      this.sinon.stub(popup, 'getBottomMostWindow').returns(app);
       chrome.setThemeColor('black');
       popupChrome.setThemeColor('white');
       popup.appChrome = popupChrome;
       app.appChrome = chrome;
-      popup.rearWindow = app;
       window.setTimeout(function() {
-        chrome.element.dispatchEvent(new CustomEvent('transitionend'));
+        chrome.element.dispatchEvent(fadeTransitionEndEvent);
         assert.isTrue(stubRequestAnimationFrame.called);
-        assert.isTrue(popupChrome.useLightTheming());
+        assert.equal(chrome.useLightTheming(), popupChrome.useLightTheming());
+        assert.equal(app.themeColor, 'black');
+        assert.equal(popup.themeColor, 'black');
         sinon.assert.calledOnce(appPublishStub.withArgs('titlestatechanged'));
         // End popup rAF look so it doesn't interfere with other tests
-        popupChrome.element.dispatchEvent(new CustomEvent('transitionend'));
+        popupChrome.element.dispatchEvent(fadeTransitionEndEvent);
         done();
       }, 0);
     });
@@ -653,10 +741,26 @@ suite('system/AppChrome', function() {
 
     test('should stop requesting frames when transition ends', function(done) {
       chrome.setThemeColor('white');
-      chrome.element.dispatchEvent(new CustomEvent('transitionend'));
+      chrome.element.dispatchEvent(fadeTransitionEndEvent);
       window.setTimeout(function() {
         sinon.assert.calledOnce(stubRequestAnimationFrame);
         done();
+      }, 0);
+    });
+
+    test('should ignore unrelated transition events', function(done) {
+      chrome.setThemeColor('white');
+      window.setTimeout(function() {
+        var previousCallCount = stubRequestAnimationFrame.callCount;
+        var transformEvent = new CustomEvent('transitionend');
+        transformEvent.propertyName = 'transform';
+        chrome.element.dispatchEvent(transformEvent);
+        window.setTimeout(function() {
+          assert.isTrue(stubRequestAnimationFrame.callCount > previousCallCount,
+                       'requestAnimationFrame continues to be called after ' +
+                       'an unrelated transition event');
+          done();
+        }, 0);
       }, 0);
     });
 
@@ -670,7 +774,7 @@ suite('system/AppChrome', function() {
     });
 
     test('does not set for private windows', function() {
-      app = new AppWindow(fakeWebSite);
+      app = new AppWindow(cloneConfig(fakeWebSite));
       this.sinon.stub(app, 'isPrivateBrowser').returns(true);
       chrome = new AppChrome(app);
       assert.equal(chrome.scrollable.style.backgroundColor, '');
@@ -680,30 +784,29 @@ suite('system/AppChrome', function() {
   });
 
   suite('Search request', function() {
+    var stubDispatch;
+
+    setup(function() {
+      stubDispatch = this.sinon.stub(window, 'dispatchEvent');
+    });
+
     test('When screen is unlocked, dispatch the request.', function() {
-      var caught = false;
-      window.addEventListener('global-search-request', function search() {
-        window.removeEventListener('global-search-request', search);
-        caught = true;
-      });
-      MockService.locked = false;
-      var app = new AppWindow(fakeAppWithName);
-      var chrome = new AppChrome(app);
-      chrome.title.dispatchEvent(new CustomEvent('click'));
-      assert.isTrue(caught);
+      MockService.mockQueryWith('locked', false);
+      chrome.handleEvent({ type: 'click', target: chrome.title });
+      assert.isTrue(stubDispatch.called);
+    });
+
+    test('When a contextmenu is shown, do not dispatch.', function() {
+      MockService.mockQueryWith('locked', false);
+      this.sinon.stub(chrome.app.contextmenu, 'isShown').returns(true);
+      chrome.handleEvent({ type: 'click', target: chrome.title });
+      assert.isFalse(stubDispatch.called);
     });
 
     test('When screen is locked, do not dispatch the event.', function() {
-      var caught = false;
-      window.addEventListener('global-search-request', function search() {
-        window.removeEventListener('global-search-request', search);
-        caught = true;
-      });
-      MockService.locked = true;
-      var app = new AppWindow(fakeAppWithName);
-      var chrome = new AppChrome(app);
-      chrome.title.dispatchEvent(new CustomEvent('click'));
-      assert.isFalse(caught);
+      MockService.mockQueryWith('locked', true);
+      chrome.handleEvent({ type: 'click', target: chrome.title });
+      assert.isFalse(stubDispatch.called);
     });
   });
 
@@ -730,8 +833,6 @@ suite('system/AppChrome', function() {
     });
 
     test('set transparent color', function() {
-      var app = new AppWindow(fakeWebSite);
-      var chrome = new AppChrome(app);
       var appPublishStub = this.sinon.stub(app, 'publish');
 
       chrome.setThemeColor('transparent');
@@ -740,8 +841,6 @@ suite('system/AppChrome', function() {
     });
 
     test('unset color', function() {
-      var app = new AppWindow(fakeWebSite);
-      var chrome = new AppChrome(app);
       var appPublishStub = this.sinon.stub(app, 'publish');
 
       chrome.setThemeColor('');
@@ -759,6 +858,12 @@ suite('system/AppChrome', function() {
       chrome.reConfig();
       assert.isFalse(chrome.app.element.classList.contains('search-app'));
     });
+
+    test('sets the site icon', function() {
+      var app = new AppWindow(fakeSearchApp);
+      var chrome = new AppChrome(app);
+      assert.isTrue(chrome.setSiteIcon.called);
+    });
   });
 
   suite('transition events', function() {
@@ -768,6 +873,7 @@ suite('system/AppChrome', function() {
       chrome = new AppChrome(app);
       this.sinon.stub(app, 'publish');
       this.sinon.stub(app, 'isActive').returns(true);
+      this.sinon.stub(chrome, 'isMaximized').returns(false);
 
       for (var i = 0; i < 10; i++) {
         chrome.handleEvent({ type: 'scroll' });
@@ -786,10 +892,184 @@ suite('system/AppChrome', function() {
       sinon.assert.calledOnce(app.publish.withArgs('chromecollapsed'));
     });
 
+    test('publishes chromeexpanded when transition ends', function() {
+      chrome.isMaximized.returns(true);
+      chrome.element.dispatchEvent(new CustomEvent('transitionend'));
+      sinon.assert.calledOnce(app.publish.withArgs('chromeexpanded'));
+    });
+
     test('should only publish once', function() {
       chrome.element.dispatchEvent(new CustomEvent('transitionend'));
       this.sinon.clock.tick(250);
       sinon.assert.calledOnce(app.publish.withArgs('chromecollapsed'));
+    });
+  });
+
+  suite('Pinning the web', function() {
+    setup(function() {
+      [chrome.siteIcon, chrome.closePin].forEach(function(element) {
+        this.sinon.stub(element, 'addEventListener');
+        this.sinon.stub(element, 'removeEventListener');
+      }.bind(this));
+    });
+
+    test('adds listeners when the setting is enabled', function() {
+      MockSettingsListener.mTriggerCallback(PINNING_PREF, true);
+      assert.isTrue(chrome.siteIcon.addEventListener.calledWith('click'));
+      assert.isTrue(chrome.closePin.addEventListener.calledWith('click'));
+    });
+
+    test('removes listeners when the setting is enabled', function() {
+      MockSettingsListener.mTriggerCallback(PINNING_PREF, false);
+      assert.isFalse(chrome.siteIcon.addEventListener.calledWith('click'));
+      assert.isFalse(chrome.closePin.addEventListener.calledWith('click'));
+    });
+  });
+
+  suite('setSiteIcon', function() {
+    var fakeIconURI = 'data://someimage';
+    var getIconPromise;
+    var combinedChrome;
+
+    setup(function() {
+      var app = new AppWindow(cloneConfig(fakeWebSite));
+      combinedChrome = new AppChrome(app);
+      combinedChrome.setSiteIcon.restore();
+      getIconPromise = new MockPromise();
+      this.sinon.stub(combinedChrome.app, 'getSiteIconUrl')
+                     .returns(getIconPromise);
+    });
+
+    test('asks app for url when no argument is provided', function() {
+      assert.ok(combinedChrome.useCombinedChrome());
+      combinedChrome.setSiteIcon();
+      getIconPromise.mFulfillToValue({ url: fakeIconURI });
+
+      assert.ok(combinedChrome.siteIcon
+                  .style.backgroundImage.includes(fakeIconURI));
+    });
+
+    test('small icon', function() {
+      combinedChrome.setSiteIcon();
+      getIconPromise.mFulfillToValue({ url: fakeIconURI, isSmall: true });
+
+      assert.isTrue(combinedChrome.siteIcon.classList.contains('small-icon'));
+    });
+
+    test('!small icon', function() {
+      combinedChrome.setSiteIcon();
+      getIconPromise.mFulfillToValue({ url: fakeIconURI, isSmall: false });
+
+      assert.isFalse(combinedChrome.siteIcon.classList.contains('small-icon'));
+    });
+
+    test('handles url argument', function() {
+      combinedChrome.setSiteIcon(fakeIconURI);
+      assert.ok(combinedChrome.siteIcon
+                  .style.backgroundImage.includes(fakeIconURI));
+      sinon.assert.notCalled(combinedChrome.app.getSiteIconUrl);
+    });
+
+    test('failure to get icon', function() {
+      // set a default
+      combinedChrome.siteIcon.style.backgroundImage = `url(${fakeIconURI})`;
+
+      combinedChrome.setSiteIcon();
+      getIconPromise.mRejectToError();
+
+      assert.ok(combinedChrome.siteIcon
+                  .style.backgroundImage.includes(fakeIconURI));
+    });
+
+    test('has no effect for private browsers', function() {
+      this.sinon.stub(combinedChrome.app, 'isPrivateBrowser').returns(true);
+      var siteIcon = combinedChrome.siteIcon;
+      var origSiteIcon = siteIcon && siteIcon.style.backgroundImage;
+      var origClassName = siteIcon && siteIcon.className;
+
+      combinedChrome.setSiteIcon(fakeIconURI);
+
+      var newSiteIcon = siteIcon && siteIcon.style.backgroundImage;
+      var newClassName = siteIcon && siteIcon.className;
+
+      assert.equal(origSiteIcon, newSiteIcon);
+      assert.equal(origClassName, newClassName);
+      assert.ok(!combinedChrome.app.getSiteIconUrl.called);
+    });
+
+    test('click and pref disabled', function() {
+      MockSettingsListener.mTriggerCallback(PINNING_PREF, false);
+      this.sinon.stub(combinedChrome, 'setPinDialogCard');
+      this.sinon.stub(combinedChrome.app, 'isBrowser').returns(true);
+      this.sinon.stub(combinedChrome, 'isMaximized').returns(true);
+      combinedChrome.siteIcon.dispatchEvent(new CustomEvent('click'));
+      assert.isFalse(combinedChrome.setPinDialogCard.called);
+    });
+
+    test('click and pref enabled', function() {
+      MockSettingsListener.mTriggerCallback(PINNING_PREF, true);
+      this.sinon.stub(combinedChrome, 'setPinDialogCard');
+      this.sinon.stub(combinedChrome.app, 'isBrowser').returns(true);
+      this.sinon.stub(combinedChrome, 'isMaximized').returns(true);
+      combinedChrome.siteIcon.dispatchEvent(new CustomEvent('click'));
+      assert.isTrue(combinedChrome.setPinDialogCard.called);
+    });
+
+    test('click, but no browser', function() {
+      MockSettingsListener.mTriggerCallback(PINNING_PREF, true);
+      this.sinon.stub(combinedChrome, 'setPinDialogCard');
+      this.sinon.stub(combinedChrome.app, 'isBrowser').returns(false);
+      this.sinon.stub(combinedChrome, 'isMaximized').returns(true);
+      combinedChrome.siteIcon.dispatchEvent(new CustomEvent('click'));
+      assert.isFalse(combinedChrome.setPinDialogCard.called);
+    });
+
+    test('click, but loading', function() {
+      MockSettingsListener.mTriggerCallback(PINNING_PREF, true);
+      this.sinon.stub(combinedChrome, 'setPinDialogCard');
+      this.sinon.stub(combinedChrome.app, 'isBrowser').returns(true);
+      this.sinon.stub(combinedChrome, 'isMaximized').returns(true);
+      combinedChrome.app.loading = true;
+      combinedChrome.siteIcon.dispatchEvent(new CustomEvent('click'));
+      assert.isFalse(combinedChrome.setPinDialogCard.called);
+      combinedChrome.app.loading = false;
+    });
+
+    test('click, but not maximized', function() {
+      MockSettingsListener.mTriggerCallback(PINNING_PREF, true);
+      this.sinon.stub(combinedChrome, 'setPinDialogCard');
+      this.sinon.stub(combinedChrome.app, 'isBrowser').returns(true);
+      this.sinon.stub(combinedChrome, 'isMaximized').returns(false);
+      combinedChrome.siteIcon.dispatchEvent(new CustomEvent('click'));
+      assert.isFalse(combinedChrome.setPinDialogCard.called);
+    });
+  });
+
+  suite('Default icon', function() {
+    var chrome;
+
+    setup(function() {
+      var app = new AppWindow(cloneConfig(fakeWebSite));
+      chrome = new AppChrome(app);
+
+      chrome.app.config.url = 'http://origin1/';
+      chrome.handleEvent({ type: '_locationchange' });
+      chrome.setSiteIcon.reset();
+    });
+
+    test('Icon is not set to default when same origin', function() {
+      chrome.handleEvent({ type: '_locationchange' });
+
+      assert.isFalse(chrome.setSiteIcon.called);
+    });
+
+    test('Icon is set to default when same origin', function() {
+      chrome.app.config.url = 'http://origin2/';
+      chrome.handleEvent({ type: '_locationchange' });
+
+      assert.isTrue(chrome.setSiteIcon.calledOnce);
+      assert.equal(1, chrome.setSiteIcon.getCall(0).args.length,
+        'setSiteIcon passed 1 argument');
     });
   });
 });

@@ -3,12 +3,10 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from marionette import SkipTest
-try:
-    from marionette import Wait
-except ImportError:
-    from marionette_driver import Wait
+from marionette_driver import Wait
 
 from gaiatest import GaiaTestCase
+from gaiatest import GaiaTestEnvironment
 from gaiatest.apps.email.app import Email
 from gaiatest.apps.system.regions.cards_view import CardsView
 from gaiatest.apps.homescreen.app import Homescreen
@@ -17,11 +15,11 @@ from gaiatest.apps.homescreen.app import Homescreen
 class TestOnlyOneHeaderDisplayed(GaiaTestCase):
 
     def setUp(self):
-        try:
-            self.testvars['email']['imap']
-            self.testvars['email']['smtp']
-        except KeyError:
-            raise SkipTest('account details not present in test variables')
+        email = GaiaTestEnvironment(self.testvars).email
+        if not email.get('imap'):
+            raise SkipTest('IMAP account details not present in test variables.')
+        elif not email.get('smtp'):
+            raise SkipTest('SMTP account details not present in test variables.')
 
         GaiaTestCase.setUp(self)
         self.connect_to_local_area_network()
@@ -32,8 +30,8 @@ class TestOnlyOneHeaderDisplayed(GaiaTestCase):
     def test_only_one_header_displayed(self):
         """ https://bugzilla.mozilla.org/show_bug.cgi?id=1116087 """
 
-        self.email.setup_IMAP_email(self.testvars['email']['imap'],
-                                    self.testvars['email']['smtp'])
+        self.email.setup_IMAP_email(self.environment.email['imap'],
+                                    self.environment.email['smtp'])
         self.email.wait_for_emails_to_sync()
         self.assertGreater(len(self.email.mails), 0)
 

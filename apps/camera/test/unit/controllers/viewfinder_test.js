@@ -255,6 +255,56 @@ suite('controllers/viewfinder', function() {
     });
   });
 
+  suite('ViewfinderController#onSettingsOpened()', function() {
+    setup(function() {
+      sinon.spy(this.controller, 'hideGrid');
+      this.controller.onSettingsOpened();
+    });
+
+    test('Hide grid and hide viewfinder view from the screen reader',
+      function() {
+        sinon.assert.called(this.controller.hideGrid);
+        assert.isTrue(this.viewfinder.set.calledWith('ariaHidden', true));
+      });
+  });
+
+  suite('ViewfinderController#onSettingsClosed()', function() {
+    setup(function() {
+      sinon.spy(this.controller, 'configureGrid');
+      this.controller.onSettingsClosed();
+    });
+
+    test('Configure grid and show viewfinder view to the screen reader',
+      function() {
+        sinon.assert.called(this.controller.configureGrid);
+        assert.isTrue(this.viewfinder.set.calledWith('ariaHidden', false));
+      });
+  });
+
+  suite('ViewfinderController#onGalleryOpened()', function() {
+    setup(function() {
+      this.controller.onGalleryOpened();
+    });
+
+    test('When gallery is open, the viewfinder view should be disabled and ' +
+      'hidden from screen reader', function() {
+      sinon.assert.called(this.viewfinder.disable);
+      assert.isTrue(this.viewfinder.set.calledWith('ariaHidden', true));
+    });
+  });
+
+  suite('ViewfinderController#onGalleryClosed()', function() {
+    setup(function() {
+      this.controller.onGalleryClosed();
+    });
+
+    test('When gallery is closed, the viewfinder view should be enabled and ' +
+      'visible to screen reader', function() {
+      sinon.assert.called(this.viewfinder.enable);
+      assert.isTrue(this.viewfinder.set.calledWith('ariaHidden', false));
+    });
+  });
+
   suite('click:viewfinder', function() {
     test('Should set the grid depending on the setting', function() {
       this.app.settings.grid.selected.withArgs('key').returns('on');
@@ -274,6 +324,23 @@ suite('controllers/viewfinder', function() {
       this.app.settings.viewfinder.get.withArgs('scaleType').returns('fit');
       this.controller = new this.ViewfinderController(this.app);
       assert.equal(this.viewfinder.scaleType, 'fit');
+    });
+  });
+
+  suite('ViewfinderController#calculateFaceCircle()', function() {
+    test('Draw circle from a square', function() {
+      var circle = this.controller.calculateFaceCircle({top: 50, left: 50, width: 10, height: 10});
+      assert.deepEqual(circle, {x: 50, y: 50, diameter: 10});
+    });
+
+    test('Draw circle from a 2:1 rectangle', function() {
+      var circle = this.controller.calculateFaceCircle({top: 100, left: 50, width: 20, height: 10});
+      assert.deepEqual(circle, {x: 50, y: 95, diameter: 20});
+    });
+
+    test('Draw circle from a 1:2 rectangle', function() {
+      var circle = this.controller.calculateFaceCircle({top: 100, left: 50, width: 10, height: 20});
+      assert.deepEqual(circle, {x: 45, y: 100, diameter: 20});
     });
   });
 });

@@ -147,6 +147,12 @@ gaia-header [data-icon] > span {
   font-size: 0; /* 1 */
 }
 
+ul li > a.menu-item > * {
+  overflow: unset;
+  text-overflow: unset;
+  white-space: initial;
+}
+
 /******************************************************************************
  * Frame section
  */
@@ -261,6 +267,7 @@ body[data-filter-by="connectivity"] #root > div [data-category="connectivity"] {
   white-space: normal;
 }
 
+.hint > gaia-switch ~ .explanation,
 .hint > label:not([for]) ~ .explanation {
   -moz-padding-end: 8rem;
 }
@@ -278,7 +285,10 @@ body[data-filter-by="connectivity"] #root > div [data-category="connectivity"] {
 .disabled p,
 .disabled h2,
 .disabled label,
-.disabled select {
+.disabled select,
+.disabled gaia-checkbox,
+.disabled gaia-switch,
+gaia-switch[disabled] {
   opacity: 0.6;
   pointer-events: none;
 }
@@ -467,6 +477,8 @@ section ul.operate-certificate {
 
 #menuItem-callWaiting[data-state="unknown"] .alert-label {
   display: inherit;
+  position: absolute;
+  top: 0;
 }
 
 #menuItem-callWaiting .alert-label > span {
@@ -484,9 +496,14 @@ section ul.operate-certificate {
   width: 100%;
 }
 
-#call li[aria-disabled="true"] .icon-dialog {
+#call li[aria-disabled="true"] .icon-dialog,
+#call li[aria-disabled="true"] label {
   opacity: 0.6;
   pointer-events: none;
+}
+
+#call li[aria-disabled="true"] label > span {
+  color: #797e80;
 }
 
 /** Call Barring Settings *****************************************************/
@@ -512,7 +529,7 @@ section ul.operate-certificate {
 #cb-passcode-def {
   display: block;
   border: 0;
-  padding-left: 3.5rem;
+  -moz-padding-start: 3.5rem;
   line-height: 2rem;
   font-size: 1.4rem;
   font-weight: lighter;
@@ -527,7 +544,7 @@ section ul.operate-certificate {
   clear: both;
   display: none;
   height: 4.2rem;
-  padding-left: 3rem;
+  -moz-padding-start: 3rem;
   color: red;
   font-size: 1.5rem;
   line-height: 4.2rem;
@@ -854,16 +871,6 @@ ul li > label.range-icons.volume input {
   color: #797e80;
 }
 
-#dateTime .timezone.disabled select {
-  color: #797e80;
-  opacity: 0.6;
-  top: 0.1rem;
-  left: 1rem;
-  padding: 0;
-  text-shadow: 0 0 0;
-  pointer-events: none;
-}
-
 #dateTime .time-manual span {
   pointer-events: none;
 }
@@ -904,9 +911,10 @@ ul li > label.range-icons.volume input {
   height: 10rem;
   padding: 1rem 1rem 1.2rem;
   resize: none;
+  white-space: normal;
 }
 
-#sendFeedback .pack-checkbox span {
+#sendFeedback gaia-checkbox label {
   left: 3rem;
   right: auto;
   top: 2rem;
@@ -1038,6 +1046,8 @@ ul li > label.range-icons.volume input {
 #fxa-unverified-text {
   padding-top: 0.8rem;
   -moz-margin-start: 6rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /******************************************************************************
@@ -1057,6 +1067,12 @@ ul li > label.range-icons.volume input {
   padding-bottom: 1.5rem;
   -moz-padding-start: 3rem;
   -moz-padding-end: 4rem;
+}
+
+/* Style components in developer panel to match existing styles. */
+#developer ul li > gaia-checkbox,
+#developer-hud ul li > gaia-checkbox {
+  padding: 1.5rem 0;
 }
 
 #developer ul li > label.pack-switch > span,
@@ -1139,7 +1155,7 @@ html[dir="rtl"] #dateTime .timezone.disabled select {
   right: 1rem;
 }
 
-html[dir="rtl"] #sendFeedback .pack-checkbox span {
+html[dir="rtl"] #sendFeedback gaia-checkbox label {
   left: auto;
   right: 3rem;
 }
@@ -1152,11 +1168,9 @@ html[dir="rtl"] #feedback-sad {
   float: left;
 }
 
-html[dir="rtl"] #mediaStorage ul li > a span:nth-of-type(2):not(.button) {
-  left: 0;
-}
-
-html[dir="rtl"] #applicationStorage ul li > a span:nth-of-type(2):not(.button) {
+html[dir="rtl"] #mediaStorage ul li > a span:nth-of-type(2):not(.button),
+html[dir="rtl"] #applicationStorage ul li > a span:nth-of-type(2):not(.button),
+html[dir="rtl"] #battery ul li > a span:nth-of-type(2):not(.button) {
   left: 0;
 }
 
@@ -1168,4 +1182,8 @@ html[dir="rtl"] ul li > label.range-icons.volume input {
 html[dir="rtl"] ul li > label.range-icons span {
   left: unset;
   right: 0;
+}
+
+html[dir="rtl"] #fxa-unverified .description {
+  background-position: 100% 1.5rem;
 }

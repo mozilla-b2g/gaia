@@ -2,14 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-try:
-    from marionette import (expected,
-                            Wait)
-    from marionette.by import By
-except:
-    from marionette_driver import (expected,
-                                   Wait)
-    from marionette_driver.by import By
+from marionette_driver import expected, By, Wait
 
 from gaiatest.apps.base import Base
 from gaiatest.apps.base import PageRegion
@@ -52,6 +45,11 @@ class Email(Base):
         # check if the google autocomplete on email field works as expected
         assert google_login.email == email
 
+        # dismiss the keyboard and return to the correct frame
+        google_login.keyboard.dismiss()
+        google_login.switch_to_frame()
+
+        google_login.tap_next()
         google_login.type_password(password)
         google_login.tap_sign_in()
 

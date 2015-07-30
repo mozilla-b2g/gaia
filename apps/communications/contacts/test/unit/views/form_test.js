@@ -10,7 +10,7 @@
 /* global MocksHelper */
 /* global MockMozContactsObj */
 /* global MockThumbnailImage */
-/* global MockMozNfc */
+/* global Matcher */
 /* global utils */
 /* exported _ */
 
@@ -21,13 +21,13 @@ require('/shared/js/contacts/import/utilities/misc.js');
 require('/shared/js/contacts/utilities/dom.js');
 require('/shared/js/contacts/utilities/templates.js');
 require('/shared/js/contacts/utilities/event_listeners.js');
-require('/shared/test/unit/mocks/mock_moz_nfc.js');
 //Avoiding lint checking the DOM file renaming it to .html
 requireApp('communications/contacts/test/unit/mock_form_dom.js.html');
-
 requireApp('communications/contacts/js/contacts_tag.js');
 requireApp('communications/contacts/js/views/form.js');
+requireApp('communications/contacts/js/utilities/mozContact.js');
 requireApp('communications/contacts/test/unit/mock_navigation.js');
+requireApp('communications/contacts/test/unit/mock_main_navigation.js');
 requireApp('communications/contacts/test/unit/mock_contacts.js');
 require('/shared/test/unit/mocks/mock_mozContacts.js');
 requireApp('communications/contacts/test/unit/mock_external_services.js');
@@ -41,13 +41,11 @@ require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 var subject,
     _,
     realL10n,
-    Contacts,
     realFb,
     realThumbnailImage,
     mockContact,
     footer,
-    ActivityHandler,
-    realMozNfc;
+    ActivityHandler;
 
 var MOCK_DATE_STRING = 'Jan 1 1970';
 var MOCK_DATE_PLACEHOLDER = 'Date';
@@ -83,6 +81,7 @@ window._ = navigator.mozL10n.get;
 requireApp('communications/contacts/js/tag_options.js');
 
 var mocksForm = new MocksHelper([
+  'MainNavigation',
   'Contacts',
   'ConfirmDialog',
   'ContactPhotoHelper'
@@ -91,14 +90,10 @@ var mocksForm = new MocksHelper([
 suite('Render contact form', function() {
 
   suiteSetup(function() {
-    realMozNfc = window.navigator.mozNfc;
-    window.navigator.mozNfc = MockMozNfc;
-
-    requireApp('communications/contacts/js/nfc.js');
 
     mocksForm.suiteSetup();
 
-    Contacts.extServices = MockExtServices;
+    window.ExtServices = MockExtServices;
 
     realFb = window.fb;
     window.fb = Mockfb;
@@ -119,8 +114,6 @@ suite('Render contact form', function() {
     window.fb = realFb;
     utils.thumbnailImage = realThumbnailImage;
     navigator.mozL10n = realL10n;
-
-    window.navigator.mozNfc = realMozNfc;
 
     mocksForm.suiteTeardown();
 
@@ -324,6 +317,7 @@ suite('Render contact form', function() {
     });
   });
 
+  requireApp('communications/contacts/services/contacts.js');
   suite('Render edit form', function() {
 
     function assertDateContent(selector, date) {
@@ -440,25 +434,54 @@ suite('Render contact form', function() {
     });
 
     test('if the tel field is null, is ignored',
-      function() {
+      function(done) {
+        var calls = 0;
+        var target = document.getElementById('throbber');
+        var config = { attributes: true };
+        // we need to check for the change after the contact is saved,
+        // so we wait for the second time the throbber is modified
+        // (first shown, then hidden)
+        var observer = new MutationObserver(function(mutations) {
+          if (++calls === 2) {
+            observer.disconnect();
+            assert.equal(deviceContact.tel.length, 1);
+            done();
+          }
+        });
+        observer.observe(target, config);
+
         var deviceContact = new MockContactAllFields();
         deviceContact.tel[0].value = null;
         subject.render(deviceContact);
         assert.equal(deviceContact.tel.length, 2);
 
         subject.saveContact();
-        assert.equal(deviceContact.tel.length, 1);
     });
 
     test('if the email field is null, is ignored',
-      function() {
+      function(done) {
+        var calls = 0;
+        var target = document.getElementById('throbber');
+        var config = { attributes: true };
+        // same as before, we check for the change after the contact is saved,
+        // so we wait for the second time the throbber is modified
+        // (first shown, then hidden)
+        var observer = new MutationObserver(function(mutations) {
+          if (++calls === 2) {
+            observer.disconnect();
+            assert.equal(deviceContact.email.length, 1);
+            done();
+          }
+        });
+        observer.observe(target, config);
+
         var deviceContact = new MockContactAllFields();
         deviceContact.email[0].value = null;
+
         subject.render(deviceContact);
         assert.equal(deviceContact.email.length, 2);
 
         subject.saveContact();
-        assert.equal(deviceContact.email.length, 1);
     });
 
     test('if the address field is null, is ignored',
@@ -769,7 +792,7 @@ suite('Render contact form', function() {
       // Bypass the contacts matcher when saving contact
       LazyLoader.load(['/shared/js/simple_phone_matcher.js',
                        '/shared/js/contacts/contacts_matcher.js'], function() {
-          contacts.Matcher.match = function() {};
+          Matcher.match = function() {};
       });
     });
 
@@ -880,114 +903,6 @@ suite('Render contact form', function() {
     });
   });
 
-  suite('> NFC use cases', function() {
-    var deleteButton;
-    var realMozContacts;
-
-    suiteSetup(function() {
-      deleteButton = document.querySelector('#delete-contact');
-
-      realMozContacts = navigator.mozContacts;
-      navigator.mozContacts = new MockMozContactsObj([]);
-    });
-
-    suiteTeardown(function() {
-      navigator.mozContacts = realMozContacts;
-    });
-
-    setup(function() {
-      this.sinon.spy(contacts.NFC, 'stopListening');
-
-      deleteButton.click();
-
-      this.sinon.stub(window.navigator.mozContacts,
-        'remove', function() {
-        return {
-          set onsuccess(cb) {
-            cb();
-          }
-        };
-      });
-
-    });
-
-    test('> delete contact with NFC disabled does nothing', function() {
-      // Fake remove the mozNFC support
-      var nfcSupport = navigator.mozNfc;
-      delete navigator.mozNfc;
-      ConfirmDialog.executeYes();
-      sinon.assert.notCalled(contacts.NFC.stopListening);
-      navigator.mozNfc = nfcSupport;
-    });
-
-    test('> delete a contact with NFC should stop NFC listening', function() {
-      ConfirmDialog.executeYes();
-      sinon.assert.calledOnce(contacts.NFC.stopListening);
-    });
-  });
-
-  suite('> Save contact', function() {
-    suiteSetup(function(done) {
-      var deviceContact = new MockContactAllFields();
-      subject.render(deviceContact);
-
-      LazyLoader.load(['/shared/js/text_normalizer.js',
-                     '/shared/js/simple_phone_matcher.js',
-                     '/shared/js/contacts/contacts_matcher.js'], function() {
-        contacts.Matcher.match = function() {};
-        done();
-      });
-    });
-
-    test('> Updating a contact makes it set as global contact', function() {
-      var given = document.getElementById('givenName');
-      given.value = 'Edited';
-      sinon.stub(contacts.Matcher, 'match', function(contact, mode, cbs) {
-        cbs.onmismatch();
-      });
-      sinon.spy(Contacts, 'setCurrent');
-
-      // Need to stub here cause we have a global setup that is
-      // incompatible
-      sinon.stub(navigator.mozContacts, 'save', function(contact) {
-        return {
-          set onsuccess(callback) {
-            callback();
-          },
-          set onerror(callback) {
-
-          }
-        };
-      });
-
-      subject.saveContact();
-
-      sinon.assert.calledOnce(Contacts.setCurrent);
-      var arg = Contacts.setCurrent.getCall(0).args[0];
-      assert.equal(arg.givenName[0], 'Edited');
-
-      contacts.Matcher.match.restore();
-      Contacts.setCurrent.restore();
-      navigator.mozContacts.save.restore();
-    });
-  });
-
-  suite('> Add new contact', function() {
-    suiteSetup(function(){
-      subject.render();
-    });
-    test('> Adding a contact doesn\'t make it a global contact', function() {
-
-      var given = document.getElementById('givenName');
-      given.value = 'New';
-      var spy = sinon.spy(Contacts, 'setCurrent');
-      subject.saveContact();
-
-      assert.equal(spy.callCount, 0);
-      spy.restore();
-    });
-  });
-
   function assertEmpty(id) {
     var fields = document.querySelectorAll('#' + id + ' input');
     for (var i = 0; i < fields.length; i++) {
@@ -1032,5 +947,4 @@ suite('Render contact form', function() {
     assert.isTrue(valueType === data.adr[c].countryName,
                   'Type Value as Expected');
   }
-
 });

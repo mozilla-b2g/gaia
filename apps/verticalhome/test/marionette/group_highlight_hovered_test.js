@@ -5,14 +5,17 @@ var assert = require('assert');
 
 marionette('Vertical - Group', function() {
 
-  var client = marionette.client(require(__dirname + '/client_options.js'));
+  var client = marionette.client({
+    profile: require(__dirname + '/client_options.js'),
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
+  });
   var actions, home, system;
 
   setup(function() {
     actions = new Actions(client);
     home = client.loader.getAppClass('verticalhome');
     system = client.loader.getAppClass('system');
-    system.waitForStartup();
+    system.waitForFullyLoaded();
 
     client.apps.launch(home.URL);
     home.waitForLaunch();

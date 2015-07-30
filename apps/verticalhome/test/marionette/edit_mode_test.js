@@ -2,7 +2,10 @@
 
 marionette('Vertical - Edit Mode', function() {
 
-  var client = marionette.client(require(__dirname + '/client_options.js'));
+  var client = marionette.client({
+    profile: require(__dirname + '/client_options.js'),
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
+  });
   var actions, home, system;
   var selectors;
 
@@ -10,7 +13,7 @@ marionette('Vertical - Edit Mode', function() {
     actions = client.loader.getActions();
     home = client.loader.getAppClass('verticalhome');
     system = client.loader.getAppClass('system');
-    system.waitForStartup();
+    system.waitForFullyLoaded();
     selectors = home.Selectors;
 
     client.apps.launch(home.URL);

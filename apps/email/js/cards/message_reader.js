@@ -757,34 +757,44 @@ return [
     },
 
     onHyperlinkClick: function(event, linkNode, linkUrl, linkText) {
-      var dialog = msgBrowseConfirmNode.cloneNode(true);
-      var content = dialog.getElementsByTagName('p')[0];
-      mozL10n.setAttributes(content, 'browse-to-url-prompt', { url: linkUrl });
-      ConfirmDialog.show(dialog,
-        { // Confirm
-          id: 'msg-browse-ok',
-          handler: function() {
-            if (/^mailto:/i.test(linkUrl)) {
-              // Fast path to compose. Works better than an activity, since
-              // "canceling" the activity has freaky consequences: what does it
-              // mean to cancel ourselves? What is the sound of one hand
-              // clapping?
-              var data = queryURI(linkUrl);
-              cards.pushCard('compose', 'animate', {
-                composerData: {
-                  onComposer: function(composer, composeCard) {
-                    // Copy the to, cc, bcc, subject, body to the compose.
-                    // It is OK to do this blind key copy since queryURI
-                    // explicitly only populates expected fields, does not
-                    // blindly accept input from the outside, and the queryURI
-                    // properties match the property names allowed on composer.
-                    Object.keys(data).forEach(function(key) {
-                      composer[key] = data[key];
-                    });
-                  }
+      if (/^mailto:/i.test(linkUrl)) {
+        // Fast path to compose. Works better than an activity, since
+        // "canceling" the activity has freaky consequences: what does it
+        // mean to cancel ourselves? What is the sound of one hand
+        // clapping?
+        var data = queryURI(linkUrl);
+        cards.pushCard('compose', 'animate', {
+          composerData: {
+            onComposer: function(composer, composeCard) {
+              // Copy the to, cc, bcc, subject, body to the compose.
+              // It is OK to do this blind key copy since queryURI
+              // explicitly only populates expected fields, does not
+              // blindly accept input from the outside, and the queryURI
+              // properties match the property names allowed on composer.
+              Object.keys(data).forEach(function(key) {
+                if (key === 'to' || key === 'cc' || key === 'bcc') {
+                  composer[key] = data[key].map(function(addr) {
+                    return model.api.parseMailbox(addr).address;
+                  }).filter(function(value) {
+                    // Filter out nulls if address parsing failed.
+                    return value;
+                  });
+                } else {
+                  composer[key] = data[key];
                 }
               });
-            } else {
+            }
+          }
+        });
+      } else {
+        var dialog = msgBrowseConfirmNode.cloneNode(true);
+        var content = dialog.getElementsByTagName('p')[0];
+        mozL10n.setAttributes(content, 'browse-to-url-prompt',
+          { url: linkUrl });
+        ConfirmDialog.show(dialog,
+          { // Confirm
+            id: 'msg-browse-ok',
+            handler: function() {
               // Pop out to what is likely the browser, or the user's preferred
               // viewer for the URL. This keeps the URL out of our cookie
               // jar/data space too.
@@ -795,14 +805,14 @@ return [
                   url: linkUrl
                 }
               });
-            }
-          }.bind(this)
-        },
-        { // Cancel
-          id: 'msg-browse-cancel',
-          handler: null
-        }
-      );
+            }.bind(this)
+          },
+          { // Cancel
+            id: 'msg-browse-cancel',
+            handler: null
+          }
+        );
+      }
     },
 
     _populatePlaintextBodyNode: function(bodyNode, rep) {
@@ -1081,7 +1091,10 @@ return [
             var attachment = body.attachments[iAttach], state;
             var extension = attachment.filename.split('.').pop();
 
-            var MAX_ATTACHMENT_SIZE = 20 * 1024 * 1024;
+            // Keeping in-sync with the compose.js value of 22 now, plus some
+            // slop to deal with encoding and just be fine with the general
+            // provider upper bound of 25.
+            var MAX_ATTACHMENT_SIZE = 25 * 1024 * 1024;
             var attachmentDownloadable = true;
             var mimeClass = mimeToClass(attachment.mimetype ||
                             MimeMapper.guessTypeFromExtension(extension));

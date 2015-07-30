@@ -1,4 +1,5 @@
 'use strict';
+/* exported MockSimManager */
 
 var MockSimManager = {
 

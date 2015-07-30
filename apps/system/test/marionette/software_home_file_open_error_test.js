@@ -7,14 +7,13 @@ var assert = require('chai').assert;
 marionette('Software Home Button - File Open Error', function() {
 
   var client = marionette.client({
-    prefs: {
-      'focusmanager.testmode': true,
-      'dom.w3c_touch_events.enabled': 1
-    },
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false,
-      'software-button.enabled': true
+    profile: {
+      prefs: {
+        'focusmanager.testmode': true
+      },
+      settings: {
+        'software-button.enabled': true
+      }
     }
   });
   var home, rocketbar, search, server, system, actions;
@@ -25,7 +24,7 @@ marionette('Software Home Button - File Open Error', function() {
     search = client.loader.getAppClass('search');
     system = client.loader.getAppClass('system');
     actions = client.loader.getActions();
-    system.waitForStartup();
+    system.waitForFullyLoaded();
   });
 
   suiteSetup(function(done) {
@@ -44,7 +43,7 @@ marionette('Software Home Button - File Open Error', function() {
 
     // Navigate to the url.
     rocketbar.homescreenFocus();
-    rocketbar.enterText(url + '\uE006');
+    rocketbar.enterText(url, true);
     system.gotoBrowser(url);
 
     // Save the file.

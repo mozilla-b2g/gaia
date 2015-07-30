@@ -2,20 +2,10 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-try:
-    from marionette import expected
-    from marionette.by import By
-    from marionette.errors import (NoSuchElementException,
-                                   StaleElementException)
-    from marionette.marionette import Actions
-    from marionette.wait import Wait
-except:
-    from marionette_driver import expected
-    from marionette_driver.by import By
-    from marionette_driver.errors import (NoSuchElementException,
-                                   StaleElementException)
-    from marionette_driver.marionette import Actions
-    from marionette_driver.wait import Wait
+from marionette_driver import expected, By, Wait
+from marionette_driver.errors import (NoSuchElementException,
+                                      StaleElementException)
+from marionette_driver.marionette import Actions
 
 from gaiatest.apps.base import Base
 from gaiatest.apps.base import PageRegion
@@ -206,9 +196,9 @@ class Calendar(Base):
             return previous
 
     def a11y_click_header(self, header, selector):
-        self.marionette.execute_async_script(
+        self.accessibility.execute_async_script(
             "Accessibility.click(arguments[0].shadowRoot.querySelector('%s'));" % selector,
-            [header], special_powers=True)
+            [header])
 
     def wait_fot_settings_drawer_animation(self):
         el = self.marionette.find_element(*self.settings._settings_drawer_locator)

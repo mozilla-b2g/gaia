@@ -14,18 +14,13 @@ var fbLoader = (function() {
     loaded = true;
     var iframesFragment = document.createDocumentFragment();
 
-    var curtain = document.createElement('iframe');
-    curtain.id = 'fb-curtain';
-    curtain.src = '/shared/pages/import/curtain.html';
-    iframesFragment.appendChild(curtain);
-
     var oauth = document.createElement('iframe');
-    oauth.id = 'fb-oauth';
+    oauth.id = 'iframe_oauth';
     oauth.hidden = true;
     iframesFragment.appendChild(oauth);
 
     var extensions = document.createElement('iframe');
-    extensions.id = 'fb-extensions';
+    extensions.id = 'iframe_extensions';
     iframesFragment.appendChild(extensions);
 
     document.body.appendChild(iframesFragment);

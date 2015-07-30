@@ -1,3 +1,6 @@
+/* global module */
+'use strict';
+
 /**
  * @constructor
  * @param {Marionette.Client} client Marionette client to use.
@@ -27,7 +30,6 @@ Video.Selector = Object.freeze({
   thumbnailsSingleDeleteButton: 'a.button.single-delete-button',
   thumbnailsSingleShareButton: 'a.button.single-share-button',
   player: 'video#player',
-  videoControls: '#videoControls',
   overlay: '#overlay',
   thumbnailsSelectButton: '#thumbnails-select-button',
   thumbnailSelectTop: '#thumbnail-select-top',
@@ -64,13 +66,6 @@ Video.prototype = {
    */
   get overlay() {
     return this.client.findElement(Video.Selector.overlay);
-  },
-
-  /**
-   * @return {Marionette.Element} that displays video controls.
-   */
-  get videoControls() {
-    return this.client.findElement(Video.Selector.videoControls);
   },
 
   /**

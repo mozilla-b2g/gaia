@@ -27,7 +27,6 @@ function BatteryController(app) {
   this.battery = app.battery || navigator.battery || navigator.mozBattery;
   this.levels = app.settings.battery.get('levels');
   this.notification = app.views.notification;
-  this.l10nGet = app.l10nGet;
   this.bindEvents();
   this.updateStatus();
   debug('initialized');
@@ -53,15 +52,24 @@ BatteryController.prototype.bindEvents = function() {
 BatteryController.prototype.notifications = {
   low: {
     text: 'battery-low-text',
-    attrs: { 'data-icon': 'battery-3' }
+    attrs: {
+      'data-icon': 'battery-3',
+      'data-l10n-id': 'battery-low-indicator'
+    },
   },
   verylow: {
     text: 'battery-verylow-text',
-    attrs: { 'data-icon': 'battery-1' }
+    attrs: {
+      'data-icon': 'battery-1',
+      'data-l10n-id': 'battery-verylow-indicator'
+    }
   },
   critical: {
     text: 'battery-critical-text',
-    attrs: { 'data-icon': 'battery-1' },
+    attrs: {
+      'data-icon': 'battery-1',
+      'data-l10n-id': 'battery-critical-indicator'
+    },
     persistent: true
   }
 };
@@ -116,7 +124,7 @@ BatteryController.prototype.displayNotification = function(status) {
   if (!notification) { return; }
 
   this.lastNotification = this.notification.display({
-    text: this.l10nGet(notification.text),
+    text: notification.text,
     className: notification.className,
     attrs: notification.attrs,
     persistent: notification.persistent

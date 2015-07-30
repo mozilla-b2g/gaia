@@ -12,7 +12,7 @@ class TestSettingsMediaStorage(GaiaTestCase):
 
         settings = Settings(self.marionette)
         settings.launch()
-        media_storage_settings = settings.open_media_storage_settings()
+        media_storage_settings = settings.open_media_storage()
 
         # Check that no media is on the device
         self.assertEqual(media_storage_settings.music_size, '0 B')
@@ -29,7 +29,7 @@ class TestSettingsMediaStorage(GaiaTestCase):
 
         # Access 'Media storage' in Settings
         settings.launch()
-        media_storage_settings = settings.open_media_storage_settings()
+        media_storage_settings = settings.open_media_storage()
 
         # Check that media storage has updated to reflect the newly pushed media
         self.assertEqual(media_storage_settings.music_size, '120 KB')

@@ -7,7 +7,9 @@ var EmeServer = require(
 
 marionette('Vertical - Collection', function() {
 
-  var client = marionette.client(require(__dirname + '/client_options.js'));
+  var client = marionette.client({
+    profile: require(__dirname + '/client_options.js')
+  });
   var collection, home, selectors, server, system;
 
   suiteSetup(function(done) {
@@ -26,7 +28,7 @@ marionette('Vertical - Collection', function() {
     collection = new Collection(client);
     home = client.loader.getAppClass('verticalhome');
     system = client.loader.getAppClass('system');
-    system.waitForStartup();
+    system.waitForFullyLoaded();
 
     home.waitForLaunch();
     EmeServer.setServerURL(client, server);
@@ -56,7 +58,7 @@ marionette('Vertical - Collection', function() {
     // XXX: Loading this locale file seems to no longer work.
     // Hardcode the expected value for now.
     var expected = home.l10n(
-      '/locales-obj/qps-ploc.json',
+      '/locales-obj/index.qps-ploc.json',
       // XXX: harcoded number 376 taken from the fixture
       'collection-categoryId-376'
     );

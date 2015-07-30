@@ -3,8 +3,10 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from marionette.marionette_test import SkipTest
+from marionette import SkipTest
+
 from gaiatest import GaiaTestCase
+from gaiatest import GaiaTestEnvironment
 from gaiatest.apps.contacts.app import Contacts
 from gaiatest.apps.contacts.regions.settings_form import ConfirmationView
 
@@ -12,14 +14,10 @@ from gaiatest.apps.contacts.regions.settings_form import ConfirmationView
 class TestImportGMailNoNetwork(GaiaTestCase):
 
     def setUp(self):
+        if not GaiaTestEnvironment(self.testvars).email.get('gmail'):
+            raise SkipTest('Gmail account details not present in test variables.')
+
         GaiaTestCase.setUp(self)
-
-        try:
-            # We need more than 20 contacts attached to the google account for this test to work
-            self.testvars['email']['gmail']
-        except KeyError:
-            raise SkipTest('account details not present in test variables')
-
         self.connect_to_local_area_network()
 
     def test_import_gmail_no_network(self):
@@ -39,8 +37,8 @@ class TestImportGMailNoNetwork(GaiaTestCase):
         # Login to gmail account
         gmail.switch_to_gmail_login_frame()
 
-        email = self.testvars['email']['gmail']['email']
-        password = self.testvars['email']['gmail']['password']
+        email = self.environment.email['gmail']['email']
+        password = self.environment.email['gmail']['password']
 
         gmail.gmail_login(email, password)
         contact_import_picker = gmail.tap_grant_access()

@@ -4,7 +4,8 @@
   height: calc(var(--statusbar-height) + var(--rocketbar-urlbar-height));
   transform: scaleY(var(--rocketbar-scale)) translateY(calc(var(--statusbar-height) * -1));
   transform-origin: top left;
-  transition: transform 0.2s ease-in-out, background-color 0.5s ease;
+  transition: transform var(--transition-duration) ease-in-out,
+              background-color var(--transition-duration) ease;
 
   background-color: black;
   background-image: linear-gradient(rgba(0,0,0,0.1), rgba(0,0,0,0.1));
@@ -46,7 +47,7 @@
   pointer-events: auto;
   background-color: transparent;
   position: absolute;
-  bottom: 0.1rem;
+  top: calc(var(--statusbar-height) + .3rem);
   width: 100%;
   font-size: 0;
 }
@@ -64,7 +65,6 @@
 [data-manifest-name="FTU"]:not(.bar) > .chrome .progress,
 .lockScreenWindow:not(.bar) > .chrome .controls,
 .lockScreenWindow:not(.bar) > .chrome gaia-progress,
-.homescreen:not(.bar) > .chrome .controls,
 .homescreen:not(.bar) > .chrome gaia-progress,
 .globalOverlayWindow:not(.bar) > .chrome .controls,
 .globalOverlayWindow:not(.bar) > .chrome gaia-progress {
@@ -74,10 +74,6 @@
 .lockScreenWindow:not(.bar) > .chrome,
 .globalOverlayWindow:not(.bar) > .chrome {
   background-color: transparent;
-}
-
-.homescreen:not(.bar) > .chrome {
-  background-image: none;
 }
 
 #screen.attention .lockScreenWindow:not(.bar) > .chrome {
@@ -90,20 +86,23 @@
 }
 
 .appWindow.fullscreen-app:not(.browser) .chrome .controls .urlbar,
-.appWindow:not(.browser) .chrome .controls .urlbar {
+.appWindow:not(.browser):not(.search-app) .chrome .controls .urlbar {
   width: calc(100% - 1rem);
 }
 
-/* Special cases for rocketbar on the Top Sites view */
+/* Special cases for rocketbar on the Top Sites view and homescreens */
+.homescreen .menu-button,
+.homescreen .controls .reload-button,
+.homescreen .controls .stop-button,
 .search-app .menu-button,
 .search-app .controls .reload-button,
-.search-app .controls .stop-button
+.search-app .controls .stop-button,
 .chrome .controls .windows-button {
   display: none;
 }
 
-.appWindow.search-app .chrome .controls .urlbar {
-  width: calc(100% - 4.5rem);
+.chrome:not(.maximized) .controls .urlbar {
+  width: calc(100% - 8rem);
 }
 
 .search-app .chrome .controls .windows-button {
@@ -113,20 +112,15 @@
 /* URL bar */
 .chrome .controls .urlbar {
   width: calc(100% - 4.5rem);
-  height: 3.4rem;
-  line-height: 3.4rem;
-  margin: 0 0 0.5rem;
+  height: 3.2rem;
+  line-height: 3.2rem;
+  margin: 0.2rem 0 0.5rem;
   border-radius: 1.8rem;
   color: inherit;
-  overflow: hidden;
+  overflow: visible;
   background-color: transparent;
-  float: left;
-  -moz-margin-start: 0.5rem;
-}
-
-.collapsible .chrome .controls button:not([disabled]) + button[disabled] + .urlbar,
-.collapsible .chrome .controls button:not([disabled]) + .urlbar {
-  -moz-margin-start: 0;
+  -moz-margin-start: .5rem;
+  position: absolute;
 }
 
 .maximized .controls .urlbar {
@@ -149,22 +143,40 @@
   background-color: rgba(204, 204, 204, 0.2);
 }
 
-.chrome .controls .urlbar .title {
-  width: calc(100% - 3.2rem);
+.chrome-combined .chrome-title-container {
   padding-top: 0;
   padding-bottom: 0;
-  -moz-padding-start: 1.45rem;
+  -moz-padding-start: 3.85rem;
   -moz-padding-end: 0.8rem;
   box-sizing: padding-box;
+  overflow: hidden;
+  float: none;
+  background-color: rgba(204,204,204,0.2);
+  border-radius: 1.8rem;
+}
+.chrome-combined.private .chrome-title-container {
+  -moz-padding-start: 1.45rem;
+}
+
+.chrome-combined .title {
   overflow: hidden;
   white-space: nowrap;
   font-weight: 300;
   font-size: 1.8rem;
-  float: none;
-  background-color: rgba(204,204,204,0.2);
-  border-radius: 1.8rem;
-  text-overflow: ellipsis;
   font-style: italic;
+  text-overflow: ellipsis;
+  display: block;
+}
+
+.chrome-combined.maximized .title {
+  width: calc(100% - 3.2rem);
+}
+
+.chrome-plain .title {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  display: block;
 }
 
 .search-app .chrome.maximized .controls .urlbar:after {
@@ -180,50 +192,54 @@
   background-position: center right;
 }
 
-.appWindow.light .chrome:not(.maximized) .controls .urlbar .title {
+.appWindow.light .chrome-combined:not(.maximized) .chrome-title-container {
   background-color: rgba(204,204,204,0.4);
 }
 
-.maximized .controls .urlbar .title {
+.chrome-combined.maximized .chrome-title-container {
   background-color: transparent;
 }
 
-
-.controls .forward-button:not([disabled]) + .urlbar {
-  width: calc(100% - 8rem);
+.homescreen .chrome-combined .chrome-title-container {
+  width: calc(100% - 2rem);
+  -moz-padding-start: 2rem;
 }
 
-.controls .back-button:not([disabled]) + .forward-button[disabled] + .urlbar {
+.chrome.maximized .controls .forward-button:not([disabled]) + .urlbar,
+.chrome.maximized .controls .back-button:not([disabled]) + .forward-button[disabled] + .urlbar {
   width: calc(100% - 8rem);
+  transform: translateX(3.5rem);
 }
 
-.controls .back-button:not([disabled]) + .forward-button:not([disabled]) + .urlbar {
+.chrome.maximized .controls .back-button:not([disabled]) + .forward-button:not([disabled]) + .urlbar {
   width: calc(100% - 12rem);
+  transform: translateX(7.5rem);
 }
 
-.appWindow:not(.browser) .controls .forward-button:not([disabled]) + .urlbar {
+.appWindow:not(.browser) .chrome.maximized .controls .forward-button:not([disabled]) + .urlbar,
+.appWindow:not(.browser) .chrome.maximized .controls .back-button:not([disabled]) + .forward-button[disabled] + .urlbar {
   width: calc(100% - 4.5rem);
+  transform: translateX(3.5rem);
 }
 
-.appWindow:not(.browser) .controls .back-button:not([disabled]) + .forward-button[disabled] + .urlbar {
-  width: calc(100% - 4.5rem);
-}
-
-.appWindow:not(.browser) .controls .back-button:not([disabled]) + .forward-button:not([disabled]) + .urlbar {
+.appWindow:not(.browser) .chrome.maximized .controls .back-button:not([disabled]) + .forward-button:not([disabled]) + .urlbar {
   width: calc(100% - 8.5rem);
+  transform: translateX(7.5rem);
 }
 
 .controls .urlbar {
   transform: scaleX(var(--rocketbar-scale)) translateY(0.1rem);
   transform-origin: top left;
-  transition: transform 0.2s ease-in-out, visibility 0s;
+  transition: transform 0.2s ease-in-out;
+}
+
+.appWindow.fullscreen-app .chrome.dragged,
+.appWindow.fullscreen-app .chrome.dragging {
   visibility: visible;
 }
 
-.lockScreenWindow:not(.bar) .controls .urlbar,
-.appWindow.fullscreen-app .chrome:not(.dragged):not(.dragging) .controls .urlbar {
+.appWindow.fullscreen-app .chrome {
   visibility: hidden;
-  transition-delay: 0s, 0.2s;
 }
 
 .appWindow.collapsible.active .urlbar {
@@ -231,7 +247,7 @@
 }
 
 .appWindow.fullscreen-app .chrome:not(.maximized) .controls .urlbar {
-  transform: scale(var(--rocketbar-scale)) translateY(0.3rem);
+  transform: scale(var(--rocketbar-scale)) translateY(-6.1rem);
   transform-origin: bottom left;
 }
 
@@ -239,9 +255,173 @@
   transform: scaleX(1);
 }
 
+/* Pinning the web */
+
+section.pin-dialog::before {
+  bottom: 100%;
+  left: 0;
+  border: solid transparent;
+  content: " ";
+  height: 0;
+  width: 0;
+  position: absolute;
+  pointer-events: none;
+  border-bottom-color: #E5E5E5;
+  border-width: 0.8rem;
+  -moz-margin-start: 0.4rem;
+}
+
+section.pin-dialog.hidden {
+  display: none;
+}
+
+section.pin-dialog {
+  width: 19.6rem;
+  display: block;
+  position: absolute;
+  background-color: #E5E5E5;
+  border-radius: 0.5rem;
+  top: 4.4rem;
+  left: .25rem;
+  font-size: 1.2rem;
+  box-shadow: 0 1px 0 0 rgba(0, 0, 0, 0.15);
+}
+
+section.pin-dialog gaia-pin-card {
+  width: 14rem;
+  margin: 0 auto;
+  display: block;
+}
+
+section.pin-dialog .card-container {
+  margin-top: 2.1rem;
+  display: block;
+  overflow: hidden;
+  padding-top: 1.5rem;
+}
+
+section.pin-dialog header h2 {
+  font-size: 2rem;
+  font-weight: 300;
+  font-family: sans-serif;
+  font-style: italic;
+  text-align: center;
+  margin-top: 1.3rem;
+  color: #4D4D4D;
+  margin-bottom: 0;
+  line-height: 2rem;
+}
+
+section.pin-dialog .footer-container {
+  height: 10.6rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  margin: 1.5rem 0 .5rem 0;
+}
+
+section.pin-dialog button {
+  position: relative;
+  display: block;
+  margin: 0 auto;
+  float: none;
+  width: -moz-fit-content;
+  background-color: #5F8DD3;
+  color: #fff;
+  font-size: 1.6rem;
+  font-style: italic;
+}
+
+section.pin-dialog span {
+  color: #B8B8B8;
+  display: block;
+  clear: both;
+  text-align: center;
+  line-height: 1.4rem;
+}
+
+section.pin-dialog .origin {
+  padding: 0;
+  margin: 0 auto;
+  width: -moz-fit-content;
+  font-weight: normal;
+  -moz-padding-start: 1.5rem;
+}
+
+section.pin-dialog .origin .tld {
+  display: inline;
+  color: #4d4d4d;
+}
+
+.urlbar section.pin-dialog .origin::before {
+  content: "";
+  display: block;
+  width: 3rem;
+  height: 3rem;
+  margin: -1rem -2.5rem;
+  background-size: cover;
+  position: absolute;
+}
+
+.urlbar[data-ssl="secure"] section.pin-dialog .origin::before {
+  background-image: url("images/light/ssl.png");
+}
+
+section.pin-dialog button[data-action="pin"] {
+  -moz-padding-start: 4rem;
+  -moz-padding-end: 2rem;
+}
+
+section.pin-dialog button[data-action="pin"]::before {
+  content: "";
+  width: 1.6rem;
+  height: 1.6rem;
+  position: absolute;
+  top: 1.2rem;
+  left: 2rem;
+  background-size: 1.6rem 1.6rem;
+  background-image: url("images/pin.png");
+}
+
+section.pin-dialog a[data-action="cancel"] {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  width: 1.6rem;
+  height: 1.6rem;
+  background-image: url("images/close.png");
+  display: block;
+  background-size: cover;
+}
+
+@media (orientation: landscape) {
+  section.pin-dialog {
+    width: 32rem;
+    padding-bottom: 2rem;
+  }
+
+  section.pin-dialog header {
+    margin-bottom: 2.5rem;
+  }
+
+  section.pin-dialog .card-container {
+    float: left;
+    width: 14rem;
+    margin-top: 0;
+    -moz-margin-start: 1.8rem;
+  }
+
+  section.pin-dialog .footer-container {
+    width: 12.6rem;
+    margin-top: 1.5rem;
+    float: left;
+    padding: 0 1.8rem;
+  }
+}
 
 /* Private browser icon in rocketbar */
-.appWindow.private > .chrome.maximized .title {
+.appWindow.private > .chrome-plain.maximized .chrome-title-container,
+.appWindow.private > .chrome-combined.maximized .chrome-title-container {
   -moz-padding-start: 4rem;
 }
 
@@ -258,31 +438,75 @@
 
 
 /* SSL Lock Icons in rocketbar */
-.chrome.maximized .title[data-ssl="secure"] {
-  -moz-padding-start: 3rem;
-  background: url("images/light/ssl.png") no-repeat 0.1rem center / 3rem 3rem;
+.chrome-combined.maximized .chrome-has-ssl-indicator .chrome-ssl-indicator {
+  -moz-padding-start: 5.5rem;
+
+  background-repeat: no-repeat;
+  background-position: 3rem center;
+  background-size: 3rem;
 }
 
-.chrome.maximized .title[data-ssl="broken"] {
-  -moz-padding-start: 3rem;
-  background: url("images/light/ssl_broken.png") no-repeat 0.1rem center / 3rem 3rem;
-}
-
-.appWindow.private > .chrome.maximized .title[data-ssl="broken"],
-.appWindow.private > .chrome.maximized .title[data-ssl="secure"] {
+.private > .chrome-combined.maximized .chrome-has-ssl-indicator .chrome-ssl-indicator {
   -moz-padding-start: 6.5rem;
   background-position: 3.7rem 0.1rem;
 }
 
+.chrome-plain .chrome-ssl-indicator {
+  display: none;
+
+  width: 1rem;
+
+  background: no-repeat center / 3rem content-box;
+}
+
+.chrome-ssl-indicator-ltr {
+  padding-right: .5rem; /* give some space between the indicator and the title */
+}
+
+.chrome-ssl-indicator-rtl {
+  padding-left: .5rem; /* give some space between the indicator and the title */
+  padding-right: 1rem; /* give some space between the indicator and the window's edge */
+}
+
+.chrome-plain:-moz-dir(ltr) .chrome-has-ssl-indicator .chrome-ssl-indicator-ltr,
+.chrome-plain:-moz-dir(rtl) .chrome-has-ssl-indicator .chrome-ssl-indicator-rtl {
+  display: unset;
+}
+
+.maximized .chrome-has-ssl-indicator[data-ssl="secure"] .chrome-ssl-indicator {
+  background-image: url("images/light/ssl.png");
+}
+
+.maximized .chrome-has-ssl-indicator[data-ssl="broken"] .chrome-ssl-indicator {
+  background-image: url("images/light/ssl_broken.png");
+}
+
+.site-icon {
+  width: 3.2rem;
+  height: 3.2rem;
+  background: no-repeat center / 3.2rem content-box;
+  background-image: url('images/default_icon.png');
+  position: absolute;
+}
+
+.homescreen > .chrome .site-icon,
+.private > .chrome .site-icon {
+  display: none;
+}
+
+.small-icon {
+  background: #cfcfcf no-repeat center / 1.6rem;
+  border-radius: 100%;
+}
 
 /* Handle urlbar sizing when back or forward buttons are disabled */
 .collapsible .chrome:not(.maximized) .back-button:not([disabled]) + .forward-button[disabled] + .urlbar,
 .collapsible .chrome:not(.maximized) .forward-button:not([disabled]) + .urlbar {
-  transform: scaleX(var(--rocketbar-scale)) translateX(-5.5rem);
+  transform: scaleX(var(--rocketbar-scale));
 }
 
 .collapsible .chrome:not(.maximized) .back-button:not([disabled]) + .forward-button:not([disabled]) + .urlbar {
-  transform: scaleX(var(--rocketbar-scale)) translateX(-12rem);
+  transform: scaleX(var(--rocketbar-scale));
 }
 
 
@@ -316,7 +540,7 @@
   background-position: center center;
   background-repeat: no-repeat;
   position: absolute;
-  bottom: 0.3rem;
+  bottom: 0.1rem;
   right: 0;
   padding: 0 0.3rem;
   width: 3rem;
@@ -337,6 +561,12 @@
 .controls > button {
   position: relative;
   top: -0.2rem;
+}
+
+.controls > button.menu-button,
+.controls > button.windows-button {
+  position: absolute;
+  offset-inline-end: 0;
 }
 
 .controls .reload-button[disabled],
@@ -504,14 +734,11 @@ gaia-overflow-menu button#share {
   display: none;
 }
 
-.appWindow:not(.collapsible) > .chrome:not(.maximized) .controls .forward-button:not([disabled]) + .urlbar,
-.appWindow:not(.collapsible) > .chrome:not(.maximized) .controls .back-button:not([disabled]) + .forward-button[disabled] + .urlbar,
-.appWindow:not(.collapsible) > .chrome:not(.maximized) .controls .back-button:not([disabled]) + .forward-button:not([disabled]) + .urlbar,
 .appWindow:not(.collapsible) > .chrome:not(.maximized) .controls .urlbar {
   width: calc(100% - 8rem);
 }
 
-.appWindow:not(.collapsible) > .chrome .controls .urlbar .title {
+.appWindow:not(.collapsible) > .chrome-combined .title {
   width: calc(100%);
 }
 
@@ -524,6 +751,19 @@ html[dir="rtl"] .chrome .controls .urlbar {
   float: right;
 }
 
+html[dir="rtl"] .controls .forward-button:not([disabled]) + .urlbar,
+html[dir="rtl"] .controls .back-button:not([disabled]) + .forward-button[disabled] + .urlbar,
+html[dir="rtl"] .appWindow:not(.browser) .controls .forward-button:not([disabled]) + .urlbar,
+html[dir="rtl"] .appWindow:not(.browser) .controls .back-button:not([disabled]) + .forward-button[disabled] + .urlbar {
+  transform: translateX(-3.5rem);
+}
+
+html[dir="rtl"] .controls .back-button:not([disabled]) + .forward-button:not([disabled]) + .urlbar,
+html[dir="rtl"] .appWindow:not(.browser) .controls .back-button:not([disabled]) + .forward-button:not([disabled]) + .urlbar {
+  transform: translateX(-7.5rem);
+}
+
+html[dir="rtl"] .home-app .chrome.maximized .controls .urlbar:after,
 html[dir="rtl"] .search-app .chrome.maximized .controls .urlbar:after {
   left: 0.8rem;
   right: unset;
@@ -587,14 +827,12 @@ html[dir="rtl"] .light .controls .forward-button:active {
   background-image: url("images/light/back_active.png");
 }
 
-html[dir="rtl"] .chrome.maximized .title[data-ssl="broken"],
-html[dir="rtl"] .chrome.maximized .title[data-ssl="secure"] {
-  background-position: calc(100% - 0.1rem) 0.1rem;
+html[dir="rtl"] .chrome-combined.maximized .chrome-has-ssl-indicator .chrome-ssl-indicator {
+  background-position: right 0.1rem top 0.1rem;
 }
 
-html[dir="rtl"] .appWindow.private > .chrome.maximized .title[data-ssl="broken"],
-html[dir="rtl"] .appWindow.private > .chrome.maximized .title[data-ssl="secure"] {
-  background-position: calc(100% - 3.7rem) 0.1rem;
+html[dir="rtl"] .private > .chrome-combined.maximized .chrome-has-ssl-indicator .chrome-ssl-indicator {
+  background-position: right 3.7rem top 0.1rem;
 }
 
 /*
@@ -604,10 +842,10 @@ html[dir="rtl"] .appWindow.private > .chrome.maximized .title[data-ssl="secure"]
  */
 
 html[dir="rtl"] .collapsible .chrome:not(.maximized) .back-button:not([disabled]) + .forward-button:not([disabled]) + .urlbar {
-  transform: scaleX(var(--rocketbar-scale)) translateX(12rem);
+  transform: scaleX(var(--rocketbar-scale));
 }
 
 html[dir="rtl"] .collapsible .chrome:not(.maximized) .back-button:not([disabled]) + .forward-button[disabled] + .urlbar,
 html[dir="rtl"] .collapsible .chrome:not(.maximized) .forward-button:not([disabled]) + .urlbar {
-  transform: scaleX(var(--rocketbar-scale)) translateX(5.5rem);
+  transform: scaleX(var(--rocketbar-scale));
 }

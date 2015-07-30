@@ -5,7 +5,7 @@
 require('/shared/test/unit/load_body_html_helper.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
-requireApp('system/shared/js/template.js');
+requireApp('system/shared/js/sanitizer.js');
 requireApp('system/test/unit/mock_app_window.js');
 
 var mocksForValueSelector = new MocksHelper([
@@ -14,7 +14,7 @@ var mocksForValueSelector = new MocksHelper([
 ]).init();
 
 suite('value selector/value selector', function() {
-  var realL10n, realKeyboard, stubMozl10nGet, app, fragment, vs;
+  var realL10n, realKeyboard, stubMozl10nGet, app, fragment, vs, rafStub;
 
   var fakeAppConfig = {
     url: 'app://www.fake/index.html',
@@ -35,7 +35,14 @@ suite('value selector/value selector', function() {
       inputType: 'date'
     }
   };
+  var fakeBlurInputMethodContextChangeEvent = {
+    type: '_inputmethod-contextchange',
+    detail: {
+      inputType: 'blur'
+    }
+  };
   var fakeClosing = { type: '_closing' };
+  var fakeClosed = { type: '_closed' };
   var fakeOpening = { type: '_opening' };
   var fakeLocalizedEvent = { type: '_localized' };
   var fakeTimeFormatChangeEvent = { type: 'timeformatchange' };
@@ -50,8 +57,12 @@ suite('value selector/value selector', function() {
     realKeyboard = window.navigator.mozInputMethod;
     window.navigator.mozInputMethod = sinon.stub();
 
+    rafStub = sinon.stub(window, 'requestAnimationFrame',
+                         function(callback) { callback(); });
+
     loadBodyHTML('/index.html');
 
+    requireApp('system/js/service.js');
     requireApp('system/js/base_ui.js');
     requireApp('system/js/value_selector/value_picker.js');
     requireApp('system/js/value_selector/spin_date_picker.js');
@@ -70,6 +81,7 @@ suite('value selector/value selector', function() {
   teardown(function() {
     navigator.mozL10n = realL10n;
     window.navigator.mozInputMethod = realKeyboard;
+    rafStub.restore();
     document.body.innerHTML = '';
     fragment = null;
     vs = null;
@@ -78,6 +90,21 @@ suite('value selector/value selector', function() {
 
   test('New', function() {
     assert.isDefined(vs.instanceID);
+  });
+
+  test('prevent blur race', function() {
+    rafStub.restore();
+    this.sinon.stub(window, 'requestAnimationFrame');
+
+    vs.handleEvent(fakeDateInputMethodContextChangeEvent);
+
+    window.requestAnimationFrame.yield();
+
+    vs.handleEvent(fakeBlurInputMethodContextChangeEvent);
+
+    window.requestAnimationFrame.yield();
+
+    assert.isTrue(vs.element.hidden, 'Should not show after blur event.');
   });
 
   test('Time Picker (en-US)', function() {
@@ -192,32 +219,57 @@ suite('value selector/value selector', function() {
     assert.equal('date', vs._currentPickerType);
   });
 
-  test('hide', function() {
-    var stub_publish = this.sinon.stub(vs, 'publish');
-    var stub_setVisibleForScreenReader = this.sinon.stub(app,
-      '_setVisibleForScreenReader');
-    vs.handleEvent(fakeTimeInputMethodContextChangeEvent);
-    assert.isTrue(stub_setVisibleForScreenReader.calledWith(false));
-    vs.hide();
-    assert.isTrue(vs.element.hidden);
-    assert.isTrue(stub_setVisibleForScreenReader.calledWith(true));
-    assert.isTrue(stub_publish.calledWith('hidden'));
+  suite('hiding', function() {
+    var isActive = true;
+
+    setup(function() {
+      this.sinon.stub(vs, 'publish');
+      this.sinon.stub(app, 'isActive').returns(isActive);
+      this.sinon.stub(app, '_setVisibleForScreenReader');
+      this.sinon.stub(app, 'focus');
+
+      vs.handleEvent(fakeTimeInputMethodContextChangeEvent);
+    });
+
+    function assertHiddenAndFocus(focus) {
+      assert.isTrue(vs.element.hidden);
+      sinon.assert.calledWith(app._setVisibleForScreenReader, true);
+      sinon.assert.calledWith(vs.publish, 'hidden');
+      if (focus) {
+        sinon.assert.calledOnce(app.focus);
+      }
+    }
+
+    test('hide', function() {
+      sinon.assert.calledWith(app._setVisibleForScreenReader, false);
+      vs.hide();
+      assertHiddenAndFocus(true);
+    });
+
+    test('hide on "_closing" event', function() {
+      vs.handleEvent(fakeClosing);
+      assertHiddenAndFocus(true);
+    });
+
+    test('hide on "_closed" event', function() {
+      vs.handleEvent(fakeClosed);
+      assertHiddenAndFocus(true);
+    });
+
+    test('hide on "_opening" event', function() {
+      vs.handleEvent(fakeOpening);
+      assertHiddenAndFocus(true);
+    });
+
+    test('hide on blur event', function() {
+      vs.handleEvent(fakeBlurInputMethodContextChangeEvent);
+      assertHiddenAndFocus(true);
+    });
+
+    test('blur should not focus if the app is not active', function() {
+      isActive = false;
+      vs.handleEvent(fakeBlurInputMethodContextChangeEvent);
+      assertHiddenAndFocus(false);
+    });
   });
-
-  test('hide on "_closing" event', function() {
-    vs.handleEvent(fakeTimeInputMethodContextChangeEvent);
-    this.sinon.stub(vs, 'hide');
-
-    vs.handleEvent(fakeClosing);
-    sinon.assert.calledOnce(vs.hide);
-  });
-
-  test('hide on "_opening" event', function() {
-    vs.handleEvent(fakeTimeInputMethodContextChangeEvent);
-    this.sinon.stub(vs, 'hide');
-
-    vs.handleEvent(fakeOpening);
-    sinon.assert.calledOnce(vs.hide);
-  });
-
 });

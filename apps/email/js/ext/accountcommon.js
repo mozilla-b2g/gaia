@@ -5,7 +5,7 @@
 define(
   [
     './a64',
-    './slog',
+    'logic',
     './allback',
     'require',
     'module',
@@ -13,7 +13,7 @@ define(
   ],
   function(
     $a64,
-    slog,
+    logic,
     allback,
     require,
     $module,
@@ -309,9 +309,9 @@ exports.fillConfigPlaceholders = fillConfigPlaceholders;
  *   },
  * }
  */
-function Autoconfigurator(_LOG) {
-  this._LOG = _LOG;
+function Autoconfigurator() {
   this.timeout = AUTOCONFIG_TIMEOUT_MS;
+  logic.defineScope(this, 'Autoconfigurator');
 }
 exports.Autoconfigurator = Autoconfigurator;
 Autoconfigurator.prototype = {
@@ -352,14 +352,15 @@ Autoconfigurator.prototype = {
    */
   _getXmlConfig: function getXmlConfig(url) {
     return new Promise(function(resolve, reject) {
-      slog.log('autoconfig.xhr:start', { method: 'GET', url: url });
+
+      var scope = logic.subscope(this, { method: 'GET', url: url });
+      logic(scope, 'xhr:start');
       var xhr = new XMLHttpRequest({mozSystem: true});
       xhr.open('GET', url, true);
       xhr.timeout = this.timeout;
 
       xhr.onload = function() {
-        slog.log('autoconfig.xhr:end', { method: 'GET', url: url,
-                                         status: xhr.status });
+        logic(scope, 'xhr:end', { status: xhr.status });
         if (xhr.status < 200 || xhr.status >= 300) {
           reject('status' + xhr.status);
           return;
@@ -391,14 +392,12 @@ Autoconfigurator.prototype = {
       // to only assign that once until <http://bugzil.la/949722> is fixed.
 
       xhr.ontimeout = function() {
-        slog.log('autoconfig.xhr:end', { method: 'GET', url: url,
-                                         status: 'timeout' });
+        logic(scope, 'xhr:end', { status: 'timeout' });
         reject('timeout');
       };
 
       xhr.onerror = function() {
-        slog.log('autoconfig.xhr:end', { method: 'GET', url: url,
-                                         status: 'error' });
+        logic(scope, 'xhr:end', { status: 'error' });
         reject('error');
       };
 
@@ -409,8 +408,7 @@ Autoconfigurator.prototype = {
         xhr.send();
       }
       catch(e) {
-        slog.log('autoconfig.xhr:end', { method: 'GET', url: url,
-                                         status: 'sync-error' });
+        logic(scope, 'xhr:end', { status: 'sync-error' });
         reject('status404');
       }
     }.bind(this));
@@ -436,8 +434,8 @@ Autoconfigurator.prototype = {
    */
   _checkAutodiscoverUrl: function(url) {
     return new Promise(function(resolve, reject) {
-      slog.log('autoconfig.autodiscoverProbe:start',
-               { method: 'POST', url: url });
+      var scope = logic.subscope(this, { method: 'POST', url: url });
+      logic(scope, 'autodiscoverProbe:start');
       var xhr = new XMLHttpRequest({mozSystem: true});
       xhr.open('POST', url, true);
       xhr.timeout = this.timeout;
@@ -452,8 +450,7 @@ Autoconfigurator.prototype = {
       }.bind(this);
 
       xhr.onload = function() {
-        slog.log('autoconfig.autodiscoverProbe:end',
-                 { method: 'POST', url: url, status: xhr.status });
+        logic(scope, 'autodiscoverProbe:end', { status: xhr.status });
         if (xhr.status === 401) {
           victory();
           return;
@@ -462,14 +459,12 @@ Autoconfigurator.prototype = {
       };
 
       xhr.ontimeout = function() {
-        slog.log('autoconfig.autodiscoverProbe:end',
-                 { method: 'POST', url: url, status: 'timeout' });
+        logic(scope, 'autodiscoverProbe:end', { status: 'timeout' });
         reject('timeout');
       };
 
       xhr.onerror = function() {
-        slog.log('autoconfig.autodiscoverProbe:end',
-                 { method: 'POST', url: url, status: 'error' });
+        logic(scope, 'autodiscoverProbe:end', { status: 'error' });
         reject('error');
       };
 
@@ -477,8 +472,7 @@ Autoconfigurator.prototype = {
         xhr.send(null);
       }
       catch(e) {
-        slog.log('autoconfig.autodiscoverProbe:end',
-                 { method: 'POST', url: url, status: 'sync-error' });
+        logic(scope, 'autodiscoverProbe:end', { status: 'sync-error' });
         reject('status404');
       }
     }.bind(this));
@@ -536,7 +530,9 @@ Autoconfigurator.prototype = {
    */
   _getMX: function getMX(domain) {
     return new Promise(function(resolve, reject) {
-      slog.log('autoconfig.mxLookup:begin', { domain: domain });
+
+      var scope = logic.subscope(this, { domain: domain });
+      logic(scope, 'mxLookup:begin');
       var xhr = new XMLHttpRequest({mozSystem: true});
       xhr.open('GET', 'https://live.mozillamessaging.com/dns/mx/' +
                encodeURIComponent(domain), true);
@@ -558,20 +554,17 @@ Autoconfigurator.prototype = {
             }
           }
         }
-        slog.log('autoconfig.mxLookup:end',
-                 { domain: domain, 'raw': normStr, normalized: mxDomain,
-                   reporting: reportDomain });
+        logic(scope, 'mxLookup:end',
+            { 'raw': normStr, normalized: mxDomain, reporting: reportDomain });
         resolve(reportDomain);
       };
 
       xhr.ontimeout = function() {
-        slog.log('autoconfig.mxLookup:end',
-                 { domain: domain, status: 'timeout' });
+        logic(scope, 'mxLookup:end', { status: 'timeout' });
         reject('timeout');
       };
       xhr.onerror = function() {
-        slog.log('autoconfig.mxLookup:end',
-                 { domain: domain, status: 'error' });
+        logic(scope, 'mxLookup:end', { status: 'error' });
         reject('error');
       };
 
@@ -683,7 +676,8 @@ Autoconfigurator.prototype = {
       var emailParts = emailAddress.split('@');
       var emailLocalPart = emailParts[0], emailDomainPart = emailParts[1];
       var domain = emailDomainPart.toLowerCase();
-      slog.log('autoconfig:begin', { domain: domain });
+      var scope = logic.subscope(this, { domain: domain });
+      logic(scope, 'autoconfig:begin');
 
       // Call this when we find a usable config setting to perform appropriate
       // normalization, logging, and promise resolution.
@@ -700,31 +694,25 @@ Autoconfigurator.prototype = {
         } else {
           result = 'no-config-info';
         }
-        slog.log(
-          'autoconfig:end',
-          {
-            domain: domain, result: result, source: source,
-            configInfo: configInfo
-          });
+        logic(scope, 'autoconfig:end', {
+          result: result,
+          source: source,
+          configInfo: configInfo
+        });
         resolve({ result: result, source: source, configInfo: configInfo });
       }.bind(this);
       // Call this if we can't find a configuration.
       var failsafeFailure = function(err) {
-        slog.error(
-          'autoconfig:end',
-          {
-            domain: domain,
-            err: {
-              message: err && err.message,
-              stack: err && err.stack
-            }
-          });
+        logic(this, 'autoconfig:end', { err: {
+          message: err && err.message,
+          stack: err && err.stack
+        }});
         resolve({ result: 'no-config-info', configInfo: null });
       }.bind(this);
 
       // Helper that turns a rejection into a null and outputs a log entry.
       var coerceRejectionToNull = function(err) {
-        slog.log('autoconfig:coerceRejection', { err: err });
+        logic(scope, 'autoconfig:coerceRejection', { err: err });
         return null;
       }.bind(this);
 
@@ -834,12 +822,12 @@ Autoconfigurator.prototype = {
           var config = results.configInfo;
           requireConfigurator(config.type, function (mod) {
             mod.configurator.tryToCreateAccount(universe, userDetails, config,
-                                                callback, this._LOG);
+                                                callback);
           });
           return;
         }
 
-        slog.warn('autoconfig.legacyCreateFail', { result: results.result });
+        logic(this, 'legacyCreateFail', { result: results.result });
         // need-oauth2 is not supported via this code-path; coerce to a config
         // failure...
         callback('no-config-info');
@@ -867,11 +855,11 @@ function recreateAccount(universe, oldVersion, accountInfo, callback) {
 }
 exports.recreateAccount = recreateAccount;
 
-function tryToManuallyCreateAccount(universe, userDetails, domainInfo, callback,
-                                    _LOG) {
+function tryToManuallyCreateAccount(universe, userDetails, domainInfo,
+                                    callback) {
   requireConfigurator(domainInfo.type, function (mod) {
     mod.configurator.tryToCreateAccount(universe, userDetails, domainInfo,
-                                        callback, _LOG);
+                                        callback);
   });
 }
 exports.tryToManuallyCreateAccount = tryToManuallyCreateAccount;

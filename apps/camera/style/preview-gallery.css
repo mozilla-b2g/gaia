@@ -9,7 +9,7 @@
   overflow: hidden;
   opacity: 1;
   visibility: visible;
-  transition: all 0.5s ease-in-out;
+  transition: all var(--transition-duration) ease-in-out;
   background-color: #333333;
 }
 
@@ -59,12 +59,13 @@
  */
 
 .preview-menu {
-  position: relative;   
+  position: relative;
   z-index: 1; /* 1 */
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  transition: visibility 0.3s ease-in-out, opacity 0.3s ease-in-out;
+  transition: visibility var(--transition-duration) ease-in-out,
+              opacity var(--transition-duration) ease-in-out;
 }
 
 /**
@@ -180,4 +181,14 @@ section[role="region"] > header:first-child > a:after {
 
 .preview-menu button:before {
   display: block; /* 1 */
+}
+
+/**
+ * Ensure nothing but the action-menu is visible when it's open, otherwise the
+ * screen reader will have access to it.
+ */
+.preview-gallery.action-menu .preview-menu,
+.preview-gallery.action-menu .count-text,
+.preview-gallery.action-menu .frame-container {
+  visibility: hidden;
 }

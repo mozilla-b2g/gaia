@@ -2,21 +2,20 @@
 
 var Rocketbar = require('../../../system/test/marionette/lib/rocketbar');
 var Bookmark = require('../../../system/test/marionette/lib/bookmark');
-var helper = require('../../../../tests/js-marionette/helper.js');
+var helper = require('../../../../tests/jsmarionette/helper.js');
 var SETTINGS_APP = 'app://settings.gaiamobile.org';
 var Server = require('../../../../shared/test/integration/server');
 var UtilityTray = require('./lib/utility_tray');
 
 marionette('Statusbar colors', function() {
   var client = marionette.client({
-    prefs: {
-      'dom.w3c_touch_events.enabled': 1
+    profile: {
+      settings: {
+        'lockscreen.enabled': true,
+        'software-button.enabled': true
+      }
     },
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': true,
-      'software-button.enabled': true
-    }
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
   });
 
   var system;
@@ -33,7 +32,7 @@ marionette('Statusbar colors', function() {
     system = client.loader.getAppClass('system');
     utilityTray = new UtilityTray(client);
     bookmark = new Bookmark(client);
-    system.waitForStartup();
+    system.waitForFullyLoaded();
   });
 
   suiteSetup(function(done) {
@@ -79,6 +78,7 @@ marionette('Statusbar colors', function() {
   test('statusbar icons keep color after add homescreen', function() {
     waitVisible();
     helper.unlockScreen(client);
+    waitForLightColor();
     var url = server.url('sample.html');
     bookmark.openAndSave(url);
     waitForLightColor();
@@ -89,14 +89,16 @@ marionette('Statusbar colors', function() {
     helper.unlockScreen(client);
     rocketbar.homescreenFocus();
     var url = server.url('sample.html');
-    rocketbar.enterText(url + '\uE006');
+    rocketbar.enterText(url, true);
 
     // Ensure that the page is loaded.
     system.gotoBrowser(url);
     client.switchToFrame();
+    waitForLightColor();
 
     system.appChromeContextLink.click();
     system.appChromeContextMenuShare.click();
+    system.waitForActivityMenu();
     system.cancelActivity.click();
     waitForLightColor();
   });
@@ -107,12 +109,11 @@ marionette('Statusbar colors', function() {
     waitForDarkColor();
     launchSettingsActivity();
     client.waitFor(function() {
-      var filter = system.statusbar.scriptWith(function(element) {
+      var filter = system.statusbarShadowActivity.scriptWith(function(element) {
         return window.getComputedStyle(element).filter;
       });
       return filter.indexOf('none') === -1;
     });
-    waitForLightColor();
   });
 
   test('statusbar icons are dark when utility tray is open', function() {
@@ -122,12 +123,11 @@ marionette('Statusbar colors', function() {
     waitForLightColor();
     utilityTray.open();
     client.waitFor(function() {
-      var filter = system.statusbar.scriptWith(function(element) {
+      var filter = system.statusbarShadowTray.scriptWith(function(element) {
         return window.getComputedStyle(element).filter;
       });
       return filter.indexOf('none') > -1;
     });
-    waitForDarkColor();
   });
 
   function launchSettingsActivity() {
@@ -174,7 +174,7 @@ marionette('Statusbar colors', function() {
 
   function waitForColor(light) {
     client.waitFor(function() {
-      var filter = system.statusbar.scriptWith(function(element) {
+      var filter = system.statusbarShadow.scriptWith(function(element) {
         return window.getComputedStyle(element).filter;
       });
       var index = filter.indexOf('none');

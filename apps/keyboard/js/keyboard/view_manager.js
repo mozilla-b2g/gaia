@@ -1,6 +1,6 @@
 'use strict';
 
-/* global AlternativesCharMenuView, LayoutPageView */
+/* global AlternativesCharMenuView, LayoutPageView, SwipeablePageView */
 
 /** @fileoverview ViewManager is in charge of rendering HTML elements
  * under the request of LayoutRenderingManager.
@@ -19,9 +19,6 @@ function ViewManager(app) {
 
   // How many keys in a row
   this.columnCount = 10;
-
-  // Key metrics info for calculating proximity info for predictive text
-  this.keyArray = [];
 }
 
 ViewManager.prototype = {
@@ -103,7 +100,7 @@ ViewManager.prototype.render = function (layout, flags, callback) {
       showCandidatePanel: flags.showCandidatePanel
     };
 
-    pageView = new LayoutPageView(layout, options, this);
+    pageView = this._createPageView(layout, options);
     this.pageViews.set(pageId, pageView);
 
     pageView.render();
@@ -258,12 +255,9 @@ ViewManager.prototype.resize = function(callback) {
   // keyboard.clientWidth because that causes a costy reflow...
   this.currentPageView.resize(this.cachedWindowWidth);
 
-  window.requestAnimationFrame(function() {
-    this.keyArray = this.currentPageView.getVisualData();
-    if (callback) {
-      callback();
-    }
-  }.bind(this));
+  if (callback) {
+    window.requestAnimationFrame(callback);
+  }
 };
 
 ViewManager.prototype.getWidth = function() {
@@ -279,24 +273,7 @@ ViewManager.prototype.getHeight = function() {
     return 0;
   }
 
-  var scale = this.screenInPortraitMode() ?  this.cachedWindowWidth / 32 :
-                                             this.cachedWindowWidth / 64;
-
-  var currentPage = this.currentPageView.element;
-  var height = (currentPage.querySelectorAll('.keyboard-row').length *
-      (5.1 * scale));
-
-  if (currentPage.classList.contains('candidate-panel')) {
-    if (currentPage.querySelector('.keyboard-candidate-panel')
-        .classList.contains('latin')) {
-          height += (3.1 * scale);
-        }
-    else {
-      height += (3.2 * scale);
-    }
-  }
-
-  return height | 0;
+  return this.currentPageView.getHeight() | 0;
 };
 
 ViewManager.prototype.showCandidates = function(candidates) {
@@ -324,8 +301,9 @@ ViewManager.prototype.getNumberOfCandidatesPerRow = function() {
   return this.currentPageView.getNumberOfCandidatesPerRow();
 };
 
+// Key metrics info for calculating proximity info for predictive text
 ViewManager.prototype.getKeyArray = function() {
-  return this.keyArray;
+  return this.currentPageView.getVisualData();
 };
 
 ViewManager.prototype.getKeyWidth = function() {
@@ -353,6 +331,18 @@ ViewManager.prototype.screenInPortraitMode = function() {
 
 ViewManager.prototype.getView = function (target) {
   return this.viewMap.get(target);
+};
+
+ViewManager.prototype._createPageView = function (layout, options) {
+  var pageView;
+
+  if (layout.panelKeys) {
+    pageView = new SwipeablePageView(layout, options, this);
+  } else {
+    pageView = new LayoutPageView(layout, options, this);
+  }
+
+  return pageView;
 };
 
 exports.ViewManager = ViewManager;

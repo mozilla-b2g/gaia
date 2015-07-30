@@ -1,0 +1,29 @@
+{
+  "name": "smart-banner",
+  "homepage": "https://github.com/gaia-components/smart-banner",
+  "main": "script.js",
+  "license": "MPL",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests",
+    "examples",
+    "LICENSE",
+    "README.md"
+  ],
+  "devDependencies": {
+    "evt": "gaia-components/evt#~0.4.0",
+    "smart-button": "gaia-components/smart-button"
+  },
+  "_release": "01f885eced",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "01f885eced4ebe6e601bd252b2b5730309960b90"
+  },
+  "_source": "git://github.com/gaia-components/smart-banner.git",
+  "_target": "*",
+  "_originalSource": "gaia-components/smart-banner"
+}

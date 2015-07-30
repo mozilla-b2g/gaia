@@ -1,34 +1,31 @@
 'use strict';
 
-var Calendar = require('./lib/calendar'),
-    assert = require('chai').assert;
+var Calendar = require('./lib/calendar');
+var assert = require('chai').assert;
 
 marionette('creating events', function() {
-  var app;
   var client = marionette.client({
-    prefs: {
-      // we need to disable the keyboard to avoid intermittent failures on
-      // Travis (transitions might take longer to run and block UI)
-      'dom.mozInputMethod.enabled': false,
-      // Do not require the B2G-desktop app window to have focus (as per the
-      // system window manager) in order for it to do focus-related things.
-      'focusmanager.testmode': true,
-    },
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
+    profile: {
+      prefs: {
+        // we need to disable the keyboard to avoid intermittent failures on
+        // Travis (transitions might take longer to run and block UI)
+        'dom.mozInputMethod.enabled': false,
+        // Do not require the B2G-desktop app window to have focus (as per the
+        // system window manager) in order for it to do focus-related things.
+        'focusmanager.testmode': true,
+      }
     }
   });
 
-  var startDate = new Date('Sep 08 1991 12:34:56'),
-      startDateNextHour = new Date(startDate),
-      startDateNextDay = new Date(startDate),
-      scenarios;
+  var app;
 
+  var startDate = new Date('Sep 08 1991 12:34:56');
+  var startDateNextHour = new Date(startDate);
   startDateNextHour.setHours(startDate.getHours() + 1);
+  var startDateNextDay = new Date(startDate);
   startDateNextDay.setDate(startDate.getDate() + 1);
 
-  scenarios = [
+  var scenarios = [
     {
       name: 'one day',
       allDay: false,
@@ -173,6 +170,11 @@ marionette('creating events', function() {
     }
   ];
 
+  setup(function() {
+    app = new Calendar(client);
+    app.launch();
+  });
+
   scenarios.forEach(function(scenario) {
     suite('creating ' + scenario.name + ' event', function() {
       setup(function() {
@@ -185,8 +187,6 @@ marionette('creating events', function() {
         scenario.location = scenario.location ||
           'Animal Planet reallylongwordthatshouldnotoverflowbecausewewrap';
 
-        app = new Calendar(client);
-        app.launch();
         app.createEvent(scenario);
 
         app.month.waitForDisplay();
@@ -231,6 +231,26 @@ marionette('creating events', function() {
           app.checkOverflow(readEvent.locationContainer, 'location');
         });
       });
+    });
+  });
+
+  test('only enable save button if title or location are set', function() {
+    app.openModifyEventView();
+    var editEvent = app.editEvent;
+    client.waitFor(function() {
+      return editEvent.saveButton.getAttribute('disabled') === 'true';
+    });
+    editEvent.title = 'foo';
+    client.waitFor(function() {
+      return editEvent.saveButton.getAttribute('disabled') === 'false';
+    });
+    editEvent.title = '';
+    client.waitFor(function() {
+      return editEvent.saveButton.getAttribute('disabled') === 'true';
+    });
+    editEvent.location = 'bar';
+    client.waitFor(function() {
+      return editEvent.saveButton.getAttribute('disabled') === 'false';
     });
   });
 });

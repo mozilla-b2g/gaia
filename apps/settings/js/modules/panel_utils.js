@@ -180,7 +180,8 @@ define(function(require) {
         panel = panel || document;
 
         // preset all checkboxes
-        var rule = 'input[type="checkbox"]:not([data-ignore])';
+        var rule = 'input[type="checkbox"]:not([data-ignore]), gaia-switch, ' +
+          'gaia-checkbox';
         var checkboxes = panel.querySelectorAll(rule);
         var i, count, key;
         for (i = 0, count = checkboxes.length; i < count; i++) {
@@ -382,34 +383,43 @@ define(function(require) {
       }
 
       // update <input> values when the corresponding setting is changed
-      var input = panel.querySelector('input[name="' + key + '"]');
-      if (!input) {
+      var inputs = [].slice.call(panel.querySelectorAll(`input[name="${key}"],
+        gaia-switch[name="${key}"], gaia-checkbox[name="${key}"]`));
+      if (!inputs.length) {
         return;
       }
 
-      switch (input.type) {
-        case 'checkbox':
-        case 'switch':
-          if (input.checked == value) {
-            return;
-          }
-          input.checked = value;
-          break;
-        case 'range':
-          if (input.value == value) {
-            return;
-          }
-          input.value = value;
-          break;
-        case 'select':
-          for (i = 0, count = input.options.length; i < count; i++) {
-            if (input.options[i].value == value) {
-              input.options[i].selected = true;
-              break;
+      inputs.forEach((input) => {
+        switch (input.type) {
+          case 'gaia-switch':
+          case 'gaia-checkbox':
+          case 'checkbox':
+          case 'switch':
+            value = !!value;
+            if (input.checked === value) {
+              return;
             }
-          }
-          break;
-      }
+            input.checked = value;
+            break;
+          case 'range':
+            if (input.value === value) {
+              return;
+            }
+            input.value = value;
+            break;
+          case 'select':
+            for (i = 0, count = input.options.length; i < count; i++) {
+              if (input.options[i].value === value) {
+                input.options[i].selected = true;
+                break;
+              }
+            }
+            break;
+          case 'radio':
+            input.checked = (input.value === value);
+            break;
+        }
+      });
     },
 
     /**
@@ -430,7 +440,7 @@ define(function(require) {
      */
     onInputChange: function pu_onInputChange(event) {
       var input = event.target;
-      var type = input.type;
+      var type = input.type || input.nodeName.toLowerCase();
       var key = input.name;
 
       //XXX should we check data-ignore here?
@@ -447,6 +457,8 @@ define(function(require) {
 
       var value;
       switch (type) {
+        case 'gaia-switch':
+        case 'gaia-checkbox':
         case 'checkbox':
         case 'switch':
           value = input.checked; // boolean

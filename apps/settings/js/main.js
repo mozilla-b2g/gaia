@@ -3,10 +3,12 @@ require(['config/require'], function() {
 
   define('boot', function(require) {
     // The following are the scripts used by many other scripts. We load them
-    // at once here. These should be move to the dependency of each panel in the
-    // future.
+    // at once here.
     require('utils');
     require('shared/settings_listener');
+    require('modules/mvvm/observable');
+    require('modules/mvvm/observable_array');
+    require('modules/base/event_emitter');
 
     var SettingsService = require('modules/settings_service');
     var ScreenLayout = require('shared/screen_layout');
@@ -75,7 +77,6 @@ require(['config/require'], function() {
       //      stable yet. This is a estimated timing of visually complete. We
       //      should implement other mechanism waiting for all content ready.
       window.performance.mark('visuallyLoaded');
-      window.dispatchEvent(new CustomEvent('moz-app-visually-complete'));
 
       // Activate the animation.
       document.body.dataset.ready = true;
@@ -89,7 +90,6 @@ require(['config/require'], function() {
         // The loading of telephony settings is dependent on being idle,
         // once complete we are safe to declare the settings app as loaded
         window.performance.mark('fullyLoaded');
-        window.dispatchEvent(new CustomEvent('moz-app-loaded'));
       });
 
     /**

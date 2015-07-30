@@ -49,7 +49,10 @@ function getSharedJs(parse, appDir, exclude, onFileRead) {
   var sharedJs = [];
   var jsExtRegExp = /\.js$/;
 
-  var files = utils.ls(utils.getFile(appDir, 'js'), true, /\.(js|html)/, true);
+  var files = utils.ls(utils.getFile(appDir, 'js'), true)
+    .filter(function(file) {
+      return /\.(js|html)/.test(file.path) && file.isFile();
+    });
   files.forEach(function(file) {
     var contents = utils.getFileContent(file);
     onFileRead(contents);
@@ -84,7 +87,11 @@ function getSharedJs(parse, appDir, exclude, onFileRead) {
 function getSharedStyles(appDir, onFileRead) {
   var sharedStyle = [];
   var sharedStyleUnstable = [];
-  var files = utils.ls(utils.getFile(appDir, 'style'), true, /\.css$/, true);
+  var sharedElements = [];
+  var files = utils.ls(utils.getFile(appDir, 'style'), true)
+    .filter(function(file) {
+      return /\.css$/.test(file.path);
+    });
   files.forEach(function(file) {
     var url, match, index,
         contents = utils.getFileContent(file);
@@ -98,7 +105,10 @@ function getSharedStyles(appDir, onFileRead) {
       if (url) {
         index = url.indexOf('/shared/');
         if (index !== -1) {
-          if (url.indexOf('style_unstable') === -1) {
+          if (url.indexOf('shared/elements') !== -1) {
+            sharedElements.push(url.substring(index + 1)
+                                    .replace(/shared\/elements\//, ''));
+          } else if (url.indexOf('style_unstable') === -1) {
             sharedStyle.push(url.substring(index + 1)
                                  .replace(/shared\/style\//, ''));
           } else {
@@ -109,7 +119,7 @@ function getSharedStyles(appDir, onFileRead) {
       }
     }
   });
-  return [sharedStyle, sharedStyleUnstable];
+  return [sharedStyle, sharedStyleUnstable, sharedElements];
 }
 
 exports.getSharedJs = getSharedJs;

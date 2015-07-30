@@ -2,11 +2,28 @@
 
 /* exported Curtain */
 
+/*
+ * XXX: This is a class to load an <iframe> for loading the
+ * curtain. This **MUST** be deprecated when [1] will be ready.
+ * We need to get rid of all complexity passing messages, and reduce
+ * the memory consumption in the apps.
+ *
+ * [1] https://bugzilla.mozilla.org/show_bug.cgi?id=1183561
+ */
+
 var Curtain = (function() {
 
   var _ = navigator.mozL10n.get;
 
-  var curtainFrame = parent.document.querySelector('#fb-curtain');
+  var curtainFrame = parent.document.querySelector('#iframe_curtain');
+
+  if (!curtainFrame) {
+    curtainFrame = document.createElement('iframe');
+    curtainFrame.id = 'iframe_curtain';
+    curtainFrame.src = '/shared/pages/import/curtain.html';
+    parent.document.body.appendChild(curtainFrame);
+  }
+
   var doc = curtainFrame.contentDocument;
 
   var cpuWakeLock, cancelButton, retryButton, okButton, progressElement, form,

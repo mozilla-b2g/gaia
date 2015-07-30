@@ -1,0 +1,1 @@
+define(['./gaia-text-input/gaia-text-input'], function(m) { return m; });

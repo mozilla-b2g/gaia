@@ -3,15 +3,14 @@
 
 'use strict';
 
-requireApp('system/test/unit/mock_orientation_manager.js');
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
+requireApp('system/shared/test/unit/mocks/mock_service.js');
 requireApp('system/test/unit/mock_applications.js');
 requireApp('system/test/unit/mock_app_window.js');
 
 var mocksForHomescreenWindow = new MocksHelper([
-  'OrientationManager',
-  'Applications', 'SettingsListener', 'ManifestHelper'
+  'Service', 'Applications', 'SettingsListener', 'ManifestHelper'
 ]).init();
 
 suite('system/HomescreenWindow', function() {
@@ -32,7 +31,6 @@ suite('system/HomescreenWindow', function() {
 
       return element;
     });
-    requireApp('system/js/service.js');
     requireApp('system/js/browser_config_helper.js');
     requireApp('system/js/browser_frame.js');
     requireApp('system/js/app_window.js');
@@ -68,12 +66,14 @@ suite('system/HomescreenWindow', function() {
     });
 
     test('should always resize', function() {
-      var stubResize = this.sinon.stub(homescreenWindow, '_resize');
+      var stubResize = this.sinon.stub(homescreenWindow, '_resize')
+        .returns({ stub: 'promise' });
       var stubIsActive = this.sinon.stub(homescreenWindow, 'isActive');
       stubIsActive.returns(false);
 
-      homescreenWindow.resize();
+      var p = homescreenWindow.resize();
       assert.isTrue(stubResize.calledOnce);
+      assert.deepEqual(p, { stub: 'promise' });
     });
 
     test('Homescreen browser frame', function() {
@@ -82,9 +82,36 @@ suite('system/HomescreenWindow', function() {
         homescreenWindow.browser.element.getAttribute('mozapptype'),
         'homescreen');
     });
-    test('homescree is created', function() {
+    test('homescreen is created', function() {
       assert.isTrue(homescreenWindow.isHomescreen);
     });
+
+    test('setBrowserConfig creates app chrome', function() {
+      homescreenWindow.config = null;
+      homescreenWindow.setBrowserConfig('fakeManifestURL');
+      assert.isTrue(!!homescreenWindow.config);
+      assert.isTrue(!!homescreenWindow.config.chrome);
+    });
+
+    test('setBrowserConfig on browserchrome does not create app chrome',
+      function() {
+        var verticalHomeUrl =
+          'app://verticalhome.gaiamobile.org/manifest.webapp';
+        var mockVerticalHome = {
+          manifestURL: verticalHomeUrl,
+          origin: 'fakeOrigin',
+          manifest: {}
+        };
+
+        MockApplications.mRegisterMockApp(mockVerticalHome);
+
+        homescreenWindow.config = null;
+        homescreenWindow.setBrowserConfig(verticalHomeUrl);
+        assert.isTrue(!!homescreenWindow.config);
+        assert.isFalse(!!homescreenWindow.config.chrome);
+
+        MockApplications.mUnregisterMockApp(mockVerticalHome);
+      });
 
     test('ensure should change the url', function() {
       var url = homescreenWindow.browser.element.src;

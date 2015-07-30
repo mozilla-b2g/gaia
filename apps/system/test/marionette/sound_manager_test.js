@@ -8,22 +8,24 @@ var SoundToast = require('./lib/soundtoast.js');
 
 marionette('Sound manager tests', function() {
   var apps = {};
-  apps[FakeMediaApp.DEFAULT_ORIGIN] = __dirname + '/fakemediaapp';
-  apps[FakeAlarmApp.DEFAULT_ORIGIN] = __dirname + '/fakealarmapp';
-  apps[FakeNotificationApp.DEFAULT_ORIGIN] = __dirname + '/fakenotificationapp';
+  apps[FakeMediaApp.DEFAULT_ORIGIN] = __dirname + '/../apps/fakemediaapp';
+  apps[FakeAlarmApp.DEFAULT_ORIGIN] = __dirname + '/../apps/fakealarmapp';
+  apps[FakeNotificationApp.DEFAULT_ORIGIN] =
+    __dirname + '/../apps/fakenotificationapp';
 
   var client = marionette.client({
-    settings: {
-      'lockscreen.enabled': false,
-      'ftu.manifestURL': null
+    profile: {
+      apps: apps
     },
-
-    apps: apps
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
   });
 
   var soundToast;
+  var system;
 
   setup(function() {
+    system = client.loader.getAppClass('system');
+    system.waitForFullyLoaded();
     soundToast = new SoundToast(client);
   });
 

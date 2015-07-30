@@ -1,4 +1,4 @@
-
+/* global Service, LazyLoader, IconsHelper */
 (function(exports) {
   'use strict';
 
@@ -35,7 +35,7 @@
     this.addRemoteRequestSetting(
       'clear.browser.history',
       function clearHistory() {
-        window.places.clear();
+        Service.request('Places:clear');
       }
     );
 
@@ -46,6 +46,11 @@
         request.onsuccess = function() {
           request.result.clearBrowserData();
         };
+
+        // Clear the icon dataStore.
+        LazyLoader.load('shared/js/icons_helper.js').then(() => {
+          IconsHelper.clear();
+        });
       }
     );
   };

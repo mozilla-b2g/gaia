@@ -1,19 +1,19 @@
-/* global LayoutManager, MockL10n */
+/* global LayoutManager, MockL10n, MockService */
 'use strict';
 
-requireApp('system/test/unit/mock_orientation_manager.js');
-requireApp('system/shared/js/template.js');
+requireApp('system/shared/js/sanitizer.js');
+requireApp('system/shared/test/unit/mocks/mock_service.js');
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
+requireApp('system/shared/test/unit/mocks/mock_lazy_loader.js');
 requireApp('system/test/unit/mock_applications.js');
 requireApp('system/test/unit/mock_layout_manager.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
-requireApp('system/test/unit/mock_statusbar.js');
 requireApp('system/test/unit/mock_screen_layout.js');
 
 var mocksForLockScreenWindow = new window.MocksHelper([
-  'OrientationManager', 'Applications', 'SettingsListener',
-  'ManifestHelper', 'ScreenLayout', 'LayoutManager', 'StatusBar'
+  'Service', 'Applications', 'SettingsListener', 'LazyLoader',
+  'ManifestHelper', 'ScreenLayout', 'LayoutManager'
 ]).init();
 
 suite('system/LockScreenWindow', function() {
@@ -29,14 +29,14 @@ suite('system/LockScreenWindow', function() {
 
       var element = document.createElement('div');
 
-      // Must give a node with comment node for Template.
-      if ('lockscreen-overlay-template' === id) {
-        var comment = document.createComment('<div id="lockscreen"></div>');
-        element.appendChild(comment);
-      } else if (id.indexOf('AppWindow') >= 0) {
+      if (id.indexOf('AppWindow') >= 0) {
         var container = document.createElement('div');
         container.className = 'browser-container';
         element.appendChild(container);
+      } else {
+        var iframe = document.createElement('div');
+        document.body.appendChild(iframe);
+        return iframe;
       }
 
       return element;
@@ -57,7 +57,6 @@ suite('system/LockScreenWindow', function() {
     realL10n = window.navigator.mozL10n;
     window.navigator.mozL10n = MockL10n;
 
-    requireApp('system/js/service.js');
     requireApp('system/js/browser_config_helper.js');
     requireApp('system/js/browser_frame.js');
     requireApp('system/js/app_window.js');
@@ -150,12 +149,7 @@ suite('system/LockScreenWindow', function() {
         return true;
       }
     };
-    var originalOrientationManager = window.OrientationManager;
-    window.OrientationManager = {
-      isOnRealDevice: function() {
-        return true;
-      }
-    };
+    MockService.mockQueryWith('isOnRealDevice', true);
     this.sinon.stub(window, 'screen', mockScreen);
     var method = window.LockScreenWindow.prototype.lockOrientation;
     this.sinon.stub(window, 'clearInterval');
@@ -169,6 +163,5 @@ suite('system/LockScreenWindow', function() {
     method.call(mockThis);
     assert.isTrue(stubSetInterval.calledOnce);
     assert.isFalse(stubSetInterval.calledTwice);
-    window.OrientationManager = originalOrientationManager;
   });
 });

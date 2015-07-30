@@ -24,8 +24,7 @@
 }
 
 #modify-account-view.in-progress .during-progress > div {
-  display: inline-block;
-  margin: 16rem 1.5rem 0;
+ margin: 16rem 1.5rem 0;
   padding-top: 1.2rem;
   border-top: 0.1rem solid #bebebe;
 }
@@ -113,6 +112,11 @@
 
 #oauth2.active {
   display: block;
+}
+
+#oauth2 gaia-header h1 {
+  /* should always display the beginning of the URL */
+  direction: ltr;
 }
 
 #oauth2 .browser-container {

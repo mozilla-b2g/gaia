@@ -1,6 +1,6 @@
 /* exported SubListView */
-/* global musicdb, TabBar, AlbumArtCache, createListElement, ModeManager,
-          MODE_PLAYER, PlayerView, TYPE_LIST */
+/* global AlbumArtCache, createListElement, Database, LazyLoader, ModeManager,
+          MODE_PLAYER, PlayerView, showImage, TabBar, TYPE_LIST */
 'use strict';
 
 var SubListView = {
@@ -26,7 +26,6 @@ var SubListView = {
 
   init: function slv_init() {
     this.albumImage = document.getElementById('views-sublist-header-image');
-    this.offscreenImage = new Image();
     this.albumName = document.getElementById('views-sublist-header-name');
     this.playAllButton = document.getElementById('views-sublist-controls-play');
     this.shuffleButton =
@@ -42,12 +41,11 @@ var SubListView = {
   clean: function slv_clean() {
     // Cancel a pending enumeration before start a new one
     if (this.handle) {
-      musicdb.cancelEnumeration(this.handle);
+      Database.cancelEnumeration(this.handle);
     }
 
     this.dataSource = [];
     this.index = 0;
-    this.offscreenImage.src = '';
     this.anchor.innerHTML = '';
     this.view.scrollTop = 0;
   },
@@ -59,23 +57,12 @@ var SubListView = {
     if (TabBar.playlistArray.indexOf(fileinfo) !== -1) {
       fileinfo = this.dataSource[0];
     }
-    // Set source to image and crop it to be fitted when it's onloded
-    this.offscreenImage.src = '';
-    this.albumImage.classList.remove('fadeIn');
 
-    AlbumArtCache.getCoverURL(fileinfo).then(function(url) {
-      this.offscreenImage.addEventListener('load', slv_showImage.bind(this));
-      this.offscreenImage.src = url;
-    }.bind(this));
-
-    function slv_showImage(evt) {
-      /* jshint validthis:true */
-      // Don't register multiple copies
-      evt.target.removeEventListener('load', slv_showImage);
-      var url = 'url(' + this.offscreenImage.src + ')';
-      this.albumImage.style.backgroundImage = url;
-      this.albumImage.classList.add('fadeIn');
-    }
+    LazyLoader.load('js/metadata/album_art_cache.js').then(() => {
+      return AlbumArtCache.getThumbnailURL(fileinfo);
+    }).then((url) => {
+      showImage(this.albumImage, url);
+    });
   },
 
   setAlbumName: function slv_setAlbumName(name, l10nId) {
@@ -87,8 +74,8 @@ var SubListView = {
     var targetOption = (option === 'date') ? option : 'metadata.' + option;
     this.clean();
 
-    this.handle = musicdb.enumerateAll(targetOption, keyRange, direction,
-                                         function lv_enumerateAll(dataArray) {
+    this.handle = Database.enumerateAll(targetOption, keyRange, direction,
+                                        function lv_enumerateAll(dataArray) {
       var albumName;
       var albumNameL10nId;
       var maxDiscNum = 1;
@@ -167,6 +154,7 @@ var SubListView = {
       case 'click':
         if (target === this.shuffleButton) {
           ModeManager.push(MODE_PLAYER, function() {
+            PlayerView.clean();
             PlayerView.setSourceType(TYPE_LIST);
             PlayerView.dataSource = this.dataSource;
             PlayerView.setShuffle(true);
@@ -177,6 +165,7 @@ var SubListView = {
 
         if (target.dataset.index || target === this.playAllButton) {
           ModeManager.push(MODE_PLAYER, function() {
+            PlayerView.clean();
             PlayerView.setSourceType(TYPE_LIST);
             PlayerView.dataSource = this.dataSource;
 

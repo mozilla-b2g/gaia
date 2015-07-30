@@ -1,3 +1,5 @@
+'use strict';
+
 marionette('lockscreen disabled test', function() {
   var assert = require('assert');
 
@@ -14,10 +16,7 @@ marionette('lockscreen disabled test', function() {
   }
 
   var client = marionette.client({
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
-    }
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
   });
 
   test.skip('launch test app', function() {

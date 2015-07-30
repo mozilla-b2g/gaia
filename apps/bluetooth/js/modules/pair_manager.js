@@ -23,6 +23,9 @@ define(function(require) {
    *      incoming/outgoing pairing request.
    *   2. Handling dom event from BluetoothPairingListener while there is an
    *      incoming/outgoing pairing request.
+   *   3. Handling dom event 'ondeviceunpaired' while some remote devices
+   *      request for canceling an overdue pairing request. The reason could be
+   *      authentication fails, remote device down, and internal error happens.
    */
   var PairManager = {
     /**
@@ -30,9 +33,14 @@ define(function(require) {
      *
      * @access private
      * @memberOf PairManger
-     * @type {Object BluetoothAdapter}
+     * @type {Object} BluetoothAdapter
      */
     _defaultAdapter: null,
+    /**
+     * Indicate if the pair request is expired
+     * @type {Boolean}
+     */
+    _isExpired: false,
 
     init: function() {
       // Observe 'defaultAdapter' property for reaching default adapter.
@@ -45,15 +53,11 @@ define(function(require) {
       this._watchOnenterpincodereq();
       this._watchOnpairingconfirmationreq();
       this._watchOnpairingconsentreq();
+      this._watchOnpairingaborted();
 
       navigator.mozSetMessageHandler('bluetooth-pairing-request',
         this._onRequestPairingFromSystemMessage.bind(this)
       );
-
-      // Will discuss how Gecko Bluetooth to notify the event as before.
-      // navigator.mozSetMessageHandler('bluetooth-cancel',
-      //   this.onBluetoothCancel.bind(this)
-      // );
 
       // Observe screen lockscreen locked/unlocked state for show pending
       // pairing request immediately.
@@ -77,7 +81,7 @@ define(function(require) {
      *
      * @access private
      * @memberOf PairManager
-     * @param {Object BluetoothAdapter} newAdapter
+     * @param {Object} BluetoothAdapter newAdapter
      */
     _onDefaultAdapterChanged: function(newAdapter) {
       // save default adapter
@@ -86,7 +90,7 @@ define(function(require) {
 
     /**
      * Watch 'ondisplaypasskeyreq' dom event for pairing.
-     * A handler to trigger when a remote bluetooth device requests to display 
+     * A handler to trigger when a remote bluetooth device requests to display
      * passkey on the screen during pairing process.
      *
      * @access private
@@ -94,30 +98,23 @@ define(function(require) {
      */
     _watchOndisplaypasskeyreq: function() {
       if (!this._defaultAdapter || !this._defaultAdapter.pairingReqs) {
+        Debug('_watchOndisplaypasskeyreq() no adapter or pairingReqs');
         return;
       }
 
-      this._defaultAdapter.pairingReqs.ondisplaypasskeyreq = 
-        this._onDisplayPasskeyReq.bind(this);
-    },
-
-    /**
-     * A handler to handle 'ondisplaypasskeyreq' event while it's coming.
-     *
-     * @access private
-     * @memberOf PairManager
-     */
-    _onDisplayPasskeyReq: function(evt) {
-      Debug('ondisplaypasskeyreq(): Pairing request from ' + 
-            evt.deviceName + ': display passkey = ' + evt.handle.passkey);
-      // TODO: Display passkey to user if user story is required.
-      throw new Error('Received pairing method "ondisplaypasskeyreq". ' + 
-                      'It would need to implement if user story is required!!');
+      this._defaultAdapter.pairingReqs.addEventListener('displaypasskeyreq',
+        (evt) => {
+        Debug('_watchOndisplaypasskeyreq()');
+        this._handlePairingRequest({
+          method: 'displaypasskey',
+          evt: evt
+        });
+      });
     },
 
     /**
      * Watch 'onenterpincodereq' dom event for pairing.
-     * A handler to trigger when a remote bluetooth device requests user enter 
+     * A handler to trigger when a remote bluetooth device requests user enter
      * PIN code during pairing process.
      *
      * @access private
@@ -125,35 +122,24 @@ define(function(require) {
      */
     _watchOnenterpincodereq: function() {
       if (!this._defaultAdapter || !this._defaultAdapter.pairingReqs) {
+        Debug('_watchOnenterpincodereq() no adapter or pairingReqs');
         return;
       }
 
-      this._defaultAdapter.pairingReqs.onenterpincodereq =
-        this._onEnterPinCodeReq.bind(this);
-    },
-
-    /**
-     * A handler to handle 'onenterpincodereq' event while it's coming.
-     *
-     * @access private
-     * @memberOf PairManager
-     */
-    _onEnterPinCodeReq: function(evt) {
-      Debug('onenterpincodereq(): Pairing request from ' + 
-            evt.deviceName + ': enter pin code..');
-      
-      // inform user to enter pin code
-      var pairingInfo = {
-        method: 'pincode',
-        evt: evt
-      };
-      this._onRequestPairing(pairingInfo);
+      this._defaultAdapter.pairingReqs.addEventListener('enterpincodereq',
+        (evt) => {
+        Debug('_watchOnenterpincodereq()');
+        this._handlePairingRequest({
+          method: 'enterpincode',
+          evt: evt
+        });
+      });
     },
 
     /**
      * Watch 'onpairingconfirmationreq' dom event for pairing.
-     * A handler to trigger when a remote bluetooth device requests user 
-     * confirm passkey during pairing process. Applications may prompt passkey 
+     * A handler to trigger when a remote bluetooth device requests user
+     * confirm passkey during pairing process. Applications may prompt passkey
      * to user for confirmation, or confirm the passkey for user proactively.
      *
      * @access private
@@ -161,32 +147,24 @@ define(function(require) {
      */
     _watchOnpairingconfirmationreq: function() {
       if (!this._defaultAdapter || !this._defaultAdapter.pairingReqs) {
+        Debug('_watchOnpairingconfirmationreq() no adapter or pairingReqs');
         return;
       }
 
-      this._defaultAdapter.pairingReqs.onpairingconfirmationreq =
-        this._onPairingConfirmationReq.bind(this);
-    },
-
-    /**
-     * A handler to handle 'onpairingconfirmationreq' event while it's coming.
-     *
-     * @access private
-     * @memberOf PairManager
-     */
-    _onPairingConfirmationReq: function(evt) {
-      // display passkey for user confirm
-      var pairingInfo = {
-        method: 'confirmation',
-        evt: evt
-      };
-      this._onRequestPairing(pairingInfo);
+      this._defaultAdapter.pairingReqs.addEventListener(
+        'pairingconfirmationreq', (evt) => {
+        Debug('_watchOnpairingconfirmationreq: evt = ' + JSON.stringify(evt));
+        this._handlePairingRequest({
+          method: 'confirmation',
+          evt: evt
+        });
+      });
     },
 
     /**
      * Watch 'onpairingconsentreq' dom event for pairing.
-     * A handler to trigger when a remote bluetooth device requests user 
-     * confirm pairing during pairing process. Applications may prompt user 
+     * A handler to trigger when a remote bluetooth device requests user
+     * confirm pairing during pairing process. Applications may prompt user
      * for confirmation or confirm for user proactively.
      *
      * @access private
@@ -194,25 +172,70 @@ define(function(require) {
      */
     _watchOnpairingconsentreq: function() {
       if (!this._defaultAdapter || !this._defaultAdapter.pairingReqs) {
+        Debug('_watchOnpairingconsentreq() no adapter or pairingReqs');
         return;
       }
 
-      this._defaultAdapter.pairingReqs.onpairingconsentreq = 
-        this._onPairingConsentReq.bind(this);
+      this._defaultAdapter.pairingReqs.addEventListener('pairingconsentreq',
+        (evt) => {
+        Debug('_watchOnpairingconsentreq: evt = ' + JSON.stringify(evt));
+        this._handlePairingRequest({
+          method: 'consent',
+          evt: evt
+        });
+      });
     },
 
     /**
-     * A handler to handle 'onpairingconsentreq' event while it's coming.
+     * Watch 'onpairingaborted' dom event for pairing aborted.
+     * A handler to trigger when pairing fails due to one of
+     * following conditions:
+     * - authentication fails
+     * - remote device down (bluetooth ACL becomes disconnected)
+     * - internal error happens
      *
      * @access private
      * @memberOf PairManager
      */
-    _onPairingConsentReq: function(evt) {
-      Debug('onpairingconsentreq(): Pairing request from ' + 
-            evt.deviceName + ': pairing consent');
-      // TODO: Notify user of just-work pairing if user story is required.
-      throw new Error('Received pairing method "onpairingconsentreq". ' + 
-                      'It would need to implement if user story is required!!');
+    _watchOnpairingaborted: function() {
+      if (!this._defaultAdapter) {
+        return;
+      }
+
+      this._defaultAdapter.addEventListener('pairingaborted',
+        this._onPairingAborted.bind(this));
+    },
+
+    /**
+     * A handler to handle 'onpairingaborted' event while it's coming.
+     *
+     * @access private
+     * @memberOf PairManager
+     */
+    _onPairingAborted: function(evt) {
+      Debug('_onPairingAborted(): evt = ' + JSON.stringify(evt));
+      // if the attention screen still open, close it
+      if (this.childWindow) {
+        this.childWindow.Pairview.closeInput();
+        this.childWindow.close();
+      }
+
+      // If "onpairingaborted" event is coming, and there is a pending pairing
+      // request, we have reset the object. Because the callback is useless
+      // since the older pairing request is expired.
+      // The moment is fit to notify user that the later pairing request
+      // is timeout or canceled. According to user story, do nothing here.
+      // Clear up the pending pairing request only.
+      if (this.pendingPairing) {
+        this.pendingPairing = null;
+      }
+
+      // Close pairing expired dialog if it is showing.
+      if (PairExpiredDialog.isVisible) {
+        PairExpiredDialog.close();
+        // Have to close Bluetooth app after the dialog is closed.
+        window.close();
+      }
     },
 
     /**
@@ -234,40 +257,39 @@ define(function(require) {
      * @param {Object} pairingInfo.method - method of this pairing request
      * @param {Object} pairingInfo.evt - DOM evt of this pairing request
      */
-    _onRequestPairing: function(pairingInfo) {
-      Debug('_onRequestPairing():' + 
-            ' pairingInfo.method = ' + pairingInfo.method + 
+    _handlePairingRequest: function(pairingInfo) {
+      Debug('_onRequestPairing():' +
+            ' pairingInfo.method = ' + pairingInfo.method +
             ' pairingInfo.evt = ' + pairingInfo.evt);
 
       var req = navigator.mozSettings.createLock().get('lockscreen.locked');
-      var self = this;
-      req.onsuccess = function bt_onGetLocksuccess() {
+      req.onsuccess = () => {
         if (req.result['lockscreen.locked']) {
           // notify user that we are receiving pairing request
-          self.fireNotification(pairingInfo);
+          this.fireNotification(pairingInfo);
         } else {
           // We have clear up pending one before show the new pairing requst.
           // Becasue the pending pairing request is no longer usefull.
-          self.cleanPendingPairing();
+          this.cleanPendingPairing();
 
           // show pair view directly while lock screen is unlocked
-          self.showPairview(pairingInfo);
+          this.showPairview(pairingInfo);
         }
       };
-      req.onerror = function bt_onGetLockError() {
+      req.onerror = () => {
         // We have clear up pending one before show the new pairing requst.
         // Becasue the pending pairing request is no longer usefull.
-        self.cleanPendingPairing();
+        this.cleanPendingPairing();
 
         // fallback to default value 'unlocked'
-        self.showPairview(pairingInfo);
+        this.showPairview(pairingInfo);
       };
     },
 
     fireNotification: function(pairingInfo) {
       // Once we received a pairing request in screen locked mode,
       // overwrite the object with the latest pairing request. Because the
-      // later pairing request might be timeout and useless now.
+      // older pairing request might be timeout and useless now.
       this.pendingPairing = {
         showPairviewCallback: this.showPairview.bind(this, pairingInfo)
       };
@@ -295,7 +317,7 @@ define(function(require) {
     // The handler will pop out a pairing request expired prompt only.
     pairingRequestExpiredNotificationHandler: function(notification) {
       var req = navigator.mozSettings.createLock().get('lockscreen.locked');
-      req.onsuccess = function bt_onGetLocksuccess() {
+      req.onsuccess = () => {
         // Avoid to do nothting while the notification toast is showing
         // and a user is able to trigger onclick event. Make sure screen
         // is unlocked, then show the prompt in bluetooth app.
@@ -303,14 +325,15 @@ define(function(require) {
           // Clean the pairing request notficiation which is expired.
           notification.close();
 
-          navigator.mozApps.getSelf().onsuccess = function(evt) {
+          navigator.mozApps.getSelf().onsuccess = (evt) => {
             var app = evt.target.result;
 
             // launch bluetooth app to foreground for showing the prompt
             app.launch();
 
             // show an alert with the overdue message
-            if (!PairExpiredDialog.isVisible) {
+            if (!PairExpiredDialog.isVisible && this._isExpired) {
+              Debug('show expired dialog');
               PairExpiredDialog.showConfirm(function() {
                 // Have to close Bluetooth app after the dialog is closed.
                 window.close();
@@ -323,14 +346,21 @@ define(function(require) {
 
     // If there is a pending pairing request while a user just unlocks screen,
     // we will show pair view immediately. Then, we clear up the notification.
+    // If pendingPairing object is not exist, it means pair request is expired.
     showPendingPairing: function(screenLocked) {
-      if (!screenLocked && this.pendingPairing) {
-        // show pair view from the callback function
-        if (this.pendingPairing.showPairviewCallback) {
-          this.pendingPairing.showPairviewCallback();
-        }
+      Debug('showPendingPairing when screenLocked:' + screenLocked);
+      if (!screenLocked) {
+        if (this.pendingPairing) {
+          this._isExpired = false;
+          // show pair view from the callback function
+          if (this.pendingPairing.showPairviewCallback) {
+            this.pendingPairing.showPairviewCallback();
+          }
 
-        this.cleanPendingPairing();
+          this.cleanPendingPairing();
+        } else {
+          this._isExpired = true;
+        }
       }
     },
 
@@ -370,9 +400,8 @@ define(function(require) {
       var host = window.location.host;
       this.childWindow = window.open(protocol + '//' + host + '/onpair.html',
                   'pair_screen', 'attention');
-      var self = this;
-      this.childWindow.onload = function childWindowLoaded() {
-        self.childWindow.Pairview.init(pairingInfo.method, pairingInfo.evt);
+      this.childWindow.onload = () => {
+        this.childWindow.Pairview.init(pairingInfo.method, pairingInfo.evt);
       };
     },
 

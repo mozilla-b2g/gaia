@@ -7,11 +7,6 @@
   z-index: 6;
 }
 
-#screen:not(.cards-view) .appWindow.active:not(.inside-edges):not(.transition-closing):not(.transition-opening) .titlebar .statusbar-shadow,
-#screen.utility-tray .titlebar .statusbar-shadow {
-  visibility: hidden;
-}
-
 .appWindow .titlebar .statusbar-shadow {
   height: 100%;
   background-size: 100% 100%;
@@ -19,8 +14,8 @@
   background-position: bottom right;
 }
 
-#screen:not(.rocketbar-focused):not(.utility-tray):not(.locked) #statusbar.light,
-.appWindow.light .titlebar .statusbar-shadow {
+#screen:not(.attention):not(.rocketbar-focused):not(.utility-tray):not(.locked) #statusbar.light,
+#screen:not(.rocketbar-focused):not(.utility-tray):not(.locked) .appWindow.light > .titlebar .statusbar-shadow {
   filter: url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\'><filter id=\'invert\'><feColorMatrix in=\'SourceGraphic\' color-interpolation-filters=\'sRGB\' type=\'matrix\' values=\'1 -1 0.3019 0 0 0 0.3019 0 0 0 0 0 0.3019 0 0 0 0 0 1 0\'/></filter></svg>#invert");
 }
 
@@ -32,12 +27,33 @@
   height: .2rem;
 }
 
-.appWindow .titlebar .titlebar-maximized {
+/* Statusbar shadow hidden by default */
+.appWindow .titlebar {
+  visibility: hidden;
+}
+
+/* Statusbar shadow visible on app transitions */
+.appWindow.transition-opening > .titlebar,
+.appWindow.transition-opening > .chrome.maximized + .titlebar > .titlebar-maximized,
+.appWindow.transition-opening > .chrome+ .titlebar > .titlebar-minimized,
+.appWindow.transition-closing > .chrome.maximized + .titlebar > .titlebar-maximized,
+.appWindow.transition-closing > .chrome+ .titlebar > .titlebar-minimized,
+/* Statusbar shadow visible on edge gestures */
+.appWindow.inside-edges > .titlebar,
+.appWindow.outside-edges-right > .titlebar,
+.appWindow.outside-edges-left > .titlebar,
+.appWindow.will-become-active > .titlebar,
+/* Statusbar shadow visible on utility tray transitions */
+#screen.utility-tray-in-transition .appWindow > .titlebar {
+  visibility: visible;
+}
+
+.appWindow > .titlebar .titlebar-maximized {
   background-image: -moz-element(#statusbar-maximized);
   width: 100%;
 }
 
-.appWindow .titlebar .titlebar-minimized {
+.appWindow > .titlebar .titlebar-minimized {
   background-image: -moz-element(#statusbar-minimized);
   background-size: cover;
   width: calc(100% - 100% * var(--rocketbar-scale) + 8rem * var(--rocketbar-scale) - 0.5rem);
@@ -46,53 +62,38 @@
 }
 
 /* Transitions between the maximized / minimized status bars */
-.chrome + .titlebar .titlebar-maximized {
+#statusbar:not(.maximized) ~ #windows > .appWindow > .titlebar .titlebar-maximized {
   opacity: 0;
 }
 
-.chrome.maximized + .titlebar .titlebar-maximized {
+#statusbar.maximized ~ #windows > .appWindow > .titlebar .titlebar-maximized {
   opacity: 1;
 }
 
-.chrome + .titlebar .titlebar-minimized {
+#statusbar:not(.maximized) ~ #windows > .appWindow > .titlebar .titlebar-minimized {
   transform: translateY(calc(var(--statusbar-height) * -1));
   opacity: 1;
 }
 
-.chrome.maximized + .titlebar .titlebar-minimized {
+#statusbar.maximized ~ #windows > .appWindow > .titlebar .titlebar-minimized {
   opacity: 0;
 }
 
 [data-manifest-name="FTU"]:not(.bar) > .chrome + .titlebar .titlebar-minimized,
-.homescreen:not(.bar) > .chrome + .titlebar .titlebar-minimized,
 .lockScreenWindow:not(.bar) > .chrome + .titlebar .titlebar-minimized,
 .attentionWindow:not(.bar) > .chrome + .titlebar .titlebar-minimized {
   opacity: 0;
 }
 
 [data-manifest-name="FTU"]:not(.bar) > .chrome + .titlebar .titlebar-maximized,
-.homescreen:not(.bar) > .chrome + .titlebar .titlebar-maximized,
 .lockScreenWindow:not(.bar) > .chrome + .titlebar .titlebar-maximized,
 .attentionWindow:not(.bar) > .chrome + .titlebar .titlebar-maximized {
   opacity: 1;
 }
 
 /* Special cases */
-#screen.utility-tray .appWindow .titlebar {
-  visibility: hidden;
-}
-
 #screen.attention #statusbar-minimized {
   display: none;
-}
-
-/* Homescreen must show the maximized status bar */
-#homescreen .chrome + .titlebar .titlebar-maximized {
-  opacity: 1;
-}
-
-#homescreen .chrome + .titlebar .titlebar-minimized {
-  opacity: 0;
 }
 
 /* RTL View */

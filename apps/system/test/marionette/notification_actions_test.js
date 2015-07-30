@@ -11,20 +11,17 @@ var TARGET_APP_MANIFEST = TARGET_APP + '/manifest.webapp';
 
 marionette('notification actions', function() {
   var client = marionette.client({
-    prefs: {
-      'dom.w3c_touch_events.enabled': 1
-    },
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
-    }
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
   });
 
   var utilityTray, actions;
   var notificationList = new NotificationList(client);
   var notification;
+  var system;
 
   setup(function() {
+    system = client.loader.getAppClass('system');
+    system.waitForFullyLoaded();
     // launch the app
     client.apps.launch(TARGET_APP);
     client.apps.switchToApp(TARGET_APP);

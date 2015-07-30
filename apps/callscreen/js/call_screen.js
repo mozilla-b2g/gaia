@@ -1,6 +1,5 @@
 /* globals CallsHandler, FontSizeManager, KeypadManager,
-           LazyL10n, LockScreenSlide, MozActivity, SettingsListener, Utils,
-           performance */
+           LazyL10n, LockScreenSlide, MozActivity, SettingsListener, Utils */
 /* jshint nonew: false */
 
 'use strict';
@@ -20,6 +19,7 @@ var CallScreen = {
 
   mainContainer: document.getElementById('main-container'),
   contactBackground: document.getElementById('contact-background'),
+  callOptions: document.getElementById('call-options'),
   callToolbar: document.getElementById('co-advanced'),
 
   muteButton: document.getElementById('mute'),
@@ -46,8 +46,10 @@ var CallScreen = {
   incomingInfo: document.getElementById('incoming-info'),
   incomingNumber: document.getElementById('incoming-number'),
   incomingSim: document.getElementById('incoming-sim'),
-  incomingNumberAdditionalInfo:
-    document.getElementById('incoming-number-additional-info'),
+  incomingNumberAdditionalTel:
+    document.getElementById('incoming-number-additional-info-tel'),
+  incomingNumberAdditionalTelType:
+    document.getElementById('incoming-number-additional-info-tel-type'),
   incomingAnswer: document.getElementById('incoming-answer'),
   incomingEnd: document.getElementById('incoming-end'),
   incomingIgnore: document.getElementById('incoming-ignore'),
@@ -58,12 +60,19 @@ var CallScreen = {
   configs: {
     lockMode: 'incoming-call'
   },
-  showStatusMessage: function cs_showStatusMesssage(text) {
+  showStatusMessage: function cs_showStatusMessage(message) {
     var STATUS_TIME = 2000;
+    var paragraph = this.statusMessage.querySelector('p');
     var self = this;
-    self.statusMessage.querySelector('p').textContent = text;
-    self.statusMessage.classList.add('visible');
-    self.statusMessage.addEventListener('transitionend', function tend(evt) {
+
+    if (typeof(message) === 'string') {
+      navigator.mozL10n.setAttributes(paragraph, message);
+    } else if (message.id) {
+      navigator.mozL10n.setAttributes(paragraph, message.id, message.args);
+    }
+
+    this.statusMessage.classList.add('visible');
+    this.statusMessage.addEventListener('transitionend', function tend(evt) {
       evt.stopPropagation();
       self.statusMessage.removeEventListener('transitionend', tend);
       setTimeout(function hide() {
@@ -123,8 +132,8 @@ var CallScreen = {
                                         this.toggleSpeaker.bind(this));
     this.bluetoothButton.addEventListener('click',
                                           this.toggleBluetoothMenu.bind(this));
-    this.holdButton.addEventListener(
-      'click', CallsHandler.holdOrResumeCallByUser);
+    this.holdButton.addEventListener('click',
+                               CallsHandler.holdOrResumeSingleCall.bind(this));
     this.mergeButton.addEventListener('click',
                                       CallsHandler.mergeCalls.bind(this));
     this.answerButton.addEventListener('click',
@@ -371,30 +380,37 @@ var CallScreen = {
   },
 
   showClock: function cs_showClock(now) {
-    LazyL10n.get(function localized(_) {
-      var f = new navigator.mozL10n.DateTimeFormat();
-      var timeFormat = window.navigator.mozHour12 ? _('shortTimeFormat12') :
-                                                    _('shortTimeFormat24');
-      // FIXME/bug 1060333: Replace span with hidden mechanism.
-      // Don't show am/pm (for 12 or 24 time) in the callscreen
-      timeFormat = timeFormat.replace('%p', '<span>%p</span>');
-      var dateFormat = _('longDateFormat');
-      this.lockedClockTime.innerHTML = f.localeFormat(now, timeFormat);
-      this.lockedDate.textContent = f.localeFormat(now, dateFormat);
-    }.bind(this));
+    // this is a non-standard, Gecko only API, but we have
+    // no other way to get the am/pm portion of the date and remove it.
+    var amPm = now.toLocaleFormat('%p');
+
+    var timeText = now.toLocaleString(navigator.languages, {
+      hour12: navigator.mozHour12,
+      hour: 'numeric',
+      minute: 'numeric'
+    }).replace(amPm, '').trim();
+
+    var dateText = now.toLocaleString(navigator.languages, {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric'
+    });
+
+    this.lockedClockTime.textContent = timeText;
+    this.lockedDate.textContent = dateText;
   },
 
   showIncoming: function cs_showIncoming() {
     this.body.classList.remove('showKeypad');
 
-    this.callToolbar.classList.add('transparent');
+    this.callOptions.classList.add('transparent');
     this.incomingContainer.classList.add('displayed');
 
     this._screenWakeLock = navigator.requestWakeLock('screen');
   },
 
   hideIncoming: function cs_hideIncoming() {
-    this.callToolbar.classList.remove('transparent');
+    this.callOptions.classList.remove('transparent');
     this.incomingContainer.classList.remove('displayed');
 
     if (this._screenWakeLock) {
@@ -461,6 +477,10 @@ var CallScreen = {
     this.mergeButton.classList.add('hide');
   },
 
+  showOnHoldAndMergeContainer: function cs_showOnHoldAndMergeContainer() {
+    this.holdAndMergeContainer.style.display = 'block';
+  },
+
   hideOnHoldAndMergeContainer: function cs_hideOnHoldAndMergeContainer() {
     this.holdAndMergeContainer.style.display = 'none';
   },
@@ -478,9 +498,9 @@ var CallScreen = {
     LazyL10n.get(function localized(_) {
       var ticker = setInterval(function ut_updateTimer(startTime) {
         // Bug 834334: Ensure that 28.999 -> 29.000
-        var delta = Math.round((performance.now() - startTime) / 1000) * 1000;
+        var delta = Math.round((Date.now() - startTime) / 1000) * 1000;
         Utils.prettyDuration(durationChildNode, delta);
-      }, 1000, performance.now());
+      }, 1000, Date.now());
       durationNode.dataset.tickerId = ticker;
     });
     return true;

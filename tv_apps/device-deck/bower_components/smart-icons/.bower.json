@@ -1,0 +1,29 @@
+{
+  "name": "smart-icons",
+  "homepage": "https://github.com/smart-components/smart-icons",
+  "description": "Icon font for smart-screen",
+  "license": "MPL",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "templates",
+    "images",
+    "test",
+    "tests",
+    "index.html",
+    "Gruntfile.js",
+    "README.md",
+    "package.json"
+  ],
+  "_release": "096856d7f3",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "096856d7f3ff97352f5b0a822497f7057de96825"
+  },
+  "_source": "git://github.com/smart-components/smart-icons.git",
+  "_target": "*",
+  "_originalSource": "smart-components/smart-icons"
+}

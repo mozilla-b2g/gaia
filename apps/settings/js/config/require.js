@@ -5,6 +5,9 @@ require.config({
     'panels': 'panels',
     'shared': '../shared/js'
   },
+  // This is the default value of the loading timeout, we will disable the
+  // timeout in the production build
+  waitSeconds: 7,
   shim: {
     'settings': {
       exports: 'Settings'
@@ -14,6 +17,9 @@ require.config({
     },
     'simcard_lock': {
       exports: 'SimPinLock'
+    },
+    'vendor/jszip': {
+      exports: 'JSZip'
     },
     'shared/apn_helper': {
       exports: 'ApnHelper'
@@ -33,6 +39,9 @@ require.config({
     },
     'shared/lazy_loader': {
       exports: 'LazyLoader'
+    },
+    'shared/passcode_helper': {
+        exports: 'PasscodeHelper'
     },
     'shared/search_provider': {
       exports: 'SearchProvider'
@@ -55,15 +64,21 @@ require.config({
     'shared/toaster': {
       exports: 'Toaster'
     },
-    'shared/template': {
-      exports: 'Template'
+    'shared/sanitizer': {
+      exports: 'Sanitizer'
     },
     'shared/sim_settings_helper': {
       exports: 'SimSettingsHelper'
     },
+    'shared/settings_helper': {
+      exports: 'SettingsHelper'
+    },
     'shared/tz_select': {
       exports: 'tzSelect',
       deps: ['shared/icc_helper']
+    },
+    'shared/uuid': {
+      exports: 'uuid'
     },
     'shared/wifi_helper': {
       exports: 'WifiHelper'
@@ -105,8 +120,7 @@ require.config({
       name: 'modules/apn/apn_settings_manager',
       exclude: [
         'main',
-        'modules/async_storage',
-        'modules/mvvm/observable'
+        'modules/async_storage'
       ]
     },
     {
@@ -119,7 +133,8 @@ require.config({
         'main',
         'panels/root/low_priority_items',
         'modules/apps_cache',
-        'modules/bluetooth/version_detector'
+        'modules/bluetooth/version_detector',
+        'modules/addon_manager'
       ]
     },
     {
@@ -129,7 +144,15 @@ require.config({
         'modules/bluetooth/version_detector',
         'modules/app_storage',
         'modules/battery',
-        'modules/wifi_context'
+        'modules/wifi_context',
+        'modules/sim_security'
+      ]
+    },
+    {
+      name: 'panels/simpin/panel',
+      exclude: [
+        'main',
+        'modules/sim_security'
       ]
     },
     {
@@ -180,18 +203,13 @@ require.config({
     },
     {
       name: 'panels/display/panel',
-      exclude: [
-        'main',
-        'modules/mvvm/observable'
-      ]
+      exclude: ['main']
     },
     {
       name: 'panels/keyboard/panel',
       exclude: [
         'main',
         'modules/mvvm/list_view',
-        'modules/mvvm/observable',
-        'modules/mvvm/observable_array',
         'modules/keyboard_context'
       ]
     },
@@ -200,8 +218,6 @@ require.config({
       exclude: [
         'main',
         'modules/mvvm/list_view',
-        'modules/mvvm/observable',
-        'modules/mvvm/observable_array',
         'modules/keyboard_context',
         'shared/keyboard_helper'
       ]
@@ -262,10 +278,21 @@ require.config({
       exclude: ['main']
     },
     {
+      name: 'panels/operator_settings/panel',
+      exclude: [
+        'main',
+        'dsds_settings',
+        'modules/defer',
+        'modules/state_model',
+        'modules/mvvm/list_view',
+        'modules/dialog_service',
+        'modules/customized_network_type_map'
+      ]
+    },
+    {
       name: 'panels/date_time/panel',
       exclude: [
         'main',
-        'modules/mvvm/observable',
         'modules/date_time'
       ]
     },
@@ -296,16 +323,12 @@ require.config({
       name: 'panels/hotspot/panel',
       exclude: [
         'main',
-        'modules/mvvm/observable',
         'modules/dialog_service'
       ]
     },
     {
       name: 'panels/hotspot_wifi_settings/panel',
-      exclude: [
-        'main',
-        'modules/mvvm/observable'
-      ]
+      exclude: ['main']
     },
     {
       name: 'panels/messaging/panel',
@@ -325,9 +348,7 @@ require.config({
     },
     {
       name: 'panels/about/panel',
-      exclude: [
-        'main'
-      ]
+      exclude: ['main']
     },
     {
       name: 'panels/about_more_info/panel',
@@ -352,10 +373,7 @@ require.config({
     },
     {
       name: 'panels/call_barring/panel',
-      exclude: [
-        'main',
-        'modules/mvvm/observable'
-      ]
+      exclude: ['main']
     },
     {
       name: 'panels/call_barring_passcode_change/panel',

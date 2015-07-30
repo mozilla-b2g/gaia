@@ -6,26 +6,26 @@ marionette('Text selection >', function() {
   var assert = require('assert');
   var apps = {};
   var action;
+  var system;
 
   apps[FakeTextSelectionApp.ORIGIN] =
-    __dirname + '/faketextselectionapp';
+    __dirname + '/../apps/faketextselectionapp';
 
   suite('without lockscreen', function() {
     var fakeTextselectionApp;
     var client = marionette.client({
-      apps: apps,
-      prefs: {
-        'dom.w3c_touch_events.enabled': 1,
-        'docshell.device_size_is_page_size': true,
-        'dom.mozInputMethod.enabled': false
-      },
-      settings: {
-        'ftu.manifestURL': null,
-        'lockscreen.enabled': false
+      profile: {
+        apps: apps,
+        prefs: {
+          'docshell.device_size_is_page_size': true,
+          'dom.mozInputMethod.enabled': false
+        }
       }
     });
 
     setup(function() {
+      system = client.loader.getAppClass('system');
+      system.waitForFullyLoaded();
       fakeTextselectionApp = new FakeTextSelectionApp(client);
       action = new Actions(client);
     });
@@ -37,10 +37,16 @@ marionette('Text selection >', function() {
 
       test('short cut test', function(done) {
         fakeTextselectionApp.longPress('FunctionalitySourceInput');
+
         // store caret position
         var caretPositionOfSourceInput =
           fakeTextselectionApp.FunctionalitySourceInput
           .selectionHelper.selectionLocationHelper();
+
+        // add a tap to avoid two successive calls of longpress,
+        // which has a possibility to change the selection range.
+        // See Bug 1159601
+        fakeTextselectionApp.FunctionalityTargetInput.tap();
         fakeTextselectionApp.copy('FunctionalitySourceInput');
 
         fakeTextselectionApp.FunctionalitySourceInput.tap();
@@ -48,6 +54,7 @@ marionette('Text selection >', function() {
           'bubble should show since we have copied sth before');
         fakeTextselectionApp.paste('FunctionalitySourceInput');
 
+        fakeTextselectionApp.textSelection.startCountVisibilityChanged();
         client.helper.wait(500);
         action.tap(
           fakeTextselectionApp.FunctionalitySourceInput,
@@ -56,7 +63,10 @@ marionette('Text selection >', function() {
         .press(fakeTextselectionApp.FunctionalitySourceInput,
           caretPositionOfSourceInput.caretA.x,
           caretPositionOfSourceInput.caretA.y + 15)
-        .wait(0.5).release().perform(function(){
+        .wait(0.5).release().perform(function() {
+          assert.ok(
+            fakeTextselectionApp.textSelection.stopCountVisibilityChanged(), 1,
+            'visibility should be only triggered once');
           assert.ok(fakeTextselectionApp.bubbleVisiblity,
             'bubble should show after tapping on the caret');
           done();
@@ -66,6 +76,7 @@ marionette('Text selection >', function() {
       test('copy and paste', function() {
         fakeTextselectionApp.copyTo('FunctionalitySourceInput',
           'FunctionalityTargetInput');
+
         assert.equal(
           fakeTextselectionApp.FunctionalityTargetInput.getAttribute('value'),
           'testvalue');
@@ -128,7 +139,7 @@ marionette('Text selection >', function() {
           'dialog should be placed lower than the input field'
         );
         assert.equal(
-          textSelectionLocation.x, 0,
+          textSelectionLocation.x, 5,
           'dialog should be placed near left boundary'
         );
       });
@@ -143,10 +154,9 @@ marionette('Text selection >', function() {
           'dialog should be placed lower than the input field'
         );
         assert.equal(
-          Math.ceil(textSelectionLocation.x +
-            fakeTextselectionApp.textSelection.width),
-          fakeTextselectionApp.width,
-          'dialog should be placed near right boundary'
+          Math.round(fakeTextselectionApp.width -
+          (textSelectionLocation.x + fakeTextselectionApp.textSelection.width)),
+          5, 'dialog should be placed near right boundary'
         );
       });
 
@@ -160,7 +170,7 @@ marionette('Text selection >', function() {
           'dialog should be placed higher than the input field'
         );
         assert.equal(
-          textSelectionLocation.x, 0,
+          textSelectionLocation.x, 5,
           'dialog should be placed near left boundary'
         );
       });
@@ -175,10 +185,9 @@ marionette('Text selection >', function() {
           'dialog should be placed higher than the input field'
         );
         assert.equal(
-          Math.ceil(textSelectionLocation.x +
-            fakeTextselectionApp.textSelection.width),
-          fakeTextselectionApp.width,
-          'dialog should be placed near right boundary'
+          Math.round(fakeTextselectionApp.width -
+          (textSelectionLocation.x + fakeTextselectionApp.textSelection.width)),
+          5, 'dialog should be placed near right boundary'
         );
       });
     });
@@ -311,6 +320,29 @@ marionette('Text selection >', function() {
         });
     });
 
+    // skip this test until we can enable APZ on B2G desktop
+    suite.skip('bug1020801', function() {
+      setup(function() {
+        fakeTextselectionApp.setTestFrame('bug1120358');
+      });
+      test('bug1020801 : We should hide/show the utility bubble when ' +
+           'scrolling starts/ends',
+        function() {
+          fakeTextselectionApp.longPressByPosition('BugContent', 100, 100);
+          assert.ok(fakeTextselectionApp.bubbleVisiblity,
+                    'bubble should be shown before scroll starts');
+          fakeTextselectionApp.textSelection.startCountVisibilityChanged();
+          action.press(fakeTextselectionApp.BugContent, 30, 100)
+                .moveByOffset(0, -50).perform();
+          client.helper.wait(500);
+          assert.equal(fakeTextselectionApp.textSelection
+                                           .stopCountVisibilityChanged(), 2,
+                       'visibility should be triggered exactly twice');
+          assert.ok(fakeTextselectionApp.bubbleVisiblity,
+                    'bubble should be shown since scroll is ended');
+        });
+    });
+
     suite('bug1120316', function() {
       setup(function() {
         fakeTextselectionApp.setTestFrame('bug1120316');
@@ -325,26 +357,28 @@ marionette('Text selection >', function() {
           fakeTextselectionApp.selectAll('BugTextarea');
           assert.ok(fakeTextselectionApp.bubbleVisiblity,
             'bubble should show since we press selectall');
-        });
+      });
     });
   });
 
   suite('with lockscreen enabled', function() {
     var fakeTextselectionAppWithLockscreen;
     var clientWithLockscreen = marionette.client({
-      apps: apps,
-      prefs: {
-        'dom.w3c_touch_events.enabled': 1,
-        'docshell.device_size_is_page_size': true,
-        'dom.mozInputMethod.enabled': false
-      },
-      settings: {
-        'ftu.manifestURL': null,
-        'lockscreen.enabled': true
+      profile: {
+        apps: apps,
+        prefs: {
+          'docshell.device_size_is_page_size': true,
+          'dom.mozInputMethod.enabled': false
+        },
+        settings: {
+          'lockscreen.enabled': true
+        }
       }
     });
 
     setup(function() {
+      system = clientWithLockscreen.loader.getAppClass('system');
+      system.waitForFullyLoaded();
       fakeTextselectionAppWithLockscreen =
         new FakeTextSelectionApp(clientWithLockscreen);
       fakeTextselectionAppWithLockscreen.setTestFrame('bug');
@@ -363,18 +397,21 @@ marionette('Text selection >', function() {
         fakeTextselectionAppWithLockscreen.longPress('BugCenterInput');
 
         // turn off screen
+        // XXX: Use system.turnScreenOn();
         clientWithLockscreen.switchToFrame();
         clientWithLockscreen.executeScript(function() {
-          window.wrappedJSObject.ScreenManager.turnScreenOff(true, 'powerkey');
+          window.wrappedJSObject.Service.request(
+            'turnScreenOff', true, 'powerkey');
         });
         clientWithLockscreen.helper.wait(500);
         // turn on screen
+        // XXX: Use system.turnScreenOff();
         clientWithLockscreen.executeScript(function() {
-          window.wrappedJSObject.ScreenManager.turnScreenOn();
+          window.wrappedJSObject.Service.request('turnScreenOn');
         });
         clientWithLockscreen.waitFor(function() {
           return !fakeTextselectionAppWithLockscreen.bubbleVisiblity;
         });
-      });
+    });
   });
 });

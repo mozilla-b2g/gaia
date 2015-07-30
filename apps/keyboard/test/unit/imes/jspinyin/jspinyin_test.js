@@ -1,6 +1,6 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-
+/* globals InputMethods, KeyEvent */
 'use strict';
 
 requireApp('keyboard/test/unit/setup_engine.js');
@@ -78,8 +78,9 @@ suite('jspinyin', function() {
       return transRequest;
     });
 
-    if (args.testing)
+    if (args.testing) {
       args.testing();
+    }
 
     function indexedDBActions() {
       if (!args.ignoreUndefinedHandler) {
@@ -88,28 +89,34 @@ suite('jspinyin', function() {
       }
 
       if (args.openDBFailed) {
-        if (request.onerror)
+        if (request.onerror) {
           request.onerror(evtError);
-        if (args.callback)
+        }
+        if (args.callback) {
           args.callback(receivedData);
+        }
         return;
       }
 
-      if (request.onupgradeneeded)
+      if (request.onupgradeneeded) {
         request.onupgradeneeded(evt);
+      }
 
-      if (request.onsuccess)
+      if (request.onsuccess) {
         request.onsuccess(evt);
+      }
 
       if (!args.ignoreUndefinedHandler) {
         assert.isFunction(transRequest.onsuccess);
       }
 
       if (args.transactionFailed) {
-        if (transRequest.onerror)
+        if (transRequest.onerror) {
           transRequest.onerror(evtError);
-        if (args.callback)
+        }
+        if (args.callback) {
           args.callback(receivedData);
+        }
         return;
       }
 
@@ -122,8 +129,9 @@ suite('jspinyin', function() {
           }
         });
 
-        if (args.callback)
+        if (args.callback) {
           args.callback(receivedData);
+        }
       }
     }
 
@@ -147,8 +155,9 @@ suite('jspinyin', function() {
   });
 
   teardown(function() {
-    if (window.indexedDB.open.restore)
+    if (window.indexedDB.open.restore) {
       window.indexedDB.open.restore();
+    }
   });
 
   test('load', function() {
@@ -248,8 +257,9 @@ suite('jspinyin', function() {
     var endCompositionString;
 
     this.sinon.stub(glue, 'endComposition', function(text) {
-      if (text)
+      if (text) {
         endCompositionString = text;
+      }
     });
 
     this.sinon.stub(glue, 'sendCandidates', function(list) {
@@ -358,8 +368,9 @@ suite('jspinyin', function() {
     jspinyin.click(KeyEvent.DOM_VK_RETURN);
 
     this.sinon.stub(glue, 'sendCandidates', function(list) {
-      if (list[1] && list[1][0] == '某只')
+      if (list[1] && list[1][0] == '某只') {
         isOk = true;
+      }
     });
 
     this.sinon.stub(glue, 'endComposition', function(text) {
@@ -451,7 +462,8 @@ suite('jspinyin', function() {
     });
   });
 
-  test('deactivate (save indexedDB failed)', function(done) {
+  // Bug 1146260
+  test.skip('deactivate (save indexedDB failed)', function(done) {
     this.sinon.stub(jspinyin, '_start', function() {
       window.indexedDB.open.restore();
       setTimeout(function() {

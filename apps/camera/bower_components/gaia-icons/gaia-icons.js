@@ -1,22 +1,27 @@
-(function(define){define(function(require,exports,module){
-/*jshint laxbreak:true*/
+/* global define */
+(function(define){'use strict';define(function(require,exports,module){
 
 /**
  * Exports
  */
 
-var base = window.GAIA_ICONS_BASE_URL
-  || window.COMPONENTS_BASE_URL
-  || 'bower_components/';
+var base = window.GAIA_ICONS_BASE_URL ||
+           window.COMPONENTS_BASE_URL ||
+           'bower_components/';
 
-// Load it if it's not already loaded
-if (!isLoaded()) { load(base + 'gaia-icons/gaia-icons.css'); }
+if (!document.documentElement) {
+  window.addEventListener('load', load);
+} else {
+  load();
+}
 
-function load(href) {
+function load() {
+  if (isLoaded()) { return; }
+
   var link = document.createElement('link');
   link.rel = 'stylesheet';
   link.type = 'text/css';
-  link.href = href;
+  link.href = base + 'gaia-icons/gaia-icons.css';
   document.head.appendChild(link);
   exports.loaded = true;
 }
@@ -28,6 +33,6 @@ function isLoaded() {
 }
 
 });})(typeof define=='function'&&define.amd?define
-:(function(n,w){return typeof module=='object'?function(c){
+:(function(n,w){'use strict';return typeof module=='object'?function(c){
 c(require,exports,module);}:function(c){var m={exports:{}};c(function(n){
 return w[n];},m.exports,m);w[n]=m.exports;};})('gaia-icons',this));

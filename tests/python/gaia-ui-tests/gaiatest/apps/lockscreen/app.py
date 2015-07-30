@@ -3,16 +3,8 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 from datetime import datetime
 
-try:
-    from marionette import (expected,
-                            Wait)
-    from marionette.by import By
-    from marionette.marionette import Actions
-except:
-    from marionette_driver import (expected,
-                                   Wait)
-    from marionette_driver.by import By
-    from marionette_driver.marionette import Actions
+from marionette_driver import expected, By, Wait
+from marionette_driver.marionette import Actions
 
 from gaiatest.apps.base import Base
 from gaiatest.apps.base import PageRegion
@@ -33,6 +25,7 @@ class LockScreen(Base):
     _unlock_button_locator = (By.ID, 'lockscreen-area-unlock')
     _camera_button_locator = (By.ID, 'lockscreen-area-camera')
 
+    _lockscreen_container_locator = (By.ID, 'notifications-lockscreen-container')
     _notification_locator = (By.CSS_SELECTOR, '#notifications-lockscreen-container > div.notification')
 
     _time_locator = (By.ID, 'lockscreen-clock-time')
@@ -66,6 +59,7 @@ class LockScreen(Base):
 
     def unlock(self):
         self._slide_to_unlock('homescreen')
+        self.wait_for_lockscreen_not_visible()
         return Homescreen(self.marionette)
 
     def unlock_to_camera(self):
@@ -74,6 +68,10 @@ class LockScreen(Base):
                 *self._lockscreen_handle_locator))))
         self._slide_to_unlock('camera')
         return Camera(self.marionette)
+
+    def unlock_to_emergency_call(self):
+        passcode_pad = self.unlock_to_passcode_pad()
+        return passcode_pad.tap_emergency_call()
 
     def unlock_to_passcode_pad(self):
         Wait(self.marionette).until(expected.element_displayed(
@@ -84,6 +82,12 @@ class LockScreen(Base):
             Wait(self.marionette).until(expected.element_present(
                 *self._lockscreen_passcode_code_locator))))
         return PasscodePad(self.marionette)
+
+    def unlock_to_homescreen_using_passcode(self, passcode):
+        passcode_pad = self.unlock_to_passcode_pad()
+        homescreen = passcode_pad.type_passcode(passcode)
+        self.wait_for_lockscreen_not_visible()
+        return homescreen
 
     def _slide_to_unlock(self, destination):
 
@@ -118,6 +122,10 @@ class LockScreen(Base):
 
     @property
     def notifications(self):
+        container = self.marionette.find_element(*self._lockscreen_container_locator)
+        # Avoid the search timeout when there are no notifications
+        if not container.is_displayed() or container.text == '':
+            return []
         return [Notification(self.marionette, element)
                 for element in self.marionette.find_elements(*self._notification_locator)]
 

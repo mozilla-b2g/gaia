@@ -7,15 +7,7 @@ var Rocketbar = require('./lib/rocketbar');
 marionette('Browser - Launch the same origin after navigating away',
   function() {
 
-  var client = marionette.client({
-    prefs: {
-      'dom.w3c_touch_events.enabled': 1
-    },
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
-    }
-  });
+  var client = marionette.client();
 
   var home, rocketbar, search, server1, server2, system;
 
@@ -39,7 +31,7 @@ marionette('Browser - Launch the same origin after navigating away',
     rocketbar = new Rocketbar(client);
     search = client.loader.getAppClass('search');
     system = client.loader.getAppClass('system');
-    system.waitForStartup();
+    system.waitForFullyLoaded();
   });
 
   test('opens a new sheet when navigating', function() {
@@ -48,7 +40,7 @@ marionette('Browser - Launch the same origin after navigating away',
 
     // Open the first URL in a sheet.
     rocketbar.homescreenFocus();
-    rocketbar.enterText(url1 + '\uE006');
+    rocketbar.enterText(url1, true);
 
     // Switch to the app, and navigate to a different url.
     var frame = client.helper.waitForElement(
@@ -67,7 +59,7 @@ marionette('Browser - Launch the same origin after navigating away',
       window.wrappedJSObject.dispatchEvent(new CustomEvent('home'));
     });
     rocketbar.homescreenFocus();
-    rocketbar.enterText(url1 + '\uE006');
+    rocketbar.enterText(url1, true);
 
     // Validate that a new sheet opens.
     browsingFrames = client.findElements('iframe[src*="http://localhost"]');

@@ -8,7 +8,6 @@ requireApp('settings/test/unit/mock_navigator_settings.js');
 requireApp('settings/test/unit/mock_settings.js');
 require('/shared/test/unit/mocks/mock_dump.js');
 require('/shared/test/unit/load_body_html_helper.js');
-require('/shared/js/html_imports.js');
 require('/shared/test/unit/mocks_helper.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 
@@ -61,24 +60,6 @@ suite('STK (App menu) >', function() {
     window.reopenSettings = function mockReopenSettings() {};
     mocksHelper = new MocksHelper(mocksForIccApp);
     mocksHelper.suiteSetup();
-
-    HtmlImports.populate(function() {
-      var map = {
-        'shared/stk_helper': 'shared_mocks/mock_stk_helper'
-      };
-
-      testRequire([
-        'shared_mocks/mock_stk_helper'
-      ], map, function(MockStkHelper) {
-        // we have to replace `require` in icc.js
-        window.require = function(modules, callback) {
-          callback(MockStkHelper);
-        };
-        testRequire(['icc'], {}, function() {
-          done();
-        });
-      }); 
-    });
 
     this.STK_NEXT_ACTION_INDICATOR = {
       16: 'stkItemsNaiSetUpCall',
@@ -188,6 +169,27 @@ suite('STK (App menu) >', function() {
           }
         }
       }}});
+
+    require('/shared/js/html_imports.js', function() {
+      HtmlImports.populate(function() {
+        var map = {
+          'shared/stk_helper': 'shared_mocks/mock_stk_helper'
+        };
+
+        testRequire([
+          'shared_mocks/mock_stk_helper'
+        ], map, function(MockStkHelper) {
+          // we have to replace `require` in icc.js
+          window.require = function(modules, callback) {
+            navigator.mozL10n = MockL10n;
+            callback(MockStkHelper);
+          };
+          testRequire(['icc'], {}, function() {
+            done();
+          });
+        });
+      });
+    });
   });
 
   suiteTeardown(function() {

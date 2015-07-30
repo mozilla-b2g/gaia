@@ -4,14 +4,8 @@
 
 from datetime import datetime
 
-try:
-    from marionette import (expected,
-                            Wait)
-    from marionette.by import By
-except:
-    from marionette_driver import (expected,
-                            Wait)
-    from marionette_driver.by import By
+from marionette_driver import expected, By, Wait
+
 from gaiatest.apps.calendar.app import Calendar
 
 
@@ -52,9 +46,9 @@ class NewEvent(Calendar):
         self.keyboard.dismiss()
 
     def a11y_click_close_button(self):
-        self.marionette.execute_async_script(
+        self.accessibility.execute_async_script(
             "Accessibility.click(arguments[0].shadowRoot.querySelector('button.action-button'));",
-            [self.marionette.find_element(*self._modify_event_header_locator)], special_powers=True)
+            [self.marionette.find_element(*self._modify_event_header_locator)])
 
     def a11y_click_save_event(self):
         event_start_time = self.marionette.find_element(*self._event_start_time_value_locator).text

@@ -2,22 +2,22 @@
   <template>
 
     <gaia-header>
-      <button type="reset"><span data-icon="close"></span></button>
+      <button type="reset"><span data-icon="close" data-l10n-id="closeButton"></span></button>
       <h1 data-l10n-id="authentication-header"></h1>
-      <button type="submit"><span data-l10n-id="ok">OK</span></button>
+      <button type="submit"><span data-l10n-id="ok"></span></button>
     </gaia-header>
 
     <div>
       <ul>
         <li>
-          <p data-l10n-id="ssid-name">SSID Network Name</p>
+          <p data-l10n-id="ssid-name"></p>
           <input type="text" data-ignore name="ssid" dir="auto" />
         </li>
         <li>
-          <p data-l10n-id="security">Security</p>
+          <p data-l10n-id="security"></p>
           <span class="button icon icon-dialog">
             <select name="security">
-              <option data-l10n-id="securityNone">none</option>
+              <option data-l10n-id="securityNone"></option>
               <option>WEP</option>
               <option selected>WPA-PSK</option>
               <option>WPA-EAP</option>
@@ -25,7 +25,7 @@
           </span>
         </li>
         <li class="eap">
-          <p data-l10n-id="eap">EAP method</p>
+          <p data-l10n-id="eap"></p>
           <span class="button icon icon-dialog" data-eapMethod>
             <select name="eap">
               <option value="SIM">SIM</option>
@@ -35,7 +35,7 @@
           </span>
         </li>
         <li class="auth-phase2">
-          <p data-l10n-id="auth-phase2">Phase 2 authentication</p>
+          <p data-l10n-id="auth-phase2"></p>
           <span class="button icon icon-dialog">
             <select>
               <option value="No">No</option>
@@ -47,19 +47,18 @@
           </span>
         </li>
         <li class="identity">
-          <p data-l10n-id="wifi-join-username">Username</p>
+          <p data-l10n-id="wifi-join-username"></p>
           <input type="text" data-ignore name="identity" dir="auto" />
         </li>
         <li class="password">
-          <p data-l10n-id="wifi-join-password">Password</p>
+          <p data-l10n-id="wifi-join-password"></p>
           <input type="password" data-ignore name="password" maxlength="63" />
-          <label class="pack-checkbox">
-            <input type="checkbox" data-ignore name="show-pwd" id="pwd-joinHidden">
-            <span data-l10n-id="showPassword">show password</span>
+          <gaia-checkbox data-ignore name="show-pwd" id="pwd-joinHidden" class="inline">
+            <label data-l10n-id="showPassword"></label>
           </label>
         </li>
         <li class="server-certificate">
-          <p data-l10n-id="server-certificate">Server certificate</p>
+          <p data-l10n-id="server-certificate"></p>
           <span class="button icon icon-dialog">
             <select>
               <option value="none">--</option>
@@ -67,9 +66,7 @@
           </span>
         </li>
         <li class="description server-certificate-description">
-          <p data-l10n-id="import-certificate-msg">
-            Notice: If you need to import new certificates, please go to “Manage certificates".
-          </p>
+          <p data-l10n-id="import-certificate-msg"></p>
         </li>
       </ul>
     </div>

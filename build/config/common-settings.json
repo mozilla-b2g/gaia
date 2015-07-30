@@ -1,6 +1,25 @@
 {
    "accessibility.invert": false,
    "accessibility.screenreader": false,
+   "achievements": [{
+     "issuer": "fxos-customizer",
+     "criteria": "achievements/customize-champ"
+   }, {
+     "issuer": "fxos-customizer",
+     "criteria": "achievements/add-on-all-star"
+   }, {
+     "issuer": "fxos-directory",
+     "criteria": "achievements/fab-finder"
+   }, {
+     "issuer": "fxos-directory",
+     "criteria": "achievements/content-commander"
+   }, {
+     "issuer": "fxos-sharing",
+     "criteria": "achievements/sharing-is-caring"
+   }, {
+     "issuer": "Studio",
+     "criteria": "achievements/creative-kind"
+   }],
    "alarm.enabled": false,
    "app-transition.enabled": true,
    "app.cards_view.screenshots.enabled": true,
@@ -35,6 +54,7 @@
    "clear.remote-windows.data": false,
    "cmas.enabled": [true, true],
    "copypaste.enabled": true,
+   "multiscreen.enabled": false,
    "debug.console.enabled": false,
    "developer.menu.enabled": false,
    "debug.oop.disabled": false,
@@ -42,7 +62,7 @@
    "debug.ttl.enabled": false,
    "debug.log-animations.enabled": false,
    "debug.paint-flashing.enabled": false,
-   "debug.peformancedata.shared": false,
+   "debug.performance_data.shared": true,
    "debug.gaia.enabled": false,
    "deviceinfo.build_number": "",
    "deviceinfo.firmware_revision": "",
@@ -52,6 +72,8 @@
    "deviceinfo.previous_os": "",
    "deviceinfo.platform_build_id": "",
    "deviceinfo.platform_version": "",
+   "deviceinfo.product_device": "",
+   "deviceinfo.product_manufacturer": "",
    "deviceinfo.product_model": "",
    "deviceinfo.software": "",
    "device.storage.writable.name": "sdcard",
@@ -60,6 +82,7 @@
    "devtools.eventlooplag.threshold": 100,
    "devtools.remote.wifi.visible": false,
    "devtools.remote.wifi.enabled": false,
+   "devtools.unrestricted": false,
    "feedback.url": "https://input.allizom.org/api/v1/feedback/",
    "gaia.system.checkForUpdates": false,
    "gaia.ui.menu": "#f97c17",
@@ -74,13 +97,14 @@
    "geolocation.enabled": true,
    "geolocation.suspended": false,
    "gfx.layerscope.enabled": false,
+   "hud.hide": false,
    "hud.logging": true,
    "hud.warnings": true,
    "hud.errors": true,
    "hud.security": true,
    "hud.reflows": false,
    "hud.jank": false,
-   "hud.uss": true,
+   "hud.uss": false,
    "hud.appmemory": false,
    "hud.jsobjects": false,
    "hud.jsstrings": false,
@@ -121,6 +145,8 @@
    "lockscreen.unlock-sound.enabled": false,
    "message.sent-sound.enabled": true,
    "moz.b2g.version": "3.0",
+   "mms.debugging.enabled": false,
+   "network.debugging.enabled": false,
    "nfc.enabled": false,
    "nfc.suspended": false,
    "nfc.debugging.enabled": false,
@@ -186,6 +212,7 @@
    "ril.data.apnSettings": "",
    "ril.data.cp.apns": "",
    "ril.callerId": "CLIR_DEFAULT",
+   "ril.debugging.enabled": false,
    "appsearch.url": "https://appsearch.services.mozilla.com/partners/1.0/{resource}/",
    "search.marketplace.url": "https://marketplace.firefox.com/api/v2/apps/search/rocketbar/?q={q}&limit={limit}&lang={lang}&region=restofworld",
    "screen.automatic-brightness": false,

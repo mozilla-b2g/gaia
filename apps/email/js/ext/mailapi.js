@@ -5,12 +5,14 @@
 define(
   [
     'exports',
+    './logic',
     // Use a relative link so that consumers do not need to create
     // special config to use main-frame-setup.
     './ext/addressparser'
   ],
   function(
     exports,
+    logic,
     addressparser
   ) {
 
@@ -661,6 +663,10 @@ var ContactCache = exports.ContactCache = {
    * generate N callbacks when 1 will do.
    */
   resolvePeep: function(addressPair) {
+    if (!addressPair) {
+      console.error("NO ADDRESS PAIR?", new Error().stack);
+      return;
+    }
     var emailAddress = addressPair.address;
     var entry = this._contactCache[emailAddress], contact, peep;
     var contactsAPI = navigator.mozContacts;
@@ -2058,7 +2064,6 @@ var LEGAL_CONFIG_KEYS = [];
  * help reduce inadvertent breakage later on.
  */
 function reportError() {
-  console.error.apply(console, arguments);
   var msg = null;
   for (var i = 0; i < arguments.length; i++) {
     if (msg)
@@ -2066,7 +2071,8 @@ function reportError() {
     else
       msg = "" + arguments[i];
   }
-  throw new Error(msg);
+  // When in tests, this will fail the test; when not in tests, we just log.
+  logic.fail(new Error(msg));
 }
 var unexpectedBridgeDataError = reportError,
     internalError = reportError,

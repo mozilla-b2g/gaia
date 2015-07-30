@@ -18,20 +18,6 @@ function Rocketbar(client) {
 
 module.exports = Rocketbar;
 
-Rocketbar.clientOptions = {
-  prefs: {
-    // This is true on Gonk, but false on desktop, so override.
-    'dom.inter-app-communication-api.enabled': true,
-    'dom.w3c_touch_events.enabled': 1
-  },
-  settings: {
-    'homescreen.manifestURL':
-      'app://verticalhome.gaiamobile.org/manifest.webapp',
-    'ftu.manifestURL': null,
-    'lockscreen.enabled': false
-  }
-};
-
 Rocketbar.prototype = {
   selectors: {
     activeBrowserFrame: '#windows .appWindow.active',
@@ -58,7 +44,7 @@ Rocketbar.prototype = {
     this.client.waitFor(function() {
       this.client.executeScript(function() {
         var win = window.wrappedJSObject;
-        return win.rocketbar && win.rocketbar.enabled;
+        return win.Service.query('Rocketbar.enabled');
       }, function(err, value) {
         lastVal = value;
       });
@@ -93,16 +79,20 @@ Rocketbar.prototype = {
   /**
    * Send keys to the Rocketbar (needs to be focused first).
    */
-  enterText: function(text) {
+  enterText: function(text, submit) {
     var input =
       this.client.findElement(this.selectors.input);
     input.clear();
     this.client.waitFor(input.displayed.bind(input));
     input.sendKeys(text);
 
+    if (submit) {
+      input.sendKeys('\uE006');
+    }
+
     if (!text.length) {
       this.client.executeScript(function() {
-        window.wrappedJSObject.rocketbar.handleInput();
+        window.wrappedJSObject.Service.request('Rocketbar:handleInput');
       });
     }
 

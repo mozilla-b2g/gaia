@@ -55,6 +55,11 @@ Calendar.prototype = {
     return this.client.findElement('#time-header');
   },
 
+  get themeColor() {
+    return this.client.findElement('meta[name="theme-color"]')
+      .getAttribute('content');
+  },
+
   openModifyEventView: function() {
     this.addEventButton.click();
     this.editEvent.waitForDisplay();

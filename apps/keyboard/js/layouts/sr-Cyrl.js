@@ -6,6 +6,7 @@ Keyboards['sr-Cyrl'] = {
   types: ['text', 'url', 'email', 'password'],
   autoCorrectLanguage: 'sr-Cyrl',
   basicLayoutKey: 'АБВ',
+  lang: 'sr-Cyrl',
   alt: {
     // incomplete
   },

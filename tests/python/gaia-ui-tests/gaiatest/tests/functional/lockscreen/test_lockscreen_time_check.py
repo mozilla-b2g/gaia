@@ -1,6 +1,8 @@
-from datetime import datetime
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from marionette.wait import Wait
+from marionette_driver import Wait
 
 from gaiatest.apps.settings.app import Settings
 from gaiatest import GaiaTestCase
@@ -21,7 +23,7 @@ class TestLockScreen(GaiaTestCase):
 
         self.settings = Settings(self.marionette)
         self.settings.launch()
-        datetime_setting = self.settings.open_date_and_time_settings()
+        datetime_setting = self.settings.open_date_and_time()
         old_time = datetime_setting.get_current_time_datetime
 
         # Auto time update is by default set to true, turn it off to make region change
@@ -58,6 +60,7 @@ class TestLockScreen(GaiaTestCase):
         Wait(self.marionette, timeout=20).until(
             lambda m: not self.device.is_screen_enabled)
         self.device.turn_screen_on()
+        self.marionette.switch_to_frame()
 
         # Check it reverted to the correct time, and compare it with the previously shown time
         # Allow 4 minutes difference max

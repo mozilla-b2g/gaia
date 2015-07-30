@@ -4,9 +4,9 @@
 
 'use strict';
 
-require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/js/blobview.js');
 require('/js/metadata/formats.js');
+require('/test/unit/mock_lazy_loader.js');
 
 function pass(done) {
   return function() { done(); };

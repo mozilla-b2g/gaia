@@ -1,4 +1,4 @@
-/* global layoutManager, SettingsListener */
+/* global SettingsListener, Service */
 'use strict';
 (function(exports) {
   var DEBUG = false;
@@ -57,7 +57,10 @@
   // caret tile height is controlled by gecko, we estimate the height as
   // 22px. So 22px plus 12px which defined in UI spec, we get 34px from
   // the bottom of selected area to utility menu.
-  TextSelectionDialog.prototype.DISTANCE_FROM_SELECTEDAREA_TO_MENUTOP = 34;
+  TextSelectionDialog.prototype.DISTANCE_FROM_SELECTEDAREA_TO_MENUTOP = 43;
+
+  // Minimum distance between bubble and boundary.
+  TextSelectionDialog.prototype.DISTANCE_FROM_BOUNDARY = 5;
 
   TextSelectionDialog.prototype.ID_NAME = 'TextSelectionDialog';
 
@@ -218,11 +221,6 @@
             commands.canCopy)
         ) {
         return;
-      }
-
-      if (!this._injected) {
-        this.render();
-        this._injected = true;
       }
 
       if (states.indexOf('selectall') !== -1 ||
@@ -402,6 +400,11 @@
     var numOfSelectOptions = 0;
     var options = [ 'Paste', 'Copy', 'Cut', 'SelectAll' ];
 
+    // Check this._injected here to make sure this.elements is initialzed.
+    if (!this._injected) {
+      this.render();
+      this._injected = true;
+    }
     // Based on UI spec, we should have dividers ONLY between each select option
     // So, we use css to put divider in pseudo element and set the last visible
     // option without it.
@@ -437,8 +440,10 @@
     function tsd_calculateDialogPostion() {
       var numOfSelectOptions = this.numOfSelectOptions;
       var detail = this.textualmenuDetail;
-      var frameHeight = layoutManager.height;
-      var frameWidth = layoutManager.width;
+      var frameHeight = Service.query('LayoutManager.height') ||
+        window.innerHeight;
+      var frameWidth = Service.query('LayoutManager.width') ||
+        window.innerWidth;
       var selectOptionWidth = this.TEXTDIALOG_WIDTH;
       var selectOptionHeight = this.TEXTDIALOG_HEIGHT;
 
@@ -471,12 +476,14 @@
             selectDialogBottom) - selectOptionHeight) / 2;
       }
 
-      if (posLeft < 0) {
-        posLeft = 0;
+      if (posLeft < this.DISTANCE_FROM_BOUNDARY) {
+        posLeft = this.DISTANCE_FROM_BOUNDARY;
       }
 
-      if ((posLeft + numOfSelectOptions * selectOptionWidth) > frameWidth) {
-        posLeft = frameWidth - numOfSelectOptions * selectOptionWidth;
+      if ((posLeft + numOfSelectOptions * selectOptionWidth +
+           this.DISTANCE_FROM_BOUNDARY) > frameWidth) {
+        posLeft = frameWidth - numOfSelectOptions * selectOptionWidth -
+          this.DISTANCE_FROM_BOUNDARY;
       }
 
       return {

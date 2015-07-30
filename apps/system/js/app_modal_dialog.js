@@ -1,4 +1,4 @@
-/* global AppModalDialog, BaseUI */
+/* global BaseUI */
 'use strict';
 
 (function(exports) {
@@ -16,7 +16,7 @@
    *                        where this dialog should popup.
    * @extends BaseUI
    */
-  exports.AppModalDialog = function AppModalDialog(app) {
+  var AppModalDialog = function AppModalDialog(app) {
     this.app = app;
     this.containerElement = app.element;
     this.events = [];
@@ -203,24 +203,12 @@
     var title = this._getTitle(evt.detail.title);
     var elements = this.elements;
 
-    function escapeHTML(str) {
-      var stringHTML = str;
-      stringHTML = stringHTML.replace(/</g, '&#60;');
-      stringHTML = stringHTML.replace(/(\r\n|\n|\r)/gm, '<br/>');
-      stringHTML = stringHTML.replace(/\s\s/g, ' &nbsp;');
-
-      return stringHTML.replace(/"/g, '&quot;').replace(/'/g, '&#x27;');
-    }
-
     var type = evt.detail.promptType || evt.detail.type;
-    if (type !== 'selectone') {
-      message = escapeHTML(message);
-    }
 
     switch (type) {
       case 'alert':
-        elements.alertTitle.innerHTML = title;
-        elements.alertMessage.innerHTML = message;
+        elements.alertTitle.textContent = title;
+        elements.alertMessage.textContent = message;
         elements.alert.classList.add('visible');
         elements.alertOk.textContent = evt.yesText ? evt.yesText : _('ok');
         elements.alert.focus();
@@ -231,8 +219,8 @@
       case 'prompt':
         elements.prompt.classList.add('visible');
         elements.promptInput.value = evt.detail.initialValue;
-        elements.promptTitle.innerHTML = title;
-        elements.promptMessage.innerHTML = message;
+        elements.promptTitle.textContent = title;
+        elements.promptMessage.textContent = message;
         elements.promptOk.textContent = evt.yesText ? evt.yesText : _('ok');
         elements.promptCancel.textContent = evt.noText ?
           evt.noText : _('cancel');
@@ -241,8 +229,8 @@
 
       case 'confirm':
         elements.confirm.classList.add('visible');
-        elements.confirmTitle.innerHTML = title;
-        elements.confirmMessage.innerHTML = message;
+        elements.confirmTitle.textContent = title;
+        elements.confirmMessage.textContent = message;
         elements.confirmOk.textContent = evt.yesText ? evt.yesText : _('ok');
         elements.confirmCancel.textContent = evt.noText ?
           evt.noText : _('cancel');
@@ -258,7 +246,7 @@
       case 'custom-prompt':
         var customPrompt = evt.detail;
         elements.customPrompt.classList.add('visible');
-        elements.customPromptMessage.innerHTML = customPrompt.message;
+        elements.customPromptMessage.textContent = customPrompt.message;
         // Display custom list of buttons
         elements.customPromptButtons.innerHTML = '';
         elements.customPromptButtons.setAttribute('data-items',
@@ -466,10 +454,11 @@
       // or an empty string.
       //
       if (!title ||
-          title.contains('app://')) {
+          title.includes('app://')) {
         return this.app.name || '';
       }
 
       return title;
     };
+  exports.AppModalDialog = AppModalDialog;
 }(window));

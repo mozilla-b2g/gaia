@@ -1,73 +1,32 @@
+'use strict';
+
 /* global module */
+var InboxAccessor = require('./views/inbox/accessors');
+var ComposerAccessor = require('./views/new-message/accessors');
+var NewMessageView = require('./views/new-message/view');
+var ConversationAccessor = require('./views/conversation/accessors');
+
 (function(module) {
-  'use strict';
 
   var ORIGIN_URL = 'app://sms.gaiamobile.org';
+  var MANIFEST_URL= ORIGIN_URL + '/manifest.webapp';
 
   var Chars = {
     ENTER: '\ue007',
     BACKSPACE: '\ue003'
   };
 
-  function observeElementStability(el) {
-    delete el.dataset.__stable;
-
-    function markElementAsStable() {
-      return setTimeout(function() {
-        el.dataset.__stable = 'true';
-        observer.disconnect();
-      }, 1000);
-    }
-
-    var timeout = markElementAsStable();
-    var observer = new MutationObserver(function() {
-      if (timeout) {
-        clearTimeout(timeout);
-        timeout = markElementAsStable();
-      }
-    });
-    observer.observe(el, { childList: true, subtree: true });
-  }
-
   var SELECTORS = Object.freeze({
     main: '#main-wrapper',
 
     optionMenu: 'body > form[data-type=action] menu',
     systemMenu: 'form[data-z-index-level="action-menu"]',
-    attachmentMenu: '#attachment-options',
-
-    Composer: {
-      toField: '#messages-to-field',
-      recipientsInput: '#messages-to-field [contenteditable=true]',
-      recipient: '#messages-recipients-list .recipient[contenteditable=false]',
-      messageInput: '#messages-input',
-      subjectInput: '.subject-composer-input',
-      sendButton: '#messages-send-button',
-      attachButton: '#messages-attach-button',
-      header: '#messages-header',
-      charCounter: '.message-counter',
-      moreHeaderButton: '#messages-options-button',
-      mmsLabel: '.mms-label',
-      attachment: '#messages-input .attachment-container',
-      messageConvertNotice: '#messages-convert-notice'
-    },
-
-    Thread: {
-      message: '.message .bubble',
-      headerTitle: '#messages-header-text'
-    },
+    contactPromptMenu: '.contact-prompt menu',
 
     Message: {
       content: '.message-content > p:first-child',
       vcardAttachment: '[data-attachment-type="vcard"]',
       fileName: '.file-name'
-    },
-
-    ThreadList: {
-      firstThread: '.threadlist-item',
-      smsThread: '.threadlist-item[data-last-message-type="sms"]',
-      mmsThread: '.threadlist-item[data-last-message-type="mms"]',
-      navigateToComposerHeaderButton: '#threads-composer-link'
     },
 
     Report: {
@@ -88,111 +47,13 @@
       return {
         Selectors: SELECTORS,
 
-        Composer: {
-          get toField() {
-            return client.helper.waitForElement(SELECTORS.Composer.toField);
-          },
+        manifestURL: MANIFEST_URL,
 
-          get recipientsInput() {
-            return client.helper.waitForElement(
-              SELECTORS.Composer.recipientsInput
-            );
-          },
+        Composer: new ComposerAccessor(client),
 
-          get recipients() {
-            return client.findElements(SELECTORS.Composer.recipient);
-          },
+        Conversation: new ConversationAccessor(client),
 
-          get messageInput() {
-            return client.helper.waitForElement(
-              SELECTORS.Composer.messageInput
-            );
-          },
-
-          get subjectInput() {
-            return client.helper.waitForElement(
-              SELECTORS.Composer.subjectInput
-            );
-          },
-
-          get sendButton() {
-            return client.helper.waitForElement(SELECTORS.Composer.sendButton);
-          },
-
-          get attachButton() {
-            return client.helper.waitForElement(
-              SELECTORS.Composer.attachButton
-            );
-          },
-
-          get header() {
-            return client.helper.waitForElement(SELECTORS.Composer.header);
-          },
-
-          get charCounter() {
-            return client.findElement(SELECTORS.Composer.charCounter);
-          },
-
-          get mmsLabel() {
-            return client.findElement(SELECTORS.Composer.mmsLabel);
-          },
-
-          get attachment() {
-            return client.findElement(SELECTORS.Composer.attachment);
-          },
-
-          get conversionBanner() {
-            return client.findElement(SELECTORS.Composer.messageConvertNotice);
-          },
-
-          showOptions: function() {
-            client.helper.waitForElement(
-              SELECTORS.Composer.moreHeaderButton
-            ).tap();
-          }
-        },
-
-        Thread: {
-          get message() {
-            return client.helper.waitForElement(SELECTORS.Thread.message);
-          },
-
-          get headerTitle() {
-            return client.helper.waitForElement(SELECTORS.Thread.headerTitle);
-          },
-
-          getMessageContent: function(message) {
-            return client.helper.waitForElement(
-              message.findElement(SELECTORS.Message.content)
-            );
-          }
-        },
-
-        ThreadList: {
-          get firstThread() {
-            return client.helper.waitForElement(
-              SELECTORS.ThreadList.firstThread
-            );
-          },
-
-          get smsThread() {
-            return client.helper.waitForElement(
-              SELECTORS.ThreadList.smsThread
-            );
-          },
-
-          get mmsThread() {
-            return client.helper.waitForElement(
-              SELECTORS.ThreadList.mmsThread
-            );
-          },
-
-          navigateToComposer: function() {
-            client.helper.waitForElement(
-              SELECTORS.ThreadList.navigateToComposerHeaderButton
-            ).tap();
-          }
-        },
+        Inbox: new InboxAccessor(client),
 
         Report: {
           get main() {
@@ -224,8 +85,8 @@
           return client.helper.waitForElement(SELECTORS.optionMenu);
         },
 
-        get attachmentMenu() {
-          return client.helper.waitForElement(SELECTORS.attachmentMenu);
+        get contactPromptMenu() {
+          return client.helper.waitForElement(SELECTORS.contactPromptMenu);
         },
 
         launch: function() {
@@ -233,6 +94,39 @@
           client.apps.launch(ORIGIN_URL);
           client.apps.switchToApp(ORIGIN_URL);
           client.helper.waitForElement(SELECTORS.main);
+        },
+
+        close: function() {
+          client.apps.close(ORIGIN_URL);
+        },
+
+        /**
+         * Sends system message to the Messages app using SystemMessageInternal
+         * class available in chrome context. Should be replaced by marionette
+         * apps built-in method or shared lib (see bug 1162165).
+         * @param {string} name Name of the system message to send.
+         * @param {Object} parameters Parameters object to pass with system
+         * message.
+         */
+        sendSystemMessage: function(name, parameters) {
+          var chromeClient = client.scope({ context: 'chrome' });
+          chromeClient.executeScript(function(manifestURL, name, parameters) {
+            /* global Components, Services */
+            var managerClass = Components.classes[
+              '@mozilla.org/system-message-internal;1'
+            ];
+
+            var systemMessageManager = managerClass.getService(
+              Components.interfaces.nsISystemMessagesInternal
+            );
+
+            systemMessageManager.sendMessage(
+              name,
+              parameters,
+              null, /* pageURI */
+              Services.io.newURI(manifestURL, null, null)
+            );
+          }, [MANIFEST_URL, name, parameters]);
         },
 
         switchTo: function() {
@@ -252,12 +146,12 @@
           this.selectMenuOption(this.optionMenu, text);
         },
 
-        selectAttachmentMenuOption: function(text) {
-          this.selectMenuOption(this.attachmentMenu, text);
-        },
-
         selectSystemMenuOption: function(text) {
           this.selectMenuOption(this.systemMenu, text);
+        },
+
+        selectContactPromptMenuOption: function(text) {
+          this.selectMenuOption(this.contactPromptMenu, text);
         },
 
         selectMenuOption: function(menuElement, text) {
@@ -274,23 +168,8 @@
           }
         },
 
-        addRecipient: function(number) {
-          this.Composer.recipientsInput.sendKeys(number + Chars.ENTER);
-
-          // Since recipient.js re-renders recipients all the time (when new
-          // recipient is added or old is removed) and it can happen several
-          // times during single "add" or "remove" operation we should
-          // wait until Recipients View is in a final state. The problem here is
-          // that between "findElement" and "displayed" calls element can
-          // actually be removed from DOM and re-created again that will lead to
-          // "stale element" exception.
-          var toField = this.Composer.toField;
-          toField.scriptWith(observeElementStability);
-          client.helper.waitFor(function() {
-            return toField.scriptWith(function(el) {
-              return !!el.dataset.__stable;
-            });
-          });
+        addRecipient: function(recipient) {
+          new NewMessageView(client).addNewRecipient(recipient);
         },
 
         getRecipient: function(number) {
@@ -310,8 +189,8 @@
           }.bind(this));
           this.Composer.sendButton.tap();
 
-          // Wait when after send we're redirected to Thread panel
-          client.helper.waitForElement(this.Thread.message);
+          // Wait when after send we're redirected to Conversation panel
+          client.helper.waitForElement(this.Conversation.message);
         },
 
         showSubject: function() {

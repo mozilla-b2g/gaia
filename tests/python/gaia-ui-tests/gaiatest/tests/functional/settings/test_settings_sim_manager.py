@@ -3,6 +3,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from marionette.marionette_test import parameterized
+
 from gaiatest import GaiaTestCase
 from gaiatest.apps.settings.app import Settings
 
@@ -24,7 +25,7 @@ class TestChangeSimManager(GaiaTestCase):
 
         settings = Settings(self.marionette)
         settings.launch()
-        sim_manager_settings = settings.open_sim_manager_settings()
+        sim_manager_settings = settings.open_sim_manager()
 
         sim_manager_settings.select_outgoing_calls(default_sim_option)
         sim_manager_settings.select_outgoing_messages(default_sim_option)

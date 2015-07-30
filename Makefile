@@ -15,11 +15,7 @@
 #                                                                             #
 # REPORTER    : Mocha reporter to use for test output.                        #
 #                                                                             #
-# MOZPERFOUT  : File path to output mozperf data. Empty mean stdout.          #
-#                                                                             #
-# MARIONETTE_RUNNER_HOST : The Marionnette runner host.                       #
-#                          Current values can be 'marionette-b2gdesktop-host' #
-#                          and 'marionette-device-host'                       #
+# MARIONETTE_RUNNER_HOST : ie marionette-device-host                          #
 #                                                                             #
 # COVERAGE    : Add blanket testing coverage report to use for test output.   #
 #                                                                             #
@@ -30,11 +26,11 @@
 #                                                                             #
 # Lint your code                                                              #
 #                                                                             #
-# use "make hint" and "make gjslint" to lint using respectively jshint and    #
-# gjslint.                                                                    #
+# Use "make lint" to lint using jshint                                        #
 #                                                                             #
-# Use "make lint" to lint using gjslint for blacklisted files, and jshint for #
-# other files.                                                                #
+# Use "make eslint" to lint using eslint. This is currently used for checks   #
+# that are beyond the other linter's scope, i.e., customized checks for       #
+# discouraged coding patterns or deprecated APIs.                             #
 #                                                                             #
 # APP=<app name> will hint/lint only this app.                                #
 # LINTED_FILES=<list of files> will (h/l)int only these space-separated files #
@@ -100,6 +96,7 @@ endif
 
 DOGFOOD?=0
 NODE_MODULES_SRC?=modules.tar
+NODE_MODULES_CACHEDIR=modules_tar_cachedir
 
 # GAIA_DEVICE_TYPE customization
 # phone - default
@@ -121,16 +118,22 @@ REMOTE_DEBUGGER?=0
 # Debug mode for build process
 BUILD_DEBUG?=0
 
-# Are we building for RAPTOR?
-RAPTOR?=0
+# Enable PerformanceTiming logs
+PERF_LOGGING?=0
+
+# Enable hardware composing by default
+HARDWARE_COMPOSER?=1
 
 # Share performance and usage data
 SHARE_PERF_USAGE?=1
 
+# what major version of node we expect to run?
+NODE_VERSION=v0.10
+
 ifeq ($(DEVICE_DEBUG),1)
 REMOTE_DEBUGGER=1
 NO_LOCK_SCREEN=1
-SCREEN_TIMEOUT=300
+SCREEN_TIMEOUT?=300
 endif
 
 # We also disable FTU when running in Firefox or in debug mode
@@ -180,12 +183,10 @@ export BUILDAPP
 export npm_config_loglevel=warn
 ifneq ($(BUILDAPP),desktop)
 REPORTER?=mocha-tbpl-reporter
-MARIONETTE_RUNNER_HOST?=marionette-socket-host
 endif
 REPORTER?=spec
 MARIONETTE_RUNNER_HOST?=marionette-b2gdesktop-host
-TEST_MANIFEST?=./shared/test/integration/local-manifest.json
-MOZPERFOUT?=""
+TEST_MANIFEST?=$(shell pwd)/shared/test/integration/local-manifest.json
 
 ifeq ($(MAKECMDGOALS), demo)
 GAIA_DOMAIN=thisdomaindoesnotexist.org
@@ -297,8 +298,8 @@ endif
 else
 
 # Determine the host-dependent bundle to download
-B2G_SDK_VERSION := 34.0a1
-B2G_SDK_DATE := 2014/08/2014-08-12-04-02-01
+B2G_SDK_VERSION := 39.0a1
+B2G_SDK_DATE := 2015/03/2015-03-05-16-02-02
 
 XULRUNNER_BASE_DIR ?= b2g_sdk
 XULRUNNER_DIRECTORY ?= $(XULRUNNER_BASE_DIR)/$(B2G_SDK_VERSION)-$(notdir $(B2G_SDK_DATE))
@@ -370,6 +371,8 @@ SETTINGS_PATH ?= build/config/custom-settings.json
 KEYBOARD_LAYOUTS_PATH ?= build/config/keyboard-layouts.json
 CONTACTS_IMPORT_SERVICES_PATH ?= build/config/communications_services.json
 EMAIL_SERVICES_PATH ?=
+DEFAULT_KEYBOAD_SYMBOLS_FONT ?= shared/style/keyboard_symbols/Keyboard-Symbols.ttf
+DEFAULT_GAIA_ICONS_FONT ?= shared/elements/gaia-icons/fonts/gaia-icons.ttf
 
 ifdef GAIA_DISTRIBUTION_DIR
   DISTRIBUTION_SETTINGS := $(GAIA_DISTRIBUTION_DIR)$(SEP)settings.json
@@ -399,6 +402,7 @@ ifdef GAIA_DISTRIBUTION_DIR
   ifneq ($(wildcard $(DISTRIBUTION_EMAIL_SERVICES)),)
     EMAIL_SERVICES_PATH := $(DISTRIBUTION_EMAIL_SERVICES)
   endif
+  EXECUTE_PRELOAD_APP := $(shell $(call run-js-command,preload, GAIA_DIR="$(GAIA_DIR)" GAIA_DISTRIBUTION_DIR="$(GAIA_DISTRIBUTION_DIR)"))
 endif
 
 # Read the file specified in $GAIA_APP_CONFIG and turn them into $GAIA_APPDIRS,
@@ -440,14 +444,20 @@ GAIA_PRETRANSLATE?=1
 GAIA_CONCAT_LOCALES?=1
 
 # This variable is for customizing the keyboard layouts in a build.
+# Include the ID of the layout in this variable will make both the dictionary
+# and the layout included in the package.
 GAIA_KEYBOARD_LAYOUTS?=en,pt-BR,es,de,fr,fr-CA,pl,ko,zh-Hans-Pinyin,en-Dvorak
 # We optionally offers downloading the dictionary from the CDN, instead of
 # including it in the build.
-# Latin IMEngine-backed layouts specified under this variable will have
-# their dictionaries included in the package. The user has to optionally
-# download the dictionary in keyboard settings page in order to enable the
-# layout.
-GAIA_KEYBOARD_PRELOAD_DICT_LAYOUTS?=$(GAIA_KEYBOARD_LAYOUTS)
+# Include the ID of the layout in this variable will make it appear in the
+# keyboard settings page, allowing user to download the dictionary.
+# Any layout listed here that doesn't require a dictionary download and/or
+# comes with its own dictionary will become a pre-installed layout,
+# behaving the same way as if it is listed in the above variable.
+GAIA_KEYBOARD_DOWNLOADABLE_LAYOUTS?=noPreloadDictRequired
+# Enable user dictionary for built-in keyboard app by default
+GAIA_KEYBOARD_ENABLE_USER_DICT?=1
+
 
 ifeq ($(SYS),Darwin)
 MD5SUM = md5 -r
@@ -465,6 +475,9 @@ endif
 TEST_COMMON=dev_apps/test-agent/common
 ifeq ($(strip $(NODEJS)),)
   NODEJS := `which node`
+endif
+ifeq ($(strip $(NODEJS)),)
+  NODEJS := `which nodejs`
 endif
 
 ifeq ($(strip $(NPM)),)
@@ -486,12 +499,16 @@ MARIONETTE_HOST ?= localhost
 MARIONETTE_PORT ?= 2828
 TEST_DIRS ?= $(GAIA_DIR)/tests
 
+PROFILE_DIR?=$(GAIA_DIR)$(SEP)$(PROFILE_FOLDER)
+COREWEBAPPS_DIR?=$(PROFILE_DIR)
+
 define BUILD_CONFIG
 { \
   "ADB" : "$(patsubst "%",%,$(ADB))", \
   "GAIA_DIR" : "$(GAIA_DIR)", \
-  "PROFILE_DIR" : "$(GAIA_DIR)$(SEP)$(PROFILE_FOLDER)", \
+  "PROFILE_DIR" : "$(PROFILE_DIR)", \
   "PROFILE_FOLDER" : "$(PROFILE_FOLDER)", \
+  "COREWEBAPPS_DIR" : "$(COREWEBAPPS_DIR)", \
   "GAIA_SCHEME" : "$(SCHEME)", \
   "GAIA_DOMAIN" : "$(GAIA_DOMAIN)", \
   "DEBUG" : "$(DEBUG)", \
@@ -506,7 +523,7 @@ define BUILD_CONFIG
   "GAIA_INSTALL_PARENT" : "$(GAIA_INSTALL_PARENT)", \
   "LOCALES_FILE" : "$(subst \,\\,$(LOCALES_FILE))", \
   "GAIA_KEYBOARD_LAYOUTS" : "$(GAIA_KEYBOARD_LAYOUTS)", \
-  "GAIA_KEYBOARD_PRELOAD_DICT_LAYOUTS" : "$(GAIA_KEYBOARD_PRELOAD_DICT_LAYOUTS)", \
+  "GAIA_KEYBOARD_DOWNLOADABLE_LAYOUTS" : "$(GAIA_KEYBOARD_DOWNLOADABLE_LAYOUTS)", \
   "GAIA_KEYBOARD_ENABLE_USER_DICT" : "$(GAIA_KEYBOARD_ENABLE_USER_DICT)", \
   "LOCALE_BASEDIR" : "$(subst \,\\,$(LOCALE_BASEDIR))", \
   "BUILD_APP_NAME" : "$(BUILD_APP_NAME)", \
@@ -524,6 +541,7 @@ define BUILD_CONFIG
   "GAIA_APPDIRS" : "$(GAIA_APPDIRS)", \
   "GAIA_ALLAPPDIRS" : "$(GAIA_ALLAPPDIRS)", \
   "GAIA_MEMORY_PROFILE" : "$(GAIA_MEMORY_PROFILE)", \
+  "HARDWARE_COMPOSER" : "$(HARDWARE_COMPOSER)", \
   "NOFTU" : "$(NOFTU)", \
   "REMOTE_DEBUGGER" : "$(REMOTE_DEBUGGER)", \
   "TARGET_BUILD_VARIANT" : "$(TARGET_BUILD_VARIANT)", \
@@ -539,15 +557,19 @@ define BUILD_CONFIG
   "REBUILD": "$(REBUILD)", \
   "P" : "$(P)", \
   "VERBOSE" : "$(VERBOSE)", \
-  "RAPTOR" : "$(RAPTOR)", \
-  "SHARE_PERF_USAGE": "$(SHARE_PERF_USAGE)" \
+  "PERF_LOGGING" : "$(PERF_LOGGING)", \
+  "SHARE_PERF_USAGE": "$(SHARE_PERF_USAGE)", \
+  "DEFAULT_KEYBOAD_SYMBOLS_FONT": "$(DEFAULT_KEYBOAD_SYMBOLS_FONT)", \
+  "DEFAULT_GAIA_ICONS_FONT": "$(DEFAULT_GAIA_ICONS_FONT)", \
+  "RAPTOR_TRANSFORM": "$(RAPTOR_TRANSFORM)", \
+  "RAPTOR_TRANSFORMER_PATH": "$(RAPTOR_TRANSFORMER_PATH)" \
 }
 endef
 
 export BUILD_CONFIG
 
 # Generate profile/
-$(PROFILE_FOLDER): profile-dir app test-agent-config contacts extensions b2g_sdk .git/hooks/pre-commit
+$(PROFILE_FOLDER): profile-dir build-app test-agent-config contacts extensions b2g_sdk .git/hooks/pre-commit
 ifeq ($(BUILD_APP_NAME),*)
 	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)$(PROFILE_FOLDER)"
 endif
@@ -556,6 +578,10 @@ $(STAGE_DIR):
 	mkdir -p $@
 
 LANG=POSIX # Avoiding sort order differences between OSes
+
+.PHONY: build-app
+build-app: app
+	@$(call $(BUILD_RUNNER),update-webapps-json)
 
 .PHONY: app
 app: b2g_sdk profile-dir
@@ -691,17 +717,25 @@ endif
 
 # this lists the programs we need in the Makefile and that are installed by npm
 
-NPM_INSTALLED_PROGRAMS = node_modules/.bin/mozilla-download node_modules/.bin/jshint node_modules/.bin/mocha
+NPM_INSTALLED_PROGRAMS = node_modules/.bin/mozilla-download node_modules/.bin/jshint node_modules/.bin/mocha node_modules/.bin/eslint
 $(NPM_INSTALLED_PROGRAMS): package.json node_modules
-
 
 NODE_MODULES_REV=$(shell cat gaia_node_modules.revision)
 # modules.tar and git-gaia-node-modules are the possible values for
 # $(NODE_MODULES_SRC). See the node_modules target.
-modules.tar: gaia_node_modules.revision
+modules.tar: gaia_node_modules.revision $(NODE_MODULES_CACHEDIR)/$(NODE_MODULES_REV)
+	-cp -f "$(NODE_MODULES_CACHEDIR)/$(NODE_MODULES_REV)" "$(NODE_MODULES_SRC)"
+
+$(NODE_MODULES_CACHEDIR)/$(NODE_MODULES_REV): gaia_node_modules.revision
 	@echo Downloading latest node_modules package. This may take several minutes...
-	-$(DOWNLOAD_CMD) https://github.com/mozilla-b2g/gaia-node-modules/tarball/$(NODE_MODULES_REV) &&\
-	mv $(NODE_MODULES_REV) "$(NODE_MODULES_SRC)"
+	mkdir -p "$(NODE_MODULES_CACHEDIR)"
+	-cd "$(NODE_MODULES_CACHEDIR)" && $(DOWNLOAD_CMD) https://github.com/mozilla-b2g/gaia-node-modules/tarball/$(NODE_MODULES_REV)
+
+gaia.zip: $(DEFAULT_KEYBOAD_SYMBOLS_FONT) $(DEFAULT_GAIA_ICONS_FONT) $(PROFILE_FOLDER)
+	@mkdir -p tmp/gaia tmp/gonk/system/fonts/hidden && cp -r $(PROFILE_FOLDER) tmp/gaia && \
+	 cp $(DEFAULT_GAIA_ICONS_FONT) tmp/gonk/system/fonts/hidden && \
+	 cp $(DEFAULT_KEYBOAD_SYMBOLS_FONT) tmp/gonk/system/fonts/hidden
+	@cd tmp/ && zip -r -9 -u ../gaia.zip . && cd ../ && rm -r tmp/
 
 git-gaia-node-modules: gaia_node_modules.revision
 	if [ ! -d "$(NODE_MODULES_SRC)" ] ; then \
@@ -709,26 +743,31 @@ git-gaia-node-modules: gaia_node_modules.revision
 	fi
 	(cd "$(NODE_MODULES_SRC)" && git fetch && git reset --hard "$(NODE_MODULES_REV)" )
 
-node_modules: gaia_node_modules.revision
-	# Running make without using a dependency ensures that we can run
-	# "make node_modules" with a custom NODE_MODULES_GIT_URL variable, and then
-	# run another target without specifying the variable
-	$(MAKE) $(NODE_MODULES_SRC)
-ifeq "$(NODE_MODULES_SRC)" "modules.tar"
-	$(TAR_WILDCARDS) --strip-components 1 -x -m -f $(NODE_MODULES_SRC) "mozilla-b2g-gaia-node-modules-*/node_modules"
-else
-	rm -fr node_modules
-	cp -R $(NODE_MODULES_SRC)/node_modules node_modules
+# npm-cache target is run when our node modules source is set to npm-cache
+# which is a pre-built set of node modules for the current platform +
+# node version present. The node modules selected for come from package.json.
+#
+# we run npm rebuild on marionette-js-runner to ensure that our python bits are
+# setup properly (it's a postinstall script that runs only when we rebuild).
+#
+# calling npm rebuild ensures that local in tree modules get their dependencies
+# installed. These are not part of the pre-built node modules at this time.
+#
+npm-cache:
+	@echo "Using pre-deployed cache."
+	npm install
+	touch -c node_modules
+#	@echo $(shell $(NODEJS) --version |awk -F. '{print $1, $2}')
+
+node_modules: package.json
+ifneq ($(NODEJS),)
+ifneq ($(NODE_VERSION),$(shell $(NODEJS) --version | awk -F. '{print $$1"."$$2}'))
+	@printf '\033[0;33mPlease use $(NODE_VERSION) of nodejs or it may cause unexpected error.\033[0m\n'
 endif
-	node --version
-	npm --version
-	npm install && npm rebuild
-	@echo "node_modules installed."
-	touch -c $@
-ifeq ($(BUILDAPP),device)
-	export LANG=en_US.UTF-8; \
-	npm install marionette-socket-host
 endif
+	# TODO: Get rid of references to gaia-node-modules stuff.
+	npm install
+	npm run refresh
 
 ###############################################################################
 # Tests                                                                       #
@@ -747,12 +786,12 @@ ifndef APPS
   endif
 endif
 
-b2g: node_modules/.bin/mozilla-download
+b2g: node_modules
 	DEBUG=* ./node_modules/.bin/mozilla-download \
-	--verbose \
-	--product b2g \
-	--channel tinderbox \
-	--branch mozilla-central $@
+	--product b2g-desktop \
+	--branch mozilla-central \
+	$(shell pwd)
+	touch -c $@
 
 .PHONY: test-integration
 # $(PROFILE_FOLDER) should be `profile-test` when we do `make test-integration`.
@@ -766,12 +805,19 @@ test-integration: clean $(PROFILE_FOLDER) test-integration-test
 #
 # Remember to remove this target after bug-969215 is finished !
 .PHONY: test-integration-test
-test-integration-test:
-	./bin/gaia-marionette \
-		--host $(MARIONETTE_RUNNER_HOST) \
-		--manifest $(TEST_MANIFEST) \
-		--reporter $(REPORTER) \
-		--buildapp $(BUILDAPP)
+test-integration-test: b2g node_modules
+	TEST_MANIFEST=$(TEST_MANIFEST) npm run marionette -- --buildapp="$(BUILDAPP)" --reporter="$(REPORTER)"
+
+.PHONY: jsmarionette-unit-tests
+jsmarionette-unit-tests: b2g node_modules $(PROFILE_FOLDER) tests/jsmarionette/runner/marionette-js-runner/venv
+	PROFILE_FOLDER=$(PROFILE_FOLDER) ./tests/jsmarionette/run_tests.js
+
+tests/jsmarionette/runner/marionette-js-runner/venv:
+	# Install virtualenv
+	cd tests/jsmarionette/runner/marionette-js-runner && npm install
+	# Still want to use $GAIA/node_modules
+	rm -rf tests/jsmarionette/runner/marionette-js-runner/node_modules
+
 
 .PHONY: caldav-server-install
 caldav-server-install:
@@ -780,16 +826,9 @@ caldav-server-install:
 				export LANG=en_US.UTF-8; \
 				pip install radicale;
 
-.PHONY: test-perf
-test-perf:
-	MOZPERFOUT="$(MOZPERFOUT)" APPS="$(APPS)" \
-	MARIONETTE_RUNNER_HOST=$(MARIONETTE_RUNNER_HOST) GAIA_DIR="`pwd`" \
-	REPORTER=$(REPORTER) \
-	./bin/gaia-perf-marionette
-
 .PHONY: raptor
 raptor: node_modules
-	RAPTOR=1 NO_LOCK_SCREEN=1 NOFTU=1 SCREEN_TIMEOUT=0 GAIA_DISTRIBUTION_DIR=node_modules/gaia-raptor/dist PROFILE_FOLDER=profile-raptor make reset-gaia
+	PERF_LOGGING=1 DEVICE_DEBUG=1 GAIA_OPTIMIZE=1 NOFTU=1 SCREEN_TIMEOUT=0 make reset-gaia
 
 .PHONY: tests
 tests: app offline
@@ -887,34 +926,21 @@ endif
 # Utils                                                                       #
 ###############################################################################
 
-.PHONY: lint gjslint hint csslint
+.PHONY: lint hint csslint eslint
 
 # Lint apps
-## only gjslint files from build/jshint-xfail.list - files not yet safe to jshint
-## "ls" is used to filter the existing files only, in case the xfail.list is not maintained well enough.
 ifndef LINTED_FILES
 ifdef APP
   JSHINTED_PATH = apps/$(APP)
-  GJSLINTED_PATH = $(shell grep "^apps/$(APP)" build/jshint/xfail.list | ( while read file ; do test -f "$$file" && echo $$file ; done ) )
 else
-  JSHINTED_PATH = apps shared build tests
-  GJSLINTED_PATH = $(shell ( while read file ; do test -f "$$file" && echo $$file ; done ) < build/jshint/xfail.list )
+  JSHINTED_PATH = apps shared build tests tv_apps
 endif
 endif
 
 lint:
-	NO_XFAIL=1 $(MAKE) -k gjslint hint jsonlint csslint
+	$(MAKE) -k hint jsonlint csslint
 
-gjslint: GJSLINT_EXCLUDED_DIRS = $(shell grep '\/\*\*$$' .jshintignore | sed 's/\/\*\*$$//' | paste -s -d, -)
-gjslint: GJSLINT_EXCLUDED_FILES = $(shell egrep -v '(\/\*\*|^\s*)$$' .jshintignore | paste -s -d, -)
-gjslint:
-	# gjslint --disable 210,217,220,225 replaces --nojsdoc because it's broken in closure-linter 2.3.10
-	# http://code.google.com/p/closure-linter/issues/detail?id=64
-	@echo Running gjslint...
-	@gjslint --disable 210,217,220,225 --custom_jsdoc_tags="prop,borrows,memberof,augments,exports,global,event,example,mixes,mixin,fires,inner,todo,access,namespace,listens,module,memberOf,property,requires,alias,returns" -e '$(GJSLINT_EXCLUDED_DIRS)' -x '$(GJSLINT_EXCLUDED_FILES)' $(GJSLINTED_PATH) $(LINTED_FILES)
-	@echo Note: gjslint only checked the files that are xfailed for jshint.
-
-JSHINT_ARGS := --reporter=build/jshint/xfail $(JSHINT_ARGS)
+JSHINT_ARGS := --reporter=build/jshint/reporter $(JSHINT_ARGS)
 
 ifdef JSHINTRC
 	JSHINT_ARGS := $(JSHINT_ARGS) --config $(JSHINTRC)
@@ -928,6 +954,12 @@ endif
 hint: node_modules/.bin/jshint
 	@echo Running jshint...
 	@./node_modules/.bin/jshint $(JSHINT_ARGS) $(JSHINTED_PATH) $(LINTED_FILES) || (echo Please consult https://github.com/mozilla-b2g/gaia/tree/master/build/jshint/README.md to get some information about how to fix jshint issues. && exit 1)
+
+eslint: node_modules/.bin/eslint
+	sed 's/\s*#.*$$//' build/eslint/xfail.list | sort -u > build/eslint/xfail.list.tmp
+	@echo Running eslint...
+	@./node_modules/.bin/eslint --ignore-path build/eslint/xfail.list.tmp -f compact -c .eslintrc $(JSHINTED_PATH) $(LINTED_FILES)
+	rm build/eslint/xfail.list.tmp
 
 csslint: b2g_sdk
 	@$(call $(BUILD_RUNNER),csslint)
@@ -1036,7 +1068,7 @@ clean:
 
 # clean out build products and tools
 really-clean: clean
-	rm -rf b2g-* .b2g-* b2g_sdk node_modules b2g modules.tar js-marionette-env
+	rm -rf b2g-* .b2g-* b2g_sdk node_modules b2g modules.tar js-marionette-env "$(NODE_MODULES_CACHEDIR)"
 
 .git/hooks/pre-commit: tools/pre-commit
 	test -d .git && cp tools/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit || true
@@ -1052,7 +1084,7 @@ build-test-unit-coverage: $(NPM_INSTALLED_PROGRAMS)
 
 .PHONY: docs
 docs: $(NPM_INSTALLED_PROGRAMS)
-	grunt docs
+	gulp docs
 
 .PHONY: watch
 watch: $(NPM_INSTALLED_PROGRAMS)

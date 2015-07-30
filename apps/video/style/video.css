@@ -29,15 +29,6 @@ body > section {
   display: none;
 }
 
-/*
- * while videoControls is hidden,
- * it should be stay on screen for mousedown event
- */
-#videoControls.hidden {
-  display: block;
-  visibility: visible;
-}
-
 ul {
   padding: 0;
   margin: 0;
@@ -65,20 +56,12 @@ li .inner {
 }
 
 li .inner .img {
-  /* background image will be configure in video.js, and it is croped with
-   * 210 * devicePixelRatio, 120 * devicePixelRatio. So, we just need to make
-   * it be fullsize in this container.
-   */
-  background-size: 100%;
   width: 21rem;
   overflow: hidden;
 }
 
 li .img.default {
-  background-size: 6rem;
-  background-position: center;
-  background-repeat: no-repeat;
-  background-color: #333333;
+  width: 6rem;
 }
 
 /* 1. Leave room for two rem when computing width of details
@@ -117,9 +100,6 @@ span.line-break {
 }
 
 /*
- * Thumbnails are implemented as <li> elements in a <ul> with background-image
- * set to display the image. We use background-size: cover to automatically
- * resize the image as needed.
  * The thumbnail list appears in regular browsing mode, in selection mode,
  * and in pick mode.
  */
@@ -164,28 +144,6 @@ span.line-break {
 }
 
 /*
- * When the user holds their finger over a thumbnail, change the background
- * color to highlight it
- */
-.thumbnail:active {
-  background-color: #0ac;
-}
-
-/*
- * And make all the children translucent so the color shows through
- */
-.thumbnail:active div {
-  opacity: 0.85;
-}
-
-/*
- * And make all the text color to white while selection
- */
-.thumbnail:active span {
-  color: #FFF;
-}
-
-/*
  * give the very last thumbnail a large bottom margin so that it doesn't
  * get stuck hidden behind the overlaid toolbar.
  * for normal thumbnails-list case, it is 4rem at bottom.
@@ -223,6 +181,10 @@ span.line-break {
   height: 100%;
 }
 
+#video-container:active {
+  background: none;
+}
+
 #player {
   /* size and position are set in JS depending on*/
   /* video size and screen orientation */
@@ -230,7 +192,6 @@ span.line-break {
   top: 0;
   left: 0;
   transform-origin: 0 0;
-  z-index: 10;
 }
 
 /*
@@ -262,11 +223,11 @@ span.line-break {
 
 /*
  * In view.html (but not index.html) we put the in-use-overlay element
- * inside videoControls. In that case there is a 5rem title bar that needs
+ * inside video-controls. In that case there is a 5rem title bar that needs
  * to be visible, so we alter the top position. And if we're handling
  * a pick activity, we also need the title bar with the back button to show.
  */
-#videoControls > #in-use-overlay,
+.video-controls > #in-use-overlay,
 body.pick-activity > #in-use-overlay {
   top: 5rem;
 }
@@ -353,26 +314,21 @@ section[role="region"] header:first-child h1 {
   width: 100%;
   height: 0.3rem;
   overflow: hidden;
+  background-size: 1rem;
+  background-image: repeating-linear-gradient(135deg,
+                                              #000 0%,  #000 42%,
+                                              #32D1F2 42%, #32D1F2 57%,
+                                              #000 57%, #000 100%);
   z-index: 100;
 }
 
-#throbber > div {
-  height: 2.4rem;
-  background-image: url(images/progress.png);
-  background-size: auto 100%;
-}
-
-#throbber.throb > div {
-  animation: 1s throb infinite steps(7);
+#throbber.throb {
+  animation: throb 1s steps(10) infinite;
 }
 
 @keyframes throb {
-  from {
-    transform: translateY(0);
-  }
-  to {
-    transform: translateY(-2.1rem);
-  }
+  from { background-position: 0 0; }
+  to   { background-position: -1rem 0; }
 }
 
 /* buttons */
@@ -441,23 +397,22 @@ header .icon:after {
 }
 
 /* video player controls */
-#videoControls {
+.video-controls {
   position: absolute;
-  top: 0;
-  left: 0;
   width: 100%;
-  height: 100%;
   z-index: 10;
   opacity: 1;
-  will-change: opacity;
-  -moz-transition: opacity 0.5s;
+  will-change: opacity, visibility;
+  transition: visibility 0s, opacity var(--transition-duration);
 }
-#videoControls.hidden {
+.video-controls-hidden .video-controls {
   opacity: 0;
+  visibility: hidden;
+  transition-delay: 0.5s, 0s;
 }
 
-#videoControls.hidden > * {
-  pointer-events: none;
+.video-controls.bottom {
+  bottom: 0;
 }
 
 /* main control bar: play|pause, timeupdate, rwd|fwd
@@ -753,7 +708,9 @@ body:not(.layout-fullscreen-player) #player-view {
 }
 
 /* overlay mode */
-.overlay #app-container {
+.overlay #app-container, .info-view #app-container,
+.options-view #app-container, .in-use-overlay #app-container,
+.confirm-dialog #app-container {
   visibility: hidden;
 }
 
@@ -763,7 +720,7 @@ body:not(.view-activity) #spinner-overlay {
 }
 
 /* make videocontrolbar visible  when picking */
-body.pick-activity #videoControls #videoBar{
+body.pick-activity .video-controls #videoBar {
   bottom: 4.4rem;
 }
 

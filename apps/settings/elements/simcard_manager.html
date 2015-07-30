@@ -5,14 +5,13 @@
     </gaia-header>
     <div>
       <ul class="sim-card-container"></ul>
-      <header>
+      <header class="sim-manager-settings-header">
         <h2 data-l10n-id="simSettings">SIM Settings</h2>
       </header>
       <ul class="sim-manager-select-list">
         <li class="sim-manager-security-entry">
           <a class="menu-item" href="#simpin">
             <span data-l10n-id="simSecurity">SIM Security</span>
-            <small class="sim-manager-security-desc"></small>
           </a>
         </li>
         <li>
@@ -40,17 +39,5 @@
     </div>
 
     <panel data-path="panels/simcard_manager/panel"></panel>
-    <div class="sim-card-tmpl" hidden>
-      <!--
-      <li class="sim-card sim-card-${sim-index}">
-        <div class="sim-card-icon"></div>
-        <div class="information-container">
-          <p class="sim-card-name"></p>
-          <p class="sim-card-operator"></p>
-          <p class="sim-card-number"></p>
-        </div>
-      </li>
-      -->
-    </div>
   </template>
 </element>

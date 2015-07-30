@@ -2,11 +2,13 @@ define(function(require, exports, module) {
 'use strict';
 
 var Account = require('models/account');
-var AccountCreation = require('utils/account_creation');
 var OAuthWindow = require('oauth_window');
-var Presets = require('presets');
+var Presets = require('common/presets');
 var URI = require('utils/uri');
 var View = require('view');
+var co = require('ext/co');
+var core = require('core');
+var isOffline = require('common/is_offline');
 var router = require('router');
 
 require('dom!modify-account-view');
@@ -27,9 +29,6 @@ function ModifyAccount(options) {
   this.displayOAuth2 = this.displayOAuth2.bind(this);
   this.hideHeaderAndForm = this.hideHeaderAndForm.bind(this);
   this.cancelDelete = this.cancelDelete.bind(this);
-
-  this.accountHandler = new AccountCreation(this.app);
-  this.accountHandler.on('authorizeError', this);
 
   // bound so we can add remove listeners
   this._boundSaveUpdateModel = this.save.bind(this, { updateModel: true });
@@ -118,18 +117,6 @@ ModifyAccount.prototype = {
     return this._fields;
   },
 
-  handleEvent: function(event) {
-    var type = event.type;
-    var data = event.data;
-
-    switch (type) {
-      case 'authorizeError':
-        // we only expect one argument an error object.
-        this.showErrors(data[0]);
-        break;
-    }
-  },
-
   updateForm: function() {
     var update = ['user', 'fullUrl'];
 
@@ -163,13 +150,9 @@ ModifyAccount.prototype = {
       e.preventDefault();
     }
 
-    var app = this.app;
-    var id = this.model._id;
-    var store = app.store('Account');
-
     // begin the removal (which will emit the preRemove event) but don't wait
     // for it to complete...
-    store.remove(id);
+    core.bridge.deleteAccount(this.model._id);
 
     // semi-hack clear the :target - harmless in tests
     // but important in the current UI because css :target
@@ -195,16 +178,17 @@ ModifyAccount.prototype = {
     this.cancel(event);
   },
 
-  save: function(options, e) {
+  isOffline: isOffline,
+
+  save: co.wrap(function *(options, e) {
 
     if (e) {
       e.preventDefault();
     }
 
     var list = this.element.classList;
-    var self = this;
 
-    if (this.app.offline()) {
+    if (this.isOffline()) {
       this.showErrors([{name: 'offline'}]);
       return;
     }
@@ -217,13 +201,15 @@ ModifyAccount.prototype = {
       this.updateModel();
     }
 
-    this.accountHandler.send(this.model, function(err) {
-      list.remove(self.progressClass);
-      if (!err) {
-        router.go(self.completeUrl);
-      }
-    });
-  },
+    try {
+      yield core.bridge.createAccount(this.model);
+      list.remove(this.progressClass);
+      router.go(this.completeUrl);
+    } catch(err) {
+      list.remove(this.progressClass);
+      this.showErrors(err);
+    }
+  }),
 
   hideHeaderAndForm: function() {
     this.element.classList.add(this.removeDialogClass);
@@ -381,7 +367,7 @@ ModifyAccount.prototype = {
     this.form.removeEventListener('submit', this._boundSaveUpdateModel);
   },
 
-  dispatch: function(data) {
+  dispatch: co.wrap(function *(data) {
     if (this.model) {
       this.destroy();
     }
@@ -391,34 +377,28 @@ ModifyAccount.prototype = {
 
     this.completeUrl = '/settings/';
 
-    var self = this;
-    function displayModel(err, model) {
-      self.preset = Presets[model.preset];
+    try {
+      var model;
+      if (params.id) {
+        model = yield core.bridge.getAccount(params.id);
+      } else if (params.preset) {
+        model = this._createModel(params.preset);
+      }
+
+      this.preset = Presets[model.preset];
 
       // race condition another dispatch has queued
       // while we where waiting for an async event.
-      if (self._changeToken !== changeToken) {
+      if (this._changeToken !== changeToken) {
         return;
       }
 
-      if (err) {
-        return console.error('Error displaying model in ModifyAccount', data);
-      }
-
-      self.model = model;
-      self.render();
-
-      if (self.ondispatch) {
-        self.ondispatch();
-      }
+      this.model = model;
+      this.render();
+    } catch (err) {
+      console.error('Error displaying model in ModifyAccount', data, err);
     }
-
-    if (params.id) {
-      this.app.store('Account').get(params.id, displayModel);
-    } else if (params.preset) {
-      displayModel(null, this._createModel(params.preset));
-    }
-  },
+  }),
 
   oninactive: function() {
     View.prototype.oninactive.apply(this, arguments);

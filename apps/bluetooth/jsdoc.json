@@ -1,8 +1,18 @@
 {
-  "bluetooth": {
-    "src": ["apps/bluetooth/js/**/*.js"],
-    "options": {
-      "destination": "docs/bluetooth"
-    }
+  "name": "bluetooth",
+  "tags": {
+    "dictionaries": ["jsdoc"]
+  },
+  "source": {
+    "include": ["apps/bluetooth/README.md", "apps/bluetooth/js"]
+  },
+  "plugins": [
+    "plugins/markdown",
+    "plugins/summarize"
+  ],
+  "opts": {
+    "private": true,
+    "recurse": true,
+    "destination": "docs/bluetooth"
   }
 }

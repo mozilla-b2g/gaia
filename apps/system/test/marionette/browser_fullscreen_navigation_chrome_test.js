@@ -3,24 +3,21 @@
 var assert = require('assert');
 var Rocketbar = require('./lib/rocketbar');
 var Server = require('../../../../shared/test/integration/server');
+var FULLSCREENNAVAPP = __dirname + '/../apps/fullscreennavapp';
 
 marionette('Browser - App /w Fullscreen Navigation Chrome', function() {
 
   var client = marionette.client({
-    prefs: {
-      'dom.w3c_touch_events.enabled': 1
+    profile: {
+      apps: {
+        'fullscreennavapp.gaiamobile.org': FULLSCREENNAVAPP,
+      }
     },
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
-    },
-    apps: {
-      'fullscreennavapp.gaiamobile.org': __dirname + '/fullscreennavapp',
-    }
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
   });
 
   var actions, home, rocketbar, search, system, frame, server;
-  var halfScreenHeight;
+  var quarterScreenHeight;
 
   setup(function(done) {
     actions = client.loader.getActions();
@@ -28,11 +25,11 @@ marionette('Browser - App /w Fullscreen Navigation Chrome', function() {
     rocketbar = new Rocketbar(client);
     search = client.loader.getAppClass('search');
     system = client.loader.getAppClass('system');
-    system.waitForStartup();
+    system.waitForFullyLoaded();
 
-    halfScreenHeight = client.executeScript(function() {
+    quarterScreenHeight = client.executeScript(function() {
       return window.innerHeight;
-    }) / 2;
+    }) / 4;
 
     var appOrigin = 'app://fullscreennavapp.gaiamobile.org';
     frame = system.waitForLaunch(appOrigin);
@@ -60,7 +57,7 @@ marionette('Browser - App /w Fullscreen Navigation Chrome', function() {
   }
 
   function expandRocketbar() {
-    actions.flick(system.topPanel, 0, 0, 0, halfScreenHeight).perform();
+    actions.flick(system.topPanel, 0, 0, 0, quarterScreenHeight, 500).perform();
     assert.ok(system.appUrlbar.displayed(), 'Rocketbar is displayed.');
   }
 
@@ -94,7 +91,7 @@ marionette('Browser - App /w Fullscreen Navigation Chrome', function() {
     client.switchToFrame();
     expandRocketbar();
     var selector = system.Selector.appChromeProgressBar;
-    var progressBar = client.helper.waitForElement(selector);
+    var progressBar = system.appChromeProgressBar;
     var chromeSize = system.appChrome.size();
     client.waitFor(function() {
       var pbPosition = progressBar.scriptWith(function(element) {
@@ -104,18 +101,17 @@ marionette('Browser - App /w Fullscreen Navigation Chrome', function() {
     });
 
     waitForOffscreen(selector);
-    var progressbar = client.findElement(system.Selector.appChromeProgressBar);
     client.waitFor(function() {
-      return !progressbar.displayed();
+      return !progressBar.displayed();
     });
 
     expandRocketbar();
     client.waitFor(function() {
-      return progressbar.displayed();
+      return progressBar.displayed();
     });
     server.uncork(url);
     client.waitFor(function() {
-      return !progressbar.displayed();
+      return !progressBar.displayed();
     });
   });
 });

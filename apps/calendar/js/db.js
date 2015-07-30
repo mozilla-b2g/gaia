@@ -3,13 +3,15 @@ define(function(require, exports, module) {
 'use strict';
 
 var Account = require('models/account');
-var Presets = require('presets');
+var Presets = require('common/presets');
 var Local = require('provider/local');
-var Responder = require('responder');
-var Store = require('store/store');
-var debug = require('debug')('db');
-var nextTick = require('next_tick');
-var probablyParseInt = require('probably_parse_int');
+var Responder = require('common/responder');
+var core = require('core');
+var debug = require('common/debug')('db');
+var denodeifyAll = require('common/promise').denodeifyAll;
+var nextTick = require('common/next_tick');
+var localCalendarId = require('common/constants').localCalendarId;
+var probablyParseInt = require('common/probably_parse_int');
 var uuid = require('ext/uuid');
 
 var idb = window.indexedDB;
@@ -26,12 +28,12 @@ var store = Object.freeze({
   icalComponents: 'icalComponents'
 });
 
-function Db(name, app) {
-  this.app = app;
+function Db(name) {
   this.name = name;
-  this._stores = Object.create(null);
   Responder.call(this);
   this._upgradeOperations = [];
+
+  denodeifyAll(this, ['load']);
 }
 module.exports = Db;
 
@@ -43,21 +45,8 @@ Db.prototype = {
    */
   connection: null,
 
-  getStore: function(name) {
-    if (!(name in this._stores)) {
-      try {
-        this._stores[name] = new Store[name](this, this.app);
-      } catch (e) {
-        console.error('Error', e.name, e.message);
-        console.error('Failed to load store', name, e.stack);
-      }
-    }
-
-    return this._stores[name];
-  },
-
   load: function(callback) {
-    debug('Will load b2g-calendar db.');
+    debug(`Will load ${this.name} db.`);
 
     var self = this;
     function setupDefaults() {
@@ -336,7 +325,7 @@ Db.prototype = {
   /**
    * Update a collection of events and the busytimes that depend on them.
    *
-   * @param {Array.<number>>} eventIds An array of event ids for the events.
+   * @param {Array.<number>} eventIds An array of event ids for the events.
    * @param {number} calendarId A numerical id to set as calendarId.
    * @param {IDBTransaction} trans The active idb transaction during db
    *     upgrade.
@@ -365,13 +354,13 @@ Db.prototype = {
   /**
    * Delete a collection of events and the busytimes that depend on them.
    *
-   * @param {Array.<number>>} eventIds An array of event ids for the events.
+   * @param {Array.<number>} eventIds An array of event ids for the events.
    * @param {IDBTransaction} trans The active idb transaction during db
    *     upgrade.
    * @private
    */
   _deleteEvents: function(eventIds, trans) {
-    var events = this.getStore('Event');
+    var events = core.storeFactory.get('Event');
     eventIds.forEach(function(eventId) {
       events.remove(eventId, trans);
     });
@@ -412,10 +401,11 @@ Db.prototype = {
    */
   _setupDefaults: function(callback) {
     debug('Will setup defaults.');
-    var calendarStore = this.getStore('Calendar');
-    var accountStore = this.getStore('Account');
+    var storeFactory = core.storeFactory;
+    var calendarStore = storeFactory.get('Calendar');
+    var accountStore = storeFactory.get('Account');
 
-    var trans = calendarStore.db.transaction(
+    var trans = this.transaction(
       ['accounts', 'calendars'],
       'readwrite'
     );
@@ -437,7 +427,7 @@ Db.prototype = {
     account._id = uuid();
 
     var calendar = {
-      _id: Local.calendarId,
+      _id: localCalendarId,
       accountId: account._id,
       remote: Local.defaultCalendar()
     };

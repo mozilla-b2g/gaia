@@ -4,12 +4,7 @@ var AppInstall = require('./lib/app_install');
 var assert = require('assert');
 
 marionette('IME installation', function() {
-  var client = marionette.client({
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
-    }
-  });
+  var client = marionette.client();
 
   var system;
   var server;
@@ -29,7 +24,7 @@ marionette('IME installation', function() {
   setup(function() {
     appInstall = new AppInstall(client);
     system = client.loader.getAppClass('system');
-    system.waitForStartup();
+    system.waitForFullyLoaded();
   });
 
   test('Test app installation screen', function() {

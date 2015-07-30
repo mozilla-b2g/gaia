@@ -1,4 +1,5 @@
 'use strict';
+/* exported MockWifiManager, MockWifiUI */
 
 var MockWifiManager = {
   scan: function() {},

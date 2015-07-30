@@ -7,6 +7,10 @@
 
     get: stringify,
 
+    formatValue: function(id, args) {
+      return Promise.resolve(stringify(id, args));
+    },
+
     translateFragment: function() {},
 
     // XXX Remove in https://bugzil.la/1020137
@@ -76,9 +80,6 @@
 
   // Defining methods on the prototype allows to spy on them in tests
   exports.MockL10n.DateTimeFormat.prototype = {
-    localeDateString: stringify,
-    localeTimeString: stringify,
-    localeString: stringify,
     localeFormat: stringify,
     fromNow: stringify,
     relativeParts: stringify

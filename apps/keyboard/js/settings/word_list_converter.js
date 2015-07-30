@@ -1,4 +1,16 @@
+/* global module */
+
 'use strict';
+
+(function() {
+
+var namespace;
+
+try {
+  namespace = window;
+} catch(e) {
+  namespace = module.exports;
+}
 
 (function(exports) {
 
@@ -18,6 +30,7 @@ const _DEBUG = true;
 var TSTNode = function(ch) {
   this.ch = ch;
   this.left = this.center = this.right = null;
+  this.frequency = 0;
   // store the count for balancing the tst
   this.count = 0;
 };
@@ -28,7 +41,7 @@ var TSTTree = function(ch) {
 };
 
 // Insert a word into the TSTTree
-TSTTree.prototype.insert = function(node, word) {
+TSTTree.prototype.insert = function(node, word, freq) {
   var ch = word[0];
 
   if (!node) {
@@ -36,12 +49,13 @@ TSTTree.prototype.insert = function(node, word) {
   }
 
   if (ch < node.ch) {
-    node.left = this.insert(node.left, word);
+    node.left = this.insert(node.left, word, freq);
   } else if(ch > node.ch) {
-    node.right = this.insert(node.right, word);
+    node.right = this.insert(node.right, word, freq);
   } else {
+    node.frequency = Math.max(node.frequency, freq);
     if (word.length > 1) {
-      node.center = this.insert(node.center, word.substring(1));
+      node.center = this.insert(node.center, word.substring(1), freq);
     }
   }
 
@@ -139,13 +153,18 @@ TSTTree.prototype.collectLevel = function(level, node) {
   this.collectLevel(level, node.right);
 };
 
-TSTTree.prototype.annotateNodes = function(node) {
+TSTTree.prototype.sortLevelByFreq = function(node) {
   // Collect nodes on the same level
   var nodes = [];
   this.collectLevel(nodes, node);
 
+  // Sort by frequency
+
   nodes.sort(function(node1, node2){
     return node1.ch.charCodeAt(0) - node2.ch.charCodeAt(0);
+  });
+  nodes.sort(function(node1, node2){
+    return node2.frequency - node1.frequency;
   });
 
   // Add next/prev pointers to each node
@@ -172,13 +191,16 @@ TSTTree.prototype.promoteNodeToRoot = function(root, node) {
   }
 };
 
+
 // balance the whole TST
 TSTTree.prototype.balanceTree = function(node) {
   if (!node) {
     return;
   }
 
-  node = this.promoteNodeToRoot(node, this.annotateNodes(node));
+  // promote to root the letter with the highest maximum frequency
+  // of a suffix starting with this letter
+  node = this.promoteNodeToRoot(node, this.sortLevelByFreq(node));
 
   // balance other letters on this level of the tree
   node.left = this.balanceLevel(node.left);
@@ -219,11 +241,14 @@ TSTBuilder.prototype.build = function() {
   var tstRoot = null;
   var tree = new TSTTree();
 
-  this.words.forEach(function(word) {
+  this.words.forEach(function(wordFreq) {
+    var word = wordFreq.w;
+    var freq = wordFreq.f;
+
     // Find the longest word in the dictionary
     this.maxWordLength = Math.max(this.maxWordLength, word.length);
 
-    tstRoot = tree.insert(tstRoot, word + _EndOfWord);
+    tstRoot = tree.insert(tstRoot, word + _EndOfWord, freq);
 
     // keep track of the letter frequencies
     word.split('').forEach(function(ch) {
@@ -405,7 +430,7 @@ TSTBlobBuilder.prototype.toBlobArray = function() {
     this._emitNode(node);
   }, this);
 
-  return this._output;
+  return this._output.buffer;
 };
 
 
@@ -447,8 +472,14 @@ TSTBlobBuilder.prototype._emitNode = function(node) {
   var sbit = (charcode > 255) ? 0x40 : 0;
   var nbit = node.next ? 0x20 : 0;
 
-  // JSConv: uniform frequency
-  const freq = 31;
+  var freq;
+  if (0 === node.frequency) {
+    // zero means profanity
+    freq = 0;
+  } else {
+    // values > 0 map the range 1 to 31
+    freq = 1 + Math.floor(node.frequency * 31);
+  }
 
   var firstbyte = cbit | sbit | nbit | (freq & 0x1F);
   this._output[this._outputPos++] = firstbyte;
@@ -470,6 +501,34 @@ TSTBlobBuilder.prototype._emitNode = function(node) {
 
 var WordListConverter = function(words) {
   this.blob = undefined;
+
+  // JSConv: we're being strict here: the words can either be an array of words,
+  // or an array of {w: word, f: freq} objects, but cannot be mix of the two.
+  // Also, if it's the object type, we expect f to be within [0, 1) range,
+  // exclusive on "1" side.
+
+  words.reduce(function(prevType, word) {
+    var thisType = typeof word;
+    if (thisType !== prevType) {
+      throw 'Type mismatch. previous: ' + prevType + ', this: ' + thisType;
+    }
+
+    if ('object' === thisType) {
+      if (!('w' in word)) {
+        throw '"w" field not found in word';
+      }
+      if (!('f' in word)) {
+        throw '"f" field not found in word';
+      }
+      // note: using (f < 0 || f>= 1) causes false negative for f === NaN
+      if (!(word.f >= 0 && word.f < 1)) {
+        throw '"f" value not in allowed range';
+      }
+    }
+
+    return thisType;
+  }, typeof words[0]);
+
   this.words = words;
 };
 
@@ -485,6 +544,17 @@ WordListConverter.prototype.toBlob = function() {
   }
 
   var words = this.words;
+
+  // JSConv: if the words do not contain frequency information, attach 0.3
+  // uniform frequency. We can't use 0 (special meaning for prediction engine
+  // and we can't use 1 either (which overflows after normalization), so just
+  // use a 0.3 that becomes 10 in _emitNode(). 10 is an empirical value for best
+  // predictions result with user dictionary.
+  if ('string' === typeof words[0]){
+    words = words.map(function(word) {
+     return {w: word, f: 0.3};
+    });
+  }
 
   var tstBuilder = new TSTBuilder(words);
   tstBuilder.build();
@@ -502,4 +572,6 @@ WordListConverter.prototype.toBlob = function() {
 
 exports.WordListConverter = WordListConverter;
 
-})(window);
+})(namespace);
+
+})();

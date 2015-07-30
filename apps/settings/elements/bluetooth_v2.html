@@ -8,64 +8,47 @@
     <div>
       <ul>
         <li class="bluetooth-status hint">
-          <label class="pack-switch">
-            <input type="checkbox" data-ignore>
-            <span data-l10n-id="bluetooth">Bluetooth</span>
-          </label>
-          <p data-l10n-id="bluetooth-enable-msg" class="bluetooth-enable-msg explanation">
-            Turn Bluetooth on to view devices in the area.
-          </p>
+          <gaia-switch data-ignore>
+            <label data-l10n-id="bluetooth"></label>
+          </gaia-switch>
+          <p data-l10n-id="bluetooth-enable-msg" class="bluetooth-enable-msg explanation"></p>
         </li>
-        <li hidden class="device-visible">
-          <label class="pack-switch">
-            <input type="checkbox" data-ignore>
-            <span data-l10n-id="bluetooth-visible-to-all">Visible to all</span>
-            <small class="bluetooth-device-name"></small>
-          </label>
+        <li hidden class="device-visible hint">
+          <gaia-switch data-ignore>
+            <label data-l10n-id="bluetooth-visible-to-all"></label>
+          </gaia-switch>
+          <p class="explanation"><bdi class="bluetooth-device-name"></bdi></p>
         </li>
         <li hidden class="bluetooth-rename">
-          <button data-l10n-id="rename-device" class="rename-device" disabled>Rename My Device</button>
+          <button data-l10n-id="rename-device" class="rename-device" disabled></button>
         </li>
       </ul>
 
       <header class="bluetooth-paired-title">
-        <h2 data-l10n-id="bluetooth-paired-devices">Paired Devices</h2>
+        <h2 data-l10n-id="bluetooth-paired-devices"></h2>
       </header>
       <ul class="bluetooth-paired-devices devices">
       </ul>
 
       <header class="bluetooth-found-title">
-        <h2 data-l10n-id="bluetooth-devices-in-area">Devices found</h2>
+        <h2 data-l10n-id="bluetooth-devices-in-area"></h2>
       </header>
       <ul class="bluetooth-devices devices">
       </ul>
-      <div data-l10n-id="search-for-device" class="bluetooth-searching explanation">
-        Searching for devices…
-      </div>
+      <div data-l10n-id="search-for-device" class="bluetooth-searching explanation"></div>
       <ul hidden class="bluetooth-search">
         <li>
-          <button data-l10n-id="search-device" class="search-device" disabled>Search for Devices</button>
+          <button data-l10n-id="search-device" class="search-device" disabled></button>
         </li>
       </ul>
     </div>
 
     <form role="dialog" data-type="action" class="paired-device-option" hidden>
       <menu>
-        <button data-l10n-id="device-option-connect" class="connect-option">Connect</button>
-        <button data-l10n-id="device-option-disconnect" class="disconnect-option">Disconnect</button>
-        <button data-l10n-id="device-option-unpair" class="unpair-option">Unpair</button>
-        <button data-l10n-id="cancel">Cancel</button>
-      </menu>
-    </form>
-
-    <form role="dialog" data-type="confirm" class="unpair-device" hidden>
-      <section>
-        <h1 data-l10n-id="device-option-unpair-confirmation">Confirmation</h1>
-        <p data-l10n-id="device-option-unpair-device">Unpair device?</p>
-      </section>
-      <menu>
-        <button data-l10n-id="cancel" class="unpair-device-cancel">Cancel</button>
-        <button data-l10n-id="device-option-confirm" class="confirm-option danger">Confirm</button>
+        <button data-l10n-id="device-option-connect" class="connect-option"></button>
+        <button data-l10n-id="device-option-disconnect" class="disconnect-option"></button>
+        <button data-l10n-id="device-option-unpair" class="unpair-option"></button>
+        <button data-l10n-id="cancel" class="cancel-option"></button>
       </menu>
     </form>
 

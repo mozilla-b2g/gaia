@@ -8,15 +8,10 @@ marionette('LockScreen media playback tests', function() {
   var apps = {};
   apps[fakeMusicInfo.origin] = fakeMusicInfo.path;
   var client = marionette.client({
-    prefs: {
-      // This is true on Gonk, but false on desktop, so override.
-      'dom.inter-app-communication-api.enabled': true
+    profile: {
+      apps: apps
     },
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
-    },
-    apps: apps
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
   });
 
   setup(function() {

@@ -1,6 +1,6 @@
 /* globals CallScreen, FontSizeManager, MockCallsHandler, Utils,
            MockHandledCall, MockMozActivity, MockNavigatorMozTelephony,
-           MockMozL10n, MocksHelper, MockSettingsListener, performance */
+           MockMozL10n, MocksHelper, MockSettingsListener */
 
 'use strict';
 
@@ -45,6 +45,7 @@ suite('call screen', function() {
   var calls;
   var groupCalls;
   var groupCallsList;
+  var callOptions;
   var callToolbar;
   var hideBarMuteButton;
   var muteButton;
@@ -57,6 +58,7 @@ suite('call screen', function() {
   var incomingContainer;
   var bluetoothButton,
       bluetoothMenu;
+  var holdAndMergeContainer;
   var holdButton;
   var mergeButton;
 
@@ -105,9 +107,13 @@ suite('call screen', function() {
     groupCallsList.id = 'group-call-details-list';
     groupCalls.appendChild(groupCallsList);
 
+    callOptions = document.createElement('footer');
+    callOptions.id = 'call-options';
+    screen.appendChild(callOptions);
+
     callToolbar = document.createElement('section');
     callToolbar.id = 'co-advanced';
-    screen.appendChild(callToolbar);
+    callOptions.appendChild(callToolbar);
 
     muteButton = document.createElement('button');
     muteButton.id = 'mute';
@@ -142,23 +148,27 @@ suite('call screen', function() {
     bluetoothButton.id = 'bt';
     screen.appendChild(bluetoothButton);
 
+    holdAndMergeContainer = document.createElement('span');
+    holdAndMergeContainer.id = 'hold-and-merge-container';
+    screen.appendChild(holdAndMergeContainer);
+
     holdButton = document.createElement('button');
     holdButton.id = 'on-hold';
-    screen.appendChild(holdButton);
+    holdAndMergeContainer.appendChild(holdButton);
 
     mergeButton = document.createElement('button');
     mergeButton.id = 'merge';
-    screen.appendChild(mergeButton);
+    holdAndMergeContainer.appendChild(mergeButton);
 
     bluetoothMenu = document.createElement('form');
     bluetoothMenu.id = 'bluetooth-menu';
     bluetoothMenu.dataset.dummy = 'dummy';
-    bluetoothMenu.innerHTML = '<menu>' +
-        '<button data-l10n-id="cancel" id="btmenu-btdevice"></button>' +
-        '<button data-l10n-id="cancel" id="btmenu-receiver"></button>' +
-        '<button data-l10n-id="cancel" id="btmenu-speaker"></button>' +
-        '<button data-l10n-id="cancel" id="btmenu-cancel"></button>' +
-      '</menu>';
+    bluetoothMenu.innerHTML = `<menu>
+         <button data-l10n-id="cancel" id="btmenu-btdevice"></button>
+         <button data-l10n-id="cancel" id="btmenu-receiver"></button>
+         <button data-l10n-id="cancel" id="btmenu-speaker"></button>
+         <button data-l10n-id="cancel" id="btmenu-cancel"></button>
+       </menu>`;
     screen.appendChild(bluetoothMenu);
 
     // Replace the existing elements
@@ -168,6 +178,7 @@ suite('call screen', function() {
       CallScreen.mainContainer = container;
       CallScreen.contactBackground = contactBackground;
       CallScreen.calls = calls;
+      CallScreen.callOptions = callOptions;
       CallScreen.callToolbar = callToolbar;
       CallScreen.muteButton = muteButton;
       CallScreen.speakerButton = speakerButton;
@@ -198,7 +209,7 @@ suite('call screen', function() {
       this.sinon.stub(CallScreen, 'showClock');
       this.sinon.stub(CallScreen, 'initLockScreenSlide');
       this.sinon.stub(CallScreen, 'render');
-      this.sinon.spy(MockCallsHandler, 'holdOrResumeCallByUser');
+      this.sinon.spy(MockCallsHandler, 'holdOrResumeSingleCall');
       this.sinon.spy(MockCallsHandler, 'mergeCalls');
       mockElements.forEach(function(name) {
         CallScreen[name] = document.createElement('button');
@@ -210,7 +221,7 @@ suite('call screen', function() {
       sinon.assert.notCalled(CallScreen.showClock);
       sinon.assert.notCalled(CallScreen.initLockScreenSlide);
       sinon.assert.notCalled(CallScreen.render);
-      sinon.assert.notCalled(MockCallsHandler.holdOrResumeCallByUser);
+      sinon.assert.notCalled(MockCallsHandler.holdOrResumeSingleCall);
       sinon.assert.notCalled(MockCallsHandler.mergeCalls);
     });
 
@@ -256,7 +267,7 @@ suite('call screen', function() {
 
       test('hold button successfully added and notified', function() {
         CallScreen.holdButton.dispatchEvent(event);
-        sinon.assert.calledOnce(MockCallsHandler.holdOrResumeCallByUser);
+        sinon.assert.calledOnce(MockCallsHandler.holdOrResumeSingleCall);
       });
 
       test('merge button successfully added and notified', function() {
@@ -303,8 +314,8 @@ suite('call screen', function() {
         assert.isTrue(body.classList.contains('single-line'));
         assert.isTrue(calls.classList.contains('big-duration'));
 
-        calls.innerHTML = '<section></section>' +
-                          '<section></section>';
+        calls.innerHTML = `<section></section>
+                           <section></section>`;
         CallScreen.updateCallsDisplay();
         assert.isFalse(body.classList.contains('single-line'));
         assert.isFalse(calls.classList.contains('big-duration'));
@@ -315,15 +326,15 @@ suite('call screen', function() {
         assert.isFalse(body.classList.contains('single-line'));
         assert.isFalse(calls.classList.contains('big-duration'));
 
-        calls.innerHTML = '<section></section>' +
-                          '<section hidden=""></section>';
+        calls.innerHTML = `<section></section>
+                           <section hidden=""></section>`;
         CallScreen.updateCallsDisplay();
         assert.isTrue(body.classList.contains('single-line'));
         assert.isTrue(calls.classList.contains('big-duration'));
 
-        calls.innerHTML = '<section></section>' +
-                          '<section></section>' +
-                          '<section hidden=""></section>';
+        calls.innerHTML = `<section></section>
+                           <section></section>
+                           <section hidden=""></section>`;
 
         CallScreen.updateCallsDisplay();
         assert.isFalse(body.classList.contains('single-line'));
@@ -742,6 +753,17 @@ suite('call screen', function() {
     });
   });
 
+  suite('show and hide hold/merge container', function() {
+    test('should change visibility to none', function() {
+      CallScreen.hideOnHoldAndMergeContainer();
+      assert.isTrue(CallScreen.holdAndMergeContainer.style.display === 'none');
+    });
+    test('should change visibility to block', function() {
+      CallScreen.showOnHoldAndMergeContainer();
+      assert.isTrue(CallScreen.holdAndMergeContainer.style.display === 'block');
+    });
+  });
+
   suite('resizeHandler', function() {
     test('updateCallsDisplay is called with the right arguments', function() {
       this.sinon.stub(CallScreen, 'updateCallsDisplay');
@@ -761,12 +783,12 @@ suite('call screen', function() {
       CallScreen.showIncoming();
     });
 
-    test('should remove class of callToolbar and incomingContainer',
+    test('should remove class of callOptions and incomingContainer',
     function() {
-      assert.isTrue(callToolbar.classList.contains('transparent'));
+      assert.isTrue(callOptions.classList.contains('transparent'));
       assert.isTrue(incomingContainer.classList.contains('displayed'));
       CallScreen.hideIncoming();
-      assert.isFalse(callToolbar.classList.contains('transparent'));
+      assert.isFalse(callOptions.classList.contains('transparent'));
       assert.isFalse(incomingContainer.classList.contains('displayed'));
     });
 
@@ -796,6 +818,9 @@ suite('call screen', function() {
       addEventListenerSpy = this.sinon.spy(statusMessage, 'addEventListener');
       removeEventListenerSpy =
         this.sinon.spy(statusMessage, 'removeEventListener');
+      this.sinon.stub(MockMozL10n, 'setAttributes', function(element, id) {
+        element.setAttribute('data-l10n-id', id);
+      });
 
       CallScreen.showStatusMessage('message');
     });
@@ -805,8 +830,10 @@ suite('call screen', function() {
     });
 
     test('should show the text', function() {
-      assert.equal(statusMessage.querySelector('p').textContent,
-                   'message');
+      assert.equal(
+        statusMessage.querySelector('p').getAttribute('data-l10n-id'),
+        'message'
+      );
     });
 
     suite('once the transition ends', function() {
@@ -839,50 +866,44 @@ suite('call screen', function() {
   });
 
   suite('showClock in screen locked status', function() {
-    var formatArgs = [],
-        currentDate,
-        fakeClockTime12 = '12:02 <span>PM</span>',
-        fakeClockTime24 = '13:14',
-        fakeDate = 'Monday, September 16';
-
-    setup(function() {
-      this.sinon.stub(navigator.mozL10n, 'DateTimeFormat', function() {
-        this.localeFormat = function(date, format) {
-          formatArgs.push(arguments);
-          if (format === 'shortTimeFormat12') {
-            return fakeClockTime12;
-          } else if (format === 'shortTimeFormat24') {
-            return fakeClockTime24;
-          }
-
-          return fakeDate;
-        };
-      });
-    });
-
     test('clock and date should display current date info', function() {
-      currentDate = new Date();
+      var currentDate = new Date();
+      window.navigator.mozHour12 = false;
       CallScreen.showClock(currentDate);
       var dateStr = CallScreen.lockedDate.textContent;
-      // The date parameter here should be equal to clock setup date.
-      assert.equal(formatArgs.length, 2);
-      assert.equal(formatArgs[0][0], currentDate);
-      assert.equal(formatArgs[1][0], currentDate);
-      assert.equal(dateStr, fakeDate);
+      var clockStr = CallScreen.lockedClockTime.textContent;
+
+      assert.equal(dateStr,
+        currentDate.toLocaleString(navigator.languages, {
+          weekday: 'long',
+          month: 'long',
+          day: 'numeric'
+        })
+      );
+
+      assert.equal(clockStr,
+        currentDate.toLocaleString(navigator.languages, {
+          hour12: navigator.mozHour12,
+          hour: 'numeric',
+          minute: 'numeric'
+        })
+      );
     });
 
     test('clock should display current 12 hour time info', function() {
+      var currentDate = new Date();
       window.navigator.mozHour12 = true;
       CallScreen.showClock(currentDate);
-      var clockTime = CallScreen.lockedClockTime.innerHTML;
-      assert.equal(clockTime, fakeClockTime12);
-    });
+      var clockStr = CallScreen.lockedClockTime.textContent;
+      var amPm = currentDate.toLocaleFormat('%p');
 
-    test('clock should display current 24 hour time info', function() {
-      window.navigator.mozHour12 = false;
-      CallScreen.showClock(currentDate);
-      var clockTime = CallScreen.lockedClockTime.innerHTML;
-      assert.equal(clockTime, fakeClockTime24);
+      var refStr = currentDate.toLocaleString(navigator.languages, {
+        hour12: navigator.mozHour12,
+        hour: 'numeric',
+        minute: 'numeric'
+      }).replace(amPm, '').trim();
+
+      assert.equal(clockStr, refStr);
     });
   });
 
@@ -891,11 +912,6 @@ suite('call screen', function() {
     var timeNode;
     setup(function() {
       this.sinon.useFakeTimers();
-
-      var self = this;
-      this.sinon.stub(performance, 'now', function() {
-        return self.sinon.clock.now.toFixed(3);
-      });
 
       durationNode = document.createElement('div');
       durationNode.className = 'duration';
@@ -913,8 +929,6 @@ suite('call screen', function() {
 
     test('createTicker should update timer every second', function() {
       this.sinon.spy(Utils, 'prettyDuration');
-      this.sinon.clock.tick(1000);
-      sinon.assert.calledWith(Utils.prettyDuration, timeNode, 1000);
       this.sinon.clock.tick(1000);
       sinon.assert.calledWith(Utils.prettyDuration, timeNode, 1000);
     });

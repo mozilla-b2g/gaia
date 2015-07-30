@@ -5,6 +5,7 @@
 from gaiatest import GaiaTestCase
 from gaiatest.apps.settings.app import Settings
 
+
 class TestColorFiltersAccessibility(GaiaTestCase):
 
     def setUp(self):
@@ -20,7 +21,7 @@ class TestColorFiltersAccessibility(GaiaTestCase):
         self.settings.launch()
 
     def test_a11y_color_filters(self):
-        accessibility_settings = self.settings.a11y_open_accessibility_settings()
+        accessibility_settings = self.settings.open_accessibility()
         colors_settings = accessibility_settings.a11y_open_color_settings()
 
         # make sure the actual settings are hidden
@@ -35,15 +36,11 @@ class TestColorFiltersAccessibility(GaiaTestCase):
         colors_settings.a11y_toggle_filters()
 
         # the color settings should show up now
+        self.wait_for_condition(lambda m: colors_settings.invert_switch_visible)
+        self.wait_for_condition(lambda m: colors_settings.grayscale_switch_visible)
         self.wait_for_condition(
             lambda m: self.accessibility.is_visible(self.marionette.find_element(
-            *colors_settings._invert_switch_locator)))
-        self.wait_for_condition(
-            lambda m: self.accessibility.is_visible(self.marionette.find_element(
-            *colors_settings._grayscale_switch_locator)))
-        self.wait_for_condition(
-            lambda m: self.accessibility.is_visible(self.marionette.find_element(
-            *colors_settings._contrast_slider_locator)))
+                *colors_settings._contrast_slider_locator)))
 
         colors_settings.a11y_toggle_invert()
 
@@ -67,9 +64,7 @@ class TestColorFiltersAccessibility(GaiaTestCase):
             lambda m: not self.data_layer.get_setting('layers.effect.grayscale'))
 
         # make sure the actual settings are hidden
-        self.assertTrue(self.accessibility.is_hidden(self.marionette.find_element(
-            *colors_settings._invert_switch_locator)))
-        self.assertTrue(self.accessibility.is_hidden(self.marionette.find_element(
-            *colors_settings._grayscale_switch_locator)))
+        self.assertTrue(colors_settings.invert_switch_hidden)
+        self.assertTrue(colors_settings.grayscale_switch_hidden)
         self.assertTrue(self.accessibility.is_hidden(self.marionette.find_element(
             *colors_settings._contrast_slider_locator)))

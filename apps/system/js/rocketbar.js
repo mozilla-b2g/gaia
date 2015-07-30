@@ -1,6 +1,6 @@
 'use strict';
 /* global eventSafety */
-/* global Service, SearchWindow, places, Promise */
+/* global Service, SearchWindow, places, Promise, UtilityTray */
 
 (function(exports) {
 
@@ -32,7 +32,6 @@
     this.clearBtn = document.getElementById('rocketbar-clear');
     this.results = document.getElementById('rocketbar-results');
     this.backdrop = document.getElementById('rocketbar-backdrop');
-    this.start();
   }
 
   Rocketbar.prototype = {
@@ -59,11 +58,13 @@
     },
 
     setHierarchy: function(active) {
+      this.searchWindow && this.searchWindow.setVisibleForScreenReader(active);
+    },
+
+    setFocus: function(active) {
       if (active) {
         this.focus();
       }
-      this.searchWindow &&
-      this.searchWindow.setVisibleForScreenReader(active);
       return true;
     },
 
@@ -75,6 +76,8 @@
       this.addEventListeners();
       this.enabled = true;
       Service.request('registerHierarchy', this);
+      Service.registerState('enabled', this);
+      Service.register('handleInput', this);
     },
 
     /**
@@ -90,7 +93,7 @@
         return Promise.reject();
       }
 
-      return new Promise(resolve => {
+      this._activateCall = new Promise(resolve => {
         if (this.active) {
           resolve();
           return;
@@ -108,6 +111,7 @@
         var waitOver = () => {
           if (searchLoaded && transitionEnded) {
             resolve();
+            this._activateCall = null;
             this.publish('-activated');
           }
         };
@@ -119,7 +123,7 @@
           waitOver();
         };
         backdrop.classList.remove('hidden');
-        eventSafety(backdrop, 'transitionend', finishTransition, 300);
+        eventSafety(backdrop, 'transitionend', finishTransition, 200);
 
         this.loadSearchApp().then(() => {
           if (this.input.value.length) {
@@ -130,6 +134,18 @@
         });
         this.publish('-activating');
       });
+
+      // Immediately hide if the utility tray is active.
+      // In the future we might be able to streamline this flow, but for now we
+      // need to ensure that all events are properly fired so that the chrome
+      // collapses. If for example we early exit, currently the chrome will
+      // not collapse.
+      if (UtilityTray.active || UtilityTray.shown) {
+        this._activateCall
+          .then(this._closeSearch.bind(this));
+      }
+
+      return this._activateCall;
     },
 
     /**
@@ -158,7 +174,7 @@
           window.dispatchEvent(new CustomEvent('rocketbar-overlayclosed'));
           self.publish('-deactivated');
           self.isClosing = false;
-        }, 300);
+        }, 200);
       };
 
       if (this.focused) {
@@ -187,9 +203,13 @@
       window.addEventListener('global-search-request', this);
       window.addEventListener('attentionopening', this);
       window.addEventListener('attentionopened', this);
+      window.addEventListener('activityrequesting', this);
       window.addEventListener('searchopened', this);
       window.addEventListener('searchclosed', this);
-      window.addEventListener('utility-tray-overlayopening', this);
+      window.addEventListener('utilitytray-overlayopening', this);
+      window.addEventListener('utility-tray-overlayopened', this);
+      window.addEventListener('simlockrequestfocus', this);
+      window.addEventListener('cardviewbeforeshow', this);
 
       // Listen for events from Rocketbar
       this.input.addEventListener('focus', this);
@@ -204,9 +224,15 @@
       window.addEventListener('iac-search-results', this);
     },
 
-    '_handle_system-resize': function() {
-      if (this.isActive() && this.searchWindow.frontWindow) {
-        this.searchWindow.frontWindow.resize();
+    '_handle_system-resize': function(evt) {
+      if (this.isActive()) {
+        var p = this.searchWindow &&
+          this.searchWindow.frontWindow &&
+          this.searchWindow.frontWindow.resize();
+
+        if (evt.detail && typeof evt.detail.waitUntil === 'function') {
+          evt.detail.waitUntil(p);
+        }
         return false;
       }
       return true;
@@ -240,8 +266,7 @@
           if (detail && detail.stayBackground) {
             return;
           }
-          this.hideResults();
-          this.deactivate();
+          this._closeSearch();
           break;
         case 'open-app':
           // Do not hide the searchWindow if we have a frontWindow.
@@ -256,9 +281,18 @@
         case 'attentionopened':
         case 'appforeground':
         case 'appopened':
-        case 'utility-tray-overlayopening':
-          this.hideResults();
-          this.deactivate();
+        case 'activityrequesting':
+        case 'simlockrequestfocus':
+        case 'cardviewbeforeshow':
+
+        // Hide rocketbar if the user opens the utility tray.
+        // The utility tray and rocketbar share the same space in the mental
+        // model - only one can be active at any given time. For consistency,
+        // any activities are also closed along with rocketbar when the
+        // utility tray is opened.
+        case 'utilitytray-overlayopening':
+        case 'utility-tray-overlayopened':
+          this._closeSearch();
           break;
         case 'lockscreen-appopened':
           this.handleLock(e);
@@ -278,8 +312,7 @@
           } else if (e.target == this.clearBtn) {
             this.clear();
           } else if (e.target == this.backdrop) {
-            this.hideResults();
-            this.deactivate();
+            this._closeSearch();
           }
           break;
         case 'searchterminated':
@@ -297,9 +330,7 @@
           }
           break;
         case 'global-search-request':
-          // XXX: fix the WindowManager coupling
-          // but currently the transition sequence is crucial for performance
-          var app = Service.currentApp;
+          var app = Service.query('AppWindowManager.getActiveWindow');
           var afterActivate;
 
           if (app && !app.isActive()) {
@@ -414,7 +445,9 @@
      * @memberof Rocketbar.prototype
      */
     focus: function() {
-      this.input.focus();
+      if (this.active) {
+        this.input.focus();
+      }
     },
 
     /**
@@ -438,10 +471,7 @@
      * @memberof Rocketbar.prototype
      */
     _handle_home: function() {
-      if (this.isActive()) {
-        this.hideResults();
-        this.deactivate();
-      }
+      this._closeSearch();
       return true;
     },
 
@@ -466,8 +496,7 @@
      * @memberof Rocketbar.prototype
      */
     handleLock: function() {
-      this.hideResults();
-      this.deactivate();
+      this._closeSearch();
     },
 
     /**
@@ -502,6 +531,20 @@
       return true;
     },
 
+    _closeSearch: function() {
+      var hideAndDeactivate = () => {
+        this.hideResults();
+        this.deactivate();
+      };
+
+      if (this._activateCall) {
+        this._activateCall
+          .then(hideAndDeactivate);
+      } else {
+        hideAndDeactivate();
+      }
+    },
+
     /**
      * Handle text input in Rocketbar.
      * @memberof Rocketbar.prototype
@@ -510,6 +553,11 @@
       var input = this.input.value;
 
       this.rocketbar.classList.toggle('has-text', input.length);
+
+      if (UtilityTray.active || UtilityTray.shown) {
+        this._closeSearch();
+        return;
+      }
 
       if (!input && !this.results.classList.contains('hidden')) {
         this.hideResults();
@@ -524,7 +572,8 @@
         this._port.postMessage({
           action: 'change',
           input: input,
-          isPrivateBrowser: Service.currentApp.isPrivateBrowser()
+          isPrivateBrowser:
+            Service.query('AppWindowManager.getActiveWindow').isPrivateBrowser()
         });
       }
     },
@@ -535,8 +584,7 @@
      */
     handleCancel: function(e) {
       this.setInput('');
-      this.hideResults();
-      this.deactivate();
+      this._closeSearch();
     },
 
     /**
@@ -548,6 +596,8 @@
     handleSubmit: function(e) {
       e.preventDefault();
 
+      this.input.blur();
+
       if (this.results.classList.contains('hidden')) {
         this.showResults();
       }
@@ -558,7 +608,8 @@
       });
 
       // Do not persist search submissions from private windows.
-      if (Service.currentApp.isPrivateBrowser()) {
+      if (Service.query('AppWindowManager.getActiveWindow')
+                 .isPrivateBrowser()) {
         this.setInput('');
       }
     },
@@ -585,8 +636,7 @@
         return;
       }
 
-      this.hideResults();
-      this.deactivate();
+      this._closeSearch();
 
       this.searchWindow = null;
       this._port = null;
@@ -659,8 +709,7 @@
           places.screenshotRequested(e.detail.url);
           break;
         case 'hide':
-          this.hideResults();
-          this.deactivate();
+          this._closeSearch();
           break;
       }
     },

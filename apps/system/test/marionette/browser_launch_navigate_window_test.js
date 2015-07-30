@@ -7,15 +7,7 @@ var Rocketbar = require('./lib/rocketbar');
 marionette('Browser - Launch a URL navigates the same window',
   function() {
 
-  var client = marionette.client({
-    prefs: {
-      'dom.w3c_touch_events.enabled': 1
-    },
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
-    }
-  });
+  var client = marionette.client();
 
   var home, rocketbar, search, server, system;
 
@@ -35,7 +27,7 @@ marionette('Browser - Launch a URL navigates the same window',
     rocketbar = new Rocketbar(client);
     search = client.loader.getAppClass('search');
     system = client.loader.getAppClass('system');
-    system.waitForStartup();
+    system.waitForFullyLoaded();
   });
 
   test('opens a new sheet with window.open()', function() {
@@ -43,7 +35,7 @@ marionette('Browser - Launch a URL navigates the same window',
 
     // Open the first URL in a sheet.
     rocketbar.homescreenFocus();
-    rocketbar.enterText(url + '\uE006');
+    rocketbar.enterText(url, true);
 
     // Switch to the app, and navigate to a different url.
     system.gotoBrowser(url);
@@ -54,7 +46,7 @@ marionette('Browser - Launch a URL navigates the same window',
     // Navigate to a page (just a fixture we have sitting around.)
     var nextUrl = server.url('darkpage.html');
     system.appUrlbar.tap();
-    rocketbar.enterText(nextUrl + '\uE006');
+    rocketbar.enterText(nextUrl, true);
     system.gotoBrowser(nextUrl);
 
     // Validate that we have the same number of apps.

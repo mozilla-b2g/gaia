@@ -17,8 +17,17 @@ define(function(require) {
         if (i) {
           frag.appendChild(document.createElement('br'));
         }
-        frag.appendChild(document.createTextNode(lines[i]));
+
+        if (lines[i]) {
+          frag.appendChild(document.createTextNode(lines[i]));
+        }
       }
+
+      // Need at least one text node for tapping and keyboard display to work.
+      if (!frag.childNodes.length) {
+        frag.appendChild(document.createTextNode(''));
+      }
+
       this._editorNode.appendChild(frag);
     },
 

@@ -35,7 +35,7 @@ define(function(require) {
      *
      * @access private
      * @memberOf ApnSelections.prototype
-     * @returns {Promise Array}
+     * @returns {Promise.<Array>}
      */
     _export: function as__export() {
       return this._apnSelections.map(function(apnSelection) {
@@ -156,7 +156,7 @@ define(function(require) {
      * @access public
      * @memberOf ApnSelections.prototype
      * @params {Number} serviceId
-     * @returns {Promise Observable}
+     * @returns {Promise.<Observable>}
      */
     get: function as_get(serviceId) {
       return this._ready().then(function() {

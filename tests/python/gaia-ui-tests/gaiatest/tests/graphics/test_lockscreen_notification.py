@@ -2,7 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from marionette.wait import Wait
+from marionette_driver import Wait
 
 from gaiatest.apps.lockscreen.app import LockScreen
 from gaiatest.gaia_graphics_test import GaiaImageCompareTestCase
@@ -38,7 +38,8 @@ class TestLockScreen(GaiaImageCompareTestCase):
         Wait(self.marionette).until(lambda m: len(lock_screen.notifications) == 3)
 
         # wait until device is off and turn back on
-        Wait(self.marionette, timeout=20).until(
+        self.device.turn_screen_off()
+        Wait(self.marionette).until(
             lambda m: not self.device.is_screen_enabled)
         self.device.turn_screen_on()
         self.take_screenshot()

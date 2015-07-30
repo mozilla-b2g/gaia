@@ -46,12 +46,31 @@
         return;
       }
 
+      var allSIMCardDetected = true;
       this._conns.forEach(function iterator(conn, index) {
-        this._instances.push(new SIMSlot(conn, index,
-                             IccManager.getIccById(conn.iccId)));
+        var slot = new SIMSlot(conn, index,
+                               IccManager.getIccById(conn.iccId));
+        this._instances.push(slot);
+        if (slot.isAbsent()) {
+          allSIMCardDetected = false;
+        }
       }, this);
 
+      if (allSIMCardDetected) {
+        this.publishSIMSlotIsReady();
+      } else if (this.isMultiSIM() && this.hasOnlyOneSIMCardDetected()) {
+        // we are now in DSDS device with one simcard detected.
+        this.waitForSecondSIM();
+      }
+
+      // 'iccdetected' shall always be listened to even when 
+      // 'allSIMCardDetected' is set to true. In addition to detect UICC after
+      // device boot up, we also rely on this event to update the new Icc 
+      // Object created from IccManager to corresponding SIMSlot when user 
+      // toggles airplane mode ON/OFF.
       IccManager.addEventListener('iccdetected', this);
+      // to notify we are inited
+      window.dispatchEvent(new CustomEvent('simslotmanagerstarted'));
     },
 
     /**

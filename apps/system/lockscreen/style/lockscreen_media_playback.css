@@ -9,12 +9,17 @@
 }
 
 #lockscreen .media-playback-nowplaying {
+  display: table;
+  table-layout: fixed;
+  width: 100%;
   height: 2.4rem;
 }
 
 #lockscreen .media-playback-nowplaying > .track {
-  padding: 1rem 1.5rem 0 1.5rem;
-  font: italic 1.4rem/1.4rem auto;
+  display: table-cell;
+  vertical-align: bottom;
+  padding: 0 1.5rem;
+  font: italic 1.4rem auto;
   text-align: center;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -55,7 +60,8 @@
 }
 
 #lockscreen .media-playback-controls > div {
-  transition: 0s 0.3s; /* Delay transition post tap by some milliseconds. */
+  /* Delay transition post tap by some milliseconds. */
+  transition: 0s var(--transition-duration);
 }
 
 [role="dialog"] #lockscreen .media-playback-controls > div:active,

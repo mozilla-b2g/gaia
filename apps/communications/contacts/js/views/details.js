@@ -1,20 +1,27 @@
 'use strict';
+
 /* jshint nonew: false */
+
 /* global ActivityHandler */
 /* global COMMS_APP_ORIGIN */
 /* global Contacts */
 /* global ContactsButtons */
 /* global ContactPhotoHelper */
+/* globals ContactToVcardBlob */
 /* global fb */
+/* global NFC */
+/* global ICEData */
 /* global LazyLoader */
+/* global MozActivity */
 /* global Normalizer */
 /* global SCALE_RATIO */
-/* global WebrtcClient */
-/* global utils */
 /* global TAG_OPTIONS */
-/* global ICEData */
-/* globals ContactToVcardBlob, VcardFilename */
-/* global MozActivity */
+/* global utils */
+/* global VcardFilename */
+/* global MatchService */
+/* global WebrtcClient */
+/* global MainNavigation */
+/* global ContactsService */
 
 var contacts = window.contacts || {};
 
@@ -28,6 +35,7 @@ contacts.Details = (function() {
       contactDetails,
       listContainer,
       detailsName,
+      detailsNameText,
       orgTitle,
       datesTemplate,
       addressesTemplate,
@@ -45,12 +53,6 @@ contacts.Details = (function() {
       header,
       _;
 
-  var socialButtonIds = [
-    '#profile_button',
-    '#wall_button',
-    '#msg_button'
-  ];
-
   var init = function cd_init(currentDom) {
     _ = navigator.mozL10n.get;
     dom = currentDom || document;
@@ -58,6 +60,7 @@ contacts.Details = (function() {
     contactDetails = dom.querySelector('#contact-detail');
     listContainer = dom.querySelector('#details-list');
     detailsName = dom.querySelector('#contact-name-title');
+    detailsNameText = dom.querySelector('#contact-name-title bdi');
     orgTitle = dom.querySelector('#org-title');
     datesTemplate = dom.querySelector('#dates-template-\\#i\\#');
     addressesTemplate = dom.querySelector('#address-details-template-\\#i\\#');
@@ -69,20 +72,13 @@ contacts.Details = (function() {
     favoriteMessage = dom.querySelector('#toggle-favorite');
     notesTemplate = dom.querySelector('#note-details-template-\\#i\\#');
 
-    window.addEventListener('online', checkOnline);
-    window.addEventListener('offline', checkOnline);
-
     initPullEffect(cover);
 
-    utils.listeners.add({
-      '#toggle-favorite': toggleFavorite,
-      '#details-view-header': [
-        {
-          event: 'action',
-          handler: handleDetailsBack
-        }
-      ],
-      '#edit-contact-button': showEditContact
+    // to avoid race conditions with NFC, we load it before handleDetails
+    LazyLoader.load('/contacts/js/nfc.js', () => {
+      favoriteMessage.addEventListener('click', toggleFavorite);
+      editContactButton.addEventListener('click', showEditContact);
+      header.addEventListener('action', handleDetailsBack);
     });
 
     ContactsButtons.init(listContainer, contactDetails, ActivityHandler);
@@ -102,10 +98,8 @@ contacts.Details = (function() {
   };
 
   var handleDetailsBack = function handleDetailsBack() {
-    // disable NFC listeners if NFC is available
-    if ('mozNfc' in navigator) {
-      contacts.NFC.stopListening();
-    }
+    // disable NFC listeners when going out of Details view
+    stopNFC();
 
     if (WebrtcClient) {
       getWebrtcClientResources(WebrtcClient.stop);
@@ -113,12 +107,12 @@ contacts.Details = (function() {
 
     if (ActivityHandler.currentActivityIsNot(['import'])) {
       ActivityHandler.postCancel();
-      Contacts.navigation.home();
+      MainNavigation.home();
     }
     else if (contacts.ICEView && contacts.ICEView.iceListDisplayed) {
       ICEData.getActiveIceContacts().then(function(list) {
         if (!Array.isArray(list) || list.length === 0) {
-          Contacts.navigation.home();
+          MainNavigation.home();
         }
         else {
           doHandleDetailsBack();
@@ -140,16 +134,32 @@ contacts.Details = (function() {
       var message = { 'type': 'contactsiframe', 'message': 'back' };
       window.parent.postMessage(message, COMMS_APP_ORIGIN);
     } else {
-      Contacts.navigation.back(resetPhoto);
+      MainNavigation.back(resetPhoto);
     }
   };
 
   var showEditContact = function showEditContact() {
+    // Disable NFC listeners when editing a contact
+    stopNFC();
     Contacts.showForm(true, contactData);
   };
 
   var setContact = function cd_setContact(currentContact) {
     contactData = currentContact;
+    startNFC(currentContact);
+  };
+
+  // Needed for now because of external call from contacts.js
+  var startNFC = function(contact) {
+    LazyLoader.load('/contacts/js/nfc.js', () => {
+      NFC.startListening(contact);
+    });
+  };
+
+  var stopNFC = function() {
+    LazyLoader.load('/contacts/js/nfc.js', () => {
+      NFC.stopListening();
+    });
   };
 
   var initPullEffect = function cd_initPullEffect(cover) {
@@ -204,12 +214,16 @@ contacts.Details = (function() {
 
   // readOnly tells us if we should allow editing the rendered contact.
   var render = function cd_render(currentContact, fbContactData, readOnly) {
+
     if(isAFavoriteChange){
       isAFavoriteChange = false;
       return Promise.resolve(isAFavoriteChange);
     }
 
+
     contactData = currentContact || contactData;
+
+    startNFC(contactData);
 
     isFbContact = fb.isFbContact(contactData);
     isFbLinked = fb.isFbLinked(contactData);
@@ -274,7 +288,7 @@ contacts.Details = (function() {
   // Method that generates HTML markup for the contact
   //
   var doReloadContactDetails = function doReloadContactDetails(contact) {
-    detailsName.textContent = getDisplayName(contact);
+    detailsNameText.textContent = getDisplayName(contact);
     contactDetails.classList.remove('no-photo');
     contactDetails.classList.remove('fb-contact');
     contactDetails.classList.remove('up');
@@ -293,9 +307,8 @@ contacts.Details = (function() {
     renderDates(contact);
 
     renderNotes(contact);
-    if (fb.isEnabled) {
-      renderSocial(contact);
-    }
+
+    renderShareButton(contact);
 
     if (!fb.isFbContact(contact) || fb.isFbLinked(contact)) {
       renderDuplicate(contact);
@@ -307,11 +320,8 @@ contacts.Details = (function() {
   var renderFavorite = function cd_renderFavorite(contact) {
     var favorite = isFavorite(contact);
     toggleFavoriteMessage(favorite);
-    if (contact.category && contact.category.indexOf('favorite') != -1) {
-      detailsName.classList.add('favorite');
-    } else {
-      detailsName.classList.remove('favorite');
-    }
+
+    header.classList.toggle('favorite', !!favorite);
   };
 
   var isFavorite = function isFavorite(contact) {
@@ -341,34 +351,39 @@ contacts.Details = (function() {
     favoriteMessage.style.pointerEvents = 'none';
 
     var promise = new Promise(function(resolve, reject) {
-      var request =
-        navigator.mozContacts.save(utils.misc.toMozContact(contact));
-      request.onsuccess = function onsuccess() {
-        isAFavoriteChange = true;
-        var cList = contacts.List;
-        /*
-           Two contacts are returned because the enrichedContact is readonly
-           and if the Contact is edited we need to prevent saving
-           FB data on the mozContacts DB.
-        */
-         cList.getContactById(contact.id,
-                             function onSuccess(savedContact, enrichedContact) {
-          renderFavorite(savedContact);
-          setContact(savedContact);
-          favoriteMessage.style.pointerEvents = 'auto';
-        }, function onError() {
-          console.error('Error reloading contact');
-          favoriteMessage.style.pointerEvents = 'auto';
-        });
-        resolve(isAFavoriteChange);
-      };
+      ContactsService.save(
+        utils.misc.toMozContact(contact),
+        function(e) {
+          if (e) {
+            favoriteMessage.style.pointerEvents = 'auto';
+            console.error('Error saving favorite');
+            reject('Error saving favorite');
+            resolve(false);
+            return;
+          }
 
-      request.onerror = function onerror() {
-        favoriteMessage.style.pointerEvents = 'auto';
-        console.error('Error saving favorite');
-        reject('Error saving favorite');
-        resolve(false);
-      };
+          isAFavoriteChange = true;
+          /*
+             Two contacts are returned because the enrichedContact is readonly
+             and if the Contact is edited we need to prevent saving
+             FB data on the mozContacts DB.
+          */
+
+          ContactsService.get(
+            contact.id,
+            function onSuccess(savedContact, enrichedContact) {
+              renderFavorite(savedContact);
+              setContact(savedContact);
+              favoriteMessage.style.pointerEvents = 'auto';
+            },
+            function onError() {
+              console.error('Error reloading contact');
+              favoriteMessage.style.pointerEvents = 'auto';
+            }
+          );
+          resolve(isAFavoriteChange);
+        }
+      );
     }).then();
 
     return promise;
@@ -384,9 +399,9 @@ contacts.Details = (function() {
   var renderOrg = function cd_renderOrg(contact) {
     if (contact.org && contact.org.length > 0 && contact.org[0] !== '') {
       orgTitle.textContent = contact.org[0];
-      orgTitle.className = '';
+      orgTitle.classList.remove('hide');
     } else {
-      orgTitle.className = 'hide';
+      orgTitle.classList.add('hide');
       orgTitle.textContent = '';
     }
   };
@@ -423,68 +438,18 @@ contacts.Details = (function() {
     }
   };
 
-  var renderSocial = function cd_renderSocial(contact) {
-    var linked = isFbLinked;
-
-    var action = linked ? _('social-unlink') : _('social-link');
-    var slinked = linked ? 'false' : 'true';
-
+  var renderShareButton = function cd_renderShareButton(contact) {
     var social = utils.templates.render(socialTemplate, {
-      i: contact.id,
-      action: action,
-      linked: slinked
+      i: contact.id
     });
     currentSocial = social;
-    var linkButton = social.querySelector('#link_button');
     var shareButton = social.querySelector('#share_button');
 
     shareButton.addEventListener('click', shareContact);
-
-    if (!isFbContact) {
-      socialButtonIds.forEach(function check(id) {
-        var button = social.querySelector(id);
-        if (button) {
-          button.classList.add('hide');
-        }
-      });
-      // Checking whether link should be enabled or not
-      doDisableButton(linkButton);
-      shareButton.classList.remove('hide');
-    } else {
-        var socialLabel = social.querySelector('#social-label');
-        if (socialLabel) {
-          socialLabel.setAttribute('data-l10n-id', 'facebook');
-        }
-        shareButton.classList.add('hide');
-    }
-
-    // If it is a FB Contact but not linked unlink must be hidden
-    if (isFbContact && !linked) {
-      linkButton.classList.add('hide');
-    }
-
-    Contacts.extServices.initEventHandlers(social, contact, linked);
+    shareButton.classList.remove('hide');
 
     listContainer.appendChild(social);
   };
-
-  var checkOnline = function() {
-    var socialTemplate = document.querySelector(
-                                        ':not([data-template])[data-social]');
-
-    if (socialTemplate && !isFbContact) {
-      doDisableButton(socialTemplate.querySelector('#link_button'));
-    }
-  };
-
-  function doDisableButton(buttonElement) {
-    if (navigator.onLine === true) {
-      buttonElement.removeAttribute('disabled');
-    }
-    else {
-      buttonElement.setAttribute('disabled', 'disabled');
-    }
-  }
 
   var renderWebrtcClient = function renderWebrtcClient(contact) {
     getWebrtcClientResources(function onLoaded() {
@@ -496,36 +461,41 @@ contacts.Details = (function() {
     if (!contact.adr) {
       return;
     }
-    for (var i = 0; i < contact.adr.length; i++) {
-      var currentAddress = contact.adr[i];
-      // Sanity check
-      if (Contacts.isEmpty(currentAddress, ['streetAddress', 'postalCode',
-        'locality', 'countryName'])) {
-        continue;
-      }
-      var address = currentAddress.streetAddress || '';
-      var escapedStreet = Normalizer.escapeHTML(address, true);
-      var locality = currentAddress.locality;
-      var escapedLocality = Normalizer.escapeHTML(locality, true);
-      var escapedType = Normalizer.escapeHTML(currentAddress.type, true);
-      var country = currentAddress.countryName || '';
-      var escapedCountry = Normalizer.escapeHTML(country, true);
-      var postalCode = currentAddress.postalCode || '';
-      var escapedPostalCode = Normalizer.escapeHTML(postalCode, true);
+    // Load what we need
+    LazyLoader.load('/contacts/js/utilities/mozContact.js', function() {
+      for (var i = 0; i < contact.adr.length; i++) {
+        var currentAddress = contact.adr[i];
+        // Sanity check
+        if (utils.mozContact.haveEmptyFields(currentAddress,
+            ['streetAddress', 'postalCode', 'locality', 'countryName'])) {
+          continue;
+        }
+        var address = currentAddress.streetAddress || '';
+        var escapedStreet = Normalizer.escapeHTML(address, true);
+        var locality = currentAddress.locality;
+        var escapedLocality = Normalizer.escapeHTML(locality, true);
+        var escapedType = Normalizer.escapeHTML(currentAddress.type, true);
+        var country = currentAddress.countryName || '';
+        var escapedCountry = Normalizer.escapeHTML(country, true);
+        var postalCode = currentAddress.postalCode || '';
+        var escapedPostalCode = Normalizer.escapeHTML(postalCode, true);
 
-      var addressField = {
-        streetAddress: escapedStreet,
-        postalCode: escapedPostalCode,
-        locality: escapedLocality || '',
-        countryName: escapedCountry,
-        type: _(escapedType) || escapedType ||
-                                        TAG_OPTIONS['address-type'][0].value,
-        'type_l10n_id': currentAddress.type,
-        i: i
-      };
-      var template = utils.templates.render(addressesTemplate, addressField);
-      listContainer.appendChild(template);
-    }
+        var addressField = {
+          streetAddress: escapedStreet,
+          postalCode: escapedPostalCode,
+          locality: escapedLocality || '',
+          countryName: escapedCountry,
+          type: _(escapedType) || escapedType ||
+                                          TAG_OPTIONS['address-type'][0].value,
+          'type_l10n_id': currentAddress.type,
+          i: i
+        };
+        var template = utils.templates.render(addressesTemplate, addressField);
+        listContainer.appendChild(template);
+      }
+    });
+
+
   };
 
   var renderDuplicate = function cd_renderDuplicate(contact) {
@@ -537,7 +507,7 @@ contacts.Details = (function() {
       // Only have this active if contact list has more than one entry
       findMergeButton.disabled = false;
       findMergeButton.addEventListener('click', function finding() {
-        Contacts.extServices.match(contact.id);
+        MatchService.match(contact.id);
       });
     }
 
@@ -601,14 +571,14 @@ contacts.Details = (function() {
     if (photo) {
       var currentHash = cover.dataset.imgHash;
       if (!currentHash) {
-        Contacts.updatePhoto(photo, cover);
+        utils.dom.updatePhoto(photo, cover);
         updateHash(photo, cover);
       }
       else {
         // Need to recalculate the hash and see whether the images changed
         calculateHash(photo, function(newHash) {
           if (currentHash !== newHash) {
-            Contacts.updatePhoto(photo, cover);
+            utils.dom.updatePhoto(photo, cover);
             cover.dataset.imgHash = newHash;
           }
           else {
@@ -652,13 +622,14 @@ contacts.Details = (function() {
 
     LazyLoader.load(VCARD_DEPS,function vcardLoaded() {
       ContactToVcardBlob([contactData], function blobReady(vcardBlob) {
+        var filename = VcardFilename(contactData);
         new MozActivity({
           name: 'share',
           data: {
             type: 'text/vcard',
             number: 1,
-            blobs: [vcardBlob],
-            filenames: [VcardFilename(contactData)]
+            blobs: [new window.File([vcardBlob], filename)],
+            filenames: [filename]
           }
         });
         // The MIME of the blob should be this for some MMS gateways
@@ -671,6 +642,7 @@ contacts.Details = (function() {
     'setContact': setContact,
     'toggleFavorite': toggleFavorite,
     'render': render,
-    'defaultTelType' : DEFAULT_TEL_TYPE
+    'defaultTelType': DEFAULT_TEL_TYPE,
+    'startNFC': startNFC
   };
 })();

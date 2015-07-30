@@ -101,6 +101,24 @@
     },
 
     /**
+     * Registers listener function to be executed only first time when event
+     * occurs.
+     * @param {string} eventName Name of the event to listen for.
+     * @param {function} handler Handler to be executed once event occurs.
+     */
+    once: function(eventName, handler) {
+      ensureValidHandler(handler);
+
+      var once = (parameters) => {
+        eventDispatcher.off.call(this, eventName, once);
+
+        handler(parameters);
+      };
+
+      eventDispatcher.on.call(this, eventName, once);
+    },
+
+    /**
      * Removes registered listener for the specified event.
      * @param {string} eventName Name of the event to remove listener for.
      * @param {function} handler Handler to remove, so it won't be executed

@@ -1,7 +1,7 @@
 /* globals LockScreenConnInfoManager, MobileOperator, MockMobileconnection,
            MockMobileOperator, MockNavigatorMozIccManager,
-           MockNavigatorSettings, MockSettingsListener, MockSIMSlot,
-           MockSIMSlotManager, SIMSlotManager */
+           MockNavigatorSettings, MockSIMSlot, MockSIMSlotManager, MocksHelper,
+           SIMSlotManager */
 'use strict';
 
 require('/shared/test/unit/mocks/mock_l10n.js');
@@ -14,66 +14,65 @@ require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/js/lockscreen_connection_info_manager.js');
 
-if (!window.MobileOperator) {
-  window.MobileOperator = null;
-}
-
-if (!window.SettingsListener) {
-  window.SettingsListener = null;
-}
-
-if (!window.SIMSlotManager) {
-  window.SIMSlotManager = null;
-}
+var mocksHelperForLockScreenConnInfoManager = new MocksHelper([
+  'MobileOperator',
+  'SettingsListener',
+  'SIMSlotManager'
+]).init();
 
 suite('system/LockScreenConnInfoManager >', function() {
   var subject;
   var realL10n;
-  var realMobileOperator;
-  var realSIMSlotManager;
   var realIccManager;
-  var realSettingsListener;
   var realMozSettings;
   var domConnStates;
   var DUMMYTEXT1 = 'foo';
 
-  setup(function() {
+  mocksHelperForLockScreenConnInfoManager.attachTestHelpers();
+
+  suiteSetup(function() {
     realL10n = navigator.mozL10n;
     navigator.mozL10n = window.MockL10n;
-
-    realMobileOperator = window.MobileOperator;
-    window.MobileOperator = MockMobileOperator;
 
     realIccManager = navigator.mozIccManager;
     navigator.mozIccManager = MockNavigatorMozIccManager;
 
     realMozSettings = window.navigator.mozSettings;
-    window.navigator.mozSettings = MockNavigatorSettings;
-
-    realSettingsListener = window.SettingsListener;
-    window.SettingsListener = MockSettingsListener;
-
-    realSIMSlotManager = window.SIMSlotManager;
-    window.SIMSlotManager = MockSIMSlotManager;
-
-    domConnStates = document.createElement('div');
-    domConnStates.id = 'lockscreen-conn-states';
-    document.body.appendChild(domConnStates);
-  });
-
-  teardown(function() {
-    navigator.mozL10n = realL10n;
-    window.MobileOperator = realMobileOperator;
-    window.navigator.mozIccManager = realIccManager;
-    window.SettingsListener = realSettingsListener;
-    window.SIMSlotManager = realSIMSlotManager;
-
-    document.body.removeChild(domConnStates);
-    MockSettingsListener.mTeardown();
+    navigator.mozSettings = MockNavigatorSettings;
   });
 
   suiteTeardown(function() {
-    MockSIMSlotManager.mTeardown();
+    navigator.mozL10n = realL10n;
+    navigator.mozIccManager = realIccManager;
+    navigator.mozSettings = realMozSettings;
+  });
+
+  setup(function() {
+    MockNavigatorSettings.mSetup();
+
+    domConnStates = document.createElement('div');
+    domConnStates.id = 'lockscreen-conn-states';
+  });
+
+  teardown(function() {
+    MockNavigatorMozIccManager.mTeardown();
+    MockNavigatorSettings.mTeardown();
+  });
+
+  suite('Initialization', function() {
+    setup(function() {
+      subject = new LockScreenConnInfoManager();
+    });
+
+    teardown(function() {
+      subject.teardown();
+    });
+
+    test('Ensure that the UI is immediately updated when starting', function() {
+      this.sinon.spy(subject, 'updateConnStates');
+      subject._initialize(domConnStates);
+      sinon.assert.calledOnce(subject.updateConnStates);
+    });
   });
 
   suite('Update conn states when events', function() {
@@ -82,7 +81,9 @@ suite('system/LockScreenConnInfoManager >', function() {
 
     suiteSetup(function() {
       mockMobileConnection = MockMobileconnection();
+    });
 
+    setup(function() {
       MockMobileOperator.mOperator = 'operator';
       MockMobileOperator.mCarrier = 'carrier';
       MockMobileOperator.mRegion = 'region';
@@ -90,13 +91,7 @@ suite('system/LockScreenConnInfoManager >', function() {
       MockSIMSlotManager.mInstances =
         [new MockSIMSlot(mockMobileConnection, 0)];
       iccObj = MockSIMSlotManager.mInstances[0].simCard;
-    });
 
-    suiteTeardown(function() {
-      MockMobileOperator.mTeardown();
-    });
-
-    setup(function() {
       // add a sim card
       mockMobileConnection.iccId = 'iccid1';
       mockMobileConnection.voice = {};
@@ -113,8 +108,8 @@ suite('system/LockScreenConnInfoManager >', function() {
     });
 
     teardown(function() {
+      subject.teardown();
       mockMobileConnection.mTeardown();
-      MockNavigatorMozIccManager.mTeardown();
       subject.updateConnStates.restore();
       subject.updateConnState.restore();
     });
@@ -174,7 +169,9 @@ suite('system/LockScreenConnInfoManager >', function() {
 
     suiteSetup(function() {
       mockMobileConnection = MockMobileconnection();
+    });
 
+    setup(function() {
       MockMobileOperator.mOperator = 'operator';
       MockMobileOperator.mCarrier = 'carrier';
       MockMobileOperator.mRegion = 'region';
@@ -183,19 +180,12 @@ suite('system/LockScreenConnInfoManager >', function() {
         [new MockSIMSlot(mockMobileConnection, 0)];
       iccObj = MockSIMSlotManager.mInstances[0].simCard;
 
-      subject = new LockScreenConnInfoManager();
-    });
-
-    suiteTeardown(function() {
-      MockMobileOperator.mTeardown();
-    });
-
-    setup(function() {
       // add a sim card
       mockMobileConnection.iccId = 'iccid1';
       mockMobileConnection.voice = {};
       MockNavigatorMozIccManager.addIcc('iccid1');
 
+      subject = new LockScreenConnInfoManager();
       subject._initialize(domConnStates);
 
       var domConnState = domConnStates.children[0];
@@ -208,8 +198,8 @@ suite('system/LockScreenConnInfoManager >', function() {
     });
 
     teardown(function() {
+      subject.teardown();
       mockMobileConnection.mTeardown();
-      MockNavigatorMozIccManager.mTeardown();
     });
 
     test('2G Mode: should update cell broadcast info on connstate Line 2',
@@ -375,7 +365,9 @@ suite('system/LockScreenConnInfoManager >', function() {
         MockMobileconnection(),
         MockMobileconnection()
       ];
+    });
 
+    setup(function() {
       MockMobileOperator.mOperator = 'operator';
       MockMobileOperator.mCarrier = 'carrier';
       MockMobileOperator.mRegion = 'region';
@@ -387,14 +379,6 @@ suite('system/LockScreenConnInfoManager >', function() {
       iccObj1 = MockSIMSlotManager.mInstances[0].simCard;
       iccObj2 = MockSIMSlotManager.mInstances[1].simCard;
 
-      subject = new LockScreenConnInfoManager();
-    });
-
-    suiteTeardown(function() {
-      MockMobileOperator.mTeardown();
-    });
-
-    setup(function() {
       mockMobileConnections[0].iccId = 'iccid1';
       mockMobileConnections[0].voice = {};
       MockNavigatorMozIccManager.addIcc('iccid1');
@@ -403,6 +387,7 @@ suite('system/LockScreenConnInfoManager >', function() {
       mockMobileConnections[1].voice = {};
       MockNavigatorMozIccManager.addIcc('iccid2');
 
+      subject = new LockScreenConnInfoManager();
       subject._initialize(domConnStates);
 
       domConnStateList = [];
@@ -418,9 +403,9 @@ suite('system/LockScreenConnInfoManager >', function() {
     });
 
     teardown(function() {
+      subject.teardown();
       mockMobileConnections[0].mTeardown();
       mockMobileConnections[1].mTeardown();
-      MockNavigatorMozIccManager.mTeardown();
     });
 
     suite('No sim card', function() {

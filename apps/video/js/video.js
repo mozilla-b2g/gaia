@@ -1,3 +1,10 @@
+/* global VideoLoadingChecker,stopParsingMetadata,startParsingMetadata,
+  ManifestHelper,ThumbnailItem,ThumbnailList,ThumbnailDateGroup,initDB,
+  ForwardRewindController,ScreenLayout,processingQueue,VideoUtils,MediaUtils,
+  MozActivity,MediaDB,metadataQueue,processingQueue,LazyLoader,Dialogs,
+  captureFrame,VideoStats,noMoreWorkCallback:true */
+/* exported resetCurrentVideo,updateLoadingSpinner,thumbnailClickHandler,
+  showThrobber,hideThrobber,$ */
 'use strict';
 
 // Layout Mode Transition:
@@ -21,7 +28,7 @@ var ids = ['thumbnail-list-title', 'thumbnails', 'thumbnails-video-button',
            'info-view', 'info-close-button', 'player', 'overlay',
            'overlay-title', 'overlay-text', 'overlay-menu',
            'overlay-action-button', 'player-header', 'video-container',
-           'videoControls', 'videoBar', 'videoControlBar', 'close', 'play',
+           'videoBar', 'videoControlBar', 'close', 'play',
            'playHead', 'timeSlider', 'elapsedTime', 'video-title',
            'duration-text', 'elapsed-text', 'bufferedTime', 'slider-wrapper',
            'throbber', 'picker-close', 'picker-title', 'picker-header',
@@ -36,14 +43,12 @@ ids.forEach(function createElementRef(name) {
 dom.player.mozAudioChannelType = 'content';
 
 function $(id) { return document.getElementById(id); }
+
 var playing = false;
 
 // if this is true then the video tag is showing
 // if false, then the gallery is showing
 var playerShowing = false;
-
-// keep the screen on when playing
-var endedTimer;
 
 // same thing for the controls
 var controlShowing = false;
@@ -97,8 +102,6 @@ var pendingUpdateTitleText = false;
 // Videos recorded by our own camera have filenames of this form
 var FROMCAMERA = /DCIM\/\d{3}MZLLA\/VID_\d{4}\.3gp$/;
 
-var videoControlsAutoHidingMsOverride;
-
 // We have a single instance of the loading checker because it is used
 // across functions
 var loadingChecker =
@@ -115,6 +118,16 @@ document.addEventListener('visibilitychange', function visibilityChange() {
   }
   else {
     if (playerShowing) {
+      // Bug 1151775
+      // If the app is coming to the foreground before a sharing activity is
+      // complete, restore the video (the video will have been released before
+      // initiating the sharing activity and is only restored when the sharing
+      // activity is completed). When the sharing activity is complete and
+      // restoreVideo is again called, the restoreVideo function takes care of
+      // not restoring the video when it doesn't need to be restored.
+      if (videoHardwareReleased) {
+        restoreVideo();
+      }
       setControlsVisibility(true);
     } else {
       // We only start parsing metadata when player is not shown.
@@ -127,13 +140,11 @@ navigator.mozL10n.once(function() {
 
   // Tell performance monitors that our chrome is visible
   window.performance.mark('navigationLoaded');
-  window.dispatchEvent(new CustomEvent('moz-chrome-dom-loaded'));
 
   init();
 
   // Tell performance monitors that our chrome is ready to interact with.
   window.performance.mark('navigationInteractive');
-  window.dispatchEvent(new CustomEvent('moz-chrome-interactive'));
 });
 
 // we don't need to wait for l10n ready to have correct css layout.
@@ -153,9 +164,6 @@ if (!isPhone) {
 
 function init() {
   thumbnailList = new ThumbnailList(ThumbnailDateGroup, dom.thumbnails);
-  // configure the template id for template group and view.
-  ThumbnailDateGroup.Template = new Template('thumbnail-group-header');
-  ThumbnailItem.Template = new Template('thumbnail-template');
   ThumbnailItem.titleMaxLines = isPhone ? 2 : (isPortrait ? 4 : 2);
 
   initDB();
@@ -215,10 +223,10 @@ function initLayout() {
   // startup under tablet and landscape mode.
   if (isPhone || isPortrait) {
     dom.spinnerOverlay.classList.add('hidden');
-    dom.playerView.classList.remove('disabled');
+    setDisabled(dom.playerView, false);
   } else {
     dom.spinnerOverlay.classList.remove('hidden');
-    dom.playerView.classList.add('disabled');
+    setDisabled(dom.playerView, true);
   }
 
   // We handle the isPortrait calculation here, because window dispatches
@@ -241,11 +249,14 @@ function initPlayerControls() {
   dom.player.addEventListener('ended', playerEnded);
 
   // handle user tapping events
-  dom.videoControls.addEventListener('click', toggleVideoControls, true);
   dom.play.addEventListener('click', handlePlayButtonClick);
   dom.playerHeader.addEventListener('action', handleCloseButtonClick);
   dom.pickerDone.addEventListener('click', postPickResult);
   dom.options.addEventListener('click', showOptionsView);
+  dom.videoContainer.addEventListener('click', toggleVideoControls);
+
+  // handle slider keypress, emitted by the screen reader
+  dom.timeSlider.addEventListener('keypress', handleSliderKeypress);
 }
 
 function initOptionsButtons() {
@@ -277,7 +288,7 @@ function addEventListeners(selector, type, listener) {
   }
 }
 
-function toggleFullscreenPlayer(e) {
+function toggleFullscreenPlayer() {
   if (currentLayoutMode === LAYOUT_MODE.list) {
     switchLayout(LAYOUT_MODE.fullscreenPlayer);
     scheduleVideoControlsAutoHiding();
@@ -299,14 +310,8 @@ function toggleVideoControls(e) {
   // We cannot change the visibility state of video contorls when we are in
   // picking mode.
   if (!pendingPick) {
-    if (!controlShowing) {
-      // If control not shown, tap any place to show it.
-      setControlsVisibility(true);
-      e.cancelBubble = true;
-    } else if (e.originalTarget === dom.videoControls) {
-      // If control is shown, only tap the empty area should show it.
-      setControlsVisibility(false);
-    }
+    e.cancelBubble = !controlShowing;
+    setControlsVisibility(!controlShowing);
   }
 }
 
@@ -322,10 +327,10 @@ function handleScreenLayoutChange() {
     if (!isPortrait && (!firstScanEnded || processingQueue)) {
       // landscape mode and everything is waiting.
       dom.spinnerOverlay.classList.remove('hidden');
-      dom.playerView.classList.add('disabled');
+      setDisabled(dom.playerView, true);
     } else {
       dom.spinnerOverlay.classList.add('hidden');
-      dom.playerView.classList.remove('disabled');
+      setDisabled(dom.playerView, false);
     }
     // We need to hide player when rotating to portrait which release video
     // element and load the video into player when rotating to landscape.
@@ -426,12 +431,14 @@ function showInfoView() {
   setNFCSharing(false);
   //Show the video info view
   dom.infoView.classList.remove('hidden');
+  document.body.classList.add('info-view');
 }
 
 function hideInfoView() {
   // Enable NFC sharing when user hides info and returns to fullscreen mode
   setNFCSharing(true);
   dom.infoView.classList.add('hidden');
+  document.body.classList.remove('info-view');
 }
 
 function showSelectView() {
@@ -470,21 +477,39 @@ function showOptionsView() {
     pause();
   }
   dom.optionsView.classList.remove('hidden');
+  document.body.classList.add('options-view');
 }
 
 function hideOptionsView() {
   dom.optionsView.classList.add('hidden');
+  document.body.classList.remove('options-view');
+}
+
+function setDisabled(element, disabled) {
+  element.classList.toggle('disabled', disabled);
+
+  // Set ARIA disabled attribute to maintain semantic meaning for the assistive
+  // technologies like screen reader.
+  element.setAttribute('aria-disabled', disabled);
+}
+
+function setSelected(element, selected) {
+  element.classList.toggle('selected', selected);
+
+  // Set ARIA selected attribute to maintain semantic meaning for the assistive
+  // technologies like screen reader.
+  element.setAttribute('aria-selected', selected);
 }
 
 function clearSelection() {
   // Clear the selection, if there is one
   Array.forEach(selectedFileNames, function(name) {
-    thumbnailList.thumbnailMap[name].htmlNode.classList.remove('selected');
+    setSelected(thumbnailList.thumbnailMap[name].htmlNode, false);
   });
   selectedFileNames = [];
   selectedFileNamesToBlobs = {};
-  dom.thumbnailsDeleteButton.classList.add('disabled');
-  dom.thumbnailsShareButton.classList.add('disabled');
+  setDisabled(dom.thumbnailsDeleteButton, true);
+  setDisabled(dom.thumbnailsShareButton, true);
   dom.thumbnailsNumberSelected.textContent =
     navigator.mozL10n.get('number-selected2', { n: 0 });
 }
@@ -495,15 +520,9 @@ function clearSelection() {
 function updateSelection(videodata) {
   var thumbnail = thumbnailList.thumbnailMap[videodata.name];
 
-  var selected;
+  var selected = !thumbnail.htmlNode.classList.contains('selected');
   // First, update the visual appearance of the element
-  if (thumbnail.htmlNode.classList.contains('selected')) {
-    thumbnail.htmlNode.classList.remove('selected');
-    selected = false;
-  } else {
-    thumbnail.htmlNode.classList.add('selected');
-    selected = true;
-  }
+  setSelected(thumbnail.htmlNode, selected);
 
   // Now update the list of selected filenames and filename->blob map
   // based on whether we selected or deselected the thumbnail
@@ -517,8 +536,9 @@ function updateSelection(videodata) {
   else {
     delete selectedFileNamesToBlobs[filename];
     var i = selectedFileNames.indexOf(filename);
-    if (i !== -1)
+    if (i !== -1) {
       selectedFileNames.splice(i, 1);
+    }
   }
 
   // Now update the UI based on the number of selected thumbnails
@@ -526,14 +546,9 @@ function updateSelection(videodata) {
   dom.thumbnailsNumberSelected.textContent =
     navigator.mozL10n.get('number-selected2', { n: numSelected });
 
-  if (numSelected === 0) {
-    dom.thumbnailsDeleteButton.classList.add('disabled');
-    dom.thumbnailsShareButton.classList.add('disabled');
-  }
-  else {
-    dom.thumbnailsDeleteButton.classList.remove('disabled');
-    dom.thumbnailsShareButton.classList.remove('disabled');
-  }
+  var noneSelected = numSelected === 0;
+  setDisabled(dom.thumbnailsDeleteButton, noneSelected);
+  setDisabled(dom.thumbnailsShareButton, noneSelected);
 }
 
 function launchCameraApp() {
@@ -543,6 +558,15 @@ function launchCameraApp() {
       type: 'videos'
     }
   });
+
+  a.onerror = function() {
+    if (a.error.name === 'NO_PROVIDER') {
+      var msg = navigator.mozL10n.get('share-noprovider');
+      alert(msg);
+    } else {
+      console.warn('share activity error:', a.error.name);
+    }
+  };
 }
 
 // We need to call resetCurrentVideo before deleting a video. The variable
@@ -569,10 +593,11 @@ function resetCurrentVideo() {
 }
 
 function deleteSelectedItems() {
-  if (selectedFileNames.length === 0)
+  if (selectedFileNames.length === 0) {
     return;
+  }
   LazyLoader.load('shared/style/confirm.css', function() {
-
+    document.body.classList.add('confirm-dialog');
     Dialogs.confirm({
       messageId: 'delete-n-items?',
       messageArgs: {n: selectedFileNames.length},
@@ -587,6 +612,9 @@ function deleteSelectedItems() {
         deleteFile(selectedFileNames[i]);
       }
       clearSelection();
+      document.body.classList.remove('confirm-dialog');
+    }, function() { // onCancel
+      document.body.classList.remove('confirm-dialog');
     });
   });
 }
@@ -620,8 +648,9 @@ function shareSelectedItems() {
 
 // function from gallery/js/gallery.js
 function share(blobs) {
-  if (blobs.length === 0)
+  if (blobs.length === 0) {
     return;
+  }
 
   var names = [], fullpaths = [];
 
@@ -655,7 +684,7 @@ function share(blobs) {
 
   a.onsuccess = restoreVideo;
 
-  a.onerror = function(e) {
+  a.onerror = function() {
     if (a.error.name === 'NO_PROVIDER') {
       var msg = navigator.mozL10n.get('share-noprovider');
       alert(msg);
@@ -690,9 +719,8 @@ function updateLoadingSpinner() {
     noMoreWorkCallback = updateLoadingSpinner;
   } else {
     window.performance.mark('scanEnd');
-    PerformanceTestingHelper.dispatch('scan-finished');
     dom.spinnerOverlay.classList.add('hidden');
-    dom.playerView.classList.remove('disabled');
+    setDisabled(dom.playerView, false);
     if (thumbnailList.count) {
       // Initialize currentVideo to first video item if it doesn't have a value.
       currentVideo = currentVideo ||
@@ -737,14 +765,6 @@ function thumbnailClickHandler(videodata) {
   }
 }
 
-function setPosterImage(dom, poster) {
-  if (dom.dataset.uri) {
-    URL.revokeObjectURL(dom.dataset.uri);
-  }
-  dom.dataset.uri = URL.createObjectURL(poster);
-  dom.style.backgroundImage = 'url(' + dom.dataset.uri + ')';
-}
-
 function showOverlay(id) {
   LazyLoader.load('shared/style/confirm.css', function() {
     currentOverlay = id;
@@ -755,9 +775,7 @@ function showOverlay(id) {
       return;
     }
 
-    var _ = navigator.mozL10n.get;
     var text, title;
-
     if (pendingPick || id === 'empty') {
       dom.overlayMenu.classList.remove('hidden');
       dom.overlayActionButton.classList.remove('hidden');
@@ -791,12 +809,19 @@ function setControlsVisibility(visible) {
   if (isPhone || isPortrait ||
       currentLayoutMode !== LAYOUT_MODE.list) {
 
-    dom.videoControls.classList[visible ? 'remove' : 'add']('hidden');
+    dom.playerView.classList[visible ? 'remove' : 'add'](
+      'video-controls-hidden');
     controlShowing = visible;
   } else {
     // always set it as shown.
     controlShowing = true;
   }
+
+  // Set the proper accessibility label for the video container based on
+  // controls showing.
+  dom.videoContainer.setAttribute('data-l10n-id', controlShowing ?
+    'hide-controls-button' : 'show-controls-button');
+
   // to sync the slider under the case of auto-pause(unplugging headset), we
   // need to update the slider when controls is visible.
   if (controlShowing) {
@@ -814,14 +839,6 @@ function movePlayHead(percent) {
 }
 
 function updateVideoControlSlider() {
-  // We update the slider when we get a 'seeked' event.
-  // Don't do updates while we're seeking because the position we fastSeek()
-  // to probably isn't exactly where we requested and we don't want jerky
-  // updates
-  if (dom.player.seeking) {
-    return;
-  }
-
   var percent = (dom.player.currentTime / dom.player.duration) * 100;
   if (isNaN(percent)) {
     return;
@@ -852,6 +869,7 @@ function deleteCurrentVideo() {
   setNFCSharing(false);
 
   LazyLoader.load('shared/style/confirm.css', function() {
+    document.body.classList.add('confirm-dialog');
     // If we're deleting the file shown in the player we've got to
     // return to the thumbnail list. We pass false to hidePlayer() to tell it
     // not to record new metadata for the file we're about to delete.
@@ -872,9 +890,11 @@ function deleteCurrentVideo() {
       } else {
         hidePlayer(false);
       }
+      document.body.classList.remove('confirm-dialog');
     }, function _onError() {
-       // Enable NFC sharing when cancels delete and returns to fullscreen mode
-       setNFCSharing(true);
+      // Enable NFC sharing when cancels delete and returns to fullscreen mode
+      setNFCSharing(true);
+      document.body.classList.remove('confirm-dialog');
     });
   });
 }
@@ -922,8 +942,9 @@ function handleSliderTouchStart(event) {
   sliderRect = dom.sliderWrapper.getBoundingClientRect();
 
   // We can't do anything if we don't know our duration
-  if (dom.player.duration === Infinity)
+  if (dom.player.duration === Infinity) {
     return;
+  }
 
   if (!isPausedWhileDragging) {
     dom.player.pause();
@@ -954,8 +975,9 @@ function setVideoUrl(player, video, callback) {
       var url = URL.createObjectURL(file);
       loadVideo(url);
 
-      if (pendingPick)
+      if (pendingPick) {
         currentVideoBlob = file;
+      }
     });
   } else if ('url' in video) {
     loadVideo(video.url);
@@ -1029,11 +1051,11 @@ function showPlayer(video, autoPlay, enterFullscreen, keepControls) {
       switchLayout(LAYOUT_MODE.fullscreenPlayer);
     }
 
-    dom.durationText.textContent = MediaUtils.formatDuration(
-      dom.player.duration);
+    var formattedDuration = MediaUtils.formatDuration(dom.player.duration);
+    dom.durationText.textContent = formattedDuration;
     timeUpdated();
 
-    dom.play.classList.remove('paused');
+    setButtonPaused(false);
     playerShowing = true;
 
     var rotation;
@@ -1049,6 +1071,14 @@ function showPlayer(video, autoPlay, enterFullscreen, keepControls) {
       dom.player.currentTime = 0;
       rotation = 0;
     }
+
+    navigator.mozL10n.setAttributes(dom.timeSlider, 'seek-bar',
+      { duration: formattedDuration });
+    dom.timeSlider.setAttribute('aria-valuemin', 0);
+    dom.timeSlider.setAttribute('aria-valuemax', dom.player.duration);
+    dom.timeSlider.setAttribute('aria-valuenow', dom.player.currentTime);
+    dom.timeSlider.setAttribute('aria-valuetext',
+      MediaUtils.formatDuration(dom.player.currentTime));
 
     VideoUtils.fitContainer(dom.videoContainer, dom.player,
                             rotation || 0);
@@ -1079,7 +1109,7 @@ function hidePlayer(updateVideoMetadata, callback) {
     // switch to the video gallery view
     switchLayout(LAYOUT_MODE.list);
 
-    dom.play.classList.remove('paused');
+    setButtonPaused(false);
     playerShowing = false;
     updateDialog();
 
@@ -1149,11 +1179,6 @@ function playerEnded() {
     return;
   }
 
-  if (endedTimer) {
-    clearTimeout(endedTimer);
-    endedTimer = null;
-  }
-
   // If we are still playing when this 'ended' event arrives, then the
   // user played the video all the way to the end, and we skip to the
   // beginning and pause so it is easy for the user to restart. If we
@@ -1166,10 +1191,16 @@ function playerEnded() {
   }
 }
 
+function setButtonPaused(paused) {
+  dom.play.classList.toggle('paused', paused);
+  dom.play.setAttribute('data-l10n-id',
+    paused ? 'play-button' : 'pause-button');
+}
+
 function play() {
   loadingChecker.ensureVideoPlays();
   // Switch the button icon
-  dom.play.classList.remove('paused');
+  setButtonPaused(false);
 
   // Start recording statistics
   //
@@ -1186,7 +1217,7 @@ function pause() {
   loadingChecker.cancelEnsureVideoPlays();
 
   // Switch the button icon
-  dom.play.classList.add('paused');
+  setButtonPaused(true);
 
   // Check the dragging is true or not before pausing
   if (dragging) {
@@ -1216,21 +1247,9 @@ function timeUpdated() {
     updateVideoControlSlider();
   }
 
-  // Since we don't always get reliable 'ended' events, see if
-  // we've reached the end this way.
-  // See: https://bugzilla.mozilla.org/show_bug.cgi?id=783512
-  // If we're within 1 second of the end of the video, register
-  // a timeout a half a second after we'd expect an ended event.
-  if (!endedTimer) {
-    if (!dragging && dom.player.currentTime >= dom.player.duration - 1) {
-      var timeUntilEnd = (dom.player.duration - dom.player.currentTime + .5);
-      endedTimer = setTimeout(playerEnded, timeUntilEnd * 1000);
-    }
-  } else if (dragging && dom.player.currentTime < dom.player.duration - 1) {
-    // If there is a timer set and we drag away from the end, cancel the timer
-    clearTimeout(endedTimer);
-    endedTimer = null;
-  }
+  dom.timeSlider.setAttribute('aria-valuenow', dom.player.currentTime);
+  dom.timeSlider.setAttribute('aria-valuetext',
+    MediaUtils.formatDuration(dom.player.currentTime));
 }
 
 function handleSliderTouchEnd(event) {
@@ -1289,6 +1308,22 @@ function handleSliderTouchMove(event) {
   dom.player.fastSeek(dom.player.duration * pos);
 }
 
+function handleSliderKeypress(event) {
+  // The standard accessible control for sliders is arrow up/down keys.
+  // Our screenreader synthesizes those events on swipe up/down gestures.
+  // Currently, we only allow screen reader users to adjust sliders with a
+  // constant step size (there is no page up/down equivalent). In the case
+  // of videos, we make sure that the maximum amount of steps for the entire
+  // duration is 20, or 2 second increments if the duration is less then 40
+  // seconds.
+  var step = Math.max(dom.player.duration / 20, 2);
+  if (event.keyCode === event.DOM_VK_DOWN) {
+    dom.player.fastSeek(dom.player.currentTime - step);
+  } else if (event.keyCode === event.DOM_VK_UP) {
+    dom.player.fastSeek(dom.player.currentTime + step);
+  }
+}
+
 function toCamelCase(str) {
   return str.replace(/\-(.)/g, function replacer(str, p1) {
     return p1.toUpperCase();
@@ -1329,8 +1364,9 @@ function showThrobber() {
 }
 
 function hideThrobber() {
-  dom.throbber.classList.add('hidden');
   dom.throbber.classList.remove('throb');
+  // setTimeout is a workaround for Bug 1166500
+  setTimeout(function() { dom.throbber.classList.add('hidden'); }, 100);
 }
 
 // This function unloads the current video to release the decoder

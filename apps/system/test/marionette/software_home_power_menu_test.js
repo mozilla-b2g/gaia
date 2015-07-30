@@ -3,21 +3,21 @@
 marionette('Software Home Button - Power Menu', function() {
 
   var client = marionette.client({
-    prefs: {
-      'focusmanager.testmode': true,
-      'dom.w3c_touch_events.enabled': 1
+    profile: {
+      prefs: {
+        'focusmanager.testmode': true
+      },
+      settings: {
+        'software-button.enabled': true
+      }
     },
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false,
-      'software-button.enabled': true
-    }
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
   });
   var system;
 
   setup(function() {
     system = client.loader.getAppClass('system');
-    system.waitForStartup();
+    system.waitForFullyLoaded();
   });
 
   test('has proper layout', function() {

@@ -1,7 +1,6 @@
 'use strict';
 
 /* global contacts */
-/* global Contacts */
 /* global LazyLoader */
 /* global MyLocks */
 /* global MockWakeLock */
@@ -19,8 +18,10 @@
 require('/shared/js/lazy_loader.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 
+requireApp('communications/contacts/services/contacts.js');
 requireApp('communications/contacts/test/unit/mock_contacts_index.html.js');
 
+requireApp('communications/contacts/test/unit/mock_service_extensions.js');
 requireApp('communications/contacts/test/unit/mock_navigation.js');
 requireApp('communications/contacts/test/unit/mock_contacts.js');
 requireApp('communications/contacts/test/unit/mock_asyncstorage.js');
@@ -45,7 +46,7 @@ if (!window.utils) { window.utils = null; }
 if (!navigator.mozMobileConnections) { navigator.mozMobileConnections = null; }
 
 var mocksHelperForContactImport = new MocksHelper([
-  'Contacts', 'fb', 'asyncStorage', 'ConfirmDialog',
+  'ExtServices', 'Contacts', 'fb', 'asyncStorage', 'ConfirmDialog',
   'VCFReader', 'WakeLock', 'SimContactsImporter'
 ]);
 mocksHelperForContactImport.init();
@@ -61,7 +62,6 @@ suite('Import contacts >', function() {
 
   setup(function() {
     this.sinon.spy(window.utils.overlay, 'showMenu');
-    this.sinon.spy(Contacts, 'showStatus');
   });
 
   teardown(function() {
@@ -89,6 +89,11 @@ suite('Import contacts >', function() {
       show: function() {},
       showMenu: function() {}
     };
+
+    window.utils.status = {
+      show: function() {}
+    };
+
     window.utils.misc = {
       getTimestamp: function(element, cb) {
         cb();
@@ -119,10 +124,15 @@ suite('Import contacts >', function() {
     mocksHelper.suiteTeardown();
   });
 
+
+  setup(function() {
+    this.sinon.spy(window.utils.status, 'show');
+  });
+
   test('SD Import went well', function(done) {
     contacts.Settings.importFromSDCard(function onImported() {
       assert.isTrue(window.utils.overlay.showMenu.called);
-      assert.equal(Contacts.showStatus.getCall(0).args.length, 2);
+      assert.equal(window.utils.status.show.getCall(0).args.length, 2);
       assert.equal(false, MyLocks.cpu);
       done();
     });
@@ -134,9 +144,9 @@ suite('Import contacts >', function() {
     contacts.Settings.importFromSDCard(function onImported() {
       assert.isTrue(window.utils.overlay.showMenu.called);
 
-      assert.isTrue(Contacts.showStatus.called);
-      assert.isTrue(Contacts.showStatus.getCall(0).args[0] !== null);
-      assert.isTrue(Contacts.showStatus.getCall(0).args[1] !== null);
+      assert.isTrue(window.utils.status.show.called);
+      assert.isTrue(window.utils.status.show.getCall(0).args[0] !== null);
+      assert.isTrue(window.utils.status.show.getCall(0).args[1] !== null);
 
       assert.equal(false, MyLocks.cpu);
 
@@ -150,7 +160,7 @@ suite('Import contacts >', function() {
     MockSdCard.failOnRetrieveFiles = true;
     contacts.Settings.importFromSDCard(function onImported() {
       assert.isTrue(window.utils.overlay.showMenu.called);
-      assert.isFalse(Contacts.showStatus.called);
+      assert.isFalse(window.utils.status.show.called);
       assert.equal(false, MyLocks.cpu);
       // Restore the mock
       MockSdCard.failOnRetrieveFiles = false;
@@ -170,9 +180,9 @@ suite('Import contacts >', function() {
         MockSimContactsImporter.prototype.number = 0;
 
         contacts.Settings.importFromSIMCard('1234', function onImported() {
-          assert.isTrue(Contacts.showStatus.called);
-          assert.isTrue(Contacts.showStatus.getCall(0).args[0] !== null);
-          assert.isTrue(Contacts.showStatus.getCall(0).args[1] === null);
+          assert.isTrue(window.utils.status.show.called);
+          assert.isTrue(window.utils.status.show.getCall(0).args[0] !== null);
+          assert.isTrue(window.utils.status.show.getCall(0).args[1] === null);
 
           delete MockSimContactsImporter.prototype.numImportedContacts;
           done();
@@ -185,9 +195,9 @@ suite('Import contacts >', function() {
       MockSimContactsImporter.prototype.number = 3;
 
       contacts.Settings.importFromSIMCard('1234', function onImported() {
-        assert.isTrue(Contacts.showStatus.called);
-        assert.isTrue(Contacts.showStatus.getCall(0).args[0] !== null);
-        assert.isTrue(Contacts.showStatus.getCall(0).args[1] !== null);
+        assert.isTrue(window.utils.status.show.called);
+        assert.isTrue(window.utils.status.show.getCall(0).args[0] !== null);
+        assert.isTrue(window.utils.status.show.getCall(0).args[1] !== null);
 
         assert.equal(false, MyLocks.cpu);
 

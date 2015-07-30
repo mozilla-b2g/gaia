@@ -1,3 +1,4 @@
+'use strict';
 /*global requireApp, suite, suiteSetup, testConfig, test,
   assert, suiteTeardown */
 requireApp('email/js/alameda.js');

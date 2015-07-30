@@ -6,20 +6,19 @@ var StopwatchActions = require('./stopwatch_actions');
 var TimerActions = require('./timer_actions');
 var AlarmActions = require('./alarm_actions');
 
-function ClockAppActions() {
+function ClockAppActions(options) {
   this._client = marionette.client({
-    prefs: {
-      // we need to disable the keyboard to avoid intermittent failures on
-      // Travis (transitions might take longer to run and block UI).
-      'dom.mozInputMethod.enabled': false,
-      // Do not require the B2G-desktop app window to have focus (as per the
-      // system window manager) in order for it to do focus-related things.
-      'focusmanager.testmode': true
+    profile: {
+      prefs: {
+        // we need to disable the keyboard to avoid intermittent failures on
+        // Travis (transitions might take longer to run and block UI).
+        'dom.mozInputMethod.enabled': false,
+        // Do not require the B2G-desktop app window to have focus (as per the
+        // system window manager) in order for it to do focus-related things.
+        'focusmanager.testmode': true
+      }
     },
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
-    }
+    desiredCapabilities: options && options.desiredCapabilities
   });
 
   this.stopwatch = new StopwatchActions(this._client);

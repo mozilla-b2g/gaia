@@ -1,3 +1,4 @@
+/* global DownloadFormatter */
 'use strict';
 
 /**
@@ -16,7 +17,7 @@
  *         href="/shared/locales/download/download.{locale}.properties">
  */
 
-var DownloadItem = (function DownloadItem() {
+window.DownloadItem = (function DownloadItem() {
 
   // Generates the following DOM, take into account that
   // the css needed for the classes above is in settings app:
@@ -41,16 +42,12 @@ var DownloadItem = (function DownloadItem() {
     li.id = id;
     li.dataset.id = id;
 
+    var checkbox = document.createElement('gaia-checkbox');
+    checkbox.className = 'inline';
+    checkbox.value = getDownloadId(download);
+
     var label = document.createElement('label');
-    label.classList.add('pack-checkbox');
-    var checkBox = document.createElement('input');
-    checkBox.setAttribute('type', 'checkbox');
-    checkBox.value = getDownloadId(download);
-
-    var span = document.createElement('span');
-
-    label.appendChild(checkBox);
-    label.appendChild(span);
+    checkbox.appendChild(label);
 
 
     var asideStatus = document.createElement('aside');
@@ -69,7 +66,7 @@ var DownloadItem = (function DownloadItem() {
     var progress = document.createElement('progress');
     progress.max = 100;
 
-    li.appendChild(label);
+    li.appendChild(checkbox);
     li.appendChild(asideStatus);
     li.appendChild(asideAction);
     li.appendChild(pFileName);
@@ -104,10 +101,10 @@ var DownloadItem = (function DownloadItem() {
     var _ = navigator.mozL10n.get;
     var state = getDownloadState(download);
     if (state === 'downloading') {
-      domNodes['progress'].value =
+      domNodes.progress.value =
         DownloadFormatter.getPercentage(download);
 
-      navigator.mozL10n.setAttributes(domNodes['info'], 'partialResult', {
+      navigator.mozL10n.setAttributes(domNodes.info, 'partialResult', {
         partial: DownloadFormatter.getDownloadedSize(download),
         total: DownloadFormatter.getTotalSize(download)
       });
@@ -124,7 +121,7 @@ var DownloadItem = (function DownloadItem() {
           break;
       }
       DownloadFormatter.getDate(download, function(date) {
-        navigator.mozL10n.setAttributes(domNodes['info'], 'summary', {
+        navigator.mozL10n.setAttributes(domNodes.info, 'summary', {
           date: date,
           status: status
         });
@@ -140,16 +137,12 @@ var DownloadItem = (function DownloadItem() {
   var getElements = function getElements(domElement) {
     var domNodes = {};
 
-    var asides = domElement.querySelectorAll('aside');
-    domNodes['asideStatus'] = domElement.querySelector('aside:not(pack-end)');
-    domNodes['asideAction'] = domElement.querySelector('aside.pack-end');
-
-    domNodes['progress'] = domElement.getElementsByTagName('progress')[0];
-
+    domNodes.asideStatus = domElement.querySelector('aside:not(pack-end)');
+    domNodes.asideAction = domElement.querySelector('aside.pack-end');
+    domNodes.progress = domElement.getElementsByTagName('progress')[0];
     // Should never change with current UI specs
-    domNodes['fileName'] = domElement.querySelector('p.fileName');
-
-    domNodes['info'] = domElement.querySelector('p.info');
+    domNodes.fileName = domElement.querySelector('p.fileName');
+    domNodes.info = domElement.querySelector('p.info');
 
     return domNodes;
   };

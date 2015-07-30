@@ -15,7 +15,7 @@
    * logs as displayed by logcat using DeviceStorage to persist the file for
    * future access. It communicates with gecko code running in
    * b2g/chrome/content/shell.js using a SystemAppProxy custom event based API.
-   * It requires the preference 'devtools.logshake' to be enabled
+   * It requires the preference 'devtools.logshake.enabled' to be enabled
    *
    * @class LogShake
    */
@@ -35,6 +35,7 @@
      */
     start: function() {
       Service.request('handleSystemMessageNotification', 'logshake', this);
+      window.addEventListener('volumeup+volumedown', this);
       this.startCaptureLogsListener();
     },
 
@@ -67,6 +68,9 @@
     handleEvent: function(event) {
       debug('handling event ' + event.type);
       switch(event.type) {
+        case 'volumeup+volumedown':
+          this.requestSystemLogs();
+          break;
         case 'capture-logs-start':
           this.handleCaptureLogsStart(event);
           break;
@@ -86,16 +90,19 @@
       this._notify('logsSaving', '');
     },
 
+    requestSystemLogs: function() {
+      window.dispatchEvent(new CustomEvent('requestSystemLogs'));
+    },
+
     /**
-     * Handle an event of type capture-logs-success. event.detail.locations is
-     * an array of absolute paths to the saved log files, and
-     * event.detail.logFolder is the folder name where the logs are located.
+     * Handle an event of type capture-logs-success where event.detail.logPaths
+     * is an array of absolute paths to the saved log files.
      */
     handleCaptureLogsSuccess: function(event) {
       debug('handling capture-logs-success');
       navigator.vibrate(100);
-      this._notify('logsSaved', event.detail.logPrefix,
-                   this.triggerShareLogs.bind(this, event.detail.logFilenames),
+      this._notify('logsSavedHeader', 'logsSavedBody',
+                   this.triggerShareLogs.bind(this, event.detail.logPaths),
                    event.detail);
       this._shakeId = null;
     },
@@ -105,20 +112,27 @@
       var error    = event ? event.detail.error : '';
       var errorMsg = this.formatError(error);
       this._notify('logsSaveError', errorMsg,
-                   this.showErrorMessage.bind(this, error),
+                   this.showErrorMessage.bind('logsSaveError', this, error),
                    event.detail);
       this._shakeId = null;
     },
 
-    triggerShareLogs: function(logFilenames, notif) {
-      var logFiles = [];
-      var storage = navigator.getDeviceStorage('sdcard');
-      var requestsRemaining = logFilenames.length;
-      var self = this;
-
-      if (notif) {
-        notif.close();
+    getDeviceStorage: function() {
+      var storageName = 'sdcard';
+      var storages = navigator.getDeviceStorages(storageName);
+      for (var i = 0; i < storages.length; i++) {
+        if (storages[i].storageName === storageName) {
+          return storages[i];
+        }
       }
+      return navigator.getDeviceStorage('sdcard');
+    },
+
+    triggerShareLogs: function(logPaths, notif) {
+      var logFiles = [];
+      var storage = this.getDeviceStorage();
+      var requestsRemaining = logPaths.length;
+      var self = this;
 
       function onSuccess() {
         /* jshint validthis: true */
@@ -131,32 +145,51 @@
             var pathComponents = file.name.split('/');
             return pathComponents[pathComponents.length - 1];
           });
-          /* jshint nonew: false */
-          new MozActivity({
+
+          var activity = new MozActivity({
             name: 'share',
             data: {
+              type: 'application/vnd.moz-systemlog',
               blobs: logFiles,
               filenames: logNames
             }
           });
+
+          activity.onsuccess = function() {
+            if (!notif) {
+              return;
+            }
+
+            if ('close' in notif) {
+              notif.close();
+            } else {
+              self.closeSystemMessageNotification(notif);
+            }
+          };
         }
       }
 
+      // Only report error one time.
+      var inError = false;
       function onError() {
-        /* jshint validthis: true */
-        self.handleCaptureLogsError({detail: {error: this.error}});
+        if (!inError) {
+          inError = true;
+          /* jshint validthis: true */
+          self.showErrorMessage('logsShareError', this.error);
+	}
       }
 
-      for (var logFilename of logFilenames) {
-        var req = storage.get(logFilename);
+      for (var logPath of logPaths) {
+        var req = storage.get(logPath);
         req.onsuccess = onSuccess;
         req.onerror = onError;
       }
     },
 
     ERRNO_TO_MSG: {
-       0: 'logsGenericError',
-      30: 'logsSDCardMaybeShared' // errno: filesystem ro-mounted
+                    0: 'logsGenericError',
+                   30: 'logsSDCardMaybeShared', // errno: filesystem ro-mounted
+      'NotFoundError': 'logsNotFoundError'
     },
 
     formatError: function(error) {
@@ -169,12 +202,16 @@
           return navigator.mozL10n.get('logsOperationFailed',
                                        { operation: error.operation });
         }
+
+        if ('name' in error && error.name === 'NotFoundError') {
+          return navigator.mozL10n.get('logsNotFoundError');
+        }
       }
 
       return '';
     },
 
-    showErrorMessage: function(error, notif) {
+    showErrorMessage: function(title, error, notif) {
       if (notif) {
         notif.close();
       }
@@ -189,26 +226,30 @@
         return;
       }
 
+      var errorKey;
       // Small heuristic for some frequent unix error cases
       if ('unixErrno' in error) {
-        var errno = error.unixErrno;
-        debug('errno: ' + errno);
-
-        // Gracefully fallback to a generic error messages if we don't know
-        // this errno code.
-        if (!this.ERRNO_TO_MSG[errno]) {
-          errno = 0;
-        }
-
-        ModalDialog.alert('logsSaveError',
-                          this.ERRNO_TO_MSG[errno], { title: 'ok' });
+        errorKey = error.unixErrno;
+      } else if ('name' in error) {
+        errorKey = error.name;
       }
+
+      debug('errorKey: ' + errorKey);
+
+      // Gracefully fallback to a generic error messages if we don't know
+      // this errno code.
+      if (!this.ERRNO_TO_MSG[errorKey]) {
+        errorKey = 0;
+      }
+
+      ModalDialog.alert(title, this.ERRNO_TO_MSG[errorKey], { title: 'ok' });
     },
 
     _notify: function(titleId, body, onclick, dataPayload) {
       var title = navigator.mozL10n.get(titleId) || titleId;
       var payload = {
-        body: body,
+        body: navigator.mozL10n.get(body) || body,
+        icon: '/style/notifications/images/bug.png',
         tag: 'logshake:' + this._shakeId,
         data: {
           systemMessageTarget: 'logshake',
@@ -223,7 +264,6 @@
 
     handleSystemMessageNotification: function(message) {
       debug('Received system message: ' + JSON.stringify(message));
-      this.closeSystemMessageNotification(message);
 
       if (!('logshakePayload' in message.data)) {
         console.warn('Received logshake system message notification without ' +
@@ -234,9 +274,9 @@
       debug('Message payload: ' + message.data.logshakePayload);
       var payload = message.data.logshakePayload;
       if ('error' in payload) {
-        this.showErrorMessage(payload.error);
-      } else if ('logFilenames' in payload) {
-        this.triggerShareLogs(payload.logFilenames);
+        this.showErrorMessage('logsSaveError', payload.error);
+      } else if ('logPaths' in payload) {
+        this.triggerShareLogs(payload.logPaths, message);
       } else {
         console.warn('Unidentified payload: ' + JSON.stringify(payload));
       }

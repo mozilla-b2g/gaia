@@ -3,16 +3,19 @@
 /* global MockGeolocation */
 /* global Commands */
 /* global FindMyDevice */
+/* global MockNavigatorSettings */
 
 'use strict';
 
 require('/shared/test/unit/mocks/mocks_helper.js');
 require('/shared/test/unit/mocks/mock_settings_url.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/test/unit/mocks/mock_settings_helper.js');
 require('/shared/test/unit/mocks/mock_audio.js');
 require('/shared/test/unit/mocks/mock_device_storage.js');
 require('/shared/test/unit/mocks/mock_geolocation.js');
+require('/shared/js/passcode_helper.js');
 
 var mocksForFindMyDevice = new MocksHelper([
   'SettingsListener', 'SettingsURL', 'SettingsHelper', 'Audio',
@@ -23,6 +26,7 @@ suite('FindMyDevice >', function() {
   var realMozPower;
   var realMozApps;
   var fakeClock;
+  var realMozSettings;
 
   mocksForFindMyDevice.attachTestHelpers();
 
@@ -56,6 +60,9 @@ suite('FindMyDevice >', function() {
 
     fakeClock = this.sinon.useFakeTimers();
 
+    realMozSettings = navigator.mozSettings;
+    navigator.mozSettings = MockNavigatorSettings;
+
     window.FindMyDevice = {
       beginHighPriority: this.sinon.stub(),
       endHighPriority: this.sinon.stub()
@@ -65,30 +72,6 @@ suite('FindMyDevice >', function() {
       subject = Commands;
       done();
     });
-  });
-
-  test('Lock command', function(done) {
-    var code = '1234', message = 'locked!';
-
-    subject.invokeCommand('lock', [message, code, function(retval) {
-      assert.equal(retval, true);
-    sinon.assert.calledWith(FindMyDevice.beginHighPriority, 'command');
-    sinon.assert.calledWith(FindMyDevice.endHighPriority, 'command');
-
-      var lock = MockSettingsListener.getSettingsLock().locks.pop();
-      assert.deepEqual({
-        'lockscreen.enabled': true,
-        'lockscreen.notifications-preview.enabled': false,
-        'lockscreen.passcode-lock.enabled': true,
-        'lockscreen.lock-message': message,
-        'lockscreen.passcode-lock.code': code,
-        'lockscreen.lock-immediately': true
-      }, lock, 'check that the correct settings were set');
-
-      done();
-    }]);
-
-    fakeClock.tick();
   });
 
   suite('Ring command', function() {
@@ -108,8 +91,9 @@ suite('FindMyDevice >', function() {
         var lock = MockSettingsListener.getSettingsLock().locks.pop();
 
         var channel = Commands._ringer.mozAudioChannelType;
-        assert.equal(channel, 'content', 'use content channel');
-        assert.equal(lock['audio.volume.content'], 15, 'volume set to maximum');
+        assert.equal(channel, 'ringer', 'use notification channel');
+        assert.equal(lock['audio.volume.notification'], 15,
+          'volume set to maximum');
         assert.equal(Commands._ringer.paused, false, 'must be playing');
         assert.equal(Commands._ringer.src, ringtone, 'must use ringtone');
         sinon.assert.calledOnce(FindMyDevice.beginHighPriority);
@@ -388,11 +372,74 @@ suite('FindMyDevice >', function() {
 
     navigator.mozPower = realMozPower;
     navigator.mozApps = realMozApps;
+    navigator.mozSettings = realMozSettings;
 
     delete window.DUMP;
 
     fakeClock.restore();
 
+    delete window.FindMyDevice;
+  });
+});
+
+
+
+suite('FindMyDevice (with real clock) >', function() {
+  var realMozSettings;
+
+  mocksForFindMyDevice.attachTestHelpers();
+
+  var subject;
+  setup(function(done) {
+
+    // replace shared/js/dump.js
+    window.DUMP = function() {};
+
+    realMozSettings = navigator.mozSettings;
+    MockNavigatorSettings.mSetup();
+    navigator.mozSettings = MockNavigatorSettings;
+
+    window.FindMyDevice = {
+      beginHighPriority: this.sinon.stub(),
+      endHighPriority: this.sinon.stub()
+    };
+
+    require('/js/commands.js', function() {
+      subject = Commands;
+      done();
+    });
+  });
+
+  test('Lock command', function(done) {
+    var code = '1234', message = 'locked!';
+    var DIGEST_VALUE = 'lockscreen.passcode-lock.digest.value';
+    var settingsLock = MockSettingsListener.getSettingsLock();
+    var oldDigest = settingsLock.get(DIGEST_VALUE);
+
+    subject.invokeCommand('lock', [message, code, function(retval) {
+      assert.equal(retval, true);
+      sinon.assert.calledWith(FindMyDevice.beginHighPriority, 'command');
+      sinon.assert.calledWith(FindMyDevice.endHighPriority, 'command');
+      var lock = MockSettingsListener.getSettingsLock().locks.pop();
+      assert.deepEqual({
+        'lockscreen.enabled': true,
+        'lockscreen.notifications-preview.enabled': false,
+        'lockscreen.passcode-lock.enabled': true,
+        'lockscreen.lock-message': message,
+        'lockscreen.lock-immediately': true
+      }, lock, 'check that the correct settings were set');
+      assert.notEqual(oldDigest, lock[DIGEST_VALUE],
+        'check that Passcode digest changed');
+
+      done();
+    }]);
+  });
+
+  teardown(function() {
+    // clean up sinon.js stubs
+    navigator.mozSettings = realMozSettings;
+    MockNavigatorSettings.mTeardown();
+    delete window.DUMP;
     delete window.FindMyDevice;
   });
 });

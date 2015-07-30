@@ -1,3 +1,8 @@
+/**
+ * NOTICE: This file should be kept in sync with
+ * system/lockscreen/style/lockscreen.css
+ **/
+
 #lockscreen-header {
   z-index: 9999;
   position: absolute;
@@ -5,7 +10,7 @@
   left: 0;
   width: 100%;
   -moz-box-sizing: border-box;
-  padding: 2rem 2.4rem 4.4rem;
+  padding: 1.5rem 2.4rem 4.4rem;
   color: #fff;
   opacity: 1;
 }
@@ -28,7 +33,7 @@
 
 #lockscreen-conn-states span:first-child {
   display: inline-block;
-  width: 4rem;
+  -moz-margin-end: 0.8rem;
   overflow: visible;
 }
 
@@ -43,15 +48,10 @@
 }
 
 #lockscreen-clock-time {
-  line-height: 1;
+  line-height: 0.9;
   margin: -1.4rem 0 0 -0.4rem;
   font-weight: 200;
   font-size: 8.5rem;
-}
-
-#lockscreen-clock-time span { /* optional meridiem */
-  font-size: 3rem;
-  display: none;
 }
 
 #lockscreen-date {
@@ -80,7 +80,8 @@
 
 #lockscreen-masked-background {
   background-size: 100% 100%;
-  transition: background-image 0.3s ease, background-color 0.3s ease;
+  transition: background-image var(--transition-duration) ease,
+              background-color var(--transition-duration) ease;
 }
 
 #lockscreen-masked-background.blank {
@@ -101,7 +102,7 @@
   height: 10rem;
   position: absolute;
   border-style: none;
-  transition: opacity 0.5s ease;
+  transition: opacity var(--transition-duration) ease;
 }
 
 .lockscreen-icon {

@@ -7,7 +7,7 @@ body {
   background-color: #1c2124;
 }
 
-#player-view.disabled #videoControls{
+#player-view.disabled .video-controls {
   pointer-events: none;
 }
 
@@ -266,8 +266,8 @@ body.pick-activity .single-info-button {
   }
 
   .layout-list #switch-fullscreen,
-  .layout-list #videoControls #videoActionBar,
-  .layout-list #videoControls #close,
+  .layout-list .video-controls #videoActionBar,
+  .layout-list .video-controls #close,
   .layout-list .single-delete-button,
   .layout-list .single-share-button,
   .layout-list .single-info-button {
@@ -285,7 +285,7 @@ body.pick-activity .single-info-button {
   }
 
   .layout-fullscreen-player #thumbnails,
-  .layout-fullscreen-player #videoControls #videoActionBar {
+  .layout-fullscreen-player .video-controls #videoActionBar {
     display: none;
   }
 
@@ -364,7 +364,7 @@ body.pick-activity .single-info-button {
   }
 
   /* disable video controls when selected */
-  .layout-selection #videoControls {
+  .layout-selection .video-controls {
     pointer-events: none;
   }
 
@@ -580,7 +580,7 @@ body.pick-activity .single-info-button {
   }
 
   .layout-fullscreen-player #thumbnails,
-  .layout-fullscreen-player #videoControls #videoActionBar {
+  .layout-fullscreen-player .video-controls #videoActionBar {
     display: none;
   }
 

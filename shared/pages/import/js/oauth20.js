@@ -47,7 +47,7 @@ if (typeof window.oauth2 === 'undefined') {
 
       // Enables simple access to test tokens for hacking up the app
       // This code will need to be deleted once we have a final product
-      fb.testToken = fb.testToken || parent.fb.testToken;
+      fb.testToken = fb.testToken || (parent.fb && parent.fb.testToken);
       if (service === 'facebook' && typeof fb.testToken === 'string' &&
           fb.testToken.trim().length > 0) {
         window.console.warn('Facebook. A test token will be used!');

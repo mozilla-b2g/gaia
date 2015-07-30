@@ -3,7 +3,8 @@
   <head>
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
     <meta charset="utf-8">
-    <meta name="theme-color" content="#00b7b7">
+    <meta name="theme-group" content="theme-communications">
+    <meta name="theme-color" content="var(--header-background)">
     <title> Contacts </title>
 
     <!-- Building Blocks -->
@@ -26,6 +27,7 @@
     <link href="/shared/pages/import/style/curtain_frame.css" rel="stylesheet">
     <link href="/contacts/style/status.css" rel="stylesheet">
     <link href="/contacts/style/fb_extensions.css" rel="stylesheet">
+    <link href="/contacts/style/match_service.css" rel="stylesheet">
     <link href="/shared/style/contacts.css" rel="stylesheet">
     <link href="/shared/style/contacts/contacts_buttons.css" rel="stylesheet">
 
@@ -50,12 +52,10 @@
 
     <script defer src="/shared/js/mime_mapper.js"></script>
     <script defer src="/shared/js/contacts/import/utilities/misc.js"></script>
-    -->
 
     <script defer src="/shared/js/l10n.js"></script>
     <script defer src="/shared/js/l10n_date.js"></script>
     <script defer src="/contacts/js/activities.js"></script>
-    <script defer src="/shared/js/lazy_loader.js"></script>
     <script defer src="/shared/js/contact_photo_helper.js"></script>
 
     <script defer src="/shared/js/async_storage.js"></script>
@@ -63,12 +63,22 @@
     <script defer src="/contacts/js/utilities/cookie.js"></script>
     <script defer src="/contacts/js/utilities/extract_params.js"></script>
     <script defer src="/contacts/js/utilities/performance_helper.js"></script>
+    <script defer src="/contacts/js/utilities/mozContact.js"></script>
+    <script defer src="/contacts/js/fb/fb_init.js"></script>
+    <script defer src="/shared/js/contacts/utilities/event_listeners.js"></script>
+    <script defer src="/contacts/js/navigation.js"></script>
+    <script defer src="/contacts/js/views/list.js"></script>
+    <script defer src="/contacts/js/contacts.js"></script>
+    <script defer src="/shared/js/contacts/utilities/image_loader.js"></script>
+    <script defer src="/contacts/js/fb_loader.js"></script>
+    -->
 
     <!-- Web Components -->
     <script defer src="/shared/elements/config.js"></script>
     <script defer src="/shared/js/component_utils.js"></script>
     <script defer src="/shared/elements/gaia_subheader/script.js"></script>
     <script defer src="/shared/elements/gaia-header/dist/gaia-header.js"></script>
+
     <link rel="localization" href="/shared/elements/gaia_menu/locales/gaia_menu.{locale}.properties">
     <link rel="localization" href="/shared/elements/gaia_sim_picker/locales/gaia_sim_picker.{locale}.properties">
     <!--
@@ -76,28 +86,20 @@
     <link rel="stylesheet" type="text/css" href="/shared/elements/gaia_sim_picker/style.css">
     <script defer src="/shared/elements/gaia_menu/script.js"></script>
     <script defer src="/shared/elements/gaia_sim_picker/script.js"></script>
+    <script defer src="/shared/elements/gaia_switch/script.js"></script>
     -->
 
-    <!-- For initializing FB integration -->
-    <script defer src="/contacts/js/fb/fb_init.js"></script>
-    <script defer src="/shared/js/contacts/utilities/event_listeners.js"></script>
-    <script defer src="/contacts/js/navigation.js"></script>
-    <script defer src="/contacts/js/views/list.js"></script>
-    <script defer src="/contacts/js/contacts.js"></script>
-    <script defer src="/shared/js/contacts/utilities/image_loader.js"></script>
-
-    <!-- for perf-measurement related utilities -->
-    <script defer src='/shared/js/performance_testing_helper.js'></script>
+    <script defer src="/shared/js/lazy_loader.js"></script>
+    <script defer src="/contacts/js/utilities/performance_helper.js"></script>
+    <script defer src="/contacts/js/cache.js"></script>
+    <script defer src='/contacts/js/bootstrap.js'></script>
 
     <meta name="defaultLanguage" content="en-US">
-    <meta name="availableLanguages" content="ar, en-US, fr, zh-TW">
+    <meta name="availableLanguages" content="en-US">
     <link rel="localization" href="locales/contacts.{locale}.properties">
-    <link rel="localization" href="../dialer/locales/shared.{locale}.properties">
     <link rel="localization" href="/shared/locales/import_contacts/import_contacts.{locale}.properties">
     <link rel="localization" href="/shared/locales/date/date.{locale}.properties">
     <link rel="localization" href="/shared/locales/phone_types/phone_types.{locale}.properties">
-
-    <script defer src="/contacts/js/fb_loader.js"></script>
 
     <!-- For the build system to include in zip:
     <link href="/shared/js/tag_visibility_monitor.js">
@@ -255,5 +257,6 @@
     <section is="ice-view" id="ice-view" role="region" class="view view-right hidden"></section>
     <section is="multiple-select-view" id="multiple-select-view" role="region" class="view hidden"></section>
     <gaia-sim-picker id="sim-picker" tabindex="-1"></gaia-sim-picker>
+    <iframe id="iframe_curtain" src="/shared/pages/import/curtain.html"></iframe>
   </body>
 </html>

@@ -1,16 +1,16 @@
 'use strict';
 
-var helper = require('../../../../tests/js-marionette/helper.js');
 var assert = require('chai').assert;
 
 marionette('Software Home Button - Modal Dialog', function() {
 
   var client = marionette.client({
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': true,
-      'software-button.enabled': true
-    }
+    profile: {
+      settings: {
+        'software-button.enabled': true
+      }
+    },
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
   });
   var home, system, actions;
 
@@ -18,8 +18,7 @@ marionette('Software Home Button - Modal Dialog', function() {
     home = client.loader.getAppClass('verticalhome');
     system = client.loader.getAppClass('system');
     actions = client.loader.getActions();
-    system.waitForStartup();
-    helper.unlockScreen(client);
+    system.waitForFullyLoaded();
     home.waitForLaunch();
   });
 
@@ -30,9 +29,12 @@ marionette('Software Home Button - Modal Dialog', function() {
     assert.ok(contextMenuHeight === expectedHeight());
   });
 
-  test('Proper layout for collections edition', function() {
+  test('Proper layout for collections editing', function() {
     var firstCollection = home.collections[0];
-    actions.longPress(firstCollection, 1.5).perform();
+    firstCollection.scriptWith(function(el) {
+      el.scrollIntoView(false);
+    });
+    home.enterEditMode(firstCollection);
     actions.tap(firstCollection.findElement('.remove')).perform();
     var contextMenuHeight = home.removeCollectionConfirm.size().height;
     client.switchToFrame();

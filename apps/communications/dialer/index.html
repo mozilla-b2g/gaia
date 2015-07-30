@@ -3,15 +3,15 @@
   <head>
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
     <meta charset="utf-8">
-    <meta name="theme-color" content="#00b7b7">
+    <meta name="theme-group" content="theme-communications">
+    <meta name="theme-color" content="var(--header-background)">
     <title>Dialer</title>
 
     <!-- Localization -->
     <meta name="defaultLanguage" content="en-US">
-    <meta name="availableLanguages" content="ar, en-US, fr, zh-TW">
+    <meta name="availableLanguages" content="en-US">
     <link rel="localization" href="locales/dialer.{locale}.properties">
     <link rel="localization" href="locales/shared.{locale}.properties">
-    <link rel="localization" href="../contacts/locales/contacts.{locale}.properties">
     <link rel="localization" href="/shared/locales/date/date.{locale}.properties">
     <link rel="localization" href="/shared/locales/voicemail/voicemail.{locale}.properties">
     <link rel="localization" href="/shared/locales/keypad/keypad.{locale}.properties">
@@ -38,9 +38,10 @@
     <link rel="stylesheet" type="text/css" href="/shared/style/option_menu.css">
 
     <!-- JS -->
+    <script defer src="/shared/js/l10n.js"></script>
+    <script defer src="/shared/js/l10n_date.js"></script>
     <script defer src="/shared/js/lazy_loader.js"></script>
     <script defer src="/shared/js/font_size_utils.js"></script>
-    <script defer src="/shared/js/lazy_l10n.js"></script>
     <script defer src="/dialer/js/index.js"></script>
 
     <script defer src="/shared/js/dialer/utils.js"></script>
@@ -52,9 +53,6 @@
     <script defer src="/dialer/js/dialer.js"></script>
     <script defer src="/dialer/js/call_log_db.js"></script>
     <script defer src="/shared/js/multi_sim_action_button.js"></script>
-
-    <!-- for perf-measurement related utilities -->
-    <script defer src='/shared/js/performance_testing_helper.js'></script>
 
     <!-- Lazy load all the things:
     <link rel="stylesheet" type="text/css" href="/shared/style/action_menu.css">
@@ -75,8 +73,6 @@
     <script defer src="/shared/js/accessibility_helper.js"></script>
     <script defer src="/shared/js/async_storage.js"></script>
     <script defer src="/shared/js/component_utils.js"></script>
-    <script defer src="/shared/js/l10n.js"></script>
-    <script defer src="/shared/js/l10n_date.js"></script>
     <script defer src="/shared/js/mobile_operator.js"></script>
     <script defer src="/shared/js/notification_helper.js"></script>
     <script defer src="/shared/js/option_menu.js"></script>
@@ -106,6 +102,7 @@
     <script defer src="/shared/js/text_normalizer.js"></script>
     <script defer src="/shared/js/contacts/utilities/templates.js"></script>
     <script defer src="/shared/js/contacts/sms_integration.js"></script>
+    <script defer src="/shared/js/sanitizer.js"></script>
     -->
 
     <link rel="import" href="elements/edit-mode.html">
@@ -124,9 +121,7 @@
           <section role="region">
             <gaia-header>
               <h1 data-l10n-id="callLog"></h1>
-              <button id="call-log-icon-edit" data-icon="edit" disabled>
-                <span data-l10n-id="callLogEdit" aria-disabled="true"></span>
-              </button>
+              <button id="call-log-icon-edit" data-icon="edit" disabled data-l10n-id="callLogEditButton"></button>
             </gaia-header>
             <nav id="call-log-filter" class="recents-filter-container">
               <ul role="tablist" class="bb-tablist" data-type="filter" aria-controls="call-log-container">
@@ -149,14 +144,6 @@
           </section>
           <section is="call-info-view" id="call-info-view" role="region" hidden></section>
         </div>
-        <form role="dialog" data-type="confirm" id="call-log-upgrading" class="hide">
-          <section>
-            <div role="status">
-              <span id="call-log-upgrade-percent" class="loading-header">0%</span>
-              <progress id="call-log-upgrade-progress" class="pack-activity" value="0" max="100"></progress>
-            </div>
-          </section>
-        </form>
       </li>
       <li role="presentation" class="view" id="contacts-view">
         <a id="option-contacts" role="tab" aria-controls="iframe-contacts-container" href="#contacts-view" class="icon icon-contacts" data-l10n-id="contacts" aria-selected="false"></a>
@@ -237,7 +224,7 @@
               </div>
             </section>
             <section id="keypad-callbar">
-              <button id="keypad-callbar-add-contact" data-value="add-contact" class="reset-button keypad-callbar-button icon-add-contact" data-l10n-id="dialerAddContact" disabled></button>
+              <button id="keypad-callbar-add-contact" data-value="add-contact" class="reset-button keypad-callbar-button icon-add-contact disable-when-dialog-animates" data-l10n-id="dialerAddContact" disabled></button>
               <button id="keypad-callbar-call-action" class="reset-button" data-value="make-call" data-l10n-id="makeCall">
                 <div class="js-sim-indication"></div>
               </button>

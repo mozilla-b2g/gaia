@@ -1,32 +1,28 @@
 'use strict';
 
-var utils = require('utils');
-var nodeHelper = new utils.NodeHelper();
-
 function execute(options) {
-  nodeHelper.require('clean-stage-app', options);
+  require('./clean-stage-app').execute(options);
 
-  nodeHelper.require('svoperapps', options);
+  require('./svoperapps').execute(options);
 
-  nodeHelper.require('webapp-manifests', options);
+  require('./webapp-manifests').execute(options);
 
-  nodeHelper.require('contacts-import-services', options);
+  require('./contacts-import-services').execute(options);
 
-  nodeHelper.require('./search-provider', options);
+  require('./search-provider').execute(options);
 
-  nodeHelper.require('./keyboard-layouts', options);
+  require('./keyboard-layouts').execute(options);
 
-  nodeHelper.require('./preferences', options);
+  require('./preferences').execute(options);
 
   if (options.BUILD_APP_NAME == '*') {
-    nodeHelper.require('settings', options);
+    require('./settings').execute(options);
   }
 
-  // Copy shared files to stage folders
-  nodeHelper.require('webapp-shared', options);
+  require('./webapp-shared').execute(options);
 
-  // Copy common files such as webapps.json
-  nodeHelper.require('copy-common-files', options);
+  require('./copy-common-files').execute(options);
+
 }
 
 exports.execute = execute;

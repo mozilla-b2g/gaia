@@ -1,8 +1,8 @@
 'use strict';
 
-/* global CallHandler, MocksHelper, MockLazyL10n, MockNavigatormozApps,
+/* global CallHandler, MocksHelper, MockL10n, MockNavigatormozApps,
    MockNavigatorMozIccManager, MockNavigatormozSetMessageHandler,
-   NavbarManager, Notification, MockKeypadManager, MockVoicemail,
+   NavbarManager, NotificationHelper, MockKeypadManager, MockVoicemail,
    MockCallLog, MockCallLogDBManager, MockNavigatorWakeLock, MockMmiManager,
    LazyLoader, AccessibilityHelper, MockSimSettingsHelper, MockTelephonyHelper,
    MockSettingsListener, CustomElementsHelper  */
@@ -10,6 +10,7 @@
 require(
   '/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js'
 );
+require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_navigator_wake_lock.js');
 require('/shared/test/unit/mocks/mock_voicemail.js');
@@ -26,7 +27,6 @@ require('/shared/test/unit/mocks/mock_notification_helper.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/test/unit/mocks/mock_sim_settings_helper.js');
 require('/shared/test/unit/mocks/dialer/mock_contacts.js');
-require('/shared/test/unit/mocks/dialer/mock_lazy_l10n.js');
 require('/shared/test/unit/mocks/dialer/mock_keypad.js');
 require('/shared/test/unit/mocks/dialer/mock_telephony_helper.js');
 require('/shared/test/unit/mocks/dialer/mock_tone_player.js');
@@ -44,7 +44,6 @@ var mocksHelperForDialer = new MocksHelper([
   'CallLog',
   'CallLogDBManager',
   'GaiaSimPicker',
-  'LazyL10n',
   'LazyLoader',
   'KeypadManager',
   'MmiManager',
@@ -72,10 +71,20 @@ suite('navigation bar', function() {
 
   var realMozApps;
   var realMozIccManager;
+  var realMozL10n;
   var realSetMessageHandler;
   var realWakeLock;
 
   mocksHelperForDialer.attachTestHelpers();
+
+  suiteSetup(function() {
+    realMozL10n = navigator.mozL10n;
+    navigator.mozL10n = MockL10n;
+  });
+
+  suiteTeardown(function() {
+    navigator.mozL10n = realMozL10n;
+  });
 
   setup(function() {
     realMozApps = navigator.mozApps;
@@ -141,7 +150,7 @@ suite('navigation bar', function() {
       var callEndedData;
 
       setup(function() {
-        this.sinon.spy(window, 'Notification');
+        this.sinon.spy(NotificationHelper, 'send');
         MockNavigatorMozIccManager.addIcc('12345', {'cardState': 'ready'});
         callEndedData = {
           number: '123',
@@ -158,13 +167,9 @@ suite('navigation bar', function() {
           MockNavigatormozApps.mTriggerLastRequestSuccess();
         });
 
-        test('should localize the notification message', function() {
-          assert.deepEqual(MockLazyL10n.keys['from-contact'],
-            {contact: 'test name'});
-        });
-
-        test('should send the notification', function() {
-          sinon.assert.calledWith(Notification, 'missedCall');
+        test('should send the notification with a localized message',
+        function() {
+          sinon.assert.calledWith(NotificationHelper.send, 'missedCall');
         });
       });
 
@@ -178,14 +183,12 @@ suite('navigation bar', function() {
           MockNavigatormozApps.mTriggerLastRequestSuccess();
         });
 
-        test('should localize the notification message', function() {
-          assert.deepEqual(MockLazyL10n.keys['from-contact'],
-            {contact: 'test name'});
-        });
-
-        test('should send the notification', function() {
-          sinon.assert.calledWith(Notification, 'missedCallMultiSims');
-          assert.deepEqual(MockLazyL10n.keys.missedCallMultiSims, {n: 2});
+        test('should send the notification with a localized message',
+        function() {
+          sinon.assert.calledWithMatch(NotificationHelper.send, {
+            id: 'missedCallMultiSims',
+            args: { n: 2 }
+          });
         });
       });
 
@@ -406,9 +409,9 @@ suite('navigation bar', function() {
     });
 
     suite('> Receiving a ussd', function() {
-      function triggerSysMsg(serviceId, session) {
+      function triggerSysMsg(serviceId, session, message) {
         MockNavigatormozSetMessageHandler.mTrigger('ussd-received', {
-          message: 'testing',
+          message: (message !== undefined) ? message : 'testing',
           session: session || null,
           serviceId: serviceId || 0
         });
@@ -464,13 +467,21 @@ suite('navigation bar', function() {
         });
 
         test('should send a notification for unsolicited messages', function() {
-            this.sinon.spy(MockMmiManager, 'sendNotification');
-            triggerSysMsg(0, null);
-            sinon.assert.calledOnce(MockMmiManager.sendNotification);
-            var wakeLock = MockNavigatorWakeLock.mLastWakeLock;
-            assert.isTrue(wakeLock.released);
-          }
-        );
+          this.sinon.spy(MockMmiManager, 'sendNotification');
+          triggerSysMsg(0, null);
+          sinon.assert.calledOnce(MockMmiManager.sendNotification);
+          var wakeLock = MockNavigatorWakeLock.mLastWakeLock;
+          assert.isTrue(wakeLock.released);
+        });
+
+        test('should not send a notification for empty messages',
+        function() {
+          this.sinon.spy(MockMmiManager, 'sendNotification');
+          triggerSysMsg(0, null, null);
+          sinon.assert.notCalled(MockMmiManager.sendNotification);
+          var wakeLock = MockNavigatorWakeLock.mLastWakeLock;
+          assert.isTrue(wakeLock.released);
+        });
 
         suite('once the app is visible', function() {
           setup(function() {
@@ -744,7 +755,7 @@ suite('navigation bar', function() {
 
         test('should go to home of contacts', function() {
           assert.isTrue(
-            domContactsIframe.src.contains('/contacts/index.html#home')
+            domContactsIframe.src.includes('/contacts/index.html#home')
           );
         });
       });
@@ -783,7 +794,7 @@ suite('navigation bar', function() {
         test('only works when it is a second tap', function() {
           NavbarManager.contactsTabTap();
           assert.isFalse(
-            domContactsIframe.src.contains('/contacts/index.html#home')
+            domContactsIframe.src.includes('/contacts/index.html#home')
           );
         });
 
@@ -791,7 +802,7 @@ suite('navigation bar', function() {
           window.location.hash = '#contacts-view';
           NavbarManager.contactsTabTap();
           assert.isTrue(
-            domContactsIframe.src.contains('/contacts/index.html#home')
+            domContactsIframe.src.includes('/contacts/index.html#home')
           );
         });
       });

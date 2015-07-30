@@ -1,0 +1,208 @@
+#!/bin/bash -ex
+
+# All options are passed to `./node_modules/.bin/marionette-mocha` so
+# you can also use mocha commands like `--grep`, `--timeout` see `--help`
+# for more options.
+export MOZ_DISABLE_NONLOCAL_CONNECTIONS=1
+
+# Find the source of this file. This will exist in
+# $GAIA/node_modules/.bin/gaia-marionette.
+SOURCE="${BASH_SOURCE[0]}"
+# Make it an absolute path
+DIR="$(cd "$(dirname $SOURCE)" && pwd)"
+BINDIR="$(cd "$DIR/../../bin" && pwd)"
+BUILDAPP=${BUILDAPP:-desktop}
+
+safe_which() {
+  if [ "$(which $1)" ];
+  then
+    which $1
+  fi
+}
+
+# Go to the isolated Python environment if we already setup the virtualenv.
+VIRTUALENV=$(safe_which virtualenv)
+
+CI_VENV=$(find $BINDIR/.. -path "*/ci_venv")
+if [ -x "$VIRTUALENV" -a -x "$CI_VENV" ]; then
+  source ./ci_venv/bin/activate
+fi
+
+# We skip the related tests if the Radicale CalDAV server is not installed.
+if [ ! -x "$VIRTUALENV" -o ! -x "$CI_VENV" -o ! -x "$(safe_which radicale)" ]; then
+  echo -e "The Radicale CalDAV server is not installed in the virtualenv, we will skip the CalDAV tests.\n \
+           \rIf you want to run the CalDAV tests, please run |make caldav-server-install| first."
+  CALDAV_RELATED_TESTS="apps/calendar/test/marionette/caldav_test.js apps/calendar/test/marionette/server_test.js"
+  SKIP_TEST_FILES="$SKIP_TEST_FILES $CALDAV_RELATED_TESTS"
+fi
+
+# Build the script string of skipping test files.
+if [ -n "$SKIP_TEST_FILES" ]; then
+  for FILE in $SKIP_TEST_FILES
+  do
+    SKIP_TEST_FILES_SCRIPT="$SKIP_TEST_FILES_SCRIPT ! -path */$FILE"
+  done
+  SKIP_TEST_FILES="$SKIP_TEST_FILES_SCRIPT"
+fi
+
+HARNESS_PATHS="$(cat "$BINDIR/../tests/jsmarionette/marionette_tests.txt")"
+
+if [ -z "$TEST_FILES" ]; then
+  if [ -z "$APP" ]; then
+    if [ -z "$SKIP_TEST_FILES" ]; then
+      if [ -z "$HARNESS_ONLY" ]; then
+        TEST_FILES=$(find "$BINDIR/.." -path "*/apps/*/test/marionette/*_test.js" \
+                              -or -path "*/dev_apps/*/test/marionette/*_test.js" \
+                              -or -path "*/tv_apps/*/test/marionette/*_test.js" \
+                              -or -path "*/tests/integration/*/*_test.js")
+      else
+        TEST_FILES=""
+      fi
+
+      for wildcard in $HARNESS_PATHS; do
+        HARNESS_FILES=$(find "$BINDIR/../tests/jsmarionette" -path $wildcard)
+        TEST_FILES="$TEST_FILES $HARNESS_FILES"
+      done
+    else
+      if [ -z "$HARNESS_ONLY" ]; then
+        TEST_FILES=$(find "$BINDIR/.." -path "*/apps/*/test/marionette/*_test.js" $SKIP_TEST_FILES \
+                              -or -path "*/dev_apps/*/test/marionette/*_test.js" $SKIP_TEST_FILES \
+                              -or -path "*/tv_apps/*/test/marionette/*_test.js" $SKIP_TEST_FILES \
+                              -or -path "*/tests/integration/*/*_test.js" $SKIP_TEST_FILES)
+      else
+        TEST_FILES=""
+      fi
+
+      for wildcard in $HARNESS_PATHS; do
+        HARNESS_FILES=$(find "$BINDIR/../tests/jsmarionette" -path $wildcard $SKIP_TEST_FILES)
+        TEST_FILES="$TEST_FILES $HARNESS_FILES"
+      done
+    fi
+  else
+    if [ -z "$SKIP_TEST_FILES" ]; then
+      TEST_FILES=$(find "$BINDIR/.." -path "*/apps/$APP/test/marionette/*_test.js" \
+                            -or -path "*/dev_apps/$APP/test/marionette/*_test.js" \
+                            -or -path "*/tv_apps/$APP/test/marionette/*_test.js" \
+                            -or -path "*/tests/integration/$APP/*_test.js")
+    else
+      TEST_FILES=$(find "$BINDIR/.." -path "*/apps/$APP/test/marionette/*_test.js" $SKIP_TEST_FILES \
+                            -or -path "*/dev_apps/$APP/test/marionette/*_test.js" $SKIP_TEST_FILES \
+                            -or -path "*/tv_apps/$APP/test/marionette/*_test.js" $SKIP_TEST_FILES \
+                            -or -path "*/tests/integration/$APP/*_test.js" $SKIP_TEST_FILES)
+    fi
+  fi
+fi
+
+if [ -n "$PART" ] ; then
+  if [ -z "$NBPARTS" ] ; then
+    echo "You need to specify the number of parts using the env variable NBPARTS"
+    exit 1
+  fi
+
+  TEMP_FILE=$(mktemp)
+
+  # the quotes are important here, otherwise bash replace newlines characters by
+  # spaces
+  echo "$TEST_FILES" | sort > $TEMP_FILE
+  TEST_FILES=$(split -n l/$PART/$NBPARTS $TEMP_FILE)
+  echo -e "------- Will run the following test files:\n$TEST_FILES\n-------"
+  rm -f $TEMP_FILE
+fi
+
+if [ -z "$XULRUNNER_DIRECTORY" ] ; then
+  # the xulrunner directory isn't in the environment
+  XULRUNNER_DIRECTORY=$(ls -d "$BINDIR"/../b2g_sdk/* | sort -nr | head -n1 2> /dev/null)
+fi
+
+if [ -z "$XPCSHELLSDK" ] ; then
+  XPCSHELLSDK=$(find "$XULRUNNER_DIRECTORY" -type f -name xpcshell | sort -nr | head -n1 2> /dev/null)
+fi
+
+# find xpcshell and put it in the path
+XPCSHELL_DIR=$(dirname "$XPCSHELLSDK")
+
+HOST_LOG_OPTS=""
+if [ "$HOST_LOG" ]; then
+  HOST_LOG_OPTS="--host-log $HOST_LOG"
+fi
+
+
+VERBOSE_OPTS=""
+if [ "$VERBOSE" ]; then
+  VERBOSE_OPTS="--verbose"
+fi
+
+OOP_OPTS=""
+if [ "$OOP" ]; then
+  OOP_OPTS="--b2g-desktop-oop"
+fi
+
+RUNTIME_OPTS=""
+if [ "$RUNTIME" ]; then
+  RUNTIME_OPTS="--runtime $RUNTIME"
+fi
+
+# Dirty hack until we can kill this file or fix passing DEBUG to profile
+# construction.
+if [ ! -z "$NODE_DEBUG" ];
+then
+  export DEBUG=$NODE_DEBUG
+fi
+
+if [ "$BUILDAPP" != "desktop" ] ; then
+  LANG="en_US.UTF-8"
+  export LANG
+  BUILDAPP_OPTS="--buildapp $BUILDAPP"
+fi
+
+DEVICE_OPTS=""
+if [ "$B2G_HOME" ]; then
+  DEVICE_OPTS="--b2g-home $B2G_HOME"
+fi
+if [ "$SYMBOLS" ]; then
+  DEVICE_OPTS="$ADDITIONAL_OPTS --symbols-path $SYMBOLS"
+fi
+if [ "$DEVICE_SERIAL" ]; then
+  DEVICE_OPTS="$ADDITIONAL_OPTS --serial $DEVICE_SERIAL"
+fi
+if [ "$DUMP_PATH" ]; then
+  DEVICE_OPTS="$ADDITIONAL_OPTS --dump-path $DUMP_PATH"
+fi
+
+DEVICE_TYPE_OPT=""
+if [ -z "$GAIA_DEVICE_TYPE" ] || [ "$GAIA_DEVICE_TYPE" = "phone" ]; then
+  DEVICE_TYPE_OPT="--device-type phone"
+else
+  DEVICE_TYPE_OPT="--device-type $GAIA_DEVICE_TYPE"
+fi
+
+TARGET=""
+if [[ $@ == *"mocha-tbpl-reporter"* ]]; then
+  TARGET="$DIR/../gaia-marionette/gaia_marionette_retry.js"
+else
+  TARGET="$DIR/marionette-mocha"
+fi
+
+export PATH=$XPCSHELL_DIR:$PATH
+
+if [ ! -z $TEST_MANIFEST ]; then
+  TEST_FILES="$("$DIR/apply-manifest" $TEST_MANIFEST $TEST_FILES)"
+fi
+
+# We export TEST_FILES here to enable gaia_marionette_retry to self
+# diagnose in the case where we told it to run tests but it ran none.
+export TEST_FILES
+
+# wrap marionette-mocha with gaia's defaults. We also need to alter the paths to
+# xpcshell in available for email fake servers.
+$TARGET \
+  $VERBOSE_OPTS \
+  $HOST_LOG_OPTS \
+  $OOP_OPTS \
+  $RUNTIME_OPTS \
+  $DEVICE_OPTS \
+  $BUILDAPP_OPTS \
+  $TEST_FILES \
+  $DEVICE_TYPE_OPT \
+  --profile-builder "$DIR/../gaia-marionette/node_modules/profile-builder" \
+  $@

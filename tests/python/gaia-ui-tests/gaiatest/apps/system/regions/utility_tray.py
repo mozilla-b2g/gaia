@@ -2,14 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-try:
-    from marionette import (expected,
-                            Wait)
-    from marionette.by import By
-except:
-    from marionette_driver import (expected,
-                                   Wait)
-    from marionette_driver.by import By
+from marionette_driver import expected, By, Wait
 
 from gaiatest.apps.base import Base
 from gaiatest.apps.base import PageRegion
@@ -36,6 +29,11 @@ class UtilityTray(Base):
     def notifications(self):
         return [Notification(self.marionette, notification)
                 for notification in self.marionette.find_elements(*self._desktop_notifications_locator)]
+
+    def get_notifications(self, for_app=None):
+        return [Notification(self.marionette, notification)
+                for notification in self.marionette.find_elements(*self._desktop_notifications_locator)
+                    if for_app is None or for_app in notification.get_attribute('data-manifest-u-r-l')]
 
     def clear_all_notifications(self):
         self.marionette.find_element(*self._notification_clear_locator).tap()

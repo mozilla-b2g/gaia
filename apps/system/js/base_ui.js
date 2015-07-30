@@ -1,8 +1,7 @@
+/* global Service */
 'use strict';
-
-(function(window) {
+(function(exports) {
   var DEBUG = false;
-  var _id = 0;
 
   /**
    * The virtual class inherited by all UI in system which has
@@ -10,7 +9,7 @@
    *
    * @class BaseUI
    */
-  window.BaseUI = function BaseUI() {
+  var BaseUI = function BaseUI() {
   };
 
   BaseUI.prototype.EVENT_PREFIX = 'base-';
@@ -22,6 +21,9 @@
    * Overwrite `_registerEvents` to register event handler.
    */
   BaseUI.prototype.render = function bu_render() {
+    if (this.element) {
+      return;
+    }
     this.publish('willrender');
     this.containerElement.insertAdjacentHTML('afterbegin', this.view());
     this._fetchElements();
@@ -122,10 +124,13 @@
   };
 
   BaseUI.prototype.debug = function bu_debug(msg) {
-    if (DEBUG && ('DEBUG' in this.constructor && this.constructor.DEBUG)) {
-      console.log('[' + this.CLASS_NAME + '][' + this.customID() + ']' +
+    if (DEBUG || this.DEBUG) {
+      console.log('[' + (this.name || this.CLASS_NAME) + ']' +
+        '[' + (this.customID() || (this.index + 1) || this.instanceID) + ']' +
         '[' + Service.currentTime() + ']' +
         Array.slice(arguments).concat());
     }
   };
-}(this));
+
+  exports.BaseUI = BaseUI;
+}(window));

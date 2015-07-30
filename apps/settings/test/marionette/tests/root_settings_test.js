@@ -3,12 +3,7 @@ var Settings = require('../app/app'),
     assert = require('assert');
 
 marionette('check root panel settings', function() {
-  var client = marionette.client({
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
-    }
-  });
+  var client = marionette.client();
   var settingsApp;
   var rootPanel;
 
@@ -66,8 +61,7 @@ marionette('check root panel settings', function() {
       });
     });
 
-    // XXX Disabled in https://bugzil.la/1061390
-    test.skip('language description on the root panel is translated',
+    test('language description on the root panel is translated',
       function() {
       settingsApp.currentLanguage = 'accented';
       assert.ok(

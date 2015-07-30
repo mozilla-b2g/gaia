@@ -1,4 +1,5 @@
 'use strict';
+
 /* exported MockMozL10n */
 
 window.realL10n = window.navigator.mozL10n;
@@ -7,7 +8,7 @@ var MockMozL10n = window.navigator.mozL10n = {
   realL10nCB: null,
   language: {
     code: 'en',
-    dir: 'ltr'
+    direction: 'ltr'
   },
   get: function get(key, params) {
     var out = key;
@@ -27,7 +28,23 @@ var MockMozL10n = window.navigator.mozL10n = {
   translate: function() {},
   once: function(cb) {
     this.realL10nCB = cb;
+    this.onceCb = cb;
     cb();
+  },
+  ready: function(cb) {
+    this.readyCb = cb;
+  },
+  fireReady: function() {
+    if (!this.readyCb) {
+      return;
+    }
+    this.readyCb();
+  },
+  fireOnce: function() {
+    if (!this.onceCb) {
+      return;
+    }
+    this.onceCb();
   },
   setAttributes: function(element, id, args) {
     element.setAttribute('data-l10n-id', id);
@@ -40,5 +57,5 @@ var MockMozL10n = window.navigator.mozL10n = {
       id: element.getAttribute('data-l10n-id'),
       args: JSON.parse(element.getAttribute('data-l10n-args'))
     };
-  }
+  },
 };

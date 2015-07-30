@@ -18,6 +18,7 @@
   top: 0;
   left: 0;
   pointer-events: none;
+  transform: translateY(0);
 }
 
 .statusbar > div,
@@ -25,14 +26,12 @@
   pointer-events: auto;
 }
 
-#statusbar.hidden {
-  opacity: 0;
-  visibility: hidden;
-}
 
-#statusbar-maximized-wrapper {
-  opacity: 0;
-  visibility: hidden;
+/* Hide the statusbar out of the viewport in order
+to be available for moz-elements */
+#statusbar.hidden,
+#screen:not(.attention).utility-tray-in-transition > #statusbar {
+  transform: translateY(-100%);
 }
 
 #statusbar-minimized-wrapper {
@@ -64,11 +63,6 @@
   filter: none;
 }
 
-#screen:not(.locked).utility-tray #statusbar-maximized-wrapper {
-  opacity: 1;
-  visibility: visible;
-}
-
 #screen.locked #statusbar-maximized-wrapper,
 #screen:not(.locked).minimized-tray #statusbar-minimized-wrapper {
   opacity: 1;
@@ -85,14 +79,19 @@
   visibility: hidden;
 }
 
+/* Hide the minimized statusbar in the utility-tray */
+#screen:not(.utility-tray-in-transition) #statusbar:not(.maximized) #statusbar-maximized-wrapper,
+#screen.utility-tray-in-transition #statusbar-minimized-wrapper,
+#screen #statusbar.maximized  #statusbar-minimized-wrapper {
+  visibility: hidden;
+}
+
 @media (orientation: landscape) {
-  #screen.software-button-enabled #statusbar-background,
   #screen.software-button-enabled #statusbar {
     width: calc(100% - var(--software-home-button-height));
   }
 }
 
-#screen.utility-tray #statusbar,
 #screen.attention #statusbar {
   top: 0;
   background-color: black;
@@ -100,17 +99,10 @@
 
 #screen.utility-tray #statusbar {
   background-color: transparent;
-  top: -3rem;
-}
-
-/* When the utility tray is displayed, the title bar is hidden, so we only show
- the maximised status bar. */
-#screen.utility-tray #statusbar-minimized {
-  display: none;
 }
 
 body #statusbar {
-  transition: transform 0.2s linear;
+  transition: none;
 }
 
 /* Hiding the black background while the homescreen is in foreground but not
@@ -174,7 +166,7 @@ body .utility-tray .statusbar > .sb-start {
   transform: translateY(var(--statusbar-height));
 }
 
-#statusbar-label {
+#statusbar-operator {
   -moz-margin-start: 0.8rem;
   color: #ffffff;
   font-size: 1.5rem;
@@ -196,19 +188,19 @@ body .utility-tray .statusbar > .sb-start {
 }
 
 /* signal and data icons */
-#statusbar-connections {
+#statusbar-mobile-connection {
   margin: 0;
   padding: 0;
   font-weight: 300;
 }
 
-#statusbar-connections > * {
-  float: right;
+#statusbar-mobile-connection > * {
+  float: left;
   pointer-events: none;
   margin: 0.6rem 0.2rem;
 }
 
-#statusbar-connections .sb-icon-roaming {
+#statusbar-mobile-connection .sb-icon-roaming {
   margin: 0;
   top: 0.6rem;
   position: relative;
@@ -216,47 +208,47 @@ body .utility-tray .statusbar > .sb-start {
   left: 0;
 }
 
-#statusbar-connections .statusbar-data:not(.sb-icon-data-circle) {
+#statusbar-mobile-connection .statusbar-data:not(.sb-icon-data-circle) {
   color: #fff;
   font-size: 1.5rem;
   position: relative;
   bottom: 0.1rem;
 }
 
-#statusbar-connections .statusbar-data:not(.sb-icon-data-circle) {
+#statusbar-mobile-connection .statusbar-data:not(.sb-icon-data-circle) {
   background: none;
   width: auto;
 }
 
-#statusbar-connections .statusbar-signal {
+#statusbar-mobile-connection .statusbar-signal {
   position: relative;
 }
 
-#statusbar-connections[data-multiple="true"] .statusbar-signal {
+#statusbar-mobile-connection[data-multiple="true"] .statusbar-signal {
   margin-left: 0.8rem;
 }
 
-#statusbar-connections[data-multiple="true"] .statusbar-signal::before {
+#statusbar-mobile-connection[data-multiple="true"] .statusbar-signal::before {
   position: absolute;
   font-size: 1rem;
   bottom: -.2rem;
   left: -0.6rem;
 }
 
-#statusbar-connections[data-multiple="true"] .statusbar-signal[data-index="1"]::before {
+#statusbar-mobile-connection[data-multiple="true"] .statusbar-signal[data-index="0"]::before {
   content: '1';
 }
-#statusbar-connections[data-multiple="true"] .statusbar-signal[data-index="2"]::before {
+#statusbar-mobile-connection[data-multiple="true"] .statusbar-signal[data-index="1"]::before {
   content: '2';
 }
-#statusbar-connections[data-multiple="true"] .statusbar-signal[data-index="3"]::before {
+#statusbar-mobile-connection[data-multiple="true"] .statusbar-signal[data-index="2"]::before {
   content: '3';
 }
-#statusbar-connections[data-multiple="true"] .statusbar-signal[data-index="4"]::before {
+#statusbar-mobile-connection[data-multiple="true"] .statusbar-signal[data-index="3"]::before {
   content: '4';
 }
 
-#statusbar-connections .statusbar-signal .statusbar-data {
+#statusbar-mobile-connection .statusbar-signal .statusbar-data {
   position: relative;
   margin: 0;
   font-size: 1rem;
@@ -265,18 +257,18 @@ body .utility-tray .statusbar > .sb-start {
   left: -.7rem;
 }
 
-#statusbar-connections[data-multiple="true"] .statusbar-signal .statusbar-data {
+#statusbar-mobile-connection[data-multiple="true"] .statusbar-signal .statusbar-data {
   left: -.7rem;
   text-align: left;
   top: -.5rem;
 }
 
-#statusbar-connections[data-multiple="true"] .statusbar-data.sb-icon-data-circle {
+#statusbar-mobile-connection[data-multiple="true"] .statusbar-data.sb-icon-data-circle {
   top: -0.3rem;
   left: -0.8rem;
 }
 
-#statusbar-connections .statusbar-data.sb-icon-data-circle {
+#statusbar-mobile-connection .statusbar-data.sb-icon-data-circle {
   top: -.1rem;
   left: .1rem;
   width: 0.8rem;
@@ -285,7 +277,7 @@ body .utility-tray .statusbar > .sb-start {
   background-position: -5.8rem -4rem;
 }
 
-#statusbar-connections[data-multiple="true"] .statusbar-data[hidden] {
+#statusbar-mobile-connection[data-multiple="true"] .statusbar-data[hidden] {
   display: block;
   opacity: 0;
   visibility: hidden;
@@ -298,7 +290,7 @@ body .utility-tray .statusbar > .sb-start {
 }
 
 #statusbar-call-forwardings > * {
-  float: right;
+  float: left;
   pointer-events: none;
   margin: 0.4rem 0.6rem;
 }
@@ -314,16 +306,16 @@ body .utility-tray .statusbar > .sb-start {
   left: -0.6rem;
 }
 
-#statusbar-call-forwardings[data-multiple="true"] .sb-icon-call-forwarding[data-index="1"]::before {
+#statusbar-call-forwardings[data-multiple="true"] .sb-icon-call-forwarding[data-index="0"]::before {
   content: '1';
 }
-#statusbar-call-forwardings[data-multiple="true"] .sb-icon-call-forwarding[data-index="2"]::before {
+#statusbar-call-forwardings[data-multiple="true"] .sb-icon-call-forwarding[data-index="1"]::before {
   content: '2';
 }
-#statusbar-call-forwardings[data-multiple="true"] .sb-icon-call-forwarding[data-index="3"]::before {
+#statusbar-call-forwardings[data-multiple="true"] .sb-icon-call-forwarding[data-index="2"]::before {
   content: '3';
 }
-#statusbar-call-forwardings[data-multiple="true"] .sb-icon-call-forwarding[data-index="4"]::before {
+#statusbar-call-forwardings[data-multiple="true"] .sb-icon-call-forwarding[data-index="3"]::before {
   content: '4';
 }
 
@@ -432,7 +424,7 @@ body .utility-tray .statusbar > .sb-start {
   background-position: -8rem -6rem;
 }
 
-.sb-icon-flight-mode {
+.sb-icon-airplane-mode {
   background-position: 0 -4rem;
 }
 
@@ -489,15 +481,15 @@ body .utility-tray .statusbar > .sb-start {
   display: none;
 }
 
-.sb-icon-headphones {
+.sb-icon-headphone {
   background-position: -18rem -4rem;
 }
 
-.sb-icon-bluetooth-headphones {
+.sb-icon-bluetooth-headphone {
   background-position: -22rem -8rem;
 }
 
-.sb-icon-bluetooth-transferring {
+.sb-icon-bluetooth-transfer {
   background-position: -28rem -8rem;
 }
 
@@ -553,7 +545,7 @@ body .utility-tray .statusbar > .sb-start {
   background-position: -28rem -6rem;
 }
 
-.sb-icon-emergency-cb-notification {
+.sb-icon-emergency-callback {
   background-position: -24rem -8rem;
 }
 
@@ -573,7 +565,7 @@ body .utility-tray .statusbar > .sb-start {
   font-size: 1.15rem; /*5pt  was 0.8rem */
 }
 
-.sb-icon-system-downloads {
+.sb-icon-download {
   width: 1.6rem;
   height: 1.6rem;
   /* HACK: This enforces allocation of a dedicated layer just for this animated
@@ -582,7 +574,7 @@ body .utility-tray .statusbar > .sb-start {
   transform: perspective(0.1rem);
 }
 
-.sb-icon-system-downloads[hidden] {
+.sb-icon-download[hidden] {
   display: none;
 }
 
@@ -611,32 +603,32 @@ body .utility-tray .statusbar > .sb-start {
 /* Hide icons applying a class to the status bar */
 .sb-hide-time .sb-icon-time,
 .sb-hide-battery .sb-icon-battery,
-.sb-hide-flight-mode .sb-icon-flight-mode,
+.sb-hide-airplane-mode .sb-icon-airplane-mode,
 .sb-hide-wifi .sb-icon-wifi,
-.sb-hide-connections .sb-icon-connections,
+.sb-hide-mobile-connection .sb-icon-mobile-connection,
 .sb-hide-network-activity .sb-icon-network-activity,
 .sb-hide-tethering .sb-icon-tethering,
 .sb-hide-bluetooth .sb-icon-bluetooth,
 .sb-hide-nfc .sb-icon-nfc,
 .sb-hide-debugging .sb-icon-debugging,
-.sb-hide-emergency-cb-notification .sb-icon-emergency-cb-notification,
-.sb-hide-system-downloads .sb-icon-system-downloads,
+.sb-hide-emergency-callback .sb-icon-emergency-callback,
+.sb-hide-download .sb-icon-download,
 .sb-hide-usb .sb-icon-usb,
 .sb-hide-mute .sb-icon-mute,
 .sb-hide-recording .sb-icon-recording,
 .sb-hide-geolocation .sb-icon-geolocation,
-.sb-hide-call-forwardings .sb-icon-call-forwardings,
-.sb-hide-bluetooth-headphones .sb-icon-bluetooth-headphones,
-.sb-hide-headphones .sb-icon-headphones,
+.sb-hide-call-forwardings .sb-icon-call-forwarding,
+.sb-hide-bluetooth-headphone .sb-icon-bluetooth-headphone,
+.sb-hide-headphone .sb-icon-headphone,
 .sb-hide-playing .sb-icon-playing,
-.sb-hide-bluetooth-transferring .sb-icon-bluetooth-transferring,
+.sb-hide-bluetooth-transfer .sb-icon-bluetooth-transfer,
 .sb-hide-alarm .sb-icon-alarm,
 .sb-hide-sms .sb-icon-sms {
   display: none;
 }
 
-/* Using visibility for label so that the element width is known at all time. */
-.utility-tray .sb-hide-label .statusbar > .sb-icon-label {
+/* Using visibility for operator so that the element width is known at all time. */
+.utility-tray .sb-hide-operator .statusbar > .sb-icon-operator {
   visibility: hidden;
 }
 
@@ -650,30 +642,30 @@ html[dir="rtl"] .statusbar {
   right: unset;
 }
 
-html[dir="rtl"] #statusbar-connections[data-multiple="true"] .statusbar-signal::before {
-  left: -0.6rem;;
+html[dir="rtl"] #statusbar-mobile-connection[data-multiple="true"] .statusbar-signal::before {
+  left: -0.6rem;
   right: unset;
 }
 
-html[dir="rtl"] #statusbar-connections .statusbar-signal .statusbar-data {
+html[dir="rtl"] #statusbar-mobile-connection .statusbar-signal .statusbar-data {
   text-align: left;
   left: unset;
   right: -.7rem;
 }
 
-html[dir="rtl"] #statusbar-connections[data-multiple="true"] .statusbar-signal .statusbar-data {
+html[dir="rtl"] #statusbar-mobile-connection[data-multiple="true"] .statusbar-signal .statusbar-data {
   left: unset;
   right: .7rem;
   text-align: right;
 }
 
-html[dir="rtl"] #statusbar-connections[data-multiple="true"] .statusbar-data.sb-icon-data-circle {
+html[dir="rtl"] #statusbar-mobile-connection[data-multiple="true"] .statusbar-data.sb-icon-data-circle {
   left: unset;
   right: 0.2rem;
 }
 
 html[dir="rtl"] #statusbar-call-forwardings > * {
-  float: left;
+  float: right;
 }
 
 html[dir="rtl"] #statusbar-call-forwardings[data-multiple="true"] .sb-icon-call-forwarding::before {

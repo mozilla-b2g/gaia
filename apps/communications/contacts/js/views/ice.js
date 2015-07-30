@@ -1,7 +1,7 @@
 /* global ICEData */
-/* global Contacts */
 /* global ImageLoader */
 /* global LazyLoader */
+/* global MainNavigation */
 /* global fb */
 'use strict';
 
@@ -90,12 +90,12 @@
   }
 
   function showICEList() {
-    Contacts.navigation.go('ice-view', 'right-left');
+    MainNavigation.go('ice-view', 'right-left');
     iceListDisplayed = true;
   }
 
   function hideICEList() {
-    Contacts.navigation.back();
+    MainNavigation.back();
     iceListDisplayed = false;
   }
 

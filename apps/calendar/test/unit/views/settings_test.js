@@ -5,8 +5,10 @@ var CalendarTemplate = require('templates/calendar');
 var Factory = require('test/support/factory');
 var Settings = require('views/settings');
 var View = require('view');
-var nextTick = require('next_tick');
+var core = require('core');
+var nextTick = require('common/next_tick');
 var suiteGroup = require('test/support/suite_group');
+var waitFor = require('test/support/wait_for');
 
 requireCommon('test/synthetic_gestures.js');
 
@@ -14,9 +16,10 @@ suiteGroup('views/settings', function() {
   /* jshint -W027 */
   return;
   var subject;
-  var app;
   var store;
   var controller;
+  var storeFactory;
+  var syncController;
   var template;
   var triggerEvent;
   var account;
@@ -28,7 +31,7 @@ suiteGroup('views/settings', function() {
     setup(function(done) {
       account = Factory('account', { _id: 'testacc' });
 
-      var trans = app.db.transaction(
+      var trans = core.db.transaction(
         ['calendars', 'accounts'], 'readwrite'
       );
 
@@ -40,7 +43,7 @@ suiteGroup('views/settings', function() {
         done(e.target.error);
       };
 
-      app.store('Account').persist(account, trans);
+      storeFactory.get('Account').persist(account, trans);
 
       var model;
       for (var key in list) {
@@ -55,6 +58,7 @@ suiteGroup('views/settings', function() {
 
   suiteSetup(function() {
     triggerEvent = testSupport.calendar.triggerEvent;
+    syncController = core.syncController;
   });
 
   teardown(function() {
@@ -95,13 +99,12 @@ suiteGroup('views/settings', function() {
 
     document.body.appendChild(div);
 
-    app = testSupport.calendar.app();
-    controller = app.timeController;
-    store = app.store('Calendar');
+    controller = core.timeController;
+    storeFactory = core.storeFactory;
+    store = storeFactory.get('Calendar');
     template = CalendarTemplate;
 
     subject = new Settings({
-      app: app,
       syncProgressTarget: div,
       // normally this is higher in production but
       // we don't need to wait that long in tests.
@@ -125,7 +128,7 @@ suiteGroup('views/settings', function() {
       }
     };
 
-    app.db.open(done);
+    core.db.open(done);
 
     models = stageModels({
       displayed: {
@@ -143,10 +146,10 @@ suiteGroup('views/settings', function() {
 
   teardown(function(done) {
     testSupport.calendar.clearStore(
-      app.db,
+      core.db,
       ['accounts', 'calendars'],
       function() {
-        app.db.close();
+        core.db.close();
         done();
       }
     );
@@ -154,7 +157,6 @@ suiteGroup('views/settings', function() {
 
   test('initialization', function() {
     assert.instanceOf(subject, View);
-    assert.equal(subject.app, app);
     assert.equal(
       subject.element, document.querySelector('#settings')
     );
@@ -189,7 +191,7 @@ suiteGroup('views/settings', function() {
     var syncAccount;
     var accountStore;
     setup(function(done) {
-      accountStore = app.store('Account');
+      accountStore = storeFactory.get('Account');
       syncAccount = accounts.sync;
 
       subject.render();
@@ -198,26 +200,24 @@ suiteGroup('views/settings', function() {
 
     suite('remove', function() {
       setup(function(done) {
-        accountStore.remove(accounts.sync._id);
-        subject.onupdatesyncbutton = function() {
-          subject.onupdatesyncbutton = null;
-          done();
-        };
+        accountStore.remove(accounts.sync._id).then(done);
       });
 
-      suite('add', function() {
-        setup(function(done) {
-          delete syncAccount._id;
-
-          accountStore.persist(syncAccount);
-          subject.onupdatesyncbutton = function() {
-            subject.onupdatesyncbutton = null;
-            done();
-          };
-        });
+      test('should remove sync button', function(done) {
+        waitFor(() => subject.toolbar.classList.contains('noaccount'), done);
       });
     });
 
+    suite('add', function() {
+      setup(function(done) {
+        delete syncAccount._id;
+        accountStore.persist(syncAccount).then(done);
+      });
+
+      test('should show sync button', function(done) {
+        waitFor(() => !subject.toolbar.classList.contains('noaccount'), done);
+      });
+    });
   });
 
   suite('#_observeCalendarStore', function() {
@@ -345,23 +345,23 @@ suiteGroup('views/settings', function() {
   suite('syncProgress', function() {
 
     test('syncStart', function(done) {
-      app.syncController.on('syncStart', function () {
+      syncController.on('syncStart', function () {
         assert.ok(subject.syncProgress.classList.contains('syncing'));
         assert.equal(subject.syncProgress.getAttribute('data-l10n-id'),
         'sync-progress-syncing');
         done();
       });
-      app.syncController.emit('syncStart');
+      syncController.emit('syncStart');
     });
 
     test('syncComplete', function(done) {
-      app.syncController.on('syncComplete', function () {
+      syncController.on('syncComplete', function () {
         assert.equal(subject.syncProgress.getAttribute('data-l10n-id'),
         'sync-progress-complete');
         assert.notOk(subject.syncProgress.classList.contains('syncing'));
         done();
       });
-      app.syncController.emit('syncComplete');
+      syncController.emit('syncComplete');
     });
   });
 

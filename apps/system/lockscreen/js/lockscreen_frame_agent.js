@@ -36,7 +36,6 @@
         'secure-modeoff',
         'secure-modeon',
         'lockpanelchange',
-        'lockscreen-request-passcode-validate',
         'lockscreen-request-unlock',
         'lockscreen-request-mediacommand'
       ]

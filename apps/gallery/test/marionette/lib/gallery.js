@@ -1,3 +1,6 @@
+'use strict';
+/* jshint node:true */
+
 /**
  * @constructor
  * @param {Marionette.Client} client Marionette client to use.
@@ -20,30 +23,14 @@ Gallery.ORIGIN = 'app://gallery.gaiamobile.org';
  */
 Gallery.Selector = Object.freeze({
   thumbnail: '.thumbnail',
-  fullscreenView: '#fullscreen-view',
   thumbnailsView: '#thumbnail-views > footer.thumbnails-list',
   thumbnailsSelectButton: '#thumbnails-select-button',
   thumbnailsDeleteButton: '#thumbnails-delete-button',
-  fullscreenBackButton: '#fullscreen-back-button-tiny',
-  editButton: '#fullscreen-edit-button-tiny',
   confirmButton: '#confirm-ok',
   overlayView: '#overlay',
-  editView: '#edit-view',
-  editExposureButton: '#edit-exposure-button',
-  editCropButton: '#edit-crop-button',
-  editEffectButton: '#edit-effect-button',
-  editEnhanceButton: '#edit-enhance-button',
-  exposureOptions: '#exposure-slider',
-  cropOptions: '#edit-crop-options',
-  effectOptions: '#edit-effect-options',
-  exposureSlider: '#sliderthumb',
-  editCropAspectPortraitButton: '#edit-crop-aspect-portrait',
-  editEffectSepiaButton: '#edit-effect-sepia',
-  editSaveButton: '#edit-save-button',
-  editToolApplyButton: '#edit-tool-apply-button',
-  editHeader: '#edit-view gaia-header',
-  fullscreenFrame2: '#frame2',
-  fullscreenFrame3: '#frame3'
+  overlayTitle: '#overlay-title',
+  overlayText: '#overlay-text',
+  overlayCameraButton: '#overlay-camera-button'
 });
 
 Gallery.prototype = {
@@ -68,18 +55,19 @@ Gallery.prototype = {
   },
 
   /**
-   * @return {Marionette.Element} Container for fullscreen view of an image.
-   */
-  get fullscreenView() {
-    return this.client.helper.waitForElement(Gallery.Selector.fullscreenView);
-  },
-
-  /**
    * @return {Marionette.Element} Container for thumbnails list view.
    */
   get thumbnailsView() {
     return this.client.helper.waitForElement(Gallery.Selector.thumbnailsView);
   },
+
+  /**
+   * @return {boolean} thumbnails view display status.
+   */
+  get thumbnailsViewDisplayed() {
+    return this.client.helper.waitForElement(
+      Gallery.Selector.thumbnailsView).displayed();
+  },  
 
   /**
    * @return {Marionette.Element} Container for different overlay messages.
@@ -89,12 +77,26 @@ Gallery.prototype = {
   },
 
   /**
-   * @return {Marionette.Element} Element to click to get back
-   *                              to thumbnail view.
+   * @return {Marionette.Element} Container for overlay message title.
    */
-  get fullscreenBackButton() {
-    return this.client.helper.waitForElement(
-      Gallery.Selector.fullscreenBackButton);
+  get overlayTitle() {
+    return this.client.helper.waitForElement(Gallery.Selector.overlayTitle);
+  },
+  
+  /**
+   * @return {Marionette.Element} Container for overlay message content.
+   */
+  get overlayText() {
+    return this.client.helper.waitForElement(Gallery.Selector.overlayText);
+  },
+
+  /**
+   * @return {Marionette.Element} Container for the camera button 
+   *                              when no media is found.
+   */
+  get cameraButton() {
+    return this.client.helper.waitForElement(Gallery.Selector.
+      overlayCameraButton);
   },
 
   /**
@@ -118,203 +120,21 @@ Gallery.prototype = {
    */
   get confirmButton() {
     return this.client.helper.waitForElement(Gallery.Selector.confirmButton);
-  },
+  }, 
 
-  /**
-   * @return {Marionette.Element} Element to click for image editing mode.
-   */
-  get editButton() {
-    return this.client.helper.waitForElement(Gallery.Selector.editButton);
-  },
-
-  /**
-   * @return {Marionette.Element} Element to click for effects editing mode.
-   */
-  get editEffectButton() {
-    return this.client.helper.waitForElement(Gallery.Selector.editEffectButton);
-  },
-
-  /**
-   * @return {Marionette.Element} Element to click for the exposure
-   *                              editing mode.
-   */
-  get editEnhanceButton() {
-    return this.client.helper.waitForElement(
-      Gallery.Selector.editEnhanceButton);
-  },
-
-  /**
-   * @return {Marionette.Element} Element to click for the exposure editing
-   *                              mode.
-   */
-  get editExposureButton() {
-    return this.client.helper.waitForElement(
-      Gallery.Selector.editExposureButton);
-  },
-
-  /**
-   * @return {Marionette.Element} Element to click for crop editing mode.
-   */
-  get editCropButton() {
-    return this.client.helper.waitForElement(Gallery.Selector.editCropButton);
-  },
-
-  /**
-   * @return {Marionette.Element} Container to host the exposure options' tab.
-   */
-  get exposureOptions() {
-    return this.client.helper.waitForElement(Gallery.Selector.exposureOptions);
-  },
-
-  /**
-   * @return {Marionette.Element} Container to host the crop options' tab.
-   */
-  get cropOptions() {
-    return this.client.helper.waitForElement(Gallery.Selector.cropOptions);
-  },
-
-  /**
-   * @return {Marionette.Element} Container to host the effect options' tab.
-   */
-  get effectOptions() {
-    return this.client.helper.waitForElement(Gallery.Selector.effectOptions);
-  },
-
-  /**
-   * @return {Marionette.Element} Container to host the enhance options' tab.
-   */
-  get enhanceOptions() {
-    return this.client.helper.waitForElement(Gallery.Selector.enhanceOptions);
-  },
-
-  /**
-   * @return {Marionette.Element} Element to swipe to change exposure settings.
-   */
-  get exposureSlider() {
-    return this.client.helper.waitForElement(Gallery.Selector.exposureSlider);
-  },
-
-  /**
-   * @return {Marionette.Element} Element to click to save changes from editing.
-   */
-  get editSaveButton() {
-    return this.client.helper.waitForElement(Gallery.Selector.editSaveButton);
-  },
-
-  /**
-   * @return {Marionette.Element} Element to apply edits in edit tool.
-   */
-  get editToolApplyButton() {
-    return this.client.helper
-               .waitForElement(Gallery.Selector.editToolApplyButton);
-  },
-
-  /**
-   * @return {Marionette.Element} Element to click to crop an image.
-   */
-  get editCropAspectPortraitButton() {
-    return this.client.helper
-               .waitForElement(Gallery.Selector.editCropAspectPortraitButton);
-  },
-
-  /**
-   * @return {Marionette.Element} Element to click to apply a sepia affect.
-   */
-  get editEffectSepiaButton() {
-    return this.client.helper
-               .waitForElement(Gallery.Selector.editEffectSepiaButton);
-  },
-
-  /**
-   * @return {Marionette.Element} Container element to host fullscreen images.
-   */
-  get fullscreenFrame2() {
-    return this.client.helper.waitForElement(Gallery.Selector.fullscreenFrame2);
-  },
-
-  /**
-   * @return {Marionette.Element} Container element to host fullscreen images.
-   */
-  get fullscreenFrame3() {
-    return this.client.helper.waitForElement(Gallery.Selector.fullscreenFrame3);
-  },
-
-  /**
-   * Read the translateX style and return its integer value.
-   */
-  getFrameTranslation: function(frame) {
-    var style = frame.getAttribute('style');
-    return parseInt(style.match(/.*:\s.*\((\d*).*/)[1]);
-  },
-
-  waitFor: function(selector) {
-    return this.client.helper.waitForElement(selector);
-  },
-
-  /**
-  * Wait for the image editor view to render before continuing with the tests.
-  */
-  waitForImageEditor: function() {
-    this.waitFor(Gallery.Selector.editCropButton);
-    this.waitFor(Gallery.Selector.editEffectButton);
-    this.waitFor(Gallery.Selector.editExposureButton);
-    this.waitFor(Gallery.Selector.editEnhanceButton);
-  },
-
-  enterMainEditScreen: function() {
+  tapFirstThumbnail: function() {
     this.thumbnail.click();
-    this.editButton.click();
   },
 
-  tapCancel: function() {
-    this.waitFor(Gallery.Selector.editHeader).tap(25, 25);
-  },
-
-  getExposureSliderPosition: function() {
-    return this.exposureSlider.text();
-  },
-
-  applyEditToolOptions: function() {
-    this.editToolApplyButton.click();
-  },
-
-  saveEditedImage: function() {
-    this.editSaveButton.click();
-  },
-
-  waitForCropAspectPortraitSelected: function() {
-    this.client.waitFor(function() {
-      return this.editCropAspectPortraitButton
-                        .getAttribute('class').indexOf('selected') > -1;
-    }.bind(this));
-  },
-
-  waitForSepiaEffectSelected: function() {
-    this.client.waitFor(function() {
-      return this.editEffectSepiaButton
-                        .getAttribute('class').indexOf('selected') > -1;
-    }.bind(this));
-  },
-
-  waitForAutoEnhanceButtonOn: function() {
-    this.client.waitFor(function() {
-      return this.editEnhanceButton
-                        .getAttribute('class').split(' ').indexOf('on') > -1;
-    }.bind(this));
-  },
-
-  waitForAutoEnhanceButtonOff: function() {
-    this.client.waitFor(function() {
-      return this.editEnhanceButton
-                        .getAttribute('class').split(' ').indexOf('on') < 0;
-    }.bind(this));
+  tapThumbnail: function(n) {
+    this.thumbnails[n].click();
   },
 
   /**
    * Start the Gallery, save the client for future ops, and wait for the
    * Gallery to finish an initial render.
    */
-  launch: function() {
+  launch: function(nomedia) {
 
     this.client.apps.launch(Gallery.ORIGIN);
     this.client.apps.switchToApp(Gallery.ORIGIN);
@@ -322,6 +142,10 @@ Gallery.prototype = {
     this.client.helper.waitForElement('body');
     // Make sure the gallery is done scanning for new content.
     this.client.setSearchTimeout(1000);
-    this.client.helper.waitForElement(Gallery.Selector.thumbnail);
+
+    // Check for thumbnail when loaded with images
+    if (!nomedia) {
+      this.client.helper.waitForElement(Gallery.Selector.thumbnail); 
+    }
   }
 };

@@ -13,14 +13,14 @@ class TestPlayMP4Video(GaiaTestCase):
         GaiaTestCase.setUp(self)
 
         # add video to storage
-        self.push_resource('VID_0001.mp4')
+        self.push_resource('VID_counter.mp4')
 
     def test_play_mp4_video(self):
         """https://moztrap.mozilla.org/manage/case/2478/"""
 
         video_player = VideoPlayer(self.marionette)
         video_player.launch()
-        video_player.wait_for_thumbnails_to_load(1, 'Video files found on device: %s' %self.data_layer.video_files)
+        video_player.wait_for_thumbnails_to_load(1)
 
         # Assert that there is at least one video available
         self.assertGreater(video_player.total_video_count, 0)

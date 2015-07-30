@@ -1,58 +1,51 @@
 'use strict';
-/* global BatteryOverlay,
+/* global MockBatteryOverlay,
           NotificationHelper,
-          MockBluetooth,
           MockNavigatorBattery,
           MockNavigatorSettings,
           MockSettingsListener,
           MocksHelper,
-          PowerSave
+          PowerSave,
+          MockL10n
 */
 
 requireApp('system/test/unit/mock_navigator_battery.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/shared/test/unit/mocks/mock_notification_helper.js');
-requireApp('system/test/unit/mock_bluetooth.js');
+requireApp('system/test/unit/mock_lazy_loader.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
+requireApp('system/js/service.js');
+requireApp('system/js/base_ui.js');
+requireApp('system/js/base_icon.js');
+requireApp('system/js/battery_icon.js');
 requireApp('system/js/power_save.js');
-requireApp('system/js/battery_overlay.js');
+requireApp('system/test/unit/mock_battery_overlay.js');
 
 var mocksForPowerSave = new MocksHelper([
-  'SettingsListener', 'NotificationHelper'
+  'SettingsListener', 'NotificationHelper', 'LazyLoader'
 ]).init();
 
 suite('power save >', function() {
 
-  var realBluetooth;
-  var realMozSettings;
-  var subject;
-  var realBattery, battery;
+  var realMozSettings, subject, realL10n;
 
   mocksForPowerSave.attachTestHelpers();
   suiteSetup(function() {
-    realBluetooth = window.Bluetooth;
-    window.Bluetooth = MockBluetooth;
-
     realMozSettings = navigator.mozSettings;
     navigator.mozSettings = MockNavigatorSettings;
+    realL10n = window.navigator.mozL10n;
+    window.navigator.mozL10n = MockL10n;
 
-    subject = new PowerSave();
-
-    realBattery = subject._battery;
-    window.batteryOverlay = new BatteryOverlay();
-    window.batteryOverlay._battery = MockNavigatorBattery;
-    battery = window.batteryOverlay._battery;
+    MockBatteryOverlay._battery = MockNavigatorBattery;
+    subject = new PowerSave(MockBatteryOverlay);
   });
 
   suiteTeardown(function() {
     subject = null;
 
-    battery = null;
-    window.batteryOverlay._battery = realBattery;
-    window.batteryOverlay = null;
-
     navigator.mozSettings = realMozSettings;
-    window.Bluetooth = realBluetooth;
+    navigator.mozL10n = realL10n;
   });
 
   suite('restores state >', function() {
@@ -134,19 +127,19 @@ suite('power save >', function() {
       });
 
       test('no checkThreshold call when charging', function() {
-        battery.charging = true;
+        MockNavigatorBattery.charging = true;
         subject.onBatteryChange();
         sinon.assert.notCalled(checkSpy);
       });
 
       test('checkThreshold called when not charging', function() {
-        battery.charging = false;
+        MockNavigatorBattery.charging = false;
         subject.onBatteryChange();
         sinon.assert.calledOnce(checkSpy);
       });
 
       test('charging with powersave enabled sets setting to false', function() {
-        battery.charging = true;
+        MockNavigatorBattery.charging = true;
         subject._powerSaveEnabled = true;
         subject.onBatteryChange();
         sinon.assert.calledOnce(setSpy);
@@ -154,7 +147,7 @@ suite('power save >', function() {
       });
 
       test('charging with powersave disables does nothing', function() {
-        battery.charging = true;
+        MockNavigatorBattery.charging = true;
         subject._powerSaveEnabled = false;
         subject.onBatteryChange();
         sinon.assert.notCalled(setSpy);
@@ -177,7 +170,7 @@ suite('power save >', function() {
         MockNavigatorSettings.mSetup();
         MockNavigatorSettings.mSyncRepliesOnly = true;
         setSpy = this.sinon.spy(subject, 'setMozSettings');
-        battery.level = 0.15;
+        MockNavigatorBattery.level = 0.15;
       });
 
       teardown(function() {

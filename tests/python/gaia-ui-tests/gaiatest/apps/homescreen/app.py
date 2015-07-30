@@ -4,16 +4,8 @@
 
 import time
 
-try:
-    from marionette import (expected,
-                            Wait)
-    from marionette.by import By
-    from marionette.marionette import Actions
-except:
-    from marionette_driver import (expected,
-                                   Wait)
-    from marionette_driver.by import By
-    from marionette_driver.marionette import Actions
+from marionette_driver import expected, By, Wait
+from marionette_driver.marionette import Actions
 
 from gaiatest.apps.base import Base
 from gaiatest.apps.base import PageRegion
@@ -31,6 +23,7 @@ class Homescreen(Base):
     _bookmark_icons_locator = (By.CSS_SELECTOR, 'gaia-grid .bookmark')
     _divider_locator = (By.CSS_SELECTOR, 'section.divider')
     _divider_separator_locator = (By.CSS_SELECTOR, 'section.divider .separator > span')
+    _exit_edit_mode_locator = (By.ID, 'exit-edit-mode')
 
     def launch(self):
         Base.launch(self)
@@ -43,8 +36,9 @@ class Homescreen(Base):
         import time
         time.sleep(1)
         self.marionette.switch_to_frame()
-        time.sleep(1)
+        Wait(self.marionette).until(lambda m: not self.keyboard.is_keyboard_displayed)
         self.marionette.find_element('id', 'rocketbar-form').tap()
+        Wait(self.marionette).until(lambda m: self.keyboard.is_keyboard_displayed)
 
         from gaiatest.apps.homescreen.regions.search_panel import SearchPanel
         return SearchPanel(self.marionette)
@@ -120,6 +114,14 @@ class Homescreen(Base):
     def is_edit_mode_active(self):
         return self.is_element_present(*self._edit_mode_locator)
 
+    def tap_edit_done(self):
+         element = self.marionette.find_element(*self._exit_edit_mode_locator)
+         Wait(self.marionette).until(lambda m: element.is_displayed())
+         element.tap()
+         Wait(self.marionette).until(lambda m: not element.is_displayed())
+         Wait(self.marionette).until(expected.element_not_present(
+             *self._edit_mode_locator))
+
     def tap_collection(self, collection_name):
         for root_el in self.marionette.find_elements(*self._homescreen_all_icons_locator):
             if root_el.text == collection_name:
@@ -168,7 +170,9 @@ class Homescreen(Base):
 
     @property
     def number_of_columns(self):
-        return int(self.marionette.find_element(*self._landing_page_locator).get_attribute('cols'))
+        element = self.marionette.find_element(*self._landing_page_locator)
+        Wait(self.marionette).until(lambda m: element.get_attribute('cols') is not None)
+        return int(element.get_attribute('cols'))
 
     class InstalledApp(PageRegion):
 

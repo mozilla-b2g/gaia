@@ -1,7 +1,7 @@
 /* exported MusicComms */
-/* global App, musicdb, LazyLoader, ModeManager, MODE_PLAYER, PlayerView,
-          PLAYSTATUS_PLAYING, PLAYSTATUS_STOPPED, INTERRUPT_BEGIN, TYPE_MIX,
-          MediaRemoteControls */
+/* global Database, INTERRUPT_BEGIN, MediaRemoteControls, ModeManager,
+          MODE_PLAYER, PlayerView, PLAYSTATUS_PLAYING, PLAYSTATUS_STOPPED,
+          TYPE_MIX */
 'use strict';
 
 var MusicComms = {
@@ -32,16 +32,14 @@ var MusicComms = {
           }
         } else {
           // Play in shuffle order if music app is launched remotely.
-          // Please note bug 855208, if music app is launched via system message
-          // in background, the audio channel will be paused.
           if (PlayerView.playStatus === PLAYSTATUS_STOPPED) {
-            musicdb.getAll(function remote_getAll(dataArray) {
-              PlayerView.setSourceType(TYPE_MIX);
-              PlayerView.dataSource = dataArray;
-              PlayerView.setShuffle(true);
-              PlayerView.play(PlayerView.shuffledList[0]);
-
-              ModeManager.push(MODE_PLAYER);
+            Database.getAll(function remote_getAll(dataArray) {
+              ModeManager.push(MODE_PLAYER, function() {
+                PlayerView.setSourceType(TYPE_MIX);
+                PlayerView.dataSource = dataArray;
+                PlayerView.setShuffle(true);
+                PlayerView.play(PlayerView.shuffledList[0]);
+              });
             });
           } else if (PlayerView.playStatus === PLAYSTATUS_PLAYING) {
             PlayerView.pause();
@@ -157,16 +155,7 @@ var MusicComms = {
   },
 
   _getPlayerReady: function(callback) {
-    if (typeof PlayerView === 'undefined') {
-      LazyLoader.load('js/ui/views/player_view.js', function() {
-        PlayerView.init();
-        PlayerView.setOptions(App.playerSettings);
-
-        callback();
-      });
-    } else {
-      callback();
-    }
+    ModeManager.waitForView(MODE_PLAYER, callback);
   },
 
   _isPlayerActivated: function() {

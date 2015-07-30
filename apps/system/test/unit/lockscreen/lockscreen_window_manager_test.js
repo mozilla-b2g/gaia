@@ -6,12 +6,14 @@
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 requireApp('system/shared/test/unit/mocks/mock_service.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+requireApp('system/shared/test/unit/mocks/mock_lazy_loader.js');
 requireApp('system/test/unit/mock_lock_screen.js');
 requireApp('system/test/unit/mock_lockscreen_window.js');
-requireApp('system/js/lockscreen_window_manager.js');
+requireApp('system/js/base_module.js');
+requireApp('system/js/lock_screen_window_manager.js');
 
 var mocksForLockScreenWindowManager = new window.MocksHelper([
-  'LockScreen', 'LockScreenWindow', 'Service'
+  'LockScreen', 'LockScreenWindow', 'Service', 'LazyLoader'
 ]).init();
 
 suite('system/LockScreenWindowManager', function() {
@@ -340,17 +342,26 @@ suite('system/LockScreenWindowManager', function() {
         states: {
           instance: {
             isActive: function() { return true; },
-            resize: this.sinon.stub()
+            resize: this.sinon.stub().returns({ stub: 'promise' })
           }
         }
       };
+
+      var stubWaitUntil = this.sinon.stub();
+
       handleEvent.call(mockSubject,
         {
-          type: 'system-resize'
+          type: 'system-resize',
+          detail: {
+            waitUntil: stubWaitUntil
+          }
         });
       assert.isTrue(
         mockSubject.states.instance.resize.called,
         'it doesn\'t resize the window while system-resize comes');
+      assert.isTrue(stubWaitUntil.calledWith({ stub: 'promise' }),
+        'it doesn\'t pass the promise from the subject to waitUntil() ' +
+        'function.');
     });
 
     test('LockScreen request to unlock without activity detail', function() {
@@ -372,7 +383,22 @@ suite('system/LockScreenWindowManager', function() {
       subject.unregisterApp(appFake);
     });
 
-    test('onInputpadOpen would open the window and call resize', function() {
+    test('onInputpadOpen would open the window, setVisible and call resize',
+    function() {
+      subject.states.instance = appFake;
+      appFake.inputWindow = {
+        open: this.sinon.stub(),
+        close: this.sinon.stub(),
+        setVisible: this.sinon.stub()
+      };
+      var stubResize = this.sinon.stub(appFake, 'resize');
+      subject.onInputpadOpen();
+      assert.isTrue(appFake.inputWindow.open.called, 'called |open|');
+      assert.isTrue(stubResize.called, 'called no |resize|');
+      assert.isTrue(appFake.inputWindow.setVisible.calledWith(true));
+    });
+
+    test('onInputpadClose would close the window and call resize', function() {
       subject.states.instance = appFake;
       appFake.inputWindow = {
         open: this.sinon.stub(),
@@ -380,7 +406,7 @@ suite('system/LockScreenWindowManager', function() {
       };
       var stubResize = this.sinon.stub(appFake, 'resize');
       subject.onInputpadClose();
-      assert.isTrue(appFake.inputWindow.close.called, 'called no |open|');
+      assert.isTrue(appFake.inputWindow.close.called, 'called |close|');
       assert.isTrue(stubResize.called, 'called no |resize|');
     });
 

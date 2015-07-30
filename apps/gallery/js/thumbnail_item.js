@@ -1,3 +1,5 @@
+'use strict';
+
 /**
  * ThumbnailItem is view object for a single gallery item data. It renders file
  * in listitem object.
@@ -30,17 +32,17 @@ function ThumbnailItem(fileData) {
   this.imgNode.src = url;
   this.htmlNode.appendChild(this.imgNode);
 
-  if (navigator.mozL10n.readyState === 'complete') {
-   this.localize();
-  }
+  this.localize();
 }
 
 ThumbnailItem.formatter = new navigator.mozL10n.DateTimeFormat();
 
 ThumbnailItem.prototype.localize = function() {
   var date = new Date(this.data.date);
-  var description = navigator.mozL10n.get(!this.data.metadata.video ?
-    'imageDescriptionShort' : 'videoDescriptionShort');
-  var label = ThumbnailItem.formatter.localeFormat(date, description);
-  this.imgNode.setAttribute('aria-label', label);
+  var descId = !this.data.metadata.video ?
+    'imageDescriptionShort' : 'videoDescriptionShort';
+  navigator.mozL10n.formatValue(descId).then(function(description) {
+    var label = ThumbnailItem.formatter.localeFormat(date, description);
+    this.imgNode.setAttribute('aria-label', label);
+  }.bind(this));
 };

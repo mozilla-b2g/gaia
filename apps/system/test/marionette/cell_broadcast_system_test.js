@@ -7,12 +7,7 @@ var NotificationList = require('./lib/notification').NotificationList;
 
 marionette('mozApps', function() {
 
-  var client = marionette.client({
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
-    }
-  });
+  var client = marionette.client();
 
   var cellBroadcastSystem = new CellBroadcastSystem(client);
   var event, system;
@@ -23,7 +18,7 @@ marionette('mozApps', function() {
 
   suite('CellBroadcastSystem', function() {
     setup(function() {
-      system.waitForStartup();
+      system.waitForFullyLoaded();
       event = {
         message: {
           body: 'test'
@@ -54,9 +49,10 @@ marionette('mozApps', function() {
 marionette('mozApps - lockscreen enabled', function() {
 
   var client = marionette.client({
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': true
+    profile: {
+      settings: {
+        'lockscreen.enabled': true
+      }
     }
   });
 
@@ -72,7 +68,7 @@ marionette('mozApps - lockscreen enabled', function() {
 
   suite('CellBroadcastSystem', function() {
     setup(function() {
-      system.waitForStartup();
+      system.waitForFullyLoaded();
       event = {
         message: {
           body: 'test'
@@ -91,7 +87,7 @@ marionette('mozApps - lockscreen enabled', function() {
 
       // Show utility tray and tap on first notification
       client.executeScript(function() {
-        window.wrappedJSObject.UtilityTray.show(true);
+        window.wrappedJSObject.Service.request('UtilityTray:show', true);
       });
       notificationList.refresh();
       notificationList.tap(notificationList.notifications[0]);

@@ -23,12 +23,28 @@ var https = require('https');
 var url = require('url');
 var dive = require('diveSync');
 var nodeUUID = require('node-uuid');
-var jsdom = require('jsdom-nogyp').jsdom;
+var jsdom = require('jsdom-nogyp');
 var esprima = require('esprima');
 var procRunning = require('is-running');
+var mime = require('mime');
+
+// Our gecko will transfer .opus file to audio/ogg datauri type.
+mime.define({'audio/ogg': ['opus']});
+
+// jsdom-nogyp has not defined Setter for outerHTML, so we need to set it by
+// ourselves.
+jsdom.dom.level3.html.Element.prototype.__defineSetter__('outerHTML',
+  function(html) {
+    var parentNode = this.parentNode, el;
+    var all = this.ownerDocument.createElement('div');
+    all.innerHTML = html;
+    while (el === all.firstChild) {
+      parentNode.insertBefore(el, this);
+    }
+    parentNode.removeChild(this);
+  });
 
 module.exports = {
-
   Q: Q,
 
   scriptParser: esprima,
@@ -40,6 +56,10 @@ module.exports = {
       return;
     }
     console.log('[' + args[0] + '] ' + args.slice(1).join(' '));
+  },
+
+  normalizePath: function(string) {
+    return path.normalize(string);
   },
 
   joinPath: function() {
@@ -56,7 +76,7 @@ module.exports = {
   },
 
   getFile: function() {
-    var self = this;
+    var self = module.exports;
     var src = path.join.apply(path, arguments);
     var fileStat;
     try {
@@ -111,7 +131,9 @@ module.exports = {
       // XXX: Most cmds should run synchronously, we should use either promise
       //      pattern inside each script or find a sync module which doesn't
       //      require recompile again since TPBL doesn't support that.
-      childProcess.exec(cmds, function(err, stdout) {
+      childProcess.exec(cmds,
+                        { maxBuffer: (4096 * 1024) },
+                        function(err, stdout) {
         if (err === null && typeof callback === 'function') {
           callback(stdout);
         }
@@ -130,7 +152,7 @@ module.exports = {
     if (!manifest) {
       throw new Error('manifest.webapp not found in ' + zipPath);
     }
-    return manifest.asText();
+    return JSON.parse(manifest.asText());
   },
 
   killAppByPid: function(appName) {
@@ -178,7 +200,7 @@ module.exports = {
 
   getFileAsDataURI: function(file) {
     var data = this.getFileContent(file, 'base64');
-    return new Buffer(data, 'binary').toString('base64');
+    return 'data:' + mime.lookup(file.path) + ';base64,' + data;
   },
 
   getJSON: function(file) {
@@ -195,11 +217,13 @@ module.exports = {
   },
 
   getDocument: function(content) {
-    return jsdom(content);
+    // In order to use document.querySelector, we have to pass level for
+    // jsdom-nogyp.
+    return jsdom.jsdom(content, jsdom.level(3, 'core'));
   },
 
   getXML: function(file) {
-    return jsdom(this.getFileContent(file));
+    return jsdom.jsdom(this.getFileContent(file));
   },
 
   getEnv: function(name) {
@@ -228,7 +252,7 @@ module.exports = {
     return appname.replace(' ', '-').toLowerCase().replace(/\W/g, '');
   },
 
-  ls: function(dir, recursive, pattern, include) {
+  ls: function(dir, recursive) {
     var files = [];
     if (!dir || !dir.exists()) {
       return [];
@@ -238,10 +262,7 @@ module.exports = {
         // Skip error
         return;
       }
-      var file = this.getFile(filePath);
-      if (!pattern || !(include ^ pattern.test(file.leafName))) {
-        files.push(file);
-      }
+      files.push(this.getFile(filePath));
     }.bind(this));
     return files;
   },
@@ -395,14 +416,16 @@ module.exports = {
       } else {
         // uuid is used for webapp directory name, save it for further usage
         let mapping = this.getUUIDMapping(config);
-        var uuid = mapping[webapp.sourceDirectoryName] || nodeUUID.v4();
+        var uuid = mapping[webapp.sourceDirectoryName] ||
+          '{' + nodeUUID.v4() + '}';
         mapping[webapp.sourceDirectoryName] = webappTargetDirName = uuid;
       }
     } else {
       webappTargetDirName = webapp.domain;
     }
-    webapp.profileDirectoryFilePath = this.joinPath(config.PROFILE_DIR,
-      'webapps', webappTargetDirName);
+    webapp.profileDirectoryFilePath = this.joinPath(config.COREWEBAPPS_DIR,
+                                                    'webapps',
+                                                    webappTargetDirName);
 
     return webapp;
   },
@@ -449,7 +472,7 @@ module.exports = {
     }
   },
 
-  addFileToZip: function(zip, zipPath, pathInZip, file, compression) {
+  addFileToZip: function(zip, pathInZip, file, compression) {
     if (!file.exists()) {
       return;
     }
@@ -459,8 +482,15 @@ module.exports = {
     });
   },
 
+  hasFileInZip: function(zip, pathInZip) {
+    return zip.file(pathInZip);
+  },
+
   closeZip: function(zip, zipPath) {
-    fs.writeFileSync(zipPath, zip.generate({ type: 'nodebuffer' }));
+    fs.writeFileSync(zipPath, zip.generate({
+      type: 'nodebuffer',
+      platform: process.platform
+    }));
   },
 
   getLocaleBasedir: function(src) {
@@ -515,16 +545,16 @@ module.exports = {
     return exists;
   },
 
-  copyFileTo: function(filePath, toParent, name, recursive) {
+  copyFileTo: function(filePath, toParent, name) {
     var file = ((typeof filePath === 'string') ?
       this.getFile(filePath) : filePath);
-    fs.copySync(file.path, path.join(toParent, name), { recursive: recursive });
+    fs.copySync(file.path, path.join(toParent, name));
   },
 
-  copyDirTo: function(filePath, toParent, name, recursive) {
+  copyDirTo: function(filePath, toParent, name) {
     var file = ((typeof filePath === 'string') ?
       this.getFile(filePath) : filePath);
-    fs.copySync(file.path, path.join(toParent, name), { recursive: recursive });
+    fs.copySync(file.path, path.join(toParent, name));
   },
 
   copyToStage: function(options) {
@@ -545,7 +575,9 @@ module.exports = {
         return;
       }
 
-      var win = jsdom().parentWindow;
+      var doc = jsdom.jsdom();
+      var win = doc.defaultView;
+
       exportObj.Promise = Q;
 
       global.addEventListener = win.addEventListener;
@@ -564,7 +596,5 @@ module.exports = {
         throw error;
       }
     }
-
   }
-
 };

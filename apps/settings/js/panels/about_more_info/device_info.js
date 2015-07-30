@@ -88,8 +88,16 @@ define(function(require) {
         imeis.forEach(function(imei, index) {
           var span = document.createElement('span');
 
-          span.textContent = (imeis.length > 1) ?
-            'IMEI ' + (index + 1) + ': ' + imei : imei;
+          if (imeis.length > 1) {
+            navigator.mozL10n.setAttributes(span,
+              'deviceInfo-IMEI-with-index', {
+                index: index + 1,
+                imei: imei
+            });
+          } else {
+            span.textContent = imei;
+          }
+
           span.dataset.slot = index;
           this._elements.deviceInfoImeis.appendChild(span);
         }.bind(this));
@@ -150,12 +158,21 @@ define(function(require) {
       Array.prototype.forEach.call(conns, function(conn, index) {
         var span = document.createElement('span');
         if (conn.iccId) {
-          span.textContent = multiSim ?
-            'SIM ' + (index + 1) + ': ' + conn.iccId : conn.iccId;
+          if (multiSim) {
+            navigator.mozL10n.setAttributes(span,
+              'deviceInfo-ICCID-with-index', {
+                index: index + 1,
+                iccid: conn.iccId
+            });
+          } else {
+            span.textContent = conn.iccId;
+          }
         } else {
           if (multiSim) {
             navigator.mozL10n.setAttributes(span,
-              'deviceInfo-ICCID-unavailable-sim', { index: index + 1 });
+              'deviceInfo-ICCID-unavailable-sim', {
+                index: index + 1
+            });
           } else {
             span.setAttribute('data-l10n-id', 'unavailable');
           }

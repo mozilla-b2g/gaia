@@ -1,10 +1,7 @@
 'use strict';
-/* global FtuLauncher */
-/* global layoutManager */
 /* global SettingsListener */
 /* global Service */
 /* global SheetsTransition */
-/* global softwareButtonManager */
 /* global StackManager */
 /* global TouchForwarder */
 
@@ -42,6 +39,12 @@
       window.addEventListener('mozChromeEvent', this);
       window.addEventListener('updatepromptshown', this);
       window.addEventListener('updateprompthidden', this);
+      window.addEventListener('installpromptshown', this);
+      window.addEventListener('installprompthidden', this);
+      window.addEventListener('shrinking-start', this);
+      window.addEventListener('shrinking-stop', this);
+      window.addEventListener('hierarchychanged', this);
+      window.addEventListener('hierarchytopmostwindowchanged', this);
 
       ['touchstart', 'touchmove', 'touchend',
        'mousedown', 'mousemove', 'mouseup'].forEach(function(e) {
@@ -96,6 +99,24 @@
      */
     handleEvent: function esd_handleEvent(e) {
       switch (e.type) {
+        case 'hierarchychanged':
+        case 'hierarchytopmostwindowchanged':
+          // XXX: Use this.appWindowManager instead if
+          // we become part of appWindowManager submodules.
+          // i.e., Service.query('getTopMostUI') === this.parent
+          var topMostUI = Service.query('getTopMostUI');
+          var topMostWindow = Service.query('getTopMostWindow');
+          if (topMostUI && topMostUI.name === 'AppWindowManager') {
+            if (topMostWindow &&
+                !topMostWindow.getBottomMostWindow().isHomescreen &&
+                !Service.query('isFtuRunning')) {
+              this.lifecycleEnabled = true;
+              break;
+            }
+          }
+
+          this.lifecycleEnabled = false;
+          break;
         case 'mousedown':
         case 'mousemove':
         case 'mouseup':
@@ -118,10 +139,11 @@
         case 'appopened':
           var app = e.detail;
           if (!app.stayBackground) {
-            this.lifecycleEnabled = (app.origin !== FtuLauncher.getFtuOrigin());
+            this.lifecycleEnabled =
+              (app.origin !== Service.query('getFtuOrigin'));
           }
           break;
-        case 'homescreenopened':
+        case 'shrinking-start':
           this.lifecycleEnabled = false;
           break;
         case 'cardviewclosed':
@@ -144,10 +166,16 @@
             }
             break;
         case 'updatepromptshown':
+        case 'installpromptshown':
           this.lifecycleEnabled = false;
           break;
+        // XXX: Move install/update dialog into system dialog
+        // and then we could remove this.
         case 'updateprompthidden':
-          if (Service.currentApp && !Service.currentApp.isHomescreen) {
+        case 'installprompthidden':
+        case 'shrinking-stop':
+          if (Service.query('getTopMostWindow') &&
+              !Service.query('getTopMostWindow').isHomescreen) {
             this.lifecycleEnabled = true;
           }
           break;
@@ -162,6 +190,11 @@
       var enabled = this._lifecycleEnabled && this._settingEnabled;
       this.previous.classList.toggle('disabled', !enabled);
       this.next.classList.toggle('disabled', !enabled);
+
+      if (!enabled && this._touchStartEvt) {
+        this._touchStartEvt = null; // we ignore the rest of the gesture
+        SheetsTransition.snapInPlace();
+      }
     },
 
     _touchStartEvt: null,
@@ -210,6 +243,9 @@
     },
 
     _touchMove: function esd_touchMove(e) {
+      if (!this._touchStartEvt) {
+        return;
+      }
       var touch = e.touches[0];
       this._updateProgress(touch);
       var delta = Math.max(Math.abs(this._deltaX), Math.abs(this._deltaY));
@@ -232,17 +268,17 @@
         return;
       }
 
-      // Preparing to move the sheets...
+      // After a small threshold...
+      if ((this._deltaX < kSignificant || this._outsideApp(e)) &&
+          !this._moved) {
+        return;
+      }
+
+      // preparing to move the sheets...
       if (!this._beganTransition) {
         SheetsTransition.begin(this._direction);
         this._clearForwardTimeout();
         this._beganTransition = true;
-      }
-
-      // after a small threshold
-      if ((this._deltaX < kSignificant || this._outsideApp(e)) &&
-          !this._moved) {
-        return;
       }
 
       SheetsTransition.moveInDirection(this._direction, this._progress);
@@ -250,12 +286,25 @@
     },
 
     _touchEnd: function esd_touchEnd(e) {
+      if (!this._touchStartEvt) {
+        return;
+      }
+
+      // Edge gestures are never multi-touch
+      var touches = e.touches.length + e.changedTouches.length;
+      if (touches > 1 && !this._forwarding) {
+        this._touchStartEvt = null;
+        SheetsTransition.snapInPlace();
+        return;
+      }
+
       var touch = e.changedTouches[0];
       this._updateProgress(touch);
 
       if (this._forwarding) {
         this._forward(e);
-      } else if ((this._deltaX < 5) && (this._deltaY < 5)) {
+      } else if ((this._deltaX < kSignificant) &&
+                 (this._deltaY < kSignificant)) {
         setTimeout(function(self, touchstart, touchend) {
           self._forward(touchstart);
           setTimeout(function() {
@@ -370,14 +419,16 @@
       // but we still want to redispatch touch events to the "overlayed"
       // software home button
       var softwareButtonOverlayed =
-        Service.currentApp &&
-        Service.currentApp.isFullScreenLayout();
+        Service.query('getTopMostWindow') &&
+        Service.query('getTopMostWindow').isFullScreenLayout();
+      var width = Service.query('LayoutManager.width');
+      var height = Service.query('LayoutManager.height');
       if (softwareButtonOverlayed) {
-        return x > (layoutManager.width - softwareButtonManager.width) ||
-            y > (layoutManager.height - softwareButtonManager.height);
+        var sbWidth = Service.query('SoftwareButtonManager.width');
+        var sbHeight = Service.query('SoftwareButtonManager.height');
+        return x > (width - sbWidth) || y > (height - sbHeight);
       }
-      return (x > layoutManager.width ||
-              y > layoutManager.height);
+      return (x > width || y > height);
     },
 
     /**

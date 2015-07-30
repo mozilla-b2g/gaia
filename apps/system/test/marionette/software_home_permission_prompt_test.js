@@ -5,15 +5,15 @@ var Rocketbar = require('./lib/rocketbar');
 marionette('Software Home Button - Permission Prompt', function() {
 
   var client = marionette.client({
-    prefs: {
-      'focusmanager.testmode': true,
-      'dom.w3c_touch_events.enabled': 1
+    profile: {
+      prefs: {
+        'focusmanager.testmode': true
+      },
+      settings: {
+        'software-button.enabled': true
+      }
     },
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false,
-      'software-button.enabled': true
-    }
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
   });
   var home, rocketbar, system;
 
@@ -21,7 +21,7 @@ marionette('Software Home Button - Permission Prompt', function() {
     home = client.loader.getAppClass('verticalhome');
     rocketbar = new Rocketbar(client);
     system = client.loader.getAppClass('system');
-    system.waitForStartup();
+    system.waitForFullyLoaded();
     home.waitForLaunch();
     client.switchToFrame();
   });

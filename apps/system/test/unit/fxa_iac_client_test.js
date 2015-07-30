@@ -1,3 +1,4 @@
+/* global FxAccountsIACHelper, MockApp, MockAppsMgmt */
 'use strict';
 
 requireApp('system/test/unit/mock_apps_mgmt.js');
@@ -45,7 +46,7 @@ suite('FirefoxOS Accounts IAC Client Suite', function() {
         var future = {
           'then': function(cb) {}
         };
-        var connectStub = sinon.stub(future, 'then', function(cb) {
+        sinon.stub(future, 'then', function(cb) {
           cb([port]);
         });
         return future;
@@ -268,8 +269,8 @@ suite('FirefoxOS Accounts IAC Client Suite', function() {
 
     setup(function() {
       this.clock = sinon.useFakeTimers();
-      var callbackCalled = false;
-      var otherCallbackCalled = false;
+      callbackCalled = false;
+      otherCallbackCalled = false;
       // we are testing that postmessage requests are queued, not overwritten,
       // during the period between starting the Helper and the port being open.
       // we need to clear out the port, add 2 new subscribers, then check both
@@ -279,7 +280,7 @@ suite('FirefoxOS Accounts IAC Client Suite', function() {
           var future = {
             'then': function(cb) {}
           };
-          var connectStub = sinon.stub(future, 'then', function(cb) {
+          sinon.stub(future, 'then', function(cb) {
             // wait a turn so that we can queue up multiple requests
             setTimeout(function() {
               cb([port]);

@@ -12,18 +12,21 @@ marionette('Firefox Accounts Launch Tests', function() {
       server,
       fxaUser,
       client = marionette.client({
-        prefs: {
+        profile: {
+          prefs: {
           'identity.fxaccounts.auth.uri': 'http://' +
             config.SERVER_HOST + ':' +
             config.SERVER_PORT + '/' +
             config.SERVER_PATH
           },
           settings: {
-            'lockscreen.enabled': false
+            'ftu.manifestURL': FxA.FTU_ORIGIN + '/manifest.webapp'
           },
           apps: {
             'test-fxa-client.gaiamobile.org': __dirname + '/test-fxa-client'
           }
+        },
+        desiredCapabilities: { raisesAccessibilityExceptions: true }
       });
 
     setup(function() {

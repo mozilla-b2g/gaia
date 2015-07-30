@@ -1,0 +1,3 @@
+#! /bin/bash -vex
+
+make jsmarionette-unit-tests

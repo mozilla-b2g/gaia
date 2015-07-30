@@ -1,5 +1,5 @@
 'use strict';
-/* global SettingsListener */
+/* global SettingsListener, LazyLoader */
 /* global AccessibilityQuicknavMenu */
 
 (function(exports) {
@@ -346,9 +346,16 @@
       this.cancelHints();
       if (aDetails.eventType === 'quicknav-menu') {
         if (!this.quicknav) {
-          this.quicknav = new AccessibilityQuicknavMenu();
+          LazyLoader.load(['js/accessibility_quicknav_menu.js'])
+            .then(() => {
+              this.quicknav = new AccessibilityQuicknavMenu();
+              this.quicknav.show();
+            }).catch((err) => {
+              console.error(err);
+            });
+        } else {
+          this.quicknav.show();
         }
-        this.quicknav.show();
       }
     },
 
@@ -593,7 +600,7 @@
       }
       window.clearTimeout(this.captionsHideTimeout);
       this.captionsHideTimeout = null;
-      this.captionsBox.innerHTML = aUtterance;
+      this.captionsBox.textContent = aUtterance;
       this.captionsBox.classList.add('visible');
     },
 

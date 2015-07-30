@@ -1,0 +1,40 @@
+reruns: 2
+task:
+  metadata:
+    name: Gaia Node Modules Cache Generator
+    description: Generates the Node Modules cache file.
+
+  workerType: '{{workerType}}'
+  provisionerId: '{{provisionerId}}'
+  scopes:
+    # Source caches contains various sources (including a tarball of gaia source
+    # tree)
+    - docker-worker:cache:gaia-misc-caches
+    - index:insert-task:gaia.npm_cache.*
+    - queue:create-artifact:public/node_modules.tar.gz
+
+  payload:
+    image: taskcluster/npm-cache:0.1.10
+
+    cache:
+      gaia-misc-caches: /home/tester/caches/
+    
+    command:
+      - entrypoint
+    
+    env:
+      TASK_ID: '{{taskId}}'
+      NAMESPACE: gaia.npm_cache
+
+    features:
+      taskclusterProxy: true
+
+  extra:
+    npmCache:
+      url: '{{packageUrl}}'
+      expires: '{{nextYear}}'
+
+    treeherder:
+      symbol: Bootstrap
+      groupSymbol: BOOTSTRAP
+      groupName: Bootstrap

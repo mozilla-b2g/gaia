@@ -18,8 +18,7 @@ require.config({
     'shared/gesture_detector': { exports: 'GestureDetector' },
     'shared/input_parser': { exports: 'InputParser' },
     'shared/lazy_loader': { exports: 'LazyLoader' },
-    'shared/notification_helper': { exports: 'NotificationHelper' },
-    'shared/performance_testing_helper': { exports: 'PerformanceTestingHelper' }
+    'shared/notification_helper': { exports: 'NotificationHelper' }
   }
 });
 

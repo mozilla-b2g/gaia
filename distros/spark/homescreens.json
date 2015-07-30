@@ -1,0 +1,39 @@
+{
+  "homescreens": [
+    [
+      ["apps", "communications", "dialer"],
+      ["apps", "sms"],
+      ["apps", "communications", "contacts"],
+      ["apps", "email"],
+      ["apps", "search"],
+      ["apps", "gallery"],
+      ["apps", "camera"],
+      ["apps", "marketplace.firefox.com"],
+      ["apps", "clock"],
+      ["apps", "settings"]
+    ], [
+      ["apps", "customizer-launcher"],
+      ["apps", "directory"],
+      ["apps", "studio"],
+      ["apps", "sharing"],
+      ["outoftree_apps", "webmaker"],
+      ["outoftree_apps", "bugzillalite"]
+    ], [
+      ["apps", "calendar"],
+      ["apps", "music"],
+      ["apps", "video"],
+      ["outoftree_apps", "facebook"],
+      ["outoftree_apps", "twitter"],
+      ["outoftree_apps", "runwhatsapppreview"],
+      ["outoftree_apps", "buddyup"]
+    ], [
+      ["apps", "costcontrol"],
+      ["outoftree_apps", "notes"],
+      ["outoftree_apps", "calculator"],
+      ["outoftree_apps", "swooop"]
+    ]
+  ],
+  "preferences": {
+    "grid.cols": 3
+  }
+}

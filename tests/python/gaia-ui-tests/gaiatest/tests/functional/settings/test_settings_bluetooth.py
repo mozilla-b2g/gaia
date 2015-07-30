@@ -21,9 +21,8 @@ class TestBluetoothSettings(GaiaTestCase):
         settings.launch()
 
         self.assertFalse(self.data_layer.bluetooth_is_enabled)
-        self.assertFalse(self.data_layer.get_setting('bluetooth.visible'))
 
-        bluetooth_settings = settings.open_bluetooth_settings()
+        bluetooth_settings = settings.open_bluetooth()
         bluetooth_settings.enable_bluetooth()
 
         self.assertTrue(self.data_layer.bluetooth_is_enabled)
@@ -36,6 +35,5 @@ class TestBluetoothSettings(GaiaTestCase):
 
         bluetooth_settings.enable_visible_to_all()
 
-        self.assertTrue(self.data_layer.get_setting('bluetooth.visible'))
         self.assertTrue(self.data_layer.bluetooth_is_discoverable)
         self.assertEquals(self.data_layer.bluetooth_name, device_name)

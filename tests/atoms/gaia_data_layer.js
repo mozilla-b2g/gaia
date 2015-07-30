@@ -3,105 +3,82 @@
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 'use strict';
-/* global marionetteScriptFinished, pair, device:true, mozContact, i */
-/* global waitFor, SpecialPowers, adapter:true, aContacts */
+/* global marionetteScriptFinished, pair, mozContact, i */
+/* global waitFor, aContacts */
 /* exported pair, discovery, GaiaDataLayer */
 /* jshint -W083 */
 
 var GaiaDataLayer = {
 
-  pairBluetoothDevice: function(aDeviceName) {
-    var req = window.navigator.mozBluetooth.getDefaultAdapter();
-    req.onsuccess = function() {
-      var adapter = req.result;
-      var discovery;
-      adapter.ondevicefound = function(aEvent) {
-        device = aEvent.device;
-        var pair;
-        if (device.name === aDeviceName) {
-          pair = adapter.pair(device.address);
-          marionetteScriptFinished(true);
-        }
-      };
-      discovery = adapter.startDiscovery();
-    };
+  getBluetoothDefaultAdapter: function() {
+    var bluetooth = window.navigator.mozBluetooth;
+    if (bluetooth.defaultAdapter) {
+      return bluetooth.defaultAdapter;
+    } else {
+      return bluetooth.getAdapters()[0];
+    }
   },
 
-  unpairAllBluetoothDevices: function() {
-    var req_get_adapter = window.navigator.mozBluetooth.getDefaultAdapter();
-    req_get_adapter.onsuccess = function() {
-      adapter = req_get_adapter.result;
-      var req = adapter.getPairedDevices();
-      req.onsuccess = function() {
-        var total = req.result.slice().length;
-        var up;
-        for (var i = total; i > 0; i--) {
-          up = adapter.unpair(req.result.slice()[i - 1].address);
+  setBluetooth: function(aState) {
+    var adapter = this.getBluetoothDefaultAdapter();
+
+    if (adapter.state == aState) {
+      console.log('bluetooth already ' + aState);
+      marionetteScriptFinished(true);
+      return;
+    }
+
+    waitFor(
+      function() {
+        console.log('bluetooth ' + aState);
+        marionetteScriptFinished(true);
+      },
+      function() {
+        console.log('bluetooth enable status: ' + adapter.state);
+
+        // Wait for the adapter state to become 'disabled' or 'enabled'
+        if (adapter.state === 'disabling' || adapter.state === 'enabling') {
+          return false;
         }
-      };
-    };
-    marionetteScriptFinished(true);
+
+        if (adapter.state != aState) {
+          console.log('trying to make bluetooth ' + aState);
+          if (aState === 'enabled') {
+            adapter.enable();
+          } else {
+            adapter.disable();
+          }
+          return false;
+        }
+
+        return adapter.state === aState;
+      }
+    );
   },
 
   disableBluetooth: function() {
-    var bluetooth = window.navigator.mozBluetooth;
-    if (bluetooth.enabled) {
-      console.log('trying to disable bluetooth');
-      this.setSetting('bluetooth.enabled', false, false);
-      waitFor(
-        function() {
-          marionetteScriptFinished(true);
-        },
-        function() {
-          console.log('bluetooth enable status: ' + bluetooth.enabled);
-          return bluetooth.enabled === false;
-        }
-      );
-    }
-    else {
-      console.log('bluetooth already disabled');
-      marionetteScriptFinished(true);
-    }
+    this.setBluetooth('disabled');
   },
 
   enableBluetooth: function() {
-    var bluetooth = window.navigator.mozBluetooth;
-    if (!bluetooth.enabled) {
-      console.log('trying to enable bluetooth');
-      this.setSetting('bluetooth.enabled', true, false);
-      waitFor(
-        function() {
-          marionetteScriptFinished(true);
-        },
-        function() {
-          console.log('bluetooth enable status: ' + bluetooth.enabled);
-          return bluetooth.enabled === true;
-        }
-      );
-    }
-    else {
-      console.log('bluetooth already enabled');
-      marionetteScriptFinished(true);
-    }
+    this.setBluetooth('enabled');
   },
 
   insertContact: function(aContact) {
+    // requires the 'contacts-create' permission
     if (aContact.photo) {
       var blob = GaiaDataLayer.base64ToBlob(aContact.photo, 'image/jpg');
       aContact.photo = [blob];
     }
 
-    SpecialPowers.addPermission('contacts-create', true, document);
     var contact = new mozContact(aContact);
     var req = window.navigator.mozContacts.save(contact);
     req.onsuccess = function() {
       console.log('success saving contact');
-      SpecialPowers.removePermission('contacts-create', document);
       marionetteScriptFinished(true);
     };
     req.onerror = function() {
       console.error('error saving contact', req.error.name);
-      SpecialPowers.removePermission('contacts-create', document);
       marionetteScriptFinished(false);
     };
   },
@@ -112,7 +89,12 @@ var GaiaDataLayer = {
     var iccId = window.navigator.mozIccManager.iccIds[0];
     var icc = window.navigator.mozIccManager.getIccById(iccId);
 
-    var req = icc.updateContact(aType, aContact);
+    var simContact = new window.mozContact(aContact);
+    if ('id' in aContact) {
+      simContact.id = aContact.id;
+    }
+
+    var req = icc.updateContact(aType, simContact);
     req.onsuccess = function() {
       console.log('success saving contact to SIM');
       marionetteScriptFinished(req.result);
@@ -146,17 +128,15 @@ var GaiaDataLayer = {
 
 
   getAllContacts: function(aCallback) {
+    // requires 'contacts-read' permission
     var callback = aCallback || marionetteScriptFinished;
-    SpecialPowers.addPermission('contacts-read', true, document);
     var req = window.navigator.mozContacts.find({});
     req.onsuccess = function() {
       console.log('success finding contacts');
-      SpecialPowers.removePermission('contacts-read', document);
       callback(req.result);
     };
     req.onerror = function() {
       console.error('error finding contacts ' + req.error.name);
-      SpecialPowers.removePermission('contacts-read', document);
       callback([]);
     };
   },
@@ -175,12 +155,10 @@ var GaiaDataLayer = {
     var req = icc.readContacts(type);
     req.onsuccess = function() {
       console.log('success finding ' + type + ' contacts');
-      SpecialPowers.removePermission('contacts-read', document);
       callback(req.result);
     };
     req.onerror = function() {
       console.error('error finding ' + type + ' contacts ' + req.error.name);
-      SpecialPowers.removePermission('contacts-read', document);
       callback([]);
     };
   },
@@ -207,27 +185,24 @@ var GaiaDataLayer = {
   },
 
   removeContact: function(aContact, aCallback) {
+    // requires the 'contacts-write' persmission
     var callback = aCallback || marionetteScriptFinished;
-    SpecialPowers.addPermission('contacts-write', true, document);
     console.log('removing contact with id \'' + aContact.id + '\'');
     var req = window.navigator.mozContacts.remove(aContact);
     req.onsuccess = function() {
       console.log('success removing contact with id \'' + aContact.id + '\'');
-      SpecialPowers.removePermission('contacts-write', document);
       callback(true);
     };
     req.onerror = function() {
       console.error('error removing contact with id \'' +
                       aContacts[i].id + '\'');
-      SpecialPowers.removePermission('contacts-write', document);
       callback(false);
     };
   },
 
   getSetting: function(aName, aCallback) {
+    // requires the 'settings-read' and 'settings-api-read' permissions
     var callback = aCallback || marionetteScriptFinished;
-    SpecialPowers.addPermission('settings-read', true, document);
-    SpecialPowers.addPermission('settings-api-read', true, document);
     var req = window.navigator.mozSettings.createLock().get(aName);
     req.onsuccess = function() {
       console.log('setting retrieved');
@@ -240,8 +215,7 @@ var GaiaDataLayer = {
   },
 
   setSetting: function(aName, aValue, aReturnOnSuccess) {
-    SpecialPowers.addPermission('settings-write', true, document);
-    SpecialPowers.addPermission('settings-api-write', true, document);
+    // requires the 'settings-write' and 'settings-api-write' permissions
     var returnOnSuccess = aReturnOnSuccess || aReturnOnSuccess === undefined;
     var setting = {};
     setting[aName] = aValue;
@@ -505,20 +479,20 @@ var GaiaDataLayer = {
     };
   },
 
-  sendSMS: function(recipient, content, aCallback) {
+  sendSMS: function(recipient, content, skipVerification, aCallback) {
+    // requires the 'sms' permission and the 'dom.sms.enabled' pref
     var callback = aCallback || marionetteScriptFinished;
     console.log('sending sms message to number: ' + recipient);
 
-    SpecialPowers.addPermission('sms', true, document);
-    SpecialPowers.setBoolPref('dom.sms.enabled', true);
-
     let messageManager = window.navigator.mozMobileMessage;
     let request = messageManager.send(recipient, content);
+    if (skipVerification) {
+      marionetteScriptFinished(true);
+      return;
+    }
 
     request.onsuccess = function(event) {
       var sms = event.target.result;
-      SpecialPowers.removePermission('sms', document);
-      SpecialPowers.clearUserPref('dom.sms.enabled');
 
       waitFor(
         function() { callback(true); },
@@ -531,18 +505,15 @@ var GaiaDataLayer = {
 
     request.onerror = function() {
       console.log('sms message not sent');
-      SpecialPowers.removePermission('sms', document);
-      SpecialPowers.clearUserPref('dom.sms.enabled');
       callback(false);
     };
   },
 
   getAllSms: function(aCallback) {
+    // requires the 'sms' permission and the 'dom.sms.enabled' pref
     var callback = aCallback || marionetteScriptFinished;
     console.log('searching for sms messages');
 
-    SpecialPowers.addPermission('sms', true, document);
-    SpecialPowers.setBoolPref('dom.sms.enabled', true);
     let sms = window.navigator.mozMobileMessage;
 
     let msgList = [];
@@ -555,7 +526,6 @@ var GaiaDataLayer = {
         // Now get the next in the list
         cursor.continue();
       }else{
-        disableSms();
         // Send back the list
         callback(msgList);
       }
@@ -563,22 +533,15 @@ var GaiaDataLayer = {
 
     cursor.onerror = function(event) {
       console.log('sms.getMessages error: ' + event.target.error.name);
-      disableSms();
       callback(false);
     };
-
-    function disableSms() {
-      SpecialPowers.removePermission('sms', document);
-      SpecialPowers.clearUserPref('dom.sms.enabled');
-    }
   },
 
   deleteAllSms: function(aCallback) {
+    // requires the 'sms' permission and the 'dom.sms.enabled' pref
     var callback = aCallback || marionetteScriptFinished;
     console.log('searching for sms messages');
 
-    SpecialPowers.addPermission('sms', true, document);
-    SpecialPowers.setBoolPref('dom.sms.enabled', true);
     let sms = window.navigator.mozMobileMessage;
 
     let msgList = [];
@@ -597,7 +560,6 @@ var GaiaDataLayer = {
           deleteSmsMsgs(msgList);
         } else {
           console.log('zero sms messages found');
-          disableSms();
           callback(true);
         }
       }
@@ -605,7 +567,6 @@ var GaiaDataLayer = {
 
     cursor.onerror = function(event) {
       console.log('sms.getMessages error: ' + event.target.error.name);
-      disableSms();
       callback(false);
     };
 
@@ -622,12 +583,10 @@ var GaiaDataLayer = {
           } else {
             // All messages deleted
             console.log('finished deleting all sms messages');
-            disableSms();
             callback(true);
           }
         } else {
           console.log('sms delete failed');
-          disableSms();
           callback(false);
         }
       };
@@ -635,67 +594,9 @@ var GaiaDataLayer = {
       request.onerror = function(event) {
         console.log('sms.delete request returned unexpected error: ' +
                     event.target.error.name);
-        disableSms();
         callback(false);
       };
     }
-
-    function disableSms() {
-      SpecialPowers.removePermission('sms', document);
-      SpecialPowers.clearUserPref('dom.sms.enabled');
-    }
-  },
-
-  bluetoothSetDeviceName: function(device_name, aCallback) {
-    var callback = aCallback || marionetteScriptFinished;
-    console.log('Setting device\'s bluetooth name to \'%s\'', device_name);
-
-    var req = window.navigator.mozBluetooth.getDefaultAdapter();
-    req.onsuccess = function() {
-      var adapter = req.result;
-      var req_set_name = adapter.setName(device_name);
-      req_set_name.onsuccess = function() {
-        callback(true);
-      };
-      req_set_name.onerror = function(event) {
-        console.log('setName returned unexpected error: ' +
-                    event.target.error.name);
-        callback(false);
-      };
-    };
-    req.onerror = function(event) {
-      console.log('getDefaultAdapter returned unexpected error: ' +
-                  event.target.error.name);
-      callback(false);
-    };
-  },
-
-  bluetoothSetDeviceDiscoverableMode: function(discoverable, aCallback) {
-    var callback = aCallback || marionetteScriptFinished;
-    if (discoverable === true) {
-      console.log('Making the device discoverable via bluetooth');
-    } else {
-      console.log('Turning device bluetooth discoverable mode OFF');
-    }
-
-    var req = window.navigator.mozBluetooth.getDefaultAdapter();
-    req.onsuccess = function() {
-      var adapter = req.result;
-      var req_discoverable = adapter.setDiscoverable(discoverable);
-      req_discoverable.onsuccess = function() {
-        callback(true);
-      };
-      req_discoverable.onerror = function(event) {
-        console.log('setDiscoverable returned unexpected error: ' +
-                    event.target.error.name);
-        callback(false);
-      };
-    };
-    req.onerror = function(event) {
-      console.log('getDefaultAdapter returned unexpected error: ' +
-                  event.target.error.name);
-      callback(false);
-    };
   },
 
   deleteAllAlarms: function() {

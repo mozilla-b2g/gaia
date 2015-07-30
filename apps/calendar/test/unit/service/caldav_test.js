@@ -1,13 +1,13 @@
 define(function(require) {
 'use strict';
 
-var Calc = require('calc');
+var Calc = require('common/calc');
 var Caldav = require('ext/caldav');
 var CaldavService = require('service/caldav');
 var Factory = require('test/support/factory');
 var ICAL = require('ext/ical');
 var IcalRecurExpansion = require('service/ical_recur_expansion');
-var Responder = require('responder');
+var Responder = require('common/responder');
 var ServiceSupport = require('test/service/helper');
 
 suite('service/caldav', function() {

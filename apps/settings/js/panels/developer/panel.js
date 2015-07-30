@@ -13,7 +13,7 @@ define(function(require) {
     return SettingsPanel({
       onInit: function(panel) {
         var elements = {
-          resetButton: panel.querySelector('.reset-devtools'),
+          resetSwitch: panel.querySelector('.reset-devtools'),
           ftuLauncher: panel.querySelector('.ftuLauncher'),
           softwareHomeButton: panel.querySelector('.software-home-button'),
           homegesture: panel.querySelector('.homegesture')

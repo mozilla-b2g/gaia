@@ -1,6 +1,6 @@
 'use strict';
 /* global Rocketbar, MocksHelper, MockIACPort, MockSearchWindow,
-   MockService, MockPromise, MockAppWindow */
+   MockService, MockPromise, MockAppWindow, MockUtilityTray */
 
 require('/js/browser.js');
 require('/js/browser_config_helper.js');
@@ -12,6 +12,7 @@ requireApp('system/shared/test/unit/mocks/mock_settings_url.js');
 requireApp('system/shared/test/unit/mocks/mock_service.js');
 requireApp('system/shared/test/unit/mocks/mock_promise.js');
 requireApp('system/test/unit/mock_iac_handler.js');
+requireApp('system/test/unit/mock_utility_tray.js');
 
 var mocksForRocketbar = new MocksHelper([
   'AppWindow',
@@ -19,7 +20,8 @@ var mocksForRocketbar = new MocksHelper([
   'SettingsListener',
   'SettingsURL',
   'Service',
-  'IACPort'
+  'IACPort',
+  'UtilityTray'
 ]).init();
 
 suite('system/Rocketbar', function() {
@@ -40,6 +42,7 @@ suite('system/Rocketbar', function() {
 
     requireApp('system/js/rocketbar.js', function() {
       subject = new Rocketbar();
+      subject.start();
       subject._port = MockIACPort;
       done();
     });
@@ -49,26 +52,26 @@ suite('system/Rocketbar', function() {
     stubById.restore();
     MockIACPort.mTearDown();
     subject._port = null;
-    MockService.currentApp = null;
   });
 
   suite('Hierarchy functions', function() {
-    test('setHierarchy: false', function() {
+    test('setHierarchy', function() {
       var searchWindow = new MockSearchWindow();
       subject.searchWindow = searchWindow;
       this.sinon.stub(searchWindow, 'setVisibleForScreenReader');
       subject.setHierarchy(false);
       assert.isTrue(searchWindow.setVisibleForScreenReader.calledWith(false));
+      searchWindow.setVisibleForScreenReader.reset();
+      subject.setHierarchy(true);
+      assert.isTrue(searchWindow.setVisibleForScreenReader.calledWith(true));
     });
 
-    test('setHierarchy: true', function() {
+    test('setFocus', function() {
       var searchWindow = new MockSearchWindow();
       subject.searchWindow = searchWindow;
-      this.sinon.stub(searchWindow, 'setVisibleForScreenReader');
       this.sinon.stub(subject, 'focus');
-      subject.setHierarchy(true);
+      subject.setFocus(true);
       assert.isTrue(subject.focus.called);
-      assert.isTrue(searchWindow.setVisibleForScreenReader.calledWith(true));
     });
 
     test('Should register hierarchy on start', function() {
@@ -159,7 +162,7 @@ suite('system/Rocketbar', function() {
     assert.ok(windowAddEventListenerStub.calledWith('apploading'));
     assert.ok(windowAddEventListenerStub.calledWith('apptitlechange'));
     assert.ok(windowAddEventListenerStub.calledWith('appopened'));
-    var trayOpenedEvent = 'utility-tray-overlayopening';
+    var trayOpenedEvent = 'utilitytray-overlayopening';
     assert.ok(windowAddEventListenerStub.calledWith(trayOpenedEvent));
     assert.ok(inputAddEventListenerStub.calledWith('blur'));
     assert.ok(inputAddEventListenerStub.calledWith('input'));
@@ -255,6 +258,15 @@ suite('system/Rocketbar', function() {
     assert.ok(deactivateStub.calledOnce);
   });
 
+  test('handleEvent() - simlockrequestfocus', function() {
+    var hideResultsStub = this.sinon.stub(subject, 'hideResults');
+    var deactivateStub = this.sinon.stub(subject, 'deactivate');
+    var event = {type: 'simlockrequestfocus'};
+    subject.handleEvent(event);
+    assert.ok(hideResultsStub.calledOnce);
+    assert.ok(deactivateStub.calledOnce);
+  });
+
   test('handleEvent() - apploading', function() {
     var hideResultsStub = this.sinon.stub(subject, 'hideResults');
     var deactivateStub = this.sinon.stub(subject, 'deactivate');
@@ -291,10 +303,28 @@ suite('system/Rocketbar', function() {
     assert.ok(deactivateStub.calledOnce);
   });
 
-  test('handleEvent() - utility-tray-overlayopening', function() {
+  test('handleEvent() - activityrequesting', function() {
     var hideResultsStub = this.sinon.stub(subject, 'hideResults');
     var deactivateStub = this.sinon.stub(subject, 'deactivate');
-    var event = {type: 'utility-tray-overlayopening'};
+    var event = {type: 'activityrequesting'};
+    subject.handleEvent(event);
+    assert.ok(hideResultsStub.calledOnce);
+    assert.ok(deactivateStub.calledOnce);
+  });
+
+  test('handleEvent() - utilitytray-overlayopening', function() {
+    var hideResultsStub = this.sinon.stub(subject, 'hideResults');
+    var deactivateStub = this.sinon.stub(subject, 'deactivate');
+    var event = {type: 'utilitytray-overlayopening'};
+    subject.handleEvent(event);
+    assert.ok(hideResultsStub.calledOnce);
+    assert.ok(deactivateStub.calledOnce);
+  });
+
+  test('handleEvent() - cardviewbeforeshow', function() {
+    var hideResultsStub = this.sinon.stub(subject, 'hideResults');
+    var deactivateStub = this.sinon.stub(subject, 'deactivate');
+    var event = {type: 'cardviewbeforeshow'};
     subject.handleEvent(event);
     assert.ok(hideResultsStub.calledOnce);
     assert.ok(deactivateStub.calledOnce);
@@ -469,7 +499,7 @@ suite('system/Rocketbar', function() {
       isBrowser: function() {},
       isActive: function() { return true; }
     };
-    MockService.currentApp = activeApp;
+    MockService.mockQueryWith('AppWindowManager.getActiveWindow', activeApp);
     this.sinon.stub(activeApp, 'isBrowser').returns(true);
     var setInputStub = this.sinon.stub(subject, 'setInput');
     var activateStub = this.sinon.stub(subject, 'activate')
@@ -486,7 +516,7 @@ suite('system/Rocketbar', function() {
       isBrowser: function() {},
       isActive: function() { return false; }
     };
-    MockService.currentApp = activeApp;
+    MockService.mockQueryWith('AppWindowManager.getActiveWindow', activeApp);
     this.sinon.stub(activeApp, 'isBrowser').returns(true);
     var setInputStub = this.sinon.stub(subject, 'setInput');
     var activateStub = this.sinon.stub(subject, 'activate');
@@ -509,7 +539,7 @@ suite('system/Rocketbar', function() {
       },
       isActive: function() { return true; }
     };
-    MockService.currentApp = activeApp;
+    MockService.mockQueryWith('AppWindowManager.getActiveWindow', activeApp);
     var maximize = this.sinon.spy(activeApp.appChrome, 'maximize');
     var resolved = Promise.resolve();
     this.sinon.stub(subject, 'activate', function() {
@@ -551,7 +581,7 @@ suite('system/Rocketbar', function() {
       },
       isActive: function() { return true; }
     };
-    MockService.currentApp = activeApp;
+    MockService.mockQueryWith('AppWindowManager.getActiveWindow', activeApp);
 
     var maximize = this.sinon.spy(activeApp.appChrome, 'maximize');
     var resolved = Promise.resolve();
@@ -583,7 +613,7 @@ suite('system/Rocketbar', function() {
       },
       isActive: function() { return true; }
     };
-    MockService.currentApp = activeApp;
+    MockService.mockQueryWith('AppWindowManager.getActiveWindow', activeApp);
     this.sinon.stub(activeApp, 'isBrowser').returns(true);
     var setInputStub = this.sinon.stub(subject, 'setInput');
     var event = {type: 'global-search-request'};
@@ -653,20 +683,36 @@ suite('system/Rocketbar', function() {
       subject.searchWindow.frontWindow = {
         resize: function() {}
       };
-      var stub = this.sinon.stub(subject.searchWindow.frontWindow, 'resize');
-      var respond =
-        subject.respondToHierarchyEvent(new CustomEvent('system-resize'));
+      var stub = this.sinon.stub(subject.searchWindow.frontWindow, 'resize')
+        .returns({ stub: 'promise'});
+      var stubWaitUntil = this.sinon.stub();
+      var evt = new CustomEvent('system-resize', {
+        detail: {
+          waitUntil: stubWaitUntil
+        }
+      });
+
+
+      var stopsPropagation = subject.respondToHierarchyEvent(evt);
 
       assert.ok(stub.calledOnce);
-      assert.isFalse(respond);
+      assert.ok(stubWaitUntil.calledWith({ stub: 'promise' }));
+      assert.isFalse(stopsPropagation);
 
       stub.restore();
     });
 
     test('Search window without front window', function() {
-      var respond =
+      var stopsPropagation =
         subject.respondToHierarchyEvent(new CustomEvent('system-resize'));
-      assert.isTrue(respond);
+      assert.isFalse(stopsPropagation);
+    });
+
+    test('Rocketbar is inactive', function() {
+      subject.deactivate();
+      var stopsPropagation =
+        subject.respondToHierarchyEvent(new CustomEvent('system-resize'));
+      assert.isTrue(stopsPropagation);
     });
   });
 
@@ -679,45 +725,76 @@ suite('system/Rocketbar', function() {
     assert.ok(hideResultsStub.calledOnce);
   });
 
-  test('handleInput()', function() {
-    MockService.currentApp = {
-      isPrivateBrowser: function() {
-        return false;
-      }
-    };
-    var showResultsStub = this.sinon.stub(subject, 'showResults');
+  test('_handle_home - during activate', function() {
+    var deactivateStub = this.sinon.stub(subject, 'deactivate');
     var hideResultsStub = this.sinon.stub(subject, 'hideResults');
+    this.sinon.stub(subject, 'isActive').returns(true);
 
-    // With input
-    subject.input.value = 'abc';
-    subject.results.classList.add('hidden');
-    subject.handleInput();
-    assert.ok(showResultsStub.calledOnce);
-    assert.ok(MockIACPort.mNumberOfMessages() == 1);
+    var fakePromise = new MockPromise();
+    subject._activateCall = fakePromise;
 
-    // With no input
-    subject.input.value = '';
-    subject.results.classList.remove('hidden');
-    subject.handleInput();
+    subject._handle_home();
+    fakePromise.mFulfillToValue();
+    assert.ok(deactivateStub.calledOnce);
     assert.ok(hideResultsStub.calledOnce);
+  });
 
-    showResultsStub.restore();
-    hideResultsStub.restore();
+  suite('handleInput()', function() {
+    var showResultsStub, hideResultsStub, closeSearchStub;
+
+    setup(function() {
+      MockService.mockQueryWith('AppWindowManager.getActiveWindow', {
+        isPrivateBrowser: function() {
+          return false;
+        }
+      });
+      showResultsStub = this.sinon.stub(subject, 'showResults');
+      hideResultsStub = this.sinon.stub(subject, 'hideResults');
+      closeSearchStub = this.sinon.stub(subject, '_closeSearch');
+    });
+
+    test('With input', function() {
+      subject.input.value = 'abc';
+      subject.results.classList.add('hidden');
+      subject.handleInput();
+      assert.ok(showResultsStub.calledOnce);
+      assert.ok(MockIACPort.mNumberOfMessages() == 1);
+    });
+
+    test('With no input', function() {
+      subject.input.value = '';
+      subject.results.classList.remove('hidden');
+      subject.handleInput();
+      assert.ok(hideResultsStub.calledOnce);
+      assert.isFalse(closeSearchStub.calledOnce);
+    });
+
+    test('With utility tray active', function() {
+      MockUtilityTray.active = true;
+      subject.input.value = 'abc';
+      subject.results.classList.remove('hidden');
+      subject.handleInput();
+      assert.ok(closeSearchStub.calledOnce);
+      MockUtilityTray.active = false;
+    });
+
   });
 
   test('handleSubmit()', function(done) {
-    MockService.currentApp = {
+    MockService.mockQueryWith('AppWindowManager.getActiveWindow', {
       isPrivateBrowser: function() {
         return false;
       }
-    };
+    });
     var event = {
       'preventDefault': function() {
         done();
       }
     };
+    var stubBlur = this.sinon.stub(subject.input, 'blur');
     subject.handleSubmit(event);
     assert.ok(MockIACPort.mNumberOfMessages() == 1);
+    assert.ok(stubBlur.calledOnce);
   });
 
   test('handleCancel()', function() {
@@ -771,11 +848,11 @@ suite('system/Rocketbar', function() {
   });
 
   test('handleSearchMessage()', function() {
-    MockService.currentApp = {
+    MockService.mockQueryWith('AppWindowManager.getActiveWindow', {
       isPrivateBrowser: function() {
         return false;
       }
-    };
+    });
     var initSearchConnectionStub = this.sinon.stub(subject,
       'initSearchConnection');
     var hideResultsStub = this.sinon.stub(subject, 'hideResults');
@@ -822,6 +899,7 @@ suite('system/Rocketbar', function() {
 
     initSearchConnectionStub.restore();
     hideResultsStub.restore();
+    eventStub.restore();
   });
 
   test('updateSearchIndex()', function() {
@@ -922,6 +1000,18 @@ suite('system/Rocketbar', function() {
     sinon.assert.notCalled(focusStub);
     activation.then(function() {
       sinon.assert.calledOnce(focusStub);
+      done();
+    });
+  });
+
+  test('calls _closeSearch if the utility tray is active', function(done) {
+    subject.active = true;
+    MockUtilityTray.active = true;
+
+    var stub = this.sinon.stub(subject, '_closeSearch');
+    subject.activate().then(() => {
+      assert.ok(stub.calledOnce);
+      MockUtilityTray.active = false;
       done();
     });
   });

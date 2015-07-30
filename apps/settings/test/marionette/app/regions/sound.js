@@ -16,21 +16,16 @@ function SoundPanel(client) {
 module.exports = SoundPanel;
 
 SoundPanel.Selectors = {
-  'vibrateCheckbox': '#sound input[name="vibration.enabled"]',
-  'vibrateLabel': '#sound label.pack-switch',
+  'vibrateCheckbox': '#sound gaia-switch[name="vibration.enabled"]',
   'mediaSlider': '#sound .media input',
   'ringerSlider': '#sound .notification input',
   'alarmSlider': '#sound .alarm input',
-  'keypadCheckbox': '#sound input[name="phone.ring.keypad"]',
-  'keypadSpan': '#sound span[data-l10n-id="dialpad"]',
-  'cameraCheckbox': '#sound input[name="camera.sound.enabled"]',
-  'cameraSpan': '#sound span[data-l10n-id="camera"]',
+  'keypadCheckbox': '#sound [name="phone.ring.keypad"]',
+  'cameraCheckbox': '#sound [name="camera.sound.enabled"]',
   'sentMessageCheckbox':
-              '#sound input[name="message.sent-sound.enabled"]',
-  'sentMessageSpan': '#sound span[data-l10n-id="sent-message"]',
+              '#sound [name="message.sent-sound.enabled"]',
   'unlockScreenCheckbox':
-              '#sound input[name="lockscreen.unlock-sound.enabled"]',
-  'unlockScreenSpan': '#sound span[data-l10n-id="unlock-screen"]',
+              '#sound [name="lockscreen.unlock-sound.enabled"]',
   'alerttoneButton': '.alert-tone-selection',
   'alerttoneButtonDesc': '.alert-tone-selection .desc',
   'ringtoneButton': '.ring-tone-selection',
@@ -42,6 +37,12 @@ SoundPanel.prototype = {
 
   __proto__: Base.prototype,
 
+  isGaiaCheckboxChecked: function(selector) {
+    return this.findElement(selector).scriptWith(function(el) {
+      return el.wrappedJSObject.checked;
+    });
+  },
+
   get isVibrateEnabled() {
     return this.findElement('vibrateCheckbox')
       .getAttribute('checked') &&
@@ -49,7 +50,7 @@ SoundPanel.prototype = {
   },
 
   tapOnVibration: function() {
-    this.waitForElement('vibrateLabel').tap();
+    this.waitForElement('vibrateCheckbox').tap();
   },
 
   /* Volume */
@@ -79,43 +80,39 @@ SoundPanel.prototype = {
 
   /* Other sounds */
   get isKeypadChecked() {
-    return this.findElement('keypadCheckbox')
-      .getAttribute('checked') &&
+    return this.isGaiaCheckboxChecked('keypadCheckbox') &&
       this.client.settings.get('phone.ring.keypad');
   },
 
   tapOnKeypad: function() {
-    this.waitForElement('keypadSpan').tap();
+    this.waitForElement('keypadCheckbox').tap();
   },
 
   get isCameraChecked() {
-    return this.findElement('cameraCheckbox')
-      .getAttribute('checked') &&
+    return this.isGaiaCheckboxChecked('cameraCheckbox') &&
       this.client.settings.get('camera.sound.enabled');
   },
 
   tapOnCamera: function() {
-    this.waitForElement('cameraSpan').tap();
+    this.waitForElement('cameraCheckbox').tap();
   },
 
   get isSentMessageChecked() {
-    return this.findElement('sentMessageCheckbox')
-      .getAttribute('checked') &&
+    return this.isGaiaCheckboxChecked('sentMessageCheckbox') &&
       this.client.settings.get('message.sent-sound.enabled');
   },
 
   tapOnSentMessage: function() {
-    this.waitForElement('sentMessageSpan').tap();
+    this.waitForElement('sentMessageCheckbox').tap();
   },
 
   get isUnlockScreenChecked() {
-    return this.findElement('unlockScreenCheckbox')
-      .getAttribute('checked') &&
+    return this.isGaiaCheckboxChecked('unlockScreenCheckbox') &&
       this.client.settings.get('message.sent-sound.enabled');
   },
 
   tapOnUnlockScreen: function() {
-    this.waitForElement('unlockScreenSpan').tap();
+    this.waitForElement('unlockScreenCheckbox').tap();
   },
 
   clickRingToneSelect: function() {

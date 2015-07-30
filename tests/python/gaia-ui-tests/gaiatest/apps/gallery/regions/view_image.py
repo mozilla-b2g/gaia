@@ -2,14 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-try:
-    from marionette import (expected,
-                            Wait)
-    from marionette.by import By
-except:
-    from marionette_driver import (expected,
-                                   Wait)
-    from marionette_driver.by import By
+from marionette_driver import expected, By, Wait
 
 from gaiatest.apps.base import Base
 
@@ -19,7 +12,7 @@ class ViewImage(Base):
     _header_locator = (By.ID, 'header')
     _banner_message_locator = (By.ID, 'message')
     _save_image_button_locator = (By.ID, 'save')
-    _image_locator = (By.CSS_SELECTOR, 'div.image-view')
+    _image_locator = (By.CSS_SELECTOR, 'img.image-view')
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)

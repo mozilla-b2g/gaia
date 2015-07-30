@@ -1,3 +1,6 @@
+'use strict';
+/* exported MockUtilityTray */
+
 var MockUtilityTray = {
   init: function() {
   },

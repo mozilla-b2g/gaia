@@ -10,7 +10,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner-v1",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -25,7 +25,7 @@
             "entrypoint",
             "./bin/ci run build_unit"
           ],
-          "image": "taskcluster/gaia-taskenv:0.7.2",
+          "image": "taskcluster/gaia-taskenv:0.8.0",
           "maxRunTime": 1800
         },
         "extra": {
@@ -48,7 +48,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner-v1",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -59,13 +59,13 @@
           "env": {
             "REPORTER": "mocha-tbpl-reporter",
             "THIS_CHUNK": "1",
-            "TOTAL_CHUNKS": "4"
+            "TOTAL_CHUNKS": "10"
           },
           "command": [
             "entrypoint",
             "./bin/ci run build_integration"
           ],
-          "image": "taskcluster/gaia-taskenv:0.7.2",
+          "image": "taskcluster/gaia-taskenv:0.8.0",
           "maxRunTime": 1800
         },
         "extra": {
@@ -88,7 +88,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner-v1",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -99,13 +99,13 @@
           "env": {
             "REPORTER": "mocha-tbpl-reporter",
             "THIS_CHUNK": "2",
-            "TOTAL_CHUNKS": "4"
+            "TOTAL_CHUNKS": "10"
           },
           "command": [
             "entrypoint",
             "./bin/ci run build_integration"
           ],
-          "image": "taskcluster/gaia-taskenv:0.7.2",
+          "image": "taskcluster/gaia-taskenv:0.8.0",
           "maxRunTime": 1800
         },
         "extra": {
@@ -128,7 +128,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner-v1",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -139,13 +139,13 @@
           "env": {
             "REPORTER": "mocha-tbpl-reporter",
             "THIS_CHUNK": "3",
-            "TOTAL_CHUNKS": "4"
+            "TOTAL_CHUNKS": "10"
           },
           "command": [
             "entrypoint",
             "./bin/ci run build_integration"
           ],
-          "image": "taskcluster/gaia-taskenv:0.7.2",
+          "image": "taskcluster/gaia-taskenv:0.8.0",
           "maxRunTime": 1800
         },
         "extra": {
@@ -168,7 +168,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner-v1",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -179,13 +179,13 @@
           "env": {
             "REPORTER": "mocha-tbpl-reporter",
             "THIS_CHUNK": "4",
-            "TOTAL_CHUNKS": "4"
+            "TOTAL_CHUNKS": "10"
           },
           "command": [
             "entrypoint",
             "./bin/ci run build_integration"
           ],
-          "image": "taskcluster/gaia-taskenv:0.7.2",
+          "image": "taskcluster/gaia-taskenv:0.8.0",
           "maxRunTime": 1800
         },
         "extra": {
@@ -193,6 +193,1656 @@
             "groupSymbol": "GB",
             "groupName": "Gaia build tests",
             "symbol": "GBI4"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia build tests 5",
+          "description": "Runs entire gaia build system through all known variants.",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "REPORTER": "mocha-tbpl-reporter",
+            "THIS_CHUNK": "5",
+            "TOTAL_CHUNKS": "10"
+          },
+          "command": [
+            "entrypoint",
+            "./bin/ci run build_integration"
+          ],
+          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "GB",
+            "groupName": "Gaia build tests",
+            "symbol": "GBI5"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia build tests 6",
+          "description": "Runs entire gaia build system through all known variants.",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "REPORTER": "mocha-tbpl-reporter",
+            "THIS_CHUNK": "6",
+            "TOTAL_CHUNKS": "10"
+          },
+          "command": [
+            "entrypoint",
+            "./bin/ci run build_integration"
+          ],
+          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "GB",
+            "groupName": "Gaia build tests",
+            "symbol": "GBI6"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia build tests 7",
+          "description": "Runs entire gaia build system through all known variants.",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "REPORTER": "mocha-tbpl-reporter",
+            "THIS_CHUNK": "7",
+            "TOTAL_CHUNKS": "10"
+          },
+          "command": [
+            "entrypoint",
+            "./bin/ci run build_integration"
+          ],
+          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "GB",
+            "groupName": "Gaia build tests",
+            "symbol": "GBI7"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia build tests 8",
+          "description": "Runs entire gaia build system through all known variants.",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "REPORTER": "mocha-tbpl-reporter",
+            "THIS_CHUNK": "8",
+            "TOTAL_CHUNKS": "10"
+          },
+          "command": [
+            "entrypoint",
+            "./bin/ci run build_integration"
+          ],
+          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "GB",
+            "groupName": "Gaia build tests",
+            "symbol": "GBI8"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia build tests 9",
+          "description": "Runs entire gaia build system through all known variants.",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "REPORTER": "mocha-tbpl-reporter",
+            "THIS_CHUNK": "9",
+            "TOTAL_CHUNKS": "10"
+          },
+          "command": [
+            "entrypoint",
+            "./bin/ci run build_integration"
+          ],
+          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "GB",
+            "groupName": "Gaia build tests",
+            "symbol": "GBI9"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia build tests 10",
+          "description": "Runs entire gaia build system through all known variants.",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "REPORTER": "mocha-tbpl-reporter",
+            "THIS_CHUNK": "10",
+            "TOTAL_CHUNKS": "10"
+          },
+          "command": [
+            "entrypoint",
+            "./bin/ci run build_integration"
+          ],
+          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "GB",
+            "groupName": "Gaia build tests",
+            "symbol": "GBI10"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia ui tests 1",
+          "description": "Gaia ui python tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "SUITE": "functional",
+            "THIS_CHUNK": "1",
+            "TOTAL_CHUNKS": "30"
+          },
+          "command": [
+            "entrypoint",
+            "./bin/ci run gaia_ui_tests"
+          ],
+          "artifacts": {
+            "public/gaia_ui_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "Gip",
+            "groupName": "Gaia python integration tests",
+            "symbol": "Gip1"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia ui tests 2",
+          "description": "Gaia ui python tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "SUITE": "functional",
+            "THIS_CHUNK": "2",
+            "TOTAL_CHUNKS": "30"
+          },
+          "command": [
+            "entrypoint",
+            "./bin/ci run gaia_ui_tests"
+          ],
+          "artifacts": {
+            "public/gaia_ui_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "Gip",
+            "groupName": "Gaia python integration tests",
+            "symbol": "Gip2"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia ui tests 3",
+          "description": "Gaia ui python tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "SUITE": "functional",
+            "THIS_CHUNK": "3",
+            "TOTAL_CHUNKS": "30"
+          },
+          "command": [
+            "entrypoint",
+            "./bin/ci run gaia_ui_tests"
+          ],
+          "artifacts": {
+            "public/gaia_ui_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "Gip",
+            "groupName": "Gaia python integration tests",
+            "symbol": "Gip3"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia ui tests 4",
+          "description": "Gaia ui python tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "SUITE": "functional",
+            "THIS_CHUNK": "4",
+            "TOTAL_CHUNKS": "30"
+          },
+          "command": [
+            "entrypoint",
+            "./bin/ci run gaia_ui_tests"
+          ],
+          "artifacts": {
+            "public/gaia_ui_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "Gip",
+            "groupName": "Gaia python integration tests",
+            "symbol": "Gip4"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia ui tests 5",
+          "description": "Gaia ui python tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "SUITE": "functional",
+            "THIS_CHUNK": "5",
+            "TOTAL_CHUNKS": "30"
+          },
+          "command": [
+            "entrypoint",
+            "./bin/ci run gaia_ui_tests"
+          ],
+          "artifacts": {
+            "public/gaia_ui_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "Gip",
+            "groupName": "Gaia python integration tests",
+            "symbol": "Gip5"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia ui tests 6",
+          "description": "Gaia ui python tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "SUITE": "functional",
+            "THIS_CHUNK": "6",
+            "TOTAL_CHUNKS": "30"
+          },
+          "command": [
+            "entrypoint",
+            "./bin/ci run gaia_ui_tests"
+          ],
+          "artifacts": {
+            "public/gaia_ui_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "Gip",
+            "groupName": "Gaia python integration tests",
+            "symbol": "Gip6"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia ui tests 7",
+          "description": "Gaia ui python tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "SUITE": "functional",
+            "THIS_CHUNK": "7",
+            "TOTAL_CHUNKS": "30"
+          },
+          "command": [
+            "entrypoint",
+            "./bin/ci run gaia_ui_tests"
+          ],
+          "artifacts": {
+            "public/gaia_ui_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "Gip",
+            "groupName": "Gaia python integration tests",
+            "symbol": "Gip7"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia ui tests 8",
+          "description": "Gaia ui python tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "SUITE": "functional",
+            "THIS_CHUNK": "8",
+            "TOTAL_CHUNKS": "30"
+          },
+          "command": [
+            "entrypoint",
+            "./bin/ci run gaia_ui_tests"
+          ],
+          "artifacts": {
+            "public/gaia_ui_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "Gip",
+            "groupName": "Gaia python integration tests",
+            "symbol": "Gip8"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia ui tests 9",
+          "description": "Gaia ui python tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "SUITE": "functional",
+            "THIS_CHUNK": "9",
+            "TOTAL_CHUNKS": "30"
+          },
+          "command": [
+            "entrypoint",
+            "./bin/ci run gaia_ui_tests"
+          ],
+          "artifacts": {
+            "public/gaia_ui_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "Gip",
+            "groupName": "Gaia python integration tests",
+            "symbol": "Gip9"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia ui tests 10",
+          "description": "Gaia ui python tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "SUITE": "functional",
+            "THIS_CHUNK": "10",
+            "TOTAL_CHUNKS": "30"
+          },
+          "command": [
+            "entrypoint",
+            "./bin/ci run gaia_ui_tests"
+          ],
+          "artifacts": {
+            "public/gaia_ui_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "Gip",
+            "groupName": "Gaia python integration tests",
+            "symbol": "Gip10"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia ui tests 11",
+          "description": "Gaia ui python tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "SUITE": "functional",
+            "THIS_CHUNK": "11",
+            "TOTAL_CHUNKS": "30"
+          },
+          "command": [
+            "entrypoint",
+            "./bin/ci run gaia_ui_tests"
+          ],
+          "artifacts": {
+            "public/gaia_ui_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "Gip",
+            "groupName": "Gaia python integration tests",
+            "symbol": "Gip11"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia ui tests 12",
+          "description": "Gaia ui python tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "SUITE": "functional",
+            "THIS_CHUNK": "12",
+            "TOTAL_CHUNKS": "30"
+          },
+          "command": [
+            "entrypoint",
+            "./bin/ci run gaia_ui_tests"
+          ],
+          "artifacts": {
+            "public/gaia_ui_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "Gip",
+            "groupName": "Gaia python integration tests",
+            "symbol": "Gip12"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia ui tests 13",
+          "description": "Gaia ui python tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "SUITE": "functional",
+            "THIS_CHUNK": "13",
+            "TOTAL_CHUNKS": "30"
+          },
+          "command": [
+            "entrypoint",
+            "./bin/ci run gaia_ui_tests"
+          ],
+          "artifacts": {
+            "public/gaia_ui_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "Gip",
+            "groupName": "Gaia python integration tests",
+            "symbol": "Gip13"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia ui tests 14",
+          "description": "Gaia ui python tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "SUITE": "functional",
+            "THIS_CHUNK": "14",
+            "TOTAL_CHUNKS": "30"
+          },
+          "command": [
+            "entrypoint",
+            "./bin/ci run gaia_ui_tests"
+          ],
+          "artifacts": {
+            "public/gaia_ui_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "Gip",
+            "groupName": "Gaia python integration tests",
+            "symbol": "Gip14"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia ui tests 15",
+          "description": "Gaia ui python tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "SUITE": "functional",
+            "THIS_CHUNK": "15",
+            "TOTAL_CHUNKS": "30"
+          },
+          "command": [
+            "entrypoint",
+            "./bin/ci run gaia_ui_tests"
+          ],
+          "artifacts": {
+            "public/gaia_ui_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "Gip",
+            "groupName": "Gaia python integration tests",
+            "symbol": "Gip15"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia ui tests 16",
+          "description": "Gaia ui python tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "SUITE": "functional",
+            "THIS_CHUNK": "16",
+            "TOTAL_CHUNKS": "30"
+          },
+          "command": [
+            "entrypoint",
+            "./bin/ci run gaia_ui_tests"
+          ],
+          "artifacts": {
+            "public/gaia_ui_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "Gip",
+            "groupName": "Gaia python integration tests",
+            "symbol": "Gip16"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia ui tests 17",
+          "description": "Gaia ui python tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "SUITE": "functional",
+            "THIS_CHUNK": "17",
+            "TOTAL_CHUNKS": "30"
+          },
+          "command": [
+            "entrypoint",
+            "./bin/ci run gaia_ui_tests"
+          ],
+          "artifacts": {
+            "public/gaia_ui_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "Gip",
+            "groupName": "Gaia python integration tests",
+            "symbol": "Gip17"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia ui tests 18",
+          "description": "Gaia ui python tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "SUITE": "functional",
+            "THIS_CHUNK": "18",
+            "TOTAL_CHUNKS": "30"
+          },
+          "command": [
+            "entrypoint",
+            "./bin/ci run gaia_ui_tests"
+          ],
+          "artifacts": {
+            "public/gaia_ui_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "Gip",
+            "groupName": "Gaia python integration tests",
+            "symbol": "Gip18"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia ui tests 19",
+          "description": "Gaia ui python tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "SUITE": "functional",
+            "THIS_CHUNK": "19",
+            "TOTAL_CHUNKS": "30"
+          },
+          "command": [
+            "entrypoint",
+            "./bin/ci run gaia_ui_tests"
+          ],
+          "artifacts": {
+            "public/gaia_ui_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "Gip",
+            "groupName": "Gaia python integration tests",
+            "symbol": "Gip19"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia ui tests 20",
+          "description": "Gaia ui python tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "SUITE": "functional",
+            "THIS_CHUNK": "20",
+            "TOTAL_CHUNKS": "30"
+          },
+          "command": [
+            "entrypoint",
+            "./bin/ci run gaia_ui_tests"
+          ],
+          "artifacts": {
+            "public/gaia_ui_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "Gip",
+            "groupName": "Gaia python integration tests",
+            "symbol": "Gip20"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia ui tests 21",
+          "description": "Gaia ui python tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "SUITE": "functional",
+            "THIS_CHUNK": "21",
+            "TOTAL_CHUNKS": "30"
+          },
+          "command": [
+            "entrypoint",
+            "./bin/ci run gaia_ui_tests"
+          ],
+          "artifacts": {
+            "public/gaia_ui_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "Gip",
+            "groupName": "Gaia python integration tests",
+            "symbol": "Gip21"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia ui tests 22",
+          "description": "Gaia ui python tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "SUITE": "functional",
+            "THIS_CHUNK": "22",
+            "TOTAL_CHUNKS": "30"
+          },
+          "command": [
+            "entrypoint",
+            "./bin/ci run gaia_ui_tests"
+          ],
+          "artifacts": {
+            "public/gaia_ui_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "Gip",
+            "groupName": "Gaia python integration tests",
+            "symbol": "Gip22"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia ui tests 23",
+          "description": "Gaia ui python tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "SUITE": "functional",
+            "THIS_CHUNK": "23",
+            "TOTAL_CHUNKS": "30"
+          },
+          "command": [
+            "entrypoint",
+            "./bin/ci run gaia_ui_tests"
+          ],
+          "artifacts": {
+            "public/gaia_ui_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "Gip",
+            "groupName": "Gaia python integration tests",
+            "symbol": "Gip23"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia ui tests 24",
+          "description": "Gaia ui python tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "SUITE": "functional",
+            "THIS_CHUNK": "24",
+            "TOTAL_CHUNKS": "30"
+          },
+          "command": [
+            "entrypoint",
+            "./bin/ci run gaia_ui_tests"
+          ],
+          "artifacts": {
+            "public/gaia_ui_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "Gip",
+            "groupName": "Gaia python integration tests",
+            "symbol": "Gip24"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia ui tests 25",
+          "description": "Gaia ui python tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "SUITE": "functional",
+            "THIS_CHUNK": "25",
+            "TOTAL_CHUNKS": "30"
+          },
+          "command": [
+            "entrypoint",
+            "./bin/ci run gaia_ui_tests"
+          ],
+          "artifacts": {
+            "public/gaia_ui_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "Gip",
+            "groupName": "Gaia python integration tests",
+            "symbol": "Gip25"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia ui tests 26",
+          "description": "Gaia ui python tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "SUITE": "functional",
+            "THIS_CHUNK": "26",
+            "TOTAL_CHUNKS": "30"
+          },
+          "command": [
+            "entrypoint",
+            "./bin/ci run gaia_ui_tests"
+          ],
+          "artifacts": {
+            "public/gaia_ui_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "Gip",
+            "groupName": "Gaia python integration tests",
+            "symbol": "Gip26"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia ui tests 27",
+          "description": "Gaia ui python tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "SUITE": "functional",
+            "THIS_CHUNK": "27",
+            "TOTAL_CHUNKS": "30"
+          },
+          "command": [
+            "entrypoint",
+            "./bin/ci run gaia_ui_tests"
+          ],
+          "artifacts": {
+            "public/gaia_ui_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "Gip",
+            "groupName": "Gaia python integration tests",
+            "symbol": "Gip27"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia ui tests 28",
+          "description": "Gaia ui python tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "SUITE": "functional",
+            "THIS_CHUNK": "28",
+            "TOTAL_CHUNKS": "30"
+          },
+          "command": [
+            "entrypoint",
+            "./bin/ci run gaia_ui_tests"
+          ],
+          "artifacts": {
+            "public/gaia_ui_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "Gip",
+            "groupName": "Gaia python integration tests",
+            "symbol": "Gip28"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia ui tests 29",
+          "description": "Gaia ui python tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "SUITE": "functional",
+            "THIS_CHUNK": "29",
+            "TOTAL_CHUNKS": "30"
+          },
+          "command": [
+            "entrypoint",
+            "./bin/ci run gaia_ui_tests"
+          ],
+          "artifacts": {
+            "public/gaia_ui_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "Gip",
+            "groupName": "Gaia python integration tests",
+            "symbol": "Gip29"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia ui tests 30",
+          "description": "Gaia ui python tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "SUITE": "functional",
+            "THIS_CHUNK": "30",
+            "TOTAL_CHUNKS": "30"
+          },
+          "command": [
+            "entrypoint",
+            "./bin/ci run gaia_ui_tests"
+          ],
+          "artifacts": {
+            "public/gaia_ui_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "Gip",
+            "groupName": "Gaia python integration tests",
+            "symbol": "Gip30"
           }
         },
         "schedulerId": "task-graph-scheduler"
@@ -207,7 +1857,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner-v1",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -219,7 +1869,7 @@
             "entrypoint",
             "./bin/ci run csslint"
           ],
-          "image": "taskcluster/gaia-taskenv:0.7.2",
+          "image": "taskcluster/gaia-taskenv:0.8.0",
           "maxRunTime": 1800,
           "env": {}
         },
@@ -242,7 +1892,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner-v1",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -254,7 +1904,7 @@
             "entrypoint",
             "./bin/ci run jsonlint"
           ],
-          "image": "taskcluster/gaia-taskenv:0.7.2",
+          "image": "taskcluster/gaia-taskenv:0.8.0",
           "maxRunTime": 1800,
           "env": {}
         },
@@ -277,7 +1927,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner-v1",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -289,7 +1939,7 @@
             "entrypoint",
             "./bin/ci run gjslint"
           ],
-          "image": "taskcluster/gaia-taskenv:0.7.2",
+          "image": "taskcluster/gaia-taskenv:0.8.0",
           "maxRunTime": 1800,
           "env": {}
         },
@@ -312,7 +1962,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner-v1",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -324,7 +1974,7 @@
             "entrypoint",
             "./bin/ci run jshint"
           ],
-          "image": "taskcluster/gaia-taskenv:0.7.2",
+          "image": "taskcluster/gaia-taskenv:0.8.0",
           "maxRunTime": 1800,
           "env": {}
         },
@@ -333,6 +1983,2856 @@
             "symbol": "JSHint",
             "groupSymbol": "LINT",
             "groupName": "Linters"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Marionette JS tests chunk 1",
+          "description": "Run entire suite of marionette js tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "maxRunTime": 7200,
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "PART": "1",
+            "NBPARTS": "30",
+            "REPORTER": "mocha-tbpl-reporter",
+            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && NODE_DEBUG=* ./bin/ci run marionette_js 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/marionette_js_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0"
+        },
+        "extra": {
+          "treeherder": {
+            "groupName": "Gaia javascript integration tests",
+            "groupSymbol": "Gij",
+            "symbol": "Gij1"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Marionette JS tests chunk 2",
+          "description": "Run entire suite of marionette js tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "maxRunTime": 7200,
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "PART": "2",
+            "NBPARTS": "30",
+            "REPORTER": "mocha-tbpl-reporter",
+            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && NODE_DEBUG=* ./bin/ci run marionette_js 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/marionette_js_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0"
+        },
+        "extra": {
+          "treeherder": {
+            "groupName": "Gaia javascript integration tests",
+            "groupSymbol": "Gij",
+            "symbol": "Gij2"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Marionette JS tests chunk 3",
+          "description": "Run entire suite of marionette js tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "maxRunTime": 7200,
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "PART": "3",
+            "NBPARTS": "30",
+            "REPORTER": "mocha-tbpl-reporter",
+            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && NODE_DEBUG=* ./bin/ci run marionette_js 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/marionette_js_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0"
+        },
+        "extra": {
+          "treeherder": {
+            "groupName": "Gaia javascript integration tests",
+            "groupSymbol": "Gij",
+            "symbol": "Gij3"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Marionette JS tests chunk 4",
+          "description": "Run entire suite of marionette js tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "maxRunTime": 7200,
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "PART": "4",
+            "NBPARTS": "30",
+            "REPORTER": "mocha-tbpl-reporter",
+            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && NODE_DEBUG=* ./bin/ci run marionette_js 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/marionette_js_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0"
+        },
+        "extra": {
+          "treeherder": {
+            "groupName": "Gaia javascript integration tests",
+            "groupSymbol": "Gij",
+            "symbol": "Gij4"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Marionette JS tests chunk 5",
+          "description": "Run entire suite of marionette js tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "maxRunTime": 7200,
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "PART": "5",
+            "NBPARTS": "30",
+            "REPORTER": "mocha-tbpl-reporter",
+            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && NODE_DEBUG=* ./bin/ci run marionette_js 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/marionette_js_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0"
+        },
+        "extra": {
+          "treeherder": {
+            "groupName": "Gaia javascript integration tests",
+            "groupSymbol": "Gij",
+            "symbol": "Gij5"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Marionette JS tests chunk 6",
+          "description": "Run entire suite of marionette js tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "maxRunTime": 7200,
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "PART": "6",
+            "NBPARTS": "30",
+            "REPORTER": "mocha-tbpl-reporter",
+            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && NODE_DEBUG=* ./bin/ci run marionette_js 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/marionette_js_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0"
+        },
+        "extra": {
+          "treeherder": {
+            "groupName": "Gaia javascript integration tests",
+            "groupSymbol": "Gij",
+            "symbol": "Gij6"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Marionette JS tests chunk 7",
+          "description": "Run entire suite of marionette js tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "maxRunTime": 7200,
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "PART": "7",
+            "NBPARTS": "30",
+            "REPORTER": "mocha-tbpl-reporter",
+            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && NODE_DEBUG=* ./bin/ci run marionette_js 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/marionette_js_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0"
+        },
+        "extra": {
+          "treeherder": {
+            "groupName": "Gaia javascript integration tests",
+            "groupSymbol": "Gij",
+            "symbol": "Gij7"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Marionette JS tests chunk 8",
+          "description": "Run entire suite of marionette js tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "maxRunTime": 7200,
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "PART": "8",
+            "NBPARTS": "30",
+            "REPORTER": "mocha-tbpl-reporter",
+            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && NODE_DEBUG=* ./bin/ci run marionette_js 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/marionette_js_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0"
+        },
+        "extra": {
+          "treeherder": {
+            "groupName": "Gaia javascript integration tests",
+            "groupSymbol": "Gij",
+            "symbol": "Gij8"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Marionette JS tests chunk 9",
+          "description": "Run entire suite of marionette js tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "maxRunTime": 7200,
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "PART": "9",
+            "NBPARTS": "30",
+            "REPORTER": "mocha-tbpl-reporter",
+            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && NODE_DEBUG=* ./bin/ci run marionette_js 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/marionette_js_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0"
+        },
+        "extra": {
+          "treeherder": {
+            "groupName": "Gaia javascript integration tests",
+            "groupSymbol": "Gij",
+            "symbol": "Gij9"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Marionette JS tests chunk 10",
+          "description": "Run entire suite of marionette js tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "maxRunTime": 7200,
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "PART": "10",
+            "NBPARTS": "30",
+            "REPORTER": "mocha-tbpl-reporter",
+            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && NODE_DEBUG=* ./bin/ci run marionette_js 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/marionette_js_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0"
+        },
+        "extra": {
+          "treeherder": {
+            "groupName": "Gaia javascript integration tests",
+            "groupSymbol": "Gij",
+            "symbol": "Gij10"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Marionette JS tests chunk 11",
+          "description": "Run entire suite of marionette js tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "maxRunTime": 7200,
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "PART": "11",
+            "NBPARTS": "30",
+            "REPORTER": "mocha-tbpl-reporter",
+            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && NODE_DEBUG=* ./bin/ci run marionette_js 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/marionette_js_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0"
+        },
+        "extra": {
+          "treeherder": {
+            "groupName": "Gaia javascript integration tests",
+            "groupSymbol": "Gij",
+            "symbol": "Gij11"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Marionette JS tests chunk 12",
+          "description": "Run entire suite of marionette js tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "maxRunTime": 7200,
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "PART": "12",
+            "NBPARTS": "30",
+            "REPORTER": "mocha-tbpl-reporter",
+            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && NODE_DEBUG=* ./bin/ci run marionette_js 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/marionette_js_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0"
+        },
+        "extra": {
+          "treeherder": {
+            "groupName": "Gaia javascript integration tests",
+            "groupSymbol": "Gij",
+            "symbol": "Gij12"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Marionette JS tests chunk 13",
+          "description": "Run entire suite of marionette js tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "maxRunTime": 7200,
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "PART": "13",
+            "NBPARTS": "30",
+            "REPORTER": "mocha-tbpl-reporter",
+            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && NODE_DEBUG=* ./bin/ci run marionette_js 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/marionette_js_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0"
+        },
+        "extra": {
+          "treeherder": {
+            "groupName": "Gaia javascript integration tests",
+            "groupSymbol": "Gij",
+            "symbol": "Gij13"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Marionette JS tests chunk 14",
+          "description": "Run entire suite of marionette js tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "maxRunTime": 7200,
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "PART": "14",
+            "NBPARTS": "30",
+            "REPORTER": "mocha-tbpl-reporter",
+            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && NODE_DEBUG=* ./bin/ci run marionette_js 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/marionette_js_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0"
+        },
+        "extra": {
+          "treeherder": {
+            "groupName": "Gaia javascript integration tests",
+            "groupSymbol": "Gij",
+            "symbol": "Gij14"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Marionette JS tests chunk 15",
+          "description": "Run entire suite of marionette js tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "maxRunTime": 7200,
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "PART": "15",
+            "NBPARTS": "30",
+            "REPORTER": "mocha-tbpl-reporter",
+            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && NODE_DEBUG=* ./bin/ci run marionette_js 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/marionette_js_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0"
+        },
+        "extra": {
+          "treeherder": {
+            "groupName": "Gaia javascript integration tests",
+            "groupSymbol": "Gij",
+            "symbol": "Gij15"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Marionette JS tests chunk 16",
+          "description": "Run entire suite of marionette js tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "maxRunTime": 7200,
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "PART": "16",
+            "NBPARTS": "30",
+            "REPORTER": "mocha-tbpl-reporter",
+            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && NODE_DEBUG=* ./bin/ci run marionette_js 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/marionette_js_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0"
+        },
+        "extra": {
+          "treeherder": {
+            "groupName": "Gaia javascript integration tests",
+            "groupSymbol": "Gij",
+            "symbol": "Gij16"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Marionette JS tests chunk 17",
+          "description": "Run entire suite of marionette js tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "maxRunTime": 7200,
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "PART": "17",
+            "NBPARTS": "30",
+            "REPORTER": "mocha-tbpl-reporter",
+            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && NODE_DEBUG=* ./bin/ci run marionette_js 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/marionette_js_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0"
+        },
+        "extra": {
+          "treeherder": {
+            "groupName": "Gaia javascript integration tests",
+            "groupSymbol": "Gij",
+            "symbol": "Gij17"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Marionette JS tests chunk 18",
+          "description": "Run entire suite of marionette js tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "maxRunTime": 7200,
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "PART": "18",
+            "NBPARTS": "30",
+            "REPORTER": "mocha-tbpl-reporter",
+            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && NODE_DEBUG=* ./bin/ci run marionette_js 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/marionette_js_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0"
+        },
+        "extra": {
+          "treeherder": {
+            "groupName": "Gaia javascript integration tests",
+            "groupSymbol": "Gij",
+            "symbol": "Gij18"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Marionette JS tests chunk 19",
+          "description": "Run entire suite of marionette js tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "maxRunTime": 7200,
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "PART": "19",
+            "NBPARTS": "30",
+            "REPORTER": "mocha-tbpl-reporter",
+            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && NODE_DEBUG=* ./bin/ci run marionette_js 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/marionette_js_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0"
+        },
+        "extra": {
+          "treeherder": {
+            "groupName": "Gaia javascript integration tests",
+            "groupSymbol": "Gij",
+            "symbol": "Gij19"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Marionette JS tests chunk 20",
+          "description": "Run entire suite of marionette js tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "maxRunTime": 7200,
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "PART": "20",
+            "NBPARTS": "30",
+            "REPORTER": "mocha-tbpl-reporter",
+            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && NODE_DEBUG=* ./bin/ci run marionette_js 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/marionette_js_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0"
+        },
+        "extra": {
+          "treeherder": {
+            "groupName": "Gaia javascript integration tests",
+            "groupSymbol": "Gij",
+            "symbol": "Gij20"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Marionette JS tests chunk 21",
+          "description": "Run entire suite of marionette js tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "maxRunTime": 7200,
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "PART": "21",
+            "NBPARTS": "30",
+            "REPORTER": "mocha-tbpl-reporter",
+            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && NODE_DEBUG=* ./bin/ci run marionette_js 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/marionette_js_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0"
+        },
+        "extra": {
+          "treeherder": {
+            "groupName": "Gaia javascript integration tests",
+            "groupSymbol": "Gij",
+            "symbol": "Gij21"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Marionette JS tests chunk 22",
+          "description": "Run entire suite of marionette js tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "maxRunTime": 7200,
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "PART": "22",
+            "NBPARTS": "30",
+            "REPORTER": "mocha-tbpl-reporter",
+            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && NODE_DEBUG=* ./bin/ci run marionette_js 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/marionette_js_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0"
+        },
+        "extra": {
+          "treeherder": {
+            "groupName": "Gaia javascript integration tests",
+            "groupSymbol": "Gij",
+            "symbol": "Gij22"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Marionette JS tests chunk 23",
+          "description": "Run entire suite of marionette js tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "maxRunTime": 7200,
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "PART": "23",
+            "NBPARTS": "30",
+            "REPORTER": "mocha-tbpl-reporter",
+            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && NODE_DEBUG=* ./bin/ci run marionette_js 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/marionette_js_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0"
+        },
+        "extra": {
+          "treeherder": {
+            "groupName": "Gaia javascript integration tests",
+            "groupSymbol": "Gij",
+            "symbol": "Gij23"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Marionette JS tests chunk 24",
+          "description": "Run entire suite of marionette js tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "maxRunTime": 7200,
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "PART": "24",
+            "NBPARTS": "30",
+            "REPORTER": "mocha-tbpl-reporter",
+            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && NODE_DEBUG=* ./bin/ci run marionette_js 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/marionette_js_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0"
+        },
+        "extra": {
+          "treeherder": {
+            "groupName": "Gaia javascript integration tests",
+            "groupSymbol": "Gij",
+            "symbol": "Gij24"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Marionette JS tests chunk 25",
+          "description": "Run entire suite of marionette js tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "maxRunTime": 7200,
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "PART": "25",
+            "NBPARTS": "30",
+            "REPORTER": "mocha-tbpl-reporter",
+            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && NODE_DEBUG=* ./bin/ci run marionette_js 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/marionette_js_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0"
+        },
+        "extra": {
+          "treeherder": {
+            "groupName": "Gaia javascript integration tests",
+            "groupSymbol": "Gij",
+            "symbol": "Gij25"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Marionette JS tests chunk 26",
+          "description": "Run entire suite of marionette js tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "maxRunTime": 7200,
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "PART": "26",
+            "NBPARTS": "30",
+            "REPORTER": "mocha-tbpl-reporter",
+            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && NODE_DEBUG=* ./bin/ci run marionette_js 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/marionette_js_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0"
+        },
+        "extra": {
+          "treeherder": {
+            "groupName": "Gaia javascript integration tests",
+            "groupSymbol": "Gij",
+            "symbol": "Gij26"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Marionette JS tests chunk 27",
+          "description": "Run entire suite of marionette js tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "maxRunTime": 7200,
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "PART": "27",
+            "NBPARTS": "30",
+            "REPORTER": "mocha-tbpl-reporter",
+            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && NODE_DEBUG=* ./bin/ci run marionette_js 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/marionette_js_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0"
+        },
+        "extra": {
+          "treeherder": {
+            "groupName": "Gaia javascript integration tests",
+            "groupSymbol": "Gij",
+            "symbol": "Gij27"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Marionette JS tests chunk 28",
+          "description": "Run entire suite of marionette js tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "maxRunTime": 7200,
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "PART": "28",
+            "NBPARTS": "30",
+            "REPORTER": "mocha-tbpl-reporter",
+            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && NODE_DEBUG=* ./bin/ci run marionette_js 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/marionette_js_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0"
+        },
+        "extra": {
+          "treeherder": {
+            "groupName": "Gaia javascript integration tests",
+            "groupSymbol": "Gij",
+            "symbol": "Gij28"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Marionette JS tests chunk 29",
+          "description": "Run entire suite of marionette js tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "maxRunTime": 7200,
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "PART": "29",
+            "NBPARTS": "30",
+            "REPORTER": "mocha-tbpl-reporter",
+            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && NODE_DEBUG=* ./bin/ci run marionette_js 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/marionette_js_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0"
+        },
+        "extra": {
+          "treeherder": {
+            "groupName": "Gaia javascript integration tests",
+            "groupSymbol": "Gij",
+            "symbol": "Gij29"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Marionette JS tests chunk 30",
+          "description": "Run entire suite of marionette js tests",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "maxRunTime": 7200,
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "PART": "30",
+            "NBPARTS": "30",
+            "REPORTER": "mocha-tbpl-reporter",
+            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && NODE_DEBUG=* ./bin/ci run marionette_js 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/marionette_js_tests": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0"
+        },
+        "extra": {
+          "treeherder": {
+            "groupName": "Gaia javascript integration tests",
+            "groupSymbol": "Gij",
+            "symbol": "Gij30"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia unit tests in b2g-desktop chunk 1",
+          "description": "Full gaia unit test suite",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "THIS_CHUNK": "1",
+            "TOTAL_CHUNKS": "30",
+            "REPORTER": "mocha-tbpl-reporter"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && ./bin/ci run unit-tests-in-b2g 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/unit_tests_b2g": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "GU",
+            "groupName": "Gaia unit tests",
+            "symbol": "GU1"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia unit tests in b2g-desktop chunk 2",
+          "description": "Full gaia unit test suite",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "THIS_CHUNK": "2",
+            "TOTAL_CHUNKS": "30",
+            "REPORTER": "mocha-tbpl-reporter"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && ./bin/ci run unit-tests-in-b2g 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/unit_tests_b2g": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "GU",
+            "groupName": "Gaia unit tests",
+            "symbol": "GU2"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia unit tests in b2g-desktop chunk 3",
+          "description": "Full gaia unit test suite",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "THIS_CHUNK": "3",
+            "TOTAL_CHUNKS": "30",
+            "REPORTER": "mocha-tbpl-reporter"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && ./bin/ci run unit-tests-in-b2g 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/unit_tests_b2g": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "GU",
+            "groupName": "Gaia unit tests",
+            "symbol": "GU3"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia unit tests in b2g-desktop chunk 4",
+          "description": "Full gaia unit test suite",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "THIS_CHUNK": "4",
+            "TOTAL_CHUNKS": "30",
+            "REPORTER": "mocha-tbpl-reporter"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && ./bin/ci run unit-tests-in-b2g 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/unit_tests_b2g": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "GU",
+            "groupName": "Gaia unit tests",
+            "symbol": "GU4"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia unit tests in b2g-desktop chunk 5",
+          "description": "Full gaia unit test suite",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "THIS_CHUNK": "5",
+            "TOTAL_CHUNKS": "30",
+            "REPORTER": "mocha-tbpl-reporter"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && ./bin/ci run unit-tests-in-b2g 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/unit_tests_b2g": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "GU",
+            "groupName": "Gaia unit tests",
+            "symbol": "GU5"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia unit tests in b2g-desktop chunk 6",
+          "description": "Full gaia unit test suite",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "THIS_CHUNK": "6",
+            "TOTAL_CHUNKS": "30",
+            "REPORTER": "mocha-tbpl-reporter"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && ./bin/ci run unit-tests-in-b2g 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/unit_tests_b2g": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "GU",
+            "groupName": "Gaia unit tests",
+            "symbol": "GU6"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia unit tests in b2g-desktop chunk 7",
+          "description": "Full gaia unit test suite",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "THIS_CHUNK": "7",
+            "TOTAL_CHUNKS": "30",
+            "REPORTER": "mocha-tbpl-reporter"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && ./bin/ci run unit-tests-in-b2g 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/unit_tests_b2g": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "GU",
+            "groupName": "Gaia unit tests",
+            "symbol": "GU7"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia unit tests in b2g-desktop chunk 8",
+          "description": "Full gaia unit test suite",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "THIS_CHUNK": "8",
+            "TOTAL_CHUNKS": "30",
+            "REPORTER": "mocha-tbpl-reporter"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && ./bin/ci run unit-tests-in-b2g 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/unit_tests_b2g": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "GU",
+            "groupName": "Gaia unit tests",
+            "symbol": "GU8"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia unit tests in b2g-desktop chunk 9",
+          "description": "Full gaia unit test suite",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "THIS_CHUNK": "9",
+            "TOTAL_CHUNKS": "30",
+            "REPORTER": "mocha-tbpl-reporter"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && ./bin/ci run unit-tests-in-b2g 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/unit_tests_b2g": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "GU",
+            "groupName": "Gaia unit tests",
+            "symbol": "GU9"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia unit tests in b2g-desktop chunk 10",
+          "description": "Full gaia unit test suite",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "THIS_CHUNK": "10",
+            "TOTAL_CHUNKS": "30",
+            "REPORTER": "mocha-tbpl-reporter"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && ./bin/ci run unit-tests-in-b2g 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/unit_tests_b2g": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "GU",
+            "groupName": "Gaia unit tests",
+            "symbol": "GU10"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia unit tests in b2g-desktop chunk 11",
+          "description": "Full gaia unit test suite",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "THIS_CHUNK": "11",
+            "TOTAL_CHUNKS": "30",
+            "REPORTER": "mocha-tbpl-reporter"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && ./bin/ci run unit-tests-in-b2g 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/unit_tests_b2g": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "GU",
+            "groupName": "Gaia unit tests",
+            "symbol": "GU11"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia unit tests in b2g-desktop chunk 12",
+          "description": "Full gaia unit test suite",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "THIS_CHUNK": "12",
+            "TOTAL_CHUNKS": "30",
+            "REPORTER": "mocha-tbpl-reporter"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && ./bin/ci run unit-tests-in-b2g 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/unit_tests_b2g": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "GU",
+            "groupName": "Gaia unit tests",
+            "symbol": "GU12"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia unit tests in b2g-desktop chunk 13",
+          "description": "Full gaia unit test suite",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "THIS_CHUNK": "13",
+            "TOTAL_CHUNKS": "30",
+            "REPORTER": "mocha-tbpl-reporter"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && ./bin/ci run unit-tests-in-b2g 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/unit_tests_b2g": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "GU",
+            "groupName": "Gaia unit tests",
+            "symbol": "GU13"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia unit tests in b2g-desktop chunk 14",
+          "description": "Full gaia unit test suite",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "THIS_CHUNK": "14",
+            "TOTAL_CHUNKS": "30",
+            "REPORTER": "mocha-tbpl-reporter"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && ./bin/ci run unit-tests-in-b2g 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/unit_tests_b2g": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "GU",
+            "groupName": "Gaia unit tests",
+            "symbol": "GU14"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia unit tests in b2g-desktop chunk 15",
+          "description": "Full gaia unit test suite",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "THIS_CHUNK": "15",
+            "TOTAL_CHUNKS": "30",
+            "REPORTER": "mocha-tbpl-reporter"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && ./bin/ci run unit-tests-in-b2g 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/unit_tests_b2g": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "GU",
+            "groupName": "Gaia unit tests",
+            "symbol": "GU15"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia unit tests in b2g-desktop chunk 16",
+          "description": "Full gaia unit test suite",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "THIS_CHUNK": "16",
+            "TOTAL_CHUNKS": "30",
+            "REPORTER": "mocha-tbpl-reporter"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && ./bin/ci run unit-tests-in-b2g 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/unit_tests_b2g": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "GU",
+            "groupName": "Gaia unit tests",
+            "symbol": "GU16"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia unit tests in b2g-desktop chunk 17",
+          "description": "Full gaia unit test suite",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "THIS_CHUNK": "17",
+            "TOTAL_CHUNKS": "30",
+            "REPORTER": "mocha-tbpl-reporter"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && ./bin/ci run unit-tests-in-b2g 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/unit_tests_b2g": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "GU",
+            "groupName": "Gaia unit tests",
+            "symbol": "GU17"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia unit tests in b2g-desktop chunk 18",
+          "description": "Full gaia unit test suite",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "THIS_CHUNK": "18",
+            "TOTAL_CHUNKS": "30",
+            "REPORTER": "mocha-tbpl-reporter"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && ./bin/ci run unit-tests-in-b2g 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/unit_tests_b2g": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "GU",
+            "groupName": "Gaia unit tests",
+            "symbol": "GU18"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia unit tests in b2g-desktop chunk 19",
+          "description": "Full gaia unit test suite",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "THIS_CHUNK": "19",
+            "TOTAL_CHUNKS": "30",
+            "REPORTER": "mocha-tbpl-reporter"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && ./bin/ci run unit-tests-in-b2g 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/unit_tests_b2g": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "GU",
+            "groupName": "Gaia unit tests",
+            "symbol": "GU19"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia unit tests in b2g-desktop chunk 20",
+          "description": "Full gaia unit test suite",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "THIS_CHUNK": "20",
+            "TOTAL_CHUNKS": "30",
+            "REPORTER": "mocha-tbpl-reporter"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && ./bin/ci run unit-tests-in-b2g 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/unit_tests_b2g": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "GU",
+            "groupName": "Gaia unit tests",
+            "symbol": "GU20"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia unit tests in b2g-desktop chunk 21",
+          "description": "Full gaia unit test suite",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "THIS_CHUNK": "21",
+            "TOTAL_CHUNKS": "30",
+            "REPORTER": "mocha-tbpl-reporter"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && ./bin/ci run unit-tests-in-b2g 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/unit_tests_b2g": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "GU",
+            "groupName": "Gaia unit tests",
+            "symbol": "GU21"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia unit tests in b2g-desktop chunk 22",
+          "description": "Full gaia unit test suite",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "THIS_CHUNK": "22",
+            "TOTAL_CHUNKS": "30",
+            "REPORTER": "mocha-tbpl-reporter"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && ./bin/ci run unit-tests-in-b2g 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/unit_tests_b2g": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "GU",
+            "groupName": "Gaia unit tests",
+            "symbol": "GU22"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia unit tests in b2g-desktop chunk 23",
+          "description": "Full gaia unit test suite",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "THIS_CHUNK": "23",
+            "TOTAL_CHUNKS": "30",
+            "REPORTER": "mocha-tbpl-reporter"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && ./bin/ci run unit-tests-in-b2g 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/unit_tests_b2g": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "GU",
+            "groupName": "Gaia unit tests",
+            "symbol": "GU23"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia unit tests in b2g-desktop chunk 24",
+          "description": "Full gaia unit test suite",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "THIS_CHUNK": "24",
+            "TOTAL_CHUNKS": "30",
+            "REPORTER": "mocha-tbpl-reporter"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && ./bin/ci run unit-tests-in-b2g 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/unit_tests_b2g": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "GU",
+            "groupName": "Gaia unit tests",
+            "symbol": "GU24"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia unit tests in b2g-desktop chunk 25",
+          "description": "Full gaia unit test suite",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "THIS_CHUNK": "25",
+            "TOTAL_CHUNKS": "30",
+            "REPORTER": "mocha-tbpl-reporter"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && ./bin/ci run unit-tests-in-b2g 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/unit_tests_b2g": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "GU",
+            "groupName": "Gaia unit tests",
+            "symbol": "GU25"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia unit tests in b2g-desktop chunk 26",
+          "description": "Full gaia unit test suite",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "THIS_CHUNK": "26",
+            "TOTAL_CHUNKS": "30",
+            "REPORTER": "mocha-tbpl-reporter"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && ./bin/ci run unit-tests-in-b2g 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/unit_tests_b2g": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "GU",
+            "groupName": "Gaia unit tests",
+            "symbol": "GU26"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia unit tests in b2g-desktop chunk 27",
+          "description": "Full gaia unit test suite",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "THIS_CHUNK": "27",
+            "TOTAL_CHUNKS": "30",
+            "REPORTER": "mocha-tbpl-reporter"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && ./bin/ci run unit-tests-in-b2g 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/unit_tests_b2g": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "GU",
+            "groupName": "Gaia unit tests",
+            "symbol": "GU27"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia unit tests in b2g-desktop chunk 28",
+          "description": "Full gaia unit test suite",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "THIS_CHUNK": "28",
+            "TOTAL_CHUNKS": "30",
+            "REPORTER": "mocha-tbpl-reporter"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && ./bin/ci run unit-tests-in-b2g 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/unit_tests_b2g": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "GU",
+            "groupName": "Gaia unit tests",
+            "symbol": "GU28"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia unit tests in b2g-desktop chunk 29",
+          "description": "Full gaia unit test suite",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "THIS_CHUNK": "29",
+            "TOTAL_CHUNKS": "30",
+            "REPORTER": "mocha-tbpl-reporter"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && ./bin/ci run unit-tests-in-b2g 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/unit_tests_b2g": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "GU",
+            "groupName": "Gaia unit tests",
+            "symbol": "GU29"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "reruns": 4,
+      "task": {
+        "metadata": {
+          "name": "Gaia unit tests in b2g-desktop chunk 30",
+          "description": "Full gaia unit test suite",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches"
+        ],
+        "payload": {
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "env": {
+            "THIS_CHUNK": "30",
+            "TOTAL_CHUNKS": "30",
+            "REPORTER": "mocha-tbpl-reporter"
+          },
+          "command": [
+            "entrypoint",
+            "mkdir -p artifacts && ./bin/ci run unit-tests-in-b2g 2> artifacts/debug.log"
+          ],
+          "artifacts": {
+            "public/unit_tests_b2g": {
+              "type": "directory",
+              "path": "/home/tester/git_checkout/artifacts/",
+              "expires": "{{nextYear}}"
+            }
+          },
+          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "groupSymbol": "GU",
+            "groupName": "Gaia unit tests",
+            "symbol": "GU30"
           }
         },
         "schedulerId": "task-graph-scheduler"

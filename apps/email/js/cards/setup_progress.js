@@ -31,6 +31,7 @@ return [
       this.creationInProcess = true;
       this.pushedSecondaryCard = false;
       this.cardHasBeenShown = false;
+      this.createCanceled = false;
     },
 
     extraClasses: ['anim-fade', 'anim-overlay'],
@@ -96,6 +97,7 @@ return [
         e.preventDefault();
       }
       this.cancelCreation();
+      this.createCanceled = true;
       cards.removeCardAndSuccessors(this, 'animate', 1);
     },
 
@@ -184,7 +186,11 @@ return [
           if (err) {
             this.onCreationError(err, errDetails);
           } else {
-            this.onCreationSuccess(account);
+            if (this.createCanceled) {
+              account.deleteAccount();
+            } else {
+              this.onCreationSuccess(account);
+            }
           }
         }.bind(this));
     },

@@ -6,3 +6,11 @@
   border: 0;
   frameborder: "0";
 }
+
+#popupiframe {
+  position: absolute; 
+  left: 0px; 
+  top: 0px; 
+  background: white;
+}
+

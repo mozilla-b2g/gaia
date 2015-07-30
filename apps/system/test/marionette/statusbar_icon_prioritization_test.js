@@ -7,13 +7,7 @@ var SETTINGS_APP = 'app://settings.gaiamobile.org';
 marionette('Status Bar icons - Prioritization', function() {
 
   var client = marionette.client({
-    prefs: {
-      'dom.w3c_touch_events.enabled': 1
-    },
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
-    }
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
   });
 
   var system;
@@ -21,32 +15,34 @@ marionette('Status Bar icons - Prioritization', function() {
 
   setup(function() {
     system = client.loader.getAppClass('system');
+    system.waitForFullyLoaded();
     statusBar = new StatusBar(client);
-    system.waitForStartup();
   });
 
   test('should display important icons first', function() {
     system.waitForLaunch(SETTINGS_APP);
+    statusBar.init();
 
     var hasHiddenIcon = false;
 
     // Let's show all the icons.
-    StatusBar.Icons.forEach(function(iconName) {
-      statusBar[iconName].show();
-    });
+    statusBar.showAllRunningIcons();
 
     // Force the reprioritization all the icons.
-    statusBar.networkActivity.hide();
-    statusBar.dispatchEvent('moznetworkupload');
-
-    StatusBar.Icons.forEach(function(iconName) {
-      if (iconName === 'label') {
+    system.request('NetworkActivityIcon:hide');
+    system.request('NetworkActivityIcon:show');
+    statusBar.Icons.forEach(function(iconName) {
+      console.log(iconName);
+      if (iconName === 'operator') {
         // Label is a special case, so ignoring for now.
         return;
       }
-
-      var icon = statusBar[iconName].icon;
-      var hidden = (icon.cssProperty('display') === 'none');
+      var iconElement = statusBar.minimised[iconName].icon;
+      // The icon is not running.
+      if (iconElement.getAttribute('class').indexOf('active') < 0) {
+        return;
+      }
+      var hidden = (iconElement.cssProperty('display') === 'none');
 
       if (hasHiddenIcon) {
         assert.equal(hidden, true, 'The `' + iconName +

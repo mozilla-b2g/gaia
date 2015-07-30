@@ -13,7 +13,7 @@
    * and causes user confusion, but a short delay globally would cause too many
    * accidental triggers of edit mode.
    */
-  const EDIT_LONG_PRESS_DELAY = 100;
+  const EDIT_LONG_PRESS_DELAY = 200;
 
   /* The movement threshold to use for the above synthetic long-press. */
   const EDIT_LONG_PRESS_THRESHOLD = 4 * devicePixelRatio;
@@ -31,6 +31,16 @@
 
   /* This is the delay before calling finish when handling touchend. */
   const TOUCH_END_FINISH_DELAY = 20;
+
+  /* The maximum frequency with which the grid will be rearranged in response
+   * to the item position changing, in ms.
+   */
+  const REARRANGE_FREQUENCY = 100;
+
+  /* The amount of cool-down time after a rearrange animation. To avoid
+   * rearranging too frequently and causing jank and user confusion.
+   */
+  const REARRANGE_COOLDOWN = 750;
 
   const SCREEN_HEIGHT = window.innerHeight;
 
@@ -103,6 +113,16 @@
      * considered as obscuring the grid when in edit mode.
      */
     editHeaderElement: null,
+
+    /**
+     * The timeout used to rearrange the grid during dragging.
+     */
+    rearrangeGridTimeout: null,
+
+    /**
+     * The time of the last reposition call.
+     */
+    lastRepositionTime: 0,
 
     /**
      * Returns the maximum active scale value.
@@ -194,10 +214,18 @@
       }
 
       // Redraw the icon at the new position and scale
-      this.positionIcon();
+      this.updateIconPosition();
+
+      // Rearrange grid to highlight the group underneath the icon
+      this.rearrangeGrid();
     },
 
     finish: function() {
+      // Complete the repositioning timeout
+      if (this.rearrangeGridTimeout !== null) {
+        this.rearrangeGrid();
+      }
+
       // Remove the dragging property after the icon has transitioned into
       // place to avoid jank due to animations starting that are disabled
       // when dragging.
@@ -267,12 +295,15 @@
         } else {
           this.doRearrange.call(this);
         }
+      } else {
+        this.icon.requestAttention();
       }
 
       // Hand back responsibility to Grid view to render the dragged item.
       this.icon.scale = 1;
       this.icon.setActive(false);
       this.icon.element.classList.remove('hovering');
+      this.target = null;
 
       this.gridView.render();
 
@@ -280,8 +311,6 @@
       if (this.dirty) {
         window.dispatchEvent(new CustomEvent('gaiagrid-saveitems'));
       }
-
-      this.target = null;
       this.dirty = false;
 
       setTimeout(function nextTick() {
@@ -331,25 +360,16 @@
     },
 
     /**
-     * Scrolls the page if needed.
+     * Positions the dragged icon, rearranges the grid and scrolls the page if
+     * needed.
      * The page is scrolled via javascript if an icon is being moved,
      * and is within a percentage of a page edge.
-     * @param {Object} e A touch object from a touchmove event.
      */
-    scrollIfNeeded: function() {
+    positionAndScrollIfNeeded: function() {
       var touch = this.currentTouch;
-      if (!touch) {
+      if (!touch || !this.inDragAction) {
         this.isScrolling = false;
         return;
-      }
-
-      function doScroll(amount) {
-        /* jshint validthis:true */
-        this.isScrolling = true;
-        this.scrollable.scrollTop += amount;
-        exports.requestAnimationFrame(this.scrollIfNeeded.bind(this));
-        touch.pageY += amount;
-        this.positionIcon();
       }
 
       var scrollStep;
@@ -357,29 +377,37 @@
       var distanceFromTop = Math.abs(touch.pageY - docScroll);
       var distanceFromHeader = distanceFromTop -
         (this.editHeaderElement ? this.editHeaderElement.clientHeight : 0);
+      this.isScrolling = true;
+
       if (distanceFromTop > SCREEN_HEIGHT - EDGE_PAGE_THRESHOLD) {
         var maxY = this.maxScroll;
         scrollStep = this.getScrollStep(SCREEN_HEIGHT - distanceFromTop);
         // We cannot exceed the maximum scroll value
         if (touch.pageY >= maxY || maxY - touch.pageY < scrollStep) {
           this.isScrolling = false;
-          return;
         }
-
-        doScroll.call(this, scrollStep);
       } else if (touch.pageY > 0 && distanceFromHeader < EDGE_PAGE_THRESHOLD) {
         // We cannot go below the minimum scroll value
-        scrollStep = this.getScrollStep(distanceFromHeader);
-        scrollStep = Math.min(scrollStep, this.scrollable.scrollTop);
-        if (scrollStep <= 0) {
+        scrollStep = -this.getScrollStep(distanceFromHeader);
+        scrollStep = Math.max(scrollStep, -this.scrollable.scrollTop);
+        if (scrollStep >= 0) {
           this.isScrolling = false;
-          return;
         }
-
-        doScroll.call(this, -scrollStep);
       } else {
         this.isScrolling = false;
       }
+
+      if (!this.isScrolling) {
+        this.updateIconPosition();
+        this.deferredRearrangeGrid();
+        return;
+      }
+
+      this.updateIconPosition();
+      this.scrollable.scrollTop += scrollStep;
+      touch.pageY += scrollStep;
+
+      exports.requestAnimationFrame(this.positionAndScrollIfNeeded.bind(this));
     },
 
     /**
@@ -416,27 +444,63 @@
     /**
      * Positions an icon on the grid using the current touch coordinates.
      */
-    positionIcon: function() {
-      var iconIsDivider = this.icon.detail.type === 'divider';
-
-      var pageX = this.currentTouch.pageX - (this.initialPageX - this.icon.x);
-      var pageY = this.currentTouch.pageY - (this.initialPageY - this.icon.y);
-
+    updateIconPosition: function() {
       var oldX = this.icon.x;
       var oldY = this.icon.y;
+      var newX = this.currentTouch.pageX - (this.initialPageX - this.icon.x);
+      var newY = this.currentTouch.pageY - (this.initialPageY - this.icon.y);
+
       // Adjust new icon coordinates for the slightly inflated scale so that
-      // it appears centered around the touch point.
-      var newX = pageX;
-      var newY = pageY;
-      if (!iconIsDivider) {
-        newX = pageX - ((this.icon.scale * this.gridView.layout.gridItemWidth) -
-                        this.gridView.layout.gridItemWidth) / 2;
-        newY = pageY - ((this.icon.scale * this.icon.pixelHeight) -
-                        this.icon.pixelHeight) / 2;
+      // it appears centered around the touch point. Dividers aren't scaled
+      // during dragging.
+      if (this.icon.detail.type !== 'divider') {
+        newX = newX - ((this.icon.scale * this.gridView.layout.gridItemWidth) -
+                       this.gridView.layout.gridItemWidth) / 2;
+        newY = newY - ((this.icon.scale * this.icon.pixelHeight) -
+                       this.icon.pixelHeight) / 2;
       }
+
       this.icon.setCoordinates(newX, newY);
       this.icon.render();
       this.icon.setCoordinates(oldX, oldY);
+    },
+
+    /**
+     * Will call rearrangeGrid after a short period, calculated based on how
+     * recently the grid was last rearranged.
+     */
+    deferredRearrangeGrid: function() {
+      if (this.rearrangeGridTimeout !== null) {
+        return;
+      }
+
+      var delay = Math.max(
+        REARRANGE_FREQUENCY, REARRANGE_COOLDOWN -
+          Math.max(0, Date.now() - this.lastRepositionTime));
+      this.rearrangeGridTimeout = setTimeout(() => {
+        this.rearrangeGridTimeout = null;
+        this.rearrangeGrid();
+      }, delay);
+    },
+
+    /**
+     * Rearranges the grid icons and groups based on the current position of
+     * the dragged icon.
+     */
+    rearrangeGrid: function() {
+      if (this.rearrangeGridTimeout !== null) {
+        clearTimeout(this.rearrangeGridTimeout);
+        this.rearrangeGridTimeout = null;
+      }
+
+      if (this.isScrolling) {
+        // We don't want the grid to shift while we're auto-scrolling
+        return;
+      }
+
+      var iconIsDivider = this.icon.detail.type === 'divider';
+      var pageX = this.currentTouch.pageX - (this.initialPageX - this.icon.x);
+      var pageY = this.currentTouch.pageY - (this.initialPageY - this.icon.y);
 
       // Reposition in the icons array if necessary.
       // Find the icon with the closest X/Y position of the move,
@@ -515,8 +579,10 @@
       var createDivider = insertDividerAtTop;
       if (!insertDividerAtTop && !iconIsDivider &&
           (foundItem.detail.type === 'divider')) {
-        // Allow dropping into a collapsed group
-        if (foundItem.detail.collapsed) {
+        // Allow dropping into a collapsed group if the new position is in
+        // the top 2/3 of the group.
+        if (foundItem.detail.collapsed &&
+            pageY <= foundItem.y + (foundItem.pixelHeight * 2/3)) {
           rearrangeAfterDelay = false;
           foundItem.element.classList.remove('hovered');
 
@@ -600,6 +666,9 @@
       // Place the dragged item into the new empty section
       var sIndex = items.indexOf(this.icon);
       this.rearrange(sIndex >= tIndex ? newDivider : tDivider);
+
+      // Make sure the new divider/group is in view
+      newDivider.requestAttention();
     },
 
     /**
@@ -667,6 +736,8 @@
       // after rearranging.
       this.initialPageX -= oldX - this.icon.x;
       this.initialPageY -= oldY - this.icon.y;
+
+      this.lastRepositionTime = Date.now();
     },
 
     enterEditMode: function() {
@@ -735,7 +806,7 @@
               return;
             }
 
-            if (this.inEditMode) {
+            if (this.inEditMode && !this.icon) {
               this.touchStart.x = e.touches[0].pageX;
               this.touchStart.y = e.touches[0].pageY;
               this.touchStart.screenX = e.touches[0].screenX;
@@ -799,10 +870,8 @@
                 pageY: touch.pageY
               };
 
-              this.positionIcon();
-
               if (!this.isScrolling) {
-                this.scrollIfNeeded();
+                this.positionAndScrollIfNeeded();
               }
             } else if (this.longPressTimeout !== null &&
                        !this.inLongPressThreshold(touch.screenX,

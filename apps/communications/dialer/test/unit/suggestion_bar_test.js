@@ -1,5 +1,5 @@
 /* globals LazyLoader, MockCallHandler, MockContacts, MockFbContacts,
-           MocksHelper, MockLazyL10n, MockMozL10n, MockNavigatorMozIccManager,
+           MockL10n, MockNavigatorMozIccManager, MocksHelper,
            SuggestionBar, SimSettingsHelper */
 
 'use strict';
@@ -10,17 +10,16 @@ require('/dialer/test/unit/mock_call_handler.js');
 // FIXME : This should be a mock
 require('/shared/js/simple_phone_matcher.js');
 require('/shared/test/unit/mocks/mock_fb_data_reader.js');
-require('/shared/test/unit/mocks/dialer/mock_lazy_l10n.js');
 require('/shared/test/unit/mocks/dialer/mock_contacts.js');
 require('/shared/test/unit/mocks/dialer/mock_keypad.js');
 require('/shared/test/unit/mocks/mock_sim_settings_helper.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/js/sanitizer.js');
 
 require('/dialer/js/suggestion_bar.js');
 
 var mocksHelperForSuggestionBar = new MocksHelper([
   'Contacts',
-  'LazyL10n',
   'LazyLoader',
   'KeypadManager',
   'CallHandler',
@@ -34,8 +33,6 @@ suite('suggestion Bar', function() {
 
   mocksHelperForSuggestionBar.attachTestHelpers();
 
-  var mozL10nGet;
-
   suiteSetup(function() {
     window.fb = window.fb || {};
     realFbContacts = window.fb.contacts;
@@ -43,8 +40,9 @@ suite('suggestion Bar', function() {
 
     realMozIccManager = navigator.mozIccManager;
     navigator.mozIccManager = MockNavigatorMozIccManager;
+
     realMozL10n = navigator.mozL10n;
-    navigator.mozL10n = MockMozL10n;
+    navigator.mozL10n = MockL10n;
 
     MockNavigatorMozIccManager.mTeardown();
   });
@@ -113,30 +111,28 @@ suite('suggestion Bar', function() {
     ]
   }];
 
-
   setup(function() {
     subject = SuggestionBar;
 
     MockNavigatorMozIccManager.addIcc(0, {});
 
     loadBodyHTML('/shared/elements/contacts/contact_in_overlay.html');
-    var suggestionItemTemplate =
-      document.body.querySelector('template').innerHTML;
+    var suggestionItemTemplate = document.body.querySelector('template');
 
     loadBodyHTML('/shared/elements/contacts/contact_list_overlay.html');
-    var suggestionOverlayTemplate =
-      document.body.querySelector('template').innerHTML;
+    var suggestionOverlayTemplate = document.body.querySelector('template');
 
     domSuggestionBar = document.createElement('section');
     domSuggestionBar.id = 'suggestion-bar';
     domSuggestionBar.classList.add('hide');
     domSuggestionBar.innerHTML =
-      '<div id="suggestion-count" class="more"></div>' +
-      '<div is="contact-in-overlay" ' +
-        'class="js-suggestion-item contact-item"></div>';
+      `<div id="suggestion-count" class="more"></div>
+       <div is="contact-in-overlay"
+         class="js-suggestion-item contact-item"></div>`;
     document.body.appendChild(domSuggestionBar);
-    document.querySelector('.js-suggestion-item').innerHTML =
-      suggestionItemTemplate;
+    var suggestionItem = document.querySelector('.js-suggestion-item');
+    suggestionItem.innerHTML = '';
+    suggestionItem.appendChild(suggestionItemTemplate.content.cloneNode(true));
 
     var domSuggestionItem = document.createElement('button');
     domSuggestionItem.id = 'contact-in-overlay-template';
@@ -146,7 +142,9 @@ suite('suggestion Bar', function() {
       'bb-button');
     domSuggestionItem.hidden = true;
     document.body.appendChild(domSuggestionItem);
-    domSuggestionItem.innerHTML = suggestionItemTemplate;
+    domSuggestionItem.innerHTML = '';
+    domSuggestionItem.appendChild(
+      suggestionItemTemplate.content.cloneNode(true));
 
     domOverlay = document.createElement('form');
     domOverlay.id = 'contact-list-overlay';
@@ -155,7 +153,8 @@ suite('suggestion Bar', function() {
     domOverlay.dataset.type = 'action';
     domOverlay.classList.add('overlay');
     domOverlay.setAttribute('aria-hidden', 'true');
-    domOverlay.innerHTML = suggestionOverlayTemplate;
+    domOverlay.innerHTML = '';
+    domOverlay.appendChild(suggestionOverlayTemplate.content.cloneNode(true));
     document.body.appendChild(domOverlay);
 
     domSuggestionCount = domSuggestionBar.querySelector('#suggestion-count');
@@ -168,17 +167,7 @@ suite('suggestion Bar', function() {
         document.getElementById('contact-list-overlay-cancel');
     subject.init();
 
-    mozL10nGet = this.sinon.spy(function(id) {
-      switch(id) {
-        case'my-custom-type':
-          return undefined;
-        default:
-          return id;
-      }
-    });
-    this.sinon.stub(MockLazyL10n, 'get', function(callback) {
-      callback(mozL10nGet);
-    });
+    this.sinon.spy(MockL10n, 'setAttributes');
 
     MockContacts.mTearDown();
     MockFbContacts.mTeardown();
@@ -206,19 +195,27 @@ suite('suggestion Bar', function() {
   };
 
   suite('Suggestion Bar', function() {
+    var tel;
+    var telType;
+
+    setup(function() {
+      tel = domSuggestionBar.querySelector('.js-tel');
+      telType = domSuggestionBar.querySelector('.js-tel-type');
+    });
+
     test('#update suggestions by contact data - 1 data', function() {
       var mockNumber = '1234567890';
       var enteredNumber = '1234';
-      var tel = domSuggestionBar.querySelector('.js-tel');
-      var telType = domSuggestionBar.querySelector('.js-tel-type');
+
+      sinon.spy(telType, 'removeAttribute');
 
       MockContacts.mResult = mockResult1;
       subject.update(enteredNumber);
 
       assert.equal(tel.textContent, mockNumber,
                   'should got number 1234567890 from mozContact');
-      assert.isTrue(MockLazyL10n.get.called,
-                    'should lazy load the localization library');
+      sinon.assert.notCalled(MockL10n.setAttributes);
+      sinon.assert.calledWith(telType.removeAttribute, 'data-l10n-id');
       assert.equal(telType.textContent, 'my-custom-type',
                    'should default to the type string when there is no ' +
                    'localization');
@@ -230,18 +227,13 @@ suite('suggestion Bar', function() {
     test('#update suggestions by contact data - 2 datas', function() {
       var mockNumber = '111111111';
       var enteredNumber = '1111';
-      var tel = domSuggestionBar.querySelector('.js-tel');
-      var telType = domSuggestionBar.querySelector('.js-tel-type');
 
       MockContacts.mResult = mockResult2;
       subject.update(enteredNumber);
 
       assert.equal(tel.textContent, mockNumber,
                   'should got number 111111111 from mozContact');
-      assert.isTrue(MockLazyL10n.get.called,
-                    'should lazy load the localization library');
-      assert.equal(telType.textContent, 'mobile',
-                   'should localize the phone type');
+      sinon.assert.calledWith(MockL10n.setAttributes, telType, 'mobile');
       assert.isTrue(domSuggestionCount.classList.contains('more'),
                   '#suggestion-count should contain "more" style');
       assert.isFalse(domSuggestionBar.classList.contains('hide'));
@@ -251,8 +243,6 @@ suite('suggestion Bar', function() {
       function() {
         var mockNumber = '12349999';
         var enteredNumber = '1234';
-        var tel = domSuggestionBar.querySelector('.js-tel');
-        var telType = domSuggestionBar.querySelector('.js-tel-type');
 
         MockContacts.mResult = [];
         MockFbContacts.mResult = mockResultFb.slice(0, 1);
@@ -260,10 +250,7 @@ suite('suggestion Bar', function() {
 
         assert.equal(tel.textContent, mockNumber,
                     'should got number 12349999 from Facebook');
-        assert.isTrue(MockLazyL10n.get.called,
-                    'should lazy load the localization library');
-        assert.equal(telType.textContent, 'mobile',
-                   'should localize the phone type');
+        sinon.assert.calledWith(MockL10n.setAttributes, telType, 'mobile');
         assert.isFalse(domSuggestionCount.classList.contains('more'),
                     '#suggestion-count should not contain "more" style');
         assert.isFalse(domSuggestionBar.classList.contains('hide'));
@@ -276,8 +263,8 @@ suite('suggestion Bar', function() {
       function() {
         var mockNumber = '1234567890';
         var enteredNumber = '1234';
-        var tel = domSuggestionBar.querySelector('.js-tel');
-        var telType = domSuggestionBar.querySelector('.js-tel-type');
+
+        sinon.spy(telType, 'removeAttribute');
 
         MockContacts.mResult = mockResult1;
         MockFbContacts.mResult = mockResultFb.slice(0, 1);
@@ -285,8 +272,8 @@ suite('suggestion Bar', function() {
 
         assert.equal(tel.textContent, mockNumber,
                     'should got number 1234567890 from mozContact');
-        assert.isTrue(MockLazyL10n.get.called,
-                      'should lazy load the localization library');
+        sinon.assert.notCalled(MockL10n.setAttributes);
+        sinon.assert.calledWith(telType.removeAttribute, 'data-l10n-id');
         assert.equal(telType.textContent, 'my-custom-type',
                    'should default to the type string when there is no ' +
                    'localization');
@@ -299,8 +286,6 @@ suite('suggestion Bar', function() {
       function() {
         var mockNumber = '12349999';
         var enteredNumber = '1234';
-        var tel = domSuggestionBar.querySelector('.js-tel');
-        var telType = domSuggestionBar.querySelector('.js-tel-type');
 
         MockContacts.mResult = [];
         MockFbContacts.mResult = mockResultFb;
@@ -308,10 +293,7 @@ suite('suggestion Bar', function() {
 
         assert.equal(tel.textContent, mockNumber,
                     'should got number 12349999 from Facebook');
-        assert.isTrue(MockLazyL10n.get.called,
-                    'should lazy load the localization library');
-        assert.equal(telType.textContent, 'mobile',
-                   'should localize the phone type');
+        sinon.assert.calledWith(MockL10n.setAttributes, telType, 'mobile');
         assert.isTrue(domSuggestionCount.classList.contains('more'),
                     '#suggestion-count should contain "more" style');
         assert.isFalse(domSuggestionBar.classList.contains('hide'));
@@ -355,12 +337,15 @@ suite('suggestion Bar', function() {
       });
 
       test('should clear contents', function() {
-        var tel = domSuggestionBar.querySelector('.js-tel');
         assert.equal(tel.textContent, '');
       });
 
       test('should hide suggestionBar', function() {
         assert.isTrue(domSuggestionBar.classList.contains('hide'));
+      });
+
+      test('should not try to localize anything', function() {
+        sinon.assert.notCalled(MockL10n.setAttributes);
       });
     });
 
@@ -375,7 +360,6 @@ suite('suggestion Bar', function() {
 
       test('one SIM', function() {
         var mockNumber = '1234567890';
-        var tel = domSuggestionBar.querySelector('.js-tel');
 
         setupExactMatch();
 
@@ -408,8 +392,8 @@ suite('suggestion Bar', function() {
         MockContacts.mResult = mockResult2;
         subject.update('1111');
 
-        mozL10nGet.reset();
         this.sinon.spy(LazyLoader, 'load');
+        MockL10n.setAttributes.reset();
 
         subject.showOverlay();
         getSuggestions();
@@ -434,10 +418,12 @@ suite('suggestion Bar', function() {
         assert.equal(suggestions.length, 2);
       });
 
-      test('should call mozL10n.get with correct arguments ', function() {
+      test('should call mozL10n.setAttributes with correct arguments',
+      function() {
         // _fillContacts() calls two more times
-        assert.equal(mozL10nGet.callCount, 2);
-        assert.deepEqual(mozL10nGet.getCall(0).args, [ 'mobile' ]);
+        sinon.assert.calledThrice(MockL10n.setAttributes);
+        assert.equal(MockL10n.setAttributes.getCall(1).args[1], 'mobile');
+        assert.equal(MockL10n.setAttributes.getCall(2).args[1], 'mobile');
       });
 
       test('each match is displayed in the proper order', function() {

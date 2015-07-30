@@ -3,13 +3,7 @@
 marionette('Private Browser Trigger', function() {
 
   var client = marionette.client({
-    prefs: {
-      'dom.w3c_touch_events.enabled': 1
-    },
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
-    }
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
   });
 
   var search, system;
@@ -17,7 +11,7 @@ marionette('Private Browser Trigger', function() {
   setup(function() {
     search = client.loader.getAppClass('search');
     system = client.loader.getAppClass('system');
-    system.waitForStartup();
+    system.waitForFullyLoaded();
   });
 
   test('launches private window', function() {

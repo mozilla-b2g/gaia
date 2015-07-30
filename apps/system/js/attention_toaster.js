@@ -76,7 +76,9 @@
           break;
 
         case '_closed':
-          this.processStateChange('init', evt.type);
+          window.requestAnimationFrame(() => {
+            this.processStateChange('init', evt.type);
+          });
           break;
 
         case '_lockscreen-appopened':
@@ -115,7 +117,7 @@
 
     _enter_closing: function() {
       if (!this.app || !this.app.element ||
-          (Service && Service.locked &&
+          (Service && Service.query('locked') &&
            !Service.query('getTopMostWindow').isFullScreen())) {
         return;
       }
@@ -148,7 +150,7 @@
 
       this.app && this.app.setVisible(true);
       this._toasterTimer = window.setTimeout(function() {
-        if (Service && Service.locked &&
+        if (Service && Service.query('locked') &&
             !Service.query('getTopMostWindow').isFullScreen()) {
           return;
         }

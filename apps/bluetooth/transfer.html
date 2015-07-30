@@ -6,7 +6,7 @@
     <title>Bluetooth</title>
     <!-- Localization -->
     <meta name="defaultLanguage" content="en-US">
-    <meta name="availableLanguages" content="ar, en-US, fr, zh-TW">
+    <meta name="availableLanguages" content="en-US">
     <link rel="localization" href="locales/bluetooth.{locale}.properties">
     <script type="application/javascript" src="shared/js/l10n.js"></script>
     <!-- Common style -->
@@ -33,56 +33,52 @@
     <!-- Enable Bluetooth View -->
     <form role="dialog" data-type="confirm" id="enable-bluetooth-view" hidden>
       <section>
-        <h1 data-l10n-id="confirmation">Confirmation</h1>
+        <h1 data-l10n-id="confirmation"></h1>
         <p>
           <img id="icon" src="style/images/settings_bluetooth.png" alt="Bluetooth Icon"/>
-          <strong data-l10n-id="bluetooth">Bluetooth</strong>
-          <small data-l10n-id="bluetooth-status-description">Bluetooth is disabled</small>
+          <strong data-l10n-id="bluetooth"></strong>
+          <small data-l10n-id="bluetooth-status-description"></small>
         </p>
-        <p data-l10n-id="turn-bluetooth-on">Do you want to turn Bluetooth on?</p>
+        <p data-l10n-id="turn-bluetooth-on"></p>
       </section>
       <menu>
         <button type="reset" id="enable-bluetooth-button-cancel" data-l10n-id="cancel">Cancel</button>
-        <button type="submit" class="recommend" id="enable-bluetooth-button-turn-on" data-l10n-id="turn-on">Turn On</button>
+        <button type="submit" class="recommend" id="enable-bluetooth-button-turn-on" data-l10n-id="turn-on"></button>
       </menu>
     </form>
     <!-- Bluetooth File Transfer Failed View -->
     <form role="dialog" data-type="confirm" id="alert-view" hidden>
       <section>
-        <h1 data-l10n-id="error-transfer-title">Bluetooth file transfer failed</h1>
-        <p data-l10n-id="error-transfer-settings">
-          Bluetooth file transfer failed. Check that the Bluetooth settings are correct.
-        </p>
+        <h1 data-l10n-id="error-transfer-title"></h1>
+        <p data-l10n-id="error-transfer-settings"></p>
       </section>
       <menu>
-        <button class="full danger" id="alert-button-ok" data-l10n-id="ok">OK</button>
+        <button class="full danger" id="alert-button-ok" data-l10n-id="ok"></button>
       </menu>
     </form>
     <!-- Devices List View -->
-    <section role="region" id="devices-list-view" class="current" data-rendered="true" hidden>
-      <gaia-header id="devices-list-header" action="close">
+    <section role="region" id="devices-list-view" class="devices-list-view current" data-rendered="true" hidden>
+      <gaia-header id="devices-list-header" class="devices-list-header" action="close">
         <h1 data-l10n-id="bluetooth"></h1>
       </gaia-header>
       <div>
         <!-- Devices List View :: Paired Devices List -->
-        <gaia-subheader id="bluetooth-paired-title" skin="organic">
-          <span data-l10n-id="bluetooth-paired-devices">Paired Devices</span>
+        <gaia-subheader id="bluetooth-paired-title" class="bluetooth-paired-title" skin="organic">
+          <span data-l10n-id="bluetooth-paired-devices"></span>
         </gaia-subheader>
-        <ul id="bluetooth-paired-devices" class="devices">
+        <ul id="bluetooth-paired-devices" class="bluetooth-paired-devices devices">
         </ul>
         <!-- Devices List View :: Found Devices List -->
-        <gaia-subheader id="bluetooth-found-title" skin="organic">
-          <span data-l10n-id="bluetooth-devices-in-area">Devices found</span>
+        <gaia-subheader id="bluetooth-found-title" class="bluetooth-found-title" skin="organic">
+          <span data-l10n-id="bluetooth-devices-in-area"></span>
         </gaia-subheader>
-        <ul id="bluetooth-devices" class="devices">
+        <ul id="bluetooth-devices" class="bluetooth-devices devices">
         </ul>
         <!-- Devices List View :: Search Button -->
-        <div id="bluetooth-searching" data-l10n-id="search-for-device" class="explanation">
-          Searching for devices…
-        </div>
-        <ul id="bluetooth-search">
+        <div id="bluetooth-searching" data-l10n-id="search-for-device" class="bluetooth-searching explanation"></div>
+        <ul id="bluetooth-search" class="bluetooth-search">
           <li>
-            <button id="search-device" data-l10n-id="search-device" disabled>Search for Devices</button>
+            <button id="search-device" class="search-device" data-l10n-id="search-device" disabled></button>
           </li>
         </ul>
       </div>

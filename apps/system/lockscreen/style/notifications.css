@@ -278,6 +278,12 @@
   margin-top: 0.2rem;
 }
 
+#notifications-lockscreen-container .notification > div.detail .detail-content {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 #notifications-lockscreen-container .notification > .title-container .timestamp {
   margin-top: 0.1rem;
   color: rgba(255, 255, 255, 0.6);
@@ -320,7 +326,7 @@
   margin: 0 2.4rem;
 
   opacity: 0;
-  transition: opacity 0.3s ease;
+  transition: opacity var(--transition-duration) ease;
 }
 
 #lockscreen-notification-arrow.visible {
@@ -383,4 +389,20 @@
 :-moz-dir(rtl) #lockscreen-notification-arrow {
   left: unset;
   right: 0;
+}
+
+/*
+ * For the notification title, we need to use dir="auto" to display
+ * parenthesis and periods in their proper place. However, we still
+ * want the text to align right when in an RTL language, so we use
+ * the following override. See bug 1134453 and bug 1142925.
+ */
+:-moz-dir(rtl) #notifications-lockscreen-container .notification:not([data-predefined-dir="ltr"]) .title-container .title:-moz-dir(ltr) {
+  text-align: right;
+  -moz-margin-end: unset;
+  margin-left: 0.5rem;
+}
+
+:-moz-dir(rtl) #notifications-lockscreen-container .notification:not([data-predefined-dir="ltr"]) .detail-content:-moz-dir(ltr) {
+  text-align: right;
 }

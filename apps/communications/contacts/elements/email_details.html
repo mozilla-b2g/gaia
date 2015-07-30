@@ -1,13 +1,16 @@
 <!-- bug 1060080: taken from details.html, should be unified -->
 <element name="email-details" extends="section">
   <template>
-    <li data-mail id='email-details-template-#i#' data-template>
+    <li data-mail id='email-details-template-#i#' data-template role="region" aria-label="Email" data-l10n-id="emailDetail">
       <h2 data-l10n-id="#type_l10n_id#">#type#</h2>
       <div class="item">
         <div class="item-body-exp">
           <button id="email-or-pick-#i#" class="activity icon icon-email">
-            <b>#value#</b>
+            <b aria-label="Email" data-l10n-id="composeEmail"><bdi>#value#</bdi></b>
           </button>
+        </div>
+        <div class="item-media pull-right">
+          <button id="send-sms-to-email-button-#i#" class="activity send-sms icon icon-message" data-l10n-id="send-sms-button" aria-label="SMS"></button>
         </div>
       </div>
     </li>

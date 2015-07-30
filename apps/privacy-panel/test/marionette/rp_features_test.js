@@ -5,18 +5,23 @@ var RpMainPanel = require('./lib/panels/rp_features');
 
 marionette('remote protection main panel', function() {
   var client = marionette.client({
-    settings: {
-      'privacy-panel-gt-complete': true,
-      'lockscreen.enabled': true,
-      'lockscreen.passcode-lock.enabled': true,
-      'rp.locate.enabled': false,
-      'rp.ring.enabled': false,
-      'rp.lock.enabled': false
+    profile: {
+      settings: {
+        'privacy-panel-gt-complete': true,
+        'lockscreen.enabled': true,
+        'lockscreen.passcode-lock.enabled': true,
+        'rp.locate.enabled': false,
+        'rp.ring.enabled': false,
+        'rp.lock.enabled': false,
+        'ftu.manifestURL': 'app://ftu.gaiamobile.org/manifest.webapp'
+      }
     }
   });
-  var subject;
+  var subject, system;
 
   setup(function() {
+    system = client.loader.getAppClass('system');
+    system.waitForFullyLoaded();
     subject = new RpMainPanel(client);
     subject.init();
   });

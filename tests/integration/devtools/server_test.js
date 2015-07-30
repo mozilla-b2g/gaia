@@ -5,14 +5,17 @@ var assert = require('assert');
 marionette('Dev Tools server', function() {
 
   var client = marionette.client({
-    prefs: {
-      'devtools.debugger.prompt-connection': false,
-      'devtools.debugger.forbid-certified-apps': false,
-      'devtools.debugger.unix-domain-socket': '6080'
+    profile: {
+      prefs: {
+        'devtools.debugger.prompt-connection': false,
+        'devtools.debugger.forbid-certified-apps': false,
+        'devtools.debugger.unix-domain-socket': '6080'
+      },
+      settings: {
+        'debugger.remote-mode': 'adb-devtools'
+      }
     },
-    settings: {
-      'debugger.remote-mode': 'adb-devtools'
-    }
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
   });
   client = client.scope({ context: 'chrome' });
 

@@ -1,6 +1,7 @@
 define(function(require, exports) {
 
 var DisasterRecovery = require('./disaster-recovery');
+var logic = require('logic');
 
 /**
  * The no-op operation for job operations that are not implemented.
@@ -106,15 +107,24 @@ exports.runOp = function runOp(op, mode, callback) {
   }.bind(this);
 
   DisasterRecovery.setCurrentAccountOp(this, op, jobCompletedCallback);
-  this._LOG.runOp_begin(mode, op.type, null, op);
-  // _LOG supports wrapping calls, but we want to be able to strip out all
-  // logging, and that wouldn't work.
+
+  // Legacy tests:
+  logic(this, 'runOp_begin', { mode: mode, type: op.type, op: op });
+  // New-style tests:
+  Object.defineProperty(op, '_logicAsyncEvent', {
+    configurable: true,
+    enumerable: false, // So that we don't try to JSONify it.
+    value: logic.startAsync(this, 'runOp', {
+      mode: mode, type: op.type, op: op
+    })
+  });
+
   try {
     method.call(this._jobDriver, op, jobCompletedCallback);
   }
   catch (ex) {
     DisasterRecovery.clearCurrentAccountOp(this);
-    this._LOG.opError(mode, op.type, ex);
+    logic(this, 'opError', { mode: mode, type: op.type, ex: ex });
   }
 };
 
@@ -218,11 +228,12 @@ exports.normalizeFolderHierarchy = function() {
  */
 exports.saveAccountState = function(reuseTrans, callback, reason) {
   if (!this._alive) {
-    this._LOG.accountDeleted('saveAccountState');
+    logic(this, 'accountDeleted', { reason: 'saveAccountState' });
     return null;
   }
 
-  this._LOG.saveAccountState_begin(reason, null);
+  logic(this, 'saveAccountState_begin', { reason: reason,
+                                          folderSaveCount: null });
 
   // Indicate save is active, in case something, like
   // signaling the end of a sync, needs to run after
@@ -249,7 +260,8 @@ exports.saveAccountState = function(reuseTrans, callback, reason) {
     this._deadFolderIds,
     function stateSaved() {
       this._saveAccountStateActive = false;
-      this._LOG.saveAccountState_end(reason, folderSaveCount);
+      logic(this, 'saveAccountState_end', { reason: reason,
+                                           folderSaveCount: folderSaveCount });
 
       // NB: we used to log when the save completed, but it ended up being
       // annoying to the unit tests since we don't block our actions on

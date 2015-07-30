@@ -6,13 +6,14 @@ require('/shared/elements/gaia-header/dist/gaia-header.js');
 var AccountTemplate = require('templates/account');
 var AdvancedSettings = require('views/advanced_settings');
 var Factory = require('test/support/factory');
+var core = require('core');
+var waitFor = require('test/support/wait_for');
 
 require('dom!advanced_settings');
 
 suite('Views.AdvancedSettings', function() {
   var subject;
   var template;
-  var app;
   var accountStore;
   var fixtures;
   var settings;
@@ -42,28 +43,21 @@ suite('Views.AdvancedSettings', function() {
     };
   });
 
-  function modelHtml(object) {
-    return template.account.render(
-      subject._formatModel(object)
-    );
-  }
-
   var db;
   suiteTemplate('advanced-settings', {
     id: 'advanced-settings-view'
   });
 
   setup(function(done) {
-    app = testSupport.calendar.app();
-    db = app.db;
+    db = core.db;
 
     template = AccountTemplate;
-    subject = new AdvancedSettings({ app: app });
+    subject = new AdvancedSettings();
 
-    accountStore = app.store('Account');
-    settings = app.store('Setting');
+    accountStore = core.storeFactory.get('Account');
+    settings = core.storeFactory.get('Setting');
 
-    app.db.open(done);
+    core.db.open(done);
   });
 
   setup(function(done) {
@@ -84,10 +78,10 @@ suite('Views.AdvancedSettings', function() {
 
   teardown(function(done) {
     testSupport.calendar.clearStore(
-      app.db,
+      core.db,
       ['accounts'],
       function() {
-        app.db.close();
+        core.db.close();
         done();
       }
     );
@@ -110,90 +104,99 @@ suite('Views.AdvancedSettings', function() {
   });
 
   suite('#_initEvents', function() {
-    var object;
     var children;
 
-    setup(function() {
+    setup(function(done) {
       children = subject.accountList.children;
-      object = fixtures.a;
-      accountStore.emit('add', object._id, object);
+      subject._initEvents();
+      waitFor(() => children.length === 2, done);
     });
 
-    suite('account store: add', function() {
-      test('success', function() {
-        assert.ok(children.length, 'adds child');
-        assert.ok(
-          !children[0].classList.contains('error'),
-          'is without error'
-        );
+    suite('syncFrequency', function() {
+      var expected;
+
+      setup(function(done) {
+        settings.getValue('syncFrequency', function(err, value) {
+          expected = String(value);
+          done(err);
+        });
       });
 
-      test('with error', function() {
-        fixtures.b.error = {};
-        accountStore.emit('add', 'foo', fixtures.b);
-        delete fixtures.b.error;
+      test('selected value should match store', function(done) {
+        assert.ok(expected, 'expected');
+        waitFor(() => subject.syncFrequency.value === expected, done);
+      });
+    });
 
-        var container = children[children.length - 1];
-        assert.ok(container.classList.contains('error'), 'adds error class');
+    suite('account with error', function() {
+      var withError;
+
+      setup(function(done) {
+        withError = Factory('account', {
+          _id: 'with-error',
+          providerType: 'Caldav',
+          error: {}
+        });
+        accountStore.persist(withError);
+        waitFor(() => children.length === 3, done);
       });
 
-      test('local provider', function() {
-        accountStore.emit('add', 'foo', Factory('account', {
-          providerType: 'Local'
+      teardown(function(done) {
+        accountStore.remove(withError._id);
+        waitFor(() => children.length === 2, done);
+      });
+
+      test('adds error class', function() {
+        assert.ok(subject.accountList.querySelector('.error'));
+      });
+
+      test('| update', function(done) {
+        accountStore.persist(Factory('account', {
+          _id: 'with-error',
+          providerType: 'Caldav',
+          error: undefined
         }));
 
-        assert.lengthOf(children, 1, 'does not add account');
+        waitFor(() => {
+          return subject.accountList.querySelector('.error') == null;
+        }, done);
+      });
+
+      test('| remove', function(done) {
+        accountStore.remove(withError._id);
+        waitFor(() => children.length === 2, done);
       });
     });
 
-    suite('account store: update', function() {
-      test('add / remove error', function() {
-        var classList = children[0].classList;
-
-        object.error = {};
-        accountStore.emit('update', object._id, object);
-        assert.ok(classList.contains('error'), 'adds error');
-
-        object.error = undefined;
-        accountStore.emit('update', object._id, object);
-        assert.ok(!classList.contains('error'), 'removes error');
+    suite('local provider', function() {
+      setup(function(done) {
+        accountStore.persist(Factory('account', {
+          providerType: 'Local'
+        }), done);
       });
-    });
-
-    suite('account store: remove', function() {
-      test('missing id', function() {
-        accountStore.emit('remove', 'foo');
-      });
-
-      test('remove', function() {
-        // add a new one first
-        accountStore.emit('add', fixtures.b._id, fixtures.b);
-
-        assert.equal(children.length, 2);
-
-        // remove the old one
-        accountStore.emit('preRemove', object._id);
-
-        assert.equal(children.length, 1);
-
-        assert.equal(
-          children[0].outerHTML,
-          modelHtml(fixtures.b)
-        );
+      test('does not add account', function() {
+        assert.lengthOf(children, 2);
       });
     });
   });
 
   suite('#handleSettingUiChange', function() {
     var calledWith;
+    var originalSet;
 
     setup(function() {
+      subject._initEvents();
       calledWith = 'notcalled';
+      originalSet = settings.set;
       settings.set = function(name, value) {
         if (name === 'syncFrequency') {
           calledWith = value;
         }
       };
+    });
+
+    teardown(function() {
+      settings.set = originalSet;
     });
 
     function change(name, value) {
@@ -216,24 +219,25 @@ suite('Views.AdvancedSettings', function() {
 
   });
 
-  suite('#handleSettingDbChange', function() {
+  suite('on syncFrequencyChange', function() {
     var select;
 
     suite('syncFrequency', function() {
       setup(function() {
         select = subject.syncFrequency;
+        subject._initEvents();
       });
 
-      test('numeric 15', function() {
+      test('numeric 15', function(done) {
         select.value = 'null';
         settings.emit('syncFrequencyChange', 15);
-        assert.equal(select.value, '15');
+        waitFor(() => select.value === '15', done);
       });
 
-      test('null', function() {
+      test('null', function(done) {
         select.value = '15';
         settings.emit('syncFrequencyChange', null);
-        assert.equal(select.value, 'null');
+        waitFor(() => select.value === 'null', done);
       });
     });
 
@@ -241,15 +245,13 @@ suite('Views.AdvancedSettings', function() {
 
   suite('#render', function() {
     var list;
-    var expectedSyncFreq = 30;
 
     var expectedEventAlarm = -300;
     var expectedAllDayAlarm = 32400;
 
     setup(function(done) {
-      var pending = 3;
+      var pending = 2;
 
-      settings.set('syncFrequency', expectedSyncFreq, next);
       settings.set('standardAlarmDefault', expectedEventAlarm, next);
       settings.set('alldayAlarmDefault', expectedAllDayAlarm, next);
 
@@ -269,37 +271,7 @@ suite('Views.AdvancedSettings', function() {
     setup(function(done) {
       list = subject.accountList;
 
-      subject.render();
-      subject.onrender = done;
-    });
-
-    test('number of items', function() {
-      assert.equal(list.children.length, 2);
-    });
-
-    function checkItem(index, name) {
-      var item = list.children[index];
-      var model = fixtures[name];
-      var expected = modelHtml(model);
-      assert.equal(item.outerHTML, expected, name);
-    }
-
-    test('accounts', function() {
-      checkItem(0, 'a');
-
-      var errorChild = list.children[1];
-      assert.ok(
-        errorChild.classList.contains('error'),
-        'has error'
-      );
-    });
-
-    test('syncFrequency', function() {
-      var element = subject.syncFrequency;
-      assert.ok(
-        element.value == expectedSyncFreq,
-        'set to stored value'
-      );
+      subject.render().then(done);
     });
 
     test('alarm select populated', function() {

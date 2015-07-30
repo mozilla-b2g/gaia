@@ -9,9 +9,9 @@ suite('SimPin > ', function() {
     '*': {
       'shared/airplane_mode_helper': 'MockAirplaneModeHelper',
       'shared/simslot_manager': 'MockSIMSlotManager',
-      'shared/template': 'MockTemplate',
       'shared/toaster': 'MockToaster',
-      'modules/dialog_service': 'MockDialogService'
+      'modules/dialog_service': 'MockDialogService',
+      'modules/sim_security': 'MockSimSecurity'
     }
   };
 
@@ -28,10 +28,6 @@ suite('SimPin > ', function() {
       isMultiSIM: function() {}
     };
 
-    this.MockTemplate = {
-
-    };
-
     this.MockToaster = {
       showToast: function() {}
     };
@@ -46,16 +42,16 @@ suite('SimPin > ', function() {
       getIccById: function() {}
     };
 
+    this.MockSimSecurity = {
+      getCardLock: function() {}
+    };
+
     define('MockAirplaneModeHelper', () => {
       return this.MockAirplaneModeHelper;
     });
 
     define('MockSIMSlotManager', () => {
       return this.MockSIMSlotManager;
-    });
-
-    define('MockTemplate', () => {
-      return this.MockTemplate;
     });
 
     define('MockToaster', () => {
@@ -68,6 +64,10 @@ suite('SimPin > ', function() {
 
     define('MockIccManager', () => {
       return this.MockIccManager;
+    });
+
+    define('MockSimSecurity', () => {
+      return this.MockSimSecurity;
     });
 
     var requireCtx = testRequire([], map, function() {});
@@ -108,13 +108,11 @@ suite('SimPin > ', function() {
   });
 
   suite('initSimPinsUI > ', function() {
-    var interpolateSpy;
+    var viewSpy;
 
     setup(function() {
-      interpolateSpy = this.sinon.spy();
-      simpin.simPinTemplate = {
-        interpolate: interpolateSpy
-      };
+      viewSpy = this.sinon.spy();
+      simpin.simPinView = viewSpy;
     });
 
     suite('in single sim structure', function() {
@@ -127,11 +125,11 @@ suite('SimPin > ', function() {
 
       test('init SimPinsUI successfully, we won\'t put SIM [n] PIN on UI',
         function() {
-          var firstCallArgs = interpolateSpy.getCall(0).args[0];
-          assert.equal(firstCallArgs['sim-index'], '0');
-          assert.equal(firstCallArgs['sim-name'],
+          var firstCallArgs = viewSpy.getCall(0).args[0];
+          assert.equal(firstCallArgs.simIndex, '0');
+          assert.equal(firstCallArgs.simName,
             'simPinWithIndex{"index":""}');
-          assert.equal(firstCallArgs['change-sim-label'], 'changeSimPin');
+          assert.equal(firstCallArgs.changeSimLabel, 'changeSimPin');
       });
     });
 
@@ -144,17 +142,17 @@ suite('SimPin > ', function() {
       });
 
       test('init SimPinsUI successfully', function() {
-        var firstCallArgs = interpolateSpy.getCall(0).args[0];
-        assert.equal(firstCallArgs['sim-index'], '0');
-        assert.equal(firstCallArgs['sim-name'],
+        var firstCallArgs = viewSpy.getCall(0).args[0];
+        assert.equal(firstCallArgs.simIndex, '0');
+        assert.equal(firstCallArgs.simName,
           'simPinWithIndex{"index":1}');
-        assert.equal(firstCallArgs['change-sim-label'], 'changeSimPin');
+        assert.equal(firstCallArgs.changeSimLabel, 'changeSimPin');
 
-        var secondCallArgs = interpolateSpy.getCall(1).args[0];
-        assert.equal(secondCallArgs['sim-index'], '1');
-        assert.equal(secondCallArgs['sim-name'],
+        var secondCallArgs = viewSpy.getCall(1).args[0];
+        assert.equal(secondCallArgs.simIndex, '1');
+        assert.equal(secondCallArgs.simName,
           'simPinWithIndex{"index":2}');
-        assert.equal(secondCallArgs['change-sim-label'], 'changeSimPin');
+        assert.equal(secondCallArgs.changeSimLabel, 'changeSimPin');
       });
     });
   });
@@ -191,57 +189,52 @@ suite('SimPin > ', function() {
         this.sinon.stub(this.MockIccManager, 'getIccById').returns({
           cardState: null
         });
-        simpin.updateSimPinUI(0);
-      });
-      test('checkbox will be disabled and div will be hidden', function() {
-        assert.ok(cachedDoms.checkbox.disabled);
-        assert.ok(cachedDoms.div.hidden);
+        test('checkbox will be disabled, div will be hidden', function(done) {
+          simpin.updateSimPinUI(0).then(function() {
+            assert.ok(cachedDoms.checkbox.disabled);
+            assert.ok(cachedDoms.div.hidden);
+          }).then(done, done);
+        });
       });
     });
 
     suite('icc has cardState, but not in airplane mode > ', function() {
       setup(function() {
-        var getCardLockObject = {
-          result: {
+        this.sinon.stub(this.MockSimSecurity, 'getCardLock', function() {
+          return Promise.resolve({
             enabled: true
-          }
-        };
+          });
+        });
 
         this.sinon.stub(this.MockIccManager, 'getIccById').returns({
-          cardState: 'normal',
-          getCardLock: function() {
-            return getCardLockObject;
-          }
+          cardState: 'normal'
         });
 
         simpin.isAirplaneMode = false;
-        simpin.updateSimPinUI(0);
-        getCardLockObject.onsuccess();
       });
 
-      test('will get right icc, exec onsuccess() and change UI', function() {
-        assert.isFalse(cachedDoms.checkbox.disabled);
-        assert.isTrue(cachedDoms.checkbox.checked);
-        assert.isFalse(cachedDoms.div.hidden);
+      test('will get right icc, and change UI', function(done) {
+        simpin.updateSimPinUI(0).then(function() {
+          assert.isFalse(cachedDoms.checkbox.disabled);
+          assert.isTrue(cachedDoms.checkbox.checked);
+          assert.isFalse(cachedDoms.div.hidden);
+        }).then(done, done);
       });
     });
 
     suite('icc has cardState, but in airplane mode > ', function() {
       setup(function() {
         this.sinon.stub(this.MockIccManager, 'getIccById').returns({
-          cardState: 'normal',
-          getCardLock: function() {
-            return {};
-          }
+          cardState: 'normal'
         });
-
         simpin.isAirplaneMode = true;
-        simpin.updateSimPinUI(0);
       });
 
-      test('checkbox will be disabled and div will be hidden', function() {
-        assert.ok(cachedDoms.checkbox.disabled);
-        assert.ok(cachedDoms.div.hidden);
+      test('checkbox will be disabled and div will be hidden', function(done) {
+        simpin.updateSimPinUI(0).then(function() {
+          assert.ok(cachedDoms.checkbox.disabled);
+          assert.ok(cachedDoms.div.hidden);
+        }).then(done, done);
       });
     });
   });

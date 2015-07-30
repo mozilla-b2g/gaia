@@ -7,15 +7,7 @@ var Rocketbar = require('./lib/rocketbar');
 marionette('Browser - Chrome on browser navigation',
   function() {
 
-  var client = marionette.client({
-    prefs: {
-      'dom.w3c_touch_events.enabled': 1
-    },
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
-    }
-  });
+  var client = marionette.client();
 
   var home, rocketbar, search, server, system;
 
@@ -35,7 +27,7 @@ marionette('Browser - Chrome on browser navigation',
     rocketbar = new Rocketbar(client);
     search = client.loader.getAppClass('search');
     system = client.loader.getAppClass('system');
-    system.waitForStartup();
+    system.waitForFullyLoaded();
   });
 
   test('should show the progressbar', function() {
@@ -43,7 +35,7 @@ marionette('Browser - Chrome on browser navigation',
     server.cork(url);
 
     rocketbar.homescreenFocus();
-    rocketbar.enterText(url + '\uE006');
+    rocketbar.enterText(url, true);
 
     client.waitFor(function() {
       return system.appChrome.displayed();

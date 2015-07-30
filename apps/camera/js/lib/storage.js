@@ -146,7 +146,7 @@ Storage.prototype.createVideoFilepath = function(done) {
     var req = videoStorage.addNamed(blob, dummyFilepath);
 
     req.onerror = function(e) {
-      debug('Failed to add' + filepath + 'to DeviceStorage', e);
+      debug('Failed to add ' + filepath + ' to DeviceStorage', e);
       var req = videoStorage.delete(dummyFilepath);
       req.onerror = function() { done('Error creating video file path'); };
       req.onsuccess = function() { self.createVideoFilepath(done); };
@@ -163,13 +163,18 @@ Storage.prototype.onStorageChange = function(e) {
   debug('state change: %s', e.reason);
   var value = e.reason;
 
-  // Emit an `itemdeleted` event to
-  // allow parts of the UI to update.
-  if (value === 'deleted') {
-    var filepath = this.checkFilepath(e.path);
-    this.emit('itemdeleted', { path: filepath });
-  } else {
-    this.setState(value);
+  switch (value) {
+    case 'deleted':
+      // Emit an `itemdeleted` event to
+      // allow parts of the UI to update.
+      var filepath = this.checkFilepath(e.path);
+      this.emit('itemdeleted', { path: filepath });
+      break;
+    case 'available':
+    case 'shared':
+    case 'unavailable':
+      this.setState(value);
+      break;
   }
 
   // Check storage

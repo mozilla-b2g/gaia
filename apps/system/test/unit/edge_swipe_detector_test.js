@@ -1,53 +1,57 @@
 'use strict';
 /* global Event */
 /* global MocksHelper */
-/* global HomescreenLauncher */
 /* global EdgeSwipeDetector */
 /* global MockSettingsListener */
 /* global MockStackManager */
 /* global MockSheetsTransition */
 /* global MockTouchForwarder */
-/* global MockLayoutManager, layoutManager */
 /* global MockService */
-/* global MockSoftwareButtonManager, softwareButtonManager */
+/* global MockAppWindow */
 
-requireApp('system/js/edge_swipe_detector.js');
 
 requireApp('system/test/unit/mock_sheets_transition.js');
 requireApp('system/test/unit/mock_stack_manager.js');
 requireApp('system/test/unit/mock_touch_forwarder.js');
+requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
-requireApp('system/test/unit/mock_homescreen_launcher.js');
-requireApp('system/test/unit/mock_ftu_launcher.js');
-requireApp('system/test/unit/mock_layout_manager.js');
 requireApp('system/shared/test/unit/mocks/mock_service.js');
-requireApp('system/test/unit/mock_software_button_manager.js');
 
 var mocksForEdgeSwipeDetector = new MocksHelper([
   'SheetsTransition',
   'StackManager',
   'SettingsListener',
-  'SoftwareButtonManager',
   'Service',
-  'TouchForwarder',
-  'HomescreenLauncher',
-  'FtuLauncher',
-  'LayoutManager'
+  'TouchForwarder'
 ]).init();
 
 suite('system/EdgeSwipeDetector >', function() {
   mocksForEdgeSwipeDetector.attachTestHelpers();
   var screen;
   var subject;
+  var realDPX;
+
+  suiteSetup(function(done) {
+    realDPX = window.devicePixelRatio;
+    Object.defineProperty(window, 'devicePixelRatio', {
+      configurable: true,
+      get: function() { return 1; }
+    });
+    requireApp('system/js/edge_swipe_detector.js', done);
+  });
+
+  suiteTeardown(function() {
+    Object.defineProperty(window, 'devicePixelRatio', {
+      configurable: true,
+      get: function() { return realDPX; }
+    });
+  });
 
   setup(function() {
+    home = new MockAppWindow();
+    home.isHomescreen = true;
+
     subject = new EdgeSwipeDetector();
-
-    window.homescreenLauncher = new HomescreenLauncher();
-    window.homescreenLauncher.start();
-
-    window.layoutManager = new MockLayoutManager();
-    window.softwareButtonManager = new MockSoftwareButtonManager();
 
     // DOM
     subject.previous = document.createElement('div');
@@ -62,13 +66,6 @@ suite('system/EdgeSwipeDetector >', function() {
     MockSettingsListener.mCallbacks['edgesgesture.enabled'](true);
   });
 
-  teardown(function() {
-    window.homescreenLauncher = undefined;
-    window.layoutManager = undefined;
-    window.softwareButtonManager = undefined;
-    MockService.currentApp = null;
-  });
-
   var dialer = {
     url: 'app://communications.gaiamobile.org/dialer/index.html',
     origin: 'app://communications.gaiamobile.org',
@@ -77,15 +74,14 @@ suite('system/EdgeSwipeDetector >', function() {
     getTopMostWindow: function() {}
   };
 
-  var ftu = {
-    url: 'app://ftu.gaiamobile.org/index.html',
-    origin: 'app://ftu.gaiamobile.org',
-    manifestURL: 'app://ftu.gaiamobile.org/manifest.webapp',
-    name: 'FTU'
-  };
+  var home;
 
   function homescreen() {
-    window.dispatchEvent(new Event('homescreenopened'));
+    MockService.mockQueryWith('getTopMostWindow', home);
+    MockService.mockQueryWith('getTopMostUI', { name: 'AppWindowManager' });
+    window.dispatchEvent(new Event('hierarchytopmostwindowchanged', {
+      detail: home
+    }));
   }
 
   function cardsViewShowCard(position) {
@@ -102,7 +98,7 @@ suite('system/EdgeSwipeDetector >', function() {
     window.dispatchEvent(evt);
   }
 
-  function launchDownloadDialogEvent(type) {
+  function launchEvent(type) {
     window.dispatchEvent(new CustomEvent(type));
   }
 
@@ -195,7 +191,7 @@ suite('system/EdgeSwipeDetector >', function() {
     });
 
     test('the edges should be disabled on the FTU', function() {
-      launchTransitionEnd(ftu);
+      MockService.mockQueryWith('isFtuRunning', true);
       assert.isTrue(subject.previous.classList.contains('disabled'));
       assert.isTrue(subject.next.classList.contains('disabled'));
     });
@@ -424,7 +420,7 @@ suite('system/EdgeSwipeDetector >', function() {
         var nextPanel;
 
         setup(function() {
-          layoutManager.width = width - 50;
+          MockService.mockQueryWith('LayoutManager.width', width - 50);
           nextPanel = subject.next;
         });
 
@@ -449,8 +445,27 @@ suite('system/EdgeSwipeDetector >', function() {
         });
       });
 
+      suite('if the edge are disabled mid way', function() {
+        test('it should snap in place', function() {
+          var snapSpy = this.sinon.spy(MockSheetsTransition, 'snapInPlace');
+          swipe(this.sinon.clock, panel, 0, 2, 240, 240, true);
+          launchEvent('installprompthidden');
+          assert.isTrue(snapSpy.calledOnce);
+        });
+
+        test('and ignore the rest of the gesture', function() {
+          swipe(this.sinon.clock, panel, 0, 2, 240, 240, 10, true);
+          launchEvent('installpromptshown');
+          var moveSpy = this.sinon.spy(MockSheetsTransition, 'moveInDirection');
+          this.sinon.clock.tick(1);
+          touchMove(panel, [width / 2], [240]);
+          assert.isTrue(moveSpy.notCalled);
+        });
+      });
+
       test('it should compute the progress correctly', function() {
         var moveSpy = this.sinon.spy(MockSheetsTransition, 'moveInDirection');
+
         swipe(this.sinon.clock, panel, 0, (width / 2), 240, 240);
 
         assert.isTrue(moveSpy.lastCall.args[1] > 0.45);
@@ -488,7 +503,7 @@ suite('system/EdgeSwipeDetector >', function() {
     suite('Going back and forth', function() {
       test('it should continue moving even outside of the app', function() {
         var nextPanel = subject.next;
-        layoutManager.width = width - 50;
+        MockService.mockQueryWith('LayoutManager.width', width - 50);
         swipe(this.sinon.clock, nextPanel, width, (width / 2),
               240, 240, true);
         this.sinon.clock.tick();
@@ -503,7 +518,7 @@ suite('system/EdgeSwipeDetector >', function() {
       test('it should not move back when the progress becomes negative',
       function() {
         var nextPanel = subject.next;
-        layoutManager.width = width - 50;
+        MockService.mockQueryWith('LayoutManager.width', width - 50);
         swipe(this.sinon.clock, nextPanel, (width - 40), (width / 2),
               240, 240, true);
         this.sinon.clock.tick();
@@ -619,6 +634,37 @@ suite('system/EdgeSwipeDetector >', function() {
         centerY = Math.floor(window.innerHeight / 2);
       });
 
+      suite('if it\'s actually a two fingers tap', function() {
+        var gesture;
+        setup(function() {
+          var screenWidth = window.innerWidth;
+          gesture = (function() {
+            touchStart(panel, [screenWidth], [100, 100]);
+            this.sinon.clock.tick();
+            touchStart(panel, [0], [100, 100]);
+            this.sinon.clock.tick();
+            touchEnd(panel, [(screenWidth - 2), 2], [100, 100]);
+            this.sinon.clock.tick();
+            touchEnd(panel, [2], [100, 100]);
+            this.sinon.clock.tick();
+          }).bind(this);
+        });
+
+        test('it should not move the sheets', function() {
+          var moveSpy = this.sinon.spy(MockSheetsTransition, 'moveInDirection');
+          gesture();
+          assert.isFalse(moveSpy.called);
+        });
+
+        test('it should not move in the stack', function() {
+          var backSpy = this.sinon.spy(MockStackManager, 'goNext');
+          var fwSpy = this.sinon.spy(MockStackManager, 'goPrev');
+          gesture();
+          assert.isFalse(backSpy.called);
+          assert.isFalse(fwSpy.called);
+        });
+      });
+
       test('it should not move the sheets', function() {
         var moveSpy = this.sinon.spy(MockSheetsTransition, 'moveInDirection');
         pinch(this.sinon.clock, panel, centerX, centerY);
@@ -657,7 +703,7 @@ suite('system/EdgeSwipeDetector >', function() {
     suite('During a tap', function() {
       test('it should not begin a transition', function() {
         var beginSpy = this.sinon.spy(MockSheetsTransition, 'begin');
-        swipe(this.sinon.clock, panel, 10, 10, 10, 10);
+        swipe(this.sinon.clock, panel, 10, 10, 14, 10);
         assert.isFalse(beginSpy.called);
       });
 
@@ -698,7 +744,7 @@ suite('system/EdgeSwipeDetector >', function() {
 
       suite('if the tap is outside the app', function() {
         setup(function() {
-          layoutManager.width = width - 50;
+          MockService.mockQueryWith('LayoutManager.width', width - 50);
         });
 
         test('should redispatch the touch events to the system app',
@@ -723,13 +769,13 @@ suite('system/EdgeSwipeDetector >', function() {
 
         suite('if the app is fullscreen_layout', function() {
           setup(function() {
-            MockService.currentApp = {
+            MockService.mockQueryWith('getTopMostWindow', {
               isFullScreenLayout: function() {
                 return true;
               }
-            };
-            layoutManager.width = width;
-            softwareButtonManager.width = 50;
+            });
+            MockService.mockQueryWith('LayoutManager.width', width);
+            MockService.mockQueryWith('SoftwareButtonManager.width', 50);
           });
 
           test('it should take the software home button into account',
@@ -981,41 +1027,109 @@ suite('system/EdgeSwipeDetector >', function() {
     });
   });
 
-  suite('handleEvent: download dialog events', function() {
+  suite('Test hierarchy changed event', function() {
+    test('Hierarchy top most ui is appWindowManager', function() {
+      MockService.mockQueryWith('getTopMostUI', {
+        name: 'AppWindowManager'
+      });
+      var app = new MockAppWindow();
+      MockService.mockQueryWith('getTopMostWindow', app);
+      window.dispatchEvent(new CustomEvent('hierarchychanged'));
+      assert.isTrue(subject.lifecycleEnabled);
+    });
+
+    test('Hierarchy top most ui is appWindowManager but FTU Running',
+    function() {
+      MockService.mockQueryWith('getTopMostUI', {
+        name: 'AppWindowManager'
+      });
+      MockService.mockQueryWith('isFtuRunning', true);
+      var app = new MockAppWindow();
+      MockService.mockQueryWith('getTopMostWindow', app);
+      window.dispatchEvent(new CustomEvent('hierarchychanged'));
+      assert.isFalse(subject.lifecycleEnabled);
+    });
+
+    test('Hierarchy top most ui is appWindowManager and top most window' +
+          ' is homescreen', function() {
+      MockService.mockQueryWith('getTopMostUI', {
+        name: 'AppWindowManager'
+      });
+      MockService.mockQueryWith('getTopMostWindow', home);
+      window.dispatchEvent(new CustomEvent('hierarchychanged'));
+      assert.isFalse(subject.lifecycleEnabled);
+    });
+
+    test('Hierarchy top most ui is appWindowManager and top most window' +
+          ' is homescreen activity', function() {
+      MockService.mockQueryWith('getTopMostUI', {
+        name: 'AppWindowManager'
+      });
+      var activity = new MockAppWindow();
+      this.sinon.stub(activity, 'getBottomMostWindow').returns(home);
+      MockService.mockQueryWith('getTopMostWindow', activity);
+      window.dispatchEvent(new CustomEvent('hierarchychanged'));
+      assert.isFalse(subject.lifecycleEnabled);
+    });
+
+    test('Hierarchy top most ui is not appWindowManager', function() {
+      MockService.mockQueryWith('getTopMostUI', {
+        name: 'Rocketbar'
+      });
+      window.dispatchEvent(new CustomEvent('hierarchychanged'));
+      assert.isFalse(subject.lifecycleEnabled);
+    });
+  });
+
+  suite('handleEvent: prompt events', function() {
     setup(function() {
       subject.lifecycleEnabled = true;
-      MockService.currentApp = {
+      MockService.mockQueryWith('getTopMostWindow', {
         isHomescreen: false
-      };
+      });
     });
 
     teardown(function() {
       subject.lifecycleEnabled = false;
-      MockService.currentApp = null;
     });
 
-    test('the edges should be disabled', function() {
-      launchDownloadDialogEvent('updatepromptshown');
-      assert.isTrue(subject.previous.classList.contains('disabled'));
-      assert.isTrue(subject.next.classList.contains('disabled'));
-    });
-
-    test('the edges should be enabled', function() {
-      launchDownloadDialogEvent('updateprompthidden');
-      assert.isFalse(subject.previous.classList.contains('disabled'));
-      assert.isFalse(subject.next.classList.contains('disabled'));
-    });
-
-    test('the edges should stay disabled when homescreen is active',
-      function() {
-        subject.lifecycleEnabled = false;
-        MockService.currentApp.isHomescreen = true;
-        launchDownloadDialogEvent('updatepromptshown');
+    function testLifecycleEvents(opt) {
+      test('the edges should be disabled on ' + opt.on, function() {
+        launchEvent(opt.on);
         assert.isTrue(subject.previous.classList.contains('disabled'));
         assert.isTrue(subject.next.classList.contains('disabled'));
-        launchDownloadDialogEvent('updateprompthidden');
-        assert.isTrue(subject.previous.classList.contains('disabled'));
-        assert.isTrue(subject.next.classList.contains('disabled'));
+      });
+
+      test('the edges should be enabled on ' + opt.off, function() {
+        launchEvent(opt.off);
+        assert.isFalse(subject.previous.classList.contains('disabled'));
+        assert.isFalse(subject.next.classList.contains('disabled'));
+      });
+
+      test('the edges should stay disabled when homescreen is active',
+        function() {
+          subject.lifecycleEnabled = false;
+          MockService.mockQueryWith('getTopMostWindow').isHomescreen = true;
+          launchEvent(opt.on);
+          assert.isTrue(subject.previous.classList.contains('disabled'));
+          assert.isTrue(subject.next.classList.contains('disabled'));
+          launchEvent(opt.off);
+          assert.isTrue(subject.previous.classList.contains('disabled'));
+          assert.isTrue(subject.next.classList.contains('disabled'));
+      });
+    }
+
+    testLifecycleEvents({
+      on: 'updatepromptshown',
+      off: 'updateprompthidden'
+    });
+    testLifecycleEvents({
+      on: 'installpromptshown',
+      off: 'installprompthidden'
+    });
+    testLifecycleEvents({
+      on: 'shrinking-start',
+      off: 'shrinking-stop'
     });
   });
 

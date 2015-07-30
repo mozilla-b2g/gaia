@@ -76,6 +76,11 @@ suite('Telephony messages', function() {
         message: 'EmergencyCallOnly',
         title: 'emergency-call-only',
         body: 'emergency-call-error'
+      },
+      {
+        message: 'OperatorDeterminedBarring',
+        title: 'unableToCallTitle',
+        body: 'callBarredByTheOperatorMessage'
       }
     ];
 
@@ -166,6 +171,10 @@ suite('Telephony messages', function() {
       {
         error: 'OtherConnectionInUse',
         message: 'OtherConnectionInUse'
+      },
+      {
+        error: 'OperatorDeterminedBarringError',
+        message: 'OperatorDeterminedBarring'
       },
       {
         // This is not an actual type. It is the catch-all for unhandled errors.

@@ -1,0 +1,19 @@
+{
+  "name": "tv-epg",
+  "version": "0.0.0",
+  "homepage": "https://github.com/mozilla-b2g/gaia/tree/master/tv_apps/tv-epg",
+  "description": "Electronic program guide",
+  "main": "index.html",
+  "license": "MPL",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "evt": "gaia-components/evt#~0.4.0"
+  }
+}

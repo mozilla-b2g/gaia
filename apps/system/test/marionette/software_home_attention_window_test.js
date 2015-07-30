@@ -6,19 +6,20 @@ var FakeDialerApp = require('./lib/fakedialerapp');
 
 marionette('Software Home Button - Attention window', function() {
   var apps = {};
-  apps[FakeDialerApp.DEFAULT_ORIGIN] = __dirname + '/fakedialerapp';
+  apps[FakeDialerApp.DEFAULT_ORIGIN] = __dirname + '/../apps/fakedialerapp';
 
   var client = marionette.client({
-    prefs: {
-      'focusmanager.testmode': true,
-      'dom.w3c_touch_events.enabled': 1
+    profile: {
+      prefs: {
+        'focusmanager.testmode': true
+      },
+      settings: {
+        'lockscreen.enabled': true,
+        'software-button.enabled': true
+      },
+      apps: apps
     },
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': true,
-      'software-button.enabled': true
-    },
-    apps: apps
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
   });
   var system;
   var lockScreen;
@@ -28,7 +29,7 @@ marionette('Software Home Button - Attention window', function() {
     system = client.loader.getAppClass('system');
     fakedialer = new FakeDialerApp(client);
     lockScreen = (new LockScreen()).start(client);
-    system.waitForStartup();
+    system.waitForFullyLoaded();
   });
 
   function checkHeight() {

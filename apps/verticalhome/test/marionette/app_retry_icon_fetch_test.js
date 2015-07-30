@@ -11,7 +11,9 @@ var iconAppState = require('./lib/icon_app_state');
 var launchIcon = require('./lib/launch_icon');
 
 marionette('Vertical Home - Hosted app failed icon fetch', function() {
-  var client = marionette.client(require(__dirname + '/client_options.js'));
+  var client = marionette.client({
+    profile: require(__dirname + '/client_options.js')
+  });
   var server;
   setup(function(done) {
     var app = __dirname + '/fixtures/template_app';
@@ -29,7 +31,7 @@ marionette('Vertical Home - Hosted app failed icon fetch', function() {
     system = client.loader.getAppClass('system');
     appInstall = new AppInstall(client);
 
-    system.waitForStartup();
+    system.waitForFullyLoaded();
     subject.waitForLaunch();
   });
 

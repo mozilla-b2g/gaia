@@ -1,4 +1,4 @@
-reruns: 4
+reruns: 2
 task:
   metadata:
     name: Gaia build tests
@@ -17,10 +17,13 @@ task:
 
     env:
       REPORTER: 'mocha-tbpl-reporter'
+      DEBUG: '*'
+      NODE_MODULES_SRC: npm-cache
 
     command:
       - entrypoint
       - ./bin/ci run build_unit
+
   extra:
     treeherder:
       groupSymbol: GB

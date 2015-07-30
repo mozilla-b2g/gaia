@@ -3,6 +3,7 @@
 /* global AppWindow */
 /* global BrowserConfigHelper */
 /* global SettingsListener */
+/* global Service */
 
 (function(exports) {
 
@@ -19,14 +20,18 @@
 
   SearchWindow.REGISTERED_EVENTS = [
     // Let our parent AppWindow handle error events.
-    'mozbrowsererror'
+    'mozbrowsererror',
+    'mozbrowserlocationchange'
   ];
 
   SearchWindow.SUB_COMPONENTS = {
-    'childWindowFactory': window.ChildWindowFactory,
-    'contextmenu': window.BrowserContextMenu,
-    'transitionController': window.AppTransitionController,
-    'valueSelector': window.ValueSelector
+    'childWindowFactory': 'ChildWindowFactory',
+    'transitionController': 'AppTransitionController',
+    'valueSelector': 'ValueSelector'
+  };
+
+  SearchWindow.SUB_MODULES = {
+    'contextmenu': 'BrowserContextMenu'
   };
 
   SearchWindow.prototype = Object.create(AppWindow.prototype);
@@ -59,9 +64,12 @@
            </div>`;
   };
 
-  // The search window orientation depends on the orientation of the
-  // current displayed app. So don't do anything here.
+  // The search window orientation depends on the orientation of
+  // current root app.
   SearchWindow.prototype.lockOrientation = function() {
+    // XXX: Tell AppWindowManager to do this.
+    var currentApp = Service.query('AppWindowManager.getActiveWindow');
+    currentApp && currentApp.setOrientation();
   };
 
   // We don't need to wait.

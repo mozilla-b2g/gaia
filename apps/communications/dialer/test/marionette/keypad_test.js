@@ -2,12 +2,15 @@
 
 var Dialer = require('./lib/dialer');
 var ReflowHelper =
-  require('../../../../../tests/js-marionette/reflow_helper.js');
+  require('../../../../../tests/jsmarionette/plugins/reflow_helper.js');
 
 marionette('Dialer > Keypad', function() {
   var assert = require('assert');
 
-  var client = marionette.client(Dialer.config);
+  var client = marionette.client({
+    profile: Dialer.config,
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
+  });
   var subject;
   var selectors;
   var actions;

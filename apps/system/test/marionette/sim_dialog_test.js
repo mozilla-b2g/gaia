@@ -8,13 +8,10 @@ marionette('Sim Dialog:', function() {
   var submitBtn = '#simpin-dialog button[type=submit]';
 
   var client = marionette.client({
-    prefs: {
-      'focusmanager.testmode': true,
-      'dom.w3c_touch_events.enabled': 1
-    },
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
+    profile: {
+      prefs: {
+        'focusmanager.testmode': true
+      }
     }
   });
 

@@ -4,24 +4,16 @@ var Rocketbar = require('./lib/rocketbar');
 
 marionette('Browser Chrome - Title content', function() {
 
-  var client = marionette.client({
-    prefs: {
-      'dom.w3c_touch_events.enabled': 1
-    },
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
-    }
-  });
+  var client = marionette.client();
 
   var home, rocketbar, search, system;
 
   setup(function() {
+    system = client.loader.getAppClass('system');
+    system.waitForFullyLoaded();
     home = client.loader.getAppClass('verticalhome');
     rocketbar = new Rocketbar(client);
     search = client.loader.getAppClass('search');
-    system = client.loader.getAppClass('system');
-    system.waitForStartup();
   });
 
   test('Launching rocketbar from an app persists the search term', function() {

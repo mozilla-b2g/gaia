@@ -1,3 +1,6 @@
+'use strict';
+/* exported MockPng, MockVideo */
+
 var MockPng = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAALC' +
 'AYAAACprHcmAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAIGNIUk0AAG11AABzoAAA85kAAIm' +
 'UAAB+3gAA7PgAADObAAAQ5ap9ykMAAABaSURBVHjajMrBDYAwDENRE6EulB2YjCXiNTggp' +

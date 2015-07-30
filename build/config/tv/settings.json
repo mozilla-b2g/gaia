@@ -1,4 +1,4 @@
 {
  "homescreen.appName": "smart-home",
- "landing_app.manifestURL": "app://clock.gaiamobile.org/manifest.webapp"
+ "landing_app.manifestURL": "app://dashboard.gaiamobile.org/manifest.webapp"
 }

@@ -6,17 +6,14 @@ var Rocketbar = require('./lib/rocketbar');
 marionette('Private Browser - Window.open', function() {
 
   var client = marionette.client({
-    prefs: {
-      'focusmanager.testmode': true,
-      'dom.w3c_touch_events.enabled': 1
-    },
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
+    profile: {
+      prefs: {
+        'focusmanager.testmode': true
+      }
     }
   });
 
-  var home, rocketbar, search, server, system;
+  var home, rocketbar, server, system;
 
   suiteSetup(function(done) {
     Server.create(__dirname + '/fixtures/', function(err, _server) {
@@ -32,18 +29,15 @@ marionette('Private Browser - Window.open', function() {
   setup(function() {
     home = client.loader.getAppClass('verticalhome');
     rocketbar = new Rocketbar(client);
-    search = client.loader.getAppClass('search');
     system = client.loader.getAppClass('system');
-    system.waitForStartup();
+    system.waitForFullyLoaded();
   });
 
   test('Open windows from private browsers are also private', function() {
     // Use the home-screen search box to open up the system browser
     var url = server.url('sample.html');
     rocketbar.homescreenFocus();
-    search.triggerFirstRun(rocketbar);
-    rocketbar.enterText(url + '\uE006');
-    system.gotoBrowser(url);
+    rocketbar.enterText(url, true);
 
     client.switchToFrame();
     system.appChromeContextLink.tap();
@@ -54,7 +48,7 @@ marionette('Private Browser - Window.open', function() {
     system.appUrlbar.tap();
 
     var opener = server.url('windowopen.html');
-    rocketbar.enterText(opener + '\uE006');
+    rocketbar.enterText(opener, true);
     system.gotoBrowser(opener);
     client.findElement('#trigger1').click();
     client.switchToFrame();

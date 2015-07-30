@@ -8,6 +8,7 @@
   /* global SettingsListener */
   /* global UrlHelper */
   /* global SearchProvider */
+  /* global MetricsHelper */
   /* global MozActivity */
 
   // timeout before notifying providers
@@ -25,7 +26,6 @@
     searchResults: document.getElementById('search-results'),
 
     offlineMessage: document.getElementById('offline-message'),
-    settingsConnectivity: document.getElementById('settings-connectivity'),
     suggestionsWrapper: document.getElementById('suggestions-wrapper'),
     grid: document.getElementById('icons'),
     gridWrapper: document.getElementById('icons-wrapper'),
@@ -37,7 +37,9 @@
      * on first use
      */
     suggestionNotice: document.getElementById('suggestions-notice-wrapper'),
-    settingsLink: document.getElementById('settings-link'),
+    get settingsLink() {
+      return document.getElementById('settings-link');
+    },
 
     toShowNotice: null,
     NOTICE_KEY: 'notice-shown',
@@ -45,6 +47,9 @@
     init: function() {
 
       this.dedupe = new SearchDedupe();
+
+      this.metrics = new MetricsHelper();
+      this.metrics.init();
 
       // Initialize the parent port connection
       var self = this;
@@ -89,6 +94,7 @@
 
       this.contextmenu = new Contextmenu();
       window.addEventListener('resize', this.resize);
+      window.addEventListener('scroll', this.onScroll);
     },
 
     resize: function() {
@@ -98,6 +104,12 @@
           skipDivider: true
         });
       }
+    },
+
+    // Typically an input keeps focus when the user scrolls, here we
+    // want to grab focus and manually dismiss the keyboard.
+    onScroll: function() {
+      window.focus();
     },
 
     /**
@@ -173,8 +185,9 @@
       var confirm = document.getElementById('suggestions-notice-confirm');
       confirm.addEventListener('click', this.discardNotice.bind(this, true));
 
-      if (this.settingsLink) {
-        this.settingsLink
+      var settingsLink = this.settingsLink;
+      if (settingsLink) {
+        settingsLink
           .addEventListener('click', this.openSettings.bind(this));
       }
 
@@ -240,7 +253,7 @@
       if (provider.isGridProvider) {
         this.gridCount += results.length;
       }
-  
+
       this.gridWrapper.classList.toggle('hidden', !this.gridCount);
       provider.render(results);
     },
@@ -256,6 +269,8 @@
 
       // Not a valid URL, could be a search term
       if (UrlHelper.isNotURL(input)) {
+        this.metrics.report('websearch', SearchProvider('title'));
+
         var url = SearchProvider('searchUrl')
           .replace('{searchTerms}', encodeURIComponent(input));
         this.navigate(url);
@@ -337,7 +352,7 @@
         }
       }
 
-      this.settingsConnectivity.addEventListener(
+      this.offlineMessage.addEventListener(
         'click', function() {
           var activity = new window.MozActivity({
             name: 'configure',

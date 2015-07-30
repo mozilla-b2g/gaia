@@ -1,3 +1,6 @@
+'use strict';
+/* exported MockApplications */
+
 var MockApplications = (function() {
   var mockApps = {};
   var mReady = false;
@@ -19,11 +22,16 @@ var MockApplications = (function() {
     mReady = false;
   }
 
+  function waitForReady() {
+    return new Promise(function() {});
+  }
+
   return {
     getByManifestURL: getByManifestURL,
     mRegisterMockApp: mRegisterMockApp,
     mUnregisterMockApp: mUnregisterMockApp,
     mTeardown: mTeardown,
-    ready: mReady
+    ready: mReady,
+    waitForReady: waitForReady
   };
 })();

@@ -25,11 +25,11 @@
   "dependencies": {
     "gaia-component": "gaia-components/gaia-component#~0.2.0"
   },
-  "_release": "09392f7d2f",
+  "_release": "fd000de635",
   "_resolution": {
     "type": "branch",
     "branch": "master",
-    "commit": "09392f7d2f130c9b61418abef7a450817a1628ae"
+    "commit": "fd000de635edc3298cf78c387a1bcb7667fd7382"
   },
   "_source": "git://github.com/gaia-components/gaia-toast.git",
   "_target": "*",

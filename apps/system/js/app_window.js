@@ -1,22 +1,30 @@
+/* global LazyLoader */
 /* global AppChrome */
-/* global applications */
+/* global AudioChannelController */
+/* global BaseModule */
 /* global BrowserFrame */
-/* global layoutManager */
 /* global ManifestHelper */
-/* global OrientationManager */
+/* global WebManifestHelper */
 /* global ScreenLayout */
-/* global SettingsListener */
-/* global StatusBar */
 /* global Service */
 /* global DUMP */
+/* global IconsHelper */
+/* global LazyLoader */
 'use strict';
 
 (function(exports) {
+  const ICON_SIZE = 32;
+
   // Turn on this flag to debug all windows.
   var DEBUG = false;
   // Turn on this flag to print all trace in debugging function.
   var TRACE = false;
   var _id = 0;
+
+  var themeGroups = [
+    'theme-communications', 'theme-media',
+    'theme-productivity', 'theme-settings'
+  ];
 
   /**
    * AppWindow creates, contains, manages a
@@ -71,17 +79,6 @@
   };
 
   /**
-   * When this option is set to true,
-   * an app would not be removed while it's crashed.
-   * And while it's opened next, we will re-render the mozbrowser iframe.
-   * @type {Boolean}
-   */
-  AppWindow.SUSPENDING_ENABLED = false;
-  SettingsListener.observe('app-suspending.enabled', false, function(value) {
-    AppWindow.SUSPENDING_ENABLED = !!value;
-  });
-
-  /**
    * Change this if new window has its own styles.
    *
    * @type string
@@ -132,12 +129,9 @@
     this.config = configuration;
 
     if (this.manifest) {
-      this.shortName = new ManifestHelper(this.manifest).short_name;
-    }
-    if (!this.manifest && this.config && this.config.title) {
-      this.updateName(this.config.title);
-    } else {
-      this.name = new ManifestHelper(this.manifest).name;
+      this.name = new ManifestHelper(this.manifest).displayName;
+    } else if (this.config.url) {
+      this.name = new URL(this.config.url).hostname;
     }
 
     // Get icon splash
@@ -203,25 +197,9 @@
   };
 
   /**
-   * Update the name of this window.
-   * @param {String} name The new name.
+   * Represents the current page visibility state
    */
-  AppWindow.prototype.updateName = function aw_updateName(name) {
-    if (this.config && this.config.title) {
-      this.config.title = name;
-    }
-    this.name = name;
-  };
-
-  /**
-   * Represent the current pagee visibility state,
-   * i.e. what is currently visible. Possible value:
-   * 'foreground': setVisible(true)
-   * 'background': setVisible(false)
-   *
-   * Default value is foreground.
-   */
-  AppWindow.prototype._visibilityState = 'foreground';
+  AppWindow.prototype._visible = true;
 
   /**
    * The rotating degree of current frame.
@@ -264,9 +242,19 @@
    * _hideScreenshotOverlay.
    */
   AppWindow.prototype.setVisible =
-    function aw_setVisible(visible) {
-      this.debug('set visibility -> ', visible);
+    function aw_setVisible(visible, doNotPropagate) {
       this.setVisibleForScreenReader(visible);
+      if (!doNotPropagate && this.frontWindow && this.frontWindow.isActive()) {
+        this.frontWindow.setVisible(visible);
+        return;
+      }
+
+      if (this._visible === visible) {
+        return;
+      }
+      this._visible = visible;
+
+      this.debug('set visibility -> ', visible);
       this._setActive(visible);
       if (visible) {
         // If this window is not the lockscreen, and the screen is locked,
@@ -274,10 +262,6 @@
         this._showFrame();
       } else {
         this._hideFrame();
-      }
-
-      if (this.frontWindow) {
-        this.frontWindow.setVisible(visible);
       }
     };
 
@@ -292,6 +276,7 @@
         return;
       }
       this.element.setAttribute('aria-hidden', !visible);
+      this._setVisibleForScreenReader(visible);
     };
 
   /**
@@ -303,11 +288,11 @@
     this.reviveBrowser();
 
     // If we're already showing, do nothing!
-    if (!this.browser.element.classList.contains('hidden')) {
+    if (!this.element.classList.contains('inactive')) {
       return;
     }
 
-    this.browser.element.classList.remove('hidden');
+    this.element.classList.remove('inactive');
     this._setVisible(true);
 
     if (this.isHomescreen) {
@@ -330,12 +315,12 @@
     this.debug('before hiding frame');
 
     // If we're already hidden, we have nothing to do!
-    if (!this.browser || this.browser.element.classList.contains('hidden')) {
+    if (!this.browser || this.element.classList.contains('inactive')) {
       return;
     }
 
     this._setVisible(false);
-    this.browser.element.classList.add('hidden');
+    this.element.classList.add('inactive');
   };
 
   /**
@@ -445,10 +430,12 @@
     if (!this.browser) {
       return;
     }
+    this.inError = false;
     this.loading = false;
     this.loaded = false;
+    this.metachangeDetail = null;
     this.suspended = true;
-    this.element.classList.add('suspended');
+    this.element && this.element.classList.add('suspended');
     this.browserContainer.removeChild(this.browser.element);
     this.browser = null;
     this.iframe = null;
@@ -596,6 +583,7 @@
   };
 
   AppWindow.prototype.containerElement = document.getElementById('windows');
+  AppWindow.prototype.containerId = 'windows';
 
   AppWindow.prototype.view = function aw_view() {
     return `<div class="${this.CLASS_LIST}" id="${this.instanceID}"
@@ -667,6 +655,9 @@
     this.browserContainer = this.element.querySelector('.browser-container');
     this.browserContainer.appendChild(this.browser.element);
 
+    if (!this.containerElement && this.containerId) {
+      this.containerElement = document.getElementById(this.containerId);
+    }
     this.containerElement.appendChild(fragment);
 
     this.screenshotOverlay = this.element.querySelector('.screenshot-overlay');
@@ -719,7 +710,7 @@
    * @return {Boolean} is the current instance a private window.
    */
   AppWindow.prototype.isPrivateBrowser = function aw_isprivate() {
-    return !!this.browser_config.isPrivate;
+    return !!(this.browser_config && this.browser_config.isPrivate);
   };
 
   /**
@@ -729,6 +720,10 @@
    */
   AppWindow.prototype.isCertified = function aw_iscertified() {
     return this.config.manifest && 'certified' === this.config.manifest.type;
+  };
+
+  AppWindow.prototype.isSearch = function() {
+    return this.manifest && this.manifest.role === 'search';
   };
 
   /**
@@ -741,7 +736,7 @@
 
     // Bug 1071882 - We currently only support navigating browser windows and
     // apps with a role="search", which we use for the browser landing page.
-    var appIsSearch = this.manifest && this.manifest.role === 'search';
+    var appIsSearch = this.isSearch();
     if (!this.isBrowser() && !appIsSearch) {
       console.warn('Tried to navigate an illegal app window.');
       return;
@@ -757,6 +752,7 @@
       // Handle navigating from an app -> browser.
       this.manifestURL = null;
       this.manifest = null;
+      this.name = null;
       this.element.classList.add('browser');
 
       // Reset the browser
@@ -765,14 +761,16 @@
         title: url,
         oop: true
       });
+      this.appChrome && this.appChrome.reConfig();
       this.browserContainer.removeChild(this.browser.element);
       this.browser = new BrowserFrame(this.browser_config);
       this.browserContainer.appendChild(this.browser.element);
       this.iframe = this.browser.element;
       this.launchTime = Date.now();
-      this.appChrome && this.appChrome.reConfig();
+      // Register audio channels for new browser frame.
+      this._unregisterAudioChannels();
+      this._registerAudioChannels();
     }
-
     this.browser.element.src = url;
   };
 
@@ -800,16 +798,21 @@
      '_localized', '_swipein', '_swipeout', '_kill_suspended',
      '_orientationchange', '_focus', '_blur',  '_hidewindow', '_sheetdisplayed',
      '_sheetsgestureend', '_cardviewbeforeshow', '_cardviewclosed',
-     '_closed', '_shrinkingstart', '_shrinkingstop'];
+     '_cardviewshown', '_closed', '_shrinkingstart', '_shrinkingstop'];
 
   AppWindow.SUB_COMPONENTS = {
-    'transitionController': window.AppTransitionController,
-    'modalDialog': window.AppModalDialog,
-    'valueSelector': window.ValueSelector,
-    'authDialog': window.AppAuthenticationDialog,
-    'contextmenu': window.BrowserContextMenu,
-    'childWindowFactory': window.ChildWindowFactory,
-    'statusbar': window.AppStatusbar
+    'transitionController': 'AppTransitionController',
+    'modalDialog': 'AppModalDialog',
+    'valueSelector': 'ValueSelector',
+    'authDialog': 'AppAuthenticationDialog',
+    'contextmenu': 'BrowserContextMenu',
+    'childWindowFactory': 'ChildWindowFactory',
+    'statusbar': 'AppStatusbar',
+    'textSelectionDialog': 'AppTextSelectionDialog'
+  };
+
+  AppWindow.SUB_MODULES = {
+    'contextmenu': 'BrowserContextMenu'
   };
 
   AppWindow.prototype.openAnimation = 'enlarge';
@@ -834,12 +837,29 @@
     function aw_installSubComponents() {
       this.debug('installing sub components...');
       for (var componentName in this.constructor.SUB_COMPONENTS) {
-        if (this.constructor.SUB_COMPONENTS[componentName]) {
+        var constructor =
+          window[this.constructor.SUB_COMPONENTS[componentName]];
+        if (constructor) {
           this[componentName] =
-            new this.constructor.SUB_COMPONENTS[componentName](this);
+            new constructor(this);
           this[componentName].start && this[componentName].start();
         }
       }
+
+      if (this.constructor.SUB_MODULES) {
+        for (var propertyName in this.constructor.SUB_MODULES) {
+          var moduleName = this.constructor.SUB_MODULES[propertyName];
+          if (moduleName) {
+            this[propertyName] = BaseModule.instantiate(moduleName, this);
+            this[propertyName].start();
+          }
+        }
+      }
+
+      // Need to wait for mozbrowserloadend to get allowedAudioChannels.
+      this.browser.element.addEventListener('mozbrowserloadend', () => {
+        this._registerAudioChannels();
+      });
 
       if (this.isInputMethod) {
         return;
@@ -860,6 +880,10 @@
             that.appChrome.handleEvent({type: 'mozbrowserloadstart'});
             that.appChrome.handleEvent({type: '_loading'});
           }
+          if (that.metachangeDetail) {
+            that.appChrome.handleEvent({type: 'mozbrowsermetachange',
+                                        detail: that.metachangeDetail});
+          }
         });
       } else {
         this.appChrome = new AppChrome(this);
@@ -875,9 +899,34 @@
         this[componentName] = null;
       }
 
+      this._unregisterAudioChannels();
+
       if (this.appChrome) {
         this.appChrome.destroy();
         this.appChrome = null;
+      }
+    };
+
+  AppWindow.prototype._registerAudioChannels =
+    function aw_registerAudioChannels() {
+      this.audioChannels = new Map();
+      var audioChannels = this.browser.element.allowedAudioChannels;
+      audioChannels && audioChannels.forEach((audioChannel) => {
+        this.audioChannels.set(
+          audioChannel.name,
+          new AudioChannelController(this, audioChannel)
+        );
+        this.debug('Registered ' + audioChannel.name + ' audio channel');
+      });
+    };
+
+  AppWindow.prototype._unregisterAudioChannels =
+    function aw_unregisterAudioChannels() {
+      if (this.audioChannels) {
+        this.audioChannels.forEach(function(audioChannel) {
+          audioChannel.destroy();
+        });
+        this.audioChannels = null;
       }
     };
 
@@ -885,8 +934,7 @@
     if (!this.manifest) {
       return;
     }
-    this.name = new ManifestHelper(this.manifest).name;
-    this.shortName = new ManifestHelper(this.manifest).short_name;
+    this.name = new ManifestHelper(this.manifest).displayName;
 
     if (this.identificationTitle) {
       this.identificationTitle.textContent = this.name;
@@ -907,13 +955,14 @@
       // XXX: Preventing orientaiton of homescreen app is changed by background
       //      app. It's a workaround for bug 1089951.
       //      It should be remove once bug 1043102 is done.
-      } else if (Service.currentApp && Service.currentApp === this) {
+      } else if (Service.query('getTopMostWindow') &&
+                 Service.query('getTopMostWindow') === this) {
         this.lockOrientation();
       }
     }
 
-    var width = layoutManager.width;
-    var height = layoutManager.getHeightFor(this);
+    var width = Service.query('LayoutManager.width');
+    var height = Service.query('getHeightFor', this);
     this.element.style.width = width + 'px';
     this.element.style.height = height + 'px';
 
@@ -968,7 +1017,9 @@
       // Send event instead of call crash reporter directly.
       this.publish('crashed');
 
-      if (this.constructor.SUSPENDING_ENABLED && !this.isActive()) {
+      // Only appWindow needs to be revived.
+      if (Service.query('suspendingAppWindow') &&
+          this.CLASS_NAME === 'AppWindow' && !this.isActive()) {
         this.debug(' ..sleep! I will come back.');
         this.destroyBrowser();
         if (this.frontWindow) {
@@ -993,7 +1044,9 @@
       this.title = evt.detail;
       this.publish('titlechange');
 
-      if (this.identificationTitle && !this.manifest) {
+      // Do not set the identification title if we're browsing a URL privately
+      if (this.identificationTitle && !this.manifest &&
+        (!this.isPrivateBrowser() || this.config.url.startsWith('app:'))) {
         this.identificationTitle.textContent = this.title;
       }
     };
@@ -1043,7 +1096,12 @@
     function aw__handle_mozbrowserlocationchange(evt) {
       this.favicons = {};
       this.webManifestURL = null;
+      this.webManifest = null;
       this.config.url = evt.detail;
+      this.title = evt.detail;
+      if (!this.manifest) {
+        this.name = new URL(evt.detail).hostname;
+      }
       // Integration test needs to locate the frame by this attribute.
       this.browser.element.dataset.url = evt.detail;
       this.publish('locationchange');
@@ -1068,7 +1126,7 @@
         this.favicons[href].sizes.push(sizes);
       }
 
-      if (this.identificationIcon) {
+      if (this.identificationIcon && !this.isPrivateBrowser()) {
         this.identificationIcon.style.backgroundImage =
           'url("' + evt.detail.href + '")';
       }
@@ -1087,7 +1145,7 @@
   AppWindow.prototype._handle_mozbrowsermetachange =
     function aw__handle_mozbrowsermetachange(evt) {
 
-      var detail = evt.detail;
+      var detail = this.metachangeDetail = evt.detail;
 
       switch (detail.name) {
         case 'theme-color':
@@ -1105,26 +1163,60 @@
 
           this.publish('themecolorchange');
           break;
+        case 'theme-group':
+          if (!detail.type) {
+            return;
+          }
+
+          if (detail.type === 'removed') {
+            themeGroups.forEach((group) => {
+              this.element.classList.remove(group);
+            });
+          } else {
+            var group = detail.content;
+            if (themeGroups.indexOf(group) !== -1) {
+              this.element.classList.add(group);
+            }
+          }
+
+          this.publish('themecolorchange');
+          break;
 
         case 'application-name':
           // Apps have a compulsory name field in their manifest
           // which takes precedence.
-          if (!this.isBrowser()) {
+          if (this.manifestURL || this.webManifestURL) {
             return;
           }
-          this.updateName(detail.content);
+          this.name = detail.content;
           this.publish('namechanged');
           break;
       }
-
     };
 
   AppWindow.prototype._handle_mozbrowsermanifestchange =
     function aw__handle_mozbrowsermanifestchange(evt) {
-      if (evt.detail.href) {
-        this.webManifestURL = evt.detail.href;
+      if (!evt.detail.href) {
+        return;
       }
+      this.webManifestURL = evt.detail.href;
+      this._updateManifest(this.webManifestURL);
     };
+
+  AppWindow.prototype._updateManifest =
+    function aw_updateManifest(manifestURL) {
+    return LazyLoader.load('/shared/js/web_manifest_helper.js').then(() => {
+      return WebManifestHelper.getManifest(manifestURL);
+    }).then((webManifest) => {
+      this.webManifest = webManifest;
+      if (webManifest.short_name || webManifest.name) {
+        this.name = webManifest.short_name || webManifest.name;
+        this.publish('namechanged');
+      }
+    }).catch(() => {
+      console.error('Failed to get web manifest from ' + manifestURL);
+    });
+  };
 
   AppWindow.prototype._registerEvents = function aw__registerEvents() {
     if (this.element === null) {
@@ -1261,6 +1353,7 @@
         return this.frontWindow.requestScreenshotURL();
       }
       if (!this._screenshotBlob) {
+        this.debug('requestScreenshotURL, no _screenshotBlob');
         return null;
       }
       var screenshotURL = URL.createObjectURL(this._screenshotBlob);
@@ -1280,23 +1373,33 @@
   AppWindow.prototype._showScreenshotOverlay =
     function aw__showScreenshotOverlay() {
       if (this.frontWindow && this.frontWindow.isActive()) {
-        this.frontWindow._showScreenshotOverlay();
-        return;
+        return this.frontWindow._showScreenshotOverlay();
       }
       if (!this.screenshotOverlay ||
           this.screenshotOverlay.classList.contains('visible')) {
-        return;
+        return Promise.resolve();
       }
-
       if (this.identificationOverlay) {
         this.element.classList.add('overlay');
       }
 
       this.screenshotOverlay.classList.add('visible');
 
+      // will be null if there is no blob
       var screenshotURL = this.requestScreenshotURL();
-      this.screenshotOverlay.style.backgroundImage =
-        'url(' + screenshotURL + ')';
+
+      //  return promise to make sure the image is ready
+      var promise = new Promise((resolve) => {
+         var image = document.createElement('img');
+          image.onload = function() {
+            resolve();
+          }.bind(this);
+          image.src = screenshotURL;
+      });
+      this.screenshotOverlay.style.backgroundImage = screenshotURL ?
+          'url(' + screenshotURL + ')' : 'none';
+      this.element.classList.toggle('no-screenshot', !screenshotURL);
+      return promise;
     };
 
   /**
@@ -1315,6 +1418,7 @@
 
       this.screenshotOverlay.classList.remove('visible');
       this.screenshotOverlay.style.backgroundImage = '';
+      this.element.classList.remove('no-screenshot');
 
       if (this.identificationOverlay) {
         var element = this.element;
@@ -1398,16 +1502,19 @@
     'portrait-primary', 'portrait-secondary', 'portrait',
     'landscape-primary', 'landscape-secondary', 'landscape', 'default'];
 
-  var OrientationRotationTable = {
-    'portrait-primary': [0, 180, 0, 90,
-              270, 90, OrientationManager.isDefaultPortrait() ? 0 : 90],
-    'landscape-primary': [270, 90, 270, 0,
-              180, 0, OrientationManager.isDefaultPortrait() ? 270 : 0],
-    'portrait-secondary': [180, 0, 180, 270,
-              90, 270, OrientationManager.isDefaultPortrait() ? 180 : 270],
-    'landscape-secondary': [90, 270, 90, 180,
-              0, 180, OrientationManager.isDefaultPortrait() ? 180 : 90]
-  };
+  function findRotationDegree(orientation1, orientation2) {
+    var OrientationRotationTable = {
+      'portrait-primary': [0, 180, 0, 90,
+                270, 90, Service.query('isDefaultPortrait') ? 0 : 90],
+      'landscape-primary': [270, 90, 270, 0,
+                180, 0, Service.query('isDefaultPortrait') ? 270 : 0],
+      'portrait-secondary': [180, 0, 180, 270,
+                90, 270, Service.query('isDefaultPortrait') ? 180 : 270],
+      'landscape-secondary': [90, 270, 90, 180,
+                0, 180, Service.query('isDefaultPortrait') ? 180 : 90]
+    };
+    return OrientationRotationTable[orientation1][orientation2];
+  }
 
   AppWindow.prototype.determineRotationDegree =
     function aw__determineRotationDegree() {
@@ -1417,10 +1524,9 @@
 
       var appOrientation = this.manifest.orientation;
       var orientation = this.determineOrientation(appOrientation);
-      var table =
-        OrientationRotationTable[
-          OrientationManager.defaultOrientation];
-      var degree = table[OrientationRotationArray.indexOf(orientation)];
+      var degree = findRotationDegree(
+        Service.query('defaultOrientation') || 'portrait-primary',
+        OrientationRotationArray.indexOf(orientation));
       this.rotatingDegree = degree;
       if (degree == 90 || degree == 270) {
         this.element.classList.add('perpendicular');
@@ -1435,12 +1541,11 @@
       }
 
       // XXX: Assume homescreen's orientation is just device default.
-      var homeOrientation = OrientationManager.defaultOrientation;
-      var currentOrientation = OrientationManager
-        .fetchCurrentOrientation();
+      var homeOrientation = Service.query('defaultOrientation');
+      var currentOrientation = Service.query('fetchCurrentOrientation');
       this.debug(currentOrientation);
-      var table = OrientationRotationTable[homeOrientation];
-      var degree = table[OrientationRotationArray.indexOf(currentOrientation)];
+      var degree = findRotationDegree(homeOrientation,
+        OrientationRotationArray.indexOf(currentOrientation));
       return Math.abs(360 - degree) % 360;
     };
 
@@ -1497,7 +1602,7 @@
   AppWindow.prototype._resize = function aw__resize(ignoreKeyboard) {
     var height, width;
     this.debug('force RESIZE...');
-    if (!ignoreKeyboard && layoutManager.keyboardEnabled) {
+    if (!ignoreKeyboard && Service.query('keyboardEnabled')) {
       /**
        * The event is dispatched on the app window only when keyboard is up.
        *
@@ -1514,22 +1619,15 @@
        */
       this.broadcast('withoutkeyboard');
     }
-    height = layoutManager.getHeightFor(this, ignoreKeyboard);
+    height = Service.query('getHeightFor', this, ignoreKeyboard) ||
+      window.innerHeight;
 
     // If we have sidebar in the future, change layoutManager then.
-    width = layoutManager.width;
+    width = Service.query('LayoutManager.width') || window.innerWidth;
 
-    if (this.element.style.width === width + 'px' &&
-        this.element.style.height === height + 'px') {
+    if (parseInt(this.element.style.width, 10) === (width | 0) &&
+        parseInt(this.element.style.height, 10) === (height | 0)) {
       return;
-    }
-
-    // Adjust height for activity windows which open while rocketbar is open.
-    if (this.parentApp) {
-      var parent = applications.getByManifestURL(this.parentApp);
-      if (parent.manifest.role === 'search') {
-        height += StatusBar.height * window.devicePixelRatio;
-      }
     }
 
     this.width = width;
@@ -1556,6 +1654,8 @@
      */
     this.publish('resize');
     this.debug('W:', width, 'H:', height);
+
+    return this.waitForNextPaint();
   };
 
   /**
@@ -1582,12 +1682,12 @@
       return;
     }
     if (this.frontWindow) {
-      this._resize();
-      this.frontWindow.resize();
+      return Promise.all(
+        [this._resize(), this.frontWindow.resize()]);
     } else {
       // resize myself if no child.
       this.debug(' will resize... ');
-      this._resize();
+      return this._resize();
     }
   };
 
@@ -1613,11 +1713,11 @@
   /**
    * Lock the orientation for this app anyway.
    */
-  AppWindow.prototype.lockOrientation = function() {
+  AppWindow.prototype.lockOrientation = function(forceOrientation) {
     var manifest = this.manifest || this.config.manifest;
-    var orientation = manifest ? (manifest.orientation ||
-                      OrientationManager.globalOrientation) :
-                      OrientationManager.globalOrientation;
+    var orientation = forceOrientation ||
+                      manifest && manifest.orientation ||
+                      Service.query('globalOrientation');
     if (orientation) {
       var rv = screen.mozLockOrientation(orientation);
 
@@ -1880,33 +1980,34 @@
     }
 
     this.debug('requesting to open');
+
     if (!this.loaded ||
         (this.screenshotOverlay &&
          this.screenshotOverlay.classList.contains('visible'))) {
       this.debug('loaded yet');
       setTimeout(callback);
       return;
-    } else {
-      var invoked = false;
-      this.waitForNextPaint(function() {
-        if (invoked) {
-          return;
-        }
-        invoked = true;
-        setTimeout(callback);
-      });
-      if (this.isHomescreen) {
-        this.setVisible(true);
+    }
+
+    var invoked = false;
+    this.waitForNextPaint(function() {
+      if (invoked) {
         return;
       }
-      this.tryWaitForFullRepaint(function() {
-        if (invoked) {
-          return;
-        }
-        invoked = true;
-        setTimeout(callback);
-      });
+      invoked = true;
+      setTimeout(callback);
+    });
+    if (this.isHomescreen) {
+      this.setVisible(true);
+      return;
     }
+    this.tryWaitForFullRepaint(function() {
+      if (invoked) {
+        return;
+      }
+      invoked = true;
+      setTimeout(callback);
+    });
   };
 
   /**
@@ -1980,13 +2081,22 @@
     this._showScreenshotOverlay();
   };
 
+  AppWindow.prototype._handle__cardviewshown = function aw_cvshown() {
+    if (this.element && this.element.classList.contains('no-screenshot') &&
+        this._screenshotBlob) {
+      this.element.classList.remove('no-screenshot');
+    }
+  };
+
   AppWindow.prototype._handle__cardviewclosed = function aw_cvclosed() {
     this.debug('hiding screenshot after cardsview closed.');
     this._hideScreenshotOverlay();
   };
 
   AppWindow.prototype._handle__closed = function aw_closed() {
-    if (Service.isBusyLoading() && this.getBottomMostWindow().isHomescreen) {
+    if (!this.loaded ||
+        (Service.query('isBusyLoading') &&
+          this.getBottomMostWindow().isHomescreen)) {
       // We will eventually get screenshot when being requested from
       // task manager.
       return;
@@ -2009,8 +2119,9 @@
   AppWindow.prototype._handle__shrinkingstart = function aw_shrinkingstart() {
     this.broadcast('blur');
     this.getScreenshot(() => {
-      this._showScreenshotOverlay();
-      this.setVisible(false);
+      this._showScreenshotOverlay().then(() => {
+        this.setVisible(false);
+      });
     });
   };
 
@@ -2359,5 +2470,70 @@
       this.statusbar.handleStatusbarTouch(evt, barHeight);
     }
   };
+
+
+  /**
+   * Return a promise that resolves to an icon URL.
+   *
+   * @param {number?} iconSize
+   * @returns {Promise}
+   */
+  AppWindow.prototype.getSiteIconUrl =
+    function ac_getSiteIconUrl(iconSize = ICON_SIZE) {
+    var siteObj = {};
+
+    if (this.webManifestURL && this.webManifest) {
+      siteObj.webManifestUrl = this.webManifestURL;
+      siteObj.webManifest = this.webManifest;
+    }
+
+    if (this.manifest && this.manifest.icons) {
+      //Getting the icons from the FirefoxOS manifest
+      if (!this.manifest.origin) {
+        this.manifest.origin = new URL(this.manifestURL).origin;
+      }
+      siteObj.manifestUrl = this.manifestURL;
+      siteObj.manifest = this.manifest;
+    }
+
+    if (this.webManifestURL && !this.webManifest) {
+      this.debug('getSiteIconUrl: Manifest not loaded yet.');
+    }
+
+    return this.getIconBlob(this.config.url, iconSize,
+                             {icons: this.favicons},
+                             siteObj);
+  };
+
+  /**
+   * Return a promise resolving to an icon blob.
+   *
+   * @param {string} origin
+   * @param {number} iconSize
+   * @param {Object?} placeObj
+   * @param {Object?} siteObj
+   * @returns {Promise}
+   */
+  AppWindow.prototype.getIconBlob = function ac_getIconBlob(origin, iconSize,
+    placeObj = {}, siteObj = {}) {
+
+    return new Promise((resolve, reject) => {
+      LazyLoader.load('/shared/js/icons_helper.js').then(() => {
+        IconsHelper.getIconBlob(origin, iconSize, placeObj, siteObj)
+          .then(iconObject => {
+            var iconUrl = URL.createObjectURL(iconObject.blob);
+            resolve({
+              url: iconUrl,
+              isSmall: iconObject.size < iconSize,
+              originalUrl: iconObject.url
+            });
+          })
+          .catch(err => {
+            reject(err);
+          });
+      });
+    });
+  };
+
   exports.AppWindow = AppWindow;
 }(window));

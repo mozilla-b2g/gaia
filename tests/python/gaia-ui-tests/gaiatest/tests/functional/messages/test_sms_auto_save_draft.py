@@ -3,10 +3,9 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import time
-try:
-    from marionette import Wait
-except:
-    from marionette_driver import Wait
+
+from marionette_driver import Wait
+
 from gaiatest import GaiaTestCase
 from gaiatest.apps.homescreen.app import Homescreen
 from gaiatest.apps.messages.app import Messages

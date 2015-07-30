@@ -10,59 +10,31 @@
     this.init();
   };
 
-  // Icons sorted by priority.
-  StatusBar.Icons = [
-    'emergencyCbNotification',
-    'battery',
-    'recording',
-    'flightMode',
-    'wifi',
-    'connections',
-    'time',
-    'debugging',
-    'systemDownloads',
-    'geolocation',
-    'networkActivity',
-    'tethering',
-    'bluetoothTransferring',
-    'bluetooth',
-    'nfc',
-    'usb',
-    'alarm',
-    'bluetoothHeadphones',
-    'mute',
-    'callForwardings',
-    'playing',
-    'headphones',
-    //'sms', // Not currently implemented.
-    'label'
-  ];
-
   StatusBar.Selector = Object.freeze({
-    label: '.sb-icon-label',
-    sms: '.sb-icon-sms',
-    alarm: '.sb-icon-alarm',
-    playing: '.sb-icon-playing',
-    headphones: '.sb-icon-headphones',
-    bluetoothHeadphones: '.sb-icon-bluetooth-headphones',
-    callForwardings: '.sb-icon-call-forwardings',
-    geolocation: '.sb-icon-geolocation',
-    recording: '.sb-icon-recording',
-    mute: '.sb-icon-mute',
-    usb: '.sb-icon-usb',
-    systemDownloads: '.sb-icon-system-downloads',
-    emergencyCbNotification: '.sb-icon-emergency-cb-notification',
-    nfc: '.sb-icon-nfc',
-    bluetoothTransferring: '.sb-icon-bluetooth-transferring',
-    bluetooth: '.sb-icon-bluetooth',
-    tethering: '.sb-icon-tethering',
-    networkActivity: '.sb-icon-network-activity',
-    connections: '.sb-icon-connections',
-    wifi: '.sb-icon-wifi',
-    flightMode: '.sb-icon-flight-mode',
-    battery: '.sb-icon-battery',
-    time: '.sb-icon-time',
-    debugging: '.sb-icon-debugging',
+    'operator': '.sb-icon-operator',
+    'sms': '.sb-icon-sms',
+    'alarm': '.sb-icon-alarm',
+    'playing': '.sb-icon-playing',
+    'headphone': '.sb-icon-headphone',
+    'bluetooth-headphone': '.sb-icon-bluetooth-headphone',
+    'call-forwardings': '.sb-icon-call-forwarding',
+    'geolocation': '.sb-icon-geolocation',
+    'recording': '.sb-icon-recording',
+    'mute': '.sb-icon-mute',
+    'usb': '.sb-icon-usb',
+    'download': '.sb-icon-download',
+    'emergency-callback': '.sb-icon-emergency-callback',
+    'nfc': '.sb-icon-nfc',
+    'bluetooth-transfer': '.sb-icon-bluetooth-transfer',
+    'bluetooth': '.sb-icon-bluetooth',
+    'tethering': '.sb-icon-tethering',
+    'network-activity': '.sb-icon-network-activity',
+    'mobile-connection': '.sb-icon-mobile-connection',
+    'wifi': '.sb-icon-wifi',
+    'airplane-mode': '.sb-icon-airplane-mode',
+    'battery': '.sb-icon-battery',
+    'time': '.sb-icon-time',
+    'debugging': '.sb-icon-debugging',
 
     statusbar: '#statusbar',
     statusbarMaximizedWrapper: '#statusbar-maximized-wrapper',
@@ -73,6 +45,20 @@
     kActiveIndicatorTimeout: null,
     client: null,
 
+    get Icons() {
+      return this.client.executeScript(function() {
+        var priorities = window.wrappedJSObject.Statusbar.PRIORITIES;
+        var icons = [];
+        Object.keys(priorities).forEach(function(iconId) {
+          var icon = priorities[iconId].icon;
+          if (icon) {
+            icons.push(iconId);
+          }
+        });
+        return icons;
+      });
+    },
+
     get maximizedStatusbar() {
       var statusbar = StatusBar.Selector.statusbarMaximizedWrapper;
       return this.client.findElement(statusbar);
@@ -81,6 +67,18 @@
     get minimizedStatusbar() {
       var statusbar = StatusBar.Selector.statusbarMinimizedWrapper;
       return this.client.findElement(statusbar);
+    },
+
+    showAllRunningIcons: function() {
+      this.client.executeScript(function() {
+        var priorities = window.wrappedJSObject.Statusbar.PRIORITIES;
+        Object.keys(priorities).forEach(function(iconId) {
+          var icon = priorities[iconId].icon;
+          if (icon) {
+            icon.element.hidden = false;
+          }
+        });
+      });
     },
 
     isVisible: function() {
@@ -104,15 +102,16 @@
      * Change the delay value in StatusBar.
      * @param {number=} delay The new value for delay in milliseconds.
      */
-    changeDelayValue: function(delay) {
+    changeDelayValue: function(iconName, delay) {
       var self = this;
       delay = parseInt(delay, 10);
       delay = !isNaN(delay) ? delay : 100;
-      this.client.executeScript(function(delay) {
+      this.client.executeScript(function(iconName, delay) {
         self.kActiveIndicatorTimeout =
-          window.wrappedJSObject.StatusBar.kActiveIndicatorTimeout;
-        window.wrappedJSObject.StatusBar.kActiveIndicatorTimeout = delay;
-      }, [delay]);
+          window.wrappedJSObject[iconName].protoype.kActiveIndicatorTimeout;
+        window.wrappedJSObject[iconName].prototype.kActiveIndicatorTimeout =
+          delay;
+      }, [iconName, delay]);
     },
 
     /**
@@ -125,7 +124,7 @@
 
       var self = this;
       this.client.executeScript(function() {
-        window.wrappedJSObject.StatusBar.kActiveIndicatorTimeout =
+        window.wrappedJSObject.Statusbar.kActiveIndicatorTimeout =
           self.kActiveIndicatorTimeout;
         self.kActiveIndicatorTimeout = null;
       });
@@ -153,28 +152,12 @@
       detail.type = eventType;
 
       this.client.executeScript(function(detail) {
+        window.wrappedJSObject.Service.debug('will dispatch moz chrome event.');
         var evt = new CustomEvent('mozChromeEvent', {
           detail: detail
         });
         window.wrappedJSObject.dispatchEvent(evt);
-      }, [detail]);
-    },
-
-    /**
-     * Dispatch a `recordingEvent` of type `eventType` with the detail object
-     * `detail` from window.
-     * @param {string} eventType
-     * @param {Object} detail
-     */
-    dispatchRecordingEvent: function(eventType, detail) {
-      detail = (detail !== undefined) ? detail : {};
-      detail.type = eventType;
-
-      this.client.executeScript(function(detail) {
-        var evt = new CustomEvent('recordingEvent', {
-          detail: detail
-        });
-        window.wrappedJSObject.dispatchEvent(evt);
+        window.wrappedJSObject.Service.debug(' moz chrome event dispatched');
       }, [detail]);
     },
 
@@ -198,10 +181,11 @@
 
       // Maximised status bar
       this.minimised = {};
-      StatusBar.Icons.forEach(function(iconName) {
+      this.Icons.forEach(function(iconName) {
         this[iconName] = {
           get icon() {
-            return self.client.findElement(StatusBar.Selector[iconName]);
+            return self.client.findElement('#statusbar-maximized ' +
+              StatusBar.Selector[iconName]);
           },
           show: showIconGenerator.call(this),
           hide: hideIconGenerator.call(this),

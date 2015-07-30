@@ -16,7 +16,8 @@
     'lte/cdma/evdo',
     'lte/wcdma/gsm',
     'lte/wcdma/gsm/cdma/evdo',
-    'lte'
+    'lte',
+    'lte/wcdma'
   ];
 
   // The string map from network types to user friendly strings, which is
@@ -39,6 +40,7 @@
     },
     'GSM,LTE': {
       'lte/wcdma/gsm': 'operator-networkType-auto',
+      'lte/wcdma': 'operator-networkType-auto-3G-4G',
       'gsm': 'operator-networkType-2G',
       'wcdma': 'operator-networkType-3G',
       'wcdma/gsm-auto': 'operator-networkType-auto-2G-3G',
@@ -73,6 +75,7 @@
       'wcdma/gsm/cdma/evdo': 'operator-networkType-auto-WCDMA-GSM-CDMA-EVDO',
       'lte': 'operator-networkType-LTE',
       'lte/wcdma/gsm': 'operator-networkType-auto-LTE-WCDMA-GSM',
+      'lte/wcdma': 'operator-networkType-auto-LTE-WCDMA',
       'lte/cdma/evdo': 'operator-networkType-auto-LTE-CDMA-EVDO',
       'lte/wcdma/gsm/cdma/evdo': 'operator-networkType-auto'
     },

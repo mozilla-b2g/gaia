@@ -5,23 +5,23 @@
 var assert = require('chai').assert;
 
 var Messages = require('./lib/messages.js');
+var Storage = require('./lib/storage.js');
+var ThreadGenerator = require('./generators/thread');
 
 marionette('Message Type Conversion Banner', function() {
   var apps = {};
 
   var client = marionette.client({
-    prefs: {
-      'focusmanager.testmode': true
-    },
-    settings: {
-      'lockscreen.enabled': false,
-      'ftu.manifestURL': null
-    },
+    profile: {
+      prefs: {
+        'focusmanager.testmode': true
+      },
 
-    apps: apps
+      apps: apps
+    }
   });
 
-  var messagesApp, composer, threadList;
+  var messagesApp, storage, composer, inbox;
 
   function assertIsDisplayed(element) {
     assert.isTrue(element.displayed(), 'Element should be displayed');
@@ -37,9 +37,13 @@ marionette('Message Type Conversion Banner', function() {
     );
   }
 
-  function exitThread(draftOption) {
+  function exitConversation(draftOption) {
     messagesApp.performHeaderAction();
     draftOption && messagesApp.selectAppMenuOption(draftOption);
+
+    // Wait for the thread list to appear
+    inbox.waitToAppear();
+
     // Wait a little bit, much less than the time needed for the banner to
     // expire in order to give the render loop time to clear the banners.
     client.helper.wait(300);
@@ -47,9 +51,14 @@ marionette('Message Type Conversion Banner', function() {
 
   setup(function() {
     messagesApp = Messages.create(client);
-    composer = messagesApp.Composer;
-    threadList = messagesApp.ThreadList;
+    storage = Storage.create(client);
 
+    composer = messagesApp.Composer;
+    inbox = messagesApp.Inbox;
+
+    client.contentScript.inject(
+      __dirname + '/mocks/mock_test_storages.js'
+    );
     client.contentScript.inject(
       __dirname + '/mocks/mock_navigator_moz_icc_manager.js'
     );
@@ -59,10 +68,11 @@ marionette('Message Type Conversion Banner', function() {
   });
 
   suite('Message Type Conversion Banner for new threads', function() {
-
     setup(function() {
       messagesApp.launch();
-      threadList.navigateToComposer();
+      storage.setMessagesStorage();
+
+      inbox.navigateToComposer();
     });
 
     test('Old conversion banner is cleared before entering a thread',
@@ -70,9 +80,9 @@ marionette('Message Type Conversion Banner', function() {
       // Force it to be MMS
       messagesApp.addRecipient('a@b.c');
       // Without waiting for the banner to disappear, return to thread list
-      exitThread('Discard');
+      exitConversation('Delete Draft');
       // Create another new message
-      threadList.navigateToComposer();
+      inbox.navigateToComposer();
 
       // The banner should not be displayed
       assertIsNotDisplayed(messagesApp.Composer.conversionBanner);
@@ -100,52 +110,41 @@ marionette('Message Type Conversion Banner', function() {
 
       // Case #4: Return to threads view and re-enter the thread to be reminded
       // about being in a MMS thread.
-      exitThread();
-      threadList.firstThread.tap();
+      exitConversation();
+      inbox.firstConversation.tap();
       client.helper.waitForElement(composer.conversionBanner);
     });
   });
 
   suite('Message Type Conversion Banner for pre-existent threads', function() {
-
-    function navigateToSMSThread() {
-      threadList.smsThread.tap();
+    function navigateToSMSConversation() {
+      inbox.smsConversation.tap();
+      messagesApp.Conversation.waitToAppear();
     }
 
-    function navigateToMMSThread() {
-      threadList.mmsThread.tap();
-    }
-
-    function waitForThreadList() {
-      client.helper.waitForElement(threadList.smsThread);
-      client.helper.waitForElement(threadList.mmsThread);
-    }
-
-    function createSampleThreads() {
-      // Create a simple SMS thread
-      threadList.navigateToComposer();
-      messagesApp.addRecipient('+1');
-      composer.messageInput.sendKeys('Simple SMS thread.');
-      messagesApp.send();
-      messagesApp.performHeaderAction();
-
-      // Create a MMS thread
-      threadList.navigateToComposer();
-      messagesApp.addRecipient('a@b.c');
-      composer.messageInput.sendKeys('MMS thread.');
-      messagesApp.send();
-      messagesApp.performHeaderAction();
+    function navigateToMMSConversation() {
+      inbox.mmsConversation.tap();
+      messagesApp.Conversation.waitToAppear();
     }
 
     setup(function() {
+      var smsThread = ThreadGenerator.generate();
+      var mmsThread = ThreadGenerator.generate({
+        numberOfMessages: 1,
+        messageType: 'mms',
+        participants: ['a@b.c']
+      });
+
       messagesApp.launch();
-      createSampleThreads();
-      waitForThreadList();
+      storage.setMessagesStorage(
+        [smsThread, mmsThread],
+        ThreadGenerator.uniqueMessageId
+      );
     });
 
     test('The banner is not shown after sending another message',
     function() {
-      navigateToMMSThread();
+      navigateToMMSConversation();
       messagesApp.Composer.messageInput.sendKeys('Another message');
       waitForBannerToDisappear();
       messagesApp.send();
@@ -155,10 +154,9 @@ marionette('Message Type Conversion Banner', function() {
 
     test('The banner for SMS is not shown when entering a SMS thread after ' +
     'visiting a MMS thread', function() {
-      navigateToMMSThread();
-      exitThread();
-      waitForThreadList();
-      navigateToSMSThread();
+      navigateToMMSConversation();
+      exitConversation();
+      navigateToSMSConversation();
 
       assertIsNotDisplayed(composer.conversionBanner);
     });

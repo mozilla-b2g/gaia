@@ -1,7 +1,8 @@
 'use strict';
 
 suite('BluetoothDevice', function() {
-  var bluetoothDevice, mockBtClassOfDeviceMapper, mockDeviceObj;
+  var bluetoothDevice, mockBtClassOfDeviceMapper, mockDeviceObj,
+  defaultConnectionStatus;
 
   setup(function(done) {
     var modules = [
@@ -31,6 +32,8 @@ suite('BluetoothDevice', function() {
       cod: {}
     };
 
+    defaultConnectionStatus = 'disconnected';
+
     testRequire(modules, map, function(BluetoothDevice) {
       bluetoothDevice = BluetoothDevice;
       done();
@@ -45,11 +48,90 @@ suite('BluetoothDevice', function() {
 
     suite('create > ', function() {
       test('Will create BluetoothDevice with "name", "paired", ' +
-           '"address", and "type" properties. ', function() {
+           '"address", "type", "connectionStatus", "profiles", ' +
+           'and "descriptionText" properties. Define getter "data", ' +
+           'function "updateConnectionInfo", "updateDescriptionText".',
+           function() {
         assert.equal(bluetoothDeviceCreated.name, mockDeviceObj.name);
         assert.equal(bluetoothDeviceCreated.paired, mockDeviceObj.paired);
         assert.equal(bluetoothDeviceCreated.address, mockDeviceObj.address);
         assert.isDefined(bluetoothDeviceCreated.type);
+        assert.equal(bluetoothDeviceCreated.connectionStatus,
+          defaultConnectionStatus);
+        assert.isNull(bluetoothDeviceCreated.profiles);
+        assert.isDefined(bluetoothDeviceCreated.descriptionText);
+        assert.isDefined(bluetoothDeviceCreated.data);
+        assert.isDefined(bluetoothDeviceCreated.updateConnectionInfo);
+        assert.isDefined(bluetoothDeviceCreated.updateDescriptionText);
+      });
+    });
+
+    suite('updateConnectionInfo > ', function() {
+      var mockOptions;
+      setup(function() {
+        mockOptions = {
+          connectionStatus: 'connected',
+          profiles: {
+            'hfp': true,
+            'a2dp': false
+          }
+        };
+      });
+
+      test('"connectionStatus" property should be "connected"', function() {
+        bluetoothDeviceCreated.updateConnectionInfo(mockOptions);
+        assert.equal(bluetoothDeviceCreated.connectionStatus,
+          mockOptions.connectionStatus);
+        assert.deepEqual(bluetoothDeviceCreated.profiles,
+          mockOptions.profiles);
+      });
+    });
+
+    suite('updateDescriptionText > ', function() {
+      suite('"paired" property changed > ', function() {
+        var newPairedState;
+        setup(function() {
+          newPairedState = 'pairing';
+          bluetoothDeviceCreated.paired = newPairedState;
+        });
+
+        test('"descriptionText" property should be "pairing" ', function() {
+          assert.equal(bluetoothDeviceCreated.descriptionText, newPairedState);
+        });
+      });
+
+      suite('"connectionStatus" property changed > ', function() {
+        var newConnectionStatus;
+        setup(function() {
+          newConnectionStatus = 'connecting';
+          bluetoothDeviceCreated.paired = true;
+          bluetoothDeviceCreated.connectionStatus = newConnectionStatus;
+        });
+
+        test('"descriptionText" property should be "connecting" ', function() {
+          assert.equal(bluetoothDeviceCreated.descriptionText,
+            newConnectionStatus);
+        });
+      });
+
+      suite('"profiles" property changed > ', function() {
+        var newProfiles, expectedDescriptionText;
+        setup(function() {
+          newProfiles = {
+            'hfp': true,
+            'a2dp': true
+          };
+          expectedDescriptionText = 'connectedWithDeviceMedia';
+          bluetoothDeviceCreated.paired = true;
+          bluetoothDeviceCreated.connectionStatus = 'connected';
+          bluetoothDeviceCreated.profiles = newProfiles;
+        });
+
+        test('"descriptionText" property should be "connectedWithDeviceMedia" ',
+        function() {
+          assert.equal(bluetoothDeviceCreated.descriptionText,
+            expectedDescriptionText);
+        });
       });
     });
 
@@ -84,6 +166,29 @@ suite('BluetoothDevice', function() {
            'paired property changed ', function() {
         mockDeviceObj.onattributechanged(mockEvt);
         assert.equal(bluetoothDeviceCreated.paired, newPairedState);
+      });
+    });
+
+    suite('event > cod ', function() {
+      var mockEvt, newCODObject, mockType;
+      setup(function() {
+        mockEvt = {
+          attrs: ['cod']
+        };
+        mockType = 'audio-card';
+        newCODObject = {};
+        mockDeviceObj.cod = newCODObject;
+
+        this.sinon.stub(mockBtClassOfDeviceMapper, 'getDeviceType').returns(
+          mockType);
+      });
+
+      test('"onattributechanged" event coming with ' +
+           'cod property changed ', function() {
+        mockDeviceObj.onattributechanged(mockEvt);
+        assert.isTrue(mockBtClassOfDeviceMapper.getDeviceType.calledWith(
+          newCODObject));
+        assert.equal(bluetoothDeviceCreated.type, mockType);
       });
     });
   });

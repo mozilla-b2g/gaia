@@ -9,43 +9,43 @@
     "url": "https://github.com/mozilla-b2g/gaia"
   },
   "permissions": {
-    "themeable":{},
+    "themeable": {},
     "alarms": {},
-    "browser":{},
-    "power":{},
-    "fmradio":{},
-    "webapps-manage":{},
-    "mobileconnection":{},
-    "bluetooth":{},
-    "telephony":{},
-    "voicemail":{},
-    "device-storage:sdcard":{ "access": "readwrite" },
-    "device-storage:pictures":{ "access": "readwrite" },
-    "device-storage:videos":{ "access": "readwrite" },
-    "device-storage:music":{ "access": "readcreate" },
-    "device-storage:apps":{ "access": "readonly" },
-    "settings":{ "access": "readwrite" },
-    "camera":{},
-    "geolocation":{},
+    "browser": {},
+    "power": {},
+    "fmradio": {},
+    "webapps-manage": {},
+    "mobileconnection": {},
+    "bluetooth": {},
+    "telephony": {},
+    "voicemail": {},
+    "device-storage:sdcard": { "access": "readwrite" },
+    "device-storage:pictures": { "access": "readwrite" },
+    "device-storage:videos": { "access": "readwrite" },
+    "device-storage:music": { "access": "readcreate" },
+    "device-storage:apps": { "access": "readonly" },
+    "settings": { "access": "readwrite" },
+    "camera": {},
+    "geolocation": {},
     "audio-capture": {},
     "video-capture": {},
-    "wifi-manage":{},
-    "desktop-notification":{},
-    "idle":{},
-    "network-events":{},
-    "embed-apps":{},
-    "background-sensors":{},
-    "permissions":{},
-    "audio-channel-notification":{},
-    "audio-channel-content":{},
-    "audio-channel-ringer":{},
-    "cellbroadcast":{},
-    "input-manage":{},
-    "nfc":{},
-    "nfc-share":{},
-    "nfc-manager":{},
-    "downloads":{},
-    "systemXHR":{},
+    "wifi-manage": {},
+    "desktop-notification": {},
+    "idle": {},
+    "network-events": {},
+    "embed-apps": {},
+    "background-sensors": {},
+    "permissions": {},
+    "audio-channel-notification": {},
+    "audio-channel-content": {},
+    "audio-channel-ringer": {},
+    "cellbroadcast": {},
+    "input-manage": {},
+    "nfc": {},
+    "nfc-share": {},
+    "nfc-manager": {},
+    "downloads": {},
+    "systemXHR": {},
     "feature-detection": {},
     "before-after-keyboard-event": {}
   },
@@ -76,6 +76,15 @@
     "284": "/style/icons/system_284.png"
   },
   "activities": {
+    "import-app": {
+      "filters": {
+        "blob": {
+          "required": true
+        }
+      },
+      "disposition": "inline",
+      "returnValue": true
+    },
     "view": {
       "filters": {
         "type": "url",
@@ -110,6 +119,10 @@
       "description": "Communicate between search results and search app",
       "rules": {}
     },
+    "app-metrics": {
+      "description": "Communicate between system app metrics and search app",
+      "rules": {}
+    },
     "ftucomms": {
       "description": "Communicate between communications/ftu and System",
       "rules": {}
@@ -127,6 +140,12 @@
       "rules": {
         "minimumAccessLevel": "certified"
       }
+    },
+    "about-service-workers": {
+      "description": "about:serviceworkers proxy",
+      "rules": {
+        "minimumAccessLevel": "certified"
+      }
     }
   },
   "datastores-owned": {
@@ -137,6 +156,10 @@
     "places": {
       "access": "readwrite",
       "description": "Stores data about browsing history."
+    },
+    "icons": {
+      "access": "readwrite",
+      "description": "Cache website icons."
     }
   },
   "datastores-access": {

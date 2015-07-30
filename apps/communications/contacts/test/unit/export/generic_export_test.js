@@ -1,18 +1,22 @@
 'use strict';
+/* global ContactsService */
 /* global MockContactsList */
-/* global MockContacts */
+/* global MockConfirmDialog */
 /* global ContactsExporter */
 /* global MockExportStrategy */
 /* global MockMozContacts */
 /* global MockMozL10n */
 /* global MocksHelper */
+/* global MockLoader */
 
+requireApp('communications/contacts/services/contacts.js');
 requireApp('communications/contacts/test/unit/mock_navigation.js');
 requireApp('communications/contacts/test/unit/mock_contacts.js');
 require('/shared/test/unit/mocks/mock_mozContacts.js');
 requireApp('communications/contacts/test/unit/mock_export_strategy.js');
 requireApp('communications/contacts/test/unit/mock_contacts_list.js');
 requireApp('communications/contacts/test/unit/mock_l10n.js');
+requireApp('communications/contacts/test/unit/mock_loader.js');
 require('/shared/test/unit/mocks/mock_confirm_dialog.js');
 require('/shared/js/fb/fb_reader_utils.js');
 
@@ -20,6 +24,7 @@ requireApp('communications/contacts/js/export/contacts_exporter.js');
 
 var realUtils = null;
 var realStatus = null;
+var realLoader = null;
 var real_ = null;
 
 if (!window.utils) {
@@ -44,7 +49,8 @@ if (!window._) {
 
 var mocksHelperForExporter = new MocksHelper([
   'Contacts',
-  'ConfirmDialog'
+  'ConfirmDialog',
+  'Loader'
 ]).init();
 
 suite('Contacts Exporter', function() {
@@ -78,17 +84,10 @@ suite('Contacts Exporter', function() {
     real_ = window._;
     window._ = navigator.mozL10n.get;
 
+    realLoader = window.Loader;
+    window.Loader = MockLoader;
+
     navigator.mozContacts = MockMozContacts;
-    sinon.stub(navigator.mozContacts, 'find', function() {
-      return {
-        set onsuccess(cb) {
-          cb(MockContactsList());
-        },
-        set onerror(cb) {
-        },
-        result: MockContactsList()
-      };
-    });
 
     sinon.spy(MockExportStrategy, 'shouldShowProgress');
     sinon.spy(MockExportStrategy, 'doExport');
@@ -124,16 +123,22 @@ suite('Contacts Exporter', function() {
 
   suiteTeardown(function() {
     window.navigator.mozL10n = realL10n;
+    window.Loader = realLoader;
 
     MockExportStrategy.shouldShowProgress.restore();
     MockExportStrategy.doExport.restore();
     MockExportStrategy.hasDeterminativeProgress.restore();
     MockExportStrategy.setProgressStep.restore();
     mocksHelperForExporter.suiteTeardown();
-
   });
 
   setup(function() {
+    this.sinon.stub(ContactsService, 'getAll', function(cb) {
+      var contacts = MockContactsList();
+      setTimeout(function() {
+        cb(null, contacts);
+      });
+    });
     menuOverlay = document.createElement('form');
     menuOverlay.innerHTML = '<menu>' +
       '<button data-l10n-id="cancel" id="cancel-overlay">Cancel</button>' +
@@ -151,7 +156,6 @@ suite('Contacts Exporter', function() {
   teardown(function() {
     menuOverlay.parentNode.removeChild(menuOverlay);
   });
-
 
   test('Correct initialization given an array of ids', function(done) {
     subject.init(ids, function onInitDone(contacts) {
@@ -231,7 +235,7 @@ suite('Contacts Exporter', function() {
         errorName;
 
     setup(function(done) {
-      sinon.spy(MockContacts, 'confirmDialog');
+      sinon.spy(MockConfirmDialog, 'show');
       subject.init(ids, function onInitDone(contacts) {
         error = {
           'reason': 'BIGerror'
@@ -245,17 +249,17 @@ suite('Contacts Exporter', function() {
       });
     });
     teardown(function() {
-      MockContacts.confirmDialog.restore();
+      MockConfirmDialog.show.restore();
     });
 
     test('Error dialog is called', function() {
-      assert.ok(MockContacts.confirmDialog.calledOnce);
+      assert.ok(MockConfirmDialog.show.calledOnce);
     });
 
     test('The proper error shows', function() {
       // errors are called with the structure
       // {title, error, retry, cancel}
-      assert.equal(MockContacts.confirmDialog.args[0][1], errorName);
+      assert.equal(MockConfirmDialog.show.args[0][1], errorName);
     });
 
     test('Status shown', function() {

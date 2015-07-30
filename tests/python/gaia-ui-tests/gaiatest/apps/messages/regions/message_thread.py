@@ -2,16 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-try:
-    from marionette import (expected,
-                            Wait)
-    from marionette.by import By
-    from marionette.marionette import Actions
-except:
-    from marionette_driver import (expected,
-                                   Wait)
-    from marionette_driver.by import By
-    from marionette_driver.marionette import Actions
+from marionette_driver import expected, By, Wait
+from marionette_driver.marionette import Actions
 
 from gaiatest.apps.base import Base
 from gaiatest.apps.base import PageRegion
@@ -27,7 +19,7 @@ class MessageThread(Base):
     _message_header_locator = (By.ID, 'messages-header-text')
     _call_button_locator = (By.ID, 'messages-call-number-button')
 
-    def wait_for_received_messages(self, timeout=180):
+    def wait_for_received_messages(self, interval=5, timeout=300):
         Wait(self.marionette, timeout).until(expected.element_displayed(
             Wait(self.marionette, timeout).until(expected.element_present(
                 *self._received_message_content_locator))))

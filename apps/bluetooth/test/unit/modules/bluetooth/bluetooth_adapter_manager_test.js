@@ -17,7 +17,7 @@ suite('BluetoothAdapterManager', function() {
     this.MockNavigatorBluetooth = {
       defaultAdapter: {},
       callbacks: {
-        'onattributechanged': []
+        'attributechanged': []
       },
       addEventListener: function(eventName, callback) {
         this.callbacks[eventName].push(callback);
@@ -36,34 +36,34 @@ suite('BluetoothAdapterManager', function() {
 
   suite('_init > ', function() {
     setup(function() {
-      this.sinon.stub(adapterManager, '_watchMozBluetoothOnattributechanged');
+      this.sinon.stub(adapterManager, '_watchMozBluetoothAttributechanged');
       this.sinon.stub(adapterManager, '_initDefaultAdapter');
     });
 
-    test('mozBluetooth onattributechanged should be watched, ' +
+    test('mozBluetooth attributechanged should be watched, ' +
          'defaultAdapter should be inited ', function() {
       adapterManager._init();
-      assert.isTrue(adapterManager._watchMozBluetoothOnattributechanged.called);
+      assert.isTrue(adapterManager._watchMozBluetoothAttributechanged.called);
       assert.isTrue(adapterManager._initDefaultAdapter.called);
     });
   });
 
-  suite('_watchMozBluetoothOnattributechanged > ', function() {
+  suite('_watchMozBluetoothAttributechanged > ', function() {
     var eventName, mockEvent;
     setup(function() {
       this.sinon.spy(this.MockNavigatorBluetooth, 'addEventListener');
-      eventName = 'onattributechanged';
+      eventName = 'attributechanged';
       mockEvent = {
         attrs: ['defaultAdapter']
       };
     });
 
-    test('"onattributechanged" event should be watched ' +
+    test('"attributechanged" event should be watched ' +
          'defaultAdapter should be inited while event is coming ', function() {
-      adapterManager._watchMozBluetoothOnattributechanged();
+      adapterManager._watchMozBluetoothAttributechanged();
       assert.isTrue(
         this.MockNavigatorBluetooth.addEventListener.calledWith(eventName));
-      // test 'onattributechanged' event coming
+      // test 'attributechanged' event coming
       this.MockNavigatorBluetooth.callbacks[eventName][0](mockEvent);
       assert.equal(adapterManager.defaultAdapter,
         this.MockNavigatorBluetooth.defaultAdapter);

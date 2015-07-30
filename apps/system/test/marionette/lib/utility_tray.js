@@ -21,11 +21,16 @@
       screen: '#screen.utility-tray',
       notifContainer: '#desktop-notifications-container',
       notification: '#desktop-notifications-container .notification',
-      grippy: '#utility-tray-grippy'
+      grippy: '#utility-tray-grippy',
+      quickSettings: '#quick-settings-full-app'
     },
 
     get visible() {
       return this.client.findElement(this.Selectors.screen);
+    },
+
+    get quickSettings() {
+      return this.client.helper.waitForElement(this.Selectors.quickSettings);
     },
 
     get firstNotification() {
@@ -49,7 +54,7 @@
         var rect = element.scriptWith(function(el) {
           return el.getBoundingClientRect();
         });
-        var expectedTop = -478;
+        var expectedTop = -(rect.height - 2);
         return (rect.top === expectedTop);
       }.bind(this));
     },
@@ -61,7 +66,7 @@
           win.removeEventListener('utility-tray-overlayopened', wait);
           marionetteScriptFinished();
         });
-        win.UtilityTray.show();
+        win.Service.request('UtilityTray:show', true);
       });
     },
 
@@ -72,7 +77,7 @@
           win.removeEventListener('utility-tray-overlayclosed', wait);
           marionetteScriptFinished();
         });
-        win.UtilityTray.hide();
+        win.Service.request('UtilityTray:hide');
       });
     },
 

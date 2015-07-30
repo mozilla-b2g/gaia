@@ -18,7 +18,7 @@ class TestSettingsWifi(GaiaTestCase):
         """
         settings = Settings(self.marionette)
         settings.launch()
-        wifi_settings = settings.open_wifi_settings()
+        wifi_settings = settings.open_wifi()
 
         wifi_settings.enable_wifi()
         wifi_settings.connect_to_network(self.testvars['wifi'])

@@ -54,6 +54,9 @@ var NotificationScreen = {
             this.removeNotification(detail.id);
             break;
         }
+
+        // Send event for notification connector.
+        this._sendEvent('notification-message', detail.type);
         break;
       case 'ftuopen':
         this.toaster.removeEventListener('click', this);
@@ -72,18 +75,14 @@ var NotificationScreen = {
 
   clickNotification: function ns_clickNotification(id) {
     // event for gecko
-    var event = document.createEvent('CustomEvent');
-    event.initCustomEvent('mozContentNotificationEvent', true, true, {
+    this._sendEvent('mozContentNotificationEvent', {
       type: 'desktop-notification-click',
       id: id
     });
-    window.dispatchEvent(event);
     // event for gaia
-    window.dispatchEvent(new CustomEvent('notification-clicked', {
-      detail: {
-        id: id
-      }
-    }));
+    this._sendEvent('notification-clicked', {
+      id: id
+    });
   },
 
   showToast: function ns_showToast(notification) {
@@ -142,12 +141,10 @@ var NotificationScreen = {
     };
 
     // Tell gecko that we already show the notification.
-    var event = document.createEvent('CustomEvent');
-    event.initCustomEvent('mozContentNotificationEvent', true, true, {
+    this._sendEvent('mozContentNotificationEvent', {
       type: 'desktop-notification-show',
       id: notification.id
     });
-    window.dispatchEvent(event);
 
     // XXX: we still need to know if the notification is silent in the future.
     // We turn the screen on if needed in order to let
@@ -172,11 +169,15 @@ var NotificationScreen = {
   },
 
   removeNotification: function ns_removeNotification(notificationId) {
-    var event = document.createEvent('CustomEvent');
-    event.initCustomEvent('mozContentNotificationEvent', true, true, {
+    this._sendEvent('mozContentNotificationEvent', {
       type: 'desktop-notification-close',
       id: notificationId
     });
+  },
+
+  _sendEvent: function ns_sendEvent(name, detail) {
+    var event = document.createEvent('CustomEvent');
+    event.initCustomEvent(name, true, true, detail);
     window.dispatchEvent(event);
   }
 };

@@ -1,18 +1,22 @@
 /*global MocksHelper, MockNavigatormozSetMessageHandler, Browser,
-         MockApplications, MockAppWindow, MockAppWindowHelper */
+         MockApplications, MockAppWindow, MockAppWindowHelper,
+         ActivityHandler */
 
 'use strict';
 
 require('/js/browser_config_helper.js');
 require('/shared/js/url_helper.js');
+require('/js/import.js');
+require('/js/activity_handler.js');
 require('/js/browser.js');
 
 require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
+require('/test/unit/mock_lazy_loader.js');
 require('/test/unit/mock_app_window.js');
 require('/test/unit/mock_applications.js');
 
 var mocksForBrowser = new MocksHelper([
-  'AppWindow', 'Applications'
+  'AppWindow', 'Applications', 'LazyLoader'
 ]).init();
 
 suite('system/Browser', function() {
@@ -26,6 +30,8 @@ suite('system/Browser', function() {
     navigator.mozSetMessageHandler = MockNavigatormozSetMessageHandler;
     MockNavigatormozSetMessageHandler.mSetup();
     window.applications = MockApplications;
+    var handler = new ActivityHandler();
+    handler.start();
     subject = new Browser();
     subject.start();
   });
@@ -42,6 +48,7 @@ suite('system/Browser', function() {
   test('should open a new app window with the correct config', function() {
     MockNavigatormozSetMessageHandler.mTrigger('activity', {
       source: {
+        name: 'view',
         data: {
           name: 'view',
           type: 'url',
@@ -60,6 +67,7 @@ suite('system/Browser', function() {
   test('when private browsing is requested', function() {
     MockNavigatormozSetMessageHandler.mTrigger('activity', {
       source: {
+        name: 'view',
         data: {
           name: 'view',
           type: 'url',

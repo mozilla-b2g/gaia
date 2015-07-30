@@ -6,7 +6,9 @@ var Bookmark = require('../../../../apps/system/test/marionette/lib/bookmark');
 var Server = require('../../../../shared/test/integration/server');
 
 marionette('Bookmark -', function() {
-  var client = marionette.client(require(__dirname + '/client_options.js'));
+  var client = marionette.client({
+    profile: require(__dirname + '/client_options.js')
+  });
   var bookmark, server, system;
 
   suiteSetup(function(done) {
@@ -22,8 +24,8 @@ marionette('Bookmark -', function() {
 
   setup(function() {
     system = client.loader.getAppClass('system');
+    system.waitForFullyLoaded();
     bookmark = new Bookmark(client, server);
-    system.waitForStartup();
   });
 
   test('Install app from page', function() {
@@ -31,7 +33,7 @@ marionette('Bookmark -', function() {
     var url = server.url('app.html');
 
     client.switchToFrame();
-    bookmark.openAndInstall(url, 'My App Shortname');
+    bookmark.openAndInstall(url, 'My App Shortname', '/favicon.ico');
 
   });
 

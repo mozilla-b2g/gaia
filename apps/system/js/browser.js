@@ -1,4 +1,4 @@
-/* global UrlHelper, AppWindow, BrowserConfigHelper */
+/* global UrlHelper, AppWindow, BrowserConfigHelper, LazyLoader */
 
 (function(exports) {
 
@@ -24,17 +24,22 @@
     start: function() {
       window.addEventListener('new-private-window',
         this.newPrivateWindow.bind(this));
-      window.navigator.mozSetMessageHandler('activity',
+      window.addEventListener('activity-view',
         this.handleActivity.bind(this));
     },
 
-    handleActivity: function(activity) {
+    handleActivity: function(e) {
       // Activities can send multiple names, right now we only handle
       // one so we only filter on types
-      var data = activity.source.data;
+      var data = e.detail.source.data;
       switch (data.type) {
         case 'url':
-          handleOpenUrl(UrlHelper.getUrlFromInput(data.url), data.isPrivate);
+          LazyLoader.load(['shared/js/url_helper.js']).then(function() {
+            handleOpenUrl(
+              UrlHelper.getUrlFromInput(data.url), data.isPrivate);
+          }).catch(function(err) {
+            console.error(err);
+          });
           break;
       }
     },

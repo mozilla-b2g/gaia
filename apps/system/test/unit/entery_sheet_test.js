@@ -1,3 +1,4 @@
+/* global EntrySheet */
 'use strict';
 
 /* Unit test of entry_sheet.js */

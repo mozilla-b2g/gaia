@@ -8,75 +8,70 @@
     <div>
       <ul>
         <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="debug.fps.enabled">
-            <span class="color-preview fps-monitor" data-l10n-id="hud-fps"></span>
-          </label>
+          <gaia-checkbox name="debug.fps.enabled" class="color-preview fps-monitor">
+            <label data-l10n-id="hud-fps"></label>
+          </gaia-checkbox>
         </li>
         <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="debug.ttl.enabled">
-            <span class="color-preview ttl-monitor" data-l10n-id="hud-ttl"></span>
-          </label>
+          <gaia-checkbox name="debug.ttl.enabled" class="color-preview ttl-monitor">
+            <label data-l10n-id="hud-ttl"></label>
+          </gaia-checkbox>
         </li>
         <header>
           <h2 data-l10n-id="hud-devtools-header"></h2>
         </header>
         <li>
-          <label class="pack-switch">
-            <input type="checkbox" name="devtools.overlay">
-            <span data-l10n-id="hud-devtools"></span>
-          </label>
+          <gaia-switch name="devtools.overlay">
+            <label data-l10n-id="hud-devtools"></label>
+          </gaia-switch>
         </li>
       </ul>
       <ul class="hud-widgets disabled">
         <li class="hud-separator">
-          <label class="pack-checkbox">
-            <input type="checkbox" name="hud.logging">
-            <span data-l10n-id="hud-logging"></span>
-          </label>
+          <gaia-checkbox name="hud.logging">
+            <label data-l10n-id="hud-logging"></label>
+          </gaia-checkbox>
         </li>
         <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="devtools.overlay.system">
-            <span data-l10n-id="hud-system"></span>
-          </label>
+          <gaia-checkbox name="devtools.overlay.system">
+            <label data-l10n-id="hud-system"></label>
+          </gaia-checkbox>
+        </li>
+        <li>
+          <gaia-checkbox name="hud.hide">
+            <label data-l10n-id="hud-hide"></label>
+          </gaia-checkbox>
         </li>
         <header>
           <h2 data-l10n-id="hud-problems"></h2>
         </header>
         <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="hud.warnings">
-            <span class="color-preview warning-counter" data-l10n-id="hud-warnings"></span>
-          </label>
+          <gaia-checkbox name="hud.warnings" class="color-preview warning-counter">
+            <label data-l10n-id="hud-warnings"></label>
+          </gaia-checkbox>
         </li>
         <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="hud.errors">
-            <span class="color-preview error-counter" data-l10n-id="hud-errors"></span>
-          </label>
+          <gaia-checkbox name="hud.errors" class="color-preview error-counter">
+            <label data-l10n-id="hud-errors"></label>
+          </gaia-checkbox>
         </li>
         <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="hud.security">
-            <span class="color-preview security-counter" data-l10n-id="hud-security"></span>
-          </label>
+          <gaia-checkbox name="hud.security" class="color-preview security-counter">
+            <label data-l10n-id="hud-security"></label>
+          </gaia-checkbox>
         </li>
         <header>
           <h2 data-l10n-id="hud-performance"></h2>
         </header>
         <li class="hud-separator">
-          <label class="pack-checkbox">
-            <input type="checkbox" name="hud.reflows">
-            <span class="color-preview reflow-counter" data-l10n-id="hud-reflows"></span>
-          </label>
+          <gaia-checkbox name="hud.reflows" class="color-preview reflow-counter">
+            <label data-l10n-id="hud-reflows"></label>
+          </gaia-checkbox>
         </li>
         <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="hud.jank">
-            <span class="color-preview jank-monitor" data-l10n-id="hud-jank"></span>
-          </label>
+          <gaia-checkbox name="hud.jank" class="color-preview jank-monitor">
+            <label data-l10n-id="hud-jank"></label>
+          </gaia-checkbox>
         </li>
         <li>
           <p data-l10n-id="jank-threshold"></p>
@@ -93,52 +88,44 @@
           <h2 data-l10n-id="hud-memory"></h2>
         </header>
         <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="hud.uss">
-            <span class="color-preview uss-monitor" data-l10n-id="hud-uss"></span>
-          </label>
+          <gaia-checkbox name="hud.uss" class="color-preview uss-monitor">
+            <label data-l10n-id="hud-uss"></label>
+          </gaia-checkbox>
         </li>
         <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="hud.appmemory">
-            <span class="color-preview memory-monitor" data-l10n-id="hud-appmemory"></span>
-          </label>
+          <gaia-checkbox name="hud.appmemory" class="color-preview memory-monitor">
+            <label data-l10n-id="hud-appmemory"></label>
+          </gaia-checkbox>
         </li>
         <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="hud.jsobjects">
-            <span class="color-preview memory-item" data-l10n-id="hud-jsobjects"></span>
-          </label>
+          <gaia-checkbox name="hud.jsobjects" class="color-preview memory-item">
+            <label data-l10n-id="hud-jsobjects"></label>
+          </gaia-checkbox>
         </li>
         <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="hud.jsstrings">
-            <span class="color-preview memory-item" data-l10n-id="hud-jsstrings"></span>
-          </label>
+          <gaia-checkbox name="hud.jsstrings" class="color-preview memory-item">
+            <label data-l10n-id="hud-jsstrings"></label>
+          </gaia-checkbox>
         </li>
         <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="hud.jsother">
-            <span class="color-preview memory-item" data-l10n-id="hud-jsother"></span>
-          </label>
+          <gaia-checkbox name="hud.jsother" class="color-preview memory-item">
+            <label data-l10n-id="hud-jsother"></label>
+          </gaia-checkbox>
         </li>
         <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="hud.dom">
-            <span class="color-preview memory-item" data-l10n-id="hud-dom"></span>
-          </label>
+          <gaia-checkbox name="hud.dom" class="color-preview memory-item">
+            <label data-l10n-id="hud-dom"></label>
+          </gaia-checkbox>
         </li>
         <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="hud.style">
-            <span class="color-preview memory-item" data-l10n-id="hud-style"></span>
-          </label>
+          <gaia-checkbox name="hud.style" class="color-preview memory-item">
+            <label data-l10n-id="hud-style"></label>
+          </gaia-checkbox>
         </li>
         <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="hud.other">
-            <span class="color-preview memory-item" data-l10n-id="hud-other"></span>
-          </label>
+          <gaia-checkbox name="hud.other" class="color-preview memory-item">
+            <label data-l10n-id="hud-other"></label>
+          </gaia-checkbox>
         </li>
       </ul>
     </div>

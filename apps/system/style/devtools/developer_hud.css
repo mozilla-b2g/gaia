@@ -17,6 +17,10 @@
   flex-wrap: wrap;
 }
 
+.hidden-developer-hud .developer-hud {
+  display: none;
+}
+
 .developer-hud > .widgets {
   width: 100%;
   height: 30px;

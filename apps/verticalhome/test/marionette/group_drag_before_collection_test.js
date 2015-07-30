@@ -7,7 +7,9 @@ var assert = require('assert');
 
 marionette('Vertical - Group', function() {
 
-  var client = marionette.client(require(__dirname + '/client_options.js'));
+  var client = marionette.client({
+    profile: require(__dirname + '/client_options.js')
+  });
   var actions, home, system, collection, server;
 
   suiteSetup(function(done) {
@@ -26,7 +28,7 @@ marionette('Vertical - Group', function() {
     actions = client.loader.getActions();
     home = client.loader.getAppClass('verticalhome');
     system = client.loader.getAppClass('system');
-    system.waitForStartup();
+    system.waitForFullyLoaded();
 
     client.apps.launch(home.URL);
     home.waitForLaunch();

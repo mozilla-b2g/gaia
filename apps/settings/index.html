@@ -1,9 +1,13 @@
 <!DOCTYPE html>
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
 <html>
   <head>
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
     <meta charset="utf-8">
-    <meta name="theme-color" content="#eeeeee">
+    <meta name="theme-group" content="theme-settings">
+    <meta name="theme-color" content="var(--header-background)">
     <title>Settings</title>
 
     <!-- Debug/DUMP method support -->
@@ -13,6 +17,8 @@
     <link rel="stylesheet" type="text/css" href="shared/style/headers.css">
     <link rel="stylesheet" type="text/css" href="shared/style/switches.css">
     <link rel="stylesheet" type="text/css" href="shared/style/status.css">
+    <link rel="stylesheet" type="text/css" href="shared/style/buttons.css">
+    <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css">
 
     <!-- Specific style -->
     <link rel="stylesheet" type="text/css" href="style/lists.css">
@@ -24,16 +30,15 @@
     <link rel="stylesheet" type="text/css" href="style/icc.css">
     <!-- Panel Stylesheets
     <link rel="stylesheet" type="text/css" href="shared/style/action_menu.css"/>
-    <link rel="stylesheet" type="text/css" href="shared/style/buttons.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/confirm.css"/>
-    <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/progress_activity.css"/>
+    <link rel="stylesheet" type="text/css" href="style/achievements.css"/>
     <link rel="stylesheet" type="text/css" href="style/apps.css"/>
     <link rel="stylesheet" type="text/css" href="style/screen_lock.css"/>
     <link rel="stylesheet" type="text/css" href="style/simcard.css"/>
     <link rel="stylesheet" type="text/css" href="style/updates.css"/>
     <link rel="stylesheet" type="text/css" href="style/downloads.css"/>
-    <script defer="" src="shared/js/component_utils.js"></script>
+    <link rel="stylesheet" type="text/css" href="style/developer_service_workers.css"/>
     <script defer="" src="shared/elements/gaia_buttons/script.js"></script>
     <script defer="" src="shared/elements/gaia_confirm/script.js"></script>
     -->
@@ -55,10 +60,13 @@
     <link rel="stylesheet" type="text/css" href="/shared/elements/gaia-icons/gaia-icons.css">
     <link rel="stylesheet" type="text/css" href="app://theme.gaiamobile.org/shared/elements/gaia-theme/gaia-theme.css">
     <script src="shared/elements/gaia-header/dist/gaia-header.js"></script>
+    <script defer src="/shared/js/component_utils.js"></script>
+    <script defer src="/shared/elements/gaia_checkbox/script.js"></script>
+    <script defer src="/shared/elements/gaia_switch/script.js"></script>
 
     <!-- Localization -->
     <meta name="defaultLanguage" content="en-US">
-    <meta name="availableLanguages" content="ar, en-US, fr, zh-TW">
+    <meta name="availableLanguages" content="en-US">
 
     <link rel="localization" href="shared/locales/download/download.{locale}.properties">
     <link rel="localization" href="shared/locales/branding/branding.{locale}.properties">
@@ -74,9 +82,6 @@
 
     <!-- Lazy loader -->
     <script src="/shared/js/lazy_loader.js"></script>
-
-    <!-- For perf-measurement related utilities -->
-    <script defer="" src="/shared/js/performance_testing_helper.js"></script>
 
     <!-- Screen layout watcher -->
     <script defer="" src="/shared/js/screen_layout.js"></script>
@@ -112,11 +117,13 @@
     <!--<script defer src="shared/js/device_storage/enumerate_all.js"></script> -->
     <!--<script defer src="shared/js/tz_select.js"></script> -->
     <!--<script defer src="shared/js/sim_settings_helper.js"></script> -->
-    <!--<script defer src="shared/js/template.js"></script> -->
+    <!--<script defer src="shared/js/sanitizer.js"></script> -->
     <!--<script defer src="shared/js/format.js"></script> -->
     <!--<script defer src="shared/js/search_provider.js"></script> -->
     <!--<script defer src="shared/js/homescreens/vertical_preferences.js"></script> -->
     <!--<script defer src="shared/js/stk_helper.js"></script>-->
+    <!--<script defer src="shared/js/uuid.js"></script>-->
+    <!--<script defer src="shared/js/passcode_helper.js"></script>-->
 
     <!-- all non-#root panels will lazy-load their own scripts -->
     <link rel="import" href="/elements/wifi_status.html">
@@ -134,7 +141,7 @@
     <link rel="import" href="/elements/call_cf_no_reply_settings.html">
     <link rel="import" href="/elements/call_cf_mobile_busy_settings.html">
     <link rel="import" href="/elements/call_cf_unconditional_settings.html">
-    <link rel="import" href="/elements/call_cf_settings.html">
+    <link rel="import" href="/elements/call_forwarding.html">
 
     <!-- Call Barring -->
     <link rel="import" href="/elements/call_barring.html">
@@ -152,7 +159,7 @@
     <link rel="import" href="/elements/apn_settings.html">
     <link rel="import" href="/elements/apn_list.html">
     <link rel="import" href="/elements/apn_editor.html">
-    <link rel="import" href="/elements/carrier_operator_settings.html">
+    <link rel="import" href="/elements/operator_settings.html">
     <link rel="import" href="/elements/carrier_detail.html">
     <link rel="import" href="/elements/carrier.html">
     <link rel="import" href="/elements/bluetooth.html">
@@ -173,6 +180,7 @@
     <link rel="import" href="/elements/keyboard.html">
     <link rel="import" href="/elements/keyboard_selection_add_more.html">
     <link rel="import" href="/elements/themes.html">
+    <link rel="import" href="/elements/addon_details.html">
     <link rel="import" href="/elements/addons.html">
     <link rel="import" href="/elements/screen_lock_passcode.html">
     <link rel="import" href="/elements/screen_lock.html">
@@ -198,6 +206,7 @@
     <link rel="import" href="/elements/accessibility_colors.html">
     <link rel="import" href="/elements/developer_hud.html">
     <link rel="import" href="/elements/developer.html">
+    <link rel="import" href="/elements/developer_service_workers.html">
     <link rel="import" href="/elements/crash_reports.html">
     <link rel="import" href="/elements/improve_browser_os_send_feedback.html">
     <link rel="import" href="/elements/improve_browser_os_choose_feedback.html">
@@ -206,8 +215,13 @@
     <link rel="import" href="/elements/icc.html">
     <link rel="import" href="/elements/downloads.html">
     <link rel="import" href="/elements/firefox_accounts.html">
+    <link rel="import" href="/elements/achievements.html">
     <link rel="import" href="/elements/findmydevice.html">
     <link rel="import" href="/elements/frame.html">
+    <link rel="import" href="/elements/full_developer_mode.html">
+    <link rel="import" href="/elements/full_developer_mode_warning.html">
+    <link rel="import" href="/elements/full_developer_mode_final_warning.html">
+    <link rel="import" href="/elements/partial_ums_warning.html">
     <link rel="import" href="/elements/templates/messaging.html">
     <link rel="import" href="/elements/root.html">
     <link rel="import" href="/elements/settings_alert_dialog.html">
@@ -266,7 +280,7 @@
     <!-- Connectivity :: Call :: Call Forwarding Unconditional -->
     <section is="call-cf-unconditional-settings" role="region" id="call-cf-unconditional-settings" class="dialog"></section>
     <!-- Connectivity :: Call :: Call Forwarding Settings -->
-    <section is="call-cfSettings" role="region" id="call-cfSettings"></section>
+    <section is="call-forwarding" role="region" id="call-forwarding"></section>
     <!-- Connectivity :: Call :: Call Barring Settings -->
     <section is="call-cbSettings" role="region" id="call-cbSettings"></section>
     <!-- Connectivity :: Call :: Call Barring Passcode Change -->
@@ -288,7 +302,7 @@
     <!-- Connectivity :: Messaging -->
     <section is="messaging" role="region" id="messaging"></section>
     <!-- Connectivity :: Cellular & Data :: Network Operator -->
-    <section is="carrier-operatorSettings" role="region" id="carrier-operatorSettings"></section>
+    <section is="operator-settings" role="region" id="operator-settings"></section>
     <!-- Connectivity :: Cellular & Data :: APN Settings -->
     <section is="apn-settings" role="region" id="apn-settings"></section>
     <!-- Connectivity :: Cellular & Data :: APN List -->
@@ -340,6 +354,10 @@
     <section is="themes" role="region" id="themes"></section>
     <!-- Personalization :: Addons -->
     <section is="addons" role="region" id="addons"></section>
+    <!-- Personalization :: Addons :: details -->
+    <section is="addon-details" role="region" id="addon-details"></section>
+    <!-- Accounts :: Achievements -->
+    <section is="achievements" role="region" id="achievements"></section>
 
     <!-- Accounts :: Find My Device -->
     <section is="findmydevice" role="region" id="findmydevice"></section>
@@ -393,6 +411,8 @@
     <section is="accessibility" role="region" id="accessibility"></section>
     <!-- Device :: Developer :: HUD -->
     <section is="developer-hud" role="region" id="developer-hud"></section>
+    <!-- Device :: Developer :: Service Workers -->
+    <section is="developer-service-workers" role="region" id="developer-service-workers"></section>
     <!-- Device :: Developer -->
     <section is="developer" role="region" id="developer"></section>
     <!-- Device :: Improve Browser OS :: Crash Reports-->
@@ -411,6 +431,14 @@
     <section is="fxa" role="region" id="fxa"></section>
     <!-- Iframe -->
     <section is="frame" role="region" id="frame"></section>
+    <!-- Full Developer Mode -->
+    <section is="full-developer-mode" role="region" id="full-developer-mode"></section>
+    <!-- Full Developer Mode Warning-->
+    <section is="full-developer-mode-warning" role="region" id="full-developer-mode-warning" class="dialog"></section>
+    <!-- Full Developer Mode Final Warning -->
+    <section is="full-developer-mode-final-warning" role="region" id="full-developer-mode-final-warning" class="dialog"></section>
+    <!-- Parital Ums Warning -->
+    <section is="partial-ums-warning" role="region" id="partial-ums-warning" class="dialog"></section>
     <!-- SettingsDialog :: AlertDialog -->
     <section is="settings-alert-dialog" class="dialog" role="region" id="settings-alert-dialog"></section>
     <!-- SettingsDialog :: ConFirmDialog -->

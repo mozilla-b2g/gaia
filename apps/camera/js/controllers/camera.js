@@ -29,6 +29,11 @@ function CameraController(app) {
   this.hdrDisabled = this.settings.hdr.get('disabled');
   this.notification = app.views.notification;
   this.l10nGet = app.l10nGet;
+
+  // Wait until we get the battery state before turning
+  // on the camera
+  this.lowBattery = true;
+
   this.configure();
   this.bindEvents();
   debug('initialized');
@@ -66,14 +71,16 @@ CameraController.prototype.bindEvents = function() {
   app.on('viewfinder:focuspointchanged', this.onFocusPointChanged);
   app.on('change:batteryStatus', this.onBatteryStatusChange);
   app.on('settings:configured', this.onSettingsConfigured);
-  app.on('previewgallery:opened', this.shutdownCamera);
+  app.on('previewgallery:opened', this.onGalleryOpened);
   app.on('previewgallery:closed', this.onGalleryClosed);
   app.on('stoprecording', this.camera.stopRecording);
   app.on('storage:volumechanged', this.onStorageVolumeChanged);
   app.on('storage:changed', this.onStorageChanged);
   app.on('activity:pick', this.onPickActivity);
+  app.on('keydown:capture', this.onCaptureKey);
+  app.on('keydown:focus', this.onFocusKey);
   app.on('timer:ended', this.capture);
-  app.on('visible', this.camera.load);
+  app.on('visible', this.loadCamera);
   app.on('capture', this.capture);
   app.on('hidden', this.shutdownCamera);
 
@@ -87,29 +94,7 @@ CameraController.prototype.bindEvents = function() {
   settings.hdr.on('change:selected', this.setHDR);
   settings.hdr.on('change:selected', this.onHDRChange);
 
-  // Key events
-  window.addEventListener('keydown', this.onKeyDown);
-
   debug('events bound');
-};
-
-/**
- * When the device's hardware keys
- * are pressed we can control the
- * camera.
- *
- * @param  {Event} e
- * @private
- */
-CameraController.prototype.onKeyDown = function(e) {
-  switch (e.key.toLowerCase()) {
-    case 'volumedown':
-    case 'volumeup':
-    case 'camera':
-      return this.onCaptureKey(e);
-    case 'mozcamerafocusadjust':
-      return this.onFocusKey();
-  }
 };
 
 /**
@@ -132,6 +117,9 @@ CameraController.prototype.onKeyDown = function(e) {
  */
 CameraController.prototype.onCaptureKey = function(e) {
   debug('on capture key', e);
+  var ignore = this.app.get('timerActive') ||
+    this.app.get('confirmViewVisible');
+  if (ignore) { return e.preventDefault(); }
   if (this.capture() !== false) { e.preventDefault(); }
 };
 
@@ -209,6 +197,10 @@ CameraController.prototype.onPickActivity = function(data) {
  * @private
  */
 CameraController.prototype.capture = function() {
+  if (this.lowBattery || this.galleryOpen || this.app.hidden) {
+    return false;
+  }
+
   if (this.shouldCountdown()) {
     this.app.emit('startcountdown');
     return;
@@ -270,7 +262,7 @@ CameraController.prototype.showSizeLimitAlert = function() {
 CameraController.prototype.setMode = function(mode) {
   debug('set mode: %s', mode);
   var self = this;
-  var html;
+  var l10nId;
 
   // Abort if didn't change.
   //
@@ -286,12 +278,12 @@ CameraController.prototype.setMode = function(mode) {
   }
 
   if (mode == 'video') {
-    html = this.l10nGet('Video-Mode');
+    l10nId = 'Video-Mode';
   }
   else {
-    html = this.l10nGet('Photo-Mode');
+    l10nId = 'Photo-Mode';
   }
-  this.notification.display({ text: html });
+  this.notification.display({ text: l10nId });
 
   this.setFlashMode();
   this.app.emit('camera:willchange');
@@ -445,7 +437,12 @@ CameraController.prototype.onHDRChange = function(hdr) {
 };
 
 CameraController.prototype.onBatteryStatusChange = function(status) {
-  if (status === 'shutdown') { this.camera.stopRecording(); }
+  this.lowBattery = status === 'shutdown';
+  if (this.lowBattery) {
+    this.shutdownCamera();
+  } else {
+    this.loadCamera();
+  }
 };
 
 /**
@@ -457,8 +454,10 @@ CameraController.prototype.onBatteryStatusChange = function(status) {
  *
  * @private
  */
-CameraController.prototype.onStorageChanged = function() {
-  this.camera.stopRecording();
+CameraController.prototype.onStorageChanged = function(state) {
+  if (state !== 'available') {
+    this.camera.stopRecording();
+  }
 };
 
 /**
@@ -468,7 +467,7 @@ CameraController.prototype.onStorageChanged = function() {
  * @private
  */
 CameraController.prototype.onStorageVolumeChanged = function(storage) {
-  this.camera.setVideoStorage(storage.video);
+  this.camera.setStorage(storage);
 };
 
 /**
@@ -476,6 +475,16 @@ CameraController.prototype.onStorageVolumeChanged = function(storage) {
  */
 CameraController.prototype.onFocusPointChanged = function(focusPoint) {
   this.camera.updateFocusArea(focusPoint.area);
+};
+
+CameraController.prototype.loadCamera = function(showSpinner) {
+  if (this.lowBattery || this.galleryOpen || this.app.hidden) {
+    return;
+  }
+  if (showSpinner) {
+    this.app.showSpinner();
+  }
+  this.camera.load();
 };
 
 CameraController.prototype.shutdownCamera = function() {
@@ -495,6 +504,11 @@ CameraController.prototype.onCameraClosed = function(reason) {
   }
 };
 
+CameraController.prototype.onGalleryOpened = function() {
+  this.galleryOpen = true;
+  this.shutdownCamera();
+};
+
 /**
  * As the camera is shutdown when the
  * preview gallery is opened, we must
@@ -508,9 +522,9 @@ CameraController.prototype.onCameraClosed = function(reason) {
  * @private
  */
 CameraController.prototype.onGalleryClosed = function(reason) {
+  this.galleryOpen = false;
   if (this.app.hidden) { return; }
-  this.app.showSpinner();
-  this.camera.load(this.app.clearSpinner);
+  this.loadCamera(true);
 };
 
 /**

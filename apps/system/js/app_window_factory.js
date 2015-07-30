@@ -1,5 +1,5 @@
 'use strict';
-/* global applications, BrowserConfigHelper, AppWindow */
+/* global applications, BrowserConfigHelper, AppWindow, Service */
 /* jshint nonew: false */
 
 (function(exports) {
@@ -27,6 +27,7 @@
   }
 
   AppWindowFactory.prototype = {
+    name: 'AppWindowFactory',
     /**
      * Indicate whether this class is started or not.
      * @access private
@@ -54,6 +55,7 @@
         window.removeEventListener('applicationready', appReady);
         this._handlePendingEvents();
       }).bind(this));
+      Service.registerState('isLaunchingWindow', this);
     },
 
     /**
@@ -99,6 +101,12 @@
 
     handleEvent: function awf_handleEvent(evt) {
       var detail = evt.detail;
+      if (evt.type === '_opened' || evt.type === '_terminated') {
+        if (this._launchingApp === detail) {
+          this.forgetLastLaunchingWindow();
+        }
+        return;
+      }
       if (!detail.url && !detail.manifestURL) {
         return;
       }
@@ -181,19 +189,53 @@
           config.url.indexOf('newtab.html') === -1) {
         return;
       }
-      var app = window.appWindowManager.getApp(config.origin,
-        config.manifestURL);
+      var app = Service.query('getApp', config.origin, config.manifestURL);
       if (app) {
         if (config.evtType == 'appopenwindow') {
           app.browser.element.src = config.url;
         }
         app.reviveBrowser();
+
+        // Always relaunch background app locally
+        this.publish('launchapp', config);
       } else {
-        // homescreenWindowManager already listens webapps-launch and open-app.
-        // We don't need to check if the launched app is homescreen.
-        new AppWindow(config);
+        var launchApp = () => {
+          // homescreenWindowManager already listens webapps-launch and
+          // open-app. We don't need to check if the launched app is homescreen.
+          this.forgetLastLaunchingWindow();
+          this.trackLauchingWindow(config);
+
+          this.publish('launchapp', config);
+        };
+
+        if (Service.query('MultiScreenController.enabled')) {
+          Service.request('chooseDisplay', config).catch(launchApp);
+        } else {
+          launchApp();
+        }
       }
-      this.publish('launchapp', config);
+    },
+
+    trackLauchingWindow: function(config) {
+      var app = new AppWindow(config);
+      if (config.stayBackground) {
+        return;
+      }
+      this._launchingApp = app;
+      this._launchingApp.element.addEventListener('_opened', this);
+      this._launchingApp.element.addEventListener('_terminated', this);
+    },
+
+    forgetLastLaunchingWindow: function() {
+      if (this._launchingApp && this._launchingApp.element) {
+        this._launchingApp.element.removeEventListener('_opened', this);
+        this._launchingApp.element.removeEventListener('_terminated', this);
+      }
+      this._launchingApp = null;
+    },
+
+    isLaunchingWindow: function() {
+      return !!this._launchingApp;
     },
 
     /**

@@ -2,19 +2,19 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from gaiatest import GaiaTestCase
+from gaiatest import PasscodeTestCase
 from gaiatest.apps.lockscreen.app import LockScreen
 
 
-class TestLockScreen(GaiaTestCase):
+class TestLockScreen(PasscodeTestCase):
 
-    _input_passcode = '7931'
+    _input_passcode = '1337'
 
     def setUp(self):
-        GaiaTestCase.setUp(self)
+        PasscodeTestCase.setUp(self)
 
-        #set passcode-lock
-        self.data_layer.set_setting('lockscreen.passcode-lock.code', self._input_passcode)
+        self.set_passcode_to_1337()
+
         self.data_layer.set_setting('lockscreen.passcode-lock.enabled', True)
 
         # this time we need it locked!
@@ -26,7 +26,6 @@ class TestLockScreen(GaiaTestCase):
         """
         lock_screen = LockScreen(self.marionette)
         lock_screen.switch_to_frame()
-        passcode_pad = lock_screen.unlock_to_passcode_pad()
-        homescreen = passcode_pad.type_passcode(self._input_passcode)
+        homescreen = lock_screen.unlock_to_homescreen_using_passcode(self._input_passcode)
 
         self.wait_for_condition(lambda m: self.apps.displayed_app.name == homescreen.name)

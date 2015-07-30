@@ -7,12 +7,17 @@
     <title>Gallery</title>
     <link rel="stylesheet" href="style/open.css" type="text/css" />
     <link rel="stylesheet" href="shared/style/status.css" type="text/css" />
+    <link rel="stylesheet" href="shared/style/shrinking_ui.css" type="text/css" />
+
     <!-- Localization -->
     <meta name="defaultLanguage" content="en-US">
-    <meta name="availableLanguages" content="ar, en-US, fr, zh-TW">
+    <meta name="availableLanguages" content="en-US">
     <link rel="localization" href="locales/gallery.{locale}.properties">
+    <link rel="localization" href="/shared/locales/media/media.{locale}.properties">
+    <link rel="localization" href="/shared/locales/shrinking_ui/shrinking_ui.{locale}.properties">
     <!-- Shared code -->
     <script type="text/javascript" src="shared/js/l10n.js"></script>
+    <script defer src="shared/js/l10n_date.js"></script>
     <script type="text/javascript" defer src="shared/js/gesture_detector.js"></script>
     <script type="text/javascript" defer src="shared/js/media/downsample.js"></script>
     <script type="text/javascript" defer src="shared/js/media/media_frame.js"></script>
@@ -22,6 +27,7 @@
     <script type="text/javascript" defer src="shared/js/media/image_size.js"></script>
     <script type="text/javascript" defer src="shared/js/device_storage/get_storage_if_available.js"></script>
     <script type="text/javascript" defer src="shared/js/device_storage/get_unused_filename.js"></script>
+    <script type="text/javascript" defer src="shared/js/shrinking_ui.js"></script>
     <!-- Specific code -->
     <script type="text/javascript" defer src="js/config.js"></script>
     <script type="text/javascript" defer src="js/nfc.js"></script>

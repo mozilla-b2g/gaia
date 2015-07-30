@@ -7,17 +7,19 @@ var Messages = require('./lib/messages.js');
 var MessagesActivityCaller = require('./lib/messages_activity_caller.js');
 
 marionette('Messages as share target', function() {
+  var MOCKS = [
+    '/mocks/mock_navigator_moz_icc_manager.js',
+    '/mocks/mock_navigator_moz_mobile_message.js'
+  ];
+
   var apps = {};
 
   apps[MessagesActivityCaller.ORIGIN] = __dirname + '/apps/activitycaller';
 
   var client = marionette.client({
-    settings: {
-      'lockscreen.enabled': false,
-      'ftu.manifestURL': null
-    },
-
-    apps: apps
+    profile: {
+      apps: apps
+    }
   });
 
   var messagesApp,
@@ -27,12 +29,9 @@ marionette('Messages as share target', function() {
     messagesApp = Messages.create(client);
     activityCallerApp = MessagesActivityCaller.create(client);
 
-    client.contentScript.inject(
-      __dirname + '/mocks/mock_navigator_moz_icc_manager.js'
-    );
-    client.contentScript.inject(
-      __dirname + '/mocks/mock_navigator_moz_mobile_message.js'
-    );
+    MOCKS.forEach(function(mock) {
+      client.contentScript.inject(__dirname + mock);
+    });
   });
 
   suite('Share via Messages', function() {
@@ -45,24 +44,24 @@ marionette('Messages as share target', function() {
       });
 
       test('Should close activity if in Composer panel', function() {
-        assert.ok(
-          messagesApp.Composer.header.getAttribute('action') === 'close',
+        assert.equal(
+          messagesApp.Composer.header.getAttribute('action'), 'close',
           'Close activity button should be visible'
         );
 
         // Exit from activity and verify that Messages is dismissed
         messagesApp.performHeaderAction();
-        messagesApp.selectAppMenuOption('Discard');
+        messagesApp.selectAppMenuOption('Delete Draft');
         messagesApp.waitForAppToDisappear();
       });
 
-      test('Should close activity if in Thread panel', function() {
-        // Send message to be forwarded to Thread panel afterwards
+      test('Should close activity if in Conversation panel', function() {
+        // Send message to be forwarded to Conversation panel afterwards
         messagesApp.addRecipient('+1');
         messagesApp.send();
 
-        assert.ok(
-          messagesApp.Composer.header.getAttribute('action') === 'close',
+        assert.equal(
+          messagesApp.Composer.header.getAttribute('action'), 'close',
           'Close activity button should be visible'
         );
 
@@ -71,27 +70,27 @@ marionette('Messages as share target', function() {
         messagesApp.waitForAppToDisappear();
       });
 
-      test('Should return to Thread panel if in Report panel', function() {
-        // Send message to be forwarded to Thread panel afterwards
+      test('Should return to Conversation view if in Report view', function() {
+        // Send message to be forwarded to Conversation panel afterwards
         messagesApp.addRecipient('+1');
         messagesApp.send();
 
         // Go to the Report panel
-        messagesApp.contextMenu(messagesApp.Thread.message);
+        messagesApp.contextMenu(messagesApp.Conversation.message);
         messagesApp.selectAppMenuOption('View message report');
         client.helper.waitForElement(messagesApp.Report.main);
 
-        assert.ok(
-          messagesApp.Report.header.getAttribute('action') === 'close',
+        assert.equal(
+          messagesApp.Composer.header.getAttribute('action'), 'close',
           'Close activity button should be visible'
         );
 
         // Close report panel
         messagesApp.performReportHeaderAction();
-        client.helper.waitForElement(messagesApp.Thread.message);
+        client.helper.waitForElement(messagesApp.Conversation.message);
 
-        assert.ok(
-          messagesApp.Composer.header.getAttribute('action') === 'close',
+        assert.equal(
+          messagesApp.Composer.header.getAttribute('action'), 'close',
           'Close activity button should be visible'
         );
 
@@ -100,7 +99,7 @@ marionette('Messages as share target', function() {
         messagesApp.waitForAppToDisappear();
       });
 
-      test('Should return to Thread panel if in Participants panel',
+      test('Should return to Conversation panel if in Participants panel',
       function() {
         // Send group MMS message
         messagesApp.addRecipient('+1');
@@ -115,20 +114,20 @@ marionette('Messages as share target', function() {
         messagesApp.send();
 
         // Go to Participants panel
-        messagesApp.Thread.headerTitle.tap();
+        messagesApp.Conversation.headerTitle.tap();
         client.helper.waitForElement(messagesApp.Participants.main);
 
-        assert.ok(
-          messagesApp.Participants.header.getAttribute('action') === 'back',
-          'Back activity button should be visible'
+        assert.equal(
+          messagesApp.Composer.header.getAttribute('action'), 'close',
+          'Close activity button should be visible'
         );
 
-        // Go back to Thread panel
+        // Go back to Conversation panel
         messagesApp.performGroupHeaderAction();
-        client.helper.waitForElement(messagesApp.Thread.message);
+        client.helper.waitForElement(messagesApp.Conversation.message);
 
-        assert.ok(
-          messagesApp.Composer.header.getAttribute('action') === 'close',
+        assert.equal(
+          messagesApp.Composer.header.getAttribute('action'), 'close',
           'Close activity button should be visible'
         );
 

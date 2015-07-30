@@ -1,51 +1,33 @@
+/* global MockCanvas, MockCanvasRenderingContext2D, MockImage,
+          MockService, PasscodeHelper */
 'use strict';
 
 require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_image.js');
 require('/shared/test/unit/mocks/mock_canvas.js');
 require('/shared/test/unit/mocks/mock_canvas_rendering_context_2d.js');
+require('/shared/js/passcode_helper.js');
 requireApp('system/lockscreen/js/lockscreen_charging.js');
+requireApp('system/shared/test/unit/mocks/mock_service.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
-requireApp('system/test/unit/mock_ftu_launcher.js');
-requireApp('system/test/unit/mock_app_window_manager.js');
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_lockscreen_slide.js');
-requireApp('system/test/unit/mock_orientation_manager.js',
-  function() {
-    window.realOrientationManager = window.OrientationManager;
-    window.OrientationManager = window.MockOrientationManager;
-    requireApp('system/lockscreen/js/lockscreen.js');
-  });
-
-if (!this.FtuLauncher) {
-  this.FtuLauncher = null;
-}
-
-if (!this.SettingsListener) {
-  this.SettingsListener = null;
-}
+requireApp('system/test/unit/mock_lazy_loader.js');
 
 var mocksForLockScreen = new window.MocksHelper([
-  'OrientationManager', 'AppWindowManager', 'AppWindow', 'LockScreenSlide',
-  'SettingsListener', 'Image', 'Canvas'
+  'AppWindow', 'LockScreenSlide', 'LazyLoader',
+  'SettingsListener', 'Image', 'Canvas', 'Service'
 ]).init();
 
-requireApp('system/test/unit/mock_orientation_manager.js',
-function() {
-  window.realOrientationManager = window.OrientationManager;
-  window.OrientationManager = window.MockOrientationManager;
-  requireApp('system/lockscreen/js/lockscreen.js');
-});
+requireApp('system/lockscreen/js/lockscreen.js');
 
 suite('system/LockScreen >', function() {
   var subject;
   var realL10n;
   var realMozTelephony;
   var realClock;
-  var realOrientationManager;
-  var realFtuLauncher;
   var realSettingsListener;
   var realMozSettings;
   var domPasscodePad;
@@ -100,12 +82,6 @@ suite('system/LockScreen >', function() {
     realMozTelephony = navigator.mozTelephony;
     navigator.mozTelephony = window.MockNavigatorMozTelephony;
 
-    realOrientationManager = window.OrientationManager;
-    window.OrientationManager = window.MockOrientationManager;
-
-    realFtuLauncher = window.FtuLauncher;
-    window.FtuLauncher = window.MockFtuLauncher;
-
     realSettingsListener = window.SettingsListener;
     window.SettingsListener = window.MockSettingsListener;
 
@@ -134,6 +110,9 @@ suite('system/LockScreen >', function() {
       start: function() {},
       stop: function() {}
     };
+    realClock = window.Clock;
+    window.Clock = mockClock;
+
     subject.overlay = domOverlay;
     subject.mainScreen = domMainScreen;
     subject.camera = domCamera;
@@ -166,6 +145,79 @@ suite('system/LockScreen >', function() {
     delete subject._lockscreenConnInfoManager;
   });
 
+  test('When checkPassCodeTimeout, it would check intervals',
+  function() {
+    var method = window.LockScreen.prototype.checkPassCodeTimeout;
+    var mockThis = {
+      passCodeRequestTimeout: 60,
+      fetchLockedInterval: function() {},
+      fetchUnlockedInterval: function() {}
+    };
+    var stubFetchLockedInterval = this.sinon.stub().returns(61 * 1000);
+    var stubFetchUnlockedInterval = this.sinon.stub().returns(59 * 1000);
+    mockThis.fetchLockedInterval = stubFetchLockedInterval;
+    mockThis.fetchUnlockedInterval = stubFetchUnlockedInterval;
+    assert.isTrue(method.call(mockThis));
+    stubFetchLockedInterval = this.sinon.stub().returns(59 * 1000);
+    stubFetchUnlockedInterval = this.sinon.stub().returns(61 * 1000);
+    mockThis.fetchLockedInterval = stubFetchLockedInterval;
+    mockThis.fetchUnlockedInterval = stubFetchUnlockedInterval;
+    assert.isTrue(method.call(mockThis));
+    stubFetchLockedInterval = this.sinon.stub().returns(59 * 1000);
+    stubFetchUnlockedInterval = this.sinon.stub().returns(59 * 1000);
+    mockThis.fetchLockedInterval = stubFetchLockedInterval;
+    mockThis.fetchUnlockedInterval = stubFetchUnlockedInterval;
+    assert.isFalse(method.call(mockThis));
+  });
+
+  test('Fetch locked interval update the interval when it\'s still locked',
+  function() {
+    var method = window.LockScreen.prototype.fetchLockedInterval;
+    var mockThis = {
+      locked: true,
+      _lastLockedInterval: -1,
+      _lastLockedTimeStamp: 0
+    };
+    method.call(mockThis);
+    assert.isTrue(mockThis._lastLockedInterval > -1);
+  });
+
+  test('Fetch locked interval update no interval after it\'s unlocked',
+  function() {
+    var method = window.LockScreen.prototype.fetchLockedInterval;
+    var mockThis = {
+      locked: false,
+      _lastLockedInterval: -1,
+      _lastLockedTimeStamp: 0
+    };
+    method.call(mockThis);
+    assert.equal(mockThis._lastLockedInterval, -1);
+  });
+
+  test('Fetch unlocked interval update the interval when it\'s still unlocked',
+  function() {
+    var method = window.LockScreen.prototype.fetchUnlockedInterval;
+    var mockThis = {
+      locked: false,
+      _lastUnlockedInterval: -1,
+      _lastUnlockedTimeStamp: 0
+    };
+    method.call(mockThis);
+    assert.isTrue(mockThis._lastUnlockedInterval > -1);
+  });
+
+  test('Fetch unlocked interval update no interval after it\'s locked',
+  function() {
+    var method = window.LockScreen.prototype.fetchUnlockedInterval;
+    var mockThis = {
+      locked: true,
+      _lastUnlockedInterval: -1,
+      _lastUnlockedTimeStamp: 0
+    };
+    method.call(mockThis);
+    assert.equal(mockThis._lastUnlockedInterval, -1);
+  });
+
   test('L10n initialization: it should init the conn info manager if it\'s' +
        ' undefined', function() {
     var stubConnInfoManager = this.sinon.stub(window,
@@ -176,6 +228,7 @@ suite('system/LockScreen >', function() {
     };
     var originalMozMobileConnections = window.navigator.mozMobileConnections;
     window.navigator.mozMobileConnections = {};
+    window.SIMSlotManager = {};
     assert.isTrue(!!(window.navigator.mozMobileConnections),
                   'the first condition is not satisfied: ' +
                    !!(window.navigator.mozMobileConnections));
@@ -192,9 +245,18 @@ suite('system/LockScreen >', function() {
   });
 
   test('Lock: can actually lock', function() {
+    subject._lastUnlockedInterval = -1;
+    subject._lastUnlockedTimeStamp = 0;
+    subject._lastLockedTimeStamp = -1;
+
     subject.overlay = domOverlay;
+    subject.locked = false;
     subject.lock();
     assert.isTrue(subject.locked);
+    assert.isTrue(subject._lastUnlockedInterval > -1,
+    'it didn\'t update "_lastUnlockedInterval" when ends the unlocked session');
+    assert.isTrue(subject._lastLockedTimeStamp > -1,
+    'it didn\'t update "_lastLockedTimeStamp" when it locks');
   });
 
   test('Lock: would create the clock widget', function() {
@@ -206,9 +268,33 @@ suite('system/LockScreen >', function() {
   });
 
   test('Unlock: can actually unlock', function() {
+    subject._lastLockedInterval = -1;
+    subject._lastLockedTimeStamp = 0;
+    subject._lastUnlockedTimeStamp = -1;
+
     subject.overlay = domOverlay;
     subject.unlock(true);
     assert.isFalse(subject.locked);
+    assert.isTrue(subject._lastLockedInterval > -1,
+    'it didn\'t update "_lastLockedInterval" when it ends the locked session');
+    assert.isTrue(subject._lastUnlockedTimeStamp > -1,
+    'it didn\'t update "_lastUnlockedTimeStamp" when it unlocks');
+  });
+
+  test('Unlock: uses PasscodeHelper', function() {
+    var StubPasscodeHelper = this.sinon.stub(PasscodeHelper, 'check',
+                              function() {
+      return Promise.resolve(true);
+    });
+
+    subject._lastLockedInterval = -1;
+    subject._lastLockedTimeStamp = 0;
+    subject._lastUnlockedTimeStamp = -1;
+
+    subject.overlay = domOverlay;
+    subject.checkPassCode('0000');
+    assert.isTrue(StubPasscodeHelper.called,
+      'lockscreen did not call PasscodeHelper to validate passcode');
   });
 
   test('Unlock: would destroy the clock widget', function() {
@@ -218,16 +304,6 @@ suite('system/LockScreen >', function() {
     subject.unlock(true);
     assert.isTrue(stubDestroy.called);
     assert.isUndefined(subject.lockScreenClockWidget);
-  });
-
-  test('Passcode: enter passcode should fire the validation event', function() {
-    var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
-    subject.checkPassCode('foobar');
-    assert.isTrue(stubDispatchEvent.calledWithMatch(function(event) {
-      return 'lockscreen-request-passcode-validate' === event.type &&
-        'foobar' === event.detail.passcode;
-    }),
-    'it did\'t fire the correspond event to validate the passcode');
   });
 
 
@@ -421,6 +497,12 @@ suite('system/LockScreen >', function() {
       stubDispatch.restore();
     });
 
+  test('When lockscreen is on, holdcamera starts camera app', function() {
+    var spy = this.sinon.spy(subject, '_activateCamera');
+    subject.handleEvent({ type: 'holdcamera' });
+    assert.isTrue(spy.called);
+  });
+
   test('Message: message should appear on screen when set', function() {
     var message = 'message';
     subject.setLockMessage(message);
@@ -439,6 +521,44 @@ suite('system/LockScreen >', function() {
       'lockscreen.lock-immediately', {settingValue: true});
     assert.isTrue(subject.locked,
       'it didn\'t lock after the lock-immediately setting got changed');
+  });
+
+  test('Locks the screen: the overlay would be set as locked', function() {
+    var method = window.LockScreen.prototype.lock;
+    var stubOverlayLocked = this.sinon.stub();
+    var mockThis = {
+      locked: false,
+      overlayLocked: stubOverlayLocked,
+      mainScreen: document.createElement('div'),
+      createClockWidget: function() {},
+      dispatchEvent: function() {},
+      _checkGenerateMaskedBackgroundColor: function() {
+        return false;
+      }
+    };
+    method.call(mockThis);
+    assert.isTrue(stubOverlayLocked.called);
+  });
+
+  suite('Wallpaper', function() {
+    test('Should update background when inited', function() {
+      this.sinon.stub(subject, 'updateBackground');
+      MockService.mockQueryWith('getWallpaper',
+        'blob:app://wallpaper.gaiamobile.org/b10b-1d');
+      subject.init();
+      assert.isTrue(subject.updateBackground.calledWith(
+        'blob:app://wallpaper.gaiamobile.org/b10b-1d'));
+    });
+
+    test('Should update background when wallpaper changed', function() {
+      this.sinon.stub(subject, 'updateBackground');
+      subject.init();
+      window.dispatchEvent(new CustomEvent('wallpaperchange', {
+        detail: { url: 'blob:app://wallpaper.gaiamobile.org/b10b-1d' }
+      }));
+      assert.isTrue(subject.updateBackground.calledWith(
+        'blob:app://wallpaper.gaiamobile.org/b10b-1d'));
+    });
   });
 
   // XXX: Test 'Screen off: by proximity sensor'.
@@ -673,9 +793,7 @@ suite('system/LockScreen >', function() {
   teardown(function() {
     navigator.mozL10n = realL10n;
     navigator.mozTelephony = realMozTelephony;
-    window.Clock = window.realClock;
-    window.OrientationManager = window.realOrientationManager;
-    window.FtuLauncher = realFtuLauncher;
+    window.Clock = realClock;
     window.SettingsListener = realSettingsListener;
     navigator.mozSettings = realMozSettings;
 

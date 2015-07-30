@@ -1,9 +1,9 @@
-/* global SettingsListener */
 define(function(require) {
   'use strict';
 
   var SettingsService = require('modules/settings_service');
   var SettingsUtils = require('modules/settings_utils');
+  var PasscodeHelper = require('shared/passcode_helper');
 
   var ScreenLockPasscode = function ctor_screenlock_passcode() {
     return {
@@ -17,10 +17,6 @@ define(function(require) {
        *                and has entered old passcode successfully
        */
       _MODE: 'create',
-
-      _settings: {
-        passcode: '0000'
-      },
 
       _checkingLength: {
         'create': 8,
@@ -59,8 +55,6 @@ define(function(require) {
           this.passcodeInput.focus();
           evt.preventDefault();
         }.bind(this));
-
-        this._fetchSettings();
       },
 
       onInit: function sld_onInit(panel) {
@@ -107,7 +101,7 @@ define(function(require) {
             // (backspace). Filter out the events that are not from the keypad.
             var keyCode = evt.keyCode;
             if (keyCode !== 0 && keyCode !== 8) {
-              return;
+              return Promise.resolve();
             }
 
             evt.preventDefault();
@@ -117,7 +111,7 @@ define(function(require) {
 
             var code = evt.charCode;
             if (code !== 0 && (code < 0x30 || code > 0x39)) {
-              return;
+              return Promise.resolve();
             }
 
             var key = String.fromCharCode(code);
@@ -134,34 +128,36 @@ define(function(require) {
             }
 
             this._updatePassCodeUI();
-            this._enablePasscode();
-            break;
+            return this._enablePasscode();
           case this.createPasscodeButton:
           case this.changePasscodeButton:
             evt.stopPropagation();
             if (this.passcodePanel.dataset.passcodeStatus !== 'success') {
               this._showErrorMessage();
               this.passcodeInput.focus();
-              return;
+              return Promise.resolve();
             }
             passcode = this._passcodeBuffer.substring(0, 4);
             settings = navigator.mozSettings;
             lock = settings.createLock();
-            lock.set({
-              'lockscreen.passcode-lock.code': passcode
-            });
-            lock.set({
+            return lock.set({
               'lockscreen.passcode-lock.enabled': true
+            }).then(() => {
+              return PasscodeHelper.set(passcode);
+            }).then(() => {
+              this._backToScreenLock();
+            }).catch((e) => {
+              this._showErrorMessage();
             });
-            this._backToScreenLock();
-            break;
         }
+        return Promise.resolve();
       },
 
       _enablePasscode: function sld_enablePasscode() {
         var settings;
         var passcode;
         var lock;
+        var check = Promise.resolve();
 
         if (this._passcodeBuffer.length === this._checkingLength[this._MODE]) {
           switch (this._MODE) {
@@ -177,48 +173,49 @@ define(function(require) {
               }
               break;
             case 'confirm':
-              if (this._checkPasscode()) {
-                settings = navigator.mozSettings;
-                lock = settings.createLock();
-                lock.set({
-                  'lockscreen.passcode-lock.enabled': false
-                });
-                this._backToScreenLock();
-              } else {
-                this._passcodeBuffer = '';
-              }
+              check = this._checkPasscode().then((result) => {
+                if (result) {
+                  settings = navigator.mozSettings;
+                  lock = settings.createLock();
+                  lock.set({
+                    'lockscreen.passcode-lock.enabled': false
+                  });
+                  this._backToScreenLock();
+                } else {
+                  this._passcodeBuffer = '';
+                }
+              });
               break;
             case 'confirmLock':
-              if (this._checkPasscode()) {
-                settings = navigator.mozSettings;
-                lock = settings.createLock();
-                lock.set({
-                  'lockscreen.enabled': false,
-                  'lockscreen.passcode-lock.enabled': false
-                });
-                this._backToScreenLock();
-              } else {
-                this._passcodeBuffer = '';
-              }
+              check = this._checkPasscode();
+              check = check.then((result) => {
+                if (result) {
+                  settings = navigator.mozSettings;
+                  lock = settings.createLock();
+                  lock.set({
+                    'lockscreen.enabled': false,
+                    'lockscreen.passcode-lock.enabled': false
+                  });
+                  this._backToScreenLock();
+                } else {
+                  this._passcodeBuffer = '';
+                }
+              });
               break;
             case 'edit':
-              if (this._checkPasscode()) {
-                this._passcodeBuffer = '';
-                this._updatePassCodeUI();
-                this._showDialogInMode('new');
-              } else {
-                this._passcodeBuffer = '';
-              }
+              check = this._checkPasscode().then((result) => {
+                if (result) {
+                  this._passcodeBuffer = '';
+                  this._updatePassCodeUI();
+                  this._showDialogInMode('new');
+                } else {
+                  this._passcodeBuffer = '';
+                }
+              });
               break;
           }
         }
-      },
-
-      _fetchSettings: function sld_fetchSettings() {
-        SettingsListener.observe('lockscreen.passcode-lock.code', '0000',
-          function(passcode) {
-            this._settings.passcode = passcode;
-        }.bind(this));
+        return check;
       },
 
       _showErrorMessage: function sld_showErrorMessage(message) {
@@ -247,14 +244,17 @@ define(function(require) {
         }
       },
 
-      _checkPasscode: function sld_checkPasscode() {
-        if (this._settings.passcode != this._passcodeBuffer) {
+      _checkPasscode: function sld_checkPasscodee() {
+        return PasscodeHelper.check(this._passcodeBuffer).then((result) => {
+          if (result) {
+            this._hideErrorMessage();
+          } else {
+            this._showErrorMessage();
+          }
+          return result;
+        }).catch(() => {
           this._showErrorMessage();
-          return false;
-        } else {
-          this._hideErrorMessage();
-          return true;
-        }
+        });
       },
 
       _backToScreenLock: function sld_backToScreenLock() {

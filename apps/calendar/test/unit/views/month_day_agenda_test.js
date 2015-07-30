@@ -2,19 +2,17 @@ define(function(require) {
 'use strict';
 
 var MonthDayAgenda = require('views/month_day_agenda');
+var core = require('core');
 var dateFormat = require('date_format');
-var dayObserver = require('day_observer');
 var template = require('templates/month_day_agenda');
 
 suite('Views.MonthDayAgenda', function() {
-  var subject,
-      app;
+  var subject;
 
   teardown(function() {
     var el = document.getElementById('test');
     el.parentNode.removeChild(el);
-    dayObserver.removeAllListeners();
-    app.db.close();
+    core.db.close();
   });
 
   setup(function(done) {
@@ -30,9 +28,8 @@ suite('Views.MonthDayAgenda', function() {
 
     document.body.appendChild(div);
 
-    app = testSupport.calendar.app();
-    subject = new MonthDayAgenda({ app: app });
-    app.db.open(done);
+    subject = new MonthDayAgenda();
+    core.db.open(done);
   });
 
   suite('#changeDate', function() {
@@ -40,13 +37,11 @@ suite('Views.MonthDayAgenda', function() {
 
     setup(function() {
       currentDate = document.getElementById('event-list-date');
-      sinon.spy(dayObserver, 'on');
-      sinon.spy(dayObserver, 'off');
+      sinon.spy(core.bridge, 'observeDay');
     });
 
     teardown(function() {
-      dayObserver.on.restore();
-      dayObserver.off.restore();
+      core.bridge.observeDay.restore();
     });
 
     test('> date', function() {
@@ -63,12 +58,7 @@ suite('Views.MonthDayAgenda', function() {
       assert.deepEqual(currentDate.dataset.l10nDateFormat, format);
 
       assert.ok(
-        !dayObserver.off.called,
-        'should only remove listener if we have a reference to previous date'
-      );
-
-      assert.ok(
-        dayObserver.on.calledWith(now, subject._render),
+        core.bridge.observeDay.calledWith(now),
         'should listen current day'
       );
     });
@@ -77,6 +67,8 @@ suite('Views.MonthDayAgenda', function() {
       var format = 'months-day-view-header-format';
       var oldDate = new Date(2012, 8, 1);
       subject.date = oldDate;
+      var oldObserver = { cancel: sinon.spy() };
+      subject._observer = oldObserver;
       subject.changeDate(null);
 
       assert.notDeepEqual(subject.date, oldDate, 'date changed');
@@ -93,12 +85,12 @@ suite('Views.MonthDayAgenda', function() {
       assert.deepEqual(currentDate.dataset.l10nDateFormat, format);
 
       assert.ok(
-        dayObserver.off.calledWith(oldDate, subject._render),
+        oldObserver.cancel.called,
         'should remove previous listener'
       );
 
       assert.ok(
-        dayObserver.on.calledWith(subject.date, subject._render),
+        core.bridge.observeDay.calledWith(subject.date),
         'should listen current day'
       );
     });

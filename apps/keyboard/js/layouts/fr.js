@@ -6,6 +6,7 @@ Keyboards.fr = {
   types: ['text', 'url', 'email', 'password'],
   autoCorrectLanguage: 'fr',
   autoCorrectPunctuation: false,
+  lang: 'fr',
   alt: {
     a: 'àâæáãäåā',
     c: 'çćč',
@@ -16,7 +17,7 @@ Keyboards.fr = {
     s: 'śšşß',
     S: 'ŚŠŞ',
     n: 'ńñň',
-    '.': ',?!-;:'
+    '.': ',?!-;:…'
   },
   keys: [
     [

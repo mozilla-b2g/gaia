@@ -30,10 +30,10 @@ Autolander is a bot which integrations github and bugzilla workflows.
 
 Features available:
   - Automatic pull request to bugzilla attachment linking.
-  - Automatic landing, on green integration run, with a R+ from a suggested reviewer and checkin-needed keyword.
+  - Automatic landing, on green integration run, with a R+ from a suggested reviewer and the autoland keyword.
   - Comments in the bug with the landed commit, and marks the bug as fixed.
   - Validates pull request title and commit message formats.
-  - Currently only runs a subset of the gaia CI tests which are stable on taskcluster. Ensure you have a green gaia-try run before adding checkin-needed.
+  - Currently only runs a subset of the gaia CI tests which are stable on taskcluster. Ensure you have a green gaia-try run before adding the autoland keyword.
   - See more at: https://github.com/mozilla/autolander [The Autolander guide on MDN](https://developer.mozilla.org/en-US/Firefox_OS/Developing_Gaia/Submitting_a_Gaia_patch#Easy_patch_submission_with_Autolander)
 
 
@@ -78,147 +78,45 @@ https://developer.mozilla.org/en/Mozilla/Boot_to_Gecko/Gaia_Unit_Tests
 ### Integration Tests
 
 Gaia uses
-[marionette-js-runner](https://github.com/mozilla-b2g/marionette-js-runner)
-to run the tests with a custom builder for gaia. Tests should live with the rest of your apps code (in apps/my_app/test/marionette) and
-test files should end in _test.js.
+[marionette-js-runner](https://developer.mozilla.org/en-US/Firefox_OS/Automated_testing/Gaia_integration_tests)
+for ui testing. For the time being, tests need to live in `apps/<some
+app>/test/marionette` and should be named `*_test.js`. Gaia's marionette
+tests run on nodejs and you'll need nodejs>=v0.10 installed.
 
-All integration tests run under a node environment. You need node >= 0.10
-for this to work predictably.
-
-Shared code for tests lives under shared/test/integration.
+Also for the time being, shared code for tests lives in plugins at
+`tests/jsmarionette/plugins` or in helpers at `shared/test/integration`.
 
 #### Running integration tests
 
-NOTE: unless your tests end in _test.js they will not be
-automatically picked up by `make test-integration`.
+```sh
+npm run marionette
+```
+
+#### Invoking specific test files
 
 ```sh
-make test-integration
-```
-
-#### Invoking a test file
-
-```sh
-make test-integration TEST_FILES=<test>
-```
-
-For example, we could run the `day_view_test.js` test in calendar app with the below command.
-```
-make test-integration TEST_FILES=apps/calendar/test/marionette/day_view_test.js
-```
-
-If you would like to run more than one test, we could do the below command.
-```
-make test-integration TEST_FILES="apps/calendar/test/marionette/day_view_test.js apps/calendar/test/marionette/today_test.js"
+TEST_FILES="/abs/path/to/some_test.js /abs/path/to/other_test.js" npm run marionette
 ```
 
 #### Invoking tests for a specific app
 
 ```sh
-make test-integration APP=<APP>
+APP=<APP> npm run marionette
 ```
-
-For example, we could run all tests for the calendar app with `make test-integration APP=calendar`.
 
 #### Skipping a test file
-```sh
-make test-integration SKIP_TEST_FILES=<test>
-```
-For example, we could skip the `day_view_test.js` test in calendar app with the below command.
-```
-make test-integration SKIP_TEST_FILES=apps/calendar/test/marionette/day_view_test.js
-```
-
-If you would like to skip more than one test, we could do the below command.
-```
-make test-integration SKIP_TEST_FILES="apps/calendar/test/marionette/day_view_test.js apps/calendar/test/marionette/today_test.js"
-```
-
-Notice that we could not use the `TEST_FILES` and `SKIP_TEST_FILES` parameters at the same time.
-
-#### Running tests while working
-
-If you wish to run many tests in background you might not want to be disturbed
-by the b2g-desktop window popping everytime, or the sound. One solution for
-the first issue is to use Xvfb:
 
 ```sh
-xvfb-run make test-integration
+SKIP_TEST_FILES="/abs/path/to/skipped_test.js /abs/path/to/other/skipped_test.js" npm run marionette
 ```
 
-If you are using PulseAudio and want to keep the tests quied, then just force
-an invalid server:
+#### Moar things
 
-```sh
-PULSE_SERVER=":" make test-integration
-```
++ `VERBOSE=1` pipes gecko logs to your command line process for debugging.
 
-You can of course combine both:
-
-```sh
-PULSE_SERVER=":" xvfb-run make test-integration
-```
-
-#### Running tests without building profile
-
-if you would like to run tests without building profile, use `make test-integration-test`:
-```sh
-PROFILE_FOLDER=profile-test make # generate profile directory in first time
-make test-integration-test
-```
-
-#### Debugging Tests
-
-To view log out from a test
-
-```sh
-make test-integration VERBOSE=1
-```
-
-#### Running tests in OOP mode
-
-To run tests in OOP mode
-
-```sh
-make test-integration OOP=1
-```
-
-#### Where to find documentation
-  - [Node.js](http://nodejs.org)
-  - [MDN: for high level overview](https://developer.mozilla.org/en-US/docs/Marionette/Marionette_JavaScript_Tools)
-  - [mocha: which is wrapped by marionette-js-runner](http://visionmedia.github.io/mocha/)
-  - [marionette-js-runner: for the test framework](https://github.com/mozilla-b2g/marionette-js-runner)
-  - [marionette-client: for anything to do with client.X](http://lightsofapollo.github.io/marionette_js_client/api-docs/classes/Marionette.Client.html)
-
-#### Gotchas
-
-- For performance reasons we don't run `make profile` for each test
-  run this means you need to manually remove the `profile-test`
-  folder when you make changes to your apps.
-
-- If you don't have a b2g folder one will be downloaded for you.
++ If you don't have a b2g/ folder one will be downloaded for you.
   This can be problematic if you're offline. You can symlink a
   b2g-desktop directory to b2g/ in gaia to avoid the download.
-
-- If you have some weird node errors, try removing node_modules since
-  things may be stale.
-
-- To get debug information from the b2g desktop client, run this:
-`DEBUG=b2g-desktop TEST_FILES=name/of/test.js ./bin/gaia-marionette`
-
-- To get debug information from b2g desktop and all of the marionette
-plugins, run this:
-`DEBUG=* TEST_FILES=name/of/test.js ./bin/gaia-marionette`
-
-### UI Tests
-
-#### Functional
-
-See [Gaia functional tests README](https://github.com/mozilla-b2g/gaia/blob/master/tests/python/gaia-ui-tests/README.md)
-
-#### Endurance
-
-See [how to run the Gaia endurance tests](https://developer.mozilla.org/en-US/docs/Mozilla/Firefox_OS/Platform/Automated_testing/endurance_tests/how_to_run_gaiaui_endurance_tests)
 
 ### Build System Tests
 
@@ -262,19 +160,12 @@ If you would like to run more than one test, we could do the below command.
 make build-test-integration TEST_FILES="apps/keyboard/test/build/integration/keyboard_test.js apps/keyboard/test/build/integration/keyboard_layout_test.js"
 ```
 
-## Generate jsdoc
+## Generate JSDOC
 
-To generate API reference locally, you have to install grunt with following command:
-
-```sh
-$ npm -g grunt-cli
-```
-
-then run `make docs` command to generate docs.
-The generated API docs will be located in `docs` folder.
+To generate API reference locally, run `make docs` command to generate docs. The generated per app API docs will be located in `docs` folder.
 
 You could generate single app doc with this:
 
 ```sh
-$ grunt jsdoc:system
+$ gulp jsdoc:system
 ```

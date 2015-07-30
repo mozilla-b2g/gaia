@@ -2,24 +2,27 @@
 
 marionette('Homescreen navigation >', function() {
   var ReflowHelper =
-      require('../../../../tests/js-marionette/reflow_helper.js');
+      require('../../../../tests/jsmarionette/plugins/reflow_helper.js');
 
   var assert = require('assert');
 
   var SETTINGS_APP = 'app://settings.gaiamobile.org';
 
   var client = marionette.client({
-    prefs: {
-      'dom.w3c_touch_events.enabled': 1,
-      'devtools.debugger.forbid-certified-apps': false
+    profile: {
+      prefs: {
+        'browser.safebrowsing.enabled': false,
+        'browser.safebrowsing.malware.enabled': false,
+        'devtools.debugger.forbid-certified-apps': false,
+        'privacy.trackingprotection.enabled': false
+      },
+      settings: {
+        'devtools.overlay': true,
+        'hud.reflows': true,
+        'notifications.resend': false
+      }
     },
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false,
-      'edgesgesture.enabled': true,
-      'devtools.overlay': true,
-      'hud.reflows': true
-    }
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
   });
 
 
@@ -29,7 +32,7 @@ marionette('Homescreen navigation >', function() {
   function launchSettings() {
     var settings = sys.waitForLaunch(SETTINGS_APP);
     client.waitFor(function() {
-      return settings.displayed() && !homescreen.displayed();
+      return settings.ariaDisplayed() && !homescreen.ariaDisplayed();
     });
     return settings;
   }
@@ -37,7 +40,7 @@ marionette('Homescreen navigation >', function() {
   function goHome() {
     sys.goHome();
     client.waitFor(function() {
-      return !settings.displayed() && homescreen.displayed();
+      return !settings.ariaDisplayed() && homescreen.ariaDisplayed();
     });
   }
 
@@ -69,7 +72,7 @@ marionette('Homescreen navigation >', function() {
     launchSettings();
 
     var count = reflowHelper.getCount();
-    assert.equal(count, 0, 'we got ' + count + ' reflows instead of 0');
+    assert.equal(count, 2, 'we got ' + count + ' reflows instead of 2');
     reflowHelper.stopTracking();
   });
 });

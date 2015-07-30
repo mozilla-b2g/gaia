@@ -1,4 +1,4 @@
-reruns: 4
+reruns: 2
 task:
   metadata:
     name: Gaia build tests {{chunk}}
@@ -14,10 +14,12 @@ task:
   payload:
     cache:
       gaia-misc-caches: /home/tester/caches/
+
     env:
       REPORTER: 'mocha-tbpl-reporter'
       THIS_CHUNK: '{{chunk}}'
       TOTAL_CHUNKS: '{{totalChunks}}'
+      NODE_MODULES_SRC: npm-cache
 
     command:
       - entrypoint

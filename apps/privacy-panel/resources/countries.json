@@ -1,4 +1,11 @@
 {
+  "":{
+   "": {
+     "lat" : null ,
+     "lon" : null ,
+     "city": ""
+   }
+  },
   "africa": {
     "abidjan": {
       "lat": 5.316667,
@@ -1049,7 +1056,7 @@
     "dumont-d-urville": {
       "lat": -66.663026,
       "lon": 140.001826,
-      "city": "DumontDUrville"
+      "city": "Dumont d'Urville"
     },
     "macquarie": {
       "lat": -54.620811,

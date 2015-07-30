@@ -173,9 +173,20 @@ PreferencesBuilder.prototype.preparePref = function() {
   if (this.config.DEVICE_DEBUG === '1') {
     this.setDeviceDebugPref();
   }
-  // If we're turning RAPTOR on, also turn on user timing output to logcat
-  if (this.config.RAPTOR === '1') {
+  // Turn on user timing output to logcat
+  if (this.config.PERF_LOGGING === '1') {
     this.userPrefs['dom.performance.enable_user_timing_logging'] = true;
+  }
+  // Turn off hardware composing
+  if (this.config.HARDWARE_COMPOSER === '0') {
+    this.userPrefs['layers.composer2d.enabled'] = false;
+  }
+
+  // If this is already equal to the profile directory, no need to
+  // write the preference
+  if (this.config.COREWEBAPPS_DIR !== this.config.PROFILE_DIR) {
+    this.userPrefs['b2g.coreappsdir'] =
+        this.config.COREWEBAPPS_DIR;
   }
 };
 
@@ -235,9 +246,16 @@ PreferencesBuilder.prototype.setDebugPref = function() {
   // see Bug 1097912
   this.userPrefs['browser.tabs.remote.autostart'] = false;
   this.userPrefs['browser.tabs.remote.autostart.1'] = false;
+  this.userPrefs['browser.tabs.remote.autostart.2'] = false;
+
+  // Disable dialog asking to set firefox as default OS browser
+  this.userPrefs['browser.shell.checkDefaultBrowser'] = false;
 };
 
 PreferencesBuilder.prototype.setDeviceDebugPref = function() {
+  this.userPrefs['dom.apps.developer_mode'] = true;
+  this.userPrefs['network.disable.ipc.security'] = true;
+  this.userPrefs['dom.webcomponents.enabled'] = true;
   this.userPrefs['devtools.debugger.prompt-connection'] = false;
   this.userPrefs['devtools.debugger.forbid-certified-apps'] = false;
   // Bug 1001348: This optimization prevents debugger to fetch script sources

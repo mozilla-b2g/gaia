@@ -1,3 +1,6 @@
+'use strict';
+/* exported MockOrientationManager */
+
 var MockOrientationManager = {
   globalOrientation: 'portrait-primary',
 

@@ -1,8 +1,9 @@
 /* globals AudioCompetingHelper, ConferenceGroupHandler, FontSizeManager,
            HandledCall, MockCall, MockCallScreen, MockCallsHandler,
-           MockContactPhotoHelper, MockContacts, MockLazyL10n, MockMozL10n,
-           MockNavigatorMozIccManager, MockNavigatorSettings, MocksHelper,
-           MockTonePlayer, MockUtils, MockVoicemail */
+           MockContactPhotoHelper, MockContacts, MockFontSizeUtils,
+           MockLazyL10n, MockMozL10n, MockNavigatorMozIccManager,
+           MockNavigatorSettings, MocksHelper, MockTonePlayer, MockUtils,
+           MockVoicemail */
 
 'use strict';
 
@@ -11,6 +12,7 @@ require('/test/unit/mock_call_screen.js');
 require('/test/unit/mock_conference_group_handler.js');
 require('/shared/test/unit/mocks/mock_audio.js');
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
+require('/shared/test/unit/mocks/mock_font_size_utils.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
 require('/shared/test/unit/mocks/dialer/mock_contacts.js');
 require('/shared/test/unit/mocks/dialer/mock_keypad.js');
@@ -32,6 +34,7 @@ var mocksHelperForHandledCall = new MocksHelper([
   'CallScreen',
   'ConferenceGroupHandler',
   'CallsHandler',
+  'FontSizeUtils',
   'KeypadManager',
   'Utils',
   'LazyL10n',
@@ -72,30 +75,35 @@ suite('dialer/handled_call', function() {
     phoneNumber = Math.floor(Math.random() * 10000);
 
     templates = document.createElement('div');
-    templates.innerHTML = '<section id="handled-call-template" role="dialog"' +
-                          '  hidden>' +
-                          '  <div class="hangup-button" role="button"' +
-                          '    data-l10n-id="hangup-a11y-button"></div>' +
-                          '    <div class="numberWrapper ' +
-                          '      direction-status-bar">' +
-                          '    <div class="number font-light"></div>' +
-                          '    <span role="button" id="switch-calls-button">' +
-                          '    </span>' +
-                          '  </div>' +
-                          '  <div class="additionalContactInfo font-light">' +
-                          '  </div>' +
-                          '  <div class="duration">' +
-                          '    <span class="font-light"></span>' +
-                          '    <div class="total-duration"></div>' +
-                          '    <div class="direction"></div>' +
-                          '  </div>' +
-                          '  <div class="sim">' +
-                          '    <span class="via-sim"></span>' +
-                          '    <span class="sim-number"></span>' +
-                          '  </div>' +
-                          '  <button class="merge-button" ' +
-                          '    data-l10n-id="merge">Merge</button>' +
-                          '</section>';
+    templates.innerHTML = `<section id="handled-call-template" role="dialog"
+                             hidden>
+                             <div class="hangup-button" role="button"
+                               data-l10n-id="hangup-a11y-button"></div>
+                               <div class="numberWrapper
+                                 direction-status-bar">
+                               <div class="number font-light">
+                                 <bdi></bdi>
+                               </div>
+                               <span role="button" id="switch-calls-button">
+                               </span>
+                             </div>
+                             <div class="additionalContactInfo font-light">
+                               <span class="tel" dir="ltr"></span>
+                               <span class="separator"></span>
+                               <span class="tel-type" dir="auto"></span>
+                             </div>
+                             <div class="duration">
+                               <span class="font-light"></span>
+                               <div class="total-duration"></div>
+                               <div class="direction"></div>
+                             </div>
+                             <div class="sim">
+                               <span class="via-sim"></span>
+                               <span class="sim-number"></span>
+                             </div>
+                             <button class="merge-button"
+                               data-l10n-id="merge">Merge</button>
+                           </section>`;
     document.body.appendChild(templates);
   });
 
@@ -172,14 +180,26 @@ suite('dialer/handled_call', function() {
       });
 
       test('should have a numberNode in a numberWrapper', function() {
-        var numberNode = subject.node.querySelector('.numberWrapper .number');
+        var numberNode =
+          subject.node.querySelector('.numberWrapper .number bdi');
         assert.equal(subject.numberNode, numberNode);
       });
 
-      test('should have an additionalContactInfo node', function() {
-        var additionalNode =
-          subject.node.querySelector('.additionalContactInfo');
-        assert.equal(subject.additionalInfoNode, additionalNode);
+      test('should have an outerNode in a numberWrapper', function() {
+        var outerNode = subject.node.querySelector('.numberWrapper .number');
+        assert.equal(subject.outerNode, outerNode);
+      });
+
+      test('should have an additionalContactTel node', function() {
+        var additionalTelNode =
+          subject.node.querySelector('.additionalContactInfo .tel');
+        assert.equal(subject.additionalTelNode, additionalTelNode);
+      });
+
+      test('should have an additionalContactTelType node', function() {
+        var additionalTelTypeNode =
+          subject.node.querySelector('.additionalContactInfo .tel-type');
+        assert.equal(subject.additionalTelTypeNode, additionalTelTypeNode);
       });
 
       test('should have a duration node', function() {
@@ -287,6 +307,7 @@ suite('dialer/handled_call', function() {
       this.sinon.spy(AudioCompetingHelper, 'compete');
       this.sinon.spy(MockCallsHandler, 'updatePlaceNewCall');
       this.sinon.spy(MockCallsHandler, 'updateMergeAndOnHoldStatus');
+      this.sinon.spy(MockCallsHandler, 'updateMuteAndSpeakerStatus');
       mockCall._connect();
     });
 
@@ -333,10 +354,6 @@ suite('dialer/handled_call', function() {
       assert.isTrue(MockUtils.mCalledGetPhoneNumberPrimaryInfo);
     });
 
-    test('phone number and type', function() {
-      assert.isTrue(MockUtils.mCalledGetPhoneNumberAndType);
-    });
-
     test('mute initially off', function() {
       assert.isFalse(MockCallScreen.mMuteOn);
     });
@@ -351,6 +368,10 @@ suite('dialer/handled_call', function() {
 
     test('the merge and on hold buttons status is updated', function() {
       sinon.assert.calledOnce(MockCallsHandler.updateMergeAndOnHoldStatus);
+    });
+
+    test('the mute and speaker buttons\' status is updated', function() {
+      sinon.assert.calledOnce(MockCallsHandler.updateMuteAndSpeakerStatus);
     });
 
     test('AudioCompetingHelper compete gets called when connected', function() {
@@ -376,10 +397,15 @@ suite('dialer/handled_call', function() {
       });
 
       test('should show call ended', function() {
+        var span = subject.node.querySelector('.duration span');
+
+        this.sinon.stub(MockMozL10n, 'setAttributes', function(element, id) {
+          element.setAttribute('data-l10n-id', id);
+        });
+
         mockCall._disconnect();
-        assert.equal(
-          subject.node.querySelector('.duration span').textContent,
-          'callEnded');
+        assert.isTrue(span.hasAttribute('data-l10n-id'));
+        assert.equal(span.getAttribute('data-l10n-id'), 'callEnded');
       });
 
       test('should not show the total call duration', function() {
@@ -459,6 +485,12 @@ suite('dialer/handled_call', function() {
         sinon.assert.calledOnce(MockCallsHandler.updateMergeAndOnHoldStatus);
       });
 
+      test('the mute and speaker buttons\' status is updated', function() {
+        this.sinon.spy(MockCallsHandler, 'updateMuteAndSpeakerStatus');
+        mockCall._disconnect();
+        sinon.assert.calledOnce(MockCallsHandler.updateMuteAndSpeakerStatus);
+      });
+
       test('AudioCompetingHelper leaveCompetition gets called on disconnected',
         function() {
           this.sinon.spy(AudioCompetingHelper, 'leaveCompetition');
@@ -470,6 +502,7 @@ suite('dialer/handled_call', function() {
 
     suite('from a group', function() {
       setup(function() {
+        this.sinon.spy(MockCallScreen, 'showStatusMessage');
         mockCall._connect();
         MockCallScreen.mute();
         MockCallScreen.switchToSpeaker();
@@ -480,9 +513,12 @@ suite('dialer/handled_call', function() {
       });
 
       test('show the banner', function() {
-        assert.isTrue(MockCallScreen.mShowStatusMessageCalled);
-        var caller = MockLazyL10n.keys['caller-left-call'].caller;
-        assert.isTrue(typeof(caller) === 'string');
+        sinon.assert.calledWithMatch(
+          MockCallScreen.showStatusMessage, {
+            id: 'caller-left-call',
+            args: { caller: 'test name' }
+          }
+        );
       });
     });
 
@@ -495,67 +531,40 @@ suite('dialer/handled_call', function() {
     });
   });
 
-  suite('holding', function() {
+  suite('on hold', function() {
     setup(function() {
       this.sinon.spy(MockCallsHandler, 'updatePlaceNewCall');
       this.sinon.spy(MockCallsHandler, 'updateMergeAndOnHoldStatus');
-      this.sinon.spy(AudioCompetingHelper, 'leaveCompetition');
+      this.sinon.spy(MockCallsHandler, 'updateMuteAndSpeakerStatus');
       mockCall._hold();
     });
 
-    test('add the css class', function() {
-      assert.isTrue(subject.node.classList.contains('held'));
+    test('show the node', function() {
+      assert.isFalse(subject.node.hidden);
     });
 
-    test('AudioCompetingHelper leaveCompetition gets called when held',
-    function() {
-      sinon.assert.calledOnce(AudioCompetingHelper.leaveCompetition);
+    test('put the callscreen in connected-hold mode', function() {
+      assert.equal(MockCallScreen.mLastRenderMode, 'connected-hold');
     });
 
-    test('the place new call button status is updated', function() {
-      // Call passes through the 'holding' and 'held' states.
-      sinon.assert.calledTwice(MockCallsHandler.updatePlaceNewCall);
+    test('mute is off', function() {
+      assert.isFalse(MockCallScreen.mMuteOn);
     });
 
-    test('the merge and on hold buttons status is updated', function() {
-      // Call passes through the 'holding' and 'held' states.
-      sinon.assert.calledTwice(MockCallsHandler.updateMergeAndOnHoldStatus);
-    });
-  });
-
-  suite('resuming', function() {
-    setup(function() {
-      this.sinon.spy(MockCallsHandler, 'updatePlaceNewCall');
-      this.sinon.spy(MockCallsHandler, 'updateMergeAndOnHoldStatus');
-      mockCall._hold();
-      MockCallScreen.mSyncSpeakerCalled = false;
-      MockCallScreen.mEnableKeypadCalled = false;
-      subject.photo = 'dummy_photo_1';
-      mockCall._resume();
-    });
-
-    test('remove the css class', function() {
-      assert.isFalse(subject.node.classList.contains('held'));
-    });
-
-    test('sync speaker', function() {
-      assert.isTrue(MockCallScreen.mSyncSpeakerCalled);
-    });
-
-    test('changed the user photo', function() {
-      assert.isTrue(MockCallScreen.mSetCallerContactImageCalled);
+    test('speaker is off', function() {
+      assert.isFalse(MockCallScreen.mSpeakerOn);
     });
 
     test('the place new call button status is updated', function() {
-      // Call passes through the 'holding', 'held', 'resuming' and 'connected'
-      //  states.
-      sinon.assert.callCount(MockCallsHandler.updatePlaceNewCall, 4);
+      sinon.assert.calledOnce(MockCallsHandler.updatePlaceNewCall);
     });
 
     test('the merge and on hold buttons status is updated', function() {
-      // Call passes through the 'holding', 'held', 'resuming' and 'connected'
-      //  states.
-      sinon.assert.callCount(MockCallsHandler.updateMergeAndOnHoldStatus, 4);
+      sinon.assert.calledOnce(MockCallsHandler.updateMergeAndOnHoldStatus);
+    });
+
+    test('the mute and speaker buttons\' status is updated', function() {
+      sinon.assert.calledOnce(MockCallsHandler.updateMuteAndSpeakerStatus);
     });
   });
 
@@ -635,7 +644,7 @@ suite('dialer/handled_call', function() {
       mockCall.emergency = true;
       subject = new HandledCall(mockCall);
 
-      assert.equal(subject.additionalInfoNode.textContent, 'emergencyNumber');
+      assert.equal(subject.additionalTelNode.textContent, 'emergencyNumber');
     });
   });
 
@@ -652,7 +661,8 @@ suite('dialer/handled_call', function() {
       mockCall = new MockCall('888', 'incoming');
       subject = new HandledCall(mockCall);
       MockVoicemail.mResolvePromise(false);
-      assert.equal(subject.additionalInfoNode.textContent, 'type, 888');
+      assert.equal(subject.additionalTelNode.textContent, '888');
+      assert.equal(subject.additionalTelTypeNode.textContent, 'type, carrier');
     });
 
     test('check switch-calls mode', function() {
@@ -661,9 +671,11 @@ suite('dialer/handled_call', function() {
       mockCall.secondId = { number: '999' };
       subject.updateCallNumber();
 
-      assert.equal('', subject.additionalInfoNode.textContent);
+      assert.equal('', subject.additionalTelNode.textContent);
+      assert.equal('', subject.additionalTelTypeNode.textContent);
       subject.restoreAdditionalContactInfo();
-      assert.equal('', subject.additionalInfoNode.textContent);
+      assert.equal('', subject.additionalTelNode.textContent);
+      assert.equal('', subject.additionalTelTypeNode.textContent);
     });
 
     suite('additional contact info', function() {
@@ -674,12 +686,15 @@ suite('dialer/handled_call', function() {
 
       suite('when there are additional infos to display', function() {
         setup(function() {
-          subject.replaceAdditionalContactInfo('test additional info');
+          subject.replaceAdditionalContactInfo(
+            'test additional tel', 'test additional tel-type');
         });
 
         test('should update the text content', function() {
-          assert.equal(subject.additionalInfoNode.textContent,
-                       'test additional info');
+          assert.equal(subject.additionalTelNode.textContent,
+                       'test additional tel');
+          assert.equal(subject.additionalTelTypeNode.textContent,
+                       'test additional tel-type');
         });
 
         test('should add the proper css class', function() {
@@ -689,11 +704,12 @@ suite('dialer/handled_call', function() {
 
       suite('when there aren\'t additional infos to display', function() {
         setup(function() {
-          subject.replaceAdditionalContactInfo('');
+          subject.replaceAdditionalContactInfo('', '');
         });
 
         test('should empty the text content', function() {
-          assert.equal(subject.additionalInfoNode.textContent, '');
+          assert.equal(subject.additionalTelNode.textContent, '');
+          assert.equal(subject.additionalTelTypeNode.textContent, '');
         });
 
         test('should remove the css class', function() {
@@ -710,7 +726,7 @@ suite('dialer/handled_call', function() {
       subject.formatPhoneNumber('end');
       sinon.assert.calledWith(
         FontSizeManager.adaptToSpace, MockCallScreen.mScenario,
-        subject.numberNode, false, 'end');
+        subject.outerNode, false, 'end');
     });
 
     test('formatPhoneNumber should not call the font size manager if call is' +
@@ -1026,9 +1042,49 @@ suite('dialer/handled_call', function() {
       mockCall.emergency = true;
       mockCall._connect();
 
-      assert.equal(subject.additionalInfoNode.textContent, 'emergencyNumber');
+      assert.equal(subject.additionalTelNode.textContent, 'emergencyNumber');
       assert.isTrue(subject.node.classList.contains('emergency'));
-      assert.isTrue(subject.node.textContent.contains('112'));
+      assert.isTrue(subject.node.textContent.includes('112'));
+    });
+  });
+
+  suite('Resizing the call ended string', function() {
+    var durationChildNode;
+
+    setup(function() {
+      durationChildNode = subject.node.querySelector('.duration span');
+      durationChildNode.textContent = 'Call ended';
+
+      this.sinon.spy(subject.mutationObserver, 'disconnect');
+      this.sinon.spy(subject.mutationObserver, 'observe');
+      this.sinon.spy(subject, 'computeCallEndedFontSizeRules');
+    });
+
+    test('Does not resize the string if no l10n attribute is present',
+    function() {
+      subject.observeMutation();
+      sinon.assert.notCalled(subject.mutationObserver.disconnect);
+      sinon.assert.notCalled(subject.mutationObserver.observe);
+      sinon.assert.notCalled(subject.computeCallEndedFontSizeRules);
+    });
+
+    test('Disconnects and reconnects the observer before adjusting the string',
+    function() {
+      this.sinon.stub(MockFontSizeUtils, 'getMaxFontSizeInfo').returns({
+        fontSize: 1.0
+      });
+      durationChildNode.setAttribute('data-l10n-id', 'callEnded');
+      subject.observeMutation();
+      assert.isTrue(
+        subject.mutationObserver.disconnect.calledBefore(
+          subject.computeCallEndedFontSizeRules
+        )
+      );
+      assert.isTrue(
+        subject.mutationObserver.observe.calledAfter(
+          subject.computeCallEndedFontSizeRules
+        )
+      );
     });
   });
 });

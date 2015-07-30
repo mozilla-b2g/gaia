@@ -1,4 +1,9 @@
 'use strict';
+
+/**
+ * Copy shared files to stage folders
+ */
+
 var utils = require('./utils');
 
 var WebappShared = function() {
@@ -14,7 +19,7 @@ WebappShared.prototype.setOptions = function(options) {
     resources: [],       // List of resources to copy
     styles: [],          // List of stable style names to copy
     unstable_styles: [], // List of unstable style names to copy
-    elements: [],         // List of elements names to copy,
+    elements: [],        // List of elements names to copy,
     pages: []            // List of pages to copy
   };
   this.localesFile = utils.resolve(this.config.LOCALES_FILE,
@@ -45,16 +50,16 @@ WebappShared.prototype.moveToBuildDir = function(file, targetPath) {
   if (file.isFile()) {
     try {
       utils.copyFileTo(file, utils.dirname(fullTargetPath),
-        utils.basename(fullTargetPath), true);
+        utils.basename(fullTargetPath));
     } catch (e) {
       throw new Error('Unable to add following file in stage: ' +
-                      path + '\n' + e);
+        path + '\n' + e);
     }
   }
   // Case 2/ Directory
   else if (file.isDirectory()) {
     utils.copyDirTo(file, utils.dirname(fullTargetPath),
-        utils.basename(fullTargetPath), true);
+        utils.basename(fullTargetPath));
   }
 };
 
@@ -304,7 +309,7 @@ WebappShared.prototype.pushFileByType = function(kind, path) {
 };
 
 /**
- * Filter <script...>|<link..> keyword in HTML. If these external resources are 
+ * Filter <script...>|<link..> keyword in HTML. If these external resources are
  * imported from '/shared', we should move them to build_stage/<app>/shared
  */
 WebappShared.prototype.filterSharedUsage = function(file) {
@@ -348,7 +353,7 @@ WebappShared.prototype.filterFileByExtenstion = function(type, file) {
 
 /**
  * copyShared scan '/shared' resources which have ever imported by webapps
- * and copy them to '/build_stage' with their proper structures.  
+ * and copy them to '/build_stage' with their proper structures.
  */
 WebappShared.prototype.copyShared = function() {
   // If config.BUILD_APP_NAME isn't `*`, we only accept one webapp

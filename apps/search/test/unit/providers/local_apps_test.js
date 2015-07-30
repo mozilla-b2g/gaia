@@ -135,6 +135,22 @@ suite('search/providers/local_apps', function() {
       assert.equal(results.length, 1);
     });
 
+    test('hidden role which downloads is not listed', function() {
+      var resultLength = subject.appListing.length;
+      var mockApp = {
+        manifestURL: 'marketplace/langpack',
+        downloading: true,
+        manifest: {
+          role: 'langpack'
+        }
+      };
+      navigator.mozApps.mgmt.oninstall({
+        application: mockApp
+      });
+      mockApp.ondownloadapplied();
+      assert.equal(resultLength, subject.appListing.length);
+    });
+
   });
 
 });

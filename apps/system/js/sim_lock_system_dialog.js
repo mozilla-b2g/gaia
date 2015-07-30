@@ -1,4 +1,4 @@
-/* global SystemDialog, SIMSlotManager, applications */
+/* global SystemDialog, SIMSlotManager, applications, Service */
 'use strict';
 
 (function(exports) {
@@ -17,6 +17,8 @@
     this.render();
     this._dispatchEvent('created');
   };
+
+  var ORIENTATION = 'portrait-primary';
 
   SimLockSystemDialog.prototype = Object.create(SystemDialog.prototype,
     {
@@ -185,9 +187,9 @@
 
     function checkDialogDone() {
       if (inputField.value.length >= 4) {
-        self.dialogDone.disabled = false;
+        self.dialogDone.removeAttribute('disabled');
       } else {
-        self.dialogDone.disabled = true;
+        self.dialogDone.setAttribute('disabled', 'disabled');
       }
     }
 
@@ -217,7 +219,7 @@
       }
     }).bind(this);
     request.onerror = function() {
-      console.error('Could not fetch CardLockRetryCount', request.error.name);
+      console.log('Could not fetch CardLockRetryCount', request.error.name);
     };
 
     switch (lockType) {
@@ -297,7 +299,6 @@
 
     var options = { lockType: 'pin', pin: pin };
     this.unlockCardLock(options);
-    this.clear();
   };
 
   SimLockSystemDialog.prototype.unlockPuk = function() {
@@ -334,8 +335,10 @@
 
   SimLockSystemDialog.prototype.unlockCardLock = function(options) {
     var req = this._currentSlot.unlockCardLock(options);
+    this.disableInput();
     req.onsuccess = this.requestClose.bind(this, 'success');
     req.onerror = (function spl_unlockCardLockError(result) {
+      this.clear();
       this.handleError(options.lockType, req.error.retryCount);
     }).bind(this);
   };
@@ -386,7 +389,24 @@
     }
   };
 
+  SimLockSystemDialog.prototype.disableInput = function() {
+    this.pinInput.disabled = true;
+    this.pukInput.disabled = true;
+    this.xckInput.disabled = true;
+    this.newPinInput.disabled = true;
+    this.confirmPinInput.disabled = true;
+  };
+
+  SimLockSystemDialog.prototype.enableInput = function() {
+    this.pinInput.disabled = false;
+    this.pukInput.disabled = false;
+    this.xckInput.disabled = false;
+    this.newPinInput.disabled = false;
+    this.confirmPinInput.disabled = false;
+  };
+
   SimLockSystemDialog.prototype.clear = function() {
+    this.enableInput();
     this.errorMsg.hidden = true;
     this.pinInput.value = '';
     this.pinInput.blur();
@@ -410,11 +430,14 @@
    * @param {Boolean} [skipped] If the last slot is skipped or not.
    */
   SimLockSystemDialog.prototype.show = function(slot, skipped) {
+    this.clear();
     if (slot) {
       this._currentSlot = slot;
     }
 
     SystemDialog.prototype.show.apply(this);
+    var appWindow = Service.query('getTopMostWindow');
+    appWindow.lockOrientation(ORIENTATION);
     this._visible = true;
     this.lockType = 'pin';
     this.handleCardState();
@@ -436,6 +459,8 @@
   SimLockSystemDialog.prototype.hide = function() {
     this._visible = false;
     SystemDialog.prototype.hide.apply(this);
+    var appWindow = Service.query('getTopMostWindow');
+    appWindow.lockOrientation();
   };
 
   SimLockSystemDialog.prototype.close = function() {

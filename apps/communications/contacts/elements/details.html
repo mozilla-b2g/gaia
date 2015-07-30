@@ -1,7 +1,8 @@
 <element name="view-contact-details" extends="section">
   <template>
     <gaia-header id='details-view-header' action="back">
-      <h1 id='contact-name-title'></h1>
+      <h1 id='contact-name-title'><bdi class="ellipsis-dir-fix"></bdi></h1>
+      <div class='favorite-indicator'></div>
       <button id="edit-contact-button" data-icon="edit-contact" data-l10n-id="editButton"></button>
     </gaia-header>
 
@@ -18,10 +19,10 @@
             </h2>
             <div class="item">
               <div class="item-body-exp">
-                <button class="activity call-action icon icon-call" id="call-or-pick-#i#">
-                  <b aria-label="Call" data-l10n-id="makeCall"><bdi>#value#</bdi></b>
+                <div class="button activity call-action icon icon-call" id="call-or-pick-#i#">
+                  <b aria-label="Call" data-l10n-id="makeCall"><bdi class="ellipsis-dir-fix">#value#</bdi></b>
                   <span class="js-sim-indication"></span>
-                </button>
+                </div>
               </div>
               <div class="item-media pull-right">
                 <button id="send-sms-button-#i#" class="activity send-sms icon icon-message" data-l10n-id="send-sms-button" aria-label="SMS"></button>
@@ -31,23 +32,6 @@
 
           <li data-social class="social-actions" id="social-template-#i#" data-template role="region">
             <h2 data-l10n-id="social-network" id="social-label">Social Network</h2>
-              <div class="fillflow-twocols">
-                <button id="msg_button" data-l10n-id="msg-send" class="activity icon icon-message">
-                  Message
-                </button>
-                <button id="wall_button" data-l10n-id="wall-post" class="activity icon icon-email">
-                  Wall Post
-                </button>
-              </div>
-
-              <button id="profile_button" data-l10n-id="show-fb-profile" class="fillflow-row activity icon icon-fb-profile">
-                View Facebook profile
-              </button>
-
-              <button id="link_button" class="activity icon icon-link">
-                #action#
-              </button>
-
               <button id="share_button" data-l10n-id="share-contact" class="activity icon icon-share">
                 Share
               </button>
@@ -66,7 +50,7 @@
               <div class="item-body-exp">
                 <a href="#" class="action action-block">
                   <b>
-                  <span>#streetAddress#</span>
+                  <span class="force-align" dir="auto">#streetAddress#</span>
                     #postalCode#
                     #locality#
                     #countryName#
@@ -81,7 +65,7 @@
             <div class="item">
               <div class="item-body-exp">
                 <button id="email-or-pick-#i#" class="activity icon icon-email">
-                  <b aria-label="Email" data-l10n-id="composeEmail">#value#</b>
+                  <b aria-label="Email" data-l10n-id="composeEmail"><bdi>#value#</bdi></b>
                 </button>
               </div>
               <div class="item-media pull-right">
@@ -97,7 +81,7 @@
 
           <p data-comment id='note-details-template-#i#' data-template class="comment-notes">#note#</p>
           <div id='contact-detail-inner'>
-            <h1 id='org-title'></h1>
+            <h1 id='org-title' class="force-align" dir="auto"></h1>
             <ul id='details-list' role="presentation">
             </ul>
             <ul role="presentation">

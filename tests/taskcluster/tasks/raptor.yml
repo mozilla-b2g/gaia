@@ -1,0 +1,44 @@
+reruns: 3
+task:
+  metadata:
+    name: '{{raptorSuiteName}}'
+    description: Raptor performance launch test on emulator
+
+  workerType: '{{workerType}}'
+  provisionerId: '{{provisionerId}}'
+  scopes:
+    - docker-worker:cache:tc-vcs
+    - docker-worker:image:taskcluster/raptor-gaia:0.0.2
+
+  payload:
+    maxRunTime: 3600
+    image: taskcluster/raptor-gaia:0.0.2
+    cache:
+      tc-vcs: /home/worker/.tc-vcs
+    env:
+      RAPTOR_BASE_GAIA: '{{baseGaia}}'
+      RAPTOR_PATCH_GAIA: '{{patchGaia}}'
+      RAPTOR_EMULATOR_URL: '{{emulatorURL}}'
+      RAPTOR_TEST: tests/raptor/emulator_launch_test.js
+      RAPTOR_RUNS: '{{raptorRuns}}'
+      RAPTOR_APP: '{{raptorApp}}'
+      RAPTOR_TIMEOUT: '{{raptorTimeout}}'
+      RAPTOR_LAUNCH_DELAY: '{{raptorLaunchDelay}}'
+      RAPTOR_REGRESSION_METRIC: coldlaunch.visuallyLoaded
+      RAPTOR_REGRESSION_COMPARATOR: p95
+      RAPTOR_REGRESSION_THRESHOLD: 15
+
+    command:
+      - /home/tester/bin/go-raptor.sh
+
+    artifacts:
+      'public/logs':
+        type: directory
+        path: '/home/tester/logs'
+        expires: '{{nextYear}}'
+
+  extra:
+    treeherder:
+      groupSymbol: Raptor
+      groupName: 'Raptor Performance Tests'
+      symbol: '{{treeherderSym}}'

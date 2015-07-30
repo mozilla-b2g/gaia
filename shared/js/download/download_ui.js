@@ -129,7 +129,10 @@ var DownloadUI = (function() {
     confirm.id = 'downloadConfirmUI';
     confirm.setAttribute('role', 'dialog');
     confirm.setAttribute('data-type', 'confirm');
-    document.body.appendChild(confirm);
+    confirm.setAttribute('data-z-index-level', '100');
+
+    var screen = document.getElementById('screen');
+    screen.appendChild(confirm);
   }
 
   function removeConfirm() {

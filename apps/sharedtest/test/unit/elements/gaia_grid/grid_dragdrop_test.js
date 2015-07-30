@@ -108,6 +108,25 @@ suite('GaiaGrid > DragDrop', function() {
     assert.equal(grid.items[1].name, 'first');
   });
 
+  test('attention requested if item doesn\'t move', function() {
+    var firstBookmark = grid.items[0].element;
+    var requestAttentionStub = sinon.stub(grid.items[0], 'requestAttention');
+
+    firstBookmark.dispatchEvent(new CustomEvent('contextmenu',
+      {bubbles: true}));
+    grid.dragdrop.handleEvent({
+      type: 'touchend',
+      stopImmediatePropagation: function() {},
+      preventDefault: function() {}
+    });
+
+    this.sinon.clock.tick(grid.dragdrop.touchEndFinishDelay);
+    grid.dragdrop.handleEvent({ type: 'transitionend' });
+
+    assert.ok(requestAttentionStub.called);
+    requestAttentionStub.restore();
+  });
+
   test('cleanup if the touch gesture is canceled', function() {
     var firstBookmark = grid.items[0].element;
     firstBookmark.dispatchEvent(new CustomEvent('contextmenu',
@@ -126,6 +145,16 @@ suite('GaiaGrid > DragDrop', function() {
     assert.isFalse(firstBookmark.classList.contains('active'));
   });
 
+  test('long-press listener not activated during dragging', function() {
+    grid.dragdrop.icon = grid.items[0];
+    grid.dragdrop.handleEvent({
+      type: 'touchstart',
+      touches: [ { pageX: 0, pageY: 0, screenX: 0, screenY: 0 } ],
+      target: grid.items[0].element
+    });
+    assert.equal(grid.dragdrop.longPressTimeout, null);
+  });
+
   test('rearrange uses reference of icon for position', function() {
     var subject = grid.dragdrop;
     subject.icon = grid.items[0];
@@ -139,6 +168,8 @@ suite('GaiaGrid > DragDrop', function() {
   });
 
   test('create new groups by dropping items at the end', function() {
+    var requestAttentionStub =
+      sinon.stub(GaiaGrid.Divider.prototype, 'requestAttention');
     var dividers = countDividers();
     var subject = grid.dragdrop;
 
@@ -148,6 +179,17 @@ suite('GaiaGrid > DragDrop', function() {
 
     // After creating the new group, there should be one extra divider.
     assert.equal(countDividers(), dividers + 1);
+
+    // And attention should have been requested on the new divider.
+    var newDivider;
+    for (var i = grid.items.length - 1; i >= 0; i--) {
+      if (grid.items[i].detail.type === 'divider') {
+        newDivider = grid.items[i];
+        break;
+      }
+    }
+    assert.ok(requestAttentionStub.calledOn(newDivider));
+    requestAttentionStub.restore();
   });
 
   test('rearrange collapsed group before expanded group', function() {

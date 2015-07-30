@@ -1,16 +1,21 @@
 'use strict';
 
-/* global LayoutDictionary */
+/* global PromiseStorage, LayoutDictionary */
 
 (function(exports) {
 
 var LayoutDictionaryList = function LayoutDictionaryList(layoutList) {
-  this.dbStore = layoutList.dbStore;
+  this.dbStore = null;
   this.dictionaries = null;
 };
 
+LayoutDictionaryList.prototype.DATABASE_NAME = 'imEngineData';
+
 LayoutDictionaryList.prototype.start = function() {
   this.dictionaries = new Map();
+
+  this.dbStore = new PromiseStorage(this.DATABASE_NAME);
+  this.dbStore.start();
 };
 
 LayoutDictionaryList.prototype.stop = function() {
@@ -19,6 +24,9 @@ LayoutDictionaryList.prototype.stop = function() {
   });
 
   this.dictionaries = null;
+
+  this.dbStore.stop();
+  this.dbStore = null;
 };
 
 LayoutDictionaryList.prototype.getDictionary =

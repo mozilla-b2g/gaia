@@ -14,8 +14,12 @@ function getTimestamp(dirPaths) {
     let dir = utils.getFile(dirPath);
     if (dir.exists() && dir.isDirectory()) {
       utils.ls(dir, true).filter(isFileWatched).forEach(function(file) {
-        let relativePath = fsPath.relative(dir.path, file.path);
-        timestamp[dirPath][relativePath] = file.lastModifiedTime;
+        try {
+          let relativePath = fsPath.relative(dir.path, file.path);
+          timestamp[dirPath][relativePath] = file.lastModifiedTime;
+        } catch(e) {
+          timestamp = Date.now();
+        }
       });
     }
   });
@@ -96,10 +100,12 @@ exports.execute = function(options) {
       dirChanged(previous[sharedPath] || {}, current[sharedPath], sharedPath);
     let configChanged =
       buildConfigChanged(record.build_config, options);
+    let webappDir = utils.joinPath(options.PROFILE_DIR, 'webapps');
+    let webappsExist = utils.fileExists(webappDir);
 
-    // Rebuild everything if any BUILD_CONFIG attribute changed or if any
-    // shared/ file changed
-    if (configChanged || sharedChanged) {
+    // Rebuild everything if any BUILD_CONFIG attribute / shared file changed or
+    // PROFILE_DIR/webapps does not exist
+    if (configChanged || sharedChanged || !webappsExist) {
       rebuildAppDirs = scanningDirs;
     }
     // Rebuild any app that has any of its source file modified or external app

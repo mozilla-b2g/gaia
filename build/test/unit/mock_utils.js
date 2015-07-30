@@ -109,6 +109,11 @@ exports.basename = function(path) {
   return path.substr(path.lastIndexOf('/')+1);
 };
 
+exports.relativePath = function(from, to) {
+  // that's really dummy, but we need it for webapp-optimize tests.
+  return to;
+};
+
 exports.gaia = {
   getInstance: function(options) {
     var rebuildWebapps = options.rebuildAppDirs.map(function(appDir) {

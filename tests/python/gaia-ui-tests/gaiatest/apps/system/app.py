@@ -2,16 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-try:
-    from marionette import (expected,
-                            Wait)
-    from marionette.by import By
-    from marionette.marionette import Actions
-except:
-    from marionette_driver import (expected,
-                                   Wait)
-    from marionette_driver.by import By
-    from marionette_driver.marionette import Actions
+from marionette_driver import expected, By, Wait
+from marionette_driver.marionette import Actions
 
 from gaiatest.apps.base import Base
 
@@ -20,6 +12,7 @@ class System(Base):
 
     # status bar
     _status_bar_locator = (By.ID, 'statusbar')
+    _titlebar_locator = (By.CSS_SELECTOR, '.appWindow.active > .titlebar')
     _geoloc_statusbar_locator = (By.CSS_SELECTOR, '#statusbar-minimized-wrapper #statusbar-geolocation')
     _airplane_mode_statusbar_locator = (By.CSS_SELECTOR, '#statusbar-minimized-wrapper #statusbar-flight-mode')
     _utility_tray_locator = (By.ID, 'utility-tray')
@@ -43,9 +36,13 @@ class System(Base):
     def wait_for_status_bar_displayed(self):
         Wait(self.marionette).until(expected.element_displayed(*self._status_bar_locator))
 
-    def wait_for_notification_toaster_displayed(self, timeout=10, message=None):
-        Wait(self.marionette, timeout).until(
-            expected.element_displayed(*self._notification_toaster_locator), message=message)
+    # A lot of tests, like mail or call received, need a longer timeout here
+    def wait_for_notification_toaster_displayed(self, timeout=30, message=None, for_app=None):
+        el = self.marionette.find_element(*self._notification_toaster_locator)
+        Wait(self.marionette, timeout).until(expected.element_displayed(el), message=message)
+        if for_app is not None:
+            Wait(self.marionette, timeout).until(lambda m:
+                for_app in el.get_attribute('data-notification-id'), message=message)
 
     def wait_for_notification_toaster_not_displayed(self, timeout=10):
         Wait(self.marionette, timeout).until(
@@ -68,7 +65,7 @@ class System(Base):
 
     def open_utility_tray(self):
         body = self.marionette.find_element(By.TAG_NAME, 'body')
-        statusbar = self.marionette.find_element(*self._status_bar_locator)
+        statusbar = self.marionette.find_element(*self._titlebar_locator)
         statusbar_x = int(statusbar.size['width']/2)
         statusbar_y_end = int(body.size['height'])
         Actions(self.marionette).press(statusbar).move_by_offset(statusbar_x, statusbar_y_end).release().perform()

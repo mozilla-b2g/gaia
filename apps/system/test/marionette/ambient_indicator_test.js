@@ -7,9 +7,10 @@ var NotificationTest = require('./lib/notification').NotificationTest;
 marionette('Ambient indicator', function() {
 
   var client = marionette.client({
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
+    profile: {
+      settings: {
+        'notifications.resend': false
+      }
     }
   });
 
@@ -30,7 +31,7 @@ marionette('Ambient indicator', function() {
         dir: 'rtl',
         lang: 'en'
       };
-      system.waitForStartup();
+      system.waitForFullyLoaded();
     });
 
     test('is shown when a notification arrives', function() {

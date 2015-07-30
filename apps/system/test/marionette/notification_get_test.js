@@ -7,12 +7,14 @@ var assert = require('assert');
 var CALENDAR_APP = 'app://calendar.gaiamobile.org';
 
 marionette('Notification.get():', function() {
-
   var client = marionette.client({
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
-    }
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
+  });
+
+  var system;
+  setup(function() {
+    system = client.loader.getAppClass('system');
+    system.waitForFullyLoaded();
   });
 
   test('promise is fulfilled', function(done) {

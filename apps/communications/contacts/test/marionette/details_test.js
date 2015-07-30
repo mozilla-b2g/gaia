@@ -5,7 +5,7 @@ var ContactsData = require('./lib/contacts_data');
 var assert = require('assert');
 
 marionette('Contacts > Details', function() {
-  var client = marionette.client(Contacts.config);
+  var client = marionette.client({ profile: Contacts.config });
   var subject, actions;
   var selectors;
   var contactsData = new ContactsData(client);
@@ -56,32 +56,6 @@ marionette('Contacts > Details', function() {
     client.helper.waitForElement(selectors.listContactFirstText).click();
     subject.waitSlideLeft('details');
     assertContactData(testContact);
-    client.findElement(selectors.detailsLinkButton);
-  });
-
-  test('Facebook contact correctly displayed as social contact',
-      function() {
-    contactsData.createFbContact();
-    client.helper.waitForElement(selectors.listContactFirstText).click();
-    subject.waitSlideLeft('details');
-
-    var fbLabel = client.helper.waitForElement(selectors.detailsSocialLabel);
-    assert.equal(fbLabel.text(), 'FACEBOOK');
-
-    var msgButton = client.helper.waitForElement(selectors.fbMsgButton);
-    msgButton.enabled();
-
-    var wallButton = client.helper.waitForElement(selectors.fbWallButton);
-    wallButton.enabled();
-
-    var profileButton = client.helper.waitForElement(selectors.fbProfileButton);
-    profileButton.enabled();
-
-    var coverImg = client.helper.waitForElement(selectors.detailsCoverImage);
-    assert.ok(coverImg, 'Element should exist.');
-    client.waitFor(function() {
-      return coverImg.getAttribute('style').indexOf('background-image') > -1;
-    });
   });
 
   test('Show contact with picture', function() {
@@ -110,7 +84,7 @@ marionette('Contacts > Details', function() {
 
     // Click on favorite
     client.helper.waitForElement(selectors.detailsFavoriteButton).click();
-    nameNode = client.helper.waitForElement(selectors.detailsContactName);
+    nameNode = client.helper.waitForElement(selectors.detailsHeader);
     client.waitFor(function() {
       return nameNode.getAttribute('class').indexOf('favorite') != -1;
     });

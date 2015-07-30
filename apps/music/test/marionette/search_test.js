@@ -5,6 +5,7 @@ var assert = require('assert');
 var Music = require('./lib/music.js');
 var FakeRingtones = require('./lib/fakeringtones.js');
 var FakeControls = require('./lib/fakecontrols.js');
+var SearchHelper = require('./lib/searchhelper.js');
 /*var Statusbar = require('./lib/statusbar.js');*/
 
 marionette('Music player search', function() {
@@ -13,18 +14,15 @@ marionette('Music player search', function() {
   apps[FakeControls.DEFAULT_ORIGIN] = __dirname + '/fakecontrols';
 
   var client = marionette.client({
-    prefs: {
-      'device.storage.enabled': true,
-      'device.storage.testing': true,
-      'device.storage.prompt.testing': true
-    },
+    profile: {
+      prefs: {
+        'device.storage.enabled': true,
+        'device.storage.testing': true,
+        'device.storage.prompt.testing': true
+      },
 
-    settings: {
-      'lockscreen.enabled': false,
-      'ftu.manifestURL': null
-    },
-
-    apps: apps
+      apps: apps
+    }
   });
 
   var music;
@@ -105,18 +103,19 @@ marionette('Music player search', function() {
       music.launch();
       music.waitForFirstTile();
 
-      music.searchTiles('the');
+      // Here we wait 1.5 seconds for the search input hides completely.
+      // it will re-show after we scroll the target view.
+      client.helper.wait(1500);
+      music.showSearchInput(Music.Selector.tilesView);
     });
 
-
     test('Check simple search results in artists.', function() {
+      music.searchTiles('the');
       // check for the results in "artists"
       var resultsList = testSearchResults(Music.Selector.searchArtists, 2);
 
-      assert.equal(resultsList[1].findElement('.list-single-title').text(),
-                   'The NSA');
-      assert.equal(resultsList[1].findElement('.search-highlight').text(),
-                   'The');
+      assert.equal(SearchHelper.singleTitle(resultsList[1]), 'The NSA');
+      assert.equal(SearchHelper.highlight(resultsList[1]), 'The');
 
       var noResult = client.findElement(Music.Selector.searchNoResult);
       assert.ok(noResult);
@@ -124,13 +123,13 @@ marionette('Music player search', function() {
     });
 
     test('Check simple search results in tracks.', function() {
+      music.searchTiles('the');
       // check for the results in "artists"
       var resultsList = testSearchResults(Music.Selector.searchTitles, 1);
 
-      assert.equal(resultsList[0].findElement('.list-main-title').text(),
+      assert.equal(SearchHelper.mainTitle(resultsList[0]),
                    'The Ecuadorian Embassy');
-      assert.equal(resultsList[0].findElement('.search-highlight').text(),
-                   'The');
+      assert.equal(SearchHelper.highlight(resultsList[0]), 'The');
       var noResult = client.findElement(Music.Selector.searchNoResult);
       assert.ok(noResult);
       assert.ok(!noResult.displayed());
@@ -162,14 +161,15 @@ marionette('Music player search', function() {
 
     test('Check the context for artists', function() {
       music.switchToArtistsView();
-      music.searchTiles('the');
+      music.waitForListView();
+
+      music.showSearchInput(Music.Selector.listView);
+      music.searchArtists('the');
 
       var resultsList = testSearchResults(Music.Selector.searchArtists, 2);
 
-      assert.equal(resultsList[1].findElement('.list-single-title').text(),
-                   'The NSA');
-      assert.equal(resultsList[1].findElement('.search-highlight').text(),
-                   'The');
+      assert.equal(SearchHelper.singleTitle(resultsList[1]), 'The NSA');
+      assert.equal(SearchHelper.highlight(resultsList[1]), 'The');
     });
 
   });

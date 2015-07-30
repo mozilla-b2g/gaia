@@ -419,5 +419,17 @@ var NDEFUtils = {
                                  payload: new Uint8Array(OOB)})];
 
     return hs;
+  },
+
+  /**
+   * Returns an empty Handover Select NDEF message (i.e., a Hs message with no
+   * AC).
+   * @returns {Array} NDEF records for an empty handover select message.
+   */
+  encodeEmptyHandoverSelect: function encodeEmptyHandoverSelect() {
+    var hs = [new MozNDEFRecord({tnf: NDEF.TNF_WELL_KNOWN,
+                                 type: NDEF.RTD_HANDOVER_SELECT,
+                                 payload: new Uint8Array([0x12])})];
+    return hs;
   }
 };

@@ -6,16 +6,14 @@ var assert = require('assert'),
 
 marionette('notification count tests', function() {
   var client = marionette.client({
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
-    }
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
   });
   var notificationList = new NotificationList(client);
 
   var system;
   setup(function() {
     system = client.loader.getAppClass('system');
+    system.waitForFullyLoaded();
   });
 
   test('notifications count should be updated', function(done) {

@@ -5,6 +5,7 @@
 
 var BookmarkEditor = {
   BOOKMARK_ICON_SIZE: 60,
+  APP_ICON_SIZE: 60,
   
   init: function bookmarkEditor_show(options) {
     this.data = options.data;
@@ -24,10 +25,13 @@ var BookmarkEditor = {
     var _ = navigator.mozL10n.get;
     this.mode = document.body.dataset.mode = mode;
     this.bookmarkTitle = document.getElementById('bookmark-title');
+    this.bookmarkURL = document.getElementById('bookmark-url');
     this.bookmarkIcon = document.getElementById('bookmark-icon');
     this.cancelButton = document.getElementById('cancel-button');
     this.saveButton = document.getElementById('done-button');
     this.appInstallationSection = document.getElementById('app-installation');
+    this.appIcon = document.getElementById('app-icon');
+    this.appIconPlaceholder = document.getElementById('app-icon-placeholder');
     this.appNameText = document.getElementById('app-name');
     this.installAppButton = document.getElementById('install-app-button');
 
@@ -37,6 +41,8 @@ var BookmarkEditor = {
 
     this.bookmarkTitle.value = this.data.name || '';
 
+    this.bookmarkURL.textContent = this.data.url;
+    
     this._renderIcon();
 
     if (this.data.manifestURL) {
@@ -70,6 +76,24 @@ var BookmarkEditor = {
     var icon = new Icon(this.bookmarkIcon, this.data.icon);
     icon.render({'size': this.BOOKMARK_ICON_SIZE});
   },
+
+  _renderAppIcon: function renderAppIcon(manifest, size) {
+    // Parse icon URL from app manifest
+    var iconURL = window.IconsHelper.getBestIconFromWebManifest(manifest, size);
+    if (!iconURL) {
+      return;
+    }
+    // Switch out placeholder for real icon when it loads
+    this.appIconListener = this._handleAppIconLoad.bind(this);
+    this.appIcon.addEventListener('load', this.appIconListener);
+    this.appIcon.setAttribute('src', iconURL);
+  },
+  
+  _handleAppIconLoad: function _handleAppIconLoad() {
+    this.appIconPlaceholder.classList.add('hidden');
+    this.appIcon.classList.remove('hidden');
+    this.appIcon.removeEventListener('load', this.appIconListener);
+  },
   
   _fetchManifest: function bookmarkEditor_fetchManifest(manifestURL) {
     var manifestPromise = window.WebManifestHelper.getManifest(manifestURL);
@@ -79,9 +103,10 @@ var BookmarkEditor = {
         this.installAppButtonListener = this._installApp.bind(this);
         this.installAppButton.addEventListener('click',
           this.installAppButtonListener);
-        this.appInstallationSection.classList.remove('hidden');
         this.appNameText.textContent = manifestData.short_name ||
           manifestData.name;
+        this.appInstallationSection.classList.remove('hidden');
+        this._renderAppIcon(manifestData, manifestURL, this.APP_ICON_SIZE);
       }
     }).bind(this)).catch(function(error) {
       console.error('Unable to get web manifest: ' + error);
@@ -105,7 +130,9 @@ var BookmarkEditor = {
    */
   _submit: function(event) {
     event.preventDefault();
-    this.save();
+    if (!this.saveButton.disabled) {
+      this.save();
+    }
   },
 
   _clearTitle: function bookmarkEditor_clearTitle(event) {

@@ -5,7 +5,7 @@ var Rocketbar = require('../../../system/test/marionette/lib/rocketbar');
 var Server = require('../../../../shared/test/integration/server');
 
 marionette('Rocketbar', function() {
-  var client = marionette.client(Rocketbar.clientOptions);
+  var client = marionette.client();
   var rocketbar, search, server, system;
 
   suiteSetup(function(done) {
@@ -23,7 +23,7 @@ marionette('Rocketbar', function() {
     rocketbar = new Rocketbar(client);
     search = client.loader.getAppClass('search');
     system = client.loader.getAppClass('system');
-    system.waitForStartup();
+    system.waitForFullyLoaded();
   });
 
   test.skip('Focus', function() {
@@ -44,7 +44,7 @@ marionette('Rocketbar', function() {
   test.skip('show results on submit', function() {
     rocketbar.waitForLoad();
     rocketbar.focus();
-    rocketbar.enterText('\uE006');
+    rocketbar.enterText('', true);
     client.waitFor(function() {
       return rocketbar.results.displayed();
     });
@@ -57,7 +57,7 @@ marionette('Rocketbar', function() {
     var element = rocketbar.rocketbar;
     var url = server.url('sample.html');
     rocketbar.focus();
-    rocketbar.enterText(url + '\uE006'); // Enter the URL with enter key
+    rocketbar.enterText(url, true); // Enter the URL with enter key
     rocketbar.switchToBrowserFrame(url);
     client.switchToFrame();
     client.waitFor(function() {

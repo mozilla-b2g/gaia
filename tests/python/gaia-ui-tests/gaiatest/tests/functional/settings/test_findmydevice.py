@@ -25,8 +25,8 @@ class TestSettingsFindMyDevice(GaiaTestCase):
         findmydevice = settings.open_findmydevice()
 
         fxaccount = findmydevice.tap_login()
-        fxaccount.enter_email(self.testvars['email']['gmail']['email'])
-        fxaccount.enter_password(self.testvars['email']['gmail']['password'])
+        fxaccount.enter_email(self.environment.email['gmail']['email'])
+        fxaccount.enter_password(self.environment.email['gmail']['password'])
         fxaccount.tap_done()
 
         findmydevice.wait_for_enable_switch_to_be_turned_on()

@@ -8,9 +8,9 @@ suite('settings.js', function() {
   var app;
   setup(function() {
     app = proxyquire.noCallThru().load(
-            '../../settings', {
-              './utils': mockUtils
-            });
+      '../../settings', {
+        './utils': mockUtils
+      });
     mockUtils.getFileContent = function(file) {
       return file;
     };
@@ -349,6 +349,7 @@ suite('settings.js', function() {
           'rocketbar.searchAppURL': config.GAIA_SCHEME + 'search.' +
             config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
           'feedback.url': 'https://input.mozilla.org/api/v1/feedback/',
+          'gaia.system.checkForUpdates': true,
           'language.current': config.GAIA_DEFAULT_LOCALE,
           'debugger.remote-mode': 'disabled',
           'wallpaper.image': undefined,
@@ -384,6 +385,44 @@ suite('settings.js', function() {
         assert.equal(origins.length, 2);
         assert.ok(origins.indexOf(marketplaceProd) >= 0);
         assert.ok(origins.indexOf(marketplaceStage) >= 0);
+        done();
+      });
+    });
+
+    test('DOGFOOD === 1', function(done) {
+      config.DOGFOOD = '1';
+      config.TARGET_BUILD_VARIANT = 'user';
+      var queue = app.execute(config);
+      queue.done(function(result) {
+        assert.equal(Object.keys(result)
+          .indexOf('dom.mozApps.signed_apps_installable_from'), -1);
+        assert.deepEqual({
+            'homescreen.manifestURL': config.GAIA_SCHEME +
+              'verticalhome.' + config.GAIA_DOMAIN + config.GAIA_PORT +
+              '/manifest.webapp',
+            'rocketbar.newTabAppURL': config.GAIA_SCHEME + 'search.' +
+              config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
+            'rocketbar.searchAppURL': config.GAIA_SCHEME + 'search.' +
+              config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
+            'language.current': config.GAIA_DEFAULT_LOCALE,
+            'debugger.remote-mode': 'adb-only',
+            'wallpaper.image': undefined,
+            'media.ringtone': undefined,
+            'alarm.ringtone': undefined,
+            'dialer.ringtone.name': {l10nID: 'ringer_firefox2'},
+            'dialer.ringtone.id': 'builtin:ringtone/ringer_firefox',
+            'dialer.ringtone.default.id': 'builtin:ringtone/ringer_firefox',
+            'dialer.ringtone': undefined,
+            'notification.ringtone.name': {l10nID: 'notifier_firefox2'},
+            'notification.ringtone.id': 'builtin:alerttone/notifier_firefox',
+            'notification.ringtone.default.id':
+              'builtin:alerttone/notifier_firefox',
+            'notification.ringtone': undefined,
+            'ftu.pingURL': config.FTU_PING_URL,
+            'debug.performance_data.dogfooding': true,
+            'metrics.appusage.reportInterval': 86400000,
+            'debug.performance_data.shared': false },
+          result);
         done();
       });
     });

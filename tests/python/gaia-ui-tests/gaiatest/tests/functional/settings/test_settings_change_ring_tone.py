@@ -15,7 +15,7 @@ class TestSettingsChangeRingTone(GaiaTestCase):
 
         settings = Settings(self.marionette)
         settings.launch()
-        sound = settings.open_sound_settings()
+        sound = settings.open_sound()
 
         old_ring_tone = sound.current_ring_tone
 

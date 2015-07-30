@@ -133,8 +133,10 @@
   }
   window.getTopUpTimeout = getTopUpTimeout;
 
-  function addNetworkUsageAlarm(dataInterface, dataLimit, callback) {
-    NetworkUsageAlarm.updateAlarm(dataInterface, dataLimit, callback);
+  function addNetworkUsageAlarm(dataInterface, dataLimit, onsuccess, onerror) {
+    onsuccess = onsuccess || function() {};
+    onerror = onerror || function() {};
+    NetworkUsageAlarm.updateAlarm(dataInterface, dataLimit, onsuccess, onerror);
   }
   window.addNetworkUsageAlarm = addNetworkUsageAlarm;
 

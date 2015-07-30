@@ -5,29 +5,28 @@ var StatusBar = require('./lib/statusbar.js');
 marionette('Secure app (camera from lockscreen) statusbar icons', function() {
 
   var client = marionette.client({
-    prefs: {
-      'focusmanager.testmode': true,
-      'dom.w3c_touch_events.enabled': 1
+    profile: {
+      prefs: {
+        'focusmanager.testmode': true
+      },
+      settings: {
+        'software-button.enabled': true
+      },
+      apps: {
+        'fullscreen_request.gaiamobile.org':
+          __dirname + '/../apps/fullscreen_request'
+      }
     },
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false,
-      'software-button.enabled': true
-    },
-    apps: {
-      'fullscreen_request.gaiamobile.org':
-        __dirname + '/fullscreen_request'
-    }
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
   });
 
   var system, lockscreen, statusbar;
 
   setup(function() {
     system = client.loader.getAppClass('system');
+    system.waitForFullyLoaded();
     lockscreen = (new LockScreen()).start(client);
     statusbar = new StatusBar(client);
-
-    system.waitForStartup();
   });
 
   function launchApp(url) {

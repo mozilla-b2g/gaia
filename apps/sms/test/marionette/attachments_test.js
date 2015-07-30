@@ -12,15 +12,13 @@ marionette('Attachment picking and sending tests', function() {
   apps[MessagesActivityCaller.ORIGIN] = __dirname + '/apps/activitycaller';
 
   var client = marionette.client({
-    prefs: {
-      'focusmanager.testmode': true
-    },
-    settings: {
-      'lockscreen.enabled': false,
-      'ftu.manifestURL': null
-    },
+    profile: {
+      prefs: {
+        'focusmanager.testmode': true
+      },
 
-    apps: apps
+      apps: apps
+    }
   });
 
   var messagesApp, activityCallerApp;
@@ -41,7 +39,7 @@ marionette('Attachment picking and sending tests', function() {
 
     setup(function() {
       messagesApp.launch();
-      messagesApp.ThreadList.navigateToComposer();
+      messagesApp.Inbox.navigateToComposer();
     });
 
     test('A contact can be enclosed as attachment', function() {

@@ -1,5 +1,6 @@
 'use strict';
-/* global MocksHelper, MockMozL10n, utils, MockMatcher, MockMozContacts */
+/* global MocksHelper, MockLoader,
+    MockMozL10n, utils, MockMatcher, MockMozContacts */
 
 require('/shared/js/contacts/import/utilities/import_from_vcard.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
@@ -13,6 +14,7 @@ requireApp('communications/contacts/test/unit/mock_file_reader.js');
 require('/shared/test/unit/mocks/mock_confirm_dialog.js');
 requireApp('communications/contacts/test/unit/mock_navigation.js');
 requireApp('communications/contacts/test/unit/mock_contacts.js');
+requireApp('communications/contacts/test/unit/mock_loader.js');
 requireApp('/shared/test/unit/mocks/mock_moz_contact.js');
 
 if (!window._) {
@@ -99,7 +101,8 @@ suite('Import from vcard', function() {
       real_,
       realStatus,
       realMatcher,
-      realOverlay;
+      realOverlay,
+      realLoader;
 
   suiteSetup(function() {
     realMozL10n = navigator.mozL10n;
@@ -125,8 +128,11 @@ suite('Import from vcard', function() {
     });
 
     window.contacts = window.contacts || {};
-    realMatcher = window.contacts.Matcher;
-    window.contacts.Matcher = MockMatcher;
+    realMatcher = window.Matcher;
+    window.Matcher = MockMatcher;
+
+    realLoader = window.Loader;
+    window.Loader = MockLoader;
 
     window.utils.overlay = {
       total: 0,
@@ -159,9 +165,10 @@ suite('Import from vcard', function() {
   suiteTeardown(function() {
     navigator.mozL10n = realMozL10n;
     window._ = real_;
-    window.contacts.Matcher = realMatcher;
+    window.Matcher = realMatcher;
     window.utils.status = realStatus;
     window.utils.overlay = realOverlay;
+    window.Loader = realLoader;
     mocksHelperForImportVcard.suiteTeardown();
   });
 

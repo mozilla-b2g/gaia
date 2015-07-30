@@ -1,6 +1,11 @@
 'use strict';
 
-/* globals MockNavigatorMozMobileConnections */
+/* global AppUpdatable, Service, UpdateManager,
+          MockApp, MockAppUpdatable, MockAppsMgmt, MockChromeEvent,
+          MockCustomDialog, MocksHelper, MockL10n,
+          MockNavigatorMozMobileConnections, MockNavigatorSettings,
+          MockNavigatorWakeLock, MockNotificationScreen,
+          MockSettingsListener, MockSystemBanner, MockSystemUpdatable */
 
 requireApp('system/js/update_manager.js');
 
@@ -11,8 +16,9 @@ requireApp('system/shared/test/unit/mocks/mock_custom_dialog.js');
 requireApp('system/test/unit/mock_utility_tray.js');
 requireApp('system/test/unit/mock_system_banner.js');
 requireApp('system/test/unit/mock_chrome_event.js');
+requireApp('system/test/unit/mock_lazy_loader.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
-requireApp('system/test/unit/mock_statusbar.js');
+requireApp('system/js/service.js');
 requireApp('system/test/unit/mock_notification_screen.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_wake_lock.js');
@@ -24,15 +30,14 @@ requireApp('system/test/unit/mock_asyncStorage.js');
 require('/test/unit/mock_update_manager.js');
 
 var mocksForUpdateManager = new MocksHelper([
-  'StatusBar',
   'SystemBanner',
   'NotificationScreen',
-  'UtilityTray',
   'CustomDialog',
   'SystemUpdatable',
   'AppUpdatable',
   'SettingsListener',
-  'asyncStorage'
+  'asyncStorage',
+  'LazyLoader'
 ]).init();
 
 suite('system/UpdateManager', function() {
@@ -112,6 +117,15 @@ suite('system/UpdateManager', function() {
   });
 
   setup(function() {
+    this.sinon.stub(Service, 'request', function(action) {
+      if (action === 'showCustomDialog') {
+        MockCustomDialog.show(arguments[1],
+          arguments[2], arguments[3], arguments[4]);
+      } else if (action === 'hideCustomDialog') {
+        MockCustomDialog.hide(arguments[1],
+          arguments[2], arguments[3], arguments[4]);
+      }
+    });
     // they are automatically restored at teardown by the test agent
     this.sinon.useFakeTimers();
 
@@ -130,7 +144,7 @@ suite('system/UpdateManager', function() {
     fakeNode = document.createElement('div');
     fakeNode.id = 'update-manager-container';
     fakeNode.innerHTML = [
-      '<div data-icon="download-circle"></div>',
+      '<div data-icon="download-circle" aria-hidden="true"></div>',
       '<div class="title-container"></div>',
       '<progress></progress>'
     ].join('');
@@ -225,7 +239,7 @@ suite('system/UpdateManager', function() {
   suite('init', function() {
     test('should get all applications', function() {
       this.sinon.stub(MockAppsMgmt, 'getAll').returns({});
-      UpdateManager.init();
+      UpdateManager.start();
       sinon.assert.called(MockAppsMgmt.getAll);
     });
 
@@ -235,7 +249,7 @@ suite('system/UpdateManager', function() {
       var request = {};
       this.sinon.stub(MockAppsMgmt, 'getAll').returns(request);
 
-      UpdateManager.init();
+      UpdateManager.start();
       assert.isFunction(request.onsuccess);
       request.onsuccess({
         target: {
@@ -246,7 +260,7 @@ suite('system/UpdateManager', function() {
     });
 
     test('should bind dom elements', function() {
-      UpdateManager.init();
+      UpdateManager.start();
       assert.equal('update-manager-container', UpdateManager.container.id);
       assert.equal('title-container', UpdateManager.message.className);
 
@@ -267,9 +281,12 @@ suite('system/UpdateManager', function() {
     });
 
     test('should bind to the click event', function() {
-      UpdateManager.init();
+      UpdateManager.start();
       assert.equal(UpdateManager.containerClicked.name,
                    UpdateManager.container.onclick.name);
+
+      assert.equal(UpdateManager.toasterClicked.name,
+                   UpdateManager.toaster.onclick.name);
 
       assert.equal(UpdateManager.requestDownloads.name,
                    UpdateManager.downloadButton.onclick.name);
@@ -292,7 +309,7 @@ suite('system/UpdateManager', function() {
       setup(function() {
         MockAppUpdatable.mTeardown();
         MockAppsMgmt.mApps = [];
-        UpdateManager.init();
+        UpdateManager.start();
 
         installedApp = new MockApp();
         installedApp.downloadAvailable = true;
@@ -308,7 +325,7 @@ suite('system/UpdateManager', function() {
       var partialApp;
 
       setup(function() {
-        UpdateManager.init();
+        UpdateManager.start();
         UpdateManager.updatableApps = updatableApps;
         UpdateManager.addToUpdatesQueue(uAppWithDownloadAvailable);
 
@@ -350,7 +367,7 @@ suite('system/UpdateManager', function() {
       var event;
 
       setup(function() {
-        UpdateManager.init();
+        UpdateManager.start();
         event = new MockChromeEvent({
           type: 'update-available',
           size: 42
@@ -385,7 +402,7 @@ suite('system/UpdateManager', function() {
 
     suite('no system update available', function() {
       setup(function() {
-        UpdateManager.init();
+        UpdateManager.start();
       });
 
       test('should not remember about the update', function() {
@@ -395,7 +412,7 @@ suite('system/UpdateManager', function() {
 
     suite('device locked', function() {
       setup(function() {
-        UpdateManager.init();
+        UpdateManager.start();
       });
 
       test('should close all dialogs', function() {
@@ -406,6 +423,16 @@ suite('system/UpdateManager', function() {
         assert.isFalse(UpdateManager.downloadViaDataConnectionDialog.
           classList.contains('visible'));
         assert.isFalse(MockCustomDialog.mShown);
+        // should not close all custom dialog when no custom dialog is opened
+        assert.isFalse(Service.request.calledWith('hideCustomDialog'));
+      });
+
+      test('should decline install if showing apply prompt', function() {
+        this.sinon.spy(UpdateManager.systemUpdatable, 'declineInstallWait');
+        UpdateManager.systemUpdatable.showingApplyPrompt = true;
+        window.dispatchEvent(new CustomEvent('lockscreen-appopened'));
+        assert.isTrue(
+          UpdateManager.systemUpdatable.declineInstallWait.calledOnce);
       });
 
       var testCases = [
@@ -467,6 +494,51 @@ suite('system/UpdateManager', function() {
           }
         });
       });
+
+      // Places to create new custom dialog
+      var hasDialogTestCases = [
+        {
+          method: 'containerClicked'
+        },
+        {
+          method: 'showPromptWifiPrioritized'
+        },
+        {
+          method: 'showForbiddenDownload'
+        },
+        {
+          method: 'showPromptNoConnection'
+        }
+      ];
+
+      hasDialogTestCases.forEach(function(testCase) {
+        test('should close all dialogs when ' + testCase.method +
+          ' dialog is opened', function() {
+          switch (testCase.method) {
+            case 'containerClicked':
+              UpdateManager._downloading = true;
+              UpdateManager.containerClicked();
+              break;
+            case 'showPromptWifiPrioritized':
+              UpdateManager.showPromptWifiPrioritized();
+              break;
+            case 'showForbiddenDownload':
+              UpdateManager.showForbiddenDownload();
+              break;
+            case 'showPromptNoConnection':
+              UpdateManager.showPromptNoConnection();
+              break;
+          }
+          window.dispatchEvent(new CustomEvent('lockscreen-appopened'));
+
+          assert.isFalse(UpdateManager.downloadDialog.
+            classList.contains('visible'));
+          assert.isFalse(UpdateManager.downloadViaDataConnectionDialog.
+            classList.contains('visible'));
+          assert.isFalse(MockCustomDialog.mShown);
+          assert.ok(Service.request.calledWith('hideCustomDialog'));
+        });
+      });
     });
   });
 
@@ -474,7 +546,7 @@ suite('system/UpdateManager', function() {
     setup(function() {
 
       MockAppsMgmt.mApps = [];
-      UpdateManager.init();
+      UpdateManager.start();
       UpdateManager.updatableApps = updatableApps;
     });
 
@@ -649,7 +721,6 @@ suite('system/UpdateManager', function() {
 
       suite('notification behavior after addToDownloadsQueue', function() {
         setup(function() {
-          var css = UpdateManager.container.classList;
           UpdateManager.addToDownloadsQueue(uAppWithDownloadAvailable);
         });
 
@@ -657,7 +728,7 @@ suite('system/UpdateManager', function() {
           var css = UpdateManager.container.classList;
           assert.isTrue(css.contains('displayed'));
           assert.equal(
-            MockNotificationScreen.wasMethodCalled['addUnreadNotification'],
+            MockNotificationScreen.wasMethodCalled.addUnreadNotification,
             1);
         });
 
@@ -667,8 +738,7 @@ suite('system/UpdateManager', function() {
           var css = UpdateManager.container.classList;
           assert.isTrue(css.contains('displayed'));
           assert.equal(
-            MockNotificationScreen
-              .wasMethodCalled['addUnreadNotification'],
+            MockNotificationScreen.wasMethodCalled.addUnreadNotification,
             1);
         });
       });
@@ -687,8 +757,7 @@ suite('system/UpdateManager', function() {
             var css = UpdateManager.container.classList;
             assert.isTrue(css.contains('displayed'));
             assert.equal(
-              MockNotificationScreen
-                .wasMethodCalled['addUnreadNotification'],
+              MockNotificationScreen.wasMethodCalled.addUnreadNotification,
               1);
           });
         });
@@ -706,8 +775,7 @@ suite('system/UpdateManager', function() {
           var css = UpdateManager.container.classList;
           assert.isTrue(css.contains('displayed'));
           assert.equal(
-            MockNotificationScreen
-              .wasMethodCalled['addUnreadNotification'],
+            MockNotificationScreen.wasMethodCalled.addUnreadNotification,
             1);
         });
 
@@ -741,7 +809,7 @@ suite('system/UpdateManager', function() {
 
             this.sinon.clock.tick(UpdateManager.NOTIFICATION_BUFFERING_TIMEOUT);
 
-            var css = UpdateManager.toaster.classList;
+            css = UpdateManager.toaster.classList;
             assert.isTrue(css.contains('displayed'));
             var l10nAttrs = MockL10n.getAttributes(
               UpdateManager.toasterMessage);
@@ -792,6 +860,22 @@ suite('system/UpdateManager', function() {
         });
       });
 
+      suite('should show download prompt when tap on toaster', function() {
+        setup(function() {
+          UpdateManager._downloading = false;
+          UpdateManager.toasterClicked();
+        });
+
+        test('should hide the utility tray', function() {
+          assert.isTrue(Service.request.calledWith('UtilityTray:hide'));
+        });
+
+        test('should show the download dialog', function() {
+          var css = UpdateManager.downloadDialog.classList;
+          assert.isTrue(css.contains('visible'));
+        });
+      });
+
       suite('no more updates', function() {
         setup(function() {
           UpdateManager.container.classList.add('displayed');
@@ -826,7 +910,7 @@ suite('system/UpdateManager', function() {
 
     suite('error banner requests', function() {
       setup(function() {
-        UpdateManager.init();
+        UpdateManager.start();
         UpdateManager.requestErrorBanner();
       });
 
@@ -875,7 +959,7 @@ suite('system/UpdateManager', function() {
 
   suite('actions', function() {
     setup(function() {
-      UpdateManager.init();
+      UpdateManager.start();
     });
 
     suite('start downloads', function() {
@@ -1086,7 +1170,7 @@ suite('system/UpdateManager', function() {
       var updatableApp, downloadDialog;
 
       setup(function() {
-        UpdateManager.init();
+        UpdateManager.start();
         var installedApp = new MockApp();
         updatableApp = new MockAppUpdatable(installedApp);
         UpdateManager.updatableApps = [updatableApp];
@@ -1109,7 +1193,6 @@ suite('system/UpdateManager', function() {
 
     suite('download prompt', function() {
       setup(function() {
-        MockUtilityTray.show();
         var systemUpdatable = new MockSystemUpdatable();
         systemUpdatable.size = 5296345;
         var appUpdatable = new MockAppUpdatable(new MockApp());
@@ -1135,7 +1218,7 @@ suite('system/UpdateManager', function() {
 
       suite('download prompt', function() {
         test('should hide the utility tray', function() {
-          assert.isFalse(MockUtilityTray.mShown);
+          assert.isTrue(Service.request.calledWith('UtilityTray:hide'));
         });
 
         test('should show the download dialog', function() {
@@ -1209,13 +1292,12 @@ suite('system/UpdateManager', function() {
     suite('cancel prompt', function() {
       setup(function() {
         UpdateManager._downloading = true;
-        MockUtilityTray.show();
         UpdateManager.containerClicked();
       });
 
       test('should show the cancel', function() {
         assert.isTrue(MockCustomDialog.mShown);
-        assert.isFalse(MockUtilityTray.mShown);
+        assert.isTrue(Service.request.calledWith('UtilityTray:hide'));
 
         assert.equal(
           'cancelAllDownloads',
@@ -1244,9 +1326,23 @@ suite('system/UpdateManager', function() {
       });
     });
 
+    suite('cancel prompt continued', function() {
+      setup(function() {
+        var systemUpdatable = new MockSystemUpdatable();
+        UpdateManager.addToUpdatesQueue(systemUpdatable);
+        UpdateManager.addToDownloadsQueue(systemUpdatable);
+        UpdateManager.startedUncompressing();
+        UpdateManager.containerClicked();
+      });
+
+      test('should not display prompt while uncompressing', function() {
+        assert.isFalse(MockCustomDialog.mShown);
+      });
+    });
+
     suite('check for updates', function() {
       setup(function() {
-        UpdateManager.init();
+        UpdateManager.start();
       });
 
       test('should observe the setting', function() {
@@ -1334,7 +1430,7 @@ suite('system/UpdateManager', function() {
         this.sinon.spy(UpdateManager, 'getUpdate2GEnabled');
       showPromptNoConnectionSpy =
         this.sinon.spy(UpdateManager, 'showPromptNoConnection');
-      UpdateManager.init();
+      UpdateManager.start();
     });
 
     teardown(function() {
@@ -1561,7 +1657,7 @@ suite('system/UpdateManager', function() {
       },
       {
         title: 'Not WIFI, 2G, no Setting update2G, wifi prioritized' +
-          '-> download not available',
+          'System update available -> download not available',
         wifi: false,
         conns: [
           {
@@ -1574,11 +1670,30 @@ suite('system/UpdateManager', function() {
         ],
         update2g: false,
         wifiPrioritized: true,
+        systemUpdate: true,
         testResult: 'forbidden'
       },
       {
+        title: 'Not WIFI, 2G, no Setting update2G, wifi prioritized' +
+          'System update unavailable -> download available',
+        wifi: false,
+        conns: [
+          {
+            connected: false
+          },
+          {
+            type: 'gprs',
+            connected: true
+          }
+        ],
+        update2g: false,
+        wifiPrioritized: true,
+        systemUpdate: false,
+        testResult: 'wifiPrioritized'
+      },
+      {
         title: 'Not WIFI, 2G, no Setting update2G, wifi not prioritized' +
-          '-> download not available',
+          'System update available -> download not available',
         wifi: false,
         conns: [
           {
@@ -1591,7 +1706,26 @@ suite('system/UpdateManager', function() {
         ],
         update2g: false,
         wifiPrioritized: false,
+        systemUpdate: true,
         testResult: 'forbidden'
+      },
+      {
+        title: 'Not WIFI, 2G, no Setting update2G, wifi not prioritized' +
+          'System update unavailable -> download available',
+        wifi: false,
+        conns: [
+          {
+            connected: false
+          },
+          {
+            type: 'gprs',
+            connected: true
+          }
+        ],
+        update2g: false,
+        wifiPrioritized: false,
+        systemUpdate: false,
+        testResult: 'additionalCostIfNeeded'
       },
       {
         title: 'Not WIFI, No Data connection -> download not available',
@@ -1666,6 +1800,9 @@ suite('system/UpdateManager', function() {
           }
         }
 
+        UpdateManager._systemUpdateDisplayed =
+           testCase.systemUpdate ? true : false;
+
         if (testCase.noConnection) {
           UpdateManager.downloadDialog.dataset.online = false;
         }
@@ -1739,7 +1876,7 @@ suite('system/UpdateManager', function() {
     suite('updates queue', function() {
       suite('addToUpdatesQueue', function() {
         setup(function() {
-          UpdateManager.init();
+          UpdateManager.start();
 
           var installedApp = new MockApp();
           var updatableApp = new MockAppUpdatable(installedApp);
@@ -1770,7 +1907,7 @@ suite('system/UpdateManager', function() {
         });
 
         test('should not add app if not in updatableApps array', function() {
-          var updatableApp = new MockAppUpdatable(new MockApp);
+          var updatableApp = new MockAppUpdatable(new MockApp());
           var initialLength = UpdateManager.updatesQueue.length;
           UpdateManager.addToUpdatesQueue(updatableApp);
           assert.equal(initialLength, UpdateManager.updatesQueue.length);
@@ -1826,7 +1963,7 @@ suite('system/UpdateManager', function() {
         var updatableApp;
 
         setup(function() {
-          UpdateManager.init();
+          UpdateManager.start();
 
           var installedApp = new MockApp();
           updatableApp = new MockAppUpdatable(installedApp);
@@ -1865,7 +2002,7 @@ suite('system/UpdateManager', function() {
         var updatableApp;
 
         setup(function() {
-          UpdateManager.init();
+          UpdateManager.start();
 
           var installedApp = new MockApp();
           updatableApp = new MockAppUpdatable(installedApp);
@@ -1902,8 +2039,8 @@ suite('system/UpdateManager', function() {
           });
 
           test('should ask for statusbar indicator', function() {
-            var incMethod = 'incSystemDownloads';
-            assert.ok(MockStatusBar.wasMethodCalled[incMethod]);
+            var incMethod = 'incDownloads';
+            assert.isTrue(Service.request.calledWith(incMethod));
           });
 
           test('should request wifi wake lock', function() {
@@ -1913,7 +2050,7 @@ suite('system/UpdateManager', function() {
         });
 
         test('should not add app if not in updatableApps array', function() {
-          var updatableApp = new MockAppUpdatable(new MockApp);
+          var updatableApp = new MockAppUpdatable(new MockApp());
           var initialLength = UpdateManager.downloadsQueue.length;
           UpdateManager.addToDownloadsQueue(updatableApp);
           assert.equal(initialLength, UpdateManager.downloadsQueue.length);
@@ -1932,7 +2069,7 @@ suite('system/UpdateManager', function() {
         var updatableApp;
 
         setup(function() {
-          UpdateManager.init();
+          UpdateManager.start();
 
           var installedApp = new MockApp();
           updatableApp = new MockAppUpdatable(installedApp);
@@ -1958,8 +2095,8 @@ suite('system/UpdateManager', function() {
           });
 
           test('should remove statusbar indicator', function() {
-            var decMethod = 'decSystemDownloads';
-            assert.ok(MockStatusBar.wasMethodCalled[decMethod]);
+            var decMethod = 'decDownloads';
+            assert.isTrue(Service.request.calledWith(decMethod));
           });
 
           test('should release the wifi wake lock', function() {

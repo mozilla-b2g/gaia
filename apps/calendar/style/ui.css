@@ -123,7 +123,7 @@ body[data-path="/day/"] #view-selector > .day > a:active {
 
 #time-header [type="toolbar"] {
   opacity: 1;
-  transition: opacity 0.3s ease;
+  transition: opacity var(--transition-duration) ease;
 }
 
 .settings-drawer-visible #time-header [type="toolbar"] {
@@ -322,7 +322,6 @@ gaia-header > a > span {
 
 /* these icons uses a 32px base grid so we need to adjust the font size
  * (shared font uses a 3rem base font-size) */
-.icon-calendar-allday:before,
 .icon-calendar-alarm:before,
 .icon-calendar-bullet:before,
 .icon-calendar-dot:before,

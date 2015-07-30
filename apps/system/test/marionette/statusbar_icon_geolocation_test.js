@@ -7,13 +7,7 @@ var APP = 'app://sms.gaiamobile.org';
 marionette('Status Bar icons - Geolocation', function() {
 
   var client = marionette.client({
-    prefs: {
-      'dom.w3c_touch_events.enabled': 1
-    },
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
-    }
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
   });
 
   var system;
@@ -27,9 +21,8 @@ marionette('Status Bar icons - Geolocation', function() {
 
   setup(function() {
     system = client.loader.getAppClass('system');
+    system.waitForFullyLoaded();
     statusBar = new StatusBar(client);
-    system.waitForStartup();
-    statusBar.changeDelayValue();
     statusBar.dispatchMozChromeEvent('geolocation-status', {active: true});
   });
 

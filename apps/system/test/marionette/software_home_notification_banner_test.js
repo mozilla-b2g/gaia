@@ -7,21 +7,21 @@ var createAppServer = require(
 marionette('Software Home Button - Notification Banner Test', function() {
 
   var client = marionette.client({
-    prefs: {
-      'focusmanager.testmode': true,
-      'dom.w3c_touch_events.enabled': 1
+    profile: {
+      prefs: {
+        'focusmanager.testmode': true
+      },
+      settings: {
+        'software-button.enabled': true
+      }
     },
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false,
-      'software-button.enabled': true
-    }
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
   });
   var appInstall, home, server, system;
 
   suiteSetup(function(done) {
     // Any app that we can test the download success banner.
-    var app = __dirname + '/fullscreen-app';
+    var app = __dirname + '/../apps/fullscreen-app';
     createAppServer(app, client, function(err, _server) {
       server = _server;
       done(err);
@@ -36,7 +36,7 @@ marionette('Software Home Button - Notification Banner Test', function() {
     appInstall = new AppInstall(client);
     home = client.loader.getAppClass('verticalhome');
     system = client.loader.getAppClass('system');
-    system.waitForStartup();
+    system.waitForFullyLoaded();
     home.waitForLaunch();
     client.switchToFrame();
   });

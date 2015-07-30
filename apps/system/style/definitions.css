@@ -1,7 +1,7 @@
 /*csslint empty-rules: false*/
 /* See bug 1053721 */
 :root {
-  --software-home-button-height: 4.4rem;
+  --software-home-button-height: 5rem;
   --statusbar-height: 3rem;
 
   /* The scale factor for the shrinking rocketbar */

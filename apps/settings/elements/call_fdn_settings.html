@@ -9,40 +9,30 @@
       <ul>
         <li class="description">
           <p>
-            <span data-l10n-id="fdn-explanation1">
-              Restrict which numbers can be dialed from this phone.
-            </span>
-            <small data-l10n-id="fdn-explanation2">
-              (Emergency numbers will always be dialable)
-            </small>
+            <span data-l10n-id="fdn-explanation1"></span>
+            <small data-l10n-id="fdn-explanation2"></small>
           </p>
         </li>
-        <li id="fdn-enabled">
+        <li class="fdn-enabled">
           <label class="pack-switch">
             <input type="checkbox" data-ignore>
-            <span data-l10n-id="fdnSettings">Fixed dialing numbers</span>
+            <span data-l10n-id="fdnSettings"></span>
             <small></small>
           </label>
         </li>
         <li>
           <a class="menu-item" href="#call-fdnList">
-            <span data-l10n-id="fdn-authorizedNumbers">
-              Authorized numbers
-            </span>
-            <small data-l10n-id="fdn-authorizedNumbers-desc">
-              List of numbers that can be called
-            </small>
+            <span data-l10n-id="fdn-authorizedNumbers"></span>
+            <small data-l10n-id="fdn-authorizedNumbers-desc"></small>
           </a>
         </li>
-        <li id="fdn-resetPIN2" hidden>
-          <button data-l10n-id="fdnReset">Reset PIN2 code</button>
+        <li class="fdn-resetPIN2" hidden>
+          <button data-l10n-id="fdnReset"></button>
         </li>
       </ul>
     </div>
 
-    <script src="js/simcard_dialog.js"></script>
-    <script src="js/simcard_fdn_list.js"></script>
-    <script src="js/simcard_fdn.js"></script>
+    <panel data-path="panels/call_fdn_settings/panel"></panel>
 
   </template>
 </element>

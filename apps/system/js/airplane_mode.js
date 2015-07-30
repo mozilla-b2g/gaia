@@ -1,4 +1,5 @@
-/* global AirplaneMode, BaseModule */
+/* global AirplaneMode, BaseModule, LazyLoader, AirplaneModeIcon */
+/* exported AirplaneMode */
 'use strict';
 
 (function() {
@@ -46,7 +47,7 @@
         disabled: 'wifi-disabled'
       },
       bluetooth: {
-        enabled: 'bluetooth-adapter-added',
+        enabled: 'bluetooth-enabled',
         disabled: 'bluetooth-disabled'
       },
       radio: {
@@ -83,6 +84,12 @@
 
     _start: function() {
       this._watchList = {};
+      LazyLoader.load(['js/airplane_mode_icon.js']).then(function() {
+        this.icon = new AirplaneModeIcon(this);
+        this.icon.start();
+      }.bind(this))['catch'](function(err) { // XXX: workaround gjslint
+        console.error(err);
+      });
     },
 
     _stop: function() {
@@ -101,9 +108,18 @@
       // We don't want to wait until the first event reacts in order to
       // update the status, because we can set the status to 'enabling' or
       // 'disabling' already through `_updateAirplaneModeStatus`.
-      self._updateAirplaneModeStatus(checkedActions);
-      for (var serviceName in this._checkedActionsMap) {
+      this._updateAirplaneModeStatus(checkedActions);
 
+      function updateAirplaneModeHandler(eventName, serviceName) {
+        return function toUpdateAirplaneMode() {
+          self.debug('handling ' + eventName);
+          window.removeEventListener(eventName, toUpdateAirplaneMode);
+          checkedActions[serviceName] = true;
+          self._updateAirplaneModeStatus(checkedActions);
+        };
+      }
+
+      for (var serviceName in this._checkedActionsMap) {
         // if we are waiting for specific service
         if (serviceName in checkedActions) {
           var action = value ? 'disabled' : 'enabled';
@@ -111,14 +127,7 @@
 
           // then we will start watch events coming from its manager
           window.addEventListener(eventName,
-            (function(eventName, serviceName) {
-              return function toUpdateAirplaneMode() {
-                self.debug('handling ' + eventName);
-                window.removeEventListener(eventName, toUpdateAirplaneMode);
-                checkedActions[serviceName] = true;
-                self._updateAirplaneModeStatus(checkedActions);
-              };
-          }(eventName, serviceName)));
+            updateAirplaneModeHandler(eventName, serviceName));
         }
       }
     },
@@ -129,7 +138,6 @@
      * AirplaneModeHelper our current states and is finised or not.
      */
     _updateAirplaneModeStatus: function(checkActions) {
-      var self = this;
       var areAllActionsDone;
 
       areAllActionsDone = this._areCheckedActionsAllDone(checkActions);
@@ -145,6 +153,7 @@
           // is on / off, it will not affect apps using this value
           'ril.radio.disabled': this._enabled
         });
+        this.icon && this.icon.update();
       } else {
         // keep updating the status to reflect current status
         this.writeSetting({

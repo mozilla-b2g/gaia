@@ -1,6 +1,9 @@
+/* global KeyEvent */
+'use strict';
 /**
  * base widget used in ValueSelector and SpinDatePicker widget
  */
+ /* exported ValuePicker */
 var ValuePicker = (function() {
   //
   // Constructor
@@ -16,6 +19,7 @@ var ValuePicker = (function() {
     this._range = unitStyle.valueDisplayedText.length;
     this._currentIndex = 0;
     this._unitHeight = 0;
+    this._unitStyle = unitStyle;
     this.init();
   }
 
@@ -80,7 +84,7 @@ var ValuePicker = (function() {
     if (upper !== null) {
       this._upper = upper;
     } else {
-      this._upper = unitStyle.valueDisplayedText.length - 1;
+      this._upper = this._unitStyle.valueDisplayedText.length - 1;
     }
 
     var unitElement = this.element.firstElementChild;
@@ -105,10 +109,10 @@ var ValuePicker = (function() {
   VP.prototype.init = function() {
     this.initUI();
     this.setSelectedIndex(0); // Default Index is zero
-    this.keypressHandler = vp_keypress.bind(this);
-    this.touchstartHandler = vp_touchstart.bind(this);
-    this.touchmoveHandler = vp_touchmove.bind(this);
-    this.touchendHandler = vp_touchend.bind(this);
+    this.keypressHandler = this.onkeypress.bind(this);
+    this.touchstartHandler = this.ontouchstart.bind(this);
+    this.touchmoveHandler = this.ontouchmove.bind(this);
+    this.touchendHandler = this.ontouchend.bind(this);
     this.addEventListeners();
   };
 
@@ -123,10 +127,10 @@ var ValuePicker = (function() {
   };
 
   VP.prototype.addPickerUnit = function(index) {
-    var html = this._valueDisplayedText[index];
+    var content = this._valueDisplayedText[index];
     var unit = document.createElement('div');
     unit.className = this._unitClassName;
-    unit.innerHTML = html;
+    unit.textContent = content;
     this.element.appendChild(unit);
   };
 
@@ -175,6 +179,63 @@ var ValuePicker = (function() {
 
   VP.prototype.onselectedindexchange = function(index) {};
 
+  VP.prototype.ontouchmove = function vp_touchmove(event) {
+    event.stopPropagation();
+    event.target.setCapture(true);
+    currentEvent = cloneEvent(event);
+
+    calcSpeed();
+
+    // move selected index
+    this._top = this._top + getMovingSpace();
+    this.element.style.transform = 'translateY(' + this._top + 'px)';
+
+    tunedIndex = calcTargetIndex(this._unitHeight);
+    var roundedIndex = Math.round(tunedIndex * 10) / 10;
+
+    if (roundedIndex != this._currentIndex) {
+      this.setSelectedIndex(toFixed(roundedIndex), true);
+    }
+
+    startEvent = currentEvent;
+  };
+
+  VP.prototype.ontouchend = function vp_touchend(event) {
+    event.stopPropagation();
+    this.removeEventListeners();
+
+    this.element.classList.add('animation-on');
+
+    // Add momentum if speed is higher than a given threshold.
+    if (Math.abs(currentSpeed) > SPEED_THRESHOLD) {
+      var direction = currentSpeed > 0 ? 1 : -1;
+      tunedIndex += Math.min(Math.abs(currentSpeed) * 5, 5) * direction;
+    }
+    tunedIndex = this.setSelectedIndex(toFixed(tunedIndex));
+    currentSpeed = 0;
+  };
+
+  VP.prototype.ontouchstart = function vp_touchstart(event) {
+    event.stopPropagation();
+
+    this.element.classList.remove('animation-on');
+
+    startEvent = currentEvent = cloneEvent(event);
+    tunedIndex = this._currentIndex;
+
+    this.removeEventListeners();
+    this.element.addEventListener('touchmove', this.touchmoveHandler, false);
+    this.element.addEventListener('touchend', this.touchendHandler, false);
+  };
+
+  VP.prototype.onkeypress = function vp_keypress(event) {
+    if (event.keyCode == KeyEvent.DOM_VK_DOWN) {
+      this.setSelectedIndex(this._currentIndex - 1);
+    } else {
+      this.setSelectedIndex(this._currentIndex + 1);
+    }
+  };
+
   function cloneEvent(evt) {
     return {
       x: evt.touches[0].pageX,
@@ -219,59 +280,6 @@ var ValuePicker = (function() {
     var reValue = Math.abs(currentSpeed) > SPEED_THRESHOLD ?
                                 movingSpace : movingSpace / 4;
     return reValue;
-  }
-
-  function vp_touchmove(event) {
-    event.stopPropagation();
-    event.target.setCapture(true);
-    currentEvent = cloneEvent(event);
-
-    calcSpeed();
-
-    // move selected index
-    this._top = this._top + getMovingSpace();
-    this.element.style.transform = 'translateY(' + this._top + 'px)';
-
-    tunedIndex = calcTargetIndex(this._unitHeight);
-    var roundedIndex = Math.round(tunedIndex * 10) / 10;
-
-    if (roundedIndex != this._currentIndex) {
-      this.setSelectedIndex(toFixed(roundedIndex), true);
-    }
-
-    startEvent = currentEvent;
-  }
-
-  function vp_touchend(event) {
-    event.stopPropagation();
-    this.removeEventListeners();
-
-    // Add momentum if speed is higher than a given threshold.
-    if (Math.abs(currentSpeed) > SPEED_THRESHOLD) {
-      var direction = currentSpeed > 0 ? 1 : -1;
-      tunedIndex += Math.min(Math.abs(currentSpeed) * 5, 5) * direction;
-    }
-    tunedIndex = this.setSelectedIndex(toFixed(tunedIndex));
-    currentSpeed = 0;
-  }
-
-  function vp_touchstart(event) {
-    event.stopPropagation();
-
-    startEvent = currentEvent = cloneEvent(event);
-    tunedIndex = this._currentIndex;
-
-    this.removeEventListeners();
-    this.element.addEventListener('touchmove', this.touchmoveHandler, false);
-    this.element.addEventListener('touchend', this.touchendHandler, false);
-  }
-
-  function vp_keypress(event) {
-    if (event.keyCode == KeyEvent.DOM_VK_DOWN) {
-      this.setSelectedIndex(this._currentIndex - 1);
-    } else {
-      this.setSelectedIndex(this._currentIndex + 1);
-    }
   }
 
   return VP;

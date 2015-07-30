@@ -1,7 +1,8 @@
 /* global Contacts */
 /* global ICEData */
 /* global ConfirmDialog */
-
+/* global ContactsService */
+/* global HeaderUI */
 
 /**
  * ICE Settings view. In charge of selecting
@@ -58,12 +59,10 @@ contacts.ICE = (function() {
     // All the controls do the same, just modifications on the
     // specific order.
     iceContactItems.forEach(function(item, index) {
-      item.addEventListener('click', function(i) {
+      iceContactCheckboxes[index].addEventListener('change', function(i) {
         return function(evt) {
           var localIceContacts = ICEData.iceContacts;
-          var wasActive = iceContactCheckboxes[i].checked;
-          iceContactCheckboxes[i].checked = !wasActive;
-          iceContactItems[i].setAttribute('aria-checked', !wasActive);
+          var wasActive = !iceContactCheckboxes[i].checked;
 
           if (wasActive) {
             resetIceGroupState(i);
@@ -101,7 +100,7 @@ contacts.ICE = (function() {
     var numRetrievedContacts = 0;
 
     iceContactsIds.forEach(function(iceContact, index) {
-      contacts.List.getContactById(iceContact.id, function(cindex, contact) {
+      ContactsService.get(iceContact.id, function(cindex, contact) {
         var theContact = {
           active: iceContactsIds[cindex].active,
           mozContact: contact
@@ -196,7 +195,7 @@ contacts.ICE = (function() {
   function goBack() {
     contacts.List.clearClickHandlers();
     contacts.List.handleClick(Contacts.showContactDetail);
-    Contacts.setNormalHeader();
+    HeaderUI.setNormalHeader();
 
     var hasICESet = ICEData.iceContacts.find(function(x) {
       return x.active === true;
@@ -232,7 +231,7 @@ contacts.ICE = (function() {
           ConfirmDialog.hide();
         }
       };
-      Contacts.confirmDialog(null, l10nId || 'ICEUnknownError', dismiss);
+      ConfirmDialog.show(null, l10nId || 'ICEUnknownError', dismiss);
     });
   }
 
@@ -276,7 +275,7 @@ contacts.ICE = (function() {
    */
   function contactNotAllowed(id) {
     return new Promise(function(resolve, reject) {
-      contacts.List.getContactById(id, function(contact, isFBContact) {
+      ContactsService.get(id, function(contact, isFBContact) {
         if(Array.isArray(contact.tel) && contact.tel[0] &&
          contact.tel[0].value && contact.tel[0].value.trim()) {
           resolve(id);
@@ -297,7 +296,7 @@ contacts.ICE = (function() {
    */
   function showSelectList(target) {
     contacts.List.toggleICEGroup(false);
-    Contacts.setCancelableHeader(goBack, 'selectContact');
+    HeaderUI.setCancelableHeader(goBack, 'selectContact');
     contacts.Settings.navigation.go('view-contacts-list', 'right-left');
     currentICETarget = target === 'select-ice-contact-1' ? 0 : 1;
     contacts.List.clearClickHandlers();
@@ -319,7 +318,7 @@ contacts.ICE = (function() {
         return;
       }
 
-      contacts.List.getContactById(id, function(contact) {
+      ContactsService.get(id, function(contact) {
         var theContact = {
           active: active,
           mozContact: contact

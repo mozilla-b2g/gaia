@@ -1,6 +1,6 @@
 # Chunking task for gaia-ui-tests...
 ---
-reruns: 4
+reruns: 2
 task:
   metadata:
     name: 'Gaia ui tests {{chunk}}'
@@ -22,6 +22,7 @@ task:
       SUITE: functional
       THIS_CHUNK: '{{chunk}}'
       TOTAL_CHUNKS: '{{totalChunks}}'
+      NODE_MODULES_SRC: npm-cache
 
     command:
       - entrypoint

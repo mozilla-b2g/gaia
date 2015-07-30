@@ -1,0 +1,179 @@
+{
+    "https://mikehenrty.github.io/fxos-magnifier/manifest.webapp": {
+      "manifestURL": "https://mikehenrty.github.io/fxos-magnifier/manifest.webapp",
+      "name": "magnifier",
+      "description": "Tap three times and hold to magnify the screen.",
+      "icon": "http://mikehenrty.github.io/fxos-magnifier/style/icons/60.png",
+      "author": "David Flanagan",
+      "type": "addon",
+      "url": "https://github.com/mikehenrty/fxos-magnifier",
+      "revision": "262d9e1cbae2d267009294ebeb045da4e4920eb4"
+    },
+    "https://callahad.github.io/fxos-tabswitcher-addon/src/manifest.webapp": {
+      "manifestURL": "https://callahad.github.io/fxos-tabswitcher-addon/src/manifest.webapp",
+      "name": "Tab Switcher Shortcut",
+      "description": "Adds a button to the browser that immediately opens the tab switcher",
+      "icon": "https://callahad.github.io/fxos-tabswitcher-addon/src/icon-128x128.png",
+      "author": "Dan Callahan",
+      "type": "addon",
+      "url": "https://github.com/callahad/fxos-tabswitcher-addon",
+      "revision": "7096c0545980e250ee5be505b746421ffb9b19ce"
+    },
+    "https://mikehenrty.github.io/fxos-cracked/manifest.webapp": {
+      "manifestURL": "https://mikehenrty.github.io/fxos-cracked/manifest.webapp",
+      "name": "cracked",
+      "description": "A virtual cracked screen for your FirefoxOS device.",
+      "icon": "http://mikehenrty.github.io/fxos-cracked/style/icons/128.png",
+      "author": "David Flanagan",
+      "type": "addon",
+      "url": "https://github.com/mikehenrty/fxos-cracked",
+      "revision": "16016c86f464c23e0465b22d43c08f52c1cc7349"
+    },
+    "https://callahad.github.io/disconnected-ensemble-src/src/manifest.webapp": {
+      "manifestURL": "https://callahad.github.io/disconnected-ensemble-src/src/manifest.webapp",
+      "name": "ensemble",
+      "description": "An app for Firefox OS that lets you share a number of musical toys that can run in your friends' devices, served from your phone, either by typing in the IP address of the phone server, or by bumping NFC devices together.",
+      "icon": "https://callahad.github.io/disconnected-ensemble-src/src/img/icons/icon128x128.png",
+      "author": "soledad penadés",
+      "type": "packaged",
+      "url": "https://github.com/callahad/disconnected-ensemble-src",
+      "revision": "94ad2d961aa5a902fe8150b280a38f48d84607eb"
+    },
+    "https://mikehenrty.github.io/IRCCloudNotifier/manifest.webapp": {
+      "manifestURL": "https://mikehenrty.github.io/IRCCloudNotifier/manifest.webapp",
+      "name": "IRCCloud Notifier",
+      "description": "Allows you to log into IRCCloud and get alerts on new notifications. Not a full IRC client.",
+      "icon": "http://mikehenrty.github.io/IRCCloudNotifier/img/icons/icon60x60.png",
+      "author": "Nathaniel van Diepen",
+      "type": "hosted",
+      "url": "https://github.com/Eeems/IRCCloudNotifier",
+      "revision": "a96a83b1f01903bc04be2a5097c82765f3b7d0f7"
+    },
+    "https://fxos.github.io/camera/dist/app/manifest.webapp": {
+      "manifestURL": "https://fxos.github.io/camera/dist/app/manifest.webapp",
+      "name": "New Camera",
+      "description": "Take pictures and stuff.",
+      "author": "Justin D'Arcangelo",
+      "type": "hosted",
+      "url": "https://github.com/fxos/camera",
+      "revision": "8b5a7d9061a0d0210f24ff253110a8ce935104ca"
+    },
+    "https://fxos.github.io/dialer/dist/app/manifest.webapp": {
+      "manifestURL": "https://fxos.github.io/dialer/dist/app/manifest.webapp",
+      "name": "New Dialer",
+      "description": "A replacement for the built-in dialer app.",
+      "author": "Doug Sherk",
+      "type": "hosted",
+      "url": "https://github.com/fxos/dialer",
+      "revision": "835af6ccf608a51bc87711d1c40fc4f33a1fc12b"
+    },
+    "https://mikehenrty.github.io/fxos-shb-plus/manifest.webapp": {
+      "manifestURL": "https://mikehenrty.github.io/fxos-shb-plus/manifest.webapp",
+      "name": "Homebar Plus",
+      "description": "Add show windows, and kill app button to the software home button bar",
+      "icon": "http://mikehenrty.github.io/fxos-shb-plus/icons/home.png",
+      "author": "Michael Henretty",
+      "type": "addon",
+      "url": "https://github.com/mikehenrty/fxos-shb-plus",
+      "revision": "9b4ed3b83735a3fcd764b317499efde5b1e64f68"
+    },
+    "https://marumari.github.io/sunset-fxos-addon/manifest.webapp": {
+      "manifestURL": "https://marumari.github.io/sunset-fxos-addon/manifest.webapp",
+      "name": "Sunset",
+      "description": "Save your eyeballs by changing the color balance of your screen throughout the day.",
+      "icon": "https://marumari.github.io/sunset-fxos-addon/img/sunset-128.png",
+      "author": "April King",
+      "type": "addon",
+      "url": "https://github.com/marumari/sunset-fxos-addon",
+      "revision": "7b8cdec443ba73fa876632ba424a079738c0a0130f7d5cd04073d730bd1bf054"
+    },
+    "https://john-hu.github.io/no-more-contextmenu/manifest.webapp": {
+      "manifestURL": "https://john-hu.github.io/no-more-contextmenu/manifest.webapp",
+      "name": "No Context Menu",
+      "description": "Disable context menu in apps without handle it",
+      "icon": "http://john-hu.github.io/no-more-contextmenu/icons/128.png",
+      "author": "John Hu",
+      "type": "addon",
+      "url": "https://github.com/john-hu/no-more-contextmenu",
+      "revision": "41eddc4f6929d1cc591fcb9b123c13bcce31ec76"
+    },
+    "https://lmorchard.github.io/fxos-addon-quick-brightness/manifest.webapp": {
+      "manifestURL": "https://lmorchard.github.io/fxos-addon-quick-brightness/manifest.webapp",
+      "name": "Quick Brightness",
+      "description": "Adds a brightness slider to the notification tray",
+      "author": "Les Orchard",
+      "type": "addon",
+      "url": "https://github.com/lmorchard/fxos-addon-quick-brightness",
+      "revision": "cbabf181afb19ccb414fb2501a4f4264d3373272"
+    },
+    "https://begeeben.github.io/fxos-facebook-menubar/manifest.webapp": {
+      "manifestURL": "https://begeeben.github.io/fxos-facebook-menubar/manifest.webapp",
+      "name": "Facebook Menubar",
+      "description": "Keep the menu bar always available on Firefox OS Facebook app.",
+      "icon": "http://begeeben.github.io/fxos-facebook-menubar/icons/facebook-menubar.png",
+      "author": "begeeben",
+      "type": "addon",
+      "url": "https://github.com/begeeben/fxos-facebook-menubar",
+      "revision": "39430a5564e48c7cd4ab5d574db3c299eda02f08"
+    },
+    "https://john-hu.github.io/kill-all-active-apps/manifest.webapp": {
+      "manifestURL": "https://john-hu.github.io/kill-all-active-apps/manifest.webapp",
+      "name": "Kill Actives",
+      "description": "Add a button to kill all active apps",
+      "icon": "http://john-hu.github.io/kill-all-active-apps/icons/128.png",
+      "author": "John Hu",
+      "type": "addon",
+      "url": "https://github.com/john-hu/kill-all-active-apps",
+      "revision": "0f6a5a76c9a9d69527b0bd751611b21aac86a117"
+    },
+    "https://eeejay.github.io/quick-filter/manifest.webapp": {
+      "manifestURL": "https://eeejay.github.io/quick-filter/manifest.webapp",
+      "name": "Quick Filter",
+      "description": "Toggle accessibility color filter settings by triple pressing the camera button",
+      "icon": "http://eeejay.github.io/quick-filter/img/icons/icon128x128.png",
+      "author": "Eitan Isaacson",
+      "type": "addon",
+      "url": "https://github.com/eeejay/quick-filter",
+      "revision": "bee2f57eafc6408a5e95d20e570c95501c57b911"
+    },
+    "https://yzen.github.io/fxos-user-hub/manifest.webapp": {
+      "manifestURL": "https://yzen.github.io/fxos-user-hub/manifest.webapp",
+      "name": "User Hub",
+      "icon": "https://yzen.github.io/fxos-user-hub/icons/user.png",
+      "description": "User hub for user preferences",
+      "author": "Yura Zenevich",
+      "type": "addon",
+      "url": "https://github.com/yzen/fxos-user-hub",
+      "revision": "ab558b02058553d8b58fd5c3a9104462de054fe1"
+    },
+    "https://sunbox.github.io/mozweekend_AddOn_Demo/manifest.webapp": {
+      "manifestURL": "https://sunbox.github.io/mozweekend_AddOn_Demo/manifest.webapp",
+      "name": "Status Bar - Temperature",
+      "icon": "http://sunbox.github.io/mozweekend_AddOn_Demo/icons/icon120.png",
+      "description": "Adds the current local temperature to the status bar",
+      "author": "André Fiedler",
+      "type": "addon",
+      "url": "https://github.com/SunboX/mozweekend_AddOn_Demo",
+      "revision": "cb642afdc973c72d2be3b7625e255df39427e01c"
+    },
+    "https://etiennesegonzac.github.io/snappy-twitter/manifest.webapp": {
+      "manifestURL": "https://etiennesegonzac.github.io/snappy-twitter/manifest.webapp",
+      "name": "Snappy Twitter",
+      "description": "Firefox OS addon making the Twitter app snappier",
+      "icon": "https://etiennesegonzac.github.io/snappy-twitter/icon.png",
+      "author": "Etienne Segonzac",
+      "type": "addon",
+      "url": "https://github.com/etiennesegonzac/snappy-twitter",
+      "revision": "08b21dfd542ea431557ec10ab2316ce2e65fef5c"
+    },
+    "https://eeejay.github.io/responsive-irccloud/manifest.webapp": {
+      "manifestURL": "https://eeejay.github.io/responsive-irccloud/manifest.webapp",
+      "name": "Responsive IRCCloud",
+      "description": "Make IRCCloud web app mobile friendly",
+      "icon": "http://eeejay.github.io/responsive-irccloud/img/icons/icon128x128.png",
+      "author": "Eitan Isaacson",
+      "type": "addon",
+      "url": "https://github.com/eeejay/responsive-irccloud",
+      "revision": "9c754fd49c4ebb878c4f370acc048605f4904f33"
+    }
+}

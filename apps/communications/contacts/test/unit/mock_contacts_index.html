@@ -1,6 +1,6 @@
 
       <meta name="defaultLanguage" content="en-US">
-      <meta name="availableLanguages" content="ar, en-US, fr, zh-TW">
+      <meta name="availableLanguages" content="en-US">
       <link rel="localization" href="locales/contacts.{locale}.properties">
       <link rel="localization" href="../dialer/locales/shared.{locale}.properties">
       <link rel="localization" href="/shared/locales/import_contacts/import_contacts.{locale}.properties">
@@ -93,7 +93,7 @@
       <!-- Contact Details Section -->
       <section id='view-contact-details' role="region" class="view view-right view-contact-profile">
         <gaia-header id='details-view-header' action="back">
-          <h1 id='contact-name-title'></h1>
+          <h1 id='contact-name-title'><bdi></bdi></h1>
           <button id="edit-contact-button" data-icon="edit-contact" data-l10n-id="editButton"></button>
         </gaia-header>
 
@@ -394,13 +394,9 @@
         <section role="region" class="view-body-inner">
           <ul data-type="list">
             <li id="settingsOrder">
-             <aside class="pack-end">
-                <label class="pack-switch">
-                  <input type="checkbox" name="order.lastname" />
-                  <span></span>
-                </label>
-              </aside>
-              <p data-l10n-id="contactsOrderBy">Order by last name</p>
+             <gaia-switch name="order.lastname">
+                <label data-l10n-id="contactsOrderBy"></label>
+              </gaia-switch>
             </li>
           </ul>
           <header>
@@ -416,28 +412,6 @@
               <button class="icon icon-export" data-l10n-id="exportContactsButton">
                 Export Contacts
               </button>
-            </li>
-          </ul>
-          <header id="fb-header">
-            <h2 data-l10n-id="facebook">Facebook</h2>
-          </header>
-          <ul id="settingsFb" data-type="list" data-state="logged-out">
-            <li class="fb-item">
-              <aside class="pack-end">
-                <label class="pack-switch">
-                  <input type="checkbox" name="fb.imported">
-                  <span id="span-check-fb"></span>
-                </label>
-              </aside>
-              <p data-l10n-id="facebookSwitchMsg">Sync friends</p>
-              <p id="fb-totals"></p>
-            </li>
-            <li id="fb-update-option">
-              <button data-l10n-id="fbUpdateFriends" id="import-fb" class="icon">
-                Update imported friends
-              </button>
-              <p id="renew-pwd-msg" data-l10n-id="renewPwdMsg" class="fb-error"></p>
-              <p id="no-connection" data-l10n-id="noConnection11"></p>
             </li>
           </ul>
           <header>
@@ -526,13 +500,9 @@
           </p>
           <ul data-type="list">
             <li id="ice-contacts-1-switch">
-             <aside class="pack-end">
-                <label class="pack-switch">
-                  <input type="checkbox" name="ice-contact-1-enabled" />
-                  <span></span>
-                </label>
-              </aside>
-              <p data-l10n-id="ICEContact1">ICE Contact 1</p>
+             <gaia-switch name="ice-contact-1-enabled">
+                <label data-l10n-id="ICEContact1"></label>
+              </gaia-switch>
             </li>
             <li>
               <button id="select-ice-contact-1" class="icon icon-view" data-l10n-id="ICESelectContact" disabled>
@@ -540,13 +510,9 @@
               </button>
             </li>
             <li id="ice-contacts-2-switch">
-             <aside class="pack-end">
-                <label class="pack-switch">
-                  <input type="checkbox" name="ice-contact-2-enabled" />
-                  <span></span>
-                </label>
-              </aside>
-              <p data-l10n-id="ICEContact2">ICE Contact 2</p>
+             <gaia-switch name="ice-contact-2-enabled">
+                <label data-l10n-id="ICEContact2"></label>
+              </gaia-switch>
             </li>
             <li>
               <button id="select-ice-contact-2" class="icon icon-view" data-l10n-id="ICESelectContact" disabled>

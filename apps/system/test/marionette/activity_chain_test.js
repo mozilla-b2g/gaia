@@ -3,40 +3,47 @@
 
 (function() {
   var assert = require('assert');
+  var ActivityCallerApp = require('./lib/activitycallerapp');
 
-  var CALLER_APP = 'activitycaller.gaiamobile.org';
   var INLINE_CALLEE_APP = 'activitycallee.gaiamobile.org';
   var WINDOW_CALLEE_APP = 'activitycalleewindow.gaiamobile.org';
   marionette('activity chain test', function() {
     var client = marionette.client({
-      settings: {
-        'ftu.manifestURL': null,
-        'lockscreen.enabled': false
-      },
-      apps: {
-        'activitycaller.gaiamobile.org': __dirname + '/activitycaller',
-        'activitycallee.gaiamobile.org': __dirname + '/activitycallee',
-        'activitycalleewindow.gaiamobile.org':
-          __dirname + '/activitycalleewindow'
+      profile: {
+        apps: {
+          'activitycaller.gaiamobile.org': __dirname +
+                                           '/../apps/activitycaller',
+          'activitycallee.gaiamobile.org': __dirname +
+                                           '/../apps/activitycallee',
+          'activitycalleewindow.gaiamobile.org':
+            __dirname + '/../apps/activitycalleewindow'
+        }
       }
     });
 
     // Bug 1035048: JSMarionette should be able to know displaying app.
     function getDisplayAppOrigin() {
       return client.executeScript(function() {
-        var app = window.wrappedJSObject.Service.currentApp;
-        return app.getTopMostWindow().origin;
+        return window.wrappedJSObject.Service.query('getTopMostWindow').origin;
       });
     }
+
+    var system,
+        activitycaller;
+    setup(function() {
+      system = client.loader.getAppClass('system');
+      system.waitForFullyLoaded();
+      activitycaller = new ActivityCallerApp(client);
+    });
 
     test('Should launch activitycallee app through inline-activity and ' +
          'launch activitycalleewindow app through window-activity and ' +
          'post result to activitycallee', function() {
       // Launch Caller App.
-      client.apps.launch('app://' + CALLER_APP);
-      client.apps.switchToApp('app://' + CALLER_APP);
+      activitycaller.launch();
+
       // Click button(#testchainactivity) to launch inline activity.
-      client.findElement('#testchainactivity').click();
+      activitycaller.startChainActivity();
 
       // Switch to activitycallee.gaiamobile.org
       client.switchToFrame();

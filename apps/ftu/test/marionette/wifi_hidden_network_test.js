@@ -4,12 +4,14 @@ var assert = require('assert');
 var Ftu = require('./lib/ftu');
 
 marionette('First Time Use > Wifi Hidden Network Test', function() {
-  var ftu;
-  var client = marionette.client(Ftu.clientOptions);
+  var ftu, system;
+  var client = marionette.client({ profile: Ftu.clientOptions });
   var wifiPassword64 =
     'e93FSJpMGMxRnWHs2vJYyMud5h6u7yEhSC445cz7RdHVxXrj2LCTZPAphzaYuyy2';
 
   setup(function() {
+    system = client.loader.getAppClass('system');
+    system.waitForFullyLoaded();
     ftu = new Ftu(client);
   });
 
@@ -33,7 +35,7 @@ marionette('First Time Use > Wifi Hidden Network Test', function() {
 
     var hiddenWifiPanel = ftu.client.helper
                           .waitForElement('#hidden-wifi-authentication');
-    var showPassword = ftu.client.findElement('#label_hidden_show_password');
+    var showPassword = ftu.client.findElement('#hidden-wifi-show-password');
     var passwordInput = ftu.client.findElement('#hidden-wifi-password');
 
     assert(hiddenWifiPanel.displayed() &&

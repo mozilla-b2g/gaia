@@ -5,48 +5,44 @@ var Ftu = require('./lib/ftu');
 
 marionette('First Time Use > Pseudo Localization', function() {
   var ftu;
-  var client = marionette.client(Ftu.clientOptions);
-  var quickly;
+  var client = marionette.client({ profile: Ftu.clientOptions });
 
   setup(function() {
     ftu = new Ftu(client);
-
-    // allow findElement to fail quickly
-    quickly = client.scope({
-      searchTimeout: 50
-    });
-    quickly.helper.client = quickly;
   });
 
   test('FTU Languages without pseudo localization', function() {
-    quickly.settings.set('devtools.qps.enabled', false);
-    quickly.apps.switchToApp(Ftu.URL);
+    client.settings.set('devtools.qps.enabled', false);
+    client.apps.switchToApp(Ftu.URL);
 
     var panel = ftu.getPanel('language');
     assert.ok(panel.displayed());
 
     // the input is hidden so we can't use waitForElement
-    quickly.findElement('input[value="en-US"]');
-    quickly.helper.waitForElementToDisappear('input[value="qps-ploc"]');
+    client.findElement('gaia-radio[value="en-US"]');
+    client.helper.waitForElementToDisappear('gaia-radio[value="qps-ploc"]');
   });
 
   test('FTU Languages with pseudo localization', function() {
-    quickly.settings.set('devtools.qps.enabled', true);
-    quickly.apps.switchToApp(Ftu.URL);
-    quickly.helper.waitForElement('#languages');
-    quickly.findElement('input[value="en-US"]');
-    quickly.findElement('input[value="qps-ploc"]');
+    client.settings.set('devtools.qps.enabled', true);
+    client.apps.switchToApp(Ftu.URL);
+
+    var panel = ftu.getPanel('language');
+    assert.ok(panel.displayed());
+
+    client.helper.waitForElement('#languages');
+    client.findElement('gaia-radio[value="en-US"]');
+    client.findElement('gaia-radio[value="qps-ploc"]');
   });
 
   test('Can select accented-english', function() {
-    quickly.settings.set('devtools.qps.enabled', true);
-    quickly.apps.switchToApp(Ftu.URL);
-    quickly.helper.waitForElement('#languages');
-    var header = quickly.helper.waitForElement(Ftu.Selectors.header);
+    client.settings.set('devtools.qps.enabled', true);
+    client.apps.switchToApp(Ftu.URL);
+    client.helper.waitForElement('#languages');
+    var header = client.helper.waitForElement(Ftu.Selectors.header);
     ftu.selectLanguage('qps-ploc');
-    ftu.waitForL10nReady();
 
-    var translatedHeader = quickly.executeScript('' +
+    var translatedHeader = client.executeScript('' +
       'var qps = window.wrappedJSObject.navigator.mozL10n.qps;' +
       'return qps["qps-ploc"].translate("Language");'
     );

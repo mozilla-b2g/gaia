@@ -4,6 +4,9 @@
         {"layoutId": "af", "app": ["apps", "keyboard"]},
         {"layoutId": "en", "app": ["apps", "keyboard"]}
     ],
+    "am": [
+        {"layoutId": "en", "app": ["apps", "keyboard"]}
+    ],
     "ar": [
         {"layoutId": "ar", "app": ["apps", "keyboard"]},
         {"layoutId": "en", "app": ["apps", "keyboard"]}
@@ -29,13 +32,16 @@
         {"layoutId": "cs", "app": ["apps", "keyboard"]}
     ],
     "cy": [
-        {"layoutId": "en", "app": ["apps", "keyboard"]}
+        {"layoutId": "cy", "app": ["apps", "keyboard"]}
     ],
     "da": [
         {"layoutId": "da", "app": ["apps", "keyboard"]}
     ],
     "de": [
         {"layoutId": "de", "app": ["apps", "keyboard"]}
+    ],
+    "dsb": [
+        {"layoutId": "en", "app": ["apps", "keyboard"]}
     ],
     "ee": [
         {"layoutId": "en-Africa", "app": ["apps", "keyboard"]}
@@ -102,6 +108,9 @@
     "hr": [
         {"layoutId": "hr", "app": ["apps", "keyboard"]}
     ],
+    "hsb": [
+        {"layoutId": "en", "app": ["apps", "keyboard"]}
+    ],
     "ht": [
         {"layoutId": "en", "app": ["apps", "keyboard"]}
     ],
@@ -127,6 +136,9 @@
     "ko": [
         {"layoutId": "ko", "app": ["apps", "keyboard"]},
         {"layoutId": "en", "app": ["apps", "keyboard"]}
+    ],
+    "lg": [
+        {"layoutId": "en-Africa", "app": ["apps", "keyboard"]}
     ],
     "lij": [
         {"layoutId": "en", "app": ["apps", "keyboard"]}
@@ -221,9 +233,18 @@
     "th": [
         {"layoutId": "th", "app": ["apps", "keyboard"]}
     ],
+    "tn": [
+        {"layoutId": "en-Africa", "app": ["apps", "keyboard"]}
+    ],
+    "tl": [
+        {"layoutId": "en", "app": ["apps", "keyboard"]}
+    ],
     "tr": [
         {"layoutId": "tr-Q", "app": ["apps", "keyboard"]},
         {"layoutId": "tr-F", "app": ["apps", "keyboard"]}
+    ],
+    "uk": [
+        {"layoutId": "en", "app": ["apps", "keyboard"]}
     ],
     "ur": [
         {"layoutId": "en", "app": ["apps", "keyboard"]}
@@ -240,6 +261,10 @@
     ],
     "yo": [
         {"layoutId": "en-Africa", "app": ["apps", "keyboard"]}
+    ],
+    "zam": [
+        {"layoutId": "es-Americas", "app": ["apps", "keyboard"]},
+        {"layoutId": "es", "app": ["apps", "keyboard"]}
     ],
     "zh-CN": [
         {"layoutId": "zh-Hans-Pinyin", "app": ["apps", "keyboard"]},

@@ -1,5 +1,5 @@
 'use strict';
-/* global Notification, MozActivity, NotificationHelper */
+/* global MozActivity, NotificationHelper */
 
 (function(exports) {
 

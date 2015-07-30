@@ -1,4 +1,5 @@
-/* global LockScreenClockWidget */
+/* global LockScreenClockWidget, Service, LockScreenSlide, LazyLoader,
+          LockScreenConnInfoManager, PasscodeHelper */
 'use strict';
 
 /**
@@ -12,6 +13,8 @@
   var LockScreen = function() {
   };
   LockScreen.prototype = {
+    name: 'LockScreen',
+
     configs: {
       mode: 'default'
     },
@@ -90,10 +93,16 @@
     */
     passCodeRequestTimeout: 0,
 
-    /*
-    * Store the first time the screen went off since unlocking.
-    */
-    _screenOffTime: 0,
+    /**
+     * How long the unlocked session is.
+     */
+    _lastUnlockedInterval: 0,
+    _lastUnlockedTimeStamp: 0,
+    /**
+     * How long the locked session is.
+     */
+    _lastLockedInterval: 0,
+    _lastLockedTimeStamp: 0,
 
     /*
     * Check the timeout of passcode lock
@@ -164,19 +173,12 @@
         // we would need to lock the screen again
         // when it's being turned back on
         if (!evt.detail.screenEnabled) {
-          // Don't update the time after we're already locked otherwise turning
-          // the screen off again will bypass the passcode before the timeout.
-          if (!this.locked) {
-            this._screenOffTime = new Date().getTime();
-          }
-
           // Remove camera once screen turns off
           if (this.camera && this.camera.firstElementChild) {
             this.camera.removeChild(this.camera.firstElementChild);
           }
           this.chargingStatus.stop();
         } else {
-          this._passCodeTimeoutCheck = this.checkPassCodeTimeout();
           if (!this.lockScreenClockWidget) {
             this.createClockWidget();
           }
@@ -191,14 +193,6 @@
         break;
 
       case 'click':
-        if (0 === evt.mozInputSource &&
-            (this.areaUnlock === evt.target ||
-             this.areaCamera === evt.target)) {
-          evt.preventDefault();
-          this.handleIconClick(evt.target);
-          break;
-        }
-
         if (this.altCameraButton === evt.target) {
           this.handleIconClick(evt.target);
           break;
@@ -269,10 +263,8 @@
         this._notifyUnlockingStop();
         break;
       case 'lockscreenslide-activate-left':
+      case 'holdcamera':
         this._activateCamera();
-        break;
-      case 'lockscreenslide-activate-right':
-        this._activateUnlock();
         break;
       case 'emergency-call-leave':
         this.handleEmergencyCallLeave();
@@ -340,119 +332,127 @@
      * setting this parameter to true causes the LockScreenSlide to render
      * the slider specified in that bugzilla issue
      */
-    this._unlocker = new window.LockScreenSlide({useNewStyle: true});
-    this.getAllElements();
-    this.notificationsContainer =
-      document.getElementById('notifications-lockscreen-container');
+    this.bootstrapping =
+      LazyLoader.load(['shared/js/lockscreen_slide.js',
+                       'shared/js/passcode_helper.js']).then(() => {
+      this._unlocker = new LockScreenSlide({useNewStyle: true});
+      this.getAllElements();
+      this.notificationsContainer =
+        document.getElementById('notifications-lockscreen-container');
 
-    this.lockIfEnabled(true);
-    this.initUnlockerEvents();
+      this.lockIfEnabled(true);
+      this.initUnlockerEvents();
 
-    // This component won't know when the it get locked unless
-    // it listens to this event.
-    window.addEventListener('lockscreen-appopened', this);
+      // This component won't know when the it get locked unless
+      // it listens to this event.
+      window.addEventListener('lockscreen-appopened', this);
 
-    /* Status changes */
-    window.addEventListener(
-      'lockscreen-notification-request-activate-unlock', this);
-    window.addEventListener('screenchange', this);
+      /* Status changes */
+      window.addEventListener(
+        'lockscreen-notification-request-activate-unlock', this);
+      window.addEventListener('screenchange', this);
 
-    /* Incoming and normal mode would be different */
-    window.addEventListener('lockscreen-mode-switch', this);
+      /* Incoming and normal mode would be different */
+      window.addEventListener('lockscreen-mode-switch', this);
 
-    /* Gesture */
-    this.area.addEventListener('touchstart', this);
-    this.areaCamera.addEventListener('click', this);
-    this.areaUnlock.addEventListener('click', this);
-    this.altCameraButton.addEventListener('click', this);
-    this.iconContainer.addEventListener('touchstart', this);
+      /* Gesture */
+      this.area.addEventListener('touchstart', this);
+      this.altCameraButton.addEventListener('click', this);
+      this.iconContainer.addEventListener('touchstart', this);
 
-    /* Unlock & camera panel clean up */
-    this.overlay.addEventListener('transitionend', this);
+      /* Unlock & camera panel clean up */
+      this.overlay.addEventListener('transitionend', this);
 
-    /* switching panels */
-    window.addEventListener('home', this);
+      /* switching panels */
+      window.addEventListener('home', this);
 
-    /* blocking holdhome and prevent Cards View from show up */
-    window.addEventListener('holdhome', this, true);
-    window.addEventListener('ftudone', this);
-    window.addEventListener('moztimechange', this);
-    window.addEventListener('timeformatchange', this);
+      /* blocking holdhome and prevent Cards View from show up */
+      window.addEventListener('holdhome', this, true);
+      window.addEventListener('ftudone', this);
+      window.addEventListener('moztimechange', this);
+      window.addEventListener('timeformatchange', this);
 
-    /* media playback widget */
-    this.mediaPlaybackWidget =
-      new window.LockScreenMediaPlaybackWidget(this.mediaContainer);
+      /* media playback widget */
+      this.mediaPlaybackWidget =
+        new window.LockScreenMediaPlaybackWidget(this.mediaContainer);
 
-    // listen to media playback events to adjust notification container height
-    window.addEventListener('iac-mediacomms', this);
-    window.addEventListener('appterminated', this);
+      // listen to media playback events to adjust notification container height
+      window.addEventListener('iac-mediacomms', this);
+      window.addEventListener('appterminated', this);
 
-    window.SettingsListener.observe('lockscreen.enabled', true,
-      (function(value) {
-        this.setEnabled(value);
-    }).bind(this));
+      // Listen to event to start the Camera app
+      window.addEventListener('holdcamera', this);
 
-    // it is possible that lockscreen is initialized after wallpapermanager
-    // (e.g. user turns on lockscreen in settings after system is booted);
-    // if this is the case, then the wallpaperchange event might not be captured
-    //   and the lockscreen would initialize into empty wallpaper
-    // so we need to see if there is already a wallpaper blob available
-    if (window.wallpaperManager) {
-      var wallpaperURL = window.wallpaperManager.getBlobURL();
-      if (wallpaperURL) {
-        this.updateBackground(window.wallpaperManager.getBlobURL());
+      window.SettingsListener.observe('lockscreen.enabled', true,
+        (function(value) {
+          this.setEnabled(value);
+      }).bind(this));
+
+      // it is possible that lockscreen is initialized after wallpapermanager
+      // (e.g. user turns on lockscreen in settings after system is booted);
+      // if this is the case, then the wallpaperchange event might not be
+      //   captured and the lockscreen would initialize into empty wallpaper
+      // so we need to see if there is already a wallpaper blob available
+      if (Service.query('getWallpaper')) {
+        var wallpaperURL = Service.query('getWallpaper');
+        if (wallpaperURL) {
+          this.updateBackground(wallpaperURL);
+          this.overlay.classList.remove('uninit');
+        }
+      }
+      window.addEventListener('wallpaperchange', (function(evt) {
+        this.updateBackground(evt.detail.url);
         this.overlay.classList.remove('uninit');
+      }).bind(this));
+
+      window.SettingsListener.observe(
+          'lockscreen.passcode-lock.enabled', false, (function(value) {
+        this.setPassCodeEnabled(value);
+      }).bind(this));
+
+      window.SettingsListener.observe('lockscreen.unlock-sound.enabled',
+        true, (function(value) {
+        this.setUnlockSoundEnabled(value);
+      }).bind(this));
+
+      window.SettingsListener.observe('lockscreen.passcode-lock.timeout',
+        0, (function(value) {
+        this.setPassCodeLockTimeout(value);
+      }).bind(this));
+
+      window.SettingsListener.observe('lockscreen.lock-message',
+        '', (function(value) {
+        this.setLockMessage(value);
+      }).bind(this));
+
+
+      // FIXME(ggp) this is currently used by Find My Device
+      // to force locking. Should be replaced by a proper IAC API in
+      // bug 992277. We don't need to use SettingsListener because
+      // we're only interested in changes to the setting, and don't
+      // keep track of its value.
+      navigator.mozSettings.addObserver('lockscreen.lock-immediately',
+        (function(event) {
+        if (event.settingValue === true) {
+          this.lockIfEnabled(true);
+        }
+      }).bind(this));
+
+      this.notificationsContainer.addEventListener('scroll', this);
+
+      navigator.mozL10n.ready(this.l10nInit.bind(this));
+
+      // when lockscreen is just initialized,
+      // it will lock itself (if enabled) before calling updatebackground,
+      // so we need to generate overlay if needed here
+      if(this._checkGenerateMaskedBackgroundColor()){
+        this._generateMaskedBackgroundColor();
       }
-    }
-    window.addEventListener('wallpaperchange', (function(evt) {
-      this.updateBackground(evt.detail.url);
-      this.overlay.classList.remove('uninit');
-    }).bind(this));
-
-    window.SettingsListener.observe(
-        'lockscreen.passcode-lock.enabled', false, (function(value) {
-      this.setPassCodeEnabled(value);
-    }).bind(this));
-
-    window.SettingsListener.observe('lockscreen.unlock-sound.enabled',
-      true, (function(value) {
-      this.setUnlockSoundEnabled(value);
-    }).bind(this));
-
-    window.SettingsListener.observe('lockscreen.passcode-lock.timeout',
-      0, (function(value) {
-      this.passCodeRequestTimeout = value;
-    }).bind(this));
-
-    window.SettingsListener.observe('lockscreen.lock-message',
-      '', (function(value) {
-      this.setLockMessage(value);
-    }).bind(this));
-
-
-    // FIXME(ggp) this is currently used by Find My Device
-    // to force locking. Should be replaced by a proper IAC API in
-    // bug 992277. We don't need to use SettingsListener because
-    // we're only interested in changes to the setting, and don't
-    // keep track of its value.
-    navigator.mozSettings.addObserver('lockscreen.lock-immediately',
-      (function(event) {
-      if (event.settingValue === true) {
-        this.lockIfEnabled(true);
-      }
-    }).bind(this));
-
-    this.notificationsContainer.addEventListener('scroll', this);
-
-    navigator.mozL10n.ready(this.l10nInit.bind(this));
-
-    // when lockscreen is just initialized,
-    // it will lock itself (if enabled) before calling updatebackground,
-    // so we need to generate overlay if needed here
-    if(this._checkGenerateMaskedBackgroundColor()){
-      this._generateMaskedBackgroundColor();
-    }
-    this.chargingStatus.start();
+      this.chargingStatus.start();
+      Service.register('setPassCodeEnabled', this);
+      Service.register('setPassCodeLockTimeout', this);
+    }).catch(function(err) {console.error(err);});
+    return this.bootstrapping;
   };
 
   LockScreen.prototype.initUnlockerEvents =
@@ -491,11 +491,40 @@
     // mobile connection state on lock screen.
     // It needs L10n too. But it's not a re-entrable function,
     // so we need to check if it's already initialized.
-    if (window.navigator.mozMobileConnections &&
-        !this._lockscreenConnInfoManager) {
-      this._lockscreenConnInfoManager =
-        new window.LockScreenConnInfoManager(this.connStates);
+    if (this._lockscreenConnInfoManager ||
+        !window.navigator.mozMobileConnections) {
+      return;
     }
+    // XXX: improve the dependency.
+    if (window.SIMSlotManager) {
+      this.startConnectionInfoManager();
+    } else {
+      window.addEventListener('simslotmanagerstarted', function s() {
+        window.removeEventListener('simslotmanagerstarted', s);
+        this.startConnectionInfoManager();
+      }.bind(this));
+    }
+  };
+
+  LockScreen.prototype.startConnectionInfoManager = function() {
+    LazyLoader.load(
+      ['shared/js/lockscreen_connection_info_manager.js']).then(() => {
+        this._lockscreenConnInfoManager =
+          new LockScreenConnInfoManager(this.connStates);
+      }).catch(function(err) {console.error(err);});
+  };
+
+  /**
+   * Concat step and handle `capture`.
+   */
+  LockScreen.prototype.nextStep =
+  function ls_nextStep(step) {
+    this.bootstrapping =
+      this.bootstrapping.then(step)
+      .catch((err) => {
+        console.error('LockScreen Error: ', err);
+      });
+    return this.bootstrapping;
   };
 
   /*
@@ -535,11 +564,16 @@
     }
   };
 
+  LockScreen.prototype.setPassCodeLockTimeout =
+  function(val) {
+    this.passCodeRequestTimeout = val;
+  };
+
   LockScreen.prototype.setLockMessage =
   function ls_setLockMessage(val) {
     this.message.textContent = val;
     this.message.hidden = (val === '');
-  },
+  };
 
   /**
    * Light the camera and unlocking icons when user touch on our LockScreen.
@@ -639,7 +673,7 @@
 
   LockScreen.prototype.lockIfEnabled =
   function ls_lockIfEnabled(instant) {
-    if (window.FtuLauncher && window.FtuLauncher.isFtuRunning()) {
+    if (Service.query('isFtuRunning')) {
       this.unlock(instant);
       return;
     }
@@ -661,6 +695,10 @@
     if (wasAlreadyUnlocked) {
       return;
     }
+    // It ends the locked session.
+    var now = Date.now();
+    this._lastLockedInterval = now - this._lastLockedTimeStamp;
+    this._lastUnlockedTimeStamp = now;
 
     this.lockScreenClockWidget.stop().destroy();
     delete this.lockScreenClockWidget;
@@ -703,6 +741,12 @@
     this.locked = true;
 
     if (!wasAlreadyLocked) {
+      // It ends the unlocked session.
+      var now = Date.now();
+      this._lastUnlockedInterval = now - this._lastUnlockedTimeStamp;
+      this._lastLockedTimeStamp = now;
+
+      this.overlayLocked();
       // Because 'document.hidden' changes slower than this,
       // so if we depend on that it would create the widget
       // while the screen is off.
@@ -820,15 +864,15 @@
    */
   LockScreen.prototype.checkPassCode =
   function lockscreen_checkPassCode(passcode) {
-    var request = {
-      passcode: passcode,
-      onsuccess: this.onPasscodeValidationSuccess.bind(this),
-      onerror: this.onPasscodeValidationFailed.bind(this),
-    };
-    window.dispatchEvent(new CustomEvent(
-      'lockscreen-request-passcode-validate',
-      { detail: request }
-    ));
+    PasscodeHelper.check(passcode).then((result) => {
+      if (result) {
+        this.onPasscodeValidationSuccess();
+      } else {
+        this.onPasscodeValidationFailed();
+      }
+    }) .catch((error) => {
+      this.onPasscodeValidationFailed(error);
+    });
   };
 
   LockScreen.prototype.updateBackground =
@@ -1032,12 +1076,16 @@
    */
   LockScreen.prototype.checkPassCodeTimeout =
     function ls_checkPassCodeTimeout() {
-      var _screenOffInterval = new Date().getTime() - this._screenOffTime;
+      var timeout = this.passCodeRequestTimeout * 1000;
+      var lockedInterval = this.fetchLockedInterval();
+      var unlockedInterval = this.fetchUnlockedInterval();
+
       // If user set timeout, then
       // - if timeout expired, do check
       // - if timeout is valid, do not check
       if (0 !== this.passCodeRequestTimeout) {
-        if (_screenOffInterval > this.passCodeRequestTimeout * 1000) {
+        if (lockedInterval > timeout ||
+            unlockedInterval > timeout ) {
           return true;
         } else {
           return false;
@@ -1088,6 +1136,28 @@
     this.lockScreenClockWidget = new LockScreenClockWidget(
       document.getElementById('lockscreen-clock-widget'));
     this.lockScreenClockWidget.start();
+  };
+
+  LockScreen.prototype.fetchLockedInterval = function() {
+    // If: the session is still pending, so need to calculate it.
+    // Else: the session was already over, so need to get it.
+    if (this.locked) {
+      this._lastLockedInterval = Date.now() - this._lastLockedTimeStamp;
+      return this._lastLockedInterval;
+    } else {
+      return this._lastLockedInterval;
+    }
+  };
+
+  LockScreen.prototype.fetchUnlockedInterval = function() {
+    // If: the session is still pending, so need to calculate it.
+    // Else: the session was already over, so need to get it.
+    if (!this.locked) {
+      this._lastUnlockedInterval = Date.now() - this._lastUnlockedTimeStamp;
+      return this._lastUnlockedInterval;
+    } else {
+      return this._lastUnlockedInterval;
+    }
   };
 
   /** @exports LockScreen */

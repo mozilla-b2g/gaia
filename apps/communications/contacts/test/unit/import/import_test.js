@@ -480,7 +480,7 @@ suite('HTML format', function() {
     }
 
     document.body.innerHTML = loadImportHTML();
-    assert.ok(document.getElementsByClassName('contact-text'), 'Some element' + 
+    assert.ok(document.getElementsByClassName('contact-text'), 'Some element' +
         'with class contact-text should exist for search highlighting to work');
   });
 });

@@ -1,3 +1,4 @@
+'use strict';
 /*jshint node: true */
 /*global marionette, setup, test */
 
@@ -5,8 +6,6 @@ var Email = require('./lib/email');
 var EmailData = require('./lib/email_data');
 var assert = require('assert');
 var serverHelper = require('./lib/server_helper');
-
-var SHARED_PATH = __dirname + '/../../../../shared/test/integration';
 
 marionette('email notifications, set interval', function() {
   var app,
@@ -17,18 +16,6 @@ marionette('email notifications, set interval', function() {
                     password: 'testy1'
                   }
                 }, this);
-
-  function getSynRegistrations(client) {
-    var regs;
-    client.waitFor(function() {
-      regs = client.executeScript(function() {
-        var nav = window.wrappedJSObject.navigator;
-        return nav.__mozFakeSyncRegistrations;
-       });
-      return regs;
-    });
-    return regs;
-  }
 
   setup(function() {
     app = new Email(client);

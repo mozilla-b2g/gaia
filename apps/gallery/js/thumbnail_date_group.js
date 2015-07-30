@@ -1,19 +1,15 @@
+'use strict';
+/* global
+  MediaUtils,
+  ThumbnailItem
+*/
+
 /**
  * ThumbnailDateGroup is a grouping mechanism supported in gallery app. It
  * groups file data by its year and month. The grouping
  * identity is based on the groupID. Once the groupID is different, we view
  * two groups as different groups. ThumbnailDateGroup also sorts the added file
  * data descendant. We can just put a item into group and let it sort the list.
- *
- * Before use it, we need to initialize the static property Template with
- * template.js object. It is used when rendering group header, the HTML DOM
- * node of this object. The initialization may look like this:
- *
- *    `ThumbnailDateGroup.Template = new Template('thumbnail-group-header');`
- *
- *
- * The HTML Node of this object contains all UI of its children. If we move it,
- * all items under this group are also moved.
  *
  * CONSTRUCTOR:
  *   To create a group, we need to supply one argument:
@@ -63,12 +59,7 @@ function ThumbnailDateGroup(item) {
   this.htmlNode.appendChild(this.header);
   this.htmlNode.appendChild(this.container);
 
-  // Localize the date header if L10N is ready. Otherwise,
-  // ThumbnailList.localize will call localize when the it becomes
-  // ready or when the locale changes.
-  if (navigator.mozL10n.readyState === 'complete') {
-    this.localize();
-  }
+  this.localize();
 }
 
 ThumbnailDateGroup.getGroupID = function(item) {
@@ -143,9 +134,11 @@ ThumbnailDateGroup.formatter = new navigator.mozL10n.DateTimeFormat();
 
 ThumbnailDateGroup.prototype.localize = function() {
   var date = new Date(this.date);
-  var format = navigator.mozL10n.get('date-group-header');
-  var formattedDate = ThumbnailDateGroup.formatter.localeFormat(date, format);
-  this.header.textContent = formattedDate;
+  navigator.mozL10n.formatValue('date-group-header').then(function(format) {
+    var formattedDate =
+      ThumbnailDateGroup.formatter.localeFormat(date, format);
+    this.header.textContent = formattedDate;
+  }.bind(this));
   // Localize each of the group's thumbnails.
   this.thumbnails.forEach(function(thumbnail) { thumbnail.localize(); });
 };

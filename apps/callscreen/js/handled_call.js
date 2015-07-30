@@ -1,6 +1,7 @@
 /* globals AudioCompetingHelper, CallsHandler, CallScreen,
            ConferenceGroupHandler, Contacts, ContactPhotoHelper,
-           FontSizeManager, LazyL10n, Utils, Voicemail, TonePlayer */
+           FontSizeManager, FontSizeUtils, LazyL10n, Utils, Voicemail,
+           TonePlayer */
 
 'use strict';
 
@@ -34,7 +35,8 @@ function HandledCall(aCall) {
 
   this._initialState = this.call.state;
   this._cachedInfo = '';
-  this._cachedAdditionalInfo = '';
+  this._cachedAdditionalTel = '';
+  this._cachedAdditionalTelType = '';
   this._removed = false;
   this._wasConnected = false;
 
@@ -50,19 +52,33 @@ function HandledCall(aCall) {
   this.totalDurationNode = this.node.querySelector('.total-duration');
   this.viaSimNode = this.node.querySelector('.sim .via-sim');
   this.simNumberNode = this.node.querySelector('.sim .sim-number');
-  this.numberNode = this.node.querySelector('.numberWrapper .number');
+  this.numberNode = this.node.querySelector('.numberWrapper .number bdi');
+  this.outerNode = this.node.querySelector('.numberWrapper .number');
   this.groupCallNumberNode =
     document.getElementById('group-call-label');
-  this.additionalInfoNode = this.node.querySelector('.additionalContactInfo');
+  this.additionalTelNode =
+    this.node.querySelector('.additionalContactInfo .tel');
+  this.additionalTelTypeNode =
+    this.node.querySelector('.additionalContactInfo .tel-type');
   this.hangupButton = this.node.querySelector('.hangup-button');
   this.hangupButton.onclick = (function() {
     this.call.hangUp();
   }.bind(this));
 
   this.updateCallNumber();
+  this.createCustomStyles();
+
+  /* Observe changes to the node that holds the call duration, this is also
+   * used for displaying the call ended string and needs to be resized
+   * dynamically to accomodate for certain locales. */
+  this.mutationObserverConfig = { childList: true };
+  this.mutationObserver =
+    new MutationObserver(this.observeMutation.bind(this));
+  this.mutationObserver.observe(this.durationChildNode,
+                                this.mutationObserverConfig);
 
   LazyL10n.get((function localized(_) {
-    var durationMessage = (this.call.state == 'incoming') ?
+    var durationMessage = (this.call.state === 'incoming') ?
                            _('incoming') : _('connecting');
     this.durationChildNode.textContent = durationMessage;
     this.updateDirection();
@@ -84,6 +100,85 @@ function HandledCall(aCall) {
   }
 }
 
+/**
+ * Creates the global custom style used for resizing the call ended string.
+ * Re-uses the existing one it if the style is already present.
+ */
+HandledCall.prototype.createCustomStyles = function hc_createCustomStyles() {
+  const CUSTOM_STYLE_ID = 'call-ended-custom-style';
+
+  var style = document.getElementById(CUSTOM_STYLE_ID);
+
+  if (!style) {
+    style = document.createElement('style');
+    style.id = CUSTOM_STYLE_ID;
+    document.head.appendChild(style);
+  }
+
+  this.callEndedStyleSheet = style.sheet;
+};
+
+/**
+ * Recomputes the font size rules so that the call ended string fits both in
+ * the callscreen display and in the statusbar.
+ */
+HandledCall.prototype.computeCallEndedFontSizeRules =
+function hc_computeCallEndedFontSizeRules() {
+  // Remove the existing rules
+  while (this.callEndedStyleSheet.cssRules.length > 0) {
+    this.callEndedStyleSheet.deleteRule(0);
+  }
+
+  var computedStyle = window.getComputedStyle(this.durationChildNode);
+  var fontFamily = computedStyle.fontFamily;
+  var allowedSizes = [ 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27 ];
+
+  /* Compute the size of the font for displaying the string in the callscreen,
+   * this rules only apply when there's a single call, i.e. when the
+   * big-duration class is present in the calls node. */
+  var info = FontSizeUtils.getMaxFontSizeInfo(
+    this.durationChildNode.textContent, allowedSizes, fontFamily, 180);
+  var rule =
+    '@media (min-height: 4.5em) {' +
+    '  #calls.big-duration > section.ended .duration > span,' +
+    '  #calls.big-duration > section.ended .total-duration {' +
+    '    font-size: ' + (info.fontSize / 10.0) + 'rem;' +
+    '  }' +
+    '}';
+  this.callEndedStyleSheet.insertRule(rule,
+    this.callEndedStyleSheet.cssRules.length);
+
+  // Compute the size of the font for displaying the string in the statusbar
+  info = FontSizeUtils.getMaxFontSizeInfo(
+    this.durationChildNode.textContent, allowedSizes, fontFamily, 160);
+  rule =
+    '@media (max-height: 4.5em) {' +
+    '  .handled-call.ended .duration > span,' +
+    '  .handled-call.ended .total-duration {' +
+    '    font-size: ' + (info.fontSize / 10.0) + 'rem;' +
+    '  }' +
+    '}';
+  this.callEndedStyleSheet.insertRule(rule,
+    this.callEndedStyleSheet.cssRules.length);
+};
+
+/**
+ * Observe DOM mutations. This will automatically resize the call ended string
+ * once it's displayed at the end of a call.
+ */
+HandledCall.prototype.observeMutation =
+function hc_observeMutation(mutations) {
+  if (this.durationChildNode.hasAttribute('data-l10n-id') &&
+      this.durationChildNode.getAttribute('data-l10n-id') === 'callEnded') {
+    /* Disable the observer to prevent it from being called recursively
+     * while we modify the DOM tree, re-enable it once we're done . */
+    this.mutationObserver.disconnect();
+    this.computeCallEndedFontSizeRules();
+    this.mutationObserver.observe(this.durationChildNode,
+                                  this.mutationObserverConfig);
+  }
+};
+
 HandledCall.prototype._wasUnmerged = function hc_wasUnmerged() {
   return !this.node.dataset.groupHangup &&
          this.call.state != 'disconnecting' &&
@@ -93,6 +188,8 @@ HandledCall.prototype._wasUnmerged = function hc_wasUnmerged() {
 HandledCall.prototype.handleEvent = function hc_handle(evt) {
   CallsHandler.updatePlaceNewCall();
   CallsHandler.updateMergeAndOnHoldStatus();
+  CallsHandler.updateMuteAndSpeakerStatus();
+
   switch (evt.call.state) {
     case 'connected':
       // The dialer agent in the system app plays and stops the ringtone once
@@ -112,6 +209,7 @@ HandledCall.prototype.handleEvent = function hc_handle(evt) {
     case 'held':
       AudioCompetingHelper.leaveCompetition();
       this.node.classList.add('held');
+      CallScreen.render('connected-hold');
       break;
   }
 };
@@ -129,8 +227,9 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
     LazyL10n.get(function localized(_) {
       node.textContent = _('switch-calls');
       self._cachedInfo = _('switch-calls');
-      self._cachedAdditionalInfo = '';
-      self.replaceAdditionalContactInfo('');
+      self._cachedAdditionalTel = '';
+      self._cachedAdditionalTelType = '';
+      self.replaceAdditionalContactInfo('', '');
       self.numberNode.style.fontSize = '';
     });
     return;
@@ -150,8 +249,9 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
     LazyL10n.get(function localized(_) {
       self.replacePhoneNumber(number, 'end');
       self._cachedInfo = number;
-      self.replaceAdditionalContactInfo(_('emergencyNumber'));
-      self._cachedAdditionalInfo = _('emergencyNumber');
+      self.replaceAdditionalContactInfo(_('emergencyNumber'), '');
+      self._cachedAdditionalTel = _('emergencyNumber');
+      self._cachedAdditionalTelType = '';
     });
 
     return;
@@ -204,9 +304,11 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
           node.textContent = self._cachedInfo;
         });
       }
-      self._cachedAdditionalInfo =
-        Utils.getPhoneNumberAndType(matchingTel);
-      self.replaceAdditionalContactInfo(self._cachedAdditionalInfo);
+      self._cachedAdditionalTel = matchingTel.value;
+      self._cachedAdditionalTelType =
+        Utils.getPhoneNumberAdditionalInfo(matchingTel);
+      self.replaceAdditionalContactInfo(
+        self._cachedAdditionalTel, self._cachedAdditionalTelType);
       self.formatPhoneNumber('end');
       var photo = ContactPhotoHelper.getFullResolution(contact);
       if (photo) {
@@ -222,26 +324,30 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
 
     self._cachedInfo = number;
     node.textContent = self._cachedInfo;
-    self.replaceAdditionalContactInfo(self._cachedAdditionalInfo);
+    self.replaceAdditionalContactInfo(
+      self._cachedAdditionalTel, self._cachedAdditionalTelType);
     self.formatPhoneNumber('end');
   }
 };
 
 HandledCall.prototype.replaceAdditionalContactInfo =
-  function hc_replaceAdditionalContactInfo(additionalContactInfo) {
-  if (!additionalContactInfo ||
-    additionalContactInfo.trim() === '') {
-    this.additionalInfoNode.textContent = '';
+  function hc_replaceAdditionalContactInfo(additionalTel, additionalTelType) {
+  if ((!additionalTel && !additionalTelType) ||
+      (additionalTel.trim() === '' && additionalTelType.trim() === '')) {
+    this.additionalTelNode.textContent = '';
+    this.additionalTelTypeNode.textContent = '';
     this.node.classList.remove('additionalInfo');
   } else {
-    this.additionalInfoNode.textContent = additionalContactInfo;
+    this.additionalTelNode.textContent = additionalTel;
+    this.additionalTelTypeNode.textContent = additionalTelType;
     this.node.classList.add('additionalInfo');
   }
 };
 
 HandledCall.prototype.restoreAdditionalContactInfo =
   function hc_restoreAdditionalContactInfo() {
-    this.replaceAdditionalContactInfo(this._cachedAdditionalInfo);
+    this.replaceAdditionalContactInfo(
+      this._cachedAdditionalTel, this._cachedAdditionalTelType);
 };
 
 HandledCall.prototype.formatPhoneNumber =
@@ -267,7 +373,7 @@ HandledCall.prototype.formatPhoneNumber =
       scenario = FontSizeManager.SECOND_INCOMING_CALL;
     }
     FontSizeManager.adaptToSpace(
-      scenario, this.numberNode, false, ellipsisSide);
+      scenario, this.outerNode, false, ellipsisSide);
     if (this.node.classList.contains('additionalInfo')) {
       FontSizeManager.ensureFixedBaseline(scenario, this.numberNode);
     } else {
@@ -290,7 +396,7 @@ HandledCall.prototype.restorePhoneNumber =
 HandledCall.prototype.updateDirection = function hc_updateDirection() {
   var self = this;
   var classList = this.node.classList;
-  if (this._initialState == 'incoming') {
+  if (this._initialState === 'incoming') {
     classList.add('incoming');
     LazyL10n.get(function localized(_) {
       self.node.setAttribute('aria-label', _('incoming'));
@@ -302,7 +408,7 @@ HandledCall.prototype.updateDirection = function hc_updateDirection() {
     });
   }
 
-  if (this.call.state == 'connected') {
+  if (this.call.state === 'connected') {
     classList.add('ongoing');
   }
 };
@@ -316,16 +422,18 @@ HandledCall.prototype.remove = function hc_remove() {
   CallScreen.stopTicker(this.durationNode);
   var currentDuration = ConferenceGroupHandler.isGroupDetailsShown() ?
     ConferenceGroupHandler.currentDuration : this.durationChildNode.textContent;
+
+  this.node.classList.add('ended');
+  this.durationNode.classList.remove('isTimer');
+
+  /* This string will be resized automatically to fit its container, see
+   * hc_mutationObserver() & hc_computeCallEndedFontSizeRules. */
+  navigator.mozL10n.setAttributes(this.durationChildNode, 'callEnded');
+
   // FIXME/bug 1007148: Refactor duration element structure. No number or ':'
   //  existence checking will be necessary.
   var totalDuration = !!currentDuration.match(/\d+/g) ? currentDuration : '';
   this.totalDurationNode.textContent = totalDuration;
-  this.node.classList.add('ended');
-
-  LazyL10n.get(function localized(_) {
-    self.durationNode.classList.remove('isTimer');
-    self.durationChildNode.textContent = _('callEnded');
-  });
 
   setTimeout(function(evt) {
     CallScreen.removeCall(self.node);
@@ -347,13 +455,13 @@ HandledCall.prototype.connected = function hc_connected() {
 };
 
 HandledCall.prototype.disconnected = function hc_disconnected() {
-  var self = this;
   if (this._leftGroup) {
-    LazyL10n.get(function localized(_) {
-      CallScreen.showStatusMessage(_('caller-left-call',
-        {caller: self._cachedInfo.toString()}));
+    CallScreen.showStatusMessage({
+      id: 'caller-left-call',
+      args: { caller: this._cachedInfo.toString() }
     });
-    self._leftGroup = false;
+
+    this._leftGroup = false;
   }
 
   // Play End call tone only if the call was connected.

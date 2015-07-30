@@ -11,11 +11,14 @@ task:
     - docker-worker:cache:gaia-misc-caches
 
   payload:
+    env:
+      NODE_MODULES_SRC: npm-cache
     cache:
       gaia-misc-caches: /home/tester/caches/
     command:
       - entrypoint
       - ./bin/ci run jshint
+
   extra:
     treeherder:
       symbol: JSHint

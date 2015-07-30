@@ -1,4 +1,4 @@
-/* global inputWindowManager, softwareButtonManager, Service, AttentionWindow */
+/* global Service, AttentionWindow */
 'use strict';
 
 (function(exports) {
@@ -10,7 +10,7 @@
    * The height of the windows would be affected by some global factor:
    *
    *
-   * * The height of StatusBar.
+   * * The height of Statusbar.
    * * The existence of Software Home Button.
    * * The existence of Keyboard.
    *
@@ -22,7 +22,6 @@
    *
    * @class LayoutManager
    * @requires SoftwareButtonManager
-   * @requires StatusBar
    * @requires Service
    */
   var LayoutManager = function LayoutManager() {};
@@ -30,6 +29,7 @@
   LayoutManager.prototype = {
     DEBUG: false,
     CLASS_NAME: 'LayoutManager',
+    name: 'LayoutManager',
     /** @lends LayoutManager */
 
     get clientWidth() {
@@ -46,13 +46,13 @@
      *
      * @memberOf LayoutManager
      */
-    get height() {
-      var activeApp = Service.currentApp;
+    height: function() {
+      var activeApp = Service.query('getTopMostWindow');
       var isFullScreenLayout = activeApp && activeApp.isFullScreenLayout();
-      var softwareButtonHeight = Service.locked || isFullScreenLayout ?
-        0 : softwareButtonManager.height;
+      var softwareButtonHeight = Service.query('locked') || isFullScreenLayout ?
+        0 : (Service.query('SoftwareButtonManager.height') || 0);
       var keyboardHeight = this.keyboardEnabled ?
-        inputWindowManager.getHeight() : 0;
+        (Service.query('InputWindowManager.getHeight') || 0) : 0;
       var height = window.innerHeight - keyboardHeight - softwareButtonHeight;
 
       // Normalizing the height so that it always translates to an integral
@@ -70,19 +70,19 @@
      *
      * @memberOf LayoutManager
      */
-    get width() {
+    width: function() {
       return window.innerWidth -
-        ((Service.currentApp &&
-          Service.currentApp.isFullScreenLayout()) ?
-          0 : softwareButtonManager.width);
+        ((Service.query('getTopMostWindow') &&
+          Service.query('getTopMostWindow').isFullScreenLayout()) ?
+          0 : (Service.query('SoftwareButtonManager.width') || 0));
     },
 
     getHeightFor: function(currentWindow, ignoreKeyboard) {
       if (currentWindow instanceof AttentionWindow) {
         var keyboardHeight = this.keyboardEnabled && !ignoreKeyboard ?
-          inputWindowManager.getHeight() : 0;
+          (Service.query('InputWindowManager.getHeight') || 0) : 0;
         var height = window.innerHeight - keyboardHeight -
-          softwareButtonManager.height;
+          (Service.query('SoftwareButtonManager.height') || 0);
 
         // Normalizing the height so that it always translates to an integral
         // number of device pixels
@@ -94,9 +94,10 @@
         return height;
       }
       if (ignoreKeyboard) {
-        return this.height + inputWindowManager.getHeight();
+        return this.height() +
+          (Service.query('InputWindowManager.getHeight') || 0);
       } else {
-        return this.height;
+        return this.height();
       }
     },
 
@@ -109,7 +110,7 @@
      * @memberOf LayoutManager
      */
     match: function lm_match(width, height) {
-      return (this.width === width && this.height === height);
+      return (this.width() === width && this.height() === height);
     },
 
     /**
@@ -142,10 +143,27 @@
       window.addEventListener('lockscreen-appclosed', this);
 
       this._lastOrientation = screen.mozOrientation;
+      Service.registerState('getHeightFor', this);
+      Service.registerState('width', this);
+      Service.registerState('height', this);
+      Service.registerState('keyboardEnabled', this);
+      Service.registerState('match', this);
     },
 
     handleEvent: function lm_handleEvent(evt) {
       this.debug('resize event got: ', evt.type);
+
+      // The instance should be available on the evt.detail of
+      // the system-resize event. Additionally, if the original event caused
+      // the resize has a waitUntil() function, we would need the user of the
+      // system-resize event to have access to that too.
+      var systemResizeEventDetail = Object.create(this);
+      if (evt.detail && typeof evt.detail.waitUntil === 'function') {
+        systemResizeEventDetail.waitUntil = function(p) {
+          return evt.detail.waitUntil(p);
+        };
+      }
+
       switch (evt.type) {
         case 'keyboardchange':
           if (document.mozFullScreen) {
@@ -156,7 +174,7 @@
            * Fired when layout needs to be adjusted.
            * @event LayoutManager#system-resize
            */
-          this.publish('system-resize');
+          this.publish('system-resize', systemResizeEventDetail);
           break;
         case 'resize':
           // bug 1073806: do not publish |system-resize| if keyboard is showing
@@ -164,7 +182,7 @@
           // later and we'll resize then.
           if (!(screen.mozOrientation !== this._lastOrientation &&
                 this.keyboardEnabled)) {
-            this.publish('system-resize');
+            this.publish('system-resize', systemResizeEventDetail);
           }
           this.publish('orientationchange');
           this._lastOrientation = screen.mozOrientation;
@@ -172,15 +190,15 @@
         case 'lockscreen-appclosed':
           // If the software button is enabled it will be un-hidden when
           // the lockscreen is closed and trigger a system level resize.
-          if (softwareButtonManager.enabled) {
-            this.publish('system-resize');
+          if (Service.query('SoftwareButtonManager.enabled')) {
+            this.publish('system-resize', systemResizeEventDetail);
           }
           break;
         default:
           if (evt.type === 'keyboardhide') {
             this.keyboardEnabled = false;
           }
-          this.publish('system-resize');
+          this.publish('system-resize', systemResizeEventDetail);
           break;
       }
     },

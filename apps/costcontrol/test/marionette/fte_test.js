@@ -7,12 +7,10 @@ var CostControl = require('./lib/costcontrol.js');
 
 marionette('First Time Experience View', function() {
   var client = marionette.client({
-    prefs: {
-      'focusmanager.testmode': true
-    },
-    settings: {
-      'lockscreen.enabled': false,
-      'ftu.manifestURL': null
+    profile: {
+      prefs: {
+        'focusmanager.testmode': true
+      }
     }
   });
 
@@ -81,7 +79,7 @@ marionette('First Time Experience View', function() {
       // Go next to plan selection
       fte.next();
       client.helper.waitForElement(fte.TypeOfContract.main);
-      fte.TypeOfContract.prepaidPlanOption.tap();
+      fte.TypeOfContract.prepaidPlanOption.click();
 
       // Go next to Prepaid low balance alert
       fte.next();
@@ -109,7 +107,7 @@ marionette('First Time Experience View', function() {
       // Go next to plan selection
       fte.next();
       client.helper.waitForElement(fte.TypeOfContract.main);
-      fte.TypeOfContract.postpaidPlanOption.tap();
+      fte.TypeOfContract.postpaidPlanOption.click();
 
       // Go next to Postpaid Phone and Data Report
       fte.next();

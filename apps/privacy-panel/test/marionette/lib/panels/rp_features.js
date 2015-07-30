@@ -61,17 +61,23 @@ AlaMainPanel.prototype = {
 
   isLockChecked: function() {
     return this.client.findElement(this.selectors.lockInput)
-      .getAttribute('checked');
+      .scriptWith(function(el) {
+        return el.wrappedJSObject.checked;
+      });
   },
 
   isRingChecked: function() {
     return this.client.findElement(this.selectors.ringInput)
-      .getAttribute('checked');
+      .scriptWith(function(el) {
+        return el.wrappedJSObject.checked;
+      });
   },
 
   isLocateChecked: function() {
     return this.client.findElement(this.selectors.locateInput)
-      .getAttribute('checked');
+      .scriptWith(function(el) {
+        return el.wrappedJSObject.checked;
+      });
   },
 
   isLockEnabled: function() {

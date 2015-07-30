@@ -4,18 +4,13 @@ var Dialog = require('../../../system/test/marionette/lib/dialog');
 var assert = require('assert');
 
 marionette('Dialogs', function() {
-  var client = marionette.client({
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
-    }
-  });
+  var client = marionette.client();
   var dialog, system;
 
   setup(function() {
     system = client.loader.getAppClass('system');
     dialog = new Dialog(client);
-    system.waitForStartup();
+    system.waitForFullyLoaded();
     client.switchToFrame(system.getHomescreenIframe());
   });
 
@@ -32,7 +27,12 @@ marionette('Dialogs', function() {
   });
 
   test('displaying a long alert', function() {
-    dialog.alert('1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n');
+    var msg = '';
+    for (var i = 0; i < 1000; i++) {
+      msg += 'i';
+    }
+
+    dialog.alert(msg);
     client.switchToFrame();
     var statusbarSize = system.statusbar.size().height;
     assert.ok(dialog.title.location().y === statusbarSize);

@@ -1,4 +1,4 @@
-/* global utils, ConfirmDialog, Contacts, fb*/
+/* global utils, ConfirmDialog, Contacts, fb, ContactsService, Loader */
 'use strict';
 
 //
@@ -36,10 +36,13 @@ window.ContactsExporter = function ContactsExporter(theStrategy) {
       return;
     }
 
-    var request = navigator.mozContacts.find({});
-    request.onsuccess = function onSuccess() {
+    ContactsService.getAll(function(e, contactsFromAPI) {
+      if (e) {
+        cb();
+        return;
+      }
       contacts = [];
-      request.result.forEach(function onContact(ct) {
+      contactsFromAPI.forEach(function onContact(ct) {
         if (theContacts.indexOf(ct.id) !== -1 && !fb.isFbContact(ct)) {
           contacts.push(ct);
         }
@@ -47,12 +50,7 @@ window.ContactsExporter = function ContactsExporter(theStrategy) {
       if (cb) {
         cb(contacts);
       }
-    };
-    request.onerror = function onError() {
-      if (cb) {
-        cb();
-      }
-    };
+    });
   };
 
   //
@@ -128,7 +126,7 @@ window.ContactsExporter = function ContactsExporter(theStrategy) {
         }
 
         var errorString = 'exportError-' + strategy.name + '-';
-        Contacts.confirmDialog('exportErrorTitle',
+        ConfirmDialog.show('exportErrorTitle',
                               errorString + error.reason, cancel, retry);
 
         Contacts.hideOverlay();
@@ -171,7 +169,7 @@ window.ContactsExporter = function ContactsExporter(theStrategy) {
   var _displayProgress = function _displayProgress() {
     var progressClass = determinativeProgress ? 'progressBar' : 'spinner';
 
-    Contacts.utility('Overlay', function _loaded() {
+    Loader.utility('Overlay', function _loaded() {
       progress = utils.overlay.show(
         strategy.getExportTitle(),
         progressClass,
@@ -188,7 +186,7 @@ window.ContactsExporter = function ContactsExporter(theStrategy) {
         progress.setTotal(contacts.length);
         strategy.setProgressStep(progress.update);
       }
-    }, Contacts.SHARED_UTILITIES);
+    });
   };
 
   return {

@@ -1,5 +1,6 @@
 /* global MockL10n, MockMozWifiNetwork, MockNavigatorMozWifiManager,
-          MockFxAccountsIACHelper, WifiHelper */
+          MockFxAccountsIACHelper, MocksHelper, UIManager, utils,
+          WifiHelper, WifiManager, WifiUI */
 'use strict';
 
 require('/shared/test/unit/mocks/mock_l10n.js');
@@ -13,10 +14,12 @@ requireApp('ftu/test/unit/mock_fx_accounts_iac_helper.js');
 requireApp('ftu/js/wifi.js');
 requireApp('ftu/js/ui.js');
 require('/shared/js/wifi_helper.js');
+require('/shared/test/unit/mocks/mock_settings_listener.js');
 
 var mocksHelperForWifi = new MocksHelper([
   'utils',
-  'MozWifiNetwork'
+  'MozWifiNetwork',
+  'SettingsListener'
 ]).init();
 
 suite('wifi > ', function() {
@@ -195,6 +198,7 @@ suite('wifi > ', function() {
       UIManager.mainTitle = document.getElementById('main-title');
       UIManager.wifiJoinButton = document.getElementById('wifi-join-button');
       UIManager.navBar = document.getElementById('nav-bar');
+      UIManager.passwordInput = document.getElementById('wifi_password');
 
       network = fakeNetworks[0];
       networkDOM = document.querySelector('li[data-ssid="' +
@@ -209,6 +213,7 @@ suite('wifi > ', function() {
       UIManager.mainTitle = null;
       UIManager.wifiJoinButton = null;
       UIManager.navBar = null;
+      UIManager.passwordInput = null;
     });
 
     test('Open network', function() {
@@ -228,6 +233,28 @@ suite('wifi > ', function() {
           'should hide refresh button');
       assert.isTrue(UIManager.navBar.classList.contains('secondary-menu'),
           'should change different nav button');
+    });
+
+    test('Join button valid input', function() {
+      this.sinon.stub(WifiHelper, 'isValidInput').returns(true);
+
+      // default value. Must change after input event
+      UIManager.wifiJoinButton.disabled = true;
+
+      UIManager.passwordInput.dispatchEvent(new CustomEvent('input'));
+      assert.isFalse(UIManager.wifiJoinButton.disabled,
+                    'button should be enabled if the input is valid');
+    });
+
+    test('Join button invalid input', function() {
+      this.sinon.stub(WifiHelper, 'isValidInput').returns(false);
+
+      // button enabled. Must change after input event
+      UIManager.wifiJoinButton.disabled = false;
+
+      UIManager.passwordInput.dispatchEvent(new CustomEvent('input'));
+      assert.isTrue(UIManager.wifiJoinButton.disabled,
+                    'button should be disabled if the input is not valid');
     });
   });
 
@@ -492,8 +519,7 @@ suite('wifi > ', function() {
   suite('Join a network >', function() {
     var testSSID,
         testUser,
-        testPassword,
-        testSecurity;
+        testPassword;
 
     setup(function() {
       testSSID = 'Mozilla-G';

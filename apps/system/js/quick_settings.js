@@ -1,5 +1,5 @@
 /* jshint loopfunc: true */
-/* global SettingsHelper, SettingsListener, applications,
+/* global Service, SettingsListener, applications,
           UtilityTray, MozActivity */
 
 'use strict';
@@ -22,6 +22,13 @@
      * @type {Integer}
      */
     WIFI_STATUSCHANGE_TIMEOUT: 2000,
+
+    /**
+     * Indicate setting status of airplane mode
+     * @memberof QuickSettings.prototype
+     * @type {Boolean}
+     */
+    airplaneModeSwitching: false,
 
     /**
      * ID of elements to create references
@@ -53,6 +60,18 @@
     DATA_ROAMING_KEY: 'ril.data.roaming_enabled',
 
     /**
+     * Settings states.
+     * @memberof QuickSettings.prototype
+     * @type {Object}
+     */
+    settings: {
+      wifi: false,
+      airplaneMode: false,
+      data: false,
+      bluetooth: false
+    },
+
+    /**
      * Starts listening for events.
      * @memberof QuickSettings.prototype
      */
@@ -65,21 +84,8 @@
       this.getAllElements();
       this.monitorDataChange();
 
-      (function initNetworkSprite() {
-        var networkTypeSetting =
-          SettingsHelper('operatorResources.data.icon', {});
-
-        networkTypeSetting.get(function gotNS(networkTypeValues) {
-          if (!networkTypeValues) {
-            return;
-          }
-          var sprite = networkTypeValues.data_sprite;
-          if (sprite) {
-            document.getElementById('quick-settings-data')
-              .style.backgroundImage = 'url("' + sprite + '")';
-          }
-        });
-      })();
+      window.addEventListener('dataiconchanged', this);
+      this._handle_dataiconchanged();
 
       this.overlay.addEventListener('click', this);
       window.addEventListener('utilitytrayshow', this);
@@ -88,6 +94,18 @@
       this.monitorWifiChange();
       this.monitorGeoChange();
       this.monitorAirplaneModeChange();
+    },
+
+    _handle_dataiconchanged: function() {
+      var networkTypeValues = Service.query('dataIcon');
+      if (!networkTypeValues) {
+        return;
+      }
+      var sprite = networkTypeValues.data_sprite;
+      if (sprite) {
+        document.getElementById('quick-settings-data')
+                .style.backgroundImage = 'url("' + sprite + '")';
+      }
     },
 
     /**
@@ -150,11 +168,7 @@
          * @memberof QuickSettings.prototype
          */
         SettingsListener.observe('ril.data.enabled', true, function(value) {
-          if (value) {
-            this.data.dataset.enabled = 'true';
-          } else {
-            delete this.data.dataset.enabled;
-          }
+          this.setSettingEnabled('data', value);
           this.setAccessibilityAttributes(this.data, 'dataButton',
             this.data.dataset.network);
         }.bind(this));
@@ -170,32 +184,8 @@
      * @memberof QuickSettings.prototype
      */
     monitorBluetoothChange: function() {
-      var self = this;
-      var btFirstSet = true;
-      SettingsListener.observe('bluetooth.enabled', true, function(value) {
-        // check self.bluetooth.dataset.enabled and value are identical
-        if ((self.bluetooth.dataset.enabled && value) ||
-          (self.bluetooth.dataset.enabled === undefined && !value)) {
-          return;
-        }
-
-        if (value) {
-          self.bluetooth.dataset.enabled = 'true';
-        } else {
-          delete self.bluetooth.dataset.enabled;
-        }
-
-        // Set to the initializing state to block user interaction until the
-        // operation completes. (unless we are being called for the first time,
-        // where Bluetooth is already initialize
-        if (!btFirstSet) {
-          self.bluetooth.dataset.initializing = 'true';
-        }
-        btFirstSet = false;
-
-        self.setAccessibilityAttributes(self.bluetooth, 'bluetoothButton');
-      });
-      window.addEventListener('bluetooth-adapter-added', this);
+      // Bluetooth module is loaded after quicksettings.
+      window.addEventListener('bluetooth-enabled', this);
       window.addEventListener('bluetooth-disabled', this);
     },
 
@@ -211,17 +201,11 @@
       var self = this;
       var wifiFirstSet = true;
       SettingsListener.observe('wifi.enabled', true, function(value) {
-        // check self.wifi.dataset.enabled and value are identical
-        if ((self.wifi.dataset.enabled && value) ||
-          (self.wifi.dataset.enabled === undefined && !value)) {
+        if (self.settings.wifi === value) {
           return;
         }
 
-        if (value) {
-          self.wifi.dataset.enabled = 'true';
-        } else {
-          delete self.wifi.dataset.enabled;
-        }
+        self.setSettingEnabled('wifi', value);
         // Set to the initializing state to block user interaction until the
         // operation completes. (unless we are being called for the first time,
         // where Wifi is already initialize
@@ -258,22 +242,26 @@
       SettingsListener.observe('airplaneMode.status', false, function(value) {
         delete self.airplaneMode.dataset.enabling;
         delete self.airplaneMode.dataset.disabling;
+        // reset airplaneModeSwitching
+        self.airplaneModeSwitching = false;
 
         self.data.dataset.airplaneMode = (value === 'enabled');
         switch (value) {
           case 'enabled':
             self.data.classList.add('quick-settings-airplane-mode');
-            self.airplaneMode.dataset.enabled = 'true';
+            self.setSettingEnabled('airplaneMode', true);
             break;
           case 'disabled':
             self.data.classList.remove('quick-settings-airplane-mode');
-            delete self.airplaneMode.dataset.enabled;
+            self.setSettingEnabled('airplaneMode', false);
             break;
           case 'enabling':
             self.airplaneMode.dataset.enabling = 'true';
+            self.airplaneModeSwitching = true;
             break;
           case 'disabling':
             self.airplaneMode.dataset.disabling = 'true';
+            self.airplaneModeSwitching = true;
             break;
         }
         self.setAccessibilityAttributes(self.airplaneMode, 'airplaneMode');
@@ -288,14 +276,19 @@
       evt.preventDefault();
       var enabled = false;
       switch (evt.type) {
+        case 'dataiconchanged':
+          this._handle_dataiconchanged();
+          break;
         case 'click':
           switch (evt.target) {
             case this.wifi:
-              // do nothing if wifi isn't ready
-              if (this.wifi.dataset.initializing) {
+              // do nothing if wifi isn't ready or
+              // airplaneMode is switching to another mode.
+              if (this.wifi.dataset.initializing ||
+                this.airplaneModeSwitching) {
                 return;
               }
-              enabled = !!this.wifi.dataset.enabled;
+              enabled = this.settings.wifi;
               SettingsListener.getSettingsLock().set({
                 'wifi.enabled': !enabled
               });
@@ -310,7 +303,7 @@
             case this.data:
               if (this.data.dataset.airplaneMode !== 'true') {
                 // TODO should ignore the action if initialization isn't done
-                enabled = !!this.data.dataset.enabled;
+                enabled = this.settings.data;
                 if (enabled) {
                   var cset = {};
                   cset[this.DATA_KEY] = !enabled;
@@ -323,12 +316,14 @@
               break;
 
             case this.bluetooth:
-              // do nothing if bluetooth isn't ready
-              if (this.bluetooth.dataset.initializing) {
+              // do nothing if bluetooth isn't ready or
+              // airplaneMode is switching to another mode.
+              if (this.bluetooth.dataset.initializing ||
+                this.airplaneModeSwitching) {
                 return;
               }
 
-              enabled = !!this.bluetooth.dataset.enabled;
+              enabled = this.settings.bluetooth;
               if (enabled) {
                 window.dispatchEvent(
                   new CustomEvent('request-disable-bluetooth'));
@@ -336,10 +331,14 @@
                 window.dispatchEvent(
                   new CustomEvent('request-enable-bluetooth'));
               }
+              this.bluetooth.dataset.initializing = 'true';
               break;
 
             case this.airplaneMode:
-              var toggle = this.airplaneMode.dataset.enabled ?
+              if (this.airplaneModeSwitching) {
+                return;
+              }
+              var toggle = this.settings.airplaneMode ?
                 'request-airplane-mode-disable' :
                 'request-airplane-mode-enable';
               window.dispatchEvent(new CustomEvent(toggle));
@@ -362,15 +361,20 @@
           break;
 
           // unlock bluetooth toggle
-        case 'bluetooth-adapter-added':
+        case 'bluetooth-enabled':
+          this.setSettingEnabled('bluetooth', true);
+          delete this.bluetooth.dataset.initializing;
+          this.setAccessibilityAttributes(this.bluetooth, 'bluetoothButton');
+          break;
         case 'bluetooth-disabled':
+          this.setSettingEnabled('bluetooth', false);
           delete this.bluetooth.dataset.initializing;
           this.setAccessibilityAttributes(this.bluetooth, 'bluetoothButton');
           break;
           // unlock wifi toggle
         case 'wifi-enabled':
           delete this.wifi.dataset.initializing;
-          this.wifi.dataset.enabled = 'true';
+          this.setSettingEnabled('wifi', true);
           this.setAccessibilityAttributes(this.wifi, 'wifiButton');
           if (this.toggleAutoConfigWifi) {
             // Check whether it found a wifi to connect after a timeout.
@@ -380,7 +384,7 @@
           break;
         case 'wifi-disabled':
           delete this.wifi.dataset.initializing;
-          delete this.wifi.dataset.enabled;
+          this.setSettingEnabled('wifi', false);
           this.setAccessibilityAttributes(this.wifi, 'wifiButton');
           if (this.toggleAutoConfigWifi) {
             clearTimeout(this.wifiStatusTimer);
@@ -415,7 +419,7 @@
 
       this.overlay = document.getElementById('quick-settings');
     },
-    
+
     /**
      * XXX Break down obj keys in a for each loop because mozSettings
      * does not currently supports multiple keys in one set()
@@ -439,14 +443,12 @@
      * @memberof QuickSettings.prototype
      */
     setAccessibilityAttributes: function(button, label, type) {
-      label += button.dataset.enabled === undefined ? '-off' : '-on';
+      label = 'quick-settings-' + label +
+        (button.dataset.enabled === undefined ? '-off' : '-on');
       if (button.dataset.initializing !== undefined) {
         label += '-initializing';
       }
-
-      button.setAttribute('aria-label', navigator.mozL10n.get(label, {
-        type: type || ''
-      }));
+      navigator.mozL10n.setAttributes(button, label, { type: type || '' });
       button.setAttribute('aria-pressed', button.dataset.enabled !== undefined);
     },
 
@@ -499,6 +501,15 @@
           resolve(reqSetting.result[self.DATA_ROAMING_KEY]);
         };
       });
+    },
+
+    setSettingEnabled: function qa_setSettingEnabled(settingKey, enabled) {
+      this.settings[settingKey] = enabled;
+      if (enabled) {
+        this[settingKey].dataset.enabled = 'true';
+      } else {
+        delete this[settingKey].dataset.enabled;
+      }
     },
 
     /**

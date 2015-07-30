@@ -117,11 +117,9 @@ MultiSimActionButton.prototype._updateUI = function() {
       var self = this;
       var l10nId = this._simIndication.dataset.l10nId ||
                    'gaia-sim-picker-button';
-      navigator.mozL10n.ready(function() {
-        navigator.mozL10n.setAttributes(self._simIndication,
-                                        l10nId,
-                                        {n: cardIndex+1});
-      });
+      navigator.mozL10n.setAttributes(self._simIndication,
+                                      l10nId,
+                                      {n: cardIndex+1});
     }
 
     document.body.classList.add('has-preferred-sim');

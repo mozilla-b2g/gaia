@@ -9,6 +9,9 @@ var MockLazyLoader = {
       return {
         then: function(callback) {
           callback();
+          return {
+            'catch': function() {}
+          };
         }
       };
     }

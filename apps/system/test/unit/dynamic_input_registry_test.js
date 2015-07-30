@@ -1,6 +1,6 @@
 'use strict';
 
-/* global DynamicInputRegistry, InputAppList,
+/* global DynamicInputRegistry, InputAppList, InputApp,
           MockNavigatorMozSettings, MockNavigatorMozSettingsLock,
           MockDOMRequest */
 
@@ -11,7 +11,7 @@ require('/shared/js/input_mgmt/mock_navigator_mozsettings.js');
 require('/shared/js/input_mgmt/input_app_list.js');
 require('/js/dynamic_input_registry.js');
 
-var INPUT_APP = {
+var MOCK_DOM_APP = {
   manifestURL: 'app://keyboard.gaiamobile.org/manifest.webapp',
   manifest: {
     role: 'input',
@@ -43,6 +43,9 @@ suite('DynamicInputRegistry', function(){
 
   var registry;
   var realDispatchEvent;
+
+  var domApp;
+  var inputApp;
 
   var getResult;
   var setResult;
@@ -95,9 +98,12 @@ suite('DynamicInputRegistry', function(){
     realDispatchEvent = window.dispatchEvent;
     this.sinon.spy(window, 'dispatchEvent');
 
+    domApp = Object.create(MOCK_DOM_APP);
+    inputApp = new InputApp(domApp);
+
     var stubInputAppList =
       this.sinon.stub(Object.create(InputAppList.prototype));
-    stubInputAppList.getList.returns([ INPUT_APP ]);
+    stubInputAppList.getList.returns([ inputApp ]);
     window.KeyboardHelper = {
       inputAppList: stubInputAppList
     };
@@ -123,7 +129,7 @@ suite('DynamicInputRegistry', function(){
       dispatchChromeEvent({
         type: 'inputregistry-add',
         id: 1,
-        manifestURL: INPUT_APP.manifestURL,
+        manifestURL: domApp.manifestURL,
         inputId: 'foo',
         inputManifest: {
           types: ['url', 'text'],
@@ -158,7 +164,7 @@ suite('DynamicInputRegistry', function(){
       dispatchChromeEvent({
         type: 'inputregistry-add',
         id: 1,
-        manifestURL: INPUT_APP.manifestURL,
+        manifestURL: domApp.manifestURL,
         inputId: 'foo',
         inputManifest: {
           types: ['url', 'text'],
@@ -183,7 +189,7 @@ suite('DynamicInputRegistry', function(){
       dispatchChromeEvent({
         type: 'inputregistry-add',
         id: 1,
-        manifestURL: INPUT_APP.manifestURL,
+        manifestURL: domApp.manifestURL,
         inputId: 'foo',
         inputManifest: {
           types: ['url', 'text'],
@@ -235,7 +241,7 @@ suite('DynamicInputRegistry', function(){
       dispatchChromeEvent({
         type: 'inputregistry-add',
         id: 1,
-        manifestURL: INPUT_APP.manifestURL,
+        manifestURL: domApp.manifestURL,
         inputId: 'en',
         inputManifest: {
           types: ['url', 'text'],
@@ -265,7 +271,7 @@ suite('DynamicInputRegistry', function(){
       dispatchChromeEvent({
         type: 'inputregistry-remove',
         id: 1,
-        manifestURL: INPUT_APP.manifestURL,
+        manifestURL: domApp.manifestURL,
         inputId: 'foo'
       });
 
@@ -296,7 +302,7 @@ suite('DynamicInputRegistry', function(){
       dispatchChromeEvent({
         type: 'inputregistry-remove',
         id: 1,
-        manifestURL: INPUT_APP.manifestURL,
+        manifestURL: domApp.manifestURL,
         inputId: 'foo'
       });
 
@@ -322,7 +328,7 @@ suite('DynamicInputRegistry', function(){
       dispatchChromeEvent({
         type: 'inputregistry-remove',
         id: 1,
-        manifestURL: INPUT_APP.manifestURL,
+        manifestURL: domApp.manifestURL,
         inputId: 'foo'
       });
 
@@ -344,7 +350,7 @@ suite('DynamicInputRegistry', function(){
       dispatchChromeEvent({
         type: 'inputregistry-remove',
         id: 1,
-        manifestURL: INPUT_APP.manifestURL,
+        manifestURL: domApp.manifestURL,
         inputId: 'foo'
       });
 
@@ -389,7 +395,7 @@ suite('DynamicInputRegistry', function(){
       dispatchChromeEvent({
         type: 'inputregistry-remove',
         id: 1,
-        manifestURL: INPUT_APP.manifestURL,
+        manifestURL: domApp.manifestURL,
         inputId: 'en'
       });
 

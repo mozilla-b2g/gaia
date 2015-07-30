@@ -8,7 +8,10 @@ var iconAppState = require('./lib/icon_app_state');
 var createAppServer = require('./server/parent');
 
 marionette('Vertical Home - Packaged App Install', function() {
-  var client = marionette.client(require(__dirname + '/client_options.js'));
+  var client = marionette.client({
+    profile: require(__dirname + '/client_options.js'),
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
+  });
   var server;
   setup(function(done) {
     var app = __dirname + '/fixtures/template_app';
@@ -26,7 +29,7 @@ marionette('Vertical Home - Packaged App Install', function() {
     system = client.loader.getAppClass('system');
     appInstall = new AppInstall(client);
 
-    system.waitForStartup();
+    system.waitForFullyLoaded();
     subject.waitForLaunch();
   });
 

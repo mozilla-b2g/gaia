@@ -1,0 +1,19 @@
+{
+  "name": "calendar",
+  "tags": {
+    "dictionaries": ["jsdoc"]
+  },
+  "source": {
+    "include": ["apps/calendar/README.md", "apps/calendar/js"],
+    "exclude": ["apps/calendar/js/ext"]
+  },
+  "plugins": [
+    "plugins/markdown",
+    "plugins/summarize"
+  ],
+  "opts": {
+    "private": true,
+    "recurse": true,
+    "destination": "docs/calendar"
+  }
+}

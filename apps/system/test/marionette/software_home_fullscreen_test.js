@@ -5,18 +5,17 @@ var assert = require('assert');
 marionette('Software Home Button - Fullscreen Request', function() {
 
   var client = marionette.client({
-    prefs: {
-      'focusmanager.testmode': true,
-      'dom.w3c_touch_events.enabled': 1
-    },
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false,
-      'software-button.enabled': true
-    },
-    apps: {
-      'fullscreen_request.gaiamobile.org':
-        __dirname + '/fullscreen_request'
+    profile: {
+      prefs: {
+        'focusmanager.testmode': true
+      },
+      settings: {
+        'software-button.enabled': true
+      },
+      apps: {
+        'fullscreen_request.gaiamobile.org':
+          __dirname + '/../apps/fullscreen_request'
+      }
     }
   });
   var home, system;
@@ -24,7 +23,7 @@ marionette('Software Home Button - Fullscreen Request', function() {
   setup(function() {
     home = client.loader.getAppClass('verticalhome');
     system = client.loader.getAppClass('system');
-    system.waitForStartup();
+    system.waitForFullyLoaded();
     home.waitForLaunch();
     client.switchToFrame();
   });

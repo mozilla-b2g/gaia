@@ -8,13 +8,10 @@ var CALENDAR_APP = 'app://calendar.gaiamobile.org';
 
 marionette('Global search >', function() {
   var client = marionette.client({
-    prefs: {
-      'dom.w3c_touch_events.enabled': 1,
-      'devtools.debugger.forbid-certified-apps': false
-    },
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
+    profile: {
+      prefs: {
+        'devtools.debugger.forbid-certified-apps': false
+      }
     }
   });
 
@@ -26,7 +23,7 @@ marionette('Global search >', function() {
     actions = client.loader.getActions();
 
     sys = client.loader.getAppClass('system');
-    sys.waitForStartup();
+    sys.waitForFullyLoaded();
 
     rocketbar = new Rocketbar(client);
 
@@ -35,7 +32,7 @@ marionette('Global search >', function() {
 
     // Making sure the opening transition for the calendar app is over.
     client.waitFor(function() {
-      return calendar.displayed() && !settings.displayed();
+      return calendar.ariaDisplayed() && !settings.ariaDisplayed();
     });
 
     var width = client.executeScript(function() {
@@ -68,7 +65,7 @@ marionette('Global search >', function() {
                   halfHeight, 100).tap(top, 10, 0, 10).perform();
 
     client.waitFor(function() {
-      return !calendar.displayed() && settings.displayed();
+      return !calendar.ariaDisplayed() && settings.ariaDisplayed();
     });
 
     // No permission prompt, no focused rocketbar either

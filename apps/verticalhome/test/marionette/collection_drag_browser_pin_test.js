@@ -6,7 +6,9 @@ var EmeServer = require(
 
 marionette('Vertical - Collection Browser', function() {
 
-  var client = marionette.client(require(__dirname + '/client_options.js'));
+  var client = marionette.client({
+    profile: require(__dirname + '/client_options.js')
+  });
   var actions, collection, home, selectors, server, system;
 
   suiteSetup(function(done) {
@@ -26,7 +28,7 @@ marionette('Vertical - Collection Browser', function() {
     collection = new Collection(client);
     home = client.loader.getAppClass('verticalhome');
     system = client.loader.getAppClass('system');
-    system.waitForStartup();
+    system.waitForFullyLoaded();
 
     home.waitForLaunch();
     EmeServer.setServerURL(client, server);

@@ -138,17 +138,34 @@
       console.error('can\'t access mozMobileMessage');
       cb(null);
     } else {
-      var req = mobileMessage.getSmscAddress(this.index);
-      req.onsuccess = function() {
-        var smsc = this.result.split(',')[0].replace(/"/g, '');
-        cb(smsc);
-      };
-
-      req.onerror = function() {
-        console.error(this.error);
-        cb(null);
-      };
+      // The return type of getSmscAddress can be either a DOMRequest which
+      // resolves to a string for legacy implementations, or
+      // a Promise which resolves to a SmscAddress object in Bug 1043250.
+      mobileMessage.getSmscAddress(this.index).then(
+        (result) => {
+          var smsc;
+          // Keep the legacy behavior for backward compatibility. The legacy
+          // interface resolves to a string, and is always assumed to be in text
+          // mode.
+          if (typeof result === 'string' || result instanceof String) {
+            smsc = result.split(',')[0].replace(/"/g, '');
+          } else {
+            smsc = result.address;
+          }
+          cb(smsc);
+        },
+        (error) => {
+          console.error(error);
+          cb(null);
+        }
+      );
     }
+  };
+
+  SIMSlot.prototype.isUnknownState = function ss_isUnknownState() {
+    var empty = (this.simCard.cardState === '');
+    var unknown = (this.simCard.cardState === 'unknown');
+    return !this.simCard.cardState || unknown || empty;
   };
 
   /**

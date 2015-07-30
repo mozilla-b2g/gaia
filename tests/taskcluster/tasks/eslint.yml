@@ -1,0 +1,30 @@
+task:
+  metadata:
+    name: Gaia ESLint
+    description: JS linter
+
+  workerType: '{{workerType}}'
+  provisionerId: '{{provisionerId}}'
+  scopes:
+    # Source caches contains various sources (including a tarball of gaia source
+    # tree)
+    - docker-worker:cache:gaia-misc-caches
+    - docker-worker:image:quay.io/mozilla/gaia-taskenv:*
+
+  payload:
+    env:
+      NODE_MODULES_SRC: npm-cache
+
+    cache:
+      gaia-misc-caches: /home/tester/caches/
+
+    command:
+      - entrypoint
+      - ./bin/ci run eslint
+
+  extra:
+    treeherder:
+      symbol: ESL
+      groupSymbol: LINT
+      groupName: Linters
+

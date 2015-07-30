@@ -4,9 +4,10 @@
 
 requireApp('system/lockscreen/js/lockscreen_notifications.js');
 requireApp('system/test/unit/mock_lock_screen.js');
+requireApp('system/shared/test/unit/mocks/mock_lazy_loader.js');
 
 var mocksForLockScreenNotifications = new MocksHelper([
-  'LockScreen'
+  'LockScreen', 'LazyLoader'
 ]).init();
 
 suite('system/LockScreenNotifications', function() {
@@ -46,6 +47,41 @@ suite('system/LockScreenNotifications', function() {
 
   teardown(function() {
     MockLockScreen.mTeardown();
+  });
+
+  suite('Event binding >', function() {
+    test('Test When locking state changed, the touchstart would be re-bound',
+    function() {
+      var method = LockScreenNotifications.prototype.handleEvent;
+      var mockThis = {
+        updateTimestamps: function() {}
+      };
+      var stubAddEventListener = this.sinon.stub(window, 'addEventListener');
+      var stubRemoveEventListener =
+        this.sinon.stub(window, 'removeEventListener');
+      method.call(mockThis, { type: 'lockscreen-appclosed' });
+      assert.isTrue(stubRemoveEventListener.calledWith('touchstart'));
+      method.call(mockThis, { type: 'lockscreen-appopened' });
+      assert.isTrue(stubAddEventListener.calledWith('touchstart'));
+    });
+
+    test('Test When visibility changed, the touchstart would be re-bound',
+    function() {
+      var method = LockScreenNotifications.prototype.handleEvent;
+      var mockThis = {
+        updateTimestamps: function() {}
+      };
+      var stubAddEventListener = this.sinon.stub(window, 'addEventListener');
+      var stubRemoveEventListener =
+        this.sinon.stub(window, 'removeEventListener');
+      Object.defineProperty(document, 'hidden',
+        { value: true, writable: true });
+      method.call(mockThis, { type: 'visibilitychange' });
+      assert.isTrue(stubRemoveEventListener.calledWith('touchstart'));
+      Object.defineProperty(document, 'hidden', { value: false });
+      method.call(mockThis, { type: 'visibilitychange' });
+      assert.isTrue(stubAddEventListener.calledWith('touchstart'));
+    });
   });
 
   test('Test Show Colored Masked Background', function() {

@@ -22,6 +22,13 @@
   };
 
   /**
+   * A homescreen black-list of homescreens to not display the rocketbar on.
+   */
+  const ROCKETBAR_BLACKLIST = [
+    'app://verticalhome.gaiamobile.org/manifest.webapp'
+  ];
+
+  /**
    * Fired when the homescreen window is created.
    * @event HomescreenWindow#homescreencreated
    */
@@ -102,17 +109,24 @@
       this.browser_config.isHomescreen = true;
       this.config = this.browser_config;
       this.isHomescreen = true;
+
+      if (ROCKETBAR_BLACKLIST.indexOf(app.manifestURL) === -1) {
+        this.config.chrome = {
+          maximized: true,
+          scrollable: true
+        };
+      }
     };
 
   HomescreenWindow.REGISTERED_EVENTS = AppWindow.REGISTERED_EVENTS;
 
   HomescreenWindow.SUB_COMPONENTS = {
-    'transitionController': window.AppTransitionController,
-    'modalDialog': window.AppModalDialog,
-    'valueSelector': window.ValueSelector,
-    'authDialog': window.AppAuthenticationDialog,
-    'childWindowFactory': window.ChildWindowFactory,
-    'statusbar': window.AppStatusbar
+    'transitionController': 'AppTransitionController',
+    'modalDialog': 'AppModalDialog',
+    'valueSelector': 'ValueSelector',
+    'authDialog': 'AppAuthenticationDialog',
+    'childWindowFactory': 'ChildWindowFactory',
+    'statusbar': 'AppStatusbar'
   };
 
   HomescreenWindow.prototype.openAnimation = 'zoom-out';
@@ -183,7 +197,7 @@
   // Ensure the homescreen is loaded and return its frame.  Restarts
   // the homescreen app if it was killed in the background.
   HomescreenWindow.prototype.ensure = function hw_ensure(reset) {
-    this.debug('ensuring homescreen...', this.frontWindow);
+    this.debug('ensuring homescreen...', this.frontWindow, reset);
     if (!this.element) {
       this.render();
     } else if (reset) {
@@ -209,7 +223,7 @@
   HomescreenWindow.prototype.resize = function aw_resize() {
     this.debug('request RESIZE...');
     this.debug(' will resize... ');
-    this._resize();
+    return this._resize();
   };
 
   /**

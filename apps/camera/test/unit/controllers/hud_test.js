@@ -71,12 +71,18 @@ suite('controllers/hud', function() {
       assert.ok(this.app.on.calledWith('settings:configured'));
       assert.ok(this.app.on.calledWith('ready'));
       assert.ok(this.app.on.calledWith('busy'));
+      assert.ok(this.app.on.calledWith('localized'));
       assert.ok(this.app.on.calledWith('change:recording'));
       assert.ok(this.app.on.calledWith('timer:cleared'));
       assert.ok(this.app.on.calledWith('timer:started'));
       assert.ok(this.app.on.calledWith('timer:ended'));
       assert.ok(this.app.on.calledWith('settings:opened'));
       assert.ok(this.app.on.calledWith('settings:closed'));
+
+      assert.ok(this.app.on.calledWith('previewgallery:opened',
+        this.view.hide));
+      assert.ok(this.app.on.calledWith('previewgallery:closed',
+        this.view.show));
     });
 
     test('Should update the flash support once settings are configured', function() {
@@ -126,6 +132,23 @@ suite('controllers/hud', function() {
 
     test('Should disable flash initially until support is known', function() {
       sinon.assert.calledWith(this.view.disable, 'flash');
+    });
+  });
+
+  suite('HudController#localize()', function() {
+    setup(function() {
+      this.controller.view = {
+        setFlashModeLabel: sinon.spy(),
+        setCameraLabel: sinon.spy(),
+        setMenuLabel: sinon.spy()
+      };
+    });
+
+    test('Should cycle to the next flash setting', function() {
+      this.controller.localize();
+      assert.ok(this.controller.view.setFlashModeLabel.called);
+      assert.ok(this.controller.view.setCameraLabel.called);
+      assert.ok(this.controller.view.setMenuLabel.called);
     });
   });
 

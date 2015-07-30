@@ -1,8 +1,10 @@
 /* global MockL10n, MockNavigatorSettings, MockLanguageList,
-          LanguageManager, LanguageList, KeyboardHelper, 
+          LanguageManager, LanguageList, KeyboardHelper,
           MockImportNavigationHTML, dispatchEvent */
 'use strict';
 
+require('/shared/js/component_utils.js');
+require('/shared/elements/gaia_radio/script.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_language_list.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
@@ -59,8 +61,9 @@ suite('languages >', function() {
     // XXX in reality this method is async b/c it uses LanguageList.get;  here
     // however it uses the mock which is sync.  Fix this in bug 1119865.
     LanguageManager.buildLanguageList();
-    var selected = document.querySelectorAll('input[type="radio"]:checked');
+    var selected = document.querySelectorAll('gaia-radio');
     assert.equal(selected.length, 1);
+    assert.equal(selected[0].checked, true);
     assert.equal(selected[0].value, 'en-US');
 
     // mock's _languages is sync, too

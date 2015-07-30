@@ -1,4 +1,4 @@
-/* global attentionWindowManager, Service */
+/* global Service */
 'use strict';
 
 (function(exports) {
@@ -11,7 +11,6 @@
    * We may need to handle windowclosing, windowopened in the future.
    *
    * @class VisibilityManager
-   * @requires attentionWindowManager
    * @requires Service
    */
   var VisibilityManager = function VisibilityManager() {
@@ -29,7 +28,8 @@
       'apprequestforeground',
       'lockscreen-apprequestforeground',
       'secure-apprequestforeground',
-      'homescreenrequestforeground'
+      'homescreenrequestforeground',
+      'visibleaudiochannelchanged'
     ];
   };
 
@@ -59,14 +59,14 @@
       case 'lockscreen-apprequestforeground':
       case 'secure-apprequestforeground':
         // XXX: Use hierachy manager to know who is top most.
-        if (!attentionWindowManager.hasActiveWindow()) {
+        if (!Service.query('AttentionWindowManager.hasActiveWindow')) {
           evt.detail.setVisible(true);
         }
         break;
       case 'apprequestforeground':
         // XXX: Use hierachy manager to know who is top most.
-        if (!Service.locked &&
-            !attentionWindowManager.hasActiveWindow()) {
+        if (!Service.query('locked') &&
+            !Service.query('AttentionWindowManager.hasActiveWindow')) {
           evt.detail.setVisible(true);
         }
         break;
@@ -79,7 +79,7 @@
         this._normalAudioChannelActive = false;
         break;
       case 'attentionwindowmanager-deactivated':
-        if (window.Service.locked) {
+        if (window.Service.query('locked')) {
           this.publish('showlockscreenwindow');
           return;
         }
@@ -96,7 +96,7 @@
           notificationId = detail.notificationId;
         }
 
-        if (!attentionWindowManager.hasActiveWindow()) {
+        if (!Service.query('AttentionWindowManager.hasActiveWindow')) {
           this.publish('showwindow', {
             activity: activity,  // Trigger activity opening in AWM
             notificationId: notificationId
@@ -118,18 +118,36 @@
         break;
 
       case 'attentionopened':
-        if (!Service.locked) {
+        if (!Service.query('locked')) {
           this.publish('hidewindow', { type: evt.type });
         }
         break;
+      case 'visibleaudiochannelchanged':
+        this._resetDeviceLockedTimer();
+
+        if (this._normalAudioChannelActive &&
+            evt.detail.channel !== 'normal' && Service.query('locked')) {
+          this._deviceLockedTimer = setTimeout(function setVisibility() {
+            if (window.Service.query('locked')) {
+              this.publish('hidewindow',
+                { screenshoting: false, type: evt.type });
+            }
+          }.bind(this), 3000);
+        }
+
+        this._normalAudioChannelActive = (evt.detail.channel === 'normal');
+        this.debug('Normal AudioChannel changes to ',
+          evt.detail.channel, this._normalAudioChannelActive);
+        break;
+      // TODO: Remove after Bug 1113086 is landed.
       case 'mozChromeEvent':
         if (evt.detail.type == 'visible-audio-channel-changed') {
           this._resetDeviceLockedTimer();
 
           if (this._normalAudioChannelActive &&
-              evt.detail.channel !== 'normal' && window.Service.locked) {
+              evt.detail.channel !== 'normal' && Service.query('locked')) {
             this._deviceLockedTimer = setTimeout(function setVisibility() {
-              if (window.Service.locked) {
+              if (window.Service.query('locked')) {
                 this.publish('hidewindow',
                   { screenshoting: false, type: evt.type });
               }

@@ -4,7 +4,7 @@
     "yahoo": {
       "title": "Yahoo",
       "search": {
-        "url": "https://yahoo.com/search",
+        "url": "https://search.yahoo.com/yhs/search",
         "params": {"p": "{searchTerms}"}
       },
       "suggest": {
@@ -58,7 +58,7 @@
   },
 
   "defaultEngines": {
-    "defaultEngine": "ddg",
+    "defaultEngine": "google",
     "providers": {
       "yahoo": {},
       "google": {},

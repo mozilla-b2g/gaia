@@ -7,21 +7,13 @@
 /* global ModalDialog */
 /* global SystemBanner */
 /* global Template */
-/* global applications */
+/* global focusManager */
+/* global AppInstallDialogs */
 
 'use strict';
-/* global ModalDialog */
-/* global SystemBanner */
-/* global KeyboardManager */
-/* global LazyLoader */
-/* global ManifestHelper */
-/* global FtuLauncher */
-/* global Template */
-/* global KeyboardHelper */
-/* global applications */
-/* global KeyNavigationAdapter */
-/* global SimpleKeyNavigation */
-/* global AppWindowManager */
+
+// note: we removed the download cancel dialog because we don't have an UI to
+// remove it.
 
 var AppInstallManager = {
   mapDownloadErrorsToMessage: {
@@ -36,45 +28,17 @@ var AppInstallManager = {
   },
 
   init: function ai_init() {
+    this.appInstallDialogs = new AppInstallDialogs(
+      document.getElementById('app-install-dialogs'));
+    this.appInstallDialogs.start();
     this.systemBanner = new SystemBanner();
-    this.dialog = document.getElementById('app-install-dialog');
-    this.msg = document.getElementById('app-install-message');
-    this.size = document.getElementById('app-install-size');
-    this.authorName = document.getElementById('app-install-author-name');
-    this.authorUrl = document.getElementById('app-install-author-url');
-    this.installButton = document.getElementById('app-install-install-button');
-    this.cancelButton = document.getElementById('app-install-cancel-button');
     this.imeLayoutDialog = document.getElementById('ime-layout-dialog');
     this.imeListTemplate = document.getElementById('ime-list-template');
     this.imeList = document.getElementById('ime-list');
     this.imeCancelButton = document.getElementById('ime-cancel-button');
     this.imeConfirmButton = document.getElementById('ime-confirm-button');
-    this.setupCancelButton =
-      document.getElementById('setup-cancel-button');
-    this.setupConfirmButton =
-      document.getElementById('setup-confirm-button');
 
-    this.installCancelDialog =
-      document.getElementById('app-install-cancel-dialog');
-    this.downloadCancelDialog =
-      document.getElementById('app-download-cancel-dialog');
-    this.setupInstalledAppDialog =
-      document.getElementById('setup-installed-app-dialog');
-    this.confirmCancelButton =
-      document.getElementById('app-install-confirm-cancel-button');
-    this.setupAppName = document.getElementById('setup-app-name');
-    this.setupAppDescription = document.getElementById('setup-app-description');
-
-    this.appUninstallDialog = document.getElementById('app-uninstall-dialog');
-    this.appUninstallMessage = document.getElementById('app-uninstall-message');
-    this.appUninstallCancelButton =
-      document.getElementById('app-uninstall-cancel-button');
-    this.appUninstallConfirmButton =
-      document.getElementById('app-uninstall-confirm-button');
-
-    this.resumeButton = document.getElementById('app-install-resume-button');
-
-    this.simpleKeyNavigation = new SimpleKeyNavigation();
+    focusManager.addUI(this);
 
     this.appInfos = {};
     this.setupQueue = [];
@@ -95,24 +59,6 @@ var AppInstallManager = {
     window.addEventListener('applicationuninstall',
       this.handleApplicationUninstall.bind(this));
 
-    this.installButton.onclick = this.handleInstall.bind(this);
-    this.cancelButton.onclick = this.showInstallCancelDialog.bind(this);
-    this.confirmCancelButton.onclick = this.handleInstallCancel.bind(this);
-    this.resumeButton.onclick = this.hideInstallCancelDialog.bind(this);
-
-    this.appUninstallCancelButton.onclick =
-      this.hideUninstallCancelDialog.bind(this);
-    this.appUninstallConfirmButton.onclick =
-      this.handleUninstallDialog.bind(this);
-
-    this.downloadCancelDialog.querySelector('.confirm').onclick =
-      this.handleConfirmDownloadCancel.bind(this);
-    this.downloadCancelDialog.querySelector('.cancel').onclick =
-      this.handleCancelDownloadCancel.bind(this);
-
-    this.setupCancelButton.onclick = this.handleSetupCancelAction.bind(this);
-    this.setupConfirmButton.onclick =
-                             this.handleSetupConfirmAction.bind(this);
     this.imeCancelButton.onclick = this.hideIMEList.bind(this);
     this.imeConfirmButton.onclick = this.handleImeConfirmAction.bind(this);
     LazyLoader.load(['shared/js/template.js',
@@ -131,27 +77,15 @@ var AppInstallManager = {
     window.addEventListener('applicationready',
         this.handleApplicationReady);
 
+    // TODO: write an integration test for pressing home.
     window.addEventListener('home', this.hideAllDialogs.bind(this));
-
-    this.keyNavigationAdapter = new KeyNavigationAdapter();
-    this.keyNavigationAdapter.on('esc-keyup', this.escKeyUpHandler.bind(this));
-  },
-
-  escKeyUpHandler: function ai_escKeyUpHandler() {
-    this.keyNavigationAdapter.uninit();
-    this.hideAllDialogs();
   },
 
   hideAllDialogs: function ai_hideAllDialogs(e) {
-    if (this.dialog.classList.contains('visible')) {
-      this.dialog.classList.remove('visible');
-      this.handleInstallCancel();
-    } else if (this.installCancelDialog.classList.contains('visible')) {
-      this.installCancelDialog.classList.remove('visible');
-      this.handleInstallCancel();
-    } else if (this.appUninstallDialog.classList.contains('visible')) {
-      this.appUninstallDialog.classList.remove('visible');
-      this.hideUninstallCancelDialog();
+    this.appInstallDialogs.hideAll();
+    if (this.imeLayoutDialog.classList.contains('visible')) {
+      this.imeLayoutDialog.classList.remove('visible');
+      this.hideIMEList();
     }
   },
 
@@ -167,6 +101,7 @@ var AppInstallManager = {
       .forEach(this.prepareForDownload, this);
   },
 
+  // start of app install
   handleApplicationInstall: function ai_handleApplicationInstallEvent(e) {
     var app = e.detail.application;
 
@@ -178,13 +113,6 @@ var AppInstallManager = {
     this.prepareForDownload(app);
   },
 
-  handleApplicationUninstall: function ai_handleApplicationUninstall(e) {
-    var app = e.detail.application;
-
-    this.onDownloadStop(app);
-    this.onDownloadFinish(app);
-  },
-
   handleAppInstallPrompt: function ai_handleInstallPrompt(detail) {
     var app = detail.app;
     // updateManifest is used by packaged apps until they are installed
@@ -194,40 +122,57 @@ var AppInstallManager = {
       return;
     }
 
-    this.hookSimpleNavigator(
-      [this.cancelButton, this.installButton], this.installButton);
-
-    this.dialog.classList.add('visible');
-
-    var id = detail.id;
-
     // Wrap manifest to get localized properties
     manifest = new ManifestHelper(manifest);
-    navigator.mozL10n.setAttributes(this.msg,
-      'install-app', {'name': manifest.name}
-    );
 
-    this.keyNavigationAdapter.init();
+    var id = detail.id;
+    var TYPES = AppInstallDialogs.TYPES;
+    var options = { 'manifest':  manifest };
+    this.appInstallDialogs.show(TYPES.InstallDialog, options).then(
+      this.handleInstall.bind(this), this.showInstallCancelDialog.bind(this)
+    ).catch(function(e) {
+      console.error(e);
+    });
 
     this.installCallback = (function ai_installCallback() {
-      this.unhookSimpleNavigator();
       this.dispatchResponse(id, 'webapps-install-granted');
     }).bind(this);
 
     this.installCancelCallback = (function ai_cancelCallback() {
-      this.unhookSimpleNavigator();
       this.dispatchResponse(id, 'webapps-install-denied');
     }).bind(this);
 
   },
 
-  handleInstall: function ai_handleInstall(evt) {
+  handleInstall: function ai_handleInstall(err) {
+    if (err instanceof Error) {
+      // show error in promise
+      console.error(err);
+    }
     if (this.installCallback) {
       this.installCallback();
     }
     this.installCallback = null;
-    this.dialog.classList.remove('visible');
-    AppWindowManager.getActiveApp().focus();
+  },
+
+  handleInstallCancel: function ai_handleInstallCancel(err) {
+    if (err instanceof Error) {
+      // show error in promise
+      console.error(err);
+    }
+    if (this.installCancelCallback) {
+      this.installCancelCallback();
+    }
+    this.installCancelCallback = null;
+  },
+  // end of app install
+
+  // start of app uninstall
+  handleApplicationUninstall: function ai_handleApplicationUninstall(e) {
+    var app = e.detail.application;
+
+    this.onDownloadStop(app);
+    this.onDownloadFinish(app);
   },
 
   handleAppUninstallPrompt: function ai_handleUninstallPrompt(detail) {
@@ -247,68 +192,95 @@ var AppInstallManager = {
                         !app.downloadAvailable &&
                         !app.readyToApplyDownload;
 
-    if (unrecoverable) {
-      this.hookSimpleNavigator(
-        [this.appUninstallConfirmButton],
-        this.appUninstallConfirmButton);
+    var TYPES = AppInstallDialogs.TYPES;
 
-      this.appUninstallDialog.classList.add('visible');
+    var options = { 'manifest':  manifest, 'unrecoverable': unrecoverable };
 
-      // Hide Cancel button and adjust its position.
-      this.appUninstallCancelButton.style.display = 'none';
-      this.appUninstallConfirmButton.style.marginLeft = '0';
-      this.appUninstallConfirmButton.parentNode.setAttribute('data-items', 1);
-
-      navigator.mozL10n.setAttributes(this.appUninstallMessage,
-        'unrecoverable-error-body'
-      );
-    } else {
-      this.hookSimpleNavigator(
-        [this.appUninstallCancelButton, this.appUninstallConfirmButton],
-        this.appUninstallCancelButton);
-
-      this.appUninstallDialog.classList.add('visible');
-
-      // Show Cancel button.
-      this.appUninstallCancelButton.style.display = '';
-      this.appUninstallConfirmButton.style.marginLeft = '';
-      this.appUninstallConfirmButton.parentNode.setAttribute('data-items', 2);
-
-      navigator.mozL10n.setAttributes(this.appUninstallMessage,
-        'delete-body', {'name': manifest.name}
-      );
-    }
-
-    this.keyNavigationAdapter.init();
+    this.appInstallDialogs.show(TYPES.UninstallDialog, options).then(
+      this.handleUninstall.bind(this), this.hideUninstallCancel.bind(this)
+    ).catch(function(e) {
+      console.error(e);
+    });
 
     this.uninstallCallback = (function ai_uninstallCallback() {
-      this.unhookSimpleNavigator();
       this.dispatchResponse(id, 'webapps-uninstall-granted');
     }).bind(this);
 
     this.uninstallCancelCallback = (function ai_cancelCallback() {
-      this.unhookSimpleNavigator();
       this.dispatchResponse(id, 'webapps-uninstall-denied');
     }).bind(this);
   },
 
-  handleUninstallDialog: function ai_handleUninstallDialog(evt) {
+  handleUninstall: function ai_handleUninstallDialog() {
     if (this.uninstallCallback) {
       this.uninstallCallback();
     }
     this.uninstallCallback = null;
-    this.appUninstallDialog.classList.remove('visible');
-    AppWindowManager.getActiveApp().focus();
   },
 
-  hideUninstallCancelDialog: function ai_hideUninstallCancelDialog(evt) {
+  hideUninstallCancel: function ai_hideUninstallCancelDialog(err) {
+    if (err instanceof Error) {
+      // show error in promise
+      console.error(err);
+    }
     if (this.uninstallCancelCallback) {
       this.uninstallCancelCallback();
     }
     this.uninstallCancelCallback = null;
-    this.appUninstallDialog.classList.remove('visible');
-    AppWindowManager.getActiveApp().focus();
   },
+  // end of app uninstall
+
+  // start of setup app
+  configurations: {
+    'input': {
+      fnName: 'showIMEList'
+    }
+  },
+
+  showSetupDialog: function ai_showSetupDialog() {
+    var app = this.setupQueue[0];
+    var options = { 'manifest':  new ManifestHelper(app.manifest) };
+    var TYPES = AppInstallDialogs.TYPES;
+
+    this.appInstallDialogs.show(TYPES.SetupAppDialog, options).then(
+      this.handleSetupConfirm.bind(this), this.handleSetupCancel.bind(this)
+    ).catch(function(e) {
+      console.error(e);
+    });
+
+    window.dispatchEvent(new CustomEvent('applicationsetupdialogshow'));
+  },
+
+  handleSetupCancel: function ai_handleSetupCancelAction(err) {
+    if (err instanceof Error) {
+      // show error in promise
+      console.error(err);
+    }
+    this.completedSetupTask();
+  },
+
+  handleSetupConfirm: function ai_handleSetupConfirmAction() {
+    var fnName = this.configurations[this.setupQueue[0].manifest.role].fnName;
+    this[fnName].call(this);
+  },
+  // end of setup app
+
+  // start of install cancel dialog
+  showInstallCancelDialog: function ai_showInstallCancelDialog(err) {
+    if (err instanceof Error) {
+      // show error in promise
+      console.error(err);
+    }
+    var TYPES = AppInstallDialogs.TYPES;
+
+    this.appInstallDialogs.show(TYPES.InstallCancelDialog, {}).then(
+      this.handleInstallCancel.bind(this),
+      this.handleInstall.bind(this) // cancel means to continue to install.
+    ).catch(function(e) {
+      console.error(e);
+    });
+  },
+  // end of install cancel dialog
 
   prepareForDownload: function ai_prepareForDownload(app) {
     var manifestURL = app.manifestURL;
@@ -320,12 +292,6 @@ var AppInstallManager = {
     app.onprogress = this.handleProgress;
   },
 
-  configurations: {
-    'input': {
-      fnName: 'showIMEList'
-    }
-  },
-
   handleInstallSuccess: function ai_handleInstallSuccess(app) {
     var manifest = app.manifest || app.updateManifest;
     var role = manifest.role;
@@ -334,7 +300,6 @@ var AppInstallManager = {
     // if the feature is not enabled.
     if (role === 'input' && !KeyboardManager.isOutOfProcessEnabled) {
       navigator.mozApps.mgmt.uninstall(app);
-
       return;
     }
 
@@ -378,37 +343,6 @@ var AppInstallManager = {
     this.checkSetupQueue();
   },
 
-  hideSetupDialog: function ai_hideSetupDialog() {
-    this.setupAppName.textContent = '';
-    this.setupAppDescription.textContent = '';
-    this.setupInstalledAppDialog.classList.remove('visible');
-  },
-
-  showSetupDialog: function ai_showSetupDialog() {
-    var app = this.setupQueue[0];
-    var manifest = app.manifest;
-    var appManifest = new ManifestHelper(manifest);
-    var appName = appManifest.name;
-    var appDescription = appManifest.description;
-    this.setupAppDescription.textContent = appDescription;
-    navigator.mozL10n.setAttributes(this.setupAppName,
-                                    'app-install-success',
-                                    { appName: appName });
-    this.setupInstalledAppDialog.classList.add('visible');
-    window.dispatchEvent(new CustomEvent('applicationsetupdialogshow'));
-  },
-
-  handleSetupCancelAction: function ai_handleSetupCancelAction() {
-    this.hideSetupDialog();
-    this.completedSetupTask();
-  },
-
-  handleSetupConfirmAction: function ai_handleSetupConfirmAction() {
-    var fnName = this.configurations[this.setupQueue[0].manifest.role].fnName;
-    this[fnName].call(this);
-    this.hideSetupDialog();
-  },
-
   showIMEList: function ai_showIMEList() {
     var app = this.setupQueue[0];
     var inputs = app.manifest.inputs;
@@ -443,6 +377,7 @@ var AppInstallManager = {
     // keeping li template
     this.imeList.innerHTML = listHtml;
     this.imeLayoutDialog.classList.add('visible');
+    focusManager.focus();
   },
 
   hideIMEList: function ai_hideIMEList() {
@@ -592,75 +527,29 @@ var AppInstallManager = {
       _(units[e]);
   },
 
-  showInstallCancelDialog: function ai_showInstallCancelDialog(evt) {
-    this.hookSimpleNavigator(
-      [this.confirmCancelButton, this.resumeButton], this.confirmCancelButton);
-
-    this.installCancelDialog.classList.add('visible');
-    this.dialog.classList.remove('visible');
-  },
-
-  hideInstallCancelDialog: function ai_hideInstallCancelDialog(evt) {
-    this.unhookSimpleNavigator();
-    this.hookSimpleNavigator(
-      [this.cancelButton, this.installButton], this.installButton);
-    this.dialog.classList.add('visible');
-    this.installCancelDialog.classList.remove('visible');
-  },
-
-  handleInstallCancel: function ai_handleInstallCancel() {
-    if (this.installCancelCallback) {
-      this.installCancelCallback();
+  isFocusable: function() {
+    if (this.imeLayoutDialog.classList.contains('visible')) {
+      return true;
+    } else {
+      return this.appInstallDialogs.hasVisibleDialog();
     }
-    this.unhookSimpleNavigator();
-    this.installCancelCallback = null;
-    this.installCancelDialog.classList.remove('visible');
-    AppWindowManager.getActiveApp().focus();
   },
 
-  handleConfirmDownloadCancel: function ai_handleConfirmDownloadCancel(e) {
-    e && e.preventDefault();
-    var dialog = this.downloadCancelDialog,
-        manifestURL = dialog.dataset.manifest;
-    if (manifestURL) {
-      var app = applications.getByManifestURL(manifestURL);
-      app && app.cancelDownload();
+  getElement: function() {
+    if (this.imeLayoutDialog.classList.contains('visible')) {
+      return this.imeLayoutDialog;
+    } else {
+      return this.appInstallDialogs.getTopMostDialogElement();
     }
-
-    this.hideDownloadCancelDialog();
   },
 
-  handleCancelDownloadCancel: function ai_handleCancelDownloadCancel(e) {
-    e && e.preventDefault();
-    this.hideDownloadCancelDialog();
-  },
-
-  hideDownloadCancelDialog: function() {
-    var dialog = this.downloadCancelDialog;
-    dialog.classList.remove('visible');
-    delete dialog.dataset.manifest;
-  },
-
-  hookSimpleNavigator: function(navigableButtons, defaultFocusButton) {
-    var that = this;
-    this.simpleKeyNavigation.start(navigableButtons,
-      SimpleKeyNavigation.DIRECTION.HORIZONTAL);
-    window.setTimeout(function() {
-      if (document.activeElement) {
-        document.activeElement.blur();
-      }
-      if (defaultFocusButton) {
-        that.simpleKeyNavigation.focusOn(defaultFocusButton);
-      }
-    });
-    this.simpleKeyNavigation.on('focusChanged', function(focusedButton) {
-      focusedButton.focus();
-    });
-  },
-
-  unhookSimpleNavigator: function() {
-    this.simpleKeyNavigation.off('focusChanged');
-    this.simpleKeyNavigation.stop();
+  focus: function() {
+    if (this.imeLayoutDialog.classList.contains('visible')) {
+      document.activeElement.blur();
+      this.imeCancelButton.focus();
+    } else {
+      this.appInstallDialogs.focus();
+    }
   }
 };
 

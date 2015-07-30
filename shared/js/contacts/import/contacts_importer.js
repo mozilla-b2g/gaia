@@ -1,6 +1,7 @@
 'use strict';
 /* global contacts */
 /* global utils */
+/* global Matcher */
 
 (function() {
   var CHUNK_SIZE = 5;
@@ -149,7 +150,7 @@
       };
 
       // Try to match and if so merge is performed
-      contacts.Matcher.match(contactData, 'passive', cbs);
+      Matcher.match(contactData, 'passive', cbs);
     };
 
     // This method might be overwritten

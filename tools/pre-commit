@@ -1,35 +1,32 @@
-#!/bin/sh
+#!/bin/bash
 
-export LC_ALL=C NO_XFAIL=1
+export LC_ALL=C
 
 ############################### JS Lint #####################################
 
 LINTED_DIRECTORIES="apps shared build/test/unit tv_apps"
 JSHINT_EXECUTABLE="node_modules/.bin/jshint"
-JSHINT_XFAIL_LIST="build/jshint/xfail.list"
-JSHINT_ARGS="--reporter=build/jshint/xfail $JSHINT_ARGS"
+JSHINT_ARGS="--reporter=build/jshint/reporter $JSHINT_ARGS"
+ESLINT_EXECUTABLE="node_modules/.bin/eslint"
+ESLINT_XFAIL_LIST="build/eslint/xfail.list"
+ESLINT_ARGS="--ignore-path ${ESLINT_XFAIL_LIST}.tmp -f compact -c .eslintrc"
 excluded_list=".jshintignore"
+L10N_XFAIL_LIST="build/l10n/xfail.list"
 
 jshint_information() {
   echo "Please read https://github.com/mozilla-b2g/gaia/tree/master/build/jshint/README.md for more information.\n"
 }
 
+mozL10n_information() {
+  echo "Please read https://github.com/mozilla-b2g/gaia/tree/master/build/l10n/README.md for more information.\n"
+}
+eslint_information() {
+  echo "Please read https://github.com/mozilla-b2g/gaia/tree/master/build/eslint/README.md for more information.\n"
+}
+
+
 if [ ! -r $excluded_list ];
 then
-  exit 0
-fi
-
-if [ ! -r "$JSHINT_XFAIL_LIST" ];
-then
-  # early bailout, this commit hook is newer than the gaia code it runs in
-  exit 0
-fi
-
-hash gjslint > /dev/null 2>&1
-if [ $? -eq 1 ];
-then
-  echo >&2 "You should install gjslint to lint your patch"
-  echo >&2 "https://developers.google.com/closure/utilities/docs/linter_howto"
   exit 0
 fi
 
@@ -47,45 +44,89 @@ then
   exit 0
 fi
 
+# Skips if this repo is on an older commit where eslint is not yet available
+if [ ! -x "$ESLINT_EXECUTABLE" -a -r ".eslintrc" ];
+then
+  echo >&2 'You should run `npm install` to lint your patch'
+  exit 0
+fi
+
 js_changed_files=`git diff --staged --name-only --diff-filter=ACMRT -- $LINTED_DIRECTORIES | grep '\.js$'`
 if [ -n "$js_changed_files" ]
 then
-  # gjslint: only test files xfailed in jshint
-  # echo with the quotes keeps the whitespace -- comm needs newlines, but
-  # LINTED_FILES needs to be space-separated
-  # Note also that xfail.list _must_ be sorted.
-  xfailed=`echo "$js_changed_files" | sort | comm -12 "$JSHINT_XFAIL_LIST" - | tr '[:space:]' ' '`
-
-  gjslint_result=0
-  if [ -n "$xfailed" ] ; then
-    echo "gjslint check:"
-    LINTED_FILES="$xfailed" make -s gjslint
-    gjslint_result=$?
-    echo
-  fi
 
   echo "jshint check:"
-  # warn about files being xfailed
-  for file in $js_changed_files ; do
-    one_was_ignored=""
-    if grep -q $file "$JSHINT_XFAIL_LIST" ; then
-      one_was_ignored="1"
-      echo "$file: jshint errors are ignored. Please consider fixing lint errors and removing it from $JSHINT_XFAIL_LIST."
-    fi
-  done
-
-  test -n "$one_was_ignored" && jshint_information
 
   # using the real jshint instead of the make target to prevent running npm
   # install at commit time
   $JSHINT_EXECUTABLE $JSHINT_ARGS $js_changed_files
   jshint_result=$?
 
-  if [ $gjslint_result -ne 0 -o $jshint_result -ne 0 ] ; then
+  eslint_result=0
+  # Skip if this repo is on an older commit where eslint is not yet available
+  if [ -r ".eslintrc" ];
+  then
+    echo "eslint check:"
+
+    # filter comments from xfail.list:
+    sed 's/\s*#.*$//' "$ESLINT_XFAIL_LIST" | sort -u > "$ESLINT_XFAIL_LIST".tmp
+
+    # check if a changed file is in the eslint xfail list
+    xfailed_eslint=`echo "$js_changed_files" | sort | comm -12 "$ESLINT_XFAIL_LIST".tmp - | tr '[:space:]' ' '`
+
+    if [ -n "$xfailed_eslint" ] ; then
+      # warn about files being xfailed
+      for file in $js_changed_files ; do
+        one_was_ignored=""
+        if grep -q $file "$ESLINT_XFAIL_LIST" ; then
+          one_was_ignored="1"
+          echo "$file: eslint errors are ignored. Please consider fixing these errors and removing the filename from $ESLINT_XFAIL_LIST."
+        fi
+      done
+      test -n "$one_was_ignored" && eslint_information
+    fi
+
+    $ESLINT_EXECUTABLE $ESLINT_ARGS $js_changed_files
+    eslint_result=$?
+    rm "$ESLINT_XFAIL_LIST".tmp
+  fi
+
+  if [ $jshint_result -ne 0 -o $eslint_result -ne 0 ] ; then
     echo "There were errors while linting the files, please see above."
     test $jshint_result -ne 0 && jshint_information
+    test $eslint_result -ne 0 && eslint_information
     exit 1
   fi
+
+  # XXX migrate this to an eslint plugin: https://bugzil.la/1159667
+  if [ -r "$L10N_XFAIL_LIST" ]; then
+    echo
+    echo "mozL10n check:"
+    # warn about files being xfailed
+    for file in $js_changed_files ; do
+      one_was_ignored=""
+      if grep -q $file "$L10N_XFAIL_LIST" ; then
+        one_was_ignored="1"
+        echo "$file: mozL10n errors are ignored. Please consider fixing errors and removing it from $L10N_XFAIL_LIST."
+      fi
+    done
+
+    test -n "$one_was_ignored" && mozL10n_information
+
+    to_lint=`echo "$js_changed_files" | sort | comm -13 "$L10N_XFAIL_LIST" - | tr '[:space:]' ' '`
+    # check for deprecated mozL10n API uses
+    for file in $to_lint ; do
+      one_failed=""
+      if grep -q "mozL10n.get\b" "$file" ; then
+        one_failed="1"
+        echo "$file uses mozL10n.get which is deprecated."
+      fi
+    done
+
+    test -n "$one_failed" && mozL10n_information && exit 1
+  fi
+
+
 fi
 
 
@@ -113,3 +154,58 @@ then
 fi
 
 echo "No errors - committing"
+
+############################# locale check #####################################
+locales_changed_files=`git diff --staged --name-only --diff-filter=ACMRT | grep '\.properties$'`
+if [ -n "$locales_changed_files" ]
+then
+  updatedL10nIds=()
+  needToHintDevelopers=0
+
+  for file in $locales_changed_files ; do
+    grepRuleForBoth="^[+-].*=.*"
+    grepRuleForAddition="^[+](.*)="
+    grepRuleForDeletion="^[-](.*)="
+
+    addition_locale_ids=()
+    deletion_locale_ids=()
+    count=0
+
+    while read -r eachLine
+    do
+      if [[ "$eachLine" =~ $grepRuleForAddition ]]
+      then
+        addition_locale_ids+=(${BASH_REMATCH[1]})
+      fi
+
+      if [[ "$eachLine" =~ $grepRuleForDeletion ]]
+      then
+        deletion_locale_ids+=(${BASH_REMATCH[1]})
+      fi
+    # check http://mywiki.wooledge.org/BashFAQ/024
+    done < <(git diff HEAD~ --staged $file | grep $grepRuleForBoth)
+
+    # final compare
+    for eachAdditionId in "${addition_locale_ids[@]}"
+    do
+      for eachDeletionId in "${deletion_locale_ids[@]}"
+      do
+        if [[ "$eachAdditionId" =~ "$eachDeletionId" ]]
+        then
+          needToHintDevelopers=1
+          updatedL10nIds+=($eachAdditionId)
+        fi
+      done
+    done
+  done
+
+  if [ $needToHintDevelopers -ne 0 ]
+  then
+    echo "[NOTE] You are updating the same translation under these locale ids :"
+    for eachL10nId in "${updatedL10nIds[@]}"
+    do
+      echo "Updated id : $eachL10nId"
+    done
+    echo "Please double check whether you should introduce a new locale id or not."
+  fi
+fi

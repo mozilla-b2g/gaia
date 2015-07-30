@@ -1,16 +1,20 @@
 'use strict';
 
 marionette('LockScreen notification tests', function() {
-  var LockScreenNotificationActions, actions;
+  var LockScreenNotificationActions, actions, system;
   var LockScreenNotificationChecks, checks;
   var client = marionette.client({
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': true
-    }
+    profile: {
+      settings: {
+        'lockscreen.enabled': true
+      }
+    },
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
   });
 
   setup(function() {
+    system = client.loader.getAppClass('system');
+    system.waitForFullyLoaded();
     LockScreenNotificationActions =
       require('./lib/lockscreen_notification_actions');
     LockScreenNotificationChecks =

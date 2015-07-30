@@ -1,0 +1,232 @@
+#! /usr/bin/env node
+'use strict';
+
+var ArgumentParser = require('argparse').ArgumentParser;
+var Runner = require('../lib/runner');
+var assert = require('assert');
+var fs = require('fs');
+var fsPath = require('path');
+var resolveModule = require('../lib/resolvemodule');
+var requireResolve = require('../lib/require_resolve');
+
+var OPTS_FILE = 'marionette-mocha.opts';
+
+var argv = ['test/', 'tests/', '.'].reduce(function(argv, path) {
+  var optsFile = fsPath.join(path, OPTS_FILE);
+  if (!fs.existsSync(optsFile)) {
+    return argv;
+  }
+
+  argv.splice.apply(
+    argv,
+    [2, 0].concat(require('../lib/optsfileparser')(optsFile))
+  );
+
+  return argv;
+}, process.argv);
+
+var requireReporter = require('../lib/require_reporter').bind(null, argv);
+
+var parser = new ArgumentParser({
+  version: require('../package').version,
+  description: 'Marionette JS Runner',
+  addHelp: false,
+});
+
+parser.addArgument(['--help'], {
+  action: 'storeTrue',
+  help: 'Output help',
+  defaultValue: false
+});
+
+parser.addArgument(['--ui'], {
+  type: 'string',
+  help: 'Marionette specific mocha ui to use',
+  defaultValue: fsPath.normalize(__dirname + '/../lib/ui'),
+});
+
+parser.addArgument(['--host'], {
+  type: require,
+  help: 'host module to use defaults to marionette-b2gdesktop-host',
+  defaultValue: fsPath.normalize(__dirname + '/../host'),
+});
+
+parser.addArgument(['--reporter'], {
+  type: requireReporter,
+  help: 'Mocha reporter to use',
+  defaultValue: 'dot'
+});
+
+parser.addArgument(['--verbose'], {
+  help: 'Pipe console.* logs from child gecko processes to test process',
+  action: 'storeTrue',
+  defaultValue: false
+});
+
+parser.addArgument(['--profile-base'], {
+  type: requireResolve,
+  help: 'default profile options to use in all tests.',
+  dest: 'profileBase'
+});
+
+parser.addArgument(['--profile-builder'], {
+  type: requireResolve,
+  help: 'profile generation module',
+  dest: 'profileBuilder',
+  defaultValue: 'marionette-profile-builder'
+});
+
+parser.addArgument(['--host-log'], {
+  type: 'string',
+  help: 'Location for gecko/host logs (<file>, stderr, stdout)',
+  dest: 'hostLog',
+  defaultValue: 'marionette-mocha-gecko.log'
+});
+
+parser.addArgument(['--mocha-flags'], {
+  help: 'Show mocha specific help/arguments',
+  dest: 'mochaFlags',
+  action: 'storeTrue'
+});
+
+parser.addArgument(['--marionette-capabilities'], {
+  type: importDesiredCapabilities,
+  dest: 'desiredCapabilities',
+  help: 'Path tp marionette desired capabilities file (*.json)'
+});
+
+function main(argv) {
+  // Initial parser pass to pick up the hosts... This generally won't fail except
+  // in the case of serious argument parsing errors.
+  var initialArgs = parser.parseKnownArgs(argv);
+
+  // Abort early if we just want to show the mocha options...
+  if (initialArgs[0].mochaFlags) return showMochaHelp();
+
+  // Capture the additional arguments from the host.
+  var hostActions = extendParserWithModule(parser, initialArgs[0].host);
+
+  // The second (and "real") parser pass which will include the output needed to
+  // generate a better help message with the extensible options from the host.
+  var args = parser.parseKnownArgs(argv);
+
+  if (args[0].help) {
+    parser.printHelp();
+    process.exit(0);
+  }
+
+  // Options to pass on to mocha...
+  var runner = new Runner({
+    host: {
+      module: args[0].host,
+      options: extractOptionsFromModule(args[0], hostActions)
+    },
+
+    profileBuilder: {
+      constructor: args[0].profileBuilder,
+      // Reserved for future when we can allow extensible options like the host.
+      options: {}
+    },
+
+    reporter: {
+      constructor: args[0].reporter
+    },
+
+    profileBase: args[0].profileBase,
+
+    desiredCapabilities: args[0].desiredCapabilities,
+
+    hostLog: hostLogStream(args[0].hostLog),
+
+    verbose: args[0].verbose
+  });
+
+  var mochaArgs = args[1].slice(2);
+
+  // ui is required but only used by the child process...
+  mochaArgs.push('--ui');
+  mochaArgs.push(args[0].ui);
+
+  runner.spawn(mochaArgs);
+
+  var reporter = new args[0].reporter(runner.mochaRunnerProxy);
+
+  runner.process.stdout.pipe(process.stdout);
+  runner.process.stderr.pipe(process.stderr);
+  runner.process.on('exit', process.exit);
+
+  process.once('SIGINT', function() {
+    // Let the child die whenever but we need to cleanup hosts in this
+    // process...
+    runner.process.removeListener('exit', process.exit);
+    runner.destroy().catch(function(e) {
+      process.nextTick(function() {
+        // Throw any errors we can't deal with in the course of normal destroy.
+        throw e;
+      });
+    });
+  });
+}
+
+function showMochaHelp() {
+  var mochaBin = resolveModule('mocha', 'bin', 'mocha');
+  var proc = require('child_process').spawn(
+    mochaBin, ['--help'], { stdio: 'inherit' }
+  );
+
+  proc.once('exit', process.exit);
+}
+
+/**
+ * Helper to import the marionette desired capabilities
+ */
+function importDesiredCapabilities(path) {
+  try {
+    return require(path);
+  } catch (e) {
+    // Cannot parse marionette desired capabilities file.
+    return;
+  }
+}
+
+/**
+Convert this host log argument into a stream (not done as a type to avoid
+destructive operations when calling --help)
+*/
+function hostLogStream(value) {
+  switch (value) {
+    case 'stderr':
+    case 'stdout':
+      return process[value];
+    default:
+      return fs.createWriteStream(value);
+  }
+}
+
+/**
+@param {argparse.ArgumentParser} parser to extend.
+@param {Object} module to use to extend parser.
+@return {Array[argparse.Action]} list of actions.
+*/
+function extendParserWithModule(parser, module) {
+  if (!module.help) return [];
+  var help = module.help;
+  assert(help.group, '.help must contain ".group"');
+  assert(help.arguments, '.help must contain ".arguments"');
+
+  var group = parser.addArgumentGroup(help.group);
+  return Object.keys(help.arguments).map(function(arg) {
+    return group.addArgument([arg], help.arguments[arg]);
+  });
+}
+
+function extractOptionsFromModule(parsedArgs, actions) {
+  return actions.reduce(function(result, action) {
+    result[action.dest] = parsedArgs[action.dest];
+    return result;
+  }, {});
+}
+
+if (require.main === module) {
+  main(argv);
+}

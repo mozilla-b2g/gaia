@@ -6,15 +6,7 @@ var Rocketbar = require('./lib/rocketbar');
 
 marionette('Browser Chrome - Open New Window', function() {
 
-  var client = marionette.client({
-    prefs: {
-      'dom.w3c_touch_events.enabled': 1
-    },
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
-    }
-  });
+  var client = marionette.client();
 
   var actions, home, rocketbar, search, server, system;
 
@@ -35,14 +27,14 @@ marionette('Browser Chrome - Open New Window', function() {
     rocketbar = new Rocketbar(client);
     search = client.loader.getAppClass('search');
     system = client.loader.getAppClass('system');
-    system.waitForStartup();
+    system.waitForFullyLoaded();
   });
 
   test('open new window', function() {
     // Use the home-screen search box to open up the system browser
     var url = server.url('sample.html');
     rocketbar.homescreenFocus();
-    rocketbar.enterText(url + '\uE006');
+    rocketbar.enterText(url, true);
 
     // Count the number of currently open apps
     var nApps = system.getAppWindows().length;

@@ -22,7 +22,6 @@ define(function(require) {
   function checkAppLoaded() {
     if (apiDone && contentDone) {
       window.performance.mark('fullyLoaded');
-      window.dispatchEvent(new CustomEvent('moz-app-loaded'));
     }
   }
 
@@ -40,13 +39,11 @@ define(function(require) {
 
     // Only need to dispatch these events if the startup cache was not used.
     if (!window.startupCacheEventsSent) {
-      // Now that content is in, it is visually complete, and content is
+      // Now that content is in, it is visually loaded, and content is
       // interactive, since event listeners are bound as part of content
       // insertion.
       window.performance.mark('visuallyLoaded');
-      window.dispatchEvent(new CustomEvent('moz-app-visually-complete'));
       window.performance.mark('contentInteractive');
-      window.dispatchEvent(new CustomEvent('moz-content-interactive'));
     }
 
     checkAppLoaded();

@@ -1,0 +1,1 @@
+define(['./gaia-loading/gaia-loading'], function(m) { return m; });

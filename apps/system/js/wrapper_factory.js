@@ -1,5 +1,5 @@
 'use strict';
-/*global applications, Service, appWindowManager, AppWindow */
+/*global applications, Service, AppWindow */
 
 (function(window) {
   /**
@@ -8,11 +8,34 @@
    * @module WrapperFactory
    */
   var WrapperFactory = {
-    init: function wf_init() {
+    name: 'WrapperFactory',
+    start: function() {
       window.addEventListener('mozbrowseropenwindow', this, true);
+      Service.registerState('isLaunchingWindow', this);
+    },
+    stop: function() {
+      window.removeEventListener('mozbrowseropenwindow', this, true);
+    },
+
+    isLaunchingWindow: function() {
+      return !!this._launchingApp;
+    },
+
+    forgetLastLaunchingWindow: function() {
+      if (this._launchingApp && this._launchingApp.element) {
+        this._launchingApp.element.removeEventListener('_opened', this);
+        this._launchingApp.element.removeEventListener('_terminated', this);
+      }
+      this._launchingApp = null;
     },
 
     handleEvent: function wf_handleEvent(evt) {
+      if (evt.type === '_opened' || evt.type === '_terminated') {
+        if (this._launchingApp === evt.detail) {
+          this.forgetLastLaunchingWindow();
+        }
+        return;
+      }
       var detail = evt.detail;
 
       // If it's a normal window.open request, ignore.
@@ -50,7 +73,8 @@
         var manifestURL = callerIframe.getAttribute('mozapp');
 
         var callerApp = applications.getByManifestURL(manifestURL);
-        if (!this.hasPermission(callerApp, 'open-remote-window')) {
+        if (!this.hasPermission(callerApp, 'open-remote-window') &&
+            !this.hasPermission(callerApp, 'homescreen-webapps-manage')) {
           return;
         }
 
@@ -73,24 +97,23 @@
 
         // If we already have a browser and we receive an open request,
         // display it in the current browser frame.
-        var activeApp = Service.currentApp;
-        var isSearchApp = (activeApp.manifest &&
-          activeApp.manifest.role === 'search');
-        if (activeApp && (activeApp.isBrowser() || isSearchApp)) {
+        var activeApp = Service.query('AppWindowManager.getActiveWindow');
+        if (activeApp && (activeApp.isBrowser() || activeApp.isSearch())) {
           activeApp.navigate(url);
           return;
         }
 
         origin = url;
-        app = appWindowManager.getApp(origin);
+        app = Service.query('AppWindowManager.getApp', origin);
         // Just bring on top if a wrapper window is
         // already running with this url.
         if (app && app.windowName == '_blank') {
           this.publish('launchapp', { origin: origin });
+          return;
         }
       } else {
         origin = 'window:' + name + ',source:' + callerOrigin;
-        app = appWindowManager.getApp(origin);
+        app = Service.query('AppWindowManager.getApp', origin);
         if (app && app.windowName === name) {
           if (app.iframe.src === url) {
             // If the url is already loaded, just display the app
@@ -114,21 +137,33 @@
         browser_config.title = url;
       }
 
-      this.launchWrapper(browser_config);
+      if (Service.query('MultiScreenController.enabled')) {
+        Service.request('chooseDisplay', browser_config)
+          .catch(this.launchWrapper.bind(this, browser_config));
+      } else {
+        this.launchWrapper(browser_config);
+      }
     },
 
     launchWrapper: function wf_launchWrapper(config) {
-      var app = appWindowManager.getApp(config.origin);
+      var app = Service.query('AppWindowManager.getApp', config.origin);
       if (!app) {
         config.chrome = {
           scrollable: true
         };
-        app = new AppWindow(config);
+        this.forgetLastLaunchingWindow();
+        this.trackLauchingWindow(config);
       } else {
         app.updateName(config.title);
       }
 
       this.publish('launchapp', { origin: config.origin });
+    },
+
+    trackLauchingWindow: function(config) {
+      this._launchingApp = new AppWindow(config);
+      this._launchingApp.element.addEventListener('_opened', this);
+      this._launchingApp.element.addEventListener('_terminated', this);
     },
 
     hasPermission: function wf_hasPermission(app, permission) {
@@ -170,5 +205,4 @@
     }
   };
   window.WrapperFactory = WrapperFactory;
-  WrapperFactory.init();
 }(window));

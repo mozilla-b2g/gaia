@@ -14,13 +14,11 @@ marionette('show Keyboard APP', function() {
   apps[KeyboardTestApp.ORIGIN] = __dirname + '/keyboardtestapp';
 
   client = marionette.client({
-    apps: apps,
-    prefs: {
-      'focusmanager.testmode': true
-    },
-    settings: {
-      'lockscreen.enabled': false,
-      'ftu.manifestURL': null
+    profile: {
+      apps: apps,
+      prefs: {
+        'focusmanager.testmode': true
+      }
     }
   });
 

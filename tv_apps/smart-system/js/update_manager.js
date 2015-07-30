@@ -1,5 +1,5 @@
 /* global AppUpdatable, SystemUpdatable, SettingsCache, CustomDialog,
-          SystemBanner */
+          SystemBanner, focusManager */
 'use strict';
 
 /*
@@ -89,7 +89,7 @@ var UpdateManager = {
     window.addEventListener('wifi-statuschange', this);
     this.updateWifiStatus();
     this.updateOnlineStatus();
-
+    focusManager.addUI(this);
   },
 
   requestDownloads: function um_requestDownloads(evt) {
@@ -99,6 +99,7 @@ var UpdateManager = {
 
   startDownloads: function um_startDownloads() {
     this.downloadDialog.classList.remove('visible');
+    focusManager.focus();
 
     var checkValues = {};
     var dialog = this.downloadDialogList;
@@ -228,6 +229,7 @@ var UpdateManager = {
 
     this.downloadDialog.classList.add('visible');
     this.updateDownloadButton();
+    focusManager.focus();
   },
 
   updateDownloadButton: function() {
@@ -253,6 +255,24 @@ var UpdateManager = {
   cancelPrompt: function um_cancelPrompt() {
     CustomDialog.hide();
     this.downloadDialog.classList.remove('visible');
+    focusManager.focus();
+  },
+
+  isFocusable: function um_isFocusable() {
+    return this.downloadDialog.classList.contains('visible');
+  },
+
+  getElement: function um_getElement() {
+    return this.downloadDialog;
+  },
+
+  focus: function um_focus() {
+    document.activeElement.blur();
+    if (!this.downloadButton.disabled) {
+      this.downloadButton.focus();
+    } else {
+      this.laterButton.focus();
+    }
   },
 
   downloadProgressed: function um_downloadProgress(bytes) {

@@ -3,15 +3,13 @@
 marionette('System update - Splash screen', function() {
 
   var client = marionette.client({
-    settings: {
-      'ftu.manifestURL': null,
-    }
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
   });
   var system;
 
   setup(function() {
     system = client.loader.getAppClass('system');
-    system.waitForStartup();
+    system.waitForFullyLoaded();
   });
 
   test('Show splash after accepting system update', function() {

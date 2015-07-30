@@ -40,6 +40,11 @@ Gaia theme variables
   --background-plus: var(--color-theta);
   --background-minus: var(--color-zeta);
 
+  /** Borders
+   ---------------------------------------------------------*/
+
+  --border-color: var(--color-theta);
+
   /** Text Color
    ---------------------------------------------------------*/
 
@@ -75,6 +80,11 @@ Gaia theme variables
    ---------------------------------------------------------*/
 
   --header-disabled-button-color: rgba(255,255,255,0.3);
+
+  /** Transitions
+   ---------------------------------------------------------*/
+
+  --transition-duration: 0.2s;
 }
 
 
@@ -132,6 +142,11 @@ Gaia theme variables
    ---------------------------------------------------------*/
 
   --border-color: var(--color-theta);
+
+  /** Text Color
+   ---------------------------------------------------------*/
+
+  --text-color: var(--color-gamma);
 
   /** Titles
    ---------------------------------------------------------*/

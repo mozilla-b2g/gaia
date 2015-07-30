@@ -1,5 +1,3 @@
-/* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 'use strict';
 
@@ -22,7 +20,8 @@ navigator.mozL10n.once(function bluetoothSettings() {
     return;
   }
 
-  var gBluetoothCheckBox = document.querySelector('#bluetooth-status input');
+  var gBluetoothCheckBox = document.querySelector(
+    '.bluetooth-status gaia-switch');
 
   // display Bluetooth power state
   function updateBluetoothState(value) {
@@ -30,17 +29,18 @@ navigator.mozL10n.once(function bluetoothSettings() {
   }
 
   // activate main button
-  gBluetoothCheckBox.onchange = function changeBluetooth() {
+  gBluetoothCheckBox.addEventListener('change', function() {
     var req = settings.createLock().set({'bluetooth.enabled': this.checked});
-    this.disabled = true;
+    gBluetoothCheckBox.setAttribute('disabled', true);
     req.onerror = function() {
-      gBluetoothCheckBox.disabled = false;
+      gBluetoothCheckBox.removeAttribute('disabled');
     };
-  };
+  });
 
   function initialDefaultAdapter() {
-    if (!bluetooth.enabled)
+    if (!bluetooth.enabled) {
       return;
+    }
     var req = bluetooth.getDefaultAdapter();
     req.onsuccess = function bt_getAdapterSuccess() {
       defaultAdapter = req.result;
@@ -63,9 +63,9 @@ navigator.mozL10n.once(function bluetoothSettings() {
 
   // device information
   var gMyDeviceInfo = (function deviceInfo() {
-    var visibleItem = document.getElementById('device-visible');
-    var visibleName = document.getElementById('bluetooth-device-name');
-    var visibleCheckBox = document.querySelector('#device-visible input');
+    var visibleItem = document.querySelector('.device-visible');
+    var visibleName = document.querySelector('.bluetooth-device-name');
+    var visibleCheckBox = document.querySelector('.device-visible gaia-switch');
     var bluetoothRename = document.getElementById('bluetooth-rename');
     var renameButton = document.getElementById('rename-device');
     var updateNameDialog = document.getElementById('update-device-name');
@@ -79,9 +79,9 @@ navigator.mozL10n.once(function bluetoothSettings() {
     var visibleTimeoutTime = 120000;  // visibility will timeout after 2 minutes
     var myName = '';
 
-    visibleCheckBox.onchange = function changeDiscoverable() {
-      setDiscoverable(this.checked);
-    };
+    visibleCheckBox.addEventListener('change', function() {
+      setDiscoverable(visibleCheckBox.checked);
+    });
 
     renameButton.onclick = function renameBtnClicked() {
       if (myName === '') {
@@ -185,8 +185,9 @@ navigator.mozL10n.once(function bluetoothSettings() {
     }
 
     function setDiscoverable(visible) {
-      if (!bluetooth.enabled || !defaultAdapter)
+      if (!bluetooth.enabled || !defaultAdapter) {
         return;
+      }
 
       settings.createLock().set({'bluetooth.visible': visible});
 
@@ -387,8 +388,8 @@ navigator.mozL10n.once(function bluetoothSettings() {
     // when DefaultAdapter is ready.
     function initial() {
       defaultAdapter.onpairedstatuschanged = function bt_getPairedMessage(evt) {
-        dispatchEvent(new CustomEvent('bluetooth-pairedstatuschanged'));
-        showDevicePaired(evt.status, 'Authentication Failed');
+        window.dispatchEvent(new CustomEvent('bluetooth-pairedstatuschanged'));
+        showDevicePaired(evt.status, 'Authentication Failed', evt.address);
       };
 
       defaultAdapter.ondiscoverystatechanged =
@@ -417,8 +418,9 @@ navigator.mozL10n.once(function bluetoothSettings() {
       getPairedDevice(function() {
         for (var address in pairList.index) {
           var deviceItem = pairList.index[address];
-          if (Object.keys(deviceItem.connectedProfiles).length > 0)
+          if (Object.keys(deviceItem.connectedProfiles).length > 0) {
             return;
+          }
         }
 
         // If there is no current connection and we have one device connected
@@ -431,8 +433,9 @@ navigator.mozL10n.once(function bluetoothSettings() {
     function restoreConnection() {
       // Reconnect the one kept in the async storage.
       window.asyncStorage.getItem('device.connected', function(value) {
-        if (!value || !pairList.index[value])
+        if (!value || !pairList.index[value]) {
           return;
+        }
 
         var device = pairList.index[value].device;
         setDeviceConnect(device);
@@ -440,14 +443,15 @@ navigator.mozL10n.once(function bluetoothSettings() {
     }
 
     function getPairedDevice(callback) {
-      if (!bluetooth.enabled || !defaultAdapter)
+      if (!bluetooth.enabled || !defaultAdapter) {
         return;
+      }
       var req = defaultAdapter.getPairedDevices();
       req.onsuccess = function bt_getPairedSuccess() {
         // copy for sorting
         var paired = req.result.slice();
         var length = paired.length;
-        if (length == 0) {
+        if (length === 0) {
           pairList.show(false);
           return;
         }
@@ -455,30 +459,36 @@ navigator.mozL10n.once(function bluetoothSettings() {
         paired.sort(function(a, b) {
           return a.name.toLowerCase() > b.name.toLowerCase();
         });
+
+        var itemClick = function(device) {
+          optionMenu.show(device);
+        };
+
+        var connectDevice = function(device) {
+          setTimeout(function() {
+            setDeviceConnect(device);
+          }, 5000);
+        };
+
         for (var i = 0; i < length; i++) {
-          (function(device) {
-            var aItem = newListItem(device, '');
-            aItem.onclick = function() {
-              optionMenu.show(device);
-            };
-            pairList.list.appendChild(aItem);
-            pairList.index[device.address] = {
-              device: device,
-              item: aItem,
-              connectedProfiles: {}
-            };
-            // if the device has to be connected when it just paired
-            // wait for a while so they can have time to communicate
-            // their connection protocol
-            if (device.address === connectingAddress &&
-                device.icon === 'audio-card') {
+          var device = paired[i];
+          var aItem = newListItem(device, '');
+          aItem.onclick = itemClick.bind({}, device);
+          pairList.list.appendChild(aItem);
+          pairList.index[device.address] = {
+            device: device,
+            item: aItem,
+            connectedProfiles: {}
+          };
+          // if the device has to be connected when it just paired
+          // wait for a while so they can have time to communicate
+          // their connection protocol
+          if (device.address === connectingAddress &&
+            device.icon === 'audio-card') {
               var small = aItem.querySelector('small');
               small.setAttribute('data-l10n-id', 'device-status-connecting');
-              setTimeout(function() {
-                setDeviceConnect(device);
-              }, 5000);
-            }
-          })(paired[i]);
+              connectDevice(device);
+          }
         }
 
         // update the connection status
@@ -496,8 +506,9 @@ navigator.mozL10n.once(function bluetoothSettings() {
           pairList.show(true);
           // the callback function now is for restoring the connected device
           // when the bluetooth is turned on.
-          if (callback)
+          if (callback) {
             callback();
+          }
         });
       };
     }
@@ -505,8 +516,9 @@ navigator.mozL10n.once(function bluetoothSettings() {
     // In the callback we returns an array of connected device items.
     // Each device item contains "device" and "connectedProfiles".
     function getConnectedDeviceItems(callback) {
-      if (!callback)
+      if (!callback) {
         return;
+      }
 
       if (!defaultAdapter) {
         callback([]);
@@ -514,8 +526,9 @@ navigator.mozL10n.once(function bluetoothSettings() {
       }
 
       var getConnectedDevicesByProfile = function(profileID, gcdCallback) {
-        if (!gcdCallback)
+        if (!gcdCallback) {
           return;
+        }
 
         var req = defaultAdapter.getConnectedDevices(profileID);
         req.onsuccess = function() {
@@ -528,8 +541,9 @@ navigator.mozL10n.once(function bluetoothSettings() {
 
       var connectedDeviceItemsMap = {}; // hash by device address
       var updateDeviceItemsMap = function(profileID, connectedDevices) {
-        if (!connectedDevices)
+        if (!connectedDevices) {
           return;
+        }
 
         connectedDevices.forEach(function(connectedDevice) {
           var info = connectedDeviceItemsMap[connectedDevice.address];
@@ -585,8 +599,9 @@ navigator.mozL10n.once(function bluetoothSettings() {
       // bind paired callback
       aItem.onclick = function() {
         // block the pairing request if there is already one.
-        if (pairingAddress)
+        if (pairingAddress) {
           return;
+        }
 
         var small = aItem.querySelector('small');
         small.setAttribute('data-l10n-id', 'device-status-pairing');
@@ -609,12 +624,29 @@ navigator.mozL10n.once(function bluetoothSettings() {
       };
     }
 
-    function showDevicePaired(paired, errorMessage) {
+    function showDevicePaired(paired, errorMessage,
+                              addressFromOnpairedstatuschangedEvent) {
       // If we don't know the pairing device address,
       // it means the pair request is handled by interface level.
-      // So we just need to update paired list.
+      // So we need to do:
+      // 1. update paired list
+      // 2. remove the paired device from found device list
       if (!pairingAddress) {
         getPairedDevice();
+        // remove the paired device from found device list.
+        if (addressFromOnpairedstatuschangedEvent && paired) {
+          // If the device is on the list, remove it.
+          // The situation is coming while Bluetooth app in-line pairing with
+          // the device. And Settings app is running in the background.
+          if (openList.index[addressFromOnpairedstatuschangedEvent]) {
+            var wantoRemovedItem =
+              openList.index[addressFromOnpairedstatuschangedEvent].item;
+            openList.list.removeChild(wantoRemovedItem);
+            delete openList.index[addressFromOnpairedstatuschangedEvent];
+          }
+        }
+        // Early return here since the event is not caused via Settings app.
+        // Skip over following UI updating flow.
         return;
       }
       // clear pairingAddress first to prevent execute
@@ -625,7 +657,6 @@ navigator.mozL10n.once(function bluetoothSettings() {
         // if the device is on the list, remove it.
         // it will show on paired list later.
         if (openList.index[workingAddress]) {
-          var device = openList.index[workingAddress].device;
           var item = openList.index[workingAddress].item;
           openList.list.removeChild(item);
           delete openList.index[workingAddress];
@@ -643,9 +674,9 @@ navigator.mozL10n.once(function bluetoothSettings() {
 
         // rollback device status
         if (openList.index[workingAddress]) {
-          var item = openList.index[workingAddress].item;
-          var small = item.querySelector('small');
-          item.removeAttribute('aria-disabled');
+          var rollBackItem = openList.index[workingAddress].item;
+          var small = rollBackItem.querySelector('small');
+          rollBackItem.removeAttribute('aria-disabled');
           small.setAttribute('data-l10n-id', 'device-status-tap-connect');
         }
       }
@@ -656,8 +687,9 @@ navigator.mozL10n.once(function bluetoothSettings() {
     function setDeviceUnpair(device) {
       if (device.address === connectedAddress) {
         var msg = _('unpair-title') + '\n' + _('unpair-msg');
-        if (!window.confirm(msg))
+        if (!window.confirm(msg)) {
           return;
+        }
         connectedAddress = null;
       }
       // backend takes responsibility to disconnect first.
@@ -670,15 +702,17 @@ navigator.mozL10n.once(function bluetoothSettings() {
     function setDeviceDisconnect(device, callback) {
       if (!bluetooth.enabled || !defaultAdapter ||
           device.address !== connectedAddress) {
-        if (callback)
+        if (callback) {
           callback();
+        }
         return;
       }
 
       var req = defaultAdapter.disconnect(device);
       req.onsuccess = req.onerror = function() {
-        if (callback)
+        if (callback) {
           callback();
+        }
       };
     }
 
@@ -737,8 +771,9 @@ navigator.mozL10n.once(function bluetoothSettings() {
 
     function showDeviceConnected(deviceAddress, connected, profile) {
       var deviceItem = pairList.index[deviceAddress];
-      if (!deviceItem)
+      if (!deviceItem) {
         return;
+      }
 
       deviceItem.connectedProfiles[profile] = connected;
 
@@ -747,9 +782,9 @@ navigator.mozL10n.once(function bluetoothSettings() {
         existConnectedProfile = true;
       } else {
         // Check if there are other connected profiles
-        for (var profile in deviceItem.connectedProfiles) {
+        for (var otherProfile in deviceItem.connectedProfiles) {
           existConnectedProfile = existConnectedProfile ||
-                                  deviceItem.connectedProfiles[profile];
+            deviceItem.connectedProfiles[otherProfile];
         }
       }
 
@@ -795,8 +830,9 @@ navigator.mozL10n.once(function bluetoothSettings() {
 
       var req = defaultAdapter.startDiscovery();
       req.onsuccess = function bt_discoveryStart() {
-        if (!discoverTimeout)
+        if (!discoverTimeout) {
           discoverTimeout = setTimeout(stopDiscovery, discoverTimeoutTime);
+        }
       };
       req.onerror = function bt_discoveryFailed() {
         console.error('Can not discover nearby device');
@@ -810,14 +846,16 @@ navigator.mozL10n.once(function bluetoothSettings() {
 
     function stopDiscoveryWhenLeaveApp() {
       //only stop discovery when Settings app is hidden
-      if (!document.hidden)
+      if (!document.hidden) {
         return;
+      }
       stopDiscovery();
     }
 
     function stopDiscovery() {
-      if (!bluetooth.enabled || !defaultAdapter || !discoverTimeout)
+      if (!bluetooth.enabled || !defaultAdapter || !discoverTimeout) {
         return;
+      }
 
       var req = defaultAdapter.stopDiscovery();
       req.onerror = function bt_discoveryStopFailed() {
@@ -844,11 +882,12 @@ navigator.mozL10n.once(function bluetoothSettings() {
   // register an observer to monitor bluetooth.enabled changes
   settings.addObserver('bluetooth.enabled', function(event) {
     var enabled = event.settingValue;
-    if (lastMozSettingValue == enabled)
+    if (lastMozSettingValue == enabled) {
       return;
+    }
 
     // lock UI toggle
-    gBluetoothCheckBox.disabled = true;
+    gBluetoothCheckBox.setAttribute('disabled', true);
 
     lastMozSettingValue = enabled;
     updateBluetoothState(enabled);
@@ -857,8 +896,9 @@ navigator.mozL10n.once(function bluetoothSettings() {
     gMyDeviceInfo.update(enabled);
 
     // clear defaultAdapter, we have to acquire it again when enabled.
-    if (!enabled)
+    if (!enabled) {
       defaultAdapter = null;
+    }
   });
 
   // startup, update status
@@ -868,8 +908,9 @@ navigator.mozL10n.once(function bluetoothSettings() {
     lastMozSettingValue = req.result['bluetooth.enabled'];
 
     // if bluetooth is on when booting, the adapter probably is ready.
-    if (lastMozSettingValue)
+    if (lastMozSettingValue) {
       initialDefaultAdapter();
+    }
 
     updateBluetoothState(lastMozSettingValue);
 
@@ -879,13 +920,11 @@ navigator.mozL10n.once(function bluetoothSettings() {
 
   bluetooth.addEventListener('adapteradded', function() {
     // enable UI toggle
-    gBluetoothCheckBox.disabled = false;
+    gBluetoothCheckBox.removeAttribute('disabled');
     initialDefaultAdapter();
-    dispatchEvent(new CustomEvent('bluetooth-adapter-added'));
   });
   bluetooth.addEventListener('disabled', function() {
-    gBluetoothCheckBox.disabled = false;  // enable UI toggle
+    gBluetoothCheckBox.removeAttribute('disabled');  // enable UI toggle
     defaultAdapter = null;  // clear defaultAdapter
-    dispatchEvent(new CustomEvent('bluetooth-disabled'));
   });
 });

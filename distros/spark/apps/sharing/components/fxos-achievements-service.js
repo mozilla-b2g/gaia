@@ -1,0 +1,1 @@
+define(['./fxos-achievements-service/achievements-service'], function(m) { return m; });

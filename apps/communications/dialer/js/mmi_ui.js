@@ -18,10 +18,8 @@ var MmiUI = {
   mmiScreen: null,
   loadingOverlay: null,
 
-  animating: false,
-
-  init: function mui_init(_) {
-    this._ = _;
+  init: function mui_init() {
+    this._ = navigator.mozL10n.get;
 
     this.headerTitleNode = document.getElementById('header-title');
     this.headerNode = document.getElementById('mmi-header');
@@ -75,17 +73,9 @@ var MmiUI = {
   },
 
   showLoading: function mui_showLoading() {
-    var self = this;
-
     this.loadingOverlay.classList.remove('hide');
     this.loadingOverlay.classList.remove('fade-out');
     this.loadingOverlay.classList.add('fade-in');
-    this.loadingOverlay.addEventListener('animationstart',
-      function mui_fadeIn() {
-        self.loadingOverlay.removeEventListener('animationstart', mui_fadeIn);
-        self.animating = true;
-      }
-    );
     this.responseTextNode.setAttribute('disabled', 'disabled');
     this.sendNode.setAttribute('disabled', 'disabled');
   },
@@ -94,19 +84,12 @@ var MmiUI = {
     var self = this;
 
     this.loadingOverlay.classList.remove('fade-in');
+    this.loadingOverlay.addEventListener('animationend',
+    function mui_fadeOut(ev) {
+     self.loadingOverlay.removeEventListener('animationend', mui_fadeOut);
+     self.loadingOverlay.classList.add('hide');
+    });
     this.loadingOverlay.classList.add('fade-out');
-
-    if (this.animating) {
-      this.loadingOverlay.addEventListener('animationend',
-        function mui_fadeOut(ev) {
-          self.loadingOverlay.removeEventListener('animationend', mui_fadeOut);
-          self.loadingOverlay.classList.add('hide');
-          self.animating = false;
-        }
-      );
-    } else {
-      this.loadingOverlay.classList.add('hide');
-    }
   },
 
   showResponseForm: function mui_showForm() {

@@ -5,8 +5,10 @@ var RpMainPanel = require('./lib/panels/rp_main');
 
 marionette('remote protection main panel', function() {
   var client = marionette.client({
-    settings: {
-      'privacy-panel-gt-complete': true
+    profile: {
+      settings: {
+        'privacy-panel-gt-complete': true
+      }
     }
   });
   var subject;

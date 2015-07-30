@@ -2,19 +2,11 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-try:
-    from marionette import (expected,
-                            Wait)
-    from marionette.by import By
-    from marionette.errors import FrameSendFailureError
-except:
-    from marionette_driver import (expected,
-                                   Wait)
-    from marionette_driver.by import By
-    from marionette_driver.errors import FrameSendFailureError
+import time
+
+from marionette_driver import expected, By, Wait
 
 from gaiatest.apps.base import Base
-import time
 
 
 class CropView(Base):
@@ -22,6 +14,7 @@ class CropView(Base):
 
     _crop_done_button_locator = (By.ID, 'crop-done-button')
     _edit_preview_canvas_locator = (By.ID, 'edit-preview-canvas')
+    _screen_locator = (By.ID, 'screen')
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
@@ -35,11 +28,13 @@ class CropView(Base):
         Wait(self.marionette).until(expected.element_enabled(done))
 
     def tap_crop_done(self):
-        try:
-            self.marionette.find_element(*self._crop_done_button_locator).tap()
-        except FrameSendFailureError:
-            # The frame may close for Marionette but that's expected so we can continue - Bug 1065933
-            pass
+        # Workaround for bug 1161088, where tapping on the button inside the app itself
+        # makes Marionette spew out NS_ERROR_NOT_INITIALIZED errors
+        element = self.marionette.find_element(*self._crop_done_button_locator)
+        x = element.rect['x'] + element.rect['width']//2
+        y = element.rect['y'] + element.rect['height']//2
+        self.marionette.switch_to_frame()
+        self.marionette.find_element(*self._screen_locator).tap(x=x, y=y)
 
         # Fall back to the app underneath
         Wait(self.marionette).until(lambda m: self.apps.displayed_app.src != self._src)

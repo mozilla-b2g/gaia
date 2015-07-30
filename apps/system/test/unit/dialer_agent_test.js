@@ -1,32 +1,33 @@
 'use strict';
 
-/* global DialerAgent, MocksHelper, MockNavigatorMozTelephony,
+/* global DialerAgent, MockAppWindow, MocksHelper, MockNavigatorMozTelephony,
           MockSettingsListener, MockSettingsURL, MockAudio, MockApplications,
-          MockVersionHelper */
+          MockService */
 
 require('/js/dialer_agent.js');
 require('/test/unit/mock_app_window.js');
 require('/test/unit/mock_applications.js');
 require('/test/unit/mock_attention_window.js');
 require('/test/unit/mock_callscreen_window.js');
-require('/test/unit/mock_version_helper.js');
+require('/test/unit/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/test/unit/mocks/mock_settings_url.js');
 require('/shared/test/unit/mocks/mock_audio.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
+require('/shared/test/unit/mocks/mock_service.js');
 
 var mocksForDialerAgent = new MocksHelper([
   'CallscreenWindow',
   'Audio',
   'SettingsListener',
   'SettingsURL',
-  'VersionHelper'
+  'LazyLoader',
+  'Service'
 ]).init();
 
 suite('system/DialerAgent', function() {
   mocksForDialerAgent.attachTestHelpers();
-  var realTelephony, realVibrate, realSystem, realApplications,
-      realVersionHelper;
+  var realTelephony, realVibrate, realApplications;
 
   var subject;
   var setVisibleSpy;
@@ -41,17 +42,13 @@ suite('system/DialerAgent', function() {
     realTelephony = navigator.mozTelephony;
     navigator.mozTelephony = MockNavigatorMozTelephony;
     realVibrate = navigator.vibrate;
-    realSystem = window.Service;
-    window.Service = {locked: false};
-    realVersionHelper = window.VersionHelper;
-    window.VersionHelper = MockVersionHelper(false);
   });
 
   suiteTeardown(function() {
     navigator.mozTelephony = realTelephony;
     navigator.vibrate = realVibrate;
-    window.Service = realSystem;
     window.applications = realApplications;
+    MockNavigatorMozTelephony.mSuiteTeardown();
   });
 
   setup(function() {
@@ -75,6 +72,17 @@ suite('system/DialerAgent', function() {
     this.addEventListener = function() {};
     this.removeEventListener = function() {};
   }
+
+  test('Should load tone player if just upgraded', function() {
+    window.toneUpgrader = {
+      perform: this.sinon.spy()
+    };
+    subject.stop();
+    MockService.mockQueryWith('justUpgraded', true);
+    subject.start();
+    assert.isTrue(window.toneUpgrader.perform.calledWith('ringtone'));
+    delete window.toneUpgrader;
+  });
 
   suite('Audio element setup', function() {
     var mockAudio;
@@ -211,8 +219,8 @@ suite('system/DialerAgent', function() {
         callschanged();
       });
 
-      test('it should not play the ringtone', function() {
-        assert.isTrue(mockAudio.play.notCalled);
+      test('it should play the silent ringtone', function() {
+        sinon.assert.calledOnce(mockAudio.play);
       });
     });
 
@@ -262,13 +270,35 @@ suite('system/DialerAgent', function() {
       callschanged();
     });
 
-    suite('even if the vibration is enabled', function() {
+    suite('if the vibration is enabled', function() {
       setup(function() {
         MockSettingsListener.mTriggerCallback('vibration.enabled', true);
+        callschanged();
       });
 
-      test('it should not vibrate', function() {
-        assert.isTrue(vibrateSpy.notCalled);
+      test('it should start vibrating', function() {
+        sinon.assert.calledWith(vibrateSpy, [200]);
+      });
+
+      test('it should vibrate every 600ms', function() {
+        this.sinon.clock.tick(600);
+        sinon.assert.calledTwice(vibrateSpy);
+        this.sinon.clock.tick(600);
+        sinon.assert.calledThrice(vibrateSpy);
+      });
+
+      test('it should stop when the call state changes', function() {
+        secondCall.addEventListener.yield();
+        vibrateSpy.reset();
+        this.sinon.clock.tick(600);
+        sinon.assert.notCalled(vibrateSpy);
+      });
+
+      test('it should stop when the user presses volume down', function() {
+        window.dispatchEvent(new CustomEvent('volumedown'));
+        vibrateSpy.reset();
+        this.sinon.clock.tick(600);
+        sinon.assert.notCalled(vibrateSpy);
       });
     });
 
@@ -277,13 +307,9 @@ suite('system/DialerAgent', function() {
         MockSettingsListener.mTriggerCallback('audio.volume.notification', 7);
       });
 
-      test('it should not play', function() {
-        assert.isTrue(mockAudio.play.notCalled);
+      test('it should play the silent ringtone', function() {
+        sinon.assert.called(mockAudio.play);
       });
-    });
-
-    test('it should not listen to the state changes of the call', function() {
-      assert.isTrue(secondCall.addEventListener.notCalled);
     });
   });
 
@@ -355,13 +381,41 @@ suite('system/DialerAgent', function() {
     navigator.mozTelephony = MockNavigatorMozTelephony;
   });
 
-  test('callscreen should be freed once memory is under pressure', function() {
-    subject = new DialerAgent();
-    subject.start();
-    var stubFree = this.sinon.stub(subject._callscreenWindow, 'free');
-    window.dispatchEvent(new CustomEvent('mozmemorypressure'));
-    assert.isTrue(stubFree.called);
+  suite('handling memory pressure events',
+  function() {
+    setup(function() {
+      subject = new DialerAgent();
+      subject.start();
+      this.sinon.stub(subject._callscreenWindow, 'free');
+    });
+
+    test('callscreen should be freed once memory is under pressure',
+    function() {
+      window.dispatchEvent(new CustomEvent('mozmemorypressure'));
+      sinon.assert.calledOnce(subject._callscreenWindow.free);
+    });
+
+    test('callscreen should not be freed if a call is present', function() {
+      MockNavigatorMozTelephony.calls = [{}];
+      window.dispatchEvent(new CustomEvent('mozmemorypressure'));
+      sinon.assert.notCalled(subject._callscreenWindow.free);
+    });
+
+    test('callscreen should not be freed if a conference call is present',
+    function() {
+      MockNavigatorMozTelephony.conferenceGroup.calls = [{}];
+      window.dispatchEvent(new CustomEvent('mozmemorypressure'));
+      sinon.assert.notCalled(subject._callscreenWindow.free);
+    });
+
+    test('callscreen should not be freed if it is visible',
+    function() {
+      this.sinon.stub(MockAppWindow.prototype, 'isVisible').returns(true);
+      window.dispatchEvent(new CustomEvent('mozmemorypressure'));
+      sinon.assert.notCalled(subject._callscreenWindow.free);
+    });
   });
+
 
   test('Make fake notification if application is ready', function() {
     subject = new DialerAgent();

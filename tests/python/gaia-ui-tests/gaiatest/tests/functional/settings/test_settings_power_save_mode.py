@@ -21,7 +21,7 @@ class TestPowerSaveMode(GaiaTestCase):
         settings.launch()
 
         # Tap on Battery menu item.
-        battery_settings = settings.open_battery_settings()
+        battery_settings = settings.open_battery()
         battery_settings.toggle_power_save_mode()
 
         # Wait for Cell Data to be disabled.
@@ -38,3 +38,8 @@ class TestPowerSaveMode(GaiaTestCase):
 
         # Check if Bluetooth is diabled.
         self.assertFalse(self.data_layer.get_setting('bluetooth.enabled'))
+
+    def tearDown(self):
+        self.marionette.switch_to_frame()
+        self.data_layer.disable_cell_data()
+        GaiaTestCase.tearDown(self)

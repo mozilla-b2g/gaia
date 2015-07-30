@@ -4,16 +4,12 @@
 
 from gaiatest import GaiaTestCase
 from gaiatest.apps.homescreen.app import Homescreen
-try:
-    from marionette.by import By
-except:
-    from marionette_driver.by import By
+from marionette_driver import expected, By, Wait
 
 
 class TestMarketplaceLaunch(GaiaTestCase):
 
     _marketplace_iframe_locator = (By.CSS_SELECTOR, 'iframe[src*="marketplace"]')
-    _loading_fragment_locator = (By.ID, 'splash-overlay')
     _site_header_locator = (By.ID, 'site-header')
 
     def setUp(self):
@@ -31,7 +27,7 @@ class TestMarketplaceLaunch(GaiaTestCase):
         marketplace = homescreen.installed_app(app_name)
         marketplace.tap_icon()
 
-        self.wait_for_element_not_displayed(*self._loading_fragment_locator)
+        Wait(self.marionette, timeout=60).until(expected.element_present(*self._marketplace_iframe_locator))
 
         iframe = self.marionette.find_element(*self._marketplace_iframe_locator)
         self.marionette.switch_to_frame(iframe)

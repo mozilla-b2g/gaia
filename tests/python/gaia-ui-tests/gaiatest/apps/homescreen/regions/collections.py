@@ -2,16 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-try:
-    from marionette import (expected,
-                            Wait)
-    from marionette.by import By
-    from marionette.marionette import Actions
-except:
-    from marionette_driver import (expected,
-                                   Wait)
-    from marionette_driver.by import By
-    from marionette_driver.marionette import Actions
+from marionette_driver import expected, By, Wait
+from marionette_driver.marionette import Actions
 
 from gaiatest.apps.base import Base
 from gaiatest.apps.base import PageRegion
@@ -29,7 +21,8 @@ class Collection(Base):
         Base.__init__(self, marionette)
         Wait(self.marionette).until(lambda m: self.apps.displayed_app.name == self.name)
         self.apps.switch_to_displayed_app()
-        Wait(self.marionette).until(expected.elements_present(*self._apps_locator))
+        # See Bug 1162112, Marionette Wait() polling without interval might be interfering network load
+        Wait(self.marionette, timeout=30, interval=5).until(expected.elements_present(*self._apps_locator))
 
     @property
     def applications(self):

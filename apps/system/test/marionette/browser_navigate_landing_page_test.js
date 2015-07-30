@@ -1,21 +1,14 @@
 'use strict';
 
 var assert = require('assert');
+var urlUtility = require('url');
 var Server = require('../../../../shared/test/integration/server');
 var Rocketbar = require('./lib/rocketbar');
 
 marionette('Browser - Navigating from the landing page',
   function() {
 
-  var client = marionette.client({
-    prefs: {
-      'dom.w3c_touch_events.enabled': 1
-    },
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
-    }
-  });
+  var client = marionette.client();
 
   var home, rocketbar, search, server, system;
 
@@ -35,7 +28,7 @@ marionette('Browser - Navigating from the landing page',
     rocketbar = new Rocketbar(client);
     search = client.loader.getAppClass('search');
     system = client.loader.getAppClass('system');
-    system.waitForStartup();
+    system.waitForFullyLoaded();
   });
 
   test('navigates the landing page in place', function() {
@@ -55,7 +48,7 @@ marionette('Browser - Navigating from the landing page',
     client.waitFor(function() {
       return (nApps + 1) === system.getAppWindows().length;
     });
-    rocketbar.enterText(url + '\uE006');
+    rocketbar.enterText(url, true);
 
     // Wait for the new browser window.
     // It should override the search app.
@@ -72,8 +65,9 @@ marionette('Browser - Navigating from the landing page',
     client.waitFor(function() {
       return !client.findElement(sel.appChromeWindowsButton).displayed();
     });
+    var hostname = urlUtility.parse(url).hostname;
     client.waitFor(function() {
-      return system.appUrlbar.text().indexOf('Sample page') === 0;
+      return system.appUrlbar.text().indexOf(hostname) === 0;
     });
     assert.ok(system.appChromeReloadButton.displayed());
     assert.ok(!client.findElement(sel.appChromeBack).displayed());
