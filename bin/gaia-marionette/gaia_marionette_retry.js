@@ -209,7 +209,8 @@ function runTest(filename, args, retry) {
  * Checks whether a single test file failed.
  */
 function testDidFailOnTbpl(stdout, stderr) {
-  return stdout.indexOf('TEST-UNEXPECTED-FAIL') !== -1;
+  // Ensure we captured output before deciding if the test failed or not.
+  return stdout.length && stdout.indexOf('TEST-UNEXPECTED-FAIL') !== -1;
 }
 
 function forEach(obj, fn) {
