@@ -176,9 +176,9 @@ suite('controllers/controls', function() {
 
   suite('ControlsController#onRecordingChange', function() {
     test('When recording view\'s setCaptureLabel should be called', function() {
-      [true, false].forEach(function(recording) {
+      ['started', 'stopped'].forEach(function(recording) {
         this.controller.onRecordingChange(recording);
-        assert.isTrue(this.view.setCaptureLabel.calledWith(recording));
+        assert.isTrue(this.view.setCaptureLabel.calledWith(recording === 'started'));
       }, this);
     });
   });

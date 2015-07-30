@@ -82,6 +82,7 @@ CameraController.prototype.bindEvents = function() {
   app.on('timer:ended', this.capture);
   app.on('visible', this.loadCamera);
   app.on('capture', this.capture);
+  app.on('capture:suspend', this.suspendCapture);
   app.on('hidden', this.shutdownCamera);
 
   // Settings
@@ -211,6 +212,15 @@ CameraController.prototype.capture = function() {
 };
 
 /**
+ * Pauses/resumes capture if in progress.
+ *
+ * @private
+ */
+CameraController.prototype.suspendCapture = function() {
+  return this.camera.suspendCapture();
+};
+
+/**
  * Fires a 'startcountdown' event if:
  * A timer settings is set, no timer is
  * already active, and the camera is
@@ -227,7 +237,7 @@ CameraController.prototype.shouldCountdown = function() {
   var timerActive = this.app.get('timerActive');
   var recording = this.app.get('recording');
 
-  return timerSet && !timerActive && !recording;
+  return timerSet && !timerActive && recording === 'stopped';
 };
 
 CameraController.prototype.onFileSizeLimitReached = function() {
