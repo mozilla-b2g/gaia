@@ -114,14 +114,11 @@ var ActivityHandler = {
       case 'new':
         this.launch_activity(activity, 'view-contact-form');
         break;
+      case 'import':
       case 'open':
-        if (this.isvCardActivity(activity)) {
-          LazyLoader.load(VCARD_DEPS, () => {
-            VcardActivityHandler.handle(activity, this);
-          });
-        } else {
-          this.launch_activity(activity, 'view-contact-details');
-        }
+        LazyLoader.load(VCARD_DEPS, () => {
+          VcardActivityHandler.handle(activity, this);
+        });
         break;
       case 'update':
         this.launch_activity(activity, 'add-parameters');
@@ -136,21 +133,9 @@ var ActivityHandler = {
         });
         MainNavigation.home();
         break;
-      case 'import':
-        this.importContactsFromFile(activity);
-        break;
     }
-
   },
 
-  isvCardActivity: function ah_isvCardActivity(activity) {
-    return !!(activity.source &&
-              activity.source.data &&
-              !activity.source.data.params &&
-              activity.source.data.type &&
-              VCARD_MIME_TYPES.indexOf(activity.source.data.type) !== -1 &&
-              activity.source.data.blob);
-  },
 
   importContactsFromFile: function ah_importContactFromVcard(activity) {
     var self = this;
@@ -217,8 +202,8 @@ var ActivityHandler = {
             blob: vcardBlob
           });
         }, {
-            // Some MMS gateways prefer this MIME type for vcards
-            type: 'text/x-vcard'
+          // Some MMS gateways prefer this MIME type for vcards
+          type: 'text/x-vcard'
         });
       });
       return;

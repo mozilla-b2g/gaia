@@ -109,7 +109,7 @@
         }
       },
       "disposition": "inline",
-      "href": "/contacts/index.html?open",
+      "href": "/contacts/index.html?import",
       "returnValue": true
     },
     "open": [
@@ -123,8 +123,7 @@
     },
     {
       "filters": {
-        "type": ["text/vcard", "text/x-vcard",
-                 "text/directory"]
+        "type": ["text/vcard", "text/x-vcard", "text/directory"]
       },
       "disposition": "inline",
       "href": "/contacts/index.html?open",

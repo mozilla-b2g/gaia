@@ -1,4 +1,4 @@
-/* globals ActivityHandler, ConfirmDialog,
+/* globals ActivityHandler, VcardActivityHandler, ConfirmDialog,
            MockContactAllFields, MocksHelper, MockMozL10n
  */
 
@@ -13,6 +13,7 @@ require('/shared/js/setImmediate.js');
 
 requireApp('communications/contacts/test/unit/mock_header_ui.js');
 requireApp('communications/contacts/js/activities.js');
+requireApp('communications/contacts/js/activities_vcard.js');
 requireApp('communications/contacts/test/unit/mock_l10n.js');
 requireApp('communications/contacts/test/unit/mock_navigation.js');
 requireApp('communications/contacts/test/unit/mock_main_navigation.js');
@@ -89,6 +90,7 @@ suite('Test Activities', function() {
       document.location.hash = '';
 
       this.sinon.spy(ActivityHandler, 'isCancelable');
+      this.sinon.spy(VcardActivityHandler, 'handle');
     });
 
     test('New contact', function() {
@@ -101,51 +103,28 @@ suite('Test Activities', function() {
       assertIsOpened(activity, 'view-contact-form');
     });
 
-    test('Open contact', function() {
+    test('Open contact calls for vcard handling', function() {
       var activity = {
         source: {
           name: 'open',
           data: {}
         }
       };
-      assertIsOpened(activity, 'view-contact-details');
+      ActivityHandler.handle(activity);
+      assert.isTrue(VcardActivityHandler.handle.called);
     });
 
-    test('Open text/vcard with allowSave', function() {
+    test('Import contact calls for vcard handling', function() {
       var activity = {
         source: {
-          name: 'open',
+          name: 'import',
           data: {
-            type: ['text/vcard'],
-            allowSave: true
+            blob: 'blob'
           }
         }
       };
-      assertIsOpened(activity, 'view-contact-details');
-    });
-
-    test('Open vCard with deprecated text/directory datatype', function() {
-      var activity = {
-        source: {
-          name: 'open',
-          data: {
-            type: ['text/directory']
-          }
-        }
-      };
-      assertIsOpened(activity, 'view-contact-details');
-    });
-
-    test('Open vCard with deprecated text/x-vcard datatype', function() {
-      var activity = {
-        source: {
-          name: 'open',
-          data: {
-            type: ['text/x-vcard']
-          }
-        }
-      };
-      assertIsOpened(activity, 'view-contact-details');
+      ActivityHandler.handle(activity);
+      assert.isTrue(VcardActivityHandler.handle.called);
     });
 
     test('Update contact', function() {
@@ -172,39 +151,6 @@ suite('Test Activities', function() {
       assert.isTrue(ActivityHandler.isCancelable.called,
                                             'checks for activity UI specifics');
       assert.equal(ActivityHandler._currentActivity, activity);
-    });
-
-    test('Import one contact', function() {
-      var activity = {
-        source: {
-          name: 'import',
-          data: {
-            blob: 'blob'
-          }
-        }
-      };
-      window.utils.importedCount = 1;
-      window.utils.importedID = '1';
-      assertIsOpened(activity, 'view-contact-details');
-      assert.include(document.location.hash, 'id=1',
-        'with the proper contact id');
-    });
-
-    test('Import multiple contacts', function() {
-      var activity = {
-        source: {
-          name: 'import',
-          data: {
-            blob: 'blob'
-          }
-        }
-      };
-      window.utils.importedCount = 2;
-      assertIsOpened(activity, 'view-contact-list');
-      assert.equal(document.location.hash.indexOf('id'), -1,
-        'no contact id as parameter');
-      assert.isTrue(ActivityHandler.isCancelable.called,
-        'checks for activity UI specifics');
     });
   });
 
