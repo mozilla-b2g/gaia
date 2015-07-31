@@ -6,7 +6,6 @@
 /* global MozActivity */
 /* global SettingsListener */
 /* global Service */
-/* global GaiaPinCard */
 
 'use strict';
 
@@ -141,7 +140,7 @@
                     </div>
                   </section>
                   <span class="pb-icon"></span>
-                  <div class="site-icon"></div>
+                  <gaia-site-icon></gaia-site-icon>
                   <div class="chrome-ssl-indicator chrome-title-container">
                     <span class="title" dir="auto"></span>
                   </div>
@@ -215,7 +214,7 @@
     this.menuButton = this.element.querySelector('.menu-button');
     this.windowsButton = this.element.querySelector('.windows-button');
     this.title = this.element.querySelector('.chrome-title-container > .title');
-    this.siteIcon = this.element.querySelector('.site-icon');
+    this.siteIcon = this.element.querySelector('gaia-site-icon');
 
     if (this.useCombinedChrome()) {
       this.pinDialog = this.element.querySelector('.pin-dialog');
@@ -379,11 +378,11 @@
   };
 
   AppChrome.prototype.setPinDialogCard = function ac_setPinDialogCard(url) {
-    var card = new GaiaPinCard();
+    var card = document.createElement('gaia-pin-card');
     card.title = this.app.title;
     card.icon = {
-      url: this.siteIcon.style.backgroundImage,
-      small: this.siteIcon.classList.contains('small-icon')
+      url: this.siteIcon.background,
+      isSmall: this.siteIcon.isSmall
     };
     this.pinCardContainer.innerHTML = '';
     this.app.getScreenshot(function() {
@@ -993,20 +992,22 @@
     }
 
     if (url) {
-      this.siteIcon.classList.remove('small-icon');
-      this.siteIcon.style.backgroundImage = `url("${url}")`;
+      this.siteIcon.background = {
+        url: `url("${url}")`
+      };
       this._currentIconUrl = url;
       return;
     }
 
     this.app.getSiteIconUrl()
       .then(iconObject => {
-        this.siteIcon.classList.toggle('small-icon', iconObject.isSmall);
-
         // We compare the original icon URL, otherwise there is a flickering
         // effect because a different object url is created each time.
         if (this._currentIconUrl !== iconObject.originalUrl) {
-          this.siteIcon.style.backgroundImage = `url("${iconObject.url}")`;
+          this.siteIcon.background = {
+            url: `url("${iconObject.url}")`,
+            isSmall: iconObject.isSmall
+          };
           this._currentIconUrl = iconObject.originalUrl;
         }
       })

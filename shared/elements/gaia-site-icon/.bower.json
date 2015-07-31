@@ -1,0 +1,36 @@
+{
+  "name": "gaia-site-icon",
+  "main": [
+    "gaia-site-icon.js"
+  ],
+  "homepage": "https://github.com/gaia-components/gaia-site-icon",
+  "authors": [
+    "apastor@mozilla.com"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests",
+    "index.html",
+    "package.json",
+    "README.md"
+  ],
+  "devDependencies": {
+    "base": "gaia-components/base"
+  },
+  "dependencies": {
+    "gaia-component": "gaia-components/gaia-component#~0.3.6"
+  },
+  "_release": "cff5b476b4",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "cff5b476b4f3f17518f823bf544114cd3250adc6"
+  },
+  "_source": "git://github.com/gaia-components/gaia-site-icon.git",
+  "_target": "*",
+  "_originalSource": "gaia-components/gaia-site-icon"
+}
