@@ -1,5 +1,6 @@
 /* global AppWindow, AppChrome, MocksHelper, MockL10n, PopupWindow,
-          MockModalDialog, MockService, MockPromise, MockSettingsListener */
+          MockModalDialog, MockService, MockPromise,
+          MockSettingsListener, Service */
 /* exported MockBookmarksDatabase */
 'use strict';
 
@@ -944,9 +945,8 @@ suite('system/AppChrome', function() {
       assert.ok(combinedChrome.useCombinedChrome());
       combinedChrome.setSiteIcon();
       getIconPromise.mFulfillToValue({ url: fakeIconURI });
-
-      assert.ok(combinedChrome.siteIcon
-                  .style.backgroundImage.includes(fakeIconURI));
+      assert.ok(combinedChrome.siteIcon.style.backgroundImage.indexOf(
+        fakeIconURI) != -1);
     });
 
     test('small icon', function() {
@@ -966,7 +966,7 @@ suite('system/AppChrome', function() {
     test('handles url argument', function() {
       combinedChrome.setSiteIcon(fakeIconURI);
       assert.ok(combinedChrome.siteIcon
-                  .style.backgroundImage.includes(fakeIconURI));
+                  .style.backgroundImage.indexOf(fakeIconURI) != -1);
       sinon.assert.notCalled(combinedChrome.app.getSiteIconUrl);
     });
 
@@ -978,7 +978,7 @@ suite('system/AppChrome', function() {
       getIconPromise.mRejectToError();
 
       assert.ok(combinedChrome.siteIcon
-                  .style.backgroundImage.includes(fakeIconURI));
+                  .style.backgroundImage.indexOf(fakeIconURI) != -1);
     });
 
     test('has no effect for private browsers', function() {
@@ -1042,6 +1042,32 @@ suite('system/AppChrome', function() {
       this.sinon.stub(combinedChrome, 'isMaximized').returns(false);
       combinedChrome.siteIcon.dispatchEvent(new CustomEvent('click'));
       assert.isFalse(combinedChrome.setPinDialogCard.called);
+    });
+  });
+
+  suite('Pin page', function() {
+    var chrome, requestStub;
+
+    setup(function() {
+      var app = new AppWindow(cloneConfig(fakeWebSite));
+      chrome = new AppChrome(app);
+      requestStub = this.sinon.stub(Service, 'request').returns(
+        new Promise(function() {}));
+    });
+
+    teardown(function() {
+      requestStub.restore(); 
+    });
+
+    test('Click pin button', function() {
+      chrome.element.classList.add('maximized');
+      chrome.pinDialog.classList.remove('hidden');
+      chrome.handleEvent({ type: 'click', target: chrome.pinButton });
+      assert.isFalse(chrome.element.classList.contains('maximized'));
+      assert.isTrue(chrome.pinDialog.classList.contains('hidden'));
+      assert.isTrue(Service.request.calledWith('Places:setPinned',
+        fakeWebSite.url));
+      
     });
   });
 

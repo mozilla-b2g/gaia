@@ -20,7 +20,7 @@
     'BrowserSettings'
   ];
   Places.SERVICES = [
-    'clear'
+    'clear', 'pin'
   ];
 
   BaseModule.create(Places, {
@@ -240,6 +240,23 @@
           return b - a;
         });
         cb(place);
+      });
+    },
+
+    /**
+     * Pin/un-pin a page.
+     * 
+     * @param {String} url The URL of the page to pin.
+     * @param {Boolean} value true for pin, false for un-pin.
+     * @returns {Promise} Promise of a response.
+     */
+    setPinned: function(url, value) {
+      return this.editPlace(url, (place, callback) => {
+        place.pinned = value;
+        if (value) {
+          place.pinTime = Date.now();
+        }
+        callback(place);
       });
     },
 
