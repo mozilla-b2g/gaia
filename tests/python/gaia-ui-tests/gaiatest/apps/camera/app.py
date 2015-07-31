@@ -3,6 +3,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import time
+import pdb
 
 from marionette_driver import expected, By, Wait
 from marionette_driver.marionette import Actions
@@ -32,8 +33,8 @@ class Camera(Base):
     _loading_screen_locator = (By.CSS_SELECTOR, '.loading-screen')
     _toggle_flash_button_locator = (By.CSS_SELECTOR, '.test-flash-button')
     ## These are named equal to current view
-    _camera_switch_to_rear = (By.CSS_SELECTOR, '.toggle-camera-front')
-    _camera_switch_to_front = (By.CSS_SELECTOR, '.toggle-camera-rear')
+    _camera_switch_to_rear = (By.CSS_SELECTOR, '[data-l10n-id="toggle-camera-front-button"]')
+    _camera_switch_to_front = (By.CSS_SELECTOR, '[data-l10n-id="toggle-camera-rear-button"]')
 
     _viewfinder_video_locator = (By.CLASS_NAME, 'viewfinder-video')
 
@@ -120,11 +121,12 @@ class Camera(Base):
 
     def tap_switch_to_front_camera(self):
 	self.marionette.find_element(*self._camera_switch_to_front).tap()
-	Wait(self.marionette).until(lambda m: self.marionette.find_element(*self._camera_switch_to_rear) == true)
-	
+	switch_to_rear_button = Wait(self.marionette).until(expected.element_present(*self._camera_switch_to_rear))
+        Wait(self.marionette).until(expected.element_displayed(switch_to_rear_button))
+        
     def tap_switch_to_rear_camera(self):
 	self.marionette.find_element(*self._camera_switch_to_rear).tap()
-	Wait(self.marionette).until(lambda m: self.marionette.find_element(*self._camera_switch_to_front) == true)
+	Wait(self.marionette).until(lambda m: self.marionette.find_element(*self._camera_switch_to_front) == 'true')
 	
     def tap_toggle_flash_button(self):
         initial_flash_mode = self.current_flash_mode
