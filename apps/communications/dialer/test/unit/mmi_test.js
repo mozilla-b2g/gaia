@@ -17,7 +17,6 @@ require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
 require('/shared/test/unit/mocks/mock_notification.js');
 require('/shared/test/unit/mocks/mock_notification_helper.js');
-require('/shared/test/unit/mocks/mock_lazy_l10n.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 
 const SUCCESS_MMI_NO_MSG = 'sucess_mmi_no_msg';
@@ -39,7 +38,6 @@ const ICC_SERVICE_CLASS_PAD = (1 << 7);
 const EXPECTED_PHONE = '+34666222111';
 
 var mocksHelperForMMI = new MocksHelper([
-  'LazyL10n',
   'LazyLoader',
   'MmiUI',
   'MobileOperator',

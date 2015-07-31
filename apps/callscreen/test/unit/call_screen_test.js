@@ -1,19 +1,20 @@
-/* globals CallScreen, FontSizeManager, MockCallsHandler, Utils,
+/* globals CallScreen, FontSizeManager, l10nAssert, MockCallsHandler,
            MockHandledCall, MockMozActivity, MockNavigatorMozTelephony,
-           MockMozL10n, MocksHelper, MockSettingsListener */
+           MockL10n, MocksHelper, MockSettingsListener, Utils */
 
 'use strict';
 
-require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
+require('/shared/test/unit/l10n_helper.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_moz_activity.js');
-require('/shared/test/unit/mocks/dialer/mock_lazy_l10n.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
+require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/test/unit/mocks/dialer/mock_handled_call.js');
 require('/shared/test/unit/mocks/dialer/mock_call.js');
 require('/shared/test/unit/mocks/dialer/mock_calls_handler.js');
 require('/shared/test/unit/mocks/dialer/mock_font_size_manager.js');
 require('/shared/test/unit/mocks/dialer/mock_keypad.js');
 require('/shared/test/unit/mocks/dialer/mock_utils.js');
-require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/js/lockscreen_connection_info_manager.js');
 require('/test/unit/mock_conference_group_ui.js');
 
@@ -21,7 +22,6 @@ var mocksHelperForCallScreen = new MocksHelper([
   'CallsHandler',
   'ConferenceGroupUI',
   'MozActivity',
-  'LazyL10n',
   'FontSizeManager',
   'KeypadManager',
   'Utils'
@@ -70,7 +70,7 @@ suite('call screen', function() {
     realSettingsListener = window.SettingsListener;
     window.SettingsListener = MockSettingsListener;
     realMozL10n = navigator.mozL10n;
-    navigator.mozL10n = MockMozL10n;
+    navigator.mozL10n = MockL10n;
   });
 
   suiteTeardown(function() {
@@ -818,9 +818,6 @@ suite('call screen', function() {
       addEventListenerSpy = this.sinon.spy(statusMessage, 'addEventListener');
       removeEventListenerSpy =
         this.sinon.spy(statusMessage, 'removeEventListener');
-      this.sinon.stub(MockMozL10n, 'setAttributes', function(element, id) {
-        element.setAttribute('data-l10n-id', id);
-      });
 
       CallScreen.showStatusMessage('message');
     });
@@ -830,10 +827,7 @@ suite('call screen', function() {
     });
 
     test('should show the text', function() {
-      assert.equal(
-        statusMessage.querySelector('p').getAttribute('data-l10n-id'),
-        'message'
-      );
+      l10nAssert(statusMessage.querySelector('p'), 'message');
     });
 
     suite('once the transition ends', function() {

@@ -557,7 +557,7 @@ suite('ActivityHandler', function() {
       simulateMessageReceived(message).then(() => {
         sinon.assert.calledWithMatch(
           NotificationHelper.send,
-          sinon.match.string, { body: 'mms-messageundefined' }
+          sinon.match.string, { body: 'mms-message' }
         );
       }).then(done, done);
     });

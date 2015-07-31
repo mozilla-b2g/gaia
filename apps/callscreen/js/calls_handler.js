@@ -1,11 +1,11 @@
 /* globals AudioCompetingHelper, BluetoothHelper, CallScreen,
            ConferenceGroupHandler, Contacts, HandledCall, KeypadManager,
-           LazyL10n, SimplePhoneMatcher, TonePlayer, Utils */
+           SimplePhoneMatcher, TonePlayer, Utils */
 
 'use strict';
 
 /* globals BluetoothHelper, CallScreen, Contacts, FontSizeManager, HandledCall,
-           KeypadManager, LazyL10n, SimplePhoneMatcher, TonePlayer, Utils,
+           KeypadManager, SimplePhoneMatcher, TonePlayer, Utils,
            AudioCompetingHelper */
 
 var CallsHandler = (function callsHandler() {
@@ -270,45 +270,49 @@ var CallsHandler = (function callsHandler() {
   }
 
   function handleCallWaiting(call) {
-    LazyL10n.get(function localized(_) {
-      var number = call.secondId ? call.secondId.number : call.id.number;
+    var number = call.secondId ? call.secondId.number : call.id.number;
 
-      if (!number) {
-        CallScreen.incomingNumber.textContent = _('withheld-number');
-        FontSizeManager.adaptToSpace(FontSizeManager.SECOND_INCOMING_CALL,
-          CallScreen.incomingNumber, false, 'end');
-        return;
-      }
+    if (!number) {
+      navigator.mozL10n.setAttributes(CallScreen.incomingNumber,
+                                      'withheld-number');
+      // Force a synchronous translation so we can resize the string
+      navigator.mozL10n.translateFragment(CallScreen.incomingNumber);
+      FontSizeManager.adaptToSpace(FontSizeManager.SECOND_INCOMING_CALL,
+        CallScreen.incomingNumber, false, 'end');
+      return;
+    }
 
-      if (navigator.mozIccManager.iccIds.length > 1) {
-        CallScreen.incomingSim.textContent = _('sim-number',
-                                               { n: call.serviceId + 1 });
+    if (navigator.mozIccManager.iccIds.length > 1) {
+      navigator.mozL10n.setAttributes(
+        CallScreen.incomingSim,
+        'sim-number',
+        { n: call.serviceId + 1 }
+      );
+    } else {
+      CallScreen.incomingSim.hidden = true;
+    }
+
+    Contacts.findByNumber(number,
+                          function lookupContact(contact, matchingTel) {
+      if (contact && contact.name) {
+        CallScreen.incomingInfo.classList.add('additionalInfo');
+        CallScreen.incomingNumber.textContent = contact.name;
+        CallScreen.incomingNumberAdditionalTelType.textContent =
+          Utils.getPhoneNumberAdditionalInfo(matchingTel);
+        CallScreen.incomingNumberAdditionalTel.textContent = number;
       } else {
-        CallScreen.incomingSim.hidden = true;
+        CallScreen.incomingNumber.textContent = number;
+        CallScreen.incomingNumberAdditionalTelType.textContent = '';
+        CallScreen.incomingNumberAdditionalTel.textContent = '';
       }
 
-      Contacts.findByNumber(number,
-                            function lookupContact(contact, matchingTel) {
-        if (contact && contact.name) {
-          CallScreen.incomingInfo.classList.add('additionalInfo');
-          CallScreen.incomingNumber.textContent = contact.name;
-          CallScreen.incomingNumberAdditionalTelType.textContent =
-            Utils.getPhoneNumberAdditionalInfo(matchingTel);
-          CallScreen.incomingNumberAdditionalTel.textContent = number;
-        } else {
-          CallScreen.incomingNumber.textContent = number;
-          CallScreen.incomingNumberAdditionalTelType.textContent = '';
-          CallScreen.incomingNumberAdditionalTel.textContent = '';
-        }
-
-        FontSizeManager.adaptToSpace(
-          FontSizeManager.SECOND_INCOMING_CALL, CallScreen.incomingNumber,
-          false, 'end');
-        if (contact && contact.name) {
-          FontSizeManager.ensureFixedBaseline(
-            FontSizeManager.SECOND_INCOMING_CALL, CallScreen.incomingNumber);
-        }
-      });
+      FontSizeManager.adaptToSpace(
+        FontSizeManager.SECOND_INCOMING_CALL, CallScreen.incomingNumber,
+        false, 'end');
+      if (contact && contact.name) {
+        FontSizeManager.ensureFixedBaseline(
+          FontSizeManager.SECOND_INCOMING_CALL, CallScreen.incomingNumber);
+      }
     });
 
     if (cdmaCallWaiting()) {
