@@ -172,7 +172,9 @@ var ActivityHandler = {
       type: isSimpleContent && !isEmailAddress ? 'sms' : 'mms'
     });
 
-    return Drafts.add(draft).store().then(() => draft.id);
+    return Drafts.request().then(
+      () => Drafts.add(draft).store()
+    ).then(() => draft.id);
   },
 
   handleMessageNotification: function ah_handleMessageNotification(message) {

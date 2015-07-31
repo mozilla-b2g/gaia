@@ -6341,6 +6341,7 @@ suite('conversation.js >', function() {
       this.sinon.stub(Compose, 'focus');
       this.sinon.stub(Drafts, 'delete').returns(Drafts);
       this.sinon.stub(Drafts, 'store').returns(Drafts);
+      this.sinon.stub(Drafts, 'request').returns(Promise.resolve());
       this.sinon.spy(ConversationView.recipients, 'add');
       this.sinon.spy(ConversationView, 'updateHeaderData');
       this.sinon.stub(Contacts, 'findByAddress');
@@ -6352,14 +6353,15 @@ suite('conversation.js >', function() {
       ConversationView.draft = null;
     });
 
-    test('Calls Compose.fromDraft(), no recipients loaded', function() {
-      ConversationView.handleDraft(draft.id);
-
-      sinon.assert.calledOnce(Compose.fromDraft);
-      sinon.assert.calledWith(Compose.fromDraft, draft);
-      sinon.assert.notCalled(ConversationView.recipients.add);
-      sinon.assert.notCalled(ConversationView.updateHeaderData);
-      sinon.assert.notCalled(Contacts.findByAddress);
+    test('Calls Compose.fromDraft(), no recipients loaded', function(done) {
+      ConversationView.handleDraft(draft.id).then(() => {
+        sinon.assert.calledOnce(Drafts.request);
+        sinon.assert.calledOnce(Compose.fromDraft);
+        sinon.assert.calledWith(Compose.fromDraft, draft);
+        sinon.assert.notCalled(ConversationView.recipients.add);
+        sinon.assert.notCalled(ConversationView.updateHeaderData);
+        sinon.assert.notCalled(Contacts.findByAddress);
+      }).then(done, done);
     });
 
     test('with recipients', function(done) {
@@ -6373,9 +6375,9 @@ suite('conversation.js >', function() {
         Promise.resolve([new MockContact()])
       );
 
-      ConversationView.handleDraft(draft.id);
-
-      Contacts.findByAddress.lastCall.returnValue.then(() => {
+      ConversationView.handleDraft(draft.id).then(
+        () => Contacts.findByAddress.lastCall.returnValue
+      ).then(() => {
         sinon.assert.calledWith(ConversationView.recipients.add, {
           number: '800 732 0872',
           source: 'manual'
@@ -6393,10 +6395,10 @@ suite('conversation.js >', function() {
       }).then(done, done);
     });
 
-    test('discards draft record', function() {
-      ConversationView.handleDraft(draft.id);
-
-      sinon.assert.callOrder(Drafts.delete, Drafts.store);
+    test('discards draft record', function(done) {
+      ConversationView.handleDraft(draft.id).then(() => {
+        sinon.assert.callOrder(Drafts.request, Drafts.delete, Drafts.store);
+      }).then(done, done);
     });
   });
 
@@ -6744,28 +6746,31 @@ suite('conversation.js >', function() {
         // we test these functions separately so it's fine to merely test
         // they're called
         this.sinon.stub(ConversationView, 'handleDraft');
+        ConversationView.handleDraft.returns(Promise.resolve());
       });
 
-      test('recalls the draft', function() {
+      test('recalls the draft', function(done) {
         transitionArgs.draftId = '1';
-        ConversationView.afterEnter(transitionArgs);
-        sinon.assert.calledWith(
-          ConversationView.handleDraft, +transitionArgs.draftId
-        );
+        ConversationView.afterEnter(transitionArgs).then(() => {
+          sinon.assert.calledWith(
+            ConversationView.handleDraft, +transitionArgs.draftId
+          );
+        }).then(done, done);
       });
 
-      test('focus the composer', function() {
-        ConversationView.afterEnter(transitionArgs);
-        sinon.assert.called(ConversationView.recipients.focus);
+      test('focus the composer', function(done) {
+        ConversationView.afterEnter(transitionArgs).then(() => {
+          sinon.assert.called(ConversationView.recipients.focus);
+        }).then(done, done);
       });
 
-      test('fires visually-loaded once view is ready', function() {
+      test('fires visually-loaded once view is ready', function(done) {
         var onVisuallyLoaded = sinon.stub();
 
         ConversationView.once('visually-loaded', onVisuallyLoaded);
-        ConversationView.afterEnter(transitionArgs);
-
-        sinon.assert.calledOnce(onVisuallyLoaded);
+        ConversationView.afterEnter(transitionArgs).then(() => {
+          sinon.assert.calledOnce(onVisuallyLoaded);
+        }).then(done, done);
       });
     });
   });

@@ -10,14 +10,6 @@
 var NavigationFactory = window.NavigationFactory = function(window) {
 
 /**
- * The Defer type is useful when creating promises.
- * @typedef {Object} Defer
- * @property {function(*)} resolve The Promise's resolve function.
- * @property {function(*)} reject The Promise's reject function.
- * @property {Promise} promise The actual promise.
- */
-
-/**
  * @function
  * The debug function translates to console.log in debug mode.
  *
@@ -37,14 +29,12 @@ var debug = 1 ?
   *   hash if the same HTML file holds several views.
   * - url: this is the URL used to match the current location and find the
   *   current view.
-  * - view: this is the actual JavaScript object that manages this view.
+  * - behavior: this is the actual JavaScript object that manages this view.
   * - previous (optional): this is the name of the previous view; this is
   *   necessary to decide if we do a forward/backward animation.
   * - partOf (optional): this is used when a view is part of another view's
   *   HTML document. In that case one view is "master" and the other are only
   *   part of the master view.
-  * - alsoContains (optional): this is the opposite and holds the view's
-  *   subviews. (currently unused)
   *
   * NGA_VIEWS holds the configuration for NGA split views.
   */
@@ -53,8 +43,7 @@ const NGA_VIEWS = Object.freeze([
     name: 'thread',
     url: 'views/conversation/index.html',
     behavior: 'ConversationView',
-    previous: 'thread-list',
-    alsoContains: ['report-view', 'composer', 'group-view']
+    previous: 'thread-list'
   }),
   Object.freeze({
     name: 'thread-list',
@@ -88,8 +77,7 @@ const OA_VIEWS = Object.freeze([
   Object.freeze({
     name: 'thread-list',
     url: 'index.html',
-    behavior: 'InboxView',
-    alsoContains: ['thread', 'composer', 'group-view', 'report-view']
+    behavior: 'InboxView'
   }),
   Object.freeze({
     name: 'thread',
@@ -153,7 +141,7 @@ function isUsingOldArchitecture() {
  * Examples:
  *   #/conversation?id=5               => conversation
  *   #/composer?recipient=+33615647897 => composer
- *   #composer                          => composer
+ *   #/composer                        => composer
  *
  * @param {String} hash The string to analyze.
  * @returns {String} The analyzed string. It is not guaranteed to be an existing
@@ -161,25 +149,16 @@ function isUsingOldArchitecture() {
  */
 function findViewNameFromHash(hash) {
   debug('findViewNameFromHash(%s)', hash);
-  if (!hash) {
+  if (!hash || !hash.startsWith('#/')) {
     return null;
   }
 
-  if (hash[0] === '#') {
-    hash = hash.slice(1);
+  var endOfViewName = hash.indexOf('?');
+  if (endOfViewName < 0) {
+    endOfViewName = undefined;
   }
 
-  var index = hash.indexOf('/');
-  if (index !== -1) {
-    hash = hash.slice(index + 1);
-  }
-
-  index = hash.indexOf('?');
-  if (index !== -1) {
-    hash = hash.slice(0, index);
-  }
-
-  return hash;
+  return hash.slice(2, endOfViewName);
 }
 
 /**
@@ -217,6 +196,7 @@ function findViewFromLocation(location) {
   ) || null;
 
   if (!viewFromPath) {
+    console.error('We found no view from the path %s', pathName);
     return null;
   }
 
@@ -224,9 +204,7 @@ function findViewFromLocation(location) {
       viewFromHash.partOf !== viewFromPath.name) {
     console.error(
       'The view %s found from the hash %s is not part of view %s',
-      viewFromHash.name,
-      location.hash,
-      viewFromPath.name
+      viewFromHash.name, hash, viewFromPath.name
     );
     viewFromHash = null;
   }
@@ -244,25 +222,25 @@ function findViewFromName(name) {
   debug('findViewFromName(%s)', name);
   var view = VIEWS.find((view) => view.name === name) || null;
 
-  debug('findViewFromName() =>', view && view.name);
+  debug('findViewFromName() => %s', view && view.name);
   return view;
 }
 
 /**
- * Finds the main view of a view.
+ * Finds the container view of a view.
  *
- * @param {Object} view
- * @returns {Object} the main view of the parameter view. It can be the same
- * object if the parameter is itself the main view.
+ * @param {Object} view A view or a subview.
+ * @returns {Object} the container view of the parameter view. It can be the
+ * same object if the parameter is itself the container view.
  */
-function findMainView(view) {
-  debug('findMainView(%s)', view.name);
+function findContainerView(view) {
+  debug('findContainerView(%s)', view.name);
   if (view.partOf) {
-    debug('findMainView: %s is part of view %s', view.name, view.partOf);
+    debug('findContainerView: %s is part of view %s', view.name, view.partOf);
     view = findViewFromName(view.partOf);
   }
 
-  debug('findMainView() => %s', view.name);
+  debug('findContainerView() => %s', view.name);
   return view;
 }
 
@@ -289,6 +267,27 @@ function waitForReady() {
   return readyDefer.promise;
 }
 
+function startNavigationFromCurrentLocation() {
+  var location = window.location;
+  debug('startNavigationFromCurrentLocation(), location=%s', location);
+
+  var newPanel = findViewFromLocation(location);
+  if (!newPanel) {
+    return Promise.reject(
+      new Error('Couldn\'t find a view from location ' + location.href)
+    );
+  }
+
+  var args = Utils.params(decodeURIComponent(location.hash));
+
+  debug(
+    'startNavigationFromCurrentLocation:',
+    'found panel', newPanel.name, 'with args', args
+  );
+
+  return startNavigation({ newPanel, args });
+}
+
 /**
  * Sets up the state to handle the navigation.
  * Generally we're waiting for any ongoing transition to end before starting a
@@ -305,7 +304,7 @@ function waitForReady() {
  * startNavigation once again without this property once we'll know the missing
  * bits.
  *
- * @returns {Promise} Resolved when we could start the navigation (when an
+ * @returns {Promise} Resolved when we could start the navigation (when a
  * previous ongoing one is finished).
  */
 function startNavigation(opts) {
@@ -324,9 +323,9 @@ function startNavigation(opts) {
     );
   }
 
-  var mainView = newPanel && findMainView(newPanel);
-  var currentMainView = currentState && findMainView(currentState.panel);
-  var leaveDocument = currentState && mainView !== currentMainView;
+  var newContainerView = newPanel && findContainerView(newPanel);
+  var containerView = currentState && findContainerView(currentState.panel);
+  var leaveDocument = currentState && containerView !== newContainerView;
 
   if (newPanel && !leaveDocument) {
     var behaviorObject = window[newPanel.behavior];
@@ -400,9 +399,10 @@ function setFutureState() {
  */
 function endNavigation() {
   debug('endNavigation()');
-  navigationTransition && navigationTransition.defer.resolve();
-  navigationTransition = null;
-  Navigation.emit('navigated');
+  if (navigationTransition) {
+    navigationTransition.defer.resolve();
+    navigationTransition = null;
+  }
 }
 
 /**
@@ -472,18 +472,15 @@ function executeNavigationStep(stepName) {
   var viewObject = window[panel.behavior];
   if (viewObject[stepName]) {
     // encapsulating as a then handler to catch exceptions.
-    resultPromise = Promise.resolve().then(
-      () => viewObject[stepName](
-        navigationTransition.transitionArgs
-      )
+    resultPromise = resultPromise.then(
+      () => viewObject[stepName](navigationTransition.transitionArgs)
     );
   }
 
-  return resultPromise.then(
-    () => navigationTransition.stepsRun.push(stepName)
-  ).then(
-    () => debug(`Finished executeNavigationStep(${stepName})`)
-  );
+  return resultPromise.then(() => {
+    navigationTransition.stepsRun.push(stepName);
+    debug(`Finished executeNavigationStep(${stepName})`);
+  });
 }
 
 /**
@@ -494,9 +491,7 @@ function executeNavigationStep(stepName) {
  */
 function attachAfterEnterHandler() {
   if (document.readyState === 'complete') {
-    return Promise.resolve().then(
-      () => executeNavigationStep('afterEnter')
-    ).catch(catchStepError);
+    return executeNavigationStep('afterEnter').catch(catchStepError);
   }
 
   var defer = Utils.Promise.defer();
@@ -553,9 +548,11 @@ function prepareSwitchPanel() {
 
   var newView = to.panel;
 
-  var shouldPrepare = !from ||
-    (from.panel && newView &&
-     from.panel.behavior !== newView.behavior);
+  var noViewDisplayedYet = !from;
+  var nextViewUsesSameDOMElement =
+    from && from.panel && newView && from.panel.behavior !== newView.behavior;
+
+  var shouldPrepare = noViewDisplayedYet || nextViewUsesSameDOMElement;
 
   if (!shouldPrepare) {
     return;
@@ -581,9 +578,9 @@ function prepareSwitchPanel() {
 function switchPanel() {
   debug('switchPanel()');
   if (!navigationTransition) {
-    return Promise.reject(new Error(
+    throw new Error(
       'Trying to switch panel but no transition is started yet.'
-    ));
+    );
   }
 
   var from = navigationTransition.states.from;
@@ -603,6 +600,12 @@ function switchPanel() {
   }
 
   var newView = to.panel;
+  if (!newView) {
+    throw new Error(
+      'Trying to switch panel, but no new view is defined!'
+    );
+  }
+
   var newPanelElement = document.querySelector(`.panel-${newView.behavior}`);
   if (!newPanelElement) {
     return Promise.reject(new Error(
@@ -615,10 +618,9 @@ function switchPanel() {
   newPanelElement.classList.remove('panel-prepare-activation');
 
   var doSlideAnimation =
-    from && from.panel && newView &&
+    from && from.panel &&
     from.panel.behavior !== newView.behavior;
 
-  console.log('doSlideAnimation', doSlideAnimation);
   if (doSlideAnimation) {
     newPanelElement.classList.add('panel-will-activate', 'panel-active');
     oldPanelElement.classList.add('panel-will-deactivate');
@@ -649,9 +651,7 @@ function switchPanel() {
     oldPanelElement.classList.remove('panel-active');
   }
 
-  if (newView) {
-    newPanelElement.classList.add('panel-active');
-  }
+  newPanelElement.classList.add('panel-active');
 
   return Promise.resolve();
 }
@@ -666,15 +666,8 @@ function switchPanel() {
  */
 function onHashChange() {
   debug('onHashChange, location=', window.location);
-  var newPanel = findViewFromLocation(window.location);
-  if (!newPanel) {
-    console.error('Couldn\'t find a view from location', window.location);
-    return;
-  }
 
-  var args = Utils.params(decodeURIComponent(window.location.hash));
-
-  startNavigation({ newPanel, args }).then(
+  startNavigationFromCurrentLocation().then(
     () => executeNavigationStep('beforeLeave')
   ).then(
     prepareSwitchPanel
@@ -689,9 +682,10 @@ function onHashChange() {
   ).then(
     () => executeNavigationStep('afterLeave').catch(catchStepError)
   ).then(
-    endNavigation,
-    onNavigationError // TODO reset to previous hash or call back ?
-  );
+    endNavigation
+  ).then(
+    () => Navigation.emit('navigated')
+  ).catch(onNavigationError); // TODO reset to previous hash or call back ?
 }
 
 /**
@@ -712,7 +706,16 @@ var Navigation = {
   /**
    * Calls `window.back` after running the `beforeLeave` step.
    *
-   * @returns {Promise} Resolves when the action is done.
+   * We'll either (1) stay in the same document, or (2) move back to an earlier
+   * document.
+   *
+   * In case 1), this will only change the hash, and then the onHashChange event
+   * handler takes care of the end of the transition.
+   * In case 2), the full URL will change, and the new window's init method will
+   * take care of the end of the transition.
+   *
+   * @returns {Promise} Resolves when the action is done, if we stay in the same
+   * document.
    */
   back() {
     debug('back()');
@@ -741,6 +744,11 @@ var Navigation = {
    * 1. either we stay in the same document,
    * 2. or we move to another document.
    *
+   * In case 1), we only change the hash, and then the onHashChange event
+   * handler takes care of the end of the transition.
+   * In case 2), we change the full URL, and the new window's init method will
+   * take care of the end of the transition.
+   *
    * In all cases:
    * - beforeLeave can prevent changing the location and thus the
    *   navigation. It is expected that beforeLeave does not change any state but
@@ -757,7 +765,8 @@ var Navigation = {
    *
    * @param {String} viewName The view to load.
    * @param {Object} [args] The arguments to pass to the view.
-   * @returns {Promise} Resolves when the transition is over.
+   * @returns {Promise} Resolves when the transition is over, if we stay in the
+   * same document.
    */
   toPanel(viewName, args) {
     debug('toPanel(%s)', viewName);
@@ -787,8 +796,8 @@ var Navigation = {
     ).then(() => {
       var nextLocation;
       if (navigationTransition.leaveDocument) {
-        var mainView = findMainView(view);
-        nextLocation = '/' + mainView.url + hash;
+        var containerView = findContainerView(view);
+        nextLocation = '/' + containerView.url + hash;
       } else {
         nextLocation = hash;
       }
@@ -813,17 +822,7 @@ var Navigation = {
 
     attachHistoryListener();
 
-    var newPanel = findViewFromLocation(window.location);
-    if (!newPanel) {
-      console.error('Couldn\'t find a view from location', window.location);
-      return Promise.resolve();
-    }
-
-    var args = Utils.params(decodeURIComponent(window.location.hash));
-
-    debug('init: found panel', newPanel.name, 'with args', args);
-
-    return startNavigation({newPanel, args}).then(
+    return startNavigationFromCurrentLocation().then(
       prepareSwitchPanel
     ).then(
       // right away as we don't execute anything on the previous panel, and we
@@ -836,9 +835,10 @@ var Navigation = {
     ).then(
       attachAfterEnterHandler
     ).then(
-      endNavigation,
-      onNavigationError
-    );
+      endNavigation
+    ).then(
+      () => Navigation.emit('navigated')
+    ).catch(onNavigationError);
   },
 
   /* will be used by tests */
@@ -849,15 +849,14 @@ var Navigation = {
   /**
    * Checks if current location.hash corresponds to default panel. This is
    * sometimes called before we resolve the state, in that case resolve
-   * directly using findViewFromHash. Otherwise we use the resolved state.
+   * directly using findViewNameFromHash. Otherwise we use the resolved state.
    *
    * @returns {boolean} True if current location.hash corresponds to default
    * panel.
    */
   isDefaultPanel() {
-    var state = currentState;
-    return state ?
-      !state.panel.partOf :
+    return currentState ?
+      !currentState.panel.partOf :
       !findViewNameFromHash(window.location.hash);
   },
 

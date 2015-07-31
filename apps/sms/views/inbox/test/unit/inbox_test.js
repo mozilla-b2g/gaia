@@ -96,7 +96,7 @@ suite('thread_list_ui', function() {
           '<label>' +
             '<input type="checkbox" data-mode="threads" value="' + i + '"/>' +
           '</label>' +
-          '<a href="#thread=' + i + '"</a>' +
+          '<a href="#/thread?id=' + i + '"</a>' +
         '</li>';
     }
 

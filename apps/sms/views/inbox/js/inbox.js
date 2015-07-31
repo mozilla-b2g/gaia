@@ -639,6 +639,7 @@ var InboxView = {
   },
 
   renderThreads: function inbox_renderThreads() {
+    console.log('renderThreads', new Error().stack.replace(/\n/g, '|'));
     window.performance.mark('willRenderThreads');
 
     var hasThreads = false;
@@ -746,7 +747,7 @@ var InboxView = {
 
     // Render markup with thread data
     li.innerHTML = this.tmpl.thread.interpolate({
-      hash: isDraft ? '#composer' : '#thread=' + id,
+      hash: isDraft ? '#/composer' : '#/thread?id=' + id,
       mode: isDraft ? 'drafts' : 'threads',
       id: isDraft ? draft.id : id,
       number: number,

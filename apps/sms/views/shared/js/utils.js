@@ -799,9 +799,17 @@
      */
     Promise: {
       /**
+       * The Defer type is useful when creating promises.
+       * @typedef {Object} Defer
+       * @property {function(*)} resolve The Promise's resolve function.
+       * @property {function(*)} reject The Promise's reject function.
+       * @property {Promise} promise The actual promise.
+       */
+
+      /**
        * Returns object that contains promise and related resolve\reject methods
        * to avoid wrapping long or complex code into single Promise constructor.
-       * @returns {{promise: Promise, resolve: function, reject: function}}
+       * @returns {Defer}
        */
       defer: function() {
         var deferred = {};

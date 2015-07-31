@@ -52,12 +52,24 @@ suite('navigation >', function() {
 
   function fakeAssign(url) {
     if (url.startsWith('#')) {
-      fakeLocation.hash = url;
-      fakeLocation.href = fakeLocation.href.replace(/#.*$/, '') + url;
+      setFakeLocation({ hash: url });
       Promise.resolve().then(
         () => window.dispatchEvent(new HashChangeEvent('hashchange'))
       );
     }
+  }
+
+  function setFakeLocation({ pathname, hash }) {
+    if (pathname !== undefined) {
+      fakeLocation.pathname = pathname;
+    }
+
+    if (hash !== undefined) {
+      fakeLocation.hash = hash;
+    }
+
+    fakeLocation.href =
+      'app://sms.gaiamobile.org' + fakeLocation.pathname + fakeLocation.hash;
   }
 
   function findViewElements() {
@@ -121,7 +133,8 @@ suite('navigation >', function() {
       });
 
       test('runs lifecycle methods for the right view', function(done) {
-        fakeLocation.hash = '#/composer?id=3';
+        setFakeLocation({ hash: '#/composer?id=3' });
+
         var transitionArgs = { id: '3' };
         Navigation.init().then(() => {
           sinon.assert.calledWithMatch(
@@ -136,16 +149,17 @@ suite('navigation >', function() {
         }).then(done, done);
       });
 
-      test('Do nothing when an unknown view is asked', function(done) {
+      test('Do nothing when an unknown view is asked (hash)', function(done) {
         this.sinon.stub(console, 'error');
 
-        fakeLocation.hash = '#/unknown?id=3';
-        Navigation.init().then(() => {
+        setFakeLocation({ hash: '#/unknown?id=3' });
+
+        Navigation.init().catch(() => {}).then(() => {
           sinon.assert.notCalled(fakeWindow.InboxView.beforeEnter);
           sinon.assert.notCalled(fakeWindow.InboxView.afterEnter);
           assert.isFalse(Navigation.isCurrentPanel('thread-list'));
           assert.isFalse(elements.InboxView.classList.contains('panel-active'));
-          sinon.assert.called(console.error);
+          sinon.assert.calledTwice(console.error);
         }).then(done, done);
       });
     });
@@ -499,11 +513,11 @@ suite('navigation >', function() {
 
     test('isDefaultPanel() correctly determines default panel', function() {
       // If hash is empty.
-      fakeLocation.hash = '';
+      setFakeLocation({ hash: '' });
       assert.isTrue(Navigation.isDefaultPanel());
 
       // False if hash set to some different panel.
-      fakeLocation.hash = '#/composer';
+      setFakeLocation({ hash: '#/composer' });
       assert.isFalse(Navigation.isDefaultPanel());
     });
 
@@ -579,10 +593,7 @@ suite('navigation >', function() {
 
   suite('split views >', function() {
     setup(function() {
-      fakeLocation.pathname = '/views/inbox/';
-      fakeLocation.href =
-        'app://sms.gaiamobile.org' +
-        fakeLocation.pathname + fakeLocation.hash;
+      setFakeLocation({ pathname: '/views/inbox/' });
 
       window.Navigation = NavigationFactory(fakeWindow);
     });
@@ -596,11 +607,7 @@ suite('navigation >', function() {
       });
 
       test('find the right split view', function(done) {
-        fakeLocation.hash = '#?id=3';
-        fakeLocation.pathname = '/views/conversation/';
-        fakeLocation.href =
-          'app://sms.gaiamobile.org' +
-          fakeLocation.pathname + fakeLocation.hash;
+        setFakeLocation({ pathname: '/views/conversation/', hash: '#?id=3'});
 
         var transitionArgs = { id: '3' };
         Navigation.init().then(() => {
@@ -617,11 +624,9 @@ suite('navigation >', function() {
       });
 
       test('find the right split subview', function(done) {
-        fakeLocation.hash = '#/report-view?id=3';
-        fakeLocation.pathname = '/views/conversation/';
-        fakeLocation.href =
-          'app://sms.gaiamobile.org' +
-          fakeLocation.pathname + fakeLocation.hash;
+        setFakeLocation(
+          { pathname: '/views/conversation/', hash: '#/report-view?id=3' }
+        );
 
         var transitionArgs = { id: '3' };
         Navigation.init().then(() => {
@@ -637,27 +642,53 @@ suite('navigation >', function() {
         }).then(done, done);
       });
 
-      test('Do nothing when an unknown view is asked', function(done) {
+      test('Do nothing when an unknown view is asked (hash)', function(done) {
         this.sinon.stub(console, 'error');
 
-        fakeLocation.hash = '#/unknown?id=3';
-        Navigation.init().then(() => {
+        setFakeLocation({ hash: '#/unknown?id=3' });
+
+        Navigation.init().catch(() => {}).then(() => {
           sinon.assert.notCalled(fakeWindow.InboxView.beforeEnter);
           sinon.assert.notCalled(fakeWindow.InboxView.afterEnter);
           assert.isFalse(Navigation.isCurrentPanel('thread-list'));
           assert.isFalse(elements.InboxView.classList.contains('panel-active'));
-          sinon.assert.called(console.error);
+          sinon.assert.calledTwice(console.error);
+        }).then(done, done);
+      });
+
+      test('Do nothing when an unknown view is asked (path)', function(done) {
+        this.sinon.stub(console, 'error');
+
+        setFakeLocation({ pathname: '/unknown/' });
+
+        Navigation.init().catch(() => {}).then(() => {
+          sinon.assert.notCalled(fakeWindow.InboxView.beforeEnter);
+          sinon.assert.notCalled(fakeWindow.InboxView.afterEnter);
+          assert.isFalse(Navigation.isCurrentPanel('thread-list'));
+          assert.isFalse(elements.InboxView.classList.contains('panel-active'));
+          sinon.assert.calledTwice(console.error);
+        }).then(done, done);
+      });
+
+      test('Load the view from path when an unrelated subview is asked',
+      function(done) {
+        this.sinon.stub(console, 'error');
+
+        setFakeLocation({ pathname: '/views/inbox/', hash: '#/composer?id=3' });
+
+        Navigation.init().then(() => {
+          sinon.assert.called(fakeWindow.InboxView.beforeEnter);
+          sinon.assert.called(fakeWindow.InboxView.afterEnter);
+          assert.isTrue(Navigation.isCurrentPanel('thread-list'));
+          assert.isTrue(elements.InboxView.classList.contains('panel-active'));
+          sinon.assert.calledOnce(console.error);
         }).then(done, done);
       });
     });
 
     suite('URL manipulation >', function() {
       setup(function(done) {
-        fakeLocation.hash = '#?id=3';
-        fakeLocation.pathname = '/views/conversation/';
-        fakeLocation.href =
-          'app://sms.gaiamobile.org' +
-          fakeLocation.pathname + fakeLocation.hash;
+        setFakeLocation({ pathname: '/views/conversation/', hash: '#?id=3' });
 
         Navigation.init().then(done, done);
       });

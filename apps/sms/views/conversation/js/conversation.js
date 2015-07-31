@@ -615,20 +615,18 @@ var ConversationView = {
 
   afterEnterComposer: function conv_afterEnterComposer(args) {
     // TODO Bug 1010223: should move to beforeEnter
-    if (args.draftId) {
-      this.handleDraft(+args.draftId);
-    }
+    var draftPromise =
+      args.draftId ? this.handleDraft(+args.draftId) : Promise.resolve();
 
-    if (args.focusComposer) {
-      Compose.focus();
-    } else {
-      this.recipients.focus();
-    }
+    return draftPromise.then(() => {
+      if (args.focusComposer) {
+        Compose.focus();
+      } else {
+        this.recipients.focus();
+      }
 
-    this.emit('visually-loaded');
-
-    // not strictly necessary but better for consistency
-    return Promise.resolve();
+      this.emit('visually-loaded');
+    });
   },
 
   afterEnterThread: function conv_afterEnterThread(args) {
@@ -735,39 +733,40 @@ var ConversationView = {
   // recalling draft for composer only
   // Bug 1164431 might use it for thread drafts too
   handleDraft: function conv_handleDraft(draftId) {
-    // We'll revisit this.draft necessity in bug 1164435.
-    this.draft = Drafts.byDraftId(draftId);
+    return Drafts.request().then(() => {
+      // We'll revisit this.draft necessity in bug 1164435.
+      this.draft = Drafts.byDraftId(draftId);
 
-    if (!this.draft) {
-      return;
-    }
+      if (!this.draft) {
+        return;
+      }
 
-    // Recipients will exist for draft messages in threads
-    // Otherwise find them from draft recipient numbers
-    this.draft.recipients.forEach(function(number) {
-      Contacts.findByAddress(number).then(function(contacts) {
-        var recipient;
-        if (contacts.length) {
-          recipient = Utils.basicContact(number, contacts[0]);
-          recipient.source = 'contacts';
-        } else {
-          recipient = {
-            number: number,
-            source: 'manual'
-          };
-        }
+      // Recipients will exist for draft messages in threads
+      // Otherwise find them from draft recipient numbers
+      this.draft.recipients.forEach(function(number) {
+        Contacts.findByAddress(number).then(function(contacts) {
+          var recipient;
+          if (contacts.length) {
+            recipient = Utils.basicContact(number, contacts[0]);
+            recipient.source = 'contacts';
+          } else {
+            recipient = {
+              number: number,
+              source: 'manual'
+            };
+          }
 
-        this.recipients.add(recipient);
-      }.bind(this));
-    }, this);
+          this.recipients.add(recipient);
+        }.bind(this));
+      }, this);
 
-    // Render draft contents into the composer input area.
-    Compose.fromDraft(this.draft);
+      // Render draft contents into the composer input area.
+      Compose.fromDraft(this.draft);
+      this.draft.isEdited = false;
 
-    // Discard this draft object and update the backing store
-    Drafts.delete(this.draft).store();
-
-    this.draft.isEdited = false;
+      // Discard this draft object and update the backing store
+      return Drafts.delete(this.draft).store();
+    });
   },
 
   beforeEnterComposer() {
@@ -886,9 +885,11 @@ var ConversationView = {
       return false;
     }
 
-    return panel.panel === 'thread' && +panel.args.id === +id ||
-      panel.panel === 'report-view' && +panel.args.threadId === +id ||
-      panel.panel === 'group-view' && +panel.args.id === +id;
+    id = +id;
+
+    return panel.panel === 'thread' && +panel.args.id === id ||
+      panel.panel === 'report-view' && +panel.args.threadId === id ||
+      panel.panel === 'group-view' && +panel.args.id === id;
   },
 
   onMessageReceived: function conv_onMessageReceived(e) {
