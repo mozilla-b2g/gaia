@@ -171,5 +171,81 @@ suite('dialer/utils', function() {
           'callDurationTextFormatSeconds', { h: '0', m: '0', s: '59' });
       });
     });
+
+    suite('isPhoneType()', function() {
+      test('Identifies known phone types correctly', function() {
+        [
+          'mobile',
+          'home',
+          'work',
+          'personal',
+          'faxHome',
+          'faxOffice',
+          'faxOther',
+          'other'
+        ].forEach(type => { assert.isTrue(Utils.isPhoneType(type)); });
+      });
+      test('Identifies unknown types correctly', function() {
+        assert.isFalse(Utils.isPhoneType('custom-phone-type'));
+      });
+    });
+
+    suite('getLocalizedPhoneNumberAdditionalInfo()', function() {
+      var dummyCarrier = 'Dummy carrier';
+      var dummyCustomType = 'My custom type';
+
+      test('No type, no carrier', function() {
+        var result = Utils.getLocalizedPhoneNumberAdditionalInfo({});
+
+        assert.equal(result, 'phone_type_mobile');
+      });
+
+      test('Specific type, no carrier', function() {
+        var result = Utils.getLocalizedPhoneNumberAdditionalInfo({
+          type: 'work'
+        });
+
+        assert.equal(result, 'phone_type_work');
+      });
+
+      test('Custom type, no carrier', function() {
+        var result = Utils.getLocalizedPhoneNumberAdditionalInfo({
+          type: dummyCustomType
+        });
+
+        assert.propertyVal(result, 'id', 'phone_type_custom');
+        assert.deepPropertyVal(result, 'args.type', dummyCustomType);
+      });
+
+      test('No type with carrier', function() {
+        var result = Utils.getLocalizedPhoneNumberAdditionalInfo({
+          carrier: dummyCarrier
+        });
+
+        assert.propertyVal(result, 'id', 'phone_type_mobile_and_carrier');
+        assert.deepPropertyVal(result, 'args.carrier', dummyCarrier);
+      });
+
+      test('Specific type with carrier', function() {
+        var result = Utils.getLocalizedPhoneNumberAdditionalInfo({
+          carrier: dummyCarrier,
+          type: 'work'
+        });
+
+        assert.propertyVal(result, 'id', 'phone_type_work_and_carrier');
+        assert.deepPropertyVal(result, 'args.carrier', dummyCarrier);
+      });
+
+      test('Custom type with carrier', function() {
+        var result = Utils.getLocalizedPhoneNumberAdditionalInfo({
+          carrier: dummyCarrier,
+          type: dummyCustomType
+        });
+
+        assert.propertyVal(result, 'id', 'phone_type_custom_and_carrier');
+        assert.deepPropertyVal(result, 'args.carrier', dummyCarrier);
+        assert.deepPropertyVal(result, 'args.type', dummyCustomType);
+      });
+    });
   });
 });

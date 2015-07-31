@@ -1,7 +1,6 @@
 /* globals AudioCompetingHelper, CallsHandler, CallScreen,
            ConferenceGroupHandler, Contacts, ContactPhotoHelper,
-           FontSizeManager, FontSizeUtils, LazyL10n, Utils, Voicemail,
-           TonePlayer */
+           FontSizeManager, FontSizeUtils, Utils, Voicemail, TonePlayer */
 
 'use strict';
 
@@ -34,9 +33,9 @@ function HandledCall(aCall) {
   }).bind(this);
 
   this._initialState = this.call.state;
-  this._cachedInfo = '';
-  this._cachedAdditionalTel = '';
-  this._cachedAdditionalTelType = '';
+  this._cachedInfo = null;
+  this._cachedAdditionalTel = null;
+  this._cachedAdditionalTelType = null;
   this._removed = false;
   this._wasConnected = false;
 
@@ -77,22 +76,19 @@ function HandledCall(aCall) {
   this.mutationObserver.observe(this.durationChildNode,
                                 this.mutationObserverConfig);
 
-  LazyL10n.get((function localized(_) {
-    var durationMessage = (this.call.state === 'incoming') ?
-                           _('incoming') : _('connecting');
-    this.durationChildNode.textContent = durationMessage;
-    this.updateDirection();
+  navigator.mozL10n.setAttributes(this.durationChildNode,
+    (this.call.state === 'incoming') ? 'incoming' : 'connecting');
+  this.updateDirection();
 
-    if (navigator.mozIccManager.iccIds.length > 1) {
-      this.node.classList.add('sim-info');
-      var n = this.call.serviceId + 1;
-      this.viaSimNode.textContent = _('via-sim', { n: n });
-      this.simNumberNode.textContent = _('sim-number', { n: n });
-    } else {
-      this.viaSimNode.hidden = true;
-      this.simNumberNode.hidden = true;
-    }
-  }).bind(this));
+  if (navigator.mozIccManager.iccIds.length > 1) {
+    this.node.classList.add('sim-info');
+    var n = this.call.serviceId + 1;
+    navigator.mozL10n.setAttributes(this.viaSimNode, 'via-sim', { n: n });
+    navigator.mozL10n.setAttributes(this.simNumberNode, 'sim-number', { n: n });
+  } else {
+    this.viaSimNode.hidden = true;
+    this.simNumberNode.hidden = true;
+  }
 
   // Some calls might be already connected
   if (this._initialState === 'connected') {
@@ -216,7 +212,6 @@ HandledCall.prototype.handleEvent = function hc_handle(evt) {
 
 HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
   var number = this.call.id.number;
-  var node = this.numberNode;
   var self = this;
 
   CallScreen.setCallerContactImage();
@@ -224,46 +219,28 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
   /* If we have a second call waiting in CDMA mode then we don't know which
    * number is currently active */
   if (this.call.secondId) {
-    LazyL10n.get(function localized(_) {
-      node.textContent = _('switch-calls');
-      self._cachedInfo = _('switch-calls');
-      self._cachedAdditionalTel = '';
-      self._cachedAdditionalTelType = '';
-      self.replaceAdditionalContactInfo('', '');
-      self.numberNode.style.fontSize = '';
-    });
+    this.replacePhoneNumber('switch-calls');
+    this.replaceAdditionalContactInfo(null, null);
     return;
   }
 
   if (!number) {
-    LazyL10n.get(function localized(_) {
-      node.textContent = _('withheld-number');
-      self._cachedInfo = _('withheld-number');
-    });
+    this.replacePhoneNumber('withheld-number');
     return;
   }
 
   var isEmergencyNumber = this.call.emergency;
   if (isEmergencyNumber) {
     this.node.classList.add('emergency');
-    LazyL10n.get(function localized(_) {
-      self.replacePhoneNumber(number, 'end');
-      self._cachedInfo = number;
-      self.replaceAdditionalContactInfo(_('emergencyNumber'), '');
-      self._cachedAdditionalTel = _('emergencyNumber');
-      self._cachedAdditionalTelType = '';
-    });
-
+    this.replacePhoneNumber({ raw: number }, 'end');
+    this.replaceAdditionalContactInfo('emergencyNumber');
     return;
   }
 
   Voicemail.check(number, this.call.serviceId).then(
   function(isVoicemailNumber) {
     if (isVoicemailNumber) {
-      LazyL10n.get(function localized(_) {
-        node.textContent = _('voiceMail');
-        self._cachedInfo = _('voiceMail');
-      });
+      self.replacePhoneNumber('voiceMail');
     } else {
       Contacts.findByNumber(number, lookupContact);
       checkICCMessage();
@@ -276,8 +253,7 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
     callMessageReq.onsuccess = function onCallMessageSuccess() {
       self._iccCallMessage = callMessageReq.result['icc.callmessage'];
       if (self._iccCallMessage) {
-        self.replacePhoneNumber(self._iccCallMessage, 'end');
-        self._cachedInfo = self._iccCallMessage;
+        self.replacePhoneNumber({ raw: self._iccCallMessage }, 'end');
         navigator.mozSettings.createLock().set({'icc.callmessage': null});
       }
     };
@@ -289,65 +265,70 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
     }
     if (contact) {
       var primaryInfo = Utils.getPhoneNumberPrimaryInfo(matchingTel, contact);
-      var contactCopy = {
-        id: contact.id,
-        name: contact.name,
-        org: contact.org,
-        tel: contact.tel
-      };
       if (primaryInfo) {
-        node.textContent = primaryInfo;
-        self._cachedInfo = primaryInfo;
+        self.replacePhoneNumber({ raw: primaryInfo[0] }, 'end');
       } else {
-        LazyL10n.get(function gotL10n(_) {
-          self._cachedInfo = _('withheld-number');
-          node.textContent = self._cachedInfo;
-        });
+        self.replacePhoneNumber('withheld-number');
       }
-      self._cachedAdditionalTel = matchingTel.value;
-      self._cachedAdditionalTelType =
-        Utils.getPhoneNumberAdditionalInfo(matchingTel);
-      self.replaceAdditionalContactInfo(
-        self._cachedAdditionalTel, self._cachedAdditionalTelType);
-      self.formatPhoneNumber('end');
+      self.replaceAdditionalContactInfo({ raw: matchingTel.value },
+        Utils.getLocalizedPhoneNumberAdditionalInfo(matchingTel));
+
       var photo = ContactPhotoHelper.getFullResolution(contact);
       if (photo) {
         self.photo = photo;
         CallScreen.setCallerContactImage();
-
-        var thumbnail = ContactPhotoHelper.getThumbnail(contact);
-        contactCopy.photo = [thumbnail];
       }
 
       return;
     }
 
-    self._cachedInfo = number;
-    node.textContent = self._cachedInfo;
-    self.replaceAdditionalContactInfo(
-      self._cachedAdditionalTel, self._cachedAdditionalTelType);
-    self.formatPhoneNumber('end');
+    self.replacePhoneNumber({ raw: number }, 'end');
+    self.replaceAdditionalContactInfo(self._cachedAdditionalTel,
+                                      self._cachedAdditionalTelType);
   }
 };
 
 HandledCall.prototype.replaceAdditionalContactInfo =
   function hc_replaceAdditionalContactInfo(additionalTel, additionalTelType) {
-  if ((!additionalTel && !additionalTelType) ||
-      (additionalTel.trim() === '' && additionalTelType.trim() === '')) {
+  if (!additionalTel && !additionalTelType) {
+    this.additionalTelNode.removeAttribute('data-l10n-id');
     this.additionalTelNode.textContent = '';
+    this.additionalTelTypeNode.removeAttribute('data-l10n-id');
     this.additionalTelTypeNode.textContent = '';
     this.node.classList.remove('additionalInfo');
   } else {
-    this.additionalTelNode.textContent = additionalTel;
-    this.additionalTelTypeNode.textContent = additionalTelType;
+    if (typeof(additionalTel) === 'string') {
+      navigator.mozL10n.setAttributes(this.additionalTelNode, additionalTel);
+    } else if (additionalTel.id) {
+      navigator.mozL10n.setAttributes(this.additionalTelNode, additionalTel.id,
+                                      additionalTel.args);
+    } else if (additionalTel.raw) {
+      this.additionalTelNode.removeAttribute('data-l10n-id');
+      this.additionalTelNode.textContent = additionalTel.raw;
+    }
+
+    if (additionalTelType) {
+      if (typeof(additionalTelType) === 'string') {
+        navigator.mozL10n.setAttributes(this.additionalTelTypeNode,
+                                        additionalTelType);
+      } else if (additionalTelType.id) {
+        navigator.mozL10n.setAttributes(this.additionalTelTypeNode,
+                                        additionalTelType.id,
+                                        additionalTelType.args);
+      }
+    }
+
     this.node.classList.add('additionalInfo');
   }
+
+  this._cachedAdditionalTel = additionalTel;
+  this._cachedAdditionalTelType = additionalTelType || null;
 };
 
 HandledCall.prototype.restoreAdditionalContactInfo =
   function hc_restoreAdditionalContactInfo() {
-    this.replaceAdditionalContactInfo(
-      this._cachedAdditionalTel, this._cachedAdditionalTelType);
+    this.replaceAdditionalContactInfo(this._cachedAdditionalTel,
+                                      this._cachedAdditionalTelType);
 };
 
 HandledCall.prototype.formatPhoneNumber =
@@ -361,7 +342,6 @@ HandledCall.prototype.formatPhoneNumber =
       this.numberNode.style = '';
       return;
     }
-
 
     var scenario = CallScreen.getScenario();
     // To cover the second incoming call sub-scenario of the call waiting one,
@@ -382,30 +362,37 @@ HandledCall.prototype.formatPhoneNumber =
 };
 
 HandledCall.prototype.replacePhoneNumber =
-  function hc_replacePhoneNumber(phoneNumber, ellipsisSide) {
-    this.numberNode.textContent = phoneNumber;
-    this.formatPhoneNumber(ellipsisSide);
+  function hc_replacePhoneNumber(number, ellipsisSide) {
+    if (typeof(number) === 'string') {
+      navigator.mozL10n.setAttributes(this.numberNode, number);
+    } else if (number.id) {
+      navigator.mozL10n.setAttributes(this.numberNode, number.id,
+                                      number.args);
+      this.numberNode.style.fontSize = '';
+    } else if (number.raw) {
+      this.numberNode.removeAttribute('data-l10n-id');
+      this.numberNode.textContent = number.raw;
+      this.formatPhoneNumber(ellipsisSide);
+    }
+
+    this._cachedInfo = number;
 };
 
 HandledCall.prototype.restorePhoneNumber =
   function hc_restorePhoneNumber() {
-    this.numberNode.textContent = this._cachedInfo;
-    this.formatPhoneNumber('end');
+    this._cachedInfo && this.replacePhoneNumber(this._cachedInfo, 'end');
 };
 
 HandledCall.prototype.updateDirection = function hc_updateDirection() {
-  var self = this;
   var classList = this.node.classList;
   if (this._initialState === 'incoming') {
     classList.add('incoming');
-    LazyL10n.get(function localized(_) {
-      self.node.setAttribute('aria-label', _('incoming'));
-    });
+    // XXX: This should be replaced with mozL10n.setAttribute whenever possible
+    this.node.setAttribute('aria-label', 'incoming');
   } else {
     classList.add('outgoing');
-    LazyL10n.get(function localized(_) {
-      self.node.setAttribute('aria-label', _('outgoing'));
-    });
+    // XXX: This should be replaced with mozL10n.setAttribute whenever possible
+    this.node.setAttribute('aria-label', 'outgoing');
   }
 
   if (this.call.state === 'connected') {
@@ -427,11 +414,11 @@ HandledCall.prototype.remove = function hc_remove() {
   this.durationNode.classList.remove('isTimer');
 
   /* This string will be resized automatically to fit its container, see
-   * hc_mutationObserver() & hc_computeCallEndedFontSizeRules. */
+   * hc_observeMutations() & hc_computeCallEndedFontSizeRules. */
   navigator.mozL10n.setAttributes(this.durationChildNode, 'callEnded');
 
   // FIXME/bug 1007148: Refactor duration element structure. No number or ':'
-  //  existence checking will be necessary.
+  // existence checking will be necessary.
   var totalDuration = !!currentDuration.match(/\d+/g) ? currentDuration : '';
   this.totalDurationNode.textContent = totalDuration;
 
@@ -456,10 +443,22 @@ HandledCall.prototype.connected = function hc_connected() {
 
 HandledCall.prototype.disconnected = function hc_disconnected() {
   if (this._leftGroup) {
-    CallScreen.showStatusMessage({
-      id: 'caller-left-call',
-      args: { caller: this._cachedInfo.toString() }
-    });
+    if (typeof(this._cachedInfo) === 'string') {
+      CallScreen.showStatusMessage(this._cachedInfo);
+    } else if (this._cachedInfo.id) {
+      const disconnectedMessageL10n = {
+        'withheld-number': 'withheld-number-left-call',
+        'voiceMail':       'voicemail-left-call'
+      };
+      var id = disconnectedMessageL10n[this._cachedInfo.id];
+
+      CallScreen.showStatusMessage(id);
+    } else if (this._cachedInfo.raw) {
+      CallScreen.showStatusMessage({
+        id: 'caller-left-call',
+        args: { caller: this._cachedInfo.raw }
+      });
+    }
 
     this._leftGroup = false;
   }
