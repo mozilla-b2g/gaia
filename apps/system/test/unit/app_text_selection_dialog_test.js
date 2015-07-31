@@ -76,6 +76,7 @@ suite('system/AppTextSelectionDialog', function() {
     mockDetail.type = 'caretstatechanged';
     mockDetail.detail.caretVisible = true;
     mockDetail.detail.selectionVisible = true;
+    mockDetail.detail.selectionEditable = true;
     fakeTextSelectInAppEvent.detail = mockDetail;
     td.handleEvent(fakeTextSelectInAppEvent);
 
