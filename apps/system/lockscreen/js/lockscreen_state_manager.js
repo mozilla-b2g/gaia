@@ -660,7 +660,14 @@
     if (this.lockScreenStates.passcodeEnabled instanceof
         LockScreenStateManager.Deferred) {
       // So those waiting the promise can go on.
-      this.lockScreenStates.passcodeEnabled.resolve(val);
+      var resolve = this.lockScreenStates.passcodeEnabled.resolve;
+      // Remember: inputs of this transition request is NOT what
+      // the manager keeps. This is due to some request, like pressing homekey,
+      // is a one-time event, and will not update the inner states table.
+      // So if an event is changing the inner states table, we need to
+      // toggle the value here, not in the resolver of postponed request.
+      this.lockScreenStates.passcodeEnabled = val;
+      resolve(val);
     } else {
       this.lockScreenStates.passcodeEnabled = val;
     }

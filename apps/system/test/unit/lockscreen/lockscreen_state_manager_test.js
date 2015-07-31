@@ -72,6 +72,27 @@ suite('system/LockScreenStateManager', function() {
   });
 
   suite('self-test all methods: ', function() {
+    test('|onPasscodeEnabledChanged| can handle delay request well',
+    function(done) {
+      var method = LockScreenStateManager.prototype.onPasscodeEnabledChanged;
+      var mockThis = {
+        lockScreenStates: {
+          passcodeEnabled: new LockScreenStateManager.Deferred()
+        }
+      };
+      mockThis.lockScreenStates.passcodeEnabled.promise.then((val) => {
+        assert.equal(false, val,
+          'The delay request can\'t get the reading value');
+        done();
+      }).catch(done);
+      method.call(mockThis, false);
+      assert.isFalse(mockThis.lockScreenStates.passcodeEnabled instanceof
+        LockScreenStateManager.Deferred,
+        'it doesn\'t replace the delay request with the read value');
+      assert.equal(false, mockThis.lockScreenStates.passcodeEnabled,
+        'it doesn\'t replace the delay request with the read value');
+    });
+
     test('|resolveInnerStates| would wait all states with promises',
     function(done) {
       var method = LockScreenStateManager.prototype.resolveInnerStates;
