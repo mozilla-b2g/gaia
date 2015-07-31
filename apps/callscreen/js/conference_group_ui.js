@@ -152,19 +152,11 @@ var ConferenceGroupUI = (function() {
 
   /**
    * Sets the title of the ongoing conference call details information overlay.
-   *
-   * @param {String|Object} text The text to display, can be either a string
-   *        in which case it's interpreted as an l10n id or an object holding
-   *        both the l10n id & args.
+   * @param {String} text The text to set as the title.
    */
   function setGroupDetailsHeader(text) {
     _init(function() {
-      if (typeof(text) === 'string') {
-        navigator.mozL10n.setAttributes(bdiGroupCallsCountElt, text);
-      } else {
-        navigator.mozL10n.setAttributes(bdiGroupCallsCountElt,
-                                        text.id, text.args);
-      }
+      bdiGroupCallsCountElt.textContent = text;
     });
   }
 

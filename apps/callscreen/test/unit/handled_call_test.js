@@ -1,29 +1,28 @@
 /* globals AudioCompetingHelper, ConferenceGroupHandler, FontSizeManager,
-           HandledCall, l10nAssert, MockCall, MockCallScreen, MockCallsHandler,
-           MockContactPhotoHelper, MockContacts, MockFontSizeUtils, MockL10n,
-           MockNavigatorMozIccManager, MockNavigatorSettings, MocksHelper,
-           MockTonePlayer, MockUtils, MockVoicemail */
+           HandledCall, MockCall, MockCallScreen, MockCallsHandler,
+           MockContactPhotoHelper, MockContacts, MockFontSizeUtils,
+           MockLazyL10n, MockMozL10n, MockNavigatorMozIccManager,
+           MockNavigatorSettings, MocksHelper, MockTonePlayer, MockUtils,
+           MockVoicemail */
 
 'use strict';
 
-require('/shared/test/unit/l10n_helper.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+require('/test/unit/mock_call_screen.js');
+require('/test/unit/mock_conference_group_handler.js');
 require('/shared/test/unit/mocks/mock_audio.js');
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 require('/shared/test/unit/mocks/mock_font_size_utils.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
 require('/shared/test/unit/mocks/dialer/mock_contacts.js');
 require('/shared/test/unit/mocks/dialer/mock_keypad.js');
 require('/shared/test/unit/mocks/dialer/mock_utils.js');
+require('/shared/test/unit/mocks/dialer/mock_lazy_l10n.js');
 require('/shared/test/unit/mocks/dialer/mock_call.js');
 require('/shared/test/unit/mocks/dialer/mock_calls_handler.js');
 require('/shared/test/unit/mocks/dialer/mock_tone_player.js');
 require('/shared/test/unit/mocks/dialer/mock_font_size_manager.js');
 require('/shared/test/unit/mocks/mock_voicemail.js');
-
-require('/test/unit/mock_call_screen.js');
-require('/test/unit/mock_conference_group_handler.js');
 
 require('/js/audio_competing_helper.js');
 require('/js/handled_call.js');
@@ -38,6 +37,7 @@ var mocksHelperForHandledCall = new MocksHelper([
   'FontSizeUtils',
   'KeypadManager',
   'Utils',
+  'LazyL10n',
   'ContactPhotoHelper',
   'TonePlayer',
   'FontSizeManager',
@@ -64,7 +64,7 @@ suite('dialer/handled_call', function() {
 
   suiteSetup(function() {
     realMozL10n = navigator.l10n;
-    navigator.mozL10n = MockL10n;
+    navigator.mozL10n = MockMozL10n;
 
     realNavigatorSettings = navigator.mozSettings;
     navigator.mozSettings = MockNavigatorSettings;
@@ -121,9 +121,6 @@ suite('dialer/handled_call', function() {
                     'getFullResolution').returns(photoFullResolution);
     this.sinon.stub(MockContactPhotoHelper,
                     'getThumbnail').returns(photoThumbnail);
-    this.sinon.stub(MockFontSizeUtils, 'getMaxFontSizeInfo').returns({
-      fontSize: 1.0
-    });
     this.sinon.useFakeTimers(Date.now());
 
     mockCall = new MockCall(String(phoneNumber), 'dialing');
@@ -219,16 +216,15 @@ suite('dialer/handled_call', function() {
 
     test('duration outgoing', function() {
       assert.ok(subject.durationChildNode);
-      l10nAssert(subject.durationChildNode, 'connecting');
+      assert.equal(subject.durationChildNode.textContent, 'connecting');
     });
 
     test('duration incoming', function() {
       mockCall = new MockCall('888', 'incoming');
       subject = new HandledCall(mockCall);
-      MockVoicemail.mResolvePromise(false);
 
       assert.ok(subject.durationChildNode);
-      l10nAssert(subject.durationChildNode, 'incoming');
+      assert.equal(subject.durationChildNode.textContent, 'incoming');
     });
 
     test('number', function() {
@@ -243,7 +239,6 @@ suite('dialer/handled_call', function() {
     test('support for calls already connected at init', function() {
       mockCall = new MockCall(String(phoneNumber), 'connected');
       subject = new HandledCall(mockCall);
-      MockVoicemail.mResolvePromise(false);
 
       assert.isFalse(subject.node.hidden);
       assert.isTrue(subject.node.classList.contains('ongoing'));
@@ -402,8 +397,15 @@ suite('dialer/handled_call', function() {
       });
 
       test('should show call ended', function() {
+        var span = subject.node.querySelector('.duration span');
+
+        this.sinon.stub(MockMozL10n, 'setAttributes', function(element, id) {
+          element.setAttribute('data-l10n-id', id);
+        });
+
         mockCall._disconnect();
-        l10nAssert(subject.node.querySelector('.duration span'), 'callEnded');
+        assert.isTrue(span.hasAttribute('data-l10n-id'));
+        assert.equal(span.getAttribute('data-l10n-id'), 'callEnded');
       });
 
       test('should not show the total call duration', function() {
@@ -572,7 +574,6 @@ suite('dialer/handled_call', function() {
       setup(function() {
         mockCall = new MockCall('888', 'outgoing');
         subject = new HandledCall(mockCall);
-        MockVoicemail.mResolvePromise(false);
       });
 
       test('before and after connexion', function() {
@@ -581,7 +582,6 @@ suite('dialer/handled_call', function() {
         mockCall._connect();
         assert.isTrue(subject.node.classList.contains('ongoing'));
         assert.isTrue(subject.node.classList.contains('outgoing'));
-        assert.isTrue(subject.node.hasAttribute('aria-label'));
         assert.equal(subject.node.getAttribute('aria-label'), 'outgoing');
       });
     });
@@ -590,7 +590,6 @@ suite('dialer/handled_call', function() {
       setup(function() {
         mockCall = new MockCall('888', 'incoming');
         subject = new HandledCall(mockCall);
-        MockVoicemail.mResolvePromise(false);
       });
 
       test('before and after connexion', function() {
@@ -599,7 +598,6 @@ suite('dialer/handled_call', function() {
         mockCall._connect();
         assert.isTrue(subject.node.classList.contains('ongoing'));
         assert.isTrue(subject.node.classList.contains('incoming'));
-        assert.isTrue(subject.node.hasAttribute('aria-label'));
         assert.equal(subject.node.getAttribute('aria-label'), 'incoming');
       });
     });
@@ -616,19 +614,17 @@ suite('dialer/handled_call', function() {
   test('should display withheld-number l10n key', function() {
     mockCall = new MockCall('', 'incoming');
     subject = new HandledCall(mockCall);
-    MockVoicemail.mResolvePromise(false);
 
-    l10nAssert(subject.numberNode, 'withheld-number');
+    assert.equal(subject.numberNode.textContent, 'withheld-number');
   });
 
   test('should display switch-calls l10n key', function() {
     mockCall = new MockCall('888', 'connected');
     subject = new HandledCall(mockCall);
     mockCall.secondId = { number: '999' };
-    MockVoicemail.mResolvePromise(false);
     subject.updateCallNumber();
 
-    l10nAssert(subject.numberNode, 'switch-calls');
+    assert.equal(subject.numberNode.textContent, 'switch-calls');
   });
 
   suite('Emergency Call layout', function() {
@@ -639,7 +635,6 @@ suite('dialer/handled_call', function() {
     test('should set the emergency class', function() {
       mockCall = new MockCall('112', 'dialing');
       subject = new HandledCall(mockCall);
-      MockVoicemail.mResolvePromise(false);
 
       assert.isTrue(subject.node.classList.contains('emergency'));
     });
@@ -648,9 +643,8 @@ suite('dialer/handled_call', function() {
       mockCall = new MockCall('112', 'dialing');
       mockCall.emergency = true;
       subject = new HandledCall(mockCall);
-      MockVoicemail.mResolvePromise(false);
 
-      l10nAssert(subject.additionalTelNode, 'emergencyNumber');
+      assert.equal(subject.additionalTelNode.textContent, 'emergencyNumber');
     });
   });
 
@@ -659,33 +653,22 @@ suite('dialer/handled_call', function() {
     subject = new HandledCall(mockCall);
     MockVoicemail.mResolvePromise(true);
 
-    l10nAssert(subject.numberNode, 'voiceMail');
+    assert.equal(subject.numberNode.textContent, 'voiceMail');
   });
 
   suite('additional information', function() {
     test('check additional info updated', function() {
-      this.sinon.stub(MockUtils, 'getLocalizedPhoneNumberAdditionalInfo')
-                .returns({
-        id: 'phone_type_custom_and_carrier',
-        args: { type: 'type', carrier: 'carrier' }
-      });
       mockCall = new MockCall('888', 'incoming');
       subject = new HandledCall(mockCall);
       MockVoicemail.mResolvePromise(false);
       assert.equal(subject.additionalTelNode.textContent, '888');
-      l10nAssert(
-        subject.additionalTelTypeNode, {
-          id: 'phone_type_custom_and_carrier',
-          args: { type: 'type', carrier: 'carrier' }
-        }
-      );
+      assert.equal(subject.additionalTelTypeNode.textContent, 'type, carrier');
     });
 
     test('check switch-calls mode', function() {
       mockCall = new MockCall('888', 'connected');
       subject = new HandledCall(mockCall);
       mockCall.secondId = { number: '999' };
-      MockVoicemail.mResolvePromise(false);
       subject.updateCallNumber();
 
       assert.equal('', subject.additionalTelNode.textContent);
@@ -699,28 +682,19 @@ suite('dialer/handled_call', function() {
       setup(function() {
         mockCall = new MockCall('888', 'incoming');
         subject = new HandledCall(mockCall);
-        MockVoicemail.mResolvePromise(false);
       });
 
       suite('when there are additional infos to display', function() {
         setup(function() {
           subject.replaceAdditionalContactInfo(
-            { raw: 'test additional tel' }, {
-              id: 'phone_type_mobile_and_carrier',
-              args: { carrier: 'carrier' }
-            }
-          );
+            'test additional tel', 'test additional tel-type');
         });
 
         test('should update the text content', function() {
           assert.equal(subject.additionalTelNode.textContent,
                        'test additional tel');
-          l10nAssert(
-            subject.additionalTelTypeNode, {
-              id: 'phone_type_mobile_and_carrier',
-              args: { carrier: 'carrier' }
-            }
-          );
+          assert.equal(subject.additionalTelTypeNode.textContent,
+                       'test additional tel-type');
         });
 
         test('should add the proper css class', function() {
@@ -780,29 +754,18 @@ suite('dialer/handled_call', function() {
     test('should call resetFixedBaseline without a contact', function() {
       mockCall = new MockCall('111', 'dialing');
       subject = new HandledCall(mockCall);
-      MockVoicemail.mResolvePromise(false);
       this.sinon.spy(FontSizeManager, 'resetFixedBaseline');
       subject.formatPhoneNumber('end');
       sinon.assert.calledWith(
         FontSizeManager.resetFixedBaseline, subject.numberNode);
     });
 
-    test('check replace number with regular number', function() {
+    test('check replace number', function() {
       mockCall = new MockCall('888', 'incoming');
       subject = new HandledCall(mockCall);
-      MockVoicemail.mResolvePromise(false);
 
-      subject.replacePhoneNumber({ raw: '12345678' });
-      l10nAssert(subject.numberNode, { raw: '12345678' });
-    });
-
-    test('check replace number with l10n id', function() {
-      mockCall = new MockCall('', 'incoming');
-      subject = new HandledCall(mockCall);
-      MockVoicemail.mResolvePromise(false);
-
-      subject.replacePhoneNumber('withheld-number');
-      l10nAssert(subject.numberNode, 'withheld-number');
+      subject.replacePhoneNumber('12345678');
+      assert.equal(subject.numberNode.textContent, '12345678');
     });
 
     test('check restore number', function() {
@@ -810,7 +773,7 @@ suite('dialer/handled_call', function() {
       subject = new HandledCall(mockCall);
       MockVoicemail.mResolvePromise(false);
 
-      subject.numberNode.textContent = '12345678';
+      subject.replacePhoneNumber('12345678');
       subject.restorePhoneNumber();
       assert.equal(subject.numberNode.textContent, 'test name');
     });
@@ -818,10 +781,9 @@ suite('dialer/handled_call', function() {
     test('check restore withheld-number', function() {
       mockCall = new MockCall('', 'incoming');
       subject = new HandledCall(mockCall);
-      MockVoicemail.mResolvePromise(false);
 
       subject.restorePhoneNumber();
-      l10nAssert(subject.numberNode, 'withheld-number');
+      assert.equal(subject.numberNode.textContent, 'withheld-number');
     });
 
    test('check restore voicemail number', function() {
@@ -830,14 +792,13 @@ suite('dialer/handled_call', function() {
       MockVoicemail.mResolvePromise(true);
 
       subject.restorePhoneNumber();
-      l10nAssert(subject.numberNode, 'voiceMail');
+      assert.equal(subject.numberNode.textContent, 'voiceMail');
     });
 
    test('check restore emergency number', function() {
       mockCall = new MockCall('112', 'incoming');
       mockCall.emergency = true;
       subject = new HandledCall(mockCall);
-      MockVoicemail.mResolvePromise(false);
 
       subject.restorePhoneNumber();
       assert.equal(subject.numberNode.textContent, '112');
@@ -852,7 +813,6 @@ suite('dialer/handled_call', function() {
     test('should reset photo when receiving a new handled call', function() {
       mockCall = new MockCall('111', 'incoming');
       subject = new HandledCall(mockCall);
-      MockVoicemail.mResolvePromise(false);
 
       assert.isTrue(MockCallScreen.mSetCallerContactImageCalled);
     });
@@ -904,7 +864,6 @@ suite('dialer/handled_call', function() {
     setup(function() {
       mockCall = new MockCall(String(phoneNumber), 'connected');
       subject = new HandledCall(mockCall);
-      MockVoicemail.mResolvePromise(false);
 
       addToGroupDetailsSpy = this.sinon.spy(
         ConferenceGroupHandler, 'addToGroupDetails');
@@ -992,7 +951,6 @@ suite('dialer/handled_call', function() {
     test('hangup button', function() {
       mockCall = new MockCall(String(phoneNumber), 'connected');
       subject = new HandledCall(mockCall);
-      MockVoicemail.mResolvePromise(false);
 
       var hangUpSpy = this.sinon.spy(mockCall, 'hangUp');
       subject.hangupButton.onclick();
@@ -1009,7 +967,6 @@ suite('dialer/handled_call', function() {
       test('should hide the sim nodes', function() {
         mockCall = new MockCall('888', 'outgoing');
         subject = new HandledCall(mockCall);
-        MockVoicemail.mResolvePromise(false);
 
         assert.isTrue(subject.viaSimNode.hidden);
         assert.isTrue(subject.simNumberNode.hidden);
@@ -1024,13 +981,15 @@ suite('dialer/handled_call', function() {
       test('should show which sim is in use', function() {
         mockCall = new MockCall('888', 'outgoing');
         subject = new HandledCall(mockCall);
-        MockVoicemail.mResolvePromise(false);
 
         assert.isFalse(subject.viaSimNode.hidden);
         assert.isFalse(subject.simNumberNode.hidden);
 
-        l10nAssert(subject.viaSimNode, { id: 'via-sim', args: { n: 2 } });
-        l10nAssert(subject.simNumberNode, { id: 'sim-number', args: { n: 2 } });
+        assert.equal(subject.viaSimNode.textContent, 'via-sim');
+        assert.deepEqual(MockLazyL10n.keys['via-sim'], {n: 2});
+
+        assert.equal(subject.simNumberNode.textContent, 'sim-number');
+        assert.deepEqual(MockLazyL10n.keys['sim-number'], {n: 2});
       });
     });
   });
@@ -1071,19 +1030,19 @@ suite('dialer/handled_call', function() {
       mockCall._connect();
       MockVoicemail.mResolvePromise(true);
 
-      l10nAssert(subject.numberNode, 'voiceMail');
+      assert.equal(subject.numberNode.textContent, 'voiceMail');
     });
 
     test('should correctly identify emergency', function() {
+      //simulate the STK change to a different number
       mockCall = new MockCall('555', 'dialing');
       subject = new HandledCall(mockCall);
-      MockVoicemail.mResolvePromise(false);
 
       mockCall.id.number = '112';
       mockCall.emergency = true;
       mockCall._connect();
 
-      l10nAssert(subject.additionalTelNode, 'emergencyNumber');
+      assert.equal(subject.additionalTelNode.textContent, 'emergencyNumber');
       assert.isTrue(subject.node.classList.contains('emergency'));
       assert.isTrue(subject.node.textContent.includes('112'));
     });
@@ -1111,6 +1070,9 @@ suite('dialer/handled_call', function() {
 
     test('Disconnects and reconnects the observer before adjusting the string',
     function() {
+      this.sinon.stub(MockFontSizeUtils, 'getMaxFontSizeInfo').returns({
+        fontSize: 1.0
+      });
       durationChildNode.setAttribute('data-l10n-id', 'callEnded');
       subject.observeMutation();
       assert.isTrue(

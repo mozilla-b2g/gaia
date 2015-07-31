@@ -1,4 +1,4 @@
-/* globals MultiSimActionButton, MocksHelper, MockL10n,
+/* globals MultiSimActionButton, MocksHelper, MockMozL10n,
            MockNavigatorMozIccManager, MockNavigatorMozTelephony,
            MockSettingsListener, MockTelephonyHelper, CustomElementsHelper,
            ALWAYS_ASK_OPTION_VALUE
@@ -6,11 +6,11 @@
 
 'use strict';
 
-require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
+require('/shared/test/unit/mocks/dialer/mock_lazy_l10n.js');
 require('/shared/test/unit/mocks/dialer/mock_telephony_helper.js');
 require(
   '/shared/test/unit/mocks/elements/gaia_sim_picker/mock_gaia_sim_picker.js');
@@ -18,6 +18,7 @@ require(
 require('/shared/js/multi_sim_action_button.js');
 
 var mocksHelperForMultiSimActionButton = new MocksHelper([
+  'LazyL10n',
   'LazyLoader',
   'GaiaSimPicker',
   'SettingsListener'
@@ -101,7 +102,7 @@ suite('multi SIM action button', function() {
     navigator.mozTelephony = MockNavigatorMozTelephony;
 
     realMozL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    navigator.mozL10n = MockMozL10n;
 
     realMozIccManager = navigator.mozIccManager;
     navigator.mozIccManager = MockNavigatorMozIccManager;
@@ -307,7 +308,7 @@ suite('multi SIM action button', function() {
     };
 
     var shouldNotShowAnIndicator = function() {
-      var setAttributesSpy = this.sinon.spy(MockL10n, 'setAttributes');
+      var setAttributesSpy = this.sinon.spy(MockMozL10n, 'setAttributes');
       initSubject();
       sinon.assert.notCalled(setAttributesSpy);
     };
@@ -321,7 +322,7 @@ suite('multi SIM action button', function() {
 
     suite('with SIM indication', function() {
       setup(function() {
-        setAttributesSpy = this.sinon.spy(MockL10n, 'setAttributes');
+        setAttributesSpy = this.sinon.spy(MockMozL10n, 'setAttributes');
         initWithIndicationElement();
       });
 
