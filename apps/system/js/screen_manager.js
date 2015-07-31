@@ -88,6 +88,13 @@
      */
     _cpuWakeLock: null,
 
+    /*
+     * A screen reader feature to allow screen brightness to remain 0
+     * regardless of the enabled state of the screen. This allows the user to
+     * conserve battery and have more privacy while still using the touchscreen.
+     */
+    _screenShade: false,
+
     start: function() {
       window.addEventListener('attentionopening', this);
       window.addEventListener('attentionopened', this);
@@ -182,6 +189,8 @@
       Service.registerState('screenEnabled', this);
       Service.register('turnScreenOn', this);
       Service.register('turnScreenOff', this);
+      Service.register('turnShadeOn', this);
+      Service.register('turnShadeOff', this);
     },
 
     handleEvent: function scm_handleEvent(evt) {
@@ -331,6 +340,23 @@
       } else {
         this.turnScreenOn();
       }
+    },
+
+    turnShadeOn: function scm_turnShadeOn() {
+      this._screenShade = true;
+      // Remember the current screen brightness. We will restore it when
+      // we turn the shade back on.
+      this._savedBrightness = navigator.mozPower.screenBrightness;
+      this.setScreenBrightness(0, true);
+    },
+
+    turnShadeOff: function scm_turnShadeOff() {
+      // Bug 1185036: If the screen was disable with the shade on, we won't
+      // the screen won't turn on again until the user puts their finger on the
+      // screen again.
+      var brightness = this._savedBrightness || this._userBrightness || 1;
+      this._screenShade = false;
+      this.setScreenBrightness(brightness, true);
     },
 
     turnScreenOff: function scm_turnScreenOff(instant, reason) {
@@ -507,6 +533,11 @@
      },
 
     setScreenBrightness: function scm_setScreenBrightness(brightness, instant) {
+      // Don't touch the brightness if the screen shade is on.
+      if (this._screenShade && !!brightness) {
+        return;
+      }
+
       this._targetBrightness = brightness;
       var power = navigator.mozPower;
       if (!power) {
