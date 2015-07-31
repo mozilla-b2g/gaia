@@ -15,7 +15,7 @@
  */
 
 /* global SettingsListener */
-/* global LockScreenStateSlideShow, LockScreenStateSlideHide */
+/* global LockScreenStateSlideShow */
 /* global LockScreenStateKeypadShow */
 /* global LockScreenStateKeypadHiding, LockScreenStateKeypadRising */
 /* global LockScreenStatePanelHide */
@@ -76,7 +76,7 @@
     this.lockScreen = lockScreen;
     this.lockScreen.init();
     this.logger = (new LockScreenStateLogger()).start({
-      debug: false,
+      debug: true,
       error: true
     });
     this.configs = {
@@ -108,7 +108,6 @@
     this.states = {
       slideRestore: (new LockScreenStateSlideRestore()).start(this.lockScreen),
       slideShow: (new LockScreenStateSlideShow()).start(this.lockScreen),
-      slideHide: (new LockScreenStateSlideHide()).start(this.lockScreen),
       keypadShow: (new LockScreenStateKeypadShow()).start(this.lockScreen),
       keypadHiding: (new LockScreenStateKeypadHiding()).start(this.lockScreen),
       keypadRising: (new LockScreenStateKeypadRising()).start(this.lockScreen),
@@ -151,6 +150,12 @@
     this.observeSettings();
     this.setupRules();
     Service.register('onPasscodeEnabledChanged', this);
+
+    // Kick off the first state.
+    this.lockScreen.nextStep(() => {
+      this.previousState.transferTo()
+        .catch(this.onTransferringError.bind(this));
+    });
     return this;
   };
 
@@ -187,7 +192,7 @@
       screenOn: true,
       unlocking: false
     },
-    ['panelHide', 'slideHide', 'unlock'],
+    ['panelHide', 'unlock'],
     this.states.slideShow,
     'Resume from screen off');
 
@@ -207,7 +212,7 @@
       activateUnlock: true
     },
     ['slideShow'],
-    this.states.slideHide,
+    this.states.unlock,
     'When it activate to unlock with unexpired passcode, unlock and animates.');
 
     this.registerRule({
@@ -660,7 +665,14 @@
     if (this.lockScreenStates.passcodeEnabled instanceof
         LockScreenStateManager.Deferred) {
       // So those waiting the promise can go on.
-      this.lockScreenStates.passcodeEnabled.resolve(val);
+      var resolve = this.lockScreenStates.passcodeEnabled.resolve;
+      // Remember: inputs of this transition request is NOT what
+      // the manager keeps. This is due to some request, like pressing homekey,
+      // is a one-time event, and will not update the inner states table.
+      // So if an event is changing the inner states table, we need to
+      // toggle the value here, not in the resolver of postponed request.
+      this.lockScreenStates.passcodeEnabled = val;
+      resolve(val);
     } else {
       this.lockScreenStates.passcodeEnabled = val;
     }

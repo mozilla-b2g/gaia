@@ -38,7 +38,6 @@ suite('system/LockScreenStateManager', function() {
 
     window.LockScreenBaseState = genMock('base');
     window.LockScreenStateSlideShow = genMock('slideShow');
-    window.LockScreenStateSlideHide = genMock('slideHide');
     window.LockScreenStateUnlock = genMock('slideUnlock');
     window.LockScreenStateSlideRestore = genMock('slideRestore');
     window.LockScreenStatePanelHide = genMock('panelHide');
@@ -63,6 +62,7 @@ suite('system/LockScreenStateManager', function() {
     mockLockScreen = function() {
       this.init = function() {};
       this.overlay = document.createElement('div');
+      this.nextStep = function(cb) { cb(); };
     };
     subject = (new LockScreenStateManager())
       .start(new mockLockScreen());
@@ -72,6 +72,27 @@ suite('system/LockScreenStateManager', function() {
   });
 
   suite('self-test all methods: ', function() {
+    test('|onPasscodeEnabledChanged| can handle delay request well',
+    function(done) {
+      var method = LockScreenStateManager.prototype.onPasscodeEnabledChanged;
+      var mockThis = {
+        lockScreenStates: {
+          passcodeEnabled: new LockScreenStateManager.Deferred()
+        }
+      };
+      mockThis.lockScreenStates.passcodeEnabled.promise.then((val) => {
+        assert.equal(false, val,
+          'The delay request can\'t get the reading value');
+        done();
+      }).catch(done);
+      method.call(mockThis, false);
+      assert.isFalse(mockThis.lockScreenStates.passcodeEnabled instanceof
+        LockScreenStateManager.Deferred,
+        'it doesn\'t replace the delay request with the read value');
+      assert.equal(false, mockThis.lockScreenStates.passcodeEnabled,
+        'it doesn\'t replace the delay request with the read value');
+    });
+
     test('|resolveInnerStates| would wait all states with promises',
     function(done) {
       var method = LockScreenStateManager.prototype.resolveInnerStates;
@@ -230,12 +251,12 @@ suite('system/LockScreenStateManager', function() {
     test('With passcode enabled but not expired, when it activate to unlock, ' +
          'unlock directly',
     function(done) {
-      this.sinon.stub(subject.states.slideHide, 'transferTo',
+      this.sinon.stub(subject.states.unlock, 'transferTo',
         function() {
           // This would be the next step of 'transferOut'.
           try {
             assert.isTrue(transferOutCalled,
-              'the state wasn\'t transferred from slideShow to slideHide');
+              'the state wasn\'t transferred from slideShow to unlock');
           } catch(e) {
             done(e);
           }
@@ -284,14 +305,14 @@ suite('system/LockScreenStateManager', function() {
       subject.transfer(states).catch(done);
     });
 
-    test('Resume from screen off (from slideHide)',
+    test('Resume from screen off (from panelHide)',
     function(done) {
       this.sinon.stub(subject.states.slideShow, 'transferTo',
         function() {
           // This would be the next step of 'transferOut'.
           try {
             assert.isTrue(transferOutCalled,
-              'the state wasn\'t transferred from slideHide to slideShow');
+              'the state wasn\'t transferred from panelHide to slideShow');
           } catch(e) {
             done(e);
           }
@@ -306,7 +327,7 @@ suite('system/LockScreenStateManager', function() {
         transferOut: this.sinon.stub().returns(Promise.resolve().then(() => {
           transferOutCalled = true;
         })),
-        type: 'slideHide'
+        type: 'panelHide'
       };
       subject.transfer(states).catch(done);
     });
