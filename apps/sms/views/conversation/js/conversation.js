@@ -1156,10 +1156,36 @@ var ConversationView = {
 
   /**
    * Navigates user to Composer or Thread panel with custom parameters.
-   * @param {*} parameters Optional navigation parameters.
+   * @param {Object} parameters Navigation parameters. `number` and `messageId`
+   * are mutually exclusive in the current implementation.
+   * @param {String} [parameters.number] Phone number or e-mail to send a
+   * message to.
+   * @param {Number} [parameters.messageId] Template message to resend.
    * @returns {Promise} Promise that is resolved once navigation is completed.
    */
-  navigateToComposer: function(parameters) {
+  initiateNewMessage: function(parameters) {
+    var navigateToComposer = () => {
+      var draftCreatePromise;
+
+      if (parameters.messageId) {
+        draftCreatePromise = this.storeDraftFromMessage(parameters.messageId);
+      } else if (parameters.number) {
+        var draft = new Draft({
+          recipients: [parameters.number],
+          type: Utils.isEmailAddress(parameters.number) ? 'mms' : 'sms'
+        });
+        draftCreatePromise = Drafts.add(draft).store().then(() => draft.id);
+      } else {
+        throw new TypeError('Unknown parameter');
+      }
+
+      var focusComposer = !!(parameters && parameters.number);
+      return draftCreatePromise.then(
+        (draftId) => Navigation.toPanel('composer', { draftId, focusComposer })
+      );
+    };
+
+
     var draftDiscardPromise;
 
     // We should check if draft is not saved instead, to be fixed in bug 1153940
@@ -1173,39 +1199,17 @@ var ConversationView = {
       ).then(() => this.discardDraft());
     }
 
-    return draftDiscardPromise.then(() => {
-      // Now we'll try to find existing thread for the new message, otherwise
-      // let's fallback to new message composer.
-      if (parameters && parameters.number) {
+    var threadExistingPromise = draftDiscardPromise.then(() => {
+      return parameters && parameters.number ?
         // A rejected promise will be returned in case we can't find thread
         // for the specified number.
-        return MessageManager.findThreadFromNumber(parameters.number);
-      }
+        MessageManager.findThreadFromNumber(parameters.number) :
+        Promise.reject();
+    });
 
-      return Promise.reject();
-    }).then(
+    return threadExistingPromise.then(
       (id) => Navigation.toPanel('thread', { id: id, focusComposer: true }),
-      () => {
-        var draftPromise;
-        if (parameters.messageId) {
-          draftPromise = this.storeDraftFromMessage(parameters.messageId);
-        } else if (parameters.number) {
-          var draft = new Draft({
-            recipients: [parameters.number],
-            type: Utils.isEmailAddress(parameters.number) ? 'mms' : 'sms'
-          });
-          draftPromise = Drafts.add(draft).store().then(() => draft.id);
-        } else {
-          draftPromise = Promise.reject(new TypeError('Unknown parameter'));
-        }
-
-        return draftPromise.then(
-          (draftId) => Navigation.toPanel('composer', {
-            draftId,
-            focusComposer: !!(parameters && parameters.number)
-          })
-        );
-      }
+      navigateToComposer
     );
   },
 
@@ -2160,7 +2164,7 @@ var ConversationView = {
           params.items.push({
             l10nId: 'forward',
             method: () => {
-              this.navigateToComposer({ messageId });
+              this.initiateNewMessage({ messageId });
             }
           });
         }
@@ -2893,7 +2897,7 @@ var ConversationView = {
         items.push({
           l10nId: 'sendMMSToEmail',
           method: () => {
-            this.navigateToComposer({ number: email });
+            this.initiateNewMessage({ number: email });
           },
           // As we change panel here, we don't want to call 'complete' that
           // changes the panel as well
@@ -2914,7 +2918,7 @@ var ConversationView = {
         items.push({
           l10nId: 'sendMessage',
           method: () => {
-            this.navigateToComposer({ number: number });
+            this.initiateNewMessage({ number: number });
           },
           // As we change panel here, we don't want to call 'complete' that
           // changes the panel as well
@@ -3018,7 +3022,7 @@ var ConversationView = {
    * From a messageId, this stores a new draft with the content of this message.
    *
    * @param {Number} messageId Message to store as draft.
-   * @returns {Promise.<String>} Resolved with the draft id once the draft is
+   * @returns {Promise.<Number>} Resolved with the draft id once the draft is
    * stored.
    */
   storeDraftFromMessage(messageId) {
