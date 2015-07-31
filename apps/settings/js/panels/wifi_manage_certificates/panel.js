@@ -120,16 +120,22 @@ define(function(require) {
         elements.deleteCertificateBtn.disabled = !enabled;
       },
       _newCertificateItem: function(caName) {
-        var checkbox = document.createElement('gaia-checkbox');
-        checkbox.name = caName;
-
         var label = document.createElement('label');
-        label.textContent = caName;
+        label.className = 'pack-checkbox';
 
-        checkbox.appendChild(label);
+        var input = document.createElement('input');
+        input.type = 'checkbox';
+        input.name = caName;
+        input.checked = false;
+
+        var span = document.createElement('span');
+        span.textContent = caName;
+
+        label.appendChild(input);
+        label.appendChild(span);
 
         var li = document.createElement('li');
-        li.appendChild(checkbox);
+        li.appendChild(label);
 
         return li;
       }

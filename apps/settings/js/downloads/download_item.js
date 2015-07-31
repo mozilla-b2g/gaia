@@ -42,12 +42,16 @@ window.DownloadItem = (function DownloadItem() {
     li.id = id;
     li.dataset.id = id;
 
-    var checkbox = document.createElement('gaia-checkbox');
-    checkbox.className = 'inline';
-    checkbox.value = getDownloadId(download);
-
     var label = document.createElement('label');
-    checkbox.appendChild(label);
+    label.classList.add('pack-checkbox');
+    var checkBox = document.createElement('input');
+    checkBox.setAttribute('type', 'checkbox');
+    checkBox.value = getDownloadId(download);
+
+    var span = document.createElement('span');
+
+    label.appendChild(checkBox);
+    label.appendChild(span);
 
 
     var asideStatus = document.createElement('aside');
@@ -66,7 +70,7 @@ window.DownloadItem = (function DownloadItem() {
     var progress = document.createElement('progress');
     progress.max = 100;
 
-    li.appendChild(checkbox);
+    li.appendChild(label);
     li.appendChild(asideStatus);
     li.appendChild(asideAction);
     li.appendChild(pFileName);

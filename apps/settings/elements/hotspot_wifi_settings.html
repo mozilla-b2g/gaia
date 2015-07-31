@@ -25,9 +25,10 @@
         <li class="password">
           <p data-l10n-id="wifi-password">Password</p>
           <input type="password" name="password" x-inputmode="verbatim" data-setting="tethering.wifi.security.password" />
-          <gaia-checkbox data-ignore name="show_password">
-            <label data-l10n-id="showPassword"></label>
-          </gaia-checkbox>
+          <label class="pack-checkbox">
+            <input type="checkbox" data-ignore name="show_password">
+            <span data-l10n-id="showPassword">Show password</span>
+          </label>
         </li>
       </ul>
     </div>

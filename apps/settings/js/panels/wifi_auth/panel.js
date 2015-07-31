@@ -14,8 +14,7 @@ define(function(require) {
         elements.security = panel.querySelector('[data-security]');
         elements.identity = panel.querySelector('input[name=identity]');
         elements.password = panel.querySelector('input[name=password]');
-        elements.showPassword = panel.querySelector(
-          'gaia-checkbox[name=show-pwd]');
+        elements.showPassword = panel.querySelector('input[name=show-pwd]');
         elements.eap = panel.querySelector('li.eap select');
         elements.authPhase2 = panel.querySelector('li.auth-phase2 select');
         elements.certificate =

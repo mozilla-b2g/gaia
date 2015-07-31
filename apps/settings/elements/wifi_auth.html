@@ -50,9 +50,10 @@
         <li class="password">
           <p data-l10n-id="wifi-auth-password">Password</p>
           <input type="password" data-ignore name="password" maxlength="63" x-inputmode="verbatim" />
-          <gaia-checkbox data-ignore name="show-pwd" id="pwd-auth" class="inline">
-            <label data-l10n-id="showPassword"></label>
-          </gaia-checkbox>
+          <label class="pack-checkbox">
+            <input type="checkbox" data-ignore name="show-pwd" id="pwd-auth">
+            <span data-l10n-id="showPassword">show password</span>
+          </label>
         </li>
         <li class="server-certificate">
           <p data-l10n-id="server-certificate">Server certificate</p>
