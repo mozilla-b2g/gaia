@@ -1,9 +1,10 @@
-/* global AppWindow, Card, MocksHelper, MockPromise */
+/* global AppWindow, Card, MocksHelper, MockPromise, Icon */
 'use strict';
 
 require('/shared/js/sanitizer.js');
 requireApp('system/test/unit/mock_app_window.js');
 require('/shared/test/unit/mocks/mock_promise.js');
+require('/shared/js/homescreens/icon.js');
 
 var mocksForCard = new MocksHelper([
   'AppWindow'
@@ -68,11 +69,15 @@ suite('system/Card', function() {
       SWIPE_UP_THRESHOLD: 480/4,
       cardsList: cardsList
     };
+
+    this.sinon.stub(Icon.prototype, 'renderBlob', function() {
+      this.elem.style.backgroundImage = 'url(' + this.uri + ')';
+    });
   });
   teardown(function() {
     cardsList.innerHTML = '';
     if (getIconPromise.then.called) {
-      getIconPromise.mFulfillToValue({ url: iconDataURI });
+      getIconPromise.mFulfillToValue({originalUrl: iconDataURI, blob: {}});
     }
   });
 
@@ -115,7 +120,7 @@ suite('system/Card', function() {
     test('has expected classes/elements', function(){
       var card = this.card;
       card.render();
-      getIconPromise.mFulfillToValue({ url: iconDataURI });
+      getIconPromise.mFulfillToValue({originalUrl: iconDataURI, blob: {}});
 
       var header = card.element.querySelector('h1');
       assert.ok(card.element.classList.contains, '.card');
@@ -268,18 +273,11 @@ suite('system/Card', function() {
       var card = this.card;
       var app = card.app;
       card.render();
-      getIconPromise.mFulfillToValue({ url: iconDataURI });
+      getIconPromise.mFulfillToValue({originalUrl: iconDataURI, blob: {}});
 
       assert.ok(app.getSiteIconUrl.called);
-      assert.ok(card.iconValue.includes(iconDataURI));
-    });
-
-    test('small icons', function() {
-      var card = this.card;
-      card.render();
-      getIconPromise.mFulfillToValue({ url: iconDataURI, isSmall: true });
-
-      assert.ok(card.iconButton.classList.contains('small-icon'));
+      assert.ok(Icon.prototype.renderBlob.called);
+      assert.isTrue(card.iconValue.indexOf(iconDataURI) > -1);
     });
 
   });
@@ -365,7 +363,7 @@ suite('system/Card', function() {
         manager: mockManager
       });
       card.render();
-      getIconPromise.mFulfillToValue({ url: iconDataURI });
+      getIconPromise.mFulfillToValue({originalUrl: iconDataURI, blob: {}});
 
       assert.isFalse(card.element.classList.contains('appIconPreview'),
                     'card doesnt have appIconPreview class');
@@ -378,7 +376,7 @@ suite('system/Card', function() {
         manager: mockManager
       });
       card.render();
-      getIconPromise.mFulfillToValue({ url: iconDataURI });
+      getIconPromise.mFulfillToValue({originalUrl: iconDataURI, blob: {}});
 
       assert.isTrue(card.element.classList.contains('appIconPreview'),
                     'card has appIconPreview class');

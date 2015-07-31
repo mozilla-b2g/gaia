@@ -7,12 +7,15 @@
 /* global SettingsListener */
 /* global Service */
 /* global GaiaPinCard */
+/* global Icon */
 
 'use strict';
 
 (function(exports) {
   const DEFAULT_ICON_URL = '/style/chrome/images/default_icon.png';
   const PINNING_PREF = 'dev.gaia.pinning_the_web';
+  // 32px + 4px padding added by the Icon renderer
+  const ICON_SIZE = 32 + 4;
 
   var _id = 0;
 
@@ -401,10 +404,7 @@
   AppChrome.prototype.setPinDialogCard = function ac_setPinDialogCard(url) {
     var card = new GaiaPinCard();
     card.title = this.app.title;
-    card.icon = {
-      url: this.siteIcon.style.backgroundImage,
-      small: this.siteIcon.classList.contains('small-icon')
-    };
+    card.icon = this.siteIcon.style.backgroundImage;
     this.pinCardContainer.innerHTML = '';
     this.app.getScreenshot(function() {
       card.background = {
@@ -1015,26 +1015,28 @@
    * @param {string?} url
    */
   AppChrome.prototype.setSiteIcon = function ac_setSiteIcon(url) {
+    var icon;
+
     if (!this.siteIcon || this.app.isPrivateBrowser()) {
       return;
     }
 
     if (url) {
-      this.siteIcon.classList.remove('small-icon');
-      this.siteIcon.style.backgroundImage = `url("${url}")`;
+      icon = new Icon(this.siteIcon, url);
+      icon.render({
+        size: ICON_SIZE
+      });
       this._currentIconUrl = url;
       return;
     }
 
-    this.app.getSiteIconUrl()
+    this.app.getSiteIconUrl(ICON_SIZE)
       .then(iconObject => {
-        this.siteIcon.classList.toggle('small-icon', iconObject.isSmall);
-
         // We compare the original icon URL, otherwise there is a flickering
         // effect because a different object url is created each time.
-        if (this._currentIconUrl !== iconObject.originalUrl) {
-          this.siteIcon.style.backgroundImage = `url("${iconObject.url}")`;
-          this._currentIconUrl = iconObject.originalUrl;
+        if (this._currentIconUrl !== iconObject.url) {
+          this.siteIcon.style.backgroundImage = iconObject.url;
+          this._currentIconUrl = iconObject.url;
         }
       })
       .catch((err) => {
