@@ -17,7 +17,7 @@ define(function(require) {
         elements.pinItem = panel.querySelector('.wifi-wps-pin-area');
         elements.pinDesc = elements.pinItem.querySelector('p');
         elements.pinInput = elements.pinItem.querySelector('input');
-        elements.wpsMethodRadios = panel.querySelectorAll('input[type=radio]');
+        elements.wpsMethodRadios = panel.querySelectorAll('gaia-radio');
 
         // Check validWpsPin each time when typing
         elements.pinInput.oninput = function() {
@@ -40,7 +40,7 @@ define(function(require) {
         var selectedAp = elements.apSelect.options[
           elements.apSelect.selectedIndex].value;
         var selectedMethod = elements.panel.querySelector(
-          'input[type=\'radio\']:checked').value;
+          'gaia-radio[checked]').value;
         var pin = elements.pinInput.value;
 
         return Promise.resolve({
@@ -72,7 +72,7 @@ define(function(require) {
       },
       _onWpsMethodChange: function() {
         var method = elements.panel.querySelector(
-          'input[type=\'radio\']:checked').value;
+          'gaia-radio[checked]').value;
 
         if (method === 'apPin') {
           elements.submitWpsButton.disabled =
