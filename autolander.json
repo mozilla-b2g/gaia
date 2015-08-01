@@ -1,7 +1,7 @@
 {
   "tasks": [
     {
-      "reruns": 4,
+      "reruns": 2,
       "task": {
         "metadata": {
           "name": "Gaia build tests",
@@ -12,20 +12,23 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "cache": {
             "gaia-misc-caches": "/home/tester/caches/"
           },
           "env": {
-            "REPORTER": "mocha-tbpl-reporter"
+            "REPORTER": "mocha-tbpl-reporter",
+            "DEBUG": "*",
+            "NODE_MODULES_SRC": "npm-cache"
           },
           "command": [
             "entrypoint",
             "./bin/ci run build_unit"
           ],
-          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "image": "taskcluster/gaia-taskenv:0.8.11",
           "maxRunTime": 1800
         },
         "extra": {
@@ -39,7 +42,7 @@
       }
     },
     {
-      "reruns": 4,
+      "reruns": 2,
       "task": {
         "metadata": {
           "name": "Gaia build tests 1",
@@ -50,7 +53,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "cache": {
@@ -59,13 +63,14 @@
           "env": {
             "REPORTER": "mocha-tbpl-reporter",
             "THIS_CHUNK": "1",
-            "TOTAL_CHUNKS": "10"
+            "TOTAL_CHUNKS": "10",
+            "NODE_MODULES_SRC": "npm-cache"
           },
           "command": [
             "entrypoint",
             "./bin/ci run build_integration"
           ],
-          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "image": "taskcluster/gaia-taskenv:0.8.11",
           "maxRunTime": 1800
         },
         "extra": {
@@ -79,7 +84,7 @@
       }
     },
     {
-      "reruns": 4,
+      "reruns": 2,
       "task": {
         "metadata": {
           "name": "Gaia build tests 2",
@@ -90,7 +95,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "cache": {
@@ -99,13 +105,14 @@
           "env": {
             "REPORTER": "mocha-tbpl-reporter",
             "THIS_CHUNK": "2",
-            "TOTAL_CHUNKS": "10"
+            "TOTAL_CHUNKS": "10",
+            "NODE_MODULES_SRC": "npm-cache"
           },
           "command": [
             "entrypoint",
             "./bin/ci run build_integration"
           ],
-          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "image": "taskcluster/gaia-taskenv:0.8.11",
           "maxRunTime": 1800
         },
         "extra": {
@@ -119,7 +126,7 @@
       }
     },
     {
-      "reruns": 4,
+      "reruns": 2,
       "task": {
         "metadata": {
           "name": "Gaia build tests 3",
@@ -130,7 +137,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "cache": {
@@ -139,13 +147,14 @@
           "env": {
             "REPORTER": "mocha-tbpl-reporter",
             "THIS_CHUNK": "3",
-            "TOTAL_CHUNKS": "10"
+            "TOTAL_CHUNKS": "10",
+            "NODE_MODULES_SRC": "npm-cache"
           },
           "command": [
             "entrypoint",
             "./bin/ci run build_integration"
           ],
-          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "image": "taskcluster/gaia-taskenv:0.8.11",
           "maxRunTime": 1800
         },
         "extra": {
@@ -159,7 +168,7 @@
       }
     },
     {
-      "reruns": 4,
+      "reruns": 2,
       "task": {
         "metadata": {
           "name": "Gaia build tests 4",
@@ -170,7 +179,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "cache": {
@@ -179,13 +189,14 @@
           "env": {
             "REPORTER": "mocha-tbpl-reporter",
             "THIS_CHUNK": "4",
-            "TOTAL_CHUNKS": "10"
+            "TOTAL_CHUNKS": "10",
+            "NODE_MODULES_SRC": "npm-cache"
           },
           "command": [
             "entrypoint",
             "./bin/ci run build_integration"
           ],
-          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "image": "taskcluster/gaia-taskenv:0.8.11",
           "maxRunTime": 1800
         },
         "extra": {
@@ -199,7 +210,7 @@
       }
     },
     {
-      "reruns": 4,
+      "reruns": 2,
       "task": {
         "metadata": {
           "name": "Gaia build tests 5",
@@ -210,7 +221,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "cache": {
@@ -219,13 +231,14 @@
           "env": {
             "REPORTER": "mocha-tbpl-reporter",
             "THIS_CHUNK": "5",
-            "TOTAL_CHUNKS": "10"
+            "TOTAL_CHUNKS": "10",
+            "NODE_MODULES_SRC": "npm-cache"
           },
           "command": [
             "entrypoint",
             "./bin/ci run build_integration"
           ],
-          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "image": "taskcluster/gaia-taskenv:0.8.11",
           "maxRunTime": 1800
         },
         "extra": {
@@ -239,7 +252,7 @@
       }
     },
     {
-      "reruns": 4,
+      "reruns": 2,
       "task": {
         "metadata": {
           "name": "Gaia build tests 6",
@@ -250,7 +263,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "cache": {
@@ -259,13 +273,14 @@
           "env": {
             "REPORTER": "mocha-tbpl-reporter",
             "THIS_CHUNK": "6",
-            "TOTAL_CHUNKS": "10"
+            "TOTAL_CHUNKS": "10",
+            "NODE_MODULES_SRC": "npm-cache"
           },
           "command": [
             "entrypoint",
             "./bin/ci run build_integration"
           ],
-          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "image": "taskcluster/gaia-taskenv:0.8.11",
           "maxRunTime": 1800
         },
         "extra": {
@@ -279,7 +294,7 @@
       }
     },
     {
-      "reruns": 4,
+      "reruns": 2,
       "task": {
         "metadata": {
           "name": "Gaia build tests 7",
@@ -290,7 +305,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "cache": {
@@ -299,13 +315,14 @@
           "env": {
             "REPORTER": "mocha-tbpl-reporter",
             "THIS_CHUNK": "7",
-            "TOTAL_CHUNKS": "10"
+            "TOTAL_CHUNKS": "10",
+            "NODE_MODULES_SRC": "npm-cache"
           },
           "command": [
             "entrypoint",
             "./bin/ci run build_integration"
           ],
-          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "image": "taskcluster/gaia-taskenv:0.8.11",
           "maxRunTime": 1800
         },
         "extra": {
@@ -319,7 +336,7 @@
       }
     },
     {
-      "reruns": 4,
+      "reruns": 2,
       "task": {
         "metadata": {
           "name": "Gaia build tests 8",
@@ -330,7 +347,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "cache": {
@@ -339,13 +357,14 @@
           "env": {
             "REPORTER": "mocha-tbpl-reporter",
             "THIS_CHUNK": "8",
-            "TOTAL_CHUNKS": "10"
+            "TOTAL_CHUNKS": "10",
+            "NODE_MODULES_SRC": "npm-cache"
           },
           "command": [
             "entrypoint",
             "./bin/ci run build_integration"
           ],
-          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "image": "taskcluster/gaia-taskenv:0.8.11",
           "maxRunTime": 1800
         },
         "extra": {
@@ -359,7 +378,7 @@
       }
     },
     {
-      "reruns": 4,
+      "reruns": 2,
       "task": {
         "metadata": {
           "name": "Gaia build tests 9",
@@ -370,7 +389,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "cache": {
@@ -379,13 +399,14 @@
           "env": {
             "REPORTER": "mocha-tbpl-reporter",
             "THIS_CHUNK": "9",
-            "TOTAL_CHUNKS": "10"
+            "TOTAL_CHUNKS": "10",
+            "NODE_MODULES_SRC": "npm-cache"
           },
           "command": [
             "entrypoint",
             "./bin/ci run build_integration"
           ],
-          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "image": "taskcluster/gaia-taskenv:0.8.11",
           "maxRunTime": 1800
         },
         "extra": {
@@ -399,7 +420,7 @@
       }
     },
     {
-      "reruns": 4,
+      "reruns": 2,
       "task": {
         "metadata": {
           "name": "Gaia build tests 10",
@@ -410,7 +431,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "cache": {
@@ -419,13 +441,14 @@
           "env": {
             "REPORTER": "mocha-tbpl-reporter",
             "THIS_CHUNK": "10",
-            "TOTAL_CHUNKS": "10"
+            "TOTAL_CHUNKS": "10",
+            "NODE_MODULES_SRC": "npm-cache"
           },
           "command": [
             "entrypoint",
             "./bin/ci run build_integration"
           ],
-          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "image": "taskcluster/gaia-taskenv:0.8.11",
           "maxRunTime": 1800
         },
         "extra": {
@@ -439,7 +462,7 @@
       }
     },
     {
-      "reruns": 4,
+      "reruns": 2,
       "task": {
         "metadata": {
           "name": "Gaia ui tests 1",
@@ -450,7 +473,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "cache": {
@@ -459,7 +483,8 @@
           "env": {
             "SUITE": "functional",
             "THIS_CHUNK": "1",
-            "TOTAL_CHUNKS": "30"
+            "TOTAL_CHUNKS": "30",
+            "NODE_MODULES_SRC": "npm-cache"
           },
           "command": [
             "entrypoint",
@@ -472,7 +497,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "image": "taskcluster/gaia-taskenv:0.8.11",
           "maxRunTime": 1800
         },
         "extra": {
@@ -486,7 +511,7 @@
       }
     },
     {
-      "reruns": 4,
+      "reruns": 2,
       "task": {
         "metadata": {
           "name": "Gaia ui tests 2",
@@ -497,7 +522,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "cache": {
@@ -506,7 +532,8 @@
           "env": {
             "SUITE": "functional",
             "THIS_CHUNK": "2",
-            "TOTAL_CHUNKS": "30"
+            "TOTAL_CHUNKS": "30",
+            "NODE_MODULES_SRC": "npm-cache"
           },
           "command": [
             "entrypoint",
@@ -519,7 +546,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "image": "taskcluster/gaia-taskenv:0.8.11",
           "maxRunTime": 1800
         },
         "extra": {
@@ -533,7 +560,7 @@
       }
     },
     {
-      "reruns": 4,
+      "reruns": 2,
       "task": {
         "metadata": {
           "name": "Gaia ui tests 3",
@@ -544,7 +571,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "cache": {
@@ -553,7 +581,8 @@
           "env": {
             "SUITE": "functional",
             "THIS_CHUNK": "3",
-            "TOTAL_CHUNKS": "30"
+            "TOTAL_CHUNKS": "30",
+            "NODE_MODULES_SRC": "npm-cache"
           },
           "command": [
             "entrypoint",
@@ -566,7 +595,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "image": "taskcluster/gaia-taskenv:0.8.11",
           "maxRunTime": 1800
         },
         "extra": {
@@ -580,7 +609,7 @@
       }
     },
     {
-      "reruns": 4,
+      "reruns": 2,
       "task": {
         "metadata": {
           "name": "Gaia ui tests 4",
@@ -591,7 +620,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "cache": {
@@ -600,7 +630,8 @@
           "env": {
             "SUITE": "functional",
             "THIS_CHUNK": "4",
-            "TOTAL_CHUNKS": "30"
+            "TOTAL_CHUNKS": "30",
+            "NODE_MODULES_SRC": "npm-cache"
           },
           "command": [
             "entrypoint",
@@ -613,7 +644,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "image": "taskcluster/gaia-taskenv:0.8.11",
           "maxRunTime": 1800
         },
         "extra": {
@@ -627,7 +658,7 @@
       }
     },
     {
-      "reruns": 4,
+      "reruns": 2,
       "task": {
         "metadata": {
           "name": "Gaia ui tests 5",
@@ -638,7 +669,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "cache": {
@@ -647,7 +679,8 @@
           "env": {
             "SUITE": "functional",
             "THIS_CHUNK": "5",
-            "TOTAL_CHUNKS": "30"
+            "TOTAL_CHUNKS": "30",
+            "NODE_MODULES_SRC": "npm-cache"
           },
           "command": [
             "entrypoint",
@@ -660,7 +693,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "image": "taskcluster/gaia-taskenv:0.8.11",
           "maxRunTime": 1800
         },
         "extra": {
@@ -674,7 +707,7 @@
       }
     },
     {
-      "reruns": 4,
+      "reruns": 2,
       "task": {
         "metadata": {
           "name": "Gaia ui tests 6",
@@ -685,7 +718,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "cache": {
@@ -694,7 +728,8 @@
           "env": {
             "SUITE": "functional",
             "THIS_CHUNK": "6",
-            "TOTAL_CHUNKS": "30"
+            "TOTAL_CHUNKS": "30",
+            "NODE_MODULES_SRC": "npm-cache"
           },
           "command": [
             "entrypoint",
@@ -707,7 +742,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "image": "taskcluster/gaia-taskenv:0.8.11",
           "maxRunTime": 1800
         },
         "extra": {
@@ -721,7 +756,7 @@
       }
     },
     {
-      "reruns": 4,
+      "reruns": 2,
       "task": {
         "metadata": {
           "name": "Gaia ui tests 7",
@@ -732,7 +767,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "cache": {
@@ -741,7 +777,8 @@
           "env": {
             "SUITE": "functional",
             "THIS_CHUNK": "7",
-            "TOTAL_CHUNKS": "30"
+            "TOTAL_CHUNKS": "30",
+            "NODE_MODULES_SRC": "npm-cache"
           },
           "command": [
             "entrypoint",
@@ -754,7 +791,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "image": "taskcluster/gaia-taskenv:0.8.11",
           "maxRunTime": 1800
         },
         "extra": {
@@ -768,7 +805,7 @@
       }
     },
     {
-      "reruns": 4,
+      "reruns": 2,
       "task": {
         "metadata": {
           "name": "Gaia ui tests 8",
@@ -779,7 +816,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "cache": {
@@ -788,7 +826,8 @@
           "env": {
             "SUITE": "functional",
             "THIS_CHUNK": "8",
-            "TOTAL_CHUNKS": "30"
+            "TOTAL_CHUNKS": "30",
+            "NODE_MODULES_SRC": "npm-cache"
           },
           "command": [
             "entrypoint",
@@ -801,7 +840,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "image": "taskcluster/gaia-taskenv:0.8.11",
           "maxRunTime": 1800
         },
         "extra": {
@@ -815,7 +854,7 @@
       }
     },
     {
-      "reruns": 4,
+      "reruns": 2,
       "task": {
         "metadata": {
           "name": "Gaia ui tests 9",
@@ -826,7 +865,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "cache": {
@@ -835,7 +875,8 @@
           "env": {
             "SUITE": "functional",
             "THIS_CHUNK": "9",
-            "TOTAL_CHUNKS": "30"
+            "TOTAL_CHUNKS": "30",
+            "NODE_MODULES_SRC": "npm-cache"
           },
           "command": [
             "entrypoint",
@@ -848,7 +889,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "image": "taskcluster/gaia-taskenv:0.8.11",
           "maxRunTime": 1800
         },
         "extra": {
@@ -862,7 +903,7 @@
       }
     },
     {
-      "reruns": 4,
+      "reruns": 2,
       "task": {
         "metadata": {
           "name": "Gaia ui tests 10",
@@ -873,7 +914,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "cache": {
@@ -882,7 +924,8 @@
           "env": {
             "SUITE": "functional",
             "THIS_CHUNK": "10",
-            "TOTAL_CHUNKS": "30"
+            "TOTAL_CHUNKS": "30",
+            "NODE_MODULES_SRC": "npm-cache"
           },
           "command": [
             "entrypoint",
@@ -895,7 +938,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "image": "taskcluster/gaia-taskenv:0.8.11",
           "maxRunTime": 1800
         },
         "extra": {
@@ -909,7 +952,7 @@
       }
     },
     {
-      "reruns": 4,
+      "reruns": 2,
       "task": {
         "metadata": {
           "name": "Gaia ui tests 11",
@@ -920,7 +963,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "cache": {
@@ -929,7 +973,8 @@
           "env": {
             "SUITE": "functional",
             "THIS_CHUNK": "11",
-            "TOTAL_CHUNKS": "30"
+            "TOTAL_CHUNKS": "30",
+            "NODE_MODULES_SRC": "npm-cache"
           },
           "command": [
             "entrypoint",
@@ -942,7 +987,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "image": "taskcluster/gaia-taskenv:0.8.11",
           "maxRunTime": 1800
         },
         "extra": {
@@ -956,7 +1001,7 @@
       }
     },
     {
-      "reruns": 4,
+      "reruns": 2,
       "task": {
         "metadata": {
           "name": "Gaia ui tests 12",
@@ -967,7 +1012,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "cache": {
@@ -976,7 +1022,8 @@
           "env": {
             "SUITE": "functional",
             "THIS_CHUNK": "12",
-            "TOTAL_CHUNKS": "30"
+            "TOTAL_CHUNKS": "30",
+            "NODE_MODULES_SRC": "npm-cache"
           },
           "command": [
             "entrypoint",
@@ -989,7 +1036,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "image": "taskcluster/gaia-taskenv:0.8.11",
           "maxRunTime": 1800
         },
         "extra": {
@@ -1003,7 +1050,7 @@
       }
     },
     {
-      "reruns": 4,
+      "reruns": 2,
       "task": {
         "metadata": {
           "name": "Gaia ui tests 13",
@@ -1014,7 +1061,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "cache": {
@@ -1023,7 +1071,8 @@
           "env": {
             "SUITE": "functional",
             "THIS_CHUNK": "13",
-            "TOTAL_CHUNKS": "30"
+            "TOTAL_CHUNKS": "30",
+            "NODE_MODULES_SRC": "npm-cache"
           },
           "command": [
             "entrypoint",
@@ -1036,7 +1085,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "image": "taskcluster/gaia-taskenv:0.8.11",
           "maxRunTime": 1800
         },
         "extra": {
@@ -1050,7 +1099,7 @@
       }
     },
     {
-      "reruns": 4,
+      "reruns": 2,
       "task": {
         "metadata": {
           "name": "Gaia ui tests 14",
@@ -1061,7 +1110,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "cache": {
@@ -1070,7 +1120,8 @@
           "env": {
             "SUITE": "functional",
             "THIS_CHUNK": "14",
-            "TOTAL_CHUNKS": "30"
+            "TOTAL_CHUNKS": "30",
+            "NODE_MODULES_SRC": "npm-cache"
           },
           "command": [
             "entrypoint",
@@ -1083,7 +1134,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "image": "taskcluster/gaia-taskenv:0.8.11",
           "maxRunTime": 1800
         },
         "extra": {
@@ -1097,7 +1148,7 @@
       }
     },
     {
-      "reruns": 4,
+      "reruns": 2,
       "task": {
         "metadata": {
           "name": "Gaia ui tests 15",
@@ -1108,7 +1159,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "cache": {
@@ -1117,7 +1169,8 @@
           "env": {
             "SUITE": "functional",
             "THIS_CHUNK": "15",
-            "TOTAL_CHUNKS": "30"
+            "TOTAL_CHUNKS": "30",
+            "NODE_MODULES_SRC": "npm-cache"
           },
           "command": [
             "entrypoint",
@@ -1130,7 +1183,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "image": "taskcluster/gaia-taskenv:0.8.11",
           "maxRunTime": 1800
         },
         "extra": {
@@ -1144,7 +1197,7 @@
       }
     },
     {
-      "reruns": 4,
+      "reruns": 2,
       "task": {
         "metadata": {
           "name": "Gaia ui tests 16",
@@ -1155,7 +1208,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "cache": {
@@ -1164,7 +1218,8 @@
           "env": {
             "SUITE": "functional",
             "THIS_CHUNK": "16",
-            "TOTAL_CHUNKS": "30"
+            "TOTAL_CHUNKS": "30",
+            "NODE_MODULES_SRC": "npm-cache"
           },
           "command": [
             "entrypoint",
@@ -1177,7 +1232,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "image": "taskcluster/gaia-taskenv:0.8.11",
           "maxRunTime": 1800
         },
         "extra": {
@@ -1191,7 +1246,7 @@
       }
     },
     {
-      "reruns": 4,
+      "reruns": 2,
       "task": {
         "metadata": {
           "name": "Gaia ui tests 17",
@@ -1202,7 +1257,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "cache": {
@@ -1211,7 +1267,8 @@
           "env": {
             "SUITE": "functional",
             "THIS_CHUNK": "17",
-            "TOTAL_CHUNKS": "30"
+            "TOTAL_CHUNKS": "30",
+            "NODE_MODULES_SRC": "npm-cache"
           },
           "command": [
             "entrypoint",
@@ -1224,7 +1281,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "image": "taskcluster/gaia-taskenv:0.8.11",
           "maxRunTime": 1800
         },
         "extra": {
@@ -1238,7 +1295,7 @@
       }
     },
     {
-      "reruns": 4,
+      "reruns": 2,
       "task": {
         "metadata": {
           "name": "Gaia ui tests 18",
@@ -1249,7 +1306,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "cache": {
@@ -1258,7 +1316,8 @@
           "env": {
             "SUITE": "functional",
             "THIS_CHUNK": "18",
-            "TOTAL_CHUNKS": "30"
+            "TOTAL_CHUNKS": "30",
+            "NODE_MODULES_SRC": "npm-cache"
           },
           "command": [
             "entrypoint",
@@ -1271,7 +1330,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "image": "taskcluster/gaia-taskenv:0.8.11",
           "maxRunTime": 1800
         },
         "extra": {
@@ -1285,7 +1344,7 @@
       }
     },
     {
-      "reruns": 4,
+      "reruns": 2,
       "task": {
         "metadata": {
           "name": "Gaia ui tests 19",
@@ -1296,7 +1355,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "cache": {
@@ -1305,7 +1365,8 @@
           "env": {
             "SUITE": "functional",
             "THIS_CHUNK": "19",
-            "TOTAL_CHUNKS": "30"
+            "TOTAL_CHUNKS": "30",
+            "NODE_MODULES_SRC": "npm-cache"
           },
           "command": [
             "entrypoint",
@@ -1318,7 +1379,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "image": "taskcluster/gaia-taskenv:0.8.11",
           "maxRunTime": 1800
         },
         "extra": {
@@ -1332,7 +1393,7 @@
       }
     },
     {
-      "reruns": 4,
+      "reruns": 2,
       "task": {
         "metadata": {
           "name": "Gaia ui tests 20",
@@ -1343,7 +1404,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "cache": {
@@ -1352,7 +1414,8 @@
           "env": {
             "SUITE": "functional",
             "THIS_CHUNK": "20",
-            "TOTAL_CHUNKS": "30"
+            "TOTAL_CHUNKS": "30",
+            "NODE_MODULES_SRC": "npm-cache"
           },
           "command": [
             "entrypoint",
@@ -1365,7 +1428,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "image": "taskcluster/gaia-taskenv:0.8.11",
           "maxRunTime": 1800
         },
         "extra": {
@@ -1379,7 +1442,7 @@
       }
     },
     {
-      "reruns": 4,
+      "reruns": 2,
       "task": {
         "metadata": {
           "name": "Gaia ui tests 21",
@@ -1390,7 +1453,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "cache": {
@@ -1399,7 +1463,8 @@
           "env": {
             "SUITE": "functional",
             "THIS_CHUNK": "21",
-            "TOTAL_CHUNKS": "30"
+            "TOTAL_CHUNKS": "30",
+            "NODE_MODULES_SRC": "npm-cache"
           },
           "command": [
             "entrypoint",
@@ -1412,7 +1477,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "image": "taskcluster/gaia-taskenv:0.8.11",
           "maxRunTime": 1800
         },
         "extra": {
@@ -1426,7 +1491,7 @@
       }
     },
     {
-      "reruns": 4,
+      "reruns": 2,
       "task": {
         "metadata": {
           "name": "Gaia ui tests 22",
@@ -1437,7 +1502,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "cache": {
@@ -1446,7 +1512,8 @@
           "env": {
             "SUITE": "functional",
             "THIS_CHUNK": "22",
-            "TOTAL_CHUNKS": "30"
+            "TOTAL_CHUNKS": "30",
+            "NODE_MODULES_SRC": "npm-cache"
           },
           "command": [
             "entrypoint",
@@ -1459,7 +1526,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "image": "taskcluster/gaia-taskenv:0.8.11",
           "maxRunTime": 1800
         },
         "extra": {
@@ -1473,7 +1540,7 @@
       }
     },
     {
-      "reruns": 4,
+      "reruns": 2,
       "task": {
         "metadata": {
           "name": "Gaia ui tests 23",
@@ -1484,7 +1551,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "cache": {
@@ -1493,7 +1561,8 @@
           "env": {
             "SUITE": "functional",
             "THIS_CHUNK": "23",
-            "TOTAL_CHUNKS": "30"
+            "TOTAL_CHUNKS": "30",
+            "NODE_MODULES_SRC": "npm-cache"
           },
           "command": [
             "entrypoint",
@@ -1506,7 +1575,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "image": "taskcluster/gaia-taskenv:0.8.11",
           "maxRunTime": 1800
         },
         "extra": {
@@ -1520,7 +1589,7 @@
       }
     },
     {
-      "reruns": 4,
+      "reruns": 2,
       "task": {
         "metadata": {
           "name": "Gaia ui tests 24",
@@ -1531,7 +1600,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "cache": {
@@ -1540,7 +1610,8 @@
           "env": {
             "SUITE": "functional",
             "THIS_CHUNK": "24",
-            "TOTAL_CHUNKS": "30"
+            "TOTAL_CHUNKS": "30",
+            "NODE_MODULES_SRC": "npm-cache"
           },
           "command": [
             "entrypoint",
@@ -1553,7 +1624,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "image": "taskcluster/gaia-taskenv:0.8.11",
           "maxRunTime": 1800
         },
         "extra": {
@@ -1567,7 +1638,7 @@
       }
     },
     {
-      "reruns": 4,
+      "reruns": 2,
       "task": {
         "metadata": {
           "name": "Gaia ui tests 25",
@@ -1578,7 +1649,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "cache": {
@@ -1587,7 +1659,8 @@
           "env": {
             "SUITE": "functional",
             "THIS_CHUNK": "25",
-            "TOTAL_CHUNKS": "30"
+            "TOTAL_CHUNKS": "30",
+            "NODE_MODULES_SRC": "npm-cache"
           },
           "command": [
             "entrypoint",
@@ -1600,7 +1673,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "image": "taskcluster/gaia-taskenv:0.8.11",
           "maxRunTime": 1800
         },
         "extra": {
@@ -1614,7 +1687,7 @@
       }
     },
     {
-      "reruns": 4,
+      "reruns": 2,
       "task": {
         "metadata": {
           "name": "Gaia ui tests 26",
@@ -1625,7 +1698,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "cache": {
@@ -1634,7 +1708,8 @@
           "env": {
             "SUITE": "functional",
             "THIS_CHUNK": "26",
-            "TOTAL_CHUNKS": "30"
+            "TOTAL_CHUNKS": "30",
+            "NODE_MODULES_SRC": "npm-cache"
           },
           "command": [
             "entrypoint",
@@ -1647,7 +1722,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "image": "taskcluster/gaia-taskenv:0.8.11",
           "maxRunTime": 1800
         },
         "extra": {
@@ -1661,7 +1736,7 @@
       }
     },
     {
-      "reruns": 4,
+      "reruns": 2,
       "task": {
         "metadata": {
           "name": "Gaia ui tests 27",
@@ -1672,7 +1747,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "cache": {
@@ -1681,7 +1757,8 @@
           "env": {
             "SUITE": "functional",
             "THIS_CHUNK": "27",
-            "TOTAL_CHUNKS": "30"
+            "TOTAL_CHUNKS": "30",
+            "NODE_MODULES_SRC": "npm-cache"
           },
           "command": [
             "entrypoint",
@@ -1694,7 +1771,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "image": "taskcluster/gaia-taskenv:0.8.11",
           "maxRunTime": 1800
         },
         "extra": {
@@ -1708,7 +1785,7 @@
       }
     },
     {
-      "reruns": 4,
+      "reruns": 2,
       "task": {
         "metadata": {
           "name": "Gaia ui tests 28",
@@ -1719,7 +1796,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "cache": {
@@ -1728,7 +1806,8 @@
           "env": {
             "SUITE": "functional",
             "THIS_CHUNK": "28",
-            "TOTAL_CHUNKS": "30"
+            "TOTAL_CHUNKS": "30",
+            "NODE_MODULES_SRC": "npm-cache"
           },
           "command": [
             "entrypoint",
@@ -1741,7 +1820,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "image": "taskcluster/gaia-taskenv:0.8.11",
           "maxRunTime": 1800
         },
         "extra": {
@@ -1755,7 +1834,7 @@
       }
     },
     {
-      "reruns": 4,
+      "reruns": 2,
       "task": {
         "metadata": {
           "name": "Gaia ui tests 29",
@@ -1766,7 +1845,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "cache": {
@@ -1775,7 +1855,8 @@
           "env": {
             "SUITE": "functional",
             "THIS_CHUNK": "29",
-            "TOTAL_CHUNKS": "30"
+            "TOTAL_CHUNKS": "30",
+            "NODE_MODULES_SRC": "npm-cache"
           },
           "command": [
             "entrypoint",
@@ -1788,7 +1869,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "image": "taskcluster/gaia-taskenv:0.8.11",
           "maxRunTime": 1800
         },
         "extra": {
@@ -1802,7 +1883,7 @@
       }
     },
     {
-      "reruns": 4,
+      "reruns": 2,
       "task": {
         "metadata": {
           "name": "Gaia ui tests 30",
@@ -1813,7 +1894,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "cache": {
@@ -1822,7 +1904,8 @@
           "env": {
             "SUITE": "functional",
             "THIS_CHUNK": "30",
-            "TOTAL_CHUNKS": "30"
+            "TOTAL_CHUNKS": "30",
+            "NODE_MODULES_SRC": "npm-cache"
           },
           "command": [
             "entrypoint",
@@ -1835,7 +1918,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "image": "taskcluster/gaia-taskenv:0.8.11",
           "maxRunTime": 1800
         },
         "extra": {
@@ -1859,9 +1942,13 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
+          "env": {
+            "NODE_MODULES_SRC": "npm-cache"
+          },
           "cache": {
             "gaia-misc-caches": "/home/tester/caches/"
           },
@@ -1869,9 +1956,8 @@
             "entrypoint",
             "./bin/ci run csslint"
           ],
-          "image": "taskcluster/gaia-taskenv:0.8.0",
-          "maxRunTime": 1800,
-          "env": {}
+          "image": "taskcluster/gaia-taskenv:0.8.11",
+          "maxRunTime": 1800
         },
         "extra": {
           "treeherder": {
@@ -1894,9 +1980,15 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:quay.io/mozilla/gaia-taskenv:*",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
+          "image": "quay.io/mozilla/gaia-taskenv:0.8.11",
+          "env": {
+            "NODE_MODULES_SRC": "npm-cache"
+          },
           "cache": {
             "gaia-misc-caches": "/home/tester/caches/"
           },
@@ -1904,48 +1996,11 @@
             "entrypoint",
             "./bin/ci run jsonlint"
           ],
-          "image": "taskcluster/gaia-taskenv:0.8.0",
-          "maxRunTime": 1800,
-          "env": {}
+          "maxRunTime": 1800
         },
         "extra": {
           "treeherder": {
             "symbol": "JSON",
-            "groupSymbol": "LINT",
-            "groupName": "Linters"
-          }
-        },
-        "schedulerId": "task-graph-scheduler"
-      }
-    },
-    {
-      "task": {
-        "metadata": {
-          "name": "Gaia GJSLint",
-          "description": "GJSLint",
-          "source": "http://todo.com/soon",
-          "owner": "dev-gaia@lists.mozilla.org"
-        },
-        "workerType": "gaia",
-        "provisionerId": "aws-provisioner-v1",
-        "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
-        ],
-        "payload": {
-          "cache": {
-            "gaia-misc-caches": "/home/tester/caches/"
-          },
-          "command": [
-            "entrypoint",
-            "./bin/ci run gjslint"
-          ],
-          "image": "taskcluster/gaia-taskenv:0.8.0",
-          "maxRunTime": 1800,
-          "env": {}
-        },
-        "extra": {
-          "treeherder": {
-            "symbol": "GJSLint",
             "groupSymbol": "LINT",
             "groupName": "Linters"
           }
@@ -1964,9 +2019,13 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
+          "env": {
+            "NODE_MODULES_SRC": "npm-cache"
+          },
           "cache": {
             "gaia-misc-caches": "/home/tester/caches/"
           },
@@ -1974,13 +2033,51 @@
             "entrypoint",
             "./bin/ci run jshint"
           ],
-          "image": "taskcluster/gaia-taskenv:0.8.0",
-          "maxRunTime": 1800,
-          "env": {}
+          "image": "taskcluster/gaia-taskenv:0.8.11",
+          "maxRunTime": 1800
         },
         "extra": {
           "treeherder": {
             "symbol": "JSHint",
+            "groupSymbol": "LINT",
+            "groupName": "Linters"
+          }
+        },
+        "schedulerId": "task-graph-scheduler"
+      }
+    },
+    {
+      "task": {
+        "metadata": {
+          "name": "Gaia ESLint",
+          "description": "JS linter",
+          "source": "http://todo.com/soon",
+          "owner": "dev-gaia@lists.mozilla.org"
+        },
+        "workerType": "gaia",
+        "provisionerId": "aws-provisioner-v1",
+        "scopes": [
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:quay.io/mozilla/gaia-taskenv:*",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
+        ],
+        "payload": {
+          "env": {
+            "NODE_MODULES_SRC": "npm-cache"
+          },
+          "cache": {
+            "gaia-misc-caches": "/home/tester/caches/"
+          },
+          "command": [
+            "entrypoint",
+            "./bin/ci run eslint"
+          ],
+          "image": "taskcluster/gaia-taskenv:0.8.11",
+          "maxRunTime": 1800
+        },
+        "extra": {
+          "treeherder": {
+            "symbol": "ESL",
             "groupSymbol": "LINT",
             "groupName": "Linters"
           }
@@ -2000,7 +2097,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "maxRunTime": 7200,
@@ -2011,7 +2109,9 @@
             "PART": "1",
             "NBPARTS": "30",
             "REPORTER": "mocha-tbpl-reporter",
-            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+            "TEST_MANIFEST": "/home/tester/git_checkout/shared/test/integration/tbpl-manifest.json",
+            "NODE_MODULES_SRC": "npm-cache",
+            "HOST_LOG": "artifacts/gecko_output.log"
           },
           "command": [
             "entrypoint",
@@ -2024,7 +2124,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0"
+          "image": "taskcluster/gaia-taskenv:0.8.11"
         },
         "extra": {
           "treeherder": {
@@ -2048,7 +2148,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "maxRunTime": 7200,
@@ -2059,7 +2160,9 @@
             "PART": "2",
             "NBPARTS": "30",
             "REPORTER": "mocha-tbpl-reporter",
-            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+            "TEST_MANIFEST": "/home/tester/git_checkout/shared/test/integration/tbpl-manifest.json",
+            "NODE_MODULES_SRC": "npm-cache",
+            "HOST_LOG": "artifacts/gecko_output.log"
           },
           "command": [
             "entrypoint",
@@ -2072,7 +2175,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0"
+          "image": "taskcluster/gaia-taskenv:0.8.11"
         },
         "extra": {
           "treeherder": {
@@ -2096,7 +2199,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "maxRunTime": 7200,
@@ -2107,7 +2211,9 @@
             "PART": "3",
             "NBPARTS": "30",
             "REPORTER": "mocha-tbpl-reporter",
-            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+            "TEST_MANIFEST": "/home/tester/git_checkout/shared/test/integration/tbpl-manifest.json",
+            "NODE_MODULES_SRC": "npm-cache",
+            "HOST_LOG": "artifacts/gecko_output.log"
           },
           "command": [
             "entrypoint",
@@ -2120,7 +2226,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0"
+          "image": "taskcluster/gaia-taskenv:0.8.11"
         },
         "extra": {
           "treeherder": {
@@ -2144,7 +2250,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "maxRunTime": 7200,
@@ -2155,7 +2262,9 @@
             "PART": "4",
             "NBPARTS": "30",
             "REPORTER": "mocha-tbpl-reporter",
-            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+            "TEST_MANIFEST": "/home/tester/git_checkout/shared/test/integration/tbpl-manifest.json",
+            "NODE_MODULES_SRC": "npm-cache",
+            "HOST_LOG": "artifacts/gecko_output.log"
           },
           "command": [
             "entrypoint",
@@ -2168,7 +2277,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0"
+          "image": "taskcluster/gaia-taskenv:0.8.11"
         },
         "extra": {
           "treeherder": {
@@ -2192,7 +2301,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "maxRunTime": 7200,
@@ -2203,7 +2313,9 @@
             "PART": "5",
             "NBPARTS": "30",
             "REPORTER": "mocha-tbpl-reporter",
-            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+            "TEST_MANIFEST": "/home/tester/git_checkout/shared/test/integration/tbpl-manifest.json",
+            "NODE_MODULES_SRC": "npm-cache",
+            "HOST_LOG": "artifacts/gecko_output.log"
           },
           "command": [
             "entrypoint",
@@ -2216,7 +2328,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0"
+          "image": "taskcluster/gaia-taskenv:0.8.11"
         },
         "extra": {
           "treeherder": {
@@ -2240,7 +2352,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "maxRunTime": 7200,
@@ -2251,7 +2364,9 @@
             "PART": "6",
             "NBPARTS": "30",
             "REPORTER": "mocha-tbpl-reporter",
-            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+            "TEST_MANIFEST": "/home/tester/git_checkout/shared/test/integration/tbpl-manifest.json",
+            "NODE_MODULES_SRC": "npm-cache",
+            "HOST_LOG": "artifacts/gecko_output.log"
           },
           "command": [
             "entrypoint",
@@ -2264,7 +2379,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0"
+          "image": "taskcluster/gaia-taskenv:0.8.11"
         },
         "extra": {
           "treeherder": {
@@ -2288,7 +2403,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "maxRunTime": 7200,
@@ -2299,7 +2415,9 @@
             "PART": "7",
             "NBPARTS": "30",
             "REPORTER": "mocha-tbpl-reporter",
-            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+            "TEST_MANIFEST": "/home/tester/git_checkout/shared/test/integration/tbpl-manifest.json",
+            "NODE_MODULES_SRC": "npm-cache",
+            "HOST_LOG": "artifacts/gecko_output.log"
           },
           "command": [
             "entrypoint",
@@ -2312,7 +2430,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0"
+          "image": "taskcluster/gaia-taskenv:0.8.11"
         },
         "extra": {
           "treeherder": {
@@ -2336,7 +2454,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "maxRunTime": 7200,
@@ -2347,7 +2466,9 @@
             "PART": "8",
             "NBPARTS": "30",
             "REPORTER": "mocha-tbpl-reporter",
-            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+            "TEST_MANIFEST": "/home/tester/git_checkout/shared/test/integration/tbpl-manifest.json",
+            "NODE_MODULES_SRC": "npm-cache",
+            "HOST_LOG": "artifacts/gecko_output.log"
           },
           "command": [
             "entrypoint",
@@ -2360,7 +2481,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0"
+          "image": "taskcluster/gaia-taskenv:0.8.11"
         },
         "extra": {
           "treeherder": {
@@ -2384,7 +2505,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "maxRunTime": 7200,
@@ -2395,7 +2517,9 @@
             "PART": "9",
             "NBPARTS": "30",
             "REPORTER": "mocha-tbpl-reporter",
-            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+            "TEST_MANIFEST": "/home/tester/git_checkout/shared/test/integration/tbpl-manifest.json",
+            "NODE_MODULES_SRC": "npm-cache",
+            "HOST_LOG": "artifacts/gecko_output.log"
           },
           "command": [
             "entrypoint",
@@ -2408,7 +2532,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0"
+          "image": "taskcluster/gaia-taskenv:0.8.11"
         },
         "extra": {
           "treeherder": {
@@ -2432,7 +2556,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "maxRunTime": 7200,
@@ -2443,7 +2568,9 @@
             "PART": "10",
             "NBPARTS": "30",
             "REPORTER": "mocha-tbpl-reporter",
-            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+            "TEST_MANIFEST": "/home/tester/git_checkout/shared/test/integration/tbpl-manifest.json",
+            "NODE_MODULES_SRC": "npm-cache",
+            "HOST_LOG": "artifacts/gecko_output.log"
           },
           "command": [
             "entrypoint",
@@ -2456,7 +2583,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0"
+          "image": "taskcluster/gaia-taskenv:0.8.11"
         },
         "extra": {
           "treeherder": {
@@ -2480,7 +2607,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "maxRunTime": 7200,
@@ -2491,7 +2619,9 @@
             "PART": "11",
             "NBPARTS": "30",
             "REPORTER": "mocha-tbpl-reporter",
-            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+            "TEST_MANIFEST": "/home/tester/git_checkout/shared/test/integration/tbpl-manifest.json",
+            "NODE_MODULES_SRC": "npm-cache",
+            "HOST_LOG": "artifacts/gecko_output.log"
           },
           "command": [
             "entrypoint",
@@ -2504,7 +2634,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0"
+          "image": "taskcluster/gaia-taskenv:0.8.11"
         },
         "extra": {
           "treeherder": {
@@ -2528,7 +2658,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "maxRunTime": 7200,
@@ -2539,7 +2670,9 @@
             "PART": "12",
             "NBPARTS": "30",
             "REPORTER": "mocha-tbpl-reporter",
-            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+            "TEST_MANIFEST": "/home/tester/git_checkout/shared/test/integration/tbpl-manifest.json",
+            "NODE_MODULES_SRC": "npm-cache",
+            "HOST_LOG": "artifacts/gecko_output.log"
           },
           "command": [
             "entrypoint",
@@ -2552,7 +2685,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0"
+          "image": "taskcluster/gaia-taskenv:0.8.11"
         },
         "extra": {
           "treeherder": {
@@ -2576,7 +2709,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "maxRunTime": 7200,
@@ -2587,7 +2721,9 @@
             "PART": "13",
             "NBPARTS": "30",
             "REPORTER": "mocha-tbpl-reporter",
-            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+            "TEST_MANIFEST": "/home/tester/git_checkout/shared/test/integration/tbpl-manifest.json",
+            "NODE_MODULES_SRC": "npm-cache",
+            "HOST_LOG": "artifacts/gecko_output.log"
           },
           "command": [
             "entrypoint",
@@ -2600,7 +2736,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0"
+          "image": "taskcluster/gaia-taskenv:0.8.11"
         },
         "extra": {
           "treeherder": {
@@ -2624,7 +2760,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "maxRunTime": 7200,
@@ -2635,7 +2772,9 @@
             "PART": "14",
             "NBPARTS": "30",
             "REPORTER": "mocha-tbpl-reporter",
-            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+            "TEST_MANIFEST": "/home/tester/git_checkout/shared/test/integration/tbpl-manifest.json",
+            "NODE_MODULES_SRC": "npm-cache",
+            "HOST_LOG": "artifacts/gecko_output.log"
           },
           "command": [
             "entrypoint",
@@ -2648,7 +2787,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0"
+          "image": "taskcluster/gaia-taskenv:0.8.11"
         },
         "extra": {
           "treeherder": {
@@ -2672,7 +2811,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "maxRunTime": 7200,
@@ -2683,7 +2823,9 @@
             "PART": "15",
             "NBPARTS": "30",
             "REPORTER": "mocha-tbpl-reporter",
-            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+            "TEST_MANIFEST": "/home/tester/git_checkout/shared/test/integration/tbpl-manifest.json",
+            "NODE_MODULES_SRC": "npm-cache",
+            "HOST_LOG": "artifacts/gecko_output.log"
           },
           "command": [
             "entrypoint",
@@ -2696,7 +2838,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0"
+          "image": "taskcluster/gaia-taskenv:0.8.11"
         },
         "extra": {
           "treeherder": {
@@ -2720,7 +2862,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "maxRunTime": 7200,
@@ -2731,7 +2874,9 @@
             "PART": "16",
             "NBPARTS": "30",
             "REPORTER": "mocha-tbpl-reporter",
-            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+            "TEST_MANIFEST": "/home/tester/git_checkout/shared/test/integration/tbpl-manifest.json",
+            "NODE_MODULES_SRC": "npm-cache",
+            "HOST_LOG": "artifacts/gecko_output.log"
           },
           "command": [
             "entrypoint",
@@ -2744,7 +2889,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0"
+          "image": "taskcluster/gaia-taskenv:0.8.11"
         },
         "extra": {
           "treeherder": {
@@ -2768,7 +2913,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "maxRunTime": 7200,
@@ -2779,7 +2925,9 @@
             "PART": "17",
             "NBPARTS": "30",
             "REPORTER": "mocha-tbpl-reporter",
-            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+            "TEST_MANIFEST": "/home/tester/git_checkout/shared/test/integration/tbpl-manifest.json",
+            "NODE_MODULES_SRC": "npm-cache",
+            "HOST_LOG": "artifacts/gecko_output.log"
           },
           "command": [
             "entrypoint",
@@ -2792,7 +2940,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0"
+          "image": "taskcluster/gaia-taskenv:0.8.11"
         },
         "extra": {
           "treeherder": {
@@ -2816,7 +2964,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "maxRunTime": 7200,
@@ -2827,7 +2976,9 @@
             "PART": "18",
             "NBPARTS": "30",
             "REPORTER": "mocha-tbpl-reporter",
-            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+            "TEST_MANIFEST": "/home/tester/git_checkout/shared/test/integration/tbpl-manifest.json",
+            "NODE_MODULES_SRC": "npm-cache",
+            "HOST_LOG": "artifacts/gecko_output.log"
           },
           "command": [
             "entrypoint",
@@ -2840,7 +2991,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0"
+          "image": "taskcluster/gaia-taskenv:0.8.11"
         },
         "extra": {
           "treeherder": {
@@ -2864,7 +3015,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "maxRunTime": 7200,
@@ -2875,7 +3027,9 @@
             "PART": "19",
             "NBPARTS": "30",
             "REPORTER": "mocha-tbpl-reporter",
-            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+            "TEST_MANIFEST": "/home/tester/git_checkout/shared/test/integration/tbpl-manifest.json",
+            "NODE_MODULES_SRC": "npm-cache",
+            "HOST_LOG": "artifacts/gecko_output.log"
           },
           "command": [
             "entrypoint",
@@ -2888,7 +3042,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0"
+          "image": "taskcluster/gaia-taskenv:0.8.11"
         },
         "extra": {
           "treeherder": {
@@ -2912,7 +3066,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "maxRunTime": 7200,
@@ -2923,7 +3078,9 @@
             "PART": "20",
             "NBPARTS": "30",
             "REPORTER": "mocha-tbpl-reporter",
-            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+            "TEST_MANIFEST": "/home/tester/git_checkout/shared/test/integration/tbpl-manifest.json",
+            "NODE_MODULES_SRC": "npm-cache",
+            "HOST_LOG": "artifacts/gecko_output.log"
           },
           "command": [
             "entrypoint",
@@ -2936,7 +3093,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0"
+          "image": "taskcluster/gaia-taskenv:0.8.11"
         },
         "extra": {
           "treeherder": {
@@ -2960,7 +3117,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "maxRunTime": 7200,
@@ -2971,7 +3129,9 @@
             "PART": "21",
             "NBPARTS": "30",
             "REPORTER": "mocha-tbpl-reporter",
-            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+            "TEST_MANIFEST": "/home/tester/git_checkout/shared/test/integration/tbpl-manifest.json",
+            "NODE_MODULES_SRC": "npm-cache",
+            "HOST_LOG": "artifacts/gecko_output.log"
           },
           "command": [
             "entrypoint",
@@ -2984,7 +3144,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0"
+          "image": "taskcluster/gaia-taskenv:0.8.11"
         },
         "extra": {
           "treeherder": {
@@ -3008,7 +3168,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "maxRunTime": 7200,
@@ -3019,7 +3180,9 @@
             "PART": "22",
             "NBPARTS": "30",
             "REPORTER": "mocha-tbpl-reporter",
-            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+            "TEST_MANIFEST": "/home/tester/git_checkout/shared/test/integration/tbpl-manifest.json",
+            "NODE_MODULES_SRC": "npm-cache",
+            "HOST_LOG": "artifacts/gecko_output.log"
           },
           "command": [
             "entrypoint",
@@ -3032,7 +3195,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0"
+          "image": "taskcluster/gaia-taskenv:0.8.11"
         },
         "extra": {
           "treeherder": {
@@ -3056,7 +3219,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "maxRunTime": 7200,
@@ -3067,7 +3231,9 @@
             "PART": "23",
             "NBPARTS": "30",
             "REPORTER": "mocha-tbpl-reporter",
-            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+            "TEST_MANIFEST": "/home/tester/git_checkout/shared/test/integration/tbpl-manifest.json",
+            "NODE_MODULES_SRC": "npm-cache",
+            "HOST_LOG": "artifacts/gecko_output.log"
           },
           "command": [
             "entrypoint",
@@ -3080,7 +3246,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0"
+          "image": "taskcluster/gaia-taskenv:0.8.11"
         },
         "extra": {
           "treeherder": {
@@ -3104,7 +3270,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "maxRunTime": 7200,
@@ -3115,7 +3282,9 @@
             "PART": "24",
             "NBPARTS": "30",
             "REPORTER": "mocha-tbpl-reporter",
-            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+            "TEST_MANIFEST": "/home/tester/git_checkout/shared/test/integration/tbpl-manifest.json",
+            "NODE_MODULES_SRC": "npm-cache",
+            "HOST_LOG": "artifacts/gecko_output.log"
           },
           "command": [
             "entrypoint",
@@ -3128,7 +3297,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0"
+          "image": "taskcluster/gaia-taskenv:0.8.11"
         },
         "extra": {
           "treeherder": {
@@ -3152,7 +3321,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "maxRunTime": 7200,
@@ -3163,7 +3333,9 @@
             "PART": "25",
             "NBPARTS": "30",
             "REPORTER": "mocha-tbpl-reporter",
-            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+            "TEST_MANIFEST": "/home/tester/git_checkout/shared/test/integration/tbpl-manifest.json",
+            "NODE_MODULES_SRC": "npm-cache",
+            "HOST_LOG": "artifacts/gecko_output.log"
           },
           "command": [
             "entrypoint",
@@ -3176,7 +3348,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0"
+          "image": "taskcluster/gaia-taskenv:0.8.11"
         },
         "extra": {
           "treeherder": {
@@ -3200,7 +3372,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "maxRunTime": 7200,
@@ -3211,7 +3384,9 @@
             "PART": "26",
             "NBPARTS": "30",
             "REPORTER": "mocha-tbpl-reporter",
-            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+            "TEST_MANIFEST": "/home/tester/git_checkout/shared/test/integration/tbpl-manifest.json",
+            "NODE_MODULES_SRC": "npm-cache",
+            "HOST_LOG": "artifacts/gecko_output.log"
           },
           "command": [
             "entrypoint",
@@ -3224,7 +3399,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0"
+          "image": "taskcluster/gaia-taskenv:0.8.11"
         },
         "extra": {
           "treeherder": {
@@ -3248,7 +3423,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "maxRunTime": 7200,
@@ -3259,7 +3435,9 @@
             "PART": "27",
             "NBPARTS": "30",
             "REPORTER": "mocha-tbpl-reporter",
-            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+            "TEST_MANIFEST": "/home/tester/git_checkout/shared/test/integration/tbpl-manifest.json",
+            "NODE_MODULES_SRC": "npm-cache",
+            "HOST_LOG": "artifacts/gecko_output.log"
           },
           "command": [
             "entrypoint",
@@ -3272,7 +3450,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0"
+          "image": "taskcluster/gaia-taskenv:0.8.11"
         },
         "extra": {
           "treeherder": {
@@ -3296,7 +3474,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "maxRunTime": 7200,
@@ -3307,7 +3486,9 @@
             "PART": "28",
             "NBPARTS": "30",
             "REPORTER": "mocha-tbpl-reporter",
-            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+            "TEST_MANIFEST": "/home/tester/git_checkout/shared/test/integration/tbpl-manifest.json",
+            "NODE_MODULES_SRC": "npm-cache",
+            "HOST_LOG": "artifacts/gecko_output.log"
           },
           "command": [
             "entrypoint",
@@ -3320,7 +3501,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0"
+          "image": "taskcluster/gaia-taskenv:0.8.11"
         },
         "extra": {
           "treeherder": {
@@ -3344,7 +3525,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "maxRunTime": 7200,
@@ -3355,7 +3537,9 @@
             "PART": "29",
             "NBPARTS": "30",
             "REPORTER": "mocha-tbpl-reporter",
-            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+            "TEST_MANIFEST": "/home/tester/git_checkout/shared/test/integration/tbpl-manifest.json",
+            "NODE_MODULES_SRC": "npm-cache",
+            "HOST_LOG": "artifacts/gecko_output.log"
           },
           "command": [
             "entrypoint",
@@ -3368,7 +3552,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0"
+          "image": "taskcluster/gaia-taskenv:0.8.11"
         },
         "extra": {
           "treeherder": {
@@ -3392,7 +3576,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "maxRunTime": 7200,
@@ -3403,7 +3588,9 @@
             "PART": "30",
             "NBPARTS": "30",
             "REPORTER": "mocha-tbpl-reporter",
-            "TEST_MANIFEST": "./shared/test/integration/tbpl-manifest.json"
+            "TEST_MANIFEST": "/home/tester/git_checkout/shared/test/integration/tbpl-manifest.json",
+            "NODE_MODULES_SRC": "npm-cache",
+            "HOST_LOG": "artifacts/gecko_output.log"
           },
           "command": [
             "entrypoint",
@@ -3416,7 +3603,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0"
+          "image": "taskcluster/gaia-taskenv:0.8.11"
         },
         "extra": {
           "treeherder": {
@@ -3429,7 +3616,7 @@
       }
     },
     {
-      "reruns": 4,
+      "reruns": 2,
       "task": {
         "metadata": {
           "name": "Gaia unit tests in b2g-desktop chunk 1",
@@ -3440,7 +3627,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "cache": {
@@ -3449,7 +3637,8 @@
           "env": {
             "THIS_CHUNK": "1",
             "TOTAL_CHUNKS": "30",
-            "REPORTER": "mocha-tbpl-reporter"
+            "REPORTER": "mocha-tbpl-reporter",
+            "NODE_MODULES_SRC": "npm-cache"
           },
           "command": [
             "entrypoint",
@@ -3462,7 +3651,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "image": "taskcluster/gaia-taskenv:0.8.11",
           "maxRunTime": 1800
         },
         "extra": {
@@ -3476,7 +3665,7 @@
       }
     },
     {
-      "reruns": 4,
+      "reruns": 2,
       "task": {
         "metadata": {
           "name": "Gaia unit tests in b2g-desktop chunk 2",
@@ -3487,7 +3676,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "cache": {
@@ -3496,7 +3686,8 @@
           "env": {
             "THIS_CHUNK": "2",
             "TOTAL_CHUNKS": "30",
-            "REPORTER": "mocha-tbpl-reporter"
+            "REPORTER": "mocha-tbpl-reporter",
+            "NODE_MODULES_SRC": "npm-cache"
           },
           "command": [
             "entrypoint",
@@ -3509,7 +3700,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "image": "taskcluster/gaia-taskenv:0.8.11",
           "maxRunTime": 1800
         },
         "extra": {
@@ -3523,7 +3714,7 @@
       }
     },
     {
-      "reruns": 4,
+      "reruns": 2,
       "task": {
         "metadata": {
           "name": "Gaia unit tests in b2g-desktop chunk 3",
@@ -3534,7 +3725,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "cache": {
@@ -3543,7 +3735,8 @@
           "env": {
             "THIS_CHUNK": "3",
             "TOTAL_CHUNKS": "30",
-            "REPORTER": "mocha-tbpl-reporter"
+            "REPORTER": "mocha-tbpl-reporter",
+            "NODE_MODULES_SRC": "npm-cache"
           },
           "command": [
             "entrypoint",
@@ -3556,7 +3749,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "image": "taskcluster/gaia-taskenv:0.8.11",
           "maxRunTime": 1800
         },
         "extra": {
@@ -3570,7 +3763,7 @@
       }
     },
     {
-      "reruns": 4,
+      "reruns": 2,
       "task": {
         "metadata": {
           "name": "Gaia unit tests in b2g-desktop chunk 4",
@@ -3581,7 +3774,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "cache": {
@@ -3590,7 +3784,8 @@
           "env": {
             "THIS_CHUNK": "4",
             "TOTAL_CHUNKS": "30",
-            "REPORTER": "mocha-tbpl-reporter"
+            "REPORTER": "mocha-tbpl-reporter",
+            "NODE_MODULES_SRC": "npm-cache"
           },
           "command": [
             "entrypoint",
@@ -3603,7 +3798,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "image": "taskcluster/gaia-taskenv:0.8.11",
           "maxRunTime": 1800
         },
         "extra": {
@@ -3617,7 +3812,7 @@
       }
     },
     {
-      "reruns": 4,
+      "reruns": 2,
       "task": {
         "metadata": {
           "name": "Gaia unit tests in b2g-desktop chunk 5",
@@ -3628,7 +3823,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "cache": {
@@ -3637,7 +3833,8 @@
           "env": {
             "THIS_CHUNK": "5",
             "TOTAL_CHUNKS": "30",
-            "REPORTER": "mocha-tbpl-reporter"
+            "REPORTER": "mocha-tbpl-reporter",
+            "NODE_MODULES_SRC": "npm-cache"
           },
           "command": [
             "entrypoint",
@@ -3650,7 +3847,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "image": "taskcluster/gaia-taskenv:0.8.11",
           "maxRunTime": 1800
         },
         "extra": {
@@ -3664,7 +3861,7 @@
       }
     },
     {
-      "reruns": 4,
+      "reruns": 2,
       "task": {
         "metadata": {
           "name": "Gaia unit tests in b2g-desktop chunk 6",
@@ -3675,7 +3872,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "cache": {
@@ -3684,7 +3882,8 @@
           "env": {
             "THIS_CHUNK": "6",
             "TOTAL_CHUNKS": "30",
-            "REPORTER": "mocha-tbpl-reporter"
+            "REPORTER": "mocha-tbpl-reporter",
+            "NODE_MODULES_SRC": "npm-cache"
           },
           "command": [
             "entrypoint",
@@ -3697,7 +3896,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "image": "taskcluster/gaia-taskenv:0.8.11",
           "maxRunTime": 1800
         },
         "extra": {
@@ -3711,7 +3910,7 @@
       }
     },
     {
-      "reruns": 4,
+      "reruns": 2,
       "task": {
         "metadata": {
           "name": "Gaia unit tests in b2g-desktop chunk 7",
@@ -3722,7 +3921,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "cache": {
@@ -3731,7 +3931,8 @@
           "env": {
             "THIS_CHUNK": "7",
             "TOTAL_CHUNKS": "30",
-            "REPORTER": "mocha-tbpl-reporter"
+            "REPORTER": "mocha-tbpl-reporter",
+            "NODE_MODULES_SRC": "npm-cache"
           },
           "command": [
             "entrypoint",
@@ -3744,7 +3945,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "image": "taskcluster/gaia-taskenv:0.8.11",
           "maxRunTime": 1800
         },
         "extra": {
@@ -3758,7 +3959,7 @@
       }
     },
     {
-      "reruns": 4,
+      "reruns": 2,
       "task": {
         "metadata": {
           "name": "Gaia unit tests in b2g-desktop chunk 8",
@@ -3769,7 +3970,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "cache": {
@@ -3778,7 +3980,8 @@
           "env": {
             "THIS_CHUNK": "8",
             "TOTAL_CHUNKS": "30",
-            "REPORTER": "mocha-tbpl-reporter"
+            "REPORTER": "mocha-tbpl-reporter",
+            "NODE_MODULES_SRC": "npm-cache"
           },
           "command": [
             "entrypoint",
@@ -3791,7 +3994,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "image": "taskcluster/gaia-taskenv:0.8.11",
           "maxRunTime": 1800
         },
         "extra": {
@@ -3805,7 +4008,7 @@
       }
     },
     {
-      "reruns": 4,
+      "reruns": 2,
       "task": {
         "metadata": {
           "name": "Gaia unit tests in b2g-desktop chunk 9",
@@ -3816,7 +4019,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "cache": {
@@ -3825,7 +4029,8 @@
           "env": {
             "THIS_CHUNK": "9",
             "TOTAL_CHUNKS": "30",
-            "REPORTER": "mocha-tbpl-reporter"
+            "REPORTER": "mocha-tbpl-reporter",
+            "NODE_MODULES_SRC": "npm-cache"
           },
           "command": [
             "entrypoint",
@@ -3838,7 +4043,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "image": "taskcluster/gaia-taskenv:0.8.11",
           "maxRunTime": 1800
         },
         "extra": {
@@ -3852,7 +4057,7 @@
       }
     },
     {
-      "reruns": 4,
+      "reruns": 2,
       "task": {
         "metadata": {
           "name": "Gaia unit tests in b2g-desktop chunk 10",
@@ -3863,7 +4068,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "cache": {
@@ -3872,7 +4078,8 @@
           "env": {
             "THIS_CHUNK": "10",
             "TOTAL_CHUNKS": "30",
-            "REPORTER": "mocha-tbpl-reporter"
+            "REPORTER": "mocha-tbpl-reporter",
+            "NODE_MODULES_SRC": "npm-cache"
           },
           "command": [
             "entrypoint",
@@ -3885,7 +4092,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "image": "taskcluster/gaia-taskenv:0.8.11",
           "maxRunTime": 1800
         },
         "extra": {
@@ -3899,7 +4106,7 @@
       }
     },
     {
-      "reruns": 4,
+      "reruns": 2,
       "task": {
         "metadata": {
           "name": "Gaia unit tests in b2g-desktop chunk 11",
@@ -3910,7 +4117,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "cache": {
@@ -3919,7 +4127,8 @@
           "env": {
             "THIS_CHUNK": "11",
             "TOTAL_CHUNKS": "30",
-            "REPORTER": "mocha-tbpl-reporter"
+            "REPORTER": "mocha-tbpl-reporter",
+            "NODE_MODULES_SRC": "npm-cache"
           },
           "command": [
             "entrypoint",
@@ -3932,7 +4141,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "image": "taskcluster/gaia-taskenv:0.8.11",
           "maxRunTime": 1800
         },
         "extra": {
@@ -3946,7 +4155,7 @@
       }
     },
     {
-      "reruns": 4,
+      "reruns": 2,
       "task": {
         "metadata": {
           "name": "Gaia unit tests in b2g-desktop chunk 12",
@@ -3957,7 +4166,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "cache": {
@@ -3966,7 +4176,8 @@
           "env": {
             "THIS_CHUNK": "12",
             "TOTAL_CHUNKS": "30",
-            "REPORTER": "mocha-tbpl-reporter"
+            "REPORTER": "mocha-tbpl-reporter",
+            "NODE_MODULES_SRC": "npm-cache"
           },
           "command": [
             "entrypoint",
@@ -3979,7 +4190,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "image": "taskcluster/gaia-taskenv:0.8.11",
           "maxRunTime": 1800
         },
         "extra": {
@@ -3993,7 +4204,7 @@
       }
     },
     {
-      "reruns": 4,
+      "reruns": 2,
       "task": {
         "metadata": {
           "name": "Gaia unit tests in b2g-desktop chunk 13",
@@ -4004,7 +4215,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "cache": {
@@ -4013,7 +4225,8 @@
           "env": {
             "THIS_CHUNK": "13",
             "TOTAL_CHUNKS": "30",
-            "REPORTER": "mocha-tbpl-reporter"
+            "REPORTER": "mocha-tbpl-reporter",
+            "NODE_MODULES_SRC": "npm-cache"
           },
           "command": [
             "entrypoint",
@@ -4026,7 +4239,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "image": "taskcluster/gaia-taskenv:0.8.11",
           "maxRunTime": 1800
         },
         "extra": {
@@ -4040,7 +4253,7 @@
       }
     },
     {
-      "reruns": 4,
+      "reruns": 2,
       "task": {
         "metadata": {
           "name": "Gaia unit tests in b2g-desktop chunk 14",
@@ -4051,7 +4264,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "cache": {
@@ -4060,7 +4274,8 @@
           "env": {
             "THIS_CHUNK": "14",
             "TOTAL_CHUNKS": "30",
-            "REPORTER": "mocha-tbpl-reporter"
+            "REPORTER": "mocha-tbpl-reporter",
+            "NODE_MODULES_SRC": "npm-cache"
           },
           "command": [
             "entrypoint",
@@ -4073,7 +4288,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "image": "taskcluster/gaia-taskenv:0.8.11",
           "maxRunTime": 1800
         },
         "extra": {
@@ -4087,7 +4302,7 @@
       }
     },
     {
-      "reruns": 4,
+      "reruns": 2,
       "task": {
         "metadata": {
           "name": "Gaia unit tests in b2g-desktop chunk 15",
@@ -4098,7 +4313,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "cache": {
@@ -4107,7 +4323,8 @@
           "env": {
             "THIS_CHUNK": "15",
             "TOTAL_CHUNKS": "30",
-            "REPORTER": "mocha-tbpl-reporter"
+            "REPORTER": "mocha-tbpl-reporter",
+            "NODE_MODULES_SRC": "npm-cache"
           },
           "command": [
             "entrypoint",
@@ -4120,7 +4337,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "image": "taskcluster/gaia-taskenv:0.8.11",
           "maxRunTime": 1800
         },
         "extra": {
@@ -4134,7 +4351,7 @@
       }
     },
     {
-      "reruns": 4,
+      "reruns": 2,
       "task": {
         "metadata": {
           "name": "Gaia unit tests in b2g-desktop chunk 16",
@@ -4145,7 +4362,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "cache": {
@@ -4154,7 +4372,8 @@
           "env": {
             "THIS_CHUNK": "16",
             "TOTAL_CHUNKS": "30",
-            "REPORTER": "mocha-tbpl-reporter"
+            "REPORTER": "mocha-tbpl-reporter",
+            "NODE_MODULES_SRC": "npm-cache"
           },
           "command": [
             "entrypoint",
@@ -4167,7 +4386,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "image": "taskcluster/gaia-taskenv:0.8.11",
           "maxRunTime": 1800
         },
         "extra": {
@@ -4181,7 +4400,7 @@
       }
     },
     {
-      "reruns": 4,
+      "reruns": 2,
       "task": {
         "metadata": {
           "name": "Gaia unit tests in b2g-desktop chunk 17",
@@ -4192,7 +4411,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "cache": {
@@ -4201,7 +4421,8 @@
           "env": {
             "THIS_CHUNK": "17",
             "TOTAL_CHUNKS": "30",
-            "REPORTER": "mocha-tbpl-reporter"
+            "REPORTER": "mocha-tbpl-reporter",
+            "NODE_MODULES_SRC": "npm-cache"
           },
           "command": [
             "entrypoint",
@@ -4214,7 +4435,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "image": "taskcluster/gaia-taskenv:0.8.11",
           "maxRunTime": 1800
         },
         "extra": {
@@ -4228,7 +4449,7 @@
       }
     },
     {
-      "reruns": 4,
+      "reruns": 2,
       "task": {
         "metadata": {
           "name": "Gaia unit tests in b2g-desktop chunk 18",
@@ -4239,7 +4460,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "cache": {
@@ -4248,7 +4470,8 @@
           "env": {
             "THIS_CHUNK": "18",
             "TOTAL_CHUNKS": "30",
-            "REPORTER": "mocha-tbpl-reporter"
+            "REPORTER": "mocha-tbpl-reporter",
+            "NODE_MODULES_SRC": "npm-cache"
           },
           "command": [
             "entrypoint",
@@ -4261,7 +4484,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "image": "taskcluster/gaia-taskenv:0.8.11",
           "maxRunTime": 1800
         },
         "extra": {
@@ -4275,7 +4498,7 @@
       }
     },
     {
-      "reruns": 4,
+      "reruns": 2,
       "task": {
         "metadata": {
           "name": "Gaia unit tests in b2g-desktop chunk 19",
@@ -4286,7 +4509,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "cache": {
@@ -4295,7 +4519,8 @@
           "env": {
             "THIS_CHUNK": "19",
             "TOTAL_CHUNKS": "30",
-            "REPORTER": "mocha-tbpl-reporter"
+            "REPORTER": "mocha-tbpl-reporter",
+            "NODE_MODULES_SRC": "npm-cache"
           },
           "command": [
             "entrypoint",
@@ -4308,7 +4533,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "image": "taskcluster/gaia-taskenv:0.8.11",
           "maxRunTime": 1800
         },
         "extra": {
@@ -4322,7 +4547,7 @@
       }
     },
     {
-      "reruns": 4,
+      "reruns": 2,
       "task": {
         "metadata": {
           "name": "Gaia unit tests in b2g-desktop chunk 20",
@@ -4333,7 +4558,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "cache": {
@@ -4342,7 +4568,8 @@
           "env": {
             "THIS_CHUNK": "20",
             "TOTAL_CHUNKS": "30",
-            "REPORTER": "mocha-tbpl-reporter"
+            "REPORTER": "mocha-tbpl-reporter",
+            "NODE_MODULES_SRC": "npm-cache"
           },
           "command": [
             "entrypoint",
@@ -4355,7 +4582,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "image": "taskcluster/gaia-taskenv:0.8.11",
           "maxRunTime": 1800
         },
         "extra": {
@@ -4369,7 +4596,7 @@
       }
     },
     {
-      "reruns": 4,
+      "reruns": 2,
       "task": {
         "metadata": {
           "name": "Gaia unit tests in b2g-desktop chunk 21",
@@ -4380,7 +4607,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "cache": {
@@ -4389,7 +4617,8 @@
           "env": {
             "THIS_CHUNK": "21",
             "TOTAL_CHUNKS": "30",
-            "REPORTER": "mocha-tbpl-reporter"
+            "REPORTER": "mocha-tbpl-reporter",
+            "NODE_MODULES_SRC": "npm-cache"
           },
           "command": [
             "entrypoint",
@@ -4402,7 +4631,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "image": "taskcluster/gaia-taskenv:0.8.11",
           "maxRunTime": 1800
         },
         "extra": {
@@ -4416,7 +4645,7 @@
       }
     },
     {
-      "reruns": 4,
+      "reruns": 2,
       "task": {
         "metadata": {
           "name": "Gaia unit tests in b2g-desktop chunk 22",
@@ -4427,7 +4656,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "cache": {
@@ -4436,7 +4666,8 @@
           "env": {
             "THIS_CHUNK": "22",
             "TOTAL_CHUNKS": "30",
-            "REPORTER": "mocha-tbpl-reporter"
+            "REPORTER": "mocha-tbpl-reporter",
+            "NODE_MODULES_SRC": "npm-cache"
           },
           "command": [
             "entrypoint",
@@ -4449,7 +4680,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "image": "taskcluster/gaia-taskenv:0.8.11",
           "maxRunTime": 1800
         },
         "extra": {
@@ -4463,7 +4694,7 @@
       }
     },
     {
-      "reruns": 4,
+      "reruns": 2,
       "task": {
         "metadata": {
           "name": "Gaia unit tests in b2g-desktop chunk 23",
@@ -4474,7 +4705,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "cache": {
@@ -4483,7 +4715,8 @@
           "env": {
             "THIS_CHUNK": "23",
             "TOTAL_CHUNKS": "30",
-            "REPORTER": "mocha-tbpl-reporter"
+            "REPORTER": "mocha-tbpl-reporter",
+            "NODE_MODULES_SRC": "npm-cache"
           },
           "command": [
             "entrypoint",
@@ -4496,7 +4729,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "image": "taskcluster/gaia-taskenv:0.8.11",
           "maxRunTime": 1800
         },
         "extra": {
@@ -4510,7 +4743,7 @@
       }
     },
     {
-      "reruns": 4,
+      "reruns": 2,
       "task": {
         "metadata": {
           "name": "Gaia unit tests in b2g-desktop chunk 24",
@@ -4521,7 +4754,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "cache": {
@@ -4530,7 +4764,8 @@
           "env": {
             "THIS_CHUNK": "24",
             "TOTAL_CHUNKS": "30",
-            "REPORTER": "mocha-tbpl-reporter"
+            "REPORTER": "mocha-tbpl-reporter",
+            "NODE_MODULES_SRC": "npm-cache"
           },
           "command": [
             "entrypoint",
@@ -4543,7 +4778,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "image": "taskcluster/gaia-taskenv:0.8.11",
           "maxRunTime": 1800
         },
         "extra": {
@@ -4557,7 +4792,7 @@
       }
     },
     {
-      "reruns": 4,
+      "reruns": 2,
       "task": {
         "metadata": {
           "name": "Gaia unit tests in b2g-desktop chunk 25",
@@ -4568,7 +4803,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "cache": {
@@ -4577,7 +4813,8 @@
           "env": {
             "THIS_CHUNK": "25",
             "TOTAL_CHUNKS": "30",
-            "REPORTER": "mocha-tbpl-reporter"
+            "REPORTER": "mocha-tbpl-reporter",
+            "NODE_MODULES_SRC": "npm-cache"
           },
           "command": [
             "entrypoint",
@@ -4590,7 +4827,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "image": "taskcluster/gaia-taskenv:0.8.11",
           "maxRunTime": 1800
         },
         "extra": {
@@ -4604,7 +4841,7 @@
       }
     },
     {
-      "reruns": 4,
+      "reruns": 2,
       "task": {
         "metadata": {
           "name": "Gaia unit tests in b2g-desktop chunk 26",
@@ -4615,7 +4852,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "cache": {
@@ -4624,7 +4862,8 @@
           "env": {
             "THIS_CHUNK": "26",
             "TOTAL_CHUNKS": "30",
-            "REPORTER": "mocha-tbpl-reporter"
+            "REPORTER": "mocha-tbpl-reporter",
+            "NODE_MODULES_SRC": "npm-cache"
           },
           "command": [
             "entrypoint",
@@ -4637,7 +4876,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "image": "taskcluster/gaia-taskenv:0.8.11",
           "maxRunTime": 1800
         },
         "extra": {
@@ -4651,7 +4890,7 @@
       }
     },
     {
-      "reruns": 4,
+      "reruns": 2,
       "task": {
         "metadata": {
           "name": "Gaia unit tests in b2g-desktop chunk 27",
@@ -4662,7 +4901,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "cache": {
@@ -4671,7 +4911,8 @@
           "env": {
             "THIS_CHUNK": "27",
             "TOTAL_CHUNKS": "30",
-            "REPORTER": "mocha-tbpl-reporter"
+            "REPORTER": "mocha-tbpl-reporter",
+            "NODE_MODULES_SRC": "npm-cache"
           },
           "command": [
             "entrypoint",
@@ -4684,7 +4925,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "image": "taskcluster/gaia-taskenv:0.8.11",
           "maxRunTime": 1800
         },
         "extra": {
@@ -4698,7 +4939,7 @@
       }
     },
     {
-      "reruns": 4,
+      "reruns": 2,
       "task": {
         "metadata": {
           "name": "Gaia unit tests in b2g-desktop chunk 28",
@@ -4709,7 +4950,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "cache": {
@@ -4718,7 +4960,8 @@
           "env": {
             "THIS_CHUNK": "28",
             "TOTAL_CHUNKS": "30",
-            "REPORTER": "mocha-tbpl-reporter"
+            "REPORTER": "mocha-tbpl-reporter",
+            "NODE_MODULES_SRC": "npm-cache"
           },
           "command": [
             "entrypoint",
@@ -4731,7 +4974,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "image": "taskcluster/gaia-taskenv:0.8.11",
           "maxRunTime": 1800
         },
         "extra": {
@@ -4745,7 +4988,7 @@
       }
     },
     {
-      "reruns": 4,
+      "reruns": 2,
       "task": {
         "metadata": {
           "name": "Gaia unit tests in b2g-desktop chunk 29",
@@ -4756,7 +4999,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "cache": {
@@ -4765,7 +5009,8 @@
           "env": {
             "THIS_CHUNK": "29",
             "TOTAL_CHUNKS": "30",
-            "REPORTER": "mocha-tbpl-reporter"
+            "REPORTER": "mocha-tbpl-reporter",
+            "NODE_MODULES_SRC": "npm-cache"
           },
           "command": [
             "entrypoint",
@@ -4778,7 +5023,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "image": "taskcluster/gaia-taskenv:0.8.11",
           "maxRunTime": 1800
         },
         "extra": {
@@ -4792,7 +5037,7 @@
       }
     },
     {
-      "reruns": 4,
+      "reruns": 2,
       "task": {
         "metadata": {
           "name": "Gaia unit tests in b2g-desktop chunk 30",
@@ -4803,7 +5048,8 @@
         "workerType": "gaia",
         "provisionerId": "aws-provisioner-v1",
         "scopes": [
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "docker-worker:image:taskcluster/gaia-taskenv\n*"
         ],
         "payload": {
           "cache": {
@@ -4812,7 +5058,8 @@
           "env": {
             "THIS_CHUNK": "30",
             "TOTAL_CHUNKS": "30",
-            "REPORTER": "mocha-tbpl-reporter"
+            "REPORTER": "mocha-tbpl-reporter",
+            "NODE_MODULES_SRC": "npm-cache"
           },
           "command": [
             "entrypoint",
@@ -4825,7 +5072,7 @@
               "expires": "{{nextYear}}"
             }
           },
-          "image": "taskcluster/gaia-taskenv:0.8.0",
+          "image": "taskcluster/gaia-taskenv:0.8.11",
           "maxRunTime": 1800
         },
         "extra": {
