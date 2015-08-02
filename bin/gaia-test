@@ -183,6 +183,10 @@ launch_test_runner_in_b2g() {
   $runs_in_gdb $B2G -profile "$GAIADIR/$PROFILE_FOLDER" --runapp 'Test Agent'
 }
 
+prepare_npm_modules() {
+  make node_modules
+}
+
 
 handle_options "$@" && shift `expr $OPTIND - 1`
 configure_gaia_location "$1"
@@ -208,6 +212,7 @@ cd $GAIADIR
 
 configure_profile_folder
 generate_profile_folder_if_needed
+prepare_npm_modules
 
 cleanup() {
   echo "$SELF: Stopping the test runner on exit."
