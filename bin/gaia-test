@@ -31,9 +31,10 @@ SELF_DIR=`dirname $0`
 #
 
 usage() {
-  echo "$SELF [ -d ] [ -f ] [ -h ] [ <gaia dir> [ <firefox/B2G binary> ] ]"
+  echo "$SELF [ -d ] [ -f ] [ -g ] [ -h ] [ <gaia dir> [ <firefox/B2G binary> ] ]"
   echo "  -d: runs in B2G Desktop"
   echo "  -f: forces the profile generation -- will delete an existing profile directory"
+  echo "  -g: runs in gdb"
   echo "  -h: displays this help"
   echo
   echo "Use the environment variable FIREFOX to point to a specific firefox binary."
@@ -41,19 +42,24 @@ usage() {
   echo "Use the environment variable GAIADIR to point to a specific Gaia directory."
   echo -n "Use the environment variable PROFILE_FOLDER to change the profile directory."
   echo " It should be a subdirectory of the Gaia directory."
+  echo "Use the environment variable GDB_ARGS to pass arguments to gdb."
   exit 1
 }
 
 handle_options() {
   mode="firefox"
   force_profile=
-  while getopts dfh f; do
+  runs_in_gdb=
+  while getopts dfgh f; do
     case $f in
       d)
         mode="b2g"
         ;;
       f)
         force_profile=1
+        ;;
+      g)
+        runs_in_gdb="gdb $GDB_ARGS --args"
         ;;
       h|\?)
         usage
@@ -170,11 +176,11 @@ launch_test_runner_in_firefox() {
   #
   # Launch firefox
   #
-  $FIREFOX --no-remote -profile "$GAIADIR/$PROFILE_FOLDER" app://test-agent.gaiamobile.org/ &
+  $runs_in_gdb $FIREFOX --no-remote -profile "$GAIADIR/$PROFILE_FOLDER" app://test-agent.gaiamobile.org/
 }
 
 launch_test_runner_in_b2g() {
-  $B2G -profile "$GAIADIR/$PROFILE_FOLDER" --runapp 'Test Agent' &
+  $runs_in_gdb $B2G -profile "$GAIADIR/$PROFILE_FOLDER" --runapp 'Test Agent'
 }
 
 
@@ -202,7 +208,6 @@ cd $GAIADIR
 
 configure_profile_folder
 generate_profile_folder_if_needed
-launch_test_runner_in_${mode}
 
 cleanup() {
   echo "$SELF: Stopping the test runner on exit."
@@ -213,4 +218,6 @@ trap cleanup EXIT
 #
 # Launch the test agent
 #
-make test-agent-server
+make test-agent-server &
+
+launch_test_runner_in_${mode}
