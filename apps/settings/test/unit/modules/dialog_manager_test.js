@@ -96,10 +96,6 @@ suite('DialogManager > ', function() {
         return Promise.resolve();
       });
 
-      this.sinon.stub(dialogManager, '_initializedL10n', function() {
-        return Promise.resolve();
-      });
-
       this.sinon.stub(dialogManager, '_getPanel', function() {
         return panel;
       });
@@ -152,10 +148,6 @@ suite('DialogManager > ', function() {
       };
 
       this.sinon.stub(dialogManager, '_loadPanel', function() {
-        return Promise.resolve();
-      });
-
-      this.sinon.stub(dialogManager, '_initializedL10n', function() {
         return Promise.resolve();
       });
 

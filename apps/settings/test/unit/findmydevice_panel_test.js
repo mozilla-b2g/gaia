@@ -23,23 +23,13 @@ var mocksForFindMyDevice = new MocksHelper([
 
 suite('Find My Device panel > ', function() {
   var MockMozId, realMozId;
-  var realL10n, subject;
+  var subject;
   var signinSection, settingsSection, trackingSection, login, loginButton,
       checkbox, unverifiedError;
 
   mocksForFindMyDevice.attachTestHelpers();
 
   setup(function(done) {
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = {
-      once: function(callback) {
-        // XXX(ggp) we'll manually init() below, so we don't
-        // need to call the callback now.
-      },
-      setAttributes: function(element, id) {
-      },
-    };
-
     realMozId = navigator.mozId;
     MockMozId = {
       onlogin: null,
@@ -298,7 +288,6 @@ suite('Find My Device panel > ', function() {
   });
 
   teardown(function() {
-    navigator.mozL10n = realL10n;
     navigator.mozId = realMozId;
   });
 });

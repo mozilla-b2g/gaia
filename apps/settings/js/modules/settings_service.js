@@ -193,68 +193,65 @@ define(function(require) {
       }
 
       _loadPanel(panelId, function() {
-        // We have to make sure l10n is ready before navigations
-        navigator.mozL10n.once(function() {
-          PanelCache.get(panelId, function(panel) {
-            var newPanelElement = document.getElementById(panelId);
-            var currentPanelId =
-               _currentNavigation && _currentNavigation.panelId;
-            var currentPanelElement =
-              _currentNavigation && _currentNavigation.panelElement;
-            var currentPanel = _currentNavigation && _currentNavigation.panel;
+        PanelCache.get(panelId, function(panel) {
+          var newPanelElement = document.getElementById(panelId);
+          var currentPanelId =
+             _currentNavigation && _currentNavigation.panelId;
+          var currentPanelElement =
+            _currentNavigation && _currentNavigation.panelElement;
+          var currentPanel = _currentNavigation && _currentNavigation.panel;
 
-            // Keep these to make sure we can use when going back
-            _cachedNavigation = _currentNavigation;
-            _cachedNavigationOptions = options;
+          // Keep these to make sure we can use when going back
+          _cachedNavigation = _currentNavigation;
+          _cachedNavigationOptions = options;
 
-            // Prepare options and calls to the panel object's before
-            // show function.
-            options = options || {};
+          // Prepare options and calls to the panel object's before
+          // show function.
+          options = options || {};
 
-            // 0. start the chain
-            _loadModulesForSubPanels(panelId)
-            // 1. beforeHide previous panel
-            .then(function() {
-              // We don't deactivate the root panel.
-              if (currentPanel && currentPanelId !== _rootPanelId) {
-                return currentPanel.beforeHide();
-              }
-            })
-            // 2. beforeShow next panel
-            .then(function() {
-              return panel.beforeShow(newPanelElement, options);
-            })
-            // 3. do the transition
-            .then(function() {
-              return _transit(currentPanelElement, newPanelElement);
-            })
-            // 4. hide previous panel
-            .then(function() {
-              // We don't deactivate the root panel.
-              if (currentPanel && currentPanelId !== _rootPanelId) {
-                return currentPanel.hide();
-              }
-            })
-            // 5. show next panel
-            .then(function() {
-              return panel.show(newPanelElement, options);
-            })
-            // 6. keep information
-            .then(function() {
-              // Update the current navigation object
-              _currentNavigation = {
-                panelId: panelId,
-                panelElement: newPanelElement,
-                panel: panel,
-                options: options
-              };
+          // 0. start the chain
+          _loadModulesForSubPanels(panelId)
+          // 1. beforeHide previous panel
+          .then(function() {
+            // We don't deactivate the root panel.
+            if (currentPanel && currentPanelId !== _rootPanelId) {
+              return currentPanel.beforeHide();
+            }
+          })
+          // 2. beforeShow next panel
+          .then(function() {
+            return panel.beforeShow(newPanelElement, options);
+          })
+          // 3. do the transition
+          .then(function() {
+            return _transit(currentPanelElement, newPanelElement);
+          })
+          // 4. hide previous panel
+          .then(function() {
+            // We don't deactivate the root panel.
+            if (currentPanel && currentPanelId !== _rootPanelId) {
+              return currentPanel.hide();
+            }
+          })
+          // 5. show next panel
+          .then(function() {
+            return panel.show(newPanelElement, options);
+          })
+          // 6. keep information
+          .then(function() {
+            // Update the current navigation object
+            _currentNavigation = {
+              panelId: panelId,
+              panelElement: newPanelElement,
+              panel: panel,
+              options: options
+            };
 
-              // XXX we need to remove this line in the future
-              // to make sure we won't manipulate Settings
-              // directly
-              Settings._currentPanel = '#' + panelId;
-              callback();
-            });
+            // XXX we need to remove this line in the future
+            // to make sure we won't manipulate Settings
+            // directly
+            Settings._currentPanel = '#' + panelId;
+            callback();
           });
         });
       });

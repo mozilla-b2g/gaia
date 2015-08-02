@@ -1,14 +1,12 @@
 'use strict';
 
 suite('Root', function() {
-  var realL10n;
   var map = {
     '*': {
       'shared/lazyLoader': 'MockLazyLoader'
     }
   };
   var modules = [
-    'shared_mocks/mock_l10n',
     'panels/root/root',
     'MockLazyLoader'
   ];
@@ -23,17 +21,11 @@ suite('Root', function() {
       return this.MockLazyLoader;
     }.bind(this));
 
-    requireCtx(modules, function(MockL10n, Root) {
-      realL10n = window.navigator.mozL10n;
-      window.navigator.mozL10n = MockL10n;
+    requireCtx(modules, function(Root) {
 
       this.Root = Root;
       done();
     }.bind(this));
-  });
-
-  suiteTeardown(function() {
-    window.navigator.mozL10n = realL10n;
   });
 
   suite('init', function() {

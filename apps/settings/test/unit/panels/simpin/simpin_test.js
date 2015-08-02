@@ -1,7 +1,4 @@
-/* global MockL10n */
 'use strict';
-
-require('/shared/test/unit/mocks/mock_l10n.js');
 
 suite('SimPin > ', function() {
   var simpin;
@@ -14,10 +11,6 @@ suite('SimPin > ', function() {
       'modules/sim_security': 'MockSimSecurity'
     }
   };
-
-  suiteSetup(function() {
-    window.navigator.mozL10n = MockL10n;
-  });
 
   setup(function(done) {
     this.MockAirplaneModeHelper = {
@@ -127,9 +120,8 @@ suite('SimPin > ', function() {
         function() {
           var firstCallArgs = viewSpy.getCall(0).args[0];
           assert.equal(firstCallArgs.simIndex, '0');
-          assert.equal(firstCallArgs.simName,
-            'simPinWithIndex{"index":""}');
-          assert.equal(firstCallArgs.changeSimLabel, 'changeSimPin');
+          assert.equal(firstCallArgs.simPinArgs,
+            '{"index":""}');
       });
     });
 
@@ -144,15 +136,11 @@ suite('SimPin > ', function() {
       test('init SimPinsUI successfully', function() {
         var firstCallArgs = viewSpy.getCall(0).args[0];
         assert.equal(firstCallArgs.simIndex, '0');
-        assert.equal(firstCallArgs.simName,
-          'simPinWithIndex{"index":1}');
-        assert.equal(firstCallArgs.changeSimLabel, 'changeSimPin');
+        assert.equal(firstCallArgs.simPinArgs, '{"index":1}');
 
         var secondCallArgs = viewSpy.getCall(1).args[0];
         assert.equal(secondCallArgs.simIndex, '1');
-        assert.equal(secondCallArgs.simName,
-          'simPinWithIndex{"index":2}');
-        assert.equal(secondCallArgs.changeSimLabel, 'changeSimPin');
+        assert.equal(secondCallArgs.simPinArgs, '{"index":2}');
       });
     });
   });

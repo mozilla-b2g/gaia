@@ -5,7 +5,6 @@ require('/shared/test/unit/mocks/mock_keyboard_helper.js');
 require('/shared/test/unit/mocks/mock_manifest_helper.js');
 
 suite('KeyboardAddLayoutsPanel', function() {
-  var realL10n;
   var map = {
     '*': {
       'shared/manifest_helper': 'shared_mocks/mock_manifest_helper',
@@ -22,11 +21,6 @@ suite('KeyboardAddLayoutsPanel', function() {
   mockHelper.attachTestHelpers();
 
   suiteSetup(function(done) {
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = {
-      get: function() {}
-    };
-
     testRequire([
       'modules/keyboard_context',
       'panels/keyboard_add_layouts/panel',
@@ -49,7 +43,6 @@ suite('KeyboardAddLayoutsPanel', function() {
   });
 
   suiteTeardown(function() {
-    navigator.mozL10n = realL10n;
     this.MockSettingsPanel.mTeardown();
   });
 
