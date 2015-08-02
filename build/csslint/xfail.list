@@ -7,6 +7,7 @@ apps/bluetooth/style/settings.css 0 1
 apps/calendar/style/month.css 0 2
 apps/calendar/style/ui.css 0 2
 apps/calendar/style/modify_event_view.css 0 4
+apps/calendar/style/settings.css 0 1
 apps/callscreen/style/oncall.css 0 1
 apps/camera/bower_components/gaia-theme/gaia-theme.css 5 0
 apps/camera/style/notification.css 1 0

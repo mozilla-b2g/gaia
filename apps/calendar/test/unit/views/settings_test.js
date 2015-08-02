@@ -374,7 +374,7 @@ suiteGroup('views/settings', function() {
 
         for (var id in models) {
           checkboxes[id] = subject.calendars.querySelector(
-            'input[value="' + models[id]._id + '"]'
+            'gaia-checkbox[value="' + models[id]._id + '"]'
           );
         }
 
