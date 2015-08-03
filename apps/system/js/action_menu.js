@@ -107,7 +107,7 @@
     var target = evt.target;
     var defaultSelected = false;
     if (this.askForDefaultChoice) {
-      defaultSelected = !!this.defaultChoiceInput.getAttribute('checked');
+      defaultSelected = this.defaultChoiceInput.checked;
     }
 
     var value = target.dataset.value;
@@ -120,23 +120,19 @@
   };
 
   ActionMenu.prototype._appendDefault = function() {
-    var defaultChoice = document.createElement('label');
-    defaultChoice.setAttribute('class', 'pack-checkbox');
+    var defaultChoice = document.createElement('gaia-checkbox');
+    defaultChoice.className = 'inline';
+    // Bug 1192582, can't yet create components dynamically yet with className.
+    defaultChoice.configureClass();
     defaultChoice.setAttribute('data-action', 'set-default-action');
 
-    this.defaultChoiceInput = document.createElement('input');
-    this.defaultChoiceInput.setAttribute('type', 'checkbox');
+    this.defaultChoiceInput = defaultChoice;
 
-    var defaultChoiceSpan = document.createElement('span');
-    defaultChoiceSpan.setAttribute('data-l10n-id',
+    var defaultChoiceLabel = document.createElement('label');
+    defaultChoiceLabel.setAttribute('data-l10n-id',
                                         'set-default-action');
-    defaultChoice.appendChild(this.defaultChoiceInput);
-    defaultChoice.appendChild(defaultChoiceSpan);
+    defaultChoice.appendChild(defaultChoiceLabel);
 
-    defaultChoice.addEventListener('click', function(evt) {
-      evt.preventDefault();
-      this.toggleSetDefaultAction();
-    }.bind(this));
     this.menu.appendChild(defaultChoice);
   };
 
@@ -150,23 +146,6 @@
       this.oncancel();
     }.bind(this));
     this.menu.appendChild(button);
-  };
-
-  /**
-   * This changes the input to be checked or unchecked
-   * @memberof ActionMenu.prototype
-   */
-  ActionMenu.prototype.toggleSetDefaultAction = function() {
-    if (!this.defaultChoiceInput) {
-      return;
-    }
-
-    var checked = this.defaultChoiceInput.checked;
-    if (checked) {
-      this.defaultChoiceInput.removeAttribute('checked');
-    } else {
-      this.defaultChoiceInput.setAttribute('checked', true);
-    }
   };
 
   exports.ActionMenu = ActionMenu;

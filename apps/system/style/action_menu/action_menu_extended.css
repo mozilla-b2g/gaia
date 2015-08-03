@@ -75,26 +75,10 @@ form[role="dialog"][data-type="object"].visible {
 }
 
 /* Extending action menu to display checkbox */
-form[role="dialog"][data-type="action"] > menu > .pack-checkbox {
-  margin: -1rem 0 0 1.5rem;
-  padding: 0 1.2rem;
-  width: auto;
-}
-
-form[role="dialog"][data-type="action"] > menu > .pack-checkbox span {
-  font-size: 1.6rem;
-  font-weight: 300;
-  font-style: italic;
-  vertical-align: middle;
-  padding-top: 5rem;
-  padding-left: 3rem;
-  pointer-events: none;
-
-}
-
-form[role="dialog"][data-type="action"] > menu > .pack-checkbox span:after {
-  left: 0;
-  margin-left: 0.9rem;
+form[role="dialog"][data-type="action"] > menu > gaia-checkbox {
+  padding-bottom: 0.8rem;
+  -moz-padding-start: 1.5rem;
+  box-sizing: border-box;
 }
 
 @media (min-width: 768px) {
