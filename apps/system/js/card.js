@@ -31,6 +31,7 @@
     this.instanceID = _id++;
     return this;
   }
+  Card.DEBUG = 0;
 
   Card.prototype = Object.create(BaseUI.prototype);
   Card.prototype.constructor = Card;
@@ -140,20 +141,14 @@
     this.sslState = app.getSSLState();
     this.subTitle = '';
     this.iconValue = '';
+    this.iconPending = true;
     this.closeButtonVisibility = 'visible';
     this.viewClassList = ['card', 'appIconPreview'];
     this.titleId = 'card-title-' + this.instanceID;
+    this.isIconPreview = !this.getScreenshotPreviewsSetting();
 
     if (app.isPrivate) {
       this.viewClassList.push('private');
-    }
-
-    // app icon overlays screenshot by default
-    // and will be removed if/when we display the screenshot
-    var size = CARD_FOOTER_ICON_SIZE * window.devicePixelRatio;
-    var iconURI = CardsHelper.getIconURIForApp(this.app, size);
-    if (iconURI) {
-      this.iconValue = 'url(' + iconURI + ')';
     }
 
     var origin = app.origin;
@@ -288,60 +283,82 @@
     this.publish('destroyed');
   };
 
+  Card.prototype._updateIcon = function updateIcon(iconUrl, isSmall) {
+    this.iconButton.classList.toggle('small-icon', !!isSmall);
+    this.iconValue = iconUrl ? 'url(' + iconUrl + ')' : '';
+    if (this.isIconPreview) {
+      this.appIconView.style.backgroundImage = this.iconValue;
+    }
+    if(this.iconButton) {
+      // NOTE (sfoster): better transition options here if we use an img element
+      this.iconButton.style.backgroundImage = this.iconValue;
+      this.iconButton.classList.remove('pending');
+    }
+    this.iconPending = false;
+  };
+
+
   /**
    * Update the displayed content of a card
    * @memberOf Card.prototype
    */
   Card.prototype._updateDisplay = function c_updateDisplay() {
     var elem = this.element;
-
     var app = this.app;
+
     if (app.isBrowser()) {
       elem.classList.add('browser');
     }
 
     var screenshotView = this.screenshotView;
-    var isIconPreview = !this.getScreenshotPreviewsSetting();
-    if (isIconPreview) {
+    if (this.isIconPreview) {
+      screenshotView.style.backgroundImage = '';
       elem.classList.add('appIconPreview');
     } else {
       elem.classList.remove('appIconPreview');
       if (screenshotView.style.backgroundImage) {
+        debug('_updateDisplay: not updating existing screenshot');
         return;
       }
     }
 
-    if (this.iconValue) {
-      this.iconButton.style.backgroundImage = this.iconValue;
+    this.iconButton.style.backgroundImage = this.iconValue || '';
+    this.iconButton.classList.toggle('pending', this.iconPending);
+    if (!this.iconValue) {
+      app.getSiteIconUrl(CARD_FOOTER_ICON_SIZE).then(iconUrl => {
+        debug('Card: ' + this.title,
+              'getSiteIconUrl resolved iconUrl: ', iconUrl);
+        this._updateIcon(iconUrl.url, iconUrl.isSmall);
+      }).catch(err => {
+        debug('getSiteIconUrl failed to resolve an icon: ' + err.message);
+        this._updateIcon();
+      });
     }
 
-    if (isIconPreview) {
+    if (this.isIconPreview) {
       return;
     }
 
     // Use a cached screenshot if we have one for the active app
-    var cachedLayer;
-    // We may already enter the closed state.
-    if (Service.query('AppWindowManager.getActiveWindow') ===
-        this.app.getBottomMostWindow()) {
-      // will be null or blob url
-      cachedLayer = app.requestScreenshotURL();
-      screenshotView.classList.toggle('fullscreen',
-                                      app.isFullScreen());
-      if (app.appChrome) {
-        screenshotView.classList.toggle('maximized',
-                                      app.appChrome.isMaximized());
-      }
-    }
+    var isActive = (Service.query('AppWindowManager.getActiveWindow') ===
+                   app.getBottomMostWindow());
+    // will be null or blob url
+    var cachedLayer = isActive && app.requestScreenshotURL();
+    screenshotView.classList.toggle('fullscreen',
+                                    isActive && app.isFullScreen());
+    screenshotView.classList.toggle('maximized',
+                                  isActive && app.appChrome &&
+                                  app.appChrome.isMaximized());
     screenshotView.style.backgroundImage =
       (cachedLayer ? 'url(' + cachedLayer + ')' : 'none' ) + ',' +
-      '-moz-element(#' + this.app.instanceID + ')';
+      '-moz-element(#' + app.instanceID + ')';
   };
 
   Card.prototype._fetchElements = function c__fetchElements() {
     this.screenshotView = this.element.querySelector('.screenshotView');
     this.titleNode = this.element.querySelector('h1.title');
     this.iconButton = this.element.querySelector('.appIcon');
+    this.appIconView = this.element.querySelector('.appIconView');
   };
 
   Card.prototype._registerEvents = function c__registerEvents() {
@@ -476,6 +493,19 @@
     var displayString = url.substring(url.indexOf(anURL.host));
     return displayString;
   };
+
+  function debug(message) {
+    if (!Card.DEBUG) {
+      return;
+    }
+    var args = Array.from(arguments);
+    if (typeof args[0] === 'string') {
+      args[0] = 'Card > ' + args[0];
+    } else {
+      args.unshift('Card > ');
+    }
+    console.log.apply(console, args);
+  }
 
   return (exports.Card = Card);
 
