@@ -464,11 +464,23 @@ suite('system/AppChrome', function() {
   });
 
   suite('URLBar', function() {
-    test('click', function() {
+    test('click when collapsed', function() {
       MockService.mockQueryWith('locked', false);
+      var stubIsBrowser = this.sinon.stub(app, 'isBrowser').returns(true);
+      var stubExpand = this.sinon.stub(chrome, 'expand');
+      chrome.handleEvent({ type: 'click', target: chrome.title });
+      assert.isTrue(stubExpand.called);
+      stubExpand.restore();
+      stubIsBrowser.restore();
+    });
+
+    test('click when expanded', function() {
+      MockService.mockQueryWith('locked', false);
+      chrome.maximize();
       var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
       chrome.handleEvent({ type: 'click', target: chrome.title });
       assert.isTrue(stubDispatchEvent.called);
+      stubDispatchEvent.restore();
     });
 
     test('should set the name when created', function() {
@@ -793,12 +805,14 @@ suite('system/AppChrome', function() {
 
     test('When screen is unlocked, dispatch the request.', function() {
       MockService.mockQueryWith('locked', false);
+      this.sinon.stub(chrome, 'isMaximized').returns(true);
       chrome.handleEvent({ type: 'click', target: chrome.title });
       assert.isTrue(stubDispatch.called);
     });
 
     test('When a contextmenu is shown, do not dispatch.', function() {
       MockService.mockQueryWith('locked', false);
+      this.sinon.stub(chrome, 'isMaximized').returns(true);
       this.sinon.stub(chrome.app.contextmenu, 'isShown').returns(true);
       chrome.handleEvent({ type: 'click', target: chrome.title });
       assert.isFalse(stubDispatch.called);
@@ -806,6 +820,7 @@ suite('system/AppChrome', function() {
 
     test('When screen is locked, do not dispatch the event.', function() {
       MockService.mockQueryWith('locked', true);
+      this.sinon.stub(chrome, 'isMaximized').returns(true);
       chrome.handleEvent({ type: 'click', target: chrome.title });
       assert.isFalse(stubDispatch.called);
     });
@@ -1056,7 +1071,7 @@ suite('system/AppChrome', function() {
     });
 
     teardown(function() {
-      requestStub.restore(); 
+      requestStub.restore();
     });
 
     test('Click pin button', function() {
@@ -1067,7 +1082,7 @@ suite('system/AppChrome', function() {
       assert.isTrue(chrome.pinDialog.classList.contains('hidden'));
       assert.isTrue(Service.request.calledWith('Places:setPinned',
         fakeWebSite.url));
-      
+
     });
   });
 
