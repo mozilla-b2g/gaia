@@ -2,9 +2,10 @@ from lightsofapollo/ubuntu-node:latest
 maintainer James Lal <james@lightsofapollo.com>
 
 # start by installing all our ubuntu packages
-run sudo apt-get -y update
+run sudo apt-get -y upgrade --fix-missing
+run sudo apt-get -y update --fix-missing
 run sudo apt-get -yq install git-core curl wget firefox build-essential xvfb \
-                             python-pip man python-virtualenv
+                             python-pip man python-virtualenv libgtk-3-0
 
 run useradd -d /home/tester -s /bin/bash -m tester;
 
