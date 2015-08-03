@@ -543,12 +543,9 @@ module.exports =
 	    }
 
 	    if (isElementAllowed(childElement)) {
-	      for (k = 0, attr; attr = childElement.attributes[k]; k++) {
-	        if (!isAttrAllowed(attr, childElement)) {
-	          childElement.removeAttribute(attr.name);
-	        }
-	      }
-	      result.appendChild(childElement);
+	      var sanitizedChild = childElement.ownerDocument.createElement(childElement.nodeName);
+	      overlayElement(sanitizedChild, childElement);
+	      result.appendChild(sanitizedChild);
 	      continue;
 	    }
 
