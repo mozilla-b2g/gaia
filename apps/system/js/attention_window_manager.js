@@ -194,7 +194,6 @@
           });
           break;
 
-        case 'attentionclosing':
         case 'attentionclosed':
           this._openedInstances.delete(attention);
           if (this._topMostWindow) {
@@ -241,7 +240,12 @@
           }
           this._openedInstances.delete(attention);
           this.updateAttentionIndicator();
-          this.updateClassState();
+
+          // In case of a kill/crash we might not get the attentionclosed
+          // event, so updating the attention class if that's the case.
+          if (attention.isCrashed) {
+            this.updateClassState();
+          }
           break;
 
         case 'launchapp':
