@@ -24,7 +24,9 @@ suite('LockScreenInputpad', function() {
     });
     mockLockScreenFacade = {};
     subject = new LockScreenInputpad(mockLockScreenFacade);
+    var stub = sinon.stub(subject, 'toggleEmergencyButton');
     subject.start();
+    stub.restore();
   });
 
   teardown(function() {
