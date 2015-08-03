@@ -3,7 +3,7 @@
 /* global CallHandler, CallLog, CallLogDBManager, Contacts, KeypadManager,
           MockL10n, MockNavigatorMozIccManager,
           MocksHelper, MockSimSettingsHelper, Notification,
-          CallGroupMenu, Utils, MockMozContacts */
+          CallGroupMenu, Utils, MockMozContacts, Navigation */
 
 require('/shared/js/dialer/utils.js');
 
@@ -20,6 +20,8 @@ require('/shared/test/unit/mocks/mock_notification.js');
 require('/shared/test/unit/mocks/mock_sim_settings_helper.js');
 require('/shared/test/unit/mocks/mock_sticky_header.js');
 
+
+require('/dialer/test/unit/mock_navigation.js');
 require('/dialer/test/unit/mock_call_group_menu.js');
 require('/dialer/test/unit/mock_call_handler.js');
 require('/dialer/test/unit/mock_call_log_db_manager.js');
@@ -37,7 +39,8 @@ var mocksHelperForCallLog = new MocksHelper([
   'StickyHeader',
   'CallHandler',
   'KeypadManager',
-  'SimSettingsHelper'
+  'SimSettingsHelper',
+  'Navigation'
 ]).init();
 
 suite('dialer/call_log', function() {
@@ -54,7 +57,6 @@ suite('dialer/call_log', function() {
     navigator.mozIccManager = MockNavigatorMozIccManager;
     realMozContacts = navigator.mozContacts;
     navigator.mozContacts = MockMozContacts;
-
     require('/dialer/js/call_log.js', done);
   });
 
@@ -112,7 +114,7 @@ suite('dialer/call_log', function() {
       return { then: function(callback) { callback(); } };
     });
     CallLog.init();
-    window.location.hash = '#call-log-view';
+    Navigation.showCalllog();
   });
 
   teardown(function() {
@@ -688,7 +690,7 @@ suite('dialer/call_log', function() {
 
     test('notifications should not be closed when keypad becomes visible',
          function() {
-      window.location.hash = '#keyboard-view';
+      Navigation.showKeypad();
       var visibilityEvent = new CustomEvent('visibilitychange');
       document.dispatchEvent(visibilityEvent);
       sinon.assert.notCalled(Notification.prototype.close);
@@ -876,6 +878,7 @@ suite('dialer/call_log', function() {
         MockNavigatorMozIccManager.addIcc('12345', {'cardState': 'ready'});
         MockNavigatorMozIccManager.addIcc('3232', {'cardState': 'ready'});
         CallLog.init();
+        Navigation.showCalllog();
       });
 
       test('should put the dual sim class on the container', function() {
@@ -884,10 +887,10 @@ suite('dialer/call_log', function() {
 
       test('tapping the entry should switch to keypad view', function() {
         var updateSpy = this.sinon.spy(KeypadManager, 'updatePhoneNumber');
-        assert.notEqual(window.location.hash, '#keyboard-view');
+        assert.notEqual(Navigation.currentView, 'keypad');
         assert.notEqual(KeypadManager.phoneNumber(), missedGroup.number);
         simulateClick(CallLog.appendGroup(missedGroup));
-        assert.equal(window.location.hash, '#keyboard-view');
+        assert.equal(Navigation.currentView, 'keypad');
         assert.equal(KeypadManager.phoneNumber(), missedGroup.number);
         sinon.assert.calledWith(updateSpy, missedGroup.number);
       });

@@ -1,14 +1,17 @@
-/* globals ConferenceGroupHandler, FontSizeManager, MockCall, MockCallScreen,
-           MockCallsHandler, MockConferenceGroupUI, MockLazyL10n, MockMozL10n,
-           MockNavigatorMozTelephony, MocksHelper, telephonyAddCall */
+/* globals ConferenceGroupHandler, FontSizeManager, l10nAssert, MockCall,
+           MockCallScreen, MockCallsHandler, MockConferenceGroupUI, MockL10n,
+           MockMutationObserver, MockNavigatorMozTelephony, MocksHelper,
+           telephonyAddCall */
 
 'use strict';
 
+require('/shared/test/unit/l10n_helper.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_mutation_observer.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
 require('/shared/test/unit/mocks/dialer/mock_call.js');
 require('/shared/test/unit/mocks/dialer/mock_handled_call.js');
 require('/shared/test/unit/mocks/dialer/mock_calls_handler.js');
-require('/shared/test/unit/mocks/dialer/mock_lazy_l10n.js');
 require('/test/unit/mock_call_screen.js');
 require('/test/unit/mock_conference_group_ui.js');
 require('/shared/test/unit/mocks/dialer/mock_font_size_manager.js');
@@ -18,16 +21,15 @@ require('/shared/test/unit/mocks/dialer/mock_font_size_manager.js');
 var mocksHelperForConferenceGroupHandler = new MocksHelper([
   'HandledCall',
   'CallsHandler',
-  'LazyL10n',
   'CallScreen',
   'ConferenceGroupUI',
-  'FontSizeManager'
+  'FontSizeManager',
+  'MutationObserver'
 ]).init();
 
 suite('conference group handler', function() {
   var realMozTelephony;
   var realMozL10n;
-  var _;
 
   mocksHelperForConferenceGroupHandler.attachTestHelpers();
 
@@ -37,14 +39,14 @@ suite('conference group handler', function() {
   var fakeGroupDetails;
   var fakeDurationChildNode;
   var fakeTotalDurationChildNode;
+  var fakeMutationObserver;
 
   suiteSetup(function(done) {
     realMozTelephony = navigator.mozTelephony;
     navigator.mozTelephony = MockNavigatorMozTelephony;
 
     realMozL10n = navigator.mozL10n;
-    navigator.mozL10n = MockMozL10n;
-    _ = MockMozL10n.get;
+    navigator.mozL10n = MockL10n;
 
     fakeDOM = document.createElement('div');
     fakeDOM.innerHTML = `<section id="group-call" hidden>
@@ -82,7 +84,10 @@ suite('conference group handler', function() {
     fakeTotalDurationChildNode =
         document.querySelector('#group-call > .duration > .total-duration');
 
-    require('/js/conference_group_handler.js', done);
+    require('/js/conference_group_handler.js', function() {
+      fakeMutationObserver = MockMutationObserver.mLastObserver;
+      done();
+    });
   });
 
   suiteTeardown(function() {
@@ -121,19 +126,26 @@ suite('conference group handler', function() {
       });
 
       test('should update the conference group details header', function() {
-        var bdiCompare = document.createElement('bdi');
-        bdiCompare.textContent = _('conferenceCall');
         this.sinon.spy(MockConferenceGroupUI, 'setGroupDetailsHeader');
         flush();
         sinon.assert.calledWith(
-          MockConferenceGroupUI.setGroupDetailsHeader, bdiCompare.textContent);
-        assert.deepEqual(MockLazyL10n.keys.conferenceCall, {n: 2});
+          MockConferenceGroupUI.setGroupDetailsHeader,
+          {
+            id: 'conferenceCall',
+            args: { n: 2 }
+          }
+        );
       });
 
       test('should update the group label', function() {
         flush();
-        assert.equal(fakeGroupLabel.textContent, 'conferenceCall');
-        assert.deepEqual(MockLazyL10n.keys.conferenceCall, {n: 2});
+        // Check the bdi node rather than the element itself
+        l10nAssert(
+          fakeGroupLabel.firstChild, {
+            id: 'conferenceCall',
+            args: { n: 2 }
+          }
+        );
       });
 
       test('should update call screen in CDMA network', function() {
@@ -158,8 +170,13 @@ suite('conference group handler', function() {
 
         test('should update the group label', function() {
           flush();
-          assert.equal(fakeGroupLabel.textContent, 'conferenceCall');
-          assert.deepEqual(MockLazyL10n.keys.conferenceCall, {n: 3});
+          // Check the bdi node rather than the element itself
+          l10nAssert(
+            fakeGroupLabel.firstChild, {
+              id: 'conferenceCall',
+              args: { n: 3 }
+            }
+          );
         });
 
         test('should update single line status', function() {
@@ -179,8 +196,13 @@ suite('conference group handler', function() {
 
           test('should update the group label', function() {
             flush();
-            assert.equal(fakeGroupLabel.textContent, 'conferenceCall');
-            assert.deepEqual(MockLazyL10n.keys.conferenceCall, {n: 2});
+            // Check the bdi node rather than the element itself
+            l10nAssert(
+              fakeGroupLabel.firstChild, {
+                id: 'conferenceCall',
+                args: { n: 2 }
+              }
+            );
           });
         });
 
@@ -195,8 +217,13 @@ suite('conference group handler', function() {
 
           test('should update the group label', function() {
             flush();
-            assert.equal(fakeGroupLabel.textContent, 'conferenceCall');
-            assert.deepEqual(MockLazyL10n.keys.conferenceCall, {n: 2});
+            // Check the bdi node rather than the element itself
+            l10nAssert(
+              fakeGroupLabel.firstChild, {
+                id: 'conferenceCall',
+                args: { n: 2 }
+              }
+            );
           });
 
           test('should call CallsHandler.checkCalls if two more phones remains',
@@ -249,8 +276,6 @@ suite('conference group handler', function() {
 
       MockNavigatorMozTelephony.mTriggerGroupCallsChanged();
       MockNavigatorMozTelephony.mTriggerCallsChanged();
-
-      this.sinon.spy(FontSizeManager, 'adaptToSpace');
     });
 
     test('should start timer when connected', function() {
@@ -290,19 +315,6 @@ suite('conference group handler', function() {
       assert.isTrue(MockCallScreen.mCalledStopTicker);
     });
 
-    test('should call FontSizeManager.adaptToSpace with the correct parameters',
-         function() {
-      MockCallScreen.mScenario = FontSizeManager.SINGLE_CALL;
-      var view = fakeDOM.querySelector('#group-call-label');
-
-      MockNavigatorMozTelephony.conferenceGroup.state = '';
-      MockNavigatorMozTelephony.mTriggerGroupStateChange();
-
-      sinon.assert.calledWith(
-        FontSizeManager.adaptToSpace, FontSizeManager.SINGLE_CALL, view,
-        false, 'end');
-    });
-
     test('should add the held class once held', function() {
       assert.isFalse(fakeGroupLine.classList.contains('held'));
 
@@ -336,7 +348,7 @@ suite('conference group handler', function() {
     test('should show call ended when exiting conference call', function() {
       MockNavigatorMozTelephony.conferenceGroup.state = '';
       MockNavigatorMozTelephony.mTriggerGroupStateChange();
-      assert.equal(fakeDurationChildNode.textContent, 'callEnded');
+      l10nAssert(fakeDurationChildNode, 'callEnded');
     });
 
     test('should show call the duration when exiting conference call',
@@ -362,6 +374,52 @@ suite('conference group handler', function() {
 
       this.sinon.clock.tick(2000);
       assert.isTrue(fakeGroupLine.hidden);
+    });
+  });
+
+  suite('Resizing the call ended string', function() {
+    suiteSetup(function() {
+      fakeDurationChildNode.removeAttribute('data-l10n-id');
+    });
+
+    setup(function() {
+      this.sinon.spy(fakeMutationObserver, 'disconnect');
+      this.sinon.spy(fakeMutationObserver, 'observe');
+      this.sinon.spy(FontSizeManager, 'adaptToSpace');
+    });
+
+    teardown(function() {
+      fakeDurationChildNode.removeAttribute('data-l10n-id');
+      fakeDurationChildNode.textContent = '';
+    });
+
+    test('Does not resize the string if no l10n attribute is present',
+    function() {
+      fakeDurationChildNode.textContent = 'Call ended';
+      fakeMutationObserver.mTriggerCallback();
+      sinon.assert.notCalled(fakeMutationObserver.disconnect);
+      sinon.assert.notCalled(fakeMutationObserver.observe);
+      sinon.assert.notCalled(FontSizeManager.adaptToSpace);
+    });
+
+    test('Disconnects and reconnects the observer before adjusting the string',
+    function() {
+      MockCallScreen.mScenario = FontSizeManager.SINGLE_CALL;
+      fakeDurationChildNode.setAttribute('data-l10n-id', 'callEnded');
+      fakeMutationObserver.mTriggerCallback();
+      assert.isTrue(
+        fakeMutationObserver.disconnect.calledBefore(
+          FontSizeManager.adaptToSpace
+        )
+      );
+      assert.isTrue(
+        fakeMutationObserver.observe.calledAfter(
+          FontSizeManager.adaptToSpace
+        )
+      );
+      sinon.assert.calledWith(
+        FontSizeManager.adaptToSpace, FontSizeManager.SINGLE_CALL,
+        fakeGroupLabel, false, 'end');
     });
   });
 

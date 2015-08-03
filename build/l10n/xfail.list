@@ -110,7 +110,6 @@ apps/settings/js/panels/wifi/wifi_wps.js
 apps/settings/js/utils.js
 apps/settings/test/unit/firefox_accounts_panel_test.js
 apps/sharedtest/test/unit/l10n/l10n_test.js
-apps/sharedtest/test/unit/lazy_l10n_test.js
 apps/sms/views/conversation/js/attachment.js
 apps/system/fxa/js/fxam_errors.js
 apps/system/fxa/js/screens/fxam_enter_email.js
@@ -172,7 +171,6 @@ shared/js/dialer/keypad.js
 shared/js/dialer/utils.js
 shared/js/download/download_formatter.js
 shared/js/l10n_date.js
-shared/js/lazy_l10n.js
 shared/js/media/media_frame.js
 shared/js/media/media_utils.js
 shared/js/media/video_player.js

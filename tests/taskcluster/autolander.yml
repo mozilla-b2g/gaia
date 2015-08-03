@@ -21,8 +21,6 @@ definitions:
 
   jsonlint:
 
-  gjslint:
-
   jshint:
 
   eslint:

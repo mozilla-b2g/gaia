@@ -15,6 +15,7 @@
 /* global utils */
 /* global ContactsService */
 /* global HeaderUI */
+/* global ICEView */
 
 var contacts = window.contacts || {};
 contacts.List = (function() {
@@ -1016,8 +1017,8 @@ contacts.List = (function() {
             renderPhoto(out, id, true, out.dataset.group);
             return out;
           }
-          contacts.ICEView.init(iceContacts, rowBuilder, onClickHandler);
-          contacts.ICEView.showICEList();
+          ICEView.init(iceContacts, rowBuilder, onClickHandler);
+          ICEView.showICEList();
         });
       });
     });

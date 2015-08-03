@@ -9,36 +9,31 @@ define(function (require) {
 
   return function th_layoutTemplate(theme, recycled) {
     var container = null;
-    var span, radio;
+    var label, radio;
     var RADIO_GROUP = 'personalization.themesheader.value';
     if (recycled) {
       container = recycled;
-      radio = container.querySelector('input');
-      span = container.querySelector('span');
+      radio = container.querySelector('gaia-radio');
+      label = container.querySelector('label');
     } else {
       container = document.createElement('li');
-      radio = document.createElement('input');
-      var label = document.createElement('label');
-      span = document.createElement('span');
+      radio = document.createElement('gaia-radio');
+      label = document.createElement('label');
 
-      label.className = 'pack-radio';
-
-      radio.type = 'radio';
       radio.name = RADIO_GROUP;
       radio.value = theme.manifestURL;
 
-      label.appendChild(radio);
-      label.appendChild(span);
-      container.appendChild(label);
+      radio.appendChild(label);
+      container.appendChild(radio);
     }
-    span.textContent = theme.name;
+    label.textContent = theme.name;
 
-    container.onclick = function(evt) {
+    radio.addEventListener('click', function(evt) {
       if (evt.target.checked) {
         return;
       }
       theme.onclick(theme.manifestURL);
-    };
+    });
     return container;
   };
 });

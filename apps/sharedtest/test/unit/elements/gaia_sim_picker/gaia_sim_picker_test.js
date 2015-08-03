@@ -6,7 +6,6 @@
 require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
-require('/shared/test/unit/mocks/mock_lazy_l10n.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/elements/gaia_menu/mock_gaia_menu.js');
 require('/shared/test/unit/mocks/dialer/mock_telephony_helper.js');
@@ -15,8 +14,7 @@ require('/shared/js/component_utils.js');
 require('/shared/elements/gaia_sim_picker/script.js');
 
 var mocksHelperForGaiaSimPicker = new MocksHelper([
-  'LazyLoader',
-  'LazyL10n'
+  'LazyLoader'
 ]).init();
 
 suite('GaiaSimPicker', function() {

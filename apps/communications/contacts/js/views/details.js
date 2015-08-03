@@ -109,7 +109,7 @@ contacts.Details = (function() {
       ActivityHandler.postCancel();
       MainNavigation.home();
     }
-    else if (contacts.ICEView && contacts.ICEView.iceListDisplayed) {
+    else if (window.ICEView && window.ICEView.iceListDisplayed) {
       ICEData.getActiveIceContacts().then(function(list) {
         if (!Array.isArray(list) || list.length === 0) {
           MainNavigation.home();

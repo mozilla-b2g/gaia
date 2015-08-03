@@ -258,17 +258,15 @@
 /* Pinning the web */
 
 section.pin-dialog::before {
-  bottom: 100%;
-  left: 0;
-  border: solid transparent;
+  top: -.8rem;
   content: " ";
-  height: 0;
-  width: 0;
+  height: .8rem;
+  width: 1.7rem;
   position: absolute;
   pointer-events: none;
-  border-bottom-color: #E5E5E5;
-  border-width: 0.8rem;
-  -moz-margin-start: 0.4rem;
+  -moz-margin-start: .4rem;
+  background-size: cover;
+  background-image: url("images/arrow.png")
 }
 
 section.pin-dialog.hidden {

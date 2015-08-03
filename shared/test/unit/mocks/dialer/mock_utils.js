@@ -35,6 +35,9 @@ var MockUtils = {
     return result;
   },
 
+  getLocalizedPhoneNumberAdditionalInfo:
+  function getLocalizedPhoneNumberAdditionalInfo(matchingTel) {},
+
   addEllipsis: function ut_addEllipsis() {},
 
   getNextFontSize: function ut_getNextFontSize(view, fakeView, maxFontSize,
@@ -66,6 +69,7 @@ var MockUtils = {
     return null;
   },
 
-  prettyDuration: function(node, duration, l10nPrefix) {}
+  prettyDuration: function(node, duration, l10nPrefix) {},
+  isPhoneType: function(type) {}
 };
 

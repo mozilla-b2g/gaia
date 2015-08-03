@@ -1,5 +1,4 @@
-/* globals CallsHandler, CallScreen, ConferenceGroupUI, FontSizeManager,
-           LazyL10n */
+/* globals CallsHandler, CallScreen, ConferenceGroupUI, FontSizeManager */
 
 /* exported ConferenceGroupHandler */
 
@@ -14,6 +13,26 @@
  *  - To get the current conference call duration.
  */
 var ConferenceGroupHandler = (function() {
+
+  /* Observe changes to the node that holds the group call duration, this is
+   * also used for displaying the call ended string and needs to be resized
+   * dynamically to accomodate for certain locales. */
+  function initStringAutoResize() {
+    var mutationObserverConfig = { childList: true };
+    var mutationObserver = new MutationObserver(function(mutations) {
+      if (groupDurationChildNode.hasAttribute('data-l10n-id') &&
+          groupDurationChildNode.getAttribute('data-l10n-id') === 'callEnded') {
+        /* Disable the observer to prevent it from being called recursively
+         * while we modify the DOM tree, re-enable it once we're done. */
+        mutationObserver.disconnect();
+        FontSizeManager.adaptToSpace(
+          CallScreen.getScenario(), groupLabel, false, 'end');
+        mutationObserver.observe(groupDurationChildNode,
+                                 mutationObserverConfig);
+      }
+    });
+    mutationObserver.observe(groupDurationChildNode, mutationObserverConfig);
+  }
 
   /**
    * Object initialization.
@@ -34,6 +53,8 @@ var ConferenceGroupHandler = (function() {
     telephony.conferenceGroup.onstatechange = onStateChange;
   }
 
+  initStringAutoResize();
+
   /**
    * Private helper functions.
    */
@@ -47,11 +68,11 @@ var ConferenceGroupHandler = (function() {
       ConferenceGroupUI.hideGroupDetails();
     }
 
-    LazyL10n.get(function localized(_) {
-      var groupDetailsHeaderText = _('conferenceCall', {n: calls.length});
-      bdiCount.textContent = groupDetailsHeaderText;
-      ConferenceGroupUI.setGroupDetailsHeader(bdiCount.textContent);
-    });
+    var id = 'conferenceCall';
+    var args = { n: calls.length };
+
+    navigator.mozL10n.setAttributes(bdiCount, id, args);
+    ConferenceGroupUI.setGroupDetailsHeader({ id: id, args: args });
 
     // When hanging up phones on conferenceGroup.calls.length >= 2,
     // we need to update handledCalls here since conferenceGroup.oncallschanged
@@ -79,13 +100,9 @@ var ConferenceGroupHandler = (function() {
   function end() {
     groupTotalDurationChildNode.textContent =
       groupDurationChildNode.textContent;
-    LazyL10n.get(function localized(_) {
-      groupDurationChildNode.textContent = _('callEnded');
-    });
+    navigator.mozL10n.setAttributes(groupDurationChildNode, 'callEnded');
     groupLine.classList.add('ended');
     groupLine.classList.remove('held');
-    FontSizeManager.adaptToSpace(
-      CallScreen.getScenario(), groupLabel, false, 'end');
     CallScreen.stopTicker(groupDuration);
 
     setTimeout(function(evt) {
