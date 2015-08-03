@@ -358,6 +358,18 @@
     window.addEventListener('emergency-call-leave', this);
   };
 
+  LockScreen.prototype.setupPassCodeEnabled =
+  function() {
+    this.passCodeEnabled = new LockScreen.Deferred();
+    return this.passCodeEnabled.promise.then((val) => {
+      // Replace the pending request.
+      this.passCodeEnabled = val;
+      // Only when we get the value, we initialize the unlocker.
+      // Or user will have the chance to by-pass the passcode.
+      this.initUnlockerEvents();
+    });
+  };
+
   /**
    * This function would exist until we refactor the lockscreen.js with
    * new patterns. @see https://bugzil.la/960381
@@ -380,7 +392,7 @@
 
     this.lockIfEnabled(true);
     this.writeSetting(this.enabled);
-    this.initUnlockerEvents();
+    this.setupPassCodeEnabled();
     this.initEmergencyCallEvents();
 
     /* Status changes */
@@ -564,10 +576,17 @@
 
   LockScreen.prototype.setPassCodeEnabled =
   function ls_setPassCodeEnabled(val) {
+    var value;
     if (typeof val === 'string') {
-      this.passCodeEnabled = val == 'false' ? false : true;
+      value = val == 'false' ? false : true;
     } else {
-      this.passCodeEnabled = val;
+      value = val;
+    }
+
+    if (this.passCodeEnabled instanceof LockScreen.Deferred) {
+      this.passCodeEnabled.resolve(value);
+    } else {
+      this.passCodeEnabled = value;
     }
   };
 
@@ -1213,6 +1232,18 @@
         return true;
       }
     };
+
+  /**
+   * A classic solution for Deferred.
+   * Under LockScreen namespace to prevent leaking to other components.
+   */
+  LockScreen.Deferred = function() {
+    this.promise = new Promise((res, rej) => {
+      this.resolve = res;
+      this.reject = rej;
+    });
+    return this;
+  };
 
   /** @exports LockScreen */
   exports.LockScreen = LockScreen;

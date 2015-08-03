@@ -170,6 +170,26 @@ suite('system/LockScreen >', function() {
     assert.equal(subject.overlay.dataset.passcodeStatus, 'error');
   });
 
+  test('When setup passcode enabled reading, ' +
+       'it will delay the initialization of unlocker', function(done) {
+    var method = subject.setupPassCodeEnabled;
+    var mockThis = {
+      initUnlockerEvents: this.sinon.stub()
+    };
+    var check = function() {
+      assert.isTrue(mockThis.initUnlockerEvents.called,
+        'it did not call the unlocker initialization method');
+      done();
+    };
+    // gjslint can't handle promise chaining...
+    var result = method.call(mockThis);
+    result = result.then(check);
+    result = result.catch(done);
+    assert.isFalse(mockThis.initUnlockerEvents.called,
+      'it did not delay the unlocker initialization method');
+    mockThis.passCodeEnabled.resolve(true);
+  });
+
   test('Handle event: when screen changed,' +
       'would fire event to kill all secure apps',
       function() {
