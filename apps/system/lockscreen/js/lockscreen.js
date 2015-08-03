@@ -50,20 +50,6 @@
     enabled: true,
 
     /*
-    * Boolean returns wether we want a sound effect when unlocking.
-    */
-    unlockSoundEnabled: false,
-
-    /*
-    * Boolean return whether if the lock screen is enabled or not.
-    * Must not multate directly - use setPassCodeEnabled(val)
-    * Only Settings Listener should change this value to sync with data
-    * in Settings API.
-    * Will be ignored if 'enabled' is set to false.
-    */
-    passCodeEnabled: false,
-
-    /*
     * Boolean returns whether the screen is enabled, as mutated by screenchange
     * event.
     * Note: 'undefined' should be regarded as 'true' as screenchange event
@@ -86,11 +72,6 @@
     * String url of the background image to regenerate overlay color from
     */
     _regenerateMaskedBackgroundColorFrom: undefined,
-
-    /*
-    * The time to request for passcode input since device is off.
-    */
-    passCodeRequestTimeout: 0,
 
     /*
     * Store the first time the screen went off since unlocking.
@@ -336,16 +317,36 @@
     window.addEventListener('emergency-call-leave', this);
   };
 
-  LockScreen.prototype.setupPassCodeEnabled =
-  function() {
-    this.passCodeEnabled = new LockScreen.Deferred();
-    return this.passCodeEnabled.promise.then((val) => {
+  /**
+   * Set a new deferred request to waiting mozSettings reading.
+   * And when it is solved, set the value and go on to the next step.
+   */
+  LockScreen.prototype.setupDeferredRequest =
+  function(keyname) {
+    this[keyname] = new LockScreen.Deferred();
+    this[keyname].promise = this[keyname].promise
+    .then((val) => {
       // Replace the pending request.
-      this.passCodeEnabled = val;
-      // Only when we get the value, we initialize the unlocker.
-      // Or user will have the chance to by-pass the passcode.
-      this.initUnlockerEvents();
+      this[keyname] = val;
     });
+    return this[keyname];
+  };
+
+  /**
+   * Unlocker relies on some values from mozSettings,
+   * so before we have these values we need to suspend
+   * it, namely don't listen it.
+   */
+  LockScreen.prototype.setupUnlockerEvents =
+  function() {
+    return Promise.all([
+      this.setupDeferredRequest('passCodeEnabled').promise,
+      this.setupDeferredRequest('passCodeRequestTimeout').promise,
+      this.setupDeferredRequest('unlockSoundEnabled').promise
+    ]).then((function() {
+      this.initUnlockerEvents();
+    }).bind(this))
+    .catch(console.error.bind(console));
   };
 
   /**
@@ -364,12 +365,13 @@
      * the slider specified in that bugzilla issue
      */
     this._unlocker = new window.LockScreenSlide({useNewStyle: true});
+    this._unlocker._stop();
     this.getAllElements();
     this.notificationsContainer =
       document.getElementById('notifications-lockscreen-container');
 
     this.lockIfEnabled(true);
-    this.setupPassCodeEnabled();
+    this.setupUnlockerEvents();
 
     /* Status changes */
     window.addEventListener(
@@ -427,17 +429,17 @@
 
     window.SettingsListener.observe(
         'lockscreen.passcode-lock.enabled', false, (function(value) {
-      this.setPassCodeEnabled(value);
+      this.changeSettingsValue('passCodeEnabled', value);
     }).bind(this));
 
     window.SettingsListener.observe('lockscreen.unlock-sound.enabled',
       true, (function(value) {
-      this.setUnlockSoundEnabled(value);
+      this.changeSettingsValue('unlockSoundEnabled', value);
     }).bind(this));
 
     window.SettingsListener.observe('lockscreen.passcode-lock.timeout',
       0, (function(value) {
-      this.passCodeRequestTimeout = value;
+      this.changeSettingsValue('passCodeRequestTimeout', value);
     }).bind(this));
 
     window.SettingsListener.observe('lockscreen.lock-message',
@@ -471,6 +473,7 @@
     window.addEventListener('lockscreenslide-activate-left', this);
     window.addEventListener('lockscreenslide-activate-right', this);
     window.addEventListener('lockscreenslide-unlocking-stop', this);
+    this._unlocker._start();
   };
 
   LockScreen.prototype.suspendUnlockerEvents =
@@ -528,28 +531,12 @@
     }
   };
 
-  LockScreen.prototype.setPassCodeEnabled =
-  function ls_setPassCodeEnabled(val) {
-    var value;
-    if (typeof val === 'string') {
-      value = val == 'false' ? false : true;
+  LockScreen.prototype.changeSettingsValue =
+  function(key, value) {
+    if (this[key] instanceof LockScreen.Deferred) {
+      this[key].resolve(value);
     } else {
-      value = val;
-    }
-
-    if (this.passCodeEnabled instanceof LockScreen.Deferred) {
-      this.passCodeEnabled.resolve(value);
-    } else {
-      this.passCodeEnabled = value;
-    }
-  };
-
-  LockScreen.prototype.setUnlockSoundEnabled =
-  function ls_setUnlockSoundEnabled(val) {
-    if (typeof val === 'string') {
-      this.unlockSoundEnabled = val == 'false' ? false : true;
-    } else {
-      this.unlockSoundEnabled = val;
+      this[key] = value;
     }
   };
 
