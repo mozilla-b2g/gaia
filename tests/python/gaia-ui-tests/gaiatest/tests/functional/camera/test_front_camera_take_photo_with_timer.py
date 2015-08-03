@@ -22,7 +22,8 @@ class TestCamera(GaiaTestCase):
         self.camera.launch()
 
         # Open Camera Settings and turn on timer
-        
+        self.camera.tap_menu_button()
+        self.camera.tap_enable_timer()
         
         # Switch to Front Facing Camera
         self.camera.tap_switch_to_front_camera()

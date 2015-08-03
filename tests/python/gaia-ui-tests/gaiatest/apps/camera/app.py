@@ -33,11 +33,20 @@ class Camera(Base):
     _loading_screen_locator = (By.CSS_SELECTOR, '.loading-screen')
     _toggle_flash_button_locator = (By.CSS_SELECTOR, '.test-flash-button')
     ## These are named equal to current view
-    _camera_switch_to_rear = (By.CSS_SELECTOR, '[data-l10n-id="toggle-camera-front-button"]')
-    _camera_switch_to_front = (By.CSS_SELECTOR, '[data-l10n-id="toggle-camera-rear-button"]')
+    _camera_switch_to_rear_locator = (By.CSS_SELECTOR, '[data-l10n-id="toggle-camera-front-button"]')
+    _camera_switch_to_front_locator = (By.CSS_SELECTOR, '[data-l10n-id="toggle-camera-rear-button"]')
 
+    _menu_button_locator = (By.CSS_SELECTOR, '[data-l10n-id="menu-button"]')
+    
     _viewfinder_video_locator = (By.CLASS_NAME, 'viewfinder-video')
-
+    
+    # Menu
+    _hdr_enable_locator = (By.CSS_SELECTOR, '[data-l10n-id="settings-option-hdr"]')
+    _self_timer_enable_locator = (By.CSS_SELECTOR, '[data-l10n-id="setting-option-self-timer"]')
+    _5_second_timer_locator = (By.CSS_SELECTOR, '[data-key="secs5"]')
+    _grid_lines_enable_locator = (By.CSS_SELECTOR, '[data-l10n-id="setting-option-grid"]')
+    _close_menu_locator = (By.CSS_SELECTOR, '[data-l10n-id="close-menu-button"]')
+    
     # ConfirmDialog
     _select_button_locator = (By.CSS_SELECTOR, '.test-confirm-select')
 
@@ -120,13 +129,34 @@ class Camera(Base):
         self.wait_for_capture_ready()
 
     def tap_switch_to_front_camera(self):
-	self.marionette.find_element(*self._camera_switch_to_front).tap()
-	switch_to_rear_button = Wait(self.marionette).until(expected.element_present(*self._camera_switch_to_rear))
+	self.marionette.find_element(*self._camera_switch_to_front_locator).tap()
+	switch_to_rear_button = Wait(self.marionette).until(expected.element_present(*self._camera_switch_to_rear_locator))
         Wait(self.marionette).until(expected.element_displayed(switch_to_rear_button))
         
     def tap_switch_to_rear_camera(self):
-	self.marionette.find_element(*self._camera_switch_to_rear).tap()
-	Wait(self.marionette).until(lambda m: self.marionette.find_element(*self._camera_switch_to_front) == 'true')
+	self.marionette.find_element(*self._camera_switch_to_rear_locator).tap()
+	switch_to_front_button = Wait(self.marionette).until(expected.element_present(*self._camera_switch_to_front_locator))
+        Wait(self.marionette).until(expected.element_displayed(switch_to_front_button))
+		
+    def tap_menu_button(self):
+	self.marionette.find_element(*self._menu_button_locator).tap()
+	menu_opened = Wait(self.marionette).until(expected.element_present(*self._close_menu_locator))
+	Wait(self.marionette).until(expected.element_displayed(menu_opened))
+	
+    def tap_enable_timer(self):
+	self.marionette.find_element(*self._self_timer_enable_locator).tap()
+	option_available = Wait(self.marionette).until(expected.element_present(*self._5_second_timer_locator))
+	Wait(self.marionette).until(expected.element_displayed(option_available))
+	# select 5 seconds, expected to return to viewfinder
+	self.marionette.find_element(*self._5_second_timer_locator).tap()
+	returned_to_viewfinder = Wait(self.marionette).until(expected.element_present(*self._menu_button_locator))
+	Wait(self.marionette).until(expected.element_displayed(returned_to_viewfinder))
+	
+    def tap_close_menu(self):
+ 	self.marionette.find_element(*self._close_menu_locator).tap()
+	returned_to_viewfinder = Wait(self.marionette).until(expected.element_present(*self._menu_button_locator))
+	Wait(self.marionette).until(expected.element_displayed(returned_to_viewfinder))     
+	
 	
     def tap_toggle_flash_button(self):
         initial_flash_mode = self.current_flash_mode
