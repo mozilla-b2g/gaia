@@ -231,5 +231,31 @@ marionette('Messages as "new" activity target', function() {
         messagesApp.Composer.messageInput, 'Message input should be focused'
       );
     });
+
+    test('Activity with thread "number" and "body"', function() {
+      // Send message to number that has thread associated with it
+      launchAsActivity({ number: '+200', body: content });
+
+      // Wait until message input is filled with the content
+      client.scope({ searchTimeout: 100 }).waitFor(function() {
+        return messagesApp.Composer.messageInput.text() === content;
+      });
+
+      var recipients = messagesApp.Composer.recipients;
+      assert.equal(recipients.length, 1);
+      assert.equal(recipients[0].text(), '+200');
+      assert.equal(recipients[0].getAttribute('data-source'), 'manual');
+
+      assert.isTrue(messagesApp.Composer.sendButton.enabled());
+
+      assert.equal(
+        messagesApp.Composer.header.getAttribute('action'), 'close',
+        'Close activity button should be visible'
+      );
+
+      assertIsFocused(
+        messagesApp.Composer.messageInput, 'Message input should be focused'
+      );
+    });
   });
 });
