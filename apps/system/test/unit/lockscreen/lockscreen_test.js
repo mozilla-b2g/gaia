@@ -314,7 +314,6 @@ suite('system/LockScreen >', function() {
         'validation fail does not increase error counter');
       assert.isTrue(subject.overlay.dataset.passcodeStatus !== 'foofoo',
         'validation fail does not change pass code error status');
-      //TODO: test code path running async after timeout
     });
 
     test('validation success resets error count and timeout', function() {
@@ -328,41 +327,32 @@ suite('system/LockScreen >', function() {
         'validation success does not reset error counter');
     });
 
-    test('validation fail triggers validationfailed event', function() {
+    test('validation fail triggers validationfailed/reset events', function() {
+      subject.enabled = true;
       subject.lock();
       subject.kPassCodeErrorCounter = 0;
       subject.kPassCodeErrorTimeout = 1;
       var stubDispatch = this.sinon.stub(window, 'dispatchEvent');
+      // Force setTimeout to run in sync
+      var setTimeoutStub = this.sinon.stub(window, 'setTimeout', function(f){
+        f();
+      });
       subject.onPasscodeValidationFailed();
-      assert.isTrue(stubDispatch.calledWithMatch(sinon.match(
+      assert.isTrue(stubDispatch.firstCall.calledWithMatch(sinon.match(
           function(e) {
             return e.type ===
               'lockscreen-notify-passcode-validationfailed';
           })),
-        'validation fail does not trigger validationfailed event');
+        'validation fail does not trigger validationfailed as 1st event');
+      assert.isTrue(stubDispatch.secondCall.calledWithMatch(sinon.match(
+          function(e) {
+            return e.type ===
+              'lockscreen-notify-passcode-validationreset';
+          })),
+        'validation fail does not trigger validationreset as 2nd event');
       stubDispatch.restore();
+      setTimeoutStub.restore();
     });
-    //TODO: test validationreset event triggered async after timeout
-
-    /* TODO: promise resolves after checkPassCode() returns.
-     * TODO: how can we check this?
-    test('wrong pass code calls validation fail method', function() {
-      subject.lock();
-      var StubPasscodeHelper = this.sinon.stub(PasscodeHelper, 'check',
-        function() {
-          return Promise.resolve(true);
-        });
-      var stub = this.sinon.stub(subject, 'onPasscodeValidationFailed');
-      subject.overlay = domOverlay;
-      subject.kPassCodeErrorCounter = 0;
-      subject.kPassCodeErrorTimeout = 1;
-      subject.checkPassCode('0000');
-      assert.isTrue(stub.called,
-        'wrong pass code does not call validation fail method');
-      stub.restore();
-      StubPasscodeHelper.restore();
-    });
-    */
   });
 
   test('Unlock: would destroy the clock widget', function() {
