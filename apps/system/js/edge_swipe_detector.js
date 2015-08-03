@@ -174,8 +174,7 @@
         case 'updateprompthidden':
         case 'installprompthidden':
         case 'shrinking-stop':
-          if (Service.query('getTopMostWindow') &&
-              !Service.query('getTopMostWindow').isHomescreen) {
+          if (Service.query('getTopMostWindow')) {
             this.lifecycleEnabled = true;
           }
           break;

@@ -1258,7 +1258,19 @@
    * once we need to display the image,
    * and revoke right away after we finish rendering the image.
    */
-  AppWindow.prototype._screenshotBlob = undefined;
+  AppWindow.prototype.__screenshotBlob = undefined;
+  Object.defineProperty(AppWindow.prototype, '_screenshotBlob', {
+    configurable: true,
+    get: function() {
+      return this.__screenshotBlob;
+    },
+    set: function(blob) {
+      this.__screenshotBlob = blob;
+      if (blob) {
+        this.publish('screenshotready');
+      }
+    }
+  });
 
   AppWindow.prototype.CLASS_NAME = 'AppWindow';
 

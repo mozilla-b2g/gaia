@@ -115,6 +115,10 @@
   height: 100%;
   position: relative;
 }
+#cards-view .card.homescreen .screenshotView {
+  background-size: cover, 100% calc(100% - 1.5rem), cover;
+  background-position: left top, left bottom, left top;
+}
 
 #cards-view .screenshotView.maximized {
   background-position: left calc(100% + 2.3rem), left top;

@@ -14,6 +14,8 @@
       window.addEventListener('homescreenopening', this);
       window.addEventListener('cardviewclosed', this);
       Service.registerState('snapshot', this);
+      var home = Service.query('getHomescreen');
+      this._stack = [home];
     },
 
     getCurrent: function sm_getCurrent() {
@@ -218,9 +220,7 @@
           if (window.taskManager && window.taskManager.isShown()) {
             return;
           }
-          this._moveToTop(this.position);
-          this.position = -1;
-          this.commitClose();
+          this._current = 0; // homescreen always at index 0 in stack
           break;
         case 'appterminated':
           var instanceID = e.detail.instanceID;
@@ -236,20 +236,29 @@
     },
 
     _insertBelow: function sm_insertBelow(app) {
-      this._stack.splice(0, 0, app);
+      if (app.isHomescreen) {
+        return;
+      }
+      // homescreen should always be at slot 0
+      var index = 1;
+      this._stack.splice(index, index, app);
       if (this._stack.length > 1) {
         this.position++;
       } else {
-        this.position = 0;
+        this.position = index;
       }
     },
 
     _insertOnTop: function sm_insertOnTop(app) {
+      if (app.isHomescreen) {
+        return;
+      }
       this.position = this._stack.push(app) - 1;
     },
 
     _moveToTop: function sm_moveToTop(index) {
-      if (index === -1 || index >= this._stack.length) {
+      // homescreen should always be at slot 0
+      if (index <= 0 || index >= this._stack.length) {
         return;
       }
 
@@ -283,6 +292,10 @@
     },
 
     _remove: function sm_remove(instanceID) {
+      if (instanceID === 'homescreen') {
+        // homescreen should always be at slot 0
+        return;
+      }
       for (var i = (this._stack.length - 1); i >= 0; i--) {
         var sConfig = this._stack[i];
 
