@@ -205,7 +205,13 @@ marionette('Contacts > Activities', function() {
   });
 
   suite('webcontacts/email activity', function() {
-    test('Creates only one instance of action menu', function() {
+    // Disabling these tests by now due to we need a way to switch to an
+    // activity instead of switching to an app, due to paths can differ.
+    // More info in [1].
+    // These test must be recovered once this bug will be landed.
+
+    // [1] https://bugzilla.mozilla.org/show_bug.cgi?id=1140344#c9
+    test.skip('Creates only one instance of action menu', function() {
       subject.launch();
 
       subject.addContactMultipleEmails({

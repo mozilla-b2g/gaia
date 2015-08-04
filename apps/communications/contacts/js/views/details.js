@@ -4,12 +4,12 @@
 
 /* global ActivityHandler */
 /* global COMMS_APP_ORIGIN */
-/* global Contacts */
 /* global ContactsButtons */
 /* global ContactPhotoHelper */
 /* globals ContactToVcardBlob */
 /* global fb */
 /* global NFC */
+/* global Contacts */
 /* global ICEData */
 /* global LazyLoader */
 /* global MozActivity */
