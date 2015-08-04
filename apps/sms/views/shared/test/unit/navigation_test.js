@@ -471,7 +471,6 @@ suite('navigation >', function() {
 
             Navigation.toPanel(panelName2).then(function resolved_expected() {
               assert.ok(Navigation.isCurrentPanel(panelName2));
-              sinon.assert.called(console.log);
 
               // check we can have a new transition
               return Navigation.toPanel(panelName3);

@@ -17,9 +17,12 @@ var NavigationFactory = window.NavigationFactory = function(window) {
  * @param {...*} args The other values to be displayed to the console, or the
  * parameters to the first string.
  */
-var debug = 1 ?
-  (arg1, ...args) => console.log('[Navigation] ' + arg1, ...args) :
-  () => {};
+const debug = [
+  () => {},
+  (arg1, ...args) => console.log('[Navigation] ' + arg1, ...args),
+  (arg1, ...args) =>
+    console.log('[Navigation] (%s) ' + arg1, Date.now(), ...args),
+][0];
 
 /**
   * This contains an array of view characteristics, necessary to handle
@@ -528,44 +531,16 @@ function waitForSlideAnimation(panelElement) {
   var defer = Utils.Promise.defer();
   previousAnimationDefer = defer;
 
-  panelElement.addEventListener('animationend', function onAnimationEnd() {
-    this.removeEventListener('animationend', onAnimationEnd);
+  function onAnimationEnd(e) {
+    panelElement.removeEventListener('animationend', onAnimationEnd);
+    debug('animationend', e && e.type);
     defer.resolve();
-  });
+  }
 
-  setTimeout(defer.resolve, 500);
+  panelElement.addEventListener('animationend', onAnimationEnd);
+  setTimeout(onAnimationEnd, 500);
+
   return defer.promise.then(() => previousAnimationDefer = null);
-}
-
-/**
- * Layouts the new view so that the new view's beforeEnter can deal with a
- * rendered view.
- */
-function prepareSwitchPanel() {
-  debug('prepareSwitchPanel()');
-  var from = navigationTransition.states.from;
-  var to = navigationTransition.states.to;
-
-  var newView = to.panel;
-
-  var noViewDisplayedYet = !from;
-  var nextViewUsesSameDOMElement =
-    from && from.panel && newView && from.panel.behavior !== newView.behavior;
-
-  var shouldPrepare = noViewDisplayedYet || nextViewUsesSameDOMElement;
-
-  if (!shouldPrepare) {
-    return;
-  }
-
-  var newPanelElement = document.querySelector(`.panel-${newView.behavior}`);
-  if (!newPanelElement) {
-    throw new Error(
-      'Couldn\'t find the container element for view ' + newView.name
-    );
-  }
-
-  newPanelElement.classList.add('panel-prepare-activation');
 }
 
 /**
@@ -615,45 +590,38 @@ function switchPanel() {
 
   var isGoingBack = oldView && oldView.previous === newView.name;
 
-  newPanelElement.classList.remove('panel-prepare-activation');
+  newPanelElement.style = '';
 
   var doSlideAnimation =
     from && from.panel &&
     from.panel.behavior !== newView.behavior;
 
+  var animationPromise;
   if (doSlideAnimation) {
-    newPanelElement.classList.add('panel-will-activate', 'panel-active');
-    oldPanelElement.classList.add('panel-will-deactivate');
 
-    newPanelElement.classList.toggle('panel-animation-reverse', isGoingBack);
-    oldPanelElement.classList.toggle('panel-animation-reverse', isGoingBack);
+    Object.assign(newPanelElement.style, {
+      'animation-name': isGoingBack ? 'new-slide-right' : 'new-slide-left',
+    });
 
-    return waitForSlideAnimation(newPanelElement).then(() => {
-      oldPanelElement.classList.remove(
-        'panel-will-activate', 'panel-will-deactivate',
-        'panel-active', 'panel-animation-reverse'
-      );
-      newPanelElement.classList.remove(
-        'panel-will-deactivate', 'panel-will-activate',
-        'panel-animation-reverse'
-      );
-    }, () => {
-      oldPanelElement.classList.remove(
-        'panel-will-deactivate', 'panel-animation-reverse'
-      );
-      newPanelElement.classList.remove(
-        'panel-will-activate', 'panel-animation-reverse'
-      );
+    Object.assign(oldPanelElement.style, {
+      'animation-name': isGoingBack ? 'old-slide-right' : 'old-slide-left',
+    });
+
+    animationPromise = waitForSlideAnimation(newPanelElement).catch(
+      () => {}
+    ).then(() => {
+      oldPanelElement.style = '';
+      newPanelElement.style = '';
     });
   }
 
-  if (oldView) {
-    oldPanelElement.classList.remove('panel-active');
-  }
+  return (animationPromise || Promise.resolve()).then(() => {
+    if (oldView) {
+      oldPanelElement.classList.remove('panel-active');
+    }
 
-  newPanelElement.classList.add('panel-active');
-
-  return Promise.resolve();
+    newPanelElement.classList.add('panel-active');
+  });
 }
 
 /**
@@ -669,8 +637,6 @@ function onHashChange() {
 
   startNavigationFromCurrentLocation().then(
     () => executeNavigationStep('beforeLeave')
-  ).then(
-    prepareSwitchPanel
   ).then(
     () => executeNavigationStep('beforeEnter').catch(catchStepError)
   ).then(
@@ -823,8 +789,6 @@ var Navigation = {
     attachHistoryListener();
 
     return startNavigationFromCurrentLocation().then(
-      prepareSwitchPanel
-    ).then(
       // right away as we don't execute anything on the previous panel, and we
       // need a state at startup.
       setFutureState

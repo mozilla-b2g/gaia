@@ -5,23 +5,17 @@
   top: 0;
   bottom: 0;
 
-  display: none;
+  transform: translate(100%);
 
   overflow: auto;
 
   background: white;
 
   animation: .2s both linear;
-  transform-origin: top;
 }
 
 .panel-active {
-  display: unset;
-}
-
-.panel-prepare-activation {
-  display: unset;
-  visibility: hidden;
+  transform: translate(0);
 }
 
 .panel-will-activate {
@@ -44,9 +38,15 @@
   from {
     transform: translateX(100%);
   }
+  to {
+    transform: none;
+  }
 }
 
 @keyframes old-slide-left {
+  from {
+    transform: none;
+  }
   to {
     transform: translateX(-100%);
   }
@@ -56,9 +56,15 @@
   from {
     transform: translateX(-100%);
   }
+  to {
+    transform: none;
+  }
 }
 
 @keyframes old-slide-right {
+  from {
+    transform: none;
+  }
   to {
     transform: translateX(100%);
   }

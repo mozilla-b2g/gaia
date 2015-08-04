@@ -18,7 +18,7 @@
   * @param {...*} args The other values to be displayed to the console, or the
   * parameters to the first string.
   */
-var debug = 1 ?
+var debug = 0 ?
   (arg1, ...args) => console.log('[Startup] ' + arg1, ...args) :
   () => {};
 
