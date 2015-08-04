@@ -18,6 +18,7 @@
 /* global MatchService */
 /* global ContactsService */
 /* global Matcher */
+/* global Search */
 /* global TagSelector */
 
 var contacts = window.contacts || {};
@@ -633,10 +634,10 @@ contacts.Form = (function() {
 
   var deleteContact = function deleteContact(contact) {
     var deleteSuccess = function deleteSuccess() {
-      if (contacts.Search && contacts.Search.isInSearchMode()) {
-        contacts.Search.invalidateCache();
-        contacts.Search.removeContact(contact.id);
-        contacts.Search.exitSearchMode();
+      if (window.Search && Search.isInSearchMode()) {
+        Search.invalidateCache();
+        Search.removeContact(contact.id);
+        Search.exitSearchMode();
       }
 
       MainNavigation.home();

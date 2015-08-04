@@ -1,5 +1,5 @@
 'use strict';
-/* global contacts, MockSearchHtml, Normalizer, MockSearchSource, MocksHelper */
+/* global Search, MockSearchHtml, Normalizer, MockSearchSource, MocksHelper */
 
 requireApp('communications/contacts/test/unit/mock_search.html.js');
 requireApp('communications/contacts/test/unit/mock_search_source.js');
@@ -55,17 +55,17 @@ suite('Search mode', function() {
     noResults = document.getElementById('no-result');
 
     searchBox = document.getElementById('search-contact');
-    contacts.Search.init(MockSearchSource, true, null);
-    contacts.Search.enterSearchMode({preventDefault: function() {}});
+    Search.init(MockSearchSource, true, null);
+    Search.enterSearchMode({preventDefault: function() {}});
   });
 
   teardown(function() {
-    contacts.Search.invalidateCache();
+    Search.invalidateCache();
   });
 
   test('Search results are empty', function(done) {
     searchBox.value = 'YYY';
-    contacts.Search.search(function search_finished() {
+    Search.search(function search_finished() {
       done(function() {
         assert.isFalse(noResults.classList.contains('hide'));
       });
@@ -75,7 +75,7 @@ suite('Search mode', function() {
   test('Search by name & surname with trailing whitespaces', function(done) {
     searchBox.value = contact.givenName[0].substr(0,4) + '  ';
     searchBox.value += contact.familyName[0] + '   ';
-    contacts.Search.search(function search_finished() {
+    window.Search.search(function search_finished() {
       done(function() {
         assertContactFound(contact.id, 1);
       });
@@ -84,7 +84,7 @@ suite('Search mode', function() {
 
   test('Search non-alphabetical characters', function(done) {
     searchBox.value = ')';
-    contacts.Search.search(function search_finished() {
+    Search.search(function search_finished() {
       done(function() {
         assertContactFound(contact.id, 1);
       });
@@ -93,7 +93,7 @@ suite('Search mode', function() {
 
   test('Search for quotes', function(done) {
     searchBox.value = '"';
-    contacts.Search.search(function search_finished() {
+    Search.search(function search_finished() {
       done(function() {
         assertContactFound(contact.id, 1);
       });
@@ -102,7 +102,7 @@ suite('Search mode', function() {
 
   test('Search phone number', function(done) {
     searchBox.value = contact.tel[0].value;
-    contacts.Search.search(function search_finished() {
+    Search.search(function search_finished() {
       done(function() {
         assertContactFound(contact.id, 1);
       });
@@ -114,7 +114,7 @@ suite('Search mode', function() {
     var middleNameInitial = givenName[givenName.indexOf(' ') + 1];
     searchBox.value = givenName[0] + ' ' + middleNameInitial +  ' ' +
                                                       contact.familyName[0][0];
-    contacts.Search.search(function search_finished() {
+    Search.search(function search_finished() {
       done(function() {
         assertContactFound(contact.id, 1);
       });
@@ -123,7 +123,7 @@ suite('Search mode', function() {
 
   suite('Highlighting', function() {
     teardown(function() {
-      contacts.Search.invalidateCache();
+      Search.invalidateCache();
     });
 
     // With 'strict' set to false, we will only need a single match to pass the
@@ -154,7 +154,7 @@ suite('Search mode', function() {
 
     test('Highlighting does not modify contact text', function(done) {
       searchBox.value = contact.givenName[0][0];
-      contacts.Search.search(function search_finished() {
+      Search.search(function search_finished() {
         done(function() {
           var selector = '#groups-list-search .contact-item .contact-text';
           assert.equal(contact.givenName[0] + ' ' + contact.familyName[0],
@@ -165,7 +165,7 @@ suite('Search mode', function() {
 
     test('Correctly highlighted for first char', function(done) {
       searchBox.value = contact.familyName[0][0];
-      contacts.Search.search(function search_finished() {
+      Search.search(function search_finished() {
         done(function() {
           assertHighlight(contact.familyName[0][0], true);
         });
@@ -174,7 +174,7 @@ suite('Search mode', function() {
 
     test('Correctly highlighted for more than one letter', function(done) {
       searchBox.value = contact.familyName[0];
-      contacts.Search.search(function search_finished() {
+      Search.search(function search_finished() {
         done(function() {
           assertHighlight(contact.familyName[0], true);
         });
@@ -183,7 +183,7 @@ suite('Search mode', function() {
 
     test('Equivalent extended characters are highlighted', function(done) {
       searchBox.value = 'ae';
-      contacts.Search.search(function search_finished() {
+      Search.search(function search_finished() {
         done(function() {
           assertHighlight('áe', false);
         });
@@ -193,7 +193,7 @@ suite('Search mode', function() {
     test('Accented search term highlights accented and equivalent characters',
         function(done) {
       searchBox.value = 'áe';
-      contacts.Search.search(function search_finished() {
+      Search.search(function search_finished() {
         done(function() {
           assertHighlight('áe', false);
           assertHighlight('ae', false);

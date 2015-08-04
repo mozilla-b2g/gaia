@@ -1,5 +1,5 @@
 /* globals LazyLoader, LiveConnector, GmailConnector, FacebookConnector,
-  utils, importer, contacts*/
+  utils, importer */
 'use strict';
 
 (function(document) {
@@ -88,7 +88,7 @@
   function onLoad(access_token) {
     utils.listeners.add({
       '#import-action': importer.ui.importAll,
-      '#done-search': contacts.Search.exitSearchMode,
+      '#done-search': window.Search.exitSearchMode,
       '#groups-list': importer.ui.selection,
       '#header': [
         {
@@ -99,7 +99,7 @@
       '#search-start': [
         {
           event: 'click',
-          handler: contacts.Search.enterSearchMode
+          handler: window.Search.enterSearchMode
         }
       ]
     });

@@ -83,8 +83,8 @@ suite('Import Friends Test Suite', function() {
     realImageLoader = window.ImageLoader;
     window.ImageLoader = MockImageLoader;
 
-    realSearch = window.contacts.Search;
-    window.contacts.Search = MockSearch;
+    realSearch = window.Search;
+    window.Search = MockSearch;
 
     realAsyncStorage = window.asyncStorage;
     window.asyncStorage = MockasyncStorage;
@@ -459,7 +459,7 @@ suite('Import Friends Test Suite', function() {
   suiteTeardown(function() {
     utils.alphaScroll = realAlphaScroll;
     window.ImageLoader = realImageLoader;
-    window.contacts.Search = realSearch;
+    window.Search = realSearch;
     window.asyncStorage = realAsyncStorage;
     window.oauthflow = realOauthflow;
     window.curtain = realCurtain;

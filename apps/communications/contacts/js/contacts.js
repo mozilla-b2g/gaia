@@ -11,7 +11,7 @@
 /* global TAG_OPTIONS */
 /* global utils */
 /* global HeaderUI */
-
+/* global Search */
 /* global ContactsService */
 
 /* exported COMMS_APP_ORIGIN */
@@ -254,7 +254,7 @@ var Contacts = (function() {
         }
 
         contactsDetails.render(currentContact, currentFbContact);
-        if (contacts.Search && contacts.Search.isInSearchMode()) {
+        if (window.Search && Search.isInSearchMode()) {
           MainNavigation.go('view-contact-details', 'go-deeper-search');
         } else {
           MainNavigation.go('view-contact-details', 'go-deeper');
@@ -476,7 +476,7 @@ var Contacts = (function() {
   var enterSearchMode = function enterSearchMode(evt) {
     Loader.view('Search', function viewLoaded() {
       contacts.List.initSearch(function onInit() {
-        contacts.Search.enterSearchMode(evt);
+        Search.enterSearchMode(evt);
       });
     });
   };

@@ -1,15 +1,14 @@
 'use strict';
-/* global fb */
-/* global ImageLoader */
-/* global LazyLoader */
 /* global Normalizer */
 /* global utils */
 /* global HtmlHelper */
+/* global LazyLoader */
+/* global ImageLoader */
+/* global fb */
+/* exported Search */
 
 
-var contacts = window.contacts || {};
-
-contacts.Search = (function() {
+(function(exports) {
   var inSearchMode = false,
       searchView,
       searchBox,
@@ -669,7 +668,7 @@ contacts.Search = (function() {
     searchProgress.classList.add('hidden');
   }
 
-  return {
+  exports.Search = {
     'init': init,
     'invalidateCache': invalidateCache,
     'appendNodes': appendNodes,
@@ -682,4 +681,4 @@ contacts.Search = (function() {
     'selectRow': selectRow,
     'updateSearchList': updateSearchList
   };
-})();
+})(window);
