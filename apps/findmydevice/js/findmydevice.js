@@ -556,12 +556,12 @@ var FindMyDevice = {
       // commands object, and parse the arguments.
       var argsObj = cmdobj[cmd], command, args;
       switch (cmd) {
-        case 't':
-          command = 'track';
-          args = [parseInt(argsObj.d, 10)];
-          break;
         case 'e':
           command = 'erase';
+          args = [];
+          break;
+        case 'k':
+          command = 'killswitch';
           args = [];
           break;
         case 'l':
@@ -570,6 +570,10 @@ var FindMyDevice = {
           break;
         case 'r':
           command = 'ring';
+          args = [parseInt(argsObj.d, 10)];
+          break;
+        case 't':
+          command = 'track';
           args = [parseInt(argsObj.d, 10)];
           break;
         default:
