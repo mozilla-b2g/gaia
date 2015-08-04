@@ -251,6 +251,15 @@ suite('system/Places', function() {
       subject.setVisits(url, [1, 2, 3]);
     });
 
+    test('Correctly set pinned status', function(done) {
+      var url = 'http://example.org';
+      MockDatastore.addEventListener('change', function() {
+        assert.equal(MockDatastore._records[url].pinned, true);
+        done();
+      });
+      subject.setPinned(url, true);
+    });
+
     test('Ensure place without icon doesnt bail', function(done) {
       var url = 'http://example.org';
 

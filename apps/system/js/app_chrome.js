@@ -41,6 +41,7 @@
     this.scrollable = app.browserContainer;
     this._currentOrigin = app.origin || '';
     this._currentIconUrl = '';
+    this.pinned = false;
     this.render();
 
     if (this.app.themeColor && this.app.themeColor !== '') {
@@ -131,7 +132,8 @@
                     </header>
                     <div class="card-container"></div>
                     <div class="footer-container">
-                      <button data-l10n-id="pinning.pin" data-action="pin">
+                      <button data-l10n-id="pinning.pin" data-action="pin"
+                        class="pin-button">
                         Pin
                       </button>
                       <footer>
@@ -219,6 +221,7 @@
 
     if (this.useCombinedChrome()) {
       this.pinDialog = this.element.querySelector('.pin-dialog');
+      this.pinButton = this.element.querySelector('.pin-button');
       this.closePin = this.pinDialog.querySelector('a[data-action="cancel"]');
       this.originElement = this.pinDialog.querySelector('.origin');
       this.pinCardContainer = this.pinDialog.querySelector('.card-container');
@@ -357,7 +360,24 @@
         evt.stopImmediatePropagation();
         this.onShare();
         break;
+
+      case this.pinButton:
+        this.pin();
+        break;
     }
+  };
+
+  AppChrome.prototype.pin = function ac_pin() {
+    this.hidePinDialogCard();
+    this.collapse();
+    this.pinned = true;
+    this.app.element.classList.remove('collapsible');
+    Service && Service.request('Places:setPinned', this.app.config.url, true)
+      .then(function() {
+      console.log('Succeeding in pinning ' + this.app.config.url);
+    }, function() {
+      console.log('Failed to pin ' + this.app.config.url);
+    });
   };
 
   AppChrome.prototype.titleClicked = function ac_titleClicked() {
@@ -451,7 +471,7 @@
     // a scrollTop position of scrollTopMax - 1, which triggers the transition!
     if (this.scrollable.scrollTop >= this.scrollable.scrollTopMax - 1) {
       this.collapse();
-    } else {
+    } else if (!this.pinned) {
       this.expand();
     }
 
@@ -477,6 +497,7 @@
       this.scrollable.addEventListener('scroll', this);
       this.menuButton.addEventListener('click', this);
       this.windowsButton.addEventListener('click', this);
+      this.pinButton.addEventListener('click', this);
 
       // Adding or removing the click listener, depending on
       // the 'Pinning the Web' setting enabled or disabled
@@ -522,6 +543,7 @@
       this.stopButton.removeEventListener('click', this);
       this.menuButton.removeEventListener('click', this);
       this.windowsButton.removeEventListener('click', this);
+      this.pinButton.removeEventListener('click', this);
       this.reloadButton.removeEventListener('click', this);
       this.backButton.removeEventListener('click', this);
       this.forwardButton.removeEventListener('click', this);
@@ -790,6 +812,8 @@
           this.expand();
         }
         this.scrollable.scrollTop = 0;
+        this.pinned = false;
+        this.app.element.classList.add('collapsible');
       }
 
       // Set the title for the private browser landing page.
@@ -819,7 +843,8 @@
     if (evt.detail && evt.detail.type === 'fatal') {
       return;
     }
-    if (this.useCombinedChrome() && this.app.config.chrome.scrollable) {
+    if (this.useCombinedChrome() && this.app.config.chrome.scrollable &&
+      !this.pinned) {
       // When we get an error, keep the rocketbar maximized.
       this.expand();
       this.containerElement.classList.remove('scrollable');
@@ -828,7 +853,9 @@
 
   AppChrome.prototype.maximize = function ac_maximize(callback) {
     var element = this.element;
-    this.expand();
+    if (!this.pinned) {
+      this.expand();
+    }
     window.addEventListener('rocketbar-overlayclosed', this);
 
     if (!callback) {
