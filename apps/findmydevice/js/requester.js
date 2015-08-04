@@ -78,6 +78,14 @@ var Requester = {
     };
 
     xhr.send(data);
+  },
+
+  promisePost: function fmdr_promise_post(url, data) {
+    var ret = new Promise((resolve, reject) => {
+      this.post(url, data, response => resolve(response), err => reject(err));
+    });
+
+    return ret;
   }
 };
 

@@ -1,4 +1,5 @@
 /* global SettingsHelper */
+/* global LockedSettingsHelper */
 /* global asyncStorage */
 /* global Requester */
 /* global Commands */
@@ -13,12 +14,57 @@
 
 'use strict';
 
+// XXX(ggp) Because FMD is a background app with no UI, it is very likely to be
+// killed by the low memory killer on low memory devices. To counter that, we
+// grab a wakelock every time we're doing async operations such as writing to a
+// setting or accessing the network (in my experience, we don't get killed while
+// actually running JS code). Async commands also need wakelocks, but they're
+// managed separately in commands.js
+
+// Like SettingsHelper, but ensures a wakelock is held while the setting is
+// retrieved or being set. set() returns a promise that resolves when the
+// observer is next called. get() returns a promise that resolves with the
+// value of the setting.
+function LockedSettingsHelper(setting, lock, unlock) {
+  var helper = SettingsHelper(setting);
+  var resolver = null;
+
+  return {
+    set: function(value) {
+      lock();
+      helper.set(value);
+      return new Promise((res, rej) => resolver = res);
+    },
+
+    get: function() {
+      lock();
+      return new Promise((resolve, reject) => {
+        helper.get(value => {
+          resolve(value);
+          setTimeout(unlock);
+        });
+      });
+    },
+
+    addObserver: function(observer) {
+      var unlockObserver = function(event) {
+        var ret;
+        observer && (ret = observer(event));
+        if (resolver !== null) {
+          resolver(ret);
+          resolver = null;
+          setTimeout(unlock);
+        }
+      };
+      navigator.mozSettings.addObserver(setting, unlockObserver);
+    }
+  };
+}
+
 var FindMyDevice = {
   _state: null,
 
   _registering: false,
-
-  _refreshingClientID: false,
 
   _reply: {},
 
@@ -30,7 +76,15 @@ var FindMyDevice = {
 
   _enabledHelper: null,
 
+  _retryCount: 0,
+
+  _retryCountHelper: null,
+
   _loggedIn: false,
+
+  _loginResolver: null,
+
+  _loginRejector: null,
 
   _currentClientID: '',
 
@@ -42,18 +96,6 @@ var FindMyDevice = {
 
   _disableAttempt: false,
 
-  // There are two situations in which we want to make sure
-  // FMD is alive:
-  // - when it is running client logic that accesses the network;
-  // - when it is executing a command with a duration.
-  // Command wakelocks are managed by individual commands.
-  // For client logic wakelocks, we use the fact that when a network
-  // request succeeds, we'll either update 'findmydevice.registered',
-  // or 'findmydevice.can-disable', or process a command and set
-  // a 'ping' timer, and when it fails, we'll set a timer to retry.
-  // Since each network transaction finishes with either a change
-  // in one of these settings or with a timer, we release the locks
-  // in the observers for the settings and in _scheduleAlarm.
   _highPriorityWakeLocks: {
     clientLogic: [],
     command: []
@@ -75,14 +117,10 @@ var FindMyDevice = {
   },
 
   _observeSettings: function fmd_observe_settings() {
-    var settings = navigator.mozSettings;
-
-    settings.addObserver('findmydevice.registered',
-      this._onRegisteredChanged.bind(this));
-    settings.addObserver('findmydevice.enabled',
-      this._onEnabledChanged.bind(this));
-    settings.addObserver('findmydevice.current-clientid',
-      this._onClientIDChanged.bind(this));
+    this._registeredHelper.addObserver(this._onRegisteredChanged.bind(this));
+    this._enabledHelper.addObserver(this._onEnabledChanged.bind(this));
+    this._currentClientIDHelper.addObserver(this._onClientIDChanged.bind(this));
+    this._retryCountHelper.addObserver(this._onRetryCountChanged.bind(this));
 
     // We only allow disabling Find My Device if the same person
     // who first enabled it is logged in to FxA, and in that case
@@ -90,18 +128,18 @@ var FindMyDevice = {
     // However, note that FMD doesn't store the user's email address,
     // but rather a client ID that is derived from the FxA assertion
     // and stored in this._state.clientid.
-    settings.addObserver('findmydevice.can-disable',
-      this._onCanDisableChanged.bind(this));
+    this._canDisableHelper.addObserver(this._onCanDisableChanged.bind(this));
   },
 
   _onReady: function fmd_fxa_onready() {
-    var self = this;
-    this._loadState(function() {
-      self._initSettings(self._initMessageHandlers.bind(self));
+    this._loadState(() => {
+      this._initSettings(() => {
+        this._observeSettings();
+        this._initMessageHandlers();
+      });
     });
 
     this._fxaReady = true;
-    this._observeSettings();
   },
 
   _loadState: function fmd_load_state(callback) {
@@ -117,30 +155,32 @@ var FindMyDevice = {
   },
 
   _initSettings: function fmd_init_settings(callback) {
-    // for each setting we're interested in, create a SettingsHelper,
-    // cache its initial value in a property (e.g., _enabled), and
-    // store the SettingsHelper as another property (e.g., _enabledHelper).
+    // for each setting we're interested in, create a LockedSettingsHelper,
+    // cache its initial value in a property (e.g., _enabled), and store the
+    // LockedSettingsHelper as another property (e.g., _enabledHelper).
     var settingsToProperties = {
       // setting name : property name for cached value
       'findmydevice.enabled': '_enabled',
       'findmydevice.registered': '_registered',
       'findmydevice.current-clientid': '_currentClientID',
-      'findmydevice.can-disable': '_canDisable'
+      'findmydevice.can-disable': '_canDisable',
+      'findmydevice.retry-count': '_retryCount'
     };
     var settings = Object.keys(settingsToProperties);
 
-    var loaded = 0;
-    var totalSettings = Object.keys(settingsToProperties).length;
-    settings.forEach(function(s) {
+    return Promise.all(settings.map((s, i) => {
       var prop = settingsToProperties[s];
-      var helper = this[prop + 'Helper'] = SettingsHelper(s);
-      helper.get((function(value) {
+      var helper = this[prop + 'Helper'] = this._makeLockedSettingsHelper(s);
+      return helper.get().then(value => {
         this[prop] = value;
-        if (++loaded === totalSettings) {
-          callback && callback();
-        }
-      }).bind(this));
-    }, this);
+      });
+    })).then(callback);
+  },
+
+  _makeLockedSettingsHelper: function fmd_make_locked_settings_helper(setting) {
+    var lock = this.beginHighPriority.bind(this, 'clientLogic'),
+        unlock = this.endHighPriority.bind(this, 'clientLogic');
+    return LockedSettingsHelper(setting, lock, unlock);
   },
 
   _initMessageHandlers: function fmd_init_message_handlers() {
@@ -151,7 +191,6 @@ var FindMyDevice = {
 
     navigator.mozSetMessageHandler('push-register', (function(message) {
       DUMP('findmydevice lost push endpoint, re-registering');
-      this.beginHighPriority('clientLogic');
       this._registeredHelper.set(false);
     }).bind(this));
 
@@ -171,20 +210,17 @@ var FindMyDevice = {
           if (reason === IAC_API_WAKEUP_REASON_ENABLED_CHANGED) {
             DUMP('enabled state changed, trying to reach the server');
             // Ensure the retry counter is reset to 0 on enable
-            SettingsHelper('findmydevice.retry-count').set(0);
+            this._retryCountHelper.set(0);
             this._contactServer();
           } else if (reason === IAC_API_WAKEUP_REASON_STALE_REGISTRATION) {
             DUMP('stale registration, re-registering');
-            this.beginHighPriority('clientLogic');
             this._registeredHelper.set(false);
           } else if (reason === IAC_API_WAKEUP_REASON_LOGIN) {
             DUMP('new login, invalidating client id');
-            this.beginHighPriority('clientLogic');
             this._loggedIn = true;
             this._currentClientIDHelper.set('');
           } else if (reason === IAC_API_WAKEUP_REASON_LOGOUT) {
             DUMP('logout, invalidating client id');
-            this.beginHighPriority('clientLogic');
             this._loggedIn = false;
             this._currentClientIDHelper.set('');
           } else if (reason === IAC_API_WAKEUP_REASON_TRY_DISABLE) {
@@ -208,26 +244,31 @@ var FindMyDevice = {
   },
 
   _contactServer: function fmd_contact_server() {
+    var p;
     this.beginHighPriority('clientLogic');
     if (this._registered && this._enabled) {
-      this._replyAndFetchCommands();
+      p = this._replyAndFetchCommands();
     } else if (this._registered && !this._enabled) {
-      this._reportDisabled();
+      p = this._reportDisabled();
     } else if (!this._registered && this._enabled) {
-      this._register();
+      p = this._register();
     } else {
       // XXX(ggp) this should never happen, but let's play
       // it safe and release lock we acquired
       DUMP('can\'t contact the server while not registered and not enabled!!');
-      this.endHighPriority('clientLogic');
+      p = Promise.reject();
     }
+
+    p.then(
+      this.endHighPriority.bind(this, 'clientLogic'),
+      this.endHighPriority.bind(this, 'clientLogic'));
   },
 
   _reportDisabled: function fmd_report_disabled() {
     DUMP('reporting disabled');
-    Requester.post(
+    return Requester.promisePost(
       this._getCommandEndpoint(),
-      {enabled: false},
+      {enabled: false}).then(
       this._handleServerResponse.bind(this),
       this._handleServerError.bind(this));
   },
@@ -238,16 +279,15 @@ var FindMyDevice = {
 
     if (this._registering) {
       this._registering = false;
-      this.endHighPriority('clientLogic');
-      return;
+      return Promise.resolve();
     }
 
     this._registering = true;
 
+    var assertionPromise;
     if (this._state === null) {
       // We are not registered yet, so we need to give the server a FxA
-      // assertion. Request a fresh one here and continue the registration
-      // process from the login callback.
+      // assertion.
 
       if (!this._loggedIn) {
         // Can't request() while not logged in, as that would bring up the
@@ -258,70 +298,38 @@ var FindMyDevice = {
         // corner case. For now, just give up if this happens, but we still
         // need to notify the user somehow (bug 1013423).
         this._registering = false;
-        this.endHighPriority('clientLogic');
-        return;
+        return Promise.resolve();
       }
 
-      navigator.mozId.request();
+      assertionPromise = this._requestAssertion();
     } else {
       // We don't need to send assertions on re-registrations, just rely on
       // our client ID and HAWK signature to authenticate us. This works even
       // if we're logged out of FxA, so use null for the assertion.
-      this._continueRegistration(null);
-    }
-  },
-
-  _onLogin: function fmd_on_login(assertion) {
-    DUMP('logged in to FxA');
-
-    // XXX(ggp) When initializing, we'll process FxA's automatic invocation
-    // of onlogin/onlogout before any IAC message, so use these calls to
-    // initialize _loggedIn. However, when FMD is already running, there's
-    // no guaranteee that onlogin/onlogout will fire before the IAC handler,
-    // so we have dedicated IAC messages (IAC_API_WAKEUP_REASON_LOGIN and
-    // IAC_API_WAKEUP_REASON_LOGOUT) to cover login state changes, and we
-    // use the handlers for these messages to update _loggedIn.
-    this._loggedIn = true;
-
-    if (this._refreshingClientID) {
-      DUMP('resuming client id refresh');
-      this._fetchClientID(assertion);
+      assertionPromise = null;
     }
 
-    if (!this._enabled || !this._registering) {
-      return;
-    }
-
-    // We are in the middle of a registration, so continue here
-    this._continueRegistration(assertion);
-  },
-
-  _continueRegistration: function fmd_continue_registration(assertion) {
-    var self = this;
-
-    if (assertion == null && this._state == null) {
-      // this shouldn't happen
-      throw new Error('Trying to register with no assertion and no state!');
-    }
-
-    var pushRequest = navigator.push.register();
-    pushRequest.onsuccess = function fmd_push_handler() {
-      DUMP('findmydevice received push endpoint!');
-
-      var endpoint = pushRequest.result;
-      if (self._enabled) {
-        self._requestRegistration(assertion, endpoint);
-      }
-
-      self._registering = false;
-    };
-
-    pushRequest.onerror = function fmd_push_error_handler() {
-      DUMP('findmydevice push request failed!');
-
-      self._registering = false;
-      self._countRegistrationRetry();
-    };
+    var pushPromise = navigator.push.register();
+    return Promise.all([assertionPromise, pushPromise]).then(values => {
+      DUMP('got assertion and push endpoint, requesting registration');
+      var assertion = values[0], endpoint = values[1];
+      return this._requestRegistration(assertion, endpoint).then(response => {
+        DUMP('findmydevice successfully registered: ', response);
+        return new Promise((resolve, reject) => {
+          this._registering = false;
+          asyncStorage.setItem('findmydevice-state', response, () => {
+            resolve(this._registeredHelper.set(true));
+          });
+        });
+      }, err => {
+        this._registering = false;
+        return this._handleServerError(err);
+      });
+    }, () => {
+      DUMP('failed to obtain assertion or push endpoint!');
+      this._registering = false;
+      return this._countRegistrationRetry();
+    });
   },
 
   _requestRegistration: function fmd_request_registration(assertion, endpoint) {
@@ -338,14 +346,46 @@ var FindMyDevice = {
       obj.deviceid = this._state.deviceid;
     }
 
-    var self = this;
-    Requester.post('/register/', obj, function(response) {
-      DUMP('findmydevice successfully registered: ', response);
+    return Requester.promisePost('/register/', obj);
+  },
 
-      asyncStorage.setItem('findmydevice-state', response, function() {
-        self._registeredHelper.set(true);
-      });
-    }, this._handleServerError.bind(this));
+  _requestAssertion: function fmd_request_assertion() {
+    return new Promise((resolve, reject) => {
+      this._loginResolver = resolve;
+      this._loginRejector = reject;
+
+      navigator.mozId.request();
+    });
+  },
+
+  _resolveAssertionRequest: function fmd_resolve_assertion(assertion) {
+    if (this._loginResolver) {
+      this._loginResolver(assertion);
+      this._loginResolver = null;
+      this._loginRejector = null;
+    }
+  },
+
+  _rejectAssertionRequest: function fmd_reject_assertion_request() {
+    if (this._loginRejector) {
+      this._loginRejector();
+      this._loginResolver = null;
+      this._loginRejector = null;
+    }
+  },
+
+  _onLogin: function fmd_on_login(assertion) {
+    DUMP('logged in to FxA');
+
+    // XXX(ggp) When initializing, we'll process FxA's automatic invocation
+    // of onlogin/onlogout before any IAC message, so use these calls to
+    // initialize _loggedIn. However, when FMD is already running, there's
+    // no guaranteee that onlogin/onlogout will fire before the IAC handler,
+    // so we have dedicated IAC messages (IAC_API_WAKEUP_REASON_LOGIN and
+    // IAC_API_WAKEUP_REASON_LOGOUT) to cover login state changes, and we
+    // use the handlers for these messages to update _loggedIn.
+    this._loggedIn = true;
+    this._resolveAssertionRequest(assertion);
   },
 
   _onLogout: function fmd_fxa_onlogout() {
@@ -363,27 +403,20 @@ var FindMyDevice = {
       window.close();
     }
 
-    if (this._refreshingClientID) {
-      this._cancelClientIDRefresh();
-    }
-
+    this._rejectAssertionRequest();
     this._scheduleAlarm('retry');
   },
 
   _cancelClientIDRefresh: function fmd_cancel_clientid_refresh() {
     this._disableAttempt = false;
-    this._refreshingClientID = false;
 
     // If we've been woken up by the Settings app because of a disable
     // attempt, it expects us to change these two settings at the end
     // of the operation, so set them to their current values if we're
     // canceling to make sure the state in the Settings is updated
     // properly.
-    this._enabledHelper.set(this._enabled);
-    this._currentClientIDHelper.set(this._currentClientID);
-
-    // XXX(ggp) no need to unlock the 'currentClient' lock here, let
-    // _onClientIDChanged do it for us
+    return this._enabledHelper.set(this._enabled).then(() =>
+      this._currentClientIDHelper.set(this._currentClientID));
   },
 
   _scheduleAlarm: function fmd_schedule_alarm(mode) {
@@ -400,33 +433,27 @@ var FindMyDevice = {
       nextAlarm.setMinutes(nextAlarm.getMinutes() + interval);
     } else {
       DUMP('invalid alarm mode!');
-      return;
+      return Promise.reject();
     }
 
-    var self = this;
-    var request = navigator.mozAlarms.getAll();
-    request.onsuccess = function fmd_alarms_get_all() {
-      this.result.forEach(function(alarm) {
+    return navigator.mozAlarms.getAll().then((result) => {
+      result.forEach(function(alarm) {
         navigator.mozAlarms.remove(alarm.id);
       });
 
       var data = {type: 'findmydevice-alarm'};
-      var request = navigator.mozAlarms.add(nextAlarm, 'honorTimezone', data);
-      request.onsuccess = function() {
-        self.endHighPriority('clientLogic');
-      };
-    };
+      return navigator.mozAlarms.add(nextAlarm, 'honorTimezone', data);
+    });
   },
 
   _replyAndFetchCommands: function fmd_reply_and_fetch() {
-    this._reply.has_passcode = Commands.deviceHasPasscode();
-    Requester.post(
-      this._getCommandEndpoint(),
-      this._reply,
+    var reply = this._reply;
+    reply.has_passcode = Commands.deviceHasPasscode();
+    this._reply = {};
+    return Requester.promisePost(
+      this._getCommandEndpoint(), reply).then(
       this._handleServerResponse.bind(this),
       this._handleServerError.bind(this));
-
-    this._reply = {};
   },
 
   _onRegisteredChanged: function fmd_registered_changed(event) {
@@ -435,14 +462,10 @@ var FindMyDevice = {
 
     if (!this._registered) {
       this._contactServer();
-      this.endHighPriority('clientLogic');
     } else {
       this._loadState((function() {
         this._contactServer();
         this._currentClientIDHelper.set('');
-        // XXX(ggp) we're still holding a 'clientLogic' lock, but let
-        // _onClientIDChanged or _onCanDisableChanged release it (depending
-        // on whether we're logged in or not).
       }).bind(this));
     }
   },
@@ -460,14 +483,11 @@ var FindMyDevice = {
     DUMP('current id set to: ', this._currentClientID);
 
     if (this._loggedIn && this._currentClientID === '') {
-      this._refreshClientIDIfRegistered(false);
-      this.endHighPriority('clientLogic');
+      return this._refreshClientIDIfRegistered(false);
     } else if (this._registered) {
-      this._canDisableHelper.set(
+      return this._canDisableHelper.set(
         this._loggedIn &&
         this._currentClientID === this._state.clientid);
-    } else {
-      this.endHighPriority('clientLogic');
     }
   },
 
@@ -477,7 +497,10 @@ var FindMyDevice = {
     }
 
     this._disableAttempt = false;
-    this.endHighPriority('clientLogic');
+  },
+
+  _onRetryCountChanged: function fmd_retry_count_changed(event) {
+    this._retryCount = event.settingValue;
   },
 
   _refreshClientIDIfRegistered: function fmd_refresh_client_id(forceReauth) {
@@ -485,21 +508,33 @@ var FindMyDevice = {
       {registered: this._registered, loggedIn: this._loggedIn});
 
     if (!this._registered || !this._loggedIn) {
-      return;
+      return Promise.reject();
     }
 
     DUMP('requesting assertion to refresh client id, forceReauth: ' +
          forceReauth);
+
     this.beginHighPriority('clientLogic');
+    var p = new Promise((resolve, reject) => {
+      this._loginResolver = resolve;
+      this._loginRejector = reject;
 
-    this._refreshingClientID = true;
-    var mozIdRequestOptions = {};
-    if (forceReauth) {
-      mozIdRequestOptions.refreshAuthentication = 0;
-      mozIdRequestOptions.oncancel = this._cancelClientIDRefresh.bind(this);
-    }
+      var mozIdRequestOptions = {};
+      if (forceReauth) {
+        mozIdRequestOptions.refreshAuthentication = 0;
+        mozIdRequestOptions.oncancel = reject;
+      }
 
-    navigator.mozId.request(mozIdRequestOptions);
+      navigator.mozId.request(mozIdRequestOptions);
+    }).then(assertion => {
+      return Requester.promisePost('/validate/', {assert: assertion}).then(
+        this._onClientIDResponse.bind(this),
+        this._onClientIDServerError.bind(this));
+    }, () => this._cancelClientIDRefresh()).then(
+      this.endHighPriority.bind(this, 'clientLogic'),
+      this.endHighPriority.bind(this, 'clientLogic'));
+
+    return p;
   },
 
   _onLockscreenClosed: function fmd_on_lockscreen_closed() {
@@ -510,29 +545,21 @@ var FindMyDevice = {
     }
   },
 
-  _fetchClientID: function fmd_fetch_client_id(assertion) {
-    Requester.post('/validate/', {assert: assertion},
-      this._onClientIDResponse.bind(this),
-      this._onClientIDServerError.bind(this));
-    this._refreshingClientID = false;
-  },
-
   _onClientIDResponse: function fmd_on_client_id(response) {
     DUMP('got clientid reponse: ', response);
 
     if (response.valid) {
-      this._currentClientIDHelper.set(response.uid);
-      return;
+      return this._currentClientIDHelper.set(response.uid);
     }
 
     DUMP('failed to verify assertion for client id!');
-    this._scheduleAlarm('retry');
+    return this._onClientIDServerError();
   },
 
-  _onClientIDServerError: function fmd_on_client_id_error(err) {
-    DUMP('failed to fetch client id with status: ' + err.status);
-    this._scheduleAlarm('retry');
-    this._disableAttempt = false;
+  _onClientIDServerError: function fmd_on_client_id_error() {
+    DUMP('failed to fetch or verify client id!');
+    return this._scheduleAlarm('retry').then(() =>
+      this._cancelClientIDRefresh());
   },
 
   _handleServerResponse: function(response, testing) {
@@ -586,27 +613,23 @@ var FindMyDevice = {
   },
 
   _countRegistrationRetry: function fmd_count_registration_retry (){
-    this._scheduleAlarm('retry');
+    var ret = this._scheduleAlarm('retry');
 
-    if (!navigator.onLine) {
-      return;
-    }
-
-    if (!this._registered) {
-      var countHelper = SettingsHelper('findmydevice.retry-count');
-
-      countHelper.get(function fmd_get_retry_count(count){
-        countHelper.set((count || 0) + 1);
+    if (navigator.onLine && !this._registered) {
+      ret = ret.then(() => {
+        return this._retryCountHelper.set((this._retryCount || 0) + 1);
       });
     }
+
+    return ret;
   },
 
   _handleServerError: function fmd_handle_server_error(err) {
     DUMP('findmydevice request failed with status: ' + err.status);
     if (err.status === 401 && this._registered) {
-      this._registeredHelper.set(false);
+      return this._registeredHelper.set(false);
     } else {
-      this._countRegistrationRetry();
+      return this._countRegistrationRetry();
     }
   },
 
