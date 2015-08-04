@@ -3,6 +3,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import time
+import pdb
 
 from marionette_driver import expected, By, Wait
 from marionette_driver.marionette import Actions
@@ -31,9 +32,30 @@ class Camera(Base):
     _hud_locator = (By.CSS_SELECTOR, '.hud')
     _loading_screen_locator = (By.CSS_SELECTOR, '.loading-screen')
     _toggle_flash_button_locator = (By.CSS_SELECTOR, '.test-flash-button')
+    ## These are named equal to current view
+    _camera_switch_to_rear_locator = (By.CSS_SELECTOR, '[data-l10n-id="toggle-camera-front-button"]')
+    _camera_switch_to_front_locator = (By.CSS_SELECTOR, '[data-l10n-id="toggle-camera-rear-button"]')
 
+    _menu_button_locator = (By.CSS_SELECTOR, '[data-l10n-id="menu-button"]')
+    
     _viewfinder_video_locator = (By.CLASS_NAME, 'viewfinder-video')
-
+    
+    # Menu
+    _hdr_enable_locator = (By.CSS_SELECTOR, '[data-l10n-id="settings-option-hdr"]')
+    _self_timer_enable_locator = (By.CSS_SELECTOR, '[data-l10n-id="setting-option-self-timer"]')
+    _5_second_timer_locator = (By.CSS_SELECTOR, '[data-key="secs5"]')
+    _grid_lines_enable_locator = (By.CSS_SELECTOR, '[data-l10n-id="setting-option-grid"]')
+    _close_menu_locator = (By.CSS_SELECTOR, '[data-l10n-id="close-menu-button"]')
+    
+    # Indicator Icons
+    _timer_enabled_locator = (By.CSS_SELECTOR, '[data-l10n-id="self-timer-indicator"]')
+    _hdr_enabled_locator = (By.CSS_SELECTOR, '[data-l10n-id="hdr-indicator"]')
+    _geolocation_enabled_locator = (By.CSS_SELECTOR, '[data-l10n-id="location-indicator"]')
+    _battery_low_indicator = (By.CSS_SELECTOR, '[data-l10n-id="battery-low-indicator"]')
+ 
+    # Timer Animation
+    _timer_animation_locator = (By.CSS_SELECTOR, '[data-timer="active"]')
+    
     # ConfirmDialog
     _select_button_locator = (By.CSS_SELECTOR, '.test-confirm-select')
 
@@ -59,6 +81,21 @@ class Camera(Base):
         # Wait for thumbnail to appear
         self.wait_for_thumbnail_visible()
 
+    def take_photo_with_timer(self):
+        # Wait for camera to be ready to take a picture
+        controls = self.marionette.find_element(*self._controls_locator)
+        Wait(self.marionette, timeout=20).until(
+            lambda m: controls.get_attribute('data-enabled') == 'true')
+         
+        self.tap_capture()
+        time.sleep(1)
+        # Wait for Timer to animate
+        timer_animating = self.marionette.find_element(*self._timer_animation_locator)
+        Wait(self.marionette).until(expected.element_enabled(timer_animating))    
+
+        # Wait for thumbnail to appear
+        self.wait_for_thumbnail_visible()        
+        
     def record_video(self, duration):
         # Start recording
         self.tap_capture()
@@ -115,6 +152,39 @@ class Camera(Base):
         Wait(self.marionette).until(lambda m: not current_camera_mode == self.camera_mode)
         self.wait_for_capture_ready()
 
+    def tap_switch_to_front_camera(self):
+	self.marionette.find_element(*self._camera_switch_to_front_locator).tap()
+	switch_to_rear_button = Wait(self.marionette).until(expected.element_present(*self._camera_switch_to_rear_locator))
+        Wait(self.marionette).until(expected.element_displayed(switch_to_rear_button))
+        
+    def tap_switch_to_rear_camera(self):
+	self.marionette.find_element(*self._camera_switch_to_rear_locator).tap()
+	switch_to_front_button = Wait(self.marionette).until(expected.element_present(*self._camera_switch_to_front_locator))
+        Wait(self.marionette).until(expected.element_displayed(switch_to_front_button))
+		
+    def tap_menu_button(self):
+	self.marionette.find_element(*self._menu_button_locator).tap()
+	menu_opened = Wait(self.marionette).until(expected.element_present(*self._close_menu_locator))
+	Wait(self.marionette).until(expected.element_displayed(menu_opened))
+	
+    def tap_enable_timer(self):
+	self.marionette.find_element(*self._self_timer_enable_locator).tap()
+	option_available = Wait(self.marionette).until(expected.element_present(*self._5_second_timer_locator))
+	Wait(self.marionette).until(expected.element_displayed(option_available))
+	# select 5 seconds, expected to return to viewfinder
+	self.marionette.find_element(*self._5_second_timer_locator).tap()
+	returned_to_viewfinder = Wait(self.marionette).until(expected.element_present(*self._menu_button_locator))
+	Wait(self.marionette).until(expected.element_displayed(returned_to_viewfinder))
+	# Make sure Timer icon is active
+	timer_enabled = Wait(self.marionette).until(expected.element_present(*self._timer_enabled_locator))
+	Wait(self.marionette).until(expected.element_displayed(timer_enabled))
+	
+    def tap_close_menu(self):
+ 	self.marionette.find_element(*self._close_menu_locator).tap()
+	returned_to_viewfinder = Wait(self.marionette).until(expected.element_present(*self._menu_button_locator))
+	Wait(self.marionette).until(expected.element_displayed(returned_to_viewfinder))     
+	
+	
     def tap_toggle_flash_button(self):
         initial_flash_mode = self.current_flash_mode
         toggle = self.marionette.find_element(*self._toggle_flash_button_locator)
@@ -195,6 +265,7 @@ class ImagePreview(Base):
     _gallery_button_locator = (By.CSS_SELECTOR, 'button[data-l10n-id="open-gallery"]')
     _confirm_delete_button = (By.ID, 'dialog-yes')
     _option_menu_locator = (By.CLASS_NAME, 'js-menu')
+    _not_video_preview_locator = (By.CSS_SELECTOR, '[style="display: none;"]')
 
     # for Gallery app switch
     _progress_bar_locator = (By.ID, 'progress')
@@ -211,6 +282,10 @@ class ImagePreview(Base):
     @property
     def is_progress_bar_showing(self):
         return self.is_element_displayed(*self._video_progress_bar_locator)
+
+    @property
+    def not_video_preview(self):
+	return self.is_element_displayed(*self._not_video_preview_locator)
 
     def wait_for_media_frame(self):
         media_frame = self.marionette.find_element(*self._media_frame_locator)
@@ -230,6 +305,10 @@ class ImagePreview(Base):
         Wait(self.marionette).until(expected.element_displayed(
             Wait(self.marionette).until(expected.element_present(*self._option_menu_locator))))
 
+    def tap_picture_preview(self):
+        self.marionette.find_element(*self._thumbnail_button_locator).tap()
+	Wait(self.marionette).until(lambda m: self.is_image_preview_visible is True)
+            
     def delete_file(self):
         self.tap_options()
         self.marionette.find_element(*self._delete_button_locator).tap()
