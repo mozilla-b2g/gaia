@@ -15,7 +15,7 @@
  */
 
 /* global SettingsListener */
-/* global LockScreenStateSlideShow, LockScreenStateSlideHide */
+/* global LockScreenStateSlideShow */
 /* global LockScreenStateKeypadShow */
 /* global LockScreenStateKeypadHiding, LockScreenStateKeypadRising */
 /* global LockScreenStatePanelHide */
@@ -108,7 +108,6 @@
     this.states = {
       slideRestore: (new LockScreenStateSlideRestore()).start(this.lockScreen),
       slideShow: (new LockScreenStateSlideShow()).start(this.lockScreen),
-      slideHide: (new LockScreenStateSlideHide()).start(this.lockScreen),
       keypadShow: (new LockScreenStateKeypadShow()).start(this.lockScreen),
       keypadHiding: (new LockScreenStateKeypadHiding()).start(this.lockScreen),
       keypadRising: (new LockScreenStateKeypadRising()).start(this.lockScreen),
@@ -187,7 +186,7 @@
       screenOn: true,
       unlocking: false
     },
-    ['panelHide', 'slideHide', 'unlock'],
+    ['panelHide', 'unlock'],
     this.states.slideShow,
     'Resume from screen off');
 
@@ -207,7 +206,7 @@
       activateUnlock: true
     },
     ['slideShow'],
-    this.states.slideHide,
+    this.states.unlock,
     'When it activate to unlock with unexpired passcode, unlock and animates.');
 
     this.registerRule({
@@ -300,11 +299,21 @@
 
     this.registerRule({
       unlockingAppActivated: true,
-      passcodeEnabled: true
+      passcodeEnabled: true,
+      passcodeTimeout: true
     },
     ['slideShow'],
     this.states.secureAppLaunching,
     'When user invoke secure app, move to the mode');
+
+    this.registerRule({
+      unlockingAppActivated: true,
+      passcodeEnabled: true,
+      passcodeTimeout: false
+    },
+    ['slideShow'],
+    this.states.unlock,
+    'When user invoke ordinary app without expired timeout, unlock it.');
 
     this.registerRule({
       secureAppClose: true
@@ -610,6 +619,9 @@
 
   LockScreenStateManager.prototype.onUnlockingApp =
   function lssm_onUnlockingApp() {
+    // Check if it should launch secure app or not.
+    this.lockScreenStates.passcodeTimeout =
+      this.lockScreen.checkPassCodeTimeout();
     var inputs = this.extend(this.lockScreenStates, {
       unlockingAppActivated: true
     });
@@ -660,7 +672,14 @@
     if (this.lockScreenStates.passcodeEnabled instanceof
         LockScreenStateManager.Deferred) {
       // So those waiting the promise can go on.
-      this.lockScreenStates.passcodeEnabled.resolve(val);
+      var resolve = this.lockScreenStates.passcodeEnabled.resolve;
+      // Remember: inputs of this transition request is NOT what
+      // the manager keeps. This is due to some request, like pressing homekey,
+      // is a one-time event, and will not update the inner states table.
+      // So if an event is changing the inner states table, we need to
+      // toggle the value here, not in the resolver of postponed request.
+      this.lockScreenStates.passcodeEnabled = val;
+      resolve(val);
     } else {
       this.lockScreenStates.passcodeEnabled = val;
     }
