@@ -479,22 +479,9 @@ section.pin-dialog a[data-action="cancel"] {
   background-image: url("images/light/ssl_broken.png");
 }
 
-.site-icon {
-  width: 3.2rem;
-  height: 3.2rem;
-  background: no-repeat center / 3.2rem content-box;
-  background-image: url('images/default_icon.png');
-  position: absolute;
-}
-
-.homescreen > .chrome .site-icon,
-.private > .chrome .site-icon {
+.homescreen > .chrome gaia-site-icon,
+.private > .chrome gaia-site-icon {
   display: none;
-}
-
-.small-icon {
-  background: #cfcfcf no-repeat center / 1.6rem;
-  border-radius: 100%;
 }
 
 /* Handle urlbar sizing when back or forward buttons are disabled */

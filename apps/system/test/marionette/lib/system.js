@@ -68,7 +68,7 @@ System.Selector = Object.freeze({
   trustedWindowChrome: '.appWindow.active.trustedwindow .chrome',
   leftPanel: '#left-panel',
   rightPanel: '#right-panel',
-  siteIcon: '.appWindow.active .chrome .site-icon',
+  siteIcon: '.appWindow.active .chrome gaia-site-icon',
   utilityTray: '#utility-tray',
   visibleForm: '#action-menu > form.visible',
   cancelActivity: '#action-menu form.visible button[data-action="cancel"]',

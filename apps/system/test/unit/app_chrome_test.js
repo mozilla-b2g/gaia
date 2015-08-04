@@ -944,29 +944,26 @@ suite('system/AppChrome', function() {
       assert.ok(combinedChrome.useCombinedChrome());
       combinedChrome.setSiteIcon();
       getIconPromise.mFulfillToValue({ url: fakeIconURI });
-
-      assert.ok(combinedChrome.siteIcon
-                  .style.backgroundImage.includes(fakeIconURI));
+      assert.ok(combinedChrome.siteIcon.background.url.includes(fakeIconURI));
     });
 
     test('small icon', function() {
       combinedChrome.setSiteIcon();
       getIconPromise.mFulfillToValue({ url: fakeIconURI, isSmall: true });
 
-      assert.isTrue(combinedChrome.siteIcon.classList.contains('small-icon'));
+      assert.isTrue(combinedChrome.siteIcon.background.isSmall);
     });
 
     test('!small icon', function() {
       combinedChrome.setSiteIcon();
       getIconPromise.mFulfillToValue({ url: fakeIconURI, isSmall: false });
 
-      assert.isFalse(combinedChrome.siteIcon.classList.contains('small-icon'));
+      assert.isFalse(combinedChrome.siteIcon.background.isSmall);
     });
 
     test('handles url argument', function() {
       combinedChrome.setSiteIcon(fakeIconURI);
-      assert.ok(combinedChrome.siteIcon
-                  .style.backgroundImage.includes(fakeIconURI));
+      assert.ok(combinedChrome.siteIcon.background.url.includes(fakeIconURI));
       sinon.assert.notCalled(combinedChrome.app.getSiteIconUrl);
     });
 

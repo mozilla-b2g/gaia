@@ -1,0 +1,29 @@
+{
+  "name": "gaia-pin-card",
+  "version": "0.0.1",
+  "main": [
+    "gaia-pin-card.js"
+  ],
+  "homepage": "https://github.com/gaia-components/gaia-pin-card",
+  "authors": [
+    "apastor@mozilla.com"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests",
+    "index.html",
+    "package.json",
+    "README.md"
+  ],
+  "devDependencies": {
+    "base": "gaia-components/base"
+  },
+  "dependencies": {
+    "gaia-component": "gaia-components/gaia-component",
+    "gaia-site-icon": "gaia-components/gaia-site-icon"
+  }
+}
