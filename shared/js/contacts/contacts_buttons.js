@@ -168,6 +168,13 @@ var ContactsButtons = {
         document.querySelector('#email-details-template-\\#i\\#');
       var template = utils.templates.render(emailsTemplate, emailField);
 
+      // Send MMS to the email address
+      var sendSmsButton =
+        template.querySelector('#send-sms-to-email-button-' + email);
+      sendSmsButton.dataset.tel = emailField.value;
+      sendSmsButton.addEventListener('click',
+                                     this._onSendSmsClicked.bind(this));
+
       // Add event listeners to the phone template components
       var emailButton = template.querySelector('#email-or-pick-' + email);
       emailButton.dataset.email = emailField.value;
