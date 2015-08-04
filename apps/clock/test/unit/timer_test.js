@@ -1,5 +1,8 @@
 'use strict';
 suite('Timer', function() {
+
+  /**** TEST DISABLED for intermittent failure; see bug 1153495.
+
   var Timer;
   var now, duration;
 
@@ -193,4 +196,6 @@ suite('Timer', function() {
         'Expected started time to be 4.7 seconds');
     });
   });
+
+  */
 });
