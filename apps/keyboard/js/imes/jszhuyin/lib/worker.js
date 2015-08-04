@@ -6,4 +6,4 @@
  */
 
 importScripts('bopomofo_encoder.js', 'jszhuyin_data_pack.js',
-  'storage.js', 'jszhuyin.js', 'jszhuyin_server.js');
+  'storage.js', 'data_loader.js', 'jszhuyin.js', 'jszhuyin_server.js');

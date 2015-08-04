@@ -1,45 +1,6 @@
 'use strict';
 
-/**
- * A simple key-value store wrapps with JavaScript object.
- * @this   {object}   CacheStore instance.
- */
-var CacheStore = function CacheStore() {
-  this.data = Object.create(null);
-  this.waiting = false;
-};
-/**
- * set the value of a key.
- * @param  {string} key   Key.
- * @param  {any}    value Value.
- * @this   {object}       CacheStore instance.
- */
-CacheStore.prototype.add = function cs_add(key, value) {
-  this.data[key] = value;
-};
-/**
- * get the value of a key.
- * @param  {string} key Key.
- * @return {any}        Value of the key.
- * @this   {object}     CacheStore instance.
- */
-CacheStore.prototype.get = function cs_get(key) {
-  return this.data[key];
-};
-/**
- * Clean up the store. Any key that is not a substring of the superset
- * string will have their value removed.
- * @param  {string} supersetStr The superset string.
- * @this   {object}             CacheStore instance.
- */
-CacheStore.prototype.cleanup = function cs_cleanup(supersetStr) {
-  for (var key in this.data) {
-    if (supersetStr.indexOf(key) !== -1)
-      continue;
-
-    this.data[key] = undefined;
-  }
-};
+/* global BopomofoEncoder, DataLoader, JSZhuyinDataPackStorage */
 
 /**
  * A queue to run one action at a time.
@@ -90,20 +51,12 @@ ActionQueue.prototype.done = function aq_done() {
  * @this   {object}   JSZhuyin instance.
  */
 var JSZhuyin = function JSZhuyin() {
-  this.JSON_FILES = ['words.json',
-                     'phrases0.json', 'phrases1.json',
-                     'phrases2.json', 'phrases3.json',
-                     'more0.json', 'more1.json',
-                     'more2.json', 'more3.json', 'shortcuts.json',
-                     'shortcuts-more0.json', 'shortcuts-more1.json',
-                     'shortcuts-more2.json', 'shortcuts-more3.json'];
   this.storage = null;
 
   this.syllables = '';
   this.confirmedEncodedStr = '';
   this.confirmedCharacters = '';
   this.defaultCandidate = undefined;
-  this.cache = null;
   this.queue = null;
 };
 /**
@@ -122,10 +75,20 @@ JSZhuyin.prototype.SUGGEST_PHRASES = true;
  */
 JSZhuyin.prototype.REORDER_SYMBOLS = false;
 /**
- * Database file to load.
+ * When searching for matching words/phrases, consider these pairs of symbols
+ * are interchangables.
+ * Must be a string representing 2n sounds in Bopomofo symbols.
+ *
+ * Example string: 'ㄣㄥㄌㄖㄨㄛㄡ', making ㄣ interchangable with ㄥ and
+ * ㄌ interchangable with ㄖ, and ㄨㄛ with ㄡ.
  * @type {string}
  */
-JSZhuyin.prototype.DATA_URL = '../data/database.data';
+JSZhuyin.prototype.INTERCHANGABLE_PAIRS = '';
+/**
+ * Overwritten path of database file.
+ * @type {string}
+ */
+JSZhuyin.prototype.dataURL = '';
 /**
  * Run when the loading is complete.
  * @type {function}
@@ -168,7 +131,42 @@ JSZhuyin.prototype.oncompositionend = null;
 JSZhuyin.prototype.oncandidateschange = null;
 
 /**
- * Handle a key event.
+ * Handle a key with it's DOM UI Event Level 3 key value.
+ * @param  {string} key   The key property of the key to handle,
+ *                        should be the printable character or a registered
+ *                        name in the spec.
+ * @param  {any}   reqId  ID of the request.
+ * @return {boolean}      Return true if the key will be handled async.
+ * @this   {object}       JSZhuyin instance.
+ */
+JSZhuyin.prototype.handleKey = function jz_handleKey(key, reqId) {
+  if (!this.queue) {
+    throw 'JSZhuyin: You need to load() first.';
+  }
+
+  if (typeof key !== 'string') {
+    throw 'JSZhuyin: key passed to handleKey must be a string.';
+  }
+
+  if (BopomofoEncoder.isBopomofoSymbol(key)) {
+    // We must handle Bopomofo symbols.
+    this.queue.queue('key', key, reqId);
+
+    return true;
+  }
+
+  if (this.defaultCandidate || this.syllables) {
+    // We must handle all the keys if there are pending symbols or candidates.
+    this.queue.queue('key', key, reqId);
+
+    return true;
+  }
+
+  return false;
+};
+
+/**
+ * Handle a key event with it's keyCode or charCode. Deprecated.
  * @param  {number} code  charCode of the keyboard event.
  *                        If charCode is 0, you should pass keyCode instead.
  * @param  {any}   reqId  ID of the request.
@@ -176,27 +174,23 @@ JSZhuyin.prototype.oncandidateschange = null;
  * @this   {object}       JSZhuyin instance.
  */
 JSZhuyin.prototype.handleKeyEvent = function jz_handleKeyEvent(code, reqId) {
-  if (!this.queue)
-    throw 'JSZhuyin: You need to load() first.';
-
-  if (typeof code !== 'number')
-    throw 'JSZhuyin: code passed to handleKeyEvent must be a number.';
-
-  if (BopomofoEncoder.isBopomofoSymbol(code)) {
-    // We must handle Bopomofo symbols.
-    this.queue.queue('keyEvent', code, reqId);
-
-    return true;
+  var key;
+  switch (code) {
+    case 0x08:
+      key = 'Backspace';
+      break;
+    case 0x0d:
+      key = 'Enter';
+      break;
+    case 0x1b:
+      key = 'Escape';
+      break;
+    default:
+      // XXX: We are considering everything reach here is a printable character.
+      key = String.fromCharCode(code);
   }
 
-  if (this.defaultCandidate || this.syllables) {
-    // We must handle all the keys if there are pending symbols or candidates.
-    this.queue.queue('keyEvent', code, reqId);
-
-    return true;
-  }
-
-  return false;
+  return this.handleKey(key, reqId);
 };
 
 /**
@@ -219,25 +213,58 @@ JSZhuyin.prototype.selectCandidate = function jz_selCandi(candidate, reqId) {
  * Load JSZhuyin; loading the database and register callbacks, etc.
  * @this   {object}   JSZhuyin instance.
  */
-JSZhuyin.prototype.load = function jz_load() {
-  if (this.loaded)
+JSZhuyin.prototype.load = function jz_load(data) {
+  if (this.loaded) {
     throw 'Already loaded.';
+  }
   this.loaded = true;
 
-  var storage = this.storage = new BinStorage();
-  storage.DATA_URL = this.DATA_URL;
-
-  storage.onerror = this.onerror;
-  storage.onload = this.onload;
-  storage.onloadend = this.onloadend;
+  this.storage = new JSZhuyinDataPackStorage();
+  if (data instanceof ArrayBuffer) {
+    this.storage.load(data);
+    if (typeof this.onload === 'function') {
+      this.onload();
+    }
+    if (typeof this.onloadend === 'function') {
+      this.onloadend();
+    }
+  } else {
+    this.dataLoader = new DataLoader();
+    if (this.dataURL) {
+      this.dataLoader.DATA_URL = this.dataURL;
+    }
+    this.dataLoader.onerror = function() {
+      if (typeof this.onerror === 'function') {
+        this.onerror();
+      }
+    }.bind(this);
+    this.dataLoader.onload = function() {
+      this.storage.load(this.dataLoader.data);
+      if (typeof this.onload === 'function') {
+        this.onload();
+      }
+    }.bind(this);
+    this.dataLoader.onloadend = function() {
+      if (typeof this.onloadend === 'function') {
+        this.onloadend();
+      }
+    }.bind(this);
+    this.dataLoader.load();
+  }
 
   this.syllables = '';
   this.defaultCandidate = undefined;
-  this.cache = new CacheStore();
   this.queue = new ActionQueue();
   this.queue.handle = this.handle.bind(this);
-
-  storage.load();
+};
+/**
+ * Set configurations.
+ * @param {object}  config      Configuration to set on JSZhuyin.
+ */
+JSZhuyin.prototype.setConfig = function(config) {
+  for (var key in config) {
+    this[key] = config[key];
+  }
 };
 /**
  * Unload JSZhuyin. Close the database connection and purge things
@@ -245,22 +272,29 @@ JSZhuyin.prototype.load = function jz_load() {
  * @this   {object}   JSZhuyin instance.
  */
 JSZhuyin.prototype.unload = function jz_unload() {
-  if (!this.loaded)
+  if (!this.loaded) {
     throw 'Already unloaded.';
+  }
   this.loaded = false;
 
-  if (this.storage)
+  if (this.storage) {
     this.storage.unload();
+    this.storage = null;
+  }
+
+  if (this.dataLoader) {
+    this.dataLoader = null;
+  }
 
   this.syllables = '';
   this.storage = null;
   this.defaultCandidate = undefined;
-  this.cache = null;
   this.queue.handle = null;
   this.queue = null;
 
-  if (typeof this.onunload === 'function')
+  if (typeof this.onunload === 'function') {
     this.onunload();
+  }
 };
 /**
  * Actual function to handle an action in the action queue.
@@ -271,23 +305,15 @@ JSZhuyin.prototype.unload = function jz_unload() {
  * @this   {object}        JSZhuyin instance.
  */
 JSZhuyin.prototype.handle = function jz_handle(type, data, reqId) {
-  var BOPOMOFO_START = 0x3105;
-  var BOPOMOFO_END = 0x3129;
-  var BOPOMOFO_TONE_1 = 0x02c9;
-  var BOPOMOFO_TONE_2 = 0x02ca;
-  var BOPOMOFO_TONE_3 = 0x02c7;
-  var BOPOMOFO_TONE_4 = 0x02cb;
-  var BOPOMOFO_TONE_5 = 0x02d9;
-
   switch (type) {
-    case 'keyEvent':
+    case 'key':
       if (BopomofoEncoder.isBopomofoSymbol(data)) {
         // This is a Bopomofo symbol
         if (!this.REORDER_SYMBOLS) {
-          this.syllables += String.fromCharCode(data);
+          this.syllables += data;
         } else {
           this.syllables = BopomofoEncoder.decode(BopomofoEncoder.encode(
-              this.syllables + String.fromCharCode(data), {
+              this.syllables + data, {
                 reorder: true
               }));
         }
@@ -298,7 +324,7 @@ JSZhuyin.prototype.handle = function jz_handle(type, data, reqId) {
       }
 
       switch (data) {
-        case 0x08: // Backspace key
+        case 'Backspace':
           if (this.syllables.length === 0) {
             // Sliently discard the key here. Any meaningful response at
             // this stage would be throw the event back to the client,
@@ -315,7 +341,7 @@ JSZhuyin.prototype.handle = function jz_handle(type, data, reqId) {
 
           break;
 
-        case 0x0d: // Enter key
+        case 'Enter':
           if (!this.defaultCandidate) {
             // Sliently discard the key here. Any meaningful response at
             // this stage would be throw the event back to the client,
@@ -330,15 +356,17 @@ JSZhuyin.prototype.handle = function jz_handle(type, data, reqId) {
 
           break;
 
-        case 0x1b: // Escape key
+        case 'Escape':
           this.syllables = '';
           this.updateComposition(reqId);
           this.query(reqId);
 
           break;
 
-        default:   // All other keys
-          var str = this.defaultCandidate[0] + String.fromCharCode(data);
+        default:
+          // All other keys.
+          // XXX: We could only handle it as if it's a printable character here.
+          var str = this.defaultCandidate[0] + data;
           var count = this.defaultCandidate[1];
           this.confirmCandidate([str, count], reqId);
 
@@ -371,11 +399,11 @@ JSZhuyin.prototype.query = function jz_query(reqId) {
     return;
   }
 
+  this.storage.setInterchangeablePairs(this.INTERCHANGABLE_PAIRS);
+
   // Encode the string into Bopomofo encoded string where
   // one character represents a syllables.
-  var encodedStr = BopomofoEncoder.encode(this.syllables, {
-    tone: 'more-than-one-symbol'
-  });
+  var encodedStr = BopomofoEncoder.encode(this.syllables);
   var encodedStrOriginal = BopomofoEncoder.encode(this.syllables);
 
   if (encodedStr.length > this.MAX_SYLLABLES_LENGTH) {
@@ -389,7 +417,8 @@ JSZhuyin.prototype.query = function jz_query(reqId) {
   // See http://en.wikipedia.org/wiki/Composition_(number_theory)#Examples
   // also http://stackoverflow.com/questions/8375439
   var compositions = [];
-  var x, a, j, n = encodedStr.length;
+  var composition, start, substr, data, res;
+  var i, x, a, j, n = encodedStr.length;
   x = 1 << n - 1;
   while (x--) {
     a = [1];
@@ -405,40 +434,19 @@ JSZhuyin.prototype.query = function jz_query(reqId) {
     compositions.push(a);
   }
 
-  // Figure out all the strings we need to query, and get them
-  for (var i = 0; i < compositions.length; i++) {
-    var composition = compositions[i];
-    var start = 0;
-    for (var j = 0; j < composition.length; j++) {
-      var n = composition[j];
-      var str = encodedStr.substr(start, n);
-      if (!this.cache.get(str)) {
-        var result = this.storage.get(str);
-        if (result) {
-          this.cache.add(str,
-            new JSZhuyinDataPack(result[0], result[1], result[2]));
-        }
-      }
-
-      start += n;
-    }
-  }
-
-  this.cache.cleanup(encodedStr);
-
   // ==== START COMPOSING THE RESULT ====
 
   var results = [];
   var firstMatchedPhrase;
-  var cache = this.cache;
+  var storage = this.storage;
 
   // ==== PART I: PHRASES ====
   // List all the choices if the entire query happens to match to
   // phrases.
-  if (cache.get(encodedStr)) {
-    var data = cache.get(encodedStr).getResults();
-    for (var i = 0; i < data.length; i++) {
-      var res = [data[i]['str'], (data[i]['symbols'] || encodedStr)];
+  if (storage.getIncompleteMatched(encodedStr)) {
+    data = storage.getIncompleteMatched(encodedStr).getResults();
+    for (i = 0; i < data.length; i++) {
+      res = [data[i].str, (data[i].symbols || encodedStr)];
       if (!firstMatchedPhrase) {
         firstMatchedPhrase = res;
       }
@@ -449,25 +457,26 @@ JSZhuyin.prototype.query = function jz_query(reqId) {
   // ==== PART II: COMPOSED RESULTS ====
   // Compose results with all the terms we could find.
   var composedResults = [];
-  nextComposition: for (var i = 0; i < compositions.length; i++) {
-    var composition = compositions[i];
+  nextComposition: for (i = 0; i < compositions.length; i++) {
+    composition = compositions[i];
 
     // The entire query has been processed by the previous step. Skip.
-    if (composition.length === 1)
+    if (composition.length === 1) {
       continue nextComposition;
+    }
 
     // Compose a result (and it's score) for each of the compositions.
     var composedResult = '';
     var composedResultScore = 0;
     var composedSymbols = '';
-    var start = 0;
-    for (var j = 0; j < composition.length; j++) {
-      var n = composition[j];
-      var substr = encodedStr.substr(start, n);
-      if (!cache.get(substr) && n > 1) {
+    start = 0;
+    for (j = 0; j < composition.length; j++) {
+      n = composition[j];
+      substr = encodedStr.substr(start, n);
+      if (!storage.getIncompleteMatched(substr) && n > 1) {
         // Skip this compositions if there is no matching phrase.
         continue nextComposition;
-      } else if (!cache.get(substr)) {
+      } else if (!storage.getIncompleteMatched(substr)) {
         // ... but, we don't skip non-matching compositions of
         // a single syllable to show the typo.
         composedResult +=
@@ -476,25 +485,28 @@ JSZhuyin.prototype.query = function jz_query(reqId) {
         composedSymbols += encodedStr.substr(start, n);
       } else {
         // concat the term and add the score to the composed result.
-        var dataFirstResult = cache.get(substr).getFirstResult();
-        composedResult += dataFirstResult['str'];
-        composedResultScore += dataFirstResult['score'];
+        var dataFirstResult =
+          storage.getIncompleteMatched(substr).getFirstResult();
+        composedResult += dataFirstResult.str;
+        composedResultScore += dataFirstResult.score;
         composedSymbols +=
-          dataFirstResult['symbols'] || encodedStr.substr(start, n);
+          dataFirstResult.symbols || encodedStr.substr(start, n);
       }
       start += n;
     }
 
     // Avoid give out duplicated result here by checking the result array.
     var found = results.some(function finddup(result) {
-      if (result[0] === composedResult)
+      if (result[0] === composedResult) {
         return true;
+      }
     });
     // ... and the composedResults array.
     if (!found) {
       found = composedResults.some(function finddup(result) {
-        if (result[0] === composedResult)
+        if (result[0] === composedResult) {
           return true;
+        }
       });
     }
     // If nothing is found we are safe to push our own result.
@@ -508,8 +520,7 @@ JSZhuyin.prototype.query = function jz_query(reqId) {
     return b[1] - a[1];
   });
   // Push the result into the array.
-  var length = encodedStr.length;
-  for (var i = 0; i < composedResults.length; i++) {
+  for (i = 0; i < composedResults.length; i++) {
     results.push([composedResults[i][0], composedResults[i][2]]);
   }
   // This is not really helpful for gc but we do this here to mark the end
@@ -518,16 +529,17 @@ JSZhuyin.prototype.query = function jz_query(reqId) {
 
   // ==== PART III: PHRASES THAT MATCHES SYLLABLES PARTIALLY ====
   // List all the terms that exists where it matches the first i syllables.
-  var i = encodedStr.length;
+  i = encodedStr.length;
   while (i--) {
-    var substr = encodedStr.substr(0, i);
-    if (!cache.get(substr))
+    substr = encodedStr.substr(0, i);
+    if (!substr || !storage.getIncompleteMatched(substr)) {
       continue;
+    }
 
-    var data = cache.get(substr).getResults();
+    data = storage.getIncompleteMatched(substr).getResults();
     var encodedSubStr = encodedStr.substr(0, i);
-    for (var j = 0; j < data.length; j++) {
-      var res = [data[j].str, encodedSubStr];
+    for (j = 0; j < data.length; j++) {
+      res = [data[j].str, encodedSubStr];
       if (!firstMatchedPhrase) {
         firstMatchedPhrase = res;
       }
@@ -538,8 +550,8 @@ JSZhuyin.prototype.query = function jz_query(reqId) {
   // ==== PART IV: UNFORTUNATE TYPO ====
   // Lastly, if the first syllable doesn't made up a word,
   // show the symbols.
-  if (!cache.get(encodedStr[0])) {
-    var res = [BopomofoEncoder.decode(encodedStrOriginal[0]), encodedStr[0]];
+  if (!storage.getIncompleteMatched(encodedStr[0])) {
+    res = [BopomofoEncoder.decode(encodedStrOriginal[0]), encodedStr[0]];
     if (!firstMatchedPhrase) {
       firstMatchedPhrase = res;
     }
@@ -550,6 +562,8 @@ JSZhuyin.prototype.query = function jz_query(reqId) {
   this.updateCandidates(results);
   this.sendActionHandled(reqId);
   this.queue.done();
+
+  storage.cleanupCache(encodedStr);
 };
 /**
  * Suggest possible phrases after the user had enter a term.
@@ -577,34 +591,24 @@ JSZhuyin.prototype.suggest = function jz_suggest(reqId) {
 
   var confirmedCharactersLength = this.confirmedCharacters.length;
   var results = this.storage.getRange(this.confirmedEncodedStr);
-  results.forEach(function each_suggest(result) {
+  results.forEach(function each_suggest(dataPack) {
     var dataPackResults =
-      (new JSZhuyinDataPack(result[0], result[1], result[2])).getResults();
+      dataPack.getResultsBeginsWith(this.confirmedCharacters);
     dataPackResults.forEach(function each_result(dataPackResult) {
-      // We are pulling more data from database than we need here.
-      // this might imply poor memory usage.
-      if (dataPackResult.str.substr(0, confirmedCharactersLength) !==
-          this.confirmedCharacters)
-        return;
-
+      // Don't push duplicate entries.
       var found = suggests.some(function finddup(suggest) {
-      if (dataPackResult['str'] === suggest['str'])
-        return true;
+        return (dataPackResult.str === suggest.str);
       });
 
       if (!found) {
         suggests.push(dataPackResult);
       }
-    }.bind(this));
+    });
   }.bind(this));
 
   var candidates = [];
   suggests.sort(function sort_suggests(a, b) {
-    // XXX For result other than the first one where we didn't get the score,
-    // we will have to put them at the very back.
-    var aScore = a.score || -Infinity;
-    var bScore = b.score || -Infinity;
-    return bScore - aScore;
+    return b.score - a.score;
   }).forEach(function each_suggests(suggests) {
     candidates.push([
       suggests.str.substr(confirmedCharactersLength), '']);
@@ -621,8 +625,9 @@ JSZhuyin.prototype.suggest = function jz_suggest(reqId) {
  * @this   {object}        JSZhuyin instance.
  */
 JSZhuyin.prototype.updateComposition = function jz_updateComposition(reqId) {
-  if (typeof this.oncompositionupdate === 'function')
+  if (typeof this.oncompositionupdate === 'function') {
     this.oncompositionupdate(this.syllables, reqId);
+  }
 };
 /**
  * Update the candidate with query results.
@@ -635,8 +640,9 @@ JSZhuyin.prototype.updateCandidates = function jz_updateCandidates(results,
                                                                       reqId) {
   this.defaultCandidate = results[0];
 
-  if (typeof this.oncandidateschange === 'function')
+  if (typeof this.oncandidateschange === 'function') {
     this.oncandidateschange(results, reqId);
+  }
 };
 /**
  * Confirm a selection by calling the compositionend callback and run
@@ -649,8 +655,9 @@ JSZhuyin.prototype.updateCandidates = function jz_updateCandidates(results,
  */
 JSZhuyin.prototype.confirmCandidate = function jz_confirmCandidate(candidate,
                                                                    reqId) {
-  if (typeof this.oncompositionend === 'function')
+  if (typeof this.oncompositionend === 'function') {
     this.oncompositionend(candidate[0], reqId);
+  }
 
   this.confirmedCharacters = candidate[0];
   this.confirmedEncodedStr = candidate[1];
@@ -671,6 +678,7 @@ JSZhuyin.prototype.confirmCandidate = function jz_confirmCandidate(candidate,
  * @this   {object}          JSZhuyin instance.
  */
 JSZhuyin.prototype.sendActionHandled = function jz_sendActionHandled(reqId) {
-  if (typeof this.onactionhandled === 'function')
+  if (typeof this.onactionhandled === 'function') {
     this.onactionhandled(reqId);
+  }
 };

@@ -78,10 +78,12 @@ var BopomofoEncoder = {
 
       if (symbolCode >= this.BOPOMOFO_START_GROUP_1 &&
           symbolCode <= this.BOPOMOFO_END_GROUP_1) {
-        if (!reorder && (filled1 || filled2 || filled3 || filled4))
+        if (!reorder && (filled1 || filled2 || filled3 || filled4)) {
           next();
-        if (reorder && (filled1 || filled4))
+        }
+        if (reorder && (filled1 || filled4)) {
           next();
+        }
 
         filled1 = true;
 
@@ -91,10 +93,12 @@ var BopomofoEncoder = {
 
       if (symbolCode >= this.BOPOMOFO_START_GROUP_2 &&
           symbolCode <= this.BOPOMOFO_END_GROUP_2) {
-        if (!reorder && (filled2 || filled3 || filled4))
+        if (!reorder && (filled2 || filled3 || filled4)) {
           next();
-        if (reorder && (filled2 || filled4))
+        }
+        if (reorder && (filled2 || filled4)) {
           next();
+        }
 
         filled2 = true;
 
@@ -104,8 +108,9 @@ var BopomofoEncoder = {
 
       if (symbolCode >= this.BOPOMOFO_START_GROUP_3 &&
           symbolCode <= this.BOPOMOFO_END_GROUP_3) {
-        if (filled3 || filled4)
+        if (filled3 || filled4) {
           next();
+        }
 
         filled3 = true;
 
@@ -114,8 +119,9 @@ var BopomofoEncoder = {
       }
 
       if (symbolCode == this.BOPOMOFO_TONE_1) {
-        if (filled4)
+        if (filled4) {
           next();
+        }
 
         filled4 = true;
         symbolsCode |= 0x1;
@@ -123,8 +129,9 @@ var BopomofoEncoder = {
       }
 
       if (symbolCode == this.BOPOMOFO_TONE_2) {
-        if (filled4)
+        if (filled4) {
           next();
+        }
 
         filled4 = true;
         symbolsCode |= 0x2;
@@ -132,8 +139,9 @@ var BopomofoEncoder = {
       }
 
       if (symbolCode == this.BOPOMOFO_TONE_3) {
-        if (filled4)
+        if (filled4) {
           next();
+        }
 
         filled4 = true;
         symbolsCode |= 0x3;
@@ -141,8 +149,9 @@ var BopomofoEncoder = {
       }
 
       if (symbolCode == this.BOPOMOFO_TONE_4) {
-        if (filled4)
+        if (filled4) {
           next();
+        }
 
         filled4 = true;
         symbolsCode |= 0x4;
@@ -150,8 +159,9 @@ var BopomofoEncoder = {
       }
 
       if (symbolCode == this.BOPOMOFO_TONE_5) {
-        if (filled4)
+        if (filled4) {
           next();
+        }
 
         filled4 = true;
         symbolsCode |= 0x5;
@@ -256,10 +266,65 @@ var BopomofoEncoder = {
     }
 
     return false;
+  },
+
+  isIncompletionOf: function(code, codeToMatch) {
+    var group1Code = (code & 0x7e00) >> 9;
+    var group2Code = (code & 0x0180) >> 7;
+    var group3Code = (code & 0x0078) >> 3;
+    var toneCode = code & 0x0007;
+
+    var group1CodeToMatch = (codeToMatch & 0x7e00) >> 9;
+    var group2CodeToMatch = (codeToMatch & 0x0180) >> 7;
+    var group3CodeToMatch = (codeToMatch & 0x0078) >> 3;
+    var toneCodeToMatch = codeToMatch & 0x0007;
+
+    // This is fairly complex because not only we have to consider mis-match
+    // of symbols at the same place, but also evaluate to false when there is
+    // a following up symbol but the previous one is missing.
+    // To future self: The best way to understand this is by reading test cases.
+    return (
+      !(group1CodeToMatch && !group1Code &&
+        (group2Code || group3Code || toneCode)) &&
+      !(group1Code && group1CodeToMatch !== group1Code) &&
+      !(group2CodeToMatch && !group2Code &&
+        (group3Code || toneCode)) &&
+      !(group2Code && group2CodeToMatch !== group2Code) &&
+      !(group3CodeToMatch && !group3Code && toneCode) &&
+      !(group3Code && group3CodeToMatch !== group3Code) &&
+      !(toneCode && toneCodeToMatch !== toneCode) &&
+      true);
+  },
+
+  isCompleted: function(code) {
+    // Only phontics with tone is considered completed.
+    return !!(code & 0x0007);
+  },
+
+  replace: function(code, fromCode, toCode) {
+    var match = false;
+    if (fromCode & 0x7e00) {
+      match = ((code & 0x7e00) === (fromCode & 0x7e00));
+    }
+    if (fromCode & 0x0180) {
+      match = ((code & 0x0180) === (fromCode & 0x0180));
+    }
+    if (fromCode & 0x0078) {
+      match = ((code & 0x0078) === (fromCode & 0x0078));
+    }
+    if (fromCode & 0x0007) {
+      match = ((code & 0x0007) === (fromCode & 0x0007));
+    }
+
+    if (!match) {
+      return code;
+    }
+
+    return code & ~fromCode | toCode;
   }
 };
 
 // Export as a CommonJS module if we are loaded as one.
-if (typeof module === 'object' && module['exports']) {
-  module['exports'] = BopomofoEncoder;
+if (typeof module === 'object' && module.exports) {
+  module.exports = BopomofoEncoder;
 }

@@ -37,6 +37,7 @@ mkdir lib data
 cp $JSZHUYIN_DIR/lib/bopomofo_encoder.js ./lib/
 cp $JSZHUYIN_DIR/lib/jszhuyin.js ./lib/
 cp $JSZHUYIN_DIR/lib/storage.js ./lib/
+cp $JSZHUYIN_DIR/lib/data_loader.js ./lib/
 cp $JSZHUYIN_DIR/lib/jszhuyin_data_pack.js ./lib/
 cp $JSZHUYIN_DIR/lib/jszhuyin_server.js ./lib/
 cp $JSZHUYIN_DIR/lib/worker.js ./lib/
