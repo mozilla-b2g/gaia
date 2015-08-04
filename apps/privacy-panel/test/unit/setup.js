@@ -30,12 +30,16 @@ requireApp('privacy-panel/js/vendor/alameda.js', () => {
       },
       'mocks/mock_l10n': {
         exports: 'MockL10n'
+      },
+      'mocks/mock_manifest_helper': {
+        exports: 'MockManifestHelper'
       }
     },
     urlArgs: 'cache_bust=' + Date.now(),
     map: {
       '*': {
         'shared/async_storage': 'mymocks/mock_async_storage',
+        'shared/manifest_helper': 'mocks/mock_manifest_helper',
         'sms/commands': 'mymocks/mock_commands'
       }
     }
