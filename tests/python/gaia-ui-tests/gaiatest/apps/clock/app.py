@@ -11,6 +11,7 @@ from gaiatest.apps.base import PageRegion
 class Clock(Base):
 
     name = 'Clock'
+    origin = 'app://clock.gaiamobile.org'
 
     _alarm_view_locator = (By.ID, 'edit-alarm')
     _alarm_create_new_locator = (By.ID, 'alarm-new')

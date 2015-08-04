@@ -11,6 +11,7 @@ from gaiatest.apps.music.regions.list_view import ListView
 class Music(Base):
 
     name = 'Music'
+    origin = 'app://music.gaiamobile.org'
 
     _loading_spinner_locator = (By.ID, 'spinner-overlay')
     _music_tiles_locator = (By.CSS_SELECTOR, '#views-tiles-anchor > div')

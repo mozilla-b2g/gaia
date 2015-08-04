@@ -9,6 +9,7 @@ from gaiatest.apps.base import Base
 class CostControl(Base):
 
     name = 'Usage'
+    origin = 'app://costcontrol.gaiamobile.org'
 
     _usage_app_main_locator = (By.ID, 'datausage-tab')
     _usage_app_title_locator = (By.CSS_SELECTOR, 'h1[data-l10n-id="usage"]')

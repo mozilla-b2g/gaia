@@ -10,6 +10,7 @@ from gaiatest.apps.base import Base
 class Phone(Base):
 
     name = "Phone"
+    origin = 'app://communications.gaiamobile.org'
 
     _dialog_locator = (By.ID, 'confirmation-message')
     _dialog_title_locator = (By.XPATH, "//*[@id='confirmation-message']/section/h1")

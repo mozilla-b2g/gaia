@@ -10,6 +10,7 @@ from marionette_driver import expected, By, Wait
 class Search(Base):
 
     name = 'Browser'
+    origin = 'app://browser.gaiamobile.org'
     manifest_url = "app://search.gaiamobile.org/manifest.webapp"
 
     _url_bar_locator = (By.CSS_SELECTOR, 'div.search-app .urlbar .title')

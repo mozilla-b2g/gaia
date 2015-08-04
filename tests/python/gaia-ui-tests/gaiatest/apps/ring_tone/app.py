@@ -9,13 +9,15 @@ from gaiatest.apps.base import Base, PageRegion
 
 class RingTone(Base):
     name = 'Ringtones'
+    origin = 'app://ringtones.gaiamobile.org'
+
     _ring_tone_locator = (By.CSS_SELECTOR, '#list-parent section > ul > li')
     _set_button_locator = (By.ID, 'set')
     _save_button_locator = (By.ID, 'save')
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
-        Wait(self.marionette).until(lambda m: self.apps.displayed_app.name == self.name)
+        Wait(self.marionette).until(lambda m: self.apps.displayed_app.origin == self.origin)
         self.apps.switch_to_displayed_app()
 
     def set_ringtone(self):

@@ -10,6 +10,7 @@ from gaiatest.apps.base import Base
 class VideoPlayer(Base):
 
     name = 'Video'
+    origin = 'app://video.gaiamobile.org'
 
     _thumbnails_locator = (By.ID, 'thumbnails')
 

@@ -15,6 +15,7 @@ from gaiatest.apps.email.regions.google import GoogleLogin
 class Email(Base):
 
     name = 'E-Mail'
+    origin = 'app://email.gaiamobile.org'
 
     _email_locator = (By.CSS_SELECTOR, '#cardContainer .msg-header-item:not([data-index="-1"])')
     _syncing_locator = (By.CSS_SELECTOR, '#cardContainer .msg-messages-syncing > .small')

@@ -13,6 +13,8 @@ import gaiatest.apps.camera.app
 class Gallery(Base):
 
     name = 'Gallery'
+    origin = 'app://gallery.gaiamobile.org'
+
 
     _gallery_items_locator = (By.CSS_SELECTOR, 'div.thumbnail')
     _overlay_locator = (By.ID, 'overlay')
@@ -84,7 +86,7 @@ class Gallery(Base):
         switch_to_camera_button = self.marionette.find_element(*self._switch_to_camera_button_locator)
         switch_to_camera_button.tap()
         camera_app = gaiatest.apps.camera.app.Camera(self.marionette)
-        Wait(self.marionette).until(lambda m: self.apps.displayed_app.name == camera_app.name)
+        Wait(self.marionette).until(lambda m: self.apps.displayed_app.origin == camera_app.origin)
         self.apps.switch_to_displayed_app()
         return camera_app
 

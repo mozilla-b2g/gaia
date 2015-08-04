@@ -10,6 +10,7 @@ from gaiatest.apps.base import Base
 class TestContainer(Base):
 
     name = 'Test Container'
+    origin = 'app://test-container.gaiamobile.org'
 
     _app_selector = (By.CSS_SELECTOR,
                      'iframe[src*="test-container"][src*="/index.html"]')
