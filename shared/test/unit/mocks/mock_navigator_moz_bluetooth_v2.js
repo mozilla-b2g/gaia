@@ -47,7 +47,7 @@
     onscostatuschanged: null,
     onhfpstatuschanged: null,
     ona2dpstatuschanged: null,
-    onrequestmediaplaystatus: null
+    onrequestmediaplaystatus: null,
   };
 
   var mManagerEventListeners = [];
@@ -71,10 +71,10 @@
     });
   }
 
-  function mmb_triggerEventListeners(type, eventObj) {
+  function mmb_triggerEventListeners(type) {
     mManagerEventListeners.forEach(function(eventListener) {
       if (eventListener.type === type) {
-        eventListener.callback(eventObj);
+        eventListener.callback();
       }
     });
   }
