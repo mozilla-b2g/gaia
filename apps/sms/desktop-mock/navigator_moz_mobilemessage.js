@@ -13,6 +13,10 @@
     return;
   }
 
+  var options = {
+    generateManyThreads: location.href.indexOf('generateManyThreads') !== -1
+  };
+
   var MockNavigatormozMobileMessage = {};
 
   var outstandingRequests = 0;
@@ -756,6 +760,23 @@
     ]
   };
 
+  if (options.generateManyThreads) {
+    (function() {
+      var threads = messagesDb.threads;
+      var id = threads[threads.length - 1].id + 1;
+      for (var i = id; i < 1000; i++) {
+        threads.push({
+          id: i,
+          participants: ['1000' + i],
+          lastMessageType: 'sms',
+          body: 'Sending :)',
+          timestamp: now - i * 60000,
+          unreadCount: 0
+        });
+      }
+    })();
+  }
+
   // Initialize messages with unique IDs
   messagesDb.messages.forEach(function(message) {
     message.id = messagesDb.id++;
@@ -1263,7 +1284,9 @@
     var request = {
       error: null
     };
-    var threads = messagesDb.threads.slice();
+    var threads = messagesDb.threads.slice().sort(
+      (a, b) => b.timestamp - a.timestamp
+    );
     var idx = 0;
     var len, continueCursor;
 
