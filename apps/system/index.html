@@ -198,17 +198,9 @@
       <div id="os-logo" data-z-index-level="initlogo">
         <div id="carrier-logo"></div>
       </div>
+
       <!-- Statusbar -->
       <div id="statusbar" data-z-index-level="statusbar">
-        <!-- Rocketbar-->
-        <div id="rocketbar">
-          <form id="rocketbar-form" class="hidden">
-            <input id="rocketbar-input" type="search" x-inputmode="verbatim"
-              placeholder="Search or enter address" data-l10n-id="search-or-enter-address" value="" />
-            <button type="button" id="rocketbar-clear" data-l10n-id="clear" aria-label="Clear"></button>
-            <button type="button" id="rocketbar-cancel" data-l10n-id="close"></button>
-          </form>
-        </div>
         <!-- Statusbar icons -->
         <div id="statusbar-icons">
           <div id="statusbar-maximized-wrapper">
@@ -216,6 +208,16 @@
             </div>
           </div>
         </div>
+      </div>
+
+      <!-- Rocketbar-->
+      <div id="rocketbar" data-z-index-level="statusbar">
+        <form id="rocketbar-form" class="hidden">
+          <input id="rocketbar-input" type="search" x-inputmode="verbatim"
+            placeholder="Search or enter address" data-l10n-id="search-or-enter-address" value="" />
+          <button type="button" id="rocketbar-clear" data-l10n-id="clear" aria-label="Clear"></button>
+          <button type="button" id="rocketbar-cancel" data-l10n-id="close"></button>
+        </form>
       </div>
 
       <!-- Rocketbar Results -->
