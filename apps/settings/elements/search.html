@@ -7,25 +7,19 @@
     <div>
       <ul>
         <li>
-          <p data-l10n-id="search-engine">Search Engine</p>
+          <p data-l10n-id="search-engine"></p>
           <div class="button icon icon-dialog">
             <select name="search.provider">
             </select>
           </div>
         </li>
         <li>
-          <label class="pack-switch">
-            <input type="checkbox" name="search.suggestions.enabled">
-            <span data-l10n-id="search-suggestions">Search Suggestions</span>
-          </label>
+          <gaia-switch name="search.suggestions.enabled">
+            <label data-l10n-id="search-suggestions"></label>
+          </gaia-switch>
         </li>
         <li class="description">
-          <p data-l10n-id="search-suggestions-description">
-            The characters you type when entering a search are sent
-            to multiple search providers and will be used to send you
-            search suggestions. Additional data charges may apply
-            when using this feature.
-          </p>
+          <p data-l10n-id="search-suggestions-description"></p>
         </li>
       </ul>
     </div>

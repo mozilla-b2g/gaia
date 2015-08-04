@@ -16,7 +16,7 @@ define(function(require) {
           body: panel.querySelector('.addon-details-body'),
           header: panel.querySelector('.addon-details-header'),
           gaiaHeader: panel.querySelector('gaia-header'),
-          enabledState: panel.querySelector('.addon-enabled-state'),
+          enabledState: panel.querySelector('.addon-enabled details'),
           name: panel.querySelector('.addon-details-name'),
           icon: panel.querySelector('.addon-details-icon'),
           description: panel.querySelector('.addon-description-text'),

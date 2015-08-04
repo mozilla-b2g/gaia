@@ -26,7 +26,7 @@ define(function(require) {
           wpsColumn: panel.querySelector('.wps-column'),
           wpsInfoBlock: panel.querySelector('.wps-column small'),
           wpsPbcLabelBlock: panel.querySelector('.wps-column span'),
-          wifiCheckbox: panel.querySelector('.wifi-enabled input'),
+          wifiCheckbox: panel.querySelector('.wifi-enabled gaia-switch'),
           wifiAvailableNetworks: panel.querySelector('.wifi-availableNetworks'),
           dialogElement: panel.querySelector('.wifi-bad-credentials-dialog'),
           okBtn: panel.querySelector('.wifi-bad-credentials-confirm'),
@@ -66,15 +66,15 @@ define(function(require) {
         elements.scanItem.addEventListener('click',
           this._onScanItemClick.bind(this));
 
-        elements.wifiCheckbox.addEventListener('click',
-          this._onWifiCheckboxClick.bind(this));
+        elements.wifiCheckbox.addEventListener('change',
+          this._onWifiCheckboxChange.bind(this));
 
         elements.wpsColumn.addEventListener('click',
           this._onWpsColumnClick.bind(this));
 
         // wifiContext related events
         WifiContext.addEventListener('wifiEnabled', function() {
-          elements.wifiCheckbox.disabled = false;
+          elements.wifiCheckbox.removeAttribute('disabled');
           this._updateNetworkState();
           this._networkList().then((networkList) => {
             networkList.scan();
@@ -82,7 +82,7 @@ define(function(require) {
         }.bind(this));
 
         WifiContext.addEventListener('wifiDisabled', function() {
-          elements.wifiCheckbox.disabled = false;
+          elements.wifiCheckbox.removeAttribute('disabled');
           // Re-enable UI toggle
           this._networkList().then((networkList) => {
             networkList.clear(false);
@@ -180,16 +180,16 @@ define(function(require) {
           });
         }
       },
-      _onWifiCheckboxClick: function() {
+      _onWifiCheckboxChange: function(e) {
         // `this` is Wifi Object
         var checkbox = elements.wifiCheckbox;
         this._settings.createLock().set({
           'wifi.enabled': checkbox.checked
         }).onerror = function() {
           // Fail to write mozSettings, return toggle control to the user.
-          checkbox.disabled = false;
+          checkbox.removeAttribute('disabled');
         };
-        checkbox.disabled = true;
+        checkbox.setAttribute('disabled', true);
       },
       _onScanItemClick: function() {
         this._networkList().then((networkList) => {
