@@ -165,6 +165,10 @@ Contacts.prototype = {
     this._switchToActivity('views/form/form.html');
   },
 
+  switchToPickContactActivity: function() {
+    this._switchToActivity('views/list/list.html?action=pick');
+  },
+
   switchToMergeInterface: function() {
     this._switchToActivity('views/matching/matching_contacts.html');
   },

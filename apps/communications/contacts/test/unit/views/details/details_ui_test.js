@@ -28,6 +28,7 @@ suite('DetailsUI', function() {
   var realMozL10n;
   var realWebrctClient;
   var mozContact = null;
+  var realMozContactUtils;
 
   suiteSetup(function(done) {
 
@@ -36,6 +37,12 @@ suite('DetailsUI', function() {
 
     realWebrctClient = window.WebrtcClient;
     window.WebrtcClient = MockWebrtcClient;
+    realMozContactUtils = window.utils.mozContact;
+    window.utils.mozContact = {
+      haveEmptyFields: function foo() {
+        return false;
+      }
+    };
     // Load HTML
     loadBodyHTML('/contacts/views/details/details.html');
 
@@ -63,6 +70,8 @@ suite('DetailsUI', function() {
     window.WebrtcClient = realWebrctClient;
     realWebrctClient = null;
     mozContact = null;
+    utils.mozContact = realMozContactUtils;
+    realMozContactUtils = null;
   });
 
   setup(function() {

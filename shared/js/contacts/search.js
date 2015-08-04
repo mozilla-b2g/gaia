@@ -87,15 +87,11 @@
       return;
     }
 
-    utils.listeners.add({
-      '#cancel-search': exitSearchMode,
-      '#search-contact': [
-        {
-          event: 'keypress',
-          handler: ignoreReturnKey
-        }
-      ]
-    });
+    var cancelSearch = document.getElementById('cancel-search');
+    cancelSearch.addEventListener('click', exitSearchMode);
+
+    var searchContact = document.getElementById('search-contact');
+    searchContact.addEventListener('keypress', ignoreReturnKey);
 
     initialized = true;
     searchBox = document.getElementById('search-contact');

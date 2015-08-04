@@ -66,6 +66,7 @@ suite('Import contacts >', function() {
 
   setup(function() {
     this.sinon.spy(window.Overlay, 'showProgressBar');
+    this.sinon.spy(window.Overlay, 'showActivityBar');
   });
 
   teardown(function() {
@@ -147,7 +148,7 @@ suite('Import contacts >', function() {
   test('SD Import went well', function(done) {
     sinon.spy(window, 'AdvancedTelemetryHelper');
     contacts.Settings.importFromSDCard(function onImported() {
-      assert.equal(window.Overlay.showProgressBar.getCall(0).args.length, 2);
+      assert.equal(window.Overlay.showActivityBar.getCall(0).args.length, 3);
       assert.equal(window.utils.status.show.getCall(0).args.length, 2);
       assert.equal(false, MyLocks.cpu);
       window.TelemetryReady.then(() => {
@@ -167,7 +168,7 @@ suite('Import contacts >', function() {
     MockVCFReader.prototype.numDuplicated = 2;
 
     contacts.Settings.importFromSDCard(function onImported() {
-      assert.isTrue(window.Overlay.showProgressBar.called);
+      assert.isTrue(window.Overlay.showActivityBar.called);
 
       assert.isTrue(window.utils.status.show.called);
       assert.isTrue(window.utils.status.show.getCall(0).args[0] !== null);
