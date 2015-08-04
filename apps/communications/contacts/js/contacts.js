@@ -10,6 +10,8 @@
 /* global Loader */
 /* global TAG_OPTIONS */
 /* global utils */
+/* global GaiaHeader */
+/* global GaiaSubheader */
 /* global HeaderUI */
 
 /* global ContactsService */
@@ -319,10 +321,6 @@ var Contacts = (function() {
     }
   };
 
-  var showAddContact = function showAddContact() {
-    showForm();
-  };
-
   var loadFacebook = function loadFacebook(callback) {
     LazyLoader.load([
       '/contacts/js/fb_loader.js',
@@ -490,7 +488,6 @@ var Contacts = (function() {
           handler: handleCancel // Activity (any) cancellation
         }
       ],
-      '#add-contact-button': showAddContact,
       '#settings-button': showSettings, // Settings related
       '#search-start': [
         {
@@ -692,11 +689,45 @@ var Contacts = (function() {
     window.removeEventListener('DOMContentLoaded', onLoad);
   });
 
+  window.addEventListener('pageshow', function onPageshow() {
+    // XXX: Workaround until the platform will be fixed
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=1184953
+    document.registerElement(
+      'gaia-header',
+      { prototype: GaiaHeader.prototype }
+    );
+    document.registerElement(
+      'gaia-subheader',
+      { prototype: GaiaSubheader.prototype }
+    );
+
+    // #new handling
+    var contactID = sessionStorage.getItem('contactID');
+    var reason = sessionStorage.getItem('reason');
+    if (!contactID || (contactID.length && contactID.length ===0)) {
+      var pendingOp = sessionStorage.getItem('oncontactchange');
+
+      // Invoke oncontactchange manually
+      if (!!pendingOp) {
+        oncontactchange(JSON.parse(pendingOp));
+        sessionStorage.setItem('oncontactchange', null);
+        return;
+      }
+      return;
+    }
+    performOnContactChange({
+      contactID: contactID,
+      reason: reason
+    });
+    sessionStorage.setItem('contactID', null);
+    sessionStorage.setItem('reason', null);
+  });
+
   return {
     'goBack' : handleBack,
     'cancel': handleCancel,
-    'showForm': showForm,
     'setCurrent': setCurrent,
+    'showForm': showForm,
     'onLocalized': onLocalized,
     'init': init,
     'showOverlay': showOverlay,
