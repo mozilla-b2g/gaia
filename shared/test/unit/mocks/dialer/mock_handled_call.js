@@ -30,7 +30,7 @@ MockHandledCall.prototype.formatPhoneNumber =
 };
 
 MockHandledCall.prototype.replacePhoneNumber =
-  function hc_replacePhoneNumber(phoneNumber, ellipsisSide, maxFontSize) {
+  function hc_replacePhoneNumber(phoneNumber, ellipsisSide) {
 };
 
 MockHandledCall.prototype.restorePhoneNumber =
