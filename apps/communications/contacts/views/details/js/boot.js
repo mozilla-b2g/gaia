@@ -45,6 +45,61 @@ window.onload = function() {
       document.body.classList.remove('hidden');
     });
 
+
+    function getParams() {
+      var params = {};
+      var raw = window.location.search.split('?')[1];
+      var pairs = raw.split('&');
+      for (var i = 0; i < pairs.length; i++) {
+
+        var data = pairs[i].split('=');
+        params[data[0]] = data[1];
+      }
+      return params;
+    }
+
+    function renderContact(id) {
+      return new Promise(function(resolve, reject) {
+        ContactsService.get(params.contact, function onSuccess(savedContact) {
+          ContactsService.getCount(count => {
+            resolve(savedContact, count);
+          });
+        }, function onError() {
+          console.error('Error retrieving contact');
+          reject();
+        });
+      });
+    }
+
+    // TODO: Implement handler for open Vcards
+
+    // Get action from URL (new or update)
+    var params = getParams();
+    if (params.contact) {
+      renderContact(params.contact).then(function(savedContact, count) {
+        DetailsController.setContact(params.contact);
+        DetailsUI.render(savedContact, count, false);
+        window.addEventListener(
+          'pageshow',
+          function checkIfUpdate() {
+            var reason = sessionStorage.getItem('reason');
+            switch(reason) {
+              case 'update':
+                renderContact(params.contact).then(function(contact, count) {
+                  DetailsUI.render(contact, count, false);
+                });
+                break;
+              case 'remove':
+                setTimeout(function() {
+                  window.history.back();
+                }, 0);
+                break;
+            }
+          }
+        );
+      });
+    }
+
     navigator.mozSetMessageHandler('activity', activity => {
       DetailsController.setActivity(activity);
       var id = activity.source.data.params.id;
