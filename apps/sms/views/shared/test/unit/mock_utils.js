@@ -11,6 +11,7 @@ var MockUtils = {
   getDayDate: Utils.getDayDate,
   setHeaderDate: Utils.setHeaderDate,
   getFormattedHour: Utils.getFormattedHour,
+  _getFormatter: Utils._getFormatter,
   // real code needed here to map types
   typeFromMimeType: Utils.typeFromMimeType,
   escapeRegex: Utils.escapeRegex,

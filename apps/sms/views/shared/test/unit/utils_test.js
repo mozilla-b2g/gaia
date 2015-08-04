@@ -70,6 +70,7 @@ suite('Utils', function() {
     test('([String|Number|Date])', function() {
       [true, false].forEach(function(isMozHour12) {
         navigator.mozHour12 = isMozHour12;
+        Utils.resetDateFormatters();
 
         var formatter = new Intl.DateTimeFormat(navigator.languages, {
           hour12: isMozHour12,

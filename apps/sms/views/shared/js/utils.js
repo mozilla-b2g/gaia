@@ -19,13 +19,47 @@
   var Utils = {
     date: {
       shared: new Date(),
-      get format() {
-        // Remove the accessor
-        delete Utils.date.format;
-        // Late initialization allows us to safely mock the mozL10n object
-        // without creating race conditions or hard script dependencies
-        return (Utils.date.format = new navigator.mozL10n.DateTimeFormat());
-      }
+      formatters: {
+        'time': {
+          options: {
+            hour: 'numeric',
+            minute: 'numeric',
+          },
+          formatter: null
+        },
+        'full': {
+          options: {
+            month: '2-digit',
+            day: '2-digit',
+            year: 'numeric',
+          },
+          formatter: null
+        },
+        'full-wt': {
+          options: {
+            month: '2-digit',
+            day: '2-digit',
+            year: 'numeric',
+            hour: 'numeric',
+            minute: 'numeric',
+          },
+          formatter: null
+        },
+        'day': {
+          options: {
+            weekday: 'long',
+          },
+          formatter: null
+        },
+        'day-wt': {
+          options: {
+            weekday: 'long',
+            hour: 'numeric',
+            minute: 'numeric',
+          },
+          formatter: null
+        },
+      },
     },
     escapeRegex: function ut_escapeRegex(str) {
       if (typeof str !== 'string') {
@@ -35,26 +69,43 @@
     },
     getFormattedHour: function ut_getFormattedHour(time) {
       this.date.shared.setTime(+time);
-      return this.date.shared.toLocaleString(navigator.languages, {
-        hour12: navigator.mozHour12,
-        hour: 'numeric',
-        minute: 'numeric',
-      });
+      return this._getFormatter('time', false).format(this.date.shared);
     },
     getDayDate: function re_getDayDate(time) {
       this.date.shared.setTime(+time);
       this.date.shared.setHours(0, 0, 0, 0);
       return this.date.shared.getTime();
     },
-    _getFormatter: function ut_getFormatter({options, withTime}) {
-      if (withTime) {
-        options.hour12 = navigator.mozHour12;
-        options.hour = 'numeric';
-        options.minute = 'numeric';
+    resetDateFormatters: function ut_resetDateFormatters() {
+      // remove cached formatters.
+      // It should happen on timeformatchange and languagechange
+      for (var type in this.date.formatters) {
+        this.date.formatters[type].formatter = null;
       }
-      return new Intl.DateTimeFormat(navigator.languages, options);
+    },
+    _getFormatter: function ut_getFormatter(type, withTime) {
+      if (withTime) {
+        type += '-wt';
+      }
+
+      // Cache the formatter for better performance
+      if (!this.date.formatters[type].formatter) {
+        var options = Object.assign(
+          {},
+          this.date.formatters[type].options
+        );
+        if (options.hour) {
+          options.hour12 = navigator.mozHour12;
+        }
+        this.date.formatters[type].formatter = Intl.DateTimeFormat(
+          navigator.languages,
+          options
+        );
+      }
+      return this.date.formatters[type].formatter;
     },
     setHeaderDate: function ut_setHeaderDate({time, element, withTime}) {
+
       var formatter;
       var today = Utils.getDayDate(Date.now());
       var otherDay = Utils.getDayDate(time);
@@ -68,14 +119,7 @@
 
       if (dayDiff < 0) {
         // future time
-        formatter = this._getFormatter({
-          options: {
-            month: '2-digit',
-            day: '2-digit',
-            year: 'numeric',
-          },
-          withTime: withTime
-        });
+        formatter = this._getFormatter('full', withTime);
         element.removeAttribute('data-l10n-id');
         element.textContent = formatter.format(this.date.shared);
         return;
@@ -100,23 +144,12 @@
           element.setAttribute('data-l10n-id', 'yesterday');
         }
       } else if (dayDiff < 6) {
-        formatter = this._getFormatter({
-          options: {
-            weekday: 'long'
-          },
-          withTime: withTime
-        });
+        // day
+        formatter = this._getFormatter('day', withTime);
         element.removeAttribute('data-l10n-id');
         element.textContent = formatter.format(this.date.shared);
       } else {
-        formatter = Utils._getFormatter({
-          options: {
-            month: '2-digit',
-            day: '2-digit',
-            year: 'numeric',
-          },
-          withTime: withTime
-        });
+        formatter = this._getFormatter('full', withTime);
         element.removeAttribute('data-l10n-id');
         element.textContent = formatter.format(this.date.shared);
       }

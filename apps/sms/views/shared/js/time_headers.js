@@ -8,6 +8,8 @@
     init: function th_init() {
       onvisibilityChange();
       document.addEventListener('visibilitychange', onvisibilityChange);
+      window.addEventListener('timeformatchange', ontimeFormatChange);
+      window.addEventListener('languagechange', onlanguageChange);
     },
     startScheduler: function th_startScheduler() {
       var now = Date.now(),
@@ -75,6 +77,16 @@
       TimeHeaders.updateAll();
       TimeHeaders.startScheduler();
     }
+  }
+
+  function ontimeFormatChange() {
+    Utils.resetDateFormatters();
+    TimeHeaders.updateAll();
+  }
+
+  function onlanguageChange() {
+    Utils.resetDateFormatters();
+    TimeHeaders.updateAll();
   }
 
   exports.TimeHeaders = TimeHeaders;
