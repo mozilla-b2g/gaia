@@ -790,7 +790,7 @@ ifneq ($(NODE_VERSION),$(shell $(NODEJS) --version | awk -F. '{print $$1"."$$2}'
 	@printf '\033[0;33mPlease use $(NODE_VERSION) of nodejs or it may cause unexpected error.\033[0m\n'
 endif
 ifneq (1,$(shell expr `node --version | cut -c2` \>= $(NODE_MIN_VERSION)))
-	@printf '\033[0;33mMinimum required version of nodejs v$(NODE_MIN_VERSION) not satisfied. Aborting. Install the required minimum version before you continuing.\033[0m\n'
+	@printf '\033[0;33mMinimum required version of nodejs v$(NODE_MIN_VERSION) not satisfied. Aborting. Install the required minimum version before continuing.\033[0m\n'
 	exit 1
 endif
 endif
