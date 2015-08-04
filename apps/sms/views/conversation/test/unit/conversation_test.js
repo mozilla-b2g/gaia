@@ -3273,9 +3273,6 @@ suite('conversation.js >', function() {
     }
 
     setup(function() {
-      this.sinon.stub(Utils.date.format, 'localeFormat', function() {
-        return 'date_stub';
-      });
       this.sinon.stub(MessageManager, 'retrieveMMS', function() {
         return {};
       });
