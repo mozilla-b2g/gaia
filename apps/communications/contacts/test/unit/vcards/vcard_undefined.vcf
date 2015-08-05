@@ -1,7 +1,0 @@
-BEGIN:VCARD
-VERSION:3.0
-FN;CHARSET=utf-8:First Last
-N;CHARSET=utf-8:Last;First;;
-ORG:;
-EMAIL;TYPE=HOME;TYPE=PREF:first.last@email.tld
-END:VCARD
