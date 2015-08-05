@@ -128,11 +128,11 @@
                   <section role="dialog" class="pin-dialog hidden">
                     <a href="#" data-action="cancel"></a>
                     <header>
-                      <h2 data-l10n-id="pinning.pin-page">Pin Page</h2>
+                      <h2 data-l10n-id="pinning-pin-page">Pin Page</h2>
                     </header>
                     <div class="card-container"></div>
                     <div class="footer-container">
-                      <button data-l10n-id="pinning.pin" data-action="pin"
+                      <button data-l10n-id="pinning-pin" data-action="pin"
                         class="pin-button">
                         Pin
                       </button>
