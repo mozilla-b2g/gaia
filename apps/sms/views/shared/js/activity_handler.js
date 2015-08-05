@@ -228,8 +228,6 @@ var ActivityHandler = {
   /* === Incoming SMS support === */
 
   onSmsReceived: function ah_onSmsReceived(message) {
-    var formatValue = navigator.mozL10n.formatValue;
-
     // Acquire the cpu wake lock when we receive an SMS.  This raises the
     // priority of this process above vanilla background apps, making it less
     // likely to be killed on OOM.  It also prevents the device from going to
@@ -297,7 +295,7 @@ var ActivityHandler = {
           ActivityHandler.handleMessageNotification(message);
         }
 
-        function continueWithNotification(sender, body) {
+        function continueWithNotification(sender, bodyL10n) {
           var titlePromise;
 
           if (Settings.hasSeveralSim() && message.iccId) {
@@ -315,7 +313,7 @@ var ActivityHandler = {
           // be handled in Utils.closeNotificationsForThread later.
           var options = {
             icon: NotificationHelper.getIconURI(app),
-            body: body,
+            bodyL10n: bodyL10n,
             tag: 'threadId:' + threadId,
             data: { id, threadId },
             closeOnClick: false
@@ -348,11 +346,11 @@ var ActivityHandler = {
           // 'mms message' in the field.
 
           if (needManualRetrieve) {
-            return formatValue('notDownloaded-title');
+            return 'notDownloaded-title';
           }
 
           if (message.subject) {
-            return Promise.resolve(message.subject);
+            return {raw: message.subject};
           }
 
           return SMIL.parse(message).then((slideArray) => {
@@ -366,7 +364,7 @@ var ActivityHandler = {
               break;
             }
 
-            return text || formatValue('mms-message');
+            return text ? {raw: text} : 'mms-message';
           });
         }
 
@@ -375,12 +373,11 @@ var ActivityHandler = {
             contacts[0].name.length && contacts[0].name[0] ||
             message.sender;
 
-          var titlePromise = message.type === 'sms' ?
-            Promise.resolve(message.body || '') : getTitleFromMms();
+          var titleL10n = message.type === 'sms' ?
+            {raw: message.body || ''} : getTitleFromMms();
 
-          return titlePromise.then((title) => {
-            return continueWithNotification(sender, title);
-          });
+          return Promise.resolve(titleL10n).then((titleL10n) =>
+            continueWithNotification(sender, titleL10n));
         });
       };
     }

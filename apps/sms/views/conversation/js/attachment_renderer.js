@@ -180,22 +180,22 @@
         this.getThumbnail() : Promise.reject();
 
     return thumbnailPromise.
-      then(function(thumbnail) {
+      then((thumbnail) => {
         return {
           markup: this._getBaseMarkup('attachment-preview-tmpl'),
           cssClass: 'preview',
           thumbnail: thumbnail
         };
-      }.bind(this)).
-      catch(function(error) {
+      }).
+      catch((error) => {
         return {
           markup: this._getBaseMarkup('attachment-nopreview-tmpl', !!error),
           cssClass: 'nopreview'
         };
-      }.bind(this)).
-      then(function(data) {
+      }).
+      then((data) => {
         return this._renderer.renderTo(data, attachmentContainer).
-          then(function(contentContainer) {
+          then((contentContainer) => {
             var thumbnailNode = contentContainer.querySelector('.thumbnail');
             if (thumbnailNode) {
               thumbnailNode.style.backgroundImage =
@@ -204,8 +204,18 @@
               // It's essential to remember real image URL to revoke it later
               attachmentContainer.dataset.thumbnail = data.thumbnail.url;
             }
+
+            var fileNode = contentContainer.querySelector('.file-name');
+            if (this._attachment.name) {
+              fileNode.removeAttribute('data-l10n-id');
+              fileNode.textContent = this._attachment.name.slice(
+                this._attachment.name.lastIndexOf('/') + 1
+              );
+            } else {
+              fileNode.setAttribute('data-l10n-id', 'unnamed-attachment');
+            }
           });
-      }.bind(this));
+      });
   };
 
   AttachmentRenderer.prototype.updateFileSize = function() {
@@ -275,9 +285,6 @@
     return Template(templateId).interpolate({
       type: this._attachment.type,
       errorClass: hasError ? 'corrupted' : '',
-      fileName: this._attachment.name.slice(
-        this._attachment.name.lastIndexOf('/') + 1
-      ),
       sizeL10nId: sizeL10n.l10nId,
       sizeL10nArgs: JSON.stringify(sizeL10n.l10nArgs)
     });
