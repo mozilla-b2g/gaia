@@ -1,5 +1,10 @@
 'use strict';
 suite('ClockView', function() {
+
+  /** Disabled due to intermittent, see bug 1089543
+
+
+
   var ClockView;
   var asyncStorage;
   var panel;
@@ -385,4 +390,6 @@ suite('ClockView', function() {
     });
 
   });
+
+  */
 });
