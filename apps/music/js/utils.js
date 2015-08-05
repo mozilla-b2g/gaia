@@ -96,6 +96,14 @@ function createListElement(opts) {
 
     div.appendChild(label);
     li.appendChild(div);
+
+    li.onclick = function(evt) {
+      checkbox.checked = !checkbox.checked;
+      evt.stopPropagation();
+      evt.preventDefault();
+
+      return false;
+    }
   }
 
   a.style.float = 'right';
