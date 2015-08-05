@@ -1,17 +1,72 @@
+/* global LazyLoader, HtmlImports */
 'use strict';
 
 var utils = window.utils || {};
 (function() {
   utils.overlay = {};
 
-  var overlay = document.querySelector('#loading-overlay'),
-      statusContainer = overlay.querySelector('p[role="status"]'),
-      progressActivity = document.querySelector('#progress-activity'),
-      progressTitle = document.querySelector('#progress-title'),
-      progressElement = document.querySelector('#progress-element'),
-      progressMsg = document.querySelector('#progress-msg'),
-      menu = document.querySelector('#loading-overlay menu'),
-      cancelButton = document.querySelector('#cancel-overlay');
+  var overlay,
+      statusContainer,
+      progressActivity,
+      progressTitle,
+      progressElement,
+      progressMsg,
+      menu,
+      cancelButton,
+      _cancelCB;
+
+  var link = document.createElement('link');
+  link.setAttribute('rel', 'import');
+  link.setAttribute('href', '/contacts/elements/overlay.html');
+
+  function cacheElements() {
+    statusContainer = overlay.querySelector('p[role="status"]'),
+    progressActivity = document.querySelector('#progress-activity'),
+    progressTitle = document.querySelector('#progress-title'),
+    progressElement = document.querySelector('#progress-element'),
+    progressMsg = document.querySelector('#progress-msg'),
+    menu = document.querySelector('#loading-overlay menu'),
+    cancelButton = document.querySelector('#cancel-overlay');
+  }
+
+  function addListeners() {
+    cancelButton.onclick = function on_cancel() {
+      delete cancelButton.onclick;
+      cancelButton.disabled = false;
+      _cancelCB();
+      _cancelCB = null;
+    };
+  }
+
+  function init() {
+    return new Promise(function(resolve, reject) {
+      overlay = document.createElement('form');
+      overlay.setAttribute('is', 'confirm-form');
+      overlay.setAttribute('data-type', 'confirm');
+      overlay.setAttribute('id', 'loading-overlay');
+      overlay.setAttribute('role', 'dialog');
+      overlay.className = 'hide no-opacity';
+      document.head.appendChild(link);
+      document.body.appendChild(overlay);
+      LazyLoader.load([
+        '/shared/js/html_imports.js'
+      ], function() {
+        HtmlImports.populate(function() {
+          cacheElements();
+          addListeners();
+          resolve();
+        });
+      });
+    });
+  }
+
+  function removeOverlay() {
+
+    document.head.removeChild(link);
+    document.body.removeChild(overlay);
+    overlay = null;
+    delete cancelButton.onclick;
+  }
 
   // Constructor for the progress element
   function ProgressBar(pMsgId, pClass) {
@@ -19,8 +74,6 @@ var utils = window.utils || {};
     var total = 0;
     var progressTextId = pMsgId || 'genericProgress';
     var clazz = pClass;
-
-    progressElement.setAttribute('value', 0);
 
     function showMessage() {
       navigator.mozL10n.setAttributes(progressMsg,
@@ -91,30 +144,32 @@ var utils = window.utils || {};
       overlay.removeEventListener('animationend', ov_onFadeIn);
       overlay.classList.remove('no-opacity');
       utils.overlay.isShown = true;
+      window.dispatchEvent(new CustomEvent('overlayshown'));
     });
   };
 
-  utils.overlay.show = function show(messageId, progressClass, textId) {
+  utils.overlay.show = function show(messageId, progressClass, textId,
+    isMenuActive) {
     var out;
-    // In the case of an spinner this object will not be really used
     out = new ProgressBar(textId, progressClass);
-    setClass(progressClass);
-    utils.overlay.hideMenu(); // By default
-    if (!utils.overlay.isAnimationPlaying) {
-      utils.overlay._show(messageId, progressClass, textId);
-      return out;
-    }
-    overlay.addEventListener('animationend',
-      function ov_showWhenFinished(ev) {
-        overlay.removeEventListener('animationend', ov_showWhenFinished);
+    init().then(function() {
+      progressElement.setAttribute('value', 0);
+      // In the case of an spinner this object will not be really used
+      setClass(progressClass);
+      menu.classList.toggle('showed', isMenuActive);
+      if (!utils.overlay.isAnimationPlaying) {
         utils.overlay._show(messageId, progressClass, textId);
+        return out;
       }
-    );
+      overlay.addEventListener('animationend',
+        function ov_showWhenFinished(ev) {
+          overlay.removeEventListener('animationend', ov_showWhenFinished);
+          utils.overlay._show(messageId, progressClass, textId);
+        }
+      );
+    });
+  
     return out;
-  };
-
-  utils.overlay.showMenu = function showMenu() {
-    menu.classList.add('showed');
   };
 
   utils.overlay.hideMenu = function hideMenu() {
@@ -124,12 +179,9 @@ var utils = window.utils || {};
   Object.defineProperty(utils.overlay, 'oncancel', {
     set: function(cancelCb) {
       if (typeof cancelCb === 'function') {
-        cancelButton.disabled = false;
-        cancelButton.onclick = function on_cancel(e) {
-          delete cancelButton.onclick;
-          cancelCb();
-          return false;
-        };
+        _cancelCB = cancelCb;
+      } else {
+        _cancelCB = function foo(){};
       }
     }
   });
@@ -161,6 +213,7 @@ var utils = window.utils || {};
   }
 
   utils.overlay._hide = function ov__hide() {
+    console.info(new Error().stack);
     if (!utils.overlay.isShown) {
       return;
     }
@@ -177,6 +230,8 @@ var utils = window.utils || {};
       overlay.classList.add('no-opacity');
       overlay.classList.add('hide');
       utils.overlay.isShown = false;
+      window.dispatchEvent(new CustomEvent('overlayhidden'));
+      removeOverlay();
     });
   };
   utils.overlay.hide = function ov_hide() {

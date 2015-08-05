@@ -752,13 +752,12 @@ var SimManager = (function() {
     var DELAY_FEEDBACK = 300;
     UIManager.navBar.setAttribute('aria-disabled', 'true');
     var progress = utils.overlay.show('simContacts-reading',
-                                      'activityBar');
+                                      'activityBar', null, true);
 
     var importButton = UIManager.simImportButton;
     var cancelled = false,
         contactsRead = false;
     var importer = new SimContactsImporter(SimManager.guessIcc());
-    utils.overlay.showMenu();
     utils.overlay.oncancel = function oncancel() {
       cancelled = true;
       importer.finish();

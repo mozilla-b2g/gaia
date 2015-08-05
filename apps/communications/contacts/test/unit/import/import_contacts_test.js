@@ -61,7 +61,7 @@ suite('Import contacts >', function() {
       realMozContacts;
 
   setup(function() {
-    this.sinon.spy(window.utils.overlay, 'showMenu');
+    this.sinon.spy(window.utils.overlay, 'show');
   });
 
   teardown(function() {
@@ -86,8 +86,16 @@ suite('Import contacts >', function() {
     realUtils = window.utils;
     window.utils = MockUtils;
     window.utils.overlay = {
-      show: function() {},
-      showMenu: function() {}
+      show: function() {
+        return {
+          'setClass': function(clazz) {},
+          'setHeaderMsg': function(msg) {},
+          'setTotal': function(total) {},
+          'update': function() {}
+        };
+      },
+      showMenu: function() {},
+      hide: function() {}
     };
 
     window.utils.status = {
@@ -131,7 +139,7 @@ suite('Import contacts >', function() {
 
   test('SD Import went well', function(done) {
     contacts.Settings.importFromSDCard(function onImported() {
-      assert.isTrue(window.utils.overlay.showMenu.called);
+      assert.equal(window.utils.overlay.show.getCall(0).args.length, 4);
       assert.equal(window.utils.status.show.getCall(0).args.length, 2);
       assert.equal(false, MyLocks.cpu);
       done();
@@ -142,7 +150,7 @@ suite('Import contacts >', function() {
     MockVCFReader.prototype.numDuplicated = 2;
 
     contacts.Settings.importFromSDCard(function onImported() {
-      assert.isTrue(window.utils.overlay.showMenu.called);
+      assert.isTrue(window.utils.overlay.show.called);
 
       assert.isTrue(window.utils.status.show.called);
       assert.isTrue(window.utils.status.show.getCall(0).args[0] !== null);
@@ -159,7 +167,7 @@ suite('Import contacts >', function() {
     // Simulate not finding any files
     MockSdCard.failOnRetrieveFiles = true;
     contacts.Settings.importFromSDCard(function onImported() {
-      assert.isTrue(window.utils.overlay.showMenu.called);
+      assert.isTrue(window.utils.overlay.show.called);
       assert.isFalse(window.utils.status.show.called);
       assert.equal(false, MyLocks.cpu);
       // Restore the mock
