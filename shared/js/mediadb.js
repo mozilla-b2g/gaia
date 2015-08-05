@@ -1427,6 +1427,39 @@ var MediaDB = (function() {
           }.bind(this);
         }
       }.bind(this));
+    },
+
+    renamePlaylist: function renamePlaylist(playlistName, newName, callback) {
+      var store = this.db.transaction('playlists', 'readwrite').objectStore('playlists');
+
+      this.getPlaylistSongs(playlistName, function(result) {
+        if (!result) {
+          return;
+        }
+
+        var store = this.db.transaction('playlists', 'readwrite').objectStore('playlists');
+
+        result.name = newName;
+        var request = store.put(result);
+
+        request.onsuccess = function(evt) {
+          /* Unfortunately we can't update the primary index value (name).
+           * 'put' creates a new playlist with the same data, so we can
+           * delete the old one. */
+          this.deletePlaylist(playlistName, function() {
+            callback();
+          });
+        }.bind(this);
+      }.bind(this));
+    },
+
+    deletePlaylist: function deletePlaylist(playlistName, callback) {
+      var store = this.db.transaction('playlists', 'readwrite').objectStore('playlists');
+      var request = store.delete(playlistName);
+
+      request.onsuccess = function(evt) {
+        callback(playlistName);
+      };
     }
   };
 

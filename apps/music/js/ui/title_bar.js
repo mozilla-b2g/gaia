@@ -55,6 +55,8 @@ var TitleBar = {
   },
 
   onActionBack: function() {
+    document.getElementById('title-playlist-menu').classList.add('hidden');
+
     if (App.pendingPick) {
       if (ModeManager.currentMode === MODE_PICKER) {
         App.pendingPick.postError('pick cancelled');

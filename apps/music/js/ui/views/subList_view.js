@@ -152,7 +152,8 @@ var SubListView = {
 
   activatePlaylist: function(data, callback) {
     this.clean();
-    document.getElementById('empty-playlist-overlay').classList.add('hidden');
+
+    document.getElementById('title-playlist-menu').classList.remove('hidden');
 
     this.dataSource = data.songs;
     this.setAlbumName(data.name, null);

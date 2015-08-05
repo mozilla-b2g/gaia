@@ -1210,7 +1210,11 @@ html[dir="rtl"] .list-song-length {
   text-overflow: ellipsis;
 }
 
-#song-actions-overlay > button {
+#song-actions-overlay button, #playlist-actions-overlay  button {
+  font-size: 150%;
+}
+
+#song-actions-overlay > button, #playlist-actions-overlay > button {
   margin: 0 1.5rem 2rem 1.5rem;
   background: #4E4E4E ;
   border: 0;
@@ -1244,6 +1248,10 @@ html[dir="rtl"] .list-song-length {
   color: black;
   background: #C5C5F3;
   border-radius: 1rem;
+}
+
+#song-actions-overlay button:focus, #playlist-actions-overlay button:focus {
+  color: blue;
 }
 
 .overlay {

@@ -57,6 +57,7 @@ var TabBar = {
 
     switch (evt.type) {
       case 'touchend':
+        document.getElementById('title-playlist-menu').classList.add('hidden');
         var target = evt.target;
 
         if (!target) {

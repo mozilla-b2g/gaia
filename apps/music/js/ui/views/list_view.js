@@ -90,6 +90,30 @@ var ListView = {
         }.bind(this));
       }.bind(this));
     }.bind(this));
+
+    document.getElementById('title-playlist-menu').addEventListener('click', function() {
+      document.getElementById('playlist-actions-overlay').classList.remove('hidden');
+    });
+
+    document.getElementById('playlist-menu-delete-btn').addEventListener('click', function() {
+      musicdb.deletePlaylist(this.currentPlaylist, function(playlistName) {
+        document.getElementById('playlist-actions-overlay').classList.add('hidden');
+        this.showBanner(navigator.mozL10n.get('playlist-deleted'));
+        ModeManager.pop();
+      }.bind(this));
+    }.bind(this));
+
+    document.getElementById('playlist-menu-rename-btn').addEventListener('click', function() {
+      var newName;
+
+      if (newName = prompt(navigator.mozL10n.get('give-playlist-name'))) {
+        musicdb.renamePlaylist(this.currentPlaylist, newName, function() {
+          document.getElementById('playlist-actions-overlay').classList.add('hidden');
+          this.showBanner(navigator.mozL10n.get('playlist-renamed'));
+          ModeManager.pop();
+        }.bind(this));
+      }
+    }.bind(this));
   },
 
   clean: function lv_clean() {
@@ -410,7 +434,7 @@ var ListView = {
     var option = target.dataset.option;
 
     if (option === 'create-playlist') {
-        var playlistName = prompt('Name for the playlist?');
+        var playlistName = prompt(navigator.mozL10n.get('give-playlist-name'));
         this.addToPlaylist(playlistName, null);
         return;
     }
