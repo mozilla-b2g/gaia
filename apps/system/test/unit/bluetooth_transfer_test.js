@@ -332,6 +332,10 @@ suite('system/bluetooth_transfer', function() {
             MockNotificationHelper.mOptions.icon,
             'style/bluetooth_transfer/images/icon_bluetooth.png'
           );
+          assert.equal(
+            MockNotificationHelper.mOptions.mozbehavior,
+            {noclear: true}
+          );
 
           NotificationHelper.mEmit('click');
           assert.isTrue(MockUtilityTray.hide.called);
