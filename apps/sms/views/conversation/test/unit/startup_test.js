@@ -54,7 +54,9 @@ suite('ConversationView Startup,', function() {
     this.sinon.spy(Navigation, 'setReady');
     this.sinon.spy(InterInstanceEventDispatcher, 'connect');
     this.sinon.stub(ConversationView, 'once');
-    this.sinon.stub(LazyLoader, 'load').returns(Promise.resolve());
+    this.sinon.stub(LazyLoader, 'load').returns(
+      Promise.reject(new Error('error'))
+    );
     this.sinon.stub(MessageManager, 'getThreads');
     this.sinon.stub(Navigation, 'isDefaultPanel');
   });
@@ -88,6 +90,7 @@ suite('ConversationView Startup,', function() {
     });
 
     test('correctly initializes lazy dependencies', function(done) {
+      LazyLoader.load.returns(Promise.resolve());
       ConversationView.once.withArgs('visually-loaded').yield();
 
       LazyLoader.load.lastCall.returnValue.then(() => {
@@ -104,11 +107,10 @@ suite('ConversationView Startup,', function() {
   suite('In a subpanel,', function() {
     setup(function() {
       Navigation.isDefaultPanel.returns(false);
-
-      Startup.init();
     });
 
     test('correctly initializes dependencies', function(done) {
+      Startup.init();
       sinon.assert.calledOnce(MessageManager.init);
       sinon.assert.calledOnce(ConversationView.init);
 
@@ -120,11 +122,14 @@ suite('ConversationView Startup,', function() {
     });
 
     test('starts non-critical initializations right away', function() {
+      Startup.init();
       sinon.assert.notCalled(ConversationView.once);
       sinon.assert.calledOnce(LazyLoader.load);
     });
 
     test('correctly initializes lazy dependencies', function(done) {
+      LazyLoader.load.returns(Promise.resolve());
+      Startup.init();
       LazyLoader.load.lastCall.returnValue.then(() => {
         sinon.assert.calledOnce(LocalizationHelper.init);
         sinon.assert.calledOnce(TimeHeaders.init);

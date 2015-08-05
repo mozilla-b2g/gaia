@@ -354,11 +354,11 @@ suite('ActivityHandler', function() {
   });
 
   suite('sms received', function() {
-    var message, sendStub, notificationStub;
+    var message, sendStub, notificationStub, checkSilentPromise;
 
-    setup(function(done) {
+    setup(function() {
       message = MockMessages.sms();
-      var checkSilentPromise = Promise.resolve(false);
+      checkSilentPromise = Promise.resolve(false);
       notificationStub = sinon.stub({
         addEventListener: () => {},
         close: () => {}
@@ -368,151 +368,180 @@ suite('ActivityHandler', function() {
             .returns(checkSilentPromise);
       sendStub = this.sinon.stub(NotificationHelper, 'send')
         .returns(notificationStub);
-      MockNavigatormozSetMessageHandler.mTrigger('sms-received', message);
-      checkSilentPromise.then(() => done());
     });
 
-    test('request the cpu wake lock', function() {
-      var wakeLock = MockNavigatorWakeLock.mLastWakeLock;
-      assert.ok(wakeLock);
-      assert.equal(wakeLock.topic, 'cpu');
-    });
-
-    suite('contact retrieved (after getSelf)', function() {
-      var contactName = '<&>'; // testing potentially unsafe characters
-      var findByPromise;
-
+    suite('after receiving the message', function() {
       setup(function(done) {
-        findByPromise = Promise.resolve(
-          [ { name: [contactName] } ]
-        );
-        this.sinon.stub(Contacts, 'findByAddress').returns(findByPromise);
-
-        MockNavigatormozApps.mTriggerLastRequestSuccess().then(done, done);
-      });
-
-      test('passes contact name in plain text', function() {
-        sinon.assert.calledWith(sendStub, contactName);
-      });
-    });
-
-    suite('null sms received', function() {
-      var contactSpy;
-
-      setup(function(done) {
-        message.body = null;
-
         MockNavigatormozSetMessageHandler.mTrigger('sms-received', message);
-        contactSpy = this.sinon.spy(Contacts, 'findByAddress');
-        MockNavigatormozApps.mTriggerLastRequestSuccess().then(done, done);
+        checkSilentPromise.then(() => done());
       });
 
-      test('null notification', function() {
-        sinon.assert.calledWithMatch(sendStub,
-          'Pepito O\'Hare', { bodyL10n: { raw: '' } });
-      });
-    });
-
-    suite('contact without name (after getSelf)', function() {
-      var phoneNumber = '+1111111111';
-
-      setup(function(done) {
-        message.sender = phoneNumber;
-        var contactPromise = Promise.resolve([{
-          name: [''],
-          tel: {'value': phoneNumber}
-        }]);
-        this.sinon.stub(Contacts, 'findByAddress').returns(contactPromise);
-        MockNavigatormozApps.mTriggerLastRequestSuccess().then(done, done);
+      test('request the cpu wake lock', function() {
+        var wakeLock = MockNavigatorWakeLock.mLastWakeLock;
+        assert.ok(wakeLock);
+        assert.equal(wakeLock.topic, 'cpu');
       });
 
-      test('phone in notification title when contact without name', function() {
-        sinon.assert.calledWith(sendStub, phoneNumber);
-      });
-    });
+      suite('contact retrieved (after getSelf)', function() {
+        var contactName = '<&>'; // testing potentially unsafe characters
+        var findByPromise;
 
-    suite('[Email]contact without name (after getSelf)', function() {
-      var emailAddress = 'a@b.com';
+        setup(function(done) {
+          findByPromise = Promise.resolve(
+            [ { name: [contactName] } ]
+          );
+          this.sinon.stub(Contacts, 'findByAddress').returns(findByPromise);
 
-      setup(function(done) {
-        message.sender = emailAddress;
-        var contactPromise = Promise.resolve([{
-          name: [''],
-          email: {'value': emailAddress}
-        }]);
-        this.sinon.stub(Contacts, 'findByAddress').returns(contactPromise);
-        MockNavigatormozApps.mTriggerLastRequestSuccess().then(done, done);
-      });
+          MockNavigatormozApps.mTriggerLastRequestSuccess().then(done, done);
+        });
 
-      test('email in notification title when contact without name', function() {
-        sinon.assert.calledWith(sendStub, emailAddress);
-      });
-    });
-
-    suite('after getSelf', function() {
-      var contactSpy;
-      setup(function(done) {
-        contactSpy = this.sinon.spy(Contacts, 'findByAddress');
-        MockNavigatormozApps.mTriggerLastRequestSuccess().then(done, done);
-      });
-
-      test('a notification is sent', function() {
-        sinon.assert.calledWith(sendStub, sinon.match.any, {
-          icon: 'sms',
-          bodyL10n: { raw: message.body },
-          data: {
-            id: message.id,
-            threadId: message.threadId
-          },
-          closeOnClick: false,
-          tag: sinon.match.any
+        test('passes contact name in plain text', function() {
+          sinon.assert.calledWith(sendStub, contactName);
         });
       });
 
-      test('the lock is released', function() {
-        assert.ok(MockNavigatorWakeLock.mLastWakeLock.released);
-      });
+      suite('null sms received', function() {
+        var contactSpy;
 
-      suite('click on the notification', function() {
-        setup(function() {
-          this.sinon.stub(ActivityHandler, 'handleMessageNotification');
-          notificationStub.addEventListener.withArgs('click').yield();
+        setup(function(done) {
+          message.body = null;
+
+          MockNavigatormozSetMessageHandler.mTrigger('sms-received', message);
+          contactSpy = this.sinon.spy(Contacts, 'findByAddress');
+          MockNavigatormozApps.mTriggerLastRequestSuccess().then(done, done);
         });
 
-        test('launches the app', function() {
-          assert.ok(MockNavigatormozApps.mAppWasLaunched);
+        test('null notification', function() {
+          sinon.assert.calledWithMatch(sendStub,
+            'Pepito O\'Hare', { bodyL10n: { raw: '' } });
+        });
+      });
+
+      suite('contact without name (after getSelf)', function() {
+        var phoneNumber = '+1111111111';
+
+        setup(function(done) {
+          message.sender = phoneNumber;
+          var contactPromise = Promise.resolve([{
+            name: [''],
+            tel: {'value': phoneNumber}
+          }]);
+          this.sinon.stub(Contacts, 'findByAddress').returns(contactPromise);
+          MockNavigatormozApps.mTriggerLastRequestSuccess().then(done, done);
+        });
+
+        test('phone number is in notification title', function() {
+          sinon.assert.calledWith(sendStub, phoneNumber);
+        });
+      });
+
+      suite('[Email]contact without name (after getSelf)', function() {
+        var emailAddress = 'a@b.com';
+
+        setup(function(done) {
+          message.sender = emailAddress;
+          var contactPromise = Promise.resolve([{
+            name: [''],
+            email: {'value': emailAddress}
+          }]);
+          this.sinon.stub(Contacts, 'findByAddress').returns(contactPromise);
+          MockNavigatormozApps.mTriggerLastRequestSuccess().then(done, done);
+        });
+
+        test('email is in notification title', function() {
+          sinon.assert.calledWith(sendStub, emailAddress);
+        });
+      });
+
+      suite('after getSelf', function() {
+        var contactSpy;
+        setup(function(done) {
+          contactSpy = this.sinon.spy(Contacts, 'findByAddress');
+          MockNavigatormozApps.mTriggerLastRequestSuccess().then(done, done);
+        });
+
+        test('a notification is sent', function() {
+          sinon.assert.calledWith(sendStub, sinon.match.any, {
+            icon: 'sms',
+            bodyL10n: { raw: message.body },
+            data: {
+              id: message.id,
+              threadId: message.threadId
+            },
+            closeOnClick: false,
+            tag: sinon.match.any
+          });
+        });
+
+        test('the lock is released', function() {
+          assert.ok(MockNavigatorWakeLock.mLastWakeLock.released);
+        });
+
+        suite('click on the notification', function() {
+          setup(function() {
+            this.sinon.stub(ActivityHandler, 'handleMessageNotification');
+            notificationStub.addEventListener.withArgs('click').yield();
+          });
+
+          test('launches the app', function() {
+            assert.ok(MockNavigatormozApps.mAppWasLaunched);
+          });
         });
       });
     });
 
     suite('Close notification', function() {
-
       setup(function() {
         this.sinon.stub(document, 'addEventListener');
+        this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
       });
 
-      test('thread view already visible', function() {
+      test('thread view already visible', function(done) {
         isDocumentHidden = false;
         this.sinon.stub(Threads, 'currentId', message.threadId);
-        MockNavigatormozApps.mTriggerLastRequestSuccess();
-        sinon.assert.notCalled(notificationStub.addEventListener);
-        sinon.assert.notCalled(notificationStub.close);
+        this.sinon.stub(navigator.mozApps, 'getSelf');
+
+        Navigation.isCurrentPanel.withArgs(
+          'thread', { id: message.threadId }
+        ).returns(true);
+
+        MockNavigatormozSetMessageHandler.mTrigger('sms-received', message);
+
+        checkSilentPromise.then(() => {
+          sinon.assert.notCalled(navigator.mozApps.getSelf);
+          sinon.assert.notCalled(notificationStub.addEventListener);
+          sinon.assert.notCalled(notificationStub.close);
+        }).then(done, done);
       });
 
-      test('Not in target thread view', function() {
+      test('Not in target thread view', function(done) {
         isDocumentHidden = true;
-        MockNavigatormozApps.mTriggerLastRequestSuccess();
-        sinon.assert.notCalled(notificationStub.addEventListener);
-        sinon.assert.notCalled(notificationStub.close);
+        MockNavigatormozSetMessageHandler.mTrigger('sms-received', message);
+
+        checkSilentPromise.then(
+          () => MockNavigatormozApps.mTriggerLastRequestSuccess()
+        ).then(() => {
+          sinon.assert.called(notificationStub.addEventListener);
+          sinon.assert.notCalled(document.addEventListener);
+          sinon.assert.notCalled(notificationStub.close);
+        }).then(done, done);
       });
 
       test('In target thread view and view is hidden', function(done) {
         isDocumentHidden = true;
         this.sinon.stub(Threads, 'currentId', message.threadId);
+        Navigation.isCurrentPanel.withArgs(
+          'thread', { id: message.threadId }
+        ).returns(true);
 
-        MockNavigatormozApps.mTriggerLastRequestSuccess().then(() => {
+        MockNavigatormozSetMessageHandler.mTrigger('sms-received', message);
+
+        checkSilentPromise.then(
+          () => MockNavigatormozApps.mTriggerLastRequestSuccess()
+        ).then(() => {
           sinon.assert.called(document.addEventListener);
           sinon.assert.notCalled(notificationStub.close);
+          isDocumentHidden = false;
           document.addEventListener.yield();
           sinon.assert.called(notificationStub.close);
         }).then(done, done);

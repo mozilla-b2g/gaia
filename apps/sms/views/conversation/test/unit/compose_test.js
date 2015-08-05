@@ -1292,9 +1292,11 @@ suite('compose_test.js', function() {
         });
         suite('after resize', function() {
           var replacementSize;
-          setup(function() {
-            replacementSize = Compose.size;
-            Utils.getResizedImgBlob.yield(smallImageBlob);
+          setup(function(done) {
+            requestPromise.then(() => {
+              replacementSize = Compose.size;
+              Utils.getResizedImgBlob.yield(smallImageBlob);
+            }).then(done, done);
           });
 
           test('recalculates size again', function() {
