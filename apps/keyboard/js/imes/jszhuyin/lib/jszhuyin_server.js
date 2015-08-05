@@ -1,5 +1,7 @@
 'use strict';
 
+/* global JSZhuyin */
+
 // JSZhuyinServer provides a postMessage interface to communicate
 // with JSZhuyin.
 var JSZhuyinServer = {
@@ -21,30 +23,19 @@ var JSZhuyinServer = {
       }).bind(this));
   },
   getSender: function w_getSender(type) {
-    var self = this;
-    return function w_sender(data, reqId) {
-      self.sendMessage(type, data, reqId);
-    };
+    return this.sendMessage.bind(this, type);
   },
   handleEvent: function w_handleEvent(evt) {
     var msg = evt.data;
-    if (msg['sender'] === 'worker')
-      return;
-
-    if (msg['type'] === 'config') {
-      var data = msg['data'];
-      for (var key in msg['data']) {
-        this.engine[key] = data[key];
-      }
-
+    if (msg.sender === 'worker') {
       return;
     }
 
-    if (typeof this.engine[msg['type']] !== 'function') {
-      throw 'Unknown message type: ' + msg['type'];
+    if (typeof this.engine[msg.type] !== 'function') {
+      throw 'Unknown message type: ' + msg.type;
     }
 
-    this.engine[msg['type']](msg['data'], msg['requestId']);
+    this.engine[msg.type](msg.data, msg.requestId);
   },
   sendMessage: function w_sendMessage(type, data, reqId) {
     if (typeof window === 'object') {
