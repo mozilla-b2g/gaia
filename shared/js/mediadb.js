@@ -1447,7 +1447,7 @@ var MediaDB = (function() {
            * 'put' creates a new playlist with the same data, so we can
            * delete the old one. */
           this.deletePlaylist(playlistName, function() {
-            callback();
+            callback(result);
           });
         }.bind(this);
       }.bind(this));

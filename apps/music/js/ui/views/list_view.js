@@ -61,8 +61,10 @@ var ListView = {
     document.getElementById('playlist-menu-delete-btn').addEventListener('click', function() {
       musicdb.deletePlaylist(this.currentPlaylist, function(playlistName) {
         document.getElementById('playlist-actions-overlay').classList.add('hidden');
+        document.getElementById('title-playlist-menu').classList.add('hidden');
         this.showBanner(navigator.mozL10n.get('playlist-deleted'));
         ModeManager.pop();
+        document.getElementById('pl-' + playlistName).remove();
       }.bind(this));
     }.bind(this));
 
@@ -70,10 +72,21 @@ var ListView = {
       var newName;
 
       if (newName = prompt(navigator.mozL10n.get('give-playlist-name'))) {
-        musicdb.renamePlaylist(this.currentPlaylist, newName, function() {
+        musicdb.renamePlaylist(this.currentPlaylist, newName, function(oldList) {
           document.getElementById('playlist-actions-overlay').classList.add('hidden');
           this.showBanner(navigator.mozL10n.get('playlist-renamed'));
           ModeManager.pop();
+
+          // update the playlist <li /> id and title text.
+          var pl_li = document.querySelector('#pl-' + this.currentPlaylist);
+          var pl_title = document.querySelector('#pl-' + this.currentPlaylist + ' .list-playlist-title');
+          var a = document.querySelector('#pl-' + this.currentPlaylist + ' > a');
+
+          pl_title.textContent = newName;
+          pl_li.id = 'pl-' + newName;
+
+          this.dataSource[++this.index] = oldList;
+          a.dataset.index = this.index;
         }.bind(this));
       }
     }.bind(this));

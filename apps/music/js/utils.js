@@ -170,6 +170,7 @@ function createListElement(opts) {
         //custom playlists.
         titleBdi.textContent = data.name;
         a.dataset.option = data.name;
+        li.id = "pl-" + data.name;
       }
 
       a.appendChild(titleBdi);
