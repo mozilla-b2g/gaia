@@ -56,15 +56,21 @@ function createListElement(opts) {
     div.style.width = '2rem';
 
     var checkbox = document.createElement('input');
+    checkbox.className = "checkbox";
     checkbox.type = "checkbox";
     checkbox.name = "selected";
     checkbox.value = index;
+    checkbox.id = "cb-" + index;
     div.appendChild(checkbox);
 
-    a.style.float = 'right';
+    var label = document.createElement('label');
+    label.setAttribute("for", "cb-" + index);
+
+    div.appendChild(label);
     li.appendChild(div);
   }
 
+  a.style.float = 'right';
   li.appendChild(a);
 
   var div = document.createElement('div');

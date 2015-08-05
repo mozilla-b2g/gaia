@@ -1064,7 +1064,7 @@ html[dir="rtl"] .list-main-title {
 .list-sub-title {
   top: 3rem;
   width: calc(100% - 12rem);
-  padding: 0 0.5rem 0 3rem;
+  padding: 0 0.5rem 0 5rem;
   font-size: 1.7rem;
   color: #8a9699;
 }
@@ -1242,7 +1242,46 @@ html[dir="rtl"] .list-song-length {
   color: white;
 }
 
-input[type=checkbox] {
-  height: 6rem;
-  width: 2rem;
+/*
+ * Custom styled checkboxes.
+ * http://www.hongkiat.com/blog/css3-checkbox-radio/
+ */
+
+@media screen {
+  .checkbox {
+    display: none;
+  }
+
+  .checkbox + label {
+    display: inline-block;
+    cursor: pointer;
+    position: relative;
+    padding-left: 25px;
+    margin-right: 15px;
+    font-size: 13px;
+  }
+
+  .checkbox + label:before {
+    border-radius: 3px;
+    content: "";
+    display: inline-block;
+
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
+    position:absolute;
+    left: 10px;
+    background-color: transparent;
+    border: 1px solid #00CAF2;
+  }
+
+  .checkbox:checked + label:before {
+    background-color: #00CAF2;
+    content: "\2713";
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, .2);
+    font-size: 30px;
+    color: white;
+    text-align: center;
+    line-height: 15px;
+  }
 }
