@@ -372,13 +372,13 @@ var GaiaApps = {
          .query('AppWindowManager.getActiveWindow').getTopMostWindow();
     }
 
-    let origin = app.origin;
-    console.log('app with origin \'' + origin + '\' is displayed');
+    console.log('app with origin \'' + app.origin + '\'and manifest url \'' + app.manifest_url + '\' is displayed');
     let result = {
       frame: (app.browser) ? app.browser.element : app.frame.firstChild,
       src: (app.browser) ? app.browser.element.src : app.iframe.src,
       name: app.name,
-      origin: origin
+      origin: app.origin,
+      manifest_url: app.manifest_url
     };
     return result;
   },
