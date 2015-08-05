@@ -1210,7 +1210,44 @@ html[dir="rtl"] .list-song-length {
   text-overflow: ellipsis;
 }
 
-#empty-playlist-overlay {
+#song-actions-overlay > button {
+  margin: 0 1.5rem 2rem 1.5rem;
+  background: #4E4E4E ;
+  border: 0;
+  text-align: left;
+  box-shadow: 0;
+  color: white;
+  padding: 1rem;
+  width: calc(100% - 3rem);
+  font-style: italic;
+}
+
+.hide-overlay {
+  background: #4E4E4E;
+  width: 100%;
+  position: absolute;
+  left: 0px;
+  bottom: 8rem;
+  height: 3rem;
+  padding: 1.5rem;
+}
+
+.hide-overlay-btn {
+  width: calc(100% - 3rem);
+  display: block;
+  height: 3rem;
+  border: 0px ninenone;
+  margin: 0px;
+  padding: 0px;
+  text-align: center;
+  font-style: italic;
+  color: black;
+  background: #C5C5F3;
+  border-radius: 1rem;
+}
+
+.overlay {
+  top: 0;
   height: 100%;
   width:  100%;
   position: absolute;
@@ -1240,6 +1277,36 @@ html[dir="rtl"] .list-song-length {
   border-radius: 1rem;
   background-image: none;
   color: white;
+}
+
+.addToPlaylist {
+  text-align: left;
+  width: 100%;
+  border-bottom: 1px solid #fff;
+  font-size: 14pt;
+}
+
+.addToPlaylist > label {
+  width: 100%;
+  display: block;
+}
+
+.addToPlaylist > label > input[type='radio'] {
+  display: none;
+}
+
+.addToPlaylist > label > input[type='radio']:checked + span {
+  color: blue;
+}
+
+.addToPlaylist > label > input[type='radio']:checked + span:after {
+  content: "\2713";
+  color: blue;
+  float: right;
+}
+
+.addToPlaylist:last-child {
+  border-bottom: 0;
 }
 
 /*

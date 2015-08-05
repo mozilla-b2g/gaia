@@ -87,7 +87,7 @@
         <div id="views-list-anchor" role="listbox"></div>
       </div>
       <div id="views-sublist" class="view hidden">
-        <div id="empty-playlist-overlay" class="hidden">
+        <div id="empty-playlist-overlay" class="overlay hidden">
           <p>
             <img src="style/images/empty-playlist.png" />
           </p>
@@ -226,6 +226,30 @@
                 data-l10n-id="overlay-cancel-button">Cancel</button>
       </menu>
     </form>
+
+    <div id="song-actions-overlay" class="overlay hidden">
+      <button id="playlist-add-btn" data-l10-id="overlay-addsong">
+        Add Song to Playlist
+      </button>
+      <div class="hide-overlay">
+        <button class="hide-overlay-btn" data-l10-id="overlay-cancel-button">
+          Cancel
+        </button>
+      </div>
+    </div>
+
+    <div id="playlist-overlay" class="hidden overlay">
+      <div id='playlist-overlay-content'></div>
+      <div class="hide-overlay">
+        <button class="hide-overlay-btn w50" id="do-add" data-l10-id="overlay-ok-button">
+          OK
+        </button>
+        <button class="hide-overlay-btn w50" data-l10-id="overlay-cancel-button">
+          Cancel
+        </button>
+      </div>
+    </div>
+
     <!-- display this at startup while we load music -->
     <div id="spinner-overlay"><progress id="spinner"></progress></div>
   </body>

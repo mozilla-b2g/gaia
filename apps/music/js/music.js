@@ -25,6 +25,16 @@ var App = (function() {
 
       setStartMode();
 
+      var btns = document.getElementsByClassName('hide-overlay-btn');
+      [].slice.call(btns).forEach(function (elem, idx, elems) {
+        elem.addEventListener('click', function() {
+          var overlays = document.getElementsByClassName('overlay');
+          [].slice.call(overlays).forEach(function (overlay, idx2, overlays) {
+            overlay.classList.add('hidden');
+          });
+        });
+      });
+
       // Do this now and on each language change in the future
       navigator.mozL10n.ready(function() {
         ModeManager.updateTitle();

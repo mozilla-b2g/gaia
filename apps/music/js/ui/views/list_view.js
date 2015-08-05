@@ -598,10 +598,15 @@ var ListView = {
 
       case 'contextmenu':
         var option = target.dataset.option;
+        this.selectedSong = target.dataset.index;
 
         if (option === 'title') {
-          var playlistName = prompt("Add to playlist?");
-          this.addToPlaylist(playlistName, target.dataset.index);
+          document.getElementById('song-actions-overlay').classList.remove("hidden");
+
+          if (!this.overlay_listeners_added) {
+            this.addPlaylistOverlayListeners();
+            this.overlay_listeners_added = true;
+          }
         }
         break;
 
@@ -616,5 +621,49 @@ var ListView = {
     setTimeout (function hideBanner() {
       this.banner.classList.remove('visible');
     }.bind(this), 3000);
+  },
+  addPlaylistOverlayListeners: function lv_addPlaylistOverlayListeners() {
+    document.getElementById('playlist-add-btn').addEventListener('click', function() {
+      var playlistOverlay = document.getElementById('playlist-overlay');
+      var content = document.getElementById('playlist-overlay-content');
+      playlistOverlay.classList.remove('hidden');
+
+      //remove previous data
+      content.innerHTML = '';
+
+      musicdb.getAllPlaylists(function(playlists) {
+        playlists.forEach(function(playlist) {
+          this.addToPlaylistOverlay(content, playlist);
+        }.bind(this));
+      }.bind(this));
+    }.bind(this));
+
+    document.getElementById('do-add').addEventListener('click', function() {
+      var selected = document.querySelector('input[name=addToPlaylist-radio]:checked');
+
+      if (!selected) {
+        return;
+      }
+
+      this.addToPlaylist(selected.value, this.selectedSong);
+    }.bind(this));
+  },
+  addToPlaylistOverlay: function lv_addToPlaylistOverlay(playlistOverlay, playlist) {
+    var div = document.createElement('div');
+    div.className = 'addToPlaylist';
+
+    var label = document.createElement('label');
+    var radio = document.createElement('input');
+    radio.setAttribute('name', 'addToPlaylist-radio');
+    radio.setAttribute('type', 'radio');
+    radio.setAttribute('value', playlist.name);
+    var span = document.createElement('span');
+    span.innerHTML = playlist.name;
+
+    label.appendChild(radio);
+    label.appendChild(span);
+
+    div.appendChild(label);
+    playlistOverlay.appendChild(div);
   }
 };
