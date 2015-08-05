@@ -1498,6 +1498,19 @@ console.log("folder message count", folderMessageCount,
     else { // FUTUREWARDS
       startTS = this._nextSyncAnchorTS;
       this._nextSyncAnchorTS = endTS = makeDaysBefore(startTS, -daysToSearch);
+      // If this is a bisection that originally had an endTS of null and this
+      // is going to be our last step, convert endTS back to a null.
+      // (We use the same step check from above for consistency.  We also
+      // are trying to do the smallest perturbation to this legacy logic, so
+      // we only permute endTS, not _nextSyncAnchorTS although nulling it out
+      // should at first glance merely cause us to short-circuit into the
+      // _doneSync case before running the check which we know will return
+      // true barring the clock jumping backwards.)
+      if (this._syncThroughTS === null &&
+          TIME_DIR_AT_OR_BEYOND(this._curSyncDir, this._nextSyncAnchorTS,
+                                this._syncThroughTS)) {
+        endTS = null;
+      }
     }
     this.folderConn.syncDateRange(startTS, endTS, this._curSyncAccuracyStamp,
                                   this.onSyncCompleted.bind(this));
