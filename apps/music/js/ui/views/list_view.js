@@ -70,7 +70,7 @@ var ListView = {
 
         this.showBanner(navigator.mozL10n.get('playlist-adding-wait'));
 
-        this.addToPlaylistArray(this.currentPlaylist, 0, selectedIds, function() {
+        this.addToPlaylistArray(this.currentPlaylist, 0, selectedIds, function(songs) {
           this.showBanner(navigator.mozL10n.get('playlist-added'));
           this.clean();
 
@@ -79,13 +79,14 @@ var ListView = {
             range: null,
             direction:'next',
             option: 'title',
-            editMode: false
+            editMode: false,
+            songs: songs
           };
 
-          document.getElementById('title-edit-done').classList.add('hidden');
+          info.name = this.currentPlaylist;
 
-          ModeManager.start(MODE_LIST);
-          ListView.activate(info);
+          document.getElementById('title-edit-done').classList.add('hidden');
+          this.activatePlaylist(info);
         }.bind(this));
       }.bind(this));
     }.bind(this));
@@ -468,7 +469,7 @@ var ListView = {
         musicdb.addToPlaylist(playlistName, songData, function() {
           this.showBanner(navigator.mozL10n.get('playlist-added'));
           if (callback) {
-            callback();
+            callback(songData);
           }
         }.bind(this));
       }.bind(this));
@@ -489,16 +490,22 @@ var ListView = {
     }
   },
 
-  addToPlaylistArray: function lv_addToPlaylistArray(playlistName, idx, songs, callback) {
-    this.addToPlaylist(playlistName, songs[idx], function() {
+  addToPlaylistArray: function lv_addToPlaylistArray(playlistName, idx, songs, callback, songDatas) {
+    if (!songDatas) {
+      songDatas = [];
+    }
+
+    this.addToPlaylist(playlistName, songs[idx], function(songData) {
+      songDatas.push(songData);
+
       if (++idx == songs.length) {
         if (callback) {
-          callback();
+          callback(songDatas);
         }
         return;
       }
 
-      this.addToPlaylistArray(playlistName, idx, songs, callback);
+      this.addToPlaylistArray(playlistName, idx, songs, callback, songDatas);
     }.bind(this));
   },
 
