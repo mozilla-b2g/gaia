@@ -1,0 +1,61 @@
+<element name="fxsync" extends="section">
+  <template>
+
+    <gaia-header action="back" data-href="#root">
+      <h1 data-l10n-id="fxsync"></h1>
+    </gaia-header>
+
+    <div>
+      <div id="fxsync-signin">
+        <ul>
+          <li id="fxsync-enabled">
+            <gaia-switch>
+              <label data-l10n-id="fxsync">Firefox Sync</label>
+              <details></details>
+            </gaia-switch>
+            <p class="explanation">Signed-in:<br><span id="sync-account"></span></p>
+          </li>
+          <li data-state="ready">
+            <button id="sync-button" data-l10n-id="fxsync-sync-now"></button>
+            <p class="explanation">Last Sync Time:<br><span id="sync-time"></span></p>
+          </li>
+        </ul>
+      </div>
+
+      <div id="fxsync-collections">
+        <header>
+          <h2 data-l10n-id="fxsync-collections">Collections</h2>
+        </header>
+        <ul>
+          <li>
+            <gaia-switch>
+              <label data-l10n-id="fxsync-collections-bookmarks">Bookmarks</label>
+              <details></details>
+            </gaia-switch>
+          </li>
+          <li>
+            <gaia-switch>
+              <label data-l10n-id="fxsync-collections-history">History</label>
+              <details></details>
+            </gaia-switch>
+          </li>
+          <li>
+            <gaia-switch>
+              <label data-l10n-id="fxsync-collections-tabs">Tabs</label>
+              <details></details>
+            </gaia-switch>
+          </li>
+          <li>
+            <gaia-switch>
+              <label data-l10n-id="fxsync-collections-password">Password</label>
+              <details></details>
+            </gaia-switch>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <script src="js/fxsync.js"></script>
+
+  </template>
+</element>

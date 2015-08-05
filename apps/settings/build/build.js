@@ -1,8 +1,10 @@
 'use strict';
 
-/* global require, exports, dump */
+/* jshint node: true */
+/* global dump */
 var utils = require('utils');
 var jsmin = require('jsmin');
+var preprocessor = require('preprocessor');
 
 var jsSuffix = /\.js$/;
 
@@ -172,6 +174,20 @@ SettingsAppBuilder.prototype.writeGitCommit = function(options) {
   }
 };
 
+SettingsAppBuilder.prototype.enableDataSync = function(options) {
+  var fileList = {
+    process:[
+      ['index.html'],
+      ['elements', 'root.html']
+    ],
+    remove:[
+      ['js', 'fxsync.js'],
+      ['elements', 'fxsync.html']
+    ]
+  };
+  preprocessor.execute(options, 'FIREFOX_SYNC', fileList);
+};
+
 SettingsAppBuilder.prototype.execute = function(options) {
   this.writeGitCommit(options);
   this.writeDeviceFeaturesJSON(options);
@@ -180,6 +196,7 @@ SettingsAppBuilder.prototype.execute = function(options) {
   this.writeEuRoamingJSON(options);
 
   return this.executeRjs(options).then(function() {
+    this.enableDataSync(options);
     this.executeJsmin(options);
   }.bind(this));
 };
