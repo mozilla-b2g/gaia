@@ -16,7 +16,7 @@ var url = require('url');
 var taskcluster = require('taskcluster-client');
 var emulatorBuildURL;
 var raptorTimeout = 600000;
-var appLaunchDelay = 6000;
+var appLaunchDelay = 10000;
 var gaiaBaseMinusOne = '0';
 
 const TC_CLIENT_OPTS = { timeout: 30 * 1000 };
