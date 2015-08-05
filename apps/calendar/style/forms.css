@@ -17,10 +17,6 @@ select {
   font-size: 1.7rem;
 }
 
-input[type="checkbox"] {
-  width: inherit;
-}
-
 form,
 form ol {
   margin: 0;
@@ -55,7 +51,7 @@ form li {
 }
 
 /* RTL View */
-html[dir="rtl"] .datetime {  
+html[dir="rtl"] .datetime {
   left: unset;
   right: 1.5rem;
 }

@@ -21,15 +21,13 @@ module.exports = create({
     }
 
     var checked = this.bool('localDisplayed', 'checked');
-    var ariaSelected = this.bool('localDisplayed', 'aria-selected="true"');
 
     return `<li id="calendar-${id}" role="presentation">
         <div class="gaia-icon icon-calendar-dot" style="color:${color}"
              aria-hidden="true"></div>
-        <label class="pack-checkbox" role="option" ${ariaSelected}>
-          <input value="${id}" type="checkbox" ${checked}/>
-          <span ${l10n} class="name" dir="auto">${name}</span>
-        </label>
+        <gaia-checkbox class="invisible" value="${id}" ${checked}/>
+          <label ${l10n} class="name" dir="auto">${name}</label>
+        </gaia-checkbox>
       </li>`;
   }
 });

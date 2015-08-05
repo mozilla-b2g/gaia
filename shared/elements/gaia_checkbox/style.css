@@ -25,7 +25,7 @@ gaia-checkbox {
   white-space: normal;
 }
 
-#checkbox span:after {
+#checkbox:not(.invisible) span:after {
   content: '';
   position: absolute;
   right: 0;
@@ -57,7 +57,7 @@ gaia-checkbox {
   -moz-padding-end: 0;
 }
 
-#checkbox span:after {
+#checkbox:not(.invisible) span:after {
   background: url(images/default.png) no-repeat center top / 2.2rem auto;
 }
 

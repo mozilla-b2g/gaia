@@ -99,18 +99,17 @@ not actually shown since the top header should be transparent.
   background-color: #eeeeee;
 }
 
-#settings .calendars label > .name {
+#settings .calendars label.name {
   display: block;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
   width: -moz-calc(100% - 2rem);
   height: 100%;
-}
-
-#settings .calendars label > span {
-  display: block;
-  float: left;
+  /* !important needed to override component scoped style to match legacy styles */
+  font-size: 1.7rem !important;
+  /* TODO: Migrate to gaia-theme */
+  color: #606060;
 }
 
 #settings .calendars .error label {
@@ -225,39 +224,31 @@ not actually shown since the top header should be transparent.
   text-transform: none;
 }
 
-#settings .calendars input[type="checkbox"] {
+#settings .calendars gaia-checkbox {
  display: none;
 }
 
-#settings .calendars input[type="checkbox"]:checked + span:after {
+#settings .calendars gaia-checkbox[checked] label:after {
+  content: ' ';
+  position: absolute;
   width: 2.2rem;
   height: 1.9rem;
   background: transparent url('/style/icons/check_mark_on.png') no-repeat center / 1.4rem;
 }
 
-#settings .calendars li:active input[type="checkbox"]:checked + span:after {
+#settings .calendars li:active gaia-checkbox[checked] label:after {
   background: transparent url('/style/icons/check_mark_press.png') no-repeat center / 1.4rem;
 }
 
-#settings .calendars input[type="checkbox"] + span:after {
+#settings .calendars gaia-checkbox label:after {
   left: auto;
-  top: 1.5rem;
+  top: 0.7rem;
   right: 1.3rem;
   background: none;
   margin: 0;
 }
 
 /* RTL View */
-
-html[dir="rtl"] #settings .calendars label > .name {
-  text-align: right;
-}
-
-html[dir="rtl"] #settings .calendars label > span {
-  float: right;
-  text-align: start;
-}
-
 html[dir="rtl"] #settings [role="toolbar"] .toolbar-item {
   border-left: unset;
 }
@@ -267,7 +258,7 @@ html[dir="rtl"] #settings [role="toolbar"] .toolbar-item:first-child {
   border-right: 0.1rem solid #e5e5e5;
 }
 
-html[dir="rtl"] #settings .calendars input[type="checkbox"] + span:after {
+html[dir="rtl"] #settings .calendars gaia-checkbox label:after {
   left: 1.3rem;
   right: auto;
 }

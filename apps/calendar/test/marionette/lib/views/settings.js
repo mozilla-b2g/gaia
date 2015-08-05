@@ -35,7 +35,7 @@ Settings.prototype = {
   toggleCalendar: function(name) {
     name = name || 'Offline calendar';
     this
-      .findElements('.pack-checkbox')
+      .findElements('gaia-checkbox label')
       .filter(function(element) {
         return element.text() === name;
       })[0]
