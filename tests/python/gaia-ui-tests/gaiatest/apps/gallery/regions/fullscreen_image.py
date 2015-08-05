@@ -102,7 +102,7 @@ class FullscreenImage(Base):
         self.marionette.find_element(*self._camera_locator).tap()
         from gaiatest.apps.camera.app import Camera
         camera_app = Camera(self.marionette)
-        Wait(self.marionette).until(lambda m: self.apps.displayed_app.name == camera_app.name)
+        camera_app.wait_to_be_displayed()
         self.apps.switch_to_displayed_app()
         camera_app.wait_for_capture_ready()
         self.wait_for_element_not_displayed(*self._loading_screen_locator)

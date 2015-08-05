@@ -27,7 +27,7 @@ class NewMessage(Messages):
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
-        Wait(self.marionette).until(lambda m: self.apps.displayed_app.name == self.name)
+        self.wait_to_be_displayed()
         self.apps.switch_to_displayed_app()
         element = Wait(self.marionette).until(
             expected.element_present(*self._panel_conversationview_locator))

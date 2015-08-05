@@ -87,7 +87,7 @@ class Camera(Base):
         self.tap_element_from_system_app(select)
 
         # Fall back to app beneath the picker
-        Wait(self.marionette).until(lambda m: self.apps.displayed_app.name != self.name)
+        self.apps.wait_to_not_be_displayed
         self.apps.switch_to_displayed_app()
 
     def tap_switch_source(self):
@@ -138,7 +138,7 @@ class Camera(Base):
         switch_to_gallery_button.tap()
         from gaiatest.apps.gallery.app import Gallery
         gallery_app = Gallery(self.marionette)
-        Wait(self.marionette).until(lambda m: self.apps.displayed_app.name == gallery_app.name)
+        gallery_app.wait_to_be_displayed()
         self.apps.switch_to_displayed_app()
         return gallery_app
 
@@ -234,7 +234,7 @@ class ImagePreview(Base):
         self.marionette.find_element(*self._gallery_button_locator).tap()
         from gaiatest.apps.gallery.app import Gallery
         gallery_app = Gallery(self.marionette)
-        Wait(self.marionette).until(lambda m: self.apps.displayed_app.name == gallery_app.name)
+        gallery_app.wait_to_not_be_displayed()
         self.apps.switch_to_displayed_app()
         self.wait_for_element_not_displayed(*self._progress_bar_locator)
         Wait(self.marionette).until(expected.element_displayed(
