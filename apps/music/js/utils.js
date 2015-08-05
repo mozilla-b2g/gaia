@@ -50,14 +50,26 @@ function createListElement(opts) {
   var titleBdi;
 
   if (editMode) {
+    var div = document.createElement('div');
+    div.style.padding = '0 0 0 1rem';
+    div.style.float = 'left';
+    div.style.width = '2rem';
+
     var checkbox = document.createElement('input');
     checkbox.type = "checkbox";
     checkbox.name = "selected";
     checkbox.value = index;
-    li.appendChild(checkbox);
+    div.appendChild(checkbox);
+
+    a.style.float = 'right';
+    li.appendChild(div);
   }
 
   li.appendChild(a);
+
+  var div = document.createElement('div');
+  div.style.clear = 'both';
+  li.appendChild(div);
 
   function highlightText(result, text) {
     var textContent = result.textContent;

@@ -974,7 +974,7 @@ body.picker-mode #tabs {
 }
 
 .hidden {
-  display: none;
+  display: none !important;
 }
 
 li.list-header {
@@ -1004,7 +1004,7 @@ li.list-item a {
   display: block;
   text-decoration: none;
   margin: 0;
-  width: calc(100% - 2rem);
+  width: calc(100% - 4rem);
   height: 6rem;
   background-color: transparent;
   transition: background-color 200ms ease;
@@ -1051,7 +1051,7 @@ html[dir="rtl"] .list-album-art {
 .list-main-title {
   top: 10%;
   width: calc(100% - 12rem);
-  padding: 0 0.5rem 0 3rem;
+  padding: 0 0.5rem 0 5rem;
   font-size: 1.9rem;
   color: white;
 }
