@@ -91,16 +91,8 @@ suite('Developer > ', function() {
       });
 
       test('with restricted devtools', function(done) {
-        this.sinon.stub(dialogService, 'confirm').returns(
+        sinon.stub(dialogService, 'confirm').returns(
           Promise.resolve({ type: 'submit' }));
-        developer._resetDevice();
-        waitFor(() => _wipeStub.calledWith('root'), done);
-      });
-
-      test('with unrestricted devtools', function(done) {
-        sinon.stub(settingsCache, 'getSettings', callback => callback({
-          'devtools.unrestricted': true
-        }));
         sinon.stub(dialogService, 'show', function() {
           return Promise.resolve({ type: 'submit', value: 'final_warning'});
         });
@@ -110,6 +102,14 @@ suite('Developer > ', function() {
             'full-developer-mode-final-warning');
           done();
         });
+      });
+
+      test('with unrestricted devtools', function(done) {
+        sinon.stub(settingsCache, 'getSettings', callback => callback({
+          'devtools.unrestricted': true
+        }));
+        developer._resetDevice();
+        waitFor(() => _wipeStub.calledWith('normal'), done);
       });
     });
 
