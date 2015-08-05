@@ -371,7 +371,8 @@ suite('ActivityHandler', function() {
       });
 
       test('null notification', function() {
-        sinon.assert.calledWithMatch(sendStub, 'Pepito O\'Hare', { body: '' });
+        sinon.assert.calledWithMatch(sendStub,
+          'Pepito O\'Hare', { bodyL10n: { raw: '' } });
       });
     });
 
@@ -421,7 +422,7 @@ suite('ActivityHandler', function() {
       test('a notification is sent', function() {
         sinon.assert.calledWith(sendStub, sinon.match.any, {
           icon: 'sms',
-          body: message.body,
+          bodyL10n: { raw: message.body },
           data: {
             id: message.id,
             threadId: message.threadId
@@ -557,7 +558,7 @@ suite('ActivityHandler', function() {
       simulateMessageReceived(message).then(() => {
         sinon.assert.calledWithMatch(
           NotificationHelper.send,
-          sinon.match.string, { body: 'mms-message' }
+          sinon.match.string, { bodyL10n: 'mms-message' }
         );
       }).then(done, done);
     });
@@ -567,7 +568,7 @@ suite('ActivityHandler', function() {
       simulateMessageReceived(message).then(() => {
         sinon.assert.calledWithMatch(
           NotificationHelper.send,
-          sinon.match.string, { body: 'subject' }
+          sinon.match.string, { bodyL10n: { raw: 'subject' } }
         );
       }).then(done, done);
     });
@@ -579,7 +580,7 @@ suite('ActivityHandler', function() {
       simulateMessageReceived(message).then(() => {
         sinon.assert.calledWithMatch(
           NotificationHelper.send,
-          sinon.match.string, { body: 'some text' }
+          sinon.match.string, { bodyL10n: { raw: 'some text' } }
         );
       }).then(done, done);
     });
