@@ -672,7 +672,7 @@ var KeypadManager = {
     // If there are digits in the phone number, show the delete button
     // and enable the add contact button
     if (this._onCall) {
-      this.replacePhoneNumber(phoneNumber, ellipsisSide, forceMaxFontSize);
+      this.replacePhoneNumber(phoneNumber, ellipsisSide);
     } else {
       var visibility;
       if (phoneNumber.length > 0) {
@@ -697,11 +697,10 @@ var KeypadManager = {
   },
 
   replacePhoneNumber:
-    function kh_replacePhoneNumber(phoneNumber, ellipsisSide,
-      forceMaxFontSize) {
+    function kh_replacePhoneNumber(phoneNumber, ellipsisSide) {
       if (this._onCall && CallsHandler.activeCall) {
         CallsHandler.activeCall.
-          replacePhoneNumber(phoneNumber, ellipsisSide, forceMaxFontSize);
+          replacePhoneNumber({raw: phoneNumber} , ellipsisSide);
       }
   },
 
