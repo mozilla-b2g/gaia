@@ -47,48 +47,11 @@ var ListView = {
     this.searchInput.addEventListener('focus', this);
 
     document.getElementById('btn-add-songs').addEventListener('click', function onClick(e) {
-      var info = {
-        key: 'metadata.title',
-        range: null,
-        direction:'next',
-        option: 'title',
-        editMode: true
-      };
+      this.selectToAdd();
+    }.bind(this));
 
-      ModeManager.start(MODE_LIST);
-      ListView.activate(info);
-
-      document.getElementById('empty-playlist-overlay').classList.add('hidden');
-      document.getElementById('title-edit-done').classList.remove('hidden');
-      document.getElementById('title-edit-done').addEventListener('click', function() {
-        var selectedElems = document.querySelectorAll('input[type=checkbox][name=selected]:checked');
-        var selectedIds   = [];
-
-        for (var i = 0; i < selectedElems.length; i++) {
-          selectedIds.push(selectedElems[i].value);
-        }
-
-        this.showBanner(navigator.mozL10n.get('playlist-adding-wait'));
-
-        this.addToPlaylistArray(this.currentPlaylist, 0, selectedIds, function(songs) {
-          this.showBanner(navigator.mozL10n.get('playlist-added'));
-          this.clean();
-
-          var info = {
-            key: 'metadata.title',
-            range: null,
-            direction:'next',
-            option: 'title',
-            editMode: false,
-            songs: songs
-          };
-
-          info.name = this.currentPlaylist;
-
-          document.getElementById('title-edit-done').classList.add('hidden');
-          this.activatePlaylist(info);
-        }.bind(this));
-      }.bind(this));
+    document.getElementById('playlist-menu-add-btn').addEventListener('click', function onClick(e) {
+      this.selectToAdd();
     }.bind(this));
 
     document.getElementById('title-playlist-menu').addEventListener('click', function() {
@@ -114,6 +77,44 @@ var ListView = {
         }.bind(this));
       }
     }.bind(this));
+
+    document.getElementById('title-edit-done').addEventListener('click', function() {
+      var selectedElems = document.querySelectorAll('input[type=checkbox][name=selected]:checked');
+      var selectedIds   = [];
+
+      for (var i = 0; i < selectedElems.length; i++) {
+        selectedIds.push(selectedElems[i].value);
+      }
+
+      this.showBanner(navigator.mozL10n.get('playlist-adding-wait'));
+
+      this.addToPlaylistArray(this.currentPlaylist, 0, selectedIds, function(songs) {
+        this.showBanner(navigator.mozL10n.get('playlist-added'));
+        document.getElementById('title-edit-done').classList.add('hidden');
+
+        this.editMode = false;
+        this.clean();
+        updatePlaylists(this, 'playlist');
+      }.bind(this));
+    }.bind(this));
+  },
+
+  selectToAdd: function lv_selectToAdd() {
+    var info = {
+      key: 'metadata.title',
+      range: null,
+      direction:'next',
+      option: 'title',
+      editMode: true
+    };
+
+    ModeManager.start(MODE_LIST);
+    ListView.activate(info);
+
+    document.getElementById('empty-playlist-overlay').classList.add('hidden');
+    document.getElementById('playlist-actions-overlay').classList.add('hidden');
+
+    document.getElementById('title-edit-done').classList.remove('hidden');
   },
 
   clean: function lv_clean() {
