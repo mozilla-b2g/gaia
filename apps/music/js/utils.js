@@ -1,6 +1,34 @@
 /* exported formatTime, createListElement */
-/* global AlbumArtCache, LazyLoader, Normalizer */
+/* global AlbumArtCache, LazyLoader, Normalizer, musicdb */
 'use strict';
+
+var playlistArray = [
+  { metadata: { l10nId: 'playlists-shuffle-all' }, option: 'shuffleAll' },
+  { metadata: { l10nId: 'playlists-highest-rated' }, option: 'rated' },
+  { metadata: { l10nId: 'playlists-recently-added' }, option: 'date' },
+  { metadata: { l10nId: 'playlists-most-played' }, option: 'played' },
+  { metadata: { l10nId: 'playlists-least-played' }, option: 'played' },
+  // update ListView with null result to hide the scan progress
+  null
+];
+
+function updatePlaylists(ListView, option) {
+  playlistArray.forEach(function(playlist, idx, playlists) {
+    //Don't give bottom border to last element. We use -2 here,
+    //because the array's last element is null
+    var noborder = (idx === playlists.length - 2);
+    ListView.update(option, playlist, noborder);
+  });
+
+  ListView.update('my-playlists-header');
+  ListView.update('create-playlist');
+
+  musicdb.getAllPlaylists(function(playlists) {
+    playlists.forEach(function(playlist) {
+      ListView.update(option, playlist);
+    });
+  });
+}
 
 function formatTime(secs) {
   if (isNaN(secs)) {

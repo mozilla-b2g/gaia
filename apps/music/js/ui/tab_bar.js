@@ -4,17 +4,6 @@
 'use strict';
 
 var TabBar = {
-  // this array is for automated playlists
-  playlistArray: [
-    { metadata: { l10nId: 'playlists-shuffle-all' }, option: 'shuffleAll' },
-    { metadata: { l10nId: 'playlists-highest-rated' }, option: 'rated' },
-    { metadata: { l10nId: 'playlists-recently-added' }, option: 'date' },
-    { metadata: { l10nId: 'playlists-most-played' }, option: 'played' },
-    { metadata: { l10nId: 'playlists-least-played' }, option: 'played' },
-    // update ListView with null result to hide the scan progress
-    null
-  ],
-
   get view() {
     return document.getElementById('tabs');
   },
@@ -85,24 +74,7 @@ var TabBar = {
           case 'tabs-playlists':
             ModeManager.start(MODE_LIST, function() {
               ListView.activate();
-
-              this.playlistArray.forEach(function(playlist) {
-                ListView.update(this.option, playlist);
-              }.bind(this));this.playlistArray.forEach(function(playlist, idx, playlists) {
-                //Don't give bottom border to last element. We use -2 here,
-                //because the array's last element is null
-                var noborder = (idx === playlists.length - 2);
-                ListView.update(this.option, playlist, noborder);
-              }.bind(this));
-
-              ListView.update('my-playlists-header');
-              ListView.update('create-playlist');
-
-              musicdb.getAllPlaylists(function(playlists) {
-                playlists.forEach(function(playlist) {
-                  ListView.update(this.option, playlist);
-                }.bind(this));
-              }.bind(this));
+              updatePlaylists(ListView, this.option);
             }.bind(this));
             break;
           case 'tabs-artists':
