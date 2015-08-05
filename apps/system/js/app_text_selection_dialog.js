@@ -20,14 +20,9 @@
     this._isCommandSendable = false;
     this._transitionState = 'closed';
     this.textualmenuDetail = null;
+    this.bindOnObservePrefChanged = this.onObservePrefChanged.bind(this);
     SettingsListener.observe('copypaste.enabled', true,
-      function onObserve(value) {
-        if (value) {
-          this.start();
-        } else {
-          this.stop();
-        }
-      }.bind(this));
+                             this.bindOnObservePrefChanged);
   };
 
   AppTextSelectionDialog.prototype = Object.create(window.BaseUI.prototype);
@@ -66,6 +61,24 @@
   AppTextSelectionDialog.prototype.ID_NAME = 'AppTextSelectionDialog';
 
   AppTextSelectionDialog.prototype.ELEMENT_PREFIX = 'textselection-dialog-';
+
+  AppTextSelectionDialog.prototype.onObservePrefChanged =
+    function tsd_onObservePrefChanged(value) {
+      if (value) {
+        this.start();
+      } else {
+        this.stop();
+      }
+    };
+
+  // Overwrite _unregisterEvents to make sure we remove event handlers
+  // and preference observer when destroying this app.
+  AppTextSelectionDialog.prototype._unregisterEvents =
+    function tsd__unregisterEvents() {
+      this.stop();
+      SettingsListener.unobserve('copypaste.enabled',
+                                 this.bindOnObservePrefChanged);
+    };
 
   AppTextSelectionDialog.prototype.start = function tsd_start() {
     if (this._enabled) {
