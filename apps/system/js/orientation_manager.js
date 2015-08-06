@@ -23,8 +23,8 @@
   window.OrientationManager = {
     init: function om_init() {
       this.fetchDefaultOrientation();
-      if (SettingsListener) {
-        SettingsListener.observe('screen.orientation.lock', false,
+      if (SettingsCache) {
+        SettingsCache.observe('screen.orientation.lock', false,
           function(value) {
             this.globalOrientation = value ?
               this.fetchCurrentOrientation() : null;

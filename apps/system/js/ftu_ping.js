@@ -3,7 +3,7 @@
 
 'use strict';
 
-/* global MobileOperator, SIMSlotManager, uuid, dump */
+/* global MobileOperator, SIMSlotManager, uuid, dump, SettingsCache */
 
 /**
  * A simple ping that is kicked off on first time use
@@ -143,14 +143,15 @@
             self._maxNetworkFails = settings[FTU_PING_MAX_NETWORK_FAILS] ||
                                     self._maxNetworkFails;
 
-            var mozSettings = window.navigator.mozSettings;
             if (!self._settingObserver) {
               self._settingObserver = self.onSettingChanged.bind(self);
             }
 
             OBSERVE_SETTINGS.forEach(function(observeSetting) {
               self._pingData[observeSetting] = settings[observeSetting];
-              mozSettings.addObserver(observeSetting, self._settingObserver);
+              SettingsCache.observe(observeSetting, null, function(value) {
+                self._settingObserver(observeSetting, value);
+              });
             });
 
             if (callback) {
@@ -177,17 +178,14 @@
     getSettings: function fp_getSettings(settingKeys, callback) {
       var settingsLeft = settingKeys.length;
       var settings = {};
-      var lock = window.navigator.mozSettings.createLock();
       settingKeys.forEach(function(key) {
-        var request = lock.get(key);
-        request.onsuccess = function(evt) {
-          var value = request.result[key];
+        SettingsCache.get(key, function(value) {
           settingsLeft--;
           settings[key] = value;
           if (settingsLeft === 0 && callback) {
             callback(settings);
           }
-        };
+        });
       });
     },
 
@@ -195,8 +193,8 @@
       this.initSettings(this.startPing.bind(this));
     },
 
-    onSettingChanged: function fp_onSettingChanged(evt) {
-      this._pingData[evt.settingName] = evt.settingValue;
+    onSettingChanged: function fp_onSettingChanged(key, value) {
+      this._pingData[key] = value;
     },
 
     startPing: function fp_startPing() {
@@ -360,11 +358,12 @@
 
       this._pingEnabled = false;
       window.asyncStorage.setItem(FTU_PING_ENABLED, false);
+      // XXX: we don't have unobserve
 
-      var settings = window.navigator.mozSettings;
-      OBSERVE_SETTINGS.forEach(function(setting) {
-        settings.removeObserver(setting, this._settingObserver);
-      }, this);
+      // var settings = window.navigator.mozSettings;
+      // OBSERVE_SETTINGS.forEach(function(setting) {
+      //   settings.removeObserver(setting, this._settingObserver);
+      // }, this);
 
       clearInterval(this._pingTimer);
     },

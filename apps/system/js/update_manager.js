@@ -105,7 +105,7 @@ var UpdateManager = {
     window.addEventListener('online', this);
     window.addEventListener('offline', this);
 
-    SettingsListener.observe('gaia.system.checkForUpdates', false,
+    SettingsCache.observe('gaia.system.checkForUpdates', false,
                              this.checkForUpdates.bind(this));
 
     // We maintain the the edge and nowifi data attributes to show

@@ -1,5 +1,5 @@
 'use strict';
-/* global SettingsListener */
+/* global SettingsCache, SettingsListener */
 
 (function(exports) {
 
@@ -118,7 +118,7 @@
 
       // Attach all observers.
       Object.keys(this.settings).forEach(function attach(settingKey) {
-        SettingsListener.observe(settingKey, this.settings[settingKey],
+        SettingsCache.observe(settingKey, this.settings[settingKey],
           function observe(aValue) {
             this.settings[settingKey] = aValue;
             switch (settingKey) {

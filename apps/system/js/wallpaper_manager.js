@@ -1,7 +1,7 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/* global System, ImageUtils, LazyLoader */
+/* global System, ImageUtils, LazyLoader, SettingsCache */
 
 'use strict';
 
@@ -62,10 +62,8 @@
       debug('started');
 
       // Query the wallpaper
-      var lock = navigator.mozSettings.createLock();
-      var query = lock.get(WALLPAPER_KEY);
-      query.onsuccess = function() {
-        var wallpaper = query.result[WALLPAPER_KEY];
+      SettingsCache.get(WALLPAPER_KEY, function(value) {
+        var wallpaper = value;
         if (!wallpaper) {
           debug('no wallpaper found at startup; using default');
           this._setWallpaper(DEFAULT_WALLPAPER_URL);
@@ -74,18 +72,17 @@
           // If the wallpaper is a blob, first go see if we have already
           // validated it size. Because if we have, we don't have to check
           // the size again or even load the code to check its size.
-          var query2 = lock.get(WALLPAPER_VALID_KEY);
-          query2.onsuccess = function() {
-            var valid = query2.result[WALLPAPER_VALID_KEY];
+          SettingsCache.get(WALLPAPER_VALID_KEY, function(v) {
+            var valid = v;
             this._setWallpaper(wallpaper, valid);
-          }.bind(this);
+          }.bind(this));
         }
         else {
           // If the wallpaper is not a blob, just pass it to _setWallpaper
           // and try to convert it to a blob there.
           this._setWallpaper(wallpaper);
         }
-      }.bind(this);
+      }.bind(this));
 
       // And register a listener so we'll be notified of future changes
       // to the wallpaper

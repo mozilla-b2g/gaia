@@ -1,5 +1,5 @@
 'use strict';
-/* global SettingsListener, System */
+/* global SettingsCache, SettingsListener, System */
 
 (function(exports) {
 
@@ -138,7 +138,7 @@
       DEBUG && debug('UsbStorage.start called');
       window.addEventListener('lockscreen-appopened', this);
       window.addEventListener('lockscreen-appclosed', this);
-      SettingsListener.observe(this.umsEnabled, false,
+      SettingsCache.observe(this.umsEnabled, false,
         this.bindUsbStorageChanged);
     },
 
@@ -209,15 +209,12 @@
      * @memberof UsbStorage.prototype
      */
     _getUsbProtocol: function() {
-      var req = navigator.mozSettings.createLock()
-        .get(this.usbTransferProtocol);
-      req.onsuccess = function() {
-        var protocol = this._keyMigration(
-          req.result[this.usbTransferProtocol]);
+      SettingsCache.get(this.usbTransferProtocol, function(value) {
+        var protocol = this._keyMigration(value);
         this._protocol = protocol;
         DEBUG && debug('_getUsbProtocol: ' + this._protocolStr(protocol));
         this._updateMode();
-      }.bind(this);
+      }.bind(this));
     },
 
     /**

@@ -1,6 +1,7 @@
 'use strict';
 /* global ScreenLayout */
 /* global SettingsListener */
+/* global SettingsCache */
 
 (function(exports) {
 
@@ -77,7 +78,7 @@
         // as default
         this.toggle(true);
       } else {
-        SettingsListener.observe('homegesture.enabled', false,
+        SettingsCache.observe('homegesture.enabled', false,
           function onObserve(value) {
             this.toggle(value);
           }.bind(this));

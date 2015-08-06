@@ -1,5 +1,6 @@
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+/* global SettingsCache */
 
 'use strict';
 
@@ -37,10 +38,10 @@ var Wifi = {
     // If wifi is turned off by us and phone got rebooted,
     // bring wifi back.
     var name = 'wifi.disabled_by_wakelock';
-    var req = SettingsListener.getSettingsLock().get(name);
-    req.onsuccess = function gotWifiDisabledByWakelock() {
-      if (!req.result[name])
+    SettingsCache.get(name, function gotWifiDisabledByWakelock(value) {
+      if (!value) {
         return;
+      }
 
       // Re-enable wifi and reset wifi.disabled_by_wakelock
       // SettingsListener.getSettingsLock() always return invalid lock
@@ -49,7 +50,7 @@ var Wifi = {
       var lock = navigator.mozSettings.createLock();
       lock.set({ 'wifi.enabled': true });
       lock.set({ 'wifi.disabled_by_wakelock': false });
-    };
+    });
 
     var self = this;
     var wifiManager = window.navigator.mozWifiManager;
@@ -77,13 +78,13 @@ var Wifi = {
       window.dispatchEvent(evt);
     };
 
-    SettingsListener.observe(
+    SettingsCache.observe(
       'wifi.screen_off_timeout', 600000, function(value) {
         self.screenOffTimeout = value;
       });
 
     // Track the wifi.enabled mozSettings value
-    SettingsListener.observe('wifi.enabled', true, function(value) {
+    SettingsCache.observe('wifi.enabled', true, function(value) {
       if (!wifiManager && value) {
         self.wifiEnabled = false;
 
