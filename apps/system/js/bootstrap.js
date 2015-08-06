@@ -208,6 +208,7 @@ window.addEventListener('load', function startup() {
   var evt = new CustomEvent('mozContentEvent',
       { bubbles: true, cancelable: false,
         detail: { type: 'system-message-listener-ready' } });
+  console.log('[System] loadEnded');
   window.dispatchEvent(evt);
 });
 

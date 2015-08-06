@@ -105,6 +105,7 @@
                          'js/contextmenu_handler.js',
                          '/shared/js/homescreens/confirm_dialog_helper.js'],
           function() {
+            console.log('[VerticalHome] fullyLoaded');
             window.dispatchEvent(new CustomEvent('moz-app-loaded'));
           });
       }.bind(this));
