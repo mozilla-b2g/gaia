@@ -91,6 +91,8 @@ apps/ringtones/js/share.js
 apps/search/js/providers/marketplace.js
 apps/search/js/providers/places.js
 apps/settings/js/bluetooth.js
+apps/settings/js/downloads/download_item.js
+apps/settings/js/downloads/downloads_list.js
 apps/settings/js/findmydevice.js
 apps/settings/js/firefox_accounts/panel.js
 apps/settings/js/icc.js
@@ -166,6 +168,7 @@ shared/js/contacts/contacts_buttons.js
 shared/js/contacts/import/utilities/misc.js
 shared/js/dialer/keypad.js
 shared/js/dialer/utils.js
+shared/js/download/download_formatter.js
 shared/js/l10n_date.js
 shared/js/media/media_frame.js
 shared/js/media/media_utils.js

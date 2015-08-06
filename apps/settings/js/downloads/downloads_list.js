@@ -46,12 +46,11 @@
   }
 
   function _newDownload(download) {
-    _prepend(download).then(() => {
-      if (isEditMode) {
-        numberOfDownloads++;
-        _updateButtonsStatus();
-      }
-    });
+    _prepend(download);
+    if (isEditMode) {
+      numberOfDownloads++;
+      _updateButtonsStatus();
+    }
   }
 
   function _render(downloads, oncomplete) {
@@ -66,9 +65,9 @@
     // Clean before rendering
     downloadsContainer.innerHTML = '';
     // Render
-    Promise.all(downloads.map(_append)).then(() => {
-      oncomplete && oncomplete();
-    });
+    downloads.forEach(_append);
+
+    oncomplete && oncomplete();
   }
 
   function _onerror() {
@@ -77,39 +76,33 @@
   }
 
   function _create(download) {
-    return DownloadItem.create(download).then((li) => {
-      if (download.state === 'downloading') {
-        download.onstatechange = _onDownloadStateChange;
-      }
-      li.addEventListener('click', _onDownloadAction);
-      return li;
-    });
+    var li = DownloadItem.create(download);
+    if (download.state === 'downloading') {
+      download.onstatechange = _onDownloadStateChange;
+    }
+    li.addEventListener('click', _onDownloadAction);
+    return li;
   }
 
   function _prepend(download) {
     if (downloadsContainer.children.length === 0) {
-      _append(download).then(() => {
-        _checkEmptyList();
-      });
+      _append(download);
+      _checkEmptyList();
       return;
     }
 
-    _create(download).then((li) => {
-      downloadsContainer.insertBefore(
-        li,
-        downloadsContainer.firstChild
-      );
-      _checkEmptyList();
-    });
+    downloadsContainer.insertBefore(
+      _create(download),
+      downloadsContainer.firstChild
+    );
+    _checkEmptyList();
   }
 
   function _append(download) {
-    return _create(download).then((li) => {
-      downloadsContainer.appendChild(li);
-      if (download.state === 'downloading') {
-        download.onstatechange = _onDownloadStateChange;
-      }
-    });
+    downloadsContainer.appendChild(_create(download));
+    if (download.state === 'downloading') {
+      download.onstatechange = _onDownloadStateChange;
+    }
   }
 
   function _getElementForId(id) {
@@ -198,8 +191,7 @@
           // succeeded.
         }, function onError() {
           // This error is fired when a download restarted is paused
-          navigator.mozL10n.formatValue('restart_download_error').then(msg =>
-            console.error(msg));
+          console.error(navigator.mozL10n.get('restart_download_error'));
         });
       }
     };
@@ -465,4 +457,5 @@
 }(window));
 
 // startup
-DownloadsList.init();
+navigator.mozL10n.once(DownloadsList.init.bind(DownloadsList));
+

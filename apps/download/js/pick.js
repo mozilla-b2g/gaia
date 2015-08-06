@@ -102,11 +102,9 @@
       var pInfo = document.createElement('p');
       pInfo.classList.add('info');
       DownloadFormatter.getDate(download, (date) => {
-        DownloadFormatter.getTotalSize(download).then(totalSize => {
-          navigator.mozL10n.setAttributes(pInfo, 'summary', {
-            date: date,
-            status: totalSize
-          });
+        navigator.mozL10n.setAttributes(pInfo, 'summary', {
+          date: date,
+          status: DownloadFormatter.getTotalSize(download)
         });
       });
 

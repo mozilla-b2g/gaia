@@ -1,6 +1,6 @@
 /* global loadBodyHTML, MocksHelper, MockL10n, MockMozDownloads, HtmlImports,
           MockDownloadStore, DownloadsList, MockMozDownloads, MockDownload,
-          DownloadUI, DownloadHelper, MockDownloadHelper */
+          DownloadUI, DownloadHelper */
 
 'use strict';
 
@@ -23,6 +23,7 @@ require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/js/download/download_formatter.js');
 require('/shared/test/unit/mocks/mock_download_formatter.js');
 
+require('/shared/js/download/download_helper.js');
 require('/shared/test/unit/mocks/mock_download_helper.js');
 
 // Code needed from the app
@@ -41,7 +42,7 @@ suite('DownloadList', function() {
     'DownloadHelper',
     'DownloadUI'
   ]);
-  var realMozDownloads, realL10n, realDownloadHelper;
+  var realMozDownloads, realL10n;
 
   var downloadsContainerDOM, editButton, deleteButton,
     selectAllButton, deselectAllButton, downloadsEditMenu;
@@ -55,8 +56,6 @@ suite('DownloadList', function() {
     navigator.mozL10n = MockL10n;
     // Mock moz_downloads API
     realMozDownloads = navigator.mozDownloadManager;
-    realDownloadHelper = window.DownloadHelper;
-    window.DownloadHelper = MockDownloadHelper;
     navigator.mozDownloadManager = MockMozDownloads;
     mocksHelperForDownloadList.suiteSetup();
   });
@@ -64,10 +63,8 @@ suite('DownloadList', function() {
   suiteTeardown(function() {
     navigator.mozDownloadManager = realMozDownloads;
     navigator.mozL10n = realL10n;
-    window.DownloadHelper = realDownloadHelper;
     realL10n = null;
     realMozDownloads = null;
-    realDownloadHelper = null;
 
     downloadsContainerDOM = null;
     editButton = null;

@@ -6,7 +6,7 @@
  * Creates and updates the DOM needed to render a download as a list item.
  *
  * Usage:
- *   DownloadItem.create(download).then((li) => {});
+ *   var li = DownloadItem.create(download);
  *
  * Once you got the reference, you can attach event listeners or update the
  * content explicitely if you know the download has been modified:
@@ -87,10 +87,9 @@ window.DownloadItem = (function DownloadItem() {
     // Update the state properly in the element
     domElement.dataset.state = state;
     // Update content
-    return updateContent(domNodes, download).then(() => {
-      return domElement;
-    });
+    updateContent(domNodes, download);
 
+    return domElement;
   };
 
   // Update the content of the elements according to the download
@@ -99,38 +98,29 @@ window.DownloadItem = (function DownloadItem() {
   //   elements accesible by name
   // @param {DomDownload} Download object
   var updateContent = function updateContent(domNodes, download) {
+    var _ = navigator.mozL10n.get;
     var state = getDownloadState(download);
     if (state === 'downloading') {
       domNodes.progress.value =
         DownloadFormatter.getPercentage(download);
 
-      return Promise.all([
-        DownloadFormatter.getDownloadedSize(download),
-        DownloadFormatter.getTotalSize(download)
-      ]).then(([partial, total]) => {
-        navigator.mozL10n.setAttributes(domNodes.info, 'partialResult', {
-          partial: partial,
-          total: total
-        });
+      navigator.mozL10n.setAttributes(domNodes.info, 'partialResult', {
+        partial: DownloadFormatter.getDownloadedSize(download),
+        total: DownloadFormatter.getTotalSize(download)
       });
-    } else {
-      var statusPromise;
 
+    } else {
+      var status = '';
       switch (state) {
         case 'stopped':
         case 'failed':
-          statusPromise = navigator.mozL10n.formatValue('download-' + state);
+          status = _('download-' + state);
           break;
         case 'succeeded':
-          statusPromise = DownloadFormatter.getTotalSize(download);
+          status = DownloadFormatter.getTotalSize(download);
           break;
-        default:
-          statusPromise = Promise.resolve();
       }
-      return Promise.all([
-        DownloadFormatter.getDate(download),
-        statusPromise
-      ]).then(function([date, status]) {
+      DownloadFormatter.getDate(download, function(date) {
         navigator.mozL10n.setAttributes(domNodes.info, 'summary', {
           date: date,
           status: status

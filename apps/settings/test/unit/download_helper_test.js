@@ -1,9 +1,10 @@
-/* global MocksHelper, MockGetDeviceStorages, MockMozDownloads,
+/* global MocksHelper, MockL10n, MockGetDeviceStorages, MockMozDownloads,
           MockDownload, DownloadHelper, MockGetDeviceStorage,
           DownloadFormatter  */
 
 'use strict';
 
+require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_download.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_downloads.js');
 
@@ -36,7 +37,7 @@ suite('DownloadHelper', function() {
     'DownloadFormatter',
     'MozActivity'
   ]);
-  var realDeviceStorage, realMozDownloads, download,
+  var realL10n, realDeviceStorage, realMozDownloads, download,
    realDeviceStorages;
 
   mocksHelperForDownloadHelper.attachTestHelpers();
@@ -45,6 +46,9 @@ suite('DownloadHelper', function() {
   var TICK = 1000;
 
   suiteSetup(function() {
+    realL10n = navigator.mozL10n;
+    navigator.mozL10n = MockL10n;
+
     realDeviceStorages = navigator.getDeviceStorages;
     navigator.getDeviceStorages = MockGetDeviceStorages;
 
@@ -56,6 +60,9 @@ suite('DownloadHelper', function() {
   });
 
   suiteTeardown(function() {
+    navigator.mozL10n = realL10n;
+    realL10n = null;
+
     navigator.getDeviceStorages = realDeviceStorages;
     realDeviceStorages = null;
 
