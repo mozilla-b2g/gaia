@@ -196,8 +196,13 @@ System.prototype = {
   },
 
   get appChromeProgressBar() {
-    return this.client.helper.waitForElement(
-      System.Selector.appChromeProgressBar);
+    var progressBar;
+    var client = this.client;
+    this.client.waitFor(function() {
+      progressBar = client.findElement(System.Selector.appChromeProgressBar);
+      return progressBar;
+    });
+    return progressBar;
   },
 
   get currentWindow() {
