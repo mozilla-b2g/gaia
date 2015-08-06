@@ -1,0 +1,53 @@
+<element name="ala-custom" extends="section">
+  <template>
+    <header>
+      <a class="back" href="#">
+        <span class="icon icon-back">back</span>
+      </a>
+      <h1 data-l10n-id="define-custom-location">Define custom loaction</h1>
+    </header>
+    <div>
+      <ul>
+        <li>
+          <label class="pack-radio">
+            <input type="radio" class="dcl-type-rc" value="rc">
+            <span data-l10n-id="dcl-type-rc">Choose a region/city</span>
+          </label>
+        </li>
+        <li class="dcl-rc-region">
+          <p data-l10n-id="region">Region</p>
+          <span class="button icon icon-dialog">
+            <select class="dcl-region" name="dcl.region" data-value-type="string">
+            </select>
+          </span>
+        </li>
+        <li class="dcl-rc-city">
+          <p data-l10n-id="city">City</p>
+          <span class="button icon icon-dialog">
+            <select class="dcl-city" name="dcl.city" data-value-type="string">
+            </select>
+          </span>
+        </li>
+        <li>
+          <label class="pack-radio">
+            <input type="radio" class="dcl-type-gps" value="gps">
+            <span data-l10n-id="dcl-type-gps">Enter GPS Coordinates</span>
+          </label>
+        </li>
+        <li class="dcl-gps-area">
+          <p class="description" data-l10n-id="dcl-type-gps-description">
+            Please enter the GPS coordinates for longitude from -180.0 to 180 and latitude from -90.0 to 90.0 degree with a dot to separate full degrees lower values.
+          </p>
+          <p data-l10n-id="latitude">
+            Latitude
+          </p>
+          <input data-l10-id="latitude" class="dcl-latitude" type="number" min="-90.0" max="90.0" step="0.000001" value="0" placeholder="Latitude">
+          <p data-l10n-id="longitude">
+            Longitude
+          </p>
+          <input data-l10-id="longitude" class="dcl-longitude" type="number" min="-180.0" max="180.0" step="0.000001" value="0" placeholder="Longitude">
+        </li>
+      </ul>
+    </div>
+  </template>
+</element>

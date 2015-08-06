@@ -1,0 +1,221 @@
+/**
+ * Body style & layout
+ */
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  font-size: 10px;
+  overflow: hidden;
+}
+
+section[role="region"] {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  overflow: hidden;
+}
+
+section[role="region"] {
+  transform: translateX(+100%);
+}
+
+section[role="region"].previous {
+  transform: translateX(-100%);
+}
+
+section[role="region"].current {
+  transform: translateX(0);
+}
+
+/**
+ * Only use the animation when ready
+ */
+body[data-ready="true"] section {
+  visibility: visible;
+}
+
+body[data-ready="true"] section[role="region"] {
+  transition: transform .4s ease, visibility .4s;
+}
+
+body[data-ready="true"] section[role="region"].current {
+  transition: transform .4s ease;
+}
+
+/**
+ * Headers should not scroll with the rest of the page, except for #root.
+ */
+section[role="region"] > header {
+  position: absolute;
+}
+
+section[role="region"] > div {
+  position: absolute;
+  top: 5rem;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: calc(100% - 5rem);
+  overflow-y: scroll;
+}
+
+/*
+ * Need this for scrollable background layer
+ * optimization in gecko. See Bug 950250
+ */
+section[role="region"],
+section[role="region"] > div > ul {
+  background-color: #f4f4f4;
+}
+
+
+/**
+ * Explanation texts
+ */
+
+.explanation {
+  padding: 0.5rem 3rem;
+  font-style: italic;
+  font-size: 1.4rem;
+  color: #505859;
+}
+
+.description {
+  font-size: 1.7rem;
+  line-height: 2.3rem;
+  white-space: normal;
+  -moz-hyphens: auto;
+}
+
+.description p,
+.description a,
+.description label {
+  font-size: 1.7rem;
+  line-height: 2.3rem;
+  white-space: normal;
+}
+
+.description label {
+    padding: 0;
+}
+
+.description label span {
+  height: auto;
+  min-height: 6rem;
+  padding-top: 1.2rem;
+  padding-bottom: 1.2rem;
+  font-size: 1.7rem;
+  line-height: 2.3rem;
+  white-space: normal;
+}
+
+.description small {
+  font-size: 1.7rem;
+  color: #505859;
+}
+
+.link-text {
+  font-size: 1.4rem;
+  color: #35679A;
+  text-decoration: underline;
+}
+
+.link-text:active {
+  background-color: #c1d6e6;
+}
+
+.hint label span {
+  top: 2.9rem;
+}
+
+.hint span {
+  line-height: 6rem;
+}
+
+.hint .explanation {
+  font-style: normal;
+  position: relative;
+  margin-top: -2rem;
+  padding: 0.5rem 4rem 1.3rem 1.5rem;
+  white-space: normal;
+}
+
+.hint > label:not([for]) ~ .explanation {
+  padding-right: 8rem;
+}
+
+.hint .explanation[hidden] {
+  display: none;
+}
+
+
+/**
+ * Disabled items
+ */
+
+.disabled a,
+.disabled p,
+.disabled h2,
+.disabled label,
+.disabled select {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/**
+ * Headers
+ */
+
+section[role="region"] > header:first-child h1 {
+  margin-right: 5rem;
+  margin-left: 5rem;
+  font-size: 2rem;
+}
+
+
+/**
+ * Right-To-Left layout
+ */
+
+html[dir="rtl"] section[role="region"] {
+  transform: translateX(-100%);
+}
+
+html[dir="rtl"] section[role="region"].previous  {
+  transform: translateX(+100%);
+}
+
+html[dir="rtl"] section[role="region"].current {
+  transform: translateX(0);
+}
+
+/* 'show password' checkboxes */
+html[dir="rtl"] label[for^="pwd"] {
+  padding-left: inherit;
+  padding-right: 3rem;
+}
+
+/* Following RTL Tweaks */
+
+html[dir="rtl"] .hint .explanation {
+  padding-left: 4rem;
+  padding-right: 1.5rem;
+  white-space: normal;
+}
+
+html[dir="rtl"] .hint > label:not([for]) ~ .explanation {
+  padding-left: 8rem;
+  padding-right: 1.5rem;
+}
+
+html[dir="rtl"] ul[data-state="ready"] li > a {
+  padding-left: 6.2rem; /* 3rem (initial padding) + 3.2rem (wifi icon width) */
+  padding-right: 3rem;
+}

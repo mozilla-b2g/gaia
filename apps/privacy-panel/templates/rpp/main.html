@@ -1,0 +1,42 @@
+<element name="rpp-main" extends="section">
+  <template>
+    <header>
+      <a class="pp-link back" href="#root">
+        <span class="icon icon-back">back</span>
+      </a>
+      <h1 data-l10n-id="rpp-panel">Remote Privacy Protection</h1>
+    </header>
+    <div>
+      <ul id="rpp-register" class="rpp-box">
+        <li class="description">
+          <p data-l10n-id="rpp-new-password-description">
+            Please set a passphrase to secure your remote features (maximum 100 characters).
+          </p>
+          <form id="rpp-register-form">
+            <input class="pass1" type="password" placeholder="New passphrase">
+            <input class="pass2" type="password" placeholder="Confirm new passphrase">
+            <div class="validation-message"></div>
+            <input class="rpp-register-ok btn" type="submit" value="Ok">
+          </form>
+        </li>
+      </ul>
+      <ul id="rpp-login" class="rpp-box">
+        <li class="description">
+          <p data-l10n-id="rpp-login-description">
+            Please enter your passphrase.
+          </p>
+        </li>
+        <li>
+          <form id="rpp-login-form">
+            <input class="pass1" type="password" placeholder="Passphrase">
+            <div class="validation-message"></div>
+            <a class="change-password-link link-text pp-link" href="#rpp-change-pass">
+              <span data-l10n-id="rpp-change-password">Forgot/Change your passphrase?</span>
+            </a>
+            <input class="rpp-login-ok btn" type="submit" value="Ok">
+          </form>
+        </li>
+      </ul>
+    </div>
+  </template>
+</element>
