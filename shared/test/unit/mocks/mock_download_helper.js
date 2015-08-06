@@ -12,9 +12,7 @@ var MockDownloadHelper = {
   },
   remove: function() {
     return {
-      set onsuccess(s) { setTimeout(function() {
-       s();
-      }, 100); },
+      set onsuccess(s) { s(); },
       set onerror(e) {}
     };
   },
