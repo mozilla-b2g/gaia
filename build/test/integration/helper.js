@@ -119,7 +119,7 @@ function matchFileContentInZip(zipPath, pathInZip, matchPattern) {
 
 function exec(command, options, callback) {
   var opts = {
-    maxBuffer: 400 * 1024
+    maxBuffer: 4096 * 1024
   };
   if (typeof options !== 'function') {
     for (var key in options) {
