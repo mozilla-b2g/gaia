@@ -61,13 +61,15 @@ suite('system/ChildWindowFactory', function() {
     features: ''
   };
 
-
   var fakeWindowOpenPopup = {
     url: 'http://fake.com/child2.html',
     name: '',
     iframe: document.createElement('iframe'),
     features: 'dialog'
   };
+
+  var fakeWindowOpenHiddenPopup = Object.assign({}, fakeWindowOpenPopup);
+  fakeWindowOpenHiddenPopup.features = 'alwaysLowered';
 
   var fakeWindowOpenHaidaSheet = {
     url: 'http://fake.com/child2.html',
@@ -402,6 +404,37 @@ suite('system/ChildWindowFactory', function() {
     assert.isTrue(stubSetOrientation.called);
     assert.isTrue(app1.setVisible.calledWith(true, true));
     sinon.assert.calledWith(app1._setVisibleForScreenReader, true);
+  });
+
+  suite('Hidden popups', function() {
+    test('app with no permissions cannot open hidden popup', function() {
+      var app1 = new MockAppWindow(fakeAppConfig1);
+      var spy = this.sinon.spy(window, 'AppWindow');
+      this.sinon.stub(app1, 'hasPermission').returns(false);
+      var cwf = new ChildWindowFactory(app1);
+      var stubCreatePopupWindow = this.sinon.stub(cwf, 'createPopupWindow');
+      cwf.handleEvent(new CustomEvent('mozbrowseropenwindow',
+        {
+          detail: fakeWindowOpenHiddenPopup
+        }));
+      assert.equal(stubCreatePopupWindow.callCount, 0);
+      assert.equal(spy.callCount, 0);
+    });
+
+    test('app with permissions can open hidden popup', function() {
+      var app1 = new MockAppWindow(fakeAppConfig1);
+      this.sinon.stub(app1, 'hasPermission').returns(true);
+      var spyPopupWindow = this.sinon.spy(window, 'PopupWindow');
+      var cwf = new ChildWindowFactory(app1);
+      var spyCreatePopupWindow = this.sinon.spy(cwf, 'createPopupWindow');
+      cwf.handleEvent(new CustomEvent('mozbrowseropenwindow',
+        {
+          detail: fakeWindowOpenHiddenPopup
+        }));
+
+      assert.isTrue(spyCreatePopupWindow.calledOnce);
+      assert.isTrue(spyPopupWindow.getCall(0).args[0].stayBackground);
+    });
   });
 
   suite('FTU is running', function() {
