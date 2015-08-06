@@ -4,8 +4,6 @@
 'use strict';
 
 var Wifi = {
-  wifiWakeLocked: false,
-
   wifiEnabled: true,
 
   wifiDisabledByWakelock: false,
@@ -50,6 +48,10 @@ var Wifi = {
       lock.set({ 'wifi.enabled': true });
       lock.set({ 'wifi.disabled_by_wakelock': false });
     };
+
+    this._wakeLockManager = new WifiWakeLockManager();
+    this._wakeLockManager.onwakelockchange = this.maybeToggleWifi.bind(this);
+    this._wakeLockManager.start();
 
     var self = this;
     var wifiManager = window.navigator.mozWifiManager;
@@ -112,17 +114,6 @@ var Wifi = {
           wifiManager.getNetworks();
       });
     });
-
-    var power = navigator.mozPower;
-    power.addWakeLockListener(function wifi_handleWakeLock(topic, state) {
-      if (topic !== 'wifi')
-        return;
-
-      self.wifiWakeLocked = (state == 'locked-foreground' ||
-                             state == 'locked-background');
-
-      self.maybeToggleWifi();
-    });
   },
 
   handleEvent: function wifi_handleEvent(evt) {
@@ -180,7 +171,7 @@ var Wifi = {
 
       // Wifi wake lock is held while screen and wifi are off, turn on wifi and
       // get into power save mode.
-      if (!this.wifiEnabled && this.wifiWakeLocked) {
+      if (!this.wifiEnabled && this._wakeLockManager.isHeld) {
         lock.set({ 'wifi.enabled': true });
         window.addEventListener('wifi-enabled', function() {
           wifiManager.setPowerSavingMode(true);
@@ -289,7 +280,7 @@ var Wifi = {
     var request = null;
     // If Wifi wake lock is held, change wifi to power save mode instead of
     // disable it.
-    if (this.wifiWakeLocked) {
+    if (this._wakeLockManager.isHeld) {
       var wifiManager = window.navigator.mozWifiManager;
       if (wifiManager) {
         request = wifiManager.setPowerSavingMode(true);

@@ -14,7 +14,7 @@
          LockScreenNotifications, LockScreenPasscodeValidator, NfcManager,
          ExternalStorageMonitor, LockScreenNotificationBuilder,
          BrowserSettings, AppMigrator, SettingsMigrator, EuRoamingManager,
-         KeyboardManager, TrustedUIManager */
+         CpuManager, KeyboardManager, TrustedUIManager */
 'use strict';
 
 
@@ -134,6 +134,8 @@ window.addEventListener('load', function startup() {
   window.appUsageMetrics.start();
   window.appWindowFactory = new AppWindowFactory();
   window.appWindowFactory.start();
+  window.cpuManager = new CpuManager();
+  window.cpuManager.start();
   window.developerHUD = new DeveloperHUD();
   window.developerHUD.start();
   /** @global */
