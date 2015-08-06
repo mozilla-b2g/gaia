@@ -94,6 +94,13 @@ var WifiHelper = {
     return key === curkey;
   },
 
+  getConnectionStatus: function(network) {
+    if (this.isConnected(network)) {
+      return this.wifiManager.connection.status;
+    }
+    return '';
+  },
+
   isValidInput: function(key, password, identity, eap) {
     function isValidWepKey(password) {
       switch (password.length) {
