@@ -54,6 +54,11 @@
   opacity: 0.5;
 }
 
+#quick-settings-airplane-mode[data-disabling] {
+  color: #fff;
+  opacity: 0.5;
+}
+
 #quick-settings-full-app:active:before {
   color: #008eab;
 }
