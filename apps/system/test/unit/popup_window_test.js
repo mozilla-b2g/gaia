@@ -102,4 +102,12 @@ suite('system/PopupWindow', function() {
     assert.equal(popup.element.classList.contains('light'),
       app.element.classList.contains('light'));
   });
+
+  test('Stay in background popup should be hidden', function() {
+    var hiddenPopupConfig = Object.assign({}, fakePopupConfig);
+    app = new AppWindow(fakeAppConfig);
+    hiddenPopupConfig.stayBackground = true;
+    var popup = new PopupWindow(hiddenPopupConfig);
+    assert.isTrue(popup.element.classList.contains('alwaysLowered'));
+  });
 });

@@ -28,6 +28,12 @@
       return;
     }
 
+    // Check if the popup is requested to be always lowered
+    if (configs.stayBackground) {
+      this.element.classList.add('alwaysLowered');
+      this.openAnimation = this.closeAnimation = 'immediate';
+    }
+
     this.themeColor = this.rearWindow.themeColor;
 
     if (this.rearWindow.appChrome) {

@@ -88,6 +88,11 @@
             caught = this.launchActivity(evt);
           }
           break;
+        case 'alwaysLowered':
+          if (this.app.hasPermission('open-hidden-window')) {
+            caught = this.createPopupWindow(evt);
+          }
+          break;
         case 'attention':
           // Open attentionWindow
           if (!this.createAttentionWindow(evt)) {
@@ -123,12 +128,15 @@
           this.app.frontWindow.isActive())) {
       return false;
     }
+    var stayBackground =
+      'alwaysLowered'.indexOf(evt.detail.features) >= 0;
     var configObject = {
       url: evt.detail.url,
       name: this.app.name,
       iframe: evt.detail.frameElement,
       origin: this.app.origin,
-      rearWindow: this.app
+      rearWindow: this.app,
+      stayBackground: stayBackground
     };
     var childWindow = new PopupWindow(configObject);
     childWindow.element.addEventListener('_closing', this);

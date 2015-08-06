@@ -15,6 +15,10 @@
   background-color: white;
 }
 
+.appWindow.popupWindow.alwaysLowered {
+  display: none;
+}
+
 .appWindow:not(.homescreen):not(.searchWindow).render {
   background-image: none !important;
   background-color: transparent;
