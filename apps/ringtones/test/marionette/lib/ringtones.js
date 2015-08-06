@@ -91,7 +91,7 @@ function BaseSound(client, element) {
 }
 
 BaseSound.Selectors = Object.freeze({
-  name: 'p.name',
+  name: '.name',
   subtitle: 'p.subtitle'
 });
 
@@ -141,13 +141,15 @@ PickSound.prototype = Object.create(BaseSound.prototype);
 PickSound.prototype.constructor = PickSound;
 
 PickSound.Selectors = Object.freeze({
-  input: 'input[type="radio"]'
+  input: 'gaia-radio'
 });
 
 Object.defineProperty(PickSound.prototype, 'selected', {
   get: function() {
     return Boolean(this.element.findElement(PickSound.Selectors.input)
-                       .getAttribute('checked'));
+                       .scriptWith(function(el) {
+                         return el.wrappedJSObject.checked;
+                       }));
   }
 });
 

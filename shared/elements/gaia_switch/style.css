@@ -14,7 +14,7 @@ gaia-switch {
 #switch span {
   float: left;
   font-size: 1.9rem;
-  color: #000;
+  color: var(--label-color);
   padding: 1rem 0;
   line-height: 3rem;
   box-sizing: border-box;

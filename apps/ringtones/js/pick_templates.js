@@ -9,7 +9,7 @@ var Templates = {
           <span data-l10n-id="${l10nID}"></span>
         </gaia-subheader>
         <section data-type="list">
-          <ul data-type="edit"></ul>
+          <ul></ul>
         </section>
       </section>`;
   },
@@ -17,11 +17,11 @@ var Templates = {
   soundItem: function({l10nID, name}) {
     return Sanitizer.escapeHTML `
       <li>
-        <label class="pack-radio">
-          <input type="radio" name="sounds"/>
-          <span></span>
-        </label>
-        <p class="name"><bdi data-l10n-id="${l10nID}">${name}</bdi></p>
+        <gaia-radio name="sounds">
+          <label class="name">
+            <bdi data-l10n-id="${l10nID}">${name}</bdi>
+          </label>
+        </gaia-radio>
       </li>`;
   }
 };

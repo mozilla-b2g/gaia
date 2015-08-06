@@ -31,6 +31,7 @@ ul[data-type="edit"] {
 
 li {
   z-index: 1;
+  -moz-padding-start: 1.5rem;
 }
 
 li:active:before {

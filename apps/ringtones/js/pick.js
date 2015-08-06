@@ -54,7 +54,7 @@ navigator.mozSetMessageHandler('activity', function(activity) {
   PickerToneList.prototype.makeItem = function(tone) {
     var item = ToneList.prototype.makeItem.call(this, tone);
 
-    var input = item.querySelector('input');
+    var input = item.querySelector('gaia-radio');
     input.checked = (tone.id === currentToneID);
     input.addEventListener('click', function() {
       tonePlayer.setTone(tone);
