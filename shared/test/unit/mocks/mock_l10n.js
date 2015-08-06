@@ -6,6 +6,7 @@
     readyState: 'complete',
 
     get: stringify,
+    _stringify: stringify,
 
     formatValue: function(id, args) {
       return Promise.resolve(stringify(id, args || ''));
