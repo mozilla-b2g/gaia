@@ -3,6 +3,7 @@ var Logger = require('marionette-js-logger');
 var Marionette = require('marionette-client');
 var Promise = require('promise');
 var debug = require('debug')('marionette-js-runner:hostmanager');
+var prettyjson = require('prettyjson');
 
 /**
  * @constructor
@@ -125,7 +126,7 @@ HostManager.prototype = {
           if (verbose) {
             client.logger.pollMessages();
             client.logger.on('message', function(msg) {
-              console.log(JSON.stringify(msg));
+              console.log(prettyjson.render(msg) + '\n');
             });
           }
 
