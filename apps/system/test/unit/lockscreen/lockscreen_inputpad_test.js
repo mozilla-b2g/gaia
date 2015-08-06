@@ -16,10 +16,15 @@ suite('LockScreenInputpad', function() {
   setup(function() {
     mockGetElementById = sinon.stub(window.document, 'getElementById',
     function() {
-      return document.createElement('div');
+      var elem = document.createElement('div');
+      elem.querySelector = function() {
+        return document.createElement('div');
+      };
+      return elem;
     });
     mockLockScreenFacade = {};
-    subject = (new LockScreenInputpad(mockLockScreenFacade)).start();
+    subject = new LockScreenInputpad(mockLockScreenFacade);
+    subject.start();
   });
 
   teardown(function() {
@@ -241,6 +246,7 @@ suite('LockScreenInputpad', function() {
       test('it would vibrate', function() {
         var method = subject.handlePassCodeInput;
         var mockThis = {
+          passcodePad: document.createElement('div'),
           lockScreen: {
             overlay: document.createElement('div'),
             checkPassCode: () => {}

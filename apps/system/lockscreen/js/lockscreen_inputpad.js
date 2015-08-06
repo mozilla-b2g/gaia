@@ -174,6 +174,10 @@
     } else {
       this.passcodePad.classList.remove('passcode-entered');
     }
+    if (this.states.passCodeEntered.length !== 4 &&
+        this.passcodePad.classList.contains('passcode-fulfilled')) {
+      this.passcodePad.classList.remove('passcode-fulfilled');
+    }
     var i = 4;
     while (i--) {
       var span = this.passcodeCode.childNodes[i];
@@ -225,6 +229,11 @@
         if (this.lockScreen.overlay.dataset.passcodeStatus) {
           return;
         }
+        // If it's already 4 digits and this is the > 5th one,
+        // don't do anything.
+        if (this.states.passCodeEntered.length === 4) {
+          return;
+        }
 
         this.states.passCodeEntered += key;
         this.updatePassCodeUI();
@@ -234,6 +243,7 @@
         }
 
         if (this.states.passCodeEntered.length === 4) {
+          this.passcodePad.classList.add('passcode-fulfilled');
           this.lockScreen.checkPassCode(this.states.passCodeEntered);
         }
         break;
