@@ -17,7 +17,7 @@ gaia-radio {
 
 #radio span {
   font-size: 1.9rem;
-  color: #000;
+  color: var(--label-color);
   padding: 1rem 0;
   -moz-padding-end: 2.2rem;
   line-height: 3rem;

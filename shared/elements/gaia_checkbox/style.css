@@ -13,7 +13,7 @@ gaia-checkbox {
 
 #checkbox span {
   font-size: 1.9rem;
-  color: #000;
+  color: var(--label-color);
   line-height: 3rem;
   box-sizing: border-box;
   display: block;
