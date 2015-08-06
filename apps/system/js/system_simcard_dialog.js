@@ -1,5 +1,6 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+/* global StatusBar, System */
 'use strict';
 
 (function(exports) {
@@ -92,6 +93,20 @@
              '<button data-l10n-id="ok" type="submit">Done</button>' +
            '</menu>' +
            '</div>';
+  };
+
+  SimPinSystemDialog.prototype.updateHeight = function() {
+    // The LayoutManager is already taking care of the keyboard height,
+    // so we don't need to worry about that here.
+    var height = window.layoutManager.height - StatusBar.height;
+    // Since we always want to account for the SHB (even when on the
+    // lockscreen to avoid the flashing in bug 1085593), we do so now.
+    if (System.locked && window.softwareButtonManager.enabled) {
+      height -= window.softwareButtonManager.height;
+    }
+    this.containerElement.style.height = height + 'px';
+    // Scroll up so as to show simpin input box
+    document.activeElement.scrollIntoView(false);
   };
 
   // Get all elements when inited.
