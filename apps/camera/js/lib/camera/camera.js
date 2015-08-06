@@ -846,6 +846,7 @@ Camera.prototype.takePicture = function(options) {
 };
 
 Camera.prototype.updateFocusArea = function(rect, done) {
+  if (!this.mozCamera) { return; }
   this.focus.updateFocusArea(rect, focusDone);
   function focusDone(state) {
     if (done) {
