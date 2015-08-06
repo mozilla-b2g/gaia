@@ -33,8 +33,7 @@ var SdManager = {
     var importer = null;
 
     var progress = utils.overlay.show(
-      'memoryCardContacts-reading', 'activityBar');
-    utils.overlay.showMenu();
+      'memoryCardContacts-reading', 'activityBar', null, true);
     utils.overlay.oncancel = function() {
       cancelled = true;
       if (importer) {
