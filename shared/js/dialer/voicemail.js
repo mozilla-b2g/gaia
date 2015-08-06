@@ -1,6 +1,6 @@
 'use strict';
 
-/* global Promise */
+/* global Promise, SettingsCache */
 
 (function(exports) {
   /**
@@ -45,11 +45,9 @@
 
         // check the voicemail number with the mozSetting value
         // based on /shared/resources/apn.json
-        var settings = navigator.mozSettings;
-        var req = settings.createLock().get('ril.iccInfo.mbdn');
-        req.onsuccess = function getVoicemailNumber() {
+        function getVoicemailNumber(value) {
           var isVoicemailNumber = false;
-          var voicemailNumbers = req.result['ril.iccInfo.mbdn'];
+          var voicemailNumbers = value;
           var voicemailNumber;
 
           if (typeof voicemailNumbers === 'string') {
@@ -61,11 +59,8 @@
             isVoicemailNumber = true;
           }
           resolve(isVoicemailNumber);
-        };
-
-        req.onerror = function getVoicemailNumberError() {
-          resolve(false);
-        };
+        }
+        SettingsCache.get('ril.iccInfo.mbdn', getVoicemailNumber);
       });
     }
   };
