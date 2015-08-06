@@ -160,6 +160,10 @@ define(function(require) {
         backHeader.addEventListener('action', function() {
           Settings.currentPanel = this.dataset.href;
         });
+        window.onpopstate = (evt) => {
+          console.log('back to:' + backHeader.dataset.href);
+          Settings.currentPanel = backHeader.dataset.href;
+        };
       }
     },
 

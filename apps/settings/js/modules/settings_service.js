@@ -341,6 +341,8 @@ define(function(require) {
         _navigating = true;
         _navigate(panelId, options, (function() {
           _navigating = false;
+          console.log('panel: ' + panelId);
+          history.pushState({}, 'panel', panelId);
 
           // Navigate to the pending navigation if any.
           if (_pendingNavigationRequest) {
