@@ -232,3 +232,4 @@ You could generate single app doc with this:
 $ grunt jsdoc:system
 ```
 
+FOO
