@@ -4,10 +4,13 @@ function StickyHeader(scrollable, sticky) {
   'use strict';
 
   var headers = scrollable.getElementsByTagName('header');
-  var stickyPosition = sticky.offsetHeight + sticky.offsetTop;
+  var stickyPosition;
   var stickyStyle = sticky.style;
 
   this._throttledRefresh = function() {
+    if (stickyPosition === undefined) {
+      stickyPosition = sticky.offsetHeight + sticky.offsetTop;
+    }
     for (var i = 1, length = headers.length; i < length; i++) {
       if (headers[i].offsetTop - scrollable.scrollTop > stickyPosition) {
 

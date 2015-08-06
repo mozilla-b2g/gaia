@@ -83,12 +83,18 @@ var ThreadListUI = {
     this.draftLinks = new Map();
     ThreadListUI.draftRegistry = {};
 
-    this.sticky =
-      new StickyHeader(this.container, document.getElementById('sticky'));
-
     MessageManager.on('message-sending', this.onMessageSending.bind(this));
     MessageManager.on('message-received', this.onMessageReceived.bind(this));
     MessageManager.on('threads-deleted', this.onThreadsDeleted.bind(this));
+
+    this.sticky = null;
+  },
+
+  initStickyHeader: function thlui_initStickyHeader() {
+    if (!this.sticky) {
+      this.sticky =
+        new StickyHeader(this.container, document.getElementById('sticky'));
+    }
   },
 
   beforeLeave: function thlui_beforeLeave() {
@@ -309,7 +315,7 @@ var ThreadListUI = {
       parent.previousSibling.remove();
       parent.remove();
 
-      this.sticky.refresh();
+      this.sticky && this.sticky.refresh();
 
       // if we have no more elements, set empty classes
       if (!this.container.querySelector('li')) {
@@ -486,7 +492,7 @@ var ThreadListUI = {
         }
       }, this);
 
-      this.sticky.refresh();
+      this.sticky && this.sticky.refresh();
     }.bind(this));
   },
 
@@ -508,16 +514,21 @@ var ThreadListUI = {
       TimeHeaders.updateAll('header[data-time-update]');
     }
 
-    this.sticky.refresh();
+    this.sticky && this.sticky.refresh();
   },
 
-  renderThreads: function thlui_renderThreads(firstViewDone, allDone) {
+  renderThreads: function thlui_renderThreads(firstViewDoneCb, allDoneCb) {
     PerformanceTestingHelper.dispatch('will-render-threads');
 
     var hasThreads = false;
     var firstPanelCount = 9; // counted on a Peak
 
     this.prepareRendering();
+
+    var firstViewDone = function firstViewDone() {
+      this.initStickyHeader();
+      firstViewDoneCb();
+    }.bind(this);
 
     function onRenderThread(thread) {
       /* jshint validthis: true */
@@ -540,8 +551,8 @@ var ThreadListUI = {
       if (--firstPanelCount === 0) {
         // dispatch visually-complete and content-interactive when rendered
         // threads could fill up the top of the visiable area
-        firstViewDone();
         window.dispatchEvent(new CustomEvent('moz-app-visually-complete'));
+        firstViewDone();
       }
     }
 
@@ -555,15 +566,15 @@ var ThreadListUI = {
       if (firstPanelCount > 0) {
         // dispatch visually-complete and content-interactive when rendering
         // ended but threads could not fill up the top of the visiable area
-        firstViewDone();
         window.dispatchEvent(new CustomEvent('moz-app-visually-complete'));
+        firstViewDone();
       }
     }
 
     var renderingOptions = {
       each: onRenderThread.bind(this),
       end: onThreadsRendered.bind(this),
-      done: allDone
+      done: allDoneCb
     };
 
     MessageManager.getThreads(renderingOptions);
@@ -731,7 +742,7 @@ var ThreadListUI = {
 
     this.setEmpty(false);
     if (this.appendThread(thread)) {
-      this.sticky.refresh();
+      this.sticky && this.sticky.refresh();
     }
   },
 
