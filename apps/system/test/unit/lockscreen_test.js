@@ -337,6 +337,21 @@ suite('system/LockScreen >', function() {
                   'ftuopen caused unlock to be called');
   });
 
+  test('When cancel or invoke emergency call, stop notification activation',
+  function() {
+    var mockThis = {
+      _unlockingMessage: {
+        notificationId: 'fakeid'
+      }
+    };
+    var method = subject.handlePassCodeInput;
+    method.call(mockThis, 'c');
+    assert.isUndefined(mockThis._unlockingMessage.notificationId);
+    mockThis._unlockingMessage.notificationId = 'fakeid';
+    method.call(mockThis, 'e');
+    assert.isUndefined(mockThis._unlockingMessage.notificationId);
+  });
+
   // XXX: Test 'Screen off: by proximity sensor'.
 
   teardown(function() {

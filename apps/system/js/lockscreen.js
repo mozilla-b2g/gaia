@@ -710,10 +710,16 @@
   function ls_handlePassCodeInput(key) {
     switch (key) {
       case 'e': // 'E'mergency Call
+        if (this._unlockingMessage.notificationId) {
+          delete this._unlockingMessage.notificationId;
+        }
         this.invokeSecureApp('emergency-call');
         break;
 
       case 'c': // 'C'ancel
+        if (this._unlockingMessage.notificationId) {
+          delete this._unlockingMessage.notificationId;
+        }
         // Delegate to LockScreenStateManager
         break;
 
