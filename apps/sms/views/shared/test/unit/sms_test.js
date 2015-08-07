@@ -486,7 +486,7 @@ suite('SMS App Unit-Test', function() {
     var _tci;
     // Setup for getting all messages rendered before every test
     setup(function(done) {
-      ConversationView.renderMessages(1, done);
+      ConversationView.renderMessages(1).then(done, done);
       _tci = ConversationView.updateSelectionStatus;
     });
 
@@ -518,11 +518,9 @@ suite('SMS App Unit-Test', function() {
       setup(function(done) {
         this.sinon.spy(ConversationView, 'updateSelectionStatus');
         this.sinon.stub(InboxView, 'setContact');
-        ConversationView.renderMessages(1, function() {
+        ConversationView.renderMessages(1).then(() => {
           ConversationView.startEdit();
-          done();
-        });
-
+        }).then(done, done);
       });
 
       teardown(function() {
