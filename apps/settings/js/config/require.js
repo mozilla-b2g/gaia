@@ -305,13 +305,6 @@ require.config({
       exclude: ['main']
     },
     {
-      name: 'panels/homescreens/panel',
-      exclude: [
-        'main',
-        'modules/apps_cache'
-      ]
-    },
-    {
       name: 'panels/sound/panel',
       exclude: ['main']
     },

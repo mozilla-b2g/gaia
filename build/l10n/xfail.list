@@ -97,6 +97,7 @@ apps/settings/js/icc.js
 apps/settings/js/modules/date_time.js
 apps/settings/js/modules/panel_utils.js
 apps/settings/js/panels/about/update_check.js
+apps/settings/js/panels/homescreen_list/update_check.js
 apps/settings/js/panels/hotspot_wifi_settings/panel.js
 apps/settings/js/panels/keyboard_add_layouts/core.js
 apps/settings/js/panels/languages/languages.js

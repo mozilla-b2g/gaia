@@ -7,18 +7,27 @@
 
     <div>
       <section data-type="list">
+        <header id="wallpaper-header">
+          <h2 data-l10n-id="wallpaper"></h2>
+        </header>
+        <div class="wallpaper">
+          <img class="wallpaper-preview" alt="wallpaper preview"/>
+          <button class="wallpaper-button">
+            <span data-icon="change-wallpaper" data-l10n-id="changeWallpaperButton"></span>
+          </button>
+        </div>
+
         <header>
-          <h2 data-l10n-id="vertical-homescreen-layout"></h2>
+          <h2 data-l10n-id="replaceable-home-screen"></h2>
         </header>
         <ul>
           <li>
-            <p data-l10n-id="vertical-homescreen-icon-layout"></p>
-            <div class="button icon icon-dialog">
-              <select name="grid.layout.cols">
-                <option value="3" data-l10n-id="vertical-homescreen-three-columns"></option>
-                <option value="4" data-l10n-id="vertical-homescreen-four-columns"></option>
-              </select>
-            </div>
+            <a class="menu-item" href="#homescreen-list">
+              <span data-l10n-id="change-home-screen"></span>
+              <small>
+                <bdi id="current-homescreen"></bdi>
+              </small>
+            </a>
           </li>
         </ul>
       </section>

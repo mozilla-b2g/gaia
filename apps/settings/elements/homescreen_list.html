@@ -1,0 +1,37 @@
+<element name="homescreen-list" extends="section">
+  <template>
+
+    <gaia-header action="back" data-href="#homescreen">
+      <h1 data-l10n-id="change-home-screen"></h1>
+    </gaia-header>
+
+    <div>
+      <ul>
+        <li>
+          <a class="menu-item" id="get-more-home-screens" href="#">
+            <span data-l10n-id="get-more-home-screens"></span>
+          </a>
+        </li>
+        <li>
+          <button class="check-update"
+            data-l10n-id="check-homescreens-update"></button>
+        </li>
+        <li class="update-status description update-status">
+          <p>
+            <span class="general-information"
+              data-l10n-id="checking-for-update"></span>
+            <span class="system-update-status"></span>
+          </p>
+        </li>
+      </ul>
+
+      <header>
+        <h2 data-l10n-id="my-home-screens"></h2>
+      </header>
+      <ul id="homescreens-list"></ul>
+    </div>
+
+    <panel data-path="panels/homescreen_list/panel"></panel>
+
+  </template>
+</element>

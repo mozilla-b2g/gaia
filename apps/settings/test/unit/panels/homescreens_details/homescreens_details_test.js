@@ -1,23 +1,30 @@
-/*global MockNavigatorSettings*/
+/* global MockNavigatorSettings */
 'use strict';
 
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 
-suite('HomescreensDetails > ', function() {
-  var HomescreensDetails;
-  var realNavigatorSettings;
-
+suite('Homescreens_details > ', () => {
   var modules = [
-    'panels/homescreens_details/homescreens_details'
+    'panels/homescreen_details/homescreen_details'
   ];
+
   var maps = {
-    '*': {}
+    '*': {
+      'modules/settings_service': 'unit/mock_settings_service',
+      'modules/navigator/mozApps': 'unit/mock_moz_apps'
+    }
   };
 
+  const DEFAULT_MANIFEST = 'app://verticalhome.gaiamobile.org/manifest.webapp';
+
   var elements = {
-    detailButton: document.createElement('div'),
     detailTitle: document.createElement('div'),
-    detailDescription: document.createElement('div')
+    detailURLLink: document.createElement('div'),
+    detailName: document.createElement('div'),
+    detailURL: document.createElement('div'),
+    detailVersion: document.createElement('div'),
+    detailDescription: document.createElement('div'),
+    uninstallButton: document.createElement('div')
   };
   var options = {
     index: '0',
@@ -25,51 +32,69 @@ suite('HomescreensDetails > ', function() {
     description: 'test homescreen',
     manifestURL: 'app://testhome.gaiamobile.org'
   };
+  var homescreensDetails;
+  var realNavigatorSettings;
 
-  suiteSetup(function(done) {
-    testRequire(modules, maps, function(module) {
+  suiteSetup(done => {
+    testRequire(modules, maps, HomescreensDetails => {
       realNavigatorSettings = navigator.mozSettings;
       navigator.mozSettings = MockNavigatorSettings;
 
-      HomescreensDetails = module();
+      homescreensDetails = HomescreensDetails();
       done();
     });
   });
 
-  suiteTeardown(function() {
+  suiteTeardown(() => {
     navigator.mozSettings = realNavigatorSettings;
     realNavigatorSettings = null;
   });
 
-  suite('onInit', function() {
-    setup(function() {
-      this.sinon.spy(HomescreensDetails, '_handleChangeHomescreen');
-      HomescreensDetails.init(elements);
+  suite('onInit', () => {
+    var uninstallStub;
 
-      HomescreensDetails._manifestURL = 'app://test.gaiamobile.org';
-      HomescreensDetails._elements.detailButton
+    setup(() => {
+      uninstallStub = this.sinon.spy(homescreensDetails, 'uninstall');
+      this.sinon.stub(homescreensDetails, 'back');
+      homescreensDetails.init(elements);
+
+      homescreensDetails._elements.uninstallButton
         .dispatchEvent(new CustomEvent('click'));
     });
 
-    test('When users click on the button,' +
-      'we would definitely change the URL in mozSettings', function() {
-        assert.ok(HomescreensDetails._handleChangeHomescreen.called);
-        assert.equal(MockNavigatorSettings.mSettings['homescreen.manifestURL'],
-          HomescreensDetails._manifestURL);
+    teardown(() => {
+      uninstallStub.restore();
+    });
+
+    test('When users click on the button, ' +
+      'the manifest URL should change in mozSettings', done => {
+      assert.ok(uninstallStub.called);
+      assert.equal(MockNavigatorSettings.mSettings['homescreen.manifestURL'],
+        DEFAULT_MANIFEST);
+      setTimeout(() => {
+        assert.ok(homescreensDetails.back.called);
+        done();
+      });
     });
   });
 
-  suite('onBeforeShow', function() {
-    setup(function() {
-      this.sinon.stub(HomescreensDetails, '_handleChangeHomescreen');
-      HomescreensDetails.init(elements);
-      HomescreensDetails.onBeforeShow(options);
+  suite('onBeforeShow', () => {
+    var uninstallStub;
+
+    setup(() => {
+      uninstallStub = this.sinon.stub(homescreensDetails, 'uninstall');
+      homescreensDetails.init(elements);
+      homescreensDetails.onBeforeShow(options);
     });
 
-    test('we would set element value in onBeforeShow', function() {
-      assert.equal(HomescreensDetails._elements.detailTitle.textContent,
+    teardown(() => {
+      uninstallStub.restore();
+    });
+
+    test('we would set element value in onBeforeShow', () => {
+      assert.equal(homescreensDetails._elements.detailTitle.textContent,
         options.name);
-      assert.equal(HomescreensDetails._elements.detailDescription.textContent,
+      assert.equal(homescreensDetails._elements.detailDescription.textContent,
         options.description);
     });
   });
