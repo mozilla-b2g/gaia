@@ -217,16 +217,16 @@ class NewContact(ContactForm):
 
     def a11y_click_done(self, return_contacts=True):
         self.accessibility.click(self.marionette.find_element(*self._done_button_locator))
+        self.wait_for_element_not_displayed(*self._done_button_locator)
         return self.wait_for_done(return_contacts)
 
     def wait_for_done(self, return_contacts=True):
-        self.wait_for_element_not_displayed(*self._done_button_locator)
-        from gaiatest.apps.contacts.app import Contacts
         # NewContact can be opened as an Activity from other apps. In this scenario we don't return Contacts
         if return_contacts:
             self.apps.switch_to_displayed_app()
+            from gaiatest.apps.contacts.app import Contacts
             return Contacts(self.marionette)
         else:
-            Wait(self.marionette).until(lambda m: self.apps.displayed_app.name != Contacts.name)
+            Wait(self.marionette).until(lambda m: self.apps.displayed_app.name != 'Communications')
             # Fall back to the underlying app
             self.apps.switch_to_displayed_app()
