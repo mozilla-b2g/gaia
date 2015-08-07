@@ -1,0 +1,13 @@
+{
+  "name": "marionette-a11y",
+  "version": "0.0.1",
+
+  "author": {
+    "name": "The Gaia Team",
+    "email": "dev-gaia@lists.mozilla.org"
+  },
+
+  "dependencies": {
+    "axe-core": "1.1.0"
+  }
+}
