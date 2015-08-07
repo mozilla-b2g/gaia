@@ -11,6 +11,7 @@ from gaiatest.apps.base import PageRegion
 
 class FmRadio(Base):
     name = 'FM Radio'
+    origin = 'app://fm.gaiamobile.org'
 
     _power_button_locator = (By.ID, 'power-switch')
     _favorite_list_locator = (By.CSS_SELECTOR, 'div.fav-list-item')

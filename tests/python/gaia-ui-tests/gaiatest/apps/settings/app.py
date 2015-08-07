@@ -10,6 +10,7 @@ from gaiatest.apps.base import Base
 class Settings(Base):
 
     name = 'Settings'
+    origin = 'app://settings.gaiamobile.org'
 
     _bluetooth_l10n_locator = (By.CSS_SELECTOR, '[data-l10n-id="bt-status-turnoff"]')
 
@@ -90,7 +91,7 @@ class Settings(Base):
 
     def switch_to_settings_app(self):
         Wait(self.marionette).until(
-            lambda m: self.apps.displayed_app.name == self.name)
+            lambda m: self.apps.displayed_app.origin == self.origin)
         self.apps.switch_to_displayed_app()
 
     def wait_for_airplane_toggle_ready(self):

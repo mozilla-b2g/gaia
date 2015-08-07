@@ -12,6 +12,7 @@ from gaiatest.apps.base import PageRegion
 class Contacts(Base):
 
     name = "Contacts"
+    origin = 'app://contacts.gaiamobile.org'
 
     _new_contact_button_locator = (By.ID, 'add-contact-button')
     _settings_button_locator = (By.ID, 'settings-button')
@@ -32,7 +33,7 @@ class Contacts(Base):
                 *self._settings_button_locator))))
 
     def switch_to_contacts_frame(self):
-        Wait(self.marionette).until(lambda m: self.apps.displayed_app.name == self.name)
+        Wait(self.marionette).until(lambda m: self.apps.displayed_app.origin == self.origin)
         self.apps.switch_to_displayed_app()
 
     @property
@@ -148,11 +149,11 @@ class Contacts(Base):
                 return ContactDetails(self.marionette)
             elif return_class == 'EditContact':
                 # This may seem superfluous but we can enter EditContact from Contacts, or from ActivityPicker
-                Wait(self.marionette).until(lambda m: self.apps.displayed_app.name == Contacts.name)
+                Wait(self.marionette).until(lambda m: self.apps.displayed_app.origin == Contacts.origin)
                 self.apps.switch_to_displayed_app()
                 from gaiatest.apps.contacts.regions.contact_form import EditContact
                 return EditContact(self.marionette)
             else:
                 # We are using contacts picker in activity - after choosing, fall back to open app
-                Wait(self.marionette).until(lambda m: self.apps.displayed_app.name != Contacts.name)
+                Wait(self.marionette).until(lambda m: self.apps.displayed_app.origin != Contacts.origin)
                 self.apps.switch_to_displayed_app()

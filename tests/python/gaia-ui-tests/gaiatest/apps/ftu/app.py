@@ -14,6 +14,7 @@ from gaiatest.apps.base import Base
 class Ftu(Base):
 
     name = 'FTU'
+    origin = 'app://ftu.gaiamobile.org'
 
     _next_button_locator = (By.ID, 'forward')
 

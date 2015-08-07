@@ -15,6 +15,7 @@ from gaiatest.apps.calendar.regions.event_details import EventDetails
 class Calendar(Base):
 
     name = 'Calendar'
+    origin = 'app://calendar.gaiamobile.org'
 
     _current_month_year_locator = (By.ID, 'current-month-year')
     _current_month_day_agenda_locator = (By.ID, 'month-day-agenda')

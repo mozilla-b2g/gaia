@@ -10,6 +10,7 @@ from gaiatest.apps.base import Base
 class Wallpaper(Base):
 
     name = "Wallpaper"
+    origin = 'app://wallpaper.gaiamobile.org'
 
     _stock_wallpapers_locator = (By.CLASS_NAME, 'wallpaper')
 
@@ -18,5 +19,5 @@ class Wallpaper(Base):
             lambda m: len(m.find_elements(*self._stock_wallpapers_locator)) >= (index + 1),
             message='%d wallpaper(s) not present after timeout' % (index + 1))
         self.marionette.find_elements(*self._stock_wallpapers_locator)[index].tap()
-        Wait(self.marionette).until(lambda m: self.apps.displayed_app.name != self.name)
+        Wait(self.marionette).until(lambda m: self.apps.displayed_app.origin != self.origin)
         self.apps.switch_to_displayed_app()
