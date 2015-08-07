@@ -132,10 +132,8 @@ suite('system/LockScreenStateManager', function() {
     test('|transfer| would call transferTo and transferOut of the state',
     function(done) {
       var stubTransferOut = this.sinon.stub().returns(Promise.resolve());
-      var stubTransferTo = this.sinon.stub().returns(new Promise(() => {
-        // This would be the next step of 'transferOut'.
-        done();
-      }));
+      // This would be the next step of 'transferOut'.
+      var stubTransferTo = this.sinon.stub().returns(Promise.resolve());
       subject.rules = new Map();
       subject.previousState = {
         transferOut: stubTransferOut,
@@ -155,8 +153,11 @@ suite('system/LockScreenStateManager', function() {
         return true;
       });
       subject.transfer({}).then(() => {
-        assert.isTrue(stubTransferOut.called, 'the method isn\'t called');
-      }).catch(done);
+        sinon.assert.called(stubTransferTo,
+          'the |transferTo| method isn\'t called');
+        sinon.assert.called(stubTransferOut,
+          'the |transferOut| method isn\'t called');
+      }).then(done, done);
     });
   });
 
