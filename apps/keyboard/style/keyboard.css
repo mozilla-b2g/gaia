@@ -125,8 +125,12 @@ button::-moz-focus-inner {
   border-left: 0.1rem solid transparent;
 }
 
-.keyboard-type-container.lowercase .key-element {
-  text-transform: lowercase;
+.keyboard-type-container:not(.lowercase) .key-element.lowercase {
+  visibility: hidden;
+}
+
+.keyboard-type-container:not(.uppercase-only).lowercase .key-element:not(.lowercase) {
+  visibility: hidden;
 }
 
 .popup {
