@@ -1162,6 +1162,8 @@ var ConversationView = {
    * message to.
    * @param {Number} [parameters.messageId] Template message to resend.
    * @returns {Promise} Promise that is resolved once navigation is completed.
+   * Promise is rejected if no navigation happened, especially if the user did
+   * not want to discard an existing message.
    */
   initiateNewMessage: function(parameters) {
     var navigateToComposer = () => {
@@ -1199,18 +1201,18 @@ var ConversationView = {
       ).then(() => this.discardDraft());
     }
 
-    var threadExistingPromise = draftDiscardPromise.then(() => {
-      return parameters && parameters.number ?
+    return draftDiscardPromise.then(() => {
+      var threadExistingPromise = parameters && parameters.number ?
         // A rejected promise will be returned in case we can't find thread
         // for the specified number.
         MessageManager.findThreadFromNumber(parameters.number) :
         Promise.reject();
-    });
 
-    return threadExistingPromise.then(
-      (id) => Navigation.toPanel('thread', { id: id, focusComposer: true }),
-      navigateToComposer
-    );
+      return threadExistingPromise.then(
+        (id) => Navigation.toPanel('thread', { id: id, focusComposer: true }),
+        navigateToComposer
+      );
+    });
   },
 
   _onNavigatingBack: function() {

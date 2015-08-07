@@ -575,16 +575,19 @@ suite('navigation >', function() {
         });
       }
 
-      test('resolve the promise after animationend events', function(done) {
+      test('resolves the promise after animationend events', function(done) {
         var panel = document.querySelector('.panel-ConversationView');
         this.sinon.spy(panel, 'removeEventListener');
         setTimeout(
           () => panel.dispatchEvent(animationEndEvent())
         );
-        this.sinon.stub(window, 'setTimeout');
+        this.sinon.stub(window, 'setTimeout').returns(42);
+        this.sinon.stub(window, 'clearTimeout');
 
         Navigation.toPanel('thread').then(() => {
           sinon.assert.calledWith(panel.removeEventListener, 'animationend');
+          sinon.assert.called(window.setTimeout);
+          sinon.assert.calledWith(window.clearTimeout, 42);
         }).then(done, done);
       });
     });

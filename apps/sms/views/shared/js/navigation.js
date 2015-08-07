@@ -531,14 +531,17 @@ function waitForSlideAnimation(panelElement) {
   var defer = Utils.Promise.defer();
   previousAnimationDefer = defer;
 
+  var timeout;
+
   function onAnimationEnd(e) {
     panelElement.removeEventListener('animationend', onAnimationEnd);
+    clearTimeout(timeout);
     debug('animationend', e && e.type);
     defer.resolve();
   }
 
   panelElement.addEventListener('animationend', onAnimationEnd);
-  setTimeout(onAnimationEnd, 500);
+  timeout = setTimeout(onAnimationEnd, 500);
 
   return defer.promise.then(() => previousAnimationDefer = null);
 }
@@ -599,13 +602,10 @@ function switchPanel() {
   var animationPromise;
   if (doSlideAnimation) {
 
-    Object.assign(newPanelElement.style, {
-      'animation-name': isGoingBack ? 'new-slide-right' : 'new-slide-left',
-    });
-
-    Object.assign(oldPanelElement.style, {
-      'animation-name': isGoingBack ? 'old-slide-right' : 'old-slide-left',
-    });
+    newPanelElement.style.animationName =
+      isGoingBack ? 'new-slide-right' : 'new-slide-left';
+    oldPanelElement.style.animationName =
+      isGoingBack ? 'old-slide-right' : 'old-slide-left';
 
     animationPromise = waitForSlideAnimation(newPanelElement).catch(
       () => {}
