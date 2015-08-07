@@ -1,7 +1,7 @@
 /* exported SearchView */
 /* global App, createListElement, Database, ListView, ModeManager, MODE_LIST,
           MODE_PLAYER, MODE_SEARCH_FROM_TILES, MODE_SUBLIST, MODE_TILES,
-          Normalizer, PlayerView, SubListView, TabBar, TYPE_SINGLE, TYPE_LIST,
+          Normalizer, PlaybackQueue, PlayerView, SubListView, TabBar,
           TilesView */
 'use strict';
 
@@ -175,17 +175,10 @@ var SearchView = {
     var data = this.dataSource[index];
 
     if (option === 'title') {
-      ModeManager.push(MODE_PLAYER, function() {
-        if (App.pendingPick) {
-          PlayerView.setSourceType(TYPE_SINGLE);
-          PlayerView.dataSource = this.dataSource;
-          PlayerView.play(index);
-        } else {
-          PlayerView.setSourceType(TYPE_LIST);
-          PlayerView.dataSource = [data];
-          PlayerView.play(0);
-        }
-      }.bind(this));
+      ModeManager.push(MODE_PLAYER, () => {
+        PlayerView.activate(new PlaybackQueue.StaticQueue([data]));
+        PlayerView.start();
+      });
     } else {
       // SubListView needs to prepare the songs data before entering it,
       // So here we initialize the SubListView before push the view.

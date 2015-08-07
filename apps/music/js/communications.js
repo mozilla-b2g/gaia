@@ -1,7 +1,7 @@
 /* exported MusicComms */
 /* global Database, INTERRUPT_BEGIN, MediaRemoteControls, ModeManager,
-          MODE_PLAYER, PlayerView, PLAYSTATUS_PLAYING, PLAYSTATUS_STOPPED,
-          TYPE_MIX */
+          MODE_PLAYER, PlaybackQueue, PlayerView, PLAYSTATUS_PLAYING,
+          PLAYSTATUS_STOPPED */
 'use strict';
 
 var MusicComms = {
@@ -16,7 +16,7 @@ var MusicComms = {
     // button, so for the "play" and "playpause" commands, we will check
     // the play status for the player then decide we should play or pause.
     playpause: function(event) {
-      this._getPlayerReady(function() {
+      this._getPlayerReady(() => {
         var isResumedBySCO = this.isSCOEnabled;
         this.isSCOEnabled = event.detail.isSCOConnected;
 
@@ -24,8 +24,7 @@ var MusicComms = {
         // recover the player to the original status.
         if (isResumedBySCO) {
           if (this._statusBeforeSCO === PLAYSTATUS_PLAYING ||
-              this._statusBeforeSCO === INTERRUPT_BEGIN)
-          {
+              this._statusBeforeSCO === INTERRUPT_BEGIN) {
             PlayerView.play();
           } else {
             PlayerView.pause();
@@ -33,13 +32,18 @@ var MusicComms = {
         } else {
           // Play in shuffle order if music app is launched remotely.
           if (PlayerView.playStatus === PLAYSTATUS_STOPPED) {
-            Database.getAll(function remote_getAll(dataArray) {
-              ModeManager.push(MODE_PLAYER, function() {
-                PlayerView.setSourceType(TYPE_MIX);
-                PlayerView.dataSource = dataArray;
-                PlayerView.setShuffle(true);
-                PlayerView.play(PlayerView.shuffledList[0]);
-              });
+            Database.count('metadata.title', null, (count) => {
+              var info = {
+                key: 'metadata.title',
+                range: null,
+                direction: 'next',
+                option: 'title',
+                count: count
+              };
+
+              PlaybackQueue.shuffle = true;
+              PlayerView.activate(new PlaybackQueue.DynamicQueue(info));
+              PlayerView.start();
             });
           } else if (PlayerView.playStatus === PLAYSTATUS_PLAYING) {
             PlayerView.pause();
@@ -47,7 +51,7 @@ var MusicComms = {
             PlayerView.play();
           }
         }
-      }.bind(this));
+      });
     },
 
     pause: function(event) {

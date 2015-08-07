@@ -302,8 +302,6 @@ var App = (function() {
   app = {
     // Pick activity
     pendingPick: null,
-    // Settings for the player view
-    playerSettings: null,
     // The id of the current overlay or null if none.
     currentOverlay: null,
     // To display a correct overlay, record the known songs from the database.

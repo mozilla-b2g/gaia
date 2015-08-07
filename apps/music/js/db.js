@@ -1,5 +1,6 @@
 /* exported Database */
-/* global AlbumArt, App, AudioMetadata, LazyLoader, MediaDB, TitleBar */
+/* global AlbumArt, App, AudioMetadata, ForwardLock, LazyLoader, MediaDB,
+          TitleBar */
 'use strict';
 
 var Database = (function() {
@@ -224,20 +225,26 @@ var Database = (function() {
     musicdb.updateMetadata(fileinfo.name, {rated: fileinfo.metadata.rated});
   }
 
-  function getFile(filename) {
-    return new Promise(function(resolve, reject) {
-      musicdb.getFile(filename, function(file) {
+  function getFile(fileinfo, decrypt = false) {
+    return new Promise((resolve, reject) => {
+      musicdb.getFile(fileinfo.name, (file) => {
         if (file) {
           resolve(file);
         } else {
-          reject('unable to get file: ' + filename);
+          reject('unable to get file: ' + fileinfo.name);
         }
       });
-    });
-  }
+    }).then((blob) => {
+      if (!decrypt || !fileinfo.metadata.locked) {
+        return blob;
+      }
 
-  function getAll(callback) {
-    return musicdb.getAll(callback);
+      return new Promise(function(resolve, reject) {
+        ForwardLock.getKey(function(secret) {
+          ForwardLock.unlockBlob(secret, blob, resolve, null, reject);
+        });
+      });
+    });
   }
 
   function enumerate(...args) {
@@ -265,7 +272,6 @@ var Database = (function() {
     incrementPlayCount: incrementPlayCount,
     setSongRating: setSongRating,
     getFile: getFile,
-    getAll: getAll,
     enumerate: enumerate,
     enumerateAll: enumerateAll,
     advancedEnumerate: advancedEnumerate,
