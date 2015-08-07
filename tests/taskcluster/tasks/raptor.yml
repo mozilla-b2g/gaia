@@ -8,11 +8,11 @@ task:
   provisionerId: '{{provisionerId}}'
   scopes:
     - docker-worker:cache:tc-vcs
-    - docker-worker:image:taskcluster/raptor-gaia:0.0.2
+    - docker-worker:image:taskcluster/raptor-gaia:0.0.3
 
   payload:
-    maxRunTime: 3600
-    image: taskcluster/raptor-gaia:0.0.2
+    maxRunTime: 4500
+    image: taskcluster/raptor-gaia:0.0.3
     cache:
       tc-vcs: /home/worker/.tc-vcs
     env:
