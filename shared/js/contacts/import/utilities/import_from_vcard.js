@@ -29,11 +29,10 @@ utils.importFromVcard = function(file, callback) {
     var text = null;
     var progress = utils.overlay.show(
                    'memoryCardContacts-reading',
-                   'activityBar',
-                   null,
-                   true
+                   'activityBar'
                  );
 
+    utils.overlay.showMenu();
     utils.overlay.oncancel = function oncancel() {
       cancelled = true;
       if (importer) {
