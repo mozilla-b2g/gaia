@@ -131,6 +131,7 @@ suite('system/ChildWindowFactory', function() {
       }));
     assert.isFalse(spyAppWindow.calledWithNew());
     assert.isTrue(spyPopupWindow.calledWithNew());
+    assert.isFalse(spyPopupWindow.getCall(0).args[0].stayBackground);
   });
 
   test('Open attention window', function() {
