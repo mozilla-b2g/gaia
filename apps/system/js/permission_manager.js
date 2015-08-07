@@ -331,6 +331,20 @@
     },
 
     /**
+     * Strip appId from origin
+     * @memberof PermissionManager.prototype
+     * @param {Object} detail The event detail object.
+     */
+    getAppOriginFromDetail: function pm_getAppOriginFromDetail(detail) {
+      var i = detail.origin.indexOf('^appId');
+      if (i >= 0) {
+        return detail.origin.substring(0, i);
+      } else {
+        return detail.origin;
+      }
+    },
+
+    /**
      * Prepare for permission prompt
      * @memberof PermissionManager.prototype
      * @param {Object} detail The event detail object.
@@ -339,7 +353,7 @@
       // Clean dialog if was rendered before
       this.cleanDialog();
       this.isFullscreenRequest = false;
-      this.currentOrigin = detail.origin;
+      this.currentOrigin = this.getAppOriginFromDetail(detail);
       this.currentRequestId = detail.id;
 
       if (detail.permissions) {
