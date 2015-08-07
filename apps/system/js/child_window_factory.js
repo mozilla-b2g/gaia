@@ -128,8 +128,7 @@
           this.app.frontWindow.isActive())) {
       return false;
     }
-    var stayBackground =
-      'alwaysLowered'.indexOf(evt.detail.features) >= 0;
+    var stayBackground = evt.detail.features.indexOf('alwaysLowered') >= 0;
     var configObject = {
       url: evt.detail.url,
       name: this.app.name,
