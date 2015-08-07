@@ -65,9 +65,13 @@ var SubListView = {
     });
   },
 
-  setAlbumName: function slv_setAlbumName(name, l10nId) {
-    this.albumName.textContent = name;
-    this.albumName.dataset.l10nId = l10nId;
+  setAlbumName: function slv_setAlbumName(nameL10n) {
+    if (typeof nameL10n === 'string') {
+      this.albumName.setAttribute('data-l10n-id', nameL10n);
+    } else if (nameL10n.raw) {
+      this.albumName.removeAttribute('data-l10n-id');
+      this.albumName.textContent = nameL10n.raw;
+    }
   },
 
   activate: function(option, data, index, keyRange, direction, callback) {
@@ -76,8 +80,7 @@ var SubListView = {
 
     this.handle = Database.enumerateAll(targetOption, keyRange, direction,
                                         function lv_enumerateAll(dataArray) {
-      var albumName;
-      var albumNameL10nId;
+      var nameL10n;
       var maxDiscNum = 1;
 
       if (option === 'album') {
@@ -93,26 +96,32 @@ var SubListView = {
       }
 
       if (option === 'artist') {
-        albumName =
-          data.metadata.artist || navigator.mozL10n.get('unknownArtist');
-        albumNameL10nId = data.metadata.artist ? '' : 'unknownArtist';
+        if (data.metadata.artist) {
+          nameL10n = {raw: data.metadata.artist};
+        } else {
+          nameL10n = 'unknownArtist';
+        }
       } else if (option === 'album') {
-        albumName =
-          data.metadata.album || navigator.mozL10n.get('unknownAlbum');
-        albumNameL10nId = data.metadata.album ? '' : 'unknownAlbum';
+        if (data.metadata.album) {
+          nameL10n = {raw: data.metadata.album};
+        } else {
+          nameL10n = 'unknownAlbum';
+        }
       } else {
-        albumName =
-          data.metadata.title || navigator.mozL10n.get('unknownTitle');
-        albumNameL10nId = data.metadata.title ? '' : 'unknownTitle';
+        if (data.metadata.title) {
+          nameL10n = {raw: data.metadata.title};
+        } else {
+          nameL10n = 'unknownTitle';
+        }
       }
 
       // Overrides l10nId.
       if (data.metadata.l10nId) {
-        albumNameL10nId = data.metadata.l10nId;
+        nameL10n = data.metadata.l10nId;
       }
 
       this.dataSource = dataArray;
-      this.setAlbumName(albumName, albumNameL10nId);
+      this.setAlbumName(nameL10n);
       this.setAlbumSrc(data);
 
       var inPlaylist = (option !== 'artist' &&

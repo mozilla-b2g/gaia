@@ -10,32 +10,26 @@
 
 var App = (function() {
   var app;
-  var chromeInteractive = false;
   // initialize the app object
   init();
 
   function init() {
-    navigator.mozL10n.once(function onLocalizationInit() {
-      // Tell performance monitors that our chrome is visible.
-      window.performance.mark('navigationLoaded');
+    // Tell performance monitors that our chrome is visible.
+    window.performance.mark('navigationLoaded');
 
-      Database.init();
-      TitleBar.init();
-      TabBar.init();
+    Database.init();
+    TitleBar.init();
+    TabBar.init();
 
-      setStartMode();
+    setStartMode();
 
-      // Do this now and on each language change in the future
-      navigator.mozL10n.ready(function() {
-        ModeManager.updateTitle();
-
-        if (!chromeInteractive) {
-          chromeInteractive = true;
-          // Tell performance monitors that our chrome is interactive.
-          window.performance.mark('navigationInteractive');
-        }
-      });
+    // Do this now and on each language change in the future
+    navigator.mozL10n.ready(function() {
+      ModeManager.updateTitle();
     });
+
+    // Tell performance monitors that our chrome is interactive.
+    window.performance.mark('navigationInteractive');
   }
 
   function setStartMode() {

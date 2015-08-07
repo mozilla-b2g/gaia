@@ -2,9 +2,7 @@
           TYPE_BLOB */
 'use strict';
 
-navigator.mozL10n.once(function onLocalizationInit() {
-  navigator.mozSetMessageHandler('activity', handleOpenActivity);
-});
+navigator.mozSetMessageHandler('activity', handleOpenActivity);
 
 function handleOpenActivity(request) {
   var data = request.source.data;
@@ -42,8 +40,10 @@ function handleOpenActivity(request) {
     PlayerView.play(); // Do we need to play for users?
 
     PlayerView.onerror = function invalid() {
-      alert(navigator.mozL10n.get('audioinvalid'));
-      done();
+      navigator.mozL10n.formatValue('audioinvalid').then((msg) => {
+        alert(msg);
+        done();
+      });
     };
   }
 
@@ -79,9 +79,12 @@ function handleOpenActivity(request) {
         // to the invoking app
         saved = filename;
         // And tell the user
-        showBanner(navigator.mozL10n.get('saved', {
-          title: document.getElementById('title-text').textContent
-        }));
+        showBanner({
+          id: 'saved',
+          args: {
+            title: document.getElementById('title-text').textContent
+          }
+        });
       };
       savereq.onerror = function(e) {
         // XXX we don't report this to the user because it is hard to
@@ -109,8 +112,8 @@ function handleOpenActivity(request) {
     }
   }
 
-  function showBanner(msg) {
-    message.textContent = msg;
+  function showBanner(l10n) {
+    navigator.mozL10n.setAttributes(message, l10n.id, l10n.attrs);
     banner.hidden = false;
     setTimeout(function() {
       banner.hidden = true;

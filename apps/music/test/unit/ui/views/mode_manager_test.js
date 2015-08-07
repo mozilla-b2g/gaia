@@ -1,10 +1,9 @@
-/* global MockL10n, ModeManager, MocksHelper, loadBodyHTML,
+/* global ModeManager, MocksHelper, loadBodyHTML,
           MODE_TILES, MODE_LIST, MODE_SUBLIST, MODE_PLAYER,
           MODE_SEARCH_FROM_TILES, MODE_SEARCH_FROM_LIST, MODE_PICKER,
           TilesView, ListView, SubListView, PlayerView, SearchView */
 'use strict';
 
-require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_async_storage.js');
 require('/shared/test/unit/load_body_html_helper.js');
 require('/test/unit/mock_lazy_loader.js');
@@ -32,22 +31,14 @@ var mocksForModeManagerHelper = new MocksHelper([
 ]).init();
 
 suite('Mode Manager Test', function() {
-  var realL10n;
   var mm;
 
   mocksForModeManagerHelper.attachTestHelpers();
 
   suiteSetup(function() {
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
-
     loadBodyHTML('/index.html');
 
     mm = ModeManager;
-  });
-
-  suiteTeardown(function() {
-    navigator.mozL10n = realL10n;
   });
 
   suite('Start some views', function() {
