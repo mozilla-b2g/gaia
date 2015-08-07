@@ -1,4 +1,4 @@
-/* globals utils, contactsRemover, Promise,
+/* globals Contacts, utils, contactsRemover, Promise,
    Search, ConfirmDialog, Loader */
 'use strict';
 
@@ -43,9 +43,9 @@ contacts.BulkDelete = (function() {
 
   var doDelete = function doDelete(ids, done) {
     cancelled = false;
-    var progress = utils.overlay.show('DeletingContacts', 'progressBar',
-      null, true);
+    var progress = utils.overlay.show('DeletingContacts', 'progressBar');
     progress.setTotal(ids.length);
+    utils.overlay.showMenu();
 
     utils.overlay.oncancel = function() {
       cancelled = true;
@@ -67,7 +67,7 @@ contacts.BulkDelete = (function() {
     };
 
     contactsRemoverObj.onError = function onError() {
-      utils.overlay.hide();
+      Contacts.hideOverlay();
       utils.status.show({
         id: 'deleteError-general'
       });
@@ -75,7 +75,7 @@ contacts.BulkDelete = (function() {
     };
 
     contactsRemoverObj.onFinished = function onFinished() {
-      utils.overlay.hide();
+      Contacts.hideOverlay();
       utils.status.show({
         id: 'DeletedTxt',
         args: {n: contactsRemoverObj.getDeletedCount()}
@@ -95,12 +95,12 @@ contacts.BulkDelete = (function() {
     requireOverlay(function onOverlay() {
       utils.overlay.show('preparing-contacts', 'spinner');
       promise.onsuccess = function onSuccess(ids) {
-        utils.overlay.hide();
+        Contacts.hideOverlay();
         showConfirm(ids.length).then(
                           contacts.BulkDelete.doDelete.bind(null, ids, done));
       };
       promise.onerror = function onError() {
-        utils.overlay.hide();
+        Contacts.hideOverlay();
       };
     });
   };

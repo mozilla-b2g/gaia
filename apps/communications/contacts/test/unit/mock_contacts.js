@@ -13,6 +13,8 @@ var MockContacts = {
   isEmpty: function(prop) {
     return false;
   },
+  hideOverlay: function() {
+  },
   loadFacebook: function(cb) {
     cb();
   },
@@ -24,6 +26,14 @@ var MockContacts = {
   },
   view: function(view, callback) {
     callback();
+  },
+  showOverlay: function(title, id) {
+    return {
+      'setClass': function(clazz) {},
+      'setHeaderMsg': function(msg) {},
+      'setTotal': function(total) {},
+      'update': function() {}
+    };
   },
   goBack: function(cb) {
     if (typeof cb === 'function') {

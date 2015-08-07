@@ -1,5 +1,5 @@
 /*jshint node: true, browser: true */
-/* globals MocksHelper, contacts, ConfirmDialog, MockLoader */
+/* globals MocksHelper, MockLoader, Contacts, contacts, ConfirmDialog */
 
 'use strict';
 
@@ -39,15 +39,7 @@ suite('contacts_bulk_delete.js', function() {
     }
     realOverlay = window.utils.overlay;
     window.utils.overlay = {
-      show: function() {
-        return {
-          'setClass': function(clazz) {},
-          'setHeaderMsg': function(msg) {},
-          'setTotal': function(total) {},
-          'update': function() {}
-        };
-      },
-      hide: function() {}
+      show: function() {}
     };
     realLoader = window.Loader;
     window.Loader = MockLoader;
@@ -60,7 +52,7 @@ suite('contacts_bulk_delete.js', function() {
 
   setup(function() {
     overlayShowSpy = sinon.spy(window.utils.overlay, 'show');
-    overlayHideSpy = sinon.spy(window.utils.overlay, 'hide');
+    overlayHideSpy = sinon.spy(Contacts, 'hideOverlay');
     confirmShowSpy = sinon.spy(ConfirmDialog, 'show');
     confirmHideSpy = sinon.spy(ConfirmDialog, 'hide');
     spies = [overlayShowSpy, overlayHideSpy, confirmShowSpy, confirmHideSpy];

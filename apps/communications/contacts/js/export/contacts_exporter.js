@@ -1,4 +1,4 @@
-/* global utils, ConfirmDialog, fb, ContactsService, Loader */
+/* global utils, ConfirmDialog, Contacts, fb, ContactsService, Loader */
 'use strict';
 
 //
@@ -129,7 +129,7 @@ window.ContactsExporter = function ContactsExporter(theStrategy) {
         ConfirmDialog.show('exportErrorTitle',
                               errorString + error.reason, cancel, retry);
 
-        utils.overlay.hide();
+        Contacts.hideOverlay();
 
         console.error('An error occurred during the export: ',
                       error.reason.name || error.reason);
@@ -173,9 +173,9 @@ window.ContactsExporter = function ContactsExporter(theStrategy) {
       progress = utils.overlay.show(
         strategy.getExportTitle(),
         progressClass,
-        null,
-        true
+        null
       );
+      utils.overlay.showMenu();
       utils.overlay.oncancel = function() {
         strategy.cancelExport();
         utils.overlay.hide();
