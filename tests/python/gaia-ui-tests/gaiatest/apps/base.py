@@ -73,6 +73,13 @@ class Base(object):
         finally:
             self.marionette.set_search_timeout(self.marionette.timeout or 10000)
 
+    def is_custom_element_checked(self, element):
+        return self.marionette.execute_script("return arguments[0].wrappedJSObject.checked", [element])
+
+    # TODO: Remove me once bug 1113742 is fixed
+    def wait_for_custom_element_checked_state(self, element, checked=True):
+        Wait(self.marionette).until(lambda m: self.is_custom_element_checked(element) is checked)
+
     def find_select_item(self, match_string):
         _list_item_locator = (
             By.XPATH, "//section[contains(@class,'value-selector-container')]/descendant::li[descendant::span[.='%s']]" %
