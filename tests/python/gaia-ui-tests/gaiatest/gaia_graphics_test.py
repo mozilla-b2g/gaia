@@ -28,7 +28,6 @@ class GaiaImageCompareTestCase(GaiaTestCase):
         self.reference_path = kwargs.pop('reference_path')
         self.screenshots_path = kwargs.pop('screenshots_path')
         self.mismatch_path = os.path.join(self.screenshots_path, 'mismatches')
-        self.locale = kwargs.pop('locale')
 
         self.logger = get_default_logger()
         self.picture_index = 0
@@ -49,13 +48,6 @@ class GaiaImageCompareTestCase(GaiaTestCase):
     def tearDown(self):
         """At the end of test execution, it checks for the errors"""
         self.assertTrue(self.test_passed, msg=self.failcomment)
-
-    # marionette hook to override default locale setting
-    def modify_settings(self, settings):
-
-        if self.locale != 'undefined':
-            settings['language.current'] = self.locale
-        return settings
 
     def take_screenshot(self, page_name=None, prewait=0):
         """
