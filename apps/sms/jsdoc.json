@@ -5,10 +5,8 @@
   },
   "source": {
     "include": ["apps/sms/README.md", "apps/sms/views", "apps/sms/services/js"],
-    "exclude": ["apps/sms/desktop-mock",
-                "apps/sms/views/shared/js/activity_handler.js",
-                "apps/sms/views/shared/js/utils.js",
-                "apps/sms/views/shared/js/contacts.js"]
+    "exclude": ["apps/sms/views/shared/js/contacts.js",
+                "apps/sms/services/js/activity/activity_shim.js"]
   },
   "plugins": [
     "plugins/markdown",

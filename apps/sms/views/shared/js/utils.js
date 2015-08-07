@@ -711,8 +711,8 @@
        * flow is paused until yielded Promise is resolved, so that consumer gets
        * Promise result instead of Promise instance itself.
        * See https://www.promisejs.org/generators/ as the reference.
-       * @param {function*} generatorFunction Generator function that yields
-       * Promises.
+       * @param {function(...*): Iterator} generatorFunction Generator function
+       * that yields Promises.
        * @return {function}
        */
       async: function(generatorFunction) {
