@@ -842,8 +842,9 @@ suite('calls handler', function() {
                          .returns(mockPromise);
         });
 
-        teardown(function() {
+        teardown(function(done) {
           MockConferenceGroupHandler.mTeardown();
+          mockPromise.then(done, done);
         });
 
         test('should hangup all the calls in the conference group', function() {
