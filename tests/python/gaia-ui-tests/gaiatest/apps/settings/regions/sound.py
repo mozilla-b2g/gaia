@@ -5,11 +5,19 @@
 from marionette_driver import expected, By, Wait
 
 from gaiatest.apps.base import Base
+from gaiatest.apps.ring_tone.app import RingTone
 
 
 class Sound(Base):
+    _page_locator = (By.ID, 'sound')
     _ring_tone_selector_locator = (By.CSS_SELECTOR, '.ring-tone-selection')
     _current_ring_tone_locator = (By.CSS_SELECTOR, '.ring-tone-selection > small')
+    _alert_selector_locator = (By.ID, 'alerts')
+    _manage_tones_selector_locator = (By.ID, 'manage-tones')
+
+    @property
+    def screen_element(self):
+        return self.marionette.find_element(*self._page_locator)
 
     @property
     def ring_tone_selector_visible(self):
@@ -23,5 +31,13 @@ class Sound(Base):
 
     def tap_ring_tone_selector(self):
         self.marionette.find_element(*self._ring_tone_selector_locator).tap()
-        from gaiatest.apps.ring_tone.app import RingTone
         return RingTone(self.marionette)
+
+    def tap_alerts_selector(self):
+        self.marionette.find_element(*self._alert_selector_locator).tap()
+        return RingTone(self.marionette)
+
+    def tap_manage_tones_selector(self):
+        self.marionette.find_element(*self._manage_tones_selector_locator).tap()
+        return RingTone(self.marionette)
+
