@@ -6,16 +6,15 @@ requireApp('communications/contacts/test/unit/mock_search_source.js');
 require('/shared/js/text_normalizer.js');
 require('/shared/js/contacts/utilities/event_listeners.js');
 require('/shared/js/contacts/utilities/image_loader.js');
-require('/shared/js/lazy_loader.js');
+require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/js/contacts/utilities/dom.js');
 require('/shared/js/utilities.js');
 requireApp('communications/contacts/test/unit/mock_navigation.js');
-requireApp('communications/contacts/test/unit/mock_main_navigation.js');
 
 require('/contacts/js/fb_resolver.js');
 
-new MocksHelper([
-  'MainNavigation'
+var mocksHelperForSearch = new MocksHelper([
+  'LazyLoader'
 ]).init();
 
 require('/shared/js/contacts/search.js');
@@ -28,6 +27,8 @@ suite('Search mode', function() {
     familyName: ['Surname'],
     tel: [{ value:'555555555'}]
   };
+
+  mocksHelperForSearch.attachTestHelpers();
 
   function assertContactFound(contactUuid, expectedContacts) {
     var selectorStr = 'section#groups-list-search li.contact-item';
