@@ -4,9 +4,7 @@
 requireApp('settings/shared/test/unit/load_body_html_helper.js');
 
 suite('Date & Time panel > ', function() {
-  var realL10n;
   var modules = [
-    'shared_mocks/mock_l10n',
     'panels/date_time/panel'
   ];
   var map = {
@@ -50,19 +48,11 @@ suite('Date & Time panel > ', function() {
       };
     });
 
-    requireCtx(modules, function(MockL10n, module) {
-      // mock l10n
-      realL10n = window.navigator.mozL10n;
-      window.navigator.mozL10n = MockL10n;
-
+    requireCtx(modules, function(module) {
       that.panel = module();
       that.panel.init(document.body);
       done();
     });
-  });
-
-  teardown(function() {
-    window.navigator.mozL10n = realL10n;
   });
 
   suite('handle lifecycle', function() {

@@ -1,7 +1,6 @@
 define(function(require) {
   'use strict';
 
-  var _ = window.navigator.mozL10n.get;
   var AirplaneModeHelper = require('shared/airplane_mode_helper');
   var SIMSlotManager = require('shared/simslot_manager');
   var DialogService = require('modules/dialog_service');
@@ -31,21 +30,22 @@ define(function(require) {
         this.addChangeEventOnIccs();
       });
     },
-    simPinView: function({simIndex, simName, changeSimLabel}) {
+    simPinView: function({simIndex, simPinArgs}) {
       return Sanitizer.escapeHTML `
         <li class="simpin-enabled simpin-enabled-${simIndex}
           simpin-${simIndex}">
           <label class="pack-switch">
             <input type="checkbox" data-ignore data-sim-index="${simIndex}"
               data-type="checkSimPin"/>
-            <span>${simName}</span>
+            <span data-l10n-id="simPinWithIndex"
+              data-l10n-args="${simPinArgs}"></span>
         </label>
         </li>
         <li class="simpin-change simpin-change-${simIndex} simpin-${simIndex}"
           hidden>
           <a class="menu-item" href="#" data-sim-index="${simIndex}"
             data-type="changeSimPin">
-            <span data-l10n-id="changeSimPin">${changeSimLabel}</span>
+            <span data-l10n-id="changeSimPin"></span>
           </a>
         </li>`;
     },
@@ -72,8 +72,7 @@ define(function(require) {
         simPinHTMLs.push(
           this.simPinView({
             'simIndex': index.toString(),
-            'simName': _('simPinWithIndex', { 'index': simPinIndex }),
-            'changeSimLabel': _('changeSimPin')
+            'simPinArgs': JSON.stringify({ 'index': simPinIndex })
           })
         );
       });

@@ -8,7 +8,6 @@ define(function(require) {
 
   var WifiHelper = require('shared/wifi_helper');
   var wifiManager = WifiHelper.getWifiManager();
-  var _ = navigator.mozL10n.get;
 
   var WifiWps = function() {
     var wifiWps = {
@@ -72,10 +71,17 @@ define(function(require) {
 
         req.onsuccess = function() {
           if (method === 'myPin') {
-            alert(_('wpsPinInput', { pin: req.result }));
+            navigator.mozL10n.formatValue('wpsPinInput', {
+              pin: req.result
+            }).then(msg => {
+              alert(msg);
+              self.inProgress = true;
+              onSuccess();
+            });
+          } else {
+            self.inProgress = true;
+            onSuccess();
           }
-          self.inProgress = true;
-          onSuccess();
         };
 
         req.onerror = function() {

@@ -6,7 +6,6 @@ define(function(require) {
   return function ctor_hotspot_wifi_settings() {
     var elements;
     var hotspotSettings;
-    var _ = navigator.mozL10n.get;
 
     return DialogPanel({
       onInit: function(panel) {
@@ -99,6 +98,10 @@ define(function(require) {
       _isNotSubmitable: function() {
         var securityType = elements.securityTypeSelector.value;
         var pwdLength = elements.passwordInput.value.length;
+        var ssidLength = elements.tethering_ssid.value.trim().length;
+        if (ssidLength === 0) {
+          return true;
+        }
         return (pwdLength < 8 || pwdLength > 63) && (securityType !== 'open') ||
           !this._settingsTouched;
       },
@@ -133,34 +136,28 @@ define(function(require) {
       _submit: function() {
         var fields = elements.allFields;
 
-        // ensure SSID is set
-        if (/^\s*$/.test(elements.tethering_ssid.value)) {
-          alert(_('SSIDCannotBeEmpty'));
-          this._reset(); // Reset to original values if ssid is null.
-        } else {
-          var ignorePassword = (elements.securityTypeSelector.value == 'open');
+        var ignorePassword = (elements.securityTypeSelector.value == 'open');
 
-          // mozSettings does not support multiple keys in the cset object
-          // with one set() call,
-          // see https://bugzilla.mozilla.org/show_bug.cgi?id=779381
-          for (var i = 0; i < fields.length; i++) {
-            var input = fields[i];
-            var key = input.dataset.setting;
+        // mozSettings does not support multiple keys in the cset object
+        // with one set() call,
+        // see https://bugzilla.mozilla.org/show_bug.cgi?id=779381
+        for (var i = 0; i < fields.length; i++) {
+          var input = fields[i];
+          var key = input.dataset.setting;
 
-            switch(key) {
-              case hotspotSettings.tetheringSSIDKey:
-                hotspotSettings.setHotspotSSID(input.value);
-                break;
-              case hotspotSettings.tetheringPasswordKey:
-                if (!(ignorePassword &&
-                  key == hotspotSettings.tetheringPasswordKey)) {
-                  hotspotSettings.setHotspotPassword(input.value);
-                }
-                break;
-              case hotspotSettings.tetheringSecurityKey:
-                hotspotSettings.setHotspotSecurity(input.value);
-                break;
-            }
+          switch(key) {
+            case hotspotSettings.tetheringSSIDKey:
+              hotspotSettings.setHotspotSSID(input.value);
+              break;
+            case hotspotSettings.tetheringPasswordKey:
+              if (!(ignorePassword &&
+                key == hotspotSettings.tetheringPasswordKey)) {
+                hotspotSettings.setHotspotPassword(input.value);
+              }
+              break;
+            case hotspotSettings.tetheringSecurityKey:
+              hotspotSettings.setHotspotSecurity(input.value);
+              break;
           }
         }
       }

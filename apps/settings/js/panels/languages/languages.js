@@ -30,12 +30,28 @@ define(function(require) {
       // update the date and time samples in the 'languages' panel
       if (this.panel.children.length) {
         var d = new Date();
-        var f = new navigator.mozL10n.DateTimeFormat();
-        var _ = navigator.mozL10n.get;
-        this.panel.querySelector('#region-date').textContent =
-          f.localeFormat(d, _('longDateFormat'));
-        this.panel.querySelector('#region-time').textContent =
-          f.localeFormat(d, _('shortTimeFormat'));
+        var dateString = d.toLocaleString(navigator.languages, {
+          weekday: 'long',
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric'
+        });
+        var timeString = d.toLocaleString(navigator.languages, {
+          hour12: navigator.mozHour12,
+          hour: 'numeric',
+          minute: 'numeric'
+        });
+
+        if (navigator.language in navigator.mozL10n.qps) {
+          timeString =
+            navigator.mozL10n.qps[navigator.language].translate(timeString);
+          dateString =
+            navigator.mozL10n.qps[navigator.language].translate(dateString);
+        }
+
+
+        this.panel.querySelector('#region-date').textContent = dateString;
+        this.panel.querySelector('#region-time').textContent = timeString;
       }
     },
     showMoreLanguages: function() {

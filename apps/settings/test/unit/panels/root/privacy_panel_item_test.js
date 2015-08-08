@@ -6,7 +6,6 @@ suite('PrivacyPanelItem', function() {
       'panels/root/privacy_panel_item',
       'unit/mock_apps_cache',
       'shared_mocks/mock_navigator_moz_settings',
-      'shared_mocks/mock_l10n'
     ];
 
     var maps = {
@@ -16,9 +15,8 @@ suite('PrivacyPanelItem', function() {
     };
 
     testRequire(modules, maps, function(PrivacyPanelItem, MockAppsCache,
-      MockNavigatorSettings, MockL10n) {
+      MockNavigatorSettings) {
       navigator.mozSettings = MockNavigatorSettings;
-      navigator.mozL10n = MockL10n;
 
       MockAppsCache._apps = [{
         manifestURL: document.location.protocol +

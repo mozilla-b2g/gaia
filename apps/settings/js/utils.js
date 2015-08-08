@@ -196,13 +196,12 @@ var DeviceStorageHelper = (function DeviceStorageHelper() {
     var fixedDigits = (size < 1024 * 1024) ? 0 : 2;
     var sizeInfo = FileSizeFormatter.getReadableFileSize(size, fixedDigits);
 
-    var _ = navigator.mozL10n.get;
-    navigator.mozL10n.setAttributes(element,
-                                    l10nId,
-                                    {
-                                      size: sizeInfo.size,
-                                      unit: _('byteUnit-' + sizeInfo.unit)
-                                    });
+    navigator.mozL10n.formatValue('byteUnit-' + sizeInfo.unit).then(unit => {
+      navigator.mozL10n.setAttributes(element, l10nId, {
+        size: sizeInfo.size,
+        unit: unit
+      });
+    });
   }
 
   return {

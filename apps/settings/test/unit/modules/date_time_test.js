@@ -1,7 +1,7 @@
 'use strict';
 
 suite('Date & Time > ', function() {
-  var realSettings, realTime, realL10n;
+  var realSettings, realTime;
   var DateTime;
 
   // keys
@@ -14,7 +14,6 @@ suite('Date & Time > ', function() {
   suiteSetup(function(done) {
     var modules = [
       'shared_mocks/mock_navigator_moz_settings',
-      'shared_mocks/mock_l10n',
       'modules/date_time'
     ];
     var maps = {
@@ -22,7 +21,7 @@ suite('Date & Time > ', function() {
     };
 
     testRequire(modules, maps, function(
-      MockNavigatorSettings, MockL10n, module) {
+      MockNavigatorSettings, module) {
       // mock settings
       realSettings = window.navigator.mozSettings;
       window.navigator.mozSettings = MockNavigatorSettings;
@@ -32,9 +31,6 @@ suite('Date & Time > ', function() {
       };
       realTime = window.navigator.mozTime;
       window.navigator.mozTime = MockTime;
-      // mock l10n
-      realL10n = window.navigator.mozL10n;
-      window.navigator.mozL10n = MockL10n;
 
       DateTime = module;
       done();
@@ -42,7 +38,6 @@ suite('Date & Time > ', function() {
   });
 
   suiteTeardown(function() {
-    window.navigator.mozL10n = realL10n;
     window.navigator.mozTime = realTime;
     window.navigator.mozSettings = realSettings;
   });

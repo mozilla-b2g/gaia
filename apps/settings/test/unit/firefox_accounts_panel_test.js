@@ -27,12 +27,6 @@ suite('firefox accounts panel > ', function() {
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
 
-    // override generic mozL10n.get for dynamically-created resend strings/els
-    var l10nStub = sinon.stub(navigator.mozL10n, 'get');
-    l10nStub.withArgs('fxa-dont-see-email').returns('placeholder {{resend}}');
-    l10nStub.withArgs('fxa-resend-alert', {email: 'foo@bar.com'})
-      .returns('placeholder foo@bar.com');
-
     // source the code we care about - have to wait for mock l10n
     requireApp('settings/js/firefox_accounts/panel.js');
 
@@ -194,9 +188,12 @@ suite('firefox accounts panel > ', function() {
       assert.isFalse(getAccountsSpy.called);
     });
 
-    test('_onResend should alert resend message', function() {
-      FxaPanel._onResend.call(null, 'foo@bar.com');
-      assert.isTrue(alertSpy.calledWith('placeholder foo@bar.com'));
+    test('_onResend should alert resend message', function(done) {
+      FxaPanel._onResend.call(null, 'foo@bar.com').then(() => {
+        assert.isTrue(
+          alertSpy.calledWith('fxa-resend-alert{"email":"foo@bar.com"}'));
+        done();
+      });
     });
 
     suite('timer tests > ', function() {
@@ -208,13 +205,15 @@ suite('firefox accounts panel > ', function() {
         this.clock.restore();
       });
 
-      test('_onResend should disable link for 60 seconds', function() {
+      test('_onResend should disable link for 60 seconds', function(done) {
         var resendLink = document.getElementById('fxa-resend');
-        FxaPanel._onResend.call(null, 'foo@bar.com');
-        this.clock.tick(100);
-        assert.isTrue(resendLink.classList.contains('disabled'));
-        this.clock.tick(59900);
-        assert.isFalse(resendLink.classList.contains('disabled'));
+        FxaPanel._onResend.call(null, 'foo@bar.com').then(() => {
+          this.clock.tick(100);
+          assert.isTrue(resendLink.classList.contains('disabled'));
+          this.clock.tick(59900);
+          assert.isFalse(resendLink.classList.contains('disabled'));
+          done();
+        });
       });
     });
   });

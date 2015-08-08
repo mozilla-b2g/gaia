@@ -86,7 +86,8 @@ define(function(require) {
         // Bug 1120733: Privacy-panel app is always launched from settings
         this._app.launch();
       } else {
-        alert(navigator.mozL10n.get('no-privacy-panel'));
+        navigator.mozL10n.formatValue('no-privacy-panel').then(
+          msg => alert(msg));
       }
     },
 
