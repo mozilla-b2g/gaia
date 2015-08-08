@@ -21,6 +21,8 @@ require('/shared/test/unit/mocks/mock_contact_all_fields.js');
 requireApp(
   'communications/contacts/test/unit/webrtc-client/mock_webrtc_client.js');
 
+require('/contacts/js/utilities/mozContact.js');
+
 requireApp('communications/contacts/views/details/js/details_ui.js');
 
 suite('DetailsUI', function() {
@@ -50,8 +52,12 @@ suite('DetailsUI', function() {
       function() {
         mozContact = new MockContactAllFields();
         DetailsUI.init();
+
+        sinon.spy(LazyLoader, 'load');
         DetailsUI.render(mozContact, 1, true);
-        done();
+        LazyLoader.load.lastCall.returnValue.then(() => {
+          LazyLoader.load.restore();
+        }).then(done, done);
     });
 
   });
