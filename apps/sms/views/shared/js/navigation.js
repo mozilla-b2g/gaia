@@ -873,7 +873,14 @@ var Navigation = {
     debug('setReady()');
     readyDefer.resolve();
     readyDefer = null;
+  },
+
+  onTransitionFinished() {
+    return navigationTransition ?
+      navigationTransition.defer.promise :
+      Promise.resolve();
   }
+
 };
 
 return EventDispatcher.mixin(Navigation, ['navigated']);
