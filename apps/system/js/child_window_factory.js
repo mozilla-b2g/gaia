@@ -43,6 +43,10 @@
   ChildWindowFactory.prototype.handleEvent =
     function cwf_handleEvent(evt) {
       this.app.debug('[cwf] handling ' + evt.type);
+
+      // Prevent Gecko's default handler from opening the window.
+      evt.preventDefault();
+
       // Handle event from child window.
       if (evt.detail && evt.detail.instanceID &&
           evt.detail.instanceID !== this.app.instanceID) {

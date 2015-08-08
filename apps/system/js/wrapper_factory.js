@@ -30,6 +30,9 @@
     },
 
     handleEvent: function wf_handleEvent(evt) {
+      // Prevent Gecko's default handler from opening the window.
+      evt.preventDefault();
+
       if (evt.type === '_opened' || evt.type === '_terminated') {
         if (this._launchingApp === evt.detail) {
           this.forgetLastLaunchingWindow();
