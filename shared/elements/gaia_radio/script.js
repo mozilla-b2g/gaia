@@ -106,6 +106,15 @@ window.GaiaRadio = (function(win) {
   };
 
   /**
+   * Proxy className property to the wrapper.
+   */
+  proto.attributeChangedCallback = function(name, from, to) {
+    if (name === 'class') {
+      this._wrapper.className = to;
+    }
+  };
+
+  /**
    * Handle setting/getting of the checked property.
    */
   Object.defineProperty(proto, 'checked', {
