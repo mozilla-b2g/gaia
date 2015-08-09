@@ -122,8 +122,7 @@
   ActionMenu.prototype._appendDefault = function() {
     var defaultChoice = document.createElement('gaia-checkbox');
     defaultChoice.className = 'inline';
-    // Bug 1192582, can't yet create components dynamically yet with className.
-    defaultChoice.configureClass();
+
     defaultChoice.setAttribute('data-action', 'set-default-action');
 
     this.defaultChoiceInput = defaultChoice;
