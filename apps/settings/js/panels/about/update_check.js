@@ -154,8 +154,11 @@ define(function(require) {
      */
     _checkForUpdates: function uc__checkForUpdates() {
       if (!navigator.onLine) {
-        navigator.mozL10n.formatValue('no-network-when-update').then(
-          msg => alert(msg));
+        this._elements.checkUpdateNow.setAttribute('disabled', 'disabled');
+        navigator.mozL10n.formatValue('no-network-when-update').then(msg => {
+          alert(msg);
+          this._elements.checkUpdateNow.removeAttribute('disabled');
+        });
         return;
       }
 
