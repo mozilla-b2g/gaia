@@ -1,7 +1,8 @@
 /* global ConfirmDialog,
           UIManager,
           utils,
-          VCFReader */
+          VCFReader,
+          Overlay */
 /* exported SdManager */
 'use strict';
 
@@ -32,16 +33,14 @@ var SdManager = {
     var cancelled = false;
     var importer = null;
 
-    var progress = utils.overlay.show(
-      'memoryCardContacts-reading', 'activityBar');
-    utils.overlay.showMenu();
-    utils.overlay.oncancel = function() {
+    Overlay.showActivityBar('memoryCardContacts-reading');
+    Overlay.oncancel = function() {
       cancelled = true;
       if (importer) {
         importer.finish();
       } else {
         UIManager.navBar.removeAttribute('aria-disabled');
-        utils.overlay.hide();
+        Overlay.hide();
       }
     };
 
@@ -86,7 +85,7 @@ var SdManager = {
         window.setTimeout(function onfinish_import() {
           utils.misc.setTimestamp('sd');
           UIManager.navBar.removeAttribute('aria-disabled');
-          utils.overlay.hide();
+          Overlay.hide();
           if (!cancelled) {
             SdManager.alreadyImported = true;
             importButton.setAttribute('disabled', 'disabled');
@@ -103,19 +102,17 @@ var SdManager = {
     }
 
     function import_read(n) {
-      progress.setClass('progressBar');
-      progress.setHeaderMsg('memoryCardContacts-importing');
-      progress.setTotal(n);
+      Overlay.showProgressBar('memoryCardContacts-importing', n);
     }
 
     function imported_contact() {
       importedContacts++;
-      progress.update();
+      Overlay.updateProgressBar();
     }
 
     function import_error(e) {
       UIManager.navBar.removeAttribute('aria-disabled');
-      utils.overlay.hide();
+      Overlay.hide();
       // Just in case the user decides to do so later
       importButton.removeAttribute('disabled');
 

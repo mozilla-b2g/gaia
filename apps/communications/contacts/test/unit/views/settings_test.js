@@ -123,7 +123,7 @@ suite('Contacts settings >', function() {
     } else {
       window.utils.sdcard = MockSdCard;
     }
-    window.utils.overlay = {
+    window.Overlay = {
       show: function() {},
       showMenu: function() {}
     };

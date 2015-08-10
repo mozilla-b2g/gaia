@@ -1,4 +1,4 @@
-/* global utils, ConfirmDialog, Contacts, ContactsService, Loader */
+/* global utils, ConfirmDialog, ContactsService, Loader, Overlay */
 'use strict';
 
 //
@@ -27,7 +27,6 @@ window.ContactsExporter = function ContactsExporter(theStrategy) {
   var strategy = theStrategy;
   var hasProgress = false;
   var determinativeProgress = false;
-  var progress;
 
   // XXX: Bug 904623 since we cannot fetch a list of contacts by
   // contact id, we will need to fetch them all and filter
@@ -93,18 +92,18 @@ window.ContactsExporter = function ContactsExporter(theStrategy) {
   var _doHandleResult = function _doHandleResult(error, exported,
                                                  isRecoverable) {
     if (hasProgress && !error) {
-      utils.overlay.hide();
+      Overlay.hide();
     }
 
     if (error) {
       // If it was cancelled by the user we don't show the error screen.
       if (error.reason && error.reason.name === 'cancelled') {
-        utils.overlay.hide();
+        Overlay.hide();
       } else {
         var cancel = {
           title: 'cancel',
           callback: function() {
-            utils.overlay.hide();
+            Overlay.hide();
             ConfirmDialog.hide();
             _showStatus(exported, contacts.length);
           }
@@ -114,7 +113,7 @@ window.ContactsExporter = function ContactsExporter(theStrategy) {
           title: 'retry',
           isRecommend: true,
           callback: function() {
-            utils.overlay.hide();
+            Overlay.hide();
             ConfirmDialog.hide();
             // And now the action is reproduced one more time
             window.setTimeout(_doExport, 0);
@@ -129,7 +128,7 @@ window.ContactsExporter = function ContactsExporter(theStrategy) {
         ConfirmDialog.show('exportErrorTitle',
                               errorString + error.reason, cancel, retry);
 
-        Contacts.hideOverlay();
+        Overlay.hide();
 
         console.error('An error occurred during the export: ',
                       error.reason.name || error.reason);
@@ -167,25 +166,17 @@ window.ContactsExporter = function ContactsExporter(theStrategy) {
   // Shows the progress dialog based on the
   //
   var _displayProgress = function _displayProgress() {
-    var progressClass = determinativeProgress ? 'progressBar' : 'spinner';
-
     Loader.utility('Overlay', function _loaded() {
-      progress = utils.overlay.show(
-        strategy.getExportTitle(),
-        progressClass,
-        null
-      );
-      utils.overlay.showMenu();
-      utils.overlay.oncancel = function() {
-        strategy.cancelExport();
-        utils.overlay.hide();
-      };
-
-      // Allow the strategy to setup the progress bar
       if (determinativeProgress) {
-        progress.setTotal(contacts.length);
-        strategy.setProgressStep(progress.update);
+        Overlay.showProgressBar(strategy.getExportTitle(), contacts.length);
+        strategy.setProgressStep(Overlay.updateProgressBar);
+      } else {
+        Overlay.showSpinner(strategy.getExportTitle());
       }
+      Overlay.oncancel = function() {
+        strategy.cancelExport();
+        Overlay.hide();
+      };
     });
   };
 

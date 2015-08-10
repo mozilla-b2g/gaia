@@ -87,9 +87,6 @@ suite('BT export', function() {
     if (!window.utils) {
       window.utils = {};
     }
-    window.utils.overlay = {
-      hideMenu: function() {}
-    };
 
     mockProgress = function() {};
   });
@@ -203,9 +200,6 @@ suite('BT export_error', function() {
     if (!window.utils) {
       window.utils = {};
     }
-    window.utils.overlay = {
-      hideMenu: function() {}
-    };
 
     mockProgress = function() {};
   });

@@ -1,4 +1,4 @@
-/* global VCardReader, ConfirmDialog, contacts, LazyLoader, Loader */
+/* global VCardReader, ConfirmDialog, contacts, LazyLoader, Loader, Overlay */
 /* global Matcher */
 'use strict';
 
@@ -27,18 +27,19 @@ utils.importFromVcard = function(file, callback) {
     var cancelled = false;
     var importer = null;
     var text = null;
-    var progress = utils.overlay.show(
+    var progress = Overlay.show(
                    'memoryCardContacts-reading',
-                   'activityBar'
+                   'activityBar',
+                   null,
+                   true
                  );
 
-    utils.overlay.showMenu();
-    utils.overlay.oncancel = function oncancel() {
+    Overlay.oncancel = function oncancel() {
       cancelled = true;
       if (importer) {
         importer.finish();
       } else {
-        utils.overlay.hide();
+        Overlay.hide();
       }
     };
 
@@ -124,7 +125,7 @@ utils.importFromVcard = function(file, callback) {
 
         // No more contacts
         } else {
-          utils.overlay.hide();
+          Overlay.hide();
           if (!cancelled) {
             var msgImported = {
               id: 'memoryCardContacts-imported3',
@@ -182,7 +183,7 @@ utils.importFromVcard = function(file, callback) {
       };
       ConfirmDialog.show(null, 'memoryCardContacts-error',
                              cancel, retry);
-      utils.overlay.hide();
+      Overlay.hide();
     }
   }
 };

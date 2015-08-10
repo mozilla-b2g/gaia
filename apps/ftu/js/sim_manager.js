@@ -3,7 +3,8 @@
           Navigation,
           SimContactsImporter,
           UIManager,
-          utils */
+          utils,
+          Overlay */
 
 'use strict';
 
@@ -751,23 +752,19 @@ var SimManager = (function() {
     // Delay for showing feedback to the user after importing
     var DELAY_FEEDBACK = 300;
     UIManager.navBar.setAttribute('aria-disabled', 'true');
-    var progress = utils.overlay.show('simContacts-reading',
-                                      'activityBar');
+    Overlay.showActivityBar('simContacts-reading');
 
     var importButton = UIManager.simImportButton;
     var cancelled = false,
         contactsRead = false;
     var importer = new SimContactsImporter(SimManager.guessIcc());
-    utils.overlay.showMenu();
-    utils.overlay.oncancel = function oncancel() {
+    Overlay.oncancel = function oncancel() {
       cancelled = true;
       importer.finish();
       if (contactsRead) {
         // A message about canceling will be displayed while the current chunk
         // is being cooked
-        progress.setClass('activityBar');
-        utils.overlay.hideMenu();
-        progress.setHeaderMsg('messageCanceling');
+        Overlay.showActivityBar('messageCanceling', true);
       } else {
         importer.onfinish(); // Early return while reading contacts
       }
@@ -777,23 +774,21 @@ var SimManager = (function() {
     importer.onread = function sim_import_read(n) {
       contactsRead = true;
       if (n > 0) {
-        progress.setClass('progressBar');
-        progress.setHeaderMsg('simContacts-importing');
-        progress.setTotal(n);
+        Overlay.showProgressBar('simContacts-importing', n);
       }
     };
 
     importer.onimported = function imported_contact() {
       importedContacts++;
       if (!cancelled) {
-        progress.update();
+        Overlay.updateProgressBar();
       }
     };
 
     importer.onfinish = function sim_import_finish(numDupsMerged, iccId) {
       window.setTimeout(function do_sim_import_finish() {
         UIManager.navBar.removeAttribute('aria-disabled');
-        utils.overlay.hide();
+        Overlay.hide();
         if (importedContacts > 0) {
           utils.misc.setTimestamp('sim-' + iccId);
         }
@@ -812,7 +807,7 @@ var SimManager = (function() {
 
     importer.onerror = function sim_import_error() {
       UIManager.navBar.removeAttribute('aria-disabled');
-      utils.overlay.hide();
+      Overlay.hide();
       // Just in case the user decides to do so later
       importButton.removeAttribute('disabled');
 

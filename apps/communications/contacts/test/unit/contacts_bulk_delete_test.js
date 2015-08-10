@@ -22,7 +22,6 @@ if (!this.utils) {
 
 suite('contacts_bulk_delete.js', function() {
 
-  var realOverlay = null;
   var realLoader = null;
 
   var promise = {};
@@ -35,16 +34,11 @@ suite('contacts_bulk_delete.js', function() {
     if (!window.utils) {
       window.utils = {};
     }
-    realOverlay = window.utils.overlay;
-    window.utils.overlay = {
-      show: function() {}
-    };
     realLoader = window.Loader;
     window.Loader = MockLoader;
   });
 
   suiteTeardown(function() {
-    window.utils.overlay = realOverlay;
     window.Loader = realLoader;
   });
 
