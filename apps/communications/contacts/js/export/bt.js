@@ -8,7 +8,6 @@ var ContactsBTExport = function ContactsBTExport() {
   var contacts;
   var progressStep;
   var cancelled = false;
-  var _ = navigator.mozL10n.get;
 
   var _setContactsToExport = function btex_setContactsToExport(cts) {
     contacts = cts;
@@ -54,7 +53,7 @@ var ContactsBTExport = function ContactsBTExport() {
         } else if (contact.email && contact.email.length > 0) {
           filename.push(contact.email[0].value);
         } else {
-          filename.push(_('noName'));
+          filename.push('unknown');
         }
       }
     } else {
@@ -175,7 +174,9 @@ var ContactsBTExport = function ContactsBTExport() {
 
             a.onerror = function(e) {
               if (a.error.name === 'NO_PROVIDER') {
-                alert(_('share-noprovider'));
+                navigator.mozL10n.formatValue('share-noprovider').then(val => {
+                  alert(val);
+                });
               } else {
                 console.warn('share activity error:', a.error.name);
               }

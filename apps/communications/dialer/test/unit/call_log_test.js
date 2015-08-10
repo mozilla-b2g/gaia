@@ -364,18 +364,20 @@ suite('dialer/call_log', function() {
     if (group.contact &&
         (matchingTel = group.contact.matchingTel) && matchingTel.value) {
       assert.ok(addInfo, 'Additional info ok');
-      var expAddInfo;
+      var expAddInfo = {
+        id: 'phone_type_custom_and_carrier',
+        args: {}
+      };
       if (matchingTel.type) {
-        expAddInfo = matchingTel.type;
+        expAddInfo.args.type = matchingTel.type;
       } else {
-        expAddInfo = 'mobile';
+        expAddInfo.args.type = 'mobile';
       }
       if (matchingTel.carrier) {
-        expAddInfo += ', ' + matchingTel.carrier;
-      } else {
-        expAddInfo += ', ' + matchingTel.value;
+        expAddInfo.args.carrier = matchingTel.carrier;
       }
-      assert.equal(typeCarrier.innerHTML, expAddInfo);
+      var l10nAttrs = navigator.mozL10n.getAttributes(typeCarrier);
+      assert.deepEqual(l10nAttrs, expAddInfo);
     } else if (group.voicemail || group.emergency) {
       assert.equal(typeCarrier.innerHTML, group.number);
     } else {
@@ -427,18 +429,20 @@ suite('dialer/call_log', function() {
     var typeCarrier = addInfo.querySelector('.type-carrier');
     if (contact && contact.matchingTel && contact.matchingTel.value) {
       assert.ok(addInfo, 'Additional info ok');
-      var expTypeCarrier;
+      var expTypeCarrier = {
+        id: 'phone_type_custom_and_carrier',
+        args: {}
+      };
       if (contact.matchingTel.type) {
-        expTypeCarrier = contact.matchingTel.type;
+        expTypeCarrier.args.type = contact.matchingTel.type;
       } else {
-        expTypeCarrier = 'mobile';
+        expTypeCarrier.args.type = 'mobile';
       }
       if (contact.matchingTel.carrier) {
-        expTypeCarrier += ', ' + contact.matchingTel.carrier;
-      } else {
-        expTypeCarrier += ', ' + contact.matchingTel.value;
+        expTypeCarrier.args.carrier = contact.matchingTel.carrier;
       }
-      assert.equal(typeCarrier.innerHTML, expTypeCarrier);
+      var l10nAttrs = navigator.mozL10n.getAttributes(typeCarrier);
+      assert.deepEqual(l10nAttrs, expTypeCarrier);
     } else {
       assert.equal(typeCarrier.innerHTML, '', 'No additional info');
     }

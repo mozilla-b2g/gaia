@@ -18,8 +18,6 @@
     ];
 
     var MatchingUI = {
-      _: null,
-
       // Counter for checked list items
       checked: 0,
 
@@ -30,7 +28,6 @@
       fieldOrder: ['tel', 'email', 'name'],
 
       init: function() {
-        this._ = navigator.mozL10n.get;
         this.mergeButton = document.getElementById('merge-action');
         if (!this.mergeButton) {
           return;
@@ -69,7 +66,7 @@
                                           'suggestedDuplicatesMessage',
                                           params);
         } else {
-          document.title = this._('duplicatesFoundTitle');
+          document.title.setAttribute('data-l10n-id', 'duplicatesFoundTitle');
           // "xxx duplicates information in the following contacts"
           navigator.mozL10n.setAttributes(this.duplicateMessage,
                                           'foundDuplicatesMessage',
@@ -188,7 +185,7 @@
         } else if (contact.email && contact.email[0]) {
           name.push(contact.email[0].value);
         } else {
-          name.push(this._('noName'));
+          name.push(navigator.mozL10n.get('noName'));
         }
 
         return name[0];

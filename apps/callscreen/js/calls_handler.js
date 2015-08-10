@@ -297,11 +297,28 @@ var CallsHandler = (function callsHandler() {
       if (contact && contact.name) {
         CallScreen.incomingInfo.classList.add('additionalInfo');
         CallScreen.incomingNumber.textContent = contact.name;
-        CallScreen.incomingNumberAdditionalTelType.textContent =
-          Utils.getPhoneNumberAdditionalInfo(matchingTel);
+        var additionalInfo =
+          Utils.getLocalizedPhoneNumberAdditionalInfo(matchingTel);
+        if (typeof additionalInfo === 'string') {
+          CallScreen.incomingNumberAdditionalTelType.setAttribute(
+            'data-l10n-id',
+            additionalInfo);
+        } else if (additionalInfo !== undefined) {
+          navigator.mozL10n.setAttributes(
+            CallScreen.incomingNumberAdditionalTelType,
+            additionalInfo.id,
+            additionalInfo.args
+          );
+        } else {
+          CallScreen.incomingNumberAdditionalTelType.removeAttribute(
+            'data-l10n-id');
+          CallScreen.incomingNumberAdditionalTelType.textContent = '';
+        }
         CallScreen.incomingNumberAdditionalTel.textContent = number;
       } else {
         CallScreen.incomingNumber.textContent = number;
+        CallScreen.incomingNumberAdditionalTelType.removeAttribute(
+          'data-l10n-id');
         CallScreen.incomingNumberAdditionalTelType.textContent = '';
         CallScreen.incomingNumberAdditionalTel.textContent = '';
       }

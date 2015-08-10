@@ -20,8 +20,7 @@
 
 var contacts = window.contacts || {};
 contacts.List = (function() {
-  var _,
-      groupsList,
+  var groupsList,
       loaded = false,
       cancel,
       contactsListView,
@@ -188,8 +187,6 @@ contacts.List = (function() {
   };
 
   var init = function load(element, reset) {
-    _ = navigator.mozL10n.get;
-
     cancel = document.getElementById('cancel-search'),
     contactsListView = document.getElementById('view-contacts-list'),
     fastScroll = document.querySelector('nav[data-type="scrollbar"]'),
@@ -1421,7 +1418,7 @@ contacts.List = (function() {
     } else if (contact.email && contact.email.length > 0) {
       givenName.push(contact.email[0].value);
     } else {
-      givenName.push(_('noName'));
+      givenName.push(navigator.mozL10n.get('noName'));
     }
 
     return { givenName: givenName, modified: true };

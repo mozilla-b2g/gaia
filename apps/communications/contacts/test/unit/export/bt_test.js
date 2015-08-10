@@ -1,17 +1,13 @@
 'use strict';
 /* globals ContactsBTExport, MockContactToVcarBlob, MockgetDeviceStorage,
  MockGetStorageIfAvailable, MockGetStorageIfAvailableError,
- MockGetUnusedFilename, MocksHelper, MockMozActivity, MockMozL10n */
+ MockGetUnusedFilename, MocksHelper, MockMozActivity, MockL10n */
 
 requireApp('communications/contacts/js/export/bt.js');
 requireApp('communications/contacts/test/unit/mock_mozActivity.js');
 requireApp('communications/contacts/test/unit/mock_get_device_storage.js');
 requireApp('communications/contacts/test/unit/export/mock_export_utils.js');
-requireApp('communications/contacts/test/unit/mock_l10n.js');
-
-if (!window._) {
-  window._ = null;
-}
+require('/shared/test/unit/mocks/mock_l10n.js');
 
 if (!window.getStorageIfAvailable) {
   window.getStorageIfAvailable = null;
@@ -38,8 +34,7 @@ var mocksHelperForExportBT = new MocksHelper([
 ]).init();
 
 suite('BT export', function() {
-  var real_,
-      realMozL10n,
+  var realMozL10n,
       realDeviceStorage,
       realgetUnusedFilename,
       realContactToVcardBlob,
@@ -67,10 +62,7 @@ suite('BT export', function() {
 
     // L10n mock
     realMozL10n = navigator.mozL10n;
-    navigator.mozL10n = MockMozL10n;
-
-    real_ = window._;
-    window._ = navigator.mozL10n.get;
+    navigator.mozL10n = MockL10n;
 
     //getStorageIfAvailable mock
     realgetStorageIfAvailable = window.getStorageIfAvailable;
@@ -97,7 +89,6 @@ suite('BT export', function() {
   suiteTeardown(function() {
     mocksHelper.suiteTeardown();
     navigator.getDeviceStorage = realDeviceStorage;
-    window._ = real_;
     window.getStorageIfAvailable = realgetStorageIfAvailable;
     window.getUnusedFilename = realgetUnusedFilename;
     window.ContactToVcardBlob = realContactToVcardBlob;
@@ -154,8 +145,7 @@ suite('BT export', function() {
 });
 
 suite('BT export_error', function() {
-  var real_,
-      realMozL10n,
+  var realMozL10n,
       realDeviceStorage,
       realgetUnusedFilename,
       realContactToVcardBlob,
@@ -183,10 +173,7 @@ suite('BT export_error', function() {
 
     // L10n mock
     realMozL10n = navigator.mozL10n;
-    navigator.mozL10n = MockMozL10n;
-
-    real_ = window._;
-    window._ = navigator.mozL10n.get;
+    navigator.mozL10n = MockL10n;
 
     //getStorageIfAvailable mock
     realgetStorageIfAvailable = window.getStorageIfAvailable;
@@ -213,7 +200,6 @@ suite('BT export_error', function() {
   suiteTeardown(function() {
     mocksHelper.suiteTeardown();
     navigator.getDeviceStorage = realDeviceStorage;
-    window._ = real_;
     window.getStorageIfAvailable = realgetStorageIfAvailable;
     window.getUnusedFilename = realgetUnusedFilename;
     window.ContactToVcardBlob = realContactToVcardBlob;

@@ -47,7 +47,6 @@ contacts.Form = (function() {
       company,
       familyName,
       configs,
-      _,
       formView,
       throbber,
       mode,
@@ -176,7 +175,6 @@ contacts.Form = (function() {
   var init = function cf_init(tags, currentDom) {
     dom = currentDom || document;
 
-    _ = navigator.mozL10n.get;
     initContainers();
 
     dom.addEventListener('input', function input(event) {
@@ -540,7 +538,6 @@ contacts.Form = (function() {
         // Do localization for built-in types
         if (isBuiltInType(value, tags)) {
           currField.type_l10n_id = value;
-          value = _(value) || value;
         }
       }
       if (!isDate) {
@@ -861,13 +858,15 @@ contacts.Form = (function() {
                 };
               });
 
-              window.postMessage({
-                type: 'show_duplicate_contacts',
-                data: {
-                  name: getCompleteName(getDisplayName(contact)),
-                  duplicateContacts: duplicateContacts
-                }
-              }, CONTACTS_APP_ORIGIN);
+              Promise.resolve(getDisplayName(contact)).then((name) => {
+                window.postMessage({
+                  type: 'show_duplicate_contacts',
+                  data: {
+                    name: getCompleteName(name),
+                    duplicateContacts: duplicateContacts
+                  }
+                }, CONTACTS_APP_ORIGIN);
+              });
 
             break;
 
@@ -954,7 +953,9 @@ contacts.Form = (function() {
     } else if (contact.email && contact.email.length > 0) {
       givenName.push(contact.email[0].value);
     } else {
-      givenName.push(_('noName'));
+      return navigator.mozL10n.formatValue('noName').then((val) => {
+        return { givenName: [val], modified: true };
+      });
     }
 
     return { givenName: givenName, modified: true };

@@ -3,17 +3,17 @@
 /* global utils, importer, MockAlphaScroll, MockImageLoader */
 /* global MockSearch, MockasyncStorage, MockOauthflow, MockImportHtml */
 /* global MockConnector, MockImportedContacts, MockCurtain, MockLazyLoader */
-/* global MockConfirmDialog */
+/* global MockConfirmDialog, MockL10n */
 
 require('/shared/js/text_normalizer.js');
 require('/shared/js/contacts/search.js');
-requireApp('communications/contacts/test/unit/mock_l10n.js');
 require('/shared/js/contacts/import/importer_ui.js');
 require('/shared/js/contacts/import/utilities/misc.js');
 require('/shared/js/contacts/utilities/dom.js');
 require('/shared/js/contacts/utilities/templates.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_confirm_dialog.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 
 requireApp('communications/contacts/test/unit/import/mock_import.html.js');
 requireApp('communications/contacts/test/unit/mock_asyncstorage.js');
@@ -36,6 +36,7 @@ var realSearch,
     realLazyLoader,
     realConfirmDialog,
     realParentLazyLoader,
+    realMozL10n,
     groupsListChild, groupsList;
 
 if (!window.asyncStorage) {
@@ -100,6 +101,9 @@ suite('Import Friends Test Suite', function() {
 
     realParentLazyLoader = window.parent.LazyLoader;
     window.parent.LazyLoader = MockLazyLoader;
+
+    realMozL10n = navigator.mozL10n;
+    navigator.mozL10n = MockL10n;
 
     document.body.innerHTML = MockImportHtml;
 
@@ -466,6 +470,7 @@ suite('Import Friends Test Suite', function() {
     window.LazyLoader = realLazyLoader;
     window.ConfirmDialog = realConfirmDialog;
     window.parent.LazyLoader = realParentLazyLoader;
+    navigator.mozL10n = realMozL10n;
   });
 
 });

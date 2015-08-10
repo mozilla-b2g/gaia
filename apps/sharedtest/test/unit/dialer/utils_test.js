@@ -1,9 +1,6 @@
-/* global MockContacts, MockL10n, Utils */
+/* global MockL10n, Utils */
 
 'use strict';
-
-require('/shared/test/unit/mocks/dialer/mock_contacts.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
 
 require('/shared/js/dialer/utils.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
@@ -11,7 +8,6 @@ require('/shared/test/unit/mocks/mock_l10n.js');
 suite('dialer/utils', function() {
   var realL10n;
   var subject;
-  var number = '555-555-555-555';
 
   suiteSetup(function() {
     realL10n = navigator.mozL10n;
@@ -26,38 +22,6 @@ suite('dialer/utils', function() {
   suite('Utility library', function() {
     setup(function() {
       this.sinon.spy(MockL10n, 'get');
-    });
-
-    test('#additional info WITHOUT carrier', function() {
-      MockContacts.mCarrier = null; // No carrier
-      MockContacts.findByNumber(number, function(contact, matchingTel) {
-        var additionalInfo = subject.getPhoneNumberAdditionalInfo(matchingTel);
-        sinon.assert.calledWith(MockL10n.get, MockContacts.mType);
-        assert.equal(MockContacts.mType, additionalInfo);
-      });
-    });
-
-    test('#additional info WITH carrier', function() {
-      MockContacts.mCarrier = 'carrier'; // Carrier value
-      MockContacts.findByNumber(number, function(contact, matchingTel) {
-        var additionalInfo = subject.getPhoneNumberAdditionalInfo(matchingTel);
-        sinon.assert.calledWith(MockL10n.get, MockContacts.mType);
-        assert.equal(MockContacts.mType + ', ' + MockContacts.mCarrier,
-                     additionalInfo);
-      });
-    });
-
-    test('should not translate custom types', function() {
-      var customType = 'totally custom';
-
-      MockContacts.mCarrier = 'carrier';
-      MockContacts.mType = customType;
-
-      MockContacts.findByNumber(number, function(contact, matchingTel) {
-        var additionalInfo = subject.getPhoneNumberAdditionalInfo(matchingTel);
-        sinon.assert.calledWith(MockL10n.get, customType);
-        assert.equal(customType +', ' + MockContacts.mCarrier, additionalInfo);
-      });
     });
 
     test('#headerDate should identify yesterday as a time range', function() {

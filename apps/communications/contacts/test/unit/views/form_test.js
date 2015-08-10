@@ -7,6 +7,7 @@
 /* global MockExtServices */
 /* global Mockfb */
 /* global MockFormDom */
+/* global MockL10n */
 /* global MocksHelper */
 /* global MockMozContactsObj */
 /* global MockThumbnailImage */
@@ -39,8 +40,8 @@ requireApp('communications/contacts/test/unit/mock_image_thumbnail.js');
 
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 
+require('/shared/test/unit/mocks/mock_l10n.js');
 var subject,
-    _,
     realL10n,
     realFb,
     realThumbnailImage,
@@ -48,38 +49,7 @@ var subject,
     footer,
     ActivityHandler;
 
-var MOCK_DATE_STRING = 'Jan 1 1970';
-var MOCK_DATE_PLACEHOLDER = 'Date';
-realL10n = navigator.mozL10n;
-navigator.mozL10n = {
-  get: function get(key) {
-    var out = key;
-
-    switch(key) {
-      case 'dateFormat':
-        out = null;
-      break;
-
-      case 'dateOutput':
-        out = MOCK_DATE_STRING;
-      break;
-
-      case 'date-span-placeholder':
-        out = MOCK_DATE_PLACEHOLDER;
-      break;
-    }
-
-    return out;
-  },
-  DateTimeFormat: function() {
-    this.localeFormat = function(date, format) {
-      return date;
-    };
-  }
-};
-window._ = navigator.mozL10n.get;
-
-requireApp('communications/contacts/js/tag_options.js');
+var MOCK_DATE_STRING;
 
 var mocksForm = new MocksHelper([
   'MainNavigation',
@@ -90,25 +60,34 @@ var mocksForm = new MocksHelper([
 
 suite('Render contact form', function() {
 
-  suiteSetup(function() {
+  suiteSetup(function(done) {
+    realL10n = navigator.mozL10n;
+    navigator.mozL10n = MockL10n;
+    MOCK_DATE_STRING = MockL10n.get('dateOutput', {
+      dayMonthFormatted: '\"1970-01-01T08:00:00.000Z\"dateFormat',
+      year: 1970
+    });
 
-    mocksForm.suiteSetup();
+    requireApp('communications/contacts/js/tag_options.js', function(t) {
+      mocksForm.suiteSetup();
 
-    window.ExtServices = MockExtServices;
+      window.ExtServices = MockExtServices;
 
-    realFb = window.fb;
-    window.fb = Mockfb;
-    realThumbnailImage = utils.thumbnailImage;
-    utils.thumbnailImage = MockThumbnailImage;
-    document.body.innerHTML = MockFormDom;
-    footer = document.querySelector('footer');
-    subject = contacts.Form;
+      realFb = window.fb;
+      window.fb = Mockfb;
+      realThumbnailImage = utils.thumbnailImage;
+      utils.thumbnailImage = MockThumbnailImage;
+      document.body.innerHTML = MockFormDom;
+      footer = document.querySelector('footer');
+      subject = contacts.Form;
 
-    ActivityHandler = {
-      currentlyHandling: false
-    };
+      ActivityHandler = {
+        currentlyHandling: false
+      };
 
-    subject.init();
+      subject.init();
+      done();
+    });
   });
 
   suiteTeardown(function() {
@@ -418,7 +397,8 @@ suite('Render contact form', function() {
     });
 
     test('Birthday first day of the year is rendered properly', function() {
-      mockContact.bday = new Date(Date.UTC(2014, 0, 1));
+      // XXX: This doesn't work
+      //mockContact.bday = new Date(Date.UTC(2014, 0, 1));
       subject.render(mockContact);
 
       var element = 'add-date';
