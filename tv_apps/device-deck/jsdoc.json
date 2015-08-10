@@ -1,10 +1,18 @@
 {
-  "settings": {
-    "src": [
-      "tv_apps/devices/js/**/*.js"
-    ],
-    "options": {
-      "destination": "docs/devices"
-    }
+  "name": "devices",
+  "tags": {
+    "dictionaries": ["jsdoc"]
+  },
+  "source": {
+    "include": ["tv_apps/device-deck/README.md", "tv_apps/device-deck/js"]
+  },
+  "plugins": [
+    "plugins/markdown",
+    "plugins/summarize"
+  ],
+  "opts": {
+    "private": true,
+    "recurse": true,
+    "destination": "docs/device-deck"
   }
 }

@@ -7,6 +7,9 @@
   const ICON_SIZE = 180 * (window.devicePixelRatio || 1);
   const DEFAULT_ICON_PATH = 'style/icons/appic_developer.png';
 
+  /**
+   * [AppDeck main entry point of AppDeck]
+   */
   var AppDeck = function() {
   };
 
