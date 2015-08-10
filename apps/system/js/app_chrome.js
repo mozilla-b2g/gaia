@@ -387,7 +387,16 @@
     if (locked || contextMenu) {
       return;
     }
-    window.dispatchEvent(new CustomEvent('global-search-request'));
+
+    if (!this.isMaximized() && this.app.isBrowser()) {
+      if (this.pinned) {
+        this.app.element.classList.add('collapsible');
+        this.scrollable.scrollTop = 0;
+      }
+      this.maximize();
+    } else {
+      window.dispatchEvent(new CustomEvent('global-search-request'));
+    }
   };
 
   AppChrome.prototype.onClickSiteIcon = function onClickSiteIcon() {
@@ -471,6 +480,9 @@
     // a scrollTop position of scrollTopMax - 1, which triggers the transition!
     if (this.scrollable.scrollTop >= this.scrollable.scrollTopMax - 1) {
       this.collapse();
+      if (this.pinned) {
+        this.app.element.classList.remove('collapsible');
+      }
     } else if (!this.pinned) {
       this.expand();
     }
@@ -853,9 +865,7 @@
 
   AppChrome.prototype.maximize = function ac_maximize(callback) {
     var element = this.element;
-    if (!this.pinned) {
-      this.expand();
-    }
+    this.expand();
     window.addEventListener('rocketbar-overlayclosed', this);
 
     if (!callback) {
