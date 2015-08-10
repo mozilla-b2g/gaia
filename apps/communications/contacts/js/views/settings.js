@@ -20,6 +20,7 @@
 /* global Loader */
 /* global BulkDelete */
 /* global ICE */
+/* global Overlay */
 
 var contacts = window.contacts || {};
 
@@ -310,7 +311,7 @@ contacts.Settings = (function() {
         // warn the user of the ongoin operation, dismiss it
         // once we have the result
         requireOverlay(function _loaded() {
-          utils.overlay.show('preparing-contacts', null, 'spinner');
+          Overlay.showSpinner('preparing-contacts');
           promise.onsuccess = function onSuccess(ids) {
             // Once we start the export process we can exit from select mode
             // This will have to evolve once export errors can be captured
@@ -323,7 +324,7 @@ contacts.Settings = (function() {
           };
           promise.onerror = function onError() {
             contacts.List.exitSelectMode();
-            utils.overlay.hide();
+            Overlay.hide();
           };
         });
       },
@@ -441,7 +442,7 @@ contacts.Settings = (function() {
   }
 
   function resetWait(wakeLock) {
-    Contacts.hideOverlay();
+    Overlay.hide();
     if (wakeLock) {
       wakeLock.unlock();
     }
@@ -459,23 +460,19 @@ contacts.Settings = (function() {
     if (icc === null) {
       return;
     }
-    var progress = Contacts.showOverlay('simContacts-reading',
-      'activityBar');
+    Overlay.showActivityBar('simContacts-reading');
 
     var wakeLock = navigator.requestWakeLock('cpu');
 
     var cancelled = false, contactsRead = false;
     var importer = new SimContactsImporter(icc);
-    utils.overlay.showMenu();
-    utils.overlay.oncancel = function oncancel() {
+    Overlay.oncancel = function oncancel() {
       cancelled = true;
       importer.finish();
       if (contactsRead) {
         // A message about canceling will be displayed while the current chunk
         // is being cooked
-        progress.setClass('activityBar');
-        utils.overlay.hideMenu();
-        progress.setHeaderMsg('messageCanceling');
+        Overlay.showActivityBar('messageCanceling', true);
       } else {
         importer.onfinish(); // Early return while reading contacts
       }
@@ -489,9 +486,7 @@ contacts.Settings = (function() {
       contactsRead = true;
       totalContactsToImport = n;
       if (totalContactsToImport > 0) {
-        progress.setClass('progressBar');
-        progress.setHeaderMsg('simContacts-importing');
-        progress.setTotal(totalContactsToImport);
+        Overlay.showProgressBar('simContacts-importing', totalContactsToImport);
       }
     };
 
@@ -531,7 +526,7 @@ contacts.Settings = (function() {
     importer.onimported = function imported_contact() {
       importedContacts++;
       if (!cancelled) {
-        progress.update();
+        Overlay.updateProgressBar();
       }
     };
 
@@ -562,12 +557,10 @@ contacts.Settings = (function() {
   var onSdImport = function onSdImport(cb) {
     var cancelled = false;
     var importer = null;
-    var progress = Contacts.showOverlay(
-      'memoryCardContacts-reading', 'activityBar');
-    utils.overlay.showMenu();
-    utils.overlay.oncancel = function() {
+    Overlay.showActivityBar('memoryCardContacts-reading');
+    Overlay.oncancel = function() {
       cancelled = true;
-      importer ? importer.finish() : Contacts.hideOverlay();
+      importer ? importer.finish() : Overlay.hide();
     };
     var wakeLock = navigator.requestWakeLock('cpu');
 
@@ -648,14 +641,12 @@ contacts.Settings = (function() {
     }
 
     function import_read(n) {
-      progress.setClass('progressBar');
-      progress.setHeaderMsg('memoryCardContacts-importing');
-      progress.setTotal(n);
+      Overlay.showProgressBar('memoryCardContacts-importing', n);
     }
 
     function imported_contact() {
       importedContacts++;
-      progress.update();
+      Overlay.updateProgressBar();
     }
 
     function import_error(e, cb) {

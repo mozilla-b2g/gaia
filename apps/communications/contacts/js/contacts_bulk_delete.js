@@ -1,5 +1,5 @@
-/* globals Contacts, utils, contactsRemover, Promise,
-   Search, ConfirmDialog, Loader */
+/* globals utils, contactsRemover, Promise,
+   Search, ConfirmDialog, Loader, Overlay */
 'use strict';
 
 var contacts = window.contacts || {};
@@ -43,11 +43,9 @@ var contacts = window.contacts || {};
 
   var doDelete = function doDelete(ids, done) {
     cancelled = false;
-    var progress = utils.overlay.show('DeletingContacts', 'progressBar');
-    progress.setTotal(ids.length);
-    utils.overlay.showMenu();
+    Overlay.showProgressBar('DeletingContacts', ids.length);
 
-    utils.overlay.oncancel = function() {
+    Overlay.oncancel = function() {
       cancelled = true;
       contactsRemoverObj.finish();
     };
@@ -63,11 +61,11 @@ var contacts = window.contacts || {};
         Search.removeContact(currentId);
       }
       contacts.List.remove(currentId);
-      progress.update();
+      Overlay.updateProgressBar();
     };
 
     contactsRemoverObj.onError = function onError() {
-      Contacts.hideOverlay();
+      Overlay.hide();
       utils.status.show({
         id: 'deleteError-general'
       });
@@ -75,7 +73,7 @@ var contacts = window.contacts || {};
     };
 
     contactsRemoverObj.onFinished = function onFinished() {
-      Contacts.hideOverlay();
+      Overlay.hide();
       utils.status.show({
         id: 'DeletedTxt',
         args: {n: contactsRemoverObj.getDeletedCount()}
