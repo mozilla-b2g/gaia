@@ -1,6 +1,6 @@
 /*jshint node: true, browser: true */
 /* globals MockContactsList, MockMozContacts, Mockfb, MockLoader, utils,
-MocksHelper, contactsRemover, contacts, MockContactsSettings */
+MocksHelper, contactsRemover, contacts, MockContactsSettings, BulkDelete */
 
 'use strict';
 
@@ -188,7 +188,7 @@ suite('Multiple Contacts Delete', function() {
     var ids = getContactIds();
     var promise = createSelectPromise();
     promise.resolve(ids);
-    contacts.BulkDelete.performDelete(promise);
+    BulkDelete.performDelete(promise);
     assert.ok(window.utils.overlay.shown, 'overlay not displayed');
     done();
   });
