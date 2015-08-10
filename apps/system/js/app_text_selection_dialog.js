@@ -106,8 +106,8 @@
 
   AppTextSelectionDialog.prototype.debug = function tsd_debug(msg) {
     if (DEBUG || this._DEBUG) {
-      console.log('[Dump: ' + this.ID_NAME + ']' +
-        JSON.stringify(msg));
+      console.log(this.ID_NAME + '(' + this.CLASS_NAME + this.instanceID +
+                  '): ' + msg);
     }
   };
 
@@ -402,7 +402,7 @@
   AppTextSelectionDialog.prototype.updateDialogPosition =
     function tsd_updateDialogPosition() {
       var pos = this.calculateDialogPostion();
-      this.debug(pos);
+      this.debug(JSON.stringify(pos));
       this.element.style.top = pos.top + 'px';
       this.element.style.left = pos.left + 'px';
       this.element.style.height = this.TEXTDIALOG_HEIGHT + 'px';
