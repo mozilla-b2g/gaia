@@ -1,5 +1,5 @@
 /* Individual style; to avoid utility tray patches breark lockscreen notitifications. */
-#notifications-lockscreen-container .notification {
+.notification-container .notification {
   position: relative;
   height: 6rem;
   font-size: 1.4rem;
@@ -9,15 +9,15 @@
   border-bottom: 0.1rem solid transparent;
 }
 
-#notifications-lockscreen-container .notification:first-child {
+.notification-container .notification:first-child {
   border-top-color: black;
 }
 
-#notifications-lockscreen-container .notification div {
+.notification-container .notification div {
   pointer-events: none;
 }
 
-#notifications-lockscreen-container .notification > div.title-container {
+.notification-container .notification > div.title-container {
   margin-top: 1rem;
   font-size: 1.5rem;
   font-weight: 500;
@@ -25,7 +25,7 @@
   display: flex;
 }
 
-#notifications-lockscreen-container .notification > div {
+.notification-container .notification > div {
   width: calc(100% - 6.5rem);
   -moz-margin-start: 5rem;
   color: #bfbfbf;
@@ -37,7 +37,7 @@
   white-space: nowrap;
 }
 
-#notifications-lockscreen-container .notification > img {
+.notification-container .notification > img {
   float: left;
   display: block;
   width: 3rem;
@@ -46,7 +46,7 @@
   pointer-events: none;
 }
 
-#notifications-lockscreen-container .notification > div.title-container .title {
+.notification-container .notification > div.title-container .title {
   flex: 1;
   overflow: hidden;
   white-space: nowrap;
@@ -54,13 +54,13 @@
   -moz-margin-end: .5rem;
 }
 
-#notifications-lockscreen-container .notification.actionable {
+.notification-container .notification.actionable {
   /* Can't set border as none because it affects layout,
    * so we do this to hide them */
   border-color: rgba(0, 0, 0, 0);
 }
 
-#notifications-lockscreen-container .notification.actionable > div {
+.notification-container .notification.actionable > div {
   /* 18rem is the magic number to make sure it get truncated before the actionable button */
   /* ideally it should be */
   /*    width: calc(100% - var(--padleft-button) - var(--width-actionable-button)); */
@@ -68,15 +68,15 @@
   width: 18rem;
 }
 
-#notifications-lockscreen-container .notification.actionable > div:first-of-type {
+.notification-container .notification.actionable > div:first-of-type {
   width: 18.5rem;
 }
 
-#notifications-lockscreen-container .notification.actionable .timestamp {
+.notification-container .notification.actionable .timestamp {
   display: none;
 }
 
-#notifications-lockscreen-container .notification::before {
+.notification-container .notification::before {
   content: "";
   position: absolute;
   width: 100%;
@@ -89,13 +89,13 @@
   transition: opacity .25s ease-out;
 }
 
-#notifications-lockscreen-container .notification.actionable::before {
+.notification-container .notification.actionable::before {
   opacity: 1.0;
   transition: opacity .25s ease-out;
 }
 
 /* for the border */
-#notifications-lockscreen-container .notification::after {
+.notification-container .notification::after {
   content: "";
   position: absolute;
   width: calc(100% - 4.8rem);
@@ -108,17 +108,17 @@
   -moz-margin-start: 2.4rem;
 }
 
-#notifications-lockscreen-container > div:last-child::after {
+.notification-container > div:last-child::after {
   border-bottom: 0.1rem solid rgba(255, 255, 255, 0.0);
 }
 
 /* since CSS don't have 'previous' selector */
-#notifications-lockscreen-container .notification.actionable::after,
-#notifications-lockscreen-container .notification.previous-actionable::after {
+.notification-container .notification.actionable::after,
+.notification-container .notification.previous-actionable::after {
   display: none;
 }
 
-#notifications-lockscreen-container .button-actionable {
+.notification-container .button-actionable {
   border-left: 0.1rem rgba(255, 255, 255, 0.15) solid;
   color: rgba(0, 202, 242, 1);
   display: inline-block;
@@ -148,8 +148,8 @@
 }
 
 /* When the notification be touched and the button has been tapped */
-#notifications-lockscreen-container .notification.actionable.activated  .button-actionable,
-#notifications-lockscreen-container .button-actionable.activated {
+.notification-container .notification.actionable.activated  .button-actionable,
+.notification-container .button-actionable.activated {
   color: rgba(0, 202, 242, 0.2);
 }
 
@@ -166,7 +166,7 @@
  *  + 16.3rem + 3rem
  */
 
-#notifications-lockscreen-container {
+.notification-container {
   --width-actionable-button: 8.3rem;
   --padleft-button: 1.1rem;
   --button-label-size: 1.4rem;
@@ -188,20 +188,20 @@
  * for small screen, we allow two notification; they are
  * vertically centered between date and music player widget
  */
-#notifications-lockscreen-container.collapsed {
+.notification-container.collapsed {
   top: calc(50% - 8.7rem);
   height: 17.7rem;
 }
 
-#notifications-lockscreen-container.masked-both {
+.notification-container.masked-both {
   mask: url('lockscreen_container_mask.svg#fade_mask_both');
 }
 
-#notifications-lockscreen-container.masked-top {
+.notification-container.masked-top {
   mask: url('lockscreen_container_mask.svg#solid_mask_top');
 }
 
-#notifications-lockscreen-container.masked-top.top-actionable {
+.notification-container.masked-top.top-actionable {
   mask: none;
 }
 
@@ -212,7 +212,7 @@
   *  + 16.3rem + 3rem
   */
 
-  #notifications-lockscreen-container {
+  .notification-container {
     top: calc(50% - 4.7rem);
     height: 18.8rem;
   }
@@ -225,19 +225,19 @@
   * Bug 1115921 specifies that in this condition, the notification should
   * be vertically centered, thus 2.5rem which puts it in the middle
   */
-  #notifications-lockscreen-container.collapsed {
+  .notification-container.collapsed {
     top: calc(50% - 2.5rem);
     height: 5.8rem;
     overflow-y: hidden;
   }
 
-  #notifications-lockscreen-container.collapsed.masked-top,
-  #notifications-lockscreen-container.collapsed.masked-both {
+  .notification-container.collapsed.masked-top,
+  .notification-container.collapsed.masked-both {
     mask: none;
   }
 }
 
-#notifications-lockscreen-container .notification {
+.notification-container .notification {
   position: relative;
   background-color: transparent;
   border-top: none;
@@ -250,41 +250,41 @@
   width: calc(100% - 4.8rem);
 }
 
-#notifications-lockscreen-container .notification:first-child {
+.notification-container .notification:first-child {
   border-top: none;
 }
 
-#notifications-lockscreen-container .notification:last-child {
+.notification-container .notification:last-child {
   border-bottom: none;
   margin-bottom: 1.2rem;
 }
 
-#notifications-lockscreen-container.collapsed .notification:last-child {
+.notification-container.collapsed .notification:last-child {
   margin-bottom: 0.05rem;
 }
 
-#notifications-lockscreen-container .notification > div {
+.notification-container .notification > div {
   width: calc(100% - 3.6rem);
   -moz-margin-start: 3.6rem;
   color: #ffffff;
 }
 
-#notifications-lockscreen-container .notification > .title-container div:first-of-type {
+.notification-container .notification > .title-container div:first-of-type {
   width: calc(100% - 9.4rem);
   font-size: 1.4rem;
 }
 
-#notifications-lockscreen-container .notification > div.detail {
+.notification-container .notification > div.detail {
   margin-top: 0.2rem;
 }
 
-#notifications-lockscreen-container .notification > div.detail .detail-content {
+.notification-container .notification > div.detail .detail-content {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-#notifications-lockscreen-container .notification > .title-container .timestamp {
+.notification-container .notification > .title-container .timestamp {
   margin-top: 0.1rem;
   color: rgba(255, 255, 255, 0.6);
 
@@ -303,7 +303,7 @@
 }
 
 
-#notifications-lockscreen-container .notification > img {
+.notification-container .notification > img {
   margin-top: 0.8rem;
   -moz-margin-start: 0;
   width: 2.4rem;
@@ -334,7 +334,7 @@
 }
 
 /* please see how we calculate top and max-height of
- * #notifications-lockscreen-container to place the arrow's top.
+ * .notification-container to place the arrow's top.
  * the last offset in calc is to make sure hairlines align together,
  * and is empirical values.
  */
@@ -360,28 +360,28 @@
 }
 
 /* Right-To-Left layout */
-:-moz-dir(rtl) #notifications-lockscreen-container .notification > img {
+:-moz-dir(rtl) .notification-container .notification > img {
   float: right;
 }
 
-:-moz-dir(rtl) #notifications-lockscreen-container .notification::before {
+:-moz-dir(rtl) .notification-container .notification::before {
   left: unset;
   right: 0;
 }
 
-:-moz-dir(rtl) #notifications-lockscreen-container .notification::after {
+:-moz-dir(rtl) .notification-container .notification::after {
   left: unset;
   right: 0;
 }
 
-:-moz-dir(rtl) #notifications-lockscreen-container .button-actionable {
+:-moz-dir(rtl) .notification-container .button-actionable {
   border-left: unset;
   border-right: 0.1rem rgba(255, 255, 255, 0.15) solid;
   left: unset;
   right: calc(100% - var(--width-actionable-button) + 1.4rem);
 }
 
-:-moz-dir(rtl) #notifications-lockscreen-container .notification > .title-container .timestamp {
+:-moz-dir(rtl) .notification-container .notification > .title-container .timestamp {
   left: 1.5rem;
   right: unset;
 }
@@ -397,12 +397,12 @@
  * want the text to align right when in an RTL language, so we use
  * the following override. See bug 1134453 and bug 1142925.
  */
-:-moz-dir(rtl) #notifications-lockscreen-container .notification:not([data-predefined-dir="ltr"]) .title-container .title:-moz-dir(ltr) {
+:-moz-dir(rtl) .notification-container .notification:not([data-predefined-dir="ltr"]) .title-container .title:-moz-dir(ltr) {
   text-align: right;
   -moz-margin-end: unset;
   margin-left: 0.5rem;
 }
 
-:-moz-dir(rtl) #notifications-lockscreen-container .notification:not([data-predefined-dir="ltr"]) .detail-content:-moz-dir(ltr) {
+:-moz-dir(rtl) .notification-container .notification:not([data-predefined-dir="ltr"]) .detail-content:-moz-dir(ltr) {
   text-align: right;
 }
