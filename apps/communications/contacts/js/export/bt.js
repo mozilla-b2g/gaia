@@ -1,5 +1,5 @@
 /* global getStorageIfAvailable, getUnusedFilename, ContactToVcardBlob,
-    MozActivity, utils */
+    MozActivity */
 
 /* exported ContactsBTExport */
 'use strict';
@@ -146,7 +146,6 @@ var ContactsBTExport = function ContactsBTExport() {
           return;
         }
 
-        utils.overlay.hideMenu();
         _saveToSdcard(storage, filename, blob,
         function onVcardSaved(error, filepath) {
           if (checkError(error)) {

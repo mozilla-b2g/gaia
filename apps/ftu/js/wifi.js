@@ -1,4 +1,4 @@
-/* global utils, UIManager, WifiHelper, WifiUI:true */
+/* global Overlay, UIManager, WifiHelper, WifiUI:true */
 /* exported WifiManager, WifiUI */
 'use strict';
 
@@ -30,7 +30,7 @@ var WifiManager = {
       return;
     }
     this._scanning = true;
-    utils.overlay.show('scanningNetworks', 'spinner');
+    Overlay.showSpinner('scanningNetworks');
     var SCAN_TIMEOUT = 10000;
 
     var self = this;
@@ -406,7 +406,7 @@ var WifiUI = {
       networksList.dataset.type = 'list';
       networksDOM.appendChild(networksList);
     }
-    utils.overlay.hide();
+    Overlay.hide();
   },
 
   updateNetworkStatus: function wui_uns(ssid, status) {

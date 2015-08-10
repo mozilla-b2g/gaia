@@ -1,8 +1,8 @@
-/* global utils, tzSelect, FinishScreen,
+/* global tzSelect, FinishScreen,
           Basket, ConfirmDialog, ScreenLayout,
           DataMobile, SimManager, SdManager,
           Tutorial, TimeManager, WifiManager,
-          WifiUI, WifiHelper, FxAccountsIACHelper, SettingsListener */
+          WifiUI, WifiHelper, FxAccountsIACHelper, SettingsListener, Overlay */
 /* exported UIManager */
 'use strict';
 
@@ -299,7 +299,7 @@ var UIManager = {
     if (emailValue === '') {
       return callback(true);
     } else {
-      utils.overlay.show('email-loading', 'spinner');
+      Overlay.showSpinner('email-loading');
       if (self.newsletterInput.checkValidity()) {
         if (window.navigator.onLine) {
           Basket.send(emailValue, function emailSent(err, data) {
@@ -313,23 +313,23 @@ var UIManager = {
                                       ConfirmDialog.hide();
                                     }
                                    });
-                utils.overlay.hide();
+                Overlay.hide();
                 return callback(false);
               } else {
                 Basket.store(emailValue);
               }
             }
-            utils.overlay.hide();
+            Overlay.hide();
             return callback(true);
           });
         } else {
           Basket.store(emailValue, function stored(errorStoring) {
-            utils.overlay.hide();
+            Overlay.hide();
             return callback(!errorStoring);
           });
         }
       } else {
-        utils.overlay.hide();
+        Overlay.hide();
         ConfirmDialog.show('invalid-email-dialog-title',
                            'invalid-email-dialog-text',
                            {
