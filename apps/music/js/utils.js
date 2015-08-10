@@ -1,5 +1,5 @@
 /* exported formatTime, createListElement */
-/* global AlbumArtCache, LazyLoader, Normalizer */
+/* global AlbumArtCache, LazyLoader, Normalizer, Sanitizer */
 'use strict';
 
 function formatTime(secs) {
@@ -50,13 +50,14 @@ function createListElement(option, data, index, highlight) {
     var index = Normalizer.toAscii(textLowerCased).indexOf(text);
 
     if (index >= 0) {
-      var innerHTML = textContent.substring(0, index) +
-                      '<span class="search-highlight">' +
-                      textContent.substring(index, index + text.length) +
-                      '</span>' +
-                      textContent.substring(index + text.length);
+      var innerHTML = Sanitizer.createSafeHTML`
+                      ${textContent.substring(0, index)}
+                      <span class="search-highlight">
+                      ${textContent.substring(index, index + text.length)}
+                      </span>
+                      ${textContent.substring(index + text.length)}`;
 
-      result.innerHTML = innerHTML;
+      result.innerHTML = Sanitizer.unwrapSafeHTML(innerHTML);
     }
   }
 
