@@ -3,12 +3,11 @@
 /* global Contacts, contacts, Loader, ActivityHandler, LazyLoader,
           MockContactsListObj, MockCookie, MockMozL10n,
           MockNavigationStack, MockUtils, MocksHelper,
-          MockContactAllFields, MockContactDetails,
+          MockContactAllFields, MockContactDetails, Search,
           MockContactsSearch, MockContactsSettings, Mockfb, MockLoader,
           MockImportStatusData, MockMozContacts, ContactsService, HeaderUI
 */
 
-requireApp('communications/contacts/js/param_utils.js');
 requireApp('communications/contacts/services/contacts.js');
 requireApp('communications/contacts/test/unit/mock_l10n.js');
 requireApp('communications/contacts/test/unit/mock_cache.js');
@@ -320,6 +319,66 @@ suite('Contacts', function() {
       this.sinon.spy(ActivityHandler, 'dataPickHandler');
       this.sinon.spy(contacts.Details, 'render');
       this.sinon.spy(navigation, 'go');
+    });
+
+    test('> initializing details', function() {
+      Contacts.showContactDetail('1');
+
+      sinon.assert.called(Loader.view);
+      sinon.assert.called(ContactsService.get);
+      sinon.assert.called(contacts.Details.render);
+      sinon.assert.calledWith(navigation.go,
+       'view-contact-details', 'go-deeper');
+      sinon.assert.notCalled(ActivityHandler.dataPickHandler);
+
+    });
+
+    test('> when handling pick activity, don\'t navigate, send result',
+      function() {
+        ActivityHandler.currentlyHandling = true;
+        ActivityHandler.activityName = 'pick';
+        Contacts.showContactDetail('1');
+
+        sinon.assert.called(ContactsService.get);
+        sinon.assert.notCalled(contacts.Details.render);
+        sinon.assert.notCalled(navigation.go);
+        sinon.assert.called(ActivityHandler.dataPickHandler);
+
+        ActivityHandler.currentlyHandling = false;
+        ActivityHandler.activityName = 'open';
+      }
+    );
+
+    test('> when handling import activity, navigate as normal',
+      function() {
+        ActivityHandler.currentlyHandling = true;
+        ActivityHandler.activityName = 'import';
+        Contacts.showContactDetail('1');
+
+        sinon.assert.called(ContactsService.get);
+        sinon.assert.called(contacts.Details.render);
+        sinon.assert.called(navigation.go);
+        sinon.assert.notCalled(ActivityHandler.dataPickHandler);
+
+        ActivityHandler.currentlyHandling = false;
+        ActivityHandler.activityName = 'open';
+      }
+    );
+
+    test('> in search navigate deeper from search', function() {
+      sinon.stub(Search, 'isInSearchMode', function() {
+        return true;
+      });
+
+      Contacts.showContactDetail('1');
+
+      sinon.assert.called(contacts.Details.render);
+      sinon.assert.called(Search.isInSearchMode);
+      sinon.assert.calledWith(navigation.go,
+       'view-contact-details', 'go-deeper-search');
+      sinon.assert.notCalled(ActivityHandler.dataPickHandler);
+
+      Search.isInSearchMode.restore();
     });
   });
 

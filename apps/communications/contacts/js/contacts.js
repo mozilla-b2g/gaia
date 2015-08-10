@@ -15,7 +15,6 @@
 /* global HeaderUI */
 /* global Search */
 /* global ContactsService */
-/* global ParamUtils */
 
 /* exported COMMS_APP_ORIGIN */
 /* exported SCALE_RATIO */
@@ -44,7 +43,8 @@ var Contacts = (function() {
   var detailsReady = false;
   var formReady = false;
 
-  var currentContact = {};
+  var currentContact = {},
+      currentFbContact;
 
   var contactsList;
   var contactsDetails;
@@ -142,9 +142,12 @@ var Contacts = (function() {
         break;
       case 'add-parameters':
         initContactsList();
-        if (ActivityHandler.currentlyHandling) {
-          selectList(params, true);
-        }
+        initForm(function onInitForm() {
+          MainNavigation.home();
+          if (ActivityHandler.currentlyHandling) {
+            selectList(params, true);
+          }
+        });
         break;
       case 'multiple-select-view':
         Loader.view('multiple_select', () => {
@@ -239,22 +242,26 @@ var Contacts = (function() {
   };
 
   var contactListClickHandler = function originalHandler(id) {
+    initDetails(function onDetailsReady() {
+      ContactsService.get(id, function findCb(contact, fbContact) {
 
-    if (!ActivityHandler.currentlyHandling) {
-      window.location.href = ParamUtils.generateUrl('detail', {contact:id});
-      return;
-    }
+        currentContact = contact;
+        currentFbContact = fbContact;
 
-    ContactsService.get(id, function findCb(contact) {
-      currentContact = contact;
-      if (ActivityHandler.currentActivityIsNot(['import'])) {
-        if (ActivityHandler.currentActivityIs(['pick'])) {
-          ActivityHandler.dataPickHandler(currentContact);
+        if (ActivityHandler.currentActivityIsNot(['import'])) {
+          if (ActivityHandler.currentActivityIs(['pick'])) {
+            ActivityHandler.dataPickHandler(currentFbContact || currentContact);
+          }
+          return;
         }
-        return;
-      }
 
-      window.location.href = ParamUtils.generateUrl('detail', {contact:id});
+        contactsDetails.render(currentContact, currentFbContact);
+        if (window.Search && Search.isInSearchMode()) {
+          MainNavigation.go('view-contact-details', 'go-deeper-search');
+        } else {
+          MainNavigation.go('view-contact-details', 'go-deeper');
+        }
+      });
     });
   };
 
@@ -269,31 +276,28 @@ var Contacts = (function() {
     HeaderUI.hideAddButton();
     contactsList.clearClickHandlers();
     contactsList.handleClick(function addToContactHandler(id) {
-
-      var optionalParams;
-
+      var data = {};
       if (params.hasOwnProperty('tel')) {
-        optionalParams = {
-          action: 'update',
-          contact: id,
-          isActivity: true,
-          tel: params.tel
-        };
+        var phoneNumber = params.tel;
+        data.tel = [{
+          'value': phoneNumber,
+          'carrier': null,
+          'type': [TAG_OPTIONS['phone-type'][0].type]
+        }];
       }
-
       if (params.hasOwnProperty('email')) {
-        optionalParams = {
-          action: 'update',
-          contact: id,
-          isActivity: true,
-          email: params.email
-        };
+        var email = params.email;
+        data.email = [{
+          'value': email,
+          'type': [TAG_OPTIONS['email-type'][0].type]
+        }];
       }
-
-      window.location.href = ParamUtils.generateUrl(
-        'form',
-        optionalParams
-      );
+      var hash = '#view-contact-form?extras=' +
+        encodeURIComponent(JSON.stringify(data)) + '&id=' + id;
+      if (fromUpdateActivity) {
+        hash += '&fromUpdateActivity=1';
+      }
+      window.location.hash = hash;
     });
   };
 
@@ -318,7 +322,8 @@ var Contacts = (function() {
   };
 
   var showAddContact = function showAddContact() {
-    window.location.href = ParamUtils.generateUrl('form',{action: 'new'});
+    window.location.href =
+      '/contacts/views/form/form.html?action=new';
   };
 
   var loadFacebook = function loadFacebook(callback) {

@@ -3,11 +3,11 @@
 
 'use strict';
 
-requireApp('communications/contacts/js/param_utils.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/js/lazy_loader.js');
 
 requireApp('communications/contacts/services/contacts.js');
+requireApp('communications/contacts/js/match_service.js');
 require('/shared/js/text_normalizer.js');
 require('/shared/js/simple_phone_matcher.js');
 require('/shared/js/contacts/contacts_matcher.js');
@@ -46,9 +46,14 @@ suite('DetailsController', function() {
     mozContact = new MockContactAllFields();
     stubContactServiceSave = this.sinon.stub(ContactsService, 'save',
                                               function(contact, callback) {});
+    stubLazyLoader = this.sinon.stub(LazyLoader, 'load',
+      function(files, callback) {
+      callback();
+    });
   });
 
   teardown(function() {
+    stubLazyLoader = null;
     stubLazyLoader = null;
     stubContactServiceSave = null;
     mozContact = null;
@@ -78,16 +83,9 @@ suite('DetailsController', function() {
     var spyContactToVcardBlob;
     setup(function() {
       spyContactToVcardBlob = this.sinon.spy(window, 'ContactToVcardBlob');
-      this.sinon.stub(LazyLoader, 'load',
-        function(files, callback) {
-          if (typeof callback === 'function') {
-            callback();
-          }
-      });
     });
 
     teardown(function() {
-      LazyLoader.load.restore();
       spyContactToVcardBlob = null;
     });
 
@@ -101,6 +99,19 @@ suite('DetailsController', function() {
       window.dispatchEvent(new CustomEvent('shareAction', {'detail': {
         'contact': mozContact
       }}));
+    });
+  });
+
+  suite('Find Duplicates', function() {
+    test(' > Must handle find duplicates event', function(done) {
+      var stubMatch = this.sinon.stub(MatchService, 'match');
+      window.addEventListener('findDuplicatesAction', function() {
+        assert.isTrue(stubMatch.calledWith(mozContact.id));
+        done();
+      });
+
+      window.dispatchEvent(new CustomEvent('findDuplicatesAction', {'detail': 
+        {'contactId': mozContact.id}}));
     });
   });
 
@@ -119,33 +130,6 @@ suite('DetailsController', function() {
 
       window.dispatchEvent(new CustomEvent('toggleFavoriteAction', {'detail': 
         {'contact': mozContact, 'isFavorite': isFavorite()}}));
-    });
-  });
-
-  suite('Find Duplicates', function() {
-    var realMatchService;
-
-    setup(function() {
-      realMatchService = window.MatchService;
-      window.MatchService = {
-        match: function() {}
-      };
-    });
-
-    teardown(function() {
-      window.MatchService = realMatchService;
-    });
-
-    test(' > Must handle find duplicates event', function(done) {
-      var stubMatch = this.sinon.stub(MatchService, 'match');
-      this.sinon.stub(LazyLoader, 'load', function(files, callback) {
-        callback();
-        assert.isTrue(stubMatch.calledWith(mozContact.id));
-        done();
-      });
-     
-     window.dispatchEvent(new CustomEvent('findDuplicatesAction', {'detail': 
-        {'contactId': mozContact.id}}));
     });
   });
 });

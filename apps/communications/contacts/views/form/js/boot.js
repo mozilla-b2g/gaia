@@ -1,5 +1,4 @@
-/* global LazyLoader, FormUI, FormController, ContactsService,
-          ParamUtils, TAG_OPTIONS */
+/* global LazyLoader, FormUI, FormController */
 'use strict';
 
 /*
@@ -25,7 +24,6 @@ window.addEventListener('DOMContentLoaded', function() {
 
 window.addEventListener('load', function() {
   var dependencies = [
-    '/contacts/js/param_utils.js',
     '/contacts/js/navigation.js',
     '/contacts/services/contacts.js',
     '/shared/js/l10n_date.js',
@@ -45,52 +43,8 @@ window.addEventListener('load', function() {
   LazyLoader.load(
     dependencies,
     function() {
-      // Get action from URL (new or update)
-      var params = ParamUtils.get();
-
-      // Initialize view and controller
-      FormUI.init(params.action);
+      FormUI.init();
       FormController.init();
-
-      if (params.action === 'update') {
-        ContactsService.get(
-          params.contact,
-          function(contact) {
-            if (params.tel) {
-              contact.tel.push(
-                {
-                  type: [TAG_OPTIONS['phone-type'][0].type],
-                  value: params.tel,
-                  carrier: null
-                }
-              );
-            }
-
-            if (params.email) {
-              contact.email.push(
-                {
-                  value: params.email,
-                  type: [TAG_OPTIONS['email-type'][0].type]
-                }
-              );
-            }
-
-            FormUI.render(
-              contact,
-              params.action,
-              (params.isActivity === 'true')
-            );
-            FormController.setContact(
-              contact
-            );
-            FormController.comesFromActivity = (params.isActivity === 'true');
-          },
-          function() {
-            console.error('Unable to retrieve contact');
-          }
-        );
-      }
-
       navigator.mozSetMessageHandler(
         'activity',
         function(activity) {
