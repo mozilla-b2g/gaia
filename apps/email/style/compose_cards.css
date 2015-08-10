@@ -88,6 +88,88 @@ input.cmp-subject-text {
   text-overflow: ellipsis;
 }
 
+/* Allows the position absolute autocomplete list to be relative to this
+   element */
+.cmp-autocomplete-origin {
+  position: relative;
+}
+
+.cmp-autocomplete-input-container {
+  background-color: #f2f2f2;
+}
+
+.cmp-autocomplete-input-list {
+  transition: transform 200ms ease;
+}
+
+/* Prevents scrolling of areas under the autocomplete list to avoid confusing
+   dueling scrollbars */
+.cmp-autocomplete-noscroll {
+  overflow: hidden;
+}
+
+/* When the autocomplete is active, change the flex alignment so that the label
+and + buttons are visible when typing */
+.cmp-autocomplete-input-label.cmp-autocomplete-active {
+  align-items: flex-end;
+}
+
+.cmp-autocomplete-list {
+  box-sizing: border-box;
+  position: absolute;
+  left: 0;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: auto;
+  font-size: 1.4rem;
+  background-color: white;
+}
+
+.cmp-autocomplete-item {
+  overflow: hidden;
+  border-bottom: 0;
+}
+
+.cmp-autocomplete-item-link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
+.cmp-autocomplete-item-link:focus,
+.cmp-autocomplete-item-link:active,
+.cmp-autocomplete-item-link:hover {
+  background-color: #b1f1ff;
+  outline: none;
+  color: inherit;
+}
+
+.cmp-autocomplete-item-details {
+  margin: 0 1.5rem;
+  padding: 0.5rem 0;
+  border-bottom: 0.1rem solid #DBD9D9;
+  text-align: left;
+}
+
+html:-moz-dir(rtl) .cmp-autocomplete-item-details,
+html:-moz-dir(rtl) .cmp-autocomplete-item-details {
+  text-align: right;
+}
+
+.cmp-autocomplete-name,
+.cmp-autocomplete-email {
+  display: block;
+  line-height: 2.4rem;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.cmp-autocomplete-email {
+  color: #858585;
+}
+
 .cmp-contact-add {
   background: url("images/icons/actionicon_email_addrecipient.png") no-repeat center center / 3rem auto;
   width: 3rem;

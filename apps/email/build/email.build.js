@@ -47,6 +47,10 @@
         'iframe_shims',
         'cards/editor_mixins',
 
+        // gesture_detector used by both compose and message_reader layer, so
+        // just include it in the base layer.
+        'shared/js/gesture_detector',
+
         // Bundle most likely card
         'cards/message_list'
       ]

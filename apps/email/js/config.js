@@ -36,12 +36,30 @@ if (typeof TestUrlResolver === 'undefined') {
 
       'shared/js/accessibility_helper': {
         exports: 'AccessibilityHelper'
+      },
+
+      'shared/js/gesture_detector': {
+        exports: 'GestureDetector'
       }
     },
     config: {
       template: {
         tagToId: function(tag) {
-           return tag.replace(/^cards-/, 'cards/').replace(/-/g, '_');
+           return tag.replace(/^cards-/, 'cards/')
+                  .replace(/^lst-/, 'cards/lst/')
+                  .replace(/^msg-/, 'cards/msg/')
+                  .replace(/^cmp-/, 'cards/cmp/')
+                  .replace(/-/g, '_');
+        }
+      },
+
+      element: {
+        idToTag: function(id) {
+          return id.toLowerCase()
+                 .replace(/^cards\/lst\//, 'lst-')
+                 .replace(/^cards\/msg\//, 'msg-')
+                 .replace(/^cards\/cmp\//, 'cmp-')
+                 .replace(/[^a-z]/g, '-');
         }
       }
     },
