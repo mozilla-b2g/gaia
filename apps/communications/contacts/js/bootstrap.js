@@ -16,6 +16,7 @@
      '/shared/js/contacts/utilities/event_listeners.js',
      '/contacts/js/navigation.js',
      '/contacts/js/main_navigation.js',
+     '/contacts/js/param_utils.js',
      '/contacts/js/views/list.js',
      '/contacts/js/header_ui.js'
     ];
