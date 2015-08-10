@@ -116,9 +116,18 @@ class GaiaApps(object):
                        name=result.get('name'),
                        origin=result.get('origin'))
 
+    def check_text_overflow(self):
+        js = os.path.abspath(os.path.join(__file__, os.path.pardir, 'atoms', "hastextoverflow.js"))
+        self.marionette.import_script(js)
+        result = self.marionette.execute_script('return textOverflowDetect.checkalloverflow();')
+        print(result)
+        print(len(result))
+        # assert (len(result) == 0), 'textoverflow happened at: %s' % result
+
     def switch_to_displayed_app(self):
         self.marionette.switch_to_default_content()
         self.marionette.switch_to_frame(self.displayed_app.frame)
+        self.check_text_overflow()
 
     def is_app_installed(self, app_name):
         self.marionette.switch_to_frame()
