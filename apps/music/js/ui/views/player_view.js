@@ -248,7 +248,7 @@ var PlayerView = {
   },
 
   getRepeat: function pv_getRepeat() {
-    this._repeatModes.indexOf(this.repeatButton.value);
+    return this._repeatModes.indexOf(this.repeatButton.value);
   },
 
   setRepeat: function pv_setRepeat(value) {
