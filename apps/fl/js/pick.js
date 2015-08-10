@@ -34,7 +34,6 @@ function pickRingtone(activity) {
   var player = new Audio(); // for previewing sounds
   var currentRingtoneName;
   var numRingtones = 0;
-  var template = $('ringtone-template');
   var container = $('ringtones');
   var header = $('header');
   container.hidden = false;
@@ -100,23 +99,29 @@ function pickRingtone(activity) {
   function addRingtone(ringtone) {
     numRingtones++;
     var name = ringtone.descriptor.name;
-    var dom = template.content.cloneNode(true);
-    var input = dom.querySelector('input');
-    dom.querySelector('a').textContent = name;
+    var listItem = document.createElement('li');
+
+    var radio = document.createElement('gaia-radio');
+    radio.name = 'ringtone';
+
+    var label = document.createElement('label');
+    label.textContent = name;
+    radio.appendChild(label);
 
     if (name === currentRingtoneName) {
       selectedRingtone = ringtone;
-      input.checked = true;
+      radio.checked = true;
     }
 
-    input.onchange = function() {
-      if (input.checked) {
+    radio.addEventListener('change', function() {
+      if (radio.checked) {
         selectedRingtone = ringtone;
         play(ringtone);
       }
-    };
+    });
 
-    container.appendChild(dom);
+    listItem.appendChild(radio);
+    container.appendChild(listItem);
   }
 
   function play(ringtone) {

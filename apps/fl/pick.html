@@ -4,13 +4,14 @@
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
     <meta charset="utf-8" />
     <title>Locked Content</title>
-    <link rel="stylesheet" type="text/css" href="shared/style/switches.css">
 
     <!-- Web Components -->
     <script defer src="shared/elements/config.js"></script>
+    <script defer src="/shared/js/component_utils.js"></script>
     <link rel="stylesheet" type="text/css" href="app://theme.gaiamobile.org/shared/elements/gaia-theme/gaia-theme.css" />
     <link rel="stylesheet" type="text/css" href="shared/elements/gaia-icons/gaia-icons.css" />
     <script defer src="shared/elements/gaia-header/dist/gaia-header.js"></script>
+    <script defer src="/shared/elements/gaia_radio/script.js"></script>
 
     <link rel="stylesheet" href="style/pick.css" type="text/css" />
 
@@ -35,15 +36,6 @@
       </gaia-header>
     </section>
     <ul id="ringtones" hidden>
-      <template id="ringtone-template">
-        <li>
-          <label class="pack-radio">
-            <input type="radio" name="ringtone" data-ignore/>
-            <span></span>
-          </label>
-          <a><!--ringtone name here--></a>
-        </li>
-      </template>
     </ul>
     <div id="wallpapers" hidden>
       <template id="wallpaper-template">

@@ -87,32 +87,10 @@ ul li > * {
  * Boolean inputs
  */
 
-/* custom styles for boolean inputs (see /shared/style/switches.css) */
-ul li label {
-  text-transform: none;
-}
-
-ul li > label:not([for]),
-ul li > label.pack-radio {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-}
-
-ul li > label.pack-radio > span:after {
-  left: auto;
-  right: 0;
-}
-
-ul li > label.pack-radio ~ a {
-  padding-right: 6.1rem;
-}
-
-ul li > label.pack-radio:active ~ a {
-  background-color: #b2f2ff;
-  color: #222;
+gaia-radio label {
+  /* TODO: Currently this app uses the media theme, which expects a dark list and light labels.
+     That would make the label invisible, so instead we need to use !important to override the scoped style of the component.  */
+  color: #222 !important;
 }
 
 /* Setting panels: full-size <section role="region"> blocks */

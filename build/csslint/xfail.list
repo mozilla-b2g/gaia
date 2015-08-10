@@ -27,6 +27,7 @@ apps/costcontrol/style/views/balance.css 0 2
 apps/email/style/common.css 0 5
 apps/email/style/message_cards.css 0 1
 apps/email/style/setup_cards.css 0 1
+apps/fl/style/pick.css 0 1
 apps/fm/style/fm.css 0 1
 apps/ftu/style/overlay.css 0 1
 apps/ftu/style/status.css 0 1
