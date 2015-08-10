@@ -116,9 +116,7 @@ LayoutPageView.prototype.render = function render() {
         options.outerRatio = ratio + ((layoutWidth - rowLayoutWidth) / 2);
       }
 
-      if (layout.secondLayout) {
-        options.altOutputChar = key.value;
-      }
+      options.altOutputChar = key.value;
 
       var keyView = new KeyView(target, options, this.viewManager);
       keyView.render();
