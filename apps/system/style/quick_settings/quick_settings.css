@@ -1,5 +1,12 @@
+
+/**
+ * 1. Keep items in same order for both
+ *    LTR and RTL (bug 1174650).
+ */
+
 #quick-settings {
   pointer-events: none;
+  direction: ltr; /* 1 */
 }
 
 #quick-settings > ul {
