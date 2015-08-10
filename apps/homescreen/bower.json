@@ -1,10 +1,18 @@
 {
+<<<<<<< HEAD
   "name": "Home screen",
   "version": "0.0.0",
   "homepage": "https://github.com/mozilla-b2g/gaia/tree/master/apps/homescreen",
   "authors": [
     "Chris Lord <chrislord.net@gmail.com>",
     "Guillaume Marty <edo999@gmail.com>"
+=======
+  "name": "homescreen",
+  "version": "0.0.0",
+  "homepage": "https://github.com/mozilla-b2g/gaia/tree/master/apps/homescreen",
+  "authors": [
+    "Chris Lord <chrislord.net@gmail.com>"
+>>>>>>> Bug 1174727 - Check in new homescreen. r=etienne,kgrandon
   ],
   "main": "index.html",
   "license": "MIT",
@@ -19,6 +27,10 @@
     "gaia-app-icon": "https://gitlab.com/Cwiiis/gaia-app-icon.git",
     "base": "gaia-components/base#master",
     "gaia-theme": "gaia-components/gaia-theme#master",
+<<<<<<< HEAD
+=======
+    "gaia-fonts": "gaia-components/gaia-fonts#master",
+>>>>>>> Bug 1174727 - Check in new homescreen. r=etienne,kgrandon
     "evt": "gaia-components/evt#master",
     "pressed": "gaia-components/pressed#master",
     "gaia-component": "gaia-components/gaia-component",
