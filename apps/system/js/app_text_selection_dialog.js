@@ -185,7 +185,7 @@
   AppTextSelectionDialog.prototype._onSelectionMode =
     function tsd__onSelectionMode(detail) {
       // make sure cut command option is only shown on editable element
-      detail.commands.canCut = detail.commands.canCut && 
+      detail.commands.canCut = detail.commands.canCut &&
                                  detail.selectionEditable;
       this._resetShortcutTimeout();
       this.show(detail);
