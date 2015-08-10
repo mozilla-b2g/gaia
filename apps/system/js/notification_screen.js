@@ -437,6 +437,7 @@ var NotificationScreen = {
     var notificationNode = document.createElement('div');
     notificationNode.classList.add('notification');
     notificationNode.setAttribute('role', 'link');
+    notificationNode.setAttribute('tabindex', 0);
 
     notificationNode.dataset.notificationId = detail.id;
     notificationNode.dataset.noClear = behavior.noclear ? 'true' : 'false';
