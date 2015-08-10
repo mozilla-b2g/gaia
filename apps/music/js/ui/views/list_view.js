@@ -36,10 +36,98 @@ var ListView = {
   init: function lv_init() {
     this.clean();
 
+    this.banner = document.getElementById('info-banner');
+    this.bannerChild = document.getElementById('banner-child');
+
     this.view.addEventListener('click', this);
     this.view.addEventListener('touchmove', this);
     this.view.addEventListener('scroll', this);
+    this.view.addEventListener('contextmenu', this);
+
     this.searchInput.addEventListener('focus', this);
+
+    document.getElementById('btn-add-songs').addEventListener('click', function onClick(e) {
+      this.selectToAdd();
+    }.bind(this));
+
+    document.getElementById('playlist-menu-add-btn').addEventListener('click', function onClick(e) {
+      this.selectToAdd();
+    }.bind(this));
+
+    document.getElementById('title-playlist-menu').addEventListener('click', function() {
+      document.getElementById('playlist-actions-overlay').classList.remove('hidden');
+    });
+
+    document.getElementById('playlist-menu-delete-btn').addEventListener('click', function() {
+      musicdb.deletePlaylist(this.currentPlaylist, function(playlistName) {
+        document.getElementById('playlist-actions-overlay').classList.add('hidden');
+        document.getElementById('title-playlist-menu').classList.add('hidden');
+        this.showBanner(navigator.mozL10n.get('playlist-deleted'));
+        ModeManager.pop();
+        document.getElementById('pl-' + playlistName).remove();
+      }.bind(this));
+    }.bind(this));
+
+    document.getElementById('playlist-menu-rename-btn').addEventListener('click', function() {
+      var newName;
+
+      if (newName = prompt(navigator.mozL10n.get('give-playlist-name'))) {
+        musicdb.renamePlaylist(this.currentPlaylist, newName, function(oldList) {
+          document.getElementById('playlist-actions-overlay').classList.add('hidden');
+          this.showBanner(navigator.mozL10n.get('playlist-renamed'));
+          ModeManager.pop();
+
+          // update the playlist <li /> id and title text.
+          var pl_li = document.querySelector('#pl-' + this.currentPlaylist);
+          var pl_title = document.querySelector('#pl-' + this.currentPlaylist + ' .list-playlist-title');
+          var a = document.querySelector('#pl-' + this.currentPlaylist + ' > a');
+
+          pl_title.textContent = newName;
+          pl_li.id = 'pl-' + newName;
+
+          this.dataSource[++this.index] = oldList;
+          a.dataset.index = this.index;
+        }.bind(this));
+      }
+    }.bind(this));
+
+    document.getElementById('title-edit-done').addEventListener('click', function() {
+      var selectedElems = document.querySelectorAll('input[type=checkbox][name=selected]:checked');
+      var selectedIds   = [];
+
+      for (var i = 0; i < selectedElems.length; i++) {
+        selectedIds.push(selectedElems[i].value);
+      }
+
+      this.showBanner(navigator.mozL10n.get('playlist-adding-wait'));
+
+      this.addToPlaylistArray(this.currentPlaylist, 0, selectedIds, function(songs) {
+        this.showBanner(navigator.mozL10n.get('playlist-added'));
+        document.getElementById('title-edit-done').classList.add('hidden');
+
+        this.editMode = false;
+        this.clean();
+        updatePlaylists(this, 'playlist');
+      }.bind(this));
+    }.bind(this));
+  },
+
+  selectToAdd: function lv_selectToAdd() {
+    var info = {
+      key: 'metadata.title',
+      range: null,
+      direction:'next',
+      option: 'title',
+      editMode: true
+    };
+
+    ModeManager.start(MODE_LIST);
+    ListView.activate(info);
+
+    document.getElementById('empty-playlist-overlay').classList.add('hidden');
+    document.getElementById('playlist-actions-overlay').classList.add('hidden');
+
+    document.getElementById('title-edit-done').classList.remove('hidden');
   },
 
   clean: function lv_clean() {
@@ -105,6 +193,8 @@ var ListView = {
       return;
     }
 
+    this.editMode = info.editMode;
+
     // Choose one of the indexes to get the count and it should be the
     // correct count because failed records don't contain metadata, so
     // here we just pick the album, artist or title as indexes.
@@ -153,7 +243,7 @@ var ListView = {
     }.bind(this));
   },
 
-  update: function lv_update(option, result) {
+  update: function lv_update(option, result, noborder) {
     if (result === null) {
       App.showCorrectOverlay();
       return;
@@ -161,14 +251,20 @@ var ListView = {
 
     this.dataSource.push(result);
 
-    if (option !== 'playlist') {
+    if (option !== 'playlist' && option !== 'my-playlists-header' && option !== 'create-playlist') {
       var header = this.createHeader(option, result);
       if (header) {
         this.anchor.appendChild(header);
       }
     }
 
-    this.anchor.appendChild(createListElement(option, result, this.index));
+    this.anchor.appendChild(createListElement({
+      option: option,
+      data: result,
+      index: this.index,
+      noborder: noborder,
+      editMode: this.editMode
+    }));
 
     this.index++;
   },
@@ -236,7 +332,13 @@ var ListView = {
           fragment.appendChild(header);
         }
 
-        fragment.appendChild(createListElement(option, data, this.index));
+        fragment.appendChild(createListElement({
+          option: option,
+          data: data,
+          index: this.index,
+          editMode: this.editMode
+        }));
+
         this.index++;
       }
     }
@@ -323,8 +425,21 @@ var ListView = {
 
   activateSubListView: function lv_activateSubListView(target) {
     var option = target.dataset.option;
+
+    if (option === 'create-playlist') {
+        var playlistName = prompt(navigator.mozL10n.get('give-playlist-name'));
+        this.addToPlaylist(playlistName, null);
+        return;
+    }
+
     var index = target.dataset.index;
     var data = this.dataSource[index];
+
+    if (!data.metadata) {
+      // we have a custom playlist...
+      return this.activatePlaylist(data);
+    }
+
     var keyRange = (target.dataset.keyRange != 'all') ?
       IDBKeyRange.only(target.dataset.keyRange) : null;
     var l10nId = data.metadata.l10nId;
@@ -341,6 +456,81 @@ var ListView = {
         ModeManager.push(MODE_SUBLIST);
       });
     });
+  },
+
+  getSongData: function lv_getSongData(index, callback) {
+    var info = this.DBInfo;
+    var songData = this.dataSource[index];
+
+    if (songData) {
+      callback(songData);
+    } else {
+      // Cancel the ongoing enumeration so that it will not
+      // slow down the next enumeration if we start a new one.
+      ListView.cancelEnumeration();
+
+      var handle =
+        musicdb.advancedEnumerate(
+          info.key, info.range, info.direction, index, function(record) {
+            musicdb.cancelEnumeration(handle);
+            this.dataSource[index] = record;
+            callback(record);
+          }.bind(this)
+        );
+    }
+  },
+
+  addToPlaylist: function lv_addToPlaylist(playlistName, index, callback) {
+    if (index !== null) {
+      this.getSongData(index, function(songData) {
+        musicdb.addToPlaylist(playlistName, songData, function() {
+          this.showBanner(navigator.mozL10n.get('playlist-added'));
+          if (callback) {
+            callback(songData);
+          }
+        }.bind(this));
+      }.bind(this));
+    } else {
+      musicdb.addToPlaylist(playlistName, null, function(playlist) {
+        if (playlist) {
+          this.showBanner(navigator.mozL10n.get('playlist-created'));
+          this.update('playlist', playlist);
+          App.showCorrectOverlay();
+        } else {
+          this.showBanner(navigator.mozL10n.get('playlist-already-exists'));
+        }
+
+        if (callback) {
+          callback();
+        }
+      }.bind(this));
+    }
+  },
+
+  addToPlaylistArray: function lv_addToPlaylistArray(playlistName, idx, songs, callback, songDatas) {
+    if (!songDatas) {
+      songDatas = [];
+    }
+
+    this.addToPlaylist(playlistName, songs[idx], function(songData) {
+      songDatas.push(songData);
+
+      if (++idx == songs.length) {
+        if (callback) {
+          callback(songDatas);
+        }
+        return;
+      }
+
+      this.addToPlaylistArray(playlistName, idx, songs, callback, songDatas);
+    }.bind(this));
+  },
+
+  activatePlaylist: function lv_activatePlaylist(data) {
+    SubListView.activatePlaylist(data, function() {
+      this.currentPlaylist = data.name;
+      ModeManager.push(MODE_SUBLIST);
+    }.bind(this));
   },
 
   handleEvent: function lv_handleEvent(evt) {
@@ -423,8 +613,74 @@ var ListView = {
         }.bind(this), 500);
         break;
 
+      case 'contextmenu':
+        var option = target.dataset.option;
+        this.selectedSong = target.dataset.index;
+
+        if (option === 'title') {
+          document.getElementById('song-actions-overlay').classList.remove("hidden");
+
+          if (!this.overlay_listeners_added) {
+            this.addPlaylistOverlayListeners();
+            this.overlay_listeners_added = true;
+          }
+        }
+        break;
+
       default:
         return;
     }
+  },
+  showBanner: function lv_showBanner(msg) {
+    this.banner.classList.add('visible');
+    this.bannerChild.textContent = msg;
+
+    setTimeout (function hideBanner() {
+      this.banner.classList.remove('visible');
+    }.bind(this), 3000);
+  },
+  addPlaylistOverlayListeners: function lv_addPlaylistOverlayListeners() {
+    document.getElementById('playlist-add-btn').addEventListener('click', function() {
+      var playlistOverlay = document.getElementById('playlist-overlay');
+      var content = document.getElementById('playlist-overlay-content');
+      playlistOverlay.classList.remove('hidden');
+
+      //remove previous data
+      content.innerHTML = '';
+
+      musicdb.getAllPlaylists(function(playlists) {
+        playlists.forEach(function(playlist) {
+          this.addToPlaylistOverlay(content, playlist);
+        }.bind(this));
+      }.bind(this));
+    }.bind(this));
+
+    document.getElementById('do-add').addEventListener('click', function() {
+      var selected = document.querySelector('input[name=addToPlaylist-radio]:checked');
+
+      if (!selected) {
+        return;
+      }
+
+      this.addToPlaylist(selected.value, this.selectedSong);
+    }.bind(this));
+  },
+  addToPlaylistOverlay: function lv_addToPlaylistOverlay(playlistOverlay, playlist) {
+    var div = document.createElement('div');
+    div.className = 'addToPlaylist';
+
+    var label = document.createElement('label');
+    var radio = document.createElement('input');
+    radio.setAttribute('name', 'addToPlaylist-radio');
+    radio.setAttribute('type', 'radio');
+    radio.setAttribute('value', playlist.name);
+    var span = document.createElement('span');
+    span.innerHTML = playlist.name;
+
+    label.appendChild(radio);
+    label.appendChild(span);
+
+    div.appendChild(label);
+    playlistOverlay.appendChild(div);
   }
 };

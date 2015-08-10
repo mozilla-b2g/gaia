@@ -974,7 +974,7 @@ body.picker-mode #tabs {
 }
 
 .hidden {
-  display: none;
+  display: none !important;
 }
 
 li.list-header {
@@ -1004,10 +1004,14 @@ li.list-item a {
   display: block;
   text-decoration: none;
   margin: 0;
-  width: 100%;
+  width: calc(100% - 4rem);
   height: 6rem;
   background-color: transparent;
   transition: background-color 200ms ease;
+}
+
+li.list-item a[data-option=my-playlists-header] {
+  height: 2.67rem;
 }
 
 li.list-item a:active {
@@ -1034,7 +1038,8 @@ html[dir="rtl"] .list-album-art {
 .list-sub-title,
 .list-single-title,
 .list-playlist-title,
-.list-song-title {
+.list-song-title,
+.my-playlists-header {
   position: absolute;
   top: 0;
   text-overflow: ellipsis;
@@ -1046,7 +1051,7 @@ html[dir="rtl"] .list-album-art {
 .list-main-title {
   top: 10%;
   width: calc(100% - 12rem);
-  padding: 0 0.5rem 0 3rem;
+  padding: 0 0.5rem 0 5rem;
   font-size: 1.9rem;
   color: white;
 }
@@ -1059,7 +1064,7 @@ html[dir="rtl"] .list-main-title {
 .list-sub-title {
   top: 3rem;
   width: calc(100% - 12rem);
-  padding: 0 0.5rem 0 3rem;
+  padding: 0 0.5rem 0 5rem;
   font-size: 1.7rem;
   color: #8a9699;
 }
@@ -1078,6 +1083,21 @@ html[dir="rtl"] .list-sub-title {
   color: white;
 }
 
+.noborder {
+  border-bottom: 0;
+}
+
+.my-playlists-header {
+  width: calc(100% - 3.5rem);
+  height: 2.67rem;
+  padding-left: 3rem;
+  padding-right: 0.5rem;
+  line-height: 2.67rem;
+  font-size: 1.9rem;
+  color: #049AB8;
+  border-bottom: solid 0.1rem rgba(255, 255, 255, 0.1);
+}
+
 html[dir="rtl"] .list-single-title {
   text-align: right;
   padding: 0 3rem 0 0.5rem;
@@ -1092,6 +1112,7 @@ html[dir="rtl"] .list-single-title {
   font-size: 1.9rem;
   color: white;
   border-bottom: solid 0.1rem rgba(255, 255, 255, 0.1);
+  text-transform: uppercase;
 }
 
 html[dir="rtl"] .list-playlist-title {
@@ -1173,6 +1194,7 @@ html[dir="rtl"] .list-song-length {
   z-index: -1;
   opacity: 0;
   transition: all 600ms ease;
+  bottom: 4.5rem;
 }
 
 #info-banner.visible {
@@ -1188,3 +1210,153 @@ html[dir="rtl"] .list-song-length {
   text-overflow: ellipsis;
 }
 
+#song-actions-overlay button, #playlist-actions-overlay  button {
+  font-size: 150%;
+}
+
+#song-actions-overlay > button, #playlist-actions-overlay > button {
+  margin: 0 1.5rem 2rem 1.5rem;
+  background: #4E4E4E ;
+  border: 0;
+  text-align: left;
+  box-shadow: 0;
+  color: white;
+  padding: 1rem;
+  width: calc(100% - 3rem);
+  font-style: italic;
+}
+
+.hide-overlay {
+  background: #4E4E4E;
+  width: 100%;
+  position: absolute;
+  left: 0px;
+  bottom: 8rem;
+  height: 3rem;
+  padding: 1.5rem;
+}
+
+.hide-overlay-btn {
+  width: calc(100% - 3rem);
+  display: block;
+  height: 3rem;
+  border: 0px ninenone;
+  margin: 0px;
+  padding: 0px;
+  text-align: center;
+  font-style: italic;
+  color: black;
+  background: #C5C5F3;
+  border-radius: 1rem;
+}
+
+#song-actions-overlay button:focus, #playlist-actions-overlay button:focus {
+  color: blue;
+}
+
+.overlay {
+  top: 0;
+  height: 100%;
+  width:  100%;
+  position: absolute;
+  text-align: center;
+  z-index: 100;
+  background-color:#111111;
+  color:#F7F7F7;
+  padding-top: 8rem;
+}
+
+#empty-playlist-overlay h1 {
+  margin: 0;
+}
+
+#empty-playlist-overlay p {
+  color: #9A9A9A;
+  font-size: 1.7rem;
+  margin: 0.2rem;
+}
+
+#empty-playlist-overlay button {
+  margin-top: 2rem;
+  font-size: 1.8rem;
+  padding: 1rem;
+  background-color: #323232;
+  border: 0.2rem solid transparent;
+  border-radius: 1rem;
+  background-image: none;
+  color: white;
+}
+
+.addToPlaylist {
+  text-align: left;
+  width: 100%;
+  border-bottom: 1px solid #fff;
+  font-size: 14pt;
+}
+
+.addToPlaylist > label {
+  width: 100%;
+  display: block;
+}
+
+.addToPlaylist > label > input[type='radio'] {
+  display: none;
+}
+
+.addToPlaylist > label > input[type='radio']:checked + span {
+  color: blue;
+}
+
+.addToPlaylist > label > input[type='radio']:checked + span:after {
+  content: "\2713";
+  color: blue;
+  float: right;
+}
+
+.addToPlaylist:last-child {
+  border-bottom: 0;
+}
+
+/*
+ * Custom styled checkboxes.
+ * http://www.hongkiat.com/blog/css3-checkbox-radio/
+ */
+
+@media screen {
+  .checkbox {
+    display: none;
+  }
+
+  .checkbox + label {
+    display: inline-block;
+    cursor: pointer;
+    position: relative;
+    padding-left: 25px;
+    margin-right: 15px;
+    font-size: 13px;
+  }
+
+  .checkbox + label:before {
+    border-radius: 3px;
+    content: "";
+    display: inline-block;
+
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
+    position:absolute;
+    left: 10px;
+    background-color: transparent;
+    border: 1px solid #00CAF2;
+  }
+
+  .checkbox:checked + label:before {
+    background-color: #00CAF2;
+    content: "\2713";
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, .2);
+    font-size: 30px;
+    color: white;
+    text-align: center;
+    line-height: 15px;
+  }
+}

@@ -67,7 +67,10 @@ var SubListView = {
 
   setAlbumName: function slv_setAlbumName(name, l10nId) {
     this.albumName.textContent = name;
-    this.albumName.dataset.l10nId = l10nId;
+
+    if (l10nId) {
+      this.albumName.dataset.l10nId = l10nId;
+    }
   },
 
   activate: function(option, data, index, keyRange, direction, callback) {
@@ -138,9 +141,39 @@ var SubListView = {
     }
 
     var option = useIndexNumber ? 'song-index' : 'song';
-    this.anchor.appendChild(createListElement(option, result, this.index));
+    this.anchor.appendChild(createListElement({
+      option: option,
+      data: result,
+      index: this.index
+    }));
 
     this.index++;
+  },
+
+  activatePlaylist: function(data, callback) {
+    this.clean();
+
+    document.getElementById('title-playlist-menu').classList.remove('hidden');
+
+    this.dataSource = data.songs;
+    this.setAlbumName(data.name, null);
+
+    //Don't keep previous image.
+    this.albumImage.classList.remove('fadeIn');
+
+    data.songs.forEach(function(songData) {
+      this.update(songData);
+    }.bind(this));
+
+    if (data.songs.length === 0) {
+      document.getElementById('empty-playlist-overlay').classList.remove('hidden');
+    } else {
+      document.getElementById('empty-playlist-overlay').classList.add('hidden');
+    }
+
+    if (callback) {
+      callback();
+    }
   },
 
   handleEvent: function slv_handleEvent(evt) {

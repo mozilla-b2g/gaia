@@ -1,6 +1,34 @@
 /* exported formatTime, createListElement */
-/* global AlbumArtCache, LazyLoader, Normalizer */
+/* global AlbumArtCache, LazyLoader, Normalizer, musicdb */
 'use strict';
+
+var playlistArray = [
+  { metadata: { l10nId: 'playlists-shuffle-all' }, option: 'shuffleAll' },
+  { metadata: { l10nId: 'playlists-highest-rated' }, option: 'rated' },
+  { metadata: { l10nId: 'playlists-recently-added' }, option: 'date' },
+  { metadata: { l10nId: 'playlists-most-played' }, option: 'played' },
+  { metadata: { l10nId: 'playlists-least-played' }, option: 'played' },
+  // update ListView with null result to hide the scan progress
+  null
+];
+
+function updatePlaylists(ListView, option) {
+  playlistArray.forEach(function(playlist, idx, playlists) {
+    //Don't give bottom border to last element. We use -2 here,
+    //because the array's last element is null
+    var noborder = (idx === playlists.length - 2);
+    ListView.update(option, playlist, noborder);
+  });
+
+  ListView.update('my-playlists-header');
+  ListView.update('create-playlist');
+
+  musicdb.getAllPlaylists(function(playlists) {
+    playlists.forEach(function(playlist) {
+      ListView.update(option, playlist);
+    });
+  });
+}
 
 function formatTime(secs) {
   if (isNaN(secs)) {
@@ -30,7 +58,14 @@ function formatTime(secs) {
 
 // In Music, visually we have three styles of list
 // Here we use one function to create different style lists
-function createListElement(option, data, index, highlight) {
+function createListElement(opts) {
+  var option = opts.option;
+  var data = opts.data;
+  var index = opts.index;
+  var highlight = opts.highlight;
+  var noborder = opts.noborder;
+  var editMode = opts.editMode;
+
   var li = document.createElement('li');
   li.className = 'list-item';
   li.setAttribute('role', 'presentation');
@@ -42,7 +77,41 @@ function createListElement(option, data, index, highlight) {
 
   var titleBdi;
 
+  if (editMode) {
+    var div = document.createElement('div');
+    div.style.padding = '0 0 0 1rem';
+    div.style.float = 'left';
+    div.style.width = '2rem';
+
+    var checkbox = document.createElement('input');
+    checkbox.className = "checkbox";
+    checkbox.type = "checkbox";
+    checkbox.name = "selected";
+    checkbox.value = index;
+    checkbox.id = "cb-" + index;
+    div.appendChild(checkbox);
+
+    var label = document.createElement('label');
+    label.setAttribute("for", "cb-" + index);
+
+    div.appendChild(label);
+    li.appendChild(div);
+
+    li.onclick = function(evt) {
+      checkbox.checked = !checkbox.checked;
+      evt.stopPropagation();
+      evt.preventDefault();
+
+      return false;
+    }
+  }
+
+  a.style.float = 'right';
   li.appendChild(a);
+
+  var div = document.createElement('div');
+  div.style.clear = 'both';
+  li.appendChild(div);
 
   function highlightText(result, text) {
     var textContent = result.textContent;
@@ -61,21 +130,56 @@ function createListElement(option, data, index, highlight) {
   }
 
   switch (option) {
+    case 'my-playlists-header':
+      titleSpan = document.createElement('span');
+      titleSpan.className = 'my-playlists-header';
+      titleSpan.textContent = navigator.mozL10n.get('my-playlists-header');
+
+      li.appendChild(titleSpan);
+
+      break;
+
+    case 'create-playlist':
+      titleSpan = document.createElement('span');
+      titleSpan.className = 'list-playlist-title';
+      titleSpan.textContent = navigator.mozL10n.get('create-playlist');
+
+      li.appendChild(titleSpan);
+
+      var icon = document.createElement('div');
+      icon.className = 'list-playlist-icon';
+      icon.dataset.icon = 'add';
+      li.appendChild(icon);
+
+      break;
+
     case 'playlist':
       titleBdi = document.createElement('bdi');
       titleBdi.className = 'list-playlist-title';
-      if (data.metadata.l10nId) {
-        titleBdi.textContent = navigator.mozL10n.get(data.metadata.l10nId);
-        titleBdi.dataset.l10nId = data.metadata.l10nId;
-      } else {
-        titleBdi.textContent =
-          data.metadata.title || navigator.mozL10n.get('unknownTitle');
-        titleBdi.dataset.l10nId =
-          data.metadata.title ? '' : 'unknownTitle';
+
+      if (noborder) {
+        titleSpan.className += ' noborder';
       }
 
       a.dataset.keyRange = 'all';
       a.dataset.option = data.option;
+
+      if (data.metadata) {
+        if (data.metadata.l10nId) {
+          titleBdi.textContent = navigator.mozL10n.get(data.metadata.l10nId);
+          titleBdi.dataset.l10nId = data.metadata.l10nId;
+        } else {
+          titleBdi.textContent =
+            data.metadata.title || navigator.mozL10n.get('unknownTitle');
+          titleBdi.dataset.l10nId =
+            data.metadata.title ? '' : 'unknownTitle';
+        }
+      } else if (data.name) {
+        //custom playlists.
+        titleBdi.textContent = data.name;
+        a.dataset.option = data.name;
+        li.id = "pl-" + data.name;
+      }
 
       a.appendChild(titleBdi);
 
