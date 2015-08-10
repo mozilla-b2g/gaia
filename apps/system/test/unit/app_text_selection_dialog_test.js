@@ -182,32 +182,29 @@ suite('system/AppTextSelectionDialog', function() {
 
   test('copyHandler', function() {
     var stubDoCommand = this.sinon.stub(td, '_doCommand');
-    var stubResetCutOrCopiedTimer =
-      this.sinon.stub(td, '_resetCutOrCopiedTimer');
+    var stubSetTimeout = this.sinon.stub(window, 'setTimeout').returns(123);
     td.copyHandler(null);
     assert.isTrue(td._hasCutOrCopied);
     assert.isTrue(stubDoCommand.calledWith(null, 'copy'));
-    assert.isTrue(stubResetCutOrCopiedTimer.calledOnce);
+    assert.isTrue(stubSetTimeout.calledOnce);
   });
 
   test('cutHandler', function() {
     var stubDoCommand = this.sinon.stub(td, '_doCommand');
-    var stubResetCutOrCopiedTimer =
-      this.sinon.stub(td, '_resetCutOrCopiedTimer');
+    var stubSetTimeout = this.sinon.stub(window, 'setTimeout').returns(123);
     td.cutHandler(null);
     assert.isTrue(td._hasCutOrCopied);
     assert.isTrue(stubDoCommand.calledWith(null, 'cut'));
-    assert.isTrue(stubResetCutOrCopiedTimer.calledOnce);
+    assert.isTrue(stubSetTimeout.calledOnce);
   });
 
   test('pasteHandler', function() {
     var stubDoCommand = this.sinon.stub(td, '_doCommand');
     var stubClearTimeout = this.sinon.stub(window, 'clearTimeout');
-    td._resetCutOrCopiedTimeout = 'testtimer';
     td.pasteHandler(null);
     assert.isFalse(td._hasCutOrCopied);
     assert.isTrue(stubDoCommand.calledWith(null, 'paste'));
-    assert.isTrue(stubClearTimeout.calledWith(td._resetCutOrCopiedTimeout));
+    assert.isTrue(stubClearTimeout.calledOnce);
   });
 
   test('close', function() {
@@ -234,13 +231,19 @@ suite('system/AppTextSelectionDialog', function() {
     assert.isTrue(stubChangeTransitionState.calledWith('opened'));
   });
 
-  test('_resetCutOrCopiedTimer', function() {
+  test('_launchCutOrCopiedTimer', function() {
     var clock = this.sinon.useFakeTimers();
-    td._hasCutOrCopied = true;
-    td._resetCutOrCopiedTimeout = 'testTimer';
-    td._resetCutOrCopiedTimer();
+    td._launchCutOrCopiedTimer();
+    assert.isTrue(td._hasCutOrCopied);
+    clock.tick(td.CUT_OR_COPIED_TIMEOUT_MS);
+    assert.isFalse(td._hasCutOrCopied);
+  });
 
-    clock.tick(td.RESET_CUT_OR_PASTE_TIMEOUT);
+  test('_cancelCutOrCopiedTimer', function() {
+    var stubClearTimeout = this.sinon.stub(window, 'clearTimeout');
+    td._hasCutOrCopied = true;
+    td._cancelCutOrCopiedTimer();
+    assert.isTrue(stubClearTimeout.calledOnce);
     assert.isFalse(td._hasCutOrCopied);
   });
 
