@@ -1,8 +1,14 @@
-/* global UrlHelper, AppWindow, BrowserConfigHelper, LazyLoader */
+/* global UrlHelper, AppWindow, BrowserConfigHelper, LazyLoader,
+          SettingsListener */
 
 (function(exports) {
 
   'use strict';
+
+  var privateByDefault = false;
+
+  SettingsListener.observe('browser.private.default', false,
+    Browser._handleSettingChange);
 
   function handleOpenUrl(url, isPrivate) {
     var config = new BrowserConfigHelper({url: url});
@@ -15,10 +21,10 @@
 
   function Browser() {}
 
-  /**
-   * Opens a new private window.
-   * @param {String} url The url to navigate to
-   */
+  Browser._handleSettingChange = function (value) {
+    privateByDefault = value;
+  };
+
   Browser.prototype = {
 
     start: function() {
@@ -35,8 +41,11 @@
       switch (data.type) {
         case 'url':
           LazyLoader.load(['shared/js/url_helper.js']).then(function() {
-            handleOpenUrl(
-              UrlHelper.getUrlFromInput(data.url), data.isPrivate);
+            var url = UrlHelper.getUrlFromInput(data.url);
+            var isPrivate = data.hasOwnProperty('isPrivate') ?
+              data.isPrivate : privateByDefault;
+
+            handleOpenUrl(url, isPrivate);
           }).catch(function(err) {
             console.error(err);
           });

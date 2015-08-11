@@ -6,6 +6,7 @@
 
 require('/js/browser_config_helper.js');
 require('/shared/js/url_helper.js');
+require('/shared/js/settings_listener.js');
 require('/js/import.js');
 require('/js/activity_handler.js');
 require('/js/browser.js');
@@ -37,7 +38,6 @@ suite('system/Browser', function() {
   });
 
   suiteTeardown(function() {
-    navigator.mozSetMessageHandler = realMozSetMessageHandler;
     MockNavigatormozSetMessageHandler.mTeardown();
   });
 
@@ -73,6 +73,25 @@ suite('system/Browser', function() {
           type: 'url',
           url: 'http://arandomurl.com',
           isPrivate: true
+        }
+      }
+    });
+
+    assert.equal(MockAppWindowHelper.mInstances.length, 1);
+    var app = MockAppWindowHelper.mLatest;
+    assert.equal(app.isPrivate, true);
+  });
+
+  test('when private browsing is the default setting', function() {
+    Browser._handleSettingChange(true);
+
+    MockNavigatormozSetMessageHandler.mTrigger('activity', {
+      source: {
+        name: 'view',
+        data: {
+          name: 'view',
+          type: 'url',
+          url: 'http://arandomurl.com'
         }
       }
     });
