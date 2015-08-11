@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html class="theme-media">
+<head>
+  <meta charset="utf-8">
+  <title>Music NGA</title>
+  <meta name="description" content="Gaia Music powered by NGA">
+  <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
+  <link rel="stylesheet" href="/components/gaia-fonts/style.css">
+  <link rel="stylesheet" href="/components/gaia-icons/gaia-icons-embedded.css">
+  <link rel="stylesheet" href="/components/gaia-theme/gaia-theme.css">
+  <link rel="stylesheet" href="/css/app.css">
+  <script src="/components/gaia-header/dist/gaia-header.js"></script>
+  <script src="/components/gaia-toolbar/gaia-toolbar.js"></script>
+  <script src="/elements/music-tab-bar.js"></script>
+  <script src="/elements/music-view-stack.js"></script>
+</head>
+<body role="application">
+  <gaia-header id="header" no-font-fit>
+    <h1 id="header-title"></h1>
+    <button id="player-button" data-icon="play-circle" hidden></button>
+    <button id="done-button" hidden>Done</button>
+  </gaia-header>
+
+  <music-view-stack id="view-stack"></music-view-stack>
+
+  <music-tab-bar id="tab-bar">
+    <button data-view-id="home" data-icon="grid"></button>
+    <button data-view-id="playlists" data-icon="playlist"></button>
+    <button data-view-id="artists" data-icon="artist"></button>
+    <button data-view-id="albums" data-icon="album"></button>
+    <button data-view-id="songs" data-icon="songs"></button>
+  </music-tab-bar>
+
+  <iframe id="endpoint" src="/endpoint.html" hidden></iframe>
+
+  <script src="/components/threads/client.js"></script>
+  <script src="/components/threads/service.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,134 @@
+html, body {
+  padding: 0;
+  margin: 0;
+
+  font-family: sans-serif;
+
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+h1 {
+  pointer-events: none;
+}
+
+#h1-after {
+  position: absolute;
+  width: 100%;
+  height: 4px;
+  left: 0;
+  top: 46px;
+
+  pointer-events: none;
+  background-color: #ff9500;
+
+  opacity: 0;
+
+  animation-duration:  0.25s;
+  animation-timing-function: ease-in;
+  animation-fill-mode: both;
+
+  -webkit-animation-duration:  0.25s;
+  -webkit-animation-timing-function: ease-in;
+  -webkit-animation-fill-mode: both;
+}
+
+[data-anim='reveal'] {
+  animation-name: reveal;
+  -webkit-animation-name: reveal;
+}
+
+@keyframes reveal {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@-webkit-keyframes reveal {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+[data-anim='hide'] {
+  animation-name: hide;
+  -webkit-animation-name: hide;
+}
+
+@keyframes hide {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@-webkit-keyframes hide {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+button {
+  position: absolute;
+  display: block;
+  top: 0;
+  right: 0;
+  height: 50px;
+
+  border: 0;
+  border-radius: 0;
+  outline: 0;
+  background: none;
+  padding: 0 15px;
+
+  text-align: center;
+  text-decoration: underline;
+  font-size: 14px;
+  color: #ffffff;
+  -moz-appearance: none;
+
+  opacity: 1;
+  transition: transform 0.1s linear,
+              opacity 0.1s linear;
+  -webkit-transition: -webkit-transform 0.1s linear,
+                      opacity 0.1s linear;
+
+  -webkit-tap-highlight-color: rgba(0,0,0,0);
+}
+
+button.transitioning {
+  opacity: 0.5;
+  transform: scale(0.6, 0.6);
+  -webkit-transform: scale(0.6, 0.6);
+  pointer-events: none;
+}
+
+ul {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+}
+
+body > section {
+  position: absolute;
+  top: 50px;
+  width: 100%;
+  height: calc(100% - 50px);
+
+  -webkit-overflow-scrolling: touch;
+  -webkit-tap-highlight-color: rgba(0,0,0,0);
+}
+

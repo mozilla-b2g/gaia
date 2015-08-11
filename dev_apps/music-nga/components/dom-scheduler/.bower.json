@@ -1,0 +1,33 @@
+{
+  "name": "dom-scheduler",
+  "homepage": "https://github.com/etiennesegonzac/dom-scheduler",
+  "authors": [
+    "Etienne Segonzac <etienne@segonzac.info>"
+  ],
+  "description": "Making the performant thing the easy thing.",
+  "main": "lib/dom-scheduler.js",
+  "keywords": [
+    "web",
+    "performance",
+    "transition",
+    "animation",
+    "promise"
+  ],
+  "license": "MPL",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "demo-app/bower_components",
+    "test",
+    "tests"
+  ],
+  "_release": "40c979693e",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "40c979693eb5fff55494e8f8842d96102c616e4e"
+  },
+  "_source": "git://github.com/etiennesegonzac/dom-scheduler.git",
+  "_target": "*",
+  "_originalSource": "etiennesegonzac/dom-scheduler"
+}

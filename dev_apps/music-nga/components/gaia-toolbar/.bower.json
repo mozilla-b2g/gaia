@@ -1,0 +1,37 @@
+{
+  "name": "gaia-toolbar",
+  "authors": [
+    "Wilson Page <wilsonpage@me.com>"
+  ],
+  "main": "script.js",
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "examples",
+    "test",
+    "tests",
+    "README.md"
+  ],
+  "devDependencies": {
+    "gaia-icons": "gaia-components/gaia-icons#~0.6.1",
+    "gaia-theme": "gaia-components/gaia-theme#~0.5.0",
+    "base": "gaia-components/base"
+  },
+  "dependencies": {
+    "gaia-dialog": "gaia-components/gaia-dialog",
+    "gaia-component": "gaia-components/gaia-component#~0.2.0"
+  },
+  "homepage": "https://github.com/gaia-components/gaia-toolbar",
+  "_release": "51df530293",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "51df530293757d550c1b5dd36bbe570154f734db"
+  },
+  "_source": "git://github.com/gaia-components/gaia-toolbar.git",
+  "_target": "master",
+  "_originalSource": "gaia-components/gaia-toolbar",
+  "_direct": true
+}

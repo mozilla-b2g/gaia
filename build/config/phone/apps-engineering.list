@@ -31,5 +31,6 @@ dev_apps/theme-test-1
 dev_apps/theme-test-2
 dev_apps/theme-test-3
 dev_apps/nfc-api-test
+dev_apps/music-nga
 apps/settings/test/fixtures/addon1
 apps/settings/test/fixtures/addon2
