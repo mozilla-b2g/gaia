@@ -164,7 +164,7 @@ const SETTINGS_VERSION = 0;
     Promise.all([
       new Promise((resolve, reject) => {
         this.metadata.init().then(() => {
-          this.metadata.get().then((results) => {
+          this.metadata.getAll().then((results) => {
             this.startupMetadata = results;
             resolve();
           },
@@ -780,6 +780,6 @@ const SETTINGS_VERSION = 0;
     }
   };
 
-  exports.app = new App();
+  exports.App = App;
 
 }(window));

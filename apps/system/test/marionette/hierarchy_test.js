@@ -166,7 +166,7 @@
       test('Press home while active app is not home', function() {
         activitycaller.launch();
         system.tapHome();
-        assert.equal(getWindowName(), 'Homescreen');
+        assert.equal(getWindowName(), 'Default Home Screen');
       });
 
       test('Lockscreen window is active', function() {
