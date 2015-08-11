@@ -51,20 +51,14 @@ marionette('Contacts > Details', function() {
     assert.equal(noteNode.text(), mozContact.note[0]);
   }
 
-  // Disabling these tests by now due to we need a way to wait until
-  // the location changes, so 'waitSlideLeft' will be replaced.
-  // More info in [1].
-  // These test must be recovered once this bug will be landed.
-
-  // [1] https://bugzilla.mozilla.org/show_bug.cgi?id=1140344#c9
-  test.skip('Regular contact is displayed correctly', function() {
+  test('Regular contact is displayed correctly', function() {
     contactsData.createMozContact(testContact);
     client.helper.waitForElement(selectors.listContactFirstText).click();
     subject.waitSlideLeft('details');
     assertContactData(testContact);
   });
 
-  test.skip('Show contact with picture', function() {
+  test('Show contact with picture', function() {
     contactsData.createMozContact(testContact, true);
     client.helper.waitForElement(selectors.listContactFirstText).click();
     subject.waitSlideLeft('details');
@@ -78,7 +72,7 @@ marionette('Contacts > Details', function() {
     });
   });
 
-  test.skip('Mark contact as favorite', function() {
+  test('Mark contact as favorite', function() {
     contactsData.createMozContact(testContact);
 
     client.helper.waitForElement(selectors.listContactFirstText).click();
@@ -98,7 +92,7 @@ marionette('Contacts > Details', function() {
     assertContactData(testContact);
   });
 
-  test.skip('Share Contact', function() {
+  test('Share Contact', function() {
     contactsData.createMozContact(testContact);
 
     client.helper.waitForElement(selectors.listContactFirstText).click();
