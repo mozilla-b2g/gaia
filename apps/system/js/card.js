@@ -1,4 +1,4 @@
-/* globals BaseUI, CardsHelper, Sanitizer, Service */
+/* globals BaseUI, CardsHelper, Sanitizer, Service, Icon */
 
 /* exported Card */
 
@@ -283,17 +283,26 @@
     this.publish('destroyed');
   };
 
-  Card.prototype._updateIcon = function updateIcon(iconUrl, isSmall) {
-    this.iconButton.classList.toggle('small-icon', !!isSmall);
-    this.iconValue = iconUrl ? 'url(' + iconUrl + ')' : '';
+  Card.prototype._updateIcon = function updateIcon(iconObject) {
+    var elements = [this.iconButton];
+
     if (this.isIconPreview) {
-      this.appIconView.style.backgroundImage = this.iconValue;
+      elements.push(this.appIconView);
     }
-    if(this.iconButton) {
-      // NOTE (sfoster): better transition options here if we use an img element
-      this.iconButton.style.backgroundImage = this.iconValue;
-      this.iconButton.classList.remove('pending');
-    }
+
+    elements.forEach(function(element) {
+      if (!element) {
+        return;
+      }
+
+      var icon = new Icon(element, iconObject.originalUrl);
+      icon.renderBlob(iconObject.blob, {
+        size: CARD_FOOTER_ICON_SIZE
+      });
+      element.classList.remove('pending');
+    });
+
+    this.iconValue = this.iconButton.style.backgroundImage;
     this.iconPending = false;
   };
 
@@ -325,10 +334,10 @@
     this.iconButton.style.backgroundImage = this.iconValue || '';
     this.iconButton.classList.toggle('pending', this.iconPending);
     if (!this.iconValue) {
-      app.getSiteIconUrl(CARD_FOOTER_ICON_SIZE).then(iconUrl => {
+      app.getSiteIconUrl(CARD_FOOTER_ICON_SIZE).then(iconObject => {
         debug('Card: ' + this.title,
-              'getSiteIconUrl resolved iconUrl: ', iconUrl);
-        this._updateIcon(iconUrl.url, iconUrl.isSmall);
+              'getSiteIconUrl resolved iconUrl: ', iconObject.originalUrl);
+        this._updateIcon(iconObject);
       }).catch(err => {
         debug('getSiteIconUrl failed to resolve an icon: ' + err.message);
         this._updateIcon();

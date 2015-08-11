@@ -273,12 +273,6 @@
   opacity: 0;
 }
 
-#cards-view .card .card-tray > button.appIcon.small-icon {
-  background-color: #CFCFCF;
-  background-size: 1.6rem auto;
-  border-radius: 100%;
-}
-
 #cards-view .private .close-button,
 #cards-view.filtered .private .close-button {
   background-image: url(../task-manager/light/close.png);

@@ -64,10 +64,7 @@ window.GaiaPinCard = (function(win) {
       return this.iconElement.style.backgroundImage;
     },
     set: function(icon) {
-      this.iconElement.style.backgroundImage = icon.url;
-      if (icon.small) {
-        this.iconElement.classList.add('small');
-      }
+      this.iconElement.style.backgroundImage = icon;
     }
   });
 

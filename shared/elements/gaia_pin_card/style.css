@@ -44,13 +44,6 @@
   z-index: 1;
 }
 
-/* We should use a shared component for this.
- See Bug 1188285 */
-i.small {
-  background: #cfcfcf no-repeat center / 1.6rem;
-  border-radius: 100%;
-}
-
 .pin-card header {
   position: relative;
   text-align: center;

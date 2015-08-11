@@ -2521,11 +2521,10 @@
       LazyLoader.load('/shared/js/icons_helper.js').then(() => {
         IconsHelper.getIconBlob(origin, iconSize, placeObj, siteObj)
           .then(iconObject => {
-            var iconUrl = URL.createObjectURL(iconObject.blob);
             resolve({
-              url: iconUrl,
-              isSmall: iconObject.size < iconSize,
-              originalUrl: iconObject.url
+              blob: iconObject.blob,
+              originalUrl: iconObject.originalUrl,
+              url: 'url(' + URL.createObjectURL(iconObject.blob) + ')'
             });
           })
           .catch(err => {

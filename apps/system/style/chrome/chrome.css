@@ -482,19 +482,20 @@ section.pin-dialog a[data-action="cancel"] {
 .site-icon {
   width: 3.2rem;
   height: 3.2rem;
-  background: no-repeat center / 3.2rem content-box;
+  background-repeat: no-repeat;
+  background-size: cover;
   background-image: url('images/default_icon.png');
   position: absolute;
+  /* The icon renderer adds 4px padding for getting a smoother
+     rounded icon. Reallocating to fit with the url bar
+  */
+  top: -.2rem;
+  left: -.2rem;
 }
 
 .homescreen > .chrome .site-icon,
 .private > .chrome .site-icon {
   display: none;
-}
-
-.small-icon {
-  background: #cfcfcf no-repeat center / 1.6rem;
-  border-radius: 100%;
 }
 
 /* Handle urlbar sizing when back or forward buttons are disabled */
