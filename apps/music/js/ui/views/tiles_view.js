@@ -9,6 +9,10 @@ var TilesView = {
     return document.getElementById('views-tiles');
   },
 
+  get scrollable() {
+    return document.getElementById('views-scrollable-tiles-anchor');
+  },
+
   get anchor() {
     return document.getElementById('views-tiles-anchor');
   },
@@ -47,8 +51,8 @@ var TilesView = {
   hideSearch: function tv_hideSearch() {
     this.searchInput.value = '';
     // XXX: we probably want to animate this...
-    if (this.view.scrollTop < this.searchBox.offsetHeight) {
-      this.view.scrollTop = this.searchBox.offsetHeight;
+    if (this.scrollable.scrollTop < this.searchBox.offsetHeight) {
+      this.scrollable.scrollTop = this.searchBox.offsetHeight;
     }
   },
 

@@ -16,10 +16,6 @@ Music.DEFAULT_ORIGIN = 'music.gaiamobile.org';
 Music.Selector = Object.freeze({
   messageOverlay: '#overlay',
   firstTile: '.tile',
-  playlistsTab: '#tabs-playlists',
-  artistsTab: '#tabs-artists',
-  songsTab: '#tabs-songs',
-  albumsTab: '#tabs-albums',
   playerCover: '#player-cover',
 
   // search fields
@@ -283,19 +279,43 @@ Music.prototype = {
   },
 
   switchToArtistsView: function() {
-    this.artistsTab.tap();
+    var tabs =
+      this.client.findElements('a[data-option="artist"]', 'css selector');
+    for (var i = 0; i < tabs.length; i++) {
+      if (tabs[i].displayed()) {
+        tabs[i].tap();
+      }
+    }
   },
 
   switchToSongsView: function() {
-    this.songsTab.tap();
+    var tabs =
+      this.client.findElements('a[data-option="title"]', 'css selector');
+    for (var i = 0; i < tabs.length; i++) {
+      if (tabs[i].displayed()) {
+        tabs[i].tap();
+      }
+    }
   },
 
   switchToAlbumsView: function() {
-    this.albumsTab.tap();
+    var tabs =
+      this.client.findElements('a[data-option="album"]', 'css selector');
+    for (var i = 0; i < tabs.length; i++) {
+      if (tabs[i].displayed()) {
+        tabs[i].tap();
+      }
+    }
   },
 
   switchToPlaylistsView: function() {
-    this.playlistsTab.tap();
+    var tabs =
+      this.client.findElements('a[data-option="playlist"]', 'css selector');
+    for (var i = 0; i < tabs.length; i++) {
+      if (tabs[i].displayed()) {
+        tabs[i].tap();
+      }
+    }
   },
 
   selectAlbum: function(name) {
