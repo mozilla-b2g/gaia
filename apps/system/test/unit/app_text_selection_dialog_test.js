@@ -212,10 +212,10 @@ suite('system/AppTextSelectionDialog', function() {
     td.render();
     var stubHide = this.sinon.stub(td, 'hide');
     this.sinon.stub(td.element, 'blur');
-    this.sinon.stub(td, '_resetShortcutTimeout');
+    this.sinon.stub(td, '_cancelShortcutTimer');
     td.close();
     assert.isTrue(stubHide.calledOnce);
-    assert.isTrue(td._resetShortcutTimeout.called);
+    assert.isTrue(td._cancelShortcutTimer.called);
     assert.isTrue(td.element.blur.called);
   });
 
@@ -247,23 +247,23 @@ suite('system/AppTextSelectionDialog', function() {
     assert.isFalse(td._hasCutOrCopied);
   });
 
-  test('_resetShortcutTimeout', function() {
-    td._shortcutTimeout = 'timeout';
+  test('_cancelShortcutTimer', function() {
+    td._shortcutTimeoutId = 123;
     this.sinon.stub(window, 'clearTimeout');
-    td._resetShortcutTimeout();
-    assert.isTrue(window.clearTimeout.calledWith('timeout'));
-    assert.isTrue(td._shortcutTimeout === null);
+    td._cancelShortcutTimer();
+    assert.isTrue(window.clearTimeout.calledWith(123));
+    assert.isTrue(td._shortcutTimeoutId === null);
   });
 
-  test('_triggerShortcutTimeout', function() {
-    this.sinon.stub(td, '_resetShortcutTimeout');
+  test('_launchShortcutTimer', function() {
+    this.sinon.stub(td, '_cancelShortcutTimer');
     this.sinon.stub(td, 'close');
     var clock = this.sinon.useFakeTimers();
 
-    td._triggerShortcutTimeout();
-    clock.tick(td.SHORTCUT_TIMEOUT);
+    td._launchShortcutTimer();
+    clock.tick(td.SHORTCUT_TIMEOUT_MS);
     assert.isTrue(td.close.called);
-    assert.isTrue(td._resetShortcutTimeout.called);
+    assert.isTrue(td._cancelShortcutTimer.called);
   });
 
   suite('handleEvent caretstatechanged event', function() {
@@ -320,11 +320,11 @@ suite('system/AppTextSelectionDialog', function() {
         testDetail.collapsed = true;
         testDetail.reason = 'taponcaret';
         td._hasCutOrCopied = true;
-        this.sinon.stub(td, '_triggerShortcutTimeout');
+        this.sinon.stub(td, '_launchShortcutTimer');
         td.handleEvent(fakeTextSelectInAppEvent);
         assert.isTrue(stubShow.calledWith(testDetail));
         assert.isFalse(testDetail.commands.canSelectAll);
-        assert.isTrue(td._triggerShortcutTimeout.calledOnce);
+        assert.isTrue(td._launchShortcutTimer.calledOnce);
       });
 
     test('should not render when bubble has showed before', function() {
@@ -375,7 +375,7 @@ suite('system/AppTextSelectionDialog', function() {
       td._hasCutOrCopied = true;
       testDetail.collapsed = true;
       td.handleEvent(fakeTextSelectInAppEvent);
-      fakeTimer.tick(td.SHORTCUT_TIMEOUT);
+      fakeTimer.tick(td.SHORTCUT_TIMEOUT_MS);
       assert.isTrue(stubClose.calledOnce);
     });
   });
