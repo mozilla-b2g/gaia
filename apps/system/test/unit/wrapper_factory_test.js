@@ -79,6 +79,7 @@ suite('system/WrapperFactory', function() {
           type: 'mozbrowseropenwindow',
           target: { getAttribute: () => fakeManifestURL },
           stopImmediatePropagation: function () {},
+          preventDefault: function () {},
           detail: {
             url: 'fake',
             manifestURL: fakeManifestURL,
