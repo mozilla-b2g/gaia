@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
+    <meta charset="utf-8">
+
+    <link rel="stylesheet" type="text/css" href="shared/style/confirm.css">
+    <link rel="stylesheet" type="text/css" href="shared/style/buttons.css">
+    <link rel="stylesheet" type="text/css" href="style/safe_mode.css">
+
+    <link rel="localization" href="locales/safe_mode.{locale}.properties">
+
+    <script src="shared/js/l10n.js"></script>
+    <script defer src="js/safe_mode.js"></script>
+
+  </head>
+  <body>
+    <form role="dialog" data-type="confirm">
+     <section>
+        <h1 data-l10n-id="safemode-title"></h1>
+        <p data-l10n-id="safemode-body"></p>
+        <p data-l10n-id="safemode-body2"></p>
+      </section>
+      <menu>
+        <button data-l10n-id="safemode-yes"></button>
+        <button data-l10n-id="safemode-no" class="recommend"></button>
+      </menu>
+    </form>
+  </body>
+</html>
