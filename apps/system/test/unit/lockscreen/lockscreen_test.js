@@ -281,6 +281,24 @@ suite('system/LockScreen >', function() {
     'it didn\'t update "_lastUnlockedTimeStamp" when it unlocks');
   });
 
+  test('Unlock: can prevent settings race conditions', function() {
+    // .unlock() is not supposed to unlock until .passCodeEnabled is
+    // set to false by its observer callback
+    subject._lastLockedInterval = -1;
+    subject._lastLockedTimeStamp = 0;
+    subject._lastUnlockedTimeStamp = -1;
+
+    subject.overlay = domOverlay;
+
+    subject.handleEvent({type:
+      'lockscreen-notification-request-activate-unlock' , detail: {}});
+    // calls _activateUnlock() which is supposed to check
+    // for .passCodeEnabled.
+
+    assert.isTrue(subject.locked,
+      'it fell for a settings observer race condition');
+  });
+
   test('Unlock: uses PasscodeHelper', function() {
     var StubPasscodeHelper = this.sinon.stub(PasscodeHelper, 'check',
                               function() {

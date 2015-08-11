@@ -62,7 +62,7 @@
     * in Settings API.
     * Will be ignored if 'enabled' is set to false.
     */
-    passCodeEnabled: false,
+    passCodeEnabled: true,
 
     /*
     * Boolean returns whether the screen is enabled, as mutated by screenchange
