@@ -116,9 +116,7 @@ LayoutPageView.prototype.render = function render() {
         options.outerRatio = ratio + ((layoutWidth - rowLayoutWidth) / 2);
       }
 
-      if (layout.secondLayout) {
-        options.altOutputChar = key.value;
-      }
+      options.altOutputChar = key.value;
 
       var keyView = new KeyView(target, options, this.viewManager);
       keyView.render();
@@ -151,8 +149,8 @@ LayoutPageView.prototype.render = function render() {
 LayoutPageView.prototype.setUpperCaseLock = function setUpperCaseLock(state) {
   this.isUpperCase = (state.isUpperCase || state.isUpperCaseLocked);
 
-  // Toggle the entire container in case this layout require different
-  // rendering for upper case state, i.e. |secondLayout = true|.
+  // Toggle the entire container to trigger different rendering
+  // for upper case state.
   var container = this.element;
   container.classList.toggle('lowercase', !this.isUpperCase);
 
