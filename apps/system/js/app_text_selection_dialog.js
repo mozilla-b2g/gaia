@@ -188,8 +188,8 @@
       detail.commands.canCut = false;
       detail.commands.canCopy = false;
       detail.commands.canSelectAll = false;
-      this._launchShortcutTimer();
       this.show(detail);
+      this._launchShortcutTimer();
     };
 
   AppTextSelectionDialog.prototype._onSelectionMode =
@@ -212,6 +212,8 @@
       this._cancelShortcutTimer();
       this._shortcutTimeoutId = window.setTimeout(function() {
         this.close();
+        this.debug('Shortcut timed out after ' +
+                   this.SHORTCUT_TIMEOUT_MS + 'ms!');
       }.bind(this), this.SHORTCUT_TIMEOUT_MS);
     };
 
@@ -381,7 +383,6 @@
 
 
   AppTextSelectionDialog.prototype.show = function tsd_show(detail) {
-    this._cancelShortcutTimer();
     var numOfSelectOptions = 0;
     var options = [ 'Paste', 'Copy', 'Cut', 'SelectAll' ];
 
