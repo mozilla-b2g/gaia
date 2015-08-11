@@ -151,7 +151,9 @@ suite('system/LockScreen >', function() {
     var mockThis = {
       passCodeRequestTimeout: 60,
       fetchLockedInterval: function() {},
-      fetchUnlockedInterval: function() {}
+      fetchUnlockedInterval: function() {},
+      _readStoreItem: function() { return 60; },
+      _probeStoreItem: function() { return true; },
     };
     var stubFetchLockedInterval = this.sinon.stub().returns(61 * 1000);
     var stubFetchUnlockedInterval = this.sinon.stub().returns(59 * 1000);
@@ -273,6 +275,7 @@ suite('system/LockScreen >', function() {
     subject._lastUnlockedTimeStamp = -1;
 
     subject.overlay = domOverlay;
+    subject._store.unlockSoundEnabled = false;
     subject.unlock(true);
     assert.isFalse(subject.locked);
     assert.isTrue(subject._lastLockedInterval > -1,
@@ -299,6 +302,7 @@ suite('system/LockScreen >', function() {
 
   test('Unlock: would destroy the clock widget', function() {
     var stubDestroy = this.sinon.stub(subject.lockScreenClockWidget, 'destroy');
+    subject._store.unlockSoundEnabled = false;
     subject.overlay = domOverlay;
     subject.locked = true;
     subject.unlock(true);
@@ -310,6 +314,7 @@ suite('system/LockScreen >', function() {
   suite('Charging status updates', function() {
     test('When lockscreen is on, start charging status updates', function() {
       var spy = this.sinon.spy(subject.chargingStatus, 'start');
+      subject._store.enabled = true;
       subject.handleEvent({
         type: 'screenchange',
         detail: {screenEnabled: true}
@@ -321,6 +326,7 @@ suite('system/LockScreen >', function() {
 
     test('When lockscreen is off, stop charging status updates', function() {
       var spy = this.sinon.spy(subject.chargingStatus, 'stop');
+      subject._store.enabled = true;
       subject.handleEvent({
         type: 'screenchange',
         detail: {screenEnabled: false}
@@ -332,6 +338,7 @@ suite('system/LockScreen >', function() {
 
     test('When unlocked, stop charging status updates', function() {
       var spy = this.sinon.spy(subject.chargingStatus, 'stop');
+      subject._store.unlockSoundEnabled = false;
       subject.unlock();
 
       assert.isTrue(spy.called);
@@ -398,6 +405,7 @@ suite('system/LockScreen >', function() {
         subject._screenEnabled = undefined;
       });
       test('True', function() {
+        subject._store.enabled = true;
         subject.handleEvent({
           type: 'screenchange',
           detail: {screenEnabled: true}
@@ -405,6 +413,7 @@ suite('system/LockScreen >', function() {
         assert.isTrue(subject._screenEnabled);
       });
       test('False', function() {
+        subject._store.enabled = true;
         subject.handleEvent({
           type: 'screenchange',
           detail: {screenEnabled: false}
@@ -416,6 +425,7 @@ suite('system/LockScreen >', function() {
   test('Handle event: when screen changed,' +
       'would fire event to kill all secure apps',
       function() {
+        subject._store.enabled = true;
         var stubDispatch = this.sinon.stub(window, 'dispatchEvent');
         subject.handleEvent({type: 'screenchange', detail: {}});
         assert.isTrue(stubDispatch.calledWithMatch(sinon.match(
@@ -444,6 +454,7 @@ suite('system/LockScreen >', function() {
   test('Handle event: when unlock,' +
       'would fire event to turn secure mode off',
       function() {
+        subject._store.unlockSoundEnabled = false;
         var stubDispatch = this.sinon.stub(window, 'dispatchEvent');
         subject.unlock();
         assert.isTrue(stubDispatch.calledWithMatch(sinon.match(
@@ -475,6 +486,7 @@ suite('system/LockScreen >', function() {
   test('Handle event: when lock,' +
       'would fire event to turn secure mode on',
       function() {
+        subject._store.unlockSoundEnabled = false;
         subject.unlock();
         var stubDispatch = this.sinon.stub(window, 'dispatchEvent');
         subject.lock();
@@ -489,6 +501,7 @@ suite('system/LockScreen >', function() {
   test('Switch panel: to Camera; should notify SecureWindowFactory\'s method',
     function() {
       var stubDispatch = this.sinon.stub(window, 'dispatchEvent');
+      subject._store.passCodeEnabled = true;
       subject.invokeSecureApp('camera');
       assert.isTrue(stubDispatch.calledWithMatch(sinon.match(function(e) {
           return 'secure-launchapp' === e.type;
@@ -552,7 +565,13 @@ suite('system/LockScreen >', function() {
 
     test('Should update background when wallpaper changed', function() {
       this.sinon.stub(subject, 'updateBackground');
-      subject.init();
+      subject.area =
+      subject.altCameraButton =
+      subject.iconContainer =
+      subject.notificationsContainer =
+      subject.overlay = document.createElement('div');
+
+      subject.setupEventListeners();
       window.dispatchEvent(new CustomEvent('wallpaperchange', {
         detail: { url: 'blob:app://wallpaper.gaiamobile.org/b10b-1d' }
       }));

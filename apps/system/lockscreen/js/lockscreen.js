@@ -15,9 +15,40 @@
   LockScreen.prototype = {
     name: 'LockScreen',
 
+    _store: {
+      /*
+      * Boolean return whether if the lock screen is enabled or not.
+      * Must not multate directly - use setEnabled(val)
+      * Only Settings Listener should change this value to sync with data
+      * in Settings API.
+      */
+      enabled: undefined,
+
+      /*
+      * Boolean returns wether we want a sound effect when unlocking.
+      */
+      unlockSoundEnabled: undefined,
+
+      /*
+      * Boolean return whether if the lock screen is enabled or not.
+      * Must not multate directly - use setPassCodeEnabled(val)
+      * Only Settings Listener should change this value to sync with data
+      * in Settings API.
+      * Will be ignored if 'enabled' is set to false.
+      */
+      passCodeEnabled: undefined,
+
+      /*
+      * Number in ms: the time to request for passcode input since device is off
+      */
+      passCodeRequestTimeout: undefined
+    },
     configs: {
+      storelog: false,
       mode: 'default'
     },
+    // Deferred will be resolved by the Settings reader.
+    _deferredWaitingEnabled: undefined,
     // 'notificationId' for opening app after unlocking.
     _unlockingMessage: {},
     // The unlocking strategy.
@@ -42,27 +73,6 @@
     */
     locked: true,
 
-    /*
-    * Boolean return whether if the lock screen is enabled or not.
-    * Must not multate directly - use setEnabled(val)
-    * Only Settings Listener should change this value to sync with data
-    * in Settings API.
-    */
-    enabled: true,
-
-    /*
-    * Boolean returns wether we want a sound effect when unlocking.
-    */
-    unlockSoundEnabled: false,
-
-    /*
-    * Boolean return whether if the lock screen is enabled or not.
-    * Must not multate directly - use setPassCodeEnabled(val)
-    * Only Settings Listener should change this value to sync with data
-    * in Settings API.
-    * Will be ignored if 'enabled' is set to false.
-    */
-    passCodeEnabled: false,
 
     /*
     * Boolean returns whether the screen is enabled, as mutated by screenchange
@@ -87,11 +97,6 @@
     * String url of the background image to regenerate overlay color from
     */
     _regenerateMaskedBackgroundColorFrom: undefined,
-
-    /*
-    * The time to request for passcode input since device is off.
-    */
-    passCodeRequestTimeout: 0,
 
     /**
      * How long the unlocked session is.
@@ -152,6 +157,42 @@
     chargingStatus: new window.LockScreenChargingStatus()
   };  // -- LockScreen.prototype --
 
+  LockScreen.prototype._readStoreItem = function(key) {
+    if (this.configs.storelog) {
+      console.log('LockScreen::readStoreItem: ', key, this._store[key]);
+    }
+    if ('undefined' === typeof this._store[key]) {
+      var error = Error('Value of ' + key + ' doesn\'t exist.');
+      if (this.configs.storelog) {
+        console.error(error.message, error.stack);
+      }
+      throw error;
+    } else {
+      return this._store[key];
+    }
+  };
+
+  LockScreen.prototype._writeStoreItem = function(key, value) {
+    this._store[key] = value;
+    if (this.configs.storelog) {
+      console.log('LockScreen::writeStoreItem: ', key, value);
+    }
+  };
+
+  LockScreen.prototype._resetStoreItem = function(key) {
+    this._store[key] = undefined;
+    if (this.configs.storelog) {
+      console.log('LockScreen::resetStoreItem: ', key);
+    }
+  };
+
+  LockScreen.prototype._probeStoreItem = function(key) {
+    if (this.configs.storelog) {
+      console.log('LockScreen::probeStoreItem: ', key, this._store[key]);
+    }
+    return 'undefined' !== typeof this._store[key];
+  };
+
   LockScreen.prototype.handleEvent =
   function ls_handleEvent(evt) {
     switch (evt.type) {
@@ -187,7 +228,7 @@
         // No matter turn on or off from screen timeout or poweroff,
         // all secure apps would be hidden.
         this.dispatchEvent('secure-killapps');
-        if (this.enabled) {
+        if (this._readStoreItem('enabled')) {
           this.overlayLocked(true);
         }
         break;
@@ -318,6 +359,103 @@
   };
 
   /**
+   * Only when the 'enbaled' value comes, we can do the following
+   * initialization.
+   */
+  LockScreen.prototype._checkEnabled =
+  function() {
+    return this._deferredWaitingEnabled.promise;
+  };
+
+  LockScreen.prototype._observeSettings = function() {
+    window.SettingsListener.observe('lockscreen.enabled', undefined,
+    (function(value) {
+      this.setEnabled(value);
+      if (this._deferredWaitingEnabled) {
+        this._deferredWaitingEnabled.resolve(value);
+        this._deferredWaitingEnabled = undefined;
+      }
+    }).bind(this));
+
+    window.SettingsListener.observe(
+        'lockscreen.passcode-lock.enabled', undefined, (function(value) {
+      this.setPassCodeEnabled(value);
+    }).bind(this));
+
+    window.SettingsListener.observe('lockscreen.unlock-sound.enabled',
+      undefined, (function(value) {
+      this.setUnlockSoundEnabled(value);
+    }).bind(this));
+
+    window.SettingsListener.observe('lockscreen.passcode-lock.timeout',
+      undefined, (function(value) {
+      this.setPassCodeLockTimeout(value);
+    }).bind(this));
+
+    window.SettingsListener.observe('lockscreen.lock-message',
+      '', (function(value) {
+      this.setLockMessage(value);
+    }).bind(this));
+
+
+    // FIXME(ggp) this is currently used by Find My Device
+    // to force locking. Should be replaced by a proper IAC API in
+    // bug 992277. We don't need to use SettingsListener because
+    // we're only interested in changes to the setting, and don't
+    // keep track of its value.
+    navigator.mozSettings.addObserver('lockscreen.lock-immediately',
+      (function(event) {
+      if (event.settingValue === true) {
+        this.lockIfEnabled(true);
+      }
+    }).bind(this));
+  };
+
+  LockScreen.prototype.setupEventListeners = function() {
+    // This component won't know when the it get locked unless
+    // it listens to this event.
+    window.addEventListener('lockscreen-appopened', this);
+
+    /* Status changes */
+    window.addEventListener(
+      'lockscreen-notification-request-activate-unlock', this);
+    window.addEventListener('screenchange', this);
+
+    /* Incoming and normal mode would be different */
+    window.addEventListener('lockscreen-mode-switch', this);
+
+    /* Gesture */
+    this.area.addEventListener('touchstart', this);
+    this.altCameraButton.addEventListener('click', this);
+    this.iconContainer.addEventListener('touchstart', this);
+
+    /* Unlock & camera panel clean up */
+    this.overlay.addEventListener('transitionend', this);
+
+    /* switching panels */
+    window.addEventListener('home', this);
+
+    /* blocking holdhome and prevent Cards View from show up */
+    window.addEventListener('holdhome', this, true);
+    window.addEventListener('ftudone', this);
+    window.addEventListener('moztimechange', this);
+    window.addEventListener('timeformatchange', this);
+    // listen to media playback events to adjust notification container height
+    window.addEventListener('iac-mediacomms', this);
+    window.addEventListener('appterminated', this);
+
+    // Listen to event to start the Camera app
+    window.addEventListener('holdcamera', this);
+
+    window.addEventListener('wallpaperchange', (function(evt) {
+      this.updateBackground(evt.detail.url);
+      this.overlay.classList.remove('uninit');
+    }).bind(this));
+
+    this.notificationsContainer.addEventListener('scroll', this);
+  };
+
+  /**
    * This function would exist until we refactor the lockscreen.js with
    * new patterns. @see https://bugzil.la/960381
    *
@@ -327,6 +465,8 @@
   LockScreen.prototype.init =
   function ls_init() {
     this.ready = true;
+    // Set the deferred lock to waiting the value in the reading session.
+    this._deferredWaitingEnabled = new LockScreen.Deferred();
     /**
      * "new style" slider: as described in https://bugzil.la/950884
      * setting this parameter to true causes the LockScreenSlide to render
@@ -334,59 +474,24 @@
      */
     this.bootstrapping =
       LazyLoader.load(['shared/js/lockscreen_slide.js',
-                       'shared/js/passcode_helper.js']).then(() => {
+                       'shared/js/passcode_helper.js'])
+    .then(() => {
+      // First tier: those don't depend on settings reading,
+      // or those could handle them individually well.
       this._unlocker = new LockScreenSlide({useNewStyle: true});
+      // XXX: Since it's a shared component, I can't change the default
+      // behavior from activates when initializing to activates when startup.
+      //
+      // Do this since only state could control components well.
+      // So we don't control it here.
+      this._unlocker._stop();
       this.getAllElements();
       this.notificationsContainer =
         document.getElementById('notifications-lockscreen-container');
 
-      this.lockIfEnabled(true);
-      this.initUnlockerEvents();
-
-      // This component won't know when the it get locked unless
-      // it listens to this event.
-      window.addEventListener('lockscreen-appopened', this);
-
-      /* Status changes */
-      window.addEventListener(
-        'lockscreen-notification-request-activate-unlock', this);
-      window.addEventListener('screenchange', this);
-
-      /* Incoming and normal mode would be different */
-      window.addEventListener('lockscreen-mode-switch', this);
-
-      /* Gesture */
-      this.area.addEventListener('touchstart', this);
-      this.altCameraButton.addEventListener('click', this);
-      this.iconContainer.addEventListener('touchstart', this);
-
-      /* Unlock & camera panel clean up */
-      this.overlay.addEventListener('transitionend', this);
-
-      /* switching panels */
-      window.addEventListener('home', this);
-
-      /* blocking holdhome and prevent Cards View from show up */
-      window.addEventListener('holdhome', this, true);
-      window.addEventListener('ftudone', this);
-      window.addEventListener('moztimechange', this);
-      window.addEventListener('timeformatchange', this);
-
       /* media playback widget */
       this.mediaPlaybackWidget =
         new window.LockScreenMediaPlaybackWidget(this.mediaContainer);
-
-      // listen to media playback events to adjust notification container height
-      window.addEventListener('iac-mediacomms', this);
-      window.addEventListener('appterminated', this);
-
-      // Listen to event to start the Camera app
-      window.addEventListener('holdcamera', this);
-
-      window.SettingsListener.observe('lockscreen.enabled', true,
-        (function(value) {
-          this.setEnabled(value);
-      }).bind(this));
 
       // it is possible that lockscreen is initialized after wallpapermanager
       // (e.g. user turns on lockscreen in settings after system is booted);
@@ -400,47 +505,6 @@
           this.overlay.classList.remove('uninit');
         }
       }
-      window.addEventListener('wallpaperchange', (function(evt) {
-        this.updateBackground(evt.detail.url);
-        this.overlay.classList.remove('uninit');
-      }).bind(this));
-
-      window.SettingsListener.observe(
-          'lockscreen.passcode-lock.enabled', false, (function(value) {
-        this.setPassCodeEnabled(value);
-      }).bind(this));
-
-      window.SettingsListener.observe('lockscreen.unlock-sound.enabled',
-        true, (function(value) {
-        this.setUnlockSoundEnabled(value);
-      }).bind(this));
-
-      window.SettingsListener.observe('lockscreen.passcode-lock.timeout',
-        0, (function(value) {
-        this.setPassCodeLockTimeout(value);
-      }).bind(this));
-
-      window.SettingsListener.observe('lockscreen.lock-message',
-        '', (function(value) {
-        this.setLockMessage(value);
-      }).bind(this));
-
-
-      // FIXME(ggp) this is currently used by Find My Device
-      // to force locking. Should be replaced by a proper IAC API in
-      // bug 992277. We don't need to use SettingsListener because
-      // we're only interested in changes to the setting, and don't
-      // keep track of its value.
-      navigator.mozSettings.addObserver('lockscreen.lock-immediately',
-        (function(event) {
-        if (event.settingValue === true) {
-          this.lockIfEnabled(true);
-        }
-      }).bind(this));
-
-      this.notificationsContainer.addEventListener('scroll', this);
-
-      navigator.mozL10n.ready(this.l10nInit.bind(this));
 
       // when lockscreen is just initialized,
       // it will lock itself (if enabled) before calling updatebackground,
@@ -448,7 +512,22 @@
       if(this._checkGenerateMaskedBackgroundColor()){
         this._generateMaskedBackgroundColor();
       }
+      navigator.mozL10n.ready(this.l10nInit.bind(this));
       this.chargingStatus.start();
+      this._observeSettings();
+    }); // Bootstrapping ends here: the rest parts are waiting the settings.
+
+    this.readingSettings = Promise.resolve().then(() => {
+      // Put all locks to waiting values here.
+      return this._checkEnabled();
+    })
+    .then(() => {
+      // Second Tier: depends on mozSettings values when call the function.
+      this.lockIfEnabled(true);
+      // Event listeners may need to wait values getting read.
+      this.setupEventListeners();
+      this.initUnlockerEvents();
+
       Service.register('setPassCodeEnabled', this);
       Service.register('setPassCodeLockTimeout', this);
     }).catch(function(err) {console.error(err);});
@@ -534,39 +613,22 @@
   */
   LockScreen.prototype.setEnabled =
   function ls_setEnabled(val) {
-    var prevEnabled = this.enabled;
-    if (typeof val === 'string') {
-      this.enabled = val == 'false' ? false : true;
-    } else {
-      this.enabled = val;
-    }
-
-    if (prevEnabled && !this.enabled && this.locked) {
-      this.unlock();
-    }
+    this._writeStoreItem('enabled', val);
   };
 
   LockScreen.prototype.setPassCodeEnabled =
   function ls_setPassCodeEnabled(val) {
-    if (typeof val === 'string') {
-      this.passCodeEnabled = val == 'false' ? false : true;
-    } else {
-      this.passCodeEnabled = val;
-    }
+    this._writeStoreItem('passCodeEnabled', val);
   };
 
   LockScreen.prototype.setUnlockSoundEnabled =
   function ls_setUnlockSoundEnabled(val) {
-    if (typeof val === 'string') {
-      this.unlockSoundEnabled = val == 'false' ? false : true;
-    } else {
-      this.unlockSoundEnabled = val;
-    }
+    this._writeStoreItem('unlockSoundEnabled', val);
   };
 
   LockScreen.prototype.setPassCodeLockTimeout =
   function(val) {
-    this.passCodeRequestTimeout = val;
+    this._writeStoreItem('passCodeRequestTimeout', val);
   };
 
   LockScreen.prototype.setLockMessage =
@@ -617,7 +679,8 @@
     var panelOrFullApp = (function() {
       // If the passcode is enabled and it has a timeout which has passed
       // switch to secure camera
-      if (this.passCodeEnabled && this.checkPassCodeTimeout()) {
+      if (this._readStoreItem('passCodeEnabled') &&
+          this.checkPassCodeTimeout()) {
         this.invokeSecureApp('camera');
         return;
       }
@@ -635,7 +698,8 @@
 
   LockScreen.prototype._activateUnlock =
   function ls_activateUnlock() {
-    if (!(this.passCodeEnabled && this.checkPassCodeTimeout())) {
+    if (!(this._readStoreItem('passCodeEnabled') &&
+          this.checkPassCodeTimeout())) {
       this.unlock();
     }
   };
@@ -678,13 +742,18 @@
       return;
     }
 
-    if (this.enabled) {
+    if (this._readStoreItem('enabled')) {
       this.lock(instant);
     } else {
       this.unlock(instant);
     }
   };
 
+  /**
+   * There are lots of racing will happen if user unlock it rapidly,
+   * so we need to to some assertion. Like to check if settings value read,
+   * and even if the clock widget was created.
+   */
   LockScreen.prototype.unlock =
   function ls_unlock(instant, detail) {
     var wasAlreadyUnlocked = !this.locked;
@@ -700,10 +769,14 @@
     this._lastLockedInterval = now - this._lastLockedTimeStamp;
     this._lastUnlockedTimeStamp = now;
 
-    this.lockScreenClockWidget.stop().destroy();
-    delete this.lockScreenClockWidget;
+    // If user unlocks it rapidly.
+    if (this.lockScreenClockWidget) {
+      this.lockScreenClockWidget.stop().destroy();
+      delete this.lockScreenClockWidget;
+    }
 
-    if (this.unlockSoundEnabled) {
+    if (this._probeStoreItem('unlockSoundEnabled') &&
+        this._readStoreItem('unlockSoundEnabled')) {
       var unlockAudio = new Audio('/resources/sounds/unlock.opus');
       unlockAudio.play();
     }
@@ -791,7 +864,7 @@
         }
 
         delete this.overlay.dataset.passcodeStatus;
-        this.passCodeEntered = '';
+        this._resetStoreItem('passCodeEntered');
         break;
 
       case 'main':
@@ -1076,22 +1149,24 @@
    */
   LockScreen.prototype.checkPassCodeTimeout =
     function ls_checkPassCodeTimeout() {
-      var timeout = this.passCodeRequestTimeout * 1000;
+      // User didn't set this, so need to check the passcode.
+      if (!this._probeStoreItem('passCodeRequestTimeout')) {
+        return true;
+      }
+      var passCodeRequestTimeout =
+        this._readStoreItem('passCodeRequestTimeout');
+      var timeout = passCodeRequestTimeout * 1000;
       var lockedInterval = this.fetchLockedInterval();
       var unlockedInterval = this.fetchUnlockedInterval();
 
       // If user set timeout, then
       // - if timeout expired, do check
       // - if timeout is valid, do not check
-      if (0 !== this.passCodeRequestTimeout) {
-        if (lockedInterval > timeout ||
-            unlockedInterval > timeout ) {
-          return true;
-        } else {
-          return false;
-        }
-      } else {
+      if (lockedInterval > timeout ||
+          unlockedInterval > timeout ) {
         return true;
+      } else {
+        return false;
       }
     };
 
@@ -1158,6 +1233,19 @@
     } else {
       return this._lastUnlockedInterval;
     }
+  };
+
+  /**
+   * Classic solution to provide a "deferred".
+   * Put it under the constructor to prevent leaking, and avoid using closure
+   * which is hard to test.
+   */
+  LockScreen.Deferred = function() {
+    this.promise = new Promise((res, rej) => {
+      this.resolve = res;
+      this.reject = rej;
+    });
+    return this;
   };
 
   /** @exports LockScreen */

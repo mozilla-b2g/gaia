@@ -76,7 +76,7 @@
     this.lockScreen = lockScreen;
     this.lockScreen.init();
     this.logger = (new LockScreenStateLogger()).start({
-      debug: false,
+      debug: true,
       error: true
     });
     this.configs = {
@@ -150,6 +150,12 @@
     this.observeSettings();
     this.setupRules();
     Service.register('onPasscodeEnabledChanged', this);
+
+    // Kick off the first state.
+    this.lockScreen.nextStep(() => {
+      this.previousState.transferTo()
+        .catch(this.onTransferringError.bind(this));
+    });
     return this;
   };
 

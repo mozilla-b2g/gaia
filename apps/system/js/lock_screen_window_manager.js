@@ -38,7 +38,10 @@
       FTUOccurs: false,
       enabled: true,
       instance: null,
-      windowCreating: false
+      windowCreating: false,
+      // XXX: we can't find a solid solution to prevent
+      // all the lazyload racing yet...
+      inputWindowCreating: new LockScreenWindowManager.Deferred()
     };
 
     /**
@@ -376,6 +379,7 @@
       // we need this to
       LazyLoader.load(['js/lockscreen_input_window.js']).then(() => {
         app.inputWindow = new LockScreenInputWindow();
+        this.states.inputWindowCreating.resolve();
       }).catch((err) => {
         console.error(err);
       });
@@ -450,15 +454,23 @@
 
   LockScreenWindowManager.prototype.onInputpadOpen =
     function lwm_onInputpadOpen() {
-      this.states.instance.inputWindow.open();
-      this.states.instance.inputWindow.setVisible(true);
-      this.states.instance.resize();
+      this.states.inputWindowCreating.promise =
+        this.states.inputWindowCreating.promise.then(() => {
+          this.states.instance.inputWindow.open();
+          this.states.instance.inputWindow.setVisible(true);
+          this.states.instance.resize();
+        });
+      return this.states.inputWindowCreating.promise;
     };
 
   LockScreenWindowManager.prototype.onInputpadClose =
     function lwm_onInputpadClose() {
-      this.states.instance.inputWindow.close();
-      this.states.instance.resize();
+      this.states.inputWindowCreating.promise =
+        this.states.inputWindowCreating.promise.then(() => {
+          this.states.instance.inputWindow.close();
+          this.states.instance.resize();
+        });
+      return this.states.inputWindowCreating.promise;
     };
 
   LockScreenWindowManager.prototype.toggleLockedSetting =
@@ -470,6 +482,19 @@
         'lockscreen.locked': value
       });
     };
+
+  /**
+   * Classic solution to provide a "deferred".
+   * Put it under the constructor to prevent leaking, and avoid using closure
+   * which is hard to test.
+   */
+  LockScreenWindowManager.Deferred = function() {
+    this.promise = new Promise((res, rej) => {
+      this.resolve = res;
+      this.reject = rej;
+    });
+    return this;
+  };
 
   /** @exports LockScreenWindowManager */
   exports.LockScreenWindowManager = LockScreenWindowManager;
