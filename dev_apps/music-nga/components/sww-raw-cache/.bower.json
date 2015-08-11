@@ -1,0 +1,32 @@
+{
+  "name": "sww-raw-cache",
+  "main": "dist/sww-raw-cache.js",
+  "version": "0.2.1",
+  "authors": [
+    "The Gaia Team"
+  ],
+  "description": "Simple raw cache for sww using http verbs for content handling",
+  "license": "MPL",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "devDependencies": {
+    "serviceworkerware": "git@github.com:gaia-components/serviceworkerware.git"
+  },
+  "homepage": "https://github.com/gaia-components/sww-raw-cache",
+  "_release": "0.2.1",
+  "_resolution": {
+    "type": "version",
+    "tag": "0.2.1",
+    "commit": "2d5d8df6894fd75d546d6a1c1f909ec1a704b4f7"
+  },
+  "_source": "git://github.com/gaia-components/sww-raw-cache.git",
+  "_target": "~0.2.1",
+  "_originalSource": "gaia-components/sww-raw-cache",
+  "_direct": true
+}

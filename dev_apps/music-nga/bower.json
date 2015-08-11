@@ -1,0 +1,27 @@
+{
+  "name": "gaia-music-nga",
+  "description": "Gaia Music powered by NGA",
+  "version": "2.5.0-alpha1",
+  "license": "Apache 2.0",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "components"
+  ],
+  "dependencies": {
+    "gaia-icons": "gaia-components/gaia-icons#~0.8.0",
+    "gaia-header": "gaia-components/gaia-header#~0.8.4",
+    "gaia-toolbar": "gaia-components/gaia-toolbar#master",
+    "gaia-theme": "gaia-components/gaia-theme#~0.5.0",
+    "gaia-fonts": "gaia-components/gaia-fonts#~0.2.1",
+    "serviceworkerware": "gaia-components/serviceworkerware#master",
+    "sww-raw-cache": "gaia-components/sww-raw-cache#~0.2.1",
+    "threads": "gaia-components/threads#master",
+    "dom-scheduler": "etiennesegonzac/dom-scheduler",
+    "gaia-component": "gaia-components/gaia-component#~0.3.8",
+    "fast-list": "wilsonpage/fast-list#31-gaia-fast-list"
+  },
+  "resolutions": {
+    "gaia-component": "^0.3.7"
+  }
+}

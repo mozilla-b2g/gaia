@@ -1,0 +1,65 @@
+[hidden] {
+  display: none;
+}
+
+html {
+  background: var(--background);
+  color: #fff;
+  font-size: 10px;
+  font-family: 'FiraSans';
+}
+
+body {
+  margin: 0;
+  overflow: hidden;
+}
+
+a {
+  display: block;
+  font-size: 2rem;
+  padding: 1rem;
+}
+
+#tab-bar {
+  transform: translate(0, 0);
+  visibility: visible;
+  transition: transform 0.2s linear, visibility 0s linear;
+}
+
+#view-stack {
+  position: absolute;
+  top: 5rem;
+  bottom: 4.6rem;
+  left: 0;
+  width: 100%;
+  transition: bottom 0s linear 0.2s;
+}
+
+#player-button[hidden],
+body[data-search="true"] #player-button {
+  display: flex !important;
+  visibility: hidden;
+}
+
+body[data-search="true"] #header,
+body[data-search="true"] #tab-bar {
+  display: none !important;
+}
+
+body[data-search="true"] #view-stack {
+  top: 0;
+  bottom: 0;
+  transition: none;
+}
+
+body[data-active-view-id="player"] #tab-bar {
+  transform: translate(0, 4.6rem);
+  visibility: hidden;
+  transition-delay: 0s, 0.2s;
+}
+
+body:not([data-active-view-id]) #view-stack,
+body[data-active-view-id="player"] #view-stack {
+  bottom: 0;
+  transition-delay: 0s;
+}
