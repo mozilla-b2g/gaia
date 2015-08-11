@@ -1,10 +1,18 @@
 {
-  "tv-deck": {
-    "src": [
-      "tv_apps/tv-deck/js/**/*.js"
-    ],
-    "options": {
-      "destination": "docs/tv-deck"
-    }
+  "name": "TV",
+  "tags": {
+    "dictionaries": ["jsdoc"]
+  },
+  "source": {
+    "include": ["tv_apps/tv-deck/README.md", "tv_apps/tv-deck/js"]
+  },
+  "plugins": [
+    "plugins/markdown",
+    "plugins/summarize"
+  ],
+  "opts": {
+    "private": true,
+    "recurse": true,
+    "destination": "docs/tv-deck"
   }
 }

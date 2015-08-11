@@ -1,10 +1,18 @@
 {
-  "tv-epg": {
-    "src": [
-      "tv_apps/tv-epg/js/**/*.js"
-    ],
-    "options": {
-      "destination": "docs/tv-epg"
-    }
+  "name": "EPG",
+  "tags": {
+    "dictionaries": ["jsdoc"]
+  },
+  "source": {
+    "include": ["tv_apps/tv-epg/README.md", "tv_apps/tv-epg/js"]
+  },
+  "plugins": [
+    "plugins/markdown",
+    "plugins/summarize"
+  ],
+  "opts": {
+    "private": true,
+    "recurse": true,
+    "destination": "docs/tv-epg"
   }
 }
