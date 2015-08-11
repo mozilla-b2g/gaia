@@ -8,7 +8,20 @@
   const DEFAULT_ICON_PATH = 'style/icons/appic_developer.png';
 
   /**
-   * [AppDeck main entry point of AppDeck]
+   * @class AppDeck
+   *
+   * @requires SpatialNavigator
+   * @requires SharedUtils
+   * @requires Applications
+   * @requires {@link http://bit.ly/1DWJJmF|evt}
+   * @requires XScrollable
+   * @requires KeyNavigationAdapter
+   * @requires {@link ContextMenu}
+   * @requires CardManager
+   * @requires {@link PromotionList}
+   *
+   * @fires AppDeck#focus-on-pinable
+   * @fires AppDeck#focus-on-nonpinable
    */
   var AppDeck = function() {
   };
@@ -30,16 +43,27 @@
 
     _cardManager: undefined,
 
+    /**
+     * Initialize AppDeck. This is the main entry of the whole app.
+     *
+     * @public
+     * @method  AppDeck#init
+     */
     init: function ad_init() {
       var that = this;
       this._keyNavigationAdapter = new KeyNavigationAdapter();
       this._keyNavigationAdapter.init();
       this._cardManager = new CardManager();
+      // initialize CardManager in 'readonly' mode. Notice that only smart-home
+      // could use 'readwrite' mode.
       this._cardManager.init('readonly').then(function() {
         that._cardManager.on('cardlist-changed',
                              that.onCardListChanged.bind(that));
       });
 
+      // Because module Applications use manifest helper to get localized app
+      // name. We cannot initialize Applications until l10n is ready.
+      // See bug 1170083.
       var afterApplicationsInit = function() {
         var apps = Applications.getAllAppEntries();
         var appGridElements = apps.map(that._createAppGridElement.bind(that));
@@ -86,6 +110,17 @@
       });
     },
 
+    /**
+     * Fills element with icon which is fetched from
+     * [app](http://mzl.la/1DJP6oZ)
+     *
+     * @private
+     * @method  AppDeck#_fillAppButtonIcon
+     * @param  {DOMApplication} app - app instance where we fetch icon from,
+     *                              see [here](http://mzl.la/1DJP6oZ)
+     * @param  {SmartButton} elem - [SmartButton](http://bit.ly/1Ld0WYX)
+     *                            instance to be filled
+     */
     _fillAppButtonIcon: function ad_fillAppButtonIcon(app, elem) {
       Applications.getIconBlob(app.manifestURL, app.entryPoint, ICON_SIZE,
         function(blob) {
@@ -100,6 +135,16 @@
         });
     },
 
+    /**
+     * Create SmartButton element based on input [app](http://mzl.la/1DJP6oZ)
+     * instance
+     *
+     * @private
+     * @method  AppDeck#_createAppGridElement
+     * @param  {DOMApplication} app - [app](http://mzl.la/1DJP6oZ|)
+     *                                    instance
+     * @return {SmartButton} - see [here](http://bit.ly/1Ld0WYX)
+     */
     _createAppGridElement: function ad_createAppGridElement(app) {
       var appButton = document.createElement('smart-button');
       appButton.dataset.manifestURL = app.manifestURL;
@@ -121,6 +166,14 @@
       }
     },
 
+    /**
+     * Notify other module that currently focused element is pinable (could be
+     * pinned on Home) or nonpinable (could not be pinned on Home)
+     *
+     * @public
+     * @method  AppDeck#fireFocusEvent
+     * @param  {HTMLElement} elem - currently focused element
+     */
     fireFocusEvent: function ad_fireFocusEvent(elem) {
       var that = this;
       if (elem && elem.dataset && elem.dataset.manifestURL) {
@@ -128,15 +181,32 @@
           manifestURL: elem.dataset.manifestURL,
           entryPoint: elem.dataset.entryPoint
         }).then(function(pinned) {
+          /**
+           * This event fires whenever focus in AppDeck move to a pinable
+           * element (representing na app).
+           * @event AppDeck#focus-on-pinable
+           * @type {Object}
+           * @property {Boolean} pinned - Is current focused pinable element
+           *                            pinned or not
+           * @property {String} manifestURL - manifestURL of current focused
+           *                                element
+           * @property {String} name - name of current focused pinable element
+           * @property {Boolean} removable - Is current focused pinable element
+           *                               removable or not
+           */
           that.fire('focus-on-pinable', {
             pinned: pinned,
             manifestURL: elem.dataset.manifestURL,
+            // entryPoint is deprecated
             entryPoint: elem.dataset.entryPoint,
             name: elem.dataset.name,
             removable: elem.dataset.removable === 'true'
           });
         });
       } else {
+        /**
+         * @event AppDeck#focus-on-nonpinable
+         */
         this.fire('focus-on-nonpinable');
       }
     },
@@ -253,11 +323,28 @@
       });
     },
 
+    /**
+     * Shorthand function to get all SmartButtons of apps
+     *
+     * @private
+     * @method  AppDeck#_findAllAppGridElements
+     * @return {Array} array of SmartButton
+     */
     _findAllAppGridElements: function ad_findallAppGridElements() {
       return SharedUtils.nodeListToArray(
         document.getElementsByClassName('app-button'));
     },
 
+    /**
+     * Shorthand function to find specific SmartButton representing the app
+     *
+     * @private
+     * @method  AppDeck#_findAppGridElement
+     * @param  {DOMApplication} app  the [app](http://mzl.la/1DJP6oZ) instance
+     *                               which we want to find SmartButton is
+     *                               represented for
+     * @return {SmartButton}
+     */
     _findAppGridElement: function ad_findAppGridElement(app) {
       var elements = this._findAllAppGridElements();
       var found;
