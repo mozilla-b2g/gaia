@@ -865,7 +865,7 @@ suite('system/AppChrome', function() {
       chrome = new AppChrome(app);
       assert.equal(chrome.scrollable.style.backgroundColor, '');
       chrome.setThemeColor('black');
-      assert.equal(chrome.scrollable.style.backgroundColor, '');
+      assert.equal(chrome.scrollable.style.backgroundColor, 'rgb(57, 46, 84)');
     });
   });
 

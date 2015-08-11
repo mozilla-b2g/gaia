@@ -15,6 +15,8 @@ var mocksForWrapperFactory = new MocksHelper([
 suite('system/WrapperFactory', function() {
   mocksForWrapperFactory.attachTestHelpers();
   setup(function(done) {
+    require('/shared/js/settings_listener.js');
+    require('/js/browser.js');
     requireApp('system/js/wrapper_factory.js', done);
   });
 

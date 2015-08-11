@@ -48,6 +48,7 @@
    "bluetooth.snoop.enabled": false,
    "bluetooth.suspended": false,
    "bluetooth.device.connected": null,
+   "browser.private.default": false,
    "camera.sound.enabled": true,
    "camera.recording.preferredSizes": [],
    "cdn.url": "https://fxos.cdn.mozilla.net",
