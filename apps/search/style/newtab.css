@@ -24,6 +24,7 @@ h2,
   margin-bottom: -0.9rem;
   color: #a6a6a6;
   font-style: normal;
+  -moz-user-select: none;
 }
 
 h2 span,
@@ -39,6 +40,7 @@ h2 span,
 #top-sites {
   overflow: auto;
   margin-top: 1rem;
+  -moz-user-select: none;
 }
 
 #top-sites .top-site:nth-child(2n) {
@@ -139,6 +141,7 @@ section h3 {
   color: #858585;
   font-weight: normal;
   margin-top: 1rem;
+  -moz-user-select: none;
 }
 
 /* RTL View */
