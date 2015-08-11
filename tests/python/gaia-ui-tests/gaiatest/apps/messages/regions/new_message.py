@@ -19,7 +19,7 @@ class NewMessage(Messages):
     _attach_button_locator = (By.ID, 'messages-attach-button')
     _options_button_locator = (By.ID, 'messages-options-button')
     _message_sending_locator = (By.CSS_SELECTOR, "li.message.outgoing.sending")
-    _thread_messages_locator = (By.ID, 'thread-messages')
+    _panel_conversationview_locator = (By.CSS_SELECTOR, '.panel-ConversationView')
     _message_resize_notice_locator = (By.ID, 'messages-resize-notice')
     _subject_input_locator = (By.CSS_SELECTOR, '.subject-composer-input')
     _image_attachment_locator = (By.CSS_SELECTOR, '.attachment-container.preview')
@@ -29,8 +29,9 @@ class NewMessage(Messages):
         Base.__init__(self, marionette)
         Wait(self.marionette).until(lambda m: self.apps.displayed_app.name == self.name)
         self.apps.switch_to_displayed_app()
-        section = self.marionette.find_element(*self._thread_messages_locator)
-        Wait(self.marionette).until(lambda m: section.location['x'] == 0)
+        element = Wait(self.marionette).until(
+            expected.element_present(*self._panel_conversationview_locator))
+        Wait(self.marionette).until(lambda m: element.rect['x'] == 0 and element.is_displayed())
 
     def type_phone_number(self, value):
         # tap on the parent element to activate editable
