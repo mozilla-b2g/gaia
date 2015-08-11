@@ -1,12 +1,11 @@
 /* global LockScreenStateManager, Promise */
 
 'use strict';
-requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/shared/test/unit/mocks/mock_service.js');
 requireApp('system/lockscreen/js/lockscreen_state_manager.js');
 
 var mocksHelper = new window.MocksHelper([
-  'SettingsListener', 'Service'
+  'Service'
 ]).init();
 
 suite('system/LockScreenStateManager', function() {
@@ -14,6 +13,54 @@ suite('system/LockScreenStateManager', function() {
   var mockState, mockLockScreen;
   mocksHelper.attachTestHelpers();
   setup(function() {
+    var Deferred = function() {
+      this.promise = new Promise((res, rej) => {
+        this.resolve = res;
+        this.reject = rej;
+      });
+      return this;
+    };
+
+    navigator.mozSettings = (function() {
+      var SettingLock = function() {};
+      this._deferredReadings = {};
+      this._deferredObservers = {};
+      this.__onsuccesses = {};
+      this.createLock = () => {
+        return (function() {
+          this.get = (key) => {
+            var lock = new SettingLock();
+            navigator.mozSettings._deferredReadings[key] = new Deferred();
+            navigator.mozSettings._deferredReadings[key].promise =
+              navigator.mozSettings._deferredReadings[key].promise
+              .then((fetchingResult) => {
+                lock.result = {};
+                lock.result[key] = fetchingResult;
+                lock.onsuccess();
+              })
+              .catch(console.error.bind(console));
+            return lock;
+          };
+          return this;
+        }).call(this);
+      };
+
+      this.addObserver = (key, cb) => {
+        if (!this._deferredObservers[key]) {
+          this._deferredObservers[key] = new Deferred();
+        }
+        this._deferredObservers[key].promise =
+          this._deferredObservers[key].promise.then(() => {
+            cb();
+          })
+          .catch(console.error.bind(console));
+      };
+      this._reset = function() {
+        this._deferredReadings = {};
+        this._deferredObservers = {};
+      };
+      return this;
+    }).call({});
     mockState = function() {
       this.start = () => {
         return this; };
@@ -62,6 +109,7 @@ suite('system/LockScreenStateManager', function() {
     mockLockScreen = function() {
       this.init = function() {};
       this.overlay = document.createElement('div');
+      this.checkPassCodeTimeout = function() {};
     };
     subject = (new LockScreenStateManager())
       .start(new mockLockScreen());
@@ -70,10 +118,146 @@ suite('system/LockScreenStateManager', function() {
     });
   });
 
-  suite('self-test all methods: ', function() {
-    test('|onPasscodeEnabledChanged| can handle delay request well',
+  suite('"integration tests"', function() {
+    var instance;
+    setup(function() {
+      instance = new LockScreenStateManager();
+    });
+    test('if passcode setting is still reading, do not transfer ' +
+         'until it is resolved', function(done) {
+      var originalDoTransfer = instance.doTransfer;
+      var stubDoTransfer = this.sinon.stub(instance, 'doTransfer', function() {
+        originalDoTransfer.apply(instance, arguments);
+      });
+      instance.start(new mockLockScreen());
+      var stubTransferToKeypadRising = this.sinon.stub(
+          instance.states.keypadRising, 'transferTo')
+        .returns(Promise.resolve());
+      instance.handleEvent({type: 'lockscreenslide-activate-right'});
+
+      sinon.assert.notCalled(stubDoTransfer,
+      'it shouldn\'t transfer to next state before deferred requests resolved,'+
+      'although the event comes');
+
+      instance.promiseQueue = instance.promiseQueue.then(() => {
+        sinon.assert.called(stubTransferToKeypadRising,
+        'it didn\'t transfer to keypadRising after the event and settings');
+        done();
+      }).catch(done);
+      navigator.mozSettings
+        ._deferredReadings['lockscreen.passcode-lock.enabled']
+        .resolve(true);
+      navigator.mozSettings
+        ._deferredReadings['lockscreen.passcode-lock.timeout']
+        .resolve(0);
+      navigator.mozSettings
+        ._deferredReadings['lockscreen.unlock-sound.enabled']
+        .resolve(false);
+    });
+
+    test('|holdcamera| will trigger transferring to unlock when there ' +
+         'is no passcode',
     function(done) {
-      var method = LockScreenStateManager.prototype.onPasscodeEnabledChanged;
+      instance.start(new mockLockScreen());
+      var stubTransferToUnlock = this.sinon.stub(
+          instance.states.unlock, 'transferTo')
+        .returns(Promise.resolve());
+      instance.handleEvent({type: 'holdcamera'});
+      instance.promiseQueue = instance.promiseQueue.then(() => {
+        sinon.assert.called(stubTransferToUnlock,
+        'it didn\'t transfer to unlock after the event comes');
+        done();
+      }).catch(done);
+      navigator.mozSettings
+        ._deferredReadings['lockscreen.passcode-lock.enabled']
+        .resolve(false);
+      navigator.mozSettings
+        ._deferredReadings['lockscreen.passcode-lock.timeout']
+        .resolve(0);
+      navigator.mozSettings
+        ._deferredReadings['lockscreen.unlock-sound.enabled']
+        .resolve(false);
+    });
+
+    test('|holdcamera| will trigger transferring to secureAppLaunching ' +
+         'when there is no passcode',
+    function(done) {
+      instance.start(new mockLockScreen());
+      var stubTransferToSecureAppLaunching= this.sinon.stub(
+          instance.states.secureAppLaunching, 'transferTo')
+        .returns(Promise.resolve());
+      instance.handleEvent({type: 'holdcamera'});
+      instance.promiseQueue = instance.promiseQueue.then(() => {
+        sinon.assert.called(stubTransferToSecureAppLaunching,
+        'it didn\'t transfer to secureAppLaunching after the event comes');
+        done();
+      }).catch(done);
+      navigator.mozSettings
+        ._deferredReadings['lockscreen.passcode-lock.enabled']
+        .resolve(true);
+      navigator.mozSettings
+        ._deferredReadings['lockscreen.passcode-lock.timeout']
+        .resolve(0);
+      navigator.mozSettings
+        ._deferredReadings['lockscreen.unlock-sound.enabled']
+        .resolve(false);
+    });
+
+    test('|notification-request-activate-unlock| will trigger ' +
+        'transferring to unlock when there is no passcode',
+    function(done) {
+      instance.start(new mockLockScreen());
+      var stubTransferToUnlock = this.sinon.stub(
+          instance.states.unlock, 'transferTo')
+        .returns(Promise.resolve());
+      instance.handleEvent(
+        {type: 'lockscreen-notification-request-activate-unlock'});
+      instance.promiseQueue = instance.promiseQueue.then(() => {
+        sinon.assert.called(stubTransferToUnlock,
+        'it didn\'t transfer to unlock after the event comes');
+        done();
+      }).catch(done);
+      navigator.mozSettings
+        ._deferredReadings['lockscreen.passcode-lock.enabled']
+        .resolve(false);
+      navigator.mozSettings
+        ._deferredReadings['lockscreen.passcode-lock.timeout']
+        .resolve(0);
+      navigator.mozSettings
+        ._deferredReadings['lockscreen.unlock-sound.enabled']
+        .resolve(false);
+    });
+
+    test('|lockscreen-notification-request-activate-unlock| will trigger' +
+         'transferring to keypadRising when there is no passcode',
+    function(done) {
+      instance.start(new mockLockScreen());
+      var stubTransferToKeypadRising = this.sinon.stub(
+          instance.states.keypadRising, 'transferTo')
+        .returns(Promise.resolve());
+      instance.handleEvent(
+        {type: 'lockscreen-notification-request-activate-unlock'});
+      instance.promiseQueue = instance.promiseQueue.then(() => {
+        sinon.assert.called(stubTransferToKeypadRising,
+        'it didn\'t transfer to keypadRising after the event comes');
+        done();
+      }).catch(done);
+      navigator.mozSettings
+        ._deferredReadings['lockscreen.passcode-lock.enabled']
+        .resolve(true);
+      navigator.mozSettings
+        ._deferredReadings['lockscreen.passcode-lock.timeout']
+        .resolve(0);
+      navigator.mozSettings
+        ._deferredReadings['lockscreen.unlock-sound.enabled']
+        .resolve(false);
+    });
+  });
+
+  suite('self-test all methods: ', function() {
+    test('|getSettingsObserverCallback| can handle delay request well',
+    function(done) {
+      var method = LockScreenStateManager.prototype.getSettingsObserverCallback;
       var mockThis = {
         lockScreenStates: {
           passcodeEnabled: new LockScreenStateManager.Deferred()
@@ -84,7 +268,9 @@ suite('system/LockScreenStateManager', function() {
           'The delay request can\'t get the reading value');
         done();
       }).catch(done);
-      method.call(mockThis, false);
+      method.call(mockThis, 'passcodeEnabled')({
+        settingValue: false
+      });
       assert.isFalse(mockThis.lockScreenStates.passcodeEnabled instanceof
         LockScreenStateManager.Deferred,
         'it doesn\'t replace the delay request with the read value');
@@ -204,7 +390,7 @@ suite('system/LockScreenStateManager', function() {
         });
       var states = subject.extend(subject.lockScreenDefaultStates, {
         passcodeEnabled: true,
-        passcodeTimeout: true,
+        passcodeTimeoutExpired: true,
         screenOn: true,
         activateUnlock: true
       });
@@ -216,7 +402,6 @@ suite('system/LockScreenStateManager', function() {
         type: 'slideShow'
       };
       subject.transfer(states).catch(done);
-
     });
 
     test('With passcode disabled, when it activate to unlock, ' +
@@ -264,7 +449,7 @@ suite('system/LockScreenStateManager', function() {
         });
       var states = subject.extend(subject.lockScreenDefaultStates, {
         passcodeEnabled: true,
-        passcodeTimeout: false,
+        passcodeTimeoutExpired: false,
         screenOn: true,
         activateUnlock: true
       });
@@ -530,7 +715,7 @@ suite('system/LockScreenStateManager', function() {
       var states = subject.extend(subject.lockScreenDefaultStates, {
         unlockingAppActivated: true,
         passcodeEnabled: true,
-        passcodeTimeout: true
+        passcodeTimeoutExpired: true
       });
       var transferOutCalled = false;
       subject.previousState = {
@@ -559,7 +744,7 @@ suite('system/LockScreenStateManager', function() {
       var states = subject.extend(subject.lockScreenDefaultStates, {
         unlockingAppActivated: true,
         passcodeEnabled: true,
-        passcodeTimeout: false
+        passcodeTimeoutExpired: false
       });
       var transferOutCalled = false;
       subject.previousState = {
@@ -619,14 +804,14 @@ suite('system/LockScreenStateManager', function() {
         assert.isTrue(stubOnSecureAppClosing.called);
       });
 
-    test('When unlocking with app without passcode, restore the slide',
+    test('When unlocking with app without passcode, unlock it',
     function(done) {
-      this.sinon.stub(subject.states.slideRestore, 'transferTo',
+      this.sinon.stub(subject.states.unlock, 'transferTo',
         function() {
           // This would be the next step of 'transferOut'.
           try {
             assert.isTrue(transferOutCalled,
-              'the state wasn\'t transferred from slideShow to slideRestore');
+              'the state wasn\'t transferred from slideShow to unlock');
           } catch(e) {
             done(e);
           }

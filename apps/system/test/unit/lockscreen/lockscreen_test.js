@@ -149,7 +149,6 @@ suite('system/LockScreen >', function() {
   function() {
     var method = window.LockScreen.prototype.checkPassCodeTimeout;
     var mockThis = {
-      passCodeRequestTimeout: 60,
       fetchLockedInterval: function() {},
       fetchUnlockedInterval: function() {}
     };
@@ -157,17 +156,17 @@ suite('system/LockScreen >', function() {
     var stubFetchUnlockedInterval = this.sinon.stub().returns(59 * 1000);
     mockThis.fetchLockedInterval = stubFetchLockedInterval;
     mockThis.fetchUnlockedInterval = stubFetchUnlockedInterval;
-    assert.isTrue(method.call(mockThis));
+    assert.isTrue(method.call(mockThis, 60));
     stubFetchLockedInterval = this.sinon.stub().returns(59 * 1000);
     stubFetchUnlockedInterval = this.sinon.stub().returns(61 * 1000);
     mockThis.fetchLockedInterval = stubFetchLockedInterval;
     mockThis.fetchUnlockedInterval = stubFetchUnlockedInterval;
-    assert.isTrue(method.call(mockThis));
+    assert.isTrue(method.call(mockThis, 60));
     stubFetchLockedInterval = this.sinon.stub().returns(59 * 1000);
     stubFetchUnlockedInterval = this.sinon.stub().returns(59 * 1000);
     mockThis.fetchLockedInterval = stubFetchLockedInterval;
     mockThis.fetchUnlockedInterval = stubFetchUnlockedInterval;
-    assert.isFalse(method.call(mockThis));
+    assert.isFalse(method.call(mockThis, 60));
   });
 
   test('Fetch locked interval update the interval when it\'s still locked',
@@ -496,12 +495,6 @@ suite('system/LockScreen >', function() {
         'the corresponding creation method was no invoked');
       stubDispatch.restore();
     });
-
-  test('When lockscreen is on, holdcamera starts camera app', function() {
-    var spy = this.sinon.spy(subject, '_activateCamera');
-    subject.handleEvent({ type: 'holdcamera' });
-    assert.isTrue(spy.called);
-  });
 
   test('Message: message should appear on screen when set', function() {
     var message = 'message';

@@ -14,7 +14,6 @@
   limitations under the License.
  */
 
-/* global SettingsListener */
 /* global LockScreenStateSlideShow */
 /* global LockScreenStateKeypadShow */
 /* global LockScreenStateKeypadHiding, LockScreenStateKeypadRising */
@@ -76,11 +75,12 @@
     this.lockScreen = lockScreen;
     this.lockScreen.init();
     this.logger = (new LockScreenStateLogger()).start({
-      debug: false,
+      debug: true,
       error: true
     });
     this.configs = {
       listenEvents: [
+        'click',
         'lockscreen-notify-homepressed',
         'screenchange',
         'lockscreen-notification-request-activate-unlock',
@@ -96,44 +96,38 @@
         'lockscreen-inputappclosed',
         'secure-appopened',
         'secure-appclosing',
-        'secure-appterminated'
+        'secure-appterminated',
+        'holdcamera'
       ],
       observers: {
         'lockscreen.passcode-lock.enabled':
-          this.onPasscodeEnabledChanged.bind(this)
+          this.getSettingsObserverCallback('passcodeEnabled'),
+        'lockscreen.passcode-lock.timeout':
+          this.getSettingsObserverCallback('passcodeTimeout'),
+        'lockscreen.unlock-sound.enabled':
+          this.getSettingsObserverCallback('unlockSoundEnabled')
       }
-    };
-    // The state 'templates'. This component would do transfer among
-    // these states.
-    this.states = {
-      slideRestore: (new LockScreenStateSlideRestore()).start(this.lockScreen),
-      slideShow: (new LockScreenStateSlideShow()).start(this.lockScreen),
-      keypadShow: (new LockScreenStateKeypadShow()).start(this.lockScreen),
-      keypadHiding: (new LockScreenStateKeypadHiding()).start(this.lockScreen),
-      keypadRising: (new LockScreenStateKeypadRising()).start(this.lockScreen),
-      panelHide: (new LockScreenStatePanelHide()).start(this.lockScreen),
-      unlock: (new LockScreenStateUnlock()).start(this.lockScreen),
-      secureAppLaunching: (new LockScreenStateSecureAppLaunching())
-        .start(this.lockScreen)
     };
 
     // Default values
     this.lockScreenDefaultStates = {
       screenOn: true,   // We assume that the screen is on after booting
-      passcodeTimeout: true, // If timeout, do show the keypad
       homePressed: false,
       activateUnlock: false,
       unlocking: false,
       keypadInput: '',
       forciblyUnlock: false,
       inputpad: null,
+      passcodeTimeoutExpired: true,
       passcodeValidated: false,
       secureAppOpen: false,
       secureAppClose: false,
       unlockingAppActivated: false,
 
       // Would be replaced with true/false when it got read.
-      passcodeEnabled: new LockScreenStateManager.Deferred()
+      passcodeEnabled: new LockScreenStateManager.Deferred(),
+      passcodeTimeout: new LockScreenStateManager.Deferred(),
+      unlockSoundEnabled: new LockScreenStateManager.Deferred()
     };
     Object.freeze(this.lockScreenDefaultStates);
 
@@ -143,6 +137,27 @@
         result[key] = this.lockScreenDefaultStates[key];
         return result;  // Reduce with slight side-effect.
       }, {});
+
+    // The state 'templates'. This component would do transfer among
+    // these states.
+    this.states = {
+      slideRestore: (new LockScreenStateSlideRestore())
+        .start(this.lockScreen, this.lockScreenStates),
+      slideShow: (new LockScreenStateSlideShow())
+        .start(this.lockScreen, this.lockScreenStates),
+      keypadShow: (new LockScreenStateKeypadShow())
+        .start(this.lockScreen, this.lockScreenStates),
+      keypadHiding: (new LockScreenStateKeypadHiding())
+        .start(this.lockScreen, this.lockScreenStates),
+      keypadRising: (new LockScreenStateKeypadRising())
+        .start(this.lockScreen, this.lockScreenStates),
+      panelHide: (new LockScreenStatePanelHide())
+        .start(this.lockScreen, this.lockScreenStates),
+      unlock: (new LockScreenStateUnlock())
+        .start(this.lockScreen, this.lockScreenStates),
+      secureAppLaunching: (new LockScreenStateSecureAppLaunching())
+        .start(this.lockScreen, this.lockScreenStates)
+    };
 
     // The default state is slideShow.
     this.previousState = this.states.slideShow;
@@ -201,7 +216,7 @@
 
     this.registerRule({
       passcodeEnabled: true,
-      passcodeTimeout: false,
+      passcodeTimeoutExpired: false,
       screenOn: true,
       activateUnlock: true
     },
@@ -211,7 +226,7 @@
 
     this.registerRule({
       passcodeEnabled: true,
-      passcodeTimeout: true,
+      passcodeTimeoutExpired: true,
       screenOn: true,
       activateUnlock: true
     },
@@ -300,16 +315,16 @@
     this.registerRule({
       unlockingAppActivated: true,
       passcodeEnabled: true,
-      passcodeTimeout: true
+      passcodeTimeoutExpired: true
     },
-    ['slideShow'],
+    ['slideShow', 'keypadShow'],
     this.states.secureAppLaunching,
     'When user invoke secure app, move to the mode');
 
     this.registerRule({
       unlockingAppActivated: true,
       passcodeEnabled: true,
-      passcodeTimeout: false
+      passcodeTimeoutExpired: false
     },
     ['slideShow'],
     this.states.unlock,
@@ -327,8 +342,8 @@
       passcodeEnabled: false
     },
     ['slideShow'],
-    this.states.slideRestore,
-    'When user invoke an app and unlock, restore the slide');
+    this.states.unlock,
+    'When user invoke an app and unlock, unlock it');
   };
 
   /**
@@ -432,8 +447,17 @@
 
   LockScreenStateManager.prototype.observeSettings =
   function lssm_observeSettings() {
-    Object.keys(this.configs.observers).forEach((key) => {
-      SettingsListener.observe(key, false ,this.configs.observers[key]);
+    // Put them all in the same session (lock).
+    var lock = navigator.mozSettings.createLock();
+    Object.keys(this.configs.observers).forEach((settingKey) => {
+      var setting = lock.get(settingKey);
+      setting.onsuccess = () => {
+        var details = { 'settingValue': setting.result[settingKey]};
+        this.configs.observers[settingKey](details);
+      };
+      setting.onerror = console.error.bind(console);
+      navigator.mozSettings.addObserver(settingKey,
+        this.configs.observers[settingKey]);
     });
   };
 
@@ -462,6 +486,11 @@
       detail = evt.detail;
     }
     switch(evt.type) {
+      case 'click':
+        if (this.lockScreen.altCameraButton === evt.target) {
+          this.onSecureAppButtonPressed();
+        }
+        break;
       case 'screenchange':
         // Do nothing if it's turned off by proximity sensor.
         if ('proximity' === detail.screenOffBy) {
@@ -472,6 +501,7 @@
       case 'lockscreen-notify-homepressed':
         this.onHomePressed();
         break;
+      case 'holdcamera':
       case 'lockscreenslide-activate-left':
         this.onUnlockingApp();
         break;
@@ -534,6 +564,15 @@
   function lssm_onHomePressed(value) {
     var inputs = this.extend(this.lockScreenStates, {
       homePressed: true
+    });
+    this.nextStep(this.transfer.bind(this, inputs));
+  };
+
+  LockScreenStateManager.prototype.onSecureAppButtonPressed =
+  function lssm_onSecureAppButtonPressed() {
+    var inputs = this.extend(this.lockScreenStates, {
+      unlockingAppActivated: true,
+      appName: 'camera' // The only one secure app invoked by this way
     });
     this.nextStep(this.transfer.bind(this, inputs));
   };
@@ -619,19 +658,17 @@
 
   LockScreenStateManager.prototype.onUnlockingApp =
   function lssm_onUnlockingApp() {
-    // Check if it should launch secure app or not.
-    this.lockScreenStates.passcodeTimeout =
-      this.lockScreen.checkPassCodeTimeout();
+    this.checkPasscodeTimeoutExpired();
     var inputs = this.extend(this.lockScreenStates, {
-      unlockingAppActivated: true
+      unlockingAppActivated: true,
+      appName: 'camera' // The only one secure app invoked by this way
     });
     this.nextStep(this.transfer.bind(this, inputs));
   };
 
   LockScreenStateManager.prototype.onActivateUnlock =
   function lssm_onActivateUnlock() {
-    this.lockScreenStates.passcodeTimeout =
-      this.lockScreen.checkPassCodeTimeout();
+    this.checkPasscodeTimeoutExpired();
     var inputs = this.extend(this.lockScreenStates, {
       activateUnlock: true
     });
@@ -654,35 +691,24 @@
   };
 
   /**
-   * In theory, we should turn all states changes, no matter it's
-   * caused by event or settings changes, into transferring method
-   * invocation. However, we don't transfer states in this case
-   * because it's impossible to change passcode while LockScreen
-   * is on, and it's no need to do the transferring while the user
-   * is changing the passcode.
+   * Return a function to receive the value read from settings,
+   * and resolve the deferred promise and set the value.
    */
-  LockScreenStateManager.prototype.onPasscodeEnabledChanged =
-  function lssm_onPasscodeEnabledChanged(value) {
-    var val;
-    if ('string' === typeof value) {
-      val = 'false' === value ? false : true;
-    } else {
-      val = value;
-    }
-    if (this.lockScreenStates.passcodeEnabled instanceof
-        LockScreenStateManager.Deferred) {
-      // So those waiting the promise can go on.
-      var resolve = this.lockScreenStates.passcodeEnabled.resolve;
-      // Remember: inputs of this transition request is NOT what
-      // the manager keeps. This is due to some request, like pressing homekey,
-      // is a one-time event, and will not update the inner states table.
-      // So if an event is changing the inner states table, we need to
-      // toggle the value here, not in the resolver of postponed request.
-      this.lockScreenStates.passcodeEnabled = val;
-      resolve(val);
-    } else {
-      this.lockScreenStates.passcodeEnabled = val;
-    }
+  LockScreenStateManager.prototype.getSettingsObserverCallback =
+  function lssm_getSettingsObserverCallback(key) {
+    return (settingEvent) => {
+      var value = settingEvent.settingValue;
+      if (this.lockScreenStates[key] instanceof
+          LockScreenStateManager.Deferred) {
+        var resolve = this.lockScreenStates[key].resolve;
+        // Need to update the inner states
+        this.lockScreenStates[key] = value;
+        // ...while resolve the value.
+        resolve(value);
+      } else {
+        this.lockScreenStates[key] = value;
+      }
+    };
   };
 
   LockScreenStateManager.prototype.onPasscodeValidated =
@@ -725,7 +751,7 @@
   LockScreenStateManager.prototype.unobserveSettings =
   function lssm_unobserveSettings() {
     Object.keys(this.configs.observers).forEach((key) => {
-      SettingsListener.unobserve(key, this.configs.observers[key]);
+      navigator.mozSettings.removeObserver(key, this.configs.observers[key]);
     });
   };
 
@@ -742,6 +768,29 @@
     this.ignoreEvents();
     this.logger.stop();
     return this;
+  };
+
+  /**
+   * When actions ask to check if timeout is expired,
+   * If timeout is still reading from settings, keep the Expired as deferred.
+   * So when the timeout reading is done, it will solve the Expired checking.
+   * And these all will all happen before do transferring.
+   */
+  LockScreenStateManager.prototype.checkPasscodeTimeoutExpired =
+  function lssm_checkPasscodeTimeoutExpired() {
+    if (this.lockScreenStates.passcodeTimeout instanceof
+        LockScreenStateManager.Deferred) {
+      var timeoutPromise = this.lockScreenStates.passcodeTimeout.promise;
+      this.lockScreenStates.passcodeTimeout.promise =
+        timeoutPromise.then((timeoutSetting) => {
+          var isExpired = this.lockScreen.checkPassCodeTimeout(timeoutSetting);
+          this.lockScreenStates.passcodeTimeoutExpired = isExpired;
+        }).catch(console.error.bind(console));
+    } else {
+      var isExpired = this.lockScreen.checkPassCodeTimeout(
+          this.lockScreenStates.passcodeTimeout);
+      this.lockScreenStates.passcodeTimeoutExpired = isExpired;
+    }
   };
 
   /**

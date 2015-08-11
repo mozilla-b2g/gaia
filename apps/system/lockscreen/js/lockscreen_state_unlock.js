@@ -32,16 +32,24 @@
   LockScreenStateUnlock.prototype =
     Object.create(LockScreenBaseState.prototype);
 
-  LockScreenStateUnlock.prototype.start = function(lockScreen) {
+  LockScreenStateUnlock.prototype.start = function(lockScreen, innerStates) {
     this.type = 'unlock';
     this.lockScreen = lockScreen;
+    this.innerStates = innerStates;
     return this;
   };
 
   LockScreenStateUnlock.prototype.transferTo =
-  function lsskh_transferTo() {
+  function lsskh_transferTo(inputs) {
     return new Promise((resolve, reject) => {
-      this.lockScreen.unlock();
+      var unlockingDetails = {
+        'unlockSoundEnabled': this.innerStates.unlockSoundEnabled
+      };
+      if (inputs.unlockingAppActivated) {
+        this.lockScreen._activateUnlockingCamera(unlockingDetails);
+      } else {
+        this.lockScreen.unlock(false, unlockingDetails);
+      }
       resolve();
     });
   };

@@ -128,24 +128,33 @@
   display: block;
 }
 
-#lockscreen-passcode-pad > a:active {
+/* if not fufilled, show it is pressed */
+#lockscreen-passcode-pad:not(.passcode-fulfilled) > a:active {
   background-color: #4a5255;
   color: #00caf2;
   text-shadow: none;
 }
 
-#lockscreen-passcode-pad > a.lockscreen-passcode-pad-func:active > div > span{
+#lockscreen-passcode-pad:not(.passcode-fulfilled) > a.lockscreen-passcode-pad-func:active > div > span{
   color: #00caf2;
 }
 
+/* if it's fulfilled, don't change the background */
+#lockscreen-passcode-pad.passcode-fulfilled .row0 {
+  background-color: transparent;
+}
+
+#lockscreen-passcode-pad.passcode-fulfilled .row1,
 #lockscreen-passcode-pad .row1 {
   background-color: #5b6668;
 }
 
+#lockscreen-passcode-pad.passcode-fulfilled .row2,
 #lockscreen-passcode-pad .row2 {
   background-color: #566061;
 }
 
+#lockscreen-passcode-pad.passcode-fulfilled .row3,
 #lockscreen-passcode-pad .row3 {
   background-color: #525c5e;
 }
@@ -179,7 +188,7 @@
   margin-top: -2.6rem;
 }
 
-#lockscreen-passcode-pad > a:active > div > span {
+#lockscreen-passcode-pad:not(.passcode-fulfilled)  > a:active > div > span {
   color: transparent;
   text-shadow: none;
 }
