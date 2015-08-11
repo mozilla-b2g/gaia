@@ -7,6 +7,7 @@
 /* global ContactToVcardBlob */
 /* global VcardFilename */
 /* global MozActivity */
+/* global ParamUtils */
 
 /* exported Details */
 
@@ -21,6 +22,7 @@
 (function(exports) {
 
   var _activity = null;
+  var _contactID;
 
   function setActivity(activity) {
     _activity = activity;
@@ -33,7 +35,16 @@
     }
 
     var contactId = evt.detail.contactId;
-    MatchService.match(contactId);
+    var dependencies = [
+      '/contacts/js/match_service.js'
+    ];
+
+    LazyLoader.load(
+      dependencies,
+      function onLoaded() {
+        MatchService.match(contactId);
+      }
+    );
   }
 
   function toggleFavorite(evt){
@@ -100,10 +111,6 @@
     window.addEventListener('toggleFavoriteAction', toggleFavorite);
     window.addEventListener('shareAction', shareContact);
     window.addEventListener('findDuplicatesAction', findDuplicates);
-
-    // TODO: Need to save the oncontactchange event in order to update
-    // the main list when the user go back from this view. It could be done
-    // by saving the event in sessionStorage
   }
 
   function shareContact(evt) {
@@ -146,9 +153,18 @@
     }
   }
 
+  function setContact(contactID) {
+    _contactID = contactID;
+  }
+
   function handleEditAction(evt) {
-    // In the future the navigation will change the URL to navigate
-    // to #update view: Bug 1169579
+    window.location.href = ParamUtils.generateUrl(
+      'form',
+      {
+        'action': 'update',
+        'contact': _contactID
+      }
+    );
   }
 
   function dispatchEvent(name, data) {
@@ -157,6 +173,7 @@
 
   exports.DetailsController = {
     'init': init,
-    'setActivity': setActivity
+    'setActivity': setActivity,
+    'setContact': setContact
   };
 })(window);

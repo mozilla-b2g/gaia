@@ -135,7 +135,7 @@
         "type": "webcontacts/contact"
       },
       "disposition": "inline",
-      "href": "/contacts/views/form/form.html",
+      "href": "/contacts/views/form/form.html?action=new",
       "returnValue": true
     },
     "update": {
