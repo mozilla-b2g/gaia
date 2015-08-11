@@ -518,6 +518,8 @@ suite('system/AppChrome', function() {
 
   suite('mozbrowserlocationchange', function() {
     var subject = null;
+    var observeSpy, unobserveSpy;
+
     setup(function() {
       var website = new AppWindow(cloneConfig(fakeWebSite));
       subject = new AppChrome(website);
@@ -531,7 +533,15 @@ suite('system/AppChrome', function() {
     test('should not do anything on apps with manifests', function() {
       var app = new AppWindow(fakeAppWithName);
       var chrome = new AppChrome(app);
+
+      observeSpy = this.sinon.spy(MockSettingsListener, 'observe');
+      unobserveSpy = this.sinon.spy(MockSettingsListener, 'unobserve');
+
       chrome._registerEvents();
+
+      sinon.assert.calledOnce(observeSpy);
+      sinon.assert.calledWith(observeSpy, PINNING_PREF);
+      sinon.assert.notCalled(unobserveSpy);
 
       var evt = new CustomEvent('mozbrowserlocationchange', {
         detail: 'app://communications.gaiamobile.org/calllog.html'
@@ -539,6 +549,9 @@ suite('system/AppChrome', function() {
       chrome.app.element.dispatchEvent(evt);
       this.sinon.clock.tick(500);
       chrome._unregisterEvents();
+
+      sinon.assert.calledWith(unobserveSpy, PINNING_PREF);
+      sinon.assert.calledOnce(unobserveSpy);
     });
 
     test('browser start page should always have the same title',
