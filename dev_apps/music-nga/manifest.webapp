@@ -27,19 +27,19 @@
   },
   "locales": {
     "ar": {
-      "name": "موسيقى",
+      "name": "موسيقى NGA",
       "description": "Gaia موسيقى"
     },
     "en-US": {
-      "name": "Music",
-      "description": "Gaia Music"
+      "name": "Music NGA",
+      "description": "Gaia Music NGA"
     },
     "fr": {
-      "name": "Musique",
+      "name": "Musique MGA",
       "description": "Lecteur audio Gaia"
     },
     "zh-TW": {
-      "name": "音樂",
+      "name": "音樂 NGA",
       "description": "Gaia 音樂"
     }
   },
