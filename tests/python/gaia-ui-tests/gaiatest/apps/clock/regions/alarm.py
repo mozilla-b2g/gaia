@@ -2,77 +2,63 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import time
-
 from marionette_driver import expected, By, Wait
 
 from gaiatest.apps.clock.app import Clock
+from gaiatest.apps.base import PageRegion
 
 
-class NewAlarm(Clock):
-
-    _alarm_name_locator = (By.ID, 'alarm-name')
-    _repeat_menu_locator = (By.ID, 'repeat-menu')
-    _sound_menu_locator = (By.ID, 'sound-menu')
-    _snooze_menu_locator = (By.ID, 'snooze-menu')
-    _done_locator = (By.ID, 'alarm-done')
-    _time_button_locator = (By.XPATH, "//li[input[@id='time-select']]")
+class Alarm(Clock):
+    _stopwatch_tab_locator = (By.ID, 'stopwatch-tab')
+    _edit_alarm_view_locator = (By.ID, 'edit-alarm')
+    _alarm_create_new_locator = (By.ID, 'alarm-new')
+    _all_alarm_items_locator = (By.CSS_SELECTOR, '#alarms li')
+    _visible_clock_locator = (By.CSS_SELECTOR, '#clock-view .visible')
 
     def __init__(self, marionette):
         Clock.__init__(self, marionette)
-        view = self.marionette.find_element(*self._alarm_view_locator)
+        view = self.marionette.find_element(*self._clock_view_locator)
         Wait(self.marionette).until(lambda m: view.location['x'] == 0 and view.is_displayed())
-        # Bug 1032852 This is to bust intermittents caused by this bug that causes keyboard not to appear upon tap
-        time.sleep(1.5)
-
-    def type_alarm_label(self, value):
-        self.marionette.find_element(*self._alarm_name_locator).tap()
-        self.keyboard.send(value)
-        self.keyboard.dismiss()
 
     @property
-    def alarm_label_placeholder(self):
-        return self.marionette.find_element(*self._alarm_name_locator).get_attribute('placeholder')
+    def alarms(self):
+        return [self.AlarmItem(self.marionette, alarm_item) for alarm_item in
+                self.marionette.find_elements(*self._all_alarm_items_locator)]
 
-    @property
-    def alarm_repeat(self):
-        return self.marionette.find_element(*self._repeat_menu_locator).text
+    def tap_new_alarm(self):
+        new_alarm = Wait(self.marionette).until(
+            expected.element_present(*self._alarm_create_new_locator))
+        Wait(self.marionette).until(expected.element_displayed(new_alarm))
+        new_alarm.tap()
+        from gaiatest.apps.clock.regions.new_alarm import NewAlarm
+        return NewAlarm(self.marionette)
 
-    def select_repeat(self, value):
-        self.marionette.find_element(*self._repeat_menu_locator).tap()
-        self.select(value)
+    class AlarmItem(PageRegion):
 
-    @property
-    def alarm_snooze(self):
-        return self.marionette.find_element(*self._snooze_menu_locator).text
+        _label_locator = (By.CSS_SELECTOR, '.label')
+        _check_box_locator = (By.CSS_SELECTOR, '.input-enable')
+        _enable_button_locator = (By.CSS_SELECTOR, '.alarmList.alarmEnable')
+        _time_locator = (By.CSS_SELECTOR, '.time')
 
-    def select_snooze(self, value):
-        self.marionette.find_element(*self._snooze_menu_locator).tap()
-        self.select(value)
+        def time(self):
+            return self.root_element.find_element(*self._time_locator).text
 
-    @property
-    def alarm_sound(self):
-        return self.marionette.find_element(*self._sound_menu_locator).text
+        @property
+        def label(self):
+            return self.root_element.find_element(*self._label_locator).text
 
-    def select_sound(self, value):
-        self.marionette.find_element(*self._sound_menu_locator).tap()
-        self.select(value)
+        @property
+        def is_alarm_active(self):
+            return self.root_element.find_element(*self._check_box_locator).is_selected()
 
-    def tap_done(self):
-        done = Wait(self.marionette).until(expected.element_present(*self._done_locator))
-        Wait(self.marionette).until(expected.element_displayed(done))
-        done.tap()
-        view = self.marionette.find_element(*self._alarm_view_locator)
-        Wait(self.marionette).until(lambda m: view.location['x'] == view.size['width'])
-        return Clock(self.marionette)
+        def tap_checkbox(self):
+            self.root_element.find_element(*self._enable_button_locator).tap()
 
-    def tap_time(self):
-        self.marionette.find_element(*self._time_button_locator).tap()
-        from gaiatest.apps.system.regions.time_picker import TimePicker
-        return TimePicker(self.marionette)
+        def wait_for_checkbox_to_change_state(self, value):
+            checkbox = self.marionette.find_element(*self._check_box_locator)
+            Wait(self.marionette).until(lambda m: checkbox.is_selected() == value)
 
-
-class EditAlarm(NewAlarm):
-
-    def __init__(self, marionette):
-        NewAlarm.__init__(self, marionette)
+        def tap(self):
+            self.root_element.tap()
+            from gaiatest.apps.clock.regions.new_alarm import EditAlarm
+            return EditAlarm(self.marionette)

@@ -9,14 +9,14 @@ from gaiatest.apps.base import PageRegion
 
 
 class Clock(Base):
-
     name = 'Clock'
-
-    _alarm_view_locator = (By.ID, 'edit-alarm')
     _alarm_create_new_locator = (By.ID, 'alarm-new')
-    _all_alarms_locator = (By.CSS_SELECTOR, '#alarms li')
+    _clock_view_locator = (By.ID, 'alarm-tab')
     _visible_clock_locator = (By.CSS_SELECTOR, '#clock-view .visible')
+    _clock_views = {"stopwatch":"stopwatch-tab", "alarm":"alarm-tab", "timer":"timer-tab"}
     _banner_countdown_notification_locator = (By.ID, 'banner-countdown')
+
+
 
     def launch(self):
         Base.launch(self)
@@ -27,9 +27,18 @@ class Clock(Base):
             Wait(self.marionette).until(expected.element_present(
                 *self._alarm_create_new_locator))))
 
-    @property
-    def alarms(self):
-        return [self.Alarm(self.marionette, alarm) for alarm in self.marionette.find_elements(*self._all_alarms_locator)]
+    def switch_view(self, view_name):
+        Wait(self.marionette).until(
+            expected.element_present(*(By.ID, self._clock_views.get(view_name)))).tap()
+        if view_name == 'stopwatch':
+            from gaiatest.apps.clock.regions.stopwatch import StopWatch
+            return StopWatch(self.marionette)
+        elif view_name == 'timer':
+            from gaiatest.apps.clock.regions.timer import Timer
+            return Timer(self.marionette)
+        else:
+            from gaiatest.apps.clock.regions.alarm import Alarm
+            return Alarm(self.marionette)
 
     @property
     def banner_notification(self):
@@ -44,41 +53,3 @@ class Clock(Base):
         Wait(self.marionette).until(expected.element_displayed(banner))
         # We can't tap to clear the banner as sometimes it taps the underlying alarm changing the UI
         Wait(self.marionette).until(expected.element_not_displayed(banner))
-
-    def tap_new_alarm(self):
-        new_alarm = Wait(self.marionette).until(
-            expected.element_present(*self._alarm_create_new_locator))
-        Wait(self.marionette).until(expected.element_displayed(new_alarm))
-        new_alarm.tap()
-        from gaiatest.apps.clock.regions.alarm import NewAlarm
-        return NewAlarm(self.marionette)
-
-    class Alarm(PageRegion):
-
-        _label_locator = (By.CSS_SELECTOR, '.label')
-        _check_box_locator = (By.CSS_SELECTOR, '.input-enable')
-        _enable_button_locator = (By.CSS_SELECTOR, '.alarmList.alarmEnable')
-        _time_locator = (By.CSS_SELECTOR, '.time')
-
-        def time(self):
-            return self.root_element.find_element(*self._time_locator).text
-
-        @property
-        def label(self):
-            return self.root_element.find_element(*self._label_locator).text
-
-        @property
-        def is_alarm_active(self):
-            return self.root_element.find_element(*self._check_box_locator).is_selected()
-
-        def tap_checkbox(self):
-            self.root_element.find_element(*self._enable_button_locator).tap()
-
-        def wait_for_checkbox_to_change_state(self, value):
-            checkbox = self.marionette.find_element(*self._check_box_locator)
-            Wait(self.marionette).until(lambda m: checkbox.is_selected() == value)
-
-        def tap(self):
-            self.root_element.tap()
-            from gaiatest.apps.clock.regions.alarm import EditAlarm
-            return EditAlarm(self.marionette)
