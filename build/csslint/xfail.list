@@ -37,6 +37,7 @@ apps/gallery/style/open.css 0 1
 apps/gallery/style/gallery_tablet.css 0 4
 apps/gallery/style/info.css 0 2
 apps/keyboard/style/keyboard.css 1 3
+apps/keyboard/style/settings.css 0 1
 apps/music/bower_components/gaia-theme/gaia-theme.css 5 0
 apps/music/style/music.css 0 2
 apps/pdfjs/content/web/viewer.css 0 1
