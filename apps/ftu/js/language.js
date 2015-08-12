@@ -67,6 +67,7 @@ var LanguageManager = {
         li.appendChild(radio);
         container.appendChild(li);
       }
+      window.dispatchEvent(new CustomEvent('languagelistready'));
     });
   }
 };
