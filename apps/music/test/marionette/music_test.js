@@ -36,6 +36,7 @@ marionette('Music ui tests', function() {
 
     test('Overlay should be shown when storage has no songs', function() {
       music.launch();
+      music.waitFinishedScanning();
       music.waitForMessageOverlayShown(true);
     });
   });
@@ -49,6 +50,7 @@ marionette('Music ui tests', function() {
 
     test('Overlay should be hidden when storage has some songs', function() {
       music.launch();
+      music.waitFinishedScanning();
       music.waitForMessageOverlayShown(false);
       music.waitForFirstTile();
     });
@@ -66,6 +68,7 @@ marionette('Music ui tests', function() {
       activitycaller.launch();
 
       music.switchToMe();
+      music.waitFinishedScanning();
       music.waitForMessageOverlayShown(true);
     });
   });
@@ -85,6 +88,7 @@ marionette('Music ui tests', function() {
       activitycaller.launch();
 
       music.switchToMe();
+      music.waitFinishedScanning();
       music.waitForMessageOverlayShown(false);
     });
   });
