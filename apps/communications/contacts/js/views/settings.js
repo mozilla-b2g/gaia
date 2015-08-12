@@ -18,6 +18,7 @@
 /* global ContactsService */
 /* global ExtServices */
 /* global Loader */
+/* global BulkDelete */
 
 var contacts = window.contacts || {};
 
@@ -243,7 +244,7 @@ contacts.Settings = (function() {
         Loader.view('search', function() {
           contacts.List.selectFromList(_('DeleteTitle'),
             function onSelectedContacts(promise, done) {
-              contacts.BulkDelete.performDelete(promise, done);
+              BulkDelete.performDelete(promise, done);
             },
             null,
             navigationHandler,

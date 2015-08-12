@@ -4,7 +4,7 @@
 
 var contacts = window.contacts || {};
 
-contacts.BulkDelete = (function() {
+(function(exports) {
 
   var cancelled = false;
 
@@ -92,12 +92,12 @@ contacts.BulkDelete = (function() {
   };
   // Start the delete of the contacts
   var performDelete = function performDelete(promise, done) {
+    var self = this;
     requireOverlay(function onOverlay() {
       utils.overlay.show('preparing-contacts', 'spinner');
       promise.onsuccess = function onSuccess(ids) {
         Contacts.hideOverlay();
-        showConfirm(ids.length).then(
-                          contacts.BulkDelete.doDelete.bind(null, ids, done));
+        showConfirm(ids.length).then(self.doDelete.bind(null, ids, done));
       };
       promise.onerror = function onError() {
         Contacts.hideOverlay();
@@ -105,9 +105,9 @@ contacts.BulkDelete = (function() {
     });
   };
 
-  return {
+  exports.BulkDelete = {
     'performDelete': performDelete,
     'doDelete': doDelete
   };
 
-})();
+})(window);

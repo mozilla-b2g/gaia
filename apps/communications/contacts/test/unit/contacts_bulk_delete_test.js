@@ -1,5 +1,5 @@
 /*jshint node: true, browser: true */
-/* globals MocksHelper, MockLoader, Contacts, contacts, ConfirmDialog */
+/* globals MocksHelper, MockLoader, Contacts, BulkDelete, ConfirmDialog */
 
 'use strict';
 
@@ -65,7 +65,7 @@ suite('contacts_bulk_delete.js', function() {
   });
 
   function assertPerformDeleteSuccess(numberOfContacts) {
-    contacts.BulkDelete.performDelete(promise);
+    BulkDelete.performDelete(promise);
 
     assert.isTrue(overlayShowSpy.calledWith('preparing-contacts', 'spinner'));
 
@@ -83,7 +83,7 @@ suite('contacts_bulk_delete.js', function() {
   }
 
   test('call performDelete successfully and user confirms', function(done) {
-    var doDeleteStub = sinon.stub(contacts.BulkDelete, 'doDelete', function() {
+    var doDeleteStub = sinon.stub(BulkDelete, 'doDelete', function() {
       doDeleteStub.restore();
       done();
     });
@@ -102,7 +102,7 @@ suite('contacts_bulk_delete.js', function() {
   });
 
   test('call performDelete but the promise fails', function() {
-    contacts.BulkDelete.performDelete(promise);
+    BulkDelete.performDelete(promise);
     assert.isTrue(overlayShowSpy.calledWith('preparing-contacts', 'spinner'));
 
     promise.onerror();
