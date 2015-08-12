@@ -357,25 +357,49 @@ window.GaiaAppIcon = (function(exports) {
     this._size *= window.devicePixelRatio;
   };
 
+  proto._localizeString = function(str) {
+    var userLang = document.documentElement.lang;
+
+    // We want to make sure that we tranlsate only if we're using
+    // a runtime pseudolocale.
+    // mozL10n.ctx.qps contains only runtime pseudolocales
+    if (navigator.mozL10n &&
+        navigator.mozL10n.ctx.qps.indexOf(userLang) !== -1) {
+      return navigator.mozL10n.qps[userLang].translate(str);
+    }
+    return str;
+  };
+
+  proto.updateName = function() {
+    if (this.app) {
+      var userLang = document.documentElement.lang;
+      var ep = this.entryPoint || undefined;
+
+      this.app.getLocalizedValue('short_name', userLang, ep).then(
+        (shortName) => {
+          this._subtitle.textContent = this._localizeString(shortName);
+        },
+        this.app.getLocalizedValue.bind(this.app, 'name', userLang, ep)).then(
+          (name) => {
+            this._subtitle.textContent = this._localizeString(name);
+          },
+          (e) => {
+            console.error('Error retrieving app name', e);
+          });
+    } else if (this.bookmark) {
+      this._subtitle.textContent = this.bookmark.name;
+    }
+  };
+
   proto.refresh = function() {
     if (!this._template) {
       return;
     }
 
+    this.updateName();
+
     this._relayout();
     this._container.classList.remove('downloading');
-
-    var manifest =
-      this.app ? (this.app.manifest || this.app.updateManifest) : null;
-    var name = '';
-    if (manifest) {
-      var manifestName = (manifest.entry_points && this.entryPoint) ?
-        manifest.entry_points[this.entryPoint] : manifest;
-      name = manifestName.short_name || manifestName.name;
-    } else if (this.bookmark) {
-      name = this.bookmark.name;
-    }
-    this._subtitle.textContent = name;
 
     if (this._size < 1 || (!this.app && !this.bookmark)) {
       return;
