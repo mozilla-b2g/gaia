@@ -16,7 +16,8 @@
 
 var contacts = window.contacts || {};
 
-contacts.ICE = (function() {
+(function(exports) {
+
   var iceSettingsPanel,
     iceSettingsHeader,
     iceContactItems = [],
@@ -348,10 +349,13 @@ contacts.ICE = (function() {
     currentICETarget = null;
   }
 
-  return {
+  var ICE = {
     init: init,
     refresh: refresh,
     reset: reset,
     get initialized() { return iceScreenInitialized; }
   };
-})();
+
+  exports.ICE = ICE;
+
+})(window);
