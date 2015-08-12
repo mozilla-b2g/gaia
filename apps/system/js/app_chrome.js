@@ -492,6 +492,14 @@
     }
   };
 
+  AppChrome.prototype._pinningObserver = function ac__pinningObserver(enabled) {
+    var targets = [this.siteIcon, this.closePin];
+    var method = enabled ? 'addEventListener' : 'removeEventListener';
+    targets.forEach(element => {
+      element[method]('click', this);
+    });
+  };
+
   AppChrome.prototype._registerEvents = function ac__registerEvents() {
     if (this.useCombinedChrome()) {
       LazyLoader.load('shared/js/bookmarks_database.js').then(() => {
@@ -513,13 +521,9 @@
 
       // Adding or removing the click listener, depending on
       // the 'Pinning the Web' setting enabled or disabled
-      SettingsListener.observe(PINNING_PREF, '', function(enabled) {
-        var targets = [this.siteIcon, this.closePin];
-        var method = enabled ? 'addEventListener' : 'removeEventListener';
-        targets.forEach(function(element) {
-          element[method]('click', this);
-        }.bind(this));
-      }.bind(this));
+      this._boundPinningObserver =
+        this._boundPinningObserver || this._pinningObserver.bind(this);
+      SettingsListener.observe(PINNING_PREF, '', this._boundPinningObserver);
 
     } else {
       this.header.addEventListener('action', this);
@@ -561,6 +565,8 @@
       this.forwardButton.removeEventListener('click', this);
       this.title.removeEventListener('click', this);
       this.scrollable.removeEventListener('scroll', this);
+
+      SettingsListener.unobserve(PINNING_PREF, this._boundPinningObserver);
 
       if (this.newWindowButton) {
         this.newWindowButton.removeEventListener('click', this);
