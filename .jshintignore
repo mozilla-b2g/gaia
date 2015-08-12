@@ -59,6 +59,7 @@ apps/system/js/uuid.js
 apps/camera/bower_components/**
 apps/bluetooth/js/vendor/alameda.js
 apps/bluetooth/js/settings.js
+apps/homescreen/bower_components/**
 tv_apps/app-deck/bower_components/**
 tv_apps/dashboard/bower_components/**
 tv_apps/device-deck/bower_components/**

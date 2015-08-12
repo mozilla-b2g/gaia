@@ -1,0 +1,51 @@
+gaia-container {
+  width: 100vw;
+  overflow: hidden;
+  display: flex;
+  flex-flow: row wrap;
+  align-content: flex-start;
+  transition: opacity 0.2s;
+  box-sizing: padding-box;
+  padding: 1.5vw;
+  padding-bottom: 6rem;
+}
+
+gaia-container.loading {
+  display: none;
+  opacity: 0;
+}
+
+gaia-container > .gaia-container-child:not(.added):not(.dragging) {
+  transition: transform 0.2s;
+}
+
+gaia-container > .gaia-container-child.dragging {
+  z-index: 1;
+  will-change: transform;
+}
+
+gaia-container > .gaia-container-child:not(.added):not(.removed) > * {
+  transition: transform 0.2s;
+}
+
+gaia-container > .gaia-container-child.added gaia-app-icon {
+  animation-name: added;
+  animation-duration: 0.4s;
+  z-index: 1;
+}
+
+@keyframes added {
+  0% { opacity: 0; transform: scale(0.5); }
+  100% { opacity: 1; }
+}
+
+gaia-container > .gaia-container-child.removed gaia-app-icon {
+  animation-name: removed;
+  animation-duration: 0.4s;
+}
+
+@keyframes removed {
+  45% { transform: scaleY(0.1); }
+  55% { transform: scaleY(0.1); }
+  100% { transform: scale(0); }
+}
