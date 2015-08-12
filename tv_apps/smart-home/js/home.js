@@ -12,6 +12,10 @@
   const DEFAULT_BGCOLOR_ARRAY = [0, 0, 0, 0.5];
   const CARDLIST_LEFT_MARGIN = 8.4;
 
+  /**
+   * Main class of smart-home
+   * @class Home
+   */
   function Home() {}
 
   Home.prototype = {

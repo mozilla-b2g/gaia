@@ -2,6 +2,14 @@
 /* global evt */
 
 (function(exports) {
+  /**
+   * This class monitors incoming messages from [IAC](http://mzl.la/1TKR6zw) and
+   * fires event corresponding with incoming messages. ConnectionManager fires
+   * only `unpin` event for now.
+   *
+   * @class  ConnectionManager
+   * @fires ConnectionManager#unpin
+   */
   var ConnectionManager = function() {};
 
   ConnectionManager.prototype = evt({
@@ -34,6 +42,13 @@
     handleEvent: function cm_handleEvent(evt) {
       var message = evt.detail;
       if (message && message.type) {
+        /**
+         * @event ConnectionManager#unpin
+         * @type {Object}
+         * @property {String} name - name of unpinned app
+         * @property {String} manifestURL - manifestURL of unpinned app
+         * @property {String} launchURL - launchURL of unpinned app
+         */
         this.fire(message.type, message.data);
       }
     }
