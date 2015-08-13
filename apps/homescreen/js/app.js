@@ -102,6 +102,7 @@ const SETTINGS_VERSION = 0;
     navigator.mozApps.mgmt.addEventListener('install', this);
     navigator.mozApps.mgmt.addEventListener('uninstall', this);
     window.addEventListener('hashchange', this);
+    window.addEventListener('localized', this);
 
     // Restore settings
     this.restoreSettings();
@@ -703,6 +704,12 @@ const SETTINGS_VERSION = 0;
       case 'hashchange':
         if (!document.hidden) {
           this.scrollable.scrollTo({ left: 0, top: 0, behavior: 'smooth' });
+        }
+        break;
+
+      case 'localized':
+        for (icon of this.icons.children) {
+          icon.firstElementChild.updateName();
         }
         break;
       }
