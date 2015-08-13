@@ -3,12 +3,16 @@
   'use strict';
 
   /**
-   * Look for any iframes and localize them - mozL10n doesn't do this
+   * Look for attachment iframes and localize them - mozL10n doesn't do this
    * XXX: remove once bug 1020130 is fixed
    */
-  function localizeIFrames() {
-    Array.forEach(document.querySelectorAll('iframe'), function(iframe) {
-      var doc = iframe.contentDocument;
+  function localizeAttachmentIFrames() {
+    var attachmentContainers = document.querySelectorAll(
+      'iframe.attachment-container'
+    );
+
+    Array.forEach(attachmentContainers, function(attachmentContainer) {
+      var doc = attachmentContainer.contentDocument;
       doc.documentElement.lang = navigator.mozL10n.language.code;
       doc.documentElement.dir = navigator.mozL10n.language.direction;
       navigator.mozL10n.translateFragment(doc.body);
@@ -37,14 +41,15 @@
       }
 
       formatL10nId = JSON.parse(formatL10nId);
-      
+
       if (isTimeFormatChanged && !formatL10nId.hour) {
         return;
       }
       formatL10nId.hour12 = navigator.mozHour12;
 
-      var formatter = 
-        new Intl.DateTimeFormat(navigator.languages, formatL10nId);
+      var formatter = new Intl.DateTimeFormat(
+        navigator.languages, formatL10nId
+      );
       var localeData = formatter.format(new Date(+element.dataset.l10nDate));
 
       if (element.hasAttribute('data-l10n-id') &&
@@ -63,7 +68,7 @@
       // This will be called during startup, and every time the language is
       // changed
       navigator.mozL10n.ready(function localized() {
-        localizeIFrames();
+        localizeAttachmentIFrames();
         localizeDateTime();
       });
 

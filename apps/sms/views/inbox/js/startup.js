@@ -1,4 +1,6 @@
-/* global InboxView,
+/* global App,
+          ConversationClient,
+          InboxView,
           InterInstanceEventDispatcher,
           LazyLoader,
           MessageManager,
@@ -29,8 +31,28 @@
     });
   }
 
+  function initShimHost() {
+    var shimHostIframe = document.querySelector('.shim-host');
+
+    var promise = shimHostIframe.contentDocument.readyState === 'complete' ?
+      Promise.resolve() :
+      new Promise((resolve) => {
+        shimHostIframe.addEventListener('load', function onLoad() {
+          shimHostIframe.removeEventListener('load', onLoad);
+          resolve();
+        });
+      });
+
+    return promise.then(
+      () => shimHostIframe.contentWindow.bootstrap(App.instanceId)
+    );
+  }
+
   exports.Startup = {
     init() {
+      initShimHost();
+
+      ConversationClient.init(App.instanceId);
       MessageManager.init();
       Navigation.init();
       InboxView.init();

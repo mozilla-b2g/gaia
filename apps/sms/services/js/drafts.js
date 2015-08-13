@@ -5,6 +5,17 @@
 */
 (function(exports) {
   'use strict';
+
+  [
+    ['asyncStorage', '/shared/js/async_storage.js'],
+    ['EventDispatcher', '/shared/js/event_dispatcher.js'],
+    ['Utils', '/views/shared/js/utils.js']
+  ].forEach(([dependencyName, dependencyPath]) => {
+    if (!(dependencyName in self)) {
+      importScripts(dependencyPath);
+    }
+  });
+
   var draftIndex = new Map();
   var deferredDraftRequest = null;
 
@@ -115,8 +126,8 @@
       // a dataset property.
       id = +id;
 
-      for (var draft of draftIndex.get(null)) {
-         if (draft.id === id) {
+      for (var draft of this.getAllThreadless()) {
+        if (draft.id === id) {
           return draft;
         }
       }
@@ -133,6 +144,14 @@
         // For drafts with associated thread we consider only the latest draft.
         yield* threadId ? drafts.slice(-1) : drafts;
       }
+    },
+
+    /**
+     * Returns list of all thread less drafts.
+     * @returns {Array.<Draft>}
+     */
+    getAllThreadless: function () {
+      return draftIndex.get(null) || [];
     },
 
     /**
