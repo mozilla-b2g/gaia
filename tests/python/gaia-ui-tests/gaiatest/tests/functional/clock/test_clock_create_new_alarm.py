@@ -22,7 +22,7 @@ class TestClockCreateNewAlarm(GaiaTestCase):
         https://moztrap.mozilla.org/manage/case/1772/
         https://moztrap.mozilla.org/manage/case/1775/
         """
-
+        alarm_view = self.clock.switch_view("alarm")
         # Set the time on the device
         _seconds_since_epoch = self.marionette.execute_script("""
                 var today = new Date();
@@ -34,19 +34,19 @@ class TestClockCreateNewAlarm(GaiaTestCase):
         alarm_label_text = "test4321"
 
         # get the number of alarms set, before adding the new alarm
-        initial_alarms_count = len(self.clock.alarms)
+        initial_alarms_count = len(alarm_view.alarm_items)
 
         self.data_layer.set_time(_seconds_since_epoch)
 
         # create a new alarm with the default values that are available
-        new_alarm = self.clock.tap_new_alarm()
+        new_alarm = alarm_view.tap_new_alarm()
 
         # Ensure label has the default placeholder and text
         self.assertEquals(new_alarm.alarm_label_placeholder, 'Alarm name')
 
         # set label
         new_alarm.type_alarm_label(alarm_label_text)
-        self.clock = new_alarm.tap_done()
+        alarm_view = new_alarm.tap_done()
 
         # verify the banner-countdown message appears
         alarm_msg = self.clock.banner_notification
@@ -54,15 +54,15 @@ class TestClockCreateNewAlarm(GaiaTestCase):
         self.clock.dismiss_banner()
 
         # ensure the new alarm has been added and it is displayed
-        self.assertTrue(initial_alarms_count < len(self.clock.alarms),
+        self.assertTrue(initial_alarms_count < len(alarm_view.alarm_items),
                         'Alarms count did not increment')
 
         # verify the label of alarm
-        alarms = self.clock.alarms
+        alarms = alarm_view.alarm_items
         self.assertEqual(len(alarms), 1)
         self.assertEqual(alarms[0].label, alarm_label_text)
 
-        alarm_time = self.clock.alarms[0].time()
+        alarm_time = alarm_view.alarm_items[0].time()
 
         # tap to Edit alarm
         edit_alarm = alarms[0].tap()
@@ -75,17 +75,17 @@ class TestClockCreateNewAlarm(GaiaTestCase):
         edit_alarm.tap_done()
         self.clock.dismiss_banner()
 
-        self.assertNotEqual(self.clock.alarms[0].time, alarm_time)
+        self.assertNotEqual(alarm_view.alarm_items[0].time, alarm_time)
 
         # turn off the alarm
-        self.clock.alarms[0].tap_checkbox()
-        self.clock.alarms[0].wait_for_checkbox_to_change_state(False)
-        self.assertFalse(self.clock.alarms[0].is_alarm_active, 'user should be able to turn on the alarm.')
+        alarm_view.alarm_items[0].tap_checkbox()
+        alarm_view.alarm_items[0].wait_for_checkbox_to_change_state(False)
+        self.assertFalse(alarm_view.alarm_items[0].is_alarm_active, 'user should be able to turn on the alarm.')
 
         # turn on the alarm
-        self.clock.alarms[0].tap_checkbox()
-        self.clock.dismiss_banner()
-        self.assertTrue(self.clock.alarms[0].is_alarm_active, 'user should be able to turn off the alarm.')
+        alarm_view.alarm_items[0].tap_checkbox()
+        alarm_view.dismiss_banner()
+        self.assertTrue(alarm_view.alarm_items[0].is_alarm_active, 'user should be able to turn off the alarm.')
 
         self.device.touch_home_button()
         self.marionette.switch_to_frame()

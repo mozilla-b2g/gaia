@@ -57,7 +57,7 @@ class TestClockSetAlarm(GaiaTestCase):
         self.clock.dismiss_banner()
 
         # Tap to Edit alarm
-        edit_alarm = alarm_view.alarms[0].tap()
+        edit_alarm = alarm_view.alarm_items[0].tap()
 
         # Verify selected options
         self.assertEqual('Weekdays', edit_alarm.alarm_repeat)

@@ -15,40 +15,30 @@ class TestClockRunStopWatch(GaiaTestCase):
 
     def test_click_run_stopwatch_laps(self):
 
-        # Switch to the stopwatch view.
         stopwatch_view = self.clock.switch_view("stopwatch")
 
-        # Verify that the stopwatch time is at 0.
-        assert stopwatch_view.current_time == '00:00.00'
+        self.assertEqual(stopwatch_view.current_time, '00:00.00')
 
-        # Start the stopwatch
-        stopwatch_view.start_stopwatch()
+        stopwatch_view.start()
 
-        # Verify that the stopwatch time has started moving
-        assert stopwatch_view.current_time != '00:00.00'
+        self.assertNotEqual(stopwatch_view.current_time, '00:00.00')
 
-        # Log a lap
         stopwatch_view.record_lap()
 
-        # Verify that there are now two laps, the one that was recorded
-        # and a second lap that is running
-        assert len(stopwatch_view.laps) == 2
-        assert stopwatch_view.laps[0].time != '00:00.00'
-        assert stopwatch_view.laps[1].time != '00:00.00'
+        self.assertEqual(len(stopwatch_view.laps), 2)
+        self.assertNotEqual(stopwatch_view.laps[0].time, '00:00.00')
+        self.assertNotEqual(stopwatch_view.laps[1].time, '00:00.00')
 
-        # Pause the stopwatch and then record the current time
-        stopwatch_view.pause_stopwatch()
+        stopwatch_view.pause()
         recorded_time = stopwatch_view.current_time
 
-        # Resume the stopwatch and make sure the time has started again.
-        stopwatch_view.resume_stopwatch()
-        assert stopwatch_view.current_time != recorded_time
+        stopwatch_view.resume()
+        self.assertNotEqual(stopwatch_view.current_time, recorded_time)
 
-        # Pause then Reset the stopwatch, make sure laps are gone and time is back to 0.
-        stopwatch_view.pause_stopwatch()
-        stopwatch_view.reset_stopwatch()
+        stopwatch_view.pause()
+        stopwatch_view.reset()
 
-        assert len(stopwatch_view.laps) == 0
-        assert stopwatch_view.current_time == '00:00.00'
+        self.assertEqual(len(stopwatch_view.laps), 0)
+        self.assertEqual(stopwatch_view.current_time, '00:00.00')
 
 

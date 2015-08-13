@@ -33,16 +33,16 @@ class StopWatch(Clock):
     def laps(self):
         return [self.LapItem(self.marionette, lap) for lap in self.marionette.find_elements(*self._all_laps_locator)]
 
-    def start_stopwatch(self):
+    def start(self):
         Wait(self.marionette).until(expected.element_present(*self._stopwatch_start_locator)).tap()
 
-    def pause_stopwatch(self):
+    def pause(self):
         Wait(self.marionette).until(expected.element_present(*self._stopwatch_pause_locator)).tap()
 
-    def reset_stopwatch(self):
+    def reset(self):
         Wait(self.marionette).until(expected.element_present(*self._stopwatch_reset_locator)).tap()
 
-    def resume_stopwatch(self):
+    def resume(self):
         Wait(self.marionette).until(expected.element_present(*self._stopwatch_resume_locator)).tap()
 
     def record_lap(self):

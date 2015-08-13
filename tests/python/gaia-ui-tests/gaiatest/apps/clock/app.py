@@ -16,8 +16,6 @@ class Clock(Base):
     _clock_views = {"stopwatch":"stopwatch-tab", "alarm":"alarm-tab", "timer":"timer-tab"}
     _banner_countdown_notification_locator = (By.ID, 'banner-countdown')
 
-
-
     def launch(self):
         Base.launch(self)
         Wait(self.marionette).until(expected.element_displayed(
@@ -36,9 +34,11 @@ class Clock(Base):
         elif view_name == 'timer':
             from gaiatest.apps.clock.regions.timer import Timer
             return Timer(self.marionette)
-        else:
+        elif view_name == 'alarm':
             from gaiatest.apps.clock.regions.alarm import Alarm
             return Alarm(self.marionette)
+        else:
+            raise AttributeError('{} is not a view that you can switch to'.format(view_name))
 
     @property
     def banner_notification(self):

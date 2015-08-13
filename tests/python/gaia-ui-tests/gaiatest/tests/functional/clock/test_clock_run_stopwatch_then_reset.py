@@ -14,26 +14,19 @@ class TestClockRunStopWatch(GaiaTestCase):
         self.clock.launch()
 
     def test_click_run_stopwatch_then_reset(self):
-        # Switch to the stopwatch view.
+
         stopwatch_view = self.clock.switch_view("stopwatch")
 
-        # Verify that the stopwatch time is at 0.
-        assert stopwatch_view.current_time == '00:00.00'
+        self.assertEqual(stopwatch_view.current_time, '00:00.00')
 
-        # Start the stopwatch
-        stopwatch_view.start_stopwatch()
+        stopwatch_view.start()
 
-        # Verify that the stopwatch time has started moving
-        assert stopwatch_view.current_time != '00:00.00'
+        self.assertNotEqual(stopwatch_view.current_time, '00:00.00')
 
-        # Pause the stopwatch
-        stopwatch_view.pause_stopwatch()
+        stopwatch_view.pause()
 
-        # Verify that the time was not reset.
-        assert stopwatch_view.current_time != '00:00.00'
+        self.assertNotEqual(stopwatch_view.current_time, '00:00.00')
 
-        # Reset the stopwatch
-        stopwatch_view.reset_stopwatch()
+        stopwatch_view.reset()
 
-        # Verify that the stopwatch time is at 0.
-        assert stopwatch_view.current_time == '00:00.00'
+        self.assertEqual(stopwatch_view.current_time, '00:00.00')
