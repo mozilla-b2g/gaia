@@ -43,6 +43,42 @@ suite('controllers/confirm', function() {
     });
   });
 
+  suite('ConfirmController#onRecordingChange()', function() {
+    setup(function() {
+      this.app.activity.pick = true;
+      this.controller.recorded = true;
+      sinon.stub(this.controller, 'renderView');
+    });
+
+    test('Should set `recorded` to true if starting', function() {
+      this.controller.recorded = false;
+      this.controller.onRecordingChange('starting');
+      assert.isTrue(this.controller.recorded);
+    });
+
+    test('Should set `recorded` to false if error', function() {
+      this.controller.onRecordingChange('error');
+      assert.isFalse(this.controller.recorded);
+    });
+
+    test('Should render view if stopped', function() {
+      this.controller.onRecordingChange('stopped');
+      sinon.assert.called(this.controller.renderView);
+    });
+
+    test('Should not do anything if recording failed and stopped', function() {
+      this.controller.recorded = false;
+      this.controller.onRecordingChange('stopped');
+      sinon.assert.notCalled(this.controller.renderView);
+    });
+
+    test('Should not do anything if there is no active activity', function() {
+      this.app.activity.pick = false;
+      this.controller.onRecordingChange('stopped');
+      sinon.assert.notCalled(this.controller.renderView);
+    });
+  });
+
   suite('ConfirmController#onNewMedia()', function() {
     test('Should not do anything if there is no active activity', function() {
       this.app.activity.pick = false;

@@ -805,8 +805,8 @@ Camera.prototype.updateFocusArea = function(rect, done) {
  * @param  {Object} options
  */
 Camera.prototype.toggleRecording = function(options) {
-  var recording = this.get('recording');
-  if (recording) { this.stopRecording(); }
+  var state = this.get('recording');
+  if (state && state !== 'stopped') { this.stopRecording(); }
   else { this.startRecording(options); }
 };
 
@@ -836,7 +836,7 @@ Camera.prototype.startRecording = function(options) {
   // Rotation is flipped for front camera
   if (frontCamera) { rotation = -rotation; }
 
-  this.set('recording', true);
+  this.set('recording', 'starting');
   this.busy();
 
   // Lock orientation during video recording
@@ -864,7 +864,7 @@ Camera.prototype.startRecording = function(options) {
   this.getFreeVideoStorageSpace(gotStorageSpace);
 
   function gotStorageSpace(err, freeBytes) {
-    if (self.stopRecordPending) {
+    if (self.get('recording') === 'stopping') {
       debug('start recording interrupted (getFreeVideoStorageSpace)');
       return self.stoppedRecording();
     }
@@ -893,7 +893,7 @@ Camera.prototype.startRecording = function(options) {
     self.createVideoFilepath(createVideoFilepathDone);
 
     function createVideoFilepathDone(errorMsg, filepath) {
-      if (self.stopRecordPending) {
+      if (self.get('recording') === 'stopping') {
         debug('start recording interrupted (createVideoFilepath)');
         return self.stoppedRecording();
       }
@@ -952,6 +952,7 @@ Camera.prototype.startRecording = function(options) {
 Camera.prototype.startedRecording = function() {
   debug('started recording');
   this.startVideoTimer();
+  this.set('recording', 'started');
 };
 
 /**
@@ -971,17 +972,18 @@ Camera.prototype.startedRecording = function() {
 Camera.prototype.stopRecording = function() {
   debug('stop recording');
 
-  var notRecording = !this.get('recording');
+  var state = this.get('recording');
 
   // Even if we have requested a recording to stop, that doesn't
   // mean it has finished yet, as we need to wait for the recorder
   // state change event.
-  if (notRecording || this.stopRecordPending) {
+  if (!state || state === 'stopping' || state === 'stopped' ||
+                state === 'error') {
     debug('not recording or stop pending');
     return;
   }
 
-  this.stopRecordPending = true;
+  this.set('recording', 'stopping');
   this.busy();
   this.mozCamera.stopRecording();
 };
@@ -989,8 +991,10 @@ Camera.prototype.stopRecording = function() {
 Camera.prototype.stoppedRecording = function(recorded) {
   debug('stopped recording');
   this.stopVideoTimer();
-  this.stopRecordPending = false;
-  this.set('recording', false);
+  if (!recorded) {
+    this.set('recording', 'error');
+  }
+  this.set('recording', 'stopped');
 
   // Unlock orientation when stopping video recording.
   // REVIEW:WP This logic is out of scope of the
