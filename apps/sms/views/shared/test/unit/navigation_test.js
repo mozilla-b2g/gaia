@@ -127,8 +127,10 @@ suite('navigation >', function() {
     suite('init() >', function() {
       test('display the right panel', function(done) {
         assert.isFalse(elements.InboxView.classList.contains('panel-active'));
+        assert.equal(elements.InboxView.getAttribute('aria-hidden'), 'true');
         Navigation.init().then(() => {
           assert.ok(elements.InboxView.classList.contains('panel-active'));
+          assert.equal(elements.InboxView.getAttribute('aria-hidden'), 'false');
         }).then(done, done);
       });
 
@@ -159,6 +161,7 @@ suite('navigation >', function() {
           sinon.assert.notCalled(fakeWindow.InboxView.afterEnter);
           assert.isFalse(Navigation.isCurrentPanel('thread-list'));
           assert.isFalse(elements.InboxView.classList.contains('panel-active'));
+          assert.equal(elements.InboxView.getAttribute('aria-hidden'), 'true');
           sinon.assert.calledTwice(console.error);
         }).then(done, done);
       });
@@ -603,8 +606,10 @@ suite('navigation >', function() {
     suite('init()) >', function() {
       test('display the right panel', function(done) {
         assert.isFalse(elements.InboxView.classList.contains('panel-active'));
+        assert.equal(elements.InboxView.getAttribute('aria-hidden'), 'true');
         Navigation.init().then(() => {
           assert.ok(elements.InboxView.classList.contains('panel-active'));
+          assert.equal(elements.InboxView.getAttribute('aria-hidden'), 'false');
         }).then(done, done);
       });
 
@@ -654,6 +659,7 @@ suite('navigation >', function() {
           sinon.assert.notCalled(fakeWindow.InboxView.afterEnter);
           assert.isFalse(Navigation.isCurrentPanel('thread-list'));
           assert.isFalse(elements.InboxView.classList.contains('panel-active'));
+          assert.equal(elements.InboxView.getAttribute('aria-hidden'), 'true');
           sinon.assert.calledTwice(console.error);
         }).then(done, done);
       });
@@ -668,6 +674,7 @@ suite('navigation >', function() {
           sinon.assert.notCalled(fakeWindow.InboxView.afterEnter);
           assert.isFalse(Navigation.isCurrentPanel('thread-list'));
           assert.isFalse(elements.InboxView.classList.contains('panel-active'));
+          assert.equal(elements.InboxView.getAttribute('aria-hidden'), 'true');
           sinon.assert.calledTwice(console.error);
         }).then(done, done);
       });
@@ -683,6 +690,7 @@ suite('navigation >', function() {
           sinon.assert.called(fakeWindow.InboxView.afterEnter);
           assert.isTrue(Navigation.isCurrentPanel('thread-list'));
           assert.isTrue(elements.InboxView.classList.contains('panel-active'));
+          assert.equal(elements.InboxView.getAttribute('aria-hidden'), 'false');
           sinon.assert.calledOnce(console.error);
         }).then(done, done);
       });

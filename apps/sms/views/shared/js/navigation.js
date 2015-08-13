@@ -618,9 +618,11 @@ function switchPanel() {
   return (animationPromise || Promise.resolve()).then(() => {
     if (oldView) {
       oldPanelElement.classList.remove('panel-active');
+      oldPanelElement.setAttribute('aria-hidden', 'true');
     }
 
     newPanelElement.classList.add('panel-active');
+    newPanelElement.setAttribute('aria-hidden', 'false');
   });
 }
 
