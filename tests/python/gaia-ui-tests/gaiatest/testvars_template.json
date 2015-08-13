@@ -1,5 +1,7 @@
 {
-  "settings": {},
+  "settings": {
+    "language.current": ""
+  },
   "prefs": {},
   "phone_number": [],
   "imei": [],
