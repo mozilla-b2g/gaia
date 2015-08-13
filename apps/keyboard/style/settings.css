@@ -72,9 +72,11 @@ aside.pack-end > label {
   margin-top: 0.5rem;
 }
 
-section[data-type="list"] p>label {
-  width: 100%;
-  display: inline-block;
+/* Temporary styles until being ported to use gaia-list */
+section[data-type="list"] li gaia-checkbox {
+    -moz-margin-start: 1.5rem;
+    padding: 1.5rem 0;
+    width: calc(100% - 3rem) !important;
 }
 
 /* XXX we're trying to offset what we have inherted from lists.css only to make
