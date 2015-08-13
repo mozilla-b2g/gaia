@@ -20,7 +20,7 @@ marionette('Pinning the Web', function() {
     }
   });
 
-  var rocketbar, server, system, actions;
+  var rocketbar, server, system, actions, home;
 
   suiteSetup(function(done) {
     Server.create(__dirname + '/fixtures/', function(err, _server) {
@@ -35,13 +35,25 @@ marionette('Pinning the Web', function() {
 
   setup(function() {
     system = client.loader.getAppClass('system');
+    home = client.loader.getAppClass('verticalhome');
     rocketbar = new Rocketbar(client);
     system.waitForFullyLoaded();
     actions = client.loader.getActions();
   });
 
-  test('Pin browser chrome', function() {
+  test('Pin site', function() {
+    // Count the current number of site icons
+    system.tapHome();
+    client.switchToFrame(system.getHomescreenIframe());
+    var numIcons = 0;
+    client.waitFor(function() {
+      numIcons = home.numIcons;
+      return numIcons > 0;
+    });
+
+    // Check that the pin door hanger appears
     var url = server.url('sample.html');
+    client.switchToFrame();
     rocketbar.homescreenFocus();
     rocketbar.enterText(url, true);
     var frame = client.helper.waitForElement(
@@ -74,11 +86,21 @@ marionette('Pinning the Web', function() {
       });
       return chromeRectAfterExpand.height == chromeRectBefore.height;
     });
+
     // Check that browser chrome focuses on second tap
     actions.tap(system.appUrlbar).perform();
     client.waitFor(function() {
       return rocketbar.backdrop.displayed();
     });
     assert(true, 'browser chrome can be manually expanded');
+
+
+    // Check that icon was added to homescreen
+    system.tapHome();
+    client.switchToFrame(system.getHomescreenIframe());
+    client.waitFor(function() {
+      return home.numIcons == numIcons + 1;
+    });
   });
+
 });

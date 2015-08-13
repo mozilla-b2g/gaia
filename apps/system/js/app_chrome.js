@@ -7,6 +7,7 @@
 /* global SettingsListener */
 /* global Service */
 /* global Icon */
+/* global UrlHelper */
 
 'use strict';
 
@@ -375,7 +376,7 @@
         break;
 
       case this.pinButton:
-        this.pin();
+        this.pinSite();
         break;
 
       case this.pinScrim:
@@ -384,26 +385,85 @@
     }
   };
 
+  /**
+   * Pin current page in places database.
+   */
+  AppChrome.prototype.pinPage = function ac_pinPage() {
+    Service && Service.request('Places:setPinned', this.app.config.url, true)
+      .then(() => {
+      console.log('Succeeding in pinning ' + this.app.config.url);
+      var screenshotBlob = this.app.getCachedScreenshotBlob();
+      if (screenshotBlob) {
+        Service.request('Places:saveScreenshot', this.app.config.url,
+                        screenshotBlob);
+      }
+      if (this._themeChanged) {
+        Service.request('Places:saveThemeColor', this.app.config.url,
+                        this.app.themeColor, true);
+      }
+    }, () => {
+      console.log('Failed to pin ' + this.app.config.url);
+    });
+  };
+
+  /**
+   * Pin current site in bookmarks database.
+   */
+  AppChrome.prototype.pinSite = function ac_pinSite() {
+    this.pin();
+
+    LazyLoader.load('shared/js/url_helper.js').then(() => {
+      var siteObject = {};
+      var manifestURL = this.app.webManifestURL;
+      var manifestObject = this.app.webManifest;
+      var pageUrl = this.app.config.url;
+
+      siteObject.type = 'url';
+      siteObject.iconable = false;
+      siteObject.icons = this.app.favicons;
+      siteObject.frecency = 1;
+      siteObject.pinned = true;
+      siteObject.pinnedFrom = pageUrl;
+
+      if (manifestURL && manifestObject) {
+        var startUrl =
+        UrlHelper.resolveUrl(manifestObject.start_url, pageUrl) || pageUrl;
+        siteObject.id = startUrl;
+        siteObject.url = startUrl;
+        siteObject.webManifestUrl = manifestURL;
+        siteObject.webManifest = manifestObject;
+        siteObject.name = manifestObject.short_name || manifestObject.name ||
+          UrlHelper.getHostname(pageUrl);
+        siteObject.scope =
+          UrlHelper.resolveUrl(manifestObject.scope, pageUrl) ||
+          UrlHelper.resolveUrl('/', pageUrl);
+      } else {
+        siteObject.id = pageUrl;
+        siteObject.name = this.app.name || UrlHelper.getHostname(pageUrl);
+        siteObject.scope = UrlHelper.resolveUrl('/', pageUrl);
+        siteObject.url = pageUrl;
+      }
+
+      // Set the .icon property before saving for
+      // backwards compatibility with verticalhome
+      IconsHelper.getIcon(siteObject.url, null,
+        {icons: this.app.favicons}, siteObject).then(icon => {
+        siteObject.icon = icon;
+        BookmarksDatabase.put(siteObject, siteObject.id).catch(function(error) {
+           console.error('Failed to save site: ' + error);
+        });
+      });
+    });
+  };
+
+  /**
+   * Put browser chrome in pinned state.
+   */
   AppChrome.prototype.pin = function ac_pin() {
     this.hidePinDialogCard();
     this.collapse();
     this.pinned = true;
     this.app.element.classList.remove('collapsible');
-    Service && Service.request('Places:setPinned', this.app.config.url, true)
-      .then(() => {
-        console.log('Succeeding in pinning ' + this.app.config.url);
-        var screenshotBlob = this.app.getCachedScreenshotBlob();
-        if (screenshotBlob) {
-          Service.request('Places:saveScreenshot', this.app.config.url,
-                          screenshotBlob);
-        }
-        if (this._themeChanged) {
-          Service.request('Places:saveThemeColor', this.app.config.url,
-                          this.app.themeColor, true);
-        }
-      }, () => {
-        console.log('Failed to pin ' + this.app.config.url);
-      });
   };
 
   AppChrome.prototype.titleClicked = function ac_titleClicked() {

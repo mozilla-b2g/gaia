@@ -129,14 +129,14 @@
       var url;
       if (typeof value === 'string' && value.trim() !== '') {
         try {
-          url = new URL(value, baseURL);
+          url = new URL(value, baseURL).href;
         } catch (e) {}
       }
       return url;
     }
 
     function processSizesMember(icon) {
-      const sizes = new Set(),
+      const sizes = [],
         obj = {
           objectName: 'icon',
           object: icon,
@@ -148,7 +148,7 @@
       if (value) {
         //split on whitespace and filter out invalid values
         var validSizes = value.split(/\s+/).filter(isValidSizeValue);
-        validSizes.forEach((size) => sizes.add(size));
+        validSizes.forEach((size) => sizes.push(size));
       }
       return sizes;
 
