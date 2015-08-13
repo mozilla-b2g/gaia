@@ -100,7 +100,6 @@
   function lspw_startDiscovery() {
     window.lockScreen.overlay.classList.add('physical-web');
     this.pwContainer.classList.add('loading');
-
     var notifications =
       this.pwContainer.querySelector('#physical-web-devices');
 
@@ -109,67 +108,95 @@
 
       console.log('Start scanning', handle);
       handle.ondevicefound = e => {
-        console.log('Found something', new Uint8Array(e.scanRecord));
+        if (notifications.querySelector(
+            '*[data-device="' + e.device.address + '"]')) {
+          return;
+        }
+
+        // URIBeacon
         var uri = this.parseRecord(e.scanRecord);
         if (uri) {
-          if (notifications.querySelector(
-              '*[data-device="' + e.device.address + '"]')) {
-            return;
-          }
-
-          var ele = this._notification = document.createElement('div');
-          ele.dataset.type = 'desktop-notification';
-          ele.role = 'link';
-          ele.classList.add('notification');
-          ele.dataset.device = e.device.address;
-          ele.innerHTML = `
-            <img role="presentation" src="/lockscreen/style/images/physical_web.png">
-            <div class="title-container">
-              <div dir="auto" class="title"></div>
-            </div>
-            <div class="detail">
-              <div dir="auto" role="url" class="detail-content detail-url"></div>
-              <div dir="auto" role="content" class="detail-content"></div>
-            </div>`;
-
-          ele.querySelector('.title').textContent = uri;
-          ele.dataset.uri = uri;
-
+          var ele = this.createNotificationElement(e.device.address, uri);
           ele.onclick = this.openUrl.bind(this);
+          ele.querySelector('.title').textContent = uri;
+          this.resolveURI(uri, ele);
+          return;
+        }
 
-          notifications.appendChild(ele);
-
-          var x = new XMLHttpRequest({ mozSystem: true });
-          x.onload = e => {
-            var h = document.createElement('html');
-            h.innerHTML = x.responseText;
-
-            ele.querySelector('*[role="url"]').textContent = x.responseURL;
-
-            var titleEl = h.querySelector('title');
-            var metaEl = h.querySelector('meta[name="description"]');
-            var bodyEl = h.querySelector('body');
-
-            if (titleEl && titleEl.textContent) {
-              ele.querySelector('.title').textContent = titleEl.textContent;
-            }
-
-            if (metaEl && metaEl.content) {
-              ele.querySelector('*[role="content"]').textContent =
-                metaEl.content;
-            }
-            else if (bodyEl && bodyEl.textContent) {
-              ele.querySelector('*[role="content"]').textContent =
-                bodyEl.textContent;
-            }
-          };
-          x.onerror = err => console.error('Loading', uri, 'failed', err);
-          x.open('GET', uri);
-          x.send();
+        // Rolling Spider doesn't do nice URIBeacon, so let's fake it
+        if (e.device.name && e.device.name.substr(0, 3) === 'RS_') {
+          var uri = 'http://flythisdrone.io/' +
+            e.device.address.replace(/:/g, '');
+          var ele = this.createNotificationElement(e.device.address, uri);
+          ele.onclick = this.openRs.bind(this);
+          ele.querySelector('.title').textContent = 'Rolling Spider ' +
+            e.device.name.substr(3);
+          ele.querySelector('*[role="url"]').textContent = uri;
+          ele.querySelector('*[role="content"]').textContent =
+            'Start flying this drone';
+          return;
         }
       };
 
     }, err => console.error(err));
+  };
+
+  LockScreenPhysicalWeb.prototype.createNotificationElement =
+  function lspw_createNotificationElement(address, uri) {
+    var notifications =
+      this.pwContainer.querySelector('#physical-web-devices');
+    var ele = document.createElement('div');
+    ele.dataset.type = 'desktop-notification';
+    ele.role = 'link';
+    ele.classList.add('notification');
+    ele.dataset.device = address;
+    ele.innerHTML = `
+      <img role="presentation" src="/lockscreen/style/images/physical_web.png">
+      <div class="title-container">
+        <div dir="auto" class="title"></div>
+      </div>
+      <div class="detail">
+        <div dir="auto" role="url" class="detail-content detail-url"></div>
+        <div dir="auto" role="content" class="detail-content"></div>
+      </div>`;
+
+    ele.querySelector('.title').textContent = uri;
+    ele.dataset.uri = uri;
+
+    notifications.appendChild(ele);
+
+    return ele;
+  };
+
+  LockScreenPhysicalWeb.prototype.resolveURI =
+  function lspw_resolveURI(uri, ele) {
+    var x = new XMLHttpRequest({ mozSystem: true });
+    x.onload = e => {
+      var h = document.createElement('html');
+      h.innerHTML = x.responseText;
+
+      ele.querySelector('*[role="url"]').textContent = x.responseURL;
+
+      var titleEl = h.querySelector('title');
+      var metaEl = h.querySelector('meta[name="description"]');
+      var bodyEl = h.querySelector('body');
+
+      if (titleEl && titleEl.textContent) {
+        ele.querySelector('.title').textContent = titleEl.textContent;
+      }
+
+      if (metaEl && metaEl.content) {
+        ele.querySelector('*[role="content"]').textContent =
+          metaEl.content;
+      }
+      else if (bodyEl && bodyEl.textContent) {
+        ele.querySelector('*[role="content"]').textContent =
+          bodyEl.textContent;
+      }
+    };
+    x.onerror = err => console.error('Loading', uri, 'failed', err);
+    x.open('GET', uri);
+    x.send();
   };
 
   LockScreenPhysicalWeb.prototype.parseRecord =
@@ -267,6 +294,23 @@
       name: 'view',
       data: {
         type: 'url',
+        url: uri
+      }
+    });
+    a.onerror = err => console.error('Opening', uri, 'failed', err);
+  };
+
+  LockScreenPhysicalWeb.prototype.openRs =
+  function lspw_openUrl(e) {
+    var uri = e.target.dataset.uri;
+
+    this.stopDiscovery();
+    window.lockScreen.unlock();
+
+    var a = new MozActivity({
+      name: 'view',
+      data: {
+        type: 'rolling-spider',
         url: uri
       }
     });
