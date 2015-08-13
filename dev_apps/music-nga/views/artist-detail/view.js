@@ -1,4 +1,5 @@
 /* global threads, View */
+'use strict';
 
 var debug = 1 ? (...args) => console.log('[ArtistDetailView]', ...args) : () => {};
 
@@ -13,17 +14,14 @@ var ArtistDetailView = View.extend(function ArtistDetailView() {
     // gets proper dynamic <template> input
     populateItem: function(el, i) {
       var data = this.getRecordAt(i);
-      var els = {};
 
-      els.link = el.firstChild;
-      els.div = els.link.firstChild;
-      els.title = els.div.firstChild;
-      els.body = els.title.nextSibling;
+      var link = el.querySelector('a');
+      var title = el.querySelector('h3');
 
-      els.link.href = `/player?id=${data.name}`;
-      els.link.dataset.filePath = data.name;
+      link.href = `/player?id=${data.name}`;
+      link.dataset.filePath = data.name;
 
-      els.title.firstChild.data = data.metadata.title;
+      title.firstChild.data = data.metadata.title;
     }
   });
 
@@ -52,9 +50,11 @@ ArtistDetailView.prototype.update = function() {
   });
 };
 
-// ArtistDetailView.prototype.destroy = function() {
-//   View.prototype.destroy.call(this); // super(); // Always call *last*
-// };
+ArtistDetailView.prototype.destroy = function() {
+  this.client.destroy();
+
+  View.prototype.destroy.call(this); // super(); // Always call *last*
+};
 
 ArtistDetailView.prototype.title = 'Artists';
 

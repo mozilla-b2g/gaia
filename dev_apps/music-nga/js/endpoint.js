@@ -1,3 +1,6 @@
+/* global threads */
+'use strict';
+
 var audio = document.getElementById('audio');
 
 var currentFilePath;
@@ -6,7 +9,6 @@ var service = threads.service('music-service')
   .method('play', play)
   .method('pause', pause)
   .method('seek', seek)
-
   .method('getPlaybackStatus', getPlaybackStatus)
 
   .method('getArtists', getArtists)

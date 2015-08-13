@@ -1,4 +1,5 @@
 /* global threads, View */
+'use strict';
 
 var debug = 1 ? (...args) => console.log('[HomeView]', ...args) : () => {};
 
@@ -19,7 +20,6 @@ var HomeView = View.extend(function HomeView() {
   });
 
   this.client = threads.client('music-service', window.parent);
-
   this.client.on('databaseChange', () => this.update());
 
   this.update();
@@ -32,9 +32,11 @@ HomeView.prototype.update = function() {
   });
 };
 
-// HomeView.prototype.destroy = function() {
-//   View.prototype.destroy.call(this); // super(); // Always call *last*
-// };
+HomeView.prototype.destroy = function() {
+  this.client.destroy();
+
+  View.prototype.destroy.call(this); // super(); // Always call *last*
+};
 
 HomeView.prototype.title = 'Music';
 
@@ -50,17 +52,26 @@ HomeView.prototype.render = function() {
     data-artist="${album.metadata.artist}"
     data-album="${album.metadata.album}"
     data-file-path="${album.name}">
-  <img src="/api/artwork/original${album.name}"
+  <img>
 </a>`;
 
     html += template;
   });
 
   this.tiles.innerHTML = html;
+
+  [].forEach.call(this.tiles.querySelectorAll('.tile'), (tile) => {
+    this.getSongThumbnail(tile.dataset.filePath)
+      .then(blob => tile.querySelector('img').src = URL.createObjectURL(blob));
+  });
 };
 
 HomeView.prototype.getAlbums = function() {
-  return fetch('/api/albums').then(response => response.json());
+  return fetch('/api/albums/list').then(response => response.json());
+};
+
+HomeView.prototype.getSongThumbnail = function(filePath) {
+  return fetch('/api/artwork/thumbnail' + filePath).then(response => response.blob());
 };
 
 HomeView.prototype.play = function(filePath) {

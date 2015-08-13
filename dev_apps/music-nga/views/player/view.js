@@ -1,4 +1,5 @@
 /* global threads, View */
+'use strict';
 
 var debug = 1 ? (...args) => console.log('[PlayerView]', ...args) : () => {};
 
@@ -17,10 +18,8 @@ var PlayerView = View.extend(function PlayerView() {
   this.seekBar.addEventListener('seek', evt => this.seek(evt.detail.elapsedTime));
 
   this.client = threads.client('music-service', window.parent);
-
   this.client.on('play', () => this.controls.paused = false);
   this.client.on('pause', () => this.controls.paused = true);
-
   this.client.on('durationChange', duration => this.seekBar.duration = duration);
   this.client.on('elapsedTimeChange', elapsedTime => this.seekBar.elapsedTime = elapsedTime);
 
@@ -34,7 +33,9 @@ PlayerView.prototype.update = function() {
       this.artwork.album = song.metadata.album;
     });
 
-    this.artwork.src = '/api/artwork/original' + status.filePath;
+    this.getSongArtwork(status.filePath)
+      .then(blob => this.artwork.src = URL.createObjectURL(blob));
+
     this.controls.paused = status.paused;
     this.seekBar.duration = status.duration;
     this.seekBar.elapsedTime = status.elapsedTime;
@@ -49,11 +50,9 @@ PlayerView.prototype.destroy = function() {
 };
 
 PlayerView.prototype.title = function() {
-  return this.getPlaybackStatus().then((status) => {
-    return this.getSong(status.filePath).then((song) => {
-      return song.metadata.title;
-    });
-  });
+  return this.getPlaybackStatus()
+    .then(status => this.getSong(status.filePath))
+    .then(song => song.metadata.title);
 };
 
 PlayerView.prototype.render = function() {
@@ -84,6 +83,10 @@ PlayerView.prototype.getPlaybackStatus = function() {
 
 PlayerView.prototype.getSong = function(filePath) {
   return fetch('/api/songs/info' + filePath).then(response => response.json());
+};
+
+PlayerView.prototype.getSongArtwork = function(filePath) {
+  return fetch('/api/artwork/original' + filePath).then(response => response.blob());
 };
 
 window.view = new PlayerView();

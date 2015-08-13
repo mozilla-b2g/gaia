@@ -1,4 +1,5 @@
 /* global threads, View */
+'use strict';
 
 var debug = 1 ? (...args) => console.log('[AlbumsView]', ...args) : () => {};
 
@@ -39,9 +40,11 @@ AlbumsView.prototype.update = function() {
   });
 };
 
-// AlbumsView.prototype.destroy = function() {
-//   View.prototype.destroy.call(this); // super(); // Always call *last*
-// };
+AlbumsView.prototype.destroy = function() {
+  this.client.destroy();
+
+  View.prototype.destroy.call(this); // super(); // Always call *last*
+};
 
 AlbumsView.prototype.title = 'Albums';
 
@@ -52,7 +55,7 @@ AlbumsView.prototype.render = function() {
 };
 
 AlbumsView.prototype.getAlbums = function() {
-  return fetch('/api/albums')
+  return fetch('/api/albums/list')
     .then(response => response.json())
     .then(albums => clean(albums));
 };

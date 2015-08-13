@@ -107,15 +107,7 @@ proto.createdCallback = function() {
   var shadowRoot = this.createShadowRoot();
   shadowRoot.innerHTML = template;
 
-  var iconsLink = document.querySelector('link[href$="gaia-icons-embedded.css"]');
-  var iconsHref = iconsLink && iconsLink.href;
-  if (iconsHref) {
-    fetch(iconsHref).then((response) => {
-      response.text().then((icons) => {
-        shadowRoot.querySelector('style').innerHTML += icons;
-      });
-    });
-  }
+  getIcons().then(icons => shadowRoot.querySelector('style').innerHTML += icons);
 
   var $id = shadowRoot.getElementById.bind(shadowRoot);
 
@@ -217,6 +209,23 @@ function debounce(fn, ms) {
     clearTimeout(timeout);
     timeout = setTimeout(() => fn.apply(this, args), ms);
   };
+}
+
+function getIcons() {
+  return new Promise((resolve, reject) => {
+    var iconsLink = document.querySelector('link[href$="gaia-icons-embedded.css"]');
+    var iconsHref = iconsLink && iconsLink.href;
+    if (!iconsHref) {
+      reject();
+      return;
+    }
+
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', iconsHref, true);
+    xhr.onload = () => resolve(xhr.response);
+    xhr.onerror = () => reject();
+    xhr.send();
+  });
 }
 
 try {
