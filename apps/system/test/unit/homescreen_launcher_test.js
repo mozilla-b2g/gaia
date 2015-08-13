@@ -163,38 +163,6 @@ suite('system/HomescreenLauncher', function() {
       stubFadeOut.restore();
     });
 
-    test('shrinking UI start; hide homescreen fade-overlay', function() {
-      var isSuccessCalled = false;
-      var stubGetHomescreen = this.sinon.stub(window.homescreenLauncher,
-        'getHomescreen',
-        function() {
-          return {'hideFadeOverlay': function() {
-            isSuccessCalled = true;
-          }};
-        });
-      window.homescreenLauncher.handleEvent({
-        type: 'shrinking-start'
-      });
-      assert.isTrue(isSuccessCalled, 'the method not got called');
-      stubGetHomescreen.restore();
-    });
-
-    test('shrinking UI stop; show homescreen fade-overlay', function() {
-      var isSuccessCalled = false;
-      var stubGetHomescreen = this.sinon.stub(window.homescreenLauncher,
-        'getHomescreen',
-        function() {
-          return {'showFadeOverlay': function() {
-            isSuccessCalled = true;
-          }};
-        });
-      window.homescreenLauncher.handleEvent({
-        type: 'shrinking-stop'
-      });
-      assert.isTrue(isSuccessCalled, 'the method not got called');
-      stubGetHomescreen.restore();
-    });
-
     suite('software-button-*; resize the homescreenwindow', function() {
       var isResizeCalled, stubGetHomescreen;
 
