@@ -34,7 +34,8 @@
     "open-remote-window":{},
     "settings":{ "access": "readwrite" },
     "systemXHR":{},
-    "contacts":{ "access": "readonly" }
+    "contacts":{ "access": "readonly" },
+    "bluetooth": {}
   },
   "connections": {
     "search": {

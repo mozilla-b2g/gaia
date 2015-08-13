@@ -61,6 +61,11 @@
                              'expecting-system-message');
       }
     }
+    else {
+      // It's so dirty I'm actually proud of it
+      browser.setAttribute('mozapp', 
+        'app://search.gaiamobile.org/manifest.webapp');
+    }
 
     if (config.parentApp) {
       browser.setAttribute('parentapp', config.parentApp);
