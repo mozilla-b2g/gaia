@@ -5,14 +5,14 @@ var proto = Object.create(HTMLElement.prototype);
 
 var template =
 `<style scoped>
-  #container {
+  .music-view-stack-container {
     position: relative;
     width: 100%;
     height: 100%;
     overflow: hidden;
     -moz-user-select: none;
   }
-  #container > iframe {
+  .music-view-stack-container > iframe {
     border: none;
     display: none;
     position: absolute;
@@ -21,63 +21,62 @@ var template =
     width: 100%;
     height: 100%;
   }
-  #container > iframe.active,
-  #container > iframe.push,
-  #container > iframe.pop {
+  .music-view-stack-container > iframe.active,
+  .music-view-stack-container > iframe.push,
+  .music-view-stack-container > iframe.pop {
     display: block;
   }
-  #container > iframe.push,
-  #container > iframe.pop {
+  .music-view-stack-container > iframe.push,
+  .music-view-stack-container > iframe.pop {
     transition: transform 0.2s linear;
   }
-  #container > iframe.push.in {
+  .music-view-stack-container > iframe.push.in {
     transform: translate(100%, 0);
   }
-  #container > iframe.push.in.transition {
+  .music-view-stack-container > iframe.push.in.transition {
     transform: translate(0, 0);
   }
-  #container > iframe.push.out {
+  .music-view-stack-container > iframe.push.out {
     transform: translate(0, 0);
   }
-  #container > iframe.push.out.transition {
+  .music-view-stack-container > iframe.push.out.transition {
     transform: translate(-100%, 0);
   }
-  #container > iframe.pop.in {
+  .music-view-stack-container > iframe.pop.in {
     transform: translate(-100%, 0);
   }
-  #container > iframe.pop.in.transition {
+  .music-view-stack-container > iframe.pop.in.transition {
     transform: translate(0, 0);
   }
-  #container > iframe.pop.out {
+  .music-view-stack-container > iframe.pop.out {
     transform: translate(0, 0);
   }
-  #container > iframe.pop.out.transition {
+  .music-view-stack-container > iframe.pop.out.transition {
     transform: translate(100%, 0);
   }
-  #container > iframe.fade {
+  .music-view-stack-container > iframe.fade {
     transition: opacity 0.2s linear;
   }
-  #container > iframe.fade.in {
+  .music-view-stack-container > iframe.fade.in {
     opacity: 0;
   }
-  #container > iframe.fade.in.transition {
+  .music-view-stack-container > iframe.fade.in.transition {
     opacity: 1;
   }
-  #container > iframe.fade.out {
+  .music-view-stack-container > iframe.fade.out {
     opacity: 1;
   }
-  #container > iframe.fade.out.transition {
+  .music-view-stack-container > iframe.fade.out.transition {
     opacity: 0;
   }
 </style>
-<div id="container">
+<div class="music-view-stack-container">
 </div>`;
 
 proto.createdCallback = function() {
-  var shadowRoot = this.createShadowRoot();
-  shadowRoot.innerHTML = template;
+  this.innerHTML = template;
 
-  this.container = shadowRoot.querySelector('#container');
+  this.container = this.querySelector('.music-view-stack-container');
   this.container.addEventListener('transitionend', (evt) => {
     var classList = evt.target.classList;
     if (classList.contains('pop') &&
