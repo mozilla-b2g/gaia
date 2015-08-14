@@ -7,65 +7,62 @@
 
     <div>
       <header>
-        <h2 data-l10n-id="message-confirmation">Message Confirmation</h2>
+        <h2 data-l10n-id="message-confirmation"></h2>
       </header>
       <ul id="general-message-list">
-        <li id="menuItem-deliveryReport" aria-disabled="true" class="hint">
-          <label class="pack-switch">
-            <input type="checkbox" name="ril.sms.requestStatusReport.enabled"/>
-            <span data-l10n-id="message-delivery-reports">Delivery Reports</span>
-          </label>
-          <p class="explanation" data-l10n-id="message-delivery-reports-details">Request notification of delivery for each message sent</p>
+        <li id="menuItem-deliveryReport" aria-disabled="true">
+          <gaia-switch name="ril.sms.requestStatusReport.enabled"/>
+            <label data-l10n-id="message-delivery-reports"></label>
+            <details data-l10n-id="message-delivery-reports-details"></details>
+          </gaia-switch>
         </li>
       </ul>
       <header>
-        <h2><bdi data-l10n-id="mmsTitle">Multimedia Messaging (MMS)</bdi></h2>
+        <h2><bdi data-l10n-id="mmsTitle"></bdi></h2>
       </header>
       <ul class="mmsSettings-list">
-        <li id="menuItem-readReport" aria-disabled="true" class="hint">
-          <label class="pack-switch">
-            <input type="checkbox" name="ril.mms.requestReadReport.enabled"/>
-            <span data-l10n-id="message-read-reports">Read Reports</span>
-          </label>
-          <p class="explanation" data-l10n-id="message-read-reports-details">Request read report for each message sent</p>
+        <li id="menuItem-readReport" aria-disabled="true">
+          <gaia-switch name="ril.mms.requestReadReport.enabled"/>
+            <label data-l10n-id="message-read-reports"></label>
+            <details data-l10n-id="message-read-reports-details"></details>
+          </gaia-switch>
         </li>
         <li id="menuItem-autoRetrieve" aria-disabled="true" class="hint">
-          <span data-l10n-id="auto-retrieve">Auto Retrieve</span>
-          <p class="explanation" data-l10n-id="auto-retrieve-details">automatically retieve messages</p>
+          <span data-l10n-id="auto-retrieve"></span>
+          <p class="explanation" data-l10n-id="auto-retrieve-details"></p>
           <span class="button icon icon-dialog">
             <select name="ril.mms.retrieval_mode">
-              <option value="manual" data-l10n-id="manual-retrieve">Off</option>
-              <option value="automatic" data-l10n-id="auto-roaming-retrieve">On with roaming</option>
-              <option value="automatic-home" data-l10n-id="auto-no-roaming-retrieve">On without roaming/option>
+              <option value="manual" data-l10n-id="manual-retrieve"></option>
+              <option value="automatic" data-l10n-id="auto-roaming-retrieve"></option>
+              <option value="automatic-home" data-l10n-id="auto-no-roaming-retrieve"></option>
             </select>
           </span>
         </li>
       </ul>
       <header>
-        <h2 data-l10n-id="wapPushMessages">WAP Push Messages</h2>
+        <h2 data-l10n-id="wapPushMessages"></h2>
       </header>
       <ul>
         <li id="menuItem-wapPush" aria-disabled="true">
-          <label class="pack-switch">
-            <input type="checkbox" name="wap.push.enabled"/>
-            <span data-l10n-id="wapPush">WAP Push</span>
-          </label>
+          <gaia-switch name="wap.push.enabled"/>
+            <label data-l10n-id="wapPush"></label>
+          </gaia-switch>
         </li>
       </ul>
       <div class="options-container"></div>
       <ul class="simcards-container" hidden>
         <header>
-          <h2 data-l10n-id="simSettings">SIM Settings</h2>
+          <h2 data-l10n-id="simSettings"></h2>
         </header>
         <li aria-disabled="true" class="sim1">
           <a class="menu-item" data-card-index="0" href="#">
-            <span data-l10n-id="sim1">SIM 1</span>
+            <span data-l10n-id="sim1"></span>
             <small></small>
           </a>
         </li>
         <li aria-disabled="true" class="sim2">
           <a class="menu-item" data-card-index="1" href="#">
-            <span data-l10n-id="sim2">SIM 2</span>
+            <span data-l10n-id="sim2"></span>
             <small></small>
           </a>
         </li>
