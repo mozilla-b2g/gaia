@@ -129,7 +129,7 @@
 
   <body role="application" class="skin-comms theme-communications">
     <article id="main-wrapper" class="wrapper">
-      <section class="panel panel-InboxView" role="region">
+      <section class="panel panel-InboxView" role="region" aria-hidden="true">
         <!-- title-start and title-end indicates the button widths respectively
           at the start and end of the line -->
         <!-- see https://github.com/gaia-components/gaia-header/ for more information -->
@@ -176,7 +176,7 @@
         <div id="sticky"></div>
       </section>
 
-      <section class="panel panel-ConversationView editable-select-mode" role="region">
+      <section class="panel panel-ConversationView editable-select-mode" role="region" aria-hidden="true">
         <gaia-header id="messages-header" class="view-header regular-header" action="back" no-font-fit>
           <h1 id="messages-header-text" aria-hidden="true"></h1>
           <button id="messages-call-number-button" data-icon="call" class="hide" data-l10n-id="callButton"></button>
@@ -305,7 +305,7 @@
         </section>
       </section>
 
-      <section class="panel panel-GroupView" role="region">
+      <section class="panel panel-GroupView" role="region" aria-hidden="true">
         <gaia-header id="information-group-header" class="header" action="back" no-font-fit>
           <h1 data-l10n-id="participant" class="header-text"></h1>
         </gaia-header>
@@ -314,7 +314,7 @@
         </article>
       </section>
 
-      <section class="panel panel-ReportView" role="region">
+      <section class="panel panel-ReportView" role="region" aria-hidden="true">
         <gaia-header id="information-report-header" class="header" action="close" no-font-fit>
           <h1 data-l10n-id="message-report"></h1>
         </gaia-header>
