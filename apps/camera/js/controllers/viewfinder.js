@@ -355,7 +355,9 @@ ViewfinderController.prototype.onViewfinderClicked = function(e) {
     return;
   }
   this.views.faces.hide();
-  this.changeFocusPoint(e.pageX, e.pageY);
+  // FIXME: hack to trigger pause/resume via touch to focus
+  //this.changeFocusPoint(e.pageX, e.pageY);
+  this.app.emit('capture:suspend');
 };
 
 ViewfinderController.prototype.changeFocusPoint = function(x, y) {

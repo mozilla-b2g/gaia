@@ -82,6 +82,7 @@ CameraController.prototype.bindEvents = function() {
   app.on('timer:ended', this.capture);
   app.on('visible', this.loadCamera);
   app.on('capture', this.capture);
+  app.on('capture:suspend', this.suspendCapture);
   app.on('hidden', this.shutdownCamera);
 
   // Settings
@@ -220,6 +221,15 @@ CameraController.prototype.capture = function() {
 
   var position = this.app.geolocation.position;
   return this.camera.capture({ position: position });
+};
+
+/**
+ * Pauses/resumes capture if in progress.
+ *
+ * @private
+ */
+CameraController.prototype.suspendCapture = function() {
+  return this.camera.suspendCapture();
 };
 
 /**
