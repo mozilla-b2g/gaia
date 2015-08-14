@@ -7,9 +7,8 @@
 
 'use strict';
 
-require('/shared/test/unit/mocks/mocks_helper.js');
 require('/shared/test/unit/mocks/mock_dump.js');
-require('/shared/test/unit/mocks/mock_async_storage.js');
+require('/shared/test/unit/mocks/mocks_helper.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/test/unit/mocks/mock_settings_helper.js');
@@ -20,10 +19,7 @@ require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_moz_alarms.js');
 
 var mocksForFindMyDevice = new MocksHelper([
-  'asyncStorage',
-  'Dump',
-  'Geolocation',
-  'SettingsHelper'
+  'Geolocation', 'Dump', 'SettingsHelper'
 ]).init();
 
 suite('FindMyDevice >', function() {
@@ -34,7 +30,6 @@ suite('FindMyDevice >', function() {
   var realMozAlarms;
   var realNavigatorOnLine;
   var realCommands;
-  var observerSpy;
 
   mocksForFindMyDevice.attachTestHelpers();
 
@@ -75,8 +70,6 @@ suite('FindMyDevice >', function() {
       set: function(status) { this.fakeOnLine = !!status; }
     });
 
-    observerSpy = sinon.spy(MockNavigatorSettings, 'addObserver');
-
     // We require findmydevice.js here and not above because
     // we want to make sure all of our dependencies have already
     // been loaded.
@@ -90,8 +83,6 @@ suite('FindMyDevice >', function() {
   suiteTeardown(function() {
     navigator.mozL10n.once.restore();
     navigator.mozL10n = realL10n;
-
-    observerSpy.restore();
 
     navigator.mozId = realMozId;
 
@@ -230,311 +221,6 @@ suite('FindMyDevice >', function() {
     assert.equal(FindMyDevice._reply.t.error, message);
   });
 
-  suite('settings observers', function() {
-    test('Observes findmydevice.registered', function() {
-      sinon.assert.calledWith(observerSpy, 'findmydevice.registered');
-      assert.isTrue('_registered' in FindMyDevice);
-      assert.equal('object', typeof FindMyDevice._registeredHelper);
-      assert.notEqual(null, FindMyDevice._registeredHelper);
-    });
-
-    test('Observes findmydevice.enabled', function() {
-      sinon.assert.calledWith(observerSpy, 'findmydevice.enabled');
-      assert.isTrue('_enabled' in FindMyDevice);
-      assert.equal('object', typeof FindMyDevice._enabledHelper);
-      assert.notEqual(null, FindMyDevice._enabledHelper);
-    });
-
-    test('Observes findmydevice.current-clientid', function() {
-      sinon.assert.calledWith(observerSpy, 'findmydevice.current-clientid');
-      assert.isTrue('_currentClientID' in FindMyDevice);
-      assert.equal('object', typeof FindMyDevice._currentClientIDHelper);
-      assert.notEqual(null, FindMyDevice._currentClientIDHelper);
-    });
-
-    test('Observes findmydevice.can-disable', function() {
-      sinon.assert.calledWith(observerSpy, 'findmydevice.can-disable');
-      assert.isTrue('_canDisable' in FindMyDevice);
-      assert.equal('object', typeof FindMyDevice._canDisableHelper);
-      assert.notEqual(null, FindMyDevice._canDisableHelper);
-    });
-  });
-
-  suite('settings handlers', function() {
-    var endHighPriorityStub;
-
-    suite('Changes to findmydevice.registered', function() {
-      var contactServerSpy, loadStateSpy, currentIdHelperSpy;
-      var _registered = {};
-
-      setup(function() {
-        contactServerSpy    = this.sinon.spy(FindMyDevice, '_contactServer');
-        loadStateSpy        = this.sinon.spy(FindMyDevice, '_loadState');
-        currentIdHelperSpy  =
-          this.sinon.spy(FindMyDevice._currentClientIDHelper, 'set');
-        endHighPriorityStub = this.sinon.stub(FindMyDevice, 'endHighPriority');
-      });
-
-      suite('when not registered', function() {
-        setup(function() {
-          _registered = { settingValue: false};
-        });
-
-        test('contact server', function() {
-          FindMyDevice._onRegisteredChanged(_registered);
-          sinon.assert.calledOnce(contactServerSpy);
-          sinon.assert.notCalled(loadStateSpy);
-          sinon.assert.notCalled(currentIdHelperSpy);
-        });
-
-        test('end wakelock section', function() {
-          FindMyDevice._onRegisteredChanged(_registered);
-          sinon.assert.calledWith(endHighPriorityStub, 'clientLogic');
-          sinon.assert.notCalled(loadStateSpy);
-          sinon.assert.notCalled(currentIdHelperSpy);
-        });
-      });
-
-      suite('when registered', function() {
-        setup(function() {
-          _registered = { settingValue: true};
-        });
-
-        test('does load state', function() {
-          FindMyDevice._onRegisteredChanged(_registered);
-          sinon.assert.calledOnce(loadStateSpy);
-        });
-
-        test('does contact server', function() {
-          FindMyDevice._onRegisteredChanged(_registered);
-          sinon.assert.calledOnce(contactServerSpy);
-        });
-
-        test('does set empty current id', function() {
-          FindMyDevice._onRegisteredChanged(_registered);
-          sinon.assert.calledOnce(currentIdHelperSpy);
-          sinon.assert.calledWith(currentIdHelperSpy, '');
-        });
-      });
-    });
-
-    test('Changes to findmydevice.enabled', function() {
-      assert.isTrue(true, 'nothing to do');
-    });
-
-    suite('Changes to findmydevice.current-clientid', function() {
-      var _currentClientId = {};
-      var refreshClientStub;
-
-      setup(function() {
-        endHighPriorityStub = this.sinon.stub(FindMyDevice, 'endHighPriority');
-        refreshClientStub   =
-          this.sinon.stub(FindMyDevice, '_refreshClientIDIfRegistered');
-      });
-
-      suite('logged and no clientid', function() {
-        var oldLogged;
-
-        setup(function() {
-          _currentClientId       = { settingValue: ''};
-          oldLogged              = FindMyDevice._loggedIn;
-          FindMyDevice._loggedIn = true;
-        });
-
-        teardown(function() {
-          FindMyDevice._loggedIn = oldLogged;
-        });
-
-        test('client id refresh', function() {
-          FindMyDevice._onClientIDChanged(_currentClientId);
-          sinon.assert.calledOnce(refreshClientStub);
-          sinon.assert.calledWith(refreshClientStub, false);
-        });
-
-        test('end of wakelock section', function() {
-          FindMyDevice._onClientIDChanged(_currentClientId);
-          sinon.assert.calledWith(endHighPriorityStub, 'clientLogic');
-        });
-      });
-
-      suite('not logged/has clientid and registered', function() {
-        var oldLogged, oldRegistered, oldState;
-
-        setup(function() {
-          _currentClientId         = { settingValue: 'cid'};
-          oldLogged                = FindMyDevice._loggedIn;
-          oldRegistered            = FindMyDevice._registered;
-          oldState                 = FindMyDevice._state;
-          FindMyDevice._loggedIn   = false;
-          FindMyDevice._registered = true;
-          FindMyDevice._state      = { };
-        });
-
-        teardown(function() {
-          FindMyDevice._loggedIn   = oldLogged;
-          FindMyDevice._registered = oldRegistered;
-          FindMyDevice._state      = oldState;
-        });
-
-        suite('calls to canDisableHelper', function() {
-          var canDisableSpy;
-
-          setup(function() {
-            canDisableSpy =
-              this.sinon.spy(FindMyDevice._canDisableHelper, 'set');
-          });
-
-          suite('with everything true', function() {
-            setup(function() {
-              FindMyDevice._loggedIn        = true;
-              FindMyDevice._state.clientid  = 'cid';
-            });
-
-            test('proper call to canDisableHelper', function() {
-              FindMyDevice._onClientIDChanged(_currentClientId);
-              sinon.assert.calledOnce(canDisableSpy);
-              sinon.assert.calledWith(canDisableSpy, true);
-            });
-          });
-
-          suite('with loggedin false and matching clientid', function() {
-            setup(function() {
-              FindMyDevice._loggedIn        = false;
-              FindMyDevice._state.clientid  = 'cid';
-            });
-
-            test('proper call to canDisableHelper', function() {
-              FindMyDevice._onClientIDChanged(_currentClientId);
-              sinon.assert.calledOnce(canDisableSpy);
-              sinon.assert.calledWith(canDisableSpy, false);
-            });
-          });
-
-          suite('with loggedin false and non matching clientid', function() {
-            setup(function() {
-              FindMyDevice._loggedIn        = false;
-              FindMyDevice._state.clientid  = '';
-            });
-
-            test('proper call to canDisableHelper', function() {
-              FindMyDevice._onClientIDChanged(_currentClientId);
-              sinon.assert.calledOnce(canDisableSpy);
-              sinon.assert.calledWith(canDisableSpy, false);
-            });
-          });
-
-          suite('with loggedin true and non matching clientid', function() {
-            setup(function() {
-              FindMyDevice._loggedIn        = true;
-              FindMyDevice._state.clientid  = '';
-            });
-
-            test('proper call to canDisableHelper', function() {
-              FindMyDevice._onClientIDChanged(_currentClientId);
-              sinon.assert.calledOnce(canDisableSpy);
-              sinon.assert.calledWith(canDisableSpy, false);
-            });
-          });
-        });
-
-        test('keep wakelock section', function() {
-          FindMyDevice._onClientIDChanged(_currentClientId);
-          sinon.assert.notCalled(endHighPriorityStub);
-        });
-      });
-
-      suite('none of the above', function() {
-        var oldLogged, oldRegistered;
-
-        setup(function() {
-          _currentClientId         = { settingValue: 'cid'};
-          oldLogged                = FindMyDevice._loggedIn;
-          oldRegistered            = FindMyDevice._registered;
-          FindMyDevice._loggedIn   = false;
-          FindMyDevice._registered = false;
-        });
-
-        teardown(function() {
-          FindMyDevice._loggedIn   = oldLogged;
-          FindMyDevice._registered = oldRegistered;
-        });
-
-        test('end of wakelock section', function() {
-          FindMyDevice._onClientIDChanged(_currentClientId);
-          sinon.assert.calledWith(endHighPriorityStub, 'clientLogic');
-          sinon.assert.notCalled(refreshClientStub);
-        });
-      });
-    });
-
-    suite('Changes to findmydevice.can-disable', function() {
-      var _canDisable = {};
-      var enabledSpy;
-      var oldDisableAttempt;
-
-      setup(function() {
-        endHighPriorityStub = this.sinon.stub(FindMyDevice, 'endHighPriority');
-        enabledSpy          =
-          this.sinon.spy(FindMyDevice._enabledHelper, 'set');
-        oldDisableAttempt   = FindMyDevice._disableAttempt;
-      });
-
-      teardown(function() {
-        FindMyDevice._disableAttempt = oldDisableAttempt;
-      });
-
-      suite('can-disabled changed to true', function() {
-        setup(function() {
-          _canDisable = { settingValue: true};
-        });
-
-        test('with disable attempt', function() {
-          FindMyDevice._disableAttempt = true;
-          FindMyDevice._onCanDisableChanged(_canDisable);
-          sinon.assert.calledWith(enabledSpy, false);
-        });
-
-        test('without disable attempt', function() {
-          FindMyDevice._disableAttempt = false;
-          FindMyDevice._onCanDisableChanged(_canDisable);
-          sinon.assert.notCalled(enabledSpy);
-        });
-
-        test('reset stuff', function() {
-          FindMyDevice._onCanDisableChanged(_canDisable);
-          assert.isFalse(FindMyDevice._disableAttempt,
-            'set disableAttempt to false');
-          sinon.assert.calledOnce(endHighPriorityStub, 'end wakelock section');
-        });
-      });
-
-      suite('can-disabled changed to false', function() {
-        setup(function() {
-          _canDisable = { settingValue: false};
-        });
-
-        test('with disable attempt', function() {
-          FindMyDevice._disableAttempt = true;
-          FindMyDevice._onCanDisableChanged(_canDisable);
-          sinon.assert.notCalled(enabledSpy);
-        });
-
-        test('without disable attempt', function() {
-          FindMyDevice._disableAttempt = false;
-          FindMyDevice._onCanDisableChanged(_canDisable);
-          sinon.assert.notCalled(enabledSpy);
-        });
-
-        test('reset stuff', function() {
-          FindMyDevice._onCanDisableChanged(_canDisable);
-          assert.isFalse(FindMyDevice._disableAttempt,
-            'set disableAttempt to false');
-          sinon.assert.calledOnce(endHighPriorityStub, 'end wakelock section');
-        });
-      });
-    });
-  });
-
   suite('findmydevice.current-clientid behavior', function() {
     setup(function() {
       this.sinon.spy(FindMyDevice._currentClientIDHelper, 'set');
@@ -637,6 +323,29 @@ suite('FindMyDevice >', function() {
     clock.restore();
   });
 
+  suite('set alarm on server interaction', function() {
+    var response = {t: {d: 60}};
+
+    setup(function() {
+      this.sinon.stub(FindMyDevice, '_processCommands');
+      this.sinon.stub(FindMyDevice, '_scheduleAlarm');
+    });
+
+    test('alarm is set on successful server response', function() {
+      FindMyDevice._enabled = true;
+      FindMyDevice._handleServerResponse(response);
+      sinon.assert.calledWith(FindMyDevice._processCommands, response);
+      sinon.assert.calledWith(FindMyDevice._scheduleAlarm, 'ping');
+    });
+
+    test('alarm is set on server response even when disabled', function() {
+      FindMyDevice._enabled = false;
+      FindMyDevice._handleServerResponse(response);
+      sinon.assert.notCalled(FindMyDevice._processCommands);
+      sinon.assert.calledWith(FindMyDevice._scheduleAlarm, 'ping');
+    });
+  });
+
   test('contact the server on alarm', function() {
     this.sinon.stub(FindMyDevice, '_contactServer');
     this.sinon.stub(FindMyDevice, '_refreshClientIDIfRegistered');
@@ -685,135 +394,5 @@ suite('FindMyDevice >', function() {
     FindMyDevice._register();
     sinon.assert.calledOnce(FindMyDevice.endHighPriority);
     sinon.assert.calledWith(FindMyDevice.endHighPriority, 'clientLogic');
-  });
-
-  suite('testing command flow', function() {
-    var serverResponse = {};
-    var commandSpy;
-
-    setup(function() {
-      FindMyDevice._enabled = true;
-      commandSpy = this.sinon.spy(FindMyDevice, '_processCommands');
-    });
-
-    suite('set alarm on server interaction', function() {
-      var alarmSpy;
-
-      setup(function() {
-        serverResponse = {t: {d: 60}};
-        alarmSpy   = this.sinon.spy(FindMyDevice, '_scheduleAlarm');
-      });
-
-      suite('With FMD enabled', function() {
-        setup(function() {
-          FindMyDevice._handleServerResponse(serverResponse);
-        });
-
-        test('alarm is set on successful server response', function() {
-          sinon.assert.calledOnce(commandSpy);
-          sinon.assert.calledWith(commandSpy, serverResponse);
-          sinon.assert.calledOnce(Commands.invokeCommand);
-          sinon.assert.calledWith(Commands.invokeCommand, 'track');
-          sinon.assert.calledWith(alarmSpy, 'ping');
-        });
-      });
-
-      suite('With FMD disabled', function() {
-        setup(function() {
-          FindMyDevice._enabled = false;
-          FindMyDevice._handleServerResponse(serverResponse);
-        });
-
-        teardown(function() {
-          FindMyDevice._enabled = true;
-        });
-
-        test('alarm is set on server response even when disabled', function() {
-          sinon.assert.notCalled(commandSpy);
-          sinon.assert.notCalled(Commands.invokeCommand);
-          sinon.assert.calledWith(alarmSpy, 'ping');
-        });
-      });
-    });
-
-    suite('Processing of erase command', function() {
-      setup(function() {
-        serverResponse = {e: {}};
-        FindMyDevice._handleServerResponse(serverResponse);
-      });
-
-      test('erase command invoked', function() {
-        sinon.assert.calledOnce(commandSpy);
-        sinon.assert.calledWith(commandSpy, serverResponse);
-        sinon.assert.calledOnce(Commands.invokeCommand);
-        sinon.assert.calledWith(Commands.invokeCommand, 'erase');
-      });
-    });
-
-    suite('Processing of killswitch command', function() {
-      setup(function() {
-        serverResponse = {k: {}};
-        FindMyDevice._handleServerResponse(serverResponse);
-      });
-
-      test('killswitch command invoked', function() {
-        sinon.assert.calledOnce(commandSpy);
-        sinon.assert.calledWith(commandSpy, serverResponse);
-        sinon.assert.calledOnce(Commands.invokeCommand);
-        sinon.assert.calledWith(Commands.invokeCommand, 'killswitch');
-      });
-    });
-
-    suite('Processing of lock command', function() {
-      setup(function() {
-        serverResponse = {l: {m: 'message', c: '1234'}};
-        FindMyDevice._handleServerResponse(serverResponse);
-      });
-
-      test('lock command invoked', function() {
-        sinon.assert.calledOnce(commandSpy);
-        sinon.assert.calledWith(commandSpy, serverResponse);
-        sinon.assert.calledOnce(Commands.invokeCommand);
-        sinon.assert.calledWith(Commands.invokeCommand, 'lock');
-
-        var args = Commands.invokeCommand.firstCall.args[1];
-        assert.equal(args[0], 'message');
-        assert.equal(args[1], '1234');
-      });
-    });
-
-    suite('Processing of ring command', function() {
-      setup(function() {
-        serverResponse = {r: {d: 5}};
-        FindMyDevice._handleServerResponse(serverResponse);
-      });
-
-      test('ring command invoked', function() {
-        sinon.assert.calledOnce(commandSpy);
-        sinon.assert.calledWith(commandSpy, serverResponse);
-        sinon.assert.calledOnce(Commands.invokeCommand);
-        sinon.assert.calledWith(Commands.invokeCommand, 'ring');
-
-        var args = Commands.invokeCommand.firstCall.args[1];
-        assert.equal(args[0], 5);
-      });
-    });
-
-    suite('Processing of track command', function() {
-      setup(function() {
-        serverResponse = {t: {d: 7}};
-        FindMyDevice._handleServerResponse(serverResponse);
-      });
-
-      test('track command invoked', function() {
-        sinon.assert.calledOnce(commandSpy);
-        sinon.assert.calledWith(commandSpy, serverResponse);
-        sinon.assert.calledOnce(Commands.invokeCommand);
-        sinon.assert.calledWith(Commands.invokeCommand, 'track');
-
-        var args = Commands.invokeCommand.firstCall.args[1];
-        assert.equal(args[0], 7);
-      });
-    });
   });
 });
