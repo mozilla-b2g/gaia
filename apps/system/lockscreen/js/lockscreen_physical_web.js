@@ -125,10 +125,10 @@
 
         // Rolling Spider doesn't do nice URIBeacon, so let's fake it
         if (e.device.name && e.device.name.substr(0, 3) === 'RS_') {
-          var uri = 'http://flythisdrone.io/' +
+          var uri = 'http://rollingspider.xyz/fly/' +
             e.device.address.replace(/:/g, '');
           var ele = this.createNotificationElement(e.device.address, uri);
-          ele.onclick = this.openRs.bind(this);
+          ele.onclick = this.openUrl.bind(this);
           ele.querySelector('.title').textContent = 'Rolling Spider ' +
             e.device.name.substr(3);
           ele.querySelector('*[role="url"]').textContent = uri;
@@ -294,23 +294,6 @@
       name: 'view',
       data: {
         type: 'url',
-        url: uri
-      }
-    });
-    a.onerror = err => console.error('Opening', uri, 'failed', err);
-  };
-
-  LockScreenPhysicalWeb.prototype.openRs =
-  function lspw_openUrl(e) {
-    var uri = e.target.dataset.uri;
-
-    this.stopDiscovery();
-    window.lockScreen.unlock();
-
-    var a = new MozActivity({
-      name: 'view',
-      data: {
-        type: 'rolling-spider',
         url: uri
       }
     });
