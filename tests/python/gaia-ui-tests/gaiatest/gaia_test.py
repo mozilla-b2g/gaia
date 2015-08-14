@@ -186,7 +186,6 @@ class GaiaApps(object):
 class GaiaData(object):
 
     def __init__(self, marionette, testvars=None):
-        self.apps = GaiaApps(marionette)
         self.marionette = marionette
         self.testvars = testvars or {}
         js = os.path.abspath(os.path.join(__file__, os.path.pardir, 'atoms', "gaia_data_layer.js"))
