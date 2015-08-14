@@ -174,10 +174,20 @@ PreviewGalleryController.prototype.shareCurrentItem = function() {
   // Resize the image to the maximum pixel size for share activities.
   // If no maximum is specified (value is `0`), then simply rotate
   // (if needed) and re-save the image prior to launching the activity.
+  var maxSize = this.settings.activity.get('maxSharePixelSize');
   this.resizeImageAndSave({
     blob: item.blob,
-    size: this.settings.activity.get('maxSharePixelSize')
+    size: maxSize,
   }, function(resizedBlob) {
+    // Update the cached preview to reflect the new size of the saved
+    // image; it will also rotate the image based on the EXIF data before
+    // saving, so we should forget that
+    if (resizedBlob !== item.blob) {
+      item.blob = resizedBlob;
+      item.width = maxSize.width;
+      item.height = maxSize.height;
+      delete item.rotation;
+    }
     self.stopItemDeletedEvent = false;
     launchShareActivity(resizedBlob);
   });
