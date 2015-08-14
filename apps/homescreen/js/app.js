@@ -711,6 +711,7 @@ const SETTINGS_VERSION = 0;
         for (icon of this.icons.children) {
           icon.firstElementChild.updateName();
         }
+        this.icons.synchronise();
         break;
       }
     }
