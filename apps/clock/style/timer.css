@@ -56,24 +56,6 @@
   border-radius: 2rem;
 }
 
-ul li > label.pack-switch {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: calc(100% - 3rem);
-  height: 100%;
-  padding: 0 1.5rem 0;
-}
-
-ul li > label.pack-switch > input + span {
-  display: block;
-  line-height: 6rem;
-  padding-right: 9rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 #timer-plus-time {
   position: absolute;
   bottom: 0;
@@ -90,11 +72,6 @@ ul li > label.pack-switch > input + span {
   font: 2.5rem sans-serif;
   font-weight: normal;
   text-decoration: none;
-}
-
-html[dir="rtl"] ul li > label.pack-switch > span {
-  padding-right: 0;
-  padding-left: 9rem;
 }
 
 @media (min-width: 768px) {
