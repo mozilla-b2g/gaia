@@ -123,7 +123,7 @@ configure_firefox_location() {
 
 configure_b2g_location() {
   #
-  # Configure b2g test binary
+  # Configure mulet test binary
   #
   if [ ! -z "$1" ] ; then
     B2G=`which $1`
@@ -134,11 +134,11 @@ configure_b2g_location() {
   fi
 
   if [ -z "$B2G" ] ; then
-    make b2g
-    B2G="./b2g/b2g-bin"
+    make mulet
+    B2G="./firefox/firefox-bin"
     if [ ! -x "$B2G" ] ; then
       # set the path for Mac OS X
-      B2G="./b2g/Contents/MacOS/b2g-bin"
+      B2G="./firefox/Contents/MacOS/firefox-bin"
     fi
   fi
 
