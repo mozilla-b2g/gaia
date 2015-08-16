@@ -4,6 +4,12 @@
 'use strict';
 
 var SubListView = {
+  unknownNameL10nIds: {
+    'artist': 'unknownArtist',
+    'album': 'unknownAlbum',
+    'title': 'unknownTitle'
+  },
+
   get view() {
     return document.getElementById('views-sublist');
   },
@@ -16,6 +22,22 @@ var SubListView = {
     return document.getElementById('views-sublist-anchor');
   },
 
+  get headerImage() {
+    return document.getElementById('views-sublist-header-image');
+  },
+
+  get headerName() {
+    return document.getElementById('views-sublist-header-name');
+  },
+
+  get playAllButton() {
+    return document.getElementById('views-sublist-controls-play');
+  },
+
+  get shuffleButton() {
+    return document.getElementById('views-sublist-controls-shuffle');
+  },
+
   set dataSource(source) {
     this._dataSource = source;
 
@@ -25,12 +47,6 @@ var SubListView = {
   },
 
   init: function slv_init() {
-    this.albumImage = document.getElementById('views-sublist-header-image');
-    this.albumName = document.getElementById('views-sublist-header-name');
-    this.playAllButton = document.getElementById('views-sublist-controls-play');
-    this.shuffleButton =
-      document.getElementById('views-sublist-controls-shuffle');
-
     this.handle = null;
     this.dataSource = [];
     this.index = 0;
@@ -50,7 +66,7 @@ var SubListView = {
     this.view.scrollTop = 0;
   },
 
-  setAlbumSrc: function slv_setAlbumSrc(fileinfo) {
+  setHeaderImage: function slv_setHeaderImage(fileinfo) {
     // See if we are viewing the predefined playlists, if so, then replace the
     // fileinfo with the first record in the dataSource to display the first
     // album art for every predefined playlist.
@@ -65,9 +81,9 @@ var SubListView = {
     });
   },
 
-  setAlbumName: function slv_setAlbumName(name, l10nId) {
-    this.albumName.textContent = name;
-    this.albumName.dataset.l10nId = l10nId;
+  setHeaderName: function slv_setHeaderName(name, l10nId) {
+    this.headerName.textContent = name;
+    this.headerName.dataset.l10nId = l10nId;
   },
 
   activate: function(option, data, index, keyRange, direction, callback) {
@@ -75,9 +91,9 @@ var SubListView = {
     this.clean();
 
     this.handle = Database.enumerateAll(targetOption, keyRange, direction,
-                                        function lv_enumerateAll(dataArray) {
-      var albumName;
-      var albumNameL10nId;
+                                        (dataArray) => {
+      var headerName;
+      var headerNameL10nId = '';
       var maxDiscNum = 1;
 
       if (option === 'album') {
@@ -92,42 +108,34 @@ var SubListView = {
         );
       }
 
-      if (option === 'artist') {
-        albumName =
-          data.metadata.artist || navigator.mozL10n.get('unknownArtist');
-        albumNameL10nId = data.metadata.artist ? '' : 'unknownArtist';
-      } else if (option === 'album') {
-        albumName =
-          data.metadata.album || navigator.mozL10n.get('unknownAlbum');
-        albumNameL10nId = data.metadata.album ? '' : 'unknownAlbum';
-      } else {
-        albumName =
-          data.metadata.title || navigator.mozL10n.get('unknownTitle');
-        albumNameL10nId = data.metadata.title ? '' : 'unknownTitle';
-      }
-
-      // Overrides l10nId.
-      if (data.metadata.l10nId) {
-        albumNameL10nId = data.metadata.l10nId;
-      }
-
-      this.dataSource = dataArray;
-      this.setAlbumName(albumName, albumNameL10nId);
-      this.setAlbumSrc(data);
-
       var inPlaylist = (option !== 'artist' &&
                         option !== 'album' &&
                         option !== 'title');
 
-      dataArray.forEach(function(songData) {
+      headerName = data.metadata[inPlaylist ? 'title' : option];
+      if (!headerName) {
+        headerNameL10nId = this.unknownNameL10nIds[option];
+        headerName = navigator.mozL10n.get(headerNameL10nId);
+      }
+
+      // Overrides l10nId.
+      if (data.metadata.l10nId) {
+        headerNameL10nId = data.metadata.l10nId;
+      }
+
+      this.dataSource = dataArray;
+      this.setHeaderName(headerName, headerNameL10nId);
+      this.setHeaderImage(data);
+
+      dataArray.forEach((songData) => {
         songData.multidisc = (maxDiscNum > 1);
         this.update(songData, inPlaylist);
-      }.bind(this));
+      });
 
       if (callback) {
         callback();
       }
-    }.bind(this));
+    });
   },
 
   // Set inPlaylist to true if you want the index instead of the track #

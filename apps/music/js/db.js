@@ -1,6 +1,6 @@
 /* exported Database */
 /* global AlbumArt, App, AudioMetadata, ForwardLock, LazyLoader, MediaDB,
-          TitleBar */
+          Normalizer, TitleBar */
 'use strict';
 
 var Database = (function() {
@@ -263,6 +263,33 @@ var Database = (function() {
     return musicdb.count(...args);
   }
 
+  /**
+   * Search the music database for a particular query.
+   *
+   * @param {String} key The field to query against (e.g. 'title').
+   * @param {String} query The string to search for.
+   * @param {Function} callback A function to call with the results of the
+   *        search, called once per result (plus a final call passing `null`).
+   * @return {Object} The handle for this query.
+   */
+  function search(key, query, callback) {
+    // Convert to lowercase and replace accented characters.
+    query = Normalizer.toAscii(query.toLocaleLowerCase());
+    var direction = (key === 'title') ? 'next' : 'nextunique';
+
+    return musicdb.enumerate('metadata.' + key, null, direction, (result) => {
+      if (result === null) {
+        callback(result);
+        return;
+      }
+
+      var resultLowerCased = result.metadata[key].toLocaleLowerCase();
+      if (Normalizer.toAscii(resultLowerCased).indexOf(query) !== -1) {
+        callback(result);
+      }
+    });
+  }
+
   function cancelEnumeration(handle) {
     musicdb.cancelEnumeration(handle);
   }
@@ -276,6 +303,7 @@ var Database = (function() {
     enumerateAll: enumerateAll,
     advancedEnumerate: advancedEnumerate,
     count: count,
+    search: search,
     cancelEnumeration: cancelEnumeration,
 
     // This is just here for testing.
