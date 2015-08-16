@@ -101,7 +101,7 @@ span[dir="rtl"]#switch input ~ span:after {
   margin: 0;
   padding-top: 0.5rem;
   -moz-padding-start: 0;
-  -moz-padding-end: 8rem;
+  -moz-padding-end: 7rem;
   font-size: 1.4rem;
   line-height: 1.6rem;
   color: #505859;

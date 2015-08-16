@@ -28,9 +28,9 @@ define(function(require) {
       'FindMyDeviceItem': panel.querySelector('.findmydevice-desc'),
       'StorageUSBItem': {
         mediaStorageDesc: panel.querySelector('.media-storage-desc'),
-        usbEnabledCheckBox: panel.querySelector('.usb-switch'),
-        usbStorage: panel.querySelector('#menuItem-enableStorage'),
-        usbEnabledInfoBlock: panel.querySelector('.usb-desc'),
+        usbEnabledCheckBox: panel.querySelector('#menuItem-enableStorage'),
+        usbStorageLabel: panel.querySelector('#menuItem-enableStorage .name'),
+        usbEnabledInfoBlock: panel.querySelector('#usb-desc'),
         umsWarningDialog: storageDialog,
         umsConfirmButton: storageDialog.querySelector('.ums-confirm-option'),
         umsCancelButton: storageDialog.querySelector('.ums-cancel-option'),

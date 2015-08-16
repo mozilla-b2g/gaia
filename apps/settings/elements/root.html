@@ -12,16 +12,14 @@
       </header>
       <ul>
         <li data-category="connectivity">
-          <label class="pack-switch">
-            <input class="airplaneMode-input uninit" type="checkbox" disabled>
-            <span id="menuItem-airplaneMode" class="menu-item" data-icon="airplane" data-l10n-id="airplaneMode"></span>
-          </label>
+          <gaia-switch class="airplaneMode-input uninit" disabled>
+            <label id="menuItem-airplaneMode" class="menu-item" data-icon="airplane" data-l10n-id="airplaneMode"></label>
+          </gaia-switch>
         </li>
         <li>
-          <label class="pack-switch">
-            <input name="geolocation.enabled" class="uninit" type="checkbox">
-            <span id="menuItem-gps" class="menu-item" data-icon="location" data-l10n-id="geolocation"></span>
-          </label>
+          <gaia-switch name="geolocation.enabled" class="uninit">
+            <label id="menuItem-gps" class="menu-item" data-icon="location" data-l10n-id="geolocation"></label>
+          </gaia-switch>
         </li>
         <li data-category="connectivity">
           <a id="menuItem-wifi" class="menu-item" data-icon="wifi-4" href="#wifi" data-l10n-id="wifiSection" aria-describedby="wifi-desc">
@@ -60,10 +58,9 @@
           </a>
         </li>
         <li class="nfc-settings" hidden>
-          <label class="pack-switch">
-            <input id="nfc-input" name="nfc.enabled" class="uninit" type="checkbox">
-            <span id="menuItem-nfc" class="menu-item" data-icon="nfc" data-l10n-id="nfc"></span>
-          </label>
+          <gaia-switch id="nfc-input" name="nfc.enabled" class="uninit">
+            <label id="menuItem-nfc" class="menu-item" data-icon="nfc" data-l10n-id="nfc"></label>
+          </gaia-switch>
         </li>
         <li>
           <a id="menuItem-internetSharing" class="menu-item" data-icon="tethering" href="#hotspot" data-l10n-id="internetSharingSection" aria-describedby="internetSharing-desc">
@@ -186,15 +183,11 @@
         <h2 data-l10n-id="storage"></h2>
       </header>
       <ul>
-        <li class="pack-split usb-item">
-          <label class="pack-switch" role="presentation">
-            <input class="usb-switch" data-ignore type="checkbox" disabled data-l10n-id="enableStorageSection" aria-describedby="usb-desc">
-            <span></span>
-          </label>
-          <label id="menuItem-enableStorage" class="name" aria-hidden="true">
-            <span class="menu-item" data-icon="usb" data-l10n-id="enableUSBStorage1"></span>
-            <small id="usb-desc" class="usb-desc menu-item-desc">Disabled</small>
-          </label>
+        <li class="usb-item">
+          <gaia-switch id="menuItem-enableStorage" data-ignore disabled>
+            <label class="name menu-item" data-icon="usb" data-l10n-id="enableUSBStorage1"></label>
+            <details id="usb-desc"></details>
+          </gaia-switch>
         </li>
         <li class="media-storage-section">
           <a class="menuItem-mediaStorage menu-item" data-icon="media-storage" href="#mediaStorage" data-l10n-id="mediaStorageSection" aria-describedby="media-storage-desc">

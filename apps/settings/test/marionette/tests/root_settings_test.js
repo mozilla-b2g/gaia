@@ -111,7 +111,9 @@ marionette('check root panel settings', function() {
       test('check default value', function() {
         assert.ok(!rootPanel.usbStorageCheckboxChecked,
           'usb storage should be disabled by default');
-        assert.equal(rootPanel.usbStorageDesc, 'Disabled');
+        client.waitFor(function() {
+          return rootPanel.usbStorageDesc === 'Disabled';
+        });
       });
 
       test.skip('enable usb storage', function() {
