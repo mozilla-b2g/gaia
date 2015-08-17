@@ -1,11 +1,64 @@
+/* exported View */
+
 window.View = (function() {
+'use strict';
 
 var debug = 1 ? (...args) => console.log('[View]', ...args) : () => {};
+
+if (!window.parent.SERVICE_WORKERS) {
+  window.fetch = function(url) {
+    console.log('**** fetch() ****', url);
+
+    var mappings = {
+      '/api/albums/list': 'getAlbums',
+      '/api/albums/info*': 'getAlbum',
+
+      '/api/artists/list': 'getArtists',
+      '/api/artists/info*': 'getArtist',
+
+      '/api/artwork/original*': 'getSongArtwork',
+      '/api/artwork/thumbnail*': 'getSongThumbnail',
+
+      '/api/audio/play': 'play',
+      '/api/audio/play*': 'play',
+      '/api/audio/pause': 'pause',
+      '/api/audio/seek/*': 'seek',
+      '/api/audio/status': 'getPlaybackStatus',
+
+      '/api/songs/list': 'getSongs',
+      '/api/songs/info*': 'getSong',
+      '/api/songs/share*': 'shareSong'
+    };
+
+    for (var key in mappings) {
+      var mapping = mappings[key];
+      var param = undefined;
+      if (key.endsWith('*')) {
+        key = key.substring(0, key.length - 1);
+        param = decodeURIComponent(url.substring(key.length));
+      }
+
+      if ((key === url && param === undefined) ||
+          (url.startsWith(key) && param !== undefined)) {
+        return window.parent.client.method(mapping, param).then((result) => {
+          return {
+            blob: () => Promise.resolve(result),
+            json: () => Promise.resolve(result)
+          };
+        });
+      }
+    }
+  };
+}
 
 function View() {
   this.params = {};
 
-  window.parent.location.search.substr(1).split('&').forEach((param) => {
+  var parts = window.parent.location.href.split('?');
+  parts.shift();
+
+  var query = parts.join('?');
+  query.split('&').forEach((param) => {
     var parts = param.split('=');
     this.params[parts[0]] = parts[1];
   });

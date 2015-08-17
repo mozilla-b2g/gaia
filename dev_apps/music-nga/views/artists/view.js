@@ -1,4 +1,5 @@
 /* global threads, View */
+'use strict';
 
 var debug = 1 ? (...args) => console.log('[ArtistsView]', ...args) : () => {};
 
@@ -25,7 +26,6 @@ var ArtistsView = View.extend(function ArtistsView() {
   View.preserveListScrollPosition(this.list);
 
   this.client = threads.client('music-service', window.parent);
-
   this.client.on('databaseChange', () => this.update());
 
   this.update();
@@ -38,9 +38,11 @@ ArtistsView.prototype.update = function() {
   });
 };
 
-// ArtistsView.prototype.destroy = function() {
-//   View.prototype.destroy.call(this); // super(); // Always call *last*
-// };
+ArtistsView.prototype.destroy = function() {
+  this.client.destroy();
+
+  View.prototype.destroy.call(this); // super(); // Always call *last*
+};
 
 ArtistsView.prototype.title = 'Artists';
 
@@ -51,7 +53,7 @@ ArtistsView.prototype.render = function() {
 };
 
 ArtistsView.prototype.getArtists = function() {
-  return fetch('/api/artists').then(response => response.json());
+  return fetch('/api/artists/list').then(response => response.json());
 };
 
 window.view = new ArtistsView();

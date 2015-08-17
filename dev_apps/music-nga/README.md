@@ -3,26 +3,24 @@ music-nga
 
 Experiments in re-building the FxOS Music app using NGA
 
-To set up development environment, clone this repo then run:
-- `npm install`
-- `bower install`
+To install from Gaia:
+- From the Gaia repo's root directory, run `make install-gaia APP=music-nga`
 
-You may also occassionally need to run `bower update` to fetch the latest dependencies.
+Note: To install an experimental build that utilizes Service Workers for the backend API, use the `SERVICE_WORKERS=1` flag.
 
 To run on Firefox OS device:
 - Ensure "USB Debugging" is set to "ADB+DevTools" in "Settings" > "Developer"
 - Open "WebIDE" in Firefox desktop
 - Select your device from the right-hand "Runtime" menu
 - Select "Open App" from the left-hand menu and choose "Open Packaged App..."
-- Browse to the root folder of this repo
+- Browse to the root folder of this app in the repo
 - Press "Run" to push to the device
 
 Note: Be sure to "Request Higher Permissions" under "Runtime Info" for your device and set `dom.serviceWorkers.enabled` to `true` under "Device Preferences" before running the app.
 
 Running a local web server for development:
-- Install [nws](https://www.npmjs.com/package/nws)
-  + `npm install -g nws`
-- From this repo's root directory, run `nws` (automatically serves up this app from HTTP port 3030)
+- Run `npm install`
+- From this app's root directory, run `npm run serve` (automatically serves up this app from HTTP port 3030)
 
 To run on Firefox desktop (Developer Edition *RECOMMENDED*):
 - Check "Enable multi-process Firefox" in `about:preferences` > "General"

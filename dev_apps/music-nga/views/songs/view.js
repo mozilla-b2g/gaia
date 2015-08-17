@@ -1,4 +1,5 @@
 /* global threads, View */
+'use strict';
 
 var debug = 1 ? (...args) => console.log('[SongsView]', ...args) : () => {};
 
@@ -57,9 +58,11 @@ SongsView.prototype.update = function() {
   });
 };
 
-// SongsView.prototype.destroy = function() {
-//   View.prototype.destroy.call(this); // super(); // Always call *last*
-// };
+SongsView.prototype.destroy = function() {
+  this.client.destroy();
+
+  View.prototype.destroy.call(this); // super(); // Always call *last*
+};
 
 SongsView.prototype.title = 'Songs';
 
@@ -71,7 +74,7 @@ SongsView.prototype.render = function() {
 
 SongsView.prototype.getSongs = function() {
   console.time('getSongs');
-  return fetch('/api/songs')
+  return fetch('/api/songs/list')
     .then(response => response.json())
     .then(songs => {
       console.timeEnd('getSongs');
