@@ -87,3 +87,17 @@ class Browser(Base):
         Wait(self.marionette).until(expected.element_displayed(button))
         button.tap()
 
+
+class PrivateWindow(Browser):
+    _browser_app_locator = (By.CSS_SELECTOR, 'div.browser.private[transition-state="opened"]')
+    _url_bar_locator = (By.CSS_SELECTOR, '.urlbar .title')
+
+    def go_to_url(self, url):
+        # In private windows, the URL bar displayed is not the regular Rocket bar. But once you
+        # tap that URL bar, the regular Rocketbar comes back, in front of the private window.
+        # That's why we wait for the private window to be hidden
+        self._root_element.find_element(*self._url_bar_locator).tap()
+        Wait(self.marionette).until(lambda m: self._root_element.get_attribute('aria-hidden') == 'true')
+        from gaiatest.apps.homescreen.regions.search_panel import SearchPanel
+        search_panel = SearchPanel(self.marionette)
+        return search_panel.go_to_url(url)
