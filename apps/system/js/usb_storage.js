@@ -225,11 +225,21 @@
      * @param {Number} protocol current protocol denotes ums or mtp.
      */
     _keyMigration: function(protocol) {
-      if (protocol === undefined) {
+      if (protocol === undefined || protocol === 'auto') {
+        protocol = this.protocolUMS;
+        var storages = navigator.getDeviceStorages('sdcard');
+        for (var i = 0; i < storages.length; i++) {
+          var storage = storages[i];
+          if (storage.storageName == 'sdcard') {
+            if (!storage.canBeShared) {
+              protocol = this.protocolMTP;
+            }
+            break;
+          }
+        }
         var cset = {};
-        cset[this.usbTransferProtocol] = this.protocolUMS;
+        cset[this.usbTransferProtocol] = protocol;
         navigator.mozSettings.createLock().set(cset);
-        return this.protocolUMS;
       }
       return protocol;
     },
