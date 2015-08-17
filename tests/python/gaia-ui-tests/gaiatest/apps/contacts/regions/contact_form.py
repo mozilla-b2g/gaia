@@ -23,6 +23,7 @@ class ContactForm(Base):
     _add_new_email_locator = (By.ID, 'add-new-email')
     _add_new_address_locator = (By.ID, 'add-new-address')
     _add_new_note_locator = (By.ID, 'add-new-note')
+    _add_new_phone_locator = (By.ID, 'add-new-phone')
     _screen_locator = (By.ID, 'screen')
     _statusbar_locator = (By.ID, 'statusbar')
 
@@ -51,6 +52,8 @@ class ContactForm(Base):
         return self.marionette.find_element(*self._phone_locator).text
 
     def type_phone(self, value):
+        Wait(self.marionette).until(
+            expected.element_present(*self._add_new_phone_locator)).tap()
         element = self.marionette.find_element(*self._phone_locator)
         element.clear()
         element.send_keys(value)
@@ -114,8 +117,13 @@ class ContactForm(Base):
         element.send_keys(value)
 
     def tap_comment(self):
-        self.marionette.find_element(*self._add_new_note_locator).tap()
+        element = self.marionette.find_element(*self._add_new_note_locator)
+        element.tap()
+        self.marionette.execute_script(
+            'arguments[0].scrollIntoView(true);', [element])
         element = self.marionette.find_element(*self._comment_locator)
+        self.marionette.execute_script(
+            'arguments[0].scrollIntoView(true);', [element])
         element.tap()
 
     @property
