@@ -73,12 +73,26 @@ Homescreen.prototype = {
   },
 
   /**
+   * Fetch an icon element on the homescreen by its identifier.
+   * For apps, the identifier is the manifestURL, or its manifestURL,
+   * followed by a '/' followed by its entry point. For bookmarks, the
+   * identifier is the bookmarked URL.
+   *
+   * @param {String} identifier The identifier of the icon.
+   * @return {Marionette.Element}
+   */
+  getIcon: function(identifier) {
+    return this.client.findElement(
+      Homescreen.Selectors.apps + ' [data-identifier*="' + identifier + '"]');
+  },
+
+  /**
    * Fetch an icon element on the homescreen by its name.
    *
    * @param {String} name The name of the icon.
    * @return {Marionette.Element}
    */
-  getIconByName: function(name, entryPoint) {
+  getIconByName: function(name) {
     function getName(icon) {
       return icon.shadowRoot.querySelector('#subtitle').textContent;
     }
@@ -105,6 +119,67 @@ Homescreen.prototype = {
   },
 
   /**
+   * Returns a homescreen icon element's image URL.
+   *
+   * @param {Marionette.Element} icon A homescreen icon element reference.
+   */
+  getIconImageUrl: function(icon) {
+    return icon.scriptWith(function(el) {
+      return el.dataset.testIconUrl;
+    });
+  },
+
+  /**
+   * Returns true if a homescreen icon is in a loading state, false otherwise.
+   *
+   * @param {Marionette.Element} icon A homescreen icon element reference.
+   */
+  iconIsLoading: function(icon) {
+    return icon.scriptWith(function(el) {
+      return el.shadowRoot.querySelector('#image-container').
+        classList.contains('downloading');
+    });
+  },
+
+  /**
+   * Launches an icon and switches to the corresponding application.
+   *
+   * @param {Marionette.Element} icon A homescreen icon element reference.
+   */
+  launchIcon: function(icon) {
+    var identifier =
+      icon.scriptWith(function(el) { return el.dataset.identifier; });
+    icon.tap();
+
+    var identifierWithoutEntryPoint = identifier.replace(/\/[^\/]*$/, '');
+    var client = this.client.scope({ searchTimeout: 100 });
+    var frame;
+    client.switchToFrame();
+
+    client.waitFor(function() {
+      // wait for the app to show up
+      try {
+        frame = client.findElement('iframe[mozapp="' + identifier + '"]');
+      } catch (e1) {
+        try {
+          frame = client.findElement(
+            'iframe[mozapp="' + identifierWithoutEntryPoint + '"]');
+        } catch(e2) {
+          try {
+            frame = client.findElement(
+              'iframe[data-frame-origin*="' + identifier + '"]');
+          } catch (e3) {
+            // try again...
+            return false;
+          }
+        }
+      }
+      client.switchToFrame(frame);
+      return true;
+    }.bind(this));
+  },
+
+  /**
    * Opens the settings menu by long-pressing on the empty space at the bottom
    * of the icon grid.
    */
@@ -118,6 +193,19 @@ Homescreen.prototype = {
             wait(0.5).
             release().
             perform();
+  },
+
+  /**
+   * Restart the homescreen then refocus on it.
+   */
+  restart: function() {
+    this.client.executeScript(function() {
+      window.close();
+    });
+
+    // initialize our frames again since we killed the iframe
+    this.client.switchToFrame();
+    this.client.switchToFrame(this.system.getHomescreenIframe());
   },
 
   /**
