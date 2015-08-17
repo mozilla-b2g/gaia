@@ -62,6 +62,7 @@ window.GaiaAppIcon = (function(exports) {
         this._app.removeEventListener('downloadapplied', this);
       }
 
+      delete this.dataset.testIconUrl;
       this._cancelIconLoad();
       this._removeOldIcon();
       this._hasIcon = false;
@@ -183,8 +184,11 @@ window.GaiaAppIcon = (function(exports) {
         this._relayout();
         this._prepareIconLoader();
         this._hasUserSetIcon = true;
+        this._pendingIconUrl = 'user-set';
         this._image.src = URL.createObjectURL(blob);
       } else {
+        this._pendingIconUrl = null;
+        delete this.dataset.testIconUrl;
         this._cancelIconLoad();
         this._removeOldIcon();
       }
@@ -198,6 +202,7 @@ window.GaiaAppIcon = (function(exports) {
       return;
     }
 
+    this._pendingIconUrl = null;
     this._image.onload = null;
     this._image.src = '';
     this._image = null;
@@ -244,6 +249,31 @@ window.GaiaAppIcon = (function(exports) {
     this._image = document.createElement('img');
 
     this._image.onload = () => {
+      this._image.onload = () => {
+        // Add new icon
+        this._removeOldIcon();
+        this._container.appendChild(this._image);
+        this._container.classList.remove('initial-load');
+        this._image = null;
+        this._hasIcon = true;
+
+        if (!this._hasPredefinedIcon && !this._hasUserSetIcon) {
+          this.dispatchEvent(new CustomEvent('icon-loaded'));
+        }
+
+        // Set icon URL on dataset, for testing.
+        if (this._pendingIconUrl) {
+          this.dataset.testIconUrl = this._pendingIconUrl;
+          this._pendingIconUrl = null;
+        }
+
+        if (this._pendingIconRefresh) {
+          this._image = null;
+          this._pendingIconRefresh = false;
+          this.refresh();
+        }
+      };
+
       if (!this._hasUserSetIcon) {
         // Process the image
         var canvas = document.createElement('canvas');
@@ -309,22 +339,6 @@ window.GaiaAppIcon = (function(exports) {
         }.bind(this, this._image));
       }
 
-      this._image.onload = () => {
-        // Add new icon
-        this._removeOldIcon();
-        this._container.appendChild(this._image);
-        this._container.classList.remove('initial-load');
-        this._image = null;
-        this._hasIcon = true;
-
-        if (this._pendingIconRefresh) {
-          this._pendingIconRefresh = false;
-          this.refresh();
-        } else if (!this._hasPredefinedIcon) {
-          this.dispatchEvent(new CustomEvent('icon-loaded'));
-        }
-      };
-
       if (this._hasUserSetIcon) {
         this._image.onload();
       }
@@ -332,6 +346,8 @@ window.GaiaAppIcon = (function(exports) {
 
     this._image.onerror = (e) => {
       console.error('Failed to load icon', e);
+      this._pendingIconUrl = null;
+
       if (this._pendingIconRefresh) {
         this._pendingIconRefresh = false;
         this._image = null;
@@ -347,7 +363,7 @@ window.GaiaAppIcon = (function(exports) {
 
   proto._setPredefinedIcon = function(name) {
     this._hasPredefinedIcon = true;
-    this._image.src = this._predefinedIcons[name];
+    this._image.src = this._pendingIconUrl = this._predefinedIcons[name];
   };
 
   proto._relayout = function() {
@@ -357,27 +373,64 @@ window.GaiaAppIcon = (function(exports) {
     this._size *= window.devicePixelRatio;
   };
 
+  proto._localizeString = function(str) {
+    var userLang = document.documentElement.lang;
+
+    // We want to make sure that we tranlsate only if we're using
+    // a runtime pseudolocale.
+    // mozL10n.ctx.qps contains only runtime pseudolocales
+    if (navigator.mozL10n &&
+        navigator.mozL10n.ctx.qps.indexOf(userLang) !== -1) {
+      return navigator.mozL10n.qps[userLang].translate(str);
+    }
+    return str;
+  };
+
+  proto.updateName = function() {
+    if (this.app) {
+      var userLang = document.documentElement.lang;
+      var ep = this.entryPoint || undefined;
+
+      this.app.getLocalizedValue('short_name', userLang, ep).then(
+        (shortName) => {
+          this._subtitle.textContent = this._localizeString(shortName);
+        },
+        this.app.getLocalizedValue.bind(this.app, 'name', userLang, ep)).then(
+          (name) => {
+            this._subtitle.textContent = this._localizeString(name);
+          },
+          (e) => {
+            console.error('Error retrieving app name', e);
+          });
+    } else if (this.bookmark) {
+      this._subtitle.textContent = this.bookmark.name;
+    } else {
+      this._subtitle.textContent = '';
+    }
+  };
+
   proto.refresh = function() {
     if (!this._template) {
       return;
     }
 
+    this.updateName();
+
     this._relayout();
     this._container.classList.remove('downloading');
 
-    var manifest =
-      this.app ? (this.app.manifest || this.app.updateManifest) : null;
-    var name = '';
-    if (manifest) {
-      var manifestName = (manifest.entry_points && this.entryPoint) ?
-        manifest.entry_points[this.entryPoint] : manifest;
-      name = manifestName.short_name || manifestName.name;
+    // Set an identifier on the icon to help with automated testing.
+    if (this.app) {
+      this.dataset.identifier = this.app.manifestURL +
+        (this.entryPoint ? '/' + this.entryPoint : '');
     } else if (this.bookmark) {
-      name = this.bookmark.name;
+      this.dataset.identifier = this.bookmark.id;
+    } else {
+      delete this.dataset.identifier;
     }
-    this._subtitle.textContent = name;
 
-    if (this._size < 1 || (!this.app && !this.bookmark)) {
+    // If the icon won't be visible, don't bother fetching and processing it.
+    if (this._size < 1) {
       return;
     }
 
@@ -399,6 +452,8 @@ window.GaiaAppIcon = (function(exports) {
         xhr.open('GET', this.bookmark.icon, true);
         xhr.responseType = 'blob';
         xhr.timeout = ICON_FETCH_TIMEOUT;
+
+        this._pendingIconUrl = this.bookmark.icon;
 
         xhr.onload = function load(image) {
           if (!image.onload) {
@@ -457,6 +512,7 @@ window.GaiaAppIcon = (function(exports) {
       case 'installed':
         navigator.mozApps.mgmt.getIcon(this.app, this._size, this.entryPoint).
           then(function(image, blob) {
+            this._pendingIconUrl = 'app-icon';
             if (image.onload) {
               image.src = URL.createObjectURL(blob);
             }
@@ -465,6 +521,8 @@ window.GaiaAppIcon = (function(exports) {
             console.error('Failed to retrieve icon', e);
             if (image.onload && !this._hasIcon) {
               this._setPredefinedIcon('default');
+            } else {
+              this._image = null;
             }
           }.bind(this, this._image));
         break;

@@ -45,13 +45,12 @@ class RingTone(Base):
         return self.marionette.find_element(*self._screen_locator)
 
     class RingToneItem(PageRegion):
-        _name_locator = (By.CSS_SELECTOR, 'p.name')
-        _radio_button_locator = (By.CSS_SELECTOR, 'label.pack-radio')
+        _radio_button_locator = (By.CSS_SELECTOR, 'gaia-radio')
         _actions_button_locator = (By.CLASS_NAME, 'actions-button')
 
         @property
         def name(self):
-            return self.root_element.find_element(*self._name_locator).text
+            return self.root_element.text
 
         def select_ring_tone(self):
             self.root_element.find_element(*self._radio_button_locator).tap()

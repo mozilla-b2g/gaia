@@ -26,8 +26,8 @@ marionette('check device information settings', function() {
     assert.notEqual(deviceInfoPanel.isDevelopMenuEnabled,
       isDevelopMenuDefaultEnabled);
     deviceInfoPanel.tapDeviceInfoBackBtn();
-    assert.notEqual(deviceInfoPanel.isDeveloperMenuItemVisible,
-      isDevelopMenuDefaultEnabled);
+    assert.equal(false, deviceInfoPanel.isDeveloperMenuItemVisible);
+    assert.equal(false, isDevelopMenuDefaultEnabled);
   });
 
   test('check your rights panel', function() {

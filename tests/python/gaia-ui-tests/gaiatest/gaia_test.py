@@ -186,7 +186,6 @@ class GaiaApps(object):
 class GaiaData(object):
 
     def __init__(self, marionette, testvars=None):
-        self.apps = GaiaApps(marionette)
         self.marionette = marionette
         self.testvars = testvars or {}
         js = os.path.abspath(os.path.join(__file__, os.path.pardir, 'atoms', "gaia_data_layer.js"))
@@ -835,6 +834,7 @@ class GaiaDevice(object):
 class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
     def __init__(self, *args, **kwargs):
         self.restart = kwargs.pop('restart', False)
+        self.locale = kwargs.pop('locale')
         MarionetteTestCase.__init__(self, *args, **kwargs)
         B2GTestCaseMixin.__init__(self, *args, **kwargs)
 
@@ -1065,6 +1065,9 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
         defaults = DEFAULT_SETTINGS.copy()
         defaults.update(self.testvars.get('settings', {}))
         defaults = self.modify_settings(defaults)
+
+        if self.locale != 'undefined':
+                defaults['language.current'] = self.locale
 
         if self.device.is_desktop_b2g:
             directory = self.marionette.instance.profile_path

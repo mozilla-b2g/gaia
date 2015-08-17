@@ -269,12 +269,8 @@ class Ftu(Base):
 
     @property
     def is_geolocation_enabled(self):
-        # The following should work, but doesn't, see bug 1113742, hence the execute_script
-        # return self.marionette.find_element(
-        #     *self._statistic_checkbox_locator).is_selected()
         element = self.marionette.find_element(*self._enable_geolocation_checkbox_locator)
-        return self.marionette.execute_script(
-            "return window.wrappedJSObject.document.getElementById('geolocation-switch').checked;")
+        return self.is_custom_element_checked(element)
 
     def a11y_disable_geolocation(self):
         element = Wait(self.marionette).until(
@@ -349,12 +345,8 @@ class Ftu(Base):
 
     @property
     def is_share_data_enabled(self):
-        # The following should work, but doesn't, see bug 1113742, hence the execute_script
-        # return self.marionette.find_element(
-        #     *self._statistic_checkbox_locator).is_selected()
         element = self.marionette.find_element(*self._statistic_checkbox_locator)
-        return self.marionette.execute_script(
-            "return window.wrappedJSObject.document.getElementById('share-performance').checked;")
+        return self.is_custom_element_checked(element)
 
     def toggle_share_data(self):
         # Use for functional operation vs. UI operation

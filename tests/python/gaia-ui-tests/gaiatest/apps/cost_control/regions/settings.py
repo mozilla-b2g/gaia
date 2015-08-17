@@ -45,12 +45,8 @@ class Settings(Base):
 
     @property
     def is_data_alert_switch_checked(self):
-        # The following should work, but doesn't, see bug 1113742, hence the execute_script
-        # return self.marionette.find_element(
-        #     *self._data_alert_switch_locator).is_selected()
-        return self.marionette.execute_script("""
-            return window.wrappedJSObject.document.querySelector('gaia-switch[data-option="dataLimit"]').checked;
-         """)
+        element = self.marionette.find_element(*self._data_alert_switch_locator)
+        return self.is_custom_element_checked(mobileswitch)
 
     def select_when_use_is_above_unit_and_value(self, unit, value):
         when_use_is_above_button = self.marionette.find_element(*self._when_use_is_above_button_locator)

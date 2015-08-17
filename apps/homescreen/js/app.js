@@ -102,6 +102,8 @@ const SETTINGS_VERSION = 0;
     navigator.mozApps.mgmt.addEventListener('install', this);
     navigator.mozApps.mgmt.addEventListener('uninstall', this);
     window.addEventListener('hashchange', this);
+    window.addEventListener('localized', this);
+    window.addEventListener('online', this);
 
     // Restore settings
     this.restoreSettings();
@@ -148,6 +150,7 @@ const SETTINGS_VERSION = 0;
     };
 
     this.startupMetadata = [];
+    this.iconsToRetry = [];
     this.metadata = new HomeMetadata();
     this.bookmarks = new Datastore('bookmarks_store');
     Promise.all([
@@ -326,8 +329,15 @@ const SETTINGS_VERSION = 0;
       }
 
       // Save the refreshed icon
+      this.iconsToRetry.push(id);
       icon.addEventListener('icon-loaded', function(icon, id) {
         icon.icon.then((blob) => {
+          // Remove icon from list of icons to retry when we go online
+          var retryIndex = this.iconsToRetry.indexOf(id);
+          if (retryIndex !== -1) {
+            this.iconsToRetry.splice(retryIndex, 1);
+          }
+
           this.metadata.set([{ id: id, icon: blob }]).then(
             () => {},
             (e) => {
@@ -422,7 +432,7 @@ const SETTINGS_VERSION = 0;
     },
 
     handleEvent: function(e) {
-      var icon;
+      var icon, child, id;
 
       switch (e.type) {
       // Show the settings menu when the user long-presses and we aren't in
@@ -682,10 +692,10 @@ const SETTINGS_VERSION = 0;
           this.snapScrollPosition(0);
         };
 
-        for (var child of this.icons.children) {
+        for (child of this.icons.children) {
           icon = child.firstElementChild;
           if (icon.app && icon.app.manifestURL === e.application.manifestURL) {
-            var id = e.application.manifestURL + '/' +
+            id = e.application.manifestURL + '/' +
               (icon.entryPoint ? icon.entryPoint : '');
             this.metadata.remove(id).then(() => {},
               (e) => {
@@ -703,6 +713,28 @@ const SETTINGS_VERSION = 0;
       case 'hashchange':
         if (!document.hidden) {
           this.scrollable.scrollTo({ left: 0, top: 0, behavior: 'smooth' });
+        }
+        break;
+
+      case 'localized':
+        for (icon of this.icons.children) {
+          icon.firstElementChild.updateName();
+        }
+        this.icons.synchronise();
+        break;
+
+      case 'online':
+        for (var i = 0, iLen = this.iconsToRetry.length; i < iLen; i++) {
+          for (child of this.icons.children) {
+            icon = child.firstElementChild;
+            id = icon.app ?
+              (icon.app.manifestURL + '/' +
+               (icon.entryPoint ? icon.entryPoint : '')) : icon.bookmark.id;
+            if (id === this.iconsToRetry[i]) {
+              icon.refresh();
+              break;
+            }
+          }
         }
         break;
       }

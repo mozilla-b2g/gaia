@@ -101,12 +101,25 @@ SystemAppBuilder.prototype.integrateLockScreenInputpad = function(options) {
 SystemAppBuilder.prototype.inlineDeviceType = function(options) {
   var stagePath = options.STAGE_APP_DIR;
   var deviceType = options.GAIA_DEVICE_TYPE;
+  var basemodulePath = [stagePath, 'js', 'base_module.js'];
+  var basemoduleFile = utils.getFile.apply(utils, basemodulePath);
+  var basemoduleContent = utils.getFileContent(basemoduleFile);
   var featureDetectorPath = [stagePath, 'js', 'feature_detector.js'];
   var featureDetectorFile = utils.getFile.apply(utils, featureDetectorPath);
   var featureDetectorContent = utils.getFileContent(featureDetectorFile);
 
   // `this.deviceType = '_GAIA_DEVICE_TYPE_';` will be replaced by real device
   // type, take phone for example, result will be: this.deviceType = 'phone';
+  // Only override necessary modules below in build time.
+  // For common case, using standard method Service.query('getDeviceType') to
+  // get device type
+  utils.writeContent(
+    basemoduleFile,
+    basemoduleContent.replace(
+      /this\.deviceType = \'_GAIA_DEVICE_TYPE_\';/,
+      'this.deviceType = \'' + deviceType + '\';')
+  );
+
   utils.writeContent(
     featureDetectorFile,
     featureDetectorContent.replace(

@@ -19,9 +19,14 @@ class GaiaOptionsMixin(object):
                          default=False,
                          help='restart target instance between tests')
 
+        # when this parameter is not set, the test will run with the currently set language on the phone
+        group.add_option('--locale',
+                         default="undefined",
+                         help="locale for the device, "
+                                "This value overrides the value from testvars.json file")
 
 class GaiaTestRunnerMixin(object):
-
+    
     def __init__(self, **kwargs):
         width = 80
         if not (self.testvars.get('acknowledged_risks') is True or os.environ.get('GAIATEST_ACKNOWLEDGED_RISKS')):

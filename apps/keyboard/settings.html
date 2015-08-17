@@ -7,7 +7,6 @@
   <title>Keyboard Settings</title>
   <!-- <link rel="stylesheet" type="text/css" href="shared/elements/gaia-icons/gaia-icons.css" /> -->
   <link rel="stylesheet" type="text/css" href="app://theme.gaiamobile.org/shared/elements/gaia-theme/gaia-theme.css" />
-  <link rel="stylesheet" type="text/css" href="shared/style/switches.css"/>
   <link rel="stylesheet" type="text/css" href="shared/style/headers.css"/>
   <link rel="stylesheet" type="text/css" href="shared/style/lists.css"/>
   <link rel="stylesheet" type="text/css" href="shared/style/buttons.css"/>
@@ -26,6 +25,7 @@
   <script defer src="shared/elements/gaia-toast/gaia-toast.js"></script>
   <script defer src="shared/elements/gaia_subheader/script.js"></script>
   <script defer src="shared/elements/gaia_buttons/script.js"></script>
+  <script defer src="shared/elements/gaia_checkbox/script.js"></script>
   <script defer src="shared/elements/gaia_confirm/script.js"></script>
 
   <!-- L10n -->
@@ -66,43 +66,27 @@
       <section data-type="list" id="general-settings">
         <ul>
           <li>
-            <aside class="pack-end">
-              <label class="pack-checkbox">
-                <input type="checkbox" data-setting="keyboard.vibration" disabled checked id="cb-vibration">
-                <span></span>
-              </label>
-            </aside>
-            <p><label data-l10n-id="vibration" for="cb-vibration"></label></p>
+            <gaia-checkbox data-setting="keyboard.vibration" disabled checked id="cb-vibration">
+              <label data-l10n-id="vibration"></label>
+            </gaia-checkbox>
           </li>
 
           <li>
-            <aside class="pack-end">
-              <label class="pack-checkbox">
-                <input type="checkbox" data-setting="keyboard.clicksound" disabled checked id="cb-clickSound">
-                <span></span>
-              </label>
-            </aside>
-            <p><label data-l10n-id="clickSound" for="cb-clickSound"></label></p>
+            <gaia-checkbox data-setting="keyboard.clicksound" disabled checked id="cb-clickSound">
+              <label data-l10n-id="clickSound"></label>
+            </gaia-checkbox>
           </li>
 
           <li>
-            <aside class="pack-end">
-              <label class="pack-checkbox">
-                <input type="checkbox" data-setting="keyboard.autocorrect" disabled checked id="cb-autoCorrect">
-                <span></span>
-              </label>
-            </aside>
-            <p><label data-l10n-id="autoCorrect" for="cb-autoCorrect"></label></p>
+            <gaia-checkbox data-setting="keyboard.autocorrect" disabled checked id="cb-autoCorrect">
+              <label data-l10n-id="autoCorrect"></label>
+            </gaia-checkbox>
           </li>
 
           <li>
-            <aside class="pack-end">
-              <label class="pack-checkbox">
-                <input type="checkbox" data-setting="keyboard.wordsuggestion" disabled checked id="cb-wordSuggestion">
-                <span></span>
-              </label>
-            </aside>
-            <p><label data-l10n-id="wordSuggestion" for="cb-wordSuggestion"></label></p>
+            <gaia-checkbox data-setting="keyboard.wordsuggestion" disabled checked id="cb-wordSuggestion">
+              <label data-l10n-id="wordSuggestion"></label>
+            </gaia-checkbox>
           </li>
 
           <!-- User dictionary settings <li> will be added here. -->

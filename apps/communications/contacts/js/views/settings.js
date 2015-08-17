@@ -449,9 +449,7 @@ contacts.Settings = (function() {
   // Listens for any change in the ordering preferences
   var onOrderingChange = function onOrderingChange(evt) {
     newOrderByLastName = orderCheckBox.checked;
-    utils.cookie.update({order: newOrderByLastName});
     updateOrderingUI();
-    Cache.evict();
   };
 
   // Import contacts from SIM card and updates ui
@@ -690,6 +688,8 @@ contacts.Settings = (function() {
     if (newOrderByLastName != null &&
         newOrderByLastName != orderByLastName && contacts.List) {
       contacts.List.setOrderByLastName(newOrderByLastName);
+      utils.cookie.update({order: newOrderByLastName});
+      Cache.evict();
       // Force the reset of the dom, we know that we changed the order
       contacts.List.load(null, true);
       orderByLastName = newOrderByLastName;

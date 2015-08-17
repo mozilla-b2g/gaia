@@ -18,7 +18,7 @@ define(function(require) {
     return SettingsPanel({
       onInit: function asr_onInit(rootElement) {
         _screenreaderSwitch =
-          rootElement.querySelector('#screenreader-enable input');
+          rootElement.querySelector('#screenreader-enable gaia-switch');
         var dialogContainer = rootElement.querySelector(
           '#screenreader-confirm-dialog');
 
@@ -28,12 +28,12 @@ define(function(require) {
           heading: dialogContainer.querySelector('h1'),
           text: dialogContainer.querySelector('p')});
 
-        _screenreaderSwitch.onclick = function toggleScreenreader(event) {
+        _screenreaderSwitch.addEventListener('click', event => {
           event.preventDefault();
           SettingsCache.getSettings(function(results) {
             ConfirmDialog.show(!results[kEnabledKey]);
           });
-        };
+        });
 
         SettingsListener.observe(kEnabledKey, false, function(value) {
           _screenreaderSwitch.checked = value;

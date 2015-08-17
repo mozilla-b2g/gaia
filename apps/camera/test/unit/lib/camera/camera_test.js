@@ -715,6 +715,10 @@ suite('lib/camera/camera', function() {
         }),
         resumePreview: sinon.stub()
       };
+
+      this.navigatorMozl10n = navigator.mozL10n;
+      navigator.mozL10n = { get: sinon.stub() };
+      this.sandbox.stub(window, 'alert');
     });
 
     test('Should emit a `busy` when picture taking starts', function() {
@@ -819,6 +823,22 @@ suite('lib/camera/camera', function() {
       var config = args[0];
 
       assert.ok(config.rotation === -90);
+    });
+
+    test('Should report an error when take picture fails', function() {
+      this.camera.mozCamera.takePicture.returns({
+        then: function(onSuccess, onError) { onError({name: 'NS_ERROR_FAILURE'}); }
+      });
+      this.camera.takePicture({});
+      assert.isTrue(alert.called);
+    });
+
+    test('Should not report an error when take picture interrupted', function() {
+      this.camera.mozCamera.takePicture.returns({
+        then: function(onSuccess, onError) { onError({name: 'NS_ERROR_IN_PROGRESS'}); }
+      });
+      this.camera.takePicture({});
+      assert.isFalse(alert.called);
     });
 
   });
@@ -988,10 +1008,10 @@ suite('lib/camera/camera', function() {
       sinon.assert.calledWith(this.camera.emit, 'configured');
     });
 
-    test('It attempts to re-request the camera if \'HardwareClosed\'', function() {
+    test('It attempts to re-request the camera if \'NS_ERROR_NOT_INITIALIZED\'', function() {
       navigator.mozCameras.getCamera.returns({
         then: function(onSuccess, onError) {
-          onError('HardwareClosed');
+          onError({name: 'NS_ERROR_NOT_INITIALIZED'});
         }
       });
 
@@ -1269,7 +1289,7 @@ suite('lib/camera/camera', function() {
 
       navigator.mozCameras.getCamera.returns({
         then: function(onSuccess, onError) {
-          onError('HardwareClosed');
+          onError({name: 'NS_ERROR_NOT_INITIALIZED'});
         }
       });
 

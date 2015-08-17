@@ -47,9 +47,7 @@ module.exports =
 
 	'use strict';
 
-	Object.defineProperty(exports, '__esModule', {
-	  value: true
-	});
+	exports.__esModule = true;
 	exports.getView = getView;
 
 	var _io = __webpack_require__(1);
@@ -58,18 +56,8 @@ module.exports =
 
 	var _libPseudo = __webpack_require__(5);
 
-	Object.defineProperty(exports, 'qps', {
-	  enumerable: true,
-	  get: function get() {
-	    return _libPseudo.qps;
-	  }
-	});
-	Object.defineProperty(exports, 'walkValue', {
-	  enumerable: true,
-	  get: function get() {
-	    return _libPseudo.walkValue;
-	  }
-	});
+	exports.qps = _libPseudo.qps;
+	exports.walkValue = _libPseudo.walkValue;
 
 	function getView(htmloptimizer) {
 	  var htmlFetch = function () {
@@ -87,9 +75,7 @@ module.exports =
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
-	Object.defineProperty(exports, '__esModule', {
-	  value: true
-	});
+	exports.__esModule = true;
 
 	var _libErrors = __webpack_require__(2);
 
@@ -118,9 +104,7 @@ module.exports =
 
 	'use strict';
 
-	Object.defineProperty(exports, '__esModule', {
-	  value: true
-	});
+	exports.__esModule = true;
 	exports.L10nError = L10nError;
 
 	function L10nError(message, id, lang) {
@@ -139,13 +123,7 @@ module.exports =
 
 	'use strict';
 
-	Object.defineProperty(exports, '__esModule', {
-	  value: true
-	});
-
-	var _slicedToArray = (function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }; })();
-
-	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+	exports.__esModule = true;
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
@@ -178,7 +156,7 @@ module.exports =
 
 	    var EnvClass = this.isLegacy ? _legacyEnv.LegacyEnv : _libEnv.Env;
 	    this.env = new EnvClass(htmloptimizer.config.GAIA_DEFAULT_LOCALE, fetch);
-	    this.ctx = this.env.createContext((0, _bindingsHtmlHead.getResourceLinks)(this.doc.head));
+	    this.ctx = this.env.createContext(_bindingsHtmlHead.getResourceLinks(this.doc.head));
 
 	    this.env.addEventListener('*', amendError.bind(this));
 
@@ -199,84 +177,74 @@ module.exports =
 	    }
 	  }
 
-	  _createClass(View, [{
-	    key: 'emit',
-	    value: function emit() {
-	      var _env;
+	  View.prototype.emit = function emit() {
+	    var _env;
 
-	      return (_env = this.env).emit.apply(_env, arguments);
-	    }
-	  }, {
-	    key: 'observe',
-	    value: function observe() {}
-	  }, {
-	    key: 'disconnect',
-	    value: function disconnect() {}
-	  }, {
-	    key: 'translateDocument',
-	    value: function translateDocument(code) {
-	      var _this = this;
+	    return (_env = this.env).emit.apply(_env, arguments);
+	  };
 
-	      var dir = (0, _bindingsHtmlLangs.getDirection)(code);
-	      var langs = [{ code: code, dir: dir, src: 'app' }];
-	      var setDocLang = function () {
-	        _this.doc.documentElement.lang = code;
-	        _this.doc.documentElement.dir = dir;
-	      };
-	      return this.ctx.fetch(langs).then(function (langs) {
-	        return (0, _bindingsHtmlDom.translateFragment)(_this, langs, _this.doc.documentElement);
-	      }).then(setDocLang);
-	    }
-	  }, {
-	    key: 'serializeResources',
-	    value: function serializeResources(code) {
-	      var _this2 = this;
+	  View.prototype.observe = function observe() {};
 
-	      var lang = {
-	        code: code,
-	        dir: (0, _bindingsHtmlLangs.getDirection)(code),
-	        src: code in _libPseudo.qps ? 'qps' : 'app'
-	      };
-	      return fetchContext(this.ctx, lang).then(function () {
-	        var _ref = _this2.isLegacy ? (0, _legacySerialize.serializeLegacyContext)(_this2.ctx, lang) : (0, _serialize.serializeContext)(_this2.ctx, lang);
+	  View.prototype.disconnect = function disconnect() {};
 
-	        var _ref2 = _slicedToArray(_ref, 2);
+	  View.prototype.translateDocument = function translateDocument(code) {
+	    var _this = this;
 
-	        var errors = _ref2[0];
-	        var entries = _ref2[1];
+	    var dir = _bindingsHtmlLangs.getDirection(code);
+	    var langs = [{ code: code, dir: dir, src: 'app' }];
+	    var setDocLang = function () {
+	      _this.doc.documentElement.lang = code;
+	      _this.doc.documentElement.dir = dir;
+	    };
+	    return this.ctx.fetch(langs).then(function (langs) {
+	      return _bindingsHtmlDom.translateFragment(_this, langs, _this.doc.documentElement);
+	    }).then(setDocLang);
+	  };
 
-	        if (errors.length) {
-	          var notFoundErrors = errors.filter(function (err) {
-	            return err.message.indexOf('not found') > -1;
-	          }).map(function (err) {
-	            return err.id;
-	          });
-	          var malformedErrors = errors.filter(function (err) {
-	            return err.message.indexOf('malformed') > -1;
-	          }).map(function (err) {
-	            return err.id;
-	          });
+	  View.prototype.serializeResources = function serializeResources(code) {
+	    var _this2 = this;
 
-	          if (notFoundErrors.length) {
-	            _this2.htmloptimizer.dump('[l10n] [' + lang.code + ']: ' + notFoundErrors.length + ' missing compared to en-US: ' + notFoundErrors.join(', '));
-	          }
-	          if (malformedErrors.length) {
-	            _this2.htmloptimizer.dump('[l10n] [' + lang.code + ']: ' + malformedErrors.length + ' malformed compared to en-US: ' + malformedErrors.join(', '));
-	          }
+	    var lang = {
+	      code: code,
+	      dir: _bindingsHtmlLangs.getDirection(code),
+	      src: code in _libPseudo.qps ? 'qps' : 'app'
+	    };
+	    return fetchContext(this.ctx, lang).then(function () {
+	      var _ref = _this2.isLegacy ? _legacySerialize.serializeLegacyContext(_this2.ctx, lang) : _serialize.serializeContext(_this2.ctx, lang);
+
+	      var errors = _ref[0];
+	      var entries = _ref[1];
+
+	      if (errors.length) {
+	        var notFoundErrors = errors.filter(function (err) {
+	          return err.message.indexOf('not found') > -1;
+	        }).map(function (err) {
+	          return err.id;
+	        });
+	        var malformedErrors = errors.filter(function (err) {
+	          return err.message.indexOf('malformed') > -1;
+	        }).map(function (err) {
+	          return err.id;
+	        });
+
+	        if (notFoundErrors.length) {
+	          _this2.htmloptimizer.dump('[l10n] [' + lang.code + ']: ' + notFoundErrors.length + ' missing compared to en-US: ' + notFoundErrors.join(', '));
 	        }
+	        if (malformedErrors.length) {
+	          _this2.htmloptimizer.dump('[l10n] [' + lang.code + ']: ' + malformedErrors.length + ' malformed compared to en-US: ' + malformedErrors.join(', '));
+	        }
+	      }
 
-	        return entries;
-	      });
-	    }
-	  }, {
-	    key: 'checkError',
-	    value: function checkError() {
-	      return {
-	        wait: false,
-	        error: this.stopBuildError
-	      };
-	    }
-	  }]);
+	      return entries;
+	    });
+	  };
+
+	  View.prototype.checkError = function checkError() {
+	    return {
+	      wait: false,
+	      error: this.stopBuildError
+	    };
+	  };
 
 	  return View;
 	})();
@@ -306,22 +274,24 @@ module.exports =
 
 /***/ },
 /* 4 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
 	'use strict';
 
-	Object.defineProperty(exports, '__esModule', {
-	  value: true
-	});
+	exports.__esModule = true;
 	exports.setAttributes = setAttributes;
 	exports.getAttributes = getAttributes;
 	exports.translateMutations = translateMutations;
 	exports.translateFragment = translateFragment;
 	exports.translateElement = translateElement;
 
-	var _libErrors = __webpack_require__(2);
-
 	var reOverlay = /<|&#?\w+;/;
+	var reHtml = /[&<>]/g;
+	var htmlEntities = {
+	  '&': '&amp;',
+	  '<': '&lt;',
+	  '>': '&gt;'
+	};
 
 	var allowed = {
 	  elements: ['a', 'em', 'strong', 'small', 's', 'cite', 'q', 'dfn', 'abbr', 'data', 'time', 'code', 'var', 'samp', 'kbd', 'sub', 'sup', 'i', 'b', 'u', 'mark', 'ruby', 'rt', 'rp', 'bdi', 'bdo', 'span', 'br', 'wbr'],
@@ -369,61 +339,44 @@ module.exports =
 	function translateMutations(view, langs, mutations) {
 	  var targets = new Set();
 
-	  var _iteratorNormalCompletion = true;
-	  var _didIteratorError = false;
-	  var _iteratorError = undefined;
+	  for (var _iterator = mutations, _isArray = Array.isArray(_iterator), _i = 0, _iterator = _isArray ? _iterator : _iterator[Symbol.iterator]();;) {
+	    var _ref;
 
-	  try {
-	    for (var _iterator = mutations[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-	      var mutation = _step.value;
+	    if (_isArray) {
+	      if (_i >= _iterator.length) break;
+	      _ref = _iterator[_i++];
+	    } else {
+	      _i = _iterator.next();
+	      if (_i.done) break;
+	      _ref = _i.value;
+	    }
 
-	      switch (mutation.type) {
-	        case 'attributes':
-	          targets.add(mutation.target);
-	          break;
-	        case 'childList':
-	          var _iteratorNormalCompletion2 = true;
-	          var _didIteratorError2 = false;
-	          var _iteratorError2 = undefined;
+	    var mutation = _ref;
 
-	          try {
-	            for (var _iterator2 = mutation.addedNodes[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-	              var addedNode = _step2.value;
+	    switch (mutation.type) {
+	      case 'attributes':
+	        targets.add(mutation.target);
+	        break;
+	      case 'childList':
+	        for (var _iterator2 = mutation.addedNodes, _isArray2 = Array.isArray(_iterator2), _i2 = 0, _iterator2 = _isArray2 ? _iterator2 : _iterator2[Symbol.iterator]();;) {
+	          var _ref2;
 
-	              if (addedNode.nodeType === addedNode.ELEMENT_NODE) {
-	                targets.add(addedNode);
-	              }
-	            }
-	          } catch (err) {
-	            _didIteratorError2 = true;
-	            _iteratorError2 = err;
-	          } finally {
-	            try {
-	              if (!_iteratorNormalCompletion2 && _iterator2['return']) {
-	                _iterator2['return']();
-	              }
-	            } finally {
-	              if (_didIteratorError2) {
-	                throw _iteratorError2;
-	              }
-	            }
+	          if (_isArray2) {
+	            if (_i2 >= _iterator2.length) break;
+	            _ref2 = _iterator2[_i2++];
+	          } else {
+	            _i2 = _iterator2.next();
+	            if (_i2.done) break;
+	            _ref2 = _i2.value;
 	          }
 
-	          break;
-	      }
-	    }
-	  } catch (err) {
-	    _didIteratorError = true;
-	    _iteratorError = err;
-	  } finally {
-	    try {
-	      if (!_iteratorNormalCompletion && _iterator['return']) {
-	        _iterator['return']();
-	      }
-	    } finally {
-	      if (_didIteratorError) {
-	        throw _iteratorError;
-	      }
+	          var addedNode = _ref2;
+
+	          if (addedNode.nodeType === addedNode.ELEMENT_NODE) {
+	            targets.add(addedNode);
+	          }
+	        }
+	        break;
 	    }
 	  }
 
@@ -434,7 +387,7 @@ module.exports =
 	  var elements = [];
 
 	  targets.forEach(function (target) {
-	    return target.childElementCount ? elements.concat(getTranslatables(target)) : elements.push(target);
+	    return target.childElementCount ? elements.push.apply(elements, getTranslatables(target)) : elements.push(target);
 	  });
 
 	  Promise.all(elements.map(function (elem) {
@@ -464,9 +417,21 @@ module.exports =
 	}
 
 	function getElementTranslation(view, langs, elem) {
-	  var l10n = getAttributes(elem);
+	  var id = elem.getAttribute('data-l10n-id');
 
-	  return l10n.id ? view.ctx.resolve(langs, l10n.id, l10n.args) : false;
+	  if (!id) {
+	    return false;
+	  }
+
+	  var args = elem.getAttribute('data-l10n-args');
+
+	  if (!args) {
+	    return view.ctx.resolve(langs, id);
+	  }
+
+	  return view.ctx.resolve(langs, id, JSON.parse(args.replace(reHtml, function (match) {
+	    return htmlEntities[match];
+	  })));
 	}
 
 	function translateElement(view, langs, elem) {
@@ -493,13 +458,7 @@ module.exports =
 	}
 
 	function applyTranslation(view, element, translation) {
-	  var value = undefined;
-	  if (translation.attrs && translation.attrs.innerHTML) {
-	    value = translation.attrs.innerHTML;
-	    view.emit('deprecatewarning', new _libErrors.L10nError('L10n Deprecation Warning: using innerHTML in translations is unsafe ' + 'and will not be supported in future versions of l10n.js. ' + 'See https://bugzil.la/1027117'));
-	  } else {
-	    value = translation.value;
-	  }
+	  var value = translation.value;
 
 	  if (typeof value === 'string') {
 	    if (!reOverlay.test(value)) {
@@ -623,9 +582,7 @@ module.exports =
 
 	'use strict';
 
-	Object.defineProperty(exports, '__esModule', {
-	  value: true
-	});
+	exports.__esModule = true;
 	exports.walkEntry = walkEntry;
 	exports.walkValue = walkValue;
 
@@ -737,12 +694,7 @@ module.exports =
 
 	'use strict';
 
-	Object.defineProperty(exports, '__esModule', {
-	  value: true
-	});
-
-	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
+	exports.__esModule = true;
 	exports.amendError = amendError;
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
@@ -783,69 +735,63 @@ module.exports =
 	    this.removeEventListener = _events.removeEventListener.bind(this, listeners);
 	  }
 
-	  _createClass(Env, [{
-	    key: 'createContext',
-	    value: function createContext(resIds) {
-	      return new _context.Context(this, resIds);
+	  Env.prototype.createContext = function createContext(resIds) {
+	    return new _context.Context(this, resIds);
+	  };
+
+	  Env.prototype._parse = function _parse(syntax, lang, data) {
+	    var _this = this;
+
+	    var parser = parsers[syntax];
+	    if (!parser) {
+	      return data;
 	    }
-	  }, {
-	    key: '_parse',
-	    value: function _parse(syntax, lang, data) {
-	      var _this = this;
 
-	      var parser = parsers[syntax];
-	      if (!parser) {
-	        return data;
-	      }
+	    var emit = function (type, err) {
+	      return _this.emit(type, amendError(lang, err));
+	    };
+	    return parser.parse.call(parser, emit, data);
+	  };
 
-	      var emit = function (type, err) {
-	        return _this.emit(type, amendError(lang, err));
-	      };
-	      return parser.parse.call(parser, emit, data);
+	  Env.prototype._create = function _create(lang, entries) {
+	    if (lang.src !== 'qps') {
+	      return entries;
 	    }
-	  }, {
-	    key: '_create',
-	    value: function _create(lang, entries) {
-	      if (lang.src !== 'qps') {
-	        return entries;
-	      }
 
-	      var pseudoentries = Object.create(null);
-	      for (var key in entries) {
-	        pseudoentries[key] = (0, _pseudo.walkEntry)(entries[key], _pseudo.qps[lang.code].translate);
-	      }
-	      return pseudoentries;
+	    var pseudoentries = Object.create(null);
+	    for (var key in entries) {
+	      pseudoentries[key] = _pseudo.walkEntry(entries[key], _pseudo.qps[lang.code].translate);
 	    }
-	  }, {
-	    key: '_getResource',
-	    value: function _getResource(lang, res) {
-	      var _this2 = this;
+	    return pseudoentries;
+	  };
 
-	      var cache = this._resCache;
-	      var id = res + lang.code + lang.src;
+	  Env.prototype._getResource = function _getResource(lang, res) {
+	    var _this2 = this;
 
-	      if (cache[id]) {
-	        return cache[id];
-	      }
+	    var cache = this._resCache;
+	    var id = res + lang.code + lang.src;
 
-	      var syntax = res.substr(res.lastIndexOf('.') + 1);
-
-	      var saveEntries = function (data) {
-	        var entries = _this2._parse(syntax, lang, data);
-	        cache[id] = _this2._create(lang, entries);
-	      };
-
-	      var recover = function (err) {
-	        err.lang = lang;
-	        _this2.emit('fetcherror', err);
-	        cache[id] = err;
-	      };
-
-	      var langToFetch = lang.src === 'qps' ? { code: this.defaultLang, src: 'app' } : lang;
-
-	      return cache[id] = this.fetch(res, langToFetch).then(saveEntries, recover);
+	    if (cache[id]) {
+	      return cache[id];
 	    }
-	  }]);
+
+	    var syntax = res.substr(res.lastIndexOf('.') + 1);
+
+	    var saveEntries = function (data) {
+	      var entries = _this2._parse(syntax, lang, data);
+	      cache[id] = _this2._create(lang, entries);
+	    };
+
+	    var recover = function (err) {
+	      err.lang = lang;
+	      _this2.emit('fetcherror', err);
+	      cache[id] = err;
+	    };
+
+	    var langToFetch = lang.src === 'qps' ? { code: this.defaultLang, src: 'app' } : lang;
+
+	    return cache[id] = this.fetch(res, langToFetch).then(saveEntries, recover);
+	  };
 
 	  return Env;
 	})();
@@ -863,13 +809,7 @@ module.exports =
 
 	'use strict';
 
-	Object.defineProperty(exports, '__esModule', {
-	  value: true
-	});
-
-	var _slicedToArray = (function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }; })();
-
-	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+	exports.__esModule = true;
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
@@ -887,109 +827,97 @@ module.exports =
 	    this._resIds = resIds;
 	  }
 
-	  _createClass(Context, [{
-	    key: '_formatTuple',
-	    value: function _formatTuple(lang, args, entity, id, key) {
-	      try {
-	        return (0, _resolver.format)(this, lang, args, entity);
-	      } catch (err) {
-	        err.id = key ? id + '::' + key : id;
-	        err.lang = lang;
-	        this._env.emit('resolveerror', err, this);
-	        return [{ error: err }, err.id];
+	  Context.prototype._formatTuple = function _formatTuple(lang, args, entity, id, key) {
+	    try {
+	      return _resolver.format(this, lang, args, entity);
+	    } catch (err) {
+	      err.id = key ? id + '::' + key : id;
+	      err.lang = lang;
+	      this._env.emit('resolveerror', err, this);
+	      return [{ error: err }, err.id];
+	    }
+	  };
+
+	  Context.prototype._formatEntity = function _formatEntity(lang, args, entity, id) {
+	    var _formatTuple$call = this._formatTuple.call(this, lang, args, entity, id);
+
+	    var value = _formatTuple$call[1];
+
+	    var formatted = {
+	      value: value,
+	      attrs: null
+	    };
+
+	    if (entity.attrs) {
+	      formatted.attrs = Object.create(null);
+	      for (var key in entity.attrs) {
+	        var _formatTuple$call2 = this._formatTuple.call(this, lang, args, entity.attrs[key], id, key);
+
+	        var attrValue = _formatTuple$call2[1];
+
+	        formatted.attrs[key] = attrValue;
 	      }
 	    }
-	  }, {
-	    key: '_formatEntity',
-	    value: function _formatEntity(lang, args, entity, id) {
-	      var _formatTuple$call = this._formatTuple.call(this, lang, args, entity, id);
 
-	      var _formatTuple$call2 = _slicedToArray(_formatTuple$call, 2);
+	    return formatted;
+	  };
 
-	      var value = _formatTuple$call2[1];
-
-	      var formatted = {
-	        value: value,
-	        attrs: null
-	      };
-
-	      if (entity.attrs) {
-	        formatted.attrs = Object.create(null);
-	        for (var key in entity.attrs) {
-	          var _formatTuple$call3 = this._formatTuple.call(this, lang, args, entity.attrs[key], id, key);
-
-	          var _formatTuple$call32 = _slicedToArray(_formatTuple$call3, 2);
-
-	          var attrValue = _formatTuple$call32[1];
-
-	          formatted.attrs[key] = attrValue;
-	        }
-	      }
-
-	      return formatted;
+	  Context.prototype.fetch = function fetch(langs) {
+	    if (langs.length === 0) {
+	      return Promise.resolve(langs);
 	    }
-	  }, {
-	    key: 'fetch',
-	    value: function fetch(langs) {
-	      if (langs.length === 0) {
-	        return Promise.resolve(langs);
-	      }
 
-	      return Promise.all(this._resIds.map(this._env._getResource.bind(this._env, langs[0]))).then(function () {
-	        return langs;
-	      });
+	    return Promise.all(this._resIds.map(this._env._getResource.bind(this._env, langs[0]))).then(function () {
+	      return langs;
+	    });
+	  };
+
+	  Context.prototype.resolve = function resolve(langs, id, args) {
+	    var _this = this;
+
+	    var lang = langs[0];
+
+	    if (!lang) {
+	      this._env.emit('notfounderror', new _errors.L10nError('"' + id + '"' + ' not found in any language', id), this);
+	      return { value: id, attrs: null };
 	    }
-	  }, {
-	    key: 'resolve',
-	    value: function resolve(langs, id, args) {
-	      var _this = this;
 
-	      var lang = langs[0];
+	    var entity = this._getEntity(lang, id);
 
-	      if (!lang) {
-	        this._env.emit('notfounderror', new _errors.L10nError('"' + id + '"' + ' not found in any language', id), this);
-	        return { value: id, attrs: null };
-	      }
-
-	      var entity = this._getEntity(lang, id);
-
-	      if (entity) {
-	        return Promise.resolve(this._formatEntity(lang, args, entity, id));
-	      } else {
-	        this._env.emit('notfounderror', new _errors.L10nError('"' + id + '"' + ' not found in ' + lang.code, id, lang), this);
-	      }
-
-	      return this.fetch(langs.slice(1)).then(function (langs) {
-	        return _this.resolve(langs, id, args);
-	      });
+	    if (entity) {
+	      return Promise.resolve(this._formatEntity(lang, args, entity, id));
+	    } else {
+	      this._env.emit('notfounderror', new _errors.L10nError('"' + id + '"' + ' not found in ' + lang.code, id, lang), this);
 	    }
-	  }, {
-	    key: '_getEntity',
-	    value: function _getEntity(lang, id) {
-	      var cache = this._env._resCache;
 
-	      for (var i = 0, resId = undefined; resId = this._resIds[i]; i++) {
-	        var resource = cache[resId + lang.code + lang.src];
-	        if (resource instanceof _errors.L10nError) {
-	          continue;
-	        }
-	        if (id in resource) {
-	          return resource[id];
-	        }
+	    return this.fetch(langs.slice(1)).then(function (nextLangs) {
+	      return _this.resolve(nextLangs, id, args);
+	    });
+	  };
+
+	  Context.prototype._getEntity = function _getEntity(lang, id) {
+	    var cache = this._env._resCache;
+
+	    for (var i = 0, resId = undefined; resId = this._resIds[i]; i++) {
+	      var resource = cache[resId + lang.code + lang.src];
+	      if (resource instanceof _errors.L10nError) {
+	        continue;
 	      }
-	      return undefined;
-	    }
-	  }, {
-	    key: '_getMacro',
-	    value: function _getMacro(lang, id) {
-	      switch (id) {
-	        case 'plural':
-	          return (0, _plurals.getPluralRule)(lang.code);
-	        default:
-	          return undefined;
+	      if (id in resource) {
+	        return resource[id];
 	      }
 	    }
-	  }]);
+	    return undefined;
+	  };
+
+	  Context.prototype._getMacro = function _getMacro(lang, id) {
+	    switch (id) {
+	      case 'plural':
+	        return _plurals.getPluralRule(lang.code);
+	      default:
+	        return undefined;
+	    }
+	  };
 
 	  return Context;
 	})();
@@ -1002,20 +930,13 @@ module.exports =
 
 	'use strict';
 
-	Object.defineProperty(exports, '__esModule', {
-	  value: true
-	});
-
-	var _slicedToArray = (function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }; })();
-
+	exports.__esModule = true;
 	exports.format = format;
 
 	var _errors = __webpack_require__(2);
 
 	var KNOWN_MACROS = ['plural'];
 	var MAX_PLACEABLE_LENGTH = 2500;
-
-	var nonLatin1 = /[^\x01-\xFF]/;
 
 	var FSI = '⁨';
 	var PDI = '⁩';
@@ -1088,11 +1009,6 @@ module.exports =
 	    if (value.length >= MAX_PLACEABLE_LENGTH) {
 	      throw new _errors.L10nError('Too many characters in placeable (' + value.length + ', max allowed is ' + MAX_PLACEABLE_LENGTH + ')');
 	    }
-
-	    if (locals.contextIsNonLatin1 || value.match(nonLatin1)) {
-	      res[1] = FSI + value + PDI;
-	    }
-
 	    return res;
 	  }
 
@@ -1101,21 +1017,17 @@ module.exports =
 
 	function interpolate(locals, ctx, lang, args, arr) {
 	  return arr.reduce(function (_ref, cur) {
-	    var _ref2 = _slicedToArray(_ref, 2);
-
-	    var localsSeq = _ref2[0];
-	    var valueSeq = _ref2[1];
+	    var localsSeq = _ref[0];
+	    var valueSeq = _ref[1];
 
 	    if (typeof cur === 'string') {
 	      return [localsSeq, valueSeq + cur];
 	    } else {
 	      var _subPlaceable = subPlaceable(locals, ctx, lang, args, cur.name);
 
-	      var _subPlaceable2 = _slicedToArray(_subPlaceable, 2);
+	      var value = _subPlaceable[1];
 
-	      var value = _subPlaceable2[1];
-
-	      return [localsSeq, valueSeq + value];
+	      return [localsSeq, valueSeq + FSI + value + PDI];
 	    }
 	  }, [locals, '']);
 	}
@@ -1160,9 +1072,6 @@ module.exports =
 	  }
 
 	  if (Array.isArray(expr)) {
-	    locals.contextIsNonLatin1 = expr.some(function ($_) {
-	      return typeof $_ === 'string' && $_.match(nonLatin1);
-	    });
 	    return interpolate(locals, ctx, lang, args, expr);
 	  }
 
@@ -1173,8 +1082,9 @@ module.exports =
 	    }
 	  }
 
-	  if ('other' in expr) {
-	    return resolveValue(locals, ctx, lang, args, expr.other);
+	  var defaultKey = expr.__default || 'other';
+	  if (defaultKey in expr) {
+	    return resolveValue(locals, ctx, lang, args, expr[defaultKey]);
 	  }
 
 	  throw new _errors.L10nError('Unresolvable value');
@@ -1186,9 +1096,7 @@ module.exports =
 
 	'use strict';
 
-	Object.defineProperty(exports, '__esModule', {
-	  value: true
-	});
+	exports.__esModule = true;
 	exports.getPluralRule = getPluralRule;
 	var locales2rules = {
 	  'af': 3,
@@ -1638,9 +1546,7 @@ module.exports =
 
 	'use strict';
 
-	Object.defineProperty(exports, '__esModule', {
-	  value: true
-	});
+	exports.__esModule = true;
 
 	var _errors = __webpack_require__(2);
 
@@ -1866,11 +1772,7 @@ module.exports =
 
 	'use strict';
 
-	Object.defineProperty(exports, '__esModule', {
-	  value: true
-	});
-
-	var _slicedToArray = (function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }; })();
+	exports.__esModule = true;
 
 	var _errors = __webpack_require__(2);
 
@@ -2168,11 +2070,9 @@ module.exports =
 	    while (true) {
 	      var _getHashItem = this.getHashItem();
 
-	      var _getHashItem2 = _slicedToArray(_getHashItem, 3);
-
-	      var key = _getHashItem2[0];
-	      var value = _getHashItem2[1];
-	      var def = _getHashItem2[2];
+	      var key = _getHashItem[0];
+	      var value = _getHashItem[1];
+	      var def = _getHashItem[2];
 
 	      items[key] = value;
 
@@ -2386,9 +2286,7 @@ module.exports =
 
 	'use strict';
 
-	Object.defineProperty(exports, '__esModule', {
-	  value: true
-	});
+	exports.__esModule = true;
 	exports.emit = emit;
 	exports.addEventListener = addEventListener;
 	exports.removeEventListener = removeEventListener;
@@ -2438,9 +2336,7 @@ module.exports =
 
 	'use strict';
 
-	Object.defineProperty(exports, '__esModule', {
-	  value: true
-	});
+	exports.__esModule = true;
 	exports.LegacyEnv = LegacyEnv;
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
@@ -2475,7 +2371,7 @@ module.exports =
 	  var _this = this;
 
 	  var emit = function (type, err) {
-	    return _this.emit(type, (0, _libEnv.amendError)(lang, err));
+	    return _this.emit(type, _libEnv.amendError(lang, err));
 	  };
 	  return _parser2.default.parse.call(_parser2.default, emit, data);
 	};
@@ -2496,7 +2392,7 @@ module.exports =
 	};
 
 	function createPseudoEntry(node, lang) {
-	  return (0, _resolver.createEntry)((0, _pseudo.walkContent)(node, _libPseudo.qps[lang.code].translate));
+	  return _resolver.createEntry(_pseudo.walkContent(node, _libPseudo.qps[lang.code].translate));
 	}
 
 /***/ },
@@ -2505,9 +2401,7 @@ module.exports =
 
 	'use strict';
 
-	Object.defineProperty(exports, '__esModule', {
-	  value: true
-	});
+	exports.__esModule = true;
 	exports.LegacyContext = LegacyContext;
 
 	var _libContext = __webpack_require__(7);
@@ -2522,7 +2416,7 @@ module.exports =
 
 	LegacyContext.prototype._formatTuple = function (lang, args, entity, id, key) {
 	  try {
-	    return (0, _resolver.format)(this, lang, args, entity);
+	    return _resolver.format(this, lang, args, entity);
 	  } catch (err) {
 	    err.id = key ? id + '::' + key : id;
 	    err.lang = lang;
@@ -2537,12 +2431,7 @@ module.exports =
 
 	'use strict';
 
-	Object.defineProperty(exports, '__esModule', {
-	  value: true
-	});
-
-	var _slicedToArray = (function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }; })();
-
+	exports.__esModule = true;
 	exports.createEntry = createEntry;
 	exports.format = format;
 
@@ -2675,19 +2564,15 @@ module.exports =
 
 	function interpolate(locals, ctx, lang, args, arr) {
 	  return arr.reduce(function (_ref, cur) {
-	    var _ref2 = _slicedToArray(_ref, 2);
-
-	    var localsSeq = _ref2[0];
-	    var valueSeq = _ref2[1];
+	    var localsSeq = _ref[0];
+	    var valueSeq = _ref[1];
 
 	    if (typeof cur === 'string') {
 	      return [localsSeq, valueSeq + cur];
 	    } else if (cur.t === 'idOrVar') {
 	      var _subPlaceable = subPlaceable(locals, ctx, lang, args, cur.v);
 
-	      var _subPlaceable2 = _slicedToArray(_subPlaceable, 2);
-
-	      var value = _subPlaceable2[1];
+	      var value = _subPlaceable[1];
 
 	      return [localsSeq, valueSeq + value];
 	    }
@@ -2755,9 +2640,7 @@ module.exports =
 
 	'use strict';
 
-	Object.defineProperty(exports, '__esModule', {
-	  value: true
-	});
+	exports.__esModule = true;
 
 	var _libErrors = __webpack_require__(2);
 
@@ -2862,8 +2745,8 @@ module.exports =
 	      if (pos === undefined) {
 	        v = { $i: id };
 	        if (key) {
-	          v[attr] = {};
-	          v[attr][key] = value;
+	          v[attr] = { $v: {} };
+	          v[attr].$v[key] = value;
 	        } else {
 	          v[attr] = value;
 	        }
@@ -2959,9 +2842,7 @@ module.exports =
 
 	'use strict';
 
-	Object.defineProperty(exports, '__esModule', {
-	  value: true
-	});
+	exports.__esModule = true;
 	exports.walkContent = walkContent;
 
 	function walkContent(node, fn) {
@@ -2992,14 +2873,13 @@ module.exports =
 
 	'use strict';
 
-	Object.defineProperty(exports, '__esModule', {
-	  value: true
-	});
-
-	var _slicedToArray = (function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }; })();
-
+	exports.__esModule = true;
 	exports.getResourceLinks = getResourceLinks;
 	exports.getMeta = getMeta;
+
+	if (typeof NodeList === 'function' && !NodeList.prototype[Symbol.iterator]) {
+	  NodeList.prototype[Symbol.iterator] = Array.prototype[Symbol.iterator];
+	}
 
 	function getResourceLinks(head) {
 	  return Array.prototype.map.call(head.querySelectorAll('link[rel="localization"]'), function (el) {
@@ -3012,48 +2892,39 @@ module.exports =
 	  var defaultLang = null;
 	  var appVersion = null;
 
-	  var els = head.querySelectorAll('meta[name="availableLanguages"],' + 'meta[name="defaultLanguage"],' + 'meta[name="appVersion"]');
-	  var _iteratorNormalCompletion = true;
-	  var _didIteratorError = false;
-	  var _iteratorError = undefined;
+	  var metas = head.querySelectorAll('meta[name="availableLanguages"],' + 'meta[name="defaultLanguage"],' + 'meta[name="appVersion"]');
+	  for (var _iterator = metas, _isArray = Array.isArray(_iterator), _i = 0, _iterator = _isArray ? _iterator : _iterator[Symbol.iterator]();;) {
+	    var _ref;
 
-	  try {
-	    for (var _iterator = els[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-	      var el = _step.value;
-
-	      var _name = el.getAttribute('name');
-	      var content = el.getAttribute('content').trim();
-	      switch (_name) {
-	        case 'availableLanguages':
-	          availableLangs = getLangRevisionMap(availableLangs, content);
-	          break;
-	        case 'defaultLanguage':
-	          var _getLangRevisionTuple = getLangRevisionTuple(content),
-	              _getLangRevisionTuple2 = _slicedToArray(_getLangRevisionTuple, 2),
-	              lang = _getLangRevisionTuple2[0],
-	              rev = _getLangRevisionTuple2[1];
-
-	          defaultLang = lang;
-	          if (!(lang in availableLangs)) {
-	            availableLangs[lang] = rev;
-	          }
-	          break;
-	        case 'appVersion':
-	          appVersion = content;
-	      }
+	    if (_isArray) {
+	      if (_i >= _iterator.length) break;
+	      _ref = _iterator[_i++];
+	    } else {
+	      _i = _iterator.next();
+	      if (_i.done) break;
+	      _ref = _i.value;
 	    }
-	  } catch (err) {
-	    _didIteratorError = true;
-	    _iteratorError = err;
-	  } finally {
-	    try {
-	      if (!_iteratorNormalCompletion && _iterator['return']) {
-	        _iterator['return']();
-	      }
-	    } finally {
-	      if (_didIteratorError) {
-	        throw _iteratorError;
-	      }
+
+	    var meta = _ref;
+
+	    var _name = meta.getAttribute('name');
+	    var content = meta.getAttribute('content').trim();
+	    switch (_name) {
+	      case 'availableLanguages':
+	        availableLangs = getLangRevisionMap(availableLangs, content);
+	        break;
+	      case 'defaultLanguage':
+	        var _getLangRevisionTuple = getLangRevisionTuple(content),
+	            lang = _getLangRevisionTuple[0],
+	            rev = _getLangRevisionTuple[1];
+
+	        defaultLang = lang;
+	        if (!(lang in availableLangs)) {
+	          availableLangs[lang] = rev;
+	        }
+	        break;
+	      case 'appVersion':
+	        appVersion = content;
 	    }
 	  }
 
@@ -3066,12 +2937,10 @@ module.exports =
 
 	function getLangRevisionMap(seq, str) {
 	  return str.split(',').reduce(function (seq, cur) {
-	    var _getLangRevisionTuple3 = getLangRevisionTuple(cur);
+	    var _getLangRevisionTuple2 = getLangRevisionTuple(cur);
 
-	    var _getLangRevisionTuple32 = _slicedToArray(_getLangRevisionTuple3, 2);
-
-	    var lang = _getLangRevisionTuple32[0];
-	    var rev = _getLangRevisionTuple32[1];
+	    var lang = _getLangRevisionTuple2[0];
+	    var rev = _getLangRevisionTuple2[1];
 
 	    seq[lang] = rev;
 	    return seq;
@@ -3081,10 +2950,8 @@ module.exports =
 	function getLangRevisionTuple(str) {
 	  var _str$trim$split = str.trim().split(':');
 
-	  var _str$trim$split2 = _slicedToArray(_str$trim$split, 2);
-
-	  var lang = _str$trim$split2[0];
-	  var rev = _str$trim$split2[1];
+	  var lang = _str$trim$split[0];
+	  var rev = _str$trim$split[1];
 
 	  return [lang, parseInt(rev)];
 	}
@@ -3095,9 +2962,7 @@ module.exports =
 
 	'use strict';
 
-	Object.defineProperty(exports, '__esModule', {
-	  value: true
-	});
+	exports.__esModule = true;
 	exports.negotiateLanguages = negotiateLanguages;
 	exports.getDirection = getDirection;
 
@@ -3110,7 +2975,7 @@ module.exports =
 	function negotiateLanguages(fn, appVersion, defaultLang, availableLangs, additionalLangs, prevLangs, requestedLangs) {
 
 	  var allAvailableLangs = Object.keys(availableLangs).concat(additionalLangs || []).concat(Object.keys(_libPseudo.qps));
-	  var newLangs = (0, _libIntl.prioritizeLocales)(defaultLang, allAvailableLangs, requestedLangs);
+	  var newLangs = _libIntl.prioritizeLocales(defaultLang, allAvailableLangs, requestedLangs);
 
 	  var langs = newLangs.map(function (code) {
 	    return {
@@ -3167,9 +3032,7 @@ module.exports =
 
 	'use strict';
 
-	Object.defineProperty(exports, '__esModule', {
-	  value: true
-	});
+	exports.__esModule = true;
 	exports.prioritizeLocales = prioritizeLocales;
 
 	function prioritizeLocales(def, availableLangs, requested) {
@@ -3195,12 +3058,7 @@ module.exports =
 
 	'use strict';
 
-	Object.defineProperty(exports, '__esModule', {
-	  value: true
-	});
-
-	var _slicedToArray = (function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }; })();
-
+	exports.__esModule = true;
 	exports.serializeContext = serializeContext;
 
 	var _libErrors = __webpack_require__(2);
@@ -3208,20 +3066,16 @@ module.exports =
 	function serializeContext(ctx, lang) {
 	  var cache = ctx._env._resCache;
 	  return ctx._resIds.reduceRight(function (_ref, cur) {
-	    var _ref2 = _slicedToArray(_ref, 2);
-
-	    var errorsSeq = _ref2[0];
-	    var entriesSeq = _ref2[1];
+	    var errorsSeq = _ref[0];
+	    var entriesSeq = _ref[1];
 
 	    var sourceRes = cache[cur + 'en-USapp'];
 	    var langRes = cache[cur + lang.code + lang.src];
 
 	    var _serializeEntries = serializeEntries(lang, langRes instanceof _libErrors.L10nError ? {} : langRes, sourceRes instanceof _libErrors.L10nError ? {} : sourceRes);
 
-	    var _serializeEntries2 = _slicedToArray(_serializeEntries, 2);
-
-	    var errors = _serializeEntries2[0];
-	    var entries = _serializeEntries2[1];
+	    var errors = _serializeEntries[0];
+	    var entries = _serializeEntries[1];
 
 	    return [errorsSeq.concat(errors), Object.assign(entriesSeq, entries)];
 	  }, [[], Object.create(null)]);
@@ -3292,12 +3146,7 @@ module.exports =
 
 	'use strict';
 
-	Object.defineProperty(exports, '__esModule', {
-	  value: true
-	});
-
-	var _slicedToArray = (function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }; })();
-
+	exports.__esModule = true;
 	exports.serializeLegacyContext = serializeLegacyContext;
 
 	var _libErrors = __webpack_require__(2);
@@ -3305,20 +3154,16 @@ module.exports =
 	function serializeLegacyContext(ctx, lang) {
 	  var cache = ctx._env._resCache;
 	  return ctx._resIds.reduce(function (_ref, cur) {
-	    var _ref2 = _slicedToArray(_ref, 2);
-
-	    var errorsSeq = _ref2[0];
-	    var entriesSeq = _ref2[1];
+	    var errorsSeq = _ref[0];
+	    var entriesSeq = _ref[1];
 
 	    var sourceRes = cache[cur + 'en-USapp'];
 	    var langRes = cache[cur + lang.code + lang.src];
 
 	    var _serializeEntries = serializeEntries(lang, langRes instanceof _libErrors.L10nError ? {} : langRes, sourceRes instanceof _libErrors.L10nError ? {} : sourceRes);
 
-	    var _serializeEntries2 = _slicedToArray(_serializeEntries, 2);
-
-	    var errors = _serializeEntries2[0];
-	    var entries = _serializeEntries2[1];
+	    var errors = _serializeEntries[0];
+	    var entries = _serializeEntries[1];
 
 	    return [errorsSeq.concat(errors), entriesSeq.concat(entries)];
 	  }, [[], []]);

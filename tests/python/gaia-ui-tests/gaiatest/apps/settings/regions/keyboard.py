@@ -69,10 +69,7 @@ class KeyboardAddMoreKeyboards(Base):
         Wait(self.marionette).until(expected.element_displayed(element))
         element.tap()
 
-        # The following should work, but doesn't, see bug 1113742. We use execute_script instead, for now
-        # Wait(self.marionette).until(expected.element_selected(element)
-        Wait(self.marionette).until(lambda m:
-            m.execute_script("return arguments[0].wrappedJSObject.checked", [element]) is True)
+        self.wait_for_custom_element_checked_state(element)
 
     def go_back(self):
         # TODO: remove tap with coordinates after Bug 1061698 is fixed
