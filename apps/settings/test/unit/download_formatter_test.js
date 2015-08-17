@@ -1,20 +1,13 @@
-/* global MocksHelper, MockL10n, DownloadFormatter, MockDownload */
+/* global MockL10n, DownloadFormatter, MockDownload */
 'use strict';
 
 require('/shared/test/unit/mocks/mock_download.js');
 require('/shared/js/download/download_formatter.js');
-require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 
 
 suite('DownloadFormatter', function() {
   var realL10n;
-
-  var mocksHelperForDownloadFormatter = new MocksHelper([
-    'LazyLoader'
-  ]).init();
-
-  mocksHelperForDownloadFormatter.attachTestHelpers();
 
   suiteSetup(function() {
     realL10n = navigator.mozL10n;
@@ -220,11 +213,18 @@ suite('DownloadFormatter', function() {
   test(' getDate', function(done) {
     var now = new Date();
     var expectedPrettyDate = 'pretty' + now.toString();
+
+    // We can't use MockLazyLoader here because it cannot chain Promises
+    window.LazyLoader = {
+      load: function(imports) {
+        return Promise.resolve();
+      }
+    };
+
     sinon.stub(navigator.mozL10n, 'DateTimeFormat', function(date) {
       return {
-        fromNow: function(date, useCompactFormat) {
-          assert.isUndefined(useCompactFormat);
-          return 'pretty' + date.toString();
+        relativeDate: function(date, useCompactFormat) {
+          return Promise.resolve(expectedPrettyDate);
         }
       };
     });
