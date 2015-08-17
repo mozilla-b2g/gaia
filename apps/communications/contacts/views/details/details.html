@@ -54,19 +54,24 @@
     <script defer src="/contacts/js/utilities/performance_helper.js"></script>
     <script defer src="/contacts/js/cache.js"></script>
     <script defer src='/contacts/views/details/js/boot.js'></script>
+    <script defer src="/shared/js/confirm.js"></script>
 
     <meta name="defaultLanguage" content="en-US">
     <meta name="availableLanguages" content="en-US">
+    <link rel="localization" href="/shared/locales/telephony/telephony.{locale}.properties">
+    <link rel="localization" href="/locales/dialer.{locale}.properties">
     <link rel="localization" href="/contacts/locales/contacts.{locale}.properties">
     <link rel="localization" href="/shared/locales/import_contacts/import_contacts.{locale}.properties">
     <link rel="localization" href="/shared/locales/date/date.{locale}.properties">
     <link rel="localization" href="/shared/locales/phone_types/phone_types.{locale}.properties">
 
     <link rel="import" href="/contacts/elements/details.html">
+    <link rel="import" href="/contacts/elements/confirm.html">
   </head>
 
   <body role="application" class="app-contacts skin-comms theme-communications hidden">
     <section is="view-contact-details" id='view-contact-details' role="region" class="view view-contact-profile view-noscroll current"></section>
     <iframe src="/shared/pages/import/curtain.html" id="iframe_curtain"></iframe>
+    <form is="confirmation-message" id="confirmation-message" class="hide" role="dialog" data-type="confirm"></form>
   </body>
 </html>

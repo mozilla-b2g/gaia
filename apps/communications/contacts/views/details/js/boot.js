@@ -1,4 +1,5 @@
-/* global DetailsUI, DetailsController, LazyLoader, ContactsService */
+/* global DetailsUI, DetailsController, LazyLoader, ContactsService,
+          ParamUtils */
 'use strict';
 
 /*
@@ -22,6 +23,7 @@ window.addEventListener('DOMContentLoaded', function() {
 
 window.onload = function() {
   var dependencies = [
+    '/contacts/js/param_utils.js',
     '/contacts/services/contacts.js',
     '/shared/js/l10n_date.js',
     '/shared/js/contact_photo_helper.js',
@@ -30,7 +32,6 @@ window.onload = function() {
     '/shared/js/contacts/utilities/dom.js',
     '/shared/js/contacts/utilities/templates.js',
     '/shared/js/contacts/import/utilities/misc.js',
-    '/contacts/js/match_service.js',
     '/contacts/views/details/js/details_ui.js',
     '/contacts/views/details/js/details_controller.js',
     '/shared/pages/import/js/curtain.js'
@@ -44,6 +45,55 @@ window.onload = function() {
       window.removeEventListener('renderdone', fn);
       document.body.classList.remove('hidden');
     });
+
+    function getContactInfo(id) {
+      return new Promise(function(resolve, reject) {
+        ContactsService.get(id, function onSuccess(savedContact) {
+          ContactsService.getCount(function(count) {
+            resolve(
+              {
+                contact: savedContact,
+                count: count
+              }
+            );
+          });
+        }, function onError() {
+          console.error('Error retrieving contact');
+          reject();
+        });
+      });
+    }
+
+    function checkIfUpdate(params) {
+      var changesStringified = sessionStorage.getItem('contactChanges');
+      if (!changesStringified ||
+          changesStringified === 'null') {
+        return;
+      }
+      var changes = JSON.parse(changesStringified);
+      if (!changes || !changes[0] || !changes[0].reason) {
+        return;
+      }
+
+      if (changes[0].reason === 'update') {
+        getContactInfo(params.contact).then(function(info) {
+          DetailsUI.render(info.contact, info.count, false);
+        });
+      }
+    }
+
+    // Get action from URL (new or update)
+    var params = ParamUtils.get();
+    if (params && params.contact) {
+      getContactInfo(params.contact).then(function(info) {
+        DetailsController.setContact(params.contact);
+        DetailsUI.render(info.contact, info.count, false);
+        window.addEventListener(
+          'pageshow',
+          checkIfUpdate.bind(this, params)
+        );
+      });
+    }
 
     navigator.mozSetMessageHandler('activity', activity => {
       DetailsController.setActivity(activity);

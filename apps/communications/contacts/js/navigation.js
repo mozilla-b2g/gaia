@@ -256,7 +256,7 @@ function navigationStack(currentView) {
     var _callbackInner = function _callbackInner() {
       document.getElementById(nextView.view).classList.add('current');
       currentClassList.remove('current');
-      if (callback) {
+      if (typeof callback === 'function') {
         callback();
       }
     };
