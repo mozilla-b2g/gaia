@@ -170,6 +170,7 @@ PreviewGalleryController.prototype.shareCurrentItem = function() {
   var self = this;
 
   this.stopItemDeletedEvent = true;
+  this.app.emit('busy', 'resizingImage');
 
   // Resize the image to the maximum pixel size for share activities.
   // If no maximum is specified (value is `0`), then simply rotate
@@ -189,6 +190,7 @@ PreviewGalleryController.prototype.shareCurrentItem = function() {
       delete item.rotation;
     }
     self.stopItemDeletedEvent = false;
+    self.app.emit('ready');
     launchShareActivity(resizedBlob);
   });
 };
