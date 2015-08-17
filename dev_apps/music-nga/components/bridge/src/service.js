@@ -41,7 +41,7 @@ Service.prototype = Object.create(Receiver.prototype);
  *
  * @example
  *
- * threads.service('my-service')
+ * bridge.service('my-service')
  *   .method('ping', param => 'pong: ' + param)
  *   .listen();
  *
@@ -76,7 +76,7 @@ function Service(name) {
  *
  * @example
  *
- * threads.service('my-service')
+ * bridge.service('my-service')
  *
  *   // sync return value
  *   .method('myMethod', function(param) {

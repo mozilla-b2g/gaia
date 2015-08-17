@@ -33,6 +33,13 @@ var debug = 0 ? function(arg1, ...args) {
 } : () => {};
 
 /**
+ * Default response timeout.
+ * @type {Number}
+ * @private
+ */
+var TIMEOUT = 1000;
+
+/**
  * Initialize a new `Message`
  *
  * @class Message
@@ -43,7 +50,6 @@ var debug = 0 ? function(arg1, ...args) {
  */
 function Message(type) {
   this.cancelled = false;
-  this._timeout = null;
   this.listeners = [];
   this.deferred = defer();
   this.onMessage = this.onMessage.bind(this);
@@ -54,8 +60,6 @@ function Message(type) {
 }
 
 Message.prototype = {
-  timeout: 1000,
-
   setupOutbound(type) {
     this.id = uuid();
     this.type = type;
@@ -108,6 +112,7 @@ Message.prototype = {
 
   /**
    * Send the message to an endpoint.
+   *
    * @param  {(Iframe|Window|Worker|MessagePort)} endpoint
    * @return {Promise}
    */
@@ -126,12 +131,35 @@ Message.prototype = {
     // on the port else resolve promise instantly
     if (expectsResponse) {
       this.listen(this.port);
-      this._timeout = setTimeout(this.onTimeout, this.timeout);
+      this.setResponseTimeout();
     } else this.deferred.resolve();
 
     this.port.postMessage(serialized, this.getTransfer());
     debug('sent', serialized);
     return this.deferred.promise;
+  },
+
+  /**
+   * Set the response timeout.
+   *
+   * When set to `false` no timeout
+   * is installed.
+   *
+   * @private
+   */
+  setResponseTimeout() {
+    if (this.timeout === false) return;
+    var ms = this.timeout || TIMEOUT;
+    this._timer = setTimeout(this.onTimeout, ms);
+  },
+
+  /**
+   * Clear the response timeout.
+   *
+   * @private
+   */
+  clearResponseTimeout() {
+    clearTimeout(this._timer);
   },
 
   getTransfer() {
@@ -189,7 +217,7 @@ Message.prototype = {
   },
 
   teardown() {
-    clearTimeout(this._timeout);
+    this.clearResponseTimeout();
     this.unlisten();
   },
 

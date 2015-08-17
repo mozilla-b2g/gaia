@@ -1,6 +1,9 @@
-importScripts('components/threads/client.js');
+importScripts('components/bridge/client.js');
 
-var client = threads.client('music-service', new BroadcastChannel('music-service'));
+var client = bridge.client({
+  service: 'music-service',
+  endpoint: new BroadcastChannel('music-service')
+});
 
 function AlbumsService(worker) {
   var stopAfter = ServiceWorkerWare.decorators.stopAfter;

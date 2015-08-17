@@ -1,4 +1,4 @@
-/* global threads, View */
+/* global bridge, View */
 'use strict';
 
 var debug = 1 ? (...args) => console.log('[HomeView]', ...args) : () => {};
@@ -15,11 +15,11 @@ var HomeView = View.extend(function HomeView() {
   this.tiles.addEventListener('click', (evt) => {
     var link = evt.target.closest('a[data-file-path]');
     if (link) {
-      this.play(link.dataset.filePath);
+      this.queueAlbum(link.dataset.filePath);
     }
   });
 
-  this.client = threads.client('music-service', window.parent);
+  this.client = bridge.client({ service: 'music-service', endpoint: window.parent });
   this.client.on('databaseChange', () => this.update());
 
   this.update();
@@ -74,8 +74,8 @@ HomeView.prototype.getSongThumbnail = function(filePath) {
   return fetch('/api/artwork/thumbnail' + filePath).then(response => response.blob());
 };
 
-HomeView.prototype.play = function(filePath) {
-  fetch('/api/audio/play' + filePath);
+HomeView.prototype.queueAlbum = function(filePath) {
+  fetch('/api/queue/album' + filePath);
 };
 
 window.view = new HomeView();

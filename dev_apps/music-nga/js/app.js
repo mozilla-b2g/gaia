@@ -1,4 +1,4 @@
-/* global SERVICE_WORKERS, threads */
+/* global SERVICE_WORKERS, bridge */
 'use strict';
 
 function perfMark(marker) {
@@ -27,11 +27,15 @@ var $id = document.getElementById.bind(document);
 var views = {};
 var isPlaying = false;
 
-var service = threads.service('*')
+var service = bridge.service('*')
   .on('message', message => message.forward($id('endpoint')))
   .listen();
 
-var client = threads.client('music-service', $id('endpoint'));
+var client = bridge.client({
+  service: 'music-service',
+  endpoint: $id('endpoint'),
+  timeout: false
+});
 client.connect();
 
 client.connected.then(() => {

@@ -1,21 +1,35 @@
-/* global threads */
+/* global Database, PlaybackQueue, bridge */
 'use strict';
 
 var audio = document.getElementById('audio');
 
-var currentFilePath;
+var loadQueueSettings = PlaybackQueue.loadSettings();
 
-var service = threads.service('music-service')
+var currentFilePath;
+var currentQueue;
+
+var service = bridge.service('music-service')
   .method('play', play)
   .method('pause', pause)
   .method('seek', seek)
   .method('getPlaybackStatus', getPlaybackStatus)
 
-  .method('getArtists', getArtists)
-  .method('getArtist', getArtist)
+  .method('currentSong', currentSong)
+  .method('previousSong', previousSong)
+  .method('nextSong', nextSong)
+  .method('queueAlbum', queueAlbum)
+  .method('queueArtist', queueArtist)
+  .method('queueSong', queueSong)
+  .method('getRepeatSetting', getRepeatSetting)
+  .method('setRepeatSetting', setRepeatSetting)
+  .method('getShuffleSetting', getShuffleSetting)
+  .method('setShuffleSetting', setShuffleSetting)
 
   .method('getAlbums', getAlbums)
   .method('getAlbum', getAlbum)
+
+  .method('getArtists', getArtists)
+  .method('getArtist', getArtist)
 
   .method('getSongs', getSongs)
   .method('getSong', getSong)
@@ -47,6 +61,10 @@ audio.ontimeupdate = function() {
   service.broadcast('elapsedTimeChange', audio.currentTime);
 };
 
+audio.onended = function() {
+  nextSong(true);
+};
+
 function play(filePath) {
   if (!filePath) {
     audio.play();
@@ -59,9 +77,12 @@ function play(filePath) {
     audio.src = null;
     audio.load();
 
+    audio.mozAudioChannelType = 'content';
     audio.src = URL.createObjectURL(file);
     audio.load();
     audio.play();
+
+    service.broadcast('songChange');
   });
 }
 
@@ -74,12 +95,105 @@ function seek(time) {
 }
 
 function getPlaybackStatus() {
+  return Promise.resolve({
+    filePath: currentFilePath,
+    paused: audio.paused,
+    duration: audio.duration,
+    elapsedTime: audio.currentTime
+  });
+}
+
+function currentSong() {
+  if (!currentQueue) {
+    return Promise.reject();
+  }
+
+  return currentQueue.current();
+}
+
+function previousSong() {
+  if (!currentQueue) {
+    return Promise.reject();
+  }
+
+  currentQueue.previous();
+
+  return currentSong().then(song => play(song.name));
+}
+
+function nextSong(automatic = false) {
+  if (!currentQueue) {
+    return Promise.reject();
+  }
+
+  currentQueue.next(automatic);
+
+  return currentSong().then(song => play(song.name));
+}
+
+function queueArtist(filePath) {
+  return loadQueueSettings.then(() => {
+    return getArtist(filePath).then((songs) => {
+      var index = songs.findIndex(song => song.name === filePath);
+      currentQueue = new PlaybackQueue.StaticQueue(songs, index);
+
+      return currentSong().then(song => play(song.name));
+    });
+  });
+}
+
+function queueAlbum(filePath) {
+  return loadQueueSettings.then(() => {
+    return getAlbum(filePath).then((songs) => {
+      var index = songs.findIndex(song => song.name === filePath);
+      currentQueue = new PlaybackQueue.StaticQueue(songs, index);
+
+      return currentSong().then(song => play(song.name));
+    });
+  });
+}
+
+function queueSong(filePath) {
+  return loadQueueSettings.then(() => {
+    return getSongs().then((songs) => {
+      var index = songs.findIndex(song => song.name === filePath);
+      currentQueue = new PlaybackQueue.StaticQueue(songs, index);
+
+      return currentSong().then(song => play(song.name));
+    });
+  });
+}
+
+function getRepeatSetting() {
+  return loadQueueSettings.then(() => PlaybackQueue.repeat);
+}
+
+function setRepeatSetting(repeat) {
+  repeat = parseInt(repeat, 10) || 0;
+  return loadQueueSettings.then(() => PlaybackQueue.repeat = repeat);
+}
+
+function getShuffleSetting() {
+  return loadQueueSettings.then(() => PlaybackQueue.shuffle ? 1 : 0);
+}
+
+function setShuffleSetting(shuffle) {
+  shuffle = shuffle !== 'false' && parseInt(shuffle || 0, 10) !== 0;
+  return loadQueueSettings.then(() => PlaybackQueue.shuffle = shuffle);
+}
+
+function getAlbums() {
   return new Promise((resolve) => {
-    resolve({
-      filePath: currentFilePath,
-      paused: audio.paused,
-      duration: audio.duration,
-      elapsedTime: audio.currentTime
+    Database.enumerateAll('metadata.album', null, 'nextunique', albums => resolve(albums));
+  });
+}
+
+function getAlbum(filePath) {
+  return getSong(filePath).then((song) => {
+    var album = song.metadata.album;
+
+    return new Promise((resolve) => {
+      Database.enumerateAll('metadata.album', album, 'next', songs => resolve(songs));
     });
   });
 }
@@ -96,22 +210,6 @@ function getArtist(filePath) {
 
     return new Promise((resolve) => {
       Database.enumerateAll('metadata.artist', artist, 'next', songs => resolve(songs));
-    });
-  });
-}
-
-function getAlbums() {
-  return new Promise((resolve) => {
-    Database.enumerateAll('metadata.album', null, 'nextunique', albums => resolve(albums));
-  });
-}
-
-function getAlbum(filePath) {
-  return getSong(filePath).then((song) => {
-    var album = song.metadata.album;
-
-    return new Promise((resolve) => {
-      Database.enumerateAll('metadata.album', album, 'next', songs => resolve(songs));
     });
   });
 }

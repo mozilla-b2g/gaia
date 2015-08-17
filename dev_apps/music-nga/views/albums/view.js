@@ -1,4 +1,4 @@
-/* global threads, View */
+/* global bridge, View */
 'use strict';
 
 var debug = 1 ? (...args) => console.log('[AlbumsView]', ...args) : () => {};
@@ -27,7 +27,7 @@ var AlbumsView = View.extend(function AlbumsView() {
 
   View.preserveListScrollPosition(this.list);
 
-  this.client = threads.client('music-service', window.parent);
+  this.client = bridge.client({ service: 'music-service', endpoint: window.parent });
   this.client.on('databaseChange', () => this.update());
 
   this.update();

@@ -1,6 +1,6 @@
 {
-  "name": "threads",
-  "main": "threads.js",
+  "name": "bridge",
+  "main": "bridge.js",
   "authors": [
     "Wilson Page <wilsonpage@me.com>"
   ],
@@ -15,14 +15,14 @@
     "docs",
     "examples"
   ],
-  "homepage": "https://github.com/gaia-components/threads",
-  "_release": "6f3389e1e4",
+  "homepage": "https://github.com/gaia-components/bridge",
+  "_release": "215b791a8b",
   "_resolution": {
     "type": "branch",
     "branch": "master",
-    "commit": "6f3389e1e4055cd53c3fd099925bccadf1dbb852"
+    "commit": "215b791a8b409d80047e83da9da510e9a69a8277"
   },
-  "_source": "git://github.com/gaia-components/threads.git",
+  "_source": "git://github.com/gaia-components/bridge.git",
   "_target": "master",
-  "_originalSource": "gaia-components/threads"
+  "_originalSource": "gaia-components/bridge"
 }

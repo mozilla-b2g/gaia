@@ -3,6 +3,9 @@
 
 const HIDE_OVERLAY_TIMEOUT = 5000;
 
+const REPEAT_VALUES = ['off', 'list', 'song'];
+const SHUFFLE_VALUES = ['off', 'on'];
+
 var proto = Object.create(HTMLElement.prototype);
 
 var template =
@@ -48,11 +51,15 @@ var template =
     background: #00caf2;
     transition-duration: 0s;
   }
-  #container button:disabled {
+  #container button:disabled,
+  #container button[data-value="off"] {
     opacity: 0.3;
   }
   #container button:disabled:active {
     background: transparent;
+  }
+  #container button[data-icon="repeat"][data-value="song"]:before {
+    content: 'repeat-once'
   }
   #caption,
   #controls {
@@ -107,6 +114,9 @@ var template =
     font-size: 1.7rem;
     line-height: 2.5rem;
   }
+  #rating {
+    flex: 1 0 auto;
+  }
 </style>
 <div id="container">
   <img class="active">
@@ -120,6 +130,7 @@ var template =
   </div>
   <div id="controls">
     <button type="button" data-action="repeat" data-icon="repeat"></button>
+    <music-rating id="rating"></music-rating>
     <button type="button" data-action="shuffle" data-icon="shuffle"></button>
   </div>
 </div>`;
@@ -140,19 +151,38 @@ proto.createdCallback = function() {
     album:     $('#album'),
     share:     $('[data-action="share"]'),
     repeat:    $('[data-action="repeat"]'),
-    shuffle:   $('[data-action="shuffle"]')
+    shuffle:   $('[data-action="shuffle"]'),
+    rating:    $('#rating')
   };
 
   this.els.container.addEventListener('click', (evt) => {
     var button = evt.target.closest('button');
     if (!button) {
+      if (evt.target.closest('#rating')) {
+        this.overlayVisible = true;
+        return
+      }
+
       this.overlayVisible = !this.overlayVisible;
       return;
     }
 
+    var action = button.dataset.action;
+    switch (action) {
+      case 'repeat':
+        this.nextRepeat();
+        break;
+      case 'shuffle':
+        this.nextShuffle();
+        break;
+    }
+
     this.overlayVisible = true;
-    this.dispatchEvent(new CustomEvent(button.dataset.action));
+    this.dispatchEvent(new CustomEvent(action));
   });
+
+  this.repeat = this.getAttribute('repeat');
+  this.shuffle = this.getAttribute('shuffle');
 
   this.overlayVisible = true;
 };
@@ -164,6 +194,15 @@ proto.attributeChangedCallback = function(attr, oldVal, newVal) {
       break;
     case 'album':
       this.els.album.textContent = newVal;
+      break;
+    case 'repeat':
+      this.els.repeat.dataset.value =
+        REPEAT_VALUES.indexOf(newVal) !== -1 ? newVal : REPEAT_VALUES[0];
+      console.log(this.repeat);
+      break;
+    case 'shuffle':
+      this.els.shuffle.dataset.value =
+        SHUFFLE_VALUES.indexOf(newVal) !== -1 ? newVal : SHUFFLE_VALUES[0];
       break;
     case 'src':
       (() => {
@@ -178,6 +217,14 @@ proto.attributeChangedCallback = function(attr, oldVal, newVal) {
   }
 };
 
+proto.nextRepeat = function() {
+  this.repeat = REPEAT_VALUES[REPEAT_VALUES.indexOf(this.repeat) + 1];
+};
+
+proto.nextShuffle = function() {
+  this.shuffle = SHUFFLE_VALUES[SHUFFLE_VALUES.indexOf(this.shuffle) + 1];
+};
+
 ['artist', 'album', 'src'].forEach(function(prop) {
   Object.defineProperty(proto, prop, {
     get: function() {
@@ -188,6 +235,30 @@ proto.attributeChangedCallback = function(attr, oldVal, newVal) {
       this.setAttribute(prop, value || '');
     }
   });
+});
+
+Object.defineProperty(proto, 'repeat', {
+  get: function() {
+    return this.getAttribute('repeat') || REPEAT_VALUES[0];
+  },
+
+  set: function(value) {
+    console.log('SET REPEAT', value);
+    value = REPEAT_VALUES.indexOf(value) !== -1 ? value : REPEAT_VALUES[0];
+    this.setAttribute('repeat', value);
+  }
+});
+
+Object.defineProperty(proto, 'shuffle', {
+  get: function() {
+    return this.getAttribute('shuffle') || SHUFFLE_VALUES[0];
+  },
+
+  set: function(value) {
+    console.log('SET SHUFFLE', value);
+    value = SHUFFLE_VALUES.indexOf(value) !== -1 ? value : SHUFFLE_VALUES[0];
+    this.setAttribute('shuffle', value);
+  }
 });
 
 Object.defineProperty(proto, 'overlayVisible', {
