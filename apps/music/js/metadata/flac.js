@@ -36,33 +36,26 @@ var FLACMetadata = (function() {
     // First four bytes are "fLaC" or we wouldn't be here.
     blobview.seek(4);
 
-    return new Promise(function(resolve, reject) {
-      var metadata = {};
-      metadata.tag_format = 'flac';
+    var metadata = {tag_format: 'flac'};
+    var has_vorbis_comment = false;
+    var has_picture = false;
 
-      var has_vorbis_comment = false;
-      var has_picture = false;
-
-      function processBlock(block) {
-        if (!block) {
-          resolve(metadata);
-          return false;
-        }
-
-        if (block.block_type === 4) {
-          readAllComments(block.view, metadata);
-          has_vorbis_comment = true;
-        } else if (block.block_type === 6) {
-          LazyLoader.load('js/metadata/vorbis_picture.js').then(() => {
-            metadata.picture = VorbisPictureComment.readPicFrame(block.view);
-          });
-          has_picture = true;
-        }
-
-        return (!has_vorbis_comment || !has_picture);
+    function processBlock(block) {
+      if (block.block_type === 4) {
+        readAllComments(block.view, metadata);
+        has_vorbis_comment = true;
+      } else if (block.block_type === 6) {
+        metadata.picture = VorbisPictureComment.readPicFrame(block.view);
+        has_picture = true;
       }
 
-      findMetadataBlocks(blobview, processBlock);
+      return (!has_vorbis_comment || !has_picture);
+    }
+
+    return LazyLoader.load('js/metadata/vorbis_picture.js').then(() => {
+      return findMetadataBlocks(blobview, processBlock);
+    }).then(() => {
+      return metadata;
     });
   }
 
@@ -71,18 +64,15 @@ var FLACMetadata = (function() {
    *
    * @param {BlobView} blobview The BlobView for the file.
    * @param {function} callback The callback to process the block with.
+   * @return {Promise} A Promise that resolves when all relevant metadata blocks
+   *   have been processed.
    */
   function findMetadataBlocks(blobview, callback) {
-    readMetadataBlockHeader(blobview).then(function(block) {
-      if (!callback(block) || block.last) {
-        callback(null);
-      } else {
+    return readMetadataBlockHeader(blobview).then((block) => {
+      if (callback(block) && !block.last) {
         block.view.advance(block.length - block.view.index);
         findMetadataBlocks(block.view, callback);
       }
-    }).catch(function(err) {
-      console.error('Error finding FLAC metadata:', err);
-      callback(null);
     });
   }
 

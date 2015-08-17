@@ -18,11 +18,8 @@ var ID3v1Metadata = (function() {
    * @return {Promise} A Promise returning the parsed metadata object.
    */
   function parse(blobview) {
-    // If this looks like an MP3 file, then look for ID3v1 metadata
-    // tag at the end of the file. But even if there is no metadata
-    // treat this as a playable file.
-    var blob = blobview.blob;
     return new Promise(function(resolve, reject) {
+      var blob = blobview.blob;
       BlobView.get(blob, blob.size - 128, 128, function(footer, error) {
         if (error) {
           reject(error);
@@ -32,11 +29,11 @@ var ID3v1Metadata = (function() {
         try {
           var magic = footer.getASCIIText(0, 3);
           if (magic === 'TAG') {
-            // It is an MP3 file with an ID3v1 tag
+            // It's an MP3 file with an ID3v1 tag.
             resolve(parseID3v1Metadata(footer));
           } else {
-            // It is an MP3 file with no metadata. We return the default
-            // metadata object that just contains the filename as the title
+            // It's an MP3 file with no metadata. Just resolve to an empty
+            // metatada object.
             resolve({});
           }
         } catch (e) {
