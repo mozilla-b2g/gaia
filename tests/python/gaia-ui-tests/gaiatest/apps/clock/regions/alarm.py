@@ -9,13 +9,14 @@ from gaiatest.apps.base import PageRegion
 
 
 class Alarm(Clock):
+    _alarm_view_locator = (By.ID, 'alarm-tab')
     _edit_alarm_view_locator = (By.ID, 'edit-alarm')
     _all_alarm_items_locator = (By.CSS_SELECTOR, '#alarms li')
     _visible_clock_locator = (By.CSS_SELECTOR, '#clock-view .visible')
 
     def __init__(self, marionette):
         Clock.__init__(self, marionette)
-        view = self.marionette.find_element(*self._clock_view_locator)
+        view = self.marionette.find_element(*self._alarm_view_locator)
         Wait(self.marionette).until(lambda m: view.location['x'] == 0 and view.is_displayed())
 
     @property

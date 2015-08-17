@@ -11,7 +11,6 @@ from gaiatest.apps.base import PageRegion
 class Clock(Base):
     name = 'Clock'
     _alarm_create_new_locator = (By.ID, 'alarm-new')
-    _clock_view_locator = (By.ID, 'alarm-tab')
     _visible_clock_locator = (By.CSS_SELECTOR, '#clock-view .visible')
     _clock_views = {"stopwatch":"stopwatch-tab", "alarm":"alarm-tab", "timer":"timer-tab"}
     _banner_countdown_notification_locator = (By.ID, 'banner-countdown')

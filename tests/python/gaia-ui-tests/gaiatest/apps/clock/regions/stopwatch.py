@@ -3,14 +3,12 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from marionette_driver import expected, By, Wait
-
 from gaiatest.apps.clock.app import Clock
 from gaiatest.apps.base import PageRegion
-
-
+import time
 
 class StopWatch(Clock):
-    _stopwatch_view_locator = (By.CSS_SELECTOR,'#stopwatch-panel.active')
+    _stopwatch_view_locator = (By.CSS_SELECTOR,'#stopwatch-panel')
     _stopwatch_time_locator = (By.CSS_SELECTOR, ".stopwatch-time")
     _stopwatch_start_locator = (By.CSS_SELECTOR, '#stopwatch-controls .stopwatch-start')
     _stopwatch_pause_locator = (By.CSS_SELECTOR, '#stopwatch-controls .stopwatch-pause')
@@ -30,23 +28,29 @@ class StopWatch(Clock):
         return current_time.text
 
     @property
-    def laps(self):
+    def lap_items(self):
         return [self.LapItem(self.marionette, lap) for lap in self.marionette.find_elements(*self._all_laps_locator)]
 
-    def start(self):
+    def tap_start(self):
         Wait(self.marionette).until(expected.element_present(*self._stopwatch_start_locator)).tap()
 
-    def pause(self):
+    def tap_pause(self):
         Wait(self.marionette).until(expected.element_present(*self._stopwatch_pause_locator)).tap()
 
-    def reset(self):
+    def tap_reset(self):
         Wait(self.marionette).until(expected.element_present(*self._stopwatch_reset_locator)).tap()
 
-    def resume(self):
+    def tap_resume(self):
         Wait(self.marionette).until(expected.element_present(*self._stopwatch_resume_locator)).tap()
 
-    def record_lap(self):
+    def tap_lap(self):
         Wait(self.marionette).until(expected.element_present(*self._stopwatch_lap_locator)).tap()
+
+    def verify_pause(self):
+        paused_time = Wait(self.marionette).until(expected.element_present(*self._stopwatch_time_locator)).text
+        time.sleep(2)
+        second_paused_time = Wait(self.marionette).until(expected.element_present(*self._stopwatch_time_locator)).text
+        return [paused_time, second_paused_time]
 
     class LapItem(PageRegion):
         _lap_name = (By.CSS_SELECTOR, '.lap-name')
@@ -59,5 +63,4 @@ class StopWatch(Clock):
         @property
         def time(self):
             return self.root_element.find_element(*self._lap_time).text
-
 

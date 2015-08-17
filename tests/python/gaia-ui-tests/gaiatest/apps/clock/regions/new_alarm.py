@@ -12,7 +12,7 @@ from gaiatest.apps.clock.app import Clock
 class NewAlarm(Clock):
 
     _alarm_name_locator = (By.ID, 'alarm-name')
-    _alarm_view_locator = (By.CSS_SELECTOR, 'section.skin-dark.panel.active')
+    _new_alarm_view_locator = (By.CSS_SELECTOR, 'section[data-panel-id="alarm_edit"]')
     _repeat_menu_locator = (By.ID, 'repeat-menu')
     _sound_menu_locator = (By.ID, 'sound-menu')
     _snooze_menu_locator = (By.ID, 'snooze-menu')
@@ -21,7 +21,7 @@ class NewAlarm(Clock):
 
     def __init__(self, marionette):
         Clock.__init__(self, marionette)
-        view = self.marionette.find_element(*self._alarm_view_locator)
+        view = self.marionette.find_element(*self._new_alarm_view_locator)
         Wait(self.marionette).until(lambda m: view.location['x'] == 0 and view.is_displayed())
         # Bug 1032852 This is to bust intermittents caused by this bug that causes keyboard not to appear upon tap
         time.sleep(1.5)
