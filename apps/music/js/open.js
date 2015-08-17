@@ -37,14 +37,17 @@ function handleOpenActivity(request) {
     PlayerView.init(TYPE_SINGLE);
     PlayerView.stop();
 
-    AudioMetadata.parse(blob).then((metadata) => {
+    PlaybackQueue.loadSettings().then(() => {
+      return AudioMetadata.parse(blob);
+    }).then((metadata) => {
       var fileinfo = {metadata: metadata,
                       name: blob.name,
                       blob: blob};
 
       PlayerView.activate(new PlaybackQueue.StaticQueue([fileinfo]));
       PlayerView.start();
-    }).catch(() => {
+    }).catch((e) => {
+      console.error(e);
       alert(navigator.mozL10n.get('audioinvalid'));
       done();
     });
