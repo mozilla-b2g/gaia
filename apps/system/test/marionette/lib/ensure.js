@@ -247,10 +247,15 @@
    * The current, unamed element would be 'current'.
    */
   Ensure.prototype.must =
-  function(prediction) {
-    this.client.waitFor((function() {
-      return prediction(this.elements);
-    }).bind(this));
+  function(prediction, description) {
+    try {
+      this.client.waitFor((function() {
+        return prediction(this.elements);
+      }).bind(this));
+    } catch(e) {
+      description = description || 'unknown';
+      throw new Error('Ensure.must failed to guarantee: ' + description);
+    }
     return this;
   };
 
