@@ -1,6 +1,5 @@
 'use strict';
 
-var assert = require('assert');
 var Server = require('../../../../shared/test/integration/server');
 var Rocketbar = require('./lib/rocketbar');
 
@@ -42,7 +41,11 @@ marionette('Browser - Chrome on browser navigation',
     });
 
     var progressBar = system.appChromeProgressBar;
-    assert.ok(progressBar.displayed());
+
+    client.waitFor(function() {
+      return progressBar.displayed();
+    });
+
     server.uncork(url);
     client.helper.waitForElementToDisappear(progressBar);
   });
