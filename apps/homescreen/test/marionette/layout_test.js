@@ -18,7 +18,7 @@ marionette('Homescreen - Layout', function() {
   });
 
   test('apps grid is LTR in LTR language', function() {
-    var icons = home.icons;
+    var icons = home.visibleIcons;
     var app1Location = icons[0].location();
     var app2Location = icons[1].location();
     var app3Location = icons[2].location();
@@ -54,7 +54,7 @@ marionette('Homescreen - Layout', function() {
     // Relayout on localisation change is animated, so wait for it to finish
     actions.wait(1).perform();
 
-    var icons = home.icons;
+    var icons = home.visibleIcons;
     var app1Location = icons[0].location();
     var app2Location = icons[1].location();
     var app3Location = icons[2].location();

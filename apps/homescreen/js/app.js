@@ -253,11 +253,6 @@ const SETTINGS_VERSION = 0;
         return;
       }
 
-      if (manifest.role && HIDDEN_ROLES.indexOf(manifest.role) !== -1) {
-        //console.log('Skipping app with role \'' + manifest.role + '\'', app);
-        return;
-      }
-
       if (manifest.entry_points) {
         for (var entryPoint in manifest.entry_points) {
           this.addAppIcon(app, entryPoint);
@@ -318,6 +313,22 @@ const SETTINGS_VERSION = 0;
 
       if (appOrBookmark.manifestURL) {
         icon.app = appOrBookmark;
+
+        // Hide/show the icon if the role changes to/from a hidden role
+        var handleRoleChange = function(app, container) {
+          var manifest = app.manifest || app.updateManifest;
+          var hidden = (manifest && manifest.role &&
+            HIDDEN_ROLES.indexOf(manifest.role) !== -1);
+          container.style.display = hidden ? 'none' : '';
+        };
+
+        icon.app.addEventListener('downloadapplied',
+          function(app, container) {
+            handleRoleChange(app, container);
+            this.icons.synchronise();
+          }.bind(this, icon.app, container));
+
+        handleRoleChange(icon.app, container);
       } else {
         icon.bookmark = appOrBookmark;
       }
@@ -345,6 +356,13 @@ const SETTINGS_VERSION = 0;
             });
         });
       }.bind(this, icon, id));
+
+      // Override default launch behaviour
+      icon.addEventListener('activated', function(e) {
+        e.preventDefault();
+        this.handleEvent({ type: 'activate',
+                           detail: { target: e.target.parentNode } });
+      });
 
       // Refresh icon data (sets title and refreshes icon)
       icon.refresh();
@@ -384,7 +402,15 @@ const SETTINGS_VERSION = 0;
 
     snapScrollPosition: function(bias) {
       var children = this.icons.children;
-      if (children.length < 1) {
+
+      var visibleChildren = 0;
+      for (var i = 0, iLen = children.length; i < iLen; i++) {
+        if (children[i].style.display !== 'none') {
+          visibleChildren ++;
+        }
+      }
+
+      if (visibleChildren < 1) {
         return;
       }
 
@@ -392,7 +418,7 @@ const SETTINGS_VERSION = 0;
       var scrollHeight = this.scrollable.clientHeight;
       var pageHeight = Math.floor(scrollHeight / iconHeight) * iconHeight;
       var gridHeight = (Math.ceil((iconHeight *
-        Math.ceil(children.length / (this.small ? 4 : 3))) / pageHeight) *
+        Math.ceil(visibleChildren / (this.small ? 4 : 3))) / pageHeight) *
         pageHeight) + (scrollHeight - pageHeight);
 
       // Reset scroll-snap points

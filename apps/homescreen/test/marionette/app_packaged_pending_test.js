@@ -1,15 +1,16 @@
 /* global __dirname */
 'use strict';
 
-var assert = require('assert');
 var AppInstall =
   require('../../../../apps/system/test/marionette/lib/app_install');
 var createAppServer = require('./server/parent');
 
-marionette('Homescreen - Hosted app failed icon fetch', function() {
+marionette('Homescreen - Packaged App Pending', function() {
   var client = marionette.client({
-    profile: require(__dirname + '/client_options.js')
+    profile: require(__dirname + '/client_options.js'),
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
   });
+
   var server;
   setup(function(done) {
     var app = __dirname + '/fixtures/template_app';
@@ -33,28 +34,29 @@ marionette('Homescreen - Hosted app failed icon fetch', function() {
     server.close(done);
   });
 
-  test('fallback to default icon', function() {
-    var iconURL = server.manifest.icons['128'];
-
-    // correctly install the app...
+  test('app loading spinner', function() {
+    // go to the system app
     client.switchToFrame();
 
-    // ensure the icon fails to download!
-    server.fail(iconURL);
-    appInstall.install(server.manifestURL);
+    // don't let the server send the zip archive
+    server.cork(server.applicationZipUri);
+    appInstall.installPackage(server.packageManifestURL);
 
     // switch back to the homescreen
     client.switchToFrame(system.getHomescreenIframe());
 
-    var icon = home.getIcon(server.manifestURL);
+    var icon = home.getIcon(server.packageManifestURL);
+    // wait until the icon is spinning!
+    client.waitFor(function() {
+      return home.iconIsLoading(icon);
+    });
 
-    // ensure the default icon is shown
-    home.waitForIconImageUrl(icon, 'default');
+    // let the rest of the app come through
+    server.uncork(server.applicationZipUri);
 
-    // ensure the icon can be launched!
-    home.launchIcon(icon);
-    assert.equal(client.title(), 'iwrotethis');
+    // wait until it is no longer loading
+    client.waitFor(function() {
+      return !home.iconIsLoading(icon);
+    });
   });
 });
-
-
