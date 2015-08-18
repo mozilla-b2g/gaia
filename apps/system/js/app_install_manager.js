@@ -15,6 +15,8 @@
 
 (function(exports) {
   var AppInstallManager = {
+    DEBUG: false,
+    name: 'AppInstallManager',
     mapDownloadErrorsToMessage: {
       'NETWORK_ERROR': 'download-failed',
       'DOWNLOAD_ERROR': 'download-failed',
@@ -68,21 +70,10 @@
       this.appInfos = {};
       this.setupQueue = [];
       this.isSetupInProgress = false;
-      window.addEventListener('mozChromeEvent',
-        (function ai_handleChromeEvent(e) {
-        if (e.detail.type == 'webapps-ask-install') {
-          this.handleAppInstallPrompt(e.detail);
-        }
-        if (e.detail.type == 'webapps-ask-uninstall') {
-          this.handleAppUninstallPrompt(e.detail);
-        }
-      }).bind(this));
 
-      window.addEventListener('applicationinstall',
-        this.handleApplicationInstall.bind(this));
-
-      window.addEventListener('applicationuninstall',
-        this.handleApplicationUninstall.bind(this));
+      window.addEventListener('mozChromeEvent', this);
+      window.addEventListener('applicationinstall', this);
+      window.addEventListener('applicationuninstall', this);
 
       this.installButton.onclick = this.handleInstall.bind(this);
       this.cancelButton.onclick = this.showInstallCancelDialog.bind(this);
@@ -103,6 +94,11 @@
       LazyLoader.load(['shared/js/template.js',
                        'shared/js/homescreens/confirm_dialog_helper.js']);
 
+      window.addEventListener('applicationready', this);
+
+      window.addEventListener('home', this);
+      window.addEventListener('holdhome', this);
+
       // bind these handlers so that we can have only one instance and check
       // them later on
       ['handleDownloadSuccess',
@@ -112,12 +108,32 @@
       ].forEach(function(name) {
         this[name] = this[name].bind(this);
       }, this);
+    },
 
-      window.addEventListener('applicationready',
-          this.handleApplicationReady);
+    stop: function ai_stop() {
+      window.removeEventListener('mozChromeEvent', this);
+      window.removeEventListener('applicationinstall', this);
+      window.removeEventListener('applicationuninstall', this);
+      window.removeEventListener('applicationready', this);
 
-      window.addEventListener('home', this.cancelInstallation.bind(this));
-      window.addEventListener('holdhome', this.cancelInstallation.bind(this));
+      window.removeEventListener('home', this);
+      window.removeEventListener('holdhome', this);
+    },
+
+    handleEvent: function ai_handleEvent(evt) {
+      switch (evt.type) {
+        case 'mozChromeEvent':
+          return this.handleMozChromeEvent(evt);
+        case 'applicationready':
+          return this.handleApplicationReady(evt);
+        case 'home':
+        case 'holdhome':
+          return this.cancelInstallation(evt);
+        case 'applicationinstall':
+          return this.handleApplicationInstall(evt);
+        case 'applicationuninstall':
+          return this.handleApplicationUninstall(evt);
+      }
     },
 
     imeListView: function({displayName, imeName}) {
@@ -126,8 +142,8 @@
          <gaia-checkbox class="ime inline" name="keyboards" value="${imeName}">
            <label>${displayName}</label>
          </gaia-checkbox>
-       </li>`;
-   },
+      </li>`;
+    },
 
     cancelInstallation: function ai_cancelInstallation() {
       this.dialog.classList.remove('visible');
@@ -142,6 +158,36 @@
       // hide IME layout list if presented
       if (this.imeLayoutDialog.classList.contains('visible')) {
         this.hideIMEList();
+      }
+    },
+
+    handleMozChromeEvent: function ai_handleMozChromeEvent(e) {
+      switch (e.detail.type) {
+        case 'webapps-ask-install':
+          var manifestURL = e.detail.app && e.detail.app.manifestURL;
+          var isCustomizing = Service.query('ftuCustomizationContains',
+                                            manifestURL);
+          this.debug('handling webapps-ask-install, ' +
+            'manifestURL: ' + manifestURL + ', ' +
+            'isCustomizing: ' + isCustomizing);
+
+          if (manifestURL && isCustomizing) {
+            var grantedEvent = new CustomEvent('mozContentEvent', {
+              bubbles: true,
+              cancelable: true,
+              detail: {
+                id: e.detail.id,
+                type: 'webapps-install-granted'
+              }
+            });
+            window.dispatchEvent(grantedEvent);
+          } else {
+            this.handleAppInstallPrompt(e.detail);
+          }
+          break;
+        case 'webapps-ask-uninstall':
+          this.handleAppUninstallPrompt(e.detail);
+          break;
       }
     },
 
@@ -748,6 +794,16 @@
 
     dispatchPromptEvent: function(state) {
       window.dispatchEvent(new CustomEvent('installprompt' + state));
+    },
+    debug: function() {
+      if (this.DEBUG) {
+        console.log('[' + this.name + ']' +
+          '[' + Service.currentTime() + '] ' +
+            Array.slice(arguments).concat());
+        if (this.TRACE) {
+          console.trace();
+        }
+      }
     }
   };
   exports.AppInstallManager = AppInstallManager;
