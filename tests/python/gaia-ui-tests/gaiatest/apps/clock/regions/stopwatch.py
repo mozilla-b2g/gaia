@@ -46,11 +46,11 @@ class StopWatch(Clock):
     def tap_lap(self):
         Wait(self.marionette).until(expected.element_present(*self._stopwatch_lap_locator)).tap()
 
-    def verify_pause(self):
+    def verify_laps_not_same(self):
         paused_time = Wait(self.marionette).until(expected.element_present(*self._stopwatch_time_locator)).text
         time.sleep(2)
         second_paused_time = Wait(self.marionette).until(expected.element_present(*self._stopwatch_time_locator)).text
-        return [paused_time, second_paused_time]
+        return paused_time != second_paused_time
 
     class LapItem(PageRegion):
         _lap_name = (By.CSS_SELECTOR, '.lap-name')
