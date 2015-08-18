@@ -135,6 +135,9 @@ requireApp('settings/js/vendor/alameda.js', (function() {
       },
       'shared_mocks/mock_navigator_moz_power': {
         exports: 'MockMozPower'
+      },
+      'shared_mocks/mock_promise': {
+        exports: 'MockPromise'
       }
     },
     modules: [
