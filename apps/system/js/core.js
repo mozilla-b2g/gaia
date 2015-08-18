@@ -13,7 +13,8 @@
   Core.SUB_MODULES = [
     'HierarchyManager',
     'AirplaneMode',
-    'NotificationsSystemMessage'
+    'NotificationsSystemMessage',
+    'SuplHandler'
   ];
 
   Core.SERVICES = [
