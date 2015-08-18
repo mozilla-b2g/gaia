@@ -417,7 +417,8 @@ window.GaiaAppIcon = (function(exports) {
         (shortName) => {
           this._subtitle.textContent = this._localizeString(shortName);
         },
-        this.app.getLocalizedValue.bind(this.app, 'name', userLang, ep)).then(
+        () => {
+          this.app.getLocalizedValue('name', userLang, ep).then(
           (name) => {
             this._subtitle.textContent = this._localizeString(name);
           },
@@ -434,6 +435,7 @@ window.GaiaAppIcon = (function(exports) {
               this._subtitle.textContent = '';
             }
           });
+        });
     } else if (this.bookmark) {
       this._subtitle.textContent = this.bookmark.name;
     } else {

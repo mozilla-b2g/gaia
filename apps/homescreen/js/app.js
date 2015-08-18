@@ -51,6 +51,14 @@ const HIDDEN_ROLES = [
 ];
 
 /**
+ * Strings that are matched against to black-list app origins.
+ * TODO: This should not be hard-coded.
+ */
+const BLACKLIST = [
+  'app://privacy-panel.gaiamobile.org'
+];
+
+/**
  * Stored settings version, for use when changing/refactoring settings storage.
  */
 const SETTINGS_VERSION = 0;
@@ -250,6 +258,11 @@ const SETTINGS_VERSION = 0;
       var manifest = app.manifest || app.updateManifest;
       if (!manifest) {
         //console.log('Skipping app with no manifest', app);
+        return;
+      }
+
+      // Do not add blacklisted apps
+      if (BLACKLIST.indexOf(app.origin) !== -1) {
         return;
       }
 
