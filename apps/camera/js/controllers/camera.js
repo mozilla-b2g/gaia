@@ -56,7 +56,7 @@ CameraController.prototype.bindEvents = function() {
   camera.on('willrecord', app.firer('camera:willrecord'));
   camera.on('configured', app.firer('camera:configured'));
   camera.on('requesting', app.firer('camera:requesting'));
-  camera.on('change:recording', app.setter('recording'));
+  camera.on('change:recording', this.onRecordingChange);
   camera.on('newcamera', app.firer('camera:newcamera'));
   camera.on('newimage', app.firer('camera:newimage'));
   camera.on('newvideo', app.firer('camera:newvideo'));
@@ -82,6 +82,7 @@ CameraController.prototype.bindEvents = function() {
   app.on('timer:ended', this.capture);
   app.on('visible', this.loadCamera);
   app.on('capture', this.capture);
+  app.on('capture:suspend', this.suspendCapture);
   app.on('hidden', this.shutdownCamera);
 
   // Settings
@@ -95,6 +96,18 @@ CameraController.prototype.bindEvents = function() {
   settings.hdr.on('change:selected', this.onHDRChange);
 
   debug('events bound');
+};
+
+CameraController.prototype.onRecordingChange = function(recording) {
+  var active;
+  if (recording === 'started') {
+    active = true;
+  } else if (recording === 'stopped') {
+    active = false;
+  } else {
+    return;
+  }
+  this.app.set('recording', active);
 };
 
 /**
@@ -208,6 +221,15 @@ CameraController.prototype.capture = function() {
 
   var position = this.app.geolocation.position;
   return this.camera.capture({ position: position });
+};
+
+/**
+ * Pauses/resumes capture if in progress.
+ *
+ * @private
+ */
+CameraController.prototype.suspendCapture = function() {
+  return this.camera.suspendCapture();
 };
 
 /**

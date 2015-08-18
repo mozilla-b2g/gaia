@@ -142,7 +142,7 @@ suite('lib/camera/camera', function() {
 
     test('It flags the camera as \'recording\' straight away', function() {
       this.camera.startRecording();
-      sinon.assert.calledWith(this.camera.set, 'recording', true);
+      sinon.assert.calledWith(this.camera.set, 'recording', 'starting');
     });
 
     test('Should error if not enough storage space', function() {
@@ -153,7 +153,7 @@ suite('lib/camera/camera', function() {
     });
 
     test('Should error if stop recording requested', function() {
-      this.camera.stopRecordPending = true;
+      this.camera.get.withArgs('recording').returns('stopping');
       this.camera.startRecording();
       assert.ok(this.camera.stoppedRecording.called);
     });
@@ -256,7 +256,7 @@ suite('lib/camera/camera', function() {
     });
 
     test('Should call stoppedRecording if pending on create video file', function() {
-      this.camera.stopRecordPending = true;
+      this.camera.get.withArgs('recording').returns('stopping');
       this.camera.startRecording();
       assert.ok(this.camera.stoppedRecording.called);
     });
@@ -395,8 +395,9 @@ suite('lib/camera/camera', function() {
 
   suite('Camera#stopRecording()', function() {
     setup(function() {
+      sinon.spy(this.camera, 'set');
       sinon.stub(this.camera, 'get');
-      this.camera.get.withArgs('recording').returns(true);
+      this.camera.get.withArgs('recording').returns('started');
 
       this.camera.mozCamera = {
         stopRecording: sinon.stub()
@@ -404,13 +405,13 @@ suite('lib/camera/camera', function() {
     });
 
     test('Should not do anything if camera is not recording', function() {
-      this.camera.get.withArgs('recording').returns(false);
+      this.camera.get.withArgs('recording').returns('stopped');
       this.camera.stopRecording();
       sinon.assert.notCalled(this.camera.mozCamera.stopRecording);
     });
 
     test('Should not do anything if stop already pending', function() {
-      this.camera.stopRecordPending = true;
+      this.camera.get.withArgs('recording').returns('stopping');
       this.camera.stopRecording();
       sinon.assert.notCalled(this.camera.mozCamera.stopRecording);
     });
@@ -425,10 +426,9 @@ suite('lib/camera/camera', function() {
       sinon.assert.called(this.camera.mozCamera.stopRecording);
     });
 
-    test('Should set `stopRecordPending` flag to `true`', function() {
-      this.camera.stopRecordPending = false;
+    test('Should set `recording` to `stopping`', function() {
       this.camera.stopRecording();
-      assert.isTrue(this.camera.stopRecordPending);
+      sinon.assert.calledWith(this.camera.set, 'recording', 'stopping');
     });
   });
 
@@ -486,15 +486,10 @@ suite('lib/camera/camera', function() {
       sinon.stub(this.camera, 'get');
     });
 
-    test('It sets `recording` to `false`', function() {
+    test('It sets `recording` to `stopped`', function() {
       this.camera.stoppedRecording();
-      sinon.assert.calledWith(this.camera.set, 'recording', false);
-    });
-
-    test('Should set `stopRecordPending` flag to `false`', function() {
-      this.camera.stopRecordPending = true;
-      this.camera.stoppedRecording();
-      assert.isFalse(this.camera.stopRecordPending);
+      sinon.assert.calledWith(this.camera.set, 'recording', 'error');
+      sinon.assert.calledWith(this.camera.set, 'recording', 'stopped');
     });
 
     test('Should stop timer counting', function() {

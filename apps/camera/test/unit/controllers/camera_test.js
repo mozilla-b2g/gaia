@@ -194,6 +194,26 @@ suite('controllers/camera', function() {
     });
   });
 
+  suite('CameraController#onRecordingChange', function() {
+    test('Should set `recording` to true if started', function() {
+      this.controller.onRecordingChange('started');
+      assert.ok(this.app.set.calledWith('recording', true));
+    });
+
+    test('Should set `recording` to true if stopped', function() {
+      this.controller.onRecordingChange('stopped');
+      assert.ok(this.app.set.calledWith('recording', false));
+    });
+
+    test('Should not set `recording` if starting or stopping', function() {
+      var self = this;
+      ['error', 'starting', 'stopping'].forEach(function(recording) {
+        self.controller.onRecordingChange(recording);
+        sinon.assert.notCalled(self.app.set);
+      });
+    });
+  });
+
   suite('CameraController#onCaptureKey', function() {
     setup(function() {
       this.controller.lowBattery = false;
