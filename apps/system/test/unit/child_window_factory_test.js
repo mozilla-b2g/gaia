@@ -43,42 +43,43 @@ suite('system/ChildWindowFactory', function() {
   var fakeWindowOpenDetailSameOrigin = {
     url: 'app://www.fake/child.html',
     name: 'same',
-    iframe: document.createElement('iframe'),
+    frameElement: document.createElement('iframe'),
     features: ''
   };
 
   var fakeWindowOpenDetailCrossOrigin = {
     url: 'http://fake.com/child.html',
     name: 'other',
-    iframe: document.createElement('iframe'),
+    frameElement: document.createElement('iframe'),
     features: ''
   };
 
-  var fakeWindowOpenBlank = {
+  var fakeWindowOpenDetailBlank = {
     url: 'http://blank.com/index.html',
     name: '_blank',
-    iframe: document.createElement('iframe'),
+    frameElement: document.createElement('iframe'),
     features: ''
   };
 
-  var fakeWindowOpenPopup = {
+  var fakeWindowOpenDetailPopup = {
     url: 'http://fake.com/child2.html',
     name: '',
-    iframe: document.createElement('iframe'),
+    frameElement: document.createElement('iframe'),
     features: 'dialog'
   };
 
-  var fakeWindowOpenHiddenPopup = Object.assign({}, fakeWindowOpenPopup);
-  fakeWindowOpenHiddenPopup.features = 'alwaysLowered';
+  var fakeWindowOpenDetailHiddenPopup =
+    Object.assign({}, fakeWindowOpenDetailPopup);
+  fakeWindowOpenDetailHiddenPopup.features = 'alwaysLowered';
 
-  var fakeWindowOpenHaidaSheet = {
+  var fakeWindowOpenDetailHaidaSheet = {
     url: 'http://fake.com/child2.html',
     name: 'haida',
-    iframe: document.createElement('iframe'),
+    frameElement: document.createElement('iframe'),
     features: 'mozhaidasheet'
   };
 
-  var fakeWindowOpenEmail = {
+  var fakeWindowOpenDetailEmail = {
     url: 'mailto:demo@mozilla.com',
     name: '',
     features: 'dialog'
@@ -105,17 +106,17 @@ suite('system/ChildWindowFactory', function() {
     isApp: true
   };
 
-  var fakeAttentionDetail = {
+  var fakeOpenWindowDetailAttention = {
     'url': 'app://fakeatt.gaiamobile.org/pick.html',
     'manifestURL': 'app://fakeatt.gaiamobile.org/manifest.webapp',
-    iframe: document.createElement('iframe'),
+    frameElement: document.createElement('iframe'),
     features: 'attention'
   };
 
-  var fakeGlobalOverlayDetail = {
+  var fakeOpenWindowGlobalOverlay = {
     'url': 'app://fakeglobaloverlay.gaiamobile.org/pick.html',
     'manifestURL': 'app://fakeglobaloverlay.gaiamobile.org/manifest.webapp',
-    iframe: document.createElement('iframe'),
+    frameElement: document.createElement('iframe'),
     features: 'global-clickthrough-overlay'
   };
 
@@ -141,7 +142,7 @@ suite('system/ChildWindowFactory', function() {
     this.sinon.stub(app1, 'hasPermission').returns(true);
     cwf.handleEvent(new CustomEvent('mozbrowseropenwindow',
       {
-        detail: fakeAttentionDetail
+        detail: fakeOpenWindowDetailAttention
       }));
     assert.isTrue(spy.calledWithNew());
     assert.deepEqual(spy.getCall(0).args[0].parentWindow, app1);
@@ -154,7 +155,7 @@ suite('system/ChildWindowFactory', function() {
     this.sinon.stub(app1, 'hasPermission').returns(true);
     cwf.handleEvent(new CustomEvent('mozbrowseropenwindow',
       {
-        detail: fakeGlobalOverlayDetail
+        detail: fakeOpenWindowGlobalOverlay
       }));
     assert.isTrue(spy.calledWithNew());
     assert.deepEqual(spy.getCall(0).args[0].parentWindow, app1);
@@ -195,7 +196,7 @@ suite('system/ChildWindowFactory', function() {
     this.sinon.stub(app1, 'isActive').returns(true);
     cwf.handleEvent(new CustomEvent('mozbrowseropenwindow',
       {
-        detail: fakeWindowOpenPopup
+        detail: fakeWindowOpenDetailPopup
       }));
     assert.isTrue(spy.calledWithNew());
     assert.deepEqual(spy.getCall(0).args[0].rearWindow, app1);
@@ -223,7 +224,7 @@ suite('system/ChildWindowFactory', function() {
     this.sinon.stub(popup1, 'isTransitioning').returns(true);
     cwf.handleEvent(new CustomEvent('mozbrowseropenwindow',
       {
-        detail: fakeWindowOpenPopup
+        detail: fakeWindowOpenDetailPopup
       }));
     assert.isFalse(spy.calledWithNew());
   });
@@ -238,7 +239,7 @@ suite('system/ChildWindowFactory', function() {
     this.sinon.stub(popup1, 'isActive').returns(true);
     cwf.handleEvent(new CustomEvent('mozbrowseropenwindow',
       {
-        detail: fakeWindowOpenPopup
+        detail: fakeWindowOpenDetailPopup
       }));
     assert.isFalse(spy.calledWithNew());
   });
@@ -262,7 +263,7 @@ suite('system/ChildWindowFactory', function() {
     this.sinon.stub(app1, 'isActive').returns(true);
     cwf.handleEvent(new CustomEvent('mozbrowseropenwindow',
       {
-        detail: fakeWindowOpenHaidaSheet
+        detail: fakeWindowOpenDetailHaidaSheet
       }));
     assert.isTrue(spy.calledWithNew());
   });
@@ -280,7 +281,7 @@ suite('system/ChildWindowFactory', function() {
     };
     cwf.handleEvent(new CustomEvent('mozbrowseropenwindow',
       {
-        detail: fakeWindowOpenEmail
+        detail: fakeWindowOpenDetailEmail
       }));
     assert.isTrue(activitySpy.calledWithNew());
     sinon.assert.calledWith(activitySpy, expectedActivity);
@@ -292,18 +293,26 @@ suite('system/ChildWindowFactory', function() {
     this.sinon.stub(app1, 'isActive').returns(true);
     this.sinon.stub(app1, 'isTransitioning').returns(false);
     var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
-    var testEvt = (new CustomEvent('mozbrowseropenwindow', {
-      detail: fakeWindowOpenBlank
-    }));
+    var testEvt = {
+      type: 'mozbrowseropenwindow',
+      target: document.createElement('iframe'),
+      detail: fakeWindowOpenDetailBlank,
+      preventDefault: this.sinon.stub(),
+      stopPropagation: this.sinon.stub()
+    };
+    testEvt.target.setAttribute('mozallowfullscreen', 'true');
     cwf.handleEvent(testEvt);
 
     assert.equal(stubDispatchEvent.getCall(0).args[0].type, 'openwindow');
     assert.deepEqual(stubDispatchEvent.getCall(0).args[0].detail, {
-      url: fakeWindowOpenBlank.url,
-      name: fakeWindowOpenBlank.name,
-      iframe: fakeWindowOpenBlank.frameElement,
+      url: fakeWindowOpenDetailBlank.url,
+      name: fakeWindowOpenDetailBlank.name,
+      iframe: fakeWindowOpenDetailBlank.frameElement,
       isPrivate: false
     });
+    assert.equal(
+      fakeWindowOpenDetailBlank.frameElement.getAttribute('mozallowfullscreen'),
+      'true');
   });
 
   test('Create ActivityWindow', function() {
@@ -394,7 +403,7 @@ suite('system/ChildWindowFactory', function() {
     MockService.mockQueryWith('getTopMostWindow', app1);
     cwf.handleEvent(new CustomEvent('mozbrowseropenwindow',
       {
-        detail: fakeWindowOpenPopup
+        detail: fakeWindowOpenDetailPopup
       }));
     var stubSetOrientation = this.sinon.stub(app1, 'setOrientation');
     this.sinon.stub(app1, 'setVisible');
@@ -416,7 +425,7 @@ suite('system/ChildWindowFactory', function() {
       var stubCreatePopupWindow = this.sinon.stub(cwf, 'createPopupWindow');
       cwf.handleEvent(new CustomEvent('mozbrowseropenwindow',
         {
-          detail: fakeWindowOpenHiddenPopup
+          detail: fakeWindowOpenDetailHiddenPopup
         }));
       assert.equal(stubCreatePopupWindow.callCount, 0);
       assert.equal(spy.callCount, 0);
@@ -430,7 +439,7 @@ suite('system/ChildWindowFactory', function() {
       var spyCreatePopupWindow = this.sinon.spy(cwf, 'createPopupWindow');
       cwf.handleEvent(new CustomEvent('mozbrowseropenwindow',
         {
-          detail: fakeWindowOpenHiddenPopup
+          detail: fakeWindowOpenDetailHiddenPopup
         }));
 
       assert.isTrue(spyCreatePopupWindow.calledOnce);
@@ -448,7 +457,7 @@ suite('system/ChildWindowFactory', function() {
       var cwf = new ChildWindowFactory(app1);
       var stubCreatePopupWindow = this.sinon.stub(cwf, 'createPopupWindow');
       var testEvt = (new CustomEvent('mozbrowseropenwindow', {
-        detail: fakeWindowOpenBlank
+        detail: fakeWindowOpenDetailBlank
       }));
       cwf.handleEvent(testEvt);
       assert.isTrue(stubCreatePopupWindow.calledOnce);
