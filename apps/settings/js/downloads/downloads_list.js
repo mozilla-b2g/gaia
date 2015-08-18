@@ -106,9 +106,6 @@
   function _append(download) {
     return _create(download).then((li) => {
       downloadsContainer.appendChild(li);
-      if (download.state === 'downloading') {
-        download.onstatechange = _onDownloadStateChange;
-      }
     });
   }
 
