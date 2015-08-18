@@ -260,6 +260,15 @@ document.addEventListener('DOMContentLoaded', function onload() {
       'ril.ims.httpProxyPort': 'port',
       'ril.ims.authtype': 'authtype'
     },
+    'fota': {
+      'ril.fota.carrier': 'carrier',
+      'ril.fota.apn': 'apn',
+      'ril.fota.user': 'user',
+      'ril.fota.passwd': 'password',
+      'ril.fota.httpProxyHost': 'proxy',
+      'ril.fota.httpProxyPort': 'port',
+      'ril.fota.authtype': 'authtype'
+    },
     'operatorvariant': {
       'ril.iccInfo.mbdn': 'voicemail',
       'ril.sms.strict7BitEncoding.enabled': 'enableStrict7BitEncodingForSms',
