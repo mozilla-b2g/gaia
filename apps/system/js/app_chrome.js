@@ -7,12 +7,10 @@
 /* global SettingsListener */
 /* global Service */
 /* global GaiaPinCard */
-/* global Icon */
 
 'use strict';
 
 (function(exports) {
-  const DEFAULT_ICON_URL = '/style/chrome/images/default_icon.png';
   const PINNING_PREF = 'dev.gaia.pinning_the_web';
   // 32px + 4px padding added by the Icon renderer
   const ICON_SIZE = 32 + 4;
@@ -812,7 +810,7 @@
       var origin = new URL(this._currentURL).origin;
 
       if (this._currentOrigin !== origin) {
-        this.setSiteIcon(DEFAULT_ICON_URL);
+        this.setSiteIcon();
         this._currentOrigin = origin;
       }
 
@@ -1031,18 +1029,8 @@
    * @param {string?} url
    */
   AppChrome.prototype.setSiteIcon = function ac_setSiteIcon(url) {
-    var icon;
 
     if (!this.siteIcon || this.app.isPrivateBrowser()) {
-      return;
-    }
-
-    if (url) {
-      icon = new Icon(this.siteIcon, url);
-      icon.render({
-        size: ICON_SIZE
-      });
-      this._currentIconUrl = url;
       return;
     }
 

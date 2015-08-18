@@ -1,4 +1,3 @@
-/* globals Icon */
 /* exported IconsHelper */
 'use strict';
 
@@ -113,11 +112,9 @@
                 Date.now() - iconObj.timestamp >= ICON_CACHE_PERIOD) {
                 return fetchIconBlob(iconUrl)
                   .then(iconBlob => {
-                    var img = document.createElement('img');
-                    var icon = new Icon(img, uri);
-                    icon.renderBlob(iconBlob, {
-                      size: iconTargetSize,
-                      onLoad: function(blob) {
+                    var icon = document.createElement('gaia-site-icon');
+                    icon.addEventListener('icon-loaded', function() {
+                      icon.icon.then(function(blob) {
                         var iconObj = {
                           blob: blob,
                           originalUrl: iconUrl,
@@ -129,8 +126,17 @@
                         resolve(iconObj);
 
                         iconStore.add(iconObj, iconUrl);
-                      }
+                      });
                     });
+
+                    icon.bookmark = {
+                      url: uri,
+                      icon: {
+                        blob: iconBlob,
+                        size: iconTargetSize
+                      }
+                    };
+                    icon.refresh();
                   })
                   .catch(err => {
                     reject(`Failed to fetch icon ${iconUrl}: ${err}`);
