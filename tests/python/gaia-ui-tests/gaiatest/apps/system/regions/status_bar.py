@@ -17,6 +17,10 @@ class StatusBar(PageRegion):
 
 
     @property
+    def height(self):
+        return self.root_element.rect['height']
+
+    @property
     def minimized(self):
         """
         Status bar in its minimized form. When the RocketBar is at the same level with the connectivity icons.
