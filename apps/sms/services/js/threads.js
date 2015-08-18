@@ -157,10 +157,6 @@
         return +threads.size();
       }
       return +threads.size;
-    },
-    currentId: null,
-    get active() {
-      return threads.get(+Threads.currentId);
     }
   };
 

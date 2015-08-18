@@ -163,8 +163,8 @@ var ConversationView = {
       'click', this.showOptions.bind(this)
     );
 
-    this.callNumberButton.addEventListener('click', function() {
-      ActivityPicker.dial(Threads.active.participants[0]);
+    this.callNumberButton.addEventListener('click', () => {
+      ActivityPicker.dial(this.activeThread.participants[0]);
     });
 
     this.deleteButton.addEventListener(
@@ -452,7 +452,9 @@ var ConversationView = {
   },
 
   getIdIterator: function conv_getIdIterator() {
-    return Threads.active.messages.keys();
+    // TODO: Will need to replace with Conversation service method or caching
+    // the ids locally.
+    return this.activeThread.messages.keys();
   },
 
   setHeaderAction: function conv_setHeaderAction(icon) {
@@ -566,12 +568,14 @@ var ConversationView = {
     return MessageManager.ensureThreadRegistered(threadId).then(() => {
       // TODO should we implement hooks to Navigation so that Threads could
       // get an event whenever the panel changes?
-      Threads.currentId = threadId;
+
+      // TODO: Will need to replace with Conversation service method.
+      this.activeThread = Threads.get(threadId);
 
       var prevPanel = args.meta.prev;
 
       var emailThread = Settings.supportEmailRecipient &&
-        Threads.active.participants.some(Utils.isEmailAddress);
+        this.activeThread.participants.some(Utils.isEmailAddress);
 
       Compose.setupLock({ forceType: () => emailThread ? 'mms' : null });
 
@@ -589,7 +593,7 @@ var ConversationView = {
 
       // Call button should be shown only for non-email single-participant
       // thread
-      if (Threads.active.participants.length === 1 && !emailThread) {
+      if (this.activeThread.participants.length === 1 && !emailThread) {
         this.callNumberButton.classList.remove('hide');
       }
 
@@ -697,7 +701,8 @@ var ConversationView = {
     }
 
     // TODO move most of back() here: Bug 1010223
-    if (!this.isConversationPanel(Threads.currentId, nextPanel)) {
+    if (this.activeThread &&
+        !this.isConversationPanel(this.activeThread.id, nextPanel)) {
       // Clean fields when moving out of a conversation.
       this.cleanFields();
     }
@@ -709,7 +714,6 @@ var ConversationView = {
       // conversation
       this.container.textContent = '';
       this.cleanFields();
-      Threads.currentId = null;
     }
     if (!Navigation.isCurrentPanel('composer')) {
       // Cleaning things up when moving from composer to conversation.
@@ -777,7 +781,6 @@ var ConversationView = {
     // TODO add the activity/forward/draft stuff here
     // instead of in afterEnter: Bug 1010223
 
-    Threads.currentId = null;
     this.cleanFields();
     this.initRecipients();
     this.updateComposerHeader();
@@ -1220,14 +1223,16 @@ var ConversationView = {
 
     // We're waiting for the keyboard to disappear before animating back
     return this._ensureKeyboardIsHidden().then(function() {
+      var inConversation = Navigation.isCurrentPanel('thread');
       // Need to assimilate recipients in order to check if any entered
       this.assimilateRecipients();
 
       // If we're leaving a thread's message view,
       // ensure that the thread object's unreadCount
       // value is current (set = 0)
-      if (Threads.active) {
-        Threads.active.unreadCount = 0;
+      if (inConversation) {
+        // TODO: Will need to replace with Conversation service method.
+        this.activeThread.unreadCount = 0;
       }
 
       // If the composer is empty and we are either
@@ -1235,7 +1240,7 @@ var ConversationView = {
       // do not prompt to save a draft and remove saved drafts
       // as the user deleted them manually
       if (Compose.isEmpty() &&
-        (Threads.active || this.recipients.length === 0)) {
+        (inConversation || this.recipients.length === 0)) {
         this.discardDraft();
         return;
       }
@@ -1247,7 +1252,7 @@ var ConversationView = {
         // Thread-less drafts are orphaned at this point
         // so they need to be resaved for persistence
         // Otherwise, clear the draft directly before leaving
-        if (!Threads.currentId) {
+        if (!inConversation) {
           this.saveDraft();
         } else {
           this.draft = null;
@@ -1438,7 +1443,7 @@ var ConversationView = {
   updateHeaderData: function conv_updateHeaderData() {
     var thread, number;
 
-    thread = Threads.active;
+    thread = this.activeThread;
 
     if (!thread) {
       return Promise.resolve();
@@ -2183,13 +2188,13 @@ var ConversationView = {
           },
           {
             l10nId: 'view-message-report',
-            method: function showMessageReport(messageId) {
+            method: (messageId) => {
               // Fetch the message by id for displaying corresponding message
               // report. threadId here is to make sure thread is updatable
               // when current view report panel.
               Navigation.toPanel('report-view', {
                 id: messageId,
-                threadId: Threads.currentId
+                threadId: this.activeThread.id
               });
             },
             params: [messageId]
@@ -2291,7 +2296,7 @@ var ConversationView = {
       }
       recipients = this.recipients.numbers;
     } else {
-      recipients = Threads.active.participants;
+      recipients = this.activeThread.participants;
     }
 
     // Clean composer fields (this lock any repeated click in 'send' button)
@@ -2779,12 +2784,12 @@ var ConversationView = {
   },
 
   onHeaderActivation: function conv_onHeaderActivation() {
-    var participants = Threads.active && Threads.active.participants;
+    var participants = this.activeThread && this.activeThread.participants;
 
     // >1 Participants will enter "group view"
     if (participants && participants.length > 1) {
       Navigation.toPanel('group-view', {
-        id: Threads.currentId
+        id: this.activeThread.id
       });
       return;
     }
@@ -2856,7 +2861,7 @@ var ConversationView = {
   prompt: function conv_prompt(opt) {
     var defer = Utils.Promise.defer();
 
-    var thread = Threads.active;
+    var thread = this.activeThread;
     var number = opt.number || '';
     var email = opt.email || '';
     var isContact = opt.isContact || false;
@@ -2994,7 +2999,7 @@ var ConversationView = {
    * whether or not we should preserve draft.
    */
   saveDraft: function conv_saveDraft(preserveDraft) {
-    var thread = Threads.active;
+    var thread = this.activeThread;
 
     // Do we need to save participants for thread draft?
     var recipients = thread ? thread.participants : this.recipients.numbers;

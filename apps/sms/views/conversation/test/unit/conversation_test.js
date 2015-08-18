@@ -136,13 +136,20 @@ suite('conversation.js >', function() {
     elt.dispatchEvent(event);
   }
 
-  function setActiveThread(id = 1, participants = ['999']) {
-    Threads.currentId = id;
-
-    Threads.active = new Thread({
+  function getMockThread(id, participants) {
+    return new Thread({
       id: id,
       participants: participants
     });
+  }
+
+  function setActiveThread(id = 1, participants = ['999']) {
+    ConversationView.activeThread = getMockThread(id, participants);
+    Threads.get.returns(ConversationView.activeThread);
+  }
+
+  function clearActiveThread() {
+    delete ConversationView.activeThread;
   }
 
   mocksHelperForConversationView.attachTestHelpers();
@@ -196,6 +203,7 @@ suite('conversation.js >', function() {
     this.sinon.stub(MessageManager, 'on');
     this.sinon.stub(Compose, 'on');
     this.sinon.stub(Compose, 'off');
+    this.sinon.stub(Threads, 'get');
     this.sinon.useFakeTimers();
 
     this.sinon.stub(ActivityClient);
@@ -218,6 +226,7 @@ suite('conversation.js >', function() {
     document.body.innerHTML = '';
 
     sticky = null;
+    clearActiveThread();
     MockOptionMenu.mTeardown();
   });
 
@@ -4619,7 +4628,7 @@ suite('conversation.js >', function() {
 
       test('does not update anything if there is no active thread',
       function(done) {
-        Threads.currentId = Threads.active = null;
+        ConversationView.activeThread = null;
 
         ConversationView.updateHeaderData().then(() => {
           sinon.assert.notCalled(Contacts.findByAddress);
@@ -4641,7 +4650,9 @@ suite('conversation.js >', function() {
           assert.isFalse(headerText.hasAttribute('data-l10n-id'));
 
           sinon.assert.calledWith(
-            ConversationView.updateCarrier, Threads.active, fakeContactOne
+            ConversationView.updateCarrier,
+            ConversationView.activeThread,
+            fakeContactOne
           );
         }).then(done, done);
       });
@@ -4657,12 +4668,15 @@ suite('conversation.js >', function() {
             headerText.innerHTML,
             '<span class="group-header-title"><bdi class="ellipsis-dir-fix">' +
             fakeContactTwo.name[0] + '</bdi>&nbsp;<bdi dir="ltr">(+' +
-            (Threads.active.participants.length - 1) + ')</bdi></span>'
+            (ConversationView.activeThread.participants.length - 1) +
+            ')</bdi></span>'
           );
           assert.isFalse(headerText.hasAttribute('data-l10n-id'));
 
           sinon.assert.calledWith(
-            ConversationView.updateCarrier, Threads.active, fakeContactTwo
+            ConversationView.updateCarrier,
+            ConversationView.activeThread,
+            fakeContactTwo
           );
         }).then(done, done);
       });
@@ -6727,14 +6741,6 @@ suite('conversation.js >', function() {
           });
         });
       });
-
-      test('coming from a thread, should reset currentId', function(done) {
-        setActiveThread();
-
-        ConversationView.beforeEnter(transitionArgs).then(
-          () => assert.isNull(Threads.currentId)
-        ).then(done, done);
-      });
     });
 
     suite('afterEnter()', function() {
@@ -6806,7 +6812,6 @@ suite('conversation.js >', function() {
       this.sinon.stub(MessageManager, 'markThreadRead');
       this.sinon.spy(MessageManager, 'ensureThreadRegistered');
       this.sinon.stub(ConversationView, 'renderMessages');
-      this.sinon.stub(Threads, 'get').returns({});
       this.sinon.stub(Compose, 'fromDraft');
       this.sinon.stub(Utils, 'closeNotificationsForThread');
       Utils.closeNotificationsForThread.returns(Promise.resolve());
@@ -6832,10 +6837,6 @@ suite('conversation.js >', function() {
 
         test('calls updateHeaderData', function() {
           sinon.assert.called(ConversationView.updateHeaderData);
-        });
-
-        test('updates Threads.currentId', function() {
-          assert.equal(Threads.currentId, threadId);
         });
 
         test('Properly ensure the thread is registered', function() {
@@ -7143,10 +7144,6 @@ suite('conversation.js >', function() {
 
       test('calls updateHeaderData', function() {
         sinon.assert.called(ConversationView.updateHeaderData);
-      });
-
-      test('updates Threads.currentId', function() {
-        assert.equal(Threads.currentId, threadId);
       });
     });
   });
