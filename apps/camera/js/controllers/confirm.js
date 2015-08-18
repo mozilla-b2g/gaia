@@ -73,12 +73,24 @@ ConfirmController.prototype.bindEvents = function() {
   // This prevents the 'Capture'/'Stop' button from being able to be
   // triggered multiple times before the confirm view appears.
   this.camera.on('newimage', this.renderView);
-  this.camera.on('newvideo', this.renderView);
+  this.camera.on('change:recording', this.onRecordingChange);
 
   // Update the MediaFrame contents with the image/video upon
   // receiving the `newmedia` event. This event is slightly delayed
   // since it waits for the storage callback to complete.
   this.app.on('newmedia', this.onNewMedia);
+};
+
+ConfirmController.prototype.onRecordingChange = function(recording) {
+  if (!this.activity.pick) { return; }
+
+  if (recording === 'starting') {
+    this.recording = true;
+  } else if (recording === 'error') {
+    this.recording = false;
+  } else if (recording === 'stopped' && this.recording) {
+    this.renderView();
+  }
 };
 
 /**
