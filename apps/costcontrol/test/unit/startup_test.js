@@ -332,9 +332,10 @@ suite('Application Startup Modes Test Suite >', function() {
     setupLayoutMode('PREPAID');
 
     window.addEventListener('tabchanged', function checkAssertions() {
-      window.removeEventListener('tabchanged', checkAssertions);
-      assertDisplayingBalanceTab();
-      done();
+      done(() => {
+        window.removeEventListener('tabchanged', checkAssertions);
+        assertDisplayingBalanceTab();
+      });
     });
 
     CostControlApp.init();
@@ -344,9 +345,10 @@ suite('Application Startup Modes Test Suite >', function() {
     setupLayoutMode('POSTPAID');
 
     window.addEventListener('tabchanged', function checkAssertions() {
-      window.removeEventListener('tabchanged', checkAssertions);
-      assertDisplayingTelephonyTab();
-      done();
+      done(() => {
+        window.removeEventListener('tabchanged', checkAssertions);
+        assertDisplayingTelephonyTab();
+      });
     });
 
     CostControlApp.init();

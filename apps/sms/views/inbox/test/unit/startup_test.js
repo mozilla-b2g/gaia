@@ -44,7 +44,9 @@ suite('InboxView Startup', function() {
     this.sinon.spy(Navigation, 'setReady');
     this.sinon.spy(InterInstanceEventDispatcher, 'connect');
     this.sinon.stub(InboxView, 'once');
-    this.sinon.stub(LazyLoader, 'load').returns(Promise.resolve());
+    this.sinon.stub(LazyLoader, 'load').returns(
+      Promise.reject(new Error('error'))
+    );
 
     Startup.init();
   });
@@ -67,6 +69,7 @@ suite('InboxView Startup', function() {
   });
 
   test('correctly initializes lazy dependencies', function(done) {
+    LazyLoader.load.returns(Promise.resolve());
     InboxView.once.withArgs('visually-loaded').yield();
 
     LazyLoader.load.lastCall.returnValue.then(() => {

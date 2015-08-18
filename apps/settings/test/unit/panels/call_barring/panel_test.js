@@ -251,7 +251,7 @@ suite('Call Barring Panel >', function() {
       document.body.innerHTML = '';
     });
 
-    test('click on each item > ', function() {
+    test('click on each item > ', function(done) {
       var targets = [
         baocElement,
         boicElement,
@@ -260,17 +260,27 @@ suite('Call Barring Panel >', function() {
         baicRElement
       ];
 
-      targets.forEach(function(element) {
+      var promises = targets.map((element) => {
         var input = element.querySelector('input');
         input.click();
         assert.isFalse(input.checked, 'state doesn\'t change on click');
         assert.isTrue(this.mockPasscode.show.called, 'show passcode screen');
-        setTimeout(function() {
-          assert.isFalse(this.mockCallBarring.set.called,
-            'doesn\'t set a new value');
-          assert.isFalse(input.checked, 'state remains the same');
-        }.bind(this));
-      }.bind(this));
+        return new Promise((resolve, reject) => {
+          setTimeout(() => {
+            try {
+              assert.isFalse(
+                this.mockCallBarring.set.called, 'doesn\'t set a new value'
+              );
+              assert.isFalse(input.checked, 'state remains the same');
+              resolve();
+            } catch(e) {
+              reject(e);
+            }
+          });
+        });
+      });
+
+      Promise.all(promises).then(() => done(), done);
     });
   });
 
@@ -295,7 +305,7 @@ suite('Call Barring Panel >', function() {
       document.body.innerHTML = '';
     });
 
-    test('click on each item > ', function() {
+    test('click on each item > ', function(done) {
       var targets = [
         baocElement,
         boicElement,
@@ -304,18 +314,29 @@ suite('Call Barring Panel >', function() {
         baicRElement
       ];
 
-      targets.forEach(function(element) {
+      var promises = targets.map((element) => {
         var input = element.querySelector('input');
         input.click();
         assert.isFalse(input.checked, 'state doesn\'t change on click');
         assert.isTrue(this.mockPasscode.show.called, 'show passcode screen');
-        setTimeout(function() {
-          assert.isTrue(this.mockCallBarring.set.called,
-            'try to set a new value');
-          assert.isTrue(this.mockToaster.showToast.called, 'should show error');
-          assert.isFalse(input.checked, 'state remains the same');
-        }.bind(this));
-      }.bind(this));
+        return new Promise((resolve, reject) => {
+          setTimeout(() => {
+            try {
+              sinon.assert.called(this.mockCallBarring.set,
+                'try to set a new value');
+              sinon.assert.called(
+                this.mockToaster.showToast, 'should show error'
+              );
+              assert.isFalse(input.checked, 'state remains the same');
+              resolve();
+            } catch(e) {
+              reject(e);
+            }
+          });
+        });
+      });
+
+      Promise.all(promises).then(() => done(), done);
     });
   });
 
@@ -338,7 +359,7 @@ suite('Call Barring Panel >', function() {
       document.body.innerHTML = '';
     });
 
-    test('click on each item > ', function() {
+    test('click on each item > ', function(done) {
       var targets = [
         baocElement,
         boicElement,
@@ -347,18 +368,27 @@ suite('Call Barring Panel >', function() {
         baicRElement
       ];
 
-      targets.forEach(function(element) {
-        var input = element.querySelector('input');
-        input.click();
-        assert.isFalse(input.checked, 'state doesn\'t change on click');
-        assert.isTrue(this.mockPasscode.show.called, 'show passcode screen');
-        setTimeout(function() {
-          assert.isTrue(this.mockCallBarring.set.called,
-            'try to set a new value');
-          assert.isFalse(this.mockToaster.showToast.called,
-            'shouldn\'t show any error');
-        }.bind(this));
-      }.bind(this));
+      var promises = targets.map((element) => {
+        return new Promise((resolve, reject) => {
+          var input = element.querySelector('input');
+          input.click();
+          assert.isFalse(input.checked, 'state doesn\'t change on click');
+          assert.isTrue(this.mockPasscode.show.called, 'show passcode screen');
+          setTimeout(() => {
+            assert.isTrue(this.mockCallBarring.set.called,
+              'try to set a new value');
+            assert.isFalse(this.mockToaster.showToast.called,
+              'shouldn\'t show any error');
+            try {
+              resolve();
+            } catch(e) {
+              reject(e);
+            }
+          });
+        });
+      });
+
+      Promise.all(promises).then(() => done(), done);
     });
   });
 

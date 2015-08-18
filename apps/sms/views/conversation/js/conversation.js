@@ -1565,17 +1565,16 @@ var ConversationView = {
   },
 
   // Method for rendering the list of messages using infinite scroll
-  renderMessages: function conv_renderMessages(threadId, callback) {
+  renderMessages: function conv_renderMessages(threadId) {
     // Use taskRunner to make sure message appended in proper order
     var taskQueue = new TaskRunner();
+    var defer = Utils.Promise.defer();
+
     var onMessagesRendered = (function messagesRendered() {
       if (this.messageIndex < this.CHUNK_SIZE) {
         taskQueue.push(this.showFirstChunk.bind(this));
       }
-
-      if (callback) {
-        callback();
-      }
+      defer.resolve(taskQueue.flush());
     }).bind(this);
 
     var onRenderMessage = (function renderMessage(message) {
@@ -1617,6 +1616,8 @@ var ConversationView = {
 
     // force the next scroll to bottom
     this.isScrolledManually = false;
+
+    return defer.promise;
   },
 
   // generates the html for not-downloaded messages - pushes class names into

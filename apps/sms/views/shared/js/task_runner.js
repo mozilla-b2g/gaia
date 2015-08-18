@@ -6,5 +6,9 @@ function TaskRunner() {
 }
 
 TaskRunner.prototype.push = function(task) {
-  return (this._currentTask = this._currentTask.then(task, task));
+  var resultPromise = this._currentTask.then(task);
+  this._currentTask = resultPromise.then(() => {}, () => {});
+  return resultPromise;
 };
+
+TaskRunner.prototype.flush = function() { return this._currentTask; };

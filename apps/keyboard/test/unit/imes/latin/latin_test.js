@@ -619,14 +619,14 @@ suite('latin.js', function() {
 
     });
 
-    suite('Uppercase suggestions', function(done) {
-      test('All uppercase input yields uppercase suggestions', function() {
+    suite('Uppercase suggestions', function() {
+      test('All uppercase input yields uppercase suggestions', function(done) {
         activateAndTestPrediction('HOLO', 'HOLO', [
           ['yolo', 10],
           ['Yelp', 5],
           ['whuuu', 4]
         ]).then(function() {
-          sinon.assert.callCount(glue.sendCandidates, 1);
+          sinon.assert.calledOnce(glue.sendCandidates);
           // Verify that we show 3 suggestions that do not include the input
           // and that we do not mark the first as an autocorrection.
           sinon.assert.calledWith(
@@ -641,7 +641,7 @@ suite('latin.js', function() {
           ['Yelp', 5],
           ['whuuu', 4]
         ]).then(function() {
-          sinon.assert.callCount(glue.sendCandidates, 1);
+          sinon.assert.calledOnce(glue.sendCandidates);
           // Verify that we show 3 suggestions that do not include the input
           // and that we do not mark the first as an autocorrection.
           sinon.assert.calledWith(

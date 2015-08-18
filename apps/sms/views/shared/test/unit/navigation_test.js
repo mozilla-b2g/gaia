@@ -111,8 +111,9 @@ suite('navigation >', function() {
     fakeViewObjects();
   });
 
-  teardown(function() {
+  teardown(function(done) {
     Navigation.cleanup();
+    Navigation.onTransitionFinished().then(done, done);
     fakeWindow = null;
     elements = null;
     window.Navigation = null;
