@@ -3,6 +3,10 @@
 /* globals require, module, Performance */
 
 module.exports = function(filepath, outpath, requiredir) {
+  // Developer can write their super fancy filter here.
+  if (!filepath.match(/lockscreen.js$/)) {
+    return;
+  }
   var Logger = function() {
     this._writelogs = {};
   };
@@ -30,14 +34,24 @@ module.exports = function(filepath, outpath, requiredir) {
   var Espect = require(requiredir + 'espect.js');
   var espect = new Espect(opts);
   espect
-    .select(filepath + ' LockScreen.prototype.unlock')
+    .select(filepath + ' LockScreen.prototype.lock')
     .before(function() {
-      Performance.mark('LockScreen#unlock');
+      performance.mark('lockScreenLock');
+    })
+    .done()
+    .select(filepath + ' lockScreen.prototype.unlock')
+    .before(function() {
+      performance.mark('lockScreenUnlock');
     })
     .done()
   .done();
   // If it matched nothing as it was supposed to do, we have a bug.
   if (!logger._writelogs[filepath]) {
     throw new Error('Matched nothing to transform code.');
+  } else {
+    Object.keys(logger._writelogs).forEach(function(filepath) {
+      var info = logger._writelogs[filepath];
+      console.log('|lock2unlock.esp| Successfully wove ', filepath);
+    });
   }
 };

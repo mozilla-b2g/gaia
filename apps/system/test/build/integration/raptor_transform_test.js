@@ -9,10 +9,10 @@ suite('System Raptor transform tests', function() {
   suiteSetup(helper.cleanupWorkspace);
   teardown(helper.cleanupWorkspace);
 
-  test('APP=system RAPTOR_TRANSFORM=1 TESTDIR=' +
+  test('APP=system RAPTOR_TRANSFORM=1 RAPTOR_TRANSFORM_RULES=' +
       process.cwd() + '/apps/system/test/raptor' + ' make',
   function(done) {
-    helper.exec('APP=system RAPTOR_TRANSFORM=1 TESTDIR=' +
+    helper.exec('APP=system RAPTOR_TRANSFORM=1 RAPTOR_TRANSFORM_RULES=' +
       process.cwd() + '/apps/system/test/raptor' + ' make',
     function(error, stdout, stderr) {
       if ('' !== stderr) {
