@@ -7,14 +7,18 @@ suite('controllers/zoom-bar', function() {
     requirejs([
       'app',
       'lib/camera/camera',
+      'lib/settings',
+      'lib/setting',
       'controllers/zoom-bar',
       'views/zoom-bar'
     ], function(
-      App, Camera, ZoomBarController, ZoomBarView) {
+      App, Camera, Settings, Setting, ZoomBarController, ZoomBarView) {
       self.ZoomBarController = ZoomBarController.ZoomBarController;
       self.ZoomBarView = ZoomBarView;
       self.Camera = Camera;
       self.App = App;
+      self.Settings = Settings;
+      self.Setting = Setting;
       done();
     });
   });
@@ -29,13 +33,16 @@ suite('controllers/zoom-bar', function() {
       zoombar: sinon.createStubInstance(this.ZoomBarView)
     };
 
+    // Settings
+    this.app.settings = sinon.createStubInstance(this.Settings);
+    this.app.settings.zoom = sinon.createStubInstance(this.Setting);
+
     // Test instance
     this.controller = new this.ZoomBarController(this.app);
 
     // Shortcuts
     this.zoombar = this.controller.view;
     this.camera = this.app.camera;
-
   });
 
   teardown(function() {
@@ -78,13 +85,31 @@ suite('controllers/zoom-bar', function() {
 
   suite('ZoomBar#onZoomConfigured()', function() {
     setup(function() {
+      sinon.stub(this.controller, 'configureZoomBar');
       sinon.stub(this.controller, 'setZoom');
       this.controller.onZoomConfigured(5);
     });
 
     test('It sets zoom and hides', function() {
+      assert.isTrue(this.controller.configureZoomBar.calledOnce);
       assert.isTrue(this.controller.setZoom.calledWith(5));
       assert.isTrue(this.zoombar.hide.called);
+    });
+  });
+
+  suite('ZoomBar#configureZoomBar()', function() {
+    test('It disables zoom if not supported by camera', function() {
+      this.camera.isZoomSupported.returns(false);
+      this.app.settings.zoom.enabled.returns(true);
+      this.controller.configureZoomBar();
+      assert.isFalse(this.controller.enableZoom);
+    });
+
+    test('It enables zoom if supported by camera', function() {
+      this.camera.isZoomSupported.returns(true);
+      this.app.settings.zoom.enabled.returns(true);
+      this.controller.configureZoomBar();
+      assert.isTrue(this.controller.enableZoom);
     });
   });
 
@@ -92,11 +117,18 @@ suite('controllers/zoom-bar', function() {
     setup(function() {
       this.camera.getMaximumZoom.returns(11);
       this.camera.getMinimumZoom.returns(1);
-      this.controller.setZoom(4);
     });
 
-    test('It sets the zoom with the correct value', function() {
+    test('It sets the zoom with the correct value if enabled', function() {
+      this.controller.enableZoom = true;
+      this.controller.setZoom(4);
       assert.isTrue(this.zoombar.setValue.calledWith(30));
+    });
+
+    test('It does not set the zoom if disabled', function() {
+      this.controller.enableZoom = false;
+      this.controller.setZoom(4);
+      assert.isFalse(this.zoombar.setValue.calledWith(30));
     });
   });
 
