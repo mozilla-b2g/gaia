@@ -51,8 +51,8 @@ to be available for moz-elements */
 
 #screen:not(.locked):not(.minimized-tray):not(.rocketbar-focused):not(.utility-tray) #statusbar.fullscreen,
 #screen:not(.locked):not(.minimized-tray):not(.rocketbar-focused):not(.utility-tray) #statusbar.fullscreen-layout,
-#screen.locked.secure-app:not(.minimized-tray):not(.rocketbar-focused):not(.utility-tray).fullscreen-app #statusbar,
-#screen.locked.secure-app:not(.minimized-tray):not(.rocketbar-focused):not(.utility-tray).fullscreen-layout-app #statusbar {
+#screen.locked.secure-app:not(.attention).fullscreen-app #statusbar,
+#screen.locked.secure-app:not(.attention).fullscreen-layout-app #statusbar {
   opacity: 0;
   visibility: hidden;
 }
