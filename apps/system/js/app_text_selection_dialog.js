@@ -3,10 +3,13 @@
 (function(exports) {
   var DEBUG = false;
   var _id = 0;
-  /**
-   * Text Selection Dialog of the AppWindow
-   */
 
+  // Timer id obtained in _launchCutOrCopiedTimer() shared by all apps. If cut
+  // command or copy command has been performed within CUT_OR_COPIED_TIMEOUT_MS,
+  // it will be non-null.
+  var _cutOrCopiedTimeoutId = null;
+
+  // Text Selection Dialog of the AppWindow
   var AppTextSelectionDialog = function (app) {
     this.app = app;
     this.containerElement = (app && app.element) ? app.element :
@@ -14,15 +17,22 @@
     this.instanceID = _id++;
     this.event = null;
     this._enabled = false;
-    this._shortcutTimeout = null;
+    this._shortcutTimeoutId = null;
     this._injected = false;
-    this._hasCutOrCopied = false;
     this._isCommandSendable = false;
     this._transitionState = 'closed';
     this.textualmenuDetail = null;
     this.bindOnObservePrefChanged = this.onObservePrefChanged.bind(this);
     SettingsListener.observe('copypaste.enabled', true,
                              this.bindOnObservePrefChanged);
+
+    Object.defineProperty(this, '_hasCutOrCopied', {
+      get: function() { return !!_cutOrCopiedTimeoutId; },
+      set: function(newId) {
+        // This setter makes unit test easier.
+        _cutOrCopiedTimeoutId = newId;
+      }
+    });
   };
 
   AppTextSelectionDialog.prototype = Object.create(window.BaseUI.prototype);
@@ -31,16 +41,16 @@
 
   AppTextSelectionDialog.prototype.TEXTDIALOG_WIDTH = 54;
 
-  // Based on UX spec, there would be a temporary shortcut and only appears
-  // after the action 'copy/cut'. In this use case, the utility bubble will be
-  // time-out after 3 secs if no action is taken.
-  AppTextSelectionDialog.prototype.SHORTCUT_TIMEOUT = 3000;
+  // Based on UX spec, there would be a temporary shortcut appearing only after
+  // the action 'copy' or 'cut' if the selection is collapsed. In this case, the
+  // utility bubble will be time-out after 3 seconds if no action is taken.
+  AppTextSelectionDialog.prototype.SHORTCUT_TIMEOUT_MS = 3000;
 
   // If text is not pasted immediately after copy/cut, the text will be viewed
   // as pasted after 15 seconds (count starting from the moment when there's no
   // action at all), and there will be no paste shortcut pop up when tapping on
   // edit field.
-  AppTextSelectionDialog.prototype.RESET_CUT_OR_PASTE_TIMEOUT = 15000;
+  AppTextSelectionDialog.prototype.CUT_OR_COPIED_TIMEOUT_MS = 15000;
 
   // Distance between selected area and the bottom of menu when menu show on
   // the top of selected area.
@@ -106,8 +116,8 @@
 
   AppTextSelectionDialog.prototype.debug = function tsd_debug(msg) {
     if (DEBUG || this._DEBUG) {
-      console.log('[Dump: ' + this.ID_NAME + ']' +
-        JSON.stringify(msg));
+      console.log(this.ID_NAME + '(' + this.CLASS_NAME + this.instanceID +
+                  '): ' + msg);
     }
   };
 
@@ -163,7 +173,7 @@
           // Always allow, do nothing here.
           break;
         case 'updateposition':
-          // Only allow when this._hasCutOrCopied is true
+          // Hide the text selection dialog if it has been timeout.
           if (!this._hasCutOrCopied) {
             this.hide();
             return;
@@ -178,31 +188,33 @@
       detail.commands.canCut = false;
       detail.commands.canCopy = false;
       detail.commands.canSelectAll = false;
-      this._triggerShortcutTimeout();
       this.show(detail);
+      this._launchShortcutTimer();
     };
 
   AppTextSelectionDialog.prototype._onSelectionMode =
     function tsd__onSelectionMode(detail) {
       // make sure cut command option is only shown on editable element
-      detail.commands.canCut = detail.commands.canCut && 
+      detail.commands.canCut = detail.commands.canCut &&
                                  detail.selectionEditable;
-      this._resetShortcutTimeout();
+      this._cancelShortcutTimer();
       this.show(detail);
     };
 
-  AppTextSelectionDialog.prototype._resetShortcutTimeout =
-    function tsd__resetShortcutTimeout() {
-      window.clearTimeout(this._shortcutTimeout);
-      this._shortcutTimeout = null;
+  AppTextSelectionDialog.prototype._cancelShortcutTimer =
+    function tsd_cancelShortcutTimer() {
+      window.clearTimeout(this._shortcutTimeoutId);
+      this._shortcutTimeoutId = null;
     };
 
-  AppTextSelectionDialog.prototype._triggerShortcutTimeout =
-    function tsd__triggerShortcutTimeout() {
-      this._resetShortcutTimeout();
-      this._shortcutTimeout = window.setTimeout(function() {
+  AppTextSelectionDialog.prototype._launchShortcutTimer =
+    function tsd_launchShortcutTimer() {
+      this._cancelShortcutTimer();
+      this._shortcutTimeoutId = window.setTimeout(function() {
         this.close();
-      }.bind(this), this.SHORTCUT_TIMEOUT);
+        this.debug('Shortcut timed out after ' +
+                   this.SHORTCUT_TIMEOUT_MS + 'ms!');
+      }.bind(this), this.SHORTCUT_TIMEOUT_MS);
     };
 
   AppTextSelectionDialog.prototype._fetchElements =
@@ -318,22 +330,19 @@
   AppTextSelectionDialog.prototype.copyHandler =
     function tsd_copyHandler(evt) {
       this._doCommand(evt, 'copy', true);
-      this._resetCutOrCopiedTimer();
-      this._hasCutOrCopied = true;
+      this._launchCutOrCopiedTimer();
   };
 
   AppTextSelectionDialog.prototype.cutHandler =
     function tsd_cutHandler(evt) {
       this._doCommand(evt, 'cut', true);
-      this._resetCutOrCopiedTimer();
-      this._hasCutOrCopied = true;
+      this._launchCutOrCopiedTimer();
   };
 
   AppTextSelectionDialog.prototype.pasteHandler =
     function tsd_pasteHandler(evt) {
       this._doCommand(evt, 'paste', true);
-      this._hasCutOrCopied = false;
-      window.clearTimeout(this._resetCutOrCopiedTimeout);
+      this._cancelCutOrCopiedTimer();
   };
 
   AppTextSelectionDialog.prototype.selectallHandler =
@@ -355,17 +364,25 @@
     return temp;
   };
 
-  AppTextSelectionDialog.prototype._resetCutOrCopiedTimer =
-    function tsd_resetCutOrCopiedTimer() {
-      window.clearTimeout(this._resetCutOrCopiedTimeout);
-      this._resetCutOrCopiedTimeout = window.setTimeout(function() {
-        this._hasCutOrCopied = false;
-      }.bind(this), this.RESET_CUT_OR_PASTE_TIMEOUT);
+  AppTextSelectionDialog.prototype._cancelCutOrCopiedTimer =
+    function tsd_cancelCutOrCopiedTimer() {
+      window.clearTimeout(_cutOrCopiedTimeoutId);
+      _cutOrCopiedTimeoutId = null;
+    };
+
+  AppTextSelectionDialog.prototype._launchCutOrCopiedTimer =
+    function tsd_launchCutOrCopiedTimer() {
+      this._cancelCutOrCopiedTimer();
+
+      _cutOrCopiedTimeoutId = window.setTimeout(function() {
+        _cutOrCopiedTimeoutId = null;
+        this.debug('CutOrCopied timed out after ' +
+                   this.CUT_OR_COPIED_TIMEOUT_MS + 'ms!');
+      }.bind(this), this.CUT_OR_COPIED_TIMEOUT_MS);
   };
 
 
   AppTextSelectionDialog.prototype.show = function tsd_show(detail) {
-    this._resetShortcutTimeout();
     var numOfSelectOptions = 0;
     var options = [ 'Paste', 'Copy', 'Cut', 'SelectAll' ];
 
@@ -402,7 +419,7 @@
   AppTextSelectionDialog.prototype.updateDialogPosition =
     function tsd_updateDialogPosition() {
       var pos = this.calculateDialogPostion();
-      this.debug(pos);
+      this.debug(JSON.stringify(pos));
       this.element.style.top = pos.top + 'px';
       this.element.style.left = pos.left + 'px';
       this.element.style.height = this.TEXTDIALOG_HEIGHT + 'px';
@@ -485,7 +502,7 @@
     this.hide();
     this.element.blur();
     this.textualmenuDetail = null;
-    this._resetShortcutTimeout();
+    this._cancelShortcutTimer();
   };
 
   exports.AppTextSelectionDialog = AppTextSelectionDialog;

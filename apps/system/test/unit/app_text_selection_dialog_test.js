@@ -182,32 +182,29 @@ suite('system/AppTextSelectionDialog', function() {
 
   test('copyHandler', function() {
     var stubDoCommand = this.sinon.stub(td, '_doCommand');
-    var stubResetCutOrCopiedTimer =
-      this.sinon.stub(td, '_resetCutOrCopiedTimer');
+    var stubSetTimeout = this.sinon.stub(window, 'setTimeout').returns(123);
     td.copyHandler(null);
     assert.isTrue(td._hasCutOrCopied);
     assert.isTrue(stubDoCommand.calledWith(null, 'copy'));
-    assert.isTrue(stubResetCutOrCopiedTimer.calledOnce);
+    assert.isTrue(stubSetTimeout.calledOnce);
   });
 
   test('cutHandler', function() {
     var stubDoCommand = this.sinon.stub(td, '_doCommand');
-    var stubResetCutOrCopiedTimer =
-      this.sinon.stub(td, '_resetCutOrCopiedTimer');
+    var stubSetTimeout = this.sinon.stub(window, 'setTimeout').returns(123);
     td.cutHandler(null);
     assert.isTrue(td._hasCutOrCopied);
     assert.isTrue(stubDoCommand.calledWith(null, 'cut'));
-    assert.isTrue(stubResetCutOrCopiedTimer.calledOnce);
+    assert.isTrue(stubSetTimeout.calledOnce);
   });
 
   test('pasteHandler', function() {
     var stubDoCommand = this.sinon.stub(td, '_doCommand');
     var stubClearTimeout = this.sinon.stub(window, 'clearTimeout');
-    td._resetCutOrCopiedTimeout = 'testtimer';
     td.pasteHandler(null);
     assert.isFalse(td._hasCutOrCopied);
     assert.isTrue(stubDoCommand.calledWith(null, 'paste'));
-    assert.isTrue(stubClearTimeout.calledWith(td._resetCutOrCopiedTimeout));
+    assert.isTrue(stubClearTimeout.calledOnce);
   });
 
   test('close', function() {
@@ -215,10 +212,10 @@ suite('system/AppTextSelectionDialog', function() {
     td.render();
     var stubHide = this.sinon.stub(td, 'hide');
     this.sinon.stub(td.element, 'blur');
-    this.sinon.stub(td, '_resetShortcutTimeout');
+    this.sinon.stub(td, '_cancelShortcutTimer');
     td.close();
     assert.isTrue(stubHide.calledOnce);
-    assert.isTrue(td._resetShortcutTimeout.called);
+    assert.isTrue(td._cancelShortcutTimer.called);
     assert.isTrue(td.element.blur.called);
   });
 
@@ -234,33 +231,39 @@ suite('system/AppTextSelectionDialog', function() {
     assert.isTrue(stubChangeTransitionState.calledWith('opened'));
   });
 
-  test('_resetCutOrCopiedTimer', function() {
+  test('_launchCutOrCopiedTimer', function() {
     var clock = this.sinon.useFakeTimers();
-    td._hasCutOrCopied = true;
-    td._resetCutOrCopiedTimeout = 'testTimer';
-    td._resetCutOrCopiedTimer();
-
-    clock.tick(td.RESET_CUT_OR_PASTE_TIMEOUT);
+    td._launchCutOrCopiedTimer();
+    assert.isTrue(td._hasCutOrCopied);
+    clock.tick(td.CUT_OR_COPIED_TIMEOUT_MS);
     assert.isFalse(td._hasCutOrCopied);
   });
 
-  test('_resetShortcutTimeout', function() {
-    td._shortcutTimeout = 'timeout';
-    this.sinon.stub(window, 'clearTimeout');
-    td._resetShortcutTimeout();
-    assert.isTrue(window.clearTimeout.calledWith('timeout'));
-    assert.isTrue(td._shortcutTimeout === null);
+  test('_cancelCutOrCopiedTimer', function() {
+    var stubClearTimeout = this.sinon.stub(window, 'clearTimeout');
+    td._hasCutOrCopied = true;
+    td._cancelCutOrCopiedTimer();
+    assert.isTrue(stubClearTimeout.calledOnce);
+    assert.isFalse(td._hasCutOrCopied);
   });
 
-  test('_triggerShortcutTimeout', function() {
-    this.sinon.stub(td, '_resetShortcutTimeout');
+  test('_cancelShortcutTimer', function() {
+    td._shortcutTimeoutId = 123;
+    this.sinon.stub(window, 'clearTimeout');
+    td._cancelShortcutTimer();
+    assert.isTrue(window.clearTimeout.calledWith(123));
+    assert.isTrue(td._shortcutTimeoutId === null);
+  });
+
+  test('_launchShortcutTimer', function() {
+    this.sinon.stub(td, '_cancelShortcutTimer');
     this.sinon.stub(td, 'close');
     var clock = this.sinon.useFakeTimers();
 
-    td._triggerShortcutTimeout();
-    clock.tick(td.SHORTCUT_TIMEOUT);
+    td._launchShortcutTimer();
+    clock.tick(td.SHORTCUT_TIMEOUT_MS);
     assert.isTrue(td.close.called);
-    assert.isTrue(td._resetShortcutTimeout.called);
+    assert.isTrue(td._cancelShortcutTimer.called);
   });
 
   suite('handleEvent caretstatechanged event', function() {
@@ -317,11 +320,11 @@ suite('system/AppTextSelectionDialog', function() {
         testDetail.collapsed = true;
         testDetail.reason = 'taponcaret';
         td._hasCutOrCopied = true;
-        this.sinon.stub(td, '_triggerShortcutTimeout');
+        this.sinon.stub(td, '_launchShortcutTimer');
         td.handleEvent(fakeTextSelectInAppEvent);
         assert.isTrue(stubShow.calledWith(testDetail));
         assert.isFalse(testDetail.commands.canSelectAll);
-        assert.isTrue(td._triggerShortcutTimeout.calledOnce);
+        assert.isTrue(td._launchShortcutTimer.calledOnce);
       });
 
     test('should not render when bubble has showed before', function() {
@@ -372,7 +375,7 @@ suite('system/AppTextSelectionDialog', function() {
       td._hasCutOrCopied = true;
       testDetail.collapsed = true;
       td.handleEvent(fakeTextSelectInAppEvent);
-      fakeTimer.tick(td.SHORTCUT_TIMEOUT);
+      fakeTimer.tick(td.SHORTCUT_TIMEOUT_MS);
       assert.isTrue(stubClose.calledOnce);
     });
   });
