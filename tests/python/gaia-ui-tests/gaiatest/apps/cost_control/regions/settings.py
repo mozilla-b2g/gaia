@@ -46,7 +46,7 @@ class Settings(Base):
     @property
     def is_data_alert_switch_checked(self):
         element = self.marionette.find_element(*self._data_alert_switch_locator)
-        return self.is_custom_element_checked(mobileswitch)
+        return self.is_custom_element_checked(element)
 
     def select_when_use_is_above_unit_and_value(self, unit, value):
         when_use_is_above_button = self.marionette.find_element(*self._when_use_is_above_button_locator)
