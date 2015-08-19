@@ -311,6 +311,7 @@
             this.handleCancel(e);
           } else if (e.target == this.clearBtn) {
             this.clear();
+            this.focus();
           } else if (e.target == this.backdrop) {
             this._closeSearch();
           }
