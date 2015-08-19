@@ -827,21 +827,22 @@ suite('ActivityHandler', function() {
   });
 
   suite('"new" activity', function() {
-    var numberActivityData, emailActivityData;
+    var emailActivityData;
 
     function onceNewActivityCompleted() {
       sinon.assert.called(ActivityHandler._onNewActivity);
       return ActivityHandler._onNewActivity.lastCall.returnValue;
     }
 
+    function assertDraftSaved(draft) {
+      sinon.assert.calledWithMatch(Drafts.add, draft);
+      sinon.assert.called(Drafts.store);
+      sinon.assert.callOrder(Drafts.request, Drafts.add, Drafts.store);
+    }
+
     var threadDeferred;
 
     setup(function() {
-      numberActivityData = {
-        number: '123',
-        body: 'foo'
-      };
-
       emailActivityData = {
         target: 'abc@exmple.com',
         body: 'foo'
@@ -863,21 +864,52 @@ suite('ActivityHandler', function() {
       ActivityHandler.init();
     });
 
-    test('Should move to the composer and set activity', function(done) {
-      ActivityClient.on.withArgs('new-activity-request').yield(
-        numberActivityData
-      );
+    test('Non-existing thread, with number and body', function(done) {
+      ActivityClient.on.withArgs('new-activity-request').yield({
+        number: '123',
+        body: 'foo'
+      });
+
+      // This should not be used but keeping it here to have a consistent
+      // environment for this test case.
       threadDeferred.reject(new Error('No thread for this test'));
 
       onceNewActivityCompleted().then(function() {
-        sinon.assert.calledWithMatch(Drafts.add, {
+        sinon.assert.notCalled(MessageManager.findThreadFromNumber);
+
+        assertDraftSaved({
           recipients: ['123'],
           type: 'sms',
           content: ['foo']
         });
-        sinon.assert.called(Drafts.store);
-        sinon.assert.callOrder(Drafts.request, Drafts.add, Drafts.store);
         sinon.assert.calledWith(
+          Navigation.toPanel,
+          'composer', { draftId: 'draftId', focusComposer: true }
+        );
+      }).then(done,done);
+    });
+
+    test('existing thread with specified body, navigate to composer',
+    function(done) {
+      ActivityClient.on.withArgs('new-activity-request').yield({
+        number: '123',
+        body: 'foo'
+      });
+
+      // This should not be used but keeping it here to have a consistent
+      // environment for this test case.
+      threadDeferred.resolve(42);
+
+      onceNewActivityCompleted().then(function() {
+        sinon.assert.notCalled(MessageManager.findThreadFromNumber);
+
+        assertDraftSaved({
+          recipients: ['123'],
+          type: 'sms',
+          content: ['foo']
+        });
+
+        sinon.assert.calledWithMatch(
           Navigation.toPanel,
           'composer', { draftId: 'draftId', focusComposer: true }
         );
@@ -892,13 +924,11 @@ suite('ActivityHandler', function() {
       onceNewActivityCompleted().then(() => {
         sinon.assert.notCalled(MessageManager.findThreadFromNumber);
 
-        sinon.assert.calledWithMatch(Drafts.add, {
+        assertDraftSaved({
           recipients: null,
           type: 'sms',
           content: ['foo']
         });
-        sinon.assert.called(Drafts.store);
-        sinon.assert.callOrder(Drafts.request, Drafts.add, Drafts.store);
         sinon.assert.calledWith(
           Navigation.toPanel,
           'composer', { draftId: 'draftId', focusComposer: sinon.match.falsy }
@@ -906,21 +936,21 @@ suite('ActivityHandler', function() {
       }).then(done,done);
     });
 
-    test('new message with email', function(done) {
-      ActivityClient.on.withArgs('new-activity-request').yield(
-        emailActivityData
-      );
+    test('Non-existing thread with recipient only, navigate to composer',
+    function(done) {
+      ActivityClient.on.withArgs('new-activity-request').yield({
+        number: '123'
+      });
 
       threadDeferred.reject(new Error('No thread for this test'));
 
       onceNewActivityCompleted().then(function() {
-        sinon.assert.calledWithMatch(Drafts.add, {
-          recipients: [emailActivityData.target],
-          type: 'mms',
-          content: [emailActivityData.body]
+        sinon.assert.calledWith(MessageManager.findThreadFromNumber, '123');
+        assertDraftSaved({
+          recipients: ['123'],
+          type: 'sms',
+          content: null
         });
-        sinon.assert.called(Drafts.store);
-        sinon.assert.callOrder(Drafts.request, Drafts.add, Drafts.store);
         sinon.assert.calledWith(
           Navigation.toPanel,
           'composer', { draftId: 'draftId', focusComposer: true }
@@ -928,13 +958,36 @@ suite('ActivityHandler', function() {
       }).then(done,done);
     });
 
-    test('when there is an existing thread, should navigate to the thread',
-    function(done) {
+    test('new message with email and body', function(done) {
       ActivityClient.on.withArgs('new-activity-request').yield(
-        numberActivityData
+        emailActivityData
       );
 
-      // this time we found a thread
+      // This is not used but it's kept here for consistency.
+      threadDeferred.reject(new Error('No thread for this test'));
+
+      onceNewActivityCompleted().then(function() {
+        sinon.assert.notCalled(MessageManager.findThreadFromNumber);
+
+        assertDraftSaved({
+          recipients: [emailActivityData.target],
+          type: 'mms',
+          content: [emailActivityData.body]
+        });
+        sinon.assert.calledWith(
+          Navigation.toPanel,
+          'composer', { draftId: 'draftId', focusComposer: true }
+        );
+      }).then(done,done);
+    });
+
+    test('existing thread with recipient only, navigate to the thread',
+    function(done) {
+      ActivityClient.on.withArgs('new-activity-request').yield({
+        number: '123'
+      });
+
+      // this time we can find a thread with id=42
       threadDeferred.resolve(42);
 
       onceNewActivityCompleted().then(function() {

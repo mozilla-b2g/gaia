@@ -71,12 +71,18 @@ var ActivityHandler = {
       // It's reasonable to focus on composer if we already have some phone
       // number or even contact to fill recipients input
       focusComposer = true;
-      // try to get a thread from number
-      // if no thread, promise is rejected and we try to find a contact
-      threadPromise = MessageManager.findThreadFromNumber(viewInfo.number)
-        .then((threadId) => viewInfo.threadId = threadId)
-        // case no contact and no thread id: gobble the error
-        .catch(() => {});
+
+      /* If we have a body, we're always redirecting to the new message view,
+       * because we don't want to overwrite any possible draft from an existing
+       * conversation. */
+      if (!viewInfo.body) {
+        // try to get a thread from number
+        // if no thread, promise is rejected and we try to find a contact
+        threadPromise = MessageManager.findThreadFromNumber(viewInfo.number)
+          .then((threadId) => viewInfo.threadId = threadId)
+          // case no contact and no thread id: gobble the error
+          .catch(() => {});
+      }
     }
 
     return (threadPromise || Promise.resolve()).then(
