@@ -47,11 +47,16 @@ define(function(require) {
     /**
      * State of Bluetooth.
      *
+     * Set the default state as true in bug 1191104 Since Bluetooth
+     * adapter API need sometime to respond for true Bluetooth state, and
+     * this property is only used to decide if we need to show a
+     * `turn on bluetooth` dialog.
+     *
      * @readonly
      * @memberOf BluetoothContext
      * @type {Boolean}
      */
-    enabled: false,
+    enabled: true,
 
     /**
      * The address of the device's adapter on the bluetooth micro-network.
