@@ -551,26 +551,59 @@ suite('app', function() {
         .returns('capture');
       this.settings.keyDownEvents.get.withArgs('mozcamerafocusadjust')
         .returns('focus');
+
+
+      this.event = {
+        preventDefault: sinon.spy()
+      };
     });
 
     test('`volumedown` key emits a `keydown:capture` event', function() {
-      this.app.onKeyDown({ key: 'volumedown' });
+      this.event.key = 'volumedown';
+      this.app.onKeyDown(this.event);
       sinon.assert.calledWith(this.app.emit, 'keydown:capture');
     });
 
     test('`volumeup` key emits a `keydown:capture` event', function() {
-      this.app.onKeyDown({ key: 'volumeup' });
+      this.event.key = 'volumeup';
+      this.app.onKeyDown(this.event);
       sinon.assert.calledWith(this.app.emit, 'keydown:capture');
     });
 
     test('`camera` key emits a `keydown:capture` event', function() {
-      this.app.onKeyDown({ key: 'camera' });
+      this.event.key = 'camera';
+      this.app.onKeyDown(this.event);
       sinon.assert.calledWith(this.app.emit, 'keydown:capture');
     });
 
     test('`focus` key emits a `keydown:focus` event', function() {
-      this.app.onKeyDown({ key: 'mozcamerafocusadjust' });
+      this.event.key = 'mozcamerafocusadjust';
+      this.app.onKeyDown(this.event);
       sinon.assert.calledWith(this.app.emit, 'keydown:focus');
+    });
+
+    test('It shows the volume-ui when preview-gallery is open', function() {
+      this.event.key = 'volumedown';
+      this.app.onKeyDown(this.event);
+      sinon.assert.called(this.event.preventDefault);
+      this.event.preventDefault.reset();
+
+      this.app.set('previewGalleryOpen', true);
+
+      this.app.onKeyDown(this.event);
+      sinon.assert.notCalled(this.event.preventDefault);
+    });
+
+    test('It shows the volume-ui when the pick confirm dialog is open', function() {
+      this.event.key = 'volumedown';
+      this.app.onKeyDown(this.event);
+      sinon.assert.called(this.event.preventDefault);
+      this.event.preventDefault.reset();
+
+      this.app.set('confirmViewVisible', true);
+
+      this.app.onKeyDown(this.event);
+      sinon.assert.notCalled(this.event.preventDefault);
     });
   });
 });

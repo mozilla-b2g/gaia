@@ -53,6 +53,7 @@ OverlayController.prototype.onStorageChanged = function(state) {
   if (this.storageOverlay) {
     this.storageOverlay.destroy();
     this.storageOverlay = null;
+    this.app.set('overlayOpen', false);
   }
 
   if (state !== 'available') {
@@ -78,6 +79,7 @@ OverlayController.prototype.onBatteryChanged = function(state) {
   if (this.batteryOverlay) {
     this.batteryOverlay.destroy();
     this.batteryOverlay = null;
+    this.app.set('overlayOpen', false);
   }
 
   if (state === 'shutdown') {
@@ -100,6 +102,7 @@ OverlayController.prototype.onCameraRequesting = function() {
   if (this.cameraErrorOverlay) {
     this.cameraErrorOverlay.destroy();
     this.cameraErrorOverlay = null;
+    this.app.set('overlayOpen', false);
   }
 };
 
@@ -153,6 +156,7 @@ OverlayController.prototype.createOverlay = function(type, callback) {
       self.app.emit('activitycanceled');
     });
 
+  this.app.set('overlayOpen', type);
   debug('inserted \'%s\' overlay', type);
 
   if (typeof callback === 'function') {

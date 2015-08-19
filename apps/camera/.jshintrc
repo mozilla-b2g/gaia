@@ -1,5 +1,6 @@
 {
   "extends": "../../.jshintrc",
+  "laxbreak": true,
   "predef": [
     "define",
     "require",
