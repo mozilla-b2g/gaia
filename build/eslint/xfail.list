@@ -51,7 +51,7 @@ apps/camera/js/views/preview-gallery.js # line 335, col 4, Error - Unsafe assign
 apps/camera/js/views/setting-options.js # line 48, col 4, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 apps/camera/js/views/setting.js # line 53, col 4, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 apps/camera/js/views/settings.js # line 55, col 4, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
-apps/camera/js/views/timer.js # line 29, col 4, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
+apps/camera/js/views/countdown.js # line 29, col 4, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 apps/camera/js/views/viewfinder.js # line 38, col 4, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 apps/camera/js/views/zoom-bar.js # line 39, col 4, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 apps/clock/js/banner/main.js # line 73, col 6, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)

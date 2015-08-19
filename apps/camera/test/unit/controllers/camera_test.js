@@ -54,7 +54,7 @@ suite('controllers/camera', function() {
     this.app.settings.whiteBalance = sinon.createStubInstance(this.Setting);
     this.app.settings.hdr = sinon.createStubInstance(this.Setting);
     this.app.settings.flashModesPicture = sinon.createStubInstance(this.Setting);
-    this.app.settings.timer = sinon.createStubInstance(this.Setting);
+    this.app.settings.countdown = sinon.createStubInstance(this.Setting);
 
     // Aliases
     this.settings = this.app.settings;
@@ -240,8 +240,8 @@ suite('controllers/camera', function() {
       sinon.assert.called(event.preventDefault);
     });
 
-    test('It doesnt capture if timer is active', function() {
-      this.app.get.withArgs('timerActive').returns(true);
+    test('It doesnt capture if countdown is active', function() {
+      this.controller.countdown = 999;
       var callback = this.app.on.withArgs('keydown:capture').args[0][1];
       var event = { preventDefault: sinon.spy() };
 
@@ -495,38 +495,39 @@ suite('controllers/camera', function() {
     setup(function() {
       this.controller.galleryOpen = false;
       this.controller.lowBattery = false;
+      sinon.spy(this.controller, 'startCountdown');
     });
 
-    test('Should not start countdown if now timer setting is set', function() {
-      this.app.settings.timer.selected.returns(0);
+    test('Should not start countdown if no countdown setting is set', function() {
+      this.app.settings.countdown.selected.returns(0);
       this.app.get.withArgs('timerActive').returns(false);
       this.app.get.withArgs('recording').returns(false);
       this.controller.capture();
-      assert.ok(!this.app.emit.calledWith('startcountdown'));
+      sinon.assert.notCalled(this.controller.startCountdown);
     });
 
-    test('Should not start countdown if timer is already active', function() {
-      this.app.settings.timer.selected.returns(5);
-      this.app.get.withArgs('timerActive').returns(true);
+    test('Should not start countdown if countdown is already active', function() {
+      this.app.settings.countdown.selected.returns(5);
+      this.controller.countdown = 999;
       this.app.get.withArgs('recording').returns(false);
       this.controller.capture();
-      assert.ok(!this.app.emit.calledWith('startcountdown'));
+      sinon.assert.notCalled(this.controller.startCountdown);
     });
 
     test('Should not start countdown if recording', function() {
-      this.app.settings.timer.selected.returns(5);
+      this.app.settings.countdown.selected.returns(5);
       this.app.get.withArgs('timerActive').returns(false);
       this.app.get.withArgs('recording').returns(true);
       this.controller.capture();
-      assert.ok(!this.app.emit.calledWith('startcountdown'));
+      sinon.assert.notCalled(this.controller.startCountdown);
     });
 
     test('Should otherwise start countdown', function() {
-      this.app.settings.timer.selected.returns(5);
+      this.app.settings.countdown.selected.returns(5);
       this.app.get.withArgs('timerActive').returns(false);
       this.app.get.withArgs('recording').returns(false);
       this.controller.capture();
-      assert.ok(this.app.emit.calledWith('startcountdown'));
+      sinon.assert.calledOnce(this.controller.startCountdown);
     });
 
     test('Should pass the current geolocation position', function() {
@@ -549,7 +550,8 @@ suite('controllers/camera', function() {
   suite('CameraController#onBatteryStatusChange()', function() {
     setup(function() {
       this.controller.loadCamera = sinon.stub();
-      this.controller.shutdownCamera = sinon.stub();
+      sinon.spy(this.controller, 'shutdownCamera');
+      this.controller.clearCountdown = sinon.stub();
     });
 
     test('Should call onBatteryStatuchange on \'change:batteryStatus\'',
@@ -567,6 +569,11 @@ suite('controllers/camera', function() {
       assert.isTrue(this.controller.shutdownCamera.called);
     });
 
+    test('Should clear countdown on `shutdown` status', function() {
+      this.controller.onBatteryStatusChange('shutdown');
+      sinon.assert.calledOnce(this.controller.clearCountdown);
+    });
+
     test('Should prevent capture on low battery', function() {
       this.controller.onBatteryStatusChange('shutdown');
       this.controller.capture();
@@ -575,6 +582,59 @@ suite('controllers/camera', function() {
       this.controller.onBatteryStatusChange('healthy');
       this.controller.capture();
       assert.isTrue(this.camera.capture.called);
+    });
+  });
+
+  suite('CameraController#startCountdown()', function() {
+    setup(function() {
+      this.app.settings.countdown.selected.withArgs('value').returns(5);
+      this.clock = this.sinon.useFakeTimers();
+      this.controller.lowBattery = false;
+    });
+
+    test('Emits a `countdown:started` event', function() {
+      this.controller.startCountdown();
+      sinon.assert.calledWith(this.app.emit, 'countdown:started', 5);
+    });
+
+    test('Emits a `countdown:tick` event each second', function() {
+      this.controller.startCountdown();
+      this.clock.tick(1000);
+      sinon.assert.calledWith(this.app.emit, 'countdown:tick', 4);
+      this.clock.tick(1000);
+      sinon.assert.calledWith(this.app.emit, 'countdown:tick', 3);
+      this.clock.tick(1000);
+      sinon.assert.calledWith(this.app.emit, 'countdown:tick', 2);
+      this.clock.tick(1000);
+      sinon.assert.calledWith(this.app.emit, 'countdown:tick', 1);
+    });
+
+    test('Emits a `countdown:ended` event once it reaches 0', function() {
+      this.controller.startCountdown();
+      this.clock.tick(5000);
+      sinon.assert.calledWith(this.app.emit, 'countdown:ended');
+    });
+
+    test('It calls camera.capture once ended', function() {
+      this.controller.startCountdown();
+      this.clock.tick(5000);
+      sinon.assert.calledOnce(this.camera.capture);
+    });
+
+    test('It clears the coundown when the app base el is clicked', function() {
+      var proto = this.controller.constructor.prototype;
+      var clearCountdown = this.sinon.spy(proto, 'clearCountdown');
+
+      this.app.on.reset();
+
+      var controller = new this.CameraController(this.app);
+      var callback = this.app.on.withArgs('click').args[0][1];
+
+      controller.startCountdown();
+      this.clock.tick(2000);
+      callback();
+
+      sinon.assert.calledOnce(clearCountdown);
     });
   });
 

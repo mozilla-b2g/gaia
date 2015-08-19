@@ -62,7 +62,7 @@ var app = window.app = new App({
       'controllers/storage',
       'controllers/confirm',
       'controllers/sounds',
-      'controllers/timer'
+      'controllers/countdown'
     ]
   }
 });

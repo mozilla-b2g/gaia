@@ -79,10 +79,10 @@ CameraController.prototype.bindEvents = function() {
   app.on('activity:pick', this.onPickActivity);
   app.on('keydown:capture', this.onCaptureKey);
   app.on('keydown:focus', this.onFocusKey);
-  app.on('timer:ended', this.capture);
+  app.on('hidden', this.shutdownCamera);
+  app.on('click', this.clearCountdown);
   app.on('visible', this.loadCamera);
   app.on('capture', this.capture);
-  app.on('hidden', this.shutdownCamera);
 
   // Settings
   settings.recorderProfiles.on('change:selected', this.updateRecorderProfile);
@@ -129,9 +129,6 @@ CameraController.prototype.onRecordingChange = function(recording) {
  */
 CameraController.prototype.onCaptureKey = function(e) {
   debug('on capture key', e);
-  var ignore = this.app.get('timerActive') ||
-    this.app.get('confirmViewVisible');
-  if (ignore) { return e.preventDefault(); }
   if (this.capture() !== false) { e.preventDefault(); }
 };
 
@@ -202,44 +199,57 @@ CameraController.prototype.onPickActivity = function(data) {
   this.camera.cacheConfig = false;
 };
 
-/**
- * Begins capture, first checking if
- * a countdown timer should be installed.
- *
- * @private
- */
-CameraController.prototype.capture = function() {
-  if (this.lowBattery || this.galleryOpen || this.app.hidden) {
-    return false;
-  }
-
-  if (this.shouldCountdown()) {
-    this.app.emit('startcountdown');
-    return;
-  }
-
+CameraController.prototype.capture = function(options = {}) {
+  var force = options.force;
+  if (!this.shouldCapture()) { return false; }
+  if (!force && this.shouldCountdown()) { return this.startCountdown(); }
+  if (this.countdown) { return this.clearCountdown(); }
   var position = this.app.geolocation.position;
   return this.camera.capture({ position: position });
 };
 
-/**
- * Fires a 'startcountdown' event if:
- * A timer settings is set, no timer is
- * already active, and the camera is
- * not currently recording.
- *
- * This event triggers the TimerController
- * to begin counting down, using the TimerView
- * to communicate the remaining seconds.
- *
- * @private
- */
-CameraController.prototype.shouldCountdown = function() {
-  var timerSet = this.settings.timer.selected('value');
-  var timerActive = this.app.get('timerActive');
-  var recording = this.app.get('recording');
+CameraController.prototype.shouldCapture = function() {
+  return !this.app.get('confirmViewVisible') &&
+    !this.app.hidden &&
+    !this.galleryOpen &&
+    !this.lowBattery;
+};
 
-  return timerSet && !timerActive && !recording;
+CameraController.prototype.shouldCountdown = function() {
+  var countdownSet = this.settings.countdown.selected('value');
+  var recording = this.app.get('recording');
+  return countdownSet &&
+    !this.countdown &&
+    !recording;
+};
+
+CameraController.prototype.startCountdown = function() {
+  if (this.countdown) { return; }
+  var seconds = this.settings.countdown.selected('value');
+  var self = this;
+
+  if (!seconds) { return; }
+  this.app.emit('countdown:started', seconds);
+
+  (function scheduleTick() {
+    self.countdown = setTimeout(() => {
+      if (--seconds <= 0) {
+        self.clearCountdown();
+        self.capture({ force: true });
+        return;
+      }
+
+      self.app.emit('countdown:tick', seconds);
+      scheduleTick();
+    }, 1000);
+  })();
+};
+
+CameraController.prototype.clearCountdown = function() {
+  if (!this.countdown) { return; }
+  clearTimeout(this.countdown);
+  this.countdown = null;
+  this.app.emit('countdown:ended');
 };
 
 CameraController.prototype.onFileSizeLimitReached = function() {
@@ -274,7 +284,6 @@ CameraController.prototype.showSizeLimitAlert = function() {
 CameraController.prototype.setMode = function(mode) {
   debug('set mode: %s', mode);
   var self = this;
-  var l10nId;
 
   // Abort if didn't change.
   //
@@ -289,12 +298,7 @@ CameraController.prototype.setMode = function(mode) {
     return;
   }
 
-  if (mode == 'video') {
-    l10nId = 'Video-Mode';
-  }
-  else {
-    l10nId = 'Photo-Mode';
-  }
+  var l10nId = mode == 'video' ? 'Video-Mode' : 'Photo-Mode';
   this.notification.display({ text: l10nId });
 
   this.setFlashMode();
@@ -450,11 +454,8 @@ CameraController.prototype.onHDRChange = function(hdr) {
 
 CameraController.prototype.onBatteryStatusChange = function(status) {
   this.lowBattery = status === 'shutdown';
-  if (this.lowBattery) {
-    this.shutdownCamera();
-  } else {
-    this.loadCamera();
-  }
+  if (this.lowBattery) { this.shutdownCamera(); }
+  else { this.loadCamera(); }
 };
 
 /**
@@ -486,6 +487,7 @@ CameraController.prototype.onStorageVolumeChanged = function(storage) {
  * Updates focus area when the user clicks on the viewfinder
  */
 CameraController.prototype.onFocusPointChanged = function(focusPoint) {
+  if (this.countdown) { return; }
   this.camera.updateFocusArea(focusPoint.area);
 };
 
@@ -493,13 +495,13 @@ CameraController.prototype.loadCamera = function(showSpinner) {
   if (this.lowBattery || this.galleryOpen || this.app.hidden) {
     return;
   }
-  if (showSpinner) {
-    this.app.showSpinner();
-  }
+
+  if (showSpinner) { this.app.showSpinner(); }
   this.camera.load();
 };
 
 CameraController.prototype.shutdownCamera = function() {
+  this.clearCountdown();
   this.camera.shutdown();
 };
 
