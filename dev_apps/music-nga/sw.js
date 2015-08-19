@@ -1,5 +1,6 @@
 importScripts('components/serviceworkerware/dist/sww.js');
 importScripts('components/sww-raw-cache/dist/sww-raw-cache.js');
+importScripts('js/services/activities.js');
 importScripts('js/services/albums.js');
 importScripts('js/services/artists.js');
 importScripts('js/services/artwork.js');
@@ -10,6 +11,7 @@ importScripts('resources.js');
 
 var worker = new ServiceWorkerWare();
 
+var activitiesService = new ActivitiesService(worker);
 var albumsService = new AlbumsService(worker);
 var artistsService = new ArtistsService(worker);
 var artworkService = new ArtworkService(worker);

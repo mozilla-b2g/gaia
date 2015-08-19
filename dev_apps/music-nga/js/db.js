@@ -25,6 +25,16 @@ var Database = (function() {
   // See init()
   // var musicdb; // XXX
 
+  var resolveEnumerable;
+  var enumerable = new Promise((resolve) => {
+    resolveEnumerable = resolve;
+  });
+
+  var resolveReady;
+  var ready = new Promise((resolve) => {
+    resolveReady = resolve;
+  });
+
   function init() {
     // We want to exclude some folders that store ringtones so they don't show
     // up in the music app. The regex matches absolute paths starting with a
@@ -128,6 +138,7 @@ var Database = (function() {
           musicdb.onready = onReady;
         }
       // });
+      resolveEnumerable(); // XXX
       console.log('XXX: App.dbEnumerable(...)');
     }
 
@@ -137,6 +148,7 @@ var Database = (function() {
       //   musicdb.scan();
       // });
       musicdb.scan(); // XXX
+      resolveReady(); // XXX
       console.log('XXX: App.dbReady(...)');
 
       // Subsequent onready events need to refresh the UI.
@@ -306,6 +318,8 @@ var Database = (function() {
     advancedEnumerate: advancedEnumerate,
     count: count,
     cancelEnumeration: cancelEnumeration,
+    enumerable, // XXX: ADDED
+    ready, // XXX: ADDED
 
     // This is just here for testing.
     get initialScanComplete() {

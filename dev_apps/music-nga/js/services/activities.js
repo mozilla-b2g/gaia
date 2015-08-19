@@ -5,25 +5,15 @@ var client = bridge.client({
   endpoint: new BroadcastChannel('music-service')
 });
 
-function SongsService(worker) {
+function ActivitiesService(worker) {
   var stopAfter = ServiceWorkerWare.decorators.stopAfter;
 
-  worker.get('/api/songs/list', stopAfter((request) => {
-    return new Promise((resolve) => {
-      client.method('getSongs').then((songs) => {
-        resolve(new Response(JSON.stringify(songs), {
-          headers: { 'Content-Type': 'application/json' }
-        }));
-      });
-    });
-  }));
-
-  worker.get('/api/songs/info/:filePath', stopAfter((request) => {
+  worker.get('/api/activities/share/:filePath', stopAfter((request) => {
     return new Promise((resolve) => {
       var filePath = '/' + decodeURIComponent(request.parameters.filePath);
-      client.method('getSong', filePath)
-        .then((song) => {
-          resolve(new Response(JSON.stringify(song), {
+      client.method('share', filePath)
+        .then(() => {
+          resolve(new Response(JSON.stringify({ success: true }), {
             headers: { 'Content-Type': 'application/json' }
           }));
         })

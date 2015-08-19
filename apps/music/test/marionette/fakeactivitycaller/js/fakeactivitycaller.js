@@ -20,4 +20,6 @@ var FakeActivityCaller = {
   }
 };
 
-FakeActivityCaller.init();
+setTimeout(function() {
+  FakeActivityCaller.init();
+}, 1000);

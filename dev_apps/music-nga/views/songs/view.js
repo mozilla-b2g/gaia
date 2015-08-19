@@ -16,7 +16,8 @@ var SongsView = View.extend(function SongsView() {
     model: this.getCache(),
 
     getSectionName(item) {
-      return item.metadata.title[0].toUpperCase();
+      var title = item.metadata.title;
+      return title ? title[0].toUpperCase() : '?';
     },
 
     // We won't need this after <gaia-fast-list>
