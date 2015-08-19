@@ -477,7 +477,7 @@ var PlayerView = {
   },
 
   next: function pv_next(isAutomatic) {
-    if (this.queue.next(isAutomatic)) {
+    if (this.type === TYPE_SINGLE || this.queue.next(isAutomatic)) {
       this.start();
     } else {
       this.stop();
