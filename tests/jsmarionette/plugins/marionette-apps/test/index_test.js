@@ -1,4 +1,7 @@
 'use strict';
+
+/* global marionette, setup */
+
 var App = require('../lib/app');
 var assert = require('assert');
 
@@ -137,6 +140,26 @@ marionette('public interface', function() {
 
     test('should return app object', function() {
       assert.equal(app.origin, origin);
+    });
+  });
+
+  suite('#getSelf', function() {
+    var app;
+
+    setup(function(done) {
+      if (client.isSync) {
+        app = client.apps.getSelf();
+        done();
+      } else {
+        client.apps.getSelf(function(err, _app) {
+          app = _app;
+          done(err);
+        });
+      }
+    });
+
+    test('should return a current app object', function() {
+      assert.ok(app instanceof App, app.origin);
     });
   });
 });
