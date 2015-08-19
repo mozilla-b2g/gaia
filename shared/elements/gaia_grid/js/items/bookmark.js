@@ -101,7 +101,7 @@
         features.searchUrl = url;
       }
 
-      window.open(url, '_blank', Object.keys(features)
+      window.open(url, '_samescope', Object.keys(features)
         .map(function eachFeature(key) {
         return encodeURIComponent(key) + '=' +
           encodeURIComponent(features[key]);

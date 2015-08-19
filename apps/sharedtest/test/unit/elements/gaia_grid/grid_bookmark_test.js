@@ -53,7 +53,7 @@ suite('GaiaGrid > Bookmark', function() {
     var openStub = sinon.stub(window, 'open', function(url, name, features) {
       openStub.restore();
       assert.equal(url, stubPage1.url);
-      assert.equal(name, '_blank');
+      assert.equal(name, '_samescope');
       assert.isTrue(features.contains('name=' + subject.name));
       assert.isTrue(features.contains('icon=' + subject.icon));
       assert.isTrue(features.contains('remote=true'));
@@ -79,5 +79,5 @@ suite('GaiaGrid > Bookmark', function() {
     });
     subject.launch();
   });
-  
+
 });

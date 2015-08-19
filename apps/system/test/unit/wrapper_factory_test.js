@@ -1,6 +1,6 @@
 'use strict';
 /* globals WrapperFactory, MockAppWindow, MocksHelper, MockApplications,
-           MockPermissionSettings */
+           MockPermissionSettings, MockService */
 
 requireApp('system/shared/test/unit/mocks/mock_service.js');
 requireApp('system/test/unit/mock_app_window.js');
@@ -39,6 +39,7 @@ suite('system/WrapperFactory', function() {
       window.dispatchEvent(new CustomEvent('mozbrowseropenwindow',
         {detail: {
           url: 'fake',
+          name: '_blank',
           manifestURL: 'fake/webapp',
           features: 'remote=true'
         }}));
@@ -47,6 +48,55 @@ suite('system/WrapperFactory', function() {
         detail: app
       }));
       assert.isFalse(WrapperFactory.isLaunchingWindow());
+    });
+
+    suite('Launching a pinned window', function() {
+      var config, mockApp;
+
+      setup(function() {
+        config = {
+          detail: {
+            url: 'http://fake.com/test/page.html',
+            name: '_samescope',
+            manifestURL: 'fake/webapp',
+            features: 'remote=true'
+          }
+        };
+        mockApp = {
+          requestOpen: this.sinon.stub(),
+          isBrowser: this.sinon.stub(),
+          isSearch: this.sinon.stub(),
+          windowName: '_blank'
+        };
+        this.sinon.stub(WrapperFactory, 'publish');
+      });
+
+      test('continues if no apps in the scope', function() {
+        this.sinon.stub(MockService, 'query').returns(null);
+        window.dispatchEvent(new CustomEvent('mozbrowseropenwindow', config));
+        assert(mockApp.requestOpen.notCalled);
+        assert(WrapperFactory.publish.calledWith('launchapp'));
+      });
+
+      test('opens the app in the scope if found', function() {
+        this.sinon.stub(MockService, 'query').returns(mockApp);
+        window.dispatchEvent(new CustomEvent('mozbrowseropenwindow', config));
+        assert(mockApp.requestOpen.called);
+        assert.isFalse(WrapperFactory.publish.calledWith('launchapp'));
+      });
+
+      test('uses the scope if passed in features', function() {
+        var scope = 'fake.com/test2';
+        config.detail.features += ',scope=' + scope;
+        this.sinon.stub(MockService, 'query', function(key, passedScope) {
+          if (passedScope !== scope) {
+            return mockApp;
+          }
+        });
+        window.dispatchEvent(new CustomEvent('mozbrowseropenwindow', config));
+        assert.isTrue(mockApp.requestOpen.notCalled);
+        assert.isTrue(WrapperFactory.publish.calledWith('launchapp'));
+      });
     });
 
     suite('Remote windows', function() {
