@@ -156,11 +156,8 @@ var ContactsButtons = {
     var emailLength = this._getLength(contact.email);
     for (var email = 0; email < emailLength; email++) {
       var currentEmail = contact.email[email];
-      var escapedType = Normalizer.escapeHTML(currentEmail.type, true);
       var emailField = {
         value: Normalizer.escapeHTML(currentEmail.value, true) || '',
-        type: navigator.mozL10n.get(escapedType) ||
-              escapedType || this.DEFAULT_EMAIL_TYPE,
         'type_l10n_id': currentEmail.type,
         i: email
       };

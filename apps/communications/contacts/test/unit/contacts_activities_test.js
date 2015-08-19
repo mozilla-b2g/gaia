@@ -1,5 +1,5 @@
 /* globals ActivityHandler, VcardActivityHandler, ConfirmDialog,
-           MockContactAllFields, MocksHelper, MockMozL10n
+           MockContactAllFields, MocksHelper, MockL10n
  */
 
 'use strict';
@@ -14,17 +14,13 @@ require('/shared/js/setImmediate.js');
 requireApp('communications/contacts/test/unit/mock_header_ui.js');
 requireApp('communications/contacts/js/activities.js');
 requireApp('communications/contacts/js/activities_vcard.js');
-requireApp('communications/contacts/test/unit/mock_l10n.js');
 requireApp('communications/contacts/test/unit/mock_navigation.js');
 requireApp('communications/contacts/test/unit/mock_main_navigation.js');
 requireApp('communications/contacts/test/unit/mock_contacts.js');
 requireApp('communications/contacts/test/unit/mock_action_menu.js');
 require('/shared/test/unit/mocks/mock_confirm_dialog.js');
 require('/shared/test/unit/mocks/mock_moz_contact.js');
-
-if (!window._) {
-  window._ = null;
-}
+require('/shared/test/unit/mocks/mock_l10n.js');
 
 if (!window.utils) {
   window.utils = null;
@@ -41,17 +37,13 @@ var mocksHelperForActivities = new MocksHelper([
 
 suite('Test Activities', function() {
   var realMozL10n,
-      real_,
       realImport;
 
   mocksHelperForActivities.attachTestHelpers();
 
   suiteSetup(function() {
     realMozL10n = navigator.mozL10n;
-    navigator.mozL10n = MockMozL10n;
-
-    real_ = window._;
-    window._ = navigator.mozL10n.get;
+    navigator.mozL10n = MockL10n;
 
     if (!window.utils) {
       window.utils = {};
@@ -72,7 +64,6 @@ suite('Test Activities', function() {
 
   suiteTeardown(function() {
     navigator.mozL10n = realMozL10n;
-    window._ = real_;
     window.utils.importFromVcard = realImport;
   });
 
@@ -219,7 +210,7 @@ suite('Test Activities', function() {
       ActivityHandler.dataPickHandler(contact);
       assert.isTrue(ConfirmDialog.showing);
       assert.isNull(ConfirmDialog.title);
-      assert.equal(ConfirmDialog.text, window._('no_contact_phones'));
+      assert.equal(ConfirmDialog.text, 'no_contact_phones');
     });
 
     test('webcontacts/tel, 1 result', function() {
@@ -275,7 +266,7 @@ suite('Test Activities', function() {
       ActivityHandler.dataPickHandler(contact);
       assert.isTrue(ConfirmDialog.showing);
       assert.isNull(ConfirmDialog.title);
-      assert.equal(ConfirmDialog.text, window._('no_contact_phones'));
+      assert.equal(ConfirmDialog.text, 'no_contact_phones');
     });
 
     test('webcontacts/contact, 1 result', function() {
@@ -315,7 +306,7 @@ suite('Test Activities', function() {
       ActivityHandler.dataPickHandler(contact);
       assert.isTrue(ConfirmDialog.showing);
       assert.isNull(ConfirmDialog.title);
-      assert.equal(ConfirmDialog.text, window._('no_contact_email'));
+      assert.equal(ConfirmDialog.text, 'no_contact_email');
     });
 
     test('webcontacts/email, 1 result', function() {
@@ -344,7 +335,7 @@ suite('Test Activities', function() {
       ActivityHandler.dataPickHandler(contact);
       assert.isTrue(ConfirmDialog.showing);
       assert.isNull(ConfirmDialog.title);
-      assert.equal(ConfirmDialog.text, window._('no_contact_data'));
+      assert.equal(ConfirmDialog.text, 'no_contact_data');
     });
 
     test('webcontacts/select, 1 results(tel)', function() {

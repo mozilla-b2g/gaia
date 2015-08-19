@@ -1,19 +1,18 @@
-/* globals ActionMenu */
+/* globals ActionMenu, MockL10n */
 
 'use strict';
 
-requireApp('communications/contacts/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 
 suite('Test ActionMenu', function() {
   var fakeDOM;
   var fakeform;
   var fakeCallback;
-  var real_;
+  var realMozL10n;
 
   suiteSetup(function(done) {
-    real_ = window._;
-    window._ = navigator.mozL10n.get;
-
+    realMozL10n = navigator.mozL10n;
+    navigator.mozL10n = MockL10n;
     fakeDOM = document.createElement('div');
     fakeDOM.innerHTML =
       '<form id="action-menu" role="dialog" data-type="action" class="hide">' +
@@ -31,7 +30,7 @@ suite('Test ActionMenu', function() {
   });
 
   suiteTeardown(function() {
-    window._ = real_;
+    navigator.mozL10n = realMozL10n;
     fakeDOM.parentNode.removeChild(fakeDOM);
   });
 

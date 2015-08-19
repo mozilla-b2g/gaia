@@ -371,7 +371,7 @@
     out = out || (Array.isArray(theContact.email) && theContact.email[0] &&
                   theContact.email[0].value);
 
-    out = out || navigator.mozL10n.get('noName');
+    out = out || 'unknown';
 
     out = Normalizer.toAscii(out).replace(/[\s+@#&?\+\$]/g, '');
 

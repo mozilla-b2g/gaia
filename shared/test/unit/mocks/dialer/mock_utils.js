@@ -24,19 +24,16 @@ var MockUtils = {
     return startDate.getTime();
   },
 
-  getPhoneNumberAdditionalInfo: function getPhoneNumberAdditionalInfo(
-                                                                matchingTel) {
-    this.mCalledGetPhoneNumberAdditionalInfo = true;
-    var result = matchingTel.type;
-    var carrier = matchingTel.carrier;
-    if (carrier) {
-      result += ', ' + carrier;
-    }
-    return result;
-  },
-
   getLocalizedPhoneNumberAdditionalInfo:
-  function getLocalizedPhoneNumberAdditionalInfo(matchingTel) {},
+  function getLocalizedPhoneNumberAdditionalInfo(matchingTel) {
+    return {
+      id: 'mobile_and_carrier',
+      args: {
+        type: matchingTel.type || 'mobile',
+        carrier: matchingTel.carrier
+      }
+    };
+  },
 
   addEllipsis: function ut_addEllipsis() {},
 

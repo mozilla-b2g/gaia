@@ -45,7 +45,7 @@
       formView;
 
 
-  var _, currentPhoto;
+  var currentPhoto;
 
   var configs;
   function initConfigs() {
@@ -320,8 +320,6 @@
   }
 
   function init(action) {
-    // Cache l10n functionality
-    _ = navigator.mozL10n.get;
     // Cache all DOM elements and reuse them
     initContainers();
     // Cache configuration for templates
@@ -525,7 +523,6 @@
         // Do localization for built-in types
         if (isBuiltInType(value, tags)) {
           currField.type_l10n_id = value;
-          value = _(value) || value;
         }
       }
       if (!isDate) {

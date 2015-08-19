@@ -681,7 +681,7 @@ suite('dialer/keypad', function() {
         var fakeVoicemail2 = '666';
         var simPicker;
 
-        setup(function() {
+        setup(function(done) {
           navigator.mozIccManager.iccIds[0] = 0;
           navigator.mozIccManager.iccIds[1] = 1;
 
@@ -694,6 +694,8 @@ suite('dialer/keypad', function() {
           doLongPress('1');
 
           MockNavigatorSettings.mReplyToRequests();
+
+          Promise.resolve().then(done);
         });
 
         test('should show the SIM picker for favorite SIM', function() {

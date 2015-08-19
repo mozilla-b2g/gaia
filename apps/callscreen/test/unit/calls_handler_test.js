@@ -351,8 +351,9 @@ suite('calls handler', function() {
       test('should show the contact information', function() {
         MockNavigatorMozTelephony.mTriggerCallsChanged();
         assert.equal(MockCallScreen.incomingNumber.textContent, 'test name');
-        assert.equal(MockCallScreen.incomingNumberAdditionalTelType.textContent,
-                     'type, carrier');
+        l10nAssert(MockCallScreen.incomingNumberAdditionalTelType,
+            'mobile_and_carrier',
+            {type: 'mobile', carrier: 'carrier'});
         assert.equal(MockCallScreen.incomingNumberAdditionalTel.textContent,
                      '12334');
       });

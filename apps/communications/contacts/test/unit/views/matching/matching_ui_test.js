@@ -5,7 +5,7 @@
 /* global MockMatchingContactsHtml */
 /* global MocksHelper */
 /* global MockImageLoader */
-/* global MockMozL10n */
+/* global MockL10n */
 /* global MockURL */
 /* global MatchingUI */
 
@@ -14,9 +14,9 @@
 require('/shared/js/lazy_loader.js');
 require('/shared/js/sanitizer.js');
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 
 requireApp('communications/contacts/test/unit/mock_matching_contacts.js.html');
-requireApp('communications/contacts/test/unit/mock_l10n.js');
 requireApp('communications/contacts/test/unit/mock_utils.js');
 requireApp('communications/contacts/test/unit/' +
            'contacts_matching_ui_test_data.js');
@@ -71,7 +71,7 @@ suite('MatchingUI', function() {
 
     window.ImageLoader = MockImageLoader;
     window.URL = MockURL;
-    window.navigator.mozL10n = MockMozL10n;
+    window.navigator.mozL10n = MockL10n;
 
     wrapper = document.createElement('section');
     wrapper.innerHTML = MockMatchingContactsHtml;

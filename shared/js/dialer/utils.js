@@ -100,47 +100,6 @@ var Utils = {
     });
   },
 
-  _getPhoneNumberType: function ut_getPhoneNumberType(matchingTel) {
-    // In case that there is no stored type for this number, we default to
-    // "Mobile".
-    var type = matchingTel.type;
-    if (Array.isArray(type)) {
-      type = type[0];
-    }
-
-    var _ = navigator.mozL10n.get;
-
-    var result = type ? _(type) : _('mobile');
-    result = result ? result : type; // no translation found for this type
-
-    return result;
-  },
-
-  /**
-   * In case of a call linked to a contact, the additional information of the
-   * phone number subject of the call consists in the type and carrier
-   * associated with this phone number.
-   *
-   * Each call is associated with an *unique number* and this phone number can
-   * belong to n specific contact(s). We don't care about the contact having
-   * more than one phone number, as we are only interested in the additional
-   * information of the current call that is associated with *one and only one*
-   * phone number.
-   *
-   * The type of the phone number will be localized if we have a matching key.
-   */
-  getPhoneNumberAdditionalInfo:
-    function ut_getPhoneNumberAdditionalInfo(matchingTel) {
-    var result = this._getPhoneNumberType(matchingTel);
-
-    var carrier = matchingTel.carrier;
-    if (carrier) {
-      result += ', ' + carrier;
-    }
-
-    return result;
-  },
-
   _phoneTypesL10n: {
     'mobile':    'phone_type_mobile',
     'home':      'phone_type_home',

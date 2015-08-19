@@ -738,10 +738,11 @@ var KeypadManager = {
       LazyLoader.load(['/shared/js/component_utils.js',
                        '/shared/elements/gaia_sim_picker/script.js'],
       function() {
-        var _ = navigator.mozL10n.get;
-        var simPicker = document.getElementById('sim-picker');
-        simPicker.getOrPick(req.result[key], _('voiceMail'),
-                            self._callVoicemailForSim.bind(self));
+        navigator.mozL10n.formatValue('voiceMail').then((val) => {
+          var simPicker = document.getElementById('sim-picker');
+          simPicker.getOrPick(req.result[key], val,
+                              self._callVoicemailForSim.bind(self));
+        });
       });
     };
   },

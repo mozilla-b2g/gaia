@@ -15,7 +15,6 @@
 /* global MozActivity */
 /* global Normalizer */
 /* global SCALE_RATIO */
-/* global TAG_OPTIONS */
 /* global utils */
 /* global VcardFilename */
 /* global MatchService */
@@ -50,11 +49,9 @@ contacts.Details = (function() {
       detailsInner,
       dom,
       currentSocial,
-      header,
-      _;
+      header;
 
   var init = function cd_init(currentDom) {
-    _ = navigator.mozL10n.get;
     dom = currentDom || document;
     header = dom.querySelector('#details-view-header');
     contactDetails = dom.querySelector('#contact-detail');
@@ -259,7 +256,7 @@ contacts.Details = (function() {
 
   // Fills the contact data to display if no givenName and familyName
   var getDisplayName = function getDisplayName(contact) {
-    var name = _('noName');
+    var name = navigator.mozL10n.get('noName');
 
     if (hasName(contact)) {
       name = contact.name[0];
@@ -431,7 +428,7 @@ contacts.Details = (function() {
       var element = utils.templates.render(datesTemplate, {
         i: ++rendered,
         date: dateString,
-        type: _(l10nIds[j])
+        type: navigator.mozL10n.get(l10nIds[j])
       });
 
       listContainer.appendChild(element);
@@ -474,7 +471,6 @@ contacts.Details = (function() {
         var escapedStreet = Normalizer.escapeHTML(address, true);
         var locality = currentAddress.locality;
         var escapedLocality = Normalizer.escapeHTML(locality, true);
-        var escapedType = Normalizer.escapeHTML(currentAddress.type, true);
         var country = currentAddress.countryName || '';
         var escapedCountry = Normalizer.escapeHTML(country, true);
         var postalCode = currentAddress.postalCode || '';
@@ -485,8 +481,6 @@ contacts.Details = (function() {
           postalCode: escapedPostalCode,
           locality: escapedLocality || '',
           countryName: escapedCountry,
-          type: _(escapedType) || escapedType ||
-                                          TAG_OPTIONS['address-type'][0].value,
           'type_l10n_id': currentAddress.type,
           i: i
         };

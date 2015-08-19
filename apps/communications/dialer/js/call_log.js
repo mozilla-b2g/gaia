@@ -510,7 +510,7 @@ var CallLog = {
     var phoneNumberTypeL10nId = null;
     if (contact && contact.matchingTel) {
       phoneNumberAdditionalInfo =
-        Utils.getPhoneNumberAdditionalInfo(contact.matchingTel);
+        Utils.getLocalizedPhoneNumberAdditionalInfo(contact.matchingTel);
     } else if (voicemail || emergency) {
       phoneNumberAdditionalInfo = number;
       phoneNumberTypeL10nId =
@@ -531,8 +531,11 @@ var CallLog = {
         typeAndCarrier.removeAttribute('data-l10n-id');
         typeAndCarrier.textContent = phoneNumberAdditionalInfo;
       } else {
-        typeAndCarrier.setAttribute('data-l10n-id',
-                                    phoneNumberAdditionalInfo.id);
+        navigator.mozL10n.setAttributes(
+          typeAndCarrier,
+          phoneNumberAdditionalInfo.id,
+          phoneNumberAdditionalInfo.args
+        );
       }
     }
     addInfo.appendChild(typeAndCarrier);
@@ -984,10 +987,12 @@ var CallLog = {
     }
 
     var phoneNumberAdditionalInfo =
-      Utils.getPhoneNumberAdditionalInfo(matchingTel);
-    if (phoneNumberAdditionalInfo && phoneNumberAdditionalInfo.length) {
-      typeAndCarrier.textContent = phoneNumberAdditionalInfo;
-    }
+      Utils.getLocalizedPhoneNumberAdditionalInfo(matchingTel);
+    navigator.mozL10n.setAttributes(
+      typeAndCarrier,
+      phoneNumberAdditionalInfo.id,
+      phoneNumberAdditionalInfo.args
+    );
 
     if (contact) {
       element.dataset.contactId = contact.id;
