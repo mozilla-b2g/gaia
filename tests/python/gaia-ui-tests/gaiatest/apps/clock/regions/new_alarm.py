@@ -73,6 +73,4 @@ class NewAlarm(Clock):
 
 
 class EditAlarm(NewAlarm):
-
-    def __init__(self, marionette):
-        NewAlarm.__init__(self, marionette)
+    pass

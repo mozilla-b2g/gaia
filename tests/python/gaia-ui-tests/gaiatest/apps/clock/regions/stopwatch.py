@@ -7,8 +7,8 @@ from gaiatest.apps.clock.app import Clock
 from gaiatest.apps.base import PageRegion
 import time
 
-class StopWatch(Clock):
-    _stopwatch_view_locator = (By.CSS_SELECTOR,'#stopwatch-panel')
+class StopWatch(PageRegion):
+    _stopwatch_view_locator = (By.ID,'stopwatch-panel')
     _stopwatch_time_locator = (By.CSS_SELECTOR, ".stopwatch-time")
     _stopwatch_start_locator = (By.CSS_SELECTOR, '#stopwatch-controls .stopwatch-start')
     _stopwatch_pause_locator = (By.CSS_SELECTOR, '#stopwatch-controls .stopwatch-pause')
@@ -18,7 +18,7 @@ class StopWatch(Clock):
     _all_laps_locator = (By.CSS_SELECTOR, '.stopwatch-laps li')
 
     def __init__(self, marionette):
-        Clock.__init__(self, marionette)
+        PageRegion.__init__(self, marionette)
         view = self.marionette.find_element(*self._stopwatch_view_locator)
         Wait(self.marionette).until(lambda m: view.location['x'] == 0 and view.is_displayed())
 

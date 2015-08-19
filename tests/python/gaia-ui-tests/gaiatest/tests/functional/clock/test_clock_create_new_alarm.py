@@ -23,7 +23,6 @@ class TestClockCreateNewAlarm(GaiaTestCase):
         https://moztrap.mozilla.org/manage/case/1775/
         """
         alarm_view = self.clock.switch_view("alarm")
-        # Set the time on the device
         _seconds_since_epoch = self.marionette.execute_script("""
                 var today = new Date();
                 var yr = today.getFullYear();
@@ -33,9 +32,9 @@ class TestClockCreateNewAlarm(GaiaTestCase):
 
         alarm_label_text = "test4321"
 
-        # get the number of alarms set, before adding the new alarm
         initial_alarms_count = len(alarm_view.alarm_items)
 
+        # Set the time on the device
         self.data_layer.set_time(_seconds_since_epoch)
 
         # create a new alarm with the default values that are available

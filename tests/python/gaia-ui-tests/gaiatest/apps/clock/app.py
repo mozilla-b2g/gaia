@@ -10,9 +10,8 @@ from gaiatest.apps.base import PageRegion
 
 class Clock(Base):
     name = 'Clock'
-    _alarm_create_new_locator = (By.ID, 'alarm-new')
     _visible_clock_locator = (By.CSS_SELECTOR, '#clock-view .visible')
-    _clock_views = {"stopwatch":"stopwatch-tab", "alarm":"alarm-tab", "timer":"timer-tab"}
+    _clock_views = {"stopwatch": "stopwatch-tab", "alarm": "alarm-tab", "timer": "timer-tab"}
     _banner_countdown_notification_locator = (By.ID, 'banner-countdown')
 
     def launch(self):
@@ -20,9 +19,6 @@ class Clock(Base):
         Wait(self.marionette).until(expected.element_displayed(
             Wait(self.marionette).until(expected.element_present(
                 *self._visible_clock_locator))))
-        Wait(self.marionette).until(expected.element_displayed(
-            Wait(self.marionette).until(expected.element_present(
-                *self._alarm_create_new_locator))))
 
     def switch_view(self, view_name):
         Wait(self.marionette).until(
