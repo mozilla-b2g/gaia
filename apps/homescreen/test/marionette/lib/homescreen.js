@@ -39,6 +39,14 @@ Homescreen.prototype = {
     return this.client.findElements(Homescreen.Selectors.icon);
   },
 
+  get visibleIcons() {
+    return this.icons.filter(function(el) {
+      return el.scriptWith(function(el) {
+        return el.parentNode.style.display !== 'none';
+      });
+    });
+  },
+
   get uninstallTray() {
     return this.client.findElement(Homescreen.Selectors.uninstall);
   },
@@ -119,6 +127,29 @@ Homescreen.prototype = {
   },
 
   /**
+   * Returns a data-url of the image element in a homescreen icon, if it exists.
+   *
+   * @param {Marionette.Element} icon A homescreen icon element reference.
+   */
+  getIconImage: function(icon) {
+    return icon.scriptWith(function(el) {
+      var image = el.shadowRoot.querySelector('#image-container img');
+      if (!image) {
+        return null;
+      }
+
+      var canvas = document.createElement('canvas');
+      canvas.width = image.width;
+      canvas.height = image.height;
+
+      var ctx = canvas.getContext('2d', { willReadFrequently: true });
+      ctx.drawImage(image, 0, 0);
+
+      return canvas.toDataURL();
+    });
+  },
+
+  /**
    * Returns a homescreen icon element's image URL.
    *
    * @param {Marionette.Element} icon A homescreen icon element reference.
@@ -127,6 +158,19 @@ Homescreen.prototype = {
     return icon.scriptWith(function(el) {
       return el.dataset.testIconUrl;
     });
+  },
+
+  /**
+   * Waits for an icon's image URL to contain a certain value.
+   *
+   * @param {Marionette.Element} icon A homescreen icon element reference.
+   * @0aram {String} string A string to search for in the image URL.
+   */
+  waitForIconImageUrl: function(icon, string) {
+    this.client.waitFor(function() {
+      var src = this.getIconImageUrl(icon);
+      return src && src.indexOf(string) !== -1;
+    }.bind(this));
   },
 
   /**
@@ -154,10 +198,10 @@ Homescreen.prototype = {
     var identifierWithoutEntryPoint = identifier.replace(/\/[^\/]*$/, '');
     var client = this.client.scope({ searchTimeout: 100 });
     var frame;
-    client.switchToFrame();
 
     client.waitFor(function() {
       // wait for the app to show up
+      client.switchToFrame();
       try {
         frame = client.findElement('iframe[mozapp="' + identifier + '"]');
       } catch (e1) {
@@ -170,6 +214,8 @@ Homescreen.prototype = {
               'iframe[data-frame-origin*="' + identifier + '"]');
           } catch (e3) {
             // try again...
+            client.switchToFrame(this.system.getHomescreenIframe());
+            icon.tap();
             return false;
           }
         }
@@ -206,6 +252,18 @@ Homescreen.prototype = {
     // initialize our frames again since we killed the iframe
     this.client.switchToFrame();
     this.client.switchToFrame(this.system.getHomescreenIframe());
+  },
+
+  /**
+   * Perform an action in an action dialog.
+   *
+   * @param {Marionette.Element} dialog An action dialog element reference.
+   * @param {String} action The data-l10n-id of the action to perform.
+   */
+  actionDialog: function(dialog, action) {
+    var button = this.client.helper.waitForElement(
+      'button[data-l10n-id="' + action + '"]');
+    button.tap();
   },
 
   /**

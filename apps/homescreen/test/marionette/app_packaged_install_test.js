@@ -6,9 +6,10 @@ var AppInstall =
   require('../../../../apps/system/test/marionette/lib/app_install');
 var createAppServer = require('./server/parent');
 
-marionette('Homescreen - Hosted app failed icon fetch', function() {
+marionette('Homescreen - Packaged App Install', function() {
   var client = marionette.client({
-    profile: require(__dirname + '/client_options.js')
+    profile: require(__dirname + '/client_options.js'),
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
   });
   var server;
   setup(function(done) {
@@ -33,28 +34,13 @@ marionette('Homescreen - Hosted app failed icon fetch', function() {
     server.close(done);
   });
 
-  test('fallback to default icon', function() {
-    var iconURL = server.manifest.icons['128'];
-
-    // correctly install the app...
+  test('install app', function() {
     client.switchToFrame();
-
-    // ensure the icon fails to download!
-    server.fail(iconURL);
-    appInstall.install(server.manifestURL);
-
-    // switch back to the homescreen
+    appInstall.installPackage(server.packageManifestURL);
     client.switchToFrame(system.getHomescreenIframe());
-
-    var icon = home.getIcon(server.manifestURL);
-
-    // ensure the default icon is shown
-    home.waitForIconImageUrl(icon, 'default');
-
-    // ensure the icon can be launched!
+    var icon = home.getIcon(server.packageManifestURL);
+    home.waitForIconImageUrl(icon, 'app-icon');
     home.launchIcon(icon);
     assert.equal(client.title(), 'iwrotethis');
   });
 });
-
-

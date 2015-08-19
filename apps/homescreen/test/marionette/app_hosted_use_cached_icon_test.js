@@ -44,9 +44,7 @@ marionette('Homescreen - Hosted app cached icon fetch', function() {
     var icon = home.getIcon(server.manifestURL);
 
     // ensure it is cached
-    client.waitFor(function() {
-      return home.getIconImageUrl(icon) === 'app-icon';
-    });
+    home.waitForIconImageUrl(icon, 'app-icon');
 
     // ensure http fails so we use the cached icon
     server.fail(iconURL);
@@ -56,9 +54,7 @@ marionette('Homescreen - Hosted app cached icon fetch', function() {
     icon = home.getIcon(server.manifestURL);
 
     // check for the cached icon...
-    client.waitFor(function() {
-      return home.getIconImageUrl(icon) === 'user-set';
-    });
+    home.waitForIconImageUrl(icon, 'user-set');
 
     // allow the request to succeed
     server.unfail(iconURL);
@@ -69,9 +65,7 @@ marionette('Homescreen - Hosted app cached icon fetch', function() {
     });
 
     // now shows the freshly redownloaded icon
-    client.waitFor(function() {
-      return home.getIconImageUrl(icon) === 'app-icon';
-    });
+    home.waitForIconImageUrl(icon, 'app-icon');
   });
 
 });
