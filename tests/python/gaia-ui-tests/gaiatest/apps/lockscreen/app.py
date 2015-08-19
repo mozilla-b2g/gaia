@@ -16,6 +16,8 @@ from gaiatest.apps.lockscreen.regions.passcode_pad import PasscodePad
 class LockScreen(PageRegion):
     # The lockscreen is a region of the system app
 
+    origin = 'app://lockscreen.gaiamobile.org'
+
     _lockscreen_window_locator = (By.CLASS_NAME, 'lockScreenWindow')
 
     _lockscreen_locator = (By.ID, 'lockscreen')
