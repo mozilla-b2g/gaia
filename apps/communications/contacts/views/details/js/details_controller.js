@@ -159,7 +159,9 @@
           data: {
             type: 'text/vcard',
             number: 1,
-            blobs: [new window.File([vcardBlob], filename)],
+            blobs: [new window.File([vcardBlob], filename, {
+              type: 'text/x-vcard'
+            })],
             filenames: [filename]
           }
         });
