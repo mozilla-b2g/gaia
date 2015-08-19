@@ -7,6 +7,7 @@
 /* global ContactToVcardBlob */
 /* global VcardFilename */
 /* global MozActivity */
+/* global ParamUtils */
 
 /* exported Details */
 
@@ -21,6 +22,7 @@
 (function(exports) {
 
   var _activity = null;
+  var _contactID;
 
   function setActivity(activity) {
     _activity = activity;
@@ -33,7 +35,36 @@
     }
 
     var contactId = evt.detail.contactId;
-    MatchService.match(contactId);
+    var dependencies = [
+      '/contacts/js/match_service.js'
+    ];
+
+    LazyLoader.load(
+      dependencies,
+      function onLoaded() {
+        MatchService.match(contactId);
+      }
+    );
+  }
+
+  function listenContactChanges() {
+    return new Promise(function(resolve, reject) {
+      ContactsService.addListener('contactchange',
+        function oncontactchange(event) {
+          ContactsService.removeListener('contactchange', oncontactchange);
+
+          var eventToSave = {
+            contactID: event.contactID,
+            reason: event.reason
+          };
+          
+          var events = [];
+          events.unshift(eventToSave);
+          sessionStorage.setItem('contactChanges', JSON.stringify(events));
+          resolve();
+        }
+      );
+    });
   }
 
   function toggleFavorite(evt){
@@ -75,6 +106,17 @@
       dispatchEvent('toggleFavoriteDone', {contact: contact});
     }
 
+    // Listening to oncontactchange event, we can save the evt
+    // and send it via sessionStorage to the main list in order to
+    // update it accordingly with the changes made by the user in this view.
+
+    listenContactChanges().then(function() {
+      ContactsService.get(contact.id, function(savedContact) {
+        dispatchEvent('toggleFavoriteDone', {contact: savedContact});
+      }, onError);
+    });
+
+    // Save contact with 'favourite' param updated properly
     ContactsService.save(
       utils.misc.toMozContact(contact),
       function(e) {
@@ -82,14 +124,6 @@
           onError(e);
           return;
         }
-
-        // TODO: Listening to oncontactchange event, we can save the evt
-        // and send it via sessionStorage to the main list in order to
-        // update it accordingly with the changes made by the user in this view.
-
-        ContactsService.get(contact.id, function(savedContact) {
-          dispatchEvent('toggleFavoriteDone', {contact: savedContact});
-        }, onError);
       }
     );
   }
@@ -100,10 +134,6 @@
     window.addEventListener('toggleFavoriteAction', toggleFavorite);
     window.addEventListener('shareAction', shareContact);
     window.addEventListener('findDuplicatesAction', findDuplicates);
-
-    // TODO: Need to save the oncontactchange event in order to update
-    // the main list when the user go back from this view. It could be done
-    // by saving the event in sessionStorage
   }
 
   function shareContact(evt) {
@@ -146,9 +176,18 @@
     }
   }
 
+  function setContact(contactID) {
+    _contactID = contactID;
+  }
+
   function handleEditAction(evt) {
-    // In the future the navigation will change the URL to navigate
-    // to #update view: Bug 1169579
+    window.location.href = ParamUtils.generateUrl(
+      'form',
+      {
+        'action': 'update',
+        'contact': _contactID
+      }
+    );
   }
 
   function dispatchEvent(name, data) {
@@ -157,6 +196,7 @@
 
   exports.DetailsController = {
     'init': init,
-    'setActivity': setActivity
+    'setActivity': setActivity,
+    'setContact': setContact
   };
 })(window);

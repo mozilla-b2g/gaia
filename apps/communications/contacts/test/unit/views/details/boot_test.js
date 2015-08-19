@@ -3,6 +3,7 @@ DetailsUI, mozContact, ContactsService */
 
 'use strict';
 
+requireApp('communications/contacts/js/param_utils.js');
 require('/shared/test/unit/load_body_html_helper.js');
 require('/shared/js/lazy_loader.js');
 
