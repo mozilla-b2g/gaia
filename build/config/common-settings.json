@@ -141,7 +141,7 @@
    "lockscreen.notifications-preview.enabled": true,
    "notifications.resend": true,
    "lockscreen.enabled": true,
-   "lockscreen.locked": true,
+   "lockscreen.locked": false,
    "lockscreen.unlock-sound.enabled": false,
    "message.sent-sound.enabled": true,
    "moz.b2g.version": "3.0",
