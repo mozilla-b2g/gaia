@@ -15,10 +15,6 @@ class ScreenLock(Base):
     _screen_lock_passcode_section_locator = (By.ID, 'screenLock-passcode')
     _passcode_create_locator = (By.CSS_SELECTOR, '#screenLock-passcode gaia-header button[type="submit"]')
 
-    @property
-    def screen_element(self):
-        return self.marionette.find_element(*self._screen_lock_section_locator)
-
     def enable_lockscreen(self):
         checkbox = Wait(self.marionette).until(
             expected.element_present(*self._lockscreen_checkbox_locator))
