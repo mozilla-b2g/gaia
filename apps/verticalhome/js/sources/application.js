@@ -3,12 +3,6 @@
 
 (function(exports) {
 
-  // XXX: This should not be hard-coded, but should come from the home screen
-  // JSON configuration file.
-  var blacklist = [
-    'app://privacy-panel.gaiamobile.org'
-  ];
-
   var appMgr = navigator.mozApps.mgmt;
   var apps = null;
 
@@ -194,11 +188,6 @@
       }
 
       toAdd.forEach(function _toAdd(newApp) {
-        // Do not add blacklisted apps to the grid.
-        if (blacklist.indexOf(newApp.app.origin) !== -1) {
-          return;
-        }
-
         this.addIconToGrid(newApp.app);
       }, this);
 

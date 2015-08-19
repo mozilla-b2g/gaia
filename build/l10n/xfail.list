@@ -82,9 +82,6 @@ apps/music/js/ui/views/tiles_view.js
 apps/music/js/utils.js
 apps/network-alerts/js/attention/attention.js
 apps/pdfjs/content/web/viewer.js
-apps/privacy-panel/js/ala/define_custom_location.js
-apps/privacy-panel/js/app_list.js
-apps/privacy-panel/js/sms/main.js
 apps/ringtones/js/built_in_ringtones.js
 apps/ringtones/js/null_ringtone.js
 apps/ringtones/js/sd_card_ringtones.js
