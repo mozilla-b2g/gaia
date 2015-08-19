@@ -4,6 +4,7 @@
 
 from gaiatest import GaiaTestCase
 from gaiatest.apps.clock.app import Clock
+import time
 
 class TestClockRunStopWatch(GaiaTestCase):
 
@@ -17,6 +18,7 @@ class TestClockRunStopWatch(GaiaTestCase):
 
         stopwatch_view = self.clock.switch_view("stopwatch")
 
+        time.sleep(0.2)
         self.assertEqual(stopwatch_view.current_time, '00:00.00')
 
         stopwatch_view.tap_start()

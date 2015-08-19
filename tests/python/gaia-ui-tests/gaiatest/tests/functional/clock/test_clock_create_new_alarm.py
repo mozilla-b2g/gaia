@@ -48,9 +48,9 @@ class TestClockCreateNewAlarm(GaiaTestCase):
         alarm_view = new_alarm.tap_done()
 
         # verify the banner-countdown message appears
-        alarm_msg = self.clock.banner_notification
+        alarm_msg = alarm_view.banner_notification
         self.assertTrue('The alarm is set for' in alarm_msg, 'Actual banner message was: "' + alarm_msg + '"')
-        self.clock.dismiss_banner()
+        alarm_view.dismiss_banner()
 
         # ensure the new alarm has been added and it is displayed
         self.assertTrue(initial_alarms_count < len(alarm_view.alarm_items),
@@ -72,7 +72,7 @@ class TestClockCreateNewAlarm(GaiaTestCase):
         time_picker.tap_done()
 
         edit_alarm.tap_done()
-        self.clock.dismiss_banner()
+        alarm_view.dismiss_banner()
 
         self.assertNotEqual(alarm_view.alarm_items[0].time, alarm_time)
 

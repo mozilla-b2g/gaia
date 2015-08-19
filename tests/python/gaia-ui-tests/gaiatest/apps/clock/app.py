@@ -5,14 +5,12 @@
 from marionette_driver import expected, By, Wait
 
 from gaiatest.apps.base import Base
-from gaiatest.apps.base import PageRegion
 
 
 class Clock(Base):
     name = 'Clock'
     _visible_clock_locator = (By.CSS_SELECTOR, '#clock-view .visible')
     _clock_views = {"stopwatch": "stopwatch-tab", "alarm": "alarm-tab", "timer": "timer-tab"}
-    _banner_countdown_notification_locator = (By.ID, 'banner-countdown')
 
     def launch(self):
         Base.launch(self)
@@ -35,16 +33,4 @@ class Clock(Base):
         else:
             raise AttributeError('{} is not a view that you can switch to'.format(view_name))
 
-    @property
-    def banner_notification(self):
-        banner = Wait(self.marionette).until(
-            expected.element_present(*self._banner_countdown_notification_locator))
-        Wait(self.marionette).until(expected.element_displayed(banner))
-        return banner.text
 
-    def dismiss_banner(self):
-        banner = Wait(self.marionette).until(
-            expected.element_present(*self._banner_countdown_notification_locator))
-        Wait(self.marionette).until(expected.element_displayed(banner))
-        # We can't tap to clear the banner as sometimes it taps the underlying alarm changing the UI
-        Wait(self.marionette).until(expected.element_not_displayed(banner))

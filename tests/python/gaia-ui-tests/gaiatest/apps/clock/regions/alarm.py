@@ -4,7 +4,6 @@
 
 from marionette_driver import expected, By, Wait
 
-from gaiatest.apps.clock.app import Clock
 from gaiatest.apps.base import PageRegion
 
 
@@ -13,10 +12,11 @@ class Alarm(PageRegion):
     _alarm_view_locator = (By.ID, 'alarm-tab')
     _edit_alarm_view_locator = (By.ID, 'edit-alarm')
     _all_alarm_items_locator = (By.CSS_SELECTOR, '#alarms li')
+    _banner_countdown_notification_locator = (By.ID, 'banner-countdown')
     _visible_clock_locator = (By.CSS_SELECTOR, '#clock-view .visible')
 
     def __init__(self, marionette):
-        PageRegion.__init__(self, marionette)
+        PageRegion.__init__(self, marionette,self._alarm_view_locator)
         view = self.marionette.find_element(*self._alarm_view_locator)
         Wait(self.marionette).until(lambda m: view.location['x'] == 0 and view.is_displayed())
         Wait(self.marionette).until(expected.element_displayed(
@@ -35,6 +35,20 @@ class Alarm(PageRegion):
         new_alarm.tap()
         from gaiatest.apps.clock.regions.new_alarm import NewAlarm
         return NewAlarm(self.marionette)
+
+    @property
+    def banner_notification(self):
+        banner = Wait(self.marionette).until(
+            expected.element_present(*self._banner_countdown_notification_locator))
+        Wait(self.marionette).until(expected.element_displayed(banner))
+        return banner.text
+
+    def dismiss_banner(self):
+        banner = Wait(self.marionette).until(
+            expected.element_present(*self._banner_countdown_notification_locator))
+        Wait(self.marionette).until(expected.element_displayed(banner))
+        # We can't tap to clear the banner as sometimes it taps the underlying alarm changing the UI
+        Wait(self.marionette).until(expected.element_not_displayed(banner))
 
     class AlarmItem(PageRegion):
 

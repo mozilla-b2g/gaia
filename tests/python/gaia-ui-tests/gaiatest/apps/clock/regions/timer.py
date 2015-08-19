@@ -10,6 +10,6 @@ class Timer(PageRegion):
     _timer_view_locator = (By.ID, 'timer-panel')
 
     def __init__(self, marionette):
-        PageRegion.__init__(self, marionette)
+        PageRegion.__init__(self, marionette, self._timer_view_locator)
         view = self.marionette.find_element(*self._timer_view_locator)
         Wait(self.marionette).until(lambda m: view.location['x'] == 0 and view.is_displayed())

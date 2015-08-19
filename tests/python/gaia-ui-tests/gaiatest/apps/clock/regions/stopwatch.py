@@ -3,7 +3,6 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from marionette_driver import expected, By, Wait
-from gaiatest.apps.clock.app import Clock
 from gaiatest.apps.base import PageRegion
 import time
 
@@ -18,7 +17,7 @@ class StopWatch(PageRegion):
     _all_laps_locator = (By.CSS_SELECTOR, '.stopwatch-laps li')
 
     def __init__(self, marionette):
-        PageRegion.__init__(self, marionette)
+        PageRegion.__init__(self, marionette, self._stopwatch_view_locator)
         view = self.marionette.find_element(*self._stopwatch_view_locator)
         Wait(self.marionette).until(lambda m: view.location['x'] == 0 and view.is_displayed())
 
@@ -45,12 +44,6 @@ class StopWatch(PageRegion):
 
     def tap_lap(self):
         Wait(self.marionette).until(expected.element_present(*self._stopwatch_lap_locator)).tap()
-
-    def verify_laps_not_same(self):
-        paused_time = Wait(self.marionette).until(expected.element_present(*self._stopwatch_time_locator)).text
-        time.sleep(2)
-        second_paused_time = Wait(self.marionette).until(expected.element_present(*self._stopwatch_time_locator)).text
-        return paused_time != second_paused_time
 
     class LapItem(PageRegion):
         _lap_name = (By.CSS_SELECTOR, '.lap-name')
