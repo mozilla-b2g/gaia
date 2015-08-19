@@ -5,7 +5,6 @@ define(function(require, exports, module) {
  * Dependencies
  */
 
-var stopRecordingEvent = require('stop-recording-event');
 var NotificationView = require('views/notification');
 var LoadingView = require('views/loading-screen');
 var orientation = require('lib/orientation');
@@ -254,7 +253,6 @@ App.prototype.onCriticalPathDone = function() {
   window.performance.mark('visuallyLoaded');
 
   // Load non-critical modules
-  this.listenForStopRecordingEvent();
   this.loadLazyModules();
   this.perf.criticalPath = Date.now();
   this.criticalPathDone = true;
@@ -459,40 +457,6 @@ App.prototype.onReady = function() {
   view.hide(view.destroy);
   this.views.loading = null;
 };
-
-/**
- * If the system app is opening an attention screen (because
- * of an incoming call or an alarm, e.g.) and if we are
- * currently recording a video then we need to stop recording
- * before the ringer or alarm starts sounding. We will be sent
- * to the background shortly after this and will stop recording
- * when that happens, but by that time it is too late and we
- * have already recorded some sound. See bugs 995540 and 1006200.
- *
- * Similarly, if the user presses the Home button or switches to
- * another app while recording, we need to stop recording right away,
- * even if the system is overloaded and we don't get a visiblitychange
- * event right away. See bug 1046167.
- *
- * To make this work, we rely on shared/js/stop_recording_event.js which
- * abuses the settings API to allow the system app to broadcast a "you
- * will soon be hidden" message to any certified apps that care. There
- * ought to be a better way, but this is a quick way to fix a
- * last-minute release blocker.
- *
- * @private
- */
-App.prototype.listenForStopRecordingEvent = function() {
-  debug('listen for stop recording events');
-
-  // Start the module that generates
-  // the stoprecording events and listen
-  // for those custom DOM events and emit
-  // them using our internal event emitter
-  stopRecordingEvent.start();
-  addEventListener('stoprecording', this.firer('stoprecording'));
-};
-
 
 /**
  * When the device's hardware keys

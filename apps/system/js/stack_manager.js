@@ -323,10 +323,6 @@
         appOut.queueHide();
       }
 
-      if (this._broadcastTimeout === null) {
-        Service.request('stopRecording');
-      }
-
       clearTimeout(this._broadcastTimeout);
       this._broadcastTimeout = setTimeout(this._broadcast.bind(this), 800);
     },

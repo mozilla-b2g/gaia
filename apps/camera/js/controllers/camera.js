@@ -73,7 +73,6 @@ CameraController.prototype.bindEvents = function() {
   app.on('settings:configured', this.onSettingsConfigured);
   app.on('previewgallery:opened', this.onGalleryOpened);
   app.on('previewgallery:closed', this.onGalleryClosed);
-  app.on('stoprecording', this.camera.stopRecording);
   app.on('storage:volumechanged', this.onStorageVolumeChanged);
   app.on('storage:changed', this.onStorageChanged);
   app.on('activity:pick', this.onPickActivity);
