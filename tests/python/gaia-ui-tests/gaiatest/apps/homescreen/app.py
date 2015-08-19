@@ -81,9 +81,7 @@ class Homescreen(Base):
 
     def move_app_to_position(self, app_position, to_position):
         app_elements = self.app_elements
-
-        self.marionette.execute_script(
-            'arguments[0].scrollIntoView(false);', [app_elements[app_position]])
+        self.scroll_to_app(app_position)
 
         Actions(self.marionette).\
             press(app_elements[app_position]).\
@@ -98,8 +96,7 @@ class Homescreen(Base):
         app_element = self.app_elements[app_position]
         separator_element = self.marionette.find_elements(*self._divider_separator_locator)[divider_position]
 
-        self.marionette.execute_script(
-            'arguments[0].scrollIntoView(false);', [app_element])
+        self.scroll_to_app(app_position)
 
         Actions(self.marionette).\
             press(app_element).\
@@ -110,9 +107,16 @@ class Homescreen(Base):
             wait(1).\
             perform()
 
+    def scroll_to_app(self, app_position):
+        self.marionette.execute_script('arguments[0].scrollIntoView(false);', [self.app_elements[app_position]])
+
     @property
     def is_edit_mode_active(self):
         return self.is_element_present(*self._edit_mode_locator)
+
+    @property
+    def is_at_topmost_position(self):
+        return self.marionette.execute_script('return window.wrappedJSObject.scrollY') == 0
 
     def tap_edit_done(self):
          element = self.marionette.find_element(*self._exit_edit_mode_locator)

@@ -117,8 +117,15 @@ class GaiaApps(object):
                        origin=result.get('origin'))
 
     def switch_to_displayed_app(self):
-        self.marionette.switch_to_default_content()
-        self.marionette.switch_to_frame(self.displayed_app.frame)
+        from gaiatest.apps.lockscreen.app import LockScreen
+
+        self.marionette.switch_to_frame()
+        displayed_app = self.displayed_app
+        if displayed_app.origin != LockScreen.origin:
+            # The lockscreen app is not in an iFrame. It's a div in the System app.
+            # So if the lockscreen is displayed, we should switch to the system frame
+            # (which we already did)
+            self.marionette.switch_to_frame(displayed_app.frame)
 
     def is_app_installed(self, app_name):
         self.marionette.switch_to_frame()
@@ -744,26 +751,44 @@ class GaiaDevice(object):
         return ret
 
     def touch_home_button(self):
+        from gaiatest.apps.lockscreen.app import LockScreen
+        from gaiatest.apps.homescreen.app import Homescreen
+
         apps = GaiaApps(self.marionette)
-        if apps.displayed_app.name.lower() != 'default home screen':
-            # touching home button will return to homescreen
-            self._dispatch_home_button_event()
-            Wait(self.marionette).until(
-                lambda m: apps.displayed_app.name.lower() == 'default home screen')
-            apps.switch_to_displayed_app()
+
+        if LockScreen(self.marionette).is_visible:
+            # The lockscreen app is not in an iFrame. So, we can't check on the displayed_app origin
+            self._dispatch_home_button_event_in_lockscreen()
+        elif apps.displayed_app.origin == Homescreen.origin:
+            self._dispatch_home_button_event_in_homescreen()
         else:
-            apps.switch_to_displayed_app()
-            mode = self.marionette.find_element(By.TAG_NAME, 'body').get_attribute('class')
-            self._dispatch_home_button_event()
-            apps.switch_to_displayed_app()
-            if 'edit-mode' in mode:
-                # touching home button will exit edit mode
-                Wait(self.marionette).until(lambda m: m.find_element(
-                    By.TAG_NAME, 'body').get_attribute('class') != mode)
-            else:
-                # touching home button inside homescreen will scroll it to the top
-                Wait(self.marionette).until(lambda m: m.execute_script(
-                    "return window.wrappedJSObject.scrollY") == 0)
+            self._return_to_homescreen(apps)
+
+    def _return_to_homescreen(self, apps):
+        from gaiatest.apps.homescreen.app import Homescreen
+
+        self._dispatch_home_button_event()
+        Wait(self.marionette).until(lambda m: apps.displayed_app.origin == Homescreen.origin)
+        apps.switch_to_displayed_app()
+
+    def _dispatch_home_button_event_in_homescreen(self):
+        from gaiatest.apps.homescreen.app import Homescreen
+
+        homescreen = Homescreen(self.marionette)
+        was_edit_mode_active = homescreen.is_edit_mode_active
+        self._dispatch_home_button_event()
+
+        apps = GaiaApps(self.marionette)
+        apps.switch_to_displayed_app()
+
+        if was_edit_mode_active:
+            Wait(self.marionette).until(lambda m: not homescreen.is_edit_mode_active)
+        else:
+            Wait(self.marionette).until(lambda m: homescreen.is_at_topmost_position)
+
+    def _dispatch_home_button_event_in_lockscreen(self):
+        # The lockscreen should remain in the same state after. Hence, no need to wait on any change.
+        self._dispatch_home_button_event()
 
     def _dispatch_home_button_event(self):
         self.marionette.switch_to_frame()

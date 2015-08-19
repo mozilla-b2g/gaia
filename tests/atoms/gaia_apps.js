@@ -366,7 +366,7 @@ var GaiaApps = {
    */
   getDisplayedApp: function() {
     let app = window.wrappedJSObject.Service.query('getTopMostWindow');
-    if (!app || app.isLockscreen) {
+    if (!app) {
       // fallback to app window.
       app = window.wrappedJSObject.Service
          .query('AppWindowManager.getActiveWindow').getTopMostWindow();

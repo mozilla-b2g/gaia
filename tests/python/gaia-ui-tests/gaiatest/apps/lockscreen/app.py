@@ -13,11 +13,13 @@ from gaiatest.apps.camera.app import Camera
 from gaiatest.apps.lockscreen.regions.passcode_pad import PasscodePad
 
 
-class LockScreen(Base):
+class LockScreen(PageRegion):
+    # The lockscreen is a region of the system app
 
     _lockscreen_window_locator = (By.CLASS_NAME, 'lockScreenWindow')
 
     _lockscreen_locator = (By.ID, 'lockscreen')
+    _lockscreen_frame_locator = (By.ID, 'lockscreen-frame')
     _lockscreen_handle_locator = (By.ID, 'lockscreen-area-slide')
     _lockscreen_passcode_code_locator = (By.ID, 'lockscreen-passcode-code')
     _lockscreen_passcode_pad_locator = (By.ID, 'lockscreen-passcode-pad')
@@ -29,6 +31,15 @@ class LockScreen(Base):
     _notification_locator = (By.CSS_SELECTOR, '#notifications-lockscreen-container > div.notification')
 
     _time_locator = (By.ID, 'lockscreen-clock-time')
+
+    def __init__(self, marionette):
+        marionette.switch_to_frame()
+        root = marionette.find_element(*self._lockscreen_frame_locator)
+        PageRegion.__init__(self, marionette, root)
+
+    @property
+    def is_visible(self):
+        return self.root_element.get_attribute('aria-hidden') == 'false'
 
     def switch_to_frame(self):
         # XXX: Because we're not in frame yet. LockScreen team now is
@@ -86,7 +97,7 @@ class LockScreen(Base):
 
     def _slide_to_unlock(self, destination):
 
-        lockscreen_handle = self.marionette.find_element(*self._lockscreen_handle_locator)
+        lockscreen_handle = self.root_element.find_element(*self._lockscreen_handle_locator)
         lockscreen_handle_x_centre = int(lockscreen_handle.size['width'] / 2)
         lockscreen_handle_y_centre = int(lockscreen_handle.size['height'] / 2)
 
@@ -106,21 +117,21 @@ class LockScreen(Base):
         Wait(self.marionette).until(expected.element_displayed(*self._notification_locator))
 
     def a11y_click_unlock_button(self):
-        self.accessibility.click(self.marionette.find_element(*self._unlock_button_locator))
+        self.accessibility.click(self.root_element.find_element(*self._unlock_button_locator))
         return Homescreen(self.marionette)
 
     def a11y_click_camera_button(self):
-        self.accessibility.click(self.marionette.find_element(*self._camera_button_locator))
+        self.accessibility.click(self.root_element.find_element(*self._camera_button_locator))
         return Camera(self.marionette)
 
     @property
     def notifications(self):
-        container = self.marionette.find_element(*self._lockscreen_container_locator)
+        container = self.root_element.find_element(*self._lockscreen_container_locator)
         # Avoid the search timeout when there are no notifications
         if not container.is_displayed() or container.text == '':
             return []
         return [Notification(self.marionette, element)
-                for element in self.marionette.find_elements(*self._notification_locator)]
+                for element in self.root_element.find_elements(*self._notification_locator)]
 
 
 class Notification(PageRegion):
