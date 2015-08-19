@@ -441,6 +441,15 @@ System.prototype = {
     });
   },
 
+  getScreenState: function() {
+    this.client.switchToFrame();
+    var rv = this.client.executeScript(function() {
+      return window.wrappedJSObject.Service.query('screenEnabled');
+    });
+
+    return rv;
+  },
+
   stopClock: function() {
     var client = this.client;
     var clock = this.client.findElement('#statusbar-time');
