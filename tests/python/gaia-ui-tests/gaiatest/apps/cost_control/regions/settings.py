@@ -7,8 +7,6 @@ from gaiatest.apps.base import Base
 
 
 class Settings(Base):
-    _screen_locator = (By.ID, 'screen')
-
     _settings_iframe_locator = (By.ID, 'settings-view-placeholder')
     _settings_title_locator = (By.CSS_SELECTOR, 'section#settings-view h1')
 
@@ -73,12 +71,7 @@ class Settings(Base):
             expected.element_present(*self._confirm_reset_button_locator))
         Wait(self.marionette).until(expected.element_displayed(confirm_reset_button))
 
-        # Workaround for bug 1161088, where tapping on the button inside the app itself
-        # makes Marionette spew out NS_ERROR_NOT_INITIALIZED errors
-        x = confirm_reset_button.rect['x'] + confirm_reset_button.rect['width']//2
-        y = confirm_reset_button.rect['y'] + confirm_reset_button.rect['height']//2
-        self.marionette.switch_to_frame()
-        self.marionette.find_element(*self._screen_locator).tap(x=x, y=y)
+        self.tap_element_from_system_app(confirm_reset_button)
 
         # go back to iframe of usage app settings
         self.apps.switch_to_displayed_app()

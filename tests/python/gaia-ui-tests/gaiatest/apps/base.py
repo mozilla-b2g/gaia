@@ -133,6 +133,17 @@ class Base(object):
         self.accessibility.click(self.marionette.find_element(*_close_button_locator))
         self.wait_for_select_closed(*_close_button_locator)
 
+    def tap_element_from_system_app(self, element=None, add_statusbar_height=False):
+        # Workaround for bug 1109213, where tapping on the button inside the app itself
+        # makes Marionette spew out NoSuchWindowException errors
+        x = element.rect['x'] + element.rect['width']//2
+        y = element.rect['y'] + element.rect['height']//2
+        from gaiatest.apps.system.app import System
+        system = System(self.marionette)
+        if add_statusbar_height:
+          y = y + system.status_bar.height
+        system.tap(x, y)
+
     @property
     def keyboard(self):
         from gaiatest.apps.keyboard.app import Keyboard
