@@ -66,6 +66,7 @@ class Settings(Base):
     _app_permission_menu_item_locator = (By.ID, 'menuItem-appPermissions')
     _do_not_track_menu_item_locator = (By.ID, 'menuItem-doNotTrack')
     _browsing_privacy_item_locator = (By.ID, 'menuItem-browsingPrivacy')
+    _privacy_controls_item_locator = (By.ID, 'menuItem-privacyPanel')
     _media_storage_menu_item_locator = (By.CSS_SELECTOR, '.menuItem-mediaStorage')
     _application_storage_menu_item_locator = (By.CSS_SELECTOR, '.menuItem-applicationStorage')
 
@@ -255,13 +256,16 @@ class Settings(Base):
         return self._open_subpage(self._screen_lock_menu_item_locator, 'screen_lock', 'ScreenLock')
 
     def open_app_permissions(self):
-        return self._open_subpage(self._app_permission_menu_item_locator)
+        return self._open_subpage(self._app_permission_menu_item_locator, 'app_permission', 'AppPermission')
 
     def open_do_not_track(self):
         return self._open_subpage(self._do_not_track_menu_item_locator, 'do_not_track', 'DoNotTrack')
 
     def open_browsing_privacy(self):
         return self._open_subpage(self._browsing_privacy_item_locator, 'browsing_privacy', 'BrowsingPrivacy')
+
+    def open_privacy_controls(self):
+        return self._open_subpage(self._privacy_controls_item_locator, 'privacy_controls', 'PrivacyControls')
 
     def open_media_storage(self):
         return self._open_subpage(self._media_storage_menu_item_locator, 'media_storage', 'MediaStorage')
@@ -333,7 +337,8 @@ class Settings(Base):
     def _tap_menu_item(self, menu_item_locator):
         menu_item = self._wait_for_menu_item(menu_item_locator)
         menu_item.tap()
-        self._wait_for_parent_section_not_displayed(menu_item)
+        if menu_item_locator != self._privacy_controls_item_locator:
+            self._wait_for_parent_section_not_displayed(menu_item)
 
     def _a11y_click_menu_item(self, menu_item_locator):
         menu_item = self._wait_for_menu_item(menu_item_locator)
