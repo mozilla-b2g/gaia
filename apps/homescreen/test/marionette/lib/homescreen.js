@@ -267,6 +267,43 @@ Homescreen.prototype = {
   },
 
   /**
+   * Click confirm on a particular type of confirmation dialog.
+   *
+   * @param {String} type of dialog.
+   * @param {String} selector of the button. Defaults to .confirm.
+   */
+  confirmDialog: function(type, button) {
+    var selector = 'gaia-confirm[data-type="' + type + '"]';
+    var dialog = this.client.helper.waitForElement(selector);
+
+    var confirm;
+    this.client.waitFor(function() {
+     confirm = dialog.findElement(button || '.confirm');
+     return confirm && confirm.displayed();
+    });
+
+    // XXX: Hack to use faster polling
+    var quickly = this.client.scope({ searchTimeout: 50 });
+    confirm.client = quickly;
+
+    // tricky logic to ensure the dialog has been removed and clicked
+    this.client.waitFor(function() {
+      try {
+        // click the dialog to dismiss it
+        confirm.click();
+        // ensure it is either hidden or hits the stale element ref
+        return !confirm.displayed();
+      } catch (e) {
+        if (e.type === 'StaleElementReference') {
+          // element was successfully removed
+          return true;
+        }
+        throw e;
+      }
+    });
+  },
+
+  /**
    * Gets a localized application name from a manifest.
    * @param {String} app to open
    * @param {String} entryPoint to open
