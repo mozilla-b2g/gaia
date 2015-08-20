@@ -201,6 +201,16 @@ return [
       }.bind(this));
 
       listFunc.size = function() {
+        // In a search slice scenario, the user could have erased the search
+        // before the vScroll async updates its display. If there is no more
+        // search, then we should just report a zero sized search result. There
+        // is a larger question as to if a search slice should return any result
+        // if there is no search phrase. Ideally we would signal to the search
+        // "no search phrase so give back zero results" and then these sorts of
+        // extra guards could be avoided.
+        if (this.mode === 'search' && !this.curPhrase) {
+          return 0;
+        }
         // This method could get called during VScroll updates triggered
         // by messages_splice. However at that point, the headerCount may
         // not be correct, like when fetching more messages from the
@@ -208,7 +218,7 @@ return [
         var slice = headerCursor.messagesSlice;
         // coerce headerCount to 0 if it was undefined to avoid a NaN
         return Math.max(slice.headerCount || 0, slice.items.length);
-      };
+      }.bind(this);
       this.listFunc = listFunc;
 
       // We need to wait for the slice to complete before we can issue any
@@ -1241,7 +1251,6 @@ return [
     // messagesSlice events in headerCursor using a naming convention.
     messages_splice: function(index, howMany, addedItems,
                                requested, moreExpected, fake) {
-
       // If no work to do, or wrong mode, just skip it.
       if (headerCursor.searchMode !== this.mode ||
          (index === 0 && howMany === 0 && !addedItems.length)) {
@@ -1257,8 +1266,12 @@ return [
 
       this.vScroll.updateDataBind(index, addedItems, howMany);
 
-      // Remove the no message text while new messages added:
-      if (addedItems.length > 0) {
+      // Remove the no message text while new messages added. However, if this
+      // is a search mode and no current phrase, it means we should be showing
+      // the empty layout and the search pathway is already showing the empty
+      // layout message, so do not wipe it out. See comments in listFunc.size
+      // around possibly changing search slices long term to avoid this check.
+      if (addedItems.length > 0 && (this.mode !== 'search' || this.curPhrase)) {
         this.hideEmptyLayout();
       }
 
