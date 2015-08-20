@@ -95,12 +95,12 @@
       <ul id="thumbnails-placeholder"></ul>
 
       <footer class="thumbnails-list" role="toolbar">
-        <a id="thumbnails-camera-button" class="button" data-icon="camera" data-l10n-id="camera-button" role="button"></a>
-        <a id="thumbnails-select-button" class="button" data-icon="select" data-l10n-id="select-multiple-button" role="button"></a>
+        <a id="thumbnails-camera-button" tabindex="0" class="button" data-icon="camera" data-l10n-id="camera-button" role="button"></a>
+        <a id="thumbnails-select-button" tabindex="0" class="button" data-icon="select" data-l10n-id="select-multiple-button" role="button"></a>
       </footer>
       <footer class="thumbnails-select" role="toolbar">
-        <a id="thumbnails-delete-button" class="button" data-icon="delete" data-l10n-id="delete-button" role="button"></a>
-        <a id="thumbnails-share-button" class="button" data-icon="share" data-l10n-id="share-button" role="button"></a>
+        <a id="thumbnails-delete-button" tabindex="0" class="button" data-icon="delete" data-l10n-id="delete-button" role="button"></a>
+        <a id="thumbnails-share-button" tabindex="0" class="button" data-icon="share" data-l10n-id="share-button" role="button"></a>
       </footer>
     </section>
 
@@ -134,11 +134,11 @@
         <p id="edit-copy-save-status"></p>
       </section>
       <footer id="fullscreen-toolbar" class="tiny-only" role="toolbar">
-        <a id="fullscreen-camera-button-tiny" class="button" data-icon="camera" data-l10n-id="camera-button" role="button"></a>
-        <a id="fullscreen-edit-button-tiny" class="button" data-icon="edit-image" data-l10n-id="edit-button" role="button"></a>
-        <a id="fullscreen-share-button-tiny" class="button" data-icon="share" data-l10n-id="share-button" role="button"></a>
-        <a id="fullscreen-info-button-tiny" class="button" data-icon="info" data-l10n-id="info-button" role="button"></a>
-        <a id="fullscreen-delete-button-tiny" class="button" data-icon="delete" data-l10n-id="delete-button" role="button"></a>
+        <a id="fullscreen-camera-button-tiny" tabindex="0" class="button" data-icon="camera" data-l10n-id="camera-button" role="button"></a>
+        <a id="fullscreen-edit-button-tiny" tabindex="0" class="button" data-icon="edit-image" data-l10n-id="edit-button" role="button"></a>
+        <a id="fullscreen-share-button-tiny" tabindex="0" class="button" data-icon="share" data-l10n-id="share-button" role="button"></a>
+        <a id="fullscreen-info-button-tiny" tabindex="0" class="button" data-icon="info" data-l10n-id="info-button" role="button"></a>
+        <a id="fullscreen-delete-button-tiny" tabindex="0" class="button" data-icon="delete" data-l10n-id="delete-button" role="button"></a>
       </footer>
     </section>
     <form id="info-view" role="dialog" data-type="confirm" class="hidden">
@@ -207,23 +207,23 @@
         </div>
 
         <div id="edit-crop-options" class="edit-options-bar hidden" role="radiogroup" data-l10n-id="crop-options">
-          <a id="edit-crop-aspect-free" class="selected radio button" role="radio" aria-checked="true" data-l10n-id="crop-aspect-free"></a>
-          <a id="edit-crop-aspect-portrait" class="radio button" role="radio" data-l10n-id="crop-aspect-portrait"></a>
-          <a id="edit-crop-aspect-landscape" class="radio button" role="radio" data-l10n-id="crop-aspect-landscape"></a>
-          <a id="edit-crop-aspect-square" class="radio button" role="radio" data-l10n-id="crop-aspect-square"></a>
-          <a id="edit-crop-aspect-more" class="radio button" role="radio" data-icon="more" data-l10n-id="crop-aspect-more"></a>
+          <a id="edit-crop-aspect-free" tabindex="0" class="selected radio button" role="radio" aria-checked="true" data-l10n-id="crop-aspect-free"></a>
+          <a id="edit-crop-aspect-portrait" tabindex="0" class="radio button" role="radio" data-l10n-id="crop-aspect-portrait"></a>
+          <a id="edit-crop-aspect-landscape" tabindex="0" class="radio button" role="radio" data-l10n-id="crop-aspect-landscape"></a>
+          <a id="edit-crop-aspect-square" tabindex="0" class="radio button" role="radio" data-l10n-id="crop-aspect-square"></a>
+          <a id="edit-crop-aspect-more" tabindex="0" class="radio button" role="radio" data-icon="more" data-l10n-id="crop-aspect-more"></a>
         </div>
 
         <div id="edit-effect-options" class="edit-options-bar hidden" role="radiogroup" data-l10n-id="effect-options">
-          <a id="edit-effect-none" class="selected radio button bgimage"
+          <a id="edit-effect-none" tabindex="0" class="selected radio button bgimage"
              data-effect="none" role="radio" data-l10n-id="effect-none"></a>
-          <a id="edit-effect-bw" class="radio button filter-bw bgimage"
+          <a id="edit-effect-bw" tabindex="0" class="radio button filter-bw bgimage"
              data-effect="bw" role="radio" data-l10n-id="effect-bw"></a>
-          <a id="edit-effect-sepia" class="radio button filter-sepia bgimage"
+          <a id="edit-effect-sepia" tabindex="0" class="radio button filter-sepia bgimage"
              data-effect="sepia" role="radio" data-l10n-id="effect-sepia"></a>
-          <a id="edit-effect-bluesteel" class="radio button filter-bluesteel bgimage"
+          <a id="edit-effect-bluesteel" tabindex="0" class="radio button filter-bluesteel bgimage"
              data-effect="bluesteel" role="radio" data-l10n-id="effect-bluesteel"></a>
-          <a id="edit-effect-faded" class="radio button filter-faded bgimage"
+          <a id="edit-effect-faded" tabindex="0" class="radio button filter-faded bgimage"
              data-effect="faded" role="radio" data-l10n-id="effect-faded"></a>
         </div>
       </div>
@@ -233,10 +233,10 @@
 
       <!-- buttons for selecting the type of edit to perform -->
       <footer id="edit-toolbar" role="toolbar">
-        <a id="edit-exposure-button" class="button" data-icon="brightness" data-l10n-id="exposure-button" role="button"></a>
-        <a id="edit-crop-button" class="button" data-icon="crop" data-l10n-id="crop-button" role="button"></a>
-        <a id="edit-effect-button" class="button" data-l10n-id="effect-button" role="button"></a>
-        <a id="edit-enhance-button" class="button"  data-l10n-id="enhance-button" role="button" aria-pressed="false"></a>
+        <a id="edit-exposure-button" tabindex="0" class="button" data-icon="brightness" data-l10n-id="exposure-button" role="button"></a>
+        <a id="edit-crop-button" tabindex="0" class="button" data-icon="crop" data-l10n-id="crop-button" role="button"></a>
+        <a id="edit-effect-button" tabindex="0" class="button" data-l10n-id="effect-button" role="button"></a>
+        <a id="edit-enhance-button" tabindex="0" class="button"  data-l10n-id="enhance-button" role="button" aria-pressed="false"></a>
       </footer>
     </section>
 

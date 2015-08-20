@@ -22,6 +22,7 @@ function ThumbnailItem(fileData) {
   this.htmlNode = document.createElement('div');
   this.htmlNode.classList.add('thumbnail');
   this.htmlNode.setAttribute('role', 'button');
+  this.htmlNode.setAttribute('tabindex', 0);
   this.imgNode = document.createElement('img');
   this.imgNode.alt = '';
   this.imgNode.classList.add('thumbnailImage');
