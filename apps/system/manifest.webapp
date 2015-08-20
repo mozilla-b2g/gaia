@@ -115,6 +115,10 @@
       "description": "Communication with media apps for now playing info",
       "rules": {}
     },
+    "vaani-media-comms": {
+      "description": "Communicate with Vaani apps for controlling/updating player",
+      "rules": {}
+    },
     "search-results": {
       "description": "Communicate between search results and search app",
       "rules": {}
