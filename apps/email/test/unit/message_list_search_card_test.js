@@ -25,35 +25,13 @@ suite('message_list', function() {
     date: Date.now(),
     sendStatus: {}
   };
-
-  function testRefreshBtnAccessibility(syncing) {
-    assert.equal(subject.refreshBtn.getAttribute('data-l10n-id'),
-      syncing ? 'messages-refresh-progress' : 'messages-refresh-button');
-    if (syncing) {
-      assert.equal(subject.refreshBtn.getAttribute('role'), 'progressbar');
-    } else {
-      assert.isNull(subject.refreshBtn.getAttribute('role'));
-    }
-  }
+  var mockMatches = { author: { text: 'auth', matchRuns: [] } };
 
   function testSelectedMessage(element, editMode, selected) {
     assert.equal(element.getAttribute('aria-selected'),
       editMode ? selected ? 'true' : 'false'  : null);
     assert.equal(element.querySelector('input[type=checkbox]').checked,
       editMode && selected);
-  }
-
-  function testMessageState(message, state) {
-    message.sendStatus.state = state;
-    subject.updateMessageDom(true, message);
-    var syncingNode = message.element
-                      .querySelector('.msg-header-syncing-section');
-    if (state) {
-      assert.equal(syncingNode.getAttribute('data-l10n-id'),
-        'message-header-state-' + state);
-    } else {
-      assert.equal(true, !syncingNode.hasAttribute('data-l10n-id'));
-    }
   }
 
   suiteSetup(function(done) {
@@ -63,7 +41,7 @@ suite('message_list', function() {
     }, [
       'model_create',
       'header_cursor',
-      'element!cards/message_list',
+      'element!cards/message_list_search',
       'tmpl!cards/msg/header_item.html'], function(mc, hc, ml, hi) {
       modelCreate = mc;
       HeaderCursor = hc;
@@ -79,46 +57,6 @@ suite('message_list', function() {
     subject.onArgs({
       model: modelCreate.defaultModel,
       headerCursor: headerCursor
-    });
-  });
-
-  suite('messages_status', function() {
-    setup(function() {
-      subject.curFolder = { type: 'inbox' };
-    });
-
-    test('synchronizing', function() {
-      testRefreshBtnAccessibility(false);
-      subject.msgVScroll.messages_status('synchronizing');
-      testRefreshBtnAccessibility(true);
-    });
-
-    test('synced', function() {
-      testRefreshBtnAccessibility(false);
-      subject.msgVScroll.messages_status('synced');
-      testRefreshBtnAccessibility(false);
-    });
-  });
-
-  suite('toggleOutboxSyncingDisplay', function() {
-    setup(function() {
-      subject.curFolder = { type: 'outbox' };
-    });
-
-    test('syncing', function() {
-      testRefreshBtnAccessibility(false);
-      subject.toggleOutboxSyncingDisplay(true);
-      testRefreshBtnAccessibility(true);
-    });
-
-    test('not syncing', function() {
-      setup(function() {
-        subject._outboxSyncing = true;
-      });
-
-      testRefreshBtnAccessibility(false);
-      subject.toggleOutboxSyncingDisplay(false);
-      testRefreshBtnAccessibility(false);
     });
   });
 
@@ -225,23 +163,7 @@ suite('message_list', function() {
     });
   });
 
-  suite('_setEditMode', function() {
-    var element;
-    setup(function() {
-      var message = Object.create(mockMessage);
-      subject.updateMessageDom(true, message);
-      element = message.element;
-      assert.isNull(element.getAttribute('aria-selected'));
-      subject.msgVScroll.appendChild(element);
-    });
-
-    test('in editMode', function() {
-      subject._setEditMode(true);
-      testSelectedMessage(element, true, false);
-    });
-  });
-
-  suite('updateMessageDom', function() {
+  suite('updateMatchedMessageDom', function() {
     var message, element;
     setup(function() {
       message = Object.create(mockMessage);
@@ -252,32 +174,32 @@ suite('message_list', function() {
 
     test('not edit mode', function() {
       subject.editMode = false;
-      subject.updateMessageDom(true, message);
+      subject.updateMatchedMessageDom(true, {
+        element: element,
+        header: message,
+        matches: mockMatches
+      });
       testSelectedMessage(element, false);
     });
 
     test('message selected', function() {
       subject.selectedMessages.push(message);
-      subject.updateMessageDom(true, message);
+      subject.updateMatchedMessageDom(true, {
+        element: element,
+        header: message,
+        matches: mockMatches
+      });
       testSelectedMessage(element, true, true);
     });
 
     test('message not selected', function() {
       subject.selectedMessages.pop(message);
-      subject.updateMessageDom(true, message);
+      subject.updateMatchedMessageDom(true, {
+        element: element,
+        header: message,
+        matches: mockMatches
+      });
       testSelectedMessage(element, true, false);
-    });
-
-    test('message has a sending state', function() {
-      testMessageState(message, 'sending');
-    });
-
-    test('message has an error state', function() {
-      testMessageState(message, 'error');
-    });
-
-    test('message has no state', function() {
-      testMessageState(message);
     });
   });
 });

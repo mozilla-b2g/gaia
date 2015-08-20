@@ -1,40 +1,6 @@
 'use strict';
 define(function(require) {
-  var mozL10n = require('l10n!'),
-      Emitter = require('evt').Emitter;
-
-  // Set up the global time updates for all nodes.
-  (function() {
-    var formatter = new mozL10n.DateTimeFormat();
-    var updatePrettyDate = function updatePrettyDate() {
-      var labels = document.querySelectorAll('[data-time]');
-      var i = labels.length;
-      while (i--) {
-        labels[i].textContent = formatter.fromNow(
-          labels[i].dataset.time,
-          // the presence of the attribute is our indicator; not its value
-          'compactFormat' in labels[i].dataset);
-      }
-    };
-    var timer = setInterval(updatePrettyDate, 60 * 1000);
-
-    function updatePrettyDateOnEvent() {
-      clearTimeout(timer);
-      updatePrettyDate();
-      timer = setInterval(updatePrettyDate, 60 * 1000);
-    }
-    // When user changes the language, update timestamps.
-    mozL10n.ready(updatePrettyDateOnEvent);
-
-    // On visibility change to not hidden, update timestamps
-    document.addEventListener('visibilitychange', function() {
-      if (document && !document.hidden) {
-        updatePrettyDateOnEvent();
-      }
-    });
-
-  })();
-
+  var Emitter = require('evt').Emitter;
 
   /**
    * Returns an array of objects that can be fed to the 'element' module to
@@ -52,7 +18,7 @@ define(function(require) {
    * for the inner HTML structure of the element.
    * @returns {Array} Array of objects for use in a mixin construction.
    */
-  return function cardBase(templateMixins) {
+  return function base(templateMixins) {
     // Set up the base mixin
     return [
       // Mix in the template first, so that its createdCallback is
@@ -70,44 +36,29 @@ define(function(require) {
 
       {
         createdCallback: function() {
+          // Mark the email custom elements that are generated in this fashion
+          // with a specific class. This allows much more efficient query
+          // selector calls to grab them all vs using something like '*' and
+          // then filtering out the custom elements based on nodeName.
+          this.classList.add('email-ce');
+
           Emitter.call(this);
-
-          // Set up extra classes and other node information that distinguishes
-          // as a card. Doing this here so that by the time the createdCallback
-          // provided by the card so that the DOM at that point can be used for
-          // HTML caching purposes.
-          if (this.extraClasses) {
-            this.classList.add.apply(this.classList,
-                                        this.extraClasses);
-          }
-
-          this.classList.add('card');
-        },
-
-        batchAddClass: function(searchClass, classToAdd) {
-          var nodes = this.getElementsByClassName(searchClass);
-          for (var i = 0; i < nodes.length; i++) {
-            nodes[i].classList.add(classToAdd);
-          }
         },
 
         /**
-         * Add an event listener on a container that, when an event is encounted
-         * on a descendant, walks up the tree to find the immediate child of the
-         * container and tells us what the click was on.
+         * Shortcut for triggering a DOM custom event with a detail object. Use
+         * this instead of evt when dealing with a custom element that wants to
+         * communicate with ancestor elements about an event (so therefore could
+         * bubble) that was based on a plain DOM event that happened inside the
+         * custom element.
+         *
+         * @param  {String} eventName The event name
+         * @param  {Object} detail    The state info passed in event.detail
          */
-        bindContainerHandler: function(containerNode, eventName, func) {
-          containerNode.addEventListener(eventName, function(event) {
-            var node = event.target;
-            // bail if they clicked on the container and not a child...
-            if (node === containerNode) {
-              return;
-            }
-            while (node && node.parentNode !== containerNode) {
-              node = node.parentNode;
-            }
-            func(node, event);
-          }, false);
+        emitDomEvent: function(eventName, detail) {
+          this.dispatchEvent(new CustomEvent(eventName, {
+            detail: detail
+          }));
         }
       }
     ];

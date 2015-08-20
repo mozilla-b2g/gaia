@@ -17,7 +17,6 @@ var cmpAttachmentItemNode = require('tmpl!./cmp/attachment_item.html'),
     evt = require('evt'),
     htmlCache = require('html_cache'),
     toaster = require('toaster'),
-    model = require('model'),
     iframeShims = require('iframe_shims'),
     Marquee = require('marquee'),
     mozL10n = require('l10n!'),
@@ -71,7 +70,7 @@ function focusInputAndPositionCursorFromContainerClick(event, input) {
 
 
 return [
-  require('./base')(require('template!./compose.html')),
+  require('./base_card')(require('template!./compose.html')),
   require('./editor_mixins'),
   {
     createdCallback: function() {
@@ -134,6 +133,7 @@ return [
       this.composer = args.composer;
       this.composerData = args.composerData || {};
       this.activity = args.activity;
+      this.model = args.model;
     },
 
     onCardVisible: function() {
@@ -211,7 +211,9 @@ return [
         if (this.composer) {
           this._loadStateFromComposer();
         } else {
-          var data = this.composerData;
+          var data = this.composerData,
+              model = this.model;
+
           model.latestOnce('folder', function(folder) {
             this.composer = model.api.beginMessageComposition(data.message,
                                                               folder,
@@ -336,7 +338,7 @@ return [
       // An address is valid if model.api.parseMailbox thinks it
       // contains a valid address. (It correctly classifies names that
       // are not valid addresses.)
-      var mailbox = model.api.parseMailbox(address);
+      var mailbox = this.model.api.parseMailbox(address);
       return mailbox && mailbox.address;
     },
 
@@ -358,7 +360,7 @@ return [
           addrList.push({ name: dataSet.name, address: dataSet.address });
         }
         if (node.value.trim().length !== 0) {
-          var mailbox = model.api.parseMailbox(node.value);
+          var mailbox = this.model.api.parseMailbox(node.value);
           addrList.push({ name: mailbox.name, address: mailbox.address });
         }
         addrList.forEach(function(addr) {
@@ -601,7 +603,7 @@ return [
       }
 
       if (makeBubble) {
-        entryMatch = model.api.parseMailbox(node.value);
+        entryMatch = this.model.api.parseMailbox(node.value);
         this.addFromEntry(entryMatch, node);
       }
 

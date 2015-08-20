@@ -7,7 +7,7 @@ var tngAccountItemNode = require('tmpl!./tng/account_item.html'),
     cards = require('cards');
 
 return [
-  require('./base')(require('template!./settings_main.html')),
+  require('./base_card')(require('template!./settings_main.html')),
   {
     createdCallback: function() {
       this.acctsSlice = MailAPI.viewAccounts(false);

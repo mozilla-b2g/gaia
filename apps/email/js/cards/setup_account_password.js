@@ -14,7 +14,7 @@ function bindFormNavigation(instance) {
 }
 
 return [
-  require('./base')(require('template!./setup_account_password.html')),
+  require('./base_card')(require('template!./setup_account_password.html')),
   require('./setup_account_error_mixin'),
   {
     onArgs: function(args) {

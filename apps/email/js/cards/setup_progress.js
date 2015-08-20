@@ -23,7 +23,7 @@ var MailAPI = require('api'),
     oauthFetch = require('cards/oauth2/fetch');
 
 return [
-  require('./base')(require('template!./setup_progress.html')),
+  require('./base_card')(require('template!./setup_progress.html')),
   {
     onArgs: function(args) {
       this.args = args;

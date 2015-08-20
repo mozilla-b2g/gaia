@@ -7,7 +7,7 @@ define(function(require) {
 var cards = require('cards');
 
 return [
-  require('./base')(require('template!./setup_fix_gmail.html')),
+  require('./base_card')(require('template!./setup_fix_gmail.html')),
   {
     extraClasses: ['anim-fade', 'anim-overlay'],
 

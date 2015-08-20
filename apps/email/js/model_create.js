@@ -10,13 +10,15 @@ define(function(require) {
     throw new Error(msg);
   }
 
-  function saveHasAccount(acctsSlice) {
-    // Save localStorage value to improve startup choices
-    localStorage.setItem('data_has_account',
-                         (acctsSlice.items.length ? 'yes' : 'no'));
+  function saveHasAccount(model, acctsSlice) {
+    if (model === modelCreate.defaultModel) {
+      // Save localStorage value to improve startup choices
+      localStorage.setItem('data_has_account',
+                           (acctsSlice.items.length ? 'yes' : 'no'));
 
-    console.log('WRITING LOCAL STORAGE ITEM: ' + 'data_has_account',
-                (acctsSlice.items.length ? 'yes' : 'no'));
+      console.log('WRITING LOCAL STORAGE ITEM: ' + 'data_has_account',
+                  (acctsSlice.items.length ? 'yes' : 'no'));
+    }
   }
 
 /**
@@ -41,9 +43,11 @@ define(function(require) {
  *
  * @type {Object}
  */
-  var model = {
-    firstRun: null,
+  function Model() {
+    evt.Emitter.call(this);
+  }
 
+  Model.prototype = {
     /**
     * acctsSlice event is fired when the property changes.
     * event: acctsSlice
@@ -93,7 +97,7 @@ define(function(require) {
      * called after inited is true.
      */
     hasAccount: function() {
-      return (model.getAccountCount() > 0);
+      return (this.getAccountCount() > 0);
     },
 
     /**
@@ -104,12 +108,12 @@ define(function(require) {
      * @return {Object}    account object.
      */
     getAccount: function(id) {
-      if (!model.acctsSlice || !model.acctsSlice.items) {
+      if (!this.acctsSlice || !this.acctsSlice.items) {
         throw new Error('No acctsSlice available');
       }
 
       var targetAccount;
-      model.acctsSlice.items.some(function(account) {
+      this.acctsSlice.items.some(function(account) {
         if (account.id === id) {
           return !!(targetAccount = account);
         }
@@ -126,10 +130,10 @@ define(function(require) {
     getAccountCount: function() {
       var count = 0;
 
-      if (model.acctsSlice &&
-          model.acctsSlice.items &&
-          model.acctsSlice.items.length) {
-        count = model.acctsSlice.items.length;
+      if (this.acctsSlice &&
+          this.acctsSlice.items &&
+          this.acctsSlice.items.length) {
+        count = this.acctsSlice.items.length;
       }
 
       return count;
@@ -150,10 +154,13 @@ define(function(require) {
      */
     init: function(showLatest, callback) {
       require(['api'], function(api) {
-        if (!this.api) {
-          this.api = api;
+        // Multiple model instances can be created, but only one init needs
+        // to be done with the backend API.
+        if (this === modelCreate.defaultModel) {
           modelInit(this, api);
         }
+
+        this.api = api;
 
         // If already initialized before, clear out previous state.
         this.die();
@@ -164,9 +171,9 @@ define(function(require) {
           // acctsSlice.oncomplete, only assign model.acctsSlice when
           // the slice has actually loaded (i.e. after
           // acctsSlice.oncomplete fires).
-          model.acctsSlice = acctsSlice;
+          this.acctsSlice = acctsSlice;
 
-          saveHasAccount(acctsSlice);
+          saveHasAccount(this, acctsSlice);
 
           if (acctsSlice.items.length) {
             // For now, just use the first one; we do attempt to put unified
@@ -187,11 +194,13 @@ define(function(require) {
           // Once the API/worker has started up and we have received account
           // data, consider the app fully loaded: we have verified full flow
           // of data from front to back.
-          evt.emitWhenListener('metrics:apiDone');
+          if (this === modelCreate.defaultModel) {
+            evt.emitWhenListener('metrics:apiDone');
+          }
         }).bind(this);
 
         acctsSlice.onchange = function() {
-          saveHasAccount(acctsSlice);
+          saveHasAccount(this, acctsSlice);
         };
       }.bind(this));
     },
@@ -306,7 +315,7 @@ define(function(require) {
      */
     notifyInboxMessages: function(accountUpdate) {
       if (accountUpdate.id === this.account.id) {
-        model.emit('newInboxMessages', accountUpdate.count);
+        this.emit('newInboxMessages', accountUpdate.count);
       }
     },
 
@@ -315,11 +324,11 @@ define(function(require) {
      * @param  {Object} folder the folder that changed.
      */
     notifyFoldersSliceOnChange: function(folder) {
-      model.emit('foldersSliceOnChange', folder);
+      this.emit('foldersSliceOnChange', folder);
     },
 
     notifyBackgroundSendStatus: function(data) {
-      model.emit('backgroundSendStatus', data);
+      this.emit('backgroundSendStatus', data);
     },
 
     // Lifecycle
@@ -344,5 +353,15 @@ define(function(require) {
     }
   };
 
-  return evt.mix(model);
+  evt.mix(Model.prototype);
+
+  function modelCreate() {
+    return new Model();
+  }
+
+  // Create a default one that can be used by setup code that does not need a
+  // specific model instance, just one that should be used by default.
+  modelCreate.defaultModel = new Model();
+
+  return modelCreate;
 });

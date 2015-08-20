@@ -51,7 +51,7 @@ var Selector = {
   composeErrorMessage: 'cards-compose .cmp-error-message',
   refreshButton: '.card.center .msg-refresh-btn',
   messageHeaderItem:
-  '.msg-messages-container .msg-header-item',
+  '.msg-vscroll-container .msg-header-item',
   cardMessageReader: 'cards-message-reader',
   currentCardInputs: '.card.center input[type="text"]',
   replyMenuButton: '.msg-reply-btn',
