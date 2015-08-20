@@ -1,8 +1,7 @@
 'use strict';
 
-var fs = require('fs'),
-    FxAUser = require('./fxa_user'),
-    config = JSON.parse(fs.readFileSync(__dirname + '/config.json'));
+var FxAUser = require('./fxa_user'),
+    config = require('./config.json');
 
 /**
  * Abstraction around FxA app.

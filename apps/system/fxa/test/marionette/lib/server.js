@@ -5,12 +5,12 @@ function Server(child) {
 }
 
 Server.prototype = {
-   /**
-    * Sends signal to stop child process and stop server.
-    *
-    * TODO: Bug 1056186:
-    * [FxA] Create unit tests for Firefox Accounts mock server process
-    */
+  /**
+   * Sends signal to stop child process and stop server.
+   *
+   * TODO: Bug 1056186:
+   * [FxA] Create unit tests for Firefox Accounts mock server process
+   */
   stop: function() {
     this.child.kill('SIGTERM');
   }
@@ -23,14 +23,16 @@ Server.prototype = {
  * @param callback
  */
 function create(args, callback) {
-
   var child = require('child_process')
     .fork(__dirname + '/server_mock_fxa.js', args)
     .on('message', function(data) {
-    if (Array.isArray(data) && data[0] === 'start') {
-      callback(null, new Server(child));
-    }
-  });
+      if (Array.isArray(data) && data[0] === 'start') {
+        callback(null, new Server(child));
+      }
+    })
+    .on('error', function (err) {
+      callback(err);
+    });
 }
 
 Server.create = create;

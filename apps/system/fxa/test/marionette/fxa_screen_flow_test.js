@@ -1,10 +1,9 @@
 'use strict';
 
-var fs = require('fs'),
-    FxA = require('./lib/fxa'),
+var FxA = require('./lib/fxa'),
     FxAUser = require('./lib/fxa_user'),
     Server = require('./lib/server'),
-    config = JSON.parse(fs.readFileSync(__dirname + '/lib/config.json'));
+    config = require('./lib/config.json');
 
 marionette('Firefox Accounts Screen Flow Test (UITest app)', function() {
   var app,
@@ -22,11 +21,15 @@ marionette('Firefox Accounts Screen Flow Test (UITest app)', function() {
         }
       });
 
-  setup(function() {
-    fxaUser= new FxAUser();
+  setup(function(done) {
+    fxaUser = new FxAUser();
     app = new FxA(client);
     Server.create(FxA.SERVER_ARGS, function (err, _server) {
+      if (err) {
+        console.error(err);
+      }
       server = _server;
+      done();
     });
     selectors = FxA.Selectors;
     app.launch(FxA.UITEST_ORIGIN);
@@ -37,7 +40,7 @@ marionette('Firefox Accounts Screen Flow Test (UITest app)', function() {
     server.stop();
   });
 
-  test('should walk screen flow for new user', function () {
+  test.skip('should walk screen flow for new user', function () {
     app.enterEmailNew();
     app.clickNext();
     app.clickNext();
@@ -55,8 +58,3 @@ marionette('Firefox Accounts Screen Flow Test (UITest app)', function() {
     app.clickDone();
   });
 });
-
-
-
-
-

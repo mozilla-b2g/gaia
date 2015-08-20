@@ -1,10 +1,9 @@
 'use strict';
 
-var fs = require('fs'),
-    FxA = require('./lib/fxa'),
+var FxA = require('./lib/fxa'),
     FxAUser = require('./lib/fxa_user'),
     Server = require('./lib/server'),
-    config = JSON.parse(fs.readFileSync(__dirname + '/lib/config.json'));
+    config = require('./lib/config.json');
 
 marionette('Firefox Accounts Launch Tests', function() {
   var app,
@@ -29,11 +28,15 @@ marionette('Firefox Accounts Launch Tests', function() {
         desiredCapabilities: { raisesAccessibilityExceptions: true }
       });
 
-    setup(function() {
-      fxaUser= new FxAUser();
+    setup(function(done) {
+      fxaUser = new FxAUser();
       app = new FxA(client);
       Server.create(FxA.SERVER_ARGS, function (err, _server) {
+        if (err) {
+          console.error(err);
+        }
         server = _server;
+        done();
       });
       selectors = FxA.Selectors;
     });
@@ -69,5 +72,3 @@ marionette('Firefox Accounts Launch Tests', function() {
     });
   });
 });
-
-
