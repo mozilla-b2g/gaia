@@ -84,10 +84,18 @@
               this.datastore.addEventListener('change',
                                               this.onChange.bind(this));
               resolve();
-            }, resolve);
+            }, (e) => {
+              error = e;
+              resolve();
+            });
           })
         ]).then(() => {
-          error ? reject(error) : resolve();
+          if (error) {
+            console.error('Error calling navigator.getDatastores', error);
+            reject(error);
+          } else {
+            resolve();
+          }
         });
       });
     },
