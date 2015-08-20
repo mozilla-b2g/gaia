@@ -586,27 +586,46 @@ function VideoPlayer(container) {
   this.localize = function() {
     // XXX: Ideally, we would add the duration too, but that is not
     // available via fileinfo metadata yet.
-    var label;
     var portrait = videowidth < videoheight;
     if (rotation == 90 || rotation == 270) {
       // If rotated sideways, then width and height are swapped.
       portrait = !portrait;
     }
 
-    var orientation = navigator.mozL10n.get(
-      portrait ? 'orientationPortrait' : 'orientationLandscape');
-    if (videotimestamp) {
-      var locale_entry = navigator.mozL10n.get(
-        'videoDescription', { orientation: orientation });
-      if (!self.dtf) {
-        self.dtf = new navigator.mozL10n.DateTimeFormat();
+    var orientationL10nId = portrait ? 'orientationPortrait' :
+      'orientationLandscape';
+    navigator.mozL10n.formatValue(orientationL10nId).then((orientationText) => {
+      if (videotimestamp) {
+        if (!self.dtf) {
+          // XXX: add localized/timeformatchange event to reset
+          self.dtf = Intl.DateTimeFormatter(navigator.languages, {
+            hour12: navigator.mozHour12,
+            hour: 'numeric',
+            minute: 'numeric',
+            day: 'numeric',
+            month: 'numeric',
+            year: 'long'
+          });
+        }
+
+        var ts = this.dtf.format(new Date(videotimestamp));
+
+        navigator.mozL10n.setAttributes(
+          this.image,
+          'videoDescription',
+          {
+            orientation: orientationText,
+            timestamp: ts
+          }
+        );
+      } else {
+        navigator.mozL10n.setAttributes(
+          this.image,
+          'videoDescriptionNoTimestamp',
+          { orientation: orientationText }
+        );
       }
-      label = self.dtf.localeFormat(videotimestamp, locale_entry);
-    } else {
-      label = navigator.mozL10n.get(
-        'videoDescriptionNoTimestamp', { orientation: orientation });
-    }
-    poster.setAttribute('aria-label', label);
+    });
   };
 }
 

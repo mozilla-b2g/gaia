@@ -28,7 +28,6 @@ function CameraController(app) {
   this.activity = app.activity;
   this.hdrDisabled = this.settings.hdr.get('disabled');
   this.notification = app.views.notification;
-  this.l10nGet = app.l10nGet;
 
   // Wait until we get the battery state before turning
   // on the camera
@@ -260,10 +259,10 @@ CameraController.prototype.onFileSizeLimitReached = function() {
 CameraController.prototype.showSizeLimitAlert = function() {
   if (this.sizeLimitAlertActive) { return; }
   this.sizeLimitAlertActive = true;
-  var alertText = this.activity.pick ?
+  var alertL10nId = this.activity.pick ?
     'activity-size-limit-reached' :
     'storage-size-limit-reached';
-  alert(this.l10nGet(alertText));
+  navigator.mozL10n.formatValue(alertL10nId).then(alert);
   this.sizeLimitAlertActive = false;
 };
 

@@ -25,7 +25,6 @@ function OverlayController(app) {
   bindAll(this);
   this.app = app;
   this.activity = app.activity;
-  this.l10nGet = app.l10nGet;
   this.batteryOverlay = null;
   this.storageOverlay = null;
   this.bindEvents();
@@ -122,18 +121,6 @@ OverlayController.prototype.onCameraError = function(type) {
 };
 
 OverlayController.prototype.createOverlay = function(type, callback) {
-  var self = this;
-  if (!this.app.localized()) {
-    this.app.showSpinner();
-    this.app.on('localized', onLocalized);
-    return;
-  }
-
-  function onLocalized() {
-    self.app.clearSpinner();
-    self.createOverlay(type, callback);
-  }
-
   var data = this.getOverlayData(type);
   if (!data) {
     if (typeof callback === 'function') {
@@ -172,30 +159,30 @@ OverlayController.prototype.getOverlayData = function(type) {
 
   switch (type) {
     case 'unavailable':
-      data.title = this.l10nGet('nocard2-title');
-      data.body = this.l10nGet('nocard3-text');
+      data.title = 'nocard2-title';
+      data.body = 'nocard3-text';
     break;
     case 'nospace':
-      data.title = this.l10nGet('nospace2-title');
-      data.body = this.l10nGet('nospace2-text');
+      data.title = 'nospace2-title';
+      data.body = 'nospace2-text';
     break;
     case 'shared':
-      data.title = this.l10nGet('pluggedin2-title');
-      data.body = this.l10nGet('pluggedin2-text');
+      data.title = 'pluggedin2-title';
+      data.body = 'pluggedin2-text';
     break;
     case 'shutdown':
-      data.title = this.l10nGet('battery-shutdown-title');
-      data.body = this.l10nGet('battery-shutdown-text');
+      data.title = 'battery-shutdown-title';
+      data.body = 'battery-shutdown-text';
     break;
     case 'request-fail':
-      data.title = this.l10nGet('camera-unavailable-title');
-      data.body = this.l10nGet('camera-unavailable-text');
+      data.title = 'camera-unavailable-title';
+      data.body = 'camera-unavailable-text';
     break;
     default:
       return false;
   }
 
-  data.closeButtonText = this.l10nGet('close-button');
+  data.closeButtonText = 'close-button';
 
   return data;
 };

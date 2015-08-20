@@ -30,7 +30,6 @@ function SettingsController(app) {
   this.settings = app.settings;
   this.activity = app.activity;
   this.notification = app.views.notification;
-  this.l10nGet = app.l10nGet;
 
   // Provide test hooks
   this.nav = app.nav || navigator;
@@ -411,17 +410,16 @@ SettingsController.prototype.configureRecorderProfiles = function(sizes) {
  * @private
  */
 SettingsController.prototype.formatPictureSizeTitles = function() {
-  if (!this.app.localized()) { return; }
-  var options = this.settings.pictureSizes.get('options');
-  var MP = this.l10nGet('mp');
+  return navigator.mozL10n.formatValue('mp').then((value) => {
+    var options = this.settings.pictureSizes.get('options');
+    options.forEach(function(size) {
+      var data = size.data;
+      var mp = data.mp ? data.mp + value + ' ' : '';
+      size.title = mp + data.width + 'x' + data.height + ' ' + data.aspect;
+    });
 
-  options.forEach(function(size) {
-    var data = size.data;
-    var mp = data.mp ? data.mp + MP + ' ' : '';
-    size.title = mp + data.width + 'x' + data.height + ' ' + data.aspect;
+    debug('picture size titles formatted');
   });
-
-  debug('picture size titles formatted');
 };
 
 /**

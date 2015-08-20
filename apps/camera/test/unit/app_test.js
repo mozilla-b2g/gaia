@@ -277,7 +277,6 @@ suite('app', function() {
         sinon.stub(this.app, 'onReady');
         sinon.spy(this.app, 'loadLazyControllers');
         sinon.stub(this.app, 'clearSpinner');
-        sinon.spy(this.app, 'loadL10n');
 
         // Call the callback to test
         this.callback();
@@ -289,10 +288,6 @@ suite('app', function() {
 
       test('Should flag `this.criticalPathDone`', function() {
         assert.isTrue(this.app.criticalPathDone);
-      });
-
-      test('Should load l10n', function() {
-        assert.isTrue(this.app.loadL10n.calledOnce);
       });
 
       test('Should load non-critical controllers', function() {
@@ -378,13 +373,6 @@ suite('app', function() {
 
     test('It locks the orientation to portrait', function() {
       sinon.assert.called(this.app.orientation.lock);
-    });
-  });
-
-  suite('App#loadL10n()', function() {
-    test('Should require l10n', function() {
-      this.app.loadL10n();
-      assert.equal(this.app.require.args[0][0][0], 'l10n');
     });
   });
 
@@ -516,25 +504,17 @@ suite('app', function() {
       this.app.emit('viewfinder:visible');
     });
 
-    test('It loads l10n', function() {
-      sinon.assert.calledWith(this.app.require, ['l10n']);
-    });
-
     test('It loads lazy controllers', function() {
       sinon.assert.calledWith(this.app.require, this.app.controllers.lazy);
     });
 
     test('It fires the \'loaded\' event only when:', function() {
-      var loadL10nRequireCallback = this.app.require.args[0][1];
-      var loadLazyControllersRequireCallback = this.app.require.args[1][1];
+      var loadLazyControllersRequireCallback = this.app.require.args[0][1];
 
-      // 1. l10n has loaded
-      loadL10nRequireCallback();
-
-      // 2. Lazy controllers have loaded
+      // 1. Lazy controllers have loaded
       loadLazyControllersRequireCallback();
 
-      // 3. Storage has been checked
+      // 2. Storage has been checked
       this.app.emit('storage:checked');
 
       sinon.assert.calledWith(this.app.emit, 'loaded');

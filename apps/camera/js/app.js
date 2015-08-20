@@ -266,7 +266,6 @@ App.prototype.loadLazyModules = function() {
   var done = AllDone();
   var self = this;
 
-  this.loadL10n(done());
   this.loadLazyControllers(done());
   this.once('storage:checked', done());
 
@@ -345,21 +344,6 @@ App.prototype.onBeforeUnload = function() {
 };
 
 /**
- * Initialize l10n 'localized' listener.
- *
- * Sometimes it may have completed
- * before we reach this point, meaning
- * we will have missed the 'localized'
- * event. In this case, we emit the
- * 'localized' event manually.
- *
- * @private
- */
-App.prototype.loadL10n = function(done) {
-  this.require(['l10n'], done);
-};
-
-/**
  * States whether localization
  * has completed or not.
  *
@@ -369,23 +353,6 @@ App.prototype.loadL10n = function(done) {
 App.prototype.localized = function() {
   var l10n = navigator.mozL10n;
   return l10n && l10n.readyState === 'complete';
-};
-
-/**
- * Central place to localize a string.
- *
- * @param  {String} key
- * @public
- */
-App.prototype.l10nGet = function(key) {
-  var l10n = navigator.mozL10n;
-  if (l10n) {
-    return l10n.get(key);
-  }
-
-  // in case we don't have mozL10n loaded yet, we want to
-  // return the key. See bug 999132
-  return key;
 };
 
 /**
