@@ -20,6 +20,7 @@
     "135": "/style/icons/appic_mwc2015_135.png"
   },
   "permissions": {
-    "audio-channel-content":{}
+    "audio-channel-content":{},
+    "moz-extremely-unstable-and-will-change-webcomponents":{}
   }
 }

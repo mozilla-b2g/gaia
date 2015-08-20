@@ -18,7 +18,8 @@
     "mobileconnection": {},
     "phonenumberservice": {},
     "settings": { "access": "readonly" },
-    "contacts": { "access": "readonly" }
+    "contacts": { "access": "readonly" },
+    "moz-extremely-unstable-and-will-change-webcomponents":{}
   },
   "datastores-access": {
     "ice_contacts": {

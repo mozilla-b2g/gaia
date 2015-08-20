@@ -19,6 +19,7 @@
     },
     "desktop-notification": {
       "description": "For sending achievements notifications to Gaia::System"
-    }
+    },
+    "moz-extremely-unstable-and-will-change-webcomponents":{}
   }
 }

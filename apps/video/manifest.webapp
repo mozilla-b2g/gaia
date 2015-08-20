@@ -13,7 +13,8 @@
     "device-storage:pictures":{ "access": "readwrite" },
     "device-storage:videos":{ "access": "readwrite" },
     "audio-channel-content":{},
-    "nfc-share": {}
+    "nfc-share": {},
+    "moz-extremely-unstable-and-will-change-webcomponents":{}
   },
   "locales": {
     "ar": {

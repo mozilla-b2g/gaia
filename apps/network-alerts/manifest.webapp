@@ -20,7 +20,8 @@
     "desktop-notification":{},
     "cellbroadcast":{},
     "settings":{ "access": "readonly" },
-    "audio-channel-notification":{}
+    "audio-channel-notification":{},
+    "moz-extremely-unstable-and-will-change-webcomponents":{}
   },
   "locales": {
     "en-US": {}

@@ -42,7 +42,8 @@
     "time": {},
     "device-storage:sdcard": { "access": "readcreate" },
     "phonenumberservice": {},
-    "webapps-manage":{}
+    "webapps-manage":{},
+    "moz-extremely-unstable-and-will-change-webcomponents":{}
   },
 
   "orientation": "default",

@@ -15,7 +15,8 @@
     "settings":{ "access": "readwrite" },
     "webapps-manage":{},
     "sms":{},
-    "telephony":{}
+    "telephony":{},
+    "moz-extremely-unstable-and-will-change-webcomponents":{}
   },
   "messages": [
     { "sms-received": "/index.html" }

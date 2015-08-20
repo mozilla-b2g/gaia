@@ -16,7 +16,8 @@
     "settings":{ "access": "readwrite" },
     "audio-channel-notification":{},
     "desktop-notification":{},
-    "phonenumberservice": {}
+    "phonenumberservice": {},
+    "moz-extremely-unstable-and-will-change-webcomponents":{}
   },
   "locales": {
     "ar": {

@@ -1,6 +1,6 @@
 {
   "name": "New Home Screen",
-  "description": "Vertical paged home screen. Requires dom.webcomponents.enabled pref.",
+  "description": "Vertical paged home screen.",
   "launch_path": "/index.html",
   "type": "privileged",
   "role": "homescreen",
@@ -24,8 +24,8 @@
     "mobileconnection":{},
     "open-remote-window":{},
     "homescreen-webapps-manage":{},
-    "experimental-webcomponents":{},
-    "systemXHR": {}
+    "systemXHR": {},
+    "moz-extremely-unstable-and-will-change-webcomponents":{}
   },
   "datastores-access": {
     "bookmarks_store": {

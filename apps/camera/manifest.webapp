@@ -18,7 +18,8 @@
     "geolocation":{},
     "audio-channel-notification":{},
     "audio-channel-content":{},
-    "feature-detection": {}
+    "feature-detection": {},
+    "moz-extremely-unstable-and-will-change-webcomponents":{}
   },
   "activities": {
     "record": {

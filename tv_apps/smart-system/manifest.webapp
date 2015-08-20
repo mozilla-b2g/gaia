@@ -31,7 +31,8 @@
     "audio-channel-content":{},
     "input-manage":{},
     "systemXHR":{},
-    "feature-detection": {}
+    "feature-detection": {},
+    "moz-extremely-unstable-and-will-change-webcomponents":{}
   },
   "locales": {
     "ar": {
