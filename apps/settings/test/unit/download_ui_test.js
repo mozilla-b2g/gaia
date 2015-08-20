@@ -29,7 +29,9 @@ suite('DownloadUI', function() {
 
   suiteTeardown(function() {
     var screen = document.getElementById('screen');
-    document.body.removeChild(screen);
+    if (screen) {
+      document.body.removeChild(screen);
+    }
   });
 
   setup(function() {
@@ -135,6 +137,16 @@ suite('DownloadUI', function() {
     this.sinon.clock.tick(0);
     DownloadUI.hide();
     assert.equal(document.querySelector(actionMenuSelector).innerHTML, '');
+  });
+
+  test('Appends to the body when screen is not present ', function() {
+    document.body.innerHTML = '';
+
+    DownloadUI.show(DownloadUI.TYPE.STOP, download);
+    this.sinon.clock.tick(0);
+
+    var dialog = document.querySelector(dialogSelector);
+    assert.equal(dialog.parentNode, document.body);
   });
 
 
