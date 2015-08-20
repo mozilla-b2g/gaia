@@ -8,12 +8,14 @@
     @import url("lockscreen/style/notifications.css");
     @import url("lockscreen/style/lockscreen.css");
     @import url("lockscreen/style/lockscreen_media_playback.css");
+    @import url("lockscreen/style/physical_web.css");
   </style>
 
   <script defer src="lockscreen/js/lockscreen_media_playback.js"></script>
 
   <script defer src="lockscreen/js/lockscreen_notification_builder.js"></script>
   <script defer src="lockscreen/js/lockscreen_notifications.js"></script>
+  <script defer src="lockscreen/js/lockscreen_physical_web.js"></script>
   <script defer src="lockscreen/js/lockscreen_charging.js"></script>
   <script defer src="lockscreen/js/source/source_event.js"></script>
   <script defer src="lockscreen/js/source/dom_event_source.js"></script>
@@ -61,7 +63,20 @@
         </div>
         <div id="lockscreen-charging"></div>
       </div>
-      <div id="notifications-lockscreen-container">
+      <div id="notifications-lockscreen-container" class="notification-container">
+      </div>
+      <div id="physical-web-container" class="notification-container">
+        <div id="physical-web-devices">
+        </div>
+        <div class="notification" id="physical-web-loading">
+          <img role="presentation" src="/style/notifications/images/downloading.png">
+          <!--<div class="title-container">-->
+          <!--  <div dir="auto" class="title"></div>-->
+          <!--</div>-->
+          <div class="detail">
+            <div dir="auto" class="detail-content">Tap to stop searching</div>
+          </div>
+        </div>
       </div>
       <div id="lockscreen-notification-arrow">
       </div>

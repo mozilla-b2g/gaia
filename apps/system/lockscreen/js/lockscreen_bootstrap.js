@@ -13,7 +13,8 @@
   See the License for the specific language governing permissions and
   limitations under the License.
  */
-/* global LockScreen, LockScreenNotifications, LockScreenFrameAgent */
+/* global LockScreen, LockScreenNotifications, LockScreenFrameAgent,
+          LockScreenPhysicalWeb */
 'use strict';
 (function() {
   window.addEventListener('lockscreen-frame-bootstrap', function startup() {
@@ -25,12 +26,16 @@
     window.lockScreenStateManager = new window.LockScreenStateManager();
     window.lockScreenStateManager.start(window.lockScreen);
     window.lockScreenNotifications = new LockScreenNotifications();
+    window.lockScreenPhysicalWeb = new LockScreenPhysicalWeb();
     // After Bug 1094759, screen locker initialises itself asynchronously,
     // so we need to make sure everthing is ready for the components depends
     // on it.
     this.lockscreen.bootstrapping.then(() => {
       window.lockScreenNotifications.start(this.lockscreen,
         this.lockscreen.notificationsContainer);
+      window.lockScreenPhysicalWeb.start(this.lockscreen,
+        this.lockscreen.notificationsContainer,
+        document.querySelector('#physical-web-container'));
     });
   });
 })();

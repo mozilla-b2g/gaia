@@ -1,0 +1,45 @@
+#physical-web-container {
+  display: none;
+}
+
+.physical-web #physical-web-container {
+  display: block;
+}
+.physical-web #notifications-lockscreen-container {
+  display: none;
+}
+
+#physical-web-loading {
+  display: none;
+}
+
+#physical-web-loading .detail {
+  line-height: 3.4rem;
+  font-size: 1.6rem;
+}
+
+#physical-web-loading img {
+  animation: spin 1s linear infinite;
+  transform-origin: center center;
+}
+
+#physical-web-container.loading #physical-web-loading {
+  display: block;
+}
+
+.physical-web .notification-container .notification > div.detail {
+  margin-top: 0;
+}
+
+.physical-web .detail-url {
+  font-size: 1.2rem;
+  font-weight: 300;
+}
+
+.physical-web .notification-container .notification {
+  height: 5.8rem;
+}
+.physical-web .notification-container .notification::after,
+.physical-web .notification-container .notification::before {
+  height: 7.6rem;
+}
