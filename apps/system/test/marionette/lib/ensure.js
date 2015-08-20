@@ -113,11 +113,17 @@
           window.innerWidth>>1 , window.innerHeight>>1);
         if (lockScreenFrameId === elementAtCenter.id) {
           return true;
+        } else {
+          console.log('>>>> detecting lockScreenFrameId but ' +
+            'the frame shows up is ', elementAtCenter.id);
         }
         while (null !== elementAtCenter.parentElement) {
           if (lockScreenFrameId === elementAtCenter.id) {
             return true;
           } else {
+            console.log('>>>> detecting lockScreenFrameId but ' +
+              'the frame shows up is ', elementAtCenter.id, ' ; so trace its' +
+              'parent');
             elementAtCenter = elementAtCenter.parentElement;
           }
         }
