@@ -37,22 +37,22 @@ PromiseStorage.prototype.DB_VERSION = 1;
 PromiseStorage.prototype.STORE_NAME = 'keyvaluepairs';
 
 PromiseStorage.prototype.start = function() {
-  this._getDatabase().catch(function(e) {
-    e && console.error(e);
-
+  return this._getDatabase().catch(function(e) {
     this._openPromise = null;
+
+    throw e;
   }.bind(this));
 };
 
 PromiseStorage.prototype.stop = function() {
   if (!this._openPromise) {
-    return;
+    return Promise.resolve();
   }
 
-  this._getDatabase().then(function(db) {
+  return this._getDatabase().then(function(db) {
     db.close();
-  }).catch(function(e) {
-    e && console.error(e);
+
+    this._openPromise = null;
   });
 };
 
@@ -84,20 +84,18 @@ PromiseStorage.prototype._getDatabase = function() {
   return p;
 };
 
-PromiseStorage.prototype._getTxn = function(type) {
+// Get transaction of the type and execute callback with that tranaction
+// in the same function loop.
+// callback should return a promise, to be chained on the returned promise.
+PromiseStorage.prototype._getTxn = function(type, callback) {
   return this._getDatabase().then(function(db) {
-    // Strangely, this transaction lives long enough to be used in
-    // the callbacks pass to the first then().
-    // It will obviously not going to live for the duration of the entire chain.
-    //
-    // Not sure if this behavior is implementation dependent ...
     var txn = db.transaction(this.STORE_NAME, type);
-    return txn;
+    return callback(txn);
   }.bind(this));
 };
 
 PromiseStorage.prototype.getItems = function(names) {
-  return this._getTxn().then(function(txn) {
+  return this._getTxn('readonly', function(txn) {
     var store = txn.objectStore(this.STORE_NAME);
     var reqPromises = names.map(function(name) {
       return new Promise(function(resolve, reject) {
@@ -119,12 +117,12 @@ PromiseStorage.prototype.getItems = function(names) {
   }.bind(this)).catch(function(e) {
     e && console.error(e);
 
-    return Promise.reject();
+    return Promise.reject(e);
   });
 };
 
 PromiseStorage.prototype.getItem = function(name) {
-  return this._getTxn().then(function(txn) {
+  return this._getTxn('readonly', function(txn) {
     return new Promise(function(resolve, reject) {
       var req = txn.objectStore(this.STORE_NAME).get(name);
       req.onerror = function(e) {
@@ -137,12 +135,12 @@ PromiseStorage.prototype.getItem = function(name) {
   }.bind(this)).catch(function(e) {
     e && console.error(e);
 
-    return Promise.reject();
+    return Promise.reject(e);
   });
 };
 
 PromiseStorage.prototype.setItem = function(name, data) {
-  return this._getTxn('readwrite').then(function(txn) {
+  return this._getTxn('readwrite', function(txn) {
     return new Promise(function(resolve, reject) {
       var store = txn.objectStore(this.STORE_NAME);
       var req = store.put(data, name);
@@ -150,19 +148,19 @@ PromiseStorage.prototype.setItem = function(name, data) {
         reject(req.error);
       };
       txn.oncomplete = function() {
-        resolve();
+        resolve(req.result);
       };
     }.bind(this));
   }.bind(this)).catch(function(e) {
     e && console.error(e);
 
-    return Promise.reject();
+    return Promise.reject(e);
   });
 };
 
 // items is a object mapping from name to data.
 PromiseStorage.prototype.setItems = function(items) {
-  return this._getTxn('readwrite').then(function(txn) {
+  return this._getTxn('readwrite', function(txn) {
     var store = txn.objectStore(this.STORE_NAME);
     var reqPromises = Object.keys(items).map(function(name) {
       var data = items[name];
@@ -172,7 +170,7 @@ PromiseStorage.prototype.setItems = function(items) {
           reject(req.error);
         };
         req.onsuccess = function() {
-          resolve();
+          resolve(req.result);
         };
       });
     }, this);
@@ -185,12 +183,12 @@ PromiseStorage.prototype.setItems = function(items) {
   }.bind(this)).catch(function(e) {
     e && console.error(e);
 
-    return Promise.reject();
+    return Promise.reject(e);
   });
 };
 
 PromiseStorage.prototype.deleteItem = function(name) {
-  return this._getTxn('readwrite').then(function(txn) {
+  return this._getTxn('readwrite', function(txn) {
     return new Promise(function(resolve, reject) {
       var req = txn.objectStore(this.STORE_NAME).delete(name);
       req.onerror = function(e) {
@@ -203,7 +201,7 @@ PromiseStorage.prototype.deleteItem = function(name) {
   }.bind(this)).catch(function(e) {
     e && console.error(e);
 
-    return Promise.reject();
+    return Promise.reject(e);
   });
 };
 
