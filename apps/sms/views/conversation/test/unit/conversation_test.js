@@ -15,7 +15,8 @@
          Errors,
          SMIL,
          TaskRunner,
-         Thread
+         Thread,
+         MessagingClient
 */
 
 'use strict';
@@ -56,6 +57,7 @@ require('/views/shared/test/unit/mock_app.js');
 require('/services/test/unit/mock_drafts.js');
 require('/services/test/unit/mock_threads.js');
 require('/services/test/unit/activity/mock_activity_client.js');
+require('/services/test/unit/messaging/mock_messaging_client.js');
 
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 require('/shared/test/unit/mocks/mock_sticky_header.js');
@@ -100,7 +102,8 @@ var mocksHelperForConversationView = new MocksHelper([
   'Thread',
   'ActivityClient',
   'App',
-  'Compose'
+  'Compose',
+  'MessagingClient'
 ]).init();
 
 suite('conversation.js >', function() {
@@ -2767,9 +2770,7 @@ suite('conversation.js >', function() {
     }
 
     setup(function() {
-      this.sinon.stub(MessageManager, 'retrieveMMS', function() {
-        return {};
-      });
+      this.sinon.stub(MessagingClient, 'retrieveMMS');
       ConversationView.initializeRendering();
     });
 
@@ -2839,8 +2840,9 @@ suite('conversation.js >', function() {
             target: button
           });
         });
+
         test('does not call retrieveMMS', function() {
-          assert.equal(MessageManager.retrieveMMS.args.length, 0);
+          sinon.assert.notCalled(MessagingClient.retrieveMMS);
         });
       });
     });
@@ -2901,13 +2903,18 @@ suite('conversation.js >', function() {
         assert.equal(button.dataset.l10nId, 'download-attachment');
       });
       suite('clicking', function() {
-        var showMessageErrorSpy;
+        var showMessageErrorSpy, retrievePromise, doResolve, doReject;
 
         setup(function() {
           if (!('mozSettings' in navigator)) {
            navigator.mozSettings = null;
           }
 
+          retrievePromise = new Promise((resolve, reject) => {
+            doResolve = resolve;
+            doReject = reject;
+          });
+          MessagingClient.retrieveMMS.returns(retrievePromise);
           this.sinon.stub(navigator, 'mozSettings', MockNavigatorSettings);
           showMessageErrorSpy = this.sinon.spy(
             ConversationView, 'showMessageError'
@@ -2916,6 +2923,12 @@ suite('conversation.js >', function() {
             target: button
           });
         });
+
+        teardown(function() {
+          doResolve = null;
+          doReject = null;
+        });
+
         test('changes button text to "downloading"', function() {
           assert.equal(
             button.getAttribute('data-l10n-id'),
@@ -2929,11 +2942,12 @@ suite('conversation.js >', function() {
           assert.isTrue(element.classList.contains('pending'));
         });
         test('click calls retrieveMMS', function() {
-          assert.isTrue(MessageManager.retrieveMMS.calledWith(message.id));
+          sinon.assert.calledWith(MessagingClient.retrieveMMS, message.id);
         });
         suite('response error', function() {
-          setup(function() {
-            MessageManager.retrieveMMS.returnValues[0].onerror();
+          setup(function(done) {
+            doReject();
+            retrievePromise.catch(() => done());
           });
           test('error class present', function() {
             assert.isTrue(element.classList.contains('error'));
@@ -2953,12 +2967,11 @@ suite('conversation.js >', function() {
         });
 
         suite('response non-active sim card error', function() {
-          setup(function() {
-            MessageManager.retrieveMMS.returnValues[0].error =
-            {
+          setup(function(done) {
+            doReject({
               name: 'NonActiveSimCardError'
-            };
-            MessageManager.retrieveMMS.returnValues[0].onerror();
+            });
+            retrievePromise.catch(() => done());
           });
 
           test('Error dialog params and show', function() {
@@ -3001,28 +3014,29 @@ suite('conversation.js >', function() {
           });
         });
 
-        test('response with radio disabled error', function() {
-          MessageManager.retrieveMMS.returnValues[0].error = {
-            name: 'RadioDisabledError'
-          };
-          MessageManager.retrieveMMS.returnValues[0].onerror();
+        test('response with radio disabled error', function(done) {
+          retrievePromise.catch(() => {
+            // Replaced with ConversationView specific error code
+            sinon.assert.calledWith(
+              showMessageErrorSpy,
+              'RadioDisabledToDownloadError',
+              { confirmHandler: sinon.match.func }
+            );
+          }).then(done, done);
 
-          // Replaced with ConversationView specific error code
-          sinon.assert.calledWith(
-            showMessageErrorSpy,
-            'RadioDisabledToDownloadError',
-            { confirmHandler: sinon.match.func }
-          );
+          doReject({
+            name: 'RadioDisabledError'
+          });
         });
 
-        suite('response error with other errorCode', function() {
-          setup(function() {
-            MessageManager.retrieveMMS.returnValues[0].error =
-            {
+        suite('response error with other errorCode', function(done) {
+          setup(function(done) {
+            doReject({
               name: 'OtherError'
-            };
-            MessageManager.retrieveMMS.returnValues[0].onerror();
+            });
+            retrievePromise.catch(() => done());
           });
+
           test('Error dialog params and show', function() {
             var code = MockErrorDialog.calls[0][0];
             assert.equal(code, Errors.get('OtherError'));
@@ -3030,22 +3044,22 @@ suite('conversation.js >', function() {
           });
         });
         suite('response error with no errorCode', function() {
-          setup(function() {
-            MessageManager.retrieveMMS.returnValues[0].code =
-            {
+          setup(function(done) {
+            doReject({
               name: null
-            };
-            MessageManager.retrieveMMS.returnValues[0].onerror();
+            });
+            retrievePromise.catch(() => done());
           });
           test('No error dialog for no error code case', function() {
             assert.isFalse(showMessageErrorSpy.called);
           });
         });
         suite('response success', function() {
-          setup(function() {
+          setup(function(done) {
             setActiveThread();
             this.sinon.stub(Threads, 'unregisterMessage');
-            MessageManager.retrieveMMS.returnValues[0].onsuccess();
+            doResolve();
+            retrievePromise.then(done, done);
           });
           // re-rendering message happens from a status handler
           test('removes message', function() {
@@ -3060,6 +3074,8 @@ suite('conversation.js >', function() {
       var element;
       var notDownloadedMessage;
       var button;
+      var retrievePromise;
+
       setup(function(done) {
         message = getTestMessage(2);
         ConversationView.appendMessage(message).then(() => {
@@ -3070,6 +3086,7 @@ suite('conversation.js >', function() {
           button = element.querySelector('button');
         }).then(done, done);
       });
+
       test('element has correct data-message-id', function() {
         assert.equal(element.dataset.messageId, message.id);
       });
@@ -3119,11 +3136,26 @@ suite('conversation.js >', function() {
         assert.equal(button.dataset.l10nId, 'download-attachment');
       });
       suite('clicking', function() {
+        var doResolve;
+        var doReject;
+
         setup(function() {
+          retrievePromise = new Promise((resolve, reject) => {
+            doResolve = resolve;
+            doReject = reject;
+          });
+          MessagingClient.retrieveMMS.returns(retrievePromise);
+
           ConversationView.handleMessageClick({
             target: button
           });
         });
+
+        teardown(function() {
+          doResolve = null;
+          doReject = null;
+        });
+
         test('changes download text', function() {
           assert.equal(
             button.getAttribute('data-l10n-id'),
@@ -3137,11 +3169,12 @@ suite('conversation.js >', function() {
           assert.isTrue(element.classList.contains('pending'));
         });
         test('click calls retrieveMMS', function() {
-          assert.isTrue(MessageManager.retrieveMMS.calledWith(message.id));
+          sinon.assert.calledWith(MessagingClient.retrieveMMS, message.id);
         });
         suite('response error', function() {
-          setup(function() {
-            MessageManager.retrieveMMS.returnValues[0].onerror();
+          setup(function(done) {
+            retrievePromise.catch(() => done());
+            doReject();
           });
           test('error class present', function() {
             assert.isTrue(element.classList.contains('error'));
@@ -3157,10 +3190,11 @@ suite('conversation.js >', function() {
           });
         });
         suite('response success', function() {
-          setup(function() {
+          setup(function(done) {
+            retrievePromise.then(done);
             setActiveThread();
             this.sinon.stub(Threads, 'unregisterMessage');
-            MessageManager.retrieveMMS.returnValues[0].onsuccess();
+            doResolve();
           });
           // re-rendering message happens from a status handler
           test('removes message', function() {
@@ -3233,7 +3267,7 @@ suite('conversation.js >', function() {
           });
         });
         test('does not call retrieveMMS', function() {
-          assert.equal(MessageManager.retrieveMMS.args.length, 0);
+          sinon.assert.notCalled(MessagingClient.retrieveMMS);
         });
       });
     });

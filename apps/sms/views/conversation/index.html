@@ -116,10 +116,12 @@
   <script defer src="/views/shared/js/contact_renderer.js"></script>
   <script defer src="/views/shared/js/localization_helper.js"></script>
   <script defer src="/views/conversation/js/information.js"></script>
+  <script defer src="/services/js/messaging/messaging_client.js"></script>
   -->
 </head>
 
 <body role="application" class="skin-comms theme-communications">
+  <iframe src="/views/shared/shim_host.html" class="shim-host" hidden></iframe>
   <article id="main-wrapper" class="wrapper conversation-view">
     <section class="panel panel-ConversationView editable-select-mode" role="region" aria-hidden="true">
       <gaia-header id="messages-header" class="view-header regular-header" action="back" no-font-fit>

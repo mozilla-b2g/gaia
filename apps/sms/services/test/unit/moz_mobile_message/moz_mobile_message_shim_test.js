@@ -1,17 +1,18 @@
 /*global bridge,
+         BroadcastChannel,
          MockNavigatormozMobileMessage,
          MocksHelper,
          MozMobileMessageShim,
-         streamService,
-         Utils
+         streamService
 */
 
 'use strict';
 
-require('/services/js/moz_mobile_message/moz_mobile_message_shim.js');
 require('/services/test/unit/mock_bridge.js');
 require('/services/test/unit/mock_navigatormoz_sms.js');
 require('/views/shared/js/utils.js');
+require('/services/js/bridge_service_mixin.js');
+require('/services/js/moz_mobile_message/moz_mobile_message_shim.js');
 
 var MocksHelperForAttachment = new MocksHelper([
   'bridge',
@@ -19,14 +20,6 @@ var MocksHelperForAttachment = new MocksHelper([
 ]).init();
 
 suite('MozMobileMessageShim >', function() {
-  const EVENTS = ['received', 'sending', 'sent', 'failed', 'deleted',
-                  'readsuccess', 'deliverysuccess'];
-
-  const METHODS = ['getMessage', 'retrieveMMS', 'send', 'sendMMS',
-                   'delete', 'markMessageRead', 'getSegmentInfoForText'];
-
-  const STREAMS = ['getThreads', 'getMessages'];
-
   var serviceStub;
 
   MocksHelperForAttachment.attachTestHelpers();
@@ -50,39 +43,13 @@ suite('MozMobileMessageShim >', function() {
 
   test('bridge service is correctly initialized', function() {
     sinon.assert.calledOnce(bridge.service);
-    sinon.assert.calledWith(bridge.service, 'mozMobileMessageShim');
+    sinon.assert.calledWith(bridge.service, 'moz-mobile-message-shim');
     sinon.assert.calledWith(serviceStub.plugin, streamService);
-    sinon.assert.calledOnce(serviceStub.listen);
-  });
-
-  test('event listener is correctly initialized', function() {
-    EVENTS.forEach((event) => {
-      sinon.assert.calledWith(
-        MockNavigatormozMobileMessage.addEventListener,
-        event,
-        MozMobileMessageShim[Utils.camelCase(`on-${event}`)]
-      );
-    });
-  });
-
-  test('method mapping is correctly initialized', function() {
-    METHODS.forEach((shimMethod) => {
-      sinon.assert.calledWith(
-        serviceStub.method,
-        shimMethod,
-        MozMobileMessageShim[shimMethod]
-      );
-    });
-  });
-
-  test('stream mapping is correctly initialized', function() {
-    STREAMS.forEach((shimStream) => {
-      sinon.assert.calledWith(
-        serviceStub.stream,
-        shimStream,
-        MozMobileMessageShim[shimStream]
-      );
-    });
+    sinon.assert.calledTwice(serviceStub.listen);
+    sinon.assert.calledWith(
+      serviceStub.listen,
+      sinon.match.instanceOf(BroadcastChannel)
+    );
   });
 
   suite('event broadcast', function() {
@@ -143,7 +110,7 @@ suite('MozMobileMessageShim >', function() {
 
     setup(function() {
       this.sinon.spy(MockNavigatormozMobileMessage, 'getMessage');
-      this.sinon.spy(MockNavigatormozMobileMessage, 'retrieveMMS');
+      this.sinon.stub(MockNavigatormozMobileMessage, 'retrieveMMS');
       this.sinon.spy(MockNavigatormozMobileMessage, 'send');
       this.sinon.spy(MockNavigatormozMobileMessage, 'sendMMS');
       this.sinon.spy(MockNavigatormozMobileMessage, 'markMessageRead');
@@ -164,17 +131,39 @@ suite('MozMobileMessageShim >', function() {
       );
     });
 
-    test('retrieveMMS', function() {
-      var args = [1];
+    suite('retrieveMMS', function() {
+      var args;
 
-      assert.equal(
-        MozMobileMessageShim.retrieveMMS(...args),
-        MockNavigatormozMobileMessage.retrieveMMS.firstCall.returnValue
-      );
-      sinon.assert.calledWith(
-        MockNavigatormozMobileMessage.retrieveMMS,
-        ...args
-      );
+      setup(function() {
+        args = [1];
+      });
+
+      test('success', function() {
+        MockNavigatormozMobileMessage.retrieveMMS.returns(Promise.resolve({
+          id: 'fake message'
+        }));
+        MozMobileMessageShim.retrieveMMS(...args).then((result) => {
+          assert.isTrue(result);
+          sinon.assert.calledWith(
+            MockNavigatormozMobileMessage.retrieveMMS,
+            ...args
+          );
+        });
+      });
+
+      test('error', function() {
+        var error = 'fakeError';
+        MockNavigatormozMobileMessage.retrieveMMS.returns(
+          Promise.reject(error)
+        );
+        MozMobileMessageShim.retrieveMMS(...args).catch((err) => {
+          assert.equal(err, error);
+          sinon.assert.calledWith(
+            MockNavigatormozMobileMessage.retrieveMMS,
+            ...args
+          );
+        });
+      });      
     });
 
     test('send', function() {

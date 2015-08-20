@@ -8,6 +8,11 @@ html, body {
   overflow-y: hidden !important;
 }
 
+.shim-host {
+  width: 0;
+  height: 0;
+}
+
 /*
   Override BB. Some CSS tweaks for having a better confirm readability
 */

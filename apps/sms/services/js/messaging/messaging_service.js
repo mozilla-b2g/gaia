@@ -1,5 +1,6 @@
 /* global bridge,
           BridgeServiceMixin,
+          BroadcastChannel,
           Settings,
           SMIL
 */
@@ -12,7 +13,12 @@ if (!('BridgeServiceMixin' in self)) {
 (function(exports) {
 
 const SERVICE_NAME = 'messaging-service';
-const MOBILE_MESSAGE_CLIENT_NAME = 'mozMobileMessageShim';
+const MOBILE_MESSAGE_CLIENT_NAME = 'moz-mobile-message-shim';
+/**
+ * Disable default client timeout from bridge by setting the timeout to false.
+ * @type {number|boolean}
+ */
+const TIMEOUT = false;
 
 const METHODS = Object.freeze([
   'sendSMS', 'sendMMS', 'resendMessage', 'retrieveMMS'
@@ -61,7 +67,14 @@ var MessagingService = {
 
     this.initService();
 
-    this.mozMobileMessageClient = bridge.client(MOBILE_MESSAGE_CLIENT_NAME);
+    // TODO: Will need to give an unique name for BroadcastChannel to classify
+    // the connections between different instances and avoid all the connections
+    // closed because one of the instance is killed.
+    this.mozMobileMessageClient = bridge.client({
+      service: MOBILE_MESSAGE_CLIENT_NAME,
+      endpoint: new BroadcastChannel(MOBILE_MESSAGE_CLIENT_NAME + '-channel'),
+      timeout: TIMEOUT
+    });
   },
 
   /**
@@ -181,5 +194,9 @@ exports.MessagingService = BridgeServiceMixin.mixin(
   SERVICE_NAME,
   { methods: METHODS }
 );
+
+if (!self.document) {
+  MessagingService.init();  
+}
 
 })(self);

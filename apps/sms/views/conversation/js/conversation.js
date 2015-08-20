@@ -13,7 +13,8 @@
          Errors,
          EventDispatcher,
          SelectionHandler,
-         TaskRunner
+         TaskRunner,
+         MessagingClient
 */
 /*exported ConversationView */
 
@@ -2509,26 +2510,20 @@ var ConversationView = {
     // force a number
     var id = +messageDOM.dataset.messageId;
     var iccId = messageDOM.dataset.iccId;
-
-    var request = MessageManager.retrieveMMS(id);
-
     var button = messageDOM.querySelector('button');
 
     this.setMessageStatus(id, 'pending');
     button.setAttribute('data-l10n-id', 'downloading-attachment');
 
-    request.onsuccess = (function retrieveMMSSuccess() {
+    MessagingClient.retrieveMMS(id).then(() => {
       Threads.unregisterMessage(id);
       this.removeMessageDOM(messageDOM);
-    }).bind(this);
-
-    request.onerror = (function retrieveMMSError() {
+    }, (error) => {
       this.setMessageStatus(id, 'error');
       button.setAttribute('data-l10n-id', 'download-attachment');
 
       // Show NonActiveSimCard/Other error dialog while retrieving MMS
-      var errorCode = (request.error && request.error.name) ?
-        request.error.name : null;
+      var errorCode = error && error.name || null;
 
       if (!navigator.mozSettings) {
         console.error('Settings unavailable');
@@ -2564,7 +2559,7 @@ var ConversationView = {
           }.bind(this)
         });
       }
-    }).bind(this);
+    });
   },
 
   resendMessage: function conv_resendMessage(id) {

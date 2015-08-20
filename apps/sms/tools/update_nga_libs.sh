@@ -10,13 +10,11 @@
 # variables
 bower_path="bower_components"
 
-threads_repo="gaia-components/threads#master"
-threads_index="$bower_path/threads/index.js"
-threads_plugins="$bower_path/threads/lib/plugins"
-
-threads_alias="bridge"
-threads_destination="lib/$threads_alias"
-threads_index_destination="$threads_destination/$threads_alias.js"
+bridge_repo="gaia-components/bridge#master"
+bridge_plugins="$bower_path/bridge/src/plugins"
+bridge_destination="lib/bridge"
+bridge_index="$bower_path/bridge/bridge.js"
+bridge_index_destination="$bridge_destination/bridge.js"
 
 sww_repo="gaia-components/serviceworkerware#master"
 sww_dist="$bower_path/serviceworkerware/dist/sww.js"
@@ -30,12 +28,12 @@ if [ ! -x "`which bower`" -o ! -x "`which browserify`" ] ; then
   exit 1
 fi
 
-bower install $threads_repo $sww_repo
+bower install $bridge_repo $sww_repo
 
 # Threads lib preparing.
-[ -d "$threads_destination" ] || mkdir "$threads_destination"
-browserify "$threads_index" --standalone $threads_alias > "$threads_index_destination"
-cp -r "$threads_plugins" "$threads_destination"
+[ -d "$bridge_destination" ] || mkdir "$bridge_destination"
+cp "$bridge_index" "$bridge_index_destination" 
+cp -r "$bridge_plugins" "$bridge_destination"
 
 # ServiceWorkerWare lib preparing.
 cp "$sww_dist" "$sww_path"

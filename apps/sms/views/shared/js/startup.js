@@ -3,10 +3,20 @@
 
 'use strict';
 
-/*global ActivityHandler, ConversationView, InboxView, MessageManager,
-         Settings, LazyLoader, TimeHeaders, Information, SilentSms,
-         App, Navigation, LocalizationHelper,
-         InterInstanceEventDispatcher
+/*global ActivityHandler,
+         App,
+         ConversationView,
+         InboxView,
+         Information,
+         InterInstanceEventDispatcher,
+         LazyLoader,
+         LocalizationHelper,
+         MessageManager,
+         MessagingClient,
+         Navigation,
+         Settings,
+         SilentSms,
+         TimeHeaders
 */
 
 (function(exports) {
@@ -60,7 +70,8 @@ var Startup = exports.Startup = {
     '/lib/bridge/bridge.js',
     '/services/js/bridge_service_mixin.js',
     '/services/js/activity/activity_shim.js',
-    '/services/js/activity/activity_client.js'
+    '/services/js/activity/activity_client.js',
+    '/services/js/messaging/messaging_client.js'
   ],
 
   _lazyLoadInit: function() {
@@ -76,6 +87,7 @@ var Startup = exports.Startup = {
       // Init UI Managers
       TimeHeaders.init();
       ConversationView.init();
+      MessagingClient.init();
       Information.initDefaultViews();
 
       Navigation.setReady();
