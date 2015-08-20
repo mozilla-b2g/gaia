@@ -91,14 +91,8 @@
 
     return { negotiateLanguages, getDirection };
   });
-  modules.set('bindings/html/dom', function () {
+  modules.set('bindings/html/overlay', function () {
     const reOverlay = /<|&#?\w+;/;
-    const reHtml = /[&<>]/g;
-    const htmlEntities = {
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;'
-    };
     const allowed = {
       elements: ['a', 'em', 'strong', 'small', 's', 'cite', 'q', 'dfn', 'abbr', 'data', 'time', 'code', 'var', 'samp', 'kbd', 'sub', 'sup', 'i', 'b', 'u', 'mark', 'ruby', 'rt', 'rp', 'bdi', 'bdo', 'span', 'br', 'wbr'],
       attributes: {
@@ -116,103 +110,6 @@
         th: ['abbr']
       }
     };
-
-    function setAttributes(element, id, args) {
-      element.setAttribute('data-l10n-id', id);
-
-      if (args) {
-        element.setAttribute('data-l10n-args', JSON.stringify(args));
-      }
-    }
-
-    function getAttributes(element) {
-      return {
-        id: element.getAttribute('data-l10n-id'),
-        args: JSON.parse(element.getAttribute('data-l10n-args'))
-      };
-    }
-
-    function getTranslatables(element) {
-      const nodes = [];
-
-      if (typeof element.hasAttribute === 'function' && element.hasAttribute('data-l10n-id')) {
-        nodes.push(element);
-      }
-
-      return nodes.concat.apply(nodes, element.querySelectorAll('*[data-l10n-id]'));
-    }
-
-    function translateMutations(view, langs, mutations) {
-      const targets = new Set();
-
-      for (let mutation of mutations) {
-        switch (mutation.type) {
-          case 'attributes':
-            targets.add(mutation.target);
-            break;
-
-          case 'childList':
-            for (let addedNode of mutation.addedNodes) {
-              if (addedNode.nodeType === addedNode.ELEMENT_NODE) {
-                targets.add(addedNode);
-              }
-            }
-
-            break;
-        }
-      }
-
-      if (targets.size === 0) {
-        return;
-      }
-
-      const elements = [];
-      targets.forEach(target => target.childElementCount ? elements.push(...getTranslatables(target)) : elements.push(target));
-      Promise.all(elements.map(elem => getElementTranslation(view, langs, elem))).then(translations => applyTranslations(view, elements, translations));
-    }
-
-    function translateFragment(view, langs, frag) {
-      const elements = getTranslatables(frag);
-      return Promise.all(elements.map(elem => getElementTranslation(view, langs, elem))).then(translations => applyTranslations(view, elements, translations));
-    }
-
-    function camelCaseToDashed(string) {
-      if (string === 'ariaValueText') {
-        return 'aria-valuetext';
-      }
-
-      return string.replace(/[A-Z]/g, function (match) {
-        return '-' + match.toLowerCase();
-      }).replace(/^-/, '');
-    }
-
-    function getElementTranslation(view, langs, elem) {
-      const id = elem.getAttribute('data-l10n-id');
-
-      if (!id) {
-        return false;
-      }
-
-      const args = elem.getAttribute('data-l10n-args');
-
-      if (!args) {
-        return view.ctx.resolve(langs, id);
-      }
-
-      return view.ctx.resolve(langs, id, JSON.parse(args.replace(reHtml, match => htmlEntities[match])));
-    }
-
-    function translateElement(view, langs, elem) {
-      return getElementTranslation(view, langs, elem).then(translation => {
-        if (!translation) {
-          return false;
-        }
-
-        view.disconnect();
-        applyTranslation(view, elem, translation);
-        view.observe();
-      });
-    }
 
     function applyTranslations(view, elements, translations) {
       view.disconnect();
@@ -356,6 +253,119 @@
       return index;
     }
 
+    function camelCaseToDashed(string) {
+      if (string === 'ariaValueText') {
+        return 'aria-valuetext';
+      }
+
+      return string.replace(/[A-Z]/g, function (match) {
+        return '-' + match.toLowerCase();
+      }).replace(/^-/, '');
+    }
+
+    return { applyTranslations, applyTranslation };
+  });
+  modules.set('bindings/html/dom', function () {
+    const { applyTranslation, applyTranslations } = getModule('bindings/html/overlay');
+    const reHtml = /[&<>]/g;
+    const htmlEntities = {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;'
+    };
+
+    function setAttributes(element, id, args) {
+      element.setAttribute('data-l10n-id', id);
+
+      if (args) {
+        element.setAttribute('data-l10n-args', JSON.stringify(args));
+      }
+    }
+
+    function getAttributes(element) {
+      return {
+        id: element.getAttribute('data-l10n-id'),
+        args: JSON.parse(element.getAttribute('data-l10n-args'))
+      };
+    }
+
+    function getTranslatables(element) {
+      const nodes = Array.from(element.querySelectorAll('[data-l10n-id]'));
+
+      if (typeof element.hasAttribute === 'function' && element.hasAttribute('data-l10n-id')) {
+        nodes.push(element);
+      }
+
+      return nodes;
+    }
+
+    function translateMutations(view, langs, mutations) {
+      const targets = new Set();
+
+      for (let mutation of mutations) {
+        switch (mutation.type) {
+          case 'attributes':
+            targets.add(mutation.target);
+            break;
+
+          case 'childList':
+            for (let addedNode of mutation.addedNodes) {
+              if (addedNode.nodeType === addedNode.ELEMENT_NODE) {
+                if (addedNode.childElementCount) {
+                  getTranslatables(addedNode).forEach(targets.add.bind(targets));
+                } else {
+                  targets.add(addedNode);
+                }
+              }
+            }
+
+            break;
+        }
+      }
+
+      if (targets.size === 0) {
+        return;
+      }
+
+      translateElements(view, langs, Array.from(targets));
+    }
+
+    function translateFragment(view, langs, frag) {
+      return translateElements(view, langs, getTranslatables(frag));
+    }
+
+    function getElementTranslation(view, langs, elem) {
+      const id = elem.getAttribute('data-l10n-id');
+
+      if (!id) {
+        return false;
+      }
+
+      const args = elem.getAttribute('data-l10n-args');
+
+      if (!args) {
+        return view.ctx.resolve(langs, id);
+      }
+
+      return view.ctx.resolve(langs, id, JSON.parse(args.replace(reHtml, match => htmlEntities[match])));
+    }
+
+    function translateElements(view, langs, elements) {
+      return Promise.all(elements.map(elem => getElementTranslation(view, langs, elem))).then(translations => applyTranslations(view, elements, translations));
+    }
+
+    function translateElement(view, langs, elem) {
+      return getElementTranslation(view, langs, elem).then(translation => {
+        if (!translation) {
+          return false;
+        }
+
+        view.disconnect();
+        applyTranslation(view, elem, translation);
+        view.observe();
+      });
+    }
+
     return { setAttributes, getAttributes, translateMutations, translateFragment, translateElement };
   });
   modules.set('bindings/html/head', function () {
@@ -472,7 +482,7 @@
     View.prototype.getAttributes = getAttributes;
 
     function onMutations(mutations) {
-      return this.service.languages.then(langs => translateMutations(this, langs, mutations));
+      return this.service.languages.then(langs => this.ctx.fetch(langs)).then(langs => translateMutations(this, langs, mutations));
     }
 
     function translate(langs) {
