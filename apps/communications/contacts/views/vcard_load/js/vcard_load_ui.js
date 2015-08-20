@@ -56,7 +56,7 @@
 
       if (Array.isArray(contact.photo) && contact.photo[0] instanceof Blob) {
         var picture = clone.querySelector('aside span');
-        picture.style.background = 'url(' +
+        picture.style.backgroundImage = 'url(' +
                             window.URL.createObjectURL(contact.photo[0]) + ')';
       }
 
