@@ -1,5 +1,5 @@
 {
-  "name": "Homescreen",
+  "name": "Default Home Screen",
   "description": "Gaia Homescreen",
   "launch_path": "/index.html",
   "type": "certified",
@@ -24,7 +24,7 @@
       "description": "Gaia الشاشة الرئيسية"
     },
     "en-US": {
-      "name": "Homescreen",
+      "name": "Default Home Screen",
       "description": "Gaia Homescreen"
     },
     "fr": {
