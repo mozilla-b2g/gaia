@@ -61,7 +61,7 @@ class TestClockCreateNewAlarm(GaiaTestCase):
         self.assertEqual(len(alarms), 1)
         self.assertEqual(alarms[0].label, alarm_label_text)
 
-        alarm_time = alarm_view.alarm_items[0].time()
+        alarm_time = alarm_view.alarm_items[0].time
 
         # tap to Edit alarm
         edit_alarm = alarms[0].tap()

@@ -18,14 +18,15 @@ class TestClockRunStopWatch(GaiaTestCase):
 
         stopwatch_view = self.clock.switch_view("stopwatch")
 
-        time.sleep(0.2)
         self.assertEqual(stopwatch_view.current_time, '00:00.00')
 
         stopwatch_view.tap_start()
+        time.sleep(0.2)
 
         self.assertNotEqual(stopwatch_view.current_time, '00:00.00')
 
         stopwatch_view.tap_lap()
+        time.sleep(0.2)
 
         self.assertEqual(len(stopwatch_view.lap_items), 2)
         self.assertNotEqual(stopwatch_view.lap_items[0].time, '00:00.00')

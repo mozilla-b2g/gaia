@@ -57,6 +57,7 @@ class Alarm(PageRegion):
         _enable_button_locator = (By.CSS_SELECTOR, '.alarmList.alarmEnable')
         _time_locator = (By.CSS_SELECTOR, '.time')
 
+        @property
         def time(self):
             return self.root_element.find_element(*self._time_locator).text
 
