@@ -52,8 +52,10 @@ marionette('Contacts > Activities', function() {
         });
       }, [fs.readFileSync(__dirname + '/data/vcard_4.vcf', 'utf8')]);
 
+      var iframe = 'iframe[src="' + Contacts.URL +
+        '/contacts/views/vcard_load/vcard_load.html"]';
       client.switchToFrame();
-      client.apps.switchToApp(Contacts.URL, 'contacts');
+      client.switchToFrame(client.findElement(iframe), {'focus': true});
       client.helper.waitForElement(selectors.multipleSelectSave);
 
       assert.ok(getListItems().length === 1); // vcard has one element
@@ -71,8 +73,10 @@ marionette('Contacts > Activities', function() {
         });
       }, [fs.readFileSync(__dirname + '/data/vcard_21_multiple.vcf', 'utf8')]);
 
+      var iframe = 'iframe[src="' + Contacts.URL +
+        '/contacts/views/vcard_load/vcard_load.html"]';
       client.switchToFrame();
-      client.apps.switchToApp(Contacts.URL, 'contacts');
+      client.switchToFrame(client.findElement(iframe), {'focus': true});
       client.helper.waitForElement(selectors.multipleSelectSave);
 
       assert.ok(getListItems().length === 2); // vcard has one element

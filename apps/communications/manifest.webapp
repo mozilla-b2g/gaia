@@ -126,7 +126,7 @@
         "type": ["text/vcard", "text/x-vcard", "text/directory"]
       },
       "disposition": "inline",
-      "href": "/contacts/index.html?open",
+      "href": "/contacts/views/vcard_load/vcard_load.html",
       "returnValue": true
     }
     ],
