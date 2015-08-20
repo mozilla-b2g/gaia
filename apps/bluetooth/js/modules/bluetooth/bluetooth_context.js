@@ -47,11 +47,15 @@ define(function(require) {
     /**
      * State of Bluetooth.
      *
+     * Set the default state as undefined in bug 1191104 Since Bluetooth
+     * adapter API need sometime to respond for true Bluetooth state
+     *
      * @readonly
+     * @access private
      * @memberOf BluetoothContext
      * @type {Boolean}
      */
-    enabled: false,
+    enabled: undefined,
 
     /**
      * The address of the device's adapter on the bluetooth micro-network.
