@@ -13,7 +13,8 @@
     "settings": { "access": "readwrite" },
     "device-storage:music": { "access": "readwrite" },
     "audio-channel-ringer": {},
-    "desktop-notification": {}
+    "desktop-notification": {},
+    "moz-extremely-unstable-and-will-change-webcomponents":{}
   },
   "activities": {
     "pick": {

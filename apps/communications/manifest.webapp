@@ -84,7 +84,8 @@
     "device-storage:sdcard": { "access": "readcreate" },
     "phonenumberservice": {},
     "nfc-share":{},
-    "nfc":{}
+    "nfc":{},
+    "moz-extremely-unstable-and-will-change-webcomponents":{}
   },
   "orientation": "default",
   "activities": {

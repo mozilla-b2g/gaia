@@ -63,6 +63,7 @@
     "bluetooth":{},
     "device-storage:sdcard":{ "access": "readonly" },
     "settings":{ "access": "readwrite" },
-    "desktop-notification":{}
+    "desktop-notification":{},
+    "moz-extremely-unstable-and-will-change-webcomponents":{}
   }
 }

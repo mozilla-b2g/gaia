@@ -35,7 +35,8 @@
     "downloads":{},
     "nfc":{},
     "sms":{},
-    "firefox-accounts": {}
+    "firefox-accounts": {},
+    "moz-extremely-unstable-and-will-change-webcomponents":{}
   },
   "activities": {
     "configure": {
