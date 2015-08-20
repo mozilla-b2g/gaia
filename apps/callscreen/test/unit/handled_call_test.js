@@ -1,4 +1,4 @@
-/* globals AudioCompetingHelper, ConferenceGroupHandler, FontSizeManager,
+/* globals ConferenceGroupHandler, FontSizeManager,
            HandledCall, l10nAssert, MockCall, MockCallScreen, MockCallsHandler,
            MockContactPhotoHelper, MockContacts, MockFontSizeUtils, MockL10n,
            MockNavigatorMozIccManager, MockNavigatorSettings, MocksHelper,
@@ -25,7 +25,6 @@ require('/shared/test/unit/mocks/mock_voicemail.js');
 require('/test/unit/mock_call_screen.js');
 require('/test/unit/mock_conference_group_handler.js');
 
-require('/js/audio_competing_helper.js');
 require('/js/handled_call.js');
 
 var mocksHelperForHandledCall = new MocksHelper([
@@ -130,7 +129,6 @@ suite('dialer/handled_call', function() {
     subject = new HandledCall(mockCall);
     MockVoicemail.mResolvePromise(false);
 
-    AudioCompetingHelper.init('test');
     document.body.appendChild(subject.node);
   });
 
@@ -309,7 +307,6 @@ suite('dialer/handled_call', function() {
 
   suite('on connect', function() {
     setup(function() {
-      this.sinon.spy(AudioCompetingHelper, 'compete');
       this.sinon.spy(MockCallsHandler, 'updatePlaceNewCall');
       this.sinon.spy(MockCallsHandler, 'updateMergeAndOnHoldStatus');
       this.sinon.spy(MockCallsHandler, 'updateMuteAndSpeakerStatus');
@@ -377,12 +374,6 @@ suite('dialer/handled_call', function() {
 
     test('the mute and speaker buttons\' status is updated', function() {
       sinon.assert.calledOnce(MockCallsHandler.updateMuteAndSpeakerStatus);
-    });
-
-    test('AudioCompetingHelper compete gets called when connected', function() {
-      sinon.assert.notCalled(AudioCompetingHelper.compete);
-      this.sinon.clock.tick(1000);
-      sinon.assert.calledOnce(AudioCompetingHelper.compete);
     });
   });
 
@@ -487,14 +478,6 @@ suite('dialer/handled_call', function() {
         this.sinon.spy(MockCallsHandler, 'updateMuteAndSpeakerStatus');
         mockCall._disconnect();
         sinon.assert.calledOnce(MockCallsHandler.updateMuteAndSpeakerStatus);
-      });
-
-      test('AudioCompetingHelper leaveCompetition gets called on disconnected',
-        function() {
-          this.sinon.spy(AudioCompetingHelper, 'leaveCompetition');
-          mockCall._disconnect();
-
-          sinon.assert.called(AudioCompetingHelper.leaveCompetition);
       });
     });
 
