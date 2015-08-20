@@ -32,6 +32,7 @@ var service = bridge.service('music-service')
   .method('getArtist', getArtist)
 
   .method('getSongs', getSongs)
+  .method('getSongCount', getSongCount)
   .method('getSong', getSong)
   .method('getSongFile', getSongFile)
   .method('getSongArtwork', getSongArtwork)
@@ -186,9 +187,7 @@ function setShuffleSetting(shuffle) {
 
 function getAlbums() {
   return new Promise((resolve) => {
-    Database.enumerable.then(() => {
-      Database.enumerateAll('metadata.album', null, 'nextunique', albums => resolve(albums));
-    });
+    Database.enumerateAll('metadata.album', null, 'nextunique', albums => resolve(albums));
   });
 }
 
@@ -204,9 +203,7 @@ function getAlbum(filePath) {
 
 function getArtists() {
   return new Promise((resolve) => {
-    Database.enumerable.then(() => {
-      Database.enumerateAll('metadata.artist', null, 'nextunique', artists => resolve(artists));
-    });
+    Database.enumerateAll('metadata.artist', null, 'nextunique', artists => resolve(artists));
   });
 }
 
@@ -222,21 +219,23 @@ function getArtist(filePath) {
 
 function getSongs() {
   return new Promise((resolve) => {
-    Database.enumerable.then(() => {
-      Database.enumerateAll('metadata.title', null, 'next', songs => resolve(songs));
-    });
+    Database.enumerateAll('metadata.title', null, 'next', songs => resolve(songs));
+  });
+}
+
+function getSongCount() {
+  return new Promise((resolve) => {
+    Database.count('metadata.title', null, count => resolve(count));
   });
 }
 
 function getSong(filePath) {
-  return Database.ready.then(() => {
-    return Database.getFileInfo(filePath);
-  });
+  return Database.getFileInfo(filePath);
 }
 
 function getSongFile(filePath) {
-  return Database.ready.then(() => {
-    return Database.getFile(filePath);
+  return getSong(filePath).then((song) => {
+    return Database.getFile(song);
   });
 }
 

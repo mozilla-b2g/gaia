@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="/css/app.css">
   <script src="/components/gaia-header/dist/gaia-header.js"></script>
   <script src="/components/gaia-toolbar/gaia-toolbar.js"></script>
+  <script src="/elements/music-overlay.js"></script>
   <script src="/elements/music-tab-bar.js"></script>
   <script src="/elements/music-view-stack.js"></script>
 </head>
@@ -30,6 +31,26 @@
     <button data-view-id="albums" data-icon="album"></button>
     <button data-view-id="songs" data-icon="songs"></button>
   </music-tab-bar>
+
+  <music-overlay id="empty-overlay"
+      heading="Add songs to get started"
+      message="Load songs on to the memory card." hidden>
+  </music-overlay>
+
+  <music-overlay id="no-card-overlay"
+      heading="No memory card found"
+      message="Insert a memory card to listen to songs." hidden>
+  </music-overlay>
+
+  <music-overlay id="plugged-in-overlay"
+      heading="Music can not be used while phone is plugged in"
+      message="Unplug the phone to play music." hidden>
+  </music-overlay>
+
+  <music-overlay id="upgrade-overlay"
+      heading="Database Upgrade"
+      message="Please wait while Music updates its database." hidden>
+  </music-overlay>
 
   <iframe id="endpoint" src="/endpoint.html" hidden></iframe>
 
