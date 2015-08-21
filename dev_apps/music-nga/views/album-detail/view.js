@@ -1,4 +1,4 @@
-/* global threads, View */
+/* global bridge, View */
 'use strict';
 
 var debug = 1 ? (...args) => console.log('[AlbumDetailView]', ...args) : () => {};
@@ -31,13 +31,13 @@ var AlbumDetailView = View.extend(function AlbumDetailView() {
   this.list.addEventListener('click', (evt) => {
     var link = evt.target.closest('a[data-file-path]');
     if (link) {
-      this.play(link.dataset.filePath);
+      this.queueAlbum(link.dataset.filePath);
     }
   });
 
   View.preserveListScrollPosition(this.list);
 
-  this.client = threads.client('music-service', window.parent);
+  this.client = bridge.client({ service: 'music-service', endpoint: window.parent });
   this.client.on('databaseChange', () => this.update());
 
   this.update();
@@ -69,8 +69,8 @@ AlbumDetailView.prototype.getAlbum = function() {
     .then(response => response.json());
 };
 
-AlbumDetailView.prototype.play = function(filePath) {
-  fetch('/api/audio/play' + filePath);
+AlbumDetailView.prototype.queueAlbum = function(filePath) {
+  fetch('/api/queue/album' + filePath);
 };
 
 window.view = new AlbumDetailView();

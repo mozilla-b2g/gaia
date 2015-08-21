@@ -1,4 +1,4 @@
-/* global threads, View */
+/* global bridge, View */
 'use strict';
 
 var debug = 1 ? (...args) => console.log('[SongsView]', ...args) : () => {};
@@ -39,13 +39,13 @@ var SongsView = View.extend(function SongsView() {
   this.list.addEventListener('click', (evt) => {
     var link = evt.target.closest('a[data-file-path]');
     if (link) {
-      this.play(link.dataset.filePath);
+      this.queueSong(link.dataset.filePath);
     }
   });
 
   View.preserveListScrollPosition(this.list);
 
-  this.client = threads.client('music-service', window.parent);
+  this.client = bridge.client({ service: 'music-service', endpoint: window.parent });
   this.client.on('databaseChange', () => this.update());
 
   this.update();
@@ -83,8 +83,8 @@ SongsView.prototype.getSongs = function() {
     });
 };
 
-SongsView.prototype.play = function(filePath) {
-  fetch('/api/audio/play' + filePath);
+SongsView.prototype.queueSong = function(filePath) {
+  fetch('/api/queue/song' + filePath);
 };
 
 SongsView.prototype.setCache = function(items) {

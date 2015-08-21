@@ -1,8 +1,8 @@
 'use strict';
 
-var threads = require('components/threads/threads.js');
-require('components/threads/service.js');
-require('components/threads/client.js');
+var bridge = require('components/bridge/bridge.js');
+require('components/bridge/service.js');
+require('components/bridge/client.js');
 
 suite('Audio Music Service test', function() {
 
@@ -22,13 +22,15 @@ suite('Audio Music Service test', function() {
         assert.ok(false, 'Error ' + error);
       });
 
-    var service = threads.service('*')
+    var service = bridge.service('*')
         .on('message', message => message.forward(
           document.getElementById('endpoint')))
         .listen();
 
-    var client = threads.client('music-service',
-                                document.getElementById('endpoint'));
+    var client = bridge.client({
+      service: 'music-service',
+      endpoint: document.getElementById('endpoint')
+    });
     client.connect();
   });
 

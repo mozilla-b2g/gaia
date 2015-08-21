@@ -1,7 +1,7 @@
 {
-  "name": "threads",
+  "name": "bridge",
   "version": "1.0.1",
-  "main": "threads.js",
+  "main": "bridge.js",
   "authors": [
     "Wilson Page <wilsonpage@me.com>"
   ],

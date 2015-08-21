@@ -20,10 +20,20 @@ if (!window.parent.SERVICE_WORKERS) {
       '/api/artwork/thumbnail*': 'getSongThumbnail',
 
       '/api/audio/play': 'play',
-      '/api/audio/play*': 'play',
       '/api/audio/pause': 'pause',
       '/api/audio/seek/*': 'seek',
       '/api/audio/status': 'getPlaybackStatus',
+
+      '/api/queue/current': 'currentSong',
+      '/api/queue/previous': 'previousSong',
+      '/api/queue/next': 'nextSong',
+      '/api/queue/album*': 'queueAlbum',
+      '/api/queue/artist*': 'queueArtist',
+      '/api/queue/song*': 'queueSong',
+      '/api/queue/repeat': 'getRepeatSetting',
+      '/api/queue/repeat/*': 'setRepeatSetting',
+      '/api/queue/shuffle': 'getShuffleSetting',
+      '/api/queue/shuffle/*': 'setShuffleSetting',
 
       '/api/songs/list': 'getSongs',
       '/api/songs/info*': 'getSong',

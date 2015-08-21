@@ -1,35 +1,35 @@
 {
-  "name": "threads",
+  "name": "bridge",
   "version": "1.0.1",
-  "homepage": "https://github.com/gaia-components/threads",
+  "homepage": "https://github.com/gaia-components/bridge",
   "license": "MIT",
   "main": "index.js",
   "scripts": {
     "test": "./node_modules/karma/bin/karma start test/karma.conf.js --single-run",
     "test-dev": "./node_modules/karma/bin/karma start test/karma.conf.js",
 
-    "docs": "rm -rf docs/threads; babel src --out-dir src-es5; jsdoc -c docs/jsdoc.json; rm -rf src-es5",
+    "docs": "rm -rf docs/bridge; babel src --out-dir src-es5; jsdoc -c docs/jsdoc.json; rm -rf src-es5",
 
-    "bundle": "browserify build/threads.js -o threads.js; npm run bundle-client; npm run bundle-service",
-    "bundle-client": "browserify build/client -s threads -o client.js",
-    "bundle-service": "browserify build/service -s threads -o service.js",
+    "bundle": "browserify build/bridge.js -o bridge.js; npm run bundle-client; npm run bundle-service",
+    "bundle-client": "browserify build/client -s bridge -o client.js",
+    "bundle-service": "browserify build/service -s bridge -o service.js",
 
-    "compress": "ccjs threads.js --language_in=ECMASCRIPT6 --language_out=ES5 --compilation_level=ADVANCED_OPTIMIZATIONS > threads.min.js; npm run compress-client; npm run compress-service",
+    "compress": "ccjs bridge.js --language_in=ECMASCRIPT6 --language_out=ES5 --compilation_level=ADVANCED_OPTIMIZATIONS > bridge.min.js; npm run compress-client; npm run compress-service",
     "compress-client": "ccjs client.js --language_in=ECMASCRIPT6 --compilation_level=ADVANCED_OPTIMIZATIONS --language_out=ES5 > client.min.js",
     "compress-service": "ccjs service.js --compilation_level=ADVANCED_OPTIMIZATIONS --language_in=ECMASCRIPT6 --language_out=ES5 > service.min.js",
 
     "build": "npm run bundle; npm run compress",
-    "watch": "watchify build/threads.js -o threads.js",
+    "watch": "watchify build/bridge.js -o bridge.js",
     "watch-client": "watchify src/client.js -s client -o client.js",
     "watch-service": "watchify src/service.js -s service -o service.js",
     "gh-pages": "git checkout gh-pages; git reset master --hard; git checkout -"
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/gaia-components/threads.git"
+    "url": "git://github.com/gaia-components/bridge.git"
   },
   "bugs": {
-    "url": "https://github.com/gaia-components/threads/issues"
+    "url": "https://github.com/gaia-components/bridge/issues"
   },
   "dependencies": {
     "browserify": "^10.1.0",

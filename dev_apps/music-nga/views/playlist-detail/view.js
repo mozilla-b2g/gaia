@@ -1,4 +1,4 @@
-/* global threads, View */
+/* global bridge, View */
 'use strict';
 
 var debug = 1 ? (...args) => console.log('[PlaylistDetailView]', ...args) : () => {};
@@ -8,7 +8,7 @@ var PlaylistDetailView = View.extend(function PlaylistDetailView() {
 
   this.content = document.getElementById('content');
 
-  this.client = threads.client('music-service', window.parent);
+  this.client = bridge.client({ service: 'music-service', endpoint: window.parent });
   this.client.on('databaseChange', () => this.update());
 
   this.update();

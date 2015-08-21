@@ -38,7 +38,7 @@ var debug = 0 ? function(arg1, ...args) {
  * @example
  *
  * var endpoint = document.querySelector('iframe');
- * var client = threads.client('my-service', endpoint);
+ * var client = bridge.client('my-service', endpoint);
  *
  * @constructor
  * @param {String} service The service name to connect to
@@ -48,12 +48,12 @@ var debug = 0 ? function(arg1, ...args) {
  * @public
  */
 function Client(service, endpoint, timeout) {
-  if (!(this instanceof Client)) return new Client(service, endpoint);
+  if (!(this instanceof Client)) return new Client(service, endpoint, timeout);
 
   // Parameters can be passed as single object
   if (typeof service == 'object') {
-    timeout = service.timeout;
     endpoint = service.endpoint;
+    timeout = service.timeout;
     service = service.service;
   }
 
@@ -250,12 +250,11 @@ Client.prototype = {
 
     var msg = message(type)
       .set('port', this.port)
+      .set('timeout', this.timeout)
       .on('response', () => this.pending.delete(msg))
       .on('cancel', () => this.pending.delete(msg));
 
-    if (this.timeout) msg.set('timeout', this.timeout);
     this.pending.add(msg);
-
     return msg;
   },
 

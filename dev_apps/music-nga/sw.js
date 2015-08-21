@@ -15,6 +15,7 @@ var artistsService = new ArtistsService(worker);
 var artworkService = new ArtworkService(worker);
 var audioService = new AudioService(worker);
 var playlistService = new PlaylistService(worker);
+var queueService = new QueueService(worker);
 var songsService = new SongsService(worker);
 
 worker.use({
