@@ -34,6 +34,7 @@ class Settings(Base):
     _usb_storage_switch_locator = (By.CSS_SELECTOR, ".pack-split.usb-item .pack-switch")
     _usb_storage_checkbox_locator = (By.CSS_SELECTOR, ".usb-switch")
     _usb_storage_confirm_button_locator = (By.CSS_SELECTOR, "button.ums-confirm-option")
+    _usb_storage_cancel_button_locator = (By.CSS_SELECTOR, "button.ums-cancel-option")
     _gps_enabled_locator = (By.XPATH, "//input[@name='geolocation.enabled']")
     _gps_switch_locator = (By.XPATH, "//input[@name='geolocation.enabled']/..")
 
@@ -120,6 +121,13 @@ class Settings(Base):
         element = Wait(self.marionette).until(
             expected.element_present(
                 *self._usb_storage_confirm_button_locator))
+        Wait(self.marionette).until(expected.element_displayed(element))
+        element.tap()
+
+    def cancel_usb_storage(self):
+        element = Wait(self.marionette).until(
+            expected.element_present(
+                *self._usb_storage_cancel_button_locator))
         Wait(self.marionette).until(expected.element_displayed(element))
         element.tap()
 
