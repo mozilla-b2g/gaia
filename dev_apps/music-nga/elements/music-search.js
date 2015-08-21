@@ -166,7 +166,7 @@ proto.createdCallback = function() {
 proto.scrollOutOfView = function() {
   window.requestAnimationFrame(() => {
     if (this.nextElementSibling) {
-      this.nextElementSibling.scrollIntoView();
+      window.scrollTo(0, this.nextElementSibling.offsetTop);
     }
   });
 };
