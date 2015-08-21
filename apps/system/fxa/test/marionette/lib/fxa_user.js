@@ -1,7 +1,6 @@
 'use strict';
 
-var fs = require('fs'),
-    config = JSON.parse(fs.readFileSync(__dirname + '/config.json'));
+var config = require('./config.json');
 
 /**
  * FxA user handler for email, password & string generations
@@ -16,7 +15,7 @@ FxAUser.prototype = {
     var rand = '';
     for (var i = 0; i < len; i++) {
       var randomPoz = Math.floor(Math.random() * charSet.length);
-      rand += charSet.substring(randomPoz,randomPoz+1);
+      rand += charSet.substring(randomPoz, randomPoz + 1);
     }
     return rand;
   },

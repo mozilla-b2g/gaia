@@ -104,12 +104,14 @@ FxA.prototype = {
         this.client.helper
             .waitForElement(FxA.Selectors.emailInput)
             .sendKeys(inputString);
+        this.client.helper.wait(200);
     },
     enterPasswordExisting: function () {
         var inputString = this.fxaUser.password(config.USER_EXISTING);
         this.client.helper
             .waitForElement(FxA.Selectors.pwInput)
             .sendKeys(inputString);
+        this.client.helper.wait(200);
     },
     onClick:  function(searchSelector) {
         var element = this.client.findElement(searchSelector);
