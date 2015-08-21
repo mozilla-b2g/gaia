@@ -562,6 +562,10 @@ const SETTINGS_VERSION = 0;
         this.bottombar.classList.remove('active');
         this.edit.classList.remove('active');
         this.uninstall.classList.remove('active');
+        if (this.autoScrollTimeout !== null) {
+          clearTimeout(this.autoScrollTimeout);
+          this.autoScrollTimeout = null;
+        }
         break;
 
       // Handle app uninstallation
@@ -576,6 +580,7 @@ const SETTINGS_VERSION = 0;
             var y = e.detail.clientY + this.scrollable.scrollTop;
             if (x < rect.left || y < rect.top ||
                 x >= rect.right || y >= rect.bottom) {
+              e.preventDefault();
               this.icons.reorderChild(e.detail.target, null,
                                       this.storeAppOrder.bind(this));
             }
@@ -589,6 +594,7 @@ const SETTINGS_VERSION = 0;
           e.preventDefault();
           navigator.mozApps.mgmt.uninstall(icon.app);
         } else if (icon.bookmark) {
+          e.preventDefault();
           if (e.detail.clientX >= window.innerWidth / 2) {
             new MozActivity({
               name: 'save-bookmark',
