@@ -143,7 +143,7 @@ suite('system/sound manager', function() {
       });
 
       test('audio channel changed', function() {
-        window.dispatchEvent(new CustomEvent('audiochannelchangedasactive', {
+        window.dispatchEvent(new CustomEvent('audiochannelchanged', {
           detail: {
             channel: 'alarm'
           }
@@ -444,7 +444,7 @@ suite('system/sound manager', function() {
         soundManager.currentVolume.content = 15;
         sendChromeEvent({'type': 'headphones-status-changed',
                          'state': 'on' });
-        window.dispatchEvent(new CustomEvent('audiochannelchangedasactive',{
+        window.dispatchEvent(new CustomEvent('audiochannelchanged',{
           detail: {
             channel: 'content'
           }
