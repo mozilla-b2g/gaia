@@ -130,7 +130,8 @@ class SettingsForm(Base):
         Wait(self.marionette).until(expected.element_displayed(export_to_sim))
         export_to_sim.tap()
         select_contacts = self.marionette.find_element(*self._select_contacts_locator)
-        Wait(self.marionette).until(lambda m: select_contacts.location['y'] == 0)
+        Wait(self.marionette).until(
+            lambda m: select_contacts.rect['y'] == 0 and select_contacts.is_displayed())
 
     def tap_done(self):
         close = self.marionette.find_element(*self._settings_close_button_locator)
