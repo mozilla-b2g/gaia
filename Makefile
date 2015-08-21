@@ -475,14 +475,14 @@ endif
 # Test agent setup
 TEST_COMMON=dev_apps/test-agent/common
 ifeq ($(strip $(NODEJS)),)
-  NODEJS := `which node`
+  NODEJS := $(shell which node)
 endif
 ifeq ($(strip $(NODEJS)),)
-  NODEJS := `which nodejs`
+  NODEJS := $(shell which nodejs)
 endif
 
 ifeq ($(strip $(NPM)),)
-  NPM := `which npm`
+  NPM := $(shell which npm)
 endif
 
 TEST_AGENT_CONFIG="./dev_apps/test-agent/config.json"
@@ -491,7 +491,7 @@ TEST_AGENT_COVERAGE="./build/config/test-agent-coverage.json"
 #Marionette testing variables
 #make sure we're python 2.7.x
 ifeq ($(strip $(PYTHON_27)),)
-PYTHON_27 := `which python`
+PYTHON_27 := $(shell which python)
 endif
 PYTHON_FULL := $(wordlist 2,4,$(subst ., ,$(shell $(PYTHON_27) --version 2>&1)))
 PYTHON_MAJOR := $(word 1,$(PYTHON_FULL))
@@ -757,19 +757,19 @@ git-gaia-node-modules: gaia_node_modules.revision
 #
 npm-cache:
 	@echo "Using pre-deployed cache."
-	npm install
+	$(NPM) install
 	touch -c node_modules
 #	@echo $(shell $(NODEJS) --version |awk -F. '{print $1, $2}')
 
 node_modules: package.json
-ifneq ($(NODEJS),)
+ifneq ($(strip $(NODEJS)),)
 ifneq ($(NODE_VERSION),$(shell $(NODEJS) --version | awk -F. '{print $$1"."$$2}'))
 	@printf '\033[0;33mPlease use $(NODE_VERSION) of nodejs or it may cause unexpected error.\033[0m\n'
 endif
 endif
 	# TODO: Get rid of references to gaia-node-modules stuff.
-	npm install
-	npm run refresh
+	$(NPM) install
+	$(NPM) run refresh
 
 ###############################################################################
 # Tests                                                                       #
@@ -808,7 +808,7 @@ test-integration: clean $(PROFILE_FOLDER) test-integration-test
 # Remember to remove this target after bug-969215 is finished !
 .PHONY: test-integration-test
 test-integration-test: b2g node_modules
-	TEST_MANIFEST=$(TEST_MANIFEST) npm run marionette -- --buildapp="$(BUILDAPP)" --reporter="$(REPORTER)"
+	TEST_MANIFEST=$(TEST_MANIFEST) $(NPM) run marionette -- --buildapp="$(BUILDAPP)" --reporter="$(REPORTER)"
 
 .PHONY: jsmarionette-unit-tests
 jsmarionette-unit-tests: b2g node_modules $(PROFILE_FOLDER) tests/jsmarionette/runner/marionette-js-runner/venv
@@ -816,7 +816,7 @@ jsmarionette-unit-tests: b2g node_modules $(PROFILE_FOLDER) tests/jsmarionette/r
 
 tests/jsmarionette/runner/marionette-js-runner/venv:
 	# Install virtualenv
-	cd tests/jsmarionette/runner/marionette-js-runner && npm install
+	cd tests/jsmarionette/runner/marionette-js-runner && $(NPM) install
 	# Still want to use $GAIA/node_modules
 	rm -rf tests/jsmarionette/runner/marionette-js-runner/node_modules
 
