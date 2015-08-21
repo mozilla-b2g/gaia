@@ -58,6 +58,7 @@ marionette('Browser - Launch the same origin after navigating away',
     client.executeScript(function() {
       window.wrappedJSObject.dispatchEvent(new CustomEvent('home'));
     });
+    client.switchToFrame(system.getHomescreenIframe());
     rocketbar.homescreenFocus();
     rocketbar.enterText(url1, true);
 
