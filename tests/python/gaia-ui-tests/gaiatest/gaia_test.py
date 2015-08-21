@@ -204,6 +204,7 @@ class GaiaData(object):
 
     @property
     def all_contacts(self):
+        self.marionette.switch_to_frame()
         # TODO Bug 1049489 - In future, simplify executing scripts from the chrome context
         self.marionette.push_permission('contacts-read', True)
         self.marionette.set_context(self.marionette.CONTEXT_CHROME)
@@ -220,6 +221,7 @@ class GaiaData(object):
         return adn_contacts + sdn_contacts
 
     def insert_contact(self, contact):
+        self.marionette.switch_to_frame()
         # TODO Bug 1049489 - In future, simplify executing scripts from the chrome context
         self.marionette.push_permission('contacts-create', True)
         self.marionette.set_context(self.marionette.CONTEXT_CHROME)
@@ -230,6 +232,7 @@ class GaiaData(object):
         self.marionette.push_permission('contacts-create', False)
 
     def insert_sim_contact(self, contact, contact_type='adn'):
+        self.marionette.switch_to_frame()
         mozcontact = contact.create_mozcontact()
         result = self.marionette.execute_async_script('return GaiaDataLayer.insertSIMContact("%s", %s);'
                                                       % (contact_type, json.dumps(mozcontact)))
@@ -237,11 +240,13 @@ class GaiaData(object):
         return result
 
     def delete_sim_contact(self, moz_contact_id, contact_type='adn'):
+        self.marionette.switch_to_frame()
         result = self.marionette.execute_async_script('return GaiaDataLayer.deleteSIMContact("%s", "%s");'
                                                       % (contact_type, moz_contact_id))
         assert result, 'Unable to insert SIM contact %s' % moz_contact_id
 
     def remove_all_contacts(self):
+        self.marionette.switch_to_frame()
         # TODO Bug 1049489 - In future, simplify executing scripts from the chrome context
         self.marionette.push_permission('contacts-write', True)
         self.marionette.set_context(self.marionette.CONTEXT_CHROME)
