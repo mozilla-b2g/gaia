@@ -14,7 +14,6 @@
     this.instanceID = _id++;
     this.event = null;
     this._enabled = false;
-    this._shortcutTimeout = null;
     this._injected = false;
     this._hasCutOrCopied = false;
     this._isCommandSendable = false;
@@ -30,11 +29,6 @@
   AppTextSelectionDialog.prototype.TEXTDIALOG_HEIGHT = 52;
 
   AppTextSelectionDialog.prototype.TEXTDIALOG_WIDTH = 54;
-
-  // Based on UX spec, there would be a temporary shortcut and only appears
-  // after the action 'copy/cut'. In this use case, the utility bubble will be
-  // time-out after 3 secs if no action is taken.
-  AppTextSelectionDialog.prototype.SHORTCUT_TIMEOUT = 3000;
 
   // If text is not pasted immediately after copy/cut, the text will be viewed
   // as pasted after 15 seconds (count starting from the moment when there's no
@@ -178,7 +172,6 @@
       detail.commands.canCut = false;
       detail.commands.canCopy = false;
       detail.commands.canSelectAll = false;
-      this._triggerShortcutTimeout();
       this.show(detail);
     };
 
@@ -187,22 +180,7 @@
       // make sure cut command option is only shown on editable element
       detail.commands.canCut = detail.commands.canCut && 
                                  detail.selectionEditable;
-      this._resetShortcutTimeout();
       this.show(detail);
-    };
-
-  AppTextSelectionDialog.prototype._resetShortcutTimeout =
-    function tsd__resetShortcutTimeout() {
-      window.clearTimeout(this._shortcutTimeout);
-      this._shortcutTimeout = null;
-    };
-
-  AppTextSelectionDialog.prototype._triggerShortcutTimeout =
-    function tsd__triggerShortcutTimeout() {
-      this._resetShortcutTimeout();
-      this._shortcutTimeout = window.setTimeout(function() {
-        this.close();
-      }.bind(this), this.SHORTCUT_TIMEOUT);
     };
 
   AppTextSelectionDialog.prototype._fetchElements =
@@ -365,7 +343,6 @@
 
 
   AppTextSelectionDialog.prototype.show = function tsd_show(detail) {
-    this._resetShortcutTimeout();
     var numOfSelectOptions = 0;
     var options = [ 'Paste', 'Copy', 'Cut', 'SelectAll' ];
 
@@ -485,7 +462,6 @@
     this.hide();
     this.element.blur();
     this.textualmenuDetail = null;
-    this._resetShortcutTimeout();
   };
 
   exports.AppTextSelectionDialog = AppTextSelectionDialog;
