@@ -15,6 +15,10 @@
     }
   },
   "icons": {
-    "128": "/style/icons/Blank.png"
+    "84": "/style/icons/test-receiver_84.png",
+    "126": "/style/icons/test-receiver_126.png",
+    "142": "/style/icons/test-receiver_142.png",
+    "189": "/style/icons/test-receiver_189.png",
+    "284": "/style/icons/test-receiver_284.png"
   }
 }

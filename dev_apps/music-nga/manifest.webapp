@@ -5,11 +5,11 @@
   "origin": "app://music-nga.gaiamobile.org",
   "launch_path": "/index.html",
   "icons": {
-    "84": "/img/icons/music_84.png",
-    "126": "/img/icons/music_126.png",
-    "142": "/img/icons/music_142.png",
-    "189": "/img/icons/music_189.png",
-    "284": "/img/icons/music_284.png"
+    "84": "/img/icons/default_84.png",
+    "126": "/img/icons/default_126.png",
+    "142": "/img/icons/default_142.png",
+    "189": "/img/icons/default_189.png",
+    "284": "/img/icons/default_284.png"
   },
   "developer": {
     "name": "The Gaia Team",

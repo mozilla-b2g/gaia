@@ -30,8 +30,11 @@
     }
   },
   "icons": {
-    "128": "/style/geoloc-128.png",
-    "64": "/style/geoloc-64.png"
+    "84": "/style/icons/default_84.png",
+    "126": "/style/icons/default_126.png",
+    "142": "/style/icons/default_142.png",
+    "189": "/style/icons/default_189.png",
+    "284": "/style/icons/default_284.png"
   },
   "default_locale": "en-US",
   "orientation": "portrait-primary"
