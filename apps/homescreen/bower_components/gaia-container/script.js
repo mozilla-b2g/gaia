@@ -436,7 +436,8 @@ window.GaiaContainer = (function(exports) {
 
   proto.startDrag = function() {
     if (!this.dispatchEvent(new CustomEvent('drag-start',
-        { detail: { target: this._dnd.child.element,
+        { cancelable: true,
+          detail: { target: this._dnd.child.element,
                     pageX: this._dnd.start.pageX,
                     pageY: this._dnd.start.pageY,
                     clientX: this._dnd.start.clientX,
@@ -486,7 +487,8 @@ window.GaiaContainer = (function(exports) {
                                               this._dnd.last.clientY);
 
       if (this.dispatchEvent(new CustomEvent('drag-end',
-          { detail: { target: this._dnd.child.element,
+          { cancelable: true,
+            detail: { target: this._dnd.child.element,
                       dropTarget: dropTarget,
                       pageX: this._dnd.last.pageX,
                       pageY: this._dnd.last.pageY,
@@ -590,6 +592,7 @@ window.GaiaContainer = (function(exports) {
         }
 
         this._dnd.timeout = setTimeout(() => {
+          this._dnd.timeout = null;
           this.startDrag();
         }, this._dnd.delay);
         break;

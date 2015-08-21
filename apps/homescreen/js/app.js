@@ -116,9 +116,10 @@ const SETTINGS_VERSION = 0;
     // Restore settings
     this.restoreSettings();
 
-    // Populate apps
+    // Populate apps callback
     var populateApps = () => {
       Promise.all([
+        // Populate apps
         new Promise((resolve, reject) => {
           var request = navigator.mozApps.mgmt.getAll();
           request.onsuccess = (e) => {
@@ -132,53 +133,8 @@ const SETTINGS_VERSION = 0;
             resolve();
           };
         }),
-        new Promise((resolve, reject) => {
-          this.bookmarks.getAll().then((bookmarks) => {
-            for (var bookmark of bookmarks) {
-              this.addAppIcon(bookmark.data);
-            }
-            resolve();
-          }, (error) => {
-            console.error('Error getting bookmarks', error);
-            resolve();
-          });
-        })
-      ]).then(() => {
-        for (var data of this.startupMetadata) {
-          console.log('Removing unknown app metadata entry', data.id);
-          this.metadata.remove(data.id).then(
-            () => {},
-            (e) => {
-              console.error('Error removing unknown app metadata entry', e);
-            });
-        }
-        this.startupMetadata = [];
-        this.storeAppOrder();
-      });
-    };
 
-    this.startupMetadata = [];
-    this.iconsToRetry = [];
-    this.metadata = new HomeMetadata();
-    this.bookmarks = new Datastore('bookmarks_store');
-    Promise.all([
-      new Promise((resolve, reject) => {
-        this.metadata.init().then(() => {
-          this.metadata.getAll().then((results) => {
-            this.startupMetadata = results;
-            resolve();
-          },
-          (e) => {
-            console.error('Failed to retrieve metadata entries', e);
-            resolve();
-          });
-        },
-        (e) => {
-          console.error('Failed to initialise metadata db', e);
-          resolve();
-        });
-      }),
-      new Promise((resolve, reject) => {
+        // Initialise and populate bookmarks
         this.bookmarks.init().then(() => {
           document.addEventListener('bookmarks_store-set', (e) => {
             var id = e.detail.id;
@@ -220,15 +176,57 @@ const SETTINGS_VERSION = 0;
             }
             this.storeAppOrder();
           });
-
-          this.bookmarks.synchronise();
-          resolve();
         }, (e) => {
           console.error('Error initialising bookmarks', e);
+        }).then(() => {
+          this.bookmarks.getAll().then((bookmarks) => {
+            for (var bookmark of bookmarks) {
+              this.addAppIcon(bookmark.data);
+            }
+            this.bookmarks.synchronise();
+          }, (e) => {
+            console.error('Error getting bookmarks', e);
+          });
+        })
+      ]).then(() => {
+        for (var data of this.startupMetadata) {
+          console.log('Removing unknown app metadata entry', data.id);
+          this.metadata.remove(data.id).then(
+            () => {},
+            (e) => {
+              console.error('Error removing unknown app metadata entry', e);
+            });
+        }
+        this.startupMetadata = [];
+        this.storeAppOrder();
+      });
+    };
+
+    this.startupMetadata = [];
+    this.iconsToRetry = [];
+    this.metadata = new HomeMetadata();
+    this.bookmarks = new Datastore('bookmarks_store');
+
+    // Load metadata, then populate apps. If metadata loading fails,
+    // populate apps anyway - it means they'll be in the default order
+    // and their order won't save, but it's better than showing a blank
+    // screen.
+    new Promise((resolve, reject) => {
+      this.metadata.init().then(() => {
+        this.metadata.getAll().then((results) => {
+          this.startupMetadata = results;
+          resolve();
+        },
+        (e) => {
+          console.error('Failed to retrieve metadata entries', e);
           resolve();
         });
-      })
-    ]).then(populateApps);
+      },
+      (e) => {
+        console.error('Failed to initialise metadata db', e);
+        resolve();
+      });
+    }).then(populateApps);
   }
 
   App.prototype = {
@@ -417,9 +415,13 @@ const SETTINGS_VERSION = 0;
       var children = this.icons.children;
 
       var visibleChildren = 0;
+      var firstVisibleChild = -1;
       for (var i = 0, iLen = children.length; i < iLen; i++) {
         if (children[i].style.display !== 'none') {
           visibleChildren ++;
+          if (firstVisibleChild === -1) {
+            firstVisibleChild = i;
+          }
         }
       }
 
@@ -427,7 +429,8 @@ const SETTINGS_VERSION = 0;
         return;
       }
 
-      var iconHeight = Math.round(children[0].getBoundingClientRect().height);
+      var iconHeight = Math.round(children[firstVisibleChild].
+        getBoundingClientRect().height);
       var scrollHeight = this.scrollable.clientHeight;
       var pageHeight = Math.floor(scrollHeight / iconHeight) * iconHeight;
       var gridHeight = (Math.ceil((iconHeight *
