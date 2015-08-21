@@ -60,7 +60,23 @@
     updatesQueue: [],
     downloadsQueue: [],
 
-    start: function() {
+    /**
+     * Debug message.
+     *
+     * @private
+     * @type {Boolean} turn on/off the console log
+     */
+    onDebug: true,
+
+    debug: function um_debug(msg) {
+      if (!this.onDebug) {
+        return;
+      }
+
+      console.log('[update manager]: ' + msg);
+    },
+
+    start: function um_start() {
       if (!this._mgmt) {
         this._mgmt = navigator.mozApps.mgmt;
       }
@@ -182,8 +198,8 @@
     },
 
     requestErrorBanner: function um_requestErrorBanner() {
+      this.debug('requestErrorBanner');
       if (this._errorTimeout) {/* jshint nonew: false */
-
         return;
       }
 
@@ -539,6 +555,7 @@
     },
 
     downloadProgressed: function um_downloadProgress(bytes) {
+      this.debug('downloadProgressed');
       if (bytes > 0) {
         this._downloadedBytes += bytes;
         this.render();
@@ -546,12 +563,14 @@
     },
 
     downloaded: function um_downloaded(udatable) {
+      this.debug('downloaded');
       if (this._startedDownloadUsingDataConnection) {
         this._startedDownloadUsingDataConnection = false;
       }
     },
 
     startedUncompressing: function um_startedUncompressing() {
+      this.debug('startedUncompressing');
       this._uncompressing = true;
       this.render();
     },
@@ -582,10 +601,12 @@
     },
 
     addToUpdatableApps: function um_addtoUpdatableapps(updatableApp) {
+      this.debug('addToUpdatableApps');
       this.updatableApps.push(updatableApp);
     },
 
     removeFromAll: function um_removeFromAll(updatableApp) {
+      this.debug('removeFromAll');
       var removeIndex = this.updatableApps.indexOf(updatableApp);
       if (removeIndex === -1) {
         return;
@@ -599,6 +620,7 @@
     },
 
     addToUpdatesQueue: function um_addToUpdatesQueue(updatable) {
+      this.debug('addToUpdatesQueue');
       if (this._downloading) {
         return;
       }
@@ -644,6 +666,7 @@
     },
 
     removeFromUpdatesQueue: function um_removeFromUpdatesQueue(updatable) {
+      this.debug('removeFromUpdatesQueue');
       var removeIndex = this.updatesQueue.indexOf(updatable);
       if (removeIndex === -1) {
         return;
@@ -660,6 +683,7 @@
     },
 
     addToDownloadsQueue: function um_addToDownloadsQueue(updatable) {
+      this.debug('addToDownloadsQueue');
       if (updatable.app &&
           this.updatableApps.indexOf(updatable) === -1) {
         return;
@@ -685,6 +709,7 @@
     },
 
     removeFromDownloadsQueue: function um_removeFromDownloadsQueue(updatable) {
+      this.debug('removeFromDownloadsQueue');
       var removeIndex = this.downloadsQueue.indexOf(updatable);
       if (removeIndex === -1) {
         return;

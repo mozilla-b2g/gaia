@@ -29,7 +29,6 @@ require(
 require('/shared/test/unit/mocks/mock_l10n.js');
 
 requireApp('system/test/unit/mock_asyncStorage.js');
-require('/test/unit/mock_update_manager.js');
 
 var mocksForUpdateManager = new MocksHelper([
   'SystemBanner',
