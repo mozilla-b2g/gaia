@@ -16,6 +16,7 @@ Music.DEFAULT_ORIGIN = 'music-nga.gaiamobile.org';
 Music.Selector = Object.freeze({
   viewFrame: '#view-stack iframe',
   secondaryViewFrame: '#view-stack iframe:nth-child(2)',
+  activeViewFrame: '#view-stack iframe.active',
   homeViewFrame: 'iframe[data-view-id="home"]',
   songsViewFrame: 'iframe[data-view-id="songs"]',
   artistsViewFrame: 'iframe[data-view-id="artists"]',
@@ -29,7 +30,7 @@ Music.Selector = Object.freeze({
   artistsTab: '#tab-bar button[data-view-id="artists"]',
   albumsTab: '#tab-bar button[data-view-id="albums"]',
   songsTab: '#tab-bar button[data-view-id="songs"]',
-  playerCover: 'music-artwork#artwork',
+  playerCover: '#artwork',
 
   // search fields
   searchField: '#views-search-input',
@@ -48,8 +49,6 @@ Music.Selector = Object.freeze({
   playButton: '#player-controls-play',
   progressBar: '#player-seek-bar-progress',
   shareButton: '#player-cover-share',
-  ratingBar: '#player-album-rating',
-  ratingStarsOn: 'button.star-on',
   shareMenu: 'form[data-z-index-level="action-menu"]',
   pickDoneButton: '#title-done',
   header: '#header',
@@ -75,6 +74,10 @@ Music.prototype = {
 
   get secondaryViewFrame() {
     return this.client.findElement(Music.Selector.secondaryViewFrame);
+  },
+
+  get activeViewFrame() {
+    return this.client.findElement(Music.Selector.activeViewFrame);
   },
 
   get homeViewFrame() {
@@ -130,6 +133,22 @@ Music.prototype = {
     return this.client.helper.waitForElement(Music.Selector.firstSong);
   },
 
+  getStarRating: function() {
+    var frame = this.playerViewFrame;
+    assert.ok(frame);
+    this.client.switchToFrame(frame);
+
+    var rating = this.client.executeScript(function (sel) {
+      var value = document.querySelector(sel).
+          shadowRoot.querySelector('#rating').
+          shadowRoot.querySelector('#container').dataset.value;
+      return value ? value : 0;
+    }, [Music.Selector.playerCover]);
+
+    this.switchToMe();
+    return rating;
+  },
+
   // Helper for the getter.
   _getListItemsData: function(frame) {
     assert.ok(frame, 'Frame must be valid.' + frame);
@@ -176,7 +195,7 @@ Music.prototype = {
   },
 
   get songs() {
-    return this._getListItems(Music.Selector.viewsSublist);
+    return this._getListItemsData(this.activeViewFrame);
   },
 
   get playButton() {
@@ -440,14 +459,43 @@ Music.prototype = {
     var frame = this.playerViewFrame;
     assert.ok(frame);
     this.client.switchToFrame(frame);
+
     this.client.helper.waitForElement(Music.Selector.playerCover).click();
+
+    this.switchToMe();
+  },
+
+  waitForRatingOverlayHidden: function() {
+    var frame = this.playerViewFrame;
+    assert.ok(frame);
+    this.client.switchToFrame(frame);
+
+    this.client.waitFor(function() {
+      return this.client.executeScript(function (sel) {
+        return document.querySelector(sel).
+          shadowRoot.querySelector('#container').
+          classList.contains('show-overlay') === false;
+      }, [Music.Selector.playerCover]);
+    }.bind(this));
+
     this.switchToMe();
   },
 
   tapRating: function(rating) {
     this.showSongInfo();
-    this.client.helper.waitForElement('button.rating-star[data-rating="' +
-                                      rating + '"]').tap();
+
+    var frame = this.playerViewFrame;
+    assert.ok(frame);
+    this.client.switchToFrame(frame);
+
+
+    this.client.executeScript(function (sel, rating) {
+      document.querySelector(sel).
+        shadowRoot.querySelector('#rating').
+        shadowRoot.querySelector('button[value="' + rating + '"]').click();
+    }, [Music.Selector.playerCover, rating]);
+
+    this.switchToMe();
   },
 
   shareWith: function(appName) {

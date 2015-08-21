@@ -6,8 +6,6 @@ var Music = require('./lib/music.js');
 var FakeRingtones = require('./lib/fakeringtones.js');
 var FakeControls = require('./lib/fakecontrols.js');
 var Statusbar = require('./lib/statusbar.js');
-// XXX reenable for rating test
-//var PlayerHelper = require('./lib/playerhelper.js');
 
 marionette('Music player tests', function() {
   var apps = {};
@@ -139,8 +137,7 @@ marionette('Music player tests', function() {
 
         music.tapHeaderActionButton();
         music.waitForListView();
-        // XXX re-enable when the playing indicator is back
-        // music.checkPlayerIconShown(true);
+        music.checkPlayerIconShown(true);
       } catch(e) {
         assert.ok(false, 'Exception ' + e.stack);
       }
@@ -154,9 +151,7 @@ marionette('Music player tests', function() {
       statusbar = new Statusbar(client);
     });
 
-    // XXX re-enable this test when we do have the indicator
-    test.skip('Check the play icon is in the status bar. moztrap:9742',
-              function() {
+    test('Check the play icon is in the status bar. moztrap:9742', function() {
       music.launch();
       music.waitForFirstTile();
       music.switchToSongsView();
@@ -187,58 +182,57 @@ marionette('Music player tests', function() {
   });
 
   suite('Rating test', function() {
-    // XXX rating is disabled in the current NGA.
-    test.skip('Check Rating is saved. moztrap:2683', function() {
-      music.launch();
-      music.waitForFirstTile();
-      music.switchToSongsView();
-      music.playFirstSong();
+    test('Check Rating is saved. moztrap:2683', function() {
+      try {
+        music.launch();
+        music.waitForFirstTile();
+        music.switchToSongsView();
+        music.playFirstSong();
 
-      var stars;
+        // check there is no rating.
+        music.showSongInfo();
 
-      // check there is no rating.
-      music.showSongInfo();
-      stars = client.findElement(Music.Selector.ratingBar).
-        findElements('button');
-      assert.equal(stars.length, 5, 'Less than 5 stars found');
-      PlayerHelper.checkEmptyRating(stars);
+        var rating = music.getStarRating();
+        assert.equal(rating, 0);
 
-      var rating_value = 4;
+        var rating_value = 4;
+        music.tapRating(rating_value);
 
-      music.tapRating(rating_value);
+        // wait that the rating bar disappear.
+        music.waitForRatingOverlayHidden();
 
-      // wait that the rating bar disappear.
-      client.waitFor(function() {
-        return !client.findElement(Music.Selector.ratingBar).displayed();
-      });
+        // tap to make the rating bar reappear.
+        music.showSongInfo();
 
-      // tap to make the rating bar reappear.
-      music.showSongInfo();
+        rating = music.getStarRating();
+        assert.equal(rating, rating_value, 'Check rating is shown.');
 
-      // find all the stars that are on.
-      stars = client.findElements(Music.Selector.ratingStarsOn);
-      assert.equal(stars.length, rating_value);
+        /* XXXX re-enable when the feature is fixed
+        // switch back and forth
+        music.tapHeaderActionButton();
+        music.playFirstSong();
 
-      PlayerHelper.checkRatingStarsOrder(stars);
+        rating = music.getStarRating();
+        assert.equal(rating, rating_value,
+                    'Incorrect rating after switching song.');
 
-      // switch back and forth
-      music.tapHeaderActionButton();
-      music.playFirstSong();
+        // close the app because we want to test things are saved.
+        music.close();
 
-      stars = client.findElements(Music.Selector.ratingStarsOn);
-      assert.equal(stars.length, rating_value);
+        // start it over.
+        music.launch();
+        music.waitForFirstTile();
+        music.switchToSongsView();
+        music.playFirstSong();
 
-      // close the app because we want to test things are saved.
-      music.close();
+        rating = music.getStarRating();
+        assert.equal(rating, rating_value,
+                     'Incorrect rating after restarting.');
+        */
 
-      // start it over.
-      music.launch();
-      music.waitForFirstTile();
-      music.switchToSongsView();
-      music.playFirstSong();
-
-      stars = client.findElements(Music.Selector.ratingStarsOn);
-      assert.equal(stars.length, rating_value);
+      } catch(e) {
+        assert.ok(false, 'Exception: ' + e.stack);
+      }
     });
   });
 
