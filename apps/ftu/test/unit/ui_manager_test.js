@@ -113,8 +113,7 @@ suite('UI Manager > ', function() {
           cityLabel,
           timeLabel,
           FAKE_TIMEZONE;
-      var localizeSpy,
-          localeFormatSpy;
+      var localizeSpy;
 
       setup(function() {
         FAKE_TIMEZONE = {
@@ -130,9 +129,6 @@ suite('UI Manager > ', function() {
         timeLabel = document.getElementById('time-configuration-label');
 
         localizeSpy = this.sinon.spy(navigator.mozL10n, 'setAttributes');
-        localeFormatSpy =
-          this.sinon.spy(navigator.mozL10n.DateTimeFormat.prototype,
-                        'localeFormat');
         UIManager.setTimeZone(FAKE_TIMEZONE);
       });
 
@@ -164,7 +160,15 @@ suite('UI Manager > ', function() {
       });
 
       test('should format the time', function() {
-        assert.isTrue(localeFormatSpy.called);
+        assert.equal(timeLabel.textContent, (new Date()).toLocaleString(
+          navigator.languages,
+          {
+            hour12: navigator.mozHour12,
+            hour: 'numeric',
+            minute: 'numeric',
+            second: 'numeric'
+          }
+        ));
       });
     });
   });

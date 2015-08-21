@@ -13,8 +13,6 @@
 
 var Curtain = (function() {
 
-  var _ = navigator.mozL10n.get;
-
   var curtainFrame = parent.document.querySelector('#iframe_curtain');
 
   if (!curtainFrame) {
@@ -91,7 +89,8 @@ var Curtain = (function() {
 
     this.setFrom = function(pfrom) {
       from = capitalize(pfrom);
-      progressTitle.textContent = _('progressFB3' + from + 'Title');
+      progressTitle.setAttribute(
+        'data-l10n-id', 'progressFB3' + from + 'Title');
     };
 
     this.setTotal = function(ptotal) {
@@ -130,28 +129,33 @@ var Curtain = (function() {
 
       switch (type) {
         case 'wait':
-          messages[type].textContent = _(type + from);
+          messages[type].setAttribute('data-l10n-id', type + from);
         break;
 
         case 'timeout':
-          messages[type].textContent = _('timeout1', {
-            from: _('timeout' + from)
+          navigator.mozL10n.formatValue('timeout' + from).then((from) => {
+            navigator.mozL10n.setAttributes(messages[type], 'timeout1', {
+              from: from
+            });
           });
         break;
 
         case 'error':
-          messages[type].textContent = _('error1', {
-            from: _(type + from)
+          navigator.mozL10n.formatValue('type' + from).then((from) => {
+            navigator.mozL10n.setAttributes(messages[type], 'error1', {
+              from: from
+            });
           });
         break;
 
         case 'alert':
         case 'message':
-          messages[type].textContent = _(type + from);
+          messages[type].setAttribute('data-l10n-id', type + from);
         break;
 
         case 'progress':
-          progressTitle.textContent = _(type + 'FB3' + from + 'Title');
+          progressTitle.setAttribute('data-l10n-id',
+            type + 'FB3' + from + 'Title');
           out = new Progress(from);
           cpuWakeLock = navigator.requestWakeLock('cpu');
         break;
