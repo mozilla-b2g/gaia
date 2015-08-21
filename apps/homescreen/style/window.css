@@ -66,6 +66,7 @@ gaia-app-icon {
   box-sizing: border-box;
   border: 0.8rem solid transparent;
   transition: transform 0.2s, opacity 0.2s;
+  outline: 0;
 
   font-size: 1.6rem;
   color: white;
