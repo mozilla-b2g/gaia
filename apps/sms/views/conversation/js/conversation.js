@@ -705,6 +705,7 @@ var ConversationView = {
     if (this.activeThread &&
         !this.isConversationPanel(this.activeThread.id, nextPanel)) {
       // Clean fields when moving out of a conversation.
+      this.activeThread = null;
       this.cleanFields();
     }
   },
