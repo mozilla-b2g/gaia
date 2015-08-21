@@ -21,6 +21,7 @@ var Templates = {
           <label class="name">
             <bdi data-l10n-id="${l10nID}">${name}</bdi>
           </label>
+          <details></details>
         </gaia-radio>
       </li>`;
   }
