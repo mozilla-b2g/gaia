@@ -6,11 +6,11 @@ from gaiatest import GaiaTestCase
 from gaiatest.apps.clock.app import Clock
 import time
 
+
 class TestClockRunStopWatch(GaiaTestCase):
 
     def setUp(self):
         GaiaTestCase.setUp(self)
-
         self.clock = Clock(self.marionette)
         self.clock.launch()
 
@@ -21,11 +21,13 @@ class TestClockRunStopWatch(GaiaTestCase):
         self.assertEqual(stopwatch_view.current_time, '00:00.00')
 
         stopwatch_view.tap_start()
+
         time.sleep(0.2)
 
         self.assertNotEqual(stopwatch_view.current_time, '00:00.00')
 
         stopwatch_view.tap_lap()
+
         time.sleep(0.2)
 
         self.assertEqual(len(stopwatch_view.lap_items), 2)

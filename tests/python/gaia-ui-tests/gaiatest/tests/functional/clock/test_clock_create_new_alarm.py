@@ -83,6 +83,7 @@ class TestClockCreateNewAlarm(GaiaTestCase):
 
         # turn on the alarm
         alarm_view.alarm_items[0].tap_checkbox()
+        alarm_view.alarm_items[0].wait_for_checkbox_to_change_state(True)
         alarm_view.dismiss_banner()
         self.assertTrue(alarm_view.alarm_items[0].is_alarm_active, 'user should be able to turn off the alarm.')
 

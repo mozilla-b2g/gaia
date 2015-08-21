@@ -8,6 +8,7 @@ import time
 
 class TestClockRunStopWatch(GaiaTestCase):
 
+
     def setUp(self):
         GaiaTestCase.setUp(self)
 
@@ -21,21 +22,21 @@ class TestClockRunStopWatch(GaiaTestCase):
         self.assertEqual(stopwatch_view.current_time, '00:00.00')
 
         stopwatch_view.tap_start()
+
         time.sleep(0.2)
 
         self.assertNotEqual(stopwatch_view.current_time, '00:00.00')
-
-        first_time = stopwatch_view.current_time
 
         stopwatch_view.tap_pause()
 
-        self.assertNotEqual(stopwatch_view.current_time, '00:00.00')
+        first_time = stopwatch_view.current_time
 
         time.sleep(0.2)
+
+        self.assertNotEqual(stopwatch_view.current_time, '00:00.00')
 
         self.assertNotEqual(first_time, stopwatch_view.current_time)
 
         stopwatch_view.tap_reset()
 
-        time.sleep(0.2)
         self.assertEqual(stopwatch_view.current_time, '00:00.00')
