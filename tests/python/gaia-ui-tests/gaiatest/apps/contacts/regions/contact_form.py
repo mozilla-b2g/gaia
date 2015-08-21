@@ -171,6 +171,8 @@ class EditContact(ContactForm):
 
     def tap_delete(self):
         delete_item = self.marionette.find_element(*self._delete_locator)
+        self.marionette.execute_script(
+            'arguments[0].scrollIntoView(true);', [delete_item])
         delete_item.tap()
 
     def tap_cancel_delete(self):
