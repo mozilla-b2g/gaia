@@ -689,7 +689,7 @@ window.UtilityTray = {
         '.fake-notification.displayed').length;
 
     navigator.mozL10n.setAttributes(this.notificationTitle,
-      'statusbarNotifications', {
+      count ? 'statusbarNotifications' : 'statusbarNoNotifications', {
         n: count
       });
   },
