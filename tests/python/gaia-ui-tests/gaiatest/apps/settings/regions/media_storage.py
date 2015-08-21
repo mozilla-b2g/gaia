@@ -12,6 +12,7 @@ class MediaStorage(Base):
     _page_locator = (By.ID, 'mediaStorage')
     _internal_storage_header_locator = (By.CSS_SELECTOR, '[data-l10n-id="storage-name-internal"]')
     _external_storage_header_locator = (By.CSS_SELECTOR, '[data-l10n-id="storage-name-external-0"]')
+    _advanced_header_locator = (By.CSS_SELECTOR, '[data-l10n-id="advanced"]')
     _music_size_locator = (By.CSS_SELECTOR, '.color-music > a > .size')
     _pictures_size_locator = (By.CSS_SELECTOR, '.color-pictures > a > .size')
     _movies_size_locator = (By.CSS_SELECTOR, '.color-videos > a > .size')
@@ -32,8 +33,9 @@ class MediaStorage(Base):
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
+        # check for the presence of internal storage section and advanced option section
         Wait(self.marionette).until(expected.element_displayed(*self._internal_storage_header_locator))
-        Wait(self.marionette).until(expected.element_displayed(*self._external_storage_header_locator))
+        Wait(self.marionette).until(expected.element_displayed(*self._advanced_header_locator))
 
     @property
     def screen_element(self):
