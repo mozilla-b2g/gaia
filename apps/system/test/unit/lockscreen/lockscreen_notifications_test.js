@@ -20,13 +20,11 @@ suite('system/LockScreenNotifications', function() {
       from = 0;
     }
 
-    var rangeGenerator = function *() {
-      for(var i = from; i < to; i++){
-        yield i;
-      }
-    };
-
-    return Array.from(rangeGenerator());
+    var result = [];
+    for (var i = from; from < to; i++) {
+      result.push(i);
+    }
+    return result;
   };
 
   var lockScreenNotifications;
