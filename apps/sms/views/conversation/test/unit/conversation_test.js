@@ -6453,6 +6453,15 @@ suite('conversation.js >', function() {
   suite('beforeLeave() ', function() {
     var transitionArgs = { meta: {} };
 
+    setup(function() {
+      setActiveThread();
+      this.sinon.spy(ConversationView, 'cleanFields');
+    });
+
+    teardown(function() {
+      clearActiveThread();
+    });
+
     test('to inbox, exits edit mode', function() {
       this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
       Navigation.isCurrentPanel.withArgs('thread-list').returns(true);
@@ -6513,6 +6522,24 @@ suite('conversation.js >', function() {
         sinon.assert.calledWith(window.URL.revokeObjectURL, 'blob:fake0');
         sinon.assert.calledWith(window.URL.revokeObjectURL, 'blob:fake1');
       }).then(done, done);
+    });
+
+    test('to non-current view, activeThread and fields cleaned', function() {
+      this.sinon.stub(ConversationView, 'isConversationPanel').returns(false);
+
+      ConversationView.beforeLeave(transitionArgs);
+
+      assert.isNull(ConversationView.activeThread);
+      sinon.assert.called(ConversationView.cleanFields);
+    });
+
+    test('to current view, activeThread and fields existed', function() {
+      this.sinon.stub(ConversationView, 'isConversationPanel').returns(true);
+
+      ConversationView.beforeLeave(transitionArgs);
+
+      assert.isNotNull(ConversationView.activeThread);
+      sinon.assert.notCalled(ConversationView.cleanFields);
     });
   });
 
