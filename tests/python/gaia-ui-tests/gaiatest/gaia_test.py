@@ -1163,7 +1163,11 @@ class PasscodeTestCase(GaiaTestCase):
         SET_DIGEST_ALGORITHM = 'lockscreen.passcode-lock.digest.algorithm'
 
         settings = {}
+        # The code for setting the passcode uses ArrayBuffers.
         # ArrayBuffers are represented as objects keys from 0 to n-1.
+        # The settings DB does not support this and sees an array buffer of [3,6,9] objects
+        # of the format {0: 3, 1: 6, 2: 9} (hence objects with keys from 0 to n-1)
+        # n is array.length. So 8 for the salt and 20 for the digest.
         # The passcode is stored using PBKDF2 with a non-deterministic salt.
         # These values are the result of a pre-computation of PBKDF2 with the given salt,
         # 1000 iterations of SHA-1 and the passcode "1337".
