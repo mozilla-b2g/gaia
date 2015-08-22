@@ -1057,7 +1057,7 @@
     var completeSend = function() {
       request.result = sendInfo;
 
-      if (simulation.failState()) {
+      if (true) {
         sendInfo.message.delivery = 'error';
         request.error = {
           name: window.MessagesDebugError

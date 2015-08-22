@@ -1642,7 +1642,7 @@ var ConversationView = {
       month: 'short',
       day: '2-digit',
     };
-    var formatter = 
+    var formatter =
       new Intl.DateTimeFormat(navigator.languages, dateTimeOptions);
     var expireFormatted = formatter.format(new Date(+message.expiryDate));
 
@@ -2303,7 +2303,7 @@ var ConversationView = {
 
     // Clean composer fields (this lock any repeated click in 'send' button)
     this.disableConvertNoticeBanners();
-    this.cleanFields();
+    //this.cleanFields();
     this.enableConvertNoticeBanners();
 
     // If there was a draft, it just got sent so delete it.
