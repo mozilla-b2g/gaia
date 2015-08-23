@@ -49,15 +49,9 @@ form[role="dialog"][data-type="edit"] .bb-tablist > li {
   transform: translateX(-1.5rem);
 }
 
-.edit [data-type="list"] li > label {
+.edit [data-type="list"] li > gaia-checkbox {
   opacity: 1;
   pointer-events: auto;
-  transform: translateX(2rem);
-}
-
-.edit [data-type="list"] li > .pack-checkbox input ~ span:after {
-  opacity: 1;
-  transform: translateX(2.5rem);
 }
 
 .edit [data-type="list"] li > a > p {
@@ -67,7 +61,7 @@ form[role="dialog"][data-type="edit"] .bb-tablist > li {
 
 /* Currently is used in ConversationView only */
 .edit [data-type="list"] .danger {
-  transform: translateX(2.5rem);
+  transform: translateX(0.5rem);
 }
 
 form[role="dialog"][data-type="edit"] {
@@ -95,14 +89,10 @@ html[dir="rtl"] .edit [data-type="list"] li > label {
   transform: translateX(-2rem);
 }
 
-html[dir="rtl"] .edit [data-type="list"] li > .pack-checkbox input ~ span:after {
-  transform: translateX(-2.5rem);
-}
-
 html[dir="rtl"] .edit [data-type="list"] li > a > p {
   transform: translateX(-5rem);
 }
 
 html[dir="rtl"] .edit [data-type="list"] .danger {
-  transform: translateX(-2.5rem);
+  transform: translateX(-0.5rem);
 }

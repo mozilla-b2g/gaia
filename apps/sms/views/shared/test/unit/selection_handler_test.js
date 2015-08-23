@@ -3,6 +3,8 @@
 
 'use strict';
 
+require('/shared/js/component_utils.js');
+require('/shared/elements/gaia_checkbox/script.js');
 require('/views/shared/js/selection_handler.js');
 
 suite('SelectionHandler', function() {
@@ -17,8 +19,9 @@ suite('SelectionHandler', function() {
     var idSet = new Set();
     for (var i = 0; i < LENGTH; i++) {
       innerHTML +=  '<label>' +
-      '<input type="checkbox" value="' + i + '">' +
-      '<span></span></label>';
+      '<gaia-checkbox value="' + i + '">' +
+        '<label></label>';
+      '</gaia-checkbox>';
       idSet.add(i);
     }
     container.innerHTML = innerHTML;
@@ -69,31 +72,36 @@ suite('SelectionHandler', function() {
       options.isInEditMode.returns(true);
       selectionHandler = new SelectionHandler(options);
     });
-    
+
     teardown(function() {
       container.innerHTML = '';
     });
 
     test('Early exist if not in edit mode', function() {
       selectionHandler.isInEditMode.returns(false);
-      container.querySelectorAll('input')[0].click();
+      var event = new CustomEvent('click', {
+        bubbles: true,
+        cancelable: true
+      });
+      container.querySelectorAll('gaia-checkbox label')[0]
+        .dispatchEvent(event);
 
       sinon.assert.notCalled(selectionHandler.updateSelectionStatus);
       assert.equal(selectionHandler.selectedCount, 0);
     });
 
     test('input selected/unselected', function() {
-      var target = container.querySelectorAll('input')[0];
-      var event = new MouseEvent('click', {
+      var target = container.querySelectorAll('gaia-checkbox label')[0];
+      var event = new CustomEvent('click', {
         bubbles: true,
         cancelable: true
       });
-
       target.dispatchEvent(event);
 
       sinon.assert.called(selectionHandler.updateSelectionStatus);
       assert.equal(selectionHandler.selectedCount, 1);
-      assert.equal(selectionHandler.selectedList[0], target.value);
+      assert.equal(selectionHandler.selectedList[0],
+        target.parentNode.getAttribute('value'));
 
       target.dispatchEvent(event);
 
@@ -108,13 +116,13 @@ suite('SelectionHandler', function() {
     });
 
     test('checkbox UI should sync up with data', function() {
-      var allInputs = container.querySelectorAll('input');
+      var allInputs = container.querySelectorAll('gaia-checkbox');
       var selectedIds = [1,2];
 
       selectedIds.forEach((id) => {
         selectionHandler.select(id);
       });
-      
+
       // No checkbox selected on UI
       Array.prototype.forEach.call(allInputs, (input) => {
         assert.isFalse(input.checked);
@@ -129,7 +137,7 @@ suite('SelectionHandler', function() {
           selectedIds.indexOf(index) > -1
         );
       });
-    }); 
+    });
   });
 
   suite('toggleCheckedAll', function() {
