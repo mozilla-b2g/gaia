@@ -909,7 +909,7 @@
   //
   function select(word, data) {
     var oldWord = wordBeforeCursor();
-    var newWord = data;
+    var newWord = data + ' ';
 
     // The user has selected a suggestion, so we don't need to display
     // them anymore. Note that calling this function resets all the
