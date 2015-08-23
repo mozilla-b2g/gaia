@@ -29,7 +29,7 @@ class BookmarkMenu(Base):
         Wait(self.marionette).until(expected.element_displayed(element))
         # This sleep is necessary for the button to react to the tap call
         time.sleep(0.2)
-        element.tap()
+        self.tap_element_from_system_app(element)
 
         # Wait for the Add to bookmark frame to be dismissed
         Wait(self.marionette).until(lambda m: self.apps.displayed_app.name != self.name)
