@@ -15,6 +15,8 @@ require('/shared/js/event_dispatcher.js');
 require('/shared/js/lazy_loader.js');
 require('/shared/js/gesture_detector.js');
 require('/shared/js/sticky_header.js');
+require('/shared/js/component_utils.js');
+require('/shared/elements/gaia_checkbox/script.js');
 require('/shared/test/unit/mocks/mock_gesture_detector.js');
 require('/shared/test/unit/mocks/mock_l20n.js');
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
@@ -329,7 +331,7 @@ suite('SMS App Unit-Test', function() {
       test('Check edit mode form', function() {
         var container = InboxView.container;
         // Do we have all inputs ready?
-        assertNumberOfElementsInContainerByTag(container, 5, 'input');
+        assertNumberOfElementsInContainerByTag(container, 5, 'gaia-checkbox');
       });
 
       test('Sets up the gaia header for the edit form', function() {
@@ -344,11 +346,11 @@ suite('SMS App Unit-Test', function() {
 
         InboxView.startEdit();
         // Retrieve all inputs
-        var inputs = InboxView.container.getElementsByTagName('input');
+        var inputs = InboxView.container.getElementsByTagName('gaia-checkbox');
         // Activate all inputs
         for (i = inputs.length - 1; i >= 0; i--) {
           inputs[i].checked = true;
-          InboxView.selectionHandler.select(inputs[i].value);
+          InboxView.selectionHandler.select(inputs[i].getAttribute('value'));
         }
         var checkUncheckAllButton =
           document.getElementById('threads-check-uncheck-all-button');
@@ -361,7 +363,7 @@ suite('SMS App Unit-Test', function() {
         // Deactivate all inputs
         for (i = inputs.length - 1; i >= 0; i--) {
           inputs[i].checked = false;
-          InboxView.selectionHandler.unselect(inputs[i].value);
+          InboxView.selectionHandler.unselect(inputs[i].getAttribute('value'));
         }
         InboxView.updateSelectionStatus();
         assert.equal(
@@ -371,7 +373,7 @@ suite('SMS App Unit-Test', function() {
         assert.isFalse(checkUncheckAllButton.disabled);
         // Activate only one
         inputs[0].checked = true;
-        InboxView.selectionHandler.select(inputs[0].value);
+        InboxView.selectionHandler.select(inputs[0].getAttribute('value'));
         InboxView.updateSelectionStatus();
         assert.equal(
           checkUncheckAllButton.getAttribute('data-l10n-id'),
@@ -385,15 +387,15 @@ suite('SMS App Unit-Test', function() {
 
         InboxView.startEdit();
         // Retrieve all inputs
-        var inputs = InboxView.container.getElementsByTagName('input');
+        var inputs = InboxView.container.getElementsByTagName('gaia-checkbox');
         readUnreadButton =
           document.querySelector('#threads-read-unread-button');
 
         // unread button enabled when selected threads has read message only
         Array.forEach(inputs, (input) => {
           input.checked = true;
-          Threads.get(input.value).unreadCount = 0;
-          InboxView.selectionHandler.select(input.value);
+          Threads.get(input.getAttribute('value')).unreadCount = 0;
+          InboxView.selectionHandler.select(input.getAttribute('value'));
         });
         InboxView.updateSelectionStatus();
         assert.equal(readUnreadButton.dataset.action, 'mark-as-unread');
@@ -401,8 +403,8 @@ suite('SMS App Unit-Test', function() {
         // read button enabled when selected threads has unread message only
         Array.forEach(inputs, (input) => {
           input.checked = true;
-          Threads.get(input.value).unreadCount = 1;
-          InboxView.selectionHandler.select(input.value);
+          Threads.get(input.getAttribute('value')).unreadCount = 1;
+          InboxView.selectionHandler.select(input.getAttribute('value'));
         });
         InboxView.updateSelectionStatus();
         assert.equal(readUnreadButton.dataset.action, 'mark-as-read');
@@ -410,10 +412,10 @@ suite('SMS App Unit-Test', function() {
         // read button enabled when selected thread has read & unread message
         Array.forEach(inputs, (input, key) => {
           if(key === 0) {
-            Threads.get(input.value).unreadCount = 0;
+            Threads.get(input.getAttribute('value')).unreadCount = 0;
           }
           input.checked = true;
-          InboxView.selectionHandler.select(input.value);
+          InboxView.selectionHandler.select(input.getAttribute('value'));
         });
         InboxView.updateSelectionStatus();
         assert.equal(readUnreadButton.dataset.action, 'mark-as-read');
@@ -421,16 +423,16 @@ suite('SMS App Unit-Test', function() {
         // read/unread button disabled when no any threads are selected
         Array.forEach(inputs, (input) => {
           input.checked = false;
-          InboxView.selectionHandler.unselect(input.value);
+          InboxView.selectionHandler.unselect(input.getAttribute('value'));
         });
         InboxView.updateSelectionStatus();
         assert.isTrue(readUnreadButton.disabled);
 
         // read/unread button disabled when only drafts are selected
         Array.forEach(inputs, (input) => {
-          Threads.get(input.value).isDraft = true;
+          Threads.get(input.getAttribute('value')).isDraft = true;
           input.checked = true;
-          InboxView.selectionHandler.select(input.value);
+          InboxView.selectionHandler.select(input.getAttribute('value'));
         });
         InboxView.updateSelectionStatus();
         assert.isTrue(readUnreadButton.disabled);
@@ -441,7 +443,7 @@ suite('SMS App Unit-Test', function() {
         InboxView.selectionHandler.toggleCheckedAll(true);
 
         var checkboxes =
-          InboxView.container.querySelectorAll('input[type=checkbox]');
+          InboxView.container.querySelectorAll('gaia-checkbox');
         var checkUncheckAllButton =
           document.getElementById('threads-check-uncheck-all-button');
         assert.equal(5,
@@ -453,7 +455,7 @@ suite('SMS App Unit-Test', function() {
         InboxView.appendThread(threadSetup());
 
         checkboxes =
-          InboxView.container.querySelectorAll('input[type=checkbox]');
+          InboxView.container.querySelectorAll('gaia-checkbox');
 
         assert.equal(checkboxes.length, 6);
         assert.equal(checkboxes[4].checked, true);
@@ -563,19 +565,22 @@ suite('SMS App Unit-Test', function() {
       test('Check edit mode form', function() {
         ConversationView.startEdit();
         assertNumberOfElementsInContainerByTag(
-          ConversationView.container, 5, 'input'
+          ConversationView.container, 5, 'gaia-checkbox'
         );
       });
 
       test('Select/Deselect all', function() {
         var i;
-        var inputs = ConversationView.container.getElementsByTagName('input');
+        var inputs = ConversationView.container.getElementsByTagName(
+          'gaia-checkbox');
 
         ConversationView.startEdit();
+
         // Activate all inputs
         for (i = inputs.length - 1; i >= 0; i--) {
           inputs[i].checked = true;
-          ConversationView.selectionHandler.select(inputs[i].value);
+          ConversationView.selectionHandler.select(
+            inputs[i].getAttribute('value'));
         }
 
         var checkUncheckAllButton =
@@ -587,14 +592,16 @@ suite('SMS App Unit-Test', function() {
         // Deactivate all inputs
         for (i = inputs.length - 1; i >= 0; i--) {
           inputs[i].checked = false;
-          ConversationView.selectionHandler.unselect(inputs[i].value);
+          ConversationView.selectionHandler.unselect(
+            inputs[i].getAttribute('value'));
         }
         ConversationView.updateSelectionStatus();
         assert.isFalse(checkUncheckAllButton.disabled);
 
         // Activate only one
         inputs[0].checked = true;
-        ConversationView.selectionHandler.select(inputs[0].value);
+        ConversationView.selectionHandler.select(
+          inputs[0].getAttribute('value'));
         ConversationView.updateSelectionStatus();
         assert.isFalse(checkUncheckAllButton.disabled);
       });
@@ -627,7 +634,7 @@ suite('SMS App Unit-Test', function() {
         );
 
         var checkboxes = Array.from(ConversationView.container.querySelectorAll(
-          'input[type=checkbox]'
+          'gaia-checkbox'
         ));
         var checkUncheckAllButton = document.getElementById(
           'messages-check-uncheck-all-button'
@@ -636,7 +643,8 @@ suite('SMS App Unit-Test', function() {
         // Activate all inputs
         for (var i = checkboxes.length - 1; i >= 0; i--) {
           checkboxes[i].checked = true;
-          ConversationView.selectionHandler.select(checkboxes[i].value);
+          ConversationView.selectionHandler.select(
+            checkboxes[i].getAttribute('value'));
         }
 
         assert.equal(checkboxes.length, 5);
@@ -649,7 +657,7 @@ suite('SMS App Unit-Test', function() {
         ConversationView.appendMessage(incomingMessage).then(() => {
           // new checkbox should have been added
           checkboxes = ConversationView.container.querySelectorAll(
-            'input[type=checkbox]'
+            'gaia-checkbox'
           );
           assert.equal(checkboxes.length, 6);
           assert.equal(checkboxes[2].checked, true);

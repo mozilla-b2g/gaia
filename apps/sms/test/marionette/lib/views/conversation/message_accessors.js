@@ -47,7 +47,7 @@ MessageAccessor.prototype = {
         }, this),
         isDownloaded: messageClass.indexOf('not-downloaded') < 0,
         isPending: messageClass.indexOf('pending') >= 0,
-        isInEditMode: messageNode.findElement('.pack-checkbox').displayed(),
+        isInEditMode: messageNode.findElement('gaia-checkbox').displayed(),
         isSelected: checkbox.getAttribute('checked') === 'true',
         isDisplayed: messageNode.displayed()
       };
