@@ -4,9 +4,10 @@ gaia-checkbox {
 }
 
 #checkbox {
-  display: inline-block;
-  vertical-align: middle;
+  display: block;
   width: 100%;
+  /* Normal gaia-checkboxes are the heights of their parents. */
+  height: 100%;
   position: relative;
   background: none;
 }
@@ -24,6 +25,12 @@ gaia-checkbox {
   -moz-padding-end: 2.2rem;
   /* Override inheriting nowrap from legacy lists building blocks. */
   white-space: normal;
+}
+
+/* Inline gaia-checkboxes are the heights of their parents. */
+#checkbox.inline {
+  display: inline-block;
+  vertical-align: middle;
 }
 
 #checkbox:not(.invisible) span:after {
@@ -56,6 +63,7 @@ gaia-checkbox {
 #checkbox.inline span {
   -moz-padding-start: 3rem;
   -moz-padding-end: 0;
+  height: auto;
 }
 
 #checkbox:not(.invisible) span:after {
