@@ -77,9 +77,7 @@ class FullscreenImage(Base):
 
     def tap_delete_button(self):
         self.marionette.find_element(*self._delete_image_locator).tap()
-        Wait(self.marionette).until(expected.element_displayed(
-            Wait(self.marionette).until(expected.element_present(
-                *self._confirm_delete_locator))))
+        Wait(self.marionette).until(expected.element_displayed(*self._confirm_delete_locator))
 
     def tap_confirm_deletion_button(self):
         element = self.marionette.find_element(*self._confirm_delete_locator)
@@ -105,8 +103,8 @@ class FullscreenImage(Base):
         Wait(self.marionette).until(lambda m: self.apps.displayed_app.name == camera_app.name)
         self.apps.switch_to_displayed_app()
         camera_app.wait_for_capture_ready()
-        self.wait_for_element_not_displayed(*self._loading_screen_locator)
-        return camera_app
+        Wait(self.marionette).until(expected.element_not_displayed(*self._loading_screen_locator))
+        return camera_app 
 
     def double_tap_image(self):
         image = self.marionette.find_element(*self._current_image_locator)

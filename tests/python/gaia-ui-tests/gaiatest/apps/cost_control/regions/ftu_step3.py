@@ -30,9 +30,7 @@ class FTUStep3(CostControl):
     def toggle_data_alert(self):
         self.marionette.find_element(*self._data_alert_switch_locator).tap()
         # Wait for Usage section to hide/display as required
-        Wait(self.marionette).until(expected.element_displayed(
-            Wait(self.marionette).until(expected.element_present(
-                *self._data_alert_selector_locator))))
+        Wait(self.marionette).until(expected.element_displayed(*self._data_alert_selector_locator))
 
     @property
     def is_data_alert_switch_checked(self):
@@ -65,9 +63,10 @@ class FTUStep3(CostControl):
         Wait(self.marionette).until(lambda m: int(data_limit_view.location['y']) == int(data_limit_view.size['height']))
 
     def tap_lets_go(self):
-        self.marionette.find_element(*self._go_button_locator).tap()
+        element = self.marionette.find_element(*self._go_button_locator)
+        element.tap()
+        Wait(self.marionette).until(expected.element_not_displayed(element))
         self.apps.switch_to_displayed_app()
-        self.wait_for_element_not_displayed(*self._ftu_frame_locator)
 
         # TODO Some wait for Usage to fully initialize
         time.sleep(2)

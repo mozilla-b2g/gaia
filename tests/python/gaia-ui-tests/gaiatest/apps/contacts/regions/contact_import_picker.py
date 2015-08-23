@@ -14,9 +14,8 @@ class ContactImportPicker(Base):
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
-        Wait(self.marionette).until(expected.element_displayed(
-            Wait(self.marionette).until(expected.element_present(
-                *self._contact_import_picker_frame_locator))))
+        Wait(self.marionette).until(
+            expected.element_displayed(*self._contact_import_picker_frame_locator))
         select_contacts = self.marionette.find_element(*self._contact_import_picker_frame_locator)
         self.marionette.switch_to_frame(select_contacts)
 
@@ -26,17 +25,20 @@ class ContactImportPicker(Base):
         # self.marionette.find_element(*self._import_button_locator).tap()
         self.apps.switch_to_displayed_app()
         if wait_for_import:
-            self.wait_for_element_not_displayed(*self._contact_import_picker_frame_locator, timeout=60)
+            Wait(self.marionette, timeout=60).until(expected.element_not_displayed(
+                Wait(self.marionette).until(expected.element_present(
+                    *self._contact_import_picker_frame_locator))))
         from gaiatest.apps.contacts.regions.settings_form import SettingsForm
         return SettingsForm(self.marionette)
 
     def tap_first_friend(self):
+        element = self.marionette.find_element(*self._friends_list_locator)
         # TODO replace this with proper tap when Bug 932804 is resolved
         self.marionette.execute_script("""
             window.wrappedJSObject.document.getElementById("friends-list")
                   .getElementsByTagName("a")[1].click()
         """)
-        self.wait_for_element_not_displayed(*self._friends_list_locator)
+        Wait(self.marionette).until(expected.element_not_displayed(element))
         self.apps.switch_to_displayed_app()
 
     def tap_select_all(self):

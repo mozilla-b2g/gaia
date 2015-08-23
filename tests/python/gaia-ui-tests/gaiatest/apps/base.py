@@ -4,9 +4,8 @@
 
 import time
 
-from marionette_driver import By, Wait
-from marionette_driver.errors import (NoSuchElementException,
-                                      StaleElementException)
+from marionette_driver import expected, By, Wait
+from marionette_driver.errors import NoSuchElementException
 
 from gaiatest import GaiaApps
 from gaiatest import Accessibility
@@ -24,32 +23,6 @@ class Base(object):
 
     def launch(self, launch_timeout=None):
         self.app = self.apps.launch(self.name, self.manifest_url, self.entry_point, launch_timeout=launch_timeout)
-
-    def wait_for_element_present(self, by, locator, timeout=None):
-        return Wait(self.marionette, timeout, ignored_exceptions=NoSuchElementException).until(
-            lambda m: m.find_element(by, locator))
-
-    def wait_for_element_not_present(self, by, locator, timeout=None):
-        self.marionette.set_search_timeout(0)
-        try:
-            return Wait(self.marionette, timeout).until(
-                lambda m: not m.find_element(by, locator))
-        except NoSuchElementException:
-            pass
-        self.marionette.set_search_timeout(self.marionette.timeout or 10000)
-
-    def wait_for_element_displayed(self, by, locator, timeout=None):
-        Wait(self.marionette, timeout, ignored_exceptions=[NoSuchElementException, StaleElementException]).until(
-            lambda m: m.find_element(by, locator).is_displayed())
-
-    def wait_for_element_not_displayed(self, by, locator, timeout=None):
-        self.marionette.set_search_timeout(0)
-        try:
-            Wait(self.marionette, timeout, ignored_exceptions=StaleElementException).until(
-                lambda m: not m.find_element(by, locator).is_displayed())
-        except NoSuchElementException:
-            pass
-        self.marionette.set_search_timeout(self.marionette.timeout or 10000)
 
     def wait_for_condition(self, method, timeout=None, message=None):
         Wait(self.marionette, timeout).until(method, message=message)
@@ -90,7 +63,7 @@ class Base(object):
         # fast against desktop builds causing intermittent failures
         time.sleep(0.2)
 
-        li = self.wait_for_element_present(*_list_item_locator)
+        li = Wait(self.marionette).until(expected.element_present(*_list_item_locator))
         # We need to keep this because the Ok button may hang over the element and stop
         # Marionette from scrolling the element entirely into view
         self.marionette.execute_script(
@@ -98,7 +71,7 @@ class Base(object):
         return li
 
     def wait_for_select_closed(self, by, locator):
-        self.wait_for_element_not_displayed(by, locator)
+        Wait(self.marionette).until(expected.element_not_displayed(by, locator))
 
         # now back to app
         self.apps.switch_to_displayed_app()

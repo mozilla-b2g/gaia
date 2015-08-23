@@ -40,7 +40,8 @@ class Camera(Base):
     def launch(self):
         Base.launch(self)
         self.wait_for_capture_ready()
-        self.wait_for_element_not_displayed(*self._loading_screen_locator)
+        Wait(self.marionette).until(
+            expected.element_not_displayed(*self._loading_screen_locator))
 
     @property
     def camera_mode(self):
@@ -143,8 +144,7 @@ class Camera(Base):
         return gallery_app
 
     def wait_for_thumbnail_visible(self):
-        thumbnail = Wait(self.marionette).until(expected.element_present(*self._thumbnail_button_locator))
-        Wait(self.marionette).until(expected.element_displayed(thumbnail))
+        Wait(self.marionette).until(expected.element_displayed(*self._thumbnail_button_locator))
 
     def tap_thumbnail(self):
         self.marionette.find_element(*self._thumbnail_button_locator).tap()
@@ -219,8 +219,7 @@ class ImagePreview(Base):
 
     def tap_options(self):
         self.marionette.find_element(*self._options_button_locator).tap()
-        Wait(self.marionette).until(expected.element_displayed(
-            Wait(self.marionette).until(expected.element_present(*self._option_menu_locator))))
+        Wait(self.marionette).until(expected.element_displayed(*self._option_menu_locator))
 
     def delete_file(self):
         self.tap_options()
@@ -236,10 +235,7 @@ class ImagePreview(Base):
         gallery_app = Gallery(self.marionette)
         Wait(self.marionette).until(lambda m: self.apps.displayed_app.name == gallery_app.name)
         self.apps.switch_to_displayed_app()
-        self.wait_for_element_not_displayed(*self._progress_bar_locator)
-        Wait(self.marionette).until(expected.element_displayed(
-            Wait(self.marionette).until(expected.element_present(
-                *self._thumbnail_list_view_locator))))
+        Wait(self.marionette).until(expected.element_displayed(*self._thumbnail_list_view_locator))
 
         return gallery_app
 

@@ -80,9 +80,10 @@ class Activities(Base):
         self.apps.switch_to_displayed_app()
 
     def tap_save_image(self):
-        Wait(self.marionette).until(expected.element_displayed(
-            Wait(self.marionette).until(expected.element_present(*self._save_image_locator))))
-        self.marionette.find_element(*self._save_image_locator).tap()
+        element = Wait(self.marionette).until(
+            expected.element_present(*self._save_image_locator))
+        Wait(self.marionette).until(expected.element_displayed(element))
+        element.tap()
 
     @property
     def options_count(self):
@@ -104,7 +105,12 @@ class Activities(Base):
         return NewMessage(self.marionette)
 
     def share_to_ringtones(self):
+        actions_menu = Wait(self.marionette).until(
+            expected.element_present(*self._actions_menu_locator))
+        Wait(self.marionette).until(
+            expected.element_displayed(actions_menu))
         self.marionette.find_element(*self._ringtones_button_locator).tap()
-        self.wait_for_element_not_displayed(*self._actions_menu_locator)
+        Wait(self.marionette).until(
+            expected.element_not_displayed(actions_menu))
         from gaiatest.apps.ring_tone.app import RingTone
         return RingTone(self.marionette)
