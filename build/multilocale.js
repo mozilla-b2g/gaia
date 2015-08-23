@@ -460,6 +460,10 @@ function L10nManager(gaiaDir,
    * @returns {Object} res    - Manifest l10n resource
    */
   function getManifestProperties(webapp, locale) {
+    if (self.localeBasedir === null) {
+      return null;
+    }
+
     var parent = utils.getFile(webapp.sourceDirectoryFilePath, '..');
     var propFile = utils.getFile(self.localeBasedir, locale, parent.leafName,
       webapp.sourceDirectoryName, 'manifest.properties');
