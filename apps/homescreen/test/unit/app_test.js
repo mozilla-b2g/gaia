@@ -66,6 +66,7 @@ suite('Homescreen app', () => {
     });
 
     loadBodyHTML('_index.html');
+    document.head.innerHTML = `<meta name="theme-color" content="transparent">`;
     app = new App();
   });
 
