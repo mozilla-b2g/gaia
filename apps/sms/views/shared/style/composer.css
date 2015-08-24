@@ -44,7 +44,7 @@ form[role="search"] button[type="submit"] + p > textarea {
 }
 
 #messages-input:after {
-  content: attr(data-placeholder);
+  content: attr(title);
   position: absolute;
 
   top: 0;
