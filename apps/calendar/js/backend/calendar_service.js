@@ -24,8 +24,7 @@ function start() {
 }
 
 function method(endpoint, handler) {
-  service.method(endpoint, () => {
-    var args = Array.slice(arguments);
+  service.method(endpoint, (...args) => {
     return co(function *() {
       yield start();
       return handler.apply(null, args);
