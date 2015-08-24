@@ -134,7 +134,8 @@ class Contacts(Base):
             return self.root_element.find_element(*self._image_locator).get_attribute('data-group')
 
         def tap(self, return_class='ContactDetails'):
-            self.root_element.find_element(*self._name_locator).tap()
+            self.tap_element_from_system_app(
+                self.root_element.find_element(*self._name_locator), add_statusbar_height=True)
             return self._return_class_from_tap(return_class)
 
         def a11y_click(self, return_class='ContactDetails'):
