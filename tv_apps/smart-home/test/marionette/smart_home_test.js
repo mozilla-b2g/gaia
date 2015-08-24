@@ -88,7 +88,7 @@ marionette('Smart Home', function() {
 
       var element = client.findElement('#main-section');
       var newFolderCard =
-        client.findElement('#card-list div.card[data-idx="4"]');
+        client.findElement('#card-list div.card:last-child');
       client.waitFor(function() {
         return containsClass(newFolderCard, 'focused');
       });
