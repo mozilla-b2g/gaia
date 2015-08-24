@@ -201,7 +201,6 @@ const SETTINGS_VERSION = 0;
             for (var bookmark of bookmarks) {
               this.addAppIcon(bookmark.data);
             }
-            this.bookmarks.synchronise();
           }, (e) => {
             console.error('Error getting bookmarks', e);
           });

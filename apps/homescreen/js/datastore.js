@@ -46,57 +46,37 @@
         this.lastRevision = JSON.parse(revisionString);
       }
 
-      var error = null;
-      return new Promise(
-        (resolve, reject) => {
-          Promise.all([
-          // Open up our mirror indexeddb
-          new Promise((resolve, reject) => {
-            var req = window.indexedDB.open(this.idbName, DB_VERSION);
-            req.onupgradeneeded = this.upgradeSchema.bind(this);
-            req.onsuccess = (e) => {
-              this.db = e.target.result;
-              resolve();
-            };
-            req.onerror = (e) => {
-              console.error('Error opening datastore mirror database', e);
-              error = e;
-              resolve();
-            };
-          }),
+      return new Promise((resolve, reject) => {
+        var req = window.indexedDB.open(this.idbName, DB_VERSION);
+        req.onupgradeneeded = this.upgradeSchema.bind(this);
+        req.onsuccess = (e) => {
+          this.db = e.target.result;
+          resolve();
 
           // Open up the shared datastore
-          new Promise((resolve, reject) => {
-            if (!navigator.getDataStores) {
-              error = 'DataStore API is unavailable';
-              resolve();
+          if (!navigator.getDataStores) {
+            console.error('DataStore API is unavailable');
+            return;
+          }
+
+          navigator.getDataStores(this.name).then((stores) => {
+            if (stores.length < 1) {
+              console.error(this.name + ' inaccessible');
               return;
             }
 
-            navigator.getDataStores(this.name).then((stores) => {
-              if (stores.length < 1) {
-                error = this.name + ' inaccessible';
-                resolve();
-                return;
-              }
-
-              this.datastore = stores[0];
-              this.datastore.addEventListener('change',
-                                              this.onChange.bind(this));
-              resolve();
-            }, (e) => {
-              error = e;
-              resolve();
-            });
-          })
-        ]).then(() => {
-          if (error) {
-            console.error('Error calling navigator.getDatastores', error);
-            reject(error);
-          } else {
-            resolve();
-          }
-        });
+            this.datastore = stores[0];
+            this.datastore.addEventListener('change',
+                                            this.onChange.bind(this));
+            this.synchronise();
+          }, (e) => {
+            console.error('Error getting datastore', e);
+          });
+        };
+        req.onerror = (e) => {
+          console.error('Error opening datastore mirror database', e);
+          reject(e);
+        };
       });
     },
 
