@@ -23,7 +23,8 @@
     "device-storage:pictures": { "access": "readwrite" },
     "nfc-share": {},
     "settings": { "access": "readonly" },
-    "themeable": {}
+    "themeable": {},
+    "moz-extremely-unstable-and-will-change-webcomponents": {}
   },
   "locales": {
     "ar": {
