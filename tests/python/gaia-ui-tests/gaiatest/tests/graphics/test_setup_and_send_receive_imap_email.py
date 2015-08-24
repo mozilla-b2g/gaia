@@ -59,8 +59,7 @@ class TestSetupAndSendIMAPEmail(GaiaImageCompareTestCase):
 
         # wait for the email to be sent before we tap refresh
         self.email.wait_for_email(_subject)
-        self.email.wait_for_search_textbox_hidden()
-
+        
         read_email = self.email.tap_email_subject(_subject)
         Wait(self.marionette, timeout = 20).until(
             lambda m: _subject == read_email.subject)
