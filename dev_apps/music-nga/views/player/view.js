@@ -24,7 +24,6 @@ var PlayerView = View.extend(function PlayerView() {
 
   this.seekBar.addEventListener('seek', evt => this.seek(evt.detail.elapsedTime));
 
-  this.client = bridge.client({ service: 'music-service', endpoint: window.parent });
   this.client.on('play', () => this.controls.paused = false);
   this.client.on('pause', () => this.controls.paused = true);
   this.client.on('songChange', () => this.update());
@@ -77,61 +76,61 @@ PlayerView.prototype.render = function() {
 };
 
 PlayerView.prototype.seek = function(time) {
-  fetch('/api/audio/seek/' + time);
+  this.fetch('/api/audio/seek/' + time);
 };
 
 PlayerView.prototype.play = function() {
-  fetch('/api/audio/play');
+  this.fetch('/api/audio/play');
 };
 
 PlayerView.prototype.pause = function() {
-  fetch('/api/audio/pause');
+  this.fetch('/api/audio/pause');
 };
 
 PlayerView.prototype.previous = function() {
-  fetch('/api/queue/previous');
+  this.fetch('/api/queue/previous');
 };
 
 PlayerView.prototype.next = function() {
-  fetch('/api/queue/next');
+  this.fetch('/api/queue/next');
 };
 
 PlayerView.prototype.share = function() {
   this.getPlaybackStatus().then((status) => {
-    fetch('/api/activities/share' + status.filePath);
+    this.fetch('/api/activities/share' + status.filePath);
   });
 };
 
 PlayerView.prototype.getPlaybackStatus = function() {
-  return fetch('/api/audio/status').then(response => response.json());
+  return this.fetch('/api/audio/status').then(response => response.json());
 };
 
 PlayerView.prototype.getRepeatSetting = function() {
-  return fetch('/api/queue/repeat')
+  return this.fetch('/api/queue/repeat')
     .then(response => response.json())
     .then(index => REPEAT_VALUES[index]);
 };
 
 PlayerView.prototype.setRepeatSetting = function(repeat) {
-  fetch('/api/queue/repeat/' + REPEAT_VALUES.indexOf(repeat));
+  this.fetch('/api/queue/repeat/' + REPEAT_VALUES.indexOf(repeat));
 };
 
 PlayerView.prototype.getShuffleSetting = function() {
-  return fetch('/api/queue/shuffle')
+  return this.fetch('/api/queue/shuffle')
     .then(response => response.json())
     .then(index => SHUFFLE_VALUES[index]);
 };
 
 PlayerView.prototype.setShuffleSetting = function(shuffle) {
-  fetch('/api/queue/shuffle/' + SHUFFLE_VALUES.indexOf(shuffle));
+  this.fetch('/api/queue/shuffle/' + SHUFFLE_VALUES.indexOf(shuffle));
 };
 
 PlayerView.prototype.getSong = function(filePath) {
-  return fetch('/api/songs/info' + filePath).then(response => response.json());
+  return this.fetch('/api/songs/info' + filePath).then(response => response.json());
 };
 
 PlayerView.prototype.getSongArtwork = function(filePath) {
-  return fetch('/api/artwork/original' + filePath).then(response => response.blob());
+  return this.fetch('/api/artwork/original' + filePath).then(response => response.blob());
 };
 
 window.view = new PlayerView();

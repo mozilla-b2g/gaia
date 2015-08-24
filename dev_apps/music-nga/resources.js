@@ -97,7 +97,6 @@ const RESOURCES = [
   '/views/playlists/view.js',
   '/views/songs/index.html',
   '/views/songs/view.js',
-  '/endpoint.html',
   '/manifest.webapp',
   '/open.html',
   '/pick.html'

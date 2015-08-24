@@ -26,7 +26,6 @@ var ArtistsView = View.extend(function ArtistsView() {
 
   View.preserveListScrollPosition(this.list);
 
-  this.client = bridge.client({ service: 'music-service', endpoint: window.parent });
   this.client.on('databaseChange', () => this.update());
 
   this.update();
@@ -54,7 +53,7 @@ ArtistsView.prototype.render = function() {
 };
 
 ArtistsView.prototype.getArtists = function() {
-  return fetch('/api/artists/list').then(response => response.json());
+  return this.fetch('/api/artists/list').then(response => response.json());
 };
 
 window.view = new ArtistsView();
