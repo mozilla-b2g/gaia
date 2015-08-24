@@ -31,15 +31,6 @@
     border: 0.1rem solid #282828;
   }
 
-  #sleep-menu-container header {
-    height: 7rem;
-    margin: 0 6rem;
-  }
-
-  #sleep-menu-container h1 {
-    font-size: 2.2rem;
-  }
-
   #sleep-menu-container section {
     top: 7rem;
     bottom: 10rem;
