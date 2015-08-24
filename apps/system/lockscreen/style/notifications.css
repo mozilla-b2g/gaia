@@ -7,6 +7,7 @@
   line-height: 1.9rem;
   border-top: 0.1rem solid transparent;
   border-bottom: 0.1rem solid transparent;
+  outline: 0;
 }
 
 #notifications-lockscreen-container .notification:first-child {
