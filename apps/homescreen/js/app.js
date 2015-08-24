@@ -197,7 +197,7 @@ const SETTINGS_VERSION = 0;
         }, (e) => {
           console.error('Error initialising bookmarks', e);
         }).then(() => {
-          this.bookmarks.getAll().then((bookmarks) => {
+          return this.bookmarks.getAll().then((bookmarks) => {
             for (var bookmark of bookmarks) {
               this.addAppIcon(bookmark.data);
             }
