@@ -10,8 +10,7 @@ from gaiatest.apps.base import Base
 
 class Wifi(Base):
 
-    _wifi_enabled_label_locator = (By.CSS_SELECTOR, '.wifi-enabled label')
-    _wifi_enabled_checkbox_locator = (By.CSS_SELECTOR, '.wifi-enabled input')
+    _wifi_enabled_checkbox_locator = (By.CSS_SELECTOR, '.wifi-enabled gaia-switch')
     _available_networks_locator = (By.CSS_SELECTOR, '.wifi-availableNetworks > li > aside[class*="wifi-signal"]')
     _password_input_locator = (By.CSS_SELECTOR, '#wifi-auth input[type="password"]')
     _password_ok_button_locator = (By.CSS_SELECTOR, '#wifi-auth button[type="submit"]')
@@ -19,12 +18,13 @@ class Wifi(Base):
 
     @property
     def is_wifi_enabled(self):
-        return self.marionette.find_element(*self._wifi_enabled_checkbox_locator).get_attribute('checked')
+        element = self.marionette.find_element(*self._wifi_enabled_checkbox_locator)
+        return self.is_custom_element_checked(element)
 
     def enable_wifi(self):
-        self.marionette.find_element(*self._wifi_enabled_label_locator).tap()
-        checkbox = self.marionette.find_element(*self._wifi_enabled_checkbox_locator)
-        Wait(self.marionette).until(expected.element_selected(checkbox))
+        element = self.marionette.find_element(*self._wifi_enabled_checkbox_locator)
+        element.tap()
+        self.wait_for_custom_element_checked_state(element)
 
     def connect_to_network(self, network_info):
 
