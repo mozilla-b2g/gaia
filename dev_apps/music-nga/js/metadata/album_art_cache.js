@@ -154,7 +154,7 @@ var AlbumArtCache = (function() {
       metadata.title : metadata.album + metadata.artist;
     var hashedNumber = (Math.abs(hash(infoForHash)) % 10) + 1;
 
-    return '/img/artwork/artwork-' + hashedNumber + '.png'; // XXX: CHANGED
+    return '/img/artwork/artwork-' + hashedNumber + '.jpg'; // XXX: CHANGED
   }
 
   /**
