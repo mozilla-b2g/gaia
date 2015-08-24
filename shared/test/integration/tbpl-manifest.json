@@ -49,6 +49,9 @@
     "apps/verticalhome/test/marionette/collection_rename_test.js": "Bug 1090756 - TEST-UNEXPECTED-FAIL | Vertical - Collection Rename rename collection",
     "apps/verticalhome/test/marionette/group_collapse_drag_into_test.js": "Bug 1125696 - Intermittent failing test, TEST-UNEXPECTED-FAIL | Vertical - Group check dragging icon into collapsed group",
     "tests/jsmarionette/plugins/marionette-helper/test/index_test.js": "Bug 1165660",
-    "tests/jsmarionette/plugins/marionette-helper/test/input_select_test.js": "Bug 1189608 - Intermittent TEST-UNEXPECTED-FAIL | MarionetteHelper.fillInputFieldAndtapSelectOption should set date on input"
+    "tests/jsmarionette/plugins/marionette-helper/test/input_select_test.js": "Bug 1189608 - Intermittent TEST-UNEXPECTED-FAIL | MarionetteHelper.fillInputFieldAndtapSelectOption should set date on input",
+    "dev_apps/music-nga/test/marionette/Player_test.js": "Bug 1197725 - Disable NG tests in Music because tree is orange",
+    "dev_apps/music-nga/test/marionette/loading_test.js": "Bug 1197725 - Disable NG tests in Music because tree is orange",
+    "dev_apps/music-nga/test/marionette/playlist_test.js": "Bug 1197725 - Disable NG tests in Music because tree is orange"
   }
 }
