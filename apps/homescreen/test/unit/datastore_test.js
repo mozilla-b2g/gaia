@@ -95,7 +95,14 @@ suite('Datastore', () => {
     var stub;
 
     setup(done => {
-      bookmarks.init().then(done);
+      // Bookmarks calls synchronise once the datastore is open and the
+      // event handler is registered.
+      stub = sinon.stub(bookmarks, 'synchronise', () => {
+        stub.restore();
+        done();
+      });
+
+      bookmarks.init();
     });
 
     teardown(() => {
