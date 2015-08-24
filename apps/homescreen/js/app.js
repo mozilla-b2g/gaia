@@ -67,6 +67,7 @@ const SETTINGS_VERSION = 0;
 
   function App() {
     // Element references
+    this.meta = document.head.querySelector('meta[name="theme-color"]');
     this.shadow = document.getElementById('shadow');
     this.scrollable = document.getElementById('scrollable');
     this.icons = document.getElementById('apps');
@@ -81,6 +82,23 @@ const SETTINGS_VERSION = 0;
     this.cancelDownload.style.display = 'none';
     this.resumeDownload.style.display = 'none';
     this.settingsDialog.style.display = 'none';
+
+    // Change the colour of the statusbar when showing dialogs
+    var dialogVisibilityCallback = () => {
+      if (this.cancelDownload.style.display !== 'none' ||
+          this.resumeDownload.style.display !== 'none' ||
+          this.settingsDialog.style.display !== 'none') {
+        this.meta.content = 'white';
+      } else {
+        this.meta.content = 'transparent';
+      }
+    };
+    for (var dialog of
+         [this.cancelDownload, this.resumeDownload, this.settingsDialog]) {
+      var observer = new MutationObserver(dialogVisibilityCallback);
+      observer.observe(dialog,
+        { attributes: true, attributeFilter: ['style'] });
+    }
 
     // Scroll behaviour
     this.scrolled = false;
@@ -465,10 +483,15 @@ const SETTINGS_VERSION = 0;
         return;
       }
 
+      function executeCallback(dialog, callback) {
+        callback();
+        dialog.close();
+      }
+
       var actions = dialog.getElementsByClassName('action');
       for (var i = 0, iLen = Math.min(actions.length, callbacks.length);
            i < iLen; i++) {
-        actions[i].onclick = callbacks[i];
+        actions[i].onclick = executeCallback.bind(this, dialog, callbacks[i]);
       }
       if (args) {
         dialog.querySelector('.body').setAttribute('data-l10n-args', args);
@@ -493,7 +516,6 @@ const SETTINGS_VERSION = 0;
                    section: 'homescreen'
                  }
                });
-               this.settingsDialog.close();
              }]);
           e.stopImmediatePropagation();
           e.preventDefault();
@@ -524,7 +546,6 @@ const SETTINGS_VERSION = 0;
               JSON.stringify({ name: icon.name }),
               [() => {
                  icon.app.cancelDownload();
-                 this.cancelDownload.close();
                }]);
             break;
 
@@ -534,7 +555,6 @@ const SETTINGS_VERSION = 0;
               JSON.stringify({ name: icon.name }),
               [() => {
                  icon.app.download();
-                 this.resumeDownload.close();
                }]);
             break;
 
