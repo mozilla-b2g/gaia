@@ -89,6 +89,7 @@ var WifiHelper = {
       return false;
     }
     else if(currentNetwork) {
+      dump('Amy help ' + this.getWifiManager().connection.status);
       var currentStatus = currentNetwork.status;
       if(currentStatus == "associated") {
         return false;
