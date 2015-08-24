@@ -532,6 +532,18 @@ suite('Homescreen app', () => {
         });
       });
 
+      suite('drag-finish', () => {
+        test('auto-scroll timeout should be cancelled', () => {
+          var clearTimeoutStub = sinon.stub(window, 'clearTimeout');
+          app.autoScrollTimeout = 'abc';
+          app.handleEvent(new CustomEvent('drag-finish'));
+          clearTimeoutStub.restore();
+
+          assert.isTrue(clearTimeoutStub.calledWith('abc'));
+          assert.equal(app.autoScrollTimeout, null);
+        });
+      });
+
       test('app with default state should be launched', done => {
         var icon = getIcon('abc');
         icon.firstElementChild.state = 'unknownState';
