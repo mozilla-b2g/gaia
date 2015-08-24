@@ -4,10 +4,11 @@
   "description": "New wallet version for FFOS 2.2",
   "launch_path": "/index.html",
   "icons": {
-    "16": "/img/icons/icon16x16.png",
-    "48": "/img/icons/icon48x48.png",
-    "60": "/img/icons/icon60x60.png",
-    "128": "/img/icons/icon128x128.png"
+    "84": "/img/icons/default_84.png",
+    "126": "/img/icons/default_126.png",
+    "142": "/img/icons/default_142.png",
+    "189": "/img/icons/default_189.png",
+    "284": "/img/icons/default_284.png"
   },
   "type": "certified",
   "permissions": {
