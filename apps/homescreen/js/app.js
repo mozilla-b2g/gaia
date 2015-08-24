@@ -440,6 +440,9 @@ const SETTINGS_VERSION = 0;
       // Reset scroll-snap points
       this.scrollable.style.scrollSnapPointsY = 'repeat(' + pageHeight + 'px)';
 
+      // Set page border background
+      this.icons.style.backgroundSize = '100% ' + (pageHeight * 2) + 'px';
+
       // Make sure the grid is a multiple of the page size. Done in a timeout
       // in case the grid shrinks
       setTimeout(() => {

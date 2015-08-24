@@ -6,8 +6,14 @@ gaia-container {
   align-content: flex-start;
   transition: opacity 0.2s;
   box-sizing: padding-box;
-  padding: 1.5vw;
+  padding: 0 1.5vw;
   padding-bottom: 6rem;
+  background: linear-gradient(to bottom, transparent,
+                                         transparent 50%,
+                                         rgba(255, 255, 255, 0.15) 50%,
+                                         rgba(255, 255, 255, 0.15));
+  background-size: 100% 200%;
+  background-repeat: repeat-y;
 }
 
 gaia-container.loading {
