@@ -152,7 +152,6 @@ var UIManager = {
         second: 'numeric'
       }
     );
-    //f.localeFormat(currentDate, format);
     this.dateConfigurationLabel.textContent = currentDate.toLocaleString(
       navigator.languages,
       {
