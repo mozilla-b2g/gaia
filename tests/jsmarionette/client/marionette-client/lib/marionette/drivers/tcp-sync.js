@@ -56,12 +56,13 @@ TcpSync.prototype.waitForSocket = function(options, callback) {
   }
 
   options = options || {};
-  var interval = options.interval || 0;
+  var interval = options.interval || 100;
   var timeout = options.timeout || 30000;
   var socketTimeout = 1000;
 
   var sockit = new sockittome.Sockit();
   var start = Date.now();
+  var lastDebugMessage = '';
   var self = this;
 
   // Use sockittome's built in polling timeout during calls to connect
@@ -71,7 +72,6 @@ TcpSync.prototype.waitForSocket = function(options, callback) {
 
   function probeSocket() {
     try {
-      debug('probing socket');
       sockit.connect(socketConfig);
 
       var s = sockit.read(16).toString();
@@ -82,7 +82,14 @@ TcpSync.prototype.waitForSocket = function(options, callback) {
       }
     }
     catch(e) {
-      debug('exception when probing socket', e.message);
+      // This may seem ridiculous, but we have to keep these errors showing up
+      // but, they often repeat like CRAZY, so, quiet them down by only showing
+      // each exception we encounter once.
+      if (lastDebugMessage != e.message) {
+        lastDebugMessage = e.message;
+        debug('exception when probing socket', lastDebugMessage);
+      }
+
       // Above read _may_ fail so it is important to close the socket...
       sockit.close();
     }
@@ -95,6 +102,7 @@ TcpSync.prototype.waitForSocket = function(options, callback) {
     setTimeout(probeSocket.bind(self), interval);
   }
 
+  debug('probing socket');
   probeSocket();
 };
 
