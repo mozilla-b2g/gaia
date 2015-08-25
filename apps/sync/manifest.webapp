@@ -1,0 +1,11 @@
+{
+  "name": "Sync",
+  "description": "Syncs data with Firefox Sync",
+  "type": "certified",
+  "role": "system",
+  "launch_path": "/index.html",
+  "developer": {
+     "name": "The Gaia Team",
+     "url": "https://github.com/mozilla-b2g/gaia"
+  }
+}
