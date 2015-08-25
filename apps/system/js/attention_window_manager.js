@@ -120,11 +120,11 @@
       window.addEventListener('languagechange', this);
       Service.request('registerHierarchy', this);
       if (navigator.mozTelephony) {
-        BaseModule.lazyLoad(['DialerAgent']).then(function() {
+        BaseModule.lazyLoad(['DialerAgent']).then(() => {
           // DialerAgent will create callscreen window
           // so it is 'CallscreenWindowLauncher' exactly.
-          var dialerAgent = new DialerAgent();
-          dialerAgent.start();
+          this.dialerAgent = new DialerAgent();
+          this.dialerAgent.start();
         });
       }
     },
