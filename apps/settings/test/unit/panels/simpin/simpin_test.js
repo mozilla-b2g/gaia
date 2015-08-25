@@ -1,5 +1,8 @@
 'use strict';
 
+require('/shared/js/component_utils.js');
+require('/shared/elements/gaia_switch/script.js');
+
 suite('SimPin > ', function() {
   var simpin;
   var map = {
@@ -158,9 +161,8 @@ suite('SimPin > ', function() {
         function(key) {
           var dom;
           var type;
-          if (key.match(/input/)) {
-            dom = document.createElement('input');
-            dom.type = 'checkbox';
+          if (key.match(/gaia-switch/)) {
+            dom = document.createElement('gaia-switch');
             type = 'checkbox';
           }
           else {
@@ -179,7 +181,7 @@ suite('SimPin > ', function() {
         });
         test('checkbox will be disabled, div will be hidden', function(done) {
           simpin.updateSimPinUI(0).then(function() {
-            assert.ok(cachedDoms.checkbox.disabled);
+            assert.ok(cachedDoms.checkbox.getAttribute('disabled'));
             assert.ok(cachedDoms.div.hidden);
           }).then(done, done);
         });
@@ -203,7 +205,7 @@ suite('SimPin > ', function() {
 
       test('will get right icc, and change UI', function(done) {
         simpin.updateSimPinUI(0).then(function() {
-          assert.isFalse(cachedDoms.checkbox.disabled);
+          assert.isFalse(!!cachedDoms.checkbox.getAttribute('disabled'));
           assert.isTrue(cachedDoms.checkbox.checked);
           assert.isFalse(cachedDoms.div.hidden);
         }).then(done, done);
@@ -220,7 +222,7 @@ suite('SimPin > ', function() {
 
       test('checkbox will be disabled and div will be hidden', function(done) {
         simpin.updateSimPinUI(0).then(function() {
-          assert.ok(cachedDoms.checkbox.disabled);
+          assert.ok(cachedDoms.checkbox.getAttribute('disabled'));
           assert.ok(cachedDoms.div.hidden);
         }).then(done, done);
       });

@@ -20,6 +20,8 @@ define(function(require) {
         this.isAirplaneMode = (AirplaneModeHelper.getStatus() === 'enabled');
 
         this._elements.simPinContainer.addEventListener('click', this);
+        this._elements.simPinContainer.addEventListener('change',
+          this.simPinSwitched.bind(this));
         this.addIccDetectedEvent();
         this.addIccUndetectedEvent();
         this.addAirplaneModeChangeEvent();
@@ -34,12 +36,11 @@ define(function(require) {
       return Sanitizer.escapeHTML `
         <li class="simpin-enabled simpin-enabled-${simIndex}
           simpin-${simIndex}">
-          <label class="pack-switch">
-            <input type="checkbox" data-ignore data-sim-index="${simIndex}"
-              data-type="checkSimPin"/>
-            <span data-l10n-id="simPinWithIndex"
-              data-l10n-args="${simPinArgs}"></span>
-        </label>
+          <gaia-switch data-ignore data-sim-index="${simIndex}"
+              data-type="checkSimPin">
+            <label data-l10n-id="simPinWithIndex"
+              data-l10n-args="${simPinArgs}"></label>
+        </gaia-switch>
         </li>
         <li class="simpin-change simpin-change-${simIndex} simpin-${simIndex}"
           hidden>
@@ -89,14 +90,14 @@ define(function(require) {
 
       var simPinCheckbox =
         this._elements.simPinContainer.querySelector(
-          '.simpin-enabled-' + cardIndex + ' input');
+          '.simpin-enabled-' + cardIndex + ' gaia-switch');
 
       var isSimAvailable = icc && icc.cardState && icc.cardState !== 'unknown';
 
       // when fugu is in airplane mode, icc.cardState will not be changed ...
       // in this way, we have to use isAirplaneMode to check this situation
       if (!isSimAvailable || this.isAirplaneMode) {
-        simPinCheckbox.disabled = true;
+        simPinCheckbox.setAttribute('disabled', true);
         changeSimPinItem.hidden = true;
         return Promise.resolve();
       }
@@ -104,7 +105,7 @@ define(function(require) {
       // with SIM card, query its status
       return SimSecurity.getCardLock(cardIndex, 'pin').then((result) => {
         var enabled = result.enabled;
-        simPinCheckbox.disabled = false;
+        simPinCheckbox.removeAttribute('disabled');
         simPinCheckbox.checked = enabled;
         changeSimPinItem.hidden = !enabled;
       }, () => {
@@ -126,14 +127,16 @@ define(function(require) {
       cardIndex = parseInt(cardIndex, 10);
 
       switch (type) {
-        case 'checkSimPin':
-          this.checkSimPin(target, cardIndex);
-          break;
-
         case 'changeSimPin':
           this.changeSimPin(cardIndex);
           break;
       }
+    },
+    simPinSwitched: function simpin_simPinSwitched(evt) {
+      var target = evt.target;
+      var cardIndex = target.dataset && target.dataset.simIndex;
+      cardIndex = parseInt(cardIndex, 10);
+      this.checkSimPin(target, cardIndex);
     },
     checkSimPin: function simpin_checkSimPin(checkbox, cardIndex) {
       var enabled = checkbox.checked;
