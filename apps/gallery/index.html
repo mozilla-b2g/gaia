@@ -76,13 +76,13 @@
     <!-- for all views that display the thumbnails -->
     <section role="region" id="thumbnail-views" class="skin-dark">
       <!-- This header only shown on tablet view  -->
-      <gaia-header id="thumbnails-list-top" class="thumbnails-list">
+      <gaia-header id="thumbnails-list-top" class="thumbnails-list" title-start="0" title-end="0" no-font-fit>
         <h1 id="thumbnail-list-title" data-l10n-id="gallery"></h1>
       </gaia-header>
-      <gaia-header id="selected-header" class="thumbnails-select" action="close">
+      <gaia-header id="selected-header" class="thumbnails-select" action="close" title-start="50" title-end="0" no-font-fit>
         <h1 id="thumbnails-number-selected"></h1>
       </gaia-header>
-      <gaia-header id="pick-header" class="thumbnails-pick" action="close">
+      <gaia-header id="pick-header" class="thumbnails-pick" action="close" title-start="50" title-end="0" no-font-fit>
         <h1 id="pick-header-title" data-l10n-id="pickoneimage2"></h1>
       </gaia-header>
 
@@ -105,7 +105,7 @@
     </section>
 
     <section role="region" id="fullscreen-view" class="skin-dark">
-      <gaia-header id="fullscreen-toolbar-header" action="back" class="large-only">
+      <gaia-header id="fullscreen-toolbar-header" action="back" class="large-only" title-start="50" no-font-fit>
         <h1 data-l10n-id="gallery" id="fullscreen-title"></h1>
         <a id="fullscreen-camera-button-large">
           <span data-icon="camera"></span>
@@ -163,7 +163,7 @@
     </form>
 
     <section role="region" id="crop-view" class="skin-dark">
-      <gaia-header id="crop-top" action="back">
+      <gaia-header id="crop-top" action="back" title-start="50" no-font-fit>
         <h1 id="crop-header" data-l10n-id="cropimage"></h1>
         <button id="crop-done-button" data-l10n-id="done">done</button>
       </gaia-header>
@@ -173,7 +173,7 @@
     </section>
 
     <section role="region" id="edit-view" class="skin-dark">
-      <gaia-header id="edit-header" action="close">
+      <gaia-header id="edit-header" action="close" title-start="50" no-font-fit>
         <h1 id="edit-title" data-l10n-id="edit"></h1>
         <button id="edit-save-button" data-l10n-id="save">Save</button>
         <button id="edit-tool-apply-button" data-l10n-id="apply" hidden>Apply</button>
