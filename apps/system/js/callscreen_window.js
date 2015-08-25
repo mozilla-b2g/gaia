@@ -104,7 +104,6 @@
     this.browserContainer.insertBefore(this.browser.element, null);
     this.frame = this.element;
     this.iframe = this.browser.element;
-    this.screenshotOverlay = this.element.querySelector('.screenshot-overlay');
 
     this._registerEvents();
     this.installSubComponents();
