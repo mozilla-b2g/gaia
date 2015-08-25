@@ -34,7 +34,8 @@ define(function(require) {
           roamingPreferenceSelector:
             panel.querySelector('.operator-roaming-preference select'),
           autoSelectionMenuItem: panel.querySelector('.auto-select'),
-          autoSelectionCheckbox: panel.querySelector('.auto-select input'),
+          autoSelectionCheckbox: panel.querySelector(
+            '.auto-select gaia-switch'),
           availableOperators: panel.querySelector('.available-operators')
         };
 
@@ -72,7 +73,7 @@ define(function(require) {
         this._setPanelModel(panelModel);
 
         // Link the manager corresponding to the current mobile connection to
-        // the view modules. 
+        // the view modules.
         this._availableOperatorList.init(operatorManager);
         this._roamingPreferenceSelector.init(roamingPreferenceManager);
         this._autoSelectionCheckbox.init(operatorManager);
