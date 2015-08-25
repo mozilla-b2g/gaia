@@ -90,10 +90,11 @@ const reportDateTimeFormatOptions = {
 };
 
 function completeLocaleFormat(timestamp) {
-  return new Date(+timestamp).toLocaleString(
-    navigator.languages,
-    reportDateTimeFormatOptions
-  );
+  var options = Object.assign(
+    { hour12: navigator.mozHour12 },
+    reportDateTimeFormatOptions);
+
+  return new Date(+timestamp).toLocaleString(navigator.languages, options);
 }
 
 function l10nContainsDateSetup(element, timestamp) {
