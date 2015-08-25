@@ -124,7 +124,7 @@
           // DialerAgent will create callscreen window
           // so it is 'CallscreenWindowLauncher' exactly.
           var dialerAgent = new DialerAgent();
-          dialerAgent.start();
+          dialerAgent.start(); 
         });
       }
     },
