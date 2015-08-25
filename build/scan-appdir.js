@@ -71,7 +71,13 @@ ScanAppdir.prototype.pushPathSrc = function(srcFolder, path) {
 
 ScanAppdir.prototype.execute = function() {
   var baseSrc;
-  this.appList.split('\n').forEach(function(src) {
+  var distributionFolders = this.appList.split('\n');
+
+  if (utils.getEnv('EXTRA_APPS')) {
+    distributionFolders = distributionFolders.concat(utils.getEnv('EXTRA_APPS').split(' '));
+  }
+
+  distributionFolders.forEach(function(src) {
     src = src.trim();
     if (!src || src === '') {
       return;

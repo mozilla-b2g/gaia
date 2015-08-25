@@ -426,6 +426,7 @@ GAIA_ALLAPPDIRS=$(shell find -L $(GAIA_DIR)$(SEP)apps $(GAIA_DIR)$(SEP)dev_apps 
 
 GAIA_APPDIRS?=$(shell $(call run-js-command,scan-appdir, \
 		GAIA_APP_CONFIG="$(GAIA_APP_CONFIG)" \
+		EXTRA_APPS="$(EXTRA_APPS)" \
 		GAIA_DIR="$(GAIA_DIR)" \
 		GAIA_DISTRIBUTION_DIR="$(GAIA_DISTRIBUTION_DIR)" \
 		GAIA_APP_SRCDIRS="$(GAIA_APP_SRCDIRS)"))
