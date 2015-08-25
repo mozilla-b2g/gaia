@@ -3,21 +3,19 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from marionette_driver import By, Wait
+from gaiatest.apps.base import PageRegion
 
-from gaiatest.apps.base import Base
 
+class CellDataPrompt(PageRegion):
 
-class CellDataPrompt(Base):
-
-    _cell_data_prompt_container_locator = (By.CSS_SELECTOR, '#settings-confirm-dialog')
-    _cell_data_prompt_turn_on_button_locator = (By.CSS_SELECTOR, '#settings-confirm-dialog button[data-l10n-id="turnOn"]')
+    _root_element_locator = (By.CSS_SELECTOR, '#settings-confirm-dialog')
+    _turn_on_button_locator = (By.CSS_SELECTOR, 'button[data-l10n-id="turnOn"]')
 
     def __init__(self, marionette):
-        Base.__init__(self, marionette)
-        element = self.marionette.find_element(*self._cell_data_prompt_container_locator)
-        Wait(self.marionette).until(lambda m: 'current' in element.get_attribute('class'))
+        element = marionette.find_element(*self._root_element_locator)
+        PageRegion.__init__(self, marionette, element)
+        Wait(marionette).until(lambda m: 'current' in element.get_attribute('class'))
 
     def turn_on(self):
-        container = self.marionette.find_element(*self._cell_data_prompt_container_locator)
-        self.marionette.find_element(*self._cell_data_prompt_turn_on_button_locator).tap()
-        Wait(self.marionette).until(lambda m: container.location['x'] == container.size['width'])
+        self.root_element.find_element(*self._turn_on_button_locator).tap()
+        Wait(self.marionette).until(lambda m: self.root_element.location['x'] == self.root_element.size['width'])

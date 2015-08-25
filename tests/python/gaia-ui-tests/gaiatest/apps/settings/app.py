@@ -209,6 +209,9 @@ class Settings(Base):
     def open_cell_and_data(self):
         return self._open_subpage(self._cell_data_menu_item_locator, 'cell_data', 'CellData')
 
+    def open_cell_and_data_dual_sim(self):
+        return self._open_subpage(self._cell_data_menu_item_locator, 'cell_data', 'CellDataDualSim')
+
     def open_bluetooth(self):
         return self._open_subpage(self._bluetooth_menu_item_locator, 'bluetooth', 'Bluetooth')
 

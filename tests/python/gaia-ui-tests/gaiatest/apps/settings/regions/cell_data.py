@@ -11,11 +11,9 @@ from gaiatest.apps.settings.regions.cell_data_prompt import CellDataPrompt
 class CellData(Base):
 
     _carrier_container_locator = (By.ID, 'carrier')
-    _carrier_name_locator = (By.CSS_SELECTOR, '#menuItem-carrier-sim1 small')
+    _carrier_name_locator = (By.ID, 'dataNetwork-desc')
     _cell_data_enabled_input_locator = (By.CSS_SELECTOR, '#menuItem-enableDataCall input')
     _cell_data_enabled_label_locator = (By.CSS_SELECTOR, '#menuItem-enableDataCall label')
-    _menuItem_carrier_sim1_locator = (By.ID, "menuItem-carrier-sim1")
-    _menuItem_carrier_sim2_locator = (By.ID, "menuItem-carrier-sim2")
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
@@ -29,10 +27,6 @@ class CellData(Base):
         Wait(self.marionette).until(expected.element_displayed(element))
         return element.text
 
-    @property
-    def is_data_toggle_checked(self):
-        return self.marionette.find_element(*self._cell_data_enabled_input_locator).is_selected()
-
     def enable_data(self):
         element = Wait(self.marionette).until(
             expected.element_present(*self._cell_data_enabled_label_locator))
@@ -40,10 +34,11 @@ class CellData(Base):
         element.tap()
         return CellDataPrompt(self.marionette)
 
-    def select_sim(self, sim):
-        locators = [self._menuItem_carrier_sim1_locator,
-                    self._menuItem_carrier_sim2_locator]
-        element = Wait(self.marionette).until(
-            expected.element_present(*locators[sim]))
-        Wait(self.marionette).until(expected.element_dispayed(element))
-        element.tap()
+    @property
+    def is_data_toggle_checked(self):
+        return self.marionette.find_element(*self._cell_data_enabled_input_locator).is_selected()
+
+
+class CellDataDualSim(CellData):
+
+    _carrier_name_locator = (By.CSS_SELECTOR, '#menuItem-carrier-sim1 small')
