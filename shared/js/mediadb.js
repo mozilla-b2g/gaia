@@ -1523,7 +1523,7 @@ var MediaDB = (function() {
       function handleScanError(error) {
         // We can't scan if we can't read device storage.
         // Perhaps the card was unmounted or pulled out
-        console.warning('Error while scanning', error);
+        console.warn('Error while scanning', error);
         endscan(media);
       }
     }
@@ -1553,7 +1553,7 @@ var MediaDB = (function() {
         .catch(function(error) {
           // We can't scan if we can't read device storage.
           // Perhaps the card was unmounted or pulled out
-          console.warning('Error while scanning', error);
+          console.warn('Error while scanning', error);
           endscan(media);
         });
 

@@ -118,7 +118,7 @@ define(function(require) {
       },
 
       _updateRow: function th_updateRow(theme, checked) {
-        var rule = 'input[value="' + theme + '"]';
+        var rule = 'gaia-radio[value="' + theme + '"]';
         var node = this._container.querySelector(rule);
         if (node) {
           node.checked = !!checked;
@@ -126,7 +126,7 @@ define(function(require) {
       },
 
       disableSelection: function th_disableSelection() {
-        var nodes = this._container.querySelectorAll('input:not([value="' +
+        var nodes = this._container.querySelectorAll('gaia-radio:not([value="' +
          this._selectedTheme + '"])');
         if (nodes) {
           Array.prototype.slice.call(nodes).forEach(function(node) {
@@ -136,7 +136,7 @@ define(function(require) {
       },
 
       enableSelection: function th_enableSelection() {
-        var nodes = this._container.querySelectorAll('input');
+        var nodes = this._container.querySelectorAll('gaia-radio');
         if (nodes) {
           Array.prototype.slice.call(nodes).forEach(function(node) {
             node.parentNode.parentNode.classList.remove('disabled');

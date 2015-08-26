@@ -22,6 +22,7 @@ window.GaiaPinCard = (function(win) {
     this.bgElement = this._template.querySelector('.background');
     this.descElement = this._template.querySelector('.description');
     this.titleElement = this._template.querySelector('header');
+    this.iconElement = this._template.querySelector('i');
     this._background = {};
 
     shadow.appendChild(this._template);
@@ -39,7 +40,12 @@ window.GaiaPinCard = (function(win) {
       this.bgElement.style.backgroundImage = bgSrc;
       this.bgElement.style.backgroundColor = background.themeColor || 'white';
       var computedStyle = window.getComputedStyle(this.bgElement);
-      var brightness = getBrightness(computedStyle.backgroundColor);
+      var colorCodes = getColorCodes(computedStyle.backgroundColor);
+      var brightness = getBrightness(colorCodes);
+      // Adding opacity to the background color
+      var bgColorRgba = 'rgba(' + colorCodes.slice(1).join(',') + ', 0.6)';
+      var shadow = 'inset 0 0 0 ' + computedStyle.width;
+      this.bgElement.style.boxShadow = shadow + ' ' + bgColorRgba;
       this.container.classList.toggle('light', brightness < 200);
     }
   });
@@ -50,6 +56,15 @@ window.GaiaPinCard = (function(win) {
     },
     set: function(title) {
       this.titleElement.textContent = title;
+    }
+  });
+
+  Object.defineProperty(proto, 'icon', {
+    get: function() {
+      return this.iconElement.style.backgroundImage;
+    },
+    set: function(icon) {
+      this.iconElement.style.backgroundImage = icon;
     }
   });
 
@@ -79,8 +94,12 @@ window.GaiaPinCard = (function(win) {
       </section>
     </article>`;
 
-  function getBrightness(color) {
+  function getColorCodes(color) {
     var colorCodes = /rgb\((\d+), (\d+), (\d+)\)/.exec(color);
+    return colorCodes;
+  }
+
+  function getBrightness(colorCodes) {
     if (!colorCodes || colorCodes.length === 0) {
       return;
     }

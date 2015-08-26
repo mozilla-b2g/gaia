@@ -14,7 +14,7 @@ gaia-switch {
 #switch span {
   float: left;
   font-size: 1.9rem;
-  color: #000;
+  color: var(--label-color);
   padding: 1rem 0;
   line-height: 3rem;
   box-sizing: border-box;
@@ -47,7 +47,7 @@ gaia-switch {
   content: '';
   position: absolute;
   right: 0;
-  top: 50%;
+  top: 2.5rem;
   width: 6rem;
   margin: -1.4rem 0 0;
   height: 2.7rem;
@@ -87,4 +87,24 @@ span[dir="rtl"]#switch input {
 span[dir="rtl"]#switch input ~ span:after {
   left: 0;
   right: unset;
+}
+
+/******************************************************************************
+ * A <details> slot may be specified in addition the the <label>.
+ * When provided, it appears under the <label> and can provide additional context.
+ */
+#switch div.details {
+  clear: left;
+  position: relative;
+  top: -1.5rem;
+  display: block;
+  margin: 0;
+  padding-top: 0.5rem;
+  -moz-padding-start: 0;
+  -moz-padding-end: 8rem;
+  font-size: 1.4rem;
+  line-height: 1.6rem;
+  color: #505859;
+  font-style: normal;
+  white-space: normal;
 }

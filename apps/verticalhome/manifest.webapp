@@ -1,5 +1,5 @@
 {
-  "name": "Homescreen",
+  "name": "Default Home Screen",
   "description": "Gaia Homescreen",
   "launch_path": "/index.html",
   "type": "certified",
@@ -14,7 +14,8 @@
     "open-remote-window":{},
     "webapps-manage": {},
     "systemXHR": {},
-    "settings":{ "access": "readwrite" }
+    "settings":{ "access": "readwrite" },
+    "moz-extremely-unstable-and-will-change-webcomponents":{}
   },
   "default_locale": "en-US",
   "locales": {
@@ -23,7 +24,7 @@
       "description": "Gaia الشاشة الرئيسية"
     },
     "en-US": {
-      "name": "Homescreen",
+      "name": "Default Home Screen",
       "description": "Gaia Homescreen"
     },
     "fr": {

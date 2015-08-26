@@ -37,8 +37,6 @@ class Camera(Base):
     # ConfirmDialog
     _select_button_locator = (By.CSS_SELECTOR, '.test-confirm-select')
 
-    _screen_locator = (By.ID, 'screen')
-
     def launch(self):
         Base.launch(self)
         self.wait_for_capture_ready()
@@ -86,13 +84,7 @@ class Camera(Base):
     def tap_select_button(self):
         select = self.marionette.find_element(*self._select_button_locator)
         Wait(self.marionette).until(expected.element_enabled(select))
-
-        # Workaround for bug 1109213, where tapping on the button inside the app itself
-        # makes Marionette spew out NoSuchWindowException errors
-        x = select.rect['x'] + select.rect['width']//2
-        y = select.rect['y'] + select.rect['height']//2
-        self.marionette.switch_to_frame()
-        self.marionette.find_element(*self._screen_locator).tap(x, y)
+        self.tap_element_from_system_app(select)
 
         # Fall back to app beneath the picker
         Wait(self.marionette).until(lambda m: self.apps.displayed_app.name != self.name)

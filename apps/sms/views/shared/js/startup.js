@@ -3,13 +3,36 @@
 
 'use strict';
 
-/*global ActivityHandler, ConversationView, InboxView, MessageManager,
-         Settings, LazyLoader, TimeHeaders, Information, SilentSms,
-         App, Navigation, LocalizationHelper,
-         InterInstanceEventDispatcher
+/*global ActivityHandler,
+         App,
+         ConversationView,
+         InboxView,
+         Information,
+         InterInstanceEventDispatcher,
+         LazyLoader,
+         LocalizationHelper,
+         MessageManager,
+         MessagingClient,
+         Navigation,
+         Settings,
+         SilentSms,
+         TimeHeaders
 */
 
-var Startup = {
+(function(exports) {
+/**
+  * @function
+  * The debug function translates to console.log in debug mode.
+  *
+  * @param {String} arg1 The first value to be displayed to the console.
+  * @param {...*} args The other values to be displayed to the console, or the
+  * parameters to the first string.
+  */
+var debug = 0 ?
+  (arg1, ...args) => console.log('[Startup] ' + arg1, ...args) :
+  () => {};
+
+var Startup = exports.Startup = {
   _lazyLoadScripts: [
     '/shared/js/settings_listener.js',
     '/shared/js/mime_mapper.js',
@@ -47,7 +70,8 @@ var Startup = {
     '/lib/bridge/bridge.js',
     '/services/js/bridge_service_mixin.js',
     '/services/js/activity/activity_shim.js',
-    '/services/js/activity/activity_client.js'
+    '/services/js/activity/activity_client.js',
+    '/services/js/messaging/messaging_client.js'
   ],
 
   _lazyLoadInit: function() {
@@ -63,6 +87,7 @@ var Startup = {
       // Init UI Managers
       TimeHeaders.init();
       ConversationView.init();
+      MessagingClient.init();
       Information.initDefaultViews();
 
       Navigation.setReady();
@@ -74,15 +99,7 @@ var Startup = {
 
       window.performance.mark('objectsInitEnd');
     });
-    this._initHeaders();
     return lazyLoadPromise;
-  },
-
-  _initHeaders: function() {
-    var headers = document.querySelectorAll('gaia-header[no-font-fit]');
-    for (var i = 0, l = headers.length; i < l; i++) {
-      headers[i].removeAttribute('no-font-fit');
-    }
   },
 
   /**
@@ -98,8 +115,8 @@ var Startup = {
       window.performance.mark('navigationLoaded');
 
       MessageManager.init();
-      Navigation.init();
       InboxView.init();
+      Navigation.init();
 
       InboxView.once('fully-loaded', () => {
         window.performance.mark('fullyLoaded');
@@ -115,16 +132,17 @@ var Startup = {
       // then just navigate to it, otherwise we can delay default panel
       // initialization until we navigate to requested non-default panel.
       if (Navigation.isDefaultPanel() &&
-        !navigator.mozHasPendingMessage('notification')) {
+        !navigator.mozHasPendingMessage('notification') &&
+        !navigator.mozHasPendingMessage('activity')) {
+        debug('Rendering threads now.');
 
         InboxView.once('visually-loaded', () => {
           this._lazyLoadInit();
         });
 
         InboxView.renderThreads();
-
-        Navigation.toDefaultPanel();
       } else {
+        debug('Not using default panel, waiting for navigated event');
         Navigation.once('navigated', () => InboxView.renderThreads());
 
         this._lazyLoadInit();
@@ -140,3 +158,4 @@ var Startup = {
 };
 
 Startup.init();
+})(window);

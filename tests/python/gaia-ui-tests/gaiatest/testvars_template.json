@@ -1,5 +1,7 @@
 {
-  "settings": {},
+  "settings": {
+    "language.current": ""
+  },
   "prefs": {},
   "phone_number": [],
   "imei": [],
@@ -49,6 +51,10 @@
   },
   "facebook": {
     "username": "",
+    "password": ""
+  },
+  "bugzilla": {
+    "user": "",
     "password": ""
   }
 }

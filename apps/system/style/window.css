@@ -15,6 +15,10 @@
   background-color: white;
 }
 
+.appWindow.popupWindow.alwaysLowered {
+  display: none;
+}
+
 .appWindow:not(.homescreen):not(.searchWindow).render {
   background-image: none !important;
   background-color: transparent;
@@ -256,10 +260,10 @@
   pointer-events: all;
 }
 
-.appWindow.inactive .touch-blocker,
-.appWindow.overlay .touch-blocker,
-.appWindow.transition-closing .touch-blocker,
-.appWindow.transition-opening .touch-blocker {
+.appWindow.inactive > .touch-blocker,
+.appWindow.overlay > .touch-blocker,
+.appWindow.transition-closing > .touch-blocker,
+.appWindow.transition-opening > .touch-blocker {
   /* The animation takes .3 seconds so users cannot touch the app while the
    * closing animation is performing */
   visibility: visible;

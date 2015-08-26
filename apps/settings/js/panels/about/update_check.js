@@ -18,7 +18,6 @@ define(function(require) {
       'gecko.updateStatus': {},
       'apps.updateStatus': {}
     };
-    this._ = navigator.mozL10n.get;
   };
 
   UpdateCheck.prototype = {
@@ -54,10 +53,15 @@ define(function(require) {
           return;
         }
 
-        var f = new navigator.mozL10n.DateTimeFormat();
         this._elements.lastUpdateDate.textContent =
-          f.localeFormat(new Date(lastUpdated),
-            this._('shortDateTimeFormat'));
+          new Date(lastUpdated).toLocaleString(navigator.languages, {
+            hour12: navigator.mozHour12,
+            hour: 'numeric',
+            minute: 'numeric',
+            day: 'numeric',
+            month: 'numeric',
+            year: 'numeric'
+          });
       }.bind(this);
     },
 
@@ -150,7 +154,11 @@ define(function(require) {
      */
     _checkForUpdates: function uc__checkForUpdates() {
       if (!navigator.onLine) {
-        alert(this._('no-network-when-update'));
+        this._elements.checkUpdateNow.setAttribute('disabled', 'disabled');
+        navigator.mozL10n.formatValue('no-network-when-update').then(msg => {
+          alert(msg);
+          this._elements.checkUpdateNow.removeAttribute('disabled');
+        });
         return;
       }
 

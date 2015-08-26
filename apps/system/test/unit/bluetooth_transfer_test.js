@@ -239,7 +239,7 @@ suite('system/bluetooth_transfer', function() {
         var evt = {
           detail: sendingFilesSchedule
         };
-        var title = 'transfer-has-started-title';
+        var title = 'transferHasStartedTitle';
         BluetoothTransfer._onFilesSending(evt);
         assert.equal(2, BluetoothTransfer._sendingFilesQueue.length);
         assert.equal(MockNotificationHelper.mTitleL10n, title);
@@ -289,7 +289,7 @@ suite('system/bluetooth_transfer', function() {
           received: false,
           success: true
         };
-        var title = 'transferReport-title';
+        var title = 'transferReportTitle';
         var body = {
           id: 'transferReport-description',
           args: {'numSuccessful' : 1, 'numUnsuccessful' : 1}
@@ -326,11 +326,15 @@ suite('system/bluetooth_transfer', function() {
           );
           assert.equal(
             MockNotificationHelper.mOptions.bodyL10n,
-            'transfer-confirmation-description'
+            'transfer-confirmation-desc'
           );
           assert.equal(
             MockNotificationHelper.mOptions.icon,
             'style/bluetooth_transfer/images/icon_bluetooth.png'
+          );
+          assert.equal(
+            MockNotificationHelper.mOptions.mozbehavior,
+            {noclear: true}
           );
 
           NotificationHelper.mEmit('click');
@@ -725,11 +729,11 @@ suite('system/bluetooth_transfer', function() {
           'cancelFileTransfer', 'cancelFileTransfer'));
         assert.equal(
           MockService.request.getCall(0).args[3].title,
-          'continueFileTransfer'
+          'no'
         );
         assert.equal(
           MockService.request.getCall(0).args[4].title,
-          'cancel'
+          'yes'
         );
 
         MockService.request.getCall(0).args[3].callback();

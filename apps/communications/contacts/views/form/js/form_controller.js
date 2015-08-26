@@ -15,12 +15,14 @@
   'use strict';
 
   var _;
-  var _activity;
+  var _activity, _contact, _comesFromActivity;
   const CONTACTS_APP_ORIGIN = location.origin;
 
   function close() {
     if (_activity) {
       _activity.postResult({});
+    } else if (_comesFromActivity) {
+      window.close();
     } else {
       window.history.back();
     }
@@ -136,13 +138,30 @@
                 list.push(results[id]);
               });
 
+              // Cache pontential events based on the contacts with a
+              // matching.
+              var events = [];
+              for (var i = 0; i < list.length; i++) {
+                events.push(
+                  {
+                    contactID: list[i].matchingContact.id,
+                    reason: 'merged'
+                  }
+                );
+              }
+
+              listenContactChanges(events);
+              window.addEventListener(
+                'contacts-merged',
+                function() {
+                  close();
+                }
+              );
               doMerge(contact, list, function finished() {
                 window.postMessage({
                   type: 'duplicate_contacts_merged',
                   data: ids
                 }, CONTACTS_APP_ORIGIN);
-                close();
-
               });
 
             break;
@@ -168,16 +187,50 @@
     };
   }
 
+  function doRemove(contact) {
+    listenContactChanges().then(function() {
+      if (_comesFromActivity) {
+        window.close();
+      } else {
+        window.history.go(-2);
+      }
+    });
+    ContactsService.remove(contact);
+  }
+
+  /*
+   * This function will wait until listen any change in contacts
+   * DB, and if the change happens will send back the list of events
+   * (created, removed, merged...) to the UI in order to update it
+   * consequently.
+   * 'events' represents the set of contacts that can be potentially
+   * removed due to a merge in the process of saving a new contact.
+   * If this happens, will affect to the UI.
+   */
+  function listenContactChanges(events) {
+    return new Promise(function(resolve, reject) {
+      ContactsService.addListener('contactchange',
+        function oncontactchange(event) {
+          ContactsService.removeListener('contactchange', oncontactchange);
+
+          var eventToSave = {
+            contactID: event.contactID,
+            reason: event.reason
+          };
+          
+          if (!events) {
+            events = [];
+          }
+          events.unshift(eventToSave);
+          sessionStorage.setItem('contactChanges', JSON.stringify(events));
+          resolve();
+        }
+      );
+    });
+  }
 
   function doSave(contact) {
-    ContactsService.addListener('contactchange',
-      function oncontactchange(event) {
-        sessionStorage.setItem('contactID', event.contactID);
-        sessionStorage.setItem('reason', event.reason);
-        ContactsService.removeListener('contactchange', oncontactchange);
-        close();
-      }
-    );
+    listenContactChanges().then(close);
     ContactsService.save(contact, function(error) {
       // Use if needed.
     });
@@ -193,7 +246,20 @@
 
 
       function saveContactHandler(event) {
-        var contact = utils.misc.toMozContact(event.detail);
+        var contact;
+        var preContact = event.detail;
+        if (_contact) {
+          var readOnly = ['id', 'updated', 'published'];
+          for (var field in _contact) {
+            if (readOnly.indexOf(field) == -1) {
+              _contact[field] = preContact[field];
+            }
+          }
+
+          contact = _contact;
+        } else {
+          contact = utils.misc.toMozContact(preContact);
+        }
         LazyLoader.load(
           [
             '/contacts/style/match_service.css',
@@ -205,13 +271,27 @@
           }
         );
       }
+      
       window.addEventListener(
         'save-contact',
         saveContactHandler
       );
+
+      window.addEventListener(
+        'delete-contact',
+        function() {
+          doRemove(_contact);
+        }
+      );
     },
     setActivity: function(activity) {
       _activity = activity;
+    },
+    setContact: function(contact) {
+      _contact = contact;
+    },
+    set comesFromActivity(value) {
+      _comesFromActivity = value;
     }
   };
 }(window));

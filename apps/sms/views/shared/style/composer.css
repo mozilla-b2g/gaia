@@ -206,10 +206,6 @@ form[role="search"] button[type="submit"]:after {
   opacity: 0.625;
 }
 
-#messages-input.ignoreEvents {
-  pointer-events: none;
-}
-
 #messages-attach-button {
   align-self: flex-end;
   flex: none;

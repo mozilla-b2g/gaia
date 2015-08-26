@@ -1,0 +1,105 @@
+
+.countdown {
+  position: absolute;
+  top: 50%; left: 50%;
+  z-index:50;
+
+  height: 16rem;
+  width: 16rem;
+  margin: -8rem;
+  line-height: 16rem;
+  overflow: hidden;
+
+  border-radius: 50%;
+  text-align: center;
+  opacity: 0;
+  color: #FFF;
+  pointer-events: none;
+  transform: scale(1.5);
+
+  transition:
+    opacity 200ms,
+    transform 0ms 100ms;
+}
+
+/**
+ * visible
+ */
+
+.countdown.visible {
+  opacity: 1;
+  transform: scale(1);
+  transition:
+    opacity 400ms,
+    transform 300ms;
+}
+
+/** Black Circle
+ ---------------------------------------------------------*/
+
+.countdown_circle-1 {
+  position: absolute;
+  left: 0; top: 0;
+  width: 100%;
+  height: 100%;
+  background: #000;
+  opacity: 0.12;
+  transition: opacity 180ms;
+}
+
+/**
+ * immanent
+ */
+
+.countdown.immanent .countdown_circle-1 {
+  opacity: 0;
+}
+
+/** Red Circle
+ ---------------------------------------------------------*/
+
+.countdown_circle-2 {
+  position: absolute;
+  left: 0; top: 0;
+  width: 100%;
+  height: 100%;
+  background: rgb(245,50,50);
+  opacity: 0;
+}
+
+/**
+ * immanent
+ */
+
+.countdown.immanent .countdown_circle-2 {
+  animation: countdown_circle-2 3s linear 1;
+  animation-fill-mode: forwards;
+}
+
+@keyframes countdown_circle-2 {
+  0% { opacity: 0; }
+  6% { opacity: 0.12; }
+  100% { opacity: 0.7; }
+}
+
+/** Count
+ ---------------------------------------------------------*/
+
+.countdown_count {
+  position: relative;
+  font-size: 10.2rem;
+  font-weight: 100;
+  opacity: 1;
+  transform: scale(1.6);
+  transition: none;
+}
+
+/**
+ * shrink
+ */
+
+.shrink .countdown_count {
+  transition: all 1s;
+  opacity: 0;
+  transform: scale(1);
+}

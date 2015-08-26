@@ -1,5 +1,4 @@
-/* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+/* global Utils */
 
 'use strict';
 
@@ -1538,9 +1537,7 @@
   };
 
   MockNavigatormozMobileMessage.retrieveMMS = function(id) {
-    var request = {
-      error: null
-    };
+    var deferred = Utils.Promise.defer();
     var msgs = messagesDb.messages;
     var idx = 0, len = msgs.length;
     setTimeout(function() {
@@ -1552,7 +1549,6 @@
           continue;
         }
         if (msg.id === id) {
-          request.result = msg;
           msg.smil = '<smil><body><par><text src="text1"/></par>' +
             '</body></smil>';
           msg.attachments = [{
@@ -1561,9 +1557,7 @@
           }];
           msg.delivery = 'received';
 
-          if (typeof request.onsuccess === 'function') {
-            request.onsuccess.call(request);
-          }
+          deferred.resolve(msg);
           trigger('received', {
             type: 'received',
             message: msg
@@ -1571,11 +1565,10 @@
           return;
         }
       }
-      if (typeof request.onerror === 'function') {
-        request.onerror.call(request);
-      }
+
+      deferred.reject();
     }, simulation.delay());
-    return request;
+    return deferred.promise;
   };
 
   MockNavigatormozMobileMessage.getSegmentInfoForText = function(text) {

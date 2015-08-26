@@ -1,6 +1,5 @@
 /* global ContactsButtons, LazyLoader, utils, WebrtcClient */
 /* global Normalizer, ContactPhotoHelper */
-/* global TAG_OPTIONS */
 
 /* exported DetailsUI */
 
@@ -28,7 +27,6 @@
     init: function() {
       var self = this;
       function initContainers() {
-        self._ = navigator.mozL10n.get;
         self.header = document.querySelector('#details-view-header');
         self.contactDetails = document.querySelector('#contact-detail');
         self.listContainer = document.querySelector('#details-list');
@@ -297,7 +295,6 @@
           var escapedStreet = Normalizer.escapeHTML(address, true);
           var locality = currentAddress.locality;
           var escapedLocality = Normalizer.escapeHTML(locality, true);
-          var escapedType = Normalizer.escapeHTML(currentAddress.type, true);
           var country = currentAddress.countryName || '';
           var escapedCountry = Normalizer.escapeHTML(country, true);
           var postalCode = currentAddress.postalCode || '';
@@ -308,8 +305,6 @@
             postalCode: escapedPostalCode,
             locality: escapedLocality || '',
             countryName: escapedCountry,
-            type: this._(escapedType) || escapedType ||
-              TAG_OPTIONS['address-type'][0].value,
             'type_l10n_id': currentAddress.type,
             i: i
           };
@@ -345,7 +340,7 @@
         var element = utils.templates.render(this.datesTemplate, {
           i: ++rendered,
           date: dateString,
-          type: this._(l10nIds[j])
+          'type_l10n_id': l10nIds[j]
         });
 
         this.listContainer.appendChild(element);

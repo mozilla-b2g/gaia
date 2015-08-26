@@ -11,16 +11,14 @@ from gaiatest.apps.base import Base
 
 class Battery(Base):
 
-    _power_save_checkbox_locator = (By.CSS_SELECTOR, '.uninit[name*="powersave"]')
-    _power_save_label_locator = (By.CSS_SELECTOR, 'span[data-l10n-id="powerSaveMode"]')
+    _power_save_checkbox_locator = (By.CSS_SELECTOR, 'gaia-switch[name="powersave.enabled"]')
     _power_save_turn_on_auto_locator = (By.CSS_SELECTOR, 'select[name="powersave.threshold"]')
 
     def toggle_power_save_mode(self):
-        checkbox = self.marionette.find_element(*self._power_save_checkbox_locator)
-        label = self.marionette.find_element(*self._power_save_label_locator)
-        state = checkbox.is_selected()
-        label.tap()
-        Wait(self.marionette).until(lambda m: state is not checkbox.is_selected())
+        element = self.marionette.find_element(*self._power_save_checkbox_locator)
+        initial_state = self.is_custom_element_checked(element)
+        element.tap()
+        self.wait_for_custom_element_checked_state(element, checked=not(initial_state))
 
     def tap_turn_on_auto(self):
         element = Wait(self.marionette).until(

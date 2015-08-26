@@ -31,6 +31,7 @@ var MockMessageManager = {
   getSegmentInfo: function() {
     return Promise.reject(new Error('not implemented '));
   },
+  ensureThreadRegistered() { return Promise.resolve(); },
   on: function() {},
   off: function() {},
   mTriggerOnSuccess: function() {

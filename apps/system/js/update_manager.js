@@ -143,7 +143,7 @@
 
       var checkValues = {};
       var dialog = this.downloadDialogList;
-      var checkboxes = dialog.querySelectorAll('input[type="checkbox"]');
+      var checkboxes = dialog.querySelectorAll('gaia-checkbox');
       for (var i = 0; i < checkboxes.length; i++) {
         var checkbox = checkboxes[i];
         checkValues[checkbox.dataset.position] = checkbox.checked;
@@ -372,42 +372,43 @@
       this.downloadDialogList.innerHTML = '';
       this.updatesQueue.forEach(function updatableIterator(updatable, index) {
         var listItem = document.createElement('li');
+        var nameDetails;
 
         // The user can choose not to update an app
-        var checkContainer = document.createElement('label');
         if (updatable instanceof SystemUpdatable) {
+          var checkContainer = document.createElement('label');
           _localize(checkContainer, 'required');
           checkContainer.classList.add('required');
           this._systemUpdateDisplayed = true;
+          listItem.appendChild(checkContainer);
+          nameDetails = listItem;
         } else {
-          var checkbox = document.createElement('input');
-          checkbox.type = 'checkbox';
+          var checkbox = document.createElement('gaia-checkbox');
           checkbox.dataset.position = index;
           checkbox.checked = true;
 
-          var span = document.createElement('span');
+          var label = document.createElement('label');
+          nameDetails = label;
 
-          checkContainer.classList.add('pack-checkbox');
-          checkContainer.appendChild(checkbox);
-          checkContainer.appendChild(span);
+          checkbox.appendChild(label);
+          listItem.appendChild(checkbox);
         }
-        listItem.appendChild(checkContainer);
 
-        var name = document.createElement('div');
+        var name = document.createElement('span');
         name.classList.add('name');
         if (updatable.nameL10nId) {
           _localize(name, updatable.nameL10nId);
         } else {
           name.textContent = updatable.name;
         }
-        listItem.appendChild(name);
+        nameDetails.appendChild(name);
 
         if (updatable.size) {
-          var sizeItem = document.createElement('div');
+          var sizeItem = document.createElement('span');
           sizeItem.textContent = this._humanizeSize(updatable.size);
-          listItem.appendChild(sizeItem);
+          nameDetails.appendChild(sizeItem);
         } else {
-          listItem.classList.add('nosize');
+          nameDetails.classList.add('nosize');
         }
 
         this.downloadDialogList.appendChild(listItem);
@@ -427,14 +428,13 @@
       var disabled = true;
 
       var dialog = this.downloadDialogList;
-      var checkboxes = dialog.querySelectorAll('input[type="checkbox"]');
+      var checkboxes = dialog.querySelectorAll('gaia-checkbox');
       for (var i = 0; i < checkboxes.length; i++) {
         if (checkboxes[i].checked) {
           disabled = false;
           break;
         }
       }
-
       this.downloadButton.disabled = disabled;
     },
 

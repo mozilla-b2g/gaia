@@ -1,7 +1,8 @@
 /* globals Contacts, CallLogDBManager, LazyLoader,
            Utils, StickyHeader, KeypadManager, SimSettingsHelper,
            CallHandler, AccessibilityHelper,
-           ConfirmDialog, Notification, fb, CallGroupMenu */
+           ConfirmDialog, Notification, fb, CallGroupMenu,
+           Navigation */
 
 'use strict';
 
@@ -84,7 +85,7 @@ var CallLog = {
             self.pauseHeaders();
           } else {
             self.updateHeadersContinuously();
-            if (window.location.hash === '#call-log-view') {
+            if (Navigation.currentView === 'recents') {
               self.becameVisible();
             }
           }
@@ -653,7 +654,7 @@ var CallLog = {
       if (navigator.mozIccManager &&
           navigator.mozIccManager.iccIds.length > 1) {
         KeypadManager.updatePhoneNumber(phoneNumber);
-        window.location.hash = '#keyboard-view';
+        Navigation.showKeypad();
       } else {
         SimSettingsHelper.getCardIndexFrom('outgoingCall', function(ci) {
           CallHandler.call(phoneNumber, ci);

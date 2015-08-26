@@ -16,7 +16,8 @@
     "settings":{ "access": "readwrite" },
     "systemXHR":{},
     "webapps-manage": {},
-    "wifi-manage":{}
+    "wifi-manage":{},
+    "moz-extremely-unstable-and-will-change-webcomponents":{}
   },
   "activities": {
     "create-collection": {

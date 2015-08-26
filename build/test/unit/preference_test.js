@@ -284,7 +284,8 @@ suite('preferences.js', function() {
       preferences.userPrefs = {};
       preferences.setDesktopPref();
       assert.deepEqual(preferences.userPrefs, {
-        'extensions.autoDisableScopes': 0
+        'extensions.autoDisableScopes': 0,
+        'xpinstall.signatures.required': false
       });
     });
 
@@ -341,6 +342,7 @@ suite('preferences.js', function() {
         'extensions.gaia.device_pixel_suffix':
           '@' + preferences.config.GAIA_DEV_PIXELS_PER_PX + 'x',
         'extensions.autoDisableScopes': 0,
+        'xpinstall.signatures.required': false,
         'browser.tabs.remote.autostart': false,
         'browser.tabs.remote.autostart.1': false,
         'browser.tabs.remote.autostart.2': false,

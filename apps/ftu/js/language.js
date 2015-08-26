@@ -34,10 +34,11 @@ var LanguageManager = {
 
   // set proper timeformat while localized
   localizedEventListener: function settings_localizedEventListener() {
-    var localeTimeFormat = navigator.mozL10n.get('shortTimeFormat');
-    var is12hFormat = (localeTimeFormat.indexOf('%I') >= 0);
-    this.settings.createLock().set({
-      'locale.hour12': is12hFormat
+    navigator.mozL10n.formatValue('shortTimeFormat').then((format) => {
+      var is12hFormat = (format.indexOf('%I') >= 0);
+      this.settings.createLock().set({
+        'locale.hour12': is12hFormat
+      });
     });
   },
 
@@ -67,6 +68,7 @@ var LanguageManager = {
         li.appendChild(radio);
         container.appendChild(li);
       }
+      window.dispatchEvent(new CustomEvent('languagelistready'));
     });
   }
 };

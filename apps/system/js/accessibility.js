@@ -1,5 +1,5 @@
 'use strict';
-/* global SettingsListener, LazyLoader */
+/* global SettingsListener, LazyLoader, Service */
 /* global AccessibilityQuicknavMenu */
 
 (function(exports) {
@@ -84,6 +84,7 @@
       'accessibility.screenreader-volume': 1,
       'accessibility.screenreader-rate': 0,
       'accessibility.screenreader-captions': false,
+      'accessibility.screenreader-shade': false,
       'accessibility.colors.enable': false,
       'accessibility.colors.invert': false,
       'accessibility.colors.grayscale': false,
@@ -135,6 +136,7 @@
       Object.keys(this.settings).forEach(function attach(settingKey) {
         SettingsListener.observe(settingKey, this.settings[settingKey],
           function observe(aValue) {
+            var oldValue = this.settings[settingKey];
             this.settings[settingKey] = aValue;
             switch (settingKey) {
               case 'accessibility.screenreader':
@@ -143,6 +145,9 @@
                   SettingsListener.getSettingsLock().set({
                     'accessibility.screenreader-show-settings': true
                   });
+                }
+                if (this.settings['accessibility.screenreader-shade']) {
+                  this.toggleShade(aValue, !aValue);
                 }
                 this.screen.classList.toggle('screenreader', aValue);
                 break;
@@ -164,6 +169,12 @@
                 // If captions are displayed hide them.
                 if (!aValue) {
                   this.speechSynthesizer.hideSpeech(true);
+                }
+                break;
+
+              case 'accessibility.screenreader-shade':
+                if (this.settings['accessibility.screenreader']) {
+                  this.toggleShade(aValue, oldValue === aValue);
                 }
                 break;
 
@@ -208,6 +219,14 @@
     resetSpeaking: function ar_resetSpeaking(aExpectedCompleteTimeStamp) {
       this.isSpeaking = false;
       this.expectedCompleteTimeStamp = aExpectedCompleteTimeStamp || 0;
+    },
+
+    toggleShade: function ar_toggleShage(aEnable, aSilent) {
+      Service.request(aEnable ? 'turnShadeOn' : 'turnShadeOff');
+      if (!aSilent) {
+        this.speak({ string: aEnable ? 'shadeToggleOn' : 'shadeToggleOff' },
+          null, {enqueue: true});
+      }
     },
 
     /**
@@ -344,18 +363,29 @@
 
     handleAccessFuControl: function ar_handleAccessFuControls(aDetails) {
       this.cancelHints();
-      if (aDetails.eventType === 'quicknav-menu') {
-        if (!this.quicknav) {
-          LazyLoader.load(['js/accessibility_quicknav_menu.js'])
-            .then(() => {
-              this.quicknav = new AccessibilityQuicknavMenu();
+      switch (aDetails.eventType) {
+        case 'quicknav-menu':
+          if (!this.quicknav) {
+            LazyLoader.load(['js/accessibility_quicknav_menu.js'])
+              .then(() => {
+                this.quicknav = new AccessibilityQuicknavMenu();
+                this.quicknav.show();
+              }).catch((err) => {
+                console.error(err);
+              });
+          } else {
               this.quicknav.show();
-            }).catch((err) => {
-              console.error(err);
-            });
-        } else {
-          this.quicknav.show();
-        }
+          }
+          break;
+        case 'toggle-shade':
+          SettingsListener.getSettingsLock().set({
+            'accessibility.screenreader-shade':
+            !this.settings['accessibility.screenreader-shade']
+          });
+          window.dispatchEvent(new CustomEvent('accessibility-action'));
+          break;
+        default:
+          break;
       }
     },
 

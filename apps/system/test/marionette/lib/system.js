@@ -49,6 +49,8 @@ System.Selector = Object.freeze({
   downloadDialog: '#downloadConfirmUI',
   imeMenu: '.ime-menu',
   inlineActivity: '.appWindow.inline-activity',
+  pinDialog: '.appWindow.active .chrome .pin-dialog',
+  pinButton: '.appWindow.active .chrome .pin-button',
   sleepMenuContainer: '#sleep-menu-container',
   softwareButtons: '#software-buttons',
   softwareHome: '#software-home-button',
@@ -67,6 +69,7 @@ System.Selector = Object.freeze({
   trustedWindowChrome: '.appWindow.active.trustedwindow .chrome',
   leftPanel: '#left-panel',
   rightPanel: '#right-panel',
+  siteIcon: '.appWindow.active .chrome .site-icon',
   utilityTray: '#utility-tray',
   visibleForm: '#action-menu > form.visible',
   cancelActivity: '#action-menu form.visible button[data-action="cancel"]',
@@ -193,8 +196,13 @@ System.prototype = {
   },
 
   get appChromeProgressBar() {
-    return this.client.helper.waitForElement(
-      System.Selector.appChromeProgressBar);
+    var progressBar;
+    var client = this.client;
+    this.client.waitFor(function() {
+      progressBar = client.findElement(System.Selector.appChromeProgressBar);
+      return progressBar;
+    });
+    return progressBar;
   },
 
   get currentWindow() {
@@ -216,6 +224,14 @@ System.prototype = {
 
   get inlineActivity() {
     return this.client.helper.waitForElement(System.Selector.inlineActivity);
+  },
+
+  get pinDialog() {
+    return this.client.findElement(System.Selector.pinDialog);
+  },
+
+  get pinButton() {
+    return this.client.findElement(System.Selector.pinButton);
   },
 
   get sleepMenuContainer() {
@@ -296,6 +312,10 @@ System.prototype = {
 
   get screenSize() {
     return this.client.findElement(System.Selector.screen).size();
+  },
+
+  get siteIcon() {
+    return this.client.helper.waitForElement(System.Selector.siteIcon);
   },
 
   get nfcIcon() {

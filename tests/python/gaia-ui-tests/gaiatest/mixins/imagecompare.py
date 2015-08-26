@@ -36,9 +36,4 @@ class GaiaImageCompareOptionsMixin(object):
                          help="Path for screenshot images, relative to the current location, "
                               "Default folder is %default")
 
-        group.add_option('--locale',
-                         default = "undefined",
-                         help = "locale for the device, "
-                                "When not defined, will use the value from testvars.json file")
-
         self.verify_usage_handlers.append(self.check_fuzz_factor)

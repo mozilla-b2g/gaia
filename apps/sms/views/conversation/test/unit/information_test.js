@@ -76,23 +76,6 @@ suite('Information view', function() {
       reportView = new Information('report');
     });
 
-    suite('view show/reset status', function() {
-      test('view status before show method', function() {
-        assert.isTrue(reportView.panel.classList.contains('hide'));
-      });
-
-      test('view status after show method', function() {
-        this.sinon.stub(reportView, 'render');
-        reportView.show();
-        assert.isFalse(reportView.panel.classList.contains('hide'));
-      });
-
-      test('view status after reset method', function() {
-        reportView.reset();
-        assert.isTrue(reportView.panel.classList.contains('hide'));
-      });
-    });
-
     suite('view refresh', function() {
       setup(function() {
         this.sinon.stub(reportView, 'render');
@@ -276,6 +259,7 @@ suite('Information view', function() {
   suite('Message report view render', function() {
     var messageOpts = {};
     var deliveryStatuses = ['not-applicable', 'pending', 'success', 'error'];
+    var header;
 
     setup(function() {
       reportView = new Information('report');
@@ -302,7 +286,13 @@ suite('Information view', function() {
         };
         return request;
       });
-      reportView.beforeEnter();
+
+      // be sure that the initial status is as expected so that the next test is
+      // useful.
+      header = document.querySelector('.panel-ReportView gaia-header');
+      assert.isTrue(header.hasAttribute('no-font-fit'));
+
+      reportView.beforeEnter({ id: '1' });
     });
 
     teardown(function() {
@@ -311,7 +301,7 @@ suite('Information view', function() {
     });
 
     function getInfoBlock(renderContactList) {
-      var infoBlock = renderContactList.args[0][0][0].infoBlock;
+      var infoBlock = renderContactList.lastCall.args[0][0].infoBlock;
       assert.isTrue(infoBlock.classList.contains('network-status'));
       return infoBlock;
     }
@@ -369,13 +359,16 @@ suite('Information view', function() {
       sinon.assert.called(reportView.renderContactList);
     }
 
+    test('gaia-header is properly set up', function() {
+      assert.isFalse(header.hasAttribute('no-font-fit'));
+    });
+
     test('Outgoing Message report(status sending)', function() {
       messageOpts = {
         sender: null,
         delivery: 'sending',
         deliveryStatus: 'pending'
       };
-      reportView.id = 1;
       reportView.render();
 
       generalInfoAssertion({
@@ -396,7 +389,6 @@ suite('Information view', function() {
         deliveryTimestamp: Date.now()
       };
 
-      reportView.id = 1;
       reportView.render();
 
       generalInfoAssertion({
@@ -416,7 +408,6 @@ suite('Information view', function() {
         deliveryStatus: 'error'
       };
 
-      reportView.id = 1;
       reportView.render();
 
       generalInfoAssertion({
@@ -439,8 +430,7 @@ suite('Information view', function() {
         deliveryTimestamp: Date.now()
       };
 
-      reportView.id = 2;
-      reportView.render();
+      reportView.beforeEnter({ id: '2' });
 
       generalInfoAssertion({
         type: 'message-type-mms',
@@ -462,8 +452,7 @@ suite('Information view', function() {
         deliveryTimestamp: Date.now()
       };
 
-      reportView.id = 2;
-      reportView.render();
+      reportView.beforeEnter({ id: '2' });
 
       generalInfoAssertion({
         type: 'message-type-mms',
@@ -480,7 +469,6 @@ suite('Information view', function() {
       messageOpts = {
         receiver: null
       };
-      reportView.id = 1;
       reportView.render();
 
       generalInfoAssertion({
@@ -499,8 +487,7 @@ suite('Information view', function() {
         subject: 'Test subjuect',
         attachments: [{content: testImageBlob}]
       };
-      reportView.id = 2;
-      reportView.render();
+      reportView.beforeEnter({ id: '2' });
 
       generalInfoAssertion({
         type: 'message-type-mms',
@@ -520,8 +507,7 @@ suite('Information view', function() {
         delivery: 'not-downloaded',
         attachments: null
       };
-      reportView.id = 2;
-      reportView.render();
+      reportView.beforeEnter({ id: '2' });
 
       generalInfoAssertion({
         type: 'message-type-mms',
@@ -539,7 +525,6 @@ suite('Information view', function() {
           delivery: 'received',
           sentTimestamp: Date.now()
         };
-        reportView.id = 1;
       });
 
       [true, false].forEach((isMozHour12) => {
@@ -579,7 +564,6 @@ suite('Information view', function() {
         sentTimestamp: 0
       };
 
-      reportView.id = 1;
       reportView.render();
 
       assert.isTrue(
@@ -605,7 +589,6 @@ suite('Information view', function() {
         messageOpts = {
           iccId: '1'
         };
-        reportView.id = 1;
       });
 
       teardown(function() {
@@ -751,7 +734,6 @@ suite('Information view', function() {
           deliveryStatus: 'not-applicable'
         };
 
-        reportView.id = 1;
         reportView.render();
 
         reportDiv = getInfoBlock(reportView.renderContactList);
@@ -766,7 +748,6 @@ suite('Information view', function() {
           deliveryStatus: 'pending'
         };
 
-        reportView.id = 1;
         reportView.render();
 
         data.titleL10n = 'report-status-pending';
@@ -783,8 +764,6 @@ suite('Information view', function() {
             deliveryStatus: 'success',
             deliveryTimestamp: Date.now()
           };
-
-          reportView.id = 1;
         });
 
         [true, false].forEach((isMozHour12) => {
@@ -818,7 +797,6 @@ suite('Information view', function() {
           deliveryStatus: 'error'
         };
 
-        reportView.id = 1;
         reportView.render();
         data.titleL10n = 'report-status-error';
         sinon.assert.calledWith(Template.prototype.interpolate, data);
@@ -837,8 +815,7 @@ suite('Information view', function() {
           }]
         };
 
-        reportView.id = 2;
-        reportView.render();
+        reportView.beforeEnter({ id: '2' });
         data.titleL10n = 'report-status-rejected';
         sinon.assert.calledWith(Template.prototype.interpolate, data);
         reportDiv = getInfoBlock(reportView.renderContactList);
@@ -875,7 +852,7 @@ suite('Information view', function() {
               readStatus: 'not-applicable'
             }]
           };
-          reportView.id = 2;
+          reportView.beforeEnter({ id: '2' });
         });
 
         deliveryStatuses.forEach((delivery) => {
@@ -885,6 +862,8 @@ suite('Information view', function() {
             deliveryInfo.deliveryTimestamp = delivery === 'success' ?
                Date.now():
                null;
+
+            Template.prototype.interpolate.reset();
             reportView.render();
 
             block = getInfoBlock(reportView.renderContactList);
@@ -922,7 +901,7 @@ suite('Information view', function() {
               readStatus: 'pending'
             }]
           };
-          reportView.id = 2;
+          reportView.beforeEnter({ id: '2' });
         });
 
         deliveryStatuses.forEach((delivery) => {
@@ -968,7 +947,7 @@ suite('Information view', function() {
             }]
           };
 
-          reportView.id = 2;
+          reportView.beforeEnter({ id: '2' });
         });
 
         [true, false].forEach((isMozHour12) => {
@@ -1016,7 +995,7 @@ suite('Information view', function() {
               readStatus: 'error'
             }]
           };
-          reportView.id = 2;
+          reportView.beforeEnter({ id: '2' });
         });
 
         deliveryStatuses.forEach((delivery) => {
@@ -1184,17 +1163,17 @@ suite('Information view', function() {
       };
     });
 
-    test('afterEnter() and beforeLeave()', function() {
-      reportView.afterEnter(enterArgs);
+    test('beforeEnter() and afterLeave()', function() {
+      reportView.beforeEnter(enterArgs);
       sinon.assert.called(reportView.show);
       assert.equal(
         reportView.id, enterArgs.id,
-        'id is set after afterEnter'
+        'id is set after beforeEnter'
       );
 
-      reportView.beforeLeave(leaveArgs);
+      reportView.afterLeave(leaveArgs);
       sinon.assert.called(reportView.reset);
-      assert.isNull(reportView.id, 'id is reset after beforeLeave');
+      assert.isNull(reportView.id, 'id is reset after afterLeave');
     });
 
     suite('Set event listener', function() {
@@ -1210,6 +1189,7 @@ suite('Information view', function() {
 
   suite('GroupView', function() {
     var enterArgs, leaveArgs;
+    var header;
 
     setup(function() {
       groupView = new Information('group');
@@ -1231,39 +1211,51 @@ suite('Information view', function() {
           prev: { panel: 'group-view', args: { id: 1 } }
         }
       };
+
+      // be sure that the initial status is as expected so that the next test is
+      // useful.
+      header = document.querySelector('.panel-GroupView gaia-header');
+      assert.isTrue(header.hasAttribute('no-font-fit'));
+
+      groupView.beforeEnter(enterArgs);
     });
 
-    test('afterEnter() and beforeLeave()', function() {
-      groupView.afterEnter(enterArgs);
+
+    test('gaia-header is properly set up', function() {
+      assert.isFalse(header.hasAttribute('no-font-fit'));
+    });
+
+    test('beforeEnter() and afterLeave()', function() {
       sinon.assert.called(groupView.show);
       assert.equal(
         groupView.id, enterArgs.id,
-        'id is set after afterEnter'
+        'id is set after beforeEnter'
       );
 
-      groupView.beforeLeave(leaveArgs);
+      groupView.afterLeave(leaveArgs);
       sinon.assert.called(groupView.reset);
-      assert.isNull(groupView.id, 'id is reset after beforeLeave');
+      assert.isNull(groupView.id, 'id is reset after afterLeave');
     });
 
-    suite('Set event listener', function() {
-      setup(function(){
-        this.sinon.stub(ConversationView, 'promptContact');
-      });
+    test('Contact prompt is called when click on contactList', function(done) {
+      var promptPromise = Promise.resolve();
+      this.sinon.stub(ConversationView, 'promptContact').returns(promptPromise);
+      this.sinon.stub(Navigation, 'toPanel');
 
-      test('Contact prompt is called when clicked on contactList', function() {
-        var event = new MouseEvent('click',
-          { bubbles: true, cancelable: true });
-        var item = document.createElement('a');
+      var event = new MouseEvent('click',
+        { bubbles: true, cancelable: true });
+      var item = document.createElement('a');
 
-        item.dataset.number = 'test number';
-        groupView.contactList.appendChild(item);
-        item.dispatchEvent(event);
-        sinon.assert.calledWith(
-          ConversationView.promptContact,
-          { number : item.dataset.number }
-        );
-      });
+      item.dataset.number = 'test number';
+      groupView.contactList.appendChild(item);
+      item.dispatchEvent(event);
+      sinon.assert.calledWith(
+        ConversationView.promptContact,
+        { number : item.dataset.number }
+      );
+      promptPromise.then(
+        () => sinon.assert.calledWith(Navigation.toPanel, 'thread', { id: 1 })
+      ).then(done, done);
     });
   });
 });

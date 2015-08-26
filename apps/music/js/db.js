@@ -1,5 +1,6 @@
 /* exported Database */
-/* global AlbumArt, App, AudioMetadata, LazyLoader, MediaDB, TitleBar */
+/* global AlbumArt, App, AudioMetadata, ForwardLock, LazyLoader, MediaDB,
+          Normalizer, TitleBar */
 'use strict';
 
 var Database = (function() {
@@ -224,20 +225,26 @@ var Database = (function() {
     musicdb.updateMetadata(fileinfo.name, {rated: fileinfo.metadata.rated});
   }
 
-  function getFile(filename) {
-    return new Promise(function(resolve, reject) {
-      musicdb.getFile(filename, function(file) {
+  function getFile(fileinfo, decrypt = false) {
+    return new Promise((resolve, reject) => {
+      musicdb.getFile(fileinfo.name, (file) => {
         if (file) {
           resolve(file);
         } else {
-          reject('unable to get file: ' + filename);
+          reject('unable to get file: ' + fileinfo.name);
         }
       });
-    });
-  }
+    }).then((blob) => {
+      if (!decrypt || !fileinfo.metadata.locked) {
+        return blob;
+      }
 
-  function getAll(callback) {
-    return musicdb.getAll(callback);
+      return new Promise(function(resolve, reject) {
+        ForwardLock.getKey(function(secret) {
+          ForwardLock.unlockBlob(secret, blob, resolve, null, reject);
+        });
+      });
+    });
   }
 
   function enumerate(...args) {
@@ -256,6 +263,33 @@ var Database = (function() {
     return musicdb.count(...args);
   }
 
+  /**
+   * Search the music database for a particular query.
+   *
+   * @param {String} key The field to query against (e.g. 'title').
+   * @param {String} query The string to search for.
+   * @param {Function} callback A function to call with the results of the
+   *        search, called once per result (plus a final call passing `null`).
+   * @return {Object} The handle for this query.
+   */
+  function search(key, query, callback) {
+    // Convert to lowercase and replace accented characters.
+    query = Normalizer.toAscii(query.toLocaleLowerCase());
+    var direction = (key === 'title') ? 'next' : 'nextunique';
+
+    return musicdb.enumerate('metadata.' + key, null, direction, (result) => {
+      if (result === null) {
+        callback(result);
+        return;
+      }
+
+      var resultLowerCased = result.metadata[key].toLocaleLowerCase();
+      if (Normalizer.toAscii(resultLowerCased).indexOf(query) !== -1) {
+        callback(result);
+      }
+    });
+  }
+
   function cancelEnumeration(handle) {
     musicdb.cancelEnumeration(handle);
   }
@@ -265,11 +299,11 @@ var Database = (function() {
     incrementPlayCount: incrementPlayCount,
     setSongRating: setSongRating,
     getFile: getFile,
-    getAll: getAll,
     enumerate: enumerate,
     enumerateAll: enumerateAll,
     advancedEnumerate: advancedEnumerate,
     count: count,
+    search: search,
     cancelEnumeration: cancelEnumeration,
 
     // This is just here for testing.

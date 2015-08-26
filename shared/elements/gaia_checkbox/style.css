@@ -13,7 +13,8 @@ gaia-checkbox {
 
 #checkbox span {
   font-size: 1.9rem;
-  color: #000;
+  font-weight: normal;
+  color: var(--label-color);
   line-height: 3rem;
   box-sizing: border-box;
   display: block;
@@ -25,7 +26,7 @@ gaia-checkbox {
   white-space: normal;
 }
 
-#checkbox span:after {
+#checkbox:not(.invisible) span:after {
   content: '';
   position: absolute;
   right: 0;
@@ -46,12 +47,18 @@ gaia-checkbox {
   margin: -1.2rem 0 0 -1.2rem;
 }
 
+#checkbox.inline[dir="rtl"] span:after {
+  right: 0;
+  left: unset;
+  margin: -1.2rem 0 0 1.2rem;
+}
+
 #checkbox.inline span {
   -moz-padding-start: 3rem;
   -moz-padding-end: 0;
 }
 
-#checkbox span:after {
+#checkbox:not(.invisible) span:after {
   background: url(images/default.png) no-repeat center top / 2.2rem auto;
 }
 

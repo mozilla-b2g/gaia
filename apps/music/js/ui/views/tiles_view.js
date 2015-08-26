@@ -1,7 +1,7 @@
 /* exported TilesView */
 /* global AlbumArtCache, Database, IDBKeyRange, LazyLoader, ModeManager,
-          MODE_PLAYER, MODE_SEARCH_FROM_TILES, PlayerView, SearchView,
-          showImage, TYPE_LIST */
+          MODE_PLAYER, MODE_SEARCH_FROM_TILES, PlaybackQueue, PlayerView,
+          SearchView, showImage */
 'use strict';
 
 var TilesView = {
@@ -210,19 +210,10 @@ var TilesView = {
         // we have to get all the song data first
         // because the shuffle option might be ON
         // and we have create shuffled list and play in shuffle order
-        PlayerView.handle = Database.enumerateAll(key, range, direction,
-          function tv_enumerateAll(dataArray) {
-            PlayerView.setSourceType(TYPE_LIST);
-            PlayerView.dataSource = dataArray;
-
-            if (PlayerView.shuffleOption) {
-              PlayerView.setShuffle(true);
-              PlayerView.play(PlayerView.shuffledList[0]);
-            } else {
-              PlayerView.play(0);
-            }
-          }
-        );
+        Database.enumerateAll(key, range, direction, (dataArray) => {
+          PlayerView.activate(new PlaybackQueue.StaticQueue(dataArray));
+          PlayerView.start();
+        });
       });
     }
   }

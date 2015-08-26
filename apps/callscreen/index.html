@@ -4,6 +4,7 @@
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
     <meta charset="utf-8">
     <title>Dialer</title>
+    <link rel="stylesheet" type="text/css" href="app://theme.gaiamobile.org/shared/elements/gaia-theme/gaia-theme.css" />
     <link rel="stylesheet" type="text/css" href="/style/oncall.css">
     <link rel="stylesheet" type="text/css" href="/style/conference_group_ui.css">
     <link rel="stylesheet" type="text/css" href="/style/oncall_status_bar.css">
@@ -17,20 +18,17 @@
 
     <!-- Localization -->
     <script defer type="text/javascript" src="/shared/js/lazy_loader.js"></script>
-    <script defer type="application/javascript" src="/shared/js/lazy_l10n.js"></script>
     <meta name="defaultLanguage" content="en-US">
     <meta name="availableLanguages" content="en-US">
+    <link rel="localization" href="locales/callscreen.{locale}.properties">
     <link rel="localization" href="../communications/dialer/locales/dialer.{locale}.properties">
     <link rel="localization" href="../communications/dialer/locales/shared.{locale}.properties">
     <link rel="localization" href="shared/locales/date/date.{locale}.properties">
-    <link rel="localization" href="shared/locales/phone_types/phone_types.{locale}.properties">
     <link rel="localization" href="shared/locales/lockscreen/lockscreen.{locale}.properties">
     <link rel="localization" href="shared/locales/keypad/keypad.{locale}.properties">
     <link rel="localization" href="shared/locales/telephony/telephony.{locale}.properties">
-    <!-- Making sure the shared resources will be copy into the zip
-    <script type="application/javascript" src="/shared/js/l10n.js"></script>
-    <script type="application/javascript" src="/shared/js/l10n_date.js"></script>
-    -->
+
+    <script defer type="application/javascript" src="/shared/js/l10n.js"></script>
 
     <script defer type="application/javascript" src="/js/index.js"></script>
     <script defer type="application/javascript" src="/shared/js/settings_listener.js"></script>
@@ -50,7 +48,6 @@
     <script defer type="application/javascript" src="/shared/js/dialer/voicemail.js"></script>
     <script defer type="application/javascript" src="/shared/js/bluetooth_helper.js"></script>
 
-    <script defer type="application/javascript" src="/js/audio_competing_helper.js"></script>
     <script defer type="application/javascript" src="/js/call_screen.js"></script>
     <script defer type="application/javascript" src="/js/calls_handler.js"></script>
     <script defer type="application/javascript" src="/js/conference_group_handler.js"></script>

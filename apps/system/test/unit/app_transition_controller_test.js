@@ -284,6 +284,18 @@ suite('system/AppTransitionController', function() {
     assert.isFalse(app1.setNFCFocus.called);
   });
 
+  test('Do not focus on alwaysLowered window', function() {
+    var alwaysLoweredConfig = Object.assign({}, fakeAppConfig1);
+    alwaysLoweredConfig.stayBackground = true;
+    var app1 = new MockAppWindow(alwaysLoweredConfig);
+    var acn1 = new AppTransitionController(app1);
+    var stubFocus = this.sinon.stub(app1, 'focus');
+    app1.loaded = true;
+    acn1._transitionState = 'opened';
+    acn1.handle_opened();
+    assert.isTrue(stubFocus.notCalled);
+  });
+
   test('Do not focus the search window', function() {
     var app1 = new MockAppWindow(fakeAppConfig1);
     app1.CLASS_NAME = 'SearchWindow';

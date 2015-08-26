@@ -1,0 +1,12 @@
+{
+  "name": "gaia-container",
+  "_release": "db877d1edd",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "db877d1edd6514a271e19416e54ae3e97f6ff0f4"
+  },
+  "_source": "https://gitlab.com/Cwiiis/gaia-container.git",
+  "_target": "*",
+  "_originalSource": "https://gitlab.com/Cwiiis/gaia-container.git"
+}

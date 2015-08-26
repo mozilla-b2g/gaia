@@ -157,10 +157,19 @@
         return +threads.size();
       }
       return +threads.size;
-    },
-    currentId: null,
-    get active() {
-      return threads.get(+Threads.currentId);
+    }
+  };
+
+  Threads.Messages = {
+    get(id) {
+      id = +id;
+      var threadId = messageMap.get(id);
+
+      if (Threads.has(threadId)) {
+        return Threads.get(threadId).messages.get(id);
+      }
+
+      return null;
     }
   };
 

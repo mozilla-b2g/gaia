@@ -52,6 +52,11 @@
   },
 
   "simConfigs": {
+    "310-000": {"en-US": {"defaultEngine": "yahoo"}},
+    "311-000": {"en-US": {"defaultEngine": "yahoo"}},
+    "312-000": {"en-US": {"defaultEngine": "yahoo"}},
+    "313-000": {"en-US": {"defaultEngine": "yahoo"}},
+    "316-000": {"en-US": {"defaultEngine": "yahoo"}}
   },
 
   "partnerConfig": {

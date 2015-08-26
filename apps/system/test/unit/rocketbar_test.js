@@ -396,10 +396,12 @@ suite('system/Rocketbar', function() {
   test('handleEvent() - click clear button', function() {
     var setInputStub = this.sinon.stub(subject, 'setInput');
     var hideResultsStub = this.sinon.stub(subject, 'hideResults');
+    var focusStub = this.sinon.stub(subject, 'focus');
     var event = {type: 'click', target: subject.clearBtn};
     subject.handleEvent(event);
     assert.ok(setInputStub.calledWith(''));
     assert.ok(hideResultsStub.calledOnce);
+    assert.ok(focusStub.calledOnce);
   });
 
   test('handleEvent() - click backdrop', function() {

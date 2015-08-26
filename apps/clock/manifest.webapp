@@ -12,7 +12,8 @@
     "alarms":{},
     "settings":{ "access": "readwrite" },
     "attention":{},
-    "audio-channel-alarm":{}
+    "audio-channel-alarm":{},
+    "moz-extremely-unstable-and-will-change-webcomponents":{}
   },
   "locales": {
     "ar": {

@@ -1,20 +1,13 @@
-/* global MocksHelper, MockL10n, DownloadFormatter, MockDownload */
+/* global MockL10n, DownloadFormatter, MockDownload */
 'use strict';
 
 require('/shared/test/unit/mocks/mock_download.js');
 require('/shared/js/download/download_formatter.js');
-require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 
 
 suite('DownloadFormatter', function() {
   var realL10n;
-
-  var mocksHelperForDownloadFormatter = new MocksHelper([
-    'LazyLoader'
-  ]).init();
-
-  mocksHelperForDownloadFormatter.attachTestHelpers();
 
   suiteSetup(function() {
     realL10n = navigator.mozL10n;
@@ -26,43 +19,37 @@ suite('DownloadFormatter', function() {
     realL10n = null;
   });
 
-  var l10nSpy;
-  setup(function() {
-    l10nSpy = this.sinon.spy(navigator.mozL10n, 'get');
-  });
-
-  teardown(function() {
-    l10nSpy = null;
-  });
-
-  test(' getFormattedSize KB', function() {
+  test(' getFormattedSize KB', function(done) {
     var bytes = 1024 * 1.5; // 1.5 KB
-    DownloadFormatter.getFormattedSize(bytes);
-    assert.equal(l10nSpy.args[1][0], 'fileSize');
-
-    var params = l10nSpy.args[1][1];
-    assert.equal(params.size, 1.50);
-    assert.equal(params.unit, 'byteUnit-KB');
+    DownloadFormatter.getFormattedSize(bytes).then((size) => {
+      assert.equal(size, MockL10n._stringify('fileSize', {
+        'size':'1.50',
+        'unit':'byteUnit-KB'
+      }));
+      done();
+    });
   });
 
-  test(' getFormattedSize MB', function() {
+  test(' getFormattedSize MB', function(done) {
     var bytes = 1024 * 1024 * 999; // 999 MB
-    DownloadFormatter.getFormattedSize(bytes);
-    assert.equal(l10nSpy.args[1][0], 'fileSize');
-
-    var params = l10nSpy.args[1][1];
-    assert.equal(params.size, 999);
-    assert.equal(params.unit, 'byteUnit-MB');
+    DownloadFormatter.getFormattedSize(bytes).then((size) => {
+      assert.equal(size, MockL10n._stringify('fileSize', {
+        'size':'999.00',
+        'unit':'byteUnit-MB'
+      }));
+      done();
+    });
   });
 
-  test(' getFormattedSize GB', function() {
+  test(' getFormattedSize GB', function(done) {
     var bytes = 1024 * 1024 * 1024 * 2.6; // 2.6 GB
-    DownloadFormatter.getFormattedSize(bytes);
-    assert.equal(l10nSpy.args[1][0], 'fileSize');
-
-    var params = l10nSpy.args[1][1];
-    assert.equal(params.size, 2.6);
-    assert.equal(params.unit, 'byteUnit-GB');
+    DownloadFormatter.getFormattedSize(bytes).then((size) => {
+      assert.equal(size, MockL10n._stringify('fileSize', {
+        'size':'2.60',
+        'unit':'byteUnit-GB'
+      }));
+      done();
+    });
   });
 
   test(' getPercentage', function() {
@@ -84,124 +71,132 @@ suite('DownloadFormatter', function() {
     assert.equal(DownloadFormatter.getFileName(mockDownload), 'nameFile.mp3');
   });
 
-  test(' getTotalSize KB', function() {
-  var bytes = 1024 * 1.5; // 1.5 KB
+  test(' getTotalSize KB', function(done) {
+    var bytes = 1024 * 1.5; // 1.5 KB
     var mockDownload = new MockDownload(
       {
         totalBytes: bytes
       }
     );
-    DownloadFormatter.getTotalSize(mockDownload);
-    assert.equal(l10nSpy.args[1][0], 'fileSize');
-
-    var params = l10nSpy.args[1][1];
-    assert.equal(params.size, 1.50);
-    assert.equal(params.unit, 'byteUnit-KB');
+    DownloadFormatter.getTotalSize(mockDownload).then((size) => {
+      assert.equal(size, MockL10n._stringify('fileSize', {
+        'size':'1.50',
+        'unit':'byteUnit-KB'
+      }));
+      done();
+    });
   });
 
-  test(' getTotalSize MB', function() {
+  test(' getTotalSize MB', function(done) {
     var bytes = 1024 * 1024 * 1.5; // 1.5 MB
     var mockDownload = new MockDownload(
       {
         totalBytes: bytes
       }
     );
-    DownloadFormatter.getTotalSize(mockDownload);
-    assert.equal(l10nSpy.args[1][0], 'fileSize');
-
-    var params = l10nSpy.args[1][1];
-    assert.equal(params.size, 1.50);
-    assert.equal(params.unit, 'byteUnit-MB');
+    DownloadFormatter.getTotalSize(mockDownload).then((size) => {
+      assert.equal(size, MockL10n._stringify('fileSize', {
+        'size':'1.50',
+        'unit':'byteUnit-MB'
+      }));
+      done();
+    });
   });
 
-  test(' getTotalSize GB', function() {
+  test(' getTotalSize GB', function(done) {
     var bytes = 1024 * 1024 * 1024 * 1.5; // 1.5 GB
     var mockDownload = new MockDownload(
       {
         totalBytes: bytes
       }
     );
-    DownloadFormatter.getTotalSize(mockDownload);
-    assert.equal(l10nSpy.args[1][0], 'fileSize');
-
-    var params = l10nSpy.args[1][1];
-    assert.equal(params.size, 1.50);
-    assert.equal(params.unit, 'byteUnit-GB');
+    DownloadFormatter.getTotalSize(mockDownload).then((size) => {
+      assert.equal(size, MockL10n._stringify('fileSize', {
+        'size':'1.50',
+        'unit':'byteUnit-GB'
+      }));
+      done();
+    });
   });
 
-  test(' getTotalSize TB', function() {
+  test(' getTotalSize TB', function(done) {
     var bytes = 1024 * 1024 * 1024 * 1024 * 1.5; // 1.5 TB
     var mockDownload = new MockDownload(
       {
         totalBytes: bytes
       }
     );
-    DownloadFormatter.getTotalSize(mockDownload);
-    assert.equal(l10nSpy.args[1][0], 'fileSize');
-
-    var params = l10nSpy.args[1][1];
-    assert.equal(params.size, 1.50);
-    assert.equal(params.unit, 'byteUnit-TB');
+    DownloadFormatter.getTotalSize(mockDownload).then((size) => {
+      assert.equal(size, MockL10n._stringify('fileSize', {
+        'size':'1.50',
+        'unit':'byteUnit-TB'
+      }));
+      done();
+    });
   });
 
-  test(' getDownloadedSize KB', function() {
+  test(' getDownloadedSize KB', function(done) {
     var bytes = 1024 * 1.5; // 1.5 KB
     var mockDownload = new MockDownload(
       {
         currentBytes: bytes
       }
     );
-    DownloadFormatter.getDownloadedSize(mockDownload);
-    assert.equal(l10nSpy.args[1][0], 'fileSize');
-
-    var params = l10nSpy.args[1][1];
-    assert.equal(params.size, 1.50);
-    assert.equal(params.unit, 'byteUnit-KB');
+    DownloadFormatter.getDownloadedSize(mockDownload).then((size) => {
+      assert.equal(size, MockL10n._stringify('fileSize', {
+        'size':'1.50',
+        'unit':'byteUnit-KB'
+      }));
+      done();
+    });
   });
 
-  test(' getDownloadedSize MB', function() {
+  test(' getDownloadedSize MB', function(done) {
     var bytes = 1024 * 1024 * 1.5; // 1.5 MB
     var mockDownload = new MockDownload(
       {
         currentBytes: bytes
       }
     );
-    DownloadFormatter.getDownloadedSize(mockDownload);
-    assert.equal(l10nSpy.args[1][0], 'fileSize');
-
-    var params = l10nSpy.args[1][1];
-    assert.equal(params.size, 1.50);
-    assert.equal(params.unit, 'byteUnit-MB');
+    DownloadFormatter.getDownloadedSize(mockDownload).then((size) => {
+      assert.equal(size, MockL10n._stringify('fileSize', {
+        'size':'1.50',
+        'unit':'byteUnit-MB'
+      }));
+      done();
+    });
   });
 
-  test(' getDownloadedSize GB', function() {
+  test(' getDownloadedSize GB', function(done) {
     var bytes = 1024 * 1024 * 1024 * 1.5; // 1.5 GB
     var mockDownload = new MockDownload(
       {
         currentBytes: bytes
       }
     );
-    DownloadFormatter.getDownloadedSize(mockDownload);
-    assert.equal(l10nSpy.args[1][0], 'fileSize');
-
-    var params = l10nSpy.args[1][1];
-    assert.equal(params.size, 1.50);
-    assert.equal(params.unit, 'byteUnit-GB');
+    DownloadFormatter.getDownloadedSize(mockDownload).then((size) => {
+      assert.equal(size, MockL10n._stringify('fileSize', {
+        'size':'1.50',
+        'unit':'byteUnit-GB'
+      }));
+      done();
+    });
   });
 
-  test(' getDownloadedSize TB', function() {
+  test(' getDownloadedSize TB', function(done) {
     var bytes = 1024 * 1024 * 1024 * 1024 * 1.5; // 1.5 TB
     var mockDownload = new MockDownload(
       {
         currentBytes: bytes
       }
     );
-    DownloadFormatter.getDownloadedSize(mockDownload);
-    assert.equal(l10nSpy.args[1][0], 'fileSize');
-
-    var params = l10nSpy.args[1][1];
-    assert.equal(params.size, 1.50);
-    assert.equal(params.unit, 'byteUnit-TB');
+    DownloadFormatter.getDownloadedSize(mockDownload).then((size) => {
+      assert.equal(size, MockL10n._stringify('fileSize', {
+        'size':'1.50',
+        'unit':'byteUnit-TB'
+      }));
+      done();
+    });
   });
 
   test(' getUUID', function() {
@@ -218,11 +213,18 @@ suite('DownloadFormatter', function() {
   test(' getDate', function(done) {
     var now = new Date();
     var expectedPrettyDate = 'pretty' + now.toString();
+
+    // We can't use MockLazyLoader here because it cannot chain Promises
+    window.LazyLoader = {
+      load: function(imports) {
+        return Promise.resolve();
+      }
+    };
+
     sinon.stub(navigator.mozL10n, 'DateTimeFormat', function(date) {
       return {
-        fromNow: function(date, useCompactFormat) {
-          assert.isUndefined(useCompactFormat);
-          return 'pretty' + date.toString();
+        relativeDate: function(date, useCompactFormat) {
+          return Promise.resolve(expectedPrettyDate);
         }
       };
     });
@@ -231,7 +233,7 @@ suite('DownloadFormatter', function() {
       startTime: now
     });
 
-    DownloadFormatter.getDate(mockDownload, function(date) {
+    DownloadFormatter.getDate(mockDownload).then(function(date) {
       assert.equal(date, expectedPrettyDate);
       done();
     });

@@ -1,9 +1,10 @@
-/* globals Contacts, utils, contactsRemover, Promise, ConfirmDialog, Loader */
+/* globals Contacts, utils, contactsRemover, Promise,
+   Search, ConfirmDialog, Loader */
 'use strict';
 
 var contacts = window.contacts || {};
 
-contacts.BulkDelete = (function() {
+(function(exports) {
 
   var cancelled = false;
 
@@ -57,9 +58,9 @@ contacts.BulkDelete = (function() {
     });
 
     contactsRemoverObj.onDeleted = function onDeleted(currentId) {
-      if (contacts.Search && contacts.Search.isInSearchMode()) {
-        contacts.Search.invalidateCache();
-        contacts.Search.removeContact(currentId);
+      if (window.Search && Search.isInSearchMode()) {
+        Search.invalidateCache();
+        Search.removeContact(currentId);
       }
       contacts.List.remove(currentId);
       progress.update();
@@ -91,22 +92,17 @@ contacts.BulkDelete = (function() {
   };
   // Start the delete of the contacts
   var performDelete = function performDelete(promise, done) {
+    var self = this;
     requireOverlay(function onOverlay() {
-      utils.overlay.show('preparing-contacts', 'spinner');
       promise.onsuccess = function onSuccess(ids) {
-        Contacts.hideOverlay();
-        showConfirm(ids.length).then(
-                          contacts.BulkDelete.doDelete.bind(null, ids, done));
-      };
-      promise.onerror = function onError() {
-        Contacts.hideOverlay();
+        showConfirm(ids.length).then(self.doDelete.bind(null, ids, done));
       };
     });
   };
 
-  return {
+  exports.BulkDelete = {
     'performDelete': performDelete,
     'doDelete': doDelete
   };
 
-})();
+})(window);

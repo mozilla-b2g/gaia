@@ -16,6 +16,7 @@
         "workerType": "gaia-decision",
         "scopes": [
           "docker-worker:cache:tc-vcs",
+          "docker-worker:cache:linux-cache",
           "docker-worker:cache:gaia-misc-caches",
           "docker-worker:image:quay.io/mozilla/raptor-tester:latest",
           "queue:define-task:aws-provisioner/gaia",
@@ -23,9 +24,11 @@
         ],
         "payload": {
           "cache": {
-            "gaia-misc-caches": "/home/tester/caches/"
+            "gaia-misc-caches": "/home/worker/caches/",
+            "tc-vcs":"/home/worker/.tc-vcs",
+            "linux-cache":"/home/worker/.cache"
           },
-          "image": "taskcluster/gaia-taskenv:0.8.11",
+          "image": "taskcluster/gaia-taskenv:1.2.0",
           "command": [
             "entrypoint",
             "echo 'what' && node tests/taskcluster/bin/graph > /graph.json && cat /graph.json"
@@ -37,7 +40,7 @@
           "artifacts": {
             "public/package.json": {
               "type": "file",
-              "path": "/home/tester/git_checkout/package.json",
+              "path": "/home/worker/git_checkout/package.json",
               "expires": "2016-03-30T11:59:00.000Z"
             }
           },

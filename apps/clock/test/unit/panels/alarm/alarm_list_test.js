@@ -1,5 +1,8 @@
 suite('AlarmList', function() {
   'use strict';
+
+  /** Disabled due to intermittent, see bug 1089543
+
   var alarm, dom;
   var alarmListPanel, Alarm, panel;
 
@@ -154,4 +157,6 @@ suite('AlarmList', function() {
     });
 
   });
+
+  */
 });

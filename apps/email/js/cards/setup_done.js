@@ -7,7 +7,7 @@ define(function(require) {
 var evt = require('evt');
 
 return [
-  require('./base')(require('template!./setup_done.html')),
+  require('./base_card')(require('template!./setup_done.html')),
   {
     onAddAnother: function() {
       evt.emit('addAccount');

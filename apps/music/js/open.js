@@ -1,5 +1,5 @@
-/* global getStorageIfAvailable, getUnusedFilename, MimeMapper, PlayerView,
-          TYPE_BLOB */
+/* global AudioMetadata, getStorageIfAvailable, getUnusedFilename, MimeMapper,
+          PlaybackQueue, PlayerView, TYPE_SINGLE */
 'use strict';
 
 navigator.mozL10n.once(function onLocalizationInit() {
@@ -34,17 +34,23 @@ function handleOpenActivity(request) {
   playBlob(blob);
 
   function playBlob(blob) {
-    PlayerView.init();
+    PlayerView.init(TYPE_SINGLE);
     PlayerView.stop();
 
-    PlayerView.setSourceType(TYPE_BLOB);
-    PlayerView.dataSource = blob;
-    PlayerView.play(); // Do we need to play for users?
+    PlaybackQueue.loadSettings().then(() => {
+      return AudioMetadata.parse(blob);
+    }).then((metadata) => {
+      var fileinfo = {metadata: metadata,
+                      name: blob.name,
+                      blob: blob};
 
-    PlayerView.onerror = function invalid() {
+      PlayerView.activate(new PlaybackQueue.StaticQueue([fileinfo]));
+      PlayerView.start();
+    }).catch((e) => {
+      console.error(e);
       alert(navigator.mozL10n.get('audioinvalid'));
       done();
-    };
+    });
   }
 
   // Set up events for close/save in the single player

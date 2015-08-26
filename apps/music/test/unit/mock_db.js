@@ -60,6 +60,11 @@ var MockDatabase = {
     callback(results);
   },
 
+  advancedEnumerate: function(key, range, direction, index, callback) {
+    // XXX: This assumes that the callback immediately calls cancelEnumeration!
+    callback(this._mockResultsMetadataAlbum[index]);
+  },
+
   count: function(key, range, callback) {
     var result = 0;
 

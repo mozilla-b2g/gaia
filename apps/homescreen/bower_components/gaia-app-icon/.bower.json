@@ -1,0 +1,12 @@
+{
+  "name": "gaia-app-icon",
+  "_release": "6b5669f1e4",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "6b5669f1e436a37d81912f5e58ee8633f9d4c17b"
+  },
+  "_source": "https://gitlab.com/Cwiiis/gaia-app-icon.git",
+  "_target": "*",
+  "_originalSource": "https://gitlab.com/Cwiiis/gaia-app-icon.git"
+}

@@ -16,8 +16,7 @@ function DoNotTrackPanel(client) {
 module.exports = DoNotTrackPanel;
 
 DoNotTrackPanel.Selectors = {
-  'doNotTrackEnabledCheckbox': '#doNotTrack input',
-  'doNotTrackEnabledLabel': '#doNotTrack label'
+  'doNotTrackEnabledCheckbox': '#doNotTrack gaia-radio'
 };
 
 DoNotTrackPanel.prototype = {
@@ -26,18 +25,20 @@ DoNotTrackPanel.prototype = {
 
   get isDoNotTrackEnabled() {
     return this.findElement('doNotTrackEnabledCheckbox')
-      .getAttribute('checked');
+      .scriptWith(function(el) {
+        return el.wrappedJSObject.checked;
+      });
   },
 
   enableDoNotTrack: function() {
-    this.waitForElement('doNotTrackEnabledLabel').tap();
+    this.waitForElement('doNotTrackEnabledCheckbox').click();
       this.client.waitFor(function() {
         return this.isDoNotTrackEnabled;
     }.bind(this));
   },
 
   disableDoNotTrack: function() {
-    this.waitForElement('doNotTrackEnabledLabel').tap();
+    this.waitForElement('doNotTrackEnabledCheckbox').click();
       this.client.waitFor(function() {
         return !this.isDoNotTrackEnabled;
     }.bind(this));

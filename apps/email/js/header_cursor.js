@@ -8,8 +8,7 @@
  */
 define(function(require) {
   var array = require('array'),
-      evt = require('evt'),
-      model = require('model');
+      evt = require('evt');
 
   function makeListener(type, obj) {
     return function() {
@@ -21,9 +20,11 @@ define(function(require) {
   /**
    * @constructor
    */
-  function HeaderCursor() {
+  function HeaderCursor(model) {
     // Inherit from evt.Emitter.
     evt.Emitter.call(this);
+
+    this.model = model;
 
     // Need to distinguish between search and nonsearch slices,
     // since there can be two cards that both are listening for
@@ -78,7 +79,7 @@ define(function(require) {
 
       // Listen to model for folder changes.
       this.onLatestFolder = this.onLatestFolder.bind(this);
-      model.latest('folder', this.onLatestFolder);
+      this.model.latest('folder', this.onLatestFolder);
     },
 
     /**
@@ -128,6 +129,8 @@ define(function(require) {
      */
     checkExpectingMessageSuid: function(eventIfNotFound) {
       var messageSuid = this.expectingMessageSuid;
+      var model = this.model;
+
       if (!messageSuid || !model.folder || model.folder.type !== 'inbox') {
         return;
       }
@@ -200,7 +203,7 @@ define(function(require) {
       // a change in the current account, before this listener is called.
       // So skip this work if no foldersSlice, this method will be called
       // again soon.
-      if (!model.foldersSlice) {
+      if (!this.model.foldersSlice) {
         return;
       }
 
@@ -209,9 +212,9 @@ define(function(require) {
 
     startSearch: function(phrase, whatToSearch) {
       this.searchMode = 'search';
-      this.bindToSlice(model.api.searchFolderMessages(model.folder,
-                                                      phrase,
-                                                      whatToSearch));
+      this.bindToSlice(this.model.api.searchFolderMessages(this.model.folder,
+                                                           phrase,
+                                                           whatToSearch));
     },
 
     endSearch: function() {
@@ -221,7 +224,7 @@ define(function(require) {
     },
 
     freshMessagesSlice: function() {
-      this.bindToSlice(model.api.viewFolderMessages(model.folder));
+      this.bindToSlice(this.model.api.viewFolderMessages(this.model.folder));
     },
 
     /**
@@ -298,9 +301,7 @@ define(function(require) {
   HeaderCursor.prototype.on = function() {
     if (!this._inited) {
       this.init();
-      HeaderCursor.prototype.on = oldOn;
     }
-
     return oldOn.apply(this, arguments);
   };
 
@@ -327,8 +328,7 @@ define(function(require) {
     siblings: null
   };
 
-  return {
-    CurrentMessage: CurrentMessage,
-    cursor: new HeaderCursor()
-  };
+  HeaderCursor.CurrentMessage = CurrentMessage;
+
+  return HeaderCursor;
 });

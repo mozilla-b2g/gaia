@@ -20,7 +20,7 @@
     return o;
   };
   MockMutationObserver.mTeardown = function() {
-    this.lastObserver = null;
+    this.mLastObserver = null;
   };
 
   exports.MockMutationObserver = MockMutationObserver;

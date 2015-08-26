@@ -1,0 +1,49 @@
+{
+  "version": "0.0.1",
+  "name": "Music NGA",
+  "description": "Gaia Music powered by NGA",
+  "origin": "app://music-nga.gaiamobile.org",
+  "launch_path": "/index.html",
+  "icons": {
+    "84": "/img/icons/default_84.png",
+    "126": "/img/icons/default_126.png",
+    "142": "/img/icons/default_142.png",
+    "189": "/img/icons/default_189.png",
+    "284": "/img/icons/default_284.png"
+  },
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/mozilla-b2g/gaia"
+  },
+  "type": "certified",
+  "permissions": {
+    "audio-channel-content": {},
+    "bluetooth": {},
+    "device-storage:music":    { "access": "readwrite" },
+    "device-storage:pictures": { "access": "readwrite" },
+    "nfc-share": {},
+    "settings": { "access": "readonly" },
+    "themeable": {},
+    "moz-extremely-unstable-and-will-change-webcomponents": {}
+  },
+  "locales": {
+    "ar": {
+      "name": "موسيقى NGA",
+      "description": "Gaia موسيقى"
+    },
+    "en-US": {
+      "name": "Music NGA",
+      "description": "Gaia Music NGA"
+    },
+    "fr": {
+      "name": "Musique MGA",
+      "description": "Lecteur audio Gaia"
+    },
+    "zh-TW": {
+      "name": "音樂 NGA",
+      "description": "Gaia 音樂"
+    }
+  },
+  "default_locale": "en",
+  "orientation": "default"
+}

@@ -17,7 +17,6 @@ from mozlog.structured import get_default_logger
 
 from gaiatest import GaiaTestCase
 from gaiatest.apps.system.app import System
-from gaiatest import DEFAULT_SETTINGS
 
 
 class GaiaImageCompareTestCase(GaiaTestCase):
@@ -29,7 +28,6 @@ class GaiaImageCompareTestCase(GaiaTestCase):
         self.reference_path = kwargs.pop('reference_path')
         self.screenshots_path = kwargs.pop('screenshots_path')
         self.mismatch_path = os.path.join(self.screenshots_path, 'mismatches')
-        self.locale = kwargs.pop('locale')
 
         self.logger = get_default_logger()
         self.picture_index = 0
@@ -51,14 +49,7 @@ class GaiaImageCompareTestCase(GaiaTestCase):
         """At the end of test execution, it checks for the errors"""
         self.assertTrue(self.test_passed, msg=self.failcomment)
 
-    # marionette hook to override default locale setting
-    def modify_settings(self, settings):
-
-        if self.locale != 'undefined':
-            settings['language.current'] = self.locale
-        return settings
-
-    def take_screenshot(self,page_name=None, prewait=0):
+    def take_screenshot(self, page_name=None, prewait=0):
         """
         invokes screen capture event, crops the status bar, and saves to the file
         page_name: a (optional) name that is given to the screenshot image file
@@ -71,7 +62,7 @@ class GaiaImageCompareTestCase(GaiaTestCase):
 
         _statusbar_locator = (By.ID, 'statusbar')
         if self.is_element_displayed(*_statusbar_locator):
-        # get the size of the status bar to crop off
+            # get the size of the status bar to crop off
             status_bar = self.marionette.find_element(*System._status_bar_locator)
             # get the size of the status bar, and multiply it by the device pixel ratio to get the exact size on device
             self.crop_height = int(status_bar.size['height']
@@ -126,7 +117,7 @@ class GaiaImageCompareTestCase(GaiaTestCase):
             else:
                 error_msg = "Ref file not found for: " + filename + '\n'
             if error_msg != "":
-                #self.logger.critical(error_msg)  uncomment for debugging
+                # self.logger.critical(error_msg)  uncomment for debugging
                 self.failcomment += error_msg
                 self.test_passed = False
 
@@ -145,12 +136,13 @@ class GaiaImageCompareTestCase(GaiaTestCase):
 
         if not (err == '0\n' or err == '0'):
             err = err.replace('\n', '')
-            message = 'WARNING: ' + err + ' pixels mismatched between ' + target + ' and ' + ref + '\n'
+            message = 'WARNING: ' + err + ' pixels mismatched between ' + target + ' and ' + ref + '\n' + \
+                      'This screenshot and diff file will be moved to ' + self.mismatch_path + '\n'
 
             # move the diff image and the target image to a separate folder
             if not os.path.exists(self.mismatch_path):
                 os.makedirs(self.mismatch_path)
-            target_image_name = target[target.rfind("/")+1:]
+            target_image_name = target[target.rfind("/") + 1:]
             diff_image_name = diff[diff.rfind("/") + 1:]
             os.rename(target, os.path.join(self.mismatch_path, target_image_name))
             os.rename(diff, os.path.join(self.mismatch_path, diff_image_name))
@@ -229,7 +221,7 @@ class GaiaImageCompareTestCase(GaiaTestCase):
         time.sleep(1)  # compensate for the time taken for pinch to complete
 
     @staticmethod
-    def scroll( marionette, direction, distance,locator=None,screen=None, increments=None):
+    def scroll(marionette, direction, distance, locator=None, screen=None, increments=None):
         """scroll - uses smooth_scroll method in gestures.py.
 
         direction = 'up' or 'down' (page location)

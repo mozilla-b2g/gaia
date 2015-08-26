@@ -259,7 +259,7 @@ suite('TimeHeaders > ', function() {
     test('date and time header', function() {
       TimeHeaders.update(subject);
 
-      var formatter = new Intl.DateTimeFormat(navigator.languges, {
+      var formatter = new Intl.DateTimeFormat(navigator.languages, {
         month: '2-digit',
         day: '2-digit',
         year: 'numeric',
@@ -276,7 +276,7 @@ suite('TimeHeaders > ', function() {
       subject.dataset.dateOnly = 'true';
       TimeHeaders.update(subject);
 
-      var formatter = new Intl.DateTimeFormat(navigator.languges, {
+      var formatter = new Intl.DateTimeFormat(navigator.languages, {
         month: '2-digit',
         day: '2-digit',
         year: 'numeric',
@@ -291,7 +291,7 @@ suite('TimeHeaders > ', function() {
       subject.dataset.timeOnly = 'true';
       TimeHeaders.update(subject);
 
-      var formatter = new Intl.DateTimeFormat(navigator.languges, {
+      var formatter = new Intl.DateTimeFormat(navigator.languages, {
         hour12: navigator.mozHour12,
         hour: 'numeric',
         minute: 'numeric'

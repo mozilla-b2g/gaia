@@ -1,6 +1,6 @@
 /* global DataMobile, Navigation, SimManager, TimeManager,
           UIManager, WifiManager, ImportIntegration, Tutorial,
-          VersionHelper, LanguageManager */
+          VersionHelper, LanguageManager, eventSafety */
 /* exported AppManager */
 'use strict';
 
@@ -22,7 +22,6 @@ function notifyCollection() {
     } else {
       console.error ('mozApps does not have a connect method. ' +
                      'Cannot launch the collection preload process.');
-
     }
   };
 }
@@ -30,19 +29,30 @@ function notifyCollection() {
 var AppManager = {
 
   init: function init(versionInfo) {
+    window.performance.mark('initialize');
     this.isInitialized = true;
 
     LanguageManager.init();
     UIManager.init();
     Navigation.init();
 
+    window.performance.mark('navigationLoaded');
     // Send message to populate preinstalled collections.
     // This needs to be done for both upgrade and non-upgrade flows.
     notifyCollection();
 
-    UIManager.splashScreen.addEventListener('transitionend', function onEnd() {
-      UIManager.splashScreen.removeEventListener('transitionend', onEnd);
+    var splashTimeout = 1025;
+    var splashScreenHidden = this.whenEvent(UIManager.splashScreen,
+                                            'transitionend',
+                                            splashTimeout).then(() => {
       UIManager.container.removeAttribute('aria-hidden');
+      window.performance.mark('visuallyLoaded');
+    });
+
+    var languageListReady = this.whenEvent(window, 'languagelistready');
+
+    Promise.all([splashScreenHidden, languageListReady]).then(() => {
+      window.performance.mark('fullyLoaded');
     });
 
     // if it's an upgrade we can jump to tutorial directly
@@ -81,6 +91,8 @@ var AppManager = {
         window.location.hash = '#languages';
 
         UIManager.splashScreen.classList.remove('show');
+        window.performance.mark('navigationInteractive');
+        window.performance.mark('contentInteractive');
       }, kSplashTimeout);
       return;
     }
@@ -93,9 +105,20 @@ var AppManager = {
       UIManager.activationScreen.classList.add('show');
       // Remove the splash
       UIManager.splashScreen.classList.remove('show');
+      window.performance.mark('navigationInteractive');
+      window.performance.mark('contentInteractive');
     }, kSplashTimeout);
+  },
+  whenEvent: function (target, name, timeoutMs) {
+    return new Promise((resolve, reject) => {
+      eventSafety(target, name, resolve, timeoutMs || 1000);
+    });
   }
 };
+
+navigator.mozL10n.once(function firstLocalized() {
+  window.performance.mark('l10nready');
+});
 
 navigator.mozL10n.ready(function showBody() {
 

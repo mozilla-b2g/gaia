@@ -13,7 +13,8 @@
          Errors,
          EventDispatcher,
          SelectionHandler,
-         TaskRunner
+         TaskRunner,
+         MessagingClient
 */
 /*exported ConversationView */
 
@@ -81,6 +82,11 @@ var ConversationView = {
   previousSegment: 0,
   buildingMessages: {},
 
+  /**
+   * Set to true after init is run.
+   */
+  _isReady: false,
+
   timeouts: {
     update: null,
     subjectLengthNotice: null
@@ -113,7 +119,7 @@ var ConversationView = {
     }, this);
 
     this.mainWrapper = document.getElementById('main-wrapper');
-    this.threadMessages = document.getElementById('thread-messages');
+    this.threadMessages = document.querySelector('.panel-ConversationView');
 
     window.addEventListener('resize', this.resizeHandler.bind(this));
 
@@ -158,8 +164,8 @@ var ConversationView = {
       'click', this.showOptions.bind(this)
     );
 
-    this.callNumberButton.addEventListener('click', function() {
-      ActivityPicker.dial(Threads.active.participants[0]);
+    this.callNumberButton.addEventListener('click', () => {
+      ActivityPicker.dial(this.activeThread.participants[0]);
     });
 
     this.deleteButton.addEventListener(
@@ -266,6 +272,12 @@ var ConversationView = {
 
     // Bound methods to be detachables
     this.onMessageTypeChange = this.onMessageTypeChange.bind(this);
+
+    this._isReady = true;
+  },
+
+  isReady() {
+    return this._isReady;
   },
 
   onVisibilityChange: function conv_onVisibilityChange(e) {
@@ -441,7 +453,9 @@ var ConversationView = {
   },
 
   getIdIterator: function conv_getIdIterator() {
-    return Threads.active.messages.keys();
+    // TODO: Will need to replace with Conversation service method or caching
+    // the ids locally.
+    return this.activeThread.messages.keys();
   },
 
   setHeaderAction: function conv_setHeaderAction(icon) {
@@ -518,6 +532,10 @@ var ConversationView = {
     this.clearConvertNoticeBanners();
     this.setHeaderAction(ActivityClient.hasPendingRequest() ? 'close' : 'back');
 
+    // This is useful only the first time it's called. Then it's a no-op.
+    this.header.removeAttribute('no-font-fit');
+    this.editHeader.removeAttribute('no-font-fit');
+
     if (!this.multiSimActionButton) {
       // handles the various actions on the send button and encapsulates the
       // DSDS specific behavior
@@ -547,34 +565,41 @@ var ConversationView = {
   },
 
   beforeEnterThread: function conv_beforeEnterThread(args) {
-    // TODO should we implement hooks to Navigation so that Threads could
-    // get an event whenever the panel changes?
-    Threads.currentId = args.id;
+    var threadId = +args.id;
+    return MessageManager.ensureThreadRegistered(threadId).then(() => {
+      // TODO should we implement hooks to Navigation so that Threads could
+      // get an event whenever the panel changes?
 
-    var prevPanel = args.meta.prev;
+      // TODO: Will need to replace with Conversation service method.
+      this.activeThread = Threads.get(threadId);
 
-    var emailThread = Settings.supportEmailRecipient &&
-      Threads.active.participants.some(Utils.isEmailAddress);
+      var prevPanel = args.meta.prev;
 
-    Compose.setupLock({ forceType: () => emailThread ? 'mms' : null });
+      var emailThread = Settings.supportEmailRecipient &&
+        this.activeThread.participants.some(Utils.isEmailAddress);
 
-    // If transitioning from composer, we don't need to notify about type
-    // conversion but only after the type of the thread is set
-    // (afterEnterThread)
-    if (!prevPanel || prevPanel.panel !== 'composer') {
-      this.enableConvertNoticeBanners();
-    }
+      Compose.setupLock({ forceType: () => emailThread ? 'mms' : null });
 
-    if (!this.isConversationPanel(args.id, prevPanel)) {
-      this.initializeRendering();
-    }
+      // If transitioning from the 'new message' view, we don't want to notify
+      // about type conversion right now, but only after the type of the thread
+      // is set (see afterEnterThread)
+      if (!prevPanel || prevPanel.panel !== 'composer') {
+        this.enableConvertNoticeBanners();
+      }
 
-    // Call button should be shown only for non-email single-participant thread
-    if (Threads.active.participants.length === 1 && !emailThread) {
-      this.callNumberButton.classList.remove('hide');
-    }
+      if (!this.isConversationPanel(threadId, prevPanel)) {
+        // we don't want to rerender if it's already rendered
+        this.initializeRendering();
+      }
 
-    return this.updateHeaderData();
+      // Call button should be shown only for non-email single-participant
+      // thread
+      if (this.activeThread.participants.length === 1 && !emailThread) {
+        this.callNumberButton.classList.remove('hide');
+      }
+
+      return this.updateHeaderData();
+    });
   },
 
   afterEnter: function conv_afterEnter(args) {
@@ -595,22 +620,18 @@ var ConversationView = {
 
   afterEnterComposer: function conv_afterEnterComposer(args) {
     // TODO Bug 1010223: should move to beforeEnter
-    if (args.activity) {
-      this.handleActivity(args.activity);
-    } else if (args.draftId) {
-      this.handleDraft(+args.draftId);
-    }
+    var draftPromise =
+      args.draftId ? this.handleDraft(+args.draftId) : Promise.resolve();
 
-    if (args.focusComposer) {
-      Compose.focus();
-    } else {
-      this.recipients.focus();
-    }
+    return draftPromise.then(() => {
+      if (args.focusComposer) {
+        Compose.focus();
+      } else {
+        this.recipients.focus();
+      }
 
-    this.emit('visually-loaded');
-
-    // not strictly necessary but better for consistency
-    return Promise.resolve();
+      this.emit('visually-loaded');
+    });
   },
 
   afterEnterThread: function conv_afterEnterThread(args) {
@@ -619,6 +640,7 @@ var ConversationView = {
     var prevPanel = args.meta.prev;
 
     if (!this.isConversationPanel(threadId, prevPanel)) {
+      // we don't want to render again if this conversation is already rendered.
       this.renderMessages(threadId);
 
       // Populate draft if there is one
@@ -635,8 +657,8 @@ var ConversationView = {
       });
     }
 
-    // Let's mark thread only when inbox is fully rendered and target node
-    // is in the DOM tree.
+    // Let's mark the conversation only when inbox is fully rendered and
+    // the target node is in the DOM tree.
     App.whenReady().then(function() {
       // We use setTimeout (macrotask) here to allow reflow happen as soon as
       // possible and to not interrupt it with non-critical task since Promise
@@ -646,7 +668,8 @@ var ConversationView = {
       );
     });
 
-    // Enable notifications redirected from composer only after the user enters.
+    // When coming from the "new message" view, enable notifications only after
+    // the user enters the view.
     if (prevPanel && prevPanel.panel === 'composer') {
       this.enableConvertNoticeBanners();
     }
@@ -669,6 +692,7 @@ var ConversationView = {
 
     if (Navigation.isCurrentPanel('thread')) {
       // Revoke thumbnail URL for every image attachment rendered within thread
+      // Executed only when moving out of a conversation.
       var nodes = this.container.querySelectorAll(
         '.attachment-container[data-thumbnail]'
       );
@@ -678,18 +702,23 @@ var ConversationView = {
     }
 
     // TODO move most of back() here: Bug 1010223
-    if (!this.isConversationPanel(Threads.currentId, nextPanel)) {
+    if (this.activeThread &&
+        !this.isConversationPanel(this.activeThread.id, nextPanel)) {
+      // Clean fields when moving out of a conversation.
+      this.activeThread = null;
       this.cleanFields();
     }
   },
 
   afterLeave: function conv_afterLeave(args) {
     if (Navigation.isCurrentPanel('thread-list')) {
+      // We don't want to clean these things when moving from composer to
+      // conversation
       this.container.textContent = '';
       this.cleanFields();
-      Threads.currentId = null;
     }
     if (!Navigation.isCurrentPanel('composer')) {
+      // Cleaning things up when moving from composer to conversation.
       this.threadMessages.classList.remove('new');
 
       if (this.recipients) {
@@ -700,78 +729,50 @@ var ConversationView = {
     }
 
     if (!Navigation.isCurrentPanel('thread')) {
+      // Things we do when we move from composer to inbox.
+      // When we're in a thread, we already changed these things in beforeEnter.
       this.threadMessages.classList.remove('has-carrier');
       this.callNumberButton.classList.add('hide');
     }
   },
 
-  handleActivity: function conv_handleActivity(params) {
-    var parametersPromise;
-
-    if (params.number) {
-      parametersPromise = Contacts.findByAddress(params.number).then(
-      (contacts) => {
-        if (!contacts.length) {
-          throw new Error('No contacts found for %s', params.number);
-        }
-
-        return Object.assign(
-          Utils.basicContact(params.number, contacts), { source: 'contacts'}
-        );
-      }).catch(() => {
-        return { source: 'manual', number: params.number };
-      }).then((recipient) => {
-        this.recipients.add(recipient);
-
-        return params;
-      });
-    } else if (params.messageId) {
-      parametersPromise = MessageManager.getMessage(params.messageId);
-    } else {
-      parametersPromise = Promise.resolve(params);
-    }
-
-    return parametersPromise.then(
-      (parameters) => Compose.fromMessage(parameters)
-    );
-  },
-
   // recalling draft for composer only
   // Bug 1164431 might use it for thread drafts too
   handleDraft: function conv_handleDraft(draftId) {
-    // We'll revisit this.draft necessity in bug 1164435.
-    this.draft = Drafts.byDraftId(draftId);
+    return Drafts.request().then(() => {
+      // We'll revisit this.draft necessity in bug 1164435.
+      this.draft = Drafts.byDraftId(draftId);
 
-    if (!this.draft) {
-      return;
-    }
+      if (!this.draft) {
+        return;
+      }
 
-    // Recipients will exist for draft messages in threads
-    // Otherwise find them from draft recipient numbers
-    this.draft.recipients.forEach(function(number) {
-      Contacts.findByAddress(number).then(function(contacts) {
-        var recipient;
-        if (contacts.length) {
-          recipient = Utils.basicContact(number, contacts[0]);
-          recipient.source = 'contacts';
-        } else {
-          recipient = {
-            number: number,
-            source: 'manual'
-          };
-        }
+      // Recipients will exist for draft messages in threads
+      // Otherwise find them from draft recipient numbers
+      this.draft.recipients.forEach(function(number) {
+        Contacts.findByAddress(number).then(function(contacts) {
+          var recipient;
+          if (contacts.length) {
+            recipient = Utils.basicContact(number, contacts[0]);
+            recipient.source = 'contacts';
+          } else {
+            recipient = {
+              number: number,
+              source: 'manual'
+            };
+          }
 
-        this.recipients.add(recipient);
-      }.bind(this));
-    }, this);
+          this.recipients.add(recipient);
+        }.bind(this));
+      }, this);
 
-    // Render draft contents into the composer input area.
-    Compose.fromDraft(this.draft);
+      // Render draft contents into the composer input area.
+      Compose.fromDraft(this.draft);
+      this.draft.isEdited = false;
 
-    // Discard this draft object and update the backing store
-    Drafts.delete(this.draft).store();
-
-    this.draft.isEdited = false;
+      // Discard this draft object and update the backing store
+      return Drafts.delete(this.draft).store();
+    });
   },
 
   beforeEnterComposer() {
@@ -782,7 +783,6 @@ var ConversationView = {
     // TODO add the activity/forward/draft stuff here
     // instead of in afterEnter: Bug 1010223
 
-    Threads.currentId = null;
     this.cleanFields();
     this.initRecipients();
     this.updateComposerHeader();
@@ -881,19 +881,20 @@ var ConversationView = {
   /**
    * Checks if specified panel corresponds to the specified conversation id. It
    * can be true for either conversation, participants or report panels.
-   * @param {number} conversationId Id of the conversation.
+   * @param {number} id Id of the conversation.
    * @param {Object} panel Panel description object to compare against.
    * @returns {boolean}
    */
-  isConversationPanel:
-  function conv_isConversationPanel(conversationId, panel) {
+  isConversationPanel(id, panel) {
     if (!panel) {
       return false;
     }
 
-    return panel.panel === 'thread' && panel.args.id === conversationId ||
-      panel.panel === 'report-view' && panel.args.threadId === conversationId ||
-      panel.panel === 'group-view' && panel.args.id === conversationId;
+    id = +id;
+
+    return panel.panel === 'thread' && +panel.args.id === id ||
+      panel.panel === 'report-view' && +panel.args.threadId === id ||
+      panel.panel === 'group-view' && +panel.args.id === id;
   },
 
   onMessageReceived: function conv_onMessageReceived(e) {
@@ -1160,10 +1161,38 @@ var ConversationView = {
 
   /**
    * Navigates user to Composer or Thread panel with custom parameters.
-   * @param {*} parameters Optional navigation parameters.
+   * @param {Object} parameters Navigation parameters. `number` and `messageId`
+   * are mutually exclusive in the current implementation.
+   * @param {String} [parameters.number] Phone number or e-mail to send a
+   * message to.
+   * @param {Number} [parameters.messageId] Template message to resend.
    * @returns {Promise} Promise that is resolved once navigation is completed.
+   * Promise is rejected if no navigation happened, especially if the user did
+   * not want to discard an existing message.
    */
-  navigateToComposer: function(parameters) {
+  initiateNewMessage: function(parameters) {
+    var navigateToComposer = () => {
+      var draftCreatePromise;
+
+      if (parameters.messageId) {
+        draftCreatePromise = this.storeDraftFromMessage(parameters.messageId);
+      } else if (parameters.number) {
+        var draft = new Draft({
+          recipients: [parameters.number],
+          type: Utils.isEmailAddress(parameters.number) ? 'mms' : 'sms'
+        });
+        draftCreatePromise = Drafts.add(draft).store().then(() => draft.id);
+      } else {
+        throw new TypeError('Unknown parameter');
+      }
+
+      var focusComposer = !!(parameters && parameters.number);
+      return draftCreatePromise.then(
+        (draftId) => Navigation.toPanel('composer', { draftId, focusComposer })
+      );
+    };
+
+
     var draftDiscardPromise;
 
     // We should check if draft is not saved instead, to be fixed in bug 1153940
@@ -1178,23 +1207,16 @@ var ConversationView = {
     }
 
     return draftDiscardPromise.then(() => {
-      // Now we'll try to find existing thread for the new message, otherwise
-      // let's fallback to new message composer.
-      var threadPromise = Promise.reject();
-      if (parameters && parameters.number) {
-        threadPromise = MessageManager.findThreadFromNumber(parameters.number);
-      }
+      var threadExistingPromise = parameters && parameters.number ?
+        // A rejected promise will be returned in case we can't find thread
+        // for the specified number.
+        MessageManager.findThreadFromNumber(parameters.number) :
+        Promise.reject();
 
-      // The rejected promise will be returned in case we can't find thread
-      // for the specified number.
-      return threadPromise.then((id) => {
-        return Navigation.toPanel('thread', { id: id, focusComposer: true });
-      }, () => {
-        return Navigation.toPanel('composer', {
-          activity: parameters,
-          focusComposer: !!(parameters && parameters.number)
-        });
-      });
+      return threadExistingPromise.then(
+        (id) => Navigation.toPanel('thread', { id: id, focusComposer: true }),
+        navigateToComposer
+      );
     });
   },
 
@@ -1203,14 +1225,16 @@ var ConversationView = {
 
     // We're waiting for the keyboard to disappear before animating back
     return this._ensureKeyboardIsHidden().then(function() {
+      var inConversation = Navigation.isCurrentPanel('thread');
       // Need to assimilate recipients in order to check if any entered
       this.assimilateRecipients();
 
       // If we're leaving a thread's message view,
       // ensure that the thread object's unreadCount
       // value is current (set = 0)
-      if (Threads.active) {
-        Threads.active.unreadCount = 0;
+      if (inConversation) {
+        // TODO: Will need to replace with Conversation service method.
+        this.activeThread.unreadCount = 0;
       }
 
       // If the composer is empty and we are either
@@ -1218,7 +1242,7 @@ var ConversationView = {
       // do not prompt to save a draft and remove saved drafts
       // as the user deleted them manually
       if (Compose.isEmpty() &&
-        (Threads.active || this.recipients.length === 0)) {
+        (inConversation || this.recipients.length === 0)) {
         this.discardDraft();
         return;
       }
@@ -1230,7 +1254,7 @@ var ConversationView = {
         // Thread-less drafts are orphaned at this point
         // so they need to be resaved for persistence
         // Otherwise, clear the draft directly before leaving
-        if (!Threads.currentId) {
+        if (!inConversation) {
           this.saveDraft();
         } else {
           this.draft = null;
@@ -1421,7 +1445,7 @@ var ConversationView = {
   updateHeaderData: function conv_updateHeaderData() {
     var thread, number;
 
-    thread = Threads.active;
+    thread = this.activeThread;
 
     if (!thread) {
       return Promise.resolve();
@@ -2105,7 +2129,7 @@ var ConversationView = {
       }
 
       // If we reach the container, quit.
-      if (node.id === 'thread-messages') {
+      if (node.classList.contains('panel-ConversationView')) {
         return null;
       }
     } while ((node = node.parentNode));
@@ -2149,7 +2173,7 @@ var ConversationView = {
           params.items.push({
             l10nId: 'forward',
             method: () => {
-              this.navigateToComposer({ messageId: messageId });
+              this.initiateNewMessage({ messageId });
             }
           });
         }
@@ -2166,13 +2190,13 @@ var ConversationView = {
           },
           {
             l10nId: 'view-message-report',
-            method: function showMessageReport(messageId) {
+            method: (messageId) => {
               // Fetch the message by id for displaying corresponding message
               // report. threadId here is to make sure thread is updatable
               // when current view report panel.
               Navigation.toPanel('report-view', {
                 id: messageId,
-                threadId: Threads.currentId
+                threadId: this.activeThread.id
               });
             },
             params: [messageId]
@@ -2274,7 +2298,7 @@ var ConversationView = {
       }
       recipients = this.recipients.numbers;
     } else {
-      recipients = Threads.active.participants;
+      recipients = this.activeThread.participants;
     }
 
     // Clean composer fields (this lock any repeated click in 'send' button)
@@ -2487,26 +2511,20 @@ var ConversationView = {
     // force a number
     var id = +messageDOM.dataset.messageId;
     var iccId = messageDOM.dataset.iccId;
-
-    var request = MessageManager.retrieveMMS(id);
-
     var button = messageDOM.querySelector('button');
 
     this.setMessageStatus(id, 'pending');
     button.setAttribute('data-l10n-id', 'downloading-attachment');
 
-    request.onsuccess = (function retrieveMMSSuccess() {
+    MessagingClient.retrieveMMS(id).then(() => {
       Threads.unregisterMessage(id);
       this.removeMessageDOM(messageDOM);
-    }).bind(this);
-
-    request.onerror = (function retrieveMMSError() {
+    }, (error) => {
       this.setMessageStatus(id, 'error');
       button.setAttribute('data-l10n-id', 'download-attachment');
 
       // Show NonActiveSimCard/Other error dialog while retrieving MMS
-      var errorCode = (request.error && request.error.name) ?
-        request.error.name : null;
+      var errorCode = error && error.name || null;
 
       if (!navigator.mozSettings) {
         console.error('Settings unavailable');
@@ -2542,7 +2560,7 @@ var ConversationView = {
           }.bind(this)
         });
       }
-    }).bind(this);
+    });
   },
 
   resendMessage: function conv_resendMessage(id) {
@@ -2762,17 +2780,12 @@ var ConversationView = {
   },
 
   onHeaderActivation: function conv_onHeaderActivation() {
-    // Do nothing while in participants list view.
-    if (!Navigation.isCurrentPanel('thread')) {
-      return;
-    }
-
-    var participants = Threads.active && Threads.active.participants;
+    var participants = this.activeThread && this.activeThread.participants;
 
     // >1 Participants will enter "group view"
     if (participants && participants.length > 1) {
       Navigation.toPanel('group-view', {
-        id: Threads.currentId
+        id: this.activeThread.id
       });
       return;
     }
@@ -2802,7 +2815,6 @@ var ConversationView = {
   promptContact: function conv_promptContact(opts) {
     opts = opts || {};
 
-    var inMessage = opts.inMessage || false;
     var number = opts.number || '';
     var tel, email;
 
@@ -2812,7 +2824,7 @@ var ConversationView = {
       tel = number || '';
     }
 
-    Contacts.findByAddress(number).then(function(contacts) {
+    return Contacts.findByAddress(number).then((contacts) => {
       var isContact = contacts.length;
       var contact = contacts[0];
       var id;
@@ -2831,25 +2843,21 @@ var ConversationView = {
         });
       }
 
-      this.prompt({
+      return this.prompt({
         number: tel,
-        email: email,
+        email,
         header: fragment,
         contactId: id,
-        isContact: isContact,
-        inMessage: inMessage
+        isContact,
+        inMessage: opts.inMessage
       });
-    }.bind(this));
+    });
   },
 
   prompt: function conv_prompt(opt) {
-    var complete = (function complete() {
-      if (!Navigation.isCurrentPanel('thread')) {
-        Navigation.toPanel('thread', { id: Threads.currentId });
-      }
-    }).bind(this);
+    var defer = Utils.Promise.defer();
 
-    var thread = Threads.active;
+    var thread = this.activeThread;
     var number = opt.number || '';
     var email = opt.email || '';
     var isContact = opt.isContact || false;
@@ -2873,7 +2881,7 @@ var ConversationView = {
 
     params = {
       classes: ['contact-prompt'],
-      complete: complete,
+      complete: defer.resolve,
       header: header || '',
       items: null
     };
@@ -2892,7 +2900,7 @@ var ConversationView = {
         items.push({
           l10nId: 'sendMMSToEmail',
           method: () => {
-            this.navigateToComposer({ number: email });
+            this.initiateNewMessage({ number: email });
           },
           // As we change panel here, we don't want to call 'complete' that
           // changes the panel as well
@@ -2913,7 +2921,7 @@ var ConversationView = {
         items.push({
           l10nId: 'sendMessage',
           method: () => {
-            this.navigateToComposer({ number: number });
+            this.initiateNewMessage({ number: number });
           },
           // As we change panel here, we don't want to call 'complete' that
           // changes the panel as well
@@ -2962,6 +2970,7 @@ var ConversationView = {
     });
 
     new OptionMenu(params).show();
+    return defer.promise;
   },
 
   discardDraft: function conv_discardDraft() {
@@ -2986,7 +2995,7 @@ var ConversationView = {
    * whether or not we should preserve draft.
    */
   saveDraft: function conv_saveDraft(preserveDraft) {
-    var thread = Threads.active;
+    var thread = this.activeThread;
 
     // Do we need to save participants for thread draft?
     var recipients = thread ? thread.participants : this.recipients.numbers;
@@ -3000,7 +3009,7 @@ var ConversationView = {
       type: Compose.type
     });
 
-    Drafts.add(draft);
+    Drafts.add(draft).store();
 
     // Set draft property if it is not already set and meant to be preserved.
     if (preserveDraft && !this.draft) {
@@ -3010,6 +3019,49 @@ var ConversationView = {
       // replacement case.
       this.draft = null;
     }
+  },
+
+  /**
+   * From a messageId, this stores a new draft with the content of this message.
+   *
+   * @param {Number} messageId Message to store as draft.
+   * @returns {Promise.<Number>} Resolved with the draft id once the draft is
+   * stored.
+   */
+  storeDraftFromMessage(messageId) {
+    var message = Threads.Messages.get(messageId);
+
+    // TODO store parsed version of SMIL in memory or local DB
+    var contentPromise;
+    if (message.type === 'sms') {
+      contentPromise = Promise.resolve([message.body]);
+    } else {
+      contentPromise = SMIL.parse(message).then(
+        (elements) => elements.map((element) => {
+          if (element.blob) {
+            return new Attachment(element.blob, {
+              name: element.name,
+              isDraft: true
+            });
+          }
+          if (element.text) {
+            return element.text;
+          }
+        })
+      );
+    }
+
+    return contentPromise.then((content) => {
+      var draft = new Draft({
+        subject: message.subject,
+        type: message.type,
+        content
+      });
+
+      return Drafts.add(draft).store().then(
+        () => draft.id
+      );
+    });
   },
 
   /**

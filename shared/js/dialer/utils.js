@@ -139,5 +139,71 @@ var Utils = {
     }
 
     return result;
+  },
+
+  _phoneTypesL10n: {
+    'mobile':    'phone_type_mobile',
+    'home':      'phone_type_home',
+    'work':      'phone_type_work',
+    'personal':  'phone_type_personal',
+    'faxHome':   'phone_type_fax_home',
+    'faxOffice': 'phone_type_fax_office',
+    'faxOther':  'phone_type_fax_other',
+    'other':     'phone_type_other'
+  },
+
+  /**
+   * This function works just like getPhoneNumberAdditionalInfo but returns
+   * either an l10n id or an object holding an l10n id & args couple.
+   * Eventually getPhoneNumberAdditionalInfo will be removed and entirely
+   * replaced by this function.
+   */
+  getLocalizedPhoneNumberAdditionalInfo:
+  function ut_getLocalizedPhoneNumberAdditionalInfo(matchingTel) {
+    // In case that there is no stored type for this number, we default to
+    // "Mobile".
+    var type = matchingTel.type || 'mobile';
+    var carrier = matchingTel.carrier;
+
+    if (Array.isArray(type)) {
+      type = type[0];
+    }
+
+    var id;
+    var args = {};
+
+
+    if (this._phoneTypesL10n.hasOwnProperty(type)) {
+      id = this._phoneTypesL10n[type];
+    } else {
+      id = 'phone_type_custom';
+      args.type = type;
+    }
+
+    if (carrier) {
+      id += '_and_carrier';
+      args.carrier = carrier;
+    }
+
+    if (Object.keys(args).length === 0) {
+      return id;
+    } else {
+      return {
+        id:   id,
+        args: args
+      };
+    }
+  },
+
+  /**
+   * Checks if the passed string is one of the predefined phone types that we
+   * localize when displayed.
+   *
+   * @param {String} type A string representing the phone type
+   * @return {Boolean} true if the string is one of the predefined phone types,
+   *         false otherwise.
+   */
+  isPhoneType: function ut_isPhoneType(type) {
+    return this._phoneTypesL10n.hasOwnProperty(type);
   }
 };

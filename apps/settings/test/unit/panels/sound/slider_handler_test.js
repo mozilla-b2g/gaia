@@ -3,11 +3,10 @@
 
 suite('Sound > SliderHandler', function() {
   var sliderHandler;
-  var realL10n, realMozSettings;
+  var realMozSettings;
   var dom = document.createElement('li');
 
   var modules = [
-    'shared_mocks/mock_l10n',
     'shared_mocks/mock_navigator_moz_settings',
     'shared_mocks/mock_settings_listener',
     'panels/sound/slider_handler'
@@ -21,11 +20,8 @@ suite('Sound > SliderHandler', function() {
 
   setup(function(done) {
     testRequire(modules, maps, function(
-      MockL10n, MockNavigatorSettings, MockSettingsListener, module) {
+      MockNavigatorSettings, MockSettingsListener, module) {
         window.SettingsListener = MockSettingsListener;
-        // mock l10n
-        realL10n = window.navigator.mozL10n;
-        window.navigator.mozL10n = MockL10n;
         // mock mozSettings
         realMozSettings = navigator.mozSettings;
         window.navigator.mozSettings = MockNavigatorSettings;
@@ -35,7 +31,6 @@ suite('Sound > SliderHandler', function() {
   });
 
   teardown(function() {
-    window.navigator.mozL10n = realL10n;
     window.navigator.mozSettings = realMozSettings;
   });
 

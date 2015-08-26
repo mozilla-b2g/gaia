@@ -283,9 +283,12 @@
     // because the input is inside system app.
     var bottomWindow = this.app.getBottomMostWindow();
     var topmostui = Service.query('getTopMostUI');
+    var stayBackground = this.app.config &&
+                         this.app.config.stayBackground;
     return (this.app.CLASS_NAME !== 'SearchWindow' &&
             this._transitionState == 'opened' &&
             Service.query('getTopMostWindow') === this.app &&
+            !stayBackground &&
             topmostui &&
             topmostui.name === bottomWindow.HIERARCHY_MANAGER);
   };

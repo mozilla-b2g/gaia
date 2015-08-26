@@ -1,4 +1,5 @@
-/* global LazyLoader, FormUI, FormController */
+/* global LazyLoader, FormUI, FormController, ContactsService,
+          ParamUtils, TAG_OPTIONS */
 'use strict';
 
 /*
@@ -24,6 +25,7 @@ window.addEventListener('DOMContentLoaded', function() {
 
 window.addEventListener('load', function() {
   var dependencies = [
+    '/contacts/js/param_utils.js',
     '/contacts/js/navigation.js',
     '/contacts/services/contacts.js',
     '/shared/js/l10n_date.js',
@@ -36,15 +38,58 @@ window.addEventListener('load', function() {
     '/shared/js/contacts/utilities/dom.js',
     '/shared/js/contacts/import/utilities/misc.js',
     '/contacts/views/form/js/form_ui.js',
-    '/contacts/views/form/js/form_controller.js',
-    '/contacts/views/form/js/main_navigation.js'
+    '/contacts/views/form/js/form_controller.js'
   ];
 
   LazyLoader.load(
     dependencies,
     function() {
-      FormUI.init();
+      // Get action from URL (new or update)
+      var params = ParamUtils.get();
+
+      // Initialize view and controller
+      FormUI.init(params.action);
       FormController.init();
+
+      if (params.action === 'update') {
+        ContactsService.get(
+          params.contact,
+          function(contact) {
+            if (params.tel) {
+              contact.tel.push(
+                {
+                  type: [TAG_OPTIONS['phone-type'][0].type],
+                  value: params.tel,
+                  carrier: null
+                }
+              );
+            }
+
+            if (params.email) {
+              contact.email.push(
+                {
+                  value: params.email,
+                  type: [TAG_OPTIONS['email-type'][0].type]
+                }
+              );
+            }
+
+            FormUI.render(
+              contact,
+              params.action,
+              (params.isActivity === 'true')
+            );
+            FormController.setContact(
+              contact
+            );
+            FormController.comesFromActivity = (params.isActivity === 'true');
+          },
+          function() {
+            console.error('Unable to retrieve contact');
+          }
+        );
+      }
+
       navigator.mozSetMessageHandler(
         'activity',
         function(activity) {

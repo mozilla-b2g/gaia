@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>GaiaAppIcon demo</title>
+
+  <script src="../script.js"></script>
+
+  <style>
+    gaia-app-icon {
+      width: 256px;
+    }
+  </style>
+</head>
+
+<body>
+  <gaia-app-icon id="icon"></gaia-app-icon>
+</body>
+
+<script>
+  // TODO: This example doesn't work anymore, icon takes an app and uses
+  //       app.manifest, app.launch and navigator.mozApps.mgmt.getIcon.
+  var icon = document.getElementById('icon');
+  icon.manifest = {
+    name: 'GaiaAppIcon test',
+    origin: '',
+    icons: {
+      '284': 'icon.png'
+    }
+  };
+</script>
+</html>

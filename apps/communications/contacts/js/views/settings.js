@@ -18,6 +18,8 @@
 /* global ContactsService */
 /* global ExtServices */
 /* global Loader */
+/* global BulkDelete */
+/* global ICE */
 
 var contacts = window.contacts || {};
 
@@ -192,7 +194,7 @@ contacts.Settings = (function() {
       '/contacts/js/utilities/ice_data.js',
       '/contacts/js/views/ice_settings.js',
       '/shared/js/contacts/utilities/ice_store.js'], function(){
-      contacts.ICE.refresh();
+      ICE.refresh();
       navigationHandler.go('ice-settings', 'right-left');
       if (typeof cb === 'function') {
         cb();
@@ -243,7 +245,7 @@ contacts.Settings = (function() {
         Loader.view('search', function() {
           contacts.List.selectFromList(_('DeleteTitle'),
             function onSelectedContacts(promise, done) {
-              contacts.BulkDelete.performDelete(promise, done);
+              BulkDelete.performDelete(promise, done);
             },
             null,
             navigationHandler,
@@ -448,9 +450,7 @@ contacts.Settings = (function() {
   // Listens for any change in the ordering preferences
   var onOrderingChange = function onOrderingChange(evt) {
     newOrderByLastName = orderCheckBox.checked;
-    utils.cookie.update({order: newOrderByLastName});
     updateOrderingUI();
-    Cache.evict();
   };
 
   // Import contacts from SIM card and updates ui
@@ -689,6 +689,8 @@ contacts.Settings = (function() {
     if (newOrderByLastName != null &&
         newOrderByLastName != orderByLastName && contacts.List) {
       contacts.List.setOrderByLastName(newOrderByLastName);
+      utils.cookie.update({order: newOrderByLastName});
+      Cache.evict();
       // Force the reset of the dom, we know that we changed the order
       contacts.List.load(null, true);
       orderByLastName = newOrderByLastName;

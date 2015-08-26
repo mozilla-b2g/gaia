@@ -1,6 +1,6 @@
 'use strict';
 /* global MocksHelper, MockSpeechSynthesis, MockSpeechSynthesisUtterance,
-          Accessibility, SettingsListener, MockL10n */
+          Accessibility, SettingsListener, MockL10n, Service */
 
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/test/unit/mock_speech_synthesis.js');
@@ -8,15 +8,17 @@ requireApp('system/test/unit/mock_lazy_loader.js');
 requireApp('system/js/accessibility.js');
 requireApp('system/js/accessibility_quicknav_menu.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_service.js');
 
 var mocksForA11y = new MocksHelper([
   'SettingsListener',
-  'LazyLoader'
+  'LazyLoader',
+  'Service'
 ]).init();
 
 suite('system/Accessibility', function() {
 
-  var accessibility, speechSynthesizer;
+  var accessibility, speechSynthesizer, screenNode;
 
   var vcChangeKeyDetails = {
     eventType: 'vc-change',
@@ -102,6 +104,9 @@ suite('system/Accessibility', function() {
 
   mocksForA11y.attachTestHelpers();
   setup(function() {
+    screenNode = document.createElement('div');
+    screenNode.id = 'screen';
+    document.body.appendChild(screenNode);
     accessibility = new Accessibility();
     accessibility.start();
     speechSynthesizer = accessibility.speechSynthesizer;
@@ -113,6 +118,7 @@ suite('system/Accessibility', function() {
 
   teardown(function() {
     navigator.mozL10n = realL10n;
+    screenNode.parentNode.removeChild(screenNode);
   });
 
   test('logohidden handler', function() {
@@ -363,6 +369,58 @@ suite('system/Accessibility', function() {
         assert.isTrue(stubSpeak.called);
       });
 
+    });
+  });
+
+  suite('screenreader shade', function() {
+    test('turn shade on when screenreader is off', function() {
+      var stubRequest = this.sinon.stub(Service, 'request');
+      var stubSpeak = this.sinon.stub(accessibility, 'speak');
+      SettingsListener.mTriggerCallback(
+        'accessibility.screenreader-shade', true);
+      assert.isFalse(stubRequest.calledWith('turnShadeOn'));
+      assert.isFalse(stubSpeak.called);
+      SettingsListener.mTriggerCallback(
+        'accessibility.screenreader-shade', false);
+      assert.isFalse(stubSpeak.called);
+    });
+
+    test('turn shade on when screenreader is on', function() {
+      var stubRequest = this.sinon.stub(Service, 'request');
+      var stubSpeak = this.sinon.stub(accessibility, 'speak');
+      SettingsListener.mTriggerCallback(
+        'accessibility.screenreader', true);
+      SettingsListener.mTriggerCallback(
+        'accessibility.screenreader-shade', true);
+      assert.isTrue(stubRequest.calledWith('turnShadeOn'));
+      assert.isTrue(stubSpeak.called);
+      SettingsListener.mTriggerCallback(
+        'accessibility.screenreader-shade', false);
+      assert.isTrue(stubRequest.calledWith('turnShadeOff'));
+      assert.isTrue(stubSpeak.calledTwice);
+      SettingsListener.mTriggerCallback(
+        'accessibility.screenreader', false);
+    });
+
+    test('turn screenreader on and off when shade is on', function() {
+      var stubRequest = this.sinon.stub(Service, 'request');
+      var stubSpeak = this.sinon.stub(accessibility, 'speak');
+      SettingsListener.mTriggerCallback(
+        'accessibility.screenreader-shade', true);
+      assert.isFalse(stubRequest.calledWith('turnShadeOn'));
+      SettingsListener.mTriggerCallback(
+        'accessibility.screenreader', true);
+      // If shade is on, it is announced after the screen reader turns on
+      assert.isTrue(stubSpeak.calledOnce);
+      assert.isTrue(stubRequest.calledWith('turnShadeOn'));
+      SettingsListener.mTriggerCallback(
+        'accessibility.screenreader', false);
+      assert.isTrue(stubRequest.calledWith('turnShadeOff'));
+      SettingsListener.mTriggerCallback(
+        'accessibility.screenreader-shade', false);
+      // We should not get a speak if the screen reader is toggled off before
+      // the shade
+      assert.isTrue(stubSpeak.calledOnce);
     });
   });
 });

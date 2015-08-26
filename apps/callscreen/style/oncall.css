@@ -66,14 +66,6 @@
     height:100%;
   }
 
-  .grid-v-align {
-    vertical-align:middle;
-  }
-
-  .grid-row {
-    display:table-row;
-  }
-
   .grid-cell {
     display:table-cell;
   }
@@ -93,21 +85,8 @@
     display: none;
   }
 
-  .grid-row.transparent,
-  #co-advanced.transparent {
+  #call-options.transparent {
     visibility: hidden;
-  }
-
-  .layout-row {
-    display:table-row;
-  }
-
-  .layout-cell {
-    display:table-cell;
-  }
-
-  .layout-centered {
-    vertical-align:middle;
   }
 
   .center {
@@ -327,10 +306,6 @@
     border: 0;
     border-radius: 2rem;
     background-size: auto 100%;
-  }
-
-  #callbar-hang-up > .callbar-inner-button,
-  #callbar-answer > .callbar-inner-button {
     margin: 1rem 1.5rem;
   }
 
@@ -761,6 +736,7 @@
     position: relative;
     color: #333;
     font-style: italic;
+    background-color: rgba(255, 255, 255, 0.85);
   }
 
   #incoming-info:not(.additionalInfo) #incoming-number {
@@ -814,7 +790,6 @@
   }
 
   .incoming-number-info {
-    background-color: rgba(255, 255, 255, 0.85);
     background-image: url('images/handled_call/actionicon_activecall_incomingcall.png');
     background-position: 27.2rem 2rem;
     background-repeat: no-repeat;
@@ -848,8 +823,8 @@
   #incoming-ignore {
     background: #575757;
     font-style: italic;
-    width: 29rem;
-    margin: 1rem 1.5rem 1rem 1.5rem;
+    width: 90%;
+    margin: 1.1rem 1.5rem 0.9rem 1.5rem;
   }
 
   /* Conference group support */
@@ -930,12 +905,6 @@
   #call-screen[data-layout="connected-hold"] #calls.big-duration .handled-call.ongoing:not(.ended) .number,
   #call-screen[data-layout="connected-hold"] #calls.big-duration .handled-call.ongoing:not(.ended) .additionalContactInfo {
     color: rgba(51, 51, 51, 0.7);
-  }
-
-  #call-screen[data-layout="dialing"] #callbar-hang-up > .callbar-inner-button,
-  #call-screen[data-layout="connected"] #callbar-hang-up > .callbar-inner-button,
-  #call-screen[data-layout="connected-hold"] #callbar-hang-up > .callbar-inner-button {
-    margin: 1rem 1.5rem 1rem 1.5rem;
   }
 
   #call-screen[data-layout="incoming"] #co-advanced,

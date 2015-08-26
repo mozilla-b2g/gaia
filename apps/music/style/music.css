@@ -728,12 +728,12 @@ html[dir="rtl"] #player-cover-share {
   color: #777;
 }
 
-#player-album-repeat.repeat-list,
-#player-album-repeat.repeat-song {
+#player-album-repeat[value="list"],
+#player-album-repeat[value="song"] {
   color: #fff;
 }
 
-#player-album-repeat.repeat-song:before {
+#player-album-repeat[value="song"]:before {
   content: 'repeat-once';
 }
 

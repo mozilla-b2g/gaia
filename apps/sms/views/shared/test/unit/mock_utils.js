@@ -11,10 +11,12 @@ var MockUtils = {
   getDayDate: Utils.getDayDate,
   setHeaderDate: Utils.setHeaderDate,
   getFormattedHour: Utils.getFormattedHour,
+  _getFormatter: Utils._getFormatter,
   // real code needed here to map types
   typeFromMimeType: Utils.typeFromMimeType,
   escapeRegex: Utils.escapeRegex,
   params: Utils.params,
+  url: Utils.url,
   getContactDetails: Utils.getContactDetails,
   getResizedImgBlob: Utils.getResizedImgBlob,
   getSizeForL10n: Utils.getSizeForL10n,

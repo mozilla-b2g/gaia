@@ -20,7 +20,7 @@
  *   'somethingelsehappened'
  * ]);
  *
- * The wrapped object will have four new methods: 'on', 'off', 'offAll'
+ * The wrapped object will have five new methods: 'on', 'once', 'off', 'offAll'
  * and 'emit'. Use 'on' to register a new event-handler:
  *
  * obj.on("somethinghappened", function onSomethingHappened() { ... });
@@ -35,6 +35,11 @@
  * Use 'off' to remove a registered listener:
  *
  * obj.off("somethinghappened", onSomethingHappened);
+ *
+ * Use 'once' to register a one-time event-handler: it will be automatically
+ * unregistered after being called.
+ *
+ * obj.once("somethinghappened", function onSomethingHappened() { ... });
  *
  * And use 'offAll' to remove all registered event listeners for the specified
  * event:

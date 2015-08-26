@@ -20,7 +20,8 @@
   "orientation": "landscape",
   "permissions": {
     "tv": {},
-    "webapps-manage": {}
+    "webapps-manage": {},
+    "moz-extremely-unstable-and-will-change-webcomponents":{}
   },
   "datastores-access": {
     "home_cards": {

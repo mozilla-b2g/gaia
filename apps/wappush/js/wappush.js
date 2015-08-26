@@ -1,6 +1,3 @@
-/* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-
 /* global CpScreenHelper, DUMP, MessageDB, Notification, NotificationHelper,
           ParsedMessage, Promise, SiSlScreenHelper, WhiteList, Utils */
 
@@ -38,6 +35,9 @@
    * processed yet
    */
   var pendingMessages;
+
+  /** Currently displayed SI message (null for SL and CP messages) */
+  var displayedSiMessage;
 
   /**
    * Returns a promise used to retrieve the app's own object.
@@ -88,6 +88,7 @@
     app = null;
     closeTimeout = null;
     pendingMessages = 0;
+    displayedSiMessage = null;
 
     // Listen to settings changes right away
     navigator.mozSettings.addObserver(wapPushEnableKey, wpm_onSettingsChange);
@@ -106,7 +107,10 @@
       CpScreenHelper.init();
 
       // Register event and message handlers only after initialization is done
-      MessageDB.on('messagedeleted', wpm_onMessageDeleted);
+      MessageDB.on('new', wpm_onNew);
+      MessageDB.on('update', wpm_onUpdate);
+      MessageDB.on('discard', wpm_onDiscard);
+      MessageDB.on('delete', wpm_onDelete);
 
       document.addEventListener('visibilitychange', wpm_onVisibilityChange);
       window.navigator.mozSetMessageHandler('notification', wpm_onNotification);
@@ -115,9 +119,9 @@
     }).catch(function(error) {
       // If we encountered an error don't process messages
       wapPushEnabled = false;
-      error = error || 'Unknown error';
-      console.error('Could not initialize: ', error);
-      return error;
+      var message = error.message || 'Unknown error';
+      console.error('Could not initialize the WAP push manager: ', message);
+      throw error;
     });
 
     return promise;
@@ -202,7 +206,7 @@
     var options = {
       icon: iconURL,
       bodyL10n: body,
-      tag: message.timestamp
+      tag: message.getUniqueId()
     };
 
     return NotificationHelper.send(title, options)
@@ -240,31 +244,11 @@
       return Promise.resolve();
     }
 
-    return message.save().then(function wpm_saveResolved(status) {
-      if (status === 'discarded') {
-        DUMP('The message was discarded');
-        wpm_finish();
-        return Promise.resolve();
-      }
-
-      DUMP('The message was successfully saved to the DB');
-
-      if (message.action === 'signal-high' ||
-          message.action === 'execute-high')
-      {
-        /* We just decrease the number of pending messages instead of invoking
-         * wpm_finish() since we don't want to start the close procedure. */
-        pendingMessages--;
-        return wpm_displayWapPushMessage(message.timestamp);
-      } else {
-        return wpm_sendNotification(message).then(function() {
-          wpm_finish();
-        });
-      }
-    }).catch(function wpm_saveRejected(error) {
-      console.log('Could not add a message to the database: ' + error + '\n');
+    return message.save().catch(error => {
+      var message = error.message || 'Unknown error';
+      console.log('Could not add a message to the database: ' + message + '\n');
       wpm_finish();
-      return error;
+      throw error;
     });
   }
 
@@ -282,50 +266,129 @@
   }
 
   /**
-   * Removes the notifications for messages that have been deleted
+   * Reacts to a new message being added to the database by showing a
+   * notification or directly showing the message if required by the action
+   * field.
    *
-   * @param {Object} message The deleted message.
+   * @param {Object} obj The new message in untyped form (i.e. JSON)
    */
-  function wpm_onMessageDeleted(message) {
-    wpm_clearNotifications(+message.timestamp);
+  function wpm_onNew(obj) {
+    DUMP('A new message added to the DB');
+
+    var message = new ParsedMessage(obj);
+
+    if (message.action === 'signal-high' ||
+        message.action === 'execute-high')
+    {
+      /* We just decrease the number of pending messages instead of invoking
+       * wpm_finish() since we don't want to start the close procedure. */
+      pendingMessages--;
+      wpm_displayWapPushMessage(message.getUniqueId());
+    } else {
+      wpm_sendNotification(message).then(() => wpm_finish());
+    }
+  }
+
+  /**
+   * Reacts to a message being updated in the database by updating the
+   * notification and possibly the message being shown to the user.
+   *
+   * @param {Object} obj The new message in untyped form (i.e. JSON)
+   */
+  function wpm_onUpdate(obj) {
+    DUMP('A message was updated in the DB');
+
+    var message = new ParsedMessage(obj);
+
+    // Update the message if we're currently displaying it
+    if (displayedSiMessage &&
+        displayedSiMessage.getUniqueId() === message.getUniqueId()) {
+      displayedSiMessage = message;
+      SiSlScreenHelper.populateScreen(message);
+    }
+
+    // This updates the existing notification
+    wpm_sendNotification(message).then(() => wpm_finish());
+  }
+
+  /**
+   * Removes the notifications for messages that have been deleted and closes
+   * the app if the message being viewed has been deleted.
+   *
+   * @param {Object} obj The deleted message in untyped form (i.e. JSON)
+   */
+  function wpm_onDelete(obj) {
+    DUMP('A message was deleted');
+
+    var message = new ParsedMessage(obj);
+
+    // Close the application if we're displaying the deleted message
+    if (displayedSiMessage &&
+        displayedSiMessage.getUniqueId() === message.getUniqueId()) {
+      wpm_close();
+    }
+
+    // Remove the notification associated to the deleted message
+    wpm_clearNotifications(+message.getUniqueId());
+  }
+
+  /**
+   * Prints a debug statement when a message has been discarded, no further
+   * action required.
+   */
+  function wpm_onDiscard() {
+    DUMP('The message was discarded');
+    wpm_finish();
   }
 
   /**
    * Retrieves a WAP Push message from the database and displays it
    *
-   * @param {String} timestamp The message timestamp as a string.
+   * @param {String} id The message id as a string.
    * @return {Promise} A promise that resolves once the message has been
    *                   displayed and the associated notification cleared.
    */
-  function wpm_displayWapPushMessage(timestamp) {
-    DUMP('Displaying message ' + timestamp);
+  function wpm_displayWapPushMessage(id) {
+    DUMP('Displaying message ' + id);
 
     // Clear the close timer as the application will soon become visible
     app.launch();
     window.clearTimeout(closeTimeout);
     closeTimeout = null;
 
-    return ParsedMessage.load(timestamp).then(
+    return ParsedMessage.load(id).then(
       function wpm_loadResolved(message) {
-        if (message) {
-          switch (message.type) {
-            case 'text/vnd.wap.si':
-            case 'text/vnd.wap.sl':
+        switch (message.type) {
+          case 'text/vnd.wap.si':
+            displayedSiMessage = message;
+            CpScreenHelper.hide();
+
+            if (message.isExpired()) {
+              // Notify the user that the message has expired
+              SiSlScreenHelper.populateScreen();
+            } else {
               SiSlScreenHelper.populateScreen(message);
-              return wpm_clearNotifications(timestamp);
-            case 'text/vnd.wap.connectivity-xml':
-              CpScreenHelper.showConfirmInstallationDialog(message);
-              break;
-          }
-        } else {
-          // Notify the user that the message has expired
-          SiSlScreenHelper.populateScreen();
-          return wpm_clearNotifications(timestamp);
+            }
+
+            return wpm_clearNotifications(id);
+
+          case 'text/vnd.wap.sl':
+            displayedSiMessage = null;
+            CpScreenHelper.hide();
+            SiSlScreenHelper.populateScreen(message);
+            return wpm_clearNotifications(id);
+
+          case 'text/vnd.wap.connectivity-xml':
+            displayedSiMessage = null;
+            SiSlScreenHelper.hide();
+            CpScreenHelper.showConfirmInstallationDialog(message);
+            return Promise.resolve();
         }
       }
     ).catch(function(error) {
-      console.error('Could not retrieve the message: ' + error.name + '\n');
-      return error;
+      var message = error.message || 'Unknown error';
+      console.error('Could not retrieve the message: ', message);
+      throw error;
     });
   }
 
@@ -343,8 +406,9 @@
         }
       },
       function onError(error) {
-        console.error('Notification.get() promise error: ' + error.name);
-        return error;
+        var message = error.message || 'Unknown error';
+        console.error('Could not get notification: ', message);
+        throw error;
       }
     );
   }

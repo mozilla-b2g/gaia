@@ -11,12 +11,20 @@ class Keyboard(Base):
 
     _section_locator = (By.ID, 'keyboard')
     _add_more_keyboards_button_locator = (By.CSS_SELECTOR, "a[href='#keyboard-selection-addMore']")
+    _built_in_keyboard_locator = (By.CSS_SELECTOR, ".allKeyboardList")
     _built_in_keyboard_list_element_locator = (By.CSS_SELECTOR, '.enabledKeyboardList > li > span')
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
+        self.wait_until_page_ready()
+
+    def wait_until_page_ready(self):
         section = self.marionette.find_element(*self._section_locator)
-        Wait(self.marionette).until(lambda m: section.location['x'] == 0)
+        return Wait(self.marionette).until(lambda m: section.location['x'] == 0)
+
+    def tap_built_in_keyboards(self):
+        self.marionette.find_element(*self._built_in_keyboard_locator).tap()
+        return BuiltInKeyBoard(self.marionette)
 
     def tap_add_more_keyboards(self):
         self.marionette.find_element(*self._add_more_keyboards_button_locator).tap()
@@ -31,6 +39,10 @@ class Keyboard(Base):
                 return True
 
         return False
+
+    @property
+    def screen_element(self):
+        return self.marionette.find_element(*self._section_locator)
 
 
 class KeyboardAddMoreKeyboards(Base):
@@ -57,11 +69,36 @@ class KeyboardAddMoreKeyboards(Base):
         Wait(self.marionette).until(expected.element_displayed(element))
         element.tap()
 
-        # The following should work, but doesn't, see bug 1113742. We use execute_script instead, for now
-        # Wait(self.marionette).until(expected.element_selected(element)
-        Wait(self.marionette).until(lambda m:
-            m.execute_script("return arguments[0].wrappedJSObject.checked", [element]) is True)
+        self.wait_for_custom_element_checked_state(element)
 
     def go_back(self):
         # TODO: remove tap with coordinates after Bug 1061698 is fixed
         self.marionette.find_element(*self._header_locator).tap(25, 25)
+
+
+class BuiltInKeyBoard(Base):
+    _section_locator = (By.ID, 'general-container')
+    _header_locator = (By.ID, 'general-header')
+
+    _user_dict_button_locator = (By.ID, 'menu-userdict')
+    _user_dict_locator = (By.ID, 'ud-wordlist-container')
+    _user_dict_header_locator = (By.ID, 'ud-wordlist-header')
+
+    def __init__(self, marionette):
+        Base.__init__(self, marionette)
+        self.apps.switch_to_displayed_app()
+        section = self.marionette.find_element(*self._section_locator)
+        Wait(self.marionette).until(expected.element_displayed(section))
+
+    def tap_user_dictionary(self):
+        self.marionette.find_element(*self._user_dict_button_locator).tap()
+        dictionary = self.marionette.find_element(*self._user_dict_locator)
+        Wait(self.marionette).until(expected.element_displayed(dictionary))
+
+    def tap_user_dict_exit(self):
+        self.marionette.find_element(*self._user_dict_header_locator).tap(25, 25)
+        self.wait_for_element_not_displayed(*self._user_dict_locator)
+
+    def tap_exit(self):
+        self.marionette.find_element(*self._header_locator).tap(25, 25)
+        self.apps.switch_to_displayed_app()

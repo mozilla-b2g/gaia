@@ -3,6 +3,7 @@
 /* global ConfirmDialog */
 /* global ContactsService */
 /* global HeaderUI */
+/* global Search */
 
 /**
  * ICE Settings view. In charge of selecting
@@ -15,7 +16,7 @@
 
 var contacts = window.contacts || {};
 
-contacts.ICE = (function() {
+(function(exports) {
   var iceSettingsPanel,
     iceSettingsHeader,
     iceContactItems = [],
@@ -205,8 +206,8 @@ contacts.ICE = (function() {
       resetIceGroupStates();
     }
 
-    if (contacts.Search && contacts.Search.isInSearchMode()) {
-      contacts.Search.exitSearchMode();
+    if (window.Search && Search.isInSearchMode()) {
+      Search.exitSearchMode();
     }
 
     contacts.Settings.navigation.back(() => {
@@ -347,10 +348,10 @@ contacts.ICE = (function() {
     currentICETarget = null;
   }
 
-  return {
+  exports.ICE = {
     init: init,
     refresh: refresh,
     reset: reset,
     get initialized() { return iceScreenInitialized; }
   };
-})();
+})(window);

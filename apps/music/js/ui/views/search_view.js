@@ -1,8 +1,7 @@
 /* exported SearchView */
 /* global App, createListElement, Database, ListView, ModeManager, MODE_LIST,
           MODE_PLAYER, MODE_SEARCH_FROM_TILES, MODE_SUBLIST, MODE_TILES,
-          Normalizer, PlayerView, SubListView, TabBar, TYPE_SINGLE, TYPE_LIST,
-          TilesView */
+          PlaybackQueue, PlayerView, SubListView, TabBar, TilesView */
 'use strict';
 
 var SearchView = {
@@ -75,10 +74,6 @@ var SearchView = {
       return;
     }
 
-    // Convert to lowercase and replace accented characters
-    var queryLowerCased = query.toLocaleLowerCase();
-    query = Normalizer.toAscii(queryLowerCased);
-
     var lists = { artist: this.searchArtistsView,
                   album: this.searchAlbumsView,
                   title: this.searchTitlesView };
@@ -88,48 +83,43 @@ var SearchView = {
       /* jshint validthis:true */
       if (result === null) {
         this.searchHandles[option] = null;
+        var totalFound = numResults.artist + numResults.album +
+                         numResults.title;
+        this.showNoResult(totalFound === 0);
         return;
       }
-      var resultLowerCased = result.metadata[option].toLocaleLowerCase();
-      if (Normalizer.toAscii(resultLowerCased).indexOf(query) !== -1) {
-        this.dataSource.push(result);
 
-        numResults[option]++;
-        lists[option].classList.remove('hidden');
-        lists[option].getElementsByClassName('search-result-count')[0]
-                     .textContent = numResults[option];
-        lists[option].getElementsByClassName('search-results')[0].appendChild(
-          createListElement(option, result, this.dataSource.length - 1, query)
-        );
-      }
-
-      var totalFound = numResults.artist + numResults.album + numResults.title;
-      this.showNoResult(totalFound === 0);
+      this.dataSource.push(result);
+      numResults[option]++;
+      lists[option].classList.remove('hidden');
+      lists[option].getElementsByClassName('search-result-count')[0]
+                   .textContent = numResults[option];
+      lists[option].getElementsByClassName('search-results')[0].appendChild(
+        createListElement(option, result, this.dataSource.length - 1, query)
+      );
+      this.showNoResult(false);
     }
 
     // Only shows the search results of tracks when it's in picker mode
     if (!App.pendingPick) {
       if (this.searchContext === this.context.ALL ||
           this.searchContext === this.context.ARTISTS) {
-        this.searchHandles.artist = Database.enumerate(
-          'metadata.artist', null, 'nextunique',
-          sv_showResult.bind(this, 'artist')
+        this.searchHandles.artist = Database.search(
+          'artist', query, sv_showResult.bind(this, 'artist')
         );
       }
       if (this.searchContext === this.context.ALL ||
           this.searchContext === this.context.ALBUMS) {
-        this.searchHandles.album = Database.enumerate(
-          'metadata.album', null, 'nextunique',
-          sv_showResult.bind(this, 'album')
+        this.searchHandles.album = Database.search(
+          'album', query, sv_showResult.bind(this, 'album')
         );
       }
     }
 
     if (this.searchContext === this.context.ALL ||
         this.searchContext === this.context.SONGS) {
-      this.searchHandles.title = Database.enumerate(
-        'metadata.title',
-        sv_showResult.bind(this, 'title')
+      this.searchHandles.title = Database.search(
+        'title', query, sv_showResult.bind(this, 'title')
       );
     }
   },
@@ -175,17 +165,10 @@ var SearchView = {
     var data = this.dataSource[index];
 
     if (option === 'title') {
-      ModeManager.push(MODE_PLAYER, function() {
-        if (App.pendingPick) {
-          PlayerView.setSourceType(TYPE_SINGLE);
-          PlayerView.dataSource = this.dataSource;
-          PlayerView.play(index);
-        } else {
-          PlayerView.setSourceType(TYPE_LIST);
-          PlayerView.dataSource = [data];
-          PlayerView.play(0);
-        }
-      }.bind(this));
+      ModeManager.push(MODE_PLAYER, () => {
+        PlayerView.activate(new PlaybackQueue.StaticQueue([data]));
+        PlayerView.start();
+      });
     } else {
       // SubListView needs to prepare the songs data before entering it,
       // So here we initialize the SubListView before push the view.

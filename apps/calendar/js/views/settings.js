@@ -181,7 +181,7 @@ Settings.prototype = {
 
   _onCalendarDisplayToggle: function(e) {
     var input = e.target;
-    this._persistCalendarDisplay(input.value, !!input.checked);
+    this._persistCalendarDisplay(input.getAttribute('value'), !!input.checked);
   },
 
   _onSyncClick: function() {

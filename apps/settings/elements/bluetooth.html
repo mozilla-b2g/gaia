@@ -7,17 +7,17 @@
 
     <div>
       <ul>
-        <li class="bluetooth-status hint">
+        <li class="bluetooth-status">
           <gaia-switch data-ignore>
             <label data-l10n-id="bluetooth"></label>
+            <details data-l10n-id="bluetooth-enable-msg" id="bluetooth-enable-msg"></details>
           </gaia-switch>
-          <p data-l10n-id="bluetooth-enable-msg" id="bluetooth-enable-msg" class="explanation"></p>
         </li>
-        <li hidden class="device-visible hint">
+        <li hidden class="device-visible">
           <gaia-switch data-ignore>
             <label data-l10n-id="bluetooth-visible-to-all"></label>
+            <details><bdi class="bluetooth-device-name"></bdi></details>
           </gaia-switch>
-          <p class="explanation bluetooth-device-name"></p>
         </li>
         <li hidden id="bluetooth-rename">
           <button id="rename-device" data-l10n-id="rename-device" disabled></button>

@@ -24,7 +24,7 @@
  */
 
 .hud.hidden,
-.hud[timer=active],
+.hud[countdown=active],
 .hud[recording=true] {
   pointer-events: none;
   opacity: 0;

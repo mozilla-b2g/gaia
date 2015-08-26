@@ -121,6 +121,7 @@ window.GaiaSwitch = (function(win) {
   template.innerHTML = `<span id="switch">
       <input type="checkbox">
       <span><content select="label"></content></span>
+      <div class="details"><content select="details"></content></div>
     </span>`;
 
   // Register and return the constructor

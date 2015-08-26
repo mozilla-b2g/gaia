@@ -1,0 +1,29 @@
+{
+  "name": "fast-list",
+  "version": "0.1.2",
+  "homepage": "https://github.com/gaia-components/fast-list",
+  "authors": [
+    "Etienne Segonzac <etienne@segonzac.info>",
+    "Wilson Page <wilsonpage@me.com>"
+  ],
+  "description": "No, really.",
+  "main": "fast-list.js",
+  "keywords": [
+    "web",
+    "performance",
+    "virtual",
+    "list"
+  ],
+  "license": "MPL",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "examples",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "gaia-component": "gaia-components/gaia-component#~0.3.8"
+  }
+}

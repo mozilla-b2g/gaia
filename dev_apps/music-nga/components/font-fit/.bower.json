@@ -1,0 +1,28 @@
+{
+  "name": "font-fit",
+  "main": "font-fit.js",
+  "version": "0.3.1",
+  "authors": [
+    "Wilson Page <wilsonpage@me.com>"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "README.md",
+    "index.html",
+    "package.json"
+  ],
+  "homepage": "https://github.com/gaia-components/font-fit",
+  "_release": "0.3.1",
+  "_resolution": {
+    "type": "version",
+    "tag": "v0.3.1",
+    "commit": "07a497519b335a3d86a66268f990d8844b83d517"
+  },
+  "_source": "git://github.com/gaia-components/font-fit.git",
+  "_target": "~0.3.0",
+  "_originalSource": "gaia-components/font-fit"
+}

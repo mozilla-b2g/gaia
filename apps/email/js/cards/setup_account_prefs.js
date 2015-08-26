@@ -8,7 +8,7 @@ var cards = require('cards'),
     mozL10n = require('l10n!');
 
 return [
-  require('./base')(require('template!./setup_account_prefs.html')),
+  require('./base_card')(require('template!./setup_account_prefs.html')),
   require('./account_prefs_mixins'),
   {
     onArgs: function(args) {

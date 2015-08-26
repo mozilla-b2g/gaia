@@ -149,13 +149,13 @@
 }
 
 @media (orientation:landscape) {
+  #screen.software-button-enabled #rocketbar-results,
   #screen.software-button-enabled #rocketbar {
     width: calc(100% - var(--software-home-button-height));
   }
 
   #screen.software-button-enabled #rocketbar-results {
     height: calc(100% - 7rem);
-    width: calc(100% - var(--software-home-button-height));
   }
 }
 

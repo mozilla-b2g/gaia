@@ -6,8 +6,6 @@
 /* exported UIManager */
 'use strict';
 
-var _;
-
 var UIManager = {
   // As in other Gaia apps, we store all the dom selectors in one
   // place and then camelCase them and attach to the main object,
@@ -116,8 +114,6 @@ var UIManager = {
   LIGHT_THEME: '#eeeeee',
 
   init: function ui_init() {
-    _ = navigator.mozL10n.get;
-
     // Initialization of the DOM selectors
     this.domSelectors.forEach(function createElementRef(name) {
       this[toCamelCase(name)] = document.getElementById(name);
@@ -147,11 +143,23 @@ var UIManager = {
     }
 
     var currentDate = new Date();
-    var f = new navigator.mozL10n.DateTimeFormat();
-    var format = _('shortTimeFormat');
-    this.timeConfigurationLabel.innerHTML = f.localeFormat(currentDate, format);
-    this.dateConfigurationLabel.innerHTML = currentDate.
-      toLocaleFormat('%Y-%m-%d');
+    this.timeConfigurationLabel.textContent = currentDate.toLocaleString(
+      navigator.languages,
+      {
+        hour12: navigator.mozHour12,
+        hour: 'numeric',
+        minute: 'numeric',
+        second: 'numeric'
+      }
+    );
+    this.dateConfigurationLabel.textContent = currentDate.toLocaleString(
+      navigator.languages,
+      {
+        year: 'numeric',
+        month: 'numeric',
+        day: 'numeric'
+      }
+    );
 
     // Add events to DOM
     this.simImportButton.addEventListener('click', this);
@@ -570,9 +578,15 @@ var UIManager = {
     // Set date through API
     TimeManager.set(timeToSet);
     // Set DATE properly
-    var f = new navigator.mozL10n.DateTimeFormat();
-    var format = _('shortTimeFormat');
-    timeLabel.innerHTML = f.localeFormat(timeToSet, format);
+    timeLabel.textContent = timeToSet.toLocaleString(
+      navigator.languages,
+      {
+        hour12: navigator.mozHour12,
+        hour: 'numeric',
+        minute: 'numeric',
+        second: 'numeric'
+      }
+    );
   },
 
   setTimeZone: function ui_stz(timezone, needsConfirmation) {
@@ -590,10 +604,17 @@ var UIManager = {
     document.getElementById('tz-region-label').textContent = timezone.region;
     document.getElementById('tz-city-label').textContent = timezone.city;
 
-    var f = new navigator.mozL10n.DateTimeFormat();
     var now = new Date();
     var timeLabel = document.getElementById('time-configuration-label');
-    timeLabel.innerHTML = f.localeFormat(now, _('shortTimeFormat'));
+    timeLabel.textContent = now.toLocaleString(
+      navigator.languages,
+      {
+        hour12: navigator.mozHour12,
+        hour: 'numeric',
+        minute: 'numeric',
+        second: 'numeric'
+      }
+    );
   },
 
   updateDataConnectionStatus: function ui_udcs(status) {

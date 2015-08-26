@@ -186,7 +186,6 @@ class GaiaApps(object):
 class GaiaData(object):
 
     def __init__(self, marionette, testvars=None):
-        self.apps = GaiaApps(marionette)
         self.marionette = marionette
         self.testvars = testvars or {}
         js = os.path.abspath(os.path.join(__file__, os.path.pardir, 'atoms', "gaia_data_layer.js"))
@@ -205,6 +204,7 @@ class GaiaData(object):
 
     @property
     def all_contacts(self):
+        self.marionette.switch_to_frame()
         # TODO Bug 1049489 - In future, simplify executing scripts from the chrome context
         self.marionette.push_permission('contacts-read', True)
         self.marionette.set_context(self.marionette.CONTEXT_CHROME)
@@ -221,6 +221,7 @@ class GaiaData(object):
         return adn_contacts + sdn_contacts
 
     def insert_contact(self, contact):
+        self.marionette.switch_to_frame()
         # TODO Bug 1049489 - In future, simplify executing scripts from the chrome context
         self.marionette.push_permission('contacts-create', True)
         self.marionette.set_context(self.marionette.CONTEXT_CHROME)
@@ -231,6 +232,7 @@ class GaiaData(object):
         self.marionette.push_permission('contacts-create', False)
 
     def insert_sim_contact(self, contact, contact_type='adn'):
+        self.marionette.switch_to_frame()
         mozcontact = contact.create_mozcontact()
         result = self.marionette.execute_async_script('return GaiaDataLayer.insertSIMContact("%s", %s);'
                                                       % (contact_type, json.dumps(mozcontact)))
@@ -238,11 +240,13 @@ class GaiaData(object):
         return result
 
     def delete_sim_contact(self, moz_contact_id, contact_type='adn'):
+        self.marionette.switch_to_frame()
         result = self.marionette.execute_async_script('return GaiaDataLayer.deleteSIMContact("%s", "%s");'
                                                       % (contact_type, moz_contact_id))
         assert result, 'Unable to insert SIM contact %s' % moz_contact_id
 
     def remove_all_contacts(self):
+        self.marionette.switch_to_frame()
         # TODO Bug 1049489 - In future, simplify executing scripts from the chrome context
         self.marionette.push_permission('contacts-write', True)
         self.marionette.set_context(self.marionette.CONTEXT_CHROME)
@@ -741,11 +745,11 @@ class GaiaDevice(object):
 
     def touch_home_button(self):
         apps = GaiaApps(self.marionette)
-        if apps.displayed_app.name.lower() != 'homescreen':
+        if apps.displayed_app.name.lower() != 'default home screen':
             # touching home button will return to homescreen
             self._dispatch_home_button_event()
             Wait(self.marionette).until(
-                lambda m: apps.displayed_app.name.lower() == 'homescreen')
+                lambda m: apps.displayed_app.name.lower() == 'default home screen')
             apps.switch_to_displayed_app()
         else:
             apps.switch_to_displayed_app()
@@ -835,6 +839,7 @@ class GaiaDevice(object):
 class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
     def __init__(self, *args, **kwargs):
         self.restart = kwargs.pop('restart', False)
+        self.locale = kwargs.pop('locale')
         MarionetteTestCase.__init__(self, *args, **kwargs)
         B2GTestCaseMixin.__init__(self, *args, **kwargs)
 
@@ -1066,6 +1071,9 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
         defaults.update(self.testvars.get('settings', {}))
         defaults = self.modify_settings(defaults)
 
+        if self.locale != 'undefined':
+                defaults['language.current'] = self.locale
+
         if self.device.is_desktop_b2g:
             directory = self.marionette.instance.profile_path
             path = os.path.join(directory, filename)
@@ -1155,7 +1163,11 @@ class PasscodeTestCase(GaiaTestCase):
         SET_DIGEST_ALGORITHM = 'lockscreen.passcode-lock.digest.algorithm'
 
         settings = {}
+        # The code for setting the passcode uses ArrayBuffers.
         # ArrayBuffers are represented as objects keys from 0 to n-1.
+        # The settings DB does not support this and sees an array buffer of [3,6,9] objects
+        # of the format {0: 3, 1: 6, 2: 9} (hence objects with keys from 0 to n-1)
+        # n is array.length. So 8 for the salt and 20 for the digest.
         # The passcode is stored using PBKDF2 with a non-deterministic salt.
         # These values are the result of a pre-computation of PBKDF2 with the given salt,
         # 1000 iterations of SHA-1 and the passcode "1337".

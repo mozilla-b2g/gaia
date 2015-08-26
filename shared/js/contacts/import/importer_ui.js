@@ -1,4 +1,4 @@
-/* globals LazyLoader, ConfirmDialog, utils, contacts, oauthflow,
+/* globals LazyLoader, ConfirmDialog, utils, oauthflow,
   Curtain, ImageLoader, importer, asyncStorage, FriendListRenderer,
   Rest, oauth2, contactsList, ImportStatusData */
 'use strict';
@@ -144,9 +144,9 @@ if (typeof window.importer === 'undefined') {
       return key;
     }
 
-    // Define a source adapter object to pass to contacts.Search.
+    // Define a source adapter object to pass to window.Search.
     //
-    // Since multiple, separate apps use contacts.Search its important for
+    // Since multiple, separate apps use window.Search its important for
     // the search code to function independently.  This adapter object allows
     // the search module to access the app's contacts without knowing anything
     // about our DOM structure.
@@ -204,7 +204,7 @@ if (typeof window.importer === 'undefined') {
       };
 
       utils.alphaScroll.init(params);
-      contacts.Search.init(searchSource, true);
+      window.Search.init(searchSource, true);
     };
 
     function notifyLogout() {

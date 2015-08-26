@@ -4,13 +4,11 @@ suite('Settings > ', function() {
   var settings;
   var mockMozSetMessageHandler;
   var mockMozSettings;
-  var mockL10n;
   var mockScreenLayout;
   var mockSettingsService;
   var modules = [
     'shared_mocks/mock_navigator_moz_set_message_handler',
     'shared_mocks/mock_navigator_moz_settings',
-    'shared_mocks/mock_l10n',
     'shared_mocks/mock_screen_layout',
     'unit/mock_settings_service',
     'settings'
@@ -20,23 +18,18 @@ suite('Settings > ', function() {
 
   setup(function(done) {
     testRequire(modules, map, function(MockMozSetMessageHandler,
-      MockMozSettings, MockL10n, MockScreenLayout,
+      MockMozSettings, MockScreenLayout,
       MockSettingsService, Settings) {
 
         mockMozSetMessageHandler = MockMozSetMessageHandler;
         mockMozSettings = MockMozSettings;
         mockSettingsService = MockSettingsService;
         mockScreenLayout = MockScreenLayout;
-        mockL10n = MockL10n;
   
         window.LaunchContext = {};
         window.LaunchContext.initialPanelId = '#test';
-        window.navigator.mozL10n = mockL10n;
         window.navigator.mozSettings = mockMozSettings;
         window.navigator.mozSetMessageHandler = mockMozSetMessageHandler;
-
-        // We won't test `once` callback
-        this.sinon.stub(window.navigator.mozL10n, 'once');
 
         settings = Settings;
         done();

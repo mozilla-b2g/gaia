@@ -74,6 +74,18 @@ a {
 }
 
 /*
+ * Navigation Buttons
+ *
+ * right=forward, left=back in both LTR and RTL
+ */
+
+html[dir="ltr"] gaia-buttons.nav,
+html[dir="rtl"] gaia-buttons.nav {
+  direction: ltr;
+  unicode-bidi: embed;
+}
+
+/*
  * We need !important to override Web components,
  * as we don't have ::content yet (bug 992249).
  */
@@ -247,7 +259,6 @@ gaia-buttons.forward-only .icon-previous {
 
 #unlock-sim-screen .input-wrapper input {
   font-size: 2rem;
-  padding-left: 1.5rem;
 }
 
 #unlock-sim-screen input[type="password"] {
@@ -412,9 +423,15 @@ gaia-buttons.forward-only .icon-previous {
  */
 #wifi [data-type="list"] li > aside {
   position: absolute;
-  right: 1.5rem;
   top: 0;
 }
+html[dir="ltr"] #wifi [data-type="list"] li > aside {
+  right: 1.5rem;
+}
+html[dir="rtl"] #wifi [data-type="list"] li > aside {
+  left: 1.5rem;
+}
+
 aside.wifi-icon {
   background-repeat: no-repeat;
   background-position: 0 center;
@@ -561,9 +578,14 @@ aside.connecting {
 */
 
 .change {
-  float: right;
   width: 8rem;
   white-space: nowrap;
+}
+html[dir="ltr"] .change {
+  float: right;
+}
+html[dir="rtl"] .change {
+  float: left;
 }
 
 #time_zone_overlay {
@@ -753,9 +775,17 @@ aside.connecting {
 }
 
 #import_contacts li button.icon:before {
+  background-size: 3rem;
+}
+
+html[dir="ltr"] #import_contacts li button.icon:before {
   right: auto;
   left: 0.5rem;
-  background-size: 3rem;
+}
+
+html[dir="rtl"] #import_contacts li button.icon:before {
+  left: auto;
+  right: 0.5rem;
 }
 
 #import_contacts li button[disabled="disabled"].icon:before {
@@ -820,29 +850,8 @@ aside.connecting {
   overflow: hidden;
 }
 
-#welcome_browser #browser_os_privacy_links a {
-  width: 50%;
-  float: left;
-}
-
-#welcome_browser #browser_os_privacy_links a:last-child {
-  float: right;
-  text-align: end;
-}
-
 #welcome_browser #form_share_statistics {
   clear: both;
-}
-
-#form_share_statistics span:after {
-  top: 1rem;
-  left: 1rem;
-}
-
-#welcome_browser #form_share_statistics p {
-  width: calc(100% - 3.5rem);
-  float: right;
-  font-size: 1.5rem;
 }
 
 /*
@@ -950,9 +959,14 @@ i.hack-first-child {
   width: 3.2rem;
   height: 3.2rem;
   position: absolute;
-  left: 1.4rem;
   top: calc(50% - 1.6rem);
   background: url(/shared/resources/branding/privacy_sprite.png) no-repeat 0 0 / 9.6rem;
+}
+html[dir="ltr"] .privacy-menuitem:before {
+  left: 1.4rem;
+}
+html[dir="rtl"] .privacy-menuitem:before {
+  right: 1.4rem;
 }
 
 .privacy-browserOS:before {
@@ -1007,11 +1021,19 @@ i.hack-first-child {
 #date_and_time [data-type="list"] select,
 #date_and_time [data-type="list"] input {
   width: 8rem;
-  right: 1.5rem;
   padding: 0;
   margin: 0;
   height: 100%;
 }
+html[dir="ltr"] #date_and_time [data-type="list"] select,
+html[dir="ltr"] #date_and_time [data-type="list"] input {
+  right: 1.5rem;
+}
+html[dir="rtl"] #date_and_time [data-type="list"] select,
+html[dir="rtl"] #date_and_time [data-type="list"] input {
+  left: 1.5rem;
+}
+
 
 .icon {
   background-repeat: no-repeat;
@@ -1062,56 +1084,4 @@ i.hack-first-child {
   padding: 1rem 1rem 0;
   font-size: 1.5rem;
   text-align: center;
-}
-
-/*
-  RTL Tweeks
-*/
-
-/* navigational buttons remain right=forward, left=back */
-html[dir="rtl"] gaia-buttons.nav {
-  direction: ltr;
-  unicode-bidi:embed;
-}
-
-html[dir="rtl"] #wifi [data-type="list"] li > aside {
-  left: 1.5rem;
-  right: unset;
-}
-
-html[dir="rtl"] .change {
-  float: left;
-}
-
-html[dir="rtl"] #import_contacts li button.icon:before {
-  left: auto;
-  right: 0.5rem;
-}
-
-html[dir="rtl"] #welcome_browser #browser_os_privacy_links a {
-  float: right;
-}
-
-html[dir="rtl"] #welcome_browser #browser_os_privacy_links a:last-child {
-  float: left;
-}
-
-html[dir="rtl"] #form_share_statistics span:after {
-  left: unset;
-  right: 1rem;
-}
-
-html[dir="rtl"] #welcome_browser #form_share_statistics p {
-  float: left;
-}
-
-html[dir="rtl"] .privacy-menuitem:before {
-  left: unset;
-  right: 1.4rem;
-}
-
-html[dir="rtl"] #date_and_time [data-type="list"] select,
-html[dir="rtl"] #date_and_time [data-type="list"] input {
-  left: 1.5rem;
-  right: unset;
 }

@@ -1,6 +1,8 @@
 'use strict';
 /* global MockNavigatorSettings, MockManifestHelper */
 
+require('/shared/js/component_utils.js');
+require('/shared/elements/gaia_radio/script.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/load_body_html_helper.js');
 require('/shared/test/unit/mocks/mock_manifest_helper.js');
@@ -160,14 +162,14 @@ suite('Themes > ', function() {
     });
 
     test('Themes should be listed alphabetically', function() {
-      var themeNames = document.getElementsByTagName('span');
+      var themeNames = document.getElementsByTagName('label');
       for (var i = 0; i < refapps.length; i++) {
         assert.equal(themeNames[i].innerHTML, refapps[i].manifest.name);
       }
     });
 
     test('Current theme should be checked', function() {
-      var rule = 'input[value="' + selectedTheme + '"]';
+      var rule = 'gaia-radio[value="' + selectedTheme + '"]';
       var node = document.querySelector(rule);
       assert.equal(node.checked, true);
     });

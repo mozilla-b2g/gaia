@@ -1,0 +1,115 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Raw Cache Test</title>
+</head>
+<body>
+<script>
+    if (navigator.serviceWorker) {
+      navigator.serviceWorker.getRegistration().then(function(reg) {
+        if (!reg) {
+          navigator.serviceWorker.register('./sw.js').then(function() {
+            document.location.reload();
+          });
+        }
+      });
+    } else {
+      alert('No SW present :(');
+    }
+
+    var myOrigin = document.location.toString().substr(0,
+       document.location.toString().lastIndexOf('/') + 1);
+
+    function addContent(url, content, type) {
+      var xhr = new XMLHttpRequest();
+      xhr.open('POST', url, true);
+      xhr.onload = function() {
+        window.performance.mark('mark_post_save');
+        var files = JSON.parse(localStorage['files'] || '[]');
+        if (files.indexOf(url) === -1) {
+          files.push(url);
+          localStorage['files'] = JSON.stringify(files);
+        }
+        dumpGeneratedFiles();
+        window.performance.measure('create_time', 'mark_pre_save',
+         'mark_post_save');
+        var time = window.performance.getEntriesByName('create_time');
+        time = time.pop();
+        alert(url + ' generated in ' +
+         time.duration + ' ms');
+        window.performance.clearMarks();
+        window.performance.clearMeasures();
+      };
+      xhr.setRequestHeader('Content-Type', type || 'text/plain');
+      window.performance.mark('mark_pre_save');
+      xhr.send(content);
+    }
+
+    function removeContent(url) {
+      var xhr = new XMLHttpRequest();
+      xhr.open('DELETE', url, true);
+      xhr.onload = function() {
+        var files = JSON.parse(localStorage['files'] || '[]');
+        file = url.substr(myOrigin.length);
+        var index = files.indexOf(file);
+        if (index > - 1) {
+          files.splice(index, 1);
+        }
+        localStorage['files'] = JSON.stringify(files);
+        dumpGeneratedFiles();
+        alert(url + ' removed');
+      };
+      xhr.send();
+    }
+
+    function dumpGeneratedFiles() {
+      var content = document.getElementById('content');
+      content.innerHTML = '';
+
+      var files = JSON.parse(localStorage['files'] || '[]');
+
+      if (files.length === 0) {
+        return;
+      }
+      var ul = document.createElement('ul');
+
+      files.forEach(function(file) {
+        var url = myOrigin + file;
+        var li = document.createElement('li');
+        li.innerHTML = '<a href="'+ url +'" target="_blank">' + url + '</a>&nbsp;<a href="javascript:removeContent(\'' + url + '\')">[x]</a>';
+        ul.appendChild(li);
+      });
+      content.appendChild(ul);
+    }
+
+    function process() {
+      var newUrl = document.getElementById('newUrl');
+      var url = newUrl.value.trim();
+      if (!url) {
+        alert('Invalid url');
+        return;
+      }
+      var newContent = document.getElementById('newContent');
+      var content = newContent.value.trim();
+      if (!content) {
+        alert('Invalid content');
+      }
+
+      addContent(url, content);
+    }
+    window.addEventListener('DOMContentLoaded', dumpGeneratedFiles);
+</script>
+<body>
+  <section id="content">
+  </section>
+  <section id="control">
+    <h2>Content generation</h2>
+    <script>document.write(myOrigin);</script>
+    <input type="text" size=40 id="newUrl"><br/>
+    <textarea cols=80 rows=10 id="newContent"></textarea></br/>
+    <button onClick="process()">create content</button><br/>
+    (be careful and don't overwrite the index.html ;))
+  </section>
+</body>
+</html>

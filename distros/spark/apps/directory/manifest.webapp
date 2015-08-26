@@ -23,7 +23,8 @@
     },
     "systemXHR": {
       "description": "For requesting the remote app list"
-    }
+    },
+    "moz-extremely-unstable-and-will-change-webcomponents":{}
   },
   "icons": {
     "84": "/img/icons/directory_84.png",

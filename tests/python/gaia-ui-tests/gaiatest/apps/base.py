@@ -73,6 +73,13 @@ class Base(object):
         finally:
             self.marionette.set_search_timeout(self.marionette.timeout or 10000)
 
+    def is_custom_element_checked(self, element):
+        return self.marionette.execute_script("return arguments[0].wrappedJSObject.checked", [element])
+
+    # TODO: Remove me once bug 1113742 is fixed
+    def wait_for_custom_element_checked_state(self, element, checked=True):
+        Wait(self.marionette).until(lambda m: self.is_custom_element_checked(element) is checked)
+
     def find_select_item(self, match_string):
         _list_item_locator = (
             By.XPATH, "//section[contains(@class,'value-selector-container')]/descendant::li[descendant::span[.='%s']]" %
@@ -125,6 +132,17 @@ class Base(object):
         # A11y click close and wait for it to hide
         self.accessibility.click(self.marionette.find_element(*_close_button_locator))
         self.wait_for_select_closed(*_close_button_locator)
+
+    def tap_element_from_system_app(self, element=None, add_statusbar_height=False):
+        # Workaround for bug 1109213, where tapping on the button inside the app itself
+        # makes Marionette spew out NoSuchWindowException errors
+        x = element.rect['x'] + element.rect['width']//2
+        y = element.rect['y'] + element.rect['height']//2
+        from gaiatest.apps.system.app import System
+        system = System(self.marionette)
+        if add_statusbar_height:
+          y = y + system.status_bar.height
+        system.tap(x, y)
 
     @property
     def keyboard(self):

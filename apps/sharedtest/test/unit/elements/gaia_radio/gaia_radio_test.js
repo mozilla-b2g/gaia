@@ -38,6 +38,19 @@ suite('GaiaRadio', function() {
     assert.equal(inputs[1].checked, false);
   });
 
+  test('ClassName is proxied to shadow dom', function() {
+    this.container.innerHTML = '';
+
+    var element = document.createElement('gaia-radio');
+    element.className = 'inline';
+    this.container.appendChild(element);
+    var wrapper = element.shadowRoot.querySelector('#radio');
+    assert.equal(wrapper.classList.contains('inline'),  true);
+
+    element.className = '';
+    assert.equal(wrapper.classList.contains('inline'), false);
+  });
+
   test('Check accessibility roles', function() {
     assert.equal(inputs[0].getAttribute('role'), 'presentation');
     assert.equal(inputs[1].getAttribute('role'), 'dialog');
@@ -45,7 +58,7 @@ suite('GaiaRadio', function() {
   });
 
   test('Gets right value after click', function(done) {
-    inputs[0].addEventListener('click', function(e) {
+    inputs[0].addEventListener('change', function(e) {
       assert.equal(e.target.checked, true);
       assert.equal(inputs[0].checked, true);
       assert.equal(inputs[1].checked, false);

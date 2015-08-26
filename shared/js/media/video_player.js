@@ -105,8 +105,10 @@ function VideoPlayer(container) {
   var orientation = 0; // current player orientation
 
   // These are the raw (unrotated) size of the poster image, which
-  // must have the same size as the video.
+  // may have the same size as the video. We may find when we actually
+  // load the video they are different and resize the video element.
   var videowidth, videoheight;
+  var posterwidth, posterheight;
 
   var playbackTime;
   var capturedFrame;
@@ -118,6 +120,8 @@ function VideoPlayer(container) {
     rotation = rotate || 0;
     videowidth = width;
     videoheight = height;
+    posterwidth = width;
+    posterheight = height;
     videotimestamp = timestamp;
 
     // If a locale is present and ready, go ahead and localize now.
@@ -157,6 +161,19 @@ function VideoPlayer(container) {
     player.style.display = 'block';
     player.src = videourl;
     self.playerShowing = true;
+
+    // Verify that our guess at the video size is correct once we have loaded
+    // the metadata. This will happen if the poster image size differs.
+    player.onloadedmetadata = function() {
+      player.onloadedmetadata = null;
+      if (videowidth != player.videoWidth ||
+          videoheight != player.videoHeight)
+      {
+        videowidth = player.videoWidth;
+        videoheight = player.videoHeight;
+        setPlayerSize(true);
+      }
+    };
 
     // The only place we call showPlayer() is from the play() function.
     // If play() has to show the player, call it again when we're ready to play.
@@ -391,28 +408,20 @@ function VideoPlayer(container) {
     canvas.toBlob(callback);
   }
 
-  // Make the video fit the container
-  function setPlayerSize() {
-    var containerWidth = container.clientWidth;
-    var containerHeight = container.clientHeight;
-
-    // Don't do anything if we don't know our size.
-    // This could happen if we get a resize event before our metadata loads
-    if (!videowidth || !videoheight) {
-      return;
-    }
-
+  function createTransform(containerWidth, containerHeight,
+                           givenWidth, givenHeight)
+  {
     var width, height; // The size the video will appear, after rotation
     switch (rotation) {
     case 0:
     case 180:
-      width = videowidth;
-      height = videoheight;
+      width = givenWidth;
+      height = givenHeight;
       break;
     case 90:
     case 270:
-      width = videoheight;
-      height = videowidth;
+      width = givenHeight;
+      height = givenWidth;
     }
 
     var xscale = containerWidth / width;
@@ -450,9 +459,26 @@ function VideoPlayer(container) {
     }
 
     transform += ' scale(' + scale + ')';
+    return transform;
+  }
 
-    poster.style.transform = transform;
-    player.style.transform = transform;
+  // Make the video fit the container
+  function setPlayerSize(playerOnly) {
+    var containerWidth = container.clientWidth;
+    var containerHeight = container.clientHeight;
+
+    // Don't do anything if we don't know our size.
+    // This could happen if we get a resize event before our metadata loads
+    if (!videowidth || !videoheight || !posterwidth || !posterheight) {
+      return;
+    }
+    player.style.transform = createTransform(containerWidth, containerHeight,
+                                             videowidth, videoheight);
+    if (playerOnly) {
+      return;
+    }
+    poster.style.transform = createTransform(containerWidth, containerHeight,
+                                             posterwidth, posterheight);
   }
 
   // Update current player orientation

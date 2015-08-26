@@ -3,17 +3,26 @@
 /* global AccessibilityHelper, CallLog, CallLogDBManager, Contacts,
           KeypadManager, LazyLoader, MmiManager, Notification,
           NotificationHelper, SettingsListener, SimSettingsHelper,
-          SuggestionBar, TelephonyHelper, Utils, Voicemail, MozActivity */
+          SuggestionBar, TelephonyHelper, Utils, Voicemail, MozActivity,
+          Navigation */
 
 var NavbarManager = {
   init: function nm_init() {
-    // binding now so that we can remove the listener in unit tests
     this.update = this.update.bind(this);
-    this.update();
-    window.addEventListener('hashchange', this.update);
-
-    var contacts = document.getElementById('option-contacts');
-    contacts.addEventListener('click', this.contactsTabTap);
+    this.update('option-keypad');
+    
+    document.getElementById('views').addEventListener(
+      'click',
+      function(e) {
+        var destination = e.target.dataset &&
+                          e.target.dataset.destination;
+        if (!destination) {
+          return;
+        }
+        Navigation.show(destination);
+        this.update(e.target.id);
+      }.bind(this)
+    );
   },
   resourcesLoaded: false,
   /*
@@ -43,7 +52,7 @@ var NavbarManager = {
                   });
   },
 
-  update: function nm_update() {
+  update: function nm_update(destination) {
     var recent = document.getElementById('option-recents');
     var contacts = document.getElementById('option-contacts');
     var keypad = document.getElementById('option-keypad');
@@ -68,9 +77,8 @@ var NavbarManager = {
       }
     };
 
-    var destination = window.location.hash;
     switch (destination) {
-      case '#call-log-view':
+      case 'option-recents':
         checkContactsTab();
         this.ensureResources(function() {
           recent.classList.add('toolbar-option-selected');
@@ -78,7 +86,7 @@ var NavbarManager = {
           CallLog.init();
         });
         break;
-      case '#contacts-view':
+      case 'option-contacts':
         var frame = document.getElementById('iframe-contacts');
         if (!frame) {
           var view = document.getElementById('iframe-contacts-container');
@@ -96,7 +104,7 @@ var NavbarManager = {
           AccessibilityHelper.setAriaSelected(contacts, tabs);
         });
         break;
-      case '#keyboard-view':
+      case 'option-keypad':
         checkContactsTab();
         keypad.classList.add('toolbar-option-selected');
         this.ensureResources(function() {
@@ -118,7 +126,7 @@ var NavbarManager = {
 
   contactsTabTap: function() {
     // If we are not in the contacts-view, it's a first tap, do nothing
-    if (window.location.hash != '#contacts-view') {
+    if (Navigation.currentView === 'contacts') {
       return;
     }
     this._contactsHome();
@@ -158,12 +166,12 @@ var CallHandler = (function callHandler() {
     var number = activity.source.data.number;
     if (number) {
       KeypadManager.updatePhoneNumber(number, 'begin', false);
-      if (window.location.hash != '#keyboard-view') {
-        window.location.hash = '#keyboard-view';
+      if (Navigation.currentView != 'keypad') {
+        Navigation.showKeypad();
       }
     } else {
-      if (window.location.hash != '#contacts-view') {
-        window.location.hash = '#contacts-view';
+      if (Navigation.currentView != 'contacts') {
+        Navigation.showContacts();
       }
       NavbarManager._contactsHome();
     }
@@ -199,7 +207,7 @@ var CallHandler = (function callHandler() {
       var location = document.createElement('a');
       location.href = evt.imageURL;
       if (location.search.indexOf(FB_SYNC_ERROR_PARAM) !== -1) {
-        window.location.hash = '#contacts-view';
+        Navigation.showContacts();
       } else if (location.search.indexOf('ussdMessage') !== -1) {
         var params = deserializeParameters(evt.imageURL);
 
@@ -212,7 +220,7 @@ var CallHandler = (function callHandler() {
         MmiManager.handleMMIReceived(evt.body, /* sessionEnded */ true,
                                      params.cardIndex);
       } else {
-        window.location.hash = '#call-log-view';
+        Navigation.showCalllog();
       }
     };
   }
@@ -257,7 +265,7 @@ var CallHandler = (function callHandler() {
           var iconURL = NotificationHelper.getIconURI(app, 'dialer');
           var clickCB = function() {
             app.launch('dialer');
-            window.location.hash = '#call-log-view';
+            Navigation.showCalllog();
           };
 
           NotificationHelper.send(title, {
@@ -358,7 +366,7 @@ var CallHandler = (function callHandler() {
         // disable the function of receiving the messages posted from the iframe
         contactsIframe.contentWindow.history.pushState(null, null,
           '/contacts/index.html');
-        window.location.hash = '#call-log-view';
+        Navigation.showCalllog();
         break;
     }
   }

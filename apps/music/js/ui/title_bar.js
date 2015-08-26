@@ -98,23 +98,20 @@ var TitleBar = {
 
         switch (target.id) {
           case 'title-player':
-            // We cannot to switch to player mode
-            // when there is no song in the dataSource of player
-            if (PlayerView.dataSource.length !== 0) {
+            // We can't to switch to player mode when there are no songs queued.
+            if (PlayerView.isQueued) {
               ModeManager.push(MODE_PLAYER);
             }
 
             break;
           case 'title-done':
-            var currentFileinfo = PlayerView.dataSource[
-              PlayerView.currentIndex
-            ];
-            var playingBlob = PlayerView.playingBlob;
-
+            var currentFileInfo = PlayerView.currentFileInfo;
             LazyLoader.load('js/metadata/album_art_cache.js').then(() => {
-              return AlbumArtCache.getThumbnailBlob(currentFileinfo);
+              return AlbumArtCache.getThumbnailBlob(currentFileInfo);
             }).then((picture) => {
-              var currentMetadata = currentFileinfo.metadata;
+              var currentMetadata = currentFileInfo.metadata;
+              var playingBlob = PlayerView.playingBlob;
+
               App.pendingPick.postResult({
                 type: playingBlob.type,
                 blob: playingBlob,

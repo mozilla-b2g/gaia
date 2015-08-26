@@ -1,5 +1,5 @@
 /* globals CallsHandler, FontSizeManager, KeypadManager,
-           LazyL10n, LockScreenSlide, MozActivity, SettingsListener, Utils */
+           LockScreenSlide, MozActivity, SettingsListener, Utils */
 /* jshint nonew: false */
 
 'use strict';
@@ -19,6 +19,7 @@ var CallScreen = {
 
   mainContainer: document.getElementById('main-container'),
   contactBackground: document.getElementById('contact-background'),
+  callOptions: document.getElementById('call-options'),
   callToolbar: document.getElementById('co-advanced'),
 
   muteButton: document.getElementById('mute'),
@@ -176,10 +177,8 @@ var CallScreen = {
 
     /* mobile connection state on lock screen */
     if (window.navigator.mozMobileConnections) {
-      LazyL10n.get(function localized(_) {
-          new window.LockScreenConnInfoManager(CallScreen.lockscreenConnStates);
-        CallScreen._connInfoManagerInitialized = true;
-      });
+      new window.LockScreenConnInfoManager(CallScreen.lockscreenConnStates);
+      CallScreen._connInfoManagerInitialized = true;
     }
   },
 
@@ -402,14 +401,14 @@ var CallScreen = {
   showIncoming: function cs_showIncoming() {
     this.body.classList.remove('showKeypad');
 
-    this.callToolbar.classList.add('transparent');
+    this.callOptions.classList.add('transparent');
     this.incomingContainer.classList.add('displayed');
 
     this._screenWakeLock = navigator.requestWakeLock('screen');
   },
 
   hideIncoming: function cs_hideIncoming() {
-    this.callToolbar.classList.remove('transparent');
+    this.callOptions.classList.remove('transparent');
     this.incomingContainer.classList.remove('displayed');
 
     if (this._screenWakeLock) {
@@ -494,14 +493,14 @@ var CallScreen = {
     durationChildNode.textContent = '00:00';
     durationNode.classList.add('isTimer');
 
-    LazyL10n.get(function localized(_) {
-      var ticker = setInterval(function ut_updateTimer(startTime) {
-        // Bug 834334: Ensure that 28.999 -> 29.000
-        var delta = Math.round((Date.now() - startTime) / 1000) * 1000;
-        Utils.prettyDuration(durationChildNode, delta);
-      }, 1000, Date.now());
-      durationNode.dataset.tickerId = ticker;
-    });
+    var ticker = setInterval(function ut_updateTimer(startTime) {
+      // Bug 834334: Ensure that 28.999 -> 29.000
+      var delta = Math.round((Date.now() - startTime) / 1000) * 1000;
+      Utils.prettyDuration(durationChildNode, delta);
+    }, 1000, Date.now());
+
+    durationNode.dataset.tickerId = ticker;
+
     return true;
   },
 

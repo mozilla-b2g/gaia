@@ -29,40 +29,18 @@ marionette('Contacts > Activities', function() {
   });
 
   suite('open text/vcard activity', function() {
-    function assertFormData() {
-      var formSelectors = [
-        selectors.formGivenName,
-        selectors.formFamilyName,
-        selectors.formOrg,
-        selectors.formTel,
-        selectors.formEmailFirst
-      ];
-
-      var dataArray = [
-        'Forrest',
-        'Gump',
-        'Bubba Gump Shrimp Co.',
-        '+1-111-555-1212',
-        'forrestgump@example.com'
-      ];
-
-      var testObject = {};
-
-      for (var i = 0, len = dataArray.length; i < len; i++) {
-        testObject[formSelectors[i]] = dataArray[i];
-      }
-
-      for (var key in testObject) {
-        var value = client.findElement(key).getAttribute('value');
-        assert.equal(value, testObject[key]);
-      }
-    }
 
     setup(function() {
       smsSubject.launch(); // We open some app to start a Marionette session.
     });
 
-    test('open text/vcard activity opens form filled', function() {
+    function getListItems() {
+      return client.executeScript(function() {
+        return document.querySelectorAll('#multiple-select-container li');
+      });
+    }
+
+    test('> with only one contact', function() {
       client.executeScript(function(vCardFile) {
         new MozActivity({
           name: 'open',
@@ -74,12 +52,34 @@ marionette('Contacts > Activities', function() {
         });
       }, [fs.readFileSync(__dirname + '/data/vcard_4.vcf', 'utf8')]);
 
+      var iframe = 'iframe[src="' + Contacts.URL +
+        '/contacts/views/vcard_load/vcard_load.html"]';
       client.switchToFrame();
-      client.apps.switchToApp(Contacts.URL, 'contacts');
-      client.helper.waitForElement(selectors.form);
+      client.switchToFrame(client.findElement(iframe), {'focus': true});
+      client.helper.waitForElement(selectors.multipleSelectSave);
 
-      assertFormData();
-      assert.ok(client.findElement(selectors.formSave).enabled);
+      assert.ok(getListItems().length === 1); // vcard has one element
+    });
+
+    test('> with multiple contacts', function() {
+      client.executeScript(function(vCardFile) {
+        new MozActivity({
+          name: 'open',
+          data: {
+            type: 'text/vcard',
+            filename: 'vcard_21_multiple.vcf',
+            blob: new Blob([vCardFile], {type: 'text/vcard'})
+          }
+        });
+      }, [fs.readFileSync(__dirname + '/data/vcard_21_multiple.vcf', 'utf8')]);
+
+      var iframe = 'iframe[src="' + Contacts.URL +
+        '/contacts/views/vcard_load/vcard_load.html"]';
+      client.switchToFrame();
+      client.switchToFrame(client.findElement(iframe), {'focus': true});
+      client.helper.waitForElement(selectors.multipleSelectSave);
+
+      assert.ok(getListItems().length === 2); // vcard has one element
     });
   });
 
@@ -209,7 +209,13 @@ marionette('Contacts > Activities', function() {
   });
 
   suite('webcontacts/email activity', function() {
-    test('Creates only one instance of action menu', function() {
+    // Disabling these tests by now due to we need a way to switch to an
+    // activity instead of switching to an app, due to paths can differ.
+    // More info in [1].
+    // These test must be recovered once this bug will be landed.
+
+    // [1] https://bugzilla.mozilla.org/show_bug.cgi?id=1140344#c9
+    test.skip('Creates only one instance of action menu', function() {
       subject.launch();
 
       subject.addContactMultipleEmails({

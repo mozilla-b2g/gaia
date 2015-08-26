@@ -196,6 +196,7 @@ PreferencesBuilder.prototype.setLocalDomainPref = function() {
 
 PreferencesBuilder.prototype.setDesktopPref = function() {
   this.userPrefs['extensions.autoDisableScopes'] = 0;
+  this.userPrefs['xpinstall.signatures.required'] = false;
 };
 
 PreferencesBuilder.prototype.setDebugPref = function() {
@@ -241,6 +242,7 @@ PreferencesBuilder.prototype.setDebugPref = function() {
     '' : '@' + this.config.GAIA_DEV_PIXELS_PER_PX + 'x';
   this.userPrefs['extensions.gaia.device_pixel_suffix'] = suffix;
   this.userPrefs['extensions.autoDisableScopes'] = 0;
+  this.userPrefs['xpinstall.signatures.required'] = false;
 
   // electrolysis breaks the app:// protocol as registered by httpd.js
   // see Bug 1097912

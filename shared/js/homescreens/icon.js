@@ -56,7 +56,14 @@
      * The size icon by default.
      */
     get size() {
-      return 40;
+      return this._size || 40;
+    },
+
+    set size(size) {
+      this._size = size || this.size;
+      var style = this.elem.style;
+      var sizeInRems = (this._size / 10) + 'rem';
+      style.backgroundSize = style.width = style.height = sizeInRems;
     },
 
     /**
@@ -71,42 +78,51 @@
      */
     render: function render(options) {
       options = options || {};
-      var size = (options.size || this.size) * devicePixelRatio;
-      var style = this.elem.style;
-      style.backgroundSize = style.width = style.height = size + 'px';
-
       var uri = this.uri;
+      this.size = options.size;
       if (!uri) {
         return;
       }
 
-      fetchBlob(uri).then((blob) => {
-        var img = new Image();
-        img.src = URL.createObjectURL(blob);
+      fetchBlob(uri).then(function(blob) {
+        this.renderBlob(blob, options);
+      }.bind(this));
+    },
 
-        img.onload = () => {
-          var renderer = new GridIconRenderer({
-            grid: {
-              layout: {
-                get gridIconSize() {
-                  return size;
-                },
-                get gridMaxIconSize() {
-                  return size * devicePixelRatio;
-                }
+    renderBlob: function renderBlob(blob, options) {
+      options = options || {};
+      var style = this.elem.style;
+      this.size = options.size;
+      var img = new Image();
+      img.src = URL.createObjectURL(blob);
+      var size = this.size;
+
+      img.onload = () => {
+        var renderer = new GridIconRenderer({
+          grid: {
+            layout: {
+              get gridIconSize() {
+                return size;
+              },
+              get gridMaxIconSize() {
+                return size * devicePixelRatio;
               }
             }
-          });
+          }
+        });
 
-          var type = options.type || GridIconRenderer.TYPE.FAVICON;
-          renderer[type](img).then((blob) => {
-            var url = URL.createObjectURL(blob);
-            style.backgroundImage = 'url(' + url + ')';
-          });
+        var type = options.type || GridIconRenderer.TYPE.FAVICON;
+        renderer[type](img).then((blob) => {
+          var url = URL.createObjectURL(blob);
+          var imageUrl = 'url(' + url + ')';
+          style.backgroundImage = imageUrl;
+          if (options.onLoad) {
+            options.onLoad(blob);
+          }
+        });
 
-          URL.revokeObjectURL(img.src);
-        };
-      });
+        URL.revokeObjectURL(img.src);
+      };
     }
   };
 

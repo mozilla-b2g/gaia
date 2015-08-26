@@ -1,7 +1,6 @@
 /* global MocksHelper, MockAttachment, MockL10n, loadBodyHTML,
          Compose, Attachment, MockMozActivity, Settings, Utils,
          Blob,
-         SMIL,
          InputEvent,
          MessageManager,
          AssetsHelper,
@@ -27,7 +26,6 @@ require('/services/test/unit/mock_message_manager.js');
 require('/views/shared/test/unit/mock_settings.js');
 require('/views/shared/test/unit/mock_utils.js');
 require('/views/shared/test/unit/mock_moz_activity.js');
-require('/views/shared/test/unit/mock_smil.js');
 require('/views/shared/test/unit/mock_subject_composer.js');
 
 var mocksHelperForCompose = new MocksHelper([
@@ -36,7 +34,6 @@ var mocksHelperForCompose = new MocksHelper([
   'Utils',
   'MozActivity',
   'Attachment',
-  'SMIL',
   'SubjectComposer',
   'OptionMenu'
 ]).init();
@@ -549,7 +546,11 @@ suite('compose_test.js', function() {
     });
 
     suite('Preload composer fromDraft', function() {
-      var d1, d2, attachment;
+      var d1, d2, d3, xssSmsDraft, xssMmsDraft, attachment;
+
+      var xssString = '<img src="/" onerror="delete window.Compose;" />';
+      var escapedXssString =
+        '&lt;img src="/" onerror="delete window.Compose;" /&gt;';
 
       setup(function() {
         Compose.clear();
@@ -564,9 +565,30 @@ suite('compose_test.js', function() {
           threadId: 1
         };
 
+        d3 = {
+          content: null,
+          type: 'sms'
+        };
+
+        xssSmsDraft = {
+          threadId: 1,
+          type: 'sms',
+          content: ['It\'s http:\\mozilla.org' + xssString],
+        };
+
+        xssMmsDraft = {
+          threadId: 1,
+          type: 'mms',
+          content: [
+            'test\nstring 1\nin slide 1' + xssString,
+            'It\'s test\nstring 2\nin slide 2'
+          ]
+        };
+
         this.sinon.stub(SubjectComposer.prototype, 'show');
         this.sinon.stub(SubjectComposer.prototype, 'setValue');
         this.sinon.stub(SubjectComposer.prototype, 'focus');
+        this.sinon.spy(HTMLElement.prototype, 'focus');
       });
 
       teardown(function() {
@@ -576,6 +598,11 @@ suite('compose_test.js', function() {
       test('Draft with text', function() {
         Compose.fromDraft(d1);
         assert.equal(Compose.getContent(), d1.content.join(''));
+      });
+
+      test('Empty draft', function() {
+        Compose.fromDraft(d3);
+        assert.deepEqual(Compose.getContent(), []);
       });
 
       test('Focus place cursor at the end of the compose field', function() {
@@ -611,6 +638,38 @@ suite('compose_test.js', function() {
         var txt = Compose.getContent();
         assert.ok(txt, d2.content.join(''));
         assert.ok(txt[1] instanceof Attachment);
+      });
+
+      test('from sms', function() {
+        Compose.fromDraft(xssSmsDraft);
+
+        sinon.assert.notCalled(message.focus);
+        assert.isDefined(Compose, 'XSS should not be successful');
+        assert.equal(message.textContent, xssSmsDraft.content[0]);
+        assert.equal(
+          message.innerHTML,
+          'It\'s http:\\mozilla.org' + escapedXssString + '<br>'
+        );
+      });
+
+      test('from mms', function() {
+        var testString = [
+          'test\nstring 1\nin slide 1' + xssString,
+          'It\'s test\nstring 2\nin slide 2'
+        ];
+        Compose.fromDraft(xssMmsDraft);
+
+        sinon.assert.notCalled(message.focus);
+        assert.isDefined(Compose, 'XSS should not be successful');
+        assert.equal(
+          message.textContent,
+          testString.join('').replace(/\n/g, '')
+        );
+        assert.equal(
+          message.innerHTML,
+          'test<br>string 1<br>in slide 1' + escapedXssString +
+          'It\'s test<br>string 2<br>in slide 2<br>'
+        );
       });
     });
 
@@ -937,71 +996,6 @@ suite('compose_test.js', function() {
 
         assert.equal(message.getAttribute('x-inputmode'), '-moz-sms');
         assert.equal(form.dataset.messageType, 'sms');
-      });
-    });
-
-    suite('Compose fromMessage', function() {
-      var xssString = '<img src="/" onerror="delete window.Compose;" />';
-      var escapedXssString =
-        '&lt;img src="/" onerror="delete window.Compose;" /&gt;';
-
-      setup(function() {
-        this.sinon.spy(Compose, 'append');
-        this.sinon.spy(HTMLElement.prototype, 'focus');
-        this.sinon.stub(SMIL, 'parse').returns(Promise.resolve([]));
-      });
-
-      test('from sms', function() {
-        var body = 'It\'s http:\\mozilla.org' + xssString;
-
-        Compose.fromMessage({type: 'sms', body: body });
-
-        sinon.assert.called(Compose.append);
-        sinon.assert.notCalled(message.focus);
-        assert.isDefined(Compose, 'XSS should not be successful');
-        assert.equal(message.textContent, body);
-        assert.equal(
-          message.innerHTML,
-          'It\'s http:\\mozilla.org' + escapedXssString + '<br>'
-        );
-      });
-
-      test('from mms', function(done) {
-        var testString = [
-          'test\nstring 1\nin slide 1' + xssString,
-          'It\'s test\nstring 2\nin slide 2'
-        ];
-        SMIL.parse.returns(
-          Promise.resolve([{text: testString[0]}, {text: testString[1]}])
-        );
-
-        Compose.fromMessage({type: 'mms'});
-
-        // Should not be focused before parse complete.
-        sinon.assert.notCalled(message.focus);
-        assert.isTrue(message.classList.contains('ignoreEvents'));
-
-        SMIL.parse.lastCall.returnValue.then(() => {
-          sinon.assert.called(Compose.append);
-          sinon.assert.notCalled(message.focus);
-          assert.isFalse(message.classList.contains('ignoreEvents'));
-          assert.isDefined(Compose, 'XSS should not be successful');
-          assert.equal(
-            message.textContent,
-            testString.join('').replace(/\n/g, '')
-          );
-          assert.equal(
-            message.innerHTML,
-            'test<br>string 1<br>in slide 1' + escapedXssString +
-            'It\'s test<br>string 2<br>in slide 2<br>'
-          );
-        }).then(done, done);
-      });
-
-      test('empty body', function() {
-        Compose.fromMessage({type: 'sms', body: null});
-        sinon.assert.calledWith(Compose.append, null);
-        sinon.assert.notCalled(message.focus);
       });
     });
 

@@ -1,6 +1,6 @@
 /* exported ModeManager */
-/* global TitleBar, TabBar, LazyLoader, TilesView, ListView, SubListView,
-          PlayerView, SearchView, App, asyncStorage */
+/* global App, LazyLoader, ListView, PlaybackQueue, PlayerView, SearchView,
+          SubListView, TabBar, TilesView, TitleBar, TYPE_LIST, TYPE_SINGLE */
 'use strict';
 
 // This Application has five modes: TILES, SEARCH, LIST, SUBLIST, and PLAYER
@@ -18,18 +18,18 @@ var MODE_SEARCH_FROM_TILES = 5;
 var MODE_SEARCH_FROM_LIST = 6;
 var MODE_PICKER = 7;
 
-// Key for store the player options of repeat and shuffle
-var SETTINGS_OPTION_KEY = 'settings_option_key';
-
 var ModeManager = {
   views: {
-    1: {id: 'views-tiles', path: 'js/ui/views/tiles_view.js'},
-    2: {id: 'views-list', path: 'js/ui/views/list_view.js'},
-    3: {id: 'views-sublist', path: 'js/ui/views/subList_view.js'},
-    4: {id: 'views-player', path: 'js/ui/views/player_view.js'},
-    5: {id: 'views-search', path: 'js/ui/views/search_view.js'},
-    6: {id: 'views-search', path: 'js/ui/views/search_view.js'},
-    7: {id: 'views-list', path: 'js/ui/views/list_view.js'}
+    1: {id: 'views-tiles',   paths: ['js/ui/views/tiles_view.js']},
+    2: {id: 'views-list',    paths: ['js/ui/views/list_view.js']},
+    3: {id: 'views-sublist', paths: ['js/ui/views/subList_view.js']},
+    4: {id: 'views-player',  paths: ['js/ui/views/player_view.js',
+                                     'js/queue.js']},
+    5: {id: 'views-search',  paths: ['js/ui/views/search_view.js',
+                                     'shared/js/text_normalizer.js']},
+    6: {id: 'views-search',  paths: ['js/ui/views/search_view.js',
+                                     'shared/js/text_normalizer.js']},
+    7: {id: 'views-list',    paths: ['js/ui/views/list_view.js']}
   },
   _modeStack: [],
   playerTitle: null,
@@ -85,7 +85,7 @@ var ModeManager = {
       }
     }
 
-    LazyLoader.load(view.path).then(() => {
+    LazyLoader.load(view.paths).then(() => {
       // Our view might have been loaded while we were waiting so check again.
       if (view.isLoaded) {
         return;
@@ -106,22 +106,17 @@ var ModeManager = {
           SubListView.init();
           break;
         case 'views-player':
-          PlayerView.init();
+          PlayerView.init(App.pendingPick ? TYPE_SINGLE : TYPE_LIST);
           break;
         case 'views-search':
           SearchView.init();
           break;
       }
 
-      // The PlayerView needs the settings values before use it.
+      // The PlaybackQueue needs to load the settings from asyncStorage before
+      // we can use it.
       if (view.id === 'views-player') {
-        asyncStorage.getItem(SETTINGS_OPTION_KEY, (settings) => {
-          App.playerSettings = settings;
-          PlayerView.setOptions(App.playerSettings);
-        });
-      } else if (view.id === 'views-search') {
-        // The text normalizer is needed in search view.
-        return LazyLoader.load('shared/js/text_normalizer.js');
+        return PlaybackQueue.loadSettings();
       }
     }).then(() => {
       view.isLoaded = true;
@@ -238,8 +233,8 @@ var ModeManager = {
 
   updatePlayerIcon: function() {
     var isPlayerMode = (this.currentMode === MODE_PLAYER);
-    var isPlayerQueued =
-      (this.views[MODE_PLAYER].isLoaded && PlayerView.dataSource.length > 0);
+    var isPlayerQueued = (this.views[MODE_PLAYER].isLoaded &&
+                          PlayerView.isQueued);
 
     TitleBar.playerIcon.hidden = isPlayerMode || !isPlayerQueued;
     // We have to show the done button when we are in picker mode

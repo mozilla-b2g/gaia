@@ -142,5 +142,39 @@
     });
   };
 
+  /*
+   * A utility function shared between telemetry modules that is used to get
+   * values for all of the specified settings. settingKeysAndDefaults is an
+   * object that maps settings keys to default values. We query the value of
+   * each of those settings and then create an object that maps keys to values
+   * (or to the default values) and pass that object to the callback function.
+   */
+  TelemetryRequest.getSettings = function getSettings(settingKeysAndDefaults,
+                                                      callback) {
+    var pendingQueries = 0;
+    var results = {};
+    var lock = window.navigator.mozSettings.createLock();
+    for (var key in settingKeysAndDefaults) {
+      var defaultValue = settingKeysAndDefaults[key];
+      query(key, defaultValue);
+      pendingQueries++;
+    }
+
+    function query(key, defaultValue) {
+      var request = lock.get(key);
+      request.onsuccess = function() {
+        var value = request.result[key];
+        if (value === undefined || value === null) {
+          value = defaultValue;
+        }
+        results[key] = value;
+        pendingQueries--;
+        if (pendingQueries === 0) {
+          callback(results);
+        }
+      };
+    }
+  };
+
   exports.TelemetryRequest = TelemetryRequest;
 }(window));

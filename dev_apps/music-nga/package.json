@@ -1,0 +1,12 @@
+{
+  "name": "gaia-music-nga",
+  "description": "Gaia Music powered by NGA",
+  "version": "2.5.0-alpha1",
+  "license": "Apache 2.0",
+  "scripts": {
+    "serve": "./node_modules/.bin/nws -d './;../../'"
+  },
+  "devDependencies": {
+    "nws": "^0.6.1"
+  }
+}

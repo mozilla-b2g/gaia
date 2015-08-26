@@ -7,6 +7,7 @@ apps/bluetooth/style/settings.css 0 1
 apps/calendar/style/month.css 0 2
 apps/calendar/style/ui.css 0 2
 apps/calendar/style/modify_event_view.css 0 4
+apps/calendar/style/settings.css 0 1
 apps/callscreen/style/oncall.css 0 1
 apps/camera/bower_components/gaia-theme/gaia-theme.css 5 0
 apps/camera/style/notification.css 1 0
@@ -35,13 +36,18 @@ apps/gallery/style/gallery.css 0 7
 apps/gallery/style/open.css 0 1
 apps/gallery/style/gallery_tablet.css 0 4
 apps/gallery/style/info.css 0 2
+apps/homescreen/bower_components/base/base.css 4 3
+apps/homescreen/bower_components/gaia-fonts/style.css 0 1
+apps/homescreen/bower_components/gaia-theme/gaia-theme.css 5 0
+apps/homescreen/style/window.css 1 0
 apps/keyboard/style/keyboard.css 1 3
+apps/keyboard/style/settings.css 0 1
 apps/music/bower_components/gaia-theme/gaia-theme.css 5 0
 apps/music/style/music.css 0 2
 apps/pdfjs/content/web/viewer.css 0 1
 apps/privacy-panel/style/lists.css 0 1
 apps/settings/style/apps.css 0 1
-apps/settings/style/lists.css 2 2
+apps/settings/style/lists.css 2 1
 apps/settings/style/settings.css 0 9
 apps/settings/style/settings_large.css 1 1
 apps/settings/style/screen_lock.css 0 2

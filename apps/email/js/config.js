@@ -36,12 +36,30 @@ if (typeof TestUrlResolver === 'undefined') {
 
       'shared/js/accessibility_helper': {
         exports: 'AccessibilityHelper'
+      },
+
+      'shared/js/gesture_detector': {
+        exports: 'GestureDetector'
       }
     },
     config: {
       template: {
         tagToId: function(tag) {
-           return tag.replace(/^cards-/, 'cards/').replace(/-/g, '_');
+           return tag.replace(/^cards-/, 'cards/')
+                  .replace(/^lst-/, 'cards/lst/')
+                  .replace(/^msg-/, 'cards/msg/')
+                  .replace(/^cmp-/, 'cards/cmp/')
+                  .replace(/-/g, '_');
+        }
+      },
+
+      element: {
+        idToTag: function(id) {
+          return id.toLowerCase()
+                 .replace(/^cards\/lst\//, 'lst-')
+                 .replace(/^cards\/msg\//, 'msg-')
+                 .replace(/^cards\/cmp\//, 'cmp-')
+                 .replace(/[^a-z]/g, '-');
         }
       }
     },
@@ -59,7 +77,8 @@ if (navigator.mozAudioChannelManager) {
 // case, html_cache_restore needs to know the model state, if there is an
 // account, before proceeding with the startup view to select.
 if (window.startupOnModelLoaded) {
-  requirejs(['console_hook', 'model'], function(hook, model) {
+  requirejs(['console_hook', 'model_create'], function(hook, modelCreate) {
+    var model = modelCreate.defaultModel;
     model.init();
     window.startupOnModelLoaded(model, function() {
       require(['mail_app']);

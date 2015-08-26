@@ -1,6 +1,6 @@
 /*global MockL10n, Utils, MockContact, FixturePhones, MockContactPhotoHelper,
          MockMozPhoneNumberService, MocksHelper,
-         MockNotification, Threads, MockSettings,
+         MockNotification, MockSettings,
          AssetsHelper, Settings, Dialog
 */
 
@@ -13,14 +13,12 @@ require('/views/shared/test/unit/mock_navigator_mozphonenumberservice.js');
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 require('/views/shared/js/utils.js');
 require('/shared/test/unit/mocks/mock_notification.js');
-require('/services/test/unit/mock_threads.js');
 require('/views/shared/test/unit/mock_settings.js');
 require('/views/shared/test/unit/mock_dialog.js');
 
 var MocksHelperForUtilsUnitTest = new MocksHelper([
   'ContactPhotoHelper',
   'Notification',
-  'Threads',
   'Settings',
   'Dialog'
 ]).init();
@@ -70,6 +68,7 @@ suite('Utils', function() {
     test('([String|Number|Date])', function() {
       [true, false].forEach(function(isMozHour12) {
         navigator.mozHour12 = isMozHour12;
+        Utils.resetDateFormatters();
 
         var formatter = new Intl.DateTimeFormat(navigator.languages, {
           hour12: isMozHour12,
@@ -1021,14 +1020,46 @@ suite('Utils', function() {
     });
   });
 
-  suite('Utils.params', function() {
+  suite('URL utils', function() {
     var tests = {
-      '?foo=bar&baz=1&quux=null': {foo: 'bar', baz: '1', quux: 'null'}
+      '?foo=bar&baz=1&quux=null&bool1=true&bool2=false': {
+        foo: 'bar',
+        baz: '1',
+        quux: 'null',
+        bool1: true,
+        bool2: false
+      }
     };
 
-    Object.keys(tests).forEach(function(testIndex) {
-      test(testIndex, function() {
-        assert.deepEqual(Utils.params(testIndex), tests[testIndex]);
+    test('Utils.params', function() {
+      Object.keys(tests).forEach(function(search) {
+        assert.deepEqual(Utils.params(search), tests[search], search);
+      });
+    });
+
+    test('Utils.url', function() {
+      Object.keys(tests).forEach(function(search) {
+        var params = tests[search];
+
+        var base = '#';
+        var expected = base + search;
+        assert.equal(
+          Utils.url(base, params), expected,
+          'base without ?: ' + search
+        );
+
+        base = '#?something';
+        expected = base + '&' + search.slice(1);
+        assert.equal(
+          Utils.url(base, params), expected,
+          'base with ?: ' + search
+        );
+
+        params = Object.assign({ test: null }, params);
+        assert.equal(
+          Utils.url(base, params), expected,
+          'with a null value: ' + search
+        );
       });
     });
   });
@@ -1040,15 +1071,6 @@ suite('Utils', function() {
       this.sinon.stub(Notification, 'get').returns(Promise.resolve([]));
       this.sinon.spy(console, 'error');
       closeStub = this.sinon.stub(MockNotification.prototype, 'close');
-    });
-
-    test('notification matched with no threadId given(current Id)',
-    function(done) {
-      Threads.currentId = 'currentId';
-      Utils.closeNotificationsForThread().then(function() {
-        sinon.assert.calledWith(Notification.get,
-          {tag : 'threadId:' + Threads.currentId});
-      }).then(done, done);
     });
 
     test('notification matched with specific threadId', function(done) {

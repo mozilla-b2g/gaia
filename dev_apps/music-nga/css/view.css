@@ -1,0 +1,98 @@
+[hidden] {
+  display: none;
+}
+
+html {
+  background: var(--background);
+  color: #fff;
+  font-size: 10px;
+  font-family: 'FiraSans';
+  width: 100%;
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+}
+
+music-artwork {
+  display: block;
+  width: 100%;
+  height: calc(100% - 9.1rem);
+}
+
+a[is="music-list-item"] {
+  text-decoration: none;
+}
+
+#tiles {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: scroll;
+}
+
+.tile {
+  display: block;
+  float: left;
+  position: relative;
+  width: 33.3vw;
+  height: 33.3vw;
+}
+
+.tile:nth-child(6n+1),
+.tile:nth-child(6n+4) {
+  width: 66.6vw;
+  height: 66.6vw;
+}
+
+.tile:nth-child(6n+1):before,
+.tile:nth-child(6n+1):after,
+.tile:nth-child(6n+4):before,
+.tile:nth-child(6n+4):after {
+  background-color: rgba(0, 0, 0, 0.5);
+  box-sizing: border-box;
+  color: #fff;
+  font-size: 1.9rem;
+  line-height: 2.5rem;
+  text-shadow: 0.1rem 0.1rem #000;
+  display: block;
+  position: absolute;
+  padding: 0.15rem 1rem;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2.8rem;
+  z-index: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tile:nth-child(6n+1):before,
+.tile:nth-child(6n+4):before {
+  content: attr(data-artist);
+}
+
+.tile:nth-child(6n+1):after,
+.tile:nth-child(6n+4):after {
+  content: attr(data-album);
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 1.4rem;
+  top: 2.8rem;
+}
+
+.tile:nth-child(6n+4),
+.tile:nth-child(6n+5),
+.tile:nth-child(6n+6) {
+  float: right;
+}
+
+.tile > img {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}

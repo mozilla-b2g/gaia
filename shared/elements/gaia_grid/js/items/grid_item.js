@@ -548,6 +548,7 @@
         tile.dataset.identifier = this.identifier;
         tile.dataset.isDraggable = this.isDraggable();
         tile.setAttribute('role', 'link');
+        tile.setAttribute('tabindex', 0);
         tile.style.width = (this.grid.layout.constraintSize / 3) + 'px';
 
         // This <p> has been added in order to place the title with respect

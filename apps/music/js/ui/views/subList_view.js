@@ -1,9 +1,15 @@
 /* exported SubListView */
 /* global AlbumArtCache, createListElement, Database, LazyLoader, ModeManager,
-          MODE_PLAYER, PlayerView, showImage, TabBar, TYPE_LIST */
+          MODE_PLAYER, PlaybackQueue, PlayerView, showImage, TabBar */
 'use strict';
 
 var SubListView = {
+  unknownNameL10nIds: {
+    'artist': 'unknownArtist',
+    'album': 'unknownAlbum',
+    'title': 'unknownTitle'
+  },
+
   get view() {
     return document.getElementById('views-sublist');
   },
@@ -16,6 +22,22 @@ var SubListView = {
     return document.getElementById('views-sublist-anchor');
   },
 
+  get headerImage() {
+    return document.getElementById('views-sublist-header-image');
+  },
+
+  get headerName() {
+    return document.getElementById('views-sublist-header-name');
+  },
+
+  get playAllButton() {
+    return document.getElementById('views-sublist-controls-play');
+  },
+
+  get shuffleButton() {
+    return document.getElementById('views-sublist-controls-shuffle');
+  },
+
   set dataSource(source) {
     this._dataSource = source;
 
@@ -25,12 +47,6 @@ var SubListView = {
   },
 
   init: function slv_init() {
-    this.albumImage = document.getElementById('views-sublist-header-image');
-    this.albumName = document.getElementById('views-sublist-header-name');
-    this.playAllButton = document.getElementById('views-sublist-controls-play');
-    this.shuffleButton =
-      document.getElementById('views-sublist-controls-shuffle');
-
     this.handle = null;
     this.dataSource = [];
     this.index = 0;
@@ -50,7 +66,7 @@ var SubListView = {
     this.view.scrollTop = 0;
   },
 
-  setAlbumSrc: function slv_setAlbumSrc(fileinfo) {
+  setHeaderImage: function slv_setHeaderImage(fileinfo) {
     // See if we are viewing the predefined playlists, if so, then replace the
     // fileinfo with the first record in the dataSource to display the first
     // album art for every predefined playlist.
@@ -65,9 +81,9 @@ var SubListView = {
     });
   },
 
-  setAlbumName: function slv_setAlbumName(name, l10nId) {
-    this.albumName.textContent = name;
-    this.albumName.dataset.l10nId = l10nId;
+  setHeaderName: function slv_setHeaderName(name, l10nId) {
+    this.headerName.textContent = name;
+    this.headerName.dataset.l10nId = l10nId;
   },
 
   activate: function(option, data, index, keyRange, direction, callback) {
@@ -75,9 +91,9 @@ var SubListView = {
     this.clean();
 
     this.handle = Database.enumerateAll(targetOption, keyRange, direction,
-                                        function lv_enumerateAll(dataArray) {
-      var albumName;
-      var albumNameL10nId;
+                                        (dataArray) => {
+      var headerName;
+      var headerNameL10nId = '';
       var maxDiscNum = 1;
 
       if (option === 'album') {
@@ -92,42 +108,34 @@ var SubListView = {
         );
       }
 
-      if (option === 'artist') {
-        albumName =
-          data.metadata.artist || navigator.mozL10n.get('unknownArtist');
-        albumNameL10nId = data.metadata.artist ? '' : 'unknownArtist';
-      } else if (option === 'album') {
-        albumName =
-          data.metadata.album || navigator.mozL10n.get('unknownAlbum');
-        albumNameL10nId = data.metadata.album ? '' : 'unknownAlbum';
-      } else {
-        albumName =
-          data.metadata.title || navigator.mozL10n.get('unknownTitle');
-        albumNameL10nId = data.metadata.title ? '' : 'unknownTitle';
-      }
-
-      // Overrides l10nId.
-      if (data.metadata.l10nId) {
-        albumNameL10nId = data.metadata.l10nId;
-      }
-
-      this.dataSource = dataArray;
-      this.setAlbumName(albumName, albumNameL10nId);
-      this.setAlbumSrc(data);
-
       var inPlaylist = (option !== 'artist' &&
                         option !== 'album' &&
                         option !== 'title');
 
-      dataArray.forEach(function(songData) {
+      headerName = data.metadata[inPlaylist ? 'title' : option];
+      if (!headerName) {
+        headerNameL10nId = this.unknownNameL10nIds[option];
+        headerName = navigator.mozL10n.get(headerNameL10nId);
+      }
+
+      // Overrides l10nId.
+      if (data.metadata.l10nId) {
+        headerNameL10nId = data.metadata.l10nId;
+      }
+
+      this.dataSource = dataArray;
+      this.setHeaderName(headerName, headerNameL10nId);
+      this.setHeaderImage(data);
+
+      dataArray.forEach((songData) => {
         songData.multidisc = (maxDiscNum > 1);
         this.update(songData, inPlaylist);
-      }.bind(this));
+      });
 
       if (callback) {
         callback();
       }
-    }.bind(this));
+    });
   },
 
   // Set inPlaylist to true if you want the index instead of the track #
@@ -152,47 +160,22 @@ var SubListView = {
 
     switch (evt.type) {
       case 'click':
-        if (target === this.shuffleButton) {
-          ModeManager.push(MODE_PLAYER, function() {
+        if (target === this.shuffleButton || target === this.playAllButton) {
+          ModeManager.push(MODE_PLAYER, () => {
             PlayerView.clean();
-            PlayerView.setSourceType(TYPE_LIST);
-            PlayerView.dataSource = this.dataSource;
-            PlayerView.setShuffle(true);
-            PlayerView.play(PlayerView.shuffledList[0]);
-          }.bind(this));
-          return;
-        }
-
-        if (target.dataset.index || target === this.playAllButton) {
-          ModeManager.push(MODE_PLAYER, function() {
+            PlaybackQueue.shuffle = (target === this.shuffleButton);
+            PlayerView.activate(new PlaybackQueue.StaticQueue(this.dataSource));
+            PlayerView.start();
+          });
+        } else if (target.dataset.index) {
+          ModeManager.push(MODE_PLAYER, () => {
             PlayerView.clean();
-            PlayerView.setSourceType(TYPE_LIST);
-            PlayerView.dataSource = this.dataSource;
-
-            if (target === this.playAllButton) {
-              // Clicking the play all button is the same as clicking
-              // on the first item in the list.
-              target = this.view.querySelector('li > a[data-index="0"]');
-              // we have to unshuffle here
-              // because play all button should play from the first song
-              PlayerView.setShuffle(false);
-            }
-
             var targetIndex = parseInt(target.dataset.index, 10);
-
-            if (PlayerView.shuffleOption) {
-              // Shuffled list maybe not exist yet
-              // because shuffleOption might be set by callback of asyncStorage.
-              // We are unable to create one since
-              // there is no playing dataSource when an user first launch Music.
-              // Here we need to create a new shuffled list
-              // and start from the song which a user clicked.
-              PlayerView.shuffleList(targetIndex);
-              PlayerView.play(PlayerView.shuffledList[0]);
-            } else {
-              PlayerView.play(targetIndex);
-            }
-          }.bind(this));
+            PlayerView.activate(new PlaybackQueue.StaticQueue(
+              this.dataSource, targetIndex
+            ));
+            PlayerView.start();
+          });
         }
         break;
 

@@ -51,7 +51,6 @@ marionette('Messages as share target', function() {
 
         // Exit from activity and verify that Messages is dismissed
         messagesApp.performHeaderAction();
-        messagesApp.selectAppMenuOption('Delete Draft');
         messagesApp.waitForAppToDisappear();
       });
 
@@ -81,7 +80,7 @@ marionette('Messages as share target', function() {
         client.helper.waitForElement(messagesApp.Report.main);
 
         assert.equal(
-          messagesApp.Composer.header.getAttribute('action'), 'close',
+          messagesApp.Report.header.getAttribute('action'), 'close',
           'Close activity button should be visible'
         );
 
@@ -118,7 +117,7 @@ marionette('Messages as share target', function() {
         client.helper.waitForElement(messagesApp.Participants.main);
 
         assert.equal(
-          messagesApp.Composer.header.getAttribute('action'), 'close',
+          messagesApp.Participants.header.getAttribute('action'), 'back',
           'Close activity button should be visible'
         );
 

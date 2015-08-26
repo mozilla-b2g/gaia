@@ -1,0 +1,26 @@
+{
+  "name": "pressed",
+  "main": "pressed.js",
+  "authors": [
+    "Wilson Page <wilsonpage@me.com>"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "!.jshintrc",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "homepage": "https://github.com/gaia-components/pressed",
+  "_release": "0a9ae880fe",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "0a9ae880fe71ebb6bffaf14b9fd1c7eb6ce489cb"
+  },
+  "_source": "git://github.com/gaia-components/pressed.git",
+  "_target": "master",
+  "_originalSource": "gaia-components/pressed"
+}

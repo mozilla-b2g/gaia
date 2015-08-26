@@ -72,15 +72,6 @@ window.GaiaRadio = (function(win) {
    * that preserves backwards behavior and should make it easier to port apps.
    */
   proto.handleClick = function(e) {
-
-    // Uncheck other radio elements with the same name and check this one.
-    var relevant = document.querySelectorAll(
-      'gaia-radio[name="' + this.getAttribute('name') + '"]');
-    for (var i = 0, iLen = relevant.length; i < iLen; i++) {
-      relevant[i].checked = false;
-    }
-    this.checked = !this.checked;
-
     // We add this event listener twice (see above) on both the content and
     // custom element nodes. We need to stop the event propagation to prevent
     // this event from firing against both nodes.
@@ -94,6 +85,10 @@ window.GaiaRadio = (function(win) {
       cancelable: true
     });
     this.dispatchEvent(event);
+
+    if (!event.defaultPrevented) {
+      this.checked = !this.checked;
+    }
 
     // Dispatch a change event for the gaia-switch.
     this.dispatchEvent(new CustomEvent('change', {
@@ -111,6 +106,15 @@ window.GaiaRadio = (function(win) {
   };
 
   /**
+   * Proxy className property to the wrapper.
+   */
+  proto.attributeChangedCallback = function(name, from, to) {
+    if (name === 'class') {
+      this._wrapper.className = to;
+    }
+  };
+
+  /**
    * Handle setting/getting of the checked property.
    */
   Object.defineProperty(proto, 'checked', {
@@ -118,6 +122,23 @@ window.GaiaRadio = (function(win) {
       return this._checked;
     },
     set: function(value) {
+      // Return early if we have not initialized.
+      // In some cases a radio of the same name might try to toggle this one
+      // before we've run the createdCallback.
+      if (!this._template) {
+        return;
+      }
+      if (value) {
+        // Uncheck other radio elements with the same name and check this one.
+        var relevant = document.querySelectorAll(
+          'gaia-radio[name="' + this.getAttribute('name') + '"]');
+        for (var i = 0, iLen = relevant.length; i < iLen; i++) {
+          relevant[i].checked = false;
+        }
+        this.setAttribute('checked', true);
+      } else {
+        this.removeAttribute('checked');
+      }
       this._wrapper.classList.toggle('checked', value);
       this._wrapper.setAttribute('aria-checked', value);
       this._checked = value;

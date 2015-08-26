@@ -1,8 +1,10 @@
-/* global AppWindow, Card, MocksHelper, CardsHelper */
+/* global AppWindow, Card, MocksHelper, MockPromise, Icon */
 'use strict';
 
 require('/shared/js/sanitizer.js');
 requireApp('system/test/unit/mock_app_window.js');
+require('/shared/test/unit/mocks/mock_promise.js');
+require('/shared/js/homescreens/icon.js');
 
 var mocksForCard = new MocksHelper([
   'AppWindow'
@@ -42,17 +44,15 @@ suite('system/Card', function() {
   }
 
   mocksForCard.attachTestHelpers();
-  var mockManager = {
-    useAppScreenshotPreviews: true,
-    SWIPE_UP_THRESHOLD: 480/4
-  };
+  var mockManager;
   var cardsList;
+  var iconDataURI = 'data:image/png;base64,abc+';
+  var getIconPromise;
 
   suiteSetup(function(done) {
     cardsList = document.createElement('ul');
     cardsList.id = 'cards-list';
     document.body.appendChild(cardsList);
-    mockManager.cardsList = cardsList;
 
     requireApp('system/js/service.js');
     requireApp('system/js/base_ui.js');
@@ -60,17 +60,39 @@ suite('system/Card', function() {
     requireApp('system/js/card.js', done);
   });
 
+  setup(function() {
+    getIconPromise = new MockPromise();
+    this.sinon.stub(AppWindow.prototype, 'getSiteIconUrl')
+                   .returns(getIconPromise);
+    mockManager = {
+      useAppScreenshotPreviews: true,
+      SWIPE_UP_THRESHOLD: 480/4,
+      cardsList: cardsList
+    };
+
+    this.sinon.stub(Icon.prototype, 'renderBlob', function() {
+      this.elem.style.backgroundImage = 'url(' + this.uri + ')';
+    });
+  });
+  teardown(function() {
+    cardsList.innerHTML = '';
+    if (getIconPromise.then.called) {
+      getIconPromise.mFulfillToValue({originalUrl: iconDataURI, blob: {}});
+    }
+  });
+
   suite('render > ', function() {
-    suiteSetup(function(){
+    setup(function(){
       this.card = new Card({
         app: makeApp({ name: 'dummyapp' }),
         manager: mockManager
       });
-      this.card.render();
     });
 
     test('card instance properties', function() {
       // sanity check properties expected to be exposed on the instance
+      this.card.render();
+
       assert.isDefined(this.card.app);
       assert.isDefined(this.card.instanceID);
       assert.isDefined(this.card.title);
@@ -85,6 +107,8 @@ suite('system/Card', function() {
 
     test('exposes expected element properties', function(){
       var card = this.card;
+      card.render();
+
       assert.ok(card.element, 'element node');
       assert.equal(card.element.tagName, 'LI');
       assert.ok(card.screenshotView, 'screenshotView node');
@@ -95,6 +119,9 @@ suite('system/Card', function() {
 
     test('has expected classes/elements', function(){
       var card = this.card;
+      card.render();
+      getIconPromise.mFulfillToValue({originalUrl: iconDataURI, blob: {}});
+
       var header = card.element.querySelector('h1');
       assert.ok(card.element.classList.contains, '.card');
       assert.isFalse(card.element.classList.contains('browser'),
@@ -106,10 +133,13 @@ suite('system/Card', function() {
       assert.ok(header.id, 'h1.id');
       assert.isFalse(card.element.classList.contains('show-subtitle'),
                      'no show-subtitle by default');
+      assert.isFalse(card.iconButton.classList.contains('small-icon'));
+      assert.isFalse(card.iconButton.classList.contains('pending'));
     });
 
     test('has expected aria values', function(){
       var card = this.card;
+      card.render();
 
       assert.equal(card.screenshotView.getAttribute('role'), 'link');
       assert.equal(card.element.getAttribute('role'), 'presentation');
@@ -126,6 +156,7 @@ suite('system/Card', function() {
         manager: mockManager
       });
       card.render();
+
       assert.ok(card.element.classList.contains('browser'),
                'has browser class');
     });
@@ -140,6 +171,7 @@ suite('system/Card', function() {
         return true;
       });
       browserCard.render();
+
       assert.equal(browserCard.titleNode.textContent, 'Page title');
     });
 
@@ -151,6 +183,7 @@ suite('system/Card', function() {
         manager: mockManager
       });
       card.render();
+
       assert.ok(card.element.classList.contains('private'),
                'has private class');
     });
@@ -165,6 +198,7 @@ suite('system/Card', function() {
         return false;
       });
       appCard.render();
+
       assert.equal(appCard.titleNode.textContent, 'otherapp');
     });
 
@@ -181,6 +215,7 @@ suite('system/Card', function() {
         return 'broken';
       });
       browserCard.render();
+
       assert.isTrue(browserCard.app.getSSLState.calledOnce);
       assert.equal(browserCard.sslState, 'broken');
       assert.equal(browserCard.element.dataset.ssl, 'broken');
@@ -198,6 +233,7 @@ suite('system/Card', function() {
         return true;
       });
       browserCard.render();
+
       assert.ok(browserCard.element.classList.contains('show-subtitle'),
                 'show-subtitle class added');
       assert.equal(browserCard.subTitle, 'someorigin.org/foo');
@@ -228,9 +264,22 @@ suite('system/Card', function() {
         manager: mockManager
       });
       appCard.render();
+
       assert.equal(appCard.subTitle, '');
       assert.isFalse(appCard.element.classList.contains('show-subtitle'));
     });
+
+    test('gets icon from appWindow', function() {
+      var card = this.card;
+      var app = card.app;
+      card.render();
+      getIconPromise.mFulfillToValue({originalUrl: iconDataURI, blob: {}});
+
+      assert.ok(app.getSiteIconUrl.called);
+      assert.ok(Icon.prototype.renderBlob.called);
+      assert.isTrue(card.iconValue.indexOf(iconDataURI) > -1);
+    });
+
   });
 
   suite('destroy', function() {
@@ -241,9 +290,6 @@ suite('system/Card', function() {
         containerElement: mockManager.cardsList
       });
       this.card.render();
-    });
-    teardown(function() {
-      mockManager.cardsList.innerHTML = '';
     });
 
     test('removes element from parentNode', function() {
@@ -310,41 +356,27 @@ suite('system/Card', function() {
   });
 
   suite('previews > ', function() {
-    suiteSetup(function(){
-      this.getIconStub = sinon.stub(CardsHelper, 'getIconURIForApp',
-                                    function() {
-        return 1;
-      });
-      this.card = new Card({
+    test('card using screenshots doesnt show icon', function() {
+      mockManager.useAppScreenshotPreviews = true;
+      var card = new Card({
         app: makeApp({ name: 'dummyapp' }),
         manager: mockManager
       });
-      this.card.render();
-    });
-    suiteTeardown(function() {
-      this.getIconStub.restore();
-    });
-
-    test('card using screenshots doesnt show icon', function() {
-      var card = this.card;
-      var manager = card.manager;
-      manager.useAppScreenshotPreviews = true;
-      card.element.dispatchEvent(new CustomEvent('onviewport'));
+      card.render();
+      getIconPromise.mFulfillToValue({originalUrl: iconDataURI, blob: {}});
 
       assert.isFalse(card.element.classList.contains('appIconPreview'),
                     'card doesnt have appIconPreview class');
     });
 
     test('card with screenshots disabled shows icon', function() {
-      var mockManager = {
-        useAppScreenshotPreviews: false
-      };
-
+      mockManager.useAppScreenshotPreviews = false;
       var card = new Card({
         app: makeApp({ name: 'dummyapp-icons' }),
         manager: mockManager
       });
       card.render();
+      getIconPromise.mFulfillToValue({originalUrl: iconDataURI, blob: {}});
 
       assert.isTrue(card.element.classList.contains('appIconPreview'),
                     'card has appIconPreview class');

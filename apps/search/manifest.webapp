@@ -34,7 +34,8 @@
     "open-remote-window":{},
     "settings":{ "access": "readwrite" },
     "systemXHR":{},
-    "contacts":{ "access": "readonly" }
+    "contacts":{ "access": "readonly" },
+    "moz-extremely-unstable-and-will-change-webcomponents":{}
   },
   "connections": {
     "search": {

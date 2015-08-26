@@ -7,7 +7,6 @@
     <title>Create Ringtone</title>
     <link rel="stylesheet" type="text/css" href="shared/style/confirm.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/progress_activity.css"/>
-    <link rel="stylesheet" type="text/css" href="shared/style/switches.css"/>
     <link rel="stylesheet" href="style/share.css" type="text/css"/>
     <!-- Localization -->
     <meta name="defaultLanguage" content="en-US">
@@ -21,6 +20,8 @@
     <!-- <link rel="stylesheet" type="text/css" href="shared/elements/gaia-icons/gaia-icons.css" /> -->
     <link rel="stylesheet" type="text/css" href="app://theme.gaiamobile.org/shared/elements/gaia-theme/gaia-theme.css" />
     <script defer src="shared/elements/gaia-header/dist/gaia-header.js"></script>
+    <script defer src="shared/js/component_utils.js"></script>
+    <script defer src="shared/elements/gaia_checkbox/script.js"></script>
 
     <script type="text/javascript" defer src="js/system_tones.js"></script>
     <script type="text/javascript" defer src="js/custom_ringtones.js"></script>
@@ -44,11 +45,9 @@
         <div id="playpause"></div>
 
         <section id="set-default">
-          <label class="pack-checkbox">
-            <input id="default-switch" type="checkbox" checked>
-            <span></span>
-          </label>
-          <p data-l10n-id="default-label"></p>
+          <gaia-checkbox class="inline" id="default-switch" checked>
+            <label data-l10n-id="default-label"></label>
+          </gaia-checkbox>
         </section>
       </article>
     </section>

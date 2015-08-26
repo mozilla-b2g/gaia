@@ -28,8 +28,6 @@ suite('Templates.Calendar', function() {
     assert.match(output, /calendar-local-first"\s+role="presentation"/);
     assert.match(output,
       /icon-calendar-dot"\s+style="color:#BADA55"\s+aria-hidden="true"/);
-    assert.match(output,
-      /class="pack-checkbox" role="option" aria-selected="true"/);
     assert.include(output, 'calendar-local');
   });
 
@@ -42,7 +40,7 @@ suite('Templates.Calendar', function() {
 
     var output = renderHTML('item', model);
     assert.ok(output);
-    assert.match(output, /class="pack-checkbox" role="option" >/);
+    assert.match(output, /gaia-checkbox/);
   });
 
   test('#item', function() {

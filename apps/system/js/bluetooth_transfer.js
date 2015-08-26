@@ -12,6 +12,8 @@ var BluetoothTransfer = {
   // Each element is a object for scheduled sending tasks.
   _sendingFilesQueue: [],
 
+  _bindOnCancelTransferTask: null,
+
   /**
    * Debug message.
    *
@@ -19,6 +21,7 @@ var BluetoothTransfer = {
    * @type {Boolean} turn on/off the console log
    */
   onDebug: false,
+
   bluetoothIcon: 'style/bluetooth_transfer/images/icon_bluetooth.png',
 
   get _deviceStorage() {
@@ -75,6 +78,8 @@ var BluetoothTransfer = {
     Service.registerState('isFileTransferInProgress', this);
     Service.request('handleSystemMessageNotification',
       'BluetoothTransfer', this);
+
+    this._bindOnCancelTransferTask = this.onCancelTransferTask.bind(this);
   },
 
   getDeviceName: function bt_getDeviceName(address) {
@@ -146,8 +151,8 @@ var BluetoothTransfer = {
     // Notify user that we are sending files
     var icon = 'style/bluetooth_transfer/images/transfer.png';
 
-    NotificationHelper.send('transfer-has-started-title', {
-      'bodyL10n': 'transfer-has-started-description',
+    NotificationHelper.send('transferHasStartedTitle', {
+      'bodyL10n': 'transferHasStartedDescription',
       'icon': icon
     }).then(function(notification) {
       notification.addEventListener('click',
@@ -184,8 +189,9 @@ var BluetoothTransfer = {
       };
 
       NotificationHelper.send(title, {
-        'bodyL10n': 'transfer-confirmation-description',
-        'icon': this.bluetoothIcon
+        'bodyL10n': 'transfer-confirmation-desc',
+        'icon': this.bluetoothIcon,
+        'mozbehavior': {noclear: true}
       }).then((notification) => {
         notification.addEventListener('click', () => {
           UtilityTray.hide();
@@ -213,7 +219,7 @@ var BluetoothTransfer = {
     this.getDeviceName(address).then(function(deviceName) {
       Service.request('showCustomDialog', 'acceptFileTransfer',
         {
-          id: 'wantToReceiveFile',
+          id: 'want-to-receive-file',
           args: {
             deviceName: deviceName,
             fileName: fileName,
@@ -384,10 +390,8 @@ var BluetoothTransfer = {
     var address = evt.address;
     var transferMode =
       (evt.received === true) ?
-      _('bluetooth-receiving-progress') : _('bluetooth-sending-progress');
+      _('bluetooth-receiving-progress2') : _('bluetooth-sending-progress2');
 
-    // XXX: Bug 804533 - [Bluetooth]
-    // Need sending/receiving icon for Bluetooth file transfer
     var content =
       `<div data-icon="bluetooth-transfer-circle" aria-hidden="true"></div>
       <div class="title-container">${transferMode}</div>
@@ -399,8 +403,7 @@ var BluetoothTransfer = {
     transferTask.setAttribute('data-id', address);
     transferTask.setAttribute('role', 'link');
     transferTask.innerHTML = content;
-    transferTask.addEventListener('click',
-                                  this.onCancelTransferTask.bind(this));
+    transferTask.addEventListener('click', this._bindOnCancelTransferTask);
     this.transferStatusList.appendChild(transferTask);
   },
 
@@ -424,26 +427,25 @@ var BluetoothTransfer = {
       return;
     }
 
-    finishedTask.removeEventListener('click',
-                                     this.onCancelTransferTask.bind(this));
+    finishedTask.removeEventListener('click', this._bindOnCancelTransferTask);
     this.transferStatusList.removeChild(finishedTask);
   },
 
   onCancelTransferTask: function bt_onCancelTransferTask(evt) {
-    var id = evt.target.dataset.id;
+    var address = evt.target.dataset.id;
     // Show confirm dialog for user to cancel transferring task
     UtilityTray.hide();
-    this.showCancelTransferPrompt(id);
+    this.showCancelTransferPrompt(address);
   },
 
   showCancelTransferPrompt: function bt_showCancelTransferPrompt(address) {
     var cancel = {
-      title: 'continueFileTransfer',
+      title: 'no',
       callback: this.continueTransfer.bind(this)
     };
 
     var confirm = {
-      title: 'cancel',
+      title: 'yes',
       callback: this.cancelTransfer.bind(this, address)
     };
 
@@ -501,7 +503,7 @@ var BluetoothTransfer = {
       if (transferInfo.received) {
         nData.titleL10n = 'transferFinished-receivedFailed-title';
       } else {
-        nData.titleL10n = 'transferFinished-sentFailed-title';
+        nData.titleL10n = 'transferFinished-canceled';
       }
     }
 
@@ -613,7 +615,7 @@ var BluetoothTransfer = {
         var numUnsuccessful = this._sendingFilesQueue[0].numUnsuccessful;
         if ((numSuccessful + numUnsuccessful) == numberOfFiles) {
           // In this item of queue, all files were sent completely.
-          NotificationHelper.send('transferReport-title', {
+          NotificationHelper.send('transferReportTitle', {
             'bodyL10n': {
               id: 'transferReport-description',
               args: {

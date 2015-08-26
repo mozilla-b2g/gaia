@@ -193,6 +193,10 @@ MarionetteHelper.prototype = {
       try {
         return !el.displayed();
       } catch (err) {
+        if (err && err.type === 'ElementNotAccessibleError') {
+          // element is still accessible to Accessibility API
+          return false;
+        }
         if (err && err.type === 'StaleElementReference') {
           // the element was removed from the dom, we are done
           return true;

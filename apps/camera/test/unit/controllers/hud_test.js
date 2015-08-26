@@ -73,9 +73,8 @@ suite('controllers/hud', function() {
       assert.ok(this.app.on.calledWith('busy'));
       assert.ok(this.app.on.calledWith('localized'));
       assert.ok(this.app.on.calledWith('change:recording'));
-      assert.ok(this.app.on.calledWith('timer:cleared'));
-      assert.ok(this.app.on.calledWith('timer:started'));
-      assert.ok(this.app.on.calledWith('timer:ended'));
+      assert.ok(this.app.on.calledWith('countdown:started'));
+      assert.ok(this.app.on.calledWith('countdown:ended'));
       assert.ok(this.app.on.calledWith('settings:opened'));
       assert.ok(this.app.on.calledWith('settings:closed'));
 
@@ -99,15 +98,14 @@ suite('controllers/hud', function() {
       assert.ok(this.app.on.calledWith('ready'));
     });
 
-    test('Should set \'timer\' to \'active\' on view when started', function() {
-      assert.ok(this.view.setter.calledWith('timer', 'active'));
-      assert.ok(this.app.on.calledWith('timer:started'));
+    test('Should set \'countdown\' to \'active\' on view when started', function() {
+      assert.ok(this.view.setter.calledWith('countdown', 'active'));
+      assert.ok(this.app.on.calledWith('countdown:started'));
     });
 
-    test('Should set \'timer\' to \'inactive\' on view when timer ended or cleared', function() {
-      assert.ok(this.view.setter.calledWith('timer', 'inactive'));
-      assert.ok(this.app.on.calledWith('timer:cleared'));
-      assert.ok(this.app.on.calledWith('timer:ended'));
+    test('Should set \'countdown\' to \'inactive\' on view when countdown ended or cleared', function() {
+      assert.ok(this.view.setter.calledWith('countdown', 'inactive'));
+      assert.ok(this.app.on.calledWith('countdown:ended'));
     });
 
     test('Should set `recording` state on hud', function() {

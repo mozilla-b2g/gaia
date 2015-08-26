@@ -3,9 +3,6 @@
 'use strict';
 
 var MockThreads = {
-  currentId: null,
-  active: null,
-
   registerMessage: () => {},
   unregisterMessage: () => {},
   has: () => false,
@@ -13,12 +10,11 @@ var MockThreads = {
   get: () => new MockThread(),
   delete: () => {},
   clear: () => {},
-  keys: () => [],
+  keys: () => []
+};
 
-  mTeardown: function mt_mTeardown() {
-    this.active = null;
-    this.currentId = null;
-  }
+MockThreads.Messages = {
+  get: () => {}
 };
 
 function MockThread(thread) {

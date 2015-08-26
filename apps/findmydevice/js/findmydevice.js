@@ -40,6 +40,10 @@ var FindMyDevice = {
 
   _canDisableHelper: null,
 
+  _retryCount: -1,
+
+  _retryCountHelper: null,
+
   _disableAttempt: false,
 
   // There are two situations in which we want to make sure
@@ -125,7 +129,8 @@ var FindMyDevice = {
       'findmydevice.enabled': '_enabled',
       'findmydevice.registered': '_registered',
       'findmydevice.current-clientid': '_currentClientID',
-      'findmydevice.can-disable': '_canDisable'
+      'findmydevice.can-disable': '_canDisable',
+      'findmydevice.retry-count': '_retryCount'
     };
     var settings = Object.keys(settingsToProperties);
 
@@ -171,7 +176,7 @@ var FindMyDevice = {
           if (reason === IAC_API_WAKEUP_REASON_ENABLED_CHANGED) {
             DUMP('enabled state changed, trying to reach the server');
             // Ensure the retry counter is reset to 0 on enable
-            SettingsHelper('findmydevice.retry-count').set(0);
+            this._retryCountHelper.set(0);
             this._contactServer();
           } else if (reason === IAC_API_WAKEUP_REASON_STALE_REGISTRATION) {
             DUMP('stale registration, re-registering');
@@ -551,12 +556,12 @@ var FindMyDevice = {
       // commands object, and parse the arguments.
       var argsObj = cmdobj[cmd], command, args;
       switch (cmd) {
-        case 't':
-          command = 'track';
-          args = [parseInt(argsObj.d, 10)];
-          break;
         case 'e':
           command = 'erase';
+          args = [];
+          break;
+        case 'k':
+          command = 'killswitch';
           args = [];
           break;
         case 'l':
@@ -565,6 +570,10 @@ var FindMyDevice = {
           break;
         case 'r':
           command = 'ring';
+          args = [parseInt(argsObj.d, 10)];
+          break;
+        case 't':
+          command = 'track';
           args = [parseInt(argsObj.d, 10)];
           break;
         default:
@@ -593,10 +602,8 @@ var FindMyDevice = {
     }
 
     if (!this._registered) {
-      var countHelper = SettingsHelper('findmydevice.retry-count');
-
-      countHelper.get(function fmd_get_retry_count(count){
-        countHelper.set((count || 0) + 1);
+      this._retryCountHelper.get(count => {
+        this._retryCountHelper.set((count || 0) + 1);
       });
     }
   },

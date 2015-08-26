@@ -22,6 +22,7 @@ function ThumbnailItem(fileData) {
   this.htmlNode = document.createElement('div');
   this.htmlNode.classList.add('thumbnail');
   this.htmlNode.setAttribute('role', 'button');
+  this.htmlNode.setAttribute('tabindex', 0);
   this.imgNode = document.createElement('img');
   this.imgNode.alt = '';
   this.imgNode.classList.add('thumbnailImage');
@@ -35,14 +36,21 @@ function ThumbnailItem(fileData) {
   this.localize();
 }
 
-ThumbnailItem.formatter = new navigator.mozL10n.DateTimeFormat();
+ThumbnailItem.formatter = new Intl.DateTimeFormat(navigator.languages, {
+  hour: 'numeric',
+  minute: 'numeric',
+  month: 'long',
+  day: 'numeric',
+  year: 'numeric',
+});
 
 ThumbnailItem.prototype.localize = function() {
   var date = new Date(this.data.date);
+
   var descId = !this.data.metadata.video ?
-    'imageDescriptionShort' : 'videoDescriptionShort';
-  navigator.mozL10n.formatValue(descId).then(function(description) {
-    var label = ThumbnailItem.formatter.localeFormat(date, description);
-    this.imgNode.setAttribute('aria-label', label);
-  }.bind(this));
+    'imageDated' : 'videoDated';
+
+  navigator.mozL10n.setAttributes(this.imgNode, descId, {
+    timeStamp: ThumbnailItem.formatter.format(date)
+  });
 };

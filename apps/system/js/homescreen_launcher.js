@@ -23,8 +23,6 @@
     'appopening',
     'appopened',
     'keyboardchange',
-    'shrinking-start',
-    'shrinking-stop',
     'software-button-enabled',
     'software-button-disabled'
   ];
@@ -103,17 +101,6 @@
       // Fade out the homescreen, so that it won't be seen when showing/
       // hiding/switching keyboard.
       this.getHomescreen().fadeOut();
-    },
-
-    '_handle_shrinking-start': function(evt) {
-      // To hide the homescreen overlay while we set the background behind
-      // it due to the shrinking UI.
-      this.getHomescreen().hideFadeOverlay();
-    },
-
-    '_handle_shrinking-stop': function(evt) {
-      // To resume the homescreen after shrinking UI is over.
-      this.getHomescreen().showFadeOverlay();
     },
 
     '_handle_software-button-enabled': function() {

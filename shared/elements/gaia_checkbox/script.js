@@ -96,6 +96,15 @@ window.GaiaCheckbox = (function(win) {
   };
 
   /**
+   * Proxy className property to the wrapper.
+   */
+  proto.attributeChangedCallback = function(name, from, to) {
+    if (name === 'class') {
+      this._wrapper.className = to;
+    }
+  };
+
+  /**
    * Proxy the checked property to the input element.
    */
   Object.defineProperty(proto, 'checked', {

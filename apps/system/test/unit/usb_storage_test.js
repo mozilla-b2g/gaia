@@ -199,4 +199,67 @@ suite('system/USB Storage', function() {
       assert.ok(setModeStub.calledWith(subject.automounterUmsEnable));
     });
   });
+
+  suite('Default protocol', function() {
+    var sdcardCanBeShared, sdcardCannotBeShared;
+
+    suiteSetup(function() {
+      sdcardCanBeShared    = { storageName: 'sdcard', canBeShared: true };
+      sdcardCannotBeShared = { storageName: 'sdcard', canBeShared: false };
+    });
+
+    suite('No sdcard', function() {
+      setup(function() {
+        this.sinon.stub(navigator, 'getDeviceStorages')
+          .withArgs('sdcard').returns([]);
+      });
+
+      test('Default should be UMS', function() {
+        subject = new UsbStorage();
+        assert.equal(subject._keyMigration('auto'), subject.protocolUMS);
+        assert.equal(subject._keyMigration(undefined), subject.protocolUMS);
+
+        assert.equal(subject._keyMigration(subject.protocolUMS),
+                     subject.protocolUMS);
+        assert.equal(subject._keyMigration(subject.protocolMTP),
+                     subject.protocolMTP);
+      });
+    });
+
+    suite('sdcard is sharable', function() {
+      setup(function() {
+        this.sinon.stub(navigator, 'getDeviceStorages')
+          .withArgs('sdcard').returns([sdcardCanBeShared]);
+      });
+
+      test('Default should be UMS', function() {
+        subject = new UsbStorage();
+        assert.equal(subject._keyMigration('auto'), subject.protocolUMS);
+        assert.equal(subject._keyMigration(undefined), subject.protocolUMS);
+
+        assert.equal(subject._keyMigration(subject.protocolUMS),
+                     subject.protocolUMS);
+        assert.equal(subject._keyMigration(subject.protocolMTP),
+                     subject.protocolMTP);
+      });
+    });
+
+    suite('sdcard is NOT sharable', function() {
+      setup(function() {
+        this.sinon.stub(navigator, 'getDeviceStorages')
+          .withArgs('sdcard').returns([sdcardCannotBeShared]);
+      });
+
+      test('Default should be MTP', function() {
+        subject = new UsbStorage();
+        assert.equal(subject._keyMigration('auto'), subject.protocolMTP);
+        assert.equal(subject._keyMigration(undefined), subject.protocolMTP);
+
+        assert.equal(subject._keyMigration(subject.protocolUMS),
+                     subject.protocolUMS);
+        assert.equal(subject._keyMigration(subject.protocolMTP),
+                     subject.protocolMTP);
+      });
+    });
+  });
 });

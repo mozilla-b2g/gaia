@@ -16,7 +16,8 @@
     "settings":{ "access": "readwrite" },
     "audio-channel-notification":{},
     "desktop-notification":{},
-    "phonenumberservice": {}
+    "phonenumberservice": {},
+    "moz-extremely-unstable-and-will-change-webcomponents":{}
   },
   "locales": {
     "ar": {
@@ -47,7 +48,7 @@
   "orientation": "default",
   "activities": {
     "new": {
-      "href": "/index.html#activity-new",
+      "href": "/index.html#/activity-new",
       "filters": {
         "type": "websms/sms",
         "number": {
@@ -58,7 +59,7 @@
       "returnValue": true
     },
     "share": {
-      "href": "/index.html#activity-share",
+      "href": "/index.html#/activity-share",
       "filters": {
         "type": ["image/*", "audio/*", "video/*", "url", "text/vcard"],
         "number": {

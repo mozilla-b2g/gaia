@@ -1,4 +1,4 @@
-/* global TitleBar, Sanitizer, MocksHelper, ModeManager, LazyLoader */
+/* global App, TitleBar, Sanitizer, MocksHelper, ModeManager, LazyLoader */
 'use strict';
 
 require('/shared/js/sanitizer.js');
@@ -6,12 +6,14 @@ require('/shared/js/sanitizer.js');
 require('/shared/js/accessibility_helper.js');
 require('/js/ui/title_bar.js');
 
+require('/test/unit/mock_music.js');
 require('/test/unit/ui/views/mock_modemanager.js');
 require('/test/unit/ui/views/mock_player_view.js');
 require('/test/unit/metadata/mock_album_art_cache.js');
 require('/test/unit/mock_lazy_loader.js');
 
 var mocksForTitleBarHelper = new MocksHelper([
+  'App',
   'LazyLoader',
   'AlbumArtCache',
   'ModeManager',
@@ -62,6 +64,7 @@ suite('TitleBar', function() {
     var spy;
 
     setup(function() {
+      App.pendingPick = { postResult: function() {} };
       spy = this.sinon.spy(LazyLoader, 'load');
       var titleDone = document.getElementById('title-done');
       titleDone.click();

@@ -9,33 +9,30 @@
 
     <div>
       <header>
-        <h2 data-l10n-id="wpsMethodSelection">Select WPS method:</h2>
+        <h2 data-l10n-id="wpsMethodSelection"></h2>
       </header>
       <ul>
         <li>
-          <label class="pack-radio">
-            <input type="radio" data-setting="wifi.wps.method" name="wpsMethodSelection" value="pbc" checked>
-            <span data-l10n-id="wpsPbcLabel">Button connection</span>
-          </label>
+          <gaia-radio data-setting="wifi.wps.method" name="wpsMethodSelection" value="pbc" checked>
+            <label data-l10n-id="wpsPbcLabel"></label>
+          </gaia-radio>
         </li>
         <li>
-          <label class="pack-radio">
-            <input type="radio" data-setting="wifi.wps.method" name="wpsMethodSelection" value="myPin">
-            <span data-l10n-id="wpsMyPinLabel">My PIN connection</span>
-          </label>
+          <gaia-radio data-setting="wifi.wps.method" name="wpsMethodSelection" value="myPin">
+            <label data-l10n-id="wpsMyPinLabel"></label>
+          </gaia-radio>
         </li>
         <li hidden>
-          <label class="pack-radio">
-            <input type="radio" data-setting="wifi.wps.method" name="wpsMethodSelection" value="apPin">
-            <span data-l10n-id="wpsApPinLabel">AP PIN connection</span>
-          </label>
+          <gaia-radio data-setting="wifi.wps.method" name="wpsMethodSelection" value="apPin">
+            <label data-l10n-id="wpsApPinLabel"></label>
+          </gaia-radio>
         </li>
         <li class="wifi-wps-pin-area">
-          <p data-l10n-id="wpsPinDescription">PIN is 4 or 8 digits</p>
+          <p data-l10n-id="wpsPinDescription"></p>
           <input type="password" x-inputmode="digit" size="8" maxlength="8"/>
         </li>
         <li class="wifi-wps-pin-aps">
-          <p data-l10n-id="wpsPinAps">Select an opposite device</p>
+          <p data-l10n-id="wpsPinAps"></p>
           <span class="button icon icon-dialog">
             <select></select>
           </span>

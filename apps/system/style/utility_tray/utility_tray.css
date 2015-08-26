@@ -46,8 +46,9 @@
   height: .2rem;
   width: 100%;
   opacity: 0;
+  visibility: hidden;
   background-color: #00D3FF;
-  transition: opacity .5s ease .5s;
+  transition: opacity .5s ease .5s, visibility 0s ease .5s;
   position: absolute;
   bottom: 0;
   pointer-events: none;

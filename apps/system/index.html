@@ -48,6 +48,9 @@
     <script defer src="shared/elements/gaia_checkbox/script.js"></script>
     <script defer src="shared/elements/gaia_progress/script.js"></script>
     <script defer src="shared/elements/gaia_subheader/script.js"></script>
+    <script defer src="shared/elements/gaia_grid/js/grid_icon_renderer.js"></script>
+    <script defer src="shared/js/homescreens/icon.js"></script>
+    <script defer src="shared/elements/gaia_pin_card/script.js"></script>
     <script defer src="shared/elements/gaia-header/dist/gaia-header.js"></script>
 
     <!-- Include shared resources
@@ -197,17 +200,9 @@
       <div id="os-logo" data-z-index-level="initlogo">
         <div id="carrier-logo"></div>
       </div>
+
       <!-- Statusbar -->
       <div id="statusbar" data-z-index-level="statusbar">
-        <!-- Rocketbar-->
-        <div id="rocketbar">
-          <form id="rocketbar-form" class="hidden">
-            <input id="rocketbar-input" type="search" x-inputmode="verbatim"
-              placeholder="Search or enter address" data-l10n-id="search-or-enter-address" value="" />
-            <button type="button" id="rocketbar-clear" data-l10n-id="clear" aria-label="Clear"></button>
-            <button type="button" id="rocketbar-cancel" data-l10n-id="close"></button>
-          </form>
-        </div>
         <!-- Statusbar icons -->
         <div id="statusbar-icons">
           <div id="statusbar-maximized-wrapper">
@@ -215,6 +210,16 @@
             </div>
           </div>
         </div>
+      </div>
+
+      <!-- Rocketbar-->
+      <div id="rocketbar" data-z-index-level="statusbar">
+        <form id="rocketbar-form" class="hidden">
+          <input id="rocketbar-input" type="search" x-inputmode="verbatim"
+            placeholder="Search or enter address" data-l10n-id="search-or-enter-address" value="" />
+          <button type="button" id="rocketbar-clear" data-l10n-id="clear" aria-label="Clear"></button>
+          <button type="button" id="rocketbar-cancel" data-l10n-id="close"></button>
+        </form>
       </div>
 
       <!-- Rocketbar Results -->

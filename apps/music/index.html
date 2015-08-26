@@ -29,6 +29,7 @@
     <script defer src="shared/js/async_storage.js"></script>
     <script defer src="shared/js/image_utils.js"></script>
     <script defer src="shared/js/omadrm/fl.js"></script>
+    <script defer src="shared/js/sanitizer.js"></script>
     <!-- Web components -->
     <script defer src="shared/js/component_utils.js"></script>
     <script defer src="shared/elements/gaia_subheader/script.js"></script>
@@ -109,7 +110,7 @@
             <button id="player-cover-share" class="player-cover-button" data-icon="share" data-l10n-id="share-song"></button>
           </div>
           <div id="player-cover-buttons">
-            <button id="player-album-repeat" data-l10n-id="repeat-off" class="player-cover-button" data-icon="repeat"></button>
+            <button id="player-album-repeat" data-l10n-id="repeat-off" value="off" class="player-cover-button" data-icon="repeat"></button>
             <div id="player-album-rating" data-l10n-id="player-album-rating" role="radiogroup">
               <button class="rating-star" data-rating="1" role="radio" data-l10n-id="rating-star" data-l10n-args='{"n":"1"}'></button>
               <button class="rating-star" data-rating="2" role="radio" data-l10n-id="rating-star" data-l10n-args='{"n":"2"}'></button>
@@ -180,19 +181,19 @@
     <div id="tabs">
       <ul role="tablist" class="bb-tablist skin-dark">
         <li id="mix" role="presentation">
-          <a id="tabs-mix" data-option="mix" role="tab" aria-selected="false" aria-controls="views-tiles" data-icon="grid" data-l10n-id="mix-tab"></a>
+          <a id="tabs-mix" data-option="mix" role="tab" tabindex="0" aria-selected="false" aria-controls="views-tiles" data-icon="grid" data-l10n-id="mix-tab"></a>
         </li>
         <li id="playlists" role="presentation">
-          <a id="tabs-playlists" data-option="playlist" role="tab" aria-selected="false" aria-controls="views-list" data-icon="playlist" data-l10n-id="playlists-tab"></a>
+          <a id="tabs-playlists" data-option="playlist" role="tab" tabindex="0" aria-selected="false" aria-controls="views-list" data-icon="playlist" data-l10n-id="playlists-tab"></a>
         </li>
         <li id="artists" role="presentation">
-          <a id="tabs-artists" data-option="artist" role="tab" aria-selected="false" aria-controls="views-list" data-icon="artist" data-l10n-id="artists-tab"></a>
+          <a id="tabs-artists" data-option="artist" role="tab" tabindex="0" aria-selected="false" aria-controls="views-list" data-icon="artist" data-l10n-id="artists-tab"></a>
         </li>
         <li id="albums" role="presentation">
-          <a id="tabs-albums" data-option="album" role="tab" aria-selected="false" aria-controls="views-list" data-icon="album" data-l10n-id="albums-tab"></a>
+          <a id="tabs-albums" data-option="album" role="tab" tabindex="0" aria-selected="false" aria-controls="views-list" data-icon="album" data-l10n-id="albums-tab"></a>
         </li>
         <li id="songs" role="presentation">
-          <a id="tabs-songs" data-option="title" role="tab" aria-selected="false" aria-controls="views-list" data-icon="songs" data-l10n-id="songs-tab"></a>
+          <a id="tabs-songs" data-option="title" role="tab" tabindex="0" aria-selected="false" aria-controls="views-list" data-icon="songs" data-l10n-id="songs-tab"></a>
         </li>
       </ul>
     </div>

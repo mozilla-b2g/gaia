@@ -2,9 +2,10 @@
 'use strict';
 
 var MockPlayerView = {
+  get isQueued() { return true; },
+  currentFileInfo: { metadata: {} },
+  playingBlob: { type: null },
+
   init: function() {},
-  currentIndex: 1,
-  dataSource: [ {}, {} ],
   stop: function() {},
-  setOptions: function() {}
 };

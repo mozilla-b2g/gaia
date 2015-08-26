@@ -18,7 +18,8 @@
     "browser": {},
     "settings":{ "access": "readonly" },
     "desktop-notification":{},
-    "audio-channel-notification":{}
+    "audio-channel-notification":{},
+    "moz-extremely-unstable-and-will-change-webcomponents":{}
   },
   "locales": {
     "ar": {

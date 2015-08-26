@@ -36,8 +36,9 @@
   };
 
   LockScreenStateSecureAppLaunching.prototype.transferTo =
-  function lsskh_transferTo() {
+  function lsskh_transferTo(inputs) {
     return new Promise((resolve, reject) => {
+      this.lockScreen.invokeSecureApp(inputs.appName);
       resolve();
     });
   };

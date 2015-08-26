@@ -78,9 +78,10 @@ define('findmydevice', ['modules/settings_utils', 'shared/settings_listener'
       if (this._loginButton.disabled) {
         return;
       }
-      var _ = navigator.mozL10n.get;
       if (!window.navigator.onLine) {
-        return window.alert(_('findmydevice-enable-network'));
+        navigator.mozL10n.formatValue('findmydevice-enable-network').then(
+          (msg) => window.alert(msg));
+        return;
       }
       this._interactiveLogin = true;
       var self = this;
@@ -142,13 +143,13 @@ define('findmydevice', ['modules/settings_utils', 'shared/settings_listener'
     _onCheckboxChanged: function fmd_on_checkbox_changed(event) {
       event.preventDefault();
 
-      var _ = navigator.mozL10n.get;
       if (!window.navigator.onLine) {
-        setTimeout(function() {
-          // XXX(ggp) do this later so that the visual change in the
-          // checkbox is properly prevented.
-          window.alert(_('findmydevice-enable-network'));
-        });
+        // XXX(ggp) do this later so that the visual change in the
+        // checkbox is properly prevented.
+        // formatValue is asynchronous so we don't need an artificial
+        // setTimeout here.
+        navigator.mozL10n.formatValue('findmydevice-enable-network').then(
+          msg => window.alert(msg));
         return;
       }
 
@@ -168,8 +169,6 @@ define('findmydevice', ['modules/settings_utils', 'shared/settings_listener'
   return FindMyDevice;
 });
 
-navigator.mozL10n.once(function() {
-  require(['findmydevice'], function(FindMyDevice) {
-    FindMyDevice.init();
-  });
+require(['findmydevice'], function(FindMyDevice) {
+  FindMyDevice.init();
 });

@@ -23,6 +23,7 @@ var strings = {
    'filter-href = Read <a href="#B">more</a>.',
    'filter-input-value = <input value="Other value">',
    'filter-input-type = <input type="submit" value="Submit"> the form.',
+   'filter-nested-button = <em>No <button>button</button>.</em>',
   ],
  'lang2': [
     'struct-a = Czytaj <a>więcej</a>.'
@@ -228,6 +229,15 @@ suite('L10n DOM overlays', function() {
       assert.equal(
         elem.innerHTML,
         '<input placeholder="INPUT" type="text"> the form.');
+    });
+
+    test('nested button is not allowed', function() {
+      elem.innerHTML = '';
+      navigator.mozL10n.setAttributes(elem, 'filter-nested-button');
+      navigator.mozL10n.translateFragment(elem);
+      assert.equal(
+        elem.innerHTML,
+        '<em>No button.</em>');
     });
 
   });

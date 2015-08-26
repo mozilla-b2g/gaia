@@ -1,10 +1,5 @@
-/* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-
-
-/* global bridge,
-          streamService,
-          Utils
+/* global BridgeServiceMixin,
+          BroadcastChannel
 */
 
 /* exported MozMobileMessageShim */
@@ -16,31 +11,37 @@
  * Name of the service for mozMobileMessage API shim.
  * @type {string}
  */
-const SERVICE_NAME = 'mozMobileMessageShim';
+const SERVICE_NAME = 'moz-mobile-message-shim';
 
 /**
- * Array of the event names that is corresponding to mozMobileMessage events.
- * @type {Array.<string>}
+ * Event set that key is corresponding to mozMobileMessage events and value is
+ * the name that broadcasts to client side.
+ * @type {Object.<string, string>}
  */
-const EVENTS = ['received', 'sending', 'sent', 'failed', 'deleted',
-                'readsuccess', 'deliverysuccess'];
+const EVENTS = Object.freeze({
+  'received': 'message-received',
+  'sending': 'message-sending',
+  'sent': 'message-sent',
+  'failed': 'message-failed-to-send',
+  'deleted': 'threads-deleted',
+  'readsuccess': 'message-read',
+  'deliverysuccess': 'message-delivered'
+});
 
 /**
  * Array of method names that need to be exposed for API shim.
  * @type {Array.<string>}
  */
-const METHODS = ['getMessage', 'retrieveMMS', 'send', 'sendMMS',
-                 'delete', 'markMessageRead', 'getSegmentInfoForText'];
+const METHODS = Object.freeze(['getMessage', 'retrieveMMS', 'send', 'sendMMS',
+  'delete', 'markMessageRead', 'getSegmentInfoForText']);
 
 /**
  * Array of stream names that need to return data (messages/threads) in chunk.
  * @type {Array.<string>}
  */
-const STREAMS = ['getThreads', 'getMessages'];
+const STREAMS = Object.freeze(['getThreads', 'getMessages']);
 
 var mozMobileMessage = null;
-
-var service = null;
 
 var MozMobileMessageShim = {
   init(mobileMessage) {
@@ -48,58 +49,51 @@ var MozMobileMessageShim = {
       return;
     }
 
+    function capitalize(str) { 
+      return str[0].toUpperCase() + str.slice(1);
+    }
+
+    var endPoint = new BroadcastChannel(SERVICE_NAME + '-channel');
     mozMobileMessage = mobileMessage;
-    service = bridge.service(SERVICE_NAME);
+    this.initService(endPoint);
 
-    service.plugin(streamService);
-
-    EVENTS.forEach((event) => {
+    Object.keys(EVENTS).forEach((event) => {
       mozMobileMessage.addEventListener(
         event,
-        this[Utils.camelCase(`on-${event}`)]
+        this['on' + capitalize(event)].bind(this)
       );
     });
-
-    METHODS.forEach((shimMethod) => {
-      service.method(shimMethod, this[shimMethod]);
-    });
-
-    STREAMS.forEach((shimStream) => {
-      service.stream(shimStream, this[shimStream]);
-    });
-
-    service.listen();
   },
 
   /* Events */
 
   onSending(e) {
-    service.broadcast('message-sending', { message: e.message });
+    this.broadcast('message-sending', { message: e.message });
   },
 
   onFailed(e) {
-    service.broadcast('message-failed-to-send', { message: e.message });
+    this.broadcast('message-failed-to-send', { message: e.message });
   },
 
   onDeliverysuccess(e) {
-    service.broadcast('message-delivered', { message: e.message });
+    this.broadcast('message-delivered', { message: e.message });
   },
 
   onReadsuccess(e) {
-    service.broadcast('message-read', { message: e.message });
+    this.broadcast('message-read', { message: e.message });
   },
 
   onSent(e) {
-    service.broadcast('message-sent', { message: e.message });
+    this.broadcast('message-sent', { message: e.message });
   },
 
   onReceived(e) {
-    service.broadcast('message-received', { message: e.message });
+    this.broadcast('message-received', { message: e.message });
   },
 
   onDeleted(e) {
     if (e.deletedThreadIds && e.deletedThreadIds.length) {
-      service.broadcast('threads-deleted', {
+      this.broadcast('threads-deleted', {
         ids: e.deletedThreadIds
       });
     }
@@ -111,8 +105,17 @@ var MozMobileMessageShim = {
     return mozMobileMessage.getMessage(id);
   },
 
+  /**
+   * Call platform retrieveMMS API to retrieve the MMS by ID.
+   * @param {Number} id MMS message id.
+   * @returns {Promise.<void|Error>} return void if MMS is retrieved
+   *  successfully or error while failed. 
+   */
   retrieveMMS(id) {
-    return mozMobileMessage.retrieveMMS(id);
+    return mozMobileMessage.retrieveMMS(id).then((message) => {
+      // Return void instead of message to avoid clone error issue.
+      return;
+    });
   },
 
   send(recipient, content, sendOpts) {
@@ -212,6 +215,15 @@ var MozMobileMessageShim = {
   }
 };
 
-exports.MozMobileMessageShim = MozMobileMessageShim;
+exports.MozMobileMessageShim = Object.seal(
+  BridgeServiceMixin.mixin(
+    MozMobileMessageShim,
+    SERVICE_NAME, { 
+      methods: METHODS,
+      streams: STREAMS,
+      events: Object.keys(EVENTS).map((key) => EVENTS[key])
+    }
+  )
+);
 
 }(this));

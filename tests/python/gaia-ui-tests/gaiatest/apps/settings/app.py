@@ -34,6 +34,7 @@ class Settings(Base):
     _usb_storage_switch_locator = (By.CSS_SELECTOR, ".pack-split.usb-item .pack-switch")
     _usb_storage_checkbox_locator = (By.CSS_SELECTOR, ".usb-switch")
     _usb_storage_confirm_button_locator = (By.CSS_SELECTOR, "button.ums-confirm-option")
+    _usb_storage_cancel_button_locator = (By.CSS_SELECTOR, "button.ums-cancel-option")
     _gps_enabled_locator = (By.XPATH, "//input[@name='geolocation.enabled']")
     _gps_switch_locator = (By.XPATH, "//input[@name='geolocation.enabled']/..")
 
@@ -66,6 +67,7 @@ class Settings(Base):
     _app_permission_menu_item_locator = (By.ID, 'menuItem-appPermissions')
     _do_not_track_menu_item_locator = (By.ID, 'menuItem-doNotTrack')
     _browsing_privacy_item_locator = (By.ID, 'menuItem-browsingPrivacy')
+    _privacy_controls_item_locator = (By.ID, 'menuItem-privacyPanel')
     _media_storage_menu_item_locator = (By.CSS_SELECTOR, '.menuItem-mediaStorage')
     _application_storage_menu_item_locator = (By.CSS_SELECTOR, '.menuItem-applicationStorage')
 
@@ -89,8 +91,7 @@ class Settings(Base):
             expected.element_present(*self._bluetooth_l10n_locator))
 
     def switch_to_settings_app(self):
-        Wait(self.marionette).until(
-            lambda m: self.apps.displayed_app.name == self.name)
+        Wait(self.marionette).until(lambda m: self.apps.displayed_app.name == self.name)
         self.apps.switch_to_displayed_app()
 
     def wait_for_airplane_toggle_ready(self):
@@ -120,6 +121,13 @@ class Settings(Base):
         element = Wait(self.marionette).until(
             expected.element_present(
                 *self._usb_storage_confirm_button_locator))
+        Wait(self.marionette).until(expected.element_displayed(element))
+        element.tap()
+
+    def cancel_usb_storage(self):
+        element = Wait(self.marionette).until(
+            expected.element_present(
+                *self._usb_storage_cancel_button_locator))
         Wait(self.marionette).until(expected.element_displayed(element))
         element.tap()
 
@@ -205,7 +213,7 @@ class Settings(Base):
         return self._open_subpage(self._bluetooth_menu_item_locator, 'bluetooth', 'Bluetooth')
 
     def open_internet_sharing(self):
-        return self._open_subpage(self._internet_sharing_menu_item_locator)
+        return self._open_subpage(self._internet_sharing_menu_item_locator, 'internet_sharing', 'InternetSharing')
 
     def open_sound(self):
         return self._open_subpage(self._sound_menu_item_locator, 'sound', 'Sound')
@@ -215,10 +223,10 @@ class Settings(Base):
 
     def open_homescreen(self):
         return self._open_subpage(self._homescreen_menu_item_locator, 'homescreen_settings',
-                                           'HomescreenSettings')
+                                  'HomescreenSettings')
 
     def open_search(self):
-        return self._open_subpage(self._search_menu_item_locator)
+        return self._open_subpage(self._search_menu_item_locator, 'search', 'Search')
 
     def open_navigation(self):
         return self._open_subpage(self._navigation_menu_item_locator)
@@ -241,7 +249,7 @@ class Settings(Base):
         return self._open_subpage(self._theme_menu_item_locator)
 
     def open_addons(self):
-        return self._open_subpage(self._addon_menu_item_locator)
+        return self._open_subpage(self._addon_menu_item_locator, 'addons', 'Addons')
 
     def open_achievements(self):
         return self._open_subpage(self._achievements_menu_item_locator)
@@ -256,13 +264,16 @@ class Settings(Base):
         return self._open_subpage(self._screen_lock_menu_item_locator, 'screen_lock', 'ScreenLock')
 
     def open_app_permissions(self):
-        return self._open_subpage(self._app_permission_menu_item_locator)
+        return self._open_subpage(self._app_permission_menu_item_locator, 'app_permission', 'AppPermission')
 
     def open_do_not_track(self):
         return self._open_subpage(self._do_not_track_menu_item_locator, 'do_not_track', 'DoNotTrack')
 
     def open_browsing_privacy(self):
         return self._open_subpage(self._browsing_privacy_item_locator, 'browsing_privacy', 'BrowsingPrivacy')
+
+    def open_privacy_controls(self):
+        return self._open_subpage(self._privacy_controls_item_locator, 'privacy_controls', 'PrivacyControls')
 
     def open_media_storage(self):
         return self._open_subpage(self._media_storage_menu_item_locator, 'media_storage', 'MediaStorage')
@@ -300,7 +311,7 @@ class Settings(Base):
     def _get_class_by_name(self, file_name=None, class_name=None):
         if file_name is not None:
             package_path = 'gaiatest.apps.settings.regions.{}'.format(file_name.lower())
-            mod = __import__(package_path, fromlist=[class_name])
+            mod = __import__(package_path, fromlist = [class_name])
             class_defn = getattr(mod, class_name)
             return class_defn
 
@@ -334,7 +345,8 @@ class Settings(Base):
     def _tap_menu_item(self, menu_item_locator):
         menu_item = self._wait_for_menu_item(menu_item_locator)
         menu_item.tap()
-        self._wait_for_parent_section_not_displayed(menu_item)
+        if menu_item_locator != self._privacy_controls_item_locator:
+            self._wait_for_parent_section_not_displayed(menu_item)
 
     def _a11y_click_menu_item(self, menu_item_locator):
         menu_item = self._wait_for_menu_item(menu_item_locator)
@@ -350,7 +362,10 @@ class Settings(Base):
 
         # TODO: remove tap with coordinates after Bug 1061698 is fixed
         if gaia_header:
-            self.marionette.find_element(*self._header_locator).tap(25, 25)
+            _back_locator = self._header_locator
         else:
-            self.marionette.find_element(*self._non_gaia_header_locator).tap(25, 25)
+            _back_locator = self._non_gaia_header_locator
+
+        Wait(self.marionette).until(expected.element_displayed(*_back_locator))
+        self.marionette.find_element(*_back_locator).tap(25, 25)
         Wait(self.marionette).until(expected.element_displayed(parent_view))

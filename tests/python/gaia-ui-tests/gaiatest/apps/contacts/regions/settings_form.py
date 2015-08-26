@@ -40,14 +40,9 @@ class SettingsForm(Base):
         last_name = Wait(self.marionette).until(
             expected.element_present(*self._order_by_last_name_switch_locator))
         Wait(self.marionette).until(expected.element_displayed(last_name))
-        # The following should work, but doesn't, see bug 1113742. We use execute_script instead, for now
-        # is_checked = last_name.is_selected()
-        initial_state = self.marionette.execute_script("return arguments[0].wrappedJSObject.checked", [last_name])
+        initial_state = self.is_custom_element_checked(last_name)
         last_name.tap()
-        # The following should work, but doesn't, see bug 1113742. We use execute_script instead, for now
-        # Wait(self.marionette).until(lambda m: last_name.is_selected() is not initial_state)
-        Wait(self.marionette).until(lambda m:
-            m.execute_script("return arguments[0].wrappedJSObject.checked", [last_name]) is not initial_state)
+        self.wait_for_custom_element_checked_state(last_name, checked=not(initial_state))
 
     @property
     def order_by_last_name(self):
@@ -135,7 +130,8 @@ class SettingsForm(Base):
         Wait(self.marionette).until(expected.element_displayed(export_to_sim))
         export_to_sim.tap()
         select_contacts = self.marionette.find_element(*self._select_contacts_locator)
-        Wait(self.marionette).until(lambda m: select_contacts.location['y'] == 0)
+        Wait(self.marionette).until(
+            lambda m: select_contacts.rect['y'] == 0 and select_contacts.is_displayed())
 
     def tap_done(self):
         close = self.marionette.find_element(*self._settings_close_button_locator)

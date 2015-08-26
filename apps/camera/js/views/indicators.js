@@ -31,7 +31,7 @@ module.exports = View.extend({
   },
 
   template: function() {
-    return '<li class="indicator_timer rotates" data-icon="self-timer" ' +
+    return '<li class="indicator_countdown rotates" data-icon="self-timer" ' +
                'data-l10n-id="self-timer-indicator"></li>' +
     '<li class="indicator_hdr rotates" data-icon="hdr" ' +
         'data-l10n-id="hdr-indicator"></li>' +

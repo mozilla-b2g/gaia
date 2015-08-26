@@ -12,7 +12,7 @@ var Keys = {
 
 var assert = require('chai').assert;
 
-marionette.skip('Test Program Navigation', function() {
+marionette('Test Program Navigation', function() {
 
   var opts = {
     apps: {},

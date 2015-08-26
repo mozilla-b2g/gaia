@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
+    <meta name="theme-color" content="transparent">
+    <title>Firefox OS Home Screen</title>
+
+    <!-- Setup environment -->
+    <script defer src="js/setup.js"></script>
+
+    <!-- gaia-container -->
+    <script defer src="bower_components/gaia-container/script.js"></script>
+
+    <!-- gaia-app-icon -->
+    <link rel="stylesheet" href="bower_components/gaia-app-icon/external/style.css">
+    <script defer src="bower_components/gaia-app-icon/script.js"></script>
+
+    <!-- gaia-components -->
+    <link rel="stylesheet" href="bower_components/base/base.css">
+    <link rel="stylesheet" href="bower_components/gaia-theme/gaia-theme.css">
+    <script defer src="bower_components/evt/index.js"></script>
+    <script defer src="bower_components/pressed/pressed.js"></script>
+    <script defer src="bower_components/gaia-component/gaia-component.js"></script>
+    <script defer src="bower_components/gaia-dialog/gaia-dialog.js"></script>
+    <script defer src="bower_components/gaia-dialog/gaia-dialog-action.js"></script>
+
+    <!-- gaia l10n -->
+    <script defer src="shared/js/l10n.js"></script>
+
+    <!-- Local resources -->
+    <link rel="localization" href="locales/homescreen.{locale}.properties">
+
+    <link rel="stylesheet" href="style/window.css">
+    <link rel="stylesheet" href="style/grid.css">
+
+    <script defer src="js/metadata.js"></script>
+    <script defer src="js/datastore.js"></script>
+    <script defer src="js/app.js"></script>
+    <script defer src="js/bootstrap.js"></script>
+  </head>
+
+  <body>
+    <div id="shadow"></div>
+    <div id="scrollable">
+      <gaia-container id="apps" drag-and-drop></gaia-container>
+    </div>
+    <div id="bottombar">
+      <div id="uninstall"></div>
+      <div id="edit"></div>
+    </div>
+    <gaia-dialog id="cancel-download" class="dialog-action">
+      <section>
+        <p class="body" data-l10n-id="stop-download-body"></p>
+      </section>
+      <button class="action" data-l10n-id="stop-download-action"></button>
+      <button on-click="close" data-l10n-id="cancel-action"></button>
+    </gaia-dialog>
+    <gaia-dialog id="resume-download" class="dialog-action">
+      <section>
+        <p class="body" data-l10n-id="resume-download-body"></p>
+      </section>
+      <button class="action" data-l10n-id="resume-download-action"></button>
+      <button on-click="close" data-l10n-id="cancel-action"></button>
+    </gaia-dialog>
+    <gaia-dialog id="settings" class="dialog-action">
+      <button class="action" data-l10n-id="homescreen-settings"></button>
+      <button on-click="close" data-l10n-id="cancel-action"></button>
+    </gaia-dialog>
+  </body>
+</html>

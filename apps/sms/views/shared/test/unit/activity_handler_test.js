@@ -9,6 +9,7 @@
          Utils,
          ActivityShim,
          ActivityClient,
+         Drafts,
          NotificationHelper
 */
 
@@ -38,6 +39,7 @@ require('/views/shared/test/unit/mock_notify.js');
 require('/views/shared/test/unit/mock_navigation.js');
 require('/views/shared/test/unit/mock_silent_sms.js');
 require('/views/shared/test/unit/mock_smil.js');
+require('/services/test/unit/mock_drafts.js');
 
 require('/views/shared/js/utils.js');
 require('/views/shared/test/unit/mock_utils.js');
@@ -48,6 +50,8 @@ var mocksHelperForActivityHandler = new MocksHelper([
   'Attachment',
   'Compose',
   'Contacts',
+  'Draft',
+  'Drafts',
   'MessageManager',
   'NotificationHelper',
   'Notify',
@@ -165,8 +169,17 @@ suite('ActivityHandler', function() {
   suite('"share" activity', function() {
     var activityData;
 
+    function onceShareActivityCompleted() {
+      sinon.assert.called(ActivityHandler._onShareActivity);
+      return ActivityHandler._onShareActivity.lastCall.returnValue;
+    }
+
     setup(function() {
+      this.sinon.spy(ActivityHandler, '_onShareActivity');
       this.sinon.spy(Navigation, 'toPanel');
+      this.sinon.spy(Drafts, 'add');
+      this.sinon.spy(Drafts, 'store');
+      this.sinon.spy(Drafts, 'request');
 
       activityData = {
         type: 'video/*',
@@ -186,24 +199,30 @@ suite('ActivityHandler', function() {
       ActivityHandler.init();
     });
 
-    test('moves to the composer panel with the right arguments', function() {
+    test('moves to the composer panel after saving draft', function(done) {
       ActivityClient.on.withArgs('share-activity-request').yield(
         activityData
       );
 
-      sinon.assert.calledWith(Navigation.toPanel, 'composer', {
-        activity: {
-          body: [
+      onceShareActivityCompleted().then(() => {
+        sinon.assert.calledWithMatch(Drafts.add, {
+          recipients: null,
+          type: 'mms',
+          content: [
             sinon.match.instanceOf(Attachment),
             sinon.match.instanceOf(Attachment),
             sinon.match.instanceOf(Attachment),
             sinon.match.instanceOf(Attachment),
             sinon.match.instanceOf(Attachment)
-          ],
-          number: null,
-        },
-        focusComposer: sinon.match.falsy
-      });
+          ]
+        });
+        sinon.assert.called(Drafts.store);
+        sinon.assert.callOrder(Drafts.request, Drafts.add, Drafts.store);
+        sinon.assert.calledWith(
+          Navigation.toPanel,
+          'composer', { draftId: 'draftId', focusComposer: sinon.match.falsy }
+        );
+      }).then(done, done);
     });
 
     test('Attachment size over max mms should not be appended', function(done) {
@@ -226,7 +245,7 @@ suite('ActivityHandler', function() {
       }).then(done, done);
     });
 
-    test('Should append images even when they are big', function() {
+    test('Should append images even when they are big', function(done) {
       activityData.blobs = [new Blob(['test'], { type: 'image/jpeg' })];
 
       Settings.mmsSizeLimitation = 1;
@@ -237,16 +256,22 @@ suite('ActivityHandler', function() {
 
       sinon.assert.notCalled(Utils.alert);
 
-      sinon.assert.calledWith(Navigation.toPanel, 'composer', {
-        activity: {
-          body: [sinon.match.instanceOf(Attachment)],
-          number: null
-        },
-        focusComposer: sinon.match.falsy
-      });
+      onceShareActivityCompleted().then(() => {
+        sinon.assert.calledWithMatch(Drafts.add, {
+          recipients: null,
+          type: 'mms',
+          content: [sinon.match.instanceOf(Attachment)]
+        });
+        sinon.assert.called(Drafts.store);
+        sinon.assert.callOrder(Drafts.request, Drafts.add, Drafts.store);
+        sinon.assert.calledWith(
+          Navigation.toPanel,
+          'composer', { draftId: 'draftId', focusComposer: sinon.match.falsy }
+        );
+      }).then(done, done);
     });
 
-    test('Should append vcard attachment', function() {
+    test('Should append vcard attachment', function(done) {
       activityData.blobs = [new Blob(['test'], { type: 'text/x-vcard' })];
 
       this.sinon.spy(Compose, 'append');
@@ -257,17 +282,23 @@ suite('ActivityHandler', function() {
 
       sinon.assert.notCalled(Utils.alert);
 
-      sinon.assert.calledWith(Navigation.toPanel, 'composer', {
-        activity: {
-          body: [sinon.match.instanceOf(Attachment)],
-          number: null
-        },
-        focusComposer: sinon.match.falsy
-      });
+      onceShareActivityCompleted().then(() => {
+        sinon.assert.calledWithMatch(Drafts.add, {
+          recipients: null,
+          type: 'mms',
+          content: [sinon.match.instanceOf(Attachment)]
+        });
+        sinon.assert.called(Drafts.store);
+        sinon.assert.callOrder(Drafts.request, Drafts.add, Drafts.store);
+        sinon.assert.calledWith(
+          Navigation.toPanel,
+          'composer', { draftId: 'draftId', focusComposer: sinon.match.falsy }
+        );
+      }).then(done, done);
     });
 
     test('Appends URL to the Compose field for activity with URL data type',
-    function() {
+    function(done) {
       var urlActivityData = {
         type: 'url',
         url: 'test_url'
@@ -279,13 +310,19 @@ suite('ActivityHandler', function() {
 
       sinon.assert.notCalled(Utils.alert);
 
-      sinon.assert.calledWith(Navigation.toPanel, 'composer', {
-        activity: {
-          body: urlActivityData.url,
-          number: null
-        },
-        focusComposer: sinon.match.falsy
-      });
+      onceShareActivityCompleted().then(() => {
+        sinon.assert.calledWithMatch(Drafts.add, {
+          recipients: null,
+          type: 'sms',
+          content: [urlActivityData.url]
+        });
+        sinon.assert.called(Drafts.store);
+        sinon.assert.callOrder(Drafts.request, Drafts.add, Drafts.store);
+        sinon.assert.calledWith(
+          Navigation.toPanel,
+          'composer', { draftId: 'draftId', focusComposer: sinon.match.falsy }
+        );
+      }).then(done, done);
     });
 
     test('Call activity postError if no data to share', function() {
@@ -371,7 +408,8 @@ suite('ActivityHandler', function() {
       });
 
       test('null notification', function() {
-        sinon.assert.calledWithMatch(sendStub, 'Pepito O\'Hare', { body: '' });
+        sinon.assert.calledWithMatch(sendStub,
+          'Pepito O\'Hare', { bodyL10n: { raw: '' } });
       });
     });
 
@@ -421,7 +459,7 @@ suite('ActivityHandler', function() {
       test('a notification is sent', function() {
         sinon.assert.calledWith(sendStub, sinon.match.any, {
           icon: 'sms',
-          body: message.body,
+          bodyL10n: { raw: message.body },
           data: {
             id: message.id,
             threadId: message.threadId
@@ -455,7 +493,6 @@ suite('ActivityHandler', function() {
 
       test('thread view already visible', function() {
         isDocumentHidden = false;
-        this.sinon.stub(Threads, 'currentId', message.threadId);
         MockNavigatormozApps.mTriggerLastRequestSuccess();
         sinon.assert.notCalled(notificationStub.addEventListener);
         sinon.assert.notCalled(notificationStub.close);
@@ -470,7 +507,8 @@ suite('ActivityHandler', function() {
 
       test('In target thread view and view is hidden', function(done) {
         isDocumentHidden = true;
-        this.sinon.stub(Threads, 'currentId', message.threadId);
+        this.sinon.stub(Navigation, 'isCurrentPanel')
+          .withArgs('thread', {id: message.threadId}).returns(true);
 
         MockNavigatormozApps.mTriggerLastRequestSuccess().then(() => {
           sinon.assert.called(document.addEventListener);
@@ -557,7 +595,7 @@ suite('ActivityHandler', function() {
       simulateMessageReceived(message).then(() => {
         sinon.assert.calledWithMatch(
           NotificationHelper.send,
-          sinon.match.string, { body: 'mms-messageundefined' }
+          sinon.match.string, { bodyL10n: 'mms-message' }
         );
       }).then(done, done);
     });
@@ -567,7 +605,7 @@ suite('ActivityHandler', function() {
       simulateMessageReceived(message).then(() => {
         sinon.assert.calledWithMatch(
           NotificationHelper.send,
-          sinon.match.string, { body: 'subject' }
+          sinon.match.string, { bodyL10n: { raw: 'subject' } }
         );
       }).then(done, done);
     });
@@ -579,7 +617,7 @@ suite('ActivityHandler', function() {
       simulateMessageReceived(message).then(() => {
         sinon.assert.calledWithMatch(
           NotificationHelper.send,
-          sinon.match.string, { body: 'some text' }
+          sinon.match.string, { bodyL10n: { raw: 'some text' } }
         );
       }).then(done, done);
     });
@@ -772,46 +810,39 @@ suite('ActivityHandler', function() {
     });
   });
 
-  suite('user removed the notification', function() {
-    setup(function() {
-      this.sinon.spy(ActivityHandler, 'handleMessageNotification');
-      this.sinon.spy(MockNavigatormozApps, 'getSelf');
-      this.sinon.spy(Navigation, 'ensureCurrentPanel');
+  test('user removed the notification', function() {
+    this.sinon.spy(ActivityHandler, 'handleMessageNotification');
+    this.sinon.spy(MockNavigatormozApps, 'getSelf');
 
-      MockNavigatormozSetMessageHandler.mTrigger('notification', {
-        title: 'title',
-        body: 'body',
-        imageURL: 'url?id=1&threadId=1',
-        tag: 'threadId:1',
-        // When notification is removed "clicked" property is false
-        clicked: false
-      });
+    MockNavigatormozSetMessageHandler.mTrigger('notification', {
+      title: 'title',
+      body: 'body',
+      imageURL: 'url?id=1&threadId=1',
+      tag: 'threadId:1',
+      // When notification is removed "clicked" property is false
+      clicked: false
     });
-
-    test('navigation is forced to set current panel', function() {
-      sinon.assert.called(Navigation.ensureCurrentPanel);
-
-      sinon.assert.notCalled(MockNavigatormozApps.getSelf);
-      sinon.assert.notCalled(ActivityHandler.handleMessageNotification);
-    });
+    sinon.assert.notCalled(MockNavigatormozApps.getSelf);
+    sinon.assert.notCalled(ActivityHandler.handleMessageNotification);
   });
 
   suite('"new" activity', function() {
-    var numberActivityData, emailActivityData;
+    var emailActivityData;
 
     function onceNewActivityCompleted() {
       sinon.assert.called(ActivityHandler._onNewActivity);
       return ActivityHandler._onNewActivity.lastCall.returnValue;
     }
 
+    function assertDraftSaved(draft) {
+      sinon.assert.calledWithMatch(Drafts.add, draft);
+      sinon.assert.called(Drafts.store);
+      sinon.assert.callOrder(Drafts.request, Drafts.add, Drafts.store);
+    }
+
     var threadDeferred;
 
     setup(function() {
-      numberActivityData = {
-        number: '123',
-        body: 'foo'
-      };
-
       emailActivityData = {
         target: 'abc@exmple.com',
         body: 'foo'
@@ -824,26 +855,64 @@ suite('ActivityHandler', function() {
       );
       this.sinon.spy(Threads, 'registerMessage');
       this.sinon.spy(Navigation, 'toPanel');
+      this.sinon.spy(Drafts, 'add');
+      this.sinon.spy(Drafts, 'store');
+      this.sinon.spy(Drafts, 'request');
       this.sinon.spy(ActivityHandler, '_onNewActivity');
 
       ActivityShim.hasPendingRequest.returns(true);
       ActivityHandler.init();
     });
 
-    test('Should move to the composer and set activity', function(done) {
-      ActivityClient.on.withArgs('new-activity-request').yield(
-        numberActivityData
-      );
+    test('Non-existing thread, with number and body', function(done) {
+      ActivityClient.on.withArgs('new-activity-request').yield({
+        number: '123',
+        body: 'foo'
+      });
+
+      // This should not be used but keeping it here to have a consistent
+      // environment for this test case.
       threadDeferred.reject(new Error('No thread for this test'));
 
       onceNewActivityCompleted().then(function() {
-        sinon.assert.calledWithMatch(Navigation.toPanel, 'composer', {
-          activity: {
-            number: '123',
-            body: 'foo'
-          },
-          focusComposer: true
+        sinon.assert.notCalled(MessageManager.findThreadFromNumber);
+
+        assertDraftSaved({
+          recipients: ['123'],
+          type: 'sms',
+          content: ['foo']
         });
+        sinon.assert.calledWith(
+          Navigation.toPanel,
+          'composer', { draftId: 'draftId', focusComposer: true }
+        );
+      }).then(done,done);
+    });
+
+    test('existing thread with specified body, navigate to composer',
+    function(done) {
+      ActivityClient.on.withArgs('new-activity-request').yield({
+        number: '123',
+        body: 'foo'
+      });
+
+      // This should not be used but keeping it here to have a consistent
+      // environment for this test case.
+      threadDeferred.resolve(42);
+
+      onceNewActivityCompleted().then(function() {
+        sinon.assert.notCalled(MessageManager.findThreadFromNumber);
+
+        assertDraftSaved({
+          recipients: ['123'],
+          type: 'sms',
+          content: ['foo']
+        });
+
+        sinon.assert.calledWithMatch(
+          Navigation.toPanel,
+          'composer', { draftId: 'draftId', focusComposer: true }
+        );
       }).then(done,done);
     });
 
@@ -855,42 +924,70 @@ suite('ActivityHandler', function() {
       onceNewActivityCompleted().then(() => {
         sinon.assert.notCalled(MessageManager.findThreadFromNumber);
 
-        sinon.assert.calledWithMatch(
-          Navigation.toPanel, 'composer', {
-            activity: {
-              body: 'foo'
-            },
-            focusComposer: sinon.match.falsy
-          }
+        assertDraftSaved({
+          recipients: null,
+          type: 'sms',
+          content: ['foo']
+        });
+        sinon.assert.calledWith(
+          Navigation.toPanel,
+          'composer', { draftId: 'draftId', focusComposer: sinon.match.falsy }
         );
       }).then(done,done);
     });
 
-    test('new message with email', function(done) {
-      ActivityClient.on.withArgs('new-activity-request').yield(
-        emailActivityData
-      );
+    test('Non-existing thread with recipient only, navigate to composer',
+    function(done) {
+      ActivityClient.on.withArgs('new-activity-request').yield({
+        number: '123'
+      });
 
       threadDeferred.reject(new Error('No thread for this test'));
 
       onceNewActivityCompleted().then(function() {
-        sinon.assert.calledWithMatch(Navigation.toPanel, 'composer', {
-          activity: {
-            number: emailActivityData.target,
-            body: emailActivityData.body
-          },
-          focusComposer: true
+        sinon.assert.calledWith(MessageManager.findThreadFromNumber, '123');
+        assertDraftSaved({
+          recipients: ['123'],
+          type: 'sms',
+          content: null
         });
+        sinon.assert.calledWith(
+          Navigation.toPanel,
+          'composer', { draftId: 'draftId', focusComposer: true }
+        );
       }).then(done,done);
     });
 
-    test('when there is an existing thread, should navigate to the thread',
-    function(done) {
+    test('new message with email and body', function(done) {
       ActivityClient.on.withArgs('new-activity-request').yield(
-        numberActivityData
+        emailActivityData
       );
 
-      // this time we found a thread
+      // This is not used but it's kept here for consistency.
+      threadDeferred.reject(new Error('No thread for this test'));
+
+      onceNewActivityCompleted().then(function() {
+        sinon.assert.notCalled(MessageManager.findThreadFromNumber);
+
+        assertDraftSaved({
+          recipients: [emailActivityData.target],
+          type: 'mms',
+          content: [emailActivityData.body]
+        });
+        sinon.assert.calledWith(
+          Navigation.toPanel,
+          'composer', { draftId: 'draftId', focusComposer: true }
+        );
+      }).then(done,done);
+    });
+
+    test('existing thread with recipient only, navigate to the thread',
+    function(done) {
+      ActivityClient.on.withArgs('new-activity-request').yield({
+        number: '123'
+      });
+
+      // this time we can find a thread with id=42
       threadDeferred.resolve(42);
 
       onceNewActivityCompleted().then(function() {
@@ -984,27 +1081,6 @@ suite('ActivityHandler', function() {
         sinon.assert.notCalled(Utils.confirm);
         sinon.assert.notCalled(Navigation.toPanel);
       });
-    });
-
-    test('registers message in Threads if no related thread', function(done) {
-      Threads.has.withArgs(message.threadId).returns(false);
-
-      ActivityHandler.handleMessageNotification(message);
-
-      getMessagePromise.then(() => {
-        sinon.assert.calledWith(Threads.registerMessage, message);
-      }).then(done, done);
-    });
-
-    test('does not register message if thread for this message exists',
-      function(done) {
-      Threads.has.withArgs(message.threadId).returns(true);
-
-      ActivityHandler.handleMessageNotification(message);
-
-      getMessagePromise.then(() => {
-        sinon.assert.notCalled(Threads.registerMessage);
-      }).then(done, done);
     });
   });
 });

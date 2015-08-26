@@ -312,10 +312,6 @@
       this.waitFor(Fullscreen_View.Selector.editEnhanceButton);
     },
 
-    tapCancel: function() {
-      this.waitFor(Fullscreen_View.Selector.editHeader).tap(25, 25);
-    },
-
     getExposureSliderPosition: function() {
       return this.exposureSlider.text();
     },
@@ -326,6 +322,31 @@
 
     saveEditedImage: function() {
       this.editSaveButton.click();
+    },
+
+    performEditHeaderCancelAction: function() {
+      this.waitFor(Fullscreen_View.Selector.editHeader).scriptWith(
+        function(header) {
+          var event = document.createEvent('HTMLEvents');
+          event.initEvent('action', true, true);
+          header.dispatchEvent(event);
+        });
+    },
+
+    performEditEnhanceButtonClick: function() {
+      this.waitFor(Fullscreen_View.Selector.editEnhanceButton).scriptWith(
+        function(button) {
+          var event = document.createEvent('HTMLEvents');
+          event.initEvent('click', true, true);
+          button.dispatchEvent(event);
+        });
+    },
+
+    applyAutoEnhance: function() {
+      this.client.waitFor(function() {
+        return this.editEnhanceButton.enabled();
+      }.bind(this));
+      this.performEditEnhanceButtonClick();
     },
 
     waitForCropAspectPortraitSelected: function() {

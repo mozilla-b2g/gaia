@@ -2,10 +2,12 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 /*global Utils, MessageManager, Compose, NotificationHelper,
-         Attachment, Notify, SilentSms, Threads, SMIL, Contacts,
+         Attachment, Notify, SilentSms, SMIL, Contacts,
          ConversationView, Settings, Navigation,
          ActivityClient,
-         ActivityShim
+         ActivityShim,
+         Draft,
+         Drafts
 */
 /*exported ActivityHandler */
 
@@ -69,12 +71,18 @@ var ActivityHandler = {
       // It's reasonable to focus on composer if we already have some phone
       // number or even contact to fill recipients input
       focusComposer = true;
-      // try to get a thread from number
-      // if no thread, promise is rejected and we try to find a contact
-      threadPromise = MessageManager.findThreadFromNumber(viewInfo.number)
-        .then((threadId) => viewInfo.threadId = threadId)
-        // case no contact and no thread id: gobble the error
-        .catch(() => {});
+
+      /* If we have a body, we're always redirecting to the new message view,
+       * because we don't want to overwrite any possible draft from an existing
+       * conversation. */
+      if (!viewInfo.body) {
+        // try to get a thread from number
+        // if no thread, promise is rejected and we try to find a contact
+        threadPromise = MessageManager.findThreadFromNumber(viewInfo.number)
+          .then((threadId) => viewInfo.threadId = threadId)
+          // case no contact and no thread id: gobble the error
+          .catch(() => {});
+      }
     }
 
     return (threadPromise || Promise.resolve()).then(
@@ -142,7 +150,37 @@ var ActivityHandler = {
       return;
     }
 
-    this.toView({ body: dataToShare });
+    return this.toView({ body: dataToShare });
+  },
+
+  /**
+   * Store a draft for this message, and returns a draftId.
+   *
+   * @param {Object} message Message to save
+   * @param {Number} message.threadId Conversation where this messages is
+   * located.
+   * @param {String} message.number The recipient as a phone number or email
+   * address.
+   * @param {(String|Attachment|Array.<Attachment>)} [message.body] The data to
+   * add to the message's body.
+   * @returns {Promise.<Number>} The new draft id.
+   */
+  _storeDraftFromMessage(message) {
+    var content = message.body || null;
+
+    var isSimpleContent = !content || typeof content === 'string';
+    var isEmailAddress = message.number && Utils.isEmailAddress(message.number);
+
+    var draft = new Draft({
+      threadId: message.threadId || null,
+      recipients: message.number && [message.number] || null,
+      content: !content || Array.isArray(content) ? content : [content],
+      type: isSimpleContent && !isEmailAddress ? 'sms' : 'mms'
+    });
+
+    return Drafts.request().then(
+      () => Drafts.add(draft).store()
+    ).then(() => draft.id);
   },
 
   handleMessageNotification: function ah_handleMessageNotification(message) {
@@ -158,10 +196,6 @@ var ActivityHandler = {
     }
 
     MessageManager.getMessage(message.id).then((message) => {
-      if (!Threads.has(message.threadId)) {
-        Threads.registerMessage(message);
-      }
-
       if (Compose.isEmpty()) {
         ActivityHandler.toView(message);
         return;
@@ -193,43 +227,39 @@ var ActivityHandler = {
    * when we navigate to Thread panel.
    */
   toView: function ah_toView(message, focusComposer) {
-    var navigateToView = function act_navigateToView() {
+    var navigateToView = () => {
       // If we have appropriate thread then let's forward user there, otherwise
       // open new message composer.
       if (message.threadId) {
-        Navigation.toPanel('thread', {
+        return Navigation.toPanel('thread', {
           id: message.threadId,
           focusComposer: focusComposer
         });
-        return;
       }
 
-      Navigation.toPanel('composer', {
-        activity: {
-          body: message.body || null,
-          number: message.number || null
-        },
-        focusComposer: focusComposer
-      });
+      return this._storeDraftFromMessage(message).then(
+        (draftId) => Navigation.toPanel('composer', { draftId, focusComposer })
+      );
     };
 
     if (!document.hidden) {
       // Case of calling from Notification
-      navigateToView();
-      return;
+      return navigateToView();
     }
+
+    var defer = Utils.Promise.defer();
 
     document.addEventListener('visibilitychange', function waitVisibility() {
       document.removeEventListener('visibilitychange', waitVisibility);
-      navigateToView();
+      defer.resolve(navigateToView());
     });
+
+    return defer.promise;
   },
 
   /* === Incoming SMS support === */
 
   onSmsReceived: function ah_onSmsReceived(message) {
-    var formatValue = navigator.mozL10n.formatValue;
-
     // Acquire the cpu wake lock when we receive an SMS.  This raises the
     // priority of this process above vanilla background apps, making it less
     // likely to be killed on OOM.  It also prevents the device from going to
@@ -297,7 +327,7 @@ var ActivityHandler = {
           ActivityHandler.handleMessageNotification(message);
         }
 
-        function continueWithNotification(sender, body) {
+        function continueWithNotification(sender, bodyL10n) {
           var titlePromise;
 
           if (Settings.hasSeveralSim() && message.iccId) {
@@ -315,7 +345,7 @@ var ActivityHandler = {
           // be handled in Utils.closeNotificationsForThread later.
           var options = {
             icon: NotificationHelper.getIconURI(app),
-            body: body,
+            bodyL10n: bodyL10n,
             tag: 'threadId:' + threadId,
             data: { id, threadId },
             closeOnClick: false
@@ -329,7 +359,8 @@ var ActivityHandler = {
 
             // Close notification if we are already in thread view and view
             // become visible.
-            if (document.hidden && threadId === Threads.currentId) {
+            if (document.hidden &&
+                Navigation.isCurrentPanel('thread', { id: threadId })) {
               document.addEventListener('visibilitychange',
                 function onVisible() {
                   document.removeEventListener('visibilitychange', onVisible);
@@ -348,11 +379,11 @@ var ActivityHandler = {
           // 'mms message' in the field.
 
           if (needManualRetrieve) {
-            return formatValue('notDownloaded-title');
+            return 'notDownloaded-title';
           }
 
           if (message.subject) {
-            return Promise.resolve(message.subject);
+            return {raw: message.subject};
           }
 
           return SMIL.parse(message).then((slideArray) => {
@@ -366,7 +397,7 @@ var ActivityHandler = {
               break;
             }
 
-            return text || formatValue('mms-message');
+            return text ? {raw: text} : 'mms-message';
           });
         }
 
@@ -375,12 +406,11 @@ var ActivityHandler = {
             contacts[0].name.length && contacts[0].name[0] ||
             message.sender;
 
-          var titlePromise = message.type === 'sms' ?
-            Promise.resolve(message.body || '') : getTitleFromMms();
+          var titleL10n = message.type === 'sms' ?
+            {raw: message.body || ''} : getTitleFromMms();
 
-          return titlePromise.then((title) => {
-            return continueWithNotification(sender, title);
-          });
+          return Promise.resolve(titleL10n).then((titleL10n) =>
+            continueWithNotification(sender, titleL10n));
         });
       };
     }
@@ -423,9 +453,6 @@ var ActivityHandler = {
     // Thread panel to the user, we remove that notification from the tray that
     // causes the second system message with "clicked" set to false.
     if (!notification.clicked) {
-      // When app is run via notification system message there is no valid
-      // current panel set hence app is in the invalid state, so let's fix this.
-      Navigation.ensureCurrentPanel();
       return;
     }
 

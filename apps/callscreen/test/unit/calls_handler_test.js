@@ -1,17 +1,18 @@
-/* globals AudioCompetingHelper, CallsHandler, FontSizeManager, HandledCall,
-           MockAudioContext, MockBluetoothHelperInstance, MockCall,
-           MockCallScreen, MockConferenceGroupHandler, MockLazyL10n,
-           MockMozL10n, MockNavigatormozApps, MockNavigatorMozIccManager,
+/* globals CallsHandler, FontSizeManager, HandledCall,
+           l10nAssert, MockBluetoothHelperInstance, MockCall,
+           MockCallScreen, MockConferenceGroupHandler,
+           MockL10n, MockNavigatormozApps, MockNavigatorMozIccManager,
            MockNavigatorMozMobileConnections, MockNavigatormozSetMessageHandler,
            MockNavigatorMozTelephony, MockNavigatorWakeLock, MocksHelper,
            MockTonePlayer, telephonyAddCall, telephonyAddCdmaCall */
 
 'use strict';
 
-require('/js/audio_competing_helper.js');
 require('/test/unit/mock_call_screen.js');
 require('/test/unit/mock_conference_group_handler.js');
 require('/test/unit/mock_conference_group_ui.js');
+require('/shared/test/unit/l10n_helper.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_simple_phone_matcher.js');
 require('/shared/test/unit/mocks/mock_bluetooth_helper.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
@@ -23,7 +24,6 @@ require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
 require('/shared/test/unit/mocks/dialer/mock_call.js');
 require('/shared/test/unit/mocks/dialer/mock_handled_call.js');
-require('/shared/test/unit/mocks/dialer/mock_lazy_l10n.js');
 require('/shared/test/unit/mocks/dialer/mock_contacts.js');
 require('/shared/test/unit/mocks/dialer/mock_tone_player.js');
 require('/shared/test/unit/mocks/dialer/mock_utils.js');
@@ -36,7 +36,6 @@ var mocksHelperForCallsHandler = new MocksHelper([
   'SettingsListener',
   'CallScreen',
   'ConferenceGroupHandler',
-  'LazyL10n',
   'Contacts',
   'TonePlayer',
   'SettingsURL',
@@ -76,7 +75,7 @@ suite('calls handler', function() {
     navigator.mozSetMessageHandler = MockNavigatormozSetMessageHandler;
 
     realMozL10n = navigator.mozL10n;
-    navigator.mozL10n = MockMozL10n;
+    navigator.mozL10n = MockL10n;
 
     realMozMobileConnections = navigator.mozMobileConnections;
     navigator.mozMobileConnections = MockNavigatorMozMobileConnections;
@@ -419,8 +418,7 @@ suite('calls handler', function() {
             FontSizeManager.adaptToSpace, FontSizeManager.SECOND_INCOMING_CALL,
             MockCallScreen.incomingNumber, false, 'end');
           sinon.assert.notCalled(FontSizeManager.ensureFixedBaseline);
-          assert.equal(
-            MockCallScreen.incomingNumber.textContent, 'withheld-number');
+          l10nAssert(MockCallScreen.incomingNumber, 'withheld-number');
         });
 
         test('should only call FontSizeManager.adaptToSpace if the second ' +
@@ -442,8 +440,7 @@ suite('calls handler', function() {
             FontSizeManager.adaptToSpace, FontSizeManager.SECOND_INCOMING_CALL,
             MockCallScreen.incomingNumber, false, 'end');
           sinon.assert.notCalled(FontSizeManager.ensureFixedBaseline);
-          assert.equal(
-            MockCallScreen.incomingNumber.textContent, 'withheld-number');
+          l10nAssert(MockCallScreen.incomingNumber, 'withheld-number');
         });
       });
 
@@ -511,8 +508,13 @@ suite('calls handler', function() {
 
           test('should show the receiving sim', function() {
             MockNavigatorMozTelephony.mTriggerCallsChanged();
-            assert.equal(MockCallScreen.incomingSim.textContent, 'sim-number');
-            assert.deepEqual(MockLazyL10n.keys['sim-number'], {n: 2});
+
+            l10nAssert(
+              MockCallScreen.incomingSim, {
+                id: 'sim-number',
+                args: { n: 2 }
+              }
+            );
           });
         });
       });
@@ -2531,55 +2533,6 @@ suite('calls handler', function() {
         assert.equal(CallsHandler.activeCallForContactImage.call.id.number,
                      MockNavigatorMozTelephony.active.id.number);
       });
-    });
-  });
-
-  suite('> Audio competing event listening', function() {
-    var gsmcall = null;
-
-    setup(function() {
-      AudioCompetingHelper.init('test');
-      this.sinon.spy(AudioCompetingHelper, 'clearListeners');
-
-      gsmcall = new MockCall('543552', 'connected');
-      telephonyAddCall.call(this, gsmcall);
-
-      CallsHandler.setup();
-    });
-
-    test('should call clearListeners', function() {
-      sinon.assert.called(AudioCompetingHelper.clearListeners);
-    });
-
-    test('should call onMozInterrupBegin', function() {
-      this.sinon.spy(gsmcall, 'hold');
-      this.sinon.spy(MockAudioContext.prototype, 'addEventListener');
-
-      MockNavigatorMozTelephony.active = gsmcall;
-      AudioCompetingHelper.compete();
-
-      sinon.assert.calledWith(MockAudioContext.prototype.addEventListener,
-                              'mozinterruptbegin');
-      MockAudioContext.prototype.addEventListener.yield();
-      sinon.assert.called(gsmcall.hold);
-      AudioCompetingHelper.leaveCompetition();
-    });
-
-    test('should call forceAnAudioCompetitionWin', function() {
-      this.sinon.spy(AudioCompetingHelper, 'compete');
-      this.sinon.spy(AudioCompetingHelper, 'leaveCompetition');
-      this.sinon.spy(MockAudioContext.prototype, 'addEventListener');
-
-      var gsmcall2 = new MockCall('543552', 'connected');
-      telephonyAddCall.call(this, gsmcall2);
-
-      AudioCompetingHelper.compete();
-
-      sinon.assert.calledWith(MockAudioContext.prototype.addEventListener,
-                              'mozinterruptbegin');
-      MockAudioContext.prototype.addEventListener.yield();
-      sinon.assert.calledOnce(AudioCompetingHelper.leaveCompetition);
-      sinon.assert.calledTwice(AudioCompetingHelper.compete);
     });
   });
 

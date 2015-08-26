@@ -3,7 +3,7 @@
 /* global module */
 
 var SELECTORS = Object.freeze({
-  main: '#thread-list',
+  main: '.panel-InboxView',
   conversation: '.threadlist-item',
   smsConversation: '.threadlist-item[data-last-message-type="sms"]',
   mmsConversation: '.threadlist-item[data-last-message-type="mms"]',

@@ -115,8 +115,13 @@ suite('Views > LayoutPageView', function() {
       var container = pageView.element;
 
       var keys = container.querySelectorAll('.keyboard-key .key-element');
-      assert.equal(keys[0].firstChild.textContent, 'A');
-      assert.equal(keys[1].firstChild.textContent, 'B');
+      assert.equal(keys.length, 4);
+      assert.equal(keys[0].textContent, 'A');
+      assert.isTrue(keys[1].classList.contains('lowercase'));
+      assert.equal(keys[1].textContent, 'a');
+      assert.equal(keys[2].textContent, 'B');
+      assert.isTrue(keys[3].classList.contains('lowercase'));
+      assert.equal(keys[3].textContent, 'b');
 
       assert.isFalse(container.classList.contains('lowercase'));
     });
@@ -141,36 +146,13 @@ suite('Views > LayoutPageView', function() {
       var container = pageView.element;
 
       var keys = container.querySelectorAll('.keyboard-key .key-element');
-      assert.equal(keys[0].firstChild.textContent, 'A');
-      assert.equal(keys[1].firstChild.textContent, 'B');
-
-      assert.isTrue(container.classList.contains('lowercase'));
-    });
-
-    test('w/ secondLayout, two label DOMs on buttons', function() {
-      var layout = {
-        width: 2,
-        secondLayout: true,
-        keys: [
-          [{ value: 'a', uppercaseValue: 'A' },
-           { value: 'b', uppercaseValue: 'B' }]
-        ]
-      };
-
-      var pageView = new LayoutPageView(layout, {}, viewManager);
-      pageView.render();
-      pageView.setUpperCaseLock({
-        isUpperCase: false,
-        isUpperCaseLocked: false
-      });
-
-      var container = pageView.element;
-
-      var keys = container.querySelectorAll('.keyboard-key .key-element');
-      assert.equal(keys[0].firstChild.textContent, 'A');
-      assert.equal(keys[1].firstChild.textContent, 'a');
-      assert.equal(keys[2].firstChild.textContent, 'B');
-      assert.equal(keys[3].firstChild.textContent, 'b');
+      assert.equal(keys.length, 4);
+      assert.equal(keys[0].textContent, 'A');
+      assert.isTrue(keys[1].classList.contains('lowercase'));
+      assert.equal(keys[1].textContent, 'a');
+      assert.equal(keys[2].textContent, 'B');
+      assert.isTrue(keys[3].classList.contains('lowercase'));
+      assert.equal(keys[3].textContent, 'b');
 
       assert.isTrue(container.classList.contains('lowercase'));
     });

@@ -13,10 +13,11 @@
     <link rel="localization" href="locales/dialer.{locale}.properties">
     <link rel="localization" href="locales/shared.{locale}.properties">
     <link rel="localization" href="/shared/locales/date/date.{locale}.properties">
-    <link rel="localization" href="/shared/locales/voicemail/voicemail.{locale}.properties">
+    <link rel="localization" href="/shared/locales/import_contacts/import_contacts.{locale}.properties">
     <link rel="localization" href="/shared/locales/keypad/keypad.{locale}.properties">
     <link rel="localization" href="/shared/locales/phone_types/phone_types.{locale}.properties">
     <link rel="localization" href="/shared/locales/telephony/telephony.{locale}.properties">
+    <link rel="localization" href="/shared/locales/voicemail/voicemail.{locale}.properties">
     <link rel="localization" href="/shared/elements/gaia_menu/locales/gaia_menu.{locale}.properties">
     <link rel="localization" href="/shared/elements/gaia_sim_picker/locales/gaia_sim_picker.{locale}.properties">
 
@@ -36,6 +37,7 @@
     <link rel="stylesheet" type="text/css" href="/shared/elements/gaia-icons/gaia-icons.css">
 
     <link rel="stylesheet" type="text/css" href="/shared/style/option_menu.css">
+    <link rel="stylesheet" href="/shared/pages/import/style/curtain_frame.css">
 
     <!-- JS -->
     <script defer src="/shared/js/l10n.js"></script>
@@ -50,6 +52,7 @@
     <script defer src="/shared/js/dialer/keypad.js"></script>
     <script defer src="/shared/js/dialer/font_size_manager.js"></script>
 
+    <script defer src="/dialer/js/navigation.js"></script>
     <script defer src="/dialer/js/dialer.js"></script>
     <script defer src="/dialer/js/call_log_db.js"></script>
     <script defer src="/shared/js/multi_sim_action_button.js"></script>
@@ -116,7 +119,7 @@
   <body role="application" class="skin-comms theme-communications">
     <section id="views" role="tablist" class="bb-tablist">
       <li role="presentation" class="view hidden" id="call-log-view">
-        <a id="option-recents" role="tab" aria-controls="recents-panel" href="#call-log-view" class="icon icon-recents" data-l10n-id="recents" aria-selected="false"></a>
+        <a id="option-recents" role="tab" aria-controls="recents-panel" class="icon icon-recents" data-l10n-id="recents" aria-selected="false" data-destination="recents"></a>
         <div id="recents-panel" role="tabpanel" class="bb-tabpanel" aria-labelledby="option-recents">
           <section role="region">
             <gaia-header>
@@ -146,12 +149,12 @@
         </div>
       </li>
       <li role="presentation" class="view" id="contacts-view">
-        <a id="option-contacts" role="tab" aria-controls="iframe-contacts-container" href="#contacts-view" class="icon icon-contacts" data-l10n-id="contacts" aria-selected="false"></a>
+        <a id="option-contacts" role="tab" aria-controls="iframe-contacts-container" class="icon icon-contacts" data-l10n-id="contacts" aria-selected="false" data-destination="contacts"></a>
         <div id="iframe-contacts-container" role="tabpanel" class="bb-tabpanel" aria-labelledby="option-contacts">
         </div>
       </li>
       <li role="presentation" id="keyboard-view">
-        <a id="option-keypad" role="tab" aria-controls="keypad-panel" href="#keyboard-view" class="icon icon-keypad" data-l10n-id="keypad" aria-selected="true"></a>
+        <a id="option-keypad" role="tab" aria-controls="keypad-panel" class="icon icon-keypad" data-l10n-id="keypad" aria-selected="true" data-destination="keypad"></a>
         <div id="keypad-panel" role="tabpanel" class="bb-tabpanel" aria-labelledby="option-keypad">
           <div id="phone-number-view-container" dir="ltr">
             <div class="phone-number-view-wrapper-input">

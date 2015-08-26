@@ -1,3 +1,4 @@
+/* globals Icon */
 /* exported IconsHelper */
 'use strict';
 
@@ -110,14 +111,26 @@
             iconStore.get(iconUrl).then(iconObj => {
               if (!iconObj || !iconObj.timestamp ||
                 Date.now() - iconObj.timestamp >= ICON_CACHE_PERIOD) {
-                return fetchIcon(iconUrl)
-                  .then(iconObject => {
-                    // We resolve here to avoid I/O blocking on dataStore and
-                    // quicker display.
-                    // Persisting to the dataStore takes place subsequently.
-                    resolve(iconObject);
+                return fetchIconBlob(iconUrl)
+                  .then(iconBlob => {
+                    var img = document.createElement('img');
+                    var icon = new Icon(img, uri);
+                    icon.renderBlob(iconBlob, {
+                      size: iconTargetSize,
+                      onLoad: function(blob) {
+                        var iconObj = {
+                          blob: blob,
+                          originalUrl: iconUrl,
+                          timestamp: Date.now()
+                        };
+                        // We resolve here to avoid I/O blocking on
+                        // dataStore and quicker display.
+                        // Persisting to the dataStore takes place subsequently.
+                        resolve(iconObj);
 
-                    iconStore.add(iconObject, iconUrl);
+                        iconStore.add(iconObj, iconUrl);
+                      }
+                    });
                   })
                   .catch(err => {
                     reject(`Failed to fetch icon ${iconUrl}: ${err}`);
@@ -297,13 +310,45 @@
 
 
   /**
-   * Return a promise that resolves to an object containing the blob and size
+   * Return a promise that resolves to an object containing the blob url
    * in pixels of an icon given its URL `iconUrl`.
    *
    * @param {string} iconUrl
    * @returns {Promise}
    */
   function fetchIcon(iconUrl) {
+    return new Promise((resolve, reject) => {
+      fetchIconBlob(iconUrl).then((iconBlob) => {
+        var img = document.createElement('img');
+
+        img.src = URL.createObjectURL(iconBlob);
+
+        img.onload = () => {
+          var iconSize = Math.max(img.naturalWidth, img.naturalHeight);
+
+          resolve({
+            blob: iconBlob,
+            url: iconUrl,
+            size: iconSize,
+            timestamp: Date.now()
+          });
+        };
+
+        img.onerror = () => {
+          reject(new Error(`Error while loading image.`));
+        };
+      });
+    });
+  }
+
+  /**
+   * Return a promise that resolves to an object containing the blob
+   * given its URL `iconUrl`.
+   *
+   * @param {string} iconUrl
+   * @returns {Promise}
+   */
+  function fetchIconBlob(iconUrl) {
     return new Promise((resolve, reject) => {
       var xhr = new XMLHttpRequest({
         mozAnon: true,
@@ -321,24 +366,7 @@
       xhr.onload = () => {
         if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
           var iconBlob = xhr.response;
-          var img = document.createElement('img');
-
-          img.src = URL.createObjectURL(iconBlob);
-
-          img.onload = () => {
-            var iconSize = Math.max(img.naturalWidth, img.naturalHeight);
-
-            resolve({
-              url: iconUrl,
-              blob: iconBlob,
-              size: iconSize,
-              timestamp: Date.now()
-            });
-          };
-
-          img.onerror = () => {
-            reject(new Error(`Error while loading image.`));
-          };
+          resolve(iconBlob);
 
           return;
         }
@@ -361,6 +389,7 @@
     getBestIconFromMetaTags: getBestIconFromMetaTags,
 
     fetchIcon: fetchIcon,
+    fetchIconBlob: fetchIconBlob,
 
     get defaultIconSize() {
       return getDefaultIconSize();

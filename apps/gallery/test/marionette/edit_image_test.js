@@ -111,4 +111,15 @@ marionette('editing an image', function() {
     // Check auto enhance is turned off
     fullscreen_view.waitForAutoEnhanceButtonOff();
   });
+
+  test('Apply auto enhance and cancel to exit main edit screen', function() {
+    app.tapFirstThumbnail();
+    fullscreen_view.editButton.click();
+    fullscreen_view.applyAutoEnhance();
+
+    // Click on cancel after applying auto enhance should take user
+    // out of edit screen and display image in full screen view
+    fullscreen_view.performEditHeaderCancelAction();
+    assert.ok(fullscreen_view.displayed);
+  });
 });

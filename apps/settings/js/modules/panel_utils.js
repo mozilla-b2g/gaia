@@ -30,10 +30,11 @@ define(function(require) {
 
       request.onsuccess = function() {
         switch (input.type) {
-          case 'radio':
+          case 'gaia-radio':
             input.checked = (input.value == request.result[key]);
             break;
           case 'checkbox':
+          case 'gaia-checkbox':
             input.checked = request.result[key] || false;
             break;
           case 'select-one':
@@ -82,12 +83,13 @@ define(function(require) {
         fields.forEach(function(input) {
           key = input.dataset.setting;
           switch (input.type) {
-            case 'radio':
+            case 'gaia-radio':
               if (input.checked) {
                 cset[key] = input.value;
               }
               break;
             case 'checkbox':
+            case 'gaia-checkbox':
               cset[key] = input.checked;
               break;
             default:
@@ -202,7 +204,7 @@ define(function(require) {
         }, 0);
 
         // preset all radio buttons
-        rule = 'input[type="radio"]:not([data-ignore])';
+        rule = 'gaia-radio:not([data-ignore])';
         var radios = panel.querySelectorAll(rule);
         for (i = 0, count = radios.length; i < count; i++) {
           key = radios[i].name;
@@ -268,15 +270,13 @@ define(function(require) {
               spanFields[i].textContent = result[key];
             }
           } else { // result[key] is undefined
-            var _ = navigator.mozL10n.get;
             switch (key) {
               //XXX bug 816899 will also provide 'deviceinfo.software' from
               // Gecko which is {os name + os version}
               case 'deviceinfo.software':
                 navigator.mozL10n.setAttributes(spanFields[i],
                   'deviceInfo_software',
-                  { brandShortName: _('brandShortName'),
-                    os: result['deviceinfo.os'] });
+                  { os: result['deviceinfo.os'] });
                 break;
 
               //XXX workaround request from bug 808892 comment 22
@@ -383,8 +383,11 @@ define(function(require) {
       }
 
       // update <input> values when the corresponding setting is changed
-      var inputs = [].slice.call(panel.querySelectorAll(`input[name="${key}"],
-        gaia-switch[name="${key}"], gaia-checkbox[name="${key}"]`));
+      var inputs = [].slice.call(panel.querySelectorAll(
+        `input[name="${key}"],
+        gaia-switch[name="${key}"],
+        gaia-checkbox[name="${key}"],
+        gaia-radio[name="${key}"]`));
       if (!inputs.length) {
         return;
       }
@@ -415,7 +418,7 @@ define(function(require) {
               }
             }
             break;
-          case 'radio':
+          case 'gaia-radio':
             input.checked = (input.value === value);
             break;
         }
@@ -472,7 +475,7 @@ define(function(require) {
           value = parseFloat(parseFloat(input.value).toFixed(1)); // float
           break;
         case 'select-one':
-        case 'radio':
+        case 'gaia-radio':
         case 'text':
         case 'password':
           value = input.value; // default as text

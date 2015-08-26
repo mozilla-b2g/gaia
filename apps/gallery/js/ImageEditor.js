@@ -548,9 +548,10 @@ function applyEditTool() {
 }
 
 function onCancelButton() {
-  // Check for currentEditTool to find if user is cancelling out
-  // from edit tool screen or main edit screen
-  if (currentEditTool === null) {
+  // Check for currentEditTool to find if user is cancelling out from
+  // edit tool screen - crop, effect, exposure or main edit screen
+  if (currentEditTool === null || currentEditTool === 'enhance') {
+    currentEditTool = null;
     // Exit main edit screen withot saving edited image
     exitEdit(false);
   } else {
@@ -643,13 +644,15 @@ function exitEdit(saved) {
   // we want the slider re-zeroed for the next time we come into the editor
   exposureSlider.forceSetExposure(0.0);
 
-  // We came in to edit mode from fullscreenView.  If the user cancels the edit
-  // go back to fullscreenView.  Otherwise, if the user saves the photo, we go
-  // back to thumbnail list view because that is where the newly saved
-  // image is going to show up.
-  // XXX: this isn't really right. Ideally the new photo should show up
-  // right next to the old one and we should go back to fullscreenView to view
-  // the edited photo.
+  // If exitEdit is called without saved argument e.g. when device storage
+  // is unavailable, exit now and do not check for saved.
+  if (saved === undefined) {
+    return;
+  }
+
+  // We came in to edit mode from fullscreenView. If the user cancels the edit
+  // go back to fullscreenView to original image. Otherwise, if the user saves
+  // the photo, we should go back to fullscreenView to view the edited photo.
   if (saved) {
     // After we sucessfully save a picture, we need to make sure that the
     // current file will point to it. We need a flag for fileCreated(),

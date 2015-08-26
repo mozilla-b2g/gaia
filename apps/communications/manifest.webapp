@@ -84,7 +84,8 @@
     "device-storage:sdcard": { "access": "readcreate" },
     "phonenumberservice": {},
     "nfc-share":{},
-    "nfc":{}
+    "nfc":{},
+    "moz-extremely-unstable-and-will-change-webcomponents":{}
   },
   "orientation": "default",
   "activities": {
@@ -109,7 +110,7 @@
         }
       },
       "disposition": "inline",
-      "href": "/contacts/index.html?open",
+      "href": "/contacts/index.html?import",
       "returnValue": true
     },
     "open": [
@@ -123,11 +124,10 @@
     },
     {
       "filters": {
-        "type": ["text/vcard", "text/x-vcard",
-                 "text/directory"]
+        "type": ["text/vcard", "text/x-vcard", "text/directory"]
       },
       "disposition": "inline",
-      "href": "/contacts/index.html?open",
+      "href": "/contacts/views/vcard_load/vcard_load.html",
       "returnValue": true
     }
     ],
@@ -136,7 +136,7 @@
         "type": "webcontacts/contact"
       },
       "disposition": "inline",
-      "href": "/contacts/views/form/form.html",
+      "href": "/contacts/views/form/form.html?action=new",
       "returnValue": true
     },
     "update": {

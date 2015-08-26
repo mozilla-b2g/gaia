@@ -15,6 +15,8 @@
 /* global utils */
 /* global ContactsService */
 /* global HeaderUI */
+/* global ICEView */
+/* global Search */
 
 var contacts = window.contacts || {};
 contacts.List = (function() {
@@ -178,7 +180,7 @@ contacts.List = (function() {
 
     monitor && monitor.pauseMonitoringMutations();
     updateRowStyle(row, false);
-    var search = contacts.Search;
+    var search = window.Search;
     if (!search || !search.isInSearchMode()) {
       releasePhoto(row);
     }
@@ -205,6 +207,16 @@ contacts.List = (function() {
       resetDom();
     }
 
+    window.addEventListener('list-shown', function() {
+      if (!loading) {
+        return;
+      }
+      
+      ContactsService.resume(function isRendered(contact) {
+        return !!loadedContacts[contact.id];
+      });
+    });
+
     createPhotoTemplate();
 
     Cache.oneviction = onCacheEvicted;
@@ -225,9 +237,9 @@ contacts.List = (function() {
     }
   }
 
-  // Define a source adapter object to pass to contacts.Search.
+  // Define a source adapter object to pass to Search.
   //
-  // Since multiple, separate apps use contacts.Search its important for
+  // Since multiple, separate apps use Search its important for
   // the search code to function independently.  This adapter object allows
   // the search module to access the app's contacts without knowing anything
   // about our DOM structure.
@@ -257,7 +269,7 @@ contacts.List = (function() {
     },
 
     // While loading we expect to feed search more nodes via the
-    // contacts.Search.appendNodes() function.
+    // Search.appendNodes() function.
     expectMoreNodes: function() {
       return loading;
     },
@@ -291,7 +303,7 @@ contacts.List = (function() {
   }; // searchSource
 
   var initSearch = function initSearch(callback) {
-    contacts.Search.init(searchSource, true, selectNavigationController);
+    Search.init(searchSource, true, selectNavigationController);
 
     if (callback) {
       callback();
@@ -690,8 +702,8 @@ contacts.List = (function() {
     // If the search view has been activated by the user, then send newly
     // loaded contacts over to populate any in-progress search.  Nothing
     // to do if search is not actived.
-    if (contacts.Search && contacts.Search.appendNodes) {
-      contacts.Search.appendNodes(nodes);
+    if (window.Search && Search.appendNodes) {
+      Search.appendNodes(nodes);
     }
   }
 
@@ -1016,8 +1028,8 @@ contacts.List = (function() {
             renderPhoto(out, id, true, out.dataset.group);
             return out;
           }
-          contacts.ICEView.init(iceContacts, rowBuilder, onClickHandler);
-          contacts.ICEView.showICEList();
+          ICEView.init(iceContacts, rowBuilder, onClickHandler);
+          ICEView.showICEList();
         });
       });
     });
@@ -1591,27 +1603,17 @@ contacts.List = (function() {
       return;
     }
 
-    // Passed an ID, so look up contact
-    LazyLoader.load([
-     '/contacts/js/fb/fb_init.js',
-     '/contacts/js/fb_loader.js'
-    ], () => {
-      ContactsService.get(idOrContact, function(contact, fbData) {
-        var enrichedContact = null;
-        if (fb.isFbContact(contact)) {
-          var fbContact = new fb.Contact(contact);
-          enrichedContact = fbContact.merge(fbData);
-        }
-        refreshContact(contact, enrichedContact, callback);
-      });
+
+    ContactsService.get(idOrContact, function(contact) {
+      refreshContact(contact, null, callback);
     });
   };
 
   function refreshContact(contact, enriched, callback) {
     remove(contact.id);
     addToList(contact, enriched);
-    if (contacts.Search) {
-      contacts.Search.updateSearchList(function() {
+    if (window.Search) {
+      Search.updateSearchList(function() {
         if (callback) {
           callback(contact.id);
         }
@@ -1960,8 +1962,8 @@ contacts.List = (function() {
       selectedContacts[id] = !selectedContacts[id];
       updateRowSelection([id]);
       handleSelection(null);
-      if (contacts.Search && contacts.Search.isInSearchMode()) {
-        contacts.Search.selectRow(id, selectedContacts[id]);
+      if (window.Search && Search.isInSearchMode()) {
+        Search.selectRow(id, selectedContacts[id]);
       }
     });
 

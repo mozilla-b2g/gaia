@@ -262,12 +262,15 @@
   border: none;
   position: absolute;
   pointer-events: auto;
-
-  filter: url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\'><filter id=\'shadow\'><feGaussianBlur in=\"SourceAlpha\" stdDeviation=\'2\'/><feOffset dx=\'0\' dy=\'0\' result=\'offsetblur\'/><feFlood flood-color=\'rgba(0,0,0,0.2)\'/><feComposite in2=\'offsetblur\' operator=\'in\'/><feMerge><feMergeNode/><feMergeNode in=\'SourceGraphic\'/></feMerge></filter></svg>#shadow");
-
+  opacity: 1;
+  transition: opacity var(--transition-duration);
 }
 #cards-view .card.browser .card-tray > button.appIcon {
   background-image: url('../../shared/resources/branding/browser_126.png');
+}
+
+#cards-view .card.browser .card-tray > button.appIcon.pending {
+  opacity: 0;
 }
 
 #cards-view .private .close-button,

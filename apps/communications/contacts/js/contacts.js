@@ -10,9 +10,12 @@
 /* global Loader */
 /* global TAG_OPTIONS */
 /* global utils */
+/* global GaiaHeader */
+/* global GaiaSubheader */
 /* global HeaderUI */
-
+/* global Search */
 /* global ContactsService */
+/* global ParamUtils */
 
 /* exported COMMS_APP_ORIGIN */
 /* exported SCALE_RATIO */
@@ -41,8 +44,7 @@ var Contacts = (function() {
   var detailsReady = false;
   var formReady = false;
 
-  var currentContact = {},
-      currentFbContact;
+  var currentContact = {};
 
   var contactsList;
   var contactsDetails;
@@ -140,12 +142,9 @@ var Contacts = (function() {
         break;
       case 'add-parameters':
         initContactsList();
-        initForm(function onInitForm() {
-          MainNavigation.home();
-          if (ActivityHandler.currentlyHandling) {
-            selectList(params, true);
-          }
-        });
+        if (ActivityHandler.currentlyHandling) {
+          selectList(params, true);
+        }
         break;
       case 'multiple-select-view':
         Loader.view('multiple_select', () => {
@@ -240,26 +239,22 @@ var Contacts = (function() {
   };
 
   var contactListClickHandler = function originalHandler(id) {
-    initDetails(function onDetailsReady() {
-      ContactsService.get(id, function findCb(contact, fbContact) {
 
-        currentContact = contact;
-        currentFbContact = fbContact;
+    if (!ActivityHandler.currentlyHandling) {
+      window.location.href = ParamUtils.generateUrl('detail', {contact:id});
+      return;
+    }
 
-        if (ActivityHandler.currentActivityIsNot(['import'])) {
-          if (ActivityHandler.currentActivityIs(['pick'])) {
-            ActivityHandler.dataPickHandler(currentFbContact || currentContact);
-          }
-          return;
+    ContactsService.get(id, function findCb(contact) {
+      currentContact = contact;
+      if (ActivityHandler.currentActivityIsNot(['import'])) {
+        if (ActivityHandler.currentActivityIs(['pick'])) {
+          ActivityHandler.dataPickHandler(currentContact);
         }
+        return;
+      }
 
-        contactsDetails.render(currentContact, currentFbContact);
-        if (contacts.Search && contacts.Search.isInSearchMode()) {
-          MainNavigation.go('view-contact-details', 'go-deeper-search');
-        } else {
-          MainNavigation.go('view-contact-details', 'go-deeper');
-        }
-      });
+      window.location.href = ParamUtils.generateUrl('detail', {contact:id});
     });
   };
 
@@ -274,28 +269,31 @@ var Contacts = (function() {
     HeaderUI.hideAddButton();
     contactsList.clearClickHandlers();
     contactsList.handleClick(function addToContactHandler(id) {
-      var data = {};
+
+      var optionalParams;
+
       if (params.hasOwnProperty('tel')) {
-        var phoneNumber = params.tel;
-        data.tel = [{
-          'value': phoneNumber,
-          'carrier': null,
-          'type': [TAG_OPTIONS['phone-type'][0].type]
-        }];
+        optionalParams = {
+          action: 'update',
+          contact: id,
+          isActivity: true,
+          tel: params.tel
+        };
       }
+
       if (params.hasOwnProperty('email')) {
-        var email = params.email;
-        data.email = [{
-          'value': email,
-          'type': [TAG_OPTIONS['email-type'][0].type]
-        }];
+        optionalParams = {
+          action: 'update',
+          contact: id,
+          isActivity: true,
+          email: params.email
+        };
       }
-      var hash = '#view-contact-form?extras=' +
-        encodeURIComponent(JSON.stringify(data)) + '&id=' + id;
-      if (fromUpdateActivity) {
-        hash += '&fromUpdateActivity=1';
-      }
-      window.location.hash = hash;
+
+      window.location.href = ParamUtils.generateUrl(
+        'form',
+        optionalParams
+      );
     });
   };
 
@@ -320,7 +318,7 @@ var Contacts = (function() {
   };
 
   var showAddContact = function showAddContact() {
-    showForm();
+    window.location.href = ParamUtils.generateUrl('form',{action: 'new'});
   };
 
   var loadFacebook = function loadFacebook(callback) {
@@ -476,7 +474,7 @@ var Contacts = (function() {
   var enterSearchMode = function enterSearchMode(evt) {
     Loader.view('Search', function viewLoaded() {
       contacts.List.initSearch(function onInit() {
-        contacts.Search.enterSearchMode(evt);
+        Search.enterSearchMode(evt);
       });
     });
   };
@@ -625,6 +623,10 @@ var Contacts = (function() {
         checkPendingChanges(event.contactID);
         notifyContactChanged(event.contactID, event.reason);
         break;
+      case 'merged':
+        contactsList.remove(event.contactID);
+        notifyContactChanged(event.contactID, 'remove');
+        break;
     }
   };
 
@@ -692,11 +694,49 @@ var Contacts = (function() {
     window.removeEventListener('DOMContentLoaded', onLoad);
   });
 
+  sessionStorage.setItem('contactChanges', null);
+  window.addEventListener('pageshow', function onPageshow() {
+
+    window.dispatchEvent(new CustomEvent('list-shown'));
+
+    // XXX: Workaround until the platform will be fixed
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=1184953
+    document.registerElement(
+      'gaia-header',
+      { prototype: GaiaHeader.prototype }
+    );
+    document.registerElement(
+      'gaia-subheader',
+      { prototype: GaiaSubheader.prototype }
+    );
+
+    // XXX: As well we need to get back the theme color
+    // due to the bug with back&forward cache mentioned before
+    var meta = document.querySelector('meta[name="theme-color"]');
+    document.head.removeChild(meta);
+    meta = document.createElement('meta');
+    meta.content = 'var(--header-background)';
+    meta.name = 'theme-color';
+    document.head.appendChild(meta);
+
+    // #new handling
+    var eventsStringified = sessionStorage.getItem('contactChanges');
+    if (!eventsStringified || eventsStringified === 'null') {
+      return;
+    }
+    
+    var changeEvents = JSON.parse(eventsStringified);
+    for (var i = 0; i < changeEvents.length; i++) {
+      performOnContactChange(changeEvents[i]);
+    }
+    sessionStorage.setItem('contactChanges', null);
+  });
+
   return {
     'goBack' : handleBack,
     'cancel': handleCancel,
-    'showForm': showForm,
     'setCurrent': setCurrent,
+    'showForm': showForm,
     'onLocalized': onLocalized,
     'init': init,
     'showOverlay': showOverlay,

@@ -46,6 +46,7 @@ class TestSmsAddToExistingContact(GaiaTestCase):
 
         contacts = Contacts(self.marionette)
         contacts.launch()
+        contacts.wait_for_contacts()
 
         contact_details = contacts.contacts[0].tap()
         self.assertEqual(contact_details.phone_numbers[1], self.environment.phone_numbers[0])

@@ -59,8 +59,8 @@ Apps.prototype = {
    * for example: myapp.mydomain.com, otherapp.mydomain.com, and so forth.
    * @return {DOMRequest} Request that supports onsuccess, onerror callbacks.
    */
-  getSelf: function() {
-    throw 'Not yet implemented';
+  getSelf: function(callback) {
+    return this.mgmt.getSelf(callback);
   },
 
 

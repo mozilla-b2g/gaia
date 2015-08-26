@@ -9,49 +9,6 @@
    * @module CardsHelper
    */
 
-  function getIconURIForApp(app, maxSize) {
-    if (!app) {
-      return null;
-    }
-    var icons = app.manifest && app.manifest.icons;
-    var iconPath;
-
-    if (icons) {
-      var sizes = Object.keys(icons).map(function parse(str) {
-        return parseInt(str, 10);
-      });
-
-      sizes.sort(function(x, y) { return y - x; });
-
-      iconPath = icons[0]; // The biggest icon available
-      for (var i = 0; i < sizes.length; i++) {
-        var size = sizes[i];
-
-        if (size < maxSize) {
-          break;
-        }
-
-        iconPath = icons[size];
-      }
-    } else {
-      iconPath = app.icon;
-    }
-
-    if (!iconPath) {
-      return null;
-    }
-
-    if (iconPath.charAt(0) === '/') {
-      // We need to resolve iconPath as a relative url to origin, since
-      // origin can be a full url in some apps.
-      var base = new URL(app.origin);
-      var port = base.port ? (':' + base.port) : '';
-      iconPath = base.protocol + '//' + base.hostname + port + iconPath;
-    }
-
-    return iconPath;
-  }
-
   function getOffOrigin(src, origin) {
     // Use src and origin as cache key
     src = src || origin;
@@ -82,7 +39,6 @@
   getOffOrigin.cache = {};
 
   exports.CardsHelper = {
-    getIconURIForApp: getIconURIForApp,
     getOffOrigin: getOffOrigin
   };
 

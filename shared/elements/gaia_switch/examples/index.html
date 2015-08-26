@@ -15,6 +15,7 @@
     }
     section {
       text-align: center;
+      margin-bottom: 10px;
     }
   </style>
   <script src="../../../js/component_utils.js"></script>
@@ -24,11 +25,14 @@
 </head>
 <body role="application">
   <section>
-    <gaia-switch checked></gaia-switch>
+    <gaia-switch>
+      <label>With a label</label>
+    </gaia-switch>
   </section>
   <section>
     <gaia-switch>
-      <label>With a label</label>
+      <label>With a different label</label>
+      <details>Sometimes a gaia switch can have an explanation. Sometimes a gaia switch can have an explanation. Sometimes a gaia switch can have an explanation. </details>
     </gaia-switch>
   </section>
   <div id="result"></div>
