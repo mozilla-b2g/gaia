@@ -120,6 +120,11 @@
   z-index: 16386;
 }
 
+/* The View Source window has to go just below the utility tray. */
+#screen > [data-z-index-level="view-source"] {
+  z-index: 16384;
+}
+
 /* In landscape the software home button is on the right side of the screen
  * so we demote it below the gesture-panels to prevent edge gestures issues
  * (the software home button doesn't need to be on top of the keyboard
