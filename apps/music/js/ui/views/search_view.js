@@ -1,7 +1,8 @@
 /* exported SearchView */
 /* global App, createListElement, Database, ListView, ModeManager, MODE_LIST,
-          MODE_PLAYER, MODE_SEARCH_FROM_TILES, MODE_SUBLIST, MODE_TILES,
-          PlaybackQueue, PlayerView, SubListView, TabBar, TilesView */
+          MODE_PICKER, MODE_PLAYER, MODE_SEARCH_FROM_TILES, MODE_SUBLIST,
+          MODE_TILES, PlaybackQueue, PlayerView, SubListView, TabBar,
+          TilesView */
 'use strict';
 
 var SearchView = {
@@ -147,11 +148,11 @@ var SearchView = {
     this.clear();
 
     if (ModeManager.currentMode === MODE_SEARCH_FROM_TILES) {
-      ModeManager.start(MODE_TILES, function() {
+      ModeManager.start(MODE_TILES, () => {
         TilesView.hideSearch();
       });
     } else {
-      ModeManager.start(MODE_LIST, function() {
+      ModeManager.start(App.pendingPick ? MODE_PICKER : MODE_LIST, () => {
         ListView.hideSearch();
       });
     }
