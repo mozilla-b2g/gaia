@@ -11,7 +11,6 @@ copy git/git-ci-checkout-setup /usr/local/bin/git-ci-checkout-setup
 
 run git config --global user.email "gaia@mozilla.com"
 run git config --global user.name "gaia-taskenv"
-run npm install -g taskcluster-vcs@2.3.4
 
 # run some more root commands which change frequently
 copy ./bin/entrypoint /home/worker/bin/entrypoint
