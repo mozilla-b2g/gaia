@@ -27,3 +27,7 @@ class TestSettingsCellData(GaiaTestCase):
         cell_data_prompt.turn_on()
         status_bar = System(self.marionette).status_bar.minimized
         status_bar.wait_for_data_to_be_connected()
+
+    def tearDown(self):
+        self.data_layer.disable_cell_data()
+        GaiaTestCase.tearDown(self)

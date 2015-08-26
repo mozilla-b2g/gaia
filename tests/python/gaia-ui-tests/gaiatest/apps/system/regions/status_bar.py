@@ -27,7 +27,7 @@ class StatusBar(PageRegion):
     @property
     def maximized(self):
         """
-        Status bar in its maximized form. When the RocketBar under the connectivity icons.
+        Status bar in its maximized form. When the RocketBar is under the connectivity icons.
         Usually seen in HomeScreen
         """
         return self.StatusBarRegion(self.marionette, self._status_bar_maximized_locator)
@@ -71,12 +71,11 @@ class StatusBar(PageRegion):
         @property
         def is_data_connected(self):
             element = self.root_element.find_element(*self._data_connection)
-            print ('data', element.get_attribute('hidden'))
             return element.get_attribute('hidden') != 'true'
 
         def _safe_wait(self, condition):
-            # The status bar is removed from the DOM at each refresh, Marionette can loose while
-            # performing a wait.
+            # The status bar is removed from the DOM each time an element of the status bar is changed.
+            # Marionette can loose while performing a wait.
             try:
                 Wait(self.marionette).until(condition)
             except StaleElementException:

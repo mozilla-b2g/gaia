@@ -18,4 +18,4 @@ class CellDataPrompt(PageRegion):
 
     def turn_on(self):
         self.root_element.find_element(*self._turn_on_button_locator).tap()
-        Wait(self.marionette).until(lambda m: self.root_element.location['x'] == self.root_element.size['width'])
+        Wait(self.marionette).until(lambda m: self.root_element.rect['x'] == self.root_element.rect['width'])
