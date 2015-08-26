@@ -63,9 +63,8 @@ class FTUStep3(CostControl):
         Wait(self.marionette).until(lambda m: int(data_limit_view.location['y']) == int(data_limit_view.size['height']))
 
     def tap_lets_go(self):
-        element = self.marionette.find_element(*self._go_button_locator)
-        element.tap()
-        Wait(self.marionette).until(expected.element_not_displayed(element))
+        self.marionette.find_element(*self._go_button_locator).tap()
+        Wait(self.marionette).until(expected.element_not_displayed(*self._ftu_frame_locator))
         self.apps.switch_to_displayed_app()
 
         # TODO Some wait for Usage to fully initialize

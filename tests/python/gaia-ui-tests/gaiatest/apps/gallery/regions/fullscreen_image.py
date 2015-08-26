@@ -104,7 +104,7 @@ class FullscreenImage(Base):
         self.apps.switch_to_displayed_app()
         camera_app.wait_for_capture_ready()
         Wait(self.marionette).until(expected.element_not_displayed(*self._loading_screen_locator))
-        return camera_app 
+        return camera_app
 
     def double_tap_image(self):
         image = self.marionette.find_element(*self._current_image_locator)
