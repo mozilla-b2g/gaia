@@ -17,7 +17,7 @@ task:
     image: taskcluster/npm-cache:0.1.10
 
     cache:
-      gaia-misc-caches: /home/tester/caches/
+      gaia-misc-caches: /home/worker/caches/
     
     command:
       - entrypoint
