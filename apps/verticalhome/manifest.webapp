@@ -44,8 +44,6 @@
     "284": "/style/icons/vertical_284.png"
   },
   "orientation": "default",
-  "activities": {},
-  "messages": [],
   "datastores-access": {
     "bookmarks_store": {
       "readonly": false,
