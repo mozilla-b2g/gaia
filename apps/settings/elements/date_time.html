@@ -50,7 +50,14 @@
       <header>
         <h2 data-l10n-id="time-format"></h2>
       </header>
-      <ul class="timeformat">
+      <ul class="time-format-auto" data-state="auto">
+        <li>
+          <gaia-switch checked>
+            <label data-l10n-id="useDefaultTimeFormat"></label>
+          </gaia-switch>
+        </li>
+      </ul>
+      <ul class="timeformat disabled">
         <li>
           <p data-l10n-id="time-format-time"></p>
           <span class="button icon icon-dialog">

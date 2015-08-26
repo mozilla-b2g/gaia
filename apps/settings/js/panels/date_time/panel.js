@@ -27,7 +27,10 @@ define(function(require) {
             panel.querySelectorAll('.timezone-picker')),
           timezoneInfo: panel.querySelector('.timezone-info'),
           timezoneInfoText: panel.querySelector('.timezone-info-text'),
-          timeFormat: panel.querySelector('.time-format-time')
+          timeFormat: panel.querySelector('.timeformat'),
+          timeFormatAutoSwitch:
+            panel.querySelector('.time-format-auto gaia-switch'),
+          timeFormatSwitch: panel.querySelector('.time-format-time')
         };
 
         // update date/clock periodically
@@ -51,11 +54,22 @@ define(function(require) {
         };
 
         this._boundUpdateUI = this._updateUI.bind(this);
+        this._boundRenderTimeFormat = this._renderTimeFormat.bind(this);
         this._boundDatePickerChange = this._datePickerChange.bind(this);
         this._boundTimePickerChange = this._timePickerChange.bind(this);
+        this._boundTimeFormatAutoChange = () => {
+          var checked = this._elements.timeFormatAutoSwitch.checked;
+
+          if (checked) {
+            DateTime.setCurrentHour12(null);
+          } else {
+            var isHour12 = DateTime.getHour12ForCurrentLocale();
+            DateTime.setCurrentHour12(isHour12);
+          }
+        };
 
         this._boundTimeFormatChange = () => {
-          var value = (this._elements.timeFormat.value === HOUR_12);
+          var value = (this._elements.timeFormatSwitch.value === HOUR_12);
           DateTime.setCurrentHour12(value);
         };
       },
@@ -66,6 +80,7 @@ define(function(require) {
         DateTime.observe('clockAutoEnabled', this._boundUpdateUI);
         DateTime.observe('clockAutoAvailable', this._boundUpdateUI);
         DateTime.observe('timezoneAutoAvailable', this._boundUpdateUI);
+        DateTime.observe('currentHour12', this._boundRenderTimeFormat);
         DateTime.observe('userSelectedTimezone',
           this._boundSetSelectedTimeZone);
 
@@ -73,8 +88,10 @@ define(function(require) {
           this._boundDatePickerChange);
         this._elements.timePicker.addEventListener('input',
           this._boundTimePickerChange);
-        this._elements.timeFormat.addEventListener('change',
+        this._elements.timeFormatSwitch.addEventListener('change',
           this._boundTimeFormatChange);
+        this._elements.timeFormatAutoSwitch.addEventListener('change',
+          this._boundTimeFormatAutoChange);
 
         this._renderTimeZone();
         this._boundSetDate();
@@ -96,6 +113,7 @@ define(function(require) {
         DateTime.unobserve('clockAutoEnabled', this._boundUpdateUI);
         DateTime.unobserve('clockAutoAvailable', this._boundUpdateUI);
         DateTime.unobserve('timezoneAutoAvailable', this._boundUpdateUI);
+        DateTime.unobserve('currentHour12', this._boundRenderTimeFormat);
         DateTime.unobserve('userSelectedTimezone',
           this._boundSetSelectedTimeZone);
 
@@ -103,8 +121,10 @@ define(function(require) {
           this._boundDatePickerChange);
         this._elements.timePicker.removeEventListener('input',
           this._boundTimePickerChange);
-        this._elements.timeFormat.removeEventListener('change',
+        this._elements.timeFormatSwitch.removeEventListener('change',
           this._boundTimeFormatChange);
+        this._elements.timeFormatAutoSwitch.removeEventListener('change',
+          this._boundTimeFormatAutoChange);
 
         window.removeEventListener('localized', this);
       },
@@ -202,9 +222,24 @@ define(function(require) {
        * Update TimeFormat selector
        */
       _renderTimeFormat: function dt_renderTimeFormat() {
+        var hour12Value = DateTime.currentHour12;
+        if (hour12Value === null) {
+          hour12Value = undefined;
+        }
+        if (hour12Value === undefined) {
+          this._elements.timeFormatAutoSwitch.checked = true;
+          this._elements.timeFormat.classList.add('disabled');
+        } else {
+          this._elements.timeFormatAutoSwitch.checked = false;
+          this._elements.timeFormat.classList.remove('disabled');
+        }
         // restore default selection
+        if (hour12Value === undefined) {
+          hour12Value = DateTime.getHour12ForCurrentLocale();
+        }
+
         var selectedItem = 0;
-        if (!DateTime.currentHour12) {
+        if (hour12Value === false) {
           selectedItem = 1;
         }
 
@@ -216,7 +251,7 @@ define(function(require) {
           value: HOUR_24
         }];
 
-        var obj = this._elements.timeFormat;
+        var obj = this._elements.timeFormatSwitch;
         while(obj.options.length) { // clean options
           obj.remove(0);
         }
