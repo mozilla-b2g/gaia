@@ -791,7 +791,7 @@ endif
 b2g: node_modules
 	DEBUG=* ./node_modules/.bin/mozilla-download \
 	--product b2g-desktop \
-	--branch mozilla-central \
+	--branch b2g-inbound \
 	$(shell pwd)
 	touch -c $@
 
