@@ -1,4 +1,4 @@
 #! /bin/bash -e
 
 ./build
-docker run $@ -v $PWD/bin:/home/tester/bin -i -t $(cat DOCKER_TAG):$(cat VERSION) /bin/bash
+docker run $@ -v $PWD/bin:/home/worker/bin -i -t $(cat DOCKER_TAG):$(cat VERSION) /bin/bash
