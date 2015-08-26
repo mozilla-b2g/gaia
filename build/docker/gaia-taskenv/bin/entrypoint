@@ -7,15 +7,24 @@ export DISPLAY=:0
 
 checkout_path="$PWD/git_checkout"
 
-# Run the checkout to the correct url, etc...
+# Handle initial clone and caching of the initial clone...
 step_checkout() {
- tc-vcs \
-  checkout \
-  $checkout_path \
-  $GITHUB_BASE_GIT \
-  $GITHUB_HEAD_GIT \
-  $GITHUB_BASE_REV \
-  $GITHUB_HEAD_REV 
+  # Extract the cached clone (this is kept as a tarball to always keep a clean
+  # working state without worrying about tree issues).
+  if [ "$GITHUB_PULL_REQUEST" == "1" ];
+  then
+    tc-vcs checkout $checkout_path \
+      $GITHUB_BASE_GIT \
+      $GITHUB_HEAD_GIT \
+      $GITHUB_HEAD_BRANCH \
+      $GITHUB_HEAD_REV_
+  else
+    tc-vcs checkout $checkout_path \
+      $GITHUB_BASE_GIT \
+      $GITHUB_HEAD_GIT \
+      $GITHUB_HEAD_BRANCH \
+      $GITHUB_HEAD_REV
+  fi
 }
 
 # Set-up our npm-cache.
