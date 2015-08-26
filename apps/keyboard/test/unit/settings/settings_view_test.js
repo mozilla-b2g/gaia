@@ -3,6 +3,9 @@
 /* global SettingsManagerBase, SettingsPromiseManager, CloseLockManager,
           CloseLock, SettingsView, BaseView */
 
+require('/shared/js/component_utils.js');
+require('/shared/elements/gaia_checkbox/script.js');
+
 require('/js/settings/close_locks.js');
 require('/js/settings/base_view.js');
 require('/js/settings/settings_view.js');
@@ -18,9 +21,8 @@ suite('SettingsView', function() {
 
   setup(function(done) {
     var container = document.createElement('div');
-    el = document.createElement('input');
-    el.type = 'checkbox';
-    el.disabled = true;
+    el = document.createElement('gaia-checkbox');
+    el.setAttribute('disabled', true);
     el.dataset.setting = 'foo.bar';
     container.appendChild(el);
     el2 = document.createElement('input');
@@ -59,7 +61,8 @@ suite('SettingsView', function() {
     view = new SettingsView(app, container, SettingsConstructor);
     view.start();
 
-    assert.isTrue(el.disabled, 'Stay disabled until init settings returns');
+    assert.isTrue(el.hasAttribute('disabled'),
+      'Stay disabled until init settings returns');
     assert.isTrue(el2.disabled, 'Stay disabled until init settings returns');
 
     view.taskQueue.then(done, function() {

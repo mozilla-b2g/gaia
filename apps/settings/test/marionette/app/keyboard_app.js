@@ -14,7 +14,8 @@ function KeyboardApp(client) {
 module.exports = KeyboardApp;
 
 KeyboardApp.Selectors = {
-  'settingsHeader': '#general-header'
+  'settingsHeader': '#general-header',
+  'vibrationCheckbox': '#cb-vibration'
 };
 
 KeyboardApp.SETTINGS_LAUNCH_PATH = 'app://keyboard.gaiamobile.org/' +
@@ -22,6 +23,10 @@ KeyboardApp.SETTINGS_LAUNCH_PATH = 'app://keyboard.gaiamobile.org/' +
 
 KeyboardApp.prototype = {
   __proto__: Base.prototype,
+
+  get vibrationFromMozSettings() {
+    return this.client.settings.get('keyboard.vibration');
+  },
 
   switchToSettings: function() {
     this.client.switchToFrame();
@@ -65,6 +70,10 @@ KeyboardApp.prototype = {
     });
 
     this.client.switchToFrame(settingsFrame);
+  },
+
+  clickVibrationOption: function() {
+    this.waitForElement('vibrationCheckbox').click();
   },
 
   goBackToSettingsApp: function() {
