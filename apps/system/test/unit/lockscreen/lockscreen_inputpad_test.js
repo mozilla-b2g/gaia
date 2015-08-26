@@ -24,7 +24,9 @@ suite('LockScreenInputpad', function() {
     });
     mockLockScreenFacade = {};
     subject = new LockScreenInputpad(mockLockScreenFacade);
+    var stub = sinon.stub(subject, 'toggleEmergencyButton');
     subject.start();
+    stub.restore();
   });
 
   teardown(function() {
@@ -57,7 +59,7 @@ suite('LockScreenInputpad', function() {
       .classList.contains('disabled'));
   });
 
-  suite('updatePassCodeUI', function() {
+  suite('updatePassCodeUI >', function() {
     test('it would add passcode-entered class while passcode entered',
     function() {
       var method = subject.updatePassCodeUI;
@@ -71,10 +73,10 @@ suite('LockScreenInputpad', function() {
       method.apply(mockSubject);
       assert.isTrue(mockSubject.passcodePad
         .classList.contains('passcode-entered'),
-        'no passcode-entered class added');
+        'passcode-entered class not added when one is entered');
     });
 
-    test('it would add passcode-entered class while no passcode entered',
+    test('it would clear passcode-entered class while no passcode entered',
     function() {
       var method = subject.updatePassCodeUI;
       var mockSubject = {
@@ -84,136 +86,160 @@ suite('LockScreenInputpad', function() {
         passcodePad: document.createElement('div'),
         passcodeCode: document.createElement('div')
       };
-      var stubRemove = this.sinon.stub(mockSubject.passcodePad.classList,
-        'remove');
+      mockSubject.passcodePad.classList.add('passcode-entered');
       method.apply(mockSubject);
-      assert.isTrue(stubRemove.called,
-        'no remove method called; so the class may still stick on it');
-    });
-  });
-
-  suite('decorateErrorPasscodeUI', function() {
-    var originalStates,
-        originalConfigs,
-        stubStates,
-        stubConfigs,
-        stubRemoveErrorPasscodeUI;
-    setup(function() {
-      originalStates = Object.create(subject.states);
-      originalConfigs = Object.create(subject.configs);
-      stubStates = {
-        passcodeErrorCounter: 0
-      };
-      stubConfigs = {
-        passcodeDecoratingTimeout: 1
-      };
-      subject.states = stubStates;
-      subject.configs = stubConfigs;
-      stubRemoveErrorPasscodeUI = sinon.stub(subject, 'removeErrorPasscodeUI');
-    });
-    test('error count < 5', function(done) {
-      subject.decorateErrorPasscodeUI()
-      .then(() => {
-        assert.equal(1, stubStates.passcodeErrorCounter);
-        assert.isTrue(subject.passcodeCode.classList.contains('error'));
-        assert.isTrue(subject.removeErrorPasscodeUI.called);
-      })
-      .then(done)
-      .catch(done);
+      assert.isFalse(mockSubject.passcodePad
+        .classList.contains('passcode-entered'),
+        'passcode-entered class not removed when none is entered');
     });
 
-    test('error count > 5', function(done) {
-      subject.states.passcodeErrorCounter = 6;
-      subject.decorateErrorPasscodeUI()
-      .then(() => {
-        assert.equal(2, subject.configs.passcodeDecoratingTimeout);
-        assert.isTrue(subject.passcodeCode.classList.contains('error'));
-        assert.isTrue(subject.removeErrorPasscodeUI.called);
-      })
-      .then(done)
-      .catch(done);
-    });
-    teardown(function() {
-      subject.states = originalStates;
-      subject.configs = originalConfigs;
-      stubRemoveErrorPasscodeUI.restore();
-    });
+    test('it would set error class during error timeout state',
+      function() {
+        var method = subject.updatePassCodeUI;
+        var mockSubject = {
+          states: {
+            passCodeEntered: '',
+            passCodeErrorTimeoutPending: true
+          },
+          passcodePad: document.createElement('div'),
+          passcodeCode: document.createElement('div')
+        };
+        method.apply(mockSubject);
+        assert.isTrue(mockSubject.passcodeCode
+          .classList.contains('error'),
+          'error class was not added during error timeout');
+      });
+
+    test('it would clear error class when not in error timeout state',
+      function() {
+        var method = subject.updatePassCodeUI;
+        var mockSubject = {
+          states: {
+            passCodeEntered: '',
+            passCodeErrorTimeoutPending: false
+          },
+          passcodePad: document.createElement('div'),
+          passcodeCode: document.createElement('div')
+        };
+        mockSubject.passcodeCode.classList.add('error');
+        method.apply(mockSubject);
+        assert.isFalse(mockSubject.passcodeCode
+          .classList.contains('error'),
+          'error class was not cleared outside error timeout');
+      });
   });
 
   suite('Events >', function() {
-    suite('lockscreen-notify-passcode-validationfailed', function() {
-      var stubDecorateErrorPasscodeUI,
-          stubRemoveErrorPasscodeUI,
-          stubUpdatePassCodeUI;
+    suite('passcode-validationfailed >', function() {
+      var stubUpdatePassCodeUI;
       setup(function() {
-        stubDecorateErrorPasscodeUI =
-          sinon.stub(subject, 'decorateErrorPasscodeUI', Promise.resolve);
-        stubRemoveErrorPasscodeUI =
-          sinon.stub(subject, 'removeErrorPasscodeUI');
         stubUpdatePassCodeUI =
           sinon.stub(subject, 'updatePassCodeUI');
       });
-      test('it would call the following steps', function(done) {
-        var promised = subject.handleEvent(
+      test('event would update the UI', function() {
+        subject.handleEvent(
           new CustomEvent('lockscreen-notify-passcode-validationfailed'));
-        promised.then(() => {
-          assert.isTrue(stubRemoveErrorPasscodeUI.called,
-            'the |removeErrorPasscodeUI| method wasn\'t called');
-          assert.isTrue(stubUpdatePassCodeUI.called,
-            'the |updatePassCodeUI| method wasn\'t called');
-        })
-        .then(done)
-        .catch(done);
+        assert.isTrue(stubUpdatePassCodeUI.called,
+          '|updatePassCodeUI| method wasn\'t called');
+      });
+      test('sets error timeout state', function() {
+        subject.states.passCodeErrorTimeoutPending = false;
+        subject.handleEvent(
+          new CustomEvent('lockscreen-notify-passcode-validationfailed'));
+        assert.isTrue(subject.states.passCodeErrorTimeoutPending === true,
+          'error timeout state was not set');
       });
       teardown(function() {
-        stubDecorateErrorPasscodeUI.restore();
-        stubRemoveErrorPasscodeUI.restore();
         stubUpdatePassCodeUI.restore();
       });
     });
 
-    suite('lockscreen-notify-passcode-validationsuccess', function() {
-      var stubResetPasscodeStatus,
-          stubUpdatePassCodeUI;
+    suite('passcode-validationsuccess >', function() {
+      var stubUpdatePassCodeUI;
       setup(function() {
-        stubResetPasscodeStatus =
-          sinon.stub(subject, 'resetPasscodeStatus');
         stubUpdatePassCodeUI =
           sinon.stub(subject, 'updatePassCodeUI');
       });
       test('it would reset UI', function() {
         subject.handleEvent(
           new CustomEvent('lockscreen-notify-passcode-validationsuccess'));
-        assert.isTrue(stubResetPasscodeStatus.called,
-          'the |resetPasscodeStatus| method wasn\'t called');
         assert.isTrue(stubUpdatePassCodeUI.called,
-          'the |updatePassCodeUI| method wasn\'t called');
+          '|updatePassCodeUI| method wasn\'t called');
+      });
+      test('it would reset internal state', function() {
+        subject.states.passCodeEntered = 'fooo';
+        subject.states.passCodeErrorTimeoutPending = true;
+        subject.handleEvent(
+          new CustomEvent('lockscreen-notify-passcode-validationsuccess'));
+        assert.isTrue(subject.states.passCodeEntered === '',
+          'entered pass code was not cleared');
+        assert.isTrue(subject.states.passCodeErrorTimeoutPending === false,
+          'timeout error state was not cleared');
       });
       teardown(function() {
-        stubResetPasscodeStatus.restore();
         stubUpdatePassCodeUI.restore();
       });
     });
 
-    suite('lockscreen-inputappclosed', function() {
-      var stubRemoveErrorPasscodeUI,
-          stubUpdatePassCodeUI;
+    suite('passcode-validationreset >', function() {
+      // Currently identical to validationsuccess
+      var stubUpdatePassCodeUI;
       setup(function() {
-        stubRemoveErrorPasscodeUI =
-          sinon.stub(subject, 'removeErrorPasscodeUI');
+        stubUpdatePassCodeUI =
+          sinon.stub(subject, 'updatePassCodeUI');
+      });
+      test('it would reset UI', function() {
+        subject.handleEvent(
+          new CustomEvent('lockscreen-notify-passcode-validationreset'));
+        assert.isTrue(stubUpdatePassCodeUI.called,
+          '|updatePassCodeUI| method wasn\'t called');
+      });
+      test('it would reset internal state', function() {
+        subject.states.passCodeEntered = 'fooo';
+        subject.states.passCodeErrorTimeoutPending = true;
+        subject.handleEvent(
+          new CustomEvent('lockscreen-notify-passcode-validationreset'));
+        assert.isTrue(subject.states.passCodeEntered === '',
+          'entered pass code was not cleared');
+        assert.isTrue(subject.states.passCodeErrorTimeoutPending === false,
+          'timeout error state was not cleared');
+      });
+      teardown(function() {
+        stubUpdatePassCodeUI.restore();
+      });
+    });
+
+    suite('lockscreen-inputappopened >', function() {
+      var stubUpdatePassCodeUI;
+      setup(function() {
+        stubUpdatePassCodeUI =
+          sinon.stub(subject, 'updatePassCodeUI');
+      });
+      test('it would update UI', function() {
+        subject.handleEvent(
+          new CustomEvent('lockscreen-inputappopened'));
+        assert.isTrue(stubUpdatePassCodeUI.called,
+          'the |updatePassCodeUI| method wasn\'t called');
+      });
+      teardown(function() {
+        stubUpdatePassCodeUI.restore();
+      });
+    });
+
+    suite('lockscreen-inputappclosed >', function() {
+      // Currently identical to inputappopened
+      var stubUpdatePassCodeUI;
+      setup(function() {
         stubUpdatePassCodeUI =
           sinon.stub(subject, 'updatePassCodeUI');
       });
       test('it would reset UI', function() {
         subject.handleEvent(
           new CustomEvent('lockscreen-inputappclosed'));
-        assert.isTrue(stubRemoveErrorPasscodeUI.called,
-          'the |removeErrorPasscodeUI| method wasn\'t called');
         assert.isTrue(stubUpdatePassCodeUI.called,
           'the |updatePassCodeUI| method wasn\'t called');
       });
       teardown(function() {
-        stubRemoveErrorPasscodeUI.restore();
         stubUpdatePassCodeUI.restore();
       });
     });
