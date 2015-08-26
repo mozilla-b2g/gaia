@@ -1,0 +1,9 @@
+.view-source {
+  position: absolute;
+  top: 4rem;
+  left: 1rem;
+  width: calc(100% - 2rem);
+  height: calc(100% - 10rem);
+  opacity: 0.92;
+  z-index: 9999;
+}
