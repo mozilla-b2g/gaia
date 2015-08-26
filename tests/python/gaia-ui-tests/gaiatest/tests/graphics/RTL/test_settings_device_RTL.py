@@ -16,15 +16,37 @@ class TestSettingsRTL(GaiaImageCompareTestCase):
         ###################### Device Information and its sub pages ######################
         device_info_page = settings.open_device_info()
         self.take_screenshot('dev_info')
-        GaiaImageCompareTestCase.scroll(self.marionette, 'down', device_info_page.screen_element.size['height'],
+        GaiaImageCompareTestCase.scroll(self.marionette, 'down', device_info_page.screen_element.rect['height'],
                                         screen = device_info_page.screen_element)
         self.take_screenshot('dev_info')
 
         moreinfo_page = device_info_page.tap_more_info()
         self.take_screenshot('dev_info-more_info')
-        GaiaImageCompareTestCase.scroll(self.marionette, 'down', device_info_page.screen_element.size['height'],
-                                        screen = moreinfo_page.screen)
+        GaiaImageCompareTestCase.scroll(self.marionette, 'down', moreinfo_page.screen_element.rect['height'],
+                                        screen=moreinfo_page.screen_element)
         self.take_screenshot('dev_info-more_info')
+        settings.return_to_prev_menu(device_info_page.screen_element)
+
+        device_info_page.tap_your_rights()
+        self.take_screenshot('dev_info-rights')
+        GaiaImageCompareTestCase.scroll(self.marionette, 'down', device_info_page.rights_screen_element.rect['height'],
+                                        screen = device_info_page.rights_screen_element)
+        self.take_screenshot('dev_info-rights')
+        settings.return_to_prev_menu(device_info_page.screen_element)
+
+        device_info_page.tap_your_privacy()
+        self.take_screenshot('dev_info-privacy')
+        settings.return_to_prev_menu(device_info_page.screen_element)
+
+        device_info_page.tap_legal_info()
+        device_info_page.tap_open_source_notices()  # Not checking the entire licensing document
+        self.take_screenshot('dev_info-opensource_notice')
+        settings.return_to_prev_menu(device_info_page.legal_screen_element)
+
+        device_info_page.tap_obtaining_source_code()  # Not checking the entire licensing document
+        self.take_screenshot('dev_info-sourcecode')
+        settings.return_to_prev_menu(device_info_page.legal_screen_element)
+        self.take_screenshot('dev_info-legal_info')
         settings.return_to_prev_menu(device_info_page.screen_element)
 
         device_info_page.tap_reset_phone()
@@ -36,27 +58,38 @@ class TestSettingsRTL(GaiaImageCompareTestCase):
         device_info_page.exit_update_frequency()
         settings.return_to_prev_menu(settings.screen_element)
 
-        ### Downloads page
+        ###################### Download and its sub pages ######################
         settings.open_downloads()
         self.take_screenshot('downloads')
         settings.return_to_prev_menu(settings.screen_element)
 
-        settings.open_battery()
+        ###################### Battery and its sub pages ######################
+        battery_page = settings.open_battery()
         self.take_screenshot('battery')
+        battery_page.tap_turn_on_auto()
+        self.take_screenshot('battery-turnon_options')
+        battery_page.select('never')
         settings.return_to_prev_menu(settings.screen_element)
 
-        settings.open_accessibility()
+        ###################### Accessibility and its sub pages ######################
+        access_page = settings.open_accessibility()
+        color_page = access_page.open_color_settings()
+        color_page.toggle_filters()
+        self.take_screenshot('accessibility-color')
+        color_page.toggle_filters()  # set the filter to the original position
+        settings.return_to_prev_menu(access_page.screen_element)
         self.take_screenshot('accessibility')
         settings.return_to_prev_menu(settings.screen_element)
 
-        settings.open_developer()
-        self.take_screenshot('developer')
-        settings.return_to_prev_menu(settings.screen_element)
-
-        settings.open_improve()
+        ###################### Improve Firefox OS and its sub pages ######################
+        improve_page = settings.open_improve()
+        self.take_screenshot('improve')
+        GaiaImageCompareTestCase.scroll(self.marionette, 'down', improve_page.screen_element.rect['height'],
+                                        screen=improve_page.screen_element)
         self.take_screenshot('improve')
         settings.return_to_prev_menu(settings.screen_element)
 
+        ###################### Help page ######################
         settings.open_help()
         self.take_screenshot('help')
         settings.return_to_prev_menu(settings.screen_element)

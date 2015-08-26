@@ -184,7 +184,7 @@ class GaiaImageCompareTestCase(GaiaTestCase):
         if release:
             action.release()
         action.perform()
-        time.sleep(1)  # compensate for the time taken for edge scroll to bring another app to active
+        time.sleep(2)  # compensate for the time taken for edge scroll to bring another app to active
 
         return action
 
@@ -218,7 +218,7 @@ class GaiaImageCompareTestCase(GaiaTestCase):
 
         pinch(marionette, screen, init_index_x, init_index_y, init_thumb_x, init_thumb_y,
               -disp_x, -disp_y, disp_x, disp_y, duration)
-        time.sleep(1)  # compensate for the time taken for pinch to complete
+        time.sleep(2)  # compensate for the time taken for pinch to complete
 
     @staticmethod
     def scroll(marionette, direction, distance, locator=None, screen=None, increments=None):
@@ -245,4 +245,4 @@ class GaiaImageCompareTestCase(GaiaTestCase):
             vector = 0
 
         smooth_scroll(marionette, screen, axis, vector, distance, increments)
-        time.sleep(1)  # compensate for the time taken for dynamic scroll
+        time.sleep(2)  # compensate for the time taken for dynamic scroll
