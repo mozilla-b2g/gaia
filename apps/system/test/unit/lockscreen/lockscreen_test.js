@@ -600,10 +600,10 @@ suite('system/LockScreen >', function() {
     subject.passCodeRequestTimeout = 60 * 1000;  // 60 seconds
     subject.unlock();  // or .lock() won't update timestamps
     subject.lock();
-    assert.isFalse(subject.checkPassCodeTimeout(),
+    assert.isFalse(subject.checkPassCodeTimeout(subject.passCodeRequestTimeout),
       'pass code timeout check triggers right after lock');
     subject.resetTimeoutForcibly();
-    assert.isTrue(subject.checkPassCodeTimeout(),
+    assert.isTrue(subject.checkPassCodeTimeout(subject.passCodeRequestTimeout),
       'resetTimeoutForcibly does not trigger pass code after lock');
   });
 
