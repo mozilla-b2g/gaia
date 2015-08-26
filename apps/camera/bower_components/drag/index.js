@@ -71,7 +71,14 @@ function Drag(options) {
 }
 
 Drag.prototype.bindEvents = function() {
+  if (this.boundEvents) { return; }
   this.container.el.addEventListener(pointer.down, this.onTouchStart);
+  this.boundEvents = true;
+};
+
+Drag.prototype.unbindEvents = function() {
+  this.container.el.removeEventListener(pointer.down, this.onTouchStart);
+  this.boundEvents = false;
 };
 
 Drag.prototype.onTouchStart = function(e) {

@@ -207,18 +207,6 @@ suite('views/controls', function() {
       this.view.onSwitchTapped(this.event);
       sinon.assert.called(this.event.preventDefault);
     });
-
-    test('It is debounced to defend against button bashing', function() {
-      this.view.setupSwitch();
-      var callback = this.drag.on.withArgs('tapped').args[0][1];
-
-      callback(this.event);
-      callback(this.event);
-      callback(this.event);
-      callback(this.event);
-
-      sinon.assert.calledOnce(this.spy);
-    });
   });
 
   suite('ControlsView#onSwitchSnapped()', function() {
@@ -235,6 +223,18 @@ suite('views/controls', function() {
       // Changed
       this.view.onSwitchSnapped({ x: 'right' });
       assert.isTrue(this.view.emit.calledWith('modechanged'));
+    });
+  });
+
+  suite('ControlsView#suspendMode()', function() {
+    test('It ignores user input on switch when suspended', function() {
+      this.view.suspendMode(true);
+      sinon.assert.calledOnce(this.drag.unbindEvents);
+    });
+
+    test('It accepts user input on switch when unsuspended', function() {
+      this.view.suspendMode(false);
+      sinon.assert.calledOnce(this.drag.bindEvents);
     });
   });
 

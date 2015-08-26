@@ -181,6 +181,20 @@ suite('controllers/controls', function() {
     });
   });
 
+  suite('ControlsController#onCameraWillChange', function() {
+    test('When camera is reconfiguring it suspends the mode switch', function() {
+      this.controller.onCameraWillChange();
+      assert.isTrue(this.view.suspendMode.calledWith(true));
+    });
+  });
+
+  suite('ControlsController#onCameraConfigured', function() {
+    test('When camera is configured it unsuspends the mode switch', function() {
+      this.controller.onCameraConfigured();
+      assert.isTrue(this.view.suspendMode.calledWith(false));
+    });
+  });
+
   suite('ControlsController#onRecordingChange', function() {
     test('When recording view\'s setCaptureLabel should be called', function() {
       [true, false].forEach(function(recording) {

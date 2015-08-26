@@ -104,7 +104,7 @@ module.exports = View.extend({
       container: this.els.switch
     });
 
-    this.drag.on('tapped', debounce(this.onSwitchTapped, 300, true));
+    this.drag.on('tapped', this.onSwitchTapped);
     this.drag.on('ended', this.drag.snapToClosestEdge);
     this.drag.on('translate', this.onSwitchTranslate);
     this.drag.on('snapped', this.onSwitchSnapped);
@@ -166,6 +166,15 @@ module.exports = View.extend({
     debug('button click');
     var name = e.currentTarget.getAttribute('name');
     this.emit('click:' + name, e);
+  },
+
+  suspendMode: function(suspended) {
+    if (!this.drag) { return; }
+    if (suspended) {
+      this.drag.unbindEvents();
+    } else {
+      this.drag.bindEvents();
+    }
   },
 
   setMode: function(mode) {
