@@ -12,10 +12,10 @@ step_checkout() {
  tc-vcs \
   checkout \
   $checkout_path \
-  $GAIA_BASE_REPOSITORY \
-  $GAIA_HEAD_REPOSITORY \
-  $GAIA_REV \
-  $GAIA_REF 
+  $GITHUB_BASE_GIT \
+  $GITHUB_HEAD_GIT \
+  $GITHUB_BASE_REV \
+  $GITHUB_HEAD_REV 
 }
 
 # Set-up our npm-cache.
