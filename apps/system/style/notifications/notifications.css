@@ -260,8 +260,9 @@
 #notifications-container .notification.disappearing,
 #notifications-container .notification.disappearing-via-clear-all,
 .notification-toaster.disappearing {
-  transition: transform var(--transition-duration) linear;
+  transition: transform var(--transition-duration) linear, opacity var(--transition-duration);
   transform: translateX(100%);
+  opacity: 0;
 }
 
 #notifications-container .notification.disappearing.left,
