@@ -150,13 +150,21 @@ progress.hidden { display: none; }
 #scan-spinner {
   position: absolute;
   top: 1rem;
+}
+
+html[dir="ltr"] #scan-spinner {
   left: 1rem;
+}
+
+html[dir="rtl"] #scan-spinner {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
 }
 
 #scan-count {
   position: absolute;
   top: 0;
-  left: 0;
   width: 5rem;
   height: 5rem;
   border: none;
@@ -167,31 +175,67 @@ progress.hidden { display: none; }
   padding-top: 1.7rem;
 }
 
-#scan-artist {
+html[dir="ltr"] #scan-count {
+  left: 0;
+}
+
+html[dir="rtl"] #scan-count {
+  right: 0;
+}
+
+#scan-artist-container {
   position: absolute;
   top: 0;
-  left: 5rem;
-  right: 0;
   height: 3rem;
   line-height: 3rem;
-  padding-left: .5rem;
+  padding: 0 0.5rem;
   font-size: 1.9rem;
-  text-align: left;
+  text-align: start;
+}
+
+html[dir="ltr"] #scan-artist-container {
+  left: 5rem;
+  right: 0;
+}
+
+html[dir="rtl"] #scan-artist-container {
+  left: 0;
+  right: 5rem;
+}
+
+#scan-artist {
+  display: inline-block;
+  width: -moz-fit-content;
+  max-width: 100%;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-#scan-title {
+#scan-title-container {
   position: absolute;
   top: 3rem;
-  left: 5rem;
-  right: 0;
   height: 2rem;
   line-height: 1.9rem;
-  padding-left: .5rem;
+  padding: 0 0.5rem;
   font-size: 1.4rem;
-  text-align: left;
+  text-align: start;
+}
+
+html[dir="ltr"] #scan-title-container {
+  left: 5rem;
+  right: 0;
+}
+
+html[dir="rtl"] #scan-title-container {
+  left: 0;
+  right: 5rem;
+}
+
+#scan-title {
+  display: inline-block;
+  width: -moz-fit-content;
+  max-width: 100%;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
