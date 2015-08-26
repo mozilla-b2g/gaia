@@ -234,8 +234,7 @@ Object.defineProperty(proto, 'remainingTime', {
 function throttle(fn, ms) {
   var last = Date.now();
   var timeout;
-  return () => {
-    var args = arguments;
+  return (...args) => {
     var now = Date.now();
     if (now < last + ms) {
       clearTimeout(timeout);
