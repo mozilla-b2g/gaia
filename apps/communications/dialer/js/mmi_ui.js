@@ -17,6 +17,7 @@ var MmiUI = {
   responseTextResetNode: null,
   mmiScreen: null,
   loadingOverlay: null,
+  test:null,
 
   init: function mui_init() {
     this._ = navigator.mozL10n.get;
