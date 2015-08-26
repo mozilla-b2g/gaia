@@ -1,13 +1,5 @@
-from lightsofapollo/ubuntu-node:latest
-maintainer James Lal <james@lightsofapollo.com>
-
-# start by installing all our ubuntu packages
-run sudo apt-get -y upgrade --fix-missing
-run sudo apt-get -y update --fix-missing
-run sudo apt-get -yq install git-core curl wget firefox build-essential xvfb \
-                             python-pip man python-virtualenv libgtk-3-0
-
-run useradd -d /home/tester -s /bin/bash -m tester;
+from quay.io/mozilla/tester:0.0.5
+maintainer Aus Lacroix <aus@mozilla.com>
 
 # install our custom git plugin
 copy git/target/doc/git-ci-checkout-pr.1 /usr/local/man/man1/git-ci-checkout-pr.1
@@ -26,11 +18,7 @@ workdir /home/tester
 
 run git config --global user.email "gaia@mozilla.com"
 run git config --global user.name "gaia-taskenv"
-run npm install npm@latest -g
-run npm install taskcluster-vcs@2.3.4 -g
-run npm install taskcluster-npm-cache@1.1.14 -g
 
 # run some more root commands which change frequently
 copy ./bin/entrypoint /home/tester/bin/entrypoint
-copy ./bin/buildbot_step /home/tester/bin/buildbot_step
 run chmod a+x /home/tester/bin/entrypoint
