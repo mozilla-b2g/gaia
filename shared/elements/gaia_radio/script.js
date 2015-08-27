@@ -86,6 +86,11 @@ window.GaiaRadio = (function(win) {
     });
     this.dispatchEvent(event);
 
+    // If this radio component is already checked, don't do anything.
+    if (this.checked) {
+      return;
+    }
+
     if (!event.defaultPrevented) {
       this.checked = !this.checked;
     }
