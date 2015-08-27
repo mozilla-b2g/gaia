@@ -11,7 +11,7 @@ class TestImportEditExportContact(GaiaTestCase):
         GaiaTestCase.setUp(self)
         curr_time = repr(time.time()).replace('.', '')
 
-        self.contact = MockContact(givenName='Name%s'%curr_time[12:], name='Name%s'%curr_time[12:], familyName='')
+        self.contact = MockContact(familyName='')
         self.sim_contact = self.data_layer.insert_sim_contact(self.contact)
 
     def test_import_edit_export_contact(self):
@@ -68,6 +68,8 @@ class TestImportEditExportContact(GaiaTestCase):
         self.assertEqual(self.sim_contact['tel'][0]['value'], self.contact.tel['value'])
 
     def tearDown(self):
-        self.data_layer.delete_sim_contact(self.sim_contact['id'])
+        for contact in self.data_layer.sim_contacts:
+            if contact['name'][0].startswith(self.contact['name'].split()[0]):
+                self.data_layer.delete_sim_contact(contact['id'])
 
         GaiaTestCase.tearDown(self)
