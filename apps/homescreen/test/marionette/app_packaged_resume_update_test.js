@@ -20,8 +20,9 @@ marionette('Homescreen - Packaged App Resume Update', function() {
     });
   });
 
-  var home, system, appInstall;
+  var actions, home, system, appInstall;
   setup(function() {
+    actions = client.loader.getActions();
     home = client.loader.getAppClass('homescreen');
     system = client.loader.getAppClass('system');
     appInstall = new AppInstall(client);
@@ -43,8 +44,9 @@ marionette('Homescreen - Packaged App Resume Update', function() {
   });
 
   function tapAndWaitFor(icon, element) {
-    client.scope({ searchTimeout: 100 }).waitFor(function() {
+    client.waitFor(function() {
       icon.tap();
+      actions.wait(0.5).perform();
       return element.scriptWith(function(el) {
         return getComputedStyle(el).display !== 'none';
       });
@@ -53,6 +55,10 @@ marionette('Homescreen - Packaged App Resume Update', function() {
 
   test('resume update', function() {
     var icon = home.getIcon(server.packageManifestURL);
+
+    // Scroll so the icon is in the middle of the screen and won't be
+    // obscured by the system toast
+    home.scrollIconToCenter(icon);
 
     // ensure the app is installed before updating it
     home.waitForIconImageUrl(icon, 'app-icon');
