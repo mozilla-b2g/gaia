@@ -1,0 +1,219 @@
+/* --------------- dialog --------------- */
+#browser-dialog-base {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: inherit;
+  height: 1080px;
+  z-index: 500;
+  background-color: rgba(0,0,0,0.9);
+}
+
+#browser-dialog {
+  -moz-box-sizing: border-box;
+  position: relative;
+  top: 50%;
+  width: 700px;
+  height: 640px;
+  margin: 0 auto;
+  color: #f9f9f9;
+  -moz-transform: translateY(-50%);
+}
+#browser-dialog-title {
+  position: relative;
+  width: 100%;
+  min-height: 0px;
+  text-align: center;
+  font-size: 34px;
+  font-family: Fira Sans;
+  font-style: Italic; /* TODO : Light Italic */
+  color: #f9f9f9;
+}
+#browser-dialog-msg {
+  position: relative;
+  width: 100%;
+  min-height: 38px;
+  margin-bottom: 34px;
+  text-align: center;
+  font-size: 38px;
+  font-family: Fira Sans;
+  font-style: Italic; /* TODO : Light Italic */
+  color: #f9f9f9;
+  display: inline-block;
+}
+#browser-dialog-input {
+  position: relative;
+  height: 70px;
+  width: 700px;
+  text-align: center;
+  display: table;
+  vertical-align: middle;
+  margin: 24px auto 20px;
+  border-bottom: 2px solid #E7E7E7;
+  -moz-transform: scale(1);
+  -moz-transition: all 0.16s cubic-bezier(0.25, 0, 0, 1) 0s;
+}
+#browser-dialog-input:hover,
+#browser-dialog-input.exfocus {
+  -moz-transform: scale(1.2);
+  outline:none;
+  -moz-transition: -moz-transform 0.42s cubic-bezier(0.25, 0, 0, 1.0),
+                   border-bottom 0.42s cubic-bezier(0.25, 0, 0, 1.0);
+}
+#browser-dialog-input.input {
+  border-bottom: solid 3px #00caf2;
+  -moz-transform: scale(1.0);
+  -moz-transition: -moz-transform 0.42s cubic-bezier(0.25, 0, 0, 1.0),
+                   border-bottom 0.42s cubic-bezier(0.25, 0, 0, 1.0);
+}
+#browser-dialog-input.input #browser-dialog-input-area {
+  font-style: normal;
+  -moz-transition: font-style 0.06s cubic-bezier(0.25, 0, 0, 1.0);
+}
+#browser-dialog-input-area {
+  position: absolute;
+  top: 0px;
+  bottom: 0px;
+  width: 600px;
+  height: 100%;
+  background: none repeat scroll 0% 0% transparent;
+  border: medium none;
+  vertical-align: middle;
+  margin: auto 50px;
+  text-align: center;
+  font-family: "Fira Sans";
+  font-style: italic;
+  font-size: 38px;
+  color: #FFF;
+  display: table-cell;
+}
+#browser-dialog-input .input-line {
+  width: 100%;
+}
+#browser-dialog-input:hover .input-line,
+#browser-dialog-input.exfocus .input-line {
+  transform: scaleX(1);
+}
+#browser-dialog-input-clear {
+  width: 30px;
+  height: 30px;
+  background: url('../style/images/ic_close.png') no-repeat scroll center center / contain #5F6368;
+  border-radius: 50%;
+  transition: -moz-transform 0.16s cubic-bezier(0.25, 0, 0, 1) 0s, background-color 0.16s cubic-bezier(0.25, 0, 0, 1) 0s, color 0.16s cubic-bezier(0.25, 0, 0, 1) 0s;
+  pointer-events: auto;
+  display: table-cell;
+  position: absolute;
+  top: 0px;
+  bottom: 0px;
+  margin: auto;
+  right: calc(50px / 2 - 15px);
+}
+
+#browser-dialog-input-clear:focus,
+#browser-dialog-input-clear:hover {
+  -moz-transition : -moz-transform  0.42s  cubic-bezier(0.25, 0, 0, 1.0) ,
+                    background 0.42s  cubic-bezier(0.25, 0, 0, 1.0) ,
+                    border 0.42s  cubic-bezier(0.25, 0, 0, 1.0);
+  -moz-transform: scale(1.2);
+  outline:none;
+  border : 1px solid #fff;
+  background: url("../style/images/ic_close_black.png") no-repeat center/contain #fff;
+}
+#browser-dialog-input-clear.active,
+#browser-dialog-input-clear:active {
+  -moz-transition : -moz-transform  0.06s  cubic-bezier(0.25, 0, 0, 1.0) ,
+                    background 0.06s  cubic-bezier(0.25, 0, 0, 1.0) ,
+                    border 0.06s cubic-bezier(0.25, 0, 0, 1.0);
+  -moz-transform: scale(1.0);
+  border : 1px solid #00caf2;
+  background: url("../style/images/ic_close.png") no-repeat center/contain #00caf2;
+}
+#browser-dialog-button {
+  position: relative;
+  display: table;
+  height: 210px;
+  margin: 130px auto;
+}
+.browser-dialog-button {
+  position: relative;
+  bottom: 0;
+  height: 210px;
+  width: 210px;
+  margin-left: 22px;
+  margin-right: 22px;
+  padding-left: 20px;
+  padding-right: 20px;
+  float: left;
+  font-size: 24px;
+  font-family: Fira Sans;
+  font-style: Italic;
+  border: 0;
+  border-radius: 50%;
+  color: #ffffff;
+  background-image: none;
+  -moz-transition: -moz-transform 0.16s cubic-bezier(0.25, 0, 0, 1.0);
+  -moz-transform: scale(1.0);
+}
+#browser-dialog-button1,
+#browser-dialog-button2 {
+  display: none;
+}
+#browser-dialog-button1.visible,
+#browser-dialog-button2.visible {
+  display: block;
+}
+#browser-dialog-button1 {
+  background-color: #5f6368;
+}
+#browser-dialog-button2 {
+  background-color: #0097b6;
+}
+#browser-dialog-button2[data-type="del_cookie"],
+#browser-dialog-button2[data-type="clear_history"] {
+  background-color: #e63d2f;
+}
+.browser-dialog-button:focus,
+.browser-dialog-button:hover {
+  -moz-transition: -moz-transform 0.42s cubic-bezier(0.25, 0, 0, 1.0);
+  -moz-transform: scale(1.2);
+}
+#browser-dialog-button1:focus,
+#browser-dialog-button1:hover {
+  -moz-transition: background-color 0.42s cubic-bezier(0.25, 0, 0, 1.0),
+                   color 0.42s cubic-bezier(0.25, 0, 0, 1.0),
+                   -moz-transform 0.42s cubic-bezier(0.25, 0, 0, 1.0);
+  background-color: #ffffff;
+  color: #2d2d2d;
+}
+#browser-dialog-button2:focus,
+#browser-dialog-button2:hover {
+}
+#browser-dialog-button1.active,
+#browser-dialog-button2.active,
+.browser-dialog-button:active {
+  -moz-transition: -moz-transform 0.06s cubic-bezier(0.25, 0, 0, 1.0);
+  background-color: #00758c;
+  -moz-transform: scale(1.0);
+}
+#browser-dialog-button1.active,
+#browser-dialog-button1:active {
+  -moz-transition: background-color 0.06s cubic-bezier(0.25, 0, 0, 1.0) ,
+                   color 0.06s cubic-bezier(0.25, 0, 0, 1.0);
+  background-color: #00caf2;
+  color: #ffffff;
+}
+#browser-dialog-button2.active,
+#browser-dialog-button2:active {
+  -moz-transition: background-color 0.06s cubic-bezier(0.25, 0, 0, 1.0);
+  background-color: #00758c;
+}
+#browser-dialog-button2[data-type="del_cookie"].active,
+#browser-dialog-button2[data-type="del_cookie"]:active,
+#browser-dialog-button2[data-type="clear_history"]:active {
+  -moz-transition: background-color 0.06s cubic-bezier(0.25, 0, 0, 1.0) ,
+                   color 0.06s cubic-bezier(0.25, 0, 0, 1.0);
+  background-color: #ac2e23;
+  color: #ffffff;
+}
+

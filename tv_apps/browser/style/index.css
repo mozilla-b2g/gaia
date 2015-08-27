@@ -1,0 +1,170 @@
+
+html, body {
+  width: 1920px;
+  height: 100%;
+  padding: 0;
+  margin: 0;
+  font-size: 20px;
+  overflow: hidden;
+  cursor: default;
+  background-color : #e0e2e4;
+}
+
+a {
+  overflow: hidden;
+  outline: none;
+}
+
+.input-line {
+  position: absolute;
+  bottom: -2px;
+  left: 0px;
+  height: 3px;
+  transition: transform 0.3s ease-in 0s;
+  transform: scaleX(0);
+  background-color: #00CAF2;
+}
+
+/* --------------- layout --------------- */
+.side-window {
+  width: 400px;
+  height: 1080px;
+  float: left;
+  background-color: #282929;
+  display: none;
+  cursor: default;
+}
+#side-block[data-sidebar="true"] {
+  display: block;
+}
+
+.main-window {
+  position: relative;
+  width: 1920px;
+  height: 100%;
+  float: left;
+  cursor: default;
+  display: block;
+}
+#main-block[data-sidebar="true"] {
+  width: -moz-calc(1920px - 400px);
+}
+
+/* --------------- block --------------- */
+
+#web-block {
+  position: absolute;
+  width: 100%;
+  height: -moz-calc(100% - 100px);
+  cursor: default;
+  top: 100px;
+}
+
+/* --------------- other --------------- */
+input::-moz-focus-inner {
+  border: 0;
+}
+
+/* --------------- browser --------------- */
+#web-block > iframe {
+  -moz-box-sizing: border-box;
+  height: 100%;
+  width: 100%;
+  border: solid 0px;
+}
+
+#block-l {
+  position: absolute;
+  left: 1px;
+  width: 10px;
+  height: 1080px;
+  z-index: 200;
+  cursor: default;
+}
+
+#block-r {
+  position: absolute;
+  right: 1px;
+  width: 10px;
+  height: 1080px;
+  z-index: 200;
+  cursor: default;
+}
+
+#block-d {
+  position: absolute;
+  bottom: 1px;
+  width: 100%;
+  height: 10px;
+  z-index: 200;
+  cursor: default;
+}
+
+/* --------------- scroll --------------- */
+#scroll-u, #scroll-d {
+  position: absolute;
+  width: 100%;
+  height: 1px;
+  z-index: 190;
+}
+#scroll-u {
+  top: 0px;
+}
+#scroll-d {
+  bottom: 0px;
+}
+
+#scroll-l, #scroll-r {
+  position: absolute;
+  width: 1px;
+  height: 1080px;
+  z-index: 190;
+}
+#scroll-l {
+  left: 0px;
+}
+#scroll-r {
+  right: 0px;
+}
+
+#scroll-u:not(.disable):hover {
+  cursor: url('../img/scroll_up.cur'), auto;
+}
+#scroll-d:not(.disable):hover {
+  cursor: url('../img/scroll_down.cur'), auto;
+}
+#scroll-l:not(.disable):hover {
+  cursor: url('../img/scroll_left.cur'), auto;
+}
+#scroll-r:not(.disable):hover {
+  cursor: url('../img/scroll_right.cur'), auto;
+}
+
+/* --------------- fade --------------- */
+#fade-base {
+  display: block;
+  visibility: hidden;
+  position: absolute;
+  width: 1920px;
+  height: 1080px;
+  opacity: 0;
+  background-color: black;
+  z-index: 1200;
+}
+#fade-base.fade {
+  visibility: visible;
+  opacity: 1;
+}
+/* animation */
+#fade-base {
+  -moz-transition-property: all;
+  -moz-transition-duration: 1s;
+  -moz-transition-timing-function: ease-out;
+  -moz-transition-delay: 0s;
+
+  transition-property: all;
+  transition-duration: 1s;
+  transition-timing-function: ease-out;
+  transition-delay: 0s;
+}
+

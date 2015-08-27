@@ -1,364 +1,753 @@
 <!DOCTYPE html>
-<html>
+<html lang="en-US" dir="ltr">
   <head>
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
     <meta charset="utf-8">
-    <title>Browser</title>
-    <!-- CSS reset -->
-    <link rel="stylesheet" href="style/reset.css">
-    <!-- Shared CSS-->
-    <link rel="stylesheet" href="shared/style/headers.css">
-    <link rel="stylesheet" href="shared/style/input_areas.css">
-    <link rel="stylesheet" href="shared/style/status.css">
-    <link rel="stylesheet" href="shared/style/confirm.css">
-    <link rel="stylesheet" href="shared/style/action_menu.css">
-    <link rel="stylesheet" href="style/modal_dialog/modal_dialog.css">
-    <link rel="stylesheet" href="style/modal_dialog/prompt.css">
-    <link rel="stylesheet" href="style/themes/default/core.css">
+    <title>web browser</title>
 
     <!-- Specific style -->
-    <link rel="stylesheet" href="style/layout.css" type="text/css">
-    <link rel="stylesheet" href="style/toolbar.css" type="text/css">
-    <link rel="stylesheet" href="style/awesomescreen.css" type="text/css">
+    <link rel="stylesheet" type="text/css" href="style/index.css">
+    <link rel="stylesheet" type="text/css" href="style/awesomescreen.css">
+    <link rel="stylesheet" type="text/css" href="style/authentication_dialog.css">
+    <link rel="stylesheet" type="text/css" href="style/browser_dialog.css">
+    <link rel="stylesheet" type="text/css" href="style/toolbar.css">
+    <link rel="stylesheet" type="text/css" href="style/tooltip.css">
+    <link rel="stylesheet" type="text/css" href="style/search_result.css">
+    <link rel="stylesheet" type="text/css" href="style/settings.css">
 
     <!-- Localization -->
+    <script defer="" src="/shared/js/l10n.js"></script>
+
+    <!-- L10n properties -->
     <meta name="defaultLanguage" content="en-US">
     <meta name="availableLanguages" content="en-US">
-    <link rel="localization" href="/shared/locales/branding/branding.{locale}.properties">
-    <link rel="localization" href="locales/browser.{locale}.properties">
+    <link rel="localization" href="/locales/browser.{locale}.properties">
 
     <!-- Shared code -->
-    <script defer src="shared/js/l10n.js"></script>
-    <!-- <script defer src="shared/js/lazy_loader.js"></script> -->
-    <!-- <script defer src="shared/js/font_size_utils.js"></script> -->
-    <script defer src="shared/js/accessibility_helper.js"></script>
-    <script defer src="shared/js/mime_mapper.js"></script>
-    <script defer src="shared/js/utilities.js"></script>
-    <script defer src="shared/js/url_helper.js"></script>
+    <script defer="" src="shared/js/url_helper.js"></script>
+    <script defer="" src="shared/js/utilities.js"></script>
 
     <!-- Specific code -->
-    <script defer src="js/awesomescreen.js"></script>
-    <script defer src="js/toolbar.js"></script>
-    <script defer src="js/settings.js"></script>
-    <script defer src="js/mediator.js"></script>
-    <script defer src="js/main.js"></script>
-
-    <!-- Resources -->
-    <link rel="resource" type="image/png" href="shared/resources/branding/browser_84.png"/>
-    <link rel="resource" type="image/png" href="shared/resources/branding/browser_126.png"/>
-    <link rel="resource" type="image/png" href="shared/resources/branding/browser_142.png"/>
-    <link rel="resource" type="image/png" href="shared/resources/branding/browser_189.png"/>
-    <link rel="resource" type="image/png" href="shared/resources/branding/browser_284.png"/>
-    <link rel="resource" type="image/png" href="shared/resources/branding/about_logo.png"/>
+    <script defer="" src="js/browser_db.js"></script>
+    <script defer="" src="js/index.js"></script>
+    <script defer="" src="js/awesomescreen.js"></script>
+    <script defer="" src="js/search_util.js"></script>
+    <script defer="" src="js/authentication_dialog.js"></script>
+    <script defer="" src="js/browser_dialog.js"></script>
+    <script defer="" src="js/toolbar.js"></script>
+    <script defer="" src="js/tooltip.js"></script>
+    <script defer="" src="js/search_result.js"></script>
+    <script defer="" src="js/settings.js"></script>
   </head>
 
-  <body role="application">
+  <body class="page_screen start_page" role="application">
+    <!-- mask for menu -->
+    <div id="fade-base"></div>
 
-    <div id="main-screen" class="awesomescreen">
+    <!-- side -->
+    <div id="side-block" class="side-window">
+      <!-- put widget here -->
+    </div>
 
-      <div id="toolbar">
-        <button id="back-button" class="icon" disabled="true" alt="Back"></button>
-        <button id="forward-button" class="icon" disabled="true" alt="Forward"></button>
-        <button id="bookmark-button" class="icon" alt="Bookmark" role="button"></button>
-        <button id="zoom-button" class="icon" alt="Zoom" role="button"></button>
-        <form id="url-bar" novalidate>
-          <input type="image" id="ssl-indicator" value="" />
-          <input type="text" id="url-input" placeholder="Search or enter address"
-                 data-l10n-id="enter-search-or-address" x-inputmode="verbatim"
-                 dir="auto" />
-          <input type="image" id="url-button" value="" />
-        </form>
-        <button id="home-button" class="icon" alt="Home" role="button"></button>
-        <button id="tv-button" class="icon" alt="TV" role="button"></button>
-        <button id="pointer-button" class="icon" alt="Pointer" role="button"></button>
-        <button id="tabs-button" class="icon" alt="Tabs" role="button">6</button>
-        <button id="settings-button" class="icon" alt="Settings" role="button"></button>
-        <button id="awesomescreen-cancel-button"></button>
-        <div id="throbber"></div>
-      </div>
+    <!-- main -->
+    <div id="main-block" data-mode="cursor" class="main-window">
+      <!-- toolbar -->
+      <ul id="toolbar-panel" data-pvt="false">
+        <div id="private-bar"></div>
+        <li id="sidebar-button-block" data-tips="WB_LT_TIPS_CHANGE_SCREEN" data-fade="false">
+          <div id="sidebar-button" data-sidebar="true">
+          <!-- XXX: Replace the SVG to icon font -->
+            <svg id="sidebar-button-svg" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="3 3 47 47" x="0" y="0" preserveAspectRatio="xMidyMid slice">
+              <g id="sidebar-close-svg" visibility="hidden">
+                <g>
+                  <path class="sidebar-button-path" fill-rule="evenodd" clip-rule="evenodd" fill="#231F20" d="M36.899,15.805H18.214c-1.968,0-3.716,2.093-3.716,4.061v14.997
+                    c0,1.968,1.747,3.332,3.716,3.332h18.686c1.968,0,3.502-1.364,3.502-3.332V19.866C40.401,17.898,38.867,15.805,36.899,15.805z
+                     M37.578,32.739c0,1.583-1.234,2.68-2.817,2.68H20.265c-1.583,0-2.989-1.097-2.989-2.68V21.849c0-1.583,1.406-3.267,2.989-3.267
+                    h14.497c1.583,0,2.817,1.684,2.817,3.267V32.739z"></path>
+                  <path class="sidebar-button-path" fill-rule="evenodd" clip-rule="evenodd" fill="#231F20" d="M16.589,22.805h22.4v2.1h-22.4V22.805z"></path>
+                </g>
+              </g>
+              <g id="sidebar-open-svg" visibility="hidden">
+                <path class="sidebar-button-path" fill-rule="evenodd" clip-rule="evenodd" fill="#231F20" d="M36.45,15.805H17.764c-1.968,0-3.716,2.093-3.716,4.061v14.997
+                  c0,1.968,1.747,3.332,3.716,3.332H36.45c1.968,0,3.502-1.364,3.502-3.332V19.866C39.952,17.898,38.418,15.805,36.45,15.805z
+                   M37.129,21.849v0.955H23.839v-4.222h10.472C35.895,18.583,37.129,20.266,37.129,21.849z M34.312,35.419H23.839V24.905h13.289
+                  v7.834C37.129,34.322,35.895,35.419,34.312,35.419z"></path>
+              </g>
+            </svg>
+          </div>
+        </li>
 
-      <div id="awesomescreen">
+        <li id="back-button-block" data-tips="WB_LT_TIPS_HISTORY_BACK">
+          <div id="back-button">
+          <!-- XXX: Replace the SVG to icon font -->
+            <svg id="back-button-svg" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="3 3 47 47" x="0" y="0" preserveAspectRatio="xMidyMid meet">
+              <path class="back-button-path" fill-rule="evenodd" clip-rule="evenodd" fill="#1D1D1B" d="M39.325,24.619H21.352l6.701-6.701
+              c-0.38-1.648-0.861-3.185-1.428-4.584L15.46,24.5c-1.385,1.384-1.385,3.628,0,5.012l11.153,11.154
+              c0.567-1.396,1.048-2.928,1.431-4.57L21.349,29.4h17.976C39.662,27.764,39.661,26.256,39.325,24.619z"></path>
+            </svg>
+          </div>
+        </li>
+        <li id="forward-button-block" class="disable" data-tips="WB_LT_TIPS_HISTORY_FORWARD">
+          <div id="forward-button-border">
+            <div id="forward-button">
+            <!-- XXX: Replace the SVG to icon font -->
+              <svg id="forward-button-svg" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="3 3 47 47" x="0" y="0" preserveAspectRatio="xMidyMid meet">
+                <path class="forward-button-path" fill-rule="evenodd" clip-rule="evenodd" fill="#1D1D1B" d="M38.54,24.5L27.375,13.334
+                c-0.567,1.399-1.048,2.936-1.429,4.584l6.702,6.701H14.675c-0.338,1.637-0.338,3.145,0,4.781h17.976l-6.695,6.695
+                c0.383,1.643,0.863,3.174,1.431,4.57L38.54,29.512C39.925,28.128,39.925,25.883,38.54,24.5z"></path>
+              </svg>
+            </div>
+          </div>
+        </li>
+        <li id="space-block">
+          <div></div>
+        </li>
+        <li id="addressbar-block">
+          <form id="address-form">
+            <input id="private-icon" value="" type="image">
+            <input id="ssl-indicator" value="" type="image">
+            <input id="url-input" dir="auto" type="text">
+            <div class="input-line"></div>
+            <div id="address-button" data-mode="load" data-tips="WB_LT_TIPS_RELOAD">
+            <!-- XXX: Replace the SVG to icon font -->
+              <svg id="address-button-svg" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="3 3 47 47" x="0" y="0" preserveAspectRatio="xMidyMid meet">
+                <g id="address-reload-svg" visibility="hidden">
+                  <g>
+                    <g>
+                      <path class="address-button-path" fill-rule="evenodd" clip-rule="evenodd" fill="#1D1D1B" d="M39.701,24.33c-0.953-7.119-7.035-12.616-14.416-12.616
+                      c-8.041,0-14.56,6.52-14.56,14.561c0,8.042,6.519,14.56,14.56,14.56c4.022,0,7.663-1.63,10.298-4.266l-2.231-2.231
+                      c-2.064,2.065-4.916,3.343-8.067,3.343c-6.299,0-11.405-5.107-11.405-11.405c0-6.299,5.106-11.405,11.405-11.405
+                      c5.622,0,10.282,4.071,11.222,9.423c-1.445,0.126-2.765,0.437-3.866,0.883l4.343,4.343c0.539,0.539,1.413,0.539,1.951,0
+                      l4.339-4.338C42.251,24.763,41.03,24.472,39.701,24.33z"></path>
+                    </g>
+                  </g>
+                </g>
+                <g id="address-stop-svg" visibility="hidden">
+                  <g>
+                    <g>
+                      <polygon class="address-button-path" fill-rule="evenodd" clip-rule="evenodd" fill="#1D1D1B" points="37.553,19.225 34.776,16.448 26.983,24.241
+                      19.207,16.465 16.43,19.242 24.206,27.018 16.448,34.776 19.225,37.553 26.983,29.795 34.758,37.57 37.536,34.793 29.76,27.018
+                      "></polygon>
+                    </g>
+                  </g>
+                </g>
+              </svg>
+            </div>
+          </form>
+        </li>
 
-        <div id="search-results-panel" class="is-hidden">
-        </div>
-        <nav data-role="tabs" id="tab-headers">
-          <ul role="tablist" class="bb-tablist">
-            <li role="presentation">
-              <a id="top-sites-tab" href="#" class="selected"
-                 data-l10n-id="top-sites-tab" role="tab"
-                 aria-selected="true" aria-controls="top-sites-panel">Top Sites</a>
+        <li id="searchbar-block">
+          <form id="search-form">
+            <input id="search-favicon" value="" type="image">
+            <input id="search-input" data-tips="WB_LT_TIPS_SEARCH_BAR" dir="auto" type="text">
+            <div class="input-line"></div>
+            <div id="search-button">
+            <!-- XXX: Replace the SVG to icon font -->
+              <svg id="search-button-svg" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="3 3 47 47" x="0" y="0" preserveAspectRatio="xMidyMid meet">
+                <path class="search-button-path" fill-rule="evenodd" clip-rule="evenodd" fill="#1D1D1B" d="M39.774,36.538l-5.462-5.461
+                c1.128-1.731,1.789-3.793,1.789-6.012c0-6.096-4.943-11.036-11.037-11.036c-6.096,0-11.035,4.94-11.035,11.036
+                c0,6.093,4.939,11.036,11.035,11.036c2.218,0,4.278-0.661,6.008-1.787l5.462,5.462c0.455,0.454,1.547,0.098,2.442-0.796
+                C39.87,38.085,40.227,36.992,39.774,36.538z M25.065,32.271c-3.98,0-7.206-3.227-7.206-7.207c0-3.981,3.227-7.208,7.206-7.208
+                c3.981,0,7.207,3.227,7.207,7.208C32.272,29.045,29.046,32.271,25.065,32.271z"></path>
+              </svg>
+            </div>
+            <div id="search-clear-button"></div>
+          </form>
+          <button id="search-close-button" data-l10n-id="LT_NETWORK_STATUS_BTN_CLOSE">close</button>
+        </li>
+
+        <li id="iconbutton-block">
+          <ul>
+            <li id="bookmark-button-block" data-tips="WB_LT_TIPS_BOOKMARK_THIS_PAGE">
+              <div id="bookmark-button" data-isbookmark="false">
+              <!-- XXX: Replace the SVG to icon font -->
+                <svg id="bookmark-button-svg" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="3 3 47 47" x="0" y="0" preserveAspectRatio="xMidyMid meet">
+                  <g id="bookmark-off-svg" visibility="hidden">
+                    <g>
+                      <g>
+                        <path class="bookmark-button-path" fill="#1D1D1B" d="M43.116,22.382l-11.238-1.477L27,10.673l-4.878,10.231l-11.238,1.477l8.224,7.801L17.04,41.327l9.96-5.41
+                        l9.96,5.41l-2.068-11.145L43.116,22.382z M27,32.824l-6.404,3.479l1.33-7.165l-5.287-5.016l7.225-0.949L27,16.594l3.136,6.579
+                        l7.226,0.949l-5.287,5.016l1.33,7.165L27,32.824z"></path>
+                      </g>
+                    </g>
+                  </g>
+                  <g id="bookmark-on-svg" visibility="hidden">
+                    <g>
+                      <g>
+                        <polygon class="bookmark-button-path" fill="#00caf2" points="43.116,22.382 31.878,20.904 27,10.673 22.122,20.904 10.884,22.382 19.107,30.183 17.04,41.327
+                        27,35.917 36.96,41.327 34.893,30.183 			"></polygon>
+                      </g>
+                    </g>
+                  </g>
+                </svg>
+              </div>
             </li>
-            <li role="presentation">
-              <a id="bookmarks-tab" href="#"
-                 data-l10n-id="bookmarks" role="tab"
-                 aria-selected="false" aria-controls="bookmarks-panel">Bookmarks</a>
+            <li id="show-bookmarks-button-block" data-tips="WB_LT_TIPS_SHOW_YOUR_BOOKMARK">
+              <div id="show-bookmarks-button">
+              <!-- XXX: Replace the SVG to icon font -->
+                <svg id="show-bookmarks-button-svg" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="3 3 47 47" x="0" y="0" preserveAspectRatio="xMidyMid meet">
+                  <path class="show-bookmarks-button-path" fill-rule="evenodd" clip-rule="evenodd" fill="#1D1D1B" d="M38.551,18.436h-4.794l-5.571-5.406l-5.581,5.406h-5.156
+                  c-1.205,0-2.181,0.977-2.181,2.181v18.172c0,1.204,0.976,2.181,2.181,2.181h21.102c1.204,0,2.181-0.977,2.181-2.181V20.617
+                  C40.731,19.413,39.755,18.436,38.551,18.436z M21.83,38.06h-4.363v-4.363h4.363V38.06z M21.833,31.521h-4.361v-4.361h4.361
+                  V31.521z M21.833,24.978h-4.361v-4.361h4.361V24.978z M23.991,27.159h14.56v4.361h-14.56V27.159z M38.552,38.06H23.999v-4.363
+                  h14.553V38.06z M38.542,24.968l-14.538,0.007v-4.356h14.548L38.542,24.968z"></path>
+                </svg>
+              </div>
             </li>
-            <li role="presentation">
-              <a id="history-tab" href="#"
-                 data-l10n-id="history" role="tab"
-                 aria-selected="false" aria-controls="history-panel">History</a>
+            <li id="home-button-block" data-tips="WB_LT_TIPS_HOMEPAGE">
+              <div id="home-button">
+              <!-- XXX: Replace the SVG to icon font -->
+                <svg id="home-button-svg" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="3 3 47 47" x="0" y="0" preserveAspectRatio="xMidyMid meet">
+                  <path class="home-button-path" fill-rule="evenodd" clip-rule="evenodd" fill="#1D1D1B" d="M27.557,19.535l-9.028,8.469
+                  c-0.001,0.026-0.007,0.05-0.007,0.076v10.34c0,1.119,0.935,2.071,2.088,2.071h4.028c-0.188-0.238-0.305-0.534-0.305-0.86v-7.936
+                  c0-0.769,0.623-1.393,1.392-1.393h3.756c0.769,0,1.392,0.624,1.392,1.393v7.936c0,0.326-0.117,0.623-0.305,0.86h4.044
+                  c1.153,0,2.088-0.952,2.088-2.071v-10.34c0-0.014-0.004-0.027-0.004-0.041L27.557,19.535z M40.929,25.98L29.117,14.352
+                  c-0.815-0.791-2.137-0.791-2.953,0L14.352,25.98c-0.418,0.406-0.618,0.94-0.608,1.472c0.013,0,0.024-0.003,0.037-0.003h2.553
+                  l9.863-9.18l-0.035-0.032l0.651-0.541l0.895-0.833l1.373,1.243l-0.033,0.031l9.832,9.312h2.658
+                  C41.547,26.919,41.347,26.385,40.929,25.98z"></path>
+                </svg>
+              </div>
             </li>
-            <li role="presentation">
-              <a id="edit-tab" href="#"
-                 data-l10n-id="edit" role="tab"
-                 aria-selected="false" aria-controls="edit">Edit</a>
+            <li id="zoom-button-block" data-tips="WB_LT_TIPS_ZOOM_IN" data-colorbar="red">
+              <div id="zoom-button">
+              <!-- XXX: Replace the SVG to icon font -->
+                <svg id="zoom-button-svg" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="3 3 47 47" x="0" y="0" preserveAspectRatio="xMidyMid meet">
+                  <path class="zoom-button-path" fill-rule="evenodd" clip-rule="evenodd" fill="#1D1D1B" d="M39.982,36.892l-6.505-6.505
+                  c1.148-1.698,1.818-3.746,1.818-5.95c0-5.876-4.764-10.64-10.64-10.64c-5.876,0-10.639,4.764-10.639,10.64
+                  c0,5.876,4.763,10.64,10.639,10.64c2.074,0,4.003-0.603,5.639-1.629l6.063,6.063c0.005,0.203,0.06,0.379,0.184,0.502
+                  c0.438,0.438,1.492,0.095,2.353-0.767c0.755-0.755,1.112-1.657,0.895-2.164L39.982,36.892z M24.656,32.544
+                  c-4.478,0-8.107-3.63-8.107-8.107c0-4.477,3.63-8.108,8.107-8.108c4.477,0,8.108,3.631,8.108,8.108
+                  C32.765,28.914,29.134,32.544,24.656,32.544z M25.766,19.229h-2.09v4.21h-4.212v2.089h4.212v4.192h2.09v-4.192h4.189V23.44
+                  h-4.189V19.229z"></path>
+                </svg>
+              </div>
+            </li>
+            <li id="tabs-button-block" data-tips="WB_LT_TIPS_TABS" data-tabs="tab01" data-colorbar="yellow">
+              <div id="tabs-button">
+              <!-- XXX: Replace the SVG to icon font -->
+                <svg id="tabs-button-svg" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="3 3 47 47" x="0" y="0" preserveAspectRatio="xMidyMid meet">
+                  <g id="tabs-00-svg" visibility="hidden">
+                    <g>
+                      <g>
+                        <path class="tabs-button-path" fill-rule="evenodd" clip-rule="evenodd" fill="#1D1D1B" d="M16.515,20.219c0-1.864,1.533-3.718,3.398-3.718h13.679
+                        c-0.176-1.671-1.596-2.786-3.341-2.786H16.746c-1.864,0-3.061,1.264-3.061,3.128v13.504c0,1.739,1.162,3.154,2.83,3.339V20.219z"></path>
+                      </g>
+                    </g>
+                    <g>
+                      <path class="tabs-button-path" fill-rule="evenodd" clip-rule="evenodd" fill="#231815" d="M29.456,24.899c-1.332,0-1.962,1.188-1.962,4.537
+                      c0,3.385,0.63,4.573,1.962,4.573c1.333,0,1.963-1.152,1.963-4.573C31.419,26.033,30.789,24.899,29.456,24.899z"></path>
+                      <path class="tabs-button-path" fill-rule="evenodd" clip-rule="evenodd" fill="#231815" d="M36.813,18.595H22.328c-1.968,0-3.716,2.094-3.716,4.062v14.297
+                      c0,1.968,1.748,3.332,3.716,3.332h14.485c1.969,0,3.502-1.364,3.502-3.332V22.656C40.315,20.688,38.782,18.595,36.813,18.595z
+                      M29.456,35.757c-2.845,0-4.339-2.27-4.339-6.32c0-4.033,1.495-6.284,4.339-6.284c2.863,0,4.339,2.251,4.339,6.284
+                      C33.795,33.487,32.319,35.757,29.456,35.757z"></path>
+                    </g>
+                  </g>
+                  <g id="tabs-01-svg" visibility="hidden">
+                    <g>
+                      <g>
+                        <path class="tabs-button-path" fill-rule="evenodd" clip-rule="evenodd" fill="#1D1D1B" d="M16.515,20.219c0-1.864,1.533-3.718,3.398-3.718h13.679
+                        c-0.176-1.671-1.596-2.786-3.341-2.786H16.746c-1.864,0-3.061,1.264-3.061,3.128v13.504c0,1.739,1.162,3.154,2.83,3.339V20.219z"></path>
+                      </g>
+                    </g>
+                    <path class="tabs-button-path" fill-rule="evenodd" clip-rule="evenodd" fill="#231815" d="M36.813,18.595H22.328c-1.968,0-3.716,2.094-3.716,4.062v14.297
+                    c0,1.968,1.748,3.332,3.716,3.332h14.485c1.969,0,3.502-1.364,3.502-3.332V22.656C40.315,20.688,38.782,18.595,36.813,18.595z
+                    M31.806,35.486h-2.269v-9.795l-2.701,1.639l-1.008-1.549l3.943-2.412h2.035V35.486z"></path>
+                  </g>
+                  <g id="tabs-02-svg" visibility="hidden">
+                    <g>
+                      <g>
+                        <path class="tabs-button-path" fill-rule="evenodd" clip-rule="evenodd" fill="#1D1D1B" d="M16.515,20.219c0-1.864,1.533-3.718,3.398-3.718h13.679
+                        c-0.176-1.671-1.596-2.786-3.341-2.786H16.746c-1.864,0-3.061,1.264-3.061,3.128v13.504c0,1.739,1.162,3.154,2.83,3.339V20.219z"></path>
+                      </g>
+                    </g>
+                    <path class="tabs-button-path" fill-rule="evenodd" clip-rule="evenodd" fill="#231815" d="M36.813,18.595H22.328c-1.968,0-3.716,2.094-3.716,4.062v14.297
+                    c0,1.968,1.748,3.332,3.716,3.332h14.485c1.969,0,3.502-1.364,3.502-3.332V22.656C40.315,20.688,38.782,18.595,36.813,18.595z
+                    M33.057,35.486h-7.544v-1.692c4.141-4.214,5.149-5.348,5.149-7.059c0-1.116-0.702-1.765-1.747-1.765
+                    c-0.954,0-1.584,0.396-2.323,1.279l-1.422-1.117c0.972-1.26,2.25-1.98,3.925-1.98c2.503,0,3.943,1.513,3.943,3.403
+                    c0,2.053-1.17,3.547-4.916,7.112h5.186L33.057,35.486z"></path>
+                  </g>
+                  <g id="tabs-03-svg" visibility="hidden">
+                    <g>
+                      <g>
+                        <path class="tabs-button-path" fill-rule="evenodd" clip-rule="evenodd" fill="#1D1D1B" d="M16.515,20.219c0-1.864,1.533-3.718,3.398-3.718h13.679
+                        c-0.176-1.671-1.596-2.786-3.341-2.786H16.746c-1.864,0-3.061,1.264-3.061,3.128v13.504c0,1.739,1.162,3.154,2.83,3.339V20.219z"></path>
+                      </g>
+                    </g>
+                    <path class="tabs-button-path" fill-rule="evenodd" clip-rule="evenodd" fill="#231815" d="M36.813,18.595H22.328c-1.968,0-3.716,2.094-3.716,4.062v14.297
+                    c0,1.968,1.748,3.332,3.716,3.332h14.485c1.969,0,3.502-1.364,3.502-3.332V22.656C40.315,20.688,38.782,18.595,36.813,18.595z
+                    M28.889,35.757c-1.656,0-2.989-0.612-3.925-1.747l1.314-1.242c0.738,0.828,1.531,1.188,2.485,1.188
+                    c1.296,0,2.143-0.774,2.143-2.035c0-1.44-0.81-1.944-2.179-1.944h-0.954l0.27-1.639h0.648c1.135,0,1.945-0.647,1.945-1.836
+                    c0-0.99-0.702-1.585-1.783-1.585c-0.936,0-1.674,0.343-2.431,1.062l-1.17-1.278c1.081-1.026,2.341-1.549,3.799-1.549
+                    c2.503,0,3.835,1.404,3.835,3.079c0,1.513-0.936,2.467-2.358,2.845c1.512,0.145,2.755,1.08,2.755,2.953
+                    C33.282,34.1,31.662,35.757,28.889,35.757z"></path>
+                  </g>
+                  <g id="tabs-04-svg" visibility="hidden">
+                    <g>
+                      <g>
+                        <path class="tabs-button-path" fill-rule="evenodd" clip-rule="evenodd" fill="#1D1D1B" d="M16.515,20.219c0-1.864,1.533-3.718,3.398-3.718h13.679
+                        c-0.176-1.671-1.596-2.786-3.341-2.786H16.746c-1.864,0-3.062,1.264-3.062,3.128v13.504c0,1.739,1.162,3.154,2.83,3.339V20.219z"></path>
+                      </g>
+                    </g>
+                    <path class="tabs-button-path" fill-rule="evenodd" clip-rule="evenodd" fill="#231815" d="M36.813,18.595H22.328c-1.968,0-3.716,2.094-3.716,4.062v14.297
+                    c0,1.968,1.748,3.332,3.716,3.332h14.485c1.969,0,3.502-1.364,3.502-3.332V22.656C40.315,20.688,38.782,18.595,36.813,18.595z
+                    M33.967,32.714h-1.459v2.772h-2.25v-2.772h-5.149v-1.585l3.528-7.994l1.963,0.738l-3.097,7.076h2.772l0.234-3.043h1.998v3.043
+                    h1.459V32.714z"></path>
+                  </g>
+                  <g id="tabs-05-svg" visibility="hidden">
+                    <g>
+                      <g>
+                        <path class="tabs-button-path" fill-rule="evenodd" clip-rule="evenodd" fill="#1D1D1B" d="M16.515,20.219c0-1.864,1.533-3.718,3.398-3.718h13.679
+                        c-0.176-1.671-1.596-2.786-3.341-2.786H16.746c-1.864,0-3.062,1.264-3.062,3.128v13.504c0,1.739,1.162,3.154,2.83,3.339V20.219z"></path>
+                      </g>
+                    </g>
+                    <path class="tabs-button-path" fill-rule="evenodd" clip-rule="evenodd" fill="#231815" d="M36.813,18.595H22.328c-1.968,0-3.716,2.094-3.716,4.062v14.297
+                    c0,1.968,1.748,3.332,3.716,3.332h14.485c1.969,0,3.502-1.364,3.502-3.332V22.656C40.315,20.688,38.782,18.595,36.813,18.595z
+                    M28.943,35.757c-1.692,0-2.881-0.685-3.817-1.711l1.332-1.242c0.648,0.756,1.423,1.17,2.431,1.17c1.351,0,2.197-0.864,2.197-2.431
+                    c0-1.674-0.828-2.25-1.944-2.25c-0.559,0-1.009,0.126-1.566,0.414h-1.639v-6.338h7.021l-0.27,1.71h-4.537v3.007
+                    c0.611-0.306,1.242-0.45,1.836-0.45c2.017,0,3.476,1.44,3.476,3.907C33.463,34.028,31.68,35.757,28.943,35.757z"></path>
+                  </g>
+                  <g id="tabs-06-svg" visibility="hidden">
+                    <g>
+                      <g>
+                        <path class="tabs-button-path" fill-rule="evenodd" clip-rule="evenodd" fill="#1D1D1B" d="M16.515,20.219c0-1.864,1.533-3.718,3.397-3.718h13.679
+                        c-0.176-1.671-1.596-2.786-3.341-2.786H16.746c-1.864,0-3.061,1.264-3.061,3.128v13.504c0,1.739,1.162,3.154,2.83,3.339V20.219z"></path>
+                      </g>
+                    </g>
+                    <g>
+                      <path class="tabs-button-path" fill-rule="evenodd" clip-rule="evenodd" fill="#231815" d="M29.861,29.095c-0.828,0-1.584,0.485-2.143,1.242
+                      c0.036,2.593,0.595,3.709,1.98,3.709c1.225,0,1.818-1.062,1.818-2.646C31.518,29.671,30.888,29.095,29.861,29.095z"></path>
+                      <path class="tabs-button-path" fill-rule="evenodd" clip-rule="evenodd" fill="#231815" d="M36.813,18.595H22.328c-1.968,0-3.716,2.094-3.716,4.062v14.297
+                      c0,1.968,1.748,3.332,3.716,3.332h14.485c1.969,0,3.502-1.364,3.502-3.332V22.656C40.315,20.688,38.782,18.595,36.813,18.595z
+                      M29.699,35.757c-3.097,0-4.375-2.396-4.375-5.87c0-4.051,1.891-6.734,4.97-6.734c1.062,0,1.944,0.307,2.646,0.774l-0.864,1.423
+                      c-0.522-0.307-1.099-0.486-1.746-0.486c-1.531,0-2.503,1.458-2.629,3.889c0.773-0.936,1.692-1.332,2.719-1.332
+                      c1.891,0,3.421,1.368,3.421,3.943C33.841,33.902,32.148,35.757,29.699,35.757z"></path>
+                    </g>
+                  </g>
+                  <g id="tabs-07-svg" visibility="hidden">
+                    <g>
+                      <g>
+                        <path class="tabs-button-path" fill-rule="evenodd" clip-rule="evenodd" fill="#1D1D1B" d="M16.515,20.219c0-1.864,1.533-3.718,3.398-3.718h13.679
+                        c-0.176-1.671-1.596-2.786-3.341-2.786H16.746c-1.864,0-3.062,1.264-3.062,3.128v13.504c0,1.739,1.162,3.154,2.83,3.339V20.219z"></path>
+                      </g>
+                    </g>
+                    <path class="tabs-button-path" fill-rule="evenodd" clip-rule="evenodd" fill="#231815" d="M36.813,18.595H22.328c-1.968,0-3.716,2.094-3.716,4.062v14.297
+                    c0,1.968,1.748,3.332,3.716,3.332h14.485c1.969,0,3.502-1.364,3.502-3.332V22.656C40.315,20.688,38.782,18.595,36.813,18.595z
+                    M33.165,24.989l-4.483,10.731l-2.106-0.685l4.213-9.885h-5.113v-1.782h7.49V24.989z"></path>
+                  </g>
+                  <g id="tabs-08-svg" visibility="hidden">
+                    <g>
+                      <g>
+                        <path class="tabs-button-path" fill-rule="evenodd" clip-rule="evenodd" fill="#1D1D1B" d="M16.515,20.219c0-1.864,1.533-3.718,3.398-3.718h13.679
+                        c-0.176-1.671-1.596-2.786-3.341-2.786H16.746c-1.864,0-3.061,1.264-3.061,3.128v13.504c0,1.739,1.162,3.154,2.83,3.339V20.219z"></path>
+                      </g>
+                    </g>
+                    <g>
+                      <path class="tabs-button-path" fill-rule="evenodd" clip-rule="evenodd" fill="#231815" d="M29.366,29.995l-0.558-0.198
+                      c-0.972,0.521-1.458,1.296-1.458,2.395c0,1.152,0.829,1.854,2.125,1.854c1.351,0,2.107-0.774,2.107-1.818
+                      C31.581,31.093,30.986,30.589,29.366,29.995z"></path>
+                      <path class="tabs-button-path" fill-rule="evenodd" clip-rule="evenodd" fill="#231815" d="M29.564,28.284l0.342,0.126c0.954-0.594,1.296-1.188,1.296-2.053
+                      c0-0.954-0.594-1.584-1.729-1.584c-1.044,0-1.729,0.54-1.729,1.603C27.745,27.402,28.394,27.852,29.564,28.284z"></path>
+                      <path class="tabs-button-path" fill-rule="evenodd" clip-rule="evenodd" fill="#231815" d="M36.813,18.595H22.328c-1.968,0-3.716,2.094-3.716,4.062v14.297
+                      c0,1.968,1.748,3.332,3.716,3.332h14.485c1.969,0,3.502-1.364,3.502-3.332V22.656C40.315,20.688,38.782,18.595,36.813,18.595z
+                      M29.42,35.757c-2.719,0-4.394-1.531-4.394-3.493c0-1.477,0.864-2.449,2.305-3.062c-1.296-0.702-1.818-1.674-1.818-2.862
+                      c0-1.98,1.801-3.188,3.961-3.188c2.143,0,3.961,1.081,3.961,3.098c0,1.116-0.63,2.034-1.999,2.736
+                      c1.656,0.738,2.485,1.801,2.485,3.241C33.921,34.208,32.175,35.757,29.42,35.757z"></path>
+                    </g>
+                  </g>
+                  <g id="tabs-09-svg" visibility="hidden">
+                    <g>
+                      <g>
+                        <path class="tabs-button-path" fill-rule="evenodd" clip-rule="evenodd" fill="#1D1D1B" d="M16.515,20.219c0-1.864,1.533-3.718,3.398-3.718h13.679
+                        c-0.176-1.671-1.596-2.786-3.341-2.786H16.746c-1.864,0-3.061,1.264-3.061,3.128v13.504c0,1.739,1.162,3.154,2.83,3.339V20.219z"></path>
+                      </g>
+                    </g>
+                    <g>
+                      <path class="tabs-button-path" fill-rule="evenodd" clip-rule="evenodd" fill="#231815" d="M29.411,24.863c-1.17,0-1.908,0.811-1.908,2.358
+                      c0,1.656,0.756,2.305,1.729,2.305c0.828,0,1.53-0.45,2.07-1.242C31.337,25.781,30.761,24.863,29.411,24.863z"></path>
+                      <path class="tabs-button-path" fill-rule="evenodd" clip-rule="evenodd" fill="#231815" d="M36.813,18.595H22.328c-1.968,0-3.716,2.094-3.716,4.062v14.297
+                      c0,1.968,1.748,3.332,3.716,3.332h14.485c1.969,0,3.502-1.364,3.502-3.332V22.656C40.315,20.688,38.782,18.595,36.813,18.595z
+                      M26.602,35.937l-0.486-1.639c3.025-0.792,4.753-1.963,5.078-4.357c-0.576,0.738-1.422,1.261-2.593,1.261
+                      c-1.873,0-3.403-1.494-3.403-3.943c0-2.539,1.873-4.105,4.213-4.105c2.809,0,4.25,1.909,4.25,4.699
+                      C33.66,32.84,31.463,34.784,26.602,35.937z"></path>
+                    </g>
+                  </g>
+                  <g id="tabs-10-svg" visibility="hidden">
+                    <g>
+                      <g>
+                        <path class="tabs-button-path" fill-rule="evenodd" clip-rule="evenodd" fill="#1D1D1B" d="M16.515,20.219c0-1.864,1.533-3.718,3.398-3.718h13.679
+                        c-0.176-1.671-1.596-2.786-3.341-2.786H16.746c-1.864,0-3.061,1.264-3.061,3.128v13.504c0,1.739,1.162,3.154,2.83,3.339V20.219z"></path>
+                      </g>
+                    </g>
+                    <g>
+                      <path class="tabs-button-path" fill-rule="evenodd" clip-rule="evenodd" fill="#231815" d="M33.506,24.899c-1.332,0-1.962,1.188-1.962,4.537
+                      c0,3.385,0.63,4.573,1.962,4.573c1.333,0,1.963-1.152,1.963-4.573C35.469,26.033,34.838,24.899,33.506,24.899z"></path>
+                      <path class="tabs-button-path" fill-rule="evenodd" clip-rule="evenodd" fill="#231815" d="M36.813,18.595H22.328c-1.968,0-3.716,2.094-3.716,4.062v14.297
+                      c0,1.968,1.748,3.332,3.716,3.332h14.485c1.969,0,3.502-1.364,3.502-3.332V22.656C40.315,20.688,38.782,18.595,36.813,18.595z
+                      M26.648,35.486h-2.269v-9.795l-2.701,1.639l-1.008-1.549l3.943-2.412h2.035V35.486z M33.506,35.757
+                      c-2.845,0-4.339-2.27-4.339-6.32c0-4.033,1.495-6.284,4.339-6.284c2.863,0,4.339,2.251,4.339,6.284
+                      C37.845,33.487,36.369,35.757,33.506,35.757z"></path>
+                    </g>
+                  </g>
+                  <g id="tabs-11-svg" visibility="hidden">
+                    <g>
+                      <g>
+                        <path class="tabs-button-path" fill-rule="evenodd" clip-rule="evenodd" fill="#1D1D1B" d="M16.515,20.219c0-1.864,1.533-3.718,3.398-3.718h13.679
+                        c-0.176-1.671-1.596-2.786-3.341-2.786H16.746c-1.864,0-3.061,1.264-3.061,3.128v13.504c0,1.739,1.162,3.154,2.83,3.339V20.219z"></path>
+                      </g>
+                    </g>
+                    <path class="tabs-button-path" fill-rule="evenodd" clip-rule="evenodd" fill="#231815" d="M36.813,18.595H22.328c-1.968,0-3.716,2.094-3.716,4.062v14.297
+                    c0,1.968,1.748,3.332,3.716,3.332h14.485c1.969,0,3.502-1.364,3.502-3.332V22.656C40.315,20.688,38.782,18.595,36.813,18.595z
+                    M27.755,35.486h-2.269v-9.795l-2.701,1.639l-1.008-1.549l3.943-2.412h2.035V35.486z M35.855,35.486h-2.269v-9.795l-2.701,1.639
+                    l-1.008-1.549l3.943-2.412h2.035V35.486z"></path>
+                  </g>
+                  <g id="tabs-12-svg" visibility="hidden">
+                    <g>
+                      <g>
+                        <path class="tabs-button-path" fill-rule="evenodd" clip-rule="evenodd" fill="#1D1D1B" d="M16.515,20.219c0-1.864,1.533-3.718,3.398-3.718h13.679
+                        c-0.176-1.671-1.596-2.786-3.341-2.786H16.746c-1.864,0-3.062,1.264-3.062,3.128v13.504c0,1.739,1.162,3.154,2.83,3.339V20.219z"></path>
+                      </g>
+                    </g>
+                    <path class="tabs-button-path" fill-rule="evenodd" clip-rule="evenodd" fill="#231815" d="M36.813,18.595H22.328c-1.968,0-3.716,2.094-3.716,4.062v14.297
+                    c0,1.968,1.748,3.332,3.716,3.332h14.485c1.969,0,3.502-1.364,3.502-3.332V22.656C40.315,20.688,38.782,18.595,36.813,18.595z
+                    M27.243,35.486h-2.27v-9.795l-2.7,1.639l-1.009-1.549l3.943-2.412h2.035V35.486z M37.107,35.486h-7.544v-1.692
+                    c4.141-4.214,5.149-5.348,5.149-7.059c0-1.116-0.702-1.765-1.747-1.765c-0.954,0-1.584,0.396-2.322,1.279l-1.423-1.117
+                    c0.973-1.26,2.251-1.98,3.926-1.98c2.502,0,3.942,1.513,3.942,3.403c0,2.053-1.17,3.547-4.915,7.112h5.186L37.107,35.486z"></path>
+                  </g>
+                </svg>
+              </div>
+            </li>
+            <li id="new-tab-button-block" data-tips="WB_LT_TIPS_OPEN_A_NEW_TAB" data-colorbar="blue">
+              <div id="new-tab-button">
+              <!-- XXX: Replace the SVG to icon font -->
+                <svg id="new-tab-button-svg" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="3 3 47 47" x="0" y="0" preserveAspectRatio="xMidyMid meet">
+                  <path class="new-tab-button-path" fill-rule="evenodd" clip-rule="evenodd" fill="#1D1D1B" d="M33.59,16.501c-0.176-1.671-1.595-2.786-3.341-2.786H16.746
+                  c-1.864,0-3.061,1.264-3.061,3.128v13.504c0,1.738,1.162,3.154,2.83,3.339V20.219c0-1.864,1.534-3.718,3.398-3.718H33.59z
+                  M36.814,18.595H22.328c-1.968,0-3.716,2.094-3.716,4.062v14.297c0,1.968,1.748,3.332,3.716,3.332h14.485
+                  c1.968,0,3.502-1.364,3.502-3.332V22.656C40.315,20.688,38.782,18.595,36.814,18.595z M35.394,30.061
+                  c0,0.499-0.405,1.127-0.904,1.127h-3.981v4.006c0,0.499-0.602,0.904-1.102,0.904h-0.524c-0.5,0-1.189-0.405-1.189-0.904v-4.006
+                  h-4c-0.5,0-0.904-0.628-0.904-1.127v-0.452c0-0.5,0.405-1.232,0.904-1.232h4v-3.982c0-0.5,0.689-0.904,1.189-0.904h0.524
+                  c0.5,0,1.102,0.404,1.102,0.904v3.982h3.981c0.5,0,0.904,0.732,0.904,1.232V30.061z"></path>
+                </svg>
+            </div>
+          </li>
+            <li id="menu-button-block" data-tips="WB_LT_TIPS_MENU">
+              <div id="menu-button">
+              <!-- XXX: Replace the SVG to icon font -->
+                <svg id="menu-button-svg" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="3 3 47 47" x="0" y="0" preserveAspectRatio="xMidyMid meet">
+                  <path class="menu-button-path" fill-rule="evenodd" clip-rule="evenodd" fill="#1D1D1B" d="M36.783,16.15H17.217c-0.773,0-1.4,0.626-1.4,1.399v1.422
+                  c0,0.773,0.627,1.4,1.4,1.4h19.566c0.773,0,1.4-0.627,1.4-1.4V17.55C38.183,16.776,37.557,16.15,36.783,16.15z M36.783,24.594
+                  H17.217c-0.773,0-1.4,0.627-1.4,1.4v1.378c0,0.773,0.627,1.399,1.4,1.399h19.566c0.773,0,1.4-0.626,1.4-1.399v-1.378
+                  C38.183,25.221,37.557,24.594,36.783,24.594z M36.783,33.672H17.217c-0.773,0-1.4,0.627-1.4,1.4v1.378
+                  c0,0.773,0.627,1.399,1.4,1.399h19.566c0.773,0,1.4-0.626,1.4-1.399v-1.378C38.183,34.299,37.557,33.672,36.783,33.672z"></path>
+                </svg>
+              </div>
+              <ul id="menu-block">
+                <div>
+                  <li id="history-block"><a id="history-tab" href="#" data-l10n-id="LT_SE_HISTORY">History</a></li>
+                  <li id="private-window-block"><a id="private-window-tab" href="#" data-l10n-id="WB_LT_TIPS_NEW_PRIVATE_WINDOW">New private window</a></li>
+                  <li id="settings-block"><a id="settings-tab" href="#" data-l10n-id="LT_APPS_SETTINGS">Settings</a></li>
+                </div>
+              </ul>
             </li>
           </ul>
-        </nav>
-        <div id="tab-panels">
-          <div id="top-sites-panel" role="tabpanel" class="bb-tabpanel selected"
-            aria-labelledby="top-sites-tab">
-            <ul role="listbox" id="top-site-list">
-              <li class="top-site-item">
-                <a href="http://mozilla.org"></a>
-                <span>Mozilla</span>
-              </li>
-              <li class="top-site-item">
-                <a href="http://www.google.com"></a>
-                <span>Google</span>
-              </li>
-              <li class="top-site-item">
-                <a href="http://mozilla.org"></a>
-                <span>Mozilla</span>
-              </li>
-              <li class="top-site-item">
-                <a href="http://mozilla.org"></a>
-                <span>Mozilla</span>
-              </li>
-              <li class="top-site-item">
-                <a href="http://www.google.com"></a>
-                <span>Google</span>
-              </li>
-              <li class="top-site-item">
-                <a href="http://mozilla.org"></a>
-                <span>Mozilla</span>
-              </li>
-              <li class="top-site-item">
-                <a href="http://mozilla.org"></a>
-                <span>Mozilla</span>
-              </li>
-              <li class="top-site-item">
-                <a href="http://www.google.com"></a>
-                <span>Google</span>
-              </li>
-              <li class="top-site-item">
-                <a href="http://mozilla.org"></a>
-                <span>Mozilla</span>
-              </li>
-              <li class="top-site-item">
-                <a href="http://mozilla.org"></a>
-                <span>Mozilla</span>
-              </li>
+        </li>
+      </ul>
+
+      <!-- bookmark animation -->
+      <div id="bookmark-button-anime">
+      <!-- XXX: Replace the SVG to icon font -->
+        <svg id="bookmark-button-anime-svg" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 54 54" x="0" y="0" preserveAspectRatio="xMidyMid meet">
+          <polygon class="bookmark-button-path" fill="#00CAF2" points="43.116,22.382 31.878,20.904 27,10.673 22.122,20.904 10.884,22.382 19.107,30.183 17.04,41.327
+          27,35.917 36.96,41.327 34.893,30.183"></polygon>
+        </svg>
+      </div>
+      <div id="show-bookmarks-button-anime">
+      <!-- XXX: Replace the SVG to icon font -->
+        <svg id="show-bookmarks-button-anime-svg" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 54 54" x="0" y="0" preserveAspectRatio="xMidyMid meet">
+          <path class="show-bookmarks-button-path" fill-rule="evenodd" clip-rule="evenodd" fill="#1D1D1B" d="M38.551,18.436h-4.794l-5.571-5.406l-5.581,5.406h-5.156
+          c-1.205,0-2.181,0.977-2.181,2.181v18.172c0,1.204,0.976,2.181,2.181,2.181h21.102c1.204,0,2.181-0.977,2.181-2.181V20.617
+          C40.731,19.413,39.755,18.436,38.551,18.436z M21.83,38.06h-4.363v-4.363h4.363V38.06z M21.833,31.521h-4.361v-4.361h4.361
+          V31.521z M21.833,24.978h-4.361v-4.361h4.361V24.978z M23.991,27.159h14.56v4.361h-14.56V27.159z M38.552,38.06H23.999v-4.363
+          h14.553V38.06z M38.542,24.968l-14.538,0.007v-4.356h14.548L38.542,24.968z"></path>
+        </svg>
+      </div>
+
+      <!-- web -->
+      <div id="web-block">
+        <!--
+        <iframe mozbrowser remote mozasyncpanzoom mozallowfullscreen id="browser_iframe" scrolling="yes"></iframe>
+        -->
+      </div>
+
+      <!-- scroll up down -->
+      <div id="scroll-u"></div>
+      <div id="scroll-d"></div>
+
+      <div id="awesomescreen">
+        <!-- awesomescreen tabview -->
+        <section id="tab-view">
+          <div id="tabview-panels">
+            <ul id="tab-site-list" role="listbox">
             </ul>
           </div>
-          <div id="bookmarks-panel" role="tabpanel" class="bb-tabpanel"
-            aria-labelledby="bookmarks-tab">
-          </div>
-          <div id="history-panel" role="tabpanel" class="bb-tabpanel"
-            aria-labelledby="history-tab">
-          </div>
-        </div>
-
-      </div>
-
-      <div id="crashscreen">
-      <!--
-        <h3 data-l10n-id="this-is-embarrassing">Well, this is embarrassing.</h3>
-        <img src="style/images/crashed-tab-icon.png" />
-        <p data-l10n-id="not-responding">
-          We tried to display this webpage but it's not responding.
-        </p>
-        <menu type="toolbar">
-          <button data-l10n-id="close-tab" id="close-tab">Close Tab</button>
-          <button data-l10n-id="reload-tab" id="try-reloading">
-            Try Reloading
-            </button>
-        </menu>
-      -->
-      </div>
-
-      <div id="frames">
-      </div>
-    </div>
-
-    <ul id="tabs-view" class="tab-list is-hidden">
-    </ul>
-
-    <section id="bookmark-menu" role="dialog" data-type="action" class="is-hidden">
-    <!--
-      <menu type="toolbar">
-        <button id="bookmark-menu-add" data-l10n-id="bookmark">Bookmark</button>
-        <button id="bookmark-menu-remove" data-l10n-id="unbookmark">Unbookmark</button>
-        <button id="bookmark-menu-edit" data-l10n-id="edit-bookmark">Edit Bookmark</button>
-        <button id="bookmark-menu-add-home" data-l10n-id="add-to-home-screen">Add to Home Screen</button>
-        <button id="bookmark-menu-cancel" data-l10n-id="cancel">Cancel</button>
-      </menu>
-    -->
-    </section>
-
-    <section id="bookmark-entry-sheet" role="region" class="is-hidden skin-organic">
-    <!--
-      <header>
-        <button id="bookmark-entry-sheet-cancel">
-          <span class="icon icon-close" data-l10n-id="cancel">Cancel</span>
-        </button>
-        <menu type="toolbar">
-          <button id="bookmark-entry-sheet-done" data-l10n-id="done">Done</button>
-        </menu>
-        <h1 data-l10n-id="edit-bookmark-header">Edit Bookmark</h1>
-      </header>
-      <label>
-        <span data-l10n-id="page-title">Page Title</span>
-        <input type="text" id="bookmark-title" dir="auto"></input>
-      </label>
-      <label>
-        <span data-l10n-id="address">Address</span>
-        <input type="url" id="bookmark-url"></input>
-      </label>
-      <input type="is-hidden" id="bookmark-previous-url"></input>
-    -->
-    </section>
-
-    <section id="http-authentication-dialog" role="region" class="is-hidden skin-organic">
-    <!--
-      <header>
-        <button id="http-authentication-cancel">
-          <span class="icon icon-close">close</span>
-        </button>
-        <menu type="toolbar">
-          <button id="http-authentication-ok" data-l10n-id="login">Login</button>
-        </menu>
-        <h1 data-l10n-id="login-to-a-website">Login to a website</h1>
-      </header>
-      <span id="http-authentication-message"></span>
-      <label>
-        <span data-l10n-id="username">Username</span>
-        <input type="text" id="http-authentication-username" dir="auto" />
-      </label>
-      <label>
-        <span data-l10n-id="password">Password</span>
-        <input id="http-authentication-password" type="password" />
-      </label>
-    -->
-    </section>
-
-    <div id="modal-dialog">
-
-      <div id="modal-dialog-alert" role="dialog" tabindex="-1">
-        <!--
-        <div class="modal-dialog-message-container inner">
-          <h3 id="modal-dialog-alert-title"></h3>
-          <p>
-            <span id="modal-dialog-alert-message"></span>
-          </p>
-        </div>
-        <menu>
-          <button id="modal-dialog-alert-ok" data-l10n-id="ok" class="affirmative">OK</button>
-        </menu>
-        -->
-      </div>
-
-      <div id="modal-dialog-confirm" role="dialog" tabindex="-1">
-        <!--
-        <div class="modal-dialog-message-container inner">
-          <h3 id="modal-dialog-confirm-title"></h3>
-          <p>
-            <span id="modal-dialog-confirm-message"></span>
-          </p>
-        </div>
-        <menu data-items="2">
-          <button id="modal-dialog-confirm-cancel" data-l10n-id="cancel">Cancel</button>
-          <button id="modal-dialog-confirm-ok" data-l10n-id="ok" class="affirmative">OK</button>
-        </menu>
-        -->
-      </div>
-
-      <div id="modal-dialog-prompt" role="dialog" tabindex="-1">
-        <!--
-        <div class="modal-dialog-message-container inner">
-          <h3 id="modal-dialog-prompt-title"></h3>
-          <p>
-            <span id="modal-dialog-prompt-message"></span>
-            <input id="modal-dialog-prompt-input" />
-          </p>
-        </div>
-        <menu data-items="2">
-          <button id="modal-dialog-prompt-cancel" data-l10n-id="cancel">Cancel</button>
-          <button id="modal-dialog-prompt-ok" data-l10n-id="ok" class="affirmative">OK</button>
-        </menu>
-        -->
-      </div>
-
-      <div id="modal-dialog-custom-prompt" role="dialog" tabindex="-1">
-        <!--
-        <div class="modal-dialog-message-container inner">
-          <h3 id="modal-dialog-custom-prompt-title"></h3>
-          <p><span id="modal-dialog-custom-prompt-message"></span></p>
-          <label class="pack-checkbox">
-            <input id="modal-dialog-custom-prompt-checkbox" type="checkbox" />
-            <span></span>
-          </label>
-        </div>
-        <menu id="modal-dialog-custom-prompt-buttons"></menu>
-        -->
-      </div>
-
-    </div>
-
-    <section role="region" id="settings" class="skin-organic">
-
-      <header id="settings-header">
-        <menu type="toolbar">
-          <button id="settings-done-button" role="menuitem" data-l10n-id="done">Done</button>
-        </menu>
-        <h1 data-l10n-id="browser-settings">Browser Settings</h1>
-      </header>
-      <header>
-        <h2 data-l10n-id="privacy-and-security">Privacy & Security</h2>
-      </header>
-      <ul>
-        <li>
-          <button id="clear-history-button"
-          data-l10n-id="clear-browsing-history">Clear browsing history</button>
-        </li>
-        <li>
-          <button id="clear-private-data-button"
-          data-l10n-id="clear-cookies-and-stored-data">Clear cookies and stored data</button>
-        </li>
-      </ul>
-      <header id="search-engine-heading" class="is-hidden">
-        <h2 data-l10n-id="search-engines">Search Engines</h2>
-      </header>
-      <ul id="search-engine-section" class="is-hidden">
-        <li>
-          <p data-l10n-id="default-search-engine">Default search engine</p>
-          <span class="fake-select">
-            <button id="search-engine-button" class="icon icon-dialog">...</button>
-            <select id="search-engine-select">
-            </select>
-          </span>
-        </li>
-      </ul>
-
-    </section>
-
-    <section id="save-media-status" role="status">
-      <p> </p>
-    </section>
-
-    <form role="dialog" id="danger-dialog" data-type="confirm"
-      tabindex="-1" hidden>
-      <!--
-        <section>
-          <p><span id="danger-dialog-message"></span></p>
         </section>
-        <menu>
-          <button id="danger-dialog-cancel" data-l10n-id="cancel">Cancel</button>
-          <button id="danger-dialog-ok" data-l10n-id="ok" class="danger">OK</button>
-        </menu>
-      -->
-    </form>
+        <section id="top-sites">
+          <div id="top-default-panels">
+            <ul id="top-default-list">
+              <li id="default-top-list-0" class="top-default-item"></li>
+              <li id="default-top-list-1" class="top-default-item"></li>
+              <li id="default-top-list-2" class="top-default-item"></li>
+              <li id="default-top-list-3" class="top-default-item"></li>
+              <li id="default-top-list-4" class="top-default-item"></li>
+              <li id="default-top-list-5" class="top-default-item"></li>
+              <li id="default-top-list-6" class="top-default-item"></li>
+              <li id="default-top-list-7" class="top-default-item"></li>
+              <li id="default-top-list-8" class="top-default-item"></li>
+            </ul>
+          </div>
+          <div id="top-panels">
+            <ul id="top-site-list" role="listbox"></ul>
+          </div>
+        </section>
+        <!-- awesomescreen bookamrk,history-->
+        <div id="list-dialog">
+          <section id="bookmarks"></section>
+          <section id="history"></section>
+        </div>
+        <!-- private window -->
+        <div id="private-browsing-block">
+          <div id="private-browsing-panel">
+            <!-- image logo -->
+            <div id="private-browsing-img"></div>
 
+            <!-- title -->
+            <div id="private-browsing-title">
+              <h1 id="private-browsing-title-text" data-l10n-id="WB_LT_SETTINGS_PRIVATE_BROWSING">Private Browsing</h1>
+            </div>
+            <!-- sum title -->
+            <div id="private-browsing-subtitle">
+              <h1 id="private-browsing-subtitle-text" data-l10n-id="WB_LT_PRIVATE_BROWSING_1">Firefox won't remember any history for this window.</h1>
+            </div>
+
+            <!-- info -->
+            <div id="private-browsing-info">
+              <p id="private-browsing-info-text" data-l10n-id="WB_LT_PRIVATE_BROWSING_2">In a Private Browsing window, Firefox won't keep any browser history, search history, download history, web form history, cookies, or temporary internet files. However, files you download and bookmarks you make will be kept.&lt;BR&gt;&lt;BR&gt;To stop Private Browsing, you can close this window.</p>
+            </div>
+
+            <!-- more info -->
+            <div id="private-browsing-more-info">
+              <p id="private-browsing-more-info-text" data-l10n-id="WB_LT_PRIVATE_BROWSING_3">While this computer won't have a record of your browsing history, your internet service provider or employer can still track the pages you visit.</p>
+              <p id="private-browsing-more-info-link-container">
+                <a id="private-browsing-more-info-link" target="_blank" data-l10n-id="WB_LT_LEARN_MORE">Learn More</a>
+              </p>
+            </div>
+          </div>
+        </div>
+        <!-- awesomescreen alert dialog -->
+        <div id="dialog-area">
+          <div id="bmd-dialog">
+            <div id="message-area">
+              <div id="message-title" class="title-area"></div>
+              <div id="bmtitle-area">
+                <input id="input-area" value="" size="30" type="text">
+                <div class="input-line"></div>
+                <div id="circle-img"></div>
+              </div>
+              <div id="check-area">
+                <div id="cbox-area">
+                  <div id="check-box">
+                    <div id="check-box-background"></div>
+                    <img id="check-img" src="style/images/check-on.svg">
+                  </div>
+                  <div id="text-area" data-l10n-id="WB_LT_ALSO_PIN_TO_HOME">Also pin to home</div>
+                </div>
+              </div>
+            </div>
+            <div id="button-area">
+              <div id="bt-position">
+                <button class="awesomescreen-primary-button none" id="ok-button" data-l10n-id="LT_WB_OK">OK</button>
+                <button class="awesomescreen-default-button none" id="pinhome-button" data-l10n-id="LT_PIN_TO_HOME">Pin to HOME</button>
+                <button class="awesomescreen-default-button none" id="clhistory-button" data-l10n-id="WB_LT_CLEAR_HISTORY">Clear History</button>
+                <button class="awesomescreen-default-button none" id="remove-button" data-l10n-id="WB_LT_CLEAR_BROWSING_HISTORY">Clear All History</button>
+                <button class="awesomescreen-default-button none" id="remove-bookmark-button" data-l10n-id="WB_LT_REMOVE">Remove</button>
+                <button class="awesomescreen-default-button none" id="edit-button" data-l10n-id="LT_CL_EDIT">Edit</button>
+                <button class="awesomescreen-default-button none" id="sethome-button" data-l10n-id="WB_LT_SET_AS_HOMEPAGE">Set as Homepage</button>
+                <button class="awesomescreen-danger-button none" id="remove-topsite-button" data-l10n-id="WB_LT_REMOVE_FROM_TOP_SITES">Remove from Top Sites</button>
+                <button class="awesomescreen-primary-button none" id="rename-confirm-button" data-l10n-id="LT_WB_OK">OK</button>
+                <button class="awesomescreen-danger-button none" id="remove-confirm-button" data-l10n-id="WB_LT_REMOVE">Remove</button>
+                <button class="awesomescreen-danger-button none" id="clear-button" data-l10n-id="WB_LT_CLEAR">Clear</button>
+                <button class="awesomescreen-default-button none" id="cancel-button" data-l10n-id="LT_CANCEL">Cancel</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="dialog-banner-message"></div>
+        <div id="pointer-img"><img src="style/images/img_cursor_arrow2x.png" width="64" height="64"></div>
+
+        <!-- awesomescreen loading -->
+        <div id="awesome-loading-icon">
+          <div class="awesomecircle awesomecircle-1"></div>
+          <div class="awesomecircle awesomecircle-2"></div>
+        </div>
+      </div>
+
+      <!-- authentication -->
+      <section id="http-authentication-dialog" role="region" class="hidden skin-organic">
+        <div id="http-authentication-dialog-wrap">
+          <div id="http-authentication-header">
+            <div id="http-authentication-key"></div>
+            <div id="http-authentication-message"></div>
+          </div>
+
+          <table id="http-authentication-body">
+            <tbody><tr>
+              <td><div class="http-authentication-title" data-l10n-id="LT_FILE_SHARING_DEVICE_USER">User</div></td>
+              <td>
+                <form class="http-authentication-input" id="http-authentication-username">
+                  <input class="http-authentication-input-area" id="http-authentication-username-area" dir="auto" type="text">
+                  <div class="input-line"></div>
+                  <div id="http-authentication-username-clear" class="special-pointer"></div>
+                </form>
+              </td>
+            </tr>
+            <tr>
+              <td><div class="http-authentication-title" data-l10n-id="LT_FILE_SHARING_DEVICE_PASSWORD">Password</div></td>
+              <td>
+                <form class="http-authentication-input" id="http-authentication-password">
+                  <input class="http-authentication-input-area" id="http-authentication-password-area" type="password">
+                  <div class="input-line"></div>
+                  <div id="http-authentication-password-clear" class="special-pointer"></div>
+                </form>
+              </td>
+            </tr>
+          </tbody></table>
+
+          <div id="http-authentication-button">
+            <button class="http-authentication-button" id="http-authentication-ok">
+              <span data-l10n-id="LT_WB_OK">OK</span>
+            </button>
+            <button class="http-authentication-button" id="http-authentication-cancel">
+              <span data-l10n-id="LT_CANCEL">Cancel</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- dialog -->
+      <div id="browser-dialog-base">
+        <div id="browser-dialog">
+          <div id="browser-dialog-title">
+            <p id="browser-dialog-title-text"></p>
+          </div>
+          <div id="browser-dialog-msg">
+            <p id="browser-dialog-msg-text"></p>
+          </div>
+          <form id="browser-dialog-input">
+            <input id="browser-dialog-input-area">
+            <div class="input-line"></div>
+            <div id="browser-dialog-input-clear"></div>
+          </form>
+          <div id="browser-dialog-margin"></div>
+          <div id="browser-dialog-button">
+            <button class="browser-dialog-button" id="browser-dialog-button2"></button>
+            <button class="browser-dialog-button" id="browser-dialog-button1"></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- settings -->
+      <div role="region" id="settings-list" class="skin-organic">
+        <div id="settings-list-area">
+          <div id="settings-header">
+            <p id="settings-header-title" data-l10n-id="WB_LT_BROWSER_SETTINGS">Browser Settings</p>
+          </div>
+          <div id="settings-list-item">
+            <div id="settings-homepage">
+              <p id="settings-homepage-title" data-l10n-id="WB_LT_HOMEPAGE">Homepage</p>
+              <p id="settings-homepage-name"></p>
+            </div>
+            <div id="settings-search-engine">
+              <p id="settings-search-engine-title" data-l10n-id="WB_LT_SETTINGS_SEARCH_ENGINE">Search Engine</p>
+              <p id="settings-search-engine-name"></p>
+              <p id="settings-search-engine-icon"></p>
+            </div>
+            <div id="settings-clear-history">
+              <p id="settings-clear-history-title" data-l10n-id="WB_LT_CLEAR_BROWSING_HISTORY">Clear All History</p>
+            </div>
+            <div id="settings-clear-cookie">
+              <p id="settings-clear-cookie-title" data-l10n-id="WB_LT_CLEAR_STORED_DATA">Clear Cookies and Stored Data</p>
+            </div>
+          </div>
+        </div>
+        <div id="settings-dialog" class="hidden">
+          <div id="settings-dialog-homepage" class="hidden">
+            <div id="settings-dialog-homepage-header">
+              <p id="settings-dialog-homepage-header-title" data-l10n-id="WB_LT_SET_AS_HOMEPAGE">Set as Homepage</p>
+            </div>
+            <form id="settings-dialog-homepage-input">
+              <input id="settings-dialog-homepage-input-area" value="" type="url">
+              <div class="input-line"></div>
+              <div id="settings-dialog-homepage-clear"></div>
+            </form>
+            <button id="settings-dialog-homepage-default" data-l10n-id="WB_LT_RESTORE_TO_DEFAULT">Restore to default</button>
+            <div id="settings-dialog-homepage-button">
+              <button id="settings-dialog-homepage-cancel" data-l10n-id="LT_CANCEL">Cancel</button>
+              <button id="settings-dialog-homepage-ok" data-l10n-id="LT_WB_OK">OK</button>
+            </div>
+          </div>
+          <div id="settings-dialog-search" class="hidden">
+            <div id="settings-dialog-search-header">
+              <p id="settings-dialog-search-header-title" data-l10n-id="WB_LT_SETTINGS_SEARCH_ENGINE">Search Engine</p>
+            </div>
+            <div id="settings-dialog-search-select">
+              <div id="settings-dialog-search-select-list"></div>
+            </div>
+            <div id="settings-dialog-search-button">
+              <button id="settings-dialog-search-cancel" data-l10n-id="LT_CANCEL">Cancel</button>
+              <button id="settings-dialog-search-ok" data-l10n-id="LT_WB_OK">OK</button>
+            </div>
+          </div>
+        </div>
+        <div id="settings-banner-message"></div>
+      </div>
+
+      <!-- loading -->
+      <gaia-loading id="loading-icon">
+        <div class="circle circle-1"></div>
+        <div class="circle circle-2"></div>
+      </gaia-loading>
+
+      <!-- zoom banner -->
+      <div id="zoom-banner-message-block">
+        <div id="zoom-banner-message"></div>
+      </div>
+
+      <!-- pan cursor mode button -->
+      <div id="mode-button-block" data-mode="cursor" data-tips="WB_LT_PRESS_COLOR_KEY">
+        <div id="mode-button-panel">
+          <button id="pan-cursor-button"></button>
+          <h2 id="mode-button-title" data-l10n-id="WB_LT_CURSOR_MODE">Cursor Mode</h2>
+          <div id="pan-cursor-button-block" data-colorbar=""></div>
+        </div>
+      </div>
+      <div id="pan-cursor-banner-message" data-l10n-id="WB_LT_SWITCH_PAN_MODE">You have switched to Pan Mode</div>
+
+      <!-- search result -->
+      <div id="search-result">
+        <div id="search-result-list"></div>
+      </div>
+
+    </div>
+
+    <div id="block-r"></div>
+    <div id="block-l"></div>
+    <div id="block-d"></div>
+    <!-- scroll left right -->
+    <div id="scroll-l"></div>
+    <div id="scroll-r"></div>
+
+    <!-- Tooltip -->
+    <div id="tooltip-block"></div>
   </body>
 
 </html>

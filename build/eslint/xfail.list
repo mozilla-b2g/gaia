@@ -302,6 +302,16 @@ tv_apps/fling-player/bower_components/gaia-component/gaia-component.js # line 33
 tv_apps/fling-player/bower_components/gaia-component/gaia-component.js # line 283, col 2, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 tv_apps/fling-player/bower_components/gaia-component/gaia-component.js # line 324, col 2, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 tv_apps/fling-player/bower_components/gaia-theme/lib/gaia-theme-selector.js # line 12, col 2, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
+tv_apps/browser/js/authentication_dialog.js # Eslint raises some internal error for this file, so we don't attach its certain error place for now.
+tv_apps/browser/js/awesomescreen.js # Eslint raises some internal error for this file, so we don't attach its certain error place for now.
+tv_apps/browser/js/browser_db.js # Eslint raises some internal error for this file, so we don't attach its certain error place for now.
+tv_apps/browser/js/browser_dialog.js # Eslint raises some internal error for this file, so we don't attach its certain error place for now.
+tv_apps/browser/js/index.js # Eslint raises some internal error for this file, so we don't attach its certain error place for now.
+tv_apps/browser/js/search_result.js # Eslint raises some internal error for this file, so we don't attach its certain error place for now.
+tv_apps/browser/js/search_util.js # Eslint raises some internal error for this file, so we don't attach its certain error place for now.
+tv_apps/browser/js/settings.js # Eslint raises some internal error for this file, so we don't attach its certain error place for now.
+tv_apps/browser/js/toolbar.js # Eslint raises some internal error for this file, so we don't attach its certain error place for now.
+tv_apps/browser/js/tooltip.js # Eslint raises some internal error for this file, so we don't attach its certain error place for now.
 tv_apps/smart-home/js/home.js # line 794, col 6, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 tv_apps/smart-system/bower_components/gaia-component/gaia-component.js # line 32, col 4, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 tv_apps/smart-system/bower_components/gaia-component/gaia-component.js # line 293, col 2, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
