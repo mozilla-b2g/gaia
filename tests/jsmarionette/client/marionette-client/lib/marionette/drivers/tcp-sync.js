@@ -128,7 +128,10 @@ TcpSync.prototype.connect = function(callback) {
       debug('socket connected');
       delete this._beginConnect;
 
-      this._readResponse();
+      var resp = this._readResponse();
+      this.marionetteProtocol = resp.marionetteProtocol || 1;
+      this.traits = resp.traits;
+      this.applicationType = resp.applicationType;
 
       callback();
     }.bind(this));

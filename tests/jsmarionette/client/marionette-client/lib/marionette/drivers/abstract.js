@@ -96,10 +96,10 @@
      * Requires a _connect function to be defined.
      *
      *     MyClass.prototype._connect = function _connect(){
-     *       //open a socket to marrionete accept response
-     *       //you *must* call _onDeviceResponse with the first
-     *       //response from marionette it looks like this:
-     *       //{ from: 'root', applicationType: 'gecko', traits: [] }
+     *       // open a socket to marrionete accept response
+     *       // you *must* call _onDeviceResponse with the first
+     *       // response from Marionette it looks like this:
+     *       // {applicationType: "gecko", marionetteProtocol: 2}
      *       this.connectionId = result.id;
      *     }
      *
@@ -110,8 +110,19 @@
     connect: function connect(callback) {
       this.ready = true;
       this._responseQueue.push(function(data) {
+        // determine protocol version
+        if ('marionetteProtocol' in data) {
+          this.marionetteProtocol = data.marionetteProtocol;
+        } else {
+          this.marionetteProtocol = 1;
+        }
+
+        // protocol specific properties to populate
+        if (this.marionetteProtocol == 1) {
+          this.traits = data.traits;
+        }
         this.applicationType = data.applicationType;
-        this.traits = data.traits;
+
         callback();
       }.bind(this));
       this._connect();
