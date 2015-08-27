@@ -223,7 +223,9 @@
   }
 
   function addListeners() {
-    thumbAction.querySelector('#photo-button').onclick = photoAction;
+    var photoButton = thumbAction.querySelector('#photo-button');
+    photoButton.onclick = photoAction;
+    photoButton.addEventListener('contextmenu', photoAction);
 
     document.addEventListener('input', function input(event) {
       checkDisableButton();
@@ -835,7 +837,8 @@
     currentPhoto = resized;
   }
 
-  function photoAction() {
+  function photoAction(event) {
+    event.preventDefault();
     if (!!currentPhoto) {
       removeOrUpdatePhoto();
     } else {
