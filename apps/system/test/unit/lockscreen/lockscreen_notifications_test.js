@@ -532,6 +532,17 @@ suite('system/LockScreenNotifications', function() {
     suite('top-actionable class is correctly added in ' +
           'onNotificationHighlighted',
       function() {
+
+      // We are testing them in HVGA suite.
+      setup(function() {
+        var stubGetWindowInnerDimension =
+          this.sinon.stub(lockScreenNotifications, '_getWindowInnerDimension');
+        stubGetWindowInnerDimension.returns({
+          width: window.innderWidth,
+          height: 480
+        });
+      });
+
       // we then see if the class is added correctly, or not added,
       // when we try to highlight each notification.
 
@@ -574,6 +585,16 @@ suite('system/LockScreenNotifications', function() {
       var targetNotificationNode;
 
       setup(function(){
+
+      // We are testing them in HVGA suite.
+      var stubGetWindowInnerDimension =
+        this.sinon.stub(lockScreenNotifications, '_getWindowInnerDimension');
+      stubGetWindowInnerDimension.returns({
+        width: window.innderWidth,
+        height: 480
+      });
+
+
         stubTryAddTopMaskByNotification =
           this.sinon.stub(lockScreenNotifications,
                           '_tryAddTopMaskByNotification');
@@ -648,6 +669,14 @@ suite('system/LockScreenNotifications', function() {
       // when we try to un-highlight each notification.
 
       setup(function(){
+        // We are testing them in HVGA suite.
+        var stubGetWindowInnerDimension =
+          this.sinon.stub(lockScreenNotifications, '_getWindowInnerDimension');
+        stubGetWindowInnerDimension.returns({
+          width: window.innderWidth,
+          height: 480
+        });
+
         lockScreenNotifications.container.classList.add('top-actionable');
       });
 
