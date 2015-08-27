@@ -47,7 +47,7 @@ module.exports = function(filepath, outpath, requiredir) {
   .done();
   // If it matched nothing as it was supposed to do, we have a bug.
   if (!logger._writelogs[filepath]) {
-    throw new Error('Matched nothing to transform code.');
+    throw new Error('TransformingFailed::Matched nothing to transform code.');
   } else {
     Object.keys(logger._writelogs).forEach(function(filepath) {
       var info = logger._writelogs[filepath];
