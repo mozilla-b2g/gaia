@@ -26,7 +26,8 @@ marionette('Test Program Navigation', function() {
 
   var client = marionette.client({
     profile: opts,
-    desiredCapabilities: { raisesAccessibilityExceptions: true }
+    // XXX: Set this to true once Accessibility is implemented in TV
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
   var actions;
 
