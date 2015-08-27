@@ -6,6 +6,7 @@ from marionette_driver import By, Wait
 
 from gaiatest.apps.base import PageRegion
 
+
 class Timer(PageRegion):
     _timer_view_locator = (By.ID, 'timer-panel')
 
