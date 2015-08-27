@@ -6,6 +6,7 @@ from marionette_driver import By
 
 from gaiatest import GaiaTestCase
 from gaiatest.mocks.mock_contact import MockContact
+from gaiatest.apps.homescreen.app import Homescreen
 
 
 class TestCleanupGaia(GaiaTestCase):
@@ -52,7 +53,7 @@ class TestCleanupGaia(GaiaTestCase):
 
     def check_initial_state(self):
         self.assertFalse(self.device.is_locked)
-        self.assertEqual(self.apps.displayed_app.name, 'Homescreen')
+        self.assertEqual(self.apps.displayed_app.name, Homescreen.name)
 
         if self.device.has_wifi:
             self.assertEqual(len(self.data_layer.known_networks), 0)

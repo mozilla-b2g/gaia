@@ -4,9 +4,10 @@
 
 from marionette_driver import expected, By, Wait
 from gaiatest import GaiaTestCase
+from gaiatest.apps.homescreen.app import Homescreen
 
 
 class TestBrickVerification(GaiaTestCase):
 
     def test_verify_phone_not_bricked(self):
-        Wait(self.marionette).until(lambda m: self.apps.displayed_app.name == 'Homescreen')
+        Wait(self.marionette).until(lambda m: self.apps.displayed_app.name == Homescreen.name)
