@@ -55,8 +55,8 @@ SettingsView.prototype._updateUI = function() {
 
     el.disabled = false;
 
-    switch (el.type) {
-      case 'checkbox':
+    switch (el.type || el.nodeName.toLowerCase()) {
+      case 'gaia-checkbox':
         el.checked = values[this.settings.PROPERTIES[i]];
         break;
 
@@ -76,8 +76,8 @@ SettingsView.prototype.handleEvent = function(evt) {
 
   var lock;
   var value;
-  switch (el.type) {
-    case 'checkbox':
+  switch (el.type || el.nodeName.toLowerCase()) {
+    case 'gaia-checkbox':
       lock = this.app.closeLockManager.requestLock('stayAwake');
       value = el.checked;
       break;
