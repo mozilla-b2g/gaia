@@ -75,11 +75,11 @@ ul {
 
 /* Overwrite this property from Building Blocks */
 .navigation button{
-  margin: 0;
+  margin-left: 0.5rem;
 }
 
 .navigation button.left {
-  margin-left: 1rem;
+  margin-left: 0.5rem;
 }
 
 .navigation button.left, .navigation button.right {
