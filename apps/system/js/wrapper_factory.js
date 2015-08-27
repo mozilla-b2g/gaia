@@ -96,37 +96,48 @@
       // Use fake origin for named windows in order to be able to reuse them,
       // otherwise always open a new window for '_blank'.
       var origin = null;
-      if (name == '_blank') {
+      switch (name) {
+        case '_samescope':
+          var scope = features.scope || new URL(url).hostname;
+          features.pinned = true;
+          app = Service.query('AppWindowManager.getAppInScope', scope);
+          if (app) {
+            app.requestOpen();
+            return;
+          }
+        /* falls through */
+        case '_blank':
+          // If we already have a browser and we receive an open request,
+          // display it in the current browser frame.
+          var activeApp = Service.query('AppWindowManager.getActiveWindow');
+          if (activeApp && (activeApp.isBrowser() || activeApp.isSearch())) {
+            activeApp.navigate(url);
+            return;
+          }
 
-        // If we already have a browser and we receive an open request,
-        // display it in the current browser frame.
-        var activeApp = Service.query('AppWindowManager.getActiveWindow');
-        if (activeApp && (activeApp.isBrowser() || activeApp.isSearch())) {
-          activeApp.navigate(url);
-          return;
-        }
-
-        origin = url;
-        app = Service.query('AppWindowManager.getApp', origin);
-        // Just bring on top if a wrapper window is
-        // already running with this url.
-        if (app && app.windowName == '_blank') {
-          this.publish('launchapp', { origin: origin });
-          return;
-        }
-      } else {
-        origin = 'window:' + name + ',source:' + callerOrigin;
-        app = Service.query('AppWindowManager.getApp', origin);
-        if (app && app.windowName === name) {
-          if (app.iframe.src === url) {
-            // If the url is already loaded, just display the app
+          origin = url;
+          app = Service.query('AppWindowManager.getApp', origin);
+          // Just bring on top if a wrapper window is
+          // already running with this url.
+          if (app && app.windowName == '_blank') {
             this.publish('launchapp', { origin: origin });
             return;
-          } else {
-            // Wrapper context shouldn't be shared between two apps -> killing
-            this.publish('killapp', { origin: origin });
           }
-        }
+          break;
+
+        default:
+          origin = 'window:' + name + ',source:' + callerOrigin;
+          app = Service.query('AppWindowManager.getApp', origin);
+          if (app && app.windowName === name) {
+            if (app.iframe.src === url) {
+              // If the url is already loaded, just display the app
+              this.publish('launchapp', { origin: origin });
+              return;
+            } else {
+              // Wrapper context shouldn't be shared between two apps -> killing
+              this.publish('killapp', { origin: origin });
+            }
+          }
       }
 
       // TODO: Put this into browser_config_helper.
@@ -151,9 +162,7 @@
     launchWrapper: function wf_launchWrapper(config) {
       var app = Service.query('AppWindowManager.getApp', config.origin);
       if (!app) {
-        config.chrome = {
-          scrollable: true
-        };
+        config.chrome.scrollable = true;
         this.forgetLastLaunchingWindow();
         this.trackLauchingWindow(config);
       } else {
@@ -182,8 +191,10 @@
 
     generateBrowserConfig: function wf_generateBrowserConfig(features) {
       var config = {};
+      config.chrome = {};
       config.title = features.name;
       config.icon = features.icon || '';
+      config.chrome.pinned = features.pinned || false;
 
       if ('originName' in features) {
         config.originName = features.originName;

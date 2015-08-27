@@ -1229,6 +1229,77 @@ suite('system/AppWindowManager', function() {
     });
   });
 
+  suite('getAppInScope', function() {
+
+    test('Returns null if no apps in scope', function() {
+      subject._apps = [{
+        inScope: this.sinon.stub().returns(false)
+      }];
+      var app = subject.getAppInScope();
+      assert.isFalse(!!(app));
+    });
+
+    test('Returns the last launched app in scope', function() {
+      var lastApp = {
+        inScope: this.sinon.stub().returns(true),
+        launchTime: 9999
+      };
+      var noLastApp = {
+        inScope: this.sinon.stub().returns(true),
+        launchTime: 1
+      };
+      subject._apps = [{
+        inScope: this.sinon.stub().returns(false)
+      }, lastApp, noLastApp];
+      var app = subject.getAppInScope();
+      assert.equal(app, lastApp);
+    });
+  });
+
+  suite('getUnpinnedWindows', function() {
+    setup(function() {
+    });
+
+    test('Returns an empty array if no browser windows', function() {
+      subject._apps = [{
+        isBrowser: this.sinon.stub().returns(false)
+      }];
+      var apps = subject.getUnpinnedWindows();
+      assert.equal(apps.length, 0);
+    });
+
+    test('Returns an empty array if no unpinned windows', function() {
+      subject._apps = [{
+        isBrowser: this.sinon.stub().returns(true),
+        appChrome: {
+          pinned: true
+        }
+      }];
+      var apps = subject.getUnpinnedWindows();
+      assert.equal(apps.length, 0);
+    });
+
+    test('Returns an array with unpinned windows', function() {
+      var unpinned = {
+        isBrowser: this.sinon.stub().returns(true),
+        appChrome: {
+          pinned: false
+        }
+      };
+
+      var pinned = {
+        isBrowser: this.sinon.stub().returns(true),
+        appChrome: {
+          pinned: true
+        }
+      };
+      subject._apps = [unpinned, pinned];
+      var apps = subject.getUnpinnedWindows();
+      assert.equal(apps.length, 1);
+      assert.equal(apps[0], unpinned);
+    });
+  });
+
   test('busy loading', function() {
     subject._activeApp = app1;
     app1.loaded = false;

@@ -20,8 +20,10 @@
   ];
   AppWindowManager.STATES = [
     'getApp',
+    'getAppInScope',
     'getAppByURL',
     'getApps',
+    'getUnpinnedWindows',
     'slowTransition',
     'getActiveApp',
     'getActiveWindow',
@@ -197,6 +199,40 @@
         }
       }
       return null;
+    },
+
+    /**
+     * Match app scope and get the first matching one.
+     * @param  {String} scope The scope to be matched.
+     * @return {AppWindow}        The app window object matched.
+     */
+    getAppInScope: function awm_getAppInScope(scope) {
+      var keys = Object.keys(this._apps);
+      var appInScope;
+      keys.forEach(function(id) {
+        var app = this._apps[id];
+        if (app.inScope(scope)) {
+          var replace = (!appInScope || appInScope.launchTime < app.launchTime);
+          appInScope = replace ? app : appInScope;
+        }
+      }.bind(this));
+
+      return appInScope;
+    },
+
+    /**
+     * Find all not pinned appWindows
+     * @return Array {AppWindow} Array of appWindows
+     */
+    getUnpinnedWindows: function awm_getUnpinnedWindows() {
+      var unpinnedWindows = [];
+      for (var id in this._apps) {
+        var app = this._apps[id];
+        if (app.isBrowser() && !app.appChrome.pinned) {
+          unpinnedWindows.push(app);
+        }
+      }
+      return unpinnedWindows;
     },
 
     /**

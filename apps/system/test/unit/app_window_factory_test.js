@@ -193,6 +193,54 @@ suite('system/AppWindowFactory', function() {
     });
   });
 
+  suite('_findBrowserInstance', function() {
+    var mockApp, mockApp2, unpinnedApps;
+
+    setup(function() {
+      mockApp = {
+        requestOpen: this.sinon.stub(),
+        isBrowser: function() {},
+        launchTime: 1
+      };
+
+      mockApp2 = {
+        requestOpen: this.sinon.stub(),
+        isBrowser: function() {},
+        launchTime: 2
+      };
+
+      unpinnedApps = [mockApp, mockApp2];
+      this.sinon.stub(MockService, 'query', function(key) {
+        switch (key) {
+          case 'AppWindowManager.getUnpinnedWindows':
+            return unpinnedApps;
+          case 'AppWindowManager.getActiveApp':
+            return mockApp;
+        }
+      });
+    });
+
+    test('returns nothing if not trying to open the Browser', function() {
+      this.sinon.stub(appWindowFactory, '_isSearch').returns(false);
+      var instance = appWindowFactory._findBrowserInstance();
+      assert.isFalse(!!(instance));
+    });
+
+    test('returns nothing if the Browser is already active', function() {
+      this.sinon.stub(appWindowFactory, '_isSearch').returns(true);
+      this.sinon.stub(mockApp, 'isBrowser').returns(true);
+      var instance = appWindowFactory._findBrowserInstance();
+      assert.isFalse(!!(instance));
+    });
+
+    test('returns the last used unpinned page', function() {
+      this.sinon.stub(appWindowFactory, '_isSearch').returns(true);
+      this.sinon.stub(mockApp, 'isBrowser').returns(false);
+      var instance = appWindowFactory._findBrowserInstance();
+      assert.equal(instance, mockApp2);
+    });
+  });
+
   suite('check for open-app queueing', function() {
     var applicationsReady;
     var eventHandlerSpy, preEventHandlerSpy, queuePendingEventSpy;
@@ -433,12 +481,28 @@ suite('system/AppWindowFactory', function() {
 
     test('open-app with search app', function() {
       var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
+      this.sinon.stub(appWindowFactory, '_findBrowserInstance').returns(null);
       appWindowFactory.launch(fakeLaunchConfig7);
       assert.ok(stubDispatchEvent.notCalled);
 
       fakeLaunchConfig7.url = 'app://search.gaiamobile.org/newtab.html';
       appWindowFactory.launch(fakeLaunchConfig7);
       assert.ok(stubDispatchEvent.calledOnce);
+    });
+
+    test('open-app with search app and unpinned instance', function() {
+      var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
+      var app = {
+        requestOpen: this.sinon.stub()
+      };
+      this.sinon.stub(appWindowFactory, '_findBrowserInstance').returns(app);
+      appWindowFactory.launch(fakeLaunchConfig7);
+      assert.ok(stubDispatchEvent.notCalled);
+
+      fakeLaunchConfig7.url = 'app://search.gaiamobile.org/newtab.html';
+      appWindowFactory.launch(fakeLaunchConfig7);
+      assert.ok(stubDispatchEvent.notCalled);
+      assert.ok(app.requestOpen);
     });
   });
 });

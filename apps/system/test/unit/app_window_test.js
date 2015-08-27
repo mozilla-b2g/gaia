@@ -3223,6 +3223,74 @@ suite('system/AppWindow', function() {
     });
   });
 
+  suite('inScope', function() {
+    test('Same domain is in the scope', function() {
+      var scope = 'domain.com';
+      var appConfig = {
+        url: 'http://domain.com/test'
+      };
+      var app = new AppWindow(appConfig);
+      this.sinon.stub(app, 'isBrowser').returns(true);
+      assert.isTrue(app.inScope(scope));
+    });
+
+    test('Scope with paths are allowed', function() {
+      var scope = 'domain.com/test';
+      var appConfig = {
+        url: 'http://domain.com/test/page1'
+      };
+      var app = new AppWindow(appConfig);
+      this.sinon.stub(app, 'isBrowser').returns(true);
+      assert.isTrue(app.inScope(scope));
+    });
+
+    test('Different domain is not in the scope', function() {
+      var scope = 'domain2.com';
+      var appConfig = {
+        url: 'http://domain.com/test'
+      };
+      var app = new AppWindow(appConfig);
+      this.sinon.stub(app, 'isBrowser').returns(true);
+      assert.isFalse(app.inScope(scope));
+    });
+
+    test('Subdomains are not in the scope', function() {
+      var scope = 'test.domain.com';
+      var appConfig = {
+        url: 'http://domain.com/test'
+      };
+      var app = new AppWindow(appConfig);
+      this.sinon.stub(app, 'isBrowser').returns(true);
+      assert.isFalse(app.inScope(scope));
+    });
+
+    test('Returns false on non browser windows', function() {
+      var scope = 'domain.com/test';
+      var appConfig = {
+        url: 'http://domain.com/test/page1'
+      };
+      var app = new AppWindow(appConfig);
+      this.sinon.stub(app, 'isBrowser').returns(false);
+      assert.isFalse(app.inScope(scope));
+    });
+
+    test('Scope changes on locationchange', function() {
+      var scope = 'test.domain.com';
+      var appConfig = {
+        url: 'http://domain.com/test'
+      };
+      var app = new AppWindow(appConfig);
+      this.sinon.stub(app, 'isBrowser').returns(true);
+      assert.isFalse(app.inScope(scope));
+
+      app.handleEvent({
+        type: 'mozbrowserlocationchange',
+        detail: 'http://test.domain.com/test'
+      });
+      assert.isTrue(app.inScope(scope));
+    });
+  });
+
   suite('application-name', function() {
     test('application-name for browser window', function() {
       var browser1 = new AppWindow(fakeWrapperConfig);

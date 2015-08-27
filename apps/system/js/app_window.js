@@ -223,6 +223,16 @@
     this.getTopMostWindow()._setActive(enable);
   };
 
+  AppWindow.prototype.inScope = function(scope) {
+    if (!this.isBrowser()) {
+      return false;
+    }
+
+    var url = new URL(this.config.url);
+    var path = url.hostname + url.pathname;
+    return path.indexOf(scope) === 0;
+  };
+
   /**
    * In order to prevent flashing of unpainted frame
    * during switching from one to another,
