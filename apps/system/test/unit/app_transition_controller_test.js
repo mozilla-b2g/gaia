@@ -108,6 +108,21 @@ suite('system/AppTransitionController', function() {
     acn1._transitionState = 'opened';
   });
 
+  test('Complete on animationend on the Browser when loading', function() {
+    MockService.mockQueryWith('isBusyLoading', true);
+    var app1 = new MockAppWindow(fakeAppConfig1);
+    this.sinon.stub(app1, 'isBrowser').returns(true);
+    var acn1 = new AppTransitionController(app1);
+    var spy = this.sinon.spy();
+    acn1._transitionState = 'opening';
+    acn1.handleEvent({
+      type: 'animationend',
+      stopPropagation: spy
+    });
+    assert.isTrue(spy.called);
+    acn1._transitionState = 'opened';
+  });
+
   test('Complete on _loaded event if we discarded the animationend',
   function() {
     var app1 = new MockAppWindow(fakeAppConfig1);
