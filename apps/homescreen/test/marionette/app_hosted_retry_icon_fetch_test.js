@@ -19,8 +19,9 @@ marionette('Homescreen - Hosted app failed icon fetch', function() {
     });
   });
 
-  var home, system, appInstall;
+  var actions, home, system, appInstall;
   setup(function() {
+    actions = client.loader.getActions();
     home = client.loader.getAppClass('homescreen');
     system = client.loader.getAppClass('system');
     appInstall = new AppInstall(client);
@@ -34,8 +35,9 @@ marionette('Homescreen - Hosted app failed icon fetch', function() {
   });
 
   function tapAndWaitFor(icon, element) {
-    client.scope({ searchTimeout: 100 }).waitFor(function() {
+    client.waitFor(function() {
       icon.tap();
+      actions.wait(0.5).perform();
       return element.scriptWith(function(el) {
         return getComputedStyle(el).display !== 'none';
       });
@@ -54,6 +56,7 @@ marionette('Homescreen - Hosted app failed icon fetch', function() {
     client.switchToFrame(system.getHomescreenIframe());
 
     var icon = home.getIcon(server.packageManifestURL);
+    home.scrollIconToCenter(icon);
     client.waitFor(function() {
       return home.iconIsLoading(icon);
     });

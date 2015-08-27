@@ -226,6 +226,19 @@ Homescreen.prototype = {
   },
 
   /**
+   * Scrolls the homescreen so that the given icon is located roughly in
+   * the center of the screen, vertically.
+   *
+   * @param {Marionette.Element} icon A homescreen icon element reference.
+   */
+  scrollIconToCenter: function(icon) {
+    this.client.executeScript(function(icon, scrollable, position) {
+      var midPoint = scrollable.clientHeight / 2;
+      scrollable.scrollTop = scrollable.scrollTop + (position - midPoint);
+    }, [icon, this.scrollable, icon.location().y]);
+  },
+
+  /**
    * Opens the settings menu by long-pressing on the empty space at the bottom
    * of the icon grid.
    */
@@ -264,6 +277,7 @@ Homescreen.prototype = {
     var button = this.client.helper.waitForElement(
       'button[data-l10n-id="' + action + '"]');
     button.tap();
+    this.client.helper.waitForElementToDisappear(button);
   },
 
   /**

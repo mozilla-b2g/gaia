@@ -11,12 +11,13 @@ marionette('Homescreen - Packaged App Resuming Downloads', function() {
     profile: require(__dirname + '/client_options.js')
   });
 
-  var server, home, system, appInstall;
+  var server, actions, home, system, appInstall;
   setup(function(done) {
     var app = __dirname + '/fixtures/template_app';
     createAppServer(app, client, function(err, _server) {
       server = _server;
 
+      actions = client.loader.getActions();
       home = client.loader.getAppClass('homescreen');
       system = client.loader.getAppClass('system');
       appInstall = new AppInstall(client);
@@ -33,8 +34,9 @@ marionette('Homescreen - Packaged App Resuming Downloads', function() {
   });
 
   function tapAndWaitFor(icon, element) {
-    client.scope({ searchTimeout: 100 }).waitFor(function() {
+    client.waitFor(function() {
       icon.tap();
+      actions.wait(0.5).perform();
       return element.scriptWith(function(el) {
         return getComputedStyle(el).display !== 'none';
       });
@@ -49,8 +51,14 @@ marionette('Homescreen - Packaged App Resuming Downloads', function() {
 
     client.switchToFrame(system.getHomescreenIframe());
 
-    // pause the download
+    // Get the icon
     var icon = home.getIcon(server.packageManifestURL);
+
+    // Scroll so the icon is in the middle of the screen and won't be
+    // obscured by the system toast
+    home.scrollIconToCenter(icon);
+
+    // pause the download
     tapAndWaitFor(icon, home.cancelDownloadDialog);
 
     home.actionDialog(home.cancelDownloadDialog, 'stop-download-action');
