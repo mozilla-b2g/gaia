@@ -93,7 +93,6 @@
     this.debug('intance id: ' + this.instanceID);
     return `<div class="${this.CLASS_LIST}" id="${this.instanceID}">
             <div class="browser-container"></div>
-            <div class="screenshot-overlay"></div>
             </div>`;
   };
 
@@ -122,7 +121,6 @@
     this.browserContainer.insertBefore(this.browser.element, null);
     this.frame = this.element;
     this.iframe = this.browser.element;
-    this.screenshotOverlay = this.element.querySelector('.screenshot-overlay');
 
     this._registerEvents();
     this.installSubComponents();

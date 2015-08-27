@@ -1135,18 +1135,6 @@ suite('system/AppWindow', function() {
       this.sinon.clock.tick(0);
       assert.isTrue(callback.calledOnce);
     });
-
-    test('Call _showScreenshotOverlay', function() {
-      app1._screenshotBlob = 'fakeBlob';
-      app1.ready();
-      assert.isTrue(showScreenshotOverlay.calledOnce);
-    });
-
-    test('Do not call _showScreenshotOverlay', function() {
-      app1._screenshotBlob = null;
-      app1.ready();
-      assert.isFalse(showScreenshotOverlay.called);
-    });
   });
 
   suite('Browser Mixin', function() {

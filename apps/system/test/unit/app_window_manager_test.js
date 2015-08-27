@@ -789,8 +789,6 @@ suite('system/AppWindowManager', function() {
     });
 
     test('app to app', function() {
-      var stub_updateActiveApp = this.sinon.stub(subject,
-        '_updateActiveApp');
       injectRunningApps(app1, app2);
       subject._activeApp = app1;
       var stubSwitchApp = this.sinon.stub(subject, 'switchApp');
@@ -802,7 +800,6 @@ suite('system/AppWindowManager', function() {
       assert.isTrue(stubSwitchApp.called);
       assert.deepEqual(stubSwitchApp.getCall(0).args[0], app1);
       assert.deepEqual(stubSwitchApp.getCall(0).args[1], app2);
-      assert.isTrue(stub_updateActiveApp.called);
     });
 
     test('Continunous app open requests', function() {
@@ -927,12 +924,15 @@ suite('system/AppWindowManager', function() {
       var stubReady = this.sinon.stub(app2, 'ready');
       var stubAppNextOpen = this.sinon.stub(app2, 'open');
       var stubAppCurrentClose = this.sinon.stub(app1, 'close');
+      var stub_updateActiveApp = this.sinon.stub(subject,
+        '_updateActiveApp');
       subject.switchApp(app1, app2, true);
       stubReady.yield();
       assert.isTrue(stubAppNextOpen.called);
       assert.isTrue(stubAppCurrentClose.called);
       assert.isTrue(stubAppNextOpen.calledWith('invoked'));
       assert.isTrue(stubAppCurrentClose.calledWith('invoking'));
+      assert.isTrue(stub_updateActiveApp.called);
     });
 
     test('close app to cardsview', function() {

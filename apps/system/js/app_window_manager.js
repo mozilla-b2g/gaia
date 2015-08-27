@@ -319,14 +319,12 @@
       var switching = appCurrent && !appCurrent.isHomescreen &&
                       !appNext.isHomescreen;
 
-      this._updateActiveApp(appNext.instanceID);
-
       var that = this;
       if (appCurrent && this.service.query('keyboardEnabled')) {
         this.stopRecording();
 
         // Ask keyboard to hide before we switch the app.
-      window.addEventListener('keyboardhidden', function onhiddenkeyboard() {
+        window.addEventListener('keyboardhidden', function onhiddenkeyboard() {
           window.removeEventListener('keyboardhidden', onhiddenkeyboard);
           that.switchApp(appCurrent, appNext, switching);
         });
@@ -363,7 +361,10 @@
      */
     switchApp: function awm_switchApp(appCurrent, appNext, switching,
                                       openAnimation, closeAnimation) {
+
       this.debug('before ready check' + appCurrent + appNext);
+      this._updateActiveApp(appNext.instanceID);
+
       appNext.ready(function() {
         if (appNext.isDead()) {
           if (!appNext.isHomescreen) {
