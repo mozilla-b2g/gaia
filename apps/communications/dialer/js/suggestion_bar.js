@@ -323,8 +323,8 @@ var SuggestionBar = {
     var startStr = str.substr(0, start);
     var middleStr = str.substr(start, end - start + 1);
     var endStr = str.substr(end + 1);
-    return Sanitizer.createSafeHTML(`${startStr}<mark class="ci__mark"
-      >${middleStr}</mark>${endStr}`);
+    return Sanitizer.createSafeHTML`${startStr}<mark class="ci__mark"
+            >${middleStr}</mark>${endStr}`;
   },
 
   _initOverlay: function() {
