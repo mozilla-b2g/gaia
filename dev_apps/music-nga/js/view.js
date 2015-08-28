@@ -5,65 +5,9 @@ window.View = (function() {
 
 var debug = 1 ? (...args) => console.log('[View]', ...args) : () => {};
 
-if (!window.parent.SERVICE_WORKERS) {
-  window.fetch = function(url) {
-    console.log('**** fetch() ****', url);
-
-    var mappings = {
-      '/api/activities/share*': 'share',
-
-      '/api/albums/list': 'getAlbums',
-      '/api/albums/info*': 'getAlbum',
-
-      '/api/artists/list': 'getArtists',
-      '/api/artists/info*': 'getArtist',
-
-      '/api/artwork/original*': 'getSongArtwork',
-      '/api/artwork/thumbnail*': 'getSongThumbnail',
-
-      '/api/audio/play': 'play',
-      '/api/audio/pause': 'pause',
-      '/api/audio/seek/*': 'seek',
-      '/api/audio/status': 'getPlaybackStatus',
-
-      '/api/queue/current': 'currentSong',
-      '/api/queue/previous': 'previousSong',
-      '/api/queue/next': 'nextSong',
-      '/api/queue/album*': 'queueAlbum',
-      '/api/queue/artist*': 'queueArtist',
-      '/api/queue/song*': 'queueSong',
-      '/api/queue/repeat': 'getRepeatSetting',
-      '/api/queue/repeat/*': 'setRepeatSetting',
-      '/api/queue/shuffle': 'getShuffleSetting',
-      '/api/queue/shuffle/*': 'setShuffleSetting',
-
-      '/api/songs/list': 'getSongs',
-      '/api/songs/count': 'getSongCount',
-      '/api/songs/info*': 'getSong'
-    };
-
-    for (var key in mappings) {
-      var mapping = mappings[key];
-      var param = undefined;
-      if (key.endsWith('*')) {
-        key = key.substring(0, key.length - 1);
-        param = decodeURIComponent(url.substring(key.length));
-      }
-
-      if ((key === url && param === undefined) ||
-          (url.startsWith(key) && param !== undefined)) {
-        return window.parent.client.method(mapping, param).then((result) => {
-          return {
-            blob: () => Promise.resolve(result),
-            json: () => Promise.resolve(result)
-          };
-        });
-      }
-    }
-  };
-}
-
 function View() {
+  this.client = bridge.client({ service: 'music-service', endpoint: window.parent });
+
   this.params = {};
 
   var parts = window.parent.location.href.split('?');
@@ -107,6 +51,72 @@ View.prototype.render = function() {
   }
 
   debug('Rendered');
+};
+
+View.prototype.fetch = function(url) {
+  if (window.parent.SERVICE_WORKERS) {
+    return window.fetch(url);
+  }
+
+  console.log('**** fetch() ****', url);
+
+  var mappings = {
+    '/api/activities/share*': 'share',
+
+    '/api/albums/list': 'getAlbums',
+    '/api/albums/info*': 'getAlbum',
+
+    '/api/artists/list': 'getArtists',
+    '/api/artists/info*': 'getArtist',
+
+    '/api/artwork/original*': 'getSongArtwork',
+    '/api/artwork/thumbnail*': 'getSongThumbnail',
+
+    '/api/audio/play': 'play',
+    '/api/audio/pause': 'pause',
+    '/api/audio/seek/*': 'seek',
+    '/api/audio/status': 'getPlaybackStatus',
+
+    '/api/queue/current': 'currentSong',
+    '/api/queue/previous': 'previousSong',
+    '/api/queue/next': 'nextSong',
+    '/api/queue/album*': 'queueAlbum',
+    '/api/queue/artist*': 'queueArtist',
+    '/api/queue/song*': 'queueSong',
+    '/api/queue/repeat': 'getRepeatSetting',
+    '/api/queue/repeat/*': 'setRepeatSetting',
+    '/api/queue/shuffle': 'getShuffleSetting',
+    '/api/queue/shuffle/*': 'setShuffleSetting',
+
+    '/api/songs/list': 'getSongs',
+    '/api/songs/count': 'getSongCount',
+    '/api/songs/info*': 'getSong'
+  };
+
+  for (var key in mappings) {
+    var mapping = mappings[key];
+    var param = undefined;
+    if (key.endsWith('*')) {
+      key = key.substring(0, key.length - 1);
+      param = decodeURIComponent(url.substring(key.length));
+    }
+
+    if ((key === url && param === undefined) ||
+        (url.startsWith(key) && param !== undefined)) {
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          this.client.method(mapping, param).then((result) => {
+            resolve({
+              blob: () => Promise.resolve(result),
+              json: () => Promise.resolve(result)
+            });
+          });
+        });
+      });
+    }
+  }
+
+  return Promise.reject();
 };
 
 View.preserveListScrollPosition = function(list) {
