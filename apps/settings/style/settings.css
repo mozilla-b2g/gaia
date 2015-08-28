@@ -289,6 +289,7 @@ body[data-filter-by="connectivity"] #root > div [data-category="connectivity"] {
 .disabled gaia-checkbox,
 .disabled gaia-radio,
 .disabled gaia-switch,
+gaia-radio[disabled],
 gaia-switch[disabled] {
   opacity: 0.6;
   pointer-events: none;
@@ -816,15 +817,6 @@ ul li > label.range-icons.volume input {
 
 #accessibility ul li > a.menu-item {
   padding: 0 3rem;
-}
-
-
-/******************************************************************************
- * USB
- */
-
-#root .usb-item .menu-item {
-  white-space: normal;
 }
 
 /******************************************************************************

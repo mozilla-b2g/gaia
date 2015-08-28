@@ -6,6 +6,7 @@ var Base = require('./base');
 var BatteryPanel = require('./regions/battery');
 var BluetoothPanel = require('./regions/bluetooth');
 var DateTimePanel = require('./regions/date_time');
+var DeviceInfoPanel = require('./regions/device_info');
 var DisplayPanel = require('./regions/display');
 var DoNotTrackPanel = require('./regions/do_not_track');
 var FeedbackPanel = require('./regions/feedback');
@@ -21,7 +22,7 @@ var RootPanel = require('./regions/root');
 var ScreenLockPanel = require('./regions/screen_lock');
 var SoundPanel = require('./regions/sound');
 var SupportPanel = require('./regions/support');
-var DeviceInfoPanel = require('./regions/device_info');
+var UsbStoragePanel = require('./regions/usb_storage');
 
 /**
  * Abstraction around settings app
@@ -62,7 +63,8 @@ Settings.Selectors = {
   'mediaStorageMenuItem': '.menuItem-mediaStorage',
   'keyboardMenuItem': '#menuItem-keyboard',
   'messageMenuItem': '#menuItem-messagingSettings',
-  'deviceInfoMenuItem': '#menuItem-deviceInfo'
+  'deviceInfoMenuItem': '#menuItem-deviceInfo',
+  'usbStorageMenuItem': '.menuItem-enableStorage'
 };
 
 Settings.prototype = {
@@ -211,6 +213,13 @@ Settings.prototype = {
     this._aboutPanel = this._aboutPanel ||
       new DeviceInfoPanel(this.client);
     return this._aboutPanel;
+  },
+
+  get usbStoragePanel() {
+    this.openPanel('usbStorageMenuItem');
+    this._usbStoragePanel = this._usbStoragePanel ||
+      new UsbStoragePanel(this.client);
+    return this._usbStoragePanel;
   },
 
   set currentLanguage(value) {

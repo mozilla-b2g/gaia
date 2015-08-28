@@ -16,7 +16,6 @@ define(function(require) {
   var queryRootForLowPriorityItems = function(panel) {
     // This is a map from the module name to the object taken by the constructor
     // of the module.
-    var storageDialog = document.querySelector('.turn-on-ums-dialog');
     return {
       'BluetoothItem': panel.querySelector('.bluetooth-desc'),
       'NFCItem': {
@@ -28,12 +27,8 @@ define(function(require) {
       'FindMyDeviceItem': panel.querySelector('.findmydevice-desc'),
       'StorageUSBItem': {
         mediaStorageDesc: panel.querySelector('.media-storage-desc'),
-        usbEnabledCheckBox: panel.querySelector('.usb-switch'),
         usbStorage: panel.querySelector('#menuItem-enableStorage'),
         usbEnabledInfoBlock: panel.querySelector('.usb-desc'),
-        umsWarningDialog: storageDialog,
-        umsConfirmButton: storageDialog.querySelector('.ums-confirm-option'),
-        umsCancelButton: storageDialog.querySelector('.ums-cancel-option'),
         mediaStorageSection: panel.querySelector('.media-storage-section')
       },
       'StorageAppItem': panel.querySelector('.application-storage-desc'),

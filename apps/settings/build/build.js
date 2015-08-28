@@ -52,7 +52,8 @@ SettingsAppBuilder.prototype.writeDeviceFeaturesJSON = function(options) {
                            'device-features.json');
   var defaultContent = {
     ambientLight: true,
-    vibration: true
+    vibration: true,
+    usbHotProtocolSwitch: false
   };
   var content = utils.getDistributionFileContent('device-features',
                                                   defaultContent, distDir);

@@ -222,7 +222,7 @@
     <link rel="import" href="/elements/full_developer_mode.html">
     <link rel="import" href="/elements/full_developer_mode_warning.html">
     <link rel="import" href="/elements/full_developer_mode_final_warning.html">
-    <link rel="import" href="/elements/partial_ums_warning.html">
+    <link rel="import" href="/elements/ums_partial_warning.html">
     <link rel="import" href="/elements/templates/messaging.html">
     <link rel="import" href="/elements/root.html">
     <link rel="import" href="/elements/settings_alert_dialog.html">
@@ -438,8 +438,8 @@
     <section role="region" class="dialog" is="full-developer-mode-warning" id="full-developer-mode-warning"></section>
     <!-- Full Developer Mode Final Warning -->
     <section role="region" class="dialog" is="full-developer-mode-final-warning" id="full-developer-mode-final-warning"></section>
-    <!-- Parital Ums Warning -->
-    <section role="region" class="dialog" is="partial-ums-warning" id="partial-ums-warning"></section>
+    <!-- Partial Ums Warnings -->
+    <section role="region" class="dialog" is="ums-partial-warning" id="ums-partial-warning"></section>
     <!-- SettingsDialog :: AlertDialog -->
     <section role="region" class="dialog" is="settings-alert-dialog" id="settings-alert-dialog"></section>
     <!-- SettingsDialog :: ConFirmDialog -->
@@ -463,19 +463,6 @@
       <menu>
         <button class="incompatible-settings-cancel-btn" data-l10n-id="cancel">Cancel</button>
         <button class="incompatible-settings-ok-btn recommend" data-l10n-id="enable">Enable</button>
-      </menu>
-    </form>
-
-    <form role="dialog" data-type="confirm" class="turn-on-ums-dialog" hidden>
-      <section>
-        <h1 data-l10n-id="ums-warning-title">Enable USB storage?</h1>
-        <p data-l10n-id="ums-confirm">
-          Enabling USB storage allows another computer or device connected using USB to access files on this phone.
-        </p>
-      </section>
-      <menu>
-        <button data-l10n-id="cancel" class="ums-cancel-option">Cancel</button>
-        <button data-l10n-id="ok" class="ums-confirm-option recommend">OK</button>
       </menu>
     </form>
 

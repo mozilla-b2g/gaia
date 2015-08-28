@@ -1,4 +1,4 @@
-/* global DeviceStorageHelper, openIncompatibleSettingsDialog */
+/* global DeviceStorageHelper */
 /**
  * Links the root panel list item with USB Storage.
  *
@@ -8,9 +8,6 @@ define(function(require) {
   'use strict';
 
   var SettingsListener = require('shared/settings_listener');
-  var AsyncStorage = require('shared/async_storage');
-  var SettingsCache = require('modules/settings_cache');
-  var SettingsService = require('modules/settings_service');
 
   /**
    * @alias module:panels/root/storage_usb_item
@@ -22,12 +19,13 @@ define(function(require) {
   function USBStorageItem(elements) {
     this._enabled = false;
     this._elements = elements;
-    this._umsSettingKey = 'ums.enabled';
+    this._keyUmsEnabled = 'ums.enabled';
     // XXX media related attributes
     this._defaultMediaVolume = null;
     this._defaultVolumeState = 'available';
     this._defaultMediaVolumeKey = 'device.storage.writable.name';
-    this._boundUmsSettingHandler = this._umsSettingHandler.bind(this);
+
+    this._boundUmsEnabledHandler = this._umsEnabledHandler.bind(this);
     this._boundMediaVolumeChangeHandler =
       this._mediaVolumeChangeHandler.bind(this);
   }
@@ -52,45 +50,28 @@ define(function(require) {
         this._enabled = value;
       }
       if (value) { //observe
-        this._elements.usbEnabledCheckBox.disabled = false;
-        // ums master switch on root panel
-        this._elements.usbEnabledCheckBox.addEventListener('change', this);
-
-        SettingsListener.observe(this._umsSettingKey, false,
-          this._boundUmsSettingHandler);
+        SettingsListener.observe(this._keyUmsEnabled, false,
+          this._boundUmsEnabledHandler);
 
         // media storage
         // Show default media volume state on root panel
         SettingsListener.observe(this._defaultMediaVolumeKey, 'sdcard',
           this._boundMediaVolumeChangeHandler);
         window.addEventListener('localized', this);
-
-        // register USB storage split click handler
-        this._elements.usbStorage.addEventListener('click', this._onItemClick);
       } else { //unobserve
-        this._elements.usbEnabledCheckBox.removeEventListener('change', this);
-
-        SettingsListener.unobserve(this._umsSettingKey,
-          this._boundUmsSettingHandler);
+        SettingsListener.unobserve(this._keyUmsEnabled,
+          this._boundUmsEnabledHandler);
 
         // media storage
         SettingsListener.unobserve(this._defaultMediaVolumeKey,
           this._boundMediaVolumeChangeHandler);
         window.removeEventListener('localized', this);
-
-        this._elements.usbStorage.removeEventListener('click',
-          this._onItemClick);
       }
     },
 
-    _umsSettingHandler: function storage_umsSettingHandler(enabled) {
-      this._elements.usbEnabledCheckBox.checked = enabled;
+    _umsEnabledHandler: function storage_umsEnabledHandler(enabled) {
+      this._enabled = enabled;
       this._updateUmsDesc();
-    },
-
-    // navigate to USB Storage panel
-    _onItemClick: function storage_onItemClick(evt) {
-      SettingsService.navigate('usbStorage');
     },
 
     handleEvent: function storage_handleEvent(evt) {
@@ -99,13 +80,9 @@ define(function(require) {
           this._updateMediaStorageInfo();
           break;
         case 'change':
-          if (evt.target === this._elements.usbEnabledCheckBox) {
-            this._umsMasterSettingChanged(evt);
-          } else {
-            // we are handling storage state changes
-            // possible state: available, unavailable, shared
-            this._updateMediaStorageInfo();
-          }
+          // we are handling storage state changes
+          // possible state: available, unavailable, shared
+          this._updateMediaStorageInfo();
           break;
       }
     },
@@ -113,7 +90,7 @@ define(function(require) {
     // ums description
     _updateUmsDesc: function storage_updateUmsDesc() {
       var key;
-      if (this._elements.usbEnabledCheckBox.checked) {
+      if (this._enabled) {
         //TODO list all enabled volume name
         key = 'enabled';
       } else if (this._defaultVolumeState === 'shared') {
@@ -122,58 +99,6 @@ define(function(require) {
         key = 'disabled';
       }
       this._elements.usbEnabledInfoBlock.setAttribute('data-l10n-id', key);
-    },
-
-    _umsMasterSettingChanged: function storage_umsMasterSettingChanged(evt) {
-      var checkbox = evt.target;
-      var cset = {};
-      var warningKey = 'ums-turn-on-warning';
-
-      if (checkbox.checked) {
-        AsyncStorage.getItem(warningKey, function(showed) {
-          if (!showed) {
-            this._elements.umsWarningDialog.hidden = false;
-
-            this._elements.umsConfirmButton.onclick = function() {
-              AsyncStorage.setItem(warningKey, true);
-              this._elements.umsWarningDialog.hidden = true;
-
-              SettingsCache.getSettings(
-                this._openIncompatibleSettingsDialogIfNeeded.bind(this));
-            }.bind(this);
-
-            this._elements.umsCancelButton.onclick = function() {
-              cset[this._umsSettingKey] = false;
-              Settings.mozSettings.createLock().set(cset);
-
-              checkbox.checked = false;
-              this._elements.umsWarningDialog.hidden = true;
-            }.bind(this);
-          } else {
-            SettingsCache.getSettings(
-              this._openIncompatibleSettingsDialogIfNeeded.bind(this));
-          }
-        }.bind(this));
-      } else {
-        cset[this._umsSettingKey] = false;
-        Settings.mozSettings.createLock().set(cset);
-      }
-    },
-
-    _openIncompatibleSettingsDialogIfNeeded:
-      function storage_openIncompatibleSettingsDialogIfNeeded(settings) {
-        var cset = {};
-        var umsSettingKey = this._umsSettingKey;
-        var usbTetheringSetting = settings['tethering.usb.enabled'];
-
-        if (!usbTetheringSetting) {
-          cset[umsSettingKey] = true;
-          Settings.mozSettings.createLock().set(cset);
-        } else {
-          var oldSetting = 'tethering.usb.enabled';
-          openIncompatibleSettingsDialog('incompatible-settings-warning',
-            umsSettingKey, oldSetting, null);
-        }
     },
 
     // XXX media related functions
@@ -196,20 +121,23 @@ define(function(require) {
         return;
       }
 
-      var self = this;
-      this._defaultMediaVolume.available().onsuccess = function(evt) {
+      var availbleMediaVolume = this._defaultMediaVolume.available();
+      availbleMediaVolume.onsuccess = (evt) => {
         var state = evt.target.result;
         var firstVolume = navigator.getDeviceStorages('sdcard')[0];
         // if the default storage is unavailable, and it's not the
         // internal storage, we show the internal storage status instead.
         if (state === 'unavailable' &&
-          self._defaultMediaVolume.storageName !== firstVolume.storageName) {
-          firstVolume.available().onsuccess = function(e) {
-            self._updateVolumeState(firstVolume, e.target.result);
+          this._defaultMediaVolume.storageName !== firstVolume.storageName) {
+          firstVolume.available().onsuccess = (e) => {
+            this._updateVolumeState(firstVolume, e.target.result);
           };
         } else {
-          self._updateVolumeState(self._defaultMediaVolume, state);
+          this._updateVolumeState(this._defaultMediaVolume, state);
         }
+      };
+      availbleMediaVolume.onerror = function() {
+        console.log('Error fail to get media volume');
       };
     },
 
@@ -237,11 +165,9 @@ define(function(require) {
     },
 
     _updateMediaFreeSpace: function storage_updateMediaFreeSpace(volume) {
-      var self = this;
-      volume.freeSpace().onsuccess = function(e) {
-        DeviceStorageHelper.showFormatedSize(self._elements.mediaStorageDesc,
+      volume.freeSpace().onsuccess = e =>
+        DeviceStorageHelper.showFormatedSize(this._elements.mediaStorageDesc,
           'availableSize', e.target.result);
-      };
     },
 
     _lockMediaStorageMenu: function storage_setMediaMenuState(lock) {
