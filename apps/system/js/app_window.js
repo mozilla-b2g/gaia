@@ -2484,6 +2484,7 @@
     }
   };
 
+
   /**
    * Return a promise that resolves to an icon URL.
    *

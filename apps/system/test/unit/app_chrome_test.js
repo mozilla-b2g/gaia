@@ -47,7 +47,6 @@ suite('system/AppChrome', function() {
     requireApp('system/js/base_ui.js');
     requireApp('system/js/app_chrome.js', function() {
       this.sinon.stub(AppChrome.prototype, 'setSiteIcon');
-      this.sinon.stub(AppChrome.prototype, 'setPinPreviewIcon');
       app = new AppWindow(cloneConfig(fakeWebSite));
       app.contextmenu = {
         isShown: function() {return false;}
@@ -305,21 +304,18 @@ suite('system/AppChrome', function() {
   suite('Navigation events', function() {
     setup(function() {
       chrome.setSiteIcon.reset();
-      chrome.setPinPreviewIcon.reset();
     });
 
     test('loadstart', function() {
       chrome.handleEvent({ type: 'mozbrowserloadstart' });
       assert.isTrue(chrome.containerElement.classList.contains('loading'));
       assert.isFalse(chrome.setSiteIcon.calledOnce);
-      assert.isTrue(chrome.setPinPreviewIcon.notCalled);
     });
 
     test('loadend', function() {
       chrome.handleEvent({ type: 'mozbrowserloadend' });
       assert.isFalse(chrome.containerElement.classList.contains('loading'));
       assert.isTrue(chrome.setSiteIcon.calledOnce);
-      assert.isTrue(chrome.setPinPreviewIcon.calledOnce);
       assert.equal(0, chrome.setSiteIcon.getCall(0).args.length,
                 'setSiteIcon passed 0 argument');
     });
@@ -420,21 +416,25 @@ suite('system/AppChrome', function() {
     setup(function() {
       this.sinon.stub(chrome, 'setOrigin');
       chrome.pinDialog.classList.add('hidden');
+      chrome.app.getScreenshot = this.sinon.stub();
       chrome.setPinDialogCard();
     });
 
-    test('displays pin card dialog', function() {
-      assert.isTrue(chrome.setOrigin.called, 'sets the origin');
-      assert.isFalse(chrome.pinDialog.classList.contains('hidden'),
-        'shows the pinDialog');
+    test('sets the origin', function() {
+      assert.isTrue(chrome.setOrigin.called);
     });
 
-    test('clicking scrim hides dialog', function() {
-      assert.isFalse(chrome.pinDialog.classList.contains('hidden'),
-        'pinDialog is shown');
-      chrome.handleEvent({ type: 'click', target: chrome.pinScrim });
-      assert.isTrue(chrome.pinDialog.classList.contains('hidden'),
-        'pinDialog is hidden');
+    test('sets the background as screenshot', function() {
+      assert.isTrue(chrome.app.getScreenshot.called);
+    });
+
+    test('appends the card to the cardContainer', function() {
+      var container = chrome.pinCardContainer.innerHTML;
+      assert.isTrue(container.contains('gaia-pin-card'));
+    });
+
+     test('shows the pinDialog', function() {
+      assert.isFalse(chrome.pinDialog.classList.contains('hidden'));
     });
   });
 
@@ -952,7 +952,7 @@ suite('system/AppChrome', function() {
 
   suite('Pinning the web', function() {
     setup(function() {
-      [chrome.siteIcon, chrome.pinScrim].forEach(function(element) {
+      [chrome.siteIcon, chrome.closePin].forEach(function(element) {
         this.sinon.stub(element, 'addEventListener');
         this.sinon.stub(element, 'removeEventListener');
       }.bind(this));
@@ -961,13 +961,13 @@ suite('system/AppChrome', function() {
     test('adds listeners when the setting is enabled', function() {
       MockSettingsListener.mTriggerCallback(PINNING_PREF, true);
       assert.isTrue(chrome.siteIcon.addEventListener.calledWith('click'));
-      assert.isTrue(chrome.pinScrim.addEventListener.calledWith('click'));
+      assert.isTrue(chrome.closePin.addEventListener.calledWith('click'));
     });
 
     test('removes listeners when the setting is enabled', function() {
       MockSettingsListener.mTriggerCallback(PINNING_PREF, false);
       assert.isFalse(chrome.siteIcon.addEventListener.calledWith('click'));
-      assert.isFalse(chrome.pinScrim.addEventListener.calledWith('click'));
+      assert.isFalse(chrome.closePin.addEventListener.calledWith('click'));
     });
   });
 
