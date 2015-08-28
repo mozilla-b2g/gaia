@@ -379,7 +379,9 @@
 
           // We decide to drop this event if system is busy loading
           // the active app or doing some other more important task.
-          if (Service.query('isBusyLoading')) {
+          // In case of the browser, we don't want to wait for the page
+          // being fully loaded to trigger the 'opened' event
+          if (!this.app.isBrowser() && Service.query('isBusyLoading')) {
             this._waitingForLoad = true;
             if (this.app.isHomescreen && this._transitionState == 'opening') {
               /**
