@@ -50,6 +50,17 @@ marionette('Smart Home', function() {
       var editButton = client.findElement('#edit-button');
       var element = client.findElement('#main-section');
       var searchButton = client.findElement('#search-button');
+      var deckTvCard = client.findElement('#card-list > .card');
+      var deckTvButton = client.findElement('.app-button.deck-tv');
+
+      client.waitFor(function() {
+        return containsClass(deckTvCard, 'focused');
+      });
+      client.waitFor(function() {
+        return containsClass(deckTvButton, 'focused');
+      });
+
+      element.sendKeys(Keys.up);
       client.waitFor(function() {
         return containsClass(searchButton, 'focused');
       });
