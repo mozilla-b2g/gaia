@@ -41,7 +41,8 @@ marionette('Homescreen - Bookmark Uninstall', function() {
     client.switchToFrame(system.getHomescreenIframe());
   });
 
-  test('removal of bookmark', function() {
+  // Skip until we can pin Sites
+  test.skip('removal of bookmark', function() {
     var icon = home.getIcon(url);
 
     // Drag the icon to the delete tray

@@ -35,7 +35,7 @@
   background-size: cover;
 }
 
-.pin-card i {
+.pin-card img {
   position: absolute;
   top: -1.5rem;
   left: calc(50% - 1.5rem);

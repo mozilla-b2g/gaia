@@ -22,7 +22,7 @@ window.GaiaPinCard = (function(win) {
     this.bgElement = this._template.querySelector('.background');
     this.descElement = this._template.querySelector('.description');
     this.titleElement = this._template.querySelector('header');
-    this.iconElement = this._template.querySelector('i');
+    this.iconElement = this._template.querySelector('img');
     this._background = {};
 
     shadow.appendChild(this._template);
@@ -44,7 +44,7 @@ window.GaiaPinCard = (function(win) {
       var brightness = getBrightness(colorCodes);
       // Adding opacity to the background color
       var bgColorRgba = 'rgba(' + colorCodes.slice(1).join(',') + ', 0.6)';
-      var shadow = 'inset 0 0 0 ' + computedStyle.width;
+      var shadow = 'inset 0 0 0 140px';
       this.bgElement.style.boxShadow = shadow + ' ' + bgColorRgba;
       this.container.classList.toggle('light', brightness < 200);
     }
@@ -86,7 +86,7 @@ window.GaiaPinCard = (function(win) {
   var template = document.createElement('template');
   template.innerHTML =
     `<article class="pin-card no-content">
-      <i></i>
+      <img></img>
       <div class="background"></div>
       <header></header>
       <section>

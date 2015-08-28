@@ -38,7 +38,9 @@ marionette('Homescreen - Bookmark Edit', function() {
     client.switchToFrame(system.getHomescreenIframe());
   });
 
-  test('pressing enter after editing the bookmark', function() {
+
+  // Skip until we can pin Sites
+  test.skip('pressing enter after editing the bookmark', function() {
     var icon = home.getIcon(url);
 
     // Drag the icon to the edit tray

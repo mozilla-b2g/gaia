@@ -1,4 +1,4 @@
-/* global MozActivity, IconsHelper, LazyLoader */
+/* global MozActivity */
 /* global applications, BaseModule */
 
 (function(window) {
@@ -143,31 +143,42 @@
     },
 
     bookmarkUrl: function(url, name) {
-      var favicons = this.app.favicons;
-
-      /* jshint nonew: false */
       var data = {
         type: 'url',
         url: url,
         name: name,
-        iconable: false
+        iconable: false,
+        title: this.app.title,
+        theme: this.app.themeColor
       };
 
-      if (this.app.webManifestURL) {
-        data.manifestURL = this.app.webManifestURL;
-      }
+      this.app.getScreenshot(function() {
+        data.screenshot = this.app._screenshotBlob;
+        if (this.app.webManifestURL) {
+          data.manifestURL = this.app.webManifestURL;
+        }
 
-      LazyLoader.load('shared/js/icons_helper.js', (() => {
-        IconsHelper.getIcon(url, null, {icons: favicons}).then(icon => {
-          if (icon) {
-            data.icon = icon;
+        this.app.getSiteIconUrl()
+        .then(iconObject => {
+          if (iconObject) {
+            data.icon = iconObject.blob;
           }
-          new MozActivity({
-            name: 'save-bookmark',
-            data: data
-          });
+          this.saveBookmark(data);
+        })
+        .catch((err) => {
+          this.app.debug('bookmarkUrl, error from getSiteIcon: %s', err);
+          this.saveBookmark(data);
         });
-      }));
+
+      }.bind(this));
+    },
+
+    saveBookmark: function(data) {
+      /* jshint nonew: false */
+      new MozActivity({
+        name: 'save-bookmark',
+        data: data
+      });
     },
 
     newWindow: function(manifest, isPrivate) {
@@ -286,8 +297,8 @@
         }
 
         menuData.push({
-          id: 'add-to-homescreen',
-          label: _('add-to-home-screen'),
+          id: 'pinning-pin',
+          label: _('pinning-pin'),
           callback: this.bookmarkUrl.bind(this, config.url, name)
         });
 

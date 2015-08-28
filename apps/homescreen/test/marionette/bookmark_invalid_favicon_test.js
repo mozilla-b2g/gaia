@@ -39,7 +39,8 @@ marionette('Homescreen - Bookmark Favicon Failure', function() {
     client.switchToFrame(system.getHomescreenIframe());
   });
 
-  test('Invalid icons get default icon assigned', function() {
+  // Skip until we can pin Sites
+  test.skip('Invalid icons get default icon assigned', function() {
     var icon = home.getIcon(url);
     home.waitForIconImageUrl(icon, 'default');
   });

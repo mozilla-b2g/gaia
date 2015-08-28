@@ -1,35 +1,30 @@
 'use strict';
 
-/* global loadBodyHTML, BookmarkEditor, BookmarksDatabase, Icon */
+/* global loadBodyHTML, BookmarkEditor, BookmarksDatabase */
 /* global requireApp, require, suite, suiteTeardown, suiteSetup, test, assert,
-          sinon, MocksHelper */
+          MocksHelper, setup, sinon */
 
 require('/shared/test/unit/load_body_html_helper.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_web_manifest_helper.js');
 
 require('/shared/test/unit/mocks/mock_icons_helper.js');
-require('/shared/js/homescreens/icon.js');
 requireApp('bookmark/js/bookmark_editor.js');
 require('/shared/js/bookmarks_database.js');
 require('/shared/js/url_helper.js');
+require('/shared/js/component_utils.js');
+require('/shared/elements/gaia_pin_card/script.js');
 
 var mocksForBookmarkEditor = new MocksHelper([
   'IconsHelper', 'WebManifestHelper'
 ]).init();
 
+var url = 'http://www.mozilla.org/es-ES/firefox/new/';
+
 suite('bookmark_editor.js >', function() {
 
-  var getStub, iconRenderStub, realL10n;
+  var realL10n, getStub;
   mocksForBookmarkEditor.attachTestHelpers();
-
-  var name = 'Mozilla';
-  var url = 'http://www.mozilla.org/es-ES/firefox/new/';
-
-  var bookmark = {
-    name: name,
-    url: url
-  };
 
   var databaseInError = false;
 
@@ -37,14 +32,14 @@ suite('bookmark_editor.js >', function() {
     realL10n = navigator.mozL10n;
     navigator.mozL10n = window.MockL10n;
     loadBodyHTML('/save.html');
-    getStub = sinon.stub(BookmarksDatabase, 'get', function(purl) {
+    getStub = sinon.stub(BookmarksDatabase, 'get', function() {
       return {
         then: function(resolve, refect) {
-          databaseInError ? refect() : resolve (purl === url ? bookmark : null);
+          databaseInError ? refect() : resolve ();
         }
       };
     });
-    iconRenderStub = sinon.stub(Icon.prototype, 'render', function() {});
+
   });
 
   suiteTeardown(function() {
@@ -52,170 +47,203 @@ suite('bookmark_editor.js >', function() {
     document.body.innerHTML = '';
     databaseInError = false;
     getStub.restore();
-    iconRenderStub.restore();
   });
 
-  function noop() {
-    // Do nothing
-  }
+  suite('Initialization', function() {
 
-  function dispatchInputEvent() {
-    BookmarkEditor.form.dispatchEvent(new CustomEvent('input'));
-  }
-
-  suite('Add UI initialized correctly >', function() {
-    var expectedName = 'Telefonica';
-
-    suiteSetup(function() {
+    setup(function() {
+      this.sinon.stub(BookmarkEditor, '_renderPinCard');
+      this.sinon.stub(BookmarkEditor, 'save');
+      this.sinon.stub(BookmarkEditor, 'close');
       BookmarkEditor.init({
         data: {
-          name: expectedName
-        },
-        oncancelled: noop
-      });
-    });
-
-    test('The title has to be defined from options.data.name >', function() {
-      assert.equal(document.getElementById('bookmark-title').value,
-                   expectedName);
-    });
-
-    test('Checking styles', function() {
-      assert.equal(document.body.dataset.mode, 'add');
-    });
-  });
-
-  suite('Edit UI initialized correctly >', function() {
-    suiteSetup(function() {
-      BookmarkEditor.init({
-        data: bookmark,
-        oncancelled: noop
-      });
-    });
-
-    test('The title has to be defined from datastore >', function() {
-      assert.equal(document.getElementById('bookmark-title').value, name);
-    });
-
-    test('Checking styles', function() {
-      assert.equal(document.body.dataset.mode, 'put');
-    });
-
-    test('Checking "done" button after writing', function() {
-      document.getElementById('bookmark-form').
-               dispatchEvent(new CustomEvent('input'));
-      assert.isFalse(BookmarkEditor.saveButton.disabled);
-    });
-  });
-
-  suite('UI initialized correctly as "add" when database fails >', function() {
-    var expectedName = 'Telefonica';
-    var expectedURL = 'www.telefonica.es';
-
-    suiteSetup(function() {
-      databaseInError = false;
-      BookmarkEditor.init({
-        data: {
-          name: expectedName,
-          url: expectedURL
-        },
-        oncancelled: noop
-      });
-    });
-
-    test('The title has to be defined from options.data.name >', function() {
-      assert.equal(document.getElementById('bookmark-title').value,
-                   expectedName);
-    });
-
-    test('Checking styles', function() {
-      assert.equal(document.body.dataset.mode, 'add');
-    });
-
-    test('Checking "add" button initially', function() {
-      assert.isFalse(BookmarkEditor.saveButton.disabled);
-    });
-  });
-
-  suite('Invalid website name >', function() {
-
-    suiteSetup(function() {
-      BookmarkEditor.init({
-        data: {
-          name: '',
           url: url
-        },
-        oncancelled: noop
+        }
       });
     });
 
-    test('Bookmarks with blank title should not be saved >', function() {
-      assert.isTrue(BookmarkEditor.saveButton.disabled,
-                'Blank title, add button should be disabled');
-
-      var saveSpy = sinon.spy(BookmarkEditor, 'save');
-
-      BookmarkEditor._submit(new CustomEvent('submit'));
-      assert.equal(saveSpy.callCount, 0);
-
-      BookmarkEditor.save.restore();
+    test('registers DOM elements', function() {
+      assert.ok(BookmarkEditor.pinURL);
+      assert.ok(BookmarkEditor.pinCardContainer);
+      assert.ok(BookmarkEditor.header);
+      assert.ok(BookmarkEditor.pinButton);
+      assert.equal(BookmarkEditor.pinURL.textContent, url);
     });
 
-    test('Check save button typing website name ', function() {
-      BookmarkEditor.bookmarkTitle.value = 'Telefonica';
-      dispatchInputEvent();
-      assert.isFalse(BookmarkEditor.saveButton.disabled);
-
-      BookmarkEditor.bookmarkTitle.value = '';
-      dispatchInputEvent();
-      assert.isTrue(BookmarkEditor.saveButton.disabled);
-
-      BookmarkEditor.bookmarkTitle.value = 'Mozilla';
-      dispatchInputEvent();
-      assert.isFalse(BookmarkEditor.saveButton.disabled);
+    test('adds pinButton listener', function() {
+      BookmarkEditor.pinButton.dispatchEvent(new CustomEvent('click'));
+      assert(BookmarkEditor.save.called);
     });
 
+    test('adds cancel listener', function() {
+      BookmarkEditor.header.dispatchEvent(new CustomEvent('action'));
+      assert(BookmarkEditor.close.called);
+    });
+
+    test('renders the pin card', function() {
+      assert.isTrue(BookmarkEditor._renderPinCard.called);
+    });
   });
 
-  suite('Install App >', function() {
-    suiteSetup(function() {
+  suite('close', function() {
+    var oncancelled;
+
+    setup(function() {
+      oncancelled = this.sinon.stub();
       BookmarkEditor.init({
-        data: {
-          name: 'My App',
-          url: 'http://example.com'
-        },
-        oncancelled: noop
+        data: {},
+        oncancelled: oncancelled
       });
     });
 
-    test('_fetchManifest()', function(done) {
-      var stubRenderAppIcon = sinon.stub(BookmarkEditor, '_renderAppIcon',
-        function(manifest, size) {}
-      );
-      BookmarkEditor._fetchManifest().then(
-      function () {
-          assert.isFalse(
-            BookmarkEditor.appInstallationSection.classList.contains(
-              'hidden'));
-          assert.equal(BookmarkEditor.appNameText.textContent, 'App');
-          done();
-          stubRenderAppIcon.restore();
-      },
-      function (err) {
-        done(err);
-        console.error(err);
+    test('calls oncancelled', function() {
+      BookmarkEditor.close();
+      assert.isTrue(oncancelled.called);
+    });
+  });
+
+  suite('save', function() {
+    var onsaved, store, place, data, sucessSaving,
+        savedPlace, savedUrl, oncancelled;
+
+    setup(function() {
+      place = {};
+      sucessSaving = true;
+      store = {
+        get: this.sinon.stub().returns({
+          then: function(callback) {
+            callback(place);
+          }
+        }),
+        put: function() {}
+      };
+
+      this.sinon.stub(store, 'put', function(place, url) {
+        savedPlace = place;
+        savedUrl = url;
+        return {
+          then: function(callback) {
+            if (sucessSaving) {
+              callback();
+            }
+            return {
+              catch: function(error) {
+                if (!sucessSaving) {
+                  error();
+                }
+              }
+            };
+          }
+        };
+      });
+      this.sinon.stub(BookmarkEditor, '_getPlacesStore').returns({
+        then: function(callback) {
+          callback(store);
+        }
+      });
+      onsaved = this.sinon.stub();
+      oncancelled = this.sinon.stub();
+      data = {
+        url: url,
+        title: 'title',
+        theme: 'black',
+        screenshot: new Blob()
+      };
+      BookmarkEditor.init({
+        data: data,
+        onsaved: onsaved,
+        oncancelled: oncancelled
       });
     });
 
-    test('_renderAppIcon()', function() {
-      this.sinon.stub(window.IconsHelper, 'getBestIconFromWebManifest',
-      function() {
-        return new URL('http://example.com/icon.png');
-      });
+    test('saves the pinned place', function() {
+      BookmarkEditor.save();
+      var expectedPlace = {
+        pinned: true,
+        themeColor: data.theme,
+        screenshot: data.screenshot,
+        title: data.title
+      };
+      assert.isTrue(store.put.called);
+      assert.equal(savedUrl, data.url);
+      assert.isTrue(savedPlace.pinned);
+      assert.equal(savedPlace.themeColor, expectedPlace.themeColor);
+      assert.equal(savedPlace.screenshot, expectedPlace.screenshot);
+      assert.equal(savedPlace.title, expectedPlace.title);
+    });
 
-      BookmarkEditor._renderAppIcon({}, 60);
-      assert.equal(BookmarkEditor.appIcon.getAttribute('src'),
-        'http://example.com/icon.png');
+    test('calls onsaved', function() {
+      BookmarkEditor.save();
+      assert.isTrue(onsaved.called);
+    });
+
+    test('calls oncancelled if it fails to save', function() {
+      sucessSaving = false;
+      BookmarkEditor.save();
+      assert.isFalse(onsaved.called);
+      assert.isTrue(oncancelled.called);
+    });
+  });
+
+  suite('_renderPinCard', function() {
+    var data;
+
+    setup(function() {
+      data = {
+        url: url
+      };
+    });
+
+    test('with all fields', function() {
+      data.title = 'title';
+      data.icon = new Blob();
+      data.screenshot = new Blob();
+      data.theme = 'black';
+
+      BookmarkEditor.init({
+        data: data
+      });
+      var card = BookmarkEditor.card;
+      assert.ok(card);
+      assert.equal(card.title, data.title);
+      assert.include(card.icon, 'blob:app://bookmark.gaiamobile.org');
+      assert.include(card.background.src, 'blob:app://bookmark.gaiamobil');
+      assert.equal(card.background.themeColor, data.theme);
+      assert.ok(document.querySelector('gaia-pin-card'));
+    });
+
+    test('without screenshot', function() {
+      data.title = 'title';
+      data.icon = new Blob();
+      data.theme = 'black';
+
+      BookmarkEditor.init({
+        data: data
+      });
+      var card = BookmarkEditor.card;
+      assert.ok(card);
+      assert.equal(card.title, data.title);
+      assert.include(card.icon, 'blob:app://bookmark.gaiamobile.org');
+      assert.equal(card.background.src, null);
+      assert.equal(card.background.themeColor, data.theme);
+      assert.ok(document.querySelector('gaia-pin-card'));
+    });
+
+    test('without theme', function() {
+      data.title = 'title';
+      data.icon = new Blob();
+      data.screenshot = new Blob();
+
+      BookmarkEditor.init({
+        data: data
+      });
+      var card = BookmarkEditor.card;
+      assert.ok(card);
+      assert.equal(card.title, data.title);
+      assert.include(card.icon, 'blob:app://bookmark.gaiamobile.org');
+      assert.include(card.background.src, 'blob:app://bookmark.gaiamobil');
+      assert.isUndefined(card.background.themeColor);
+      assert.ok(document.querySelector('gaia-pin-card'));
     });
   });
 
