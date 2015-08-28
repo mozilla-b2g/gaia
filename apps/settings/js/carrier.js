@@ -119,7 +119,19 @@ var CarrierSettings = (function() {
       });
     }
 
+    var isSimCardInserted = Array.prototype.some.call(
+      navigator.mozMobileConnections,
+      function(connection) {
+        return connection.iccId;
+      }
+    );
+    if (!isSimCardInserted) {
+      dataToggle.disabled = true;
+      dataRoamingToggle.disabled = true;
+    }
+
     getDataEnabled().then(function(dataEnabled) {
+      dataEnabled = isSimCardInserted && dataEnabled;
       updateDataRoamingToggle(dataEnabled);
     });
     // We need to disable data roaming when data connection is disabled.
@@ -135,11 +147,13 @@ var CarrierSettings = (function() {
     // The function also registers handlers for the changes of the toggles.
     cs_initWarning(DATA_KEY,
                    dataToggle,
+                   isSimCardInserted,
                    'dataConnection-warning-head',
                    'dataConnection-warning-message',
                    'dataConnection-expl');
     cs_initWarning(DATA_ROAMING_KEY,
                    dataRoamingToggle,
+                   isSimCardInserted,
                    'dataRoaming-warning-head',
                    'dataRoaming-warning-message',
                    'dataRoaming-expl');
@@ -173,12 +187,16 @@ var CarrierSettings = (function() {
    * Init a warning dialog.
    *
    * @param {String} settingKey The key of the setting.
+   * @param {Object} input The input element.
+   * @param {Boolean} isSimCardInserted
+   * True if there is a SIM card inserted, otherwise.
    * @param {String} l10n id of the title.
    * @param {String} l10n id of the message.
    * @param {String} explanationItemId The id of the explanation item.
    */
   function cs_initWarning(settingKey,
                           input,
+                          isSimCardInserted,
                           titleL10nId,
                           messageL10nId,
                           explanationItemId) {
@@ -254,7 +272,7 @@ var CarrierSettings = (function() {
 
     // Initialize the state of the input.
     getState(function(enabled) {
-      input.checked = enabled;
+      input.checked = isSimCardInserted && enabled;
 
         // Register an observer to monitor setting changes.
       input.addEventListener('change', function() {
