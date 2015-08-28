@@ -387,11 +387,11 @@ var MmiManager = {
   },
 
   cancel: function mm_cancel() {
-    /* The user closed the UI, ignore any further message from this
-     * session, calling dial() will automatically cancel the current
-     * one and start a new session. */
     this._pendingRequest = null;
-    this._session = null;
+    if (this._session) {
+      this._session.cancel();
+      this._session = null;
+    }
   },
 
   cardIndexForConnection: function mm_cardIndexForConnection(conn) {
