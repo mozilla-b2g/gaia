@@ -34,7 +34,7 @@ marionette('Software Home Button - Fullscreen Request', function() {
 
     var frame = system.waitForLaunch(appUrl);
 
-    assert.ok(!system.softwareHomeFullscreen.displayed());
+    assert.ok(system.softwareHomeFullscreen.displayed());
 
     client.switchToFrame(frame);
     client.helper.waitForElement('#fullscreen').click();
