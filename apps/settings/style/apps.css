@@ -124,6 +124,24 @@ ul li > label:not([for]).addon-details-info {
   display: none;
 }
 
+.addon-obsolete {
+  background-color: #F0AD4E;
+  color: #FFF;
+  flex-flow: row nowrap;
+  align-items: center;
+  margin: 0;
+}
+
+.addon-obsolete-icon {
+  -moz-padding-start: 1.5rem;
+}
+
+.addon-obsolete-info {
+  font-size: 1.6rem;
+  white-space: normal;
+  padding: 1.5rem;
+}
+
 /******************************************************************************
  * Right-To-Left layout
  */
