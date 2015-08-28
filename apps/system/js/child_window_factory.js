@@ -157,10 +157,20 @@
     if (!this.app.isActive() || this.app.isTransitioning()) {
       return false;
     }
+
+    var parentAllowFullscreenAttr =
+      evt.target.getAttribute('mozallowfullscreen');
+    var iframe = evt.detail.frameElement;
+
+    // This new window should be allowed to go full screen.
+    if (parentAllowFullscreenAttr) {
+      iframe.setAttribute('mozallowfullscreen', parentAllowFullscreenAttr);
+    }
+
     var configObject = {
       url: evt.detail.url,
       name: evt.detail.name,
-      iframe: evt.detail.frameElement,
+      iframe: iframe,
       isPrivate: this.app.isPrivateBrowser()
     };
     window.dispatchEvent(new CustomEvent('openwindow', {
