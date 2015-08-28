@@ -145,6 +145,7 @@ class Contacts(Base):
 
         def _return_class_from_tap(self, return_class='ContactDetails'):
             if return_class == 'ContactDetails':
+                self.apps.switch_to_displayed_app()
                 Wait(self.marionette).until(lambda m: expected.element_not_displayed(self.root_element))
                 from gaiatest.apps.contacts.regions.contact_details import ContactDetails
                 return ContactDetails(self.marionette)
@@ -155,6 +156,7 @@ class Contacts(Base):
                 from gaiatest.apps.contacts.regions.contact_form import EditContact
                 return EditContact(self.marionette)
             elif return_class == 'SelectContact':
+                self.apps.switch_to_displayed_app()
                 return None
             else:
                 # We are using contacts picker in activity - after choosing, fall back to open app
