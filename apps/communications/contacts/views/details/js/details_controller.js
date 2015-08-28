@@ -116,7 +116,7 @@
       }, onError);
     });
 
-    // Save contact with 'favourite' param updated properly
+    // Save contact with 'favorite' param updated properly
     ContactsService.save(
       utils.misc.toMozContact(contact),
       function(e) {
