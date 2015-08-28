@@ -51,6 +51,9 @@ requireApp('settings/js/vendor/alameda.js', (function() {
       'unit/mock_xml_http_request': {
         exports: 'MockXmlHttpRequest'
       },
+      'shared_mocks/mock_xml_http_request': {
+        exports: 'MockXMLHttpRequest'
+      },
       'unit/mock_moz_apps': {
         exports: 'MockMozApps'
       },
