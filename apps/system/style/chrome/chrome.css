@@ -257,65 +257,102 @@
 
 /* Pinning the web */
 
-section.pin-dialog::before {
-  top: -.8rem;
-  content: " ";
-  height: .8rem;
-  width: 1.7rem;
+.urlbar::before {
+  content: "";
+  bottom: -1.5rem;
+  left: 0.35rem;
+  height: 1.5rem;
+  width: 2.4rem;
   position: absolute;
-  pointer-events: none;
-  -moz-margin-start: .4rem;
   background-size: cover;
-  background-image: url("images/arrow.png")
+  background-image: url("images/arrow.png");
+  transform: translateY(0) translateX(0) scale(1);
+  transition: opacity var(--transition-duration), transform var(--transition-duration);
 }
 
-section.pin-dialog.hidden {
-  display: none;
+.pin-dialog.hidden ~ .controls .urlbar::before {
+  opacity: 0;
+  transform: translateY(-50%) translateX(-50%) scale(.3);
 }
 
 section.pin-dialog {
-  width: 19.6rem;
   display: block;
   position: absolute;
-  background-color: #E5E5E5;
-  border-radius: 0.5rem;
-  top: 4.4rem;
-  left: .25rem;
+  margin: 0 1rem;
+  width: calc(100% - 2rem);
+  top: calc(var(--statusbar-height) + var(--rocketbar-urlbar-height) + 0.8rem);
+  background-color: #F4F4F4;
   font-size: 1.2rem;
+  color: #858585;
   box-shadow: 0 1px 0 0 rgba(0, 0, 0, 0.15);
+  pointer-events: auto;
+  transform: translateY(0) translateX(0) scale(1);
+  transition: opacity var(--transition-duration), transform var(--transition-duration);
 }
 
-section.pin-dialog gaia-pin-card {
-  width: 14rem;
-  margin: 0 auto;
-  display: block;
+section.pin-dialog.hidden {
+  transform: translateY(-50%) translateX(-50%) scale(.3);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.pin-scrim {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  /* Note: we cannot use bottom: 0 because the parent (.chrome) has a
+     transition defined, which creates a new stacking context for it.
+     So any coordinates (top, left, etc.) will be relative to this parent
+     element instead of the viewport.
+     see https://bugzilla.mozilla.org/show_bug.cgi?id=879443
+  */
+  height: 100vh;
+  z-index: -1;
+  background-color: rgba(0, 0, 0, 0.45);
+  transition: opacity var(--transition-duration);
+  pointer-events: auto;
+}
+
+section.pin-dialog.hidden + .pin-scrim {
+  pointer-events: none;
+  opacity: 0;
 }
 
 section.pin-dialog .card-container {
-  margin-top: 2.1rem;
-  display: block;
   overflow: hidden;
-  padding-top: 1.5rem;
+  text-align: center;
+}
+
+section.pin-dialog .pin-site-icon {
+  font-weight: 300;
+  width: 6.4rem;
+  height: 6.4rem;
+  margin: 0 auto;
+  background-size: 6.4rem;
+}
+
+section.pin-dialog .pin-site-name {
+  margin: 0;
+  line-height: 6.5rem;
+  font-size: 1.6rem;
+  font-weight: 400;
+  font-style: italic;
 }
 
 section.pin-dialog header h2 {
-  font-size: 2rem;
-  font-weight: 300;
+  margin: 0;
+  line-height: 6.2rem;
+  font-size: 1.8rem;
+  font-weight: 400;
   font-family: sans-serif;
   font-style: italic;
+  white-space: nowrap;
   text-align: center;
-  margin-top: 1.3rem;
-  color: #4D4D4D;
-  margin-bottom: 0;
-  line-height: 2rem;
 }
 
-section.pin-dialog .footer-container {
-  height: 10.6rem;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-around;
-  margin: 1.5rem 0 .5rem 0;
+section.pin-dialog footer {
+  padding: 2.3rem 0;
 }
 
 section.pin-dialog button {
@@ -324,44 +361,48 @@ section.pin-dialog button {
   margin: 0 auto;
   float: none;
   width: -moz-fit-content;
-  background-color: #5F8DD3;
-  color: #fff;
+  background-color: white;
   font-size: 1.6rem;
   font-style: italic;
 }
 
-section.pin-dialog span {
-  color: #B8B8B8;
+section.pin-dialog footer span {
   display: block;
-  clear: both;
   text-align: center;
-  line-height: 1.4rem;
+  line-height: 1.6rem;
+  font-size: 1.4rem;
+  font-weight: 400;
+  font-style: italic;
 }
 
 section.pin-dialog .origin {
   padding: 0;
   margin: 0 auto;
   width: -moz-fit-content;
-  font-weight: normal;
-  -moz-padding-start: 1.5rem;
+  font-size: 1.4rem;
+  font-weight: 400;
+  font-style: italic;
 }
 
 section.pin-dialog .origin .tld {
   display: inline;
-  color: #4d4d4d;
 }
 
-.urlbar section.pin-dialog .origin::before {
+section.pin-dialog .origin::before {
   content: "";
   display: block;
   width: 3rem;
   height: 3rem;
-  margin: -1rem -2.5rem;
+  margin: -0.7rem -2.5rem;
   background-size: cover;
   position: absolute;
 }
 
-.urlbar[data-ssl="secure"] section.pin-dialog .origin::before {
+section.pin-dialog.secure .origin {
+  -moz-padding-start: 1.5rem;
+}
+
+section.pin-dialog.secure .origin::before {
   background-image: url("images/light/ssl.png");
 }
 
@@ -381,39 +422,21 @@ section.pin-dialog button[data-action="pin"]::before {
   background-image: url("images/pin.png");
 }
 
-section.pin-dialog a[data-action="cancel"] {
-  position: absolute;
-  top: 1.5rem;
-  right: 1.5rem;
-  width: 1.6rem;
-  height: 1.6rem;
-  background-image: url("images/close.png");
-  display: block;
-  background-size: cover;
-}
-
 @media (orientation: landscape) {
   section.pin-dialog {
-    width: 32rem;
-    padding-bottom: 2rem;
+    width: 26rem;
   }
 
-  section.pin-dialog header {
-    margin-bottom: 2.5rem;
+  section.pin-dialog header h2 {
+    line-height: 5rem;
   }
 
-  section.pin-dialog .card-container {
-    float: left;
-    width: 14rem;
-    margin-top: 0;
-    -moz-margin-start: 1.8rem;
+  section.pin-dialog .pin-site-name {
+    line-height: 4rem;
   }
 
-  section.pin-dialog .footer-container {
-    width: 12.6rem;
-    margin-top: 1.5rem;
-    float: left;
-    padding: 0 1.8rem;
+  section.pin-dialog footer {
+    padding: 1.7rem 0;
   }
 }
 
