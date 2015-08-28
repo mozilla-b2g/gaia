@@ -197,7 +197,8 @@
         frecency: 0,
         // An array containing previous visits to this url
         visits: [],
-        screenshot: null
+        screenshot: null,
+        themeColor: null
       };
     },
 
@@ -316,6 +317,19 @@
     saveScreenshot: function(url, screenshot) {
       return this.editPlace(url, function(place, cb) {
         place.screenshot = screenshot;
+        cb(place);
+      });
+    },
+
+    /**
+     * Update the theme color of a page in the places db.
+     *
+     * @param {String} url The URL of the page
+     * @param {String} color The CSS color
+     */
+    saveThemeColor: function(url, color) {
+      return this.editPlace(url, function(place, cb) {
+        place.themeColor = color;
         cb(place);
       });
     },

@@ -1,15 +1,17 @@
-
 .pin-card {
   position: relative;
-  float: left;
-  min-width: 14rem;
-  height: 10.5rem;
+  top: 1.5rem;
+  box-sizing: border-box;
+  height: calc(100% - 1.5rem);
   border-radius: .5rem;
   background-color: #FBFBFB;
   background-size: cover;
   color: #000;
   font-weight: 500;
   font-family: sans-serif;
+  line-height: normal;
+  white-space: normal;
+  box-shadow: 0 0.2rem 0.5rem rgba(0, 0, 0, 0.2);
 }
 
 .pin-card > * {
@@ -46,21 +48,19 @@
 
 .pin-card header {
   position: relative;
+  top: 1.5rem;
   text-align: center;
-  margin-top: 2.5rem;
   overflow: hidden;
-  line-height: 1.6rem;
 }
 
 .pin-card.no-content header {
-  height: 7.6rem;
+  height: calc(100% - 1.75rem);
 }
 
 .pin-card p.description {
   margin: 1rem 0;
   position: relative;
-  font-size: 1.4rem;
-  line-height: 1.2rem;
+  font-size: 90%;
   width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;

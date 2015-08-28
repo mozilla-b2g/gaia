@@ -1,4 +1,4 @@
-/* global MozActivity, HomeMetadata, Datastore */
+/* global MozActivity, HomeMetadata, Datastore, Pages */
 /* jshint nonew: false */
 'use strict';
 
@@ -67,9 +67,11 @@ const SETTINGS_VERSION = 0;
 
   function App() {
     // Element references
+    this.indicator = document.getElementById('page-indicator');
+    this.panels = document.getElementById('panels');
     this.meta = document.head.querySelector('meta[name="theme-color"]');
-    this.shadow = document.getElementById('shadow');
-    this.scrollable = document.getElementById('scrollable');
+    this.shadow = document.querySelector('#apps-panel > .shadow');
+    this.scrollable = document.querySelector('#apps-panel > .scrollable');
     this.icons = document.getElementById('apps');
     this.bottombar = document.getElementById('bottombar');
     this.uninstall = document.getElementById('uninstall');
@@ -101,6 +103,7 @@ const SETTINGS_VERSION = 0;
     }
 
     // Scroll behaviour
+    this.appsVisible = false;
     this.scrolled = false;
 
     // Pinch-to-zoom
@@ -112,8 +115,12 @@ const SETTINGS_VERSION = 0;
     this.draggingRemovable = false;
     this.autoScrollTimeout = null;
 
+    // Update the panel indicator
+    this.updatePanelIndicator();
+
     // Signal handlers
     document.body.addEventListener('contextmenu', this);
+    this.panels.addEventListener('scroll', this);
     this.scrollable.addEventListener('scroll', this);
     this.icons.addEventListener('activate', this);
     this.icons.addEventListener('drag-start', this);
@@ -223,6 +230,7 @@ const SETTINGS_VERSION = 0;
     this.iconsToRetry = [];
     this.metadata = new HomeMetadata();
     this.bookmarks = new Datastore('bookmarks_store');
+    this.pages = new Pages();
 
     // Load metadata, then populate apps. If metadata loading fails,
     // populate apps anyway - it means they'll be in the default order
@@ -277,7 +285,7 @@ const SETTINGS_VERSION = 0;
       }
 
       // Do not add blacklisted apps
-      if (BLACKLIST.indexOf(app.origin) !== -1) {
+      if (BLACKLIST.includes(app.origin)) {
         return;
       }
 
@@ -346,7 +354,7 @@ const SETTINGS_VERSION = 0;
         var handleRoleChange = function(app, container) {
           var manifest = app.manifest || app.updateManifest;
           var hidden = (manifest && manifest.role &&
-            HIDDEN_ROLES.indexOf(manifest.role) !== -1);
+            HIDDEN_ROLES.includes(manifest.role));
           container.style.display = hidden ? 'none' : '';
         };
 
@@ -455,7 +463,7 @@ const SETTINGS_VERSION = 0;
         pageHeight) + (scrollHeight - pageHeight);
 
       // Reset scroll-snap points
-      this.scrollable.style.scrollSnapPointsY = 'repeat(' + pageHeight + 'px)';
+      this.scrollable.style.scrollSnapPointsY = `repeat(${pageHeight}px)`;
 
       // Set page border background
       this.icons.style.backgroundSize = '100% ' + (pageHeight * 2) + 'px';
@@ -498,6 +506,20 @@ const SETTINGS_VERSION = 0;
       setTimeout(() => { dialog.open(); }, DIALOG_SHOW_TIMEOUT);
     },
 
+    updatePanelIndicator: function() {
+      var appsVisible = this.panels.scrollLeft <= this.panels.scrollLeftMax / 2;
+      if (this.appsVisible !== appsVisible) {
+        this.appsVisible = appsVisible;
+        this.indicator.children[0].classList.toggle('active', appsVisible);
+        this.indicator.children[1].classList.toggle('active', !appsVisible);
+
+        navigator.mozL10n.once(() => {
+          this.indicator.setAttribute('aria-label', navigator.mozL10n.
+            get(this.appsVisible ? 'apps-panel' : 'pages-panel'));
+        });
+      }
+    },
+
     handleEvent: function(e) {
       var icon, child, id;
 
@@ -523,6 +545,11 @@ const SETTINGS_VERSION = 0;
 
       // Display the top shadow when scrolling down
       case 'scroll':
+        if (e.target === this.panels) {
+          this.updatePanelIndicator();
+          return;
+        }
+
         var position = this.scrollable.scrollTop;
         var scrolled = position > 0;
         if (this.scrolled !== scrolled) {
@@ -782,7 +809,10 @@ const SETTINGS_VERSION = 0;
 
       case 'hashchange':
         if (!document.hidden) {
-          this.scrollable.scrollTo({ left: 0, top: 0, behavior: 'smooth' });
+          if (this.panels.scrollLeft ===
+              this.scrollable.parentNode.offsetLeft) {
+            this.scrollable.scrollTo({ left: 0, top: 0, behavior: 'smooth' });
+          }
         }
         break;
 
@@ -791,6 +821,7 @@ const SETTINGS_VERSION = 0;
           icon.firstElementChild.updateName();
         }
         this.icons.synchronise();
+        this.updatePanelIndicator();
         break;
 
       case 'online':

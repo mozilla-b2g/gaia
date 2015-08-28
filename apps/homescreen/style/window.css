@@ -14,7 +14,85 @@ body {
   -moz-user-select: none;
 }
 
-#shadow {
+#page-indicator {
+  width: 100%;
+  height: 1.5rem;
+  background-color: rgba(0, 0, 0, 0.1);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  align-content: center;
+}
+
+.pin-the-web #page-indicator {
+  display: flex;
+}
+
+#page-indicator span {
+  position: relative;
+  display: inline-block;
+  width: 0.8rem;
+  height: 0.8rem;
+  margin: 0 0.25rem 0.5rem;
+  opacity: 0.6;
+}
+
+#page-indicator span:before,
+#page-indicator span:after {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: block;
+  content: '';
+  width: 100%;
+  height: 100%;
+  border-radius: 100%;
+  transition: opacity 0.2s;
+}
+
+#page-indicator span:before {
+  opacity: 0;
+  background-color: white;
+}
+
+#page-indicator span:after {
+  opacity: 1;
+  border: 0.1rem solid white;
+}
+
+#page-indicator span.active:before {
+  opacity: 1;
+}
+
+#page-indicator span.active:after {
+  opacity: 0;
+}
+
+#panels {
+  height: 100vh;
+  overflow-y: hidden;
+  scroll-snap-type-x: mandatory;
+  scroll-snap-points-x: repeat(100vw);
+  white-space: nowrap;
+}
+
+.pin-the-web #panels {
+  height: calc(100vh - 1.5rem);
+}
+
+.dragging #panels {
+  overflow: hidden;
+}
+
+#panels > * {
+  position: relative;
+  display: inline-block;
+  width: 100vw;
+  height: 100%;
+  vertical-align: top;
+}
+
+#panels > div > .shadow {
   position: absolute;
   z-index: 1;
   background: linear-gradient(to bottom, rgba(0, 0, 0, 0.5), transparent);
@@ -26,135 +104,8 @@ body {
   pointer-events: none;
 }
 
-#shadow.visible {
+#panels > div > .shadow.visible {
   opacity: 1;
   visibility: visible;
 }
 
-#scrollable {
-  overflow-y: auto;
-  scroll-snap-type-y: mandatory;
-  height: 100vh;
-  transition: transform 0.2s;
-  padding-top: 1.5vw;
-}
-
-.zooming #scrollable {
-  will-change: transform;
-}
-
-.zooming #scrollable {
-  overflow: hidden;
-}
-
-/* This weird arrangement of constant sizes, transforms and containers is so
- * the gaia-container can animate fully between small and not-small states.
- * Without this animation, the container would be unnecessary and only the
- * width would need to be specified.
- */
-.icon-container {
-  position: relative;
-  display: inline-block;
-  width: 32vw;
-  height: calc(32vw + 1.9rem);
-}
-
-gaia-app-icon {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 32vw;
-  box-sizing: border-box;
-  border: 0.8rem solid transparent;
-  transition: transform 0.2s, opacity 0.2s;
-  outline: 0;
-
-  font-size: 1.6rem;
-  color: white;
-  text-shadow: rgba(0, 0, 0, 0.6) 0 0.05rem 0.25rem;
-}
-
-gaia-app-icon.launching {
-  opacity: 0.8
-}
-
-gaia-container.small > .gaia-container-child > .icon-container {
-  width: 24vw;
-  height: calc(24vw + 1.9rem);
-}
-
-gaia-container > .gaia-container-child.dragging > .icon-container > gaia-app-icon {
-  transform: scale(1.1);
-  opacity: 0.8;
-}
-
-gaia-container.small > .gaia-container-child > .icon-container > gaia-app-icon {
-  transform: scale(0.75) translate(-4vw, -4vw);
-}
-
-gaia-container.small > .gaia-container-child.dragging > .icon-container > gaia-app-icon {
-  transform: scale(0.8) translate(-3.2vw, -3.2vw);
-}
-
-#bottombar {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 6rem;
-  box-shadow: 0 -0.1rem 0.5rem rgba(0, 0, 0, 0.5);
-  transition: transform 0.2s;
-  transform: translateY(6.5rem);
-  font-size: 0;
-}
-
-#bottombar.active {
-  transform: none;
-}
-
-#uninstall {
-  display: inline-block;
-  width: 100%;
-  height: 100%;
-  opacity: 0.5;
-  background: no-repeat center center url('images/delete_bottom.svg'), linear-gradient(to bottom, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.2));
-  background-size: 4.5rem 4.5rem, auto auto;
-  transition: opacity 0.2s;
-}
-
-#bottombar.editable #uninstall {
-  width: 50%;
-}
-
-#uninstall::after {
-  display: block;
-  content: '';
-  width: 100%;
-  height: 100%;
-  background: no-repeat center center url('images/delete_lid.svg');
-  background-size: 4.5rem 4.5rem;
-  transform-origin: calc(50% + 1.75rem) calc(50% + 0.8rem);
-  transition: transform 0.2s;
-}
-
-#uninstall.active {
-  opacity: 1;
-}
-
-#uninstall.active:after {
-  transform: rotateZ(30deg);
-}
-
-#edit {
-  display: inline-block;
-  width: 50%;
-  height: 100%;
-  opacity: 0.5;
-  background: no-repeat center center url('images/edit.svg'), linear-gradient(to bottom, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.2));
-  background-size: 4.5rem 4.5rem, auto auto;
-  transition: opacity 0.2s;
-}
-
-#edit.active {
-  opacity: 1;
-}

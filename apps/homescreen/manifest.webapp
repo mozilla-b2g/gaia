@@ -20,17 +20,25 @@
     "512": "/icons/512.png"
   },
   "permissions": {
-    "themeable":{},
-    "mobileconnection":{},
-    "open-remote-window":{},
-    "homescreen-webapps-manage":{},
+    "homescreen-webapps-manage": {},
+    "mobileconnection": {},
+    "moz-extremely-unstable-and-will-change-webcomponents": {},
+    "open-remote-window": {},
     "systemXHR": {},
-    "moz-extremely-unstable-and-will-change-webcomponents":{}
+    "themeable": {}
   },
   "datastores-access": {
     "bookmarks_store": {
       "readonly": true,
-      "description": "View bookmarks"
+      "description": "View bookmarks."
+    },
+    "places": {
+      "readonly": true,
+      "description": "View data about browsing history."
+    },
+    "icons": {
+      "readonly": true,
+      "description": "Retrieve cached website icons."
     }
   },
   "orientation": "default"

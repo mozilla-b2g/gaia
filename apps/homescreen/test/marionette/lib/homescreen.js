@@ -12,7 +12,7 @@ function Homescreen(client) {
 Homescreen.URL = 'app://homescreen.gaiamobile.org';
 
 Homescreen.Selectors = {
-  scrollable: '#scrollable',
+  appsScrollable: '#apps-panel .scrollable',
   apps: '#apps',
   icon: '#apps gaia-app-icon',
   uninstall: '#uninstall',
@@ -27,8 +27,8 @@ Homescreen.prototype = {
   URL: Homescreen.URL,
   Selectors: Homescreen.Selectors,
 
-  get scrollable() {
-    return this.client.findElement(Homescreen.Selectors.scrollable);
+  get appsScrollable() {
+    return this.client.findElement(Homescreen.Selectors.appsScrollable);
   },
 
   get container() {
@@ -235,7 +235,7 @@ Homescreen.prototype = {
     this.client.executeScript(function(icon, scrollable, position) {
       var midPoint = scrollable.clientHeight / 2;
       scrollable.scrollTop = scrollable.scrollTop + (position - midPoint);
-    }, [icon, this.scrollable, icon.location().y]);
+    }, [icon, this.appsScrollable, icon.location().y]);
   },
 
   /**
@@ -243,12 +243,12 @@ Homescreen.prototype = {
    * of the icon grid.
    */
   openSettingsMenu: function() {
-    var rect = this.scrollable.scriptWith(function(el) {
+    var rect = this.appsScrollable.scriptWith(function(el) {
       el.scrollTop = el.scrollTopMax;
       return el.getBoundingClientRect();
     });
     var actions = this.client.loader.getActions();
-    actions.press(this.scrollable, rect.width / 2, rect.height - 1).
+    actions.press(this.appsScrollable, rect.width / 2, rect.height - 1).
             wait(0.5).
             release().
             perform();
