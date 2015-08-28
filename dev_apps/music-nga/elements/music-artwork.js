@@ -302,7 +302,7 @@ function getIcons() {
 }
 
 try {
-  window.MusicControls = document.registerElement('music-artwork', { prototype: proto });
+  window.MusicArtwork = document.registerElement('music-artwork', { prototype: proto });
 } catch (e) {
   if (e.name !== 'NotSupportedError') {
     throw e;
