@@ -4744,6 +4744,34 @@ suite('conversation.js >', function() {
         }).then(done, done);
       });
 
+      test('forwarding a MMS', function(done) {
+        Threads.Messages.get.withArgs(1).returns(MockMessages.mms());
+
+        this.sinon.stub(SMIL, 'parse').returns(Promise.resolve([
+          {
+            name: 'filename',
+            blob: new Blob(['attachment'], { type: 'text/plain' }),
+            text: 'body'
+          }
+        ]));
+
+        ConversationView.initiateNewMessage({ messageId: 1 }).then(() => {
+          sinon.assert.calledWith(
+            Navigation.toPanel,
+            'composer', { draftId: 'draftId', focusComposer: sinon.match.falsy }
+          );
+          sinon.assert.calledWithMatch(
+            Drafts.add,
+            {
+              content: [ sinon.match.instanceOf(Attachment), 'body' ],
+              type: 'mms'
+            }
+          );
+          sinon.assert.called(Drafts.store);
+          sinon.assert.notCalled(Utils.confirm);
+        }).then(done, done);
+      });
+
       test('navigates to Composer when user discards unsent message',
       function(done) {
         Compose.isEmpty.returns(false);

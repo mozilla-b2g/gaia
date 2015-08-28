@@ -3037,17 +3037,19 @@ var ConversationView = {
       contentPromise = Promise.resolve([message.body]);
     } else {
       contentPromise = SMIL.parse(message).then(
-        (elements) => elements.map((element) => {
+        (elements) => elements.reduce((result, element) => {
           if (element.blob) {
-            return new Attachment(element.blob, {
+            result.push(new Attachment(element.blob, {
               name: element.name,
               isDraft: true
-            });
+            }));
           }
           if (element.text) {
-            return element.text;
+            result.push(element.text);
           }
-        })
+
+          return result;
+        }, [])
       );
     }
 

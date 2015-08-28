@@ -59,8 +59,12 @@ var ThreadGenerator = {
 
     for (var i = 0; i < parameters.numberOfMessages; i++) {
       var message = null;
-      var messageBody = thread.body + ' (messageId: ' +
-        (ThreadGenerator.uniqueMessageId + 1) + ')';
+      var messageBody = thread.body;
+      if (i) {
+        messageBody +=
+          ' (messageId: ' + (ThreadGenerator.uniqueMessageId + 1) + ')';
+      }
+
       if (parameters.messageType === 'sms') {
         message = this.generateSMS({
           threadId: thread.id,
