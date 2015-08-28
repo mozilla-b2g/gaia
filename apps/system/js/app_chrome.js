@@ -6,7 +6,6 @@
 /* global MozActivity */
 /* global SettingsListener */
 /* global Service */
-/* global GaiaPinCard */
 /* global Icon */
 
 'use strict';
@@ -16,6 +15,7 @@
   const PINNING_PREF = 'dev.gaia.pinning_the_web';
   // 32px + 4px padding added by the Icon renderer
   const ICON_SIZE = 32 + 4;
+  const PREVIEW_ICON_SIZE = 64;
 
   var _id = 0;
 
@@ -123,29 +123,32 @@
 
     return `<div class="chrome chrome-combined" id="${className}">
               <gaia-progress></gaia-progress>
+              <section role="dialog" class="pin-dialog hidden">
+                <header>
+                  <h2 class="pin-type" data-l10n-id="pinning-pin-type"></h2>
+                </header>
+                <div class="card-container">
+                  <div class="pin-site-icon"></div>
+                  <h2 class="pin-site-name"></h2>
+                </div>
+                <div class="footer-container">
+                  <button data-l10n-id="pinning-pin" data-action="pin"
+                    class="pin-button">
+                    Pin
+                  </button>
+                  <footer>
+                    <span data-l10n-id="from">from</span>
+                    <span class="origin"></span>
+                  </footer>
+                </div>
+              </section>
+              <div class="pin-scrim"></div>
               <div class="controls">
                 <button type="button" class="back-button"
                         data-l10n-id="back-button" disabled></button>
                 <button type="button" class="forward-button"
                         data-l10n-id="forward-button" disabled></button>
                 <div class="urlbar js-chrome-ssl-information">
-                  <section role="dialog" class="pin-dialog hidden">
-                    <a href="#" data-action="cancel"></a>
-                    <header>
-                      <h2 data-l10n-id="pinning-pin-page">Pin Page</h2>
-                    </header>
-                    <div class="card-container"></div>
-                    <div class="footer-container">
-                      <button data-l10n-id="pinning-pin" data-action="pin"
-                        class="pin-button">
-                        Pin
-                      </button>
-                      <footer>
-                        <span data-l10n-id="from">from</span>
-                        <span class="origin"></span>
-                      </footer>
-                    </div>
-                  </section>
                   <span class="pb-icon"></span>
                   <div class="site-icon"></div>
                   <div class="chrome-ssl-indicator chrome-title-container">
@@ -226,9 +229,12 @@
     if (this.useCombinedChrome()) {
       this.pinDialog = this.element.querySelector('.pin-dialog');
       this.pinButton = this.element.querySelector('.pin-button');
-      this.closePin = this.pinDialog.querySelector('a[data-action="cancel"]');
       this.originElement = this.pinDialog.querySelector('.origin');
       this.pinCardContainer = this.pinDialog.querySelector('.card-container');
+      this.pinSiteIcon = this.pinCardContainer.querySelector('.pin-site-icon');
+      this.pinSiteName = this.pinCardContainer.querySelector('.pin-site-name');
+      this.pinType = this.pinDialog.querySelector('.pin-type');
+      this.pinScrim = this.element.querySelector('.pin-scrim');
     }
 
     this.sslIndicator =
@@ -251,8 +257,11 @@
         this.collapse();
         break;
 
-      case 'click':
+      case 'rocketbar-activating':
         this.hidePinDialogCard();
+        break;
+
+      case 'click':
         this.handleClickEvent(evt);
         break;
 
@@ -368,6 +377,10 @@
       case this.pinButton:
         this.pin();
         break;
+
+      case this.pinScrim:
+        this.hidePinDialogCard();
+        break;
     }
   };
 
@@ -417,21 +430,19 @@
       this.app.debug('Pinning is only enabled in the browser');
       return;
     }
-    this.setPinDialogCard();
+
+    if (this.pinDialog.classList.contains('hidden')) {
+      this.setPinDialogCard();
+    } else {
+      this.hidePinDialogCard();
+    }
   };
 
-  AppChrome.prototype.setPinDialogCard = function ac_setPinDialogCard(url) {
-    var card = new GaiaPinCard();
-    card.title = this.app.title;
-    card.icon = this.siteIcon.style.backgroundImage;
-    this.pinCardContainer.innerHTML = '';
-    this.app.getScreenshot(function() {
-      card.background = {
-        src: URL.createObjectURL(this.app._screenshotBlob),
-        themeColor: this.app.themeColor
-      };
-    }.bind(this));
-    this.pinCardContainer.appendChild(card);
+  AppChrome.prototype.setPinDialogCard = function ac_setPinDialogCard() {
+    navigator.mozL10n.setAttributes(this.pinType, 'pinning-pin-type', {
+      'type': this.app.name
+    });
+    this.pinSiteName.textContent = this.app.name;
     this.setOrigin();
     this.pinDialog.classList.remove('hidden');
   };
@@ -503,7 +514,7 @@
   };
 
   AppChrome.prototype._pinningObserver = function ac__pinningObserver(enabled) {
-    var targets = [this.siteIcon, this.closePin];
+    var targets = [this.siteIcon, this.pinScrim];
     var method = enabled ? 'addEventListener' : 'removeEventListener';
     targets.forEach(element => {
       element[method]('click', this);
@@ -519,6 +530,7 @@
       });
       LazyLoader.load('shared/elements/gaia_overflow_menu/script.js');
 
+      window.addEventListener('rocketbar-activating', this);
       this.stopButton.addEventListener('click', this);
       this.reloadButton.addEventListener('click', this);
       this.backButton.addEventListener('click', this);
@@ -566,6 +578,7 @@
   AppChrome.prototype._unregisterEvents = function ac__unregisterEvents() {
 
     if (this.useCombinedChrome()) {
+      window.removeEventListener('rocketbar-activating', this);
       this.stopButton.removeEventListener('click', this);
       this.menuButton.removeEventListener('click', this);
       this.windowsButton.removeEventListener('click', this);
@@ -643,6 +656,9 @@
     this.sslIndicator.classList.toggle(
       'chrome-has-ssl-indicator', sslState === 'broken' || sslState === 'secure'
     );
+    if (this.pinDialog) {
+      this.pinDialog.classList.toggle('secure', sslState === 'secure');
+    }
   };
 
   AppChrome.prototype.handleMetaChange =
@@ -871,6 +887,7 @@
       this.setThemeColor('');
     }
     this.setSiteIcon();
+    this.setPinPreviewIcon();
   };
 
   AppChrome.prototype.handleError = function ac_handleError(evt) {
@@ -1047,14 +1064,12 @@
    * @param {string?} url
    */
   AppChrome.prototype.setSiteIcon = function ac_setSiteIcon(url) {
-    var icon;
-
     if (!this.siteIcon || this.app.isPrivateBrowser()) {
       return;
     }
 
     if (url) {
-      icon = new Icon(this.siteIcon, url);
+      var icon = new Icon(this.siteIcon, url);
       icon.render({
         size: ICON_SIZE
       });
@@ -1074,6 +1089,20 @@
       .catch((err) => {
         this.app.debug('setSiteIcon, error from getSiteIcon: %s', err);
       });
+  };
+
+  /**
+   * Populate the pin preview doorhanger with current site/app icon.
+   */
+  AppChrome.prototype.setPinPreviewIcon = function ac_setPinPreviewIcon() {
+    if (!this.pinSiteIcon) {
+      return;
+    }
+    this.app.getSiteIconUrl(PREVIEW_ICON_SIZE).then(iconObject => {
+      this.pinSiteIcon.style.backgroundImage = iconObject.url;
+    }).catch((err) => {
+      this.app.debug('setPinPreviewIcon, error from getSiteIcon: %s', err);
+    });
   };
 
   exports.AppChrome = AppChrome;
