@@ -10,8 +10,6 @@ module.exports = System;
 
 System.URL = 'app://system.gaiamobile.org/manifest.webapp';
 
-System.origin = 'app://system.gaiamobile.org';
-
 System.Selector = Object.freeze({
   screen: '#screen',
   activeHomescreenFrame: '#homescreen.appWindow.active',
@@ -83,8 +81,6 @@ System.prototype = {
   client: null,
 
   URL: System.URL,
-
-  origin: System.origin,
 
   Selector: System.Selector,
 
@@ -411,27 +407,13 @@ System.prototype = {
   },
 
   waitForKeyboard: function() {
-    var origin = this.client.apps.getSelf().origin;
-    if (origin !== this.origin) {
-      this.client.switchToFrame();
-    }
     this.client.helper.waitForElement(System.Selector.activeKeyboard);
-    if (origin !== this.origin) {
-      this.client.apps.switchToApp(origin);
-    }
   },
 
   waitForKeyboardToDisappear: function() {
-    var origin = this.client.apps.getSelf().origin;
-    if (origin !== this.origin) {
-      this.client.switchToFrame();
-    }
     this.client.helper.waitForElementToDisappear(
       System.Selector.activeKeyboard
     );
-    if (origin !== this.origin) {
-      this.client.apps.switchToApp(origin);
-    }
   },
 
   goHome: function() {
