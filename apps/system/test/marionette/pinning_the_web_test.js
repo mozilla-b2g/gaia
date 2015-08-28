@@ -71,7 +71,7 @@ marionette('Pinning the Web', function() {
     var chromeRectAfter = system.appChrome.scriptWith(function(e) {
       return e.getBoundingClientRect();
     });
-    assert.ok(chromeRectBefore.height > chromeRectAfter.height);
+    assert.ok(chromeRectBefore.height < chromeRectAfter.height);
   });
 
   test('Manually expand browser chrome', function() {
