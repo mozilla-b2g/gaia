@@ -76,6 +76,7 @@
           var itemObj = null;
           switch (choice.id) {
             case 'copy-image':
+            case 'copy-link':
               itemObj = {
                 id: choice.id,
                 label: _(choice.id),
