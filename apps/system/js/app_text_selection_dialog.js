@@ -3,10 +3,42 @@
 (function(exports) {
   var DEBUG = false;
   var _id = 0;
-  /**
-   * Text Selection Dialog of the AppWindow
-   */
+  var _globalStates = null;
 
+  // Manipulate global states for app text selection dialog across all apps. All
+  // states which are shared by apps should be put in this class.
+  var AppTextSelectionDialogGlobalStates = function() {
+    this._hasCutOrCopiedTimeoutId = null;
+  };
+
+  // If a user cuts or copies something, a paste shortcut will pop up every time
+  // when single tapping on an editable field within this timeout.
+  AppTextSelectionDialogGlobalStates.prototype.CUT_OR_COPIED_TIMEOUT_MS = 15000;
+
+  AppTextSelectionDialogGlobalStates.prototype.hasCutOrCopied =
+    function() {
+      return !!this._hasCutOrCopiedTimeoutId;
+    };
+
+  AppTextSelectionDialogGlobalStates.prototype.launchHasCutOrCopiedTimer =
+    function() {
+      this._hasCutOrCopiedTimeoutId = window.setTimeout(() => {
+        this._hasCutOrCopiedTimeoutId = null;
+      }, this.CUT_OR_COPIED_TIMEOUT_MS);
+    };
+
+  AppTextSelectionDialogGlobalStates.prototype.cancelHasCutOrCopiedTimer =
+    function() {
+      window.clearTimeout(this._hasCutOrCopiedTimeoutId);
+      this._hasCutOrCopiedTimeoutId = null;
+    };
+
+  AppTextSelectionDialogGlobalStates.prototype.resetAllStates =
+    function() {
+      this._hasCutOrCopiedTimeoutId = null;
+    };
+
+  // Text selection dialog per AppWindow.
   var AppTextSelectionDialog = function (app) {
     this.app = app;
     this.containerElement = (app && app.element) ? app.element :
@@ -15,11 +47,12 @@
     this.event = null;
     this._enabled = false;
     this._injected = false;
-    this._hasCutOrCopied = false;
     this._isCommandSendable = false;
     this._transitionState = 'closed';
     this.textualmenuDetail = null;
     this.bindOnObservePrefChanged = this.onObservePrefChanged.bind(this);
+    this.globalStates = _globalStates =
+      _globalStates || new AppTextSelectionDialogGlobalStates();
     SettingsListener.observe('copypaste.enabled', true,
                              this.bindOnObservePrefChanged);
   };
@@ -29,12 +62,6 @@
   AppTextSelectionDialog.prototype.TEXTDIALOG_HEIGHT = 52;
 
   AppTextSelectionDialog.prototype.TEXTDIALOG_WIDTH = 54;
-
-  // If text is not pasted immediately after copy/cut, the text will be viewed
-  // as pasted after 15 seconds (count starting from the moment when there's no
-  // action at all), and there will be no paste shortcut pop up when tapping on
-  // edit field.
-  AppTextSelectionDialog.prototype.RESET_CUT_OR_PASTE_TIMEOUT = 15000;
 
   // Distance between selected area and the bottom of menu when menu show on
   // the top of selected area.
@@ -157,8 +184,8 @@
           // Always allow, do nothing here.
           break;
         case 'updateposition':
-          // Only allow when this._hasCutOrCopied is true
-          if (!this._hasCutOrCopied) {
+          // Only allow when something had been cut or copied.
+          if (!this.globalStates.hasCutOrCopied()) {
             this.hide();
             return;
           }
@@ -296,22 +323,19 @@
   AppTextSelectionDialog.prototype.copyHandler =
     function tsd_copyHandler(evt) {
       this._doCommand(evt, 'copy', true);
-      this._resetCutOrCopiedTimer();
-      this._hasCutOrCopied = true;
+      this.globalStates.launchHasCutOrCopiedTimer();
   };
 
   AppTextSelectionDialog.prototype.cutHandler =
     function tsd_cutHandler(evt) {
       this._doCommand(evt, 'cut', true);
-      this._resetCutOrCopiedTimer();
-      this._hasCutOrCopied = true;
+      this.globalStates.launchHasCutOrCopiedTimer();
   };
 
   AppTextSelectionDialog.prototype.pasteHandler =
     function tsd_pasteHandler(evt) {
       this._doCommand(evt, 'paste', true);
-      this._hasCutOrCopied = false;
-      window.clearTimeout(this._resetCutOrCopiedTimeout);
+      this.globalStates.cancelHasCutOrCopiedTimer();
   };
 
   AppTextSelectionDialog.prototype.selectallHandler =
@@ -332,15 +356,6 @@
             </div>`;
     return temp;
   };
-
-  AppTextSelectionDialog.prototype._resetCutOrCopiedTimer =
-    function tsd_resetCutOrCopiedTimer() {
-      window.clearTimeout(this._resetCutOrCopiedTimeout);
-      this._resetCutOrCopiedTimeout = window.setTimeout(function() {
-        this._hasCutOrCopied = false;
-      }.bind(this), this.RESET_CUT_OR_PASTE_TIMEOUT);
-  };
-
 
   AppTextSelectionDialog.prototype.show = function tsd_show(detail) {
     var numOfSelectOptions = 0;
