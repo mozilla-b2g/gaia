@@ -13,6 +13,7 @@ var AlbumsView = View.extend(function AlbumsView() {
   this.search.addEventListener('close', () => window.parent.onSearchClose());
 
   this.list.configure({
+    model: [],
     getSectionName(item) {
       var album = item.metadata.album;
       return album ? album[0].toUpperCase() : '?';

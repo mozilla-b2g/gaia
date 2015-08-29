@@ -40,10 +40,6 @@ var PlayerView = View.extend(function PlayerView() {
 PlayerView.prototype.update = function() {
   this.getPlaybackStatus().then((status) => {
     this.getSong(status.filePath).then((song) => {
-      if (!song) {
-        return;
-      }
-
       this.artwork.artist = song.metadata.artist;
       this.artwork.album = song.metadata.album;
 
@@ -69,7 +65,7 @@ PlayerView.prototype.destroy = function() {
 PlayerView.prototype.title = function() {
   return this.getPlaybackStatus()
     .then(status => this.getSong(status.filePath))
-    .then(song => song ? song.metadata.title : '');
+    .then(song => song.metadata.title);
 };
 
 PlayerView.prototype.render = function() {
@@ -98,7 +94,7 @@ PlayerView.prototype.next = function() {
 
 PlayerView.prototype.share = function() {
   this.getPlaybackStatus().then((status) => {
-    fetch('/api/activities/share' + status.filePath);
+    fetch('/api/songs/share' + status.filePath);
   });
 };
 

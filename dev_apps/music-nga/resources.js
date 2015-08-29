@@ -19,7 +19,6 @@ const RESOURCES = [
   '/components/dom-scheduler/lib/dom-scheduler.js',
   '/components/fast-list/fast-list.js',
   '/components/fast-list/gaia-fast-list.js',
-  '/css/activity.css',
   '/css/app.css',
   '/css/view.css',
   '/elements/music-artwork.js',
@@ -57,7 +56,6 @@ const RESOURCES = [
   '/js/metadata/mp4.js',
   '/js/metadata/ogg.js',
   '/js/metadata/vorbis_picture.js',
-  '/js/services/activities.js',
   '/js/services/albums.js',
   '/js/services/artists.js',
   '/js/services/artwork.js',
@@ -95,7 +93,5 @@ const RESOURCES = [
   '/views/songs/index.html',
   '/views/songs/view.js',
   '/endpoint.html',
-  '/manifest.webapp',
-  '/open.html',
-  '/pick.html'
+  '/manifest.webapp'
 ];

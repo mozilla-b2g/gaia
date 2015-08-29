@@ -10,8 +10,6 @@ if (!window.parent.SERVICE_WORKERS) {
     console.log('**** fetch() ****', url);
 
     var mappings = {
-      '/api/activities/share*': 'share',
-
       '/api/albums/list': 'getAlbums',
       '/api/albums/info*': 'getAlbum',
 
@@ -38,7 +36,8 @@ if (!window.parent.SERVICE_WORKERS) {
       '/api/queue/shuffle/*': 'setShuffleSetting',
 
       '/api/songs/list': 'getSongs',
-      '/api/songs/info*': 'getSong'
+      '/api/songs/info*': 'getSong',
+      '/api/songs/share*': 'shareSong'
     };
 
     for (var key in mappings) {

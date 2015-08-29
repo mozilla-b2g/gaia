@@ -26,11 +26,6 @@ var $id = document.getElementById.bind(document);
 
 var views = {};
 var isPlaying = false;
-var activity = null;
-
-if (navigator.mozSetMessageHandler) {
-  navigator.mozSetMessageHandler('activity', activity => onActivity(activity));
-}
 
 var service = bridge.service('*')
   .on('message', message => message.forward($id('endpoint')))
@@ -41,83 +36,37 @@ var client = bridge.client({
   endpoint: $id('endpoint'),
   timeout: false
 });
-
 client.connect();
 
 client.connected.then(() => {
   client.on('play', () => isPlaying = true);
 });
 
-var header             = $id('header');
-var headerTitle        = $id('header-title');
-var playerButton       = $id('player-button');
-var activityDoneButton = $id('activity-done-button');
-var viewStack          = $id('view-stack');
-var tabBar             = $id('tab-bar');
+var header       = $id('header');
+var headerTitle  = $id('header-title');
+var playerButton = $id('player-button');
+var doneButton   = $id('done-button');
+var viewStack    = $id('view-stack');
+var tabBar       = $id('tab-bar');
 
 header.addEventListener('action', (evt) => {
-  if (evt.detail.type === 'back') {
-    if (viewStack.states.length > 1) {
-      viewStack.popView();
-      window.history.back();
-      return;
-    }
-
-    switch (activity && activity.source.name) {
-      case 'open':
-        activity.postResult({ saved: false });
-        break;
-      case 'pick':
-        activity.postError('pick cancelled');
-        break;
-    }
+  if (evt.detail.type === 'back' && viewStack.states.length > 1) {
+    viewStack.popView();
+    window.history.back();
   }
 });
 
 playerButton.addEventListener('click', () => navigateToURL('/player'));
 
-activityDoneButton.addEventListener('click', () => {
-  switch (activity && activity.source.name) {
-    case 'open':
-      // TODO: Implement 'Save' functionality
-      activity.postResult({ saved: false });
-      break;
-    case 'pick':
-      client.method('getPlaybackStatus').then((status) => {
-        var getSong = client.method('getSong', status.filePath);
-        var getSongFile = client.method('getSongFile', status.filePath);
-        var getSongThumbnail = client.method('getSongThumbnail', status.filePath);
-
-        Promise.all([getSong, getSongFile, getSongThumbnail])
-          .then(([song, file, thumbnail]) => {
-            activity.postResult({
-              type: file.type,
-              blob: file,
-              name: song.metadata.title || '',
-              // We only pass some metadata attributes so we don't share
-              // personal details like # of times played and ratings.
-              metadata: {
-                title: song.metadata.title,
-                artist: song.metadata.artist,
-                album: song.metadata.album,
-                picture: thumbnail
-              }
-            });
-          });
-      });
-      break;
-  }
-});
-
 viewStack.addEventListener('change', (evt) => {
   var view = evt.detail.view;
   var viewId = view && view.dataset.viewId;
+  var backButton = header.els.actionButton;
 
   document.body.dataset.activeViewId = viewId;
 
+  backButton.style.visibility = viewStack.states.length < 2 ? 'hidden' : 'visible';
   playerButton.hidden = viewId === 'player' || !isPlaying;
-  activityDoneButton.hidden = viewId !== 'player' || !activity;
-  setBackButtonHidden(!activity && viewStack.states.length < 2);
 });
 
 viewStack.addEventListener('pop', (evt) => {
@@ -161,10 +110,6 @@ function setHeaderTitle(title) {
   }
 
   window.requestAnimationFrame(() => headerTitle.textContent = title);
-}
-
-function setBackButtonHidden(hidden) {
-  header.els.actionButton.style.visibility = hidden ? 'hidden' : 'visible';
 }
 
 function getViewById(viewId) {
@@ -225,16 +170,6 @@ function parseQueryString(queryString) {
   });
 
   return query;
-}
-
-function onActivity(activity) {
-  window.activity = activity;
-
-  if (activity.source.name === 'open') {
-    client.method('open', activity.source.data.blob);
-  }
-
-  setBackButtonHidden(false);
 }
 
 function onSearchOpen() {

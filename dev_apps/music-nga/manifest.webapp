@@ -26,36 +26,6 @@
     "themeable": {},
     "moz-extremely-unstable-and-will-change-webcomponents": {}
   },
-  "activities": {
-    "open": {
-      "filters": {
-        "type": [
-          "audio/mpeg",
-          "audio/ogg",
-          "audio/mp4",
-          "audio/amr",
-          "audio/flac"
-        ]
-      },
-      "disposition": "inline",
-      "returnValue": true,
-      "href": "/open.html"
-    },
-    "pick": {
-      "filters": {
-        "type": [
-          "audio/*",
-          "audio/mpeg",
-          "audio/ogg",
-          "audio/mp4",
-          "audio/flac"
-        ]
-      },
-      "disposition": "inline",
-      "returnValue": true,
-      "href": "/pick.html"
-    }
-  },
   "locales": {
     "ar": {
       "name": "موسيقى NGA",
