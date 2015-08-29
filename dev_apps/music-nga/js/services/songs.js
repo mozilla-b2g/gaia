@@ -18,16 +18,6 @@ function SongsService(worker) {
     });
   }));
 
-  worker.get('/api/songs/count', stopAfter((request) => {
-    return new Promise((resolve) => {
-      client.method('getSongCount').then((count) => {
-        resolve(new Response(JSON.stringify(count), {
-          headers: { 'Content-Type': 'application/json' }
-        }));
-      });
-    });
-  }));
-
   worker.get('/api/songs/info/:filePath', stopAfter((request) => {
     return new Promise((resolve) => {
       var filePath = '/' + decodeURIComponent(request.parameters.filePath);

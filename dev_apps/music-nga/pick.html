@@ -26,30 +26,6 @@
     <button data-view-id="songs" data-icon="songs"></button>
   </music-tab-bar>
 
-  <music-overlay id="empty-overlay"
-      heading="Add songs to get started"
-      message="Load songs on to the memory card." hidden>
-    <button type="button" data-action="cancel">Cancel</button>
-  </music-overlay>
-
-  <music-overlay id="no-card-overlay"
-      heading="No memory card found"
-      message="Insert a memory card to listen to songs." hidden>
-    <button type="button" data-action="cancel">Cancel</button>
-  </music-overlay>
-
-  <music-overlay id="plugged-in-overlay"
-      heading="Music can not be used while phone is plugged in"
-      message="Unplug the phone to play music." hidden>
-    <button type="button" data-action="cancel">Cancel</button>
-  </music-overlay>
-
-  <music-overlay id="upgrade-overlay"
-      heading="Database Upgrade"
-      message="Please wait while Music updates its database." hidden>
-    <button type="button" data-action="cancel">Cancel</button>
-  </music-overlay>
-
   <iframe id="endpoint" src="/endpoint.html" hidden></iframe>
 
   <script src="/components/bridge/client.js"></script>

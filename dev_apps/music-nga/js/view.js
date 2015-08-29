@@ -38,7 +38,6 @@ if (!window.parent.SERVICE_WORKERS) {
       '/api/queue/shuffle/*': 'setShuffleSetting',
 
       '/api/songs/list': 'getSongs',
-      '/api/songs/count': 'getSongCount',
       '/api/songs/info*': 'getSong'
     };
 
@@ -87,6 +86,7 @@ function View() {
   window.addEventListener('click', (evt) => {
     var link = evt.target.closest('a');
     if (link) {
+      debug('Received "click" event on link', link);
       evt.preventDefault();
       window.parent.navigateToURL(link.getAttribute('href'));
     }
