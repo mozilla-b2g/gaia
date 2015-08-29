@@ -6,7 +6,6 @@
 
 'use strict';
 
-require('/shared/test/unit/l10n_helper.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_audio.js');
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');

@@ -11,7 +11,6 @@
 require('/test/unit/mock_call_screen.js');
 require('/test/unit/mock_conference_group_handler.js');
 require('/test/unit/mock_conference_group_ui.js');
-require('/shared/test/unit/l10n_helper.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_simple_phone_matcher.js');
 require('/shared/test/unit/mocks/mock_bluetooth_helper.js');
