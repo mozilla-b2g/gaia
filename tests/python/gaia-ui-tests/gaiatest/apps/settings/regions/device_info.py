@@ -1,6 +1,7 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+import time
 
 from marionette_driver import expected, By, Wait
 
@@ -13,11 +14,22 @@ class DeviceInfo(Base):
     _phone_number_locator = (By.CSS_SELECTOR, '.deviceInfo-msisdns')
     _model_locator = (By.CSS_SELECTOR, '#about small[data-name="deviceinfo.product_model"]')
     _software_locator = (By.CSS_SELECTOR, '#about small[data-name="deviceinfo.software"]')
+    _your_rights_locator = (By.CSS_SELECTOR, '[data-l10n-id="your-rights"]')
+    _rights_page_locator = (By.ID, 'about-yourRights')
+    _your_privacy_locator = (By.CSS_SELECTOR, '[data-l10n-id="your-privacy"]')
+    _privacy_page_header_locator = (By.CSS_SELECTOR, '[data-l10n-id="your-privacy-header"]')
+    _legal_page_locator = (By.ID, 'about-legal')
+    _legal_info_locator = (By.CSS_SELECTOR, '[data-l10n-id="about-legal-info"]')
+    _open_source_notices_locator = (By.CSS_SELECTOR, '[data-l10n-id="open-source-notices"]')
+    _notice_page_locator = (By.ID, 'about-licensing')
+    _notice_text_locator = (By.ID, 'os-license')
+    _source_text_locator = (By.ID, 'obtain-sc')
+    _obtaining_source_code_locator = (By.CSS_SELECTOR, '[data-l10n-id="obtaining-source-code"]')
+    _source_code_page_locator = (By.ID, 'about-source-code')
     _more_info_button_locator = (By.CSS_SELECTOR, 'a[href="#about-moreInfo"]')
     _reset_button_locator = (By.CLASS_NAME, 'reset-phone')
     _reset_confirm_locator = (By.CLASS_NAME, 'confirm-reset-phone')
     _reset_cancel_locator = (By.CLASS_NAME, 'cancel-reset-phone')
-
     _update_frequency_locator = (By.NAME, 'app.update.interval')
     _update_ok_button_locator = (By.CLASS_NAME, 'value-option-confirm')
 
@@ -31,6 +43,14 @@ class DeviceInfo(Base):
         return self.marionette.find_element(*self._page_locator)
 
     @property
+    def rights_screen_element(self):
+        return self.marionette.find_element(*self._rights_page_locator)
+
+    @property
+    def legal_screen_element(self):
+        return self.marionette.find_element(*self._legal_page_locator)
+
+    @property
     def phone_number(self):
         return self.marionette.find_element(*self._phone_number_locator).text
 
@@ -42,28 +62,73 @@ class DeviceInfo(Base):
     def software(self):
         return self.marionette.find_element(*self._software_locator).text
 
+    def tap_your_rights(self):
+        element = self.marionette.find_element(*self._your_rights_locator)
+        Wait(self.marionette).until(expected.element_displayed(element))
+        element.tap()
+        Wait(self.marionette).until(expected.element_displayed(*self._rights_page_locator))
+
+    def tap_your_privacy(self):
+        element = self.marionette.find_element(*self._your_privacy_locator)
+        Wait(self.marionette).until(expected.element_displayed(element))
+        element.tap()
+        Wait(self.marionette).until(expected.element_displayed(*self._privacy_page_header_locator))
+
+    def tap_legal_info(self):
+        element = self.marionette.find_element(*self._legal_info_locator)
+        Wait(self.marionette).until(expected.element_displayed(element))
+        element.tap()
+        Wait(self.marionette).until(expected.element_displayed(*self._open_source_notices_locator))
+
+    def tap_open_source_notices(self):
+        element = self.marionette.find_element(*self._open_source_notices_locator)
+        Wait(self.marionette).until(expected.element_displayed(element))
+        element.tap()
+        iframe = self.marionette.find_element(*self._notice_text_locator)
+        Wait(self.marionette).until(expected.element_displayed(iframe))
+        self.marionette.switch_to_frame(iframe)
+        _last_child_locator = (By.CSS_SELECTOR, 'body > *:last-child')
+        Wait(self.marionette).until(expected.element_displayed(*_last_child_locator))
+        self.apps.switch_to_displayed_app()
+
+    def tap_obtaining_source_code(self):
+        element = self.marionette.find_element(*self._obtaining_source_code_locator)
+        Wait(self.marionette).until(expected.element_displayed(element))
+        element.tap()
+        iframe = self.marionette.find_element(*self._source_text_locator)
+        Wait(self.marionette).until(expected.element_displayed(iframe))
+        self.marionette.switch_to_frame(iframe)
+        _last_child_locator = (By.CSS_SELECTOR, 'body > *:last-child')
+        Wait(self.marionette).until(expected.element_displayed(*_last_child_locator))
+        self.apps.switch_to_displayed_app()
+
     def tap_more_info(self):
-        self.marionette.find_element(*self._more_info_button_locator).tap()
+        element = self.marionette.find_element(*self._more_info_button_locator)
+        Wait(self.marionette).until(expected.element_displayed(element))
+        element.tap()
         return self.MoreInfo(self.marionette)
 
     # In order to access UI, the frame needs to be switched to root
     def tap_update_frequency(self):
-        self.marionette.find_element(*self._update_frequency_locator).tap()
+        element = self.marionette.find_element(*self._update_frequency_locator)
+        Wait(self.marionette).until(expected.element_displayed(element))
+        element.tap()
         self.marionette.switch_to_frame()
-        Wait(self.marionette).until(expected.element_displayed(
-            self.marionette.find_element(*self._update_ok_button_locator)))
+        Wait(self.marionette).until(expected.element_displayed(*self._update_ok_button_locator))
 
     # When leaving the page, return to the saved application frame
     def exit_update_frequency(self):
-        self.marionette.find_element(*self._update_ok_button_locator).tap()
+        element = self.marionette.find_element(*self._update_ok_button_locator)
+        Wait(self.marionette).until(expected.element_displayed(element))
+        element.tap()
         self.apps.switch_to_displayed_app()
-        Wait(self.marionette).until(expected.element_displayed(
-            self.marionette.find_element(*self._page_locator)))
+        Wait(self.marionette).until(expected.element_displayed(*self._page_locator))
 
     def tap_reset_phone(self):
-        self.marionette.find_element(*self._reset_button_locator).tap()
-        Wait(self.marionette).until(expected.element_displayed(
-            self.marionette.find_element(*self._reset_confirm_locator)))
+        element = self.marionette.find_element(*self._reset_button_locator)
+        Wait(self.marionette).until(expected.element_displayed(element))
+        element.tap()
+        Wait(self.marionette).until(expected.element_displayed(*self._reset_confirm_locator))
 
     def confirm_reset(self, response=True):
         if response is True:
@@ -94,7 +159,7 @@ class DeviceInfo(Base):
                 expected.element_displayed(*self._os_version_locator))
 
         @property
-        def screen(self):
+        def screen_element(self):
             return self.marionette.find_element(*self._more_information_page_locator)
 
         @property

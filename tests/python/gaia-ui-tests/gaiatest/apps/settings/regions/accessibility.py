@@ -2,7 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from marionette_driver import By
+from marionette_driver import expected, By, Wait
 
 from gaiatest.apps.base import Base
 
@@ -13,6 +13,11 @@ class Accessibility(Base):
         By.CSS_SELECTOR, '[href="#accessibility-screenreader"]')
     _accessibility_colors_menu_item_locator = (
         By.CSS_SELECTOR, '[href="#accessibility-colors"]')
+    _page_locator = (By.ID, 'accessibility')
+
+    @property
+    def screen_element(self):
+        return self.marionette.find_element(*self._page_locator)
 
     def a11y_open_screenreader_settings(self):
         el = self.marionette.find_element(
@@ -26,6 +31,9 @@ class Accessibility(Base):
         self.accessibility.click(el)
         return AccessibilityColors(self.marionette)
 
+    def open_color_settings(self): #non-a11y method
+        self.marionette.find_element(*self._accessibility_colors_menu_item_locator).tap()
+        return AccessibilityColors(self.marionette)
 
 class AccessibilityScreenreader(Base):
 
@@ -83,6 +91,12 @@ class AccessibilityColors(Base):
 
     def a11y_toggle_filters(self):
         self.a11y_toggle_switch(self.marionette.find_element(*self._filter_enable_switch_locator))
+
+    def toggle_filters(self):
+        element = self.marionette.find_element(*self._filter_enable_switch_locator)
+        Wait(self.marionette).until(
+            expected.element_displayed(element))
+        element.tap()
 
     def a11y_toggle_invert(self):
         self.a11y_toggle_switch(self.marionette.find_element(*self._invert_switch_locator))
