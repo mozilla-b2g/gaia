@@ -21,6 +21,7 @@ Music.Selector = Object.freeze({
   songsViewFrame: 'iframe[data-view-id="songs"]',
   artistsViewFrame: 'iframe[data-view-id="artists"]',
   playerViewFrame: 'iframe[src*="views/player/index.html"]',
+  endpoint: '#endpoint',
 
   messageOverlay: '#overlay',
   firstTile: '.tile',
@@ -93,6 +94,10 @@ Music.prototype = {
 
   get playerViewFrame() {
     return this.client.findElement(Music.Selector.playerViewFrame);
+  },
+
+  get endpoint() {
+    return this.client.findElement(Music.Selector.endpoint);
   },
 
   get messageOverlay() {
@@ -300,11 +305,13 @@ Music.prototype = {
   },
 
   waitFinishedScanning: function() {
+    this.client.switchToFrame(this.endpoint);
     this.client.waitFor(function() {
       return this.client.executeScript(function() {
         return window.wrappedJSObject.Database.initialScanComplete === true;
       });
     }.bind(this));
+    this.switchToMe();
   },
 
   waitForFirstTile: function() {

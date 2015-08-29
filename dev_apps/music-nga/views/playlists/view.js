@@ -21,6 +21,7 @@ var PlaylistsView = View.extend(function PlaylistsView() {
 
   View.preserveListScrollPosition(this.list);
 
+  this.client = bridge.client({ service: 'music-service', endpoint: window.parent });
   this.client.on('databaseChange', () => this.update());
 
   this.update();
@@ -48,7 +49,7 @@ PlaylistsView.prototype.render = function() {
 };
 
 PlaylistsView.prototype.getPlaylists = function() {
-  return this.fetch('/api/playlists').then(response => response.json());
+  return fetch('/api/playlists').then(response => response.json());
 };
 
 window.view = new PlaylistsView();

@@ -26,6 +26,7 @@ var AlbumsView = View.extend(function AlbumsView() {
 
   View.preserveListScrollPosition(this.list);
 
+  this.client = bridge.client({ service: 'music-service', endpoint: window.parent });
   this.client.on('databaseChange', () => this.update());
 
   this.update();
@@ -53,7 +54,7 @@ AlbumsView.prototype.render = function() {
 };
 
 AlbumsView.prototype.getAlbums = function() {
-  return this.fetch('/api/albums/list')
+  return fetch('/api/albums/list')
     .then(response => response.json())
     .then(albums => clean(albums));
 };

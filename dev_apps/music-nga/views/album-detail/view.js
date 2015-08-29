@@ -37,6 +37,7 @@ var AlbumDetailView = View.extend(function AlbumDetailView() {
 
   View.preserveListScrollPosition(this.list);
 
+  this.client = bridge.client({ service: 'music-service', endpoint: window.parent });
   this.client.on('databaseChange', () => this.update());
 
   this.update();
@@ -64,12 +65,12 @@ AlbumDetailView.prototype.render = function() {
 };
 
 AlbumDetailView.prototype.getAlbum = function() {
-  return this.fetch('/api/albums/info' + this.params.id)
+  return fetch('/api/albums/info' + this.params.id)
     .then(response => response.json());
 };
 
 AlbumDetailView.prototype.queueAlbum = function(filePath) {
-  this.fetch('/api/queue/album' + filePath);
+  fetch('/api/queue/album' + filePath);
 };
 
 window.view = new AlbumDetailView();
