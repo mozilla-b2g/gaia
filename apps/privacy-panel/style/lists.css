@@ -151,7 +151,6 @@ ul li a[role="button"] {
  * Boolean inputs
  */
 
-/* custom styles for boolean inputs (see /shared/style/switches.css) */
 ul li label {
   text-transform: none;
 }
