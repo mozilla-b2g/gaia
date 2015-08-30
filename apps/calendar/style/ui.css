@@ -15,7 +15,7 @@ p {
   line-height: 130%;
 }
 
-menu[type="toolbar"] a {
+menu[type="tablist"] a {
   text-decoration: none;
 }
 
