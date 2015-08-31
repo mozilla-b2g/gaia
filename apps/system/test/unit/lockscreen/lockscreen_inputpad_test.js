@@ -66,7 +66,6 @@ suite('LockScreenInputpad', function() {
     setup(function () {
       MockHtml = document.createElement('html');
       MockHtml.appendChild(document.createElement('div'));
-      var html =
       MockHtml.firstChild.innerHTML = `<a role="key" href="#" data-key="2" ` +
         `class="row0"><div>2<span>ABC</span></div></a>`;
     });
