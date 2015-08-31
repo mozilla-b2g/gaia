@@ -96,8 +96,9 @@ class BuiltInKeyBoard(Base):
         Wait(self.marionette).until(expected.element_displayed(dictionary))
 
     def tap_user_dict_exit(self):
-        self.marionette.find_element(*self._user_dict_header_locator).tap(25, 25)
-        self.wait_for_element_not_displayed(*self._user_dict_locator)
+        element = self.marionette.find_element(*self._user_dict_header_locator)
+        element.tap(25, 25)
+        Wait(self.marionette).until(expected.element_not_displayed(element))
 
     def tap_exit(self):
         self.marionette.find_element(*self._header_locator).tap(25, 25)

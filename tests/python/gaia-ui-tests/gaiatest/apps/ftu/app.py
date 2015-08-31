@@ -85,9 +85,7 @@ class Ftu(Base):
 
     def launch(self):
         Base.launch(self)
-        Wait(self.marionette).until(expected.element_displayed(
-            Wait(self.marionette).until(expected.element_present(
-                *self._section_languages_locator))))
+        Wait(self.marionette).until(expected.element_displayed(*self._section_languages_locator))
 
     @property
     def languages_list(self):
@@ -127,15 +125,11 @@ class Ftu(Base):
 
     def tap_next_to_cell_data_section(self):
         self.tap_next()
-        Wait(self.marionette).until(expected.element_displayed(
-            Wait(self.marionette).until(expected.element_present(
-                *self._section_cell_data_locator))))
+        Wait(self.marionette).until(expected.element_displayed(*self._section_cell_data_locator))
 
     def a11y_click_next_to_cell_data_section(self):
         self.a11y_click_next()
-        Wait(self.marionette).until(expected.element_displayed(
-            Wait(self.marionette).until(expected.element_present(
-                *self._section_cell_data_locator))))
+        Wait(self.marionette).until(expected.element_displayed(*self._section_cell_data_locator))
 
     def enable_data(self):
         checkbox = Wait(self.marionette).until(
@@ -153,14 +147,13 @@ class Ftu(Base):
         progress = self.marionette.find_element(*self._loading_overlay_locator)
         self.tap_next()
         Wait(self.marionette).until(expected.element_not_displayed(progress))
-        Wait(self.marionette).until(expected.element_displayed(
-            Wait(self.marionette).until(expected.element_present(
-                *self._section_wifi_locator))))
+        Wait(self.marionette).until(expected.element_displayed(*self._section_wifi_locator))
 
     def a11y_click_next_to_wifi_section(self):
         self.a11y_click_next()
-        self.wait_for_element_not_displayed(*self._loading_overlay_locator)
-        self.wait_for_element_displayed(*self._section_wifi_locator)
+        Wait(self.marionette).until(
+            expected.element_not_displayed(*self._loading_overlay_locator))
+        Wait(self.marionette).until(expected.element_displayed(*self._section_wifi_locator))
 
     def wait_for_networks_available(self):
         Wait(self.marionette).until(lambda m: len(m.find_elements(
@@ -203,15 +196,11 @@ class Ftu(Base):
 
     def tap_next_to_timezone_section(self):
         self.tap_next()
-        Wait(self.marionette).until(expected.element_displayed(
-            Wait(self.marionette).until(expected.element_present(
-                *self._section_date_time_locator))))
+        Wait(self.marionette).until(expected.element_displayed(*self._section_date_time_locator))
 
     def a11y_click_next_to_timezone_section(self):
         self.a11y_click_next()
-        Wait(self.marionette).until(expected.element_displayed(
-            Wait(self.marionette).until(expected.element_present(
-                *self._section_date_time_locator))))
+        Wait(self.marionette).until(expected.element_displayed(*self._section_date_time_locator))
 
     def set_timezone_continent(self, continent):
         element = Wait(self.marionette).until(
@@ -247,15 +236,11 @@ class Ftu(Base):
 
     def tap_next_to_geolocation_section(self):
         self.tap_next()
-        Wait(self.marionette).until(expected.element_displayed(
-            Wait(self.marionette).until(expected.element_present(
-                *self._section_geolocation_locator))))
+        Wait(self.marionette).until(expected.element_displayed(*self._section_geolocation_locator))
 
     def a11y_click_next_to_geolocation_section(self):
         self.a11y_click_next()
-        Wait(self.marionette).until(expected.element_displayed(
-            Wait(self.marionette).until(expected.element_present(
-                *self._section_geolocation_locator))))
+        Wait(self.marionette).until(expected.element_displayed(*self._section_geolocation_locator))
 
     def toggle_geolocation(self):
         element = Wait(self.marionette).until(
@@ -277,15 +262,11 @@ class Ftu(Base):
 
     def tap_next_to_import_contacts_section(self):
         self.tap_next()
-        Wait(self.marionette).until(expected.element_displayed(
-            Wait(self.marionette).until(expected.element_present(
-                *self._section_import_contacts_locator))))
+        Wait(self.marionette).until(expected.element_displayed(*self._section_import_contacts_locator))
 
     def a11y_click_next_to_import_contacts_section(self):
         self.a11y_click_next()
-        Wait(self.marionette).until(expected.element_displayed(
-            Wait(self.marionette).until(expected.element_present(
-                *self._section_import_contacts_locator))))
+        Wait(self.marionette).until(expected.element_displayed(*self._section_import_contacts_locator))
 
     def tap_import_from_sim(self):
         self.marionette.find_element(*self._import_from_sim_locator).tap()
@@ -312,27 +293,23 @@ class Ftu(Base):
 
     def tap_next_to_firefox_accounts_section(self):
         self.tap_next()
-        Wait(self.marionette).until(expected.element_displayed(
-            Wait(self.marionette).until(expected.element_present(
-                *self._section_firefox_accounts_locator))))
+        Wait(self.marionette).until(
+            expected.element_displayed(*self._section_firefox_accounts_locator))
 
     def a11y_click_next_to_firefox_accounts_section(self):
         self.a11y_click_next()
-        Wait(self.marionette).until(expected.element_displayed(
-            Wait(self.marionette).until(expected.element_present(
-                *self._section_firefox_accounts_locator))))
+        Wait(self.marionette).until(
+            expected.element_displayed(*self._section_firefox_accounts_locator))
 
     def tap_next_to_welcome_browser_section(self):
         self.tap_next()
-        Wait(self.marionette).until(expected.element_displayed(
-            Wait(self.marionette).until(expected.element_present(
-                *self._section_welcome_browser_locator))))
+        Wait(self.marionette).until(
+            expected.element_displayed(*self._section_welcome_browser_locator))
 
     def a11y_click_next_to_welcome_browser_section(self):
         self.a11y_click_next()
-        Wait(self.marionette).until(expected.element_displayed(
-            Wait(self.marionette).until(expected.element_present(
-                *self._section_welcome_browser_locator))))
+        Wait(self.marionette).until(
+            expected.element_displayed(*self._section_welcome_browser_locator))
 
     def tap_statistics_checkbox(self):
         self.marionette.find_element(*self._enable_statistic_checkbox_locator).tap()
@@ -354,15 +331,13 @@ class Ftu(Base):
 
     def tap_next_to_privacy_browser_section(self):
         self.tap_next()
-        Wait(self.marionette).until(expected.element_displayed(
-            Wait(self.marionette).until(expected.element_present(
-                *self._section_browser_privacy_locator))))
+        Wait(self.marionette).until(
+          expected.element_displayed(*self._section_browser_privacy_locator))
 
     def a11y_click_next_to_privacy_browser_section(self):
         self.a11y_click_next()
-        Wait(self.marionette).until(expected.element_displayed(
-            Wait(self.marionette).until(expected.element_present(
-                *self._section_browser_privacy_locator))))
+        Wait(self.marionette).until(
+          expected.element_displayed(*self._section_browser_privacy_locator))
 
     def enter_email_address(self, email):
         # TODO assert that this is preserved in the system somewhere. Currently it is not used
@@ -373,15 +348,11 @@ class Ftu(Base):
 
     def tap_next_to_finish_section(self):
         self.tap_next()
-        Wait(self.marionette).until(expected.element_displayed(
-            Wait(self.marionette).until(expected.element_present(
-                *self._section_finish_locator))))
+        Wait(self.marionette).until(expected.element_displayed(*self._section_finish_locator))
 
     def a11y_click_next_to_finish_section(self):
         self.a11y_click_next()
-        Wait(self.marionette).until(expected.element_displayed(
-            Wait(self.marionette).until(expected.element_present(
-                *self._section_finish_locator))))
+        Wait(self.marionette).until(expected.element_displayed(*self._section_finish_locator))
 
     def tap_skip_tour(self):
         element = self.marionette.find_element(*self._skip_tour_button_locator)

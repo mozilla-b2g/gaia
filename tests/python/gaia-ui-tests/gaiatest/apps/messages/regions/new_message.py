@@ -59,7 +59,8 @@ class NewMessage(Messages):
             expected.element_present(*self._send_message_button_locator))
         Wait(self.marionette).until(expected.element_enabled(send))
         send.tap()
-        self.wait_for_element_not_present(*self._message_sending_locator, timeout=timeout)
+        Wait(self.marionette, timeout=timeout).until(
+            expected.element_not_present(*self._message_sending_locator))
         from gaiatest.apps.messages.regions.message_thread import MessageThread
         return MessageThread(self.marionette)
 
@@ -80,22 +81,17 @@ class NewMessage(Messages):
         return Activities(self.marionette)
 
     def wait_for_recipients_displayed(self):
-        Wait(self.marionette).until(expected.element_displayed(
-            Wait(self.marionette).until(expected.element_present(
-                *self._receiver_input_locator))))
+        Wait(self.marionette).until(expected.element_displayed(*self._receiver_input_locator))
 
     def wait_for_resizing_to_finish(self):
-        self.wait_for_element_not_displayed(*self._message_resize_notice_locator)
+        Wait(self.marionette).until(
+            expected.element_not_displayed(*self._message_resize_notice_locator))
 
     def wait_for_subject_input_displayed(self):
-        Wait(self.marionette).until(expected.element_displayed(
-            Wait(self.marionette).until(expected.element_present(
-                *self._subject_input_locator))))
+        Wait(self.marionette).until(expected.element_displayed(*self._subject_input_locator))
 
     def wait_for_message_input_displayed(self):
-        Wait(self.marionette).until(expected.element_displayed(
-            Wait(self.marionette).until(expected.element_present(
-                *self._message_field_locator))))
+        Wait(self.marionette).until(expected.element_displayed(*self._message_field_locator))
 
     @property
     def first_recipient_name(self):

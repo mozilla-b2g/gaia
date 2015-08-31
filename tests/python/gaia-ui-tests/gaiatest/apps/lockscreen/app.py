@@ -63,9 +63,7 @@ class LockScreen(Base):
         return Homescreen(self.marionette)
 
     def unlock_to_camera(self):
-        Wait(self.marionette).until(expected.element_displayed(
-            Wait(self.marionette).until(expected.element_present(
-                *self._lockscreen_handle_locator))))
+        Wait(self.marionette).until(expected.element_displayed(*self._lockscreen_handle_locator))
         self._slide_to_unlock('camera')
         return Camera(self.marionette)
 
@@ -74,13 +72,10 @@ class LockScreen(Base):
         return passcode_pad.tap_emergency_call()
 
     def unlock_to_passcode_pad(self):
-        Wait(self.marionette).until(expected.element_displayed(
-            Wait(self.marionette).until(expected.element_present(
-                *self._lockscreen_handle_locator))))
+        Wait(self.marionette).until(expected.element_displayed(*self._lockscreen_handle_locator))
         self._slide_to_unlock('homescreen')
-        Wait(self.marionette).until(expected.element_displayed(
-            Wait(self.marionette).until(expected.element_present(
-                *self._lockscreen_passcode_code_locator))))
+        Wait(self.marionette).until(
+            expected.element_displayed(*self._lockscreen_passcode_code_locator))
         return PasscodePad(self.marionette)
 
     def unlock_to_homescreen_using_passcode(self, passcode):
@@ -105,12 +100,10 @@ class LockScreen(Base):
         ).perform()
 
     def wait_for_lockscreen_not_visible(self):
-        self.wait_for_element_not_displayed(*self._lockscreen_locator)
+        Wait(self.marionette).until(expected.element_not_displayed(*self._lockscreen_locator))
 
     def wait_for_notification(self):
-        Wait(self.marionette).until(expected.element_displayed(
-            Wait(self.marionette).until(expected.element_present(
-                *self._notification_locator))))
+        Wait(self.marionette).until(expected.element_displayed(*self._notification_locator))
 
     def a11y_click_unlock_button(self):
         self.accessibility.click(self.marionette.find_element(*self._unlock_button_locator))

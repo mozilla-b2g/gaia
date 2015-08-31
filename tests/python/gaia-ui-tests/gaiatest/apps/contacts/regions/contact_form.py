@@ -176,15 +176,11 @@ class EditContact(ContactForm):
         delete_item.tap()
 
     def tap_cancel_delete(self):
-        Wait(self.marionette).until(expected.element_displayed(
-            Wait(self.marionette).until(expected.element_present(
-                *self._delete_form_locator))))
+        Wait(self.marionette).until(expected.element_displayed(*self._delete_form_locator))
         self.marionette.find_element(*self._cancel_delete_locator).tap()
 
     def tap_confirm_delete(self):
-        Wait(self.marionette).until(expected.element_displayed(
-            Wait(self.marionette).until(expected.element_present(
-                *self._delete_form_locator))))
+        Wait(self.marionette).until(expected.element_displayed(*self._delete_form_locator))
         self.marionette.find_element(*self._confirm_delete_locator).tap()
 
     def wait_for_update_button_enabled(self):
@@ -217,8 +213,9 @@ class NewContact(ContactForm):
         return self.wait_for_done(return_contacts)
 
     def a11y_click_done(self, return_contacts=True):
-        self.accessibility.click(self.marionette.find_element(*self._done_button_locator))
-        self.wait_for_element_not_displayed(*self._done_button_locator)
+        element = self.marionette.find_element(*self._done_button_locator)
+        self.accessibility.click(element)
+        Wait(self.marionette).until(expected.element_not_displayed(element))
         return self.wait_for_done(return_contacts)
 
     def wait_for_done(self, return_contacts=True):

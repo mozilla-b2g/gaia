@@ -25,30 +25,23 @@ class Gallery(Base):
 
     def launch(self, empty=False):
         Base.launch(self)
-        self.wait_for_element_not_displayed(*self._progress_bar_locator)
         if empty:
             self.wait_for_overlay_to_show()
         else:
             self.wait_for_thumbnail_view_to_load()
 
     def wait_for_thumbnail_view_to_load(self):
-        Wait(self.marionette).until(expected.element_displayed(
-            Wait(self.marionette).until(expected.element_present(
-                *self._thumbnail_list_view_locator))))
+        Wait(self.marionette).until(expected.element_displayed(*self._thumbnail_list_view_locator))
 
     def wait_for_overlay_to_show(self):
-        Wait(self.marionette).until(expected.element_displayed(
-            Wait(self.marionette).until(expected.element_present(
-                *self._overlay_locator))))
+        Wait(self.marionette).until(expected.element_displayed(*self._overlay_locator))
 
     def wait_for_files_to_load(self, files_number):
         Wait(self.marionette).until(lambda m: m.execute_script(
             'return window.wrappedJSObject.files.length;') == files_number)
 
     def wait_for_thumbnails_to_load(self):
-        Wait(self.marionette).until(expected.element_displayed(
-            Wait(self.marionette).until(expected.element_present(
-                *self._gallery_items_locator))))
+        Wait(self.marionette).until(expected.element_displayed(*self._gallery_items_locator))
 
     @property
     def gallery_items_number(self):
