@@ -88,7 +88,9 @@ function setupRouter() {
   router.state('/event/edit/:id', 'ModifyEvent');
   router.state('/event/show/:id', 'ViewEvent');
 
-  router.modifier('/select-preset/', 'CreateAccount');
+  router.modifier('/select-preset/', 'CreateAccount', {
+    color: 'settings'
+  });
   router.modifier('/create-account/:preset', 'ModifyAccount');
   router.modifier('/update-account/:id', 'ModifyAccount');
 
