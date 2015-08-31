@@ -143,6 +143,7 @@ define(function(require) {
     _observeBluetoothEnabled: function bttm__observeBluetoothEnabled() {
       // Observe Bluetooth 'enabled' property from hardware side.
       BtContext.observe('enabled', this._onBluetoothEnabledChanged.bind(this));
+      this._onBluetoothEnabledChanged(BtContext.enabled);
     },
 
     /**
@@ -174,19 +175,24 @@ define(function(require) {
     _onBluetoothEnabledChanged:
     function bttm__onBluetoothEnabledChanged(enabled) {
       Debug('_onBluetoothEnabledChanged(): enabled = ' + enabled);
-      if (enabled) {
-        // Close the confirmation dialog
-        TurnBluetoothOnDialog.close();
-      } else {
-        TurnBluetoothOnDialog.showConfirm().then((result) => {
-          if (result === 'confirm') {
-            // Turn Bluetooth on.
-            BtContext.setEnabled(true);
-          } else if (result === 'cancel') {
-            // Post error with reason then end the activity service.
-            this._endTransferWithReason('cancelled');
-          }
-        });
+      switch(enabled) {
+        case undefined:
+          break;
+        case true:
+          // Close the confirmation dialog
+          TurnBluetoothOnDialog.close();
+          break;
+        default:
+          TurnBluetoothOnDialog.showConfirm().then((result) => {
+            if (result === 'confirm') {
+              // Turn Bluetooth on.
+              BtContext.setEnabled(true);
+            } else if (result === 'cancel') {
+              // Post error with reason then end the activity service.
+              this._endTransferWithReason('cancelled');
+            }
+          });
+          break;
       }
     },
 
