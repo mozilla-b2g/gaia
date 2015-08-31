@@ -543,9 +543,15 @@ suite('Information view', function() {
             reportView.container.classList.contains('no-valid-sent-timestamp')
           );
 
+          var options = Object.assign(
+            { hour12: navigator.mozHour12 },
+            JSON.parse(sentTimestampNode.dataset.l10nDateFormat)
+          );
+
           var formatter = new Intl.DateTimeFormat(
             navigator.languages,
-            JSON.parse(sentTimestampNode.dataset.l10nDateFormat));
+            options
+          );
 
           assert.equal(
             sentTimestampNode.textContent,
@@ -776,9 +782,15 @@ suite('Information view', function() {
 
             data.titleL10n = 'report-status-delivered';
 
+            var options = Object.assign(
+              { hour12: navigator.mozHour12 },
+              JSON.parse(data.messageL10nDateFormat)
+            );
+
             var formatter = new Intl.DateTimeFormat(
               navigator.languages,
-              JSON.parse(data.messageL10nDateFormat));
+              options
+            );
 
             data.reportDateL10n = formatter.format(
               new Date(messageOpts.deliveryTimestamp));
@@ -970,9 +982,15 @@ suite('Information view', function() {
               data.titleL10n = 'report-status-read';
               data.timestamp = '' + deliveryInfo.deliveryTimestamp;
 
+              var options = Object.assign(
+                { hour12: navigator.mozHour12 },
+                JSON.parse(data.messageL10nDateFormat)
+              );
+
               var formatter = new Intl.DateTimeFormat(
                 navigator.languages,
-                JSON.parse(data.messageL10nDateFormat));
+                options
+              );
 
               data.reportDateL10n = formatter.format(
                 new Date(messageOpts.deliveryInfo[0].readTimestamp));
