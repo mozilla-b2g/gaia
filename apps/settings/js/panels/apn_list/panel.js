@@ -16,7 +16,8 @@ define(function(require) {
     'mms': 'messageSettings-header',
     'ims': 'imsSettings-header2',
     'supl': 'suplSettings-header',
-    'dun': 'dunSettings-header'
+    'dun': 'dunSettings-header',
+    'fota': 'fotaSettings-header'
   };
 
   var _getDialogService = function() {

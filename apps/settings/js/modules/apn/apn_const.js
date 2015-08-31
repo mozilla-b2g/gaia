@@ -4,7 +4,7 @@
 define(function(require) {
   'use strict';
 
-  var APN_TYPES = ['default', 'mms', 'supl', 'dun', 'ims'];
+  var APN_TYPES = ['default', 'mms', 'supl', 'dun', 'ims', 'fota'];
 
   var CP_APN_KEY = 'ril.data.cp.apns';
   var DEFAULT_APN_KEY = 'ril.data.default.apns';
