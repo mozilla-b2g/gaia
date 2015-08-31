@@ -23,7 +23,7 @@ Music.Selector = Object.freeze({
   playerViewFrame: 'iframe[src*="views/player/index.html"]',
   endpoint: '#endpoint',
 
-  messageOverlay: '#empty-overlay',
+  messageOverlay: '#overlay',
   firstTile: '.tile',
   tabBar: '#tab-bar',
   playlistsTab: '#tab-bar button[data-view-id="playlists"]',
@@ -320,14 +320,10 @@ Music.prototype = {
     this.switchToMe();
   },
 
-  isMessageOverlayShown: function(shouldBeShown) {
-    var hidden = this.messageOverlay.getAttribute('hidden');
-    return (hidden !== 'false') === shouldBeShown;
-  },
-
   waitForMessageOverlayShown: function(shouldBeShown) {
     this.client.waitFor(function() {
-      return this.isMessageOverlayShown(shouldBeShown);
+      var volumeShown = this.messageOverlay.displayed();
+      return volumeShown === shouldBeShown;
     }.bind(this));
   },
 
