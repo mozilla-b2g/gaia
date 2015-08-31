@@ -66,8 +66,9 @@ suite('LockScreenInputpad', function() {
     setup(function () {
       MockHtml = document.createElement('html');
       MockHtml.appendChild(document.createElement('div'));
-      MockHtml.firstChild.innerHTML = `<a role="key" href="#" data-key="2" ` +
-        `class="row0"><div>2<span>ABC</span></div></a>`;
+      // Don't use +, or eslint will jump at you for unsafe innerHTML
+      MockHtml.firstChild.innerHTML = `<a role="key" href="#" data-key="2"
+        class="row0"><div>2<span>ABC</span></div></a>`;
     });
 
     test('find the correct anchor element for click targets', function () {
