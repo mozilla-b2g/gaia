@@ -21,13 +21,28 @@
    */
   var client;
 
-  var serviceEndpoint = null;
+  /**
+   * Unique identifier of app instance where client resides in.
+   * @type {string}
+   */
+  var appInstanceId;
 
   var MessagingClient = {
-    init() {
-      serviceEndpoint = new SharedWorker(
+    /**
+     * Initializes connection to MessagingService hosted in a SharedWorker.
+     * @param {string} applicationInstanceId Unique identifier of app instance
+     * where client resides in.
+     */
+    init(applicationInstanceId) {
+      if (!applicationInstanceId) {
+        throw new Error('AppInstanceId is required!');
+      }
+
+      var serviceEndpoint = new SharedWorker(
         '/services/js/messaging/messaging_service.js'
       );
+
+      appInstanceId = applicationInstanceId;
 
       client = bridge.client({
         service: SERVICE_NAME,
@@ -37,19 +52,19 @@
     },
 
     sendSMS(options) {
-      return client.method('sendSMS', options);
+      return client.method('sendSMS', options, appInstanceId);
     },
 
     sendMMS(options) {
-      return client.method('sendMMS', options);
+      return client.method('sendMMS', options, appInstanceId);
     },
 
     resendMessage(message) {
-      return client.method('resendMessage', message);
+      return client.method('resendMessage', message, appInstanceId);
     },
 
     retrieveMMS(id) {
-      return client.method('retrieveMMS', id);
+      return client.method('retrieveMMS', id, appInstanceId);
     }
   };
 

@@ -4,7 +4,8 @@
 
 var SELECTORS = Object.freeze({
   main: '.panel-ConversationView',
-  message: '.message .bubble',
+  message: '.message',
+  messageBubble: '.message .bubble',
   headerTitle: '#messages-header-text',
   container: '#messages-container',
   callButton: '#messages-call-number-button',
@@ -23,8 +24,12 @@ function ConversationAccessor(client) {
 }
 
 ConversationAccessor.prototype = {
+  get messages() {
+    return this.client.findElements(SELECTORS.message);
+  },
+
   get message() {
-    return this.client.helper.waitForElement(SELECTORS.message);
+    return this.client.helper.waitForElement(SELECTORS.messageBubble);
   },
 
   get headerTitle() {

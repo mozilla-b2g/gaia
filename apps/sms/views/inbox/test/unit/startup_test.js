@@ -8,7 +8,8 @@
          Navigation,
          Settings,
          Startup,
-         TimeHeaders
+         TimeHeaders,
+         Utils
 */
 
 'use strict';
@@ -19,6 +20,8 @@ require('/views/shared/test/unit/mock_settings.js');
 require('/views/shared/test/unit/mock_inter_instance_event_dispatcher.js');
 require('/views/shared/test/unit/mock_inbox.js');
 require('/views/shared/test/unit/mock_app.js');
+require('/views/shared/js/utils.js');
+require('/views/shared/test/unit/mock_utils.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/services/test/unit/mock_message_manager.js');
 require('/services/test/unit/conversation/mock_conversation_client.js');
@@ -34,7 +37,8 @@ var MocksHelperForInboxStartup = new MocksHelper([
   'MessageManager',
   'Navigation',
   'Settings',
-  'TimeHeaders'
+  'TimeHeaders',
+  'Utils'
 ]).init();
 
 suite('InboxView Startup', function() {
@@ -52,16 +56,13 @@ suite('InboxView Startup', function() {
     this.sinon.stub(InboxView, 'once');
     this.sinon.stub(LazyLoader, 'load').returns(Promise.resolve());
     this.sinon.stub(ConversationClient, 'init');
-
-    var shimHostIframe = document.createElement('iframe');
-    shimHostIframe.className = 'shim-host';
-    shimHostIframe.src = 'data:text/html,<script>bootstrap=()=>{};</script>';
-    document.body.appendChild(shimHostIframe);
+    this.sinon.spy(Utils, 'initializeShimHost');
 
     Startup.init();
   });
 
   test('correctly initializes dependencies', function() {
+    sinon.assert.calledWith(Utils.initializeShimHost, App.instanceId);
     sinon.assert.calledWith(ConversationClient.init, App.instanceId);
     sinon.assert.calledOnce(MessageManager.init);
     sinon.assert.calledOnce(Navigation.init);

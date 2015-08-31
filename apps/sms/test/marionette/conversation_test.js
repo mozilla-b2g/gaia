@@ -4,6 +4,7 @@
 var assert = require('chai').assert;
 var ThreadGenerator = require('./generators/thread');
 var Messages = require('./lib/messages.js');
+var InboxView = require('./lib/views/inbox/view');
 var Storage = require('./lib/storage.js');
 
 marionette('Conversation Panel Tests', function() {
@@ -220,6 +221,54 @@ marionette('Conversation Panel Tests', function() {
       assertIsFocused(
         messagesApp.Composer.messageInput, 'Message input should be focused'
       );
+    });
+  });
+
+  suite('Retrieve MMS', function() {
+    var conversationView;
+    setup(function() {
+      var thread = ThreadGenerator.generate({
+        messageType: 'mms',
+        delivery: 'not-downloaded',
+        attachments: [
+          { type: 'image/png', width: 10,  height: 10 },
+          { type: 'text/plain', content: 'Attachment' }
+        ],
+        expiryDate: Date.now() + 100000
+      });
+
+      messagesApp.launch();
+
+      // Set empty messages and contacts store.
+      storage.setMessagesStorage([thread], ThreadGenerator.uniqueMessageId);
+      storage.setContactsStorage();
+
+      var inboxView = new InboxView(client);
+
+      conversationView = inboxView.goToFirstThread();
+    });
+
+    test('MMS should be retrieved successfully', function() {
+      var notDownloadedMessage = conversationView.messages[0];
+
+      assert.isFalse(notDownloadedMessage.isDownloaded);
+      assert.isFalse(notDownloadedMessage.isPending);
+      assert.equal(notDownloadedMessage.attachments.length, 0);
+
+      conversationView.downloadMessage(notDownloadedMessage.id);
+
+      // Now old message should be removed and new message is received.
+      var downloadedMessage;
+      client.waitFor(function() {
+        downloadedMessage = conversationView.findMessage(
+          notDownloadedMessage.id
+        );
+        return downloadedMessage && downloadedMessage.isDownloaded;
+      });
+
+      assert.equal(downloadedMessage.attachments.length, 1);
+      assert.equal(downloadedMessage.attachments[0].type, 'img');
+      assert.equal(downloadedMessage.content.trim(), 'Attachment');
     });
   });
 });

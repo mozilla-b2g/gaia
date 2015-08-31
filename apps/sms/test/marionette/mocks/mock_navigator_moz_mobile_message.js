@@ -27,7 +27,7 @@ Services.obs.addObserver(function(document) {
 
     if (handlers) {
       handlers.forEach(function(handler) {
-        handler.call(null, parameters);
+        window.setTimeout(() => handler.call(null, parameters), 0);
       });
     }
   }
@@ -375,6 +375,37 @@ Services.obs.addObserver(function(document) {
       return request;
     },
 
+    retrieveMMS: function(messageId) {
+      var request = Services.DOMRequest.createRequest(window);
+
+      getStorage().then((storage) => {
+        var isNotDownloadedMMS = (message) => message.id === messageId &&
+          message.type === 'mms' && message.delivery === 'not-downloaded';
+
+        var notDownloadedMMS;
+        for (var thread of storage.threads.values()) {
+          if ((notDownloadedMMS = thread.messages.find(isNotDownloadedMMS))) {
+            break;
+          }
+        }
+
+        if (notDownloadedMMS) {
+          Services.DOMRequest.fireSuccess(request, null);
+
+          notDownloadedMMS.delivery = 'received';
+          callEventHandlers(
+            'received', Cu.cloneInto({ message: notDownloadedMMS }, window)
+          );
+        } else {
+          Services.DOMRequest.fireError(
+            request, 'No message to download found!'
+          );
+        }
+      });
+
+      return request;
+    },
+
     addEventListener: function(event, handler) {
       var listeners = eventHandlers.get(event) || [];
       listeners.push(handler);
@@ -382,9 +413,12 @@ Services.obs.addObserver(function(document) {
     }
   };
 
-  Object.defineProperty(window.wrappedJSObject.navigator, 'mozMobileMessage', {
+  var appWindow = window.wrappedJSObject;
+  Object.defineProperty(appWindow.navigator, 'mozMobileMessage', {
     configurable: false,
-    writable: true,
-    value: Cu.cloneInto(MobileMessage, window, {cloneFunctions: true})
+    // If we're in iframe we should use parent's mozMobileMessage instead.
+    value: appWindow.parent !== appWindow ?
+      appWindow.parent.navigator.mozMobileMessage :
+      Cu.cloneInto(MobileMessage, window, { cloneFunctions: true })
   });
 }, 'document-element-inserted', false);

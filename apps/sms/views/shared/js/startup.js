@@ -16,7 +16,8 @@
          Navigation,
          Settings,
          SilentSms,
-         TimeHeaders
+         TimeHeaders,
+         Utils
 */
 
 (function(exports) {
@@ -87,7 +88,7 @@ var Startup = exports.Startup = {
       // Init UI Managers
       TimeHeaders.init();
       ConversationView.init();
-      MessagingClient.init();
+      MessagingClient.init(App.instanceId);
       Information.initDefaultViews();
 
       Navigation.setReady();
@@ -113,6 +114,8 @@ var Startup = exports.Startup = {
       window.removeEventListener('DOMContentLoaded', loaded);
 
       window.performance.mark('navigationLoaded');
+
+      Utils.initializeShimHost(App.instanceId);
 
       MessageManager.init();
       InboxView.init();

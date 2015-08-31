@@ -186,7 +186,7 @@ suite('Utils', function() {
             withTime: withTime
           });
 
-          assert.equal(element.textContent, expect); 
+          assert.equal(element.textContent, expect);
         }
       });
     });
@@ -215,7 +215,7 @@ suite('Utils', function() {
           withTime: withTime
         });
 
-        assert.equal(element.textContent, expect); 
+        assert.equal(element.textContent, expect);
       });
     });
 
@@ -243,7 +243,7 @@ suite('Utils', function() {
           withTime: withTime
         });
 
-        assert.equal(element.textContent, expect); 
+        assert.equal(element.textContent, expect);
       });
     });
 
@@ -1475,6 +1475,67 @@ suite('Utils', function() {
       Utils.getSimNameByIccId(iccId).then((name) => {
         sinon.assert.notCalled(navigator.mozL10n.formatValue);
         assert.equal(name, '');
+      }).then(done, done);
+    });
+  });
+
+  suite('initializeShimHost', function() {
+    var shimHostStub;
+    setup(function() {
+
+      shimHostStub = sinon.stub({
+        contentDocument: {
+          readyState: 'complete'
+        },
+        contentWindow: {
+          bootstrap: sinon.stub()
+        },
+        addEventListener: () => {},
+        removeEventListener: () => {}
+      });
+
+      this.sinon.stub(document, 'querySelector').withArgs('.shim-host').returns(
+        shimHostStub
+      );
+    });
+
+    test('if shim host is ready it is bootstraped immediately', function(done) {
+      Utils.initializeShimHost('app-instance-id').then(() => {
+        sinon.assert.calledWith(
+          shimHostStub.contentWindow.bootstrap, 'app-instance-id'
+        );
+        sinon.assert.notCalled(shimHostStub.addEventListener);
+      }).then(done, done);
+    });
+
+    test('if shim host is not ready yet it is bootstraped once it is ready',
+    function(done) {
+      shimHostStub.contentDocument.readyState = 'loading';
+
+      var initializationPromise = Utils.initializeShimHost('app-instance-id');
+
+      Promise.race([
+        initializationPromise, Promise.resolve('not-yet-resolved')
+      ]).then((value) => {
+        assert.equal(value, 'not-yet-resolved');
+
+        sinon.assert.notCalled(
+          shimHostStub.contentWindow.bootstrap, 'app-instance-id'
+        );
+
+        shimHostStub.addEventListener.withArgs('load').yield();
+
+        sinon.assert.calledWith(
+          shimHostStub.removeEventListener,
+          'load',
+          shimHostStub.addEventListener.lastCall.args[1]
+        );
+
+        return initializationPromise;
+      }).then(() => {
+        sinon.assert.calledWith(
+          shimHostStub.contentWindow.bootstrap, 'app-instance-id'
+        );
       }).then(done, done);
     });
   });
