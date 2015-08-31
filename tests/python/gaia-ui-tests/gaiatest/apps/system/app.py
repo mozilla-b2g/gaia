@@ -104,3 +104,9 @@ class System(Base):
             return self.marionette.find_element(*self._software_buttons_locator).size['height']
         else:
             return 0
+
+    @property
+    def wallpaper_properties(self):
+        # The wallpaper returns a blob url and a gradient
+        screen = self.marionette.find_element(*self._screen_locator)
+        return screen.value_of_css_property('background-image')
