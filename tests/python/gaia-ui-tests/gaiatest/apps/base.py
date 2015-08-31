@@ -23,8 +23,8 @@ class Base(object):
         self.frame = None
         self.manifest_url_app = None
         self.entry_point = hasattr(self, 'entry_point') and self.entry_point or None
-        DEFAULT_APP_HOSTNAME = 'gaiamobile.org'
-        DEFAULT_PROTOCOL = 'app://'
+        self.DEFAULT_APP_HOSTNAME = 'gaiamobile.org'
+        self.DEFAULT_PROTOCOL = 'app://'
 
     def launch(self, launch_timeout=None):
         self.app = self.apps.launch(self.name, self.manifest_url, self.entry_point, launch_timeout=launch_timeout)
@@ -162,7 +162,7 @@ class Base(object):
         Wait(self.marionette).until(lambda m: self.apps.displayed_app.manifest_url == self.manifest_url)
 
     @staticmethod
-    def wait_to_not_be_displayed()(self):
+    def wait_to_not_be_displayed(self):
         Wait(self.marionette).until(lambda m: self.apps.displayed_app.manifest_url != self.manifest_url)
 
 class PageRegion(Base):

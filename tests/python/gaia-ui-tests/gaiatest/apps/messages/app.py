@@ -11,7 +11,7 @@ from gaiatest.apps.base import PageRegion
 class Messages(Base):
 
     name = 'Messages'
-    manifest_url = '{}sms{}/manifest.webapp'.format(self.DEFAULT_PROTOCOL,self.DEFAULT_APP_HOSTNAME)
+    manifest_url = '{}sms{}/manifest.webapp'.format(Base.DEFAULT_PROTOCOL, Base.DEFAULT_APP_HOSTNAME)
 
     _create_new_message_locator = (By.ID, 'threads-composer-link')
     _first_message_locator = (By.ID, 'thread-1')
