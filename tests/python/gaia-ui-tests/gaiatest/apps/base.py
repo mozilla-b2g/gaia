@@ -81,15 +81,14 @@ class Base(object):
         Wait(self.marionette).until(lambda m: self.is_custom_element_checked(element) is checked)
 
     def find_select_item(self, match_string):
+        _list_locator = By.XPATH, "//section[contains(@class,'value-selector-container')]"
         _list_item_locator = (
             By.XPATH, "//section[contains(@class,'value-selector-container')]/descendant::li[descendant::span[.='%s']]" %
             match_string)
         # have to go back to top level to get the B2G select box wrapper
         self.marionette.switch_to_frame()
-        # TODO we should find something suitable to wait for, but this goes too
-        # fast against desktop builds causing intermittent failures
-        time.sleep(0.2)
 
+        self.wait_for_element_displayed(*_list_locator)
         li = self.wait_for_element_present(*_list_item_locator)
         # We need to keep this because the Ok button may hang over the element and stop
         # Marionette from scrolling the element entirely into view
