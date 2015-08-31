@@ -1,13 +1,12 @@
 'use strict';
 
-/* global MocksHelper, InputLayouts, MockKeyboardManager, MockCustomEvent,
+/* global MocksHelper, InputLayouts, MockKeyboardManager,
    MockKeyboardHelper, MockNavigatorMozSettings, MockNavigatorMozSettingsLock,
    MockDOMRequest */
 
 require('/test/unit/mock_keyboard_manager.js');
 require('/test/unit/mock_custom_event.js');
 require('/shared/test/unit/mocks/mock_keyboard_helper.js');
-require('/shared/test/unit/mocks/mock_custom_event.js');
 require('/shared/test/unit/mocks/mock_event_target.js');
 require('/shared/test/unit/mocks/mock_dom_request.js');
 require('/shared/js/input_mgmt/mock_navigator_mozsettings.js');
@@ -16,8 +15,7 @@ require('/js/input_layouts.js');
 
 var mocksForInputLayouts = new MocksHelper([
   'KeyboardHelper',
-  'KeyboardManager',
-  'CustomEvent'
+  'KeyboardManager'
 ]).init();
 
 suite('InputLayouts', function() {
@@ -148,10 +146,11 @@ suite('InputLayouts', function() {
     MockKeyboardHelper.fallbackLayouts = oldFallbackLayouts;
   });
 
-  test('emitLayoutCount', function() {
+  test('setSupportsSwitchingTypes', function() {
     inputLayouts.layouts = {
       'text': ['en', 'fr', 'zh-hans'],
-      'password': ['en', 'fr']
+      'password': ['en', 'fr'],
+      'number': []
     };
 
     var oldGroupToTypeTable = inputLayouts._groupToTypeTable;
@@ -160,31 +159,21 @@ suite('InputLayouts', function() {
       'password': ['password']
     };
 
-    var evt = new MockCustomEvent();
-
-    var stubCreateEvent = this.sinon.stub(document, 'createEvent');
-    var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
-    var stubInitCustomEvent = this.sinon.stub(evt, 'initCustomEvent');
-
-    stubCreateEvent.returns(evt);
-
-    inputLayouts._emitLayoutsCount();
-
-    assert.isTrue(stubCreateEvent.calledWith('CustomEvent'));
-
-    assert.isTrue(stubInitCustomEvent.calledWith('mozContentEvent', true, true,
-      {
-        type: 'inputmethod-update-layouts',
-        layouts: {
-          'text': 3,
-          'textarea': 3,
-          'password': 2
+    var realMozInputMethod = navigator.mozInputMethod;
+    var setSupportsSwitchingTypesStub = this.sinon.stub();
+    navigator.mozInputMethod = {
+      mgmt: {
+        setSupportsSwitchingTypes: setSupportsSwitchingTypesStub
       }
-    }));
+    };
 
-    assert.isTrue(stubDispatchEvent.calledWith(evt));
+    inputLayouts._setSupportsSwitchingTypes();
+
+    assert.isTrue(setSupportsSwitchingTypesStub
+      .calledWith(['text', 'textarea', 'password']));
 
     inputLayouts._groupToTypeTable = oldGroupToTypeTable;
+    navigator.mozInputMethod = realMozInputMethod;
   });
 
   test('generateToGroupMapping', function() {
@@ -312,7 +301,7 @@ suite('InputLayouts', function() {
       this.sinon.stub(inputLayouts, '_insertFallbackLayouts');
 
     var stubEmitLayoutsCount =
-      this.sinon.stub(inputLayouts, '_emitLayoutsCount');
+      this.sinon.stub(inputLayouts, '_setSupportsSwitchingTypes');
 
     var enabledApps = inputLayouts.processLayouts(appLayouts);
 

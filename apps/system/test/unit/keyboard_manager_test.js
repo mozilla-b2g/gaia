@@ -58,11 +58,21 @@ suite('KeyboardManager', function() {
   mocksHelperForKeyboardManager.attachTestHelpers();
 
   var realMozSettings = null;
+  var realMozInputMethod = null;
   var stubGetGroupCurrentActiveLayoutIndexAsync;
 
   suiteSetup(function() {
     document.body.innerHTML += '<div id="run-container"></div>';
+
+    realMozSettings = navigator.mozSettings;
     navigator.mozSettings = MockNavigatorSettings;
+
+    realMozInputMethod = navigator.mozInputMethod;
+    navigator.mozInputMethod = {
+      mgmt: {
+        setSupportsSwitchingTypes: sinon.stub()
+      }
+    };
 
     window.DynamicInputRegistry = function() {};
     window.DynamicInputRegistry.prototype.start = function() {};
@@ -70,6 +80,7 @@ suite('KeyboardManager', function() {
 
   suiteTeardown(function() {
     navigator.mozSettings = realMozSettings;
+    navigator.mozInputMethod = realMozInputMethod;
   });
 
   setup(function() {
