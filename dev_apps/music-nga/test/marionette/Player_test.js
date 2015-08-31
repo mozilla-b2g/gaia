@@ -90,7 +90,6 @@ marionette('Music player tests', function() {
       controls = new FakeControls(client);
     });
 
-    // Disabled See bug 1032037.
     test.skip('Check that progress bar updates when re-shown', function() {
       music.launch();
       music.waitForFirstTile();
