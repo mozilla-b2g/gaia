@@ -9,5 +9,4 @@
   };
 
   exports.MockstreamService = {};
-  exports.MockstreamClient = {};
 })(window);

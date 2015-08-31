@@ -2,9 +2,7 @@
 
 'use strict';
 
-function MockBroadcastChannel(name) {
-  this.name = name;
-}
+function MockBroadcastChannel() {}
 
 MockBroadcastChannel.prototype.addEventListener = () => {};
 MockBroadcastChannel.prototype.removeEventListener = () => {};

@@ -1,6 +1,4 @@
-/*global App,
-         ConversationClient,
-         InboxView,
+/*global InboxView,
          InterInstanceEventDispatcher,
          LazyLoader,
          MessageManager,
@@ -18,16 +16,12 @@ require('/views/shared/test/unit/mock_navigation.js');
 require('/views/shared/test/unit/mock_settings.js');
 require('/views/shared/test/unit/mock_inter_instance_event_dispatcher.js');
 require('/views/shared/test/unit/mock_inbox.js');
-require('/views/shared/test/unit/mock_app.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/services/test/unit/mock_message_manager.js');
-require('/services/test/unit/conversation/mock_conversation_client.js');
 
 require('/views/inbox/js/startup.js');
 
 var MocksHelperForInboxStartup = new MocksHelper([
-  'App',
-  'ConversationClient',
   'InboxView',
   'InterInstanceEventDispatcher',
   'LazyLoader',
@@ -51,18 +45,11 @@ suite('InboxView Startup', function() {
     this.sinon.spy(InterInstanceEventDispatcher, 'connect');
     this.sinon.stub(InboxView, 'once');
     this.sinon.stub(LazyLoader, 'load').returns(Promise.resolve());
-    this.sinon.stub(ConversationClient, 'init');
-
-    var shimHostIframe = document.createElement('iframe');
-    shimHostIframe.className = 'shim-host';
-    shimHostIframe.src = 'data:text/html,<script>bootstrap=()=>{};</script>';
-    document.body.appendChild(shimHostIframe);
 
     Startup.init();
   });
 
   test('correctly initializes dependencies', function() {
-    sinon.assert.calledWith(ConversationClient.init, App.instanceId);
     sinon.assert.calledOnce(MessageManager.init);
     sinon.assert.calledOnce(Navigation.init);
     sinon.assert.calledOnce(InboxView.init);
