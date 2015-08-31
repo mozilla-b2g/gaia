@@ -108,7 +108,8 @@
         'CustomDialogService',
         'CarrierInfoNotifier',
         'AboutServiceWorkersProxy',
-        'MultiScreenController'
+        'MultiScreenController',
+        'SyncStateMachine'
         // XXX: We should move CarrierInfoNotifier into mobileConnectionCore,
         // but integration tests running on desktop without mobileConnection
         // is testing this.
