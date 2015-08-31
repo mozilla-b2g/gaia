@@ -88,6 +88,9 @@ var WifiHelper = {
     if (!currentNetwork || !network) {
       return false;
     }
+    if (currentNetwork.status === 'associated') {
+      return false;
+    }
     var key = network.ssid + '+' + this.getSecurity(network).join('+');
     var curkey = currentNetwork.ssid + '+' +
         this.getSecurity(currentNetwork).join('+');
