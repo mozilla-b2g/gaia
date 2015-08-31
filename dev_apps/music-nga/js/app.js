@@ -46,6 +46,31 @@ client.connect();
 
 client.connected.then(() => {
   client.on('play', () => isPlaying = true);
+
+  client.on('databaseChange', () => {
+    client.method('getSongCount').then((count) => {
+      emptyOverlay.hidden = count > 0;
+    });
+  });
+
+  client.on('databaseEnumerable', () => {
+    noCardOverlay.hidden = true;
+    pluggedInOverlay.hidden = true;
+    upgradeOverlay.hidden = true;
+  });
+
+  client.on('databaseUnavailable', (reason) => {
+    switch (reason) {
+      case 'nocard':
+        noCardOverlay.hidden = false;
+        break;
+      case 'pluggedin':
+        pluggedInOverlay.hidden = false;
+        break;
+    }
+  });
+
+  client.on('databaseUpgrade', () => upgradeOverlay.hidden = false);
 });
 
 var header             = $id('header');
@@ -54,6 +79,10 @@ var playerButton       = $id('player-button');
 var activityDoneButton = $id('activity-done-button');
 var viewStack          = $id('view-stack');
 var tabBar             = $id('tab-bar');
+var emptyOverlay       = $id('empty-overlay');
+var noCardOverlay      = $id('no-card-overlay');
+var pluggedInOverlay   = $id('plugged-in-overlay');
+var upgradeOverlay     = $id('upgrade-overlay');
 
 header.addEventListener('action', (evt) => {
   if (evt.detail.type === 'back') {
@@ -63,14 +92,7 @@ header.addEventListener('action', (evt) => {
       return;
     }
 
-    switch (activity && activity.source.name) {
-      case 'open':
-        activity.postResult({ saved: false });
-        break;
-      case 'pick':
-        activity.postError('pick cancelled');
-        break;
-    }
+    cancelActivity();
   }
 });
 
@@ -131,6 +153,11 @@ tabBar.addEventListener('change', (evt) => {
 
   navigateToURL(url, true);
 });
+
+emptyOverlay.addEventListener('cancel', () => cancelActivity());
+noCardOverlay.addEventListener('cancel', () => cancelActivity());
+pluggedInOverlay.addEventListener('cancel', () => cancelActivity());
+upgradeOverlay.addEventListener('cancel', () => cancelActivity());
 
 if (SERVICE_WORKERS) {
   navigator.serviceWorker.getRegistration().then((registration) => {
@@ -225,6 +252,17 @@ function parseQueryString(queryString) {
   });
 
   return query;
+}
+
+function cancelActivity() {
+  switch (activity && activity.source.name) {
+    case 'open':
+      activity.postResult({ saved: false });
+      break;
+    case 'pick':
+      activity.postError('pick cancelled');
+      break;
+  }
 }
 
 function onActivity(activity) {

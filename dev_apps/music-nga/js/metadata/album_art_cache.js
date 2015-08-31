@@ -313,7 +313,7 @@ var AlbumArtCache = (function() {
       return Promise.resolve(fileinfo.blob);
     } else {
       // This is the normal case.
-      return Database.getFile(fileinfo.name);
+      return Database.getFile(fileinfo);
     }
   }
 
