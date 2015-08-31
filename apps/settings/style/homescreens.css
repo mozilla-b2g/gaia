@@ -1,0 +1,64 @@
+.current-homescreen {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+  white-space: nowrap;
+}
+
+.my-home-screens li.pack-split .pack-radio gaia-radio {
+  height: 2.2rem;
+}
+
+.my-home-screens li.pack-split .name {
+  width: calc(100% - 5rem);
+}
+
+.my-home-screens li > label > * {
+  white-space: normal;
+}
+
+.my-home-screens li.pack-split::after {
+  right: 3.5rem;
+}
+
+#homescreen-details .addon-details-info {
+  padding-inline-end: 0;
+  width: calc(100% - 6.7rem);
+}
+
+#homescreen-details .url a {
+  pointer-events: auto;
+}
+
+#homescreen-details .version,
+#homescreen-details .description {
+  font-size: 1.7rem;
+  line-height: 2.3rem;
+  font-weight: 400;
+  padding-inline-start: 1.5rem;
+  padding-inline-end: 1rem;
+  white-space: unset;
+}
+
+#homescreen-details .version {
+  font-weight: bold;
+  padding-top: 0;
+}
+
+.uninstall-homescreen-container {
+  border-top: 0.1rem solid #E6E6E3;
+  margin: 1rem 1.5rem 0;
+}
+
+.uninstall-homescreen-container li {
+  margin: 0;
+}
+
+/* Icon layout selection for the legacy vertical home screen. */
+.legacy-homescreen-layout {
+  display: none;
+}
+
+.legacy-homescreen-layout.visible {
+  display: block;
+}
