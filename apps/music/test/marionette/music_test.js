@@ -1,6 +1,8 @@
 /* global require, marionette, setup, suite, test, __dirname */
 'use strict';
 
+var assert = require('assert');
+
 var Music = require('./lib/music.js');
 var FakeActivityCaller = require('./lib/fakeactivitycaller.js');
 
@@ -17,8 +19,7 @@ marionette('Music ui tests', function() {
       },
 
       apps: apps
-    },
-    desiredCapabilities: { raisesAccessibilityExceptions: true }
+    }
   });
 
   var music, system;
@@ -65,11 +66,15 @@ marionette('Music ui tests', function() {
     });
 
     test('Overlay should be shown when storage has no songs', function() {
-      activitycaller.launch();
+      try {
+        activitycaller.launch();
+        activitycaller.tapPickButton();
+        activitycaller.selectMusicApp();
 
-      music.switchToMe();
-      music.waitFinishedScanning();
-      music.waitForMessageOverlayShown(true);
+        music.switchToMe();
+        music.waitFinishedScanning();
+        music.waitForMessageOverlayShown(true);
+      } catch (e) { assert.ok(false, e.stack); }
     });
   });
 
@@ -85,11 +90,15 @@ marionette('Music ui tests', function() {
     });
 
     test('Overlay should be hidden when storage has some songs', function() {
-      activitycaller.launch();
+      try {
+        activitycaller.launch();
+        activitycaller.tapPickButton();
+        activitycaller.selectMusicApp();
 
-      music.switchToMe();
-      music.waitFinishedScanning();
-      music.waitForMessageOverlayShown(false);
+        music.switchToMe();
+        music.waitFinishedScanning();
+        music.waitForMessageOverlayShown(false);
+      } catch (e) { assert.ok(false, e.stack); }
     });
   });
 });
