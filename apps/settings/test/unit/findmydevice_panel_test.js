@@ -290,4 +290,28 @@ suite('Find My Device panel > ', function() {
   teardown(function() {
     navigator.mozId = realMozId;
   });
+
+  suite('mozId login/logout forces logged-in setting value', function() {
+    var loggedIn = 'findmydevice.logged-in';
+    setup(function() {
+      MockSettingsHelper(loggedIn).set(null);
+    });
+
+    test('onlogin(true)', function(done) {
+      MockMozId.onlogin(true);
+      MockSettingsHelper(loggedIn).get(v => {
+        assert.isTrue(v);
+	done();
+      });
+    });
+
+    test('onlogout(false)', function(done) {
+      MockMozId.onlogout(false);
+      MockSettingsHelper(loggedIn).get(v => {
+        assert.isFalse(v);
+	done();
+      });
+    });
+
+  });
 });
