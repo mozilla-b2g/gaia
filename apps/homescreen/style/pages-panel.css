@@ -1,0 +1,26 @@
+#pages-panel {
+  font-size: 1.5rem;
+  display: none;
+}
+
+.pin-the-web #pages-panel {
+  display: inline-block;
+}
+
+#pages-panel > .scrollable {
+  overflow-y: auto;
+  padding-top: 1rem;
+  height: 100%;
+}
+
+#pages {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+}
+
+#pages gaia-pin-card {
+  width: calc(50% - 0.75rem);
+  height: 13.5rem;
+  padding: 0 0 1.5rem 1.5rem;
+}

@@ -9,6 +9,8 @@ require('/shared/test/unit/mocks/mock_moz_activity.js');
 require('mocks/mock_localStorage.js');
 require('mocks/mock_metadata.js');
 require('mocks/mock_datastore.js');
+require('mocks/mock_pages.js');
+require('/shared/js/l10n.js');
 require('/js/app.js');
 
 suite('Homescreen app', () => {
@@ -435,6 +437,61 @@ suite('Homescreen app', () => {
     });
   });
 
+  suite('App#updatePanelIndicator()', () => {
+    var indicatorToggleStubs;
+    var mozL10nOnceStub;
+    var mozL10nGetStub;
+    var realPanels;
+    var mockPanels = {
+      scrollLeft: 0,
+      scrollLeftMax: 100
+    };
+
+    setup(() => {
+      indicatorToggleStubs = [
+        sinon.stub(app.indicator.children[0].classList, 'toggle'),
+        sinon.stub(app.indicator.children[1].classList, 'toggle')];
+      mozL10nOnceStub = sinon.stub(navigator.mozL10n, 'once',
+        (callback) => { callback(); });
+      mozL10nGetStub = sinon.stub(navigator.mozL10n, 'get', value => value);
+      realPanels = app.panels;
+      app.panels = mockPanels;
+    });
+
+    teardown(() => {
+      indicatorToggleStubs.forEach((stub) => { stub.restore(); });
+      mozL10nOnceStub.restore();
+      mozL10nGetStub.restore();
+      app.panels = realPanels;
+    });
+
+    test('should update indicator when apps visible', () => {
+      app.appsVisible = false;
+      app.updatePanelIndicator();
+      assert.isTrue(indicatorToggleStubs[0].calledWith('active', true));
+      assert.isTrue(indicatorToggleStubs[1].calledWith('active', false));
+      assert.isTrue(mozL10nGetStub.calledWith('apps-panel'));
+    });
+
+    test('should update indicator when pages visible', () => {
+      mockPanels.scrollLeft = mockPanels.scrollLeftMax;
+      app.updatePanelIndicator();
+      assert.isTrue(indicatorToggleStubs[0].calledWith('active', false));
+      assert.isTrue(indicatorToggleStubs[1].calledWith('active', true));
+      assert.isTrue(mozL10nGetStub.calledWith('pages-panel'));
+    });
+
+    test('should do nothing when visibility is unchanged', () => {
+      app.appsVisible = true;
+      mockPanels.scrollLeft = 0;
+      app.updatePanelIndicator();
+      assert.isFalse(indicatorToggleStubs[0].called);
+      assert.isFalse(indicatorToggleStubs[1].called);
+      assert.isFalse(mozL10nOnceStub.called);
+      assert.isFalse(mozL10nGetStub.called);
+    });
+  });
+
   suite('App#handleEvent()', () => {
     var showActionDialogStub;
 
@@ -481,6 +538,17 @@ suite('Homescreen app', () => {
         app.handleEvent(new CustomEvent('scroll'));
         assert.isFalse(app.scrolled);
         assert.isFalse(app.shadow.classList.contains('visible'));
+      });
+
+      test('should update the panel indicator', () => {
+        document.body.classList.add('pin-the-web');
+        var updatePanelStub = sinon.stub(app, 'updatePanelIndicator');
+
+        app.panels.dispatchEvent(new CustomEvent('scroll'));
+        assert.isTrue(updatePanelStub.called);
+
+        updatePanelStub.restore();
+        document.body.classList.remove('pin-the-web');
       });
     });
 
@@ -576,6 +644,10 @@ suite('Homescreen app', () => {
           assert.equal(obj.top, 0);
           assert.equal(obj.left, 0);
           done();
+        },
+        scrollLeft: 0,
+        parentNode: {
+          offsetLeft: 0
         }
       };
       app.handleEvent(new CustomEvent('hashchange'));

@@ -1,8 +1,6 @@
 'use strict';
 
 (function(exports) {
-  const DB_VERSION = 1;
-
   function Datastore(name) {
     this.name = name;
   }
@@ -12,6 +10,11 @@
      * The name of the datastore
      */
     name: '',
+
+    /**
+     * The version of the indexed database
+     */
+    DB_VERSION: 1,
 
     /**
      * The datastore
@@ -47,7 +50,7 @@
       }
 
       return new Promise((resolve, reject) => {
-        var req = window.indexedDB.open(this.idbName, DB_VERSION);
+        var req = window.indexedDB.open(this.idbName, this.DB_VERSION);
         req.onupgradeneeded = this.upgradeSchema.bind(this);
         req.onsuccess = (e) => {
           this.db = e.target.result;
@@ -189,7 +192,7 @@
       });
     },
 
-    getAll: function() {
+    getAll: function(filter = () => true) {
       return new Promise((resolve, reject) => {
         var results = [];
         var txn = this.db.transaction([this.storeName], 'readonly');
@@ -198,7 +201,9 @@
           (event) => {
             var cursor = event.target.result;
             if (cursor) {
-              results.push(cursor.value);
+              if (filter(cursor.value)) {
+                results.push(cursor.value);
+              }
               cursor.continue();
             }
           };

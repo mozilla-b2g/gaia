@@ -291,10 +291,16 @@ section.pin-dialog gaia-pin-card {
   display: block;
 }
 
+section.pin-dialog gaia-pin-card {
+  width: 14rem;
+  height: 10.5rem;
+  margin: 0 auto;
+  display: block;
+}
+
 section.pin-dialog .card-container {
   margin-top: 2.1rem;
   display: block;
-  overflow: hidden;
   padding-top: 1.5rem;
 }
 

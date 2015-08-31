@@ -377,11 +377,20 @@
     this.pinned = true;
     this.app.element.classList.remove('collapsible');
     Service && Service.request('Places:setPinned', this.app.config.url, true)
-      .then(function() {
-      console.log('Succeeding in pinning ' + this.app.config.url);
-    }, function() {
-      console.log('Failed to pin ' + this.app.config.url);
-    });
+      .then(() => {
+        console.log('Succeeding in pinning ' + this.app.config.url);
+        var screenshotBlob = this.app.getCachedScreenshotBlob();
+        if (screenshotBlob) {
+          Service.request('Places:saveScreenshot', this.app.config.url,
+                          screenshotBlob);
+        }
+        if (this._themeChanged) {
+          Service.request('Places:saveThemeColor', this.app.config.url,
+                          this.app.themeColor, true);
+        }
+      }, () => {
+        console.log('Failed to pin ' + this.app.config.url);
+      });
   };
 
   AppChrome.prototype.titleClicked = function ac_titleClicked() {
@@ -653,6 +662,10 @@
 
       this._themeChanged = true;
       this.setThemeColor(color);
+      if (!this.app.isHomescreen && this.app.config.url) {
+        Service && Service.request('Places:saveThemeColor',
+                                   this.app.config.url, color, true);
+      }
     };
 
   AppChrome.prototype.setThemeColor = function ac_setThemColor(color) {
