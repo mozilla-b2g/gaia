@@ -20,6 +20,9 @@
  * control the custom input pad. See Bug 1053680.
  **/
 (function(exports) {
+  // By default, PINs have this many digits. Use setPinLength() to override
+  var DEFAULT_PIN_LENGTH = 4;
+
   /**
    * We still need the interface to notify the LockScreen.
    *
@@ -36,6 +39,7 @@
       passCodeEntered: '',
       passCodeErrorTimeoutPending: false
     };
+    this.pinLength = DEFAULT_PIN_LENGTH;
   };
   LockScreenInputpad.prototype.start = function() {
     this.addEventListener('lockscreen-notify-passcode-validationfailed');
@@ -66,7 +70,7 @@
   LockScreenInputpad.prototype.renderUI = function() {
     return new Promise((resolve, reject) => {
       this.toggleEmergencyButton();
-      this.updatePassCodeUI();
+      this.setPinLength(this.pinLength);
       resolve();
     });
   };
@@ -144,6 +148,26 @@
     window.removeEventListener(name, cb);
   };
 
+
+  LockScreenInputpad.prototype.setPinLength = function(n) {
+    this.pinLength = n;
+
+    // If we've already called renderUI(), then update the UI.
+    if (this.passcodeCode) {
+      // Remove any existing content and add n <span> children
+      this.passcodeCode.textContent = '';
+      for(var i = 0; i < n; i++) {
+        this.passcodeCode.appendChild(document.createElement('span'));
+      }
+
+      // Allow CSS to display the n digits at the right size.
+      this.passcodeCode.dataset.pinLength = n;
+
+      // Set the right states on all of the spans
+      this.updatePassCodeUI();
+    }
+  };
+
   LockScreenInputpad.prototype.updatePassCodeUI =
   function() {
     if (this.states.passCodeEntered) {
@@ -151,7 +175,7 @@
     } else {
       this.passcodePad.classList.remove('passcode-entered');
     }
-    if (this.states.passCodeEntered.length !== 4 &&
+    if (this.states.passCodeEntered.length !== this.pinLength &&
         this.passcodePad.classList.contains('passcode-fulfilled')) {
       this.passcodePad.classList.remove('passcode-fulfilled');
     }
@@ -160,7 +184,7 @@
     } else {
       this.passcodeCode.classList.remove('error');
     }
-    var i = 4;
+    var i = this.pinLength;
     while (i--) {
       var span = this.passcodeCode.childNodes[i];
       if (span) {
@@ -210,9 +234,8 @@
         if (this.states.passCodeErrorTimeoutPending) {
           break;
         }
-        // If it's already 4 digits and this is the > 5th one,
-        // don't do anything.
-        if (this.states.passCodeEntered.length === 4) {
+        // If it already has pinLength digits, don't do anything.
+        if (this.states.passCodeEntered.length === this.pinLength) {
           return;
         }
 
@@ -223,7 +246,7 @@
           navigator.vibrate(this.configs.padVibrationDuration);
         }
 
-        if (this.states.passCodeEntered.length === 4) {
+        if (this.states.passCodeEntered.length === this.pinLength) {
           this.passcodePad.classList.add('passcode-fulfilled');
           this.lockScreen.checkPassCode(this.states.passCodeEntered);
         }
