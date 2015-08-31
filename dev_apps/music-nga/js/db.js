@@ -13,8 +13,7 @@ App.refreshViews = debounce(() => { // XXX
 
 function debounce(fn, ms) { // XXX
   var timeout;
-  return () => {
-    var args = arguments;
+  return (...args) => {
     clearTimeout(timeout);
     timeout = setTimeout(() => fn.apply(this, args), ms);
   };

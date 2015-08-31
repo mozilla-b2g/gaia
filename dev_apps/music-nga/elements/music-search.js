@@ -204,8 +204,7 @@ proto.setResults = function(results) {
 
 function debounce(fn, ms) {
   var timeout;
-  return () => {
-    var args = arguments;
+  return (...args) => {
     clearTimeout(timeout);
     timeout = setTimeout(() => fn.apply(this, args), ms);
   };
