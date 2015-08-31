@@ -129,7 +129,8 @@
         }
         this._makeKeyActive(target);
         this.lastTouched = target;
-        if (this.states.padVibrationEnabled) {
+        if (this.states.padVibrationEnabled &&
+          !this.states.passCodeErrorTimeoutPending) {
           navigator.vibrate(this.configs.padVibrationDuration);
         }
         break;
