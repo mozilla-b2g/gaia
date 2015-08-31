@@ -35,41 +35,21 @@ suite('LocalizationHelper >', function() {
     navigator.mozL10n = navigatorMozL10n;
   });
 
-  test('localizes only attachment iframes on l10n.ready', function() {
-    [
-      'attachment-container',
-      'attachment-container',
-      'custom'
-    ].forEach((iframeClassName) => {
-      var iframe = document.createElement('iframe');
-      iframe.className = iframeClassName;
-      document.body.appendChild(iframe);
-    });
-
-    var customIframeDocument = document.querySelector(
-      'iframe.custom'
-    ).contentDocument;
-    customIframeDocument.documentElement.lang = 'en-US';
-    customIframeDocument.documentElement.dir = 'ltr';
+  test('localizes iframes on l10n.ready', function() {
+    document.body.appendChild(document.createElement('iframe'));
+    document.body.appendChild(document.createElement('iframe'));
 
     navigator.mozL10n.language.code = 'be-BY';
     navigator.mozL10n.language.direction = 'rtl';
     navigator.mozL10n.ready.yield();
 
     sinon.assert.calledTwice(navigator.mozL10n.translateFragment);
-    var attachmentContainers = document.querySelectorAll(
-      'iframe.attachment-container'
-    );
-    Array.forEach(attachmentContainers, (iframe) => {
+    Array.forEach(document.querySelectorAll('iframe'), (iframe) => {
       var doc = iframe.contentDocument;
       assert.equal(doc.documentElement.lang, 'be-BY');
       assert.equal(doc.documentElement.dir, 'rtl');
       sinon.assert.calledWith(navigator.mozL10n.translateFragment, doc.body);
     });
-
-    // Custom iframe should stay untouched.
-    assert.equal(customIframeDocument.documentElement.lang, 'en-US');
-    assert.equal(customIframeDocument.documentElement.dir, 'ltr');
   });
 
   [onL10nReady, onTimeFormatChange].forEach(function(forceUpdateMethod) {

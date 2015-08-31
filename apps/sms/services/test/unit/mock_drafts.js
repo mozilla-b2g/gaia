@@ -13,7 +13,6 @@ var MockDrafts = {
   store: () => Promise.resolve(),
   request: () => Promise.resolve(),
   getAll: () => [],
-  getAllThreadless: () => [],
   on: () => {}
 };
 

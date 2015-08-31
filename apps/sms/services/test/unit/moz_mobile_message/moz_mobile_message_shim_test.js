@@ -10,21 +10,17 @@
 
 require('/services/test/unit/mock_bridge.js');
 require('/services/test/unit/mock_navigatormoz_sms.js');
-require('/views/shared/test/unit/mock_broadcast_channel.js');
 require('/views/shared/js/utils.js');
 require('/services/js/bridge_service_mixin.js');
 require('/services/js/moz_mobile_message/moz_mobile_message_shim.js');
 
 var MocksHelperForAttachment = new MocksHelper([
   'bridge',
-  'BroadcastChannel',
   'streamService'
 ]).init();
 
 suite('MozMobileMessageShim >', function() {
   var serviceStub;
-
-  const APP_ID = 'fake-app-id';
 
   MocksHelperForAttachment.attachTestHelpers();
 
@@ -37,13 +33,12 @@ suite('MozMobileMessageShim >', function() {
       listen: () => {}
     });
 
-    sinon.spy(window, 'BroadcastChannel');
     sinon.stub(bridge, 'service').returns(serviceStub);
     sinon.stub(MockNavigatormozMobileMessage, 'addEventListener');
   });
 
   setup(function() {
-    MozMobileMessageShim.init(APP_ID, MockNavigatormozMobileMessage);
+    MozMobileMessageShim.init(MockNavigatormozMobileMessage);
   });
 
   test('bridge service is correctly initialized', function() {
@@ -54,11 +49,6 @@ suite('MozMobileMessageShim >', function() {
     sinon.assert.calledWith(
       serviceStub.listen,
       sinon.match.instanceOf(BroadcastChannel)
-    );
-
-    sinon.assert.calledWith(
-      BroadcastChannel,
-      'moz-mobile-message-shim-channel-' + APP_ID
     );
   });
 
@@ -173,7 +163,7 @@ suite('MozMobileMessageShim >', function() {
             ...args
           );
         });
-      });
+      });      
     });
 
     test('send', function() {
@@ -246,43 +236,19 @@ suite('MozMobileMessageShim >', function() {
       var cursor;
 
       setup(function() {
-        cursor = {
-          result:  {
-            id: 1,
-            body: 'body',
-            participants: ['+1234'],
-            timestamp: 0,
-            unreadCount: 0,
-            lastMessageType: 'sms'
-          },
-
-          continue: sinon.stub()
-        };
-
+        cursor = {};
         this.sinon.stub(MockNavigatormozMobileMessage, 'getThreads');
       });
 
       test('continue', function() {
         MockNavigatormozMobileMessage.getThreads.returns(cursor);
         MozMobileMessageShim.getThreads(streamStub);
-
+        cursor.result = {};
+        cursor.continue = sinon.stub();
         cursor.onsuccess();
 
         sinon.assert.calledWith(streamStub.write, cursor.result);
         sinon.assert.called(cursor.continue);
-      });
-
-      test('stream cancelled', function() {
-        MockNavigatormozMobileMessage.getThreads.returns(cursor);
-        MozMobileMessageShim.getThreads(streamStub);
-
-        streamStub.cancel();
-
-        cursor.onsuccess();
-
-        sinon.assert.notCalled(streamStub.write);
-        sinon.assert.notCalled(cursor.continue);
-        sinon.assert.called(streamStub.close);
       });
 
       test('done', function() {
@@ -295,31 +261,29 @@ suite('MozMobileMessageShim >', function() {
       });
 
       test('error while retrieving threads', function() {
-        var error = new Error('retrieving error');
-
         this.sinon.spy(console, 'error');
-        MockNavigatormozMobileMessage.getThreads.throws(error);
+        MockNavigatormozMobileMessage.getThreads.throws('retrieving error');
         MozMobileMessageShim.getThreads(streamStub);
 
         sinon.assert.calledWith(
-          console.error, 'Error occurred while retrieving threads:', error
+          console.error,
+          'Error occurred while retrieving threads: retrieving error'
         );
-        sinon.assert.calledWith(streamStub.abort, '[Error] retrieving error');
+        sinon.assert.called(streamStub.abort);
       });
 
       test('error while reading the database', function() {
         MockNavigatormozMobileMessage.getThreads.returns(cursor);
         MozMobileMessageShim.getThreads(streamStub);
-        cursor.error = new Error('fake error');
+        cursor.error = { name: 'fake error' };
         this.sinon.spy(console, 'error');
         cursor.onerror();
 
         sinon.assert.calledWith(
           console.error,
-          'Error occurred while reading the database',
-          cursor.error
+          'Reading the database. Error: fake error'
         );
-        sinon.assert.calledWith(streamStub.abort, '[Error] fake error');
+        sinon.assert.called(streamStub.abort);
       });
     });
 

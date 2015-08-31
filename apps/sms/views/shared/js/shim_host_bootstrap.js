@@ -1,9 +1,7 @@
 /* global MozMobileMessageShim */
 
-(function(exports) {
+(function() {
 'use strict';
 
-exports.bootstrap = function(appInstanceId) {
-  MozMobileMessageShim.init(appInstanceId, navigator.mozMobileMessage);
-};
+MozMobileMessageShim.init(navigator.mozMobileMessage);
 })(self);
