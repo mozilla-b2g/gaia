@@ -38,6 +38,10 @@ InboxAccessor.prototype = {
     );
   },
 
+  findConversation: function(id) {
+    return this.client.findElement('#thread-' + id);
+  },
+
   getConversationTitle: function(conversation) {
     return conversation.findElement(SELECTORS.conversationTitle);
   },

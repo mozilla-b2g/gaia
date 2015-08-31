@@ -132,7 +132,11 @@ marionette('Message Type Conversion Banner', function() {
       var mmsThread = ThreadGenerator.generate({
         numberOfMessages: 1,
         messageType: 'mms',
-        participants: ['a@b.c']
+        participants: ['a@b.c'],
+        attachments: [
+          { type: 'image/png', width: 10,  height: 10 },
+          { type: 'text/plain', content: 'Email attachment' }
+        ]
       });
 
       messagesApp.launch();

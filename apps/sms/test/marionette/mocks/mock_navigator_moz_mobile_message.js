@@ -32,6 +32,66 @@ Services.obs.addObserver(function(document) {
     }
   }
 
+  function generateCanvas(width, height) {
+    var canvas = document.createElement('canvas');
+    var context = canvas.getContext('2d');
+
+    canvas.width = width;
+    canvas.height = height;
+
+    var linearGradient = context.createLinearGradient(0, 0, width, height);
+    linearGradient.addColorStop(0, 'blue');
+    linearGradient.addColorStop(1, 'red');
+
+    context.fillStyle = linearGradient;
+    context.fillRect (0, 0, width, height);
+
+    return canvas;
+  }
+
+  function generateImageBlob(width, height, type, quality) {
+    var canvas = generateCanvas(width, height);
+
+    return new Promise((resolve) => {
+      canvas.toBlob((blob) => {
+        canvas.width = canvas.height = 0;
+        canvas = null;
+
+        resolve(blob);
+      }, type, quality);
+    });
+  }
+
+  function rehydrateAttachments(storage) {
+    var attachmentPromises = [];
+
+    storage.threads.forEach((thread) => {
+      thread.messages && thread.messages.forEach((message) => {
+        message.attachments && message.attachments.forEach((attachment, i) => {
+          var blobPromise;
+
+          if (attachment.type.startsWith('image/')) {
+            blobPromise = generateImageBlob(
+              attachment.width, attachment.height, attachment.type
+            );
+          } else {
+            blobPromise = Promise.resolve(
+              new window.Blob([attachment.content], { type: attachment.type })
+            );
+          }
+
+          attachmentPromises.push(
+            blobPromise.then((blob) => {
+              message.attachments[i] = Cu.cloneInto({ content: blob }, window);
+            })
+          );
+        });
+      });
+    });
+
+    return Promise.all(attachmentPromises);
+  }
+
   var storagePromise = null;
   function getStorage() {
     if (!storagePromise) {
@@ -43,12 +103,16 @@ Services.obs.addObserver(function(document) {
         storagePromise = appWindow.TestStorages.getStorage('messagesDB');
       }
 
-      storagePromise = storagePromise.then(function(storage) {
-        return storage || {
-          threads: new Map(),
-          recipientToThreadId: new Map(),
-          uniqueMessageIdCounter: 0
-        };
+      storagePromise = storagePromise.then((storage) => {
+        if (!storage) {
+          return {
+            threads: new Map(),
+            recipientToThreadId: new Map(),
+            uniqueMessageIdCounter: 0
+          };
+        }
+
+        return rehydrateAttachments(storage).then(() => storage);
       });
     }
 
