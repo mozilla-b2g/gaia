@@ -7,7 +7,8 @@ For new settings key that will be used in system, please do the key migration in
 
 To change the default settings value, edit `build/config/common-settings.json` in gaia folder.
 
-## Current Status
+
+## Architecture
 
 The settings app architecture is to ensure that each panel loads only the required scripts. Settings app breaks modules into smaller and reusable ones. Large scripts should also be splited into modules. By doing this we could achieve:
 
@@ -16,8 +17,6 @@ The settings app architecture is to ensure that each panel loads only the requir
 3. Inline activities
 4. View/logic separation
 
-
-## Architecture
 ### Modules
 We are using [AMD](http://en.wikipedia.org/wiki/Asynchronous_module_definition) modules, loaded using 'Alemeda' (a lighter version of [RequireJS](http://requirejs.org)) and building/optimizing using ['r.js'](http://requirejs.org/docs/optimization.html) (the RequireJS optimizer). We have dependencies on files (`shared/js`) which aren't AMD modules. For those we use the ['shim'](http://requirejs.org/docs/api.html#config-shim) options in our [`requirejs_config.js`](js/config/require.js)
 
