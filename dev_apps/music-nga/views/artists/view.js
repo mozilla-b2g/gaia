@@ -14,7 +14,8 @@ var ArtistsView = View.extend(function ArtistsView() {
 
   this.list.configure({
     getSectionName(item) {
-      return item.metadata.artist[0].toUpperCase();
+      var artist = item.metadata.artist;
+      return artist ? artist[0].toUpperCase() : '?';
     },
 
     itemKeys: {

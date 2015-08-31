@@ -38,7 +38,3 @@ function ArtworkService(worker) {
     });
   }));
 }
-
-function getBlobFromURL(url) {
-  return fetch(url).then(result => result.blob());
-}

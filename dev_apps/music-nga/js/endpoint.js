@@ -36,7 +36,9 @@ var service = bridge.service('music-service')
   .method('getSongFile', getSongFile)
   .method('getSongArtwork', getSongArtwork)
   .method('getSongThumbnail', getSongThumbnail)
-  .method('shareSong', shareSong)
+
+  .method('share', share)
+  .method('open', open)
 
   .listen()
   .listen(new BroadcastChannel('music-service'));
@@ -184,7 +186,9 @@ function setShuffleSetting(shuffle) {
 
 function getAlbums() {
   return new Promise((resolve) => {
-    Database.enumerateAll('metadata.album', null, 'nextunique', albums => resolve(albums));
+    Database.enumerable.then(() => {
+      Database.enumerateAll('metadata.album', null, 'nextunique', albums => resolve(albums));
+    });
   });
 }
 
@@ -200,7 +204,9 @@ function getAlbum(filePath) {
 
 function getArtists() {
   return new Promise((resolve) => {
-    Database.enumerateAll('metadata.artist', null, 'nextunique', artists => resolve(artists));
+    Database.enumerable.then(() => {
+      Database.enumerateAll('metadata.artist', null, 'nextunique', artists => resolve(artists));
+    });
   });
 }
 
@@ -216,16 +222,22 @@ function getArtist(filePath) {
 
 function getSongs() {
   return new Promise((resolve) => {
-    Database.enumerateAll('metadata.title', null, 'next', songs => resolve(songs));
+    Database.enumerable.then(() => {
+      Database.enumerateAll('metadata.title', null, 'next', songs => resolve(songs));
+    });
   });
 }
 
 function getSong(filePath) {
-  return Database.getFileInfo(filePath);
+  return Database.ready.then(() => {
+    return Database.getFileInfo(filePath);
+  });
 }
 
 function getSongFile(filePath) {
-  return Database.getFile(filePath);
+  return Database.ready.then(() => {
+    return Database.getFile(filePath);
+  });
 }
 
 function getSongArtwork(filePath) {
@@ -244,7 +256,7 @@ function getSongThumbnail(filePath) {
   });
 }
 
-function shareSong(filePath) {
+function share(filePath) {
   return getSong(filePath).then((song) => {
     if (song.metadata.locked || !window.MozActivity) {
       return;
@@ -274,6 +286,27 @@ function shareSong(filePath) {
           }
         });
       });
+  });
+}
+
+function open(blob) {
+  var scripts = [
+    '/js/metadata/metadata_scripts.js',
+    '/js/metadata/album_art.js'
+  ];
+
+  return LazyLoader.load(scripts).then(() => {
+    return AudioMetadata.parse(blob).then((metadata) => {
+      var filePath = blob.name;
+
+      play(filePath);
+
+      return {
+        blob: blob,
+        metadata: metadata,
+        name: filePath
+      };
+    });
   });
 }
 
