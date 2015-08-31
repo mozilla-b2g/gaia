@@ -1078,20 +1078,22 @@
   LockScreen.prototype.onPasscodeValidationFailed =
     function ls_onPasscodeValidationFailed() {
       this.overlay.dataset.passcodeStatus = 'error';
-      // To let passcode pad handle it.
-      window.dispatchEvent(new CustomEvent(
-        'lockscreen-notify-passcode-validationfailed'));
-
       this.kPassCodeErrorCounter++;
       //double delay if >5 failed attempts
       if (this.kPassCodeErrorCounter > 5) {
         this.kPassCodeErrorTimeout = 2 * this.kPassCodeErrorTimeout;
       }
+      // have inputpad display the error
+      window.dispatchEvent(new CustomEvent(
+        'lockscreen-notify-passcode-validationfailed'));
       if ('vibrate' in navigator) {
         navigator.vibrate([50, 50, 50]);
       }
       setTimeout(() => {
         delete this.overlay.dataset.passcodeStatus;
+      // tell inputpad that error delay has passed
+      window.dispatchEvent(new CustomEvent(
+        'lockscreen-notify-passcode-validationreset'));
       }, this.kPassCodeErrorTimeout);
     };
 
@@ -1100,12 +1102,11 @@
    */
   LockScreen.prototype.onPasscodeValidationSuccess =
     function ls_onPasscodeValidationSuccess() {
-      window.dispatchEvent(new CustomEvent(
-        'lockscreen-notify-passcode-validationsuccess'));
-      this.passCodeError = 0;
       this.kPassCodeErrorTimeout = 500;
       this.kPassCodeErrorCounter = 0;
       // delegate the unlocking function call to panel state.
+      window.dispatchEvent(new CustomEvent(
+        'lockscreen-notify-passcode-validationsuccess'));
     };
 
   LockScreen.prototype.setupRemoteLock =
