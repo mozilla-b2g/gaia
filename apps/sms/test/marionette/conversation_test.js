@@ -132,16 +132,16 @@ marionette('Conversation Panel Tests', function() {
   suite('Action links in messages', function() {
     var threads;
     setup(function() {
-      threads = [];
-      threads.push(ThreadGenerator.generate({
-        participants: ['+100000'],
-        body: 'Use these numbers: +200000, +300000 or +400000'
-      }));
-
-      threads.push(ThreadGenerator.generate({
-        participants: ['+400000'],
-        body: 'Call +400000 or send message to mozilla@mozilla.org'
-      }));
+      threads = [
+        ThreadGenerator.generate({
+          participants: ['+400000'],
+          body: 'Call +400000 or send message to mozilla@mozilla.org'
+        }),
+        ThreadGenerator.generate({
+          participants: ['+100000'],
+          body: 'Use these numbers: +200000, +300000 or +400000'
+        })
+      ];
 
       messagesApp.launch();
 
@@ -154,11 +154,11 @@ marionette('Conversation Panel Tests', function() {
           type: 'Mobile'
         }]
       }]);
+
+      messagesApp.Inbox.findConversation(threads[1].id).tap();
     });
 
     test('Send message to unknown number', function() {
-      messagesApp.Inbox.firstConversation.tap();
-
       // Try to send message to the unknown number
       var unknownNumberLink = messagesApp.Conversation.message.findElement(
         '[data-dial="+200000"]'
@@ -181,8 +181,6 @@ marionette('Conversation Panel Tests', function() {
     });
 
     test('Send message to contact number', function() {
-      messagesApp.Inbox.firstConversation.tap();
-
       // Try to send message to number that has contact associated with it
       var unknownNumberLink = messagesApp.Conversation.message.findElement(
         '[data-dial="+300000"]'
@@ -205,8 +203,6 @@ marionette('Conversation Panel Tests', function() {
     });
 
     test('Send message to thread number', function() {
-      messagesApp.Inbox.firstConversation.tap();
-
       // Try to send message to number that has thread associated with it
       var threadNumberLink = messagesApp.Conversation.message.findElement(
         '[data-dial="+400000"]'
@@ -218,7 +214,7 @@ marionette('Conversation Panel Tests', function() {
       var message = messagesApp.Conversation.message;
       assert.equal(
         messagesApp.Conversation.getMessageContent(message).text(),
-        threads[1].messages[0].body
+        threads[0].messages[0].body
       );
 
       assertIsFocused(
