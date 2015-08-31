@@ -124,7 +124,11 @@
   <iframe src="/views/shared/shim_host.html" class="shim-host" hidden></iframe>
   <article id="main-wrapper" class="wrapper conversation-view">
     <section class="panel panel-ConversationView editable-select-mode" role="region" aria-hidden="true">
-      <gaia-header id="messages-header" class="view-header regular-header" action="back" no-font-fit>
+      <!-- title-start and title-end indicates the button widths respectively
+        at the start and end of the line -->
+      <!-- see https://github.com/gaia-components/gaia-header/ for more information -->
+      <!-- WARNING: the actual value depends on the actual CSS being used in gaia-header -->
+      <gaia-header id="messages-header" class="view-header regular-header" action="back" title-start="50" title-end="100" no-font-fit>
         <h1 id="messages-header-text" aria-hidden="true"></h1>
         <button id="messages-call-number-button" data-icon="call" class="hide" data-l10n-id="callButton"></button>
         <button id="messages-options-button" data-icon="more" data-l10n-id="actionsButton"></button>
