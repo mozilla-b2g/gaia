@@ -19,7 +19,6 @@ var HomeView = View.extend(function HomeView() {
     }
   });
 
-  this.client = bridge.client({ service: 'music-service', endpoint: window.parent });
   this.client.on('databaseChange', () => this.update());
 
   this.update();
@@ -67,15 +66,15 @@ HomeView.prototype.render = function() {
 };
 
 HomeView.prototype.getAlbums = function() {
-  return fetch('/api/albums/list').then(response => response.json());
+  return this.fetch('/api/albums/list').then(response => response.json());
 };
 
 HomeView.prototype.getSongThumbnail = function(filePath) {
-  return fetch('/api/artwork/thumbnail' + filePath).then(response => response.blob());
+  return this.fetch('/api/artwork/thumbnail' + filePath).then(response => response.blob());
 };
 
 HomeView.prototype.queueAlbum = function(filePath) {
-  fetch('/api/queue/album' + filePath);
+  this.fetch('/api/queue/album' + filePath);
 };
 
 window.view = new HomeView();
