@@ -33,7 +33,7 @@ marionette('Input with Keyboard APP', function() {
     // create a keyboard test app
     keyboardTestApp = new KeyboardTestApp(client);
     keyboardTestApp.launch();
-    keyboardTestApp.textInput.click();
+    keyboardTestApp.textInput.tap();
 
     // Wait for the keyboard pop up and switch to it
     systemInputMgmt.waitForKeyboardFrameDisplayed();
@@ -57,7 +57,7 @@ marionette('Input with Keyboard APP', function() {
     client.apps.switchToApp(KeyboardTestApp.ORIGIN);
 
     // Focus on a textarea
-    keyboardTestApp.textInput3.click();
+    keyboardTestApp.textInput3.tap();
 
     client.switchToFrame();
     systemInputMgmt.switchToActiveKeyboardFrame();
@@ -87,7 +87,7 @@ marionette('Input with Keyboard APP', function() {
 
     client.switchToFrame();
     systemInputMgmt.switchToActiveKeyboardFrame();
-    var inputString = 'aGDsaIabcmvljdDFDFDDs';
+    var inputString = 'aGDsaIabcmvljdDFDFDDs śZîd';
     keyboard.type(inputString);
 
     // Switch to test app frame.
@@ -157,7 +157,7 @@ marionette('Input with Keyboard APP', function() {
     client.apps.switchToApp(KeyboardTestApp.ORIGIN);
 
     // Focus on a textarea
-    keyboardTestApp.textInput3.click();
+    keyboardTestApp.textInput3.tap();
 
     client.switchToFrame();
     systemInputMgmt.switchToActiveKeyboardFrame();
@@ -167,8 +167,8 @@ marionette('Input with Keyboard APP', function() {
 
     // type 2 spaces
     var space = keyboard.getKey(' ');
-    space.click();
-    space.click();
+    space.tap();
+    space.tap();
 
     // Switch to test app frame.
     client.switchToFrame();
@@ -184,7 +184,7 @@ marionette('Input with Keyboard APP', function() {
     client.apps.switchToApp(KeyboardTestApp.ORIGIN);
 
     // Focus on a textarea
-    keyboardTestApp.textInput3.click();
+    keyboardTestApp.textInput3.tap();
 
     client.switchToFrame();
     systemInputMgmt.switchToActiveKeyboardFrame();
@@ -194,11 +194,11 @@ marionette('Input with Keyboard APP', function() {
 
     // type one space and then tap again after a while
     var space = keyboard.getKey(' ');
-    space.click();
+    space.tap();
 
     // The timeout for double tapping is set as 700ms.
     client.helper.wait(800);
-    space.click();
+    space.tap();
 
     // Switch to test app frame.
     client.switchToFrame();
