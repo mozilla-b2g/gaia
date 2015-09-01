@@ -1,4 +1,5 @@
-/* global ConversationView,
+/* global App,
+          ConversationView,
           Information,
           InterInstanceEventDispatcher,
           LazyLoader,
@@ -39,7 +40,7 @@
       TimeHeaders.init();
       Information.initDefaultViews();
       Settings.init();
-      MessagingClient.init();
+      MessagingClient.init(App.instanceId);
       Navigation.setReady();
 
       InterInstanceEventDispatcher.connect();
@@ -64,6 +65,8 @@
 
   exports.Startup = {
     init() {
+      Utils.initializeShimHost(App.instanceId);
+
       MessageManager.init();
       ConversationView.init();
       if (Navigation.isDefaultPanel()) {

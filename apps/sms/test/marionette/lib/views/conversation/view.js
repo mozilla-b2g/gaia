@@ -3,6 +3,7 @@
 /* global module */
 
 var ConversationAccessor = require('./accessors');
+var MessageAccessor = require('./message_accessors');
 
 var appRoot = require('app-root-path');
 // TODO Change the path once requireFromApp becomes its own module
@@ -11,6 +12,7 @@ var fromApp = require(appRoot + '/shared/test/integration/require_from_app');
 function ConversationView(client) {
   this.client = client;
   this.accessors = new ConversationAccessor(client);
+  this.messageAccessors = new MessageAccessor(client);
 }
 
 ConversationView.prototype = {
@@ -18,8 +20,23 @@ ConversationView.prototype = {
     return this.accessors.headerTitle.text();
   },
 
+  get messages() {
+    return this.accessors.messages.map(function(message) {
+      return this.messageAccessors.parse(message);
+    }, this);
+  },
+
   get carrierHeaderPhoneNumber() {
     return this.accessors.carrierHeaderPhoneNumber.text();
+  },
+
+  findMessage: function(messageId) {
+    var messageNode = this.messageAccessors.find(messageId);
+    return messageNode && this.messageAccessors.parse(messageNode);
+  },
+
+  downloadMessage: function(messageId) {
+    this.messageAccessors.download(messageId);
   },
 
   callContact: function() {

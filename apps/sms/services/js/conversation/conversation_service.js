@@ -1,9 +1,7 @@
-/*global bridge,
-         BridgeServiceMixin,
-         BroadcastChannel,
+/*global BridgeServiceMixin,
          Draft,
          Drafts,
-         streamClient
+         MozMobileMessageClient
 */
 'use strict';
 
@@ -28,8 +26,11 @@
 
 [
   ['bridge', '/lib/bridge/bridge.js'],
-  ['streamClient', '/lib/bridge/plugins/stream/client.js'],
   ['BridgeServiceMixin', '/services/js/bridge_service_mixin.js'],
+  [
+    'MozMobileMessageClient',
+    '/services/js/moz_mobile_message/moz_mobile_message_client.js'
+  ],
   ['Drafts', '/services/js/drafts.js']
 ].forEach(([dependencyName, dependencyPath]) => {
   if (!(dependencyName in self)) {
@@ -50,12 +51,6 @@
       `[ConversationService] ${args}@sms.gaiamobile.org`
     ):
     () => {};
-
-  const priv = {
-    mobileMessageClients: Symbol('mobileMessageClients'),
-
-    getMobileMessageClient: Symbol('getMobileMessageClient')
-  };
 
   const SERVICE_CONTRACT = Object.freeze({
     name: 'conversation-service',
@@ -101,18 +96,10 @@
 
   var ConversationService = {
     /**
-     * List of mobileMessageClients mapped to specific application id.
-     * @type {Map.<string, Client>}
-     */
-    [priv.mobileMessageClients]: null,
-
-    /**
      * Initializes our service using the Service mixin's initService.
      */
     init() {
       this.initService();
-
-      this[priv.mobileMessageClients] = new Map();
     },
 
     /**
@@ -127,9 +114,9 @@
     getAllConversations(serviceStream, appInstanceId) {
       mark('start retrieving conversations');
 
-      var getThreadsStream = this[priv.getMobileMessageClient](
+      var getThreadsStream = MozMobileMessageClient.forApp(
         appInstanceId
-      ).stream('getThreads');
+      ).getThreads();
 
       // If conversation stream is cancelled we should cancel internal threads
       // stream as well.
@@ -232,35 +219,7 @@
      * match an existing conversation from.
      * @returns {Number?} The id of the conversation, or null if not found.
      */
-    findConversationFromAddress(address) {},
-
-    /**
-     * Returns client that serves to specified app instance, client is created
-     * if it's requested for the first time.
-     * @param {string} appInstanceId Unique identified of the app instance.
-     */
-    [priv.getMobileMessageClient](appInstanceId) {
-      var mobileMessageClient = this[priv.mobileMessageClients].get(
-        appInstanceId
-      );
-
-      if (!mobileMessageClient) {
-        mobileMessageClient = bridge.client({
-          service: 'moz-mobile-message-shim',
-          endpoint: new BroadcastChannel(
-            'moz-mobile-message-shim-channel-' + appInstanceId
-          )
-        }).plugin(streamClient);
-
-        this[priv.mobileMessageClients].set(appInstanceId, mobileMessageClient);
-
-        debug(
-          'Create MobileMessageClient for app instance %s', appInstanceId
-        );
-      }
-
-      return mobileMessageClient;
-    }
+    findConversationFromAddress(address) {}
   };
 
   exports.ConversationService = Object.seal(

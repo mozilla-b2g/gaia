@@ -6,7 +6,8 @@
           MessageManager,
           Navigation,
           Settings,
-          TimeHeaders
+          TimeHeaders,
+          Utils
 */
 
 (function(exports) {
@@ -31,26 +32,9 @@
     });
   }
 
-  function initShimHost() {
-    var shimHostIframe = document.querySelector('.shim-host');
-
-    var promise = shimHostIframe.contentDocument.readyState === 'complete' ?
-      Promise.resolve() :
-      new Promise((resolve) => {
-        shimHostIframe.addEventListener('load', function onLoad() {
-          shimHostIframe.removeEventListener('load', onLoad);
-          resolve();
-        });
-      });
-
-    return promise.then(
-      () => shimHostIframe.contentWindow.bootstrap(App.instanceId)
-    );
-  }
-
   exports.Startup = {
     init() {
-      initShimHost();
+      Utils.initializeShimHost(App.instanceId);
 
       ConversationClient.init(App.instanceId);
       MessageManager.init();
