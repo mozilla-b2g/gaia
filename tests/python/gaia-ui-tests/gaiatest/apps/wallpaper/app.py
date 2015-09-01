@@ -19,5 +19,5 @@ class Wallpaper(Base):
             message='%d wallpaper(s) not present after timeout' % (index + 1))
         self.tap_element_from_system_app(
             self.marionette.find_elements(*self._stock_wallpapers_locator)[index])
-        Wait(self.marionette).until(lambda m: self.apps.displayed_app.name != self.name)
+        self.apps.wait_to_not_be_displayed()
         self.apps.switch_to_displayed_app()

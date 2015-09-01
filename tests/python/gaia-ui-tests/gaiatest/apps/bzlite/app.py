@@ -4,6 +4,8 @@ from marionette_driver import By, Wait, expected
 class BugzillaLite(Base):
 
     name = 'Bugzilla Lite'
+    manifest_url = '{}bzlite{}/manifest.webapp'.format(self.DEFAULT_PROTOCOL,self.DEFAULT_APP_HOSTNAME)
+
     _given_username = (By.CSS_SELECTOR, "#login input[type='email']")
     _given_password = (By.CSS_SELECTOR, "#login input[type='password']")
     _button_login = (By.CSS_SELECTOR, "#login input[type='submit']")

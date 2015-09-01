@@ -68,7 +68,7 @@ class TestCostControlDataAlertMobile(GaiaTestCase):
              message='Data usage bar did not breach limit')
         usage_view.tap()
 
-        self.wait_for_condition(lambda m: self.apps.displayed_app.name == cost_control.name)
+        cost_control.wait_to_be_displayed()
 
     def tearDown(self):
         self.marionette.switch_to_frame()

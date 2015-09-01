@@ -17,6 +17,7 @@ class Marketplace(Base):
     _marketplace_iframe_locator = (By.CSS_SELECTOR, 'iframe[src*="marketplace"]')
     _search_toggle_locator = (By.CSS_SELECTOR, '.header--search-toggle')
     name = 'Marketplace'
+    manifest_url_app = 'marketplace.firefox.com/update.webapp'
 
     def search(self, term):
         iframe = Wait(self.marionette).until(

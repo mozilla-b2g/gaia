@@ -77,7 +77,7 @@ class Gallery(Base):
         switch_to_camera_button = self.marionette.find_element(*self._switch_to_camera_button_locator)
         switch_to_camera_button.tap()
         camera_app = gaiatest.apps.camera.app.Camera(self.marionette)
-        Wait(self.marionette).until(lambda m: self.apps.displayed_app.name == camera_app.name)
+        camera_app.wait_to_be_displayed()
         self.apps.switch_to_displayed_app()
         return camera_app
 

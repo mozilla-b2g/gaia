@@ -89,7 +89,7 @@ class GaiaApps(object):
         self.marionette.switch_to_frame()
 
         if manifest_url:
-            result = self.marionette.execute_async_script("GaiaApps.launchWithManifestURL('%s', %s)"
+            result = self.marionette.execute_async_script("GaiaApps.launchWithManifestURL('%s', '%s')"
                                                           % (manifest_url, json.dumps(entry_point)), script_timeout=launch_timeout)
             assert result, "Failed to launch app with manifest_url '%s'" % manifest_url
         else:

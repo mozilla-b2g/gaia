@@ -16,9 +16,8 @@ class ViewImage(Base):
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
-        Wait(self.marionette).until(lambda m: self.apps.displayed_app.name == 'Gallery')
+        self.wait_to_be_displayed()
         self.apps.switch_to_displayed_app()
-
         Wait(self.marionette).until(expected.element_displayed(
             Wait(self.marionette).until(expected.element_present(
                 *self._image_locator))))
@@ -40,7 +39,7 @@ class ViewImage(Base):
         header.tap(x=20)
 
         # wait for the frame to close
-        Wait(self.marionette).until(lambda m: self.apps.displayed_app.name != 'Gallery')
+        slef.apps.wait_to_not_be_displayed()
 
         self.apps.switch_to_displayed_app()
 
