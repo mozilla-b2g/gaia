@@ -150,9 +150,6 @@ marionette('Music player tests', function() {
     var statusbar;
     setup(function() {
       statusbar = new Statusbar(client);
-    });
-
-    test('Check the play icon is in the status bar. moztrap:9742', function() {
       music.launch();
       music.waitForFirstTile();
       music.switchToSongsView();
@@ -164,7 +161,9 @@ marionette('Music player tests', function() {
       music.switchToMe();
       music.playFirstSong();
       music.waitForPlayerView();
+    });
 
+    test('Check the play icon is in the status bar. moztrap:9742', function() {
       // check the status bar
       client.switchToFrame();
       assert.equal(statusbar.playingIndicator.getAttribute('hidden'), 'false');
@@ -179,6 +178,12 @@ marionette('Music player tests', function() {
 
       // check the status bar again
       assert.equal(statusbar.playingIndicator.getAttribute('hidden'), 'false');
+    });
+
+    test('Check the play icon is hidden after close Music app', function() {
+      music.close();
+      client.switchToFrame();
+      assert.equal(statusbar.playingIndicator.getAttribute('hidden'), 'true');
     });
   });
 
