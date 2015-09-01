@@ -20,8 +20,6 @@ class TestPowerButton(GaiaTestCase):
         self.device.hold_sleep_button()
         sleep_menu.wait_for_sleep_menu_visible()
 
-        self.assertEqual(sleep_menu.title, "Phone")
-
         sleep_menu_items = [item.name for item in sleep_menu.menu_items]
         if self.device.has_mobile_connection:
             for item in MENU_ITEMS_HAS_MOBILE:
