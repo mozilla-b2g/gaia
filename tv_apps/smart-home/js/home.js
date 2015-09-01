@@ -118,8 +118,6 @@
           }
         });
 
-        that.spatialNavigator.focus();
-
         that.edit = new Edit();
         that.edit.init(that.spatialNavigator, that.cardManager,
                        that.cardScrollable, that.folderScrollable);
@@ -163,6 +161,8 @@
                         that.onCardRemoved.bind(that, that.folderScrollable));
           }
         });
+
+        that.spatialNavigator.focus(that.cardScrollable);
       });
     },
 
