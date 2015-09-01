@@ -1,30 +1,25 @@
 /* exported Database */
-/* global AlbumArt, App, AudioMetadata, LazyLoader, MediaDB, TitleBar */
+/* global AlbumArt, AudioMetadata, ForwardLock, LazyLoader, MediaDB,
+          Normalizer, TitleBar, service */
 'use strict';
 
-var musicdb; // XXX
+// XXX: Temporary until scan progress is implemented in UI
+var TitleBar = (function() {
+  function showScanProgress(info) {
+    console.log('NGA: TitleBar.showScanProgress()', info);
+  }
 
-var App = {}; // XXX
+  function hideScanProgress() {
+    console.log('NGA: TitleBar.hideScanProgress()');
+  }
 
-App.refreshViews = debounce(() => { // XXX
-  console.log('**** databaseChange ****');
-  service.broadcast('databaseChange');
-}, 500);
-
-function debounce(fn, ms) { // XXX
-  var timeout;
-  return () => {
-    var args = arguments;
-    clearTimeout(timeout);
-    timeout = setTimeout(() => fn.apply(this, args), ms);
-  };
-}
+  return {
+    showScanProgress: showScanProgress,
+    hideScanProgress: hideScanProgress
+  }
+})();
 
 var Database = (function() {
-  // The MediaDB object that manages the filesystem and the database of metadata
-  // See init()
-  // var musicdb; // XXX
-
   var resolveEnumerable;
   var enumerable = new Promise((resolve) => {
     resolveEnumerable = resolve;
@@ -34,6 +29,21 @@ var Database = (function() {
   var ready = new Promise((resolve) => {
     resolveReady = resolve;
   });
+
+  var dbChange = debounce(() => service.broadcast('databaseChange'), 500);
+
+  function debounce(fn, ms) {
+    var timeout;
+    return () => {
+      var args = arguments;
+      clearTimeout(timeout);
+      timeout = setTimeout(() => fn.apply(this, args), ms);
+    };
+  }
+
+  // The MediaDB object that manages the filesystem and the database of metadata
+  // See init()
+  var musicdb;
 
   function init() {
     // We want to exclude some folders that store ringtones so they don't show
@@ -77,8 +87,7 @@ var Database = (function() {
         record.needsReparse = true;
         if (!startedReparsing) {
           startedReparsing = true;
-          // App.showOverlay('upgrade');
-          console.log('XXX: App.showOverlay(\'upgrade\')');
+          service.broadcast('databaseUpgrade');
         }
       }
       return record.metadata;
@@ -94,26 +103,15 @@ var Database = (function() {
 
     // show dialog in upgradestart, when it finished, it will turned to ready.
     musicdb.onupgrading = function(event) {
-      // App.showOverlay('upgrade');
-      console.log('XXX: App.showOverlay(\'upgrade\')');
+      service.broadcast('databaseUpgrade');
     };
 
     // This is called when DeviceStorage becomes unavailable because the
     // sd card is removed or because it is mounted for USB mass storage
     // This may be called before onready if it is unavailable to begin with
     musicdb.onunavailable = function(event) {
-      var why;
-      switch (event.detail) {
-        case MediaDB.NOCARD:
-          why = 'nocard';
-          break;
-        case MediaDB.UNMOUNTED:
-          why = 'unmounted';
-          break;
-      }
-
-      // App.dbUnavailable(why);
-      console.log('XXX: App.dbUnavailable(\'' + why + '\')');
+      var reason = event.detail === MediaDB.UNMOUNTED ? 'pluggedin' : event.detail;
+      service.broadcast('databaseUnavailable', reason);
     };
 
     // If the user removed the sdcard (but there is still internal storage)
@@ -121,8 +119,7 @@ var Database = (function() {
     // This event will be followed by deleted events to remove the songs
     // that were on the sdcard and are no longer playable.
     musicdb.oncardremoved = function() {
-      // App.dbUnavailable('cardremoved');
-      console.log('XXX: App.dbUnavailable(\'cardremoved\')');
+      service.broadcast('databaseUnavailable', 'cardremoved');
     };
 
     musicdb.onenumerable = startupOnEnumerable;
@@ -131,25 +128,24 @@ var Database = (function() {
     var refreshOnReady = false;
 
     function startupOnEnumerable() {
-      // App.dbEnumerable(function() {
-        if (musicdb.state === MediaDB.READY) {
-          onReady();
-        } else {
-          musicdb.onready = onReady;
-        }
-      // });
-      resolveEnumerable(); // XXX
-      console.log('XXX: App.dbEnumerable(...)');
+      if (musicdb.state === MediaDB.READY) {
+        onReady();
+      } else {
+        musicdb.onready = onReady;
+      }
+
+      resolveEnumerable();
+
+      service.broadcast('databaseEnumerable');
     }
 
     function onReady() {
-      // App.dbReady(refreshOnReady, function() {
-      //   // Start scanning for new music
-      //   musicdb.scan();
-      // });
-      musicdb.scan(); // XXX
-      resolveReady(); // XXX
-      console.log('XXX: App.dbReady(...)');
+      // Start scanning for new music
+      musicdb.scan();
+
+      resolveReady();
+
+      service.broadcast('databaseReady', refreshOnReady);
 
       // Subsequent onready events need to refresh the UI.
       refreshOnReady = true;
@@ -175,14 +171,13 @@ var Database = (function() {
     // And hide the throbber when scanning is done
     musicdb.onscanend = function() {
       scanning = false;
-      // TitleBar.hideScanProgress();
-      console.log('XXX: TitleBar.hideScanProgress()');
+      TitleBar.hideScanProgress();
 
       if (filesFoundBatch > 0 || filesDeletedWhileScanning > 0) {
         filesFoundWhileScanning = 0;
         filesFoundBatch = 0;
         filesDeletedWhileScanning = 0;
-        App.refreshViews();
+        dbChange();
       }
 
       // If this was the first scan after startup, tell the performance monitors
@@ -206,16 +201,15 @@ var Database = (function() {
         filesFoundWhileScanning += n;
         filesFoundBatch += n;
 
-        // TitleBar.showScanProgress({
-        //   count: filesFoundWhileScanning,
-        //   artist: metadata.artist,
-        //   title: metadata.title
-        // });
-        console.log('XXX: TitleBar.showScanProgress(...)');
+        TitleBar.showScanProgress({
+          count: filesFoundWhileScanning,
+          artist: metadata.artist,
+          title: metadata.title
+        });
 
         if (filesFoundBatch > SCAN_UPDATE_BATCH_SIZE) {
           filesFoundBatch = 0;
-          App.refreshViews();
+          dbChange();
         }
       }
       else {
@@ -223,7 +217,7 @@ var Database = (function() {
         // there was probably a new song saved via bluetooth or MMS.
         // We don't have any way to be clever about it; we just have to
         // redisplay the entire view
-        App.refreshViews();
+        dbChange();
       }
     };
 
@@ -247,7 +241,7 @@ var Database = (function() {
         }
         deleteTimer = setTimeout(function() {
           deleteTimer = null;
-          App.refreshViews();
+          dbChange();
         }, DELETE_BATCH_TIMEOUT);
       }
     };
@@ -263,43 +257,79 @@ var Database = (function() {
     musicdb.updateMetadata(fileinfo.name, {rated: fileinfo.metadata.rated});
   }
 
-  function getFile(filename) {
-    return new Promise(function(resolve, reject) {
-      musicdb.getFile(filename, function(file) {
-        if (file) {
-          resolve(file);
-        } else {
-          reject('unable to get file: ' + filename);
-        }
+  function getFile(fileinfo, decrypt = false) {
+    return new Promise((resolve, reject) => {
+      ready.then(() => {
+        musicdb.getFile(fileinfo.name, (file) => {
+          if (file) {
+            resolve(file);
+          } else {
+            reject('unable to get file: ' + fileinfo.name);
+          }
+        });
+      });
+    }).then((blob) => {
+      if (!decrypt || !fileinfo.metadata.locked) {
+        return blob;
+      }
+
+      return new Promise(function(resolve, reject) {
+        ForwardLock.getKey(function(secret) {
+          ForwardLock.unlockBlob(secret, blob, resolve, null, reject);
+        });
       });
     });
   }
 
-  // XXX: ADDED
   function getFileInfo(filename) {
     return new Promise(function(resolve, reject) {
-      musicdb.getFileInfo(filename, resolve, reject);
+      ready.then(() => musicdb.getFileInfo(filename, resolve, reject));
     });
   }
 
-  function getAll(callback) {
-    return musicdb.getAll(callback);
-  }
-
   function enumerate(...args) {
-    return musicdb.enumerate(...args);
+    return enumerable.then(() => musicdb.enumerate(...args));
   }
 
   function enumerateAll(...args) {
-    return musicdb.enumerateAll(...args);
+    return enumerable.then(() => musicdb.enumerateAll(...args));
   }
 
   function advancedEnumerate(...args) {
-    return musicdb.advancedEnumerate(...args);
+    return enumerable.then(() => musicdb.advancedEnumerate(...args));
   }
 
   function count(...args) {
-    return musicdb.count(...args);
+    return enumerable.then(() => musicdb.count(...args));
+  }
+
+  /**
+   * Search the music database for a particular query.
+   *
+   * @param {String} key The field to query against (e.g. 'title').
+   * @param {String} query The string to search for.
+   * @param {Function} callback A function to call with the results of the
+   *        search, called once per result (plus a final call passing `null`).
+   * @return {Object} The handle for this query.
+   */
+  function search(key, query, callback) {
+    return enumerable.then(() => {
+      // Convert to lowercase and replace accented characters.
+      query = Normalizer.toAscii(query.toLocaleLowerCase());
+      var direction = (key === 'title') ? 'next' : 'nextunique';
+
+      return musicdb.enumerate('metadata.' + key, null, direction, (result) => {
+        if (result === null) {
+          callback(result);
+          return;
+        }
+
+        var resultLowerCased = result.metadata[key].toLocaleLowerCase();
+        if (Normalizer.toAscii(resultLowerCased).indexOf(query) !== -1) {
+          callback(result);
+        }
+      });
+    });
   }
 
   function cancelEnumeration(handle) {
@@ -311,15 +341,16 @@ var Database = (function() {
     incrementPlayCount: incrementPlayCount,
     setSongRating: setSongRating,
     getFile: getFile,
-    getFileInfo: getFileInfo, // XXX: ADDED
-    getAll: getAll,
+    getFileInfo: getFileInfo,
     enumerate: enumerate,
     enumerateAll: enumerateAll,
     advancedEnumerate: advancedEnumerate,
     count: count,
+    search: search,
     cancelEnumeration: cancelEnumeration,
-    enumerable, // XXX: ADDED
-    ready, // XXX: ADDED
+
+    enumerable: enumerable,
+    ready: ready,
 
     // This is just here for testing.
     get initialScanComplete() {
