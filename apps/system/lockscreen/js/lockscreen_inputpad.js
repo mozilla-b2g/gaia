@@ -47,7 +47,13 @@
     this.passcodeCode = document.getElementById('lockscreen-passcode-code');
     this.passcodePad = document.getElementById('lockscreen-passcode-pad');
     this.emergencyCallBtn = this.passcodePad.querySelector('a[data-key=e]');
-    this.lastTouched = null;
+
+    /* lastTouchedKey
+     * Keeps track of the key that was under the finger during
+     * the previous 'touchmove' event. UI must be redrawn only if
+     * the finger moved to a different key.
+     */
+    this.lastTouchedKey = null;
 
     this.passcodePad.addEventListener('click', this);
     this.passcodePad.addEventListener('touchstart', this);
@@ -117,59 +123,88 @@
         this.updatePassCodeUI();
         break;
       case 'touchstart':
-        // TODO: ignore while on error timeout
+        // Determine which key the finger is on from touch coordinates.
+        // evt.target remains on where the touch started.
         touch = evt.changedTouches[0];
         target = document.elementFromPoint(touch.clientX, touch.clientY);
         key = this._keyForTarget(target);
+
         if (!key) {
           break;
         }
-        if (this.lastTouched) {
-          this._makeKeyInactive(this.lastTouched);
+        if (this.lastTouchedKey) {
+          this._makeKeyInactive(this.lastTouchedKey);
         }
         this._makeKeyActive(target);
-        this.lastTouched = target;
+        this.lastTouchedKey = target;
         if (this.states.padVibrationEnabled &&
           !this.states.passCodeErrorTimeoutPending) {
           navigator.vibrate(this.configs.padVibrationDuration);
         }
         break;
       case 'touchmove':
-        // TODO: ignore while on error timeout
+        // On touchmove, update keyboard display if and only if
+        // finger moves between keys.
+
+        // Determine which key the finger is on from touch coordinates.
+        // evt.target remains on where the touch started.
         touch = evt.changedTouches[0];
         target = document.elementFromPoint(touch.clientX, touch.clientY);
         key = this._keyForTarget(target);
-        if (target.textContent !== this.lastTouched.textContent) {
-          if (this.lastTouched) {
-            this._makeKeyInactive(this.lastTouched);
+
+        // State update is only required if the touch location moved
+        // onto a different key than in the last round.
+        if (target.textContent !== this.lastTouchedKey.textContent) {
+          if (this.lastTouchedKey) {
+            // Make old key inactive
+            this._makeKeyInactive(this.lastTouchedKey);
           }
           if (key) {
+            // Make new key active
             this._makeKeyActive(target);
-            this.lastTouched = target;
+            // Remember new key for the next event
+            this.lastTouchedKey = target;
           } else {
-            this.lastTouched = null;
+            // If there's no new key, touch moved beyond the keypad
+            this.lastTouchedKey = null;
           }
         }
         break;
       case 'touchend':
-      case 'click':
-        // TODO: ignore while on error timeout
-        if (evt.type == 'touchend') {
-          evt.preventDefault();  // prevent the 'click'
-          touch = evt.changedTouches[0];
-          target = document.elementFromPoint(touch.clientX, touch.clientY);
-        } else {  // 'click'
-          target = evt.target;
-        }
+        // On touchend, handle input from the key over which the
+        // finger was released.
+
+        evt.preventDefault();  // prevent the 'click'
+
+        // Determine which key the finger is on from touch coordinates.
+        // evt.target remains on where the touch started.
+        touch = evt.changedTouches[0];
+        target = document.elementFromPoint(touch.clientX, touch.clientY);
         key = this._keyForTarget(target);
-        if (this.lastTouched) {
-          this._makeKeyInactive(this.lastTouched);
-          this.lastTouched = null;
+
+        if (this.lastTouchedKey) {
+          // Make old key inactive
+          this._makeKeyInactive(this.lastTouchedKey);
+          this.lastTouchedKey = null;
         }
-        if (!key) {
-          break;
+        if (key) {
+          // If touch ended on a key, handle key input
+          this.handlePassCodeInput(key);
         }
-        this.handlePassCodeInput(key);
+        break;
+      case 'click':
+        // Handle the traditional click event. Only required on
+        // platforms that don't support touch events.
+        target = evt.target;
+        key = this._keyForTarget(target);
+        if (this.lastTouchedKey) {
+          this._makeKeyInactive(this.lastTouchedKey);
+          this.lastTouchedKey = null;
+        }
+        if (key) {
+          // If click landed on a key, handle key input
+          this.handlePassCodeInput(key);
+        }
         break;
     }
   };
@@ -184,7 +219,7 @@
       if (target.tagName !== 'A') {
         target = target.parentNode;
       }
-      if (target.tagName == 'A') {
+      if (target.tagName === 'A') {
         return target;
       }
       return null;
