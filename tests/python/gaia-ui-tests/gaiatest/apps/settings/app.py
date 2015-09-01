@@ -11,8 +11,6 @@ class Settings(Base):
 
     name = 'Settings'
 
-    _bluetooth_l10n_locator = (By.CSS_SELECTOR, '[data-l10n-id="bt-status-turnoff"]')
-
     _header_locator = (By.CSS_SELECTOR, '.current gaia-header')
     _non_gaia_header_locator = (By.CSS_SELECTOR, '.current header')
     _page_locator = (By.ID, 'root')
@@ -88,7 +86,7 @@ class Settings(Base):
 
         # this is located at the end of the page.  If this is shown, everything is rendered.
         Wait(self.marionette).until(
-            expected.element_present(*self._bluetooth_l10n_locator))
+            expected.element_present(*self._bluetooth_menu_item_locator))
 
     def switch_to_settings_app(self):
         Wait(self.marionette).until(lambda m: self.apps.displayed_app.name == self.name)
