@@ -162,7 +162,7 @@
           <ol class="value-selector-options-container" role="listbox"></ol>
         </section>
         <menu class="value-selector-select-options-buttons value-selector-buttons">
-          <button class="value-option-confirm affirmative full" data-type="ok" data-l10n-id="ok"></button>
+          <button class="value-option-confirm full" data-type="ok" data-l10n-id="ok"></button>
         </menu>
       </form>
       <div class="value-selector-time-picker-popup" role="dialog" data-type="time-selector" hidden>
