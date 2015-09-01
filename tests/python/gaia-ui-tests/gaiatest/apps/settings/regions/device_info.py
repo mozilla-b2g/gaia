@@ -15,7 +15,7 @@ class DeviceInfo(Base):
     _your_rights_locator = (By.CSS_SELECTOR, '[data-l10n-id="your-rights"]')
     _rights_page_locator = (By.ID, 'about-yourRights')
     _your_privacy_locator = (By.CSS_SELECTOR, '[data-l10n-id="your-privacy"]')
-    _privacy_page_header_locator = (By.CSS_SELECTOR, '[data-l10n-id="your-privacy-header"]')
+    _privacy_page_locator = (By.ID, 'about-yourPrivacy')
     _legal_page_locator = (By.ID, 'about-legal')
     _legal_info_locator = (By.CSS_SELECTOR, '[data-l10n-id="about-legal-info"]')
     _open_source_notices_locator = (By.CSS_SELECTOR, '[data-l10n-id="open-source-notices"]')
@@ -25,6 +25,7 @@ class DeviceInfo(Base):
     _obtaining_source_code_locator = (By.CSS_SELECTOR, '[data-l10n-id="obtaining-source-code"]')
     _source_code_page_locator = (By.ID, 'about-source-code')
     _more_info_button_locator = (By.CSS_SELECTOR, 'a[href="#about-moreInfo"]')
+    _more_info_page_locator = (By.ID, 'about-moreInfo')
     _reset_button_locator = (By.CLASS_NAME, 'reset-phone')
     _reset_confirm_locator = (By.CLASS_NAME, 'confirm-reset-phone')
     _reset_cancel_locator = (By.CLASS_NAME, 'cancel-reset-phone')
@@ -41,8 +42,24 @@ class DeviceInfo(Base):
         return self.marionette.find_element(*self._page_locator)
 
     @property
+    def moreinfo_screen_element(self):
+        return self.marionette.find_element(*self._more_info_page_locator)
+
+    @property
     def rights_screen_element(self):
         return self.marionette.find_element(*self._rights_page_locator)
+
+    @property
+    def notice_screen_element(self):
+        return self.marionette.find_element(*self._notice_page_locator)
+
+    @property
+    def source_screen_element(self):
+        return self.marionette.find_element(*self._source_code_page_locator)
+
+    @property
+    def privacy_screen_element(self):
+        return self.marionette.find_element(*self._privacy_page_locator)
 
     @property
     def legal_screen_element(self):
@@ -70,7 +87,7 @@ class DeviceInfo(Base):
         element = self.marionette.find_element(*self._your_privacy_locator)
         Wait(self.marionette).until(expected.element_displayed(element))
         element.tap()
-        Wait(self.marionette).until(expected.element_displayed(*self._privacy_page_header_locator))
+        Wait(self.marionette).until(expected.element_displayed(*self._privacy_page_locator))
 
     def tap_legal_info(self):
         element = self.marionette.find_element(*self._legal_info_locator)
@@ -212,3 +229,8 @@ class DeviceInfo(Base):
         @property
         def git_commit_hash(self):
             return self.root_element.find_element(*self._git_commit_hash_locator).text
+
+            # workaround for bug 1202246.  Need to call this method after frame switching
+
+        def refresh_root_element(self):
+            self.root_element = self.marionette.find_element(*self._root_locator)

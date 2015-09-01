@@ -59,6 +59,10 @@ class KeyboardAddMoreKeyboards(Base):
         section = self.marionette.find_element(*self._section_locator)
         Wait(self.marionette).until(lambda m: section.location['x'] == 0)
 
+    @property
+    def screen_element(self):
+        return self.marionette.find_element(*self._section_locator)
+
     def select_language(self, language):
         language_locator = (
             self._select_language_locator[0],

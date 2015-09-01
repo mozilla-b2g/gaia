@@ -10,6 +10,7 @@ from gaiatest.apps.base import Base
 
 
 class DateAndTime(Base):
+
     _page_locator = (By.ID, 'dateTime')
     _24h_selector_locator = (By.CSS_SELECTOR, 'select.time-format-time')
     _autotime_enabled_locator = (By.CSS_SELECTOR, '.time-auto')
@@ -22,7 +23,6 @@ class DateAndTime(Base):
     _timezone_confirm_button_locator = (By.CSS_SELECTOR, 'button.value-option-confirm')
     _time_format_confirm_button_locator = (By.CLASS_NAME, "value-option-confirm")
 
-
     def __init__(self, marionette):
         Base.__init__(self, marionette)
 
@@ -33,7 +33,8 @@ class DateAndTime(Base):
     def open_time_format(self):
         self.marionette.find_element(*self._24h_selector_locator).tap()
         self.marionette.switch_to_frame()
-        Wait(self.marionette).until(expected.element_present(*self._time_format_confirm_button_locator))
+        Wait(self.marionette).until(
+            expected.element_present(*self._time_format_confirm_button_locator))
 
     def close_time_format(self):
         self.marionette.find_element(*self._time_format_confirm_button_locator).tap()
@@ -78,7 +79,8 @@ class DateAndTime(Base):
 
     @property
     def is_autotime_enabled(self):
-        return self.marionette.find_element(*self._autotime_enabled_locator).get_attribute('data-state') == 'auto'
+        return self.marionette.find_element(
+            *self._autotime_enabled_locator).get_attribute('data-state') == 'auto'
 
     @property
     def get_current_time_text(self):

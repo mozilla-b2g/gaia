@@ -9,8 +9,13 @@ from gaiatest.apps.base import Base
 
 class HomescreenSettings(Base):
 
+    _page_locator = (By.ID, 'homescreen')
     _icon_layout_locator = (By.CSS_SELECTOR, '#homescreen div.icon-dialog')
     _icon_layout_confirmation_button_locator = (By.CLASS_NAME, "value-option-confirm")
+
+    @property
+    def screen_element(self):
+        return self.marionette.find_element(*self._page_locator)
 
     def select_icon_layout(self, value):
         element = Wait(self.marionette).until(
