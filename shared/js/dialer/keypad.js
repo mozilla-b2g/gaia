@@ -614,6 +614,12 @@ var KeypadManager = {
         function() {
           var iccId = navigator.mozIccManager.iccIds[cardIndex];
           var icc = navigator.mozIccManager.getIccById(iccId);
+
+          if (!icc) {
+            reject('noSimCardToLoadContactsFrom');
+            return;
+          }
+
           var req = icc.readContacts('adn');
 
           req.onsuccess = function(event) {

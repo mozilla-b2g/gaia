@@ -846,6 +846,17 @@ suite('dialer/keypad', function() {
             assert.equal(number, numbers[0]);
           }).then(done, done);
         });
+
+        test('An error message is shown when no SIM card is present',
+        function(done) {
+          this.sinon.stub(MockIccManager.prototype, 'getIccById').returns(null);
+
+          subject._getSpeedDialNumber(speedDialIndex).then(function() {
+            assert.isTrue(false, 'The promise should not be resolved');
+          }, function(error) {
+            assert.equal(error, 'noSimCardToLoadContactsFrom');
+          }).then(done, done);
+        });
       });
     });
   });
