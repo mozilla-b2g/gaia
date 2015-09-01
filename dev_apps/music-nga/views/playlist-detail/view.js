@@ -8,7 +8,6 @@ var PlaylistDetailView = View.extend(function PlaylistDetailView() {
 
   this.content = document.getElementById('content');
 
-  this.client = bridge.client({ service: 'music-service', endpoint: window.parent });
   this.client.on('databaseChange', () => this.update());
 
   this.update();
@@ -48,7 +47,7 @@ PlaylistDetailView.prototype.render = function() {
 };
 
 PlaylistDetailView.prototype.getPlaylist = function() {
-  return fetch('/api/playlists/' + this.params.id).then(response => response.json());
+  return this.fetch('/api/playlists/' + this.params.id).then(response => response.json());
 };
 
 window.view = new PlaylistDetailView();

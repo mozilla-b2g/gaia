@@ -1,4 +1,4 @@
-/* global SERVICE_WORKERS, bridge */
+/* global SERVICE_WORKERS, service */
 'use strict';
 
 function perfMark(marker) {
@@ -32,13 +32,9 @@ if (navigator.mozSetMessageHandler) {
   navigator.mozSetMessageHandler('activity', activity => onActivity(activity));
 }
 
-var service = bridge.service('*')
-  .on('message', message => message.forward($id('endpoint')))
-  .listen();
-
 var client = bridge.client({
   service: 'music-service',
-  endpoint: $id('endpoint'),
+  endpoint: window,
   timeout: false
 });
 

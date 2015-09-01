@@ -198,7 +198,6 @@ proto.attributeChangedCallback = function(attr, oldVal, newVal) {
     case 'repeat':
       this.els.repeat.dataset.value =
         REPEAT_VALUES.indexOf(newVal) !== -1 ? newVal : REPEAT_VALUES[0];
-      console.log(this.repeat);
       break;
     case 'shuffle':
       this.els.shuffle.dataset.value =
@@ -243,7 +242,6 @@ Object.defineProperty(proto, 'repeat', {
   },
 
   set: function(value) {
-    console.log('SET REPEAT', value);
     value = REPEAT_VALUES.indexOf(value) !== -1 ? value : REPEAT_VALUES[0];
     this.setAttribute('repeat', value);
   }
@@ -255,7 +253,6 @@ Object.defineProperty(proto, 'shuffle', {
   },
 
   set: function(value) {
-    console.log('SET SHUFFLE', value);
     value = SHUFFLE_VALUES.indexOf(value) !== -1 ? value : SHUFFLE_VALUES[0];
     this.setAttribute('shuffle', value);
   }

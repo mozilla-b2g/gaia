@@ -37,7 +37,6 @@ var ArtistDetailView = View.extend(function ArtistDetailView() {
 
   View.preserveListScrollPosition(this.list);
 
-  this.client = bridge.client({ service: 'music-service', endpoint: window.parent });
   this.client.on('databaseChange', () => this.update());
 
   this.update();
@@ -65,11 +64,11 @@ ArtistDetailView.prototype.render = function() {
 };
 
 ArtistDetailView.prototype.getArtist = function() {
-  return fetch('/api/artists/info' + this.params.id).then(response => response.json());
+  return this.fetch('/api/artists/info' + this.params.id).then(response => response.json());
 };
 
 ArtistDetailView.prototype.queueArtist = function(filePath) {
-  fetch('/api/queue/artist' + filePath);
+  this.fetch('/api/queue/artist' + filePath);
 };
 
 window.view = new ArtistDetailView();

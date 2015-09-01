@@ -50,10 +50,22 @@
     <button type="button" data-action="cancel">Cancel</button>
   </music-overlay>
 
-  <iframe id="endpoint" src="/endpoint.html" hidden></iframe>
+  <audio id="audio"></audio>
 
   <script src="/components/bridge/client.js"></script>
   <script src="/components/bridge/service.js"></script>
+
+  <script src="/shared/js/async_storage.js"></script>
+  <script src="/shared/js/image_utils.js"></script>
+  <script src="/shared/js/lazy_loader.js"></script>
+  <script src="/shared/js/mediadb.js"></script>
+  <script src="/shared/js/omadrm/fl.js"></script>
+  <script src="/shared/js/text_normalizer.js"></script>
+  <script src="/js/shims/device-storage.js"></script>
+  <script src="/js/db.js"></script>
+  <script src="/js/queue.js"></script>
+  <script src="/js/endpoint.js"></script>
+
   <script src="/js/config.js"></script>
   <script src="/js/app.js"></script>
 </body>

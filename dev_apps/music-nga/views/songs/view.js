@@ -46,7 +46,6 @@ var SongsView = View.extend(function SongsView() {
 
   View.preserveListScrollPosition(this.list);
 
-  this.client = bridge.client({ service: 'music-service', endpoint: window.parent });
   this.client.on('databaseChange', () => this.update());
 
   this.update();
@@ -75,7 +74,7 @@ SongsView.prototype.render = function() {
 
 SongsView.prototype.getSongs = function() {
   console.time('getSongs');
-  return fetch('/api/songs/list')
+  return this.fetch('/api/songs/list')
     .then(response => response.json())
     .then(songs => {
       console.timeEnd('getSongs');
@@ -85,7 +84,7 @@ SongsView.prototype.getSongs = function() {
 };
 
 SongsView.prototype.queueSong = function(filePath) {
-  fetch('/api/queue/song' + filePath);
+  this.fetch('/api/queue/song' + filePath);
 };
 
 SongsView.prototype.setCache = function(items) {
