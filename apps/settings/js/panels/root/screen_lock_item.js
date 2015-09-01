@@ -5,11 +5,14 @@ define(function(require) {
 
   function ScreenLockItem(element) {
     this._itemEnabled = false;
-    this._observedKey = 'lockscreen.enabled';
+    this._lockscreenEnable = false;
+    this._lockscreenEnableEvent = 'lockscreen.enabled';
+    this._lockscreenPasscodeEnableEvent = 'lockscreen.passcode-lock.enabled';
     this._element = element;
-    this._boundUpdateUI = this._updateUI.bind(this);
+    this._boundUpdateEnable = this._updateEnable.bind(this);
+    this._boundUpdatePasscodeEnable = this._updatePasscodeEnable.bind(this);
   }
-  
+
   ScreenLockItem.prototype = {
     set enabled(value) {
       if (value === this._itemEnabled) {
@@ -17,10 +20,15 @@ define(function(require) {
       } else {
         this._itemEnabled = value;
         if (this._itemEnabled) {
-          SettingsListener.observe(this._observedKey, false,
-            this._boundUpdateUI);
+          SettingsListener.observe(this._lockscreenEnableEvent, false,
+            this._boundUpdateEnable);
+          SettingsListener.observe(this._lockscreenPasscodeEnableEvent, false,
+            this._boundUpdatePasscodeEnable);
         } else {
-          SettingsListener.unobserve(this._observedKey, this._boundUpdateUI);
+          SettingsListener.unobserve(this._lockscreenEnableEvent,
+            this._boundUpdateEnable);
+          SettingsListener.unobserve(this._lockscreenPasscodeEnableEvent,
+            this._boundUpdatePasscodeEnable);
         }
       }
     },
@@ -29,8 +37,19 @@ define(function(require) {
       return this._itemEnabled;
     },
 
-    _updateUI: function sl_updateUI(enabled) {
-      var l10nId = enabled ? 'enabled' : 'disabled';
+    _updateEnable: function sl_updateEnable(enabled) {
+      this._lockscreenEnable = enabled;
+      var l10nId = enabled ? 'screenLock-enabled-with-no-passcode' : 'disabled';
+      this._element.setAttribute('data-l10n-id', l10nId);
+    },
+
+    _updatePasscodeEnable: function sl_updatePasscodeEnable(enabled) {
+      var l10nId = 'disabled';
+      if (this._lockscreenEnable) {
+        l10nId = enabled ?
+          'screenLock-enabled-with-passcode' :
+          'screenLock-enabled-with-no-passcode';
+      }
       this._element.setAttribute('data-l10n-id', l10nId);
     }
   };
