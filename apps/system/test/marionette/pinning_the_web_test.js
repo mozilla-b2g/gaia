@@ -9,6 +9,11 @@ marionette('Pinning the Web', function() {
 
   var client = marionette.client({
     profile: {
+      prefs: {
+        // APZ was causing a crash, so we disable it for this test.
+        // see https://bugzilla.mozilla.org/show_bug.cgi?id=1200580
+        'layers.async-pan-zoom.enabled': false
+      },
       settings: {
         'dev.gaia.pinning_the_web': true
       }
@@ -35,21 +40,6 @@ marionette('Pinning the Web', function() {
     actions = client.loader.getActions();
   });
 
-  test('Shows the dialog when clicking on the siteIcon', function() {
-    var url = server.url('sample.html');
-    rocketbar.homescreenFocus();
-    rocketbar.enterText(url, true);
-    var frame = client.helper.waitForElement(
-      'div[transition-state="opened"] iframe[src="' + url + '"]');
-    client.switchToFrame(frame);
-    client.helper.waitForElement('body');
-    client.switchToFrame();
-    client.waitFor(function() {
-      system.siteIcon.click();
-      return system.pinDialog.displayed();
-    });
-  });
-
   test('Pin browser chrome', function() {
     var url = server.url('sample.html');
     rocketbar.homescreenFocus();
@@ -59,10 +49,12 @@ marionette('Pinning the Web', function() {
     client.switchToFrame(frame);
     client.helper.waitForElement('body');
     client.switchToFrame();
+    system.siteIcon.click();
     client.waitFor(function() {
-      system.siteIcon.click();
       return system.pinDialog.displayed();
     });
+    assert(true, 'Shows the dialog when clicking siteIcon');
+
     // Check that browser chrome is smaller after pinning
     var chromeRectBefore = system.appChrome.scriptWith(function(e) {
       return e.getBoundingClientRect();
@@ -71,31 +63,9 @@ marionette('Pinning the Web', function() {
     var chromeRectAfter = system.appChrome.scriptWith(function(e) {
       return e.getBoundingClientRect();
     });
-    assert.ok(chromeRectBefore.height > chromeRectAfter.height);
-  });
+    assert.ok(chromeRectBefore.height > chromeRectAfter.height,
+      'browser chrome collapses after pinning');
 
-  test('Manually expand browser chrome', function() {
-    var url = server.url('sample.html');
-    rocketbar.homescreenFocus();
-    rocketbar.enterText(url, true);
-    var frame = client.helper.waitForElement(
-      'div[transition-state="opened"] iframe[src="' + url + '"]');
-    client.switchToFrame(frame);
-    client.helper.waitForElement('body');
-    client.switchToFrame();
-    client.waitFor(function() {
-      system.siteIcon.click();
-      return system.pinDialog.displayed();
-    });
-    // Check that browser chrome is smaller after pinning
-    var chromeRectBefore = system.appChrome.scriptWith(function(e) {
-      return e.getBoundingClientRect();
-    });
-    system.pinButton.click();
-    var chromeRectAfterPin = system.appChrome.scriptWith(function(e) {
-      return e.getBoundingClientRect();
-    });
-    assert.ok(chromeRectBefore.height > chromeRectAfterPin.height);
     // Check that browser chrome expands when tapped
     actions.wait(1).tap(system.appUrlbar).perform();
     client.waitFor(function() {
@@ -109,5 +79,6 @@ marionette('Pinning the Web', function() {
     client.waitFor(function() {
       return rocketbar.backdrop.displayed();
     });
+    assert(true, 'browser chrome can be manually expanded');
   });
 });
