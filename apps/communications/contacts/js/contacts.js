@@ -482,12 +482,6 @@ var Contacts = (function() {
   var initEventListeners = function initEventListener() {
     // Definition of elements and handlers
     utils.listeners.add({
-      '#contacts-list-header': [
-        {
-          event: 'action',
-          handler: handleCancel // Activity (any) cancellation
-        }
-      ],
       '#add-contact-button': showAddContact,
       '#settings-button': showSettings, // Settings related
       '#search-start': [
@@ -657,6 +651,7 @@ var Contacts = (function() {
 
   var initContacts = function initContacts(evt) {
     initEventListeners();
+    HeaderUI.setNormalHeader();
     utils.PerformanceHelper.contentInteractive();
     utils.PerformanceHelper.chromeInteractive();
     window.setTimeout(Contacts && Contacts.onLocalized);
