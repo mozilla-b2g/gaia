@@ -57,16 +57,6 @@
     /**
      * @readonly
      * @memberof FilterManager.FILTERS
-     * @property {String} name - value is `dashboard`
-     * @property {String} iconName - value is `dashboard`
-     */
-    'DASHBOARD': {
-      name: 'dashboard',
-      iconName: 'dashboard'
-    },
-    /**
-     * @readonly
-     * @memberof FilterManager.FILTERS
      * @property {String} name - value is `device`
      * @property {String} iconName - value is `device`
      */
