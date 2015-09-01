@@ -72,7 +72,6 @@ TcpSync.prototype.waitForSocket = function(options, callback) {
 
   function probeSocket() {
     try {
-      debug('probing socket');
       sockit.connect(socketConfig);
 
       var s = sockit.read(16).toString();
@@ -103,6 +102,7 @@ TcpSync.prototype.waitForSocket = function(options, callback) {
     setTimeout(probeSocket.bind(self), interval);
   }
 
+  debug('probing socket');
   probeSocket();
 };
 
