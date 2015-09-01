@@ -24,6 +24,7 @@ marionette('Messages Composer', function() {
   });
 
   var messagesApp, activityCallerApp;
+  var storage;
 
   function assertIsDisplayed(element) {
     assert.isTrue(element.displayed(), 'Element should be displayed');
@@ -39,16 +40,22 @@ marionette('Messages Composer', function() {
     }), message);
   }
 
+  var MOCKS = [
+    '/mocks/mock_test_storages.js',
+    '/mocks/mock_navigator_moz_icc_manager.js',
+    '/mocks/mock_navigator_moz_mobile_message.js',
+    '/mocks/mock_navigator_moz_contacts.js'
+  ];
+
   setup(function() {
     messagesApp = Messages.create(client);
+    storage = Storage.create(client);
+
     activityCallerApp = MessagesActivityCaller.create(client);
 
-    client.contentScript.inject(
-      __dirname + '/mocks/mock_navigator_moz_mobile_message.js'
-    );
-    client.contentScript.inject(
-      __dirname + '/mocks/mock_navigator_moz_icc_manager.js'
-    );
+    MOCKS.forEach(function(mock) {
+      client.contentScript.inject(__dirname + mock);
+    });
   });
 
   suite('Preserve message input while navigating', function() {
@@ -73,6 +80,10 @@ marionette('Messages Composer', function() {
       inbox = messagesApp.Inbox;
 
       messagesApp.launch();
+      // Set empty stores.
+      storage.setMessagesStorage();
+      storage.setContactsStorage();
+
       createMMSConversation();
       messagesApp.performHeaderAction();
       waitForInbox();
@@ -100,6 +111,33 @@ marionette('Messages Composer', function() {
     });
   });
 
+  suite('Sending a message', function() {
+    setup(function() {
+      messagesApp.launch();
+
+      // Set empty messages and contacts store.
+      storage.setMessagesStorage();
+      storage.setContactsStorage();
+
+      messagesApp.Inbox.navigateToComposer();
+
+      // Create new thread from the scratch
+      messagesApp.addRecipient('+1');
+      messagesApp.Composer.messageInput.sendKeys('message');
+      messagesApp.send();
+    });
+
+    test('Header should be updated accordingly', function() {
+      client.helper.waitForElement(messagesApp.Conversation.message);
+
+      assert.equal(
+        messagesApp.Conversation.headerTitle.text(),
+        '+1',
+        'Header title should display contact phone number'
+      );
+    });
+  });
+
   suite('Messages Composer Test Suite', function() {
     var message = 'long long long long long message long long message long ' +
         'message long long message message long message long message long ' +
@@ -107,6 +145,10 @@ marionette('Messages Composer', function() {
 
     setup(function() {
       messagesApp.launch();
+      // Set empty stores.
+      storage.setMessagesStorage();
+      storage.setContactsStorage();
+
       messagesApp.Inbox.navigateToComposer();
     });
 
@@ -263,7 +305,7 @@ marionette('Messages Composer', function() {
 
 
   suite('Recipients', function() {
-    var newMessage, storage;
+    var newMessage;
     var contact = {
       name: ['Existing Contact'],
       givenName: ['Existing'],
@@ -273,18 +315,8 @@ marionette('Messages Composer', function() {
         type: 'Mobile'
       }]
     };
-    var MOCKS = [
-      '/mocks/mock_test_storages.js',
-      '/mocks/mock_navigator_moz_contacts.js'
-    ];
 
     setup(function() {
-      storage = Storage.create(client);
-
-      MOCKS.forEach(function(mock) {
-        client.contentScript.inject(__dirname + mock);
-      });
-
       messagesApp.launch();
       storage.setMessagesStorage();
       storage.setContactsStorage([contact]);

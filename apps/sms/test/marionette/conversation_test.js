@@ -85,37 +85,86 @@ marionette('Conversation Panel Tests', function() {
   });
 
   suite('Forward message', function() {
+    var smsBody = 'this is a sms body';
+    var mmsBody = 'this is a mms body';
+
+    var smsThread, mmsThread;
+
     setup(function() {
+      smsThread = ThreadGenerator.generate({
+        body: smsBody
+      });
+
+      mmsThread = ThreadGenerator.generate({
+        numberOfMessages: 1,
+        messageType: 'mms',
+        participants: ['a@b.c'],
+        attachments: [
+          { type: 'image/png', width: 10,  height: 10 },
+          { type: 'text/plain', content: mmsBody }
+        ]
+      });
+
       messagesApp.launch();
-
-      // Set empty messages and contacts store.
-      storage.setMessagesStorage();
+      storage.setMessagesStorage(
+        [smsThread, mmsThread],
+        ThreadGenerator.uniqueMessageId
+      );
+      // empty contact store
       storage.setContactsStorage();
-
-      messagesApp.Inbox.navigateToComposer();
-
-      // Create new thread from the scratch
-      messagesApp.addRecipient('+1');
-      messagesApp.Composer.messageInput.sendKeys('message');
-      messagesApp.send();
     });
 
-    test('Header should be updated accordingly', function() {
-      client.helper.waitForElement(messagesApp.Conversation.message);
-
-      assert.equal(
-        messagesApp.Conversation.headerTitle.text(),
-        '+1',
-        'Header title should display contact phone number'
-      );
+    test('Forward a SMS', function() {
+      messagesApp.Inbox.findConversation(smsThread.id).tap();
 
       // Forward message
       messagesApp.contextMenu(messagesApp.Conversation.message);
       messagesApp.selectAppMenuOption('Forward');
       // Wait for message to be forwarded to fill out composer fields
       client.waitFor(function() {
-        return messagesApp.Composer.messageInput.text() === 'message';
+        return messagesApp.Composer.messageInput.text() !== '';
       });
+
+      assert.equal(
+        messagesApp.Composer.messageInput.text(),
+        smsBody,
+        'Forwarded body is the initial body'
+      );
+
+      assert.equal(
+        messagesApp.Conversation.headerTitle.text(),
+        'New message',
+        'Header title should indicate that we are composing new message'
+      );
+
+      assertIsFocused(
+        messagesApp.Composer.recipientsInput,
+        'Recipients input should be focused'
+      );
+    });
+
+    test('Forwarding a MMS', function() {
+      messagesApp.Inbox.findConversation(mmsThread.id).tap();
+
+      // Forward message
+      messagesApp.contextMenu(messagesApp.Conversation.message);
+      messagesApp.selectAppMenuOption('Forward');
+      // Wait for message to be forwarded to fill out composer fields
+      client.waitFor(function() {
+        return messagesApp.Composer.messageInput.text() !== '';
+      });
+
+      assert.equal(
+        messagesApp.Composer.messageInput.text(),
+        mmsBody,
+        'Forwarded body is the initial body'
+      );
+
+      var composerAttachment =  messagesApp.Composer.attachment;
+      assert.isNotNull(composerAttachment);
+      assert.equal(
+        composerAttachment.getAttribute('data-attachment-type'), 'img'
+      );
 
       assert.equal(
         messagesApp.Conversation.headerTitle.text(),
