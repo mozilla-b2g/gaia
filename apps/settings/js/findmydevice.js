@@ -133,6 +133,9 @@ define('findmydevice', ['modules/settings_utils', 'shared/settings_listener'
 
       this._interactiveLogin = false;
 
+      // Bug 1164713: Force logged in status in case of stale setting value
+      SettingsHelper('findmydevice.logged-in').set(loggedIn);
+
       var unverifiedError = document.getElementById(
         'findmydevice-fxa-unverified-error');
       unverifiedError.hidden = true;
