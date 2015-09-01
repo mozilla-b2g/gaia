@@ -6574,46 +6574,6 @@ suite('conversation.js >', function() {
       assert.isFalse(mainWrapper.classList.contains('edit'));
     });
 
-    test('revokes all attachment thumbnail URLs', function(done) {
-      this.sinon.stub(window.URL, 'revokeObjectURL');
-      Navigation.isCurrentPanel.withArgs('thread').returns(true);
-
-      var attachments = [{
-        location: 'image',
-        content: testImageBlob
-      }, {
-        location: 'image',
-        content: testImageBlob
-      }, {
-        location: 'video',
-        content: testVideoBlob
-      }];
-
-      ConversationView.initializeRendering();
-      var promises = attachments.map((attachment, index) =>
-        ConversationView.appendMessage(MockMessages.mms({
-          id: index + 1,
-          attachments: [attachment]
-        })).then(() => {
-          if (attachment.content.type.indexOf('image') >= 0) {
-            var attachmentContainer = ConversationView.container.querySelector(
-              '[data-message-id="' + (index + 1) + '"] .attachment-container'
-            );
-            attachmentContainer.dataset.thumbnail = 'blob:fake' + index;
-          }
-        })
-      );
-
-      Promise.all(promises).then(() => {
-        ConversationView.stopRendering();
-        ConversationView.beforeLeave(transitionArgs);
-
-        sinon.assert.calledTwice(window.URL.revokeObjectURL);
-        sinon.assert.calledWith(window.URL.revokeObjectURL, 'blob:fake0');
-        sinon.assert.calledWith(window.URL.revokeObjectURL, 'blob:fake1');
-      }).then(done, done);
-    });
-
     test('to non-current view, activeThread and fields cleaned', function() {
       this.sinon.stub(ConversationView, 'isConversationPanel').returns(false);
 
@@ -6704,6 +6664,49 @@ suite('conversation.js >', function() {
     setup(function() {
       this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
       this.sinon.spy(Compose, 'clear');
+    });
+
+    test('revokes all attachment thumbnail URLs', function(done) {
+      this.sinon.stub(window.URL, 'revokeObjectURL');
+      Navigation.isCurrentPanel.withArgs('thread-list').returns(true);
+
+      setupEnterConversationView(
+        { threadId: 1, recipients: ['999'] }
+      ).then(() => {
+        var attachments = [{
+          location: 'image',
+          content: testImageBlob
+        }, {
+          location: 'image',
+          content: testImageBlob
+        }, {
+          location: 'video',
+          content: testVideoBlob
+        }];
+
+        var promises = attachments.map((attachment, index) =>
+          ConversationView.appendMessage(MockMessages.mms({
+            id: index + 1,
+            attachments: [attachment]
+          })).then(() => {
+            if (attachment.content.type.indexOf('image') >= 0) {
+              var attachmentContainer = container.querySelector(
+                '[data-message-id="' + (index + 1) + '"] .attachment-container'
+              );
+              attachmentContainer.dataset.thumbnail = 'blob:fake' + index;
+            }
+          })
+        );
+
+        return Promise.all(promises);
+      }).then(() => {
+        ConversationView.stopRendering();
+        ConversationView.afterLeave();
+
+        sinon.assert.calledTwice(window.URL.revokeObjectURL);
+        sinon.assert.calledWith(window.URL.revokeObjectURL, 'blob:fake0');
+        sinon.assert.calledWith(window.URL.revokeObjectURL, 'blob:fake1');
+      }).then(done, done);
     });
 
     test('properly clean the composer when moving back to thread list',

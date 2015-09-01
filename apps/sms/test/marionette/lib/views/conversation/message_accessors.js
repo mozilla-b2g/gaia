@@ -39,16 +39,20 @@ MessageAccessor.prototype = {
         content: messageNode.findElement(SELECTORS.content).text(),
         attachments: attachments.map(function(attachment) {
           return {
+            screenshot: function() {
+              return this.client.screenshot({ element: attachment });
+            }.bind(this),
             type: attachment.getAttribute('data-attachment-type')
           };
-        }),
+        }, this),
         isDownloaded: messageClass.indexOf('not-downloaded') < 0,
         isPending: messageClass.indexOf('pending') >= 0,
         isInEditMode: messageNode.findElement('.pack-checkbox').displayed(),
-        isSelected: checkbox.getAttribute('checked') === 'true'
+        isSelected: checkbox.getAttribute('checked') === 'true',
+        isDisplayed: messageNode.displayed()
       };
     } catch(e) {
-      console.warn('Message node is not available', e);
+      console.warn('Message node is not available', e, e.stack);
 
       return null;
     }
