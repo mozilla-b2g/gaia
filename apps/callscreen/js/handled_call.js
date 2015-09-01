@@ -143,19 +143,6 @@ function hc_computeCallEndedFontSizeRules() {
     '}';
   this.callEndedStyleSheet.insertRule(rule,
     this.callEndedStyleSheet.cssRules.length);
-
-  // Compute the size of the font for displaying the string in the statusbar
-  info = FontSizeUtils.getMaxFontSizeInfo(
-    this.durationChildNode.textContent, allowedSizes, fontFamily, 160);
-  rule =
-    '@media (max-height: 4.5em) {' +
-    '  .handled-call.ended .duration > span,' +
-    '  .handled-call.ended .total-duration {' +
-    '    font-size: ' + (info.fontSize / 10.0) + 'rem;' +
-    '  }' +
-    '}';
-  this.callEndedStyleSheet.insertRule(rule,
-    this.callEndedStyleSheet.cssRules.length);
 };
 
 /**
