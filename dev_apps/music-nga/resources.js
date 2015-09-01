@@ -63,6 +63,7 @@ const RESOURCES = [
   '/js/services/artists.js',
   '/js/services/artwork.js',
   '/js/services/audio.js',
+  '/js/services/database.js',
   '/js/services/playlist.js',
   '/js/services/queue.js',
   '/js/services/songs.js',

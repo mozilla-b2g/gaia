@@ -35,7 +35,7 @@ marionette('Music ui tests', function() {
       client.fileManager.removeAllFiles();
     });
 
-    test('Overlay should be shown when storage has no songs', function() {
+    test.skip('Overlay should be shown when storage has no songs', function() {
       try {
         music.launch();
         music.waitFinishedScanning();
@@ -53,7 +53,7 @@ marionette('Music ui tests', function() {
       ]);
     });
 
-    test('Overlay should be hidden when storage has some songs', function() {
+    test.skip('Overlay should be hidden when storage has some songs', function() {
       try {
         music.launch();
         music.waitFinishedScanning();

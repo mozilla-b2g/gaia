@@ -20,6 +20,13 @@ var TitleBar = (function() {
 })();
 
 var Database = (function() {
+  var status = {
+    upgrading: false,
+    unavailable: false,
+    enumerable: false,
+    ready: false
+  };
+
   var resolveEnumerable;
   var enumerable = new Promise((resolve) => {
     resolveEnumerable = resolve;
@@ -103,6 +110,10 @@ var Database = (function() {
 
     // show dialog in upgradestart, when it finished, it will turned to ready.
     musicdb.onupgrading = function(event) {
+      status.upgrading = true;
+      status.enumerable = false;
+      status.ready = false;
+
       service.broadcast('databaseUpgrade');
     };
 
@@ -111,7 +122,7 @@ var Database = (function() {
     // This may be called before onready if it is unavailable to begin with
     musicdb.onunavailable = function(event) {
       var reason = event.detail === MediaDB.UNMOUNTED ? 'pluggedin' : event.detail;
-      service.broadcast('databaseUnavailable', reason);
+      onUnavailable(reason);
     };
 
     // If the user removed the sdcard (but there is still internal storage)
@@ -119,20 +130,39 @@ var Database = (function() {
     // This event will be followed by deleted events to remove the songs
     // that were on the sdcard and are no longer playable.
     musicdb.oncardremoved = function() {
-      service.broadcast('databaseUnavailable', 'cardremoved');
+      service.broadcast('databaseChange');
     };
 
-    musicdb.onenumerable = startupOnEnumerable;
+    function onUnavailable(reason) {
+      status.unavailable = reason;
+      status.enumerable = false;
+      status.ready = false;
+
+      enumerable = new Promise((resolve) => {
+        resolveEnumerable = resolve;
+      });
+
+      ready = new Promise((resolve) => {
+        resolveReady = resolve;
+      });
+
+      service.broadcast('databaseUnavailable', reason);
+    }
+
+    musicdb.onenumerable = onEnumerable;
     // Don't refresh the UI on the first onready event, since onenumerable will
     // have already handled the refresh.
     var refreshOnReady = false;
 
-    function startupOnEnumerable() {
+    function onEnumerable() {
       if (musicdb.state === MediaDB.READY) {
         onReady();
       } else {
         musicdb.onready = onReady;
       }
+
+      status.upgrading = false;
+      status.enumerable = true;
 
       resolveEnumerable();
 
@@ -142,6 +172,9 @@ var Database = (function() {
     function onReady() {
       // Start scanning for new music
       musicdb.scan();
+
+      status.unavailable = false;
+      status.ready = true;
 
       resolveReady();
 
@@ -349,8 +382,7 @@ var Database = (function() {
     search: search,
     cancelEnumeration: cancelEnumeration,
 
-    enumerable: enumerable,
-    ready: ready,
+    status: status,
 
     // This is just here for testing.
     get initialScanComplete() {
