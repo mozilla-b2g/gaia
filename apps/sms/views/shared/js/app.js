@@ -9,6 +9,12 @@
    */
   const APPLICATION_READY_CLASS_NAME = 'js-app-ready';
 
+  /**
+   * Unique identifier of the app instance.
+   * @type {number}
+   */
+  const INSTANCE_ID = Date.now();
+
   var app = {
     isReady: function app_isReady() {
       return document.body.classList.contains(APPLICATION_READY_CLASS_NAME);
@@ -55,6 +61,10 @@
           attributeFilter: ['class']
         });
       }.bind(this));
+    },
+
+    get instanceId() {
+      return INSTANCE_ID;
     }
   };
 

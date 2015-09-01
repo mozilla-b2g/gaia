@@ -1262,7 +1262,9 @@
     var request = {
       error: null
     };
-    var threads = messagesDb.threads.slice();
+    var threads = messagesDb.threads.slice().sort((threadA, threadB) => {
+      return threadB.timestamp - threadA.timestamp;
+    });
     var idx = 0;
     var len, continueCursor;
 
