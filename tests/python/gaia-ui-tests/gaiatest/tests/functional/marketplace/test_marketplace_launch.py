@@ -32,5 +32,4 @@ class TestMarketplaceLaunch(GaiaTestCase):
         iframe = self.marionette.find_element(*self._marketplace_iframe_locator)
         self.marionette.switch_to_frame(iframe)
 
-        self.wait_for_element_displayed(*self._site_header_locator)
-
+        Wait(self.marionette).until(expected.element_displayed(*self._site_header_locator))
