@@ -53,13 +53,13 @@ class DateAndTime(Base):
 
         self.marionette.find_element(*self._autotime_enabled_switch_locator).tap()
 
-        self.wait_for_condition(lambda m: self.is_autotime_enabled != old_state)
+        Wait(self.marionette).until(lambda m: self.is_autotime_enabled != old_state)
 
     def set_region(self, region):
 
         self.marionette.find_element(*self._timezone_region_locator).tap()
         self.marionette.switch_to_frame()
-        self.wait_for_condition(
+        Wait(self.marionette, timeout).until(
             lambda m: len(self.marionette.find_elements(*self._timezone_selection_locator)) > 0)
 
         options = self.marionette.find_elements(*self._timezone_selection_locator)

@@ -24,9 +24,6 @@ class Base(object):
     def launch(self, launch_timeout=None):
         self.app = self.apps.launch(self.name, self.manifest_url, self.entry_point, launch_timeout=launch_timeout)
 
-    def wait_for_condition(self, method, timeout=None, message=None):
-        Wait(self.marionette, timeout).until(method, message=message)
-
     def is_element_present(self, by, locator):
         self.marionette.set_search_timeout(0)
         try:
