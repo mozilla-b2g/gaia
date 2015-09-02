@@ -7,7 +7,6 @@ define(function(require) {
   var AirplaneModeItem = require('panels/root/airplane_mode_item');
   var ThemesItem = require('panels/root/themes_item');
   var AddonsItem = require('panels/root/addons_item');
-  var HomescreenItem = require('panels/root/homescreen_item');
   var PrivacyPanelItem = require('panels/root/privacy_panel_item');
   var STKItem = require('panels/root/stk_item');
   var BTAPIVersionDetector = require('modules/bluetooth/version_detector');
@@ -47,7 +46,6 @@ define(function(require) {
     var root;
     var airplaneModeItem;
     var themesItem;
-    var homescreenItem;
     var privacyPanelItem;
     var addonsItem;
     var stkItem;
@@ -83,8 +81,6 @@ define(function(require) {
           AirplaneModeItem(panel.querySelector('.airplaneMode-input'));
         themesItem =
           ThemesItem(panel.querySelector('.themes-section'));
-        homescreenItem =
-          HomescreenItem(panel.querySelector('#homescreens-section'));
         addonsItem =
           AddonsItem(panel.querySelector('#addons-section'));
         privacyPanelItem = PrivacyPanelItem({
@@ -115,7 +111,7 @@ define(function(require) {
           SettingsService.back();
         });
 
-        // If the device supports dsds, callSettings must be changed 'href' for 
+        // If the device supports dsds, callSettings must be changed 'href' for
         // navigating call-iccs panel first.
         if (DsdsSettings.getNumberOfIccSlots() > 1) {
           var callItem = document.getElementById('menuItem-callSettings');
@@ -138,7 +134,6 @@ define(function(require) {
         airplaneModeItem.enabled = true;
         themesItem.enabled = true;
         privacyPanelItem.enabled = true;
-        homescreenItem.enabled = true;
         addonsItem.enabled = true;
 
         if (initLowPriorityItemsPromise) {
@@ -150,7 +145,6 @@ define(function(require) {
       onHide: function rp_onHide() {
         airplaneModeItem.enabled = false;
         themesItem.enabled = false;
-        homescreenItem.enabled = false;
         privacyPanelItem.enabled = false;
         addonsItem.enabled = false;
 
