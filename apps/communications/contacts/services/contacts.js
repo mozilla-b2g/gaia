@@ -89,7 +89,7 @@
       handlers = events[event];
       if (handlers.length === 0) {
         unregisterListeners(event);
-        delete handlers[event];
+        delete events[event];
       }
     },
     isEmpty: function(callback) {
