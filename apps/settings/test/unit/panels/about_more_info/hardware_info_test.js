@@ -23,7 +23,7 @@ suite('about hardware info >', function() {
 
   var elements = {
     deviceInfoMac: document.createElement('li'),
-    fields: document.createElement('li')
+    btAddr: document.createElement('li')
   };
 
   setup(function(done) {

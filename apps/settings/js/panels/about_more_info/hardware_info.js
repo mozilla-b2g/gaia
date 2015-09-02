@@ -51,9 +51,13 @@ define(function(require) {
      * @param  {String} address Bluetooth address
      */
     _refreshBluetoothAddress: function mi__refreshBluetoothAddress(address) {
-      // update UI fields
-      for (var i = 0, len = this._elements.fields.length; i < len; i++) {
-        this._elements.fields[i].textContent = address;
+      // update btAddr
+      if (address == null || address === '') {
+        this._elements.btAddr.setAttribute('data-l10n-id',
+                                           'bluetooth-address-unavailable');
+      } else {
+        this._elements.btAddr.removeAttribute('data-l10n-id');
+        this._elements.btAddr.textContent = address;
       }
     },
 
