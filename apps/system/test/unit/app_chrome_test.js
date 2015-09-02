@@ -1,6 +1,7 @@
 /* global AppWindow, AppChrome, MocksHelper, MockL10n, PopupWindow,
           MockModalDialog, MockService, MockPromise,
-          MockSettingsListener, Service, Icon*/
+          MockSettingsListener, BookmarksDatabase, Icon,
+          Service, UrlHelper, IconsHelper, process */
 
 /* exported MockBookmarksDatabase */
 'use strict';
@@ -14,6 +15,8 @@ require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_service.js');
 require('/shared/test/unit/mocks/mock_promise.js');
+require('/shared/test/unit/mocks/mock_icons_helper.js');
+require('/shared/test/unit/mocks/mock_url_helper.js');
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_popup_window.js');
 requireApp('system/test/unit/mock_modal_dialog.js');
@@ -22,14 +25,15 @@ requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 var MockBookmarksDatabase = {
   get: function(resolve, reject) {
     return { then: function(resolve) { resolve(); } };
-  }
+  },
+  put: function() {}
 };
 
 const PINNING_PREF = 'dev.gaia.pinning_the_web';
 
 var mocksForAppChrome = new MocksHelper([
   'AppWindow', 'ModalDialog', 'PopupWindow', 'BookmarksDatabase',
-  'Service', 'LazyLoader', 'SettingsListener'
+  'Service', 'LazyLoader', 'SettingsListener', 'UrlHelper', 'IconsHelper'
 ]).init();
 
 suite('system/AppChrome', function() {
@@ -68,6 +72,18 @@ suite('system/AppChrome', function() {
   var fakeWebSite = {
     url: 'http://google.com/index.html',
     origin: 'app://google.com',
+    chrome: {
+      scrollable: true
+    }
+  };
+
+  var fakeWebApp = {
+    url: 'http://example.com/index.html',
+    webManifestURL: 'http://example.com/manifest.webmanifest',
+    webManifest: {
+      'name': 'Example Web App',
+      'short_name': 'Example'
+    },
     chrome: {
       scrollable: true
     }
@@ -1088,15 +1104,98 @@ suite('system/AppChrome', function() {
       requestStub.restore();
     });
 
-    test('Click pin button', function() {
+    test('Pin page', function() {
+      chrome.pinPage();
+      assert.isTrue(Service.request.calledWith('Places:setPinned',
+        fakeWebSite.url));
+    });
+  });
+
+  suite('Pin site without manifest', function() {
+    var chrome, putStub, resolveUrlStub, getHostnameStub, getIconStub;
+
+    setup(function() {
+      var app = new AppWindow(cloneConfig(fakeWebSite));
+      chrome = new AppChrome(app);
+      resolveUrlStub = this.sinon.stub(UrlHelper, 'resolveUrl').
+        returns('http://google.com/');
+      getHostnameStub = this.sinon.stub(UrlHelper, 'getHostname').
+        returns('google.com');
+      getIconStub = this.sinon.stub(IconsHelper, 'getIcon').
+        returns(Promise.resolve('http://google.com/favicon.ico'));
+      putStub = this.sinon.stub(BookmarksDatabase, 'put').returns(
+        Promise.resolve());
+    });
+
+    test('Browser chrome collapsed and bookmark saved', function() {
       chrome.element.classList.add('maximized');
       chrome.pinDialog.classList.remove('hidden');
       chrome.handleEvent({ type: 'click', target: chrome.pinButton });
+      assert.isTrue(IconsHelper.getIcon.called);
       assert.isFalse(chrome.element.classList.contains('maximized'));
       assert.isTrue(chrome.pinDialog.classList.contains('hidden'));
-      assert.isTrue(Service.request.calledWith('Places:setPinned',
-        fakeWebSite.url));
+      process.nextTick(function() {
+        assert.isTrue(BookmarksDatabase.put.calledWithMatch(
+          {
+            type: 'url',
+            iconable: false,
+            frecency: 1,
+            pinned: true,
+            pinnedFrom: 'http://google.com/index.html',
+            id: 'http://google.com/index.html',
+            name: 'google.com',
+            scope: 'http://google.com/',
+            url: 'http://google.com/index.html',
+            icon: 'http://google.com/favicon.ico'
+          },
+          'http://google.com/index.html'
+        ));
+      });
+    });
+  });
 
+  suite('Pin site with manifest', function() {
+    var chrome, putStub, resolveUrlStub, getHostnameStub, getIconStub;
+
+    setup(function() {
+      var app = new AppWindow(cloneConfig(fakeWebApp));
+      chrome = new AppChrome(app);
+      resolveUrlStub = this.sinon.stub(UrlHelper, 'resolveUrl').
+        returns('http://example.com/');
+      getHostnameStub = this.sinon.stub(UrlHelper, 'getHostname').
+        returns('example.com');
+      getIconStub = this.sinon.stub(IconsHelper, 'getIcon').
+        returns(Promise.resolve('http://example.com/favicon.ico'));
+      putStub = this.sinon.stub(BookmarksDatabase, 'put').returns(
+        Promise.resolve());
+    });
+
+    test('Browser chrome collapsed and bookmark saved', function() {
+      chrome.element.classList.add('maximized');
+      chrome.pinDialog.classList.remove('hidden');
+      chrome.handleEvent({ type: 'click', target: chrome.pinButton });
+      assert.isTrue(IconsHelper.getIcon.called);
+      assert.isFalse(chrome.element.classList.contains('maximized'));
+      assert.isTrue(chrome.pinDialog.classList.contains('hidden'));
+      process.nextTick(function() {
+        assert.isTrue(BookmarksDatabase.put.calledWithMatch(
+          {
+            type: 'url',
+            iconable: false,
+            frecency: 1,
+            pinned: true,
+            pinnedFrom: 'http://example.com/index.html',
+            id: 'http://example.com/',
+            url: 'http://example.com/',
+            webManifestUrl: 'http://example.com/manifest.webmanifest',
+            webManifest: { name: 'Example Web App', short_name: 'Example' },
+            name: 'Example',
+            scope: 'http://example.com/',
+            icon: 'http://example.com/favicon.ico'
+          },
+          'http://example.com/'
+        ));
+      });
     });
   });
 
