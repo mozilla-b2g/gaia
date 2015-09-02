@@ -175,11 +175,6 @@ var BluetoothHelper = function() {
     },
 
     getConnectedDevicesByProfile: function(profileID, cb) {
-      if (_v2) {
-        console.log('getConnectedDevicesByProfile API is deprecated');
-        return;
-      }
-
       _ready(function() {
         _handleRequest(_adapter.getConnectedDevices(profileID), cb);
       });
