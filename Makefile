@@ -299,8 +299,8 @@ endif
 else
 
 # Determine the host-dependent bundle to download
-B2G_SDK_VERSION := 39.0a1
-B2G_SDK_DATE := 2015/03/2015-03-05-16-02-02
+B2G_SDK_VERSION := 43.0a1
+B2G_SDK_DATE := 2015/08/2015-08-17-15-02-06
 
 XULRUNNER_BASE_DIR ?= b2g_sdk
 XULRUNNER_DIRECTORY ?= $(XULRUNNER_BASE_DIR)/$(B2G_SDK_VERSION)-$(notdir $(B2G_SDK_DATE))
@@ -327,8 +327,18 @@ endif
 XPCSHELLSDK := $(abspath $(XULRUNNER_DIRECTORY)/b2g/xpcshell)
 endif
 
+# A workaround since b2g linux builds are moved to task-cluster
+# We will download b2g from task-cluster once b2g build migration is completed
+ifeq ($(SYS),Linux)
+B2G_SDK_URL_BASE := https://queue.taskcluster.net/v1/task/YamDhuDgTWa_kWXcSedDHA/artifacts/public/build
+else
 B2G_SDK_URL_BASE := http://ftp.mozilla.org/pub/mozilla.org/b2g/nightly/$(B2G_SDK_DATE)-mozilla-central
-B2G_SDK_FILE_NAME := b2g-$(B2G_SDK_VERSION).multi.$(B2G_SDK_OS).$(B2G_SDK_EXT)
+endif
+ifeq ($(SYS),Linux)
+B2G_SDK_FILE_NAME := target.$(B2G_SDK_OS).$(B2G_SDK_EXT)
+else
+B2G_SDK_FILE_NAME := b2g-$(B2G_SDK_VERSION).en-US.$(B2G_SDK_OS).$(B2G_SDK_EXT)
+endif
 B2G_SDK_URL := $(B2G_SDK_URL_BASE)/$(B2G_SDK_FILE_NAME)
 B2G_SDK_URL_FILE := $(XULRUNNER_DIRECTORY)/.b2g.url
 
@@ -337,7 +347,11 @@ endif # Firefox build workaround
 # XULRUNNERSDK used to be run-mozilla.sh, but some builds don't include it
 # Without that, Linux needs to reference the directory containing libxul.so
 ifeq (,$(XULRUNNERSDK)$(findstring Darwin,$(SYS))$(findstring MINGW32_,$(SYS)))
+ifeq (,$(LD_LIBRARY_PATH))
 XULRUNNERSDK := LD_LIBRARY_PATH="$(dir $(XPCSHELLSDK))"
+else
+XULRUNNERSDK := LD_LIBRARY_PATH="$(dir $(XPCSHELLSDK)):$(LD_LIBRARY_PATH)"
+endif
 endif
 
 # It's difficult to figure out XULRUNNERSDK in subprocesses; it's complex and
