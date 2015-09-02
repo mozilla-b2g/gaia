@@ -49,33 +49,29 @@ class ContactForm(Base):
     def phone(self):
         return self.marionette.find_element(*self._phone_locator).text
 
-    def type_phone(self, value):
-        Wait(self.marionette).until(
-            expected.element_present(*self._add_new_phone_locator)).tap()
-        element = self.marionette.find_element(*self._phone_locator)
+    def _type_in_field(self, add_locator, field_locator, value):
+        Wait(self.marionette).until(expected.element_present(*add_locator)).tap()
+        element = Wait(self.marionette).until(expected.element_present(*field_locator))
+        Wait(self.marionette).until(expected.element_displayed(element))
         element.clear()
         element.send_keys(value)
+
+    def type_phone(self, value):
+        self._type_in_field(self._add_new_phone_locator, self._phone_locator, value)
 
     @property
     def email(self):
         return self.marionette.find_element(*self._email_locator).text
 
     def type_email(self, value):
-        Wait(self.marionette).until(
-            expected.element_present(*self._add_new_email_locator)).tap()
-        element = self.marionette.find_element(*self._email_locator)
-        element.clear()
-        element.send_keys(value)
+        self._type_in_field(self._add_new_email_locator, self._email_locator, value)
 
     @property
     def street(self):
         return self.marionette.find_element(*self._street_locator).text
 
     def type_street(self, value):
-        self.marionette.find_element(*self._add_new_address_locator).tap()
-        element = self.marionette.find_element(*self._street_locator)
-        element.clear()
-        element.send_keys(value)
+        self._type_in_field(self._add_new_address_locator, self._street_locator, value)
 
     @property
     def zip_code(self):
@@ -109,10 +105,7 @@ class ContactForm(Base):
         return self.marionette.find_element(*self._comment_locator).text
 
     def type_comment(self, value):
-        self.marionette.find_element(*self._add_new_note_locator).tap()
-        element = self.marionette.find_element(*self._comment_locator)
-        element.clear()
-        element.send_keys(value)
+        self._type_in_field(self._add_new_note_locator, self._comment_locator, value)
 
     def tap_comment(self):
         element = self.marionette.find_element(*self._add_new_note_locator)
