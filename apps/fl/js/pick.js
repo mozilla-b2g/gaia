@@ -31,6 +31,7 @@ window.addEventListener('load', function() {
 
 function pickRingtone(activity) {
   var selectedRingtone;
+  var selectedRingtoneID;
   var player = new Audio(); // for previewing sounds
   var currentRingtoneName;
   var numRingtones = 0;
@@ -58,7 +59,8 @@ function pickRingtone(activity) {
                            function(lockedBlob) {
                              activity.postResult({
                                blob: lockedBlob,
-                               name: selectedRingtone.descriptor.name
+                               name: selectedRingtone.descriptor.name,
+                               id: selectedRingtoneID
                              });
                            });
     });
@@ -84,7 +86,7 @@ function pickRingtone(activity) {
       var cursor = ringtoneStore.openCursor();
       cursor.onsuccess = function() {
         if (cursor.result) {
-          addRingtone(cursor.result.value);
+          addRingtone(cursor.result.value, 'forwardlock:' + cursor.result.key);
           cursor.result.continue();
         }
         else { // we reached the end of the enumeration
@@ -96,7 +98,7 @@ function pickRingtone(activity) {
     });
   }
 
-  function addRingtone(ringtone) {
+  function addRingtone(ringtone, id) {
     numRingtones++;
     var name = ringtone.descriptor.name;
     var listItem = document.createElement('li');
@@ -110,12 +112,14 @@ function pickRingtone(activity) {
 
     if (name === currentRingtoneName) {
       selectedRingtone = ringtone;
+      selectedRingtoneID = id;
       radio.checked = true;
     }
 
     radio.addEventListener('change', function() {
       if (radio.checked) {
         selectedRingtone = ringtone;
+        selectedRingtoneID = id;
         play(ringtone);
       }
     });
