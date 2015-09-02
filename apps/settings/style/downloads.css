@@ -76,6 +76,7 @@
 
 #downloads.edit #downloadList li {
   pointer-events: all;
+  margin: 0 1.5rem;
 }
 
 /* End of the styles while editing*/
