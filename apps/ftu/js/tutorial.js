@@ -24,29 +24,31 @@
         evt.target.removeEventListener('error', onMediaLoadOrError);
         if (isVideo) {
           evt.target.removeEventListener('canplay', onMediaLoadOrError);
+          evt.target.removeEventListener('abort', onMediaLoadOrError);
         } else {
           evt.target.removeEventListener('load', onMediaLoadOrError);
         }
         // Dont block progress on failure to load media
         if (evt.type === 'error') {
           console.error('Failed to load tutorial media: ' + src);
+        } else if (evt.type === 'abort') {
+          console.error('Loading of tutorial media aborted: ' + src);
         }
         resolve(evt);
       }
       function onVideoUnloaded(evt) {
         mediaElement.removeEventListener('emptied', onVideoUnloaded);
-        mediaElement.removeEventListener('abort', onVideoUnloaded);
         mediaElement.addEventListener('canplay', onMediaLoadOrError);
+        mediaElement.addEventListener('abort', onMediaLoadOrError);
+        mediaElement.addEventListener('error', onMediaLoadOrError);
         mediaElement.src = src;
         mediaElement.load();
       }
       if (isVideo) {
         // must unload video and force load before switching to new source
-        mediaElement.addEventListener('error', onMediaLoadOrError);
         if (mediaElement.src) {
-          mediaElement.addEventListener('emptied', onVideoUnloaded, false);
-          mediaElement.addEventListener('abort', onVideoUnloaded, false);
           mediaElement.removeAttribute('src');
+          mediaElement.addEventListener('emptied', onVideoUnloaded, false);
           mediaElement.load();
         } else {
           onVideoUnloaded();
