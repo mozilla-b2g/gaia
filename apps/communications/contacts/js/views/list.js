@@ -391,6 +391,16 @@ contacts.List = (function() {
 
     var config = utils.cookie.load();
     if (config) {
+      if (config.shouldEvict) {
+        resetDom(function() {
+          Cache.evict(
+            false /* undo applied cache */,
+            true /* instant eviction */
+          );
+          utils.cookie.update({shouldEvict: false});
+        });
+        return;
+      }
       orderByLastName = config.order;
       defaultImage = config.defaultImage;
       callback();
@@ -1333,7 +1343,6 @@ contacts.List = (function() {
     initConfiguration(function onInitConfiguration() {
       var num = 0;
       var chunk = [];
-
       ContactsService.getAllStreamed(
         (orderByLastName === true ? 'familyName' : 'givenName'),
         function onContact(contact) {
