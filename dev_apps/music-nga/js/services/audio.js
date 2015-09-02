@@ -42,9 +42,7 @@ function AudioService(worker) {
 
   worker.get('/api/audio/seek/:time', stopAfter((request) => {
     return new Promise((resolve) => {
-      var time = parseInt(request.parameters.time, 10);
-
-      client.method('seek', time)
+      client.method('seek', request.parameters.time)
         .then(() => {
           resolve(new Response(JSON.stringify({ success: true }), {
             headers: { 'Content-Type': 'application/json' }

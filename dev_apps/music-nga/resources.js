@@ -46,6 +46,8 @@ const RESOURCES = [
   '/img/icons/music_189.png',
   '/img/icons/music_284.png',
   '/img/icons/music_84.png',
+  '/img/ui/music-rating-off.png',
+  '/img/ui/music-rating-on.png',
   '/js/metadata/album_art.js',
   '/js/metadata/album_art_cache.js',
   '/js/metadata/core.js',

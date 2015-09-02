@@ -60,7 +60,10 @@ proto.createdCallback = function() {
     }
 
     this.value = value;
-    this.dispatchEvent(new CustomEvent('change'));
+
+    this.dispatchEvent(new CustomEvent('change', {
+      detail: value
+    }));
   });
 };
 
