@@ -59,7 +59,7 @@ class DateAndTime(Base):
 
         self.marionette.find_element(*self._timezone_region_locator).tap()
         self.marionette.switch_to_frame()
-        Wait(self.marionette, timeout).until(
+        Wait(self.marionette).until(
             lambda m: len(self.marionette.find_elements(*self._timezone_selection_locator)) > 0)
 
         options = self.marionette.find_elements(*self._timezone_selection_locator)
