@@ -135,8 +135,12 @@ class Contacts(Base):
 
         def tap(self, return_class='ContactDetails'):
             self.marionette.execute_script('arguments[0].scrollIntoView(false);', [self.root_element])
-            self.tap_element_from_system_app(
-                self.root_element.find_element(*self._name_locator), add_statusbar_height=True)
+            if return_class == None:
+                self.tap_element_from_system_app(
+                    self.root_element.find_element(*self._name_locator), add_statusbar_height=True)
+            else:
+                self.root_element.find_element(*self._name_locator).tap()
+
             return self._return_class_from_tap(return_class)
 
         def a11y_click(self, return_class='ContactDetails'):
@@ -145,7 +149,6 @@ class Contacts(Base):
 
         def _return_class_from_tap(self, return_class='ContactDetails'):
             if return_class == 'ContactDetails':
-                self.apps.switch_to_displayed_app()
                 Wait(self.marionette).until(lambda m: expected.element_not_displayed(self.root_element))
                 from gaiatest.apps.contacts.regions.contact_details import ContactDetails
                 return ContactDetails(self.marionette)
@@ -156,7 +159,6 @@ class Contacts(Base):
                 from gaiatest.apps.contacts.regions.contact_form import EditContact
                 return EditContact(self.marionette)
             elif return_class == 'SelectContact':
-                self.apps.switch_to_displayed_app()
                 return None
             else:
                 # We are using contacts picker in activity - after choosing, fall back to open app
