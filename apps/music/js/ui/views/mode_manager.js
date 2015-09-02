@@ -106,7 +106,12 @@ var ModeManager = {
           SubListView.init();
           break;
         case 'views-player':
-          PlayerView.init(App.pendingPick ? TYPE_SINGLE : TYPE_LIST);
+          if (App.pendingPick) {
+            // Don't autoplay in the pick activity.
+            PlayerView.init(TYPE_SINGLE, false);
+          } else {
+            PlayerView.init(TYPE_LIST);
+          }
           break;
         case 'views-search':
           SearchView.init();
