@@ -38,36 +38,27 @@ var client = bridge.client({
   timeout: false
 });
 
+client.on('play', () => isPlaying = true);
+
+client.on('databaseChange', () => updateOverlays());
+
+client.on('databaseUpgrade', () => upgradeOverlay.hidden = false);
+
+client.on('databaseUnavailable', (reason) => {
+  noCardOverlay.hidden    = reason !== 'nocard';
+  pluggedInOverlay.hidden = reason !== 'pluggedin';
+});
+
+client.on('databaseEnumerable', () => upgradeOverlay.hidden = true);
+
+client.on('databaseReady', () => {
+  noCardOverlay.hidden    = true;
+  pluggedInOverlay.hidden = true;
+});
+
 client.connect();
 
-client.connected.then(() => {
-  client.on('play', () => isPlaying = true);
-
-  client.on('databaseChange', () => {
-    client.method('getSongCount').then((count) => {
-      emptyOverlay.hidden = count > 0;
-    });
-  });
-
-  client.on('databaseEnumerable', () => {
-    noCardOverlay.hidden = true;
-    pluggedInOverlay.hidden = true;
-    upgradeOverlay.hidden = true;
-  });
-
-  client.on('databaseUnavailable', (reason) => {
-    switch (reason) {
-      case 'nocard':
-        noCardOverlay.hidden = false;
-        break;
-      case 'pluggedin':
-        pluggedInOverlay.hidden = false;
-        break;
-    }
-  });
-
-  client.on('databaseUpgrade', () => upgradeOverlay.hidden = false);
-});
+updateOverlays();
 
 var header             = $id('header');
 var headerTitle        = $id('header-title');
@@ -248,6 +239,19 @@ function parseQueryString(queryString) {
   });
 
   return query;
+}
+
+function updateOverlays() {
+  client.method('getSongCount').then((count) => {
+    emptyOverlay.hidden = count > 0;
+  });
+
+  client.method('getDatabaseStatus').then((status) => {
+    noCardOverlay.hidden    = status.unavailable !== 'nocard';
+    pluggedInOverlay.hidden = status.unavailable !== 'pluggedin';
+
+    upgradeOverlay.hidden = !status.upgrading;
+  });
 }
 
 function cancelActivity() {
