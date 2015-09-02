@@ -20,15 +20,19 @@
   ScreenBrightnessTransition.prototype.STEP_INTERVAL_MS = 20;
   ScreenBrightnessTransition.prototype.STEP_DELTA = 0.01;
 
-  ScreenBrightnessTransition.prototype.onsuccess = null;
+  ScreenBrightnessTransition.prototype.ontransitionbegin = null;
+  ScreenBrightnessTransition.prototype.ontransitionend = null;
 
   ScreenBrightnessTransition.prototype.transitionTo = function(brightness) {
     if (this.isRunning) {
       throw new Error('ScreenBrightnessTransition: ' +
         'transitionTo() is called again during transition.');
     }
-
     this.isRunning = true;
+
+    if (typeof this.ontransitionbegin === 'function') {
+      this.ontransitionbegin();
+    }
 
     // For now this is still an naive linear transition that takes the
     // brightness to whatever current value to the target value, as we
@@ -56,8 +60,8 @@
         clearTimeout(this._timer);
         this.isRunning = false;
 
-        if (typeof this.onsuccess === 'function') {
-          this.onsuccess();
+        if (typeof this.ontransitionend === 'function') {
+          this.ontransitionend();
         }
 
         return;

@@ -128,8 +128,14 @@
 
         this._screenAutoBrightness = new ScreenAutoBrightness();
         this._screenAutoBrightness.onbrightnesschange = function(brightness) {
-          this.setScreenBrightness(brightness, false);
+          this.setScreenBrightness(brightness, true);
         }.bind(this);
+
+        this._screenBrightnessTransition.ontransitionbegin =
+          this._screenAutoBrightness.pause.bind(this._screenAutoBrightness);
+        this._screenBrightnessTransition.ontransitionend =
+          this._screenAutoBrightness.resume.bind(this._screenAutoBrightness);
+
       }.bind(this))['catch'](function(err) {
         console.error(err);
       });
@@ -407,6 +413,7 @@
           self.screenEnabled = false;
           navigator.mozPower.screenEnabled = false;
           navigator.mozPower.keyLightEnabled = false;
+          self._screenAutoBrightness && self._screenAutoBrightness.pause();
         }, 20);
 
         self.fireScreenChangeEvent();
@@ -452,6 +459,9 @@
 
       // Set the brightness before the screen is on.
       this.setScreenBrightness(this._savedBrightness, instant);
+
+      // Resume auto brightness, which is paused when the screen is turned off.
+      this._screenAutoBrightness && this._screenAutoBrightness.resume();
 
       // If we are in a call  or a conference call and there
       // is no cpuWakeLock, we would get one here.
