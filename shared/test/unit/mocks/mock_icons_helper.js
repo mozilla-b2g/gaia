@@ -3,7 +3,7 @@
 /* exported MockIconsHelper */
 
 var MockIconsHelper = {
-  getIcon: function() {
+  getIcon: function(url, placeObject, siteObject) {
     return new Promise(resolve => { resolve(); });
   },
 

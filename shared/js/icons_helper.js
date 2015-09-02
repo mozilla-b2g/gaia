@@ -175,13 +175,13 @@
         bestSize = nearestSize;
       }
     });
-    return iconURL ? iconURL.href : null;
+    return iconURL ? iconURL : null;
   }
 
   function _convertToWebManifestIcons(manifest) {
     return Object.keys(manifest.icons).map(function(size) {
       var url = manifest.icons[size];
-      var sizes = new Set().add(size + 'x' + size);
+      var sizes = [size + 'x' + size];
       url = url.indexOf('http') > -1 ? url : manifest.origin + url;
 
       return {

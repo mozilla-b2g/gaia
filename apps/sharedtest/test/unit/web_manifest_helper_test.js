@@ -62,10 +62,10 @@ suite('Web Manifest Helper >', function() {
     }, 'http://www.example.com/manifest.json');
     assert.equal(1, manifest.icons.length);
     assert.equal(typeof manifest.icons[0], 'object');
-    assert.equal(typeof manifest.icons[0].src, 'object');
+    assert.equal(typeof manifest.icons[0].src, 'string');
     var expectedURL = new URL(manifestURL);
     expectedURL.pathname = 'icon-64.png';
-    assert.equal(manifest.icons[0].src.href, expectedURL);
+    assert.equal(manifest.icons[0].src, expectedURL);
   });
 
 });
