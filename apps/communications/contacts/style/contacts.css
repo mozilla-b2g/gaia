@@ -211,6 +211,12 @@ section[role="region"] > gaia-header .icon.icon-edit-contact {
   width: 30rem;
 }
 
+#contact-form input::-moz-placeholder,
+#contact-form textarea::-moz-placeholder {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 /* this is needed because it overflows the photo container */
 div.with-overflow > p.input-container {
   pointer-events: none;
