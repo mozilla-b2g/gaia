@@ -11,7 +11,7 @@
   transition: opacity var(--transition-duration) ease;
 }
 .appWindow > .textselection-dialog {
-  z-index: 2;
+  z-index: 65537;
 }
 
 #text-selection-dialog-root > .textselection-dialog {
