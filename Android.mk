@@ -81,7 +81,7 @@ $(LOCAL_PATH)/profile.tar.gz: gaia-prefs
 ifeq ($(CLEAN_PROFILE), 1)
 	rm -rf $(GAIA_PATH)/profile $(GAIA_PATH)/profile.tar.gz
 endif
-	$(MAKE) -C $(GAIA_PATH) $(GAIA_MAKE_FLAGS) LD_LIBRARY_PATH=$(LD_LIBRARY_PATH) profile
+	$(MAKE) -C $(GAIA_PATH) $(GAIA_MAKE_FLAGS) profile
 	@FOLDERS='webapps'; \
 	if [ -d $(GAIA_PATH)/profile/indexedDB ]; then \
 	FOLDERS="indexedDB $${FOLDERS}"; \
