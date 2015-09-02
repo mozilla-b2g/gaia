@@ -44,7 +44,9 @@ window.GaiaPinCard = (function(win) {
       var brightness = getBrightness(colorCodes);
       // Adding opacity to the background color
       var bgColorRgba = 'rgba(' + colorCodes.slice(1).join(',') + ', 0.6)';
-      var shadow = 'inset 0 0 0 ' + computedStyle.width;
+      var computedWidth = computedStyle.width;
+      var width = computedWidth === 'auto' ? '140px' : computedWidth;
+      var shadow = 'inset 0 0 0 ' + width;
       this.bgElement.style.boxShadow = shadow + ' ' + bgColorRgba;
       this.container.classList.toggle('light', brightness < 200);
     }
