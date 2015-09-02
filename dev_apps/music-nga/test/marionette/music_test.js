@@ -2,6 +2,7 @@
 'use strict';
 
 var assert = require('assert');
+
 var Music = require('./lib/music.js');
 var FakeActivityCaller = require('./lib/fakeactivitycaller.js');
 
@@ -18,8 +19,7 @@ marionette('Music ui tests', function() {
       },
 
       apps: apps
-    },
-    desiredCapabilities: { raisesAccessibilityExceptions: true }
+    }
   });
 
   var music, system;
@@ -58,7 +58,7 @@ marionette('Music ui tests', function() {
         music.launch();
         music.waitFinishedScanning();
         music.waitForFirstTile();
-        music.isMessageOverlayShown(false);
+        music.waitForMessageOverlayShown(false);
       } catch(e) {
         assert.ok(false, 'Exception ' + e.stack);
       }
@@ -73,9 +73,11 @@ marionette('Music ui tests', function() {
       client.fileManager.removeAllFiles();
     });
 
-    test.skip('Overlay should be shown when storage has no songs', function() {
+    test('Overlay should be shown when storage has no songs', function() {
       try {
         activitycaller.launch();
+        activitycaller.tapPickButton();
+        activitycaller.selectMusicApp();
 
         music.switchToMe();
         music.waitFinishedScanning();
@@ -97,10 +99,12 @@ marionette('Music ui tests', function() {
       ]);
     });
 
-    test.skip('Overlay should be hidden when storage has some songs',
-              function() {
+    test('Overlay should be hidden when storage has some songs', function() {
       try {
         activitycaller.launch();
+        activitycaller.tapPickButton();
+        activitycaller.selectMusicApp();
+
 
         music.switchToMe();
         music.waitFinishedScanning();

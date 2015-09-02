@@ -41,6 +41,8 @@ var service = bridge.service('music-service')
   .method('share', share)
   .method('open', open)
 
+  .method('getDatabaseStatus', getDatabaseStatus)
+
   .listen()
   .listen(new BroadcastChannel('music-service'));
 
@@ -253,6 +255,10 @@ function getSongThumbnail(filePath) {
       return AlbumArtCache.getThumbnailBlob(song);
     });
   });
+}
+
+function getDatabaseStatus() {
+  return Promise.resolve(Database.status);
 }
 
 function share(filePath) {

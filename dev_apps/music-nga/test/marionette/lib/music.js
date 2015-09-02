@@ -313,14 +313,10 @@ Music.prototype = {
     this.switchToMe();
   },
 
-  isMessageOverlayShown: function(shouldBeShown) {
-    var hidden = this.messageOverlay.getAttribute('hidden');
-    return (hidden !== 'false') === shouldBeShown;
-  },
-
   waitForMessageOverlayShown: function(shouldBeShown) {
     this.client.waitFor(function() {
-      return this.isMessageOverlayShown(shouldBeShown);
+      var shown = this.messageOverlay.displayed();
+      return shown === shouldBeShown;
     }.bind(this));
   },
 

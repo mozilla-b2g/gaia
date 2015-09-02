@@ -77,6 +77,8 @@ View.prototype.fetch = function(url) {
     '/api/audio/seek/*': 'seek',
     '/api/audio/status': 'getPlaybackStatus',
 
+    '/api/database/status': 'getDatabaseStatus',
+
     '/api/queue/current': 'currentSong',
     '/api/queue/previous': 'previousSong',
     '/api/queue/next': 'nextSong',
