@@ -5,9 +5,8 @@ Keyboards.fa = {
   secondLayout: true,
   specificCssRule: true,
   types: ['text', 'url', 'email'],
-  autoCorrectLanguage: 'fa',
   alternateLayoutKey: '123',
-  basicLayoutKey: 'أ ب ج',
+  basicLayoutKey: 'آ ب پ',
   lang: 'fa',
   alt : {
     'ص': 'ض',
