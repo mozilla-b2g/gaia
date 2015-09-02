@@ -96,7 +96,6 @@ suite('system/TaskManager >', function() {
   }
 
   function fakeFinish(clock, app) {
-    clock.tick(100); // smooth timeout
     app.element.dispatchEvent(new CustomEvent('_opened'));
     clock.tick(); // timeout before close event is dispatched
   }
@@ -937,13 +936,11 @@ suite('system/TaskManager >', function() {
       assert.isFalse(instanceID in taskManager.cardsByAppID);
     });
     suite('after destroying all the cards', function() {
-      setup(function() {
-        sendAppTerminated(apps.sms);
-        sendAppTerminated(apps.game);
-      });
-
       test('should go back home', function(done) {
         var stub = this.sinon.stub(home, 'open');
+
+        sendAppTerminated(apps.sms);
+        sendAppTerminated(apps.game);
 
         waitForEvent(window, 'cardviewclosed').then(function() {
           assert.isTrue(stub.calledOnce, 'home was open');
