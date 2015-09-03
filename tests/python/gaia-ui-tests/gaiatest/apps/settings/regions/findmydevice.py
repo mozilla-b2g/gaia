@@ -10,7 +10,7 @@ from gaiatest.apps.base import Base
 class FindMyDevice(Base):
 
     _login_locator = (By.ID, 'findmydevice-login-btn')
-    _checkbox_locator = (By.CSS_SELECTOR, '#findmydevice-enabled input')
+    _checkbox_locator = (By.CSS_SELECTOR, '#findmydevice-enabled gaia-switch')
     _findmydevice_locator = (By.CSS_SELECTOR, 'span[data-l10n-id="findmydevice-enable"]')
 
     def tap_login(self):

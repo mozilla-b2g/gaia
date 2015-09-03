@@ -8,6 +8,8 @@
 'use strict';
 
 // require helpers for managing html
+require('/shared/js/component_utils.js');
+require('/shared/elements/gaia_switch/script.js');
 require('/shared/test/unit/load_body_html_helper.js');
 require('/shared/js/html_imports.js');
 
@@ -78,7 +80,7 @@ suite('Find My Device panel > ', function() {
       signinSection = document.getElementById('findmydevice-signin');
       settingsSection = document.getElementById('findmydevice-settings');
       trackingSection = document.getElementById('findmydevice-tracking');
-      checkbox = document.querySelector('#findmydevice-enabled input');
+      checkbox = document.querySelector('#findmydevice-enabled gaia-switch');
       login = document.getElementById('findmydevice-login');
       loginButton = document.querySelector('#findmydevice-login > button');
       unverifiedError = document.getElementById(
@@ -235,17 +237,23 @@ suite('Find My Device panel > ', function() {
 
   test('disallow changes when findmydevice.can-disable is false', function() {
     MockSettingsListener.mCallbacks['findmydevice.can-disable'](false);
-    assert.isTrue(checkbox.disabled,
+    assert.isTrue(checkbox.hasAttribute('disabled'),
       'checkbox is not disabled while findmydevice.can-disable is false');
     MockSettingsListener.mCallbacks['findmydevice.can-disable'](true);
-    assert.isFalse(checkbox.disabled,
+    assert.isFalse(checkbox.hasAttribute('disabled'),
       'checkbox is disabled while findmydevice.can-disable is true');
   });
 
   test('wake up find my device upon a disable attempt', function() {
     this.sinon.stub(window, 'wakeUpFindMyDevice');
     checkbox.checked = true;
-    checkbox.click();
+
+    var event = new CustomEvent('click', {
+      bubbles: true,
+      cancelable: true
+    });
+    checkbox.querySelector('label').dispatchEvent(event);
+
     assert.ok(window.wakeUpFindMyDevice.calledWith(
         IAC_API_WAKEUP_REASON_TRY_DISABLE));
     window.wakeUpFindMyDevice.reset();
