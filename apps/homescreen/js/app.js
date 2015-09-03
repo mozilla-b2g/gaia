@@ -79,24 +79,26 @@ const SETTINGS_VERSION = 0;
     this.cancelDownload = document.getElementById('cancel-download');
     this.resumeDownload = document.getElementById('resume-download');
     this.settingsDialog = document.getElementById('settings');
+    this.dialogs =
+      [this.cancelDownload, this.resumeDownload, this.settingsDialog];
 
     // XXX Working around gaia-components issue #8
-    this.cancelDownload.style.display = 'none';
-    this.resumeDownload.style.display = 'none';
-    this.settingsDialog.style.display = 'none';
+    var dialog;
+    for (dialog of this.dialogs) {
+      dialog.hide();
+    }
 
     // Change the colour of the statusbar when showing dialogs
     var dialogVisibilityCallback = () => {
-      if (this.cancelDownload.style.display !== 'none' ||
-          this.resumeDownload.style.display !== 'none' ||
-          this.settingsDialog.style.display !== 'none') {
-        this.meta.content = 'white';
-      } else {
-        this.meta.content = 'transparent';
+      for (var dialog of this.dialogs) {
+        if (dialog.opened) {
+          this.meta.content = 'white';
+          return;
+        }
       }
+      this.meta.content = 'transparent';
     };
-    for (var dialog of
-         [this.cancelDownload, this.resumeDownload, this.settingsDialog]) {
+    for (dialog of this.dialogs) {
       var observer = new MutationObserver(dialogVisibilityCallback);
       observer.observe(dialog,
         { attributes: true, attributeFilter: ['style'] });
@@ -134,7 +136,7 @@ const SETTINGS_VERSION = 0;
     this.icons.addEventListener('touchcancel', this);
     navigator.mozApps.mgmt.addEventListener('install', this);
     navigator.mozApps.mgmt.addEventListener('uninstall', this);
-    window.addEventListener('hashchange', this);
+    window.addEventListener('hashchange', this, true);
     window.addEventListener('localized', this);
     window.addEventListener('online', this);
 
@@ -809,6 +811,18 @@ const SETTINGS_VERSION = 0;
 
       case 'hashchange':
         if (!document.hidden) {
+          // If a dialog is showing, cancel the dialog
+          for (var dialog of this.dialogs) {
+            if (!dialog.opened) {
+              continue;
+            }
+
+            dialog.close();
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            return;
+          }
+
           if (this.panels.scrollLeft ===
               this.scrollable.parentNode.offsetLeft) {
             this.scrollable.scrollTo({ left: 0, top: 0, behavior: 'smooth' });
