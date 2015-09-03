@@ -51,7 +51,7 @@ var PlayerView = {
     return Boolean(this.queue && this.queue.length);
   },
 
-  init: function pv_init(type = TYPE_LIST) {
+  init: function pv_init(type = TYPE_LIST, autoplay = true) {
     this.artist = document.getElementById('player-cover-artist');
     this.album = document.getElementById('player-cover-album');
     this.artistText = document.querySelector('#player-cover-artist bdi');
@@ -127,6 +127,8 @@ var PlayerView = {
     navigator.mozL10n.ready(this.updateL10n.bind(this));
 
     this.type = type;
+    this.autoplay = autoplay;
+
     if (this.type === TYPE_SINGLE) {
       this.shuffleButton.disabled = true;
       this.repeatButton.disabled = true;
@@ -395,8 +397,11 @@ var PlayerView = {
 
   /**
    * Start playing the current song in the queue.
+   *
+   * @param {Boolean} autoplay True if the song should immediately start playing
+   *   (unless we can't for some reason), false otherwise.
    */
-  start: function pv_start() {
+  start: function pv_start(autoplay = true) {
     this.checkSCOStatus();
     this._sendInterpageMessage();
     this.showInfo();
@@ -414,13 +419,9 @@ var PlayerView = {
     }).then((file) => {
       this.setAudioSrc(file);
 
-      // When we need to preview an audio like in picker mode,
-      // we will not autoplay the picked song unless the user taps to play
-      // And we just call pause right after play.
-      // Also we pause at beginning when SCO is enabled, the user can still
-      // select songs to the player but it won't start, they have to wait
-      // until the SCO is disconnected.
-      if (this.type === TYPE_SINGLE || MusicComms.isSCOEnabled) {
+      // We pause at the beginning when SCO is enabled. The user can still
+      // select songs to play, but it won't start until the SCO is disconnected.
+      if (!autoplay || !this.autoplay || MusicComms.isSCOEnabled) {
         this.pause();
       }
     }).catch(function(msg) {
@@ -477,7 +478,9 @@ var PlayerView = {
   },
 
   next: function pv_next(isAutomatic) {
-    if (this.type === TYPE_SINGLE || this.queue.next(isAutomatic)) {
+    if (this.type === TYPE_SINGLE) {
+      this.start(false);
+    } else if(this.queue.next(isAutomatic)) {
       this.start();
     } else {
       this.stop();
