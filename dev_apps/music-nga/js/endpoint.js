@@ -19,6 +19,7 @@ var service = bridge.service('music-service')
   .method('nextSong', nextSong)
   .method('queueAlbum', queueAlbum)
   .method('queueArtist', queueArtist)
+  .method('queuePlaylist', queuePlaylist)
   .method('queueSong', queueSong)
   .method('getRepeatSetting', getRepeatSetting)
   .method('setRepeatSetting', setRepeatSetting)
@@ -30,6 +31,9 @@ var service = bridge.service('music-service')
 
   .method('getArtists', getArtists)
   .method('getArtist', getArtist)
+
+  .method('getPlaylists', getPlaylists)
+  .method('getPlaylist', getPlaylist)
 
   .method('getSongs', getSongs)
   .method('getSongCount', getSongCount)
@@ -87,6 +91,10 @@ function play(filePath) {
     audio.src = URL.createObjectURL(file);
     audio.load();
     audio.play();
+
+    getSong(filePath).then((song) => {
+      Database.incrementPlayCount(song);
+    });
 
     service.broadcast('songChange');
   });
@@ -160,6 +168,22 @@ function queueAlbum(filePath) {
   });
 }
 
+function queuePlaylist(id, filePath) {
+  return loadQueueSettings.then(() => {
+    return getPlaylist(id).then((songs) => {
+      var playlist = Database.playlists.find(playlist => playlist.id === id);
+      return setShuffleSetting(playlist.shuffle).then(() => {
+        var index = filePath ?
+          songs.findIndex(song => song.name === filePath) :
+          (playlist.shuffle ? Math.floor(Math.random() * songs.length) : 0);
+        currentQueue = new PlaybackQueue.StaticQueue(songs, index);
+
+        return currentSong().then(song => play(song.name));
+      });
+    });
+  });
+}
+
 function queueSong(filePath) {
   return loadQueueSettings.then(() => {
     return getSongs().then((songs) => {
@@ -185,7 +209,10 @@ function getShuffleSetting() {
 }
 
 function setShuffleSetting(shuffle) {
-  shuffle = shuffle !== 'false' && parseInt(shuffle || 0, 10) !== 0;
+  if (typeof shuffle !== 'boolean') {
+    shuffle = shuffle !== 'false' && parseInt(shuffle || 0, 10) !== 0;
+  }
+
   return loadQueueSettings.then(() => PlaybackQueue.shuffle = shuffle);
 }
 
@@ -218,6 +245,18 @@ function getArtist(filePath) {
     return new Promise((resolve) => {
       Database.enumerateAll('metadata.artist', artist, 'next', songs => resolve(songs));
     });
+  });
+}
+
+function getPlaylists() {
+  return Promise.resolve(Database.playlists);
+}
+
+function getPlaylist(id) {
+  var playlist = Database.playlists.find(playlist => playlist.id === id);
+
+  return new Promise((resolve) => {
+    Database.enumerateAll(playlist.index, null, playlist.direction, songs => resolve(songs));
   });
 }
 

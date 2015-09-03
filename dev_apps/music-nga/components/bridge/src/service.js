@@ -17,15 +17,23 @@ var Receiver = message.Receiver;
 module.exports = Service;
 
 /**
- * Mini Logger
+ * Debug logger
+ *
+ * 0: off
+ * 1: performance
+ * 2: console.log
  *
  * @type {Function}
  * @private
  */
-var debug = 0 ? function(arg1, ...args) {
-  var type = `[${self.constructor.name}][${location.pathname}]`;
-  console.log(`[Service]${type} - "${arg1}"`, ...args);
-} : () => {};
+var debug = {
+  0: () => {},
+  1: arg => performance.mark(`[${self.constructor.name}][Service] - ${arg}`),
+  2: (arg1, ...args) => {
+    var type = `[${self.constructor.name}][${location.pathname}]`;
+    console.log(`[Service]${type} - "${arg1}"`, ...args);
+  }
+}[0];
 
 /**
  * Extends `Receiver`
@@ -65,8 +73,10 @@ function Service(name) {
     .on('_on', this.onOn.bind(this));
 
   this.destroy = this.destroy.bind(this);
-  debug('initialized', name, self.createEvent);
+  debug('initialized', name);
 }
+
+Service.prototype.inWindow = constructor.name === 'Window';
 
 /**
  * Define a method to expose to Clients.
@@ -194,25 +204,42 @@ Service.prototype.onConnect = function(message) {
   this.emit('before-connect', message);
   if (message.defaultPrevented) return;
 
-  // If the transport used support 'transfer' then
-  // a MessageChannel port will have been sent.
+  this.upgradeChannel(message);
+  this.addClient(clientId, message.sourcePort);
+  message.respond();
+
+  this.emit('connected', clientId);
+  debug('connected', clientId);
+};
+
+/**
+ * When a Client attempt to connect we
+ * can sometimes upgrade the to a direct
+ * MessageChannel 'pipe' to prevent
+ * hopping threads.
+ *
+ * We only do this if both:
+ *
+ *  A. `MessagePort` was supplied with the 'connect' event.
+ *  B. The Client and Service are not both in `Window` contexts
+ *     (it's faster to use sync messaging window -> window).
+ *
+ * @param  {Message} message  the 'connect' message
+ * @private
+ */
+Service.prototype.upgradeChannel = function(message) {
+  if (this.inWindow && message.data.originEnv === 'Window') return;
+
   var ports = message.event.ports;
   var channel = ports && ports[0];
 
-  // If the 'connect' message came with
-  // a channel, update the source port
-  // so response message goes directly.
   if (channel) {
     message.setSourcePort(channel);
     this.listen(channel);
     channel.start();
   }
 
-  this.addClient(clientId, message.sourcePort);
-  message.respond();
-
-  this.emit('connected', clientId);
-  debug('connected', clientId);
+  debug('channel upgraded');
 };
 
 /**

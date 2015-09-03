@@ -7,11 +7,14 @@
 
 var deferred = require('../utils').deferred;
 
+/**
+ * Message event name
+ * @type {String}
+ */
 const MSG = 'message';
 
 /**
  * Mini Logger
- *
  * @type {Function}
  * @private
  */
@@ -21,10 +24,12 @@ var debug = 0 ? function(arg1, ...args) {
 } : () => {};
 
 /**
- * Creates a
- * @param  {[type]} target  [description]
- * @param  {[type]} options [description]
- * @return {[type]}         [description]
+ * Creates a bridge.js port abstraction
+ * with a consistent interface.
+ *
+ * @param  {Object} target
+ * @param  {Object} options
+ * @return {PortAdaptor}
  */
 module.exports = function create(target, options) {
   if (!target) throw error(1);
@@ -54,7 +59,7 @@ var PortAdaptorProto = PortAdaptor.prototype = {
 
 /**
  * A registry of specific adaptors
- * for which the default port-adaptor
+ * for when the default PortAdaptor
  * is not suitable.
  *
  * @type {Object}
@@ -66,16 +71,14 @@ var adaptors = {
    *
    * @param {HTMLIframeElement} iframe
    */
-  HTMLIFrameElement(iframe) {
+  'HTMLIFrameElement': function(iframe) {
     debug('HTMLIFrameElement');
     var ready = windowReady(iframe);
     return {
       addListener(callback, listen) { on(window, MSG, callback); },
       removeListener(callback, listen) { off(window, MSG, callback); },
       postMessage(data, transfer) {
-        ready.then(() => {
-          iframe.contentWindow.postMessage(data, '*', transfer);
-        });
+        ready.then(() => postMessageSync(iframe.contentWindow, data, transfer));
       }
     };
   },
@@ -86,7 +89,7 @@ var adaptors = {
    * @param {Object} channel
    * @param {[type]} options [description]
    */
-  BroadcastChannel(channel, options) {
+  'BroadcastChannel': function(channel, options) {
     debug('BroadcastChannel', channel.name);
     var receiver = options && options.receiver;
     var ready = options && options.ready;
@@ -132,26 +135,29 @@ var adaptors = {
     };
   },
 
-  Window(win, options) {
+  'Window': function(win, options) {
     debug('Window');
-    var ready = options && options.ready || win === self;
+    var ready = options && options.ready
+      || win === parent // parent always ready
+      || win === self; // self always ready
+
     ready = ready ? Promise.resolve() : windowReady(win);
 
     return {
       addListener(callback, listen) { on(window, MSG, callback); },
       removeListener(callback, listen) { off(window, MSG, callback); },
       postMessage(data, transfer) {
-        ready.then(() => win.postMessage(data, '*', transfer));
+        ready.then(() => postMessageSync(win, data, transfer));
       }
     };
   },
 
-  SharedWorker(worker) {
+  'SharedWorker': function(worker) {
     worker.port.start();
     return new PortAdaptor(worker.port);
   },
 
-  SharedWorkerGlobalScope() {
+  'SharedWorkerGlobalScope': function() {
     var ports = [];
 
     return {
@@ -178,6 +184,14 @@ var adaptors = {
   }
 };
 
+/**
+ * Return a Promise that resolves
+ * when a Window is ready to start
+ * recieving messages.
+ *
+ * @param  {Window} target
+ * @return {Promise}
+ */
 var windowReady = (function() {
   if (typeof window == 'undefined') return;
   var parent = window.opener || window.parent;
@@ -189,7 +203,7 @@ var windowReady = (function() {
   if (parent != self) {
     on(window, domReady, function fn() {
       off(window, domReady, fn);
-      parent.postMessage('load', '*');
+      postMessageSync(parent, 'load');
     });
   }
 
@@ -230,6 +244,29 @@ function isEndpoint(thing) {
 // Shorthand
 function on(target, name, fn) { target.addEventListener(name, fn); }
 function off(target, name, fn) { target.removeEventListener(name, fn); }
+
+/**
+ * Dispatches syncronous 'message'
+ * event on a Window.
+ *
+ * We use this because standard
+ * window.postMessage() gets blocked
+ * until the main-thread is free.
+ *
+ * @param  {Window} win
+ * @param  {*} data
+ * @private
+ */
+function postMessageSync(win, data, transfer) {
+  var event = {
+    data: data,
+    source: self
+  };
+
+  if (transfer) event.ports = transfer;
+
+  win.dispatchEvent(new MessageEvent('message', event));
+}
 
 /**
  * Creates new `Error` from registery.

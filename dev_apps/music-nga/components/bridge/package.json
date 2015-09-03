@@ -5,8 +5,8 @@
   "license": "MIT",
   "main": "index.js",
   "scripts": {
-    "test": "./node_modules/karma/bin/karma start test/karma.conf.js --single-run",
-    "test-dev": "./node_modules/karma/bin/karma start test/karma.conf.js",
+    "test": "./node_modules/karma/bin/karma start test/unit/karma.conf.js --single-run",
+    "test-dev": "./node_modules/karma/bin/karma start test/unit/karma.conf.js",
 
     "docs": "rm -rf docs/bridge; babel src --out-dir src-es5; jsdoc -c docs/jsdoc.json; rm -rf src-es5",
 
@@ -14,9 +14,9 @@
     "bundle-client": "browserify build/client -s bridge -o client.js",
     "bundle-service": "browserify build/service -s bridge -o service.js",
 
-    "compress": "ccjs bridge.js --language_in=ECMASCRIPT6 --language_out=ES5 --compilation_level=ADVANCED_OPTIMIZATIONS > bridge.min.js; npm run compress-client; npm run compress-service",
-    "compress-client": "ccjs client.js --language_in=ECMASCRIPT6 --compilation_level=ADVANCED_OPTIMIZATIONS --language_out=ES5 > client.min.js",
-    "compress-service": "ccjs service.js --compilation_level=ADVANCED_OPTIMIZATIONS --language_in=ECMASCRIPT6 --language_out=ES5 > service.min.js",
+    "compress": "ccjs bridge.js --language_in=ECMASCRIPT6 --language_out=ES5 > bridge.min.js; npm run compress-client; npm run compress-service",
+    "compress-client": "ccjs client.js --language_in=ECMASCRIPT6 --language_out=ES5 > client.min.js",
+    "compress-service": "ccjs service.js --language_in=ECMASCRIPT6 --language_out=ES5 > service.min.js",
 
     "build": "npm run bundle; npm run compress",
     "watch": "watchify build/bridge.js -o bridge.js",

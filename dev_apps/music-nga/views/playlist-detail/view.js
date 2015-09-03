@@ -6,7 +6,39 @@ var debug = 1 ? (...args) => console.log('[PlaylistDetailView]', ...args) : () =
 var PlaylistDetailView = View.extend(function PlaylistDetailView() {
   View.call(this); // super();
 
-  this.content = document.getElementById('content');
+  this.list = document.getElementById('list');
+
+  this.list.configure({
+    getSectionName(item) {
+      var title = item.metadata.title;
+      return title ? title[0].toUpperCase() : '?';
+    },
+
+    // We won't need this after <gaia-fast-list>
+    // gets proper dynamic <template> input
+    populateItem: function(el, i) {
+      var data = this.getRecordAt(i);
+
+      var link = el.querySelector('a');
+      var title = el.querySelector('h3');
+      var subtitle = el.querySelector('p');
+
+      link.href = `/player?id=${data.name}`;
+      link.dataset.filePath = data.name;
+
+      title.firstChild.data = data.metadata.title;
+      subtitle.firstChild.data = data.metadata.artist;
+    }
+  });
+
+  this.list.addEventListener('click', (evt) => {
+    var link = evt.target.closest('a[data-file-path]');
+    if (link) {
+      this.queuePlaylist(link.dataset.filePath);
+    }
+  });
+
+  View.preserveListScrollPosition(this.list);
 
   this.client.on('databaseChange', () => this.update());
 
@@ -14,8 +46,8 @@ var PlaylistDetailView = View.extend(function PlaylistDetailView() {
 });
 
 PlaylistDetailView.prototype.update = function() {
-  this.getPlaylist().then((playlist) => {
-    this.playlist = playlist;
+  this.getPlaylist().then((songs) => {
+    this.songs = songs;
     this.render();
   });
 };
@@ -31,23 +63,15 @@ PlaylistDetailView.prototype.title = 'Playlists';
 PlaylistDetailView.prototype.render = function() {
   View.prototype.render.call(this); // super();
 
-  var html = '';
-
-  this.playlist.songs.forEach((song) => {
-    var template =
-`<a is="music-list-item"
-    href="/player?id=${song.name}"
-    title="${song.title}">
-</a>`;
-
-    html += template;
-  });
-
-  this.content.innerHTML = html;
+  this.list.model = this.songs;
 };
 
 PlaylistDetailView.prototype.getPlaylist = function() {
-  return this.fetch('/api/playlists/' + this.params.id).then(response => response.json());
+  return this.fetch('/api/playlists/info/' + this.params.id).then(response => response.json());
+};
+
+PlaylistDetailView.prototype.queuePlaylist = function(filePath) {
+  this.fetch('/api/queue/playlist/' + this.params.id + '/song/' + filePath);
 };
 
 window.view = new PlaylistDetailView();

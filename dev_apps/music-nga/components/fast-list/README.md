@@ -8,11 +8,14 @@ below. When the content is edited from the list "Edit mode", the list will trigg
 
 But there's no observation going on, so if the content changes for other reasons the list needs to be made aware of that.
 
-## List API
-### Constructor
-
 ```js
 var myList = new FastList({
+
+  /**
+   * The element your list sits inside.
+   * NOTE: Must be `position: relative|absolute`
+   * @type {HTMLElement}
+   */
   container: document.querySelector('.my-container'),
 
   /**

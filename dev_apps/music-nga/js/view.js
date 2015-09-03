@@ -25,11 +25,16 @@ if (!window.parent.SERVICE_WORKERS) (function() {
 
     '/api/database/status': 'getDatabaseStatus',
 
+    '/api/playlists/list': 'getPlaylists',
+    '/api/playlists/info/:id': 'getPlaylist',
+
     '/api/queue/current': 'currentSong',
     '/api/queue/previous': 'previousSong',
     '/api/queue/next': 'nextSong',
     '/api/queue/album/:filePath': 'queueAlbum',
     '/api/queue/artist/:filePath': 'queueArtist',
+    '/api/queue/playlist/:id/shuffle': 'queuePlaylist',
+    '/api/queue/playlist/:id/song/:filePath': 'queuePlaylist',
     '/api/queue/song/:filePath': 'queueSong',
     '/api/queue/repeat': 'getRepeatSetting',
     '/api/queue/repeat/:repeat': 'setRepeatSetting',
@@ -101,8 +106,6 @@ View.prototype.fetch = function(url) {
   if (window.parent.SERVICE_WORKERS) {
     return window.fetch(url);
   }
-
-  console.log('**** fetch() ****', url);
 
   url = decodeURIComponent(url);
 

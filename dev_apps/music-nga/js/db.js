@@ -20,6 +20,44 @@ var TitleBar = (function() {
 })();
 
 var Database = (function() {
+  var playlists = [
+    {
+      id: 'shuffle-all',
+      title: 'Shuffle all',
+      index: 'metadata.title',
+      direction: 'next',
+      shuffle: true
+    },
+    {
+      id: 'highest-rated',
+      title: 'Highest rated',
+      index: 'metadata.rated',
+      direction: 'prev',
+      shuffle: false
+    },
+    {
+      id: 'recently-added',
+      title: 'Recently added',
+      index: 'date',
+      direction: 'prev',
+      shuffle: false
+    },
+    {
+      id: 'most-played',
+      title: 'Most played',
+      index: 'metadata.played',
+      direction: 'prev',
+      shuffle: false
+    },
+    {
+      id: 'least-played',
+      title: 'Least played',
+      index: 'metadata.played',
+      direction: 'next',
+      shuffle: false
+    }
+  ];
+
   var status = {
     upgrading: false,
     unavailable: false,
@@ -381,7 +419,7 @@ var Database = (function() {
     count: count,
     search: search,
     cancelEnumeration: cancelEnumeration,
-
+    playlists: playlists,
     status: status,
 
     // This is just here for testing.
