@@ -112,7 +112,8 @@ suite('system/BrowserContextMenu', function() {
         items: [{
           label: 'test0',
           icon: 'test'
-        }]
+        }],
+        customized: true
       }
     }
   };
@@ -137,7 +138,8 @@ suite('system/BrowserContextMenu', function() {
       stopPropagation: function() {},
       detail: {
         contextmenu: {
-          items: []
+          items: [],
+          customized: false
         },
         systemTargets: [{
           nodeName: type,
@@ -166,7 +168,8 @@ suite('system/BrowserContextMenu', function() {
     },
     detail: {
       contextmenu: {
-        items: []
+        items: [],
+        customized: false
       }
     }
   };
