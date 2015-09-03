@@ -135,6 +135,7 @@
    "layers.draw-borders": false,
    "layers.dump": false,
    "layers.enable-tiles": true,
+   "layout.display-list.dump": false,
    "locale.hour12": true,
    "lockscreen.passcode-lock.code": "0000",
    "lockscreen.passcode-lock.timeout": 0,
