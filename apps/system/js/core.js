@@ -92,7 +92,7 @@
         // which has no navigator.mozMobileConnections.
         'CpuManager',
         'HomeGesture',
-        'SourceView',
+        'ViewSource',
         'TtlView',
         'MediaRecording',
         'QuickSettings',
