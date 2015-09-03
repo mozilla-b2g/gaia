@@ -7,7 +7,7 @@ class BuddyUp(Base):
 
     _buddyup_iframe_locator = (By.CSS_SELECTOR, 'iframe[src*="home.html"]')
     _settings = (By.ID, 'settings')
-    _buddyup_profile_iframe = (By.CSS_SELECTOR, 'iframe[src="/profile.html"]')
+    _buddyup_profile_iframe = (By.CSS_SELECTOR, 'iframe[src$="profile.html"]')
     _create_account_button = (By.CSS_SELECTOR, 'a[href="authentication.html"]')
 
     def create_account(self):
