@@ -159,6 +159,7 @@ apps/privacy-panel/test/unit/ala/define_custom_location_test.js # line 26, col 6
 apps/ringtones/js/tone_list.js # line 51, col 4, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 apps/settings/js/firefox_accounts/panel.js # line 131, col 4, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 apps/settings/js/modules/addon_manager.js # line 205, col 45, Error - Unexpected token for
+apps/settings/js/modules/match_pattern.js # line 109, col 24, Error - Unexpected token for
 apps/settings/js/modules/messaging.js # line 196, col 12, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 apps/settings/js/panels/frame/panel.js # line 67, col 8, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 apps/settings/js/panels/languages/languages.js # line 21, col 10, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
