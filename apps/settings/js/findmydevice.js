@@ -68,8 +68,9 @@ define('findmydevice', ['modules/settings_utils', 'shared/settings_listener'
       SettingsListener.observe('findmydevice.can-disable', true,
         this._setCanDisable.bind(this));
 
-      var checkbox = document.querySelector('#findmydevice-enabled input');
-      checkbox.addEventListener('click', this._onCheckboxChanged.bind(this));
+      var checkbox = document.querySelector(
+        '#findmydevice-enabled gaia-switch');
+      checkbox.addEventListener('change', this._onCheckboxChanged.bind(this));
     },
 
     _onLoginClick: function fmd_on_login_click(e) {
@@ -94,7 +95,8 @@ define('findmydevice', ['modules/settings_utils', 'shared/settings_listener'
     },
 
     _setEnabled: function fmd_set_enabled(value) {
-      var checkbox = document.querySelector('#findmydevice-enabled input');
+      var checkbox = document.querySelector(
+        '#findmydevice-enabled gaia-switch');
       checkbox.checked = value;
 
       var status = document.getElementById('findmydevice-tracking');
@@ -108,7 +110,8 @@ define('findmydevice', ['modules/settings_utils', 'shared/settings_listener'
     },
 
     _setCanDisable: function fmd_set_can_disable(value) {
-      var checkbox = document.querySelector('#findmydevice-enabled input');
+      var checkbox = document.querySelector(
+        '#findmydevice-enabled gaia-switch');
       checkbox.disabled = !value;
     },
 
@@ -156,7 +159,8 @@ define('findmydevice', ['modules/settings_utils', 'shared/settings_listener'
         return;
       }
 
-      var checkbox = document.querySelector('#findmydevice-enabled input');
+      var checkbox = document.querySelector(
+        '#findmydevice-enabled gaia-switch');
       checkbox.disabled = true;
 
       if (checkbox.checked === false) {
