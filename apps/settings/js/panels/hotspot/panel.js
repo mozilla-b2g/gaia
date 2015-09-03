@@ -100,7 +100,7 @@ define(function(require) {
       _updateHotspotSecurity: function(newValue) {
         if (newValue) {
           elements.hotspotSecurityType.setAttribute('data-l10n-id',
-            'hotspot-' + newValue);
+            'hotspot-security-' + newValue);
         }
       },
 
