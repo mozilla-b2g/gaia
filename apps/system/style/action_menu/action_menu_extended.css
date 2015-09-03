@@ -61,7 +61,7 @@ form[role="dialog"][data-type="object"] {
   position: absolute;
 
   visibility: hidden;
-  transform: translateY(100%);
+  transform: translateY(calc(100% + var(--software-home-button-height)));
   transition: transform ease-in-out .3s, visibility .3s;
   pointer-events: none;
 }
