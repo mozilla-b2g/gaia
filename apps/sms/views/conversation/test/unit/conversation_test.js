@@ -16,7 +16,8 @@
          SMIL,
          TaskRunner,
          Thread,
-         MessagingClient
+         MessagingClient,
+         MozMobileConnectionsClient
 */
 
 'use strict';
@@ -58,6 +59,8 @@ require('/services/test/unit/mock_drafts.js');
 require('/services/test/unit/mock_threads.js');
 require('/services/test/unit/activity/mock_activity_client.js');
 require('/services/test/unit/messaging/mock_messaging_client.js');
+require('/services/test/unit/moz_mobile_connections/' +
+  'mock_moz_mobile_connections_client.js');
 
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 require('/shared/test/unit/mocks/mock_sticky_header.js');
@@ -103,7 +106,8 @@ var mocksHelperForConversationView = new MocksHelper([
   'ActivityClient',
   'App',
   'Compose',
-  'MessagingClient'
+  'MessagingClient',
+  'MozMobileConnectionsClient'
 ]).init();
 
 suite('conversation.js >', function() {
@@ -1643,7 +1647,7 @@ suite('conversation.js >', function() {
           function() {
           setup(function() {
             this.sinon.spy(ConversationView, 'showMessageError');
-            this.sinon.stub(Settings, 'switchMmsSimHandler')
+            this.sinon.stub(MozMobileConnectionsClient, 'switchMmsSimHandler')
               .returns(Promise.resolve());
           });
           test('does not show dialog if error is not NonActiveSimCardError',
@@ -1664,7 +1668,7 @@ suite('conversation.js >', function() {
             MockErrorDialog.calls[0][1].confirmHandler();
 
             assertMessageStatus('sending');
-            sinon.assert.called(Settings.switchMmsSimHandler);
+            sinon.assert.called(MozMobileConnectionsClient.switchMmsSimHandler);
           });
         });
       });
@@ -2983,11 +2987,8 @@ suite('conversation.js >', function() {
           });
 
           test('confirmHandler called with correct state', function() {
-            this.sinon.stub(Settings, 'switchMmsSimHandler').returns(
-              Promise.resolve());
-            this.sinon.stub(Settings, 'getServiceIdByIccId').returns(null);
-            Settings.getServiceIdByIccId.withArgs('A').returns(0);
-            Settings.getServiceIdByIccId.withArgs('B').returns(1);
+            this.sinon.stub(MozMobileConnectionsClient, 'switchMmsSimHandler')
+              .returns(Promise.resolve());
 
             MockErrorDialog.calls[0][1].confirmHandler();
             assert.isTrue(element.classList.contains('pending'));
@@ -2996,21 +2997,25 @@ suite('conversation.js >', function() {
               button.getAttribute('data-l10n-id'),
               'downloading-attachment'
             );
-            sinon.assert.calledWith(Settings.switchMmsSimHandler, 1);
+            sinon.assert.calledWith(
+              MozMobileConnectionsClient.switchMmsSimHandler,
+              'B'
+            );
           });
 
-          test('fail if the SIM is not present anymore', function() {
-            this.sinon.spy(Settings, 'switchMmsSimHandler');
-            this.sinon.stub(Settings, 'getServiceIdByIccId').returns(null);
+          test('fail if the SIM is not present anymore', function(done) {
+            this.sinon.stub(MozMobileConnectionsClient, 'switchMmsSimHandler')
+              .returns(Promise.reject('NoSimCardError'));
 
-            MockErrorDialog.calls[0][1].confirmHandler();
-            assert.isFalse(element.classList.contains('pending'));
-            assert.isTrue(element.classList.contains('error'));
-            sinon.assert.notCalled(Settings.switchMmsSimHandler);
-            assert.equal(
-              MockErrorDialog.calls[1][0],
-              Errors.get('NoSimCardError')
-            );
+            MockErrorDialog.calls[0][1].confirmHandler().then(() => {
+              assert.isFalse(element.classList.contains('pending'));
+              assert.isTrue(element.classList.contains('error'));
+
+              assert.equal(
+                MockErrorDialog.calls[1][0],
+                Errors.get('NoSimCardError')
+              );
+            }).then(done, done);
           });
         });
 

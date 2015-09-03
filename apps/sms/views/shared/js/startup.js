@@ -13,6 +13,7 @@
          LocalizationHelper,
          MessageManager,
          MessagingClient,
+         MozMobileConnectionsClient,
          Navigation,
          Settings,
          SilentSms,
@@ -72,7 +73,8 @@ var Startup = exports.Startup = {
     '/services/js/bridge_service_mixin.js',
     '/services/js/activity/activity_shim.js',
     '/services/js/activity/activity_client.js',
-    '/services/js/messaging/messaging_client.js'
+    '/services/js/messaging/messaging_client.js',
+    '/services/js/moz_mobile_connections/moz_mobile_connections_client.js'
   ],
 
   _lazyLoadInit: function() {
@@ -89,6 +91,7 @@ var Startup = exports.Startup = {
       TimeHeaders.init();
       ConversationView.init();
       MessagingClient.init(App.instanceId);
+      MozMobileConnectionsClient.init(App.instanceId);
       Information.initDefaultViews();
 
       Navigation.setReady();

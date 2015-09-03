@@ -6,6 +6,7 @@
           LocalizationHelper,
           MessageManager,
           MessagingClient,
+          MozMobileConnectionsClient,
           Navigation,
           Settings,
           Threads,
@@ -18,6 +19,7 @@
 
   const LAZY_DEPENDENCIES = [
     '/services/js/messaging/messaging_client.js',
+    '/services/js/moz_mobile_connections/moz_mobile_connections_client.js',
     '/shared/js/settings_listener.js',
     '/shared/js/mime_mapper.js',
     '/shared/js/option_menu.js',
@@ -41,6 +43,7 @@
       Information.initDefaultViews();
       Settings.init();
       MessagingClient.init(App.instanceId);
+      MozMobileConnectionsClient.init(App.instanceId);
       Navigation.setReady();
 
       InterInstanceEventDispatcher.connect();

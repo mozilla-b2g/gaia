@@ -6,6 +6,7 @@
          LocalizationHelper,
          MessageManager,
          MessagingClient,
+         MozMobileConnectionsClient,
          MocksHelper,
          Navigation,
          Settings,
@@ -26,6 +27,8 @@ require('/views/shared/test/unit/mock_localization_helper.js');
 require('/views/shared/test/unit/mock_app.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/services/test/unit/messaging/mock_messaging_client.js');
+require('/services/test/unit/moz_mobile_connections/' +
+  'mock_moz_mobile_connections_client.js');
 require('/services/test/unit/mock_message_manager.js');
 require('/views/shared/js/utils.js');
 require('/views/shared/test/unit/mock_utils.js');
@@ -41,6 +44,7 @@ var MocksHelperForInboxStartup = new MocksHelper([
   'LocalizationHelper',
   'MessageManager',
   'MessagingClient',
+  'MozMobileConnectionsClient',
   'Navigation',
   'TimeHeaders',
   'Settings',
@@ -65,6 +69,7 @@ suite('ConversationView Startup,', function() {
     this.sinon.stub(MessageManager, 'getThreads');
     this.sinon.stub(Navigation, 'isDefaultPanel');
     this.sinon.spy(MessagingClient, 'init');
+    this.sinon.spy(MozMobileConnectionsClient, 'init');
     this.sinon.spy(Utils, 'initializeShimHost');
   });
 
