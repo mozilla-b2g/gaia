@@ -147,8 +147,8 @@
     var key = this._keyForTarget(target);
     if (key) {
       this._visualizeKeypress(target);
-      if (this.states.padVibrationEnabled
-        && !this.states.passCodeErrorTimeoutPending) {
+      if (this.states.padVibrationEnabled &&
+          !this.states.passCodeErrorTimeoutPending) {
         navigator.vibrate(this.configs.padVibrationDuration);
       }
     }
@@ -197,8 +197,8 @@
     // null, requesting internal reset.
     // Comparing DOM elements is tricky. .isEqualNode() and friends
     // do not always work as expected. Comparing textContent instead.
-    if (!target || !this.lastTouchedKey
-      || target.textContent !== this.lastTouchedKey.textContent) {
+    if (!target || !this.lastTouchedKey ||
+        target.textContent !== this.lastTouchedKey.textContent) {
       // Make old key inactive if there was one
       if (this.lastTouchedKey) {
         this._makeKeyInactive(this.lastTouchedKey);

@@ -3,7 +3,6 @@
 
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/lockscreen/js/lockscreen_inputpad.js');
-var fs = require('fs');
 
 var mocks = new window.MocksHelper([
   'SettingsListener'
@@ -151,7 +150,8 @@ suite('LockScreenInputpad', function() {
       };
       var result = subject._touchTarget(event);
       assert.isTrue(stubFromPoint.calledWith(23,42),
-        'touchTarget does not call .elementFromPoint() with expected arguments');
+        'touchTarget does not call .elementFromPoint() ' +
+        'with expected arguments');
       assert.isTrue(result === 'CORRECT_ELEMENT',
         'touchTarget does not find the expected element');
       stubFromPoint.restore();
@@ -182,14 +182,14 @@ suite('LockScreenInputpad', function() {
 
       oldTarget.classList.remove(activeClass);
       subject._visualizeKeypress(oldTarget);
-      assert.isFalse(oldTarget.classList.contains(activeClass)
-        && !newTarget.classList.contains(activeClass),
+      assert.isFalse(oldTarget.classList.contains(activeClass) &&
+        !newTarget.classList.contains(activeClass),
         'vizualizeKeypress changes inactive state without key change');
 
       oldTarget.classList.add(activeClass);
       subject._visualizeKeypress(oldTarget);
-      assert.isTrue(oldTarget.classList.contains(activeClass)
-        && !newTarget.classList.contains(activeClass),
+      assert.isTrue(oldTarget.classList.contains(activeClass) &&
+        !newTarget.classList.contains(activeClass),
         'vizualizeKeypress changes active state without key change');
 
       subject._visualizeKeypress(newTarget);
@@ -531,10 +531,10 @@ suite('LockScreenInputpad', function() {
 
       test('it correctly handles key input', function() {
         subject.handlePassCodeInput(twoKey);
-        assert.isTrue(subject.states.passCodeEntered === "2",
+        assert.isTrue(subject.states.passCodeEntered === '2',
           'it does not correctly handle the first key');
         subject.handlePassCodeInput(threeKey);
-        assert.isTrue(subject.states.passCodeEntered === "23",
+        assert.isTrue(subject.states.passCodeEntered === '23',
           'it does not correctly handle the second key');
       });
 
@@ -542,7 +542,7 @@ suite('LockScreenInputpad', function() {
         subject.handlePassCodeInput(twoKey);
         subject.handlePassCodeInput(threeKey);
         subject.handlePassCodeInput(backKey);
-        assert.isTrue(subject.states.passCodeEntered === "2",
+        assert.isTrue(subject.states.passCodeEntered === '2',
           'it does not correctly handle the back key');
       });
 
@@ -551,7 +551,7 @@ suite('LockScreenInputpad', function() {
         subject.handlePassCodeInput(threeKey);
         subject.handlePassCodeInput(twoKey);
         subject.handlePassCodeInput(threeKey);
-        assert.isTrue(stubCheckPassCode.calledWith("2323"),
+        assert.isTrue(stubCheckPassCode.calledWith('2323'),
           'it does not properly check the pass code');
       });
 
