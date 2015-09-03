@@ -208,7 +208,6 @@ marionette('Music player tests', function() {
         rating = music.getStarRating();
         assert.equal(rating, rating_value, 'Check rating is shown.');
 
-        /* XXXX re-enable when the feature is fixed
         // switch back and forth
         music.tapHeaderActionButton();
         music.playFirstSong();
@@ -229,8 +228,6 @@ marionette('Music player tests', function() {
         rating = music.getStarRating();
         assert.equal(rating, rating_value,
                      'Incorrect rating after restarting.');
-        */
-
       } catch(e) {
         assert.ok(false, 'Exception: ' + e.stack);
       }
