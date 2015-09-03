@@ -484,6 +484,11 @@ a#frequency-op-seekup:active {
   z-index: 2;
 }
 
+#antenna-warning:not([hidden]) {
+  display: flex;
+  flex-direction: column;
+}
+
 #antenna-warning > div:first-child {
   height: 60%;
   background: url(images/headset.png) no-repeat center center / 18.4rem;
