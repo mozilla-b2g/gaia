@@ -99,13 +99,13 @@
   };
 
   LockScreenInputpad.prototype.handleEvent = function(evt) {
-    var touch, target, key;
+    /* The event flow from lockscreen.js is:
+     * on pass code fail:
+     *   - 'validationfailed' -> (validation timeout) -> 'validationreset'
+     * on pass code success:
+     *   - 'validationsuccess'
+     */
     switch (evt.type) {
-      // The event flow from lockscreen.js is:
-      // on pass code fail:
-      //   - 'validationfailed' -> (validation timeout) -> 'validationreset'
-      // on pass code success:
-      //   - 'validationsuccess'
       case 'lockscreen-notify-passcode-validationfailed':
         this.states.passCodeErrorTimeoutPending = true;
         this.updatePassCodeUI();
@@ -123,89 +123,124 @@
         this.updatePassCodeUI();
         break;
       case 'touchstart':
-        // Determine which key the finger is on from touch coordinates.
-        // evt.target remains on where the touch started.
-        touch = evt.changedTouches[0];
-        target = document.elementFromPoint(touch.clientX, touch.clientY);
-        key = this._keyForTarget(target);
-
-        if (!key) {
-          break;
-        }
-        if (this.lastTouchedKey) {
-          this._makeKeyInactive(this.lastTouchedKey);
-        }
-        this._makeKeyActive(target);
-        this.lastTouchedKey = target;
-        if (this.states.padVibrationEnabled &&
-          !this.states.passCodeErrorTimeoutPending) {
-          navigator.vibrate(this.configs.padVibrationDuration);
-        }
+        this.onTouchStart(evt);
         break;
       case 'touchmove':
-        // On touchmove, update keyboard display if and only if
-        // finger moves between keys.
-
-        // Determine which key the finger is on from touch coordinates.
-        // evt.target remains on where the touch started.
-        touch = evt.changedTouches[0];
-        target = document.elementFromPoint(touch.clientX, touch.clientY);
-        key = this._keyForTarget(target);
-
-        // State update is only required if the touch location moved
-        // onto a different key than in the last round.
-        if (target.textContent !== this.lastTouchedKey.textContent) {
-          if (this.lastTouchedKey) {
-            // Make old key inactive
-            this._makeKeyInactive(this.lastTouchedKey);
-          }
-          if (key) {
-            // Make new key active
-            this._makeKeyActive(target);
-            // Remember new key for the next event
-            this.lastTouchedKey = target;
-          } else {
-            // If there's no new key, touch moved beyond the keypad
-            this.lastTouchedKey = null;
-          }
-        }
+        this.onTouchMove(evt);
         break;
       case 'touchend':
-        // On touchend, handle input from the key over which the
-        // finger was released.
-
         evt.preventDefault();  // prevent the 'click'
-
-        // Determine which key the finger is on from touch coordinates.
-        // evt.target remains on where the touch started.
-        touch = evt.changedTouches[0];
-        target = document.elementFromPoint(touch.clientX, touch.clientY);
-        key = this._keyForTarget(target);
-
-        if (this.lastTouchedKey) {
-          // Make old key inactive
-          this._makeKeyInactive(this.lastTouchedKey);
-          this.lastTouchedKey = null;
-        }
-        if (key) {
-          // If touch ended on a key, handle key input
-          this.handlePassCodeInput(key);
-        }
+        this.onTouchEnd(evt);
         break;
       case 'click':
-        // Handle the traditional click event. Only required on
-        // platforms that don't support touch events.
-        target = evt.target;
-        key = this._keyForTarget(target);
-        if (this.lastTouchedKey) {
-          this._makeKeyInactive(this.lastTouchedKey);
-          this.lastTouchedKey = null;
-        }
-        if (key) {
-          // If click landed on a key, handle key input
-          this.handlePassCodeInput(key);
-        }
+        this.onClick(evt);
         break;
+    }
+  };
+
+  /* On touchstart, mark key under finger as active
+   * and vibrate if vibration is enabled.
+   */
+  LockScreenInputpad.prototype.onTouchStart = function(evt) {
+    var target = this._touchTarget(evt);
+    // Only act if touch landed on a key
+    var key = this._keyForTarget(target);
+    if (key) {
+      this._visualizeKeypress(target);
+      if (this.states.padVibrationEnabled
+        && !this.states.passCodeErrorTimeoutPending) {
+        navigator.vibrate(this.configs.padVibrationDuration);
+      }
+    }
+  };
+
+  /* On touchmove, update keypad display if and only if
+   * finger moves between keys.
+   */
+  LockScreenInputpad.prototype.onTouchMove = function(evt) {
+    // State update is only required if the touch location moved
+    // onto a different key than in the last round.
+    // _visualizeKeypress keeps track of this.
+    var target = this._touchTarget(evt);
+    this._visualizeKeypress(target);
+  };
+
+  /* On touchend, handle input from the key over which the
+   * finger was released.
+   */
+  LockScreenInputpad.prototype.onTouchEnd = function(evt) {
+    var target = this._touchTarget(evt);
+    this.handlePassCodeInput(target);
+    this._visualizeKeypress(null); // deactivates all keys
+  };
+
+  /* Handler for traditional click events. Only required on
+   * platforms that don't support touch events.
+   */
+  LockScreenInputpad.prototype.onClick = function(evt) {
+    var target = evt.target;
+    this._visualizeKeypress(target);
+    this.handlePassCodeInput(target);
+    setTimeout(() => {
+      this._visualizeKeypress(null); // deactivates all keys
+    }, 200); // after 200ms
+  };
+
+  /* Visualize the current key as active, and the previous
+   * key as inactive, and keep track of which key was active
+   * for the next round, and only update if there was a key
+   * change.
+   */
+  LockScreenInputpad.prototype._visualizeKeypress = function(target) {
+    // State update is only required if the touch location moved
+    // onto a different key than in the last round or if target is
+    // null, requesting internal reset.
+    // Comparing DOM elements is tricky. .isEqualNode() and friends
+    // do not always work as expected. Comparing textContent instead.
+    if (!target || !this.lastTouchedKey
+      || target.textContent !== this.lastTouchedKey.textContent) {
+      // Make old key inactive if there was one
+      if (this.lastTouchedKey) {
+        this._makeKeyInactive(this.lastTouchedKey);
+      }
+      // Make new key active if touch is actually on a key
+      var key = this._keyForTarget(target);
+      if (key) {
+        this._makeKeyActive(target);
+        // Remember new key for the next event
+        this.lastTouchedKey = target;
+      } else {
+        // If there's no new key, touch moved beyond the keypad
+        // or target was null
+        this.lastTouchedKey = null;
+      }
+    }
+  };
+
+  LockScreenInputpad.prototype._makeKeyActive = function(target) {
+    var anchor = this._anchorForTarget(target);
+    if (anchor) {
+      anchor.classList.add('active-key');
+    } else {
+      throw Error('lsip_makeKeyActive called with non-key node');
+    }
+  };
+
+  LockScreenInputpad.prototype._makeKeyInactive = function(target) {
+    var anchor = this._anchorForTarget(target);
+    if (anchor) {
+      anchor.classList.remove('active-key');
+    } else {
+      throw Error('lsip_makeKeyInactive called with non-key node');
+    }
+  };
+
+  LockScreenInputpad.prototype._keyForTarget = function(target) {
+    var anchor = this._anchorForTarget(target);
+    if (anchor) {
+      return anchor.dataset.key;
+    } else {
+      return null;
     }
   };
 
@@ -229,31 +264,14 @@
     }
   };
 
-  LockScreenInputpad.prototype._keyForTarget = function(target) {
-    var anchor = this._anchorForTarget(target);
-    if (anchor) {
-      return anchor.dataset.key;
-    } else {
-      return null;
-    }
-  };
-
-  LockScreenInputpad.prototype._makeKeyActive = function(target) {
-    var anchor = this._anchorForTarget(target);
-    if (anchor) {
-      anchor.classList.add('active-key');
-    } else {
-      throw Error('lsip_makeKeyActive called with non-key node');
-    }
-  };
-
-  LockScreenInputpad.prototype._makeKeyInactive = function(target) {
-    var anchor = this._anchorForTarget(target);
-    if (anchor) {
-      anchor.classList.remove('active-key');
-    } else {
-      throw Error('lsip_makeKeyInactive called with non-key node');
-    }
+  LockScreenInputpad.prototype._touchTarget = function(event) {
+    // Determine from touch coordinates in the event
+    // which key the finger is on.
+    // Can't use evt.target, because it remains
+    // on where the touch started.
+    // CAVE: .elementFromPoint() is experimental and may change
+    var touch = event.changedTouches[0];
+    return document.elementFromPoint(touch.clientX, touch.clientY);
   };
 
   LockScreenInputpad.prototype.dispatchEvent = function(evt) {
@@ -300,7 +318,8 @@
   };
 
   LockScreenInputpad.prototype.handlePassCodeInput =
-  function(key) {
+  function(target) {
+    var key = this._keyForTarget(target);
     switch (key) {
       case 'e': // 'E'mergency Call
         // Cancel the notification clicked to activate.
@@ -332,6 +351,9 @@
         this.updatePassCodeUI();
         break;
 
+      case null: // Ignore non-keys
+        break;
+
       default:
         if (this.states.passCodeErrorTimeoutPending) {
           break;
@@ -355,4 +377,3 @@
 
   exports.LockScreenInputpad = LockScreenInputpad;
 })(window);
-
