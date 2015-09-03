@@ -10,6 +10,7 @@ var core = require('core');
 var dateFormat = require('date_format');
 var getTimeL10nLabel = require('common/calc').getTimeL10nLabel;
 var localCalendarId = require('common/constants').localCalendarId;
+var notification = require('notification');
 var router = require('router');
 var viewFactory = require('./factory');
 
@@ -309,15 +310,14 @@ ModifyEvent.prototype = {
     }
 
     try {
+      yield notification.revokeNotificationsForEvent(this.event);
       yield core.bridge.deleteEvent(this.event);
       // If we edit a view our history stack looks like:
       //   /week -> /event/view -> /event/save -> /event/view
       // We need to return all the way to the top of the stack
       // We can remove this once we have a history stack
-      viewFactory.get('ViewEvent', view => {
-        router.go(view.returnTop());
-      });
-    } catch(err) {
+      viewFactory.get('ViewEvent', view => router.go(view.returnTop()));
+    } catch (err) {
       this.showErrors(err);
     }
   }),

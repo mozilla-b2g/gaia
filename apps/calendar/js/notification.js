@@ -37,6 +37,15 @@ exports.sendNotification = function(title, body, url) {
   });
 };
 
+exports.revokeNotificationsForEvent = function(event) {
+  var title = event.remote.title;
+  return Notification.get().then(function(notifications) {
+    notifications.forEach(notification => {
+      notification.title.indexOf(title) !== -1 && notification.close();
+    });
+  });
+};
+
 /**
  * Bug 987458 - Multipe requests to mozApps.getSelf will fail if fired
  *     in close succession. Therefore we must make sure to only ever fire
