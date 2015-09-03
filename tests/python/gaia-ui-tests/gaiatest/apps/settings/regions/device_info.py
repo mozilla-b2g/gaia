@@ -1,11 +1,9 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
-import time
 
 from marionette_driver import expected, By, Wait
-
-from gaiatest.apps.base import Base
+from gaiatest.apps.base import Base, PageRegion
 
 
 class DeviceInfo(Base):
@@ -137,75 +135,80 @@ class DeviceInfo(Base):
             self.marionette.find_element(*self._reset_cancel_locator).tap()
             Wait(self.marionette).until(expected.element_displayed(self.screen_element))
 
-    class MoreInfo(Base):
+    class MoreInfo(PageRegion):
 
-        _more_information_page_locator = (By.ID, 'about-moreInfo')
-        _os_version_locator = (By.CSS_SELECTOR, '#about-moreInfo small[data-name="deviceinfo.os"]')
-        _hardware_revision_locator = (By.CSS_SELECTOR, '#about-moreInfo small[data-name="deviceinfo.hardware"]')
-        _mac_address_locator = (By.CSS_SELECTOR, '#about-moreInfo small[data-name="deviceinfo.mac"]')
+        _root_locator = (By.ID, 'about-moreInfo')
+        _os_version_locator = (By.CSS_SELECTOR, 'small[data-name="deviceinfo.os"]')
+        _hardware_revision_locator = (By.CSS_SELECTOR, 'small[data-name="deviceinfo.hardware"]')
+        _mac_address_locator = (By.CSS_SELECTOR, 'small[data-name="deviceinfo.mac"]')
         _imei1_locator = (By.CSS_SELECTOR, '.deviceInfo-imeis span[data-slot="0"]')
         _imei2_locator = (By.CSS_SELECTOR, '.deviceInfo-imeis span[data-slot="1"]')
         _iccid_locator = (By.CSS_SELECTOR, '.deviceInfo-iccids')
-        _platform_version_locator = (By.CSS_SELECTOR, '#about-moreInfo small[data-name="deviceinfo.platform_version"]')
-        _build_id_locator = (By.CSS_SELECTOR, '#about-moreInfo small[data-name="deviceinfo.platform_build_id"]')
-        _build_number_locator = (By.CSS_SELECTOR, '#about-moreInfo small[data-name="deviceinfo.build_number"]')
-        _update_channel_locator = (By.CSS_SELECTOR, '#about-moreInfo small[data-name="app.update.channel"]')
+        _platform_version_locator = (By.CSS_SELECTOR, 'small[data-name="deviceinfo.platform_version"]')
+        _build_id_locator = (By.CSS_SELECTOR, 'small[data-name="deviceinfo.platform_build_id"]')
+        _build_number_locator = (By.CSS_SELECTOR, 'small[data-name="deviceinfo.build_number"]')
+        _update_channel_locator = (By.CSS_SELECTOR, 'small[data-name="app.update.channel"]')
         _git_commit_timestamp_locator = (By.CSS_SELECTOR, '.gaia-commit-date')
         _git_commit_hash_locator = (By.CSS_SELECTOR, '.gaia-commit-hash')
 
         def __init__(self, marionette):
-            Base.__init__(self, marionette)
-            Wait(self.marionette).until(
-                expected.element_displayed(*self._os_version_locator))
+            root = marionette.find_element(*self._root_locator)
+            PageRegion.__init__(self, marionette, root)
+            Wait(self.marionette).until(expected.element_displayed(*self._os_version_locator))
 
         @property
         def screen_element(self):
-            return self.marionette.find_element(*self._more_information_page_locator)
+            return self.root_element
 
         @property
         def os_version(self):
-            return self.marionette.find_element(*self._os_version_locator).text
+            return self.root_element.find_element(*self._os_version_locator).text
 
         @property
         def hardware_revision(self):
-            return self.marionette.find_element(*self._hardware_revision_locator).text
+            return self.root_element.find_element(*self._hardware_revision_locator).text
 
         @property
         def mac_address(self):
-            return self.marionette.find_element(*self._mac_address_locator).text
+            return self.root_element.find_element(*self._mac_address_locator).text
 
         @property
         def imei1(self):
-            return self.marionette.find_element(*self._imei1_locator).text.split()[2]
+            return self._get_imei(number=1)
 
         @property
         def imei2(self):
-            return self.marionette.find_element(*self._imei2_locator).text.split()[2]
+            return self._get_imei(number=2)
+
+        def _get_imei(self, number):
+            locator = getattr(self, '_imei{}_locator'.format(number))
+            imei = self.root_element.find_element(*locator).text
+            return imei.lstrip('IMEI {}:'.format(number))
 
         @property
         def iccid(self):
-            return self.marionette.find_element(*self._iccid_locator).text
+            return self.root_element.find_element(*self._iccid_locator).text
 
         @property
         def platform_version(self):
-            return self.marionette.find_element(*self._platform_version_locator).text
+            return self.root_element.find_element(*self._platform_version_locator).text
 
         @property
         def build_id(self):
-            return self.marionette.find_element(*self._build_id_locator).text
+            return self.root_element.find_element(*self._build_id_locator).text
 
         @property
         def build_number(self):
-            return self.marionette.find_element(*self._build_number_locator).text
+            return self.root_element.find_element(*self._build_number_locator).text
 
         @property
         def update_channel(self):
-            return self.marionette.find_element(*self._update_channel_locator).text
+            return self.root_element.find_element(*self._update_channel_locator).text
 
         @property
         def git_commit_timestamp(self):
-            return self.marionette.find_element(*self._git_commit_timestamp_locator).text
+            return self.root_element.find_element(*self._git_commit_timestamp_locator).text
 
         @property
         def git_commit_hash(self):
-            return self.marionette.find_element(*self._git_commit_hash_locator).text
+            return self.root_element.find_element(*self._git_commit_hash_locator).text
