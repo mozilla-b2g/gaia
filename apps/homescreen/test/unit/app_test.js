@@ -69,6 +69,11 @@ suite('Homescreen app', () => {
 
     loadBodyHTML('_index.html');
     document.head.innerHTML = `<meta name="theme-color" content="transparent">`;
+    for (var dialog of document.querySelectorAll('.dialog')) {
+      dialog.hide = function() {
+        this.style.display = 'none';
+      };
+    }
     app = new App();
   });
 
@@ -639,6 +644,7 @@ suite('Homescreen app', () => {
 
   suite('hashchange', () => {
     test('should scroll to the top of the page', done => {
+      var realScrollable = app.scrollable;
       app.scrollable = {
         scrollTo: (obj) => {
           assert.equal(obj.top, 0);
@@ -651,6 +657,17 @@ suite('Homescreen app', () => {
         }
       };
       app.handleEvent(new CustomEvent('hashchange'));
+      app.scrollable = realScrollable;
+    });
+
+    test('should cancel dialogs', done => {
+      var realDialogs = app.dialogs;
+      app.dialogs = [{
+        close: () => { done(); },
+        opened: () => { return true; }
+      }];
+      app.handleEvent(new CustomEvent('hashchange'));
+      app.dialogs = realDialogs;
     });
   });
 });
