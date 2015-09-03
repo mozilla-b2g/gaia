@@ -7,8 +7,12 @@
 
   var privateByDefault = false;
 
+  function handleSettingChange (value) {
+    privateByDefault = value;
+  }
+
   SettingsListener.observe('browser.private.default', false,
-    Browser._handleSettingChange);
+    handleSettingChange);
 
   function handleOpenUrl(url, isPrivate) {
     var config = new BrowserConfigHelper({url: url});
@@ -20,10 +24,6 @@
   }
 
   function Browser() {}
-
-  Browser._handleSettingChange = function (value) {
-    privateByDefault = value;
-  };
 
   Browser.prototype = {
 

@@ -1,6 +1,6 @@
 /*global MocksHelper, MockNavigatormozSetMessageHandler, Browser,
          MockApplications, MockAppWindow, MockAppWindowHelper,
-         ActivityHandler */
+         ActivityHandler, MockNavigatorSettings */
 
 'use strict';
 
@@ -12,6 +12,7 @@ require('/js/activity_handler.js');
 require('/js/browser.js');
 
 require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/test/unit/mock_lazy_loader.js');
 require('/test/unit/mock_app_window.js');
 require('/test/unit/mock_applications.js');
@@ -23,10 +24,13 @@ var mocksForBrowser = new MocksHelper([
 suite('system/Browser', function() {
   mocksForBrowser.attachTestHelpers();
 
+  var realMozSettings;
   var realMozSetMessageHandler;
   var subject;
 
   suiteSetup(function() {
+    realMozSettings = navigator.mozSettings;
+    navigator.mozSettings = MockNavigatorSettings;
     realMozSetMessageHandler = navigator.mozSetMessageHandler;
     navigator.mozSetMessageHandler = MockNavigatormozSetMessageHandler;
     MockNavigatormozSetMessageHandler.mSetup();
@@ -39,10 +43,17 @@ suite('system/Browser', function() {
 
   suiteTeardown(function() {
     MockNavigatormozSetMessageHandler.mTeardown();
+    navigator.mozSettings = realMozSettings;
   });
 
   setup(function() {
+    MockNavigatorSettings.mSetup();
+    MockNavigatorSettings.mSyncRepliesOnly = true;
     this.sinon.spy(MockAppWindow.prototype, 'requestOpen');
+  });
+
+  teardown(function() {
+    MockNavigatorSettings.mTeardown();
   });
 
   test('should open a new app window with the correct config', function() {
@@ -83,21 +94,24 @@ suite('system/Browser', function() {
   });
 
   test('when private browsing is the default setting', function() {
-    Browser._handleSettingChange(true);
+    MockNavigatorSettings.mTriggerObservers('browser.private.default',
+        {settingValue: true});
 
-    MockNavigatormozSetMessageHandler.mTrigger('activity', {
-      source: {
-        name: 'view',
-        data: {
+    setTimeout(function () {
+      MockNavigatormozSetMessageHandler.mTrigger('activity', {
+        source: {
           name: 'view',
-          type: 'url',
-          url: 'http://arandomurl.com'
+          data: {
+            name: 'view',
+            type: 'url',
+            url: 'http://arandomurl.com'
+          }
         }
-      }
-    });
+      });
 
-    assert.equal(MockAppWindowHelper.mInstances.length, 1);
-    var app = MockAppWindowHelper.mLatest;
-    assert.equal(app.isPrivate, true);
+      assert.equal(MockAppWindowHelper.mInstances.length, 1);
+      var app = MockAppWindowHelper.mLatest;
+      assert.equal(app.isPrivate, true);
+    }, 30);
   });
 });
