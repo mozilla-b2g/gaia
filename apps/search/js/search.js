@@ -1,3 +1,5 @@
+/* jshint nonew: false */
+
 (function() {
 
   'use strict';
@@ -328,7 +330,13 @@
      * @param {String} url The url to navigate to
      */
     navigate: function(url) {
-      window.open(url, '_blank', 'remote=true');
+      new MozActivity({
+        name: 'view',
+        data: {
+          type: 'url',
+          url: url
+        }
+      });
     },
 
     /**
