@@ -62,11 +62,8 @@ class TestSetupAndSendIMAPEmail(GaiaTestCase):
 
         self.email = new_email.tap_send()
 
-        # wait for the email to be sent before we tap refresh
         self.email.wait_for_email(_subject)
-
-        # make sure the search textbox is not diplayed
-        self.email.wait_for_search_textbox_hidden()
+        self.email.wait_for_search_textbox_displayed()
 
         # tap the email that has the expected subject
         read_email = self.email.tap_email_subject(_subject)
