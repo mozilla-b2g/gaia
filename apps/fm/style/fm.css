@@ -482,6 +482,8 @@ a#frequency-op-seekup:active {
 /***  styles for antenna warning box ****/
 #antenna-warning {
   z-index: 2;
+  display: flex;
+  flex-direction: column;
 }
 
 #antenna-warning > div:first-child {
