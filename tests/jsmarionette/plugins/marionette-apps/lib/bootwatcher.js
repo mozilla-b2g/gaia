@@ -74,6 +74,6 @@ BootWatcher.prototype = {
           return false;
         }
       });
-    }, { timeout: 5000 });
+    }, { timeout: 10000 });
   }
 };
