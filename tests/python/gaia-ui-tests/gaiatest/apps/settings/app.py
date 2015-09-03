@@ -199,10 +199,10 @@ class Settings(Base):
         return self._open_subpage(self._sim_manager_menu_item_locator, 'sim_manager', 'SimManager')
 
     def open_call(self):
-        return self._open_subpage(self._call_settings_menu_item_locator)
+        return self._open_subpage(self._call_settings_menu_item_locator, 'call_settings', 'CallSettings')
 
     def open_message(self):
-        return self._open_subpage(self._message_settings_menu_item_locator)
+        return self._open_subpage(self._message_settings_menu_item_locator, 'message', 'Message')
 
     def open_cell_and_data(self):
         return self._open_subpage(self._cell_data_menu_item_locator, 'cell_data', 'CellData')
@@ -359,14 +359,17 @@ class Settings(Base):
         Wait(self.marionette).until(expected.element_enabled(checkbox))
 
     # this method is a copy of go_back() method in regions/keyboard.py
-    def return_to_prev_menu(self, parent_view, gaia_header=True):
+    def return_to_prev_menu(self, parent_view, exit_view, gaia_header=True):
 
         # TODO: remove tap with coordinates after Bug 1061698 is fixed
         if gaia_header:
             _header_locator = self._header_locator
         else:
             _header_locator = self._non_gaia_header_locator
-        Wait(self.marionette).until(expected.element_displayed(*_header_locator))
+        back_button = self.marionette.find_element(*_header_locator)
+        Wait(self.marionette).until(expected.element_enabled(back_button) and expected.element_displayed(back_button))
+        back_button.tap(25, 25)
 
-        self.marionette.find_element(*_header_locator).tap(25, 25)
-        Wait(self.marionette).until(expected.element_displayed(parent_view))
+        Wait(self.marionette).until(lambda m: not 'current' in exit_view.get_attribute('class'))
+        Wait(self.marionette).until(lambda m: parent_view.rect['x'] == 0)
+        Wait(self.marionette).until(lambda m: 'current' in parent_view.get_attribute('class'))
