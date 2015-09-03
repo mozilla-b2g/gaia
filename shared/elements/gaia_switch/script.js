@@ -87,6 +87,22 @@ window.GaiaSwitch = (function(win) {
   });
 
   /**
+   * Disabled setter
+   */
+  Object.defineProperty( proto, 'disabled', {
+    get: function() {
+      return this.hasAttribute('disabled');
+    },
+    set: function(value) {
+      if (value) {
+        this.setAttribute('disabled', true);
+      } else {
+        this.removeAttribute('disabled');
+      }
+    }
+  });
+
+  /**
    * Proxy the name property to the input element.
    */
   Object.defineProperty( proto, 'name', {
