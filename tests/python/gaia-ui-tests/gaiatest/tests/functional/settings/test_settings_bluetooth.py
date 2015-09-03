@@ -21,10 +21,8 @@ class TestBluetoothSettings(GaiaTestCase):
         settings.launch()
 
         self.assertFalse(self.data_layer.bluetooth_is_enabled)
-
         bluetooth_settings = settings.open_bluetooth()
         bluetooth_settings.enable_bluetooth()
-
         self.assertTrue(self.data_layer.bluetooth_is_enabled)
 
         bluetooth_settings.tap_rename_my_device()
@@ -34,6 +32,10 @@ class TestBluetoothSettings(GaiaTestCase):
         self.assertEquals(bluetooth_settings.device_name, device_name)
 
         bluetooth_settings.enable_visible_to_all()
-
         self.assertTrue(self.data_layer.bluetooth_is_discoverable)
         self.assertEquals(self.data_layer.bluetooth_name, device_name)
+
+    def tearDown(self):
+        self.marionette.switch_to_frame()
+        self.data_layer.bluetooth_disable()
+        GaiaTestCase.tearDown(self)

@@ -4,55 +4,60 @@
 
 from marionette_driver import expected, By, Wait
 
-from gaiatest.apps.base import Base
+from gaiatest.apps.base import PageRegion
 
 
-class Bluetooth(Base):
+class Bluetooth(PageRegion):
 
-    _bluetooth_checkbox_locator = (By.CSS_SELECTOR, '#bluetooth_v2 .bluetooth-status input')
-    _bluetooth_label_locator = (By.CSS_SELECTOR, '#bluetooth_v2 .bluetooth-status span')
+    _root_locator = (By.ID, 'bluetooth_v2')
+    _bluetooth_checkbox_locator = (By.CSS_SELECTOR, '.bluetooth-status gaia-switch')
+    _bluetooth_label_locator = (By.CSS_SELECTOR, '[data-l10n-id="bluetooth"]')
 
-    _visible_to_all_checkbox_locator = (By.CSS_SELECTOR, '#bluetooth_v2 .device-visible input')
-    _visible_to_all_label_locator = (By.CSS_SELECTOR, '#bluetooth_v2 .device-visible label')
+    _visible_to_all_checkbox_locator = (By.CSS_SELECTOR, '.device-visible gaia-switch')
+    _visible_to_all_label_locator = (By.CSS_SELECTOR, '[data-l10n-id="bluetooth-visible-to-all"]')
 
     _device_name_locator = (By.CSS_SELECTOR, '.bluetooth-device-name')
     _rename_my_device_button_locator = (By.CSS_SELECTOR, 'button.rename-device')
     _update_device_name_input_locator = (By.CSS_SELECTOR, 'input.settings-dialog-input')
     _update_device_name_ok_locator = (By.CSS_SELECTOR, 'button[data-l10n-id="ok"]')
 
+    def __init__(self, marionette):
+        root = marionette.find_element(*self._root_locator)
+        PageRegion.__init__(self, marionette, root)
+        Wait(self.marionette).until(expected.element_displayed(*self._bluetooth_label_locator))
+
+
     @property
     def is_bluetooth_enabled(self):
-        return self.marionette.find_element(*self._bluetooth_checkbox_locator).is_selected()
+        return self.root_element.find_element(*self._bluetooth_checkbox_locator).is_selected()
 
     @property
     def is_visible_enabled(self):
-        return self.marionette.find_element(*self._visible_to_all_checkbox_locator).is_selected()
+        return self.root_element.find_element(*self._visible_to_all_checkbox_locator).is_selected()
 
     @property
     def device_name(self):
-        return self.marionette.find_element(*self._device_name_locator).text
+        return self.root_element.find_element(*self._device_name_locator).text
 
     def enable_bluetooth(self):
-        self.marionette.find_element(*self._bluetooth_label_locator).tap()
-        checkbox = self.marionette.find_element(*self._bluetooth_checkbox_locator)
-        Wait(self.marionette).until(expected.element_selected(checkbox))
-        rename_device = self.marionette.find_element(*self._rename_my_device_button_locator)
+        self.root_element.find_element(*self._bluetooth_label_locator).tap()
+        checkbox = self.root_element.find_element(*self._bluetooth_checkbox_locator)
+        Wait(self.marionette).until(lambda m: self.is_custom_element_checked(checkbox))
+        rename_device = self.root_element.find_element(*self._rename_my_device_button_locator)
         Wait(self.marionette).until(expected.element_enabled(rename_device))
 
     def enable_visible_to_all(self):
-        # Bluetooth state is stored outside the profile bug 969310
-        self.marionette.find_element(*self._visible_to_all_label_locator).tap()
-        checkbox = self.marionette.find_element(*self._visible_to_all_checkbox_locator)
-        Wait(self.marionette).until(expected.element_selected(checkbox))
+        self.root_element.find_element(*self._visible_to_all_label_locator).tap()
+        checkbox = self.root_element.find_element(*self._visible_to_all_checkbox_locator)
+        Wait(self.marionette).until(lambda m: self.is_custom_element_checked(checkbox))
 
     def tap_rename_my_device(self):
-        self.marionette.find_element(*self._rename_my_device_button_locator).tap()
+        self.root_element.find_element(*self._rename_my_device_button_locator).tap()
         Wait(self.marionette).until(
             expected.element_displayed(*self._update_device_name_input_locator))
 
     def type_phone_name(self, name):
-        element = self.marionette.find_element(
-            *self._update_device_name_input_locator)
+        element = self.marionette.find_element(*self._update_device_name_input_locator)
         element.clear()
         element.send_keys(name)
 
