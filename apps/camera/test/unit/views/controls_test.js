@@ -46,7 +46,6 @@ suite('views/controls', function() {
     this.sandbox.stub(window.URL, 'revokeObjectURL');
 
     this.sandbox.stub(window, 'Image', function() { return self.image; });
-    this.sandbox.spy(this.ControlsView.prototype, 'onSwitchTapped');
 
     this.drag = sinon.createStubInstance(this.Drag);
     this.view = new this.ControlsView({ drag: this.drag });
@@ -188,40 +187,35 @@ suite('views/controls', function() {
     });
   });
 
-  suite('ControlsView#onSwitchTapped()', function() {
-    setup(function() {
-      this.event = {
-        preventDefault: sinon.spy(),
-        stopPropagation: sinon.spy()
-      };
-      this.spy = this.ControlsView.prototype.onSwitchTapped;
-      this.view.enable();
+  suite('ControlsView#onSwitchEnded()', function() {
+    test('It fires \'modechanged\' if switch tapped', function() {
+      this.view.translateStart = new Date().getTime() - 50;
+      this.view.onSwitchEnded();
+      assert.isTrue(this.view.emit.calledWith('modechanged'));
     });
 
-    test('It emits a `modechanged` event', function() {
-      this.view.onSwitchTapped(this.event);
-      sinon.assert.calledWith(this.view.emit, 'modechanged');
-    });
-
-    test('It prevents default to stop the event becoming a click', function() {
-      this.view.onSwitchTapped(this.event);
-      sinon.assert.called(this.event.preventDefault);
+    test('It snaps switch if dragged instead of tapped', function() {
+      this.view.translateStart = new Date().getTime() - 1000;
+      this.view.onSwitchEnded();
+      assert.isTrue(this.drag.snap.called);
     });
   });
 
   suite('ControlsView#onSwitchSnapped()', function() {
     setup(function() {
       this.view.set('mode', 'picture');
+      this.drag.handle = { x: 0 };
     });
 
     test('It fires \'modechanged\' when the switch changes position', function() {
 
       // Didn't change
-      this.view.onSwitchSnapped({ x: 'left' });
+      this.view.onSwitchSnapped();
       assert.isFalse(this.view.emit.calledWith('modechanged'));
 
       // Changed
-      this.view.onSwitchSnapped({ x: 'right' });
+      this.drag.handle.x = 1;
+      this.view.onSwitchSnapped();
       assert.isTrue(this.view.emit.calledWith('modechanged'));
     });
   });
@@ -229,12 +223,12 @@ suite('views/controls', function() {
   suite('ControlsView#suspendMode()', function() {
     test('It ignores user input on switch when suspended', function() {
       this.view.suspendMode(true);
-      sinon.assert.calledOnce(this.drag.unbindEvents);
+      sinon.assert.calledOnce(this.drag.disable);
     });
 
     test('It accepts user input on switch when unsuspended', function() {
       this.view.suspendMode(false);
-      sinon.assert.calledOnce(this.drag.bindEvents);
+      sinon.assert.calledOnce(this.drag.enable);
     });
   });
 

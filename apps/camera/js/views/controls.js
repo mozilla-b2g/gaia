@@ -28,9 +28,11 @@ module.exports = View.extend({
   switchPositions: {
     left: 'picture',
     right: 'video',
-    picture: 'left',
-    video: 'right'
+    picture: 0,
+    video: 1
   },
+
+  tapTimeout: 180,
 
   // {node}: {data-l10n-id} pairs used for localization.
   elsL10n: {
@@ -98,18 +100,31 @@ module.exports = View.extend({
       return;
     }
 
+    var handleBounds = this.els.switchHandle.getBoundingClientRect();
+    var containerBounds = this.els.switch.getBoundingClientRect();
+
     // Prefer existing drag (test hook)
     this.drag = this.drag || new Drag({
-      handle: this.els.switchHandle,
-      container: this.els.switch
+      handle: {
+        el: this.els.switchHandle,
+        width: handleBounds.width,
+        height: handleBounds.height,
+        x: handleBounds.left - containerBounds.left,
+        y: handleBounds.top - containerBounds.top
+      },
+      container: {
+        el: this.els.switch,
+        width: containerBounds.width,
+        height: containerBounds.height,
+        x: containerBounds.left,
+        y: containerBounds.right
+      }
     });
 
-    this.drag.on('tapped', this.onSwitchTapped);
-    this.drag.on('ended', this.drag.snapToClosestEdge);
+    this.drag.on('ended', this.onSwitchEnded);
     this.drag.on('translate', this.onSwitchTranslate);
     this.drag.on('snapped', this.onSwitchSnapped);
 
-    this.drag.updateDimensions();
     this.updateSwitchPosition();
 
     // Tidy up
@@ -121,8 +136,25 @@ module.exports = View.extend({
       recording ? 'stop-capture-button' : 'capture-button');
   },
 
-  onSwitchSnapped: function(edges) {
-    var mode = this.switchPositions[edges.x];
+  onSwitchEnded: function() {
+    var delta;
+    var now = new Date().getTime();
+    if (this.translateStart) {
+      delta = now - this.translateStart;
+      debug('switch ended: %d (%d)', now, delta);
+      delete this.translateStart;
+      if (delta < this.tapTimeout) {
+        this.onSwitchChanged();
+        return;
+      }
+    }
+    this.drag.snap();
+    delete this.translateStart;
+  },
+
+  onSwitchSnapped: function() {
+    debug('switch snapped');
+    var mode = this.switchPositions[this.drag.handle.x ? 'right' : 'left'];
     var changed = mode !== this.get('mode');
     if (changed) { this.onSwitchChanged(); }
   },
@@ -131,15 +163,13 @@ module.exports = View.extend({
     this.emit('modechanged');
   },
 
-  onSwitchTapped: function(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    debug('switch tapped');
-    this.onSwitchChanged();
-  },
-
   onSwitchTranslate: function(e) {
-    this.setSwitchIcon(e.position.ratio.x);
+    var now = new Date().getTime();
+    if (!this.translateStart) {
+      this.translateStart = now;
+    }
+    debug('switch translate: %d (%d)', now, now - this.translateStart);
+    this.setSwitchIcon((this.drag.handle.x / this.drag.max.x) || 0);
   },
 
   setSwitchIcon: function(ratio) {
@@ -171,9 +201,9 @@ module.exports = View.extend({
   suspendMode: function(suspended) {
     if (!this.drag) { return; }
     if (suspended) {
-      this.drag.unbindEvents();
+      this.drag.disable();
     } else {
-      this.drag.bindEvents();
+      this.drag.enable();
     }
   },
 
@@ -181,19 +211,19 @@ module.exports = View.extend({
     debug('set mode: %s', mode);
     this.set('mode', mode);
     this.switchPosition = this.switchPositions[mode];
-    var ratio = { left: 0, right: 1 }[this.switchPosition];
     this.updateSwitchPosition();
-    this.setSwitchIcon(ratio);
+    this.setSwitchIcon(this.switchPosition);
     // Set appropriate mode switch label for screen reader.
     this.els.switch.setAttribute('data-l10n-id', mode + '-mode-button');
-    debug('mode set pos: %s', this.switchPosition);
+    debug('mode set pos: %d', this.switchPosition);
   },
 
   updateSwitchPosition: function() {
     debug('updateSwitchPosition');
     if (!this.drag) { return; }
-    this.drag.set({ x: this.switchPosition });
-    debug('updated switch position: %s', this.switchPosition);
+    this.drag.translate('' + this.switchPosition, 0);
+    delete this.translateStart;
+    debug('updated switch position: %d', this.switchPosition);
   },
 
   setThumbnail: function(blob) {

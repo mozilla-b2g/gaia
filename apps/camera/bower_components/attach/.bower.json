@@ -1,7 +1,7 @@
 {
   "name": "attach",
   "main": "index.js",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "homepage": "https://github.com/wilsonpage/attach",
   "authors": [
     "Wilson Page <wilsonpage@me.com>"
@@ -19,11 +19,11 @@
     "README.md",
     "LICENSE"
   ],
-  "_release": "0.1.1",
+  "_release": "0.1.2",
   "_resolution": {
     "type": "version",
-    "tag": "v0.1.1",
-    "commit": "f5195ba8fe78c2a4f421b26caf431f385fa6b61d"
+    "tag": "v0.1.2",
+    "commit": "e3e87f04337316b884c595f6529fe2dcb60d2dfd"
   },
   "_source": "git://github.com/gaia-components/attach.git",
   "_target": "~0.1.1",

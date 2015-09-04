@@ -23,7 +23,7 @@ requirejs.config({
     'model': '../bower_components/model/index',
     'view': '../bower_components/view/index',
     'evt': '../bower_components/evt/index',
-    'drag': '../bower_components/drag/index',
+    'drag': '../bower_components/drag/drag',
     'device-orientation': '../bower_components/device-orientation/index',
     'stop-recording-event': '../shared/js/stop_recording_event'
   },

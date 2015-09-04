@@ -63,7 +63,7 @@ function attach(root, type, selector, fn, ctx) {
   // is needed per event type.
   if (master) { return; }
 
-  // Add the master callbak to the
+  // Add the master callback to the
   // root node and to the store.
   master = store.master[type] = callback;
   root.addEventListener(type, master);
@@ -76,10 +76,22 @@ function attach(root, type, selector, fn, ctx) {
    */
   function callback(e) {
     var el = e.target;
+    var stopPropagation = e.stopPropagation;
     var selector;
     var matched;
-    var out;
     var fn;
+
+    // Override default `stopPropagation` to
+    // prevent issue in WebKit where it fails
+    // to set `cancelBubble` property:
+    //
+    // https://code.google.com/p/chromium/issues/detail?id=162270
+    e.stopPropagation = function() {
+      e.cancelBubble = true;
+
+      // Call original `stopPropagation`
+      stopPropagation.call(e);
+    };
 
     // Walk up the DOM tree
     // until we hit the root
@@ -97,21 +109,27 @@ function attach(root, type, selector, fn, ctx) {
           matches.call(el, selector);
 
         if (matched) {
-          out = fn.call(ctx || el, e, el);
 
-          // Stop propagation if the
-          // user returns false from the
-          // callback. Ideally we would
-          // use .stopPropagation, but I
-          // don't know of any way to detect
-          // if this has been called.
-          if (out === false) { return e.stopPropagation(); }
+          // If the callback returns `false`,
+          // call `preventDefault` and
+          // `stopPropagation` on the event
+          // to preserve expected behavior.
+          if (fn.call(ctx || el, e, el) === false) {
+            e.preventDefault();
+            e.stopPropagation();
+            return;
+          }
+
+          // If one of the delegates called
+          // `stopPropagation` on the event,
+          // stop calling remaining delegates.
+          if (e.cancelBubble) { return; }
         }
       }
 
       // Don't go any higher
       // than the root element.
-      if (el == root) break;
+      if (el === root) break;
 
       // Move on up!
       el = el.parentNode;
@@ -179,7 +197,7 @@ attach.off = function(root, type, selector) {
  *
  *   attach(myElement, {
  *     'click .foo': onFooClick,
- *     'click .bar': onBarClick
+ *     'mouseup .bar > .baz': onBazMouseUp
  *   });
  *
  * @param  {element} root
@@ -187,15 +205,19 @@ attach.off = function(root, type, selector) {
  * @param  {Object} ctx
  */
 attach.many = function(root, config, ctx) {
-  var parts;
   var key;
+  var parts;
+  var type;
+  var selector;
 
   for (key in config) {
     parts = key.split(' ');
+    type = parts.shift();
+    selector = parts.join(' ');
     attach.on(
       root,
-      parts[0],
-      parts[1],
+      type,
+      selector,
       config[key],
       ctx);
   }
