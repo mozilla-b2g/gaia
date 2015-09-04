@@ -9,6 +9,11 @@
   // states which are shared by apps should be put in this class.
   var AppTextSelectionDialogGlobalStates = function() {
     this._hasCutOrCopiedTimeoutId = null;
+    this._isPrefOn = true;
+    this._appTSDs = new Set();
+    this.bindOnObservePrefChanged = this.onObservePrefChanged.bind(this);
+    SettingsListener.observe('copypaste.enabled', true,
+                             this.bindOnObservePrefChanged);
   };
 
   // If a user cuts or copies something, a paste shortcut will pop up every time
@@ -38,6 +43,14 @@
       this._hasCutOrCopiedTimeoutId = null;
     };
 
+  AppTextSelectionDialogGlobalStates.prototype.onObservePrefChanged =
+    function (value) {
+      this._isPrefOn = value;
+      this._appTSDs.forEach(appTSD => {
+        this._isPrefOn ? appTSD.start() : appTSD.stop();
+      });
+    };
+
   // Text selection dialog per AppWindow.
   var AppTextSelectionDialog = function (app) {
     this.app = app;
@@ -50,11 +63,9 @@
     this._isCommandSendable = false;
     this._transitionState = 'closed';
     this.textualmenuDetail = null;
-    this.bindOnObservePrefChanged = this.onObservePrefChanged.bind(this);
     this.globalStates = _globalStates =
       _globalStates || new AppTextSelectionDialogGlobalStates();
-    SettingsListener.observe('copypaste.enabled', true,
-                             this.bindOnObservePrefChanged);
+    this.globalStates._appTSDs.add(this);
   };
 
   AppTextSelectionDialog.prototype = Object.create(window.BaseUI.prototype);
@@ -83,22 +94,11 @@
 
   AppTextSelectionDialog.prototype.ELEMENT_PREFIX = 'textselection-dialog-';
 
-  AppTextSelectionDialog.prototype.onObservePrefChanged =
-    function tsd_onObservePrefChanged(value) {
-      if (value) {
-        this.start();
-      } else {
-        this.stop();
-      }
-    };
-
-  // Overwrite _unregisterEvents to make sure we remove event handlers
-  // and preference observer when destroying this app.
+  // Overwrite _unregisterEvents to remove this AppTextSelectionDialog
+  // from global states when destroying this app.
   AppTextSelectionDialog.prototype._unregisterEvents =
     function tsd__unregisterEvents() {
-      this.stop();
-      SettingsListener.unobserve('copypaste.enabled',
-                                 this.bindOnObservePrefChanged);
+      this.globalStates._appTSDs.delete(this);
     };
 
   AppTextSelectionDialog.prototype.start = function tsd_start() {
