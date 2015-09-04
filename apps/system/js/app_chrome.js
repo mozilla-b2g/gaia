@@ -923,7 +923,9 @@
         }
         this.scrollable.scrollTop = 0;
         this.pinned = firstLocationChange ? this.pinned : false;
-        this.app.element.classList.add('collapsible');
+        if (this.app.config && this.app.config.scrollable) {
+          this.app.element.classList.add('collapsible');
+        }
       }
 
       // Set the title for the private browser landing page.
