@@ -150,7 +150,7 @@ const PAGES_ICON_SIZE = 30;
 
       case 'scroll':
         var position = this.scrollable.scrollTop;
-        var scrolled = position > 0;
+        var scrolled = position > 1;
         if (this.scrolled !== scrolled) {
           this.scrolled = scrolled;
           this.shadow.classList.toggle('visible', scrolled);
