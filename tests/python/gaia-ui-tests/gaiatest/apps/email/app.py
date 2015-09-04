@@ -169,8 +169,8 @@ class Email(Base):
             lambda m: element.is_displayed() and
             element.location['x'] == 0)
 
-    def wait_for_search_textbox_hidden(self):
-        Wait(self.marionette).until(expected.element_not_displayed(*self._search_textbox_locator))
+    def wait_for_search_textbox_displayed(self):
+        Wait(self.marionette).until(expected.element_displayed(*self._search_textbox_locator))
 
     def tap_email_subject(self, subject):
         subject_locator = (
