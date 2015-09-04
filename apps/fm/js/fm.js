@@ -158,6 +158,9 @@ var mozFMRadio = navigator.mozFM || navigator.mozFMRadio || {
   aGlobal.SpeakerManager = SpeakerManager;
 })(window);
 
+// the mhzString that will be localized.
+var mhzString = 'MHz-NOTLOCALIZED';
+
 var enabling = false;
 function updatePowerUI() {
   var enabled = mozFMRadio.enabled;
@@ -619,12 +622,16 @@ var favoritesList = {
     elem.id = this._getUIElemId(item);
     elem.className = 'fav-list-item';
     elem.setAttribute('role', 'option');
-    var html = '';
-    html += '<div class="fav-list-frequency">';
-    html += item.frequency.toFixed(1);
-    html += '</div>';
-    html += '<div class="fav-list-remove-button"></div>';
-    elem.innerHTML = html;
+
+    var subElem = document.createElement('div');
+    subElem.className = 'fav-list-frequency';
+    subElem.textContent = item.frequency.toFixed(1);
+    subElem.dataset.unit = mhzString;
+    elem.appendChild(subElem);
+
+    subElem = document.createElement('div');
+    subElem.className = 'fav-list-remove-button';
+    elem.appendChild(subElem);
 
     // keep list ascending sorted
     if (container.childNodes.length === 0) {
@@ -875,6 +882,20 @@ function init() {
     window.performance.mark('fullyLoaded');
   });
 }
+
+document.addEventListener('DOMLocalized', function() {
+  // localize MHz
+  document.l10n.format('mhz').then(str => {
+    mhzString = str.value;
+    $('frequency').dataset.unit = mhzString;
+
+    var nodes = document.querySelectorAll(
+      '#fav-list-container div.fav-list-frequency');
+    for(var i = 0; i < nodes.length; i++) {
+      nodes[i].dataset.unit = mhzString;
+    }
+  });
+});
 
 document.addEventListener('DOMLocalized', function onDOMLocalized(e) {
   // PERFORMANCE MARKER (1): navigationLoaded
