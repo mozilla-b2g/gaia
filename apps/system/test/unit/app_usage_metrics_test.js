@@ -7,10 +7,10 @@
 require('/shared/js/settings_listener.js');
 require('/shared/js/telemetry.js');
 require('/shared/js/uuid.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('system/test/unit/mock_asyncStorage.js');
 requireApp('system/test/unit/mock_lazy_loader.js');
 requireApp('system/js/app_usage_metrics.js');
-requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 
 require('/shared/test/unit/mocks/mock_simslot_manager.js');
 require('/shared/test/unit/mocks/mock_simslot.js');
