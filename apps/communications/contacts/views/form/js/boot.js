@@ -38,7 +38,8 @@ window.addEventListener('load', function() {
     '/shared/js/contacts/utilities/dom.js',
     '/shared/js/contacts/import/utilities/misc.js',
     '/contacts/views/form/js/form_ui.js',
-    '/contacts/views/form/js/form_controller.js'
+    '/contacts/views/form/js/form_controller.js',
+    '/contacts/js/utilities/cookie.js'
   ];
 
   LazyLoader.load(

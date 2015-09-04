@@ -19,7 +19,8 @@
     fbScheduleDone: false,
     defaultImage: true,
     accessTokenMigrated: false,
-    fbCleaningInProgress: 0
+    fbCleaningInProgress: 0,
+    shouldEvict: false
   };
 
   // Only allow these properties to be stored in the config
@@ -100,7 +101,7 @@
 
     document.cookie = COOKIE_NAME + '=' +
                                 encodeURIComponent(JSON.stringify(newCookie)) +
-                                ';expires=' + EXPIRATION_DATE;
+                                ';expires=' + EXPIRATION_DATE + ';path=/';
 
   }
 
