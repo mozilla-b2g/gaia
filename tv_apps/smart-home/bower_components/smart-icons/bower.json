@@ -1,6 +1,6 @@
 {
   "name": "smart-icons",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "homepage": "https://github.com/smart-components/smart-icons",
   "description": "Icon font for smart-screen",
   "license": "MPL",
@@ -9,7 +9,13 @@
     "**/.*",
     "node_modules",
     "bower_components",
+    "templates",
+    "images",
     "test",
-    "tests"
+    "tests",
+    "index.html",
+    "Gruntfile.js",
+    "README.md",
+    "package.json"
   ]
 }
