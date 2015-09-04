@@ -105,7 +105,7 @@ a:active {
 }
 
 #frequency::after {
-  content: "MHz";
+  content: attr(data-unit);
   font-size: 1.5rem;
   padding-left: 0.3rem;
 }
@@ -313,7 +313,7 @@ div#fav-list-container div.fav-list-frequency {
 }
 
 div#fav-list-container div.fav-list-frequency::after {
-  content: "MHz";
+  content: attr(data-unit);
   font-size: 1.5rem;
   position: absolute;
   padding: .6rem .2rem 0 1rem;
