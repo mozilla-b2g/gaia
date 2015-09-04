@@ -72,13 +72,6 @@ var Utils = {
     return formattedTime;
   },
 
-  getDayDate: function re_getDayDate(timestamp) {
-    var date = new Date(timestamp);
-    var startDate = new Date(date.getFullYear(),
-                             date.getMonth(), date.getDate());
-    return startDate.getTime();
-  },
-
   getPhoneNumberPrimaryInfo: function ut_getPhoneNumberPrimaryInfo(matchingTel,
                                                                    contact) {
     if (contact) {
