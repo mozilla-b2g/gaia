@@ -13,6 +13,7 @@ define(function(require) {
 
   var INTERVAL = 500;
   var DELAY = 800;
+  var START_DELAY = 300;
   var BASESHAREURL = '/shared/resources/media/';
   var TONEURLS = {
     'content': BASESHAREURL + 'notifications/notifier_firefox.opus',
@@ -103,7 +104,11 @@ define(function(require) {
       this._player.src = URL.createObjectURL(blob);
       this._player.load();
       this._player.loop = true;
-      this._player.play();
+      // Introduce a slight delay before the audio starts playing, so that it
+      // wouldn't make any noise when quickly swipe to mute
+      setTimeout(function() {
+        this._player.play();
+      }.bind(this), START_DELAY);
     },
 
     /**
@@ -248,7 +253,7 @@ define(function(require) {
                                    this._boundSetSliderValue);
           this._stopTone();
         }
-      }.bind(this), DELAY);
+      }.bind(this), START_DELAY + DELAY);
     },
 
     /**
