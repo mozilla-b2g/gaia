@@ -41,6 +41,10 @@ class UtilityTray(Base):
     def a11y_clear_all_notifications(self):
         self.accessibility.click(self.marionette.find_element(*self._notification_clear_locator))
 
+    @property
+    def cost_control_widget(self):
+        return CostControlWidget(self.marionette)
+
     def tap_settings_button(self):
         self.marionette.find_element(*self._quicksettings_app_locator).tap()
 
@@ -71,3 +75,20 @@ class Notification(PageRegion):
         self.root_element.find_element(*self._title_locator).tap()
         from gaiatest.apps.email.regions.read_email import ReadEmail
         return ReadEmail(self.marionette)
+
+
+class CostControlWidget(Base):
+    _cost_control_widget_locator = (By.CSS_SELECTOR, '#cost-control-widget > iframe')
+    _data_usage_view_locator = (By.ID, 'datausage-limit-view')
+
+    def __init__(self, marionette):
+        Base.__init__(self, marionette)
+        usage_iframe = self.marionette.find_element(*self._cost_control_widget_locator)
+        self.marionette.switch_to_frame(usage_iframe)
+
+    def tap(self):
+        self.marionette.find_element(*self._data_usage_view_locator).tap()
+
+    def wait_for_limit_to_be_reached(self):
+        usage_view = self.marionette.find_element(*self._data_usage_view_locator)
+        Wait(self.marionette, timeout=40).until(lambda m: 'reached-limit' in usage_view.get_attribute('class'))

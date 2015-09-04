@@ -2,7 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from marionette_driver import By, Wait
+from marionette_driver import Wait
 
 from gaiatest import GaiaTestCase
 from gaiatest.apps.search.app import Search
@@ -11,10 +11,6 @@ from gaiatest.apps.system.app import System
 
 
 class TestCostControlDataAlertMobile(GaiaTestCase):
-
-    # notification bar locators
-    _cost_control_widget_locator = (By.CSS_SELECTOR, '#cost-control-widget > iframe')
-    _data_usage_view_locator = (By.ID, 'datausage-limit-view')
 
     def setUp(self):
         GaiaTestCase.setUp(self)
@@ -45,30 +41,21 @@ class TestCostControlDataAlertMobile(GaiaTestCase):
         # open browser to get some data downloaded
         search = Search(self.marionette)
         search.launch(launch_timeout=30000)
-        browser = search.go_to_url('http://mozqa.com/qa-testcase-data/Images/sample_png_02.png')
-        browser.wait_for_page_to_load(180)
-
-        browser.switch_to_content()
-        Wait(self.marionette, timeout=60).until(lambda m: "sample_png_02.png" in m.title)
-        browser.switch_to_chrome()
+        search.go_to_url('http://mozqa.com/qa-testcase-data/Images/sample_png_02.png')
 
         system = System(self.marionette)
+        # We could have waited on the page to be loaded, but the toaster can appear before
+        # the end of the load. That's why the timeout is expanded, the webpage loaded just above
+        # might take longer.
+        system.wait_for_notification_toaster_displayed(timeout=180)
+        system.wait_for_notification_toaster_not_displayed()
         utility_tray = system.open_utility_tray()
         utility_tray.wait_for_notification_container_displayed()
 
-        # switch to cost control widget
-        usage_iframe = self.marionette.find_element(*self._cost_control_widget_locator)
-        self.marionette.switch_to_frame(usage_iframe)
-
-        # make sure the color changed
-        # The timeout is increased, because for some reason, it takes some time
-        # before the limit view is shown (the browser has to finish loading?)
-        usage_view = self.marionette.find_element(*self._data_usage_view_locator)
-        Wait(self.marionette, timeout=40).until(lambda m: 'reached-limit' in usage_view.get_attribute('class'),
-             message='Data usage bar did not breach limit')
-        usage_view.tap()
-
-        self.wait_for_condition(lambda m: self.apps.displayed_app.name == cost_control.name)
+        cost_control_widget = utility_tray.cost_control_widget
+        cost_control_widget.wait_for_limit_to_be_reached()
+        cost_control_widget.tap()
+        Wait(self.marionette).until(lambda m: self.apps.displayed_app.name == cost_control.name)
 
     def tearDown(self):
         self.marionette.switch_to_frame()
