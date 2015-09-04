@@ -10,6 +10,8 @@
     this.thumbnail = options.thumbnail;
     this.launchURL = options.launchURL;
     this.group = options.group;
+    this.isFillIcon = options.isFillIcon;
+    this.isEnableWave = options.isEnableWave;
     Card.prototype.constructor.call(this);
   };
 
@@ -21,7 +23,9 @@
         name: cardEntry.name,
         thumbnail: cardEntry.thumbnail,
         launchURL: cardEntry.launchURL,
-        group: cardEntry.group
+        group: cardEntry.group,
+        isFillIcon: cardEntry.isFillIcon,
+        isEnableWave: cardEntry.isEnableWave
       });
     }
     return cardInstance;
