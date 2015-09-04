@@ -404,6 +404,7 @@
      * @memberof Tutorial
      */
     reset: function() {
+      var resetPromise = Promise.resolve();
       if (dom.tutorialStepVideo) {
         this._mediaEvents.forEach(name => {
           dom.tutorialStepVideo.removeEventListener(
@@ -411,6 +412,16 @@
             this._debugEventHandler
           );
         });
+        dom.tutorialStepVideo.hidden = true;
+        if (dom.tutorialStepVideo.src) {
+          resetPromise = new Promise((resolve, reject) => {
+            dom.tutorialStepVideo.addEventListener('emptied', () => {
+              resolve();
+            });
+            dom.tutorialStepVideo.removeAttribute('src');
+            dom.tutorialStepVideo.load();
+          });
+        }
       }
       if (this._initialization) {
         this._initialization.abort();
@@ -423,6 +434,8 @@
         dom.tutorial.classList.remove('show');
         this._initialized = false;
       }
+      document.getElementById('tutorial').classList.remove('show');
+      return resetPromise;
     }
   };
 
