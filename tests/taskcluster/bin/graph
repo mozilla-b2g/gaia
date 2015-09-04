@@ -76,7 +76,7 @@ var currentRunId = process.env.RUN_ID;
 //////////////////////
 // Boostrap the graph
 //////////////////////
-taskIdMap['bootstrap'] = slugid.v4();
+taskIdMap['bootstrap'] = slugid.nice();
 var packageUrl = 'https://queue.taskcluster.net/v1/task/' + currentTaskId +
                  '/runs/' + currentRunId + '/artifacts/public/package.json';
 var bootstrapTask = loadTask('../bootstrap', params(config.params, {
@@ -98,7 +98,7 @@ Object.keys(config.definitions).forEach(function(name) {
 
   // If we are not using chunks don't loop.
   if (!definition || !definition.chunks) {
-    taskIdMap[name] = slugid.v4();
+    taskIdMap[name] = slugid.nice();
     var task = loadTask(name, params(config.params, {
       // Useful for environment variables.
       process: process,
@@ -116,7 +116,7 @@ Object.keys(config.definitions).forEach(function(name) {
     // In practice relying on chunks in the graph is probably a bad idea unless
     // doing it explicitly with some sort of specific logic but here for
     // consistency.
-    var taskId = taskIdMap[name + '-' + chunk] = slugid.v4();
+    var taskId = taskIdMap[name + '-' + chunk] = slugid.nice();
     var task = loadTask(name, params(config.params, {
       // Allow process to be used in variables useful for process.env.
       process: process,

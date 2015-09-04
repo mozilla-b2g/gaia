@@ -57,7 +57,7 @@ function decorateTask(task, options) {
   // external hook. In the external case we expect
   // external systems to generate a taskId.
   if (!options.externalHook) {
-    output.taskId = output.taskId || slugid.v4();
+    output.taskId = output.taskId || slugid.nice();
   }
 
   // Taskcluster needs to know how to run the tasks these specify which
