@@ -6,8 +6,8 @@
 /* global MozActivity */
 /* global SettingsListener */
 /* global Service */
+/* global GaiaPinCard */
 /* global Icon */
-/* global UrlHelper */
 
 'use strict';
 
@@ -16,7 +16,6 @@
   const PINNING_PREF = 'dev.gaia.pinning_the_web';
   // 32px + 4px padding added by the Icon renderer
   const ICON_SIZE = 32 + 4;
-  const PREVIEW_ICON_SIZE = 64;
 
   var _id = 0;
 
@@ -124,32 +123,29 @@
 
     return `<div class="chrome chrome-combined" id="${className}">
               <gaia-progress></gaia-progress>
-              <section role="dialog" class="pin-dialog hidden">
-                <header>
-                  <h2 class="pin-type" data-l10n-id="pinning-pin-type"></h2>
-                </header>
-                <div class="card-container">
-                  <div class="pin-site-icon"></div>
-                  <h2 class="pin-site-name"></h2>
-                </div>
-                <div class="footer-container">
-                  <button data-l10n-id="pinning-pin" data-action="pin"
-                    class="pin-button">
-                    Pin
-                  </button>
-                  <footer>
-                    <span data-l10n-id="from">from</span>
-                    <span class="origin"></span>
-                  </footer>
-                </div>
-              </section>
-              <div class="pin-scrim"></div>
               <div class="controls">
                 <button type="button" class="back-button"
                         data-l10n-id="back-button" disabled></button>
                 <button type="button" class="forward-button"
                         data-l10n-id="forward-button" disabled></button>
                 <div class="urlbar js-chrome-ssl-information">
+                  <section role="dialog" class="pin-dialog hidden">
+                    <a href="#" data-action="cancel"></a>
+                    <header>
+                      <h2 data-l10n-id="pinning-pin-page">Pin Page</h2>
+                    </header>
+                    <div class="card-container"></div>
+                    <div class="footer-container">
+                      <button data-l10n-id="pinning-pin" data-action="pin"
+                        class="pin-button">
+                        Pin
+                      </button>
+                      <footer>
+                        <span data-l10n-id="from">from</span>
+                        <span class="origin"></span>
+                      </footer>
+                    </div>
+                  </section>
                   <span class="pb-icon"></span>
                   <div class="site-icon"></div>
                   <div class="chrome-ssl-indicator chrome-title-container">
@@ -230,12 +226,9 @@
     if (this.useCombinedChrome()) {
       this.pinDialog = this.element.querySelector('.pin-dialog');
       this.pinButton = this.element.querySelector('.pin-button');
+      this.closePin = this.pinDialog.querySelector('a[data-action="cancel"]');
       this.originElement = this.pinDialog.querySelector('.origin');
       this.pinCardContainer = this.pinDialog.querySelector('.card-container');
-      this.pinSiteIcon = this.pinCardContainer.querySelector('.pin-site-icon');
-      this.pinSiteName = this.pinCardContainer.querySelector('.pin-site-name');
-      this.pinType = this.pinDialog.querySelector('.pin-type');
-      this.pinScrim = this.element.querySelector('.pin-scrim');
     }
 
     this.sslIndicator =
@@ -258,11 +251,8 @@
         this.collapse();
         break;
 
-      case 'rocketbar-activating':
-        this.hidePinDialogCard();
-        break;
-
       case 'click':
+        this.hidePinDialogCard();
         this.handleClickEvent(evt);
         break;
 
@@ -376,94 +366,22 @@
         break;
 
       case this.pinButton:
-        this.pinSite();
-        break;
-
-      case this.pinScrim:
-        this.hidePinDialogCard();
+        this.pin();
         break;
     }
   };
 
-  /**
-   * Pin current page in places database.
-   */
-  AppChrome.prototype.pinPage = function ac_pinPage() {
-    Service && Service.request('Places:setPinned', this.app.config.url, true)
-      .then(() => {
-      console.log('Succeeding in pinning ' + this.app.config.url);
-      var screenshotBlob = this.app.getCachedScreenshotBlob();
-      if (screenshotBlob) {
-        Service.request('Places:saveScreenshot', this.app.config.url,
-                        screenshotBlob);
-      }
-      if (this._themeChanged) {
-        Service.request('Places:saveThemeColor', this.app.config.url,
-                        this.app.themeColor, true);
-      }
-    }, () => {
-      console.log('Failed to pin ' + this.app.config.url);
-    });
-  };
-
-  /**
-   * Pin current site in bookmarks database.
-   */
-  AppChrome.prototype.pinSite = function ac_pinSite() {
-    this.pin();
-
-    LazyLoader.load('shared/js/url_helper.js').then(() => {
-      var siteObject = {};
-      var manifestURL = this.app.webManifestURL;
-      var manifestObject = this.app.webManifest;
-      var pageUrl = this.app.config.url;
-
-      siteObject.type = 'url';
-      siteObject.iconable = false;
-      siteObject.icons = this.app.favicons;
-      siteObject.frecency = 1;
-      siteObject.pinned = true;
-      siteObject.pinnedFrom = pageUrl;
-
-      if (manifestURL && manifestObject) {
-        var startUrl =
-        UrlHelper.resolveUrl(manifestObject.start_url, pageUrl) || pageUrl;
-        siteObject.id = startUrl;
-        siteObject.url = startUrl;
-        siteObject.webManifestUrl = manifestURL;
-        siteObject.webManifest = manifestObject;
-        siteObject.name = manifestObject.short_name || manifestObject.name ||
-          UrlHelper.getHostname(pageUrl);
-        siteObject.scope =
-          UrlHelper.resolveUrl(manifestObject.scope, pageUrl) ||
-          UrlHelper.resolveUrl('/', pageUrl);
-      } else {
-        siteObject.id = pageUrl;
-        siteObject.name = this.app.name || UrlHelper.getHostname(pageUrl);
-        siteObject.scope = UrlHelper.resolveUrl('/', pageUrl);
-        siteObject.url = pageUrl;
-      }
-
-      // Set the .icon property before saving for
-      // backwards compatibility with verticalhome
-      IconsHelper.getIcon(siteObject.url, null,
-        {icons: this.app.favicons}, siteObject).then(icon => {
-        siteObject.icon = icon;
-        BookmarksDatabase.put(siteObject, siteObject.id).catch(function(error) {
-           console.error('Failed to save site: ' + error);
-        });
-      });
-    });
-  };
-
-  /**
-   * Put browser chrome in pinned state.
-   */
   AppChrome.prototype.pin = function ac_pin() {
     this.hidePinDialogCard();
     this.collapse();
     this.pinned = true;
     this.app.element.classList.remove('collapsible');
+    Service && Service.request('Places:setPinned', this.app.config.url, true)
+      .then(function() {
+      console.log('Succeeding in pinning ' + this.app.config.url);
+    }, function() {
+      console.log('Failed to pin ' + this.app.config.url);
+    });
   };
 
   AppChrome.prototype.titleClicked = function ac_titleClicked() {
@@ -490,19 +408,21 @@
       this.app.debug('Pinning is only enabled in the browser');
       return;
     }
-
-    if (this.pinDialog.classList.contains('hidden')) {
-      this.setPinDialogCard();
-    } else {
-      this.hidePinDialogCard();
-    }
+    this.setPinDialogCard();
   };
 
-  AppChrome.prototype.setPinDialogCard = function ac_setPinDialogCard() {
-    navigator.mozL10n.setAttributes(this.pinType, 'pinning-pin-type', {
-      'type': this.app.name
-    });
-    this.pinSiteName.textContent = this.app.name;
+  AppChrome.prototype.setPinDialogCard = function ac_setPinDialogCard(url) {
+    var card = new GaiaPinCard();
+    card.title = this.app.title;
+    card.icon = this.siteIcon.style.backgroundImage;
+    this.pinCardContainer.innerHTML = '';
+    this.app.getScreenshot(function() {
+      card.background = {
+        src: URL.createObjectURL(this.app._screenshotBlob),
+        themeColor: this.app.themeColor
+      };
+    }.bind(this));
+    this.pinCardContainer.appendChild(card);
     this.setOrigin();
     this.pinDialog.classList.remove('hidden');
   };
@@ -574,7 +494,7 @@
   };
 
   AppChrome.prototype._pinningObserver = function ac__pinningObserver(enabled) {
-    var targets = [this.siteIcon, this.pinScrim];
+    var targets = [this.siteIcon, this.closePin];
     var method = enabled ? 'addEventListener' : 'removeEventListener';
     targets.forEach(element => {
       element[method]('click', this);
@@ -590,7 +510,6 @@
       });
       LazyLoader.load('shared/elements/gaia_overflow_menu/script.js');
 
-      window.addEventListener('rocketbar-activating', this);
       this.stopButton.addEventListener('click', this);
       this.reloadButton.addEventListener('click', this);
       this.backButton.addEventListener('click', this);
@@ -638,7 +557,6 @@
   AppChrome.prototype._unregisterEvents = function ac__unregisterEvents() {
 
     if (this.useCombinedChrome()) {
-      window.removeEventListener('rocketbar-activating', this);
       this.stopButton.removeEventListener('click', this);
       this.menuButton.removeEventListener('click', this);
       this.windowsButton.removeEventListener('click', this);
@@ -716,9 +634,6 @@
     this.sslIndicator.classList.toggle(
       'chrome-has-ssl-indicator', sslState === 'broken' || sslState === 'secure'
     );
-    if (this.pinDialog) {
-      this.pinDialog.classList.toggle('secure', sslState === 'secure');
-    }
   };
 
   AppChrome.prototype.handleMetaChange =
@@ -738,10 +653,6 @@
 
       this._themeChanged = true;
       this.setThemeColor(color);
-      if (!this.app.isHomescreen && this.app.config.url) {
-        Service && Service.request('Places:saveThemeColor',
-                                   this.app.config.url, color, true);
-      }
     };
 
   AppChrome.prototype.setThemeColor = function ac_setThemColor(color) {
@@ -923,7 +834,9 @@
         }
         this.scrollable.scrollTop = 0;
         this.pinned = firstLocationChange ? this.pinned : false;
-        this.app.element.classList.add('collapsible');
+        if (this.app.config.chrome && this.app.config.chrome.scrollable) {
+          this.app.element.classList.add('collapsible');
+        }
       }
 
       // Set the title for the private browser landing page.
@@ -947,7 +860,6 @@
       this.setThemeColor('');
     }
     this.setSiteIcon();
-    this.setPinPreviewIcon();
   };
 
   AppChrome.prototype.handleError = function ac_handleError(evt) {
@@ -1124,12 +1036,14 @@
    * @param {string?} url
    */
   AppChrome.prototype.setSiteIcon = function ac_setSiteIcon(url) {
+    var icon;
+
     if (!this.siteIcon || this.app.isPrivateBrowser()) {
       return;
     }
 
     if (url) {
-      var icon = new Icon(this.siteIcon, url);
+      icon = new Icon(this.siteIcon, url);
       icon.render({
         size: ICON_SIZE
       });
@@ -1149,20 +1063,6 @@
       .catch((err) => {
         this.app.debug('setSiteIcon, error from getSiteIcon: %s', err);
       });
-  };
-
-  /**
-   * Populate the pin preview doorhanger with current site/app icon.
-   */
-  AppChrome.prototype.setPinPreviewIcon = function ac_setPinPreviewIcon() {
-    if (!this.pinSiteIcon) {
-      return;
-    }
-    this.app.getSiteIconUrl(PREVIEW_ICON_SIZE).then(iconObject => {
-      this.pinSiteIcon.style.backgroundImage = iconObject.url;
-    }).catch((err) => {
-      this.app.debug('setPinPreviewIcon, error from getSiteIcon: %s', err);
-    });
   };
 
   exports.AppChrome = AppChrome;

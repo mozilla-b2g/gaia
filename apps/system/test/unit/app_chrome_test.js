@@ -606,6 +606,20 @@ suite('system/AppChrome', function() {
       app.config.url = 'http://test.com';
       chrome.handleLocationChange();
       assert.isFalse(chrome.pinned);
+      assert.isTrue(app.element.classList.contains('collapsible'));
+    });
+
+    test('doesnt make it scrollable if the config doesnt say so', function() {
+      fakeSearchApp.chrome.url = 'http://aaa.com';
+      fakeSearchApp.chrome.scrollable = false;
+      var app = new AppWindow(fakeSearchApp);
+      this.sinon.stub(app, 'isBrowser').returns(true);
+      var chrome = new AppChrome(app);
+      chrome.handleLocationChange();
+
+      app.config.url = 'http://test.com';
+      chrome.handleLocationChange();
+      assert.isFalse(app.element.classList.contains('collapsible'));
     });
   });
 
