@@ -1,6 +1,6 @@
 /*global MocksHelper, MockNavigatormozSetMessageHandler, Browser,
          MockApplications, MockAppWindow, MockAppWindowHelper,
-         ActivityHandler, MockNavigatorSettings */
+         ActivityHandler, MockNavigatorSettings, setImmediate */
 
 'use strict';
 
@@ -27,6 +27,7 @@ suite('system/Browser', function() {
   var realMozSettings;
   var realMozSetMessageHandler;
   var subject;
+  var clock;
 
   suiteSetup(function() {
     realMozSettings = navigator.mozSettings;
@@ -50,10 +51,12 @@ suite('system/Browser', function() {
     MockNavigatorSettings.mSetup();
     MockNavigatorSettings.mSyncRepliesOnly = true;
     this.sinon.spy(MockAppWindow.prototype, 'requestOpen');
+    clock = this.sinon.useFakeTimers();
   });
 
   teardown(function() {
     MockNavigatorSettings.mTeardown();
+    clock.restore();
   });
 
   test('should open a new app window with the correct config', function() {
@@ -97,7 +100,7 @@ suite('system/Browser', function() {
     MockNavigatorSettings.mTriggerObservers('browser.private.default',
         {settingValue: true});
 
-    setTimeout(function () {
+    setImmediate(function () {
       MockNavigatormozSetMessageHandler.mTrigger('activity', {
         source: {
           name: 'view',
@@ -112,6 +115,6 @@ suite('system/Browser', function() {
       assert.equal(MockAppWindowHelper.mInstances.length, 1);
       var app = MockAppWindowHelper.mLatest;
       assert.equal(app.isPrivate, true);
-    }, 30);
+    });
   });
 });
