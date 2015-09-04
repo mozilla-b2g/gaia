@@ -15,11 +15,10 @@ class TestUsbStorage(GaiaTestCase):
         settings = Settings(self.marionette)
         settings.launch()
 
-        settings.wait_for_usb_storage_toggle_ready()
         self.assertFalse(settings.is_usb_storage_enabled)
         self.assertFalse(self.data_layer.get_setting('ums.enabled'))
 
-        settings.toggle_usb_storage()
+        settings.enable_usb_storage()
         settings.confirm_usb_storage()
         self.assertTrue(settings.is_usb_storage_enabled)
         self.assertTrue(self.data_layer.get_setting('ums.enabled'))

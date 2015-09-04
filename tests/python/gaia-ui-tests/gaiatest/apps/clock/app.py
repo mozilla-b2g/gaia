@@ -4,8 +4,8 @@
 
 from marionette_driver import expected, By, Wait
 
-from gaiatest.apps.base import Base
-from gaiatest.apps.base import PageRegion
+from gaiatest.apps.base import Base, PageRegion
+from gaiatest.form_controls.binarycontrol import InvisibleHtmlBinaryControl
 
 
 class Clock(Base):
@@ -69,14 +69,17 @@ class Clock(Base):
 
         @property
         def is_alarm_active(self):
-            return self.root_element.find_element(*self._check_box_locator).is_selected()
+            return self._checkbox.is_checked
 
-        def tap_checkbox(self):
-            self.root_element.find_element(*self._enable_button_locator).tap()
+        def enable(self):
+            self._checkbox.enable()
 
-        def wait_for_checkbox_to_change_state(self, value):
-            checkbox = self.marionette.find_element(*self._check_box_locator)
-            Wait(self.marionette).until(lambda m: checkbox.is_selected() == value)
+        def disable(self):
+            self._checkbox.disable()
+
+        @property
+        def _checkbox(self):
+            return InvisibleHtmlBinaryControl(self.marionette, self._check_box_locator, self._enable_button_locator)
 
         def tap(self):
             self.root_element.tap()

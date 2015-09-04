@@ -4,8 +4,8 @@
 
 from marionette_driver import expected, By, Wait
 from marionette_driver.errors import StaleElementException
-
 from gaiatest.apps.base import Base
+from gaiatest.form_controls.binarycontrol import GaiaBinaryControl
 
 
 class Wifi(Base):
@@ -18,13 +18,14 @@ class Wifi(Base):
 
     @property
     def is_wifi_enabled(self):
-        element = self.marionette.find_element(*self._wifi_enabled_checkbox_locator)
-        return self.is_custom_element_checked(element)
+        return self._wifi_switch.is_checked
 
     def enable_wifi(self):
-        element = self.marionette.find_element(*self._wifi_enabled_checkbox_locator)
-        element.tap()
-        self.wait_for_custom_element_checked_state(element)
+        self._wifi_switch.enable()
+
+    @property
+    def _wifi_switch(self):
+        return GaiaBinaryControl(self.marionette, self._wifi_enabled_checkbox_locator)
 
     def connect_to_network(self, network_info):
 

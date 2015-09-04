@@ -3,8 +3,8 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from marionette_driver import expected, By, Wait
-
 from gaiatest.apps.base import Base
+from gaiatest.form_controls.binarycontrol import GaiaBinaryControl
 
 
 class Keyboard(Base):
@@ -64,12 +64,7 @@ class KeyboardAddMoreKeyboards(Base):
             self._select_language_locator[0],
             self._select_language_locator[1] % language
         )
-        element = Wait(self.marionette).until(
-            expected.element_present(*language_locator))
-        Wait(self.marionette).until(expected.element_displayed(element))
-        element.tap()
-
-        self.wait_for_custom_element_checked_state(element)
+        GaiaBinaryControl(self.marionette, language_locator).enable()
 
     def go_back(self):
         # TODO: remove tap with coordinates after Bug 1061698 is fixed

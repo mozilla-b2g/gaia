@@ -3,8 +3,8 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/
 
 from marionette_driver import expected, By, Wait
-
 from gaiatest.apps.base import Base
+from gaiatest.form_controls.binarycontrol import InvisibleHtmlBinaryControl
 
 
 class Settings(Base):
@@ -92,28 +92,35 @@ class Settings(Base):
         Wait(self.marionette).until(lambda m: self.apps.displayed_app.name == self.name)
         self.apps.switch_to_displayed_app()
 
-    def wait_for_airplane_toggle_ready(self):
-        self._wait_for_toggle_ready(*self._airplane_checkbox_locator)
+    def enable_airplane_mode(self):
+        self._airplane_checkbox.enable()
 
-    def toggle_airplane_mode(self):
-        checkbox = self.marionette.find_element(*self._airplane_checkbox_locator)
-        label = self.marionette.find_element(*self._airplane_switch_locator)
-        state = checkbox.is_selected()
-        label.tap()
-        Wait(self.marionette).until(lambda m: state is not checkbox.is_selected())
+    def disable_airplane_mode(self):
+        self._airplane_checkbox.disable()
 
-    def wait_for_usb_storage_toggle_ready(self):
-        self._wait_for_toggle_ready(*self._usb_storage_checkbox_locator)
+    @property
+    def _airplane_checkbox(self):
+        return InvisibleHtmlBinaryControl(self.marionette,
+                                      self._airplane_checkbox_locator,
+                                      self._airplane_switch_locator)
 
-    def toggle_usb_storage(self):
-        # The left hand side of the usb storage switch is overlayed by menuItem-enableStorage
-        # So we do the tapping on the right hand side
-        element = self.marionette.find_element(*self._usb_storage_switch_locator)
-        element.tap(x=(element.size['width']-5))
+    def enable_usb_storage(self):
+        self._usb_checkbox.enable()
 
     @property
     def is_usb_storage_enabled(self):
-        return self.marionette.find_element(*self._usb_storage_checkbox_locator).is_selected()
+        return self._usb_checkbox.is_checked
+
+    @property
+    def _usb_checkbox(self):
+        class UsbSwitch(InvisibleHtmlBinaryControl):
+            def _toggle(self):
+                # There are 2 parts on that entry. The left part allows you to choose the
+                # USB transfer protocol, and the right part is the switch.
+                right_part_of_entry = self._element_to_tap.rect['width']-5
+                self._element_to_tap.tap(x=right_part_of_entry)
+
+        return UsbSwitch(self.marionette, self._usb_storage_checkbox_locator, self._usb_storage_switch_locator)
 
     def confirm_usb_storage(self):
         element = Wait(self.marionette).until(
@@ -130,19 +137,18 @@ class Settings(Base):
         element.tap()
 
     def enable_gps(self):
-        self.marionette.find_element(*self._gps_switch_locator).tap()
-        checkbox = self.marionette.find_element(*self._gps_enabled_locator)
-        Wait(self.marionette).until(expected.element_selected(checkbox))
+        return self._gps_checkbox.enable()
 
     def disable_gps(self):
-        self.marionette.find_element(*self._gps_switch_locator).tap()
-        checkbox = self.marionette.find_element(*self._gps_enabled_locator)
-        Wait(self.marionette).until(expected.element_not_selected(checkbox))
+        return self._gps_checkbox.disable()
 
     @property
     def is_gps_enabled(self):
-        return self.marionette.find_element(
-            *self._gps_enabled_locator).is_selected()
+        return self._gps_checkbox.is_checked
+
+    @property
+    def _gps_checkbox(self):
+        return InvisibleHtmlBinaryControl(self.marionette, self._gps_enabled_locator, self._gps_switch_locator)
 
     @property
     def header_text(self):
