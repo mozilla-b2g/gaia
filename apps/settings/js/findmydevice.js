@@ -68,8 +68,9 @@ define('findmydevice', ['modules/settings_utils', 'shared/settings_listener'
       SettingsListener.observe('findmydevice.can-disable', true,
         this._setCanDisable.bind(this));
 
-      var checkbox = document.querySelector('#findmydevice-enabled input');
-      checkbox.addEventListener('click', this._onCheckboxChanged.bind(this));
+      var checkbox = document.querySelector(
+        '#findmydevice-enabled gaia-switch');
+      checkbox.addEventListener('change', this._onCheckboxChanged.bind(this));
     },
 
     _onLoginClick: function fmd_on_login_click(e) {
@@ -94,7 +95,8 @@ define('findmydevice', ['modules/settings_utils', 'shared/settings_listener'
     },
 
     _setEnabled: function fmd_set_enabled(value) {
-      var checkbox = document.querySelector('#findmydevice-enabled input');
+      var checkbox = document.querySelector(
+        '#findmydevice-enabled gaia-switch');
       checkbox.checked = value;
 
       var status = document.getElementById('findmydevice-tracking');
@@ -108,8 +110,14 @@ define('findmydevice', ['modules/settings_utils', 'shared/settings_listener'
     },
 
     _setCanDisable: function fmd_set_can_disable(value) {
-      var checkbox = document.querySelector('#findmydevice-enabled input');
-      checkbox.disabled = !value;
+      var checkbox = document.querySelector(
+        '#findmydevice-enabled gaia-switch');
+      if (value) {
+        checkbox.removeAttribute('disabled');
+      } else {
+        checkbox.setAttribute('disabled', true);
+      }
+
     },
 
     _togglePanel: function fmd_toggle_panel(loggedIn) {
@@ -156,14 +164,15 @@ define('findmydevice', ['modules/settings_utils', 'shared/settings_listener'
         return;
       }
 
-      var checkbox = document.querySelector('#findmydevice-enabled input');
-      checkbox.disabled = true;
+      var checkbox = document.querySelector(
+        '#findmydevice-enabled gaia-switch');
+      checkbox.setAttribute('disabled', true);
 
       if (checkbox.checked === false) {
         wakeUpFindMyDevice(IAC_API_WAKEUP_REASON_TRY_DISABLE);
       } else {
         SettingsHelper('findmydevice.enabled').set(true, function() {
-          checkbox.disabled = false;
+          checkbox.removeAttribute('disabled');
         });
       }
     },
