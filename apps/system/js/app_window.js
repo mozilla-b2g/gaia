@@ -601,7 +601,7 @@
               <div class="identification-overlay">
                 <div>
                   <div class="icon"></div>
-                  <span class="title"></span>
+                  <span class="title" dir="auto"></span>
                 </div>
               </div>
               <div class="fade-overlay"></div>
