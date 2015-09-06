@@ -1,3 +1,4 @@
+/* global LazyLoader */
 'use strict';
 
 (function(exports) {
@@ -5,11 +6,16 @@
  /**
    * SystemBanner displays a type of notification to the user in certain cases.
    * It is a type of temporary notification that does not live in the
-   * notifications tray. Examples of the SystemBanner implementation include 
+   * notifications tray. Examples of the SystemBanner implementation include
    * application installation, crash reporter, and low storage notices.
    * @class SystemBanner
    */
   function SystemBanner() {}
+
+  /**
+   * Amount of time before banner is automatically dismissed.
+   */
+  SystemBanner.TIMEOUT = 4000;
 
   SystemBanner.prototype = {
 
@@ -28,29 +34,36 @@
     _clicked: false,
 
     /**
-     * Callback when the user clicks on the system banner button.
+     * Set to true when the banner is currently showing to the user.
      * @memberof SystemBanner.prototype
-     * @type {Function}
+     * @type {Boolean}
      */
-    _clickCallback: null,
+    _showing: false,
 
     /**
      * Generates and returns the banner if it does not exist
      * @memberof SystemBanner.prototype
      * @type {Function}
      */
-    get banner() {
-      if (!this._banner) {
-        this._banner = document.createElement('section');
-        this._banner.className = 'banner generic-dialog';
-        this._banner.setAttribute('role', 'dialog');
-        this._banner.dataset.zIndexLevel = 'system-notification-banner';
-        this._banner.dataset.button = 'false';
-        this._banner.innerHTML = '<p></p><button></button>';
-        document.getElementById('screen').appendChild(this._banner);
+    getBanner: function() {
+      if (this._banner) {
+        return Promise.resolve(this._banner);
       }
 
-      return this._banner;
+      return LazyLoader.load('shared/elements/gaia-component/gaia-component.js')
+        .then(() => {
+          return LazyLoader.load('shared/elements/gaia-toast/gaia-toast.js');
+        })
+        .then(() => {
+          this._banner = document.createElement('gaia-toast');
+          this._banner.timeout = SystemBanner.TIMEOUT;
+          this._banner.className = 'banner';
+          this._banner.dataset.zIndexLevel = 'system-notification-banner';
+          var container = createChild(this._banner, 'div', 'container');
+          createChild(container, 'div', 'messages');
+          createChild(container, 'div', 'buttons');
+          return this._banner;
+        });
     },
 
     /**
@@ -59,57 +72,87 @@
      * 'dismiss' is called when the banner is dismissed and button
      * has not been clicked. It is optional.
      * @memberof SystemBanner.prototype
-     * @param {String|Array} message The message to display
+     * @param {String|Array} messages The messages to display
      * @param {Object} buttonParams
      *   { label: l10nAttrs, callback: ..., dismiss: ... }
      */
-    show: function(message, buttonParams) {
-      var banner = this.banner;
+    show: function(messages, buttonParams) {
+      this._clicked = false;
+      this._showing = true;
 
-      var p = banner.querySelector('p');
-      p.innerHTML = '';
-      if (Array.isArray(message)) {
-        message.forEach(function(chunk) {
-          var span = document.createElement('span');
-          setElementL10n(span, chunk);
-          p.appendChild(span);
-        });
-      } else {
-        var span = document.createElement('span');
-        setElementL10n(span, message);
-        p.appendChild(span);
-      }
+      return this.getBanner().then(banner => {
+        // Clear the button and message containers.
+        var messageContainer = banner.querySelector('.messages');
+        var buttonContainer = banner.querySelector('.buttons');
+        messageContainer.innerHTML = '';
+        buttonContainer.innerHTML = '';
 
-      var button = banner.querySelector('button');
-      if (buttonParams) {
-        banner.dataset.button = true;
-        setElementL10n(button, buttonParams.label);
-        this._clickCallback = function() {
-          this._clicked = true;
-          buttonParams.callback();
-        }.bind(this);
-        button.addEventListener('click', this._clickCallback);
-      }
-
-      banner.addEventListener('animationend', function animationend() {
-        banner.removeEventListener('animationend', animationend);
-        banner.classList.remove('visible');
-
-        if (buttonParams) {
-          if (buttonParams.dismiss && !this._clicked) {
-            buttonParams.dismiss();
-          }
-          banner.dataset.button = false;
-          button.removeEventListener('click', this._clickCallback);
-          button.classList.remove('visible');
-          this.banner.parentNode.removeChild(this.banner);
-          this._banner = undefined;
+        // Populate banner with messages.
+        if (!Array.isArray(messages)) {
+          messages = [messages];
         }
-      }.bind(this));
+        messages.forEach((chunk) => {
+          var p = createChild(messageContainer, 'p');
+          setElementL10n(p, chunk);
+        });
 
-      banner.classList.add('visible');
+        // Populate  buttons if specified.
+        if (buttonParams) {
+          var button = createChild(buttonContainer, 'span');
+          button.className = 'button';
+          setElementL10n(button, buttonParams.label);
+          button.addEventListener('click', () => {
+            this._clicked = true;
+            this.hide();
+            buttonParams.callback && buttonParams.callback();
+          });
+        }
+
+        // Hide banner and invoke button dismiss() on click or timeout.
+        var hideBanner = () => {
+          this.hide();
+          if (!this._clicked) {
+            buttonParams && buttonParams.dismiss && buttonParams.dismiss();
+          }
+        };
+        banner.onclick = hideBanner;
+        setTimeout(hideBanner, SystemBanner.TIMEOUT);
+
+        document.getElementById('screen').appendChild(banner);
+        banner.show();
+      });
+    },
+
+    /**
+     * Hide the System Banner and remove it from the DOM.
+     */
+    hide: function() {
+      if (!this._showing) {
+        return;
+      }
+      this._showing = false;
+
+      return this.getBanner().then(banner => {
+        banner.addEventListener('animationend', function removeBanner() {
+          banner.removeEventListener('animationend', removeBanner);
+          // Only remove banner if we haven't called show() in the meantime.
+          if (!this._showing) {
+            banner.parentNode && banner.parentNode.removeChild(banner);
+          }
+        }.bind(this));
+        banner.hide();
+      });
     }
   };
+
+  function createChild(parentEl, type, className) {
+    var el = document.createElement(type);
+    if (className) {
+      el.className = className;
+    }
+    parentEl.appendChild(el);
+    return el;
+  }
 
   function setElementL10n(element, l10nAttrs) {
     if (typeof(l10nAttrs) === 'string') {

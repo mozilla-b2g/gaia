@@ -63,7 +63,7 @@ System.Selector = Object.freeze({
   statusbarMaximizedWrapper: '#statusbar-maximized-wrapper',
   statusbarMinimizedWrapper: '#statusbar-minimized-wrapper',
   statusbarOperator: '.statusbar-operator',
-  systemBanner: '.banner.generic-dialog',
+  systemBanner: 'gaia-toast.banner',
   topPanel: '#top-panel',
   trustedWindow: '.appWindow.active.trustedwindow',
   trustedWindowChrome: '.appWindow.active.trustedwindow .chrome',

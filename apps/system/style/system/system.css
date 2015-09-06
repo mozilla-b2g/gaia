@@ -313,42 +313,6 @@ textarea,
   visibility: hidden;
 }
 
-@keyframes banner-bounce {
-  from, to {
-    transform: translateY(100%);
-    opacity: 0;
-  }
-  12.5%, 87.5% {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-.generic-dialog.banner {
-  z-index: 0;
-  visibility: hidden;
-  opacity: 0;
-  transform: translateY(100%);
-}
-
-/* Banner should be offset when software home button is enabled */
-#screen.software-button-enabled .generic-dialog.banner {
-  bottom: var(--software-home-button-height);
-}
-
-.generic-dialog.banner.visible {
-  animation: banner-bounce 4s;
-  visibility: visible;
-}
-
-.generic-dialog.banner button {
-  width: auto;
-}
-
-.generic-dialog.banner[data-button="false"] button {
-  visibility: hidden;
-}
-
 #screen iframe.communication-frame {
   visibility: hidden;
 }
@@ -359,3 +323,4 @@ textarea,
     background: url(../themes/default/images/ui/menu_bg.png) no-repeat;
   }
 }
+

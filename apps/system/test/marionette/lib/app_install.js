@@ -18,6 +18,7 @@ AppInstall.Selector = Object.freeze({
   // General app install dialog
   installDialog: '#app-install-dialog',
   installButton: '#app-install-install-button',
+  installToast: 'gaia-toast.banner',
   // Setup dialog after installation
   setupDialog: '#setup-installed-app-dialog',
   setupButton: '#setup-confirm-button',
@@ -162,6 +163,22 @@ AppInstall.prototype = {
         };
       };
     }, [manifestURL]);
+  },
+
+  /**
+   * Dismiss the app install toast banner.
+   */
+  dismissToast: function() {
+    var toast = this.waitForToast();
+    toast.tap();
+    this.client.helper.waitForElementToDisappear(toast);
+  },
+
+  /**
+   * Wait for the app install toast banner.
+   */
+  waitForToast: function() {
+    return this.client.helper.waitForElement(AppInstall.Selector.installToast);
   },
 
   /**

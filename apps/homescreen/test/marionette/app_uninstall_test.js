@@ -37,6 +37,7 @@ marionette('Homescreen - App Uninstall', function() {
     // install an app
     client.switchToFrame();
     appInstall.install(server.manifestURL);
+    appInstall.dismissToast();
 
     client.switchToFrame(system.getHomescreenIframe());
   });
