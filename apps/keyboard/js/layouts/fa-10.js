@@ -1,6 +1,6 @@
 Keyboards.fa = {
-  label: 'Persian',
-  shortLabel: 'Fa',
+  label: 'Persian 10',
+  shortLabel: 'Fa10',
   menuLabel: '10 فارسی',
   secondLayout: true,
   specificCssRule: true,
