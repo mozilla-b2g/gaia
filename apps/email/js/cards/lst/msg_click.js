@@ -78,7 +78,7 @@ function showLargeMessageWarning(size, cb) {
               this.model.foldersSlice.getFirstFolderWithType('localdrafts');
 
         console.log('outbox: Moving message to localdrafts.');
-        this.model.api.moveMessages([header], draftsFolder, function(moveMap) {
+        this.model.api.moveMessages([header], draftsFolder, (moveMap) => {
           header.id = moveMap[header.id];
           console.log('outbox: Editing message in localdrafts.');
           var composer = header.editAsDraft(() => {
