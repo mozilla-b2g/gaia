@@ -27,6 +27,22 @@
   position: relative;
 }
 
+#lockscreen-passcode-code[data-pin-length="5"] > span {
+  width: calc(20% - 1rem);
+}
+
+#lockscreen-passcode-code[data-pin-length="6"] > span {
+  width: calc(16.67% - 1rem);
+}
+
+#lockscreen-passcode-code[data-pin-length="7"] > span {
+  width: calc(14.286% - 1rem);
+}
+
+#lockscreen-passcode-code[data-pin-length="8"] > span {
+  width: calc(12.5% - 1rem);
+}
+
 #lockscreen-passcode-code.error > span {
   border: 0.1rem #B70404 solid;
 }
