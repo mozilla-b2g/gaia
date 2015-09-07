@@ -129,13 +129,13 @@
 }
 
 /* if not fufilled, show it is pressed */
-#lockscreen-passcode-pad:not(.passcode-fulfilled) > a:active {
+#lockscreen-passcode-pad:not(.passcode-fulfilled) > a.active-key {
   background-color: #4a5255;
   color: #00caf2;
   text-shadow: none;
 }
 
-#lockscreen-passcode-pad:not(.passcode-fulfilled) > a.lockscreen-passcode-pad-func:active > div > span{
+#lockscreen-passcode-pad:not(.passcode-fulfilled) > a.lockscreen-passcode-pad-func.active-key > div > span{
   color: #00caf2;
 }
 
@@ -188,7 +188,7 @@
   margin-top: -2.6rem;
 }
 
-#lockscreen-passcode-pad:not(.passcode-fulfilled)  > a:active > div > span {
+#lockscreen-passcode-pad:not(.passcode-fulfilled) > a.active-key > div > span {
   color: transparent;
   text-shadow: none;
 }
