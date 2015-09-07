@@ -529,8 +529,6 @@ suite('Homescreen app', () => {
 
   suite('App#updatePanelIndicator()', () => {
     var indicatorToggleStubs;
-    var mozL10nOnceStub;
-    var mozL10nGetStub;
     var realPanels;
     var mockPanels = {
       scrollLeft: 0,
@@ -541,17 +539,12 @@ suite('Homescreen app', () => {
       indicatorToggleStubs = [
         sinon.stub(app.indicator.children[0].classList, 'toggle'),
         sinon.stub(app.indicator.children[1].classList, 'toggle')];
-      mozL10nOnceStub = sinon.stub(navigator.mozL10n, 'once',
-        (callback) => { callback(); });
-      mozL10nGetStub = sinon.stub(navigator.mozL10n, 'get', value => value);
       realPanels = app.panels;
       app.panels = mockPanels;
     });
 
     teardown(() => {
       indicatorToggleStubs.forEach((stub) => { stub.restore(); });
-      mozL10nOnceStub.restore();
-      mozL10nGetStub.restore();
       app.panels = realPanels;
     });
 
@@ -560,7 +553,7 @@ suite('Homescreen app', () => {
       app.updatePanelIndicator();
       assert.isTrue(indicatorToggleStubs[0].calledWith('active', true));
       assert.isTrue(indicatorToggleStubs[1].calledWith('active', false));
-      assert.isTrue(mozL10nGetStub.calledWith('apps-panel'));
+      assert.equal(app.indicator.getAttribute('data-l10n-id'), 'apps-panel');
     });
 
     test('should update indicator when pages visible', () => {
@@ -568,17 +561,18 @@ suite('Homescreen app', () => {
       app.updatePanelIndicator();
       assert.isTrue(indicatorToggleStubs[0].calledWith('active', false));
       assert.isTrue(indicatorToggleStubs[1].calledWith('active', true));
-      assert.isTrue(mozL10nGetStub.calledWith('pages-panel'));
+      assert.equal(app.indicator.getAttribute('data-l10n-id'), 'pages-panel');
     });
 
     test('should do nothing when visibility is unchanged', () => {
+      var setAttributeSpy = sinon.spy(app.indicator, 'setAttribute');
       app.appsVisible = true;
       mockPanels.scrollLeft = 0;
       app.updatePanelIndicator();
       assert.isFalse(indicatorToggleStubs[0].called);
       assert.isFalse(indicatorToggleStubs[1].called);
-      assert.isFalse(mozL10nOnceStub.called);
-      assert.isFalse(mozL10nGetStub.called);
+      assert.isFalse(setAttributeSpy.called);
+      setAttributeSpy.restore();
     });
   });
 
