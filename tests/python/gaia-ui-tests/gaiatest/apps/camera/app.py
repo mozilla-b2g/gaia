@@ -48,15 +48,14 @@ class Camera(Base):
         return self.marionette.find_element(*self._controls_locator).get_attribute('data-mode')
 
     def take_photo(self):
-        # Wait for camera to be ready to take a picture
-        controls = self.marionette.find_element(*self._controls_locator)
-        Wait(self.marionette, timeout=20).until(
-            lambda m: controls.get_attribute('data-enabled') == 'true')
+        self.wait_for_capture_ready()
 
         self.tap_capture()
 
         # Wait for thumbnail to appear
         self.wait_for_thumbnail_visible()
+        Wait(self.marionette).until(
+            expected.element_not_displayed(*self._loading_screen_locator))
 
     def record_video(self, duration):
         # Start recording
