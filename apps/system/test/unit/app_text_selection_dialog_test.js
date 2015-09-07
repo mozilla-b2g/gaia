@@ -115,13 +115,13 @@ suite('system/AppTextSelectionDialog', function() {
     assert.isTrue(td.globalStates === td2.globalStates);
   });
 
-  test('test _appTSDs is correctly updated in global states', function() {
-    assert.isTrue(td.globalStates._appTSDs.size == 1);
-    assert.isTrue(td.globalStates._appTSDs.has(td));
+  test('test appTSDs is correctly updated in global states', function() {
+    assert.isTrue(td.globalStates.appTSDs.size == 1);
+    assert.isTrue(td.globalStates.appTSDs.has(td));
 
     var td2 = new AppTextSelectionDialog();
-    assert.isTrue(td.globalStates._appTSDs.size == 2);
-    assert.isTrue(td.globalStates._appTSDs.has(td2));
+    assert.isTrue(td.globalStates.appTSDs.size == 2);
+    assert.isTrue(td.globalStates.appTSDs.has(td2));
   });
 
   test('switch settings value of copypaste.enabled', function() {

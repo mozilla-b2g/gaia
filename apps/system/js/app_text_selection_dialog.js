@@ -10,7 +10,7 @@
   var AppTextSelectionDialogGlobalStates = function() {
     this._hasCutOrCopiedTimeoutId = null;
     this._isPrefOn = true;
-    this._appTSDs = new Set();
+    this.appTSDs = new Set();
     this.bindOnObservePrefChanged = this.onObservePrefChanged.bind(this);
     SettingsListener.observe('copypaste.enabled', true,
                              this.bindOnObservePrefChanged);
@@ -42,13 +42,13 @@
     function() {
       this._hasCutOrCopiedTimeoutId = null;
       this._isPrefOn = true;
-      this._appTSDs.clear();
+      this.appTSDs.clear();
     };
 
   AppTextSelectionDialogGlobalStates.prototype.onObservePrefChanged =
     function (value) {
       this._isPrefOn = value;
-      this._appTSDs.forEach(appTSD => {
+      this.appTSDs.forEach(appTSD => {
         this._isPrefOn ? appTSD.start() : appTSD.stop();
       });
     };
@@ -67,7 +67,7 @@
     this.textualmenuDetail = null;
     this.globalStates = _globalStates =
       _globalStates || new AppTextSelectionDialogGlobalStates();
-    this.globalStates._appTSDs.add(this);
+    this.globalStates.appTSDs.add(this);
   };
 
   AppTextSelectionDialog.prototype = Object.create(window.BaseUI.prototype);
@@ -100,7 +100,7 @@
   // from global states when destroying this app.
   AppTextSelectionDialog.prototype._unregisterEvents =
     function tsd__unregisterEvents() {
-      this.globalStates._appTSDs.delete(this);
+      this.globalStates.appTSDs.delete(this);
     };
 
   AppTextSelectionDialog.prototype.start = function tsd_start() {
