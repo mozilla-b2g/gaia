@@ -99,6 +99,30 @@ suite('FindMyDevice >', function() {
     fakeClock.tick();
   });
 
+  test('Bug 1201530 - check existing passcode override', function(done) {
+    // Simulate already-locked device.
+    MockSettingsListener.mTriggerCallback('lockscreen.enabled', true);
+    MockSettingsListener.mTriggerCallback('lockscreen.passcode-lock.enabled',
+      true);
+    var code = '2342', message = 're-locked!';
+
+    subject.invokeCommand('lock', [message, code, function(retval) {
+      var lock = MockSettingsListener.getSettingsLock().locks.pop();
+      assert.deepEqual({
+        'lockscreen.enabled': true,
+        'lockscreen.notifications-preview.enabled': false,
+        'lockscreen.passcode-lock.enabled': true,
+        'lockscreen.lock-message': message,
+        'lockscreen.passcode-lock.code': code,
+        'lockscreen.lock-immediately': true
+      }, lock, 'existing passcode is not overridden');
+
+      done();
+    }]);
+
+    fakeClock.tick();
+  });
+
   suite('Ring command', function() {
     var duration = 2;
 
