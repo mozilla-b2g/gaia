@@ -51,12 +51,12 @@ suite('system/FxAccountManager >', function() {
     });
   });
 
-  suite('On getAccounts port message, successCb', function() {
+  suite('On getAccount port message, successCb', function() {
     setup(function() {
       FxAccountsClient._successMsg = 'success';
       FxAccountsManager.onPortMessage({
         'detail': {
-          'name': 'getAccounts'
+          'name': 'getAccount'
         }
       });
     });
@@ -65,8 +65,8 @@ suite('system/FxAccountManager >', function() {
       FxAccountsClient._reset();
     });
 
-    test('FxAccountsClient.getAccounts called', function() {
-      assert.equal(FxAccountsClient._call, 'getAccounts');
+    test('FxAccountsClient.getAccount called', function() {
+      assert.equal(FxAccountsClient._call, 'getAccount');
     });
 
     test('Got fxa-mgmt port', function() {
@@ -77,18 +77,18 @@ suite('system/FxAccountManager >', function() {
       assert.equal(MockIACPort._messages.length, 1);
       assert.ok(MockIACPort._messages[0] instanceof Object);
       assert.deepEqual(MockIACPort._messages[0], {
-        'methodName': 'getAccounts',
+        'methodName': 'getAccount',
         'data': 'success'
       });
     });
   });
 
-  suite('On getAccounts port message, errorCb', function() {
+  suite('On getAccount port message, errorCb', function() {
     setup(function() {
       FxAccountsClient._errorMsg = 'error';
       FxAccountsManager.onPortMessage({
         'detail': {
-          'name': 'getAccounts'
+          'name': 'getAccount'
         }
       });
     });
@@ -97,8 +97,8 @@ suite('system/FxAccountManager >', function() {
       FxAccountsClient._reset();
     });
 
-    test('FxAccountsClient.getAccounts called', function() {
-      assert.equal(FxAccountsClient._call, 'getAccounts');
+    test('FxAccountsClient.getAccount called', function() {
+      assert.equal(FxAccountsClient._call, 'getAccount');
     });
 
     test('Got fxa-mgmt port', function() {
@@ -109,7 +109,7 @@ suite('system/FxAccountManager >', function() {
       assert.equal(MockIACPort._messages.length, 1);
       assert.ok(MockIACPort._messages[0] instanceof Object);
       assert.deepEqual(MockIACPort._messages[0], {
-        'methodName': 'getAccounts',
+        'methodName': 'getAccount',
         'error': 'error'
       });
     });

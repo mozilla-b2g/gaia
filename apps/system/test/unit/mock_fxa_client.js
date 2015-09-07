@@ -22,8 +22,8 @@ var MockFxAccountsClient = {
     successCb(this._successMsg);
   },
 
-  getAccounts: function(successCb, errorCb) {
-    this._call = 'getAccounts';
+  getAccount: function(successCb, errorCb) {
+    this._call = 'getAccount';
     this._triggerCallback(successCb, errorCb);
   },
 

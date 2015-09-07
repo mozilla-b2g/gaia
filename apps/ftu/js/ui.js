@@ -463,7 +463,7 @@ var UIManager = {
     // bug 1113551. In any case, the user should be able to manage her account
     // from the Settings app afterwards.
     this.skipFxA = true;
-    FxAccountsIACHelper.getAccounts((account) => {
+    FxAccountsIACHelper.getAccount((account) => {
       this.skipFxA = false;
       this.onFxALogin(account);
     }, () => {
@@ -479,7 +479,7 @@ var UIManager = {
   },
 
   onFxAFlowDone: function ui_onFxAFlowDone() {
-    FxAccountsIACHelper.getAccounts((account) => {
+    FxAccountsIACHelper.getAccount((account) => {
       if (!account) {
         return;
       }

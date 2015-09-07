@@ -52,7 +52,7 @@ var FxaPanel = (function fxa_panel() {
   }
 
   function refreshStatus() {
-    fxaHelper.getAccounts(onFxAccountStateChange, onFxAccountError);
+    fxaHelper.getAccount(onFxAccountStateChange, onFxAccountError);
   }
 
   // if e == null, user is logged out.
@@ -137,7 +137,7 @@ var FxaPanel = (function fxa_panel() {
     if (e.target.classList.contains('disabled')) {
       return;
     }
-    fxaHelper.getAccounts(function onGetAccounts(accts) {
+    fxaHelper.getAccount(function onGetAccounts(accts) {
       var email = accts && accts.email;
       if (!email) {
         return onFxAccountStateChange(accts);

@@ -136,20 +136,20 @@ suite('firefox accounts panel > ', function() {
   });
 
   suite('resendVerificationEmail tests > ', function() {
-    var getAccountsSpy;
+    var getAccountSpy;
 
     suiteSetup(function() {
-      getAccountsSpy = sinon.stub(MockFxAccountsIACHelper, 'getAccounts');
+      getAccountSpy = sinon.stub(MockFxAccountsIACHelper, 'getAccount');
       FxaPanel.init(MockFxAccountsIACHelper);
     });
 
     suiteTeardown(function() {
-      MockFxAccountsIACHelper.getAccounts.restore();
-      getAccountsSpy = null;
+      MockFxAccountsIACHelper.getAccount.restore();
+      getAccountSpy = null;
     });
 
     setup(function() {
-      getAccountsSpy.reset();
+      getAccountSpy.reset();
     });
 
     test('on resend click, if link is enabled, get accounts', function() {
@@ -167,7 +167,7 @@ suite('firefox accounts panel > ', function() {
         }
       };
       FxaPanel._onResendClick.call(null, fakeEvt);
-      assert.isTrue(getAccountsSpy.called);
+      assert.isTrue(getAccountSpy.called);
     });
 
     test('on resend click, if link is disabled, do nothing', function() {
@@ -185,7 +185,7 @@ suite('firefox accounts panel > ', function() {
         }
       };
       FxaPanel._onResendClick.call(null, fakeEvt);
-      assert.isFalse(getAccountsSpy.called);
+      assert.isFalse(getAccountSpy.called);
     });
 
     test('_onResend should alert resend message', function(done) {
