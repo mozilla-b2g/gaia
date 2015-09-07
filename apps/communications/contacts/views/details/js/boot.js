@@ -90,7 +90,20 @@ window.onload = function() {
         DetailsUI.render(info.contact, info.count, false);
         window.addEventListener(
           'pageshow',
-          checkIfUpdate.bind(this, params)
+          function onPageshow() {
+            // XXX: We need to get back the theme color
+            // due to the bug with back&forward cache
+            // https://bugzilla.mozilla.org/show_bug.cgi?id=1184953
+            var meta = document.querySelector('meta[name="theme-color"]');
+            document.head.removeChild(meta);
+            meta = document.createElement('meta');
+            meta.content = 'var(--header-background)';
+            meta.name = 'theme-color';
+            document.head.appendChild(meta);
+
+            checkIfUpdate(params);
+          }
+          
         );
       });
     }
