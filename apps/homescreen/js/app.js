@@ -654,16 +654,19 @@ const SETTINGS_VERSION = 0;
         }
         break;
 
-      // Handle app uninstallation
+      // Handle app/site uninstallation, editing and dragging to the end of
+      // the icon grid.
       case 'drag-end':
-        if (e.detail.clientY <= window.innerHeight - DELETE_DISTANCE) {
-          // If the drop target is the container, check to see if we're
+        if ((!this.draggingRemovable && !this.draggingEditable) ||
+            e.detail.clientY <= window.innerHeight - DELETE_DISTANCE) {
+          // If the drop target is null, check to see if we're
           // dropping over the icon itself, and if we aren't, we must be
           // dropping over the end of the container.
-          if (e.detail.dropTarget === this.icons) {
+          if (!e.detail.dropTarget) {
             var rect = this.icons.getChildOffsetRect(e.detail.target);
             var x = e.detail.clientX;
             var y = e.detail.clientY + this.scrollable.scrollTop;
+
             if (x < rect.left || y < rect.top ||
                 x >= rect.right || y >= rect.bottom) {
               e.preventDefault();

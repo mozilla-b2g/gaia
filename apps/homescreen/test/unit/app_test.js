@@ -703,6 +703,49 @@ suite('Homescreen app', () => {
         });
       });
 
+      suite('drag-end', () => {
+        var realInnerHeight, realIcons, reorderChildSpy;
+
+        setup(() => {
+          realInnerHeight =
+            Object.getOwnPropertyDescriptor(window, 'innerHeight');
+          Object.defineProperty(window, 'innerHeight', {
+            value: 500,
+            configurable: true
+          });
+
+          realIcons = app.icons;
+          app.icons = {
+            getChildOffsetRect: () => {
+              return { left: 0, top: 0, right: 10, bottom: 10 };
+            },
+            reorderChild: () => {}
+          };
+
+          reorderChildSpy = sinon.spy(app.icons, 'reorderChild');
+        });
+
+        teardown(() => {
+          app.icons = realIcons;
+          reorderChildSpy.restore();
+          Object.defineProperty(window, 'innerHeight', realInnerHeight);
+        });
+
+        test('icon can be dropped at the end of the container', () => {
+          app.handleEvent(new CustomEvent('drag-end', {
+            detail: { dropTarget: null, clientX: 0, clientY: 20 }
+          }));
+          assert.isTrue(reorderChildSpy.called);
+        });
+
+        test('dropping icon on itself does nothing', () => {
+          app.handleEvent(new CustomEvent('drag-end', {
+            detail: { dropTarget: null, clientX: 0, clientY: 0 }
+          }));
+          assert.isFalse(reorderChildSpy.called);
+        });
+      });
+
       test('app with default state should be launched', done => {
         var icon = getIcon('abc');
         icon.firstElementChild.state = 'unknownState';
