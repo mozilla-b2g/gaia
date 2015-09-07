@@ -41,6 +41,8 @@
   AppTextSelectionDialogGlobalStates.prototype.resetAllStates =
     function() {
       this._hasCutOrCopiedTimeoutId = null;
+      this._isPrefOn = true;
+      this._appTSDs.clear();
     };
 
   AppTextSelectionDialogGlobalStates.prototype.onObservePrefChanged =
