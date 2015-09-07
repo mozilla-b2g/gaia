@@ -9,7 +9,7 @@
 
 'use strict';
 
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/views/shared/js/settings.js');
 
@@ -104,8 +104,8 @@ suite('Settings >', function() {
     }
 
     setup(function() {
-      realMozL10n = navigator.mozL10n;
-      navigator.mozL10n = MockL10n;
+      realMozL10n = document.l10n;
+      document.l10n = MockL10n;
 
       realSettings = navigator.mozSettings;
       navigator.mozSettings = MockNavigatorSettings;
@@ -128,7 +128,7 @@ suite('Settings >', function() {
     });
 
     teardown(function() {
-      navigator.mozL10n = realMozL10n;
+      document.l10n = realMozL10n;
       realMozL10n = null;
 
       navigator.mozSettings = realSettings;

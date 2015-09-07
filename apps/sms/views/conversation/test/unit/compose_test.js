@@ -15,7 +15,7 @@
 'use strict';
 
 require('/shared/js/event_dispatcher.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 require('/shared/test/unit/mocks/mock_option_menu.js');
 
 require('/views/conversation/js/compose.js');
@@ -105,8 +105,8 @@ suite('compose_test.js', function() {
   }
 
   suiteSetup(function(done) {
-    realMozL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    realMozL10n = document.l10n;
+    document.l10n = MockL10n;
 
     var blobPromises = [
       AssetsHelper.generateImageBlob(1400, 1400, 'image/jpeg', 1).then(
@@ -135,7 +135,7 @@ suite('compose_test.js', function() {
   });
 
   suiteTeardown(function() {
-    navigator.mozL10n = realMozL10n;
+    document.l10n = realMozL10n;
   });
 
   setup(function() {

@@ -15,7 +15,7 @@ require('/views/shared/js/utils.js');
 require('/views/inbox/js/inbox.js');
 
 require('/shared/test/unit/mocks/mock_async_storage.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 require('/views/shared/test/unit/mock_contact.js');
 require('/views/shared/test/unit/mock_contacts.js');
 require('/views/shared/test/unit/mock_time_headers.js');
@@ -58,14 +58,14 @@ var mocksHelperForInboxView = new MocksHelper([
 ]).init();
 
 suite('thread_list_ui', function() {
-  var nativeMozL10n = navigator.mozL10n;
+  var nativeMozL10n = document.l10n;
   var draftSavedBanner;
   var mainWrapper;
 
   mocksHelperForInboxView.attachTestHelpers();
   setup(function() {
     loadBodyHTML('/index.html');
-    navigator.mozL10n = MockL10n;
+    document.l10n = MockL10n;
     draftSavedBanner = document.getElementById('threads-draft-saved-banner');
     mainWrapper = document.getElementById('main-wrapper');
 
@@ -78,7 +78,7 @@ suite('thread_list_ui', function() {
   });
 
   teardown(function() {
-    navigator.mozL10n = nativeMozL10n;
+    document.l10n = nativeMozL10n;
     document.body.textContent = '';
   });
 
@@ -1321,42 +1321,6 @@ suite('thread_list_ui', function() {
 
       test('should return false when adding to existing thread', function() {
         assert.isFalse(InboxView.appendThread(thread));
-      });
-    });
-
-    suite('respects l10n lib readiness', function() {
-      setup(function() {
-        navigator.mozL10n.readyState = 'loading';
-        this.sinon.stub(navigator.mozL10n, 'once');
-      });
-
-      teardown(function() {
-        navigator.mozL10n.readyState = 'complete';
-      });
-
-      test('waits for l10n to render', function() {
-        var message = MockMessages.sms({
-          threadId: 3,
-          timestamp: +(new Date(2013, 1, 2))
-        });
-
-        var thread = new Thread({
-          id: message.threadId,
-          timestamp: message.timestamp,
-          participants: [message.sender]
-        });
-
-        Threads.get.withArgs(message.threadId).returns(thread);
-
-        var containerId = 'threadsContainer_' + thread.timestamp;
-
-        InboxView.appendThread(thread);
-
-        var container = document.getElementById(containerId);
-
-        container = document.getElementById(containerId);
-        assert.ok(container);
-        assert.equal(container.querySelector('li').id, 'thread-' + thread.id);
       });
     });
   });

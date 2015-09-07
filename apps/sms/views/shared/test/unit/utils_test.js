@@ -8,7 +8,7 @@
 
 require('/views/shared/test/unit/mock_contact.js');
 require('/views/shared/test/unit/mock_contacts.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 require('/views/shared/test/unit/mock_navigator_mozphonenumberservice.js');
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 require('/views/shared/js/utils.js');
@@ -1594,18 +1594,18 @@ suite('Utils', function() {
   });
 
   suite('getSimNameByIccId', function() {
-    var nativeMozL10n = navigator.mozL10n;
+    var nativeMozL10n = document.l10n;
 
     setup(function () {
-      navigator.mozL10n = MockL10n;
+      document.l10n = MockL10n;
       this.sinon.stub(Settings, 'getServiceIdByIccId');
-      this.sinon.stub(navigator.mozL10n, 'formatValue').returns(
+      this.sinon.stub(document.l10n, 'formatValue').returns(
         Promise.resolve('SIM name')
       );
     });
 
     teardown(function() {
-       navigator.mozL10n = nativeMozL10n;
+       document.l10n = nativeMozL10n;
     });
 
     test('returns the correct name when service id existed', function(done) {
@@ -1614,7 +1614,7 @@ suite('Utils', function() {
       Settings.getServiceIdByIccId.withArgs(iccId).returns(index);
       Utils.getSimNameByIccId(iccId).then((name) => {
         sinon.assert.calledWith(
-          navigator.mozL10n.formatValue,
+          document.l10n.formatValue,
           'sim-id-label',
           { id: index + 1 }
         );
@@ -1626,7 +1626,7 @@ suite('Utils', function() {
       var iccId = 'sim3';
       Settings.getServiceIdByIccId.withArgs(iccId).returns(null);
       Utils.getSimNameByIccId(iccId).then((name) => {
-        sinon.assert.notCalled(navigator.mozL10n.formatValue);
+        sinon.assert.notCalled(document.l10n.formatValue);
         assert.equal(name, '');
       }).then(done, done);
     });

@@ -12,7 +12,7 @@ require('/views/shared/js/utils.js');
 require('/views/shared/test/unit/mock_utils.js');
 
 require('/views/shared/test/unit/mock_contact.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 require('/views/shared/js/contact_renderer.js');
 require('/views/shared/test/unit/mock_settings.js');
@@ -33,8 +33,8 @@ suite('ContactRenderer', function() {
   mocksHelperForContactRenderer.attachTestHelpers();
 
   suiteSetup(function(done) {
-    realMozL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    realMozL10n = document.l10n;
+    document.l10n = MockL10n;
 
     AssetsHelper.generateImageBlob(400, 400, 'image/jpeg', 0.5).then(
       (blob) => {
@@ -44,7 +44,7 @@ suite('ContactRenderer', function() {
   });
 
   suiteTeardown(function() {
-    navigator.mozL10n = realMozL10n;
+    document.l10n = realMozL10n;
     realMozL10n = null;
   });
 

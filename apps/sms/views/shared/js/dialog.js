@@ -46,7 +46,7 @@ function createLocalizedElement(tagName, valueL10n) {
   if (typeof valueL10n === 'string') {
     element.setAttribute('data-l10n-id', valueL10n);
   } else if (valueL10n.id) {
-    navigator.mozL10n.setAttributes(element, valueL10n.id, valueL10n.args);
+    document.l10n.setAttributes(element, valueL10n.id, valueL10n.args);
   // if we passed in a HTML Fragment, it is already localized
   } else if (valueL10n.raw && valueL10n.raw.nodeType) {
     element.appendChild(valueL10n.raw);

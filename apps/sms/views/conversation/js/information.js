@@ -171,7 +171,7 @@ function showSimInfo(element, iccId) {
   var simId = Settings.getServiceIdByIccId(iccId);
 
   if (simId === null) {
-    navigator.mozL10n.setAttributes(
+    document.l10n.setAttributes(
       simInfoElement,
       'dsds-unknown-sim'
     );
@@ -190,7 +190,7 @@ function showSimInfo(element, iccId) {
     var detailString = info.join(', ');
     l10nId = info.length ?  'sim-detail' : 'sim-id-label';
     data = { id: simId + 1, detailString: detailString };
-    navigator.mozL10n.setAttributes(
+    document.l10n.setAttributes(
       simInfoElement,
       l10nId,
       data
@@ -242,7 +242,7 @@ var VIEWS = {
     render: function renderGroup() {
       var participants = Threads.get(this.id).participants;
       this.renderContactList(participants);
-      navigator.mozL10n.setAttributes(
+      document.l10n.setAttributes(
         this.headerText, 'participant', { n:participants.length }
       );
     },
@@ -290,7 +290,7 @@ var VIEWS = {
     },
 
     render: function renderReport() {
-      var setL10nAttributes = navigator.mozL10n.setAttributes;
+      var setL10nAttributes = document.l10n.setAttributes;
       var request = MessageManager.getMessage(this.id);
 
       // Hide these dynamic fields to avoid incorrect info displayed at first
@@ -394,7 +394,7 @@ var VIEWS = {
             output = Math.floor(lateness / unitVal);
             lateness = lateness % unitVal;
 
-            navigator.mozL10n.setAttributes(
+            document.l10n.setAttributes(
               unitElement,
               `duration-${unit}-narrow`,
               { value: output }
