@@ -25,8 +25,9 @@ class TestBrowserClearHistory(GaiaTestCase):
         search.launch()
         browser = search.go_to_url(self.test_url)
         browser.switch_to_content()
-        Wait(self.marionette).until(lambda m: m.title == 'Mozilla')
+        Wait(self.marionette, timeout=30).until(lambda m: m.title == 'Mozilla')
 
+        self.apps.kill(search.app)
         self.device.touch_home_button()
 
         search.launch()

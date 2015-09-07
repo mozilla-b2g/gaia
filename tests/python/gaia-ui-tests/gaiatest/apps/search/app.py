@@ -31,11 +31,7 @@ class Search(Base):
         return len(self.marionette.find_elements(*self._history_item_locator))
 
     def wait_for_history_to_load(self, number_of_items=1):
-        if number_of_items == 0:
-            Wait(self.marionette).until(
-                expected.element_not_displayed(*self._history_item_locator))
-        else:
-            Wait(self.marionette).until(lambda m: len(m.find_elements(*self._history_item_locator)) == number_of_items)
+        Wait(self.marionette).until(lambda m: len(m.find_elements(*self._history_item_locator)) == number_of_items)
 
     def open_new_private_window(self):
         self.marionette.find_element(*self._private_window_locator).tap()
