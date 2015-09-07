@@ -354,11 +354,9 @@
       window.SettingsListener.observe('lockscreen.lock-immediately',
         false, (function ls_observeImmediately(value) {
         if (value === true) {
-          this.lock(true);
-          if (this.passCodeEnabled) {
-            // Enforce immediate pass code unlock
-            this.resetTimeoutForcibly();
-          }
+          // Enforce immediate pass code unlock
+          this.resetTimeoutForcibly();
+          window.dispatchEvent(new CustomEvent('lockscreen-request-lock'));
 		}
       }).bind(this));
 

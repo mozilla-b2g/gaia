@@ -575,12 +575,17 @@ suite('system/LockScreen >', function() {
     });
 
     test('Locks when lock-immediately setting is set to true', function () {
+      var stubDispatch = this.sinon.stub(window, 'dispatchEvent');
       subject.enabled = true;
       subject.unlock();  // or lock screen is already enabled
       window.MockSettingsListener.mTriggerCallback(
         'lockscreen.lock-immediately', true);
-      assert.isTrue(subject.locked,
-        'does not lock after lock-immediately setting is changed');
+      assert.isTrue(stubDispatch.calledWithMatch(sinon.match(
+          function(e) {
+            return e.type === 'lockscreen-request-lock';
+          })),
+        'does not request lock after lock-immediately setting is changed');
+      stubDispatch.restore();
     });
 
     test('resets lock/unlock timestamps', function () {
