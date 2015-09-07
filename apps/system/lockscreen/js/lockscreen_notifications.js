@@ -399,7 +399,6 @@
    */
   LockScreenNotifications.prototype.hideColoredMaskBG =
   function lsn_hideColoredMaskBG() {
-    this._lockScreen.maskedBackground.style.backgroundColor = 'transparent';
     this._lockScreen.maskedBackground.classList.add('blank');
   };
 
