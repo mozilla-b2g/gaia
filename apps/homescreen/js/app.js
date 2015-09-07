@@ -549,11 +549,8 @@ const SETTINGS_VERSION = 0;
         this.appsVisible = appsVisible;
         this.indicator.children[0].classList.toggle('active', appsVisible);
         this.indicator.children[1].classList.toggle('active', !appsVisible);
-
-        navigator.mozL10n.once(() => {
-          this.indicator.setAttribute('aria-label', navigator.mozL10n.
-            get(this.appsVisible ? 'apps-panel' : 'pages-panel'));
-        });
+        this.indicator.setAttribute('data-l10n-id', this.appsVisible ?
+          'apps-panel' : 'pages-panel');
       }
     },
 
