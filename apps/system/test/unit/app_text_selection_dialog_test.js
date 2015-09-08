@@ -115,14 +115,31 @@ suite('system/AppTextSelectionDialog', function() {
     assert.isTrue(td.globalStates === td2.globalStates);
   });
 
+  test('test appTSDs is correctly updated in global states', function() {
+    assert.isTrue(td.globalStates.appTSDs.size == 1);
+    assert.isTrue(td.globalStates.appTSDs.has(td));
+
+    var td2 = new AppTextSelectionDialog();
+    assert.isTrue(td.globalStates.appTSDs.size == 2);
+    assert.isTrue(td.globalStates.appTSDs.has(td2));
+  });
+
   test('switch settings value of copypaste.enabled', function() {
     var stubStart = this.sinon.stub(td, 'start');
     var stubStop = this.sinon.stub(td, 'stop');
+    var td2 = new AppTextSelectionDialog();
+    var stubStart2 = this.sinon.stub(td2, 'start');
+    var stubStop2 = this.sinon.stub(td2, 'stop');
+
     MockSettingsListener.mTriggerCallback('copypaste.enabled', false);
+    assert.isFalse(td.globalStates._isPrefOn);
     assert.isTrue(stubStop.calledOnce);
+    assert.isTrue(stubStop2.calledOnce);
 
     MockSettingsListener.mTriggerCallback('copypaste.enabled', true);
+    assert.isTrue(td.globalStates._isPrefOn);
     assert.isTrue(stubStart.calledOnce);
+    assert.isTrue(stubStart2.calledOnce);
   });
 
   test('_doCommand', function(done) {
