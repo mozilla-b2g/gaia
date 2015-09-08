@@ -1,7 +1,11 @@
 'use strict';
 
-/* global MockMozNfc, NFC, MocksHelper, fb,
-          MockMozNDEFRecord, mozContact, NfcUtils */
+/* global MocksHelper */
+/* global MockMozNDEFRecord */
+/* global MockMozNfc */
+/* global mozContact */
+/* global NFC */
+/* global NfcUtils */
 
 require('/shared/test/unit/mocks/mock_moz_ndefrecord.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
@@ -9,13 +13,12 @@ require('/shared/test/unit/mocks/mock_moz_nfc.js');
 require('/shared/js/contact2vcard.js');
 require('/shared/js/setImmediate.js');
 require('/shared/js/nfc_utils.js');
-requireApp('communications/contacts/test/unit/mock_fb.js');
 requireApp('communications/contacts/test/unit/mock_l10n.js');
 requireApp('communications/contacts/test/unit/mock_navigation.js');
 require('/shared/test/unit/mocks/mock_moz_contact.js');
 
 var mocksHelperForNFC = new MocksHelper([
-  'fb', 'Contacts', 'LazyLoader', 'mozContact'
+  'Contacts', 'LazyLoader', 'mozContact'
 ]);
 mocksHelperForNFC.init();
 
@@ -55,34 +58,18 @@ suite('NFC', function() {
     window.utils = realUtils;
   });
 
-  teardown(function() {
-    fb.setIsFbContact(false);
-  });
-
   test('onpeerready is null on start', function() {
     assert.isNull(navigator.mozNfc.onpeerready);
   });
 
   test('onpeerready set when startListening() fire', function() {
-    NFC.startListening();
+    NFC.startListening({} /* empty contact */);
     assert.equal(typeof navigator.mozNfc.onpeerready, 'function');
   });
 
   test('onpeerready is null when stopListening() fire', function() {
     NFC.stopListening();
     assert.isNull(navigator.mozNfc.onpeerready);
-  });
-
-  test('Facebook contact should not be shared', function() {
-    var spy = this.sinon.spy(window.utils.status, 'show');
-    fb.setIsFbContact(true);
-    NFC.startListening();
-    navigator.mozNfc.onpeerready(
-      {
-        peer: MockMozNfc.MockNFCPeer
-      }
-    );
-    sinon.assert.called(spy);
   });
 
   // Bug 1013845

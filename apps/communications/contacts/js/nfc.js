@@ -1,7 +1,11 @@
 'use strict';
 
-/* global LazyLoader, ContactToVcard, MozNDEFRecord, fb, utils,
-          NDEF, NfcUtils, utils*/
+/* global ContactToVcard */
+/* global LazyLoader */
+/* global MozNDEFRecord*/
+/* global NDEF */
+/* global NfcUtils */
+
 /* exported NFC */
 
 (function(exports) {
@@ -12,18 +16,17 @@
 
   var startListening = function(contact) {
     if (!mozNfc) {
+      console.warning('NFC is not available');
+      return;
+    }
+
+    if (!contact) {
+      console.error('Missing contact. Cannot share via NFC');
       return;
     }
 
     currentContact = contact;
-    // We cannot share Facebook data via NFC so we check if the contact
-    // is an FB contacts. However, if the contact is linked to a regular
-    // mozContact, we can share linked data
-    if (fb && !(fb.isFbContact(contact) && !fb.isFbLinked(contact))) {
-      mozNfc.onpeerready = handlePeerReady;
-    } else {
-      mozNfc.onpeerready = handlePeerReadyForFb;
-    }
+    mozNfc.onpeerready = handlePeerReady;
   };
 
   var stopListening = function() {
@@ -52,7 +55,7 @@
         function success() {
           sendContact();
         },
-        // use default batch size
+        // Use default batch size.
         null,
         // We don't want to share a profile photo via NFC,
         // like on Android:
@@ -71,17 +74,9 @@
      });
 
      var promise = mozNfcPeer.sendNDEF([NDEFRecord]);
-     promise.then(() => {
-       console.log('Contact succesfuly sent');
-     }).catch(e => {
-       console.log('Something goes wrong : ' + e);
+     promise.catch(e => {
+       console.error('Something goes wrong %s', e);
      });
-  };
-
-  var handlePeerReadyForFb = function() {
-    utils.status.show({
-      id: 'facebook-export-forbidden'
-    });
   };
 
   var nfc_tools = {
