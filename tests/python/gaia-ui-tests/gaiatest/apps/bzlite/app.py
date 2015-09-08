@@ -4,6 +4,7 @@ from marionette_driver import By, Wait, expected
 class BugzillaLite(Base):
 
     name = 'Bugzilla Lite'
+    manifest_url = "https://www.bzlite.com/manifest.webapp"
     _given_username = (By.CSS_SELECTOR, "#login input[type='email']")
     _given_password = (By.CSS_SELECTOR, "#login input[type='password']")
     _button_login = (By.CSS_SELECTOR, "#login input[type='submit']")
@@ -12,7 +13,7 @@ class BugzillaLite(Base):
     _dashboard_navigator_locator = (By.ID, 'dashboardNav')
     _login_form_locator = (By.ID, 'login')
     _popup_intro = (By.ID, 'intro')
-    _button_popup_intro = (By.ID, 'intro-submit')        
+    _button_popup_intro = (By.ID, 'intro-submit')
     def login (self, username, password):
         username_element = self.marionette.find_element(*self._given_username)
         username_element.tap()
