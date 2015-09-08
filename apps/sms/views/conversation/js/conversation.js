@@ -1256,7 +1256,7 @@ var ConversationView = {
       // value is current (set = 0)
       if (inConversation) {
         // TODO: Will need to replace with Conversation service method.
-        this.activeThread.unreadCount = 0;
+        this.activeThread.status.hasUnread = false;
       }
 
       // If the composer is empty and we are either
@@ -1664,7 +1664,7 @@ var ConversationView = {
       month: 'short',
       day: '2-digit',
     };
-    var formatter = 
+    var formatter =
       new Intl.DateTimeFormat(navigator.languages, dateTimeOptions);
     var expireFormatted = formatter.format(new Date(+message.expiryDate));
 
