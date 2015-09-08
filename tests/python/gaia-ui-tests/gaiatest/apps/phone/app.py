@@ -10,6 +10,7 @@ from gaiatest.apps.base import Base
 class Phone(Base):
 
     name = "Phone"
+    entry_point = "dialer"
 
     _dialog_locator = (By.ID, 'confirmation-message')
     _dialog_title_locator = (By.XPATH, "//*[@id='confirmation-message']/section/h1")
@@ -22,6 +23,10 @@ class Phone(Base):
     _cancel_action_menu_locator = (By.ID, 'cancel-action-menu')
     _contacts_toolbar_locator = (By.ID, 'iframe-contacts-container')
     _contacts_frame_locator = (By.ID, 'iframe-contacts')
+
+    @property
+    def manifest_url(self):
+        return '{}communications{}/manifest.webapp'.format(self.DEFAULT_PROTOCOL,self.DEFAULT_APP_HOSTNAME)
 
     def launch(self):
         Base.launch(self)

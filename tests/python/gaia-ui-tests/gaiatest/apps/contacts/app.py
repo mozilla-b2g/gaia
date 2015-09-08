@@ -12,6 +12,7 @@ from gaiatest.apps.base import PageRegion
 class Contacts(Base):
 
     name = "Contacts"
+    entry_point = "contacts"
 
     _new_contact_button_locator = (By.ID, 'add-contact-button')
     _settings_button_locator = (By.ID, 'settings-button')
@@ -25,6 +26,10 @@ class Contacts(Base):
     _group_container_selector = "#groups-container"
     _contact_locator = (By.CSS_SELECTOR, 'li[data-uuid]:not([data-group="ice"])')
 
+    @property
+    def manifest_url(self):
+        return '{}communications{}/manifest.webapp'.format(self.DEFAULT_PROTOCOL,self.DEFAULT_APP_HOSTNAME)
+
     def launch(self):
         Base.launch(self)
         Wait(self.marionette).until(expected.element_displayed(
@@ -32,7 +37,7 @@ class Contacts(Base):
                 *self._settings_button_locator))))
 
     def switch_to_contacts_frame(self):
-        Wait(self.marionette).until(lambda m: self.apps.displayed_app.name == self.name)
+        self.wait_to_be_displayed()
         self.apps.switch_to_displayed_app()
 
     @property
@@ -154,7 +159,7 @@ class Contacts(Base):
                 return ContactDetails(self.marionette)
             elif return_class == 'EditContact':
                 # This may seem superfluous but we can enter EditContact from Contacts, or from ActivityPicker
-                Wait(self.marionette).until(lambda m: self.apps.displayed_app.name == Contacts.name)
+                Contacts(self.marionette).wait_to_be_displayed() 
                 self.apps.switch_to_displayed_app()
                 from gaiatest.apps.contacts.regions.contact_form import EditContact
                 return EditContact(self.marionette)
@@ -162,5 +167,5 @@ class Contacts(Base):
                 return None
             else:
                 # We are using contacts picker in activity - after choosing, fall back to open app
-                Wait(self.marionette).until(lambda m: self.apps.displayed_app.name != Contacts.name)
+                Contacts(self.marionette).wait_to_not_be_displayed()
                 self.apps.switch_to_displayed_app()

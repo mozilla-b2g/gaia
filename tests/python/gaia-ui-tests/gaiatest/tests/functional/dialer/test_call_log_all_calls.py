@@ -38,7 +38,7 @@ class TestCallLogAllCalls(GaiaTestCase):
         self.phone.make_call_and_hang_up(test_phone_number)
 
         # Wait for fall back to phone app
-        self.wait_for_condition(lambda m: self.apps.displayed_app.name == self.phone.name)
+        self.phone.wait_to_be_displayed()
         self.apps.switch_to_displayed_app()
 
         from gaiatest.utils.plivo.plivo_util import PlivoUtil

@@ -22,6 +22,10 @@ class FmRadio(Base):
     _airplane_mode_title_locator = (By.CSS_SELECTOR, 'div[data-l10n-id="airplaneModeHeader"]')
     _airplane_mode_text_locator = (By.CSS_SELECTOR, 'div[data-l10n-id="airplaneModeMsg"]')
 
+    @property
+    def manifest_url(self):
+        return '{}fm{}/manifest.webapp'.format(self.DEFAULT_PROTOCOL,self.DEFAULT_APP_HOSTNAME)
+
     def launch(self, airplane_mode=False):
         Base.launch(self)
         power = Wait(self.marionette).until(
