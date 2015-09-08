@@ -104,18 +104,22 @@ class Base(object):
         self.accessibility.click(self.marionette.find_element(*_close_button_locator))
         self.wait_for_select_closed(*_close_button_locator)
 
-    def tap_element_from_system_app(self, element=None, add_statusbar_height=False, x=None, y=None):        # Workaround for bug 1109213, where tapping on the button inside the app itself
+    def tap_element_from_system_app(self, element=None, add_statusbar_height=False, x=None, y=None):
+        # Workaround for bug 1109213, where tapping on the button inside the app itself
         # makes Marionette spew out NoSuchWindowException errors
-        cx = element.rect['x']
-        cy = element.rect['y']
-        cx += element.rect['width']//2 if x is None else x
-        cy += element.rect['height']//2 if y is None else y
-
+        if x is None:
+            x = element.rect['x'] + element.rect['width']//2
+        else:
+            x = element.rect['x'] + x
+        if y is None:
+            y = element.rect['y'] + element.rect['height']//2
+        else:
+            y = element.rect['x'] + y
         from gaiatest.apps.system.app import System
         system = System(self.marionette)
         if add_statusbar_height:
-          cy = cy + system.status_bar.height
-        system.tap(cx, cy)
+          y = y + system.status_bar.height
+        system.tap(x, y)
 
     @property
     def keyboard(self):
@@ -126,11 +130,9 @@ class Base(object):
     def manifest_url(self):
         return '{}{}{}/manifest.webapp'.format(self.DEFAULT_PROTOCOL, format(self.__class__.__name__).lower(), self.DEFAULT_APP_HOSTNAME)
 
-    @staticmethod
     def wait_to_be_displayed(self):
         Wait(self.marionette).until(lambda m: self.apps.displayed_app.manifest_url == self.manifest_url)
 
-    @staticmethod
     def wait_to_not_be_displayed(self):
         Wait(self.marionette).until(lambda m: self.apps.displayed_app.manifest_url != self.manifest_url)
 

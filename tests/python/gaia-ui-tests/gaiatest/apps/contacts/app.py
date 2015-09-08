@@ -12,6 +12,7 @@ from gaiatest.apps.base import PageRegion
 class Contacts(Base):
 
     name = "Contacts"
+    entry_point = "contacts"
 
     _new_contact_button_locator = (By.ID, 'add-contact-button')
     _settings_button_locator = (By.ID, 'settings-button')
@@ -24,6 +25,10 @@ class Contacts(Base):
     _no_contacts_message_locator = (By.CSS_SELECTOR, '*[data-l10n-id="no-contacts"]')
     _group_container_selector = "#groups-container"
     _contact_locator = (By.CSS_SELECTOR, 'li[data-uuid]:not([data-group="ice"])')
+
+    @property
+    def manifest_url(self):
+        return '{}communications{}/manifest.webapp'.format(self.DEFAULT_PROTOCOL,self.DEFAULT_APP_HOSTNAME)
 
     def launch(self):
         Base.launch(self)

@@ -16,11 +16,16 @@ class ViewImage(Base):
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
-        self.wait_to_be_displayed()
+        from gaiatest.apps.gallery.app import Gallery
+        Gallery(self.marionette).wait_to_be_displayed()
         self.apps.switch_to_displayed_app()
         Wait(self.marionette).until(expected.element_displayed(
             Wait(self.marionette).until(expected.element_present(
                 *self._image_locator))))
+
+    @property
+    def manifest_url(self):
+        return '{}gallery{}/manifest.webapp'.format(self.DEFAULT_PROTOCOL,self.DEFAULT_APP_HOSTNAME)
 
     @property
     def is_image_visible(self):
@@ -39,7 +44,7 @@ class ViewImage(Base):
         self.tap_element_from_system_app(header, x=20)
 
         # wait for the frame to close
-        slef.apps.wait_to_not_be_displayed()
+        self.wait_to_not_be_displayed()
 
         self.apps.switch_to_displayed_app()
 
