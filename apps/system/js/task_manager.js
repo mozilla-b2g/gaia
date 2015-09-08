@@ -245,9 +245,14 @@
     });
 
     this._placeCards(false);
-    if (this._stackIndex > 0) {
+
+    if (this._stackIndex >= 0) {
       this._centerCardAtPosition(this._stackIndex);
+    } else {
+      // fallback to centering the last in stack
+      this._centerCardAtPosition(stack.length -1);
     }
+
     this.setActive(true);
 
     var screenElement = this.screenElement;

@@ -465,6 +465,14 @@ suite('system/TaskManager >', function() {
   });
 
   suite('populated task manager >', function() {
+   function getExpectedCardPlacement(element, position) {
+      var margins = taskManager.windowWidth - taskManager.cardWidth;
+      var expectedLeft = margins / 2 +
+                         position * (taskManager.cardWidth +
+                                         taskManager.CARD_GUTTER);
+      return expectedLeft;
+    }
+
     setup(function() {
       MockStackManager.mStack = [];
       var app;
@@ -545,16 +553,11 @@ suite('system/TaskManager >', function() {
                            margins;
         assert.equal(taskManager.cardsList.style.width, expectedWidth +'px');
 
-        function checkCardPlacement(element, position) {
-          var expectedLeft = margins / 2 +
-                             position * (taskManager.cardWidth +
-                                             taskManager.CARD_GUTTER);
-          assert.equal(element.style.left,
-                       expectedLeft+'px');
-        }
-
+        var expectedLeft;
         for(var idx=0; idx < taskManager.cardsList.children; idx++) {
-          checkCardPlacement(cardsList.children[idx], idx);
+          expectedLeft = getExpectedCardPlacement(cardsList.children[idx], idx);
+          assert.equal(cardsList.children[idx].style.left,
+                       expectedLeft+'px');
         }
       });
 
@@ -584,6 +587,54 @@ suite('system/TaskManager >', function() {
           deltaX: 1
         });
         assert.ok(card.setVisibleForScreenReader.calledOnce);
+      });
+    });
+
+    suite('center apps', function() {
+      setup(function() {
+        MockService.mockQueryWith('getTopMostWindow', apps.search);
+        MockStackManager.mCurrent = MockStackManager.mStack.length -1;
+        showTaskManager(this.sinon.clock);
+      });
+
+      test('initial centering', function() {
+        // test that the current card gets centered
+        var currentApp = MockStackManager.mStack[MockStackManager.mCurrent];
+        var elem = taskManager.currentCard.element;
+
+        assert.equal(currentApp, taskManager.currentCard.app);
+
+        var expectedLeft = getExpectedCardPlacement(
+          elem, MockStackManager.mCurrent
+        );
+        assert.equal(taskManager.currentCard.element.style.left,
+                     expectedLeft+'px');
+      });
+
+      test('centering at different stack position after closing',
+      function(done) {
+        // close and re-open the task manager at a different stack position
+        waitForEvent(window, 'cardviewclosed').then(function() {
+          // open again at position 0.
+          MockStackManager.mCurrent = 0;
+          taskManager.show();
+
+          var currentApp = MockStackManager.mStack[0];
+          var elem = taskManager.currentCard.element;
+
+          assert.equal(currentApp, taskManager.currentCard.app);
+
+          var expectedLeft = getExpectedCardPlacement(
+            elem, MockStackManager.mCurrent
+          );
+          assert.equal(taskManager.currentCard.element.style.left,
+                       expectedLeft+'px');
+        }, failOnReject)
+        .then(function() { done(); }, done);
+
+        var targetApp = apps.game;
+        taskManager.exitToApp(targetApp);
+        fakeFinish(this.sinon.clock, targetApp);
       });
     });
 
