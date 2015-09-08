@@ -281,7 +281,7 @@ suite('UI Manager > ', function() {
       });
     });
 
-    suite('Account login - getAccounts no account', function() {
+    suite('Account login - getAccount no account', function() {
       setup(function() {
         createAccountButton.disabled = false;
         nextButton.setAttribute('data-l10n-id', 'skip');
@@ -302,9 +302,9 @@ suite('UI Manager > ', function() {
       });
     });
 
-    suite('Account login - getAccounts error', function() {
+    suite('Account login - getAccount error', function() {
       setup(function() {
-        MockFxAccountsIACHelper.getAccountsError = 'WHATEVER';
+        MockFxAccountsIACHelper.getAccountError = 'WHATEVER';
         createAccountButton.disabled = false;
         nextButton.setAttribute('data-l10n-id', 'skip');
         UIManager.onFxAFlowDone();
@@ -343,10 +343,10 @@ suite('UI Manager > ', function() {
       });
     });
 
-    suite('FTU initiates with a existing FxA login - getAccounts does not ' +
+    suite('FTU initiates with a existing FxA login - getAccount does not ' +
           'give any results (or maybe it does but not in time)', function() {
       setup(function() {
-        MockFxAccountsIACHelper.getAccountsNoCallback = true;
+        MockFxAccountsIACHelper.getAccountNoCallback = true;
         UIManager.skipFxA = false;
         UIManager.checkInitialFxAStatus();
       });
@@ -360,12 +360,12 @@ suite('UI Manager > ', function() {
       });
     });
 
-    suite('FTU initiates with a existing FxA login - getAccounts error - ' +
+    suite('FTU initiates with a existing FxA login - getAccount error - ' +
           'logout ok', function() {
       var logoutSpy;
 
       setup(function() {
-        MockFxAccountsIACHelper.getAccountsError = 'WHATEVER';
+        MockFxAccountsIACHelper.getAccountError = 'WHATEVER';
         UIManager.skipFxA = false;
         logoutSpy = this.sinon.spy(MockFxAccountsIACHelper, 'logout');
         UIManager.checkInitialFxAStatus();
@@ -384,12 +384,12 @@ suite('UI Manager > ', function() {
       });
     });
 
-    suite('FTU initiates with a existing FxA login - getAccounts error - ' +
+    suite('FTU initiates with a existing FxA login - getAccount error - ' +
           'logout no result or error', function() {
       var logoutSpy;
 
       setup(function() {
-        MockFxAccountsIACHelper.getAccountsError = 'WHATEVER';
+        MockFxAccountsIACHelper.getAccountError = 'WHATEVER';
         MockFxAccountsIACHelper.logoutNoCallback = true;
         UIManager.skipFxA = false;
         logoutSpy = this.sinon.spy(MockFxAccountsIACHelper, 'logout');
