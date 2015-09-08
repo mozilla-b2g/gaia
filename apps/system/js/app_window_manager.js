@@ -70,7 +70,9 @@
     'hierarchytopmostwindowchanged',
     'cardviewbeforeshow',
     'cardviewclosed',
-    'cardviewshown'
+    'cardviewshown',
+    'inputfocus',
+    'inputblur'
   ];
   AppWindowManager.SUB_MODULES = [
     'FtuLauncher',
@@ -742,14 +744,17 @@
       return true;
     },
 
-    '_handle_mozChromeEvent': function(evt) {
-      if (!evt.detail || evt.detail.type !== 'inputmethod-contextchange') {
-        return true;
-      }
+    '_handle_inputfocus': function(evt) {
       if (this._activeApp) {
-        this._activeApp.getTopMostWindow()
-            .broadcast('inputmethod-contextchange',
-          evt.detail);
+        this._activeApp.getTopMostWindow().broadcast('inputfocus', evt.detail);
+        return false;
+      }
+      return true;
+    },
+
+    '_handle_inputblur': function(evt) {
+      if (this._activeApp) {
+        this._activeApp.getTopMostWindow().broadcast('inputblur');
         return false;
       }
       return true;
