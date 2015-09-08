@@ -337,7 +337,11 @@ endif # Firefox build workaround
 # XULRUNNERSDK used to be run-mozilla.sh, but some builds don't include it
 # Without that, Linux needs to reference the directory containing libxul.so
 ifeq (,$(XULRUNNERSDK)$(findstring Darwin,$(SYS))$(findstring MINGW32_,$(SYS)))
+ifeq (,$(LD_LIBRARY_PATH))
 XULRUNNERSDK := LD_LIBRARY_PATH="$(dir $(XPCSHELLSDK))"
+else
+XULRUNNERSDK := LD_LIBRARY_PATH="$(dir $(XPCSHELLSDK)):$(LD_LIBRARY_PATH)"
+endif
 endif
 
 # It's difficult to figure out XULRUNNERSDK in subprocesses; it's complex and
@@ -572,6 +576,7 @@ export BUILD_CONFIG
 
 # Generate profile/
 $(PROFILE_FOLDER): profile-dir build-app test-agent-config contacts extensions b2g_sdk .git/hooks/pre-commit
+	@echo "[DEBUG_LOG]: LD_LIBRARY_PATH=$(LD_LIBRARY_PATH)"
 ifeq ($(BUILD_APP_NAME),*)
 	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)$(PROFILE_FOLDER)"
 endif
