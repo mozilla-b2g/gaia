@@ -25,6 +25,9 @@
     window.lockScreenStateManager = new window.LockScreenStateManager();
     window.lockScreenStateManager.start(window.lockScreen);
     window.lockScreenNotifications = new LockScreenNotifications();
+    window.lockScreenPowerbuttonManager =
+      new window.LockScreenPowerbuttonManager();
+    window.lockScreenPowerbuttonManager.start();
     // After Bug 1094759, screen locker initialises itself asynchronously,
     // so we need to make sure everthing is ready for the components depends
     // on it.
