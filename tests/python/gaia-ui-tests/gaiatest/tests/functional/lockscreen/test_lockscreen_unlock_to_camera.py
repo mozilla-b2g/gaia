@@ -25,7 +25,7 @@ class TestLockScreen(GaiaTestCase):
         lock_screen = LockScreen(self.marionette)
         lock_screen.switch_to_frame()
         camera = lock_screen.unlock_to_camera()
-        self.wait_for_condition(lambda m: self.apps.displayed_app.name == camera.name)
+        camera.wait_to_be_displayed()
 
         self.assertFalse(self.device.is_locked)
 

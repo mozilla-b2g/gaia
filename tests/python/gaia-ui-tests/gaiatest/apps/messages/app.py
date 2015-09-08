@@ -11,6 +11,7 @@ from gaiatest.apps.base import PageRegion
 class Messages(Base):
 
     name = 'Messages'
+    manifest_url = '{}sms{}/manifest.webapp'.format(Base.DEFAULT_PROTOCOL, Base.DEFAULT_APP_HOSTNAME)
 
     _create_new_message_locator = (By.ID, 'threads-composer-link')
     _first_message_locator = (By.ID, 'thread-1')
@@ -32,7 +33,8 @@ class Messages(Base):
 
     def tap_settings(self):
         self.marionette.find_element(*self._settings_icon_locator).tap()
-        Wait(self.marionette).until(lambda m: self.apps.displayed_app.name == 'Settings')
+        from gaiatest.apps.settings.app import Settings
+        Settings(self.marionette).wait_to_be_displayed()
         self.apps.switch_to_displayed_app()
         from gaiatest.apps.messages.regions.messaging_settings import MessagingSettings
         return MessagingSettings(self.marionette)

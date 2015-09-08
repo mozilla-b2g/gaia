@@ -74,7 +74,7 @@ class Keypad(BaseKeypad, Phone):
 
     def __init__(self, marionette):
         Phone.__init__(self, marionette)
-        Wait(self.marionette).until(lambda m: self.apps.displayed_app.name == self.name)
+        self.wait_to_be_displayed()
         self.apps.switch_to_displayed_app()
         keypad_toolbar_button = self.marionette.find_element(*self._keypad_toolbar_button_locator)
         Wait(self.marionette).until(lambda m: 'toolbar-option-selected' in keypad_toolbar_button.get_attribute('class'))
