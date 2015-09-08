@@ -5,6 +5,7 @@
          WaitingScreen, MessageManager, TimeHeaders,
          Drafts, Thread, OptionMenu, ActivityPicker,
          StickyHeader, Navigation,
+         ConversationClient,
          InterInstanceEventDispatcher,
          SelectionHandler,
          Settings,
@@ -326,13 +327,13 @@ var InboxView = {
         var thread = Threads.get(+threadId);
 
         if (!thread.isDraft) {
-          var isRead = thread.unreadCount > 0;
-          var l10nKey = isRead ? 'mark-as-read' : 'mark-as-unread';
-
           params.items.push(
             {
-              l10nId: l10nKey,
-              method: this.markReadUnread.bind(this, [threadId], isRead)
+              l10nId: thread.status.hasUnread ?
+                'mark-as-read' : 'mark-as-unread',
+              method: this.markReadUnread.bind(
+                this, [threadId], thread.status.hasUnread
+              )
             }
           );
         }
@@ -374,10 +375,7 @@ var InboxView = {
       var hasUnreadselected = selected.selectedList.some((id) => {
         var thread  = Threads.get(id);
 
-        if (thread && thread.unreadCount) {
-          return thread.unreadCount > 0;
-        }
-        return false;
+        return thread ? thread.status.hasUnread : false;
       });
 
       var allDraft = selected.selectedList.every((id) => {
@@ -410,7 +408,7 @@ var InboxView = {
         (isRead || !thread.getDraft());
 
       if (markable) {
-        thread.unreadCount = isRead ? 0 : 1;
+        thread.status.hasUnread = !isRead;
         this.mark(thread.id, isRead ? 'read' : 'unread');
 
         MessageManager.markThreadRead(thread.id, isRead);
@@ -687,11 +685,9 @@ var InboxView = {
       }
     }
 
-    MessageManager.getThreads({
-      each: onRenderThread.bind(this),
-      end: onThreadsRendered.bind(this),
-      done: () => this.emit('fully-loaded')
-    });
+    ConversationClient.getAllConversations(onRenderThread.bind(this)).
+      then(onThreadsRendered.bind(this), onThreadsRendered.bind(this)).
+      then(() => this.emit('fully-loaded'));
   },
 
   createThread: function inbox_createThread(record) {
@@ -716,11 +712,7 @@ var InboxView = {
       // If the draft is newer than the message, update
       // the body with the draft content's first string.
       if (draft.timestamp >= record.timestamp) {
-        bodyHTML = draft.content.find(function(content) {
-          if (typeof content === 'string') {
-            return true;
-          }
-        });
+        bodyHTML = draft.content.find((content) => typeof content === 'string');
         type = draft.type;
       }
     }
@@ -747,7 +739,7 @@ var InboxView = {
       }
     }
 
-    if (record.unreadCount > 0) {
+    if (thread.status.hasUnread) {
       li.classList.add('unread');
       iconLabel = 'unread-thread';
     }
