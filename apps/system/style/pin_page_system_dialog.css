@@ -10,6 +10,35 @@
   background-color: #f4f4f4;
 }
 
+#pin-page-dialog section h1 {
+  text-align: center;
+  line-height: 5rem;
+  font-weight: 300;
+  font-style: italic;
+  font-size: 2.4rem;
+  color: #858585;
+}
+
+#pin-page-dialog section .container {
+  overflow: hidden;
+  height: 100%;
+  padding-top: 2rem;
+  top: 0;
+  pointer-events: none;
+}
+
+#pin-page-from {
+  position: absolute;
+  width: 100%;
+  padding: 0;
+  top: calc(75% - 4rem);
+}
+
+#pin-page-dialog button,
+#pin-page-dialog a {
+  pointer-events: all;
+}
+
 #pin-page-dialog section .container > .url {
   font-size: 1.4rem;
   font-weight: normal;
@@ -39,24 +68,23 @@ gaia-pin-card {
   margin: 0 auto;
 }
 
-button[data-action="pin"] {
+button.pin-button {
   position: relative;
-  margin: 3rem auto;
+  margin: 3rem auto 7rem auto;
   width: -moz-fit-content;
   background-color: white;
   display: block;
   float: none;
   font-size: 1.6rem;
   font-style: italic;
-
 }
 
-button[data-action="pin"] {
+button.pin-button {
   -moz-padding-start: 4rem;
   -moz-padding-end: 2rem;
 }
 
-button[data-action="pin"]::before {
+button.pin-button::before {
   content: "";
   width: 1.6rem;
   height: 1.6rem;
@@ -65,4 +93,88 @@ button[data-action="pin"]::before {
   left: 2rem;
   background-size: 1.6rem 1.6rem;
   background-image: url("chrome/images/pin.png");
+}
+
+/* Pin Site */
+
+#pin-page-dialog p {
+  font-size: 1.6rem;
+  font-weight: normal;
+  font-style: italic;
+  color: #5f5f5f;
+}
+
+#pin-site-container {
+  position: absolute;
+  top: 75%;
+  background-color: #e7e7e7;
+  width: 100%;
+  height: 100%;
+  padding-top: 2rem;
+  z-index: 2;
+  transition: transform .3s ease;
+}
+
+.site-panel-element {
+  transition: none;
+  opacity: 0;
+  height: 0;
+  margin: 0;
+}
+
+.icon-arrow {
+  width: 2.3rem;
+  height: 1.1rem;
+  display: block;
+  background: url(pin_page/up_arrow.png) transparent;
+  background-size: cover;
+  margin: 0 auto;
+}
+
+.icon-arrow:active {
+  background-image: url(pin_page/up_arrow_pressed.png);
+}
+
+#pin-site-container gaia-app-icon {
+  width: 4rem;
+  height: 4rem;
+  margin: 1rem auto;
+  display: block;
+  outline: 0 none;
+  transition: transform ease .3s, opacity ease .3s;
+}
+
+
+/* Site Panel active */
+
+#pin-site-container.active #pin-site-title {
+  margin-top: 5.8rem;
+}
+
+#pin-site-container.active .origin {
+  transform: translateY(2rem);
+}
+
+#pin-site-container.active {
+  transform: translateY(calc(-75% + 2rem));
+}
+
+#pin-site-container.active .icon-arrow {
+  transform: rotateX(180deg);
+}
+
+#pin-site-container.active button[data-action="pin-site"],
+#pin-site-container.active #site-name {
+  transform: translateY(4rem);
+}
+
+#pin-site-container.active gaia-app-icon {
+  transform: scale(1.8) translateY(1rem);
+}
+
+#pin-site-container.active > .site-panel-element {
+  opacity: 1;
+  height: auto;
+  margin: auto;
+  transition: opacity .5s ease .3s;
 }
