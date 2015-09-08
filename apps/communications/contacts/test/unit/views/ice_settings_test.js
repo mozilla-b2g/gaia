@@ -416,15 +416,5 @@ suite('ICE Settings view', function() {
         });
       });
     });
-
-    test(' facebook contact', function(done) {
-      subject.refresh(function() {
-        clickOnList(fbcid3);
-        sinon.stub(ConfirmDialog, 'show', function(param1, code) {
-          assertErrorMessage(code, 'ICEFacebookContactNotAllowed', done);
-        });
-      });
-    });
-
   });
 });

@@ -363,15 +363,9 @@ contacts.Details = (function() {
           }
 
           isAFavoriteChange = true;
-          /*
-             Two contacts are returned because the enrichedContact is readonly
-             and if the Contact is edited we need to prevent saving
-             FB data on the mozContacts DB.
-          */
-
           ContactsService.get(
             contact.id,
-            function onSuccess(savedContact, enrichedContact) {
+            function onSuccess(savedContact) {
               renderFavorite(savedContact);
               setContact(savedContact);
               favoriteMessage.style.pointerEvents = 'auto';
