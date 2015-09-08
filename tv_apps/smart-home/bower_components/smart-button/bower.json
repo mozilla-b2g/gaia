@@ -1,6 +1,6 @@
 {
   "name": "smart-button",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "homepage": "https://github.com/gaia-components/smart-button",
   "main": "script.js",
   "license": "MPL",
