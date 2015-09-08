@@ -7,12 +7,12 @@
 
 *********************************************************** */
 (function(window) {
- 
-if (!parent.navigator.mozSettings) {
+
+if (!opener || !opener.navigator.mozSettings) {
   console.error('mozSettings for main window context is not ready!');
   return;
 }
 
-navigator.mozSettings = parent.navigator.mozSettings;
+navigator.mozSettings = opener.navigator.mozSettings;
 
 }(window));

@@ -13,14 +13,12 @@
          LazyLoader,
          LocalizationHelper,
          MessageManager,
-         MessagingClient,
-         MozMobileConnectionsClient,
          Navigation,
+         ServiceManager,
          Settings,
          SilentSms,
          SystemMessageHandler,
-         TimeHeaders,
-         Utils
+         TimeHeaders
 */
 
 (function(exports) {
@@ -72,10 +70,7 @@ var Startup = exports.Startup = {
     '/views/shared/js/activity_handler.js',
     '/views/shared/js/system_message_handler.js',
     '/views/shared/js/localization_helper.js',
-    '/lib/bridge/client.js',
-    '/services/js/activity/activity_client.js',
-    '/services/js/messaging/messaging_client.js',
-    '/services/js/moz_mobile_connections/moz_mobile_connections_client.js'
+    '/services/js/activity/activity_client.js'
   ],
 
   _lazyLoadStyles: [
@@ -114,8 +109,6 @@ var Startup = exports.Startup = {
       // Init UI Managers
       TimeHeaders.init();
       ConversationView.init();
-      MessagingClient.init(App.instanceId);
-      MozMobileConnectionsClient.init(App.instanceId);
       Information.initDefaultViews();
 
       Navigation.setReady();
@@ -142,7 +135,14 @@ var Startup = exports.Startup = {
 
       window.performance.mark('navigationLoaded');
 
-      Utils.initializeShimHost(App.instanceId);
+      const services = [
+        'conversation',
+        'messaging',
+        'moz-mobile-connections',
+        'moz-settings'
+      ];
+
+      ServiceManager.initialize(services);
 
       MessageManager.init();
       Drafts.init();
@@ -169,6 +169,8 @@ var Startup = exports.Startup = {
 
         InboxView.once('visually-loaded', () => {
           this._lazyLoadInit();
+
+          ServiceManager.upgrade(services);
         });
 
         InboxView.renderThreads();

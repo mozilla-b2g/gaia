@@ -923,28 +923,6 @@
     },
 
     /**
-     * Initializes shim host iframe with the current app instance id.
-     * @param {string} appInstanceId Unique identifier of the app instance.
-     * @return {Promise.<void>} Resolves once shim host is initialized.
-     */
-    initializeShimHost(appInstanceId) {
-      var shimHostIframe = document.querySelector('.shim-host');
-
-      var promise = shimHostIframe.contentDocument.readyState === 'complete' ?
-        Promise.resolve() :
-        new Promise((resolve) => {
-          shimHostIframe.addEventListener('load', function onLoad() {
-            shimHostIframe.removeEventListener('load', onLoad);
-            resolve();
-          });
-        });
-
-      return promise.then(
-        () => shimHostIframe.contentWindow.bootstrap(appInstanceId)
-      );
-    },
-
-    /**
      * Returns Promise instance that is resolved instantly if document is
      * visible (document.hidden === false), othewise it's resolved only once
      * `visibilitychange` event is fired.

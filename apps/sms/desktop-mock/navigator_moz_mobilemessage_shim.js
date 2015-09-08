@@ -7,12 +7,12 @@
 
 *********************************************************** */
 (function(window) {
- 
-  if (!parent.navigator.mozMobileMessage) {
+
+  if (!opener || !opener.navigator.mozMobileMessage) {
     console.error('mozMobileMessage for main window context is not ready!');
     return;
   }
 
-  navigator.mozMobileMessage = parent.navigator.mozMobileMessage;
+  navigator.mozMobileMessage = opener.navigator.mozMobileMessage;
 
 }(window));

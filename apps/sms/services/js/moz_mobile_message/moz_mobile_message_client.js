@@ -1,4 +1,5 @@
 /*global bridge,
+         finalizeClient,
          BroadcastChannel,
          streamClient
  */
@@ -10,7 +11,8 @@
     () => {};
 
   const priv = {
-    bridgeClient: Symbol('bridgeClient')
+    client: Symbol('client'),
+    instances: Symbol('instances')
   };
 
   /**
@@ -18,6 +20,13 @@
    * @type {number|boolean}
    */
   const TIMEOUT = false;
+
+  /**
+   * Name of the shim service that provides access to mozMobileMessage API.
+   * @type {string}
+   * @const
+   */
+  const SERVICE_NAME = 'moz-mobile-message-shim';
 
   function MobileMessageClient(endpoint) {
     if (!('bridge' in self) || !('client' in bridge)) {
@@ -28,70 +37,90 @@
       importScripts('/lib/bridge/plugins/stream/client.js');
     }
 
-    this[priv.bridgeClient] = bridge.client({
-      service: 'moz-mobile-message-shim',
+    this[priv.client] = bridge.client({
+      service: SERVICE_NAME,
       endpoint: endpoint,
       timeout: TIMEOUT
-    }).plugin(streamClient);
+    }).plugin(streamClient).plugin(finalizeClient);
   }
 
   MobileMessageClient.prototype = {
     retrieveMMS(id) {
-      return this[priv.bridgeClient].method('retrieveMMS', id);
+      return this[priv.client].method('retrieveMMS', id);
     },
 
     getThreads() {
-      return this[priv.bridgeClient].stream('getThreads');
+      return this[priv.client].stream('getThreads');
     },
 
     send(recipient, content, sendOpts) {
-      return this[priv.bridgeClient].method(
-        'send', recipient, content, sendOpts
-      );
+      return this[priv.client].method('send', recipient, content, sendOpts);
     },
 
     sendMMS(dataOpts, sendOpts) {
-      return this[priv.bridgeClient].method('sendMMS', dataOpts, sendOpts);
+      return this[priv.client].method('sendMMS', dataOpts, sendOpts);
     },
 
     delete(id) {
-      return this[priv.bridgeClient].method('delete', id);
+      return this[priv.client].method('delete', id);
     }
   };
 
   /**
    * List of MobileMessageClient mapped to specific application id.
    * @type {Map.<string, MobileMessageClient>}
+   * @static
    */
-  const mobileMessageClients = new Map();
+  MobileMessageClient[priv.instances] = new Map();
 
-  exports.MozMobileMessageClient = Object.freeze({
-    forApp(appInstanceId) {
-      if (!appInstanceId) {
-        throw new Error('AppInstanceId is required!');
-      }
-
-      var mobileMessageClient = mobileMessageClients.get(appInstanceId);
-
-      if (!mobileMessageClient) {
-        mobileMessageClient = new MobileMessageClient(
-          new BroadcastChannel(
-            'moz-mobile-message-shim-channel-' + appInstanceId
-          )
-        );
-
-        mobileMessageClients.set(appInstanceId, mobileMessageClient);
-
-        debug(
-          'Create MobileMessageClient for app instance %s', appInstanceId
-        );
-      }
-
-      return mobileMessageClient;
-    },
-
-    cleanup() {
-      mobileMessageClients.clear();
+  /**
+   * Returns mozMobileMessageClient bound to a specific app instance, creates
+   * one if it doesn't exist.
+   * @returns {MobileMessageClient}
+   * @static
+   */
+  MobileMessageClient.forApp = function(appInstanceId) {
+    if (!appInstanceId) {
+      throw new Error('AppInstanceId is required!');
     }
-  });
+
+    var mobileMessageClient = MobileMessageClient[priv.instances].get(
+      appInstanceId
+    );
+
+    if (mobileMessageClient) {
+      return mobileMessageClient;
+    }
+
+    mobileMessageClient = new MobileMessageClient(
+      exports.document ?
+        exports : new BroadcastChannel(`${SERVICE_NAME}-${appInstanceId}`)
+    );
+
+    MobileMessageClient[priv.instances].set(appInstanceId, mobileMessageClient);
+
+    debug(
+      'Create MobileMessageClient for app instance %s', appInstanceId
+    );
+
+    return mobileMessageClient;
+  };
+
+  /**
+   * Destroys all clients.
+   * @static
+   */
+  MobileMessageClient.destroy = function() {
+    var finalizers = [];
+
+    MobileMessageClient[priv.instances].forEach(
+      (instance) => finalizers.push(instance[priv.client].finalize())
+    );
+
+    return Promise.all(finalizers).then(
+      () => MobileMessageClient[priv.instances].clear()
+    );
+  };
+
+  exports.MozMobileMessageClient = Object.seal(MobileMessageClient);
 })(self);

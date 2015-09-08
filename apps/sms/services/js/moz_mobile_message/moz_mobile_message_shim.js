@@ -1,6 +1,4 @@
-/* global BridgeServiceMixin,
-          BroadcastChannel
-*/
+/* global BridgeServiceMixin */
 
 /* exported MozMobileMessageShim */
 
@@ -71,8 +69,8 @@ function cloneThread(thread) {
 }
 
 var MozMobileMessageShim = {
-  init(appInstanceId, mobileMessage) {
-    if (!mobileMessage) {
+  init(mozAPI, endpoint) {
+    if (!mozAPI) {
       return;
     }
 
@@ -80,9 +78,9 @@ var MozMobileMessageShim = {
       return str[0].toUpperCase() + str.slice(1);
     }
 
-    var broadcastChannelName = `${SERVICE_NAME}-channel-${appInstanceId}`;
-    mozMobileMessage = mobileMessage;
-    this.initService(new BroadcastChannel(broadcastChannelName));
+    mozMobileMessage = mozAPI;
+
+    this.initService(endpoint);
 
     Object.keys(EVENTS).forEach((event) => {
       mozMobileMessage.addEventListener(
@@ -90,11 +88,6 @@ var MozMobileMessageShim = {
         this['on' + capitalize(event)].bind(this)
       );
     });
-
-    debug(
-      'Listen incoming connections on "%s" broadcast channel',
-      broadcastChannelName
-    );
   },
 
   /* Events */
@@ -259,6 +252,10 @@ var MozMobileMessageShim = {
     stream.cancel = function() {
       stream.close();
     };
+  },
+
+  get name() {
+    return SERVICE_NAME;
   }
 };
 

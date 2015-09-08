@@ -1,4 +1,5 @@
 /* global bridge,
+          finalizeClient,
           streamClient,
           Thread
 */
@@ -48,18 +49,16 @@
      * @param {string} appInstanceId Unique identifier of app instance where
      * client resides in.
      */
-    init(appInstanceId) {
+    init(appInstanceId, endpoint) {
       if (!appInstanceId) {
         throw new Error('AppInstanceId is required!');
       }
 
       this[priv.client] = bridge.client({
         service: SERVICE_NAME,
-        endpoint: new SharedWorker(
-          '/services/js/conversation/conversation_service.js'
-        ),
+        endpoint: endpoint,
         timeout: false
-      }).plugin(streamClient);
+      }).plugin(streamClient).plugin(finalizeClient);
 
       this[priv.appInstanceId] = appInstanceId;
     },
@@ -92,6 +91,10 @@
         console.error('Conversation stream is closed unexpectedly', e);
         throw e;
       });
+    },
+
+    destroy() {
+      return this[priv.client].finalize();
     }
   };
 

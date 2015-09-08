@@ -6,9 +6,9 @@
           LazyLoader,
           MessageManager,
           Navigation,
+          ServiceManager,
           Settings,
-          TimeHeaders,
-          Utils
+          TimeHeaders
 */
 
 (function(exports) {
@@ -35,9 +35,7 @@
 
   exports.Startup = {
     init() {
-      Utils.initializeShimHost(App.instanceId);
-
-      ConversationClient.init(App.instanceId);
+      ServiceManager.initialize(['conversation']);
       MessageManager.init();
       Navigation.init();
       Drafts.init();
@@ -45,6 +43,8 @@
 
       InboxView.once('visually-loaded', () => {
         initLazyDependencies();
+
+        ServiceManager.upgrade(['conversation']);
       });
 
       InboxView.renderThreads();

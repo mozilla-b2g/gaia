@@ -734,9 +734,9 @@ var ConversationView = {
     this.cancelEdit();
 
     if (Navigation.isCurrentPanel('thread')) {
-      // If we're leaving conversation view, ensure that the thread object's
-      // unreadCount value is current (set = 0).
-      this.activeThread.unreadCount = 0;
+      // If we're leaving conversation view, ensure that the conversation
+      // object's hasUnread is false.
+      this.activeThread.status.hasUnread = false;
     }
 
     this.updateDraft();

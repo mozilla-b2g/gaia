@@ -43,6 +43,7 @@
     <script defer src="/desktop-mock/navigator_moz_system_messages.js"></script>
     <script defer src="/desktop-mock/navigator_moz_settings.js"></script>
     <script defer src="/desktop-mock/navigator_moz_mobilemessage.js"></script>
+    <script defer src="/desktop-mock/navigator_moz_mobile_connections.js"></script>
     <script defer src="/desktop-mock/navigator_moz_contacts.js"></script>
     <!-- Web Components -->
     <script defer src="/shared/elements/config.js"></script>
@@ -75,7 +76,14 @@
     <script defer src="/views/shared/js/settings.js"></script>
     <script defer src="/lib/bridge/client.js"></script>
     <script defer src="/lib/bridge/plugins/stream/client.js"></script>
+    <script defer src="/lib/bridge/plugins/stream/service.js"></script>
+    <script defer src="/lib/bridge/plugins/finalize/client.js"></script>
+    <script defer src="/services/js/bridge_service_mixin.js"></script>
+    <script defer src="/services/js/moz_mobile_message/moz_mobile_message_shim.js"></script>
+    <script defer src="/services/js/moz_mobile_message/moz_mobile_message_client.js"></script>
+    <script defer src="/services/js/conversation/conversation_service.js"></script>
     <script defer src="/services/js/conversation/conversation_client.js"></script>
+    <script defer src="/services/js/service_manager.js"></script>
     <script defer src="/services/js/message_manager.js"></script>
     <script defer src="/views/shared/js/app.js"></script>
     <script defer src="/views/inbox/js/startup.js"></script>
@@ -90,7 +98,6 @@
   </head>
 
   <body role="application" class="skin-comms theme-communications">
-    <iframe src="/views/shared/shim_host.html" class="shim-host" hidden></iframe>
     <article id="main-wrapper" class="wrapper">
       <section class="panel panel-InboxView" role="region" aria-hidden="true">
         <!-- title-start and title-end indicates the button widths respectively

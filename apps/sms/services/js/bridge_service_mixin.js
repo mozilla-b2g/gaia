@@ -67,6 +67,16 @@
     },
 
     /**
+     * Destroys service instance.
+     */
+    destroyService() {
+      if (this[priv.service]) {
+        this[priv.service].destroy();
+        this[priv.service] = null;
+      }
+    },
+
+    /**
      * Broadcast an event to all listeners.
      * @param {String} eventName The event name to send.
      * @param {any} data Data to send with the event.

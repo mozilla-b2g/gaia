@@ -20,14 +20,14 @@ const METHODS = Object.freeze(['get', 'set']);
 var mozSettings = null;
 
 var MozSettingsShim = {
-  init(settings) {
-    if (!settings) {
+  init(mozAPI, endpoint) {
+    if (!mozAPI) {
       console.error('Invalid settings for shim initialization');
       return;
     }
-    mozSettings = settings;
+    mozSettings = mozAPI;
 
-    this.initService();
+    this.initService(endpoint);
   },
 
   /* Methods */
@@ -49,6 +49,10 @@ var MozSettingsShim = {
    */
   set(settings) {
     return mozSettings.createLock().set(settings);
+  },
+
+  get name() {
+    return SERVICE_NAME;
   }
 };
 
