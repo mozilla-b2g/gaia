@@ -99,19 +99,49 @@ marionette('Text selection >', function() {
           .getAttribute('value'), '');
       });
 
-      test.skip('cut part of content and paste', function() {
+      test('cut part of content and paste', function() {
         fakeTextselectionApp.longPress('FunctionalitySourceInput');
         fakeTextselectionApp.FunctionalitySourceInput
           .selectionHelper.moveCaretByWords({
             'caretB': {offset: -2}
           });
+
         fakeTextselectionApp.textSelection.pressCut();
-        fakeTextselectionApp.paste('FunctionalityTargetInput');
+        fakeTextselectionApp.FunctionalityTargetInput.tap();
+        fakeTextselectionApp.textSelection.pressPaste();
 
         assert.equal(fakeTextselectionApp.FunctionalityTargetInput
           .getAttribute('value'), 'testval');
         assert.equal(fakeTextselectionApp.FunctionalitySourceInput
           .getAttribute('value'), 'ue');
+      });
+    });
+
+    suite('check copy image and other rich text together', function() {
+      var ans = '';
+      setup(function() {
+        fakeTextselectionApp.setTestFrame('copyrichtext');
+        ans =
+          fakeTextselectionApp.RichtextContent.scriptWith(function(e) {
+            var imgs = e.getElementsByTagName('img');
+            // Change to absolute image path
+            for (var i of imgs) {
+              i.src = i.src;
+            }
+            return e.innerHTML;
+          });
+      });
+
+      test('select all and copy', function() {
+        fakeTextselectionApp.longPressByPosition('RichtextTableBody', 0, 0);
+        fakeTextselectionApp.textSelection.pressSelectAll();
+        fakeTextselectionApp.textSelection.pressCopy();
+        var editor = fakeTextselectionApp.RichtextEditable;
+        editor.tap();
+        fakeTextselectionApp.textSelection.pressPaste();
+        assert.equal(editor.scriptWith(function(e) {
+          return e.getElementsByTagName('div')[0].innerHTML;
+        }), ans, 'The whole content should be copied and pasted by rich text');
       });
     });
 
@@ -230,19 +260,20 @@ marionette('Text selection >', function() {
       var systemInputMgmt;
       setup(function() {
         fakeTextselectionApp.setTestFrame('bug');
+        systemInputMgmt = client.loader.getAppClass('system',
+                                                    'input_management');
       });
 
-      test.skip('bug1110963 : Cut/Copy/Paste menu should dismiss ' +
+      test('bug1110963 : Cut/Copy/Paste menu should dismiss ' +
            'when tapping the keyboard',
         function() {
           fakeTextselectionApp.longPress('BugCenterInput');
           assert.ok(fakeTextselectionApp.bubbleVisiblity);
 
           // Click keyboard
-          client.switchToFrame();
-          var keyboard =
-            client.findElement('#keyboards .inputWindow.top-most iframe');
-          client.switchToFrame(keyboard);
+          assert.ok(systemInputMgmt.keyboardFrameDisplayed(),
+            'keyboard should be shown because we pressed an input area');
+          systemInputMgmt.switchToActiveKeyboardFrame();
           client.helper.waitForElement('.keyboard-type-container[data-active]' +
             ' button.keyboard-key').tap();
           client.waitFor(function() {
@@ -250,25 +281,23 @@ marionette('Text selection >', function() {
           });
         });
 
-      // Enable the test til bug 1120750 is merged.
-      test.skip('bug1120750 : Send out carets position for the short cut mode ',
+      test('bug1120750 : Send out carets position for the short cut mode ',
         function() {
           fakeTextselectionApp.longPress('BugCenterInput');
           var originalLocation = fakeTextselectionApp.textSelection.location;
-          fakeTextselectionApp.cut('BugCenterInput');
+          var ci = fakeTextselectionApp.BugCenterInput;
+          fakeTextselectionApp.textSelection.pressCut(ci);
 
-          fakeTextselectionApp.tap('BugBottomInput');
+          fakeTextselectionApp.BugBottomInput.tap();
           var newLocation = fakeTextselectionApp.textSelection.location;
           assert.ok(fakeTextselectionApp.bubbleVisiblity);
           assert.ok(newLocation.y > originalLocation.y);
         });
 
-      // Enable the test til bug 1120750 is merged.
+      // Enable the test til bug 1196176 is merged.
       test.skip('bug1119126 : Shortcut bubble should hide when system is' +
                 ' resized',
         function() {
-          systemInputMgmt = client.loader.getAppClass('system',
-                                                      'input_management');
           fakeTextselectionApp.copy('BugCenterInput');
 
           systemInputMgmt.waitForKeyboardFrameDisplayed();
