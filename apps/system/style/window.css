@@ -236,6 +236,10 @@
   visibility: visible;
 }
 
+.appWindow[transition-state="closed"] > div.browser-container > iframe {
+  visibility: hidden;
+}
+
 .appWindow > .fade-overlay {
   background-color: black;
   visibility: hidden;
