@@ -15,6 +15,10 @@ define('findmydevice', ['modules/settings_utils', 'shared/settings_listener'
     _interactiveLogin: false,
     _loginButton: null,
 
+    _enabledHelper:    SettingsHelper('findmydevice.enabled'),
+    _loggedInHelper:   SettingsHelper('findmydevice.logged-in'),
+    _registeredHelper: SettingsHelper('findmydevice.registered'),
+
     init: function fmd_init() {
       var self = this;
       self._loginButton =
@@ -52,7 +56,7 @@ define('findmydevice', ['modules/settings_utils', 'shared/settings_listener'
                 login.hidden = true;
               }
 
-              SettingsHelper('findmydevice.logged-in').set(false);
+              self._loggedInHelper.set(false);
             }
           }
         });
@@ -127,9 +131,9 @@ define('findmydevice', ['modules/settings_utils', 'shared/settings_listener'
       console.log('settings, logged in: ' + loggedIn);
 
       if (this._interactiveLogin) {
-        SettingsHelper('findmydevice.registered').get(function(registered) {
+        this._registeredHelper.get(registered => {
           if (!registered) {
-            SettingsHelper('findmydevice.enabled').set(true);
+            this._enabledHelper.set(true);
           }
         });
       }
@@ -137,7 +141,7 @@ define('findmydevice', ['modules/settings_utils', 'shared/settings_listener'
       this._interactiveLogin = false;
 
       // Bug 1164713: Force logged in status in case of stale setting value
-      SettingsHelper('findmydevice.logged-in').set(loggedIn);
+      this._loggedInHelper.set(loggedIn);
 
       var unverifiedError = document.getElementById(
         'findmydevice-fxa-unverified-error');
@@ -166,7 +170,7 @@ define('findmydevice', ['modules/settings_utils', 'shared/settings_listener'
       if (checkbox.checked === false) {
         wakeUpFindMyDevice(IAC_API_WAKEUP_REASON_TRY_DISABLE);
       } else {
-        SettingsHelper('findmydevice.enabled').set(true, function() {
+        this._enabledHelper.set(true, () => {
           checkbox.disabled = false;
         });
       }
