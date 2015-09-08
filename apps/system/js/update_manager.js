@@ -180,12 +180,11 @@
         return;
       }
 
-      var _ = navigator.mozL10n.get;
       var self = this;
       this._errorTimeout = setTimeout(function waitForMore() {
         LazyLoader.load(['js/system_banner.js']).then(function() {
           var systemBanner = new SystemBanner();
-          systemBanner.show(_('downloadError'));
+          systemBanner.show('downloadError');
           self._errorTimeout = null;
         })['catch'](function(err) {
           console.error(err);

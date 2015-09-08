@@ -330,16 +330,6 @@ VerticalHome.prototype = {
   },
 
   /**
-   * Waits for the system banner to go away and switches back to the homescreen
-   */
-  waitForSystemBanner: function() {
-    this.client.switchToFrame();
-    var banner = this.client.findElement('.banner.generic-dialog');
-    this.client.helper.waitForElementToDisappear(banner);
-    this.client.switchToFrame(this.system.getHomescreenIframe());
-  },
-
-  /**
    * Helper function to move an icon to a specified index. Currently uses
    * executeScript() and manually fiddles with the homescreen grid logic,
    * this is because scripted drag/drop does not work too well within the
