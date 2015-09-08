@@ -55,8 +55,6 @@ marionette('Vertical - App Uninstall', function() {
 
     var remove = icon.findElement('.remove');
 
-    home.waitForSystemBanner();
-
     // remove the icon
     remove.tap();
     // confirm the dialog to ensure it was removed.

@@ -110,6 +110,55 @@
   margin: 0 0.5rem;
 }
 
+/* ----------------------------------
+ * SYSTEM BANNER
+ * ---------------------------------- */
+
+gaia-toast.banner {
+  --background-plus: #333333;
+  min-height: 6rem !important;
+  font-size: 1.7rem;
+  font-weight: 400;
+  --highlight-color: #e7e7e7;
+  opacity: 0.95;
+}
+
+gaia-toast.banner .container {
+  display: flex;
+  align-items: center;
+  min-height: 2.8rem;
+}
+
+gaia-toast.banner .messages {
+  flex: auto;
+}
+
+gaia-toast.banner .buttons {
+  flex: 0 0 -moz-fit-content;
+}
+
+gaia-toast.banner p {
+  margin: 0;
+  padding: 0;
+}
+
+gaia-toast.banner .button {
+  color: #00caf2;
+  text-decoration: underline;
+  font-weight: 500;
+  padding: 0 1.5rem;
+}
+
+#screen.software-button-enabled gaia-toast.banner {
+  bottom: var(--software-home-button-height) !important;
+}
+
+@media (orientation: landscape) {
+  #screen.software-button-enabled gaia-toast.banner {
+    bottom: 0 !important;
+    width: calc(100% - var(--software-home-button-height)) !important;
+  }
+}
 
 /* ----------------------------------
  * INLINE BANNER
