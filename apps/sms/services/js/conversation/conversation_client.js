@@ -53,11 +53,11 @@
         throw new Error('AppInstanceId is required!');
       }
 
+      exports.ConversationService.init();
+
       this[priv.client] = bridge.client({
         service: SERVICE_NAME,
-        endpoint: new SharedWorker(
-          '/services/js/conversation/conversation_service.js'
-        ),
+        endpoint: exports,
         timeout: false
       }).plugin(streamClient);
 
