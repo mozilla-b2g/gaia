@@ -29,6 +29,24 @@
     _activity = activity;
   }
 
+  function saveChanges(event) {
+    var eventsStringified = sessionStorage.getItem('contactChanges');
+    var events = [];
+    if (eventsStringified && eventsStringified !== 'null') {
+      var candidates = JSON.parse(eventsStringified);
+      // Remove old events related with the same action on
+      // the contact (i.e. marking as 'favourite')
+      events = candidates.filter(function(a) {
+        return a.reason !== event.reason;
+      });
+    }
+    events.push({
+      contactID: event.contactID,
+      reason: event.reason
+    });
+    sessionStorage.setItem('contactChanges', JSON.stringify(events));
+  }
+
   function findDuplicates(evt) {
     if (!evt.detail || !evt.detail.contactId) {
       console.error('Missing parameters in CustomEvent');
@@ -40,9 +58,42 @@
       '/contacts/js/match_service.js'
     ];
 
+    function onContactMerged(event) {
+      // Save in session storage
+      saveChanges(event);
+      // Close the window
+      window.postMessage({
+        type: 'window_close'
+      }, location.origin);
+      // Go back in history until reaching the list
+      window.history.back();
+    }
+
     LazyLoader.load(
       dependencies,
       function onLoaded() {
+        window.addEventListener('message', function handler(e) {
+          // Filter by origin
+          if (e.origin !== location.origin) {
+            return;
+          }
+
+          switch(e.data.type) {
+            case 'ready':
+              ContactsService.addListener(
+                'contactchange',
+                onContactMerged
+              );
+              break;
+            case 'window_close':
+              window.removeEventListener('message', handler);
+              ContactsService.removeListener(
+                'contactchange',
+                onContactMerged
+              );
+              break;
+          }
+        });
         MatchService.match(contactId);
       }
     );
@@ -53,15 +104,7 @@
       ContactsService.addListener('contactchange',
         function oncontactchange(event) {
           ContactsService.removeListener('contactchange', oncontactchange);
-
-          var eventToSave = {
-            contactID: event.contactID,
-            reason: event.reason
-          };
-          
-          var events = [];
-          events.unshift(eventToSave);
-          sessionStorage.setItem('contactChanges', JSON.stringify(events));
+          saveChanges(event);
           resolve();
         }
       );
