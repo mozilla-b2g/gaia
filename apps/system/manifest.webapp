@@ -48,7 +48,8 @@
     "systemXHR": {},
     "feature-detection": {},
     "before-after-keyboard-event": {},
-    "moz-extremely-unstable-and-will-change-webcomponents":{}
+    "moz-extremely-unstable-and-will-change-webcomponents":{},
+    "moz-firefox-accounts": {}
   },
   "locales": {
     "ar": {
@@ -109,7 +110,8 @@
      { "nfc-manager-tech-lost": "/index.html" },
      { "nfc-manager-send-file": "/index.html" },
      { "bluetooth-pairing-request": "/index.html" },
-     { "notification": "/index.html" }
+     { "notification": "/index.html" },
+     { "request-sync": "/index.html" }
   ],
   "connections": {
     "mediacomms": {
@@ -144,6 +146,12 @@
     },
     "about-service-workers": {
       "description": "about:serviceworkers proxy",
+      "rules": {
+        "minimumAccessLevel": "certified"
+      }
+    },
+    "gaia-sync-management": {
+      "description": "Firefox Sync management API",
       "rules": {
         "minimumAccessLevel": "certified"
       }
