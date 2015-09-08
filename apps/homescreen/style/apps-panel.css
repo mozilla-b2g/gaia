@@ -64,6 +64,14 @@ gaia-container.small > .gaia-container-child.dragging > .icon-container > gaia-a
   transform: scale(0.8) translate(-3.2vw, -3.2vw);
 }
 
+gaia-container > .gaia-container-child > .icon-container.hover-before {
+  transform: translateX(3.5rem);
+}
+
+gaia-container > .gaia-container-child > .icon-container.hover-after {
+  transform: translateX(-3.5rem);
+}
+
 #bottombar {
   position: fixed;
   bottom: 0;
