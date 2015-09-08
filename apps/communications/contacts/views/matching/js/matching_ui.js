@@ -127,6 +127,8 @@
           new ImageLoader('#main', 'li');
           setTimeout(() => {
             window.dispatchEvent(new CustomEvent('UIReady'));
+            // Remove the hidden ui
+            document.body.classList.remove('ui-not-ready');
           });
         });
       },

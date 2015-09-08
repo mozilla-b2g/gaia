@@ -111,7 +111,10 @@ var Curtain = (function() {
     panel.classList.remove('no-menu');
     panel.classList.add('visible');
     panel.classList.remove('fade-out');
-    panel.classList.add('fade-in');
+    // Don't do fancy animation on alerts.
+    if (type !== 'alert') {
+      panel.classList.add('fade-in');
+    }
   }
 
   function capitalize(str) {

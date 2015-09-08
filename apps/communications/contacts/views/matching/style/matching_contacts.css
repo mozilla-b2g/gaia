@@ -113,3 +113,11 @@ html[dir="rtl"] #contacts-list-container label {
 #contacts-list-container > ol > li[data-uuid] label {
   pointer-events: auto;
 }
+
+.ui-not-ready {
+  background-color: #27c8c2;
+}
+
+.ui-not-ready section[role="region"] {
+  display: none;
+}
