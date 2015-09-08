@@ -84,7 +84,7 @@ SongsView.prototype.getSongs = function() {
 };
 
 SongsView.prototype.queueSong = function(filePath) {
-  this.fetch('/api/queue/song' + filePath);
+  this.fetch('/api/queue/song/' + filePath);
 };
 
 SongsView.prototype.setCache = function(items) {

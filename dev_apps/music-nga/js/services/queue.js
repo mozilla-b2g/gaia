@@ -56,8 +56,7 @@ function QueueService(worker) {
 
   worker.get('/api/queue/album/:filePath', stopAfter((request) => {
     return new Promise((resolve) => {
-      var filePath = '/' + decodeURIComponent(request.parameters.filePath);
-
+      var filePath = decodeURIComponent(request.parameters.filePath);
       client.method('queueAlbum', filePath)
         .then(() => {
           resolve(new Response(JSON.stringify({ success: true }), {
@@ -74,8 +73,7 @@ function QueueService(worker) {
 
   worker.get('/api/queue/artist/:filePath', stopAfter((request) => {
     return new Promise((resolve) => {
-      var filePath = '/' + decodeURIComponent(request.parameters.filePath);
-
+      var filePath = decodeURIComponent(request.parameters.filePath);
       client.method('queueArtist', filePath)
         .then(() => {
           resolve(new Response(JSON.stringify({ success: true }), {
@@ -92,8 +90,7 @@ function QueueService(worker) {
 
   worker.get('/api/queue/song/:filePath', stopAfter((request) => {
     return new Promise((resolve) => {
-      var filePath = '/' + decodeURIComponent(request.parameters.filePath);
-
+      var filePath = decodeURIComponent(request.parameters.filePath);
       client.method('queueSong', filePath)
         .then(() => {
           resolve(new Response(JSON.stringify({ success: true }), {

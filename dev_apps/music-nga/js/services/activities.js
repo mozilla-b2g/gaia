@@ -10,7 +10,7 @@ function ActivitiesService(worker) {
 
   worker.get('/api/activities/share/:filePath', stopAfter((request) => {
     return new Promise((resolve) => {
-      var filePath = '/' + decodeURIComponent(request.parameters.filePath);
+      var filePath = decodeURIComponent(request.parameters.filePath);
       client.method('share', filePath)
         .then(() => {
           resolve(new Response(JSON.stringify({ success: true }), {

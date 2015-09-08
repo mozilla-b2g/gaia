@@ -7,6 +7,7 @@ importScripts('js/services/artwork.js');
 importScripts('js/services/audio.js');
 importScripts('js/services/database.js');
 importScripts('js/services/playlist.js');
+importScripts('js/services/queue.js');
 importScripts('js/services/songs.js');
 importScripts('resources.js');
 

@@ -64,11 +64,11 @@ ArtistDetailView.prototype.render = function() {
 };
 
 ArtistDetailView.prototype.getArtist = function() {
-  return this.fetch('/api/artists/info' + this.params.id).then(response => response.json());
+  return this.fetch('/api/artists/info/' + this.params.id).then(response => response.json());
 };
 
 ArtistDetailView.prototype.queueArtist = function(filePath) {
-  this.fetch('/api/queue/artist' + filePath);
+  this.fetch('/api/queue/artist/' + filePath);
 };
 
 window.view = new ArtistDetailView();

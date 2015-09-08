@@ -64,12 +64,12 @@ AlbumDetailView.prototype.render = function() {
 };
 
 AlbumDetailView.prototype.getAlbum = function() {
-  return this.fetch('/api/albums/info' + this.params.id)
+  return this.fetch('/api/albums/info/' + this.params.id)
     .then(response => response.json());
 };
 
 AlbumDetailView.prototype.queueAlbum = function(filePath) {
-  this.fetch('/api/queue/album' + filePath);
+  this.fetch('/api/queue/album/' + filePath);
 };
 
 window.view = new AlbumDetailView();

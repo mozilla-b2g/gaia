@@ -20,7 +20,7 @@ function AlbumsService(worker) {
 
   worker.get('/api/albums/info/:filePath', stopAfter((request) => {
     return new Promise((resolve) => {
-      var filePath = '/' + decodeURIComponent(request.parameters.filePath);
+      var filePath = decodeURIComponent(request.parameters.filePath);
       client.method('getAlbum', filePath)
         .then((songs) => {
           resolve(new Response(JSON.stringify(songs), {

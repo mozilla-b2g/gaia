@@ -37,6 +37,7 @@ var service = bridge.service('music-service')
   .method('getSongFile', getSongFile)
   .method('getSongArtwork', getSongArtwork)
   .method('getSongThumbnail', getSongThumbnail)
+  .method('setSongRating', setSongRating)
 
   .method('share', share)
   .method('open', open)
@@ -96,6 +97,7 @@ function pause() {
 }
 
 function seek(time) {
+  time = parseInt(time, 10);
   audio.currentTime = time;
 }
 
@@ -254,6 +256,13 @@ function getSongThumbnail(filePath) {
     return getSong(filePath).then((song) => {
       return AlbumArtCache.getThumbnailBlob(song);
     });
+  });
+}
+
+function setSongRating(rating, filePath) {
+  rating = parseInt(rating, 10) || 0;
+  return getSong(filePath).then((song) => {
+    return Database.setSongRating(song, rating);
   });
 }
 

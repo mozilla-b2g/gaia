@@ -16,6 +16,7 @@ var PlayerView = View.extend(function PlayerView() {
   this.artwork.addEventListener('share', () => this.share());
   this.artwork.addEventListener('repeat', () => this.setRepeatSetting(this.artwork.repeat));
   this.artwork.addEventListener('shuffle', () => this.setShuffleSetting(this.artwork.shuffle));
+  this.artwork.addEventListener('ratingchange', evt => this.setSongRating(evt.detail));
 
   this.controls.addEventListener('play', () => this.play());
   this.controls.addEventListener('pause', () => this.pause());
@@ -45,6 +46,7 @@ PlayerView.prototype.update = function() {
 
       this.artwork.artist = song.metadata.artist;
       this.artwork.album = song.metadata.album;
+      this.artwork.els.rating.value = song.metadata.rated;
 
       window.parent.setHeaderTitle(song.metadata.title);
     });
@@ -97,7 +99,7 @@ PlayerView.prototype.next = function() {
 
 PlayerView.prototype.share = function() {
   this.getPlaybackStatus().then((status) => {
-    this.fetch('/api/activities/share' + status.filePath);
+    this.fetch('/api/activities/share/' + status.filePath);
   });
 };
 
@@ -125,12 +127,17 @@ PlayerView.prototype.setShuffleSetting = function(shuffle) {
   this.fetch('/api/queue/shuffle/' + SHUFFLE_VALUES.indexOf(shuffle));
 };
 
+PlayerView.prototype.setSongRating = function(rating) {
+  this.getPlaybackStatus()
+    .then(status => this.fetch('/api/songs/rating/' + rating + '/' + status.filePath));
+};
+
 PlayerView.prototype.getSong = function(filePath) {
-  return this.fetch('/api/songs/info' + filePath).then(response => response.json());
+  return this.fetch('/api/songs/info/' + filePath).then(response => response.json());
 };
 
 PlayerView.prototype.getSongArtwork = function(filePath) {
-  return this.fetch('/api/artwork/original' + filePath).then(response => response.blob());
+  return this.fetch('/api/artwork/original/' + filePath).then(response => response.blob());
 };
 
 window.view = new PlayerView();

@@ -181,6 +181,12 @@ proto.createdCallback = function() {
     this.dispatchEvent(new CustomEvent(action));
   });
 
+  this.els.rating.addEventListener('change', (evt) => {
+    this.dispatchEvent(new CustomEvent('ratingchange', {
+      detail: evt.detail
+    }));
+  });
+
   this.repeat = this.getAttribute('repeat');
   this.shuffle = this.getAttribute('shuffle');
 
