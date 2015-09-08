@@ -38,6 +38,12 @@ const AUTOSCROLL_DISTANCE = 45;
 const AUTOSCROLL_DELAY = 750;
 
 /**
+ * The time to wait after setting a scroll-position before disabling
+ * overflow during drag-and-drop.
+ */
+const AUTOSCROLL_OVERFLOW_DELAY = 500;
+
+/**
  * The height of the delete-app bar at the bottom of the container when
  * dragging a deletable app.
  */
@@ -120,8 +126,12 @@ const SETTINGS_VERSION = 0;
     this.pinchListening = false;
 
     // Drag-and-drop
+    this.dragging = false;
     this.draggingRemovable = false;
+    this.draggingEditable = false;
     this.autoScrollTimeout = null;
+    this.autoScrollOverflowTimeout = null;
+    this.hoverIcon = null;
 
     // Update the panel indicator
     this.updatePanelIndicator();
@@ -518,6 +528,19 @@ const SETTINGS_VERSION = 0;
         this.scrollable.style.overflow = '';
         this.scrollable.scrollTo(
           { left: 0, top: destination, behavior: 'smooth' });
+
+        if (this.autoScrollOverflowTimeout !== null) {
+          clearTimeout(this.autoScrollOverflowTimeout);
+          this.autoScrollOverflowTimeout = null;
+        }
+
+        if (this.dragging) {
+          this.autoScrollOverflowTimeout = setTimeout(() => {
+            this.autoScrollOverflowTimeout = null;
+            this.scrollable.style.overflow = 'hidden';
+            this.scrollable.scrollTop = destination;
+          }, AUTOSCROLL_OVERFLOW_DELAY);
+        }
       }
     },
 
@@ -626,6 +649,7 @@ const SETTINGS_VERSION = 0;
 
       // Disable scrolling during dragging, and display bottom-bar
       case 'drag-start':
+        this.dragging = true;
         document.body.classList.add('dragging');
         this.scrollable.style.overflow = 'hidden';
         icon = e.detail.target.firstElementChild;
@@ -640,14 +664,26 @@ const SETTINGS_VERSION = 0;
         break;
 
       case 'drag-finish':
+        this.dragging = false;
         document.body.classList.remove('dragging');
         this.scrollable.style.overflow = '';
         this.bottombar.classList.remove('active');
         this.edit.classList.remove('active');
         this.uninstall.classList.remove('active');
+
         if (this.autoScrollTimeout !== null) {
           clearTimeout(this.autoScrollTimeout);
           this.autoScrollTimeout = null;
+        }
+
+        if (this.autoScrollOverflowTimeout !== null) {
+          clearTimeout(this.autoScrollOverflowTimeout);
+          this.autoScrollOverflowTimeout = null;
+        }
+
+        if (this.hoverIcon) {
+          this.hoverIcon.classList.remove('hover-before', 'hover-after');
+          this.hoverIcon = null;
         }
         break;
 
@@ -709,6 +745,7 @@ const SETTINGS_VERSION = 0;
 
         if (this.draggingRemovable &&
             e.detail.clientY > window.innerHeight - DELETE_DISTANCE) {
+          // User is dragging in the bottom toolbar (delete/edit) area
           if (this.draggingEditable &&
               e.detail.clientX >= window.innerWidth / 2) {
             inEdit = true;
@@ -717,6 +754,7 @@ const SETTINGS_VERSION = 0;
           }
         } else if (e.detail.clientY >
                    window.innerHeight - DELETE_DISTANCE - AUTOSCROLL_DISTANCE) {
+          // User is dragging in the lower auto-scroll area
           inAutoscroll = true;
           if (this.autoScrollTimeout === null) {
             this.autoScrollTimeout = setTimeout(() => {
@@ -725,12 +763,34 @@ const SETTINGS_VERSION = 0;
             }, AUTOSCROLL_DELAY);
           }
         } else if (e.detail.clientY < AUTOSCROLL_DISTANCE) {
+          // User is dragging in the upper auto-scroll area
           inAutoscroll = true;
           if (this.autoScrollTimeout === null) {
             this.autoScrollTimeout = setTimeout(() => {
               this.autoScrollTimeout = null;
               this.snapScrollPosition(-1);
             }, AUTOSCROLL_DELAY);
+          }
+        } else {
+          // User is dragging in the grid, provide some visual feedback
+          var hoverIcon = this.icons.getChildFromPoint(e.detail.clientX,
+                                                       e.detail.clientY);
+          if (this.hoverIcon !== hoverIcon) {
+            if (this.hoverIcon) {
+              this.hoverIcon.classList.remove('hover-before', 'hover-after');
+            }
+            this.hoverIcon = (hoverIcon !== e.detail.target) ? hoverIcon : null;
+
+            if (this.hoverIcon) {
+              // XXX Note, we're taking advantage of gaia-container using
+              //     Array instead of HTMLCollection here.
+              var children = this.icons.children;
+              var offset = children.indexOf(e.detail.target) -
+                           children.indexOf(this.hoverIcon);
+
+              this.hoverIcon.classList.add((offset >= 0) ?
+                'hover-before' : 'hover-after');
+            }
           }
         }
 
