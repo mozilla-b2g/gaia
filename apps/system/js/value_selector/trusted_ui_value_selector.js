@@ -22,7 +22,8 @@ exports.TrustedUiValueSelector = TrustedUiValueSelector;
 TrustedUiValueSelector.prototype = Object.create(window.BaseUI.prototype);
 
 TrustedUiValueSelector.prototype.start = function() {
-  window.addEventListener('mozChromeEvent', this);
+  navigator.mozInputMethod.mgmt.addEventListener('inputcontextfocus', this);
+  navigator.mozInputMethod.mgmt.addEventListener('inputcontextblur', this);
 
   // Only show value selector for trusted UI when it is active
   this.active = false;
@@ -31,7 +32,9 @@ TrustedUiValueSelector.prototype.start = function() {
 };
 
 TrustedUiValueSelector.prototype.stop = function() {
-  window.removeEventListener('mozChromeEvent', this);
+  navigator.mozInputMethod.mgmt.removeEventListener('inputcontextfocus', this);
+  navigator.mozInputMethod.mgmt.removeEventListener('inputcontextblur', this);
+
   this.active = false;
 };
 
@@ -40,31 +43,35 @@ TrustedUiValueSelector.prototype.render = function() {
 };
 
 TrustedUiValueSelector.prototype.handleEvent = function(evt) {
-  switch (evt.type) {
-    case 'mozChromeEvent':
-      if (!this.active ||
-          !evt.detail ||
-          evt.detail.type !== 'inputmethod-contextchange') {
-        return;
-      }
+  if (!this.active) {
+    return;
+  }
 
+  switch (evt.type) {
+    case 'inputcontextfocus':
       var typesToHandle = ['select-one', 'select-multiple', 'date', 'time',
         'datetime', 'datetime-local', 'blur'];
       if (typesToHandle.indexOf(evt.detail.inputType) < 0) {
         return;
       }
-      // Making sure system dialog and app-window won't receive this event.
+
+      // Making sure KeyboardManager won't receive this event.
       evt.stopImmediatePropagation();
+      evt.preventDefault();
 
       this.debug('broadcast: for value selector');
-      this.broadcast('inputmethod-contextchange', evt.detail);
+      this.broadcast('inputfocus', evt.detail);
+      this.screen.classList.add('dialog');
 
-      // Make dialog-overlay show
-      if (evt.detail.inputType === 'blur') {
-        this.screen.classList.remove('dialog');
-      } else {
-        this.screen.classList.add('dialog');
-      }
+      break;
+    case 'inputcontextblur':
+      // Making sure KeyboardManager won't receive this event.
+      evt.stopImmediatePropagation();
+      evt.preventDefault();
+
+      this.broadcast('inputblur');
+      this.screen.classList.remove('dialog');
+
       break;
   }
 };
