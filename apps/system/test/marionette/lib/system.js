@@ -38,6 +38,7 @@ System.Selector = Object.freeze({
   appChromeContextNewPrivate: '.appWindow.active [data-id=new-private-window]',
   appChromeContextMenuNewWindow: '.appWindow.active [data-id=new-window]',
   appChromeContextMenuBookmark: '.appWindow.active [data-id=add-to-homescreen]',
+  appChromeContextMenuPin: '.appWindow.active [data-id=pin-to-home-screen]',
   appChromeContextMenuShare: '.appWindow.active [data-id=share]',
   appChromeReloadButton: '.appWindow.active .controls .reload-button',
   appChromeStopButton: '.appWindow.active .controls .stop-button',
@@ -178,6 +179,11 @@ System.prototype = {
   get appChromeContextMenuBookmark() {
     return this.client.helper.waitForElement(
       System.Selector.appChromeContextMenuBookmark);
+  },
+
+  get appChromeContextMenuPin() {
+    return this.client.helper.waitForElement(
+      System.Selector.appChromeContextMenuPin);
   },
 
   get appChromeContextMenuShare() {
