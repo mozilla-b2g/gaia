@@ -88,7 +88,7 @@ not actually shown since the top header should be transparent.
 }
 
 #settings .calendars li:active,
-#settings .toolbar-item:active {
+#settings li:active {
   color: white;
   background-color: #00caf2;
 }
@@ -147,24 +147,25 @@ not actually shown since the top header should be transparent.
   background-color: rgba(0, 0, 0, 0.3);
 }
 
-#settings [role="toolbar"] {
+#settings [role="tablist"] {
   position: absolute;
   bottom: 0;
 }
 
-#settings [role="toolbar"] .toolbar-item {
+#settings [role="tablist"] li {
   border-left: 0.1rem solid #e5e5e5;
+  position: relative;
 }
 
-#settings [role="toolbar"] .toolbar-item:first-child {
+#settings [role="tablist"] li:first-child {
   border-left: 0;
 }
 
-#settings [role="toolbar"].noaccount .settings {
+#settings [role="tablist"].noaccount .settings {
   width: 100%;
 }
 
-#settings [role="toolbar"] .settings:after {
+#settings [role="tablist"] .settings:after {
   content: '';
   position: absolute;
   top: 0;
@@ -174,11 +175,11 @@ not actually shown since the top header should be transparent.
   background: url("icons/settings_icon.png") no-repeat 50% 50% / 3rem auto;
 }
 
-#settings [role="toolbar"] .settings:active:after {
+#settings [role="tablist"] .settings:active:after {
   background-image: url("icons/settings_icon_press.png");
 }
 
-#settings [role="toolbar"] .sync:after {
+#settings [role="tablist"] .sync:after {
   content: '';
   position: absolute;
   top: 0;
@@ -187,19 +188,19 @@ not actually shown since the top header should be transparent.
   height: 4.5rem;
 }
 
-#settings [role="toolbar"] .sync .icon {
+#settings [role="tablist"] .sync .icon {
   display: block;
   width: 3rem;
-  height: 3rem;
+  height: 4.5rem;
   margin: 0 auto;
   background: url("icons/refresh.png") no-repeat 50% 50% / 3rem auto;
 }
 
-#settings [role="toolbar"] .sync:active .icon {
+#settings [role="tablist"] .sync:active .icon {
   background-image: url("icons/refresh_press.png");
 }
 
-.pending-operation #settings [role="toolbar"] .sync .icon {
+.pending-operation #settings [role="tablist"] .sync .icon {
   animation: 0.9s msg-refresh-rotate infinite steps(30);
 }
 
@@ -216,7 +217,7 @@ not actually shown since the top header should be transparent.
   visibility: visible;
 }
 
-#settings [role="toolbar"].noaccount .sync {
+#settings [role="tablist"].noaccount .sync {
   display: none;
 }
 
@@ -249,11 +250,11 @@ not actually shown since the top header should be transparent.
 }
 
 /* RTL View */
-html[dir="rtl"] #settings [role="toolbar"] .toolbar-item {
+html[dir="rtl"] #settings [role="tablist"] li {
   border-left: unset;
 }
 
-html[dir="rtl"] #settings [role="toolbar"] .toolbar-item:first-child {
+html[dir="rtl"] #settings [role="tablist"] li:first-child {
   border-left: unset;
   border-right: 0.1rem solid #e5e5e5;
 }
