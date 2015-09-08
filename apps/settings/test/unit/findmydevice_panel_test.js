@@ -199,7 +199,8 @@ suite('Find My Device panel > ', function() {
     loginButton.click();
     MockMozId.onlogin();
 
-    assert.isUndefined(MockSettingsHelper.instances['findmydevice.enabled']);
+    assert.isUndefined(
+      MockSettingsHelper.instances['findmydevice.enabled'].value);
   });
 
   test('bug 997310 - don\'t disable on non-interactive login', function() {
