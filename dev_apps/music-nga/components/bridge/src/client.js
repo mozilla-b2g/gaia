@@ -20,13 +20,27 @@ module.exports = Client;
 /**
  * Mini Logger
  *
+ * 0: off
+ * 1: performance
+ * 2: console.log
+ *
  * @type {Function}
  * @private
  */
-var debug = 0 ? function(arg1, ...args) {
-  var type = `[${self.constructor.name}][${location.pathname}]`;
-  console.log(`[Client]${type} - "${arg1}"`, ...args);
-} : () => {};
+var debug = {
+  0: () => {},
+  1: arg => performance.mark(`[${self.constructor.name}][Client] - ${arg}`),
+  2: (arg1, ...args) => {
+    var type = `[${self.constructor.name}][${location.pathname}]`;
+    console.log(`[Client]${type} - "${arg1}"`, ...args);
+  }
+}[1];
+
+/**
+ * The type environment.
+ * @type {String}
+ */
+var env = constructor.name
 
 /**
  * A Client is a remote interface
@@ -85,7 +99,7 @@ Client.prototype = {
    *
    * @public
    */
-  connect: function() {
+  connect() {
     debug('connect');
     if (this.connected) return this.connected;
     debug('connecting...', this.service);
@@ -96,7 +110,8 @@ Client.prototype = {
 
     var data = {
       clientId: this.id,
-      service: this.service
+      service: this.service,
+      originEnv: env
     };
 
     return this.connected = this.message('_connect')
@@ -144,7 +159,7 @@ Client.prototype = {
    *
    * @public
    */
-  disconnect: function(options) {
+  disconnect(options) {
     if (!this.connected) return Promise.resolve();
     debug('disconnecting ...');
 
@@ -180,7 +195,7 @@ Client.prototype = {
    * @param  {...*} [args] Arguments to send
    * @return {Promise}
    */
-  method: function(name, ...args) {
+  method(name, ...args) {
     return this.connect()
       .then(() => {
         debug('method', name);
@@ -226,7 +241,7 @@ Client.prototype = {
    * @return {this} for chaining
    * @public
    */
-  plugin: function(fn) {
+  plugin(fn) {
     fn(this, {
       'Emitter': Emitter,
       'uuid': uuid
@@ -414,15 +429,6 @@ Client.prototype.off = function(name, fn) {
 
   return this;
 };
-
-var cp = Client.prototype;
-cp['destroy'] = cp.destroy;
-cp['plugin'] = cp.plugin;
-cp['method'] = cp.method;
-cp['connect'] = cp.connect;
-cp['disconnect'] = cp.disconnect;
-cp['on'] = cp.on;
-cp['off'] = cp.off;
 
 /**
  * Creates new `Error` from registery.

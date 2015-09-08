@@ -138,8 +138,20 @@ module.exports = component.register('gaia-fast-list', {
         text-decoration: none;
       }
 
-      ::content > a > div {
-        width: 100%;
+      ::content li > a > .text {
+        flex: 1;
+      }
+
+      ::content li > a > .image {
+        width: 60px;
+        height: 60px;
+        margin: 0 -16px;
+        background: var(--background-minus);
+      }
+
+      ::content li > a img {
+        width: 60px;
+        height: 60px;
       }
 
       ::content h3 {
@@ -193,7 +205,7 @@ Configuration.prototype = {
   },
 
   sectionTemplate: '<section><h2> </h2><div class="background"></div></section>',
-  itemTemplate: '<li><a><div><h3> </h3><p> </p></div><img/></a></li>',
+  itemTemplate: '<li><a><div class="text"><h3> </h3><p> </p></div><div class="image"><img/></div></a></li>',
 
   populateItem: function(el, i) {
     debug('populate item');

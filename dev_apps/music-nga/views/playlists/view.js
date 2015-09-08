@@ -6,16 +6,30 @@ var debug = 1 ? (...args) => console.log('[PlaylistsView]', ...args) : () => {};
 var PlaylistsView = View.extend(function PlaylistsView() {
   View.call(this); // super();
 
-  this.search = document.getElementById('search');
   this.list = document.getElementById('list');
 
-  this.search.addEventListener('open', () => window.parent.onSearchOpen());
-  this.search.addEventListener('close', () => window.parent.onSearchClose());
-
   this.list.configure({
-    itemKeys: {
-      link: data => `/playlist-detail?id=${data.id}`,
-      title: 'title'
+    // We won't need this after <gaia-fast-list>
+    // gets proper dynamic <template> input
+    populateItem: function(el, i) {
+      var data = this.getRecordAt(i);
+
+      var link = el.querySelector('a');
+      var title = el.querySelector('h3');
+      var subtitle = el.querySelector('p');
+
+      link.href = data.shuffle ? '/player' : `/playlist-detail?id=${data.id}`;
+      link.dataset.id = data.id;
+      link.dataset.shuffle = data.shuffle;
+
+      title.firstChild.data = data.title;
+    }
+  });
+
+  this.list.addEventListener('click', (evt) => {
+    var link = evt.target.closest('a[data-shuffle="true"]');
+    if (link) {
+      this.queuePlaylist(link.dataset.id);
     }
   });
 
@@ -48,7 +62,11 @@ PlaylistsView.prototype.render = function() {
 };
 
 PlaylistsView.prototype.getPlaylists = function() {
-  return this.fetch('/api/playlists').then(response => response.json());
+  return this.fetch('/api/playlists/list').then(response => response.json());
+};
+
+PlaylistsView.prototype.queuePlaylist = function(id) {
+  this.fetch('/api/queue/playlist/' + id + '/shuffle');
 };
 
 window.view = new PlaylistsView();

@@ -162,8 +162,6 @@ FastList.prototype = {
   },
 
   render: function(reload, changedIndex) {
-    debug('render');
-
     var source = this.source;
     var items = this._items;
     var itemsInDOM = this._itemsInDOM;
@@ -176,8 +174,6 @@ FastList.prototype = {
     var criticalEnd = indices.cEnd;
     var startIndex = indices.start;
     var endIndex = indices.end;
-
-    debug('got indices', indices);
 
     // Initial render generating all dom nodes
     if (!this._rendered) {

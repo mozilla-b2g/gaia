@@ -27,13 +27,27 @@ module.exports = Client;
 /**
  * Mini Logger
  *
+ * 0: off
+ * 1: performance
+ * 2: console.log
+ *
  * @type {Function}
  * @private
  */
-var debug = 0 ? function(arg1, ...args) {
-  var type = `[${self.constructor.name}][${location.pathname}]`;
-  console.log(`[Client]${type} - "${arg1}"`, ...args);
-} : () => {};
+var debug = {
+  0: () => {},
+  1: arg => performance.mark(`[${self.constructor.name}][Client] - ${arg}`),
+  2: (arg1, ...args) => {
+    var type = `[${self.constructor.name}][${location.pathname}]`;
+    console.log(`[Client]${type} - "${arg1}"`, ...args);
+  }
+}[1];
+
+/**
+ * The type environment.
+ * @type {String}
+ */
+var env = constructor.name
 
 /**
  * A Client is a remote interface
@@ -92,7 +106,7 @@ Client.prototype = {
    *
    * @public
    */
-  connect: function() {
+  connect() {
     debug('connect');
     if (this.connected) return this.connected;
     debug('connecting...', this.service);
@@ -103,7 +117,8 @@ Client.prototype = {
 
     var data = {
       clientId: this.id,
-      service: this.service
+      service: this.service,
+      originEnv: env
     };
 
     return this.connected = this.message('_connect')
@@ -151,7 +166,7 @@ Client.prototype = {
    *
    * @public
    */
-  disconnect: function(options) {
+  disconnect(options) {
     if (!this.connected) return Promise.resolve();
     debug('disconnecting ...');
 
@@ -187,7 +202,7 @@ Client.prototype = {
    * @param  {...*} [args] Arguments to send
    * @return {Promise}
    */
-  method: function(name, ...args) {
+  method(name, ...args) {
     return this.connect()
       .then(() => {
         debug('method', name);
@@ -233,7 +248,7 @@ Client.prototype = {
    * @return {this} for chaining
    * @public
    */
-  plugin: function(fn) {
+  plugin(fn) {
     fn(this, {
       'Emitter': Emitter,
       'uuid': uuid
@@ -422,15 +437,6 @@ Client.prototype.off = function(name, fn) {
   return this;
 };
 
-var cp = Client.prototype;
-cp['destroy'] = cp.destroy;
-cp['plugin'] = cp.plugin;
-cp['method'] = cp.method;
-cp['connect'] = cp.connect;
-cp['disconnect'] = cp.disconnect;
-cp['on'] = cp.on;
-cp['off'] = cp.off;
-
 /**
  * Creates new `Error` from registery.
  *
@@ -582,17 +588,26 @@ exports.Message = Message;
 /**
  * Mini Logger
  *
+ * 0: off
+ * 1: performance
+ * 2: console.log
+ *
  * @type {Function}
  * @private
  */
-var debug = 0 ? function(arg1, ...args) {
-  var type = `[${self.constructor.name}][${location.pathname}]`;
-  console.log(`[Message]${type} - "${arg1}"`, ...args);
-} : () => {};
+var debug = {
+  0: () => {},
+  1: arg => performance.mark(`[${self.constructor.name}][Message] - ${arg}`),
+  2: (arg1, ...args) => {
+    var type = `[${self.constructor.name}][${location.pathname}]`;
+    console.log(`[Message]${type} - "${arg1}"`, ...args);
+  }
+}[0];
 
 /**
  * Default response timeout.
  * @type {Number}
+ * @private
  */
 var TIMEOUT = 1000;
 
@@ -627,9 +642,6 @@ Message.prototype = {
   setupInbound (e) {
     debug('inbound');
     this.hasResponded = false;
-
-    // When an Endpoint is created from an event
-    // target we know it's ready to recieve messages.
     this.setSourcePort(e.source || e.target);
 
     // Keep a reference to the MessageEvent
@@ -645,7 +657,7 @@ Message.prototype = {
     return this;
   },
 
-  set: function(key, value) {
+  set(key, value) {
     debug('set', key, value);
     if (typeof key == 'object') Object.assign(this, key);
     else this[key] = value;
@@ -673,7 +685,7 @@ Message.prototype = {
    * @param  {(Iframe|Window|Worker|MessagePort)} endpoint
    * @return {Promise}
    */
-  send: function(endpoint) {
+  send(endpoint) {
     debug('send', this.type);
     if (this.sent) throw error(1);
     var serialized = this.serialize();
@@ -767,7 +779,7 @@ Message.prototype = {
    *
    * @public
    */
-  cancel: function() {
+  cancel() {
     this.teardown();
     this.cancelled = true;
     this.emit('cancel');
@@ -790,7 +802,7 @@ Message.prototype = {
    * @public
    * @param  {*} [result] Data to send back with the response
    */
-  respond: function(result) {
+  respond(result) {
     debug('respond', result);
 
     if (this.hasResponded) throw error(2);
@@ -851,7 +863,7 @@ Message.prototype = {
    * @param  {(HTMLIframeElement|MessagePort|Window)} endpoint
    * @public
    */
-  forward: function(endpoint) {
+  forward(endpoint) {
     debug('forward');
     return this
       .set('silentTimeout', true)
@@ -875,16 +887,6 @@ Message.prototype = {
     this.emit('response', response);
   }
 };
-
-// Prevent ClosureCompiler
-// mangling public methods
-var mp = Message.prototype;
-mp['forward'] = mp.forward;
-mp['respond'] = mp.respond;
-mp['preventDefault'] = mp.preventDefault;
-mp['cancel'] = mp.cancel;
-mp['send'] = mp.send;
-mp['set'] = mp.set;
 
 // Mixin Emitter methods
 Emitter(Message.prototype);
@@ -925,7 +927,7 @@ Receiver.prototype = {
    * BroadcastChannel|Window|Object)} [thing]
    * @public
    */
-  listen: function(thing) {
+  listen(thing) {
     debug('listen');
     var _port = createPort(thing || self, { receiver: true });
     if (this.ports.has(_port)) return;
@@ -940,7 +942,7 @@ Receiver.prototype = {
    *
    * @public
    */
-  unlisten: function() {
+  unlisten() {
     debug('unlisten');
     this.ports.forEach(port => {
       port.removeListener(this.onMessage, this.unlisten);
@@ -983,11 +985,6 @@ Receiver.prototype = {
   }
 };
 
-var rp = Receiver.prototype;
-rp['listen'] = rp.listen;
-rp['unlisten'] = rp.unlisten;
-rp['destroy'] = rp.destroy;
-
 // Mixin Emitter methods
 Emitter(Receiver.prototype);
 
@@ -1017,11 +1014,14 @@ function error(id, ...args) {
 
 var deferred = require('../utils').deferred;
 
+/**
+ * Message event name
+ * @type {String}
+ */
 const MSG = 'message';
 
 /**
  * Mini Logger
- *
  * @type {Function}
  * @private
  */
@@ -1031,10 +1031,12 @@ var debug = 0 ? function(arg1, ...args) {
 } : () => {};
 
 /**
- * Creates a
- * @param  {[type]} target  [description]
- * @param  {[type]} options [description]
- * @return {[type]}         [description]
+ * Creates a bridge.js port abstraction
+ * with a consistent interface.
+ *
+ * @param  {Object} target
+ * @param  {Object} options
+ * @return {PortAdaptor}
  */
 module.exports = function create(target, options) {
   if (!target) throw error(1);
@@ -1064,7 +1066,7 @@ var PortAdaptorProto = PortAdaptor.prototype = {
 
 /**
  * A registry of specific adaptors
- * for which the default port-adaptor
+ * for when the default PortAdaptor
  * is not suitable.
  *
  * @type {Object}
@@ -1076,16 +1078,14 @@ var adaptors = {
    *
    * @param {HTMLIframeElement} iframe
    */
-  HTMLIFrameElement(iframe) {
+  'HTMLIFrameElement': function(iframe) {
     debug('HTMLIFrameElement');
     var ready = windowReady(iframe);
     return {
       addListener(callback, listen) { on(window, MSG, callback); },
       removeListener(callback, listen) { off(window, MSG, callback); },
       postMessage(data, transfer) {
-        ready.then(() => {
-          iframe.contentWindow.postMessage(data, '*', transfer);
-        });
+        ready.then(() => postMessageSync(iframe.contentWindow, data, transfer));
       }
     };
   },
@@ -1096,7 +1096,7 @@ var adaptors = {
    * @param {Object} channel
    * @param {[type]} options [description]
    */
-  BroadcastChannel(channel, options) {
+  'BroadcastChannel': function(channel, options) {
     debug('BroadcastChannel', channel.name);
     var receiver = options && options.receiver;
     var ready = options && options.ready;
@@ -1142,26 +1142,29 @@ var adaptors = {
     };
   },
 
-  Window(win, options) {
+  'Window': function(win, options) {
     debug('Window');
-    var ready = options && options.ready || win === self;
+    var ready = options && options.ready
+      || win === parent // parent always ready
+      || win === self; // self always ready
+
     ready = ready ? Promise.resolve() : windowReady(win);
 
     return {
       addListener(callback, listen) { on(window, MSG, callback); },
       removeListener(callback, listen) { off(window, MSG, callback); },
       postMessage(data, transfer) {
-        ready.then(() => win.postMessage(data, '*', transfer));
+        ready.then(() => postMessageSync(win, data, transfer));
       }
     };
   },
 
-  SharedWorker(worker) {
+  'SharedWorker': function(worker) {
     worker.port.start();
     return new PortAdaptor(worker.port);
   },
 
-  SharedWorkerGlobalScope() {
+  'SharedWorkerGlobalScope': function() {
     var ports = [];
 
     return {
@@ -1188,6 +1191,14 @@ var adaptors = {
   }
 };
 
+/**
+ * Return a Promise that resolves
+ * when a Window is ready to start
+ * recieving messages.
+ *
+ * @param  {Window} target
+ * @return {Promise}
+ */
 var windowReady = (function() {
   if (typeof window == 'undefined') return;
   var parent = window.opener || window.parent;
@@ -1199,7 +1210,7 @@ var windowReady = (function() {
   if (parent != self) {
     on(window, domReady, function fn() {
       off(window, domReady, fn);
-      parent.postMessage('load', '*');
+      postMessageSync(parent, 'load');
     });
   }
 
@@ -1242,6 +1253,29 @@ function on(target, name, fn) { target.addEventListener(name, fn); }
 function off(target, name, fn) { target.removeEventListener(name, fn); }
 
 /**
+ * Dispatches syncronous 'message'
+ * event on a Window.
+ *
+ * We use this because standard
+ * window.postMessage() gets blocked
+ * until the main-thread is free.
+ *
+ * @param  {Window} win
+ * @param  {*} data
+ * @private
+ */
+function postMessageSync(win, data, transfer) {
+  var event = {
+    data: data,
+    source: self
+  };
+
+  if (transfer) event.ports = transfer;
+
+  win.dispatchEvent(new MessageEvent('message', event));
+}
+
+/**
  * Creates new `Error` from registery.
  *
  * @param  {Number} id Error Id
@@ -1253,6 +1287,7 @@ function error(id) {
     1: 'target is undefined'
   }[id]);
 }
+
 },{"../utils":6}],6:[function(require,module,exports){
 'use strict';
 

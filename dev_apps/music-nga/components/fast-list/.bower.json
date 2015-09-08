@@ -25,11 +25,11 @@
   "dependencies": {
     "gaia-component": "gaia-components/gaia-component#~0.3.8"
   },
-  "_release": "1eb9e3f199",
+  "_release": "1c6761543f",
   "_resolution": {
     "type": "branch",
     "branch": "31-gaia-fast-list",
-    "commit": "1eb9e3f19975b05e88caa6a22a9a4ce5c5fc9b3f"
+    "commit": "1c6761543fe4dafb682235e5b9846d7a855cc6f8"
   },
   "_source": "git://github.com/wilsonpage/fast-list.git",
   "_target": "31-gaia-fast-list",
