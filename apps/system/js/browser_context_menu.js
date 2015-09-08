@@ -1,10 +1,12 @@
 /* global MozActivity, IconsHelper, LazyLoader */
-/* global applications, BaseModule */
+/* global applications, BaseModule, SettingsListener */
 
 (function(window) {
   'use strict';
 
   var _ = navigator.mozL10n.get;
+  const PINNING_PREF = 'dev.gaia.pinning_the_web';
+
   /**
    * The ContextMenu of the AppWindow.
    *
@@ -16,11 +18,13 @@
     this.app = app;
     this.containerElement = app.element;
     this.app.element.addEventListener('mozbrowsercontextmenu', this);
+    SettingsListener.observe(PINNING_PREF, '', this._setPinning.bind(this));
     return this;
   }
 
   BrowserContextMenu.SUB_MODULES = [
-    'ContextMenuView'
+    'ContextMenuView',
+    'PinPageSystemDialog'
   ];
 
   BaseModule.create(BrowserContextMenu, {
@@ -63,6 +67,10 @@
       evt.preventDefault();
       evt.stopPropagation();
       this.contextMenuView.show(items);
+    },
+
+    _setPinning: function(value) {
+      this.pinningEnabled = value;
     },
 
     _listItems: function(detail) {
@@ -113,6 +121,8 @@
     },
 
     hide: function() {
+      SettingsListener.unobserve(PINNING_PREF);
+
       if (!this.contextMenuView.isShown()) {
         return;
       }
@@ -143,6 +153,22 @@
       });
     },
 
+    _getSaveUrlItem: function(url, name) {
+      if (this.pinningEnabled) {
+        return {
+          id: 'pin-to-home-screen',
+          label: _('pin-to-home-screen'),
+          callback: this.pinUrl.bind(this, url)
+        };
+      }
+
+      return {
+        id: 'add-to-homescreen',
+        label: _('add-link-to-home-screen'),
+        callback: this.bookmarkUrl.bind(this, url, name)
+      };
+    },
+
     bookmarkUrl: function(url, name) {
       var favicons = this.app.favicons;
 
@@ -169,6 +195,31 @@
           });
         });
       }));
+    },
+
+    pinUrl: function(url) {
+      var data = {
+        type: 'url',
+        url: url,
+        iconable: false,
+        title: this.app.title,
+        themeColor: this.app.themeColor
+      };
+
+      this.app.getScreenshot(function() {
+        data.screenshot = this.app._screenshotBlob;
+        this.app.getSiteIconUrl()
+        .then(iconObject => {
+          if (iconObject) {
+            data.icon = iconObject.blob;
+          }
+          this.pinPageSystemDialog.show(data);
+        })
+        .catch((err) => {
+          this.app.debug('bookmarkUrl, error from getSiteIcon: %s', err);
+          this.pinPageSystemDialog.show(data);
+        });
+      }.bind(this));
     },
 
     newWindow: function(manifest, isPrivate) {
@@ -206,11 +257,9 @@
             id: 'open-in-new-private-window',
             label: _('open-in-new-private-window'),
             callback: this.openUrl.bind(this, uri, true)
-          }, {
-            id: 'bookmark-link',
-            label: _('add-link-to-home-screen'),
-            callback: this.bookmarkUrl.bind(this, uri, text)
-          }, {
+          },
+            this._getSaveUrlItem(uri, text),
+          {
             id: 'save-link',
             label: _('save-link'),
             callback: this.app.browser.element.download.bind(
@@ -286,11 +335,7 @@
           return;
         }
 
-        menuData.push({
-          id: 'add-to-homescreen',
-          label: _('add-to-home-screen'),
-          callback: this.bookmarkUrl.bind(this, config.url, name)
-        });
+        menuData.push(this._getSaveUrlItem(config.url, name));
 
         menuData.push({
           id: 'share',

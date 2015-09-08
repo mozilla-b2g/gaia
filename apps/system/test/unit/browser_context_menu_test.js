@@ -1,4 +1,4 @@
-/* global MocksHelper, MockL10n, AppWindow, BaseModule,
+/* global MocksHelper, MockL10n, AppWindow, BaseModule, SettingsListener,
           MockMozActivity, MozActivity, MockAppWindowHelper */
 
 'use strict';
@@ -14,10 +14,14 @@ require('/shared/test/unit/mocks/mock_moz_activity.js');
 require('/js/browser_config_helper.js');
 require('/js/service.js');
 require('/js/base_module.js');
+require('/shared/test/unit/mocks/mock_settings_listener.js');
 
 var mocksForAppModalDialog = new MocksHelper([
-  'AppWindow', 'MozActivity', 'LazyLoader', 'IconsHelper', 'ContextMenuView'
+  'AppWindow', 'MozActivity', 'LazyLoader', 'IconsHelper', 'ContextMenuView',
+  'SettingsListener'
 ]).init();
+
+const PINNING_PREF = 'dev.gaia.pinning_the_web';
 
 suite('system/BrowserContextMenu', function() {
   var stubById, realL10n, stubQuerySelector, realMozActivity;
@@ -202,6 +206,28 @@ suite('system/BrowserContextMenu', function() {
 
     md1.handleEvent(fakeContextMenuEvent);
     assert.isTrue(fakeContextMenuEvent.defaultPrevented);
+  });
+
+  suite('Pinning the web', function() {
+    setup(function() {
+      this.sinon.stub(SettingsListener, 'observe');
+      this.sinon.stub(SettingsListener, 'unobserve');
+    });
+
+    test('Subscribes to pinning preference on creation', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      var md1 = BaseModule.instantiate('BrowserContextMenu', app1);
+      md1.start();
+      assert.isTrue(SettingsListener.observe.calledWith(PINNING_PREF));
+    });
+
+    test('Ubsubscribes pinning preference on hide', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      var md1 = BaseModule.instantiate('BrowserContextMenu', app1);
+      md1.start();
+      md1.hide();
+      assert.isTrue(SettingsListener.unobserve.calledWith(PINNING_PREF));
+    });
   });
 
   test('Check that an empty context menu is not prevented', function() {

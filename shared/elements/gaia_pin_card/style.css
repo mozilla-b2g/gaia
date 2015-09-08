@@ -12,6 +12,7 @@
   line-height: normal;
   white-space: normal;
   box-shadow: 0 0.2rem 0.5rem rgba(0, 0, 0, 0.2);
+  font-size: 1.2rem;
 }
 
 .pin-card > * {
@@ -51,6 +52,8 @@
   top: 1.5rem;
   text-align: center;
   overflow: hidden;
+  font-size: 1.2rem;
+  white-space: normal;
 }
 
 .pin-card.no-content header {

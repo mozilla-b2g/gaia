@@ -136,7 +136,13 @@
    */
   SystemDialog.prototype.render = function sd_render() {
     this.generateID();
-    this.containerElement.insertAdjacentHTML('beforeend', this.view());
+    var container = this.containerElement;
+
+    // Only inserting once dialogs with same id
+    if (!document.getElementById(this.instanceID)) {
+      container.insertAdjacentHTML('beforeend', this.view());
+    }
+
     this._fetchElements();
     this._registerEvents();
     this.element = document.getElementById(this.instanceID);
