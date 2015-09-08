@@ -44,5 +44,12 @@
       "access": "readwrite",
       "description": "Stores bookmarks"
     }
+  },
+  "datastores-access": {
+    "places": {
+      "readonly": false,
+      "access": "readwrite",
+      "description": "View data about browsing history."
+    }
   }
 }

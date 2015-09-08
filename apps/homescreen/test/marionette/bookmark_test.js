@@ -29,7 +29,8 @@ marionette('Homescreen - Bookmark', function() {
     home.waitForLaunch();
   });
 
-  test('Bookmarking adds bookmark to homescreen', function() {
+  // Skip until we can pin Sites
+  test.skip('Bookmarking adds bookmark to homescreen', function() {
     var numIcons = home.visibleIcons.length;
     var url = server.url('sample.html');
 

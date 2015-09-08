@@ -31,7 +31,8 @@ marionette('Homescreen - Bookmark order', function() {
     home.waitForLaunch();
   });
 
-  test('Bookmark order is retained after restart', function() {
+  // Skip until we can pin Sites
+  test.skip('Bookmark order is retained after restart', function() {
     // This test is very similar to app_order_test, but as bookmarks are
     // sourced from a different database and initialised separately to apps,
     // we need to test that their metadata is also retained across homescreen
