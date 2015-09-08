@@ -150,9 +150,14 @@ form[role="dialog"][data-type="confirm"] menu button:last-child {
 **
 ** 1. Text in confirm dialog should not be selectable.
  */
+form[role="dialog"][data-type="confirm"] p:nth-child(2) {
+  margin: 1rem 0 0;
+  overflow: hidden;
+}
+
 form[role="dialog"][data-type="confirm"] p {
   word-wrap: break-word;
-  margin: 1rem 0 0;
+  margin: 0;
   padding: 1rem 1.5rem;
   border-top: 0.1rem solid #686868;
   line-height: 3rem;
@@ -167,11 +172,13 @@ form[role="dialog"][data-type="confirm"] p > span {
 }
 
 form[role="dialog"][data-type="confirm"] p img {
-  left: 2rem;
-  right: auto;
+  float: left;
+  margin-right: 2rem;
 }
 
 form[role="dialog"][data-type="confirm"] p strong {
+  display: block;
+  margin-top: 0.2rem;
   font-weight: 300;
 }
 
@@ -268,8 +275,9 @@ html[dir="rtl"] form[role="dialog"][data-type="confirm"]:before {
 }
 
 html[dir="rtl"] form[role="dialog"][data-type="confirm"] p img {
-  right: 2rem;
-  left: auto;
+  float: right;
+  margin-right: 0;
+  margin-left: 2rem;
 }
 
 html[dir="rtl"] form[role="dialog"][data-type="confirm"] dl > dt {
