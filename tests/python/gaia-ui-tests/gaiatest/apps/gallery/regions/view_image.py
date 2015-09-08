@@ -37,7 +37,7 @@ class ViewImage(Base):
     def tap_back_button(self):
         header = self.marionette.find_element(*self._header_locator)
         # TODO: replace this condition with tap on the back button, after Bug 1061698 is fixed
-        header.tap(x=20)
+        self.tap_element_from_system_app(header, x=20)
 
         # wait for the frame to close
         Wait(self.marionette).until(lambda m: self.apps.displayed_app.name != 'Gallery')
