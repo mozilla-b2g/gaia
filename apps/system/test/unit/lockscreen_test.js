@@ -239,6 +239,65 @@ suite('system/LockScreen >', function() {
     assert.isTrue(mockThis.refreshClock.called);
   });
 
+  suite('Pass code validation >', function() {
+
+    setup(function() {
+      subject.init();
+    });
+
+    test('validation fail increases error count and timeout', function() {
+      subject.kPassCodeErrorCounter = 20;
+      var oldTimeout = 1;
+      subject.kPassCodeErrorTimeout = oldTimeout;
+      subject.overlay.dataset.passcodeStatus = 'foofoo';
+      subject.onPasscodeValidationFailed();
+      assert.isTrue(subject.kPassCodeErrorTimeout > oldTimeout,
+        'validation fail does not increase error timeout');
+      assert.isTrue(subject.kPassCodeErrorCounter == 21,
+        'validation fail does not increase error counter');
+      assert.isTrue(subject.overlay.dataset.passcodeStatus !== 'foofoo',
+        'validation fail does not change pass code error status');
+    });
+
+    test('validation success resets error count and timeout', function() {
+      subject.kPassCodeErrorCounter = 20;
+      var oldTimeout = 100000;
+      subject.kPassCodeErrorTimeout = oldTimeout;
+      subject.onPasscodeValidationSuccess();
+      assert.isTrue(subject.kPassCodeErrorTimeout < oldTimeout/10,
+        'validation success does not reset error timeout');
+      assert.isTrue(subject.kPassCodeErrorCounter === 0,
+        'validation success does not reset error counter');
+    });
+
+    test('validation fail triggers validationfailed/reset events', function() {
+      subject.enabled = true;
+      subject.lock();
+      subject.kPassCodeErrorCounter = 0;
+      subject.kPassCodeErrorTimeout = 1;
+      var stubDispatch = this.sinon.stub(window, 'dispatchEvent');
+      // Force setTimeout to run in sync
+      var setTimeoutStub = this.sinon.stub(window, 'setTimeout', function(f){
+        f();
+      });
+      subject.onPasscodeValidationFailed();
+      assert.isTrue(stubDispatch.firstCall.calledWithMatch(sinon.match(
+          function(e) {
+            return e.type ===
+              'lockscreen-notify-passcode-validationfailed';
+          })),
+        'validation fail does not trigger validationfailed as 1st event');
+      assert.isTrue(stubDispatch.secondCall.calledWithMatch(sinon.match(
+          function(e) {
+            return e.type ===
+              'lockscreen-notify-passcode-validationreset';
+          })),
+        'validation fail does not trigger validationreset as 2nd event');
+      stubDispatch.restore();
+      setTimeoutStub.restore();
+    });
+  });
+
   suite('Charging status updates', function() {
     test('When lockscreen is on, start charging status updates', function() {
       var spy = this.sinon.spy(subject.chargingStatus, 'start');
