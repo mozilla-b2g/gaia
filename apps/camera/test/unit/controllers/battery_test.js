@@ -49,8 +49,33 @@ suite('controllers/battery', function() {
     // Shortcuts
     this.notification = this.app.views.notification;
 
+    // Keep reference of
+    // things we want to restore
+    this.backup = {
+      mozSettings: navigator.mozSettings
+    };
+
+    // Mock object that mimicks
+    // mozSettings get API. Inside
+    // tests set this.mozSettingsGetResult
+    // define the result of the mock call.
+    navigator.mozSettings = {
+      createLock: function() { return this; },
+      get: sinon.stub(),
+      set: sinon.stub(),
+      addObserver: sinon.stub()
+    };
+
+    navigator.mozSettings.get.withArgs('powersave.enabled').returns(
+      Promise.resolve({'powersave.enabled': false})
+    );
+
     // Our test instance
     this.controller = new this.BatteryController(this.app);
+  });
+
+  teardown(function() {
+    navigator.mozSettings = this.backup.mozSettings;
   });
 
   suite('BatteryController()', function() {
@@ -58,10 +83,15 @@ suite('controllers/battery', function() {
       assert.ok(this.app.on.calledWith('change:batteryStatus'));
       assert.ok(this.app.battery.addEventListener.calledWith('levelchange'));
       assert.ok(this.app.battery.addEventListener.calledWith('chargingchange'));
+      assert.ok(navigator.mozSettings.addObserver.calledWith('powersave.enabled'));
     });
 
     test('Should update the status initially', function() {
       assert.ok(this.app.set.calledWith('batteryStatus', 'healthy'));
+    });
+
+    test('Should query power save state', function() {
+      assert.ok(navigator.mozSettings.get.calledWith('powersave.enabled'));
     });
   });
 
@@ -166,6 +196,16 @@ suite('controllers/battery', function() {
     test('Should always clear the last notification', function() {
       this.controller.onStatusChange('low');
       assert.isTrue(this.notification.clear.called);
+    });
+  });
+
+  suite('BatteryController#onPowerSaveChange()', function() {
+    setup(function() {
+      this.controller.onPowerSaveChange({settingValue: 'result'});
+    });
+
+    test('Should emit `battery:powersave`', function() {
+      assert.ok(this.app.emit.calledWith('battery:powersave', 'result'));
     });
   });
 });

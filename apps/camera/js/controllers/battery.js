@@ -42,6 +42,27 @@ BatteryController.prototype.bindEvents = function() {
   bind(this.battery, 'levelchange', this.updateStatus);
   bind(this.battery, 'chargingchange', this.updateStatus);
   this.app.on('change:batteryStatus', this.onStatusChange);
+
+  var mozSettings = navigator.mozSettings;
+  mozSettings.addObserver('powersave.enabled', this.onPowerSaveChange);
+  mozSettings.createLock().get('powersave.enabled').then(
+    this.onPowerSaveChange);
+};
+
+/**
+ * Callback from settings when the power save state changes.
+ *
+ * @private
+ */
+BatteryController.prototype.onPowerSaveChange = function(values) {
+  var value;
+  if (values.settingValue !== undefined) {
+    value = values.settingValue;
+  } else {
+    value = values['powersave.enabled'];
+  }
+  debug('power save: ' + value);
+  this.app.emit('battery:powersave', value);
 };
 
 /**
