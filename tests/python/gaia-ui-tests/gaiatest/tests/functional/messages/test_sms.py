@@ -17,26 +17,16 @@ class TestSms(GaiaTestCase):
         """
         _text_message_content = "Automated Test %s" % str(time.time())
 
-        # launch the app
         self.messages = Messages(self.marionette)
         self.messages.launch()
 
-        # click new message
-        new_message = self.messages.tap_create_new_message()
-        new_message.type_phone_number(self.environment.phone_numbers[0])
-
-        new_message.type_message(_text_message_content)
-
-        #click send
+        new_message = self.messages.create_new_message(recipients=[self.environment.phone_numbers[0]],
+                                                       message=_text_message_content)
         self.message_thread = new_message.tap_send()
         self.message_thread.wait_for_received_messages()
 
-        # get the most recent listed and most recent received text message
         last_received_message = self.message_thread.received_messages[-1]
         last_message = self.message_thread.all_messages[-1]
 
-        # Check the most recent received message has the same text content
         self.assertEqual(_text_message_content, last_received_message.text)
-
-        # Check that most recent message is also the most recent received message
         self.assertEqual(last_received_message.id, last_message.id)

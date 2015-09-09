@@ -24,6 +24,7 @@ class NewMessage(Messages):
     _subject_input_locator = (By.CSS_SELECTOR, '.subject-composer-input')
     _image_attachment_locator = (By.CSS_SELECTOR, '.attachment-container.preview')
     _recipients_locator = (By.CSS_SELECTOR, '#messages-recipients-list span')
+    _header_locator = (By.ID, 'messages-header')
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
@@ -140,3 +141,17 @@ class NewMessage(Messages):
     @property
     def has_attachment(self):
         return self.is_element_displayed(*self._image_attachment_locator)
+
+    def save_as_draft(self):
+        draft_options = self.go_back()
+        messages = draft_options.save()
+        messages.wait_for_banner_to_hide()
+        return messages
+
+    def go_back(self):
+        el = self.marionette.find_element(*self._header_locator)
+        Wait(self.marionette).until(expected.element_displayed(el))
+        # TODO: remove tap with coordinates after Bug 1061698 is fixed
+        el.tap(25, 25)
+        from gaiatest.apps.messages.regions.options import DraftOptions
+        return DraftOptions(self.marionette)
