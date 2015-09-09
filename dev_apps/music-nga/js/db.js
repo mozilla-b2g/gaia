@@ -319,13 +319,21 @@ var Database = (function() {
   }
 
   function incrementPlayCount(fileinfo) {
-    fileinfo.metadata.played++;
-    musicdb.updateMetadata(fileinfo.name, {played: fileinfo.metadata.played});
+    return new Promise((resolve) => {
+      fileinfo.metadata.played++;
+      musicdb.updateMetadata(fileinfo.name, {
+        played: fileinfo.metadata.played
+      }, resolve);
+    });
   }
 
   function setSongRating(fileinfo, rated) {
-    fileinfo.metadata.rated = rated;
-    musicdb.updateMetadata(fileinfo.name, {rated: fileinfo.metadata.rated});
+    return new Promise((resolve) => {
+      fileinfo.metadata.rated = rated;
+      musicdb.updateMetadata(fileinfo.name, {
+        rated: fileinfo.metadata.rated
+      }, resolve);
+    });
   }
 
   function getFile(fileinfo, decrypt = false) {
