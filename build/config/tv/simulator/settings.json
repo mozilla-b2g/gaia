@@ -179,7 +179,7 @@
                  {"eventId":"136382033","title":"Information Program",	"startTime":"1431216000",	"duration":"7200",	"description":"Information Program",	"rating":"0",	"audioLanguages":["eng"],	"subtitleLanguages":["eng"]},
                  {"eventId":"609470770","title":"Cooking",	"startTime":"1431223200",	"duration":"3600",	"description":"Today's Cooking",	"rating":"0",	"audioLanguages":["eng"],	"subtitleLanguages":["eng"]},
                  {"eventId":"898683475","title":"Travel Program",	"startTime":"1431226800",	"duration":"7200",	"description":"Travel Program",	"rating":"0",	"audioLanguages":["eng"],	"subtitleLanguages":["eng"]},
-                 {"eventId":"722995606","title":"",	"startTime":"1431234000",	"duration":"7200",	"description":"World Golf",	"rating":"0",	"audioLanguages":["eng"],	"subtitleLanguages":["eng"]},
+                 {"eventId":"722995606","title":"Golf",	"startTime":"1431234000",	"duration":"7200",	"description":"World Golf",	"rating":"0",	"audioLanguages":["eng"],	"subtitleLanguages":["eng"]},
                  {"eventId":"284154504","title":"Television drama",	"startTime":"1431241200",	"duration":"3600",	"description":"Movie season 6",	"rating":"0",	"audioLanguages":["eng"],	"subtitleLanguages":["eng"]},
                  {"eventId":"939817891","title":"News of Afternoon",	"startTime":"1431244800",	"duration":"7200",	"description":"Provide Today's News",	"rating":"0",	"audioLanguages":["eng"],	"subtitleLanguages":["eng"]},
                  {"eventId":"180794533","title":"Educational Program",	"startTime":"1431252000",	"duration":"3600",	"description":"Educational program。",	"rating":"0",	"audioLanguages":["eng"],	"subtitleLanguages":["eng"]},
