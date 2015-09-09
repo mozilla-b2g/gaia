@@ -55,16 +55,6 @@ class CellData(Base):
         element.tap()
         return self.data_prompt
 
-    # this method is for imagecompare tests only.  Since CellDataPrompt is a subclass of PageRegion, taking screeshot
-    # within the dialog will make the root_element stale.  For non-imagecompare tests, use CellDataPrompt.turn_on()
-    def tap_ok_on_prompt(self):
-        _dialog_locator = (By.CSS_SELECTOR, '#settings-confirm-dialog')
-        _button_locator = (By.CSS_SELECTOR, 'button[data-l10n-id="turnOn"]')
-
-        self.marionette.find_element(*_button_locator).tap()
-        Wait(self.marionette).until(lambda m: self.marionette.find_element(*_dialog_locator).rect['width'] == 0)
-        Wait(self.marionette).until(expected.element_displayed(*self._cell_data_enabled_label_locator))
-
     def tap_sim_1_setting(self):
         element = Wait(self.marionette).until(
             expected.element_present(*self._sim_1_settings_locator))
