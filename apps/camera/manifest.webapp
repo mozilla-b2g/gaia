@@ -13,7 +13,7 @@
     "themeable":{},
     "device-storage:pictures":{ "access": "readwrite" },
     "device-storage:videos":{ "access": "readwrite" },
-    "settings":{ "access": "readonly" },
+    "settings":{ "access": "readwrite" },
     "camera":{},
     "geolocation":{},
     "audio-channel-notification":{},

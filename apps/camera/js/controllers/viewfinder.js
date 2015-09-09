@@ -137,6 +137,9 @@ ViewfinderController.prototype.bindEvents = function() {
   this.app.settings.grid.on('change:selected',
     this.views.viewfinder.setter('grid'));
 
+  // Battery
+  this.app.on('battery:powersave', this.onPowerSave);
+
   // App
   this.app.on('pinch:changed', this.onPinchChanged);
   this.app.on('hidden', this.stopStream);
@@ -277,6 +280,10 @@ ViewfinderController.prototype.loadStream = function() {
 ViewfinderController.prototype.stopStream = function() {
   this.views.viewfinder.stopStream();
   debug('stream stopped');
+};
+
+ViewfinderController.prototype.onPowerSave = function(powerSave) {
+  this.views.viewfinder.els.video.mozUseScreenWakeLock = !powerSave;
 };
 
 /**

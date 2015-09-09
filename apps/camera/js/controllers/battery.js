@@ -23,9 +23,12 @@ module.exports.BatteryController = BatteryController;
  */
 function BatteryController(app) {
   bindAll(this);
+  this.powerSave = false;
   this.app = app;
   this.battery = app.battery || navigator.battery || navigator.mozBattery;
   this.levels = app.settings.battery.get('levels');
+  this.powerSaveScreenTimeout =
+    this.app.settings.battery.get('powerSaveScreenTimeout');
   this.notification = app.views.notification;
   this.bindEvents();
   this.updateStatus();
@@ -41,6 +44,84 @@ BatteryController.prototype.bindEvents = function() {
   bind(this.battery, 'levelchange', this.updateStatus);
   bind(this.battery, 'chargingchange', this.updateStatus);
   this.app.on('change:batteryStatus', this.onStatusChange);
+  this.app.on('camera:configured', this.updateScreenTimeout);
+  this.app.on('camera:previewactive', this.onPreviewActive);
+
+  var mozSettings = navigator.mozSettings;
+  mozSettings.addObserver('powersave.enabled', this.onPowerSaveChange);
+  mozSettings.createLock().get('powersave.enabled').then(
+    this.onPowerSaveChange);
+};
+
+BatteryController.prototype.onPowerSaveChange = function(values) {
+  var value;
+  if (typeof(values.settingValue) !== 'undefined') {
+    value = values.settingValue;
+  } else {
+    value = values['powersave.enabled'];
+  }
+  this.powerSave = value;
+  debug('power save ' + value);
+  this.updateScreenTimeout();
+  this.app.emit('battery:powersave', value);
+};
+
+BatteryController.prototype.onPreviewActive = function(state) {
+  if (!state) {
+    this.restoreScreenTimeout();
+  }
+};
+
+/**
+ * Restore the screen timeout to the original value before
+ * the camera was opened and power save mode was entered.
+ *
+ * @private
+ */
+BatteryController.prototype.restoreScreenTimeout = function() {
+  this.cachingScreenTimeout = false;
+  if (typeof(this.cachedScreenTimeout) === 'undefined') { return; }
+  debug('restore screen timeout %d', this.cachedScreenTimeout);
+  navigator.mozSettings.createLock().set({
+    'screen.timeout': this.cachedScreenTimeout
+  });
+  delete this.cachedScreenTimeout;
+};
+
+/**
+ * If in power save mode, change the screen timeout to the
+ * app-specific screen timeout, otherwise restore it to the
+ * original timeout period.
+ *
+ * @private
+ */
+BatteryController.prototype.updateScreenTimeout = function() {
+  if (this.app.hidden ||
+      typeof(this.powerSaveScreenTimeout) === 'undefined') {
+    return;
+  }
+
+  if (this.powerSave) {
+    if (typeof(this.cachedScreenTimeout) !== 'undefined' ||
+        this.cachingScreenTimeout) { return; }
+    this.cachingScreenTimeout = true;
+    var mozSettings = navigator.mozSettings;
+    mozSettings.createLock().get('screen.timeout').then(values => {
+      if (this.app.hidden ||
+          !this.cachingScreenTimeout) { return; }
+      var value = values['screen.timeout'];
+      if (value !== this.powerSaveScreenTimeout) {
+        debug('save screen timeout %d, set %d',
+              value, this.powerSaveScreenTimeout);
+        this.cachedScreenTimeout = value;
+        mozSettings.createLock().set({
+          'screen.timeout': this.powerSaveScreenTimeout
+        });
+      }
+    });
+  } else {
+    this.restoreScreenTimeout();
+  }
 };
 
 /**
