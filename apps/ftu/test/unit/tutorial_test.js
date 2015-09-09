@@ -86,9 +86,11 @@ suite('Tutorial >', function() {
   });
 
   suite(' lifecycle', function() {
-    teardown(function() {
-      Tutorial.reset();
-      document.getElementById('tutorial').classList.remove('show');
+    teardown(function(done) {
+      Tutorial.reset().then(() => {
+        document.getElementById('tutorial').classList.remove('show');
+        done();
+      });
     });
 
     test('reset', function(done) {
@@ -97,10 +99,14 @@ suite('Tutorial >', function() {
         Tutorial.init();
         //
         assert.ok(Tutorial.config);
-        Tutorial.reset();
-        assert.ok(!Tutorial.config);
+      }
+      function reset() {
+        return Tutorial.reset().then(() => {
+          assert.ok(!Tutorial.config);
+        });
       }
       Tutorial.loadConfig().then(onOutcome, onOutcome)
+                           .then(reset, reset)
                            .then(done, done);
     });
 
@@ -178,14 +184,14 @@ suite('Tutorial >', function() {
   suite(' post-init', function() {
     var getJSONStub;
     suiteSetup(function(done) {
-      Tutorial.reset();
+      Tutorial.reset().then(() => {
+        getJSONStub = sinon.stub(LazyLoader, 'getJSON')
+                           .returns(Promise.resolve(mockConfig(3)));
 
-      getJSONStub = sinon.stub(LazyLoader, 'getJSON')
-                         .returns(Promise.resolve(mockConfig(3)));
-
-      Tutorial.init();
-      Tutorial.start(function() {
-        done();
+        Tutorial.init();
+        Tutorial.start(function() {
+          done();
+        });
       });
     });
 
