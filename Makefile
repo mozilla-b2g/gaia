@@ -619,6 +619,12 @@ endif
 
 profile-dir:
 	@test -d $(PROFILE_FOLDER) || mkdir -p $(PROFILE_FOLDER)
+ifeq ($(GAIA_DEVICE_TYPE), tv)
+	@test -d $(PROFILE_FOLDER)/dummy || mkdir -p $(PROFILE_FOLDER)/dummy
+	@cp $(GAIA_DIR)/build/config/tv/simulator/settings.json $(PROFILE_FOLDER)/dummy/
+	@cp $(GAIA_DIR)/build/config/tv/simulator/tv1.ogv $(PROFILE_FOLDER)/dummy/
+	@cp $(GAIA_DIR)/build/config/tv/simulator/tv2.ogv $(PROFILE_FOLDER)/dummy/
+endif
 
 # Copy preload contacts to profile
 contacts: profile-dir
