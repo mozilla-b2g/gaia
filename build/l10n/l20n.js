@@ -187,6 +187,10 @@ module.exports =
 
 	  View.prototype.disconnect = function disconnect() {};
 
+	  View.prototype._resolveEntity = function _resolveEntity(langs, id, args) {
+	    return this.ctx.resolveEntity(langs, id, args);
+	  };
+
 	  View.prototype.translateDocument = function translateDocument(code) {
 	    var _this = this;
 
@@ -387,32 +391,47 @@ module.exports =
 	  var args = elem.getAttribute('data-l10n-args');
 
 	  if (!args) {
-	    return view.ctx.resolve(langs, id);
+	    return view._resolveEntity(langs, id);
 	  }
 
-	  return view.ctx.resolve(langs, id, JSON.parse(args.replace(reHtml, function (match) {
+	  return view._resolveEntity(langs, id, JSON.parse(args.replace(reHtml, function (match) {
 	    return htmlEntities[match];
 	  })));
+	}
+
+	function translateElement(view, langs, elem) {
+	  return getElementTranslation(view, langs, elem).then(function (translation) {
+	    return applyTranslation(view, elem, translation);
+	  });
 	}
 
 	function translateElements(view, langs, elements) {
 	  return Promise.all(elements.map(function (elem) {
 	    return getElementTranslation(view, langs, elem);
 	  })).then(function (translations) {
-	    return _overlay.applyTranslations(view, elements, translations);
+	    return applyTranslations(view, elements, translations);
 	  });
 	}
 
-	function translateElement(view, langs, elem) {
-	  return getElementTranslation(view, langs, elem).then(function (translation) {
-	    if (!translation) {
-	      return false;
-	    }
+	function applyTranslation(view, elem, translation) {
+	  if (!translation) {
+	    return false;
+	  }
 
-	    view.disconnect();
-	    _overlay.applyTranslation(view, elem, translation);
-	    view.observe();
-	  });
+	  view.disconnect();
+	  _overlay.overlayElement(elem, translation);
+	  view.observe();
+	}
+
+	function applyTranslations(view, elems, translations) {
+	  view.disconnect();
+	  for (var i = 0; i < elems.length; i++) {
+	    if (translations[i] === false) {
+	      continue;
+	    }
+	    _overlay.overlayElement(elems[i], translations[i]);
+	  }
+	  view.observe();
 	}
 
 /***/ },
@@ -422,8 +441,7 @@ module.exports =
 	'use strict';
 
 	exports.__esModule = true;
-	exports.applyTranslations = applyTranslations;
-	exports.applyTranslation = applyTranslation;
+	exports.overlayElement = overlayElement;
 
 	var reOverlay = /<|&#?\w+;/;
 
@@ -446,18 +464,7 @@ module.exports =
 	  }
 	};
 
-	function applyTranslations(view, elements, translations) {
-	  view.disconnect();
-	  for (var i = 0; i < elements.length; i++) {
-	    if (translations[i] === false) {
-	      continue;
-	    }
-	    applyTranslation(view, elements[i], translations[i]);
-	  }
-	  view.observe();
-	}
-
-	function applyTranslation(view, element, translation) {
+	function overlayElement(element, translation) {
 	  var value = translation.value;
 
 	  if (typeof value === 'string') {
@@ -467,7 +474,7 @@ module.exports =
 	      var tmpl = element.ownerDocument.createElement('template');
 	      tmpl.innerHTML = value;
 
-	      overlayElement(element, tmpl.content);
+	      overlay(element, tmpl.content);
 	    }
 	  }
 
@@ -479,7 +486,7 @@ module.exports =
 	  }
 	}
 
-	function overlayElement(sourceElement, translationElement) {
+	function overlay(sourceElement, translationElement) {
 	  var result = translationElement.ownerDocument.createDocumentFragment();
 	  var k = undefined,
 	      attr = undefined;
@@ -496,14 +503,14 @@ module.exports =
 	    var index = getIndexOfType(childElement);
 	    var sourceChild = getNthElementOfType(sourceElement, childElement, index);
 	    if (sourceChild) {
-	      overlayElement(sourceChild, childElement);
+	      overlay(sourceChild, childElement);
 	      result.appendChild(sourceChild);
 	      continue;
 	    }
 
 	    if (isElementAllowed(childElement)) {
 	      var sanitizedChild = childElement.ownerDocument.createElement(childElement.nodeName);
-	      overlayElement(sanitizedChild, childElement);
+	      overlay(sanitizedChild, childElement);
 	      result.appendChild(sanitizedChild);
 	      continue;
 	    }
@@ -640,62 +647,84 @@ module.exports =
 	  return newValue;
 	}
 
-	var reAlphas = /[a-zA-Z]/g;
-	var reVowels = /[aeiouAEIOU]/g;
+	function createGetter(id, name) {
+	  var _pseudo = null;
 
-	var ACCENTED_MAP = 'ȦƁƇḒḖƑƓĦĪ' + 'ĴĶĿḾȠǾƤɊŘ' + 'ŞŦŬṼẆẊẎẐ' + '[\\]^_`' + 'ȧƀƈḓḗƒɠħī' + 'ĵķŀḿƞǿƥɋř' + 'şŧŭṽẇẋẏẑ';
-
-	var FLIPPED_MAP = '∀ԐↃpƎɟפHIſ' + 'Ӽ˥WNOԀÒᴚS⊥∩Ʌ' + 'ＭXʎZ' + '[\\]ᵥ_,' + 'ɐqɔpǝɟƃɥıɾ' + 'ʞʅɯuodbɹsʇnʌʍxʎz';
-
-	function makeLonger(val) {
-	  return val.replace(reVowels, function (match) {
-	    return match + match.toLowerCase();
-	  });
-	}
-
-	function replaceChars(map, val) {
-	  return val.replace(reAlphas, function (match) {
-	    return map.charAt(match.charCodeAt(0) - 65);
-	  });
-	}
-
-	var reWords = /[^\W0-9_]+/g;
-
-	function makeRTL(val) {
-	  return val.replace(reWords, function (match) {
-	    return '‮' + match + '‬';
-	  });
-	}
-
-	var reExcluded = /(%[EO]?\w|\{\s*.+?\s*\}|&[#\w]+;|<\s*.+?\s*>)/;
-
-	function mapContent(fn, val) {
-	  if (!val) {
-	    return val;
-	  }
-
-	  var parts = val.split(reExcluded);
-	  var modified = parts.map(function (part) {
-	    if (reExcluded.test(part)) {
-	      return part;
+	  return function getPseudo() {
+	    if (_pseudo) {
+	      return _pseudo;
 	    }
-	    return fn(part);
-	  });
-	  return modified.join('');
+
+	    var reAlphas = /[a-zA-Z]/g;
+	    var reVowels = /[aeiouAEIOU]/g;
+	    var reWords = /[^\W0-9_]+/g;
+
+	    var reExcluded = /(%[EO]?\w|\{\s*.+?\s*\}|&[#\w]+;|<\s*.+?\s*>)/;
+
+	    var charMaps = {
+	      'qps-ploc': 'ȦƁƇḒḖƑƓĦĪ' + 'ĴĶĿḾȠǾƤɊŘ' + 'ŞŦŬṼẆẊẎẐ' + '[\\]^_`' + 'ȧƀƈḓḗƒɠħī' + 'ĵķŀḿƞǿƥɋř' + 'şŧŭṽẇẋẏẑ',
+
+	      'qps-plocm': '∀ԐↃpƎɟפHIſ' + 'Ӽ˥WNOԀÒᴚS⊥∩Ʌ' + 'ＭXʎZ' + '[\\]ᵥ_,' + 'ɐqɔpǝɟƃɥıɾ' + 'ʞʅɯuodbɹsʇnʌʍxʎz'
+	    };
+
+	    var mods = {
+	      'qps-ploc': function (val) {
+	        return val.replace(reVowels, function (match) {
+	          return match + match.toLowerCase();
+	        });
+	      },
+
+	      'qps-plocm': function (val) {
+	        return val.replace(reWords, function (match) {
+	          return '‮' + match + '‬';
+	        });
+	      }
+	    };
+
+	    var replaceChars = function (map, val) {
+	      return val.replace(reAlphas, function (match) {
+	        return map.charAt(match.charCodeAt(0) - 65);
+	      });
+	    };
+
+	    var tranform = function (val) {
+	      return replaceChars(charMaps[id], mods[id](val));
+	    };
+
+	    var apply = function (fn, val) {
+	      if (!val) {
+	        return val;
+	      }
+
+	      var parts = val.split(reExcluded);
+	      var modified = parts.map(function (part) {
+	        if (reExcluded.test(part)) {
+	          return part;
+	        }
+	        return fn(part);
+	      });
+	      return modified.join('');
+	    };
+
+	    return _pseudo = {
+	      translate: function (val) {
+	        return apply(tranform, val);
+	      },
+	      name: tranform(name)
+	    };
+	  };
 	}
 
-	function Pseudo(id, name, charMap, modFn) {
-	  this.id = id;
-	  this.translate = mapContent.bind(null, function (val) {
-	    return replaceChars(charMap, modFn(val));
-	  });
-	  this.name = this.translate(name);
-	}
-
-	var qps = {
-	  'qps-ploc': new Pseudo('qps-ploc', 'Runtime Accented', ACCENTED_MAP, makeLonger),
-	  'qps-plocm': new Pseudo('qps-plocm', 'Runtime Mirrored', FLIPPED_MAP, makeRTL)
-	};
+	var qps = Object.defineProperties(Object.create(null), {
+	  'qps-ploc': {
+	    enumerable: true,
+	    get: createGetter('qps-ploc', 'Runtime Accented')
+	  },
+	  'qps-plocm': {
+	    enumerable: true,
+	    get: createGetter('qps-plocm', 'Runtime Mirrored')
+	  }
+	});
 	exports.qps = qps;
 
 /***/ },
@@ -849,9 +878,9 @@ module.exports =
 	  };
 
 	  Context.prototype._formatEntity = function _formatEntity(lang, args, entity, id) {
-	    var _formatTuple$call = this._formatTuple.call(this, lang, args, entity, id);
+	    var _formatTuple2 = this._formatTuple(lang, args, entity, id);
 
-	    var value = _formatTuple$call[1];
+	    var value = _formatTuple2[1];
 
 	    var formatted = {
 	      value: value,
@@ -861,15 +890,19 @@ module.exports =
 	    if (entity.attrs) {
 	      formatted.attrs = Object.create(null);
 	      for (var key in entity.attrs) {
-	        var _formatTuple$call2 = this._formatTuple.call(this, lang, args, entity.attrs[key], id, key);
+	        var _formatTuple3 = this._formatTuple(lang, args, entity.attrs[key], id, key);
 
-	        var attrValue = _formatTuple$call2[1];
+	        var attrValue = _formatTuple3[1];
 
 	        formatted.attrs[key] = attrValue;
 	      }
 	    }
 
 	    return formatted;
+	  };
+
+	  Context.prototype._formatValue = function _formatValue(lang, args, entity, id) {
+	    return this._formatTuple(lang, args, entity, id)[1];
 	  };
 
 	  Context.prototype.fetch = function fetch(langs) {
@@ -882,27 +915,39 @@ module.exports =
 	    });
 	  };
 
-	  Context.prototype.resolve = function resolve(langs, id, args) {
+	  Context.prototype._resolve = function _resolve(langs, id, args, formatter) {
 	    var _this = this;
 
 	    var lang = langs[0];
 
 	    if (!lang) {
 	      this._env.emit('notfounderror', new _errors.L10nError('"' + id + '"' + ' not found in any language', id), this);
-	      return { value: id, attrs: null };
+	      if (formatter === this._formatEntity) {
+	        return { value: id, attrs: null };
+	      } else {
+	        return id;
+	      }
 	    }
 
 	    var entity = this._getEntity(lang, id);
 
 	    if (entity) {
-	      return Promise.resolve(this._formatEntity(lang, args, entity, id));
+	      return Promise.resolve(formatter.call(this, lang, args, entity, id));
 	    } else {
 	      this._env.emit('notfounderror', new _errors.L10nError('"' + id + '"' + ' not found in ' + lang.code, id, lang), this);
 	    }
 
 	    return this.fetch(langs.slice(1)).then(function (nextLangs) {
-	      return _this.resolve(nextLangs, id, args);
+	      return _this._resolve(nextLangs, id, args, formatter);
 	    });
+	  };
+
+	  Context.prototype.resolveEntity = function resolveEntity(langs, id, args) {
+	    return this._resolve(langs, id, args, this._formatEntity);
+	  };
+
+	  Context.prototype.resolveValue = function resolveValue(langs, id, args) {
+	    return this._resolve(langs, id, args, this._formatValue);
 	  };
 
 	  Context.prototype._getEntity = function _getEntity(lang, id) {
