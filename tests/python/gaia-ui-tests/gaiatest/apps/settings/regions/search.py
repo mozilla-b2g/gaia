@@ -37,4 +37,3 @@ class Search(Base):
         element = Wait(self.marionette).until(
             expected.element_present(*self._search_selector_locator))
         Wait(self.marionette).until(expected.element_displayed(element))
-

@@ -36,7 +36,7 @@ class CellData(Base):
     def screen_element(self):
         return self.marionette.find_element(*self._page_locator)
 
-    # workaround for elements within CellDataPrompt going stale
+    # workaround for elements within CellDataPrompt going stale (Bug 1202246)
     @property
     def data_prompt(self):
         return CellDataPrompt(self.marionette)
@@ -64,11 +64,13 @@ class CellData(Base):
 
     @property
     def is_data_toggle_checked(self):
-        return self.marionette.find_element(*self._cell_data_enabled_input_locator).is_selected()
+        return self.marionette.find_element(
+            *self._cell_data_enabled_input_locator).is_selected()
 
     @property
     def is_roaming_toggle_checked(self):
-        return self.marionette.find_element(*self._data_roaming_enabled_input_locator).is_selected()
+        return self.marionette.find_element(
+            *self._data_roaming_enabled_input_locator).is_selected()
 
 
 class CellDataDualSim(CellData):

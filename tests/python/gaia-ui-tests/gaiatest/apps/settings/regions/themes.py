@@ -10,7 +10,12 @@ from gaiatest.apps.base import Base
 class Themes(Base):
 
     _page_locator = (By.ID, 'themes')
+    _back_btn_locator = (By.CSS_SELECTOR, '#themes .icon.icon-back')
 
     @property
     def screen_element(self):
         return self.marionette.find_element(*self._page_locator)
+
+    @property
+    def back_btn_element(self):
+        return self.marionette.find_element(*self._back_btn_locator)

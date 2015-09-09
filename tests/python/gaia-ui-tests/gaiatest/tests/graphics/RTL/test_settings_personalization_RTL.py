@@ -24,7 +24,7 @@ class TestSettingsRTLPersonalization(GaiaImageCompareTestCase):
         self.take_screenshot('sound-ringtones')
         for i in range(0, 5):
             GaiaImageCompareTestCase.scroll(self.marionette, 'down', ringtone_page.screen_element.size['height'],
-                                            screen = ringtone_page.screen_element)
+                                            screen=ringtone_page.screen_element)
             self.take_screenshot('sound-ringtones')
 
         ringtone_page.tap_exit()
@@ -54,7 +54,7 @@ class TestSettingsRTLPersonalization(GaiaImageCompareTestCase):
         manage_page.tap_exit()
         settings.switch_to_settings_app()
         Wait(self.marionette).until(lambda m: sound_page.ring_tone_selector_visible)
-        settings.return_to_prev_menu(settings.screen_element,sound_page.screen_element)
+        settings.return_to_prev_menu(settings.screen_element, sound_page.screen_element)
 
         #################### Display ######################
         display_page = settings.open_display()
@@ -65,7 +65,7 @@ class TestSettingsRTLPersonalization(GaiaImageCompareTestCase):
         display_page.tap_timeout_selector()
         self.take_screenshot('display-timeout_values')
         display_page.tap_timeout_confirmation()
-        settings.return_to_prev_menu(settings.screen_element,display_page.screen_element)
+        settings.return_to_prev_menu(settings.screen_element, display_page.screen_element)
 
         #################### Homescreen ######################
         homescreen_page = settings.open_homescreen()
@@ -73,7 +73,7 @@ class TestSettingsRTLPersonalization(GaiaImageCompareTestCase):
         homescreen_page.open_select_icon_layout()
         self.take_screenshot('homescreen-layout')
         homescreen_page.open_select_icon_layout()
-        settings.return_to_prev_menu(settings.screen_element, homescreen_page.screen_element )
+        settings.return_to_prev_menu(settings.screen_element, homescreen_page.screen_element)
 
         ################### Search ######################
         search_page = settings.open_search()
@@ -112,7 +112,7 @@ class TestSettingsRTLPersonalization(GaiaImageCompareTestCase):
         language_page.open_select_language()
         self.take_screenshot('language-select')
         language_page.close_select_language()
-        settings.return_to_prev_menu(settings.screen_element, language_page.screen_element )
+        settings.return_to_prev_menu(settings.screen_element, language_page.screen_element)
 
         # This involves app switching, and often would cause whitescreen issue under 319MB memory config
         # Please run in 512 or 1024 MB mode to avoid this issue
@@ -128,13 +128,14 @@ class TestSettingsRTLPersonalization(GaiaImageCompareTestCase):
         keyboard_page.wait_until_page_ready()
         morekb_page = keyboard_page.tap_add_more_keyboards()
         self.take_screenshot('keyboard-more_kb')
-        settings.return_to_prev_menu(keyboard_page.screen_element, morekb_page.screen_element )
+        settings.return_to_prev_menu(keyboard_page.screen_element, morekb_page.screen_element)
         settings.return_to_prev_menu(settings.screen_element, keyboard_page.screen_element)
 
         ############## Themes ######################
         themes_page = settings.open_themes()
         self.take_screenshot('themes')
-        settings.return_to_prev_menu(settings.screen_element, themes_page.screen_element, gaia_header=False)
+        settings.return_to_prev_menu(settings.screen_element, themes_page.screen_element,
+                                     back_button=themes_page.back_btn_element)
 
         ############# Addons ######################
         addons_page = settings.open_addons()

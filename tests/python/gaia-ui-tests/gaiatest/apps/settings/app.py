@@ -312,7 +312,7 @@ class Settings(Base):
     def _get_class_by_name(self, file_name=None, class_name=None):
         if file_name is not None:
             package_path = 'gaiatest.apps.settings.regions.{}'.format(file_name.lower())
-            mod = __import__(package_path, fromlist = [class_name])
+            mod = __import__(package_path, fromlist=[class_name])
             class_defn = getattr(mod, class_name)
             return class_defn
 
@@ -359,17 +359,20 @@ class Settings(Base):
         Wait(self.marionette).until(expected.element_enabled(checkbox))
 
     # this method is a copy of go_back() method in regions/keyboard.py
-    def return_to_prev_menu(self, parent_view, exit_view, gaia_header=True):
+    def return_to_prev_menu(self, parent_view, exit_view, back_button=None):
 
         # TODO: remove tap with coordinates after Bug 1061698 is fixed
-        if gaia_header:
-            _header_locator = self._header_locator
-        else:
-            _header_locator = self._non_gaia_header_locator
-        back_button = self.marionette.find_element(*_header_locator)
-        Wait(self.marionette).until(expected.element_enabled(back_button) and expected.element_displayed(back_button))
+        if back_button is None:
+            # because of th Bug 1061698, we need to locate the
+            # right edge of the header and tap it
+            # if we have the back_button, then tapping anywhere
+            # within it should give the same result
+            back_button = self.marionette.find_element(*self._header_locator)
+
+        Wait(self.marionette).until(expected.element_enabled(back_button) and
+                                    expected.element_displayed(back_button))
         back_button.tap(25, 25)
 
-        Wait(self.marionette).until(lambda m: not 'current' in exit_view.get_attribute('class'))
+        Wait(self.marionette).until(lambda m: 'current' not in exit_view.get_attribute('class'))
         Wait(self.marionette).until(lambda m: parent_view.rect['x'] == 0)
         Wait(self.marionette).until(lambda m: 'current' in parent_view.get_attribute('class'))

@@ -13,9 +13,11 @@ class Display(Base):
     _page_locator = (By.ID, 'sound')
     _wallpaper_preview_locator = (By.CSS_SELECTOR, '.wallpaper-preview')
     _wallpaper_pick_locator = (By.CSS_SELECTOR, '.wallpaper')
-    _wallpaper_pick_cancel_button_locator = (By.CSS_SELECTOR, '#action-menu-list > button:nth-child(4)')
+    _wallpaper_pick_cancel_button_locator = (By.CSS_SELECTOR,
+                                             '#action-menu-list > button:nth-child(4)')
     _stock_wallpapers_locator = (By.CSS_SELECTOR, "div[class='wallpaper']")
-    _wallpaper_frame_locator = (By.CSS_SELECTOR, "iframe[src^='app://wallpaper'][src$='pick.html']")
+    _wallpaper_frame_locator = (By.CSS_SELECTOR,
+                                "iframe[src^='app://wallpaper'][src$='pick.html']")
     _timeout_selector_locator = (By.NAME, "screen.timeout")
     _timeout_confirmation_button_locator = (By.CLASS_NAME, "value-option-confirm")
 

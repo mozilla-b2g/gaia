@@ -29,7 +29,8 @@ class Message(Base):
         Wait(self.marionette).until(expected.element_displayed(element))
         element.tap()
         self.marionette.switch_to_frame()
-        Wait(self.marionette).until(expected.element_displayed(*self._auto_retrieve_ok_button_locator))
+        Wait(self.marionette).until(expected.element_displayed(
+            *self._auto_retrieve_ok_button_locator))
 
     def close_retrieve_dialog(self):
         element = self.marionette.find_element(*self._auto_retrieve_ok_button_locator)

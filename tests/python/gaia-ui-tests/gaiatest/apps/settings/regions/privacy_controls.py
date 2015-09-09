@@ -29,7 +29,7 @@ class PrivacyControls(Base):
         return self.marionette.find_element(*self._about_page_locator)
 
     def tap_close_tour(self):
-        Wait(self.marionette, timeout=10).until(
+        Wait(self.marionette, timeout = 10).until(
             expected.element_displayed(*self._close_tour_header_locator))
         self.marionette.find_element(*self._close_tour_header_locator).tap(25, 25)
         Wait(self.marionette, timeout = 10).until(
@@ -69,8 +69,9 @@ class PrivacyControls(Base):
 
         # no choice since the unique ID is being reused
         _global_settings_locator = \
-        (By.CSS_SELECTOR,
-         '#ala-exception > div:nth-child(2) > ul:nth-child(1) > li:nth-child(3) > p:nth-child(1) > span:nth-child(1)')
+            (By.CSS_SELECTOR,
+             '#ala-exception > div:nth-child(2) > ul:nth-child(1) > '
+             'li:nth-child(3) > p:nth-child(1) > span:nth-child(1)')
 
         def __init__(self, marionette):
             Base.__init__(self, marionette)

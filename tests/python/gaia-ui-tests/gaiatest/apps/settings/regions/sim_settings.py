@@ -58,78 +58,93 @@ class SimSettings(Base):
 
     def tap_network_operator(self):
         element = self.marionette.find_element(*self._network_op_locator)
-        Wait(self.marionette).until(expected.element_displayed(element) and expected.element_enabled(element))
+        Wait(self.marionette).until(expected.element_displayed(element) and
+                                    expected.element_enabled(element))
         element.tap()
         Wait(self.marionette).until(expected.element_displayed(*self._network_type_selector_locator))
 
     def tap_network_type(self):
         element = self.marionette.find_element(*self._network_type_selector_locator)
-        Wait(self.marionette).until(expected.element_displayed(element) and expected.element_enabled(element))
+        Wait(self.marionette).until(expected.element_displayed(element) and
+                                    expected.element_enabled(element))
         element.tap()
         self.marionette.switch_to_frame()
         Wait(self.marionette).until(expected.element_displayed(*self._network_type_confirm_button_locator))
 
     def confirm_network_type(self):
         element = self.marionette.find_element(*self._network_type_confirm_button_locator)
-        Wait(self.marionette).until(expected.element_displayed(element) and expected.element_enabled(element))
+        Wait(self.marionette).until(expected.element_displayed(element) and
+                                    expected.element_enabled(element))
         element.tap()
         self.apps.switch_to_displayed_app()
         Wait(self.marionette).until(expected.element_displayed(*self._network_type_selector_locator))
 
     def tap_apn_settings(self):
         element = self.marionette.find_element(*self._apn_settings_locator)
-        Wait(self.marionette).until(expected.element_displayed(element) and expected.element_enabled(element))
+        Wait(self.marionette).until(expected.element_displayed(element) and
+                                    expected.element_enabled(element))
         element.tap()
         Wait(self.marionette).until(expected.element_displayed(*self._reset_apn_btn_locator))
 
     def tap_data_settings(self):
         element = self.marionette.find_element(*self._data_settings_locator)
-        Wait(self.marionette).until(expected.element_displayed(element) and expected.element_enabled(element))
+        Wait(self.marionette).until(expected.element_displayed(element) and
+                                    expected.element_enabled(element))
         element.tap()
         Wait(self.marionette).until(expected.element_displayed(*self._add_new_apn_btn_locator))
 
     def tap_add_new_apn(self):
         element = self.marionette.find_element(*self._add_new_apn_btn_locator)
-        Wait(self.marionette).until(expected.element_displayed(element) and expected.element_enabled(element))
+        Wait(self.marionette).until(expected.element_displayed(element) and
+                                    expected.element_enabled(element))
         element.tap()
         Wait(self.marionette).until(expected.element_displayed(*self._apn_editor_page_locator))
 
     def select_authentication(self):
         element = self.marionette.find_element(*self._authentication_selector_locator)
-        Wait(self.marionette).until(expected.element_displayed(element) and expected.element_enabled(element))
+        Wait(self.marionette).until(expected.element_displayed(element) and
+                                    expected.element_enabled(element))
         element.tap()
         self.marionette.switch_to_frame()
-        Wait(self.marionette).until(expected.element_displayed(*self._apn_selector_confirm_button_locator))
+        Wait(self.marionette).until(expected.element_displayed(
+            *self._apn_selector_confirm_button_locator))
 
     def select_protocol(self):
         element = self.marionette.find_element(*self._protocol_selector_locator)
-        Wait(self.marionette).until(expected.element_displayed(element) and expected.element_enabled(element))
+        Wait(self.marionette).until(expected.element_displayed(element) and
+                                    expected.element_enabled(element))
         element.tap()
         self.marionette.switch_to_frame()
-        Wait(self.marionette).until(expected.element_displayed(*self._apn_selector_confirm_button_locator))
+        Wait(self.marionette).until(expected.element_displayed(
+            *self._apn_selector_confirm_button_locator))
 
     def select_roaming_protocol(self):
         element = self.marionette.find_element(*self._roaming_protocol_locator)
-        Wait(self.marionette).until(expected.element_displayed(element) and expected.element_enabled(element))
+        Wait(self.marionette).until(expected.element_displayed(element) and
+                                    expected.element_enabled(element))
         element.tap()
         self.marionette.switch_to_frame()
-        Wait(self.marionette).until(expected.element_displayed(*self._apn_selector_confirm_button_locator))
+        Wait(self.marionette).until(expected.element_displayed(
+            *self._apn_selector_confirm_button_locator))
 
     def confirm_apn_selection(self):
         element = self.marionette.find_element(*self._apn_selector_confirm_button_locator)
-        Wait(self.marionette).until(expected.element_displayed(element) and expected.element_enabled(element))
+        Wait(self.marionette).until(expected.element_displayed(element) and
+                                    expected.element_enabled(element))
         element.tap()
         self.apps.switch_to_displayed_app()
         Wait(self.marionette).until(expected.element_displayed(*self._apn_editor_page_locator))
 
     def tap_reset_to_default(self):
         element = self.marionette.find_element(*self._reset_apn_btn_locator)
-        Wait(self.marionette).until(expected.element_displayed(element) and expected.element_enabled(element))
+        Wait(self.marionette).until(expected.element_displayed(element) and
+                                    expected.element_enabled(element))
         element.tap()
         Wait(self.marionette).until(expected.element_displayed(*self._cancel_btn_locator))
 
     def tap_cancel_reset(self):
         element = self.marionette.find_element(*self._cancel_btn_locator)
-        Wait(self.marionette).until(expected.element_displayed(element) and expected.element_enabled(element))
+        Wait(self.marionette).until(expected.element_displayed(element) and
+                                    expected.element_enabled(element))
         element.tap()
         Wait(self.marionette).until(expected.element_displayed(*self._reset_apn_btn_locator))

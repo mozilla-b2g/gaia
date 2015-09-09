@@ -158,15 +158,21 @@ class DeviceInfo(Base):
 
         _more_information_page_locator = (By.ID, 'about-moreInfo')
         _os_version_locator = (By.CSS_SELECTOR, '#about-moreInfo small[data-name="deviceinfo.os"]')
-        _hardware_revision_locator = (By.CSS_SELECTOR, '#about-moreInfo small[data-name="deviceinfo.hardware"]')
-        _mac_address_locator = (By.CSS_SELECTOR, '#about-moreInfo small[data-name="deviceinfo.mac"]')
+        _hardware_revision_locator = (By.CSS_SELECTOR,
+                                      '#about-moreInfo small[data-name="deviceinfo.hardware"]')
+        _mac_address_locator = (By.CSS_SELECTOR,
+                                '#about-moreInfo small[data-name="deviceinfo.mac"]')
         _imei1_locator = (By.CSS_SELECTOR, '.deviceInfo-imeis span[data-slot="0"]')
         _imei2_locator = (By.CSS_SELECTOR, '.deviceInfo-imeis span[data-slot="1"]')
         _iccid_locator = (By.CSS_SELECTOR, '.deviceInfo-iccids')
-        _platform_version_locator = (By.CSS_SELECTOR, '#about-moreInfo small[data-name="deviceinfo.platform_version"]')
-        _build_id_locator = (By.CSS_SELECTOR, '#about-moreInfo small[data-name="deviceinfo.platform_build_id"]')
-        _build_number_locator = (By.CSS_SELECTOR, '#about-moreInfo small[data-name="deviceinfo.build_number"]')
-        _update_channel_locator = (By.CSS_SELECTOR, '#about-moreInfo small[data-name="app.update.channel"]')
+        _platform_version_locator = (By.CSS_SELECTOR,
+                                     '#about-moreInfo small[data-name="deviceinfo.platform_version"]')
+        _build_id_locator = (By.CSS_SELECTOR,
+                             '#about-moreInfo small[data-name="deviceinfo.platform_build_id"]')
+        _build_number_locator = (By.CSS_SELECTOR,
+                                 '#about-moreInfo small[data-name="deviceinfo.build_number"]')
+        _update_channel_locator = (By.CSS_SELECTOR,
+                                   '#about-moreInfo small[data-name="app.update.channel"]')
         _git_commit_timestamp_locator = (By.CSS_SELECTOR, '.gaia-commit-date')
         _git_commit_hash_locator = (By.CSS_SELECTOR, '.gaia-commit-hash')
 
