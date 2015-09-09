@@ -3,7 +3,7 @@ LOCAL_PATH:= $(call my-dir)
 # Workaround for CI server machine environment
 # Export a hardcode gtk3 path for emulator build. see also bug 1146713.
 ifneq (,$(TOOLTOOL_DIR))
-LD_LIBRARY_PATH := "$(TOOLTOOL_DIR)/gtk3/usr/local/lib:$(LD_LIBRARY_PATH)"
+LD_LIBRARY_PATH := "$TOOLTOOL_DIR/gtk3/usr/local/lib:$(LD_LIBRARY_PATH)"
 endif
 
 #
@@ -88,7 +88,6 @@ ifeq ($(CLEAN_PROFILE), 1)
 	rm -rf $(GAIA_PATH)/profile $(GAIA_PATH)/profile.tar.gz
 endif
 	$(MAKE) -C $(GAIA_PATH) $(GAIA_MAKE_FLAGS) LD_LIBRARY_PATH=$(LD_LIBRARY_PATH) profile
-	@echo "[DEBUG_LOG]: TOOLTOOL_DIR=$(TOOLTOOL_DIR)"
 	@FOLDERS='webapps'; \
 	if [ -d $(GAIA_PATH)/profile/indexedDB ]; then \
 	FOLDERS="indexedDB $${FOLDERS}"; \
