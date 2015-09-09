@@ -4,23 +4,22 @@
       ["apps", "communications", "dialer"],
       ["apps", "sms"],
       ["apps", "communications", "contacts"],
-      ["apps", "email"],
-      ["apps", "search"]
+      ["apps", "search"],
+      ["apps", "marketplace.firefox.com"],
+      ["apps", "camera"]
     ], [
-      ["apps", "camera"],
+      ["apps/collection/collections", "social"],
+      ["apps/collection/collections", "games"],
+      ["apps/collection/collections", "music"]
+    ], [
       ["apps", "gallery"],
       ["apps", "music"],
       ["apps", "video"],
-      ["apps", "marketplace.firefox.com"]
-    ], [
-      ["apps", "calendar"],
-      ["apps", "clock"],
+      ["apps", "fm"],
       ["apps", "settings"],
-      ["apps", "fm"]
-    ], [
-      ["hosted_apps", "bugzillalite"],
-      ["hosted_apps", "facebook"],
-      ["hosted_apps", "twitter"],
+      ["apps", "clock"],
+      ["apps", "email"],
+      ["apps", "calendar"],
       ["apps", "costcontrol"]
     ]
   ],
