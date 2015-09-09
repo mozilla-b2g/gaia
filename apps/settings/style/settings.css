@@ -462,38 +462,31 @@ section ul.operate-certificate {
  */
 
 /* three-state items: on|off|unknown */
-#menuItem-callWaiting .checkbox-label,
-#menuItem-callWaiting[data-state="on"] .checkbox-label,
-#menuItem-callWaiting[data-state="off"] .checkbox-label {
+#menuItem-callWaiting[data-state="on"] span,
+#menuItem-callWaiting[data-state="off"] span {
   display: inherit;
 }
 
-#menuItem-callWaiting .alert-label,
-#menuItem-callWaiting[data-state="on"] .alert-label,
-#menuItem-callWaiting[data-state="off"] .alert-label {
+#menuItem-callWaiting span.cw-alert-icon,
+#menuItem-callWaiting[data-state="on"] span.cw-alert-icon,
+#menuItem-callWaiting[data-state="off"] span.cw-alert-icon {
   display: none;
 }
 
-#menuItem-callWaiting[data-state="unknown"] .checkbox-label input ~ span:after {
-  display: none;
+#menuItem-callWaiting[data-state="unknown"] label {
+  pointer-events: none;
+  opacity: 0.3;
 }
 
-#menuItem-callWaiting[data-state="unknown"] .alert-label {
+#menuItem-callWaiting[data-state="unknown"] span.cw-alert-icon {
   display: inherit;
-  position: absolute;
-  top: 0;
-}
-
-#menuItem-callWaiting .alert-label > span {
-  top: 50%;
-  margin-top: -1.5rem;
 }
 
 #call .cw-alert .cw-alert-sub-p {
   border-top: none;
 }
 
-#call .cw-alert .cw-alert-checkbox-label {
+#call .cw-alert .cw-alert-checkbox {
   offset-inline-end: 0;
   height: 2.7rem;
   width: 100%;
