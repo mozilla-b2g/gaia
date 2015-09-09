@@ -1,5 +1,11 @@
 LOCAL_PATH:= $(call my-dir)
 
+# Workaround for CI server machine environment
+# Export a hardcode gtk3 path for emulator build. see also bug 1146713.
+ifneq (,$(TOOLTOOL_DIR))
+LD_LIBRARY_PATH := "$TOOLTOOL_DIR/gtk3/usr/local/lib:$(LD_LIBRARY_PATH)"
+endif
+
 #
 # Gaia glue
 #
