@@ -58,7 +58,6 @@
     "restify": "2.8.1",
     "rimraf": "2.2.5",
     "sinon": "1.7.3",
-    "slugid": "^1.1.0",
     "SMS": "file:./apps/sms",
     "superagent-promise": ">=0.2.0",
     "taskcluster-client": "^0.22.6",
