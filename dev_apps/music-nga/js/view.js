@@ -195,6 +195,7 @@ function parseSimplePath(path) {
   catch (ex) {
     throw new Error('Invalid path specified');
   }
+}
 
 /**
  * Returns a debug function.
@@ -218,7 +219,7 @@ View.debug = function(name) {
   noop.log = (arg1, ...args) => console.log(`[${name}] - "${arg1}"`, ...args);
   noop.mark = arg => parent.performance.mark(`[${name}] - ${arg}`);
   return noop;
-}
+};
 
 return View;
 
