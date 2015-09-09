@@ -210,24 +210,24 @@ suite('system/LockScreen >', function() {
     'it did\'t fire the correspond event to validate the passcode');
   });
 
-  test('When setup passcode enabled reading, ' +
+  test('When setup passcode enabled and other unlocking values reading, ' +
        'it will delay the initialization of unlocker', function(done) {
-    var method = subject.setupPassCodeEnabled;
+    var method = subject.setupUnlockerEvents;
     var mockThis = {
-      initUnlockerEvents: this.sinon.stub()
+      initUnlockerEvents: this.sinon.stub(),
+      setupDeferredRequest: this.sinon.stub().returns(Promise.resolve())
     };
     var check = function() {
       assert.isTrue(mockThis.initUnlockerEvents.called,
         'it did not call the unlocker initialization method');
       done();
     };
-    // gjslint can't handle promise chaining...
+    // gjslint cannot handle promise chaining...
     var result = method.call(mockThis);
     result = result.then(check);
     result = result.catch(done);
     assert.isFalse(mockThis.initUnlockerEvents.called,
       'it did not delay the unlocker initialization method');
-    mockThis.passCodeEnabled.resolve(true);
   });
 
   test('When FTU done, update the clock', function() {
