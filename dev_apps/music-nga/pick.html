@@ -20,10 +20,12 @@
     <button id="activity-done-button" hidden>Done</button>
   </gaia-header>
 
-  <music-view-stack id="view-stack"></music-view-stack>
+  <music-view-stack id="view-stack">
+    <iframe src="/views/songs/index.html"></iframe>
+  </music-view-stack>
 
   <music-tab-bar id="tab-bar">
-    <button data-view-id="songs" data-icon="songs"></button>
+    <button value="songs" data-url="/songs" data-icon="songs"></button>
   </music-tab-bar>
 
   <music-overlay id="empty-overlay"

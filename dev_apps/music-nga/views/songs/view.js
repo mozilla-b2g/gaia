@@ -64,8 +64,6 @@ SongsView.prototype.destroy = function() {
   View.prototype.destroy.call(this); // super(); // Always call *last*
 };
 
-SongsView.prototype.title = 'Songs';
-
 SongsView.prototype.render = function() {
   View.prototype.render.call(this); // super();
 

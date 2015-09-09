@@ -1,0 +1,25 @@
+importScripts('components/bridge/client.js');
+
+var client = bridge.client({
+  service: 'music-service',
+  endpoint: new BroadcastChannel('music-service')
+});
+
+function NavigationService(worker) {
+  var stopAfter = ServiceWorkerWare.decorators.stopAfter;
+
+  worker.get('/api/navigation/:url', stopAfter((request) => {
+    return new Promise((resolve) => {
+      var url = decodeURIComponent(request.parameters.url);
+      client.method('navigate', url)
+        .then(() => {
+          resolve(new Response(JSON.stringify({ success: true }), {
+            headers: { 'Content-Type': 'application/json' }
+          }));
+        })
+        .catch((error) => {
+          resolve(new Response('', { status: 404 }));
+        });
+    });
+  }));
+}

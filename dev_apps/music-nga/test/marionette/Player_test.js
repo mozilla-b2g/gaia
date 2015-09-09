@@ -137,7 +137,7 @@ marionette('Music player tests', function() {
         music.waitForPlayerView();
 
         music.tapHeaderActionButton();
-        music.waitForListView();
+        music.waitForSongsView();
         music.checkPlayerIconShown(true);
       } catch(e) {
         assert.ok(false, 'Exception ' + e.stack);
@@ -236,62 +236,65 @@ marionette('Music player tests', function() {
 
   suite('Player navigation. moztrap:2376', function() {
     test('Check that the back button works', function() {
-      // the navigation test back from the tab
-      function tabNavTest() {
-        music.waitForSecondaryListView();
-        music.tapHeaderActionButton();
-        music.waitForListView();
-      }
-
-      // the actual navigation test
-      function navTest(secondary) {
-        var title = music.header.findElement('#header-title').text();
-        music.playFirstSong(secondary);
-
-        // Wait for the player view or the title is not changed yet.
-        music.waitForPlayerView();
-
-        assert.notEqual(title, music.header.findElement('#header-title').text());
-
-        music.tapHeaderActionButton();
-
-        var frame = secondary ? music.secondaryViewFrame : music.viewFrame;
-        assert.ok(frame);
-        client.switchToFrame(frame);
-        // firstSong currently *wait* for the element first.
-        music.firstSong;
-        music.switchToMe();
-
-
-        assert.equal(title, music.header.findElement('#header-title').text());
-      }
+      var title;
 
       try {
         music.launch();
         music.waitForFirstTile();
         music.switchToSongsView();
-        navTest(false);
+        title = music.header.findElement('#header-title').text();
+        music.playFirstSong();
+        music.waitForPlayerView();
+        assert.notEqual(title, music.header.findElement('#header-title').text());
+        music.tapHeaderActionButton();
+        music.waitForSongsView();
+        client.switchToFrame(music.songsViewFrame);
+        music.firstSong;
+        music.switchToMe();
+        assert.equal(title, music.header.findElement('#header-title').text());
 
         music.switchToAlbumsView();
         music.selectAlbum('A Minute With Brendan');
-        navTest(true);
-        tabNavTest();
+        title = music.header.findElement('#header-title').text();
+        music.playFirstSongByAlbum();
+        music.waitForPlayerView();
+        assert.notEqual(title, music.header.findElement('#header-title').text());
+        music.tapHeaderActionButton();
+        music.waitForAlbumDetailView();
+        client.switchToFrame(music.albumDetailViewFrame);
+        music.firstSong;
+        music.switchToMe();
+        assert.equal(title, music.header.findElement('#header-title').text());
 
         music.switchToArtistsView();
         music.selectArtist('Minute With');
-        navTest(true);
-        tabNavTest();
-/* XXX reenable when playlist land.
+        title = music.header.findElement('#header-title').text();
+        music.playFirstSongByArtist();
+        music.waitForPlayerView();
+        assert.notEqual(title, music.header.findElement('#header-title').text());
+        music.tapHeaderActionButton();
+        music.waitForArtistDetailView();
+        client.switchToFrame(music.artistDetailViewFrame);
+        music.firstSong;
+        music.switchToMe();
+        assert.equal(title, music.header.findElement('#header-title').text());
+
         music.switchToPlaylistsView();
         music.selectPlaylist('Recently added');
-        navTest(true);
-        tabNavTest();
-*/
+        title = music.header.findElement('#header-title').text();
+        music.playFirstSongByPlaylist();
+        music.waitForPlayerView();
+        assert.notEqual(title, music.header.findElement('#header-title').text());
+        music.tapHeaderActionButton();
+        music.waitForPlaylistDetailView();
+        client.switchToFrame(music.playlistDetailViewFrame);
+        music.firstSong;
+        music.switchToMe();
+        assert.equal(title, music.header.findElement('#header-title').text());
       } catch(e) {
         assert.ok(false, 'Exception ' + e.stack);
       }
     });
   });
-
 
 });

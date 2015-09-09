@@ -55,7 +55,11 @@ if (!window.parent.SERVICE_WORKERS) (function() {
 })();
 
 function View() {
-  this.client = bridge.client({ service: 'music-service', endpoint: window.parent });
+  this.client = bridge.client({
+    service: 'music-service',
+    endpoint: window.parent,
+    timeout: false
+  });
 
   this.params = {};
 
@@ -68,20 +72,11 @@ function View() {
     this.params[parts[0]] = parts[1];
   });
 
-  var title = typeof this.title === 'function' ? this.title() : this.title;
-  if (title instanceof Promise) {
-    title.then(title => window.parent.setHeaderTitle(title));
-  }
-
-  else {
-    window.parent.setHeaderTitle(title);
-  }
-
   window.addEventListener('click', (evt) => {
     var link = evt.target.closest('a');
     if (link) {
       evt.preventDefault();
-      window.parent.navigateToURL(link.getAttribute('href'));
+      this.client.method('navigate', link.getAttribute('href'));
     }
   });
 
@@ -90,9 +85,9 @@ function View() {
 
 View.prototype.destroy = function() {
   Object.getOwnPropertyNames(this).forEach(prop => this[prop] = null);
-};
 
-View.prototype.title = '';
+  debug('Destroyed');
+};
 
 View.prototype.render = function() {
   if (window.frameElement) {
@@ -102,34 +97,48 @@ View.prototype.render = function() {
   debug('Rendered');
 };
 
-View.prototype.fetch = function(url) {
-  if (window.parent.SERVICE_WORKERS) {
+View.prototype.fetch = window.parent.SERVICE_WORKERS ?
+  function(url) {
     return window.fetch(url);
-  }
+  } :
+  function(url) {
+    url = decodeURIComponent(url);
 
-  url = decodeURIComponent(url);
+    for (var path in window.ROUTES) {
+      var route = window.ROUTES[path];
+      var match = url.match(route.regexp);
 
-  for (var path in window.ROUTES) {
-    var route = window.ROUTES[path];
-    var match = url.match(route.regexp);
-
-    if (match) {
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          var args = [route.method].concat(match.splice(1));
-          this.client.method.apply(this.client, args).then((result) => {
-            resolve({
-              blob: () => Promise.resolve(result),
-              json: () => Promise.resolve(result)
+      if (match) {
+        return new Promise((resolve) => {
+          setTimeout(() => {
+            var args = [route.method].concat(match.splice(1));
+            this.client.method.apply(this.client, args).then((result) => {
+              resolve({
+                blob: () => Promise.resolve(result),
+                json: () => Promise.resolve(result)
+              });
             });
           });
         });
-      });
+      }
     }
-  }
 
-  return Promise.reject();
-};
+    return Promise.reject();
+  };
+
+Object.defineProperty(View.prototype, 'title', {
+  get: function() {
+    return document.title;
+  },
+
+  set: function(value) {
+    document.title = value;
+
+    window.frameElement.dispatchEvent(new CustomEvent('titlechange', {
+      detail: document.title
+    }));
+  }
+});
 
 View.preserveListScrollPosition = function(list) {
   var lastScrollTop;

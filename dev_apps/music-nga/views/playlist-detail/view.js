@@ -58,8 +58,6 @@ PlaylistDetailView.prototype.destroy = function() {
   View.prototype.destroy.call(this); // super(); // Always call *last*
 };
 
-PlaylistDetailView.prototype.title = 'Playlists';
-
 PlaylistDetailView.prototype.render = function() {
   View.prototype.render.call(this); // super();
 

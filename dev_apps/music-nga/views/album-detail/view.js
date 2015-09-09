@@ -55,8 +55,6 @@ AlbumDetailView.prototype.destroy = function() {
   View.prototype.destroy.call(this); // super(); // Always call *last*
 };
 
-AlbumDetailView.prototype.title = 'Albums';
-
 AlbumDetailView.prototype.render = function() {
   View.prototype.render.call(this); // super();
 

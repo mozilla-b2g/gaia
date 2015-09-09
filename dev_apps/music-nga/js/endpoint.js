@@ -1,4 +1,4 @@
-/* global Database, PlaybackQueue, bridge */
+/* global Database, PlaybackQueue, bridge, navigateToURL */
 'use strict';
 
 var audio = document.getElementById('audio');
@@ -47,6 +47,8 @@ var service = bridge.service('music-service')
   .method('open', open)
 
   .method('getDatabaseStatus', getDatabaseStatus)
+
+  .method('navigate', navigate)
 
   .listen()
   .listen(new BroadcastChannel('music-service'));
@@ -307,6 +309,10 @@ function setSongRating(rating, filePath) {
 
 function getDatabaseStatus() {
   return Promise.resolve(Database.status);
+}
+
+function navigate(url) {
+  navigateToURL(url);
 }
 
 function share(filePath) {

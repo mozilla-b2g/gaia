@@ -17,19 +17,21 @@
 </head>
 <body role="application">
   <gaia-header id="header" no-font-fit>
-    <h1 id="header-title"></h1>
+    <h1 id="header-title">Music</h1>
     <button id="player-button" data-icon="play-circle" hidden></button>
     <button id="activity-done-button" hidden></button>
   </gaia-header>
 
-  <music-view-stack id="view-stack"></music-view-stack>
+  <music-view-stack id="view-stack">
+    <iframe src="/views/home/index.html"></iframe>
+  </music-view-stack>
 
   <music-tab-bar id="tab-bar">
-    <button data-view-id="home" data-icon="grid"></button>
-    <button data-view-id="playlists" data-icon="playlist"></button>
-    <button data-view-id="artists" data-icon="artist"></button>
-    <button data-view-id="albums" data-icon="album"></button>
-    <button data-view-id="songs" data-icon="songs"></button>
+    <button value="home" data-url="/home" data-icon="grid"></button>
+    <button value="playlists" data-url="/playlists" data-icon="playlist"></button>
+    <button value="artists" data-url="/artists" data-icon="artist"></button>
+    <button value="albums" data-url="/albums" data-icon="album"></button>
+    <button value="songs" data-url="/songs" data-icon="songs"></button>
   </music-tab-bar>
 
   <music-overlay id="empty-overlay"

@@ -32,6 +32,7 @@ a {
   bottom: 4.6rem;
   left: 0;
   width: 100%;
+  height: auto;
   transition: bottom 0s linear 0.2s;
 }
 
@@ -52,14 +53,14 @@ body[data-search="true"] #view-stack {
   transition: none;
 }
 
-body[data-active-view-id="player"] #tab-bar {
+body[data-active-view-url="/views/player/index.html"] #tab-bar {
   transform: translate(0, 4.6rem);
   visibility: hidden;
   transition-delay: 0s, 0.2s;
 }
 
-body:not([data-active-view-id]) #view-stack,
-body[data-active-view-id="player"] #view-stack {
+body:not([data-active-view-url]) #view-stack,
+body[data-active-view-url="/views/player/index.html"] #view-stack {
   bottom: 0;
   transition-delay: 0s;
 }
