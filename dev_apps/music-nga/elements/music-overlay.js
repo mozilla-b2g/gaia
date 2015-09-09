@@ -4,7 +4,7 @@
 var proto = Object.create(HTMLElement.prototype);
 
 var template =
-`<style>
+`<style scoped>
   #heading:empty,
   #message:empty,
   #menu:empty,

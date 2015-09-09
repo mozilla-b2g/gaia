@@ -42,7 +42,7 @@ var service = bridge.service('music-service')
   .method('getSongArtwork', getSongArtwork)
   .method('getSongThumbnail', getSongThumbnail)
   .method('setSongRating', setSongRating)
-  .method('getSongThumbnails', getSongThumbnails)
+
   .method('share', share)
   .method('open', open)
 
@@ -294,8 +294,6 @@ function getSongThumbnail(filePath) {
   return LazyLoader.load('/js/metadata/album_art_cache.js').then(() => {
     return getSong(filePath).then((song) => {
       return AlbumArtCache.getThumbnailBlob(song);
-    }).then(blob => {
-      return URL.createObjectURL(blob);
     });
   });
 }
@@ -309,10 +307,6 @@ function setSongRating(rating, filePath) {
 
 function getDatabaseStatus() {
   return Promise.resolve(Database.status);
-}
-
-function getSongThumbnails(filePaths) {
-  return Promise.all(filePaths.map(getSongThumbnail));
 }
 
 function share(filePath) {

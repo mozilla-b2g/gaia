@@ -1,13 +1,7 @@
 /* global bridge, View */
 'use strict';
 
-/**
- * Mini Logger
- *
- * @type {Function}
- * @private
- */
-var debug = View.debug('ArtistDetailView');
+var debug = 1 ? (...args) => console.log('[ArtistDetailView]', ...args) : () => {};
 
 var ArtistDetailView = View.extend(function ArtistDetailView() {
   View.call(this); // super();

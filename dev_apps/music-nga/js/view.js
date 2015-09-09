@@ -195,29 +195,6 @@ function parseSimplePath(path) {
   catch (ex) {
     throw new Error('Invalid path specified');
   }
-
-/**
- * Returns a debug function.
- *
- * @example
- *
- * var debug = View.debug('ModuleName').log;
- * debug('foo'); //=> console.log('[ModuleName] - foo')
- *
- * var debug = View.debug('ModuleName').mark;
- * debug('foo'); //=> performance.mark('[ModuleName] - foo')
- *
- * var debug = View.debug('ModuleName');
- * debug('foo'); //=> noop
- *
- * @param  {String} name
- * @return {Function}
- */
-View.debug = function(name) {
-  var noop = () => {};
-  noop.log = (arg1, ...args) => console.log(`[${name}] - "${arg1}"`, ...args);
-  noop.mark = arg => parent.performance.mark(`[${name}] - ${arg}`);
-  return noop;
 }
 
 return View;

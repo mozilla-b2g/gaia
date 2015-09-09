@@ -31,7 +31,6 @@
 
   "globals": {
     "define": false,
-    "BroadcastChannel": false,
-    "performance": false
+    "BroadcastChannel": false
   }
 }

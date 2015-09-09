@@ -21,10 +21,9 @@ a {
 }
 
 #tab-bar {
+  transform: translate(0, 0);
   visibility: visible;
-  transition:
-    transform 0.2s linear,
-    visibility 0s linear;
+  transition: transform 0.2s linear, visibility 0s linear;
 }
 
 #view-stack {
@@ -54,7 +53,7 @@ body[data-search="true"] #view-stack {
 }
 
 body[data-active-view-id="player"] #tab-bar {
-  transform: translateY(100%);
+  transform: translate(0, 4.6rem);
   visibility: hidden;
   transition-delay: 0s, 0.2s;
 }

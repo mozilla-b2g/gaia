@@ -7,14 +7,11 @@ var proto = Object.create(GaiaToolbar.prototype);
 
 var styles =
 `music-tab-bar {
+  background-color: #000;
   position: absolute;
   bottom: 0;
   left: 0;
-
   width: 100%;
-  height: 46px;
-
-  background-color: #000;
   -moz-user-select: none;
 }
 
