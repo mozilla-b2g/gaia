@@ -4,7 +4,7 @@
 var proto = Object.create(HTMLElement.prototype);
 
 var template =
-`<style scoped>
+`<style>
   .music-view-stack-container {
     position: relative;
     width: 100%;

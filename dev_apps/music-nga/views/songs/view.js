@@ -1,7 +1,13 @@
 /* global bridge, View */
 'use strict';
 
-var debug = 1 ? (...args) => console.log('[SongsView]', ...args) : () => {};
+/**
+ * Mini Logger
+ *
+ * @type {Function}
+ * @private
+ */
+var debug = View.debug('SongsView');
 
 var SongsView = View.extend(function SongsView() {
   View.call(this); // super();

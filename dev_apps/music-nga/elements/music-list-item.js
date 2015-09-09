@@ -4,7 +4,7 @@
 var proto = Object.create(HTMLAnchorElement.prototype);
 
 var template =
-`<style scoped>
+`<style>
   #container {
     display: block;
     position: relative;

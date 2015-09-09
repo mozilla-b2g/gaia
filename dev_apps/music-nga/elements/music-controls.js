@@ -4,7 +4,15 @@
 var proto = Object.create(HTMLElement.prototype);
 
 var template =
-`<style scoped>
+`<style>
+  [data-icon]:before {
+    font-family: "gaia-icons";
+    content: attr(data-icon);
+    display: inline-block;
+    font-weight: 500;
+    text-rendering: optimizeLegibility;
+    font-size: 30px;
+  }
   #container {
     background-color: #000;
     border-top: 0.1rem solid rgba(255, 255, 255, 0.1);
@@ -48,11 +56,9 @@ var template =
 
 proto.createdCallback = function() {
   var shadowRoot = this.createShadowRoot();
-  shadowRoot.innerHTML = template;
-
-  getIcons().then(icons => shadowRoot.querySelector('style').innerHTML += icons);
-
   var $id = shadowRoot.getElementById.bind(shadowRoot);
+
+  shadowRoot.innerHTML = template;
 
   this.els = {
     container: $id('container'),
@@ -90,23 +96,6 @@ Object.defineProperty(proto, 'paused', {
     this.els.toggle.dataset.icon = paused ? 'play' : 'pause';
   }
 });
-
-function getIcons() {
-  return new Promise((resolve, reject) => {
-    var iconsLink = document.querySelector('link[href$="gaia-icons-embedded.css"]');
-    var iconsHref = iconsLink && iconsLink.href;
-    if (!iconsHref) {
-      reject();
-      return;
-    }
-
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', iconsHref, true);
-    xhr.onload = () => resolve(xhr.response);
-    xhr.onerror = () => reject();
-    xhr.send();
-  });
-}
 
 try {
   window.MusicControls = document.registerElement('music-controls', { prototype: proto });

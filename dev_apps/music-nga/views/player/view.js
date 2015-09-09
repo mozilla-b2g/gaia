@@ -1,7 +1,13 @@
 /* global bridge, View */
 'use strict';
 
-var debug = 1 ? (...args) => console.log('[PlayerView]', ...args) : () => {};
+/**
+ * Mini Logger
+ *
+ * @type {Function}
+ * @private
+ */
+var debug = View.debug('PlayerView');
 
 const REPEAT_VALUES = ['off', 'list', 'song'];
 const SHUFFLE_VALUES = ['off', 'on'];

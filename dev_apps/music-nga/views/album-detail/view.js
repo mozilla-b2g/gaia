@@ -1,7 +1,13 @@
 /* global bridge, View */
 'use strict';
 
-var debug = 1 ? (...args) => console.log('[AlbumDetailView]', ...args) : () => {};
+/**
+ * Mini Logger
+ *
+ * @type {Function}
+ * @private
+ */
+var debug = View.debug('AlbumDetailView');
 
 var AlbumDetailView = View.extend(function AlbumDetailView() {
   View.call(this); // super();

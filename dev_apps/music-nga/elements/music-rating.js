@@ -4,7 +4,7 @@
 var proto = Object.create(HTMLElement.prototype);
 
 var template =
-`<style scoped>
+`<style>
   #container {
     display: flex;
     flex-flow: row nowrap;

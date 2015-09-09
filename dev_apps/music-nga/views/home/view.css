@@ -1,0 +1,102 @@
+
+.tile {
+  box-sizing: border-box;
+  position: relative;
+  float: left;
+
+  display: block;
+  width: 33.3vw;
+  height: 33.3vw;
+  overflow: hidden;
+
+  border-bottom: solid 1px var(--border-color);
+}
+
+.tile:nth-child(1),
+.tile:nth-child(2) {
+  border-top: solid 1px var(--border-color);
+}
+
+.tile:nth-child(6n+1),
+.tile:nth-child(6n+4) {
+  width: 66.6vw;
+  height: 66.6vw;
+  border-right: solid 1px var(--border-color);;
+}
+
+.tile:nth-child(6n+1) {
+  border-right: solid 1px var(--border-color);;
+}
+
+.tile:nth-child(6n+4) {
+  border-left: solid 1px var(--border-color);;
+}
+
+.tile:nth-last-child(1),
+.tile:nth-last-child(2) {
+  border-bottom: 0;
+}
+
+.tile > .text {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+
+  box-sizing: border-box;
+  display: block;
+  width: 100%;
+  padding: 4px 6px;
+
+  opacity: 0;
+  background-color: rgba(0, 0, 0, 0.25);
+  transition: opacity 200ms;
+  color: #fff;
+}
+
+.tile.populated > .text {
+  opacity: 1;
+}
+
+.tile .artist,
+.tile .album {
+  font-size: 15px;
+  line-height: 1.2em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.tile .album {
+  display: none;
+  line-height: 1.4em;
+  font-size: 12px;
+
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.tile:nth-child(6n+1) .album,
+.tile:nth-child(6n+4) .album {
+  display: block;
+}
+
+.tile:nth-child(6n+4),
+.tile:nth-child(6n+5),
+.tile:nth-child(6n+6) {
+  float: right;
+}
+
+.tile > img {
+  position: relative;
+
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+
+  opacity: 0;
+  transition: opacity 200ms;
+}
+
+.tile > img.loaded {
+  opacity: 1;
+}
