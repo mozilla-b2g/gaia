@@ -9,9 +9,14 @@ from gaiatest.apps.base import Base
 
 class FindMyDevice(Base):
 
+    _page_locator = (By.ID, 'findmydevice')
     _login_locator = (By.ID, 'findmydevice-login-btn')
     _checkbox_locator = (By.CSS_SELECTOR, '#findmydevice-enabled gaia-switch')
     _findmydevice_locator = (By.CSS_SELECTOR, 'span[data-l10n-id="findmydevice-enable"]')
+
+    @property
+    def screen_element(self):
+        return self.marionette.find_element(*self._page_locator)
 
     def tap_login(self):
         login = Wait(self.marionette, timeout=60).until(

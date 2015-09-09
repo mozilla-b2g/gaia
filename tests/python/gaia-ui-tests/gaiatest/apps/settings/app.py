@@ -230,10 +230,10 @@ class Settings(Base):
         return self._open_subpage(self._search_menu_item_locator, 'search', 'Search')
 
     def open_navigation(self):
-        return self._open_subpage(self._navigation_menu_item_locator)
+        return self._open_subpage(self._navigation_menu_item_locator, 'navigation', 'Navigation')
 
     def open_notification(self):
-        return self._open_subpage(self._notification_menu_item_locator)
+        return self._open_subpage(self._notification_menu_item_locator, 'notifications', 'Notifications')
 
     def open_date_and_time(self):
         return self._open_subpage(self._date_and_time_menu_item_locator, 'date_and_time', 'DateAndTime')
@@ -247,7 +247,7 @@ class Settings(Base):
         return self._open_subpage(self._keyboard_menu_item_locator, 'keyboard', 'Keyboard')
 
     def open_themes(self):
-        return self._open_subpage(self._theme_menu_item_locator)
+        return self._open_subpage(self._theme_menu_item_locator, 'themes', 'Themes')
 
     def open_addons(self):
         return self._open_subpage(self._addon_menu_item_locator, 'addons', 'Addons')

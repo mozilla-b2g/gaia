@@ -51,6 +51,7 @@ class AccessibilityScreenreader(Base):
 
 class AccessibilityColors(Base):
 
+    _page_locator = (By.ID, 'accessibility-colors')
     _filter_enable_switch_locator = (
         By.CSS_SELECTOR, '[name="accessibility.colors.enable"]')
     _invert_switch_locator = (
@@ -59,6 +60,10 @@ class AccessibilityColors(Base):
         By.CSS_SELECTOR, '[name="accessibility.colors.grayscale"]')
     _contrast_slider_locator = (
         By.CSS_SELECTOR, 'input[name="accessibility.colors.contrast"]')
+
+    @property
+    def screen_element(self):
+        return self.marionette.find_element(*self._page_locator)
 
     @property
     def invert_switch_visible(self):

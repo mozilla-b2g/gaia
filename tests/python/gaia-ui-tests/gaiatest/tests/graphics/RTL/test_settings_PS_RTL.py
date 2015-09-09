@@ -7,31 +7,30 @@ from gaiatest.apps.settings.app import Settings
 
 class TestSettingsRTLPS(GaiaImageCompareTestCase):
 
-    # Note: Guided Tour is not covered
     def test_settings_app(self):
 
         settings = Settings(self.marionette)
         settings.launch()
 
         ################## Screen Lock ######################
-        screenlock_view = settings.open_screen_lock()
-        screenlock_view.enable_lockscreen()
+        screenlock_page = settings.open_screen_lock()
+        screenlock_page.enable_lockscreen()
         self.take_screenshot('screen_lock')
-        screenlock_view.enable_passcode_lock()
+        screenlock_page.enable_passcode_lock()
         self.take_screenshot('screen_lock-passcode')
-        settings.return_to_prev_menu(screenlock_view.screen_element)
-        settings.return_to_prev_menu(settings.screen_element)
+        settings.return_to_prev_menu(screenlock_page.screen_element, screenlock_page.passcode_screen_element)
+        settings.return_to_prev_menu(settings.screen_element, screenlock_page.screen_element)
 
         ################## App Permission ######################
-        permission_view = settings.open_app_permissions()
+        permission_page = settings.open_app_permissions()
         self.take_screenshot('app_permissions')
-        permission_view.tap_first_item()
+        permission_page.tap_first_item()
         self.take_screenshot('app_permissions-app_list')
-        permission_view.tap_geolocation_selection()
+        permission_page.tap_geolocation_selection()
         self.take_screenshot('app_permissions-geoloc_option')
-        permission_view.exit_geolocation_selection()
-        settings.return_to_prev_menu(permission_view.screen_element)
-        settings.return_to_prev_menu(settings.screen_element)
+        permission_page.exit_geolocation_selection()
+        settings.return_to_prev_menu(permission_page.screen_element, permission_page.details_screen_element)
+        settings.return_to_prev_menu(settings.screen_element, permission_page.screen_element)
 
         ################## Do Not Track ######################
         dnt_page = settings.open_do_not_track()
@@ -39,7 +38,7 @@ class TestSettingsRTLPS(GaiaImageCompareTestCase):
         GaiaImageCompareTestCase.scroll(self.marionette, 'down',
                                         settings.screen_element.size['height'], screen = dnt_page.screen_element)
         self.take_screenshot('do_not_track')
-        settings.return_to_prev_menu(settings.screen_element)
+        settings.return_to_prev_menu(settings.screen_element, dnt_page.screen_element)
 
         ################## Browsing Privacy ######################
         browsingprivacy_page = settings.open_browsing_privacy()
@@ -50,8 +49,9 @@ class TestSettingsRTLPS(GaiaImageCompareTestCase):
         browsingprivacy_page.tap_clear_private_data()
         self.take_screenshot('browsing_privacy-data')
         browsingprivacy_page.cancel_clear()
-        settings.return_to_prev_menu(settings.screen_element)
+        settings.return_to_prev_menu(settings.screen_element, browsingprivacy_page.screen_element)
 
+        # Note: this does not check the initial guided tour
         ################# Privacy Controls ######################
         privacycontrol_page = settings.open_privacy_controls()
         self.apps.switch_to_displayed_app()
@@ -59,9 +59,10 @@ class TestSettingsRTLPS(GaiaImageCompareTestCase):
         self.take_screenshot('privacy_control')
         privacycontrol_page.tap_about()
         self.take_screenshot('privacy_control-about')
-        privacycontrol_page.exit_about()
+        settings.return_to_prev_menu(privacycontrol_page.screen_element, privacycontrol_page.about_screen_element)
+        #privacycontrol_page.exit_about()
 
-        #### Location Accuracy
+        ################# Location Accuracy
         # Note: Checking only the first app in the app list
         loc_acc_page = privacycontrol_page.tap_loc_accuracy()
         loc_acc_page.switch_loc_adjustment()
@@ -76,37 +77,37 @@ class TestSettingsRTLPS(GaiaImageCompareTestCase):
         loc_acc_page.tap_global_settings()
         self.take_screenshot('privacy_control-locacc-applist-globalsetting')
         loc_acc_page.tap_global_settings_ok()
-        settings.return_to_prev_menu(loc_acc_page.applist_screen_element)
-        settings.return_to_prev_menu(loc_acc_page.screen_element)
-        settings.return_to_prev_menu(privacycontrol_page.screen_element)
+        settings.return_to_prev_menu(loc_acc_page.applist_screen_element, loc_acc_page.appview_screen_element)
+        settings.return_to_prev_menu(loc_acc_page.screen_element, loc_acc_page.applist_screen_element)
+        settings.return_to_prev_menu(privacycontrol_page.screen_element, loc_acc_page.screen_element)
 
-        #### Remote Protect
-        privacycontrol_page.tap_remote_protect()
+        ################# Remote Protect #################
+        rprotect_page = privacycontrol_page.tap_remote_protect()
         self.take_screenshot('privacy_control-remprotect')
-        settings.return_to_prev_menu(privacycontrol_page.screen_element)
+        settings.return_to_prev_menu(privacycontrol_page.screen_element, rprotect_page.screen_element)
 
-        #### Transparency Controls
-        #### Note: Only the first app and first permission details are opened for format check
-        transpc_view = privacycontrol_page.tap_trans_control()
+        # Note: Only the first app and first permission details are opened for format check
+        ################# Transparency Controls #################
+        transpc_page = privacycontrol_page.tap_trans_control()
         self.take_screenshot('privacy_control-trans_ctrl')
-        transpc_view.tap_applications()
+        transpc_page.tap_applications()
         self.take_screenshot('privacy_control-trans_ctrl_apps')
-        transpc_view.tap_app_order_selection()
+        transpc_page.tap_app_order_selection()
         self.take_screenshot('privacy_control-trans_ctrl_apps_order_select')
-        transpc_view.tap_app_order_ok()
+        transpc_page.tap_app_order_ok()
         #tap first app
-        transpc_view.tap_first_app_in_list()
+        transpc_page.tap_first_app_in_list()
         self.take_screenshot('privacy_control-trans_ctrl_first_app')
-        settings.return_to_prev_menu(transpc_view.apps_screen_element, False)
-        settings.return_to_prev_menu(transpc_view.screen_element, False)
-        transpc_view.tap_permissions()
+        settings.return_to_prev_menu(transpc_page.apps_screen_element, transpc_page.apps_detail_element, False)
+        settings.return_to_prev_menu(transpc_page.screen_element, transpc_page.apps_screen_element, False)
+        transpc_page.tap_permissions()
 
         self.take_screenshot('privacy_control-transp-perm')
         for i in range(0, 5):
             GaiaImageCompareTestCase.scroll(self.marionette, 'down',
                                             settings.screen_element.size['height'],
-                                            screen=transpc_view.perm_screen_element)
+                                            screen=transpc_page.perm_screen_element)
             self.take_screenshot('privacy_control-transp-perm')
-        transpc_view.tap_first_perm_in_list()
+        transpc_page.tap_first_perm_in_list()
         self.take_screenshot('privacy_control-trans_ctrl_first_perm')
-        settings.return_to_prev_menu(transpc_view.perm_screen_element)
+        settings.return_to_prev_menu(transpc_page.perm_screen_element, transpc_page.perm_detail_element)

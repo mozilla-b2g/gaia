@@ -24,6 +24,10 @@ class AppPermission(Base):
     def screen_element(self):
         return self.marionette.find_element(*self._page_locator)
 
+    @property
+    def details_screen_element(self):
+        return self.marionette.find_element(*self._permission_detail_locator)
+
     def tap_first_item(self):
         self.marionette.find_element(*self._first_item_locator).tap()
         Wait(self.marionette).until(expected.element_displayed(

@@ -14,6 +14,7 @@ class PrivacyControls(Base):
     _remote_protection_menu_locator = (By.ID, 'menu-item-rp')
     _trans_control_locator = (By.ID, 'menu-item-tc')
     _about_btn_locator = (By.CLASS_NAME, 'pp-link')
+    _about_page_locator = (By.ID, 'about')
     _about_back_header_locator = (By.CSS_SELECTOR, '[data-l10n-id="about-privacy-controls"]')
 
     def __init__(self, marionette):
@@ -22,6 +23,10 @@ class PrivacyControls(Base):
     @property
     def screen_element(self):
         return self.marionette.find_element(*self._page_locator)
+
+    @property
+    def about_screen_element(self):
+        return self.marionette.find_element(*self._about_page_locator)
 
     def tap_close_tour(self):
         Wait(self.marionette, timeout=10).until(
@@ -52,11 +57,12 @@ class PrivacyControls(Base):
 
     class LocationAccuracy(Base):
         _page_locator = (By.ID, 'ala-main')
+        _app_locator = (By.CSS_SELECTOR, '[data-manifest-name="Privacy Controls"]')
         _loc_adjust_enable_locator = (By.CLASS_NAME, 'show-when-geolocation-on')
         _loc_selection_locator = (By.NAME, 'geolocation.type')
         _ok_locator = (By.CLASS_NAME, 'value-option-confirm')
         _add_exceptions_menu_locator = (By.CSS_SELECTOR, '[data-l10n-id="add-exceptions"]')
-        _exception_app_list = (By.ID, 'app-list')
+        _exception_app_list = (By.ID, 'ala-exceptions')
         _first_app_locator = (By.CSS_SELECTOR, '#app-list > li:nth-child(2) > a:nth-child(1)')
         _app_info_locator = (By.CLASS_NAME, 'app-info')
         _app_view_locator = (By.ID, 'ala-exception')
@@ -79,6 +85,10 @@ class PrivacyControls(Base):
         def applist_screen_element(self):
             return self.marionette.find_element(*self._exception_app_list)
 
+        @property
+        def appview_screen_element(self):
+            return self.marionette.find_element(*self._app_view_locator)
+
         def switch_loc_adjustment(self):
             self.marionette.find_element(*self._loc_adjust_enable_locator).tap()
             Wait(self.marionette).until(
@@ -87,14 +97,14 @@ class PrivacyControls(Base):
         def tap_adjustment_selection(self):
             self.marionette.find_element(*self._loc_selection_locator).tap()
             self.marionette.switch_to_frame()
-            Wait(self.marionette).until(
-                expected.element_displayed(*self._ok_locator))
+            app = self.marionette.find_element(*self._app_locator)
+            Wait(self.marionette).until(expected.element_displayed(app.find_element(*self._ok_locator)))
 
         def tap_adjustment_ok(self):
-            self.marionette.find_element(*self._ok_locator).tap()
+            app = self.marionette.find_element(*self._app_locator)
+            app.find_element(*self._ok_locator).tap()
             self.apps.switch_to_displayed_app()
-            Wait(self.marionette).until(
-                expected.element_displayed(*self._page_locator))
+            Wait(self.marionette).until(expected.element_displayed(*self._page_locator))
 
         def tap_add_exception(self):
             self.marionette.find_element(*self._add_exceptions_menu_locator).tap()
@@ -109,11 +119,12 @@ class PrivacyControls(Base):
         def tap_global_settings(self):
             self.marionette.find_element(*self._global_settings_locator).tap()
             self.marionette.switch_to_frame()
-            Wait(self.marionette).until(
-                expected.element_displayed(*self._ok_locator))
+            app = self.marionette.find_element(*self._app_locator)
+            Wait(self.marionette).until(expected.element_displayed(app.find_element(*self._ok_locator)))
 
         def tap_global_settings_ok(self):
-            self.marionette.find_element(*self._ok_locator).tap()
+            app = self.marionette.find_element(*self._app_locator)
+            app.find_element(*self._ok_locator).tap()
             self.apps.switch_to_displayed_app()
             Wait(self.marionette).until(
                 expected.element_displayed(*self._global_settings_locator))
@@ -127,9 +138,14 @@ class PrivacyControls(Base):
             Wait(self.marionette).until(
                 expected.element_displayed(*self._page_locator))
 
+        @property
+        def screen_element(self):
+            return self.marionette.find_element(*self._page_locator)
+
 
     class TransparencyControl(Base):
         _page_locator = (By.ID, 'tc-main')
+        _app_locator = (By.CSS_SELECTOR, '[data-manifest-name="Privacy Controls"]')
         _app_menu_locator = (By.CSS_SELECTOR, '[data-l10n-id="tc-applications"]')
         _app_view_locator = (By.ID, 'tc-applications')
         _app_order_selector_locator = (By.ID, 'tc-sortKey')
@@ -140,6 +156,8 @@ class PrivacyControls(Base):
         _impl_perm_text_locator = (By.CSS_SELECTOR, '[data-l10n-id="tc-implicit-permissions"]')
         _first_permission_locator = (By.CSS_SELECTOR, '[data-key="alarms"]')
         _access_app_text_locator = (By.CSS_SELECTOR, '[data-l10n-id="tc-apps-accessing-permission"]')
+        _app_detail_view_locator = (By.ID, 'tc-appDetails')
+        _perm_detail_view_locator = (By.ID, 'tc-permDetails')
 
         def __init__(self, marionette):
             Base.__init__(self, marionette)
@@ -155,8 +173,16 @@ class PrivacyControls(Base):
             return self.marionette.find_element(*self._app_view_locator)
 
         @property
+        def apps_detail_element(self):
+            return self.marionette.find_element(*self._app_detail_view_locator)
+
+        @property
         def perm_screen_element(self):
             return self.marionette.find_element(*self._permissions_view_locator)
+
+        @property
+        def perm_detail_element(self):
+            return self.marionette.find_element(*self._perm_detail_view_locator)
 
         def tap_applications(self):
             self.marionette.find_element(*self._app_menu_locator).tap()
@@ -176,11 +202,12 @@ class PrivacyControls(Base):
         def tap_app_order_selection(self):
             self.marionette.find_element(*self._app_order_selector_locator).tap()
             self.marionette.switch_to_frame()
-            Wait(self.marionette).until(
-                expected.element_displayed(*self._ok_locator))
+            app = self.marionette.find_element(*self._app_locator)
+            Wait(self.marionette).until(expected.element_displayed(app.find_element(*self._ok_locator)))
 
         def tap_app_order_ok(self):
-            self.marionette.find_element(*self._ok_locator).tap()
+            app = self.marionette.find_element(*self._app_locator)
+            app.find_element(*self._ok_locator).tap()
             self.apps.switch_to_displayed_app()
             Wait(self.marionette).until(
                 expected.element_displayed(*self._app_view_locator))

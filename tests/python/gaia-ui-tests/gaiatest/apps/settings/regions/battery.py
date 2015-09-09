@@ -11,8 +11,14 @@ from gaiatest.apps.base import Base
 
 class Battery(Base):
 
+    _page_locator =  (By.ID, 'battery')
+
     _power_save_checkbox_locator = (By.CSS_SELECTOR, 'gaia-switch[name="powersave.enabled"]')
     _power_save_turn_on_auto_locator = (By.CSS_SELECTOR, 'select[name="powersave.threshold"]')
+
+    @property
+    def screen_element(self):
+        return self.marionette.find_element(*self._page_locator)
 
     def toggle_power_save_mode(self):
         element = self.marionette.find_element(*self._power_save_checkbox_locator)

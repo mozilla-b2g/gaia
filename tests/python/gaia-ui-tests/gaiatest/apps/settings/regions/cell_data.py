@@ -36,19 +36,24 @@ class CellData(Base):
     def screen_element(self):
         return self.marionette.find_element(*self._page_locator)
 
+    # workaround for elements within CellDataPrompt going stale
+    @property
+    def data_prompt(self):
+        return CellDataPrompt(self.marionette)
+
     def enable_data(self):
         element = Wait(self.marionette).until(
             expected.element_present(*self._cell_data_enabled_label_locator))
         Wait(self.marionette).until(expected.element_displayed(element))
         element.tap()
-        return CellDataPrompt(self.marionette)
+        return self.data_prompt
 
     def enable_roaming(self):
         element = Wait(self.marionette).until(
             expected.element_present(*self._data_roaming_enabled_label_locator))
         Wait(self.marionette).until(expected.element_displayed(element))
         element.tap()
-        return CellDataPrompt(self.marionette)
+        return self.data_prompt
 
     # this method is for imagecompare tests only.  Since CellDataPrompt is a subclass of PageRegion, taking screeshot
     # within the dialog will make the root_element stale.  For non-imagecompare tests, use CellDataPrompt.turn_on()

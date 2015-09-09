@@ -7,7 +7,7 @@ from gaiatest.gaia_graphics_test import GaiaImageCompareTestCase
 from gaiatest.apps.settings.app import Settings
 
 
-class TestSettingsRTL(GaiaImageCompareTestCase):
+class TestSettingsRTLNC(GaiaImageCompareTestCase):
     def test_settings_app(self):
 
         settings = Settings(self.marionette)
@@ -132,11 +132,11 @@ class TestSettingsRTL(GaiaImageCompareTestCase):
         self.take_screenshot('cell_and_data')
         cell_data_page.enable_data()
         self.take_screenshot('data_enable_prompt')
-        cell_data_page.tap_ok_on_prompt()
+        cell_data_page.data_prompt.turn_on()
         Wait(self.marionette).until(lambda m: cell_data_page.is_data_toggle_checked is True)
         cell_data_page.enable_roaming()
         self.take_screenshot('roaming_enable_prompt')
-        cell_data_page.tap_ok_on_prompt()
+        cell_data_page.data_prompt.turn_on()
         Wait(self.marionette).until(lambda m: cell_data_page.is_roaming_toggle_checked is True)
         self.take_screenshot('cell_and_data_enabled')
         sim_settings_page = cell_data_page.tap_sim_1_setting()

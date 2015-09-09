@@ -5,17 +5,11 @@
 from marionette_driver import expected, By, Wait
 
 from gaiatest.apps.base import Base
-from gaiatest.apps.settings.regions.cell_data_prompt import CellDataPrompt
 
 
-class Downloads(Base):
+class Navigation(Base):
 
-    _page_locator = (By.ID, 'downloads')
-    _download_text_locator = (By.ID, 'dle-text')
-
-    def __init__(self, marionette):
-        Base.__init__(self, marionette)
-        Wait(self.marionette).until(expected.element_displayed(*self._download_text_locator))
+    _page_locator = (By.ID, 'navigation')
 
     @property
     def screen_element(self):

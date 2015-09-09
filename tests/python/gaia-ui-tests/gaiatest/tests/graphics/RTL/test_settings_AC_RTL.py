@@ -12,7 +12,8 @@ class TestSettingsRTLAC(GaiaImageCompareTestCase):
         GaiaImageCompareTestCase.setUp(self)
         self.connect_to_local_area_network()
 
-    # Note: this test case does not cover new account creation, since it would require a new email address each time.
+    # Note: this test case does not cover new account creation steps,
+    # since it would require a new email address each time.
     # this test runs three separate scenarios using @parameterized
     @parameterized("valid_login", 'login')
     @parameterized("invalid_password", 'password')
@@ -36,7 +37,7 @@ class TestSettingsRTLAC(GaiaImageCompareTestCase):
             self.take_screenshot('findmydevice-loggedin')
 
             # capture the caption change
-            settings.return_to_prev_menu(settings.screen_element)
+            settings.return_to_prev_menu(settings.screen_element, findmydevice_view.screen_element)
             self.take_screenshot('settings-firefox_accounts')
 
             # capture the view change in fxaccounts page after successful login
@@ -61,7 +62,7 @@ class TestSettingsRTLAC(GaiaImageCompareTestCase):
             self.take_screenshot('findmydevice-confirmyouracct')
 
             # capture the caption change
-            settings.return_to_prev_menu(settings.screen_element)
+            settings.return_to_prev_menu(settings.screen_element, findmydevice_view.screen_element)
             self.take_screenshot('settings-firefox_accounts')
 
             # fxaccounts page should display a message about confirmation

@@ -10,6 +10,7 @@ from gaiatest.apps.base import Base
 
 
 class DateAndTime(Base):
+
     _page_locator = (By.ID, 'dateTime')
     _24h_selector_locator = (By.CSS_SELECTOR, 'select.time-format-time')
     _autotime_enabled_locator = (By.CSS_SELECTOR, '.time-auto')

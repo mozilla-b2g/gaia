@@ -9,8 +9,13 @@ from gaiatest.apps.base import Base
 
 class Search(Base):
 
+    _page_locator = (By.ID, 'search')
     _search_selector_locator = (By.NAME, "search.provider")
     _search_selector_confirmation_button_locator = (By.CLASS_NAME, "value-option-confirm")
+
+    @property
+    def screen_element(self):
+        return self.marionette.find_element(*self._page_locator)
 
     def select_search_engine(self, value):
         element = Wait(self.marionette).until(
