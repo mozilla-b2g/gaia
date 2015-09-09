@@ -43,6 +43,7 @@
       if (isVideo) {
         // must unload video and force load before switching to new source
         mediaElement.addEventListener('error', onMediaLoadOrError);
+        mediaElement.addEventListener('abort', onMediaLoadOrError);
         if (mediaElement.src) {
           mediaElement.addEventListener('emptied', onVideoUnloaded, false);
           mediaElement.addEventListener('abort', onVideoUnloaded, false);
