@@ -65,7 +65,8 @@ module.exports = {
       critical: 6,
       shutdown: 5,
       healthy: 100
-    }
+    },
+    powerSaveScreenTimeout: 120
   },
 
   sounds: {
