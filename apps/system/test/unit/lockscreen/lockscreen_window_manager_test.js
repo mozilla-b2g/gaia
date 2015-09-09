@@ -376,10 +376,27 @@ suite('system/LockScreenWindowManager', function() {
     test('Open the app when asked via lock-immediately setting', function() {
       subject.registerApp(appFake);
       var stubOpen = this.sinon.stub(appFake, 'open');
+      subject.states.enabled = true;
       window.MockNavigatorSettings.mTriggerObservers(
         'lockscreen.lock-immediately', {settingValue: true});
       assert.isTrue(stubOpen.called,
         'the manager didn\'t open the app when requested');
+      subject.unregisterApp(appFake);
+    });
+
+    test('Ignores lock-immediately when lockscreen disabled', function() {
+      subject.registerApp(appFake);
+      var stubOpen = this.sinon.stub(appFake, 'open');
+      var stubWarn = this.sinon.stub(console, 'warn');
+      subject.states.enabled = false;
+      window.MockNavigatorSettings.mTriggerObservers(
+        'lockscreen.lock-immediately', {settingValue: true});
+      assert.isFalse(stubOpen.called,
+        'the manager opened while lockscreen disabled');
+      assert.isTrue(stubWarn.called,
+        'the manager did not warn about it');
+      stubOpen.restore();
+      stubWarn.restore();
       subject.unregisterApp(appFake);
     });
 

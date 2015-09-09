@@ -240,7 +240,15 @@
       // Should be replaced by a proper IAC API in bug 992277.
       var lockListener = (event) => {
         if (true === event.settingValue) {
-          this.openApp();
+          // Ignore when lockscreen is disabled.
+          // Prevents LSWM ending up in a broken, permanently-locked
+          // state when lock-immediately is sent to disabled lockscreen.
+          if (this.states.enabled) {
+            this.openApp();
+          } else {
+            console.warn('LockScreenWindowManager: Ignoring ' +
+              '\'lock-immediately\' on disabled lock screen.');
+          }
         }
       };
 
