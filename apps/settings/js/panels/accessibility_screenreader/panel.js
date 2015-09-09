@@ -18,7 +18,7 @@ define(function(require) {
     return SettingsPanel({
       onInit: function asr_onInit(rootElement) {
         _screenreaderSwitch =
-          rootElement.querySelector('#screenreader-enable gaia-switch');
+          rootElement.querySelector('.screenreader-enable');
         var dialogContainer = rootElement.querySelector(
           '#screenreader-confirm-dialog');
 
