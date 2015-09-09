@@ -99,6 +99,14 @@ suite('ActionMenu', function() {
   });
 
   suite('Hide > ', function() {
+    test('Should force position:fixed during the transition', function() {
+      actionMenu.hide();
+      assert.equal(actionMenu.form.style.position, 'fixed');
+      var evt = new CustomEvent('transitionend');
+      actionMenu.form.dispatchEvent(evt);
+      assert.equal(actionMenu.form.style.position, '');
+    });
+
     test('Calls to parent .hide method after transition', function() {
       actionMenu.hide();
       var evt = new CustomEvent('transitionend');
