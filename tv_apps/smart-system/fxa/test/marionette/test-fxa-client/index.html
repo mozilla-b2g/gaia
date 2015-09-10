@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>FxAccounts testing tools</title>
+    <!-- We don't need localization for this app. -->
+    <script defer type="text/javascript" src="/js/fxa_iac_client.js"></script>
+    <script defer type="text/javascript" src="/js/app.js"></script>
+    <link rel="stylesheet" type="text/css" href="style/style.css">
+  </head>
+  <body>
+    <section role="dialog">
+      <menu>
+        <button id="getAccounts">Get Fx Accounts</button>
+        <button id="openFlow">Launch FxAccounts flow</button>
+        <button id="logout">Logout</button>
+        <div class="refresh-auth">
+          <button id="refreshAuthentication">Refresh Authentication UI</button>
+          <input id="accountId" type="text" value="dummy@account" x-inputmode="verbatim">
+        </div>
+      </menu>
+
+      <section id="result">
+        <p id="result-text"></p>
+      </section>
+
+      <section id="events">
+        <p id="events-text"></p>
+      </section>
+    </section>
+    <!-- Progress overlay -->
+    <section id="overlay" role="dialog">
+      <progress></progress>
+      <p id="overlay-msg">Connecting to Firefox</p>
+    </section>
+  </body>
+</html>
