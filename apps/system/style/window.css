@@ -236,7 +236,7 @@
   visibility: visible;
 }
 
-.appWindow[transition-state="closed"] > div.browser-container > iframe {
+.appWindow[transition-state="closed"]:not(.toaster-mode) > div.browser-container > iframe {
   visibility: hidden;
 }
 
