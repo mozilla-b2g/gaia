@@ -44,11 +44,8 @@ class TimePicker(Base):
 
     def add_minute(self):
         current = self._current(self._minutes_picker_locator)
-        minute = current.text
-        next = current.find_element(By.XPATH, 'following-sibling::*')
-        # TODO: Bug 1129907 - Unable to use precise actions to select timepicker values in Gaia
-        # TODO: Bug 1031456 - invoking js event without release() loses context
-        Actions(self.marionette).press(next).move_by_offset(0, -5 * next.rect['height']).perform()
+        minute = self.minute
+        Actions(self.marionette).press(current).wait(0.2).move_by_offset(0, -3*current.rect['height']).wait(0.4).release().perform()
         Wait(self.marionette).until(lambda m: self.minute != minute)
 
     @property
