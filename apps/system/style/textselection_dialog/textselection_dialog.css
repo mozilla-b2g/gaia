@@ -86,3 +86,7 @@
 .textselection-dialog-selectall {
   background-image: url('images/textselection_select_all.png');
 }
+
+.textselection-dialog-activity {
+  background-image: url('images/textselection_copy.png');
+}

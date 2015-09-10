@@ -1,4 +1,4 @@
-/* global SettingsListener, Service */
+/* global SettingsListener, Service, MozActivity */
 'use strict';
 (function(exports) {
   var DEBUG = false;
@@ -223,7 +223,7 @@
         });
       };
 
-      this.elementClasses = ['copy', 'cut', 'paste', 'selectall'];
+      this.elementClasses = ['copy', 'cut', 'paste', 'selectall', 'activity'];
 
       // Loop and add element with camel style name to Modal Dialog attribute.
       this.elementClasses.forEach(function createElementRef(name) {
@@ -345,6 +345,21 @@
       this._doCommand(evt, 'selectall', false);
   };
 
+  AppTextSelectionDialog.prototype.activityHandler =
+    function tsd_activityHandler(evt) {
+    console.log('XXX gogogo');
+    // selObj = window.getSelection() || document.getSelection();
+    // console.log('txt:'+selObj.toString());
+    /* jshint nonew: false */
+    new MozActivity({
+      name: 'view',
+      data: {
+        type: 'url',
+        url: 'http://www.mozilla.org'
+      }
+    });
+  };
+
   AppTextSelectionDialog.prototype.view = function tsd_view() {
     var id = this.CLASS_NAME + this.instanceID;
     var temp = `<div class="textselection-dialog" id="${id}">
@@ -355,13 +370,16 @@
                 </div>
               <div data-action="paste" class="textselection-dialog-paste">
                 </div>
+              <div data-action="activity" class="textselection-dialog-activity">
+                </div>
             </div>`;
     return temp;
   };
 
   AppTextSelectionDialog.prototype.show = function tsd_show(detail) {
+    console.log('XXX app text selection');
     var numOfSelectOptions = 0;
-    var options = [ 'Paste', 'Copy', 'Cut', 'SelectAll' ];
+    var options = [ 'Paste', 'Copy', 'Cut', 'SelectAll', 'Activity' ];
 
     // Check this._injected here to make sure this.elements is initialized.
     if (!this._injected) {
@@ -373,6 +391,7 @@
     // So, we use css to put divider in pseudo element and set the last visible
     // option without it.
     var lastVisibleOption;
+    detail.commands.canActivity = true;
     options.forEach(function(option) {
       if (detail.commands['can' + option]) {
         numOfSelectOptions++;
