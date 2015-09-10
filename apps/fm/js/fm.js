@@ -885,8 +885,8 @@ function init() {
 
 document.addEventListener('DOMLocalized', function() {
   // localize MHz
-  document.l10n.format('mhz').then(str => {
-    mhzString = str.value;
+  document.l10n.formatValue('mhz').then(str => {
+    mhzString = str;
     $('frequency').dataset.unit = mhzString;
 
     var nodes = document.querySelectorAll(

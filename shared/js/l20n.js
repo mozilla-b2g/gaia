@@ -111,21 +111,7 @@
       }
     };
 
-    function applyTranslations(view, elements, translations) {
-      view.disconnect();
-
-      for (let i = 0; i < elements.length; i++) {
-        if (translations[i] === false) {
-          continue;
-        }
-
-        applyTranslation(view, elements[i], translations[i]);
-      }
-
-      view.observe();
-    }
-
-    function applyTranslation(view, element, translation) {
+    function overlayElement(element, translation) {
       const value = translation.value;
 
       if (typeof value === 'string') {
@@ -134,7 +120,7 @@
         } else {
           const tmpl = element.ownerDocument.createElement('template');
           tmpl.innerHTML = value;
-          overlayElement(element, tmpl.content);
+          overlay(element, tmpl.content);
         }
       }
 
@@ -149,7 +135,7 @@
       }
     }
 
-    function overlayElement(sourceElement, translationElement) {
+    function overlay(sourceElement, translationElement) {
       const result = translationElement.ownerDocument.createDocumentFragment();
       let k, attr;
       let childElement;
@@ -166,14 +152,14 @@
         const sourceChild = getNthElementOfType(sourceElement, childElement, index);
 
         if (sourceChild) {
-          overlayElement(sourceChild, childElement);
+          overlay(sourceChild, childElement);
           result.appendChild(sourceChild);
           continue;
         }
 
         if (isElementAllowed(childElement)) {
           const sanitizedChild = childElement.ownerDocument.createElement(childElement.nodeName);
-          overlayElement(sanitizedChild, childElement);
+          overlay(sanitizedChild, childElement);
           result.appendChild(sanitizedChild);
           continue;
         }
@@ -263,10 +249,10 @@
       }).replace(/^-/, '');
     }
 
-    return { applyTranslations, applyTranslation };
+    return { overlayElement };
   });
   modules.set('bindings/html/dom', function () {
-    const { applyTranslation, applyTranslations } = getModule('bindings/html/overlay');
+    const { overlayElement } = getModule('bindings/html/overlay');
     const reHtml = /[&<>]/g;
     const htmlEntities = {
       '&': '&amp;',
@@ -344,26 +330,42 @@
       const args = elem.getAttribute('data-l10n-args');
 
       if (!args) {
-        return view.ctx.resolve(langs, id);
+        return view._resolveEntity(langs, id);
       }
 
-      return view.ctx.resolve(langs, id, JSON.parse(args.replace(reHtml, match => htmlEntities[match])));
+      return view._resolveEntity(langs, id, JSON.parse(args.replace(reHtml, match => htmlEntities[match])));
+    }
+
+    function translateElement(view, langs, elem) {
+      return getElementTranslation(view, langs, elem).then(translation => applyTranslation(view, elem, translation));
     }
 
     function translateElements(view, langs, elements) {
       return Promise.all(elements.map(elem => getElementTranslation(view, langs, elem))).then(translations => applyTranslations(view, elements, translations));
     }
 
-    function translateElement(view, langs, elem) {
-      return getElementTranslation(view, langs, elem).then(translation => {
-        if (!translation) {
-          return false;
+    function applyTranslation(view, elem, translation) {
+      if (!translation) {
+        return false;
+      }
+
+      view.disconnect();
+      overlayElement(elem, translation);
+      view.observe();
+    }
+
+    function applyTranslations(view, elems, translations) {
+      view.disconnect();
+
+      for (let i = 0; i < elems.length; i++) {
+        if (translations[i] === false) {
+          continue;
         }
 
-        view.disconnect();
-        applyTranslation(view, elem, translation);
-        view.observe();
-      });
+        overlayElement(elems[i], translations[i]);
+      }
+
+      view.observe();
     }
 
     return { setAttributes, getAttributes, translateMutations, translateFragment, translateElement };
@@ -441,10 +443,8 @@
     };
 
     class View {
-      constructor(service, doc) {
-        this.service = service;
+      constructor(doc) {
         this.doc = doc;
-        this.ctx = this.service.env.createContext(getResourceLinks(doc.head));
         this.ready = new Promise(function (resolve) {
           const viewReady = function (evt) {
             doc.removeEventListener('DOMLocalized', viewReady);
@@ -458,7 +458,9 @@
         this.observe = () => observer.observe(this.doc, observerConfig);
 
         this.disconnect = () => observer.disconnect();
-
+      }
+      init(service) {
+        this.service = service.register(this, getResourceLinks(this.doc.head));
         this.observe();
       }
       get languages() {
@@ -470,11 +472,14 @@
       emit(...args) {
         return this.service.env.emit(...args);
       }
-      format(id, args) {
-        return this.service.languages.then(langs => this.ctx.fetch(langs)).then(langs => this.ctx.resolve(langs, id, args));
+      _resolveEntity(langs, id, args) {
+        return this.service.resolveEntity(this, langs, id, args);
+      }
+      formatValue(id, args) {
+        return this.service.initView(this).then(langs => this.service.resolveValue(this, langs, id, args));
       }
       translateFragment(frag) {
-        return this.service.languages.then(langs => this.ctx.fetch(langs)).then(langs => translateFragment(this, langs, frag));
+        return this.service.initView(this).then(langs => translateFragment(this, langs, frag));
       }
     }
 
@@ -482,12 +487,12 @@
     View.prototype.getAttributes = getAttributes;
 
     function onMutations(mutations) {
-      return this.service.languages.then(langs => this.ctx.fetch(langs)).then(langs => translateMutations(this, langs, mutations));
+      return this.service.initView(this).then(langs => translateMutations(this, langs, mutations));
     }
 
     function translate(langs) {
       dispatchEvent(this.doc, 'supportedlanguageschange', langs);
-      return this.ctx.fetch(langs).then(translateDocument.bind(this, langs));
+      return translateDocument.call(this, langs);
     }
 
     function translateDocument(langs) {
@@ -602,61 +607,63 @@
       return newValue;
     }
 
-    const reAlphas = /[a-zA-Z]/g;
-    const reVowels = /[aeiouAEIOU]/g;
-    const ACCENTED_MAP = 'ȦƁƇḒḖƑƓĦĪ' + 'ĴĶĿḾȠǾƤɊŘ' + 'ŞŦŬṼẆẊẎẐ' + '[\\]^_`' + 'ȧƀƈḓḗƒɠħī' + 'ĵķŀḿƞǿƥɋř' + 'şŧŭṽẇẋẏẑ';
-    const FLIPPED_MAP = '∀ԐↃpƎɟפHIſ' + 'Ӽ˥WNOԀÒᴚS⊥∩Ʌ' + 'ＭXʎZ' + '[\\]ᵥ_,' + 'ɐqɔpǝɟƃɥıɾ' + 'ʞʅɯuodbɹsʇnʌʍxʎz';
-
-    function makeLonger(val) {
-      return val.replace(reVowels, function (match) {
-        return match + match.toLowerCase();
-      });
-    }
-
-    function replaceChars(map, val) {
-      return val.replace(reAlphas, function (match) {
-        return map.charAt(match.charCodeAt(0) - 65);
-      });
-    }
-
-    const reWords = /[^\W0-9_]+/g;
-
-    function makeRTL(val) {
-      return val.replace(reWords, function (match) {
-        return '‮' + match + '‬';
-      });
-    }
-
-    const reExcluded = /(%[EO]?\w|\{\s*.+?\s*\}|&[#\w]+;|<\s*.+?\s*>)/;
-
-    function mapContent(fn, val) {
-      if (!val) {
-        return val;
-      }
-
-      const parts = val.split(reExcluded);
-      const modified = parts.map(function (part) {
-        if (reExcluded.test(part)) {
-          return part;
+    function createGetter(id, name) {
+      let _pseudo = null;
+      return function getPseudo() {
+        if (_pseudo) {
+          return _pseudo;
         }
 
-        return fn(part);
-      });
-      return modified.join('');
+        const reAlphas = /[a-zA-Z]/g;
+        const reVowels = /[aeiouAEIOU]/g;
+        const reWords = /[^\W0-9_]+/g;
+        const reExcluded = /(%[EO]?\w|\{\s*.+?\s*\}|&[#\w]+;|<\s*.+?\s*>)/;
+        const charMaps = {
+          'qps-ploc': 'ȦƁƇḒḖƑƓĦĪ' + 'ĴĶĿḾȠǾƤɊŘ' + 'ŞŦŬṼẆẊẎẐ' + '[\\]^_`' + 'ȧƀƈḓḗƒɠħī' + 'ĵķŀḿƞǿƥɋř' + 'şŧŭṽẇẋẏẑ',
+          'qps-plocm': '∀ԐↃpƎɟפHIſ' + 'Ӽ˥WNOԀÒᴚS⊥∩Ʌ' + 'ＭXʎZ' + '[\\]ᵥ_,' + 'ɐqɔpǝɟƃɥıɾ' + 'ʞʅɯuodbɹsʇnʌʍxʎz'
+        };
+        const mods = {
+          'qps-ploc': val => val.replace(reVowels, match => match + match.toLowerCase()),
+          'qps-plocm': val => val.replace(reWords, match => '‮' + match + '‬')
+        };
+
+        const replaceChars = (map, val) => val.replace(reAlphas, match => map.charAt(match.charCodeAt(0) - 65));
+
+        const tranform = val => replaceChars(charMaps[id], mods[id](val));
+
+        const apply = (fn, val) => {
+          if (!val) {
+            return val;
+          }
+
+          const parts = val.split(reExcluded);
+          const modified = parts.map(function (part) {
+            if (reExcluded.test(part)) {
+              return part;
+            }
+
+            return fn(part);
+          });
+          return modified.join('');
+        };
+
+        return _pseudo = {
+          translate: val => apply(tranform, val),
+          name: tranform(name)
+        };
+      };
     }
 
-    function Pseudo(id, name, charMap, modFn) {
-      this.id = id;
-      this.translate = mapContent.bind(null, function (val) {
-        return replaceChars(charMap, modFn(val));
-      });
-      this.name = this.translate(name);
-    }
-
-    const qps = {
-      'qps-ploc': new Pseudo('qps-ploc', 'Runtime Accented', ACCENTED_MAP, makeLonger),
-      'qps-plocm': new Pseudo('qps-plocm', 'Runtime Mirrored', FLIPPED_MAP, makeRTL)
-    };
+    const qps = Object.defineProperties(Object.create(null), {
+      'qps-ploc': {
+        enumerable: true,
+        get: createGetter('qps-ploc', 'Runtime Accented')
+      },
+      'qps-plocm': {
+        enumerable: true,
+        get: createGetter('qps-plocm', 'Runtime Mirrored')
+      }
+    });
     return { walkEntry, walkValue, qps };
   });
   modules.set('lib/format/l20n/entries/parser', function () {
@@ -2094,7 +2101,7 @@
         }
       }
       _formatEntity(lang, args, entity, id) {
-        const [, value] = this._formatTuple.call(this, lang, args, entity, id);
+        const [, value] = this._formatTuple(lang, args, entity, id);
 
         const formatted = {
           value,
@@ -2105,13 +2112,16 @@
           formatted.attrs = Object.create(null);
 
           for (let key in entity.attrs) {
-            const [, attrValue] = this._formatTuple.call(this, lang, args, entity.attrs[key], id, key);
+            const [, attrValue] = this._formatTuple(lang, args, entity.attrs[key], id, key);
 
             formatted.attrs[key] = attrValue;
           }
         }
 
         return formatted;
+      }
+      _formatValue(lang, args, entity, id) {
+        return this._formatTuple(lang, args, entity, id)[1];
       }
       fetch(langs) {
         if (langs.length === 0) {
@@ -2120,27 +2130,37 @@
 
         return Promise.all(this._resIds.map(this._env._getResource.bind(this._env, langs[0]))).then(() => langs);
       }
-      resolve(langs, id, args) {
+      _resolve(langs, id, args, formatter) {
         const lang = langs[0];
 
         if (!lang) {
           this._env.emit('notfounderror', new L10nError('"' + id + '"' + ' not found in any language', id), this);
 
-          return {
-            value: id,
-            attrs: null
-          };
+          if (formatter === this._formatEntity) {
+            return {
+              value: id,
+              attrs: null
+            };
+          } else {
+            return id;
+          }
         }
 
         const entity = this._getEntity(lang, id);
 
         if (entity) {
-          return Promise.resolve(this._formatEntity(lang, args, entity, id));
+          return Promise.resolve(formatter.call(this, lang, args, entity, id));
         } else {
           this._env.emit('notfounderror', new L10nError('"' + id + '"' + ' not found in ' + lang.code, id, lang), this);
         }
 
-        return this.fetch(langs.slice(1)).then(nextLangs => this.resolve(nextLangs, id, args));
+        return this.fetch(langs.slice(1)).then(nextLangs => this._resolve(nextLangs, id, args, formatter));
+      }
+      resolveEntity(langs, id, args) {
+        return this._resolve(langs, id, args, this._formatEntity);
+      }
+      resolveValue(langs, id, args) {
+        return this._resolve(langs, id, args, this._formatValue);
       }
       _getEntity(lang, id) {
         const cache = this._env._resCache;
@@ -2259,19 +2279,33 @@
   });
   modules.set('bindings/html/service', function () {
     const { Env } = getModule('lib/env');
-    const { View, translate } = getModule('bindings/html/view');
+    const { translate } = getModule('bindings/html/view');
     const { getMeta } = getModule('bindings/html/head');
     const { negotiateLanguages } = getModule('bindings/html/langs');
 
     class Service {
       constructor(fetch) {
+        this.views = new Map();
+        this.fetch = fetch;
+      }
+      register(view, resources) {
         const meta = getMeta(document.head);
         this.defaultLanguage = meta.defaultLang;
         this.availableLanguages = meta.availableLangs;
         this.appVersion = meta.appVersion;
-        this.env = new Env(this.defaultLanguage, fetch.bind(null, this.appVersion));
-        this.views = [document.l10n = new View(this, document)];
+        this.env = new Env(this.defaultLanguage, this.fetch.bind(null, this.appVersion));
         this.env.addEventListener('deprecatewarning', err => console.warn(err));
+        this.views.set(view, this.env.createContext(resources));
+        return this;
+      }
+      initView(view) {
+        return this.languages.then(langs => this.views.get(view).fetch(langs));
+      }
+      resolveEntity(view, langs, id, args) {
+        return this.views.get(view).resolveEntity(langs, id, args);
+      }
+      resolveValue(view, langs, id, args) {
+        return this.views.get(view).resolveValue(langs, id, args);
       }
       requestLanguages(requestedLangs = navigator.languages) {
         return changeLanguages.call(this, getAdditionalLanguages(), requestedLangs);
@@ -2290,7 +2324,12 @@
     }
 
     function translateViews(langs) {
-      return Promise.all(this.views.map(view => translate.call(view, langs)));
+      const views = Array.from(this.views);
+      return Promise.all(views.map(tuple => translateView(langs, tuple)));
+    }
+
+    function translateView(langs, [view, ctx]) {
+      return ctx.fetch(langs).then(translate.bind(view, langs));
     }
 
     function changeLanguages(additionalLangs, requestedLangs) {
@@ -2380,6 +2419,7 @@
   modules.set('runtime/web/index', function () {
     const { fetch } = getModule('runtime/web/io');
     const { Service } = getModule('bindings/html/service');
+    const { View } = getModule('bindings/html/view');
 
     const readyStates = {
       loading: 0,
@@ -2404,8 +2444,12 @@
       const service = new Service(fetch);
       window.addEventListener('languagechange', service);
       document.addEventListener('additionallanguageschange', service);
+
+      document.l10n.init(service);
       document.l10n.languages = navigator.languages;
     }
+
+    document.l10n = new View(document);
 
     whenInteractive(init);
   });
