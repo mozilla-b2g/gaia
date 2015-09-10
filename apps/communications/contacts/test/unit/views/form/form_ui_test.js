@@ -479,13 +479,29 @@ suite('FormUI', function() {
 
   suite('Save button', function() {
     var contact = {
-      tel: ['123456789']
+      tel: ['123456789'],
+      category: ['favorite']
     };
 
     test(' > must dispatch an event when clicked', function(done) {
       FormUI.render(contact);
 
-      window.addEventListener('save-contact', function() {
+      window.addEventListener('save-contact', function onsave(evt) {
+        window.removeEventListener('save-contact', onsave);
+        done();
+      });
+
+      var clickEvent = new CustomEvent('click', {'detail': contact});
+      document.querySelector('#save-button').dispatchEvent(clickEvent);
+    });
+
+    test(' > Saved contact must have favorite flag', function(done) {
+      FormUI.render(contact);
+
+      window.addEventListener('save-contact', function onsave(evt) {
+        window.removeEventListener('save-contact', onsave);
+        assert.isNotNull(evt.detail.category);
+        assert.equal(evt.detail.category[0], 'favorite');
         done();
       });
 
