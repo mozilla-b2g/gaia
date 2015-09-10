@@ -15,7 +15,8 @@ TextSelection.Selector = Object.freeze({
   copy: '.textselection-dialog .textselection-dialog-copy',
   paste: '.textselection-dialog .textselection-dialog-paste',
   cut: '.textselection-dialog .textselection-dialog-cut',
-  selectall: '.textselection-dialog .textselection-dialog-selectall'
+  selectall: '.textselection-dialog .textselection-dialog-selectall',
+  action: '.textselection-dialog .textselection-dialog-action'
 });
 
 TextSelection.prototype = {
@@ -95,7 +96,7 @@ TextSelection.prototype = {
    * Get appWindow's id and origin of displayed app.
    * XXXXX: Since gecko is not ready yet, we need to simulate gecko dispatching
    *        mozbrowsertextualmenu event to display textselection dialog.
-   * 
+   *
    * @return {displayApp}.
    */
   _getDisplayedAppInfo: function() {
@@ -127,7 +128,7 @@ TextSelection.prototype = {
     this.longPressByPosition(element, rect.x + rect.width / 2,
       rect.y + rect.height / 2);
   },
- 
+
   longPressByPosition: function(element, x, y) {
     this.client.executeScript(function() {
       var Ci = Components.interfaces;
@@ -165,6 +166,12 @@ TextSelection.prototype = {
   pressSelectAll: function() {
     this.client.switchToFrame();
     this.client.helper.waitForElement(TextSelection.Selector.selectall).tap();
+    this.client.apps.switchToApp(this._getDisplayedAppInfo().origin);
+  },
+
+  pressAction: function() {
+    this.client.switchToFrame();
+    this.client.helper.waitForElement(TextSelection.Selector.action).tap();
     this.client.apps.switchToApp(this._getDisplayedAppInfo().origin);
   }
 };

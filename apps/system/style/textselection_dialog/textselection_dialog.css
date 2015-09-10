@@ -94,3 +94,11 @@ html[dir="rtl"] .appWindow > .textselection-dialog {
 .textselection-dialog-selectall {
   background-image: url('images/textselection_select_all.png');
 }
+
+.textselection-dialog-action-search {
+  background-image: url('images/textselection_search.png');
+}
+
+.textselection-dialog-action-share {
+  background-image: url('images/textselection_share.png');
+}
