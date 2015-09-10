@@ -1,29 +1,48 @@
 {
   "homescreens": [
     [
+      ["outoftree_apps", "loop"],
       ["apps", "communications", "dialer"],
       ["apps", "sms"],
       ["apps", "communications", "contacts"],
       ["apps", "search"],
       ["apps", "marketplace.firefox.com"],
-      ["apps", "camera"]
+      ["apps", "camera"],
+      ["apps", "settings"]
+    ], [
+      ["outoftree_apps", "directory"],
+      ["outoftree_apps", "sharing"],
+      ["outoftree_apps", "studio"],
+      ["outoftree_apps", "webmaker-app"]
+    ], [
+      ["outoftree_apps", "twitter"],
+      ["outoftree_apps", "facebook"],
+      ["outoftree_apps", "yammer"]
+    ], [
+      ["apps", "gallery"],
+      ["apps", "music"],
+      ["apps", "video"],
+      ["apps", "clock"],
+      ["apps", "email"],
+      ["apps", "calendar"],
+      ["apps", "costcontrol"],
+      ["apps", "fm"]
     ], [
       ["apps/collection/collections", "social"],
       ["apps/collection/collections", "games"],
       ["apps/collection/collections", "music"]
     ], [
-      ["apps", "gallery"],
-      ["apps", "music"],
-      ["apps", "video"],
-      ["apps", "fm"],
-      ["apps", "settings"],
-      ["apps", "clock"],
-      ["apps", "email"],
-      ["apps", "calendar"],
-      ["apps", "costcontrol"]
+      ["outoftree_apps", "sechelt"],
+      ["outoftree_apps", "hexgl"]
+    ], [
+      ["outoftree_apps", "buddyup"],
+      ["outoftree_apps", "bugzillalitev1"],
+      ["outoftree_apps", "foxfooding"]
+    ], [
+
     ]
   ],
   "preferences": {
-    "grid.cols": 3
+    "grid.cols": 4
   }
 }
