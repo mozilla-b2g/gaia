@@ -104,8 +104,7 @@ a:active {
   left: 0;
 }
 
-#frequency::after {
-  content: attr(data-unit);
+#frequency small {
   font-size: 1.5rem;
   padding-left: 0.3rem;
 }
@@ -312,8 +311,7 @@ div#fav-list-container div.fav-list-frequency {
   width: 6rem;
 }
 
-div#fav-list-container div.fav-list-frequency::after {
-  content: attr(data-unit);
+div#fav-list-container div.fav-list-frequency small {
   font-size: 1.5rem;
   position: absolute;
   padding: .6rem .2rem 0 1rem;
