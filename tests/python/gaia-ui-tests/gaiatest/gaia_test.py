@@ -48,7 +48,7 @@ DEFAULT_SETTINGS = {
 
 DEFAULT_PREFS = {
     'webapps.update.enabled': False,  # disable web apps update
-    'ui.caretBlinkTime': 0
+    'ui.caretBlinkTime': 0  # Make caret permanently visible so imagecompare screenshots are consistent
 }
 
 
