@@ -711,6 +711,59 @@
     },
 
     /**
+     * Returns a rate limited function, useful to reduce the number of function
+     * calls when listening to user input (keypress) or browser events.
+     * @params {function} func - The function that should be rate-limited
+     * @params {number=300} delay - Min amount of time (ms) between two calls
+     * @params {Object} options - Parameters for managing edge calls. 
+     * Attention : when both preventFirstCall and preventLastCall are set to 
+     * true, `func` may never be called.
+     * @param {Boolean=false} options.preventFirstCall - Prevent first 
+     * call when true.
+     * @param {Boolean=false} options.preventLastCall - Prevent last trailing
+     * call when true.
+     * @returns {function} - The rate limited function that will call the
+     *  original function
+     */
+    throttle: function(func, delay = 300, options = {}) {
+      var timeout = null;
+      var previous = 0;      
+      var preventFirstCall = !!options.preventFirstCall;
+      var preventLastCall = !!options.preventLastCall;
+
+      if(typeof func !== 'function'){
+        throw new Error('func must be a Function');
+      }
+
+      if(typeof delay !== 'number' || delay < 0){
+        throw new Error('delay must be a positive number');
+      }
+
+      return function(...args) {
+        var now = Date.now();
+        if (!previous && preventFirstCall){
+          previous = now;
+        }
+        var remaining = delay - (now - previous);
+        if (remaining <= 0) {
+          if (timeout) {
+            clearTimeout(timeout);
+            timeout = null;
+          }
+          previous = now;
+          func.apply(this, args);
+        } else if (!timeout && !preventLastCall) {
+          timeout = setTimeout(() => {
+            previous = preventFirstCall ? 0 : Date.now();
+            timeout = null;
+
+            func.apply(this, args);
+          }, remaining);
+        }
+      };
+    },
+
+    /**
      * Shows modal alert dialog with single OK button to dismiss it.
      * @param {string|{ raw: string|Node }|{id: string, args: Object }} message
      * Message displayed in the alert. 1. If "message" is string then it's
