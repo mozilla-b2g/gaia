@@ -1,5 +1,5 @@
 /* global UrlHelper, AppWindow, BrowserConfigHelper, LazyLoader,
-          SettingsListener */
+          SettingsListener, Service */
 
 (function(exports) {
 
@@ -15,11 +15,28 @@
     handleSettingChange);
 
   function handleOpenUrl(url, isPrivate) {
+    // If we already have a browser and we receive an open request,
+    // display it in the current browser frame.
+    var activeApp = Service.query('AppWindowManager.getActiveWindow');
+    if (activeApp && (activeApp.isBrowser() || activeApp.isSearch())) {
+      activeApp.navigate(url);
+      return;
+    }
+
+    // Just bring on top if a wrapper window is
+    // already running with this url.
+    var app = Service.query('AppWindowManager.getApp', url);
+    if (app && app.windowName == '_blank') {
+      var evt = new CustomEvent('launchapp', { origin: url });
+      window.dispatchEvent(evt);
+      return;
+    }
+
+    // Otherwise create a new app window
     var config = new BrowserConfigHelper({url: url});
     config.oop = true;
     config.isPrivate = isPrivate;
     var newApp = new AppWindow(config);
-
     newApp.requestOpen();
   }
 
