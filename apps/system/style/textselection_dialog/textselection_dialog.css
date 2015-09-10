@@ -94,3 +94,18 @@ html[dir="rtl"] .appWindow > .textselection-dialog {
 .textselection-dialog-selectall {
   background-image: url('images/textselection_select_all.png');
 }
+
+.textselection-dialog-action-search {
+  background-image: url('images/search.svg');
+  background-size: 0.3rem 0.3rem;
+}
+
+.textselection-dialog-action-share {
+  background-image: url('images/share.svg');
+  background-size: 0.3rem 0.3rem;
+}
+
+.textselection-dialog-action-call {
+  background-image: url('images/call.svg');
+  background-size: 0.3rem 0.3rem;
+}

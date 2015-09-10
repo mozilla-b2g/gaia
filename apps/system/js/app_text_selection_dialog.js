@@ -1,4 +1,4 @@
-/* global SettingsListener, Service */
+/* global SettingsListener, Service, MozActivity */
 'use strict';
 (function(exports) {
   var DEBUG = false;
@@ -212,6 +212,7 @@
         detail.commands.canCut = false;
         detail.commands.canCopy = false;
         detail.commands.canSelectAll = false;
+        detail.commands.canAction = false;
         this.show(detail);
       } else {
         this.hide();
@@ -223,7 +224,34 @@
       // make sure cut command option is only shown on editable element
       detail.commands.canCut = detail.commands.canCut &&
                                  detail.selectionEditable;
+      this.selectedTextContent = detail.selectedTextContent;
+      this.actionType = this._detectActionType();
+      //hard inject the action button
+      detail.commands.canAction = true;
       this.show(detail);
+    };
+
+  AppTextSelectionDialog.prototype._detectActionType =
+    function tsd__detectActionType() {
+      /* jshint maxlen: false */
+      var phoneNumberPattern = /'^(?:(?:\(?(?:00|\+)([1-4]\d\d|[1-9]\d?)\)?)?[\-\.\ \\\/]?)?((?:\(?\d{1,}\)?[\-\.\ \\\/]?){0,})(?:[\-\.\ \\\/]?(?:#|ext\.?|extension|x)[\-\.\ \\\/]?(\d+))?$/;
+      // var url_pattern = new RegExp(
+      var content = this.selectedTextContent;
+      if (content.length < 30) {
+        // remove spaces then matching
+        var hasPhoneNumber =
+          content.replace(/\s/g,'').match(phoneNumberPattern);
+        if (hasPhoneNumber) {
+          this.selectedTextContent = hasPhoneNumber[0];
+          //need to convert to dialer compatible format in action
+          //[\\d\\s+#*().-]{0,50}
+          return 'call';
+        } else {
+          return 'search';
+        }
+      } else {
+        return 'share';
+      }
     };
 
   AppTextSelectionDialog.prototype._fetchElements =
@@ -237,7 +265,7 @@
         });
       };
 
-      this.elementClasses = ['copy', 'cut', 'paste', 'selectall'];
+      this.elementClasses = ['copy', 'cut', 'paste', 'selectall', 'action'];
 
       // Loop and add element with camel style name to Modal Dialog attribute.
       this.elementClasses.forEach(function createElementRef(name) {
@@ -359,6 +387,45 @@
       this._doCommand(evt, 'selectall', false);
   };
 
+  AppTextSelectionDialog.prototype.actionHandler =
+    function tsd_actionHandler(evt) {
+      this.debug('act as ' + this.actionType +': '+
+        this.selectedTextContent);
+      switch(this.actionType) {
+        case 'share':
+          /* jshint nonew: false */
+          new MozActivity({
+            name: 'share',
+            data: {
+              type: 'url',
+              url: this.selectedTextContent
+            }
+          });
+          break;
+        case 'call':
+          /* jshint nonew: false */
+          new MozActivity({
+            name: 'dial',
+            data: {
+              type: 'webtelephony/number',
+              number: this.selectedTextContent
+            }
+          });
+          break;
+        default: // leverage default search provider
+          /* jshint nonew: false */
+          new MozActivity({
+            name: 'search',
+            data: {
+              type: 'text/plain',
+              keyword: this.selectedTextContent
+            }
+          });
+          break;
+      }
+      this.close();
+  };
+
   AppTextSelectionDialog.prototype.view = function tsd_view() {
     var id = this.CLASS_NAME + this.instanceID;
     var temp = `<div class="textselection-dialog" id="${id}">
@@ -369,13 +436,15 @@
                 </div>
               <div data-action="paste" class="textselection-dialog-paste">
                 </div>
+              <div data-action="action" class="textselection-dialog-action">
+                </div>
             </div>`;
     return temp;
   };
 
   AppTextSelectionDialog.prototype.show = function tsd_show(detail) {
     var numOfSelectOptions = 0;
-    var options = [ 'Paste', 'Copy', 'Cut', 'SelectAll' ];
+    var options = [ 'Paste', 'Copy', 'Cut', 'SelectAll', 'Action' ];
 
     // Check this._injected here to make sure this.elements is initialized.
     if (!this._injected) {
@@ -391,6 +460,13 @@
       if (detail.commands['can' + option]) {
         numOfSelectOptions++;
         lastVisibleOption = this.elements[option.toLowerCase()];
+        // append action style
+        if (option === 'Action') {
+          // rebuild the class list
+          lastVisibleOption.className = 'textselection-dialog-action';
+          lastVisibleOption.classList.add('textselection-dialog-action-'+
+            this.actionType);
+        }
         lastVisibleOption.classList.remove('hidden', 'last-option');
       } else {
         this.elements[option.toLowerCase()].classList.add('hidden');
