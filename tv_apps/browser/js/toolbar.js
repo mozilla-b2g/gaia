@@ -1,4 +1,5 @@
-/* global _, Browser, BrowserDB, MozActivity */
+/* global _, Awesomescreen, Browser, BrowserDB, BrowserDialog */
+/* global SearchResult, SearchUtil, Settings, Tooltip, UrlHelper */
 
 'use strict';
 
@@ -109,6 +110,8 @@ var Toolbar = {
         Awesomescreen.selectHistoryTab.bind(Awesomescreen));
     this.privateWindowBlock.addEventListener('mouseup',
         Browser.handlePrivateBrowsing.bind(Browser));
+    this.signInBlock.addEventListener('mouseup',
+      Settings.show.bind(Settings));
     this.settingsBlock.addEventListener('mouseup',
         Settings.show.bind(Settings));
 
@@ -152,7 +155,8 @@ var Toolbar = {
     engineName = engineName.charAt(0).toUpperCase() + engineName.slice(1);
     this.searchInput.placeholder = engineName;
     // tooltip
-    this.searchInput.dataset.tips = engineName + ' ' + _('WB_LT_TIPS_SEARCH_BAR');
+    this.searchInput.dataset.tips =
+      engineName + ' ' + _('WB_LT_TIPS_SEARCH_BAR');
   },
 
   /**
@@ -187,8 +191,9 @@ var Toolbar = {
       'new-tab-button-block', 'new-tab-button',
       'menu-button-block', 'menu-button',
       'menu-block',
-      'history-block', 'private-window-block', 'settings-block',
-      'history-tab', 'private-window-tab', 'settings-tab',
+      'history-block', 'private-window-block',
+      'sign-in-block', 'settings-block',
+      'history-tab', 'private-window-tab', 'sign-in-tab', 'settings-tab',
       'mode-button-block',
       'mode-button-title', 'pan-cursor-button', 'pan-cursor-button-block',
       'pan-cursor-banner-message',
@@ -249,7 +254,8 @@ var Toolbar = {
     if(!Browser.currentInfo || !Browser.currentInfo.url) {
       return false;
     }
-    var end_pos1 = Browser.currentInfo.url.indexOf('https://www.youtube.com', 0);
+    var end_pos1 =
+      Browser.currentInfo.url.indexOf('https://www.youtube.com', 0);
     var end_pos2 = Browser.currentInfo.url.indexOf('http://www.youtube.com', 0);
     if(end_pos1 < 0 && end_pos2 < 0) {
       return false;
@@ -452,13 +458,17 @@ var Toolbar = {
   },
 
   clickSearchClearButton: function toolbar_clickSearchClearButton(ev) {
-    if( ev ) ev.preventDefault();
+    if( ev ) {
+      ev.preventDefault();
+    }
     this.searchInput.value = '';
     SearchResult.resultUpdate(this.searchInput.value);
   },
 
   clickSearchCloseButton: function toolbar_clickSearchCloseButton(ev) {
-    if( ev ) ev.preventDefault();
+    if( ev ) {
+      ev.preventDefault();
+    }
     SearchResult.hide();
   },
 
@@ -483,8 +493,10 @@ var Toolbar = {
 
   handleSearchInputKeypress: function toolbar_handleSearchInputKeypress(evt) {
     if( this.getSearchBarStyle() == 'false' ) {
-      if( evt ) evt.preventDefault();
-      if( Toolbar.searchInput.value != '' ) {
+      if( evt ) {
+        evt.preventDefault();
+      }
+      if(Toolbar.searchInput.value) {
         Tooltip.hide();
         this.setSearchBarStyle('true');
         SearchResult.show();
@@ -499,7 +511,7 @@ var Toolbar = {
    */
   clickHomeButtonBlock: function toolbar_clickHomeButtonBlock(ev) {
     Settings.getHomepage((function(result) {
-      if(( result != null ) && ( result != "" )) {
+      if(result) {
         Browser.navigate(result);
       }
     }).bind(this));
@@ -556,7 +568,7 @@ var Toolbar = {
     clearTimeout(this.showZoomBannerTimeoutID);
 
     this.zoomScale = Browser.currentInfo.zoom;
-    if(this.zoomScale == 0) {
+    if(this.zoomScale === 0) {
       return;
     }
 
@@ -586,7 +598,7 @@ var Toolbar = {
       this.toolbarPanel.dataset.menu = 'hide';
     } else {
       this.toolbarPanel.dataset.menu = 'show';
-      if(this.menuBlock.style.minWidth == '') {
+      if(!this.menuBlock.style.minWidth) {
         var ar = [];
         // rate 1.25
         ar.push(432); // default 432(540 / 1.25)
@@ -594,7 +606,8 @@ var Toolbar = {
         ar.push(this.privateWindowTab.offsetWidth);
 
         ar.push(this.settingsTab.offsetWidth);
-        this.menuBlock.style.minWidth = (Math.max.apply(null, ar) * 1.25) + 'px';
+        this.menuBlock.style.minWidth =
+          (Math.max.apply(null, ar) * 1.25) + 'px';
       }
     }
   },
