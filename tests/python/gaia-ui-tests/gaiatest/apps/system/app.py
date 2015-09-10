@@ -17,7 +17,7 @@ class System(Base):
     _airplane_mode_statusbar_locator = (By.CSS_SELECTOR, '#statusbar-minimized-wrapper #statusbar-flight-mode')
     _utility_tray_locator = (By.ID, 'utility-tray')
 
-    _system_banner_locator = (By.CSS_SELECTOR, '.banner.generic-dialog')
+    _system_banner_locator = (By.CSS_SELECTOR, '#screen > gaia-toast.banner')
     _notification_toaster_locator = (By.ID, 'notification-toaster')
     _update_manager_toaster_locator = (By.ID, 'update-manager-toaster')
 
