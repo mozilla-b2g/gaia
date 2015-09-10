@@ -122,6 +122,9 @@ class CallSettings(Base):
         element.tap()
         Wait(self.marionette).until(expected.element_displayed(
             *self._voicemail_number_locator))
+        self.marionette.switch_to_frame()
+        Wait(self.marionette).until(lambda m: self.keyboard.is_keyboard_displayed)
+        self.apps.switch_to_displayed_app()
 
     def tap_caller_id_selection(self):
         menu_item = self.marionette.find_element(*self._caller_id_menu_item_locator)
@@ -156,6 +159,9 @@ class CallSettings(Base):
         element.tap()
         Wait(self.marionette).until(expected.element_displayed(
             *self._sim_pin_area_locator))
+        self.marionette.switch_to_frame()
+        Wait(self.marionette).until(lambda m: self.keyboard.is_keyboard_displayed)
+        self.apps.switch_to_displayed_app()
 
     def tap_auth_numbers(self):
         element = self.marionette.find_element(*self._auth_number_locator)
@@ -185,6 +191,9 @@ class CallSettings(Base):
         element.tap()
         Wait(self.marionette).until(expected.element_displayed(
             *self._call_forwarding_always_page_locator))
+        self.marionette.switch_to_frame()
+        Wait(self.marionette).until(lambda m: self.keyboard.is_keyboard_displayed)
+        self.apps.switch_to_displayed_app()
 
     def tap_forward_when_busy(self):
         element = self.marionette.find_element(*self._call_forwarding_busy_locator)
@@ -193,6 +202,9 @@ class CallSettings(Base):
         element.tap()
         Wait(self.marionette).until(expected.element_displayed(
             *self._call_forwarding_busy_page_locator))
+        self.marionette.switch_to_frame()
+        Wait(self.marionette).until(lambda m: self.keyboard.is_keyboard_displayed)
+        self.apps.switch_to_displayed_app()
 
     def tap_forward_unanswered(self):
         element = self.marionette.find_element(*self._call_forwarding_unanswered_locator)
@@ -201,6 +213,9 @@ class CallSettings(Base):
         element.tap()
         Wait(self.marionette).until(expected.element_displayed(
             *self._call_forwarding_unanswered_page_locator))
+        self.marionette.switch_to_frame()
+        Wait(self.marionette).until(lambda m: self.keyboard.is_keyboard_displayed)
+        self.apps.switch_to_displayed_app()
 
     def tap_forward_unreachable(self):
         element = self.marionette.find_element(*self._call_forwarding_unreachable_locator)
@@ -209,6 +224,9 @@ class CallSettings(Base):
         element.tap()
         Wait(self.marionette).until(expected.element_displayed(
             *self._call_forwarding_unreachable_page_locator))
+        self.marionette.switch_to_frame()
+        Wait(self.marionette).until(lambda m: self.keyboard.is_keyboard_displayed)
+        self.apps.switch_to_displayed_app()
 
     def tap_call_barring(self):
         element = self.marionette.find_element(*self._call_barring_locator)
@@ -229,6 +247,9 @@ class CallSettings(Base):
         element.tap()
         Wait(self.marionette).until(expected.element_displayed(
             *self._call_barring_all_cancel_button_locator))
+        self.marionette.switch_to_frame()
+        Wait(self.marionette).until(lambda m: self.keyboard.is_keyboard_displayed)
+        self.apps.switch_to_displayed_app()
 
     def tap_call_barring_all_cancel(self):
         element = self.marionette.find_element(*self._call_barring_all_cancel_button_locator)
@@ -243,3 +264,6 @@ class CallSettings(Base):
                                     expected.element_enabled(element))
         element.tap()
         Wait(self.marionette).until(expected.element_displayed(*self._passcode_page_locator))
+        self.marionette.switch_to_frame()
+        Wait(self.marionette).until(lambda m: self.keyboard.is_keyboard_displayed)
+        self.apps.switch_to_displayed_app()

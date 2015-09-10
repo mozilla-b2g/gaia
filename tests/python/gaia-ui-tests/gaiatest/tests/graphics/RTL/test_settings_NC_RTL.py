@@ -9,13 +9,12 @@ from gaiatest.apps.settings.app import Settings
 
 class TestSettingsRTLNC(GaiaImageCompareTestCase):
     def test_settings_app(self):
-
         settings = Settings(self.marionette)
         settings.launch()
 
         # opening each subpage in Settings menu.
         # some subpages have their own subpages, and they need to be opened as well.
-        ##################### Wi-Fi and its subpages ######################
+        # #################### Wi-Fi and its subpages ######################
         wifi_page = settings.open_wifi()
         Wait(self.marionette).until(lambda m: wifi_page.is_wifi_enabled is True)
 
@@ -49,7 +48,7 @@ class TestSettingsRTLNC(GaiaImageCompareTestCase):
         self.take_screenshot('sim_manager')
         GaiaImageCompareTestCase.scroll(self.marionette, 'down',
                                         sim_page.screen_element.size['height'],
-            screen=sim_page.screen_element)
+                                        screen = sim_page.screen_element)
         self.take_screenshot('sim_manager')
         sim_page.tap_sim_security()
         sim_page.enable_sim_pin()
@@ -120,7 +119,7 @@ class TestSettingsRTLNC(GaiaImageCompareTestCase):
         self.take_screenshot('callBarring-passcode2')
         cs_page.tap_call_barring_all_cancel()
         settings.return_to_prev_menu(cs_page.cs_screen_element, cs_page.call_barring_screen_element,
-                                     back_button=cs_page.call_barring_back_btn_element)
+                                     back_button = cs_page.call_barring_back_btn_element)
         settings.return_to_prev_menu(cs_page.screen_element, cs_page.cs_screen_element)
         settings.return_to_prev_menu(settings.screen_element, cs_page.screen_element)
 
@@ -128,8 +127,8 @@ class TestSettingsRTLNC(GaiaImageCompareTestCase):
         messaging_page = settings.open_message()
         self.take_screenshot('message')
         GaiaImageCompareTestCase.scroll(self.marionette, 'down',
-            messaging_page.screen_element.size['height'],
-            screen=messaging_page.screen_element)
+                                        messaging_page.screen_element.size['height'],
+                                        screen = messaging_page.screen_element)
         self.take_screenshot('message')
         messaging_page.tap_auto_retrieve_selector()
         self.take_screenshot('message-autoretrieve_options')
@@ -172,8 +171,8 @@ class TestSettingsRTLNC(GaiaImageCompareTestCase):
         self.take_screenshot('apn_editor')
         for i in range(0, 2):
             GaiaImageCompareTestCase.scroll(self.marionette, 'down',
-                sim_settings_page.apn_editor_screen_element.size['height'],
-                screen=sim_settings_page.apn_editor_screen_element)
+                                            sim_settings_page.apn_editor_screen_element.size['height'],
+                                            screen = sim_settings_page.apn_editor_screen_element)
             self.take_screenshot('apn_editor')
         sim_settings_page.select_authentication()
         self.take_screenshot('apn_authentication')
@@ -202,7 +201,6 @@ class TestSettingsRTLNC(GaiaImageCompareTestCase):
         self.take_screenshot('bluetooth-enabled')
         bluetooth_page.refresh_root_element()
         bluetooth_page.tap_rename_my_device()
-        bluetooth_page.type_phone_name("RTL_Testing")
         self.take_screenshot('bluetooth-renameDevice')
         bluetooth_page.refresh_root_element()
         bluetooth_page.tap_update_device_name_ok()
@@ -213,8 +211,8 @@ class TestSettingsRTLNC(GaiaImageCompareTestCase):
         internet_settings_page = settings.open_internet_sharing()
         self.take_screenshot('internet_sharing')
         GaiaImageCompareTestCase.scroll(self.marionette, 'down',
-            internet_settings_page.screen_element.size['height'],
-            screen=internet_settings_page.screen_element)
+                                        internet_settings_page.screen_element.size['height'],
+                                        screen = internet_settings_page.screen_element)
 
         self.take_screenshot('internet_sharing')
         hotspot_page = internet_settings_page.tap_hotspot_settings()

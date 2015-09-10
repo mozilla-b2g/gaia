@@ -8,13 +8,14 @@ from gaiatest.apps.base import Base
 
 
 class Message(Base):
-
     _page_locator = (By.ID, 'messaging')
 
     _auto_retrieve_selector_locator = (By.NAME, 'ril.mms.retrieval_mode')
     _auto_retrieve_ok_button_locator = (By.CLASS_NAME, 'value-option-confirm')
     _sim_1_selector_locator = (By.CLASS_NAME, 'sim1')
     _sim_1_settings_page_locator = (By.ID, 'messaging-details')
+    _emerg_alert_switch_locator = (By.CSS_SELECTOR,
+                                   '#menuItem-emergencyAlert .pack-switch input')
 
     @property
     def screen_element(self):

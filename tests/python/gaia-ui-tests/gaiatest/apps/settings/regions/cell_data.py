@@ -45,6 +45,8 @@ class CellData(Base):
         element = Wait(self.marionette).until(
             expected.element_present(*self._cell_data_enabled_label_locator))
         Wait(self.marionette).until(expected.element_displayed(element))
+        Wait(self.marionette).until(lambda m: self.marionette.find_element(
+            *self._cell_data_enabled_input_locator).get_attribute('disabled') == 'false')
         element.tap()
         return self.data_prompt
 
@@ -52,6 +54,8 @@ class CellData(Base):
         element = Wait(self.marionette).until(
             expected.element_present(*self._data_roaming_enabled_label_locator))
         Wait(self.marionette).until(expected.element_displayed(element))
+        Wait(self.marionette).until(lambda m: self.marionette.find_element(
+            *self._data_roaming_enabled_input_locator).get_attribute('disabled') == 'false')
         element.tap()
         return self.data_prompt
 

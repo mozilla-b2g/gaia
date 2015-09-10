@@ -84,3 +84,6 @@ class SimManager(Base):
         Wait(self.marionette).until(expected.element_displayed(element))
         element.tap()
         Wait(self.marionette).until(expected.element_displayed(*self._sim_pin_field_locator))
+        self.marionette.switch_to_frame()
+        Wait(self.marionette).until(lambda m: self.keyboard.is_keyboard_displayed)
+        self.apps.switch_to_displayed_app()

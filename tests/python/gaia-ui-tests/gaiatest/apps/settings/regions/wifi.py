@@ -75,6 +75,9 @@ class Wifi(Base):
         element = self.marionette.find_element(*self._wifi_enabled_checkbox_locator)
         element.tap()
         self.wait_for_custom_element_checked_state(element, checked=False)
+        Wait(self.marionette).until(
+            lambda m: element.get_attribute('disabled') == 'false')
+
 
     def connect_to_network(self, network_info):
 

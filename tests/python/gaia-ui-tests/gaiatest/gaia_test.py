@@ -47,7 +47,8 @@ DEFAULT_SETTINGS = {
 }
 
 DEFAULT_PREFS = {
-    'webapps.update.enabled': False  # disable web apps update
+    'webapps.update.enabled': False,  # disable web apps update
+    'ui.caretBlinkTime': 0
 }
 
 
