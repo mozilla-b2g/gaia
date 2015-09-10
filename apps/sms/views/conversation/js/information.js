@@ -2,6 +2,7 @@
          Contacts,
          ConversationView,
          MessageManager,
+         MessagingClient,
          MobileOperator,
          Navigation,
          Settings,
@@ -270,7 +271,7 @@ var VIEWS = {
       this.constructor.prototype.beforeEnter.apply(this, arguments);
 
       MESSAGE_EVENTS.forEach((event) => {
-        MessageManager.on(event, this.onStatusChanged);
+        MessagingClient.on(event, this.onStatusChanged);
       });
     },
 
@@ -278,7 +279,7 @@ var VIEWS = {
       this.constructor.prototype.afterLeave.apply(this, arguments);
 
       MESSAGE_EVENTS.forEach((event) => {
-        MessageManager.off(event, this.onStatusChanged);
+        MessagingClient.off(event, this.onStatusChanged);
       });
     },
 

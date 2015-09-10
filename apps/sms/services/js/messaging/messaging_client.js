@@ -49,6 +49,16 @@
         endpoint: serviceEndpoint,
         timeout: TIMEOUT
       });
+
+      return client.method('registerEvent', appInstanceId);
+    },
+
+    on(event, func) {
+      client.on(event, func);
+    },
+
+    off(event, func) {
+      client.off(event, func);
     },
 
     sendSMS(options) {

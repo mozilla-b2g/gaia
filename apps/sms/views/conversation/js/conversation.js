@@ -211,15 +211,15 @@ var ConversationView = {
       this.onRecipientSuggestionClick.bind(this)
     );
 
-    MessageManager.on('message-sending', this.onMessageSending.bind(this));
-    MessageManager.on('message-sent', this.onMessageSent.bind(this));
-    MessageManager.on('message-received', this.onMessageReceived.bind(this));
-    MessageManager.on(
+    MessagingClient.on('message-sending', this.onMessageSending.bind(this));
+    MessagingClient.on('message-sent', this.onMessageSent.bind(this));
+    MessagingClient.on('message-received', this.onMessageReceived.bind(this));
+    MessagingClient.on(
       'message-failed-to-send',
       this.onMessageFailed.bind(this)
     );
-    MessageManager.on('message-delivered', this.onDeliverySuccess.bind(this));
-    MessageManager.on('message-read', this.onReadSuccess.bind(this));
+    MessagingClient.on('message-delivered', this.onDeliverySuccess.bind(this));
+    MessagingClient.on('message-read', this.onReadSuccess.bind(this));
 
     this.tmpl = templateIds.reduce(function(tmpls, name) {
       tmpls[Utils.camelCase(name)] =

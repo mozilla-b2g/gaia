@@ -18,7 +18,12 @@ if (!('MozMobileMessageClient' in self)) {
 const SERVICE_NAME = 'messaging-service';
 
 const METHODS = Object.freeze([
-  'sendSMS', 'sendMMS', 'resendMessage', 'retrieveMMS'
+  'registerEvent', 'sendSMS', 'sendMMS', 'resendMessage', 'retrieveMMS'
+]);
+
+const EVENTS = Object.freeze([
+  'message-received', 'message-sending', 'message-sent',
+  'message-failed-to-send', 'message-read', 'message-delivered'
 ]);
 
 function ensureBridge() {
@@ -63,6 +68,17 @@ var MessagingService = {
     ensureBridge();
 
     this.initService();
+  },
+
+  registerEvent(appInstanceId) {
+    var mobileMessageClient = MozMobileMessageClient.forApp(appInstanceId);
+
+    EVENTS.forEach((event) => {
+      mobileMessageClient.on(event, (...args) => {
+        this.broadcast(event, ...args);
+      });
+    });
+    return;
   },
 
   /**
@@ -185,8 +201,10 @@ var MessagingService = {
 
 exports.MessagingService = BridgeServiceMixin.mixin(
   MessagingService,
-  SERVICE_NAME,
-  { methods: METHODS }
+  SERVICE_NAME, {
+    methods: METHODS,
+    events: EVENTS
+  }
 );
 
 if (!self.document) {

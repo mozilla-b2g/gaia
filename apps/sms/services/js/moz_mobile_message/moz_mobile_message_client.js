@@ -37,6 +37,10 @@
   }
 
   MobileMessageClient.prototype = {
+    on(event, func) {
+      this[priv.bridgeClient].on(event, func);
+    },
+
     retrieveMMS(id) {
       return this[priv.bridgeClient].method('retrieveMMS', id);
     },
