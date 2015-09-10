@@ -1,16 +1,13 @@
 'use strict';
 /* global
   MockIccHelper,
-  MockImportNavigationHTML,
   MockL10n,
   MockNavigatormozApps,
   MockNavigatorMozMobileConnections,
   MockNavigatorSettings,
   MocksHelper,
   Navigation,
-  numSteps,
   SimManager,
-  steps,
   UIManager
 */
 require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
@@ -53,8 +50,7 @@ suite('navigation >', function() {
       realL10n,
       realMozMobileConnections,
       realMozApps,
-      realSettings,
-      realHTML;
+      realSettings;
 
   function navigatorOnLine() {
     return isOnLine;
@@ -65,6 +61,7 @@ suite('navigation >', function() {
   }
 
   suiteSetup(function() {
+    loadBodyHTML('/index.html');
 
     realMozMobileConnections = navigator.mozMobileConnections;
     navigator.mozMobileConnections = MockNavigatorMozMobileConnections;
@@ -102,19 +99,14 @@ suite('navigation >', function() {
     } else {
       delete navigator.onLine;
     }
+    document.body.innerHTML = '';
   });
 
-  var setStepState = function(current, callback) {
-    Navigation.currentStep = current;
-    Navigation.previousStep = current != 1 ? current - 1 : 1;
+  function setStepStateToIndex(current, callback) {
+    Navigation.currentStepIndex = current;
+    Navigation.previousStepIndex = current > 0 ? current - 1 : 0;
     Navigation.manageStep(callback);
-  };
-
-
-  setup(function() {
-    realHTML = document.body.innerHTML;
-    document.body.innerHTML = MockImportNavigationHTML;
-  });
+  }
 
   // The mocks need the HTML markup
   mocksHelperForNavigation.attachTestHelpers();
@@ -126,23 +118,76 @@ suite('navigation >', function() {
   });
 
   teardown(function() {
-    document.body.innerHTML = realHTML;
-    realHTML = null;
     Navigation.simMandatory = false;
-    window.removeEventListener('hashchange', Navigation);
+    Navigation.uninit();
+  });
+
+  test('indexOfStep', function() {
+    assert.equal(Navigation.indexOfStep('languages'), 0);
+    assert.equal(Navigation.indexOfStep('browser_privacy'), 8);
+    assert.equal(Navigation.indexOfStep('no_such_step'), -1);
+  });
+
+  test('stepAt', function() {
+    assert.equal(Navigation.stepAt(0).id, 'languages');
+    assert.equal(Navigation.stepAt(8).id, 'browser_privacy');
+    assert.isUndefined(Navigation.stepAt(9));
+  });
+
+  suite('registerStep', function() {
+    test(' > default position', function() {
+      var newStep = { hash: '#new', };
+      var oldStepCount = Navigation.stepCount;
+      Navigation.registerStep(newStep);
+      assert.equal(Navigation.stepCount, oldStepCount + 1);
+      var lastIndex = Navigation.stepCount - 1;
+      assert.ok(Navigation.stepAt(lastIndex));
+      assert.equal(Navigation.stepAt(lastIndex).hash, newStep.hash);
+    });
+    test(' > beforeStep', function() {
+      var newStep = { hash: '#new', beforeStep: 'browser_privacy' };
+      var refIndex = Navigation.indexOfStep('browser_privacy');
+      var oldStepCount = Navigation.stepCount;
+
+      Navigation.registerStep(newStep);
+      assert.equal(Navigation.stepCount, oldStepCount + 1);
+      assert.equal(Navigation.stepAt(refIndex).hash, newStep.hash);
+
+      setStepStateToIndex(refIndex);
+      assert.equal(window.location.hash, newStep.hash);
+      Navigation.forward();
+      assert.equal(window.location.hash, '#browser_privacy');
+    });
+    test(' > afterStep', function() {
+      var newStep = { hash: '#new', afterStep: 'languages' };
+      var refIndex = Navigation.indexOfStep('languages');
+      var oldStepCount = Navigation.stepCount;
+
+      Navigation.registerStep(newStep);
+      assert.equal(Navigation.stepCount, oldStepCount + 1);
+      assert.equal(Navigation.stepAt(refIndex +1).hash, newStep.hash);
+
+      setStepStateToIndex(refIndex + 1);
+      assert.equal(window.location.hash, newStep.hash);
+      Navigation.back();
+      assert.equal(window.location.hash, '#languages');
+      Navigation.forward();
+      assert.equal(window.location.hash, newStep.hash);
+    });
   });
 
   test('navigates forward', function() {
     MockIccHelper.setProperty('cardState', 'ready');
     Navigation.simMandatory = true;
-    Navigation.totalSteps = numSteps; // explicitly set the total steps
 
-    setStepState(1);
-    for (var i = Navigation.currentStep; i < numSteps; i++) {
+    setStepStateToIndex(0);
+    var lastIndex = Navigation.stepCount - 1;
+    for (var i = Navigation.currentStepIndex; i < lastIndex; i++) {
       Navigation.forward();
-      assert.equal(Navigation.previousStep, i);
-      assert.equal(Navigation.currentStep, (i + 1));
-      assert.equal(window.location.hash, steps[(i + 1)].hash);
+      assert.equal(Navigation.previousStepIndex, i);
+      assert.equal(Navigation.currentStepIndex, (i + 1));
+      assert.equal(window.location.hash,
+                   Navigation.stepAt(i + 1).hash);
       assert.isTrue(Navigation.postStepMessage.calledWith(i));
     }
   });
@@ -150,15 +195,14 @@ suite('navigation >', function() {
   test('navigates backwards', function() {
     MockIccHelper.setProperty('cardState', 'ready');
     Navigation.simMandatory = true;
-    Navigation.totalSteps = numSteps; // explicitly set the total steps
-
-    setStepState(numSteps);
+    setStepStateToIndex(Navigation.stepCount - 1);
     // The second step isn't mandatory.
-    for (var i = Navigation.currentStep; i > 2; i--) {
+    for (var i = Navigation.currentStepIndex; i > 2; i--) {
       Navigation.back();
-      assert.equal(Navigation.previousStep, i);
-      assert.equal(Navigation.currentStep, i - 1);
-      assert.equal(window.location.hash, steps[i - 1].hash);
+      assert.equal(Navigation.previousStepIndex, i);
+      assert.equal(Navigation.currentStepIndex, i - 1);
+      assert.equal(window.location.hash,
+                   Navigation.stepAt(i - 1).hash);
     }
   });
 
@@ -169,13 +213,12 @@ suite('navigation >', function() {
 
     MockIccHelper.setProperty('cardState', 'ready');
     Navigation.simMandatory = true;
-    Navigation.totalSteps = numSteps; // explicitly set the total steps
 
-    setStepState(3);
+    setStepStateToIndex(2);
     Navigation.forward();
-    assert.equal(Navigation.previousStep, 3);
-    assert.equal(Navigation.currentStep, 5);
-    assert.equal(window.location.hash, steps[5].hash);
+    assert.equal(Navigation.previousStepIndex, 2);
+    assert.equal(Navigation.currentStepIndex, 4);
+    assert.equal(window.location.hash, Navigation.stepAt(4).hash);
     // Make sure we posted both steps.
     assert.isTrue(Navigation.postStepMessage.callCount > 1);
 
@@ -183,9 +226,9 @@ suite('navigation >', function() {
   });
 
   test('last step launches tutorial', function() {
-    Navigation.currentStep = numSteps;
-    window.location.hash = steps[Navigation.currentStep].hash;
-    UIManager.activationScreen.classList.add('show');
+    var lastIndex = Navigation.stepCount - 1;
+    Navigation.currentStepIndex = lastIndex;
+    setStepStateToIndex(lastIndex);
 
     Navigation.forward();
     assert.isTrue(UIManager.finishScreen.classList.contains('show'));
@@ -207,7 +250,7 @@ suite('navigation >', function() {
     });
 
     test('languages screen >', function(done) {
-      setStepState(1);
+      setStepStateToIndex(0);
       var observer = new MutationObserver(function() {
         done(function() {
           observer.disconnect();
@@ -219,7 +262,7 @@ suite('navigation >', function() {
     });
 
     test('data mobile screen >', function(done) {
-      setStepState(2);
+      setStepStateToIndex(1);
       var observer = new MutationObserver(function() {
         done(function() {
           observer.disconnect();
@@ -230,7 +273,7 @@ suite('navigation >', function() {
     });
 
     test('wifi screen >', function(done) {
-      setStepState(3);
+      setStepStateToIndex(2);
       var observer = new MutationObserver(function() {
         done(function() {
           observer.disconnect();
@@ -245,7 +288,7 @@ suite('navigation >', function() {
     });
 
     test('date&time screen >', function(done) {
-      setStepState(4);
+      setStepStateToIndex(3);
       var observer = new MutationObserver(function() {
         done(function() {
           observer.disconnect();
@@ -257,7 +300,7 @@ suite('navigation >', function() {
     });
 
     test('geolocation screen >', function(done) {
-      setStepState(5);
+      setStepStateToIndex(4);
       var observer = new MutationObserver(function() {
         done(function() {
           observer.disconnect();
@@ -269,7 +312,7 @@ suite('navigation >', function() {
     });
 
     test('import contacts screen >', function(done) {
-      setStepState(6);
+      setStepStateToIndex(5);
       var observer = new MutationObserver(function() {
         done(function() {
           observer.disconnect();
@@ -281,7 +324,7 @@ suite('navigation >', function() {
     });
 
     test('firefox accounts screen >', function(done) {
-      setStepState(7);
+      setStepStateToIndex(6);
       var observer = new MutationObserver(function() {
         done(function() {
           observer.disconnect();
@@ -293,7 +336,7 @@ suite('navigation >', function() {
     });
 
     test('welcome screen >', function(done) {
-      setStepState(8);
+      setStepStateToIndex(7);
       var observer = new MutationObserver(function(records) {
         done(function() {
           observer.disconnect();
@@ -305,7 +348,7 @@ suite('navigation >', function() {
     });
 
     test('privacy screen >', function(done) {
-      setStepState(9);
+      setStepStateToIndex(8);
       var observer = new MutationObserver(function() {
         done(function() {
           observer.disconnect();
@@ -328,7 +371,7 @@ suite('navigation >', function() {
       // the MutationObserver.
       MockNavigatorSettings.mSyncRepliesOnly = true;
 
-      setStepState(1);
+      setStepStateToIndex(1);
     });
 
     teardown(function() {
@@ -337,7 +380,7 @@ suite('navigation >', function() {
 
     test('metrics checkbox should disabled for dogfooders > ', function(done) {
       navigator.mozSettings.mSettings[DOGFOODSETTING] = true;
-      setStepState(8);
+      setStepStateToIndex(7);
 
       var observer = new MutationObserver(function(records) {
         done(function () {
@@ -353,7 +396,7 @@ suite('navigation >', function() {
     test('metrics checkbox should be enabled for non dogfooders > ',
     function(done) {
       navigator.mozSettings.mSettings[DOGFOODSETTING] = false;
-      setStepState(8);
+      setStepStateToIndex(7);
 
       var observer = new MutationObserver(function(records) {
         done(function () {
@@ -372,7 +415,7 @@ suite('navigation >', function() {
     var handleCardStateStub = null;
 
     setup(function() {
-      setStepState(1);
+      setStepStateToIndex(0);
       handleCardStateStub.reset();
     });
 
@@ -398,23 +441,22 @@ suite('navigation >', function() {
       MockIccHelper.setProperty('cardState', 'pinRequired');
       Navigation.forward();
 
-      assert.equal(Navigation.previousStep, 1);
-      assert.equal(Navigation.currentStep, 2);
+      assert.equal(Navigation.previousStepIndex, 0);
+      assert.equal(Navigation.currentStepIndex, 1);
 
       // Fire a cardstate change
       cardStateChangeCallback('ready');
       // Ensure we don't skip this current state
-      assert.equal(Navigation.previousStep, 1);
-      assert.equal(Navigation.currentStep, 2);
+      assert.equal(Navigation.previousStepIndex, 0);
+      assert.equal(Navigation.currentStepIndex, 1);
 
     });
 
     test('skip pin and go back', function() {
       MockIccHelper.setProperty('cardState', 'pinRequired');
       Navigation.forward();
-
-      assert.equal(Navigation.previousStep, 1);
-      assert.equal(Navigation.currentStep, 2);
+      assert.equal(Navigation.previousStepIndex, 0);
+      assert.equal(Navigation.currentStepIndex, 1);
 
       // Make sure we don't skip unlock screens on way forward.
       assert.isTrue(handleCardStateStub.calledWith(
@@ -423,13 +465,13 @@ suite('navigation >', function() {
       // Skip step 2, sim pin entry
       Navigation.skipStep();
       Navigation.skipMobileDataScreen = true;
-      assert.equal(Navigation.previousStep, 1);
-      assert.equal(Navigation.currentStep, 3);
+      assert.equal(Navigation.previousStepIndex, 0);
+      assert.equal(Navigation.currentStepIndex, 2);
 
       // Go back
       Navigation.back();
-      assert.equal(Navigation.previousStep, 3);
-      assert.equal(Navigation.currentStep, 2);
+      assert.equal(Navigation.previousStepIndex, 2);
+      assert.equal(Navigation.currentStepIndex, 1);
 
       // Make sure we skip unlock screens going back.
       assert.isTrue(handleCardStateStub.calledWith(
@@ -440,8 +482,8 @@ suite('navigation >', function() {
       MockIccHelper.setProperty('cardState', 'pinRequired');
       Navigation.forward();
 
-      assert.equal(Navigation.previousStep, 1);
-      assert.equal(Navigation.currentStep, 2);
+      assert.equal(Navigation.previousStepIndex, 0);
+      assert.equal(Navigation.currentStepIndex, 1);
 
       // Make sure we don't skip unlock screens on way forward.
       assert.isTrue(handleCardStateStub.calledWith(
@@ -450,13 +492,13 @@ suite('navigation >', function() {
       // Skip step 2, sim pin entry
       Navigation.skipStep();
       Navigation.skipMobileDataScreen = true;
-      assert.equal(Navigation.previousStep, 1);
-      assert.equal(Navigation.currentStep, 3);
+      assert.equal(Navigation.previousStepIndex, 0);
+      assert.equal(Navigation.currentStepIndex, 2);
 
       // Go forward
       Navigation.forward();
-      assert.equal(Navigation.previousStep, 3);
-      assert.equal(Navigation.currentStep, 4);
+      assert.equal(Navigation.previousStepIndex, 2);
+      assert.equal(Navigation.currentStepIndex, 3);
     });
   });
 
@@ -465,7 +507,7 @@ suite('navigation >', function() {
 
     setup(function() {
       Navigation.simMandatory = true;
-      setStepState(1);
+      setStepStateToIndex(0);
     });
 
     teardown(function() {
@@ -476,15 +518,15 @@ suite('navigation >', function() {
       MockIccHelper.setProperty('cardState', null);
       Navigation.forward();
 
-      assert.equal(Navigation.previousStep, 1);
-      assert.equal(Navigation.currentStep, 2);
+      assert.equal(Navigation.previousStepIndex, 0);
+      assert.equal(Navigation.currentStepIndex, 1);
       assert.equal(window.location.hash, hash);
 
       Navigation.back();
       Navigation.forward();
 
-      assert.equal(Navigation.previousStep, 1);
-      assert.equal(Navigation.currentStep, 2);
+      assert.equal(Navigation.previousStepIndex, 0);
+      assert.equal(Navigation.currentStepIndex, 1);
       assert.equal(window.location.hash, hash);
     });
 
@@ -492,9 +534,10 @@ suite('navigation >', function() {
       MockIccHelper.setProperty('cardState', 'ready');
       Navigation.forward();
 
-      assert.equal(Navigation.previousStep, 1);
-      assert.equal(Navigation.currentStep, 2);
-      assert.equal(window.location.hash, steps[Navigation.currentStep].hash);
+      assert.equal(Navigation.previousStepIndex, 0);
+      assert.equal(Navigation.currentStepIndex, 1);
+      assert.equal(window.location.hash,
+                   Navigation.stepAt(Navigation.currentStepIndex).hash);
     });
 
   });
@@ -506,16 +549,16 @@ suite('navigation >', function() {
       this.sinon.stub(window, 'open');
       this.sinon.spy(UIManager, 'displayOfflineDialog');
 
-      Navigation.currentStep = 2;
-      window.location.hash = steps[Navigation.currentStep].hash;
-
-      link = document.querySelector('a.external');
+      // load welcome page which has external link on it
+      setStepStateToIndex(7);
+      link = UIManager.activationScreen.querySelector('a.external');
     });
 
     test('handles external links when online', function() {
       navigator.onLine = true;
       link.click();
 
+      assert.ok(window.open.called);
       assert.ok(window.open.calledWith(link.href));
     });
 
