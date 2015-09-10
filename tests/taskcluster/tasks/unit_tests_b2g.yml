@@ -1,7 +1,7 @@
 reruns: 2
 task:
   metadata:
-    name: Gaia unit tests in b2g-desktop chunk {{chunk}}
+    name: Gaia unit tests in Mulet chunk {{chunk}}
     description: Full gaia unit test suite
 
   workerType: '{{workerType}}'
