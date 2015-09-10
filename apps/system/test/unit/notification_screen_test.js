@@ -132,7 +132,7 @@ suite('system/NotificationScreen >', function() {
     realMozL10n = navigator.mozL10n;
     MockL10n.DateTimeFormat = function() {
       return {
-        fromNow: function(time, compact) {
+        relativeDate: function(time, compact) {
           var retval;
           var delta = new Date().getTime() - time.getTime();
           if (delta >= 0 && delta < 60 * 1000) {
@@ -140,7 +140,7 @@ suite('system/NotificationScreen >', function() {
           } else if (delta >= 60 * 1000) {
             retval = '1m ago';
           }
-          return retval;
+          return Promise.resolve(retval);
         }
       };
     };
@@ -567,26 +567,6 @@ suite('system/NotificationScreen >', function() {
         content.indexOf(text) !== -1,
         'The message is in the notification'
       );
-    });
-  });
-
-  suite('prettyDate() behavior >', function() {
-    test('converts timestamp to string', function() {
-      var timestamp = new Date();
-      var date = NotificationScreen.prettyDate(timestamp);
-      assert.isTrue(typeof date === 'string');
-    });
-
-    test('shows now', function() {
-      var timestamp = new Date();
-      var date = NotificationScreen.prettyDate(timestamp);
-      assert.equal(date, 'now');
-    });
-
-    test('shows 1m ago', function() {
-      var timestamp = new Date(new Date().getTime() - 61 * 1000);
-      var date = NotificationScreen.prettyDate(timestamp);
-      assert.equal(date, '1m ago');
     });
   });
 

@@ -109,10 +109,8 @@ apps/system/js/findmydevice_launcher.js
 apps/system/js/identity.js
 apps/system/js/ime_menu.js
 apps/system/js/keyboard_manager.js
-apps/system/js/media_recording.js
 apps/system/js/migrators/settings_migrator.js
 apps/system/js/nfc_handover_manager.js
-apps/system/js/operator_icon.js
 apps/system/js/payment.js
 apps/system/js/permission_manager.js
 apps/system/js/quick_settings.js
