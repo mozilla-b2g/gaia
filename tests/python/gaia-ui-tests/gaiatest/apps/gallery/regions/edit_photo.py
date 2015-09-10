@@ -51,8 +51,8 @@ class EditPhoto(Base):
         element.tap()
         progress = self.marionette.find_element(*self._save_progress_bar_locator)
         Wait(self.marionette).until(expected.element_not_displayed(progress))
-        from gaiatest.apps.gallery.app import Gallery
-        return Gallery(self.marionette)
+        from gaiatest.apps.gallery.regions.fullscreen_image import FullscreenImage
+        return FullscreenImage(self.marionette)
 
     def tap_portrait_crop(self):
         element = Wait(self.marionette).until(

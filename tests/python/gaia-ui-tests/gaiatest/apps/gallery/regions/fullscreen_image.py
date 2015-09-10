@@ -12,14 +12,13 @@ class FullscreenImage(Base):
     '''
     This is not the actual image file - it is a blob of the image file in storage
     '''
-    _fullscreen_view_locator = (By.ID, 'fullscreen-view')
     _current_image_locator = (By.CSS_SELECTOR, '#frames .current > .image-view')
     _current_frame_locator = (By.CSS_SELECTOR, '#frames .current')
     _photos_toolbar_locator = (By.ID, 'fullscreen-toolbar')
     _delete_image_locator = (By.ID, 'fullscreen-delete-button-tiny')
     _confirm_delete_locator = (By.ID, 'confirm-ok')
     _edit_photo_locator = (By.ID, 'fullscreen-edit-button-tiny')
-    _tile_view_locator = (By.ID, 'fullscreen-back-button-tiny')
+    _go_back_locator = (By.ID, 'fullscreen-back-button-tiny')
     _camera_locator = (By.ID, 'fullscreen-camera-button-tiny')
     _photo_toolbar_options_locator = (By.CSS_SELECTOR, '#fullscreen-toolbar > a')
 
@@ -89,10 +88,10 @@ class FullscreenImage(Base):
         from gaiatest.apps.gallery.regions.edit_photo import EditPhoto
         return EditPhoto(self.marionette)
 
-    def tap_tile_view_button(self):
-        fullscreen = self.marionette.find_element(*self._fullscreen_view_locator)
-        self.marionette.find_element(*self._tile_view_locator).tap()
-        Wait(self.marionette).until(expected.element_not_displayed(fullscreen))
+    def go_back(self):
+        element = self.marionette.find_element(*self._go_back_locator)
+        element.tap()
+        Wait(self.marionette).until(expected.element_not_displayed(element))
         from gaiatest.apps.gallery.app import Gallery
         return Gallery(self.marionette)
 

@@ -89,7 +89,8 @@ class GalleryEditPhotoBase(GaiaImageCompareTestCase):
         edit_image.tap_edit_tool_apply_button()
 
         # save the resulting picture
-        filelist = edit_image.tap_edit_save_button()
+        image = edit_image.tap_edit_save_button()
+        filelist = image.go_back()
         filelist.wait_for_files_to_load(2)
         time.sleep(3)
         self.take_screenshot()
