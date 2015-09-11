@@ -3,6 +3,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from marionette_driver import By, Wait
+from marionette_driver.marionette import Actions
 
 from gaiatest.apps.base import Base
 from gaiatest.apps.homescreen.app import Homescreen
@@ -29,7 +30,10 @@ class PasscodePad(Base):
         for digit in passcode:
             button_locator = (self._numeric_button_locator[0],
                               self._numeric_button_locator[1] % digit)
-            self.marionette.find_element(*button_locator).tap()
+            # Workaround for bug 1203269 where the Marionette tap() method somehow enters
+            # 2 digits in the passcode pad
+            Actions(self.marionette).press(
+                self.marionette.find_element(*button_locator)).wait(time=0.5).release().perform()
         return Homescreen(self.marionette)
 
     def tap_emergency_call(self):
