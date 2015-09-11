@@ -6,11 +6,12 @@ var debug = 1 ? (...args) => console.log('[HomeView]', ...args) : () => {};
 var HomeView = View.extend(function HomeView() {
   View.call(this); // super();
 
-  this.search = document.getElementById('search');
+  this.searchBox = document.getElementById('search');
   this.tiles = document.getElementById('tiles');
 
-  this.search.addEventListener('open', () => window.parent.onSearchOpen());
-  this.search.addEventListener('close', () => window.parent.onSearchClose());
+  this.searchBox.addEventListener('open', () => window.parent.onSearchOpen());
+  this.searchBox.addEventListener('close', () => window.parent.onSearchClose());
+  this.searchBox.addEventListener('search', (evt) => this.search(evt.detail));
 
   this.tiles.addEventListener('click', (evt) => {
     var link = evt.target.closest('a[data-file-path]');
@@ -78,6 +79,15 @@ HomeView.prototype.getSongThumbnail = function(filePath) {
 
 HomeView.prototype.queueAlbum = function(filePath) {
   this.fetch('/api/queue/album/' + filePath);
+};
+
+HomeView.prototype.search = function(query) {
+  // XXX: Search all fields
+  return this.fetch('/api/search/title/' + query).then((response) => {
+    return response.json();
+  }).then((results) => {
+    this.searchBox.setResults(results);
+  });
 };
 
 window.view = new HomeView();

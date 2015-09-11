@@ -6,16 +6,17 @@ var debug = 1 ? (...args) => console.log('[AlbumsView]', ...args) : () => {};
 var AlbumsView = View.extend(function AlbumsView() {
   View.call(this); // super();
 
-  this.search = document.getElementById('search');
+  this.searchBox = document.getElementById('search');
   this.list = document.getElementById('list');
 
-  var searchHeight = this.search.offsetHeight;
+  var searchHeight = this.searchBox.offsetHeight;
 
-  this.search.addEventListener('open', () => window.parent.onSearchOpen());
-  this.search.addEventListener('close', () => {
+  this.searchBox.addEventListener('open', () => window.parent.onSearchOpen());
+  this.searchBox.addEventListener('close', () => {
     this.list.scrollTop = searchHeight;
     window.parent.onSearchClose();
   });
+  this.searchBox.addEventListener('search', (evt) => this.search(evt.detail));
 
   this.list.scrollTop = searchHeight;
   this.list.minScrollHeight = `calc(100% - ${searchHeight}px)`;
@@ -55,6 +56,14 @@ AlbumsView.prototype.getAlbums = function() {
   return this.fetch('/api/albums/list')
     .then(response => response.json())
     .then(albums => clean(albums));
+};
+
+AlbumsView.prototype.search = function(query) {
+  return this.fetch('/api/search/album/' + query).then((response) => {
+    return response.json();
+  }).then((results) => {
+    this.searchBox.setResults(results);
+  });
 };
 
 function clean(items) {

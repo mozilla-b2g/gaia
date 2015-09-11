@@ -6,16 +6,17 @@ var debug = 1 ? (...args) => console.log('[SongsView]', ...args) : () => {};
 var SongsView = View.extend(function SongsView() {
   View.call(this); // super();
 
-  this.search = document.getElementById('search');
+  this.searchBox = document.getElementById('search');
   this.list = document.getElementById('list');
 
-  var searchHeight = this.search.offsetHeight;
+  var searchHeight = this.searchBox.offsetHeight;
 
-  this.search.addEventListener('open', () => window.parent.onSearchOpen());
-  this.search.addEventListener('close', () => {
+  this.searchBox.addEventListener('open', () => window.parent.onSearchOpen());
+  this.searchBox.addEventListener('close', () => {
     this.list.scrollTop = searchHeight;
     window.parent.onSearchClose();
   });
+  this.searchBox.addEventListener('search', (evt) => this.search(evt.detail));
 
   this.list.scrollTop = searchHeight;
   this.list.minScrollHeight = `calc(100% - ${searchHeight}px)`;
@@ -83,6 +84,14 @@ SongsView.prototype.setCache = function(items) {
 
 SongsView.prototype.getCache = function() {
   return JSON.parse(localStorage.getItem('cache:songs')) || [];
+};
+
+SongsView.prototype.search = function(query) {
+  return this.fetch('/api/search/title/' + query).then((response) => {
+    return response.json();
+  }).then((results) => {
+    this.searchBox.setResults(results);
+  });
 };
 
 window.view = new SongsView();
