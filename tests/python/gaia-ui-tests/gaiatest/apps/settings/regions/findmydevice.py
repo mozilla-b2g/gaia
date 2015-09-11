@@ -5,13 +5,13 @@
 from marionette_driver import expected, By, Wait
 
 from gaiatest.apps.base import Base
+from gaiatest.form_controls.binarycontrol import GaiaBinaryControl
 
 
 class FindMyDevice(Base):
 
     _login_locator = (By.ID, 'findmydevice-login-btn')
     _checkbox_locator = (By.CSS_SELECTOR, '#findmydevice-enabled gaia-switch')
-    _findmydevice_locator = (By.CSS_SELECTOR, 'span[data-l10n-id="findmydevice-enable"]')
 
     def tap_login(self):
         login = Wait(self.marionette, timeout=60).until(
@@ -23,9 +23,7 @@ class FindMyDevice(Base):
         return FirefoxAccount(self.marionette)
 
     def wait_for_enable_switch_to_be_turned_on(self):
-        findmydevice = Wait(self.marionette, timeout=60).until(
-            expected.element_present(*self._findmydevice_locator))
-        Wait(self.marionette).until(expected.element_displayed(findmydevice))
-        checkbox = Wait(self.marionette, timeout=60).until(
-            expected.element_present(*self._checkbox_locator))
-        Wait(self.marionette).until(expected.element_selected(checkbox))
+        Wait(self.marionette, timeout=60).until(
+            expected.element_displayed(*self._checkbox_locator))
+        Wait(self.marionette).until(lambda m:
+            GaiaBinaryControl(m, self._checkbox_locator).is_checked is True)
