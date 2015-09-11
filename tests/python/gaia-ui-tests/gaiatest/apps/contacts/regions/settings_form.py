@@ -4,6 +4,7 @@
 
 from marionette_driver import expected, By, Wait
 from gaiatest.apps.base import Base
+from gaiatest.form_controls.binarycontrol import GaiaBinaryControl
 
 
 class SettingsForm(Base):
@@ -34,19 +35,17 @@ class SettingsForm(Base):
     def __init__(self, marionette):
         Base.__init__(self, marionette)
         view = self.marionette.find_element(*self._settings_view_locator)
-        Wait(self.marionette).until(lambda m: view.location['y'] == 0)
+        Wait(self.marionette).until(lambda m: view.rect['y'] == 0)
 
-    def tap_order_by_last_name(self):
-        last_name = Wait(self.marionette).until(
-            expected.element_present(*self._order_by_last_name_switch_locator))
-        Wait(self.marionette).until(expected.element_displayed(last_name))
-        initial_state = self.is_custom_element_checked(last_name)
-        last_name.tap()
-        self.wait_for_custom_element_checked_state(last_name, checked=not(initial_state))
+    def enable_order_by_last_name(self):
+        self._order_by_last_name_switch.enable()
+
+    def disable_order_by_last_name(self):
+        self._order_by_last_name_switch.disable()
 
     @property
-    def order_by_last_name(self):
-        return self.marionette.find_element(*self._order_by_last_name_switch_locator).is_selected()
+    def _order_by_last_name_switch(self):
+        return GaiaBinaryControl(self.marionette, self._order_by_last_name_switch_locator)
 
     def tap_import_contacts(self):
         import_contacts = Wait(self.marionette).until(

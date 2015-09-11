@@ -7,6 +7,7 @@ from marionette_driver.errors import StaleElementException
 
 from gaiatest.apps.phone.app import Phone
 from gaiatest.apps.base import PageRegion
+from gaiatest.form_controls.binarycontrol import HtmlBinaryControl
 
 
 class CallLog(Phone):
@@ -143,4 +144,4 @@ class LogEntries(PageRegion):
 
     @property
     def is_checked(self):
-        return self.root_element.find_element(*self._edit_mode_checkbox_locator).is_selected()
+        return HtmlBinaryControl(self.marionette, self._edit_mode_checkbox_locator).is_checked

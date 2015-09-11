@@ -3,8 +3,8 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from marionette_driver import expected, By, Wait
-
 from gaiatest.apps.base import PageRegion
+from gaiatest.form_controls.binarycontrol import GaiaBinaryControl
 
 
 class Bluetooth(PageRegion):
@@ -26,30 +26,33 @@ class Bluetooth(PageRegion):
         PageRegion.__init__(self, marionette, root)
         Wait(self.marionette).until(expected.element_displayed(*self._bluetooth_label_locator))
 
-
     @property
     def is_bluetooth_enabled(self):
-        return self.root_element.find_element(*self._bluetooth_checkbox_locator).is_selected()
+        return self._bluetooth_switch.is_checked
+
+    def enable_bluetooth(self):
+        self._bluetooth_switch.enable()
+        rename_device = self.root_element.find_element(*self._rename_my_device_button_locator)
+        Wait(self.marionette).until(expected.element_enabled(rename_device))
+
+    @property
+    def _bluetooth_switch(self):
+        return GaiaBinaryControl(self.marionette, self._bluetooth_checkbox_locator)
 
     @property
     def is_visible_enabled(self):
-        return self.root_element.find_element(*self._visible_to_all_checkbox_locator).is_selected()
+        return self._is_visible_switch.is_checked
+
+    def enable_visible_to_all(self):
+        self._is_visible_switch.enable()
+
+    @property
+    def _is_visible_switch(self):
+        return GaiaBinaryControl(self.marionette, self._visible_to_all_checkbox_locator)
 
     @property
     def device_name(self):
         return self.root_element.find_element(*self._device_name_locator).text
-
-    def enable_bluetooth(self):
-        self.root_element.find_element(*self._bluetooth_label_locator).tap()
-        checkbox = self.root_element.find_element(*self._bluetooth_checkbox_locator)
-        Wait(self.marionette).until(lambda m: self.is_custom_element_checked(checkbox))
-        rename_device = self.root_element.find_element(*self._rename_my_device_button_locator)
-        Wait(self.marionette).until(expected.element_enabled(rename_device))
-
-    def enable_visible_to_all(self):
-        self.root_element.find_element(*self._visible_to_all_label_locator).tap()
-        checkbox = self.root_element.find_element(*self._visible_to_all_checkbox_locator)
-        Wait(self.marionette).until(lambda m: self.is_custom_element_checked(checkbox))
 
     def tap_rename_my_device(self):
         self.root_element.find_element(*self._rename_my_device_button_locator).tap()

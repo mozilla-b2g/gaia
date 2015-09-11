@@ -6,6 +6,7 @@ from marionette_driver import expected, By, Wait
 
 from gaiatest.apps.base import Base
 from gaiatest.apps.settings.regions.cell_data_prompt import CellDataPrompt
+from gaiatest.form_controls.binarycontrol import HtmlBinaryControl
 
 
 class CellData(Base):
@@ -36,7 +37,7 @@ class CellData(Base):
 
     @property
     def is_data_toggle_checked(self):
-        return self.marionette.find_element(*self._cell_data_enabled_input_locator).is_selected()
+        return HtmlBinaryControl(self.marionette, self._cell_data_enabled_input_locator).is_checked
 
 
 class CellDataDualSim(CellData):

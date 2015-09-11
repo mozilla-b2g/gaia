@@ -23,9 +23,7 @@ class TestCostControlFTU(GaiaTestCase):
         ftu_step2.select_reset_report_value('Weekly')
         ftu_step3 = ftu_step2.tap_next()
 
-        self.assertFalse(ftu_step3.is_data_alert_switch_checked)
-        ftu_step3.toggle_data_alert()
-        self.assertTrue(ftu_step3.is_data_alert_switch_checked)
+        ftu_step3.enable_data_alert()
         ftu_step3.select_when_use_is_above_unit_and_value(u'MB', '0.1')
         ftu_step3.tap_lets_go()
 

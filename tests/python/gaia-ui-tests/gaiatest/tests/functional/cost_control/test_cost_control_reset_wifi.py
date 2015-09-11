@@ -24,8 +24,8 @@ class TestCostControlReset(GaiaTestCase):
         cost_control.switch_to_ftu()
         cost_control.run_ftu_accepting_defaults()
 
-        cost_control.toggle_mobile_data_tracking(False)
-        cost_control.toggle_wifi_data_tracking(True)
+        cost_control.disable_mobile_data_tracking()
+        cost_control.enable_wifi_data_tracking()
 
         # If we don't kill the app manually it might get killed by the oom process.
         # In that case when we re-launch the app it has a hash attached at the end of the src. - Bug 1091676
@@ -39,12 +39,10 @@ class TestCostControlReset(GaiaTestCase):
         self.data_layer.disable_wifi()
         time.sleep(5)
 
-        # go back to Cost Control
         cost_control.launch()
         # if we can't trigger any data usage, there must be something wrong
         self.assertNotEqual(cost_control.wifi_data_usage_figure, u'0.00 B', 'No data usage shown after browsing.')
 
-        # # go to settings section
         settings = cost_control.tap_settings()
         settings.reset_wifi_usage()
         settings.tap_done()

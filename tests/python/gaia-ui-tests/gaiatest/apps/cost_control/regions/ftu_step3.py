@@ -6,6 +6,7 @@ import time
 
 from marionette_driver import expected, By, Wait
 from gaiatest.apps.cost_control.app import CostControl
+from gaiatest.form_controls.binarycontrol import GaiaBinaryControl
 
 
 class FTUStep3(CostControl):
@@ -25,17 +26,20 @@ class FTUStep3(CostControl):
     def __init__(self, marionette):
         CostControl.__init__(self, marionette)
         view = self.marionette.find_element(*self._view_locator)
-        Wait(self.marionette).until(lambda m: view.location['x'] == 0)
+        Wait(self.marionette).until(lambda m: view.rect['x'] == 0)
 
-    def toggle_data_alert(self):
-        self.marionette.find_element(*self._data_alert_switch_locator).tap()
+    def enable_data_alert(self):
+        self._data_alert_switch.enable()
         # Wait for Usage section to hide/display as required
         Wait(self.marionette).until(expected.element_displayed(*self._data_alert_selector_locator))
 
     @property
     def is_data_alert_switch_checked(self):
-        element = self.marionette.find_element(*self._data_alert_switch_locator)
-        return self.is_custom_element_checked(element)
+        return self._data_alert_switch.is_checked
+
+    @property
+    def _data_alert_switch(self):
+        return GaiaBinaryControl(self.marionette, self._data_alert_switch_locator)
 
     def select_when_use_is_above_unit_and_value(self, unit, value):
         self.marionette.find_element(*self._data_alert_selector_locator).tap()

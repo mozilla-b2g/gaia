@@ -15,8 +15,7 @@ class TestSettingsRTL(GaiaImageCompareTestCase):
         settings = Settings(self.marionette)
         settings.launch()
         ########### USB Storage #############################
-        settings.wait_for_usb_storage_toggle_ready()
-        settings.toggle_usb_storage()
+        settings.enable_usb_storage()
         self.take_screenshot('usbstorage-enablewarning')
         # if usb is enabled, it affects media storage menu
         if options == "disable":
@@ -51,4 +50,3 @@ class TestSettingsRTL(GaiaImageCompareTestCase):
         ########### Application Storage #############################
             settings.open_application_storage()
             self.take_screenshot('application_storage')
- 

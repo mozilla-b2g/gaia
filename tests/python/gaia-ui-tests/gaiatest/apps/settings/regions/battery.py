@@ -5,8 +5,8 @@
 import time
 
 from marionette_driver import expected, By, Wait
-
 from gaiatest.apps.base import Base
+from gaiatest.form_controls.binarycontrol import GaiaBinaryControl
 
 
 class Battery(Base):
@@ -14,11 +14,8 @@ class Battery(Base):
     _power_save_checkbox_locator = (By.CSS_SELECTOR, 'gaia-switch[name="powersave.enabled"]')
     _power_save_turn_on_auto_locator = (By.CSS_SELECTOR, 'select[name="powersave.threshold"]')
 
-    def toggle_power_save_mode(self):
-        element = self.marionette.find_element(*self._power_save_checkbox_locator)
-        initial_state = self.is_custom_element_checked(element)
-        element.tap()
-        self.wait_for_custom_element_checked_state(element, checked=not(initial_state))
+    def enable_power_save_mode(self):
+        GaiaBinaryControl(self.marionette, self._power_save_checkbox_locator).enable()
 
     def tap_turn_on_auto(self):
         element = Wait(self.marionette).until(

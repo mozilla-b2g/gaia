@@ -6,8 +6,8 @@ import re
 import time
 
 from marionette_driver import expected, By, Wait
-
 from gaiatest.apps.base import Base
+from gaiatest.form_controls.binarycontrol import GaiaBinaryControl
 
 
 class Ftu(Base):
@@ -241,17 +241,16 @@ class Ftu(Base):
         self.a11y_click_next()
         Wait(self.marionette).until(expected.element_displayed(*self._section_geolocation_locator))
 
-    def toggle_geolocation(self):
-        element = Wait(self.marionette).until(
-            expected.element_present(*self._enable_geolocation_checkbox_locator))
-        Wait(self.marionette).until(expected.element_displayed(element))
-        # TODO: Remove y parameter when Bug 932804 is fixed
-        element.tap(y=30)
+    def disable_geolocation(self):
+        self._geolocation_switch.disable()
 
     @property
     def is_geolocation_enabled(self):
-        element = self.marionette.find_element(*self._enable_geolocation_checkbox_locator)
-        return self.is_custom_element_checked(element)
+        return self._geolocation_switch.is_checked
+
+    @property
+    def _geolocation_switch(self):
+        return GaiaBinaryControl(self.marionette, self._enable_geolocation_checkbox_locator)
 
     def a11y_disable_geolocation(self):
         element = Wait(self.marionette).until(
@@ -318,15 +317,14 @@ class Ftu(Base):
 
     @property
     def is_share_data_enabled(self):
-        element = self.marionette.find_element(*self._statistic_checkbox_locator)
-        return self.is_custom_element_checked(element)
+        return self._share_data_switch.is_checked
 
-    def toggle_share_data(self):
-        # Use for functional operation vs. UI operation
-        initial_state = self.is_share_data_enabled
-        self.tap_statistics_checkbox()
-        Wait(self.marionette).until(
-            lambda m: self.is_share_data_enabled is not initial_state)
+    def disable_share_data(self):
+        self._share_data_switch.disable()
+
+    @property
+    def _share_data_switch(self):
+        return GaiaBinaryControl(self.marionette, self._statistic_checkbox_locator)
 
     def tap_next_to_privacy_browser_section(self):
         self.tap_next()
