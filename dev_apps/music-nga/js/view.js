@@ -46,7 +46,9 @@ if (!window.parent.SERVICE_WORKERS) (function() {
     '/api/songs/list': 'getSongs',
     '/api/songs/count': 'getSongCount',
     '/api/songs/info/:filePath': 'getSong',
-    '/api/songs/rating/:rating/:filePath': 'setSongRating'
+    '/api/songs/rating/:rating/:filePath': 'setSongRating',
+
+    '/api/search/:key/:query': 'search'
   };
 
   for (var path in window.ROUTES) {

@@ -45,6 +45,7 @@ var service = bridge.service('music-service')
   .method('getSongArtwork', getSongArtwork)
   .method('getSongThumbnail', getSongThumbnail)
   .method('setSongRating', setSongRating)
+  .method('search', search)
 
   .method('share', share)
   .method('open', open)
@@ -335,6 +336,19 @@ function setSongRating(rating, filePath) {
   rating = parseInt(rating, 10) || 0;
   return getSong(filePath).then((song) => {
     return Database.setSongRating(song, rating);
+  });
+}
+
+function search(key, query) {
+  return new Promise((resolve) => {
+    var results = [];
+    Database.search(key, query, (result) => {
+      if (result === null) {
+        resolve(results);
+      } else {
+        results.push(result);
+      }
+    });
   });
 }
 

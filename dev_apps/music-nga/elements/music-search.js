@@ -123,9 +123,19 @@ proto.createdCallback = function() {
     scroller:  $id('scroller')
   };
 
-  // this.els.list.configure({
+  var mode = this.getAttribute('mode') || 'title'; // TODO
 
-  // });
+  this.els.list.configure({
+    getSectionName(item) {
+      var name = item.metadata[mode];
+      return name ? name[0].toUpperCase() : '?';
+    },
+
+    itemKeys: {
+      link: (data) => `/artist-detail?id=${data.name}`,
+      title: 'metadata.' + mode
+    }
+  });
 
   this.els.container.addEventListener('click', (evt) => {
     var button = evt.target.closest('button');

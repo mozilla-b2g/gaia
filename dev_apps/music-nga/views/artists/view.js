@@ -6,11 +6,12 @@ var debug = 1 ? (...args) => console.log('[ArtistsView]', ...args) : () => {};
 var ArtistsView = View.extend(function ArtistsView() {
   View.call(this); // super();
 
-  this.search = document.getElementById('search');
+  this.searchBox = document.getElementById('search');
   this.list = document.getElementById('list');
 
-  this.search.addEventListener('open', () => window.parent.onSearchOpen());
-  this.search.addEventListener('close', () => window.parent.onSearchClose());
+  this.searchBox.addEventListener('open', () => window.parent.onSearchOpen());
+  this.searchBox.addEventListener('close', () => window.parent.onSearchClose());
+  this.searchBox.addEventListener('search', (evt) => this.search(evt.detail));
 
   this.list.configure({
     getSectionName(item) {
@@ -52,6 +53,14 @@ ArtistsView.prototype.render = function() {
 
 ArtistsView.prototype.getArtists = function() {
   return this.fetch('/api/artists/list').then(response => response.json());
+};
+
+ArtistsView.prototype.search = function(query) {
+  return this.fetch('/api/search/artist/' + query).then((response) => {
+    return response.json();
+  }).then((results) => {
+    this.searchBox.setResults(results);
+  });
 };
 
 window.view = new ArtistsView();

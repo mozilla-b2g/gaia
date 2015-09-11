@@ -6,11 +6,12 @@ var debug = 1 ? (...args) => console.log('[SongsView]', ...args) : () => {};
 var SongsView = View.extend(function SongsView() {
   View.call(this); // super();
 
-  this.search = document.getElementById('search');
+  this.searchBox = document.getElementById('search');
   this.list = document.getElementById('list');
 
-  this.search.addEventListener('open', () => window.parent.onSearchOpen());
-  this.search.addEventListener('close', () => window.parent.onSearchClose());
+  this.searchBox.addEventListener('open', () => window.parent.onSearchOpen());
+  this.searchBox.addEventListener('close', () => window.parent.onSearchClose());
+  this.searchBox.addEventListener('search', (evt) => this.search(evt.detail));
 
   this.list.configure({
     model: this.getCache(),
@@ -93,6 +94,14 @@ SongsView.prototype.setCache = function(items) {
 
 SongsView.prototype.getCache = function() {
   return JSON.parse(localStorage.getItem('cache:songs')) || [];
+};
+
+SongsView.prototype.search = function(query) {
+  return this.fetch('/api/search/title/' + query).then((response) => {
+    return response.json();
+  }).then((results) => {
+    this.searchBox.setResults(results);
+  });
 };
 
 window.view = new SongsView();
