@@ -559,13 +559,14 @@ suite('navigation bar', function() {
         spy = this.sinon.spy(MockKeypadManager, 'updatePhoneNumber');
       });
 
-      test('display the number back properly if the call errors', function() {
-        /*Callback the error function if this phone-call errors */
-        this.sinon.stub(MockTelephonyHelper, 'call').callsArg(5);
-
+      test('display the number back properly if the call errors',
+      function(done) {
+        MockTelephonyHelper.mCallPromise = Promise.reject();
         CallHandler.call(number, 0);
 
-        sinon.assert.calledWithMatch(spy, number, 'begin', false);
+        MockTelephonyHelper.mCallPromise.then(function() {
+          sinon.assert.calledWithMatch(spy, number, 'begin', false);
+        }).then(done, done);
       });
     });
 

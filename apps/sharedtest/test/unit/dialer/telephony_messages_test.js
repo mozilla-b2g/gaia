@@ -150,6 +150,28 @@ suite('Telephony messages', function() {
     });
   });
 
+  suite('Disconnection handling', function() {
+    setup(function() {
+      this.sinon.spy(subject, 'handleError');
+    });
+
+    test('normal call clearing', function() {
+      subject.handleDisconnect(
+        'NormalCallClearing', '123', subject.REGULAR_CALL
+      );
+      sinon.assert.notCalled(subject.handleError);
+    });
+
+    test('abnormal call disconnection', function() {
+      var reason = 'Busy';
+
+      subject.handleDisconnect(reason, '123', subject.REGULAR_CALL);
+      sinon.assert.calledWith(
+        subject.handleError, reason + 'Error', '123', subject.REGULAR_CALL
+      );
+    });
+  });
+
   suite('Error handling', function() {
     var expectedErrors = [
       {
