@@ -7,6 +7,7 @@
   MockNavigatorMozMobileConnections,
   MockNavigatorSettings,
   MocksHelper,
+  MockOverlay,
   Navigation,
   numSteps,
   SimManager,
@@ -29,12 +30,12 @@ requireApp('ftu/test/unit/mock_import_services.js');
 requireApp('ftu/test/unit/mock_ui_manager.js');
 requireApp('ftu/test/unit/mock_tutorial.js');
 requireApp('ftu/test/unit/mock_wifi_manager.js');
-requireApp('ftu/test/unit/mock_utils.js');
+requireApp('ftu/test/unit/mock_overlay.js');
 requireApp('ftu/test/unit/mock_operatorVariant.js');
 requireApp('ftu/test/unit/mock_navigation.html.js');
 
 var mocksHelperForNavigation = new MocksHelper([
-  'utils',
+  'Overlay',
   'UIManager',
   'SimManager',
   'DataMobile',
@@ -54,7 +55,8 @@ suite('navigation >', function() {
       realMozMobileConnections,
       realMozApps,
       realSettings,
-      realHTML;
+      realHTML,
+      realOverlay;
 
   function navigatorOnLine() {
     return isOnLine;
@@ -74,6 +76,9 @@ suite('navigation >', function() {
 
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
+
+    realOverlay = window.Overlay;
+    window.Overlay = MockOverlay;
 
     realOnLine = Object.getOwnPropertyDescriptor(navigator, 'onLine');
     Object.defineProperty(navigator, 'onLine', {
@@ -96,6 +101,9 @@ suite('navigation >', function() {
 
     navigator.mozL10n = realL10n;
     realL10n = null;
+
+    window.Overlay = realOverlay;
+    realOverlay = null;
 
     if (realOnLine) {
       Object.defineProperty(navigator, 'onLine', realOnLine);

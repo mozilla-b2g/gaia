@@ -1,5 +1,5 @@
 /* global MockL10n, MockMozWifiNetwork, MockNavigatorMozWifiManager,
-          MockFxAccountsIACHelper, MocksHelper, UIManager, utils,
+          MockFxAccountsIACHelper, MocksHelper, UIManager, MockOverlay,
           WifiHelper, WifiManager, WifiUI */
 'use strict';
 
@@ -7,7 +7,7 @@ require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_wifi_manager.js');
 
-requireApp('ftu/test/unit/mock_utils.js');
+requireApp('ftu/test/unit/mock_overlay.js');
 requireApp('ftu/test/unit/mock_moz_wifi_network.js');
 requireApp('ftu/test/unit/mock_fx_accounts_iac_helper.js');
 
@@ -17,7 +17,7 @@ require('/shared/js/wifi_helper.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
 
 var mocksHelperForWifi = new MocksHelper([
-  'utils',
+  'Overlay',
   'MozWifiNetwork',
   'SettingsListener'
 ]).init();
@@ -26,7 +26,8 @@ suite('wifi > ', function() {
   var realL10n,
       realMozWifiNetwork,
       realMozWifiManager,
-      realFxAccountsIACHelper;
+      realFxAccountsIACHelper,
+      realOverlay;
 
   var fakeNetworks = [
       {
@@ -78,6 +79,9 @@ suite('wifi > ', function() {
     realFxAccountsIACHelper = window.FxAccountsIACHelper;
     window.FxAccountsIACHelper = MockFxAccountsIACHelper;
 
+    realOverlay = window.Overlay;
+    window.Overlay = MockOverlay;
+
     loadBodyHTML('/index.html');
   });
 
@@ -94,13 +98,16 @@ suite('wifi > ', function() {
 
     navigator.mozWifiManager = realMozWifiManager;
     realMozWifiManager = null;
+
+    window.Overlay = realOverlay;
+    realOverlay = null;
   });
 
   suite('Scan networks >', function() {
     var clock = sinon.useFakeTimers();
 
     setup(function() {
-      this.sinon.spy(utils.overlay, 'show');
+      this.sinon.spy(window.Overlay, 'showSpinner');
     });
     teardown(function() {
       clock.restore();
@@ -111,7 +118,8 @@ suite('wifi > ', function() {
       MockNavigatorMozWifiManager.setNetworks(noNetworks);
 
       WifiManager.scan(function(networks) {
-        assert.ok(utils.overlay.show.calledOnce, 'shows loading overlay');
+        assert.ok(window.Overlay.showSpinner.calledOnce,
+          'shows loading overlay');
         assert.equal(networks.length, noNetworks.length,
           'return zero networks');
         assert.isDefined(document.getElementById('no-result-container'),
@@ -124,7 +132,8 @@ suite('wifi > ', function() {
       MockNavigatorMozWifiManager.setNetworks(fakeNetworks);
 
       WifiManager.scan(function(networks) {
-        assert.ok(utils.overlay.show.calledOnce, 'shows loading overlay');
+        assert.ok(window.Overlay.showSpinner.calledOnce,
+          'shows loading overlay');
         assert.isDefined(networks, 'return networks');
         assert.isNotNull(networks, 'return valid networks');
         assert.equal(networks, fakeNetworks, 'return existing networks');
@@ -146,7 +155,7 @@ suite('wifi > ', function() {
 
       WifiManager.scan(function(networks) {
         assert.ok(MockNavigatorMozWifiManager.getNetworks.calledOnce);
-        assert.ok(utils.overlay.show.called, 'shows loading overlay');
+        assert.ok(window.Overlay.showSpinner.called, 'shows loading overlay');
         assert.equal(networks.length, 0, 'no networks returned');
         assert.ok(console.error.calledOnce);
         done();
@@ -175,7 +184,7 @@ suite('wifi > ', function() {
       this.sinon.spy(console, 'warn');
 
       WifiManager.scan(function(networks) {
-        assert.ok(utils.overlay.show.called, 'shows loading overlay');
+        assert.ok(window.Overlay.showSpinner.called, 'shows loading overlay');
         assert.isUndefined(networks, 'no networks returned');
         assert.ok(console.warn.called);
         done();

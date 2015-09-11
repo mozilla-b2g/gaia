@@ -61,7 +61,7 @@ suite('Import contacts >', function() {
       realMozContacts;
 
   setup(function() {
-    this.sinon.spy(window.utils.overlay, 'showMenu');
+    this.sinon.spy(window.Overlay, 'showProgressBar');
   });
 
   teardown(function() {
@@ -85,9 +85,12 @@ suite('Import contacts >', function() {
 
     realUtils = window.utils;
     window.utils = MockUtils;
-    window.utils.overlay = {
-      show: function() {},
-      showMenu: function() {}
+    window.Overlay = {
+      showProgressBar: function() {},
+      showActivityBar: function() {},
+      showSpinner: function() {},
+      hide: function() {},
+      updateProgressBar: function() {}
     };
 
     window.utils.status = {
@@ -131,7 +134,7 @@ suite('Import contacts >', function() {
 
   test('SD Import went well', function(done) {
     contacts.Settings.importFromSDCard(function onImported() {
-      assert.isTrue(window.utils.overlay.showMenu.called);
+      assert.equal(window.Overlay.showProgressBar.getCall(0).args.length, 2);
       assert.equal(window.utils.status.show.getCall(0).args.length, 2);
       assert.equal(false, MyLocks.cpu);
       done();
@@ -142,7 +145,7 @@ suite('Import contacts >', function() {
     MockVCFReader.prototype.numDuplicated = 2;
 
     contacts.Settings.importFromSDCard(function onImported() {
-      assert.isTrue(window.utils.overlay.showMenu.called);
+      assert.isTrue(window.Overlay.showProgressBar.called);
 
       assert.isTrue(window.utils.status.show.called);
       assert.isTrue(window.utils.status.show.getCall(0).args[0] !== null);
@@ -159,7 +162,7 @@ suite('Import contacts >', function() {
     // Simulate not finding any files
     MockSdCard.failOnRetrieveFiles = true;
     contacts.Settings.importFromSDCard(function onImported() {
-      assert.isTrue(window.utils.overlay.showMenu.called);
+      assert.isFalse(window.Overlay.showProgressBar.called);
       assert.isFalse(window.utils.status.show.called);
       assert.equal(false, MyLocks.cpu);
       // Restore the mock

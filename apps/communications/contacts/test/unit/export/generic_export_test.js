@@ -102,14 +102,11 @@ suite('Contacts Exporter', function() {
         return date;
       }
     };
-    window.utils.overlay = {
-      show: function() {
-        return {
-          setTotal: function(l) {}
-        };
-      },
-      hide: function() {},
-      showMenu: function() {}
+    window.Overlay = {
+      showProgressBar: function() {},
+      showActivityBar: function() {},
+      showSpinner: function() {},
+      hide: function() {}
     };
     window.utils.status = {
       show: function(msg) {},

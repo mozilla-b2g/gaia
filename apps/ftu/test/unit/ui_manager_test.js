@@ -1,6 +1,6 @@
 /* global MockFxAccountsIACHelper, MocksHelper, MockL10n, MockMozApps,
           MockTzSelect, Navigation, UIManager, WifiManager, WifiUI,
-          MockSettingsListener, MockNavigatorSettings */
+          MockSettingsListener, MockNavigatorSettings, MockOverlay */
 'use strict';
 
 require('/shared/test/unit/load_body_html_helper.js');
@@ -19,7 +19,7 @@ requireApp('ftu/test/unit/mock_wifi_manager.js');
 requireApp('ftu/test/unit/mock_tz_select.js');
 requireApp('ftu/test/unit/mock_operatorVariant.js');
 requireApp('ftu/test/unit/mock_fx_accounts_iac_helper.js');
-requireApp('ftu/test/unit/mock_utils.js');
+requireApp('ftu/test/unit/mock_overlay.js');
 requireApp('ftu/test/unit/mock_data_mobile.js');
 
 var mocksHelperForUI = new MocksHelper([
@@ -28,7 +28,7 @@ var mocksHelperForUI = new MocksHelper([
   'WifiUI',
   'WifiManager',
   'OperatorVariant',
-  'utils',
+  'Overlay',
   'DataMobile',
   'SettingsListener'
 ]).init();
@@ -43,7 +43,8 @@ suite('UI Manager > ', function() {
       realFxAccountsIACHelper,
       realTzSelect,
       realSettings,
-      realSettingsListener;
+      realSettingsListener,
+      realOverlay;
   var mocksHelper = mocksHelperForUI;
 
   suiteSetup(function() {
@@ -65,6 +66,9 @@ suite('UI Manager > ', function() {
 
     realSettingsListener = window.SettingsListener;
     window.SettingsListener = MockSettingsListener;
+
+    realOverlay = window.Overlay;
+    window.Overlay = MockOverlay;
 
     mocksHelper.suiteSetup();
     loadBodyHTML('/index.html');
@@ -93,6 +97,9 @@ suite('UI Manager > ', function() {
 
     navigator.mozSettings = realSettings;
     window.SettingsListener = realSettingsListener;
+
+    window.Overlay = realOverlay;
+    realOverlay = null;
   });
 
   suite('Date & Time >', function() {
