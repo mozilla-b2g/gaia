@@ -63,11 +63,14 @@ var SpinDatePicker = (function() {
 
   function getYearText() {
     var yearText = [];
-    var dateTimeFormat = navigator.mozL10n.DateTimeFormat();
+
+    var dateTimeFormat = new Intl.DateTimeFormat(navigator.languages, {
+      year: 'numeric'
+    });
 
     for (var i = GLOBAL_MIN_YEAR; i <= GLOBAL_MAX_YEAR; i++) {
       var date = new Date(i, 0, 1);
-      yearText.push(dateTimeFormat.localeFormat(date, '%Y'));
+      yearText.push(dateTimeFormat.format(date));
     }
 
     return yearText;
@@ -76,11 +79,14 @@ var SpinDatePicker = (function() {
   function getMonthText() {
     var monthText = [];
     var date = new Date(1970, 0, 1);
-    var dateTimeFormat = navigator.mozL10n.DateTimeFormat();
+
+    var dateTimeFormat = new Intl.DateTimeFormat(navigator.languages, {
+      month: 'long'
+    });
 
     for (var i = 0; i < 12; i++) {
       date.setMonth(i);
-      monthText.push(dateTimeFormat.localeFormat(date, '%B'));
+      monthText.push(dateTimeFormat.format(date));
     }
 
     return monthText;
@@ -89,11 +95,13 @@ var SpinDatePicker = (function() {
   function getDateText() {
     var dateText = [];
     var date = new Date(1970, 0, 1);
-    var dateTimeFormat = navigator.mozL10n.DateTimeFormat();
+    var dateTimeFormat = new Intl.DateTimeFormat(navigator.languages, {
+      day: 'numeric'
+    });
 
     for (var i = 1; i <= 31; i++) {
       date.setDate(i);
-      dateText.push(dateTimeFormat.localeFormat(date, '%d'));
+      dateText.push(dateTimeFormat.format(date));
     }
 
     return dateText;

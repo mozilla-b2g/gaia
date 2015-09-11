@@ -369,23 +369,15 @@ var NotificationScreen = {
 
   updateTimestamps: function ns_updateTimestamps() {
     var timestamps = document.getElementsByClassName('timestamp');
-    for (var i = 0, l = timestamps.length; i < l; i++) {
-      timestamps[i].textContent =
-        this.prettyDate(new Date(timestamps[i].dataset.timestamp));
-    }
-  },
+    var formatter = navigator.mozL10n.DateTimeFormat();
 
-  /**
-   * Display a human-readable relative timestamp.
-   */
-  prettyDate: function prettyDate(time) {
-    var date;
-    if (navigator.mozL10n) {
-      date = navigator.mozL10n.DateTimeFormat().fromNow(time, true);
-    } else {
-      date = time.toLocaleFormat();
+    for (var i = 0, l = timestamps.length; i < l; i++) {
+      formatter.relativeDate(new Date(timestamps[i].dataset.timestamp)).then(
+        str => {
+          timestamps[i].textContent = str;
+        }
+      );
     }
-    return date;
   },
 
   updateToaster: function ns_updateToaster(detail, type, dir) {
@@ -474,7 +466,11 @@ var NotificationScreen = {
     var timestamp = detail.timestamp ? new Date(detail.timestamp) : new Date();
     time.classList.add('timestamp');
     time.dataset.timestamp = timestamp;
-    time.textContent = this.prettyDate(timestamp);
+    navigator.mozL10n.DateTimeFormat().relativeDate(timestamp, true).then(
+      str => {
+        time.textContent = str;
+      }
+    );
     titleContainer.appendChild(time);
 
     notificationNode.appendChild(titleContainer);
