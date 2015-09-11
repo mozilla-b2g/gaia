@@ -5,10 +5,12 @@ require('/shared/js/sanitizer.js');
 
 require('/js/ui/views/search_view.js');
 
+require('/test/unit/mock_music.js');
 require('/test/unit/ui/views/mock_modemanager.js');
 require('/test/unit/ui/mock_tab_bar.js');
 
 var mocksForSearchViewHelper = new MocksHelper([
+  'App',
   'ModeManager',
   'TabBar'
 ]).init();
