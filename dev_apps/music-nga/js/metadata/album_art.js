@@ -9,15 +9,15 @@
  * file in the same directory as the audio track).
  *
  * @typedef {Object} Picture
- * @property {string} flavor How the art was stored; one of "embedded",
+ * @property {String} flavor How the art was stored; one of "embedded",
  *   "unsynced", or "external".
- * @property {number} [start] The offset in bytes to where the picture is
+ * @property {Number} [start] The offset in bytes to where the picture is
  *   stored in the audio file; only applies when flavor="embedded".
- * @property {number} [end] The offset in bytes to the end of where the
+ * @property {Number} [end] The offset in bytes to the end of where the
  *   picture is stored in the audio file; only applies when flavor="embedded".
- * @property {number} [type] The mimetype of the picture; only applies when
+ * @property {Number} [type] The mimetype of the picture; only applies when
  *   flavor="embedded".
- * @property {string} [filename] The path on the filesystem to the original
+ * @property {String} [filename] The path on the filesystem to the original
  *   (full-size) picture; only applies when flavor="external" or "unsynced".
  */
 
