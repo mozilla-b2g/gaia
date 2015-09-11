@@ -31,25 +31,30 @@ var ID3v2Metadata = (function() {
    * @return {Promise} A Promise returning the parsed metadata object.
    */
   function parse(blobview) {
-    var header = parseHeader(blobview);
-    if (header.version > 4) {
-      console.warn('mp3 file with unknown metadata version');
-      return Promise.resolve({});
-    }
     return new Promise((resolve, reject) => {
+      var header = parseHeader(blobview);
+      if (header.version > 4) {
+        console.warn('mp3 file with unknown metadata version');
+        reject();
+        return;
+      }
+
       blobview.getMore(blobview.index, header.length, (moreview, err) => {
         if (err) {
           reject(err);
           return;
         }
+
         try {
           resolve(parseFrames(header, moreview));
         } catch(e) {
           console.warn('Invalid ID3v2 data for', blobview.blob.name, ':', e);
-          LazyLoader.load('js/metadata/id3v1.js').then(() => {
-            resolve(ID3v1Metadata.parse(blobview));
-          });
+          reject(e);
         }
+      });
+    }).catch((e) => {
+      return LazyLoader.load('js/metadata/id3v1.js').then(() => {
+        return ID3v1Metadata.parse(blobview);
       });
     });
   }
