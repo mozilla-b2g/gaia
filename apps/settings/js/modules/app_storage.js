@@ -5,96 +5,88 @@
 define(function(require) {
   'use strict';
 
+  var Module = require('modules/base/module');
   var Observable = require('modules/mvvm/observable');
 
-  var AppStorage = function() {
-    this._enabled = false;
+  /**
+   * @class AppStorage
+   * @requires module:modules/base/module
+   * @requires module:modules/mvvm/observable
+   * @returns {AppStorage}
+   */
+  var AppStorage = Module.create(function AppStorage() {
+    this.super(Observable).call(this);
     this._appStorage = navigator.getDeviceStorage('apps');
 
-    this.storage = Observable({
-      usedPercentage: 0,
-      totalSize: 0,
-      usedSize: 0,
-      freeSize: 0
-    });
+    this._attachListeners();
+    this._getSpaceInfo();
+  }).extend(Observable);
+
+  Observable.defineObservableProperty(AppStorage.prototype,
+    'usedPercentage', {
+      readonly: true,
+      value: 0
+  });
+
+  Observable.defineObservableProperty(AppStorage.prototype,
+    'totalSize', {
+      readonly: true,
+      value: 0
+  });
+
+  Observable.defineObservableProperty(AppStorage.prototype,
+    'usedSize', {
+      readonly: true,
+      value: 0
+  });
+
+  Observable.defineObservableProperty(AppStorage.prototype,
+    'freeSize', {
+      readonly: true,
+      value: 0
+  });
+
+
+  AppStorage.prototype.updateInfo = function as_updateInfo() {
+    this._getSpaceInfo();
   };
 
-  AppStorage.prototype = {
-    /**
-     * The value indicates whether the module is responding. If it is false, the
-     * UI stops reflecting the updates from the app storage.
-     *
-     * @access public
-     * @memberOf AppStorage.prototype
-     * @type {Boolean}
-     */
-    get enabled() {
-      return this._enabled;
-    },
+  AppStorage.prototype._attachListeners = function as_attachListeners() {
+    this._appStorage.addEventListener('change', this);
+  };
 
-    set enabled(value) {
-      // early return if the value is not changed
-      if (this._enabled === value) {
-        return;
-      } else {
-        this._enabled = value;
-      }
-      if (value) {
-        this._attachListeners();
+  AppStorage.prototype.handleEvent = function as_handler(evt) {
+    switch (evt.type) {
+      case 'change':
         this._getSpaceInfo();
-      } else {
-        this._detachListeners();
-      }
-    },
-
-    updateInfo: function as_updateInfo() {
-      this._getSpaceInfo();
-    },
-
-    _attachListeners: function as_attachListeners() {
-      this._appStorage.addEventListener('change', this);
-    },
-
-    _detachListeners: function as_detachListeners() {
-      this._appStorage.removeEventListener('change', this);
-    },
-
-    handleEvent: function as_handler(evt) {
-      switch (evt.type) {
-        case 'change':
-          this._getSpaceInfo();
-          break;
-      }
-    },
-
-    _getSpaceInfo: function as_getSpaceInfo() {
-      var deviceStorage = this._appStorage;
-
-      if (!deviceStorage) {
-        console.error('Cannot get DeviceStorage for: app');
-        return;
-      }
-      deviceStorage.freeSpace().onsuccess = function(e) {
-        this.storage.freeSize = e.target.result;
-        deviceStorage.usedSpace().onsuccess = function(e) {
-          this.storage.usedSize = e.target.result;
-          // calculate the percentage to show a space usage bar
-          this.storage.totalSize =
-            this.storage.usedSize + this.storage.freeSize;
-          var usedPercentage = (this.storage.totalSize === 0) ?
-            0 : (this.storage.usedSize * 100 / this.storage.totalSize);
-          if (usedPercentage > 100) {
-            usedPercentage = 100;
-          }
-          this.storage.usedPercentage = usedPercentage;
-        }.bind(this);
-      }.bind(this);
+        break;
     }
   };
 
-  // return singleton
-  var instance = new AppStorage();
-  instance.enabled = true;
-  return instance;
+  AppStorage.prototype._getSpaceInfo = function as_getSpaceInfo() {
+    var deviceStorage = this._appStorage;
+
+    if (!deviceStorage) {
+      console.error('Cannot get DeviceStorage for: app');
+      return;
+    }
+    deviceStorage.freeSpace().onsuccess = (e) => {
+      this._freeSize = e.target.result;
+      deviceStorage.usedSpace().onsuccess = (e) => {
+        this._usedSize = e.target.result;
+        // calculate the percentage to show a space usage bar
+        this._totalSize =
+          this._usedSize + this._freeSize;
+        var usedPercentage = (this._totalSize === 0) ?
+          0 : (this._usedSize * 100 / this._totalSize);
+        if (usedPercentage > 100) {
+          usedPercentage = 100;
+        }
+        this._usedPercentage = usedPercentage;
+      };
+    };
+  };
+
+  return AppStorage();
 });
 
