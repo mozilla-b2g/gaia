@@ -283,7 +283,7 @@ function L10nManager(gaiaDir,
         'common-settings.json');
     var settings = utils.getJSON(settingsFile);
 
-    metas.appVersion.setAttribute('content', settings['moz.b2g.version']);
+    metas.appVersion.setAttribute('content', settings['langpack.channel']);
 
     var str = utils.serializeDocument(doc);
     utils.writeContent(file, str);
