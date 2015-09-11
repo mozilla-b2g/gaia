@@ -51,7 +51,7 @@ class TestSmsAutoSaveDrafts(GaiaTestCase):
         # re-open messages app
         messages.launch()
         self.assertTrue(messages.draft_threads[0].is_draft_icon_displayed)
-        new_message = messages.draft_threads[0].tap()
+        new_message = messages.draft_threads[0].open()
 
         # check that last message draft is shown correctly
         self.assertEqual(new_message.message, _text_message_content)
