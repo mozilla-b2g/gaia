@@ -212,7 +212,15 @@
      * match an existing conversation from.
      * @returns {Number?} The id of the conversation, or null if not found.
      */
-    findConversationFromAddress(address) {}
+    findConversationFromAddress(address) {},
+
+    /**
+     * Destroys both service instance and internal clients.
+     */
+    destroy() {
+      this.destroyService();
+      MozMobileMessageClient.destroy();
+    }
   };
 
   exports.ConversationService = Object.seal(
