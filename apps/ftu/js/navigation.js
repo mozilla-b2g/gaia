@@ -3,6 +3,7 @@
           ImportIntegration,
           OperatorVariant */
 /* exported Navigation */
+(function(exports) {
 'use strict';
 
 const DOGFOODSETTING = 'debug.performance_data.dogfooding';
@@ -10,74 +11,88 @@ const DOGFOODSETTING = 'debug.performance_data.dogfooding';
 /*
   Steps of the First Time Usage App
 */
-var steps = {
-  1: {
+var steps = [
+  {
     onlyForward: true,
     hash: '#languages',
     requireSIM: false
   },
-  2: {
+  {
     onlyForward: false,
     hash: '#data_3g',
     requireSIM: true
   },
-  3: {
+  {
     onlyForward: false,
     hash: '#wifi',
     requireSIM: false
   },
-  4: {
+  {
     onlyForward: false,
     hash: '#date_and_time',
     requireSIM: false
   },
-  5: {
+  {
     onlyForward: false,
     hash: '#geolocation',
     requireSIM: false
   },
-  6: {
+  {
     onlyForward: false,
     hash: '#import_contacts',
     requireSIM: false
   },
-  7: {
+  {
     onlyForward: false,
     hash: '#firefox_accounts',
     requireSIM: false
   },
-  8: {
+  {
     onlyForward: false,
     hash: '#welcome_browser',
     requireSIM: false
   },
-  9: {
+  {
     onlyForward: false,
     hash: '#browser_privacy',
     requireSIM: false
   }
-};
+];
 
-// Retrieve number of steps for navigation
-var numSteps = Object.keys(steps).length;
-
-var Navigation = {
-  currentStep: 1,
-  previousStep: 1,
-  totalSteps: numSteps,
+exports.Navigation = {
+  get stepCount() {
+    return this._stepOrder ? this._stepOrder.length : 0;
+  },
+  currentStepIndex: 0,
+  previousStepIndex: 0,
   simMandatory: false,
   skipMobileDataScreen: false,
   skipDateTimeScreen: false,
   tzInitialized: false,
+
+  _stepsById: null,
+  _stepOrder: null,
+
   init: function n_init() {
+    this._stepOrder = [];
+    this._stepsById = {};
+
     var settings = navigator.mozSettings;
     var forward = document.getElementById('forward');
     var back = document.getElementById('back');
-    forward.addEventListener('click', this.forward.bind(this));
-    back.addEventListener('click', this.back.bind(this));
+    this._onForwardClick = this.forward.bind(this);
+    this._onBackClick = this.back.bind(this);
+    forward.addEventListener('click', this._onForwardClick);
+    back.addEventListener('click', this._onBackClick);
     window.addEventListener('hashchange', this);
+    this._onActivationScreenClick = this.handleExternalLinksClick.bind(this);
     UIManager.activationScreen.addEventListener('click',
-        this.handleExternalLinksClick.bind(this));
+      this._onActivationScreenClick);
+
+    // register pre-defined steps in the oder they appear
+    steps.forEach(step => {
+      this.registerStep(step);
+    });
 
     var self = this;
 
@@ -97,17 +112,72 @@ var Navigation = {
     };
   },
 
+  uninit: function() {
+    this._stepOrder = null;
+    this._stepsById = null;
+    this.currentStepIndex = 0;
+    this.previousStepIndex = 0;
+    this.ports = null;
+
+    var forward = document.getElementById('forward');
+    var back = document.getElementById('back');
+    var activationScreen = UIManager && UIManager.activationScreen;
+
+    if (forward && this._onForwardClick) {
+      forward.removeEventListener('click', this._onForwardClick);
+    }
+    if (back && this._onBackClick) {
+      back.removeEventListener('click', this._onBackClick);
+    }
+    if (activationScreen && this._onActivationScreenClick) {
+      activationScreen.removeEventListener('click',
+                                          this._onActivationScreenClick);
+    }
+    window.removeEventListener('hashchange', this);
+  },
+
+  registerStep: function(step) {
+    if (!step.id) {
+      step.id = step.hash.substring(1); // strip off '#' to make an id;
+    }
+    var id = step.id;
+    this._stepsById[id] = step;
+    var beforeStepIdx  = step.hasOwnProperty('beforeStep') ?
+        this._stepOrder.indexOf(step.beforeStep) : -1;
+    var afterStepIdx  = step.hasOwnProperty('afterStep') ?
+        this._stepOrder.indexOf(step.afterStep) : -1;
+
+    if (beforeStepIdx > -1) {
+      this._stepOrder.splice(beforeStepIdx, 0, id);
+    } else if (afterStepIdx > -1) {
+      this._stepOrder.splice(afterStepIdx+1, 0, id);
+    } else {
+      this._stepOrder.push(id);
+    }
+  },
+
+  stepAt: function(idx) {
+    var stepId = this._stepOrder[idx];
+    if (stepId) {
+      return this._stepsById[stepId];
+    }
+  },
+  indexOfStep: function(step) {
+    var id = (typeof id === 'string') ? step.id : step;
+    return this._stepOrder.indexOf(id);
+  },
+
   back: function n_back(event) {
-    var currentStep = steps[this.currentStep];
+    var currentStep = this.stepAt(this.currentStepIndex);
     var actualHash = window.location.hash;
     if (actualHash != currentStep.hash) {
       window.history.back();
     } else {
       var self = this;
       var goToStep = function() {
-        self.previousStep = self.currentStep;
-        self.currentStep--;
-        if (self.currentStep > 0) {
+        self.previousStepIndex = self.currentStepIndex;
+        self.currentStepIndex--;
+        if (self.currentStepIndex >= 0) {
           self.manageStep();
         }
       };
@@ -118,9 +188,9 @@ var Navigation = {
   forward: function n_forward(event) {
     var self = this;
     var goToStepForward = function() {
-      self.previousStep = self.currentStep;
-      self.currentStep++;
-      if (self.currentStep > numSteps) {
+      self.previousStepIndex = self.currentStepIndex;
+      self.currentStepIndex++;
+      if (self.currentStepIndex >= self.stepCount) {
         // Try to send Newsletter here
         UIManager.sendNewsletter(function newsletterSent(result) {
           if (result) { // sending process ok, we advance
@@ -129,7 +199,7 @@ var Navigation = {
             UIManager.finishScreen.classList.add('show');
             UIManager.hideActivationScreenFromScreenReader();
           } else { // error on sending, we stay where we are
-            self.currentStep--;
+            self.currentStepIndex--;
           }
         });
         return;
@@ -289,14 +359,15 @@ var Navigation = {
     }
 
     // Managing options button
-    if (this.currentStep <= numSteps &&
-        (steps[this.currentStep].hash !== '#wifi')) {
+    var lastIndex = this.stepCount - 1;
+    if (this.currentStepIndex <= lastIndex &&
+        (this.stepAt(this.currentStepIndex).hash !== '#wifi')) {
       UIManager.activationScreen.classList.add('no-options');
     }
 
     // Managing nav buttons when coming back from out-of-steps (privacy)
-    if (this.currentStep <= numSteps &&
-        steps[this.currentStep].hash === actualHash) {
+    if (this.currentStepIndex <= lastIndex &&
+        this.stepAt(this.currentStepIndex).hash === actualHash) {
       UIManager.navBar.classList.remove('back-only');
     }
   },
@@ -304,26 +375,27 @@ var Navigation = {
   /**
    * Posts IAC message about FTU steps passed.
    */
-  postStepMessage: function n_postStepMessage(stepNumber) {
+  postStepMessage: function n_postStepMessage(stepIndex) {
     if (!this.ports) {
       return;
     }
+    var step = this.stepAt(stepIndex);
     this.ports.forEach(function(port) {
       port.postMessage({
         type: 'step',
-        hash: steps[stepNumber].hash
+        hash: step.hash
       });
     });
   },
 
   skipStep: function n_skipStep() {
-    this.currentStep = this.currentStep +
-                      (this.currentStep - this.previousStep);
-    if (this.currentStep < 1) {
-      this.previousStep = this.currentStep = 1;
+    this.currentStepIndex = this.currentStepIndex +
+                      (this.currentStepIndex - this.previousStepIndex);
+    if (this.currentStepIndex < 1) {
+      this.previousStepIndex = this.currentStepIndex = 1;
     }
-    if (this.currentStep > numSteps) {
-      this.previousStep = this.currentStep = numSteps;
+    if (this.currentStepIndex > this.stepCount) {
+      this.previousStepIndex = this.currentStepIndex = this.stepCount;
     }
     this.manageStep();
   },
@@ -332,23 +404,22 @@ var Navigation = {
     var self = this;
 
     // If we moved forward in FTU, post iac message about progress.
-    if (self.currentStep > self.previousStep) {
-      self.postStepMessage(self.previousStep);
+    if (self.currentStepIndex > self.previousStepIndex) {
+      self.postStepMessage(self.previousStepIndex);
     }
 
     //SV - We need remember if phone startup with SIM
-    if (self.currentStep >= numSteps) {
+    if (self.currentStepIndex >= self.stepCount) {
       OperatorVariant.setSIMOnFirstBootState();
     }
 
-    // Reset totalSteps and skip screen flags at beginning of navigation
-    if (self.currentStep == 1) {
-      self.totalSteps = numSteps;
+    // Reset skip screen flags at beginning of navigation
+    if (self.currentStepIndex === 0) {
       self.skipMobileDataScreen = false;
     }
 
     // Retrieve future location
-    var futureLocation = steps[self.currentStep];
+    var futureLocation = this.stepAt(self.currentStepIndex);
 
     // If SIMcard is mandatory and no SIM, go to message window
     if (this.simMandatory &&
@@ -361,20 +432,20 @@ var Navigation = {
     }
 
     // Navigation bar management
-    if (steps[this.currentStep].onlyForward) {
+    if (this.stepAt(this.currentStepIndex).onlyForward) {
       UIManager.navBar.classList.add('forward-only');
     } else {
       UIManager.navBar.classList.remove('forward-only');
     }
     var nextButton = document.getElementById('forward');
-    if (steps[this.currentStep].onlyBackward) {
+    if (this.stepAt(this.currentStepIndex).onlyBackward) {
       nextButton.setAttribute('disabled', 'disabled');
     } else {
       nextButton.removeAttribute('disabled');
     }
 
     // Substitute button content on last step
-    if (this.currentStep === numSteps) {
+    if (this.currentStepIndex === this.stepCount) {
       nextButton.setAttribute('data-l10n-id', 'done');
     } else {
       nextButton.setAttribute('data-l10n-id', 'navbar-next');
@@ -394,29 +465,28 @@ var Navigation = {
           // Don't skip it if next step is data 3g
          futureLocation.hash !== '#data_3g')) {
           self.skipStep();
-          if (self.currentStep > self.previousStep) {
+          if (self.currentStepIndex > self.previousStepIndex) {
             self.skipMobileDataScreen = true;
-            self.totalSteps--;
           }
         }
       };
 
       // if we are navigating backwards, we do not want to
       // show the SIM unlock screens for the data_3g step
-      var skipUnlockScreens = this.currentStep < this.previousStep;
+      var skipUnlockScreens = this.currentStepIndex < this.previousStepIndex;
       SimManager.handleCardState(check_cardState, skipUnlockScreens);
     }
 
     // Only show the Date & Time screen if we couldn't determine the
     // timezone from the network. (We assume that if we can
     // determine the timezone, we can determine the time too.)
-    if (steps[self.currentStep].hash === '#date_and_time') {
+    if (this.stepAt(this.currentStepIndex).hash === '#date_and_time') {
       if (!self.tzInitialized) {
         self.skipDateTimeScreen = !UIManager.timeZoneNeedsConfirmation;
       }
 
       if (self.skipDateTimeScreen) {
-        self.postStepMessage(self.currentStep);
+        self.postStepMessage(self.currentStepIndex);
         if(navigator.onLine) {
           //if you are online you can get a more accurate guess for the time
           //time you just need to trigger it
@@ -438,8 +508,9 @@ var Navigation = {
          !navigator.onLine) ||
         (futureLocation.hash === '#firefox_accounts' &&
          UIManager.skipFxA)) {
-      self.postStepMessage(self.currentStep);
+      self.postStepMessage(self.currentStepIndex);
       self.skipStep();
     }
   }
 };
+})(window);

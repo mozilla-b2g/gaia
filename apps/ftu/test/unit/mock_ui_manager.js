@@ -14,7 +14,6 @@ var MockUIManager = {
     // Unlock SIM Screen
     'unlock-sim-screen',
     'unlock-sim-header',
-    'unlock-sim-back',
     // PIN Screen
     'pincode-screen',
     'pin-label',
@@ -41,7 +40,6 @@ var MockUIManager = {
     'xck-retries-left',
     'xck-input',
     'xck-error',
-    'xck-info',
     // SIM info
     'sim-info-screen',
     'sim-info-back',
