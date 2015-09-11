@@ -6,15 +6,22 @@ var debug = 1 ? (...args) => console.log('[ArtistsView]', ...args) : () => {};
 var ArtistsView = View.extend(function ArtistsView() {
   View.call(this); // super();
 
-  this.search = document.getElementById('search');
+  this.searchBox = document.getElementById('search');
   this.list = document.getElementById('list');
 
-  var searchHeight = this.search.offsetHeight;
+  var searchHeight = this.searchBox.offsetHeight;
 
-  this.search.addEventListener('open', () => window.parent.onSearchOpen());
-  this.search.addEventListener('close', () => {
+  this.searchBox.addEventListener('open', () => window.parent.onSearchOpen());
+  this.searchBox.addEventListener('close', () => {
     this.list.scrollTop = searchHeight;
     window.parent.onSearchClose();
+  });
+  this.searchBox.addEventListener('search', (evt) => this.search(evt.detail));
+  this.searchBox.addEventListener('resultclick', (evt) => {
+    var link = evt.detail;
+    if (link) {
+      this.client.method('navigate', link.getAttribute('href'));
+    }
   });
 
   this.list.scrollTop = searchHeight;
@@ -53,6 +60,27 @@ ArtistsView.prototype.render = function() {
 
 ArtistsView.prototype.getArtists = function() {
   return this.fetch('/api/artists/list').then(response => response.json());
+};
+
+ArtistsView.prototype.search = function(query) {
+  return document.l10n.formatValue('unknownArtist').then((unknownArtist) => {
+    return this.fetch('/api/search/artist/' + query)
+      .then(response => response.json())
+      .then((artists) => {
+        var results = artists.map((artist) => {
+          return {
+            name:     artist.name,
+            title:    artist.metadata.artist || unknownArtist,
+            subtitle: '',
+            section:  'artists',
+            url:      '/artist-detail?id=' + artist.name
+          };
+        });
+
+        this.searchBox.setResults(results);
+        return results;
+      });
+  });
 };
 
 window.view = new ArtistsView();

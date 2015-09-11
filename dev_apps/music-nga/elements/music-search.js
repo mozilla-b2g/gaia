@@ -63,7 +63,7 @@ var template =
     width: 0.1rem;
   }
   #results {
-    background-color: #000;
+    background: var(--background);
     position: absolute;
     top: 3.7rem;
     left: 0;
@@ -79,6 +79,18 @@ var template =
     visibility: visible;
     transition-delay: 0s, 0s;
   }
+  #list a {
+    text-decoration: none;
+    padding: 9px 0;
+    width: 100%;
+  }
+  #list li {
+    padding: 0;
+  }
+  #list h3,
+  #list p {
+    background: none !important;
+  }
 </style>
 <div id="container">
   <form id="form" role="search">
@@ -87,7 +99,16 @@ var template =
     <button type="button" id="close" data-l10n-id="search-close"></button>
   </form>
   <section id="results">
-    <gaia-fast-list id="list"></gaia-fast-list>
+    <gaia-fast-list id="list">
+      <template>
+        <li>
+          <a href="\${url}" data-file-path="\${name}" data-section="\${section}">
+            <h3>\${title}</h3>
+            <p>\${subtitle}</p>
+          </a>
+        </li>
+      </template>
+    </gaia-fast-list>
   </section>
 </div>`;
 
@@ -109,9 +130,11 @@ proto.createdCallback = function() {
     list:      $id('list')
   };
 
-  // this.els.list.configure({
-
-  // });
+  this.els.list.configure({
+    getSectionName(item) {
+      return item.section;
+    }
+  });
 
   this.els.container.addEventListener('click', (evt) => {
     var button = evt.target.closest('button');
@@ -126,11 +149,28 @@ proto.createdCallback = function() {
   });
 
   this.els.input.addEventListener('focus', () => this.open());
-  this.els.input.addEventListener('input', debounce(() => {
+
+  var onSearch = debounce(() => {
     this.dispatchEvent(new CustomEvent('search', {
       detail: this.els.input.value
     }));
-  }, 500));
+  }, 500);
+
+  this.els.input.addEventListener('input', onSearch);
+  this.els.input.addEventListener('keypress', onSearch);
+
+  this.els.list.addEventListener('click', (evt) => {
+    var link = evt.target.closest('a');
+    if (link) {
+      evt.preventDefault();
+
+      this.dispatchEvent(new CustomEvent('resultclick', {
+        detail: link
+      }));
+
+      this.close();
+    }
+  });
 
   this.scrollOutOfView();
 

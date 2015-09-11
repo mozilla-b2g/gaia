@@ -9,6 +9,7 @@ importScripts('js/services/database.js');
 importScripts('js/services/navigation.js');
 importScripts('js/services/playlist.js');
 importScripts('js/services/queue.js');
+importScripts('js/services/search.js');
 importScripts('js/services/songs.js');
 importScripts('resources.js');
 
@@ -23,6 +24,7 @@ var databaseService = new DatabaseService(worker);
 var navigationService = new NavigationService(worker);
 var playlistService = new PlaylistService(worker);
 var queueService = new QueueService(worker);
+var searchService = new SearchService(worker);
 var songsService = new SongsService(worker);
 
 worker.use({
