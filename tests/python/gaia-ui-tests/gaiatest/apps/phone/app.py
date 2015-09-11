@@ -10,7 +10,8 @@ from gaiatest.apps.base import Base
 class Phone(Base):
 
     name = "Phone"
-
+    entry_point = "dialer"
+    manifest_url = '{}communications{}/manifest.webapp'.format(Base.DEFAULT_PROTOCOL,Base.DEFAULT_APP_HOSTNAME)
     _dialog_locator = (By.ID, 'confirmation-message')
     _dialog_title_locator = (By.XPATH, "//*[@id='confirmation-message']/section/h1")
     _call_log_toolbar_button_locator = (By.ID, 'option-recents')

@@ -9,8 +9,9 @@ from gaiatest.apps.base import Base
 
 UI_TESTS_PRIVILEGED = "UI tests - Privileged App"
 
-
 class UiTestsPivileged(Base):
+
+    manifest_url = '{}uitest-privileged{}/manifest.webapp'.format(Base.DEFAULT_PROTOCOL,Base.DEFAULT_APP_HOSTNAME)
 
     _contacts_locator = (By.LINK_TEXT, 'Contacts')
     _get_user_media_locator = (By.LINK_TEXT, 'getUserMedia')
