@@ -280,6 +280,17 @@ suite('system/Card', function() {
       assert.isTrue(card.iconValue.indexOf(iconDataURI) > -1);
     });
 
+    test('no icon available from appWindow', function() {
+      var card = this.card;
+      var app = card.app;
+      card.render();
+      getIconPromise.mFulfillToValue();
+
+      assert.ok(app.getSiteIconUrl.called);
+      assert.isFalse(card.iconButton.classList.contains('pending'));
+      assert.equal(card.iconButton.style.backgroundImage, '');
+    });
+
   });
 
   suite('destroy', function() {
