@@ -186,7 +186,7 @@ function getMetadata(videofile, callback) {
   offscreenVideo.preload = 'metadata';
   offscreenVideo.src = url;
 
-  offscreenVideo.onerror = function(e) {
+  offscreenVideo.onerror = offscreenVideo.onsuspend = function(e) {
     // Something went wrong. Maybe the file was corrupt?
     console.error('Can\'t play video', videofile.name, e);
     metadata.isVideo = false;
