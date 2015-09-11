@@ -9,7 +9,7 @@
 
   overflow: auto;
 
-  background: white;
+  background: var(--header-background);
 
   animation: .2s both linear;
 }
