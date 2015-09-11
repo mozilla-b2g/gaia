@@ -375,10 +375,13 @@ suite('conversation.js >', function() {
 
         placeholder.dispatchEvent(new CustomEvent('input', { bubbles: true }));
 
+        // The event is throttled with a delay of 300ms
+        this.sinon.clock.tick(300);
         contactPromise.then(() => done(), done);
       });
 
       test('does display found contacts', function() {
+        sinon.assert.calledOnce(suggestionRenderer.render);
         sinon.assert.calledWithMatch(suggestionRenderer.render, {
           contact: contact,
           input: '999',
@@ -5565,6 +5568,11 @@ suite('conversation.js >', function() {
       });
 
       test('Compose.refresh is called', function() {
+        // The event is throttled with a delay of 300ms 
+        this.sinon.clock.tick(200);
+        sinon.assert.notCalled(Compose.refresh);
+
+        this.sinon.clock.tick(300);
         sinon.assert.calledOnce(Compose.refresh);
       });
     });

@@ -73,6 +73,12 @@ var ConversationView = {
   // activity after this delay after moving to the thread list.
   LEAVE_ACTIVITY_DELAY: 3000,
 
+  THROTTLE_DELAY: 300,
+  THROTTLE_OPTS: {
+    preventFirstCall: true,
+    preventLastCall: false
+  },
+
   draft: null,
   recipients: null,
   // Set to |true| when in edit mode
@@ -130,15 +136,30 @@ var ConversationView = {
                               this.onVisibilityChange);
 
     this.toField.addEventListener(
-      'keypress', this.toFieldKeypress.bind(this), true
+      'keypress', 
+      Utils.throttle(
+        this.toFieldKeypress.bind(this),
+        this.THROTTLE_DELAY, 
+        this.THROTTLE_OPTS),
+      true
     );
 
     this.toField.addEventListener(
-      'input', this.toFieldInput.bind(this), true
+      'input', 
+      Utils.throttle(
+        this.toFieldInput.bind(this),
+        this.THROTTLE_DELAY, 
+        this.THROTTLE_OPTS),
+      true
     );
 
     this.toField.addEventListener(
-      'focus', this.toFieldInput.bind(this), true
+      'focus', 
+      Utils.throttle(
+        this.toFieldInput.bind(this),
+        this.THROTTLE_DELAY, 
+        this.THROTTLE_OPTS),
+      true
     );
 
     this.sendButton.addEventListener(

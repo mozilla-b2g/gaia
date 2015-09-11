@@ -1153,6 +1153,159 @@ suite('Utils', function() {
     });
   });
 
+  suite('Utils.throttle', function() {
+    setup(function() {
+      // Starting fake timers clock at Unix epoch (timestamp of 0) would 
+      // prevent Utils.throttle to work properly so init it to 1 
+      this.sinon.useFakeTimers(1);
+    });
+
+    test('right typeof parameters', function() {
+        assert.throw(
+          () => Utils.throttle(null), 
+          Error, 
+          'func must be a Function'
+        );
+        
+        assert.throw(
+          () => Utils.throttle(() => {}, null),
+          Error, 
+          'delay must be a positive number'
+        );
+        
+        assert.throw(
+          () => Utils.throttle(() => {}, -1),
+          Error, 
+          'delay must be a positive number'
+        );
+    });
+
+    test('parameters are passed to the throttled func', function() {
+      var dummyObjectA = {};
+      var dummyObjectB = {};
+
+      var func = function() {
+        assert.equal(arguments[0], dummyObjectA);
+        assert.equal(arguments[1], dummyObjectB);
+      };
+
+      var throttlerFunc = Utils.throttle(func, 100);
+      
+      throttlerFunc(dummyObjectA, dummyObjectB);
+    });
+
+    test('testing this in the throttled func', function() {
+      var self = this;
+      var dummyObject = {};
+
+      var throttlerFunc = Utils.throttle(function() {
+        assert.equal(this, dummyObject);
+      }, 100);
+      throttlerFunc.call(dummyObject);
+
+      var throttlerFunc2 = Utils.throttle(()=>{
+        assert.equal(this, self);
+      }, 100);
+      throttlerFunc2.call(dummyObject);
+    });
+
+    test('preventing first call', function() {
+      var delay = 100;
+      var firstCallFuncToExecute = sinon.stub();
+      var firstCallThrottleFuncToExecute = 
+        Utils.throttle(firstCallFuncToExecute, delay);
+      
+      var notFirstCallFuncToExecute = sinon.stub();
+      var notFirstCallThrottleFuncToExecute = 
+        Utils.throttle(
+          notFirstCallFuncToExecute, 
+          delay,
+          {
+            preventFirstCall: true
+          }
+        );
+
+      firstCallThrottleFuncToExecute();
+      this.sinon.clock.tick(delay - 1);
+      sinon.assert.calledOnce(firstCallFuncToExecute);
+
+      notFirstCallThrottleFuncToExecute();
+      this.sinon.clock.tick(delay - 1);
+      sinon.assert.notCalled(notFirstCallFuncToExecute);
+    });
+
+    test('preventing last call', function() {
+      var delay = 100;
+      var lastCallStub = sinon.stub();
+      var notLastCallStub = sinon.stub();
+      var notLastCallFuncToExecute = Utils.throttle(
+        notLastCallStub, 
+        delay, 
+        {
+          preventLastCall: true
+        }
+      );
+      var lastCallFuncToExecute = Utils.throttle(lastCallStub, delay);
+
+      lastCallFuncToExecute();
+      notLastCallFuncToExecute();
+      this.sinon.clock.tick(delay);
+      
+      lastCallFuncToExecute();
+      notLastCallFuncToExecute();
+      this.sinon.clock.tick(delay / 2);
+
+      this.sinon.clock.tick(delay);
+      sinon.assert.calledTwice(lastCallStub);
+      sinon.assert.calledOnce(notLastCallStub);
+    });
+
+    test('multiple calls under delay should limit rate to 1 call', function() {
+      var delay = 100;
+      var stubOnce = sinon.stub();
+      var stubOnceThrottler = Utils.throttle(stubOnce, delay);
+
+      stubOnceThrottler();
+      this.sinon.clock.tick(delay - 1);
+      // Under delay these calls will be filtered 
+      stubOnceThrottler();
+      stubOnceThrottler();
+      stubOnceThrottler();
+      sinon.assert.calledOnce(stubOnce);
+    });
+
+    test('second call after delay should trigger 2 calls', function() {
+      var delay = 100;
+      var stubTwice = sinon.stub();
+      var stubTwiceThrottler = Utils.throttle(stubTwice, delay);
+
+      stubTwiceThrottler();
+      this.sinon.clock.tick(delay);
+      // This one is called after the delay
+      stubTwiceThrottler();
+      this.sinon.clock.tick(delay);
+      // But then these calls are filtered 
+      stubTwiceThrottler();
+      stubTwiceThrottler();
+      sinon.assert.calledTwice(stubTwice);
+    });
+
+    test('3 calls separated by delay should trigger 3 calls', function() {
+      var delay = 200;
+      var stubThrice = sinon.stub();
+      var stubThriceThrottler = Utils.throttle(stubThrice, delay);
+
+      stubThriceThrottler();
+      this.sinon.clock.tick(delay);
+      stubThriceThrottler();
+      this.sinon.clock.tick(delay);
+      stubThriceThrottler();
+      this.sinon.clock.tick(delay);
+      sinon.assert.calledThrice(stubThrice);
+    });
+
+  });
+
   suite('Modal dialogs >', function() {
     var dialogMock;
     setup(function() {
