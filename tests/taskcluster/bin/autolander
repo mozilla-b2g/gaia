@@ -7,7 +7,6 @@ var decorate = require('../lib/decorate_task');
 var yaml = require('js-yaml');
 var fs = require('fs');
 var fsPath = require('path');
-var slugid = require('slugid');
 var util = require('util');
 var template = require('json-templater/object');
 
