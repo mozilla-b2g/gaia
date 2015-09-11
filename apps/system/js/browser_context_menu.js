@@ -78,26 +78,31 @@
       var items = [];
 
       // contextmenu.items are specified by the web content via html5
-      // context menu api and specific system commands.
-      if (detail.contextmenu) {
-        if (detail.contextmenu.items.length) {
-          detail.contextmenu.items.forEach(function(choice, index) {
-            items.push({
-              label: choice.label,
-              icon: choice.icon,
-              callback: () => {detail.contextMenuItemSelected(choice.id);}
-            });
-          }, this);
-        }
-        if (detail.contextmenu.sysItems.length) {
-          detail.contextmenu.sysItems.forEach(function(choice, index) {
-            items.push({
-              id: choice.id,
-              label: _(choice.id),
-              callback: () => {detail.contextMenuItemSelected(choice.id);}
-            });
-          }, this);
-        }
+      // context menu api and a specific system command, copy-image.
+      if (detail.contextmenu && detail.contextmenu.items.length) {
+        detail.contextmenu.items.forEach(function(choice, index) {
+          var itemObj = null;
+          switch (choice.id) {
+            case 'copy-image':
+            case 'copy-link':
+              itemObj = {
+                id: choice.id,
+                label: _(choice.id),
+              };
+              break;
+
+            default:
+              // Customized menu items
+              itemObj = {
+                label: choice.label,
+                icon: choice.icon,
+              };
+          }
+          itemObj.callback = () => {
+            detail.contextMenuItemSelected(choice.id);
+          };
+          items.push(itemObj);
+        }, this);
       }
 
       if (detail.systemTargets) {
