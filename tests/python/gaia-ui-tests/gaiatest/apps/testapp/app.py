@@ -10,7 +10,6 @@ from gaiatest.apps.base import Base
 class TestContainer(Base):
 
     name = 'Test Container'
-    manifest_url = '{}test-container{}/manifest.webapp'.format(Base.DEFAULT_PROTOCOL,Base.DEFAULT_APP_HOSTNAME)
 
     _app_selector = (By.CSS_SELECTOR,
                      'iframe[src*="test-container"][src*="/index.html"]')

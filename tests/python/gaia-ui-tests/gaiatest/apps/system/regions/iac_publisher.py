@@ -10,7 +10,6 @@ from gaiatest.apps.base import Base
 class IacPublisher(Base):
 
     name = "Test IAC Publisher"
-    manifest_url = '{}test-iac-publisher{}/manifest.webapp'.format(Base.DEFAULT_PROTOCOL,Base.DEFAULT_APP_HOSTNAME)
 
     _pub_app_msg_to_send_locator = (By.ID, "msgToSend")
     _pub_app_send_button_locator = (By.ID, "sendButton")

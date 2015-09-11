@@ -36,7 +36,7 @@ class Activities(Base):
             expected.element_not_displayed(*self._actions_menu_locator))
         from gaiatest.apps.wallpaper.app import Wallpaper
         wallpaper = Wallpaper(self.marionette)
-        wallpaper.wait_to_be_displayed()
+        Wait(self.marionette).until(lambda m: self.apps.displayed_app.name == wallpaper.name)
         self.apps.switch_to_displayed_app()
         return wallpaper
 
@@ -50,7 +50,7 @@ class Activities(Base):
             expected.element_not_displayed(actions_menu))
         from gaiatest.apps.gallery.app import Gallery
         gallery = Gallery(self.marionette)
-        gallery.wait_to_be_displayed()
+        Wait(self.marionette).until(lambda m: self.apps.displayed_app.name == gallery.name)
         self.apps.switch_to_displayed_app()
         return gallery
 
@@ -64,7 +64,7 @@ class Activities(Base):
             expected.element_not_displayed(actions_menu))
         from gaiatest.apps.camera.app import Camera
         camera = Camera(self.marionette)
-        camera.wait_to_be_displayed()
+        Wait(self.marionette).until(lambda m: self.apps.displayed_app.name == camera.name)
         self.apps.switch_to_displayed_app()
         camera.wait_for_capture_ready()
         return camera

@@ -40,8 +40,7 @@ class GmailLogin(Base):
         Wait(self.marionette).until(expected.element_enabled(grant_access))
         grant_access.tap()
         # Go back to displayed Contacts app before waiting for the picker
-        from gaiatest.apps.contacts.app import Contacts
-        Contacts(self.marionette).wait_to_be_displayed()
+        Wait(self.marionette).until(lambda m: self.apps.displayed_app.name == 'Contacts')
         self.apps.switch_to_displayed_app()
         from gaiatest.apps.contacts.regions.contact_import_picker import ContactImportPicker
         return ContactImportPicker(self.marionette)

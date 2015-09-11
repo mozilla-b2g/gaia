@@ -9,7 +9,6 @@ from gaiatest.apps.base import Base, PageRegion
 
 class RingTone(Base):
     name = 'Ringtones'
-    manifest_url = '{}ringtones{}/manifest.webapp'.format(Base.DEFAULT_PROTOCOL,Base.DEFAULT_APP_HOSTNAME)
     _screen_locator = (By.ID, 'list-parent')
     _header_locator = (By.ID, 'header')
     _ring_tone_locator = (By.CSS_SELECTOR, '#list-parent section > ul > li')
@@ -19,7 +18,7 @@ class RingTone(Base):
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
-        self.wait_to_be_displayed()
+        Wait(self.marionette).until(lambda m: self.apps.displayed_app.name == self.name)
         self.apps.switch_to_displayed_app()
 
     def set_ringtone(self):

@@ -154,8 +154,7 @@ class EditContact(ContactForm):
             return ContactDetails(self.marionette)
         else:
             # else we drop back to the underlying app
-            from gaiatest.apps.contacts.app import Contacts
-            Contacts(self.marionette).wait_to_not_be_displayed()
+            Wait(self.marionette).until(lambda m: self.apps.displayed_app.name != self.name)
             self.apps.switch_to_displayed_app()
 
     def tap_cancel(self):

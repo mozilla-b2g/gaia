@@ -58,8 +58,9 @@ class FacebookLogin(Base):
         self.type_password(password)
         self.tap_submit()
 
-        from gaiatest.apps.contacts.app import Contacts
-        Contacts(self.marionette).wait_to_be_displayed()
+        # Go back to displayed Contacts app before waiting for the picker
+        Wait(self.marionette).until(
+            lambda m: self.apps.displayed_app.name == 'Contacts')
         self.apps.switch_to_displayed_app()
 
         # switch to facebook import page to select the friends

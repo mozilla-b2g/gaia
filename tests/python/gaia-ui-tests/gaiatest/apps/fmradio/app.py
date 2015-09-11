@@ -11,7 +11,6 @@ from gaiatest.apps.base import PageRegion
 
 class FmRadio(Base):
     name = 'FM Radio'
-    manifest_url = '{}fm{}/manifest.webapp'.format(Base.DEFAULT_PROTOCOL,Base.DEFAULT_APP_HOSTNAME)
 
     _power_button_locator = (By.ID, 'power-switch')
     _favorite_list_locator = (By.CSS_SELECTOR, 'div.fav-list-item')
@@ -22,7 +21,6 @@ class FmRadio(Base):
     _prev_button_locator = (By.ID, 'frequency-op-seekdown')
     _airplane_mode_title_locator = (By.CSS_SELECTOR, 'div[data-l10n-id="airplaneModeHeader"]')
     _airplane_mode_text_locator = (By.CSS_SELECTOR, 'div[data-l10n-id="airplaneModeMsg"]')
-
 
     def launch(self, airplane_mode=False):
         Base.launch(self)

@@ -89,7 +89,7 @@ class Settings(Base):
             expected.element_present(*self._bluetooth_menu_item_locator))
 
     def switch_to_settings_app(self):
-        self.wait_to_be_displayed()
+        Wait(self.marionette).until(lambda m: self.apps.displayed_app.name == self.name)
         self.apps.switch_to_displayed_app()
 
     def enable_airplane_mode(self):

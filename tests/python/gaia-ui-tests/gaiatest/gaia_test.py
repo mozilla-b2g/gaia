@@ -53,13 +53,12 @@ DEFAULT_PREFS = {
 
 class GaiaApp(object):
 
-    def __init__(self, origin=None, name=None, frame=None, src=None, manifest_url=None):
+    def __init__(self, origin=None, name=None, frame=None, src=None):
         self.frame = frame
         self.frame_id = frame
         self.src = src
         self.name = name
         self.origin = origin
-        self.manifest_url = manifest_url
 
     def __eq__(self, other):
         return self.__dict__ == other.__dict__
@@ -88,6 +87,7 @@ class GaiaApps(object):
 
     def launch(self, name, manifest_url=None, entry_point=None, switch_to_frame=True, launch_timeout=None):
         self.marionette.switch_to_frame()
+
         if manifest_url:
             result = self.marionette.execute_async_script("GaiaApps.launchWithManifestURL('%s', %s)"
                                                           % (manifest_url, json.dumps(entry_point)), script_timeout=launch_timeout)
@@ -100,8 +100,7 @@ class GaiaApps(object):
         app = GaiaApp(frame=result.get('frame'),
                       src=result.get('src'),
                       name=result.get('name'),
-                      origin=result.get('origin'),
-                      manifest_url=result.get('manifestURL'))
+                      origin=result.get('origin'))
         if app.frame_id is None:
             raise Exception("App failed to launch; there is no app frame")
         if switch_to_frame:
@@ -115,8 +114,7 @@ class GaiaApps(object):
         return GaiaApp(frame=result.get('frame'),
                        src=result.get('src'),
                        name=result.get('name'),
-                       origin=result.get('origin'),
-                       manifest_url=result.get('manifestURL'))
+                       origin=result.get('origin'))
 
     def switch_to_displayed_app(self):
         self.marionette.switch_to_default_content()
@@ -161,13 +159,11 @@ class GaiaApps(object):
                 for ep in entry_points.values():
                     result.append(GaiaApp(
                         origin=app['origin'],
-                        name=ep['name'],
-                        manifest_url=app['manifest']))
+                        name=ep['name']))
             else:
                 result.append(GaiaApp(
                     origin=app['origin'],
-                    name=app['manifest']['name'],
-                    manifest_url=app['manifest']))
+                    name=app['manifest']['name']))
         return result
 
     def running_apps(self, include_system_apps=False):
@@ -183,7 +179,7 @@ class GaiaApps(object):
             "return GaiaApps.getRunningApps(%s);" % include_system_apps)
         result = []
         for app in [a[1] for a in apps.items()]:
-            result.append(GaiaApp(origin=app['origin'], name=app['name'], manifest_url=app['manifest']))
+            result.append(GaiaApp(origin=app['origin'], name=app['name']))
         return result
 
 

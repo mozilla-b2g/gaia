@@ -13,13 +13,12 @@ class ViewImage(Base):
     _banner_message_locator = (By.ID, 'message')
     _save_image_button_locator = (By.ID, 'save')
     _image_locator = (By.CSS_SELECTOR, 'img.image-view')
-    manifest_url = '{}gallery{}/manifest.webapp'.format(Base.DEFAULT_PROTOCOL,Base.DEFAULT_APP_HOSTNAME)
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
-        from gaiatest.apps.gallery.app import Gallery
-        Gallery(self.marionette).wait_to_be_displayed()
+        Wait(self.marionette).until(lambda m: self.apps.displayed_app.name == 'Gallery')
         self.apps.switch_to_displayed_app()
+
         Wait(self.marionette).until(expected.element_displayed(
             Wait(self.marionette).until(expected.element_present(
                 *self._image_locator))))
@@ -41,8 +40,7 @@ class ViewImage(Base):
         self.tap_element_from_system_app(header, x=20)
 
         # wait for the frame to close
-        from gaiatest.apps.gallery.app import Gallery
-        Gallery(self.marionette).wait_to_not_be_displayed()
+        Wait(self.marionette).until(lambda m: self.apps.displayed_app.name != 'Gallery')
 
         self.apps.switch_to_displayed_app()
 
