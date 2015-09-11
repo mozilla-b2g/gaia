@@ -429,6 +429,9 @@ marionette('Music player playlist', function() {
       var lastTitle = '';
       var loopCount = 10;
       for (var i = 0; i < loopCount; i++) {
+        music.waitForSubListView();
+
+        client.helper.waitForElement(Music.Selector.sublistViewControls);
 
         // tapping shuffle will put us into the player.
         music.sublistShuffleButton.tap();

@@ -39,6 +39,7 @@ Music.Selector = Object.freeze({
   viewsList: '#views-list-anchor',
   sublistView: '#views-sublist',
   viewsSublist: '#views-sublist-anchor',
+  sublistViewControls: '#views-sublist-header-controls',
   firstListItem: '.list-item',
   firstSong: '.list-item',
   firstSongSublist: '#views-sublist .list-item',
