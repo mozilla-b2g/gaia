@@ -10,13 +10,16 @@
  *
  * @typedef {Object} Metadata
  * @property {String} tag_format The format of the tag (e.g. id3v2.4).
- * @property {string} artist The track's artist.
- * @property {string} album The track's album.
- * @property {number} tracknum The number of the track on the album.
- * @property {string} title The track's title.
+ * @property {String} artist The track's artist.
+ * @property {String} album The track's album.
+ * @property {String} title The track's title.
+ * @property {Number} [tracknum] The number of the track on the album.
+ * @property {Number} [trackcount] The total number of tracks in the album.
+ * @property {Number} [discnum] The number of the disc on the album.
+ * @property {Number} [disccount] The total number of discs in the album.
  * @property {Picture} [picture] The cover art, if any.
- * @property {number} rated The track's rating; starts at 0.
- * @property {number} played The track's play count; starts at 0.
+ * @property {Number} rated The track's rating; starts at 0.
+ * @property {Number} played The track's play count; starts at 0.
  */
 
 /**
