@@ -348,10 +348,6 @@ var CallHandler = (function callHandler() {
       KeypadManager.updatePhoneNumber('', 'begin', true);
     };
 
-    var error = function() {
-      KeypadManager.updatePhoneNumber(number, 'begin', false);
-    };
-
     var oncall = function() {
       SuggestionBar.hideOverlay();
       SuggestionBar.clear();
@@ -359,7 +355,10 @@ var CallHandler = (function callHandler() {
 
     LazyLoader.load(['/dialer/js/telephony_helper.js'], function() {
       TelephonyHelper.call(
-        number, cardIndex, oncall, connected, disconnected, error);
+        number, cardIndex, oncall, connected, disconnected
+      ).catch(function() {
+        KeypadManager.updatePhoneNumber(number, 'begin', false);
+      });
     });
   }
 

@@ -77,10 +77,6 @@ suite('telephony helper', function() {
     MockNavigatorMozTelephony.mTeardown();
   });
 
-  function createCallError(name) {
-    return {call: {error: {name: (name || 'mock')}}};
-  }
-
   test('should sanitize the given phone number before dialing', function() {
     var dialNumber = '(01) 45.34 55-20';
     subject.call(dialNumber, 0);
@@ -232,147 +228,62 @@ suite('telephony helper', function() {
     });
 
     test('should bind the ondisconnected callback', function(done) {
-      var ondisconnected = function uniq_ondisconnected() {};
+      var ondisconnected = this.sinon.stub();
       subject.call('123', 0, null, null, ondisconnected);
       mockPromise.then(function() {
-        assert.isFunction(mockCall.ondisconnected);
-        assert.equal(mockCall.ondisconnected, ondisconnected);
-      }).then(done, done);
-    });
-
-    test('should trigger the onerror callback on error', function(done) {
-      var onerrorStub = this.sinon.stub();
-      this.sinon.spy(MockTelephonyMessages, 'handleError');
-      subject.call('123', 0, null, null, null, onerrorStub);
-      mockPromise.then(function() {
-        mockCall.onerror(createCallError());
-        sinon.assert.calledOnce(onerrorStub);
+        mockCall.triggerEvent('disconnected');
+        sinon.assert.calledOnce(ondisconnected);
       }).then(done, done);
     });
   });
 
   suite('Call error handling', function() {
-    suite('onerror call errors', function() {
-      test('should call with \'no connection\' set if emergency only',
-      function(done) {
-        MockNavigatorMozMobileConnections[0].voice =
-          { emergencyCallsOnly: true };
-
-        this.sinon.spy(MockTelephonyMessages, 'handleError');
-        subject.call('123', 0);
-        mockPromise.then(function() {
-          mockCall.onerror(createCallError('BadNumberError'));
-          sinon.assert.calledWith(MockTelephonyMessages.handleError,
-                                  'BadNumberError', '123',
-                                  MockTelephonyMessages.NO_NETWORK);
-        }).then(done, done);
+    test('should display the BadNumber message', function(done) {
+      mockPromise = Promise.reject('BadNumberError');
+      this.sinon.stub(MockTelephonyMessages, 'handleError',
+      function(errorName, number, messageType) {
+        assert.equal(errorName, 'BadNumberError');
+        assert.equal(number, '123');
+        assert.equal(messageType, MockTelephonyMessages.REGULAR_CALL);
+        done();
       });
-
-      test('should display the BadNumber message', function(done) {
-        this.sinon.spy(MockTelephonyMessages, 'handleError');
-        subject.call('123', 0);
-        mockPromise.then(function() {
-          mockCall.onerror(createCallError('BadNumberError'));
-          sinon.assert.calledWith(MockTelephonyMessages.handleError,
-                                  'BadNumberError', '123',
-                                  MockTelephonyMessages.REGULAR_CALL);
-        }).then(done, done);
-      });
-
-      test('should handle BusyError', function(done) {
-        this.sinon.spy(MockTelephonyMessages, 'handleError');
-        subject.call('123', 0);
-        mockPromise.then(function() {
-          mockCall.onerror(createCallError('BusyError'));
-          sinon.assert.calledWith(MockTelephonyMessages.handleError,
-                                  'BusyError', '123',
-                                  MockTelephonyMessages.REGULAR_CALL);
-        }).then(done, done);
-      });
-
-      test('should handle FDNBlockedError', function(done) {
-        this.sinon.spy(MockTelephonyMessages, 'handleError');
-        subject.call('123', 0);
-        mockPromise.then(function() {
-          mockCall.onerror(createCallError('FDNBlockedError'));
-          sinon.assert.calledWith(MockTelephonyMessages.handleError,
-                                  'FDNBlockedError', '123',
-                                  MockTelephonyMessages.REGULAR_CALL);
-        }).then(done, done);
-      });
-
-      test('should handle FdnCheckFailure', function(done) {
-        this.sinon.spy(MockTelephonyMessages, 'handleError');
-        subject.call('123', 0);
-        mockPromise.then(function() {
-          mockCall.onerror(createCallError('FdnCheckFailure'));
-          sinon.assert.calledWith(MockTelephonyMessages.handleError,
-                                  'FdnCheckFailure', '123',
-                                  MockTelephonyMessages.REGULAR_CALL);
-        }).then(done, done);
-      });
-
-      test('should handle DeviceNotAcceptedError', function(done) {
-        this.sinon.spy(MockTelephonyMessages, 'handleError');
-        subject.call('123', 0);
-        mockPromise.then(function() {
-          mockCall.onerror(createCallError('DeviceNotAcceptedError'));
-          sinon.assert.calledWith(MockTelephonyMessages.handleError,
-                                  'DeviceNotAcceptedError', '123',
-                                  MockTelephonyMessages.REGULAR_CALL);
-        }).then(done, done);
-      });
+      subject.call('123', 0);
     });
 
-    suite('promise errors', function() {
-      test('should display the BadNumber message', function(done) {
-        mockPromise = Promise.reject('BadNumberError');
-        this.sinon.stub(MockTelephonyMessages, 'handleError',
-        function(errorName, number, messageType) {
-          assert.equal(errorName, 'BadNumberError');
-          assert.equal(number, '123');
-          assert.equal(messageType, MockTelephonyMessages.REGULAR_CALL);
-          done();
-        });
-        subject.call('123', 0);
+    test('should handle RadioNotAvailable', function(done) {
+      mockPromise = Promise.reject('RadioNotAvailable');
+      this.sinon.stub(MockTelephonyMessages, 'handleError',
+      function(errorName, number, messageType) {
+        assert.equal(errorName, 'RadioNotAvailable');
+        assert.equal(number, '123');
+        assert.equal(messageType, MockTelephonyMessages.REGULAR_CALL);
+        done();
       });
+      subject.call('123', 0);
+    });
 
-      test('should handle RadioNotAvailable', function(done) {
-        mockPromise = Promise.reject('RadioNotAvailable');
-        this.sinon.stub(MockTelephonyMessages, 'handleError',
-        function(errorName, number, messageType) {
-          assert.equal(errorName, 'RadioNotAvailable');
-          assert.equal(number, '123');
-          assert.equal(messageType, MockTelephonyMessages.REGULAR_CALL);
-          done();
-        });
-        subject.call('123', 0);
+    test('should handle OtherConnectionInUse', function(done) {
+      mockPromise = Promise.reject('OtherConnectionInUse');
+      this.sinon.stub(MockTelephonyMessages, 'handleError',
+      function(errorName, number, messageType) {
+        assert.equal(errorName, 'OtherConnectionInUse');
+        assert.equal(number, '123');
+        assert.equal(messageType, MockTelephonyMessages.REGULAR_CALL);
+        done();
       });
+      subject.call('123', 0);
+    });
 
-      test('should handle OtherConnectionInUse', function(done) {
-        mockPromise = Promise.reject('OtherConnectionInUse');
-        this.sinon.stub(MockTelephonyMessages, 'handleError',
-        function(errorName, number, messageType) {
-          assert.equal(errorName, 'OtherConnectionInUse');
-          assert.equal(number, '123');
-          assert.equal(messageType, MockTelephonyMessages.REGULAR_CALL);
-          done();
-        });
-        subject.call('123', 0);
+    test('should handle unknown errors', function(done) {
+      mockPromise = Promise.reject('Gloubiboulga');
+      this.sinon.stub(MockTelephonyMessages, 'handleError',
+      function(errorName, number, messageType) {
+        assert.equal(errorName, 'Gloubiboulga');
+        assert.equal(number, '123');
+        assert.equal(messageType, MockTelephonyMessages.REGULAR_CALL);
+        done();
       });
-
-      test('should handle unknown errors', function(done) {
-        mockPromise = Promise.reject('Gloubiboulga');
-        this.sinon.stub(MockTelephonyMessages, 'handleError',
-        function(errorName, number, messageType) {
-          assert.equal(errorName, 'Gloubiboulga');
-          assert.equal(number, '123');
-          assert.equal(messageType, MockTelephonyMessages.REGULAR_CALL);
-          done();
-        });
-        var onerrorStub = this.sinon.stub();
-        subject.call('123', 0, null, null, null, onerrorStub);
-      });
+      subject.call('123', 0, null, null, null);
     });
   });
 
