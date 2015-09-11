@@ -1,13 +1,11 @@
-/* global App,
-          ConversationView,
+/* global ConversationView,
           Information,
           InterInstanceEventDispatcher,
           LazyLoader,
           LocalizationHelper,
           MessageManager,
-          MessagingClient,
-          MozMobileConnectionsClient,
           Navigation,
+          ServiceManager,
           Settings,
           Threads,
           TimeHeaders,
@@ -18,8 +16,6 @@
   'use strict';
 
   const LAZY_DEPENDENCIES = [
-    '/services/js/messaging/messaging_client.js',
-    '/services/js/moz_mobile_connections/moz_mobile_connections_client.js',
     '/shared/js/settings_listener.js',
     '/shared/js/mime_mapper.js',
     '/shared/js/option_menu.js',
@@ -42,8 +38,6 @@
       TimeHeaders.init();
       Information.initDefaultViews();
       Settings.init();
-      MessagingClient.init(App.instanceId);
-      MozMobileConnectionsClient.init(App.instanceId);
       Navigation.setReady();
 
       InterInstanceEventDispatcher.connect();
@@ -59,7 +53,14 @@
     var deferred = Utils.Promise.defer();
 
     MessageManager.getThreads({
-      each: (thread) => Threads.set(thread.id, thread),
+      each: (thread) => Threads.set(thread.id, {
+        id: thread.id,
+        participants: thread.participants,
+        body: thread.body,
+        timestamp: thread.timestamp,
+        status: { hasUnread: thread.unreadCount > 0, hasNewError: false },
+        lastMessageType: thread.lastMessageType
+      }),
       done: deferred.resolve
     });
 
@@ -68,7 +69,9 @@
 
   exports.Startup = {
     init() {
-      Utils.initializeShimHost(App.instanceId);
+      ServiceManager.initialize(
+        ['messaging', 'moz-mobile-connections', 'moz-settings']
+      );
 
       MessageManager.init();
       ConversationView.init();

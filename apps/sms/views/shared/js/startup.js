@@ -5,7 +5,6 @@
 
 /*global ActivityHandler,
          App,
-         ConversationClient,
          ConversationView,
          InboxView,
          Information,
@@ -13,13 +12,11 @@
          LazyLoader,
          LocalizationHelper,
          MessageManager,
-         MessagingClient,
-         MozMobileConnectionsClient,
          Navigation,
+         ServiceManager,
          Settings,
          SilentSms,
-         TimeHeaders,
-         Utils
+         TimeHeaders
 */
 
 (function(exports) {
@@ -70,11 +67,8 @@ var Startup = exports.Startup = {
     '/views/shared/js/notify.js',
     '/views/shared/js/activity_handler.js',
     '/views/shared/js/localization_helper.js',
-    '/services/js/bridge_service_mixin.js',
     '/services/js/activity/activity_shim.js',
-    '/services/js/activity/activity_client.js',
-    '/services/js/messaging/messaging_client.js',
-    '/services/js/moz_mobile_connections/moz_mobile_connections_client.js'
+    '/services/js/activity/activity_client.js'
   ],
 
   _lazyLoadInit: function() {
@@ -90,8 +84,6 @@ var Startup = exports.Startup = {
       // Init UI Managers
       TimeHeaders.init();
       ConversationView.init();
-      MessagingClient.init(App.instanceId);
-      MozMobileConnectionsClient.init(App.instanceId);
       Information.initDefaultViews();
 
       Navigation.setReady();
@@ -118,9 +110,15 @@ var Startup = exports.Startup = {
 
       window.performance.mark('navigationLoaded');
 
-      Utils.initializeShimHost(App.instanceId);
+      const services = [
+        'conversation',
+        'messaging',
+        'moz-mobile-connections',
+        'moz-settings'
+      ];
 
-      ConversationClient.init(App.instanceId);
+      ServiceManager.initialize(services);
+
       MessageManager.init();
       InboxView.init();
       Navigation.init();
@@ -145,6 +143,8 @@ var Startup = exports.Startup = {
 
         InboxView.once('visually-loaded', () => {
           this._lazyLoadInit();
+
+          ServiceManager.upgrade(services);
         });
 
         InboxView.renderThreads();

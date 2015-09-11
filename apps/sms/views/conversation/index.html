@@ -45,6 +45,7 @@
   <script defer src="/desktop-mock/navigator_moz_icc_manager.js"></script>
   <script defer src="/desktop-mock/navigator_moz_settings.js"></script>
   <script defer src="/desktop-mock/navigator_moz_mobilemessage.js"></script>
+  <script defer src="/desktop-mock/navigator_moz_mobile_connections.js"></script>
   <script defer src="/desktop-mock/navigator_moz_contacts.js"></script>
   <!-- Web Components -->
   <script defer src="/shared/elements/config.js"></script>
@@ -94,6 +95,18 @@
   <script defer src="/views/conversation/js/compose.js"></script>
   <script defer src="/shared/js/gesture_detector.js"></script>
   <script defer src="/lib/bridge/bridge.js"></script>
+  <script defer src="/lib/bridge/plugins/stream/client.js"></script>
+  <script defer src="/lib/bridge/plugins/stream/service.js"></script>
+  <script defer src="/lib/bridge/plugins/finalize/client.js"></script>
+  <script defer src="/services/js/bridge_service_mixin.js"></script>
+  <script defer src="/services/js/moz_mobile_connections/moz_mobile_connections_shim.js"></script>
+  <script defer src="/services/js/moz_mobile_message/moz_mobile_message_shim.js"></script>
+  <script defer src="/services/js/moz_settings/moz_settings_shim.js"></script>
+  <script defer src="/services/js/moz_mobile_message/moz_mobile_message_client.js"></script>
+  <script defer src="/services/js/messaging/messaging_service.js"></script>
+  <script defer src="/services/js/messaging/messaging_client.js"></script>
+  <script defer src="/services/js/moz_mobile_connections/moz_mobile_connections_client.js"></script>
+  <script defer src="/services/js/service_manager.js"></script>
   <script defer src="/services/js/activity/activity_client.js"></script>
   <script defer src="/views/conversation/js/recipients.js"></script>
   <script defer src="/views/conversation/js/conversation.js"></script>
@@ -115,13 +128,10 @@
   <script defer src="/views/shared/js/contact_renderer.js"></script>
   <script defer src="/views/shared/js/localization_helper.js"></script>
   <script defer src="/views/conversation/js/information.js"></script>
-  <script defer src="/services/js/messaging/messaging_client.js"></script>
-  <script defer src="/services/js/moz_mobile_connections/moz_mobile_connections_client.js"></script>
   -->
 </head>
 
 <body role="application" class="skin-comms theme-communications">
-  <iframe src="/views/shared/shim_host.html" class="shim-host" hidden></iframe>
   <article id="main-wrapper" class="wrapper conversation-view">
     <section class="panel panel-ConversationView editable-select-mode" role="region" aria-hidden="true">
       <gaia-header id="messages-header" class="view-header regular-header" action="back" no-font-fit>

@@ -1,5 +1,4 @@
 /* global BridgeServiceMixin,
-          BroadcastChannel,
           MozSettingsShim
 */
 
@@ -31,17 +30,15 @@ function setMmsSimServiceId(id) {
 }
 
 var MozMobileConnectionsShim = {
-  init(appInstanceId, conns) {
-    if (!conns) {
+  init(mozAPI, endpoint) {
+    if (!mozAPI) {
       console.error('Invalid mozMobileConnections for shim initialization');
       return;
     }
 
-    mozMobileConnections = conns;
+    mozMobileConnections = mozAPI;
 
-    this.initService(
-      new BroadcastChannel(`${SERVICE_NAME}-channel-${appInstanceId}`)
-    );
+    this.initService(endpoint);
   },
 
   /* Methods */
@@ -92,6 +89,10 @@ var MozMobileConnectionsShim = {
 
       setMmsSimServiceId(serviceId);
     });
+  },
+
+  get name() {
+    return SERVICE_NAME;
   }
 };
 
