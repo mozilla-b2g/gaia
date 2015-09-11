@@ -120,7 +120,7 @@
                       onLoad: function(blob) {
                         var iconObj = {
                           blob: blob,
-                          originalUrl: iconUrl,
+                          originalUrl: iconUrl.toString(),
                           timestamp: Date.now()
                         };
                         // We resolve here to avoid I/O blocking on
