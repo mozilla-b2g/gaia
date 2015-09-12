@@ -137,7 +137,7 @@ var AudioMetadata = (function() {
         var url = URL.createObjectURL(blob);
         player.src = url;
 
-        player.onerror = function() {
+        player.onerror = player.onsuspend = function() {
           URL.revokeObjectURL(url);
           player.removeAttribute('src');
           player.load();
