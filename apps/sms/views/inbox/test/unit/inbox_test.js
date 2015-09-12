@@ -11,9 +11,6 @@
 'use strict';
 
 require('/shared/js/event_dispatcher.js');
-require('/shared/js/component_utils.js');
-require('/shared/elements/gaia_checkbox/script.js');
-
 require('/views/shared/js/utils.js');
 require('/views/inbox/js/inbox.js');
 
@@ -96,9 +93,9 @@ suite('thread_list_ui', function() {
         '<li id="thread-' + i + '" class="threadlist-item" ' +
             'data-time="' + someDate + '" ' +
             'data-thread-id="' + i + '">' +
-          '<gaia-checkbox data-mode="threads" value="' + i + '">' +
-            '<label></label>' +
-          '</gaia-checkbox>' +
+          '<label>' +
+            '<input type="checkbox" data-mode="threads" value="' + i + '"/>' +
+          '</label>' +
           '<a href="#/thread?id=' + i + '"</a>' +
         '</li>';
     }
@@ -1986,18 +1983,14 @@ suite('thread_list_ui', function() {
 
     test('clicking on a list item in edit mode', function() {
       InboxView.inEditMode = true;
-      var event = new CustomEvent('click', {
-        bubbles: true,
-        cancelable: true
-      });
-      thread1.querySelector('gaia-checkbox label').dispatchEvent(event);
+      thread1.querySelector('label').click();
 
       sinon.assert.notCalled(Navigation.toPanel);
-      assert.ok(thread1.querySelector('gaia-checkbox').checked);
+      assert.ok(thread1.querySelector('input').checked);
     });
 
     test('click on draft', function() {
-      draft1.querySelector('gaia-checkbox').click();
+      draft1.querySelector('label').click();
 
       sinon.assert.calledWith(
         Navigation.toPanel,

@@ -90,14 +90,10 @@ gaia-header {
   margin: 0 1.5rem;
 }
 
-[data-type="list"] li > gaia-checkbox {
+[data-type="list"] li > label {
   display: block;
   overflow: hidden;
   opacity: 0;
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
 }
 
 [data-type="list"] aside.pack-end {

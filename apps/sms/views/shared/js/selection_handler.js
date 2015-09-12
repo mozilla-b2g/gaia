@@ -31,7 +31,7 @@ var SelectionHandler = function constructor(options) {
   this.selected = new Set();
 
   this.container.addEventListener(
-    'change', this.onSelected.bind(this)
+    'click', this.onSelected.bind(this)
   );
   this.checkUncheckAllButton.addEventListener(
     'click', this.toggleCheckedAll.bind(this)
@@ -72,7 +72,7 @@ SelectionHandler.prototype = {
       return;
     }
     var target = event.target;
-    var value = target.getAttribute('value');
+    var value = target.value;
     var existed = this.selected.has(value);
 
     if (target.checked && !existed) {
@@ -97,11 +97,11 @@ SelectionHandler.prototype = {
 
   // Update check status of input elements in the container
   updateCheckboxes: function sel_updateCheckboxes() {
-    var inputs = this.container.querySelectorAll('gaia-checkbox');
+    var inputs = this.container.querySelectorAll('input[type=checkbox]');
     var length = inputs.length;
 
     for (var i = 0; i < length; i++) {
-      inputs[i].checked = this.selected.has(inputs[i].getAttribute('value'));
+      inputs[i].checked = this.selected.has(inputs[i].value);
     }
   },
 
