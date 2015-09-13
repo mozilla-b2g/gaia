@@ -5,16 +5,10 @@ var Server = require('../../../../shared/test/integration/server');
 var Rocketbar = require('./lib/rocketbar');
 var Bookmark = require('./lib/bookmark');
 
-marionette('AppWindowManager - Pinned sites',
+marionette('AppWindowManager - Bookmarked sites',
   function() {
 
-  var client = marionette.client({
-    profile: {
-      settings: {
-        'dev.gaia.pinning_the_web': true
-      }
-    }
-  });
+  var client = marionette.client();
 
   var home, rocketbar, server, search, system, url, nApps, bookmark;
 

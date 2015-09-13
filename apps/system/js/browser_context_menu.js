@@ -1,5 +1,5 @@
 /* global MozActivity, IconsHelper, LazyLoader */
-/* global applications, BaseModule, SettingsListener */
+/* global applications, BaseModule */
 
 (function(window) {
   'use strict';
@@ -18,7 +18,6 @@
     this.app = app;
     this.containerElement = app.element;
     this.app.element.addEventListener('mozbrowsercontextmenu', this);
-    SettingsListener.observe(PINNING_PREF, '', this._setPinning.bind(this));
     return this;
   }
 
@@ -57,20 +56,19 @@
         return;
       }
 
-      var items = this._listItems(detail);
+      this._getPinningEnabled(function(value) {
+        this.pinningEnabled = value;
+        var items = this._listItems(detail);
 
-      if (!items.length) {
-        return;
-      }
+        if (!items.length) {
+          return;
+        }
 
-      // Notify the embedder we are handling the context menu
-      evt.preventDefault();
-      evt.stopPropagation();
-      this.contextMenuView.show(items);
-    },
-
-    _setPinning: function(value) {
-      this.pinningEnabled = value;
+        // Notify the embedder we are handling the context menu
+        evt.preventDefault();
+        evt.stopPropagation();
+        this.contextMenuView.show(items);
+      }.bind(this));
     },
 
     _listItems: function(detail) {
@@ -116,13 +114,22 @@
       return items;
     },
 
+    _getPinningEnabled: function(callback) {
+      var req = navigator.mozSettings.createLock().get(PINNING_PREF);
+      req.onsuccess = () => {
+        callback(req.result[PINNING_PREF]);
+      };
+
+      req.onerror = () => {
+        callback(false);
+      };
+    },
+
     isShown: function() {
       return this.contextMenuView.isShown();
     },
 
     hide: function() {
-      SettingsListener.unobserve(PINNING_PREF);
-
       if (!this.contextMenuView.isShown()) {
         return;
       }
@@ -301,49 +308,52 @@
 
     showDefaultMenu: function(manifest, name) {
       return new Promise((resolve) => {
-        var config = this.app.config;
-        var menuData = [];
+        this._getPinningEnabled(function(value) {
+          this.pinningEnabled = value;
+          var config = this.app.config;
+          var menuData = [];
 
-        var finish = () => {
-          this.contextMenuView.show(menuData);
-          resolve();
-        };
+          var finish = () => {
+            this.contextMenuView.show(menuData);
+            resolve();
+          };
 
-        menuData.push({
-          id: 'new-window',
-          label: _('new-window'),
-          callback: this.newWindow.bind(this, manifest)
-        });
+          menuData.push({
+            id: 'new-window',
+            label: _('new-window'),
+            callback: this.newWindow.bind(this, manifest)
+          });
 
-        menuData.push({
-          id: 'new-private-window',
-          label: _('new-private-window'),
-          callback: this.newWindow.bind(this, manifest, true)
-        });
+          menuData.push({
+            id: 'new-private-window',
+            label: _('new-private-window'),
+            callback: this.newWindow.bind(this, manifest, true)
+          });
 
-        menuData.push({
-          id: 'show-windows',
-          label: _('show-windows'),
-          callback: this.showWindows.bind(this)
-        });
+          menuData.push({
+            id: 'show-windows',
+            label: _('show-windows'),
+            callback: this.showWindows.bind(this)
+          });
 
-        // Do not show the bookmark/share buttons if the url starts with app.
-        // This is because in some cases we use the app chrome to view system
-        // pages. E.g., private browsing.
-        if (config.url.startsWith('app')) {
+          // Do not show the bookmark/share buttons if the url starts with app.
+          // This is because in some cases we use the app chrome to view system
+          // pages. E.g., private browsing.
+          if (config.url.startsWith('app')) {
+            finish();
+            return;
+          }
+
+          menuData.push(this._getSaveUrlItem(config.url, name));
+
+          menuData.push({
+            id: 'share',
+            label: _('share'),
+            callback: this.shareUrl.bind(this, config.url)
+          });
+
           finish();
-          return;
-        }
-
-        menuData.push(this._getSaveUrlItem(config.url, name));
-
-        menuData.push({
-          id: 'share',
-          label: _('share'),
-          callback: this.shareUrl.bind(this, config.url)
-        });
-
-        finish();
+        }.bind(this));
       });
     }
   });
