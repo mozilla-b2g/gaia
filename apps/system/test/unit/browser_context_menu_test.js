@@ -1,4 +1,4 @@
-/* global MocksHelper, MockL10n, AppWindow, BaseModule, SettingsListener,
+/* global MocksHelper, MockL10n, AppWindow, BaseModule,
           MockMozActivity, MozActivity, MockAppWindowHelper */
 
 'use strict';
@@ -20,8 +20,6 @@ var mocksForAppModalDialog = new MocksHelper([
   'AppWindow', 'MozActivity', 'LazyLoader', 'IconsHelper', 'ContextMenuView',
   'SettingsListener'
 ]).init();
-
-const PINNING_PREF = 'dev.gaia.pinning_the_web';
 
 suite('system/BrowserContextMenu', function() {
   var stubById, realL10n, stubQuerySelector, realMozActivity;
@@ -173,7 +171,9 @@ suite('system/BrowserContextMenu', function() {
 
     var stubStopPropagation =
       this.sinon.stub(fakeContextMenuEvent, 'stopPropagation');
-
+    this.sinon.stub(md1, '_getPinningEnabled', function(cb) {
+      cb(false);
+    });
     md1.handleEvent(fakeContextMenuEvent);
     assert.isTrue(md1.contextMenuView.show.called);
     assert.isTrue(stubStopPropagation.called);
@@ -186,6 +186,9 @@ suite('system/BrowserContextMenu', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       md1 = BaseModule.instantiate('BrowserContextMenu', app1);
       md1.start();
+      this.sinon.stub(md1, '_getPinningEnabled', function(cb) {
+        cb(false);
+      });
       md1.showDefaultMenu();
     });
 
@@ -206,28 +209,6 @@ suite('system/BrowserContextMenu', function() {
 
     md1.handleEvent(fakeContextMenuEvent);
     assert.isTrue(fakeContextMenuEvent.defaultPrevented);
-  });
-
-  suite('Pinning the web', function() {
-    setup(function() {
-      this.sinon.stub(SettingsListener, 'observe');
-      this.sinon.stub(SettingsListener, 'unobserve');
-    });
-
-    test('Subscribes to pinning preference on creation', function() {
-      var app1 = new AppWindow(fakeAppConfig1);
-      var md1 = BaseModule.instantiate('BrowserContextMenu', app1);
-      md1.start();
-      assert.isTrue(SettingsListener.observe.calledWith(PINNING_PREF));
-    });
-
-    test('Ubsubscribes pinning preference on hide', function() {
-      var app1 = new AppWindow(fakeAppConfig1);
-      var md1 = BaseModule.instantiate('BrowserContextMenu', app1);
-      md1.start();
-      md1.hide();
-      assert.isTrue(SettingsListener.unobserve.calledWith(PINNING_PREF));
-    });
   });
 
   test('Check that an empty context menu is not prevented', function() {
@@ -254,6 +235,10 @@ suite('system/BrowserContextMenu', function() {
     var md1 = BaseModule.instantiate('BrowserContextMenu', app1);
     md1.start();
 
+    this.sinon.stub(md1, '_getPinningEnabled', function(cb) {
+      cb(false);
+    });
+
     app1.isBrowser = function() {
       return true;
     };
@@ -265,6 +250,37 @@ suite('system/BrowserContextMenu', function() {
     }
   });
 
+  suite('Pinning the web', function() {
+    var app1, md1;
+
+    setup(function() {
+      app1 = new AppWindow(fakeAppConfig1);
+      md1 = BaseModule.instantiate('BrowserContextMenu', app1);
+      md1.start();
+    });
+
+    test('Shows pinning option when pref enabled', function() {
+      this.sinon.stub(md1, '_getPinningEnabled', function(cb) {
+        cb(true);
+      });
+
+      this.sinon.stub(md1.contextMenuView, 'show', function(items) {
+        assert.isTrue(items[2].id === 'pin-to-home-screen');
+      });
+      md1.handleEvent(fakeSystemContextMenuEvents[0]);
+
+    });
+
+    test('Shows bookmark option when pref enabled', function() {
+      this.sinon.stub(md1, '_getPinningEnabled', function(cb) {
+        cb(false);
+      });
+      this.sinon.stub(md1.contextMenuView, 'show', function(items) {
+        assert.isTrue(items[2].id === 'add-to-homescreen');
+      });
+      md1.handleEvent(fakeSystemContextMenuEvents[0]);
+    });
+  });
 
   test('Check that an app with system menu is not prevented', function() {
     var app1 = new AppWindow(fakeAppConfig1);
@@ -304,6 +320,13 @@ suite('system/BrowserContextMenu', function() {
 
     var md1ShowStub = this.sinon.stub(md1.contextMenuView, 'show');
     var md2ShowStub = this.sinon.stub(md2.contextMenuView, 'show');
+
+    this.sinon.stub(md1, '_getPinningEnabled', function(cb) {
+      cb(false);
+    });
+    this.sinon.stub(md2, '_getPinningEnabled', function(cb) {
+      cb(false);
+    });
     Promise.all([
       md1.showDefaultMenu(),
       md2.showDefaultMenu()
