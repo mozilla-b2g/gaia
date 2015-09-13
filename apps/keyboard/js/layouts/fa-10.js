@@ -1,4 +1,4 @@
-Keyboards.fa = {
+Keyboards['fa-10']={
   label: 'Persian 10',
   shortLabel: 'Fa',
   menuLabel: '10 فارسی',
