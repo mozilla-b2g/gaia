@@ -39,6 +39,7 @@ manifest.appcache
 /shared/js/search_providers.json
 
 /b2g
+/firefox
 /profile/
 /profile-debug/
 /profile-test/
