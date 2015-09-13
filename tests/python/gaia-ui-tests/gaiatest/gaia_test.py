@@ -1103,25 +1103,6 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
     def wait_for_condition(self, method, timeout=None, message=None):
         Wait(self.marionette, timeout).until(method, message=message)
 
-    def is_element_present(self, by, locator):
-        self.marionette.set_search_timeout(0)
-        try:
-            self.marionette.find_element(by, locator)
-            return True
-        except NoSuchElementException:
-            return False
-        finally:
-            self.marionette.set_search_timeout(self.marionette.timeout or 10000)
-
-    def is_element_displayed(self, by, locator):
-        self.marionette.set_search_timeout(0)
-        try:
-            return self.marionette.find_element(by, locator).is_displayed()
-        except NoSuchElementException:
-            return False
-        finally:
-            self.marionette.set_search_timeout(self.marionette.timeout or 10000)
-
     def tearDown(self):
         self.marionette.switch_to_frame()
         if self.device.is_desktop_b2g and self.device.storage_path:
