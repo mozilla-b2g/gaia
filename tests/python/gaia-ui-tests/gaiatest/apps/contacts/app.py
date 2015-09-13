@@ -33,6 +33,10 @@ class Contacts(Base):
             Wait(self.marionette).until(expected.element_present(
                 *self._settings_button_locator))))
 
+        # Workaround for bug 1201211
+        import time
+        time.sleep(0.5)
+
     def switch_to_contacts_frame(self):
         self.wait_to_be_displayed()
         self.apps.switch_to_displayed_app()

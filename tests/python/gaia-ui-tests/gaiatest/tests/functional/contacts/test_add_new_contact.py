@@ -20,10 +20,6 @@ class TestContacts(GaiaTestCase):
         contacts_app = Contacts(self.marionette)
         contacts_app.launch()
 
-        # Workaround for bug 1201211
-        import time
-        time.sleep(0.5)
-
         new_contact_form = contacts_app.tap_new_contact()
 
         # Enter data into fields
