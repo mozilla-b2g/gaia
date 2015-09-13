@@ -11,6 +11,7 @@ UI_TESTS = "UI Tests"
 
 
 class UiTests(Base):
+    manifest_url = '{}uitest{}/manifest.webapp'.format(Base.DEFAULT_PROTOCOL,Base.DEFAULT_APP_HOSTNAME)
     _test_panel_header_locator = (By.CSS_SELECTOR, '#test-panel-header')
     _ui_page_locator = (By.CSS_SELECTOR, 'a[href="#UI"]')
     _api_page_locator = (By.CSS_SELECTOR, 'a[href="#API"]')

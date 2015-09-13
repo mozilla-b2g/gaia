@@ -12,13 +12,14 @@ from gaiatest import Accessibility
 
 
 class Base(object):
+    DEFAULT_APP_HOSTNAME = '.gaiamobile.org'
+    DEFAULT_PROTOCOL = 'app://'
 
     def __init__(self, marionette):
         self.marionette = marionette
         self.apps = GaiaApps(self.marionette)
         self.accessibility = Accessibility(self.marionette)
         self.frame = None
-        self.manifest_url = hasattr(self, 'manifest_url') and self.manifest_url or None
         self.entry_point = hasattr(self, 'entry_point') and self.entry_point or None
 
     def launch(self, launch_timeout=None):
@@ -114,6 +115,15 @@ class Base(object):
         from gaiatest.apps.keyboard.app import Keyboard
         return Keyboard(self.marionette)
 
+    @property
+    def manifest_url(self):
+        return '{}{}{}/manifest.webapp'.format(self.DEFAULT_PROTOCOL, self.__class__.__name__.lower(), self.DEFAULT_APP_HOSTNAME)
+
+    def wait_to_be_displayed(self):
+        Wait(self.marionette).until(lambda m: self.apps.displayed_app.manifest_url == self.manifest_url)
+
+    def wait_to_not_be_displayed(self):
+        Wait(self.marionette).until(lambda m: self.apps.displayed_app.manifest_url != self.manifest_url)
 
 class PageRegion(Base):
     def __init__(self, marionette, element):
