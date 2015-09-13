@@ -1,4 +1,5 @@
-/* global BaseModule, LazyLoader, RemoteDebugger, DeveloperHud, DevToolsAuth */
+/* global BaseModule, LazyLoader, RemoteDebugger, DeveloperHud, DevToolsAuth,
+          VaaniMediaComms */
 'use strict';
 
 (function(exports) {
@@ -108,7 +109,8 @@
         'CustomDialogService',
         'CarrierInfoNotifier',
         'AboutServiceWorkersProxy',
-        'MultiScreenController'
+        'MultiScreenController',
+        'VaaniMediaComms'
         // XXX: We should move CarrierInfoNotifier into mobileConnectionCore,
         // but integration tests running on desktop without mobileConnection
         // is testing this.
@@ -129,6 +131,8 @@
           this.remoteDebugger = new RemoteDebugger();
           this.developerHud = new DeveloperHud();
           this.devToolsAuth = new DevToolsAuth();
+          this.vaaniMediaComms = new VaaniMediaComms();
+          this.vaaniMediaComms.start();
           return Promise.resolve(this.developerHud.start());
         });
       });
