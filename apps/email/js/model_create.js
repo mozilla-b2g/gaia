@@ -10,15 +10,13 @@ define(function(require) {
     throw new Error(msg);
   }
 
-  function saveHasAccount(model, acctsSlice) {
-    if (model === modelCreate.defaultModel) {
-      // Save localStorage value to improve startup choices
-      localStorage.setItem('data_has_account',
-                           (acctsSlice.items.length ? 'yes' : 'no'));
+  function saveHasAccount(acctsSlice) {
+    // Save localStorage value to improve startup choices
+    localStorage.setItem('data_has_account',
+                         (acctsSlice.items.length ? 'yes' : 'no'));
 
-      console.log('WRITING LOCAL STORAGE ITEM: ' + 'data_has_account',
-                  (acctsSlice.items.length ? 'yes' : 'no'));
-    }
+    console.log('WRITING LOCAL STORAGE ITEM: ' + 'data_has_account',
+                (acctsSlice.items.length ? 'yes' : 'no'));
   }
 
 /**
@@ -173,7 +171,7 @@ define(function(require) {
           // acctsSlice.oncomplete fires).
           this.acctsSlice = acctsSlice;
 
-          saveHasAccount(this, acctsSlice);
+          saveHasAccount(acctsSlice);
 
           if (acctsSlice.items.length) {
             // For now, just use the first one; we do attempt to put unified
@@ -200,8 +198,8 @@ define(function(require) {
         }).bind(this);
 
         acctsSlice.onchange = function() {
-          saveHasAccount(this, acctsSlice);
-        };
+          saveHasAccount(acctsSlice);
+        }.bind(this);
       }.bind(this));
     },
 
