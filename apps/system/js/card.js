@@ -1,4 +1,4 @@
-/* globals BaseUI, CardsHelper, Sanitizer, Service, Icon */
+  /* globals BaseUI, CardsHelper, Sanitizer, Service, Icon */
 
 /* exported Card */
 
@@ -294,11 +294,14 @@
       if (!element) {
         return;
       }
-
-      var icon = new Icon(element, iconObject.originalUrl);
-      icon.renderBlob(iconObject.blob, {
-        size: CARD_FOOTER_ICON_SIZE
-      });
+      if (iconObject && iconObject.originalUrl) {
+        var icon = new Icon(element, iconObject.originalUrl);
+        icon.renderBlob(iconObject.blob, {
+          size: CARD_FOOTER_ICON_SIZE
+        });
+      } else {
+        element.style.backgroundImage = '';
+      }
       element.classList.remove('pending');
     });
 
@@ -336,7 +339,8 @@
     if (!this.iconValue) {
       app.getSiteIconUrl(CARD_FOOTER_ICON_SIZE).then(iconObject => {
         debug('Card: ' + this.title,
-              'getSiteIconUrl resolved iconUrl: ', iconObject.originalUrl);
+              'getSiteIconUrl resolved iconUrl: ',
+              iconObject && iconObject.originalUrl);
         this._updateIcon(iconObject);
       }).catch(err => {
         debug('getSiteIconUrl failed to resolve an icon: ' + err.message);
