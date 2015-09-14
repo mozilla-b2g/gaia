@@ -375,6 +375,19 @@ section.pin-dialog footer span {
   font-style: italic;
 }
 
+section.pin-dialog ul {
+  margin: 0;
+  padding: 0 4rem;
+}
+
+section.pin-dialog ul li {
+  border-top: 1px solid #858585;
+  list-style-type: none;
+  font-size: 1.9rem;
+  line-height: 4rem;
+  font-weight: normal;
+}
+
 section.pin-dialog .origin {
   padding: 0;
   margin: 0 auto;

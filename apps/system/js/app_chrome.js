@@ -142,6 +142,9 @@
                     <span class="origin"></span>
                   </footer>
                 </div>
+                <ul>
+                  <li id="control-center-security"></li>
+                </ul>
               </section>
               <div class="pin-scrim"></div>
               <div class="controls">
@@ -249,6 +252,9 @@
     if (this.reloadButton) {
       this.reloadButton.disabled = !this.hasNavigation();
     }
+
+    this.controlCenterSecurity = this.element.querySelector(
+      '#control-center-security');
   };
 
   AppChrome.prototype.handleEvent = function ac_handleEvent(evt) {
@@ -505,6 +511,11 @@
     this.pinSiteName.textContent = this.app.name;
     this.setOrigin();
     this.pinDialog.classList.remove('hidden');
+
+    // Security settings
+    var sslState = this.app.getSSLState() || 'insecure';
+    this.controlCenterSecurity.setAttribute('data-l10n-id',
+      'control-center-ssl-' + (sslState === 'secure' ? 'secure' : 'insecure'));
   };
 
   AppChrome.prototype.setOrigin = function ac_setOrigin() {
