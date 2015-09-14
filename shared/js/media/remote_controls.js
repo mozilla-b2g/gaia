@@ -57,7 +57,9 @@ var IAC = {
   FAST_FORWARD_PRESS: 'fastforwardstart',
   FAST_FORWARD_RELEASE: 'fastforwardend',
   REWIND_PRESS: 'rewindstart',
-  REWIND_RELEASE: 'rewindend'
+  REWIND_RELEASE: 'rewindend',
+  UPDATE_METADATA: 'updatemetadata',
+  UPDATE_PLAYSTATUS: 'updateplaystatus'
 };
 
 // Commands for the players to register, events will be fired to the listeners.
@@ -298,6 +300,8 @@ MediaRemoteControls.prototype._commandHandler = function(message) {
     case IAC.REWIND_RELEASE:
       option.detail = { command: REMOTE_CONTROLS.SEEK_RELEASE };
       break;
+    case IAC.UPDATE_METADATA:
+    case IAC.UPDATE_PLAYSTATUS:
     case REMOTE_CONTROLS.UPDATE_METADATA:
     case REMOTE_CONTROLS.UPDATE_PLAYSTATUS:
       option.detail = { command: message };
