@@ -121,6 +121,7 @@ suite('AppUsageMetrics:', function() {
   suite('UsageData:', function() {
     var UsageData, clock;
     var app1, app2, app3;
+    var notAddonApp, addOnApp, nonMarketPlaceAddOn;
 
     suiteSetup(function() {
       UsageData = AppUsageMetrics.UsageData;
@@ -132,6 +133,26 @@ suite('AppUsageMetrics:', function() {
       app2 = new MockApp({ manifest: { type: 'certified' } });
       app3 = new MockApp({ manifest: { type: 'certified' } });
       MockAppsMgmt.mApps = [app1, app2, app3];
+      notAddonApp = new MockApp({
+        manifestURL: 'https://marketplace.firefox.com/app/1-2-3-4',
+        manifest: {
+          type: 'certified',
+          role: 'someapp'
+        }
+      });
+      addOnApp = new MockApp({
+        manifestURL: 'https://marketplace.firefox.com/addOn/1-2-3-4',
+        manifest: {
+          type: 'certified',
+          role: 'addon'
+        }
+      });
+      nonMarketPlaceAddOn = new MockApp({
+        manifestURL: 'https://hackerplace.com/addOn/1-2-3-4',
+        manifest: {
+          installOrigin: 'http://www.foo.com'
+        }
+      });
     });
 
     function getUsage(metrics, app) {
@@ -380,6 +401,57 @@ suite('AppUsageMetrics:', function() {
 
       metrics.recordSearch('provider2');
       assert.equal(metrics.getSearchCounts('provider2').count, 2);
+    });
+
+    test('not addonn', function() {
+      var metrics = new UsageData();
+      metrics.recordInstall(notAddonApp);
+      assert.equal(metrics.getAppUsage(notAddonApp).installs, 1);
+      assert.equal(metrics.getAppUsage(notAddonApp).addOn, false);
+    });
+
+    test('addonn installs', function() {
+      var metrics = new UsageData();
+      metrics.recordInstall(addOnApp);
+      assert.equal(metrics.getAppUsage(addOnApp).installs, 1);
+      assert.equal(metrics.getAppUsage(addOnApp).addOn, true);
+    });
+
+    test('addonn uninstalls', function() {
+      var metrics = new UsageData();
+      metrics.recordUninstall(addOnApp);
+      assert.equal(metrics.getAppUsage(addOnApp).uninstalls, 1);
+      assert.equal(metrics.getAppUsage(addOnApp).addOn, true);
+    });
+
+    test('addonn enables', function() {
+      var metrics = new UsageData();
+      metrics.recordEnabled(addOnApp);
+      assert.equal(metrics.getAppUsage(addOnApp).enables, 1);
+      assert.equal(metrics.getAppUsage(addOnApp).addOn, true);
+    });
+
+    test('addonn disables', function() {
+      var metrics = new UsageData();
+      metrics.recordDisabled(addOnApp);
+      assert.equal(metrics.getAppUsage(addOnApp).disables, 1);
+      assert.equal(metrics.getAppUsage(addOnApp).addOn, true);
+    });
+
+    test('non marketplace addon', function() {
+      var metrics = new UsageData();
+      var recorded = metrics.recordInstall(nonMarketPlaceAddOn);
+      assert.equal(metrics.getAppUsage(nonMarketPlaceAddOn).installs, 0);
+      assert.ok(!recorded);
+      recorded = metrics.recordUninstall(nonMarketPlaceAddOn);
+      assert.equal(metrics.getAppUsage(nonMarketPlaceAddOn).uninstalls, 0);
+      assert.ok(!recorded);
+      recorded = metrics.recordEnabled(nonMarketPlaceAddOn);
+      assert.equal(metrics.getAppUsage(nonMarketPlaceAddOn).enables, 0);
+      assert.ok(!recorded);
+      recorded = metrics.recordDisabled(nonMarketPlaceAddOn);
+      assert.equal(metrics.getAppUsage(nonMarketPlaceAddOn).disables, 0);
+      assert.ok(!recorded);
     });
   });
 
