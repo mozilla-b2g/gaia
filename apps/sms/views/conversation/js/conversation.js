@@ -2303,7 +2303,6 @@ var ConversationView = {
 
     // Clean composer fields (this lock any repeated click in 'send' button)
     this.disableConvertNoticeBanners();
-    //this.cleanFields();
     this.enableConvertNoticeBanners();
 
     // If there was a draft, it just got sent so delete it.

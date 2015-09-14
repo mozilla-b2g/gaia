@@ -3586,7 +3586,6 @@ suite('conversation.js >', function() {
 
       sinon.assert.calledWith(Utils.confirm, 'resend-confirmation');
 
-
       confirmPromise.then(function() {
         request.result = message;
         request.onsuccess && request.onsuccess.call(request);
@@ -5039,6 +5038,7 @@ suite('conversation.js >', function() {
       });
 
       Compose.getContent.returns([body]);
+      this.sinon.stub(Compose, 'clear');
 
       clickButton();
 
@@ -5048,7 +5048,6 @@ suite('conversation.js >', function() {
         content: body,
         serviceId: 0
       });
-      this.sinon.stub(Compose, 'clear');
       sinon.assert.notCalled(Compose.clear);
 
       var sentMessage = MockMessages.sms({
