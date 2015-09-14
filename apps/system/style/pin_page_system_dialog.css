@@ -77,8 +77,8 @@ button.pin-button {
 }
 
 button.pin-button {
-  -moz-padding-start: 4rem;
-  -moz-padding-end: 2rem;
+  padding-inline-start: 4rem;
+  padding-inline-end: 2rem;
 }
 
 button.pin-button::before {
@@ -87,7 +87,7 @@ button.pin-button::before {
   height: 1.6rem;
   position: absolute;
   top: 1.2rem;
-  left: 2rem;
+  offset-inline-start: 2rem;
   background-size: 1.6rem 1.6rem;
   background-image: url("chrome/images/pin.png");
 }

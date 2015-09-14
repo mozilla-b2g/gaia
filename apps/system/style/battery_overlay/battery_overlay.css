@@ -22,7 +22,6 @@
 
 .icon-battery {
   display: block;
-  float: left;
   width: 4.2rem;
   height: 1.8rem;
   margin: 0 1.3rem;
@@ -31,6 +30,8 @@
   background-repeat: no-repeat;
   background-size: 4.2rem;
 }
+html[dir="ltr"] .icon-battery { float: left; }
+html[dir="rtl"] .icon-battery { float: right; }
 
 #battery span.icon-battery {
   height: 4rem;
@@ -50,11 +51,14 @@
   display: block;
 }
 
-#battery.disappearing {
-  animation: notification-disappear 1.5s;
+html[dir="ltr"] #battery.disappearing {
+  animation: notification-disappear-ltr 1.5s;
+}
+html[dir="rtl"] #battery.disappearing {
+  animation: notification-disappear-rtl 1.5s;
 }
 
-@keyframes notification-disappear {
+@keyframes notification-disappear-ltr {
   to {
     transform: translateX(100%);
   }
@@ -63,7 +67,11 @@
   }
 }
 
-/* RTL View */
-html[dir="rtl"] .icon-battery {
-  float: right;
+@keyframes notification-disappear-rtl {
+  to {
+    transform: translateX(-100%);
+  }
+  from {
+    transform: translateX(0);
+  }
 }

@@ -32,6 +32,7 @@
   #screen.software-button-enabled [role="dialog"].generic-dialog,
   #screen.software-button-enabled > #dialog-screen,
   #screen.software-button-enabled > #downloadConfirmUI {
+    /* BiDi note: the software home button should not be mirrored in RTL. */
     right: var(--software-home-button-height);
   }
 
@@ -50,6 +51,7 @@
 @media (orientation: landscape) {
   #screen.software-button-enabled gaia-confirm {
     margin-bottom: 0;
+    /* BiDi note: the software home button should not be mirrored in RTL. */
     margin-right: var(--software-home-button-height);
   }
 }
@@ -65,7 +67,7 @@
 [role="dialog"].generic-dialog .inner {
   display: inline-block;
   width: calc(100% - 3rem);
-  margin-left: -0.1rem; /* need to fix the white-space: nowrap */
+  margin-inline-start: -0.1rem; /* need to fix the white-space: nowrap */
   padding: 0 1.5rem;
   vertical-align: middle;
   white-space: normal;
@@ -166,8 +168,8 @@ gaia-toast.banner .button {
 
 [role="dialog"].generic-dialog.inline {
   position: relative;
-  margin: -0.4rem 0 0 0;
-  padding: 1rem 0 0 0;
+  margin: -0.4rem 0 0;
+  padding: 1rem 0 0;
   background: rgba(0,0,0,0.83);
 }
 
@@ -183,7 +185,7 @@ gaia-toast.banner .button {
 
 @media (min-width: 768px) {
   [role="dialog"].generic-dialog {
-    -moz-box-sizing: border-box;
+    box-sizing: border-box;
     position: absolute;
     width: 68rem;
     height: 48rem;
@@ -219,7 +221,7 @@ gaia-toast.banner .button {
 
   [role="dialog"].generic-dialog menu:not([type="toolbar"]) button:last-child,
   [role="dialog"].generic-dialog menu:not([type="toolbar"]) a.bb-button:last-child {
-    margin-left: 4rem;
+    margin-inline-start: 4rem;
     font-size: 2.3rem;
     font-weight: 400;
     width: 18rem;
@@ -230,12 +232,12 @@ gaia-toast.banner .button {
   [role="dialog"].generic-dialog menu:not([type="toolbar"]) a.bb-button,
   [role="dialog"].generic-dialog menu:not([type="toolbar"]) button:first-child,
   [role="dialog"].generic-dialog menu:not([type="toolbar"]) a.bb-button:first-child {
-    margin-left: calc(50% - 9rem);
+    margin-inline-start: calc(50% - 9rem);
   }
 
   [role="dialog"].generic-dialog menu:not([type="toolbar"])[data-items="2"] button:first-child,
   [role="dialog"].generic-dialog menu:not([type="toolbar"])[data-items="2"] a.bb-button:first-child {
-    margin-left: calc(50% - 20rem);
+    margin-inline-start: calc(50% - 20rem);
     font-size: 2.3rem;
     font-weight: 400;
     width: 18rem;
@@ -245,6 +247,6 @@ gaia-toast.banner .button {
   /* XXX need move to shared */
   form[role="dialog"][data-type="confirm"] {
     top: calc(50% - 23rem); /* dialog height 46rem */
-    left: calc(50% - 34rem); /* dialog width 68rem */
+    offset-inline-start: calc(50% - 34rem); /* dialog width 68rem */
   }
 }

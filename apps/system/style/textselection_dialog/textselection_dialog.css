@@ -5,11 +5,19 @@
   width: auto;
   position: absolute;
   background-color: #606b6e;
-  box-shadow: 0.1rem 0.1rem 0.4rem 0 rgba(0, 0, 0, 0.4);
   border-radius: 0.2rem;
   opacity: 0;
   transition: opacity var(--transition-duration) ease;
 }
+html[dir="ltr"] #text-selection-dialog-root > .textselection-dialog,
+html[dir="ltr"] .appWindow > .textselection-dialog {
+  box-shadow: 0.1rem 0.1rem 0.4rem 0 rgba(0, 0, 0, 0.4);
+}
+html[dir="rtl"] #text-selection-dialog-root > .textselection-dialog,
+html[dir="rtl"] .appWindow > .textselection-dialog {
+  box-shadow: -0.1rem 0.1rem 0.4rem 0 rgba(0, 0, 0, 0.4);
+}
+
 .appWindow > .textselection-dialog {
   z-index: 65537;
 }

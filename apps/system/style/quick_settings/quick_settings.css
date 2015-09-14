@@ -93,6 +93,7 @@
 @media (orientation: landscape) {
   #screen.software-button-enabled #quick-setting-data-enabled-dialog {
     bottom: 0;
+    /* BiDi note: the software home button should not be mirrored in RTL. */
     right: var(--software-home-button-height);
   }
 }

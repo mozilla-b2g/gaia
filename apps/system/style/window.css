@@ -305,7 +305,7 @@
   width: 100%;
   color: white;
   background: none;
-  -moz-box-sizing: border-box;
+  box-sizing: border-box;
   margin-bottom: 1.5rem; /* not overlap by menu while keyboard pop */
 }
 
@@ -390,7 +390,7 @@
 .identification-overlay > div {
   position: absolute;
   top: calc(50% - 4.65rem);
-  left: 1.5rem;
+  offset-inline-start: 1.5rem;
   width: calc(100% - 3rem);
   height: 9.3rem;
 }
@@ -398,7 +398,7 @@
 .identification-overlay > div .icon {
   position: absolute;
   top: 0;
-  left: calc(50% - 3rem);
+  offset-inline-start: calc(50% - 3rem);
   width: 6rem;
   height: 6rem;
   background: no-repeat center / contain;
@@ -615,6 +615,7 @@
 
 @media (orientation: landscape) {
   #screen.software-button-enabled:not(.fullscreen-layout-app) #windows > .appWindow.outside-edges-right {
+    /* BiDi note: the software home button should not be mirrored in RTL. */
     transform: translateX(calc(100% + var(--software-home-button-height)));
   }
 }
