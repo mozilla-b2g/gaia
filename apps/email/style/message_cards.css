@@ -69,6 +69,9 @@ section[role="region"] > header:first-child h1.msg-list-header-folder-label {
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+  /* Add some padding, Arabic in italics seems to get clipped otherwise.
+    Bug 1176832 */
+  padding: 0 0.2rem;
 }
 
 /* Display unread messages number */
