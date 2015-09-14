@@ -22,8 +22,8 @@
   function EdgeSwipeDetector() {}
 
   EdgeSwipeDetector.prototype = {
-    previous: document.getElementById('left-panel'),
-    next: document.getElementById('right-panel'),
+    leftPanel: document.getElementById('left-panel'),
+    rightPanel: document.getElementById('right-panel'),
     screen: document.getElementById('screen'),
 
     _touchForwarder: null,
@@ -48,8 +48,8 @@
 
       ['touchstart', 'touchmove', 'touchend',
        'mousedown', 'mousemove', 'mouseup'].forEach(function(e) {
-        this.previous.addEventListener(e, this);
-        this.next.addEventListener(e, this);
+        this.leftPanel.addEventListener(e, this);
+        this.rightPanel.addEventListener(e, this);
       }, this);
       this._touchForwarder = new TouchForwarder();
 
@@ -188,8 +188,8 @@
      */
     _updateEnabled: function esd_updateEnabled() {
       var enabled = this._lifecycleEnabled && this._settingEnabled;
-      this.previous.classList.toggle('disabled', !enabled);
-      this.next.classList.toggle('disabled', !enabled);
+      this.leftPanel.classList.toggle('disabled', !enabled);
+      this.rightPanel.classList.toggle('disabled', !enabled);
 
       if (!enabled && this._touchStartEvt) {
         this._touchStartEvt = null; // we ignore the rest of the gesture
@@ -215,7 +215,7 @@
 
     _touchStart: function esd_touchStart(e) {
       this._winWidth = window.innerWidth;
-      this._direction = (e.target == this.next) ? 'rtl' : 'ltr';
+      this._direction = (e.target == this.rightPanel) ? 'rtl' : 'ltr';
       this._touchStartEvt = e;
       this._startDate = Date.now();
 
@@ -327,11 +327,14 @@
       }
 
       var direction = this._direction;
-      if (direction == 'ltr') {
-        SheetsTransition.snapBack(speed);
+      if (direction === 'ltr') {
+        SheetsTransition.snapLeft(speed);
+      } else {
+        SheetsTransition.snapRight(speed);
+      }
+      if (direction === document.documentElement.dir) {
         StackManager.goPrev();
       } else {
-        SheetsTransition.snapForward(speed);
         StackManager.goNext();
       }
     },
@@ -442,10 +445,13 @@
       }
       SheetsTransition.begin(direction);
       if (direction === 'ltr') {
-        SheetsTransition.snapBack(1);
+        SheetsTransition.snapLeft(1);
+      } else {
+        SheetsTransition.snapRight(1);
+      }
+      if (direction === document.documentElement.dir) {
         StackManager.goPrev();
       } else {
-        SheetsTransition.snapForward(1);
         StackManager.goNext();
       }
     }

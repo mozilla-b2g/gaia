@@ -101,24 +101,36 @@
   100% { transform: scale(1.0); }
 }
 
-.appWindow.invoked {
-  animation: invokedApp var(--transition-duration) forwards linear;
-}
-
-.appWindow.invoking {
-  animation: invokingApp var(--transition-duration) forwards linear;
-}
-
 /* Invoking app moves out */
-@keyframes invokingApp {
+html[dir="ltr"] .appWindow.invoking {
+  animation: invokingApp_ltr var(--transition-duration) forwards linear;
+}
+html[dir="rtl"] .appWindow.invoking {
+  animation: invokingApp_rtl var(--transition-duration) forwards linear;
+}
+@keyframes invokingApp_ltr {
   0%   { transform: translateX(0) }
   100% { transform: translateX(calc(-100% - 20px)); }
 }
+@keyframes invokingApp_rtl {
+  0%   { transform: translateX(0) }
+  100% { transform: translateX(calc(100% + 20px)); }
+}
 
 /* Invoked app moves in */
-@keyframes invokedApp {
+html[dir="ltr"] .appWindow.invoked {
+  animation: invokedApp_ltr var(--transition-duration) forwards linear;
+}
+html[dir="rtl"] .appWindow.invoked {
+  animation: invokedApp_rtl var(--transition-duration) forwards linear;
+}
+@keyframes invokedApp_ltr {
   0%   { transform: translateX(calc(100% + 20px)); }
-  100%  { transform: translateX(0); }
+  100% { transform: translateX(0); }
+}
+@keyframes invokedApp_rtl {
+  0%   { transform: translateX(calc(-100% - 20px)); }
+  100% { transform: translateX(0); }
 }
 
 .appWindow.fade-in {
