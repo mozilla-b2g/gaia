@@ -247,6 +247,10 @@ li button.activity > b em {
 
 html[dir="ltr"] [data-type="list"] li aside.pack-end {
   margin: 0;
+}
+
+html[dir="ltr"] [data-type="list"] li.contact-item {
+  width: auto;
   margin-right: 2rem;
 }
 
@@ -550,7 +554,7 @@ nav[data-type="scrollbar"] ol > li > * {
 
 #groups-list.selecting .group-section li,
 #search-list.selecting li {
-  -moz-padding-start: 2rem;  
+  -moz-padding-start: 2rem;
 }
 
 form[role="dialog"].no-overlay {
@@ -661,4 +665,3 @@ html[dir="rtl"] #view-contacts-list [data-type="list"] {
   padding-left: 4.5rem; /* extending +2rem for RTL consistency */
   padding-right: unset;
 }
-
