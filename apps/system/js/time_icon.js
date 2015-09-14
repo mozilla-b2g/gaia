@@ -23,13 +23,6 @@
     this.clock.stop();
   };
 
-  TimeIcon.prototype.render = function() {
-    if (!this.rendered) {
-      BaseIcon.prototype.render.apply(this);
-      this.rendered = true;
-    }
-  };
-
   TimeIcon.prototype.view = function view() {
     return `<div id="statusbar-time"
               class="sb-icon-time" role="listitem">

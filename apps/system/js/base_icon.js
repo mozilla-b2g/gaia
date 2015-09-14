@@ -109,11 +109,16 @@
     this.publish('willrender');
     Service.request('Statusbar:iconContainer', this)
       .then(function(container) {
+        var selector = '#' + this.instanceID;
+        if (container.querySelector(selector)) {
+          //Do nothing if the element already exists
+          return;
+        }
+
         this.containerElement = container;
         this.containerElement.insertAdjacentHTML('afterbegin', this.view());
         this._fetchElements();
         this._registerEvents();
-        var selector = '#' + this.instanceID;
         this.element = this.containerElement.querySelector(selector);
         this.hide();
         this.element.classList.add('active');
