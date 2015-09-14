@@ -174,7 +174,7 @@ suite('message_list', function() {
 
     test('not edit mode', function() {
       subject.editMode = false;
-      subject.updateMatchedMessageDom(true, {
+      subject.updateMatchedMessageDom({
         element: element,
         header: message,
         matches: mockMatches
@@ -184,7 +184,7 @@ suite('message_list', function() {
 
     test('message selected', function() {
       subject.selectedMessages.push(message);
-      subject.updateMatchedMessageDom(true, {
+      subject.updateMatchedMessageDom({
         element: element,
         header: message,
         matches: mockMatches
@@ -194,7 +194,7 @@ suite('message_list', function() {
 
     test('message not selected', function() {
       subject.selectedMessages.pop(message);
-      subject.updateMatchedMessageDom(true, {
+      subject.updateMatchedMessageDom({
         element: element,
         header: message,
         matches: mockMatches
