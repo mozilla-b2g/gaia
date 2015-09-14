@@ -88,13 +88,13 @@ define(function(require) {
     },
 
     /**
-     * Play the tone
+     * Setup the tone
      *
      * @access private
      * @memberOf SliderHandler.prototype
      * @param  {Blob} blob tone blob
      */
-    _playTone: function vm_playTone(blob) {
+    _setupTone: function vm_setupTone(blob) {
       // Don't set the audio channel type to content or it will interrupt the
       // background music and won't resume after the user previewed the tone.
       if (this._channelType !== 'content') {
@@ -103,7 +103,6 @@ define(function(require) {
       this._player.src = URL.createObjectURL(blob);
       this._player.load();
       this._player.loop = true;
-      this._player.play();
     },
 
     /**
@@ -193,7 +192,7 @@ define(function(require) {
       SettingsListener.unobserve(this._channelKey, this._boundSetSliderValue);
 
       this._getToneBlob(function(blob) {
-        this._playTone(blob);
+        this._setupTone(blob);
       }.bind(this));
     },
 
@@ -208,9 +207,11 @@ define(function(require) {
       var settingObject = {};
       settingObject[this._channelKey] = value;
 
-      // Only set the new value if it does not equal to the previous one.
+      // Only set the new value if it does not equal to the previous one,
+      // and start playing tone.
       if (value !== this._previous) {
         navigator.mozSettings.createLock().set(settingObject);
+        this._player.play();
         this._previous = value;
       }
     },
