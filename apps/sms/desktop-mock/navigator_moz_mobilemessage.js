@@ -985,7 +985,6 @@
   };
 
   simulation.failState = function() {
-    var MessagesDebugError = 'string';
     return typeof window.MessagesDebugError === 'string';
   };
 
