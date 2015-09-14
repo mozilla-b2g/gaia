@@ -337,15 +337,39 @@ suite('system/ScreenManager', function() {
         assert.isFalse(stubAddListener.called);
       });
 
-      test('without cpuWakeLock', function() {
-        var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
-        var stubAddListener = this.sinon.stub();
-        stubTelephony.calls = [{'addEventListener': stubAddListener}];
-        stubTelephony.conferenceGroup = {calls: []};
-        ScreenManager._cpuWakeLock = null;
-        ScreenManager.handleEvent({'type': 'callschanged'});
-        assert.isFalse(stubDispatchEvent.calledWith('open-callscreen'));
-        assert.isTrue(stubAddListener.called);
+      suite('without a cpuWakeLock', function() {
+        teardown(function() {
+          ScreenManager._uninstallProximityListener();
+        });
+
+        test('for an incoming call', function() {
+          var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
+          var stubAddListener = this.sinon.stub();
+          stubTelephony.calls = [{
+            addEventListener: stubAddListener,
+            state: 'incoming'
+          }];
+          stubTelephony.conferenceGroup = {calls: []};
+          ScreenManager._cpuWakeLock = null;
+          ScreenManager.handleEvent({'type': 'callschanged'});
+          assert.isFalse(stubDispatchEvent.calledWith('open-callscreen'));
+          assert.isTrue(stubAddListener.called);
+        });
+
+        test('for an outgoing call', function() {
+          var stubAddListener = this.sinon.stub(window, 'addEventListener');
+          var stubStateListener = this.sinon.stub();
+          stubTelephony.calls = [{
+            addEventListener: stubStateListener,
+            state: 'dialing'
+          }];
+          stubTelephony.conferenceGroup = {calls: []};
+          ScreenManager._cpuWakeLock = null;
+          ScreenManager.handleEvent({'type': 'callschanged'});
+          assert.isTrue(stubStateListener.notCalled);
+          assert.isTrue(stubAddListener.calledOnce);
+          assert.isTrue(stubAddListener.calledWith('userproximity'));
+        });
       });
     });
 
@@ -378,7 +402,8 @@ suite('system/ScreenManager', function() {
         evt.target.state = 'connected';
         ScreenManager.handleEvent(evt);
         assert.isTrue(stubCallRemoveListener.called);
-        assert.isTrue(stubAddListener.called);
+        assert.isTrue(stubAddListener.calledOnce);
+        assert.isTrue(stubAddListener.calledWith('userproximity'));
         assert.isTrue(stubReqWakeLock.called);
       });
     });
