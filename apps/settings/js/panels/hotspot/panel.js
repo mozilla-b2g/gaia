@@ -13,6 +13,7 @@ define(function(require) {
     var elements;
     var hotspot = Hotspot();
     var hotspotSettings = HotspotSettings();
+    var hotspotSSID;
 
     return SettingsPanel({
       onInit: function(panel) {
@@ -24,10 +25,10 @@ define(function(require) {
             panel.querySelector('#hotspot-settings-section a'),
           hotspotElement:
             panel.querySelector('#tethering-wifi-enabled'),
+          hotspotMsg:
+            panel.querySelector('#wifi-hotspot-msg'),
           usbTetheringElement:
-            panel.querySelector('#tethering-usb-enabled'),
-          hotspotSecurityType: panel.querySelector('#wifi-security-type'),
-          hotspotSSID: panel.querySelector('span.hotspotSSID')
+            panel.querySelector('#tethering-usb-enabled')
         };
 
         this.incompatibleSettingsHandler =
@@ -62,10 +63,6 @@ define(function(require) {
 
         hotspotSettings.observe('hotspotSSID', this._updateHotspotSSID);
 
-        // Localize WiFi security type string when setting changes
-        hotspotSettings.observe('hotspotSecurity',
-          this._updateHotspotSecurity);
-
         this._updateUI();
       },
 
@@ -94,22 +91,23 @@ define(function(require) {
           this._onHotspotSettingsClick);
 
         hotspotSettings.unobserve('hotspotSSID');
-        hotspotSettings.unobserve('hotspotSecurity');
-      },
-
-      _updateHotspotSecurity: function(newValue) {
-        if (newValue) {
-          elements.hotspotSecurityType.setAttribute('data-l10n-id',
-            'hotspot-security-' + newValue);
-        }
       },
 
       _updateHotspotSSID: function(newValue) {
-        elements.hotspotSSID.textContent = newValue;
+        hotspotSSID = newValue;
       },
 
       _setHotspotSettingsEnabled: function(enabled) {
         elements.hotspotElement.checked = enabled;
+        if (enabled) {
+          navigator.mozL10n.setAttributes(
+            elements.hotspotMsg,
+            'wifi-hotspot-enabled-msg',
+            { hotspotSSID: hotspotSSID }
+          );
+        } else {
+          elements.hotspotMsg.setAttribute('data-l10n-id', 'disabled');
+        }
       },
 
       _setUSBTetheringCheckbox: function(enabled) {
@@ -167,7 +165,6 @@ define(function(require) {
           hotspot.usbHotspotSetting
         );
         this._updateHotspotSSID(hotspotSettings.hotspotSSID);
-        this._updateHotspotSecurity(hotspotSettings.hotspotSecurity);
       }
     });
   };
