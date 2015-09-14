@@ -55,16 +55,6 @@ var GaiaApps = {
     return undefined;
   },
 
-  getAppByURL: function(url) {
-    // return the app window with the specified URL
-    let apps = GaiaApps.getApps(true);
-    for (let id in apps) {
-      if (apps[id].url == url) {
-        return apps[id];
-      }
-    }
-  },
-
   getPermission: function(appName, permissionName) {
     GaiaApps.locateWithName(appName, function(app) {
       console.log('Getting permission \'' +
@@ -280,37 +270,37 @@ var GaiaApps = {
 
   launch: function(app, appName, launchPath, entryPoint) {
     if (app) {
+      let manifestURL = app.manifestURL;
       let origin = app.origin;
 
       let sendResponse = function() {
-        let appWindow = GaiaApps.getAppByURL(app.origin + launchPath);
-        let origin = appWindow.origin;
-        let result = {
-          frame: (appWindow.browser) ?
-              appWindow.browser.element :
-              appWindow.frame.firstChild,
-          src: (appWindow.browser) ?
-              appWindow.browser.element.src :
-              appWindow.iframe.src,
-          name: appWindow.name,
-          origin: origin};
+        let result = GaiaApps.getDisplayedApp();
         marionetteScriptFinished(result);
       };
 
-      if (GaiaApps.getDisplayedApp().origin == origin) {
-        console.log('app with origin \'' + origin + '\' is already running');
+      let displayedApp = GaiaApps.getDisplayedApp();
+      if (displayedApp.manifestURL == manifestURL ||
+          (!displayedApp.manifestURL && displayedApp.origin == origin)) {
+        console.log('app with origin \'${displayedApp.origin}\' and ' +
+          'manifestURL \'${displayedApp.manifestURL}\' is already running');
         sendResponse();
       } else {
         window.addEventListener('windowopened', function appOpen() {
           window.removeEventListener('windowopened', appOpen);
           waitFor(
             function() {
-              console.log('app with origin \'' + origin + '\' has launched');
+              console.log('app with origin \'${displayedApp.origin}\' and ' +
+                'manifestURL \'${displayedApp.manifestURL}\' has launched');
               sendResponse();
             },
             function() {
-              // wait for the displayed app to have the expected source URL
-              return GaiaApps.getDisplayedApp().src == (origin + launchPath);
+              // wait for the displayed app to have expected manifestURL/origin
+              let displayedApp = GaiaApps.getDisplayedApp();
+              if (displayedApp.manifestURL) {
+                return displayedApp.manifestURL == manifestURL;
+              } else {
+                return displayedApp.origin == origin;
+              }
             }
           );
         });
