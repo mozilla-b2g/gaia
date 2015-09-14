@@ -1,3 +1,6 @@
+# 1.9.0
+  - Bug 1200400 - Add support for switchToShadowRoot
+
 # 1.8.0
   - Bug 1168396 - Adjust Marionette JS client to protocol changes
 
