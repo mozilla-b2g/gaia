@@ -279,13 +279,7 @@
                 telephony.conferenceGroup.calls.length)) {
 
             this.turnScreenOn();
-
-            window.removeEventListener('userproximity', this);
-
-            if (this._cpuWakeLock) {
-             this._cpuWakeLock.unlock();
-             this._cpuWakeLock = null;
-            }
+            this._uninstallProximityListener();
             break;
           }
 
@@ -297,13 +291,17 @@
 
           // Enable the user proximity sensor once the call is connected.
           call = telephony.calls[0];
-          call.addEventListener('statechange', this);
+          if (call.state === 'dialing') {
+            this._installProximityListener();
+          } else {
+            call.addEventListener('statechange', this);
+          }
 
           break;
 
         case 'statechange':
           call = evt.target;
-          if (['connected', 'alerting', 'dialing'].indexOf(call.state) === -1) {
+          if (['connected', 'alerting'].indexOf(call.state) === -1) {
             break;
           }
 
@@ -312,8 +310,7 @@
           // sensor.
           call.removeEventListener('statechange', this);
 
-          this._cpuWakeLock = navigator.requestWakeLock('cpu');
-          window.addEventListener('userproximity', this);
+          this._installProximityListener();
           break;
 
         // Reconfig screen time out after booting.
@@ -632,6 +629,23 @@
         { bubbles: true, cancelable: false,
           detail: detail });
       window.dispatchEvent(evt);
+    },
+
+    _installProximityListener: function() {
+      if (this._cpuWakeLock) {
+        return;
+      }
+      this._cpuWakeLock = navigator.requestWakeLock('cpu');
+      window.addEventListener('userproximity', this);
+    },
+
+    _uninstallProximityListener: function() {
+      window.removeEventListener('userproximity', this);
+
+      if (this._cpuWakeLock) {
+       this._cpuWakeLock.unlock();
+       this._cpuWakeLock = null;
+      }
     }
   };
   exports.ScreenManager = ScreenManager;
