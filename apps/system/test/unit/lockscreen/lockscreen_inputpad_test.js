@@ -19,6 +19,8 @@ suite('LockScreenInputpad', function() {
   var emergencyKey;
   var cancelKey;
   var backKey;
+  var mockSettingLock;
+  var mockMozSettings;
   mocks.attachTestHelpers();
 
   setup(function() {
@@ -31,6 +33,33 @@ suite('LockScreenInputpad', function() {
         return elem;
       });
     mockLockScreenFacade = {};
+    mockSettingLock = function(dummyResult) {
+      this.then = (cb) => {
+        cb();
+        return this;
+      };
+      this.catch = () => {};
+      this.get = () => {
+        return this;
+      };
+      this.result = dummyResult;
+    };
+    mockMozSettings = (function (){
+      this._observers = {};
+      this._originalSettings =  window.navigator.mozSettings;
+      this._attemptToGetLock = () => {
+        // Mock the value by alternating this function.
+        return new mockSettingLock();
+      };
+      this.createLock = () => {
+        return this._attemptToGetLock();
+      };
+      this.addObserver = (name, cb) => {
+        this._observers[name] = cb;
+      };
+      return this;
+    }).call({});
+    window.navigator.mozSettings = mockMozSettings;
 
     // Build a mock keypad that helper functions can work on.
     // Uses verbatim HTML from keypad from lockscreen_inputpad_frame.html
@@ -66,12 +95,33 @@ suite('LockScreenInputpad', function() {
 
     subject = new LockScreenInputpad(mockLockScreenFacade);
     var stub = sinon.stub(subject, 'toggleEmergencyButton');
+    this.sinon.stub(window.navigator.mozSettings, '_attemptToGetLock',
+    function() {
+      var lock = new mockSettingLock(
+        {'lockscreen.passcode.strength': 'normal'});
+      return lock;
+    });
     subject.start();
     stub.restore();
   });
 
   teardown(function() {
     mockGetElementById.restore();
+    window.navigator.mozSettings = mockMozSettings._originalSettings;
+  });
+
+  test('It will change the UI when the length changes', function() {
+    var stubRenderUI = this.sinon.stub(subject, 'renderUI');
+    navigator.mozSettings.
+      _observers['lockscreen.passcode.strength']({ settingValue: 'enhanced' });
+    assert.equal(subject.configs.padPinLength, 6,
+      'With "enhanced" passcode, the length is not 6');
+    assert.isTrue(stubRenderUI.called, 'Not redraw after the change');
+    navigator.mozSettings.
+      _observers['lockscreen.passcode.strength']({ settingValue: 'normal' });
+    assert.equal(subject.configs.padPinLength, 4,
+      'With "enhanced" passcode, the length is not 4');
+    assert.isTrue(stubRenderUI.called, 'Not redraw after the change');
   });
 
   test('Emergency call: should disable when has no telephony', function() {
@@ -210,6 +260,9 @@ suite('LockScreenInputpad', function() {
     function() {
       var method = subject.updatePassCodeUI;
       var mockSubject = {
+        configs: {
+          padPinLength: 4
+        },
         states: {
           passCodeEntered: 'foo'
         },
@@ -226,6 +279,9 @@ suite('LockScreenInputpad', function() {
     function() {
       var method = subject.updatePassCodeUI;
       var mockSubject = {
+        configs: {
+          padPinLength: 4
+        },
         states: {
           passCodeEntered: ''
         },
@@ -243,6 +299,9 @@ suite('LockScreenInputpad', function() {
       function() {
         var method = subject.updatePassCodeUI;
         var mockSubject = {
+          configs: {
+            padPinLength: 4
+          },
           states: {
             passCodeEntered: '',
             passCodeErrorTimeoutPending: true
@@ -259,6 +318,9 @@ suite('LockScreenInputpad', function() {
     test('it would clear error class when not in error timeout state',
       function() {
         var mockSubject = {
+          configs: {
+            padPinLength: 4
+          },
           states: {
             passCodeEntered: '',
             passCodeErrorTimeoutPending: false
@@ -574,3 +636,4 @@ suite('LockScreenInputpad', function() {
     });
   });
 });
+

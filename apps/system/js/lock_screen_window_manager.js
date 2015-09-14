@@ -234,8 +234,6 @@
    */
   LockScreenWindowManager.prototype.startObserveSettings =
     function lwm_startObserveSettings() {
-      var enabledListener = this.handleEnable.bind(this);
-
       // FIXME(ggp) this is currently used by Find My Device to force locking.
       // Should be replaced by a proper IAC API in bug 992277.
       var lockListener = (event) => {
@@ -245,7 +243,7 @@
       };
 
       window.SettingsListener.observe('lockscreen.enabled',
-        true, enabledListener);
+        true, this.handleEnable.bind(this));
 
       // We are only interested in changes to the setting, rather
       // than its value, so just observe it instead of using SettingsListener

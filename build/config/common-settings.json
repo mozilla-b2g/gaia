@@ -146,6 +146,7 @@
    "lockscreen.enabled": true,
    "lockscreen.locked": false,
    "lockscreen.unlock-sound.enabled": false,
+   "lockscreen.passcode.strength": "normal",
    "message.sent-sound.enabled": true,
    "mms.debugging.enabled": false,
    "network.debugging.enabled": false,

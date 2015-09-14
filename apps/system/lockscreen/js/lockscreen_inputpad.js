@@ -20,6 +20,7 @@
  * control the custom input pad. See Bug 1053680.
  **/
 (function(exports) {
+
   /**
    * We still need the interface to notify the LockScreen.
    *
@@ -28,7 +29,8 @@
   var LockScreenInputpad = function(lockScreen) {
     this.lockScreen = lockScreen;
     this.configs = {
-      padVibrationDuration: 50
+      padVibrationDuration: 50,
+      padPinLength: 4   // default is 4; may get changed by mozSettings
     };
     this.states = {
       // Keep in sync with Dialer and Keyboard vibration
@@ -60,25 +62,50 @@
     this.passcodePad.addEventListener('touchmove', this);
     this.passcodePad.addEventListener('touchend', this);
 
+    this.setupSettingObservers();
+    this.renderUI();
+    return this;
+  };
+
+  LockScreenInputpad.prototype.setupSettingObservers = function() {
     window.SettingsListener.observe('keyboard.vibration',
       false, (function(value) {
       this.states.padVibrationEnabled = !!value;
     }).bind(this));
 
-    this.renderUI();
-    return this;
+    var setPinLength = (strength) => {
+      if ('normal' === strength) {
+        this.configs.padPinLength = 4;
+      } else if ('enhanced' === strength) {
+        this.configs.padPinLength = 6;
+      } // If we can, we will migrate to a real password.
+    };
+
+    var lock = navigator.mozSettings.createLock();
+    // 'normal', 'enhanced', 'password'
+    var passcodeStrength = lock.get('lockscreen.passcode.strength');
+    passcodeStrength.then(() => {
+      var strength = passcodeStrength.result['lockscreen.passcode.strength'];
+      setPinLength(strength);
+      this.renderUI();
+    }).then(() => {
+      navigator.mozSettings.addObserver('lockscreen.passcode.strength',
+        (event) => {
+          setPinLength(event.settingValue);
+          this.renderUI();
+        }
+      );
+    })
+    .catch((e) => {
+      console.error(e);
+      throw e;
+    });
   };
 
-  /**
-   * Rendering the whole UI, including waiting all necessary conditions.
-   * So rendering functions all should be Promised.
-   */
   LockScreenInputpad.prototype.renderUI = function() {
-    return new Promise((resolve, reject) => {
-      this.toggleEmergencyButton();
-      this.updatePassCodeUI();
-      resolve();
-    });
+    this.toggleEmergencyButton();
+    this.renderPinSlots(this.configs.padPinLength);
+    this.updatePassCodeUI();
   };
 
   LockScreenInputpad.prototype.toggleEmergencyButton = function() {
@@ -288,6 +315,17 @@
     window.removeEventListener(name, cb);
   };
 
+
+  LockScreenInputpad.prototype.renderPinSlots = function(n) {
+    // Remove any existing content and add n <span> children
+    this.passcodeCode.textContent = '';
+    for(var i = 0; i < n; i++) {
+      this.passcodeCode.appendChild(document.createElement('span'));
+    }
+    // Allow CSS to display the n digits at the right size.
+    this.passcodeCode.dataset.pinLength = n;
+  };
+
   LockScreenInputpad.prototype.updatePassCodeUI =
   function() {
     if (this.states.passCodeEntered) {
@@ -295,7 +333,7 @@
     } else {
       this.passcodePad.classList.remove('passcode-entered');
     }
-    if (this.states.passCodeEntered.length !== 4 &&
+    if (this.states.passCodeEntered.length !== this.configs.padPinLength &&
         this.passcodePad.classList.contains('passcode-fulfilled')) {
       this.passcodePad.classList.remove('passcode-fulfilled');
     }
@@ -304,7 +342,7 @@
     } else {
       this.passcodeCode.classList.remove('error');
     }
-    var i = 4;
+    var i = this.configs.padPinLength;
     while (i--) {
       var span = this.passcodeCode.childNodes[i];
       if (span) {
@@ -358,16 +396,19 @@
         if (this.states.passCodeErrorTimeoutPending) {
           break;
         }
-        // If it's already 4 digits and this is the > 5th one,
-        // don't do anything.
-        if (this.states.passCodeEntered.length === 4) {
+        // If it already has pinLength digits, don't do anything.
+        if (this.states.passCodeEntered.length === this.configs.padPinLength) {
           return;
         }
 
         this.states.passCodeEntered += key;
         this.updatePassCodeUI();
 
-        if (this.states.passCodeEntered.length === 4) {
+        if (this.states.padVibrationEnabled) {
+          navigator.vibrate(this.configs.padVibrationDuration);
+        }
+
+        if (this.states.passCodeEntered.length === this.configs.padPinLength) {
           this.passcodePad.classList.add('passcode-fulfilled');
           this.lockScreen.checkPassCode(this.states.passCodeEntered);
         }

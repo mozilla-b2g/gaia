@@ -62,7 +62,7 @@
     /**
      * Timeout to black the screen when locking.
      */
-    LOCKING_TIMEOUT: 10,
+    LOCKING_TIMEOUT: 100000000,
 
     /*
      * Wait for _dimNotice milliseconds during idle-screen-off

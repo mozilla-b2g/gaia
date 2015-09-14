@@ -102,7 +102,9 @@
         'lockscreen.passcode-lock.timeout':
           this.getSettingsObserverCallback('passcodeTimeout'),
         'lockscreen.unlock-sound.enabled':
-          this.getSettingsObserverCallback('unlockSoundEnabled')
+          this.getSettingsObserverCallback('unlockSoundEnabled'),
+        'lockscreen.passcode.strength':
+          this.onPasscodeStrengthChanged.bind(this)
       }
     };
 
@@ -117,6 +119,7 @@
       inputpad: null,
       passcodeTimeoutExpired: true,
       passcodeValidated: false,
+      passcodeStrengthChanged: false,  // A resonable (so far) default value
       secureAppOpen: false,
       secureAppClose: false,
       unlockingAppActivated: false,
@@ -260,6 +263,15 @@
     this.states.keypadRising,
     'When it activate to unlock, show the passcode pad with' +
     ' animation.');
+
+    this.registerRule({
+      passcodeEnabled: true,
+      screenOn: true,
+      passcodeStrengthChanged: true
+    },
+    ['keypadShow'],
+    this.states.keypadHiding,
+    'When the passcode strength changes, close the pad');
 
     this.registerRule({
       passcodeEnabled: true,
@@ -744,6 +756,14 @@
       unlocking: true
     });
     this.lockScreenStates.unlocking = true;  // We're now unlocking.
+    this.nextStep(this.transfer.bind(this, inputs));
+  };
+
+  LockScreenStateManager.prototype.onPasscodeStrengthChanged =
+  function lssm_onPasscodeStrengthChanged() {
+    var inputs = this.extend(this.lockScreenStates, {
+      passcodeStrengthChanged: true
+    });
     this.nextStep(this.transfer.bind(this, inputs));
   };
 
