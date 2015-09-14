@@ -803,7 +803,7 @@
             this.runHook('startSession', function() { callback(err, res); });
           }
         }.bind(this);
-  
+
         var body = {
           name: 'newSession',
           parameters: {capabilities: desiredCapabilities},
@@ -963,6 +963,32 @@
         for (var key in options) {
           cmd.parameters[key] = options[key];
         }
+      }
+
+      return this._sendCommand(cmd, callback);
+    },
+
+    /**
+     * Switch the current context to the specified host's Shadow DOM.
+     * Subsequent commands will operate in the context of the specified Shadow
+     * DOM, if applicable.
+     *
+     * @param {Marionette.Element} [host] A reference to the host element
+     * containing Shadow DOM. This can be an Marionette.Element. If you call
+     * switchToShadowRoot without an argument, it will switch to the
+     * parent Shadow DOM or the top-level frame.
+     * @param {Function} callback called with boolean.
+     */
+    switchToShadowRoot: function switchToShadowRoot(host, callback) {
+      if (typeof(host) === 'function') {
+        callback = host;
+        host = null;
+      }
+
+      var cmd = { name: 'switchToShadowRoot', parameters: {} };
+
+      if (host instanceof this.Element) {
+        cmd.parameters.id = host.id;
       }
 
       return this._sendCommand(cmd, callback);
