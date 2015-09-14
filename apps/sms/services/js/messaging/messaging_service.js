@@ -18,7 +18,7 @@ if (!('MozMobileMessageClient' in self)) {
 const SERVICE_NAME = 'messaging-service';
 
 const METHODS = Object.freeze([
-  'registerEvent', 'sendSMS', 'sendMMS', 'resendMessage', 'retrieveMMS'
+  'register', 'sendSMS', 'sendMMS', 'resendMessage', 'retrieveMMS'
 ]);
 
 const EVENTS = Object.freeze([
@@ -70,12 +70,15 @@ var MessagingService = {
     this.initService();
   },
 
-  registerEvent(appInstanceId) {
+  register(appInstanceId) {
     var mobileMessageClient = MozMobileMessageClient.forApp(appInstanceId);
 
     EVENTS.forEach((event) => {
-      mobileMessageClient.on(event, (...args) => {
-        this.broadcast(event, ...args);
+      mobileMessageClient.on(event, (data) => {
+        // Workaround to avoid the duplicated events by inserting appInstanceId
+        // into event name in bridge mixin.
+        data.appInstanceId = appInstanceId;
+        this.broadcast(event, data);
       });
     });
     return;

@@ -50,15 +50,15 @@
         timeout: TIMEOUT
       });
 
-      return client.method('registerEvent', appInstanceId);
+      return client.method('register', appInstanceId);
     },
 
     on(event, func) {
-      client.on(event, func);
+      client.on(`${event}-${appInstanceId}`, func);
     },
 
     off(event, func) {
-      client.off(event, func);
+      client.off(`${event}-${appInstanceId}`, func);
     },
 
     sendSMS(options) {

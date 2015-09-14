@@ -90,14 +90,14 @@ var Startup = exports.Startup = {
       // Init UI Managers
       TimeHeaders.init();
       MozMobileConnectionsClient.init(App.instanceId);
-      MessagingClient.init(App.instanceId).then(() => {
-        ConversationView.init();
-        Information.initDefaultViews();
+      MessagingClient.init(App.instanceId);
 
-        Navigation.setReady();
+      ConversationView.init();
+      Information.initDefaultViews();
 
-        window.performance.mark('contentInteractive');
-      });
+      Navigation.setReady();
+
+      window.performance.mark('contentInteractive');
 
       // Fetch mmsSizeLimitation and max concat
       Settings.init();
