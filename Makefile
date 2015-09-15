@@ -760,12 +760,9 @@ ifndef APPS
   endif
 endif
 
+# Bug 1195872: curl+tar is a hack for circumventing FTP shutdown
 b2g: node_modules/.bin/mozilla-download
-	DEBUG=* ./node_modules/.bin/mozilla-download \
-	--verbose \
-	--product b2g \
-	--channel tinderbox \
-	--branch mozilla-b2g37_v2_2 $@
+	curl https://ftp.mozilla.org/pub/mozilla.org/b2g/tinderbox-builds/mozilla-b2g37_v2_2r-linux64_gecko/latest/b2g-37.0.multi.linux-x86_64.tar.bz2 | tar xjv
 
 .PHONY: test-integration
 # $(PROFILE_FOLDER) should be `profile-test` when we do `make test-integration`.
