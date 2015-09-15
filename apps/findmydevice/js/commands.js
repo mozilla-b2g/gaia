@@ -149,6 +149,7 @@ var Commands = {
         'lockscreen.enabled': true,
         'lockscreen.notifications-preview.enabled': false,
         'lockscreen.passcode-lock.enabled': true,
+        'lockscreen.passcode-lock.timeout': 0, // fixes bug 1202484
         'lockscreen.lock-immediately': true
       };
 
