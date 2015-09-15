@@ -9,6 +9,7 @@ require('/shared/js/url_helper.js');
 require('/shared/js/settings_listener.js');
 require('/js/import.js');
 require('/js/activity_handler.js');
+require('/js/service.js');
 require('/js/browser.js');
 
 require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
