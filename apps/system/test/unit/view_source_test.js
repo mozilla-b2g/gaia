@@ -171,5 +171,21 @@ suite('system/ViewSource', function() {
       assert.equal(iframe.style.height,
                    'calc(' + value + 'px - var(--statusbar-height) - 50px)');
     });
+
+    test('resizes when "system-resize" event received', function() {
+      dimension = 'getHeightFor';
+      value = 200;
+
+      subject.viewsource();
+      element = document.body.querySelector('.view-source');
+
+      value = 150;
+
+      var systemResize = new CustomEvent('system-resize');
+      window.dispatchEvent(systemResize);
+
+      assert.equal(element.style.height,
+                   'calc(' + value + 'px - var(--statusbar-height))');
+    });
   });
 });

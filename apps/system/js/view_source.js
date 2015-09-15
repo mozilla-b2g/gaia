@@ -28,6 +28,7 @@
      */
     _start: function() {
       this._hide = this._hide.bind(this);
+      this._resize = this._resize.bind(this);
     },
 
     /**
@@ -53,15 +54,9 @@
       };
       var frame = new BrowserFrame(config);
 
-      var windowWidth = Service.query('LayoutManager.width');
-      var windowHeight = Service.query('getHeightFor', frame);
-
       var container = document.createElement('div');
       container.classList.add('view-source');
       container.dataset.zIndexLevel = 'view-source';
-      container.style.width = windowWidth + 'px';
-      container.style.height =
-        'calc(' + windowHeight + 'px - var(--statusbar-height))';
       this._viewer = container;
 
       var header = document.createElement('gaia-header');
@@ -74,17 +69,18 @@
       container.appendChild(header);
 
       var viewsource = frame.element;
-      viewsource.style.height =
-        'calc(' + windowHeight + 'px - var(--statusbar-height) - 50px)';
       container.appendChild(viewsource);
 
       var screen = document.querySelector('#screen');
       screen.appendChild(container);
 
+      this._resize();
+
       window.addEventListener('home', this._hide);
       window.addEventListener('holdhome', this._hide);
       window.addEventListener('sleep', this._hide);
       window.addEventListener('lockscreen-appopened', this._hide);
+      window.addEventListener('system-resize', this._resize);
     },
 
     /**
@@ -102,6 +98,26 @@
       window.removeEventListener('holdhome', this._hide);
       window.removeEventListener('sleep', this._hide);
       window.removeEventListener('lockscreen-appopened', this._hide);
+      window.removeEventListener('system-resize', this._resize);
     },
+
+    /**
+     * Size the viewer correctly according to the space that it has available.
+     * @memberof ViewSource.prototype
+     */
+    _resize: function(evt) {
+      var container = this._viewer;
+      var frame = container.querySelector('iframe');
+
+      var windowWidth = Service.query('LayoutManager.width');
+      var windowHeight = Service.query('getHeightFor', frame);
+
+      container.style.width = windowWidth + 'px';
+      container.style.height =
+        'calc(' + windowHeight + 'px - var(--statusbar-height))';
+
+      frame.style.height =
+        'calc(' + windowHeight + 'px - var(--statusbar-height) - 50px)';
+    }
   });
 }(window));
