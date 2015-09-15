@@ -24,10 +24,10 @@ Keyboards['fa-10'] = {
       { value: 'خ' }, { value: 'ح' }, { value: 'ج' }, { value: 'چ' }
     ], [
       { value: 'ش' }, { value: 'س' }, { value: 'ی' }, { value: 'ب' },
-      { value: 'ل' } , { value: 'ا' }, { value: 'ت' }, { value: 'ن' },
+      { value: 'ل' }, { value: 'ا' }, { value: 'ت' }, { value: 'ن' },
       { value: 'م' }, { value: 'پ' }
     ], [
-      { value: 'ط'},
+      { value: 'ط' },
       { value: 'ژ' }, { value: 'ز' }, { value: 'ر' }, { value: 'د' },
       { value: 'و' }, { value: 'ک' }, { value: 'گ' },
       { value: '⌫', ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE }
