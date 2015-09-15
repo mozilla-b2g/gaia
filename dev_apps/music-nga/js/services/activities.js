@@ -12,14 +12,16 @@ function ActivitiesService(worker) {
     return new Promise((resolve) => {
       var filePath = decodeURIComponent(request.parameters.filePath);
       client.method('share', filePath)
-        .then(() => {
-          resolve(new Response(JSON.stringify({ success: true }), {
-            headers: { 'Content-Type': 'application/json' }
-          }));
-        })
+        .then(() => resolve(respond({ success: true })))
         .catch((error) => {
           resolve(new Response('', { status: 404 }));
         });
     });
   }));
+
+  function respond(response) {
+    return new Response(JSON.stringify(response), {
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
 }

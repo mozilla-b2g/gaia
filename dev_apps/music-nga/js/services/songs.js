@@ -10,21 +10,15 @@ function SongsService(worker) {
 
   worker.get('/api/songs/list', stopAfter((request) => {
     return new Promise((resolve) => {
-      client.method('getSongs').then((songs) => {
-        resolve(new Response(JSON.stringify(songs), {
-          headers: { 'Content-Type': 'application/json' }
-        }));
-      });
+      client.method('getSongs')
+        .then(songs => resolve(respond(songs)));
     });
   }));
 
   worker.get('/api/songs/count', stopAfter((request) => {
     return new Promise((resolve) => {
-      client.method('getSongCount').then((count) => {
-        resolve(new Response(JSON.stringify(count), {
-          headers: { 'Content-Type': 'application/json' }
-        }));
-      });
+      client.method('getSongCount')
+        .then(count => resolve(respond(count)));
     });
   }));
 
@@ -32,11 +26,7 @@ function SongsService(worker) {
     return new Promise((resolve) => {
       var filePath = decodeURIComponent(request.parameters.filePath);
       client.method('getSong', filePath)
-        .then((song) => {
-          resolve(new Response(JSON.stringify(song), {
-            headers: { 'Content-Type': 'application/json' }
-          }));
-        })
+        .then(song => resolve(respond(song)))
         .catch((error) => {
           resolve(new Response('', { status: 404 }));
         });
@@ -48,16 +38,14 @@ function SongsService(worker) {
       var rating = request.parameters.rating;
       var filePath = decodeURIComponent(request.parameters.filePath);
       client.method('setSongRating', rating, filePath)
-        .then(() => {
-          resolve(new Response(JSON.stringify({ success: true }), {
-            headers: { 'Content-Type': 'application/json' }
-          }));
-        })
-        .catch(() => {
-          resolve(new Response(JSON.stringify({ success: false }), {
-            headers: { 'Content-Type': 'application/json' }
-          }));
-        });
+        .then(() =>  resolve(respond({ success: true  })))
+        .catch(() => resolve(respond({ success: false })));
     });
   }));
+
+  function respond(response) {
+    return new Response(JSON.stringify(response), {
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
 }

@@ -1,4 +1,4 @@
-/* global SERVICE_WORKERS, service */
+/* global SERVICE_WORKERS, bridge */
 'use strict';
 
 function perfMark(marker) {

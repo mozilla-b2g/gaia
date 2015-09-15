@@ -2,7 +2,6 @@
   "version": "0.0.1",
   "name": "Music NGA",
   "description": "Gaia Music powered by NGA",
-  "origin": "app://music-nga.gaiamobile.org",
   "launch_path": "/index.html",
   "icons": {
     "84": "/img/icons/default_84.png",
@@ -75,5 +74,8 @@
     }
   },
   "default_locale": "en",
-  "orientation": "default"
+  "orientation": "default",
+  "messages": [
+    { "media-button": "/index.html" }
+  ]
 }

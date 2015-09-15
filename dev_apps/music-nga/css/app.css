@@ -12,6 +12,7 @@ html {
 body {
   margin: 0;
   overflow: hidden;
+  -moz-user-select: none;
 }
 
 a {

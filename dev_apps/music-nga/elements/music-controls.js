@@ -3,6 +3,8 @@
 
 var proto = Object.create(HTMLElement.prototype);
 
+var isTouch = 'ontouchstart' in window;
+
 var template =
 `<style scoped>
   #container {
@@ -60,6 +62,34 @@ proto.createdCallback = function() {
     toggle:    $id('toggle'),
     next:      $id('next')
   };
+
+  var seeking = false;
+
+  this.els.container.addEventListener('contextmenu', (evt) => {
+    evt.preventDefault();
+
+    if (seeking) {
+      return;
+    }
+
+    var button = evt.target.closest('button');
+    if (button.id === 'previous' || button.id === 'next') {
+      seeking = true;
+
+      this.dispatchEvent(new CustomEvent('startseek', {
+        detail: { reverse: button.id === 'previous' }
+      }));
+    }
+  });
+
+  this.els.container.addEventListener(isTouch ? 'touchend' : 'mouseup', (evt) => {
+    if (seeking) {
+      evt.preventDefault();
+
+      this.dispatchEvent(new CustomEvent('stopseek'));
+      seeking = false;
+    }
+  });
 
   this.els.container.addEventListener('click', (evt) => {
     var button = evt.target.closest('button');

@@ -10,25 +10,24 @@ function PlaylistService(worker) {
 
   worker.get('/api/playlists/list', stopAfter((request) => {
     return new Promise((resolve) => {
-      client.method('getPlaylists').then((playlists) => {
-        resolve(new Response(JSON.stringify(playlists), {
-          headers: { 'Content-Type': 'application/json' }
-        }));
-      });
+      client.method('getPlaylists')
+        .then(playlists => resolve(respond(playlists)));
     });
   }));
 
   worker.get('/api/playlists/info/:id', stopAfter((request) => {
     return new Promise((resolve) => {
       client.method('getPlaylist', request.parameters.id)
-        .then((songs) => {
-          resolve(new Response(JSON.stringify(songs), {
-            headers: { 'Content-Type': 'application/json' }
-          }));
-        })
+        .then(songs => resolve(respond(songs)))
         .catch((error) => {
           resolve(new Response('', { status: 404 }));
         });
     });
   }));
+
+  function respond(response) {
+    return new Response(JSON.stringify(response), {
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
 }

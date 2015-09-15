@@ -10,11 +10,8 @@ function ArtistsService(worker) {
 
   worker.get('/api/artists/list', stopAfter((request) => {
     return new Promise((resolve) => {
-      client.method('getArtists').then((artists) => {
-        resolve(new Response(JSON.stringify(artists), {
-          headers: { 'Content-Type': 'application/json' }
-        }));
-      });
+      client.method('getArtists')
+        .then(artists => resolve(respond(artists)));
     });
   }));
 
@@ -22,14 +19,16 @@ function ArtistsService(worker) {
     return new Promise((resolve) => {
       var filePath = decodeURIComponent(request.parameters.filePath);
       client.method('getArtist', filePath)
-        .then((songs) => {
-          resolve(new Response(JSON.stringify(songs), {
-            headers: { 'Content-Type': 'application/json' }
-          }));
-        })
+        .then(songs => resolve(respond(songs)))
         .catch((error) => {
           resolve(new Response('', { status: 404 }));
         });
     });
   }));
+
+  function respond(response) {
+    return new Response(JSON.stringify(response), {
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
 }

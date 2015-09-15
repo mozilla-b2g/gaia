@@ -11,58 +11,53 @@ function AudioService(worker) {
   worker.get('/api/audio/play', stopAfter((request) => {
     return new Promise((resolve) => {
       client.method('play')
-        .then(() => {
-          resolve(new Response(JSON.stringify({ success: true }), {
-            headers: { 'Content-Type': 'application/json' }
-          }));
-        })
-        .catch(() => {
-          resolve(new Response(JSON.stringify({ success: false }), {
-            headers: { 'Content-Type': 'application/json' }
-          }));
-        });
+        .then(() =>  resolve(respond({ success: true  })))
+        .catch(() => resolve(respond({ success: false })));
     });
   }));
 
   worker.get('/api/audio/pause', stopAfter((request) => {
     return new Promise((resolve) => {
       client.method('pause')
-        .then(() => {
-          resolve(new Response(JSON.stringify({ success: true }), {
-            headers: { 'Content-Type': 'application/json' }
-          }));
-        })
-        .catch(() => {
-          resolve(new Response(JSON.stringify({ success: false }), {
-            headers: { 'Content-Type': 'application/json' }
-          }));
-        });
+        .then(() =>  resolve(respond({ success: true  })))
+        .catch(() => resolve(respond({ success: false })));
     });
   }));
 
   worker.get('/api/audio/seek/:time', stopAfter((request) => {
     return new Promise((resolve) => {
       client.method('seek', request.parameters.time)
-        .then(() => {
-          resolve(new Response(JSON.stringify({ success: true }), {
-            headers: { 'Content-Type': 'application/json' }
-          }));
-        })
-        .catch(() => {
-          resolve(new Response(JSON.stringify({ success: false }), {
-            headers: { 'Content-Type': 'application/json' }
-          }));
-        });
+        .then(() =>  resolve(respond({ success: true  })))
+        .catch(() => resolve(respond({ success: false })));
+    });
+  }));
+
+  worker.get('/api/audio/fastseek/start/:direction', stopAfter((request) => {
+    return new Promise((resolve) => {
+      client.method('startFastSeek', request.parameters.direction === 'reverse')
+        .then(() =>  resolve(respond({ success: true  })))
+        .catch(() => resolve(respond({ success: false })));
+    });
+  }));
+
+  worker.get('/api/audio/fastseek/stop', stopAfter((request) => {
+    return new Promise((resolve) => {
+      client.method('stopFastSeek')
+        .then(() =>  resolve(respond({ success: true  })))
+        .catch(() => resolve(respond({ success: false })));
     });
   }));
 
   worker.get('/api/audio/status', stopAfter((request) => {
     return new Promise((resolve) => {
-      client.method('getPlaybackStatus').then((status) => {
-        resolve(new Response(JSON.stringify(status), {
-          headers: { 'Content-Type': 'application/json' }
-        }));
-      });
+      client.method('getPlaybackStatus')
+        .then(status => resolve(respond(status)));
     });
   }));
+
+  function respond(response) {
+    return new Response(JSON.stringify(response), {
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
 }
