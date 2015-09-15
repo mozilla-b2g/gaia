@@ -15,6 +15,7 @@ Homescreen.Selectors = {
   appsScrollable: '#apps-panel .scrollable',
   apps: '#apps',
   icon: '#apps gaia-app-icon',
+  card: '#pages gaia-pin-card',
   uninstall: '#uninstall',
   edit: '#edit',
   cancelDownload: '#cancel-download',
@@ -39,8 +40,20 @@ Homescreen.prototype = {
     return this.client.findElements(Homescreen.Selectors.icon);
   },
 
+  get cards() {
+    return this.client.findElements(Homescreen.Selectors.card);
+  },
+
   get visibleIcons() {
     return this.icons.filter(function(el) {
+      return el.scriptWith(function(el) {
+        return el.parentNode.style.display !== 'none';
+      });
+    });
+  },
+
+  get visibleCards() {
+    return this.cards.filter(function(el) {
       return el.scriptWith(function(el) {
         return el.parentNode.style.display !== 'none';
       });
