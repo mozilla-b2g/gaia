@@ -42,6 +42,8 @@ ControlsController.prototype.bindEvents = function() {
   // App
   this.app.on('change:recording', this.onRecordingChange);
   this.app.on('camera:shutter', this.captureHighlightOff);
+  this.app.on('camera:willchange', this.onCameraWillChange);
+  this.app.on('camera:configured', this.onCameraConfigured);
   this.app.on('newthumbnail', this.onNewThumbnail);
   this.app.once('loaded', this.onceAppLoaded);
   this.app.on('busy', this.onCameraBusy);
@@ -141,6 +143,21 @@ ControlsController.prototype.onceAppLoaded = function() {
 ControlsController.prototype.onCaptureClick = function() {
   this.captureHighlightOn();
   this.app.emit('capture');
+};
+
+/**
+ * Prevent the mode switch from being changed
+ * by the user when we are in the process of
+ * configuring the camera.
+ *
+ * @private
+ */
+ControlsController.prototype.onCameraWillChange = function() {
+  this.view.suspendMode(true);
+};
+
+ControlsController.prototype.onCameraConfigured = function() {
+  this.view.suspendMode(false);
 };
 
 /**

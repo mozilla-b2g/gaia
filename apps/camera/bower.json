@@ -23,7 +23,7 @@
     "device-orientation": "gaia-components/device-orientation",
     "view": "gaia-components/view#~0.1.1",
     "model": "gaia-components/model#~0.1.0",
-    "drag": "gaia-components/drag",
+    "drag": "gaia-components/drag#0.2.1",
     "gaia-header": "gaia-components/gaia-header#~0.5.0",
     "gaia-theme": "gaia-components/gaia-theme#~0.4.1",
     "gaia-icons": "gaia-components/gaia-icons#~0.9.0"

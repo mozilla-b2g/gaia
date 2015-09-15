@@ -1,10 +1,12 @@
 {
   "name": "drag",
-  "version": "0.1.1",
+  "version": "0.2.1",
   "description": "",
-  "main": "index.js",
+  "main": "drag.js",
   "scripts": {
-    "test": "gaia-test-unit"
+    "install": "bower install",
+    "test": "./node_modules/karma/bin/karma start test/karma.conf.js --single-run",
+    "test-dev": "./node_modules/karma/bin/karma start test/karma.conf.js"
   },
   "repository": {
     "type": "git",
@@ -20,6 +22,11 @@
     "evt": "git://github.com/gaia-components/evt#v0.4.0"
   },
   "devDependencies": {
-    "gaia-test": "git://github.com/gaia-components/gaia-test"
+    "bower": "^1.3.5",
+    "karma": "^0.12.16",
+    "karma-firefox-launcher": "^0.1.3",
+    "karma-mocha": "^0.1.3",
+    "karma-sinon-chai": "^0.1.6",
+    "mozilla-download": "0.4.4"
   }
 }
