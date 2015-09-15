@@ -1,13 +1,13 @@
 <!DOCTYPE html>
-<html>
+<html dir="ltr">
 <head>
   <meta charset="utf-8">
   <title>Switches</title>
   <meta name="description" content="Activates/Deactivates a given item. It's also used to select an element within a list">
   <link rel="stylesheet" href="../switches.css">
   <!--
-    - This <style> element is only used for the example code;
-    - it is not required for the real use case.
+    - These <style> elements are only used for the example code;
+    - they are not required for the real use case.
     -->
   <style type="text/css">
     html, body {
@@ -25,13 +25,19 @@
       color: #666;
       margin: -1px 0 0;
       background-color: #f5f5f5;
-      padding: 0.4rem 0.4rem 0.4rem 3rem;
+      padding: 0.4rem;
+      padding-inline-start: 3rem;
       border: solid 1px #e8e8e8;
     }
     label {
-      margin-left: 2rem;
+      margin-inline-start: 2rem;
     }
   </style>
+  <script>
+    window.onload = function() {
+      document.getElementById('dir').checked = false;
+    };
+  </script>
 </head>
 <body role="application">
   <p dir="ltr">
