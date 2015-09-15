@@ -20,6 +20,8 @@ task:
     # Chunking logic is actually in the Makefile here which may make it
     # confusing to figure out who calls what this should be improved.
     env:
+      PART: '{{chunk}}'
+      NBPARTS: '{{totalChunks}}'
       REPORTER: 'mocha-tbpl-reporter'
       TEST_MANIFEST: '{{gaia}}/shared/test/integration/tbpl-manifest.json'
       GAIA_DEVICE_TYPE: 'tv'
@@ -38,6 +40,6 @@ task:
 
   extra:
     treeherder:
-      groupName: "Gaia javascript integration tests"
-      groupSymbol: Gij
-      symbol: GijTV
+      groupName: "Gaia JavaScript integration tests for TV"
+      groupSymbol: GijTV
+      symbol: GijTV{{chunk}}
