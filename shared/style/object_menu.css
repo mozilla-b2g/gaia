@@ -2,6 +2,15 @@
  * Object menu
  * ---------------------------------- */
 
+html[dir="ltr"] [role="dialog"][data-type="object"] [dir] { text-align: left; }
+html[dir="rtl"] [role="dialog"][data-type="object"] [dir] { text-align: right; }
+
+/**
+ * We want each paragraph in a textarea to be aligned
+ * according to its natural direction.
+ */
+html[dir] [role="dialog"][data-type="object"] textarea[dir] { text-align: start; }
+
 /* Main dialog setup */
 [role="dialog"][data-type="object"] {
   display: flex;
@@ -33,7 +42,6 @@
 }
 
 [role="dialog"][data-type="object"] > header h1 {
-  text-align: left;
   color: #fff;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -130,7 +138,6 @@
   color: #fff;
   border: none;
   background-color: transparent;
-  text-align: left;
   font-size: 1.8rem;
   font-weight: 300;
   font-style: normal;
@@ -250,9 +257,9 @@ label span::-moz-selection {
 }
 
 [role="dialog"][data-type="object"] menu button {
-  margin-left: 1rem;
+  margin-inline-start: 1rem;
 }
 
 [role="dialog"][data-type="object"] menu button:first-child {
-  margin-left: 0;
+  margin-inline-start: 0;
 }

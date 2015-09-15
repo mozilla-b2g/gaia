@@ -78,12 +78,12 @@ shared/elements/gaia_grid/style.css 0 5
 shared/elements/gaia-theme/gaia-theme.css 5 0
 shared/style/value_selector.css 0 1
 shared/style/edit_mode.css 0 2
-shared/style/action_menu.css 0 1
+shared/style/action_menu.css 3 1
+shared/style/object_menu.css 2 0
 shared/style/headers.css 0 0
 shared/style/contacts/contacts_buttons.css 0 7
 shared/pages/import/style/import.css 0 4
 shared/pages/import/style/search.css 0 3
-shared/style/action_menu.css 0 1
 shared/style/dialer/dialer.css 0 1
 shared/style/edit_mode.css 1 0
 shared/style/value_selector.css 0 1
