@@ -45,7 +45,14 @@
      * @memberof ViewSource.prototype
      */
     _show: function() {
-      var url = 'view-source:' + Service.query('getTopMostWindow').config.url;
+      var appConfig = Service.query('getTopMostWindow').config;
+
+      var url = 'view-source:' + appConfig.origin;
+      url = url.split('#')[0]; // Strip out the hash.
+      if (!url.match('\.html$') && appConfig.manifest.launch_path) {
+        url = url + appConfig.manifest.launch_path;
+      }
+
       var config = {
         url: url,
         title: url,
