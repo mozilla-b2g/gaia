@@ -21,10 +21,10 @@ Keyboards['fa-11'] = {
       { value: 'خ' }, { value: 'ح' }, { value: 'ج' }, { value: 'چ' }
     ], [
       { value: 'ظ' }, { value: 'ش' }, { value: 'س' }, { value: 'ی' },
-      { value: 'ب' }, { value: 'ل' } , { value: 'ا' }, { value: 'ت' },
-      { value: 'ن' },{ value: 'م' }, { value: 'پ' }
+      { value: 'ب' }, { value: 'ل' }, { value: 'ا' }, { value: 'ت' },
+      { value: 'ن' }, { value: 'م' }, { value: 'پ' }
     ], [
-      { value: 'ط'}, { value: 'ژ' },
+      { value: 'ط' }, { value: 'ژ' },
       { value: 'ز' }, { value: 'ر' }, { value: 'ذ' }, { value: 'د' },
       { value: 'و' }, { value: 'ک' }, { value: 'گ',ratio: 1.5 },
       { value: '⌫', ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE }
