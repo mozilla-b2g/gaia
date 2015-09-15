@@ -1019,6 +1019,7 @@
   };
 
   MockNavigatormozMobileMessage.send = function(number, text, success, error) {
+    var now = Date.now();
     var sendId = messagesDb.id++;
     var request = {
       error: null
@@ -1116,7 +1117,7 @@
           id: messagesDb.id++,
           type: 'sms',
           read: false,
-          timestamp: now,
+          timestamp: now + 1,
           sentTimestamp: now - 100000,
           threadId: thread.id
         }

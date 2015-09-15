@@ -1002,9 +1002,10 @@ suite('thread_list_ui', function() {
         timestamp: Date.now()
       });
 
-      InboxView.createThread(smsThread);
+      var result = InboxView.createThread(smsThread);
+      var bodyNode = result.querySelector('.js-conversation-body');
+      assert.equal(bodyNode.textContent, smsThread.body);
 
-      sinon.assert.calledWith(Template.escape, smsThread.body);
       sinon.assert.called(MockTimeHeaders.update);
     });
 
@@ -1017,9 +1018,10 @@ suite('thread_list_ui', function() {
         timestamp: Date.now()
       });
 
-      InboxView.createThread(mmsThread);
+      var result = InboxView.createThread(mmsThread);
+      var bodyNode = result.querySelector('.js-conversation-body');
+      assert.equal(bodyNode.textContent, mmsThread.body);
 
-      sinon.assert.calledWith(Template.escape, mmsThread.body);
       sinon.assert.called(MockTimeHeaders.update);
     });
 
@@ -1536,7 +1538,10 @@ suite('thread_list_ui', function() {
     });
 
     test('InboxView.updateThread is called', function() {
-      sinon.assert.called(InboxView.updateThread);
+      sinon.assert.calledWith(
+        InboxView.updateThread,
+        sinon.match({ id: 3 }), { conversationDraft: true }
+      );
     });
 
     test('InboxView.setContact is called', function() {
@@ -1583,6 +1588,7 @@ suite('thread_list_ui', function() {
       var node = InboxView.createThread(oneToOneThread);
       thread = {
         node: node,
+        title: node.querySelector('.threadlist-item-title'),
         pictureContainer: node.querySelector('.threadlist-item-picture'),
         picture: node.querySelector('[data-type=img]')
       };
@@ -1590,6 +1596,7 @@ suite('thread_list_ui', function() {
       node = InboxView.createThread(oneToManyThread);
       groupThread = {
         node: node,
+        title: node.querySelector('.threadlist-item-title'),
         pictureContainer: node.querySelector('.threadlist-item-picture'),
         picture: node.querySelector('[data-type=img]')
       };
@@ -1623,7 +1630,12 @@ suite('thread_list_ui', function() {
         assert.include(backgroundImages[1], 'default_contact_image.png');
 
         sinon.assert.notCalled(Contacts.addUnknown);
+
+        assert.equal(thread.title.textContent, 'Pepito O\'Hare');
       }).then(done, done);
+
+      // We mustn't leave the field empty
+      assert.equal(thread.title.textContent, '555');
     });
 
     test('display correctly a contact without a picture', function(done) {
@@ -1638,7 +1650,11 @@ suite('thread_list_ui', function() {
         );
         assert.equal(thread.picture.style.backgroundImage, '');
         sinon.assert.notCalled(Contacts.addUnknown);
+        assert.equal(thread.title.textContent, 'Pepito O\'Hare');
       }).then(done, done);
+
+      // We mustn't leave the field empty
+      assert.equal(thread.title.textContent, '555');
     });
 
     test('correctly revokes old contact image blob URL', function(done) {
@@ -1682,7 +1698,11 @@ suite('thread_list_ui', function() {
           thread.pictureContainer.classList.contains('has-picture')
         );
         sinon.assert.calledWith(Contacts.addUnknown, '555');
+        assert.equal(thread.title.textContent, '555');
       }).then(done, done);
+
+      // We mustn't leave the field empty
+      assert.equal(thread.title.textContent, '555');
     });
 
     test('display correctly a group MMS thread', function(done) {
@@ -1707,10 +1727,6 @@ suite('thread_list_ui', function() {
       ));
 
       InboxView.setContact(groupThread.node).then(() => {
-        var threadTitleNode = groupThread.node.querySelector(
-          '.threadlist-item-title'
-        );
-
         assert.isFalse(
           groupThread.picture.style.backgroundImage.includes('blob:')
         );
@@ -1722,7 +1738,7 @@ suite('thread_list_ui', function() {
         );
         assert.equal(groupThread.picture.textContent, '2');
         assert.equal(
-          threadTitleNode.innerHTML,
+          groupThread.title.innerHTML,
           '<span>' +
             '<bdi>James Bond</bdi>' +
             '<span data-l10n-id="thread-participant-separator"></span>' +
@@ -1730,6 +1746,9 @@ suite('thread_list_ui', function() {
           '</span>'
         );
       }).then(done, done);
+
+      // We mustn't leave the field empty
+      assert.equal(groupThread.title.textContent, '555');
     });
 
     test('display correctly a group MMS thread with lots of participants',
@@ -1748,10 +1767,6 @@ suite('thread_list_ui', function() {
       ));
 
       InboxView.setContact(groupThread.node).then(() => {
-        var threadTitleNode = groupThread.node.querySelector(
-          '.threadlist-item-title'
-        );
-
         sinon.assert.calledOnce(Contacts.findByAddress);
         sinon.assert.calledWith(Contacts.findByAddress, '555');
         assert.isFalse(
@@ -1765,15 +1780,18 @@ suite('thread_list_ui', function() {
         );
         assert.equal(groupThread.picture.textContent, '2');
         assert.equal(
-          threadTitleNode.innerHTML,
+          groupThread.title.innerHTML,
           '<span><bdi>James Bond</bdi></span>'
         );
       }).then(done, done);
+
+      // We mustn't leave the field empty
+      assert.equal(groupThread.title.textContent, '555');
     });
   });
 
   suite('[Email]setContact', function() {
-    var node, pictureContainer, picture;
+    var node, pictureContainer, picture, title;
 
     setup(function() {
       this.sinon.stub(Contacts, 'findByAddress');
@@ -1794,6 +1812,7 @@ suite('thread_list_ui', function() {
       node = InboxView.createThread(thread);
       pictureContainer = node.querySelector('.threadlist-item-picture');
       picture = node.querySelector('[data-type=img]');
+      title = node.querySelector('.threadlist-item-title');
     });
 
     teardown(function() {
@@ -1819,7 +1838,12 @@ suite('thread_list_ui', function() {
         );
         assert.include(backgroundImages[0], node.dataset.photoUrl);
         assert.include(backgroundImages[1], 'default_contact_image.png');
+
+        assert.equal(title.textContent, 'Pepito O\'Hare');
       }).then(done, done);
+
+      // We mustn't leave the field empty
+      assert.equal(title.textContent, 'a@b.com');
     });
 
     test('[Email]display correctly a contact without a picture',
@@ -2259,9 +2283,12 @@ suite('thread_list_ui', function() {
       });
       realThread.getDraft.returns(threadDraft);
 
+      var threadNodeBefore = document.getElementById('thread-' + realThread.id);
+
       Drafts.on.withArgs('saved').yield(threadDraft);
 
       var threadNode = document.getElementById('thread-' + realThread.id);
+      assert.equal(threadNode, threadNodeBefore);
       assert.equal(
         threadNode.querySelector('.body-text').textContent,
         threadDraft.content[0]
@@ -2365,11 +2392,15 @@ suite('thread_list_ui', function() {
     test('removes draft from the thread', function() {
       realThread.getDraft.returns(null);
 
+      var threadNodeBefore = document.getElementById('thread-' + realThread.id);
+
       Drafts.on.withArgs('deleted').yield(threadDraft);
 
       sinon.assert.notCalled(Threads.delete);
 
       var threadNode = document.getElementById('thread-' + realThread.id);
+      assert.equal(threadNode, threadNodeBefore);
+
       assert.equal(
         threadNode.querySelector('.body-text').textContent,
         realThread.body
