@@ -897,4 +897,56 @@ suite('system/LockScreenStateManager', function() {
         'the handler didn\'t handle the event');
     });
   });
+
+  suite('Event handler is', function() {
+    setup(function() {
+      this.sinon.spy(window, 'addEventListener');
+      this.sinon.spy(window, 'removeEventListener');
+    });
+
+    test('removed when suspendEvent is called, and added back when ' +
+         'resumeEvent is called', function() {
+      subject.suspendEvent('holdcamera');
+      assert.isTrue(window.removeEventListener.calledWith('holdcamera'),
+        'Event handler is not removed');
+      subject.resumeEvent('holdcamera');
+      assert.isTrue(window.addEventListener.calledWith('holdcamera'),
+        'Event handler is not added back');
+    });
+
+    test('not added when resumeEvent is called on an event not suspended',
+      function() {
+      subject.resumeEvent('holdcamera');
+      assert.isFalse(window.addEventListener.calledWith('holdcamera'),
+        'Event handler is added');
+    });
+
+    test('added only once when resumeEvent is called more than once',
+      function() {
+      subject.suspendEvent('holdcamera');
+      subject.resumeEvent('holdcamera');
+      subject.resumeEvent('holdcamera');
+      assert.isTrue(window.addEventListener.calledWith('holdcamera'),
+        'Event handler is added correctly');
+      assert.isTrue(window.addEventListener.calledOnce,
+        'Event handler is added more than once');
+    });
+  });
+
+  suite('Hardware camera button', function() {
+    test('is suspended when screen is unlocked',
+    function() {
+      var stubSuspendEvent = this.sinon.stub(subject, 'suspendEvent');
+      subject.handleEvent({type: 'lockscreen-appclosed'});
+      assert.ok(stubSuspendEvent.calledWith('holdcamera'));
+    });
+
+    test('is resumed when screen is locked',
+    function() {
+      var stubResumeEvent = this.sinon.stub(subject, 'resumeEvent');
+      subject.handleEvent({type: 'lockscreen-appopened'});
+      assert.ok(stubResumeEvent.calledWith('holdcamera'));
+    });
+
+  });
 });

@@ -94,7 +94,13 @@
         'secure-appopened',
         'secure-appclosing',
         'secure-appterminated',
-        'holdcamera'
+        'holdcamera',
+        // XXX: this is necessary only when LockScreen is not an iframe.
+        // Since for an iframe it will not listen to any event after unlocking,
+        // namely when it is pushed into the background.
+        // Nevertheless we need to do the same suspending/resuming
+        // thing in this way. (Bug 1169842)
+        'lockscreen-appopened'
       ],
       observers: {
         'lockscreen.passcode-lock.enabled':
@@ -105,6 +111,7 @@
           this.getSettingsObserverCallback('unlockSoundEnabled')
       }
     };
+    this.suspendedEvents = {};
 
     // Default values
     this.lockScreenDefaultStates = {
@@ -495,6 +502,30 @@
   };
 
   /**
+   * We can suspend and resume listening to events.
+   * Hardware events can still be triggered even when lockscreen
+   * is hidden. It might be necessary to stop listening to
+   * certain events when unlocked because they could cause issues.
+   * Currently only the 'holdcamera' event is suspended when
+   * unlocked, and resumed when locked. (Bug 1169842)
+   */
+  LockScreenStateManager.prototype.suspendEvent =
+  function lssm_suspendEvent(ename) {
+    if (!this.suspendedEvents[ename]) {
+      this.suspendedEvents[ename] = true;
+      window.removeEventListener(ename, this);
+    }
+  };
+
+  LockScreenStateManager.prototype.resumeEvent =
+  function lssm_resumeEvent(ename) {
+    if (this.suspendedEvents[ename]) {
+      this.suspendedEvents[ename] = false;
+      window.addEventListener(ename, this);
+    }
+  };
+
+  /**
    * When event happened, we trigger transferring.
    * Some events, or LockScreen states changes, would change the
    * state permantely, like the 'screenchange' event. However,
@@ -542,10 +573,13 @@
           this.onUnlock();
         }
         break;
+      case 'lockscreen-appopened':
       case 'lockscreen-request-lock':
+        this.resumeEvent('holdcamera');
         this.onLock(detail);
         break;
       case 'lockscreen-appclosed':
+        this.suspendEvent('holdcamera');
         this.onAppClosed();
         break;
       case 'lockscreen-inputappopening':
