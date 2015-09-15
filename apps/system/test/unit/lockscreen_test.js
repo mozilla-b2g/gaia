@@ -264,7 +264,7 @@ suite('system/LockScreen >', function() {
       var oldTimeout = 100000;
       subject.kPassCodeErrorTimeout = oldTimeout;
       subject.onPasscodeValidationSuccess();
-      assert.isTrue(subject.kPassCodeErrorTimeout < oldTimeout/10,
+      assert.isTrue(subject.kPassCodeErrorTimeout < oldTimeout / 10,
         'validation success does not reset error timeout');
       assert.isTrue(subject.kPassCodeErrorCounter === 0,
         'validation success does not reset error counter');
@@ -277,7 +277,7 @@ suite('system/LockScreen >', function() {
       subject.kPassCodeErrorTimeout = 1;
       var stubDispatch = this.sinon.stub(window, 'dispatchEvent');
       // Force setTimeout to run in sync
-      var setTimeoutStub = this.sinon.stub(window, 'setTimeout', function(f){
+      var setTimeoutStub = this.sinon.stub(window, 'setTimeout', function(f) {
         f();
       });
       subject.onPasscodeValidationFailed();
