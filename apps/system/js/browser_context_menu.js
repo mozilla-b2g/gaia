@@ -158,7 +158,7 @@
         return {
           id: 'pin-to-home-screen',
           label: _('pin-to-home-screen'),
-          callback: this.pinUrl.bind(this, url, name)
+          callback: this.pinUrl.bind(this, url)
         };
       }
 
@@ -197,9 +197,8 @@
       }));
     },
 
-    pinUrl: function(url, name) {
+    pinUrl: function(url) {
       var data = {
-        name: name,
         type: 'url',
         url: url,
         iconable: false,
