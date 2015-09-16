@@ -228,12 +228,11 @@ suite('telephony helper', function() {
     });
 
     test('should bind the ondisconnected callback', function(done) {
-      var ondisconnected = function uniq_ondisconnected() {};
+      var ondisconnected = this.sinon.stub();
       subject.call('123', 0, null, null, ondisconnected);
       mockPromise.then(function() {
-        assert.include(
-          mockCall._eventListeners.disconnected, ondisconnected
-        );
+        mockCall.triggerEvent('disconnected');
+        sinon.assert.calledOnce(ondisconnected);
       }).then(done, done);
     });
   });

@@ -175,8 +175,8 @@ var TelephonyHelper = (function() {
           evt.call.disconnectedReason, number, emergencyOnly
         );
       });
+      ondisconnected && ondisconnected();
     });
-    call.addEventListener('disconnected', ondisconnected);
   }
 
   var isValid = function t_isValid(sanitizedNumber) {
