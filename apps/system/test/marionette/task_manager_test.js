@@ -162,21 +162,6 @@ marionette('Task Manager', function() {
       taskManager.show();
     });
 
-    test('should display identification overlay when theres no blob screenshot',
-    function() {
-      var card = taskManager.cards[taskManager.cards.length -1];
-      var screenshot = client.helper
-                       .waitForChild(card, taskManager.selectors.screenshot);
-      var backgroundImage = screenshot.cssProperty('background-image');
-      assert(backgroundImage.indexOf('blob') == -1);
-
-      var instanceId = card.getAttribute('data-app-instance-id');
-      var idOverlay =  client.findElement(
-        '#'+ instanceId +
-        '.appWindow.in-task-manager.overlay.no-screenshot ' +
-        '> .identification-overlay');
-      assert(idOverlay);
-    });
   });
 
   test('swiping then taping should switch app', function() {

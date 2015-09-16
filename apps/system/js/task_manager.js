@@ -1,900 +1,504 @@
-/* global Card, eventSafety, SettingsListener, LazyLoader,
-          Service, StackManager */
+/* global Card, TaskManagerUtils, LazyLoader, Service, StackManager,
+          eventSafety */
+'use strict';
 
 (function(exports) {
-  'use strict';
 
-  var DEBUG = false;
-  var _idCount = 0;
+/**
+ * The TaskManager shows running windows as a list of cards.
+ *
+ * When TaskManager is shown, it grabs a copy of StackManager's stack of apps,
+ * and instantiates one Card for each AppWindow in the stack.
+ */
+function TaskManager() {
+  this.appToCardMap = new Map(); // AppWindow -> Card
+  this.elementToCardMap = new Map(); // <div.card> -> Card
+  this.stack = []; // a copy of StackManager's stack of AppWindow instances
+  this.currentCard = null;
+  this._active = false;
+}
+
+TaskManager.prototype = {
+  CARD_GUTTER: 25,
+  // HierarchyManager needs this name:
+  name: 'TaskManager',
 
   /**
-   * Represent a stack of apps as cards
-   * @class TaskManager
+   * Start the TaskManager module; this occurs once on startup.
    */
-  function TaskManager(appWindowManager) {
-    this._id = 'TaskManager_' + _idCount++;
-    this.appWindowManager = appWindowManager;
-    // initialize state
-    this.stack = [];
-    this.unfilteredStack = [];
-    this.cardsByAppID = {};
-
-    this._settings = {};
-    this._settings[this.SCREENSHOT_PREVIEWS_SETTING_KEY] = true;
-
-    this._stackIndex = -1;
-    this._shouldGoBackHome = false;
-    this._active = false;
-    this._exiting = false;
-  }
-
-  TaskManager.prototype = Object.create({
-    /**
-     * The setting that enables/disables using screenshots vs. icons for the
-     *  card preview
-     * @memberof TaskCard.prototype
-     */
-    SCREENSHOT_PREVIEWS_SETTING_KEY: 'app.cards_view.screenshots.enabled',
-
-    /**
-     * Cached value of the screenshots.enabled setting
-     * @memberOf TaskManager.prototype
-     */
-    useAppScreenshotPreviews: true,
-
-    /**
-     * cardsByAppID is one:one lookup for the card associated with a given
-     * app window
-     * @memberof TaskManager.prototype
-     */
-    cardsByAppID: null,
-
-    /**
-     * array containing the possibly-filtered copy of StackManager's snapshot
-     * @memberof TaskManager.prototype
-     */
-    stack: null,
-
-    /**
-     * array containing original StackManager snapshot
-     * @memberof TaskManager.prototype
-     */
-    unfilteredStack: null,
-
-   /**
-     * Index into StackManager's stack array
-     * @memberOf TaskManager.prototype
-     */
-    _stackIndex: 0,
-    _shouldGoBackHome: false,
-    _active: false,
-
-    windowWidth: 0,
-    windowHeight: 0,
-
-    /**
-     * Number of CSS pixels between cards
-     * @memberOf TaskManager.prototype
-     */
-    CARD_GUTTER: 25
-  }, {
-    /**
-     * Getter for card width
-     * @memberOf TaskManager.prototype
-     */
-    cardWidth: {
-      get: function tm_cardWidth() {
-        return (this.windowWidth || window.innerWidth) / 2;
-      }
-    },
-    cardHeight: {
-      get: function tm_cardHeight() {
-        return (this.windowHeight || window.innerHeight) / 2;
-      }
-    },
-    /**
-     * Getter for the current card
-     * @memberOf TaskManager.prototype
-     */
-    currentCard: {
-      get: function cs_getCurrentCard() {
-        if (!this.stack.length) {
-          return null;
-        }
-        var idx = this._getPositionFromScrollOffset(this.element.scrollLeft);
-        return this.getCardAtIndex(idx);
-      }
-    },
-    /**
-     * Getter for the setting-backed screenshots.enabled flag
-     * @memberOf TaskManager.prototype
-     */
-    useAppScreenshotPreviews: {
-      get: function() {
-        var key = this.SCREENSHOT_PREVIEWS_SETTING_KEY;
-        return this._settings[key];
-      }
-    }
-  });
-
-  TaskManager.prototype.EVENT_PREFIX = 'taskmanager';
-  TaskManager.prototype.name = 'TaskManager';
-
-  TaskManager.prototype.setFocus = function() {
-    return true;
-  };
-  /**
-   * initialize
-   * @memberOf TaskManager.prototype
-   */
-  TaskManager.prototype.start = function() {
-    this._fetchElements();
-    this._registerEvents();
-    this._observeSettings();
-    this._appClosedHandler = this._appClosed.bind(this);
-    Service.request('registerHierarchy', this);
-    return LazyLoader.load([
-      'js/card.js',
-      'js/cards_helper.js'
-    ]);
-  };
-
-  TaskManager.prototype.stop = function() {
-    this._unregisterEvents();
-    this._unobserveSettings();
-    Service.request('unregisterHierarchy', this);
-  };
-
-  TaskManager.prototype._fetchElements = function() {
+  start() {
     this.element = document.getElementById('cards-view'),
     this.cardsList = document.getElementById('cards-list');
     this.screenElement = document.getElementById('screen');
-  };
+    this.noRecentWindowsEl = document.getElementById('cards-no-recent-windows');
 
-  TaskManager.prototype._observeSettings = function() {
-    Object.keys(this._settings).forEach(name => {
-      this['_handle_' + name] = (settingValue) => {
-        this._settings[name] = settingValue;
-      };
-      SettingsListener.observe(name,
-                               this._settings[name],
-                               this['_handle_' + name]);
-    });
-  };
-  TaskManager.prototype._unobserveSettings = function() {
-    Object.keys(this._settings).forEach(name => {
-      SettingsListener.unobserve(name,
-                               this['_handle_' + name]);
-      delete this['_handle_' + name];
-    });
-  };
-
-  TaskManager.prototype._registerEvents = function() {
     window.addEventListener('taskmanagershow', this);
-  };
+    Service.request('registerHierarchy', this);
 
-  TaskManager.prototype._unregisterEvents = function() {
-    window.removeEventListener('taskmanagershow', this);
-  };
-
-  TaskManager.prototype._appClosed = function cs_appClosed(evt) {
-    window.removeEventListener('appclosed', this._appClosedHandler);
-    window.removeEventListener('homescreenclosed', this._appClosedHandler);
-    this.screenElement.classList.add('cards-view');
-    this.element.classList.remove('from-home');
-  };
+    return LazyLoader.load([
+      'js/card.js',
+      'js/task_manager_utils.js'
+    ]);
+  },
 
   /**
-   * Build and display the card switcher overlay
-   * Note that we rebuild the switcher each time we need it rather
-   * than trying to keep it in sync with app launches.
-   *
-   * @memberOf TaskManager.prototype
-   * @param filterName {string} The name of the filter to apply. Only two fitler
-   *                            types are supported at this time: 'browser-only'
-   *                            and 'apps-only'.
+   * Stop the TaskManager module.
    */
-  TaskManager.prototype._setContentWidth = function(length) {
-    var cardWidth = this.cardWidth;
-    var margins = this.windowWidth - cardWidth;
-    // total width of left/right "margin" + call cards and their gutters
-    var cardStripWidth = (cardWidth * length) +
-                         (this.CARD_GUTTER * (length - 1));
-    var contentWidth = margins +
-                       Math.max(cardWidth, cardStripWidth);
-    this.cardsList.style.width = contentWidth + 'px';
-  };
+  stop() {
+    window.removeEventListener('taskmanagershow', this);
+    Service.request('unregisterHierarchy', this);
+  },
 
-  TaskManager.prototype._centerCardAtPosition = function(idx, smooth) {
-    var position = (this.cardWidth + this.CARD_GUTTER) * idx;
-    if (smooth) {
-      this.element.scrollTo({left: position, top: 0, behavior: 'smooth'});
-    } else {
-      this.element.scrollTo(position, 0);
+  /**
+   * Create a new Card representing the given app, and add it to the DOM.
+   * (This does not deal with stack order.)
+   */
+  _addApp(app) {
+    var card = new Card(app);
+    this.cardsList.appendChild(card.element);
+    this.elementToCardMap.set(card.element, card);
+    this.appToCardMap.set(app, card);
+    return card;
+  },
+
+  /**
+   * Remove the card representing `app` from the DOM. This only occurs in
+   * direct response to stack changes or when the task manager is hidden.
+   */
+  _removeApp(app) {
+    var card = this.appToCardMap.get(app);
+    if (card) {
+      this.appToCardMap.delete(app);
+      this.elementToCardMap.delete(card.element);
+      this.cardsList.removeChild(card.element);
     }
-  };
+  },
 
-  TaskManager.prototype.show = function cs_showCardSwitcher(filterName) {
-    if (this.isShown()) {
-      return;
-    }
-    if (document.mozFullScreen) {
-      document.mozCancelFullScreen();
-    }
-    this.calculateDimensions();
+  /**
+   * Update our stack and list of cards to match StackManager.
+   * Call this whenever we think the stack has changed; this function will
+   * take care of updating the layout and card positions.
+   */
+  updateStack() {
+    this.stack = StackManager.snapshot();
 
-    this.newStackPosition = null;
-    // start listening for the various events we need to handle while
-    // the card view is showing
-    this._registerShowingEvents();
-
-    this.unfilteredStack = StackManager.snapshot();
-    if (this.filter(filterName)) {
-      // Update visual style to indicate we're filtered.
-      this.element.classList.add('filtered');
+    if (this._browserOnly) {
+      this.stack = this.stack.filter((app) => {
+        return app.isBrowser() ||
+          (app.manifest && app.manifest.role === 'search');
+      });
     }
 
-    // First add an item to the cardsList for each running app
-    var stack = this.stack;
-    stack.forEach(function(app, position) {
-      this.addCard(position, app);
-    }, this);
+    navigator.mozL10n.setAttributes(this.noRecentWindowsEl,
+      this._browserOnly ?
+        'no-recent-browser-windows' : 'no-recent-app-windows');
+    this.element.classList.toggle('filtered', !!this._browserOnly);
 
-    this.unfilteredStack.forEach(function(app, position) {
-      app.enterTaskManager();
+    var latestAppSet = new Set(this.stack);
+
+    this.appToCardMap.forEach((card, app) => {
+      if (!latestAppSet.has(app)) {
+        this._removeApp(app);
+      }
     });
 
-    this._placeCards(false);
+    this.stack.forEach((app) => {
+      var card = this.appToCardMap.get(app);
+      if (!card) {
+        card = this._addApp(app);
+        app.enterTaskManager();
+      }
+    });
 
-    if (this._stackIndex >= 0) {
-      this._centerCardAtPosition(this._stackIndex);
-    } else {
-      // fallback to centering the last in stack
-      this._centerCardAtPosition(stack.length -1);
-    }
-
-    this.setActive(true);
-
-    var screenElement = this.screenElement;
-    var activeApp = Service.query('AppWindowManager.getActiveWindow');
-    if (!activeApp) {
-      screenElement.classList.add('cards-view');
-      return;
-    }
-
-    if (activeApp.isHomescreen) {
-      // Ensure the homescreen is in a closed state, as the user may choose
-      // one of the app.
-      activeApp.close('home-to-cardview');
-      this.element.classList.add('from-home');
-      window.addEventListener('homescreenclosed', this._appClosedHandler);
-    } else {
-      window.addEventListener('appclosed', this._appClosedHandler);
-    }
-  };
+    this.updateLayout();
+  },
 
   /**
-   * Hide the card switcher
-   *
-   * @memberOf TaskManager.prototype
-   *
+   * Update the card positions and layout.
+   * Called in response to window resize and stack changes.
    */
-  TaskManager.prototype.hide = function cs_hideCardSwitcher() {
-    if (this.isActive()) {
-      this._unregisterShowingEvents();
-      this._removeCards();
-      this.setActive(false);
-      window.removeEventListener('appclosed', this._appClosedHandler);
-      window.removeEventListener('homescreenclosed', this._appClosedHandler);
-      this.screenElement.classList.remove('cards-view');
+  updateLayout() {
+    this.cardWidth = window.innerWidth / 2;
+    this.cardHeight = window.innerHeight / 2;
 
-      var detail;
-      if (!isNaN(this.newStackPosition)) {
-        detail = { 'detail': { 'newStackPosition': this.newStackPosition }};
+    var count = this.stack.length;
+    var margins = window.innerWidth - this.cardWidth;
+    var cardStripWidth = this.cardWidth * count +
+                         this.CARD_GUTTER * (count - 1);
+    var contentWidth = margins + Math.max(this.cardWidth, cardStripWidth);
+
+    this.stack.forEach((app, index) => {
+      var card = this.appToCardMap.get(app);
+      var offset = (this.cardWidth + this.CARD_GUTTER);
+      var left = (margins / 2) + (offset * index);
+
+      card.translate({ x: left + 'px' });
+    });
+
+    this.cardsList.style.width = contentWidth + 'px';
+
+    this.updateScrollPosition();
+  },
+
+  getCurrentIndex() {
+    return Math.min(
+      this.stack.length - 1,
+      Math.floor(this.element.scrollLeft / this.cardWidth));
+  },
+
+  /**
+   * Update our bookkeeping for when the scroll position changes, used
+   * primarily for updating cards' accessibility attributes.
+   */
+  updateScrollPosition() {
+    var index = this.getCurrentIndex();
+    var currentCard = this.appToCardMap.get(this.stack[index]);
+
+    if (this.currentCard !== currentCard) {
+      this.currentCard = currentCard;
+
+      this.stack.forEach((app, idx) => {
+        var card = this.appToCardMap.get(app);
+        // Hide non-current apps from the screen reader.
+        card.element.setAttribute('aria-hidden', card !== currentCard);
+        // Update the screen reader card list size.
+        card.element.setAttribute('aria-setsize', this.stack.length);
+        // Update the screen reader card index.
+        card.element.setAttribute('aria-posinset', idx + 1);
+      });
+    }
+  },
+
+  /**
+   * Show the Task Manager if it is not already visible.
+   *
+   * @param {boolean} opts.browserOnly
+   *   If true, only include browser apps. (Legacy feature)
+   */
+  show(opts) {
+    if (this.isShown() || this._isTransitioning) {
+      return Promise.resolve();
+    }
+
+    // To prevent race conditions when opening or closing (since both opening
+    // and closing are asynchronous), set this._isTransitioning when we're
+    // either showing or hiding. The flag is cleared during this.setActive().
+    this._isTransitioning = true;
+
+
+    this._browserOnly = opts && opts.browserOnly;
+
+    this.publish('cardviewbeforeshow'); // Will hide the keyboard if needed
+
+    // Wait for the screen to rotate into portrait orientation,
+    // and for the keyboard to dismiss completely, if applicable.
+    return TaskManagerUtils.waitForScreenToBeReady().then(() => {
+      window.addEventListener('lockscreen-appopened', this);
+      window.addEventListener('attentionopened', this);
+      window.addEventListener('appopen', this);
+      window.addEventListener('appterminated', this);
+      window.addEventListener('wheel', this);
+      window.addEventListener('resize', this);
+      this.element.addEventListener('click', this);
+      this.element.addEventListener('scroll', this);
+      this.element.addEventListener('card-will-drag', this);
+      this.element.addEventListener('card-dropped', this);
+
+      this.updateStack();
+      this.panToApp(StackManager.getCurrent(), true);
+      this.setActive(true);
+      this.publishNextTick('cardviewshown');
+
+      var activeApp = Service.query('AppWindowManager.getActiveWindow');
+      if (activeApp && activeApp.isHomescreen) {
+        activeApp.close('home-to-cardview');
+        this.element.classList.add('from-home');
       }
-      this.publishNextTick('cardviewclosed', detail);
+
+      // Wait for the current app to signal that it has closed in preparation
+      // for showing the task manager before cleaning things up.
+      return TaskManagerUtils.waitForAppToClose(activeApp);
+    }).then(() => {
+      this.screenElement.classList.add('cards-view');
+      this.element.classList.remove('from-home');
+    });
+  },
+
+  /**
+   * Hide the Task Manager and return to the AppWindow specified, or the
+   * homescreen otherwise.
+   */
+  hide(newApp) {
+    if (!this.isShown() || this._isTransitioning) {
+      return Promise.resolve();
     }
-    this.stack = this.unfilteredStack = [];
-  };
 
+    this._isTransitioning = true;
 
-  TaskManager.prototype._showingEventsRegistered = false;
-
-  TaskManager.prototype._registerShowingEvents = function() {
-    if (this._showingEventsRegistered) {
-      return;
-    }
-    this._showingEventsRegistered = true;
-    window.addEventListener('lockscreen-appopened', this);
-    window.addEventListener('attentionopened', this);
-    window.addEventListener('appopen', this);
-    window.addEventListener('appterminated', this);
-    window.addEventListener('wheel', this);
-    window.addEventListener('resize', this);
-
-    this.element.addEventListener('click', this);
-  };
-
-  TaskManager.prototype._unregisterShowingEvents = function() {
-    if (!this._showingEventsRegistered) {
-      return;
-    }
     window.removeEventListener('lockscreen-appopened', this);
     window.removeEventListener('attentionopened', this);
     window.removeEventListener('appopen', this);
     window.removeEventListener('appterminated', this);
     window.removeEventListener('wheel', this);
     window.removeEventListener('resize', this);
-    this._showingEventsRegistered = false;
-  };
+    this.element.removeEventListener('click', this);
+    this.element.removeEventListener('scroll', this);
+    this.element.removeEventListener('card-will-drag', this);
+    this.element.removeEventListener('card-dropped', this);
 
-  /**
-   * Is the view currently active
-   * @memberOf TaskManager.prototype
-   *
-   * XXX It would be nice to rename that to isActive, in order to be synced
-   * with setActive method.
-   */
-  TaskManager.prototype.isShown = function() {
-    return this.isActive();
-  };
+    newApp = newApp ||
+      Service.query('AppWindowManager.getActiveWindow') ||
+      Service.query('getHomescreen', true);
 
-  /**
-   * Is the view currently active
-   * @memberOf TaskManager.prototype
-   */
-  TaskManager.prototype.isActive = function() {
-    return this._active;
-  };
-
-  /**
-   * Toggle to activate/deactivate (mostly adding classes to elements)
-   * @param {Boolean} true to activate, false to deactivate
-   * @memberOf TaskManager.prototype
-   */
-  TaskManager.prototype.setActive = function(active) {
-    if (active == this._active) {
-      return;
+    // Other apps observe 'cardviewclosed' to note that we've potentially
+    // changed stack positions.
+    var latestStack = StackManager.snapshot();
+    var detail = {};
+    var newStackPosition = newApp ? latestStack.indexOf(newApp) : -1;
+    if (newStackPosition !== -1) {
+      detail.newStackPosition = newStackPosition;
     }
-    this._active = active;
-    if (active) {
-      this.publish(this.EVENT_PREFIX + '-activated');
+
+    // Remove '.cards-view' now, so that the incoming app animation begins its
+    // transition at the proper scale.
+    this.screenElement.classList.remove('cards-view');
+    this.publishNextTick('cardviewclosed', { detail });
+
+    // Set the proper transition...
+    if (newApp.isHomescreen) {
+      this.element.classList.add('to-home');
+      newApp.open('home-from-cardview');
     } else {
-      this.publish(this.EVENT_PREFIX + '-deactivated');
-    }
-    this.element.classList.toggle('active', active);
-    this.element.classList.toggle('empty', !this.stack.length && active);
-
-    // XXX This code is weird as it does not seems symetric.
-    // In one direction we considered that the card view is already shown,
-    // while on the other this is before it is closed!
-    this.publishNextTick(active ? 'cardviewshown' : 'cardviewbeforeclose');
-  };
-
-  /**
-   * Apply filter 'filterName' to the card stack.
-   *
-   * @memberOf TaskManager.prototype
-   * @param filterName {string} The name of the filter to apply.
-   * @returns true if a filter was applied, false if not.
-   */
-  TaskManager.prototype.filter = function cs_filterCardStack(filterName) {
-    var unfilteredStack = this.unfilteredStack;
-    var noRecentWindows = document.getElementById('cards-no-recent-windows');
-    switch (filterName) {
-      // Filter out any application that is not a system browser window.
-      case 'browser-only':
-        this.stack = unfilteredStack.filter(function(app) {
-          return app.isBrowser() ||
-            (app.manifest && app.manifest.role === 'search');
-        });
-        navigator.mozL10n.setAttributes(noRecentWindows,
-                                        'no-recent-browser-windows');
-        break;
-
-      // Filter out any application that is not an application only window.
-      case 'apps-only':
-        this.stack = unfilteredStack.filter(function(app) {
-          return !app.isBrowser();
-        });
-        navigator.mozL10n.setAttributes(noRecentWindows,
-                                        'no-recent-app-windows');
-        break;
-
-      default:
-        this.stack = unfilteredStack;
-        break;
+      newApp.open('from-cardview');
     }
 
-    var position = this.stack.indexOf(unfilteredStack[StackManager.position]);
-    if (position === -1 || StackManager.outOfStack()) {
-      this._shouldGoBackHome = true;
-    } else {
-      this._shouldGoBackHome = false;
-    }
-    this._stackIndex = position;
-
-    return this.stack !== unfilteredStack;
-  };
-
-
-  /**
-   * Insert a new card for the given app
-   *
-   * @memberOf TaskManager.prototype
-   * @param {Number} position in the stack for the new card
-   * @param {AppWindow} app The appWindow the card should wrap and represent
-   */
-  TaskManager.prototype.addCard = function cs_addCard(position, app) {
-    var config = {
-      manager: this,
-      position: position,
-      app: app,
-      windowWidth: this.windowWidth,
-      windowHeight: this.windowHeight
-    };
-    this.instantiateCard(config);
-  };
-
-  TaskManager.prototype.instantiateCard = function(config) {
-    var card = new Card(config);
-    this.cardsByAppID[config.app.instanceID] = card;
-    this.cardsList.appendChild(card.render());
-  };
+    // ... and when the transition has finished, clean up.
+    return eventSafety(newApp.element, '_opened', () => {
+      this.setActive(false);
+      this.element.classList.remove('to-home');
+      this.element.classList.remove('filtered');
+      this.stack.forEach((app) => {
+        this._removeApp(app);
+        app.leaveTaskManager();
+      });
+    }, 400);
+  },
 
   /**
-   * Remove the given card
-   *
-   * @memberOf TaskManager.prototype
-   * @param {object} card the card instance to be removed
+   * Perform a user-initiated action on the given card.
    */
-  TaskManager.prototype.removeCard = function cs_removeCard(card) {
-    var element = card.element;
-    var position = parseInt(element.dataset.position);
-    delete this.cardsByAppID[card.app.instanceID];
-    card.destroy();
-    element = null;
-
-    // stop tracking this app in our own stack.
-    this.stack.splice(position, 1);
-
-    // adjust stack pointer to next app
-    if (position <= this._stackIndex) {
-      this._stackIndex = Math.max(0, this._stackIndex - 1);
-    }
-
-    // Update the card positions.
-    this._updateCardPositions(position);
-
-    // Fix for non selectable cards when we remove the last card
-    // Described in https://bugzilla.mozilla.org/show_bug.cgi?id=825293
-    var cardsLength = this.cardsList.children.length;
-    if (!cardsLength) {
-      var homescreen = Service.query('getHomescreen', true);
-      this.exitToApp(homescreen);
-      return;
-    }
-
-    this._placeCards(position, true);
-  };
-
-  /**
-   * Remove all cards
-   *
-   * @memberOf TaskManager.prototype
-   */
-  TaskManager.prototype._removeCards = function cs_removeCards() {
-    this.stack.forEach(function(app, idx) {
-      var card = this.cardsByAppID[app.instanceID];
-      card && card.destroy();
-    }, this);
-
-    this.unfilteredStack.forEach(function(app, position) {
-      app.leaveTaskManager();
-    });
-
-    this.cardsByAppID = {};
-    this.element.classList.remove('filtered');
-    this.cardsList.innerHTML = '';
-  };
-
-  /**
-   * Handle the given action on the given card.
-   *
-   * @memberOf TaskManager.prototype
-   * @param  {Card} card The card to call the action on.
-   * @param  {String} actionName The name of the action to invoke.
-   */
-  TaskManager.prototype.cardAction = function cs_cardAction(card, actionName) {
+  cardAction(card, actionName) {
     switch (actionName) {
-      case 'close' :
-        card.killApp();
+      case 'close':
+        var index = this.stack.indexOf(card.app);
+        // If this is the last card on the stack, we must scroll to the left
+        // before killing the app; otherwise we can stay where we are.
+        if (this.stack.length > 1 && index === this.stack.length - 1) {
+          this.panToApp(this.stack[this.stack.length - 2]).then(() => {
+            card.app.kill();
+          });
+        } else {
+          card.app.kill();
+        }
         break;
 
       case 'favorite' :
-        debug('cardAction: TODO: favorite ' + card.element.dataset.origin);
+        console.log('cardAction: TODO: favorite ' +
+                    card.element.dataset.origin);
         break;
 
-      case 'select' :
-        if (this.currentCard == card) {
-          this.exitToApp(card.app);
-        } else {
-          this.panToCard(card).then(() => {
-            this.exitToApp(card.app);
-          }).catch(() => {
-            this.exitToApp(card.app);
-          });
-        }
+      case 'select':
+        this.panToApp(card.app).then(() => {
+          this.hide(card.app);
+        });
         break;
     }
-  };
+  },
 
-  TaskManager.prototype.panToCard = function(card) {
+  /**
+   * Scroll smoothly to the given app.
+   *
+   * @param {AppWindow} app
+   *   If this window is not found, we'll scroll to the most-recent app.
+   * @param {boolean} [immediately]
+   *   If true, scroll without animation.
+   */
+  panToApp(app, immediately) {
     // TODO: better way to know we've arrived at the target card
     // and make the delay proportional to the distance panned
     // See: bug 1172171
-    var promise = new Promise((resolve, reject) => {
-      this._centerCardAtPosition(card.position, true);
-      setTimeout(resolve, 200);
+    var idx = this.stack.indexOf(app);
+    if (idx === -1) {
+      idx = this.stack.length - 1;
+    }
+    var currentPosition = this.element.scrollLeft;
+    var desiredPosition = (this.cardWidth + this.CARD_GUTTER) * idx;
+    return new Promise((resolve, reject) => {
+      if (currentPosition === desiredPosition) {
+        resolve();
+      } else {
+        this.element.scrollTo({
+          left: desiredPosition,
+          top: 0,
+          behavior: immediately ? 'auto' : 'smooth'
+        });
+        setTimeout(resolve, 200);
+      }
     });
-    return promise;
-  };
+  },
 
-  TaskManager.prototype.exitToApp = function(app) {
-    if (this._exiting) {
-      return;
-    }
-    this._exiting = true;
+  handleEvent(evt) {
+    var card;
 
-    // The cards view class is removed here in order to let the window
-    // manager repaints everything.
-    this.screenElement.classList.remove('cards-view');
-    // immediately stop listening for input events
-    this._unregisterShowingEvents();
-
-    if (this._shouldGoBackHome) {
-      app = app || Service.query('getHomescreen', true);
-    } else if (!app) {
-      var currentCard = this.currentCard;
-      app = (this.stack && this.stack.length) ?
-              currentCard && currentCard.app :
-              Service.query('getHomescreen', true);
-    }
-    // to know if position has changed we need index into original stack,
-    var position = this.unfilteredStack ? this.unfilteredStack.indexOf(app) :
-                                          -1;
-
-    if (position !== StackManager.position) {
-      this.newStackPosition = position;
-    }
-
-    setTimeout(() => {
-      var finish = () => {
-        this.element.classList.remove('to-home');
-        this.hide();
-        this._exiting = false;
-      };
-      eventSafety(app.element, '_opened', finish, 400);
-
-      if (app.isHomescreen) {
-        this.element.classList.add('to-home');
-        app.open('home-from-cardview');
-      } else {
-        app.open('from-cardview');
-      }
-    }, 100);
-
-  };
-
-  /**
-   * Handle wheel events produced by the screen reader on two finger swipe.
-   * @memberOf TaskManager.prototype
-   * @param  {DOMEvent} evt The event.
-   */
-  TaskManager.prototype.handleWheel = function cs_handleWheel(evt) {
-    if (evt.deltaMode !== evt.DOM_DELTA_PAGE || evt.deltaY < 0) {
-      // nothing to do, just let it scroll
-    } else if (evt.deltaY > 0) {
-      // Two finger swipe up.
-      var card = this.currentCard;
-      if (card.app.killable()) {
-        card.killApp();
-      }
-    }
-    // update  with new centered/current card
-    this._setAccessibilityAttributes();
-  };
-
-  TaskManager.prototype.respondToHierarchyEvent = function(evt) {
-    if (this['_handle_' + evt.type]) {
-      return this['_handle_' + evt.type](evt);
-    }
-    return true;
-  };
-
-  TaskManager.prototype._handle_home = function() {
-    if (this.isActive()) {
-      this._shouldGoBackHome = true;
-      this.exitToApp();
-      return false;
-    }
-    return true;
-  };
-
-  TaskManager.prototype._handle_holdhome = function(evt) {
-    if (this.isShown()) {
-      return true;
-    }
-
-    var filter = null;
-    if (evt.type === 'taskmanagershow') {
-      filter = (evt.detail && evt.detail.filter) || null;
-    }
-
-    var currOrientation = Service.query('fetchCurrentOrientation');
-    var shouldResize = (Service.query('defaultOrientation').split('-')[0] !=
-                        currOrientation.split('-')[0]);
-    var shouldHideKeyboard = Service.query('keyboardEnabled');
-
-    this.publish('cardviewbeforeshow'); // Will hide the keyboard if needed
-
-    var finish = () => {
-      if (shouldHideKeyboard) {
-        window.addEventListener('keyboardhidden', function kbHidden() {
-          window.removeEventListener('keyboardhidden', kbHidden);
-          shouldHideKeyboard = false;
-          setTimeout(finish);
-        });
-        return;
-      }
-
-      screen.mozLockOrientation(Service.query('defaultOrientation'));
-      if (shouldResize) {
-        // aspect ratio change will produce resize event
-        window.addEventListener('resize', function resized() {
-          window.removeEventListener('resize', resized);
-          shouldResize = false;
-          setTimeout(finish);
-        });
-        return;
-      }
-
-      var app = Service.query('AppWindowManager.getActiveWindow');
-      if (app && !app.isHomescreen) {
-        app.getScreenshot(function onGettingRealtimeScreenshot() {
-          this.show(filter);
-        }.bind(this), 0, 0, 400);
-      } else {
-        this.show(filter);
-      }
-    };
-
-    finish();
-  };
-
-  /**
-   * Handle (synthetic) tap events on the card list
-   *
-   * @memberOf TaskManager.prototype
-   * @param  {DOMEvent} evt The event.
-   */
-  TaskManager.prototype.handleTap = function cs_handleTap(evt) {
-    if (this.element.classList.contains('empty')) {
-      var homescreen = Service.query('getHomescreen', true);
-      this.exitToApp(homescreen);
-      return;
-    }
-
-    var targetNode = evt.target;
-    var card = this.getCardForElement(targetNode);
-    if (!card) {
-      return;
-    }
-
-    if ('buttonAction' in targetNode.dataset) {
-      this.cardAction(card, targetNode.dataset.buttonAction);
-      return;
-    }
-
-    if (('position' in targetNode.dataset) || card) {
-      this.cardAction(card, 'select');
-      return;
-    }
-  };
-
-  /**
-   * Gets current sizing information on resize or render.
-   * @memberOf TaskManager.prototype
-   * @param  {DOMEvent} evt The event.
-   */
-  TaskManager.prototype.calculateDimensions =
-    function cv_calculateDimensions(evt) {
-    this.windowWidth = window.innerWidth;
-    this.windowHeight = window.innerHeight;
-    // swipe up gesture should be proportional to current viewport height
-    this.SWIPE_UP_THRESHOLD = this.windowHeight / 4;
-  };
-
-  /**
-   * Default event handler
-   * @memberOf TaskManager.prototype
-   * @param  {DOMEvent} evt The event.
-   */
-  TaskManager.prototype.handleEvent = function cv_handleEvent(evt) {
-    var app;
     switch (evt.type) {
       case 'click':
-        this.handleTap(evt);
+        if (this.element.classList.contains('empty')) {
+          this.hide(Service.query('getHomescreen', true));
+          return;
+        }
+
+        card = this.elementToCardMap.get(evt.target.closest('.card'));
+        if (card) {
+          this.cardAction(card, evt.target.dataset.buttonAction || 'select');
+        }
         break;
 
       case 'resize':
-        this.calculateDimensions();
+        this.updateLayout();
+        break;
+
+      case 'scroll':
+        if (this.element.style.overflowX === 'hidden') {
+          // Believe it or not, you will receive scroll events even when
+          // overflow is hidden. We don't care about those, because we're
+          // dragging a card; the user won't see scroll events.
+        } else {
+          this._lastScrollTimestamp = Date.now();
+        }
+        this.updateScrollPosition();
+        break;
+
+      case 'card-will-drag':
+        // To provide an axis-lock effect, we track the time of the last scroll
+        // event. If the list has scrolled after the user touched the screen,
+        // we must prevent the drag from resulting in a swipe-up.
+        if (evt.detail.firstTouchTimestamp < (this._lastScrollTimestamp || 0)) {
+          evt.preventDefault();
+        }
+        // If we're not going to prevent the drag, we should disable scrolling
+        // while the card is dragging; we'll reenable it on "card-dropped".
+        else {
+          this.element.style.overflowX = 'hidden';
+        }
+        break;
+
+      case 'card-dropped':
+        // The user has stopped touching the card; it will either bounce back
+        // into position, or we'll need to kill the app if they swiped upward.
+        // Regardless, reenable scrolling:
+        this.element.style.overflowX = 'scroll';
+        // And kill the app after the swipe-up transition has finished.
+        if (evt.detail.willKill) {
+          card = this.elementToCardMap.get(evt.target);
+          // Give the fling-up animation time to finish.
+          eventSafety(card.element, 'transitionend', () => {
+            this.cardAction(card, 'close');
+          }, 400);
+        }
         break;
 
       case 'wheel':
-        this.handleWheel(evt);
+        // Screen readers send a 'wheel' event for a two-finger swipe up.
+        // Kill the current app if the user so desires.
+        if (evt.deltaMode === evt.DOM_DELTA_PAGE && evt.deltaY > 0) {
+          if (this.currentCard && this.currentCard.app.killable()) {
+            this.currentCard.app.kill();
+          }
+        }
+        this.updateScrollPosition();
         break;
 
       case 'lockscreen-appopened':
       case 'attentionopened':
-        this.exitToApp();
-        break;
-
-      case 'taskmanagershow':
-        this._handle_holdhome(evt);
-        break;
-
-      case 'taskmanagerhide':
       case 'appopen':
         this.hide();
         break;
 
+      case 'taskmanagershow':
+        this.show({
+          browserOnly: evt.detail && evt.detail.filter === 'browser-only'
+        });
+        break;
+
       case 'appterminated':
-        app = evt.detail;
-        var card = app && this.cardsByAppID[app.instanceID];
-        if (card && card.app && app.instanceID === card.app.instanceID) {
-          this.removeCard(card);
+        this.updateStack();
+        if (this.stack.length === 0) {
+          this.hide();
         }
         break;
     }
-  };
+  },
 
-  TaskManager.prototype.publish = function tm_publish(type, detail) {
+  // Lifecycle Methods
+
+  respondToHierarchyEvent(evt) {
+    if (!this._isTransitioning) {
+      if (evt.type === 'home') {
+        if (this.isShown()) {
+          this.hide(Service.query('getHomescreen', true));
+          return false; // stop the event
+        }
+      } else if (evt.type === 'holdhome') {
+        if (!this.isShown()) {
+          this.show();
+          return false; // stop the event
+        }
+      }
+    }
+    return true; // keep the event flowing
+  },
+
+  publish(type, detail) {
     var event = new CustomEvent(type, detail || null);
     window.dispatchEvent(event);
-  };
+  },
 
-  TaskManager.prototype.publishNextTick = function tm_publish(type, detail) {
-    var event = new CustomEvent(type, detail || null);
-    setTimeout(function nextTick() {
-      window.dispatchEvent(event);
+  publishNextTick(type, detail) {
+    setTimeout(() => {
+      this.publish(type, detail);
     });
-  };
+  },
 
-   /**
-    * Return the card object at the given index into the stack
-    * @memberOf TaskManager.prototype
-    * @param {Number} idx index into the stack
-    */
-  TaskManager.prototype.getCardAtIndex = function(idx) {
-    if (this.stack && idx > -1 && idx < this.stack.length) {
-      var app = this.stack[idx];
-      var card = app && this.cardsByAppID[app.instanceID];
-      if (card) {
-        return card;
-      }
-    }
-    debug('getCardAtIndex, no card at idx: ' + idx);
-    return null;
-  };
+  setFocus() {
+    return true;
+  },
 
-  /**
-   * Return the card object that owns the given element
-   * @memberOf TaskManager.prototype
-   * @param {DOMNode} element
-   */
-  TaskManager.prototype.getCardForElement = function(element) {
-    while (element && element !== this.element) {
-      if (element.classList.contains('card')) {
-        break;
-      }
-      element = element.parentNode;
-    }
-    return element && this.cardsByAppID[element.dataset.appInstanceId];
-  };
+  isShown() {
+    return this.isActive();
+  },
 
-  /**
-   * Add ARIA attributes to available cards.
-   * @memberOf TaskManager.prototype
-   */
-  TaskManager.prototype._setAccessibilityAttributes = function() {
-    if (!this.stack.length) {
+  isActive() {
+    return this._active;
+  },
+
+  setActive(active) {
+    if (this._active === active) {
       return;
     }
-    var currentCard = this.currentCard;
-    this.stack.forEach(function(app, idx) {
-      var card = this.cardsByAppID[app.instanceID];
-      if (!card) {
-        return;
-      }
 
-      // Hide non-current apps from the screen reader.
-      card.setVisibleForScreenReader(card === currentCard);
-      // Update the screen reader card list size.
-      card.element.setAttribute('aria-setsize', this.stack.length);
-      // Update the screen reader card index.
-      card.element.setAttribute('aria-posinset', idx + 1);
-    }, this);
-  };
-
-  /**
-   * Arrange the cards around the current position
-   * @memberOf TaskManager.prototype
-   */
-  TaskManager.prototype._placeCards = function(firstIndex, smoothly) {
-    this._setContentWidth(this.stack.length);
-
-    var cardWidth = this.cardWidth;
-    // add left margin to center the first card
-    var startX = (this.windowWidth - this.cardWidth) / 2;
-    var cardElements = Array.from(this.cardsList.children).slice(firstIndex);
-
-    cardElements.forEach((elm, idx) => {
-      var offset = (cardWidth + this.CARD_GUTTER);
-      var left = startX + offset * (idx + firstIndex);
-      elm.style.left = left + 'px';
-      if (smoothly) {
-        elm.style.transform = 'translateX(' +offset+ 'px)';
-        setTimeout(() => {
-          elm.classList.add('sliding');
-          elm.style.transform = 'translateX(0)';
-          eventSafety(elm, 'transitionend', function endSlide(e) {
-            elm.classList.remove('sliding');
-            elm.style.removeProperty('transform');
-          }, 250);
-        }, 0);
-      }
-    });
-
-    this._setAccessibilityAttributes();
-  };
-
-  TaskManager.prototype._updateCardPositions = function(firstIndex) {
-    if (!this.cardsList) {
-      return;
+    this._isTransitioning = false; // Done opening or closing.
+    this._active = active;
+    if (active) {
+      this.publish('taskmanager-activated');
+    } else {
+      this.publish('taskmanager-deactivated');
     }
-    var cardNodes = this.cardsList.children;
-    var remainingCard;
-    for (var i = firstIndex || 0; i < cardNodes.length; i++) {
-      remainingCard = this.getCardForElement(cardNodes[i]);
-      if (remainingCard) {
-        remainingCard.position = i;
-        cardNodes[i].dataset.position = i;
-      }
-    }
-  };
+    this.element.classList.toggle('active', active);
+    this.element.classList.toggle('empty', active && this.stack.length === 0);
+  },
 
-  TaskManager.prototype._getPositionFromScrollOffset = function(offset) {
-    var lastIndex = this.stack.length -1;
-    if (lastIndex < 0) {
-      return -1;
-    }
-    var pos = Math.min(lastIndex,
-                       Math.floor(offset / this.cardWidth));
-    return pos;
-  };
+};
 
-  exports.TaskManager = TaskManager;
+exports.TaskManager = TaskManager;
 
-  function debug(message) {
-    if (DEBUG) {
-      var args = Array.from(arguments);
-      if (typeof args[0] === 'string') {
-        args[0] = 'TaskManager > ' + args[0];
-      } else {
-        args.unshift('TaskManager > ');
-      }
-      console.log.apply(console, args);
-    }
-  }
 })(window);
