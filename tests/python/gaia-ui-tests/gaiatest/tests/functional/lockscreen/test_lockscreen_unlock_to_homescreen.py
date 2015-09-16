@@ -23,4 +23,5 @@ class TestLockScreen(GaiaTestCase):
         lock_screen.switch_to_frame()
         homescreen = lock_screen.unlock()
 
-        self.wait_for_condition(lambda m: self.apps.displayed_app.name == homescreen.name)
+        from gaiatest.apps.homescreen.app import Homescreen
+        Homescreen(self.marionette).wait_to_be_displayed()

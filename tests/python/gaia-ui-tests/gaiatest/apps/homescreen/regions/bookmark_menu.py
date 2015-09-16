@@ -12,6 +12,7 @@ from gaiatest.apps.base import Base
 class BookmarkMenu(Base):
 
     name = "Bookmark"
+    manifest_url = '{}bookmark{}/manifest.webapp'.format(Base.DEFAULT_PROTOCOL,Base.DEFAULT_APP_HOSTNAME)
 
     # System app - add bookmark to homescreen dialog
     _add_bookmark_to_home_screen_frame_locator = (By.CSS_SELECTOR, 'iframe[src^="app://bookmark"][src$="save.html"]')
@@ -20,7 +21,7 @@ class BookmarkMenu(Base):
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
-        Wait(self.marionette).until(lambda m: self.apps.displayed_app.name == self.name)
+        self.wait_to_be_displayed()
         self.apps.switch_to_displayed_app()
 
     def tap_add_bookmark_to_home_screen_dialog_button(self):
@@ -32,7 +33,7 @@ class BookmarkMenu(Base):
         self.tap_element_from_system_app(element)
 
         # Wait for the Add to bookmark frame to be dismissed
-        Wait(self.marionette).until(lambda m: self.apps.displayed_app.name != self.name)
+        self.wait_to_not_be_displayed()
         self.apps.switch_to_displayed_app()
 
     def type_bookmark_title(self, value):

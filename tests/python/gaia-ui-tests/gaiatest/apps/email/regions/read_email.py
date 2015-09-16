@@ -9,6 +9,8 @@ from gaiatest.apps.base import Base
 
 class ReadEmail(Base):
 
+    manifest_url = '{}email{}/manifest.webapp'.format(Base.DEFAULT_PROTOCOL,Base.DEFAULT_APP_HOSTNAME)
+
     _body_locator = (By.CSS_SELECTOR, '.card.center .msg-body-content')
     _subject_locator = (By.CSS_SELECTOR, '.card.center .msg-envelope-subject')
     _senders_email_locator = (By.CSS_SELECTOR, '.msg-reader-header-label')

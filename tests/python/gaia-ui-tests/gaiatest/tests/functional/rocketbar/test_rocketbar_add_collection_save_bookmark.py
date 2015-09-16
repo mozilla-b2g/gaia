@@ -24,7 +24,7 @@ class TestRocketBarAddCollectionSaveBookmark(GaiaTestCase):
         collection = collection_list[1]
 
         collection_activity.select(collection)
-        self.wait_for_condition(lambda m: self.apps.displayed_app.name == homescreen.name)
+        homescreen.wait_to_be_displayed()
         self.apps.switch_to_displayed_app()
 
         self.assertTrue(homescreen.is_app_installed(collection),

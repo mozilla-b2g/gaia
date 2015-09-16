@@ -53,7 +53,7 @@ class TestCostControlDataAlertMobile(GaiaTestCase):
         cost_control_widget = utility_tray.cost_control_widget
         cost_control_widget.wait_for_limit_to_be_reached()
         cost_control_widget.tap()
-        Wait(self.marionette).until(lambda m: self.apps.displayed_app.name == cost_control.name)
+        cost_control.wait_to_be_displayed()
 
     def tearDown(self):
         self.marionette.switch_to_frame()
