@@ -131,17 +131,21 @@ Music.prototype = {
   getStarRating: function() {
     var frame = this.playerViewFrame;
     assert.ok(frame);
+
     this.client.switchToFrame(frame);
 
-    var rating = this.client.executeScript(function (sel) {
-      var value = document.querySelector(sel).
-          shadowRoot.querySelector('#rating').
-          shadowRoot.querySelector('#container').dataset.value;
-      return value ? value : 0;
-    }, [Music.Selector.playerCover]);
+    this.client.switchToShadowRoot(
+      this.client.findElement(Music.Selector.playerCover));
+    var ratingEl = this.client.findElement('#rating');
+    this.client.switchToShadowRoot(ratingEl);
+    var container = this.client.findElement('#container');
+    var value = container.getAttribute('data-value');
+    this.client.switchToShadowRoot();
+    this.client.switchToShadowRoot();
 
     this.switchToMe();
-    return rating;
+
+    return value ? parseInt(value, 10) : 0;
   },
 
   // Helper for the getter.
@@ -464,11 +468,15 @@ Music.prototype = {
     this.client.switchToFrame(frame);
 
     this.client.waitFor(function() {
-      return this.client.executeScript(function (sel) {
-        return document.querySelector(sel).
-          shadowRoot.querySelector('#container').
-          classList.contains('show-overlay') === false;
-      }, [Music.Selector.playerCover]);
+      var cover = this.client.findElement(Music.Selector.playerCover);
+      assert.ok(cover);
+      this.client.switchToShadowRoot(cover);
+      var container = this.client.findElement('#container');
+      assert.ok(container);
+      var isHidden = (container.getAttribute('class').split(' ').
+                      indexOf('show-overlay') === -1);
+      this.client.switchToShadowRoot();
+      return isHidden;
     }.bind(this));
 
     this.switchToMe();
@@ -481,12 +489,17 @@ Music.prototype = {
     assert.ok(frame);
     this.client.switchToFrame(frame);
 
-
-    this.client.executeScript(function (sel, rating) {
-      document.querySelector(sel).
-        shadowRoot.querySelector('#rating').
-        shadowRoot.querySelector('button[value="' + rating + '"]').click();
-    }, [Music.Selector.playerCover, rating]);
+    var cover = this.client.findElement(Music.Selector.playerCover);
+    this.client.switchToShadowRoot(cover);
+    assert.ok(cover);
+    var ratingEl = this.client.findElement('#rating');
+    assert.ok(rating);
+    this.client.switchToShadowRoot(ratingEl);
+    var star = this.client.findElement('button[value="' + rating + '"]');
+    assert.ok(star);
+    star.click();
+    this.client.switchToShadowRoot();
+    this.client.switchToShadowRoot();
 
     this.switchToMe();
   },
