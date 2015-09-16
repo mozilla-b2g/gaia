@@ -496,7 +496,7 @@ suite('dialer/handled_call', function() {
         sinon.assert.calledWithMatch(
           MockCallScreen.showStatusMessage, {
             id: 'caller-left-call',
-            args: { caller: 'test name' }
+            args: { caller: ['test name'] }
           }
         );
       });
