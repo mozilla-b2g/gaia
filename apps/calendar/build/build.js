@@ -30,23 +30,10 @@ exports.execute = function(options) {
   createPresetsFile(options);
   utils.ensureFolderExists(utils.getFile(options.STAGE_APP_DIR));
 
-  dump('Will run rjs optimizer...\n');
-  var optimize = Promise.all([
-    new Promise((accept, reject) => {
-      requirejs.optimize([config.path], accept, reject);
-    }),
-    new Promise((accept, reject) => {
-      requirejs.optimize([configWorker.path], accept, reject);
-    }),
-    new Promise((accept, reject) => {
-      requirejs.optimize([configCaldav.path], accept, reject);
-    })
-  ]);
-
-  optimize.then(() => {
-    dump('[OK] rjs optimize\n');
-  })
-  .catch((err) => {
-    dump(err + '\n');
-  });
+  return Promise.all([
+    new Promise(requirejs.optimize.bind(requirejs, [config.path])),
+    new Promise(requirejs.optimize.bind(requirejs, [configWorker.path])),
+    new Promise(requirejs.optimize.bind(requirejs, [configCaldav.path]))
+  ])
+  .catch(err => dump(err + '\n'));
 };
