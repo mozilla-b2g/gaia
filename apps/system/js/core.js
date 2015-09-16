@@ -109,7 +109,9 @@
         'CarrierInfoNotifier',
         'AboutServiceWorkersProxy',
         'MultiScreenController',
+        //IFDEF_FIREFOX_SYNC
         'SyncManager'
+        //ENDIF_FIREFOX_SYNC
         // XXX: We should move CarrierInfoNotifier into mobileConnectionCore,
         // but integration tests running on desktop without mobileConnection
         // is testing this.
