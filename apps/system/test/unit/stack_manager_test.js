@@ -216,6 +216,12 @@ suite('system/StackManager >', function() {
         assert.isTrue(StackManager.outOfStack());
       });
 
+      test('outOfStack should not throw if this.position === -1',
+      function() {
+        StackManager.position = -1;
+        assert.isTrue(StackManager.outOfStack());
+      });
+
       suite('but to prevent undefined swiping behaviors', function() {
         test('getPrev should return undefined', function() {
           assert.isUndefined(StackManager.getPrev());
