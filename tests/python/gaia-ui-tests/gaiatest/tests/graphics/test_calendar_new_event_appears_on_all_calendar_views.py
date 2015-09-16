@@ -2,7 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from marionette_driver import By, Wait
+from marionette_driver import expected, By, Wait
 
 from gaiatest.apps.calendar.app import Calendar
 from gaiatest.gaia_graphics_test import GaiaImageCompareTestCase
@@ -53,7 +53,7 @@ class TestCalendar(GaiaImageCompareTestCase):
         calendar.tap_week_display_button()
 
         self.assertIn(event_title, calendar.displayed_events_in_week_view(event_start_date_time))
-        Wait(self.marionette).until(lambda m: self.is_element_displayed(*self._created_event_locator))
+        Wait(self.marionette).until(lambda m: expected.element_displayed(*self._created_event_locator))
         self.take_screenshot()
 
         # switch to the day display

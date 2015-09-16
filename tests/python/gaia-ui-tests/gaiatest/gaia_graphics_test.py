@@ -10,7 +10,7 @@ import time
 from StringIO import StringIO
 
 from PIL import Image
-from marionette_driver import By
+from marionette_driver import expected, By
 from marionette_driver.marionette import Actions
 from marionette_driver.gestures import pinch, smooth_scroll
 from mozlog.structured import get_default_logger
@@ -61,11 +61,11 @@ class GaiaImageCompareTestCase(GaiaTestCase):
         self.marionette.switch_to_frame()
 
         _statusbar_locator = (By.ID, 'statusbar')
-        if self.is_element_displayed(*_statusbar_locator):
+        if expected.element_displayed(*_statusbar_locator)(self.marionette):
             # get the size of the status bar to crop off
             status_bar = self.marionette.find_element(*System._status_bar_locator)
             # get the size of the status bar, and multiply it by the device pixel ratio to get the exact size on device
-            self.crop_height = int(status_bar.size['height']
+            self.crop_height = int(status_bar.rect['height']
                                    * self.marionette.execute_script('return window.wrappedJSObject.devicePixelRatio;'))
         else:
             self.crop_height = 0
@@ -167,15 +167,15 @@ class GaiaImageCompareTestCase(GaiaTestCase):
         if direction == 'LtoR':
             start_x = 0
         elif direction == 'RtoL':
-            start_x = frame.size['width']
+            start_x = frame.rect['width']
             dist *= -1  # travel opposite direction
 
-        limit = dist * frame.size['width']
+        limit = dist * frame.rect['width']
         dist_unit = limit * time_increment
 
         assert isinstance(marionette, object)
         action = Actions(marionette)
-        action.press(frame, start_x, frame.size['height'] / 2)  # press either the left or right edge
+        action.press(frame, start_x, frame.rect['height'] / 2)  # press either the left or right edge
 
         while abs(dist_travelled) < abs(limit):
             action.move_by_offset(dist_unit, 0)
@@ -197,8 +197,8 @@ class GaiaImageCompareTestCase(GaiaTestCase):
 
         assert isinstance(marionette, object)
         screen = marionette.find_element(*locator)
-        mid_x = screen.size['width'] / 2
-        mid_y = screen.size['height'] / 2
+        mid_x = screen.rect['width'] / 2
+        mid_y = screen.rect['height'] / 2
 
         # default is zooming in
         init_index_x = mid_x
