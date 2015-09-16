@@ -4,7 +4,7 @@
 
 import time
 
-from marionette_driver import By, Wait
+from marionette_driver import By, expected, Wait
 from marionette_driver.marionette import Actions
 
 from gaiatest.apps.gallery.app import Gallery
