@@ -26,7 +26,7 @@ suite('htmlTransformer', function() {
       .to
       .deep
       .equal([
-        'shared/style/toolbars.css',
+        'shared/style/icons.css',
         'shared/elements/gaia-theme/style.css',
         'shared/js/component_utils.js',
         'shared/elements/gaia_subheader/script.js',
