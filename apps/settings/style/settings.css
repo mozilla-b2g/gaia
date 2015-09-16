@@ -1040,6 +1040,30 @@ ul li > label.range-icons.volume input {
 }
 
 /******************************************************************************
+ * Firefox Sync
+ */
+
+.fxsync-intro {
+  background-image: url('images/fxsync_intro.png');
+  background-repeat: no-repeat;
+  background-size: 16.4rem;
+  margin: 3rem auto 0;
+  width: 17rem;
+  height: 21.5rem;
+}
+
+p.fxsync-unverified-warning {
+  background-image: url('images/fxsync_error.png');
+  background-repeat: no-repeat;
+  background-size: 2rem;
+  background-position: left center;
+  -moz-padding-start: 3rem;
+  padding-top: 1rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/******************************************************************************
  * Developer and Developer HUD
  *
  * Override default behavior to let checkbox text wrap on multiple lines

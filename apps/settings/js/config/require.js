@@ -379,6 +379,13 @@ require.config({
     {
       name: 'panels/call_barring_passcode_change/panel',
       exclude: ['main']
+    },
+    {
+      name: 'panels/firefox_sync/panel',
+      exclude: [
+        'main',
+        'modules/settings_utils'
+      ]
     }
   ]
 });
