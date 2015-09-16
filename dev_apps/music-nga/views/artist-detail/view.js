@@ -55,8 +55,6 @@ ArtistDetailView.prototype.destroy = function() {
   View.prototype.destroy.call(this); // super(); // Always call *last*
 };
 
-ArtistDetailView.prototype.title = 'Artists';
-
 ArtistDetailView.prototype.render = function() {
   View.prototype.render.call(this); // super();
 

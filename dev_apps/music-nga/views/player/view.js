@@ -48,7 +48,7 @@ PlayerView.prototype.update = function() {
       this.artwork.album = song.metadata.album;
       this.artwork.els.rating.value = song.metadata.rated;
 
-      window.parent.setHeaderTitle(song.metadata.title);
+      this.title = song.metadata.title;
     });
 
     this.getSongArtwork(status.filePath)
@@ -65,12 +65,6 @@ PlayerView.prototype.destroy = function() {
   this.client.destroy();
 
   View.prototype.destroy.call(this); // super(); // Always call *last*
-};
-
-PlayerView.prototype.title = function() {
-  return this.getPlaybackStatus()
-    .then(status => this.getSong(status.filePath))
-    .then(song => song ? song.metadata.title : '');
 };
 
 PlayerView.prototype.render = function() {

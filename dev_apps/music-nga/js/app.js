@@ -22,9 +22,20 @@ perfMark.log = () => Object.keys(perfMark).forEach((marker) => {
 // exists in the DOM and is marked as ready to be displayed.
 perfMark('navigationLoaded');
 
+const VIEWS = {
+  ALBUM_DETAIL:    { TAB: 'albums',    URL: '/views/album-detail/index.html' },
+  ALBUMS:          { TAB: 'albums',    URL: '/views/albums/index.html' },
+  ARTIST_DETAIL:   { TAB: 'artists',   URL: '/views/artist-detail/index.html' },
+  ARTISTS:         { TAB: 'artists',   URL: '/views/artists/index.html' },
+  HOME:            { TAB: 'home',      URL: '/views/home/index.html' },
+  PLAYER:          { TAB: 'home',      URL: '/views/player/index.html' },
+  PLAYLIST_DETAIL: { TAB: 'playlists', URL: '/views/playlist-detail/index.html' },
+  PLAYLISTS:       { TAB: 'playlists', URL: '/views/playlists/index.html' },
+  SONGS:           { TAB: 'songs',     URL: '/views/songs/index.html' },
+};
+
 var $id = document.getElementById.bind(document);
 
-var views = {};
 var isPlaying = false;
 var activity = null;
 
@@ -73,8 +84,9 @@ var upgradeOverlay     = $id('upgrade-overlay');
 
 header.addEventListener('action', (evt) => {
   if (evt.detail.type === 'back') {
-    if (viewStack.states.length > 1) {
-      viewStack.popView();
+    if (viewStack.views.length > 1) {
+      // Don't destroy the popped view if it is the "Player" view.
+      viewStack.popView(!viewStack.activeView.frame.src.endsWith(VIEWS.PLAYER.URL));
       window.history.back();
       return;
     }
@@ -119,26 +131,31 @@ activityDoneButton.addEventListener('click', () => {
 });
 
 viewStack.addEventListener('change', (evt) => {
-  var view = evt.detail.view;
-  var viewId = view && view.dataset.viewId;
+  var viewUrl = evt.detail.url;
 
-  document.body.dataset.activeViewId = viewId;
+  var tab = getTabByViewURL(viewUrl);
+  if (tab) {
+    tabBar.selectedElement = tab;
+  }
 
-  playerButton.hidden = viewId === 'player' || !isPlaying;
-  activityDoneButton.hidden = viewId !== 'player' || !activity;
-  setBackButtonHidden(!activity && viewStack.states.length < 2);
+  document.body.dataset.activeViewUrl = viewUrl;
+
+  playerButton.hidden = viewUrl === VIEWS.PLAYER.URL || !isPlaying;
+  activityDoneButton.hidden = viewUrl !== VIEWS.PLAYER.URL || !activity;
+  setBackButtonHidden(!activity && viewStack.views.length < 2);
+  setHeaderTitle(evt.detail.title);
 });
 
-viewStack.addEventListener('pop', (evt) => {
-  setHeaderTitle(evt.detail.params.title);
+viewStack.addEventListener('titlechange', (evt) => {
+  setHeaderTitle(evt.detail);
 });
+
+viewStack.addEventListener('rendered', onVisuallyLoaded);
 
 tabBar.addEventListener('change', (evt) => {
   var tab = evt.detail.selectedElement;
-  var viewId = tab.dataset.viewId;
-  var url = viewId ? '/' + viewId : '/';
 
-  navigateToURL(url, true);
+  navigateToURL(tab.dataset.url, true);
 });
 
 emptyOverlay.addEventListener('cancel', () => cancelActivity());
@@ -170,8 +187,8 @@ else {
 }
 
 function setHeaderTitle(title) {
-  if (viewStack.activeState) {
-    viewStack.activeState.params.title = title;
+  if (viewStack.activeView) {
+    viewStack.activeView.title = title;
   }
 
   window.requestAnimationFrame(() => headerTitle.textContent = title);
@@ -181,42 +198,28 @@ function setBackButtonHidden(hidden) {
   header.els.actionButton.style.visibility = hidden ? 'hidden' : 'visible';
 }
 
-function getViewById(viewId) {
-  var view = views[viewId];
-  if (view) {
-    return view;
+function getTabByViewURL(url) {
+  for (var key in VIEWS) {
+    if (url === VIEWS[key].URL) {
+      return tabBar.querySelector('button[value="' + VIEWS[key].TAB + '"]');
+    }
   }
 
-  view = views[viewId] = document.createElement('iframe');
-  view.dataset.viewId = viewId;
-  view.src = 'views/' + viewId + '/index.html';
-
-  return view;
+  return null;
 }
 
 function navigateToURL(url, replaceRoot) {
   var path = url.substring(1);
   var parts = path.split('?');
 
-  var viewId = parts.shift();
-  var params = parseQueryString(parts.join('?'));
-  var view = getViewById(viewId);
-
-  var tab = tabBar.querySelector('button[data-view-id="' + viewId + '"]');
-  if (tab) {
-    tabBar.selectedElement = tab;
-  }
-
-  if (!perfMark.visuallyLoaded) {
-    view.addEventListener('rendered', onVisuallyLoaded);
-  }
+  var viewUrl = '/views/' + parts.shift() + '/index.html';
 
   if (replaceRoot) {
-    viewStack.setRootView(view, params);
+    viewStack.setRootView(viewUrl);
   }
 
   else {
-    viewStack.pushView(view, params);
+    viewStack.pushView(viewUrl);
   }
 
   if (!SERVICE_WORKERS) {
@@ -224,21 +227,6 @@ function navigateToURL(url, replaceRoot) {
   }
 
   window.history.pushState(null, null, url);
-}
-
-function parseQueryString(queryString) {
-  var query = {};
-
-  var params = queryString.split('&');
-  params.forEach((param) => {
-    var parts = param.split('=');
-    var key = parts.shift();
-    var value = parts.join('=');
-
-    query[key] = value || true;
-  });
-
-  return query;
 }
 
 function updateOverlays() {
@@ -313,10 +301,11 @@ function boot() {
     window.location.hash.substring(1) || '/'
 
   if (url === '/' || url === '/index.html') {
-    url = '/' + tabBar.firstElementChild.dataset.viewId;
+    url = tabBar.firstElementChild.dataset.url;
   }
 
   header.action = 'back';
+  setBackButtonHidden(true);
   navigateToURL(url, true);
 
   // PERFORMANCE MARKER (2): navigationInteractive

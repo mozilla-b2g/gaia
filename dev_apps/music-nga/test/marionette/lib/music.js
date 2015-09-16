@@ -17,18 +17,33 @@ Music.Selector = Object.freeze({
   viewFrame: '#view-stack iframe',
   secondaryViewFrame: '#view-stack iframe:nth-child(2)',
   activeViewFrame: '#view-stack iframe.active',
-  homeViewFrame: 'iframe[data-view-id="home"]',
-  songsViewFrame: 'iframe[data-view-id="songs"]',
-  artistsViewFrame: 'iframe[data-view-id="artists"]',
-  playerViewFrame: 'iframe[src*="views/player/index.html"]',
+  homeViewFrame: 'iframe[src*="/views/home/index.html"]',
+  songsViewFrame: 'iframe[src*="/views/songs/index.html"]',
+  artistsViewFrame: 'iframe[src*="/views/artists/index.html"]',
+  artistDetailViewFrame: 'iframe[src*="/views/artist-detail/index.html"]',
+  albumsViewFrame: 'iframe[src*="/views/albums/index.html"]',
+  albumDetailViewFrame: 'iframe[src*="/views/album-detail/index.html"]',
+  playlistsViewFrame: 'iframe[src*="/views/playlists/index.html"]',
+  playlistDetailViewFrame: 'iframe[src*="/views/playlist-detail/index.html"]',
+  playerViewFrame: 'iframe[src*="/views/player/index.html"]',
+
+  homeViewFrameActive: 'iframe.active[src*="/views/home/index.html"]',
+  songsViewFrameActive: 'iframe.active[src*="/views/songs/index.html"]',
+  artistsViewFrameActive: 'iframe.active[src*="/views/artists/index.html"]',
+  artistDetailViewFrameActive: 'iframe.active[src*="/views/artist-detail/index.html"]',
+  albumsViewFrameActive: 'iframe.active[src*="/views/albums/index.html"]',
+  albumDetailViewFrameActive: 'iframe.active[src*="/views/album-detail/index.html"]',
+  playlistsViewFrameActive: 'iframe.active[src*="/views/playlists/index.html"]',
+  playlistDetailViewFrameActive: 'iframe.active[src*="/views/playlist-detail/index.html"]',
+  playerViewFrameActive: 'iframe.active[src*="/views/player/index.html"]',
 
   messageOverlay: '#empty-overlay',
   firstTile: '.tile',
   tabBar: '#tab-bar',
-  playlistsTab: '#tab-bar button[data-view-id="playlists"]',
-  artistsTab: '#tab-bar button[data-view-id="artists"]',
-  albumsTab: '#tab-bar button[data-view-id="albums"]',
-  songsTab: '#tab-bar button[data-view-id="songs"]',
+  playlistsTab: '#tab-bar button[value="playlists"]',
+  artistsTab: '#tab-bar button[value="artists"]',
+  albumsTab: '#tab-bar button[value="albums"]',
+  songsTab: '#tab-bar button[value="songs"]',
   playerCover: '#artwork',
 
   // search fields
@@ -87,8 +102,28 @@ Music.prototype = {
     return this.client.findElement(Music.Selector.artistsViewFrame);
   },
 
+  get artistDetailViewFrame() {
+    return this.client.findElement(Music.Selector.artistDetailViewFrame);
+  },
+
+  get albumsViewFrame() {
+    return this.client.findElement(Music.Selector.albumsViewFrame);
+  },
+
+  get albumDetailViewFrame() {
+    return this.client.findElement(Music.Selector.albumDetailViewFrame);
+  },
+
   get songsViewFrame() {
     return this.client.findElement(Music.Selector.songsViewFrame);
+  },
+
+  get playlistsViewFrame() {
+    return this.client.findElement(Music.Selector.playlistsViewFrame);
+  },
+
+  get playlistDetailViewFrame() {
+    return this.client.findElement(Music.Selector.playlistDetailViewFrame);
   },
 
   get playerViewFrame() {
@@ -352,8 +387,36 @@ Music.prototype = {
     this.client.helper.waitForElement(Music.Selector.secondaryViewFrame);
   },
 
+  waitForSongsView: function() {
+    this.client.helper.waitForElement(Music.Selector.songsViewFrameActive);
+  },
+
+  waitForArtistsView: function() {
+    this.client.helper.waitForElement(Music.Selector.artistsViewFrameActive);
+  },
+
+  waitForArtistDetailView: function() {
+    this.client.helper.waitForElement(Music.Selector.artistDetailViewFrameActive);
+  },
+
+  waitForAlbumsView: function() {
+    this.client.helper.waitForElement(Music.Selector.albumsViewFrameActive);
+  },
+
+  waitForAlbumDetailView: function() {
+    this.client.helper.waitForElement(Music.Selector.albumDetailViewFrameActive);
+  },
+
+  waitForPlaylistsView: function() {
+    this.client.helper.waitForElement(Music.Selector.playlistsViewFrameActive);
+  },
+
+  waitForPlaylistDetailView: function() {
+    this.client.helper.waitForElement(Music.Selector.playlistDetailViewFrameActive);
+  },
+
   waitForPlayerView: function() {
-    this.client.helper.waitForElement(Music.Selector.playerViewFrame);
+    this.client.helper.waitForElement(Music.Selector.playerViewFrameActive);
   },
 
   // we check for the attribute "hidden"
@@ -391,26 +454,25 @@ Music.prototype = {
 
   switchToArtistsView: function() {
     this.artistsTab.tap();
+    this.waitForArtistsView();
   },
 
   switchToSongsView: function() {
     this.songsTab.tap();
-    this.client.helper.waitForElement(Music.Selector.viewFrame);
+    this.waitForSongsView();
   },
 
   switchToAlbumsView: function() {
     this.albumsTab.tap();
-    this.client.helper.waitForElement(Music.Selector.viewFrame);
+    this.waitForAlbumsView();
   },
 
   switchToPlaylistsView: function() {
     this.playlistsTab.tap();
-    this.client.helper.waitForElement(Music.Selector.viewFrame);
+    this.waitForPlaylistsView();
   },
 
-  _selectItem: function(name, what) {
-    var frame = this.viewFrame;
-    assert.ok(frame);
+  _selectItem: function(name, frame) {
     this.client.switchToFrame(frame);
 
     var elements = this.client.findElements('#list li');
@@ -424,22 +486,38 @@ Music.prototype = {
   },
 
   selectAlbum: function(name) {
-    this._selectItem(name, 'album');
+    this._selectItem(name, this.albumsViewFrame);
   },
 
   selectArtist: function(name) {
-    this._selectItem(name, 'artist');
+    this._selectItem(name, this.artistsViewFrame);
   },
 
   selectPlaylist: function(name) {
-    this._selectItem(name, 'playlist');
+    this._selectItem(name, this.playlistsViewFrame);
   },
 
   // only from a list (song list)
-  playFirstSong: function(secondary) {
-    var frame = secondary ? this.secondaryViewFrame : this.viewFrame;
-    assert.ok(frame);
-    this.client.switchToFrame(frame);
+  playFirstSong: function() {
+    this.client.switchToFrame(this.songsViewFrame);
+    this.firstSong.click();
+    this.switchToMe();
+  },
+
+  playFirstSongByArtist: function() {
+    this.client.switchToFrame(this.artistDetailViewFrame);
+    this.firstSong.click();
+    this.switchToMe();
+  },
+
+  playFirstSongByAlbum: function() {
+    this.client.switchToFrame(this.albumDetailViewFrame);
+    this.firstSong.click();
+    this.switchToMe();
+  },
+
+  playFirstSongByPlaylist: function() {
+    this.client.switchToFrame(this.playlistDetailViewFrame);
     this.firstSong.click();
     this.switchToMe();
   },
