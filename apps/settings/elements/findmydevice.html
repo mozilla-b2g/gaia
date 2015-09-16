@@ -6,24 +6,23 @@
     </gaia-header>
 
     <div>
-      <div id="findmydevice-signin" hidden>
+      <div class="findmydevice-signin" hidden>
         <ul>
           <li class="description">
             <p data-l10n-id="findmydevice-signup-description"></p>
           </li>
-          <li id="findmydevice-login">
-            <button id="findmydevice-login-btn"
-              data-l10n-id="findmydevice-create-account" disabled></button>
+          <li class="findmydevice-login">
+            <button data-l10n-id="findmydevice-create-account" disabled></button>
           </li>
-          <li class="description" id="findmydevice-fxa-unverified-error" hidden>
+          <li class="description findmydevice-fxa-unverified-error" hidden>
             <p data-l10n-id="fxa-please-verify"></p>
           </li>
         </ul>
       </div>
 
-      <div id="findmydevice-settings" hidden>
+      <div class="findmydevice-settings" hidden>
         <ul>
-          <li id="findmydevice-enabled">
+          <li class="findmydevice-enabled">
             <gaia-switch data-ignore>
               <label data-l10n-id="findmydevice-enable"></label>
             </gaia-switch>
@@ -32,7 +31,7 @@
 
         <ul>
           <li class="description">
-            <p id="findmydevice-tracking"></p>
+            <p class="findmydevice-tracking"></p>
           </li>
         </ul>
 
@@ -52,9 +51,7 @@
       </div>
     </div>
 
-    <script src="shared/js/settings_helper.js"></script>
-    <script src="shared/js/findmydevice_iac_api.js"></script>
-    <script src="js/findmydevice.js"></script>
+    <panel data-path="panels/findmydevice/panel"></panel>
 
   </template>
 </element>
