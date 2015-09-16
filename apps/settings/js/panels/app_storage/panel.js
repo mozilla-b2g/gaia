@@ -15,7 +15,7 @@ define(function(require) {
     var _freeSpaceText = null;
 
     var _updateUsePercentage = function() {
-      _spaceBarElement.value = AppStorage.storage.usedPercentage;
+      _spaceBarElement.value = AppStorage.usedPercentage;
     };
 
     var _refreshText = function(element, size) {
@@ -23,13 +23,13 @@ define(function(require) {
         'storageSize', size);
     };
     var _updateTotalSize = function() {
-      _refreshText(_totalSpaceText, AppStorage.storage.totalSize);
+      _refreshText(_totalSpaceText, AppStorage.totalSize);
     };
     var _updateUsedSize = function() {
-      _refreshText(_usedSpaceText, AppStorage.storage.usedSize);
+      _refreshText(_usedSpaceText, AppStorage.usedSize);
     };
     var _updateFreeSize = function() {
-      _refreshText(_freeSpaceText, AppStorage.storage.freeSize);
+      _refreshText(_freeSpaceText, AppStorage.freeSize);
     };
 
     var _updateElements = function() {
@@ -48,20 +48,20 @@ define(function(require) {
       },
 
       onBeforeShow: function() {
-        AppStorage.storage.observe('usedPercentage', _updateUsePercentage);
-        AppStorage.storage.observe('totalSize', _updateTotalSize);
-        AppStorage.storage.observe('usedSize', _updateUsedSize);
-        AppStorage.storage.observe('freeSize', _updateFreeSize);
+        AppStorage.observe('usedPercentage', _updateUsePercentage);
+        AppStorage.observe('totalSize', _updateTotalSize);
+        AppStorage.observe('usedSize', _updateUsedSize);
+        AppStorage.observe('freeSize', _updateFreeSize);
 
         _updateElements();
         AppStorage.updateInfo();
       },
 
       onHide: function() {
-        AppStorage.storage.unobserve('usedPercentage', _updateUsePercentage);
-        AppStorage.storage.unobserve('totalSize', _updateTotalSize);
-        AppStorage.storage.unobserve('usedSize', _updateUsedSize);
-        AppStorage.storage.unobserve('freeSize', _updateFreeSize);
+        AppStorage.unobserve('usedPercentage', _updateUsePercentage);
+        AppStorage.unobserve('totalSize', _updateTotalSize);
+        AppStorage.unobserve('usedSize', _updateUsedSize);
+        AppStorage.unobserve('freeSize', _updateFreeSize);
       }
     });
   };
