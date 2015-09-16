@@ -1,16 +1,14 @@
 'use strict';
 
-/* global AccessibilityHelper, CallLog, CallLogDBManager, Contacts,
-          KeypadManager, LazyLoader, MmiManager, Notification,
-          NotificationHelper, SettingsListener, SimSettingsHelper,
-          SuggestionBar, TelephonyHelper, Utils, Voicemail, MozActivity,
-          Navigation */
+/* global CallLog, CallLogDBManager, Contacts, KeypadManager, LazyLoader,
+          MmiManager, Notification, NotificationHelper, SettingsListener,
+          SimSettingsHelper, SuggestionBar, TelephonyHelper, Utils, Voicemail,
+          MozActivity, Navigation */
 
 var NavbarManager = {
   init: function nm_init() {
-    this.update = this.update.bind(this);
-    this.update('option-keypad');
-    
+    Navigation.show('keypad');
+
     document.getElementById('views').addEventListener(
       'click',
       function(e) {
@@ -20,98 +18,8 @@ var NavbarManager = {
           return;
         }
         Navigation.show(destination);
-        this.update(e.target.id);
-      }.bind(this)
+      }
     );
-  },
-  resourcesLoaded: false,
-  /*
-   * Ensures resources are loaded
-   */
-  ensureResources: function(cb) {
-    if (this.resourcesLoaded) {
-      if (cb && typeof cb === 'function') {
-        cb();
-      }
-      return;
-    }
-    var self = this;
-    LazyLoader.load(['/shared/js/accessibility_helper.js',
-                     '/shared/js/async_storage.js',
-                     '/shared/js/notification_helper.js',
-                     '/shared/js/simple_phone_matcher.js',
-                     '/shared/js/contact_photo_helper.js',
-                     '/shared/js/dialer/contacts.js',
-                     '/shared/js/dialer/voicemail.js',
-                     '/dialer/js/call_log.js',
-                     '/dialer/style/call_log.css'], function rs_loaded() {
-                    self.resourcesLoaded = true;
-                    if (cb && typeof cb === 'function') {
-                      cb();
-                    }
-                  });
-  },
-
-  update: function nm_update(destination) {
-    var recent = document.getElementById('option-recents');
-    var contacts = document.getElementById('option-contacts');
-    var keypad = document.getElementById('option-keypad');
-    var tabs = [recent, contacts, keypad];
-
-    recent.classList.remove('toolbar-option-selected');
-    contacts.classList.remove('toolbar-option-selected');
-    keypad.classList.remove('toolbar-option-selected');
-
-    // XXX : Move this to whole activity approach, so far
-    // we don't have time to do a deep modification of
-    // contacts activites. Postponed to v2
-    var checkContactsTab = function() {
-      var contactsIframe = document.getElementById('iframe-contacts');
-      if (!contactsIframe) {
-        return;
-      }
-
-      var index = contactsIframe.src.indexOf('#add-parameters');
-      if (index != -1) {
-        contactsIframe.src = contactsIframe.src.substr(0, index);
-      }
-    };
-
-    switch (destination) {
-      case 'option-recents':
-        checkContactsTab();
-        this.ensureResources(function() {
-          recent.classList.add('toolbar-option-selected');
-          AccessibilityHelper.setAriaSelected(recent, tabs);
-          CallLog.init();
-        });
-        break;
-      case 'option-contacts':
-        var frame = document.getElementById('iframe-contacts');
-        if (!frame) {
-          var view = document.getElementById('iframe-contacts-container');
-          frame = document.createElement('iframe');
-          frame.src = '/contacts/index.html';
-          frame.id = 'iframe-contacts';
-          frame.setAttribute('frameBorder', 'no');
-          frame.classList.add('grid-wrapper');
-
-          view.appendChild(frame);
-        }
-
-        contacts.classList.add('toolbar-option-selected');
-        this.ensureResources(function() {
-          AccessibilityHelper.setAriaSelected(contacts, tabs);
-        });
-        break;
-      case 'option-keypad':
-        checkContactsTab();
-        keypad.classList.add('toolbar-option-selected');
-        this.ensureResources(function() {
-          AccessibilityHelper.setAriaSelected(keypad, tabs);
-        });
-        break;
-    }
   },
 
   hide: function() {
@@ -123,26 +31,6 @@ var NavbarManager = {
     var views = document.getElementById('views');
     views.classList.remove('hide-toolbar');
   },
-
-  contactsTabTap: function() {
-    // If we are not in the contacts-view, it's a first tap, do nothing
-    if (Navigation.currentView === 'contacts') {
-      return;
-    }
-    this._contactsHome();
-  },
-
-  _contactsHome: function() {
-    var contactsIframe = document.getElementById('iframe-contacts');
-    if (!contactsIframe) {
-      return;
-    }
-
-    var forceHashChange = new Date().getTime();
-    // Go back to contacts home
-    contactsIframe.src = '/contacts/index.html#home?forceHashChange=' +
-                         forceHashChange;
-  }
 };
 
 var CallHandler = (function callHandler() {
@@ -173,7 +61,6 @@ var CallHandler = (function callHandler() {
       if (Navigation.currentView != 'contacts') {
         Navigation.showContacts();
       }
-      NavbarManager._contactsHome();
     }
   }
 
@@ -284,37 +171,35 @@ var CallHandler = (function callHandler() {
     var number = data.number;
     var incoming = data.direction === 'incoming';
 
-    NavbarManager.ensureResources(function() {
-      // Missed call when not rejected by user
-      if (incoming && !data.duration && !data.hangUpLocal) {
-        sendNotification(number, data.serviceId);
-      }
+    // Missed call when not rejected by user
+    if (incoming && !data.duration && !data.hangUpLocal) {
+      sendNotification(number, data.serviceId);
+    }
 
-      Voicemail.check(number, data.serviceId).then(function(isVoicemailNumber) {
-        var entry = {
-          date: Date.now() - parseInt(data.duration),
-          duration: data.duration,
-          type: incoming ? 'incoming' : 'dialing',
-          number: number,
-          serviceId: data.serviceId,
-          emergency: data.emergency || false,
-          voicemail: isVoicemailNumber,
-          status: (incoming && data.duration > 0) ? 'connected' : null
-        };
+    Voicemail.check(number, data.serviceId).then(function(isVoicemailNumber) {
+      var entry = {
+        date: Date.now() - parseInt(data.duration),
+        duration: data.duration,
+        type: incoming ? 'incoming' : 'dialing',
+        number: number,
+        serviceId: data.serviceId,
+        emergency: data.emergency || false,
+        voicemail: isVoicemailNumber,
+        status: (incoming && data.duration > 0) ? 'connected' : null
+      };
 
-        // Store and display the call that ended
-        CallLogDBManager.add(entry, function(logEntry) {
-          CallLog.appendGroup(logEntry);
+      // Store and display the call that ended
+      CallLogDBManager.add(entry, function(logEntry) {
+        CallLog.appendGroup(logEntry);
 
-          // A CDMA call can contain two calls. If it only has one call,
-          // we have nothing left to do and release the lock.
-          if (!data.secondNumber) {
-            highPriorityWakeLock.unlock();
-            return;
-          }
+        // A CDMA call can contain two calls. If it only has one call,
+        // we have nothing left to do and release the lock.
+        if (!data.secondNumber) {
+          highPriorityWakeLock.unlock();
+          return;
+        }
 
-          _addSecondCdmaCall(data, isVoicemailNumber, highPriorityWakeLock);
-        });
+        _addSecondCdmaCall(data, isVoicemailNumber, highPriorityWakeLock);
       });
     });
   }

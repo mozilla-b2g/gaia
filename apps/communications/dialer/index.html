@@ -27,6 +27,7 @@
     <link rel="stylesheet" type="text/css" href="style/toolbar.css">
 
     <link rel="stylesheet" type="text/css" href="/shared/style/dialer/keypad.css">
+    <link rel="stylesheet" type="text/css" href="/dialer/style/call_log.css">
     <link rel="stylesheet" type="text/css" href="/dialer/style/suggestion.css">
     <link rel="stylesheet" type="text/css" href="/shared/style/contacts/contact_in_overlay.css">
     <link rel="stylesheet" type="text/css" href="/shared/style/dialer/overlay.css">
@@ -46,16 +47,24 @@
     <script defer src="/shared/js/font_size_utils.js"></script>
     <script defer src="/dialer/js/index.js"></script>
 
-    <script defer src="/shared/js/dialer/utils.js"></script>
-    <script defer src="/shared/js/dialer/tone_player.js"></script>
+    <script defer src="/shared/js/dialer/contacts.js"></script>
     <script defer src="/shared/js/dialer/dtmf_tone.js"></script>
-    <script defer src="/shared/js/dialer/keypad.js"></script>
     <script defer src="/shared/js/dialer/font_size_manager.js"></script>
+    <script defer src="/shared/js/dialer/keypad.js"></script>
+    <script defer src="/shared/js/dialer/tone_player.js"></script>
+    <script defer src="/shared/js/dialer/utils.js"></script>
+    <script defer src="/shared/js/dialer/voicemail.js"></script>
 
     <script defer src="/dialer/js/navigation.js"></script>
     <script defer src="/dialer/js/dialer.js"></script>
+    <script defer src="/dialer/js/call_log.js"></script>
     <script defer src="/dialer/js/call_log_db.js"></script>
+    <script defer src="/shared/js/accessibility_helper.js"></script>
+    <script defer src="/shared/js/async_storage.js"></script>
+    <script defer src="/shared/js/contact_photo_helper.js"></script>
     <script defer src="/shared/js/multi_sim_action_button.js"></script>
+    <script defer src="/shared/js/notification_helper.js"></script>
+    <script defer src="/shared/js/simple_phone_matcher.js"></script>
 
     <!-- Lazy load all the things:
     <link rel="stylesheet" type="text/css" href="/shared/style/action_menu.css">
@@ -73,13 +82,9 @@
     <link rel="stylesheet" type="text/css" href="/shared/elements/gaia_sim_picker/style.css">
     <script defer src="/shared/elements/gaia_menu/script.js"></script>
     <script defer src="/shared/elements/gaia_sim_picker/script.js"></script>
-    <script defer src="/shared/js/accessibility_helper.js"></script>
-    <script defer src="/shared/js/async_storage.js"></script>
     <script defer src="/shared/js/component_utils.js"></script>
     <script defer src="/shared/js/mobile_operator.js"></script>
-    <script defer src="/shared/js/notification_helper.js"></script>
     <script defer src="/shared/js/option_menu.js"></script>
-    <script defer src="/shared/js/simple_phone_matcher.js"></script>
     <script defer src="/shared/js/settings_listener.js"></script>
     <script defer src="/shared/js/confirm.js"></script>
     <script defer src="/shared/js/fb/fb_request.js"></script>
@@ -89,8 +94,6 @@
     <script defer src="/shared/js/binary_search.js"></script>
     <script defer src="/shared/js/sticky_header.js"></script>
     <script defer src="/shared/js/sim_settings_helper.js"></script>
-    <script defer src="/shared/js/dialer/voicemail.js"></script>
-    <script defer src="/shared/js/dialer/contacts.js"></script>
     <script defer src="/shared/js/dialer/telephony_messages.js"></script>
     <script defer src="/shared/js/contacts/contacts_buttons.js"></script>
     <script defer src="/shared/js/custom_dialog.js"></script>
