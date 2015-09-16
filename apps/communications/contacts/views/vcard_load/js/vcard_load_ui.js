@@ -74,15 +74,18 @@
       return;
     }
 
+    var imported = evt.detail.importedContacts,
+        merged = evt.detail.numDups;
+
     utils.status.show({
       id: 'vCardContacts-imported',
       args: {
-        n: evt.detail.importedContacts
+        n: imported
       }
     }, {
       id: 'contactsMerged',
       args: {
-        numDups: evt.detail.numDupsMerged
+        numDups: merged
       }
     });
   }
