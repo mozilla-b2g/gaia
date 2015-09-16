@@ -54,20 +54,20 @@ function broadcastEvents(target, events) {
 }
 
 function method(endpoint, handler) {
-  core.service.method(endpoint, function(...args) {
-    return start().then(() => {
-      return handler.apply(null, args);
-    }).then(data => {
+  core.service.method(endpoint, co.wrap(function *() {
+    try {
+      yield start();
+      var data = yield handler.apply(null, arguments);
       // make sure models are converted to plain objects when possible
       return data && typeof data === 'object' && 'toJSON' in data ?
         data.toJSON() :
         data;
-    }).catch(err => {
+    } catch (err) {
       // hack to make sure custom errors are handled properly
       // (otherwise they would be coerced into plain strings)
       return Promise.reject(err && JSON.stringify(err));
-    });
-  });
+    }
+  }));
 }
 
 function stream(endpoint, handler) {
