@@ -9,6 +9,7 @@ from gaiatest.apps.ring_tone.app import RingTone
 
 
 class Sound(Base):
+
     _page_locator = (By.ID, 'sound')
     _ring_tone_selector_locator = (By.CSS_SELECTOR, '.ring-tone-selection')
     _current_ring_tone_locator = (By.CSS_SELECTOR, '.ring-tone-selection > small')
