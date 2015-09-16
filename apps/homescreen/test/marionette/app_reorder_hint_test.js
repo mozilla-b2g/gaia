@@ -2,6 +2,9 @@
 /* global __dirname */
 
 marionette('Homescreen - App reordering', function() {
+
+  // Test Gijtv fails issue
+
   var client = marionette.client({
     profile: require(__dirname + '/client_options_bookmarks.js')
   });
