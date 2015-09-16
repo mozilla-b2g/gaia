@@ -72,6 +72,9 @@ const SETTINGS_VERSION = 0;
 (function(exports) {
 
   function App() {
+    // Chrome is displayed
+    window.performance.mark('navigationLoaded');
+
     // Element references
     this.indicator = document.getElementById('page-indicator');
     this.panels = document.getElementById('panels');
@@ -170,6 +173,12 @@ const SETTINGS_VERSION = 0;
               this.addApp(app);
             }
             resolve();
+
+            // We've loaded and displayed all apps - only bookmarks and
+            // pinned pages could be left (but they may also already be
+            // loaded, as the sequence is asynchronous).
+            window.performance.mark('visuallyLoaded');
+            window.performance.mark('contentInteractive');
           };
           request.onerror = (e) => {
             console.error('Error calling getAll: ' + request.error.name);
@@ -246,6 +255,9 @@ const SETTINGS_VERSION = 0;
         }
         this.startupMetadata = [];
         this.storeAppOrder();
+
+        // All asynchronous loading has finished
+        window.performance.mark('fullyLoaded');
       });
     };
 
@@ -275,6 +287,9 @@ const SETTINGS_VERSION = 0;
         resolve();
       });
     }).then(populateApps);
+
+    // Application has finished initialisation
+    window.performance.mark('navigationInteractive');
   }
 
   App.prototype = {
