@@ -315,8 +315,7 @@ ViewManager.prototype.getKeyHeight = function() {
     return 0;
   }
 
-  var row = this.currentPageView.element.querySelector('.keyboard-row');
-  return row.clientHeight;
+  return this.currentPageView.getKeyHeight();
 };
 
 // Register target -> View mapping
@@ -327,6 +326,12 @@ ViewManager.prototype.registerView = function(target, view) {
 
 ViewManager.prototype.screenInPortraitMode = function() {
   return this.cachedWindowWidth <= this.cachedWindowHeight;
+};
+
+ViewManager.prototype.getRemToPx = function() {
+  return this.screenInPortraitMode() ?
+    this.cachedWindowWidth / 32 :
+    this.cachedWindowWidth / 64;
 };
 
 ViewManager.prototype.getView = function (target) {

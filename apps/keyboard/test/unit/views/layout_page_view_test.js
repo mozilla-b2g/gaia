@@ -338,6 +338,72 @@ suite('Views > LayoutPageView', function() {
     });
   });
 
+  suite('> getHeight()', function() {
+    var layout = {
+      width: 2,
+      keys: [
+        [{ value: 'a' }, { value: 'b' }],
+        [{ value: 'c' }, { value: 'd' }],
+        [{ value: 'e' }, { value: 'f' }]
+      ]
+    };
+    var pageView  = null;
+    var viewManager = {
+      registerView: sinon.stub(),
+      getRemToPx: sinon.stub(),
+      screenInPortraitMode: sinon.stub()
+    };
+
+    var rootElement;
+
+    setup(function() {
+      rootElement = document.createElement('div');
+      document.body.appendChild(rootElement);
+    });
+
+    teardown(function() {
+      document.body.removeChild(rootElement);
+    });
+
+    test('w/o big key, portrait', function() {
+      viewManager.getRemToPx.returns(10);
+      viewManager.screenInPortraitMode.returns(true);
+
+      pageView = new LayoutPageView(layout, {}, viewManager);
+      pageView.render();
+      assert.equal(pageView.getHeight(), 3 * ((3.6 + 0.8) * 10));
+    });
+
+    test('w/o big key, landscape', function() {
+      viewManager.getRemToPx.returns(10);
+      viewManager.screenInPortraitMode.returns(false);
+
+      pageView = new LayoutPageView(layout, {}, viewManager);
+      pageView.render();
+      assert.equal(pageView.getHeight(), 3 * ((3.1 + 0.8) * 10));
+    });
+
+    test('w/ big key, portrait', function() {
+      layout.keyClassName = 'big-key';
+      viewManager.getRemToPx.returns(10);
+      viewManager.screenInPortraitMode.returns(true);
+
+      pageView = new LayoutPageView(layout, {}, viewManager);
+      pageView.render();
+      assert.equal(pageView.getHeight(), 3 * ((4.3 + 0.8) * 10));
+    });
+
+    test('w/ big, landscape', function() {
+      layout.keyClassName = 'big-key';
+      viewManager.getRemToPx.returns(10);
+      viewManager.screenInPortraitMode.returns(false);
+
+      pageView = new LayoutPageView(layout, {}, viewManager);
+      pageView.render();
+      assert.equal(pageView.getHeight(), 3 * ((4.3 + 0.8) * 10));
+    });
+  });
+
   suite(' > getVisualData()', function() {
     var layout = {
       width: 2,

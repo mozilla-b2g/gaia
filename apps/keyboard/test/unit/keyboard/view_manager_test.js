@@ -94,6 +94,14 @@ suite('View Manager', function() {
     document.body.appendChild(style);
   }
 
+  test('screenInPortraitMode', function() {
+    assert.isTrue(viewManager.screenInPortraitMode());
+  });
+
+  test('getRemToPx', function() {
+    assert.equal(viewManager.getRemToPx(), 320 / 32);
+  });
+
   suite(' > resize()', function() {
     test('Add portrait class to IME in portrait mode', function() {
       viewManager.cachedWindowWidth = 200;
@@ -263,12 +271,6 @@ suite('View Manager', function() {
         viewManager.render(layout, flags, function() {
 
           var imeHeight = viewManager.currentPageView.element.scrollHeight;
-          // it seems the margin would collapse for zero row count,
-          // need to plus 2
-          if (!latin && suggest && rowCount === 0) {
-            imeHeight += 2;
-          }
-
           assert.equal(imeHeight, viewManager.getHeight());
 
           next();
@@ -299,14 +301,6 @@ suite('View Manager', function() {
             });
           });
         });
-      });
-
-      test('Container has a one pixel extra offset', function(next) {
-        var comp = getComputedStyle(document.querySelector('#keyboard'));
-        assert.equal(comp.paddingTop, '0px');
-        assert.equal(comp.marginTop, '0px');
-        assert.equal(comp.borderTopWidth, '1px');
-        next();
       });
     });
   });

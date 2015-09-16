@@ -206,9 +206,12 @@ LayoutRenderingManager.prototype._updateLayoutParams = function() {
 LayoutRenderingManager.prototype._updateHeight = function() {
   this.app.console.log('LayoutRenderingManager._updateHeight()');
   this.app.console.time('LayoutRenderingManager._updateHeight()');
-  // height of the current active IME + 1px for the borderTop
-  var imeHeight = this.app.viewManager.getHeight() + 1;
+  var imeHeight = this.app.viewManager.getHeight();
   var imeWidth = this.app.viewManager.getWidth();
+
+  // Floor the height to real device pixel
+  imeHeight =
+    Math.floor(imeHeight * window.devicePixelRatio) / window.devicePixelRatio;
 
   this.app.console.timeEnd('LayoutRenderingManager._updateHeight()');
   this.app.console.timeEnd('activate');

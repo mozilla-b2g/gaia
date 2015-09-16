@@ -22,7 +22,6 @@ function LayoutPageView(layout, options, viewManager) {
   //}
 
   this.candidatePanel = null;
-  this.candidatePanelHeight = 3.2;
 
   // Cache the visual data here
   this.keyArrays = new Map();
@@ -64,6 +63,8 @@ LayoutPageView.prototype.render = function render() {
     content.appendChild(handwritingPadView.element);
     this.handwritingPadView = handwritingPadView;
   }
+
+  container.classList.add('rows-' + layout.keys.length);
 
   layout.keys.forEach((function buildKeyboardRow(row, nrow) {
     var kbRow = document.createElement('div');
@@ -260,7 +261,6 @@ LayoutPageView.prototype.createCandidatePanel = function(inputMethodName) {
     case 'latin':
       candidatePanel =
         new LatinCandidatePanelView(target, options, this.viewManager);
-      this.candidatePanelHeight = 3.1;
       break;
 
     case 'vietnamese':
@@ -307,22 +307,39 @@ LayoutPageView.prototype.getNumberOfCandidatesPerRow = function() {
     return;
   }
 
-  return this.candidatePanel.countPerRow;
+  return this.candidatePanel.COUNT_PER_ROW;
 };
 
 LayoutPageView.prototype.getHeight = function() {
-  var totalWidth = this.options.totalWidth;
-  var scale = this.viewManager.screenInPortraitMode() ?
-              totalWidth / 32 :
-              totalWidth / 64;
-
-  var height = this.rows.size * (5.1 * scale);
+  var height = this.rows.size * this.getKeyHeight();
 
   if (this.candidatePanel) {
-    height += (this.candidatePanelHeight * scale);
+    height += this.candidatePanel.getHeight();
   }
 
   return height;
+};
+
+LayoutPageView.prototype.getKeyHeight = function() {
+  // Start with top & bottom margin height
+  var keyHeightInRem = 0.8;
+
+  /**
+   * There are 3 different height we are using here.
+   * See CSS variable '--key-height' in keyboard.css.
+   */
+  if (typeof this.layout.keyClassName === 'string' &&
+      this.layout.keyClassName.includes('big-key')) {
+    keyHeightInRem += 4.3;
+  } else {
+    if (this.viewManager.screenInPortraitMode()) {
+      keyHeightInRem += 3.6;
+    } else {
+      keyHeightInRem += 3.1;
+    }
+  }
+
+  return keyHeightInRem * this.viewManager.getRemToPx();
 };
 
 exports.LayoutPageView = LayoutPageView;
