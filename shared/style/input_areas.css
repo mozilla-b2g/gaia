@@ -1,6 +1,26 @@
 /* ----------------------------------
-* Input areas
-* ---------------------------------- */
+ * Input areas
+ * ---------------------------------- */
+
+/**
+ * BiDi notes:
+ *
+ *  - as the <input>, <textarea> and [contentEditable] elements are filled by
+ *    the user, they need a `dir="auto"` attribute for their content to be
+ *    displayed properly (e.g. LTR content in an RTL document, or vice-versa);
+ *
+ *  - consequence: *-inline-start/end properties cannot be used on such elements
+ *    because the margin/padding/position should not depend on the content
+ *    direction;
+ *
+ *  - however, the one-line inputs must still be aligned along with the
+ *    *document* direction: to the left in LTR, to the right in RTL
+ *    -- no matter what the *content* direction is.
+ */
+
+html[dir="ltr"] input[dir] { text-align: left; }
+html[dir="rtl"] input[dir] { text-align: right; }
+
 input[type="text"],
 input[type="password"],
 input[type="email"],
@@ -23,7 +43,7 @@ textarea {
   box-shadow: none; /* override the box-shadow from the system (performance issue) */
   color: #333;
   background: #fff;
-  margin: 0 0 1rem 0;
+  margin: 0 0 1rem;
   unicode-bidi: -moz-plaintext;
 }
 
@@ -72,7 +92,7 @@ form p input + button[type="reset"],
 form p textarea + button[type="reset"] {
   position: absolute;
   top: 0;
-  right: -0.3rem;
+  offset-inline-end: -0.3rem;
   width: 4rem;
   height: 4rem;
   padding: 0;
@@ -82,7 +102,6 @@ form p textarea + button[type="reset"] {
   pointer-events: none;
   background: url(input_areas/images/clear.png) no-repeat 50% 50% / 2.4rem auto;
 }
-
 
 .skin-dark p input + button[type="reset"],
 .skin-dark p textarea + button[type="reset"] {
@@ -99,9 +118,8 @@ textarea {
   padding: 1.2rem;
 }
 
-form p input:focus {
-  padding-right: 3rem;
-}
+html[dir="ltr"] form p input:focus { padding-right: 3rem; }
+html[dir="rtl"] form p input:focus { padding-left: 3rem; }
 
 form p input:focus + button[type="reset"],
 form p textarea:focus + button[type="reset"] {
@@ -113,7 +131,7 @@ form p textarea:focus + button[type="reset"] {
 fieldset {
   position: relative;
   overflow: hidden;
-  margin: 1.5rem 0 0 0;
+  margin: 1.5rem 0 0;
   padding: 0;
   font-size: 2rem;
   line-height: 1em;
@@ -140,7 +158,24 @@ input[type="datetime-local"] {
   height: 4rem;
   color: #333;
   border-radius: 0;
-  background: #fff url(input_areas/images/dialog.svg) no-repeat calc(100% - 1rem) calc(100% - 1rem);
+  background-color: #fff;
+  background-repeat: no-repeat;
+}
+html[dir="ltr"] fieldset legend,
+html[dir="ltr"] input[type="date"],
+html[dir="ltr"] input[type="time"],
+html[dir="ltr"] input[type="datetime"],
+html[dir="ltr"] input[type="datetime-local"] {
+  background-image: url(input_areas/images/dialog.svg);
+  background-position: right 1rem bottom 1rem;
+}
+html[dir="rtl"] fieldset legend,
+html[dir="rtl"] input[type="date"],
+html[dir="rtl"] input[type="time"],
+html[dir="rtl"] input[type="datetime"],
+html[dir="rtl"] input[type="datetime-local"] {
+  background-image: url(input_areas/images/dialog_rtl.svg);
+  background-position: left 1rem bottom 1rem;
 }
 
 fieldset legend {
@@ -169,8 +204,21 @@ input[type="date"][disabled],
 input[type="time"][disabled],
 input[type="datetime"][disabled],
 input[type="datetime-local"][disabled] {
+  background-color: transparent;
+}
+html[dir="ltr"] fieldset[disabled] legend,
+html[dir="ltr"] input[type="date"][disabled],
+html[dir="ltr"] input[type="time"][disabled],
+html[dir="ltr"] input[type="datetime"][disabled],
+html[dir="ltr"] input[type="datetime-local"][disabled] {
   background-image: url(input_areas/images/dialog_disabled.svg);
-  background-color: transparent
+}
+html[dir="rtl"] fieldset[disabled] legend,
+html[dir="rtl"] input[type="date"][disabled],
+html[dir="rtl"] input[type="time"][disabled],
+html[dir="rtl"] input[type="datetime"][disabled],
+html[dir="rtl"] input[type="datetime-local"][disabled] {
+  background-image: url(input_areas/images/dialog_disabled_rtl.svg);
 }
 
 input[type="date"]:focus,
@@ -204,7 +252,6 @@ input[type="datetime-local"]:active {
   background-color: #00aacc;
   background-image: url(input_areas/images/dialog_active.svg);
 }
-
 
 /* fix for required inputs with wrong or empty value e.g. [type=email] */
 input:invalid,
@@ -248,7 +295,8 @@ form[role="search"].skin-dark {
 }
 
 form[role="search"] p {
-  padding: 0 1.5rem 0 3rem;
+  padding: 0 1.5rem;
+  padding-inline-start: 3rem;
   overflow: hidden;
   position: relative;
 }
@@ -264,12 +312,19 @@ form[role="search"] p textarea {
 }
 
 form[role="search"] p textarea {
-  padding: 1rem 0 0 0;
+  padding: 1rem 0 0;
 }
 
 form[role="search"] p input::-moz-placeholder {
-  background: url(input_areas/images/search.svg) right -0.5rem center no-repeat;
+  background-image: url(input_areas/images/search.svg);
+  background-repeat: no-repeat;
   background-size: 3rem;
+}
+html[dir="ltr"] form[role="search"] p input::-moz-placeholder {
+  background-position: right -0.5rem center;
+}
+html[dir="rtl"] form[role="search"] p input::-moz-placeholder {
+  background-position: left -0.5rem center;
 }
 
 form[role="search"].skin-dark p input::-moz-placeholder {
@@ -296,7 +351,6 @@ form[role="search"].skin-dark p textarea {
 }
 
 form[role="search"] button[type="submit"] {
-  float: right;
   min-width: 6rem;
   height: 3.7rem;
   padding: 0 1.5rem;
@@ -314,11 +368,13 @@ form[role="search"] button[type="submit"] {
   font-style: italic;
   overflow: visible;
 }
+html[dir="ltr"] form[role="search"] button[type="submit"] { float: right; }
+html[dir="rtl"] form[role="search"] button[type="submit"] { float: left; }
 
 form[role="search"] button[type="submit"]:after {
   content: "";
   position: absolute;
-  left: -0.1rem;
+  offset-inline-start: -0.1rem;
   top: 0.7rem;
   bottom: 0.7rem;
   width: 0.1rem;
@@ -331,10 +387,21 @@ form[role="search"] button[type="submit"].icon {
   background-position: center;
   background-size: 3rem;
 }
+/**
+ * We can't mirror the background image alone; so let's put the vertical
+ * separator on the left edge, and mirror the whole element (including the
+ * image background and the separator).
+ */
+form[role="search"] button[type="submit"].icon:after {
+  offset-inline-start: unset;
+  left: -0.1rem; /* BiDi-proof: mirrored with a scaleX(-1) below */
+}
+html[dir="ltr"] form[role="search"] button[type="submit"].icon { transform: scaleX(1); }
+html[dir="rtl"] form[role="search"] button[type="submit"].icon { transform: scaleX(-1); }
 
 form[role="search"] p input + button[type="reset"]{
   height: 3.7rem;
-  right: 0.5rem;
+  offset-inline-end: 0.5rem;
 }
 
 form[role="search"].skin-dark button[type="submit"]:after {
@@ -383,7 +450,7 @@ form button::-moz-focus-inner {
   max-width: calc(100% - 1.4rem);
   overflow: hidden;
   padding: 0 1.5rem;
-  margin: 0 0 0.6rem 0;
+  margin: 0 0 0.6rem;
   line-height: 2.8rem;
   border-radius: 1.4rem;
   text-overflow: ellipsis;
@@ -394,28 +461,24 @@ form button::-moz-focus-inner {
   background: #fff;
 }
 
-.bb-editable [contenteditable].icon {
+html[dir="ltr"] .bb-editable [contenteditable].icon {
   padding-right: 3.7rem;
+}
+html[dir="rtl"] .bb-editable [contenteditable].icon {
+  padding-left: 3.7rem;
 }
 
 .bb-editable [contenteditable="false"].invalid {
   background-color: #fedcdc;
-   /**
-   * We don't use -moz-padding-start here because padding location shouldn't
-   * depend on text direction of [contenteditable] content itself. For LTR mode
-   * "invalid" element with either LTR or RTL content should have always left
-   * padding to accommodate "invalid" icon, for RTL mode it should be on the
-   * right side, so to align it correctly we should override padding depending
-   * on text direction of parent element.
-   */
-  padding-left: 3.3rem;
+  padding: 0 1.5rem;
 }
+html[dir="ltr"] .bb-editable [contenteditable="false"].invalid { padding-left: 3.3rem; }
+html[dir="rtl"] .bb-editable [contenteditable="false"].invalid { padding-right: 3.3rem; }
 
 .bb-editable [contenteditable="false"].invalid:before {
     content: "!";
     position: absolute;
     top: 0.6rem;
-    left: 0.8rem;
     display: block;
     width: 1.7rem;
     height: 1.6rem;
@@ -430,6 +493,8 @@ form button::-moz-focus-inner {
     color: #fff;
     background-color: #b80404;
 }
+html[dir="ltr"] .bb-editable [contenteditable="false"].invalid:before { left: 0.8rem; }
+html[dir="rtl"] .bb-editable [contenteditable="false"].invalid:before { right: 0.8rem; }
 
 .bb-editable [contenteditable="false"].invalid:hover:before,
 .bb-editable [contenteditable="false"].invalid:active:before {
@@ -449,26 +514,50 @@ form button::-moz-focus-inner {
   content: "";
   position: absolute;
   top: 0.7rem;
-  right: 0;
   width: 3rem;
   height: 3rem;
-  background-position: -0.7rem -3.8rem;
   background-repeat: no-repeat;
   background-size: 3rem;
 }
-
-.bb-editable [contenteditable].icon:hover:after,
-.bb-editable [contenteditable].icon:active:after {
-  background-position: -0.7rem -0.8rem;
+html[dir="ltr"] .bb-editable [contenteditable].icon:after {
+  right: 0;
+  background-position: -0.7rem -3.8rem;
+}
+html[dir="rtl"] .bb-editable [contenteditable].icon:after {
+  left: 0;
+  background-position: 0.7rem -3.8rem;
 }
 
-.bb-editable [contenteditable].invalid.icon:after {
+html[dir="ltr"] .bb-editable [contenteditable].icon:hover:after,
+html[dir="ltr"] .bb-editable [contenteditable].icon:active:after {
+  background-position: -0.7rem -0.8rem;
+}
+html[dir="rtl"] .bb-editable [contenteditable].icon:hover:after,
+html[dir="rtl"] .bb-editable [contenteditable].icon:active:after {
+  background-position: 0.7rem -0.8rem;
+}
+
+html[dir="ltr"] .bb-editable [contenteditable].invalid.icon {
+  padding-right: 3.7rem;
+}
+html[dir="rtl"] .bb-editable [contenteditable].invalid.icon {
+  padding-left: 3.7rem;
+}
+
+html[dir="ltr"] .bb-editable [contenteditable].invalid.icon:after {
   background-position: -0.7rem -6.8rem;
 }
+html[dir="rtl"] .bb-editable [contenteditable].invalid.icon:after {
+  background-position: 0.7rem -6.8rem;
+}
 
-.bb-editable [contenteditable].invalid.icon:hover:after,
-.bb-editable [contenteditable].invalid.icon:active:after {
+html[dir="ltr"] .bb-editable [contenteditable].invalid.icon:hover:after,
+html[dir="ltr"] .bb-editable [contenteditable].invalid.icon:active:after {
   background-position: -0.7rem -0.8rem;
+}
+html[dir="rtl"] .bb-editable [contenteditable].invalid.icon:hover:after,
+html[dir="rtl"] .bb-editable [contenteditable].invalid.icon:active:after {
+  background-position: 0.7rem -0.8rem;
 }
 
 .bb-editable [contenteditable="true"],
@@ -486,88 +575,5 @@ form button::-moz-focus-inner {
 .skin-comms .bb-editable [contenteditable]:active {
   color: #fff;
   background-color: #29bbb5;
-}
-
-/******************************************************************************
- * Right-to-Left layout
- */
-
-html[dir="rtl"] ::-moz-placeholder {
-  text-align: right;
-}
-
-html[dir="rtl"] input[type="text"],
-html[dir="rtl"] input[type="password"],
-html[dir="rtl"] input[type="email"],
-html[dir="rtl"] input[type="tel"],
-html[dir="rtl"] input[type="search"],
-html[dir="rtl"] input[type="url"],
-html[dir="rtl"] input[type="number"],
-html[dir="rtl"] textarea {
-  text-align: right;
-}
-
-html[dir="rtl"] fieldset legend {
-  background: rgba(0,0,0,0.05) url(input_areas/images/dialog_rtl.svg) no-repeat 1rem calc(100% - 1rem);
-}
-
-html[dir="rtl"] input[type="date"],
-html[dir="rtl"] input[type="time"],
-html[dir="rtl"] input[type="datetime"],
-html[dir="rtl"] input[type="datetime-local"] {
-  background: #fff url(input_areas/images/dialog_rtl.svg) no-repeat 1rem calc(100% - 1rem);
-}
-
-html[dir="rtl"] fieldset[disabled] legend,
-html[dir="rtl"] input[type="date"][disabled],
-html[dir="rtl"] input[type="time"][disabled],
-html[dir="rtl"] input[type="datetime"][disabled],
-html[dir="rtl"] input[type="datetime-local"][disabled] {
-  background-image: url(input_areas/images/dialog_disabled_rtl.svg);
-}
-
-html[dir="rtl"] form p input + button[type="reset"],
-html[dir="rtl"] form p textarea + button[type="reset"] {
-  right: auto;
-  left: 0.3rem;
-}
-
-html[dir="rtl"] form[role="search"] p {
-  padding: 0 3rem 0 1.5rem;
-}
-
-html[dir="rtl"] form[role="search"] p input + button[type="reset"]{
-  left: 0.5rem;
-}
-
-html[dir="rtl"] form[role="search"] p input::-moz-placeholder {
-  background-position: -0.5rem center;
-}
-
-html[dir="rtl"] form[role="search"] button[type="submit"] {
-  float: left;
-}
-
-html[dir="rtl"] form[role="search"] button[type="submit"]:after {
-  right: 0;
-  left: auto;
-}
-
-.bb-editable:-moz-dir(rtl) [contenteditable="false"].invalid {
-   /**
-   * See LTR ".bb-editable [contenteditable="false"].invalid" rule above for the
-   * explanation why we don't use -moz-padding-start/-end here.
-   */
-  padding: 0 3.3rem 0 1.5rem;
-}
-
-.bb-editable:-moz-dir(rtl) [contenteditable="false"].invalid:before {
-  left: unset;
-  right: 0.8rem;
-}
-
-html[dir="rtl"] form p input:focus {
-  padding-right: 1.5rem;
-  padding-left: 3rem;
 }
 

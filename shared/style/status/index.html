@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html dir="ltr">
 <head>
   <meta charset="utf-8">
 
@@ -9,7 +9,8 @@
   <link rel="stylesheet" href="../status.css">
 
   <!--
-  This <style> and <link> is only used for the example code, is no needed for the real case use
+    This <style>, <script> and <link> are only used for the example code,
+    they are not needed for the real use case
   -->
   <style>
     html, body {
@@ -23,12 +24,17 @@
       background: none;
     }
   </style>
+  <script>
+    window.onload = function(){
+      document.getElementById('dir').checked = false;
+    };
+  </script>
 </head>
 
 <body role="application">
   <p dir="ltr">
     <label>
-      <input type="checkbox"
+      <input id="dir" type="checkbox"
         onchange="document.documentElement.dir = this.checked ? 'rtl' : 'ltr'">
       RTL mode
     </label>
