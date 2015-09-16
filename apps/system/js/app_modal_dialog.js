@@ -114,7 +114,8 @@
               </p>
             </div>
             <menu>
-              <button class="modal-dialog-alert-ok confirm affirmative"
+              <button type="submit"
+              class="modal-dialog-alert-ok confirm affirmative"
               data-l10n-id="ok"></button>
             </menu>
           </form>
@@ -127,9 +128,10 @@
               </p>
             </div>
             <menu data-items="2">
-              <button class="modal-dialog-confirm-cancel cancel"
+              <button type="button" class="modal-dialog-confirm-cancel cancel"
               data-l10n-id="cancel"></button>
-              <button class="modal-dialog-confirm-ok confirm affirmative"
+              <button type="submit"
+              class="modal-dialog-confirm-ok confirm affirmative"
               data-l10n-id="ok"></button>
             </menu>
           </form>
@@ -143,9 +145,10 @@
               </p>
             </div>
             <menu data-items="2">
-              <button class="modal-dialog-prompt-cancel cancel"
+              <button type="button" class="modal-dialog-prompt-cancel cancel"
                data-l10n-id="cancel"></button>
-              <button class="modal-dialog-prompt-ok confirm affirmative"
+              <button type="submit"
+              class="modal-dialog-prompt-ok confirm affirmative"
               data-l10n-id="ok"></button>
             </menu>
           </form>
@@ -156,7 +159,8 @@
               <ul class="modal-dialog-select-one-menu"></ul>
             </div>
             <menu>
-              <button class="modal-dialog-select-one-cancel cancel"
+              <button type="submit"
+              class="modal-dialog-select-one-cancel cancel"
               data-l10n-id="cancel"></button>
             </menu>
           </form>
