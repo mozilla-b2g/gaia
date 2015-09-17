@@ -725,7 +725,6 @@ var Contacts = (function() {
       performOnContactChange(changeEvents[i]);
     }
     sessionStorage.setItem('contactChanges', null);
-    utils.cookie.update({shouldEvict: false});
   });
 
   return {

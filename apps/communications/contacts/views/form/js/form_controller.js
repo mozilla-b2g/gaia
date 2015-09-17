@@ -223,7 +223,6 @@
           }
           events.unshift(eventToSave);
           sessionStorage.setItem('contactChanges', JSON.stringify(events));
-          utils.cookie.update({shouldEvict: true});
           resolve();
         }
       );
