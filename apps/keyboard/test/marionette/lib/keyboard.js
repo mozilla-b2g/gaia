@@ -69,6 +69,8 @@ Keyboard.prototype = {
                key == ' ') {
       this.switchToPage(0);
       this.switchCase(false);
+    } else if (key === ' ' || key === '\u0008' || key === '\u000d') {
+      // No need to switch -- should be on every page and every case.
     } else {
       var index = this.getSymbolPageIndex(key);
       this.switchToPage(index);
