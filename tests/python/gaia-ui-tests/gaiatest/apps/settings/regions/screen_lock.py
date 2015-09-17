@@ -57,4 +57,4 @@ class ScreenLock(PageRegion):
             *self._screen_lock_passcode_section_locator))
         self.marionette.find_element(*self._passcode_create_locator).tap()
         Wait(self.marionette).until(expected.element_displayed(
-            *self._screen_lock_section_locator))
+            *self._root_locator))
