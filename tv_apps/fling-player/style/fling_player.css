@@ -52,7 +52,7 @@ article, section, video {
   display: inline-block;
 }
 
-.control-bar {
+.control-panel {
   position: absolute;
   left: 0;
   right: 0;
@@ -63,7 +63,106 @@ article, section, video {
   transition: all 1s ease;
 }
 
-.control-bar.fade-out {
+.control-panel.fade-out {
   opacity: 0;
   visibility: hidden;
 }
+
+/* TMP */
+
+.control-panel.fade-out {
+  opacity: 1;
+  visibility: visible;
+}
+
+#video-player-section {
+  background-color: #B2FFFF;
+}
+
+/* TMP end */
+
+/* TMP _KEY_ */
+#video-time-progess {
+  width: 100%;
+  height: 10rem;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 10rem;
+}
+
+#video-time-progess div {
+  position: absolute;
+}
+
+#time-progess {
+  width: 80%;
+  height: 4rem;
+  left: 10%;
+}
+
+.time-bar {
+  width: 100%;
+  height: 1rem;
+  background: #888;
+  border-radius: 1rem;
+  top: 2rem;
+  transform: translate(0, -50%);
+}
+
+#elapsed-time-bar {
+  background: #3399FF;
+
+  /* TMP */
+  width: 33%;
+}
+
+#buffered-time-bar {
+  background: #fff;
+
+  /* TMP */
+  width: 66%
+}
+
+.time-text {
+  font-size: 2.5rem;
+  height: 4rem;
+  line-height: 4rem;
+}
+
+#elapsed-time {
+  left: 3rem;
+}
+
+#duration-time {
+  right: 3rem;
+}
+
+#video-control-buttons {
+  width: 100%;
+  height: 10rem;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+#video-control-buttons > smart-button {
+  font-size: 5rem;
+}
+
+#backward-button {
+  float: left;
+  margin-left: 2rem;
+}
+
+#play-button {
+  display: block;
+  margin: 0 auto;
+}
+
+#forward-button {
+  float: right;
+  margin-right: 2rem;
+}
+/* TMP _KEY_ end */
