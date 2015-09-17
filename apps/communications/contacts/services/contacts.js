@@ -17,31 +17,6 @@
 
   // All events based on mozConcacts will be handled by this var
   var events = {};
-  var _sortBy = null;
-  var _onContactCB, _onErrorCB, _onCompleteCB, _shouldSkip;
-  
-  function cleanStream() {
-    _sortBy = null;
-    _onCompleteCB = null;
-    _onErrorCB = null;
-    _onContactCB = null;
-    _shouldSkip = function () {return false;};
-  }
-
-  function streamContacts(cursor) {
-    cursor.onsuccess = function onsuccess(evt) {
-      var contact = evt.target.result;
-      if (contact) {
-        if (!_shouldSkip(contact)) {
-          _onContactCB(contact);
-        }
-        cursor.continue();
-      } else {
-        _onCompleteCB();
-      }
-    };
-    cursor.onerror = _onErrorCB;
-  }
 
   // Execute all handlers based on an event type
   function executeHandlers(e) {
@@ -112,10 +87,6 @@
       };
     },
     remove: function(contact, callback) {
-      if (!callback || typeof callback !== 'function') {
-        callback = function foo(){};
-      }
-      
       var request =
         navigator.mozContacts.remove(utils.misc.toMozContact(contact));
       request.onsuccess = function() {
@@ -160,55 +131,36 @@
       };
     },
     getAllStreamed: function(sortBy, onContactCB, onErrorCB, onCompleteCB) {
-      // Reset all values
-      cleanStream();
-
       // Ensure all callbacks are available
       if (typeof onContactCB !== 'function') {
-        _onContactCB = function() {};
-      } else {
-        _onContactCB = onContactCB;
+        onContactCB = function() {};
       }
 
       if (typeof onErrorCB !== 'function') {
-        _onErrorCB = function() {};
-      } else {
-        _onErrorCB = onErrorCB;
+        onErrorCB = function() {};
       }
 
       if (typeof onCompleteCB !== 'function') {
-        _onCompleteCB = cleanStream;
-      } else {
-        _onCompleteCB = function() {
-          onCompleteCB();
-          cleanStream();
-        };
+        onCompleteCB = function() {};
       }
 
-      // Cache the sorting for future executions
-      _sortBy = sortBy;
       // Execute the search
       var options = {
-        sortBy: _sortBy,
+        sortBy: sortBy,
         sortOrder: 'ascending'
       };
       var cursor = navigator.mozContacts.getAll(options);
-      streamContacts(cursor);
-    },
 
-    resume: function(shouldSkip) {
-      if (typeof shouldSkip !== 'function') {
-        return;
-      }
-
-      _shouldSkip = shouldSkip;
-
-      var options = {
-        sortBy: _sortBy,
-        sortOrder: 'ascending'
+      cursor.onsuccess = function onsuccess(evt) {
+        var contact = evt.target.result;
+        if (contact) {
+          onContactCB(contact);
+          cursor.continue();
+        } else {
+          onCompleteCB();
+        }
       };
-      var cursor = navigator.mozContacts.getAll(options);
-      streamContacts(cursor);
+      cursor.onerror = onErrorCB;
     },
 
     getCount: function(callback) {
