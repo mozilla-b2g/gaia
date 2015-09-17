@@ -1033,6 +1033,12 @@ bubble above the key when you tap and hold. */
   font-size: 2rem;
 }
 
+/* Persian */
+.fa-10 .keyboard-key:not(.special-key) > .visual-wrapper > .key-element,
+.fa-11 .keyboard-key:not(.special-key) > .visual-wrapper > .key-element {
+  font-size: 1.8rem;
+}
+
 /* Myanmar */
 .my .keyboard-key:not(.special-key) > .visual-wrapper > .key-element {
   font-size: 2.2rem;
