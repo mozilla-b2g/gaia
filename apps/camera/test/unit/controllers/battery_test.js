@@ -29,6 +29,7 @@ suite('controllers/battery', function() {
       healthy: 100
     };
 
+    this.sandbox = sinon.sandbox.create();
     this.app = sinon.createStubInstance(this.App);
     this.app.settings = sinon.createStubInstance(this.Settings);
     this.app.settings.battery = sinon.createStubInstance(this.Setting);
@@ -49,19 +50,56 @@ suite('controllers/battery', function() {
     // Shortcuts
     this.notification = this.app.views.notification;
 
+    // Keep reference of
+    // things we want to restore
+    this.backup = {
+      mozSettings: navigator.mozSettings
+    };
+
+    // Mock object that mimicks
+    // mozSettings get API. Inside
+    // tests set this.mozSettingsGetResult
+    // define the result of the mock call.
+    navigator.mozSettings = {
+      createLock: function() { return this; },
+      get: sinon.stub(),
+      set: sinon.stub(),
+      addObserver: sinon.stub()
+    };
+
+    navigator.mozSettings.get.withArgs('powersave.enabled').returns(
+      Promise.resolve({'powersave.enabled': false})
+    );
+
+    navigator.mozSettings.get.withArgs('screen.timeout').returns(
+      Promise.resolve({'screen.timeout': 60})
+    );
+
     // Our test instance
     this.controller = new this.BatteryController(this.app);
+  });
+
+  teardown(function() {
+    this.sandbox.restore();
+    navigator.mozSettings = this.backup.mozSettings;
   });
 
   suite('BatteryController()', function() {
     test('Should listen to the following events', function() {
       assert.ok(this.app.on.calledWith('change:batteryStatus'));
+      assert.ok(this.app.on.calledWith('camera:configured'));
+      assert.ok(this.app.on.calledWith('camera:previewactive'));
       assert.ok(this.app.battery.addEventListener.calledWith('levelchange'));
       assert.ok(this.app.battery.addEventListener.calledWith('chargingchange'));
+      assert.ok(navigator.mozSettings.addObserver.calledWith('powersave.enabled'));
     });
 
     test('Should update the status initially', function() {
       assert.ok(this.app.set.calledWith('batteryStatus', 'healthy'));
+    });
+
+    test('Should query power save state', function() {
+      assert.ok(navigator.mozSettings.get.calledWith('powersave.enabled'));
     });
   });
 
@@ -166,6 +204,91 @@ suite('controllers/battery', function() {
     test('Should always clear the last notification', function() {
       this.controller.onStatusChange('low');
       assert.isTrue(this.notification.clear.called);
+    });
+  });
+
+  suite('BatteryController#restoreScreenTimeout', function() {
+    test('Should do nothing if no old timeout cached', function() {
+      this.controller.restoreScreenTimeout();
+      assert.isFalse(navigator.mozSettings.set.called);
+    });
+
+    test('Should restore original timeout if cached', function() {
+      this.controller.cachedScreenTimeout = 120;
+      this.controller.restoreScreenTimeout();
+      assert.ok(navigator.mozSettings.set.called);
+      assert.ok(typeof(this.controller.cachedScreenTimeout) === 'undefined');
+    });
+  });
+
+  suite('BatteryController#updateScreenTimeout', function() {
+    setup(function() {
+      this.sandbox.stub(this.controller, 'restoreScreenTimeout');
+      this.app.hidden = false;
+      this.controller.powerSave = true;
+      this.controller.powerSaveScreenTimeout = 120;
+      navigator.mozSettings.get.reset();
+      navigator.mozSettings.set.reset();
+    });
+
+    test('Should do nothing if app is hidden', function() {
+      this.app.hidden = true;
+      this.controller.updateScreenTimeout();
+      assert.isFalse(navigator.mozSettings.get.called);
+      assert.isFalse(this.controller.restoreScreenTimeout.called);
+    });
+
+    test('Should do nothing if no timeout configured', function() {
+      delete this.controller.powerSaveScreenTimeout;
+      this.controller.updateScreenTimeout();
+      assert.isFalse(navigator.mozSettings.get.called);
+      assert.isFalse(this.controller.restoreScreenTimeout.called);
+    });
+
+    test('Should query screen timeout if power save enabled', function() {
+      this.controller.updateScreenTimeout();
+      assert.isTrue(navigator.mozSettings.get.calledWith('screen.timeout'));
+    });
+
+    test('Should call `restoreScreenTimeout` if power save disabled', function() {
+      this.controller.powerSave = false;
+      this.controller.updateScreenTimeout();
+      sinon.assert.called(this.controller.restoreScreenTimeout);
+    });
+  });
+
+  suite('BatteryController#onPowerSaveChange()', function() {
+    setup(function() {
+      this.sandbox.stub(this.controller, 'updateScreenTimeout');
+      this.controller.onPowerSaveChange({settingValue: 'result'});
+    });
+
+    test('Should emit `battery:powersave`', function() {
+      assert.ok(this.app.emit.calledWith('battery:powersave', 'result'));
+    });
+
+    test('Should call `updateScreenTimeout`', function() {
+      sinon.assert.called(this.controller.updateScreenTimeout);
+    });
+
+    test('Should save power save status', function() {
+      assert.equal(this.controller.powerSave, 'result');
+    });
+  });
+
+  suite('BatteryController#onPreviewActive', function() {
+    setup(function() {
+      this.sandbox.stub(this.controller, 'restoreScreenTimeout');
+    });
+
+    test('Should do nothing if preview activated', function() {
+      this.controller.onPreviewActive(true);
+      sinon.assert.notCalled(this.controller.restoreScreenTimeout);
+    });
+
+    test('Should call `restoreScreenTimeout` if preview deactivated', function() {
+      this.controller.onPreviewActive(false);
+      sinon.assert.called(this.controller.restoreScreenTimeout);
     });
   });
 });
