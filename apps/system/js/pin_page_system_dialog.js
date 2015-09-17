@@ -2,26 +2,18 @@
 'use strict';
 
 (function(exports) {
-
-  var pinDialogInstance;
-
   /**
    * @class PinPageSystemDialog
    * @param {options} object for attributes `onShow`, `onHide` callback.
    * @extends SystemDialog
    */
   var PinPageSystemDialog = function(controller) {
-    if (pinDialogInstance) {
-      return pinDialogInstance;
-    }
-
     this.instanceID = 'pin-page-dialog';
     this.controller = controller || {};
     this.options = {};
     this.render();
     LazyLoader.load('shared/elements/gaia-component/gaia-component.js')
       .then(() => {
-        LazyLoader.load('shared/elements/gaia-site-icon/script.js');
         LazyLoader.load('shared/elements/gaia-toast/gaia-toast.js')
           .then(() => {
             this._banner = document.createElement('gaia-toast');
@@ -36,7 +28,6 @@
       });
 
     this.publish('created');
-    pinDialogInstance = this;
   };
 
   PinPageSystemDialog.prototype = Object.create(SystemDialog.prototype, {
@@ -68,17 +59,6 @@
                   class="pin-button">
                     Pin
                   </button>
-                  <p id="pin-page-from" data-l10n-id="from"></p>
-                  <div id='pin-site-container'>
-                    <a class="icon icon-arrow" id="pin-arrow" href='#'></a>
-                    <h1 class="site-panel-element"
-                      id="pin-site-title" data-l10n-id="pinning-pin-site"></h1>
-                    <gaia-app-icon></gaia-app-icon>
-                    <p id="site-name"></p>
-                    <p class="origin site-panel-element" dir="ltr" ></p>
-                    <button data-l10n-id="pinning-pin" data-action="pin-site"
-                    class="pin-button site-panel-element"></button>
-                  </div>
                 </div>
               </section>
             </div>`;
@@ -91,25 +71,17 @@
 
   PinPageSystemDialog.prototype._registerEvents = function() {
     this.header.addEventListener('action', this.close.bind(this));
-    this.pinButton.addEventListener('click', this.save.bind(this, 'page'));
-    this.pinSiteButton.addEventListener('click', this.save.bind(this, 'site'));
-    this.arrow.addEventListener('click', this.toggleSitePanel.bind(this));
+    this.pinButton.addEventListener('click', this.save.bind(this));
   };
 
   PinPageSystemDialog.prototype._fetchElements = function spl_initElements() {
-    this.element = document.querySelector('#' + this.instanceID);
-    this.pinURL = this.element.querySelector('#pin-page-url');
-    this.pinCardContainer = this.element.querySelector('#pin-card-container');
-    this.header = this.element.querySelector('gaia-header');
-    var pinSelector = 'button[data-action="pin"]';
-    this.pinButton = this.element.querySelector(pinSelector);
-    this.arrow = this.element.querySelector('#pin-arrow');
-    this.pinSiteContainer = this.element.querySelector('#pin-site-container');
-    this.siteBadge = this.element.querySelector('gaia-app-icon');
-    this.siteName = this.element.querySelector('#site-name');
-    this.origin = this.element.querySelector('.origin');
-    pinSelector = 'button[data-action="pin-site"]';
-    this.pinSiteButton = this.element.querySelector(pinSelector);
+    var prefix = '#' + this.instanceID;
+    this.element = document.querySelector(prefix);
+    this.pinURL = document.getElementById('pin-page-url');
+    this.pinCardContainer = document.getElementById('pin-card-container');
+    this.header = document.querySelector(prefix + ' gaia-header');
+    var pinSelector = prefix + ' button[data-action="pin"]';
+    this.pinButton = document.querySelector(pinSelector);
   };
 
   PinPageSystemDialog.prototype._renderPinCard = function renderPinCard(data) {
@@ -131,18 +103,9 @@
     this.pinCardContainer.appendChild(this.card);
   };
 
-  PinPageSystemDialog.prototype.save = function(type) {
+  PinPageSystemDialog.prototype.save = function() {
     var activeApp = Service.query('getTopMostWindow');
-    switch (type) {
-      case 'page':
-        activeApp.appChrome.pinPage();
-        break;
-
-      case 'site':
-        activeApp.appChrome.pinSite();
-        this.pinSiteContainer.classList.remove('active');
-        break;
-    }
+    activeApp.appChrome.pinPage && activeApp.appChrome.pinPage();
     this._banner.show();
 
     // Waiting for the animation. We should migrate this to a
@@ -151,36 +114,17 @@
     setTimeout(this.close.bind(this), this._banner.timeout);
   };
 
-  PinPageSystemDialog.prototype.toggleSitePanel = function() {
-    this.pinSiteContainer.classList.toggle('active');
-  };
-
   PinPageSystemDialog.prototype._visible = false;
 
   PinPageSystemDialog.prototype.show = function(data) {
     this.pinURL.textContent = data.url;
     this._renderPinCard(data);
-    this._renderSitePanel(data);
     SystemDialog.prototype.show.apply(this);
     this._visible = true;
   };
 
-  PinPageSystemDialog.prototype._renderSitePanel = function(data) {
-    var siteBadge = this.siteBadge;
-    var origin = new URL(data.url).hostname;
-    siteBadge.addEventListener('icon-loaded', function() {
-      siteBadge.refresh();
-    });
-    siteBadge.icon = data.icon;
-    if (data.name !== origin) {
-      this.origin.textContent = origin;
-    }
-    this.siteName.textContent = data.name;
-  };
-
   PinPageSystemDialog.prototype.hide = function() {
     this._visible = false;
-    this.pinSiteContainer.classList.remove('active');
     SystemDialog.prototype.hide.apply(this);
   };
 
@@ -188,12 +132,6 @@
     this.publish('close');
     this.hide();
     this._visible = false;
-  };
-
-  PinPageSystemDialog.prototype.destroy = function() {
-    this.containerElement.removeChild(this.element);
-    pinDialogInstance = null;
-    this.publish('destroyed');
   };
 
   exports.PinPageSystemDialog = PinPageSystemDialog;

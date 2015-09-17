@@ -38,9 +38,7 @@ System.Selector = Object.freeze({
   appChromeContextNewPrivate: '.appWindow.active [data-id=new-private-window]',
   appChromeContextMenuNewWindow: '.appWindow.active [data-id=new-window]',
   appChromeContextMenuBookmark: '.appWindow.active [data-id=add-to-homescreen]',
-  appChromeContextMenuPin: '.appWindow.active [data-id=pin-to-home-screen]',
   appChromeContextMenuShare: '.appWindow.active [data-id=share]',
-  appChromeContextMenuCancel: '.appWindow.active #ctx-cancel-button',
   appChromeReloadButton: '.appWindow.active .controls .reload-button',
   appChromeStopButton: '.appWindow.active .controls .stop-button',
   appChromeWindowsButton: '.appWindow.active .controls .windows-button',
@@ -182,11 +180,6 @@ System.prototype = {
       System.Selector.appChromeContextMenuBookmark);
   },
 
-  get appChromeContextMenuPin() {
-    return this.client.helper.waitForElement(
-      System.Selector.appChromeContextMenuPin);
-  },
-
   get appChromeContextMenuShare() {
     return this.client.helper.waitForElement(
       System.Selector.appChromeContextMenuShare);
@@ -200,11 +193,6 @@ System.prototype = {
   get appChromeStopButton() {
     return this.client.helper.waitForElement(
       System.Selector.appChromeStopButton);
-  },
-
-  get appChromeContextMenuCancel() {
-    return this.client.helper.waitForElement(
-      System.Selector.appChromeContextMenuCancel);
   },
 
   get appChromeProgressBar() {
