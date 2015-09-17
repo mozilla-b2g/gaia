@@ -7,11 +7,11 @@
   pinCard.background = {
     src: '../images/default_icon.png'
   };
-  pinCard.title = 'Pin Title';
+  pinCard.title = 'Long pin title lorem ipsum lorem ipsum lorem ipsum';
   document.body.appendChild(pinCard);
 
   var pinCard2 = new GaiaPinCard();
-  pinCard2.title = 'Pin Title2';
-  pinCard2.description = 'Pin with description';
+  pinCard2.title = 'Long pin title lorem ipsum lorem ipsum lorem ipsum';
+  pinCard2.description = 'Long pin description lorem ipsum lorem ipsum';
   document.body.appendChild(pinCard2);
 })();

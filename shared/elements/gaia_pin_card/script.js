@@ -38,17 +38,17 @@ window.GaiaPinCard = (function(win) {
       var bgSrc = background.src ? 'url(' + background.src +')' : '';
       this._background = background;
       this.bgElement.style.backgroundImage = bgSrc;
-      this.bgElement.style.backgroundColor = background.themeColor || 'white';
+      this.bgElement.style.backgroundColor = background.themeColor || '#4d4d4d';
+      var opacity = background.themeColor ? '0.30' : '0.15';
       var computedStyle = window.getComputedStyle(this.bgElement);
       var colorCodes = getColorCodes(computedStyle.backgroundColor);
-      var brightness = getBrightness(colorCodes);
       // Adding opacity to the background color
-      var bgColorRgba = 'rgba(' + colorCodes.slice(1).join(',') + ', 0.6)';
+      var rgbaColor = colorCodes.slice(1).join(',') + ', ' + opacity;
+      var bgColorRgba = 'rgba(' + rgbaColor + ')';
       var computedWidth = computedStyle.width;
       var width = computedWidth === 'auto' ? '140px' : computedWidth;
       var shadow = 'inset 0 0 0 ' + width;
       this.bgElement.style.boxShadow = shadow + ' ' + bgColorRgba;
-      this.container.classList.toggle('light', brightness < 200);
     }
   });
 
@@ -88,7 +88,9 @@ window.GaiaPinCard = (function(win) {
   var template = document.createElement('template');
   template.innerHTML =
     `<article class="pin-card no-content">
-      <i></i>
+      <div class="icon-container">
+        <i></i>
+      </div>
       <div class="background"></div>
       <header></header>
       <section>
@@ -99,16 +101,6 @@ window.GaiaPinCard = (function(win) {
   function getColorCodes(color) {
     var colorCodes = /rgb\((\d+), (\d+), (\d+)\)/.exec(color);
     return colorCodes;
-  }
-
-  function getBrightness(colorCodes) {
-    if (!colorCodes || colorCodes.length === 0) {
-      return;
-    }
-    var r = parseInt(colorCodes[1]);
-    var g = parseInt(colorCodes[2]);
-    var b = parseInt(colorCodes[3]);
-    return Math.sqrt((r*r) * 0.241 + (g*g) * 0.691 + (b*b) * 0.068);
   }
 
   // Register and return the constructor

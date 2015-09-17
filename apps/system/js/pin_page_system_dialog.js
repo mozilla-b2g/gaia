@@ -168,13 +168,12 @@
   PinPageSystemDialog.prototype._renderSitePanel = function(data) {
     var siteBadge = this.siteBadge;
     var origin = new URL(data.url).hostname;
-    siteBadge.addEventListener('icon-loaded', function() {
+    siteBadge.addEventListener('icon-loaded', function onLoad() {
+      siteBadge.removeEventListener('icon-loaded', onLoad);
       siteBadge.refresh();
     });
     siteBadge.icon = data.icon;
-    if (data.name !== origin) {
-      this.origin.textContent = origin;
-    }
+    this.origin.textContent = (data.name !== origin) ? origin : '';
     this.siteName.textContent = data.name;
   };
 
