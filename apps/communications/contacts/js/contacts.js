@@ -10,8 +10,6 @@
 /* global Loader */
 /* global TAG_OPTIONS */
 /* global utils */
-/* global GaiaHeader */
-/* global GaiaSubheader */
 /* global HeaderUI */
 /* global Search */
 /* global ContactsService */
@@ -322,8 +320,7 @@ var Contacts = (function() {
   };
 
   var showAddContact = function showAddContact() {
-    window.location.href =
-      '/contacts/views/form/form.html?action=new';
+    showForm();
   };
 
   var loadFacebook = function loadFacebook(callback) {
@@ -622,10 +619,6 @@ var Contacts = (function() {
         checkPendingChanges(event.contactID);
         notifyContactChanged(event.contactID, event.reason);
         break;
-      case 'merged':
-        contactsList.remove(event.contactID);
-        notifyContactChanged(event.contactID, 'remove');
-        break;
     }
   };
 
@@ -694,46 +687,11 @@ var Contacts = (function() {
     window.removeEventListener('DOMContentLoaded', onLoad);
   });
 
-  sessionStorage.setItem('contactChanges', null);
-  window.addEventListener('pageshow', function onPageshow() {
-    // XXX: Workaround until the platform will be fixed
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=1184953
-    document.registerElement(
-      'gaia-header',
-      { prototype: GaiaHeader.prototype }
-    );
-    document.registerElement(
-      'gaia-subheader',
-      { prototype: GaiaSubheader.prototype }
-    );
-
-    // XXX: As well we need to get back the theme color
-    // due to the bug with back&forward cache mentioned before
-    var meta = document.querySelector('meta[name="theme-color"]');
-    document.head.removeChild(meta);
-    meta = document.createElement('meta');
-    meta.content = 'var(--header-background)';
-    meta.name = 'theme-color';
-    document.head.appendChild(meta);
-
-    // #new handling
-    var eventsStringified = sessionStorage.getItem('contactChanges');
-    if (!eventsStringified || eventsStringified === 'null') {
-      return;
-    }
-    
-    var changeEvents = JSON.parse(eventsStringified);
-    for (var i = 0; i < changeEvents.length; i++) {
-      performOnContactChange(changeEvents[i]);
-    }
-    sessionStorage.setItem('contactChanges', null);
-  });
-
   return {
     'goBack' : handleBack,
     'cancel': handleCancel,
-    'setCurrent': setCurrent,
     'showForm': showForm,
+    'setCurrent': setCurrent,
     'onLocalized': onLocalized,
     'init': init,
     'showOverlay': showOverlay,
