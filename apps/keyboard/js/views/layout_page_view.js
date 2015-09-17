@@ -66,6 +66,12 @@ LayoutPageView.prototype.render = function render() {
 
   container.classList.add('rows-' + layout.keys.length);
 
+  if (layout.keys.length !== 4 &&
+      layout.keys.length !== 5) {
+    console.warn('LayoutPageView: Layout to render is neither 4 or 5 rows; ' +
+      'might not be render with expected height.', layout.keys.length);
+  }
+
   layout.keys.forEach((function buildKeyboardRow(row, nrow) {
     var kbRow = document.createElement('div');
     var rowLayoutWidth = 0;
@@ -325,17 +331,20 @@ LayoutPageView.prototype.getKeyHeight = function() {
   var keyHeightInRem = 0.8;
 
   /**
-   * There are 3 different height we are using here.
+   * There are 4 different heights we are using here.
    * See CSS variable '--key-height' in keyboard.css.
    */
-  if (typeof this.layout.keyClassName === 'string' &&
-      this.layout.keyClassName.includes('big-key')) {
-    keyHeightInRem += 4.3;
-  } else {
-    if (this.viewManager.screenInPortraitMode()) {
-      keyHeightInRem += 3.6;
+  if (this.viewManager.screenInPortraitMode()) {
+    if (this.layout.keys.length === 5) {
+      keyHeightInRem += 3.4;
     } else {
-      keyHeightInRem += 3.1;
+      keyHeightInRem += 4.5;
+    }
+  } else {
+    if (this.layout.keys.length === 5) {
+      keyHeightInRem += 2.85;
+    } else {
+      keyHeightInRem += 3.8;
     }
   }
 

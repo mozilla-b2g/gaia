@@ -118,15 +118,19 @@ button::-moz-focus-inner {
 }
 
 .keyboard-key { /* remove this line from build/csslint/xfail.list after csslint understand CSS variables */
-  --key-height: 3.6rem;
+  --key-height: 4.5rem;
+}
+
+.rows-5 .keyboard-key { /* remove this line from build/csslint/xfail.list after csslint understand CSS variables */
+  --key-height: 3.4rem;
 }
 
 .landscape .keyboard-key { /* remove this line from build/csslint/xfail.list after csslint understand CSS variables */
-  --key-height: 3.1rem;
+  --key-height: 3.8rem;
 }
 
-.keyboard-key.big-key { /* remove this line from build/csslint/xfail.list after csslint understand CSS variables */
-  --key-height: 4.3rem;
+.landscape .rows-5 .keyboard-key { /* remove this line from build/csslint/xfail.list after csslint understand CSS variables */
+  --key-height: 2.85rem;
 }
 
 /* Visible keys */
