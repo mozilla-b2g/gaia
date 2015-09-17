@@ -9,7 +9,7 @@ from gaiatest.apps.base import Base, PageRegion
 
 class RingTone(Base):
     name = 'Ringtones'
-    manifest_url = '{}ringtones{}/manifest.webapp'.format(Base.DEFAULT_PROTOCOL,Base.DEFAULT_APP_HOSTNAME)
+    manifest_url = '{}ringtones{}/manifest.webapp'.format(Base.DEFAULT_PROTOCOL, Base.DEFAULT_APP_HOSTNAME)
     _page_locator = (By.CLASS_NAME, 'theme-settings')
     _screen_locator = (By.ID, 'list-parent')
     _header_locator = (By.ID, 'header')
@@ -22,9 +22,10 @@ class RingTone(Base):
         Base.__init__(self, marionette)
         self.wait_to_be_displayed()
         self.apps.switch_to_displayed_app()
-        Wait(marionette).until(lambda m:
-                               self.marionette.find_element(*self._page_locator).
-                               get_attribute('data-ready') == 'true')
+
+        if self.is_element_present(*self._page_locator):
+            Wait(marionette).until(lambda m: self.marionette.find_element(*self._page_locator).
+                                   get_attribute('data-ready') == 'true')
 
     def set_ringtone(self):
         self.marionette.find_element(*self._set_button_locator).tap()
@@ -47,7 +48,8 @@ class RingTone(Base):
 
     @property
     def screen_element(self):
-        return self.marionette.find_element(*self._screen_locator)
+        if self.is_element_present(*self._page_locator):
+            return self.marionette.find_element(*self._screen_locator)
 
     class RingToneItem(PageRegion):
         _radio_button_locator = (By.CSS_SELECTOR, 'gaia-radio')
