@@ -135,6 +135,7 @@ marionette('modify event view', function() {
 
     suite('12/24 hour format', function() {
       test('default format: 12 hour', function() {
+        app.switch12HourTimeFormat();
         assert.equal(editEvent.startTimeLocale.text(), '12:34 PM',
           'check start time locale');
         assert.equal(editEvent.endTimeLocale.text(), '1:34 PM',
