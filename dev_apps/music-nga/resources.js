@@ -82,6 +82,7 @@ const RESOURCES = [
   '/shared/js/async_storage.js',
   '/shared/js/bluetooth_helper.js',
   '/shared/js/image_utils.js',
+  '/shared/js/l20n.js',
   '/shared/js/lazy_loader.js',
   '/shared/js/mediadb.js',
   '/shared/js/omadrm/fl.js',

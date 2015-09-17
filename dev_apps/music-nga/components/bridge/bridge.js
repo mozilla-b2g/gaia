@@ -46,7 +46,7 @@ var debug = {
     var type = `[${self.constructor.name}][${location.pathname}]`;
     console.log(`[Client]${type} - "${arg1}"`, ...args);
   }
-}[1];
+}[0];
 
 /**
  * The type environment.

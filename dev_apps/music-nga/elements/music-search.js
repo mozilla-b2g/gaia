@@ -93,9 +93,9 @@ var template =
 </style>
 <div id="container">
   <form id="form" role="search">
-    <input type="search" id="input" placeholder="Search Music" x-inputmode="verbatim">
+    <input type="search" id="input" x-inputmode="verbatim" data-l10n-id="search-music">
     <button type="reset" id="clear" data-icon="search"></button>
-    <button type="button" id="close">close</button>
+    <button type="button" id="close" data-l10n-id="search-close"></button>
   </form>
   <section id="results">
     <gaia-fast-list id="list"></gaia-fast-list>
@@ -161,6 +161,22 @@ proto.createdCallback = function() {
   });
 
   this.scrollOutOfView();
+
+  this.onDOMLocalized = () => {
+    // XXX: Bug 1205799 - view.formatValue errors when called before first
+    // language is resolved
+    document.l10n.ready.then(() => {
+      document.l10n.translateFragment(shadowRoot);
+    });
+  };
+};
+
+proto.attachedCallback = function() {
+  document.addEventListener('DOMLocalized', this.onDOMLocalized);
+};
+
+proto.detachedCallback = function() {
+  document.removeEventListener('DOMLocalized', this.onDOMLocalized);
 };
 
 proto.scrollOutOfView = function() {

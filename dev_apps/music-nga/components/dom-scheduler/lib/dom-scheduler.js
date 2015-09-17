@@ -294,8 +294,9 @@
             resolve: resolve
           });
         } else {
-          block();
-          resolve();
+          Promise.resolve()
+            .then(block)
+            .then(resolve);
         }
       }).bind(this));
     },

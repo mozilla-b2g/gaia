@@ -46,11 +46,17 @@ PlayerView.prototype.update = function() {
         return;
       }
 
-      this.artwork.artist = song.metadata.artist;
-      this.artwork.album = song.metadata.album;
-      this.artwork.els.rating.value = song.metadata.rated;
+      Promise.all([
+        document.l10n.formatValue('unknownTitle'),
+        document.l10n.formatValue('unknownArtist'),
+        document.l10n.formatValue('unknownAlbum')
+      ]).then(([unknownTitle, unknownArtist, unknownAlbum]) => {
+        this.title          = song.metadata.title  || unknownTitle;
+        this.artwork.artist = song.metadata.artist || unknownArtist;
+        this.artwork.album  = song.metadata.album  || unknownAlbum;
+      });
 
-      this.title = song.metadata.title;
+      this.artwork.els.rating.value = song.metadata.rated;
     });
 
     this.getSongArtwork(status.filePath)

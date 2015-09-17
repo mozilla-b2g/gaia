@@ -126,12 +126,24 @@ var template =
       <h1 id="artist"></h1>
       <h2 id="album"></h2>
     </div>
-    <button type="button" data-action="share" data-icon="share"></button>
+    <button type="button"
+        data-action="share"
+        data-icon="share"
+        data-l10n-id="share-song">
+    </button>
   </div>
   <div id="controls">
-    <button type="button" data-action="repeat" data-icon="repeat"></button>
+    <button type="button"
+        data-action="repeat"
+        data-icon="repeat"
+        data-l10n-id="repeat-off">
+    </button>
     <music-rating id="rating"></music-rating>
-    <button type="button" data-action="shuffle" data-icon="shuffle"></button>
+    <button type="button"
+        data-action="shuffle"
+        data-icon="shuffle"
+        data-l10n-id="shuffle-toggle">
+    </button>
   </div>
 </div>`;
 
@@ -187,10 +199,26 @@ proto.createdCallback = function() {
     }));
   });
 
+  this.onDOMLocalized = () => {
+    // XXX: Bug 1205799 - view.formatValue errors when called before first
+    // language is resolved
+    document.l10n.ready.then(() => {
+      document.l10n.translateFragment(shadowRoot);
+    });
+  };
+
   this.repeat = this.getAttribute('repeat');
   this.shuffle = this.getAttribute('shuffle');
 
   this.overlayVisible = true;
+};
+
+proto.attachedCallback = function() {
+  document.addEventListener('DOMLocalized', this.onDOMLocalized);
+};
+
+proto.detachedCallback = function() {
+  document.removeEventListener('DOMLocalized', this.onDOMLocalized);
 };
 
 proto.attributeChangedCallback = function(attr, oldVal, newVal) {
@@ -250,6 +278,10 @@ Object.defineProperty(proto, 'repeat', {
   set: function(value) {
     value = REPEAT_VALUES.indexOf(value) !== -1 ? value : REPEAT_VALUES[0];
     this.setAttribute('repeat', value);
+
+    this.els.repeat.dataset.l10nId = 'repeat-' + value;
+
+    this.onDOMLocalized();
   }
 });
 

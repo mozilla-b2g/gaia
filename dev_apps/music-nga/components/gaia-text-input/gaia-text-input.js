@@ -15,6 +15,7 @@ require('gaia-icons'); // Load gaia-icons
 
 module.exports = component.register('gaia-text-input', {
   extends: HTMLInputElement,
+  rtl: true,
 
   created: function() {
     this.setupShadowRoot();
@@ -35,6 +36,10 @@ module.exports = component.register('gaia-text-input', {
     // Don't take focus from the input field
     this.els.clear.addEventListener('mousedown', (e) => e.preventDefault());
     this.els.clear.addEventListener('click', e => this.clear(e));
+
+    // Set dir initially and listen for changes
+    document.addEventListener('dirchanged', e => this.updateDir());
+    this.updateDir();
   },
 
   clear: function(e) {
@@ -43,6 +48,10 @@ module.exports = component.register('gaia-text-input', {
 
   focus: function() {
     this.els.input.focus();
+  },
+
+  updateDir: function() {
+    this.els.inner.setAttribute('dir', document.dir);
   },
 
   /**
@@ -245,11 +254,11 @@ module.exports = component.register('gaia-text-input', {
       display: none;
       position: absolute;
       top: 11px;
-      right: 10px;
+      right: 0;
       width: 18px;
       height: 18px;
       padding: 0;
-      margin: 0;
+      margin: 0 10px;
       border-radius: 50%;
       opacity: 0;
       color: #fff;
@@ -257,6 +266,15 @@ module.exports = component.register('gaia-text-input', {
 
       background:
         var(--input-clear-background, #999);
+    }
+
+    /**
+     * [dir=rtl]
+     */
+
+    [dir=rtl] .clear {
+      right: initial;
+      left: 0;
     }
 
     /**

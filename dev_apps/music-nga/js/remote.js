@@ -15,14 +15,20 @@ var Remote = (function() {
             }
 
             client.method('getSongThumbnail', status.filePath).then((blob) => {
-              mrc.notifyMetadataChanged({
-                title:  song.metadata.title  || navigator.mozL10n.get('unknownTitle'),
-                artist: song.metadata.artist || navigator.mozL10n.get('unknownArtist'),
-                album:  song.metadata.album  || navigator.mozL10n.get('unknownAlbum'),
-                mediaNumber:     status.queueRawIndex,
-                totalMediaCount: status.queueLength,
-                duration:        status.duration,
-                picture: blob
+              Promise.all([
+                document.l10n.formatValue('unknownTitle'),
+                document.l10n.formatValue('unknownArtist'),
+                document.l10n.formatValue('unknownAlbum')
+              ]).then(([unknownTitle, unknownArtist, unknownAlbum]) => {
+                mrc.notifyMetadataChanged({
+                  title:  song.metadata.title  || unknownTitle,
+                  artist: song.metadata.artist || unknownArtist,
+                  album:  song.metadata.album  || unknownAlbum,
+                  mediaNumber:     status.queueRawIndex,
+                  totalMediaCount: status.queueLength,
+                  duration:        status.duration,
+                  picture: blob
+                });
               });
             });
           });

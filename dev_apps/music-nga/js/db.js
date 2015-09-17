@@ -23,35 +23,30 @@ var Database = (function() {
   var playlists = [
     {
       id: 'shuffle-all',
-      title: 'Shuffle all',
       index: 'metadata.title',
       direction: 'next',
       shuffle: true
     },
     {
       id: 'highest-rated',
-      title: 'Highest rated',
       index: 'metadata.rated',
       direction: 'prev',
       shuffle: false
     },
     {
       id: 'recently-added',
-      title: 'Recently added',
       index: 'date',
       direction: 'prev',
       shuffle: false
     },
     {
       id: 'most-played',
-      title: 'Most played',
       index: 'metadata.played',
       direction: 'prev',
       shuffle: false
     },
     {
       id: 'least-played',
-      title: 'Least played',
       index: 'metadata.played',
       direction: 'next',
       shuffle: false
@@ -76,6 +71,8 @@ var Database = (function() {
   });
 
   var dbChange = debounce(() => service.broadcast('databaseChange'), 500);
+
+  document.addEventListener('DOMLocalized', dbChange);
 
   function debounce(fn, ms) {
     var timeout;

@@ -43,9 +43,18 @@ var template =
   }
 </style>
 <div id="container">
-  <button type="button" id="previous" data-icon="skip-back"></button>
-  <button type="button" id="toggle" data-icon="play"></button>
-  <button type="button" id="next" data-icon="skip-forward"></button>
+  <button type="button" id="previous"
+      data-icon="skip-back"
+      data-l10n-id="playbackPrevious">
+  </button>
+  <button type="button" id="toggle"
+      data-icon="play"
+      data-l10n-id="playbackPlay">
+  </button>
+  <button type="button" id="next"
+      data-icon="skip-forward"
+      data-l10n-id="playbackNext">
+  </button>
 </div>`;
 
 proto.createdCallback = function() {
@@ -104,6 +113,22 @@ proto.createdCallback = function() {
         break;
     }
   });
+
+  this.onDOMLocalized = () => {
+    // XXX: Bug 1205799 - view.formatValue errors when called before first
+    // language is resolved
+    document.l10n.ready.then(() => {
+      document.l10n.translateFragment(shadowRoot);
+    });
+  };
+};
+
+proto.attachedCallback = function() {
+  document.addEventListener('DOMLocalized', this.onDOMLocalized);
+};
+
+proto.detachedCallback = function() {
+  document.removeEventListener('DOMLocalized', this.onDOMLocalized);
 };
 
 Object.defineProperty(proto, 'paused', {
@@ -117,7 +142,10 @@ Object.defineProperty(proto, 'paused', {
       return;
     }
 
-    this.els.toggle.dataset.icon = paused ? 'play' : 'pause';
+    this.els.toggle.dataset.icon   = paused ? 'play' : 'pause';
+    this.els.toggle.dataset.l10nId = paused ? 'playbackPlay' : 'playbackPause';
+
+    this.onDOMLocalized();
   }
 });
 

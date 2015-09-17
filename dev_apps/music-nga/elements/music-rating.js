@@ -32,11 +32,11 @@ var template =
   }
 </style>
 <div id="container">
-  <button type="button" value="1"></button>
-  <button type="button" value="2"></button>
-  <button type="button" value="3"></button>
-  <button type="button" value="4"></button>
-  <button type="button" value="5"></button>
+  <button type="button" value="1" data-l10n-id="rating-star" data-l10n-args='{"n":1}'></button>
+  <button type="button" value="2" data-l10n-id="rating-star" data-l10n-args='{"n":2}'></button>
+  <button type="button" value="3" data-l10n-id="rating-star" data-l10n-args='{"n":3}'></button>
+  <button type="button" value="4" data-l10n-id="rating-star" data-l10n-args='{"n":4}'></button>
+  <button type="button" value="5" data-l10n-id="rating-star" data-l10n-args='{"n":5}'></button>
 </div>`;
 
 proto.createdCallback = function() {
@@ -66,6 +66,22 @@ proto.createdCallback = function() {
       detail: value
     }));
   });
+
+  this.onDOMLocalized = () => {
+    // XXX: Bug 1205799 - view.formatValue errors when called before first
+    // language is resolved
+    document.l10n.ready.then(() => {
+      document.l10n.translateFragment(shadowRoot);
+    });
+  };
+};
+
+proto.attachedCallback = function() {
+  document.addEventListener('DOMLocalized', this.onDOMLocalized);
+};
+
+proto.detachedCallback = function() {
+  document.removeEventListener('DOMLocalized', this.onDOMLocalized);
 };
 
 proto.attributeChangedCallback = function(attr, oldVal, newVal) {

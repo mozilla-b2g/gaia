@@ -342,10 +342,16 @@ function headReady() {
  */
 function injectLightCss(el) {
   if (hasShadowCSS) { return; }
-  el.lightStyle = document.createElement('style');
-  el.lightStyle.setAttribute('scoped', '');
-  el.lightStyle.innerHTML = el.lightCss;
-  el.appendChild(el.lightStyle);
+  var stylesheet = el.querySelector('style');
+
+  if (!stylesheet) {
+    stylesheet = document.createElement('style');
+    stylesheet.setAttribute('scoped', '');
+    stylesheet.appendChild(document.createTextNode(el.lightCss));
+    el.appendChild(stylesheet);
+  }
+
+  el.lightStyle = stylesheet;
 }
 
 /**
