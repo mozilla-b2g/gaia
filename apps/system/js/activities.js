@@ -12,6 +12,7 @@
   Activities.EVENTS = [
     'mozChromeEvent',
     'appopened',
+    'lockscreen-appopened',
     'applicationinstall'
   ];
 
@@ -40,6 +41,7 @@
     destroy: function() {
       window.removeEventListener('mozChromeEvent', this);
       window.removeEventListener('appopened', this);
+      window.removeEventListener('lockscreen-appopened', this);
       window.removeEventListener('applicationinstall', this);
     },
 
@@ -57,6 +59,11 @@
             case 'activity-choice':
               this.chooseActivity(detail);
               break;
+          }
+          break;
+        case 'lockscreen-appopened':
+          if (this._detail) {
+            this.cancel();
           }
           break;
         case 'appopened':
