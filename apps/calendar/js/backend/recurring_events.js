@@ -3,7 +3,7 @@ define(function(require, exports, module) {
 
 var Responder = require('common/responder');
 var core = require('core');
-var debug = require('common/debug')('controllers/recurring_events');
+var debug = require('common/debug')('backend/recurring_events');
 var nextTick = require('common/next_tick');
 
 function RecurringEvents() {
@@ -14,9 +14,6 @@ module.exports = RecurringEvents;
 
 RecurringEvents.prototype = {
   __proto__: Responder.prototype,
-
-  startEvent: 'expandStart',
-  completeEvent: 'expandComplete',
 
   /**
    * Adds N number of days to the window to expand
@@ -54,19 +51,19 @@ RecurringEvents.prototype = {
   pending: false,
 
   unobserve: function() {
-    core.timeController.removeEventListener(
+    core.timeModel.removeEventListener(
       'monthChange',
       this
     );
 
-    core.syncController.removeEventListener(
+    core.syncService.removeEventListener(
       'syncComplete',
       this
     );
   },
 
   observe: function() {
-    var time = core.timeController;
+    var time = core.timeModel;
 
     // expand initial time this is necessary
     // for cases where user has device off for long periods of time.
@@ -79,14 +76,14 @@ RecurringEvents.prototype = {
 
     // we must re-expand after sync so events at least
     // expand to the current position....
-    core.syncController.on('syncComplete', this);
+    core.syncService.on('syncComplete', this);
   },
 
   handleEvent: function(event) {
     switch (event.type) {
       case 'syncComplete':
         this.queueExpand(
-          core.timeController.position
+          core.timeModel.position
         );
         break;
 

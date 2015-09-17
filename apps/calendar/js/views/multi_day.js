@@ -12,7 +12,7 @@ var animatedScroll = require('utils/animated_scroll');
 var core = require('core');
 var createDay = require('common/calc').createDay;
 var template = require('templates/multi_day');
-var throttle = require('utils/mout').throttle;
+var throttle = require('ext/mout').throttle;
 
 function MultiDay(opts) {
   this.children = [];

@@ -2,7 +2,7 @@
   appDir: '..',
   baseUrl: 'js',
   dir: '../../../build_stage/calendar',
-  fileExclusionRegExp: /^\.|^build$|^test$/,
+  fileExclusionRegExp: /^\.|^build$|^test$|^backend$/,
   mainConfigFile: '../js/main.js',
   optimize: 'none',
   logLevel: 2,
@@ -45,26 +45,6 @@
         'views/view_event'
       ],
       exclude: ['bundle']
-    },
-    {
-      name: 'caldav_worker',
-      include: [
-        // This is needed so that we can use the rjs api right off the bat
-        // in the worker rather than needing to load it via importScripts
-        // before calling require, define, etc.
-        'ext/alameda',
-        // We need to load the caldav wrapper and external libs dynamically
-        // since we have to prime the global environment for the caldav
-        // and ical libraries before loading them (they use the global
-        // variable window to figure out that they're in the browser vs. node
-        // env which isn't a worker default). We should fix that upstream.
-        'service/caldav',
-        'worker/initialize'
-      ],
-      exclude: [
-        'ext/caldav',
-        'ext/ical'
-      ]
     },
     {
       name: 'ext/caldav'

@@ -192,6 +192,7 @@ SingleDay.prototype = {
       return;
     }
     this._observer.cancel();
+    this._observer = null;
     window.removeEventListener('localized', this);
     this._isActive = false;
   },

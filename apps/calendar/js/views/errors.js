@@ -8,7 +8,7 @@ require('dom!errors');
 
 function Errors() {
   View.apply(this, arguments);
-  core.syncController.on('offline', this);
+  core.syncListener.on('syncOffline', this);
 }
 module.exports = Errors;
 
@@ -22,7 +22,7 @@ Errors.prototype = {
 
   handleEvent: function(event) {
     switch (event.type) {
-      case 'offline':
+      case 'syncOffline':
         this.showErrors([{name: 'offline'}]);
         break;
     }

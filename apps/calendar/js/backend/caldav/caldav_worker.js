@@ -1,18 +1,21 @@
 'use strict';
 
 require.config({
-  baseUrl: '/js',
+  baseUrl: '../',
   waitSeconds: 60,
   paths: {
-    shared: '/shared/js'
+    // URIs are resolved based on parent worker!!
+    shared: '../shared/js',
+    common: '../common',
+    ext: '../ext'
   },
   shim: {
     'ext/caldav': {
-      deps: ['worker/initialize'],
+      deps: ['caldav/worker/initialize'],
       exports: 'Caldav'
     },
     'ext/ical': {
-      deps: ['worker/initialize'],
+      deps: ['caldav/worker/initialize'],
       exports: 'ICAL'
     }
   }
@@ -29,4 +32,4 @@ self.addEventListener('message', function onMessage(msg) {
   }, 10);
 });
 
-require(['worker/initialize'], initialize => initialize());
+require(['caldav/worker/initialize'], initialize => initialize());

@@ -11,10 +11,12 @@ var notification = require('notification');
 exports.observe = function() {
   debug('Will start notifications controller...');
   messageHandler.responder.on('alarm', exports.onAlarm);
+  core.bridge.on('alarm', exports.onAlarm);
 };
 
 exports.unobserve = function() {
   messageHandler.responder.off('alarm', exports.onAlarm);
+  core.bridge.off('alarm', exports.onAlarm);
 };
 
 exports.onAlarm = function(alarm) {
@@ -31,28 +33,8 @@ exports.onAlarm = function(alarm) {
 };
 
 function issueNotification(alarm) {
-  var storeFactory = core.storeFactory;
-  var eventStore = storeFactory.get('Event');
-  var busytimeStore = storeFactory.get('Busytime');
-
-  var trans = core.db.transaction(['busytimes', 'events']);
-
-  // Find the event and busytime associated with this alarm.
-  return Promise.all([
-    eventStore.get(alarm.eventId, trans),
-    busytimeStore.get(alarm.busytimeId, trans)
-  ])
-  .then(values => {
-    var [event, busytime] = values;
-
-    // just a safeguard on the very unlikely case that busytime or event
-    // doesn't exist anymore (should be really hard to happen)
-    if (!event) {
-      throw new Error(`can't find event with ID: ${alarm.eventId}`);
-    }
-    if (!busytime) {
-      throw new Error(`can't find busytime with ID: ${alarm.busytimeId}`);
-    }
+  core.bridge.getNotificationDetails(alarm).then(data => {
+    var { event, busytime } = data;
 
     var begins = calc.dateFromTransport(busytime.start);
     var distance = dateFormat.fromNow(begins);

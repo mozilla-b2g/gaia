@@ -21,9 +21,10 @@ var Calc = require('common/calc');
 var EventEmitter2 = require('ext/eventemitter2');
 var binsearch = require('common/binsearch');
 var compare = require('common/compare');
+var co = require('ext/co');
 var core = require('core');
 var daysBetween = Calc.daysBetween;
-var debounce = require('utils/mout').debounce;
+var debounce = require('ext/mout').debounce;
 var getDayId = Calc.getDayId;
 var isAllDay = Calc.isAllDay;
 var spanOfMonth = Calc.spanOfMonth;
@@ -62,7 +63,14 @@ var cacheLocked = false;
 // emitter exposed because of unit tests
 var emitter = exports.emitter = new EventEmitter2();
 
-exports.init = function() {
+exports.init = co.wrap(function *() {
+  // it should only start listening for month change after we have the
+  // calendars data, otherwise we might display events from calendars
+  // that are not visible. this also makes sure we load the calendars
+  // as soon as possible
+  var calendarStore = core.storeFactory.get('Calendar');
+  yield calendarStore.all();
+
   // both "change" and "add" operations triggers a "persist" event
   var eventStore = core.storeFactory.get('Event');
   eventStore.on('persist', (id, event) => cacheEvent(event));
@@ -72,16 +80,15 @@ exports.init = function() {
   busytimeStore.on('persist', (id, busy) => cacheBusytime(busy));
   busytimeStore.on('remove', removeBusytimeById);
 
-  core.syncController.on('syncStart', () => {
+  core.syncService.on('syncStart', () => {
     cacheLocked = true;
   });
-  core.syncController.on('syncComplete', () => {
+  core.syncService.on('syncComplete', () => {
     cacheLocked = false;
     pruneCache();
     dispatch();
   });
 
-  var calendarStore = core.storeFactory.get('Calendar');
   calendarStore.on('calendarVisibilityChange', (id, calendar) => {
     var type = calendar.localDisplayed ? 'add' : 'remove';
     busytimes.forEach((busy, busyId) => {
@@ -91,15 +98,15 @@ exports.init = function() {
     });
   });
 
-  core.timeController.on('monthChange', loadMonth);
+  core.timeModel.on('monthChange', loadMonth);
 
   // make sure loadMonth is called during setup if 'monthChange' was dispatched
   // before we added the listener
-  var month = core.timeController.month;
+  var month = core.timeModel.month;
   if (month) {
     loadMonth(month);
   }
-};
+});
 
 exports.on = function(date, callback) {
   var dayId = getDayId(date);
@@ -336,9 +343,9 @@ function pruneCache() {
 
 function trimCachedSpans() {
   while (cachedSpans.length > MAX_CACHED_MONTHS) {
-    // since most changes are sequential, remove the timespans that are further
-    // away from the current month
-    var baseDate = core.timeController.month;
+    // since most changes are sequential, remove the timespans that are
+    // further away from the current month
+    var baseDate = core.timeModel.month;
     var maxDiff = 0;
     var maxDiffIndex = 0;
     cachedSpans.forEach((span, i) => {
