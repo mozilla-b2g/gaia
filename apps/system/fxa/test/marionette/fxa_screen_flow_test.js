@@ -13,11 +13,12 @@ marionette('Firefox Accounts Screen Flow Test (UITest app)', function() {
       client = marionette.client({
         profile: {
           prefs: {
+            'focusmanager.testmode': true,
             'identity.fxaccounts.auth.uri': 'http://' +
               config.SERVER_HOST + ':' +
               config.SERVER_PORT + '/' +
               config.SERVER_PATH
-            }
+          }
         }
       });
 
@@ -40,9 +41,10 @@ marionette('Firefox Accounts Screen Flow Test (UITest app)', function() {
     server.stop();
   });
 
-  test.skip('should walk screen flow for new user', function () {
+  test('should walk screen flow for new user', function () {
     app.enterEmailNew();
     app.clickNext();
+    app.enterCOPPANew();
     app.clickNext();
     app.enterPasswordNew();
     app.clickNext();
@@ -51,7 +53,6 @@ marionette('Firefox Accounts Screen Flow Test (UITest app)', function() {
 
   test('should walk screen flow for existing user', function () {
     app.enterEmailExisting();
-    app.clickNext();
     app.clickNext();
     app.enterPasswordExisting();
     app.clickNext();

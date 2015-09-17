@@ -62,8 +62,8 @@ FxA.Selectors = {
     pwSetInput: '#fxa-pw-set-input',
     pwRefresh: '#fxa-pw-input-refresh',
     COPPAElementId: '#fxa-coppa',
-    COPPASelectId: 'fxa-age-select',
-    COPPAOptionVal: '1990 or earlier',
+    COPPASelectId: '#fxa-age-select',
+    COPPAOptionVal: '2002 or earlier',
     COPPAOptionValToFail: '2002',
     moduleNext: '#fxa-module-next',
     moduleDone: '#fxa-module-done',
@@ -87,31 +87,32 @@ FxA.prototype = {
             .waitForElement(inputId)
             .sendKeys(inputString);
     },
+
+    enterCOPPANew: function () {
+      var sel = FxA.Selectors.COPPASelectId;
+      var inputString = FxA.Selectors.COPPAOptionVal;
+      this.client.helper.tapSelectOption(sel, inputString);
+    },
+
     enterEmailNew: function () {
+        var sel = FxA.Selectors.emailInput;
         var inputString = this.fxaUser.email(config.USER_NEW);
-        this.client.helper
-            .waitForElement(FxA.Selectors.emailInput)
-            .sendKeys(inputString);
+        this.client.helper.fillInputField(sel, inputString);
     },
     enterPasswordNew: function () {
+        var sel = FxA.Selectors.pwInputPostCOPPA;
         var inputString = this.fxaUser.password(config.USER_NEW);
-        this.client.helper
-            .waitForElement(FxA.Selectors.pwInputPostCOPPA)
-            .sendKeys(inputString);
+        this.client.helper.fillInputField(sel, inputString);
     },
     enterEmailExisting: function () {
+        var sel = FxA.Selectors.emailInput;
         var inputString = this.fxaUser.email(config.USER_EXISTING);
-        this.client.helper
-            .waitForElement(FxA.Selectors.emailInput)
-            .sendKeys(inputString);
-        this.client.helper.wait(200);
+        this.client.helper.fillInputField(sel, inputString);
     },
     enterPasswordExisting: function () {
+        var sel = FxA.Selectors.pwInput;
         var inputString = this.fxaUser.password(config.USER_EXISTING);
-        this.client.helper
-            .waitForElement(FxA.Selectors.pwInput)
-            .sendKeys(inputString);
-        this.client.helper.wait(200);
+        this.client.helper.fillInputField(sel, inputString);
     },
     onClick:  function(searchSelector) {
         var element = this.client.findElement(searchSelector);
@@ -121,6 +122,15 @@ FxA.prototype = {
     },
     clickNext: function() {
       var element = this.client.findElement(FxA.Selectors.moduleNext);
+      var client = this.client;
+
+      client.waitFor(function () {
+        return client.findElement(FxA.Selectors.moduleNext)
+          .scriptWith(function (el) {
+            return el.getAttribute('disabled') !== 'disabled';
+          });
+      });
+
       this.client.helper
         .waitForElement(element)
         .tap();
@@ -177,7 +187,7 @@ FxA.prototype = {
       this.client.switchToFrame(frame);
     },
     clickThruPanel: function(panelId, buttonId) {
-      if (panelId == '#wifi') {
+      if (panelId === '#wifi') {
         // The wifi panel will bring up a screen to show it is scanning for
         // networks. Not waiting for this to clear will blow test timing
         // and cause things to fail.
