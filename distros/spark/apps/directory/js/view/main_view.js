@@ -1,64 +1,48 @@
-define(["exports", "components/fxos-mvc/dist/mvc", "components/gaia-header/dist/gaia-header", "components/gaia-dialog/gaia-dialog-alert", "components/fxos-dev-mode-dialog/fxos-dev-mode-dialog"], function (exports, _componentsFxosMvcDistMvc, _componentsGaiaHeaderDistGaiaHeader, _componentsGaiaDialogGaiaDialogAlert, _componentsFxosDevModeDialogFxosDevModeDialog) {
-  "use strict";
+import { View } from 'components/fxos-mvc/dist/mvc';
+import 'components/gaia-header/dist/gaia-header';
+import 'components/gaia-dialog/gaia-dialog-alert';
+import 'components/fxos-dev-mode-dialog/fxos-dev-mode-dialog';
 
-  var _extends = function (child, parent) {
-    child.prototype = Object.create(parent.prototype, {
-      constructor: {
-        value: child,
-        enumerable: false,
-        writable: true,
-        configurable: true
-      }
-    });
-    child.__proto__ = parent;
-  };
+export default class MainView extends View {
+  constructor(opts) {
+    this.el = opts.el;
+    this.uploadHandler = null;
+  }
 
-  var View = _componentsFxosMvcDistMvc.View;
-  var MainView = (function (View) {
-    var MainView = function MainView(opts) {
-      this.el = opts.el;
-      this.uploadHandler = null;
-    };
+  render(isActivity) {
+    super([isActivity]);
 
-    _extends(MainView, View);
-
-    MainView.prototype.render = function (isActivity) {
-      var _this = this;
-      View.prototype.render.call(this, [isActivity]);
-
-      if (isActivity) {
-        this.el.querySelector("gaia-header").addEventListener("action", function (event) {
-          if (event.detail.type === "back") {
-            // Back from activity should close it via ActivityHelper.
-            window.dispatchEvent(new CustomEvent("request-activity-finish"));
-          }
-        });
-      } else {
-        var uploadBtn = document.getElementById("upload-link");
-        if (!uploadBtn) {
-          return;
+    if (isActivity) {
+      this.el.querySelector('gaia-header').addEventListener('action', event => {
+        if (event.detail.type === 'back') {
+          // Back from activity should close it via ActivityHelper.
+          window.dispatchEvent(new CustomEvent('request-activity-finish'));
         }
-        uploadBtn.addEventListener("click", function () {
-          if (_this.uploadHandler) {
-            _this.uploadHandler();
-          }
-        });
-      }
-    };
+      });
+    } else {
+      var uploadBtn = document.getElementById('upload-link');
+      if (!uploadBtn) { return; }
+      uploadBtn.addEventListener('click', () => {
+        if (this.uploadHandler) {
+          this.uploadHandler();
+        }
+      });
+    }
+  }
 
-    MainView.prototype.onUpload = function (handler) {
-      this.uploadHandler = handler;
-    };
+  onUpload(handler) {
+    this.uploadHandler = handler;
+  }
 
-    MainView.prototype.template = function (isActivity) {
-      var action = isActivity ? "action=\"back\"" : "";
-      var upload = isActivity ? "" : "<button id=\"upload-link\"></button>";
-      var string = "\n      <gaia-header " + action + ">\n        <h1>Hackerplace</h1>" + upload + "\n      </gaia-header>\n      <gaia-dialog-alert id=\"alert-dialog\">Placeholder</gaia-dialog-alert>\n      <fxos-dev-mode-dialog></fxos-dev-mode-dialog>";
-      return string;
-    };
-
-    return MainView;
-  })(View);
-
-  exports["default"] = MainView;
-});
+  template(isActivity) {
+    var action = isActivity ? 'action="back"' : '';
+    var upload = isActivity ? '' : '<button id="upload-link"></button>';
+    var string = `
+      <gaia-header ${action}>
+        <h1>Hackerplace</h1>${upload}
+      </gaia-header>
+      <gaia-dialog-alert id="alert-dialog">Placeholder</gaia-dialog-alert>
+      <fxos-dev-mode-dialog></fxos-dev-mode-dialog>`;
+    return string;
+  }
+}

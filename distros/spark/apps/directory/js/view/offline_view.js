@@ -1,42 +1,27 @@
-define(["exports", "components/fxos-mvc/dist/mvc", "components/gaia-list/gaia-list"], function (exports, _componentsFxosMvcDistMvc, _componentsGaiaListGaiaList) {
-  "use strict";
+import { View } from 'components/fxos-mvc/dist/mvc';
+import 'components/gaia-list/gaia-list';
 
-  var _extends = function (child, parent) {
-    child.prototype = Object.create(parent.prototype, {
-      constructor: {
-        value: child,
-        enumerable: false,
-        writable: true,
-        configurable: true
-      }
-    });
-    child.__proto__ = parent;
-  };
+export default class OfflineView extends View {
+  constructor() {
+    super();
 
-  var View = _componentsFxosMvcDistMvc.View;
-  var OfflineView = (function (View) {
-    var OfflineView = function OfflineView() {
-      View.call(this);
+    this.el = document.createElement('gaia-list');
+    this.el.id = 'offline-container';
+  }
 
-      this.el = document.createElement("gaia-list");
-      this.el.id = "offline-container";
-    };
+  update(online) {
+    // XXX: A bit gross. We should probably set this on the el only, but we had
+    // issues with sibling selectors.
+    document.body.classList.toggle('online', online);
+  }
 
-    _extends(OfflineView, View);
-
-    OfflineView.prototype.update = function (online) {
-      // XXX: A bit gross. We should probably set this on the el only, but we had
-      // issues with sibling selectors.
-      document.body.classList.toggle("online", online);
-    };
-
-    OfflineView.prototype.template = function () {
-      var string = "<li flex>\n         <i data-icon=\"exclamation\"></i>\n         <p>You have no internet connection. Enable data or WiFi to refresh the\n         app list.</p>\n       </li>";
-      return string;
-    };
-
-    return OfflineView;
-  })(View);
-
-  exports["default"] = OfflineView;
-});
+  template() {
+    var string =
+      `<li flex>
+         <i data-icon="exclamation"></i>
+         <p>You have no internet connection. Enable data or WiFi to refresh the
+         app list.</p>
+       </li>`;
+    return string;
+  }
+}

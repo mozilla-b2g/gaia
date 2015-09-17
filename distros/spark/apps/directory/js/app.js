@@ -1,9 +1,5 @@
-define(["exports", "js/globals", "js/controller/main_controller"], function (exports, _jsGlobals, _jsControllerMainController) {
-  "use strict";
+import 'js/globals';
+import MainController from 'js/controller/main_controller';
 
-  var MainController = _jsControllerMainController["default"];
-
-
-  var mainController = new MainController();
-  mainController.main();
-});
+var mainController = new MainController();
+mainController.main();
