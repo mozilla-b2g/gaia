@@ -92,6 +92,13 @@ class PrivateWindow(Browser):
     _browser_app_locator = (By.CSS_SELECTOR, 'div.browser.private[transition-state="opened"]')
     _url_bar_locator = (By.CSS_SELECTOR, '.urlbar .title')
 
+    def __init__(self, marionette):
+        Browser.__init__(self, marionette)
+        # Workaround for bug 1204831 where the focus can be removed from the url bar when
+        # the private browser is not ready with loading yet
+        url_bar = self._root_element.find_element(*self._url_bar_locator)
+        Wait(self.marionette).until(lambda m: url_bar.text != 'system.gaiamobile.org')
+
     def go_to_url(self, url):
         # In private windows, the URL bar displayed is not the regular Rocket bar. But once you
         # tap that URL bar, the regular Rocketbar comes back, in front of the private window.
