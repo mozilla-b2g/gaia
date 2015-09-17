@@ -21,6 +21,8 @@ if (!window.parent.SERVICE_WORKERS) (function() {
     '/api/audio/play': 'play',
     '/api/audio/pause': 'pause',
     '/api/audio/seek/:time': 'seek',
+    '/api/audio/fastseek/start/:direction': 'startFastSeek',
+    '/api/audio/fastseek/stop': 'stopFastSeek',
     '/api/audio/status': 'getPlaybackStatus',
 
     '/api/database/status': 'getDatabaseStatus',

@@ -10,11 +10,8 @@ function AlbumsService(worker) {
 
   worker.get('/api/albums/list', stopAfter((request) => {
     return new Promise((resolve) => {
-      client.method('getAlbums').then((albums) => {
-        resolve(new Response(JSON.stringify(albums), {
-          headers: { 'Content-Type': 'application/json' }
-        }));
-      });
+      client.method('getAlbums')
+        .then(albums => resolve(respond(albums)));
     });
   }));
 
@@ -22,14 +19,16 @@ function AlbumsService(worker) {
     return new Promise((resolve) => {
       var filePath = decodeURIComponent(request.parameters.filePath);
       client.method('getAlbum', filePath)
-        .then((songs) => {
-          resolve(new Response(JSON.stringify(songs), {
-            headers: { 'Content-Type': 'application/json' }
-          }));
-        })
+        .then(songs => resolve(respond(songs)))
         .catch((error) => {
           resolve(new Response('', { status: 404 }));
         });
     });
   }));
+
+  function respond(response) {
+    return new Response(JSON.stringify(response), {
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
 }

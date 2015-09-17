@@ -10,11 +10,14 @@ function DatabaseService(worker) {
 
   worker.get('/api/database/status', stopAfter((request) => {
     return new Promise((resolve) => {
-      client.method('getDatabaseStatus').then((status) => {
-        resolve(new Response(JSON.stringify(status), {
-          headers: { 'Content-Type': 'application/json' }
-        }));
-      });
+      client.method('getDatabaseStatus')
+        .then(status => resolve(respond(status)));
     });
   }));
+
+  function respond(response) {
+    return new Response(JSON.stringify(response), {
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
 }

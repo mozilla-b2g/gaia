@@ -22,6 +22,8 @@ var PlayerView = View.extend(function PlayerView() {
   this.controls.addEventListener('pause', () => this.pause());
   this.controls.addEventListener('previous', () => this.previous());
   this.controls.addEventListener('next', () => this.next());
+  this.controls.addEventListener('startseek', evt => this.startFastSeek(evt.detail.reverse));
+  this.controls.addEventListener('stopseek', () => this.stopFastSeek());
 
   this.seekBar.addEventListener('seek', evt => this.seek(evt.detail.elapsedTime));
 
@@ -69,6 +71,14 @@ PlayerView.prototype.destroy = function() {
 
 PlayerView.prototype.render = function() {
   View.prototype.render.call(this); // super();
+};
+
+PlayerView.prototype.startFastSeek = function(reverse) {
+  this.fetch('/api/audio/fastseek/start/' + (reverse ? 'reverse' : 'forward'));
+};
+
+PlayerView.prototype.stopFastSeek = function() {
+  this.fetch('/api/audio/fastseek/stop');
 };
 
 PlayerView.prototype.seek = function(time) {

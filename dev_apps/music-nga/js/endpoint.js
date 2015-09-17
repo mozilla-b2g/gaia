@@ -7,11 +7,14 @@ var loadQueueSettings = PlaybackQueue.loadSettings();
 
 var currentFilePath;
 var currentQueue;
+var isFastSeeking = false;
 
 var service = bridge.service('music-service')
   .method('play', play)
   .method('pause', pause)
   .method('seek', seek)
+  .method('startFastSeek', startFastSeek)
+  .method('stopFastSeek', stopFastSeek)
   .method('getPlaybackStatus', getPlaybackStatus)
 
   .method('currentSong', currentSong)
@@ -111,8 +114,36 @@ function seek(time) {
   audio.currentTime = time;
 }
 
+function startFastSeek(reverse) {
+  if (isFastSeeking) {
+    return;
+  }
+
+  reverse = reverse === true || reverse === 'reverse';
+
+  isFastSeeking = true;
+
+  function fastSeek() {
+    if (!isFastSeeking) {
+      return;
+    }
+
+    seek(audio.currentTime + (reverse ? -2 : 2));
+    setTimeout(fastSeek, 50);
+  }
+
+  fastSeek();
+}
+
+function stopFastSeek() {
+  isFastSeeking = false;
+}
+
 function getPlaybackStatus() {
   return Promise.resolve({
+    queueIndex:    currentQueue ? currentQueue.index    : -1,
+    queueRawIndex: currentQueue ? currentQueue.rawIndex : -1,
+    queueLength:   currentQueue ? currentQueue.length   : -1,
     filePath: currentFilePath,
     paused: audio.paused,
     duration: audio.duration,
