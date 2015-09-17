@@ -883,6 +883,10 @@ ul li > label.range-icons.volume input {
   display: block;
 }
 
+#dateTime .timeformat.disabled span {
+  pointer-events: none;
+}
+
 /******************************************************************************
  * Improve Browser OS
  */

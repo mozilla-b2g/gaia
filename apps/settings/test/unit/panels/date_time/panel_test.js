@@ -31,7 +31,8 @@ suite('Date & Time panel > ', function() {
       setClockAutoAvailable: function() {},
       setTimezoneAutoAvailable: function() {},
       observe: function() {},
-      unobserve: function() {}
+      unobserve: function() {},
+      getHour12ForCurrentLocale: function() {}
     };
     define('MockDateTime', function() {
       return that.MockDateTime;
@@ -129,6 +130,43 @@ suite('Date & Time panel > ', function() {
         assert.isFalse(timezonePickers[i].hidden, 'timezone picker is visible');
       }
       assert.isTrue(timezoneInfo.hidden, 'timezone info is invisible');
+    });
+  });
+
+  suite.only('Time Format', function() {
+    var timeFormatBlock, timeFormatSwitch, timeFormatSelect;
+
+    setup(function() {
+      timeFormatBlock = document.querySelector('.timeformat');
+      timeFormatSwitch =
+        document.querySelector('.time-format-auto gaia-switch');
+      timeFormatSelect = document.querySelector('.time-format-time');
+    });
+
+    test('initially, default time format is set', function() {
+      this.panel.beforeShow();
+
+      assert.isTrue(timeFormatBlock.classList.contains('disabled'));
+      assert.isTrue(timeFormatSwitch.checked);
+      assert.equal(timeFormatSelect.value, 'ampm');
+    });
+  
+    test('the UI is properly updated if locale.hour12 is true', function() {
+      this.MockDateTime.currentHour12 = true;
+      this.panel.beforeShow();
+
+      assert.isFalse(timeFormatBlock.classList.contains('disabled'));
+      assert.isFalse(timeFormatSwitch.checked);
+      assert.equal(timeFormatSelect.value, 'ampm');
+    });
+
+    test('the UI is properly updated if locale.hour12 is false', function() {
+      this.MockDateTime.currentHour12 = false;
+      this.panel.beforeShow();
+
+      assert.isFalse(timeFormatBlock.classList.contains('disabled'));
+      assert.isFalse(timeFormatSwitch.checked);
+      assert.equal(timeFormatSelect.value, '24');
     });
   });
 });

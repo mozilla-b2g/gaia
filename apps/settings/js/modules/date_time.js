@@ -197,8 +197,6 @@ define(function(require) {
         break;
       case 'localized':
         var d = new Date();
-        // update time format while language changed
-        this._updateTimeFormat();
         this._date = this._formatDate(d);
         this._time = this._formatTime(d);
         break;
@@ -217,7 +215,6 @@ define(function(require) {
       this._clockAutoAvailable = results[_kClockAutoAvailable];
       this._timezoneAutoAvailable = results[_kTimezoneAutoAvailable];
       this._timezone = results[_kTimezone];
-      this._userSelectedTimezone = results[_kUserSelected];
       this._currentHour12 = results[_kLocaleTime];
       // render date/time after get proper format
       this._autoUpdateDateTime();
@@ -271,7 +268,7 @@ define(function(require) {
     var d = new Date();
     this._time = this._formatTime(d);
 
-    var remainMillisecond = (59 - d.getSeconds()) * 1000;
+    var remainMillisecond = (60 - d.getSeconds()) * 1000;
     _updateTimeTimeout = window.setTimeout(
       function updateTimeTimeout() {
         this._autoUpdateTime();
@@ -320,7 +317,7 @@ define(function(require) {
         return d.toLocaleFormat(format);
       } else {
         return d.toLocaleString(navigator.languages, {
-          hour12: this._currentHour12,
+          hour12: navigator.mozHour12,
           hour: 'numeric',
           minute: 'numeric',
         });
@@ -399,18 +396,11 @@ define(function(require) {
     settings.createLock().set(cset);
   };
 
-  /**
-   * If language changed (in FTU or settings),
-   * set hour12 based on language locale properties.
-   *
-   * @access private
-   * @memberOf DateTime
-   */
-  DateTime.prototype._updateTimeFormat = function() {
-    navigator.mozL10n.formatValue('shortTimeFormat').then(timeFormat => {
-      var is12hFormat = (timeFormat.indexOf('%I') >= 0);
-      this.setCurrentHour12(is12hFormat);
+  DateTime.prototype.getHour12ForCurrentLocale = function() {
+    var format = new Intl.DateTimeFormat(navigator.languages, {
+      hour: 'numeric'
     });
+    return format.resolvedOptions().hour12;
   };
 
   return DateTime();
