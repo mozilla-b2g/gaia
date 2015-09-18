@@ -27,7 +27,6 @@ class SettingsForm(Base):
     _gmail_import_option_locator = (By.ID, 'import-gmail-option')
     _import_settings_locator = (By.ID, 'import-settings')
     _select_contacts_locator = (By.ID, 'selectable-form')
-    _sync_friends_locator = (By.ID, 'settingsFb')
     _import_error_message_locator = (By.CSS_SELECTOR, '#import-live-option > p.error-message')
     _outlook_import_option_locator = (By.ID, 'import-live-option')
     _import_from_outlook_button_locator = (By.CSS_SELECTOR, 'button.icon-live')
@@ -93,16 +92,6 @@ class SettingsForm(Base):
         import_from_gmail.tap()
         from gaiatest.apps.contacts.regions.gmail import GmailLogin
         return GmailLogin(self.marionette)
-
-    def tap_sync_friends(self):
-        element = Wait(self.marionette).until(
-            expected.element_present(*self._sync_friends_locator))
-        Wait(self.marionette).until(expected.element_displayed(element))
-        element.tap()
-        Wait(self.marionette).until(
-            lambda m: m.find_element(*self._sync_friends_locator).location['x'] == 0)
-        from gaiatest.apps.system.regions.facebook import FacebookLogin
-        return FacebookLogin(self.marionette)
 
     def tap_import_from_sdcard(self):
         import_from_sdcard = Wait(self.marionette).until(

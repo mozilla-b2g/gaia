@@ -18,10 +18,6 @@ class ContactDetails(Base):
     _details_header_locator = (By.ID, 'details-view-header')
     _add_remove_favorite_button_locator = (By.ID, 'toggle-favorite')
     _comments_locator = (By.ID, 'note-details-template-0')
-    # Normally, (By.ID, 'link_button') should be used below,
-    # but there are 2 elements with that ID in the document, see bug 1116758
-    _facebook_link_locator = (By.CSS_SELECTOR, '#contact-detail-inner .icon-link')
-    _confirm_unlink_button_locator = (By.CSS_SELECTOR, 'button[data-l10n-id="social-unlink-confirm-accept"]')
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
@@ -59,23 +55,6 @@ class ContactDetails(Base):
         self.marionette.find_element(*self._send_sms_button_locator).tap()
         from gaiatest.apps.messages.regions.new_message import NewMessage
         return NewMessage(self.marionette)
-
-    def tap_link_contact(self):
-        facebook_link_button = Wait(self.marionette).until(expected.element_present(*self._facebook_link_locator))
-        Wait(self.marionette).until(expected.element_displayed(facebook_link_button))
-        facebook_link_button.tap()
-        from gaiatest.apps.system.regions.facebook import FacebookLogin
-        return FacebookLogin(self.marionette)
-
-    def tap_unlink_contact(self):
-        facebook_unlink_button = Wait(self.marionette).until(expected.element_present(*self._facebook_link_locator))
-        Wait(self.marionette).until(expected.element_displayed(facebook_unlink_button))
-        facebook_unlink_button.tap()
-
-        facebook_confirm_unlink_button = Wait(self.marionette).until(expected.element_present(*self._confirm_unlink_button_locator))
-        Wait(self.marionette).until(expected.element_displayed(facebook_confirm_unlink_button))
-        facebook_confirm_unlink_button.tap()
-        self.apps.switch_to_displayed_app()
 
     def tap_edit(self):
         edit = Wait(self.marionette).until(expected.element_present(
