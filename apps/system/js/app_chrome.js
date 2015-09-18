@@ -687,7 +687,11 @@
       if (this._fixedTitle) {
         return;
       }
-      this.title.textContent = this.app.name;
+      if (!this.app.isHomescreen && !this.isSearchApp()) {
+        this.title.textContent = this.app.name;
+      } else {
+        this.title.setAttribute('data-l10n-id', 'search-or-enter-address');
+      }
     };
 
   AppChrome.prototype.handleScrollAreaChanged = function(evt) {

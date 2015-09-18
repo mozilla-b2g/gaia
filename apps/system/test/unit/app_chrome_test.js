@@ -520,6 +520,19 @@ suite('system/AppChrome', function() {
       assert.equal(chrome.title.textContent, 'Phone2');
     });
 
+    test('should not update the name of homescreen on change', function() {
+      var app = new AppWindow(cloneConfig(fakeWebSite));
+      app.isHomescreen = true;
+      app.name = 'Home Screen';
+      var chrome = new AppChrome(app);
+      assert.equal(chrome.title.textContent, '');
+
+      app.name = 'Home Screen 2';
+      var evt = new CustomEvent('_namechanged');
+      app.element.dispatchEvent(evt);
+      assert.equal(chrome.title.textContent, '');
+    });
+
     test('localized app is not immediately overridden by titlechange event',
       function() {
       var app = new AppWindow(cloneConfig(fakeWebSite));
