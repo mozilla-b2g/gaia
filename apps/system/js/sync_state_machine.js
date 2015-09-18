@@ -119,7 +119,7 @@
      * });
      */
     _createTransition: function(name, event) {
-      return () => {
+      return (...args) => {
         // Checks if the transition is valid in the current state.
         if (!transitions[name][this._state]) {
           throw new Error('Event ' + name + ' invalid for the current state');
@@ -139,7 +139,7 @@
         this.publish(to, {
           transition: name,
           from: from,
-          args: Array.prototype.slice.call(arguments)
+          args: args
         });
       };
     },
