@@ -387,6 +387,7 @@ marionette('Music player playlist', function() {
     });
 
     test('Shuffle all sort order. moztrap:2357', function() {
+      try {
       music.launch();
       music.waitForFirstTile();
 
@@ -413,10 +414,12 @@ marionette('Music player playlist', function() {
         music.tapHeaderActionButton();
       }
       // the first loop will never be "notrandom".
-      assert.notEqual(notrandom, loopCount - 1, 'we didn\'t randomise');
+        assert.notEqual(notrandom, loopCount - 1, 'we didn\'t randomise');
+      } catch(e) { assert.ok(false, 'Exception: ' + e.stack); }
     });
 
     test('Shuffle playlist order. moztrap:2357', function() {
+      try {
       music.launch();
       music.waitForFirstTile();
 
@@ -448,6 +451,7 @@ marionette('Music player playlist', function() {
         music.tapHeaderActionButton();
       }
       assert.notEqual(notrandom, loopCount - 1, 'we didn\'t randomise');
+      } catch(e) { assert.ok(false, 'Exception: ' + e.stack); }
     });
 
   });
