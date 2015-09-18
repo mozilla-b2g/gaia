@@ -10,9 +10,16 @@ var TelephonyHelper = (function() {
 
   var confirmLoaded = false;
 
+  /** This holds a promise for the currently dialing call. */
+  var currentCallPromise = null;
+
   var loadTelephonyMessages = function(callback) {
     LazyLoader.load(['/shared/js/dialer/telephony_messages.js'], callback);
   };
+
+  function clearCallPromise() {
+    currentCallPromise = null;
+  }
 
   var call = function t_call(number, cardIndex, oncall, onconnected,
                              ondisconnected) {
@@ -36,9 +43,20 @@ var TelephonyHelper = (function() {
       return Promise.reject();
     }
 
-    return startDial(
+    if (currentCallPromise) {
+      /* A dialing call is already present, refuse to make another one before
+       * this one is connected or rejected. */
+      loadTelephonyMessages(function() {
+        TelephonyMessages.displayMessage('UnableToCall');
+      });
+      return Promise.reject();
+    }
+
+    currentCallPromise = startDial(
       cardIndex, conn, sanitizedNumber, oncall, onconnected, ondisconnected
-    );
+    ).then(clearCallPromise, clearCallPromise);
+
+    return currentCallPromise;
   };
 
 

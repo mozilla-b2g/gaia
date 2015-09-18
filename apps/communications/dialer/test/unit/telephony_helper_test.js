@@ -208,6 +208,16 @@ suite('telephony helper', function() {
                             'BadNumber');
   });
 
+  test('should not allow two alls to be dialed simultaneously', function(done) {
+    subject.call('123', 0);
+    subject.call('456', 0).then(function() {
+      assert.isTrue(false, 'The call promise should be rejected\n');
+      done();
+    }, function() {
+      done();
+    });
+  });
+
   suite('Callbacks binding', function() {
     test('should trigger oncall as soon as we get a call object',
     function(done) {
