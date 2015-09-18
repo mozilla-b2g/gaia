@@ -42,7 +42,7 @@ const FxSyncWebCrypto = Object.freeze((() => {
     // The number 64 here comes from
     // (256 bits for AES + 256 bits for HMAC) / (8 bits per byte).
     return KeyDerivation.hkdf(kBByteArray,
-                              StringConversion.rawStringToByteArray(
+                              StringConversion.stringToUtf8Uint8Array(
                                   HKDF_INFO_STR),
                               new Uint8Array(64), 64).then(output => {
       const aesKeyAB = output.slice(0, 32).buffer;
@@ -74,9 +74,9 @@ const FxSyncWebCrypto = Object.freeze((() => {
       try {
         bulkKeyBundle = JSON.parse(cryptoKeysJSON);
         return importKeyBundle(
-            StringConversion.base64StringToByteArray(
+            StringConversion.base64StringToUint8Array(
                 bulkKeyBundle.default[0]),
-            StringConversion.base64StringToByteArray(
+            StringConversion.base64StringToUint8Array(
                 bulkKeyBundle.default[1])).then(keyBundle => {
           bulkKeyBundle.defaultAsKeyBundle = keyBundle;
           return Object.freeze(bulkKeyBundle);
@@ -93,24 +93,26 @@ const FxSyncWebCrypto = Object.freeze((() => {
   const importFromStrings = (obj) => {
     const ret = {};
     try {
-      ret.ciphertext = StringConversion.base64StringToByteArray(obj.ciphertext);
+      ret.ciphertext = StringConversion.
+        base64StringToUint8Array(obj.ciphertext);
     } catch (e) {
       throw new Error('Could not parse ciphertext as a base64 string');
     }
 
-    // Intentionally using StringConversion.rawStringToByteArray
-    // instead of StringConversion.base64StringToByteArray on the ciphertext
+    // Intentionally using StringConversion.stringToUtf8Uint8Array
+    // instead of StringConversion.base64StringToUint8Array on the ciphertext
     // here - see https://github.com/mozilla/firefox-ios/blob/ \
     // 1cce59c8eac282e151568f1204ffbbcc27349eff/Sync/KeyBundle.swift#L178.
-    ret.hmacSignedText = StringConversion.rawStringToByteArray(obj.ciphertext);
+    ret.hmacSignedText = StringConversion
+      .stringToUtf8Uint8Array(obj.ciphertext);
 
     try {
-      ret.IV = StringConversion.base64StringToByteArray(obj.IV);
+      ret.IV = StringConversion.base64StringToUint8Array(obj.IV);
     } catch (e) {
       throw new Error('Could not parse IV as a base64 string');
     }
     try {
-      ret.hmacSignature = StringConversion.hexStringToByteArray(obj.hmac);
+      ret.hmacSignature = StringConversion.hexStringToUint8Array(obj.hmac);
     } catch (e) {
       throw new Error('Could not parse hmac as a hex string');
     }
@@ -150,7 +152,7 @@ const FxSyncWebCrypto = Object.freeze((() => {
 
     // Input checking.
     try {
-      kBByteArray = StringConversion.hexStringToByteArray(kB);
+      kBByteArray = StringConversion.hexStringToUint8Array(kB);
     } catch (e) {
       return Promise.reject('Could not parse kB as a hex string');
     }
@@ -210,8 +212,9 @@ ${collectionName}`);
                                    payload.ciphertext)
           .then(recordArrayBuffer => {
         var recordObj;
-        const recordJSON = String.fromCharCode.apply(
-            null,
+        // recordArrayBuffer which is the cleartext payload from FxSync contains
+        // UTF-8 JSON.
+        const recordJSON = StringConversion.utf8Uint8ArrayToString(
             new Uint8Array(recordArrayBuffer));
         try {
           recordObj = JSON.parse(recordJSON);
@@ -236,13 +239,13 @@ undle for collection ${collectionName}`);
           ciphertext);
       return crypto.subtle.sign({ name: 'HMAC', hash: 'SHA-256' },
                                 keyBundle.hmac,
-                                StringConversion.rawStringToByteArray(
+                                StringConversion.stringToUtf8Uint8Array(
                                     ciphertextB64)).
           then(hmac => {
         return {
           hmac: StringConversion.arrayBufferToHexString(hmac),
           ciphertext: ciphertextB64,
-          IV: StringConversion.byteArrayToBase64String(IV)
+          IV: StringConversion.uint8ArrayToBase64String(IV)
         };
       });
     });
@@ -272,7 +275,7 @@ undle for collection ${collectionName}`);
     } catch(e) {
       return Promise.reject('Record cannot be JSON-stringified');
     }
-    const cleartext = StringConversion.rawStringToByteArray(cleartextStr);
+    const cleartext = StringConversion.stringToUtf8Uint8Array(cleartextStr);
     try {
       keyBundle = this.bulkKeyBundle.defaultAsKeyBundle;
     } catch(e) {
