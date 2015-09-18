@@ -15,6 +15,10 @@ var styles =
   -moz-user-select: none;
 }
 
+.-content {
+  direction: ltr;
+}
+
 .-content > *,
 .more-button {
   transition: none;

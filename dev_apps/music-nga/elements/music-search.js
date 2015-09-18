@@ -28,7 +28,8 @@ var template =
     color: #fff;
     line-height: 4rem;
     margin: 0;
-    padding: 0 0 0 3rem;
+    padding: 0;
+    padding-inline-start: 3rem; /* padding-left */
     width: calc(100% - 11.6rem);
   }
   #clear {
@@ -58,7 +59,7 @@ var template =
     position: absolute;
     top: 0.7rem;
     bottom: 0.7rem;
-    left: -0.1rem;
+    offset-inline-start: -0.1rem; /* left */
     width: 0.1rem;
   }
   #results {

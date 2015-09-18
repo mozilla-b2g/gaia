@@ -27,6 +27,7 @@ var template =
     font-size: 1.4rem;
     font-weight: 400;
     line-height: 4.2rem;
+    direction: ltr;
     vertical-align: top;
     flex: 0 0 auto;
     width: 5.3rem;

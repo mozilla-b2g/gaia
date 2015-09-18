@@ -10,6 +10,7 @@ var template =
   #container {
     background-color: #000;
     border-top: 0.1rem solid rgba(255, 255, 255, 0.1);
+    direction: ltr;
     display: flex;
     flex-flow: row nowrap;
     position: relative;
