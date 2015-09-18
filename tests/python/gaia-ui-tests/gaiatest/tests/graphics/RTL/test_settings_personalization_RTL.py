@@ -100,6 +100,7 @@ class TestSettingsRTLPersonalization(GaiaImageCompareTestCase):
         GaiaImageCompareTestCase.scroll(self.marionette, 'down', date_time_page.screen_element.size['height'],
                                         screen=date_time_page.screen_element)
         self.take_screenshot('date_and_time')
+        date_time_page.disable_default_format()
         date_time_page.open_time_format()
         self.take_screenshot('date_and_time-time_format')
         date_time_page.close_time_format()
