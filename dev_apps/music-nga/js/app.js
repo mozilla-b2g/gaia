@@ -158,10 +158,10 @@ tabBar.addEventListener('change', (evt) => {
   navigateToURL(tab.dataset.url, true);
 });
 
-emptyOverlay.addEventListener('cancel', () => cancelActivity());
-noCardOverlay.addEventListener('cancel', () => cancelActivity());
-pluggedInOverlay.addEventListener('cancel', () => cancelActivity());
-upgradeOverlay.addEventListener('cancel', () => cancelActivity());
+emptyOverlay.addEventListener('action', () => cancelActivity());
+noCardOverlay.addEventListener('action', () => cancelActivity());
+pluggedInOverlay.addEventListener('action', () => cancelActivity());
+upgradeOverlay.addEventListener('action', () => cancelActivity());
 
 if (SERVICE_WORKERS) {
   navigator.serviceWorker.getRegistration().then((registration) => {
