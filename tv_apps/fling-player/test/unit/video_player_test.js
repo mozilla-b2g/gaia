@@ -1,0 +1,213 @@
+/* global VideoPlayer */
+'use strict';
+
+requireApp('fling-player/js/video_player.js');
+
+suite('fling-player/VideoPlayer', function() {
+
+  var player, video;
+
+  var videoURL =
+    'app://fling-player.gaiamobile.org/test_media/Movies/elephants-dream.webm';
+
+  setup(function () {
+    video = document.createElement('video');
+    player = new VideoPlayer(video);
+    player.init();
+  });
+
+  teardown(function () {
+    player = video = undefined;
+  });
+
+  test('should show video element', function () {
+    video.hidden = true;
+    player.show();
+    assert.isFalse(video.hidden);
+  });
+
+  test('should hide video element', function () {
+    video.hidden = false;
+    player.hide();
+    assert.isTrue(video.hidden);
+  });
+
+  test('should load video src url', function () {
+    player.load(videoURL);
+    assert.equal(video.src, videoURL);
+  });
+
+  test('should release video src url', function () {
+    video.src = videoURL;
+    player.release();
+    assert.equal(video.src, '');
+  });
+
+  test('should play', function () {
+    var exp = sinon.mock(video);
+    exp.expects('play').once();
+    player.play();
+    exp.verify();
+  });
+
+  test('should pause', function () {
+    var exp = sinon.mock(video);
+    exp.expects('pause').once();
+    player.pause();
+    exp.verify();
+  });
+
+  test('should not seek without loading metadata', function () {
+    var origin = video.currentTime;
+    player.seek(origin + 10);
+    assert.equal(video.currentTime, origin);
+  });
+
+  test('should add event listener', function () {
+
+    var type = 'playing';
+    var handle = function () {};
+    var exp = sinon.mock(video);
+
+    exp.expects('addEventListener').once().withExactArgs(type, handle);
+    player.addEventListener(type, handle);
+    exp.verify();
+  });
+
+  suite('Event handling', function () {
+
+    var exp;
+
+    setup(function () {
+      exp = sinon.mock(player);
+    });
+
+    test('should handle the loadedmetadata event', function () {
+
+      var t = video.currentTime + 10;
+
+      exp.expects('seek').once().withExactArgs(t);
+
+      player.handleEvent({ type : 'loadedmetadata' });
+
+      player.seek(t);
+
+      exp.verify();
+    });
+
+    test('should handle the playing event', function () {
+
+      exp.expects('show').once();
+
+      assert.equal(player.isPlaying(), false);
+
+      player.handleEvent({ type : 'playing' });
+
+      assert.equal(player.isPlaying(), true);
+
+      exp.verify();
+    });
+
+    test('should handle the seeked event', function () {
+
+      exp.expects('play').once();
+
+      player.handleEvent({ type : 'seeked' });
+
+      exp.verify();
+    });
+
+    test('should handle the ended event', function () {
+
+      player.handleEvent({ type : 'playing' });
+
+      assert.equal(player.isPlaying(), true);
+
+      player.handleEvent({ type : 'ended' });
+
+      assert.equal(player.isPlaying(), false);
+    });
+
+    test('should handle the pause event', function () {
+
+      player.handleEvent({ type : 'playing' });
+
+      assert.equal(player.isPlaying(), true);
+
+      player.handleEvent({ type : 'pause' });
+
+      assert.equal(player.isPlaying(), false);
+    });
+  });
+
+  suite('Time parsing', function () {
+
+    var act, exp = {};
+
+    var toSec = (t) => {
+      return t.hh * 3600 + t.mm * 60 + t.ss;
+    };
+
+    test('should parse hh well', function () {
+
+      exp.hh = 99;
+      exp.mm = 0;
+      exp.ss = 0;
+
+      act = player.parseTime(toSec(exp));
+      assert.equal(act.hh, exp.hh);
+      assert.equal(act.mm, exp.mm);
+      assert.equal(act.ss, exp.ss);
+    });
+
+    test('should parse mm well', function () {
+
+      exp.hh = 0;
+      exp.mm = 59;
+      exp.ss = 0;
+
+      act = player.parseTime(toSec(exp));
+      assert.equal(act.hh, exp.hh);
+      assert.equal(act.mm, exp.mm);
+      assert.equal(act.ss, exp.ss);
+    });
+
+    test('should parse ss well', function () {
+
+      exp.hh = 0;
+      exp.mm = 0;
+      exp.ss = 59;
+
+      act = player.parseTime(toSec(exp));
+      assert.equal(act.hh, exp.hh);
+      assert.equal(act.mm, exp.mm);
+      assert.equal(act.ss, exp.ss);
+    });
+
+    test('should parse hh, mm and ss well', function () {
+
+      exp.hh = 39;
+      exp.mm = 28;
+      exp.ss = 17;
+
+      act = player.parseTime(toSec(exp));
+      assert.equal(act.hh, exp.hh);
+      assert.equal(act.mm, exp.mm);
+      assert.equal(act.ss, exp.ss);
+    });
+
+    test('should parse zero sec well', function () {
+      act = player.parseTime(0);
+      assert.equal(act.hh, 0);
+      assert.equal(act.mm, 0);
+      assert.equal(act.ss, 0);
+    });
+
+    test('should parse negative time well', function () {
+      act = player.parseTime(-1234567890);
+      assert.equal(act.hh, 0);
+      assert.equal(act.mm, 0);
+      assert.equal(act.ss, 0);
+    });
+  });
+});
