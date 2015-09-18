@@ -118,41 +118,7 @@ var SpinDatePicker = (function() {
    * @param {String} date format.
    */
   function getDateComponentOrder() {
-    var format = navigator.mozL10n.get('dateTimeFormat_%x');
-    var order = '';
-    var tokens = format.match(/(%E.|%O.|%.)/g);
-
-    if (tokens) {
-      tokens.forEach(function(token) {
-        switch (token) {
-          case '%Y':
-          case '%y':
-          case '%Oy':
-          case 'Ey':
-          case 'EY':
-            order += 'Y';
-            break;
-          case '%B':
-          case '%b':
-          case '%m':
-          case '%Om':
-            order += 'M';
-            break;
-          case '%d':
-          case '%e':
-          case '%Od':
-          case '%Oe':
-            order += 'D';
-            break;
-        }
-      });
-    }
-
-    if (order.length != 3) {
-      order = 'DMY';
-    }
-
-    return order;
+    return  navigator.mozL10n.get('datePickerOrder');
   }
 
   /**

@@ -599,9 +599,11 @@
     this.element = element;
     this._fetchElements();
     var _ = navigator.mozL10n.get;
-    var is12hFormat = navigator.mozHour12;
-    var localeTimeFormat = is12hFormat ?
-      _('shortTimeFormat12') : _('shortTimeFormat24');
+    var formatter = Intl.DateTimeFormat(navigator.languages, {
+      hour12: navigator.mozHour12,
+      hour: 'numeric'
+    });
+    var is12hFormat = formatter.resolvedOptions().hour12;
     var startHour = is12hFormat ? 1 : 0;
     var endHour = is12hFormat ? (startHour + 12) : (startHour + 12 * 2);
     var unitClassName = 'picker-unit';
@@ -627,12 +629,8 @@
       });
     }
 
-    var separator = ':';
-    var minutesPosition = localeTimeFormat.indexOf('%M');
-    if (minutesPosition > 0) {
-      separator = localeTimeFormat.substr(minutesPosition - 1, 1);
-    }
-    this.elements.hoursMinutesSeparator.textContent = separator;
+    this.elements.hoursMinutesSeparator.setAttribute('data-l10n-id',
+      'hourMinutesSeparator');
     this.setTimePickerStyle();
 
     this._registerEvents();
@@ -692,10 +690,10 @@
     setTimePickerStyle: function tp_setTimePickerStyle() {
       var style = 'format24h';
       if (this.is12hFormat) {
-        var localeTimeFormat = navigator.mozL10n.get('shortTimeFormat12');
+        var timePickerOrder = navigator.mozL10n.get('timePickerOrder');
         // handle revert appearance
         var reversedPeriod =
-          (localeTimeFormat.indexOf('%p') < localeTimeFormat.indexOf('%M'));
+          (timePickerOrder.indexOf('p') < timePickerOrder.indexOf('M'));
         style = (reversedPeriod) ? 'format12hrev' : 'format12h';
 
         if ('format12h' === style) {
