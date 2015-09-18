@@ -15,7 +15,8 @@
          SelectionHandler,
          TaskRunner,
          MessagingClient,
-         MozMobileConnectionsClient
+         MozMobileConnectionsClient,
+         MozSettingsClient
 */
 /*exported ConversationView */
 
@@ -102,6 +103,7 @@ var ConversationView = {
   previousSegment: 0,
   buildingMessages: {},
 
+  mmsSizeLimitation: 0,
   /**
    * Set to true after init is run.
    */
@@ -262,38 +264,6 @@ var ConversationView = {
       return tmpls;
     }, {});
 
-    Compose.init('messages-compose-form');
-
-    // In case of input, we have to resize the input following UX Specs.
-    Compose.on('input', this.onMessageContentChange.bind(this));
-    Compose.on('subject-change', this.onSubjectChange.bind(this));
-    Compose.on('segmentinfochange', this.onSegmentInfoChange.bind(this));
-
-    // Assimilations
-    // -------------------------------------------------
-    // If the user manually types a recipient number
-    // into the recipients list and does not "accept" it
-    // via <ENTER> or ";", but proceeds to either
-    // the message or attachment options, attempt to
-    // gather those stranded recipients and assimilate them.
-    //
-    // Previously, an approach using the "blur" event on
-    // the Recipients' "messages-to-field" element was used,
-    // however the to-field will frequently lose "focus"
-    // to any of its recipient children. If we assimilate on
-    // to-field blur, the result is entirely unusable:
-    //
-    //  1. Focus will jump from the recipient input to the
-    //      message input
-    //  2. 1 or 2 characters may remain in the recipient
-    //      editable, which will be "assimilated"
-    //  3. If a user has made it past 1 & 2, any attempts to
-    //      select a contact from contact search results
-    //      will also jump focus to the message input field
-    //
-    // So we assimilate recipients if user starts to interact with Composer
-    Compose.on('interact', this.assimilateRecipients.bind(this));
-
     this.container.addEventListener(
       'click', this.assimilateRecipients.bind(this)
     );
@@ -309,7 +279,48 @@ var ConversationView = {
     // Bound methods to be detachables
     this.onMessageTypeChange = this.onMessageTypeChange.bind(this);
 
-    this._isReady = true;
+    return this.initCompose().then(() => this._isReady = true);
+  },
+
+  initCompose() {
+    return Promise.all([
+      MozSettingsClient.mmsSizeLimitation(),
+      MozSettingsClient.maxConcatenatedMessages()
+    ]).then((values) => {
+      this.mmsSizeLimitation = values[0];
+      Compose.init('messages-compose-form', ...values);
+
+      // In case of input, we have to resize the input following UX Specs.
+      Compose.on('input', this.onMessageContentChange.bind(this));
+      Compose.on('subject-change', this.onSubjectChange.bind(this));
+      Compose.on('segmentinfochange', this.onSegmentInfoChange.bind(this));
+
+      // Assimilations
+      // -------------------------------------------------
+      // If the user manually types a recipient number
+      // into the recipients list and does not "accept" it
+      // via <ENTER> or ";", but proceeds to either
+      // the message or attachment options, attempt to
+      // gather those stranded recipients and assimilate them.
+      //
+      // Previously, an approach using the "blur" event on
+      // the Recipients' "messages-to-field" element was used,
+      // however the to-field will frequently lose "focus"
+      // to any of its recipient children. If we assimilate on
+      // to-field blur, the result is entirely unusable:
+      //
+      //  1. Focus will jump from the recipient input to the
+      //      message input
+      //  2. 1 or 2 characters may remain in the recipient
+      //      editable, which will be "assimilated"
+      //  3. If a user has made it past 1 & 2, any attempts to
+      //      select a contact from contact search results
+      //      will also jump focus to the message input field
+      //
+      // So we assimilate recipients if user starts to interact with Composer
+      Compose.on('interact', this.assimilateRecipients.bind(this));
+      return;
+    });
   },
 
   isReady() {
@@ -1278,16 +1289,16 @@ var ConversationView = {
       return false;
     }
 
-    if (Settings.mmsSizeLimitation) {
-      if (Compose.size > Settings.mmsSizeLimitation) {
+    if (this.mmsSizeLimitation) {
+      if (Compose.size > this.mmsSizeLimitation) {
         this.showMaxLengthNotice({
           l10nId: 'multimedia-message-exceeded-max-length',
           l10nArgs: {
-            mmsSize: (Settings.mmsSizeLimitation / 1024).toFixed(0)
+            mmsSize: (this.mmsSizeLimitation / 1024).toFixed(0)
           }
         });
         return false;
-      } else if (Compose.size === Settings.mmsSizeLimitation) {
+      } else if (Compose.size === this.mmsSizeLimitation) {
         this.showMaxLengthNotice({ l10nId: 'messages-max-length-text' });
         return true;
       }
@@ -1719,7 +1730,8 @@ var ConversationView = {
     messageDOM.dataset.messageId = message.id;
     messageDOM.dataset.iccId = message.iccId;
     var simServiceId = Settings.getServiceIdByIccId(message.iccId);
-    var showSimInformation = Settings.hasSeveralSim() && simServiceId !== null;
+    var showSimInformation =
+      MozSettingsClient.hasSeveralSim() && simServiceId !== null;
     var simInformationHTML = '';
 
     if (showSimInformation) {

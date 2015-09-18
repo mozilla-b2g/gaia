@@ -3,6 +3,7 @@
          ConversationView,
          MessageManager,
          MobileOperator,
+         MozSettingsClient,
          Navigation,
          Settings,
          Template,
@@ -163,7 +164,7 @@ function createReportDiv(reports) {
 function showSimInfo(element, iccId) {
   var iccManager = navigator.mozIccManager;
   // Hide the element when single SIM or no iccManager/mobileConnections
-  if (!(Settings.hasSeveralSim() && iccId && iccManager)) {
+  if (!(MozSettingsClient.hasSeveralSim() && iccId && iccManager)) {
     return;
   }
 

@@ -1,4 +1,5 @@
-/* global BridgeServiceMixin */
+/* global BridgeServiceMixin,
+          BroadcastChannel */
 
 /* exported MozSettingsShim */
 
@@ -20,14 +21,16 @@ const METHODS = Object.freeze(['get', 'set']);
 var mozSettings = null;
 
 var MozSettingsShim = {
-  init(settings) {
+  init(appInstanceId, settings) {
     if (!settings) {
       console.error('Invalid settings for shim initialization');
       return;
     }
     mozSettings = settings;
 
-    this.initService();
+    this.initService(
+      new BroadcastChannel(`${SERVICE_NAME}-channel-${appInstanceId}`)
+    );
   },
 
   /* Methods */

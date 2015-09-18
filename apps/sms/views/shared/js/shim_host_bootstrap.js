@@ -14,7 +14,7 @@ exports.bootstrap = function(appInstanceId) {
     appInstanceId,
     parent.navigator.mozSetMessageHandler.bind(parent.navigator)
   );
-  MozSettingsShim.init(navigator.mozSettings);
+  MozSettingsShim.init(appInstanceId, navigator.mozSettings);
   MozMobileMessageShim.init(appInstanceId, navigator.mozMobileMessage);
   MozMobileConnectionsShim.init(appInstanceId, navigator.mozMobileConnections);
 };
