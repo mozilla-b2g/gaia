@@ -1,7 +1,9 @@
 'use strict';
 
 /* global require, exports */
+
 var utils = require('utils');
+var preprocessor = require('preprocessor');
 
 var SystemAppBuilder = function() {
 };
@@ -128,6 +130,21 @@ SystemAppBuilder.prototype.inlineDeviceType = function(options) {
   );
 };
 
+SystemAppBuilder.prototype.enableFirefoxSync = function(options) {
+  var fileList = {
+    process: [
+      ['js', 'core.js']
+    ],
+    remove: [
+      ['js', 'sync_manager.js'],
+      ['js', 'sync_state_machine.js'],
+      ['test', 'unit', 'sync_manager_test.js'],
+      ['test', 'unit', 'sync_state_machine_test.js']
+    ]
+  };
+  preprocessor.execute(options, 'FIREFOX_SYNC', fileList);
+};
+
 SystemAppBuilder.prototype.execute = function(options) {
   utils.copyToStage(options);
   this.setOptions(options);
@@ -135,6 +152,7 @@ SystemAppBuilder.prototype.execute = function(options) {
   if (this.distDirPath) {
     this.addCustomizeFiles();
   }
+  this.enableFirefoxSync(options);
   this.integrateLockScreen(options);
   this.integrateLockScreenInputpad(options);
   this.inlineDeviceType(options);
