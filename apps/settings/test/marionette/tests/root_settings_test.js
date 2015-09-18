@@ -106,28 +106,6 @@ marionette('check root panel settings', function() {
           'geolocation.enabled should be false');
       });
     });
-
-    suite('usb storage', function() {
-      test('check default value', function() {
-        assert.ok(!rootPanel.usbStorageCheckboxChecked,
-          'usb storage should be disabled by default');
-        assert.equal(rootPanel.usbStorageDesc, 'Disabled');
-      });
-
-      test.skip('enable usb storage', function() {
-        rootPanel.usbStorage(true);
-
-        // There will be confirmation dialog shown at the first time the usb
-        // storage is enabled. Add a waitFor for this case.
-        client.waitFor(function() {
-          return client.findElement('.turn-on-ums-dialog').displayed();
-        });
-        rootPanel.tapUsbStorageConfirmButton();
-
-        assert.ok(rootPanel.usbStorageCheckboxChecked,
-          'usb storage should be enabled');
-      });
-    });
   });
 
   suite('sim related tests', function() {
