@@ -32,6 +32,7 @@
     <link rel="stylesheet" type="text/css" href="shared/style/action_menu.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/confirm.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/progress_activity.css"/>
+    <link rel="stylesheet" type="text/css" href="style/homescreens.css"/>
     <link rel="stylesheet" type="text/css" href="style/achievements.css"/>
     <link rel="stylesheet" type="text/css" href="style/apps.css"/>
     <link rel="stylesheet" type="text/css" href="style/screen_lock.css"/>
@@ -170,15 +171,15 @@
     <link rel="import" href="/elements/hotspot.html">
     <link rel="import" href="/elements/sound.html">
     <link rel="import" href="/elements/display.html">
-    <link rel="import" href="/elements/homescreen.html">
+    <link rel="import" href="/elements/homescreens.html">
+    <link rel="import" href="/elements/homescreens_list.html">
+    <link rel="import" href="/elements/homescreen_details.html">
     <link rel="import" href="/elements/search.html">
     <link rel="import" href="/elements/navigation.html">
     <link rel="import" href="/elements/notifications.html">
     <link rel="import" href="/elements/date_time.html">
     <link rel="import" href="/elements/languages.html">
     <link rel="import" href="/elements/simcard_manager.html">
-    <link rel="import" href="/elements/homescreens_details.html">
-    <link rel="import" href="/elements/homescreens.html">
     <link rel="import" href="/elements/keyboard.html">
     <link rel="import" href="/elements/keyboard_selection_add_more.html">
     <link rel="import" href="/elements/themes.html">
@@ -327,9 +328,12 @@
     <!-- Personalization :: Sound -->
     <section role="region" is="sound" id="sound"></section>
     <!-- Personalization :: Display -->
-    <section role="region" is="display" id="display"></section>
-    <!-- Personalization :: Homescreen -->
-    <section role="region" is="homescreen" id="homescreen"></section>
+    <!-- Personalization :: Home Screens -->
+    <section role="region" is="homescreens" id="homescreens"></section>
+    <!-- Personalization :: Home Screens :: Home Screens List -->
+    <section role="region" is="homescreens-list" id="homescreens-list"></section>
+    <!-- Personalization :: Home Screens :: Home Screens List :: Home Screen Details -->
+    <section role="region" is="homescreen-details" id="homescreen-details"></section>
     <!-- Personalization :: Search -->
     <section role="region" is="search" id="search"></section>
     <!-- Personalization :: Navigation -->
@@ -342,10 +346,6 @@
     <section role="region" is="languages" id="languages"></section>
     <!-- Personalization :: SIM card manager -->
     <section role="region" is="sim-manager" id="sim-manager"></section>
-    <!-- Personalization :: Homescreens :: details -->
-    <section role="region" is="homescreens-details" id="homescreens-details"></section>
-    <!-- Personalization :: Homescreens -->
-    <section role="region" is="homescreens" id="homescreens"></section>
     <!-- Personalization :: Keyboard :: Select Keyboard :: Add More Keyboards -->
     <section role="region" is="keyboard-selection-addMore" id="keyboard-selection-addMore"></section>
     <!-- Personalization :: Keyboard :: Select Keyboard -->

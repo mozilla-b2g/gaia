@@ -1,34 +1,49 @@
-define(function(require) {
+/**
+ * Manage the column layout of the legacy vertical home screen.
+ */
+define(require => {
   'use strict';
 
-  var VerticalPreferences = require('shared/homescreens/vertical_preferences');
   var Module = require('modules/base/module');
+  var VerticalPreferences = require('shared/homescreens/vertical_preferences');
   var Observable = require('modules/mvvm/observable');
 
-  var Homescreen = Module.create(function Homescreen() {
+  var HomescreenCols = Module.create(function HomescreenCols() {
     this.super(Observable).call(this);
 
     this._isUpdating = false;
     this._cachedColsValue = null;
-    // we may update this value somewhere in other apps.
-    VerticalPreferences.addEventListener('updated', (e) => {
+
+    // We may update this value somewhere in other apps.
+    VerticalPreferences.addEventListener('updated', e => {
       var prop = e.target;
       if (prop.name === 'grid.cols') {
         this._cols = prop.value;
       }
     });
-    // set the default value
-    VerticalPreferences.get('grid.cols').then((number) => {
+
+    // Set the default value.
+    VerticalPreferences.get('grid.cols').then(number => {
       this._cols = number;
     });
   }).extend(Observable);
 
-  Observable.defineObservableProperty(Homescreen.prototype, 'cols', {
+  /**
+   * @memberOf HomescreenCols
+   * @type {Number}
+   * @public
+   */
+  Observable.defineObservableProperty(HomescreenCols.prototype, 'cols', {
     readonly: true,
     value: null
   });
 
-  Homescreen.prototype.setCols = function(value) {
+  /**
+   * Change the value of `grid.cols` preference of the vertical homescreen.
+   *
+   * @param {Number} value
+   */
+  HomescreenCols.prototype.setCols = function hc_setCols(value) {
     if (!this._isUpdating) {
       this._isUpdating = true;
       VerticalPreferences.put('grid.cols', value).then(() => {
@@ -45,5 +60,5 @@ define(function(require) {
     }
   };
 
-  return Homescreen();
+  return HomescreenCols;
 });
