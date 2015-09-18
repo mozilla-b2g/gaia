@@ -210,11 +210,8 @@ class TestSettingsRTLNC(GaiaImageCompareTestCase):
         ##################### Internet sharing and its subpages ######################
         internet_settings_page = settings.open_internet_sharing()
         self.take_screenshot('internet_sharing')
-        GaiaImageCompareTestCase.scroll(self.marionette, 'down',
-                                        internet_settings_page.screen_element.size['height'],
-                                        screen = internet_settings_page.screen_element)
-
-        self.take_screenshot('internet_sharing')
+        internet_settings_page.enable_hotspot()
+        self.take_screenshot('internet_sharing-hotspot_enabled')
         hotspot_page = internet_settings_page.tap_hotspot_settings()
         self.take_screenshot('internet_sharing-hotspot')
         hotspot_page.tap_security_settings()

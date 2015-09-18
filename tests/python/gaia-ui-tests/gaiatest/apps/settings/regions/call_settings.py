@@ -181,7 +181,7 @@ class CallSettings(Base):
 
     # the default is 'disabled'
     def wait_until_call_forwarding_info_received(self):
-        Wait(self.marionette, timeout=30).until(
+        Wait(self.marionette, timeout=60).until(
             expected.element_displayed(*self._call_forwarding_status_disabled_text_locator))
 
     def tap_always_forward(self):
@@ -237,7 +237,7 @@ class CallSettings(Base):
 
     def wait_until_call_barring_info_received(self):
         status = self.marionette.find_element(*self._call_barring_status_text_locator)
-        Wait(self.marionette, timeout=30).until(
+        Wait(self.marionette, timeout=60).until(
             lambda m: status.get_attribute('data-l10n-id') == 'disabled')
 
     def tap_call_barring_all(self):
