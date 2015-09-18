@@ -177,7 +177,6 @@ li a:active {
 
 /* Checkable content */
 [data-type="list"] li > .pack-checkbox,
-[data-type="list"] li > .pack-radio,
 [data-type="list"] li > .pack-switch {
   pointer-events: none;
   position: absolute;
@@ -192,7 +191,6 @@ li a:active {
 }
 
 [data-type="list"] li > .pack-checkbox input ~ span:after,
-[data-type="list"] li > .pack-radio input ~ span:after,
 [data-type="list"] li > .pack-switch input ~ span:after {
   /* because width is set in switches.css, the conflict between left/right will
    * be resolved in favor of "left" in LTR and "right" in RTL */
@@ -207,7 +205,6 @@ li a:active {
 }
 
 [data-type="list"] [data-type="edit"] li > .pack-checkbox,
-[data-type="list"] [data-type="edit"] li > .pack-radio,
 [data-type="list"] [data-type="edit"] li > .pack-switch {
   pointer-events: auto;
   left: 0;
