@@ -2,11 +2,35 @@
   <template>
 
     <gaia-header action="back" data-href="#root">
-      <h1 data-l10n-id="homescreens-header"></h1>
+      <h1 data-l10n-id="home-screens"></h1>
     </gaia-header>
 
     <div>
-      <ul></ul>
+      <section data-type="list">
+        <header>
+          <h2 data-l10n-id="wallpaper"></h2>
+        </header>
+        <div class="wallpaper">
+          <img class="wallpaper-preview" alt="wallpaper preview"/>
+          <button class="wallpaper-button">
+            <span data-icon="change-wallpaper" data-l10n-id="changeWallpaperButton"></span>
+          </button>
+        </div>
+
+        <header>
+          <h2 data-l10n-id="replaceable-home-screen"></h2>
+        </header>
+        <ul>
+          <li>
+            <a class="menu-item" href="#homescreens-list">
+              <span data-l10n-id="change-home-screen"></span>
+              <small>
+                <bdi class="current-homescreen"></bdi>
+              </small>
+            </a>
+          </li>
+        </ul>
+      </section>
     </div>
 
     <panel data-path="panels/homescreens/panel"></panel>
