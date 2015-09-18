@@ -2,12 +2,13 @@
    MockNavigatorGetDeviceStorage,  MockL10n, MockBTAdapter, MockDOMRequest,
    BluetoothTransfer, MockNotificationHelper, MockNotification, MockUtilityTray,
    NotificationHelper, MockCustomDialog, MimeMapper, mockMozActivityInstance,
-   Service, MockService */
+   Service, MockService, MockPromise */
 'use strict';
 
 require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
 require('/shared/test/unit/mocks/mock_event_target.js');
 require('/shared/test/unit/mocks/mock_dom_request.js');
+require('/shared/test/unit/mocks/mock_promise.js');
 require('/test/unit/mock_navigator_get_device_storage.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_bluetooth_v2.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
@@ -39,6 +40,7 @@ suite('system/bluetooth_transfer', function() {
   var real_sendingFilesQueue;
 
   var fake_sendingFilesQueue;
+  var fake_promiseAll;
 
   suiteSetup(function(done) {
     realSetMessageHandler = navigator.mozSetMessageHandler;
@@ -489,6 +491,11 @@ suite('system/bluetooth_transfer', function() {
     });
 
     suite('openReceivedFile', function() {
+      setup(function() {
+        fake_promiseAll = new MockPromise();
+        this.sinon.stub(Promise, 'all').returns(fake_promiseAll);
+      });
+
       test('until getreq.onsuccess', function() {
         var evt = {
           fileName: 'someFile.txt',
@@ -519,11 +526,11 @@ suite('system/bluetooth_transfer', function() {
           .returns('text/plain');
 
         var req = spyGet.getCall(0).returnValue;
-
         req.fireSuccess({
           name: evt.fileName,
           type: evt.contentType
         });
+        fake_promiseAll.mFulfillToValue();
 
         assert.equal(mockMozActivityInstance.name, 'open');
         assert.deepEqual(
@@ -583,6 +590,7 @@ suite('system/bluetooth_transfer', function() {
           name: evt.fileName,
           type: evt.contentType
         });
+        fake_promiseAll.mFulfillToValue();
 
         assert.equal(mockMozActivityInstance.name, 'import');
         assert.deepEqual(
