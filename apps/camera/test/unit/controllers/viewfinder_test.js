@@ -305,6 +305,20 @@ suite('controllers/viewfinder', function() {
     });
   });
 
+  suite('ViewfinderController#onPowerSave', function() {
+    test('When power save enabled, the viewfinder should disable screen ' +
+      'wakelocks', function() {
+      this.controller.onPowerSave(false);
+      assert.isTrue(this.viewfinder.els.video.mozUseScreenWakeLock);
+    });
+
+    test('When power save disabled, the viewfinder should enable screen ' +
+      'wakelocks', function() {
+      this.controller.onPowerSave(true);
+      assert.isFalse(this.viewfinder.els.video.mozUseScreenWakeLock);
+    });
+  });
+
   suite('click:viewfinder', function() {
     test('Should set the grid depending on the setting', function() {
       this.app.settings.grid.selected.withArgs('key').returns('on');
