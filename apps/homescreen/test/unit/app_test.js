@@ -24,6 +24,8 @@ suite('Homescreen app', () => {
   var createElementStub;
   var gaiaAppIconEl;
 
+  const SETTINGS = '{"version":0,"small":false}';
+
   var getIcon = manifestURL => {
     var container = document.createElement('div');
     var icon = document.createElement('div');
@@ -61,6 +63,9 @@ suite('Homescreen app', () => {
 
     MockMozActivity.mSetup();
     mockLocalStorage.mSetup();
+
+    // Seed the local-storage to bypass first-run behaviour
+    mockLocalStorage.setItem('settings', SETTINGS);
 
     Object.defineProperty(window, 'localStorage', {
       configurable: true,
@@ -168,6 +173,47 @@ suite('Homescreen app', () => {
       }];
 
       app = new App();
+    });
+
+    suite('first run', () => {
+      setup(() => {
+        window.LazyLoader = {
+          load: (files, callback) => {
+            callback();
+          }
+        };
+
+        window.FirstRun = () => {
+          return Promise.resolve({ order: [], small: false });
+        };
+
+        mockLocalStorage.setItem('settings', undefined);
+      });
+
+      teardown(() => {
+        mockLocalStorage.setItem('settings', SETTINGS);
+      });
+
+      test('should initialise the bookmark stores', done => {
+        stub = sinon.stub(Datastore.prototype, 'init', () => {
+          done();
+        });
+        new App();
+      });
+
+      test('should get the list of installed apps', done => {
+        stub = sinon.stub(MockNavigatormozApps.mgmt, 'getAll', () => {
+          done();
+        });
+        new App();
+      });
+
+      test('should get the list of bookmarked pages', done => {
+        stub = sinon.stub(Datastore.prototype, 'getAll', () => {
+          done();
+        });
+        new App();
+      });
     });
   });
 

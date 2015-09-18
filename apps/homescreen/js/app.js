@@ -1,4 +1,4 @@
-/* global MozActivity, HomeMetadata, Datastore, Pages */
+/* global MozActivity, HomeMetadata, Datastore, Pages, LazyLoader, FirstRun */
 /* jshint nonew: false */
 'use strict';
 
@@ -245,13 +245,15 @@ const SETTINGS_VERSION = 0;
           });
         })
       ]).then(() => {
-        for (var data of this.startupMetadata) {
-          console.log('Removing unknown app metadata entry', data.id);
-          this.metadata.remove(data.id).then(
-            () => {},
-            (e) => {
-              console.error('Error removing unknown app metadata entry', e);
-            });
+        if (!this.firstRun) {
+          for (var data of this.startupMetadata) {
+            console.log('Removing unknown app metadata entry', data.id);
+            this.metadata.remove(data.id).then(
+              () => {},
+              (e) => {
+                console.error('Error removing unknown app metadata entry', e);
+              });
+          }
         }
         this.startupMetadata = [];
         this.storeAppOrder();
@@ -271,8 +273,15 @@ const SETTINGS_VERSION = 0;
     // populate apps anyway - it means they'll be in the default order
     // and their order won't save, but it's better than showing a blank
     // screen.
+    // If this is the first run, get the app order from the first-run script
+    // after initialising the metadata database.
     new Promise((resolve, reject) => {
       this.metadata.init().then(() => {
+        if (this.firstRun) {
+          resolve();
+          return;
+        }
+
         this.metadata.getAll().then((results) => {
           this.startupMetadata = results;
           resolve();
@@ -286,7 +295,26 @@ const SETTINGS_VERSION = 0;
         console.error('Failed to initialise metadata db', e);
         resolve();
       });
-    }).then(populateApps);
+    }).then(this.firstRun ?
+        LazyLoader.load(['js/firstrun.js'],
+          () => {
+            FirstRun().then((results) => {
+              this.small = results.small;
+              this.icons.classList.toggle('small', this.small);
+              this.saveSettings();
+
+              this.startupMetadata = results.order;
+              populateApps();
+            }, (e) => {
+              console.error('Error running first-run script', e);
+              populateApps();
+            });
+          },
+          (e) => {
+            console.error('Failed to load first-run script');
+            populateApps();
+          }) :
+        populateApps);
 
     // Application has finished initialisation
     window.performance.mark('navigationInteractive');
@@ -303,6 +331,7 @@ const SETTINGS_VERSION = 0;
     restoreSettings: function() {
       var settingsString = localStorage.getItem('settings');
       if (!settingsString) {
+        this.firstRun = true;
         return;
       }
 
@@ -311,7 +340,7 @@ const SETTINGS_VERSION = 0;
         return;
       }
 
-      this.small = settings.small;
+      this.small = settings.small || false;
       this.icons.classList.toggle('small', this.small);
     },
 
