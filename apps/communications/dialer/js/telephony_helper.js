@@ -22,7 +22,7 @@ var TelephonyHelper = (function() {
         TelephonyMessages.displayMessage('BadNumber');
       });
 
-      return;
+      return Promise.reject();
     }
 
     var conn = navigator.mozMobileConnections &&
@@ -33,7 +33,7 @@ var TelephonyHelper = (function() {
       loadTelephonyMessages(function() {
         TelephonyMessages.displayMessage('NoNetwork');
       });
-      return;
+      return Promise.reject();
     }
 
     return startDial(
@@ -94,7 +94,7 @@ var TelephonyHelper = (function() {
                      ondisconnected) {
     var telephony = navigator.mozTelephony;
     if (!telephony) {
-      return;
+      return Promise.reject();
     }
 
     var emergencyOnly = conn.voice.emergencyCallsOnly;
