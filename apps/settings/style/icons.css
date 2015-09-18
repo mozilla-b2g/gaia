@@ -11,6 +11,14 @@
   -moz-padding-start: 5.5rem;
 }
 
+gaia-switch .menu-item[data-icon] {
+  -moz-padding-start: 4rem;
+}
+
+gaia-switch .menu-item[data-icon] ~ details {
+ -moz-padding-start: 4rem;
+}
+
 a.menu-item:after {
   font-family: "gaia-icons";
   content: "forward-light";

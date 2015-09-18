@@ -20,7 +20,8 @@ ul li {
 
 /* Provide additional margin around web components to match spacing with legacy components */
 ul li > gaia-radio,
-ul li > gaia-switch,
+/* Switches in the root panel ignore the extra margin due to having icon style applied. */
+section:not(#root) ul li > gaia-switch,
 ul li > gaia-checkbox:not(.inline) {
   -moz-margin-start: 1.5rem;
   /* The !important is necessary to override gaia-swtich scoped style. */

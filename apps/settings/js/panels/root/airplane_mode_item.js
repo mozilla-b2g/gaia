@@ -67,9 +67,9 @@ define(function(require) {
     _onAPMStateChange: function ami_onAPMStateChange(status) {
       if (status === 'enabled' || status === 'disabled') {
         this._element.checked = (status === 'enabled') ? true : false;
-        this._element.disabled = false;
+        this._element.removeAttribute('disabled');
       } else {
-        this._element.disabled = true;
+        this._element.setAttribute('disabled', true);
       }
     },
 
@@ -83,15 +83,15 @@ define(function(require) {
     init: function ami_init() {
       AirplaneModeHelper.ready(function() {
         // handle change on radio
-        this._element.addEventListener('change', function(e) {
-          this.disabled = true;
-          AirplaneModeHelper.setEnabled(this.checked);
+        this._element.addEventListener('change', () => {
+          this._element.setAttribute('disabled', true);
+          AirplaneModeHelper.setEnabled(this._element.checked);
         });
 
         // initial status
         var status = AirplaneModeHelper.getStatus();
         this._element.checked = (status === 'enabled') ? true : false;
-        this._element.disabled = false;
+        this._element.removeAttribute('disabled');
       }.bind(this));
     }
   };

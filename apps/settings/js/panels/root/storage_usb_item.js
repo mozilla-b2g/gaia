@@ -52,7 +52,7 @@ define(function(require) {
         this._enabled = value;
       }
       if (value) { //observe
-        this._elements.usbEnabledCheckBox.disabled = false;
+        this._elements.usbEnabledCheckBox.removeAttribute('disabled');
         // ums master switch on root panel
         this._elements.usbEnabledCheckBox.addEventListener('change', this);
 
@@ -66,7 +66,8 @@ define(function(require) {
         window.addEventListener('localized', this);
 
         // register USB storage split click handler
-        this._elements.usbStorage.addEventListener('click', this._onItemClick);
+        this._elements.usbStorageLabel.addEventListener('click',
+          this._onItemClick);
       } else { //unobserve
         this._elements.usbEnabledCheckBox.removeEventListener('change', this);
 
@@ -78,7 +79,7 @@ define(function(require) {
           this._boundMediaVolumeChangeHandler);
         window.removeEventListener('localized', this);
 
-        this._elements.usbStorage.removeEventListener('click',
+        this._elements.usbStorageLabel.removeEventListener('click',
           this._onItemClick);
       }
     },
@@ -90,6 +91,8 @@ define(function(require) {
 
     // navigate to USB Storage panel
     _onItemClick: function storage_onItemClick(evt) {
+      evt.preventDefault();
+      evt.stopPropagation();
       SettingsService.navigate('usbStorage');
     },
 

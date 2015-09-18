@@ -19,22 +19,19 @@ module.exports = RootPanel;
 RootPanel.Selectors = {
   'airplaneModeCheckbox': '.airplaneMode-input',
   'airplaneModeMenuItem': '#menuItem-airplaneMode',
-  'airplaneModeSpan': '.airplaneMode-input ~ span',
   'applicationStorageDesc': '.application-storage-desc',
   'batteryDesc': '.battery-desc',
   'bluetoothDesc': '.bluetooth-desc',
   'firefoxAccountDesc': '#fxa-desc',
-  'geolocationCheckbox': 'input[name="geolocation.enabled"]',
-  'geolocationSpan': 'input[name="geolocation.enabled"] ~ span',
+  'geolocationCheckbox': 'gaia-switch[name="geolocation.enabled"]',
   'languageDesc': '.language-desc',
   'mediaStorageDesc': '.media-storage-desc',
   'simManagerItem': '#simCardManager-settings',
   'simSecurityItem': '#simSecurity-settings',
   'screenLockDesc': '.screenLock-desc',
   'wifiDesc': '#wifi-desc',
-  'usbStorageCheckbox': '.usb-switch',
-  'usbStorageSpan': '.usb-switch ~ span',
-  'usbStorageDesc': '.usb-desc',
+  'usbStorageCheckbox': '#menuItem-enableStorage',
+  'usbStorageDesc': '#usb-desc',
   'usbStorageConfirmDialog': '.turn-on-ums-dialog',
   'usbStorageConfirmButton': '.ums-confirm-option',
   'nfcCheckbox': '#nfc-input'
@@ -52,13 +49,11 @@ RootPanel.prototype = {
   // airplane mode
   airplaneMode: function(enabled) {
     var self = this;
-
     this.client.waitFor(function() {
       return self.airplaneModeCheckboxEnabled;
     });
-
     if (enabled !== this.airplaneModeCheckboxChecked) {
-      this.waitForElement('airplaneModeSpan').tap();
+      this.waitForElement('airplaneModeCheckbox').click();
       this.client.waitFor(function() {
         return enabled === self.airplaneModeCheckboxChecked;
       });
@@ -76,11 +71,15 @@ RootPanel.prototype = {
   },
 
   get airplaneModeCheckboxChecked() {
-    return !!this.findElement('airplaneModeCheckbox').getAttribute('checked');
+    return !!this.findElement('airplaneModeCheckbox').scriptWith(function(el) {
+      return el.wrappedJSObject.checked;
+    });
   },
 
   get airplaneModeCheckboxEnabled() {
-    return this.findElement('airplaneModeCheckbox').enabled();
+    return this.findElement('airplaneModeCheckbox').scriptWith(function(el) {
+      return !el.wrappedJSObject.hasAttribute('disabled');
+    });
   },
 
   // battery
@@ -101,7 +100,7 @@ RootPanel.prototype = {
   // geolocation
   geolocation: function(enabled) {
     if (enabled !== this.geolocationCheckboxChecked) {
-      this.waitForElement('geolocationSpan').tap();
+      this.waitForElement('geolocationCheckbox').tap();
       this.client.waitFor(function() {
         return enabled === this.geolocationCheckboxChecked;
       }.bind(this));
@@ -109,7 +108,9 @@ RootPanel.prototype = {
   },
 
   get geolocationCheckboxChecked() {
-    return !!this.findElement('geolocationCheckbox').getAttribute('checked');
+    return !!this.findElement('geolocationCheckbox').scriptWith(function(el) {
+      return el.wrappedJSObject.checked;
+    });
   },
 
   get geolocationEnabledSetting() {
@@ -125,7 +126,9 @@ RootPanel.prototype = {
   },
 
   get nfcCheckboxChecked() {
-    return !!this.findElement('nfcCheckbox').getAttribute('checked');
+    return !!this.findElement('nfcCheckbox').scriptWith(function(el) {
+      return el.wrappedJSObject.checked;
+    });
   },
 
   // language
@@ -159,7 +162,7 @@ RootPanel.prototype = {
   // usb storage
   usbStorage: function(enabled) {
     if (enabled !== this.usbStorageCheckboxChecked) {
-      this.waitForElement('usbStorageSpan').tap();
+      this.waitForElement('usbStorageCheckbox').click();
       this.client.waitFor(function() {
         return enabled === this.usbStorageCheckboxChecked;
       }.bind(this));
@@ -171,7 +174,9 @@ RootPanel.prototype = {
   },
 
   get usbStorageCheckboxChecked() {
-    return !!this.findElement('usbStorageCheckbox').getAttribute('checked');
+    return !!this.findElement('usbStorageCheckbox').scriptWith(function(el) {
+      return el.wrappedJSObject.checked;
+    });
   },
 
   get usbStorageDesc() {

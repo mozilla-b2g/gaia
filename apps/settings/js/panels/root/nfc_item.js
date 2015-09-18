@@ -32,14 +32,14 @@ define(function(require) {
     // disabling on change to prevent double clicking and remove toggle
     // flickering before nfcManger will change nfc.status
     _onCheckboxChanged: function ni_onCheckboxChanged() {
-      this._checkbox.disabled = true;
+      this._checkbox.setAttribute('disabled', true);
     },
 
     _onNfcStatusChanged: function ni_onNfcStatusChanged(status) {
       if (status === 'enabling' || status === 'disabling') {
-        this._checkbox.disabled = true;
+        this._checkbox.setAttribute('disabled', true);
       } else if (status === 'enabled' || status === 'disabled') {
-        this._checkbox.disabled = false;
+        this._checkbox.removeAttribute('disabled');
       }
     }
   };
