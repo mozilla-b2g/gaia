@@ -11,7 +11,7 @@ marionette('AppWindowManager - Pinned sites',
   var client = marionette.client({
     profile: {
       settings: {
-        'dev.gaia.pinning_the_web': true
+        'dev.gaia.pinning_the_web': false
       }
     }
   });

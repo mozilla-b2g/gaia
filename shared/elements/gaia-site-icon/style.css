@@ -1,0 +1,44 @@
+gaia-app-icon {
+  display: flex;
+  flex-direction: column;
+  font-size: 0;
+}
+
+#image-container {
+  position: relative;
+  transition: visibility 0.2s, opacity 0.2s;
+}
+
+#image-container.initial-load {
+  opacity: 0;
+  visibility: hidden;
+}
+
+#image-container > #spinner {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+#image-container.downloading > #spinner {
+  display: block;
+  background: no-repeat center center url('images/app_install_spinner.svg');
+  background-size: contain;
+  animation: rotate 2s infinite linear;
+}
+
+#image-container,
+#image-container > * {
+  width: 100%;
+}
+
+#subtitle {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+  margin-top: 0.3rem;
+}
