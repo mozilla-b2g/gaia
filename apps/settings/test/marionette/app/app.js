@@ -22,6 +22,7 @@ var ScreenLockPanel = require('./regions/screen_lock');
 var SoundPanel = require('./regions/sound');
 var SupportPanel = require('./regions/support');
 var DeviceInfoPanel = require('./regions/device_info');
+var BrowsingPrivacyPanel = require('./regions/browsing_privacy');
 
 /**
  * Abstraction around settings app
@@ -62,7 +63,8 @@ Settings.Selectors = {
   'mediaStorageMenuItem': '.menuItem-mediaStorage',
   'keyboardMenuItem': '#menuItem-keyboard',
   'messageMenuItem': '#menuItem-messagingSettings',
-  'deviceInfoMenuItem': '#menuItem-deviceInfo'
+  'deviceInfoMenuItem': '#menuItem-deviceInfo',
+  'browsingPrivacyMenuItem': '#menuItem-browsingPrivacy'
 };
 
 Settings.prototype = {
@@ -211,6 +213,13 @@ Settings.prototype = {
     this._aboutPanel = this._aboutPanel ||
       new DeviceInfoPanel(this.client);
     return this._aboutPanel;
+  },
+
+  get browsingPrivacyPanel() {
+    this.openPanel('browsingPrivacyMenuItem');
+    this._browsingPrivacyPanel = this._browsingPrivacyPanel ||
+      new BrowsingPrivacyPanel(this.client);
+    return this._browsingPrivacyPanel;
   },
 
   set currentLanguage(value) {
