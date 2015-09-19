@@ -173,7 +173,6 @@ p {
 }
 
 .gaia-list label.pack-checkbox,
-.gaia-list label.pack-radio,
 .gaia-list label.pack-switch {
   width: 100%;
   overflow: hidden;
@@ -187,7 +186,6 @@ p {
 }
 
 .gaia-list label.vbox.pack-checkbox,
-.gaia-list label.vbox.pack-radio,
 .gaia-list label.vbox.pack-switch {
   align-items: flex-start;
   justify-content: center;
@@ -202,14 +200,12 @@ p {
   left: 10px;
 }
 
-.gaia-list label.pack-radio span:after,
 .gaia-list label.pack-checkbox.reverse span:after,
 .gaia-list label.pack-switch span:after {
   left: auto;
   right: 0;
 }
 
-.gaia-list label.pack-radio span,
 .gaia-list label.pack-checkbox span,
 .gaia-list label.pack-switch span,
 .gaia-list label p {
@@ -217,9 +213,7 @@ p {
   width: 100%;
 }
 
-.gaia-list label.pack-radio span,
 .gaia-list label.pack-checkbox.reverse span,
-.gaia-list label.pack-radio p,
 .gaia-list label.pack-checkbox.reverse p {
   width: calc(100% - 30px);
 }
@@ -324,7 +318,6 @@ p {
   right: 10px;
 }
 
-.gaia-list:-moz-dir(rtl) label.pack-radio span:after,
 .gaia-list:-moz-dir(rtl) label.pack-checkbox.reverse span:after,
 .gaia-list:-moz-dir(rtl) label.pack-switch span:after {
   left: 0;
