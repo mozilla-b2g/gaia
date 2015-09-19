@@ -8,6 +8,8 @@
 /* exported Kinto */
 
 var Kinto = (function() {
+  var mockProblem =  null;
+
   var KintoCollectionMock = function(collectionName, fireConflicts=[]) {
     this.collectionName = collectionName;
     this._remoteTransformerUsed = null;
@@ -172,40 +174,28 @@ var Kinto = (function() {
 
   var Kinto = function(options) {
     this.options = options;
-    this.collection = function(collectionName) {
-      var specialInstructions = options.headers['X-Client-State'].split(' ');
-      if (specialInstructions.length !== 2) {
-        specialInstructions = false;
-      }
 
-      var specialInstructionsCase = () => {
+    this.collection = function(collectionName) {
+      var mockProblemCase = () => {
         var httpCode;
-        if (specialInstructions[0] === collectionName) {
-          httpCode = parseInt(specialInstructions[1]);
+        if (mockProblem &&
+            mockProblem.collectionName === collectionName) {
+          httpCode = parseInt(mockProblem.problem);
           if (isNaN(httpCode)) {
-            if (specialInstructions[1] === 'conflicts') {
+            if (mockProblem.problem === 'conflicts') {
               return new KintoCollectionMock(collectionName, [{
                 local: { bar: 'local' },
                 remote: SynctoServerFixture.historyEntryDec.payload
               }]);
             }
-            return new KintoCollectionMock(specialInstructions[1]);
+            return new KintoCollectionMock(mockProblem.problem);
           }
           return new HttpCodeKintoCollectionMock(httpCode);
         }
       };
 
       var unauthCase = () => {
-        if (specialInstructions) {
-          // options.headers['X-Client-State'] will be wrong, but just because
-          // we hijacked it for passing special instructions to the mock, so
-          // don't interpret this as invalid credentials.
-          return;
-        }
-        if ((options.headers.Authorization !==
-                      'BrowserID test-assertion-mock') ||
-                 (options.headers['X-Client-State'] !==
-                      'test-xClientState-mock')) {
+        if (options.headers.Authorization !== 'BrowserID test-assertion-mock') {
           return new HttpCodeKintoCollectionMock(401);
         }
       };
@@ -220,7 +210,7 @@ var Kinto = (function() {
         return new KintoCollectionMock(collectionName);
       };
 
-      return specialInstructionsCase() ||
+      return mockProblemCase() ||
         unauthCase() ||
         unreachableCase() ||
         defaultCase();
@@ -245,6 +235,10 @@ var Kinto = (function() {
       validate: obj.validate
     };
     return schemaClass;
+  };
+
+  Kinto.setMockProblem = (problem) => {
+    mockProblem = problem;
   };
 
   return Kinto;

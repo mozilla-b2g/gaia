@@ -16,12 +16,16 @@ var SynctoServerFixture = (function() {
   var syncEngineOptions = {
     URL: 'http://localhost:8000/v1/',
     assertion: 'test-assertion-mock',
-    xClientState: 'test-xClientState-mock',
-    kB: '85c4f8c1d8e3e2186824c127af786891dd03c6e05b1b45f28f7181211bf2affb',
+    // Taken from https://bugzilla.mozilla.org/show_bug.cgi?id=959919#c13.
+    kB: 'fd5c747806c07ce0b9d69dcfea144663e630b65ec4963596a22f24910d7dd15d',
     adapters: {
       history: AdapterMock()
     }
   };
+
+  // Taken from https://bugzilla.mozilla.org/show_bug.cgi?id=959919#c13.
+  var xClientState = '6ae94683571c7a7c54dab4700aa3995f';
+
   var remoteData = {
     meta: {
       id: 'global',
@@ -118,6 +122,7 @@ ce/Global_Objects/Object/proto`,
   };
   return {
     syncEngineOptions: syncEngineOptions,
+    xClientState: xClientState,
     remoteData: remoteData,
     historyEntryDec: historyEntryDec
   };

@@ -26,9 +26,12 @@ var cloneObject = (obj) => {
   return JSON.parse(JSON.stringify(obj));
 };
 
-suite('SyncEngine', () => {
-  suite('constructor', () => {
-    test('constructs a SyncEngine object', done => {
+suite('SyncEngine', function() {
+  // NB: this.timeout only works when passing ES5-style functions to all suites
+  // and tests, see https://github.com/mochajs/mochajs.github.io/pull/14
+  this.timeout(500);
+  suite('constructor', function() {
+    test('constructs a SyncEngine object', function(done) {
       const options = SynctoServerFixture.syncEngineOptions;
       const se = new SyncEngine(options);
       expect(se).to.be.an('object');
@@ -36,14 +39,12 @@ suite('SyncEngine', () => {
       expect(se._collections).to.be.an('object');
       expect(se._controlCollections).to.be.an('object');
       expect(se._fswc).to.be.instanceOf(FxSyncWebCrypto);
-      expect(se._kinto).to.be.instanceOf(Kinto);
-      expect(se._kinto.options.dbPrefix).to.equal(options.xClientState);
       expect(se._adapters).to.deep.equal(options.adapters);
       expect(se._ready).to.equal(false);
       done();
     });
 
-    test('checks that options is an Object', done => {
+    test('checks that options is an Object', function(done) {
       try {
         var se = new SyncEngine(5);
       } catch(err) {
@@ -53,8 +54,8 @@ suite('SyncEngine', () => {
       }
     });
 
-    ['URL', 'assertion', 'xClientState', 'kB'].forEach(field => {
-      test(`checks that ${field} is a String`, done => {
+    ['URL', 'assertion', 'kB'].forEach(field => {
+      test(`checks that ${field} is a String`, function(done) {
         var credentials = cloneObject(SynctoServerFixture.syncEngineOptions);
         credentials[field] = 7.2;
         try {
@@ -67,7 +68,7 @@ suite('SyncEngine', () => {
       });
     });
 
-    test('checks that options.adapters is an Object', done => {
+    test('checks that options.adapters is an Object', function(done) {
       var credentials = cloneObject(SynctoServerFixture.syncEngineOptions);
       credentials.adapters = 'foo';
       try {
@@ -79,7 +80,7 @@ suite('SyncEngine', () => {
       }
     });
 
-    test('checks that options.adapters members are Objects', done => {
+    test('checks that options.adapters members are Objects', function(done) {
       var credentials = cloneObject(SynctoServerFixture.syncEngineOptions);
       credentials.adapters = {
         foo: 'bar'
@@ -96,7 +97,7 @@ suite('SyncEngine', () => {
 
     ['update', 'handleConflict'].forEach(methodName => {
       test(`checks that options.adapters[x].${methodName} are Functions`,
-          done => {
+          function(done) {
         var credentials = cloneObject(SynctoServerFixture.syncEngineOptions);
         credentials.adapters = {
           foo: AdapterMock()
@@ -114,14 +115,40 @@ ld be a Function`);
     });
   });
 
-  suite('syncNow', () => {
-    test('resolves its promise', done =>  {
+   suite('syncNow', function() {
+    test('resolves its promise', function(done) {
       var se = new SyncEngine(SynctoServerFixture.syncEngineOptions);
       expect(se.syncNow([ 'history' ])).to.eventually.deep.
           equal([ undefined ]).and.notify(done);
     });
 
-    test('retrieves and decrypts the remote data', done => {
+    test('initializes the Kinto object', function(done) {
+      var se = new SyncEngine(SynctoServerFixture.syncEngineOptions);
+      se.syncNow([ 'history' ]).then(function() {
+        expect(se._kinto).to.be.instanceOf(Kinto);
+        done();
+      });
+    });
+
+    test('generates the correct value for xClientState', function(done) {
+      var se = new SyncEngine(SynctoServerFixture.syncEngineOptions);
+      se.syncNow([ 'history' ]).then(function() {
+        expect(se._kinto.options.headers['X-Client-State']).to.equal(
+            SynctoServerFixture.xClientState);
+        done();
+      });
+    });
+
+    test('sets xClientState as the dbPrefix', function(done) {
+      var se = new SyncEngine(SynctoServerFixture.syncEngineOptions);
+      se.syncNow([ 'history' ]).then(function() {
+        expect(se._kinto.options.dbPrefix).to.equal(
+            SynctoServerFixture.xClientState);
+        done();
+      });
+    });
+
+    test('retrieves and decrypts the remote data', function(done) {
       var se = new SyncEngine(SynctoServerFixture.syncEngineOptions);
       se.syncNow([ 'history' ]).then(() => {
         expect(se._collections.history).to.be.an('object');
@@ -137,7 +164,7 @@ ld be a Function`);
       });
     });
 
-    test('encrypts and pushes added records', done => {
+    test('encrypts and pushes added records', function(done) {
       var credentials = cloneObject(SynctoServerFixture.syncEngineOptions);
       credentials.adapters.history = AdapterMock('create', [
         { foo: 'bar' }
@@ -154,7 +181,7 @@ ld be a Function`);
       });
     });
 
-    test('enforces FxSyncIdSchema on added records', done => {
+    test('enforces FxSyncIdSchema on added records', function(done) {
       var credentials = cloneObject(SynctoServerFixture.syncEngineOptions);
       credentials.adapters.history = AdapterMock('create', [
         { foo: 'bar' },
@@ -166,7 +193,7 @@ ld be a Function`);
 wrong`).and.notify(done);
     });
 
-    test('encrypts and pushes updated records', done => {
+    test('encrypts and pushes updated records', function(done) {
       var credentials = cloneObject(SynctoServerFixture.syncEngineOptions);
       credentials.adapters.history = AdapterMock('update', [ {
         id: SynctoServerFixture.remoteData.history.id,
@@ -184,7 +211,7 @@ wrong`).and.notify(done);
       });
     });
 
-    test('pushes deletes of records', done => {
+    test('pushes deletes of records', function(done) {
       var credentials = cloneObject(SynctoServerFixture.syncEngineOptions);
       credentials.adapters.history = AdapterMock('delete', [
         SynctoServerFixture.remoteData.history.id
@@ -199,13 +226,10 @@ wrong`).and.notify(done);
         done();
       });
     });
-    test('encrypts and pushes conflict resolutions', done => {
-      var credentials = cloneObject(SynctoServerFixture.syncEngineOptions);
-      credentials.adapters = {
-        history: AdapterMock()
-      };
-      credentials.xClientState = `history conflicts`;
-      var se = new SyncEngine(credentials);
+
+    test('encrypts and pushes conflict resolutions', function(done) {
+      Kinto.setMockProblem({ collectionName: 'history', problem: 'conflicts' });
+      var se = new SyncEngine(SynctoServerFixture.syncEngineOptions);
       se.syncNow([ 'history' ]).then(() => {
         return se._collections.history.list();
       }).then(list => {
@@ -216,14 +240,14 @@ wrong`).and.notify(done);
       });
     });
 
-    test(`rejects its promise if collections is not an Array`, done => {
+    test(`rejects its promise if collections is not an Array`, function(done) {
       var se = new SyncEngine(SynctoServerFixture.syncEngineOptions);
       expect(se.syncNow('foo')).to.be.rejectedWith(Error, `collectionNames shou\
 ld be an Array`).and.notify(done);
     });
 
-    ['URL', 'assertion', 'xClientState', 'kB'].forEach(field => {
-      test(`rejects its promise if ${field} is wrong`, done => {
+    ['URL', 'assertion', 'kB'].forEach(function(field) {
+      test(`rejects its promise if ${field} is wrong`, function(done) {
         var credentials = cloneObject(SynctoServerFixture.syncEngineOptions);
         credentials.adapters = {
           history: AdapterMock()
@@ -231,7 +255,7 @@ ld be an Array`).and.notify(done);
         credentials[field] = 'whoopsie';
         var se = new SyncEngine(credentials);
         se.syncNow([ 'history' ]).catch(err => {
-          if (['assertion', 'xClientState'].indexOf(field) !== -1) {
+          if (field === 'assertion') {
             expect(err).to.be.instanceOf(SyncEngine.AuthError);
           } else {
             expect(err).to.be.instanceOf(SyncEngine.UnrecoverableError);
@@ -241,7 +265,7 @@ ld be an Array`).and.notify(done);
       });
     });
 
-    ['meta', 'crypto'].forEach(collectionName => {
+    ['meta', 'crypto'].forEach(function(collectionName) {
       [
         '401',
         '404',
@@ -251,15 +275,11 @@ ld be an Array`).and.notify(done);
         'wrong-payload-crypto',
         'wrong-ciphertext',
         'wrong-id'
-      ].forEach(problem => {
+      ].forEach(function(problem) {
         test(`rejects its promise if ${collectionName} response is ${problem}`,
-            done => {
-          var credentials = cloneObject(SynctoServerFixture.syncEngineOptions);
-          credentials.adapters = {
-            history: AdapterMock()
-          };
-          credentials.xClientState = `${collectionName} ${problem}`;
-          var se = new SyncEngine(credentials);
+            function(done) {
+          Kinto.setMockProblem({ collectionName, problem });
+          var se = new SyncEngine(SynctoServerFixture.syncEngineOptions);
           se.syncNow([ 'history' ]).catch(err => {
             if (problem === '401') {
               expect(err.message).to.equal('unauthorized');
@@ -282,18 +302,11 @@ ld be an Array`).and.notify(done);
       'wrong-payload-history',
       'wrong-ciphertext',
       'wrong-id'
-    ].forEach(problem => {
-      test(`rejects its promise if response is ${problem}`, done => {
-        var options = {
-          URL: SynctoServerFixture.syncEngineOptions.URL,
-          assertion: SynctoServerFixture.syncEngineOptions.assertion,
-          xClientState: `history ${problem}`,
-          kB: SynctoServerFixture.syncEngineOptions.kB,
-          adapters: {
-            history: AdapterMock()
-          }
-        };
-        var se = new SyncEngine(options);
+    ].forEach(function(problem) {
+      test(`rejects its promise if response is ${problem}`, function(done) {
+        Kinto.setMockProblem({ collectionName:'history', problem });
+
+        var se = new SyncEngine(SynctoServerFixture.syncEngineOptions);
         se.syncNow([ 'history' ]).catch(err => {
           if (problem === '401') {
             expect(err.message).to.equal('unauthorized');
