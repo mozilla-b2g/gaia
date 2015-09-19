@@ -37,6 +37,37 @@ suite('system/media playback widget', function() {
     document.body.innerHTML = '';
   });
 
+  suite('constructor', function() {
+    var container, subject;
+
+    setup(function() {
+      var id = 'lockscreen-media-container';
+      container = document.getElementById(id).cloneNode(true);
+      delete container.id;
+    });
+
+    ['updateplaystatus', 'updatemetadata'].forEach((command) => {
+      test('should request an up to date' + command, function(done) {
+        var evtName = 'lockscreen-request-mediacommand';
+        window.addEventListener(evtName, function gotIt(evt) {
+          if (evt.detail == command) {
+            window.removeEventListener(evtName, gotIt);
+            done();
+          }
+        });
+
+        // To prevent this instance from interfering with other tests
+        this.sinon.stub(window, 'addEventListener');
+
+        subject = new LockScreenMediaPlaybackWidget(
+          container,
+          {nowPlayingAction: 'openapp'}
+        );
+        subject.origin = null;
+      });
+    });
+  });
+
   suite('handleMessage', function() {
     var stubAppInfo, stubNowPlaying, stubPlaybackStatus;
 
