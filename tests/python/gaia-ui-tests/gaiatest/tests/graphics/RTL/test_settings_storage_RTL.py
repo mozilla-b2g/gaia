@@ -15,18 +15,20 @@ class TestSettingsRTL(GaiaImageCompareTestCase):
         settings = Settings(self.marionette)
         settings.launch()
         ########### USB Storage #############################
-        settings.enable_usb_storage()
+        usb_storage = settings.open_usb_storage()
+        usb_storage.enable_usb_storage()
         self.take_screenshot('usbstorage-enablewarning')
         # if usb is enabled, it affects media storage menu
         if options == "disable":
-            settings.cancel_usb_storage()
-            self.assertFalse(settings.is_usb_storage_enabled)
-            usbstorage_page = settings.open_usb_storage()
+            usb_storage.cancel_usb_storage()
+            self.assertFalse(usb_storage.enabled)
             self.take_screenshot('usbstorage')
-            settings.return_to_prev_menu(settings.screen_element, usbstorage_page.screen_element)
         else:
-            settings.confirm_usb_storage()
-            self.assertTrue(settings.is_usb_storage_enabled)
+            usb_storage.confirm_usb_storage()
+            self.assertTrue(usb_storage.enabled)
+            self.take_screenshot('usbstorage')
+
+        settings.return_to_prev_menu(settings.screen_element, usb_storage.screen_element)
 
         ########### Media Storage #############################
         # when USB is enabled, need to capture the 'Not Available' text
@@ -55,3 +57,6 @@ class TestSettingsRTL(GaiaImageCompareTestCase):
         ########### Application Storage #############################
             settings.open_application_storage()
             self.take_screenshot('application_storage')
+
+    def tearDown(self):
+        self.data_layer.set_setting('ums.enabled', False)

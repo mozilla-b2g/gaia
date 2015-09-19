@@ -65,7 +65,7 @@ class Settings(Base):
     _do_not_track_menu_item_locator = (By.ID, 'menuItem-doNotTrack')
     _browsing_privacy_item_locator = (By.ID, 'menuItem-browsingPrivacy')
     _privacy_controls_item_locator = (By.ID, 'menuItem-privacyPanel')
-    _usb_storage_menu_item_locator = (By.ID, 'menuItem-enableStorage')
+    _usb_storage_menu_item_locator = (By.CSS_SELECTOR, '.menuItem-enableStorage')
     _media_storage_menu_item_locator = (By.CSS_SELECTOR, '.menuItem-mediaStorage')
     _application_storage_menu_item_locator = (By.CSS_SELECTOR, '.menuItem-applicationStorage')
 
@@ -106,56 +106,6 @@ class Settings(Base):
         return InvisibleHtmlBinaryControl(self.marionette,
                                           self._airplane_checkbox_locator,
                                           self._airplane_switch_locator)
-
-    def enable_usb_storage(self):
-        self._usb_checkbox.enable()
-
-    @property
-    def is_usb_storage_enabled(self):
-        return self._usb_checkbox.is_checked
-
-    @property
-    def _usb_checkbox(self):
-        class UsbSwitch(InvisibleHtmlBinaryControl):
-
-            def __init__(self, marionette, control_locator, element_to_tap_locator, menu_item_locator):
-                InvisibleHtmlBinaryControl.__init__(self, marionette,  control_locator, element_to_tap_locator)
-                self.menu_item = self.marionette.find_element(*menu_item_locator)
-
-            def _toggle(self):
-                # There are 2 parts on that entry. The left part allows you to choose the
-                # USB transfer protocol, and the right part is the switch.
-                # In case where RTL is enabled, the left part needs to be tapped since the left/right switches
-                if self.menu_item.location['x'] == 0:  # left-centered
-                    switch_area = self._element_to_tap.rect['width'] - 5
-                else:  # right-centered
-                    switch_area = 5
-                self._element_to_tap.tap(x=switch_area)
-
-            # because toggling causes the confirmation prompt when toggled for 1st time, the post-state cannot
-            # be verified. Use is_usb_storage_enabled to check the post-state
-            def _toggle_and_verify_state(self, final_state):
-                Wait(self.marionette).until(expected.element_enabled(self.root_element))
-                Wait(self.marionette).until(lambda m: self.is_checked is not final_state)
-                self._toggle()
-
-        return UsbSwitch(self.marionette, self._usb_storage_checkbox_locator, self._usb_storage_switch_locator,
-                         self._usb_storage_menu_item_locator)
-
-    def confirm_usb_storage(self):
-        element = Wait(self.marionette).until(
-            expected.element_present(
-                *self._usb_storage_confirm_button_locator))
-        Wait(self.marionette).until(expected.element_displayed(element))
-        element.tap()
-        Wait(self.marionette).until(lambda m: self.is_usb_storage_enabled is True)
-
-    def cancel_usb_storage(self):
-        element = Wait(self.marionette).until(
-            expected.element_present(
-                *self._usb_storage_cancel_button_locator))
-        Wait(self.marionette).until(expected.element_displayed(element))
-        element.tap()
 
     def enable_gps(self):
         return self._gps_checkbox.enable()

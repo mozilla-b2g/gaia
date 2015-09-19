@@ -15,12 +15,14 @@ class TestUsbStorage(GaiaTestCase):
         settings = Settings(self.marionette)
         settings.launch()
 
-        self.assertFalse(settings.is_usb_storage_enabled)
+        usb_storage = settings.open_usb_storage()
+
+        self.assertFalse(usb_storage.enabled)
         self.assertFalse(self.data_layer.get_setting('ums.enabled'))
 
-        settings.enable_usb_storage()
-        settings.confirm_usb_storage()
-        self.assertTrue(settings.is_usb_storage_enabled)
+        usb_storage.enable_usb_storage()
+        usb_storage.confirm_usb_storage()
+        self.assertTrue(usb_storage.enabled)
         self.assertTrue(self.data_layer.get_setting('ums.enabled'))
 
     def tearDown(self):
