@@ -2,6 +2,10 @@
 'use strict';
 
 var Remote = (function() {
+  const PLAY_STATUS_INTERRUPTED = 'mozinterruptbegin';
+  const PLAY_STATUS_PAUSED      = 'PAUSED';
+  const PLAY_STATUS_PLAYING     = 'PLAYING';
+
   var Remote = {
     enabled: false,
     isSCOEnabled: false,
@@ -39,8 +43,13 @@ var Remote = (function() {
     updatePlaybackStatus: function() {
       if (Remote.enabled) {
         client.method('getPlaybackStatus').then((status) => {
+          var playStatus = status.paused ? PLAY_STATUS_PAUSED : PLAY_STATUS_PLAYING;
+          if (status.isInterrupted) {
+            playStatus = PLAY_STATUS_INTERRUPTED;
+          }
+
           mrc.notifyStatusChanged({
-            playStatus: status.paused ? 'PAUSED' : 'PLAYING',
+            playStatus: playStatus,
             duration: status.duration,
             position: status.elapsedTime
           });
@@ -157,6 +166,8 @@ var Remote = (function() {
     client.on('play', Remote.updatePlaybackStatus);
     client.on('pause', Remote.updatePlaybackStatus);
     client.on('elapsedTimeChange', Remote.updatePlaybackStatus);
+    client.on('interruptBegin', Remote.updatePlaybackStatus);
+    client.on('interruptEnd', Remote.updatePlaybackStatus);
 
     Remote.enabled = true;
   });

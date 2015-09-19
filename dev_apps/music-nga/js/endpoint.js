@@ -7,6 +7,7 @@ var loadQueueSettings = PlaybackQueue.loadSettings();
 
 var currentFilePath;
 var currentQueue;
+var isInterrupted = false;
 var isFastSeeking = false;
 
 var service = bridge.service('music-service')
@@ -56,29 +57,41 @@ var service = bridge.service('music-service')
   .listen()
   .listen(new BroadcastChannel('music-service'));
 
-audio.onloadeddata = function() {
+audio.addEventListener('loadeddata', function() {
   URL.revokeObjectURL(audio.src);
-};
+});
 
-audio.onplay = function() {
+audio.addEventListener('play', function() {
   service.broadcast('play');
-};
+});
 
-audio.onpause = function() {
+audio.addEventListener('pause', function() {
   service.broadcast('pause');
-};
+});
 
-audio.ondurationchange = function() {
+audio.addEventListener('durationchange', function() {
   service.broadcast('durationChange', audio.duration);
-};
+});
 
-audio.ontimeupdate = function() {
+audio.addEventListener('timeupdate', function() {
   service.broadcast('elapsedTimeChange', audio.currentTime);
-};
+});
 
-audio.onended = function() {
+audio.addEventListener('ended', function() {
   nextSong(true);
-};
+});
+
+audio.addEventListener('mozinterruptbegin', function() {
+  isInterrupted = true;
+
+  service.broadcast('interruptBegin');
+});
+
+audio.addEventListener('mozinterruptend', function() {
+  isInterrupted = false;
+
+  service.broadcast('interruptEnd');
+});
 
 function play(filePath) {
   if (!filePath) {
@@ -144,10 +157,12 @@ function getPlaybackStatus() {
     queueIndex:    currentQueue ? currentQueue.index    : -1,
     queueRawIndex: currentQueue ? currentQueue.rawIndex : -1,
     queueLength:   currentQueue ? currentQueue.length   : -1,
-    filePath: currentFilePath,
-    paused: audio.paused,
-    duration: audio.duration,
-    elapsedTime: audio.currentTime
+    filePath:      currentFilePath,
+    paused:        audio.paused,
+    duration:      audio.duration,
+    elapsedTime:   audio.currentTime,
+    isInterrupted: isInterrupted,
+    isFastSeeking: isFastSeeking
   });
 }
 
