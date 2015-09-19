@@ -4,11 +4,12 @@
 
 var Utils = {
   prettyDate: function ut_prettyDate(time) {
-    var _ = navigator.mozL10n.get;
-    var timeFormat = window.navigator.mozHour12 ? _('shortTimeFormat12') :
-                                                  _('shortTimeFormat24');
-    var dtf = new navigator.mozL10n.DateTimeFormat();
-    return dtf.localeFormat(new Date(time), timeFormat);
+    var f = Intl.DateTimeFormat(navigator.languages, {
+      hour12: navigator.mozHour12,
+      hour: 'numeric',
+      minute: 'numeric'
+    });
+    return f.format(new Date(time));
   },
 
   /**
@@ -54,7 +55,6 @@ var Utils = {
 
   headerDate: function ut_headerDate(time) {
     var _ = navigator.mozL10n.get;
-    var dtf = new navigator.mozL10n.DateTimeFormat();
     var diff = (Date.now() - time) / 1000;
     var day_diff = Math.floor(diff / 86400);
     var formattedTime;
@@ -65,9 +65,15 @@ var Utils = {
     } else if (day_diff === 1) {
       formattedTime = _('yesterday');
     } else if (day_diff < 6) {
-      formattedTime = dtf.localeFormat(new Date(time), '%A');
+      formattedTime = (new Date(time)).toLocaleString(navigator.languages, {
+        weekday: 'long',
+      });
     } else {
-      formattedTime = dtf.localeFormat(new Date(time), '%x');
+      formattedTime = (new Date(time)).toLocaleString(navigator.languages, {
+        year: '2-digit',
+        month: '2-digit',
+        day: '2-digit'
+      });
     }
     return formattedTime;
   },

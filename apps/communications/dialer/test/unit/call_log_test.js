@@ -386,8 +386,12 @@ suite('dialer/call_log', function() {
     // Call time.
     var callTime = groupDOM.querySelector('.call-time');
     assert.ok(callTime, 'Call time ok');
-    assert.equal(new Date(Date.parse(callTime.innerHTML)).getSeconds() -
-                 new Date(group.lastEntryDate).getSeconds(), 0);
+    assert.equal(callTime.textContent.trim(),
+      new Date(group.lastEntryDate).toLocaleString(navigator.languages, {
+        hour12: navigator.mozHour12,
+        hour: 'numeric',
+        minute: 'numeric'
+      }));
 
     // Retry count.
     var retryCount = groupDOM.querySelector('.retry-count');
@@ -453,24 +457,10 @@ suite('dialer/call_log', function() {
     test('update times to new 12/24 timeformat', function(done) {
       this.sinon.spy(Utils, 'prettyDate');
       var numEntries = 2;
-      var fakeClockTime12 = '12:02 <span>PM</span>';
-      var fakeClockTime24 = '13:14';
       window.navigator.mozHour12 = false;
 
-      var self = this;
       // This calls checkGroupDOM which validates the time is there.
       appendAndCheckGroupDOM(numEntries, null, function() {
-        self.sinon.stub(MockL10n, 'DateTimeFormat', function() {
-          this.localeFormat = function(date, format) {
-            if (format === 'shortTimeFormat12') {
-              return fakeClockTime12;
-            } else if (format === 'shortTimeFormat24') {
-              return fakeClockTime24;
-            }
-            return '';
-          };
-        });
-
         sinon.assert.callCount(Utils.prettyDate, numEntries);
         Utils.prettyDate.reset();
 
@@ -481,10 +471,16 @@ suite('dialer/call_log', function() {
 
         // Test that when we set it to 12 hr and update, items are updated.
         var logItems = CallLog.callLogContainer.querySelectorAll('.log-item');
+        var formatter = Intl.DateTimeFormat(navigator.languages, {
+          hour12: navigator.mozHour12,
+          hour: 'numeric',
+          minute: 'numeric'
+        });
         for (var i = 0; i < logItems.length; i++) {
           var logItemElt = logItems[i];
           var callTime = logItemElt.querySelector('.call-time');
-          assert.equal(callTime.textContent, fakeClockTime12 + ' ');
+          var timestamp = logItemElt.getAttribute('data-timestamp');
+          assert.equal(callTime.textContent, formatter.format(timestamp));
         }
 
         done();

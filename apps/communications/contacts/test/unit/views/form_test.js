@@ -48,34 +48,18 @@ var subject,
     footer,
     ActivityHandler;
 
-var MOCK_DATE_STRING = 'Jan 1 1970';
-var MOCK_DATE_PLACEHOLDER = 'Date';
+var MOCK_DATE_STRING =
+  new Date(Date.UTC(1970, 0, 1)).toLocaleString(navigator.languages, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
+  }
+);
 realL10n = navigator.mozL10n;
 navigator.mozL10n = {
   get: function get(key) {
-    var out = key;
-
-    switch(key) {
-      case 'dateFormat':
-        out = null;
-      break;
-
-      case 'dateOutput':
-        out = MOCK_DATE_STRING;
-      break;
-
-      case 'date-span-placeholder':
-        out = MOCK_DATE_PLACEHOLDER;
-      break;
-    }
-
-    return out;
+    return key;
   },
-  DateTimeFormat: function() {
-    this.localeFormat = function(date, format) {
-      return date;
-    };
-  }
 };
 window._ = navigator.mozL10n.get;
 
@@ -326,7 +310,7 @@ suite('Render contact form', function() {
                     querySelector('input[type="date"]');
       var contentDate = inputDate.valueAsDate;
 
-      assert.equal(contentDate.toUTCString(), mockContact.bday.toUTCString());
+      assert.equal(contentDate.toUTCString(), date.toUTCString());
 
       assert.equal(inputDate.previousElementSibling.
                     textContent.trim(), MOCK_DATE_STRING);
@@ -401,7 +385,7 @@ suite('Render contact form', function() {
     });
 
     test('with birthday and anniversary', function() {
-      mockContact.anniversary = new Date(0);
+      mockContact.anniversary = new Date(Date.UTC(1970,0,1));
       subject.render(mockContact);
 
       var cont = document.body.innerHTML;
@@ -418,11 +402,16 @@ suite('Render contact form', function() {
     });
 
     test('Birthday first day of the year is rendered properly', function() {
-      mockContact.bday = new Date(Date.UTC(2014, 0, 1));
+      mockContact.bday = new Date(2014, 0, 1);
       subject.render(mockContact);
 
       var element = 'add-date';
+      var REAL_MOCK_DATE_STRING = MOCK_DATE_STRING;
+      MOCK_DATE_STRING = 'Jan 1, 2014';
+
       assertDateContent('#' + element + '-0', mockContact.bday);
+
+      MOCK_DATE_STRING = REAL_MOCK_DATE_STRING;
     });
 
     test('Dates are saved preserving their timestasmp referred to UTC',

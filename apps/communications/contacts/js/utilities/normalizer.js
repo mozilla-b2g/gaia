@@ -25,27 +25,44 @@ if (!utils.time) {
         return rounded;
       }
 
-      var dtf = new navigator.mozL10n.DateTimeFormat();
       now = now || Date.now();
       var day_diff = (roundToDay(now) - roundToDay(time)) / 86400000;
       if (!isNaN(day_diff)) {
         // Woohh we are on the future here
         if (day_diff < 0) {
-          prettyDate = dtf.localeFormat(new Date(time),
-                                                    _('dateTimeFormat_%x'));
+          prettyDate = (new Date(time)).toLocaleString(navigator.languages, {
+            year: '2-digit',
+            month: '2-digit',
+            day: '2-digit'
+          });
         } else {
-          prettyDate = day_diff === 0 && _('today') ||
-                       day_diff === 1 && _('yesterday') ||
-                       day_diff < 6 && dtf.localeFormat(new Date(time), '%A') ||
-                       dtf.localeFormat(new Date(time), '%x');
+          if (day_diff === 0) {
+            prettyDate = _('today');
+          } else if (day_diff === 1) {
+            prettyDate = _('yesterday');
+          } else if (day_diff < 6) {
+            prettyDate = (new Date(time)).toLocaleString(navigator.languages, {
+              weekday: 'long'
+            });
+          } else {
+            prettyDate = (new Date(time)).toLocaleString(navigator.languages, {
+              year: '2-digit',
+              month: '2-digit',
+              day: '2-digit'
+            });
+          }
         }
       }
 
-      var timeFormat = window.navigator.mozHour12 ?
-       _('shortTimeFormat12') : _('shortTimeFormat24');
+      var timeString = (new Date(time)).toLocaleString(navigator.languages, {
+        hour12: navigator.mozHour12,
+        hour: 'numeric',
+        minute: 'numeric'
+      });
 
-      return prettyDate + ' ' +
-                        dtf.localeFormat(new Date(time), timeFormat);
+      //XXX: This order should not be hardcoded. Change once we have
+      // relative date/time in Intl
+      return prettyDate + ' ' + timeString;
     };
   })();
 }
