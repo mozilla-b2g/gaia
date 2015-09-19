@@ -1140,6 +1140,24 @@ suite('system/TaskManager >', function() {
         fakeFinish(this.sinon.clock, targetApp);
       });
 
+      test('home button is ignored during opening', function(done) {
+        var targetApp = apps.game;
+        var stub = targetApp.open;
+        this.sinon.stub(home, 'open');
+
+        waitForEvent(window, 'cardviewclosed').then(function() {
+          assert.isTrue(stub.calledOnce, 'selected app open method was called');
+          assert.isTrue(home.open.notCalled, 'did not race with home');
+        }, failOnReject)
+        .then(function() { done(); }, done);
+
+        taskManager.exitToApp(targetApp);
+        this.sinon.clock.tick(50);
+        var event = new CustomEvent('home');
+        taskManager.respondToHierarchyEvent(event);
+        fakeFinish(this.sinon.clock, targetApp);
+      });
+
       test('when exitToApp is passed no app', function(done) {
         var activeApp =
           MockService.mockQueryWith('AppWindowManager.getActiveWindow');

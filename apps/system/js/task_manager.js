@@ -25,7 +25,7 @@
     this._stackIndex = -1;
     this._shouldGoBackHome = false;
     this._active = false;
-
+    this._exiting = false;
   }
 
   TaskManager.prototype = Object.create({
@@ -541,6 +541,11 @@
   };
 
   TaskManager.prototype.exitToApp = function(app) {
+    if (this._exiting) {
+      return;
+    }
+    this._exiting = true;
+
     // The cards view class is removed here in order to let the window
     // manager repaints everything.
     this.screenElement.classList.remove('cards-view');
@@ -567,6 +572,7 @@
       var finish = () => {
         this.element.classList.remove('to-home');
         this.hide();
+        this._exiting = false;
       };
       eventSafety(app.element, '_opened', finish, 400);
 
