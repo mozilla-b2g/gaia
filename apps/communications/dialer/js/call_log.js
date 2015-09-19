@@ -151,7 +151,7 @@ var CallLog = {
     for (var i = 0; i < logItemElts.length; i++) {
       var logItemElt = logItemElts[i];
       var timestamp = logItemElt.getAttribute('data-timestamp');
-      var formattedTime = Utils.prettyDate(parseInt(timestamp, 10)) + ' ';
+      var formattedTime = Utils.prettyDate(parseInt(timestamp, 10));
       var callTimeElt = logItemElt.querySelector('.call-time');
       callTimeElt.textContent = formattedTime;
     }

@@ -493,7 +493,7 @@ suite('Contacts settings >', function() {
       }
     });
 
-    function assertContactsImportedFrom(source, done, extraString) {
+    function assertContactsImportedFrom(source, done, withTime) {
       var importElm = document.getElementById('import-' + source + '-option');
       var time = importElm.querySelector('time');
 
@@ -501,8 +501,14 @@ suite('Contacts settings >', function() {
         assert.equal(time.getAttribute('datetime'),
             (new Date(timestamps[source])).toLocaleString());
         assert.equal(time.textContent, utils.time.pretty(timestamps[source]));
-        if (extraString) {
-          assert.isTrue(time.textContent.indexOf(extraString) != -1);
+        if (withTime) {
+          var timeString = new Date(timestamps[source]).toLocaleString(
+            navigator.languages, {
+              hour12: navigator.mozHour12,
+              hour: 'numeric',
+              minute: 'numeric',
+            });
+          assert.isTrue(time.textContent.indexOf(timeString) != -1);
         }
         observer.disconnect();
       };
@@ -538,14 +544,14 @@ suite('Contacts settings >', function() {
     });
 
     test('Test check 12 hour format', function(done) {
-      assertContactsImportedFrom('gmail', done, 'shortTimeFormat12');
+      assertContactsImportedFrom('gmail', done, true);
     });
 
     test('Test check 24 hour format', function(done) {
       navigator.mozSettings.mSettings['locale.hour12'] = false;
       navigator.mozSettings.mTriggerObservers('locale.hour12',
        {'settingValue': false});
-      assertContactsImportedFrom('gmail', done, 'shortTimeFormat24');
+      assertContactsImportedFrom('gmail', done, true);
     });
   });
 

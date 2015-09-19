@@ -87,8 +87,8 @@ suite('Facebook Connector Tests', function() {
         assert.equal(adapted.fbInfo.adr[1].region, 'London');
         assert.equal(adapted.fbInfo.adr[1].countryName, 'United Kingdom');
 
-        assert.equal(adapted.fbInfo.bday.getMonth(), 11);
-        assert.equal(adapted.fbInfo.bday.getDate(), 3);
+        assert.equal(adapted.fbInfo.bday.getUTCMonth(), 11);
+        assert.equal(adapted.fbInfo.bday.getUTCDate(), 3);
         done();
       }
     });
