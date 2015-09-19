@@ -563,21 +563,18 @@
       this.newStackPosition = position;
     }
 
-    setTimeout(() => {
-      var finish = () => {
-        this.element.classList.remove('to-home');
-        this.hide();
-      };
-      eventSafety(app.element, '_opened', finish, 400);
+    var finish = () => {
+      this.element.classList.remove('to-home');
+      this.hide();
+    };
+    eventSafety(app.element, '_opened', finish, 400);
 
-      if (app.isHomescreen) {
-        this.element.classList.add('to-home');
-        app.open('home-from-cardview');
-      } else {
-        app.open('from-cardview');
-      }
-    }, 100);
-
+    if (app.isHomescreen) {
+      this.element.classList.add('to-home');
+      app.open('home-from-cardview');
+    } else {
+      app.open('from-cardview');
+    }
   };
 
   /**
