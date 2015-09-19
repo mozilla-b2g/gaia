@@ -166,15 +166,17 @@ marionette('Task Manager - Icons', function() {
                icon.getAttribute('class').indexOf('pending') === -1;
       });
 
-      // NOTE: we should actually get the 32x32 png from the favicon.ico
-      // but while bug 961893 remains open we'll actually get the first/smallest
-      var expectedColor = '255,255,0,255';
-      var expectedSize = 16;
+      // XXX(seth): These are the expected results after bug 1201796 lands. The
+      // test is temporarily disabled until bug 1201796 lands.
+      /*
+      var expectedColor = '0,255,255,255';
+      var expectedSize = 32;
 
       var actualColor = getElementColor(icon);
       var actualSize = iconColorToSize[actualColor];
       assert(actualColor === expectedColor);
       assert(actualSize === expectedSize);
+      */
     });
   });
 
