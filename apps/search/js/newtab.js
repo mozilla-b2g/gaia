@@ -1,4 +1,6 @@
 'use strict';
+/* global asyncStorage */
+
 (function(exports) {
 
   /**
@@ -23,6 +25,25 @@
         console.log('Error connecting: ' + reason + '\n');
       });
     };
+
+    if (window.location.search.includes('private=1')) {
+      this.pretendToBePrivate();
+
+      // Show the private dialog if needed.
+      asyncStorage.getItem('shouldSuppressPrivateDialog', value => {
+        if (value) {
+          return;
+        }
+
+        this.privateBrowserDialog = document.getElementById(
+          'private-window-dialog');
+        this.privateBrowserDialog.removeAttribute('hidden');
+
+        this.privateBrowserDialogClose = document.getElementById(
+          'private-window-hide-dialog');
+        this.privateBrowserDialogClose.addEventListener('click', this);
+      });
+    }
   }
 
   Newtab.prototype = {
@@ -58,6 +79,45 @@
         'action': 'private-window'
       });
     },
+
+    /**
+     * Pretends to be a private window.
+     * Makes this window look like a private window by applying the necessary
+     * theme color and background. The window can't be truly private,
+     * otherwise we wouldn't have access to local history and bookmarks.
+     */
+    pretendToBePrivate: function() {
+      var themeColor = document.createElement('meta');
+      themeColor.setAttribute('name', 'theme-color');
+      themeColor.setAttribute('content', '#392E54');
+      document.head.appendChild(themeColor);
+      document.body.classList.add('private');
+    },
+
+    /**
+     * General event handler.
+     */
+    handleEvent: function(e) {
+      switch(e.target) {
+        case this.privateBrowserDialogClose:
+          this.hidePrivateBrowserDialog();
+          break;
+      }
+    },
+
+    /**
+     * Hides the private browser dialog.
+     */
+    hidePrivateBrowserDialog: function() {
+      this.privateBrowserDialog.setAttribute('hidden', true);
+
+      // Set async storage value if we have checked the box so we don't
+      // attempt to show it again.
+      var checkbox = this.privateBrowserDialog.querySelector('gaia-checkbox');
+      if (checkbox.checked) {
+        asyncStorage.setItem('shouldSuppressPrivateDialog', true);
+      }
+    }
   };
 
   exports.newtab = new Newtab();

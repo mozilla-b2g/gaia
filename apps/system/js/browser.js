@@ -48,8 +48,11 @@
      * Opens a new private window.
      */
     newPrivateWindow: function() {
-      var privateBrowserUrl = location.origin + '/private_browser.html';
-      var config = new BrowserConfigHelper({url: privateBrowserUrl});
+      var config = new BrowserConfigHelper({
+        url: 'app://search.gaiamobile.org/newtab.html?private=1',
+        manifestURL: 'app://search.gaiamobile.org/manifest.webapp'
+      });
+      config.isMockPrivate = true;
       config.oop = true;
       config.isPrivate = true;
       var newApp = new AppWindow(config);

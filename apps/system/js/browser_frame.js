@@ -48,7 +48,7 @@
       browser.setAttribute('remote', 'true');
     }
 
-    if (config.isPrivate) {
+    if (config.isPrivate && !config.isMockPrivate) {
       browser.setAttribute('mozprivatebrowsing', 'true');
     }
 

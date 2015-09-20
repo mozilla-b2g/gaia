@@ -769,7 +769,8 @@
       this.reConfig({
         url: url,
         title: url,
-        oop: true
+        oop: true,
+        isPrivate: this.isPrivate
       });
       this.appChrome && this.appChrome.reConfig();
       this.browserContainer.removeChild(this.browser.element);
@@ -1839,7 +1840,7 @@
       } else {
         // origin might contain a pathname too, so need to parse it to find the
         // "real origin"
-        var url = this.config.origin.split('/');
+        var url = (this.config.origin || location.origin).split('/');
         var origin = url[0] + '//' + url[2];
         this._splash = origin + this._splash;
       }

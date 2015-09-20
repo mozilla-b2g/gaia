@@ -606,25 +606,6 @@ suite('system/Rocketbar', function() {
     });
   });
 
-  test('handleEvent() - global-search-request: private browsing', function() {
-    var activeApp = {
-      config: {url: 'app://system.gaiamobile.org/private_browser.html'},
-      isBrowser: function() {},
-      isPrivateBrowser: function() {
-        return true;
-      },
-      isActive: function() { return true; }
-    };
-    MockService.mockQueryWith('AppWindowManager.getActiveWindow', activeApp);
-    this.sinon.stub(activeApp, 'isBrowser').returns(true);
-    var setInputStub = this.sinon.stub(subject, 'setInput');
-    var event = {type: 'global-search-request'};
-    subject.handleEvent(event);
-
-    // Should clear the input
-    assert.ok(setInputStub.calledWith(''));
-  });
-
   suite('handle hierarchy event - value selector', function() {
     test('Value selector event with front window',
       function() {

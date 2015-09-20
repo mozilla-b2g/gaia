@@ -1,3 +1,20 @@
+/*csslint empty-rules: false*/
+/* See bug 1053721 for csslint empty rule requirement. */
+:root {
+  --primary-background-color: #fff;
+  --results-header-color: #a6a6a6;
+  --divider-color: #e5e5e5;
+  --history-result-title-color: #4d4d4d;
+}
+
+body.private {
+  --primary-background-color: #392E54;
+  --results-header-color: #858585;
+  --divider-color: #454545;
+  --history-result-title-color: #9e9e9e;
+}
+
+
 * {
   margin: 0;
   padding: 0;
@@ -18,11 +35,11 @@ body {
 h2,
 #history h3:first-child {
   text-align: center;
-  border-top: 0.2rem solid #e5e5e5;
+  border-top: 0.2rem solid var(--divider-color);
   font-size: 1.4rem;
   margin-top: 0.9rem;
   margin-bottom: -0.9rem;
-  color: #a6a6a6;
+  color: var(--results-header-color);
   font-style: normal;
   -moz-user-select: none;
 }
@@ -31,7 +48,7 @@ h2 span,
 #history h3:first-child span {
   position: relative;
   top: -0.9rem;
-  background: #fff;
+  background: var(--primary-background-color);
   padding: 0.5rem;
   margin-bottom: 0;
   font-weight: 500;
@@ -89,7 +106,7 @@ h2 span,
   border-bottom: 0.1rem solid rgba(0, 0, 0, 0.1);
   padding: 1rem 0.7rem;
   overflow: hidden;
-  color: #4d4d4d;
+  color: var(--history-result-title-color);
 }
 
 #history .result * {
@@ -143,6 +160,54 @@ section h3 {
   margin-top: 1rem;
   -moz-user-select: none;
 }
+
+/* Pseudo-private view */
+body.private {
+  background: var(--primary-background-color);
+}
+
+body.private .private-window-hidden {
+  display: none;
+}
+
+/* Private browser dialog */
+#private-window-dialog {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 2;
+  padding: 15rem 2rem 0;
+  -moz-box-sizing: border-box;
+  background: var(--primary-background-color) url(images/pb_dialog.png) no-repeat center 2rem / 10.2rem 11.6rem;
+}
+
+#private-window-dialog[hidden] {
+  display: none;
+}
+
+#private-window-dialog h1 {
+    font-size: 2rem;
+    color: #fff;
+    text-align: center;
+    font-weight: 300;
+    font-style: italic;
+    margin-bottom: 1.5rem;
+}
+
+#private-window-dialog a,
+#private-window-dialog p {
+  color: #fff;
+  font-size: 1.3rem;
+  line-height: 1.8rem;
+  margin-bottom: 1rem;
+}
+
+#private-window-dialog gaia-checkbox label {
+  color: #fff;
+}
+
 
 /* RTL View */
 html[dir="rtl"] .top-site {

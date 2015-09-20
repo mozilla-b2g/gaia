@@ -115,7 +115,7 @@ suite('system/AppChrome', function() {
   };
 
   var fakePrivateLandingPage = {
-    url: 'app://system.gaiamobile.org/private_browser.html',
+    url: 'app://search.gaiamobile.org/',
     origin: 'app://www.fake',
     isPrivate: true
   };
