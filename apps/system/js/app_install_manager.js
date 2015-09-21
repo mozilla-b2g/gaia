@@ -121,7 +121,7 @@
     },
 
     imeListView: function({displayName, imeName}) {
-      return Sanitizer.escapeHTML `<li>
+      return Sanitizer.createSafeHTML`<li>
          <gaia-checkbox class="ime inline" name="keyboards" value="${imeName}">
            <label>${displayName}</label>
          </gaia-checkbox>
@@ -413,16 +413,16 @@
       }
 
       // build the list of keyboard layouts
-      var listHtml = '';
+      var listHtml = [];
       for (var name in inputs) {
         var displayIMEName = new ManifestHelper(inputs[name]).displayName;
-        listHtml += this.imeListView({
+        listHtml.push(this.imeListView({
           imeName: name,
           displayName: displayIMEName
-        });
+        }));
       }
       // keeping li template
-      this.imeList.innerHTML = listHtml;
+      this.imeList.innerHTML = Sanitizer.unwrapSafeHTML(...listHtml);
       this.imeLayoutDialog.classList.add('visible');
       this.dispatchPromptEvent('shown');
     },
@@ -532,14 +532,15 @@
         return;
       }
 
-      var newNotif =
-        `<div class="fake-notification" role="link">
+      var newNotif = Sanitizer.createSafeHTML`
+        <div class="fake-notification" role="link">
           <div data-icon="rocket" class="alert" aria-hidden="true"></div>
           <div class="title-container"></div>
           <progress></progress>
         </div>`;
 
-      this.notifContainer.insertAdjacentHTML('afterbegin', newNotif);
+      this.notifContainer.insertAdjacentHTML('afterbegin',
+        Sanitizer.unwrapSafeHTML(newNotif));
 
       var newNode = this.notifContainer.firstElementChild;
       newNode.dataset.manifest = manifestURL;
