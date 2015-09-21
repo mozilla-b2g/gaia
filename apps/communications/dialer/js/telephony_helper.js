@@ -1,6 +1,6 @@
 'use strict';
 
-/* global LazyLoader, IccHelper, ConfirmDialog, MmiManager, TelephonyCall,
+/* global LazyLoader, ConfirmDialog, MmiManager, TelephonyCall,
           TelephonyMessages */
 /* exported TelephonyHelper */
 
@@ -10,19 +10,26 @@ var TelephonyHelper = (function() {
 
   var confirmLoaded = false;
 
+  /** This holds a promise for the currently dialing call. */
+  var currentCallPromise = null;
+
   var loadTelephonyMessages = function(callback) {
     LazyLoader.load(['/shared/js/dialer/telephony_messages.js'], callback);
   };
 
+  function clearCallPromise() {
+    currentCallPromise = null;
+  }
+
   var call = function t_call(number, cardIndex, oncall, onconnected,
-                             ondisconnected, onerror) {
+                             ondisconnected) {
     var sanitizedNumber = number.replace(/(\s|-|\.|\(|\))/g, '');
     if (!isValid(sanitizedNumber)) {
       loadTelephonyMessages(function() {
         TelephonyMessages.displayMessage('BadNumber');
       });
 
-      return;
+      return Promise.reject();
     }
 
     var conn = navigator.mozMobileConnections &&
@@ -33,11 +40,23 @@ var TelephonyHelper = (function() {
       loadTelephonyMessages(function() {
         TelephonyMessages.displayMessage('NoNetwork');
       });
-      return;
+      return Promise.reject();
     }
 
-    startDial(cardIndex, conn, sanitizedNumber, oncall, onconnected,
-              ondisconnected, onerror);
+    if (currentCallPromise) {
+      /* A dialing call is already present, refuse to make another one before
+       * this one is connected or rejected. */
+      loadTelephonyMessages(function() {
+        TelephonyMessages.displayMessage('UnableToCall');
+      });
+      return Promise.reject();
+    }
+
+    currentCallPromise = startDial(
+      cardIndex, conn, sanitizedNumber, oncall, onconnected, ondisconnected
+    ).then(clearCallPromise, clearCallPromise);
+
+    return currentCallPromise;
   };
 
 
@@ -90,87 +109,72 @@ var TelephonyHelper = (function() {
   }
 
   function startDial(cardIndex, conn, sanitizedNumber, oncall, onconnected,
-                     ondisconnected, onerror) {
+                     ondisconnected) {
     var telephony = navigator.mozTelephony;
     if (!telephony) {
-      return;
+      return Promise.reject();
     }
 
-    LazyLoader.load('/shared/js/icc_helper.js', function() {
-      var cardState = IccHelper.cardState;
-      var emergencyOnly = conn.voice.emergencyCallsOnly;
-      var hasCard = (conn.iccId !== null);
-      var callPromise;
-      var baseNumber = getNumberAsDtmfToneGroups(sanitizedNumber)[0];
+    var emergencyOnly = conn.voice.emergencyCallsOnly;
+    var hasCard = (conn.iccId !== null);
+    var callPromise;
+    var baseNumber = getNumberAsDtmfToneGroups(sanitizedNumber)[0];
 
-      // Note: no need to check for cardState null. While airplane mode is on
-      // cardState is null and we handle that situation in call() above.
-      if (((cardState === 'unknown') || (cardState === 'illegal')) &&
-           (emergencyOnly === false)) {
-        if (onerror) {
-          console.log('Tried to make a call with a card state of: ', cardState);
-          onerror();
-        }
-
-        return;
-      } else if (emergencyOnly) {
-        loadConfirm(function() {
-          ConfirmDialog.show(
-            'connectingEllipsis',
-            '',
-            {
-              title: 'emergencyDialogBtnOk',
-              callback: function() {
-                ConfirmDialog.hide();
-              }
+    if (emergencyOnly) {
+      loadConfirm(function() {
+        ConfirmDialog.show(
+          'connectingEllipsis',
+          '',
+          {
+            title: 'emergencyDialogBtnOk',
+            callback: function() {
+              ConfirmDialog.hide();
             }
-          );
-          document.addEventListener('visibilitychange', function hideDialog() {
-            document.removeEventListener('visibilitychange', hideDialog);
+          }
+        );
+        document.addEventListener('visibilitychange', function hideDialog() {
+          document.removeEventListener('visibilitychange', hideDialog);
 
-            /* In tests this event can happen after the ConfirmDialog mock has
-             * been removed so check that it's still there. */
-            ConfirmDialog && ConfirmDialog.hide();
-          });
-        });
-
-        // If the mobileConnection has a sim card we let gecko take the
-        // default service, otherwise we force the first slot.
-        cardIndex = hasCard ? undefined : 0;
-        callPromise = telephony.dialEmergency(baseNumber);
-      } else {
-        callPromise = telephony.dial(baseNumber, cardIndex);
-      }
-
-      callPromise.then(function(obj) {
-        if (obj instanceof TelephonyCall) {
-          installHandlers(obj, sanitizedNumber, emergencyOnly, cardIndex,
-                          oncall, onconnected, ondisconnected, onerror);
-        } else {
-          /* This is an MMICall object, manually invoke the handlers to provide
-           * feedback to the user, the rest of the UX will be dealt with by the
-           * MMI manager. */
-          oncall();
-          onconnected();
-          MmiManager.handleDialing(conn, sanitizedNumber, obj.result);
-        }
-      }).catch(function(errorName) {
-        if (onerror) {
-          onerror();
-        }
-
-        loadTelephonyMessages(function() {
-          var messageType = emergencyOnly ? TelephonyMessages.NO_NETWORK :
-                                            TelephonyMessages.REGULAR_CALL;
-          TelephonyMessages.handleError(
-            errorName, sanitizedNumber, messageType);
+          /* In tests this event can happen after the ConfirmDialog mock has
+           * been removed so check that it's still there. */
+          ConfirmDialog && ConfirmDialog.hide();
         });
       });
+
+      // If the mobileConnection has a sim card we let gecko take the
+      // default service, otherwise we force the first slot.
+      cardIndex = hasCard ? undefined : 0;
+      callPromise = telephony.dialEmergency(baseNumber);
+    } else {
+      callPromise = telephony.dial(baseNumber, cardIndex);
+    }
+
+    callPromise.then(function(obj) {
+      if (obj instanceof TelephonyCall) {
+        installHandlers(obj, sanitizedNumber, emergencyOnly, cardIndex,
+                        oncall, onconnected, ondisconnected);
+      } else {
+        /* This is an MMICall object, manually invoke the handlers to provide
+         * feedback to the user, the rest of the UX will be dealt with by the
+         * MMI manager. */
+        oncall();
+        onconnected();
+        MmiManager.handleDialing(conn, sanitizedNumber, obj.result);
+      }
+    }, function(errorName) {
+      loadTelephonyMessages(function() {
+        var messageType = emergencyOnly ? TelephonyMessages.NO_NETWORK :
+                                          TelephonyMessages.REGULAR_CALL;
+        TelephonyMessages.handleError(
+          errorName, sanitizedNumber, messageType);
+      });
     });
+
+    return callPromise;
   }
 
   function installHandlers(call, number, emergencyOnly, cardIndex,
-                           oncall, onconnected, ondisconnected, onerror) {
+                           oncall, onconnected, ondisconnected) {
     if (oncall) {
       oncall();
     }
@@ -182,19 +186,15 @@ var TelephonyHelper = (function() {
       });
     }
     call.addEventListener('connected', onconnected);
-    call.ondisconnected = ondisconnected;
-    call.onerror = function errorCB(evt) {
-      if (onerror) {
-        onerror();
-      }
 
-      var errorName = evt.call.error.name;
+    call.addEventListener('disconnected', function handleDisconnect(evt) {
       loadTelephonyMessages(function() {
-        var messageType = emergencyOnly ? TelephonyMessages.NO_NETWORK :
-                                          TelephonyMessages.REGULAR_CALL;
-        TelephonyMessages.handleError(errorName, number, messageType);
+        TelephonyMessages.handleDisconnect(
+          evt.call.disconnectedReason, number, emergencyOnly
+        );
       });
-    };
+      ondisconnected && ondisconnected();
+    });
   }
 
   var isValid = function t_isValid(sanitizedNumber) {

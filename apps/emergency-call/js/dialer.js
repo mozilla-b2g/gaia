@@ -41,7 +41,7 @@ var CallHandler = {
     var self = this;
 
     callPromise.then(function(call) {
-      self._installHandlers(call);
+      self._installHandlers(call, sanitizedNumber);
     }).catch(function(errorName) {
       LazyLoader.load(['/shared/js/dialer/telephony_messages.js'], function() {
         TelephonyMessages.handleError(
@@ -50,15 +50,22 @@ var CallHandler = {
     });
   },
 
-  _installHandlers: function(call) {
-    if (call) {
-      var cb = function clearPhoneView() {
-        KeypadManager.updatePhoneNumber('');
-      };
-      call.onconnected = cb;
+  _installHandlers: function(call, number) {
+    function clearPhoneView() {
+      KeypadManager.updatePhoneNumber('');
+    }
 
-      call.ondisconnected = function callEnded() {
-        cb();
+    if (call) {
+      call.onconnected = clearPhoneView;
+      call.ondisconnected = function callEnded(evt) {
+        LazyLoader.load(['/shared/js/dialer/telephony_messages.js'],
+        function() {
+          TelephonyMessages.handleDisconnect(
+            evt.call.disconnectedReason, number,
+            TelephonyMessages.EMERGENCY_ONLY
+          );
+        });
+        clearPhoneView();
       };
     }
   },
