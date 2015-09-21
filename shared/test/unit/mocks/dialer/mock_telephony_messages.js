@@ -8,6 +8,7 @@ var MockTelephonyMessages = {
   EMERGENCY_ONLY: 2,
 
   displayMessage: function() {},
+  handleDisconnect: function() {},
   handleError: function() {},
   notifyBusyLine: function() {}
 };

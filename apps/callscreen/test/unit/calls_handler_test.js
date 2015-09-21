@@ -2550,8 +2550,8 @@ suite('calls handler', function() {
                       [480, 620, 500], [0, 0, 500]];
 
       MockNavigatorMozTelephony.mTriggerCallsChanged();
-      mockCall.error = { name: 'BusyError' };
-      mockCall.triggerEvent('error');
+      mockCall.disconnectedReason = 'Busy';
+      mockCall.triggerEvent('disconnected');
       sinon.assert.calledWith(MockTonePlayer.playSequence, sequence);
     });
   });
