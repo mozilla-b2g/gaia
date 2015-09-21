@@ -66,7 +66,7 @@ Music.Selector = Object.freeze({
   shareMenu: 'form[data-z-index-level="action-menu"]',
   pickDoneButton: '#title-done',
   header: '#header',
-  titleText: '#title-text',
+  titleText: '#header-title',
   sublistShuffleButton: '#views-sublist-controls-shuffle',
   playerIcon: '#player-button'
 });
@@ -478,9 +478,11 @@ Music.prototype = {
     var elements = this.client.findElements('#list li');
     assert.ok(elements.length > 0);
 
-    elements.filter(function (element) {
+    var matching = elements.filter(function (element) {
       return element.findElement('h3').text() === name;
-    })[0].tap();
+    });
+    assert.ok(matching.length > 0);
+    matching[0].tap();
 
     this.switchToMe();
   },
