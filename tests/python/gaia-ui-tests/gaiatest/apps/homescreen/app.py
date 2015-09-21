@@ -14,6 +14,7 @@ from gaiatest.apps.base import PageRegion
 class Homescreen(Base):
 
     name = 'Default Home Screen'
+    manifest_url = '{}verticalhome{}/manifest.webapp'.format(Base.DEFAULT_PROTOCOL,Base.DEFAULT_APP_HOSTNAME)
 
     _homescreen_icon_locator = (By.CSS_SELECTOR, 'gaia-grid .icon')
     _homescreen_all_icons_locator = (By.CSS_SELECTOR, 'gaia-grid .icon:not(.placeholder)')

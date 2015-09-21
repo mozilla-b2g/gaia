@@ -46,7 +46,7 @@ class TestDeleteApp(GaiaTestCase):
         # Tap on the (x) to start delete process and tap on the confirm delete button
         self.homescreen.installed_app(self.test_data['name']).tap_delete_app().tap_confirm()
 
-        self.wait_for_condition(lambda m: self.apps.displayed_app.name == self.homescreen.name)
+        self.homescreen.wait_to_be_displayed()
         self.apps.switch_to_displayed_app()
         self.homescreen.tap_edit_done()
         self.homescreen.wait_for_app_icon_not_present(self.test_data['name'])

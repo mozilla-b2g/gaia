@@ -46,7 +46,7 @@ class TestSmsAutoSaveDrafts(GaiaTestCase):
                          "Killed app not expected to appear in cards view")
 
         # wait for homescreen to be displayed
-        self.wait_for_condition(lambda m: self.apps.displayed_app.name == Homescreen.name)
+        Homescreen(self.marionette).wait_to_be_displayed()
 
         # re-open messages app
         messages.launch()

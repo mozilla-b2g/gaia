@@ -95,4 +95,4 @@ class TestClockCreateNewAlarm(GaiaTestCase):
         self.alarm_alert.tap_stop_alarm()
 
         # Switch back to top level now that Clock app is gone
-        self.wait_for_condition(lambda m: self.apps.displayed_app.name == Homescreen.name)
+        Homescreen(self.marionette).wait_to_be_displayed()

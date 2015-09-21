@@ -30,5 +30,4 @@ class TestSettingsPasscode(GaiaTestCase):
         lock_screen.switch_to_frame()
         passcode_pad = lock_screen.unlock_to_passcode_pad()
         passcode_pad.type_passcode(self._input_passcode)
-        self.wait_for_condition(lambda _: self.apps.displayed_app.name ==
-                                          settings.name)
+        settings.wait_to_be_displayed()

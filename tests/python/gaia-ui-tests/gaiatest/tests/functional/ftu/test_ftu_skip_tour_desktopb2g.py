@@ -56,4 +56,4 @@ class TestFtu(GaiaTestCase):
         self.ftu.tap_skip_tour()
 
         # Switch back to top level now that FTU app is gone
-        self.wait_for_condition(lambda m: self.apps.displayed_app.name == Homescreen.name)
+        homescreen(self.marionette).wait_to_be_displayed()

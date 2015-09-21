@@ -62,7 +62,7 @@ class TestEmailNotification(GaiaTestCase):
         self.assertEqual(1, len(notifications), 'Expected one email notification.')
         email = notifications[0].tap_notification()
 
-        self.wait_for_condition(lambda m: self.apps.displayed_app.name == self.email.name)
+        email.wait_to_be_displayed()
         self.apps.switch_to_displayed_app()
 
         # Wait for senders email to be shown

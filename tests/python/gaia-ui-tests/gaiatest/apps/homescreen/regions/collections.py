@@ -19,7 +19,7 @@ class Collection(Base):
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
-        Wait(self.marionette).until(lambda m: self.apps.displayed_app.name == self.name)
+        self.wait_to_be_displayed()
         self.apps.switch_to_displayed_app()
         # See Bug 1162112, Marionette Wait() polling without interval might be interfering network load
         Wait(self.marionette, timeout=30, interval=5).until(expected.elements_present(*self._apps_locator))
@@ -38,11 +38,10 @@ class Collection(Base):
             return self.root_element.text
 
         def tap(self):
-            app_name = self.name
 
             self.root_element.tap()
             # Wait for the displayed app to be that we have tapped
-            Wait(self.marionette).until(lambda m: self.apps.displayed_app.name == app_name)
+            self.wait_to_be_displayed()
             self.apps.switch_to_displayed_app()
 
             # Wait for title to load (we cannot be more specific because the aut may change)

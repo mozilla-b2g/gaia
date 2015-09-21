@@ -46,7 +46,7 @@ class TestBrowserBookmark(GaiaTestCase):
         homescreen.activate_edit_mode()
         homescreen.bookmark(self.bookmark_title).tap_delete_app().tap_confirm(bookmark=True)
 
-        self.wait_for_condition(lambda m: self.apps.displayed_app.name == homescreen.name)
+        homescreen.wait_to_be_displayed()
         self.apps.switch_to_displayed_app()
         homescreen.wait_for_bookmark_icon_not_present(self.bookmark_title)
 
