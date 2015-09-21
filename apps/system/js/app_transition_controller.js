@@ -297,6 +297,7 @@
     this.currentAnimation = animation || this.openAnimation;
     this.app.debug('open with ' + this.currentAnimation);
     if (this.currentAnimation == 'immediate') {
+      this.app.publish('opening');
       this.changeTransitionState('immediate-open');
     } else {
       this.changeTransitionState('open');
@@ -307,6 +308,7 @@
     this.currentAnimation = animation || this.closeAnimation;
     this.app.debug('close with ' + this.currentAnimation);
     if (this.currentAnimation == 'immediate') {
+      this.app.publish('closing');
       this.changeTransitionState('immediate-close');
     } else {
       this.changeTransitionState('close');
