@@ -9,8 +9,16 @@ var SongsView = View.extend(function SongsView() {
   this.search = document.getElementById('search');
   this.list = document.getElementById('list');
 
+  var searchHeight = this.search.offsetHeight;
+
   this.search.addEventListener('open', () => window.parent.onSearchOpen());
-  this.search.addEventListener('close', () => window.parent.onSearchClose());
+  this.search.addEventListener('close', () => {
+    this.list.scrollTop = searchHeight;
+    window.parent.onSearchClose();
+  });
+
+  this.list.scrollTop = searchHeight;
+  this.list.minScrollHeight = `calc(100% - ${searchHeight}px)`;
 
   this.list.configure({
     model: this.getCache(),
@@ -18,22 +26,6 @@ var SongsView = View.extend(function SongsView() {
     getSectionName(item) {
       var title = item.metadata.title;
       return title ? title[0].toUpperCase() : '?';
-    },
-
-    // We won't need this after <gaia-fast-list>
-    // gets proper dynamic <template> input
-    populateItem: function(el, i) {
-      var data = this.getRecordAt(i);
-
-      var link = el.querySelector('a');
-      var title = el.querySelector('h3');
-      var subtitle = el.querySelector('p');
-
-      link.href = `/player?id=${data.name}`;
-      link.dataset.filePath = data.name;
-
-      title.firstChild.data = data.metadata.title;
-      subtitle.firstChild.data = data.metadata.artist;
     }
   });
 
@@ -43,8 +35,6 @@ var SongsView = View.extend(function SongsView() {
       this.queueSong(link.dataset.filePath);
     }
   });
-
-  View.preserveListScrollPosition(this.list);
 
   this.client.on('databaseChange', () => this.update());
 

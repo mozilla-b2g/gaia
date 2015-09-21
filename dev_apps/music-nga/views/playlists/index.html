@@ -17,13 +17,19 @@
   <link rel="stylesheet" href="/css/view.css">
   <!-- Web Components -->
   <script src="/components/dom-scheduler/lib/dom-scheduler.js"></script>
-  <script src="/components/gaia-component/gaia-component.js"></script>
   <script src="/components/fast-list/fast-list.js"></script>
-  <script src="/components/fast-list/gaia-fast-list.js"></script>
-  <script src="/elements/music-search.js"></script>
+  <script src="/components/poplar/poplar.js"></script>
+  <script src="/components/gaia-component/gaia-component.js"></script>
+  <script src="/components/gaia-fast-list/gaia-fast-list.js"></script>
 </head>
 <body role="application">
-  <gaia-fast-list id="list"></gaia-fast-list>
+  <gaia-fast-list id="list">
+    <template>
+      <a href="/playlist-detail?id=${id}" data-id="${id}" data-shuffle="${shuffle}">
+        <h3>${title}</h3>
+      </a>
+    </template>
+  </gaia-fast-list>
 
   <script src="/components/bridge/client.js"></script>
   <script src="/js/view.js"></script>
