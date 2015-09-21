@@ -1,7 +1,7 @@
 /**
  * Manage the column layout of the legacy vertical home screen.
  */
-define(require => {
+define(function(require) {
   'use strict';
 
   var Module = require('modules/base/module');

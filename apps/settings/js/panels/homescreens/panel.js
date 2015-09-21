@@ -1,7 +1,7 @@
 /**
  * Manage wallpaper and replaceable home screens.
  */
-define(require => {
+define(function(require) {
   'use strict';
 
   var SettingsPanel = require('modules/settings_panel');

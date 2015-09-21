@@ -8,7 +8,7 @@
  *
  * @module Wallpaper
  */
-define(require => {
+define(function(require) {
   'use strict';
 
   const WALLPAPER_KEY = 'wallpaper.image';
