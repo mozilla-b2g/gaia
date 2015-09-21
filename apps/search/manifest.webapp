@@ -63,5 +63,15 @@
   },
   "chrome": {
     "navigation": true
+  },
+  "activities": {
+    "search": {
+      "filters": {
+        "type": "text/plain",
+        "keyword": { "required":true }
+       },
+      "disposition": "window",
+      "href": "/index.html"
+    }
   }
 }
