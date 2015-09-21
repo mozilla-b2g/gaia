@@ -21,51 +21,37 @@
     var isVideo = (mediaElement.nodeName === 'VIDEO');
     return new Promise(function(resolve, reject) {
       function onMediaLoadOrError(evt) {
-        console.log('TUTORIAL: _loadMedia, onMediaLoadOrError for evt.type: ' +
-          (evt && evt.type));
         evt.target.removeEventListener('error', onMediaLoadOrError);
         if (isVideo) {
           evt.target.removeEventListener('canplay', onMediaLoadOrError);
-          evt.target.removeEventListener('abort', onMediaLoadOrError);
         } else {
           evt.target.removeEventListener('load', onMediaLoadOrError);
         }
         // Dont block progress on failure to load media
         if (evt.type === 'error') {
           console.error('Failed to load tutorial media: ' + src);
-        } else if (evt.type === 'abort') {
-          console.error('Loading of tutorial media aborted: ' + src);
         }
         resolve(evt);
       }
       function onVideoUnloaded(evt) {
-        console.log('TUTORIAL: _loadMedia, onVideoUnloaded for evt.type: ' +
-          (evt && evt.type));
         mediaElement.removeEventListener('emptied', onVideoUnloaded);
+        mediaElement.removeEventListener('abort', onVideoUnloaded);
         mediaElement.addEventListener('canplay', onMediaLoadOrError);
-        mediaElement.addEventListener('abort', onMediaLoadOrError);
-        mediaElement.addEventListener('error', onMediaLoadOrError);
-        console.log('TUTORIAL: _loadMedia, onVideoUnloaded, assigning src: ' +
-          src);
         mediaElement.src = src;
         mediaElement.load();
       }
       if (isVideo) {
         // must unload video and force load before switching to new source
+        mediaElement.addEventListener('error', onMediaLoadOrError);
         if (mediaElement.src) {
-          console.log('TUTORIAL: _loadMedia, removing src attribute');
-          mediaElement.removeAttribute('src');
           mediaElement.addEventListener('emptied', onVideoUnloaded, false);
-          console.log('TUTORIAL: _loadMedia, calling load');
+          mediaElement.addEventListener('abort', onVideoUnloaded, false);
+          mediaElement.removeAttribute('src');
           mediaElement.load();
         } else {
-          console.log('TUTORIAL: _loadMedia, no src, ' +
-            'just calling onVideoUnloaded');
           onVideoUnloaded();
         }
       } else {
-        console.log('TUTORIAL: _loadMedia, not a video, ' +
-          'listen for load/error only');
         mediaElement.addEventListener('load', onMediaLoadOrError, false);
         mediaElement.addEventListener('error', onMediaLoadOrError, false);
         mediaElement.src = src;
@@ -141,47 +127,6 @@
       }, this);
 
       initTasks.next();
-
-      // watch a ton of video events as context for the tutorial
-      // media loading/playing
-      var mediaEvents = this._mediaEvents = ['abort',
-                         'canplay',
-                         'canplaythrough',
-                         'durationchange',
-                         'emptied',
-                         'ended',
-                         'error',
-                         'interruptbegin',
-                         'interruptend',
-                         'loadeddata',
-                         'loadedmetadata',
-                         'loadstart',
-                         'mozaudioavailable',
-                         'pause',
-                         'play',
-                         'playing',
-                         'stalled',
-                         'suspend',
-                         'waiting'];
-
-      this._debugEventHandler = {
-        handleEvent: function(evt) {
-          var errCodes = {
-            '1': 'MEDIA_ERR_ABORTED',
-            '2': 'MEDIA_ERR_NETWORK',
-            '3': 'MEDIA_ERR_DECODE',
-            '4': 'MEDIA_ERR_SRC_NOT_SUPPORTED'
-          };
-          console.log('TUTORIAL: media-event: '+ evt.type);
-          if (evt.type == 'error') {
-            var errtype = errCodes[evt.target.error.code] || 'unknown';
-            console.log('TUTORIAL: media-event, ' + errtype + ' error');
-          }
-        }
-      };
-      mediaEvents.forEach(name => {
-        dom.tutorialStepVideo.addEventListener(name, this._debugEventHandler);
-      });
     },
 
     /**
@@ -209,7 +154,6 @@
       }
       sequence.push(function setInitialStep() {
         // setStep should return promise given by _loadMedia
-        console.log('TUTORIAL: setInitialStep');
         return this._setStep();
       }.bind(this));
 
@@ -218,7 +162,6 @@
         dom.tutorial.classList.add('show');
         // Custom event that can be used to apply (screen reader) visibility
         // changes.
-        console.log('TUTORIAL: dispatching tutorialinitialized');
         window.dispatchEvent(new CustomEvent('tutorialinitialized'));
       });
 
@@ -404,25 +347,6 @@
      * @memberof Tutorial
      */
     reset: function() {
-      var resetPromise = Promise.resolve();
-      if (dom.tutorialStepVideo) {
-        this._mediaEvents.forEach(name => {
-          dom.tutorialStepVideo.removeEventListener(
-            name,
-            this._debugEventHandler
-          );
-        });
-        dom.tutorialStepVideo.hidden = true;
-        if (dom.tutorialStepVideo.src) {
-          resetPromise = new Promise((resolve, reject) => {
-            dom.tutorialStepVideo.addEventListener('emptied', () => {
-              resolve();
-            });
-            dom.tutorialStepVideo.removeAttribute('src');
-            dom.tutorialStepVideo.load();
-          });
-        }
-      }
       if (this._initialization) {
         this._initialization.abort();
         this._initialization = null;
@@ -434,8 +358,6 @@
         dom.tutorial.classList.remove('show');
         this._initialized = false;
       }
-      document.getElementById('tutorial').classList.remove('show');
-      return resetPromise;
     }
   };
 
