@@ -28,6 +28,7 @@ const RESOURCES = [
   '/elements/music-list-item.js',
   '/elements/music-overlay.js',
   '/elements/music-rating.js',
+  '/elements/music-scan-progress.js',
   '/elements/music-search.js',
   '/elements/music-seek-bar.js',
   '/elements/music-tab-bar.js',

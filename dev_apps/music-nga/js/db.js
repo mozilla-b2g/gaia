@@ -1,23 +1,7 @@
 /* exported Database */
 /* global AlbumArt, AudioMetadata, ForwardLock, LazyLoader, MediaDB,
-          Normalizer, TitleBar, service */
+          Normalizer, service */
 'use strict';
-
-// XXX: Temporary until scan progress is implemented in UI
-var TitleBar = (function() {
-  function showScanProgress(info) {
-    console.log('NGA: TitleBar.showScanProgress()', info);
-  }
-
-  function hideScanProgress() {
-    console.log('NGA: TitleBar.hideScanProgress()');
-  }
-
-  return {
-    showScanProgress: showScanProgress,
-    hideScanProgress: hideScanProgress
-  }
-})();
 
 var Database = (function() {
   var playlists = [
@@ -239,7 +223,8 @@ var Database = (function() {
     // And hide the throbber when scanning is done
     musicdb.onscanend = function() {
       scanning = false;
-      TitleBar.hideScanProgress();
+
+      service.broadcast('scanStopped');
 
       if (filesFoundBatch > 0 || filesDeletedWhileScanning > 0) {
         filesFoundWhileScanning = 0;
@@ -269,7 +254,7 @@ var Database = (function() {
         filesFoundWhileScanning += n;
         filesFoundBatch += n;
 
-        TitleBar.showScanProgress({
+        service.broadcast('scanProgress', {
           count: filesFoundWhileScanning,
           artist: metadata.artist,
           title: metadata.title

@@ -43,6 +43,15 @@ if (navigator.mozSetMessageHandler) {
   navigator.mozSetMessageHandler('activity', activity => onActivity(activity));
 }
 
+var unknownArtist;
+var unknownTitle;
+
+document.addEventListener('DOMLocalized', () => {
+  console.log('**** DOMLocalized ****');
+  document.l10n.formatValue('unknownArtist').then(value => unknownArtist = value);
+  document.l10n.formatValue('unknownTitle').then(value =>  unknownTitle  = value);
+});
+
 var client = bridge.client({
   service: 'music-service',
   endpoint: window,
@@ -67,6 +76,16 @@ client.on('databaseReady', () => {
   pluggedInOverlay.hidden = true;
 });
 
+client.on('scanProgress', (detail) => {
+  scanProgress.show({
+    value:      detail.count,
+    heading:    detail.artist || unknownArtist,
+    subheading: detail.title  || unknownTitle
+  });
+});
+
+client.on('scanStopped', () => scanProgress.hide());
+
 client.connect();
 
 updateOverlays();
@@ -81,6 +100,7 @@ var emptyOverlay       = $id('empty-overlay');
 var noCardOverlay      = $id('no-card-overlay');
 var pluggedInOverlay   = $id('plugged-in-overlay');
 var upgradeOverlay     = $id('upgrade-overlay');
+var scanProgress       = $id('scan-progress');
 
 header.addEventListener('action', (evt) => {
   if (evt.detail.type === 'back') {
