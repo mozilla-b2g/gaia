@@ -41,7 +41,8 @@
       givenName,
       company,
       familyName,
-      formView;
+      formView,
+      _currentCategories;
 
 
   var _, currentPhoto;
@@ -156,6 +157,7 @@
     contact.bday = dates.bday;
     contact.anniversary = dates.anniversary;
     contact.name = getName(contact);
+    contact.category = _currentCategories;
 
     if (currentPhoto) {
       contact.photo = [currentPhoto];
@@ -330,6 +332,9 @@
     formTitle.setAttribute('data-l10n-id', 'addContact');
 
     params = params || {};
+    // We cannot use |extractValue| function because params.category
+    // must be an array and we need to keep it when saving the contact
+    _currentCategories = params.category;
 
     givenName.value = extractValue(params.givenName);
     familyName.value = extractValue(params.lastName || params.familyName);
