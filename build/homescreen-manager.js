@@ -183,8 +183,9 @@ function customizeHomescreen(config, homescreen) {
         var output = [];
         for (var i = 0; i < applist.length; i++) {
           if (applist[i] !== null) {
-            output.push(getAppMetadata(config, applist[i][0],
-                                       applist[i][1], applist[i][2]));
+            var meta = getAppMetadata(config, applist[i][0],
+                                      applist[i][1], applist[i][2]);
+            meta && output.push(meta);
           }
         }
         return output;

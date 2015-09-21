@@ -39,6 +39,29 @@ suite('FirstRun', () => {
     }, done);
   });
 
+  test('handle null values in the JSON', (done) => {
+    json = { grid:
+      [[ null,
+         { manifestURL: '1' },
+         null,
+         null,
+         { manifestURL: '2', entry_point: '3' } ],
+       [ { manifestURL: '4' } ]
+      ]};
+
+    FirstRun().then(results => {
+      done(() => {
+        var string = '';
+        var order = 0;
+        results.order.forEach(entry => {
+          string += entry.id;
+          assert.equal(entry.order, order++);
+        });
+        assert.equal(string, '1/2/34/');
+      });
+    });
+  });
+
   test('treats columns <= 3 as default columns setting', (done) => {
     json = { preferences: {} };
 
