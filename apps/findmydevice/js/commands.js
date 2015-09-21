@@ -157,7 +157,7 @@ var Commands = {
         settings['lockscreen.lock-message'] = message;
       }
 
-      if (passcode) {
+      if (!this.deviceHasPasscode() && passcode) {
         settings['lockscreen.passcode-lock.code'] = passcode;
       }
 
