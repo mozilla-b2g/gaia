@@ -342,6 +342,10 @@ contacts.List = (function() {
       console.log('ERROR Retrieving contacts');
     };
 
+    if (forceReset) {
+      needImgLoaderReload = true;
+    }
+
     var complete = function complete() {
       initConfiguration(function onInitConfiguration() {
         getContactsByGroup(onError, contacts).then(() => {
