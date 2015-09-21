@@ -828,7 +828,7 @@ bubble above the key when you tap and hold. */
 }
 
 .emoji {
-  font-family: sans-serif;
+  font-family: "Firefox Emoji", sans-serif;
   border: none;
   background: none;
   font-size: 3rem;
