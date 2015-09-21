@@ -55,7 +55,7 @@ if [[ -z "$(which virtualenv)" ]]; then
   if ! which pip; then
     if ! which easy_install; then
       echo "Neither pip nor easy_install is found in your path"
-      echo "Please install pip directly using: http://pip.readthedocs.org/en/latest/installing.html#install-or-upgrade-pip"
+      echo "Please install pip directly using: http://pip.readthedocs.org/en/latest/installing"
       exit 1
     fi
     notify_sudo
