@@ -795,9 +795,9 @@ ifndef APPS
   endif
 endif
 
-mulet: node_modules
+b2g: node_modules
 	DEBUG=* ./node_modules/.bin/mozilla-download \
-	--product mulet \
+	--product b2g-desktop \
 	--branch mozilla-central \
 	$(shell pwd)
 	touch -c $@
@@ -814,11 +814,11 @@ test-integration: clean $(PROFILE_FOLDER) test-integration-test
 #
 # Remember to remove this target after bug-969215 is finished !
 .PHONY: test-integration-test
-test-integration-test: mulet node_modules
+test-integration-test: b2g node_modules
 	TEST_MANIFEST=$(TEST_MANIFEST) $(NPM) run marionette -- --buildapp="$(BUILDAPP)" --reporter="$(REPORTER)"
 
 .PHONY: jsmarionette-unit-tests
-jsmarionette-unit-tests: mulet node_modules $(PROFILE_FOLDER) tests/jsmarionette/runner/marionette-js-runner/venv
+jsmarionette-unit-tests: b2g node_modules $(PROFILE_FOLDER) tests/jsmarionette/runner/marionette-js-runner/venv
 	PROFILE_FOLDER=$(PROFILE_FOLDER) ./tests/jsmarionette/run_tests.js
 
 tests/jsmarionette/runner/marionette-js-runner/venv:
@@ -1085,7 +1085,7 @@ clean:
 
 # clean out build products and tools
 really-clean: clean
-	rm -rf b2g-* .b2g-* b2g_sdk node_modules mulet modules.tar js-marionette-env "$(NODE_MODULES_CACHEDIR)"
+	rm -rf b2g-* .b2g-* b2g_sdk node_modules b2g modules.tar js-marionette-env "$(NODE_MODULES_CACHEDIR)"
 
 .git/hooks/pre-commit: tools/pre-commit
 	test -d .git && cp tools/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit || true
