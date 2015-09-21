@@ -146,17 +146,6 @@ Object.defineProperty(View.prototype, 'title', {
   }
 });
 
-View.preserveListScrollPosition = function(list) {
-  var lastScrollTop;
-  window.addEventListener('viewhidden', () => {
-    lastScrollTop = list._list.scrollTop;
-  });
-
-  window.addEventListener('viewvisible', () => {
-    list._list.scrollInstantly(lastScrollTop);
-  });
-};
-
 View.extend = function(subclass) {
   subclass.prototype = Object.create(View.prototype, {
     constructor: {

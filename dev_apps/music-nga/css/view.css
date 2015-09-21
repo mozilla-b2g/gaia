@@ -18,14 +18,38 @@ body {
   -moz-user-select: none;
 }
 
+a {
+  text-decoration: none;
+}
+
+gaia-fast-list a {
+  width: 100%;
+}
+
+gaia-fast-list li {
+  padding: 0;
+}
+
+gaia-fast-list li > a {
+  padding: 9px 0;
+}
+
+gaia-fast-list h3,
+gaia-fast-list p {
+  background: none !important;
+}
+
+gaia-fast-list music-search {
+  display: block;
+  position: relative;
+  left: -17px; /* Offset <gaia-fast-list> padding */
+  width: 100vw;
+}
+
 music-artwork {
   display: block;
   width: 100%;
   height: calc(100% - 9.1rem);
-}
-
-a[is="music-list-item"] {
-  text-decoration: none;
 }
 
 #tiles {

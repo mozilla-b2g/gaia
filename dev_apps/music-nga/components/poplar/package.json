@@ -1,0 +1,32 @@
+{
+  "name": "poplar",
+  "version": "0.0.0",
+  "description": "",
+  "main": "poplar.js",
+
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wilsonpage/poplar.git"
+  },
+
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/wilsonpage/poplar/issues"
+  },
+
+  "homepage": "https://github.com/wilsonpage/poplar",
+
+  "devDependencies": {
+    "karma": "^0.12.31",
+    "karma-firefox-launcher": "^0.1.4",
+    "karma-chrome-launcher": "^0.1.4",
+    "karma-mocha": "^0.1.10",
+    "karma-sinon-chai": "^0.3.0"
+  },
+
+  "scripts": {
+    "test": "./node_modules/karma/bin/karma start test/karma.conf.js --single-run",
+    "test-dev": "./node_modules/karma/bin/karma start test/karma.conf.js"
+  }
+}

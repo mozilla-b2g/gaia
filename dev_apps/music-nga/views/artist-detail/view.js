@@ -8,23 +8,6 @@ var ArtistDetailView = View.extend(function ArtistDetailView() {
 
   this.list = document.getElementById('list');
 
-  this.list.configure({
-
-    // We won't need this after <gaia-fast-list>
-    // gets proper dynamic <template> input
-    populateItem: function(el, i) {
-      var data = this.getRecordAt(i);
-
-      var link = el.querySelector('a');
-      var title = el.querySelector('h3');
-
-      link.href = `/player?id=${data.name}`;
-      link.dataset.filePath = data.name;
-
-      title.firstChild.data = data.metadata.title;
-    }
-  });
-
   // Triggers player service to begin playing the track.
   // This works for now, but we might have the PlayerView
   // take care of this task as it's a big more webby :)
@@ -34,8 +17,6 @@ var ArtistDetailView = View.extend(function ArtistDetailView() {
       this.queueArtist(link.dataset.filePath);
     }
   });
-
-  View.preserveListScrollPosition(this.list);
 
   this.client.on('databaseChange', () => this.update());
 
