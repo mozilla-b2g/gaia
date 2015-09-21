@@ -21,11 +21,11 @@
     "test",
     "tests"
   ],
-  "_release": "40c979693e",
+  "_release": "88ee168781",
   "_resolution": {
     "type": "branch",
     "branch": "master",
-    "commit": "40c979693eb5fff55494e8f8842d96102c616e4e"
+    "commit": "88ee16878124221b9ff023245c56df89bcc19cef"
   },
   "_source": "git://github.com/etiennesegonzac/dom-scheduler.git",
   "_target": "*",

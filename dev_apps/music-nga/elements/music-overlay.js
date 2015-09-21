@@ -157,6 +157,25 @@ proto.createdCallback = function() {
 
   this.els.heading.textContent = this.getAttribute('heading');
   this.els.message.textContent = this.getAttribute('message');
+
+  this.els.heading.dataset.l10nId = this.getAttribute('heading-l10n-id');
+  this.els.message.dataset.l10nId = this.getAttribute('message-l10n-id');
+
+  this.onDOMLocalized = () => {
+    // XXX: Bug 1205799 - view.formatValue errors when called before first
+    // language is resolved
+    document.l10n.ready.then(() => {
+      document.l10n.translateFragment(shadowRoot);
+    });
+  };
+};
+
+proto.attachedCallback = function() {
+  document.addEventListener('DOMLocalized', this.onDOMLocalized);
+};
+
+proto.detachedCallback = function() {
+  document.removeEventListener('DOMLocalized', this.onDOMLocalized);
 };
 
 proto.attributeChangedCallback = function(attr, oldVal, newVal) {
@@ -166,6 +185,14 @@ proto.attributeChangedCallback = function(attr, oldVal, newVal) {
       break;
     case 'message':
       this.els.message.textContent = newVal;
+      break;
+    case 'heading-l10n-id':
+      this.els.heading.dataset.l10nId = newVal;
+      this.onDOMLocalized();
+      break;
+    case 'message-l10n-id':
+      this.els.message.dataset.l10nId = newVal;
+      this.onDOMLocalized();
       break;
   }
 };
@@ -186,7 +213,7 @@ proto.removeActionButton = function(action) {
   [].forEach.call(buttons, button => this.els.menu.removeChild(button));
 };
 
-['heading', 'message'].forEach(function(prop) {
+['heading', 'message'].forEach((prop) => {
   Object.defineProperty(proto, prop, {
     get: function() {
       return this.getAttribute(prop);

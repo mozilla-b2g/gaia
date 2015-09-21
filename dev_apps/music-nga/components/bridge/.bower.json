@@ -16,11 +16,11 @@
     "examples"
   ],
   "homepage": "https://github.com/gaia-components/bridge",
-  "_release": "9e4f2237ac",
+  "_release": "807683a641",
   "_resolution": {
     "type": "branch",
     "branch": "master",
-    "commit": "9e4f2237ac0c922e232f2ef1b151d8ba9e508928"
+    "commit": "807683a641b316f21af7dce39cb678f8e1d12760"
   },
   "_source": "git://github.com/gaia-components/bridge.git",
   "_target": "master",

@@ -42,8 +42,15 @@ var PlaylistsView = View.extend(function PlaylistsView() {
 
 PlaylistsView.prototype.update = function() {
   this.getPlaylists().then((playlists) => {
-    this.playlists = playlists;
-    this.render();
+    Promise.all(playlists.map(p => document.l10n.formatValue('playlists-' + p.id)))
+      .then((titles) => {
+        titles.forEach((title, index) => {
+          playlists[index].title = title;
+        });
+
+        this.playlists = playlists;
+        this.render();
+      });
   });
 };
 
