@@ -73,7 +73,8 @@ function issueNotification(alarm) {
     return notification.sendNotification(
       title,
       body,
-      `/alarm-display/${busytime._id}`
+      `/alarm-display/${busytime._id}`,
+      { id: event.remote.id }
     );
   });
 }
