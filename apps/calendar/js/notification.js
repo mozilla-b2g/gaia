@@ -31,6 +31,7 @@ exports.sendNotification = function(title, body, url) {
       notification.onshow = resolve;
       notification.onerror = reject;
       notification.onclick = function() {
+        notification.close();
         launch(url);
       };
     });
