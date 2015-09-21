@@ -26,7 +26,7 @@ define(function(require) {
   var APN_PROPS = [
     'carrier', 'apn', 'user', 'passwd', 'httpproxyhost', 'httpproxyport',
     'mmsc', 'mmsproxy', 'mmsport', 'authtype', 'types', 'protocol',
-    'roaming_protocol',
+    'roaming_protocol', 'mtu',
     /**
      * _id is an internal property for identifying apn items received via
      * client provisioning.
