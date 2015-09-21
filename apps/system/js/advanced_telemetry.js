@@ -54,6 +54,10 @@
   // asyncStorage key that stores the BatchTiming start time.
   AT.BATCH_KEY = 'metrics.advanced_telemetry.data.v4';
 
+  // This is the asyncStorage key we use to persist our metrics
+  // in case we need to merge them later.
+  AT.METRICS_KEY = 'metrics.advanced_telemetry.metrics.v4';
+
   // Set to true to to enable debug output.  Not recommended to turn this
   // on except while doing deep debugging.
   AT.DEBUG = false;
@@ -120,8 +124,15 @@
   // How long do we wait before trying it again?
   AT.RETRY_INTERVAL = 60 * 60 * 1000;        // 1 hour
 
+  // How much user idle time (in seconds, not ms) do we wait for before
+  // persisting our data to asyncStorage or trying to transmit it.
+  AT.IDLE_TIME = 5;                          // seconds
+
   // Telemetry payload version
   AT.TELEMETRY_VERSION = 4;
+
+  // Interval to merge the metrics to guard against reboot
+  AT.MERGE_INTERVAL = 60 * 60 * 1000;       // 1 hour
 
   // App name (static for Telemetry)
   AT.TELEMETRY_APP_NAME = 'FirefoxOS';
@@ -161,6 +172,8 @@
     this.collecting = true;
 
     this.metrics = new BatchTiming(true);
+    this.mergeTimeStart = Date.now();
+    this.merge = false;
 
     getDeviceID();
 
@@ -188,6 +201,15 @@
 
       self.startBatch();
 
+      self.idleObserver = {
+        time: AT.IDLE_TIME,
+        onidle: function() { self.handleEvent(new CustomEvent(IDLE)); },
+        onactive: function() { self.handleEvent(new CustomEvent(ACTIVE)); }
+      };
+
+      // Register for idle events
+      navigator.addIdleObserver(self.idleObserver);
+
       if (done) {
         loginfo('Initialization Complete');
         done();
@@ -209,18 +231,51 @@
     this.collecting = false;
     this.metrics = null;
     this.deviceID = null;
+    // Is the user idle? Updated in handleEvent() based on an idle observer
+    this.idle = false;
+    this.merge = false;
   };
 
   AT.prototype.handleEvent = function handleEvent(e) {
     switch (e.type) {
       case HUDMETRICS:
-        if (this.collecting && navigator.onLine) {
-          this.transmit(e.detail);
+        this.handleGeckoMessage(e.detail);
+        break;
+      case IDLE:
+        this.idle = true;
+        // If we are idle and past the merge time, merge the metrics.
+        if ((Date.now() - this.mergeTimeStart) > AT.MERGE_INTERVAL) {
+          this.merge = true;
+          this.mergeTimeStart = Date.now();
+          this.getPayload();
         }
+        break;
+      case ACTIVE:
+        this.idle = false;
         break;
       default:
         break;
     }
+  };
+
+  AT.prototype.handleGeckoMessage = function handleGeckoMessage(payload,
+                                                                callback) {
+    var self = this;
+    // We always need to merge the Metrics when we get this.
+    var promise = self.mergeMetrics(payload);
+    promise.then(function(result) {
+      // If it's a merge request mark it as completed.
+      if (self.merge) {
+        self.merge = false;
+      }
+      // if it's a request to transmit, transmit the merged metrics.
+      else if (self.collecting && navigator.onLine) {
+        self.transmit(result);
+      }
+      if (callback) {
+        callback();
+      }
+    });
   };
 
   // Signal gecko to send the histograms with a telemetry message.
@@ -233,6 +288,7 @@
   AT.prototype.clearPayload = function clearPayload() {
     // TODO: Add this line below to AdvancedTelemetryHelper as an API.
     console.info('telemetry|MGMT|CLEARMETRICS');
+    asyncStorage.setItem(AT.METRICS_KEY, null);
   };
 
   // Start a timer to notify when to send the payload.
@@ -267,7 +323,6 @@
       'deviceinfo.platform_version': 'unknown',
       'deviceinfo.platform_build_id': 'unknown'
     };
-
 
     // Query the settings db for parameters for the URL
     TelemetryRequest.getSettings(deviceInfoQuery, function(deviceResponse) {
@@ -323,6 +378,84 @@
       });
     }
   };
+
+  // Check if there are existing metrics that need to be merged, if so,
+  // merge them and return them for either storing or sending.
+  AT.prototype.mergeMetrics = function mergeMetrics(payloadNew) {
+    return new Promise(function(resolve) {
+      // Get the old Payload for merging.
+      asyncStorage.getItem(AT.METRICS_KEY, function(value) {
+        var merg;
+        if (value) {
+          merg = mergePayloads(value, payloadNew);
+        } else {
+          merg = payloadNew;
+        }
+        saveMergedPayload(merg, function() {
+          resolve(merg);
+        });
+      });
+
+      function saveMergedPayload(payload, callback) {
+        asyncStorage.setItem(AT.METRICS_KEY, payload, function() {
+          callback();
+        });
+      }
+
+      // Merge the new metrics into the old metrics and then transmit the
+      // result to the server.
+      function mergePayloads(payloadOld, payloadNew) {
+        mergeKeyed(payloadOld.keyedHistograms, payloadOld, payloadNew);
+        mergeLists(payloadOld.addonHistograms,
+                   payloadNew.addonHistograms);
+        return payloadOld;
+      }
+    });
+  };
+
+  function mergeHistogram(oldHist, newHist) {
+    oldHist.sum += newHist.sum;
+    oldHist.log_sum += newHist.log_sum;
+    oldHist.log_sum_squares += newHist.log_sum_squares;
+
+    for(var i = 0; i < oldHist.counts.length; i++) {
+      oldHist.counts[i] += newHist.counts[i];
+    }
+  }
+
+  function mergeLists(oldList, newList) {
+    var histMap = new Map();
+
+    for(var keyOld in oldList) {
+      histMap.set(keyOld, oldList[keyOld]);
+    }
+
+    for(var keyNew in newList) {
+      if (histMap.has(keyNew)) {
+        mergeHistogram(oldList[keyNew], newList[keyNew]);
+      } else {
+        oldList[keyNew] = newList[keyNew];
+      }
+    }
+  }
+
+  function mergeKeyed(keyedOldHist, payloadOld, payloadNew) {
+    var keyedOldMapKeys = new Map();
+
+    for(var keyOld in keyedOldHist) {
+      keyedOldMapKeys.set(keyOld, keyedOldHist[keyOld]);
+    }
+
+    var keyedNew = payloadNew.keyedHistograms;
+    var keyedOld = payloadOld.keyedHistograms;
+    for(var keyNew in keyedNew) {
+      if (keyedOldMapKeys.has(keyNew)) {
+        mergeLists(keyedOld[keyNew], keyedNew[keyNew]);
+      } else {
+        keyedOld[keyNew] = keyedNew[keyNew];
+      }
+    }
+  }
 
   function AdvancedTelemetryPing(payload, deviceQuery) {
     if (!payload) {
