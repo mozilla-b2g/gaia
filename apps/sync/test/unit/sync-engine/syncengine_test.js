@@ -192,6 +192,18 @@ ld be a Function`);
 wrong`).and.notify(done);
     });
 
+    test('allows DataAdapter#specialRecords in IdSchema', function(done) {
+      var credentials = cloneObject(SynctoServerFixture.syncEngineOptions);
+      credentials.adapters.history = AdapterMock('create', [
+        { foo: 'bar' },
+        { forceId: 'special' }
+      ]);
+      credentials.adapters.history.specialRecords = [ 'special' ];
+      var se = new SyncEngine(credentials);
+      expect(se.syncNow([ 'history' ])).to.eventually.become([ undefined ])
+          .and.notify(done);
+    });
+
     test('encrypts and pushes updated records', function(done) {
       var credentials = cloneObject(SynctoServerFixture.syncEngineOptions);
       credentials.adapters.history = AdapterMock('update', [ {
