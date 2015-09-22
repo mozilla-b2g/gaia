@@ -42,6 +42,7 @@
     <meta name="availableLanguages" content="en-US">
     <link rel="localization" href="locales/sms.{locale}.properties">
     <link rel="localization" href="/shared/locales/date/date.{locale}.properties">
+    <link rel="localization" href="/shared/locales/intl/unitformat.{locale}.properties">
     <!-- Firefox Desktop shims -->
     <script defer src="desktop-mock/navigator_moz_has_pending_message.js"></script>
     <script defer src="desktop-mock/navigator_moz_icc_manager.js"></script>
@@ -337,6 +338,16 @@
               <span data-l10n-id="message-received"></span>
               <span class="received-timestamp l10n-contains-date detail"></span>
             </p>
+            <p class="lateness-block">
+              <span data-l10n-id="message-lateness"></span>
+              <span class="lateness">
+                <span class="lateness-month detail"></span>
+                <span class="lateness-day detail"></span>
+                <span class="lateness-hour detail"></span>
+                <span class="lateness-minute detail"></span>
+                <span class="lateness-second detail"></span>
+              </span>
+            </p>
             <p class="size-block">
               <span data-l10n-id="message-size-was"></span>
               <span class="size detail"></span>
@@ -516,6 +527,13 @@
            aria-label="Message status"
            role="status">
       </div>
+      -->
+    </div>
+
+    <div id="messages-late-arrival-notice-tmpl" class="hide">
+      <!--
+      <div class="late-arrival-icon" data-l10n-id="late-notice-label" aria-label="Late arrival"></div>
+      <div class="late-arrival-notice"></div>
       -->
     </div>
 
