@@ -15,10 +15,14 @@ function MessagePanel(client) {
 module.exports = MessagePanel;
 
 MessagePanel.Selectors = {
-  'deliveryReportMenuItem': '#menuItem-deliveryReport span',
-  'deliveryReportCheckbox': '#menuItem-deliveryReport input[type="checkbox"]',
-  'readReportMenuItem': '#menuItem-readReport span',
-  'readReportCheckbox': '#menuItem-readReport input[type="checkbox"]',
+  'requestDeliveryReportMenuItem': '#menuItem-requestDeliveryReport span',
+  'requestDeliveryReportCheckbox':
+    '#menuItem-requestDeliveryReport input[type="checkbox"]',
+  'requestReadReportMenuItem': '#menuItem-requestReadReport span',
+  'requestReadReportCheckbox':
+    '#menuItem-requestReadReport input[type="checkbox"]',
+  'sendReadReportMenuItem': '#menuItem-sendReadReport span',
+  'sendReadReportCheckbox': '#menuItem-sendReadReport input[type="checkbox"]',
   'wapPushMenuItem': '#menuItem-wapPush',
   'wapPushCheckbox': '#menuItem-wapPush input[type="checkbox"]',
   'cellBroadcastMenuItem': '#menuItem-cellBroadcast',
@@ -35,41 +39,52 @@ MessagePanel.prototype = {
   settingsKeys: [
     'ril.sms.requestStatusReport.enabled',
     'ril.mms.requestReadReport.enabled',
+    'messages.mms.sendReadReport.enabled',
     'wap.push.enabled',
     'ril.cellbroadcast.disabled',
     'cmas.enabled'
   ],
 
   checkboxes: [
-    'deliveryReportCheckbox',
-    'readReportCheckbox',
+    'requestDeliveryReportCheckbox',
+    'requestReadReportCheckbox',
+    'sendReadReportCheckbox',
     'wapPushCheckbox',
     'cellBroadcastCheckbox',
     'emergencyAlertCheckbox'
   ],
 
   menuItems: [
-    'deliveryReportMenuItem',
-    'readReportMenuItem',
+    'requestDeliveryReportMenuItem',
+    'requestReadReportMenuItem',
+    'sendReadReportMenuItem',
     'wapPushMenuItem',
     'cellBroadcastMenuItem',
     'emergencyAlertMenuItem'
   ],
 
-  get deliveryReportMenuItem() {
-    return this.findElement('deliveryReportMenuItem');
+  get requestDeliveryReportMenuItem() {
+    return this.findElement('requestDeliveryReportMenuItem');
   },
 
-  get deliveryReportCheckbox() {
-    return this.findElement('deliveryReportCheckbox');
+  get requestDeliveryReportCheckbox() {
+    return this.findElement('requestDeliveryReportCheckbox');
   },
 
-  get readReportMenuItem() {
-    return this.findElement('readReportMenuItem');
+  get requestReadReportMenuItem() {
+    return this.findElement('requestReadReportMenuItem');
   },
 
-  get readReportCheckbox() {
-    return this.findElement('readReportCheckbox');
+  get requestReadReportCheckbox() {
+    return this.findElement('requestReadReportCheckbox');
+  },
+
+  get sendReadReportMenuItem() {
+    return this.findElement('sendReadReportMenuItem');
+  },
+
+  get sendReadReportCheckbox() {
+    return this.findElement('sendReadReportCheckbox');
   },
 
   get wapPushMenuItem() {

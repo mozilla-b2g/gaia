@@ -24,6 +24,7 @@ var MockSettings = {
     MockSettings.mmsServiceId = null;
     MockSettings.smsServiceId = null;
     MockSettings.supportEmailRecipient = false;
+    MockSettings.sendReadReport = Promise.resolve(false);
   }
 };
 

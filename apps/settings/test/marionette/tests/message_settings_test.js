@@ -19,8 +19,9 @@ marionette('message settings', function() {
   suite('click on all menuItems', function() {
     setup(function() {
       messagePanel.initialMessagingSettings();
-      messagePanel.toggleMenuItem('deliveryReport', true);
-      messagePanel.toggleMenuItem('readReport', true);
+      messagePanel.toggleMenuItem('requestDeliveryReport', true);
+      messagePanel.toggleMenuItem('requestReadReport', true);
+      messagePanel.toggleMenuItem('sendReadReport', true);
       messagePanel.toggleMenuItem('wapPush', true);
       messagePanel.toggleMenuItem('cellBroadcast', true);
       messagePanel.toggleMenuItem('emergencyAlert', true);
@@ -30,8 +31,10 @@ marionette('message settings', function() {
     });
 
     test('we would reflect status on related stuffs', function() {
-      assert.equal(messagePanel.isChecked('deliveryReportCheckbox'), true);
-      assert.equal(messagePanel.isChecked('readReportCheckbox'), true);
+      assert.equal(
+        messagePanel.isChecked('requestDeliveryReportCheckbox'), true);
+      assert.equal(messagePanel.isChecked('requestReadReportCheckbox'), true);
+      assert.equal(messagePanel.isChecked('sendReadReportCheckbox'), true);
       assert.equal(messagePanel.isChecked('wapPushCheckbox'), true);
       assert.equal(messagePanel.isComponentChecked('cellBroadcastCheckbox'),
         true);
@@ -41,6 +44,8 @@ marionette('message settings', function() {
         client.settings.get('ril.sms.requestStatusReport.enabled'), true);
       assert.equal(
         client.settings.get('ril.mms.requestReadReport.enabled'), true);
+      assert.equal(
+        client.settings.get('messages.mms.sendReadReport.enabled'), true);
       assert.equal(
         client.settings.get('wap.push.enabled'), true);
       assert.equal(

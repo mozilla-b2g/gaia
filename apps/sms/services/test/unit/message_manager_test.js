@@ -412,91 +412,127 @@ suite('message_manager.js >', function() {
   });
 
   suite('markThreadRead()', function() {
+    var cursor, threadId;
+
     setup(function() {
-      this.sinon.spy(MockNavigatormozMobileMessage, 'getMessages');
-      this.sinon.spy(MockNavigatormozMobileMessage, 'markMessageRead');
+      threadId = 1;
 
-      MessageManager.markThreadRead(1);
-    });
-
-    test('call mark read on the correct messages', function() {
-      assert.ok(
-        MockNavigatormozMobileMessage.getMessages.calledWithMatch({
-          threadId: 1,
-          read: false
-        })
-      );
-
-      var messagesList = [
+      var testMessages = [
         { id: 1 },
         { id: 2 },
         { id: 3 },
         { id: 4 }
       ];
 
-      MockNavigatormozMobileMessage.mTriggerMessagesRequest(messagesList);
+      var filter = {
+          threadId,
+          read: false
+      };
 
-      MockNavigatormozMobileMessage.mTriggerMarkReadSuccess();
-      MockNavigatormozMobileMessage.mTriggerMarkReadSuccess();
-      MockNavigatormozMobileMessage.mTriggerMarkReadSuccess();
-      MockNavigatormozMobileMessage.mTriggerMarkReadSuccess();
+      cursor = {
+        done: false,
+        continue: function() {
+          var next = testMessages.shift();
+          if (next === undefined) {
+            this.result = null;
+            this.done = true;
+          } else {
+            this.result = next;
+          }
+          cursor.onsuccess();
+        }
+      };
 
-      // doing one more to see if we're not called too many times
-      MockNavigatormozMobileMessage.mTriggerMarkReadSuccess();
-      assert.equal(MockNavigatormozMobileMessage.markMessageRead.callCount, 4);
+    this.sinon.stub(MockNavigatormozMobileMessage, 'getMessages')
+      .withArgs(filter, false).returns(cursor);
+    this.sinon.spy(MessageManager, 'markMessagesRead');
+  });
 
-      messagesList.forEach(function(message) {
-        assert.ok(
-          MockNavigatormozMobileMessage.markMessageRead.calledWith(
-            message.id, true
-          )
-        );
-      });
+    test('call mark read on the correct messages', function() {
+      MessageManager.markThreadRead(threadId);
+      cursor.continue();
+    
+      sinon.assert.calledWith(
+        MockNavigatormozMobileMessage.getMessages,
+        {
+          threadId: 1, read: false
+        },
+        false
+      );
+      sinon.assert.calledWith(
+        MessageManager.markMessagesRead, [1, 2, 3, 4], true
+      );
     });
   });
 
   suite('markMessagesRead()', function() {
-    var messageIds;
+    var messageIds, copyMsgIds;
 
     setup(function() {
-      this.sinon.spy(MockNavigatormozMobileMessage, 'markMessageRead');
+      Settings.sendReadReport = Promise.resolve(true);
+
       messageIds = [1, 2, 3];
+      copyMsgIds = messageIds.slice();
     });
 
-    test('properly mark all ids as read', function() {
-      MessageManager.markMessagesRead(messageIds);
-      while (MockNavigatormozMobileMessage.mTriggerMarkReadSuccess()) {
-      }
+    test('mark thread read i.e mark all message ids as read', function(done) {
+      this.sinon.stub(MockNavigatormozMobileMessage, 'markMessageRead')
+        .returns(Promise.resolve());
 
-      sinon.assert.callCount(MockNavigatormozMobileMessage.markMessageRead, 3);
-      messageIds.forEach(function(id) {
-        sinon.assert.calledWith(
-          MockNavigatormozMobileMessage.markMessageRead, id, true
+      MessageManager.markMessagesRead(messageIds).then(() => {
+        sinon.assert.callCount(
+          MockNavigatormozMobileMessage.markMessageRead, 3
         );
-      });
+
+        copyMsgIds.forEach(function(id) {
+          sinon.assert.calledWith(
+            MockNavigatormozMobileMessage.markMessageRead, id, true, true
+          );
+        });
+      }).then(done,done);
     });
 
-    test('properly mark all ids as unread', function() {
-      var copyMsgIds = messageIds.slice();
-      MessageManager.markMessagesRead(messageIds,/*isRead*/ false);
-      while (MockNavigatormozMobileMessage.mTriggerMarkReadSuccess()) {
-      }
+    test('mark thread read but sendReadReport is false', function(done) {
+      Settings.sendReadReport = Promise.resolve(false);
+      this.sinon.stub(MockNavigatormozMobileMessage, 'markMessageRead')
+        .returns(Promise.resolve());
 
-      sinon.assert.callCount(MockNavigatormozMobileMessage.markMessageRead, 1);
-      sinon.assert.calledWith(
-        MockNavigatormozMobileMessage.markMessageRead, copyMsgIds.pop(), false
-      );
+      MessageManager.markMessagesRead(messageIds).then(() => {
+        sinon.assert.callCount(
+          MockNavigatormozMobileMessage.markMessageRead, 3
+        );
+
+        copyMsgIds.forEach(function(id) {
+          sinon.assert.calledWith(
+            MockNavigatormozMobileMessage.markMessageRead, id, true, false
+          );
+        });
+      }).then(done,done);
     });
 
-    test('output an error if there is an error', function() {
-      MessageManager.markMessagesRead(messageIds);
+    test('mark thread unread i.e mark a message id as unread', function(done) {
+      this.sinon.stub(MockNavigatormozMobileMessage, 'markMessageRead')
+        .returns(Promise.resolve());
+
+      MessageManager.markMessagesRead(messageIds, false).then(() => {
+        sinon.assert.callCount(
+          MockNavigatormozMobileMessage.markMessageRead, 1
+        );
+
+        sinon.assert.calledWith(MockNavigatormozMobileMessage.markMessageRead,
+          copyMsgIds.pop(), false, true
+        );
+      }).then(done,done);
+    });
+
+    test('output an error if there is an error', function(done) {
       this.sinon.stub(console, 'error');
-      MockNavigatormozMobileMessage.mTriggerMarkReadError('UnknownError');
-      assert.isTrue(
-        console.error.firstCall.args.some(
-          (arg) => typeof arg === 'string' && arg.includes('UnknownError')
-        )
-      );
+      this.sinon.stub(MockNavigatormozMobileMessage, 'markMessageRead')
+        .returns(Promise.reject('UnknownError'));
+
+      MessageManager.markMessagesRead(messageIds).then(() => {
+        sinon.assert.calledWith(console.error, 'UnknownError');
+      }).then(done,done);
     });
   });
 
