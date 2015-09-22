@@ -1,4 +1,4 @@
-/* globals CallLogDBManager, MockContacts, MocksHelper, Utils */
+/* globals CallLogDBManager, MockContacts, MocksHelper */
 
 'use strict';
 
@@ -36,7 +36,7 @@ suite('dialer/call_log_db', function() {
   var duration = 12;
 
   function checkGroup(group, call, lastEntryDate, retryCount, contact, result) {
-    var id = Utils.getDayDate(call.date) + '-' +
+    var id = CallLogDBManager._getDayDate(call.date) + '-' +
              (call.number || '') + '-' + call.type;
     if (call.status) {
       id += '-' + call.status;
@@ -44,7 +44,7 @@ suite('dialer/call_log_db', function() {
     assert.equal(group.id, id);
     assert.equal(group.number, call.number || '');
     assert.equal(group.serviceId, call.serviceId);
-    assert.equal(group.date, Utils.getDayDate(call.date));
+    assert.equal(group.date, CallLogDBManager._getDayDate(call.date));
     assert.equal(group.type, call.type);
     assert.equal(group.status, call.status);
     assert.equal(group.retryCount, retryCount);
@@ -978,6 +978,31 @@ suite('dialer/call_log_db', function() {
         });
         CallLogDBManager.removeGroupContactInfo(contact.id, null,
                                                 function() { done(); });
+      });
+    });
+  });
+
+  suite('_getDayDate', function() {
+    // Unused call which is added only so that we don't get an error during the
+    // global `teardown()` function.
+    var unused = {
+      number: numbers[0],
+      serviceId: 1,
+      type: 'incoming',
+      status: 'connected',
+      date: days[0],
+      duration: duration
+    };
+
+    test('returns correct time', function(done) {
+      CallLogDBManager.add(unused, function() {
+        var date = new Date(1362166084256);
+        var offset = (+date - date.getTimezoneOffset() * 60000) % 86400000;
+        assert.equal(
+          CallLogDBManager._getDayDate(1362166084256),
+          date.getTime() - offset // midnight
+        );
+        done();
       });
     });
   });
