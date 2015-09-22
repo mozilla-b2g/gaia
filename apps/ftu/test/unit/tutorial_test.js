@@ -86,11 +86,9 @@ suite('Tutorial >', function() {
   });
 
   suite(' lifecycle', function() {
-    teardown(function(done) {
-      Tutorial.reset().then(() => {
-        document.getElementById('tutorial').classList.remove('show');
-        done();
-      });
+    teardown(function() {
+      Tutorial.reset();
+      document.getElementById('tutorial').classList.remove('show');
     });
 
     test('reset', function(done) {
@@ -99,14 +97,10 @@ suite('Tutorial >', function() {
         Tutorial.init();
         //
         assert.ok(Tutorial.config);
-      }
-      function reset() {
-        return Tutorial.reset().then(() => {
-          assert.ok(!Tutorial.config);
-        });
+        Tutorial.reset();
+        assert.ok(!Tutorial.config);
       }
       Tutorial.loadConfig().then(onOutcome, onOutcome)
-                           .then(reset, reset)
                            .then(done, done);
     });
 
@@ -137,24 +131,22 @@ suite('Tutorial >', function() {
     test('start during init', function(done) {
       Tutorial.init();
       Tutorial.start(function() {
-        done(function() {
-          assert.ok(Tutorial.config);
-          assert.isTrue(
-            document.getElementById('tutorial').classList.contains('show')
-          );
-        });
+        setTimeout(done, 0);
+        assert.ok(Tutorial.config);
+        assert.isTrue(
+          document.getElementById('tutorial').classList.contains('show')
+        );
       });
     });
 
     test('start after init', function(done) {
       Tutorial.init(null, function() {
         Tutorial.start(function() {
-          done(function() {
-            assert.ok(Tutorial.config);
-            assert.isTrue(
-              document.getElementById('tutorial').classList.contains('show')
-            );
-          });
+          setTimeout(done, 0);
+          assert.ok(Tutorial.config);
+          assert.isTrue(
+            document.getElementById('tutorial').classList.contains('show')
+          );
         });
       });
     });
@@ -186,14 +178,14 @@ suite('Tutorial >', function() {
   suite(' post-init', function() {
     var getJSONStub;
     suiteSetup(function(done) {
-      Tutorial.reset().then(() => {
-        getJSONStub = sinon.stub(LazyLoader, 'getJSON')
-                           .returns(Promise.resolve(mockConfig(3)));
+      Tutorial.reset();
 
-        Tutorial.init();
-        Tutorial.start(function() {
-          done();
-        });
+      getJSONStub = sinon.stub(LazyLoader, 'getJSON')
+                         .returns(Promise.resolve(mockConfig(3)));
+
+      Tutorial.init();
+      Tutorial.start(function() {
+        done();
       });
     });
 
