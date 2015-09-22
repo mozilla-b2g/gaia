@@ -342,7 +342,7 @@ suite('search/search', function() {
   suite('navigate', function() {
     test('Open activity is fired', function() {
       var url = 'http://mozilla.org';
-      var stub = this.sinon.stub(window, 'open');
+      var stub = this.sinon.stub(window, 'MozActivity');
       Search.navigate(url);
       assert.ok(stub.calledOnce);
     });
