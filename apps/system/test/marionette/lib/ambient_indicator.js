@@ -12,6 +12,14 @@
 
     get displayed() {
       return this.client.findElement(this.Selectors.element).displayed();
+    },
+
+    waitForDisplayed: function() {
+      this.client.helper.waitForElement(this.Selectors.element);
+    },
+
+    waitForHidden: function() {
+      this.client.helper.waitForElementToDisappear(this.Selectors.element);
     }
 
   };
