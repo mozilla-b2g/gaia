@@ -5,59 +5,63 @@
    * This class is a thin wrapper of HTMLVideoElement
    * @param {HTMLVideoElement}
    */
-  function VideoPlayer(player) {
-    this._player = player;
+  function VideoPlayer(video) {
+    this._video = video;
   }
 
   var proto = VideoPlayer.prototype;
 
   proto.init = function vp_init() {
-    this._player.mozAudioChannelType = 'content';
+    this._video.mozAudioChannelType = 'content';
 
     this._isLoaded = false;
     this._isPlaying = false;
 
-    this._player.addEventListener('loadedmetadata', this);
-    this._player.addEventListener('playing', this);
-    this._player.addEventListener('pause', this);
-    this._player.addEventListener('ended', this);
+    this._video.addEventListener('loadedmetadata', this);
+    this._video.addEventListener('playing', this);
+    this._video.addEventListener('pause', this);
+    this._video.addEventListener('ended', this);
+  };
+
+  proto.getVideo = function () {
+    return this._video;
   };
 
   proto.addEventListener = function (type, handle) {
-    return this._player.addEventListener(type, handle);
+    return this._video.addEventListener(type, handle);
   };
 
   proto.show = function vp_show() {
-    this._player.hidden = false;
+    this._video.hidden = false;
   };
 
   proto.hide = function vp_hide() {
-    this._player.hidden = true;
+    this._video.hidden = true;
   };
 
   proto.load = function vp_load(url) {
-    this._player.src = url;
+    this._video.src = url;
   };
 
   proto.release = function vp_release() {
-    this._player.pause();
-    this._player.removeAttribute('src');
-    this._player.load();
+    this._video.pause();
+    this._video.removeAttribute('src');
+    this._video.load();
   };
 
   proto.play = function vp_play() {
-    this._player.play();
+    this._video.play();
   };
 
   proto.pause = function vp_pause() {
-    this._player.pause();
+    this._video.pause();
   };
 
   proto.seek = function vp_seek(t) {
     if (!this._isLoaded) {
       return;
     }
-    this._player.currentTime = t;
+    this._video.currentTime = t;
   };
 
   proto.isPlaying = function () {

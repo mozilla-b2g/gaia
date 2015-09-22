@@ -20,6 +20,10 @@ suite('fling-player/VideoPlayer', function() {
     player = video = undefined;
   });
 
+  test('should return video element', function () {
+    assert.equal(player.getVideo(), video);
+  });
+
   test('should show video element', function () {
     video.hidden = true;
     player.show();

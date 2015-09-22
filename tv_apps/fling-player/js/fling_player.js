@@ -10,7 +10,8 @@
     controlPanel : 'video-control-panel',
     backwardButton : 'backward-button',
     playButton : 'play-button',
-    forwardButton : 'forward-button'
+    forwardButton : 'forward-button',
+    elapsedTimeBar : 'elapsed-time-bar'
   };
 
   function $(id) {
@@ -25,9 +26,12 @@
   var proto = FlingPlayer.prototype;
 
   proto.CONTROL_PANEL_HIDE_DELAY_SEC = 3000;
+  proto.AUTO_SEEK_INTERVAL_MS = 330;
 
   proto.init = function fp_init() {
 
+    this._autoSeekDirection = null; // 'backward' or 'forward'
+    this._autoSeekStartTime = null; // in ms
     this._focusedControl = null;
     this._hideControlsTimer = null;
 
@@ -36,6 +40,7 @@
     this._backwardButton = $(uiID.backwardButton);
     this._playButton = $(uiID.playButton);
     this._forwardButton = $(uiID.forwardButton);
+    this._elapsedTimeBar = $(uiID.elapsedTimeBar);
 
     this._initSession();
     this._initPlayer();
@@ -51,7 +56,8 @@
 
     this._keyNavAdapter = new KeyNavigationAdapter();
     this._keyNavAdapter.init();
-    this._keyNavAdapter.on('enter-keyup', this.onEnter.bind(this));
+    this._keyNavAdapter.on('enter', this.onKeyEnterDown.bind(this));
+    this._keyNavAdapter.on('enter-keyup', this.onKeyEnterUp.bind(this));
 
     document.addEventListener('visibilitychange', function visibilityChanged() {
       // We don't need to restore the video while visibilityState goes back
@@ -85,6 +91,10 @@
   };
 
   // <UI handling>
+
+  proto.setLoading = function fp_setLoading(loading) {
+    this._loadingUI.hidden = !loading;
+  };
 
   /**
    * @param {Boolean} autoHide Auto hide the controls later. Default to false
@@ -127,10 +137,76 @@
     }
   };
 
-  proto.setLoading = function fp_setLoading(loading) {
-    this._loadingUI.hidden = !loading;
+  proto.moveTimeBar = function (sec) {
+
+    console.log('FlingPlayer#moveTimeBar');
+
+    console.log('Move to ', sec);
+
+    var duration = this._player.getVideo().duration;
+
+    // TMP
+    duration = _TMP_duration;
+
+    if (typeof sec != 'number' ||
+        (sec >= 0) === false ||
+        (sec <= duration) === false
+    ) {
+      return;
+    }
+
+    console.log('Move to ', (100 * sec / duration) + '%');
+
+    // TODO: If buffered time bar is confirmed, then we have to consider it
+    this._elapsedTimeBar.style.width = (100 * sec / duration) + '%';
   };
+
   // </UI handling>
+
+  // <Video handling>
+
+  proto._startAutoSeek = function fp_startAutoSeek(dir) {
+
+    if (this._autoSeekStartTime == null) { // Do not double start
+
+      this._autoSeekDirection = dir;
+
+      this._autoSeekStartTime = (new Date()).getTime();
+
+      this._autoSeek();
+    }
+  };
+
+  proto._stopAutoSeek = function fp_stopAutoSeek(dir) {
+    this._autoSeekDirection = null;
+    this._autoSeekStartTime = null;
+  };
+var _TMP_duration = 600, _TMP_current = _TMP_duration * 0.33;
+  proto._autoSeek = function fp_autoSeek() {
+
+    if (this._autoSeekStartTime != null) {
+
+      var current = this._player.getVideo().currentTime;
+
+      current = _TMP_current;
+
+      var factor = (this._autoSeekDirection == 'backward') ? -1 : 1;
+      var seekDuration = (new Date()).getTime() - this._autoSeekStartTime;
+      var seekStep = (seekDuration > 5) ? 10 : 1;
+
+      current += factor * seekStep;
+
+      _TMP_current = current;
+
+      this._player.seek(current);
+      this.moveTimeBar(current);
+      // TODO: Update time info
+
+      setTimeout(this._autoSeek.bind(this), this.AUTO_SEEK_INTERVAL_MS);
+    }
+  };
+
+  // </Video handling>
 
   // <Event handling>
   proto.handleEvent = function fp_handleEvent(e) {
@@ -198,19 +274,37 @@
     this._focusedControl = elem;
   };
 
-  proto.onEnter = function () {
+  proto.onKeyEnterDown = function () {
 
-    console.log('FlingPlayer#onEnter');
+    console.log('FlingPlayer#onKeyEnterDown');
 
     if (this._focusedControl) {
 
-      console.log('FlingPlayer#onEnter: control focused = ',
-        this._focusedControl);
+      console.log('control focused = ', this._focusedControl);
 
       switch (this._focusedControl.id) {
 
         case uiID.backwardButton:
+        case uiID.forwardButton:
+          if (this._focusedControl === this._backwardButton) {
+            this._startAutoSeek('backward');
+          } else {
+            this._startAutoSeek('forward');
+          }
         break;
+      }
+    }
+  };
+
+  proto.onKeyEnterUp = function () {
+
+    console.log('FlingPlayer#onKeyEnterUp');
+
+    if (this._focusedControl) {
+
+      console.log('control focused = ', this._focusedControl);
+
+      switch (this._focusedControl.id) {
 
         case uiID.playButton:
           if (this._player.isPlaying()) {
@@ -220,7 +314,9 @@
           }
         break;
 
+        case uiID.backwardButton:
         case uiID.forwardButton:
+          this._stopAutoSeek();
         break;
       }
     }
@@ -231,9 +327,15 @@
 
   window.onload = function() {
 
+    // TMP
+    var presentation = navigator.presentation || {
+      addEventListener : function () {}
+    };
+    // TMP end
+
     window.fp = new FlingPlayer(
       new VideoPlayer($(uiID.player)),
-      new Connector(navigator.presentation)
+      new Connector(presentation)
     );
 
     window.fp.init();
