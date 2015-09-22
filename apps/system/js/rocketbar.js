@@ -342,13 +342,7 @@
           if (app && !app.isBrowser()) {
             afterActivate = this.focus.bind(this);
           } else {
-            // Clear the input if the URL starts with a system page.
-            if (app.config.url.startsWith('app://system.gaiamobile.org')) {
-              this.setInput('');
-            } else {
-              // Set the input to be the URL in the case of a normal browser.
-              this.setInput(app.config.url);
-            }
+            this.setInput(app.config.url);
 
             afterActivate = () => {
               this.hideResults();

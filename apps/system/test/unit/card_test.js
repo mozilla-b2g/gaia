@@ -255,8 +255,8 @@ suite('system/Card', function() {
     test('subTitle when private browser splash', function() {
       var app = makeApp({
         name: 'shortname',
-        origin: 'app://system.gaiamobile.org',
-        url: 'app://system.gaiamobile.org/private_browser.html'
+        origin: 'app://search.gaiamobile.org',
+        url: 'app://search.gaiamobile.org/newtab.html'
       });
       this.sinon.stub(app, 'isBrowser').returns(true);
       var appCard = new Card({
