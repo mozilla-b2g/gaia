@@ -24,7 +24,7 @@
             var index = 0;
             json.grid.forEach((section) => {
               section.forEach((entry) => {
-                if (!entry.manifestURL) {
+                if (!entry || !entry.manifestURL) {
                   return;
                 }
 
