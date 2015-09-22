@@ -244,7 +244,7 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
     if (contact) {
       var primaryInfo = Utils.getPhoneNumberPrimaryInfo(matchingTel, contact);
       if (primaryInfo) {
-        self.replacePhoneNumber({ raw: primaryInfo[0] }, 'end');
+        self.replacePhoneNumber({ raw: primaryInfo }, 'end');
       } else {
         self.replacePhoneNumber('withheld-number');
       }
