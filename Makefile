@@ -123,6 +123,9 @@ BUILD_DEBUG?=0
 # Enable PerformanceTiming logs
 PERF_LOGGING?=0
 
+# Are we building for RAPTOR?
+RAPTOR?=0
+
 # Enable hardware composing by default
 HARDWARE_COMPOSER?=1
 
@@ -567,6 +570,7 @@ define BUILD_CONFIG
   "SHARE_PERF_USAGE": "$(SHARE_PERF_USAGE)", \
   "DEFAULT_KEYBOAD_SYMBOLS_FONT": "$(DEFAULT_KEYBOAD_SYMBOLS_FONT)", \
   "DEFAULT_GAIA_ICONS_FONT": "$(DEFAULT_GAIA_ICONS_FONT)", \
+  "RAPTOR": "$(RAPTOR)", \
   "RAPTOR_TRANSFORM": "$(RAPTOR_TRANSFORM)", \
   "RAPTOR_TRANSFORMER_PATH": "$(RAPTOR_TRANSFORMER_PATH)", \
   "NGA_SERVICE_WORKERS": "$(NGA_SERVICE_WORKERS)", \
@@ -837,7 +841,7 @@ caldav-server-install:
 
 .PHONY: raptor
 raptor: node_modules
-	PERF_LOGGING=1 DEVICE_DEBUG=1 GAIA_OPTIMIZE=1 NOFTU=1 SCREEN_TIMEOUT=0 make reset-gaia
+	RAPTOR=1 PERF_LOGGING=1 DEVICE_DEBUG=1 GAIA_OPTIMIZE=1 NOFTU=1 SCREEN_TIMEOUT=0 make reset-gaia
 
 .PHONY: raptor-transformer
 raptor-transformer: node_modules
@@ -845,7 +849,7 @@ ifeq ($(RAPTOR_TRANSFORM_RULES),)
 	@(echo "Please ensure you specify the 'RAPTOR_TRANSFORM_RULES=<directory with the *.esp files>'" && exit 1)
 endif
 	@test -d $(RAPTOR_TRANSFORM_RULES) || (echo "Please ensure the '$(RAPTOR_TRANSFORM_RULES)' directory exists" && exit 1)
-	RAPTOR_TRANSFORM=1 PERF_LOGGING=1 DEVICE_DEBUG=1 GAIA_OPTIMIZE=1 NOFTU=1 SCREEN_TIMEOUT=0 make reset-gaia
+	RAPTOR_TRANSFORM=1 RAPTOR=1 PERF_LOGGING=1 DEVICE_DEBUG=1 GAIA_OPTIMIZE=1 NOFTU=1 SCREEN_TIMEOUT=0 make reset-gaia
 
 .PHONY: tests
 tests: app offline
