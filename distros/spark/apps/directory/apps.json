@@ -17,7 +17,7 @@
       "author": "Dan Callahan",
       "type": "addon",
       "url": "https://github.com/callahad/fxos-tabswitcher-addon",
-      "revision": "b70a8220bcf1cf03323997e1c9c1e5f4a779b791"
+      "revision": "7096c0545980e250ee5be505b746421ffb9b19ce"
     },
     "https://mikehenrty.github.io/fxos-cracked/manifest.webapp": {
       "manifestURL": "https://mikehenrty.github.io/fxos-cracked/manifest.webapp",
@@ -148,13 +148,13 @@
     },
     "https://sunbox.github.io/mozweekend_AddOn_Demo/manifest.webapp": {
       "manifestURL": "https://sunbox.github.io/mozweekend_AddOn_Demo/manifest.webapp",
-      "name": "Status Bar Temperature",
+      "name": "Status Bar - Temperature",
       "icon": "http://sunbox.github.io/mozweekend_AddOn_Demo/icons/icon120.png",
       "description": "Adds the current local temperature to the status bar",
       "author": "André Fiedler",
       "type": "addon",
       "url": "https://github.com/SunboX/mozweekend_AddOn_Demo",
-      "revision": "1af8e706cd9496487a38461c04c2c2352e298376"
+      "revision": "cb642afdc973c72d2be3b7625e255df39427e01c"
     },
     "https://etiennesegonzac.github.io/snappy-twitter/manifest.webapp": {
       "manifestURL": "https://etiennesegonzac.github.io/snappy-twitter/manifest.webapp",
@@ -175,145 +175,5 @@
       "type": "addon",
       "url": "https://github.com/eeejay/responsive-irccloud",
       "revision": "9c754fd49c4ebb878c4f370acc048605f4904f33"
-    },
-    "https://john-hu.github.io/fxos-text-battery/manifest.webapp": {
-      "manifestURL": "https://john-hu.github.io/fxos-text-battery/manifest.webapp",
-      "name": "Text battery level",
-      "description": "Display battery level in text",
-      "icon": "http://john-hu.github.io/fxos-text-battery/icons/128.png",
-      "author": "John Hu",
-      "type": "addon",
-      "url": "https://github.com/john-hu/fxos-text-battery",
-      "revision": "82ec3d12a3ea1f740b5e4d989e1ffb2ce73c85dd"
-    },
-    "https://shinglyu.github.io/fxos-back-button/manifest.webapp": {
-      "manifestURL": "https://shinglyu.github.io/fxos-back-button/manifest.webapp",
-      "name": "Back Button",
-      "description": "Add back button (and show window button) to the software home button bar",
-      "icon": "https://shinglyu.github.io/fxos-back-button/icons/icon.png",
-      "author": "Shing Lyu",
-      "type": "addon",
-      "url": "https://github.com/shinglyu/fxos-back-button",
-      "revision": "95dc75beebb7785c4d90246e01e3da4c3025744c"
-    },
-    "https://xeonchen.github.io/fxos-line-fixer/manifest.webapp": {
-      "manifestURL": "https://xeonchen.github.io/fxos-line-fixer/manifest.webapp",
-      "name": "LINE Fixer",
-      "description": "Fix LINE UI issue(s) in FxOS",
-      "icon": "https://xeonchen.github.io/fxos-line-fixer/icons/128.png",
-      "author": "Liang-Heng Chen",
-      "type": "addon",
-      "url": "https://github.com/xeonchen/fxos-line-fixer",
-      "revision": "4c93314c2fa985aa41316f9423f06090dec059d4"
-    },
-    "https://arcturus.github.io/more-icons-addon/manifest.webapp": {
-      "manifestURL": "https://arcturus.github.io/more-icons-addon/manifest.webapp",
-      "name": "Bookmarks more-icons",
-      "description": "Get more icon choices when adding a webpage to your homescreen. When saving a bookmark, click on the icon to show alternatives (if available)",
-      "icon": "https://arcturus.github.io/more-icons-addon/icon.png",
-      "author": "Francisco Jordano",
-      "type": "addon",
-      "url": "https://arcturus.github.io/more-icons-addon/manifest.webapp",
-      "revision": "8b7bdbbf676d021e873c922d6092766d486eaf2b"
-    },
-    "https://hobinjk.github.io/minimal-home-button/manifest.webapp": {
-      "manifestURL": "https://hobinjk.github.io/minimal-home-button/manifest.webapp",
-      "name": "Minimal Home Button",
-      "description": "Home buttons should be barely seen and never heard.",
-      "icon": "https://hobinjk.github.io/minimal-home-button/icons/128.png",
-      "author": "James Hobin",
-      "type": "addon",
-      "url": "https://github.com/hobinjk/minimal-home-button",
-      "revision": "3fd1000abb982d983828b8d8494b1cab38186549"
-    },
-    "https://elin-moco.github.io/fxos-addon-sound-switch/manifest.webapp": {
-      "manifestURL": "https://elin-moco.github.io/fxos-addon-sound-switch/manifest.webapp",
-      "name": "Sound Switch",
-      "description": "Toggle sounds on and off in utilities tray. Only media volume and ringtones/notifications volume would be affected.",
-      "icon": "https://elin-moco.github.io/fxos-addon-sound-switch/icons/sound.png",
-      "author": "Eddie Lin",
-      "type": "addon",
-      "url": "https://github.com/elin-moco/fxos-addon-sound-switch",
-      "revision": "7c78833d9e9ddb15fd65225bb08593232719efc4"
-    },
-    "https://elin-moco.github.io/fxos-addon-big-unlocker/manifest.webapp": {
-      "manifestURL": "https://elin-moco.github.io/fxos-addon-big-unlocker/manifest.webapp",
-      "name": "Bigger Unlocker",
-      "description": "Enlarges the unlocker on lockscreen.",
-      "icon": "https://elin-moco.github.io/fxos-addon-big-unlocker/icons/unlock.png",
-      "author": "Eddie Lin",
-      "type": "addon",
-      "url": "https://github.com/elin-moco/fxos-addon-big-unlocker",
-      "revision": "f80e4ec95a1e02e762c0e0dacd791f9ec217ecec"
-    },
-    "https://elin-moco.github.io/fxos-addon-draggable-home-btn/manifest.webapp": {
-      "manifestURL": "https://elin-moco.github.io/fxos-addon-draggable-home-btn/manifest.webapp",
-      "name": "Draggable Home Button",
-      "description": "Adds a draggable home button to the screen.",
-      "icon": "https://elin-moco.github.io/fxos-addon-draggable-home-btn/icons/home.png",
-      "author": "Eddie Lin",
-      "type": "addon",
-      "url": "https://github.com/elin-moco/fxos-addon-draggable-home-btn",
-      "revision": "db613b12ade2addd536611135ef715d71b219c11"
-    },
-    "https://elin-moco.github.io/fxos-addon-yellow-mask/manifest.webapp": {
-      "manifestURL": "https://elin-moco.github.io/fxos-addon-yellow-mask/manifest.webapp",
-      "name": "Yellow Mask",
-      "description": "Adds a yellow mask to protect your eyes.",
-      "icon": "https://elin-moco.github.io/fxos-addon-yellow-mask/icons/glasses.png",
-      "author": "Eddie Lin",
-      "type": "addon",
-      "url": "https://github.com/elin-moco/fxos-addon-yellow-mask",
-      "revision": "19ba27c113305ca38d26cf723a936bd6ef194dba"
-    },
-    "https://elin-moco.github.io/ble-explorer/manifest.webapp": {
-      "manifestURL": "https://elin-moco.github.io/ble-explorer/manifest.webapp",
-      "name": "BLE Explorer",
-      "description": "Useful tool to explore/access services/characteristics on your BLE device.",
-      "icon": "https://elin-moco.github.io/ble-explorer/img/icons/icon_128.png",
-      "author": "Eddie Lin",
-      "type": "hosted",
-      "url": "https://github.com/elin-moco/ble-explorer",
-      "revision": "810a603ce7be1f9dda66ed75870afc6b3feb30a2"
-    },
-    "https://lmorchard.github.io/fxos-addon-messages-bigger-send-button/manifest.webapp": {
-      "manifestURL": "https://lmorchard.github.io/fxos-addon-messages-bigger-send-button/manifest.webapp",
-      "name": "Messages - Larger send and attachment buttons",
-      "description": "Makes attachment and send buttons larger and easier to tap",
-      "icon": "http://directory.fxosapps.org/img/sms.png",
-      "author": "Les Orchard",
-      "type": "addon",
-      "url": "https://github.com/lmorchard/fxos-addon-messages-bigger-send-button",
-      "revision": "2d7e81f219e55d71532fe927914b30d6c07cc3e0"
-    },
-    "https://lmorchard.github.io/fxos-addon-messages-enter-to-send/manifest.webapp": {
-      "manifestURL": "https://lmorchard.github.io/fxos-addon-messages-enter-to-send/manifest.webapp",
-      "name": "Messages - Enter to Send",
-      "description": "Enter key sends a message.",
-      "icon": "http://directory.fxosapps.org/img/sms.png",
-      "author": "Les Orchard",
-      "type": "addon",
-      "url": "https://github.com/lmorchard/fxos-addon-messages-enter-to-send",
-      "revision": "f7550c7c97b46d7e5bf96a7d2ebe95ea0157614b"
-    },
-    "https://lmorchard.github.io/fxos-addon-messages-smaller-message-font/manifest.webapp": {
-      "manifestURL": "https://lmorchard.github.io/fxos-addon-messages-smaller-message-font/manifest.webapp",
-      "name": "Messages - Smaller message text",
-      "icon": "http://directory.fxosapps.org/img/sms.png",
-      "description": "Smaller text size for messages so that more fit on a high resolution screen.",
-      "author": "Les Orchard",
-      "type": "addon",
-      "url": "https://github.com/lmorchard/fxos-addon-messages-smaller-message-font",
-      "revision": "fcf952c8293e48a39c0a2a95c808340cbb3ef1b0"
-    },
-    "https://justindarc.github.io/fxos-animated-clock/manifest.webapp": {
-      "manifestURL": "https://justindarc.github.io/fxos-animated-clock/manifest.webapp",
-      "name": "Live Clock Icon",
-      "icon": "https://justindarc.github.io/fxos-animated-clock/icons/clock_284.png",
-      "description": "Add-on for animating the Clock icon on the homescreen",
-      "author": "Justin D'Arcangelo",
-      "type": "addon",
-      "url": "https://github.com/justindarc/fxos-animated-clock",
-      "revision": "955cf91115a1a7dc4baf1ae6d6f9166bf3184322"
     }
 }
