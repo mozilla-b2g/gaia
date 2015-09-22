@@ -143,6 +143,7 @@ require.config({
         'main',
         'modules/bluetooth/version_detector',
         'modules/app_storage',
+        'modules/media_storage',
         'modules/battery',
         'modules/wifi_context',
         'modules/sim_security'
