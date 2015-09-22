@@ -226,7 +226,12 @@ not actually shown since the top header should be transparent.
 }
 
 #settings .calendars gaia-checkbox {
- display: none;
+  display: none;
+}
+
+#settings .calendars gaia-checkbox label,
+#settings .calendars gaia-checkbox[checked] label:after {
+  padding-top: 1rem;
 }
 
 #settings .calendars gaia-checkbox[checked] label:after {
@@ -234,11 +239,11 @@ not actually shown since the top header should be transparent.
   position: absolute;
   width: 2.2rem;
   height: 1.9rem;
-  background: transparent url('/style/icons/check_mark_on.png') no-repeat center / 1.4rem;
+  background: transparent url('/style/icons/check_mark_on.png') no-repeat center 1.2rem / 1.4rem;
 }
 
 #settings .calendars li:active gaia-checkbox[checked] label:after {
-  background: transparent url('/style/icons/check_mark_press.png') no-repeat center / 1.4rem;
+  background: transparent url('/style/icons/check_mark_press.png') no-repeat center 1.2rem / 1.4rem;
 }
 
 #settings .calendars gaia-checkbox label:after {
