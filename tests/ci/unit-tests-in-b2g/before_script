@@ -18,18 +18,18 @@ make node_modules
 echo "Starting test-agent-server"
 make test-agent-server &
 
-echo 'Starting Mulet'
+echo 'Starting B2G Desktop'
 
-MULET_PATH="./firefox/firefox-bin"
-if [ ! -x "$MULET_PATH" ] ; then
+B2G_DESKTOP_PATH="./b2g/b2g-bin"
+if [ ! -x "$B2G_DESKTOP_PATH" ] ; then
   # set the path for Mac OS X
-  MULET_PATH="./firefox/Contents/MacOS/firefox-bin"
+  B2G_DESKTOP_PATH="./b2g/Contents/MacOS/b2g-bin"
 fi
 
 # if we still don't have it, fail
-if [ ! -x "$MULET_PATH" ] ; then
-  echo "mulet path doesn't exists"
+if [ ! -x "$B2G_DESKTOP_PATH" ] ; then
+  echo "b2g desktop path doesn't exists"
   exit 1
 fi
-$MULET_PATH -profile `pwd`/profile-debug app://test-agent.gaiamobile.org/ &
+$B2G_DESKTOP_PATH -profile `pwd`/profile-debug --runapp 'Test Agent' &
 waiting_port 8080

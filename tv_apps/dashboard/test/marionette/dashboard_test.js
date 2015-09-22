@@ -11,7 +11,7 @@ var Keys = {
 
 var assert = require('chai').assert;
 
-marionette('Test Arrow Key Events', function() {
+marionette.skip('Test Arrow Key Events', function() {
 
   var opts = {
     hostOptions: {

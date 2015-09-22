@@ -9,7 +9,7 @@ var util = require('util');
 
 var detectBinary = Promise.denodeify(mozrunner.detectBinary);
 
-var DEFAULT_LOCATION = fsPath.join(process.cwd(), 'firefox');
+var DEFAULT_LOCATION = fsPath.join(process.cwd(), 'b2g');
 
 function Session(host, id, options) {
   this.host = host;
@@ -85,7 +85,7 @@ function resolveBinary(options) {
   if (options.runtime) return Promise.resolve(options.runtime);
 
   var binary = options.target || DEFAULT_LOCATION;
-  return detectBinary(binary, { product: 'firefox' });
+  return detectBinary(binary, { product: 'b2g' });
 }
 
 function parseCrashInfo(info) {

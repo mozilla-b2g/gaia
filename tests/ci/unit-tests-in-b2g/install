@@ -1,6 +1,6 @@
 #! /bin/bash -ve
-echo 'Downloading Mulet'
-make mulet
+echo 'Downloading b2g-desktop'
+make b2g
 
 echo 'Downloading & installing node dependencies'
 make common-install

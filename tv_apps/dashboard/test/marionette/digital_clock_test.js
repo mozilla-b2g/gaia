@@ -4,7 +4,7 @@ var APP_URL = 'app://dashboard.gaiamobile.org';
 
 var assert = require('chai').assert;
 
-marionette('Test Digital Clock', function() {
+marionette.skip('Test Digital Clock', function() {
 
   var opts = {
     hostOptions: {
