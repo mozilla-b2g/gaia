@@ -184,7 +184,7 @@ class EditContact(ContactForm):
 
 class NewContact(ContactForm):
 
-    _src = 'app://communications.gaiamobile.org/contacts/views/form/form.html?action=new'
+    _src = 'app://communications.gaiamobile.org/contacts/views/form/form.html'
     _done_button_locator = (By.ID, 'save-button')
 
     def __init__(self, marionette):
