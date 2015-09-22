@@ -54,6 +54,7 @@ suite('calls handler', function() {
   var realSetMessageHandler;
   var realMozL10n;
   var realMozMobileConnections;
+  var isDocumentHidden = false;
 
   mocksHelperForCallsHandler.attachTestHelpers();
 
@@ -2105,7 +2106,20 @@ suite('calls handler', function() {
       });
     });
 
-    suite('> CallsHandler.switchToDefaultOut when visible', function() {
+    suite('> CallsHandler.switchToDefaultOut', function() {
+      suiteSetup(function() {
+        Object.defineProperty(document, 'hidden', {
+          configurable: true,
+          get: function() {
+            return isDocumentHidden;
+          }
+        });
+      });
+
+      suiteTeardown(function() {
+        delete document.hidden;
+      });
+
       // switchToDefaultOut() also check callscreen displayed before connecting
       // to SCO, so we make it displayed first.
       setup(function() {
@@ -2114,43 +2128,53 @@ suite('calls handler', function() {
         MockNavigatorMozTelephony.active = mockCall;
       });
 
-      test('should connect bluetooth SCO', function() {
-        this.sinon.spy(MockBluetoothHelperInstance, 'connectSco');
-        CallsHandler.switchToDefaultOut();
-        sinon.assert.calledOnce(MockBluetoothHelperInstance.connectSco);
+      suite('when visible', function() {
+        suiteSetup(function() {
+          isDocumentHidden = false;
+        });
+
+        test('should connect bluetooth SCO', function() {
+          this.sinon.spy(MockBluetoothHelperInstance, 'connectSco');
+          CallsHandler.switchToDefaultOut();
+          sinon.assert.calledOnce(MockBluetoothHelperInstance.connectSco);
+        });
+
+        test('should not connect bluetooth SCO', function() {
+          this.sinon.spy(MockBluetoothHelperInstance, 'connectSco');
+          CallsHandler.switchToDefaultOut(true /* do not connect */);
+          sinon.assert.notCalled(MockBluetoothHelperInstance.connectSco);
+        });
+
+        test('should disable the speaker', function() {
+          CallsHandler.switchToDefaultOut();
+          assert.isFalse(MockNavigatorMozTelephony.speakerEnabled);
+        });
+
+        test('should not connect bluetooth SCO if no Active call', function() {
+          this.sinon.spy(MockBluetoothHelperInstance, 'connectSco');
+          MockNavigatorMozTelephony.active = null;
+          CallsHandler.switchToDefaultOut(false);
+          sinon.assert.notCalled(MockBluetoothHelperInstance.connectSco);
+        });
       });
 
-      test('should not connect bluetooth SCO', function() {
-        this.sinon.spy(MockBluetoothHelperInstance, 'connectSco');
-        CallsHandler.switchToDefaultOut(true /* do not connect */);
-        sinon.assert.notCalled(MockBluetoothHelperInstance.connectSco);
-      });
+      suite('when hidden', function() {
+        suiteSetup(function() {
+          isDocumentHidden = true;
+        });
 
-      test('should disable the speaker', function() {
-        CallsHandler.switchToDefaultOut();
-        assert.isFalse(MockNavigatorMozTelephony.speakerEnabled);
-      });
+        test('should never connect bluetooth SCO', function() {
+          this.sinon.spy(MockBluetoothHelperInstance, 'connectSco');
+          CallsHandler.switchToDefaultOut();
+          sinon.assert.notCalled(MockBluetoothHelperInstance.connectSco);
+          CallsHandler.switchToDefaultOut(true /* do not connect */);
+          sinon.assert.notCalled(MockBluetoothHelperInstance.connectSco);
+        });
 
-      test('should not connect bluetooth SCO if no Active call', function() {
-        this.sinon.spy(MockBluetoothHelperInstance, 'connectSco');
-        MockNavigatorMozTelephony.active = null;
-        CallsHandler.switchToDefaultOut(false);
-        sinon.assert.notCalled(MockBluetoothHelperInstance.connectSco);
-      });
-    });
-
-    suite('> CallsHandler.switchToDefaultOut when hidden', function() {
-      test('should never connect bluetooth SCO', function() {
-        this.sinon.spy(MockBluetoothHelperInstance, 'connectSco');
-        CallsHandler.switchToDefaultOut();
-        sinon.assert.notCalled(MockBluetoothHelperInstance.connectSco);
-        CallsHandler.switchToDefaultOut(true /* do not connect */);
-        sinon.assert.notCalled(MockBluetoothHelperInstance.connectSco);
-      });
-
-      test('should disable the speaker', function() {
-        CallsHandler.switchToDefaultOut();
-        assert.isFalse(MockNavigatorMozTelephony.speakerEnabled);
+        test('should disable the speaker', function() {
+          CallsHandler.switchToDefaultOut();
+          assert.isFalse(MockNavigatorMozTelephony.speakerEnabled);
+        });
       });
     });
 
