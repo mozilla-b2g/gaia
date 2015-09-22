@@ -23,26 +23,13 @@ var https = require('https');
 var url = require('url');
 var dive = require('diveSync');
 var nodeUUID = require('node-uuid');
-var jsdom = require('jsdom-nogyp');
+var jsdom = require('jsdom');
 var esprima = require('esprima');
 var procRunning = require('is-running');
 var mime = require('mime');
 
 // Our gecko will transfer .opus file to audio/ogg datauri type.
 mime.define({'audio/ogg': ['opus']});
-
-// jsdom-nogyp has not defined Setter for outerHTML, so we need to set it by
-// ourselves.
-jsdom.dom.level3.html.Element.prototype.__defineSetter__('outerHTML',
-  function(html) {
-    var parentNode = this.parentNode, el;
-    var all = this.ownerDocument.createElement('div');
-    all.innerHTML = html;
-    while (el === all.firstChild) {
-      parentNode.insertBefore(el, this);
-    }
-    parentNode.removeChild(this);
-  });
 
 module.exports = {
   Q: Q,
@@ -217,9 +204,7 @@ module.exports = {
   },
 
   getDocument: function(content) {
-    // In order to use document.querySelector, we have to pass level for
-    // jsdom-nogyp.
-    return jsdom.jsdom(content, jsdom.level(3, 'core'));
+    return jsdom.jsdom(content);
   },
 
   getXML: function(file) {
