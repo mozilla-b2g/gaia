@@ -9,11 +9,6 @@ var PlaylistDetailView = View.extend(function PlaylistDetailView() {
   this.list = document.getElementById('list');
 
   this.list.configure({
-    getSectionName(item) {
-      var title = item.metadata.title;
-      return title ? title[0].toUpperCase() : '?';
-    },
-
     // We won't need this after <gaia-fast-list>
     // gets proper dynamic <template> input
     populateItem: function(el, i) {
