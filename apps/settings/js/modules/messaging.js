@@ -39,6 +39,7 @@ define(function(require) {
       var elementIds = [
         'menuItem-deliveryReport',
         'menuItem-readReport',
+        'menuItem-sendReadReport',
         'menuItem-autoRetrieve',
         'menuItem-wapPush',
         'menuItem-cellBroadcast',

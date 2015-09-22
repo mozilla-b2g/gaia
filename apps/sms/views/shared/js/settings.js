@@ -135,6 +135,26 @@ var Settings = {
     }.bind(this));
   },
 
+  // return true if send-read-report switch is ON else false
+  toSendReadReport: function toSendReadReport() {
+    if (!navigator.mozSettings) {
+      return Promise.reject(new Error('The mozSettings API is not available.'));
+    }
+
+    var defer = Utils.Promise.defer();
+    var key = 'message.mms.sendReadReport.enabled';
+    var request = navigator.mozSettings.createLock().get(key);
+    request.onsuccess = function onsuccess(e) {
+      defer.resolve(e.target.result);
+    };
+
+    request.onerror = function onerror(e) {
+      defer.reject(e.target.error);
+    };
+
+    return defer.promise;
+  },
+
   /**
    * returns true if the device has more than 1 SIM port
    */

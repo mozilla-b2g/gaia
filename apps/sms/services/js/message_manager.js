@@ -429,26 +429,30 @@ var MessageManager = {
     // other potential call to the API, like the one for getting a message
     // list, could be done within the calls to mark the messages as read.
 
-    var id = list.pop();
-    // TODO: Third parameter of markMessageRead is return read request.
-    //       Here we always return read request for now, but we can let user
-    //       decide to return request or not in Bug 971658.
-    var req = this._mozMobileMessage.markMessageRead(id, isRead, true);
-    // isRead == false i.e mark as unread case, marking only one message
-    // as unread is sufficient.
-    req.onsuccess = (function onsuccess() {
-      if (!list.length || !isRead) {
-        return;
-      } else if (isRead) {
-        this.markMessagesRead(list, isRead);
-      }
-    }).bind(this);
+    // sendReadReport == true if Send-Read-Reports switch in Messaging Settings
+    // is enabled else false
+    Settings.toSendReadReport().then((result) => {
+      var sendReadReport = result['message.mms.sendReadReport.enabled'];
+      while(list.length) {
+        var id = list.pop();
+        var req = this._mozMobileMessage.markMessageRead(id,
+          isRead, sendReadReport);
 
-    req.onerror = function onerror() {
-      console.error(
-        'Error while marking message %d as read: %s', id, this.error.name
-      );
-    };
+        req.onsuccess = function onsuccess() {
+        // if isRead == false then mark only one message in each thread
+          if (!list.length || !isRead) {
+            return;
+          }
+        };
+
+        req.onerror = function onerror() {
+          console.error('Error while marking message %d as read: %s',
+            id, this.error.name);
+        };
+      };
+    }, function(err) {
+      console.error(err);
+    });
   },
 
   getSegmentInfo: function mm_getSegmentInfo(text) {
