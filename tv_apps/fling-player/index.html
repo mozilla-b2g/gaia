@@ -18,7 +18,13 @@
     <script defer src="bower_components/gaia-loading/gaia-loading.js"></script>
     <script defer src="bower_components/smart-button/script.js"></script>
 
+    <!-- Helper libraries -->
+    <script defer src="shared/js/smart-screen/simple_key_navigation.js"></script>
+    <script defer src="shared/js/smart-screen/key_navigation_adapter.js"></script>
+
     <!-- main javascript code -->
+    <script defer src="js/master_debug.js"></script>
+    <script defer src="js/casting_message.js"></script>
     <script defer src="js/video_player.js"></script>
     <script defer src="js/connector.js"></script>
     <script defer src="js/fling_player.js"></script>
@@ -28,8 +34,24 @@
     <article class="skin-dark">
       <section role="region" id="video-player-section">
         <video id="player" preload="metadata"></video>
-        <nav id="video-control-bar" class="control-bar fade-out">
-          <smart-button data-icon="check"></smart-button>
+        <nav id="video-control-panel" class="control-panel fade-out">
+          <!-- TMP _KEY_ : Dummy controls -->
+          <div id="video-time-progess">
+            <div id="elapsed-time" class="time-text">hhh:mm:ss</div>
+            <div id="time-progess">
+              <div id="background-time-bar" class="time-bar"></div>
+              <div id="buffered-time-bar" class="time-bar"></div>
+              <div id="elapsed-time-bar" class="time-bar"></div>
+              <div id="time-indicator"></div>
+            </div>
+            <div id="duration-time" class="time-text">hhh:mm:ss</div>
+          </div>
+          <div id="video-control-buttons">
+            <smart-button id="backward-button">BW</smart-button>
+            <smart-button id="forward-button">FW</smart-button>
+            <smart-button id="play-button">Play</smart-button>
+          </div>
+          <!-- TMP _KEY_ end -->
         </nav>
       </section>
       <section role="region" id="loading-section">

@@ -1,100 +1,122 @@
-/* global evt */
-
 (function(exports) {
   'use strict';
 
-  function $(id) {
-    return document.getElementById(id);
+  /**
+   * This class is a thin wrapper of HTMLVideoElement
+   * @param {HTMLVideoElement}
+   */
+  function VideoPlayer(video) {
+    this._video = video;
   }
 
-  function VideoPlayer() {
-  }
-
-  var proto = evt(VideoPlayer.prototype);
+  var proto = VideoPlayer.prototype;
 
   proto.init = function vp_init() {
-    this._player = $('player');
-    this._player.mozAudioChannelType = 'content';
+    this._video.mozAudioChannelType = 'content';
 
-    this._player.addEventListener('loadedmetadata', this);
-    this._player.addEventListener('seeked', this);
-    this._player.addEventListener('waiting', this);
-    this._player.addEventListener('playing', this);
-    this._player.addEventListener('timeupdate', this);
-    this._player.addEventListener('pause', this);
-    this._player.addEventListener('ended', this);
-    this._player.addEventListener('error', this);
+    this._isLoaded = false;
+    this._isPlaying = false;
+
+    this._video.addEventListener('loadedmetadata', this);
+    this._video.addEventListener('playing', this);
+    this._video.addEventListener('pause', this);
+    this._video.addEventListener('ended', this);
+  };
+
+  proto.getVideo = function () {
+    return this._video;
+  };
+
+  proto.addEventListener = function (type, handle) {
+    return this._video.addEventListener(type, handle);
   };
 
   proto.show = function vp_show() {
-    this._player.hidden = false;
+    this._video.hidden = false;
   };
 
   proto.hide = function vp_hide() {
-    this._player.hidden = true;
+    this._video.hidden = true;
   };
 
   proto.load = function vp_load(url) {
-    this._player.src = url;
+    this._video.src = url;
   };
 
   proto.release = function vp_release() {
-    this._player.removeAttribute('src');
-    this._player.load();
+    this._video.pause();
+    this._video.removeAttribute('src');
+    this._video.load();
   };
 
   proto.play = function vp_play() {
-    this._player.play();
+    this._video.play();
   };
 
   proto.pause = function vp_pause() {
-    this._player.pause();
+    this._video.pause();
   };
 
   proto.seek = function vp_seek(t) {
-    if (!this.loaded) {
-      throw new Error('seek-before-loaded');
+    if (!this._isLoaded) {
+      return;
     }
-    this._player.currentTime = t;
+    this._video.currentTime = t;
+  };
+
+  proto.isPlaying = function () {
+    return this._isPlaying;
+  };
+
+  /**
+   * @param {Integer} The time length in sec
+   * @return {Object} One object carrys the pared time value:
+   *                  - hh : hour
+   *                  - mm : minute
+   *                  - ss : sec
+   */
+  proto.parseTime = function (sec) {
+
+    var t = {},
+        s = +sec;
+
+    if ((s > 0) === false) {
+      s = 0;
+    }
+
+    t.ss = s % 3600 % 60;
+
+    s -= t.ss;
+
+    t.mm = (s % 3600) / 60;
+
+    s -= t.mm * 60;
+
+    t.hh = s / 3600;
+
+    return t;
   };
 
   proto.handleEvent = function vp_handleEvent(evt) {
+
     switch(evt.type) {
       case 'loadedmetadata':
-        this.loaded = true;
-        this.fire('loaded', {
-                              'time': this._player.currentTime,
-                              'detail': {
-                                'width': this._player.videoWidth,
-                                'height': this._player.videoHeight,
-                                'length': this._player.duration
-                              }
-                            });
-        break;
+        this._isLoaded = true;
+      break;
+
+      case 'playing':
+        this._isPlaying = true;
+        this.show();
+      break;
+
       case 'seeked':
-        this.fire('seeked', { 'time': this._player.currentTime });
-        break;
-      case 'waiting':
-        this.fire('buffering', { 'time': this._player.currentTime });
-        break;
+        this.play();
+      break;
+
       case 'ended':
       case 'pause':
-        this.playing = false;
-        this.fire('stopped', { 'time': this._player.currentTime });
-        break;
-      case 'playing':
-        this.playing = true;
-        this.show();
-        this.fire('buffered', { 'time': this._player.currentTime });
-        this.fire('playing', { 'time': this._player.currentTime });
-        break;
-      case 'timeupdate':
-        this.fire('timeupdate', { 'time': this._player.currentTime });
-        break;
-      case 'error':
-        this.fire('error', { 'time': this._player.currentTime,
-                             'error': evt.target.error.code });
-        break;
+        this._isPlaying = false;
+      break;
     }
   };
 
