@@ -1,98 +1,120 @@
-import AchievementsService from
-  'components/fxos-achievements-service/dist/achievements-service';
+define(["exports", "components/fxos-achievements-service/dist/achievements-service"], function (exports, _componentsFxosAchievementsServiceDistAchievementsService) {
+  "use strict";
 
-export class IconHelper {
-  static setImage(imageElement, imagePath) {
-    imageElement.src = imagePath || window.DEFAULT_ICON_URL;
-    imageElement.onerror = (e) => {
-      console.warn('Warning, failed to load icon url', imageElement.src, e);
-      imageElement.src = window.DEFAULT_ICON_URL;
+  var AchievementsService = _componentsFxosAchievementsServiceDistAchievementsService["default"];
+  var IconHelper = (function () {
+    var IconHelper = function IconHelper() {};
+
+    IconHelper.setImage = function (imageElement, imagePath) {
+      imageElement.src = imagePath || window.DEFAULT_ICON_URL;
+      imageElement.onerror = function (e) {
+        console.warn("Warning, failed to load icon url", imageElement.src, e);
+        imageElement.src = window.DEFAULT_ICON_URL;
+      };
     };
-  }
-}
 
-export class AppsHelper {
-  static getAllApps() {
-    return new Promise((resolve, reject) => {
-      var mgmt = navigator.mozApps.mgmt;
-      if (!mgmt) {
-        reject(new Error('Cannot fetch apps, no permissions'));
-      }
+    return IconHelper;
+  })();
 
-      var req = mgmt.getAll();
-      req.onsuccess = () => {
-        resolve(req.result);
-      };
-      req.onerror = e => {
-        reject(e);
-      };
-    });
-  }
-}
+  exports.IconHelper = IconHelper;
+  var AppsHelper = (function () {
+    var AppsHelper = function AppsHelper() {};
 
-export class ManifestHelper {
-  static getManifest(url) {
-    return new Promise((resolve, reject) => {
-      var req = new XMLHttpRequest();
-      req.open('GET', url, true);
-      req.responseType = 'json';
-      req.onload = () => {
-        resolve(req.response);
-      };
-      req.onerror = e => {
-        reject(e);
-      };
-      req.send();
-    });
-  }
+    AppsHelper.getAllApps = function () {
+      return new Promise(function (resolve, reject) {
+        var mgmt = navigator.mozApps.mgmt;
+        if (!mgmt) {
+          reject(new Error("Cannot fetch apps, no permissions"));
+        }
 
-  static hasHigherPriviledges(manifest1, manifest2) {
-    return manifest1.type === manifest2.type ||
-      manifest1.type === 'certified' ||
-      (manifest1.type === 'privileged' && manifest2.type !== 'certified');
-  }
-}
+        var req = mgmt.getAll();
+        req.onsuccess = function () {
+          resolve(req.result);
+        };
+        req.onerror = function (e) {
+          reject(e);
+        };
+      });
+    };
 
-export class ActivityHelper {
-  constructor() {
-    this.ready = new Promise((resolve, reject) => {
-      if (navigator.mozHasPendingMessage &&
-          navigator.mozHasPendingMessage('activity')) {
-        navigator.mozSetMessageHandler('activity', activity => {
-          let activitySource = activity.source;
+    return AppsHelper;
+  })();
 
-          if (activitySource.name !== 'install') {
-            activity.postError('Unsupported activity');
-            return;
-          }
+  exports.AppsHelper = AppsHelper;
+  var ManifestHelper = (function () {
+    var ManifestHelper = function ManifestHelper() {};
 
-          this.isActivity = true;
-          window.addEventListener('request-activity-finish', () => {
-            activity.postResult('finished');
+    ManifestHelper.getManifest = function (url) {
+      return new Promise(function (resolve, reject) {
+        var req = new XMLHttpRequest();
+        req.open("GET", url, true);
+        req.responseType = "json";
+        req.onload = function () {
+          resolve(req.response);
+        };
+        req.onerror = function (e) {
+          reject(e);
+        };
+        req.send();
+      });
+    };
+
+    ManifestHelper.hasHigherPriviledges = function (manifest1, manifest2) {
+      return manifest1.type === manifest2.type || manifest1.type === "certified" || (manifest1.type === "privileged" && manifest2.type !== "certified");
+    };
+
+    return ManifestHelper;
+  })();
+
+  exports.ManifestHelper = ManifestHelper;
+  var ActivityHelper = (function () {
+    var ActivityHelper = function ActivityHelper() {
+      var _this = this;
+      this.ready = new Promise(function (resolve, reject) {
+        if (navigator.mozHasPendingMessage && navigator.mozHasPendingMessage("activity")) {
+          navigator.mozSetMessageHandler("activity", function (activity) {
+            var activitySource = activity.source;
+
+            if (activitySource.name !== "install") {
+              activity.postError("Unsupported activity");
+              return;
+            }
+
+            _this.isActivity = true;
+            window.addEventListener("request-activity-finish", function () {
+              activity.postResult("finished");
+            });
+            resolve(_this.getRoute(activitySource.data.type));
           });
-          resolve(this.getRoute(activitySource.data.type));
-        });
-      } else {
-        let hash = window.location.hash;
-        resolve(this.getRoute(hash && hash.slice(1)));
-      }
-    });
-  }
+        } else {
+          var hash = window.location.hash;
+          resolve(_this.getRoute(hash && hash.slice(1)));
+        }
+      });
+    };
 
-  getRoute(type) {
-    return type || 'apps';
-  }
-}
+    ActivityHelper.prototype.getRoute = function (type) {
+      return type || "apps";
+    };
 
-export class AchievementsHelper {
-  constructor() {
-    // Create an achievements service
-    this.achievementsService = new AchievementsService();
+    return ActivityHelper;
+  })();
 
-    window.addEventListener('achievement-rewarded', this);
-  }
+  exports.ActivityHelper = ActivityHelper;
+  var AchievementsHelper = (function () {
+    var AchievementsHelper = function AchievementsHelper() {
+      // Create an achievements service
+      this.achievementsService = new AchievementsService();
 
-  handleEvent(aEvent) {
-    this.achievementsService.reward(aEvent.detail);
-  }
-}
+      window.addEventListener("achievement-rewarded", this);
+    };
+
+    AchievementsHelper.prototype.handleEvent = function (aEvent) {
+      this.achievementsService.reward(aEvent.detail);
+    };
+
+    return AchievementsHelper;
+  })();
+
+  exports.AchievementsHelper = AchievementsHelper;
+});
