@@ -37,6 +37,7 @@ suite('SyncEngine', () => {
       expect(se._controlCollections).to.be.an('object');
       expect(se._fswc).to.be.instanceOf(FxSyncWebCrypto);
       expect(se._kinto).to.be.instanceOf(Kinto);
+      expect(se._kinto.options.dbPrefix).to.equal(options.xClientState);
       expect(se._adapters).to.deep.equal(options.adapters);
       expect(se._ready).to.equal(false);
       done();

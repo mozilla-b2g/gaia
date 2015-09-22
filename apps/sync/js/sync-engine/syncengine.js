@@ -179,6 +179,7 @@ uld be a Function`);
     _createKinto: function(kintoCredentials) {
       var kinto = new Kinto({
         bucket: 'syncto',
+        dbPrefix: kintoCredentials.xClientState,
         remote: kintoCredentials.URL,
         headers: {
           'Authorization': 'BrowserID ' + kintoCredentials.assertion,
