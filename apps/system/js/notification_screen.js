@@ -518,7 +518,9 @@ var NotificationScreen = {
 
     // We turn the screen on if needed in order to let
     // the user see the notification toaster
-    if (!behavior.noscreen && !Service.query('screenEnabled')) {
+    if (!Service.query('screenEnabled') &&
+        !behavior.noscreen &&
+        (!Service.query('locked') || this.lockscreenPreview)) {
       Service.request('turnScreenOn');
     }
 
@@ -550,7 +552,8 @@ var NotificationScreen = {
         notificationNode.cloneNode(true));
     }
 
-    if (notify && !this.isResending) {
+    if (notify && !this.isResending &&
+        (!Service.query('locked') || this.lockscreenPreview)) {
       if (!this.silent) {
         var ringtonePlayer = new Audio();
         var telephony = window.navigator.mozTelephony;
