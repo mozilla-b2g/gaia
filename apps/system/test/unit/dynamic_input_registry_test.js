@@ -2,11 +2,12 @@
 
 /* global DynamicInputRegistry, InputAppList, InputApp,
           MockNavigatorMozSettings, MockNavigatorMozSettingsLock,
-          MockDOMRequest */
+          MockDOMRequest, MockEventTarget */
 
 require('/shared/test/unit/mocks/mock_event_target.js');
 require('/shared/test/unit/mocks/mock_dom_request.js');
 require('/shared/js/input_mgmt/mock_navigator_mozsettings.js');
+require('/shared/test/unit/mocks/mock_event_target.js');
 
 require('/shared/js/input_mgmt/input_app_list.js');
 require('/js/dynamic_input_registry.js');
@@ -38,23 +39,17 @@ var MOCK_DOM_APP = {
 
 suite('DynamicInputRegistry', function(){
   var realMozSettings;
+  var realMozInputMethod;
   var lockGetStub;
   var lockSetStub;
 
   var registry;
-  var realDispatchEvent;
 
   var domApp;
   var inputApp;
 
   var getResult;
   var setResult;
-
-  var dispatchChromeEvent = function dispatchChromeEvent(detail) {
-    realDispatchEvent.call(window, new CustomEvent('mozChromeEvent', {
-      detail: detail
-    }));
-  };
 
   suiteSetup(function() {
     realMozSettings = navigator.mozSettings;
@@ -66,6 +61,10 @@ suite('DynamicInputRegistry', function(){
 
   setup(function(done) {
     var mozSettings = navigator.mozSettings = new MockNavigatorMozSettings();
+    navigator.mozInputMethod = {
+      mgmt: new MockEventTarget()
+    };
+
     var createLockStub = this.sinon.stub(mozSettings, 'createLock');
     var lock = new MockNavigatorMozSettingsLock();
 
@@ -95,8 +94,6 @@ suite('DynamicInputRegistry', function(){
 
     this.sinon.spy(window, 'addEventListener');
     this.sinon.spy(window, 'removeEventListener');
-    realDispatchEvent = window.dispatchEvent;
-    this.sinon.spy(window, 'dispatchEvent');
 
     domApp = Object.create(MOCK_DOM_APP);
     inputApp = new InputApp(domApp);
@@ -111,36 +108,40 @@ suite('DynamicInputRegistry', function(){
     registry = new DynamicInputRegistry();
     registry.start();
 
-    assert.isTrue(
-      window.addEventListener.calledWith('mozChromeEvent', registry));
-
     registry.taskQueue.then(done, done);
   });
 
   teardown(function() {
     registry.stop();
 
-    assert.isTrue(
-      window.removeEventListener.calledWith('mozChromeEvent', registry));
+    navigator.mozInputMethod = realMozInputMethod;
   });
 
   suite('inputregistry-add', function() {
     test('add an input', function(done) {
-      dispatchChromeEvent({
-        type: 'inputregistry-add',
-        id: 1,
-        manifestURL: domApp.manifestURL,
-        inputId: 'foo',
-        inputManifest: {
-          types: ['url', 'text'],
-          launch_path: '/index.html#foo'
-        }
-      });
+      var evt = {
+        type: 'addinputrequest',
+        detail: {
+          id: 1,
+          manifestURL: domApp.manifestURL,
+          inputId: 'foo',
+          inputManifest: {
+            types: ['url', 'text'],
+            launch_path: '/index.html#foo'
+          },
+          waitUntil: this.sinon.stub()
+        },
+        preventDefault: this.sinon.stub()
+      };
+
+      navigator.mozInputMethod.mgmt.dispatchEvent(evt);
 
       var obj = {};
       obj[registry.SETTING_KEY] = {};
       getResult = { result: obj };
       setResult = { result: undefined };
+
+      assert.isTrue(evt.preventDefault.calledOnce);
 
       registry.taskQueue.then(function() {
         assert.isTrue(lockSetStub.calledWith({
@@ -154,23 +155,32 @@ suite('DynamicInputRegistry', function(){
           }
         }));
 
-        var evt = window.dispatchEvent.getCall(0).args[0];
-        assert.equal(evt.type, 'mozContentEvent');
-        assert.deepEqual(evt.detail, { type: 'inputregistry-add', id: 1 });
+        assert.isTrue(evt.detail.waitUntil.calledOnce);
+        return evt.detail.waitUntil.firstCall.args[0];
+      }).then(function(p) {
+        assert.ok(true, 'resolved');
+      }, function(e) {
+        throw e || 'Should not reject.';
       }).then(done, done);
     });
 
     test('fail to get settings', function(done) {
-      dispatchChromeEvent({
-        type: 'inputregistry-add',
-        id: 1,
-        manifestURL: domApp.manifestURL,
-        inputId: 'foo',
-        inputManifest: {
-          types: ['url', 'text'],
-          launch_path: '/index.html#foo'
-        }
-      });
+      var evt = {
+        type: 'addinputrequest',
+        detail: {
+          id: 1,
+          manifestURL: domApp.manifestURL,
+          inputId: 'foo',
+          inputManifest: {
+            types: ['url', 'text'],
+            launch_path: '/index.html#foo'
+          },
+          waitUntil: this.sinon.stub()
+        },
+        preventDefault: this.sinon.stub()
+      };
+
+      navigator.mozInputMethod.mgmt.dispatchEvent(evt);
 
       getResult = { error: 'Mocked Error' };
       setResult = { result: undefined };
@@ -178,24 +188,33 @@ suite('DynamicInputRegistry', function(){
       registry.taskQueue.then(function() {
         assert.isFalse(lockSetStub.calledOnce);
 
-        var evt = window.dispatchEvent.getCall(0).args[0];
-        assert.equal(evt.type, 'mozContentEvent');
-        assert.deepEqual(evt.detail,
-          { type: 'inputregistry-add', id: 1, error: 'Error updating input.' });
+        assert.isTrue(evt.detail.waitUntil.calledOnce);
+        return evt.detail.waitUntil.firstCall.args[0];
+      }).then(function(p) {
+        assert.ok(false, 'Should not resolve.');
+      }, function(e) {
+        if (typeof e === 'object') { throw e; }
+        assert.equal(e, 'Error updating input.');
       }).then(done, done);
     });
 
     test('fail to set settings', function(done) {
-      dispatchChromeEvent({
-        type: 'inputregistry-add',
-        id: 1,
-        manifestURL: domApp.manifestURL,
-        inputId: 'foo',
-        inputManifest: {
-          types: ['url', 'text'],
-          launch_path: '/index.html#foo'
-        }
-      });
+      var evt = {
+        type: 'addinputrequest',
+        detail: {
+          id: 1,
+          manifestURL: domApp.manifestURL,
+          inputId: 'foo',
+          inputManifest: {
+            types: ['url', 'text'],
+            launch_path: '/index.html#foo'
+          },
+          waitUntil: this.sinon.stub()
+        },
+        preventDefault: this.sinon.stub()
+      };
+
+      navigator.mozInputMethod.mgmt.dispatchEvent(evt);
 
       var obj = {};
       obj[registry.SETTING_KEY] = {};
@@ -203,24 +222,33 @@ suite('DynamicInputRegistry', function(){
       setResult = { error: 'Mocked Error' };
 
       registry.taskQueue.then(function() {
-        var evt = window.dispatchEvent.getCall(0).args[0];
-        assert.equal(evt.type, 'mozContentEvent');
-        assert.deepEqual(evt.detail,
-          { type: 'inputregistry-add', id: 1, error: 'Error updating input.' });
+        assert.isTrue(evt.detail.waitUntil.calledOnce);
+        return evt.detail.waitUntil.firstCall.args[0];
+      }).then(function(p) {
+        assert.ok(false, 'Should not resolve.');
+      }, function(e) {
+        if (typeof e === 'object') { throw e; }
+        assert.equal(e, 'Error updating input.');
       }).then(done, done);
     });
 
     test('add an input for uninstalled app', function(done) {
-      dispatchChromeEvent({
-        type: 'inputregistry-add',
-        id: 1,
-        manifestURL: 'app://myfunnykeyboard.org/manifest.webapp',
-        inputId: 'foo',
-        inputManifest: {
-          types: ['url', 'text'],
-          launch_path: '/index.html#foo'
-        }
-      });
+      var evt = {
+        type: 'addinputrequest',
+        detail: {
+          id: 1,
+          manifestURL: 'app://myfunnykeyboard.org/manifest.webapp',
+          inputId: 'foo',
+          inputManifest: {
+            types: ['url', 'text'],
+            launch_path: '/index.html#foo'
+          },
+          waitUntil: this.sinon.stub()
+        },
+        preventDefault: this.sinon.stub()
+      };
+
+      navigator.mozInputMethod.mgmt.dispatchEvent(evt);
 
       var obj = {};
       obj[registry.SETTING_KEY] = {};
@@ -229,25 +257,33 @@ suite('DynamicInputRegistry', function(){
 
       registry.taskQueue.then(function() {
         assert.isFalse(lockSetStub.calledOnce);
-
-        var evt = window.dispatchEvent.getCall(0).args[0];
-        assert.equal(evt.type, 'mozContentEvent');
-        assert.deepEqual(evt.detail,
-          { type: 'inputregistry-add', id: 1, error: 'App not installed' });
+        assert.isTrue(evt.detail.waitUntil.calledOnce);
+        return evt.detail.waitUntil.firstCall.args[0];
+      }).then(function(p) {
+        assert.ok(false, 'Should not resolve.');
+      }, function(e) {
+        if (typeof e === 'object') { throw e; }
+        assert.equal(e, 'App not installed');
       }).then(done, done);
     });
 
     test('add an input for static layout', function(done) {
-      dispatchChromeEvent({
-        type: 'inputregistry-add',
-        id: 1,
-        manifestURL: domApp.manifestURL,
-        inputId: 'en',
-        inputManifest: {
-          types: ['url', 'text'],
-          launch_path: '/index.html#en'
-        }
-      });
+      var evt = {
+        type: 'addinputrequest',
+        detail: {
+          id: 1,
+          manifestURL: domApp.manifestURL,
+          inputId: 'en',
+          inputManifest: {
+            types: ['url', 'text'],
+            launch_path: '/index.html#en'
+          },
+          waitUntil: this.sinon.stub()
+        },
+        preventDefault: this.sinon.stub()
+      };
+
+      navigator.mozInputMethod.mgmt.dispatchEvent(evt);
 
       var obj = {};
       obj[registry.SETTING_KEY] = {};
@@ -256,24 +292,31 @@ suite('DynamicInputRegistry', function(){
 
       registry.taskQueue.then(function() {
         assert.isFalse(lockSetStub.calledOnce);
-
-        var evt = window.dispatchEvent.getCall(0).args[0];
-        assert.equal(evt.type, 'mozContentEvent');
-        assert.deepEqual(evt.detail,
-          { type: 'inputregistry-add', id: 1,
-            error: 'Can\'t mutate a statically declared input.' });
+        assert.isTrue(evt.detail.waitUntil.calledOnce);
+        return evt.detail.waitUntil.firstCall.args[0];
+      }).then(function(p) {
+        assert.ok(false, 'Should not resolve.');
+      }, function(e) {
+        if (typeof e === 'object') { throw e; }
+        assert.equal(e, 'Can\'t mutate a statically declared input.');
       }).then(done, done);
     });
   });
 
   suite('inputregistry-remove', function() {
     test('remove an input', function(done) {
-      dispatchChromeEvent({
-        type: 'inputregistry-remove',
-        id: 1,
-        manifestURL: domApp.manifestURL,
-        inputId: 'foo'
-      });
+      var evt = {
+        type: 'removeinputrequest',
+        detail: {
+          id: 1,
+          manifestURL: domApp.manifestURL,
+          inputId: 'foo',
+          waitUntil: this.sinon.stub()
+        },
+        preventDefault: this.sinon.stub()
+      };
+
+      navigator.mozInputMethod.mgmt.dispatchEvent(evt);
 
       var obj = {};
       obj[registry.SETTING_KEY] = {
@@ -292,19 +335,28 @@ suite('DynamicInputRegistry', function(){
           'keyboard.dynamic-inputs': {}
         }));
 
-        var evt = window.dispatchEvent.getCall(0).args[0];
-        assert.equal(evt.type, 'mozContentEvent');
-        assert.deepEqual(evt.detail, { type: 'inputregistry-remove', id: 1 });
+        assert.isTrue(evt.detail.waitUntil.calledOnce);
+        return evt.detail.waitUntil.firstCall.args[0];
+      }).then(function(p) {
+        assert.ok(true, 'resolved');
+      }, function(e) {
+        throw e || 'Should not reject.';
       }).then(done, done);
     });
 
     test('remove an non-exist input', function(done) {
-      dispatchChromeEvent({
-        type: 'inputregistry-remove',
-        id: 1,
-        manifestURL: domApp.manifestURL,
-        inputId: 'foo'
-      });
+      var evt = {
+        type: 'removeinputrequest',
+        detail: {
+          id: 1,
+          manifestURL: domApp.manifestURL,
+          inputId: 'foo2',
+          waitUntil: this.sinon.stub()
+        },
+        preventDefault: this.sinon.stub()
+      };
+
+      navigator.mozInputMethod.mgmt.dispatchEvent(evt);
 
       var obj = {};
       obj[registry.SETTING_KEY] = {
@@ -318,19 +370,28 @@ suite('DynamicInputRegistry', function(){
           'keyboard.dynamic-inputs': {}
         }));
 
-        var evt = window.dispatchEvent.getCall(0).args[0];
-        assert.equal(evt.type, 'mozContentEvent');
-        assert.deepEqual(evt.detail, { type: 'inputregistry-remove', id: 1 });
+        assert.isTrue(evt.detail.waitUntil.calledOnce);
+        return evt.detail.waitUntil.firstCall.args[0];
+      }).then(function(p) {
+        assert.ok(true, 'resolved');
+      }, function(e) {
+        throw e || 'Should not reject.';
       }).then(done, done);
     });
 
     test('fail to get settings', function(done) {
-      dispatchChromeEvent({
-        type: 'inputregistry-remove',
-        id: 1,
-        manifestURL: domApp.manifestURL,
-        inputId: 'foo'
-      });
+      var evt = {
+        type: 'removeinputrequest',
+        detail: {
+          id: 1,
+          manifestURL: domApp.manifestURL,
+          inputId: 'foo',
+          waitUntil: this.sinon.stub()
+        },
+        preventDefault: this.sinon.stub()
+      };
+
+      navigator.mozInputMethod.mgmt.dispatchEvent(evt);
 
       getResult = { error: 'Mocked Error' };
       setResult = { result: undefined };
@@ -338,21 +399,29 @@ suite('DynamicInputRegistry', function(){
       registry.taskQueue.then(function() {
         assert.isFalse(lockSetStub.calledOnce);
 
-        var evt = window.dispatchEvent.getCall(0).args[0];
-        assert.equal(evt.type, 'mozContentEvent');
-        assert.deepEqual(evt.detail,
-          { type: 'inputregistry-remove', id: 1,
-            error: 'Error updating input.' });
+        assert.isTrue(evt.detail.waitUntil.calledOnce);
+        return evt.detail.waitUntil.firstCall.args[0];
+      }).then(function(p) {
+        assert.ok(false, 'Should not resolve.');
+      }, function(e) {
+        if (typeof e === 'object') { throw e; }
+        assert.equal(e, 'Error updating input.');
       }).then(done, done);
     });
 
     test('fail to set settings', function(done) {
-      dispatchChromeEvent({
-        type: 'inputregistry-remove',
-        id: 1,
-        manifestURL: domApp.manifestURL,
-        inputId: 'foo'
-      });
+      var evt = {
+        type: 'removeinputrequest',
+        detail: {
+          id: 1,
+          manifestURL: domApp.manifestURL,
+          inputId: 'foo',
+          waitUntil: this.sinon.stub()
+        },
+        preventDefault: this.sinon.stub()
+      };
+
+      navigator.mozInputMethod.mgmt.dispatchEvent(evt);
 
       var obj = {};
       obj[registry.SETTING_KEY] = {};
@@ -360,21 +429,29 @@ suite('DynamicInputRegistry', function(){
       setResult = { error: 'Mocked Error' };
 
       registry.taskQueue.then(function() {
-        var evt = window.dispatchEvent.getCall(0).args[0];
-        assert.equal(evt.type, 'mozContentEvent');
-        assert.deepEqual(evt.detail,
-          { type: 'inputregistry-remove', id: 1,
-            error: 'Error updating input.' });
+        assert.isTrue(evt.detail.waitUntil.calledOnce);
+        return evt.detail.waitUntil.firstCall.args[0];
+      }).then(function(p) {
+        assert.ok(false, 'Should not resolve.');
+      }, function(e) {
+        if (typeof e === 'object') { throw e; }
+        assert.equal(e, 'Error updating input.');
       }).then(done, done);
     });
 
     test('remove an input for uninstalled app', function(done) {
-      dispatchChromeEvent({
-        type: 'inputregistry-remove',
-        id: 1,
-        manifestURL: 'app://myfunnykeyboard.org/manifest.webapp',
-        inputId: 'foo'
-      });
+      var evt = {
+        type: 'removeinputrequest',
+        detail: {
+          id: 1,
+          manifestURL: 'app://myfunnykeyboard.org/manifest.webapp',
+          inputId: 'foo',
+          waitUntil: this.sinon.stub()
+        },
+        preventDefault: this.sinon.stub()
+      };
+
+      navigator.mozInputMethod.mgmt.dispatchEvent(evt);
 
       var obj = {};
       obj[registry.SETTING_KEY] = {};
@@ -383,21 +460,29 @@ suite('DynamicInputRegistry', function(){
 
       registry.taskQueue.then(function() {
         assert.isFalse(lockSetStub.calledOnce);
-
-        var evt = window.dispatchEvent.getCall(0).args[0];
-        assert.equal(evt.type, 'mozContentEvent');
-        assert.deepEqual(evt.detail,
-          { type: 'inputregistry-remove', id: 1, error: 'App not installed' });
+        assert.isTrue(evt.detail.waitUntil.calledOnce);
+        return evt.detail.waitUntil.firstCall.args[0];
+      }).then(function(p) {
+        assert.ok(false, 'Should not resolve.');
+      }, function(e) {
+        if (typeof e === 'object') { throw e; }
+        assert.equal(e, 'App not installed');
       }).then(done, done);
     });
 
     test('remove an input for static layout', function(done) {
-      dispatchChromeEvent({
-        type: 'inputregistry-remove',
-        id: 1,
-        manifestURL: domApp.manifestURL,
-        inputId: 'en'
-      });
+      var evt = {
+        type: 'removeinputrequest',
+        detail: {
+          id: 1,
+          manifestURL: domApp.manifestURL,
+          inputId: 'en',
+          waitUntil: this.sinon.stub()
+        },
+        preventDefault: this.sinon.stub()
+      };
+
+      navigator.mozInputMethod.mgmt.dispatchEvent(evt);
 
       var obj = {};
       obj[registry.SETTING_KEY] = {};
@@ -406,12 +491,13 @@ suite('DynamicInputRegistry', function(){
 
       registry.taskQueue.then(function() {
         assert.isFalse(lockSetStub.calledOnce);
-
-        var evt = window.dispatchEvent.getCall(0).args[0];
-        assert.equal(evt.type, 'mozContentEvent');
-        assert.deepEqual(evt.detail,
-          { type: 'inputregistry-remove', id: 1,
-            error: 'Can\'t mutate a statically declared input.' });
+        assert.isTrue(evt.detail.waitUntil.calledOnce);
+        return evt.detail.waitUntil.firstCall.args[0];
+      }).then(function(p) {
+        assert.ok(false, 'Should not resolve.');
+      }, function(e) {
+        if (typeof e === 'object') { throw e; }
+        assert.equal(e, 'Can\'t mutate a statically declared input.');
       }).then(done, done);
     });
   });
