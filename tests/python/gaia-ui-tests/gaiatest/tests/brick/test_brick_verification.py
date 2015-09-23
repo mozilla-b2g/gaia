@@ -10,4 +10,4 @@ from gaiatest.apps.homescreen.app import Homescreen
 class TestBrickVerification(GaiaTestCase):
 
     def test_verify_phone_not_bricked(self):
-        Wait(self.marionette).until(lambda m: self.apps.displayed_app.name == Homescreen.name)
+        Homescreen(self.marionette).wait_to_be_displayed()

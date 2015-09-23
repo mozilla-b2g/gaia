@@ -34,7 +34,7 @@ class TestSearchMarketplaceAndInstallApp(GaiaTestCase):
         confirm_install = ConfirmInstall(self.marionette)
         confirm_install.tap_confirm()
 
-        self.assertEqual(self.apps.displayed_app.name, 'Marketplace')
+        self.assertEqual(self.apps.displayed_app.manifest_url, marketplace.manifest_url)
 
         self.device.touch_home_button()
 

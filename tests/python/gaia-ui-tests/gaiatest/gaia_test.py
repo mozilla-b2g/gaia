@@ -750,11 +750,11 @@ class GaiaDevice(object):
 
     def touch_home_button(self):
         apps = GaiaApps(self.marionette)
-        if apps.displayed_app.name.lower() != 'default home screen':
+        if apps.displayed_app.manifest_url != 'app://verticalhome.gaiamobile.org/manifest.webapp':
             # touching home button will return to homescreen
             self._dispatch_home_button_event()
             Wait(self.marionette).until(
-                lambda m: apps.displayed_app.name.lower() == 'default home screen')
+                lambda m: apps.displayed_app.manifest_url == 'app://verticalhome.gaiamobile.org/manifest.webapp')
             apps.switch_to_displayed_app()
         else:
             apps.switch_to_displayed_app()
