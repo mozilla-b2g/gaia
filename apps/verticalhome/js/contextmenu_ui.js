@@ -100,7 +100,7 @@
           name: 'configure',
           data: {
             target: 'device',
-            section: 'homescreen'
+            section: 'homescreens-list'
           }
         });
       }
