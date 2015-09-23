@@ -1,6 +1,6 @@
 /* global MockStackManager, MockService,
           TaskManager, AppWindow,
-          HomescreenWindow, MocksHelper, MockL10n */
+          HomescreenWindow, MockSettingsListener, MocksHelper, MockL10n */
 
 'use strict';
 
@@ -342,6 +342,28 @@ suite('system/TaskManager >', function() {
       clock.tick(1000);
     });
 
+    suite('settings > ', function() {
+      test('observes settings at startup', function(done) {
+        tm.stop();
+        var spy = this.sinon.spy(MockSettingsListener, 'observe');
+        tm.start().then(() => {
+          assert.equal(spy.callCount, 1);
+          done();
+        });
+      });
+
+      test('observes screenshots setting updates', function() {
+        var SETTING_KEY = tm.USE_SCREENSHOTS_SETTING;
+        MockSettingsListener.mTriggerCallback(SETTING_KEY, true);
+        assert.isFalse(tm.disableScreenshots,
+          'disableScreenshots is true when setting is false');
+
+        MockSettingsListener.mTriggerCallback(SETTING_KEY, false);
+        assert.isTrue(tm.disableScreenshots,
+          'disableScreenshots is false when setting is true');
+      });
+    });
+
     test('disableScreenshots = true', function(done) {
       tm.hide().then(() => {
         tm.disableScreenshots = true;
@@ -368,6 +390,27 @@ suite('system/TaskManager >', function() {
       clock.tick(1000);
     });
 
+    function getExpectedCardPlacement(element, position) {
+      var margins = window.innerWidth - tm.cardWidth;
+      return margins / 2 + position * (tm.cardWidth + tm.CARD_GUTTER);
+    }
+
+    test('placement', function() {
+      var numCards = tm.cardsList.children.length;
+      var margins = window.innerWidth - tm.cardWidth;
+      var expectedWidth = numCards * tm.cardWidth +
+                         (numCards - 1) * tm.CARD_GUTTER + margins;
+      assert.equal(tm.cardsList.style.width, expectedWidth + 'px');
+
+      for(var idx = 0; idx < tm.cardsList.children.length; idx++) {
+        var expected =
+          getExpectedCardPlacement(tm.cardsList.children[idx], idx);
+        assert.equal(
+          tm.cardsList.children[idx].style.transform,
+          `translate(${expected}px, 0px)`);
+      }
+    });
+
     test('StackManager.outOfStack', function(done) {
       var outOfStackApp = apps[APP_NAMES[5]];
       sinon.spy(outOfStackApp, 'open');
@@ -392,6 +435,54 @@ suite('system/TaskManager >', function() {
       }).then(done, done);
       clock.tick(1000);
     });
+
+    suite('center apps', function() {
+      setup(function(done) {
+        tm.hide().then(() => {
+          MockService.mockQueryWith('getTopMostWindow', apps.search);
+          MockStackManager.mCurrent = MockStackManager.mStack.length - 1;
+          return tm.show();
+        }).then(() => { done(); }, done);
+        clock.tick(1000);
+      });
+
+      test('initial centering', function() {
+        // test that the current card gets centered
+        var currentApp = MockStackManager.mStack[MockStackManager.mCurrent];
+        var elem = tm.currentCard.element;
+
+        assert.equal(currentApp, tm.currentCard.app);
+
+        var expectedLeft = getExpectedCardPlacement(
+          elem, MockStackManager.mCurrent
+        );
+        assert.equal(tm.currentCard.element.style.transform,
+                     `translate(${expectedLeft}px, 0px)`);
+      });
+
+      test('centering at different stack position after closing',
+      function(done) {
+        // close and re-open the task manager at a different stack position
+        tm.hide(apps.game).then(() => {
+          // open again at position 0.
+          MockStackManager.mCurrent = 0;
+          return tm.show();
+        }).then(() => {
+          var currentApp = MockStackManager.mStack[0];
+          var elem = tm.currentCard.element;
+
+          assert.equal(currentApp, tm.currentCard.app);
+
+          var expectedLeft =
+            getExpectedCardPlacement(elem, MockStackManager.mCurrent);
+          assert.equal(tm.currentCard.element.style.transform,
+                       `translate(${expectedLeft}px, 0px)`);
+        }).then(done, done);
+        clock.tick(1000);
+      });
+    });
+
+
 
     test('kill cards and update', function() {
       MockStackManager.mStack.length = 2;
@@ -424,6 +515,8 @@ suite('system/TaskManager >', function() {
       // potential, we increase this test's timeout.
       clock.restore();
       this.timeout(20000);
+
+      // Ensure that the selected app ('game') is opened.
       var openStub = sinon.stub(apps.game, 'open');
       tm.hide().then(() => {
         MockService.mockQueryWith(
@@ -436,6 +529,17 @@ suite('system/TaskManager >', function() {
       }).then(() => {
         assert.ok(openStub.calledOnce);
       }).then(done, done);
+    });
+
+
+    test('no touch input handled while opening selected app', function(done) {
+      this.sinon.spy(tm, 'handleEvent');
+
+      tm.hide(apps.game).then(() => {
+        assert.isFalse(tm.handleEvent.called, 'handleEvent not called');
+      }).then(function() { done(); }, done);
+      tm.element.dispatchEvent(new CustomEvent('touchstart'));
+      clock.tick(1000);
     });
 
     test('browser-only filtering', function(done) {
@@ -462,10 +566,5 @@ suite('system/TaskManager >', function() {
     });
 
   });
-
-
-
-
-
 
 });
