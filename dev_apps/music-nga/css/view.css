@@ -23,6 +23,7 @@ a {
 }
 
 gaia-fast-list a {
+  color: var(--text-color);
   width: 100%;
 }
 
@@ -37,6 +38,17 @@ gaia-fast-list li > a {
 gaia-fast-list h3,
 gaia-fast-list p {
   background: none !important;
+}
+
+gaia-fast-list img {
+  right: 0;
+  left: auto !important;
+  object-fit: cover;
+}
+
+gaia-fast-list img ~ h3,
+gaia-fast-list img ~ p {
+  padding-right: 60px;
 }
 
 gaia-fast-list music-search {

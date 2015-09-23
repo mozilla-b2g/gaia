@@ -80,6 +80,7 @@ var template =
     transition-delay: 0s, 0s;
   }
   #list a {
+    color: var(--text-color);
     text-decoration: none;
     padding: 9px 0;
     width: 100%;
@@ -90,6 +91,12 @@ var template =
   #list h3,
   #list p {
     background: none !important;
+    padding-right: 60px;
+  }
+  #list img {
+    right: 0;
+    left: auto !important;
+    object-fit: cover;
   }
 </style>
 <div id="container">
@@ -103,6 +110,7 @@ var template =
       <template>
         <li>
           <a href="\${url}" data-file-path="\${name}" data-section="\${section}">
+            <img>
             <h3>\${title}</h3>
             <p>\${subtitle}</p>
           </a>
@@ -131,8 +139,12 @@ proto.createdCallback = function() {
   };
 
   this.els.list.configure({
-    getSectionName(item) {
+    getSectionName: (item) => {
       return item.section;
+    },
+
+    getItemImageSrc: (item) => {
+      return this.getItemImageSrc(item);
     }
   });
 
@@ -190,6 +202,8 @@ proto.attachedCallback = function() {
 proto.detachedCallback = function() {
   document.removeEventListener('DOMLocalized', this.onDOMLocalized);
 };
+
+proto.getItemImageSrc = function() {};
 
 proto.scrollOutOfView = function() {
   window.requestAnimationFrame(() => {

@@ -24,13 +24,21 @@ var AlbumsView = View.extend(function AlbumsView() {
     }
   });
 
+  this.searchBox.getItemImageSrc = (item) => {
+    return this.getThumbnail(item.name);
+  };
+
   this.list.scrollTop = searchHeight;
   this.list.minScrollHeight = `calc(100% - ${searchHeight}px)`;
 
   this.list.configure({
-    getSectionName(item) {
+    getSectionName: (item) => {
       var album = item.metadata.album;
       return album ? album[0].toUpperCase() : '?';
+    },
+
+    getItemImageSrc: (item) => {
+      return this.getThumbnail(item.name);
     }
   });
 
@@ -62,6 +70,17 @@ AlbumsView.prototype.getAlbums = function() {
   return this.fetch('/api/albums/list')
     .then(response => response.json())
     .then(albums => clean(albums));
+};
+
+AlbumsView.prototype.getThumbnail = function(filePath) {
+  return this.fetch('/api/artwork/thumbnail/' + filePath)
+    .then(response => response.blob())
+    .then((blob) => {
+      var url = URL.createObjectURL(blob);
+      setTimeout(() => URL.revokeObjectURL(url), 1);
+
+      return url;
+    });
 };
 
 AlbumsView.prototype.search = function(query) {
