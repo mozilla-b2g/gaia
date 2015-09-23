@@ -120,7 +120,7 @@ FastList.prototype = {
     var itemPerScreen = geo.viewportHeight / geo.itemHeight;
     // Taking into account the will-change budget multiplier from
     // layout/base/nsDisplayList.cpp#1193
-    geo.maxItemCount = Math.floor(itemPerScreen * 3);
+    geo.maxItemCount = Math.floor(itemPerScreen * 2.7);
     geo.switchWindow = Math.floor(itemPerScreen / 2);
 
     debug('maxItemCount: ' + geo.maxItemCount);
@@ -204,11 +204,11 @@ FastList.prototype = {
       geo.busy = false;
     }
 
-    if (!previousIdle  && moved < geo.viewportHeight / 8) {
+    if (!previousIdle  && moved && moved < geo.viewportHeight / 16) {
       geo.idle = true;
     }
 
-    if (previousIdle && moved > geo.viewportHeight * 0.5) {
+    if (previousIdle && moved && moved > geo.viewportHeight * 0.25) {
       geo.idle = false;
     }
   },
@@ -600,7 +600,7 @@ function tryToPopulate(item, index, source, first) {
   debug('try to populate');
 
     // The item was probably reused
-  if (parseInt(item.dataset.index) !== index && !first) return;
+  if (item.dataset.index != index && !first) return;
 
   // TODO: should be in a mutation block when !first
   var populateResult = source.populateItem(item, index);
@@ -644,7 +644,7 @@ function tryToPopulate(item, index, source, first) {
 }
 
 function placeItem(item, index, section, geometry, source, reload) {
-  if (parseInt(item.dataset.index) === index && !reload) {
+  if (item.dataset.index == index && !reload) {
     // The item was probably reused
     debug('abort: item resused');
     return;
@@ -654,20 +654,20 @@ function placeItem(item, index, section, geometry, source, reload) {
   item.dataset.index = index;
   item.dataset.section = section;
 
-  var tweakedBy = parseInt(item.dataset.tweakDelta);
+  var tweakedBy = item.dataset.tweakDelta;
   if (tweakedBy) tweakTransform(item, tweakedBy);
   else resetTransform(item);
 }
 
 function resetTransform(item) {
-  var position = parseInt(item.dataset.position);
+  var position = item.dataset.position;
   item.style.webkitTransform =
     item.style.transform = 'translate3d(0, ' + position + 'px, 0)';
   item.dataset.tweakDelta = '';
 }
 
 function tweakTransform(item, delta) {
-  var position = parseInt(item.dataset.position) + delta;
+  var position = ~~item.dataset.position + ~~delta;
   item.style.webkitTransform =
     item.style.transform = 'translate3d(0, ' + position + 'px, 0)';
   item.dataset.tweakDelta = delta;

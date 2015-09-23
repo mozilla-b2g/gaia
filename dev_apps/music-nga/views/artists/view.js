@@ -24,13 +24,21 @@ var ArtistsView = View.extend(function ArtistsView() {
     }
   });
 
+  this.searchBox.getItemImageSrc = (item) => {
+    return this.getThumbnail(item.name);
+  };
+
   this.list.scrollTop = searchHeight;
   this.list.minScrollHeight = `calc(100% - ${searchHeight}px)`;
 
   this.list.configure({
-    getSectionName(item) {
+    getSectionName: (item) => {
       var artist = item.metadata.artist;
       return artist ? artist[0].toUpperCase() : '?';
+    },
+
+    getItemImageSrc: (item) => {
+      return this.getThumbnail(item.name);
     }
   });
 
@@ -60,6 +68,17 @@ ArtistsView.prototype.render = function() {
 
 ArtistsView.prototype.getArtists = function() {
   return this.fetch('/api/artists/list').then(response => response.json());
+};
+
+ArtistsView.prototype.getThumbnail = function(filePath) {
+  return this.fetch('/api/artwork/thumbnail/' + filePath)
+    .then(response => response.blob())
+    .then((blob) => {
+      var url = URL.createObjectURL(blob);
+      setTimeout(() => URL.revokeObjectURL(url), 1);
+
+      return url;
+    });
 };
 
 ArtistsView.prototype.search = function(query) {
