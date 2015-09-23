@@ -319,7 +319,35 @@ marionette('Music player playlist', function() {
     });
 
     // XXX fixme we can't set the playcount properly it seems....
-    test.skip('Most played playlist sort order. moztrap:3676,3677', function() {
+    test('Most played playlist sort order. moztrap:3676,3677', function() {
+
+      function incrementPlayCount(filePath, value) {
+
+        var result = client.executeAsyncScript(function(filePath, value) {
+
+          var w = window.wrappedJSObject;
+
+          w.Database.getFileInfo(filePath).
+            then(function(song) {
+              var p = [];
+              for (var i = 0; i < value; i++) {
+                p.push(w.Database.incrementPlayCount(song));
+              }
+              Promise.all(p).
+                then(function() {
+                  marionetteScriptFinished(null);
+                }).
+                catch(function (r) {
+                  marionetteScriptFinished('increment-fail ' + r);
+                });
+            }).catch(function (r) {
+              marionetteScriptFinished('get-file-info-fail ' + r);
+            });
+
+        }, [filePath, value]);
+        assert.ok(!result);
+      }
+
       try {
         music.launch();
         music.waitForFirstTile();
@@ -328,14 +356,8 @@ marionette('Music player playlist', function() {
 
         music.selectAlbum('We crash computers');
 
-        music.waitForSongs(function(songs) {
-          return songs.length >= 6;
-        });
-
         var songs = music.songs;
         assert.equal(songs.length, 6);
-
-        console.log(songs);
 
         var playCounts = {
           'XOXO': 5,
@@ -344,47 +366,29 @@ marionette('Music player playlist', function() {
           'Break': 3,
           'Windows BSOD': 2,
 
-          'Yield to Thread': 1,
+          'Yield to thread': 1,
           'Abort': 0
         };
 
-        client.switchToFrame(music.activeViewFrame);
-        // we set the playcount.
-        client.executeScript(function(songs, playCounts) {
-          function incrementPlayCount(filename, value) {
-            var w = window.wrappedJSObject;
-            var p = [];
-            for (var i = 0; i < value; i++) {
-              p.push(w.view.client.method('getSong', filename)
-                     .then(function (song) {
-                       return Database.incrementPlayCount(song);
-                     }));
-            }
-            return Promise.all(p);
-          }
-
-          var p = [];
-          songs.forEach(function (e) {
-            var c = playCounts[e.title];
-            if (c) {
-              p.push(incrementPlayCount(e.filePath, c));
-            }
-          });
-
-          return Promise.all(p);
-        }, [songs, playCounts]);
-
         music.switchToMe();
+        // we set the playcount.
+        songs.forEach(function (e) {
+          var c = playCounts[e.title];
+          if (c) {
+            incrementPlayCount(e.filePath, c);
+          }
+        });
 
         music.switchToPlaylistsView();
 
+        // Most played
         music.selectPlaylist('Most played');
+        music.waitForPlaylistDetailView();
 
         music.waitForSongs(function(songs) {
           return songs.length >= 6;
         });
         songs = music.songs;
-        console.log(songs);
 
         //assert.equal(PlaylistHelper.songIndex(songs[0]), '1');
         assert.equal(songs[0].title, 'XOXO');
@@ -392,13 +396,13 @@ marionette('Music player playlist', function() {
         //assert.equal(PlaylistHelper.songIndex(songs[1]), '2');
         assert.equal(songs[1].title, 'Crash');
 
-        // Trick to go back to the playlistview.
-        // Alternative is to tap the back button.
-        music.switchToAlbumsView();
-        music.switchToPlaylistsView();
+
+        music.tapHeaderActionButton();
+        music.waitForPlaylistsView();
 
         // Least played
         music.selectPlaylist('Least played');
+        music.waitForPlaylistDetailView();
 
         music.waitForSongs(function(songs) {
           return songs.length >= 6;
