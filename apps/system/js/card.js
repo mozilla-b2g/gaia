@@ -97,7 +97,7 @@
    * @memberOf Card.prototype
    */
   Card.prototype.template = function() {
-    return Sanitizer.escapeHTML `<div class="titles">
+    return Sanitizer.createSafeHTML `<div class="titles">
      <h1 id="${this.titleId}" dir="auto" class="title">${this.title}</h1>
      <p class="subtitle">
       <span class="subtitle-url">${this.subTitle}</span>
@@ -201,7 +201,7 @@
     this._populateViewData();
 
     // populate the view
-    elem.innerHTML = this.view();
+    elem.innerHTML = Sanitizer.unwrapSafeHTML(this.view());
 
     // Label the card by title (for screen reader).
     elem.setAttribute('aria-labelledby', this.titleId);
