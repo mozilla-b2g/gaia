@@ -157,6 +157,10 @@
 
 /* Various */
 
+#cards-view .card.appIconPreview {
+  background-color: rgba(255, 255, 255, 1);
+}
+
 #cards-view .card > .appIconView {
   position: absolute;
   top: 0;
@@ -165,8 +169,13 @@
   height: 100%;
   background-image: url(../icons/Default.png);
   background-position: center center;
+  background-size: 8rem 8rem;
   background-repeat: no-repeat;
   opacity: 0;
+}
+
+#cards-view .card.appIconPreview > .appIconView {
+  opacity: 1;
 }
 
 #cards-view.filtered {

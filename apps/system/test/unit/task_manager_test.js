@@ -12,12 +12,14 @@ require('/shared/js/event_safety.js');
 require('/shared/js/sanitizer.js');
 require('/shared/test/unit/mocks/mock_service.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_settings_listener.js');
 
 var mocksForTaskManager = new MocksHelper([
   'StackManager',
   'HomescreenWindow',
   'AppWindow',
   'Service',
+  'SettingsListener'
 ]).init();
 
 suite('system/TaskManager >', function() {
@@ -336,6 +338,32 @@ suite('system/TaskManager >', function() {
         assert.equal(
           MockStackManager.getCurrent(),
           tm.currentCard.app);
+      }).then(done, done);
+      clock.tick(1000);
+    });
+
+    test('disableScreenshots = true', function(done) {
+      tm.hide().then(() => {
+        tm.disableScreenshots = true;
+        MockStackManager.mCurrent = 0;
+        var promise = tm.show();
+        clock.tick(1000);
+        return promise;
+      }).then(() => {
+        assert.ok(tm.currentCard.element.classList.contains('appIconPreview'));
+      }).then(done, done);
+      clock.tick(1000);
+    });
+
+    test('disableScreenshots = false', function(done) {
+      tm.hide().then(() => {
+        tm.disableScreenshots = false;
+        MockStackManager.mCurrent = 0;
+        var promise = tm.show();
+        clock.tick(1000);
+        return promise;
+      }).then(() => {
+        assert.ok(!tm.currentCard.element.classList.contains('appIconPreview'));
       }).then(done, done);
       clock.tick(1000);
     });

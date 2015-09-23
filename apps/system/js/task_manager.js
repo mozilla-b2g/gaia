@@ -1,5 +1,5 @@
 /* global Card, TaskManagerUtils, LazyLoader, Service, StackManager,
-          eventSafety */
+          eventSafety, SettingsListener */
 'use strict';
 
 (function(exports) {
@@ -16,12 +16,14 @@ function TaskManager() {
   this.stack = []; // a copy of StackManager's stack of AppWindow instances
   this.currentCard = null;
   this._active = false;
+  this.disableScreenshots = false;
 }
 
 TaskManager.prototype = {
   CARD_GUTTER: 25,
   // HierarchyManager needs this name:
   name: 'TaskManager',
+  USE_SCREENSHOTS_SETTING: 'app.cards_view.screenshots.enabled',
 
   /**
    * Start the TaskManager module; this occurs once on startup.
@@ -35,6 +37,12 @@ TaskManager.prototype = {
     window.addEventListener('taskmanagershow', this);
     Service.request('registerHierarchy', this);
 
+    this.setScreenshotSetting = this.setScreenshotSetting.bind(this);
+    SettingsListener.observe(
+      this.USE_SCREENSHOTS_SETTING,
+      !this.disableScreenshots,
+      this.setScreenshotSetting);
+
     return LazyLoader.load([
       'js/card.js',
       'js/task_manager_utils.js'
@@ -47,6 +55,13 @@ TaskManager.prototype = {
   stop() {
     window.removeEventListener('taskmanagershow', this);
     Service.request('unregisterHierarchy', this);
+
+    SettingsListener.unobserve(
+      this.USE_SCREENSHOTS_SETTING, this.setScreenshotSetting);
+  },
+
+  setScreenshotSetting(useScreenshots) {
+    this.disableScreenshots = !useScreenshots;
   },
 
   /**
@@ -54,7 +69,7 @@ TaskManager.prototype = {
    * (This does not deal with stack order.)
    */
   _addApp(app) {
-    var card = new Card(app);
+    var card = new Card(app, this.disableScreenshots);
     this.cardsList.appendChild(card.element);
     this.elementToCardMap.set(card.element, card);
     this.appToCardMap.set(app, card);

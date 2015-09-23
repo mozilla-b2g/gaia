@@ -10,7 +10,7 @@
  * display on launch, Card doesn't need to update its state in real time.
  * Card's swipe-up-to-delete behavior is handled by `SwipeToKillMotion`.
  */
-function Card(app) {
+function Card(app, disableScreenshots) {
   var el = document.createElement('li');
   this.app = app;
   this.element = el;
@@ -42,7 +42,18 @@ function Card(app) {
 
   const ICON_SIZE = 40;
   TaskManagerUtils.loadAppIcon(app, el.querySelector('.appIcon'), ICON_SIZE);
-  TaskManagerUtils.loadAppScreenshot(app, el.querySelector('.screenshotView'));
+
+  if (!disableScreenshots) {
+    TaskManagerUtils.loadAppScreenshot(
+      app, el.querySelector('.screenshotView'));
+  } else {
+    el.classList.add('appIconPreview');
+
+    var iconId = 'card-appIcon-' + app.instanceID;
+    el.querySelector('.appIcon').id = iconId;
+    el.querySelector('.appIconView').style.backgroundImage =
+      `-moz-element(#${iconId})`;
+  }
 
   this.swipeAction = new SwipeToKillMotion(this.element, {
     setTranslateY: (y) => {
@@ -90,6 +101,7 @@ Card.prototype = {
     <div class="screenshotView bb-button" data-l10n-id="openCard" role="link">
     </div>
     <div class="privateOverlay"></div>
+    <div class="appIconView"></div>
 
     <footer class="card-tray">
       <button class="appIcon pending" data-l10n-id="openCard"
