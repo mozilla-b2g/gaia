@@ -1,7 +1,7 @@
 /**
  * Homescreen detail panel.
  */
-define(require => {
+define(function(require) {
   'use strict';
 
   const MANIFEST_URL_PREF = 'homescreen.manifestURL';

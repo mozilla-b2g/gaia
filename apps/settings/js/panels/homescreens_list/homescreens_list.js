@@ -1,7 +1,7 @@
 /**
  * Handle home screens list panel functionality.
  */
-define(require => {
+define(function(require) {
   'use strict';
 
   var AppsCache = require('modules/apps_cache');

@@ -1,7 +1,7 @@
 /**
  * Used to show homescreen details panel.
  */
-define(require => {
+define(function(require) {
   'use strict';
 
   const DEFAULT_MANIFEST = 'app://verticalhome.gaiamobile.org/manifest.webapp';
