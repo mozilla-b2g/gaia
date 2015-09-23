@@ -310,25 +310,31 @@ define(function(require) {
 
       var key = this.getNetworkKey(network);
       var listItemDOM = listItems[key];
+      var itemStatus = listItemDOM.querySelector('small');
+      var itemIcon = listItemDOM.querySelector('aside');
 
       if (activeItemDOM && activeItemDOM != listItemDOM) {
         activeItemDOM.classList.remove('active');
-        activeItemDOM.querySelector('small').
-          setAttribute('data-l10n-id', 'shortStatus-disconnected');
+        activeItemDOM.querySelector('small')
+          .setAttribute('data-l10n-id', 'shortStatus-disconnected');
         activeItemDOM.querySelector('aside').classList.remove('connecting');
         activeItemDOM.querySelector('aside').classList.remove('connected');
       }
 
       if (listItemDOM) {
         listItemDOM.classList.add('active');
-        listItemDOM.querySelector('small').
-          setAttribute('data-l10n-id', 'shortStatus-' + networkStatus);
-        if (networkStatus === 'connecting') {
-          listItemDOM.querySelector('aside').classList.remove('connected');
-          listItemDOM.querySelector('aside').classList.add('connecting');
-        } else if (networkStatus === 'connected') {
-          listItemDOM.querySelector('aside').classList.remove('connecting');
-          listItemDOM.querySelector('aside').classList.add('connected');
+        if(networkStatus === 'connecting' || networkStatus === 'associated') {
+          itemStatus.setAttribute('data-l10n-id', 'shortStatus-connecting');
+          itemIcon.classList.remove('connected');
+          itemIcon.classList.add('connecting');
+        } else {
+          itemStatus.setAttribute('data-l10n-id',
+            'shortStatus-' + networkStatus);
+        }
+
+        if (networkStatus === 'connected') {
+          itemIcon.classList.remove('connecting');
+          itemIcon.classList.add('connected');
         }
       }
     }

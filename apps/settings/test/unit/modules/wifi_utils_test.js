@@ -77,10 +77,13 @@ suite('WifiUtils', function() {
     suite('with no needed parameters', function() {
       setup(function() {
         this.sinon.stub(window.console, 'log');
-        wifiUtils.updateListItemStatus();
+        wifiUtils.updateListItemStatus({
+          activeItemDOM: document.createElement('div')
+        });
       });
       test('we will get error message', function() {
-        assert.isTrue(window.console.log.called);
+        assert.isTrue(window.console.log.calledWith(
+          'Please check passing options for updateListItemStatus'));
       });
     });
 
@@ -98,20 +101,20 @@ suite('WifiUtils', function() {
         assert.isFalse(fakeActiveItemDOM.classList.contains('active'));
         assert.equal(fakeActiveItemDOM.querySelector('small').dataset.l10nId,
           'shortStatus-disconnected');
-        assert.isFalse(fakeActiveItemDOM.querySelector(
-          'aside').classList.contains('connecting'));
-        assert.isFalse(fakeActiveItemDOM.querySelector(
-          'aside').classList.contains('connected'));
+        assert.isFalse(fakeActiveItemDOM.querySelector('aside').classList
+          .contains('connecting'));
+        assert.isFalse(fakeActiveItemDOM.querySelector('aside').classList
+          .contains('connected'));
       });
 
       test('listItemDOM is in right status', function() {
         assert.isTrue(fakeListItemDOM.classList.contains('active'));
         assert.equal(fakeListItemDOM.querySelector('small').dataset.l10nId,
           'shortStatus-connecting');
-        assert.isTrue(fakeListItemDOM.querySelector(
-          'aside').classList.contains('connecting'));
-        assert.isFalse(fakeListItemDOM.querySelector(
-          'aside').classList.contains('connected'));
+        assert.isTrue(fakeListItemDOM.querySelector('aside').classList
+          .contains('connecting'));
+        assert.isFalse(fakeListItemDOM.querySelector('aside').classList
+          .contains('connected'));
       });
     });
 
@@ -129,10 +132,10 @@ suite('WifiUtils', function() {
         assert.isTrue(fakeListItemDOM.classList.contains('active'));
         assert.equal(fakeListItemDOM.querySelector('small').dataset.l10nId,
           'shortStatus-connected');
-        assert.isTrue(fakeListItemDOM.querySelector(
-          'aside').classList.contains('connected'));
-        assert.isFalse(fakeListItemDOM.querySelector(
-          'aside').classList.contains('connecting'));
+        assert.isTrue(fakeListItemDOM.querySelector('aside').classList
+          .contains('connected'));
+        assert.isFalse(fakeListItemDOM.querySelector('aside').classList
+          .contains('connecting'));
       });
     });
   });
