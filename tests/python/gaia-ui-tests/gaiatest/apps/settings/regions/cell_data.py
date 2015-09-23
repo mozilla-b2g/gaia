@@ -15,9 +15,9 @@ class CellData(Base):
 
     _carrier_container_locator = (By.ID, 'carrier')
     _carrier_name_locator = (By.ID, 'dataNetwork-desc')
-    _cell_data_enabled_input_locator = (By.CSS_SELECTOR, '#menuItem-enableDataCall input')
+    _cell_data_enabled_input_locator = (By.CSS_SELECTOR, '#menuItem-enableDataCall gaia-switch')
     _cell_data_enabled_label_locator = (By.CSS_SELECTOR, '#menuItem-enableDataCall label')
-    _data_roaming_enabled_input_locator = (By.CSS_SELECTOR, '#menuItem-enableDataRoaming input')
+    _data_roaming_enabled_input_locator = (By.CSS_SELECTOR, '#menuItem-enableDataRoaming gaia-switch')
     _data_roaming_enabled_label_locator = (By.CSS_SELECTOR, '#menuItem-enableDataRoaming label')
     _sim_1_settings_locator = (By.ID, 'menuItem-carrier-sim1')
 
