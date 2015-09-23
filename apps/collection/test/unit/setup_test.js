@@ -65,10 +65,12 @@ suite('setup.js >', function() {
     });
   }
 
-  function sendResponseText(text) {
+  function sendResponseText(text, cb = null) {
     MockXMLHttpRequest.mSendOnLoad({
+      response: text,
       responseText: text
     });
+    MockXMLHttpRequest.mSetSendCallback(cb);
   }
 
   test('The library was initialized correctly ', function() {
@@ -107,7 +109,8 @@ suite('setup.js >', function() {
     };
 
     initialize();
-    sendResponseText('{ "collections" : [ {' +
+
+    var json = '{ "collections" : [ {' +
       '"name": "Tv",' +
       '"categoryId": "213",' +
       '"pinned": [' +
@@ -115,7 +118,11 @@ suite('setup.js >', function() {
       '],' +
       '"icon": "/collections/tv/icon_90.png",' +
       '"background": "/collections/tv/background_480x800.jpg"' +
-    '}]}');
+    '}]}';
+
+    sendResponseText(json, () => {
+      sendResponseText('');
+    });
   });
 
   test('There are two collections ', function(done) {
@@ -127,7 +134,8 @@ suite('setup.js >', function() {
     };
 
     initialize();
-    sendResponseText('{ "collections" : [ {' +
+
+    var json = '{ "collections" : [ {' +
       '"name": "Tv",' +
       '"categoryId": "213",' +
       '"pinned": [' +
@@ -143,7 +151,13 @@ suite('setup.js >', function() {
       '],' +
       '"icon": "/collections/social/icon_90.png",' +
       '"background": "/collections/social/background_480x800.jpg"' +
-    '}]}');
+    '}]}';
+
+    sendResponseText(json, () => {
+      sendResponseText('', () => {
+        sendResponseText('');
+      });
+    });
   });
 
   test('File not found ', function(done) {

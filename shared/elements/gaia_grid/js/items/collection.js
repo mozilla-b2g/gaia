@@ -12,7 +12,7 @@
   /**
    * Represents a single collection on the homepage.
    */
-  function Collection(collection, entryPoint) {
+  function Collection(collection) {
     this.collection = collection;
 
     this.detail = {
@@ -23,6 +23,7 @@
       cName: collection.cName,
       query: collection.query,
       icon: collection.icon,
+      iconBlob: collection.iconBlob,
       pinned: collection.pinned,
       decoratedIconBlob: collection.decoratedIconBlob,
       nonTranslatable: collection.nonTranslatable
@@ -60,6 +61,11 @@
 
       // first attempt to use the localized name
       return _(l10nKey + this.detail.categoryId) || this.detail.name;
+    },
+
+    // Overrides GridItem.fetchIconBlob
+    fetchIconBlob: function() {
+      return Promise.resolve(this.detail.iconBlob);
     },
 
     /**

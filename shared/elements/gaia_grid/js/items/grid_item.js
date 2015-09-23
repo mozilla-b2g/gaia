@@ -188,49 +188,52 @@
         new CustomEvent('gaiagrid-attention', { detail: rect }));
     },
 
+    closestIconSizeFromList: function(choices) {
+      if (!choices) {
+        return 0;
+      }
+
+      var sizes = Object.keys(choices);
+      if (!sizes.length) {
+        return 0;
+      }
+
+      var maxSize = this.grid.layout.gridMaxIconSize; // The goal size
+
+      var filter = (a) => a >= maxSize ? a : 0;
+
+      // Ideally, get an icon that is equal to our grid size, or else
+      // the smallest icon which is larger than our grid size.
+      var bestSize = Math.min(...sizes.map(filter));
+
+      // If no icons are larger than (or equal to ) our grid size, get
+      // the largest one.
+      bestSize = bestSize || Math.max(...sizes);
+      return bestSize || 0;
+    },
+
     /**
      * Given a list of icons that match a size, return the closest icon to
      * reduce possible pixelation by picking a wrong size.
      * @param {Object} choices An object mapping icon size to icon URL.
      */
     closestIconFromList: function(choices) {
-      if (!choices) {
-        return this.defaultIcon;
-      }
       var icon;
-      var maxSize = this.grid.layout.gridMaxIconSize; // The goal size
 
       // Check for W3C web manifest format for icons
       if (Array.isArray(choices)) {
         var manifest = {
           'icons': choices
         };
+        var maxSize = this.grid.layout.gridMaxIconSize; // The goal size
         icon = window.IconsHelper.getBestIconFromWebManifest(manifest, maxSize);
         return icon ? (new URL(icon, this.app.manifestURL)).href : null;
       }
 
-      // Create a list with the sizes and order it by descending size.
-      var list = Object.keys(choices).map(function(size) {
-        return size;
-      }).sort(function(a, b) {
-        return b - a;
-      });
+      var accurateSize = this.closestIconSizeFromList(choices);
 
-      var length = list.length;
-      if (length === 0) {
-        // No icons -> return the default icon.
+      if (accurateSize === 0) {
         return this.defaultIcon;
-      }
-
-      var accurateSize = list[0]; // The biggest icon available
-      for (var i = 0; i < length; i++) {
-        var size = list[i];
-
-        if (size < maxSize) {
-          break;
-        }
-
-        accurateSize = size;
       }
 
       icon = choices[accurateSize];

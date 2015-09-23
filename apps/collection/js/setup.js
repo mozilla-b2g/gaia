@@ -10,6 +10,38 @@
     navigator.mozSetMessageHandler('connection', this.onConnection.bind(this));
   }
 
+  function fetch(aPath, aResponseType, aMimeType) {
+    return new Promise(function(resolve, reject) {
+      var xhr = new XMLHttpRequest({
+        mozAnon: true,
+        mozSystem: true
+      });
+      xhr.open('GET', aPath, true);
+
+      if (aMimeType) {
+        xhr.overrideMimeType(aMimeType);
+      }
+      if (aResponseType) {
+        xhr.responseType = aResponseType;
+      }
+
+      xhr.onload = () => {
+        if (!(xhr.status === 200 | xhr.status === 0)) {
+          reject(new Error('Unknown response when getting data.'));
+          return;
+        }
+
+        resolve(xhr.response);
+      };
+
+      xhr.onerror = () => {
+        reject(new Error('file not found'));
+      };
+
+      xhr.send();
+    });
+  }
+
   Setup.prototype = {
     onConnection: function(connectionRequest) {
       if (connectionRequest.keyword !== 'setup') {
@@ -32,28 +64,12 @@
 
       this.initializing = true;
 
-      var xhr = new XMLHttpRequest();
-      xhr.overrideMimeType('application/json');
-      xhr.open('GET', PRE_INSTALLED_COLLECTIONS_FILE, true);
-
-      xhr.onload = function _xhrOnLoadFile() {
-        if (!(xhr.status === 200 | xhr.status === 0)) {
-          this.onError('Unknown response when getting data.');
-          return;
-        }
-
-        try {
-          this.populate(JSON.parse(xhr.responseText));
-        } catch (ex) {
-          this.onError(ex);
-        }
-      }.bind(this);
-
-      xhr.onerror = function _xhrOnError() {
-        this.onError('file not found');
-      }.bind(this);
-
-      xhr.send();
+      fetch(PRE_INSTALLED_COLLECTIONS_FILE, '',
+            'application/json').then((response) => {
+        this.populate(JSON.parse(response));
+      }).catch((e) => {
+        this.onError(e);
+      });
     },
 
     /**
@@ -68,7 +84,7 @@
         this.onFinish();
       } else {
         var onFinish = this.onFinish.bind(this);
-        collections.forEach(function(collection) {
+        collections.forEach((collection) => {
           if (collection.pinned && collection.pinned.length) {
             collection.pinned.forEach((appInfo, idx) => {
               var identifier = appInfo.join('-');
@@ -78,8 +94,11 @@
               };
             });
           }
-          CollectionsDatabase.add(collection).then(onFinish, onFinish);
-        }.bind(this));
+          fetch(collection.icon, 'blob').then((blob) => {
+            collection.iconBlob = blob;
+            return CollectionsDatabase.add(collection);
+          }).then(onFinish).catch(onFinish);
+        });
       }
     },
 
@@ -103,7 +122,8 @@
     onError: function(error) {
       this.initializing = false;
       this.port.postMessage('Failed');
-      console.error('Failed while reading the configuration file', error);
+      console.error('Failed while reading the configuration file',
+                    error.message);
     }
   };
 
