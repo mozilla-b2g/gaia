@@ -321,9 +321,15 @@ define(function(require) {
 
       if (listItemDOM) {
         listItemDOM.classList.add('active');
-        listItemDOM.querySelector('small').
-          setAttribute('data-l10n-id', 'shortStatus-' + networkStatus);
-        if (networkStatus === 'connecting') {
+        if(networkStatus === 'connecting' || networkStatus === 'associated') {
+          listItemDOM.querySelector('small').
+            setAttribute('data-l10n-id', 'shortStatus-connecting');
+        } else {
+          listItemDOM.querySelector('small').
+            setAttribute('data-l10n-id', 'shortStatus-' + networkStatus);
+        }
+
+        if (networkStatus === 'connecting' || networkStatus === 'associated') {
           listItemDOM.querySelector('aside').classList.remove('connected');
           listItemDOM.querySelector('aside').classList.add('connecting');
         } else if (networkStatus === 'connected') {
