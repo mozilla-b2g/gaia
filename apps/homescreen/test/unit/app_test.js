@@ -280,21 +280,25 @@ suite('Homescreen app', () => {
   });
 
   suite('App#addIconContainer()', () => {
-    var refreshGridSizeStub, snapScrollPositionStub;
+    var refreshGridSizeStub, iconAddedSpy;
     setup(() => {
       refreshGridSizeStub = sinon.stub(app, 'refreshGridSize');
-      snapScrollPositionStub = sinon.stub(app, 'snapScrollPosition');
+      iconAddedSpy = sinon.spy(app, 'iconAdded');
     });
 
     teardown(() => {
       refreshGridSizeStub.restore();
-      snapScrollPositionStub.restore();
+      iconAddedSpy.restore();
     });
 
     suite('element properties', () => {
-      var appendChildStub;
+      var appendChildStub, childIsVisible;
       setup(() => {
+        childIsVisible = true;
         appendChildStub = sinon.stub(app.icons, 'appendChild', (el, cb) => {
+          if (!childIsVisible) {
+            el.style.display = 'none';
+          }
           cb();
         });
       });
@@ -312,27 +316,26 @@ suite('Homescreen app', () => {
         assert.isNumber(container.order);
       });
 
-      test('should call refreshGridSize() and ' +
-           'snapScrollPosition() on first child', () => {
+      test('should call iconAdded() when adding children', () => {
+        app.addIconContainer(-1);
+        app.addIconContainer(-1);
+
+        assert.isTrue(appendChildStub.calledTwice);
+        assert.isTrue(iconAddedSpy.calledTwice);
+      });
+
+      test('should call refreshGridSize() when adding visible children', () => {
         app.addIconContainer(-1);
 
         assert.isTrue(appendChildStub.called);
         assert.isTrue(refreshGridSizeStub.called);
-        assert.isTrue(snapScrollPositionStub.called);
       });
 
-      test('should call only refreshGridSize() if has children', () => {
-        var realIcons = app.icons;
-        app.icons = {
-          firstChild: {},
-          appendChild: (child, callback) => { callback(); }
-        };
-
+      test('should not call refreshGridSize() when adding ' +
+           'invisible children', () => {
+        childIsVisible = false;
         app.addIconContainer(-1);
-        assert.isTrue(refreshGridSizeStub.called);
-        assert.isFalse(snapScrollPositionStub.called);
-
-        app.icons = realIcons;
+        assert.isFalse(refreshGridSizeStub.called);
       });
     });
 
@@ -795,6 +798,37 @@ suite('Homescreen app', () => {
         };
         app.handleEvent(new CustomEvent('activate',
           { detail: { target: icon } }));
+      });
+    });
+
+    suite('resize', () => {
+      var synchroniseStub, refreshGridSizeStub, snapScrollPositionStub;
+
+      setup(() => {
+        app.icons.synchronise = () => {};
+        synchroniseStub = sinon.stub(app.icons, 'synchronise');
+        refreshGridSizeStub = sinon.stub(app, 'refreshGridSize');
+        snapScrollPositionStub = sinon.stub(app, 'snapScrollPosition');
+        app.handleEvent(new CustomEvent('resize'));
+      });
+
+      teardown(() => {
+        synchroniseStub.restore();
+        refreshGridSizeStub.restore();
+        snapScrollPositionStub.restore();
+        delete app.icons.synchronise;
+      });
+
+      test('should call icons.synchronise()', () => {
+        assert.isTrue(synchroniseStub.called);
+      });
+
+      test('should call refreshGridSize()', () => {
+        assert.isTrue(refreshGridSizeStub.called);
+      });
+
+      test('should call snapScrollPosition()', () => {
+        assert.isTrue(snapScrollPositionStub.called);
       });
     });
   });
