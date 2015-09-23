@@ -112,8 +112,8 @@ class ContactForm(Base):
         element.tap()
         self.marionette.execute_script(
             'arguments[0].scrollIntoView(true);', [element])
-        Wait(self.marionette, timeout=120).until(expected.element_displayed(*self._comment_locator))
-        element = self.marionette.find_element(*self._comment_locator)
+        comment = self.marionette.find_element(*self._comment_locator)
+        Wait(self.marionette, timeout=120).until(expected.element_displayed(comment))
         self.marionette.execute_script(
             'arguments[0].scrollIntoView(true);', [element])
         element.tap()
