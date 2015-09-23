@@ -635,7 +635,7 @@ const SETTINGS_VERSION = 0;
                  name: 'configure',
                  data: {
                    target: 'device',
-                   section: 'homescreen'
+                   section: 'homescreens'
                  }
                });
              }]);
