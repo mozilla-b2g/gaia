@@ -49,10 +49,12 @@ suite('system/AppTransitionController', function() {
 
   test('Open with immediate animation', function() {
     var app1 = new MockAppWindow(fakeAppConfig1);
+    this.sinon.stub(app1, 'publish');
     var acn1 = new AppTransitionController(app1);
     assert.deepEqual(acn1._transitionState, 'closed');
     acn1.requireOpen('immediate');
     assert.deepEqual(acn1._transitionState, 'opened');
+    sinon.assert.calledWith(app1.publish, 'opening');
   });
 
   test('Close', function() {
@@ -65,10 +67,12 @@ suite('system/AppTransitionController', function() {
 
   test('Close with immediate animation', function() {
     var app1 = new MockAppWindow(fakeAppConfig1);
+    this.sinon.stub(app1, 'publish');
     var acn1 = new AppTransitionController(app1);
     acn1._transitionState = 'opened';
     acn1.requireClose('immediate');
     assert.deepEqual(acn1._transitionState, 'closed');
+    sinon.assert.calledWith(app1.publish, 'closing');
   });
 
   test('Closed notfication', function() {
