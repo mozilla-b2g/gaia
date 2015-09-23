@@ -64,6 +64,7 @@
     this._injected = false;
     this._isCommandSendable = false;
     this._transitionState = 'closed';
+    this._transitionStateOnPressCaret = null;
     this.textualmenuDetail = null;
     this.globalStates = _globalStates =
       _globalStates || new AppTextSelectionDialogGlobalStates();
@@ -164,6 +165,7 @@
          return;
       }
       if (detail.reason === 'presscaret') {
+        this._transitionStateOnPressCaret = this._transitionState;
         this.hide();
         return;
       }
@@ -193,6 +195,13 @@
           if (this.globalStates.hasCutOrCopied()) {
             showDialog = true;
           }
+          break;
+        case 'releasecaret':
+          // Show the dialog if it was shown when pressing the caret.
+          if (this._transitionStateOnPressCaret === 'opened') {
+            showDialog = true;
+          }
+          this._transitionStateOnPressCaret = null;
           break;
         default:
           // Not allow

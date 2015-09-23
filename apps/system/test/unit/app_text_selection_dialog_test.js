@@ -344,6 +344,32 @@ suite('system/AppTextSelectionDialog', function() {
            td.handleEvent(fakeTextSelectInAppEvent);
            assert.isTrue(stubHide.calledOnce);
          });
+
+    test('should show bubble when selection is collapsed after pressing and ' +
+         'release caret', function() {
+           td._transitionState = 'opened';
+           testDetail.collapsed = true;
+           testDetail.reason = 'presscaret';
+           td.handleEvent(fakeTextSelectInAppEvent);
+           testDetail.reason = 'releasecaret';
+           td.handleEvent(fakeTextSelectInAppEvent);
+
+           assert.isTrue(stubHide.calledOnce);
+           assert.isTrue(stubShow.calledWith(testDetail));
+           assert.isTrue(stubHide.calledBefore(stubShow));
+         });
+
+    test('should hide bubble when selection is collapsed after pressing and ' +
+         'release caret', function() {
+           td._transitionState = 'closed';
+           testDetail.collapsed = true;
+           testDetail.reason = 'presscaret';
+           td.handleEvent(fakeTextSelectInAppEvent);
+           testDetail.reason = 'releasecaret';
+           td.handleEvent(fakeTextSelectInAppEvent);
+
+           assert.isTrue(stubHide.calledTwice);
+         });
   });
 
   suite('_elementEventHandler', function() {
