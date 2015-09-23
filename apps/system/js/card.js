@@ -24,6 +24,7 @@ function Card(app, disableScreenshots) {
   el.classList.toggle('show-subtitle', !!this.subTitle);
   el.classList.toggle('browser', !!app.isBrowser());
 
+  el.dataset.appInstanceId = app.instanceID;
   el.dataset.origin = app.origin; // for ease of testing
   el.dataset.ssl = app.getSSLState() || ''; // indiciate security when available
 
