@@ -12,6 +12,7 @@ define(function(require) {
   var SettingsListener = require('shared/settings_listener');
   var DialogService = require('modules/dialog_service');
   var AsyncStorage = require('shared/async_storage');
+  var MediaStorage = require('modules/media_storage');
 
   var _debug = false;
   var Debug = function() {};
@@ -60,6 +61,9 @@ define(function(require) {
 
       this._elements.usbEnabledCheckBox.addEventListener('change',
         this._umsCheckboxChange.bind(this));
+
+      MediaStorage.observe('volumeState',
+        this._updateUmsState.bind(this));
     },
 
     /**
@@ -152,19 +156,7 @@ define(function(require) {
     _umsEnabledHandler: function ut_umsEnabledHandler(enabled) {
       Debug('ums.enabled: ' + enabled);
       this._elements.usbEnabledCheckBox.checked = enabled;
-      var i;
-      if (enabled) {
-        //update selector state based on device-features.json
-        if (!this._usbHotProtocolSwitch) {
-          for (i = 0; i < this._elements.protocols.length; i++) {
-            this._elements.protocols[i].setAttribute('disabled', true);
-          }
-        }
-      } else {
-        for (i = 0; i < this._elements.protocols.length; i++) {
-          this._elements.protocols[i].removeAttribute('disabled');
-        }
-      }
+      this._updateUmsState();
     },
 
     /**
@@ -213,6 +205,51 @@ define(function(require) {
         }
       } else {
         console.log('Error: should not be executed');
+      }
+    },
+
+    /**
+     * update ums description and protocol selection fields
+     */
+    _updateUmsState: function ut_updateUmsState() {
+      var key;
+      Debug('enabled:' + this._elements.usbEnabledCheckBox.checked + '/' +
+            'volumeState:' + MediaStorage.volumeState);
+      if (this._elements.usbEnabledCheckBox.checked) {
+        key = 'enabled';
+        if (MediaStorage.volumeState === 'shared') {
+          this._disableProtocolSelections(true);
+        } else {
+          this._disableProtocolSelections(false);
+        }
+      } else if (MediaStorage.volumeState === 'shared') {
+        key = 'umsUnplugToDisable';
+        this._disableProtocolSelections(true);
+      } else {
+        key = 'disabled';
+        this._disableProtocolSelections(false);
+      }
+      this._elements.usbEnabledInfoBlock.setAttribute('data-l10n-id', key);
+    },
+
+    /**
+     * Disable Protocol Selections area.
+     * @type {boolean} enabled to disable Protocol Selections
+     */
+    _disableProtocolSelections:
+      function ut_disableProtocolSelections(disabled) {
+      var i;
+      if (disabled) {
+        //update selector state based on device-features.json
+        if (!this._usbHotProtocolSwitch) {
+          for (i = 0; i < this._elements.protocols.length; i++) {
+            this._elements.protocols[i].setAttribute('disabled', true);
+          }
+        }
+      } else {
+        for (i = 0; i < this._elements.protocols.length; i++) {
+          this._elements.protocols[i].removeAttribute('disabled');
+        }
       }
     },
 

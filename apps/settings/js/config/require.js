@@ -8,6 +8,8 @@ require.config({
   // This is the default value of the loading timeout, we will disable the
   // timeout in the production build
   waitSeconds: 7,
+  // shim global object into AMD format
+  // XXX Bug 1207471 organized in alphabet order
   shim: {
     'settings': {
       exports: 'Settings'
@@ -112,6 +114,8 @@ require.config({
       exports: 'STKHelper'
     }
   },
+  // exclude reusable file in modules
+  // XXX Bug 1207472 organized in alphabet order
   modules: [
     {
       name: 'main'
@@ -385,6 +389,13 @@ require.config({
       exclude: [
         'main',
         'modules/settings_utils'
+      ]
+    },
+    {
+      name: 'panels/usb_storage/panel',
+      exclude: [
+        'main',
+        'modules/media_storage'
       ]
     }
   ]

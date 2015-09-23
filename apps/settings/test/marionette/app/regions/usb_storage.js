@@ -16,7 +16,7 @@ function UsbStoragePanel(client) {
 module.exports = UsbStoragePanel;
 
 UsbStoragePanel.Selectors = {
-  'usbEnabledCheckbox': '.usb-enabled'
+  'usbEnabledCheckbox': '.ums-switch'
 };
 
 UsbStoragePanel.prototype = {

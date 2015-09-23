@@ -15,7 +15,8 @@ define(function(require) {
     return SettingsPanel({
       onInit: function us_onInit(panel) {
         elements = {
-          usbEnabledCheckBox: panel.querySelector('.usb-enabled'),
+          usbEnabledCheckBox: panel.querySelector('.ums-switch'),
+          usbEnabledInfoBlock: panel.querySelector('.ums-switch-desc'),
           protocols: panel.querySelectorAll('gaia-radio')
         };
 

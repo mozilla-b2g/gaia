@@ -286,12 +286,10 @@ body[data-filter-by="connectivity"] #root > div [data-category="connectivity"] {
 .disabled h2,
 .disabled label,
 .disabled select,
-.disabled gaia-checkbox,
-.disabled gaia-radio,
-.disabled gaia-switch,
+gaia-checkbox[disabled],
 gaia-radio[disabled],
 gaia-switch[disabled] {
-  opacity: 0.6;
+  opacity: 0.3;
   pointer-events: none;
 }
 

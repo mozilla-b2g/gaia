@@ -6,6 +6,7 @@ suite('start testing > ', function() {
 
   var MockSettingsListener;
   var MockDialogService;
+  var MockMediaStorage;
   var usbTransfer;
 
   var MODE_UMS = 1;
@@ -22,11 +23,13 @@ suite('start testing > ', function() {
       'modules/settings_cache': 'unit/mock_settings_cache',
       'shared/settings_listener': 'MockSettingsListener',
       'modules/dialog_service': 'MockDialogService',
-      'shared/async_storage': 'unit/mock_async_storage'
+      'shared/async_storage': 'unit/mock_async_storage',
+      'modules/media_storage': 'MockMediaStorage'
     }
   };
   var checkbox = document.createElement('input');
   var radio = document.createElement('input');
+  var desc = document.createElement('detail');
 
   setup(function(done) {
     var requireCtx = testRequire([], map, function() {});
@@ -45,6 +48,17 @@ suite('start testing > ', function() {
     };
     define('MockSettingsListener', function() {
       return MockSettingsListener;
+    });
+
+    // Define MockMediaStorage
+    MockMediaStorage = {
+      volumeState: 'available',
+      freeSize: 1,
+      observe: function() {},
+      unobserve: function() {}
+    };
+    define('MockMediaStorage', function() {
+      return MockMediaStorage;
     });
 
     requireCtx(modules, function(usb_transfer) {
@@ -68,6 +82,7 @@ suite('start testing > ', function() {
       this.sinon.stub(MockSettingsListener, 'observe');
       usbTransfer.init({
         usbEnabledCheckBox: checkbox,
+        usbEnabledInfoBlock: desc,
         protocols: [radio, radio]
       }, {
         usbHotProtocolSwitch: false
@@ -181,13 +196,16 @@ suite('start testing > ', function() {
     });
 
     suite('_umsEnabledHandler', function() {
-      test('should disable protocol selections when ums enabled', function() {
+      test('should disable protocol selections when ums enabled and ' +
+        'media volume state is shared', function() {
         usbTransfer.init({
           usbEnabledCheckBox: checkbox,
+          usbEnabledInfoBlock: desc,
           protocols: [radio, radio]
         }, {
           usbHotProtocolSwitch: false
         });
+        MockMediaStorage.volumeState = 'shared';
         usbTransfer._umsEnabledHandler(true);
 
         assert.ok(usbTransfer._elements.usbEnabledCheckBox.checked);
@@ -195,9 +213,27 @@ suite('start testing > ', function() {
         assert.isTrue(usbTransfer._elements.protocols[1].disabled);
       });
 
+      test('should enable protocol selections when ums enabled but ' +
+        'media volume state is not shared', function() {
+        usbTransfer.init({
+          usbEnabledCheckBox: checkbox,
+          usbEnabledInfoBlock: desc,
+          protocols: [radio, radio]
+        }, {
+          usbHotProtocolSwitch: false
+        });
+        MockMediaStorage.volumeState = 'available';
+        usbTransfer._umsEnabledHandler(true);
+
+        assert.ok(usbTransfer._elements.usbEnabledCheckBox.checked);
+        assert.isFalse(usbTransfer._elements.protocols[0].disabled);
+        assert.isFalse(usbTransfer._elements.protocols[1].disabled);
+      });
+
       test('should enable protocol selections when ums disabled', function() {
         usbTransfer.init({
           usbEnabledCheckBox: checkbox,
+          usbEnabledInfoBlock: desc,
           protocols: [radio, radio]
         }, {
           usbHotProtocolSwitch: false
@@ -213,6 +249,7 @@ suite('start testing > ', function() {
         'usbHotProtocolSwitch is true', function() {
         usbTransfer.init({
           usbEnabledCheckBox: checkbox,
+          usbEnabledInfoBlock: desc,
           protocols: [radio, radio]
         }, {
           usbHotProtocolSwitch: true
