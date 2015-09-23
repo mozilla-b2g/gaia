@@ -18,8 +18,8 @@
 }
 
 [role="dialog"][data-type="value-selector"] > section {
-  padding: 0 1.5rem 0;
-  -moz-box-sizing: padding-box;
+  padding: 0 1.5rem;
+  box-sizing: padding-box;
   width: 100%;
   height: 100%;
 }
@@ -30,11 +30,11 @@
   line-height: 4.8rem;
   color: #fff;
   border-bottom: 0.1rem solid #616262;
-  background: rgba(0 ,0, 0, .2);
+  background-color: rgba(0, 0, 0, .2);
   margin: 0 -1.5rem;
   padding: 0 3rem 1rem;
   height: 4.8rem;
-  -moz-box-sizing: border-box;
+  box-sizing: border-box;
 }
 
 /* Specific component code */
@@ -57,7 +57,15 @@
   line-height: 3.9rem;
   color: #fff;
   transition: background-color 0.2s ease;
+}
+
+html[dir="ltr"] [role="dialog"][data-type="value-selector"] [role="listbox"],
+html[dir="ltr"] [role="dialog"][data-type="value-selector"] [role="listbox"] li {
   text-align: left;
+}
+html[dir="rtl"] [role="dialog"][data-type="value-selector"] [role="listbox"],
+html[dir="rtl"] [role="dialog"][data-type="value-selector"] [role="listbox"] li {
+  text-align: right;
 }
 
 [role="dialog"][data-type="value-selector"] [role="listbox"] li:first-child label {
@@ -118,12 +126,21 @@
 
 /* Checked status */
 [role="dialog"][data-type="value-selector"] [role="listbox"] li[aria-selected="true"] label {
-  background: transparent url(value_selector/images/icons/checked.png) right 1.2rem top 50% / 2.4rem no-repeat;
+  background-image: url(value_selector/images/icons/checked.png);
+  background-color: transparent;
+  background-size: 2.4rem;
+  background-repeat: no-repeat;
+}
+html[dir="ltr"] [role="dialog"][data-type="value-selector"] [role="listbox"] li[aria-selected="true"] label {
+  background-position: right 1.2rem top 50%;
+}
+html[dir="rtl"] [role="dialog"][data-type="value-selector"] [role="listbox"] li[aria-selected="true"] label {
+  background-position: left 1.2rem top 50%;
 }
 
 [role="dialog"][data-type="value-selector"] [role="listbox"] li[aria-selected="true"] span {
-  padding-right: 2.6rem;
-  margin-right: 1.2rem;
+  padding-inline-end: 2.6rem;
+  margin-inline-end: 1.2rem;
   color: #00abcd;
 }
 
@@ -153,7 +170,7 @@
   height: 4rem;
   margin: 0 0 1rem;
   padding: 0 1.2rem;
-  -moz-box-sizing: border-box;
+  box-sizing: border-box;
   display: inline-block;
   vertical-align: middle;
   text-overflow: ellipsis;
@@ -201,7 +218,7 @@ button[disabled]::-moz-selection {
 }
 
 .value-selector > [role="dialog"][data-type="value-selector"] menu.value-selector-buttons button:last-child {
-  margin-left: 1rem;
+  margin-inline-start: 1rem;
 }
 
 .value-selector > [role="dialog"][data-type="value-selector"] menu.value-selector-buttons button,
@@ -213,24 +230,3 @@ button[disabled]::-moz-selection {
   width: 100%;
 }
 
-/* Right to left tweaks */
-html[dir="rtl"] .value-selector li input:checked + span,
-html[dir="rtl"] .value-selector li[aria-selected="true"] span {
-  padding-left: 2.6rem;
-  padding-right: 1.5rem;
-  margin-left: 1.2rem;
-  margin-right: 0;
-  background-position: 0 50%;
-}
-
-html[dir="rtl"] [role="dialog"][data-type="value-selector"] [role="listbox"] li {
-  text-align: right;
-}
-
-html[dir="rtl"] [role="dialog"][data-type="value-selector"] [role="listbox"] li[aria-selected="true"] label {
-  background-position: left 1.2rem top 50%;
-}
-
-html[dir="rtl"] [role="dialog"][data-type="value-selector"] [role="listbox"] li[aria-selected="true"] span {
-  padding-right: 0.3rem;
-}
