@@ -206,6 +206,16 @@ suite('navigation >', function() {
     }
   });
 
+  test('navigates backwards and skips data_3g', function() {
+    setStepStateToIndex(2);
+    this.sinon.stub(SimManager, 'handleCardState', function(cb) {
+      cb(null);
+    });
+    Navigation.back();
+    assert.equal(Navigation.previousStepIndex, 0);
+    assert.equal(Navigation.currentStepIndex, 0);
+  });
+
   test('skips date and time when network time is available', function() {
     var oldTimeZoneNeedsConfirmation = UIManager.timeZoneNeedsConfirmation;
     UIManager.timeZoneNeedsConfirmation = false;
