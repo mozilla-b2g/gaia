@@ -607,17 +607,41 @@ suite('system/AppChrome', function() {
       stubIsBrowser.restore();
     });
 
-    test('pinned attribute changes on locationchange', function() {
+    test('pins the chrome if the new url is in the scope', function() {
+      var app, chrome;
+      this.sinon.stub(Service, 'request', function() {
+        return {
+          then: function(callback) {
+            callback(true);
+          }
+        };
+      });
       fakeSearchApp.chrome.pinned = true;
       fakeSearchApp.chrome.scrollable = true;
       fakeSearchApp.chrome.url = 'http://aaa.com';
-      var app = new AppWindow(fakeSearchApp);
+      app = new AppWindow(fakeSearchApp);
       this.sinon.stub(app, 'isBrowser').returns(true);
-      var chrome = new AppChrome(app);
+      chrome = new AppChrome(app);
       chrome.handleLocationChange();
       assert.isTrue(chrome.pinned);
+      assert.isFalse(app.element.classList.contains('collapsible'));
+    });
 
-      app.config.url = 'http://test.com';
+    test('unpins the chrome if the new url is in the scope', function() {
+      var app, chrome;
+      this.sinon.stub(Service, 'request', function() {
+        return {
+          then: function(callback) {
+            callback(false);
+          }
+        };
+      });
+      fakeSearchApp.chrome.pinned = true;
+      fakeSearchApp.chrome.scrollable = true;
+      fakeSearchApp.chrome.url = 'http://aaa.com';
+      app = new AppWindow(fakeSearchApp);
+      this.sinon.stub(app, 'isBrowser').returns(true);
+      chrome = new AppChrome(app);
       chrome.handleLocationChange();
       assert.isFalse(chrome.pinned);
       assert.isTrue(app.element.classList.contains('collapsible'));

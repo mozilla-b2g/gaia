@@ -41,6 +41,14 @@ marionette('AppWindowManager - Bookmarked sites',
     client.switchToFrame();
   }
 
+  function openBookmark(url) {
+    system.tapHome();
+    client.waitFor(function() {
+      return system.activeHomescreenFrame.displayed();
+    });
+    home.launchApp(url);
+  }
+
   setup(function() {
     home = client.loader.getAppClass('verticalhome');
     rocketbar = new Rocketbar(client);
@@ -65,8 +73,7 @@ marionette('AppWindowManager - Bookmarked sites',
     currentNApps = system.getAppWindows().length;
     assert.equal(nApps + 1, currentNApps, 'new window from the rocketbar');
 
-    system.tapHome();
-    home.launchApp(url);
+    openBookmark(url);
     waitForBrowser(url2);
 
     currentNApps = system.getAppWindows().length;
@@ -86,8 +93,7 @@ marionette('AppWindowManager - Bookmarked sites',
     currentNApps = system.getAppWindows().length;
     assert.equal(nApps + 1, currentNApps, 'new window from the rocketbar');
 
-    system.tapHome();
-    home.launchApp(url);
+    openBookmark(url);
     waitForBrowser(url);
 
     currentNApps = system.getAppWindows().length;
@@ -102,8 +108,7 @@ marionette('AppWindowManager - Bookmarked sites',
     rocketbar.enterText(url2, true);
     waitForBrowser(url2);
 
-    system.tapHome();
-    home.launchApp(url);
+    openBookmark(url);
     waitForBrowser(url);
 
     system.tapHome();
@@ -114,8 +119,7 @@ marionette('AppWindowManager - Bookmarked sites',
   });
 
   test('Tapping the browser opens a new window if no unpinned', function() {
-    system.tapHome();
-    home.launchApp(url);
+    openBookmark(url);
     waitForBrowser(url);
 
     system.tapHome();

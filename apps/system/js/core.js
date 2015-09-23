@@ -109,6 +109,7 @@
         'CarrierInfoNotifier',
         'AboutServiceWorkersProxy',
         'MultiScreenController',
+        'PinsManager',
         //IFDEF_FIREFOX_SYNC
         'SyncManager'
         //ENDIF_FIREFOX_SYNC
