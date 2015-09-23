@@ -78,20 +78,27 @@ var WifiHelper = {
   },
 
   isConnected: function(network) {
+    return 'connected' === this.getNetworkStatus(network);
+  },
+
+  getNetworkStatus: function(network) {
     /**
      * XXX the API should expose a 'connected' property on 'network',
      * and 'wifiManager.connection.network' should be comparable to 'network'.
      * Until this is properly implemented, we just compare SSIDs to tell wether
      * the network is already connected or not.
      */
-    var currentNetwork = this.getWifiManager().connection.network;
+    var currentConnection = this.getWifiManager().connection;
+
+    var currentNetwork = currentConnection.network;
     if (!currentNetwork || !network) {
       return false;
     }
     var key = network.ssid + '+' + this.getSecurity(network).join('+');
     var curkey = currentNetwork.ssid + '+' +
         this.getSecurity(currentNetwork).join('+');
-    return key === curkey;
+
+    return (key === curkey ? currentConnection.status : 'disconnected');
   },
 
   isValidInput: function(key, password, identity, eap) {

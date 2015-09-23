@@ -26,6 +26,7 @@ var MockWifiHelper = {
     return li;
   },
   isConnected: function() {},
+  getNetworkStatus: function() { return 'disconnected'; },
   isWpsAvailable: function() {},
   getAvailableAndKnownNetworks: function() {
     var self = this;

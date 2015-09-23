@@ -91,10 +91,20 @@ define(function(require) {
 
       // Show connection status
       icon.classList.add('wifi-signal');
-      if (WifiHelper.isConnected(network)) {
-        small.setAttribute('data-l10n-id', 'shortStatus-connected');
-        icon.classList.add('connected');
+
+      var networkStatus = WifiHelper.getNetworkStatus(network);
+      var kActiveStatuses = ['associated', 'connecting', 'connected'];
+
+      if (-1 !== kActiveStatuses.indexOf(networkStatus)) {
         li.classList.add('active');
+
+        if ('connected' === networkStatus) {
+          icon.classList.add('connected');
+        } else {
+          icon.classList.add('connecting');
+        }
+
+        small.setAttribute('data-l10n-id', 'shortStatus-' + networkStatus);
       }
 
       // bind connection callback
@@ -323,7 +333,7 @@ define(function(require) {
         listItemDOM.classList.add('active');
         listItemDOM.querySelector('small').
           setAttribute('data-l10n-id', 'shortStatus-' + networkStatus);
-        if (networkStatus === 'connecting') {
+        if (networkStatus === 'connecting' || networkStatus === 'associated') {
           listItemDOM.querySelector('aside').classList.remove('connected');
           listItemDOM.querySelector('aside').classList.add('connecting');
         } else if (networkStatus === 'connected') {
