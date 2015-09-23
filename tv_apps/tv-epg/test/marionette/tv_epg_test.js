@@ -12,7 +12,9 @@ var Keys = {
 
 var assert = require('chai').assert;
 
-marionette('Test Program Navigation', function() {
+// Bug 1207453 - Skip the test due to unknown test enviroment issue for now.
+// We should investigate the issue and re-enable the test later.
+marionette.skip('Test Program Navigation', function() {
 
   var opts = {
     apps: {},
