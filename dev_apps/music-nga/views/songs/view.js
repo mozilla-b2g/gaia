@@ -17,6 +17,14 @@ var SongsView = View.extend(function SongsView() {
     window.parent.onSearchClose();
   });
   this.searchBox.addEventListener('search', (evt) => this.search(evt.detail));
+  this.searchBox.addEventListener('resultclick', (evt) => {
+    var link = evt.detail;
+    if (link) {
+      this.queueSong(link.dataset.filePath);
+
+      this.client.method('navigate', link.getAttribute('href'));
+    }
+  });
 
   this.list.scrollTop = searchHeight;
   this.list.minScrollHeight = `calc(100% - ${searchHeight}px)`;
@@ -87,10 +95,23 @@ SongsView.prototype.getCache = function() {
 };
 
 SongsView.prototype.search = function(query) {
-  return this.fetch('/api/search/title/' + query).then((response) => {
-    return response.json();
-  }).then((results) => {
-    this.searchBox.setResults(results);
+  return Promise.all([
+    document.l10n.formatValue('unknownTitle'),
+    document.l10n.formatValue('unknownArtist')
+  ]).then(([unknownTitle, unknownArtist]) => {
+    return this.fetch('/api/search/title/' + query)
+      .then(response =>  response.json())
+      .then((songs) => {
+        songs.forEach((song) => {
+          song.title    = song.metadata.title  || unknownTitle;
+          song.subtitle = song.metadata.artist || unknownArtist;
+          song.section  = 'songs';
+          song.url      = '/player?id=' + song.name;
+        });
+
+        this.searchBox.setResults(songs);
+        return songs;
+      });
   });
 };
 

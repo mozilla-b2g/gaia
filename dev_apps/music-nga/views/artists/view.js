@@ -17,6 +17,12 @@ var ArtistsView = View.extend(function ArtistsView() {
     window.parent.onSearchClose();
   });
   this.searchBox.addEventListener('search', (evt) => this.search(evt.detail));
+  this.searchBox.addEventListener('resultclick', (evt) => {
+    var link = evt.detail;
+    if (link) {
+      this.client.method('navigate', link.getAttribute('href'));
+    }
+  });
 
   this.list.scrollTop = searchHeight;
   this.list.minScrollHeight = `calc(100% - ${searchHeight}px)`;
@@ -57,10 +63,20 @@ ArtistsView.prototype.getArtists = function() {
 };
 
 ArtistsView.prototype.search = function(query) {
-  return this.fetch('/api/search/artist/' + query).then((response) => {
-    return response.json();
-  }).then((results) => {
-    this.searchBox.setResults(results);
+  return document.l10n.formatValue('unknownArtist').then((unknownArtist) => {
+    return this.fetch('/api/search/artist/' + query)
+      .then(response =>  response.json())
+      .then((artists) => {
+        artists.forEach((artist) => {
+          artist.title    = artist.metadata.artist || unknownArtist;
+          artist.subtitle = ''
+          artist.section  = 'artists';
+          artist.url      = '/artist-detail?id=' + artist.name;
+        });
+
+        this.searchBox.setResults(artists);
+        return artists;
+      });
   });
 };
 

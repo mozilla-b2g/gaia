@@ -12,6 +12,16 @@ var HomeView = View.extend(function HomeView() {
   this.searchBox.addEventListener('open', () => window.parent.onSearchOpen());
   this.searchBox.addEventListener('close', () => window.parent.onSearchClose());
   this.searchBox.addEventListener('search', (evt) => this.search(evt.detail));
+  this.searchBox.addEventListener('resultclick', (evt) => {
+    var link = evt.detail;
+    if (link) {
+      if (link.dataset.section === 'songs') {
+        this.queueSong(link.dataset.filePath);
+      }
+
+      this.client.method('navigate', link.getAttribute('href'));
+    }
+  });
 
   this.tiles.addEventListener('click', (evt) => {
     var link = evt.target.closest('a[data-file-path]');
@@ -81,12 +91,67 @@ HomeView.prototype.queueAlbum = function(filePath) {
   this.fetch('/api/queue/album/' + filePath);
 };
 
+HomeView.prototype.queueSong = function(filePath) {
+  this.fetch('/api/queue/song/' + filePath);
+};
+
 HomeView.prototype.search = function(query) {
-  // XXX: Search all fields
-  return this.fetch('/api/search/title/' + query).then((response) => {
-    return response.json();
-  }).then((results) => {
-    this.searchBox.setResults(results);
+  var results = [];
+
+  return Promise.all([
+    document.l10n.formatValue('unknownTitle'),
+    document.l10n.formatValue('unknownArtist'),
+    document.l10n.formatValue('unknownAlbum')
+  ]).then(([unknownTitle, unknownArtist, unknownAlbum]) => {
+    var albums = this.fetch('/api/search/album/' + query)
+      .then(response =>  response.json())
+      .then((albums) => {
+        albums.forEach((album) => {
+          album.title    = album.metadata.album  || unknownAlbum;
+          album.subtitle = album.metadata.artist || unknownArtist;
+          album.section  = 'albums';
+          album.url      = '/album-detail?id=' + album.name;
+        });
+
+        results = results.concat(albums);
+
+        this.searchBox.setResults(results);
+        return albums;
+      });
+
+    var artists = this.fetch('/api/search/artist/' + query)
+      .then(response =>  response.json())
+      .then((artists) => {
+        artists.forEach((artist) => {
+          artist.title    = artist.metadata.artist || unknownArtist;
+          artist.subtitle = ''
+          artist.section  = 'artists';
+          artist.url      = '/artist-detail?id=' + artist.name;
+        });
+
+        results = results.concat(artists);
+
+        this.searchBox.setResults(results);
+        return artists;
+      });
+
+    var songs = this.fetch('/api/search/title/' + query)
+      .then(response =>  response.json())
+      .then((songs) => {
+        songs.forEach((song) => {
+          song.title    = song.metadata.title  || unknownTitle;
+          song.subtitle = song.metadata.artist || unknownArtist;
+          song.section  = 'songs';
+          song.url      = '/player?id=' + song.name;
+        });
+
+        results = results.concat(songs);
+
+        this.searchBox.setResults(results);
+        return songs;
+      });
+
+    return Promise.all([albums, artists, songs]).then(() => results);
   });
 };
 

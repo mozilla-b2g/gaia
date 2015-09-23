@@ -17,6 +17,12 @@ var AlbumsView = View.extend(function AlbumsView() {
     window.parent.onSearchClose();
   });
   this.searchBox.addEventListener('search', (evt) => this.search(evt.detail));
+  this.searchBox.addEventListener('resultclick', (evt) => {
+    var link = evt.detail;
+    if (link) {
+      this.client.method('navigate', link.getAttribute('href'));
+    }
+  });
 
   this.list.scrollTop = searchHeight;
   this.list.minScrollHeight = `calc(100% - ${searchHeight}px)`;
@@ -59,10 +65,23 @@ AlbumsView.prototype.getAlbums = function() {
 };
 
 AlbumsView.prototype.search = function(query) {
-  return this.fetch('/api/search/album/' + query).then((response) => {
-    return response.json();
-  }).then((results) => {
-    this.searchBox.setResults(results);
+  return Promise.all([
+    document.l10n.formatValue('unknownAlbum'),
+    document.l10n.formatValue('unknownArtist')
+  ]).then(([unknownAlbum, unknownArtist]) => {
+    return this.fetch('/api/search/album/' + query)
+      .then(response =>  response.json())
+      .then((albums) => {
+        albums.forEach((album) => {
+          album.title    = album.metadata.album  || unknownAlbum;
+          album.subtitle = album.metadata.artist || unknownArtist;
+          album.section  = 'albums';
+          album.url      = '/album-detail?id=' + album.name;
+        });
+
+        this.searchBox.setResults(albums);
+        return albums;
+      });
   });
 };
 
