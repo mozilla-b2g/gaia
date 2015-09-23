@@ -27,7 +27,8 @@
             'settings-button'],
 
     bottomElementIds: ['filter-tab-group', 'filter-all-button',
-        'filter-tv-button', 'filter-device-button', 'filter-app-button'],
+        'filter-tv-button', 'filter-device-button', 'filter-app-button',
+        'filter-website-button'],
 
     isNavigable: true,
     navigableClasses: ['filter-tab', 'command-button'],
@@ -39,7 +40,7 @@
     _folderCard: undefined,
 
     filterElementIds: ['filter-all-button', 'filter-tv-button',
-        'filter-device-button', 'filter-app-button'],
+        'filter-device-button', 'filter-app-button', 'filter-website-button'],
 
     filterManager: undefined,
     cardListElem: document.getElementById('card-list'),

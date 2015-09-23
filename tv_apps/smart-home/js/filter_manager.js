@@ -73,6 +73,16 @@
     'APPLICATION': {
       name: 'application',
       iconName: 'application'
+    },
+    /**
+     * @readonly
+     * @memberof FilterManager.FILTERS
+     * @property {String} name - value is `website`
+     * @property {String} iconName - value is `website`
+     */
+    'WEBSITE': {
+      name: 'website',
+      iconName: 'web'
     }
   });
 
