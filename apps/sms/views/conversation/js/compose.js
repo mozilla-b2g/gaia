@@ -469,8 +469,10 @@ var Compose = (function() {
 
     scrollMessageContent: function() {
       if (document.activeElement === dom.message) {
-        // we just got the focus: ensure the caret is visible
-        var range = window.getSelection().getRangeAt(0);
+        // we just got the focus: ensure the caret is visible, and clone
+        // the range to avoid any unnecessary selectionchange event fired
+        // by modifying the range associated with current selection
+        var range = window.getSelection().getRangeAt(0).cloneRange();
         if (range.collapsed) {
           // We can't get the bounding client rect of a collapsed range,
           // so let's insert a temporary node to get the caret position.
