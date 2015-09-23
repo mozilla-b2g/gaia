@@ -127,8 +127,7 @@
 
   ValueSelector.prototype.render = function vs_render(callback) {
     this.publish('willrender');
-    this.containerElement.insertAdjacentHTML('beforeend',
-          Sanitizer.unwrapSafeHTML(this.view()));
+    this.containerElement.insertAdjacentHTML('beforeend', this.view());
     this._fetchElements();
     this._registerEvents();
     this._injected = true;
@@ -156,7 +155,7 @@
   ValueSelector.prototype.view = function vs_view() {
     /* jshint maxlen: false */
     var id = this.CLASS_NAME + this.instanceID;
-    return Sanitizer.createSafeHTML`<div data-z-index-level="value-selector" class="value-selector" id="${id}" hidden>
+    return Sanitizer.escapeHTML `<div data-z-index-level="value-selector" class="value-selector" id="${id}" hidden>
       <form class="value-selector-select-option-popup" role="dialog" data-type="value-selector" hidden>
         <section class="value-selector-container">
           <h1 class="value-selector-options-title" data-l10n-id="choose-option"></h1>
@@ -220,8 +219,7 @@
 
   ValueSelector.prototype.optionView = function(
     {index, checked, labelFor,text}) {
-    return Sanitizer.createSafeHTML`
-      <li role="option" data-option-index="${index}"
+    return Sanitizer.escapeHTML `<li role="option" data-option-index="${index}"
         aria-selected="${checked}" dir="auto">
         <label role="presentation" for="${labelFor}">
           <span>${text}</span>
@@ -230,7 +228,7 @@
   };
 
   ValueSelector.prototype.groupView = function({text}) {
-    return Sanitizer.createSafeHTML `<li role="subheader" dir="auto">
+    return Sanitizer.escapeHTML `<li role="subheader" dir="auto">
         <label role="presentation">
           <span>${text}</span>
         </label>
@@ -497,17 +495,17 @@
     options.forEach(function(option) {
       if (option.group) {
         this.elements.optionsContainer.insertAdjacentHTML('beforeend',
-          Sanitizer.unwrapSafeHTML(this.groupView({
+          this.groupView({
             text: option.text
-          })));
+          }));
       } else {
         this.elements.optionsContainer.insertAdjacentHTML('beforeend',
-          Sanitizer.unwrapSafeHTML(this.optionView({
+          this.optionView({
             index: option.optionIndex.toString(10),
             checked: option.selected.toString(),
             labelFor: 'gaia-option-' + option.optionIndex,
             text: option.text
-          })));
+          }));
       }
     }, this);
 

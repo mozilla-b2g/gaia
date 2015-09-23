@@ -99,7 +99,7 @@
      * @memberof PermissionManager.prototype
      */
     deviceOptionView: function({id, checked, label}) {
-      return Sanitizer.createSafeHTML `<label class="device-list deviceEnable">
+      return Sanitizer.escapeHTML `<label class="device-list deviceEnable">
           <input class="input-enable" id="${id}" type="checkbox" ${checked}>
           <span></span>
         </label>
@@ -582,11 +582,11 @@
 
         var item_li = document.createElement('li');
         item_li.className = 'device-cell';
-        item_li.innerHTML = Sanitizer.unwrapSafeHTML(this.deviceOptionView({
+        item_li.innerHTML = this.deviceOptionView({
                               id: option,
                               checked: checked,
                               label: 'device-' + option
-                            }));
+                            });
         this.devices.appendChild(item_li);
       });
       this.devices.addEventListener('click',
