@@ -601,7 +601,7 @@
         style = (reversedPeriod) ? 'format12hrev' : 'format12h';
 
         if ('format12' === style) {
-          this.element.classList.remove('format12hhrev');
+          this.element.classList.remove('format12hrev');
           this.element.classList.remove('format24h');
           if (!this.element.classList.contains(style)) {
             this.element.classList.add(style);
