@@ -4,7 +4,9 @@ var APP_URL = 'app://dashboard.gaiamobile.org';
 
 var assert = require('chai').assert;
 
-marionette('Test Digital Clock', function() {
+// Skip because the dashboard is not needed app now.
+// Should re-enable the test when we need it.
+marionette.skip('Test Digital Clock', function() {
 
   var opts = {
     hostOptions: {

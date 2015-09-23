@@ -20,7 +20,9 @@ var containsClass = function(elem, className) {
   return false;
 };
 
-marionette('Smart Home', function() {
+// Bug 1207453 - Skip the test due to unknown test enviroment issue for now.
+// We should investigate the issue and re-enable the test later.
+marionette.skip('Smart Home', function() {
 
   var opts = {
     hostOptions: {
