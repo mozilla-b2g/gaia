@@ -1,7 +1,14 @@
 /* exported Settings */
 /* global _ */
+/* global Awesomescreen */
 /* global Browser */
 /* global BrowserDB */
+/* global BrowserDialog */
+/* global FirefoxAccount */
+/* global KeyEvent */
+/* global SearchUtil */
+/* global Toolbar */
+/* global UrlHelper */
 
 'use strict';
 
@@ -16,6 +23,8 @@ var Settings = {
   searchEngineList: null,
   focusList: null,
   focusPos: 0,
+
+  firefoxAccount: null,
 
   /** Get all DOM elements when inited. */
   getAllElements: function settings_getAllElements() {
@@ -32,6 +41,16 @@ var Settings = {
       'settings-search-engine', 'settings-search-engine-name',
       'settings-clear-history',
       'settings-clear-cookie',
+
+      'firefox-account-area',
+      'firefox-account-sign-in',
+      'firefox-account-sign-in-button',
+      'firefox-account-sign-in-description',
+      'firefox-account-signed-in-as',
+      'firefox-account-email',
+      'firefox-account-resend-button',
+      'firefox-account-forget-button',
+      'firefox-account-disconnect-button',
 
       'settings-dialog',
 
@@ -66,20 +85,29 @@ var Settings = {
 
     this.getDefaultHomepage((function(result) {
       /* default homepage nothing... */
-      Browser.debug("default homepage = " + result);
-      if((result == null) || (result == undefined)) {
-         console.log("set default homepage...");
+      Browser.debug('default homepage = ' + result);
+      if(!result) {
+         console.log('set default homepage...');
          this.setDefaultHomepage();
          this.setHomepage(this.DEFAULT_HOMEPAGE);
       }
     }).bind(this));
 
+    this.firefoxAccount = new FirefoxAccount({
+      onlogin: this.handleFirefoxAccountLogin.bind(this),
+      onverified: this.handleFirefoxAccountverified.bind(this),
+      onlogout: this.handleFirefoxAccountLogout.bind(this),
+      onerror: this.handleFirefoxAccountError.bind(this)
+    });
+
     this.settingsList.addEventListener('mouseup',
       this.handleListClick.bind(this));
     this.settingsListArea.addEventListener('mouseup',
       this.handleListAreaClick.bind(this));
+    this.firefoxAccountArea.addEventListener('mouseup',
+      this.handleListAreaClick.bind(this));
     this.settingsDialog.addEventListener('mouseup',
-      this.handleDialogClick.bind(this));
+      this.handleListAreaClick.bind(this));
 
     this.settingsHomepage.addEventListener('mouseup',
       this.handleHomepageClick.bind(this));
@@ -89,6 +117,8 @@ var Settings = {
       this.handleClearHistoryClick.bind(this));
     this.settingsClearCookie.addEventListener('mouseup',
       this.handleClearCookieClick.bind(this));
+    this.firefoxAccountSignInButton.addEventListener('mouseup',
+      this.handleSignInClick.bind(this));
 
     this.settingsDialogHomepageInput.addEventListener('submit',
       this.handleDialogHomepageInputSubmit.bind(this));
@@ -160,9 +190,12 @@ var Settings = {
     this.getHomepage((function(result) {
       this.settingsHomepageName.textContent = result;
     }).bind(this));
-    this.settingsSearchEngineName.textContent = SearchUtil.getCurrentEngineName();
+    this.settingsSearchEngineName.textContent =
+      SearchUtil.getCurrentEngineName();
     this.currentSearchEngine = this.settingsSearchEngineName.textContent;
     this.selectSearchEngine = this.currentSearchEngine;
+
+    // XXX: Get Firefox Account sign in status and display it
   },
 
   /**
@@ -184,16 +217,16 @@ var Settings = {
   },
 
   handleListClick: function settings_handleListClick(evt) {
-    if( evt ) evt.stopPropagation();
+    if( evt ) {
+      evt.stopPropagation();
+    }
     this.hide();
   },
 
   handleListAreaClick: function settings_handleListAreaClick(evt) {
-    if( evt ) evt.stopPropagation();
-  },
-
-  handleDialogClick: function settings_handleDialogClick(evt) {
-    if( evt ) evt.stopPropagation();
+    if( evt ) {
+      evt.stopPropagation();
+    }
   },
 
   focusChange: function settings_focusChange(pos) {
@@ -207,15 +240,19 @@ var Settings = {
     for( var i = 0 ; i < Settings.focusList.length ; i ++ ) {
       if( i == pos ) {
         if(Settings.focusList[i].nodeName == 'INPUT') {
-          if( !Settings.settingsDialogHomepageInput.classList.contains('exfocus') ) {
+          if( !Settings.settingsDialogHomepageInput
+                                            .classList.contains('exfocus') ) {
             Settings.settingsDialogHomepageInput.classList.add('exfocus');
           }
-        } else if(Settings.focusList[i].id == 'settings-dialog-homepage-clear') {
+        } else if(Settings.focusList[i].id == 'settings-dialog-homepage-clear'){
           Settings.focusList[i].focus();
-          if( !Settings.settingsDialogHomepageInput.classList.contains('exfocus') ) {
+          if( !Settings.settingsDialogHomepageInput
+                                            .classList.contains('exfocus') ) {
             Settings.settingsDialogHomepageInput.classList.add('exfocus');
           }
-          if( flg ) opt = Awesomescreen.DEFAULT_EXCLEAR;
+          if( flg ) {
+            opt = Awesomescreen.DEFAULT_EXCLEAR;
+          }
         } else {
           Settings.focusList[i].focus();
           Settings.settingsDialogHomepageInput.classList.remove('exfocus');
@@ -232,7 +269,7 @@ var Settings = {
    */
   handleHomepageClick: function settings_handleHomepageClick() {
     if( !this.isDialogHomepageDisplayed() ) {
-      this.focusList = new Array();
+      this.focusList = [];
       Browser.switchCursorMode(false);
       this.settingsDialog.classList.remove('hidden');
       this.settingsDialogHomepage.classList.remove('hidden');
@@ -268,13 +305,15 @@ var Settings = {
     return !this.settingsDialogHomepage.classList.contains('hidden');
   },
 
-  handleDialogHomepageInputSubmit: function settings_handleDialogHomepageInputSubmit(ev) {
+  handleDialogHomepageInputSubmit:
+    function settings_handleDialogHomepageInputSubmit(ev) {
     if (ev) {
       // Can be canceled
       ev.preventDefault();
     }
 
-    var hasScheme = UrlHelper.hasScheme(this.settingsDialogHomepageInputArea.value);
+    var hasScheme =
+      UrlHelper.hasScheme(this.settingsDialogHomepageInputArea.value);
     // No scheme, prepend basic protocol and return
     if (!hasScheme) {
       this.settingsDialogHomepageInputArea.value =
@@ -284,13 +323,17 @@ var Settings = {
     this.settingsDialogHomepageInputArea.blur();
   },
 
-  handleDialogHomepageInputAreaFocus: function settings_handleDialogHomepageInputAreaFocus(evt) {
-    if( evt ) evt.preventDefault();
+  handleDialogHomepageInputAreaFocus:
+    function settings_handleDialogHomepageInputAreaFocus(evt) {
+    if( evt ) {
+      evt.preventDefault();
+    }
     Settings.settingsDialogHomepageInput.classList.add('input');
     Settings.settingsDialogHomepageInput.classList.remove('exfocus');
   },
 
-  handleDialogHomepageInputAreaClick: function settings_handleDialogHomepageInputAreaClick(evt) {
+  handleDialogHomepageInputAreaClick:
+    function settings_handleDialogHomepageInputAreaClick(evt) {
     Browser.switchCursorMode(true);
     Browser.switchCursorMode(false);
 
@@ -302,8 +345,11 @@ var Settings = {
     Awesomescreen.pointerImg.style.display = 'none';
   },
 
-  handleDialogHomepageInputBlur: function settings_handleDialogHomepageInputBlur(evt) {
-    if( evt ) evt.preventDefault();
+  handleDialogHomepageInputBlur:
+    function settings_handleDialogHomepageInputBlur(evt) {
+    if( evt ) {
+      evt.preventDefault();
+    }
     if( Awesomescreen.pointerImg.style.display == 'none' ) {
       Browser.switchCursorMode(true);
       Browser.switchCursorMode(false);
@@ -315,8 +361,11 @@ var Settings = {
     Awesomescreen.pointerImg.style.display = 'block';
   },
 
-  handleDialogHomepageClear: function settings_handleDialogHomepageClear(evt) {
-    if( evt ) evt.preventDefault();
+  handleDialogHomepageClear:
+    function settings_handleDialogHomepageClear(evt) {
+    if( evt ) {
+      evt.preventDefault();
+    }
     if(( evt.type == 'keyup' ) && ( evt.keyCode != KeyEvent.DOM_VK_RETURN )) {
       return;
     }
@@ -329,8 +378,11 @@ var Settings = {
     this.settingsDialogHomepageInputArea.value = '';
   },
 
-  handleDialogHomepageDefault: function settings_handleDialogHomepageDefault(evt) {
-    if( evt ) evt.preventDefault();
+  handleDialogHomepageDefault:
+    function settings_handleDialogHomepageDefault(evt) {
+    if( evt ) {
+      evt.preventDefault();
+    }
     if(( evt.type == 'keyup' ) && ( evt.keyCode != KeyEvent.DOM_VK_RETURN )) {
       return;
     }
@@ -345,8 +397,11 @@ var Settings = {
     }).bind(this));
   },
 
-  handleDialogHomepageCancel: function settings_handleDialogHomepageCancel(evt) {
-    if( evt ) evt.preventDefault();
+  handleDialogHomepageCancel:
+    function settings_handleDialogHomepageCancel(evt) {
+    if( evt ) {
+      evt.preventDefault();
+    }
     if(( evt.type == 'keyup' ) && ( evt.keyCode != KeyEvent.DOM_VK_RETURN )) {
       return;
     }
@@ -363,7 +418,9 @@ var Settings = {
   },
 
   handleDialogHomepageOk: function settings_handleDialogHomepageOk(evt) {
-    if( evt ) evt.preventDefault();
+    if( evt ) {
+      evt.preventDefault();
+    }
     if(( evt.type == 'keyup' ) && ( evt.keyCode != KeyEvent.DOM_VK_RETURN )) {
       return;
     }
@@ -387,7 +444,7 @@ var Settings = {
    */
   handleSearchEngineClick: function settings_handleSearchEngineClick() {
     if( !this.isDialogSearchDisplayed() ) {
-      this.focusList = new Array();
+      this.focusList = [];
       Browser.switchCursorMode(false);
       this.settingsDialog.classList.remove('hidden');
       this.settingsDialogSearch.classList.remove('hidden');
@@ -441,8 +498,13 @@ var Settings = {
     BrowserDialog.createDialog('del_cookie', null);
   },
 
+  handleSignInClick: function settings_handleSignInClick() {
+    this.firefoxAccount.openFlow();
+  },
+
   clearCookieFailed: function settings_clearCookieFailed() {
-    // this.settingsBannerMessage.innerHTML = 'Failed to clear cookies and stored data';
+    // this.settingsBannerMessage.innerHTML =
+    //    'Failed to clear cookies and stored data';
     this.settingsBannerMessage.innerHTML = _('LT_FAILED_');
     this.showBannerMessage();
   },
@@ -475,8 +537,11 @@ var Settings = {
     return !this.settingsDialogSearch.classList.contains('hidden');
   },
 
-  handleDialogSearchSelected: function settings_handleDialogSearchSelected(ev) {
-    if( ev ) ev.preventDefault();
+  handleDialogSearchSelected:
+    function settings_handleDialogSearchSelected(ev) {
+    if( ev ) {
+      ev.preventDefault();
+    }
     if(( ev.type == 'keyup' ) && ( ev.keyCode != KeyEvent.DOM_VK_RETURN )) {
       return;
     }
@@ -497,7 +562,9 @@ var Settings = {
   },
 
   handleDialogSearchCancel: function settings_handleDialogSearchCancel(ev) {
-    if( ev ) ev.preventDefault();
+    if( ev ) {
+      ev.preventDefault();
+    }
     if(( ev.type == 'keyup' ) && ( ev.keyCode != KeyEvent.DOM_VK_RETURN )) {
       return;
     }
@@ -514,7 +581,9 @@ var Settings = {
   },
 
   handleDialogSearchOk: function settings_handleDialogSearchOk(ev) {
-    if( ev ) ev.preventDefault();
+    if( ev ) {
+      ev.preventDefault();
+    }
     if(( ev.type == 'keyup' ) && ( ev.keyCode != KeyEvent.DOM_VK_RETURN )) {
       return;
     }
@@ -524,17 +593,22 @@ var Settings = {
           end_event, false);
       Settings.hideDialogSearch();
     });
+
+    var setSearchEngine = function () {
+      this.currentSearchEngine = this.selectSearchEngine;
+      this.settingsSearchEngineName.textContent =
+        this.currentSearchEngine;
+      Toolbar.setSearchEngine();
+    };
+
     // end animantion event
     Settings.settingsDialogSearchOk.addEventListener('transitionend',
       end_event, false);
     if( this.currentSearchEngine != this.selectSearchEngine ) {
       for(var i in this.searchEngineList) {
         if( this.selectSearchEngine == this.searchEngineList[i].name ) {
-          SearchUtil.setSearchEngineId(this.searchEngineList[i].id, (function() {
-            this.currentSearchEngine = this.selectSearchEngine;
-            this.settingsSearchEngineName.textContent = this.currentSearchEngine;
-            Toolbar.setSearchEngine();
-          }).bind(this));
+          SearchUtil.setSearchEngineId(this.searchEngineList[i].id,
+            setSearchEngine.bind(this));
           break;
         }
       }
@@ -546,7 +620,9 @@ var Settings = {
    * Handle Key Event.
    */
   handleKeyEvent: function settings_handleKeyEvent(ev) {
-    if( !Settings.isDisplayed() ) return false;
+    if( !Settings.isDisplayed() ) {
+      return false;
+    }
     // in the input area focus (= display keyboard)
     if(document.activeElement.nodeName == 'INPUT') {
       return true;
@@ -573,7 +649,7 @@ var Settings = {
       case KeyEvent.DOM_VK_RIGHT :
         ev.preventDefault();
         if( Settings.isDialogHomepageDisplayed() ) {
-          if(( Settings.focusPos == 0 ) || ( Settings.focusPos == 3 )) {
+          if(( Settings.focusPos === 0 ) || ( Settings.focusPos === 3 )) {
             Settings.focusPos ++;
             Settings.focusChange(Settings.focusPos);
           }
@@ -591,10 +667,10 @@ var Settings = {
       case KeyEvent.DOM_VK_UP :
         ev.preventDefault();
         if( Settings.isDialogHomepageDisplayed() ) {
-          if(( Settings.focusPos == 2 ) || ( Settings.focusPos == 4 )) {
+          if(( Settings.focusPos === 2 ) || ( Settings.focusPos === 4 )) {
             Settings.focusPos -= 2;
             Settings.focusChange(Settings.focusPos);
-          } else if( Settings.focusPos == 3 ) {
+          } else if( Settings.focusPos === 3 ) {
             Settings.focusPos --;
             Settings.focusChange(Settings.focusPos);
           }
@@ -616,10 +692,10 @@ var Settings = {
       case KeyEvent.DOM_VK_DOWN :
         ev.preventDefault();
         if( Settings.isDialogHomepageDisplayed() ) {
-          if(( Settings.focusPos == 1 ) || ( Settings.focusPos == 2 )) {
+          if(( Settings.focusPos == 1 ) || ( Settings.focusPos === 2 )) {
             Settings.focusPos ++;
             Settings.focusChange(Settings.focusPos);
-          } else if( Settings.focusPos == 0 ) {
+          } else if( Settings.focusPos === 0 ) {
             Settings.focusPos += 2;
             Settings.focusChange(Settings.focusPos);
           }
@@ -636,7 +712,7 @@ var Settings = {
 
       case KeyEvent.DOM_VK_RETURN :
         ev.preventDefault();
-          if( Settings.focusPos == 0 ) {
+          if( Settings.focusPos === 0 ) {
             Settings.focusList[Settings.focusPos].focus();
             if( Settings.isDialogHomepageDisplayed() ) {
               Awesomescreen.pointerImg.style.display = 'none';
@@ -663,5 +739,33 @@ var Settings = {
         return false;
     }
     return true;
+  },
+
+  /* Firefox Account event handlers */
+  handleFirefoxAccountLogin: function settings_handleFirefoxAccountLogin (e) {
+    this.firefoxAccountEmail.textContent = e.email;
+    this.firefoxAccountSignIn.classList.add('firefox-account-login');
+    this.firefoxAccountSignIn.classList.remove('firefox-account-disconnected');
+    this.firefoxAccountSignIn.classList.remove('firefox-account-verified');
+  },
+
+  handleFirefoxAccountverified:
+    function settings_handleFirefoxAccountverified (e) {
+      this.firefoxAccountEmail.textContent = e.email;
+      this.firefoxAccountSignIn.classList.remove('firefox-account-login');
+      this.firefoxAccountSignIn.classList.remove(
+                                                'firefox-account-disconnected');
+      this.firefoxAccountSignIn.classList.add('firefox-account-verified');
+  },
+
+  handleFirefoxAccountLogout: function settings_handleFirefoxAccountLogout (e) {
+    this.firefoxAccountEmail.textContent = '';
+    this.firefoxAccountSignIn.classList.remove('firefox-account-login');
+    this.firefoxAccountSignIn.classList.add('firefox-account-disconnected');
+    this.firefoxAccountSignIn.classList.remove('firefox-account-verified');
+  },
+
+  handleFirefoxAccountError: function settings_handleFirefoxAccountError (e) {
+    console.log('error', e);
   }
 };
