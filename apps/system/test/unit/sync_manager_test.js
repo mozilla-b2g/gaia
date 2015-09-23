@@ -634,6 +634,7 @@ suite('system/SyncManager >', () => {
       };
       var previousLastSync = syncManager.lastSync;
       syncManager._settings['sync.collections.history.enabled'] = true;
+      syncManager._settings['sync.collections.history.readonly'] = true;
       window.dispatchEvent(new CustomEvent('onsyncsyncing'));
       setTimeout(() => {
         this.sinon.assert.calledOnce(updateStateSpy);
@@ -644,8 +645,8 @@ suite('system/SyncManager >', () => {
           this.sinon.assert.calledOnce(portStub);
           assert.equal(portStub.getCall(0).args[0].assertion, assertion);
           assert.equal(portStub.getCall(0).args[0].keys, keys);
-          assert.equal(portStub.getCall(0).args[0].collections[0],
-                       'history');
+          assert.ok(portStub.getCall(0).args[0].collections.history);
+          assert.ok(portStub.getCall(0).args[0].collections.history.readonly);
           setTimeout(() => {
             assert.notEqual(syncManager.lastSync, previousLastSync);
             this.sinon.assert.calledOnce(requestStub);
@@ -726,7 +727,8 @@ suite('system/SyncManager >', () => {
         id: id,
         error: 'error'
       };
-      syncManager._settings['sync.collections.history.enabled'] = true;
+      syncManager._settings['sync.collections.passwords.enabled'] = true;
+      syncManager._settings['sync.collections.passwords.readonly'] = false;
       var previousLastSync = syncManager.lastSync;
       window.dispatchEvent(new CustomEvent('onsyncsyncing'));
       setTimeout(() => {
@@ -738,8 +740,10 @@ suite('system/SyncManager >', () => {
           this.sinon.assert.calledOnce(portStub);
           assert.equal(portStub.getCall(0).args[0].assertion, assertion);
           assert.equal(portStub.getCall(0).args[0].keys, keys);
-          assert.equal(portStub.getCall(0).args[0].collections[0],
-                       'history');
+          assert.ok(portStub.getCall(0).args[0].collections.passwords);
+          assert.ok(
+            !portStub.getCall(0).args[0].collections.passwords.readonly
+          );
           setTimeout(() => {
             this.sinon.assert.calledOnce(requestStub);
             assert.equal(syncManager.lastSync, previousLastSync);
