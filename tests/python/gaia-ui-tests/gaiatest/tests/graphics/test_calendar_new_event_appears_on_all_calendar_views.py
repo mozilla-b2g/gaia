@@ -42,22 +42,22 @@ class TestCalendar(GaiaImageCompareTestCase):
         new_event.fill_event_location(event_location)
         self.take_screenshot()
 
-        event_start_date_time = new_event.tap_save_event()
+        event_start_date = new_event.tap_save_event()
 
         # assert that the event is displayed as expected in month view
-        self.assertIn(event_title, calendar.displayed_events_in_month_view(event_start_date_time))
-        self.assertIn(event_location, calendar.displayed_events_in_month_view(event_start_date_time))
+        self.assertIn(event_title, calendar.displayed_events_in_month_view())
+        self.assertIn(event_location, calendar.displayed_events_in_month_view())
         self.take_screenshot()
 
         # switch to the week display
         calendar.tap_week_display_button()
 
-        self.assertIn(event_title, calendar.displayed_events_in_week_view(event_start_date_time))
+        self.assertIn(event_title, calendar.displayed_events_in_week_view(event_start_date))
         Wait(self.marionette).until(lambda m: expected.element_displayed(*self._created_event_locator))
         self.take_screenshot()
 
         # switch to the day display
         calendar.tap_day_display_button()
-        self.assertIn(event_title, calendar.displayed_events_in_day_view(event_start_date_time))
-        self.assertIn(event_location, calendar.displayed_events_in_day_view(event_start_date_time))
+        self.assertIn(event_title, calendar.displayed_events_in_day_view(event_start_date))
+        self.assertIn(event_location, calendar.displayed_events_in_day_view(event_start_date))
         self.take_screenshot()
