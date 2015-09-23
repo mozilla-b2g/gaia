@@ -92,9 +92,10 @@ var CarrierSettings = (function() {
   }
 
   function cs_initDataToggles() {
-    var dataToggle = document.querySelector('#menuItem-enableDataCall input');
+    var dataToggle = document.querySelector(
+      '#menuItem-enableDataCall gaia-switch');
     var dataRoamingToggle =
-      document.querySelector('#menuItem-enableDataRoaming input');
+      document.querySelector('#menuItem-enableDataRoaming gaia-switch');
 
     function updateDataRoamingToggle(dataEnabled) {
       if (dataEnabled) {
@@ -256,7 +257,7 @@ var CarrierSettings = (function() {
     function onSubmit() {
       setWarningDialogState(false);
       setState(true);
-      explanationItem.hidden = false;
+      explanationItem.removeAttribute('hidden');
       input.checked = true;
     }
 
@@ -297,7 +298,7 @@ var CarrierSettings = (function() {
             }
           } else {
             setState(enabled);
-            explanationItem.hidden = false;
+            explanationItem.removeAttribute('hidden');
           }
         });
       });
@@ -314,11 +315,11 @@ var CarrierSettings = (function() {
           }
           if (enabled) {
             setWarningDialogState(false);
-            explanationItem.hidden = false;
+            explanationItem.removeAttribute('hidden');
           }
         };
       } else {
-        explanationItem.hidden = false;
+        explanationItem.removeAttribute('hidden');
       }
     });
   }
