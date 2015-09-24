@@ -28,11 +28,11 @@ if (!utils.misc) {
   const FLAG_YEAR_IGNORED = 9996;
   utils.misc.FLAG_YEAR_IGNORED = FLAG_YEAR_IGNORED;
 
-  utils.misc.formatDate = function(date) {
+  utils.misc.formatDate = function(date, customFormat) {
     var dateString = null;
 
     try {
-      var options = {
+      var format = customFormat || {
         month: 'short',
         day: 'numeric'
       };
@@ -42,9 +42,9 @@ if (!utils.misc) {
 
       var year = normalizedDate.getFullYear();
       if (year !== FLAG_YEAR_IGNORED) {
-        options.year = 'numeric';
+        format.year = 'numeric';
       }
-      var f = new Intl.DateTimeFormat(navigator.languages, options);
+      var f = new Intl.DateTimeFormat(navigator.languages, format);
 
       dateString = f.format(date);
     } catch (err) {

@@ -48,13 +48,14 @@ var subject,
     footer,
     ActivityHandler;
 
-var MOCK_DATE_STRING =
+var MOCK_NUMERIC_DATE_STRING =
   new Date(Date.UTC(1970, 0, 1)).toLocaleString(navigator.languages, {
     year: 'numeric',
-    month: 'short',
+    month: 'numeric',
     day: 'numeric'
   }
 );
+
 realL10n = navigator.mozL10n;
 navigator.mozL10n = {
   get: function get(key) {
@@ -313,7 +314,7 @@ suite('Render contact form', function() {
       assert.equal(contentDate.toUTCString(), date.toUTCString());
 
       assert.equal(inputDate.previousElementSibling.
-                    textContent.trim(), MOCK_DATE_STRING);
+                    textContent.trim(), MOCK_NUMERIC_DATE_STRING);
       assert.isFalse(inputDate.previousElementSibling.
                      classList.contains('placeholder'));
     }
@@ -402,16 +403,23 @@ suite('Render contact form', function() {
     });
 
     test('Birthday first day of the year is rendered properly', function() {
+      teardown(() => {
+        MOCK_NUMERIC_DATE_STRING = REAL_MOCK_NUMERIC_DATE_STRING;
+      });
+
       mockContact.bday = new Date(2014, 0, 1);
       subject.render(mockContact);
 
       var element = 'add-date';
-      var REAL_MOCK_DATE_STRING = MOCK_DATE_STRING;
-      MOCK_DATE_STRING = 'Jan 1, 2014';
-
+      var REAL_MOCK_NUMERIC_DATE_STRING = MOCK_NUMERIC_DATE_STRING;
+      MOCK_NUMERIC_DATE_STRING =
+        new Date(Date.UTC(2014, 0, 1)).toLocaleString(navigator.languages, {
+          year: 'numeric',
+          month: 'numeric',
+          day: 'numeric'
+        }
+      );
       assertDateContent('#' + element + '-0', mockContact.bday);
-
-      MOCK_DATE_STRING = REAL_MOCK_DATE_STRING;
     });
 
     test('Dates are saved preserving their timestasmp referred to UTC',
@@ -890,6 +898,27 @@ suite('Render contact form', function() {
       });
 
       ConfirmDialog.executeYes();
+    });
+  });
+
+  suite('utils.mis.formatDate', () => {
+    test('defaultFormat', () => {
+      const MOCK_DATE_STRING =
+        new Date(Date.UTC(1970, 0, 1)).toLocaleString(navigator.languages, {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric'
+        }
+      );
+      assert.equal(utils.misc.formatDate(mockContact.bday), MOCK_DATE_STRING);
+    });
+
+    test('customFormat', () => {
+      assert.equal(utils.misc.formatDate(mockContact.bday, {
+        year: 'numeric',
+        month: 'numeric',
+        day: 'numeric'
+      }), MOCK_NUMERIC_DATE_STRING);
     });
   });
 
