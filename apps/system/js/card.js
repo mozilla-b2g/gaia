@@ -416,6 +416,7 @@
             if (verticalY > Math.abs(this.deltaX) &&
                 verticalY > this.SWIPE_WOBBLE_THRESHOLD) {
               this._dragPhase = 'cross-slide';
+              this.publish('crossslidestart');
               // dont try and transition while dragging
               this.element.style.transition = 'transform 0s linear';
               this.onCrossSlide(evt);
@@ -449,6 +450,10 @@
         } else {
           // return it to vertical center
           this._resetY();
+        }
+        if (this._dragPhase === 'cross-slide') {
+          this.publish('crossslideend');
+          this._dragPhase = '';
         }
         break;
     }

@@ -483,7 +483,7 @@ suite('system/TaskManager >', function() {
       }
     });
 
-    suite('display cardsview >', function() {
+    suite.only('display cardsview >', function() {
       setup(function() {
         MockService.mockQueryWith('getTopMostWindow', apps.search);
         MockStackManager.mCurrent = MockStackManager.mStack.length -1;
@@ -587,6 +587,18 @@ suite('system/TaskManager >', function() {
           deltaX: 1
         });
         assert.ok(card.setVisibleForScreenReader.calledOnce);
+      });
+
+      test('cross-slide events', function() {
+        var startEvt = new CustomEvent('card-crossslidestart');
+        window.dispatchEvent(startEvt);
+        assert.equal(taskManager.element.style.overflowX, 'hidden');
+
+        this.sinon.clock.tick();
+
+        var endEvt = new CustomEvent('card-crossslideend');
+        window.dispatchEvent(endEvt);
+        assert.equal(taskManager.element.style.overflowX, '');
       });
     });
 

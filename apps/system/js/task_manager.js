@@ -311,7 +311,7 @@
     window.addEventListener('appterminated', this);
     window.addEventListener('wheel', this);
     window.addEventListener('resize', this);
-
+    window.addEventListener('card-crossslidestart', this);
     this.element.addEventListener('click', this);
   };
 
@@ -325,6 +325,7 @@
     window.removeEventListener('appterminated', this);
     window.removeEventListener('wheel', this);
     window.removeEventListener('resize', this);
+    window.removeEventListener('card-crossslidestart', this);
     this._showingEventsRegistered = false;
   };
 
@@ -756,7 +757,25 @@
           this.removeCard(card);
         }
         break;
+      case 'card-crossslidestart':
+        this.handleCardCrossSlide(evt);
+        break;
     }
+  };
+
+  TaskManager.prototype.handleCardCrossSlide = function(evt) {
+    if (this._handlingCrossSlide) {
+      return;
+    }
+    this._handlingCrossSlide = true;
+    var finish = (e) => {
+      if (this.element) {
+        this.element.style.overflowX = '';
+      }
+      this._handlingCrossSlide = false;
+    };
+    this.element.style.overflowX = 'hidden';
+    eventSafety(window, 'card-crossslideend', finish, 1000);
   };
 
   TaskManager.prototype.publish = function tm_publish(type, detail) {
