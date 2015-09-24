@@ -53,28 +53,22 @@ marionette('Conversation Panel Tests', function() {
       });
 
       test('User can see all messages when scrolls up', function() {
-        var pageSize = 10;
-        var loadedPage = 1;
-
         messagesApp.Inbox.firstConversation.tap();
 
         // Composer panel should always be visible
         assertIsDisplayed(messagesApp.Composer.sendButton);
         assertIsDisplayed(messagesApp.Composer.messageInput);
 
-        thread.messages.forEach(function(message, index) {
+        thread.messages.forEach(function(message) {
           var messageNode = messagesApp.Conversation.findMessage(message.id);
 
-          // If current page is loaded, then message node should be visible
-          if (index < pageSize * loadedPage) {
-            client.helper.waitForElement(messageNode);
-          } else {
-            // Otherwise, node may not be visible and we should scroll up to
-            // see it
-            messagesApp.Conversation.scrollUp();
-            loadedPage++;
-
-            client.helper.waitForElement(messageNode);
+          // If node is not visible, let's just scroll up and wait until it
+          // becomes visible.
+          if (!messageNode.displayed()) {
+            client.waitFor(function() {
+              messagesApp.Conversation.scrollUp();
+              return messageNode.displayed();
+            });
           }
         });
 
