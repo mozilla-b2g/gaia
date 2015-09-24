@@ -63,7 +63,7 @@ var template =
     width: 0.1rem;
   }
   #results {
-    background-color: #000;
+    background: var(--background);
     position: absolute;
     top: 3.7rem;
     left: 0;
@@ -79,17 +79,24 @@ var template =
     visibility: visible;
     transition-delay: 0s, 0s;
   }
-  #scroller {
-    display: none;
-    position: absolute;
-    top: 3.7rem;
-    left: 0;
+  #list a {
+    color: var(--text-color);
+    text-decoration: none;
+    padding: 9px 0;
     width: 100%;
-    height: 100vh;
-    z-index: 99999;
   }
-  #scroller.active {
-    display: block;
+  #list li {
+    padding: 0;
+  }
+  #list h3,
+  #list p {
+    background: none !important;
+    padding-right: 60px;
+  }
+  #list img {
+    right: 0;
+    left: auto !important;
+    object-fit: cover;
   }
 </style>
 <div id="container">
@@ -99,9 +106,18 @@ var template =
     <button type="button" id="close" data-l10n-id="search-close"></button>
   </form>
   <section id="results">
-    <gaia-fast-list id="list"></gaia-fast-list>
+    <gaia-fast-list id="list">
+      <template>
+        <li>
+          <a href="\${url}" data-file-path="\${name}" data-section="\${section}">
+            <img>
+            <h3>\${title}</h3>
+            <p>\${subtitle}</p>
+          </a>
+        </li>
+      </template>
+    </gaia-fast-list>
   </section>
-  <section id="scroller"></section>
 </div>`;
 
 proto.createdCallback = function() {
@@ -119,13 +135,18 @@ proto.createdCallback = function() {
     clear:     $id('clear'),
     close:     $id('close'),
     results:   $id('results'),
-    list:      $id('list'),
-    scroller:  $id('scroller')
+    list:      $id('list')
   };
 
-  // this.els.list.configure({
+  this.els.list.configure({
+    getSectionName: (item) => {
+      return item.section;
+    },
 
-  // });
+    getItemImageSrc: (item) => {
+      return this.getItemImageSrc(item);
+    }
+  });
 
   this.els.container.addEventListener('click', (evt) => {
     var button = evt.target.closest('button');
@@ -140,24 +161,26 @@ proto.createdCallback = function() {
   });
 
   this.els.input.addEventListener('focus', () => this.open());
-  this.els.input.addEventListener('input', debounce(() => {
+
+  var onSearch = debounce(() => {
     this.dispatchEvent(new CustomEvent('search', {
       detail: this.els.input.value
     }));
-  }, 500));
+  }, 500);
 
-  window.addEventListener('scroll', (evt) => {
-    var nextElementSibling = this.nextElementSibling;
-    var threshold = nextElementSibling && nextElementSibling.offsetTop;
-    var active = threshold && window.scrollY < threshold;
-    var className = this.els.scroller.className;
+  this.els.input.addEventListener('input', onSearch);
+  this.els.input.addEventListener('keypress', onSearch);
 
-    if (active && className === '') {
-      this.els.scroller.className = 'active';
-    }
+  this.els.list.addEventListener('click', (evt) => {
+    var link = evt.target.closest('a');
+    if (link) {
+      evt.preventDefault();
 
-    else if (!active && className === 'active') {
-      this.els.scroller.className = '';
+      this.dispatchEvent(new CustomEvent('resultclick', {
+        detail: link
+      }));
+
+      this.close();
     }
   });
 
@@ -179,6 +202,8 @@ proto.attachedCallback = function() {
 proto.detachedCallback = function() {
   document.removeEventListener('DOMLocalized', this.onDOMLocalized);
 };
+
+proto.getItemImageSrc = function() {};
 
 proto.scrollOutOfView = function() {
   window.requestAnimationFrame(() => {

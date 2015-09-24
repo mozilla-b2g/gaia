@@ -1,10 +1,10 @@
 !(function(define){'use strict';define(function(require,exports,module){
 
+/**
+ * Mini logger
+ * @type {Function}
+ */
 var debug = 0 ? console.log.bind(console, '[FastList]') : function() {};
-
-var startEvent = ('ontouchstart' in window) ? 'touchstart' : 'mousedown';
-var moveEvent = ('ontouchstart' in window) ? 'touchmove' : 'mousemove';
-var endEvent = ('ontouchstart' in window) ? 'touchend' : 'mouseup';
 
 /**
  * Use the dom-scheduler if it's around,
@@ -22,27 +22,32 @@ exports = module.exports = FastList;
 exports.scheduler = schedule;
 
 function FastList(source) {
-  debug('initialize', source);
-  this.editing = false;
-
-  this.container = source.container;
-  this.container.style.overflowX = 'hidden';
-  this.container.style.overflowY = 'scroll';
-
-  this.list = source.list;
-  if (!this.list) {
-    this.list = document.createElement('ul');
-    this.container.appendChild(this.list);
-  }
-
-  this.itemContainer = source.itemContainer || this.list;
-
+  debug('initialize');
   this.source = source;
 
-  this.geometry = {
-    topPosition: 0,
-    forward: true,
+  // List elements aren't required
+  if (!source.list) {
+    source.list = document.createElement('ul');
+    source.container.appendChild(source.list);
+  }
 
+  this.els = {
+    itemContainer: source.itemContainer || source.list,
+    container: source.container,
+    list: source.list,
+    sections: [],
+    items: source.items || [],
+    itemsInDOM: [].concat(source.items || [])
+  };
+
+  this.els.container.style.overflowX = 'hidden';
+  this.els.container.style.overflowY = 'scroll';
+
+  this.geometry = {
+    topPosition: -1,
+    forward: true,
+    busy: false,
+    idle: true,
     viewportHeight: 0,
     itemHeight: 0,
     headerHeight: 0,
@@ -50,31 +55,10 @@ function FastList(source) {
     switchWindow: 0
   };
 
-  this._templateSection = elementify(source.sectionTemplate);
-  this._templateSection.classList.add('fl-section');
-  this.geometry.headerHeight = source.sectionHeaderHeight();
-
-  var template = elementify(source.itemTemplate);
-  template.style.position = 'absolute';
-  template.style.left = template.style.top = 0;
-  template.style.overflow = 'hidden';
-  template.style.willChange = 'transform';
-  this._template = template;
-
-  this.geometry.itemHeight = source.itemHeight();
-  this.updateContainerGeometry();
-
-  if (debug.name) {
-    if (this.geometry.itemHeight !== template.offsetHeight) {
-      debug('Template height and source height are not the same.');
-    }
-  }
+  this.geometry.headerHeight = source.getSectionHeaderHeight();
+  this.geometry.itemHeight = source.getItemHeight();
 
   this._rendered = false;
-  this._previousTop = -1;
-  this._previousFast = false;
-  this._items = [];
-  this._itemsInDOM = [];
 
   this.reorderingContext = {
     item: null,
@@ -84,54 +68,105 @@ function FastList(source) {
     moveDown: null,
   };
 
-  schedule.attachDirect(
-    this.container,
-    'scroll',
-    this.handleScroll.bind(this)
-  );
-
-  on(this.container, 'click', this);
+  on(this.els.container, 'click', this);
   on(window, 'resize', this);
 
-  schedule.mutation(function() {
+  this.rendered = schedule.mutation(function() {
+    this.updateContainerGeometry();
     this.updateListHeight();
+
+    // We can't set initial scrollTop
+    // until the list has a height
+    if (source.initialScrollTop) {
+      this.els.container.scrollTop = source.initialScrollTop;
+    }
+
     this.updateSections();
     this.render();
+
+    // Bind context early so that is can be detached later
+    this.handleScroll = this.handleScroll.bind(this);
+
+    // Bind scroll listeners after setting
+    // the initialScrollTop to avoid
+    // triggering 'scroll' handler
+    schedule.attachDirect(
+      this.els.container,
+      'scroll',
+      this.handleScroll
+    );
   }.bind(this));
 }
 
 FastList.prototype = {
+  plugin: function(fn) {
+    fn(this);
+    return this;
+  },
 
-  /* Rendering
-     ========= */
+  /**
+   * Updates the container geometry state needed for the rendering
+   *
+   * - viewport height
+   * - number of items per screen
+   * - maximum number of items in the dom
+   * - window left for direction changes
+   *
+   */
   updateContainerGeometry: function() {
     var geo = this.geometry;
 
-    geo.viewportHeight = this.container.offsetHeight;
+    geo.viewportHeight = this.getViewportHeight();
     var itemPerScreen = geo.viewportHeight / geo.itemHeight;
     // Taking into account the will-change budget multiplier from
     // layout/base/nsDisplayList.cpp#1193
-    geo.maxItemCount = Math.floor(itemPerScreen * 2.8);
+    geo.maxItemCount = Math.floor(itemPerScreen * 2.7);
     geo.switchWindow = Math.floor(itemPerScreen / 2);
 
     debug('maxItemCount: ' + geo.maxItemCount);
   },
 
-  // Returns true if we're fast scrolling
-  updateViewportGeometry: function() {
+  /**
+   * Returns the height of the list container.
+   *
+   * Attempts to use user provided .getViewportHeight()
+   * from the configuration, falling back to sync
+   * reflow .offsetHeight :(
+   *
+   * @return {Number}
+   */
+  getViewportHeight: function() {
+    return this.source.getViewportHeight
+      ? this.source.getViewportHeight()
+      : this.els.container.offsetHeight;
+  },
+
+  /**
+   * Updates the rendering window geometry informations
+   *
+   * - top position
+   * - busyness state
+   * - idling state
+   *
+   * We monitor the distance traveled between 2 handled scroll events to
+   * determine if we can do more expensive rendering (idle) or if we need
+   * to skip rendering altogether (busy).
+   *
+   */
+  updateRenderingWindow: function() {
     var geo = this.geometry;
 
-    var position = this.container.scrollTop;
+    var position = this.els.container.scrollTop;
 
-    // Don't compute velocity on first load
-    if (this._previousTop === -1) {
+    // Don't compute lag on first load
+    if (geo.topPosition === -1) {
       geo.topPosition = position;
     }
 
-    this._previousTop = geo.topPosition;
+    var previousTop = geo.topPosition;
     geo.topPosition = position;
 
-    var distanceSinceLast = geo.topPosition - this._previousTop;
+    var distanceSinceLast = geo.topPosition - previousTop;
 
     if ((distanceSinceLast > 0) && !geo.forward) {
       geo.forward = true;
@@ -141,59 +176,99 @@ FastList.prototype = {
       geo.forward = false;
     }
 
-    if (geo.topPosition === 0 && this._previousTop !== 0) {
-      this.container.dispatchEvent(new CustomEvent('top-reached'));
+    if (geo.topPosition === 0 && previousTop !== 0) {
+      this.els.container.dispatchEvent(new CustomEvent('top-reached'));
+    }
+
+    var onTop = geo.topPosition === 0;
+    var atBottom = geo.topPosition ===
+      (this.source.getFullHeight() - geo.viewportHeight);
+
+    // Full stop, forcefuly idle
+    if (onTop || atBottom) {
+      geo.busy = false;
+      geo.idle = true;
+      return;
     }
 
     var moved = Math.abs(distanceSinceLast);
-    var fastScrolling = this._previousFast;
-    if (!fastScrolling  && moved > geo.viewportHeight * 2) {
-      fastScrolling = true;
-    }
-    if (fastScrolling && moved > 0 && moved < geo.viewportHeight * 0.5) {
-      fastScrolling = false;
-    }
-    this._previousFast = fastScrolling;
 
-    var onTop = position === 0;
-    var atBottom = position === this.source.fullHeight() - geo.viewportHeight;
+    var previousBusy = geo.busy;
+    var previousIdle = geo.idle;
 
-    return fastScrolling && !onTop && !atBottom;
+    if (!previousBusy  && moved > geo.viewportHeight * 2) {
+      geo.busy = true;
+    }
+
+    if (previousBusy && moved > 0 && moved < geo.viewportHeight * 0.5) {
+      geo.busy = false;
+    }
+
+    if (!previousIdle  && moved && moved < geo.viewportHeight / 16) {
+      geo.idle = true;
+    }
+
+    if (previousIdle && moved && moved > geo.viewportHeight * 0.25) {
+      geo.idle = false;
+    }
   },
 
+  /**
+   * Places and populates the item in the rendering window
+   *
+   * @param {Bool} reload forces the re-population of all items
+   * @param {Number} changedIndex flags an item as new (for animated insertions)
+   */
   render: function(reload, changedIndex) {
+    debug('render');
+
     var source = this.source;
-    var items = this._items;
-    var itemsInDOM = this._itemsInDOM;
+    var items = this.els.items;
+    var itemsInDOM = this.els.itemsInDOM;
     var geo = this.geometry;
-    var template = this._template;
-    var list = this.itemContainer;
+    var list = this.els.itemContainer;
 
     var indices = computeIndices(this.source, this.geometry);
     var criticalStart = indices.cStart;
     var criticalEnd = indices.cEnd;
     var startIndex = indices.start;
     var endIndex = indices.end;
+    var self = this;
 
     // Initial render generating all dom nodes
     if (!this._rendered) {
       this._rendered = true;
-      endIndex = Math.min(source.fullLength() - 1,
-                          startIndex + this.geometry.maxItemCount - 1);
+      endIndex = Math.min(
+        source.getFullLength() - 1,
+        startIndex + this.geometry.maxItemCount - 1
+      );
     }
 
-    var recyclableItems = recycle(items, criticalStart, criticalEnd,
-                                  geo.forward ? endIndex : startIndex);
+    var recyclableItems = recycle(
+      items,
+      criticalStart,
+      criticalEnd,
+      geo.forward ? endIndex : startIndex
+    );
 
-    var findItemFor = function(index) {
+    if (geo.forward) {
+      for (var i = startIndex; i <= endIndex; ++i) renderItem(i);
+    } else {
+      for (var j = endIndex; j >= startIndex; --j) renderItem(j);
+    }
+
+    function findItemFor(index) {
+      debug('find item for', index, recyclableItems);
       var item;
 
       if (recyclableItems.length > 0) {
         var recycleIndex = recyclableItems.pop();
         item = items[recycleIndex];
         delete items[recycleIndex];
+        debug('found node to recycle', recycleIndex, recyclableItems);
       } else if (itemsInDOM.length < geo.maxItemCount){
-        item = template.cloneNode(true);
+        debug('need to create new node');
+        item = self.createItem();
         list.appendChild(item);
         itemsInDOM.push(item);
       } else {
@@ -203,73 +278,94 @@ FastList.prototype = {
 
       items[index] = item;
       return item;
-    };
+    }
 
-    var renderItem = function(i) {
+    function renderItem(i) {
       var item = items[i];
+
       if (!item) {
         item = findItemFor(i);
+        // Recycling, need to unpopulate and populate with the new content
+        source.unpopulateItemDetail && source.unpopulateItemDetail(item);
+        item.dataset.detailPopulated = false;
         tryToPopulate(item, i, source, true);
         item.classList.toggle('new', i === changedIndex);
       } else if (reload) {
+        // Reloading, re-populating all items
+        item.dataset.detailPopulated = false;
         source.populateItem(item, i);
-      }
+      } // else item is already populated
+
+      // There is a chance that the user may
+      // have called .replaceChild() inside the
+      // .populateItem() hook. We redefine `item`
+      // here to make sure we have the latest node.
+      item = items[i];
 
       var section = source.getSectionFor(i);
       placeItem(item, i, section, geo, source, reload);
-    };
 
-    if (geo.forward) {
-      for (var i = startIndex; i <= endIndex; ++i) {
-        renderItem(i);
-      }
-    } else {
-      for (var j = endIndex; j >= startIndex; --j) {
-        renderItem(j);
-      }
+      if (!source.populateItemDetail) return;
+
+      // Populating the item detail when we're not too busy scrolling
+      // Note: we're always settling back to an idle stage at some point where
+      // we do all the pending detail populations
+      if (!geo.idle) return;
+
+      // Detail already populated, skipping
+      if (item.dataset.detailPopulated === 'true') return;
+
+      var result = source.populateItemDetail(item, i);
+      if (result !== false) item.dataset.detailPopulated = true;
     }
 
-    debugViewport(items, geo.forward, criticalStart, criticalEnd,
-                  startIndex, endIndex);
+    debugViewport(
+      items,
+      geo.forward,
+      criticalStart,
+      criticalEnd,
+      startIndex,
+      endIndex
+    );
   },
 
-  /* Scrolling
-     ========= */
-  handleScroll: function(evt) {
-    var fast = this.updateViewportGeometry();
-    if (fast) {
-      debug('[x] ---------- faaaaassssstttt');
-    } else {
-      this.render();
-    }
+  createItem: function() {
+    var el = this.source.createItem();
+    el.style.position = 'absolute';
+    el.style.left = el.style.top = 0;
+    el.style.overflow = 'hidden';
+    el.style.willChange = 'transform';
+    return el;
   },
 
-  updateListHeight: function() {
-    this.list.style.height = this.source.fullHeight() + 'px';
-    debug('updated list height', this.list.style.height);
+  createSection: function(name) {
+    var el = this.source.createSection(name);
+    el.classList.add('fl-section');
+    return el;
   },
 
-  get scrollTop() {
-    return this.geometry.topPosition;
-  },
+  replaceChild: function(replacement, child) {
+    debug('replace child', replacement, child);
+    var itemsInDOM = this.els.itemsInDOM;
+    var items = this.els.items;
 
-  scrollInstantly: function(by) {
-    this.container.scrollTop += by;
-    this.updateViewportGeometry();
-    this.render();
+    items[items.indexOf(child)] = replacement;
+    itemsInDOM[itemsInDOM.indexOf(child)] = replacement;
+    this.els.itemContainer.replaceChild(replacement, child);
   },
 
   reloadData: function() {
-    return schedule.mutation((function() {
+    return this.rendered = schedule.mutation(function() {
       this.updateSections();
-      this.render(true);
       this.updateListHeight();
-    }).bind(this));
+      this.render(true);
+    }.bind(this));
   },
 
   updateSections: function() {
-    var nodes = this.itemContainer.querySelectorAll('.fl-section');
-    var template = this._templateSection;
+    debug('update sections');
+
+    var nodes = this.els.itemContainer.querySelectorAll('.fl-section');
     var source = this.source;
 
     for (var i = 0; i < nodes.length; i++) {
@@ -277,196 +373,52 @@ FastList.prototype = {
       toRemove.remove();
     }
 
-    var headerHeight = source.sectionHeaderHeight();
+    var headerHeight = source.getSectionHeaderHeight();
     var sections = this.source.getSections();
 
-    sections.forEach(function(section, i) {
-      var height = source.fullSectionHeight(section);
+    for (var j = 0; j < sections.length; j++) {
+      var height = source.getFullSectionHeight(sections[j]);
+      var el = this.createSection(sections[j]);
 
-      var sectionNode = template.cloneNode(true);
-      sectionNode.style.height = headerHeight + height + 'px';
-
-      this.source.populateSection(sectionNode, section, i);
-      this.itemContainer.appendChild(sectionNode);
-    }, this);
-  },
-
-  /* Edit mode
-     ========= */
-  toggleEditMode: function() {
-    this.editing = !this.editing;
-
-    if (this.editing) {
-      this._startTouchListeners();
-    } else {
-      this._stopTouchListeners();
+      el.style.height = headerHeight + height + 'px';
+      this.source.populateSection(el, sections[j], j);
+      this.els.itemContainer.appendChild(el);
     }
-
-    return toggleEditClass(
-      this.itemContainer,
-      this._itemsInDOM,
-      this.editing);
   },
 
-  _startTouchListeners: function() {
-    on(this.itemContainer, startEvent, this);
-    on(this.itemContainer, endEvent, this);
+  /**
+   * Scrolling
+   */
+
+  handleScroll: function(evt) {
+    this.updateRenderingWindow();
+
+    if (this.geometry.busy) debug('[x] ---------- faaaaassssstttt');
+    else this.render();
   },
 
-  _stopTouchListeners: function() {
-    off(this.itemContainer, startEvent, this);
-    off(this.itemContainer, endEvent, this);
+  updateListHeight: function() {
+    this.els.list.style.height = this.source.getFullHeight() + 'px';
+    debug('updated list height', this.els.list.style.height);
   },
 
-  /* Reordering
-     ---------- */
-  _reorderStart: function(evt) {
-    debug('reorder start');
-    var ctx = this.reorderingContext;
-
-    // Already tracking an item, bailing out
-    if (ctx.item) {
-      return;
-    }
-
-    var li = evt.target.parentNode.parentNode;
-    var touch = evt.touches && evt.touches[0] || evt;
-
-    ctx.item = li;
-    ctx.initialY = touch.pageY;
-    ctx.identifier = touch.identifier;
-    ctx.moveUp = new Set();
-    ctx.moveDown = new Set();
-    ctx.moveHandler = this._reorderMove.bind(this);
-
-    var listenToMove = (function() {
-      schedule.attachDirect(
-        this.itemContainer,
-        moveEvent,
-        ctx.moveHandler);
-    }).bind(this);
-
-    setupForDragging(li, true)
-      .then(listenToMove)
-      .then(toggleDraggingClass.bind(null, li, true));
+  get scrollTop() {
+    return this.geometry.topPosition;
   },
 
-  _reorderMove: function(evt) {
-    debug('reorder move');
-    var ctx = this.reorderingContext;
-    if (!ctx.item) {
-      return;
-    }
-
-    // Multi touch
-    if (evt.touches && evt.touches.length > 1) {
-      return;
-    }
-
-    var li = ctx.item;
-    var touch = evt.touches && evt.touches[0] || evt;
-    var position = touch.pageY;
-
-    var delta = position - ctx.initialY;
-
-    this._rearrange(delta);
-    tweakTransform(li, delta);
-
-    // TODO: scroll when close to the beginning/end of the viewport
+  scrollInstantly: function(position) {
+    this.els.container.scrollTop = position;
+    this.updateRenderingWindow();
+    this.render();
   },
 
-  _reorderEnd: function(evt) {
-    debug('reorder end');
+  /**
+   * External Content Changes
+   */
 
-    var ctx = this.reorderingContext;
-    if (!ctx.item) {
-      return;
-    }
-
-    var li = ctx.item;
-    schedule.detachDirect(
-      this.itemContainer,
-      moveEvent,
-      ctx.moveHandler);
-
-    var touch = evt.touches && evt.touches[0] || evt;
-    if (touch.identifier == ctx.identifier) {
-      var position = touch.pageY;
-      var delta = position - ctx.initialY;
-      computeChanges(ctx, this.geometry, this._itemsInDOM, delta);
-    }
-
-    Promise.all([
-      applyChanges(ctx, this.geometry, this._itemsInDOM),
-      moveInPlace(ctx, this.geometry)
-    ]).then(this._reorderFinish.bind(this, li))
-      .then(toggleDraggingClass.bind(null, li, false));
-  },
-
-  _reorderFinish: function(li) {
-    return Promise.all([this._commitToDocument(),
-                        setupForDragging(li, false)]);
-  },
-
-  _rearrange: function(delta) {
-    var ctx = this.reorderingContext;
-    var upCount = ctx.moveUp.size;
-    var downCount = ctx.moveDown.size;
-
-    computeChanges(this.reorderingContext, this.geometry,
-                   this._itemsInDOM, delta);
-
-    if (ctx.moveUp.size === upCount &&
-        ctx.moveDown.size === downCount) {
-      return;
-    }
-
-    applyChanges(this.reorderingContext,
-                 this.geometry, this._itemsInDOM);
-  },
-
-  _commitToDocument: function() {
-    var ctx = this.reorderingContext;
-    var li = ctx.item;
-    var itemsInDOM = this._itemsInDOM;
-    var items = this._items;
-    var source = this.source;
-
-    return schedule.mutation((function() {
-      // Nothing to do
-      if (!ctx.moveUp && !ctx.moveDown) {
-        return;
-      }
-
-      var index = items.indexOf(li);
-      var section = li.dataset.section;
-      var newIndex = index + ctx.moveUp.size - ctx.moveDown.size;
-
-      items.splice(index, 1);
-      items.splice(newIndex, 0, li);
-      var c = source.removeAtIndex(index);
-      source.insertAtIndex(newIndex, c, section);
-
-      itemsInDOM.forEach(function(item) {
-        resetTransition(item);
-        resetTransform(item);
-      });
-
-      this.updateSections();
-      this.render();
-
-      ctx.item = null;
-      ctx.initialY = null;
-      ctx.identifier = null;
-      ctx.moveUp = null;
-      ctx.moveDown = null;
-      ctx.moveHandler = null;
-    }).bind(this));
-  },
-
-  /* External content changes
-     ======================== */
   insertedAtIndex: function(index) {
+    debug('inserted at index', index);
+
     if (index !== 0) {
       //TODO: support any point of insertion
       return;
@@ -479,8 +431,8 @@ FastList.prototype = {
       return;
     }
 
-    var domItems = this._itemsInDOM;
-    var list = this.itemContainer;
+    var domItems = this.els.itemsInDOM;
+    var list = this.els.itemContainer;
 
     list.classList.add('reordering');
     pushDown(domItems, this.geometry)
@@ -493,15 +445,17 @@ FastList.prototype = {
   },
 
   _insertOnTop: function(keepScrollPosition) {
+    debug('insert on top', keepScrollPosition);
     return schedule.mutation((function() {
-      this._items.unshift(null);
-      delete this._items[0]; // keeping it sparse
+      this.els.items.unshift(null);
+      delete this.els.items[0]; // keeping it sparse
 
       this.updateSections();
 
       if (keepScrollPosition) {
-        this.scrollInstantly(this.geometry.itemHeight);
-        this.container.dispatchEvent(new CustomEvent('hidden-new-content'));
+        var scrollTop = this.els.container.scrollTop;
+        this.scrollInstantly(scrollTop + this.geometry.itemHeight);
+        this.els.container.dispatchEvent(new CustomEvent('hidden-new-content'));
       } else {
         this.render(false, 0);
       }
@@ -513,23 +467,7 @@ FastList.prototype = {
   handleEvent: function(evt) {
     switch (evt.type) {
       case 'resize':
-        this.geometry.viewportHeight = this.container.offsetHeight;
         this.updateContainerGeometry();
-        break;
-      case startEvent:
-        if (!evt.target.classList.contains('cursor')) {
-          return;
-        }
-        evt.preventDefault();
-        this._reorderStart(evt);
-        break;
-      case endEvent:
-        if (!evt.target.classList.contains('cursor') &&
-            endEvent === 'touchend') {
-          return;
-        }
-        evt.preventDefault();
-        this._reorderEnd(evt);
         break;
       case 'click':
         if (this.editing) {
@@ -537,9 +475,9 @@ FastList.prototype = {
         }
 
         var li = evt.target;
-        var index = this._items.indexOf(li);
+        var index = this.els.items.indexOf(li);
 
-        this.itemContainer.dispatchEvent(new CustomEvent('item-selected', {
+        this.els.itemContainer.dispatchEvent(new CustomEvent('item-selected', {
           bubbles: true,
           detail: {
             index: index,
@@ -548,14 +486,38 @@ FastList.prototype = {
         }));
         break;
     }
+  },
+
+  /**
+   * Permanently destroy the list.
+   *
+   * @public
+   */
+  destroy: function() {
+    this.els.itemContainer.innerHTML = '';
+    schedule.detachDirect(
+      this.els.container,
+      'scroll',
+      this.handleScroll
+    );
   }
 };
 
-/* Internals
-   ========= */
+/**
+ * Internals
+ */
 
-/* ASCII Art viewport debugging
-   ---------------------------- */
+/**
+ * ASCII Art viewport debugging
+ *
+ * @param  {[type]} items   [description]
+ * @param  {[type]} forward [description]
+ * @param  {[type]} cStart  [description]
+ * @param  {[type]} cEnd    [description]
+ * @param  {[type]} start   [description]
+ * @param  {[type]} end     [description]
+ * @return {[type]}         [description]
+ */
 function debugViewport(items, forward, cStart, cEnd, start, end) {
   if (!debug.name) {
     return;
@@ -563,49 +525,50 @@ function debugViewport(items, forward, cStart, cEnd, start, end) {
 
   var str = '[' + (forward ? 'v' : '^') + ']';
   for (var i = 0; i < items.length; i++) {
-    if (i == start) {
-      str += '|';
-    }
-    if (i == cStart) {
-      str += '[';
-    }
-    if (items[i]) {
-      str += 'x';
-    } else {
-      str += '-';
-    }
-    if (i == cEnd) {
-      str += ']';
-    }
-    if (i == end) {
-      str += '|';
-    }
+    if (i == start) str += '|';
+    if (i == cStart) str += '[';
+
+    if (items[i]) str += 'x';
+    else str += '-';
+
+    if (i == cEnd) str += ']';
+    if (i == end) str += '|';
   }
 
   debug(str);
 }
 
 function computeIndices(source, geometry) {
-  var criticalStart = source.indexAtPosition(geometry.topPosition);
-  var criticalEnd = source.indexAtPosition(geometry.topPosition +
+  var criticalStart = source.getIndexAtPosition(geometry.topPosition);
+  var criticalEnd = source.getIndexAtPosition(geometry.topPosition +
                                            geometry.viewportHeight);
   var canPrerender = geometry.maxItemCount -
                      (criticalEnd - criticalStart) - 1;
   var before = geometry.switchWindow;
   var after = canPrerender - before;
-  var lastIndex = source.fullLength() - 1;
+  var lastIndex = source.getFullLength() - 1;
 
   var startIndex;
   var endIndex;
 
   if (geometry.forward) {
-    startIndex = Math.max(0, criticalStart - before);
-    endIndex = Math.min(lastIndex,
-                        criticalEnd + after);
+    startIndex = criticalStart - before;
+    endIndex = criticalEnd + after;
   } else {
-    startIndex = Math.max(0, criticalStart - after);
-    endIndex = Math.min(lastIndex,
-                        criticalEnd + before);
+    startIndex = criticalStart - after;
+    endIndex = criticalEnd + before;
+  }
+
+  var extra;
+  if (startIndex < 0) {
+    extra = -startIndex;
+    startIndex = 0;
+    endIndex = Math.min(lastIndex, endIndex + extra);
+  }
+  if (endIndex > lastIndex) {
+    extra = endIndex - lastIndex;
+    endIndex = lastIndex;
+    endIndex = Math.max(0, startIndex + extra);
   }
 
   return {
@@ -617,11 +580,11 @@ function computeIndices(source, geometry) {
 }
 
 function recycle(items, start, end, action) {
+  debug('recycle', start, end, action);
   var recyclableItems = [];
+
   for (var i in items) {
-    if ((i < start) || (i > end)) {
-      recyclableItems.push(i);
-    }
+    if ((i < start) || (i > end)) recyclableItems.push(i);
   }
 
   // Put the items that are furthest away from the displayport edge
@@ -634,18 +597,25 @@ function recycle(items, start, end, action) {
 }
 
 function tryToPopulate(item, index, source, first) {
-  if (parseInt(item.dataset.index) !== index && !first) {
+  debug('try to populate');
+
     // The item was probably reused
-    return;
-  }
+  if (item.dataset.index != index && !first) return;
 
   // TODO: should be in a mutation block when !first
   var populateResult = source.populateItem(item, index);
 
   if (populateResult instanceof Promise) {
     item.dataset.populated = false;
-    populateResult.then(tryToPopulate.bind(null, item, index,
-                                           source));
+    populateResult.then(
+      tryToPopulate.bind(
+        null,
+        item,
+        index,
+        source
+      )
+    );
+
     return;
   }
 
@@ -654,69 +624,73 @@ function tryToPopulate(item, index, source, first) {
     return;
   }
 
+  // Promise-delayed population, once resolved
+
+  // Doing any pending itemDetail population on it
+  if (source.populateItemDetail && item.dataset.detailPopulated !== 'true') {
+    source.populateItemDetail(item, index);
+    item.dataset.detailPopulated = true;
+  }
+
   // Revealing the populated item
+  debug('revealing populated item');
   item.style.transition = 'opacity 0.2s linear';
   schedule.transition(function() {
     item.dataset.populated = true;
   }, item, 'transitionend').then(function() {
+    debug('populated item revealed');
     item.style.transition = '';
   });
 }
 
 function placeItem(item, index, section, geometry, source, reload) {
-  if (parseInt(item.dataset.index) === index && !reload) {
+  if (item.dataset.index == index && !reload) {
     // The item was probably reused
+    debug('abort: item resused');
     return;
   }
 
-  item.dataset.position = source.positionForIndex(index);
+  item.dataset.position = source.getPositionForIndex(index);
   item.dataset.index = index;
   item.dataset.section = section;
 
-  var tweakedBy = parseInt(item.dataset.tweakDelta);
-  if (tweakedBy) {
-    tweakTransform(item, tweakedBy);
-  } else {
-    resetTransform(item);
-  }
+  var tweakedBy = item.dataset.tweakDelta;
+  if (tweakedBy) tweakTransform(item, tweakedBy);
+  else resetTransform(item);
 }
 
 function resetTransform(item) {
-  var position = parseInt(item.dataset.position);
+  var position = item.dataset.position;
   item.style.webkitTransform =
     item.style.transform = 'translate3d(0, ' + position + 'px, 0)';
   item.dataset.tweakDelta = '';
 }
 
 function tweakTransform(item, delta) {
-  var position = parseInt(item.dataset.position) + delta;
+  var position = ~~item.dataset.position + ~~delta;
   item.style.webkitTransform =
     item.style.transform = 'translate3d(0, ' + position + 'px, 0)';
   item.dataset.tweakDelta = delta;
 }
 
-function resetTransition(item) {
-  item.style.transition = '';
-  item.style.webkitTransition = '';
-}
+/**
+ * Internals
+ */
 
-function tweakAndTransition(item, tweak) {
-  return schedule.feedback(function() {
-    item.style.transition = 'transform 0.15s ease';
-    item.style.webkitTransition = '-webkit-transform 0.15s ease';
-    if (tweak === 0) {
-      setTimeout(resetTransform.bind(null, item));
-      return;
+function cleanInlineStyles(domItems) {
+  return schedule.mutation(function() {
+    for (var i = 0; i < domItems.length; i++) {
+      var item = domItems[i];
+      item.style.transition = '';
+      item.style.webkitTransition = '';
+      resetTransform(item);
     }
-    setTimeout(tweakTransform.bind(null, item, tweak));
-  }, item, 'transitionend')
-  .then(resetTransition.bind(null, item));
+    domItems[0] && domItems[0].scrollTop; // flushing
+  });
 }
 
 function pushDown(domItems, geometry) {
-  if (!domItems.length) {
-    return Promise.resolve();
-  }
+  if (!domItems.length) return Promise.resolve();
 
   return schedule.transition(function() {
     for (var i = 0; i < domItems.length; i++) {
@@ -743,151 +717,6 @@ function reveal(list) {
   });
 }
 
-function cleanInlineStyles(domItems) {
-  return schedule.mutation(function() {
-    for (var i = 0; i < domItems.length; i++) {
-      var item = domItems[i];
-      item.style.transition = '';
-      item.style.webkitTransition = '';
-      resetTransform(item);
-    }
-    domItems[0] && domItems[0].scrollTop; // flushing
-  });
-}
-
-function toggleEditClass(list, domItems, editing) {
-  if (!domItems.length) {
-    return Promise.resolve();
-  }
-
-  return schedule.feedback(function() {
-    for (var i = 0; i < domItems.length; i++) {
-      var item = domItems[i];
-      var overlay = item.querySelector('.overlay');
-      overlay.dataset.anim = editing ? 'reveal' : 'hide';
-      item.classList.toggle('edit', editing);
-    }
-  }, list, 'animationend');
-}
-
-function setupForDragging(item, on) {
-  return schedule.mutation(function() {
-    item.parentNode.classList.toggle('reordering', on);
-    item.style.zIndex = on ? '1000' : '';
-    item.style.boxShadow = on ? '0 0 3px 1px #bcbcbc' : '';
-  });
-}
-
-function toggleDraggingClass(item, on) {
-  return schedule.feedback(function() {
-    var overlay = item.querySelector('.overlay');
-    overlay.dataset.anim = on ? 'hide' : 'reveal';
-  }, item, 'animationend');
-}
-
-function computeChanges(context, geometry, domItems, delta) {
-  if (!context.item) {
-    return;
-  }
-
-  var draggedItem = context.item;
-  var draggedOriginal = parseInt(draggedItem.dataset.position);
-  var draggedTweaked = draggedOriginal + delta;
-
-  for (var i = 0; i < domItems.length; i++) {
-    var item = domItems[i];
-    if (item === draggedItem) {
-      continue;
-    }
-
-    // TODO: support re-ordering accross sections
-    if (item.dataset.section !== draggedItem.dataset.section) {
-      continue;
-    }
-
-    var itemOriginal = parseInt(item.dataset.position);
-    var itemTweaked = itemOriginal + parseInt(item.dataset.tweakDelta);
-
-    if ((itemOriginal < draggedOriginal) && (draggedTweaked < itemOriginal)) {
-      context.moveDown.add(item);
-    } else {
-      if (draggedTweaked > itemTweaked) {
-        context.moveDown.delete(item);
-      }
-    }
-
-    if ((itemOriginal > draggedOriginal) && (draggedTweaked > itemOriginal)) {
-      context.moveUp.add(item);
-    } else {
-      if (draggedTweaked < itemTweaked) {
-        context.moveUp.delete(item);
-      }
-    }
-  }
-}
-
-function applyChanges(context, geometry, domItems) {
-  if (!context.item) {
-    return Promise.resolve();
-  }
-
-  var itemHeight = geometry.itemHeight;
-  var draggedItem = context.item;
-  var promises = [];
-
-  for (var i = 0; i < domItems.length; i++) {
-    var item = domItems[i];
-    if (item === draggedItem) {
-      continue;
-    }
-
-    // Reset
-    if (item.dataset.tweakDelta &&
-       !context.moveUp.has(item) && !context.moveDown.has(item)) {
-
-      promises.push(tweakAndTransition(item, 0));
-    }
-
-    // Moving down
-    if (context.moveDown.has(item)) {
-      if (parseInt(item.dataset.tweakDelta) !== itemHeight) {
-        promises.push(tweakAndTransition(item, itemHeight));
-      }
-    }
-
-    // Moving up
-    if (context.moveUp.has(item)) {
-      if (parseInt(item.dataset.tweakDelta) !== itemHeight * -1) {
-        promises.push(tweakAndTransition(item, itemHeight * -1));
-      }
-    }
-  }
-
-  return Promise.all(promises);
-}
-
-function moveInPlace(context, geometry) {
-  var li = context.item;
-
-  // We're already in place
-  if (!li.dataset.tweakDelta) {
-    return Promise.resolve();
-  }
-
-  var position = parseInt(li.dataset.position);
-  var taintedPosition = position + parseInt(li.dataset.tweakDelta);
-  var itemHeight = geometry.itemHeight;
-  var newPosition = position + context.moveUp.size * itemHeight -
-                    context.moveDown.size * itemHeight;
-
-  var duration = (Math.abs(taintedPosition - newPosition) / itemHeight) * 150;
-
-  return schedule.feedback(function() {
-    li.style.transition = 'transform ' + duration + 'ms linear';
-    li.style.webkitTransition = '-webkit-transform ' + duration + 'ms linear';
-    setTimeout(tweakTransform.bind(null, li, (newPosition - position)));
-  }, li, 'transitionend');
-}
 
 /**
  * Utils
@@ -897,7 +726,7 @@ function schedulerShim() {
   var raf = window.requestAnimationFrame;
 
   return {
-    mutation: function(block) { return Promise.resolve(block()); },
+    mutation: function(block) { return Promise.resolve().then(block); },
     transition: function(block, el, event, timeout) {
       block();
       return after(el, event, timeout || 500);
@@ -930,14 +759,6 @@ function schedulerShim() {
       }
     });
   }
-}
-
-function elementify(html) {
-  var div = document.createElement('div');
-  div.innerHTML = html;
-  var content = div.firstElementChild;
-  content.remove();
-  return content;
 }
 
 // Shorthand

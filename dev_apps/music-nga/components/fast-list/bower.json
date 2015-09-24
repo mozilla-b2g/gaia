@@ -24,6 +24,6 @@
     "tests"
   ],
   "dependencies": {
-    "gaia-component": "gaia-components/gaia-component#~0.3.8"
+    "dom-scheduler": "etiennesegonzac/dom-scheduler"
   }
 }

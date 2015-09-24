@@ -6,34 +6,43 @@ var debug = 1 ? (...args) => console.log('[SongsView]', ...args) : () => {};
 var SongsView = View.extend(function SongsView() {
   View.call(this); // super();
 
-  this.search = document.getElementById('search');
+  this.searchBox = document.getElementById('search');
   this.list = document.getElementById('list');
 
-  this.search.addEventListener('open', () => window.parent.onSearchOpen());
-  this.search.addEventListener('close', () => window.parent.onSearchClose());
+  var searchHeight = this.searchBox.offsetHeight;
+
+  this.searchBox.addEventListener('open', () => window.parent.onSearchOpen());
+  this.searchBox.addEventListener('close', () => {
+    this.list.scrollTop = searchHeight;
+    window.parent.onSearchClose();
+  });
+  this.searchBox.addEventListener('search', (evt) => this.search(evt.detail));
+  this.searchBox.addEventListener('resultclick', (evt) => {
+    var link = evt.detail;
+    if (link) {
+      this.queueSong(link.dataset.filePath);
+
+      this.client.method('navigate', link.getAttribute('href'));
+    }
+  });
+
+  this.searchBox.getItemImageSrc = (item) => {
+    return this.getThumbnail(item.name);
+  };
+
+  this.list.scrollTop = searchHeight;
+  this.list.minScrollHeight = `calc(100% - ${searchHeight}px)`;
 
   this.list.configure({
     model: this.getCache(),
 
-    getSectionName(item) {
+    getSectionName: (item) => {
       var title = item.metadata.title;
       return title ? title[0].toUpperCase() : '?';
     },
 
-    // We won't need this after <gaia-fast-list>
-    // gets proper dynamic <template> input
-    populateItem: function(el, i) {
-      var data = this.getRecordAt(i);
-
-      var link = el.querySelector('a');
-      var title = el.querySelector('h3');
-      var subtitle = el.querySelector('p');
-
-      link.href = `/player?id=${data.name}`;
-      link.dataset.filePath = data.name;
-
-      title.firstChild.data = data.metadata.title;
-      subtitle.firstChild.data = data.metadata.artist;
+    getItemImageSrc: (item) => {
+      return this.getThumbnail(item.name);
     }
   });
 
@@ -43,8 +52,6 @@ var SongsView = View.extend(function SongsView() {
       this.queueSong(link.dataset.filePath);
     }
   });
-
-  View.preserveListScrollPosition(this.list);
 
   this.client.on('databaseChange', () => this.update());
 
@@ -93,6 +100,38 @@ SongsView.prototype.setCache = function(items) {
 
 SongsView.prototype.getCache = function() {
   return JSON.parse(localStorage.getItem('cache:songs')) || [];
+};
+
+SongsView.prototype.getThumbnail = function(filePath) {
+  return this.fetch('/api/artwork/thumbnail/' + filePath)
+    .then(response => response.blob())
+    .then((blob) => {
+      var url = URL.createObjectURL(blob);
+      setTimeout(() => URL.revokeObjectURL(url), 1);
+
+      return url;
+    });
+};
+
+SongsView.prototype.search = function(query) {
+  return Promise.all([
+    document.l10n.formatValue('unknownTitle'),
+    document.l10n.formatValue('unknownArtist')
+  ]).then(([unknownTitle, unknownArtist]) => {
+    return this.fetch('/api/search/title/' + query)
+      .then(response =>  response.json())
+      .then((songs) => {
+        songs.forEach((song) => {
+          song.title    = song.metadata.title  || unknownTitle;
+          song.subtitle = song.metadata.artist || unknownArtist;
+          song.section  = 'songs';
+          song.url      = '/player?id=' + song.name;
+        });
+
+        this.searchBox.setResults(songs);
+        return songs;
+      });
+  });
 };
 
 window.view = new SongsView();

@@ -59,7 +59,7 @@ Music.Selector = Object.freeze({
   searchNoResult: '#views-search-no-result',
 
   tilesView: '#views-tiles',
-  firstSong: '#list li',
+  firstSong: '#list a',
   playButton: '#player-controls-play',
   progressBar: '#player-seek-bar-progress',
   shareButton: '#player-cover-share',
@@ -192,14 +192,12 @@ Music.prototype = {
     var listItems = this.client.executeScript(function () {
       var list = document.getElementById('list');
       var elementsData = [];
-      var elements = list.querySelectorAll('li');
+      var elements = list.querySelectorAll('a');
       for(var i = 0; i < elements.length; i++) {
         var data = {};
-        var a = elements[i].getElementsByTagName('a');
-        if (a.length) {
-          data.filePath = a[0].dataset.filePath;
-          data.href = a[0].href;
-        }
+        var a = elements[i];
+        data.filePath = a.dataset.filePath;
+        data.href = a.href;
         var h3 = elements[i].getElementsByTagName('h3');
         if (h3.length) {
           data.title = h3[0].textContent;
@@ -207,6 +205,10 @@ Music.prototype = {
         var p = elements[i].getElementsByTagName('p');
         if (p.length) {
           data.text = p[0].textContent;
+        }
+        var img = elements[i].getElementsByTagName('img');
+        if (img.length) {
+          data.img = img[0].src;
         }
         elementsData.push(data);
       }
@@ -218,6 +220,10 @@ Music.prototype = {
 
   get firstListItem() {
     return this.client.helper.waitForElement(Music.Selector.firstListItem);
+  },
+
+  get albumsListItemsData() {
+    return this._getListItemsData(this.albumsViewFrame);
   },
 
   get artistsListItemsData() {
@@ -475,7 +481,7 @@ Music.prototype = {
   _selectItem: function(name, frame) {
     this.client.switchToFrame(frame);
 
-    var elements = this.client.findElements('#list li');
+    var elements = this.client.findElements('#list a');
     assert.ok(elements.length > 0);
 
     var matching = elements.filter(function (element) {
