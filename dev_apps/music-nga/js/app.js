@@ -47,7 +47,6 @@ var unknownArtist;
 var unknownTitle;
 
 document.addEventListener('DOMLocalized', () => {
-  console.log('**** DOMLocalized ****');
   document.l10n.formatValue('unknownArtist').then(value => unknownArtist = value);
   document.l10n.formatValue('unknownTitle').then(value =>  unknownTitle  = value);
 });

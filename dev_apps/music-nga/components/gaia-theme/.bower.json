@@ -30,6 +30,6 @@
     "commit": "c18511f54385ca546b9ebab2f5f0c76aaec8b534"
   },
   "_source": "git://github.com/gaia-components/gaia-theme.git",
-  "_target": "~0.5.0",
+  "_target": "~0.5.1",
   "_originalSource": "gaia-components/gaia-theme"
 }

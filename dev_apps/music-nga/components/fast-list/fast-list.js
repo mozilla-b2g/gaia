@@ -565,10 +565,11 @@ function computeIndices(source, geometry) {
     startIndex = 0;
     endIndex = Math.min(lastIndex, endIndex + extra);
   }
+
   if (endIndex > lastIndex) {
     extra = endIndex - lastIndex;
     endIndex = lastIndex;
-    endIndex = Math.max(0, startIndex + extra);
+    startIndex = Math.max(0, startIndex - extra);
   }
 
   return {

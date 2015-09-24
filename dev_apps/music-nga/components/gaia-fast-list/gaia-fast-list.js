@@ -15,6 +15,7 @@ require('gaia-sub-header');
  */
 
 var isTouch = 'ontouchstart' in window;
+var touchcancel = isTouch ? 'touchcancel' : 'mousecancel';
 var touchstart = isTouch ? 'touchstart' : 'mousedown';
 var touchmove = isTouch ? 'touchmove' : 'mousemove';
 var touchend = isTouch ? 'touchend' : 'mouseup';
@@ -235,8 +236,8 @@ var GaiaFastListProto = {
       }
 
       [picker] .fast-list {
-        right: 35px; /* picker width */
-        padding-right: 4px;
+        right: 26px; /* picker width */
+        padding-right: 12px;
       }
 
       .fast-list.layerize {
@@ -390,6 +391,7 @@ var GaiaFastListProto = {
         justify-content: center;
         align-items: center;
         flex: 1;
+        min-height: 0;
         text-decoration: none;
         text-align: center;
         color: inherit;
@@ -397,6 +399,7 @@ var GaiaFastListProto = {
 
       ::content [picker-item]:before {
         font-size: 19px;
+        -moz-user-select: none;
       }
 
       .picker a {
@@ -910,8 +913,6 @@ Internal.prototype = {
     var fullLength = this.getFullLength();
     var index = 0;
 
-    pos += this.el.offset;
-
     for (var name in sections) {
       var items = sections[name];
       var sectionHeight = items.length * itemHeight;
@@ -1186,12 +1187,14 @@ Picker.prototype = {
 
   onTouchStart(e) {
     debug('touch start');
+    e.preventDefault();
     this.height = this.el.clientHeight;
     this.els.allItems = this.getAllItems();
     this.itemHeight = this.height / this.els.allItems.length;
-    this.offset = this.el.getBoundingClientRect().top;
+    this.offset = this.els.allItems[0].getBoundingClientRect().top;
 
     scheduler.attachDirect(window, touchmove, this.onTouchMove);
+    addEventListener(touchcancel, this.onTouchEnd);
     addEventListener(touchend, this.onTouchEnd);
 
     this.update(e);
@@ -1200,14 +1203,17 @@ Picker.prototype = {
 
   onTouchMove(e) {
     debug('touch move');
+    e.preventDefault();
     var fast = (e.timeStamp - this.lastUpdate) < 50;
     if (!fast) this.update(e);
   },
 
   onTouchEnd(e) {
     debug('touch end');
+    e.preventDefault();
 
     scheduler.detachDirect(window, touchmove, this.onTouchMove);
+    removeEventListener(touchend, this.onTouchEnd);
     removeEventListener(touchend, this.onTouchEnd);
 
     this.update(e);
@@ -1220,7 +1226,7 @@ Picker.prototype = {
   },
 
   update(e) {
-    debug('update', this.selectedIndex);
+    debug('update', this.offset);
     var allItems = this.els.allItems;
     var pageY = e.pageY || e.changedTouches[0].pageY;
     var y = pageY - this.offset;
