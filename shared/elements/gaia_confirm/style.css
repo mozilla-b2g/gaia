@@ -47,7 +47,7 @@ gaia-confirm[hidden] {
   font-size: 2.2rem;
   color: #FAFAFA;
   padding: 0 1.5rem;
-  -moz-box-sizing: padding-box;
+  -moz-box-sizing: border-box;
   width: 100%;
   display: inline-block;
   max-height: 100%;
