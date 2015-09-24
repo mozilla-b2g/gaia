@@ -76,6 +76,7 @@
   padding: 1rem 1.5rem;
   line-height: 4rem;
   word-wrap: break-word;
+  direction: ltr;
 }
 
 /* Pressed status */
@@ -233,4 +234,8 @@ html[dir="rtl"] [role="dialog"][data-type="value-selector"] [role="listbox"] li[
 
 html[dir="rtl"] [role="dialog"][data-type="value-selector"] [role="listbox"] li[aria-selected="true"] span {
   padding-right: 0.3rem;
+}
+
+html[dir="rtl"] [role="dialog"][data-type="value-selector"] [role="listbox"] li label span {
+  direction: rtl;
 }
