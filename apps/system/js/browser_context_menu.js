@@ -56,6 +56,9 @@
         return;
       }
 
+      evt.preventDefault();
+      evt.stopPropagation();
+
       this._getPinningEnabled(function(value) {
         this.pinningEnabled = value;
         var items = this._listItems(detail);
@@ -65,8 +68,6 @@
         }
 
         // Notify the embedder we are handling the context menu
-        evt.preventDefault();
-        evt.stopPropagation();
         this.contextMenuView.show(items);
       }.bind(this));
     },
