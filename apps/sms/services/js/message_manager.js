@@ -421,8 +421,7 @@ var MessageManager = {
 
   markMessagesRead: function mm_markMessagesRead(list, isRead = true) {
     if (!this._mozMobileMessage || !list.length) {
-      return Promise.reject(new Error('
-        The mozMobileMessage API is not available or list is empty.'));
+      return Promise.reject(new Error('The mozMobileMessage API is not available or list is empty.'));
     }
 
     var self = this;

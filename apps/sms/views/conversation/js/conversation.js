@@ -927,13 +927,13 @@ var ConversationView = {
       return;
     }
 
-    MessageManager.markMessagesRead([message.id]).then(
+    MessageManager.markMessagesRead([message.id]).then(() => {
       this.onMessage(message);
       this.scrollViewToBottom();
       if (this.isScrolledManually) {
         this.showNewMessageNotice(message);
       }
-    );
+    });
   },
 
   onMessageSending: function conv_onMessageReceived(e) {
