@@ -686,6 +686,11 @@ const SETTINGS_VERSION = 0;
             break;
 
           default:
+            // Launching an app
+            if (icon.app) {
+              window.performance.mark('appLaunch@' + icon.app.origin);
+            }
+
             icon.launch();
             break;
         }
