@@ -137,7 +137,7 @@ PreviewGalleryController.prototype.onOptionsClick = function() {
 };
 
 PreviewGalleryController.prototype.shareCurrentItem = function() {
-  if (this.app.inSecureMode) {
+  if (this.app.inSecureMode || this.resizingImage) {
     return;
   }
 
@@ -169,7 +169,7 @@ PreviewGalleryController.prototype.shareCurrentItem = function() {
 
   var self = this;
 
-  this.stopItemDeletedEvent = true;
+  this.resizingImage = true;
   this.app.emit('busy', 'resizingImage');
 
   // Resize the image to the maximum pixel size for share activities.
@@ -195,7 +195,7 @@ PreviewGalleryController.prototype.shareCurrentItem = function() {
       }
       delete item.rotation;
     }
-    self.stopItemDeletedEvent = false;
+    self.resizingImage = false;
     self.app.emit('ready');
     launchShareActivity(resizedBlob);
   });
@@ -366,7 +366,7 @@ PreviewGalleryController.prototype.onItemDeleted = function(data) {
 
   // Check if this event is being stopped such as in the case
   // of resizing an image for a share activity.
-  if (this.stopItemDeletedEvent) {
+  if (this.resizingImage) {
     return;
   }
 
