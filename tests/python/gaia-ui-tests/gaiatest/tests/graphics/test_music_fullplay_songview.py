@@ -28,6 +28,8 @@ class TestFullPlayMusic(GaiaImageCompareTestCase):
         music_app = Music(self.marionette)
         music_app.launch()
         music_app.wait_for_music_tiles_displayed()
+        import time  # need to wait until the scroll bar disappears
+        time.sleep(2)
         self.take_screenshot()
 
         # switch to songs view and play it from there too
