@@ -828,7 +828,7 @@ var KeypadManager = {
         self._keypadSoundIsEnabled = !!value;
       });
 
-      SettingsListener.observe('phone.dtmf.type', false, function(value) {
+      SettingsListener.observe('phone.dtmf.type', 'long', function(value) {
         self._shortTone = (value === 'short');
       });
 
