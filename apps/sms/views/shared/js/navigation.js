@@ -751,6 +751,13 @@ var Navigation = {
       return Promise.resolve();
     }
 
+    if (navigationTransition) {
+      debug('toPanel: previous navigation exists, deferring.');
+      return navigationTransition.defer.promise.then(
+        () => this.toPanel(viewName, args)
+      );
+    }
+
     var hash = '#';
     if (view.partOf) {
       hash += '/' + viewName;

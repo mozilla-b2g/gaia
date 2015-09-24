@@ -51,7 +51,8 @@ suite('navigation >', function() {
   }
 
   function fakeAssign(url) {
-    if (url.startsWith('#')) {
+    // hashchange event should not be fired if hash does not change.
+    if (url.startsWith('#') && url !== fakeLocation.hash) {
       setFakeLocation({ hash: url });
       Promise.resolve().then(
         () => window.dispatchEvent(new HashChangeEvent('hashchange'))
@@ -265,6 +266,22 @@ suite('navigation >', function() {
             fakeWindow.ConversationView.beforeEnter,
             fakeWindow.ConversationView.afterEnter,
             fakeWindow.ConversationView.beforeLeave
+          );
+        }).then(done, done);
+      });
+
+      test('Transition should resolve correctly while requesting same panel',
+        function(done) {
+
+        Navigation.toPanel('thread', { id: 1 });
+        Navigation.toPanel('thread', { id: 1 }).then(() =>
+          Navigation.toPanel('thread-list') 
+        ).then(() => {
+          sinon.assert.callOrder(
+            fakeWindow.ConversationView.beforeEnter,
+            fakeWindow.ConversationView.afterEnter,
+            fakeWindow.InboxView.beforeEnter,
+            fakeWindow.InboxView.afterEnter
           );
         }).then(done, done);
       });
