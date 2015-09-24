@@ -2,7 +2,6 @@
   "name": "Sync",
   "description": "Syncs data with Firefox Sync",
   "type": "certified",
-  "role": "system",
   "launch_path": "/index.html",
   "developer": {
      "name": "The Gaia Team",
@@ -13,5 +12,8 @@
       "readonly": false,
       "description": "Stores data about browsing history."
     }
+  },
+  "permissions": {
+    "moz-firefox-accounts": {}
   }
 }

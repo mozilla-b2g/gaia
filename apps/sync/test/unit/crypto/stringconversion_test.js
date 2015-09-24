@@ -33,6 +33,20 @@ suite('utils', () => {
           throw(Error);
     });
   });
+  suite('utf16StringToByteArray', () => {
+    test('converts a UTF16 string to a ByteArray', () => {
+     var ba = StringConversion.utf16StringToByteArray('€');
+     expect(ba).to.be.instanceOf(Uint8Array);
+     expect(ba.length).to.equal(3);
+     expect(ba[0]).to.equal(0xe2);
+     expect(ba[1]).to.equal(0x82);
+     expect(ba[2]).to.equal(0xac);
+    });
+    test('throws an error when input is not a string', () => {
+      expect(StringConversion.utf16StringToByteArray.bind(undefined, 5)).to.
+          throw(Error);
+    });
+  });
   suite('base64StringToByteArray', () => {
     test('converts a Base64 string to a ByteArray', () => {
      const ba = StringConversion.base64StringToByteArray('Af9=');
@@ -83,6 +97,22 @@ suite('utils', () => {
       expect(StringConversion.byteArrayToHexString.bind(undefined,
                                                         new ArrayBuffer(2))).to.
           throw(Error);
+    });
+  });
+  suite('byteArrayToUtf16String', () => {
+    test('converts an Uint8Array to a UTF-16 string', () => {
+      var array = new Uint8Array(3);
+      array[0] = 0xe2;
+      array[1] = 0x82;
+      array[2] = 0xac;
+      var str = StringConversion.byteArrayToUtf16String(array);
+      expect(str).to.be.a('string');
+      expect(str).to.equal('€');
+    });
+    test('throws an error when input is not an Uint8Array', () => {
+      expect(StringConversion.byteArrayToUtf16String.bind(
+          undefined,
+          new ArrayBuffer(2))).to.throw(Error);
     });
   });
   suite('arrayBufferToBase64String', () => {

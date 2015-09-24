@@ -81,3 +81,4 @@ tests/jsmarionette/runner/marionette-js-runner/test/fixtures/**
 tests/jsmarionette/runner/marionette-js-runner/test/bin/fixtures/**
 tests/jsmarionette/runner/marionette-js-runner/venv/**
 tests/jsmarionette/runner/mozilla-profile-builder/test/fixtures/**
+apps/sync/js/ext/kinto.dev.js

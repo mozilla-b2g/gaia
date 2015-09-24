@@ -23,6 +23,19 @@ const StringConversion = Object.freeze((() => {
       return byteArray;
     },
 
+    utf16StringToByteArray(str) {
+      if (typeof str != 'string') {
+        throw new Error('Not a string');
+      }
+      var string = unescape(encodeURIComponent(str)),
+          charList = string.split(''),
+          uintArray = [];
+      for (var i = 0; i < charList.length; i++) {
+          uintArray.push(charList[i].charCodeAt(0));
+      }
+      return new Uint8Array(uintArray);
+    },
+
     base64StringToByteArray(base64) {
       if (typeof base64 != 'string' || base64.length % 4 !== 0) {
         throw new Error(`Number of base64 digits must be a multiple of 4 to con\
@@ -62,6 +75,14 @@ ytes`);
       }
       var bytes = new Uint8Array(buffer);
       return StringConversion.byteArrayToBase64String(bytes);
+    },
+
+    byteArrayToUtf16String(array) {
+      if (!(array instanceof Uint8Array)) {
+        throw new Error('Not an Uint8Array');
+      }
+      var utf8_string = String.fromCharCode.apply(null, array);
+      return decodeURIComponent(escape(utf8_string));
     },
 
     byteArrayToHexString(bytes) {

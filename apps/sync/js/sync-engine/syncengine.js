@@ -228,6 +228,8 @@ uld be a Function`);
         if (syncResults.ok) {
           return syncResults;
         }
+        console.log('ERROR1: ');
+        console.log(syncResults);
         return Promise.reject(new SyncEngine.UnrecoverableError());
       }).then(syncResults => {
         if (syncResults.conflicts.length) {
@@ -235,6 +237,8 @@ uld be a Function`);
         }
       }).catch(err => {
         if (err instanceof TypeError) {
+          console.log('ERROR2: ');
+          console.log(err);
           throw new SyncEngine.UnrecoverableError();
         } else if (err instanceof Error && typeof err.request === 'object') {
           if (err.request.status === 401) {
@@ -242,6 +246,8 @@ uld be a Function`);
           }
           throw new SyncEngine.TryLaterError();
         }
+        console.log('ERROR3: ');
+        console.log(err);
         throw new SyncEngine.UnrecoverableError();
       });
     },
@@ -265,6 +271,8 @@ uld be a Function`);
       }, err => {
         if (err === 'SyncKeys hmac could not be verified with current main ' +
             'key') {
+          console.log('ERROR4: ');
+          console.log(err);
           throw new SyncEngine.UnrecoverableError();
         }
         throw err;

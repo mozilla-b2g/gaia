@@ -210,8 +210,7 @@ ${collectionName}`);
                                    payload.ciphertext)
           .then(recordArrayBuffer => {
         var recordObj;
-        const recordJSON = String.fromCharCode.apply(
-            null,
+        const recordJSON = StringConversion.byteArrayToUtf16String(
             new Uint8Array(recordArrayBuffer));
         try {
           recordObj = JSON.parse(recordJSON);
@@ -272,7 +271,7 @@ undle for collection ${collectionName}`);
     } catch(e) {
       return Promise.reject('Record cannot be JSON-stringified');
     }
-    const cleartext = StringConversion.rawStringToByteArray(cleartextStr);
+    const cleartext = StringConversion.utf16StringToByteArray(cleartextStr);
     try {
       keyBundle = this.bulkKeyBundle.defaultAsKeyBundle;
     } catch(e) {
