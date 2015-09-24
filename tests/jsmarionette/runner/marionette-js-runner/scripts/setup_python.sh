@@ -71,4 +71,8 @@ fi
 virtualenv --python=$USE_PYTHON --no-site-packages $PWD/venv
 source ./venv/bin/activate
 cd host/python/runner-service
+pip install \
+  --find-links=http://pypi.pub.build.mozilla.org/pub \
+  --trusted-host=pypi.pub.build.mozilla.org \
+  -r gaia_runner_service.egg-info/requires.txt
 python setup.py develop
