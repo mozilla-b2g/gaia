@@ -18,6 +18,7 @@ body {
   margin: 0;
   overflow: hidden;
   color: #fff;
+  pointer-events: none;
 }
 
 input,

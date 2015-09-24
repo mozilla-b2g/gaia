@@ -1,3 +1,14 @@
+#windows {
+  pointer-events: none;
+}
+
+#screen [role="dialog"],
+#screen [role="region"],
+#windows .appWindow:not(.toaster-mode) > .browser-container.render,
+#windows .appWindow.active.lockScreenWindow > .browser-container {
+  pointer-events: all;
+}
+
 .appWindow[transition-state="closed"]:not(.fadeout):not(.homescreen):not(.attentionWindow):not(.lockScreenInputWindow) {
   opacity: 0;
   transform: translateX(0);

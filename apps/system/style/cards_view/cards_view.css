@@ -15,6 +15,7 @@
   /* Requires that scrolling always end at a snap point
      when the operation completes (hard snap). */
   scroll-snap-type: mandatory;
+  pointer-events: all;
 }
 
 @media not all and (-moz-physical-home-button) {

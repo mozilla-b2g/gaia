@@ -10,7 +10,7 @@
   height: 100%;
   background-color: hsla(0, 0%, 20%, .95);
   margin: 0;
-
+  pointer-events: all;
   transform: translateY(0);
   visibility: hidden;
 }

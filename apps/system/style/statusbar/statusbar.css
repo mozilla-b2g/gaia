@@ -12,7 +12,7 @@
 }
 
 #statusbar {
-  position: fixed;
+  position: relative;
   width: 100%;
   height: var(--statusbar-height);
   top: 0;
