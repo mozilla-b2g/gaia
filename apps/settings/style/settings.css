@@ -1124,7 +1124,8 @@ html[dir="rtl"] .apn-list .apn-item .name {
   right: -1.5rem;
 }
 
-html[dir="rtl"] .apn-list .apn-item:after {
+html[dir="rtl"] .my-home-screens li label.name::after,
+html[dir="rtl"] .apn-list .apn-item label.name::after {
   left: 3.5rem;
   right: unset;
 }
