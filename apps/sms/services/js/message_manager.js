@@ -421,7 +421,7 @@ var MessageManager = {
 
   markMessagesRead: function mm_markMessagesRead(list, isRead = true) {
     if (!this._mozMobileMessage || !list.length) {
-      return Promise.reject(new Error('The mozMobileMessage API is not available or list is empty.'));
+      return Promise.resolve();
     }
 
     var self = this;
@@ -436,26 +436,26 @@ var MessageManager = {
     // is enabled else false
 
     Settings.toSendReadReport().then((result) => {
-      var sendReadReport = result['message.mms.sendReadReport.enabled'];
+      var sendReadReport = result['messages.mms.sendReadReport.enabled'];
       markMessage(sendReadReport);
-    });
+    }, (err) => console.log(err));
 
     function markMessage(sendReadReport) {
       var id = list.pop();
       var req = self._mozMobileMessage.markMessageRead(id, isRead, sendReadReport);
 
-      req.onsuccess = function onsuccess() {
+      req.then(() => {
         // if isRead == false then mark only one message in each thread
         if (!list.length || !isRead) {
-          return deferred.resolve();
+          deferred.resolve();
         } else {
           markMessage(sendReadReport);
         }
-      };
+      }, () => {
+        deferred.reject('error in MessageManager.markMessagesRead method');
+      });
 
-      req.onerror = function onerror() {
-        console.error('Error while marking message %d as read: %s', id, this.error.name);
-      };
+      return deferred.promise;
     };
   },
 
