@@ -62,7 +62,7 @@
     width: calc(100% - 3rem);
     position: absolute;
     top: 1.5rem;
-    -moz-margin-start: -1.5rem;
+    margin-inline-start: -1.5rem;
     background: #FFFFFF;
   }
 
