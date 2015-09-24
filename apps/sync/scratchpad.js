@@ -12,10 +12,14 @@
 */
 
 var placesStore;
+var bookmarksStore;
+var fxBookmarksStore;
 
 (function (){
   console.log('scratchpad init.');
   getPlacesStore();
+  getBookmarksStore();
+  getFxBookmarksStore();
   //listTitle();
 })();
 
@@ -84,8 +88,20 @@ function getPlacesStore() {
   });
 }
 
-function dsSync(revisionId) {
-  var cursor = placesStore.sync(revisionId);
+function getBookmarksStore() {
+  navigator.getDataStores('bookmarks_store').then(stores => {
+    bookmarksStore = stores[0];
+  });
+}
+
+function getFxBookmarksStore() {
+  navigator.getDataStores('firefox-sync-bookmarks').then(stores => {
+    fxBookmarksStore = stores[0];
+  });
+}
+
+function dsSync(store, revisionId) {
+  var cursor = store.sync(revisionId);
   runNextTask(cursor);
 
   function runNextTask(cursor) {
