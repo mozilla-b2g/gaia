@@ -5,24 +5,23 @@
   "license": "Apache 2.0",
   "ignore": [
     "**/.*",
-    "node_modules",
-    "components"
+    "components",
+    "node_modules"
   ],
   "dependencies": {
     "bridge": "gaia-components/bridge#master",
     "dom-scheduler": "etiennesegonzac/dom-scheduler",
     "fast-list": "gaia-components/fast-list#master",
-    "gaia-component": "gaia-components/gaia-component#~0.3.8",
+    "gaia-component": "gaia-components/gaia-component#~0.3.9",
     "gaia-fast-list": "gaia-components/gaia-fast-list#master",
-    "gaia-fonts": "gaia-components/gaia-fonts#~0.2.1",
-    "gaia-icons": "gaia-components/gaia-icons#~0.8.0",
     "gaia-header": "gaia-components/gaia-header#~0.8.4",
+    "gaia-icons": "gaia-components/gaia-icons#~0.8.0",
+    "gaia-theme": "gaia-components/gaia-theme#~0.5.1",
     "gaia-toolbar": "gaia-components/gaia-toolbar#master",
-    "gaia-theme": "gaia-components/gaia-theme#~0.5.0",
     "serviceworkerware": "gaia-components/serviceworkerware#master",
     "sww-raw-cache": "gaia-components/sww-raw-cache#~0.2.1"
   },
   "resolutions": {
-    "gaia-component": "^0.3.7"
+    "gaia-component": "~0.3.9"
   }
 }

@@ -9,7 +9,19 @@ const SHUFFLE_VALUES = ['off', 'on'];
 var proto = Object.create(HTMLElement.prototype);
 
 var template =
-`<style scoped>
+`<style>
+  [data-icon]:before { /* Copied from /components/gaia-icons/gaia-icons.css */
+    font-family: "gaia-icons";
+    content: attr(data-icon);
+    display: inline-block;
+    font-weight: 500;
+    font-style: normal;
+    text-decoration: inherit;
+    text-transform: none;
+    text-rendering: optimizeLegibility;
+    font-size: 30px;
+    -webkit-font-smoothing: antialiased;
+  }
   #container {
     background-color: #000;
     position: relative;
@@ -96,7 +108,7 @@ var template =
   #album {
     color: #fff;
     font-weight: normal;
-    text-shadow: 0.1rem 0.1rem #000;
+    text-shadow: 0 0.1rem rgba(0, 0, 0, 0.5);
     text-indent: 3rem;
     position: relative;
     margin: 0;
@@ -150,8 +162,6 @@ var template =
 proto.createdCallback = function() {
   var shadowRoot = this.createShadowRoot();
   shadowRoot.innerHTML = template;
-
-  getIcons().then(icons => shadowRoot.querySelector('style').innerHTML += icons);
 
   var $ = shadowRoot.querySelector.bind(shadowRoot);
 
@@ -337,23 +347,6 @@ Object.defineProperty(proto, 'overlayVisible', {
     }
   }
 });
-
-function getIcons() {
-  return new Promise((resolve, reject) => {
-    var iconsLink = document.querySelector('link[href$="gaia-icons-embedded.css"]');
-    var iconsHref = iconsLink && iconsLink.href;
-    if (!iconsHref) {
-      reject();
-      return;
-    }
-
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', iconsHref, true);
-    xhr.onload = () => resolve(xhr.response);
-    xhr.onerror = () => reject();
-    xhr.send();
-  });
-}
 
 try {
   window.MusicArtwork = document.registerElement('music-artwork', { prototype: proto });
