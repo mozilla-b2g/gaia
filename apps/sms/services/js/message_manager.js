@@ -421,8 +421,12 @@ var MessageManager = {
 
   markMessagesRead: function mm_markMessagesRead(list, isRead = true) {
     if (!this._mozMobileMessage || !list.length) {
-      return;
+      return Promise.reject(new Error('
+        The mozMobileMessage API is not available or list is empty.'));
     }
+
+    var self = this;
+    var deferred = Utils.Promise.defer();
 
     // We chain the calls to the API in a way that we make no call to
     // 'markMessageRead' until a previous call is completed. This way any
@@ -431,28 +435,29 @@ var MessageManager = {
 
     // sendReadReport == true if Send-Read-Reports switch in Messaging Settings
     // is enabled else false
+
     Settings.toSendReadReport().then((result) => {
       var sendReadReport = result['message.mms.sendReadReport.enabled'];
-      while(list.length) {
-        var id = list.pop();
-        var req = this._mozMobileMessage.markMessageRead(id,
-          isRead, sendReadReport);
-
-        req.onsuccess = function onsuccess() {
-        // if isRead == false then mark only one message in each thread
-          if (!list.length || !isRead) {
-            return;
-          }
-        };
-
-        req.onerror = function onerror() {
-          console.error('Error while marking message %d as read: %s',
-            id, this.error.name);
-        };
-      };
-    }, function(err) {
-      console.error(err);
+      markMessage(sendReadReport);
     });
+
+    function markMessage(sendReadReport) {
+      var id = list.pop();
+      var req = self._mozMobileMessage.markMessageRead(id, isRead, sendReadReport);
+
+      req.onsuccess = function onsuccess() {
+        // if isRead == false then mark only one message in each thread
+        if (!list.length || !isRead) {
+          return deferred.resolve();
+        } else {
+          markMessage(sendReadReport);
+        }
+      };
+
+      req.onerror = function onerror() {
+        console.error('Error while marking message %d as read: %s', id, this.error.name);
+      };
+    };
   },
 
   getSegmentInfo: function mm_getSegmentInfo(text) {
