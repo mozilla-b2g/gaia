@@ -2,7 +2,7 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 /*global ActivityWindowManager, HomescreenLauncher, HomescreenWindowManager,
-         FtuLauncher, ScreenManager, Activities,
+         FtuLauncher, ScreenManager, Activities, AppUsageMetrics,
          DeveloperHUD, RemoteDebugger, HomeGesture,
          VisibilityManager, UsbStorage,
          SuspendingAppPriorityManager, TTLView,
@@ -128,6 +128,10 @@ window.addEventListener('load', function startup() {
   }
   window.interactiveNotifications = new InteractiveNotifications();
   window.interactiveNotifications.start();
+
+  window.appUsageMetrics = new AppUsageMetrics();
+  window.appUsageMetrics.start();
+
   // We need to be sure to get the focus in order to wake up the screen
   // if the phone goes to sleep before any user interaction.
   // Apparently it works because no other window has the focus at this point.
