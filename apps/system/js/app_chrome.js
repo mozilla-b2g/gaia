@@ -749,9 +749,10 @@
     };
 
   AppChrome.prototype.setThemeColor = function ac_setThemColor(color) {
-    // Do not set theme color for private windows
+    // Overwrite theme color for private windows and add private class
     if (this.app.isPrivateBrowser()) {
-      return;
+      color = '#392E54';
+      this.containerElement.classList.add('private');
     }
 
     var bottomApp = this.app.getBottomMostWindow();

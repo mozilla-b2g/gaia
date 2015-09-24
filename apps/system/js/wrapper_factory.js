@@ -1,5 +1,5 @@
 'use strict';
-/*global applications, Service, AppWindow */
+/*global applications, Service, AppWindow, Browser */
 
 (function(window) {
   /**
@@ -111,6 +111,8 @@
           // display it in the current browser frame.
           var activeApp = Service.query('AppWindowManager.getActiveWindow');
           if (activeApp && (activeApp.isBrowser() || activeApp.isSearch())) {
+            activeApp.isPrivate = activeApp.hasOwnProperty('isPrivate') ?
+              activeApp.isPrivate : Browser.privateByDefault;
             activeApp.navigate(url);
             return;
           }
@@ -147,6 +149,7 @@
       browser_config.url = url;
       browser_config.origin = origin;
       browser_config.windowName = name;
+      browser_config.isPrivate = Browser.privateByDefault;
       if (!browser_config.title) {
         browser_config.title = url;
       }
