@@ -41,7 +41,8 @@
       var detail = evt.detail;
 
       var hasContextMenu = detail.contextmenu &&
-        detail.contextmenu.items.length > 0;
+        detail.contextmenu.items.length > 0 &&
+        detail.contextmenu.customized;
       var hasSystemTargets = detail.systemTargets &&
         detail.systemTargets.length > 0;
 
