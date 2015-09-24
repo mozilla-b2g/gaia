@@ -206,6 +206,10 @@ Music.prototype = {
         if (p.length) {
           data.text = p[0].textContent;
         }
+        var img = elements[i].getElementsByTagName('img');
+        if (img.length) {
+          data.img = img[0].src;
+        }
         elementsData.push(data);
       }
       return elementsData;
@@ -216,6 +220,10 @@ Music.prototype = {
 
   get firstListItem() {
     return this.client.helper.waitForElement(Music.Selector.firstListItem);
+  },
+
+  get albumsListItemsData() {
+    return this._getListItemsData(this.albumsViewFrame);
   },
 
   get artistsListItemsData() {
