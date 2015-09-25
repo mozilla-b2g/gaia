@@ -140,6 +140,22 @@
   line-height: 1.7rem;
 }
 
+#updates-download-dialog span.font-light {
+  font-weight: 300;
+}
+
+#updates-download-dialog a {
+  font-size: 1.4rem;
+  line-height: 1.7rem;
+  color: #00caf2;
+  display: block;
+  text-decoration: none;
+}
+
+#updates-download-dialog a:active {
+  color: #00aacc;
+}
+
 #updates-download-dialog li .name {
   font-size: 1.5rem;
   line-height: 1.7rem;

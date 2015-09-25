@@ -1,4 +1,4 @@
-/* global AppUpdatable, LazyLoader, NotificationScreen, Service,
+/* global AppUpdatable, LazyLoader, MozActivity, NotificationScreen, Service,
           SettingsListener, SystemBanner, SystemUpdatable */
 
 'use strict';
@@ -396,7 +396,7 @@
         var name = document.createElement('span');
         name.classList.add('name');
         if (updatable.nameL10nId) {
-          _localize(name, updatable.nameL10nId);
+          _localize(name, updatable.nameL10nId, updatable.nameL10nArgs);
         } else {
           name.textContent = updatable.name;
         }
@@ -408,6 +408,32 @@
           nameDetails.appendChild(sizeItem);
         } else {
           nameDetails.classList.add('nosize');
+        }
+
+        if (updatable.buildID) {
+          var buildId = document.createElement('span');
+          buildId.classList.add('font-light');
+          _localize(buildId, 'build-id', { buildid: updatable.buildID });
+          listItem.appendChild(buildId);
+        }
+
+        if (updatable.detailsURL && (updatable.detailsURL !== 'about:blank')) {
+          var detailsUrl = document.createElement('a');
+          _localize(detailsUrl, 'view-release-notes');
+          listItem.appendChild(detailsUrl);
+          listItem.onclick = (function(event) {
+            event.preventDefault();
+
+            var activity = new MozActivity({
+              name: 'view',
+              data: {
+                type: 'url',
+                url: updatable.detailsURL
+              }
+            });
+
+            activity.onsuccess = this.cancelPrompt.bind(this);
+          }).bind(this);
         }
 
         this.downloadDialogList.appendChild(listItem);
@@ -550,8 +576,14 @@
 
     render: function um_render() {
       var _localize = navigator.mozL10n.setAttributes;
+      var l10nId = 'updateAvailableInfo';
 
-      _localize(this.toasterMessage, 'updateAvailableInfo', {
+      if ((this.updatesQueue.length === 1) &&
+          (this.updatesQueue[0] instanceof SystemUpdatable)) {
+        l10nId = 'systemUpdateAvailableInfo';
+      }
+
+      _localize(this.toasterMessage, l10nId, {
         n: this.updatesQueue.length - this.lastUpdatesAvailable
       });
 
@@ -564,9 +596,7 @@
           });
         }
       } else {
-        _localize(this.message, 'updateAvailableInfo', {
-          n: this.updatesQueue.length
-        });
+        _localize(this.message, l10nId, { n: this.updatesQueue.length });
       }
 
       var css = this.container.classList;
@@ -789,6 +819,9 @@
 
       if (detail.type && detail.type === 'update-available') {
         this.systemUpdatable.size = detail.size;
+        this.systemUpdatable.buildID = detail.buildID;
+        this.systemUpdatable.detailsURL = detail.detailsURL;
+        this.systemUpdatable.nameL10nArgs = { version: detail.displayVersion };
         this.systemUpdatable.rememberKnownUpdate();
         this.addToUpdatesQueue(this.systemUpdatable);
       }
