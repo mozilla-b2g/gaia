@@ -32,7 +32,8 @@
     "input-manage":{},
     "systemXHR":{},
     "feature-detection": {},
-    "moz-extremely-unstable-and-will-change-webcomponents":{}
+    "moz-extremely-unstable-and-will-change-webcomponents":{},
+    "presentation-device-manage": {}
   },
   "locales": {
     "ar": {
