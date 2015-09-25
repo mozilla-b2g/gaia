@@ -46,7 +46,7 @@ class TestGallery(GaiaTestCase):
         self.assertEqual(self.device.screen_width, image.photo_toolbar_width)
 
         #  Unlock the screen so that it can be changed back to portrait mode
-        self.marionette.execute_script('window.screen.mozUnlockRotation')
+        self.marionette.execute_script('window.screen.mozUnlockOrientation()')
 
         #  Change the screen orientation back to portrait-primary and verify the screen is in portrait mode
         self.device.change_orientation('portrait-primary')
@@ -58,5 +58,5 @@ class TestGallery(GaiaTestCase):
         self.assertEqual(self.device.screen_width, image.photo_toolbar_width)
 
     def tearDown(self):
-        self.marionette.execute_script('window.screen.mozUnlockRotation')
+        self.marionette.execute_script('window.screen.mozUnlockOrientation()')
         GaiaTestCase.tearDown(self)
