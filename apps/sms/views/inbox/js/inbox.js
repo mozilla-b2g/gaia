@@ -394,12 +394,11 @@ var InboxView = {
     }
   },
 
-  markReadUnread: function inbox_markReadUnread(selected, isRead)&& !(thread.unreadCount ^ isRead)  {
+  markReadUnread: function inbox_markReadUnread(selected, isRead) {
     selected.forEach((id) => {
       var thread = Threads.get(+id);
 
-      var markable = thread && !thread.isDraft &&
-        (isRead || !thread.getDraft());
+      var markable = thread && !thread.isDraft && (isRead || !thread.getDraft()) && !(thread.unreadCount ^ isRead));
 
       if (markable) {
         thread.unreadCount = isRead ? 0 : 1;
