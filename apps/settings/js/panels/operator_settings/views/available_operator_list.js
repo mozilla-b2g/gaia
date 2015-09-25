@@ -90,7 +90,7 @@ define(function(require) {
       case OperatorManager.AUTO_SELECTION_STATE.ENABLED:
         this._elements.operatorListInfo.hidden = false;
         this._elements.operatorListInfo
-          .setAttribute('data-l10n-id', 'operator-turnAutoSelectOff');
+          .setAttribute('data-l10n-id', 'operator-turnAutoSelectionOff');
         break;
       case OperatorManager.AUTO_SELECTION_STATE.DISABLED:
         if (this._operatorManager.searching) {
