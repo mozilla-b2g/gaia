@@ -253,12 +253,14 @@ suite('views/controls', function() {
     }
   });
 
-  test('ControlsView#setPauseLabel', function() {
+  test('ControlsView#setPauseState', function() {
     var view = new this.ControlsView();
     [true, false].forEach(function(paused) {
-      view.setPauseLabel(paused);
+      view.setPauseState(paused);
       assert.equal(view.els.pause.getAttribute('data-l10n-id'),
         paused ? 'resume-capture-button' : 'pause-capture-button');
+      assert.equal(view.els.pause.getAttribute('data-icon'),
+        paused ? 'play' : 'pause');
     });
   });
 });

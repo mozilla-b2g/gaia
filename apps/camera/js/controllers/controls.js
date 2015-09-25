@@ -161,11 +161,15 @@ ControlsController.prototype.onRecordingChange = function(state) {
   if (state === 'started' || state === 'stopped') {
     recording = state === 'started';
     this.view.set('recording', recording);
+    this.view.set('pause-active', false);
     if (!recording) { this.onRecordingEnd(); }
-  } else if (state === 'pausing' || state === 'paused' || state === 'resumed') {
+  } else if (state === 'pausing' || state === 'resuming') {
+    this.view.set('pause-active', true);
+  } else if (state === 'paused' || state === 'resumed') {
     recording = state !== 'resumed';
+    this.view.set('pause-active', false);
     this.view.set('paused', recording);
-    this.view.setPauseLabel(recording);
+    this.view.setPauseState(recording);
   }
 };
 

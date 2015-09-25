@@ -118,9 +118,11 @@ module.exports = View.extend({
     window.removeEventListener('load', this.setupSwitch);
   },
 
-  setPauseLabel: function(paused) {
+  setPauseState: function(paused) {
     this.els.pause.setAttribute('data-l10n-id',
       paused ? 'resume-capture-button' : 'pause-capture-button');
+    this.els.pause.setAttribute('data-icon',
+      paused ? 'play' : 'pause');
   },
 
   onSwitchSnapped: function(edges) {

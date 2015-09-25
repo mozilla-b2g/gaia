@@ -117,7 +117,7 @@
  */
 
 .controls-button:active,
-.controls.paused .controls-pause-button {
+.controls.pause-active .controls-pause-button {
   background-color: #00b9df;
 }
 
