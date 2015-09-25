@@ -208,6 +208,7 @@ suite('controllers/controls', function() {
       this.controller.onRecordingChange('started');
       assert.ok(this.view.set.calledWith('recording', true));
       assert.ok(this.view.set.calledWith('pause-active', false));
+      assert.ok(this.view.setPauseState.calledWith(false));
       sinon.assert.notCalled(this.controller.onRecordingEnd);
     });
 
@@ -215,6 +216,7 @@ suite('controllers/controls', function() {
       this.controller.onRecordingChange('stopped');
       assert.ok(this.view.set.calledWith('recording', false));
       assert.ok(this.view.set.calledWith('pause-active', false));
+      assert.ok(this.view.setPauseState.calledWith(false));
       sinon.assert.called(this.controller.onRecordingEnd);
     });
 
