@@ -147,7 +147,7 @@ marionette('notification tests', function() {
     assert.equal(fakeVibrationsNumber(), 0, 'the phone should not vibrate');
   });
 
-  test('calendar notif should vibrate the phone when waking up', function() {
+  test('calendar notif should vibrate the phone', function() {
     client.switchToFrame();
     client.executeScript(fs.readFileSync(
       SHARED_PATH + '/mock_navigator_vibrate.js', 'utf8'));
@@ -161,10 +161,6 @@ marionette('notification tests', function() {
     client.apps.switchToApp(urls.calendar);
     new NotificationTest(client, '123', 'test', 'test');
     client.switchToFrame();
-
-    assert.equal(fakeVibrationsNumber(), 0, 'the phone should not vibrate');
-
-    dispatchVisibilityChangeEvent();
 
     assert.equal(fakeVibrationsNumber(), 1,
                  'the phone should have vibrated once');

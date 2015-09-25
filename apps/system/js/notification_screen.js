@@ -509,9 +509,10 @@ var NotificationScreen = {
     window.dispatchEvent(event);
 
     // We turn the screen on if needed in order to let
-    // the user see the notification toaster
+    // the user see the notification toaster unless we're on a call
     if (!Service.query('screenEnabled') &&
         !behavior.noscreen &&
+        !Service.query('onCall') &&
         (!Service.query('locked') || this.lockscreenPreview)) {
       Service.request('turnScreenOn');
     }
@@ -573,17 +574,13 @@ var NotificationScreen = {
           pattern = behavior.vibrationPattern;
         }
 
-        if (document.hidden) {
-          // bug 1030310: disable vibration for the email app when asleep
-          // bug 1050023: disable vibration for downloads when asleep
-          if (type.indexOf('download-notification-downloading') === -1 &&
-              manifestURL.indexOf('email.gaiamobile.org') === -1) {
-            window.addEventListener('visibilitychange', function waitOn() {
-              window.removeEventListener('visibilitychange', waitOn);
-              navigator.vibrate(pattern);
-            });
-          }
-        } else {
+        // bug 1030310: disable vibration for the email app when asleep
+        // bug 1050023: disable vibration for downloads when asleep
+        var vibrateWhenAsleep =
+          type.indexOf('download-notification-downloading') === -1 &&
+          manifestURL.indexOf('email.gaiamobile.org') === -1;
+
+        if (vibrateWhenAsleep || !document.hidden) {
           navigator.vibrate(pattern);
         }
       }

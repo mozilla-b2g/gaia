@@ -85,8 +85,8 @@ suite('system/NotificationScreen >', function() {
     };
   }
 
-
   mocksForNotificationScreen.attachTestHelpers();
+
   setup(function(done) {
     window.MediaPlaybackWidget = function() {};
     fakeDesktopNotifContainer = document.createElement('div');
@@ -604,6 +604,14 @@ suite('system/NotificationScreen >', function() {
       details.manifestURL = CALENDAR_MANIFEST;
       NotificationScreen.addNotification(details);
       sinon.assert.calledOnce(MockService.request.withArgs('turnScreenOn'));
+    });
+
+    test('notifications received while on a call should not wake the screen',
+    function() {
+      MockService.mockQueryWith('onCall', true);
+      details.manifestURL = CALENDAR_MANIFEST;
+      NotificationScreen.addNotification(details);
+      sinon.assert.notCalled(MockService.request.withArgs('turnScreenOn'));
     });
 
     test('email notifications should not wake screen', function() {

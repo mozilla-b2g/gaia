@@ -55,12 +55,9 @@
   };
 
   DialerAgent.prototype.freeCallscreenWindow = function() {
-    var numOpenLines = this._telephony.calls.length +
-      (this._telephony.conferenceGroup.calls.length ? 1 : 0);
-
     /* Free the callscreen window unless there are active calls or the
      * callscreen is visible. */
-    if (this._callscreenWindow && (numOpenLines === 0) &&
+    if (this._callscreenWindow && !this.onCall() &&
         !this._callscreenWindow.isVisible()) {
       this._callscreenWindow.free();
     }
@@ -120,6 +117,8 @@
       window.addEventListener('applicationready', this.makeFakeNotification);
     }
 
+    Service.registerState('onCall', this);
+
     return this;
   };
 
@@ -141,15 +140,14 @@
     window.removeEventListener('volumedown', this);
     window.removeEventListener('mozmemorypressure', this.freeCallscreenWindow);
 
+    Service.unregisterState('onCall', this);
+
     // TODO: should remove the settings listener once the helper
     // allows it.
     // See bug 981373.
   };
 
   DialerAgent.prototype.handleEvent = function da_handleEvent(evt) {
-    var numOpenLines = this._telephony.calls.length +
-      (this._telephony.conferenceGroup.calls.length ? 1 : 0);
-
     if (evt.type === 'volumedown') {
       this._stopAlerting();
       return;
@@ -160,7 +158,7 @@
       return;
     }
 
-    if ((evt.type === 'sleep') && numOpenLines > 0) {
+    if ((evt.type === 'sleep') && this.onCall()) {
       // Hangup all calls
       this._telephony.calls.forEach(call => call.hangUp());
 
@@ -171,7 +169,7 @@
       return;
     }
 
-    if ((evt.type === 'wake') && (numOpenLines > 0)) {
+    if ((evt.type === 'wake') && this.onCall()) {
       Service.request('turnScreenOn');
       return;
     }
@@ -252,6 +250,13 @@
       this._callscreenWindow.ensure();
       this._callscreenWindow.requestOpen();
     }
+  };
+
+  DialerAgent.prototype.onCall = function() {
+    var numOpenLines = this._telephony.calls.length +
+      (this._telephony.conferenceGroup.calls.length ? 1 : 0);
+
+    return (numOpenLines > 0);
   };
 
   exports.DialerAgent = DialerAgent;
