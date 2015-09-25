@@ -266,5 +266,13 @@ DataAdapters.bookmarks = {
     // Because History adapter has not implemented record push yet,
     // handleConflict will always use remote records.
     return Promise.resolve(conflict.remote);
-  }
+  },
+
+  specialRecords: [
+    'menu',
+    'mobile',
+    'toolbar',
+    'places',
+    'unfiled'
+  ]
 };
