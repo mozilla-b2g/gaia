@@ -14,10 +14,8 @@ class Message(Base):
     _auto_retrieve_ok_button_locator = (By.CLASS_NAME, 'value-option-confirm')
     _sim_1_selector_locator = (By.CLASS_NAME, 'sim1')
     _sim_1_settings_page_locator = (By.ID, 'messaging-details')
-    _cell_broadcast_switch_locator = (By.CSS_SELECTOR,
-                                      '#menuItem-cellBroadcast .pack-switch input')
-    _emerg_alert_switch_locator = (By.CSS_SELECTOR,
-                                   '#menuItem-emergencyAlert .pack-switch input')
+    _cell_broadcast_switch_locator = (By.CSS_SELECTOR, '#menuItem-cellBroadcast gaia-switch')
+    _emerg_alert_switch_locator = (By.CSS_SELECTOR, '#menuItem-emergencyAlert gaia-switch')
 
     @property
     def screen_element(self):
@@ -47,7 +45,6 @@ class Message(Base):
         Wait(self.marionette).until(expected.element_displayed(element))
         element.tap()
         Wait(self.marionette).until(expected.element_displayed(*self._sim_1_settings_page_locator))
-
         # Check whether Cell Broadcast is enabled.  If so, wait until the switch transition is complete
         # for the emergency alert switch as well
         cell_broadcast_switch = GaiaBinaryControl(self.marionette, self._cell_broadcast_switch_locator)
