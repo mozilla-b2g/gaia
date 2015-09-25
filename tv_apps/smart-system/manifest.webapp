@@ -112,6 +112,12 @@
       "rules": {
         "minimumAccessLevel": "certified"
       }
+    },
+    "fxa-mgmt": {
+      "description": "Firefox Accounts management API",
+      "rules": {
+        "minimumAccessLevel": "certified"
+      }
     }
   },
   "datastores-owned": {

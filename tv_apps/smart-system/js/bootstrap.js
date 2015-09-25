@@ -6,7 +6,7 @@
          DeveloperHUD, RemoteDebugger, HomeGesture,
          VisibilityManager, UsbStorage,
          SuspendingAppPriorityManager, TTLView,
-         MediaRecording, AppWindowFactory,
+         MediaRecording, AppWindowFactory, SystemDialogManager,
          applications, LayoutManager, PermissionManager, Accessibility,
          SleepMenu, InteractiveNotifications, ExternalStorageMonitor */
 'use strict';
@@ -24,6 +24,10 @@ window.addEventListener('load', function startup() {
     if (window.SuspendingAppPriorityManager) {
       window.suspendingAppPriorityManager = new SuspendingAppPriorityManager();
     }
+
+    /** @global */
+    window.systemDialogManager = window.systemDialogManager ||
+      new SystemDialogManager();
 
     window.AppWindowManager.init();
   }
