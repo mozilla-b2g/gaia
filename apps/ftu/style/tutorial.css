@@ -21,8 +21,8 @@
   flex-direction: row;
   align-items: center;
   width: 100%;
-  padding: 0 1.5rem 0.5rem 1.5rem;
-  -moz-box-sizing: border-box;
+  padding: 0 1.5rem 0.5rem;
+  box-sizing: border-box;
   min-height: 8.5rem;
 }
 
