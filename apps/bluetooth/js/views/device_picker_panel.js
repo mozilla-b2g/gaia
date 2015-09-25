@@ -21,7 +21,7 @@ define(function(require) {
   var _debug = false;
   var debug = function() {};
   if (_debug) {
-    Debug = function btdpp_debug(msg) {
+    debug = function btdpp_debug(msg) {
       console.log('--> [DevicePickerPanel]: ' + msg);
     };
   }
@@ -137,9 +137,9 @@ define(function(require) {
 
       // search devices automatically while the panel is inited.
       BtContext.startDiscovery().then(() => {
-        Debug('_init(): startDiscovery successfully');
+        debug('_init(): startDiscovery successfully');
       }, (reason) => {
-        Debug('_init(): startDiscovery failed, ' +
+        debug('_init(): startDiscovery failed, ' +
               'reason = ' + reason);
       });
     },
@@ -182,7 +182,7 @@ define(function(require) {
      * @memberOf DevicePickerPanel
      */
     _onHeaderActionCloseClick: function btdpp__onHeaderActionCloseClick() {
-      Debug('_onHeaderActionCloseClick():');
+      debug('_onHeaderActionCloseClick():');
       // Emit 'cancelSelection' event to outer modules.
       var event = {
         type: 'cancelSelection'
@@ -197,17 +197,17 @@ define(function(require) {
      * @memberOf DevicePickerPanel
      */
     _onSearchButtonClick: function btdpp__onSearchButtonClick() {
-      Debug('_onSearchButtonClick():');
+      debug('_onSearchButtonClick():');
       BtContext.startDiscovery().then(() => {
-        Debug('_onSearchButtonClick(): startDiscovery successfully');
+        debug('_onSearchButtonClick(): startDiscovery successfully');
       }, (reason) => {
-        Debug('_onSearchButtonClick(): startDiscovery failed, ' +
+        debug('_onSearchButtonClick(): startDiscovery failed, ' +
               'reason = ' + reason);
       });
     },
 
     /**
-     * While the paired device is clicked, emit event to outer modules with 
+     * While the paired device is clicked, emit event to outer modules with
      * the device item.
      *
      * @access private
@@ -215,9 +215,9 @@ define(function(require) {
      */
     _onPairedDeviceItemClick:
     function btdpp__onPairedDeviceItemClick(deviceItem) {
-      Debug('_onPairedDeviceItemClick(): deviceItem.address = ' +
+      debug('_onPairedDeviceItemClick(): deviceItem.address = ' +
             deviceItem.address);
-      Debug('_onPairedDeviceItemClick(): deviceItem.paired = ' +
+      debug('_onPairedDeviceItemClick(): deviceItem.paired = ' +
             deviceItem.paired);
       // Emit 'devicePicked' event to outer modules with the device item.
       var event = {
@@ -238,14 +238,14 @@ define(function(require) {
      */
     _onFoundDeviceItemClick:
     function btdpp__onFoundDeviceItemClick(deviceItem) {
-      Debug('_onFoundDeviceItemClick(): deviceItem.address = ' +
+      debug('_onFoundDeviceItemClick(): deviceItem.address = ' +
             deviceItem.address);
       // Update device pairing status first.
       deviceItem.paired = 'pairing';
       // Pair with the remote device.
       BtContext.pair(deviceItem.address).then(() => {
-        Debug('_onFoundDeviceItemClick(): pair successfully');
-        // Emit 'devicePicked' event to outer modules with the 
+        debug('_onFoundDeviceItemClick(): pair successfully');
+        // Emit 'devicePicked' event to outer modules with the
         // paired device item.
         var event = {
           type: 'devicePicked',
@@ -255,9 +255,9 @@ define(function(require) {
         };
         this._emitEvent(event);
       }, (reason) => {
-        Debug('_onFoundDeviceItemClick(): pair failed, ' +
+        debug('_onFoundDeviceItemClick(): pair failed, ' +
               'reason = ' + reason);
-        // Reset the paired status back to false, 
+        // Reset the paired status back to false,
         // since the 'pairing' status is given in Gaia side.
         deviceItem.paired = false;
         // Show alert message while pair device failed.
@@ -291,7 +291,7 @@ define(function(require) {
      */
     _updatePairedDevicesHeader:
     function btdpp__updatePairedDevicesHeader(hasPairedDevice) {
-      Debug('_updatePairedDevicesHeader(): ' +
+      debug('_updatePairedDevicesHeader(): ' +
             'callback from observe "hasPairedDevice" = ' + hasPairedDevice);
       this._elements.paired.pairedDevicesHeader.hidden =
         !(hasPairedDevice && (BtContext.state === 'enabled'));
@@ -304,7 +304,7 @@ define(function(require) {
      * @memberOf DevicePickerPanel
      */
     _updatePairedDevicesList: function btdpp__updatePairedDevicesList(state) {
-      Debug('_updatePairedDevicesList(): ' +
+      debug('_updatePairedDevicesList(): ' +
             'callback from observe "state" = ' + state);
       this._elements.paired.pairedDevicesHeader.hidden =
         !((state === 'enabled') && (BtContext.hasPairedDevice));
@@ -318,7 +318,7 @@ define(function(require) {
      * @memberOf DevicePickerPanel
      */
     _updateFoundDevicesList: function btdpp__updateFoundDevicesList(state) {
-      Debug('_updateFoundDevicesList(): ' +
+      debug('_updateFoundDevicesList(): ' +
             'callback from observe "state" = ' + state);
       this._elements.found.foundDevicesHeader.hidden = (state !== 'enabled');
       this._elements.found.foundDevicesList.hidden = (state !== 'enabled');
@@ -331,7 +331,7 @@ define(function(require) {
      * @memberOf DevicePickerPanel
      */
     _updateSearchItem: function btdpp__updateSearchItem(state) {
-      Debug('_updateSearchItem(): ' +
+      debug('_updateSearchItem(): ' +
             'callback from observe "state" = ' + state);
       this._elements.search.searchItem.hidden = (state !== 'enabled');
     },
@@ -343,7 +343,7 @@ define(function(require) {
      * @memberOf DevicePickerPanel
      */
     _updateSearchingItem: function btdpp__updateSearchingItem(discovering) {
-      Debug('_updateSearchingItem(): ' +
+      debug('_updateSearchingItem(): ' +
             'callback from observe "discovering" = ' + discovering);
       this._elements.search.searchingItem.hidden = !discovering;
       this._elements.search.searchButton.disabled = discovering;

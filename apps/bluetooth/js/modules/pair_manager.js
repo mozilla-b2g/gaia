@@ -12,7 +12,7 @@ define(function(require) {
   var _debug = false;
   var debug = function() {};
   if (_debug) {
-    Debug = function btam_debug(msg) {
+    debug = function btam_debug(msg) {
       console.log('--> [PairManager]: ' + msg);
     };
   }
@@ -98,13 +98,13 @@ define(function(require) {
      */
     _watchOndisplaypasskeyreq: function() {
       if (!this._defaultAdapter || !this._defaultAdapter.pairingReqs) {
-        Debug('_watchOndisplaypasskeyreq() no adapter or pairingReqs');
+        debug('_watchOndisplaypasskeyreq() no adapter or pairingReqs');
         return;
       }
 
       this._defaultAdapter.pairingReqs.addEventListener('displaypasskeyreq',
         (evt) => {
-        Debug('_watchOndisplaypasskeyreq()');
+        debug('_watchOndisplaypasskeyreq()');
         this._handlePairingRequest({
           method: 'displaypasskey',
           evt: evt
@@ -122,13 +122,13 @@ define(function(require) {
      */
     _watchOnenterpincodereq: function() {
       if (!this._defaultAdapter || !this._defaultAdapter.pairingReqs) {
-        Debug('_watchOnenterpincodereq() no adapter or pairingReqs');
+        debug('_watchOnenterpincodereq() no adapter or pairingReqs');
         return;
       }
 
       this._defaultAdapter.pairingReqs.addEventListener('enterpincodereq',
         (evt) => {
-        Debug('_watchOnenterpincodereq()');
+        debug('_watchOnenterpincodereq()');
         this._handlePairingRequest({
           method: 'enterpincode',
           evt: evt
@@ -147,13 +147,13 @@ define(function(require) {
      */
     _watchOnpairingconfirmationreq: function() {
       if (!this._defaultAdapter || !this._defaultAdapter.pairingReqs) {
-        Debug('_watchOnpairingconfirmationreq() no adapter or pairingReqs');
+        debug('_watchOnpairingconfirmationreq() no adapter or pairingReqs');
         return;
       }
 
       this._defaultAdapter.pairingReqs.addEventListener(
         'pairingconfirmationreq', (evt) => {
-        Debug('_watchOnpairingconfirmationreq: evt = ' + JSON.stringify(evt));
+        debug('_watchOnpairingconfirmationreq: evt = ' + JSON.stringify(evt));
         this._handlePairingRequest({
           method: 'confirmation',
           evt: evt
@@ -172,13 +172,13 @@ define(function(require) {
      */
     _watchOnpairingconsentreq: function() {
       if (!this._defaultAdapter || !this._defaultAdapter.pairingReqs) {
-        Debug('_watchOnpairingconsentreq() no adapter or pairingReqs');
+        debug('_watchOnpairingconsentreq() no adapter or pairingReqs');
         return;
       }
 
       this._defaultAdapter.pairingReqs.addEventListener('pairingconsentreq',
         (evt) => {
-        Debug('_watchOnpairingconsentreq: evt = ' + JSON.stringify(evt));
+        debug('_watchOnpairingconsentreq: evt = ' + JSON.stringify(evt));
         this._handlePairingRequest({
           method: 'consent',
           evt: evt
@@ -213,7 +213,7 @@ define(function(require) {
      * @memberOf PairManager
      */
     _onPairingAborted: function(evt) {
-      Debug('_onPairingAborted(): evt = ' + JSON.stringify(evt));
+      debug('_onPairingAborted(): evt = ' + JSON.stringify(evt));
       // if the attention screen still open, close it
       if (this.childWindow) {
         this.childWindow.Pairview.closeInput();
@@ -245,7 +245,7 @@ define(function(require) {
      * @memberOf PairManager
      */
     _onRequestPairingFromSystemMessage: function() {
-      Debug('onRequestPairingFromSystemMessage():');
+      debug('onRequestPairingFromSystemMessage():');
     },
 
     /**
@@ -258,7 +258,7 @@ define(function(require) {
      * @param {Object} pairingInfo.evt - DOM evt of this pairing request
      */
     _handlePairingRequest: function(pairingInfo) {
-      Debug('_onRequestPairing():' +
+      debug('_onRequestPairing():' +
             ' pairingInfo.method = ' + pairingInfo.method +
             ' pairingInfo.evt = ' + pairingInfo.evt);
 
@@ -333,7 +333,7 @@ define(function(require) {
 
             // show an alert with the overdue message
             if (!PairExpiredDialog.isVisible && this._isExpired) {
-              Debug('show expired dialog');
+              debug('show expired dialog');
               PairExpiredDialog.showConfirm(function() {
                 // Have to close Bluetooth app after the dialog is closed.
                 window.close();
@@ -348,7 +348,7 @@ define(function(require) {
     // we will show pair view immediately. Then, we clear up the notification.
     // If pendingPairing object is not exist, it means pair request is expired.
     showPendingPairing: function(screenLocked) {
-      Debug('showPendingPairing when screenLocked:' + screenLocked);
+      debug('showPendingPairing when screenLocked:' + screenLocked);
       if (!screenLocked) {
         if (this.pendingPairing) {
           this._isExpired = false;
@@ -365,7 +365,7 @@ define(function(require) {
     },
 
     cleanPendingPairing: function() {
-      Debug('cleanPendingPairing(): has pendingPairing = ' +
+      debug('cleanPendingPairing(): has pendingPairing = ' +
                  (this.pendingPairing));
 
       // Clear up the pending pairing request
@@ -395,7 +395,7 @@ define(function(require) {
     },
 
     showPairview: function(pairingInfo) {
-      Debug('showPairview(): pairingInfo = ' + pairingInfo);
+      debug('showPairview(): pairingInfo = ' + pairingInfo);
       var protocol = window.location.protocol;
       var host = window.location.host;
       this.childWindow = window.open(protocol + '//' + host + '/onpair.html',
@@ -406,7 +406,7 @@ define(function(require) {
     },
 
     onBluetoothDisabled: function() {
-      Debug('onBluetoothDisabled():');
+      debug('onBluetoothDisabled():');
 
       // if the attention screen still open, close it
       if (this.childWindow) {

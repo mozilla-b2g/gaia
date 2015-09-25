@@ -17,7 +17,7 @@ define(function(require) {
   var _debug = false;
   var debug = function() {};
   if (_debug) {
-    Debug = function btam_debug(msg) {
+    debug = function btam_debug(msg) {
       console.log('--> [BluetoothAdapterManager]: ' + msg);
     };
   }
@@ -77,7 +77,7 @@ define(function(require) {
               // Default adapter attribute change.
               // Usually, it means that we reach new default adapter.
               this.defaultAdapter = NavigatorBluetooth.defaultAdapter;
-              Debug('_watchMozBluetoothAttributechanged(): ' +
+              debug('_watchMozBluetoothAttributechanged(): ' +
                     'this.defaultAdapter = ' + this.defaultAdapter);
               break;
             default:
@@ -99,7 +99,7 @@ define(function(require) {
      */
     _initDefaultAdapter: function btam__initDefaultAdapter() {
       this.defaultAdapter = NavigatorBluetooth.defaultAdapter;
-      Debug('_initDefaultAdapter(): this.defaultAdapter = ' +
+      debug('_initDefaultAdapter(): this.defaultAdapter = ' +
             this.defaultAdapter);
     }
   };

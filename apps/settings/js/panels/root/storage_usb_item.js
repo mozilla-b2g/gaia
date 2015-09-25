@@ -12,7 +12,7 @@ define(function(require) {
   var _debug = false;
   var debug = function() {};
   if (_debug) {
-    Debug = function storage_debug(msg) {
+    debug = function storage_debug(msg) {
       console.log('--> [USBStorageItem]: ' + msg);
     };
   }
@@ -70,7 +70,7 @@ define(function(require) {
     },
 
     _umsEnabledHandler: function storage_umsEnabledHandler(enabled) {
-      Debug('_umsEnabledHandler');
+      debug('_umsEnabledHandler');
       this._enabled = enabled;
       this._updateUmsDesc();
     },
@@ -86,7 +86,7 @@ define(function(require) {
     // ums description
     _updateUmsDesc: function storage_updateUmsDesc() {
       var key;
-      Debug('enabled:' + this._enabled + '/' +
+      debug('enabled:' + this._enabled + '/' +
             'volumeState:' + MediaStorage.volumeState);
       if (this._enabled) {
         //TODO list all enabled volume name
@@ -100,7 +100,7 @@ define(function(require) {
     },
 
     _updateVolumeState: function storage_updateVolumeState() {
-      Debug('_updateVolumeState');
+      debug('_updateVolumeState');
       this._updateUmsDesc();
       switch (MediaStorage.volumeState) {
         case 'available':

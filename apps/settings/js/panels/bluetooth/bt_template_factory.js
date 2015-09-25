@@ -10,7 +10,7 @@ define(function() {
   var _debug = false;
   var debug = function() {};
   if (_debug) {
-    Debug = function bttf_debug(msg) {
+    debug = function bttf_debug(msg) {
       console.log('--> [BluetoothTemplateFactory]: ' + msg);
     };
   }
@@ -32,7 +32,7 @@ define(function() {
     li.classList.add('bluetooth-device');
 
     // According to Bluetooth class of device to give icon style.
-    Debug('device.type = ' + device.type);
+    debug('device.type = ' + device.type);
     li.classList.add('bluetooth-type-' + device.type);
 
     // According to 'descriptionText' property to give description.
@@ -74,7 +74,7 @@ define(function() {
   }
 
   function _updateItemDescriptionText(li, element, descriptionText) {
-    Debug('_updateItemDescriptionText(): descriptionText = ' + descriptionText);
+    debug('_updateItemDescriptionText(): descriptionText = ' + descriptionText);
     switch (descriptionText) {
       case 'tapToConnect':
         li.removeAttribute('aria-disabled');

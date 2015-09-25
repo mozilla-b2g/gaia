@@ -28,7 +28,7 @@ define(function() {
   var _debug = false;
   var debug = function() {};
   if (_debug) {
-    Debug = function btcodm_debug(msg) {
+    debug = function btcodm_debug(msg) {
       console.log('--> [BluetoothCODMapper]: ' + msg);
     };
   }
@@ -145,50 +145,50 @@ define(function() {
      * @return {String}
      */
     getDeviceType: function btcodm_getDeviceType(cod) {
-      Debug('cod.majorDeviceClass = ' + cod.majorDeviceClass);
-      Debug('cod.majorServiceClass = ' + cod.majorServiceClass);
-      Debug('cod.minorDeviceClass = ' + cod.minorDeviceClass);
+      debug('cod.majorDeviceClass = ' + cod.majorDeviceClass);
+      debug('cod.majorServiceClass = ' + cod.majorServiceClass);
+      debug('cod.minorDeviceClass = ' + cod.minorDeviceClass);
       // Given an empty string to be default type.
       // Then, we won't show any icon for empty type.
       var deviceType = '';
       var majorDeviceClass = MajorDeviceClasses[cod.majorDeviceClass];
-      Debug('majorDeviceClass = ' + majorDeviceClass);
+      debug('majorDeviceClass = ' + majorDeviceClass);
       if (typeof(majorDeviceClass) === 'object') {
         // drop in other Major Class
         deviceType = majorDeviceClass[cod.minorDeviceClass] ||
                      majorDeviceClass.reserved || '';
-        Debug('return in minor class, type = ' + deviceType);
+        debug('return in minor class, type = ' + deviceType);
         return deviceType;
       } else if (typeof(majorDeviceClass) === 'string') {
         // drop in LAN/Network Access Point Major Class
-        Debug('return in major class, type = network-wireless');
+        debug('return in major class, type = network-wireless');
         return majorDeviceClass;
       } else if (cod.majorServiceClass & 0x100) {
         // Not in any Major Device Class which is defined in Gaia.
         // Ex: Wearable, Toy, Health.
 
-        // Since there is no icon to display wearable, toy, health devices, 
-        // file a bug 1163479[2] to define them for specification needed. 
-        // But some of these devices probably service 'Audio' per Bluetooth 
+        // Since there is no icon to display wearable, toy, health devices,
+        // file a bug 1163479[2] to define them for specification needed.
+        // But some of these devices probably service 'Audio' per Bluetooth
         // specification[1].
         // Property 'type' may be missed due to CoD of major class is TOY(0x08).
-        // But we need to assign 'type' as 'audio-card' if service class 
-        // is 'Audio'. This is for PTS test case TC_AG_COD_BV_02_I. 
-        // As HFP specification defines that service class is 'Audio' can 
+        // But we need to assign 'type' as 'audio-card' if service class
+        // is 'Audio'. This is for PTS test case TC_AG_COD_BV_02_I.
+        // As HFP specification defines that service class is 'Audio' can
         // be considered as HFP HF.
         // [1]: HFP_SPEC_V16.pdf: A device implementing the HF role of HFP shall
         //      set the "Audio" bit in the Service Class field.
-        // [2]: Bug 1163479 - [Gaia][Bluetooth] Device icon definition for 
+        // [2]: Bug 1163479 - [Gaia][Bluetooth] Device icon definition for
         //      wearable, toy, health(Major Device Class) devices.
         //      (https://bugzilla.mozilla.org/show_bug.cgi?id=1163479)
 
         // Major Service Class: Audio(Speaker, Microphone, Headset service, ...)
         deviceType = 'audio-card';
-        Debug('return in major service class, type = audio-card');
+        debug('return in major service class, type = audio-card');
         return deviceType;
       } else {
         // Not in any Class which is defined in Gaia.
-        Debug('not mapping in any class, return type = ' + deviceType);
+        debug('not mapping in any class, return type = ' + deviceType);
         return deviceType;
       }
     }

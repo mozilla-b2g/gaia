@@ -17,7 +17,7 @@ define(function(require) {
   var _debug = false;
   var debug = function() {};
   if (_debug) {
-    Debug = function btd_debug(msg) {
+    debug = function btd_debug(msg) {
       console.log('--> [BluetoothDevice]: ' + msg);
     };
   }
@@ -32,7 +32,7 @@ define(function(require) {
    * @param {Object} options.profiles - profiles of the connection type
    */
   var updateConnectionInfo = function(options) {
-    Debug('updateConnectionInfo(): this.address = ' + this.address +
+    debug('updateConnectionInfo(): this.address = ' + this.address +
           ', this.name = ' + this.name +
           ', options = ' + JSON.stringify(options));
     if (options.connectionStatus) {
@@ -43,7 +43,7 @@ define(function(require) {
       this.profiles = Object.create(options.profiles);
     }
 
-    Debug('updateConnectionInfo(): this.connectionStatus = ' +
+    debug('updateConnectionInfo(): this.connectionStatus = ' +
           this.connectionStatus + ', this.profiles = ' +
           JSON.stringify(this.profiles));
   };
@@ -55,7 +55,7 @@ define(function(require) {
    * @memberOf BluetoothDevice
    */
   var updateDescriptionText = function() {
-    Debug('updateDescriptionText():');
+    debug('updateDescriptionText():');
     // Define description for found device.
     if (this.paired === false) {
       this.descriptionText = 'tapToConnect';
@@ -86,7 +86,7 @@ define(function(require) {
         this.descriptionText = 'disconnected';
       }
     }
-    Debug('updateDescriptionText(): this.descriptionText = ' +
+    debug('updateDescriptionText(): this.descriptionText = ' +
           this.descriptionText);
   };
 
@@ -114,7 +114,7 @@ define(function(require) {
 
     /**
      * Observe 'paired', 'connectionStatus', and 'profiles' properties changed
-     * event in init function. Once these properties changed, we can update 
+     * event in init function. Once these properties changed, we can update
      * corrected description for the device.
      */
     observableBluetoothDevice._init = function btd__init() {
@@ -130,18 +130,18 @@ define(function(require) {
      */
     device.onattributechanged = function btd_onDeviceAttributeChanged(evt) {
       for (var i in evt.attrs) {
-        Debug('onDeviceAttributeChanged(): ' + evt.attrs[i]);
+        debug('onDeviceAttributeChanged(): ' + evt.attrs[i]);
         switch (evt.attrs[i]) {
           case 'name':
             observableBluetoothDevice.name = device.name;
             break;
           case 'paired':
-            Debug('onDeviceAttributeChanged(): ' +
+            debug('onDeviceAttributeChanged(): ' +
                   'device.paired = ' + device.paired);
             observableBluetoothDevice.paired = device.paired;
             break;
           case 'cod':
-            Debug('onDeviceAttributeChanged(): ' +
+            debug('onDeviceAttributeChanged(): ' +
                   'device.cod = ' + device.cod);
             observableBluetoothDevice.type =
               BtClassOfDeviceMapper.getDeviceType(device.cod);

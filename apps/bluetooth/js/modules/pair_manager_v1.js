@@ -11,7 +11,7 @@ define(function(require) {
   var _debug = false;
   var debug = function() {};
   if (_debug) {
-    Debug = function btam_debug(msg) {
+    debug = function btam_debug(msg) {
       console.log('--> [PairManagerV1]: ' + msg);
     };
   }
@@ -64,7 +64,7 @@ define(function(require) {
     },
 
     onRequestPairing: function(pairingInfo) {
-      Debug('onRequestPairing(): pairingInfo = ' + pairingInfo);
+      debug('onRequestPairing(): pairingInfo = ' + pairingInfo);
 
       var req = navigator.mozSettings.createLock().get('lockscreen.locked');
       req.onsuccess = () => {
@@ -137,7 +137,7 @@ define(function(require) {
 
             // show an alert with the overdue message
             if (!PairExpiredDialog.isVisible && this._isExpired) {
-              Debug('show expired dialog');
+              debug('show expired dialog');
               PairExpiredDialog.showConfirm(function() {
                 // Have to close Bluetooth app after the dialog is closed.
                 window.close();
@@ -168,7 +168,7 @@ define(function(require) {
     },
 
     cleanPendingPairing: function() {
-      Debug('cleanPendingPairing(): has pendingPairing = ' +
+      debug('cleanPendingPairing(): has pendingPairing = ' +
                  (this.pendingPairing));
 
       // Clear up the pending pairing request
@@ -198,7 +198,7 @@ define(function(require) {
     },
 
     showPairview: function(pairingInfo) {
-      Debug('showPairview(): pairingInfo = ' + pairingInfo);
+      debug('showPairview(): pairingInfo = ' + pairingInfo);
 
       var evt = pairingInfo;
       var device = {
@@ -225,7 +225,7 @@ define(function(require) {
     },
 
     onBluetoothCancel: function(message) {
-      Debug('onBluetoothCancel(): event message = ' + message);
+      debug('onBluetoothCancel(): event message = ' + message);
 
       // if the attention screen still open, close it
       if (this.childWindow) {
@@ -252,7 +252,7 @@ define(function(require) {
     },
 
     onBluetoothDisabled: function() {
-      Debug('onBluetoothDisabled():');
+      debug('onBluetoothDisabled():');
 
       // if the attention screen still open, close it
       if (this.childWindow) {

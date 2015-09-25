@@ -15,7 +15,7 @@ define(function(require) {
   var _debug = false;
   var debug = function() {};
   if (_debug) {
-    Debug = function vd_debug(msg) {
+    debug = function vd_debug(msg) {
       console.log('--> [VersionDetector]: ' + msg);
     };
   }
@@ -30,16 +30,16 @@ define(function(require) {
      */
     getVersion: function vd_getVersion() {
       if (!NavigatorBluetooth) {
-        Debug('[VersionDetector]: navigator.mozBluetooth is not existed!!');
+        debug('[VersionDetector]: navigator.mozBluetooth is not existed!!');
         // Since there is no navigator.mozBluetooth on B2G Desktop,
         // we workaround to return version 1 for Gaia UI test case.
         return 1;
       } else if
         (typeof(NavigatorBluetooth.onattributechanged) !== 'undefined') {
-        Debug('[VersionDetector]: navigator.mozBluetooth is version 2!!');
+        debug('[VersionDetector]: navigator.mozBluetooth is version 2!!');
         return 2;
       } else {
-        Debug('[VersionDetector]: navigator.mozBluetooth is version 1!!');
+        debug('[VersionDetector]: navigator.mozBluetooth is version 1!!');
         return 1;
       }
     }
