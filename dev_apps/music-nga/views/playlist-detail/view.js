@@ -8,32 +8,12 @@ var PlaylistDetailView = View.extend(function PlaylistDetailView() {
 
   this.list = document.getElementById('list');
 
-  this.list.configure({
-    // We won't need this after <gaia-fast-list>
-    // gets proper dynamic <template> input
-    populateItem: function(el, i) {
-      var data = this.getRecordAt(i);
-
-      var link = el.querySelector('a');
-      var title = el.querySelector('h3');
-      var subtitle = el.querySelector('p');
-
-      link.href = `/player?id=${data.name}`;
-      link.dataset.filePath = data.name;
-
-      title.firstChild.data = data.metadata.title;
-      subtitle.firstChild.data = data.metadata.artist;
-    }
-  });
-
   this.list.addEventListener('click', (evt) => {
     var link = evt.target.closest('a[data-file-path]');
     if (link) {
       this.queuePlaylist(link.dataset.filePath);
     }
   });
-
-  View.preserveListScrollPosition(this.list);
 
   this.client.on('databaseChange', () => this.update());
 

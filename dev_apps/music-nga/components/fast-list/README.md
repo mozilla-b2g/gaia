@@ -1,7 +1,7 @@
 # Fast List
 [![](https://travis-ci.org/gaia-components/fast-list.svg)](https://travis-ci.org/gaia-components/fast-list)
 
-The FastList is a virtual-list implementation based on the DomScheduler.
+The FastList is a virtual-list implementation based on the DomScheduler. See [`<gaia-fast-list>`](https://github.com/gaia-components/gaia-fast-list) for the simpler, more opinionated web-component.
 
 The content of the list comes from a `DataSource` that needs to implement the API described
 below. When the content is edited from the list "Edit mode", the list will trigger calls to the source itself.
@@ -19,20 +19,18 @@ var myList = new FastList({
   container: document.querySelector('.my-container'),
 
   /**
-   * A template that will be used for each
-   * list item. A real element will be passed
-   * to populateItem() function to fill.
-   * @type {String}
+   * Should return a unique element to
+   * be used as a list item.
+   * @return {HTMLElement}
    */
-  listTemplate: '<li><h3> </h3><p> </p></li>',
+  createItem: function() {},
 
   /**
-   * A template that will be used for each
-   * section. A real element will be passed
-   * to populateSection() function to fill.
-   * @type {String}
+   * Should return a unique element to
+   * be used as a section.
+   * @return {HTMLElement}
    */
-  sectionTemplate: '<section><h2> </h2></section>',
+  createSection: function() {},
 
   /**
    * Called each time a list item needs rendering.
@@ -40,6 +38,23 @@ var myList = new FastList({
    * @param  {Number} index
    */
   populateItem: function(el, index) { ... },
+
+  /**
+   * Called when the ressources allows it to do more expensive rendering
+   * (ie. images)
+   * This method isn't mandatory.
+   * @param  {HTMLElement} el Your listTemplate
+   * @param  {Number} index
+   */
+  populateItemDetail: function(el, index) { ... },
+
+  /**
+   * Called when an item is recycled to undo/cleanup the detail
+   * rendering
+   * This method isn't mandatory.
+   * @param  {HTMLElement} el Your listTemplate
+   */
+  unpopulateItemDetail: function(el) { ... },
 
   /**
    * Called each time a section needs rendering.
@@ -61,20 +76,20 @@ var myList = new FastList({
    * Can return 0 is not using sections.
    * @return {Number}
    */
-  sectionHeaderHeight() { ... },
+  getSectionHeaderHeight() { ... },
 
   /**
    * Should return the height of all
    * the items in a section.
    * @return {Number}
    */
-  fullSectionHeight() { ... },
+  getFullSectionHeight() { ... },
 
   /**
    * Should return the total number of sections.
    * @return {Number}
    */
-  fullSectionLength() { ... },
+  getFullSectionLength() { ... },
 
   /**
    * Should return the section data for the item.
@@ -96,7 +111,7 @@ var myList = new FastList({
    * @param  {Number} pos
    * @return {Index}
    */
-  indexAtPosition: function(pos) { ... },
+  getIndexAtPosition: function(pos) { ... },
 
   /**
    * Should return the y-offset of
@@ -104,26 +119,34 @@ var myList = new FastList({
    * @param  {Number} index
    * @return {Number}
    */
-  positionForIndex: function(index) { ... },
+  getPositionForIndex: function(index) { ... },
 
   /**
    * Should return the full list length.
    * @return {Number}
    */
-  fullLength: function() { ... },
+  getFullLength: function() { ... },
 
   /**
    * Should return the item px height.
    * @return {Number}
    */
-  itemHeight: function() { ... },
+  getItemHeight: function() { ... },
 
   /**
    * Should return the full height of the list
    * including all items and section headers.
    * @return {Number}
    */
-  fullHeight: function() { ... },
+  getFullHeight: function() { ... },
+
+  /**
+   * An optional parameter to allow you to
+   * provide the list viewport height in
+   * a more efficient way than .offsetHeight.
+   * @return {Number}
+   */
+  getViewportHeight: function() {},
 
   /**
    * SHould insert the given record into the your
@@ -144,15 +167,18 @@ var myList = new FastList({
 });
 ```
 
+## If the content is not ready by the time it needs to be rendered
+When the source is not ready to _populate_ an item, maybe because the
+IndexedDB cursor hasn't caught up with scrolling yet it should do the
+following.
+
+* return a Promise from `populateItem`, resolving once the content is
+  ready
+* return `false` if it implements the `populateItemDetail` method
+
+Once the promise resolves, the list will try again to call `populateItem` / `populateItemDetail`.
+
 ## API
-
-### Edit mode
-
-```js
-list.toggleEditMode()
-```
-
-This method returns a promise, fulfilled once the transition is done.
 
 ### Notifying of new content insertion
 
@@ -187,3 +213,24 @@ list.updateListHeight()
 ```
 
 Can be called if the number of items in the list has changed, it'll return a scheduler promise fulfilled after the mutation is executed. This will also cause the scrollbar to flash.
+
+### Edit mode
+The edit mode support leaves in a plugin, to enable in you need to load
+`fast-list-edit.js` and initialize the `FastList` as follow.
+```js
+var list = new FastList(config).plugin(fastListEdit);
+```
+
+```js
+/**
+ * Toggles the edit mode on and off
+ *
+ * Returns the DomScheduler promise of the edit mode transition
+ *
+ * @return {Promise}
+ */
+list.toggleEditMode()
+```
+
+This method returns a promise, fulfilled once the transition is done.
+

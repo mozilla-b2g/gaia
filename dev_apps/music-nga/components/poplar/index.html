@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="poplar.js"></script>
+  <title>poplar</title>
+</head>
+<body>
+  <template>
+    <a href="http://twitter.com/${meta.twitter}" data-foo="foo" data-name="${name}"/>
+      <img src="http://avatars.io/twitter/${meta.twitter}?size=large" />
+      <h1>hello ${name}</h1>
+    </a>
+  </template>
+
+  <script>
+    var template = document.querySelector('template');
+
+    var el = poplar(template.innerHTML);
+    document.body.appendChild(el);
+
+    poplar.populate(el, {
+      name: 'wilson',
+      meta: { twitter: 'wilsonpage' }
+    });
+  </script>
+</body>
+</html>

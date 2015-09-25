@@ -9,22 +9,23 @@ var AlbumsView = View.extend(function AlbumsView() {
   this.search = document.getElementById('search');
   this.list = document.getElementById('list');
 
+  var searchHeight = this.search.offsetHeight;
+
   this.search.addEventListener('open', () => window.parent.onSearchOpen());
-  this.search.addEventListener('close', () => window.parent.onSearchClose());
+  this.search.addEventListener('close', () => {
+    this.list.scrollTop = searchHeight;
+    window.parent.onSearchClose();
+  });
+
+  this.list.scrollTop = searchHeight;
+  this.list.minScrollHeight = `calc(100% - ${searchHeight}px)`;
 
   this.list.configure({
     getSectionName(item) {
       var album = item.metadata.album;
       return album ? album[0].toUpperCase() : '?';
-    },
-
-    itemKeys: {
-      link: data => `/album-detail?id=${data.name}`,
-      title: 'metadata.album'
     }
   });
-
-  View.preserveListScrollPosition(this.list);
 
   this.client.on('databaseChange', () => this.update());
 

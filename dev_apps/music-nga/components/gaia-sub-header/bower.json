@@ -1,0 +1,28 @@
+{
+  "name": "gaia-sub-header",
+  "version": "0.4.1",
+  "homepage": "https://github.com/gaia-components/gaia-subheader",
+  "authors": [
+    "rnowm <arnau@arnaumarch.com>"
+  ],
+  "main": "gaia-sub-header.js",
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests",
+    "index.html",
+    "package.json",
+    "README.md"
+  ],
+  "devDependencies": {
+    "base": "gaia-components/base",
+    "gaia-theme": "gaia-components/gaia-theme",
+    "gaia-fonts": "gaia-components/gaia-fonts"
+  },
+  "dependencies": {
+    "gaia-component": "gaia-components/gaia-component#^0.3.8"
+  }
+}
