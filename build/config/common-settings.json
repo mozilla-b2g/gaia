@@ -235,6 +235,8 @@
    "support.callsupport2.href": "",
    "sync.collections.history.enabled": true,
    "sync.collections.passwords.enabled": true,
+   "sync.collections.history.readonly": true,
+   "sync.collections.passwords.readonly": true,
    "sync.scheduler.interval": 3600,
    "sync.scheduler.wifionly": false,
    "telephony.speaker.enabled": false,

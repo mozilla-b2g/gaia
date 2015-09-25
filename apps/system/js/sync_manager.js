@@ -82,6 +82,13 @@
     'sync.collections.history.enabled',
     'sync.collections.passwords.enabled',
 
+    // Setting any of these two settings to true will make the synchronization
+    // of the collection readonly. That means that we will only be retrieving
+    // data from Firefox Sync and we won't be pushing any of the local
+    // modifications to the collections source.
+    'sync.collections.history.readonly',
+    'sync.collections.passwords.readonly',
+
     'sync.server.url',
     'sync.scheduler.interval',
     'sync.scheduler.wifionly'
@@ -281,13 +288,16 @@
       // to do it for a periodic sync.
       this.unregisterSyncRequest();
 
-      var collections = [];
+      var collections = {};
       COLLECTIONS.forEach(name => {
         if (this._settings['sync.collections.' + name + '.enabled']) {
-          collections.push(name);
+          collections[name] = {
+            readonly: this._settings['sync.collections.' + name + '.readonly']
+          };
         }
       });
-      if (!collections.length) {
+
+      if (!Object.keys(collections).length) {
         Service.request('SyncStateMachine:success');
         return;
       }
@@ -494,8 +504,9 @@
     },
 
     doSync: function(assertion, keys, collections) {
-      this.debug('Syncing with', collections);
+      this.debug('Syncing with', JSON.stringify(collections));
       this.iacRequest({
+        url: this._settings['sync.server.url'],
         assertion: assertion,
         keys: keys,
         collections: collections
