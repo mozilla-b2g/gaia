@@ -162,19 +162,6 @@ function VideoPlayer(container) {
     player.src = videourl;
     self.playerShowing = true;
 
-    // Verify that our guess at the video size is correct once we have loaded
-    // the metadata. This will happen if the poster image size differs.
-    player.onloadedmetadata = function() {
-      player.onloadedmetadata = null;
-      if (videowidth != player.videoWidth ||
-          videoheight != player.videoHeight)
-      {
-        videowidth = player.videoWidth;
-        videoheight = player.videoHeight;
-        setPlayerSize(true);
-      }
-    };
-
     // The only place we call showPlayer() is from the play() function.
     // If play() has to show the player, call it again when we're ready to play.
     player.oncanplay = function() {
@@ -290,8 +277,18 @@ function VideoPlayer(container) {
     }
   });
 
-  // Set the video duration when we get metadata
+  // Set the video duration and size when we get metadata
   player.onloadedmetadata = function() {
+    // Verify that our guess at the video size is correct once we have loaded
+    // the metadata. This will happen if the poster image size differs.
+    if (videowidth != player.videoWidth ||
+        videoheight != player.videoHeight)
+    {
+      videowidth = player.videoWidth;
+      videoheight = player.videoHeight;
+      setPlayerSize(true);
+    }
+
     var formattedTime = formatTime(player.duration);
     durationText.textContent = formattedTime;
     slider.setAttribute('aria-valuemax', player.duration);
