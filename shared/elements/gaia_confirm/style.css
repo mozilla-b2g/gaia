@@ -72,8 +72,11 @@ p {
   word-wrap: break-word;
   margin: 1rem 0 0;
   padding: 1rem 1.5rem;
-  border-top: 0.1rem solid #686868;
   line-height: 3rem;
+}
+
+p:first-of-type {
+  border-top: 0.1rem solid #686868;
 }
 
 p img {
@@ -82,7 +85,7 @@ p img {
 }
 
 p strong {
-  font-weight: 300;
+  font-weight: 500;
 }
 
 p small {

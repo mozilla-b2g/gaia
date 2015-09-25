@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>GaiaLowstorageDialog Demo</title>
+  <meta name='viewport' content='initial-scale=1'>
+  <!-- Localization -->
+  <meta name="defaultLanguage" content="en-US">
+  <meta name="availableLanguages" content="en-US">
+  <link rel="localization" href="locales/example.{locale}.properties">
+
+  <style type="text/css">
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      font-size: 10px;
+    }
+  </style>
+  <script>window.GaiaLowstorageDialogBaseurl = '../';</script>
+  <script>window.GaiaConfirmBaseurl = '../../gaia_confirm/';</script>
+  <script>window.GaiaButtonsBaseurl = '../../gaia_buttons/';</script>
+  <script src="../../../js/l10n.js"></script>
+  <script src="../../../js/component_utils.js"></script>
+  <script src="../../gaia_buttons/script.js"></script>
+  <script src="../../gaia_confirm/script.js"></script>
+  <script src="../script.js"></script>
+</head>
+<body role="application">
+  <button class='display-button' type='button'>Display the dialog !</button>
+
+  <gaia-lowstorage-dialog hidden>
+    <span data-l10n-id='lowstorage-explanation-details'></span>
+  </gaia-lowstorage-dialog>
+
+  <script type="text/javascript" charset="utf-8">
+(function() {
+  /**
+  In addition to showing a nice confirm dialog we have an additional event which
+  are emitted on the dialog itself (but not bubbled!)
+  */
+  var confirm = document.querySelector('gaia-lowstorage-dialog');
+  confirm.addEventListener('confirm', function() {
+    confirm.setAttribute('hidden', '');
+  });
+
+  var button = document.querySelector('button.display-button');
+  button.addEventListener('click', () => {
+    if (confirm.hasAttribute('hidden')) {
+      confirm.removeAttribute('hidden');
+    } else {
+      confirm.setAttribute('hidden', '');
+    }
+  });
+})();
+  </script>
+</body>
+</html>
