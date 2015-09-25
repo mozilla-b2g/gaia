@@ -129,6 +129,10 @@ suite('controllers/controls', function() {
     test('Should disable the view intitially until camera is ready', function() {
       sinon.assert.called(this.view.disable);
     });
+
+    test('Should listen on click for pause button', function() {
+      assert.ok(this.view.on.calledWith('click:pause'));
+    });
   });
 
   suite('Set view screen reader visibility based on settings opened/closed',
@@ -179,6 +183,36 @@ suite('controllers/controls', function() {
       this.controller.onViewModeChanged();
       sinon.assert.notCalled(this.view.enable);
       sinon.assert.called(this.settings.mode.next);
+    });
+  });
+
+  suite('ControlsController#onRecordingChange()', function() {
+    setup(function() {
+      sinon.spy(this.controller, 'onRecordingEnd');
+    });
+
+    test('Should configure view as recording if state is `started`', function() {
+      this.controller.onRecordingChange('started');
+      assert.ok(this.view.set.calledWith('recording', true));
+      sinon.assert.notCalled(this.controller.onRecordingEnd);
+    });
+
+    test('Should configure view as not recording if state is `stopped`', function() {
+      this.controller.onRecordingChange('stopped');
+      assert.ok(this.view.set.calledWith('recording', false));
+      sinon.assert.called(this.controller.onRecordingEnd);
+    });
+
+    test('Should configure view as paused if state is `paused` or `pausing`', function() {
+      this.controller.onRecordingChange('pausing');
+      assert.ok(this.view.set.calledWith('paused', true));
+      assert.ok(this.view.setPauseLabel.calledWith(true));
+    });
+
+    test('Should configure view as resumed if state is `resumed`', function() {
+      this.controller.onRecordingChange('resumed');
+      assert.ok(this.view.set.calledWith('paused', false));
+      assert.ok(this.view.setPauseLabel.calledWith(false));
     });
   });
 });

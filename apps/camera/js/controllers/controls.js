@@ -25,6 +25,7 @@ function ControlsController(app) {
   bindAll(this);
   this.app = app;
   this.activity = app.activity;
+  this.camera = app.camera;
   this.createView();
   this.bindEvents();
   debug('initialized');
@@ -40,18 +41,21 @@ ControlsController.prototype.bindEvents = function() {
   this.app.settings.mode.on('change:options', this.configureMode);
 
   // App
-  this.app.on('change:recording', this.onRecordingChange);
   this.app.on('camera:shutter', this.captureHighlightOff);
   this.app.on('newthumbnail', this.onNewThumbnail);
   this.app.once('loaded', this.onceAppLoaded);
   this.app.on('busy', this.onCameraBusy);
   this.app.on('localized', this.view.localize);
 
+  // Camera
+  this.camera.on('change:recording', this.onRecordingChange);
+
   // View
   this.view.on('modechanged', this.onViewModeChanged);
   this.view.on('click:thumbnail', this.app.firer('preview'));
   this.view.on('click:cancel', this.onCancelButtonClick);
   this.view.on('click:capture', this.onCaptureClick);
+  this.view.on('click:pause', this.app.firer('capture:pause'));
 
   // Timer
   this.app.on('timer:started', this.onTimerStarted);
@@ -149,12 +153,20 @@ ControlsController.prototype.onCaptureClick = function() {
  * the view to allow it to style
  * accordingly.
  *
- * @param  {Boolean} recording
+ * @param  {String} state
  * @private
  */
-ControlsController.prototype.onRecordingChange = function(recording) {
-  this.view.set('recording', recording);
-  if (!recording) { this.onRecordingEnd(); }
+ControlsController.prototype.onRecordingChange = function(state) {
+  var recording;
+  if (state === 'started' || state === 'stopped') {
+    recording = state === 'started';
+    this.view.set('recording', recording);
+    if (!recording) { this.onRecordingEnd(); }
+  } else if (state === 'pausing' || state === 'paused' || state === 'resumed') {
+    recording = state !== 'resumed';
+    this.view.set('paused', recording);
+    this.view.setPauseLabel(recording);
+  }
 };
 
 /**

@@ -252,4 +252,13 @@ suite('views/controls', function() {
       assert.equal(view.els[el].getAttribute('data-l10n-id'), view.elsL10n[el]);
     }
   });
+
+  test('ControlsView#setPauseLabel', function() {
+    var view = new this.ControlsView();
+    [true, false].forEach(function(paused) {
+      view.setPauseLabel(paused);
+      assert.equal(view.els.pause.getAttribute('data-l10n-id'),
+        paused ? 'resume-capture-button' : 'pause-capture-button');
+    });
+  });
 });
