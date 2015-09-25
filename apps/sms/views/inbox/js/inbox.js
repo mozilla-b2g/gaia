@@ -398,8 +398,9 @@ var InboxView = {
     selected.forEach((id) => {
       var thread = Threads.get(+id);
 
-      var markable = thread && !thread.isDraft &&
-        (isRead || !thread.getDraft());
+      var markable = thread && !thread.isDraft && 
+              (isRead || !thread.getDraft()) && 
+              !(thread.unreadCount ^ isRead));
 
       if (markable) {
         thread.unreadCount = isRead ? 0 : 1;
