@@ -1,4 +1,5 @@
 {
   "screen.timeout": 0,
-  "homescreen.appName": "homescreen"
+  "homescreen.appName": "homescreen",
+  "ftu.manifestURL": null
 }
