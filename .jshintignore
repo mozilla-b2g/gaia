@@ -46,8 +46,9 @@ apps/gallery/js/config.js
 apps/gallery/js/frame_scripts.js
 apps/gallery/js/metadata_scripts.js
 apps/keyboard/js/layouts/**
-apps/music/bower_components/**
+apps/music/components/**
 apps/music/js/metadata_scripts.js
+apps/music/node_modules/**
 apps/keyboard/js/imes/jszhuyin/tools/cook.js
 apps/keyboard/build/keyboard-config.js
 apps/settings/js/vendor/alameda.js

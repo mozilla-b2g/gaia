@@ -1,6 +1,6 @@
 /* global FLACMetadata, ForwardLockMetadata, ID3v1Metadata, ID3v2Metadata,
-   MP4Metadata, OggMetadata, MetadataFormats, fetchBlobView, fetchBuffer,
-   ForwardLock, makeBlobView, pass, fail */
+          MP4Metadata, OggMetadata, MetadataFormats, fetchBlobView, fetchBuffer,
+          ForwardLock, makeBlobView, pass, fail, suite, test, assert */
 'use strict';
 
 require('/test/unit/metadata/utils.js');

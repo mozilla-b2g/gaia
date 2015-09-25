@@ -1,5 +1,6 @@
 /* global ID3v2Metadata, fetchBlobView, fetchBuffer, makeBlobView,
-   MockLazyLoader, readBlob, readPicSlice, assertBuffersEqual, pass, fail */
+          MockLazyLoader, readBlob, readPicSlice, assertBuffersEqual,
+          pass, fail, suite, setup, teardown, test, assert */
 'use strict';
 
 require('/test/unit/metadata/utils.js');

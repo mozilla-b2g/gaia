@@ -1,0 +1,73 @@
+html {
+  background: var(--background);
+  color: #fff;
+  font-size: 10px;
+  font-family: 'FiraSans';
+  width: 100%;
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  -moz-user-select: none;
+}
+
+a {
+  text-decoration: none;
+}
+
+/* Hide the default placeholder */
+img:-moz-loading {
+  display: none;
+}
+
+gaia-fast-list a {
+  color: var(--text-color);
+  width: 100%;
+}
+
+gaia-fast-list li {
+  padding: 0;
+}
+
+gaia-fast-list li > a {
+  padding: 9px 0;
+}
+
+gaia-fast-list h3,
+gaia-fast-list p {
+  background: none !important;
+}
+
+gaia-fast-list em {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 2rem;
+  line-height: 0.7rem;
+}
+
+gaia-fast-list em ~ h3,
+gaia-fast-list em ~ p {
+  padding-left: 2rem;
+}
+
+gaia-fast-list img {
+  right: 0;
+  left: auto !important;
+  object-fit: cover;
+}
+
+gaia-fast-list img ~ h3,
+gaia-fast-list img ~ p {
+  padding-right: 60px;
+}
+
+gaia-fast-list music-search {
+  display: block;
+  position: relative;
+  left: -17px; /* Offset <gaia-fast-list> padding */
+  width: 100vw;
+}

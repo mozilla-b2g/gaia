@@ -1,5 +1,6 @@
 /* global AudioMetadata, fetchBuffer, MockLazyLoader, readBlob,
-   assertBuffersEqual, pass, fail */
+          assertBuffersEqual, pass, fail, suite, setup, teardown,
+          test, assert */
 'use strict';
 
 require('/test/unit/metadata/utils.js');

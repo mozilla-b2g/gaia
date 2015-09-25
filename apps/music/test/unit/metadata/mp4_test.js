@@ -1,5 +1,5 @@
 /* global MP4Metadata, fetchBuffer, makeBlobView, readPicSlice,
-   assertBuffersEqual, pass, fail */
+          assertBuffersEqual, pass, fail, suite, setup, test, assert */
 'use strict';
 
 require('/test/unit/metadata/utils.js');
