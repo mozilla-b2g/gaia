@@ -20,9 +20,12 @@ gaia-buttons:not(.inline) {
   bottom: 0;
   z-index: 10;
   border-top: 0.1rem solid #e7e7e7;
-  padding: 0 1.5rem 0 0;
+  padding: 0;
   background-color: #f4f4f4;
 }
+/* this 'end' padding must match the buttons 'start' margin */
+gaia-buttons:not(.inline):-moz-dir(ltr) { padding-right: 1.5rem; }
+gaia-buttons:not(.inline):-moz-dir(rtl) { padding-left: 1.5rem; }
 
 gaia-buttons.inline a,
 gaia-buttons.inline button {
@@ -41,7 +44,7 @@ button {
   font-style: italic;
   width: 100%;
   height: 4rem;
-  margin: 0 0 0 1rem;
+  margin: 0;
   padding: 0 0.2rem;
   box-sizing: border-box;
   display: inline-block;
@@ -59,6 +62,14 @@ button {
   text-align: center;
   text-decoration: none;
   outline: none;
+}
+:-moz-dir(ltr) a,
+:-moz-dir(ltr) button {
+  margin-left: 1.5rem;
+}
+:-moz-dir(rtl) a,
+:-moz-dir(rtl) button {
+  margin-right: 1.5rem;
 }
 
 /* Recommend */
@@ -130,24 +141,39 @@ button.icon:before {
   height: 3rem;
   position: absolute;
   top: 50%;
-  right: 0.5rem;
   margin-top: -1.5rem;
   background: transparent no-repeat center center / 100% auto;
 }
+:-moz-dir(ltr) a.icon:before,
+:-moz-dir(ltr) button.icon:before { right: 0.5rem; }
+:-moz-dir(rtl) a.icon:before,
+:-moz-dir(rtl) button.icon:before { left: 0.5rem; }
 
 a.icon-next:before,
 button.icon-next:before {
-  background-image: url(images/forward-light.svg);
+  background-image: url(images/right-light.svg);
   background-size: 3rem;
+}
+:-moz-dir(rtl) a.icon-next:before,
+:-moz-dir(rtl) button.icon-next:before {
+  transform: scaleX(-1);
 }
 
 a.icon-previous:before,
 button.icon-previous:before {
-  background-image: url(images/forward-light.svg);
+  background-image: url(images/right-light.svg);
   background-size: 3rem;
-  transform: rotate(180deg);
-  left: 0.5rem;
 }
+:-moz-dir(ltr) a.icon-previous:before,
+:-moz-dir(ltr) button.icon-previous:before {
+  left: 0.5rem;
+  transform: scaleX(-1);
+}
+:-moz-dir(rtl) a.icon-previous:before,
+:-moz-dir(rtl) button.icon-previous:before {
+  right: 0.5rem;
+}
+
 
 /* -----------------------------------------------------------------
   SKIN: dark
@@ -222,32 +248,31 @@ gaia-buttons[skin="dark"] {
 
   gaia-buttons {
     height: 10rem;
-    padding-right: 3rem;
+  }
+
+  gaia-buttons:not(.inline) {
     border-top-width: 0.2rem;
   }
+  /* this 'end' padding must match the buttons 'start' margin */
+  gaia-buttons:not(.inline):-moz-dir(ltr) { padding-right: 3rem; }
+  gaia-buttons:not(.inline):-moz-dir(rtl) { padding-left: 3rem; }
 
   a,
   button {
-    margin-left: 3rem;
     font-size: 2rem;
     height: 5rem;
     line-height: 5rem;
     border-radius: 2.5rem;
     max-width: 40rem;
   }
+  :-moz-dir(ltr) a,
+  :-moz-dir(ltr) button {
+    margin-left: 3rem;
+  }
+  :-moz-dir(rtl) a,
+  :-moz-dir(rtl) button {
+    margin-right: 3rem;
+  }
 
 }
 
-/* RTl View */
-html[dir="rtl"] a.icon-next:before,
-html[dir="rtl"] button.icon-next:before {
-  transform: rotate(180deg);
-  left: 0.5rem;
-}
-
-html[dir="rtl"] a.icon-previous:before,
-html[dir="rtl"] button.icon-previous:before {
-  transform: unset;
-  left: unset;
-  right: 0.5rem;
-}
