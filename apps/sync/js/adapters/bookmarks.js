@@ -26,7 +26,7 @@
 */
 
 const BOOKMARKS_COLLECTION_MTIME = 'collections::bookmarks::mtime';
-const SYNCTOID_PREFIX = 'SynctoId::';
+const BOOKMARKS_SYNCTOID_PREFIX = 'SynctoId::bookmarks::';
 
 var BookmarksHelper = (() => {
   var bookmarksStore;
@@ -54,18 +54,20 @@ var BookmarksHelper = (() => {
 
   function setDataStoreId(synctoId, dataStoreId) {
     return new Promise(resolve => {
-      asyncStorage.setItem(SYNCTOID_PREFIX + synctoId, dataStoreId, resolve);
+      asyncStorage.setItem(
+        BOOKMARKS_SYNCTOID_PREFIX + synctoId, dataStoreId, resolve);
     });
   }
 
   function getDataStoreId(synctoId) {
     return new Promise(resolve => {
-      asyncStorage.getItem(SYNCTOID_PREFIX + synctoId, resolve);
+      asyncStorage.getItem(BOOKMARKS_SYNCTOID_PREFIX + synctoId, resolve);
     });
   }
 
   function mergeRecordsToDataStore(localRecord, remoteRecord) {
     if (!localRecord || !remoteRecord ||
+        localRecord.id !== remoteRecord.id ||
         localRecord.url !== remoteRecord.url) {
       // The local record has different url(id) with the new one.
       console.error('Inconsistent records on url', localRecord, remoteRecord);
@@ -84,24 +86,8 @@ var BookmarksHelper = (() => {
         localRecord, remoteRecord);
     }
 
-    localRecord.visits = localRecord.visits || [];
-    // If a localRecord is without any visit records or with older visit
-    // than remoteRecord, its title will be replaced by remoteRecord's.
-    if ((localRecord.visits.length === 0 && remoteRecord.title) ||
-        (remoteRecord.visits[0] >= localRecord.visits[0])) {
-      localRecord.title = remoteRecord.title;
-    }
-
-    remoteRecord.visits.forEach(item => {
-      if (localRecord.visits.indexOf(item) === -1) {
-        localRecord.visits.push(item);
-      }
-    });
-
-    localRecord.visits.sort((a, b) => {
-      // sort in descending order
-      return b - a;
-    });
+    localRecord.name = remoteRecord.name;
+    localRecord.fxsyncPayload = remoteRecord.fxsyncPayload;
 
     return localRecord;
   }
@@ -113,7 +99,7 @@ var BookmarksHelper = (() => {
     // 2.B Add a new record with RevisionId.
     // 3. Add the DataStore record ID into LocalID <-> RemoteID matching table.
 
-    var id = place.url;
+    var id = place.id;
     var revisionId;
     return _ensureStore().then(bookmarksStore => {
       revisionId = bookmarksStore.revisionId;
@@ -179,21 +165,12 @@ DataAdapters.bookmarks = {
   when any deleting record requests with the format [3] are coming from FxSync.
 
   [1] Records stored in Places DataStore (PDS): {
-    "url": "http://mozilla.org/", // KEY in PDS
-    "title": "Mozilla",
-    "icons": {
-      "http://mozilla.org/favicon.ico": {
-        "sizes": []
-      }
-    },
-    "frecency": 1,
-    "visits": [
-      // NOTICE: date/time without ms
-      1442247252490, 1442247250001
-    ],
-    "screenshot": {},
-    "fxsyncId" "REMOTE_ID", // [1.1]
-    "visited": 1442247252490
+    "id": "http://mozilla.org/", // KEY in PDS
+    "url": "http://mozilla.org/",
+    "name": "Mozilla",
+    "type": "url",
+    "iconable": false,
+    "icon": "http://www.lego.com/favicon.ico"
   }
 
   [2] Add/Update Records from History Collection (HC): {
@@ -202,13 +179,15 @@ DataAdapters.bookmarks = {
     "last_modified": 1442247272150,
     "payload": {
       "id": "zMgfGkRinh92",
-      "histUri": "http://mozilla.org/",
+      "type": "bookmark",
       "title": "Mozilla",
-      "visits": [
-         // NOTICE: date/time with ms
-        { "date": 1442247252490018, "type": 2 },
-        { "date": 1442247250001234, "type": 2 }
-      ]
+      "parentName": "mobile",
+      "bmkUri": "http://mozilla.org/",
+      "tags": [],
+      "keyword": null,
+      "description": null,
+      "loadInSidebar": false,
+      "parentid": "mobile"
     },
     "_status": "synced"
   }
@@ -242,15 +221,19 @@ DataAdapters.bookmarks = {
         });
         continue;
       }
-      if (!payload.histUri || !payload.visits || !payload.visits.length) {
+      if (!payload.bmkUri) {
         console.warn('Incorrect payload? ', payload);
         continue;
       }
 
       places.push({
-        url: payload.histUri,
-        title: payload.title,
-        visits: payload.visits.map(elem => Math.floor(elem.date / 1000)),
+        id: payload.bmkUri,
+        url: payload.bmkUri,
+        name: payload.title,
+        type: 'url',
+        iconable: false,
+        icon: '',
+        fxsyncPayload: payload,
         fxsyncId: payload.id
       });
     }

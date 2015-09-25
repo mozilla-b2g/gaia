@@ -65,8 +65,8 @@ var App = {
 
   sync: function() {
     var collectionNames = [
-      'bookmarks',
-      'history'
+      'bookmarks'
+      //'history'
       //'passwords',
       //'tabs'
     ];
