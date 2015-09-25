@@ -394,7 +394,7 @@ var InboxView = {
     }
   },
 
-  markReadUnread: function inbox_markReadUnread(selected, isRead) {
+  markReadUnread: function inbox_markReadUnread(selected, isRead)&& !(thread.unreadCount ^ isRead)  {
     selected.forEach((id) => {
       var thread = Threads.get(+id);
 
