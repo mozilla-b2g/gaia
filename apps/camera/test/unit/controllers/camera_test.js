@@ -105,6 +105,10 @@ suite('controllers/camera', function() {
     test('Should listen to the \'activity:pick\' event', function() {
       sinon.assert.calledWith(this.app.on, 'activity:pick');
     });
+
+    test('Should listen to the \'capture:pause\' event', function() {
+      sinon.assert.calledWith(this.app.on, 'capture:pause', this.controller.pauseCapture);
+    });
   });
 
   suite('camera.on(\'configured\')', function() {

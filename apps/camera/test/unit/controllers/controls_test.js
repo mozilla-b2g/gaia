@@ -136,6 +136,10 @@ suite('controllers/controls', function() {
     test('Should disable the view intitially until camera is ready', function() {
       sinon.assert.called(this.view.disable);
     });
+
+    test('Should listen on click for pause button', function() {
+      assert.ok(this.view.on.calledWith('click:pause'));
+    });
   });
 
   suite('Set view screen reader visibility based on settings opened/closed',
@@ -196,11 +200,41 @@ suite('controllers/controls', function() {
   });
 
   suite('ControlsController#onRecordingChange', function() {
-    test('When recording view\'s setCaptureLabel should be called', function() {
-      [true, false].forEach(function(recording) {
-        this.controller.onRecordingChange(recording);
-        assert.isTrue(this.view.setCaptureLabel.calledWith(recording));
-      }, this);
+    setup(function() {
+      sinon.spy(this.controller, 'onRecordingEnd');
+    });
+
+    test('Should configure view as recording if state is `started`', function() {
+      this.controller.onRecordingChange('started');
+      assert.ok(this.view.set.calledWith('recording', true));
+      assert.ok(this.view.set.calledWith('pause-active', false));
+      sinon.assert.notCalled(this.controller.onRecordingEnd);
+    });
+
+    test('Should configure view as not recording if state is `stopped`', function() {
+      this.controller.onRecordingChange('stopped');
+      assert.ok(this.view.set.calledWith('recording', false));
+      assert.ok(this.view.set.calledWith('pause-active', false));
+      sinon.assert.called(this.controller.onRecordingEnd);
+    });
+
+    test('Should highlight pause button if state is `resuming` or `pausing`', function() {
+      this.controller.onRecordingChange('resuming');
+      assert.ok(this.view.set.calledWith('pause-active', true));
+    });
+
+    test('Should configure view as paused if state is `paused`', function() {
+      this.controller.onRecordingChange('paused');
+      assert.ok(this.view.set.calledWith('pause-active', false));
+      assert.ok(this.view.set.calledWith('paused', true));
+      assert.ok(this.view.setPauseState.calledWith(true));
+    });
+
+    test('Should configure view as resumed if state is `resumed`', function() {
+      this.controller.onRecordingChange('resumed');
+      assert.ok(this.view.set.calledWith('pause-active', false));
+      assert.ok(this.view.set.calledWith('paused', false));
+      assert.ok(this.view.setPauseState.calledWith(false));
     });
   });
 

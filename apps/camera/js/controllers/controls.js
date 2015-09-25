@@ -57,7 +57,7 @@ ControlsController.prototype.bindEvents = function() {
   this.view.on('click:thumbnail', this.app.firer('preview'));
   this.view.on('click:cancel', this.onCancelButtonClick);
   this.view.on('click:capture', this.onCaptureClick);
-  this.view.on('click:pause', this.onPauseButtonClick);
+  this.view.on('click:pause', this.app.firer('capture:pause'));
 
   // Timer
   this.app.on('countdown:started', this.onCountdownStarted);
@@ -177,13 +177,15 @@ ControlsController.prototype.onRecordingChange = function(state) {
   if (state === 'started' || state === 'stopped') {
     recording = state === 'started';
     this.view.set('recording', recording);
+    this.view.set('pause-active', false);
     if (!recording) { this.onRecordingEnd(); }
-    // Update capture button label when recording changes.
-    this.view.setCaptureLabel(recording);
-  } else if (state === 'pausing' || state === 'paused' || state === 'resumed') {
-    recording = state === 'resumed';
-    this.view.set('paused', !recording);
-    this.view.setPauseLabel(recording);
+  } else if (state === 'pausing' || state === 'resuming') {
+    this.view.set('pause-active', true);
+  } else if (state === 'paused' || state === 'resumed') {
+    recording = state !== 'resumed';
+    this.view.set('pause-active', false);
+    this.view.set('paused', recording);
+    this.view.setPauseState(recording);
   }
 };
 
@@ -308,10 +310,6 @@ ControlsController.prototype.onViewModeChanged = function() {
 
 ControlsController.prototype.onCancelButtonClick = function() {
   this.app.emit('activitycanceled');
-};
-
-ControlsController.prototype.onPauseButtonClick = function() {
-  this.app.emit('capture:pause');
 };
 
 /**

@@ -124,9 +124,11 @@ module.exports = View.extend({
       recording ? 'stop-capture-button' : 'capture-button');
   },
 
-  setPauseLabel: function(recording) {
+  setPauseState: function(paused) {
     this.els.pause.setAttribute('data-l10n-id',
-      recording ? 'pause-capture-button' : 'resume-capture-button');
+      paused ? 'resume-capture-button' : 'pause-capture-button');
+    this.els.pause.setAttribute('data-icon',
+      paused ? 'play' : 'pause');
   },
 
   onSwitchSnapped: function(edges) {
