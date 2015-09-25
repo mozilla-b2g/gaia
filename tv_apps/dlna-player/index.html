@@ -18,7 +18,7 @@
 
     <link href="shared/style/lists.css" rel="stylesheet">
     <link href="shared/style/headers.css" rel="stylesheet">
-    <link href="shared/style/toolbars.css" rel="stylesheet">
+    <link href="shared/style/tabs.css" rel="stylesheet">
     <link href="shared/style/buttons.css" rel="stylesheet">
 
     <link href="style/service_manager.css" rel="stylesheet">
@@ -27,14 +27,18 @@
   <body role="application" class="skin-dark">
     <section role="region" id="main" class="panel">
       <header>
-        <menu type="toolbar">
-          <button id="remoteQuiet">
-            <span class="icon quiet-icon">Volume -</span>
-          </button>
-          <button id="remoteLoud">
-            <span class="icon loud-icon">Volume +</span>
-          </button>
-        </menu>
+        <ul role="tablist" class="bb-tablist">
+          <li>
+            <button id="remoteQuiet">
+              <span class="icon quiet-icon">Volume -</span>
+            </button>
+          </li>
+          <li>
+            <button id="remoteLoud">
+              <span class="icon loud-icon">Volume +</span>
+            </button>
+          </li>
+        </ul>
         <h1>My DLNA Player</h1>
       </header>
       <article id="contentList">
@@ -63,11 +67,17 @@
         <div id="debug"></div>
       </article>
 
-      <div id="playerTogglers" role="toolbar">
-        <button id="discoverButton"></button>
-        <button id="toPlayerPage"></button>
-        <div id="trackInfoBar">&nbsp;</div>
-      </div>
+      <ul id="playerTogglers" role="tablist" class="bb-tablist">
+        <li>
+          <button id="discoverButton"></button>
+        </li>
+        <li>
+          <button id="toPlayerPage"></button>
+        </li>
+        <li>
+          <div id="trackInfoBar">&nbsp;</div>
+        </li>
+      </ul>
     </section>
     <section id="playerPanel" role="region" class="panel">
         <header>
@@ -79,19 +89,33 @@
         <iframe id="unknownPlayer" class="player"></iframe>
         <img id="imagePlayer" class="player"></img>
       </article>
-      <div id="playerTogglers" role="toolbar">
-        <button id="toDirectoryPage"></button>
+      <ul id="playerTogglers" role="tablist" class="bb-tablist">
+        <li><button id="toDirectoryPage"></button></li>
       </div>
     </section>
-    <div id="controlButtons" role="toolbar">
-      <button id="remotePrev">|&#9664;</button>
-      <button id="remoteRewind">&#9664;&#9664;</button>
-      <button id="remotePlay">&#9658;</button>
-      <button id="remotePause">&#9616;&#9616;</button>
-      <button id="remoteStop">&#9724;</button>
-      <button id="remoteFF">&#9658;&#9658;</button>
-      <button id="remoteNext">&#9658;|</button>
-    </div>
+    <ul id="controlButtons" role="tablist" class="bb-tablist">
+      <li>
+        <button id="remotePrev">|&#9664;</button>
+      </li>
+      <li>
+        <button id="remoteRewind">&#9664;&#9664;</button>
+      </li>
+      <li>
+        <button id="remotePlay">&#9658;</button>
+      </li>
+      <li>
+        <button id="remotePause">&#9616;&#9616;</button>
+      </li>
+      <li>
+        <button id="remoteStop">&#9724;</button>
+      </li>
+      <li>
+        <button id="remoteFF">&#9658;&#9658;</button>
+      </li>
+      <li>
+        <button id="remoteNext">&#9658;|</button>
+      </li>
+    </ul>
 
   </body>
 </html>
