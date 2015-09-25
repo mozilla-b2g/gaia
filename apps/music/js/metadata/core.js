@@ -137,7 +137,20 @@ var AudioMetadata = (function() {
         var url = URL.createObjectURL(blob);
         player.src = url;
 
-        player.onerror = player.onsuspend = function() {
+        // XXX: There seems to have been a gecko regression, and error events
+        // are no longer being fired when we try to play some invalid audio
+        // files. To work around this, we use a timeout to assume the file is
+        // unplayable if we nave not gotten any events within a reasonable
+        // amount of time. See also bugs 1208331 and 1198169.
+        const CANPLAY_TIMEOUT = 3000;
+        var timeoutId = setTimeout(() => {
+          console.error('No oncanplay or error events seen yet.',
+                        'Assuming file is corrupt:', blob.name);
+          player.onerror();
+        }, CANPLAY_TIMEOUT);
+
+        player.onerror = function() {
+          clearTimeout(timeoutId);
           URL.revokeObjectURL(url);
           player.removeAttribute('src');
           player.load();
@@ -145,6 +158,7 @@ var AudioMetadata = (function() {
         };
 
         player.oncanplay = function() {
+          clearTimeout(timeoutId);
           URL.revokeObjectURL(url);
           player.removeAttribute('src');
           player.load();
