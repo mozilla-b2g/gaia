@@ -221,7 +221,7 @@ DataAdapters.bookmarks = {
         });
         continue;
       }
-      if (!payload.bmkUri) {
+      if (payload.type === 'bookmark' && !payload.bmkUri) {
         console.warn('Incorrect payload? ', payload);
         continue;
       }
