@@ -64,6 +64,7 @@
     this._injected = false;
     this._isCommandSendable = false;
     this._transitionState = 'closed';
+    this._transitionStateOnPressCaret = null;
     this.textualmenuDetail = null;
     this.globalStates = _globalStates =
       _globalStates || new AppTextSelectionDialogGlobalStates();
@@ -164,6 +165,7 @@
          return;
       }
       if (detail.reason === 'presscaret') {
+        this._transitionStateOnPressCaret = this._transitionState;
         this.hide();
         return;
       }
@@ -180,28 +182,40 @@
 
   AppTextSelectionDialog.prototype._onCollapsedMode =
     function tsd__onCollapsedMode(detail) {
+      var showDialog = false;
+
       switch (detail.reason) {
         case 'taponcaret':
         case 'longpressonemptycontent':
           // Always allow, do nothing here.
+          showDialog = true;
           break;
         case 'updateposition':
           // Only allow when something had been cut or copied.
-          if (!this.globalStates.hasCutOrCopied()) {
-            this.hide();
-            return;
+          if (this.globalStates.hasCutOrCopied()) {
+            showDialog = true;
           }
+          break;
+        case 'releasecaret':
+          // Show the dialog if it was shown when pressing the caret.
+          if (this._transitionStateOnPressCaret === 'opened') {
+            showDialog = true;
+          }
+          this._transitionStateOnPressCaret = null;
           break;
         default:
           // Not allow
-          this.hide();
-          return;
+          break;
       }
 
-      detail.commands.canCut = false;
-      detail.commands.canCopy = false;
-      detail.commands.canSelectAll = false;
-      this.show(detail);
+      if (showDialog) {
+        detail.commands.canCut = false;
+        detail.commands.canCopy = false;
+        detail.commands.canSelectAll = false;
+        this.show(detail);
+      } else {
+        this.hide();
+      }
     };
 
   AppTextSelectionDialog.prototype._onSelectionMode =
