@@ -80,8 +80,7 @@ marionette('Music player playlist', function() {
       ]);
     });
 
-    // XXX re-enable when the tracks are properly sorted
-    test.skip('Check the sort order', function() {
+    test('Check the sort order', function() {
       music.launch();
       music.waitForFirstTile();
       music.switchToAlbumsView();
@@ -96,28 +95,23 @@ marionette('Music player playlist', function() {
 
       assert.equal(songs.length, 3);
 
-      console.log(songs);
-      // XXX reenable when we have the index
-      //      assert.equal(songs[0].index, '1');
+      assert.equal(songs[0].index, '1');
       assert.equal(songs[0].title, 'Australian citizen is a US traitor');
 
-      // XXX reenable when we have the index
-      //      assert.equal(PlaylistHelper.songIndex(songs[1]), '4');
+      assert.equal(songs[1].index, '4');
       assert.equal(songs[1].title, 'Ich bin ein Berliner');
 
-      // XXX reenable when we have the index
-      //      assert.equal(PlaylistHelper.songIndex(songs[2]), '8');
+      assert.equal(songs[2].index, '8');
       assert.equal(songs[2].title, 'The Ecuadorian Embassy');
     });
 
-    test.skip('Check the playlist indexes', function() {
+    test('Check the playlist indexes', function() {
       // this test will check that the index value of each song is the index
       // and not the track number.
       // See bug 1129708
       music.launch();
       music.waitForFirstTile();
       music.switchToPlaylistsView();
-      music.waitForListView();
 
       music.selectPlaylist('Recently added');
 
@@ -166,7 +160,7 @@ marionette('Music player playlist', function() {
       ]);
     });
 
-    test.skip('Check the sort order', function() {
+    test('Check the sort order', function() {
       music.launch();
       music.waitForFirstTile();
       music.switchToAlbumsView();
@@ -187,7 +181,7 @@ marionette('Music player playlist', function() {
       assert.equal(songs[2].index, '1.03');
       assert.equal(songs[2].title, 'Windows BSOD');
 
-//      assert.equal(songs[3].index, '2.01');
+      assert.equal(songs[3].index, '2.01');
       assert.equal(songs[3].title, 'Crash');
     });
   });
@@ -271,10 +265,10 @@ marionette('Music player playlist', function() {
         });
         songs = music.songs;
 
-//      assert.equal(PlaylistHelper.songIndex(songs[0]), '1');
+        assert.equal(songs[0].index, '1');
         assert.equal(songs[0].title, title1);
 
-//      assert.equal(PlaylistHelper.songIndex(songs[1]), '2');
+        assert.equal(songs[1].index, '2');
         assert.equal(songs[1].title, title3);
       } catch(e) {
         assert.ok(false, 'Exception ' + e.stack);
@@ -313,8 +307,7 @@ marionette('Music player playlist', function() {
       });
       var songs = music.songs;
 
-      // XXX
-      // assert.equal(PlaylistHelper.songIndex(songs[0]), '1');
+      assert.equal(songs[0].index, '1');
       assert.equal(songs[0].title,
                    'The Ecuadorian Embassy');
     });
@@ -392,10 +385,10 @@ marionette('Music player playlist', function() {
         });
         songs = music.songs;
 
-        //assert.equal(PlaylistHelper.songIndex(songs[0]), '1');
+        assert.equal(songs[0].index, '1');
         assert.equal(songs[0].title, 'XOXO');
 
-        //assert.equal(PlaylistHelper.songIndex(songs[1]), '2');
+        assert.equal(songs[1].index, '2');
         assert.equal(songs[1].title, 'Crash');
 
 
@@ -411,10 +404,10 @@ marionette('Music player playlist', function() {
         });
         songs = music.songs;
 
-        //assert.equal(PlaylistHelper.songIndex(songs[0]), '1');
+        assert.equal(songs[0].index, '1');
         assert.equal(songs[0].title, 'Abort');
 
-        //assert.equal(PlaylistHelper.songIndex(songs[1]), '2');
+        assert.equal(songs[1].index, '2');
         assert.equal(songs[1].title, 'Yield to thread');
       } catch(e) {
         assert.ok(false, 'Exception ' + e.stack);
