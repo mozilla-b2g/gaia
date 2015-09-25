@@ -162,6 +162,7 @@ ControlsController.prototype.onRecordingChange = function(state) {
     recording = state === 'started';
     this.view.set('recording', recording);
     this.view.set('pause-active', false);
+    this.view.setPauseState(false);
     if (!recording) { this.onRecordingEnd(); }
   } else if (state === 'pausing' || state === 'resuming') {
     this.view.set('pause-active', true);
