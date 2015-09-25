@@ -18,6 +18,7 @@ require('/shared/test/unit/mocks/mock_promise.js');
 require('/shared/test/unit/mocks/mock_icons_helper.js');
 require('/shared/test/unit/mocks/mock_url_helper.js');
 requireApp('system/test/unit/mock_app_window.js');
+requireApp('system/test/unit/mock_system_banner.js');
 requireApp('system/test/unit/mock_popup_window.js');
 requireApp('system/test/unit/mock_modal_dialog.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
@@ -33,7 +34,8 @@ const PINNING_PREF = 'dev.gaia.pinning_the_web';
 
 var mocksForAppChrome = new MocksHelper([
   'AppWindow', 'ModalDialog', 'PopupWindow', 'BookmarksDatabase',
-  'Service', 'LazyLoader', 'SettingsListener', 'UrlHelper', 'IconsHelper'
+  'Service', 'LazyLoader', 'SettingsListener', 'UrlHelper', 'IconsHelper',
+  'SystemBanner'
 ]).init();
 
 suite('system/AppChrome', function() {
@@ -1177,6 +1179,7 @@ suite('system/AppChrome', function() {
         returns(Promise.resolve('http://google.com/favicon.ico'));
       putStub = this.sinon.stub(BookmarksDatabase, 'put').returns(
         Promise.resolve());
+      this.sinon.stub(chrome.systemBanner, 'show');
     });
 
     test('Browser chrome collapsed and bookmark saved', function() {
@@ -1202,6 +1205,7 @@ suite('system/AppChrome', function() {
           },
           'http://google.com/index.html'
         ));
+        assert(chrome.systemBanner.show.called);
       });
     });
   });
@@ -1220,6 +1224,7 @@ suite('system/AppChrome', function() {
         returns(Promise.resolve('http://example.com/favicon.ico'));
       putStub = this.sinon.stub(BookmarksDatabase, 'put').returns(
         Promise.resolve());
+      this.sinon.stub(chrome.systemBanner, 'show');
     });
 
     test('Browser chrome collapsed and bookmark saved', function() {
@@ -1247,6 +1252,7 @@ suite('system/AppChrome', function() {
           },
           'http://example.com/'
         ));
+        assert(chrome.systemBanner.show.called);
       });
     });
   });

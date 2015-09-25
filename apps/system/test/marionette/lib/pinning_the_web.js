@@ -43,12 +43,16 @@ PinningTheWeb.prototype = {
       this.client.switchToFrame();
       try {
         this.system.siteIcon.tap();
-      } catch(e) {
+      } catch (e) {
         return false;
       }
       return true;
     }.bind(this));
     this.system.pinButton.tap();
+    this.client.waitFor(function() {
+      var toast = this.client.findElement('#screen > gaia-toast');
+      return toast && toast.displayed();
+    }.bind(this));
   },
 
   openAndPinSiteFromBrowser: function openAndPinSite(url) {
@@ -79,7 +83,7 @@ PinningTheWeb.prototype = {
     this.client.waitFor(function() {
       try {
         this.system.appChromeContextLink.tap();
-      } catch(e) {
+      } catch (e) {
         return false;
       }
       return true;
