@@ -19,7 +19,7 @@ define(function(require) {
   var ListView = require('modules/mvvm/list_view');
 
   var _debug = false;
-  var Debug = function() {};
+  var debug = function() {};
   if (_debug) {
     Debug = function btdpp_debug(msg) {
       console.log('--> [DevicePickerPanel]: ' + msg);

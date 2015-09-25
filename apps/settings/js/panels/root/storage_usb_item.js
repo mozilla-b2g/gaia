@@ -10,7 +10,7 @@ define(function(require) {
   var MediaStorage = require('modules/media_storage');
 
   var _debug = false;
-  var Debug = function() {};
+  var debug = function() {};
   if (_debug) {
     Debug = function storage_debug(msg) {
       console.log('--> [USBStorageItem]: ' + msg);

@@ -26,7 +26,7 @@ define(function() {
   'use strict';
 
   var _debug = false;
-  var Debug = function() {};
+  var debug = function() {};
   if (_debug) {
     Debug = function btcodm_debug(msg) {
       console.log('--> [BluetoothCODMapper]: ' + msg);

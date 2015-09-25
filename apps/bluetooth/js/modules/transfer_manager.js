@@ -21,7 +21,7 @@ define(function(require) {
   var TurnBluetoothOnDialog = require('views/turn_bluetooth_on_dialog');
 
   var _debug = false;
-  var Debug = function() {};
+  var debug = function() {};
   if (_debug) {
     Debug = function bttm_debug(msg) {
       console.log('--> [TransferManager]: ' + msg);

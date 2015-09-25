@@ -9,7 +9,7 @@ define(function(require) {
 
   var _ = window.navigator.mozL10n.get;
   var _debug = false;
-  var Debug = function() {};
+  var debug = function() {};
   if (_debug) {
     Debug = function btam_debug(msg) {
       console.log('--> [PairManagerV1]: ' + msg);

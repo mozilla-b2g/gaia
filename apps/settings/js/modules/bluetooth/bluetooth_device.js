@@ -15,7 +15,7 @@ define(function(require) {
   var Observable = require('modules/mvvm/observable');
 
   var _debug = false;
-  var Debug = function() {};
+  var debug = function() {};
   if (_debug) {
     Debug = function btd_debug(msg) {
       console.log('--> [BluetoothDevice]: ' + msg);

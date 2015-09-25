@@ -8,7 +8,7 @@ define(function() {
   'use strict';
 
   var _debug = false;
-  var Debug = function() {};
+  var debug = function() {};
   if (_debug) {
     Debug = function bttf_debug(msg) {
       console.log('--> [BluetoothTemplateFactory]: ' + msg);

@@ -2,7 +2,7 @@
 
 require(['config/require'], function() {
   var _debug = false;
-  var Debug = function() {};
+  var debug = function() {};
   if (_debug) {
     Debug = function btsp_debug(msg) {
       console.log('--> [startup_pair]: ' + msg);

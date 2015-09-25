@@ -18,7 +18,7 @@ define(function(require) {
   const VISIBLE_TIMEOUT_TIME = 120000;  // Visibility will timeout after 2 mins.
 
   var _debug = false;
-  var Debug = function() {};
+  var debug = function() {};
   if (_debug) {
     Debug = function btp_debug(msg) {
       console.log('--> [Bluetooth][Panel]: ' + msg);

@@ -12,7 +12,7 @@ define(function(require) {
   var AsyncStorage = require('shared/async_storage');
 
   var _debug = false;
-  var Debug = function() {};
+  var debug = function() {};
   if (_debug) {
     Debug = function btam_debug(msg) {
       console.log('--> [BluetoothConnectionManager]: ' + msg);

@@ -12,7 +12,7 @@ define(function(require) {
   var APIVersion = APIVersionDetector.getVersion();
 
   var _debug = false;
-  var Debug = function() {};
+  var debug = function() {};
   if (_debug) {
     Debug = function bti_debug(msg) {
       console.log('--> [BluetoothItem]: ' + msg);

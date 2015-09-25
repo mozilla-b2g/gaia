@@ -26,7 +26,7 @@ define(function(require) {
   var settings = navigator.mozSettings;
 
   var _debug = false;
-  var Debug = function() {};
+  var debug = function() {};
   if (_debug) {
     Debug = function btc_debug(msg) {
       console.log('--> [BluetoothContext]: ' + msg);

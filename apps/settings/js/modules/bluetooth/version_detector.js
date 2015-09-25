@@ -13,7 +13,7 @@ define(function(require) {
   var NavigatorBluetooth = require('modules/navigator/mozBluetooth');
 
   var _debug = false;
-  var Debug = function() {};
+  var debug = function() {};
   if (_debug) {
     Debug = function vd_debug(msg) {
       console.log('--> [VersionDetector]: ' + msg);
