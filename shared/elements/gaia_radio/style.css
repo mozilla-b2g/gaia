@@ -11,15 +11,17 @@ gaia-radio {
   background: none;
 }
 
+gaia-radio.inline,
 #radio.inline {
   width: 5rem;
+  height: 100%;
 }
 
 #radio span {
   font-size: 1.9rem;
   color: var(--label-color);
   padding: 1rem 0;
-  -moz-padding-end: 2.2rem;
+  padding-inline-end: 2.2rem;
   line-height: 3rem;
   box-sizing: border-box;
   display: block;
@@ -30,14 +32,12 @@ gaia-radio {
 #radio span:after {
   content: '';
   position: absolute;
-  right: 0;
+  offset-inline-end: 0;
   top: 50%;
-  margin: -1.1rem 0 0 -1.1rem;
+  margin: -1.1rem 0 0;
+  margin-inline-start: -1.1rem;
   width: 2.2rem;
   height: 2.2rem;
-}
-
-#radio span:after {
   background: url(images/default.png) no-repeat center top / 2.2rem auto;
 }
 
@@ -61,13 +61,4 @@ gaia-radio {
 
 #radio.checkone.checked span {
   font-weight: 500;
-}
-
-/******************************************************************************
- * Right-To-Left tweaks
- */
-
-#radio[dir="rtl"] span:after {
-  left: 1.1rem;
-  right: unset;
 }
