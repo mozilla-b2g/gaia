@@ -689,6 +689,7 @@
 
     setTimePickerStyle: function tp_setTimePickerStyle() {
       var style = 'format24h';
+
       if (this.is12hFormat) {
         var timePickerOrder = navigator.mozL10n.get('timePickerOrder');
         // handle revert appearance
@@ -697,7 +698,7 @@
         style = (reversedPeriod) ? 'format12hrev' : 'format12h';
 
         if ('format12h' === style) {
-          this.element.classList.remove('format12hhrev');
+          this.element.classList.remove('format12hrev');
           this.element.classList.remove('format24h');
           if (!this.element.classList.contains(style)) {
             this.element.classList.add(style);
@@ -711,7 +712,7 @@
         }
       }
 
-      if('format24h' === style) {
+      if ('format24h' === style) {
         this.element.classList.remove('format12h');
         this.element.classList.remove('format12hrev');
         if (!this.element.classList.contains(style)) {
