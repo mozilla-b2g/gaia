@@ -26,15 +26,23 @@ var SongsView = View.extend(function SongsView() {
     }
   });
 
+  this.searchBox.getItemImageSrc = (item) => {
+    return this.getThumbnail(item.name);
+  };
+
   this.list.scrollTop = searchHeight;
   this.list.minScrollHeight = `calc(100% - ${searchHeight}px)`;
 
   this.list.configure({
     model: this.getCache(),
 
-    getSectionName(item) {
+    getSectionName: (item) => {
       var title = item.metadata.title;
       return title ? title[0].toUpperCase() : '?';
+    },
+
+    getItemImageSrc: (item) => {
+      return this.getThumbnail(item.name);
     }
   });
 
@@ -92,6 +100,17 @@ SongsView.prototype.setCache = function(items) {
 
 SongsView.prototype.getCache = function() {
   return JSON.parse(localStorage.getItem('cache:songs')) || [];
+};
+
+SongsView.prototype.getThumbnail = function(filePath) {
+  return this.fetch('/api/artwork/thumbnail/' + filePath)
+    .then(response => response.blob())
+    .then((blob) => {
+      var url = URL.createObjectURL(blob);
+      setTimeout(() => URL.revokeObjectURL(url), 1);
+
+      return url;
+    });
 };
 
 SongsView.prototype.search = function(query) {
