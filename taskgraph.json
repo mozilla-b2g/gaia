@@ -17,7 +17,9 @@
         "scopes": [
           "docker-worker:cache:gaia-tc-vcs",
           "docker-worker:cache:gaia-linux-cache",
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "queue:define-task:aws-provisioner-v1/gaia",
+          "queue:create-task:aws-provisioner-v1/gaia"
         ],
         "payload": {
           "cache": {
@@ -25,7 +27,7 @@
             "gaia-tc-vcs":"/home/worker/.tc-vcs",
             "gaia-linux-cache":"/home/worker/.cache"
           },
-          "image": "taskcluster/gaia-taskenv:1.2.1",
+          "image": "taskcluster/gaia-taskenv:2.0.0-aus3",
           "command": [
             "entrypoint",
             "echo 'what' && node tests/taskcluster/bin/graph > /graph.json && cat /graph.json"
