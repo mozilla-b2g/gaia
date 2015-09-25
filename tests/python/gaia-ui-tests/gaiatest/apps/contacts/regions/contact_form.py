@@ -105,18 +105,12 @@ class ContactForm(Base):
         return self.marionette.find_element(*self._comment_locator).text
 
     def type_comment(self, value):
-        self._type_in_field(self._add_new_note_locator, self._comment_locator, value)
+        element = self.marionette.find_element(*self._comment_locator)
+        element.clear()
+        element.send_keys(value)
 
     def tap_comment(self):
-        element = self.marionette.find_element(*self._add_new_note_locator)
-        element.tap()
-        self.marionette.execute_script(
-            'arguments[0].scrollIntoView(true);', [element])
-        comment = self.marionette.find_element(*self._comment_locator)
-        Wait(self.marionette, timeout=120).until(expected.element_displayed(comment))
-        self.marionette.execute_script(
-            'arguments[0].scrollIntoView(true);', [element])
-        element.tap()
+        self.marionette.find_element(*self._comment_locator).tap()
 
     @property
     def picture_style(self):
