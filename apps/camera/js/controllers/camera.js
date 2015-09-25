@@ -83,6 +83,7 @@ CameraController.prototype.bindEvents = function() {
   app.on('click', this.clearCountdown);
   app.on('visible', this.loadCamera);
   app.on('capture', this.capture);
+  app.on('capture:pause', this.pauseCapture);
 
   // Settings
   settings.recorderProfiles.on('change:selected', this.updateRecorderProfile);
@@ -206,6 +207,15 @@ CameraController.prototype.capture = function(options = {}) {
   if (this.countdown) { return this.clearCountdown(); }
   var position = this.app.geolocation.position;
   return this.camera.capture({ position: position });
+};
+
+/**
+ * Pauses/resumes capture if in progress.
+ *
+ * @private
+ */
+CameraController.prototype.pauseCapture = function() {
+  return this.camera.pauseCapture();
 };
 
 CameraController.prototype.shouldCapture = function() {
