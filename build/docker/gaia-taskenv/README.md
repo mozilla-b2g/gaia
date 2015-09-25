@@ -11,13 +11,13 @@ testing with [taskcluster](http://docs.taskcluster.net/).
 
 ## Building the docker image
 
-You need docker (version >= 1.2) installed already (you must be in the
+You need docker installed already (you must be in the
 [build/docker/gaia-taskenv](/build/docker/gaia-taskenv) directory.
 
 ```sh
-./build.sh
+./build
 ```
 
-You now have a mozillab2g/gaia-testenv container. Name and version
+You now have a mozilla-b2g/gaia-testenv container. Name and version
 are specified via the [DOCKER_TAG](./DOCKER_TAG) file and
 [VERSION](./VERSION) files.
