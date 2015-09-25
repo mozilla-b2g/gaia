@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" dir="ltr">
 <head>
   <meta charset="utf-8">
   <title>Object menu</title>
@@ -9,8 +9,8 @@
   <link rel="stylesheet" href="../input_areas.css">
   <link rel="stylesheet" href="../../elements/gaia-icons/gaia-icons-embedded.css">
   <!--
-    - This <style> element is only used for the example code;
-    - it is not required for the real use case.
+    - These <style> and <script> elements are only used for the example code;
+    - they are not required for the real use case.
     -->
   <style type="text/css">
     html, body {
@@ -24,6 +24,12 @@
       background: none;
     }
   </style>
+  <script>
+    window.onkeypress = event => {
+      var dir = document.documentElement.dir;
+      document.documentElement.dir = (dir === 'ltr') ? 'rtl' : 'ltr';
+    };
+  </script>
 </head>
 <body role="application">
   <p dir="ltr">
@@ -45,7 +51,7 @@
           <p>Paragraphs</p>
         </li>
         <li>
-          <p>Two Paragraphs (one empty)</p>
+          <p dir="auto">Two Paragraphs (one empty)</p>
           <p></p>
         </li>
       </ul>
