@@ -21,6 +21,13 @@ a {
   padding: 1rem;
 }
 
+music-scan-progress {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+}
+
 #tab-bar {
   transform: translate(0, 0);
   visibility: visible;
