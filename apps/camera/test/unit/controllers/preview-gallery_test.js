@@ -69,8 +69,6 @@ suite('controllers/preview-gallery', function() {
       if (!navigator.mozL10n) {
         navigator.mozL10n = mozL10n;
       }
-      sinon.stub(navigator.mozL10n, 'get');
-
       var MozActivity = function() {};
       if (!window.MozActivity) {
         window.MozActivity = MozActivity;
@@ -106,7 +104,6 @@ suite('controllers/preview-gallery', function() {
 
     teardown(function() {
       window.MozActivity.restore();
-      navigator.mozL10n.get.restore();
     });
 
     test('Should listen to the following events', function() {

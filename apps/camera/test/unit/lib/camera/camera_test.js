@@ -803,12 +803,22 @@ suite('lib/camera/camera', function() {
       assert.ok(config.rotation === -90);
     });
 
-    test('Should report an error when take picture fails', function() {
+    test('Should report an error when take picture fails', function(done) {
       this.camera.mozCamera.takePicture.returns({
         then: function(onSuccess, onError) { onError({name: 'NS_ERROR_FAILURE'}); }
       });
+      navigator.mozL10n = {
+        formatValue: function(id, args) {
+          return Promise.resolve(id);
+        }
+      };
       this.camera.takePicture({});
-      assert.isTrue(alert.called);
+      
+      // We need to wait two microtasks to see the result
+      Promise.resolve().then(Promise.resolve).then(() => {
+        assert.isTrue(alert.called);
+        done();
+      });
     });
 
     test('Should not report an error when take picture interrupted', function() {

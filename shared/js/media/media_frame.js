@@ -415,25 +415,42 @@ MediaFrame.prototype.localize = function localize() {
   }
 
   var timestamp = this.imageblob.lastModifiedDate;
-  var orientation = navigator.mozL10n.get(
-    portrait ? 'orientationPortrait' : 'orientationLandscape');
-  var label = '';
+  
+  var orientationL10nId = portrait ? 'orientationPortrait' :
+    'orientationLandscape';
 
-  if (timestamp) {
-    var locale_entry = navigator.mozL10n.get(
-      'imageDescription', { orientation: orientation });
+  navigator.mozL10n.formatValue(orientationL10nId).then((orientationText) => {
+    if (timestamp) {
+      if (!this.dtf) {
+        // XXX: add localized/timeformatchange event to reset
+        this.dtf = Intl.DateTimeFormatter(navigator.languages, {
+          hour12: navigator.mozHour12,
+          hour: 'numeric',
+          minute: 'numeric',
+          day: 'numeric',
+          month: 'numeric',
+          year: 'long'
+        });
+      }
 
-    if (!this.dtf) {
-      this.dtf = new navigator.mozL10n.DateTimeFormat();
+      var ts = this.dtf.format(new Date(timestamp));
+
+      navigator.mozL10n.setAttributes(
+        this.image,
+        'imageDescription',
+        {
+          orientation: orientationText,
+          timestamp: ts
+        }
+      );
+    } else {
+      navigator.mozL10n.setAttributes(
+        this.image,
+        'imageDescriptionNoTimestamp',
+        { orientation: orientationText }
+      );
     }
-
-    label = this.dtf.localeFormat(new Date(timestamp), locale_entry);
-  } else {
-    label = navigator.mozL10n.get(
-      'imageDescriptionNoTimestamp', { orientation: orientation });
-  }
-
-  this.image.setAttribute('aria-label', label);
+  });
 };
 
 MediaFrame.prototype._switchToFullSizeImage = function _switchToFull() {

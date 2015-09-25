@@ -23,15 +23,6 @@ suite('controllers/overlay', function() {
       cancel: sinon.spy()
     };
     this.app.localized.returns(true);
-
-    this.app.l10nGet.withArgs('nocard2-title').returns('nocard title');
-    this.app.l10nGet.withArgs('nocard3-text').returns('nocard body');
-    this.app.l10nGet.withArgs('nospace2-title').returns('nospace title');
-    this.app.l10nGet.withArgs('nospace2-text').returns('nospace body');
-    this.app.l10nGet.withArgs('pluggedin2-title').returns('pluggedin title');
-    this.app.l10nGet.withArgs('pluggedin2-text').returns('pluggedin body');
-    this.app.l10nGet.withArgs('camera-unavailable-title').returns('camera unavailable title');
-    this.app.l10nGet.withArgs('camera-unavailable-text').returns('camera unavailable text');
   });
 
   suite('OverlayController()', function() {
@@ -148,13 +139,6 @@ suite('controllers/overlay', function() {
       this.controller.createOverlay('unavailable');
       assert.isTrue(this.OverlayProto.appendTo.calledWith(document.body));
     });
-
-    test('Should show spinner if the application is not localized', function() {
-      this.app.localized.returns(false);
-      this.controller.createOverlay('shutdown');
-      assert.isTrue(this.app.showSpinner.called);
-    });
-
   });
 
   suite('OverlayController#getOverlayData()', function() {
@@ -164,26 +148,26 @@ suite('controllers/overlay', function() {
 
     test('Should return correct data for \'unavailable\'', function() {
       var output = this.controller.getOverlayData('unavailable');
-      assert.equal(output.title, 'nocard title');
-      assert.equal(output.body, 'nocard body');
+      assert.equal(output.title, 'nocard2-title');
+      assert.equal(output.body, 'nocard3-text');
     });
 
     test('Should return correct data for \'nospace\'', function() {
       var output = this.controller.getOverlayData('nospace');
-      assert.equal(output.title, 'nospace title');
-      assert.equal(output.body, 'nospace body');
+      assert.equal(output.title, 'nospace2-title');
+      assert.equal(output.body, 'nospace2-text');
     });
 
     test('Should return correct data for \'shared\'', function() {
       var output = this.controller.getOverlayData('shared');
-      assert.equal(output.title, 'pluggedin title');
-      assert.equal(output.body, 'pluggedin body');
+      assert.equal(output.title, 'pluggedin2-title');
+      assert.equal(output.body, 'pluggedin2-text');
     });
 
     test('Should return correct data for \'request-fail\'', function() {
       var output = this.controller.getOverlayData('request-fail');
-      assert.equal(output.title, 'camera unavailable title');
-      assert.equal(output.body, 'camera unavailable text');
+      assert.equal(output.title, 'camera-unavailable-title');
+      assert.equal(output.body, 'camera-unavailable-text');
     });
 
     test('Should return false for unknown key', function() {

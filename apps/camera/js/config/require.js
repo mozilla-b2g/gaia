@@ -4,8 +4,6 @@ requirejs.config({
   // 'paths' lets us alias complex
   // paths to something simpler.
   paths: {
-    'l10n': '../shared/js/l10n',
-    'l10n_date': '../shared/js/l10n_date',
     'asyncStorage': '../shared/js/async_storage',
     'getVideoRotation': '../shared/js/media/get_video_rotation',
     'jpegMetaDataParser': '../shared/js/media/jpeg_metadata_parser',
@@ -60,7 +58,7 @@ requirejs.config({
       exports: 'getVideoRotation'
     },
     'MediaFrame': {
-      deps: ['format', 'VideoPlayer', 'l10n_date'],
+      deps: ['format', 'VideoPlayer'],
       exports: 'MediaFrame'
     },
     'BlobView': {
