@@ -117,7 +117,7 @@ define(function(require) {
       } else if (reason === 'cancelled') {
         this._activity.postError(reason);
       }
-      
+
       this._activity = null;
     },
 
@@ -230,7 +230,7 @@ define(function(require) {
             event.detail.address);
       var targetDeviceAddress = event.detail.address;
       var blobs = this._activity.source.data.blobs;
-      
+
       // Produce sending files schedule.
       // Then, post message to system app for sending files in queue.
       var schedule = this._produceSendingFilesSchedule(blobs.length);
@@ -239,11 +239,11 @@ define(function(require) {
       // Send each file via Bluetooth sendFile API
       return Promise.all(blobs.map((blob, index) => {
         /**
-         * Checking blob.name is because the sendFile() API needs a "file" o
-         * bject. And it is needing a filaname before send it.
-         * If there is no filename in the blob, Bluetooth API will give a 
+         * Check blob.name because sendFile() API needs a "file"
+         * object and a filaname before sending it.
+         * If there is no filename in the blob, Bluetooth API will give a
          * default name "Unknown.jpeg".
-         * So Bluetooth app have to find out the name via device stroage.
+         * So Bluetooth app has to find out the name via device storage.
          */
         if (blob.name) {
           // The blob has name, send the blob directly.
@@ -303,7 +303,7 @@ define(function(require) {
      */
     _produceSendingFilesSchedule:
     function bttm__produceSendingFilesSchedule(numberOfTasks) {
-      // Construct a object to contain info of sending files schedule. 
+      // Construct a object to contain info of sending files schedule.
       // And the info will be posted message to system app.
       // The result of send files will be displayed on notification.
       var sendingFilesSchedule = {
