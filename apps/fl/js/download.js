@@ -83,6 +83,7 @@
   RINGTONE,
   RINGTONE_KEY,
   RINGTONE_NAME_KEY,
+  RINGTONE_ID_KEY,
   showDialog,
   SONG,
   SUCCESS_RINGTONE,
@@ -873,6 +874,7 @@ function view(activity) {
         if (installType === RINGTONE) {
           settings[RINGTONE_KEY] = blob;
           settings[RINGTONE_NAME_KEY] = descriptor.name;
+          settings[RINGTONE_ID_KEY] = req.result;
         }
         else {
           settings[WALLPAPER_KEY] = blob;

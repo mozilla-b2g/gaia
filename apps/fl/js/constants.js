@@ -23,6 +23,7 @@
   RINGTONE,
   RINGTONE_KEY,
   RINGTONE_NAME_KEY,
+  RINGTONE_ID_KEY,
   SONG,
   SUCCESS_RINGTONE,
   SUCCESS_SONG,
@@ -108,6 +109,7 @@ const MimeTypeAliases = Object.freeze({
 // SettingsDB keys for ringtones and wallpaper
 const RINGTONE_KEY = 'dialer.ringtone';
 const RINGTONE_NAME_KEY = 'dialer.ringtone.name';
+const RINGTONE_ID_KEY = 'dialer.ringtone.id';
 const WALLPAPER_KEY = 'wallpaper.image';
 
 // These three constants define the possible uses of the media we download.
