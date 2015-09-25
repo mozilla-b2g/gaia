@@ -14,7 +14,7 @@ task:
     - queue:create-artifact:public/node_modules.tar.gz
 
   payload:
-    image: taskcluster/npm-cache:0.1.10
+    image: taskcluster/npm-cache:0.2.11
 
     cache:
       gaia-misc-caches: /home/worker/caches/
@@ -25,6 +25,7 @@ task:
     env:
       TASK_ID: '{{taskId}}'
       NAMESPACE: gaia.npm_cache
+      DEBUG: "*"
 
     features:
       taskclusterProxy: true
