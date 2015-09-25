@@ -71,6 +71,7 @@ const RESOURCES = [
   '/js/services/navigation.js',
   '/js/services/playlist.js',
   '/js/services/queue.js',
+  '/js/services/search.js',
   '/js/services/songs.js',
   '/js/shims/device-storage.js',
   '/js/app.js',

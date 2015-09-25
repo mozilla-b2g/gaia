@@ -6,15 +6,24 @@ var debug = 1 ? (...args) => console.log('[SongsView]', ...args) : () => {};
 var SongsView = View.extend(function SongsView() {
   View.call(this); // super();
 
-  this.search = document.getElementById('search');
+  this.searchBox = document.getElementById('search');
   this.list = document.getElementById('list');
 
-  var searchHeight = this.search.offsetHeight;
+  var searchHeight = this.searchBox.offsetHeight;
 
-  this.search.addEventListener('open', () => window.parent.onSearchOpen());
-  this.search.addEventListener('close', () => {
+  this.searchBox.addEventListener('open', () => window.parent.onSearchOpen());
+  this.searchBox.addEventListener('close', () => {
     this.list.scrollTop = searchHeight;
     window.parent.onSearchClose();
+  });
+  this.searchBox.addEventListener('search', (evt) => this.search(evt.detail));
+  this.searchBox.addEventListener('resultclick', (evt) => {
+    var link = evt.detail;
+    if (link) {
+      this.queueSong(link.dataset.filePath);
+
+      this.client.method('navigate', link.getAttribute('href'));
+    }
   });
 
   this.list.scrollTop = searchHeight;
@@ -83,6 +92,30 @@ SongsView.prototype.setCache = function(items) {
 
 SongsView.prototype.getCache = function() {
   return JSON.parse(localStorage.getItem('cache:songs')) || [];
+};
+
+SongsView.prototype.search = function(query) {
+  return Promise.all([
+    document.l10n.formatValue('unknownTitle'),
+    document.l10n.formatValue('unknownArtist')
+  ]).then(([unknownTitle, unknownArtist]) => {
+    return this.fetch('/api/search/title/' + query)
+      .then(response => response.json())
+      .then((songs) => {
+        var results = songs.map((song) => {
+          return {
+            name:     song.name,
+            title:    song.metadata.title  || unknownTitle,
+            subtitle: song.metadata.artist || unknownArtist,
+            section:  'songs',
+            url:      '/player?id=' + song.name
+          };
+        });
+
+        this.searchBox.setResults(results);
+        return results;
+      });
+  });
 };
 
 window.view = new SongsView();
