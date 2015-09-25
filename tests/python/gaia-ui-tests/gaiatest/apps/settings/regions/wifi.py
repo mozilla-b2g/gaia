@@ -32,6 +32,8 @@ class Wifi(Base):
     _manage_certs_screen_locator = (By.ID, 'wifi-manageCertificates')
     _import_certs_locator = (By.CSS_SELECTOR, '[data-l10n-id="importCertificate"]')
     _select_certs_screen_locator = (By.ID, 'wifi-selectCertificateFile')
+    _active_wifi_locator = (By.CSS_SELECTOR, '.wifi-availableNetworks li.active')
+    _forget_locator = (By.CSS_SELECTOR, '#wifi-status span[data-l10n-id="forget"]')
 
     @property
     def screen_element(self):
@@ -144,3 +146,14 @@ class Wifi(Base):
         Wait(self.marionette).until(expected.element_displayed(element))
         element.tap()
         Wait(self.marionette).until(expected.element_displayed(*self._select_certs_screen_locator))
+    
+    def tap_active_wifi(self):
+        element = self.marionette.find_element(*self._active_wifi_locator)
+        element.tap()
+        Wait(self.marionette).until(expected.element_displayed(*self._forget_locator))
+
+    def tap_forget_wifi(self):
+        element_to_forget = Wait(self.marionette).until(expected.element_present(*self._forget_locator))
+        Wait(self.marionette).until(expected.element_displayed(element_to_forget))
+        element_to_forget.tap()
+        Wait(self.marionette).until(expected.element_not_displayed(element_to_forget))
