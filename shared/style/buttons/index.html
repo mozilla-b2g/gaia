@@ -2,14 +2,14 @@
 <html dir="ltr">
 <head>
   <meta charset="utf-8">
-
   <title>Buttons</title>
   <link rel="stylesheet" href="../buttons.css">
   <link rel="stylesheet" href="../../elements/gaia-icons/gaia-icons-embedded.css">
+
   <!--
-    This <style>, <script> and <link> is only used for the example code,
-    is no needed for the real case use
-  -->
+    - These <style> and <script> elements are only used for the example code,
+    - they are not needed for the real case.
+    -->
   <style>
     html, body {
       margin: 0;
@@ -64,7 +64,7 @@
     }
   </style>
   <script>
-    window.onload = function(){
+    window.onload = function() {
       document.getElementById('dir').checked = false;
     };
   </script>
@@ -86,9 +86,9 @@
 
   <h2 class="bb-docs">Buttons with icons</h2>
   <div class="bb-docs skin-organic">
-    <button data-icon="forward" aria-label="forward">Default</button>
-    <button data-icon="forward" aria-label="forward" class="recommend">Recommend</button>
-    <button data-icon="forward" aria-label="forward" class="danger">Danger</button>
+    <button data-icon="forward" aria-label="forward" data-l10n-id="">Default</button>
+    <button data-icon="forward" aria-label="forward" data-l10n-id="" class="recommend">Recommend</button>
+    <button data-icon="forward" aria-label="forward" data-l10n-id="" class="danger">Danger</button>
   </div>
 
   <h2 class="bb-docs">Disabled</h2>
@@ -122,22 +122,47 @@
         <button disabled>Disabled</button>
       </li>
       <li>
-        <button data-icon="forward" aria-label="forward">
+        <button class="icon icon-view">
+          Icon view button
+        </button>
+      </li>
+      <li>
+        <button class="icon icon-dialog">
+          Icon dialog button
+        </button>
+      </li>
+      <li>
+        <span class="button icon icon-dialog">
+          <select>
+            <option selected>Icon dialog with options</option>
+            <option>option 1</option>
+            <option>option 2</option>
+            <option>option 3</option>
+          </select>
+        </span>
+      </li>
+      <li>
+        <button class="icon icon-dialog" disabled>
+          Icon dialog button disabled
+        </button>
+      </li>
+      <li>
+        <button data-icon="forward" aria-label="forward" data-l10n-id="">
           Side navigation
         </button>
       </li>
       <li>
-        <button disabled data-icon="forward" aria-label="forward">
+        <button disabled data-icon="forward" aria-label="forward" data-l10n-id="">
           Side navigation
         </button>
       </li>
       <li>
-        <a role="button" data-icon="expand" class="bb-button" aria-label="expand">
+        <a role="button" data-icon="expand" class="bb-button" aria-label="expand" data-l10n-id="">
           Tuesday Sept. 18, 2012
         </a>
       </li>
       <li>
-        <a role="button" aria-disabled="true" data-icon="expand" class="bb-button" aria-label="expand">
+        <a role="button" aria-disabled="true" data-icon="expand" class="bb-button" aria-label="expand" data-l10n-id="">
             Tuesday Sept. 18, 2012
         </a>
       </li>
@@ -154,22 +179,27 @@
         <button disabled>Disabled</button>
       </li>
       <li>
-        <button data-icon="forward" aria-label="forward">
+        <button class="icon icon-dialog">
+          Dark icon dialog button
+        </button>
+      </li>
+      <li>
+        <button data-icon="forward" aria-label="forward" data-l10n-id="">
           Side navigation
         </button>
       </li>
       <li>
-        <button disabled data-icon="forward" aria-label="forward">
+        <button disabled data-icon="forward" aria-label="forward" data-l10n-id="">
           Side navigation
         </button>
       </li>
       <li>
-        <a role="button" data-icon="expand" class="bb-button" aria-label="expand">
+        <a role="button" data-icon="expand" class="bb-button" aria-label="expand" data-l10n-id="">
           Tuesday Sept. 18, 2012
         </a>
       </li>
       <li>
-        <a role="button" aria-disabled="true" data-icon="expand" class="bb-button" aria-label="expand">
+        <a role="button" aria-disabled="true" data-icon="expand" class="bb-button" aria-label="expand" data-l10n-id="">
           Tuesday Sept. 18, 2012
         </a>
       </li>
@@ -188,7 +218,7 @@
   <div class="bb-docs">
     <ul>
       <li>
-        <span class="bb-button" data-icon="expand" aria-label="expand">
+        <span class="bb-button" data-icon="expand" aria-label="expand" data-l10n-id="">
           <select>
             <option>option 1</option>
             <option>option 2</option>
@@ -202,7 +232,7 @@
   <div class="bb-docs">
     <ul>
       <li>
-        <span aria-disabled="true" class="bb-button" data-icon="expand" aria-label="expand">
+        <span aria-disabled="true" class="bb-button" data-icon="expand" aria-label="expand" data-l10n-id="">
           <select>
             <option>option 1</option>
             <option>option 2</option>
@@ -224,7 +254,7 @@
   <div class="bb-docs skin-dark">
     <ul>
       <li>
-        <span class="bb-button" data-icon="expand" aria-label="expand">
+        <span class="bb-button" data-icon="expand" aria-label="expand" data-l10n-id="">
           <select>
             <option>option 1</option>
             <option>option 2</option>
@@ -232,7 +262,7 @@
         </span>
       </li>
       <li>
-        <span aria-disabled="true" class="bb-button" data-icon="expand" aria-label="expand">
+        <span aria-disabled="true" class="bb-button" data-icon="expand" aria-label="expand" data-l10n-id="">
           <select>
             <option>option 1</option>
             <option>option 2</option>
