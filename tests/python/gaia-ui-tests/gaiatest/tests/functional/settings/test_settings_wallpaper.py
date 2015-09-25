@@ -17,9 +17,9 @@ class TestWallpaper(GaiaTestCase):
 
         settings = Settings(self.marionette)
         settings.launch()
-        display_settings = settings.open_display()
+        homescreen_settings = settings.open_homescreen()
 
-        activities_menu = display_settings.pick_wallpaper()
+        activities_menu = homescreen_settings.pick_wallpaper()
         wallpaper = activities_menu.tap_wallpaper()
         wallpaper.tap_wallpaper_by_index(1)
 
