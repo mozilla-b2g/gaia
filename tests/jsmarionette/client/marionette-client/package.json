@@ -1,6 +1,6 @@
 {
   "name": "marionette-client",
-  "version": "1.9.0",
+  "version": "1.9.1",
   "author": "The Gaia Team <dev-gaia@lists.mozilla.org>",
   "description": "Marionette Javascript Client",
   "main": "lib/marionette/index",
