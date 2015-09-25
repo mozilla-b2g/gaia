@@ -8,7 +8,7 @@ var path = require('path');
 var fs = require('fs');
 var helper = require('helper');
 var AdmZip = require('adm-zip');
-var jsdom = require('jsdom-nogyp').jsdom;
+var jsdom = require('jsdom').jsdom;
 
 function checkLayoutsJSON(zipPath, expectedArr) {
   var zip = new AdmZip(zipPath);
