@@ -158,6 +158,7 @@ const SETTINGS_VERSION = 0;
     window.addEventListener('hashchange', this, true);
     window.addEventListener('localized', this);
     window.addEventListener('online', this);
+    window.addEventListener('resize', this);
 
     // Restore settings
     this.restoreSettings();
@@ -379,18 +380,14 @@ const SETTINGS_VERSION = 0;
           if (child.order !== -1 && child.order < container.order) {
             continue;
           }
-          this.icons.insertBefore(container, child);
+          this.icons.insertBefore(container, child,
+                                  this.iconAdded.bind(this, container));
           break;
         }
       }
 
       if (!container.parentNode) {
-        // If this is the first child we're adding, scroll-snapping wouldn't
-        // have been initialised, so make sure to snap in this situation
-        var callback = this.icons.firstChild ?
-          () => { this.refreshGridSize(); } :
-          () => { this.refreshGridSize(); this.snapScrollPosition(); };
-        this.icons.appendChild(container, callback);
+        this.icons.appendChild(container, this.iconAdded.bind(this, container));
       }
 
       return container;
@@ -504,6 +501,15 @@ const SETTINGS_VERSION = 0;
       this.handleEvent({ type: 'scroll' });
     },
 
+    iconAdded: function(container) {
+      // Refresh the grid size if this child is visible
+      if (container.style.display === 'none') {
+        return;
+      }
+
+      this.refreshGridSize();
+    },
+
     refreshGridSize: function() {
       var children = this.icons.children;
 
@@ -523,8 +529,7 @@ const SETTINGS_VERSION = 0;
         this.pendingGridHeight = this.gridHeight = 0;
         this.pageHeight = this.scrollable.clientHeight;
       } else {
-        var iconHeight = Math.round(children[firstVisibleChild].
-          getBoundingClientRect().height);
+        var iconHeight = Math.round(children[firstVisibleChild].offsetHeight);
         var scrollHeight = this.scrollable.clientHeight;
         var pageHeight = Math.floor(scrollHeight / iconHeight) * iconHeight;
         var gridHeight = (Math.ceil((iconHeight *
@@ -992,6 +997,12 @@ const SETTINGS_VERSION = 0;
             }
           }
         }
+        break;
+
+      case 'resize':
+        this.icons.synchronise();
+        this.refreshGridSize();
+        this.snapScrollPosition();
         break;
       }
     }
