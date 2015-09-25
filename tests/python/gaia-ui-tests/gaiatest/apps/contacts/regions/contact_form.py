@@ -105,9 +105,13 @@ class ContactForm(Base):
         return self.marionette.find_element(*self._comment_locator).text
 
     def type_comment(self, value):
-        element = self.marionette.find_element(*self._comment_locator)
-        element.clear()
-        element.send_keys(value)
+        if self.is_element_present(*self._comment_locator):
+            element = self.marionette.find_element(*self._comment_locator)
+            element.clear()
+            element.send_keys(value)
+        else:
+            self._type_in_field(self._add_new_note_locator, self._comment_locator, value)
+
 
     def tap_comment(self):
         self.marionette.find_element(*self._comment_locator).tap()
