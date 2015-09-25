@@ -8,9 +8,9 @@ define(function() {
   'use strict';
 
   var _debug = false;
-  var Debug = function() {};
+  var debug = function() {};
   if (_debug) {
-    Debug = function bttf_debug(msg) {
+    debug = function bttf_debug(msg) {
       console.log('--> [BluetoothTemplateFactory]: ' + msg);
     };
   }
@@ -31,7 +31,7 @@ define(function() {
     li.classList.add('bluetooth-device');
 
     // According to Bluetooth class of device to give icon style.
-    Debug('device.type = ' + device.type);
+    debug('device.type = ' + device.type);
     li.classList.add('bluetooth-type-' + device.type);
 
     // According to 'descriptionText' property to give description.
@@ -83,7 +83,7 @@ define(function() {
 
   function _updateItemDescriptionText(li, element, descriptionText,
                                       deviceType) {
-    Debug('_updateItemDescriptionText(): descriptionText = ' + descriptionText);
+    debug('_updateItemDescriptionText(): descriptionText = ' + descriptionText);
     switch (descriptionText) {
       case 'tapToConnect':
         li.removeAttribute('aria-disabled');
@@ -99,7 +99,7 @@ define(function() {
       case 'pairing':
         li.setAttribute('aria-disabled', true);
         element.setAttribute('data-l10n-id', 'device-status-pairing');
-        // The remote device has different icon layout 
+        // The remote device has different icon layout
         // while it's in inline pairing progress.
         if (deviceType === 'remote') {
           // hide the device icon
