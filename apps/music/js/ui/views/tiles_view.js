@@ -112,6 +112,7 @@ var TilesView = {
       result.metadata.album || navigator.mozL10n.get('unknownAlbum');
     albumNameText.dataset.l10nId = result.metadata.album ? '' : 'unknownAlbum';
     titleBar.appendChild(artistName);
+    titleBar.appendChild(albumName);
 
     // There are 6 tiles in one group
     // and the first tile is the main-tile
@@ -119,10 +120,10 @@ var TilesView = {
     if (this.index % 6 === 0) {
       tile.classList.add('main-tile');
       artistName.classList.add('main-tile-title');
-      titleBar.appendChild(albumName);
     } else {
       tile.classList.add('sub-tile');
       artistName.classList.add('sub-tile-title');
+      albumName.classList.add('sub-tile-title');
     }
 
     var index = this.index;
