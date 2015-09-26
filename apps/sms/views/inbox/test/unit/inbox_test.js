@@ -260,6 +260,7 @@ suite('thread_list_ui', function() {
       this.sinon.stub(InboxView, 'setContact');
       this.sinon.spy(InboxView, 'mark');
       this.sinon.spy(InboxView, 'setEmpty');
+      this.sinon.spy(MessageManager, 'markThreadRead');
       // This is normally created by renderThreads
       InboxView.sticky = new MockStickyHeader();
       this.sinon.spy(InboxView.sticky, 'refresh');
