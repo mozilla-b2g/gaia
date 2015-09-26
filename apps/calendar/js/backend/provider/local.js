@@ -26,8 +26,8 @@ Local.defaultCalendar = function() {
   var name;
 
   /* TODO(gareth): Make l10n available in backend.
-  if ('mozL10n' in window.navigator) {
-    name = window.navigator.mozL10n.get(l10nId);
+  if ('mozL10n' in navigator) {
+    name = mozL10n.get(l10nId);
     if (name === l10nId) {
       name = null;
     }

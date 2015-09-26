@@ -84,7 +84,7 @@ ViewEvent.prototype = {
 
     if (this.originalCalendar) {
       this.element.querySelector('.icon-calendar-dot').style.color =
-        this.originalCalendar.color;
+        this.originalCalendar.remote.color;
 
       var calendarId = this.originalCalendar.remote.id;
       var isLocalCalendar = calendarId === localCalendarId;

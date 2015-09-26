@@ -1,9 +1,8 @@
 define(function(require, exports, module) {
 'use strict';
 
-var Authentication = require('common/error').Authentication;
-var InvalidServer = require('common/error').InvalidServer;
 var Responder = require('common/responder');
+var calendarError = require('common/error');
 var nextTick = require('common/next_tick');
 var notification = require('notification');
 
@@ -33,7 +32,8 @@ ErrorController.prototype = {
    * @param {Calendar.Error} error to dispatch.
    */
   dispatch: function(error) {
-    if (error instanceof Authentication || error instanceof InvalidServer) {
+    if (calendarError.isAuthentication(error) ||
+        calendarError.isInvalidServer(error)) {
       this.handleAuthenticate(error.detail.account);
     }
 

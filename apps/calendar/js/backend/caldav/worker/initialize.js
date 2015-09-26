@@ -14,7 +14,7 @@ module.exports = function() {
   var thread = self.thread = new Thread(window);
   thread.addRole('caldav');
   window.console = new thread.console('worker');
-  require(['service/caldav'], (CaldavService) => {
+  require(['./caldav_service'], (CaldavService) => {
     // Lazily loaded so that we can prime environment first.
     debug('Will create new caldav service...');
     self.caldav = new CaldavService(thread.roles.caldav);

@@ -52,6 +52,10 @@ Abstract.prototype = {
     this._cached[object._id] = object;
   },
 
+  _clearCache: function() {
+    this._cached = Object.create(null);
+  },
+
   _removeFromCache: function(id) {
     if (id in this._cached) {
       delete this._cached[id];
