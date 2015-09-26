@@ -1,55 +1,81 @@
-/* global DataMobile, Navigation, SimManager, TimeManager,
+/* global Utils, DataMobile, Navigation, SimManager, TimeManager,
           UIManager, WifiManager, ImportIntegration, Tutorial,
-          VersionHelper, LanguageManager, eventSafety */
+          VersionHelper, LanguageManager */
 /* exported AppManager */
+(function(exports) {
 'use strict';
 
-function notifyCollection() {
-  navigator.mozApps.getSelf().onsuccess = function(evt) {
-    var app = evt.target.result;
-    if (app.connect) {
-      app.connect('setup').then(function onConnAccepted(ports) {
-        // Get the token data info to attach to message
-        var message = {
-          txt: 'setup'
-        };
-        ports.forEach(function(port) {
-          port.postMessage(message);
-        });
-      }, function onConnRejected(reason) {
-        console.error('Cannot notify collection: ', reason);
-      });
-    } else {
-      console.error ('mozApps does not have a connect method. ' +
-                     'Cannot launch the collection preload process.');
-    }
-  };
+function _AppManager() {
+  /*jshint validthis:true */
 }
 
-var AppManager = {
+_AppManager.prototype = {
+  EVENT_PREFIX: 'ftu-',
 
-  init: function init(versionInfo) {
+  debug: function() {
+    var args = Array.from(arguments);
+    args.unshift('AppManager');
+    console.log.apply(console, args);
+  },
+
+  bootstrap: function() {
+    this.broadcast('bootstrap');
+    var whenFirstLocalized = new Promise((resolve, reject) => {
+      navigator.mozL10n.once(function firstLocalized() {
+        console.log('AppManager localized');
+        window.performance.mark('l10nready');
+        resolve();
+      });
+    });
+    var gotVersionInfo = VersionHelper.getVersionInfo();
+
+    return Promise.all([
+      whenFirstLocalized,
+      gotVersionInfo
+    ]).then((results) => {
+      console.log('gotVersionInfo: ', results[1]);
+      this.versionInfo = results[1];
+    }).catch(e => {
+      console.warn('Error in FTU startup path: ', e);
+    });
+  },
+
+  init: function init() {
+    var versionInfo = this.versionInfo;
+
     window.performance.mark('initialize');
     this.isInitialized = true;
 
-    LanguageManager.init();
     UIManager.init();
+    LanguageManager.init();
     Navigation.init();
 
     window.performance.mark('navigationLoaded');
     // Send message to populate preinstalled collections.
     // This needs to be done for both upgrade and non-upgrade flows.
-    notifyCollection();
+    this.notify('setup', { txt: 'setup' }, {
+      connectionRejectedMessage: 'Cannot notify of setup',
+      noConnectMethodMessage: 'mozApps does not have a connect method. ' +
+                              'Cannot launch the collection preload process.'
+    });
 
     var splashTimeout = 1025;
-    var splashScreenHidden = this.whenEvent(UIManager.splashScreen,
+    var splashScreenHidden = Utils.whenEvent(UIManager.splashScreen,
                                             'transitionend',
                                             splashTimeout).then(() => {
       UIManager.container.removeAttribute('aria-hidden');
       window.performance.mark('visuallyLoaded');
     });
 
-    var languageListReady = this.whenEvent(window, 'languagelistready');
+    var languageListReady = new Promise((resolve, reject) => {
+      function onPanelReady(panel) {
+        if (panel.name === 'language') {
+          window.removeEventListener('panelready');
+          resolve(panel);
+        }
+      }
+      window.addEventListener('panelready', onPanelReady);
+    });
 
     Promise.all([splashScreenHidden, languageListReady]).then(() => {
       window.performance.mark('fullyLoaded');
@@ -109,27 +135,41 @@ var AppManager = {
       window.performance.mark('contentInteractive');
     }, kSplashTimeout);
   },
-  whenEvent: function (target, name, timeoutMs) {
-    return new Promise((resolve, reject) => {
-      eventSafety(target, name, resolve, timeoutMs || 1000);
-    });
+
+  notify: function(keyword, message, options = {}) {
+    navigator.mozApps.getSelf().onsuccess = function(evt) {
+      var app = evt.target.result;
+      if (app.connect) {
+        app.connect(keyword).then(function onConnAccepted(ports) {
+          // Get the token data info to attach to message
+          ports.forEach(function(port) {
+            port.postMessage(message);
+          });
+        }, function onConnRejected(reason) {
+          var msg = options.connectionRejectedMessage ||
+                    ('Cannot notify of ' + keyword + ': ');
+          console.error(msg, reason);
+        });
+      } else {
+        var msg = options.noConnectMethodMessage ||
+                  ('mozApps does not have a connect method. ' +
+                   'Cannot notify of ' + keyword);
+        console.error(msg);
+      }
+    };
+    // also raise as custom event on our window
+    this.broadcast(keyword);
+  },
+
+  broadcast: function(name, payload) {
+    window.dispatchEvent(new CustomEvent(this.EVENT_PREFIX + name),
+                         { detail: payload || this });
   }
 };
 
-navigator.mozL10n.once(function firstLocalized() {
-  window.performance.mark('l10nready');
+var AppManager = exports.AppManager = new _AppManager();
+AppManager.bootstrap().then(() => {
+  AppManager.init();
 });
 
-navigator.mozL10n.ready(function showBody() {
-
-  VersionHelper.getVersionInfo().then(function(versionInfo) {
-    if (!AppManager.isInitialized) {
-      AppManager.init(versionInfo);
-    } else {
-      UIManager.initTZ();
-      if (!UIManager.mainTitle.hasAttribute('data-l10n-id')) {
-        UIManager.mainTitle.setAttribute('data-l10n-id', 'language');
-      }
-    }
-  });
-});
+})(window);

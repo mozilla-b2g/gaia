@@ -3,6 +3,7 @@
 'use strict';
 
 var LanguageManager = {
+  name: 'language',
   settings: window.navigator.mozSettings,
 
   init: function init() {
@@ -68,7 +69,8 @@ var LanguageManager = {
         li.appendChild(radio);
         container.appendChild(li);
       }
-      window.dispatchEvent(new CustomEvent('languagelistready'));
+      var readyEvent = new CustomEvent('panelready', { detail: this });
+      window.dispatchEvent(readyEvent);
     });
   }
 };

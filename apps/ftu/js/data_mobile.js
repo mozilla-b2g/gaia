@@ -5,6 +5,7 @@
 'use strict';
 
 var DataMobile = {
+  name: 'datamobile',
   key: 'ril.data.enabled',
   keySV: 'ftu.ril.data.enabled',
   STEP_DATA_3G: 2,
@@ -17,6 +18,8 @@ var DataMobile = {
       return;
     }
     this.settings = settings;
+    var readyEvent = new CustomEvent('panelready', { detail: this });
+    window.dispatchEvent(readyEvent);
   },
 
   removeSVStatusObserver: function dm_removeSVStatusObserver() {
@@ -89,6 +92,7 @@ var DataMobile = {
       callback();
     }
   },
+
   getAPN: function dm_getapn(callback) {
     // By the time the APN settings are needed in the FTU before enabling data
     // calls the system app (through the operator variant logic) might store the

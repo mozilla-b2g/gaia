@@ -23,11 +23,19 @@ suite('FinishScreen >', function() {
     document.body.innerHTML = '';
   });
 
-
   test(' init', function() {
+    var spy = this.sinon.spy();
+    window.addEventListener('panelready', spy);
+    FinishScreen.init();
+
+    // Is shown? We know by default the layout is tiny
+    assert.isTrue(spy.calledOnce);
+  });
+
+  test(' show', function() {
     this.sinon.spy(window, 'close');
     // We call to FinishScreen
-    FinishScreen.init();
+    FinishScreen.show();
 
     // Is shown? We know by default the layout is tiny
     assert.isTrue(

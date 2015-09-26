@@ -16,7 +16,13 @@
   var initialized = false;
 
   var FinishScreen = {
-    init: function (isUpgrade) {
+    name: 'finish',
+    init: function() {
+      var readyEvent = new CustomEvent('panelready', { detail: this });
+      window.dispatchEvent(readyEvent);
+      // defer most of the initialization to when the panel is shown
+    },
+    show: function (isUpgrade) {
       if (initialized) {
         return;
       }
@@ -31,7 +37,7 @@
       // Show finish panel
       var finishPanel = document.getElementById(panelSelector);
       finishPanel.classList.add('show');
-      
+
       // Cache non-layout-related DOM elements
       elementIDs.forEach(function (name) {
         dom[Utils.camelCase(name)] = document.getElementById(name);
@@ -45,20 +51,12 @@
       // Add regular listener if needed
       if (currentLayout === 'tiny') {
         dom.tutorialFinished.addEventListener('click', function ftuEnd() {
+          dom.tutorialFinished.removeEventListener('click', ftuEnd);
           window.close();
         });
       } else {
         // In 'tablet', we have to use IAC to tell system ftu is done
-        navigator.mozApps.getSelf().onsuccess = function(evt) {
-          var app = evt.target.result;
-          app.connect('ftucomms').then(function onConnAccepted(ports) {
-            ports.forEach(function(port) {
-              port.postMessage('done');
-            });
-          }, function onConnRejected(reason) {
-            console.warn('FTU is rejected due to ' + reason);
-          });
-        };
+        this.notify('done', 'done');
       }
 
       initialized = true;
