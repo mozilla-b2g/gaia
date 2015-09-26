@@ -14,6 +14,7 @@ class TestCostControlDataAlertMobile(GaiaTestCase):
 
     def setUp(self):
         GaiaTestCase.setUp(self)
+        self.data_layer.set_bool_pref('privacy.trackingprotection.enabled', False)
         self.data_layer.disable_wifi()
         self.data_layer.connect_to_cell_data()
 
@@ -58,4 +59,5 @@ class TestCostControlDataAlertMobile(GaiaTestCase):
     def tearDown(self):
         self.marionette.switch_to_frame()
         self.data_layer.disable_cell_data()
+        self.data_layer.clear_user_pref('privacy.trackingprotection.enabled')
         GaiaTestCase.tearDown(self)
