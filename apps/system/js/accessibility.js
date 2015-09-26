@@ -68,6 +68,29 @@
     },
 
     /**
+     * Web API audio context instance.
+     * @type {Object}
+     * @memberOf Accessibility.prototype
+     */
+    get audioContext() {
+      return this._audioContext ||
+        (this._audioContext = new window.AudioContext());
+    },
+
+    /**
+     * Web API gain node.
+     * @type {Object}
+     * @memberOf Accessibility.prototype
+     */
+    get gainNode() {
+      if (!this._gainNode) {
+        this._gainNode = this.audioContext.createGain();
+        this._gainNode.connect(this.audioContext.destination);
+      }
+      return this._gainNode;
+    },
+
+    /**
      * Expected complete time stamp.
      * @type {Number}
      * @memberof Accessibility.prototype
@@ -92,12 +115,12 @@
     },
 
     /**
-     * Audio used by the screen reader.
+     * Audio sound buffers used by the screen reader.
      * Note: Lazy-loaded when first needed
      * @type {Object}
      * @memberof Accessibility.prototype
      */
-    sounds: {
+    soundBuffers: {
       clickedAudio: null,
       vcKeyAudio: null,
       vcMoveAudio: null,
@@ -275,19 +298,42 @@
     },
 
     /**
+     * Play audio using Web Audio API.
+     * @param  {Object} aBuffer Audio data buffer.
+     * @memberof Accessibility.prototype
+     */
+    _playAudioBuffer: function ar__playAudioBuffer(aBuffer) {
+      var bufferSource = this.audioContext.createBufferSource();
+      bufferSource.buffer = aBuffer;
+      bufferSource.connect(this.gainNode);
+      this.gainNode.gain.value = this.volume;
+      bufferSource.start(0);
+    },
+
+    /**
      * Play audio for a screen reader notification.
      * @param  {String} aSoundKey a key for the screen reader audio.
-     * XXX: When Bug 848954 lands we should be able to use Web Audio API.
      * @memberof Accessibility.prototype
      */
     _playSound: function ar__playSound(aSoundKey) {
-      if (!this.sounds[aSoundKey]) {
-        this.sounds[aSoundKey] = new Audio(this.soundURLs[aSoundKey]);
-        this.sounds[aSoundKey].load();
+      // If volume is at 0, do not play sound.
+      if (!this.volume) {
+        return;
       }
-      var audio = this.sounds[aSoundKey].cloneNode(false);
-      audio.volume = this.volume;
-      audio.play();
+      if (!this.soundBuffers[aSoundKey]) {
+        var request = new XMLHttpRequest();
+        request.open('GET', this.soundURLs[aSoundKey]);
+        request.responseType = 'arraybuffer';
+        request.onload = () => {
+          this.audioContext.decodeAudioData(request.response, (buffer) => {
+            this.soundBuffers[aSoundKey] = buffer;
+            this._playAudioBuffer(buffer);
+          });
+        };
+        request.send();
+      } else {
+        this._playAudioBuffer(this.soundBuffers[aSoundKey]);
+      }
     },
 
     /**
