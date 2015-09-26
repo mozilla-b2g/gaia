@@ -56,12 +56,12 @@ var ActivityHandler = {
       threadId: null
     };
 
-    var focusComposer = false;
     var threadPromise;
+    var focus = '';
     if (viewInfo.number) {
       // It's reasonable to focus on composer if we already have some phone
       // number or even contact to fill recipients input
-      focusComposer = true;
+      focus = 'composer';
 
       /* If we have a body, we're always redirecting to the new message view,
        * because we don't want to overwrite any possible draft from an existing
@@ -77,7 +77,7 @@ var ActivityHandler = {
     }
 
     return (threadPromise || Promise.resolve()).then(
-      () => this.toView(viewInfo, focusComposer)
+      () => this.toView(viewInfo, focus)
     );
   },
 
@@ -183,22 +183,22 @@ var ActivityHandler = {
    * recipients list with, "body" is an optional body to preset the compose
    * input with, "threadId" is an optional threadId corresponding to a new or
    * existing thread.
-   * @param {boolean?} focusComposer Indicates whether we need to focus composer
-   * when we navigate to Thread panel.
+   * @param {string?} focus indicates which of 'composer' or 'recipients' field
+   * we need to focus when we navigate to Thread panel.
    */
-  toView: function ah_toView(message, focusComposer) {
+  toView: function ah_toView(message, focus) {
     return Utils.onceDocumentIsVisible().then(() => {
       // If we have appropriate thread then let's forward user there, otherwise
       // open new message composer.
       if (message.threadId) {
         return Navigation.toPanel('thread', {
           id: message.threadId,
-          focusComposer: focusComposer
+          focus
         });
       }
 
       return this._storeDraftFromMessage(message).then(
-        (draftId) => Navigation.toPanel('composer', { draftId, focusComposer })
+        (draftId) => Navigation.toPanel('composer', { draftId, focus })
       );
     });
   }

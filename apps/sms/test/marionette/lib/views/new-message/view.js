@@ -5,6 +5,7 @@
 var NewMessageAccessor = require('./accessors');
 var ComposerAccessor = require('../shared/composer_accessors');
 var MenuAccessor = require('../shared/menu_accessors');
+var Tools = require('../shared/tools');
 
 var appRoot = require('app-root-path');
 // TODO Change the path once requireFromApp becomes its own module
@@ -163,10 +164,12 @@ NewMessageView.prototype = {
     return subjectInput && this.composerAccessors.subjectInput.displayed();
   },
 
-  isMessageInputFocused: function() {
-    return this.composerAccessors.messageInput.scriptWith(function(el) {
-      return document.activeElement === el;
-    });
+  assertMessageInputFocused: function(message) {
+    Tools.assertElementFocused(this.composerAccessors.messageInput, message);
+  },
+
+  assertRecipientsInputFocused: function(message) {
+    Tools.assertElementFocused(this.accessors.recipientsInput, message);
   }
 };
 

@@ -656,10 +656,20 @@ var ConversationView = {
       args.draftId ? this.handleDraft(+args.draftId) : Promise.resolve();
 
     return draftPromise.then(() => {
-      if (args.focusComposer) {
-        Compose.focus();
-      } else {
-        this.recipients.focus();
+      switch (args.focus) {
+        case 'composer':
+          Compose.focus();
+          break;
+        case 'recipients':
+          this.recipients.focus();
+          break;
+        default:
+          if (this.hasValidRecipients()) {
+            Compose.focus();
+          } else {
+            this.recipients.focus();
+          }
+          break;
       }
 
       this.emit('visually-loaded');
@@ -706,7 +716,7 @@ var ConversationView = {
       this.enableConvertNoticeBanners();
     }
 
-    if (args.focusComposer) {
+    if (args.focus === 'composer') {
       Compose.focus();
     }
 
@@ -791,10 +801,14 @@ var ConversationView = {
         return;
       }
 
+      // Render draft contents into the composer input area.
+      Compose.fromDraft(this.draft);
+      this.draft.isEdited = false;
+
       // Recipients will exist for draft messages in threads
       // Otherwise find them from draft recipient numbers
-      this.draft.recipients.forEach(function(number) {
-        Contacts.findByAddress(number).then(function(contacts) {
+      return Promise.all(this.draft.recipients.map((number) => {
+        return Contacts.findByAddress(number).then((contacts) => {
           var recipient;
           if (contacts.length) {
             recipient = Utils.basicContact(number, contacts[0]);
@@ -811,12 +825,8 @@ var ConversationView = {
           // Since recipient is added from draft, we should not consider it as
           // edit operation.
           this.draft.isEdited = false;
-        }.bind(this));
-      }, this);
-
-      // Render draft contents into the composer input area.
-      Compose.fromDraft(this.draft);
-      this.draft.isEdited = false;
+        });
+      }));
     });
   },
 
@@ -1206,9 +1216,8 @@ var ConversationView = {
         throw new TypeError('Unknown parameter');
       }
 
-      var focusComposer = !!(parameters && parameters.number);
       return draftCreatePromise.then(
-        (draftId) => Navigation.toPanel('composer', { draftId, focusComposer })
+        (draftId) => Navigation.toPanel('composer', { draftId })
       );
     };
 
@@ -1219,7 +1228,7 @@ var ConversationView = {
       Promise.reject();
 
     return threadExistingPromise.then(
-      (id) => Navigation.toPanel('thread', { id: id, focusComposer: true }),
+      (id) => Navigation.toPanel('thread', { id: id, focus: 'composer' }),
       navigateToComposer
     );
   },

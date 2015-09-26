@@ -296,7 +296,6 @@ var InboxView = {
           if (draftId) {
             Navigation.toPanel('composer', {
               draftId: +draftId,
-              focusComposer: true
             });
           } else {
             Navigation.toPanel('thread', {

@@ -6,6 +6,7 @@ var ThreadGenerator = require('./generators/thread');
 var Messages = require('./lib/messages.js');
 var InboxView = require('./lib/views/inbox/view');
 var Storage = require('./lib/storage.js');
+var Tools = require('./lib/views/shared/tools.js');
 
 marionette('Conversation Panel Tests', function() {
   var MOCKS = [
@@ -21,12 +22,6 @@ marionette('Conversation Panel Tests', function() {
 
   function assertIsDisplayed(element) {
     assert.isTrue(element.displayed(), 'Element should be displayed');
-  }
-
-  function assertIsFocused(element, message) {
-    assert.isTrue(element.scriptWith(function(el) {
-      return document.activeElement === el;
-    }), message);
   }
 
   setup(function() {
@@ -131,7 +126,7 @@ marionette('Conversation Panel Tests', function() {
         'Header title should indicate that we are composing new message'
       );
 
-      assertIsFocused(
+      Tools.assertElementFocused(
         messagesApp.NewMessage.recipientsInput,
         'Recipients input should be focused'
       );
@@ -166,7 +161,7 @@ marionette('Conversation Panel Tests', function() {
         'Header title should indicate that we are composing new message'
       );
 
-      assertIsFocused(
+      Tools.assertElementFocused(
         messagesApp.NewMessage.recipientsInput,
         'Recipients input should be focused'
       );
@@ -219,7 +214,7 @@ marionette('Conversation Panel Tests', function() {
       assert.equal(recipients[0].text(), '+200000');
       assert.equal(recipients[0].getAttribute('data-source'), 'manual');
 
-      assertIsFocused(
+      Tools.assertElementFocused(
         messagesApp.Composer.messageInput, 'Message input should be focused'
       );
     });
@@ -241,7 +236,7 @@ marionette('Conversation Panel Tests', function() {
       assert.equal(recipients[0].text(), 'Alan Turing');
       assert.equal(recipients[0].getAttribute('data-source'), 'contacts');
 
-      assertIsFocused(
+      Tools.assertElementFocused(
         messagesApp.Composer.messageInput, 'Message input should be focused'
       );
     });
@@ -261,7 +256,7 @@ marionette('Conversation Panel Tests', function() {
         threads[0].messages[0].body
       );
 
-      assertIsFocused(
+      Tools.assertElementFocused(
         messagesApp.Composer.messageInput, 'Message input should be focused'
       );
     });
