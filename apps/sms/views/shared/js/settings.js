@@ -14,6 +14,7 @@ var Settings = {
   },
 
   READ_AHEAD_THREADS_KEY: 'ril.sms.maxReadAheadEntries',
+  SEND_READ_REPORT_KEY: 'messages.mms.sendReadReport.enabled',
 
   // we evaluate to 5KB the size overhead of wrapping a payload in a MMS
   MMS_SIZE_OVERHEAD: 5 * 1024,
@@ -133,6 +134,13 @@ var Settings = {
         reject('Invalid connection');
       }
     }.bind(this));
+  },
+
+  toSendReadReport: function toSendReadReport() {
+    if (!navigator.mozSettings) {
+      return Promise.reject(new Error('The mozSettings API is not available.'));
+    }
+    return navigator.mozSettings.createLock().get(this.SEND_READ_REPORT_KEY);
   },
 
   /**

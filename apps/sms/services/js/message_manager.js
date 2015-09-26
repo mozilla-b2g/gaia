@@ -421,33 +421,41 @@ var MessageManager = {
 
   markMessagesRead: function mm_markMessagesRead(list, isRead = true) {
     if (!this._mozMobileMessage || !list.length) {
-      return;
+      return Promise.resolve();
     }
+
+    var self = this;
+    var deferred = Utils.Promise.defer();
 
     // We chain the calls to the API in a way that we make no call to
     // 'markMessageRead' until a previous call is completed. This way any
     // other potential call to the API, like the one for getting a message
     // list, could be done within the calls to mark the messages as read.
 
-    var id = list.pop();
-    // TODO: Third parameter of markMessageRead is return read request.
-    //       Here we always return read request for now, but we can let user
-    //       decide to return request or not in Bug 971658.
-    var req = this._mozMobileMessage.markMessageRead(id, isRead, true);
-    // isRead == false i.e mark as unread case, marking only one message
-    // as unread is sufficient.
-    req.onsuccess = (function onsuccess() {
-      if (!list.length || !isRead) {
-        return;
-      } else if (isRead) {
-        this.markMessagesRead(list, isRead);
-      }
-    }).bind(this);
+    // sendReadReport == true if Send-Read-Reports switch in Messaging Settings
+    // is enabled else false
 
-    req.onerror = function onerror() {
-      console.error(
-        'Error while marking message %d as read: %s', id, this.error.name
-      );
+    Settings.toSendReadReport().then((result) => {
+      var sendReadReport = result['messages.mms.sendReadReport.enabled'];
+      markMessage(sendReadReport);
+    }, (err) => console.log(err));
+
+    function markMessage(sendReadReport) {
+      var id = list.pop();
+      var req = self._mozMobileMessage.markMessageRead(id, isRead, sendReadReport);
+
+      req.then(() => {
+        // if isRead == false then mark only one message in each thread
+        if (!list.length || !isRead) {
+          deferred.resolve();
+        } else {
+          markMessage(sendReadReport);
+        }
+      }, () => {
+        deferred.reject('error in MessageManager.markMessagesRead method');
+      });
+
+      return deferred.promise;
     };
   },
 
