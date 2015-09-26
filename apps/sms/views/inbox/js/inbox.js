@@ -399,8 +399,7 @@ var InboxView = {
       var thread = Threads.get(+id);
 
       var markable = thread && !thread.isDraft && 
-              (isRead || !thread.getDraft()) && 
-              !(thread.unreadCount ^ isRead));
+              (isRead || !thread.getDraft()) && !(thread.unreadCount ^ isRead));
 
       if (markable) {
         thread.unreadCount = isRead ? 0 : 1;
