@@ -57,6 +57,7 @@ class TestCallLogAllCalls(GaiaTestCase):
         self.plivo.wait_for_call_completed(self.call_uuid)
         self.call_uuid = None
 
+        self.phone.wait_to_be_displayed()
         self.apps.switch_to_displayed_app()
         call_log = self.phone.tap_call_log_toolbar_button()
 
