@@ -151,6 +151,10 @@ KeyboardLayoutDetail.prototype.load = function(appDir) {
 
       break;
 
+    case 'thai':
+
+      break;
+
     default:
       // It's possible the layout doesn't have an IMEngine, and it's acceptible.
       // Other than that, throw so people are forced to place their IMEngine
