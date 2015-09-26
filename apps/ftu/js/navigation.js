@@ -7,6 +7,7 @@
 'use strict';
 
 const DOGFOODSETTING = 'debug.performance_data.dogfooding';
+const METRICSSETTING = 'metrics.selectedMetrics.level';
 
 /*
   Steps of the First Time Usage App
@@ -309,15 +310,24 @@ exports.Navigation = {
       case '#welcome_browser':
         UIManager.mainTitle.setAttribute('data-l10n-id', 'aboutBrowser');
 
-        // Initialize the share checkbox according to the preset value
-        // of debug.performance_data.shared
-        var sharePerformance = document.getElementById('share-performance');
-        var settingName = sharePerformance.name;
+        // Initialize the radio button to preselect the basic metrics.
         var settings = navigator.mozSettings;
-        var req = settings && settings.createLock().get(settingName);
-        if (req) {
-          req.onsuccess = function() {
-            sharePerformance.checked = req.result[settingName] || false;
+        var basicMetrics = document.getElementById('metrics-basic');
+        var enhancedMetrics = document.getElementById('metrics-enhanced');
+        var noneMetrics = document.getElementById('metrics-none');
+
+        var defaultLevel = settings &&
+          settings.createLock().get(METRICSSETTING);
+        if (defaultLevel) {
+          defaultLevel.onsuccess = function() {
+            var result = defaultLevel.result[METRICSSETTING];
+            if (result === 'Basic') {
+              basicMetrics.checked = true;
+            } else if (result === 'Enhanced') {
+              enhancedMetrics.checked = true;
+            } else if (result === 'None') {
+              noneMetrics.checked = true;
+            }
           };
         }
 
@@ -326,9 +336,13 @@ exports.Navigation = {
         if (dogfood) {
           dogfood.onsuccess = function() {
             if (dogfood.result[DOGFOODSETTING]) {
-              sharePerformance.setAttribute('disabled', 'true');
+              basicMetrics.setAttribute('disabled', 'true');
+              enhancedMetrics.setAttribute('disabled', 'true');
+              noneMetrics.setAttribute('disabled', 'true');
             } else {
-              sharePerformance.removeAttribute('disabled');
+              basicMetrics.removeAttribute('disabled');
+              enhancedMetrics.removeAttribute('disabled');
+              noneMetrics.removeAttribute('disabled');
             }
           };
         }

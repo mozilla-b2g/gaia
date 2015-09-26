@@ -98,7 +98,9 @@ var UIManager = {
     'skip-tutorial-button',
     'update-skip-tutorial-button',
     // Privacy Settings
-    'share-performance',
+    'metrics-basic',
+    'metrics-enhanced',
+    'metrics-none',
     'offline-error-dialog',
     // Browser privacy newsletter subscription
     'newsletter-form',
@@ -266,8 +268,10 @@ var UIManager = {
     this.letsGoButton.addEventListener('click', startTutorialAction);
     this.updateLetsGoButton.addEventListener('click', startTutorialAction);
 
-    // Enable sharing performance data (saving to settings)
-    this.sharePerformance.addEventListener('change', this);
+    // Enable saving metrics level choice to settings.
+    this.metricsBasic.addEventListener('change', this);
+    this.metricsEnhanced.addEventListener('change', this);
+    this.metricsNone.addEventListener('change', this);
     var button = this.offlineErrorDialog.querySelector('button');
     button.addEventListener('click',
                             this.onOfflineDialogButtonClick.bind(this));
@@ -424,10 +428,11 @@ var UIManager = {
         this.updateSetting(event.target.name, event.target.checked);
         break;
       // Privacy
-      case 'share-performance':
-        this.updateSetting(event.target.name, event.target.checked);
+      case 'metrics-basic':
+      case 'metrics-enhanced':
+      case 'metrics-none':
+        this.updateSetting('metrics.selectedMetrics.level', event.target.value);
         break;
-      // Fxa Intro
       case 'fxa-create-account':
         this.createFirefoxAccount();
         break;

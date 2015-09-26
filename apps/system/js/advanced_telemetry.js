@@ -114,7 +114,7 @@
   }
 
   // This value is what turns advanced telemetry on/off
-  AT.TELEMETRY_ENABLED_KEY = 'debug.performance_data.advanced_telemetry';
+  AT.TELEMETRY_ENABLED_KEY = 'metrics.selectedMetrics.level';
 
   // Base URL for sending data reports
   // Needs to be formatted as:
@@ -150,7 +150,7 @@
     loginfo('Starting AdvancedTelemetry');
     this.advancedTelemetryEnabledListener =
       function advancedTelemetryEnabledListener(enabled) {
-        if (enabled) {
+        if (enabled === 'Enhanced') {
           loginfo('Start Collecting');
           this.startCollecting();
         }

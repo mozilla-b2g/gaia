@@ -135,7 +135,7 @@
 
   // What setting do we listen to to turn app usage metrics on or off.
   // This default value is the same setting that turns telemetry on and off.
-  AUM.TELEMETRY_ENABLED_KEY = 'debug.performance_data.shared';
+  AUM.TELEMETRY_ENABLED_KEY = 'metrics.selectedMetrics.level';
 
   // For Dogfooders
   AUM.ISDOGFOODER = false;
@@ -192,7 +192,7 @@
       // That happens in the startCollecting() method which is only called if
       // telemetry is actually enabled
       this.metricsEnabledListener = function metricsEnabledListener(enabled) {
-        if (enabled) {
+        if (enabled === 'Enhanced' || enabled === 'Basic') {
           this.startCollecting();
         }
         else {

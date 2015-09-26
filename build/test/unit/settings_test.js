@@ -262,7 +262,7 @@ suite('settings.js', function() {
       var queue = app.execute(config);
       var expected = {
           'debug.console.enabled': true,
-          'debug.performance_data.shared': false,
+          'metrics.selectedMetrics.level': 'Basic',
           'developer.menu.enabled': true,
           'homescreen.manifestURL': config.GAIA_SCHEME +
             'homescreen.' + config.GAIA_DOMAIN + config.GAIA_PORT +
@@ -327,7 +327,7 @@ suite('settings.js', function() {
             'builtin:alerttone/notifier_firefox',
           'notification.ringtone': undefined,
           'ftu.pingURL': config.FTU_PING_URL,
-          'debug.performance_data.shared': false },
+          'metrics.selectedMetrics.level': 'Basic' },
           result);
         done();
       });
@@ -365,7 +365,7 @@ suite('settings.js', function() {
             'builtin:alerttone/notifier_firefox',
           'notification.ringtone': undefined,
           'ftu.pingURL': config.FTU_PING_URL,
-          'debug.performance_data.shared': false },
+          'metrics.selectedMetrics.level': 'Basic' },
           result);
         done();
       });
@@ -421,7 +421,7 @@ suite('settings.js', function() {
             'ftu.pingURL': config.FTU_PING_URL,
             'debug.performance_data.dogfooding': true,
             'metrics.appusage.reportInterval': 86400000,
-            'debug.performance_data.shared': false },
+            'metrics.selectedMetrics.level': 'Enhanced' },
           result);
         done();
       });
@@ -458,7 +458,7 @@ suite('settings.js', function() {
             'builtin:alerttone/notifier_firefox',
           'notification.ringtone': undefined,
           'ftu.pingURL': config.FTU_PING_URL,
-          'debug.performance_data.shared': false },
+          'metrics.selectedMetrics.level': 'Basic' },
           result);
         done();
       });
@@ -494,7 +494,7 @@ suite('settings.js', function() {
           'notification.ringtone': undefined,
           'ftu.pingURL': config.FTU_PING_URL,
           'screen.timeout': 600,
-          'debug.performance_data.shared': false },
+          'metrics.selectedMetrics.level': 'Basic' },
           result);
         done();
       });
