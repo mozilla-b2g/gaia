@@ -30,7 +30,7 @@
     "open": {
       "filters": {
         "type": ["audio/mpeg", "audio/ogg", "audio/mp4", "audio/amr",
-                 "audio/flac"]
+                 "audio/flac", "audio/wav", "audio/wave"]
        },
       "disposition": "inline",
       "returnValue": true,
