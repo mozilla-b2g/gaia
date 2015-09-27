@@ -8,7 +8,7 @@ from marionette_driver import expected, By, Wait
 
 class Browser(Base):
 
-    _browser_app_locator = (By.CSS_SELECTOR, 'div.browser[transition-state="opened"]')
+    _browser_app_locator = (By.CSS_SELECTOR, 'div[data-manifest-name="Browser"][transition-state="opened"]')
     _browser_frame_locator = (By.CSS_SELECTOR, 'iframe.browser')
 
     _menu_button_locator = (By.CSS_SELECTOR, '.menu-button')
@@ -89,7 +89,7 @@ class Browser(Base):
 
 
 class PrivateWindow(Browser):
-    _browser_app_locator = (By.CSS_SELECTOR, 'div.browser.private[transition-state="opened"]')
+    _browser_app_locator = (By.CSS_SELECTOR, 'div.private[data-manifest-name="Browser"][transition-state="opened"]')
     _url_bar_locator = (By.CSS_SELECTOR, '.urlbar .title')
 
     def __init__(self, marionette):
