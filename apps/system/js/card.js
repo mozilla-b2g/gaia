@@ -1,525 +1,295 @@
-  /* globals BaseUI, CardsHelper, Sanitizer, Service, Icon */
-
-/* exported Card */
-
+/* globals TaskManagerUtils, Sanitizer */
 'use strict';
 
 (function(exports) {
 
-  var _id = 0;
+/**
+ * A `Card` represents an individual app in the Task Manager.
+ *
+ * The `Card` class itself is inert; because TaskManager only updates its
+ * display on launch, Card doesn't need to update its state in real time.
+ * Card's swipe-up-to-delete behavior is handled by `SwipeToKillMotion`.
+ */
+function Card(app, disableScreenshots) {
+  var el = document.createElement('li');
+  this.app = app;
+  this.element = el;
 
-  /* Corresponds to the icon size in the footer.
-   * Used to determine the proper icon size from the manifest.
-   */
-  const CARD_FOOTER_ICON_SIZE = 40;
+  this.title = (app.isBrowser() && app.title) ? app.title : app.name;
+  this.subTitle = TaskManagerUtils.getDisplayUrlForApp(app);
+  this.titleId = 'card-title-' + app.instanceID;
 
-  /**
-   * A card in a card view, representing a single app
-   *
-   * @class Card
-   * @param {Object} config config to associate the card with a given app and
-   *                        how it should be displayed
-   * @extends BaseUI
-   */
-  function Card(config) {
-    if (config) {
-      for (var key in config) {
-        this[key] = config[key];
-      }
-    }
+  el.classList.add('card');
+  el.classList.toggle('private', !!app.isPrivate);
+  el.classList.toggle('show-subtitle', !!this.subTitle);
+  el.classList.toggle('browser', !!app.isBrowser());
 
-    this.instanceID = _id++;
-    return this;
+  el.dataset.appInstanceId = app.instanceID;
+  el.dataset.origin = app.origin; // for ease of testing
+  el.dataset.ssl = app.getSSLState() || ''; // indiciate security when available
+
+  el.setAttribute('aria-labelledby', this.titleId);
+  el.setAttribute('role', 'presentation'); // The card is not semantic.
+
+  el.innerHTML = this.getHtmlTemplate();
+
+  var topMostWindow = app.getTopMostWindow();
+  if (topMostWindow && topMostWindow.CLASS_NAME === 'TrustedWindow') {
+    this.title = topMostWindow.name || '';
+    el.classList.add('trustedui');
+  } else if (!app.killable()) {
+    el.querySelector('.close-button').style.visibility = 'hidden';
   }
-  Card.DEBUG = 0;
 
-  Card.prototype = Object.create(BaseUI.prototype);
-  Card.prototype.constructor = Card;
+  const ICON_SIZE = 40;
+  TaskManagerUtils.loadAppIcon(app, el.querySelector('.appIcon'), ICON_SIZE);
+
+  if (!disableScreenshots) {
+    TaskManagerUtils.loadAppScreenshot(
+      app, el.querySelector('.screenshotView'));
+  } else {
+    el.classList.add('appIconPreview');
+
+    var iconId = 'card-appIcon-' + app.instanceID;
+    el.querySelector('.appIcon').id = iconId;
+    el.querySelector('.appIconView').style.backgroundImage =
+      `-moz-element(#${iconId})`;
+  }
+
+  this.swipeAction = new SwipeToKillMotion(this.element, {
+    setTranslateY: (y) => {
+      this.translate({ y: y });
+    }
+  });
+}
+
+exports.Card = Card;
+
+Card.prototype = {
 
   /**
-   * The point at which we take a swipe to be intentional
-   * @type {String}
-   * @memberof Card.prototype
+   * To ensure animations run smoothly, cards are positioned exclusively with
+   * CSS transforms. Unfortunately, since translateX and translateY must be set
+   * simultaneously, we need a little additional boilerplate here: TaskManager
+   * itself positions the cards on the x-axis, but each card's SwipeToKillMotion
+   * maintains the y-axis positioning.
+   *
+   * NOTE: props.x and props.y must include units, e.g. 'px'.
    */
-  Card.prototype.SWIPE_WOBBLE_THRESHOLD = 4 * window.devicePixelRatio;
+  translate(props) {
+    if ('x' in props) {
+      this._translateX = props.x;
+    }
+    if ('y' in props) {
+      this._translateY = props.y;
+    }
+    this.element.style.transform =
+      `translate(${this._translateX}, ${this._translateY})`;
+  },
 
-  /**
-   * @type {String}
-   * @memberof Card.prototype
-   */
-  Card.prototype.EVENT_PREFIX = 'card-';
+  _translateX: '0px',
+  _translateY: '0px',
 
-  /**
-   * The instance's element will get appended here if defined
-   * @type {DOMNode}
-   * @memberof Card.prototype
-   */
-  Card.prototype.containerElement = null;
-
-  Card.prototype.CLASS_NAME = 'Card';
-  Card.prototype.element = null;
-
-  /**
-   * CSS visibility value to show/hide close button for this app
-   * @type {String}
-   * @memberof Card.prototype
-   */
-  Card.prototype.closeButtonVisibility = 'hidden';
-
-  /**
-   * CSS visibility value to show/hide favorite button for this app
-   * @type {String}
-   * @memberof Card.prototype
-   */
-  Card.prototype.favoriteButtonVisibility = 'hidden';
-
-  /**
-   * Debugging helper to output a useful string representation of an instance.
-   * @memberOf Card.prototype
-  */
-  Card.prototype.toString = function() {
-    return '[' + this.CLASS_NAME + ' ' +
-            this.position + ':' + this.title + ']';
-  };
-
-  /**
-   * Get cached setting boolean value for whether to use screenshots or
-   * icons in cards
-   * @memberOf Card.prototype
-   */
-  Card.prototype.getScreenshotPreviewsSetting = function() {
-    return this.manager.useAppScreenshotPreviews;
-  };
-
-
-  /**
-   * Template string representing the innerHTML of the instance's element
-   * @memberOf Card.prototype
-   */
-  Card.prototype.template = function() {
-    return Sanitizer.escapeHTML `<div class="titles">
-     <h1 id="${this.titleId}" dir="auto" class="title">${this.title}</h1>
-     <p class="subtitle">
-      <span class="subtitle-url">${this.subTitle}</span>
-     </p>
+  getHtmlTemplate() {
+    return Sanitizer.escapeHTML `
+    <div class="titles">
+      <h1 id="${this.titleId}" dir="auto" class="title">${this.title}</h1>
+      <p class="subtitle">
+        <span class="subtitle-url">${this.subTitle}</span>
+      </p>
     </div>
 
-    <div class="screenshotView bb-button" data-l10n-id="openCard"
-      role="link"></div>
+    <div class="screenshotView bb-button" data-l10n-id="openCard" role="link">
+    </div>
     <div class="privateOverlay"></div>
-    <div class="appIconView" style="background-image:${this.iconValue}"></div>
+    <div class="appIconView"></div>
 
     <footer class="card-tray">
-     <button class="appIcon" data-l10n-id="openCard"
-       data-button-action="select" aria-hidden="true"></button>
+      <button class="appIcon pending" data-l10n-id="openCard"
+              data-button-action="select" aria-hidden="true"></button>
      <menu class="buttonbar">
-       <button class="close-button bb-button" data-l10n-id="closeCard"
-         data-button-action="close" role="button"
-         style="visibility: ${this.closeButtonVisibility}"></button>
-      <button class="favorite-button bb-button"
-        data-button-action="favorite" role="button"
-        style="visibility: ${this.favoriteButtonVisibility}"></button>
-     </menu>
-    </footer>`;
-  };
+        <button class="close-button bb-button" data-l10n-id="closeCard"
+                data-button-action="close" role="button">
+        </button>
+        <button class="favorite-button bb-button"
+                data-button-action="favorite" role="button"
+                style="visibility: hidden"></button>
+      </menu>
+    </footer>
+    `;
+  },
 
-  /**
-   * Card html view - builds the innerHTML for a card element
-   * @memberOf Card.prototype
-   */
-  Card.prototype.view = function c_view() {
-    return this.template();
-  };
-
-  /**
-   * Populate properties on the instance before templating
-   * @memberOf Card.prototype
-   */
-  Card.prototype._populateViewData = function() {
-    var app = this.app;
-    this.title = (app.isBrowser() && app.title) ? app.title : app.name;
-    this.sslState = app.getSSLState();
-    this.subTitle = '';
-    this.iconValue = '';
-    this.iconPending = true;
-    this.closeButtonVisibility = 'visible';
-    this.viewClassList = ['card', 'appIconPreview'];
-    this.titleId = 'card-title-' + this.instanceID;
-    this.isIconPreview = !this.getScreenshotPreviewsSetting();
-
-    if (app.isPrivate) {
-      this.viewClassList.push('private');
-    }
-
-    var origin = app.origin;
-    var frameForScreenshot = app.getFrameForScreenshot();
-    var displayUrl = '';
-
-    if (app.isBrowser()) {
-      displayUrl = app.config.url || origin;
-      // Do not display the URL when browsing an app page. This is
-      // encountered for use-cases like the private browser splash page.
-      if (displayUrl.startsWith('app://')) {
-        displayUrl = false;
-      }
-
-    } else if(frameForScreenshot &&
-        CardsHelper.getOffOrigin(frameForScreenshot.src, origin)) {
-      displayUrl = CardsHelper.getOffOrigin(frameForScreenshot.src, origin);
-    }
-    if (displayUrl) {
-      this.subTitle = this.getDisplayURLString(displayUrl);
-      this.viewClassList.push('show-subtitle');
-    }
-
-    var topMostWindow = app.getTopMostWindow();
-    if (topMostWindow && topMostWindow.CLASS_NAME === 'TrustedWindow') {
-      var name = topMostWindow.name;
-      this.title = name || '';
-      this.viewClassList.push('trustedui');
-    } else if (!this.app.killable()) {
-      // unclosable app
-      this.closeButtonVisibility = 'hidden';
-    }
-  };
-
-  /**
-   * Build a card representation of an app window.
-   * @memberOf Card.prototype
-   */
-  Card.prototype.render = function() {
-    this.publish('willrender');
-
-    var elem = this.element || (this.element = document.createElement('li'));
-    // we maintain position value on the instance and on the element.dataset
-    elem.dataset.position = this.position;
-    // we maintain instanceId on the card for unambiguous lookup
-    elem.dataset.appInstanceId = this.app.instanceID;
-    // keeping origin simplifies ui testing
-    elem.dataset.origin = this.app.origin;
-
-    this._populateViewData();
-
-    // populate the view
-    elem.innerHTML = this.view();
-
-    // Label the card by title (for screen reader).
-    elem.setAttribute('aria-labelledby', this.titleId);
-    // define role presentation for the card (for screen reader) in order to not
-    // land on the card container.
-    elem.setAttribute('role', 'presentation');
-    // Indicate security state where applicable & available
-    if (this.sslState) {
-      elem.dataset.ssl = this.sslState;
-    }
-
-    this.viewClassList.forEach(function(cls) {
-      elem.classList.add(cls);
-    });
-
-    if (this.containerElement) {
-      this.containerElement.appendChild(elem);
-    }
-
-    this._fetchElements();
-    this._updateDisplay();
-    this._registerEvents();
-
-    this.publish('rendered');
-    return elem;
-  };
-
-  /**
-   * Batch apply style properties
-   * @param {Object} nameValues object with style property names as keys
-   *                            and values to apply to the card
-   * @memberOf Card.prototype
-   */
-  Card.prototype.applyStyle = function(nameValues) {
-    var style = this.element.style;
-    for (var property in nameValues) {
-      if (undefined === nameValues[property]) {
-        delete style[[property]];
-      } else {
-        style[property] = nameValues[property];
-      }
-    }
-  };
-
-  /**
-   * Set card's screen reader visibility.
-   * @type {Boolean} A flag indicating if it should be visible to the screen
-   * reader.
-   * @memberOf Card.prototype
-   */
-  Card.prototype.setVisibleForScreenReader = function(visible) {
-    this.element.setAttribute('aria-hidden', !visible);
-  };
-
-  /**
-   * Call kill on the appWindow
-   * @memberOf Card.prototype
-   */
-  Card.prototype.killApp = function() {
-    // we dont want any further events between now and
-    // when appterminated causes the card to be destroyed
-    this._unregisterEvents();
-    this.app.kill();
-  };
-
-  /**
-   * tear down and destroy the card
-   * @memberOf Card.prototype
-   */
-  Card.prototype.destroy = function() {
-    this.publish('willdestroy');
-    this._unregisterEvents();
-
-    var element = this.element;
-    if (element && element.parentNode) {
-      element.parentNode.removeChild(element);
-    }
-    this.element = this.manager = this.app = null;
-    this.publish('destroyed');
-  };
-
-  Card.prototype._updateIcon = function updateIcon(iconObject) {
-    var elements = [this.iconButton];
-
-    if (this.isIconPreview) {
-      elements.push(this.appIconView);
-    }
-
-    elements.forEach(function(element) {
-      if (!element) {
-        return;
-      }
-      if (iconObject && iconObject.originalUrl) {
-        var icon = new Icon(element, iconObject.originalUrl);
-        icon.renderBlob(iconObject.blob, {
-          size: CARD_FOOTER_ICON_SIZE
-        });
-      } else {
-        element.style.backgroundImage = '';
-      }
-      element.classList.remove('pending');
-    });
-
-    this.iconValue = this.iconButton.style.backgroundImage;
-    this.iconPending = false;
-  };
+};
 
 
-  /**
-   * Update the displayed content of a card
-   * @memberOf Card.prototype
-   */
-  Card.prototype._updateDisplay = function c_updateDisplay() {
-    var elem = this.element;
-    var app = this.app;
+/**
+ * Track vertical swipes across this element. If the element is flung with
+ * enough upward velocity, make the element fly offscreen and emit an event
+ * that indicates that the app should be killed.
+ *
+ * Extra care is taken here to allow a potential swipe-up to be interrupted.
+ * For instance, if the parent container is scrolling horizontally, we must
+ * prohibit this element from being flung (i.e. poor-man's axis lock).
+ *
+ * Emits:
+ *   - "card-will-drag" when the element is grabbed and wants to be flung
+ *     upward; this event is cancelable.
+ *   - "card-dropped" with detail: { willKill: Boolean }
+ *
+ * @param {Element} el
+ *   The element (i.e. card.element) to be made draggable.
+ * @param {function} opts.setTranslateY
+ *   This class will call setTranslateY whenever the Y-translation changes.
+ *   See `Card.prototype.translate` for rationale on this unfortunate grossness.
+ */
+function SwipeToKillMotion(el, { setTranslateY }) {
+  el.addEventListener('touchstart', this);
+  el.addEventListener('touchmove', this);
+  el.addEventListener('touchend', this);
+  el.addEventListener('click', this);
+  this.setTranslateY = setTranslateY;
 
-    if (app.isBrowser()) {
-      elem.classList.add('browser');
-    }
+  this.el = el;
+}
 
-    var screenshotView = this.screenshotView;
-    if (this.isIconPreview) {
-      screenshotView.style.backgroundImage = '';
-      elem.classList.add('appIconPreview');
-    } else {
-      elem.classList.remove('appIconPreview');
-      if (screenshotView.style.backgroundImage) {
-        debug('_updateDisplay: not updating existing screenshot');
-        return;
-      }
-    }
+exports.SwipeToKillMotion = SwipeToKillMotion;
 
-    this.iconButton.style.backgroundImage = this.iconValue || '';
-    this.iconButton.classList.toggle('pending', this.iconPending);
-    if (!this.iconValue) {
-      app.getSiteIconUrl(CARD_FOOTER_ICON_SIZE).then(iconObject => {
-        debug('Card: ' + this.title,
-              'getSiteIconUrl resolved iconUrl: ',
-              iconObject && iconObject.originalUrl);
-        this._updateIcon(iconObject);
-      }).catch(err => {
-        debug('getSiteIconUrl failed to resolve an icon: ' + err.message);
-        this._updateIcon();
-      });
-    }
+// Anything less than MIN_DISTANCE will be ignored for swiping purposes.
+const MIN_DISTANCE = 4;
+// Track MAX_DRAG_DELTA_COUNT latest drag events, so that we can compute the
+// current fling velocity.
+const MAX_DRAG_DELTA_COUNT = 3;
+// Even if the user flings upward, if they only fling a tiny amound, ignore it.
+// Note that velocity is more important than swipe distance.
+const MIN_SWIPE_DISTANCE = 10;
 
-    if (this.isIconPreview) {
-      return;
-    }
+SwipeToKillMotion.prototype = {
 
-    // Use a cached screenshot if we have one for the active app
-    var isActive = (Service.query('AppWindowManager.getActiveWindow') ===
-                   app.getBottomMostWindow());
-    // will be null or blob url
-    var cachedLayer = isActive && app.requestScreenshotURL();
-    screenshotView.classList.toggle('fullscreen',
-                                    isActive && app.isFullScreen());
-    screenshotView.classList.toggle('maximized',
-                                  isActive && app.appChrome &&
-                                  app.appChrome.isMaximized());
-    screenshotView.style.backgroundImage =
-      (cachedLayer ? 'url(' + cachedLayer + ')' : 'none' ) + ',' +
-      '-moz-element(#' + app.instanceID + ')';
-  };
-
-  Card.prototype._fetchElements = function c__fetchElements() {
-    this.screenshotView = this.element.querySelector('.screenshotView');
-    this.titleNode = this.element.querySelector('h1.title');
-    this.iconButton = this.element.querySelector('.appIcon');
-    this.appIconView = this.element.querySelector('.appIconView');
-  };
-
-  Card.prototype._registerEvents = function c__registerEvents() {
-    this.element.addEventListener('touchstart', this);
-    this.element.addEventListener('touchmove', this);
-    this.element.addEventListener('touchend', this);
-    this._eventsRegistered = true;
-  };
-
-  Card.prototype._unregisterEvents = function c__unregisterEvents() {
-    if (!this._eventsRegistered || !this.element) {
-      return;
-    }
-    this.element.removeEventListener('touchstart', this);
-    this.element.removeEventListener('touchmove', this);
-    this.element.removeEventListener('touchend', this);
-    this._eventsRegistered = false;
-  };
-
-  Card.prototype.handleEvent = function(evt) {
-    var verticalY;
-    var tapThreshold = 1;
-    switch (evt.type) {
-      case 'touchstart':
+  handleEvent(evt) {
+    if (/touch/.test(evt.type)) {
+      return this.handleTouchEvent(evt);
+    } else if (evt.type === 'click') {
+      // Ignore clicks if the element is already being dragged upward.
+      if (this.activelyDragging) {
+        evt.preventDefault();
         evt.stopPropagation();
-        this._dragPhase = '';
-        this.deltaX = 0;
-        this.deltaY = 0;
-        this.startTouchPosition = [evt.touches[0].pageX, evt.touches[0].pageY];
-        break;
-
-      case 'touchmove':
-        evt.stopPropagation();
-        this.deltaX = evt.touches[0].pageX - this.startTouchPosition[0];
-        this.deltaY = this._ease(
-          evt.touches[0].pageY - this.startTouchPosition[1],
-          this.manager.SWIPE_UP_THRESHOLD
-        );
-        verticalY = -1 * this.deltaY;
-        switch (this._dragPhase) {
-          case '':
-            if (verticalY > Math.abs(this.deltaX) &&
-                verticalY > this.SWIPE_WOBBLE_THRESHOLD) {
-              this._dragPhase = 'cross-slide';
-              // dont try and transition while dragging
-              this.element.style.transition = 'transform 0s linear';
-              this.onCrossSlide(evt);
-            }
-            break;
-
-          case 'cross-slide':
-            this.onCrossSlide(evt);
-            break;
-        }
-        break;
-
-      case 'touchend':
-        this.deltaX = evt.changedTouches[0].pageX - this.startTouchPosition[0];
-        this.deltaY = this._ease(
-          evt.changedTouches[0].pageY - this.startTouchPosition[1],
-          this.manager.SWIPE_UP_THRESHOLD
-        );
-        if (Math.abs(this.deltaX) <= tapThreshold ||
-            Math.abs(this.deltaY) <= tapThreshold) {
-          this._resetY();
-          return;
-        }
-        verticalY = -1 * this.deltaY;
-        // cross-slide should be more up than across
-        if (verticalY > Math.abs(this.deltaX) &&
-            verticalY > this.manager.SWIPE_UP_THRESHOLD &&
-            this.app.killable()) {
-          // leave the card where it is if it will be destroyed
-          this.killApp();
-        } else {
-          // return it to vertical center
-          this._resetY();
-        }
-        break;
+      }
     }
-  };
+  },
 
-  /**
-   * @memberOf Card.prototype
-   * @param {DOMEvent} evt
-   */
-  Card.prototype.onCrossSlide = function(evt) {
-    // move card up by the delta - the threshold
-    var offsetY = this.deltaY - this.SWIPE_WOBBLE_THRESHOLD;
-    this.element.style.transform = 'translateY(' + offsetY + 'px)';
-  };
+  beginSwipe(evt) {
+    this.firstTouch = evt.targetTouches[0];
+    this.firstTouchTimestamp = Date.now();
+    this.dragDeltas = [];
+    this.activelyDragging = false;
+    this.prohibitDragging = false;
+    this.el.style.transition = 'none';
+  },
 
-  /**
-   * Ease for y-axis movement to damp start of the cross-slide
-   * @memberOf Card.prototype
-   * @param x {number} incremental value from 0 to max
-   * @param max {number}
-   */
-  Card.prototype._ease = function(x, max) {
-    var y;
-    var pt = Math.abs(x)/max;
-    var sign = x >= 0 ? 1 : -1;
-    var q1 = 0.25 - Math.pow(0.25, 1.675);
-    if (pt <= 0.25) {
-      // ease in at first
-      y = Math.pow(pt, 1.675);
-    } else {
-      // linear (minus offet)
-      y = pt - q1;
-    }
-    return sign * max * y;
-  };
-
-  /**
-   * @memberOf Card.prototype
-   */
-  Card.prototype._resetY = function(evt) {
-    // remove the inline transition so we transition per the stylesheet
-    this.element.style.removeProperty('transition');
-    this.element.style.transform = 'translateY(0)';
-  };
-
-  Card.prototype.getDisplayURLString = function(url) {
-    // truncation/simplification of URL for card display
-    var anURL;
-    try {
-      anURL = this.app ? new URL(url, this.app.origin) : new URL(url);
-    } catch (e) {
-      // return as-is if url was not valid
-      return url;
-    }
-    var displayString = url.substring(url.indexOf(anURL.host));
-    return displayString;
-  };
-
-  function debug(message) {
-    if (!Card.DEBUG) {
+  endSwipe(evt) {
+    this.el.style.removeProperty('transition');
+    // If we haven't moved far enough to cause a drag, there's nothing to do.
+    if (!this.activelyDragging) {
       return;
     }
-    var args = Array.from(arguments);
-    if (typeof args[0] === 'string') {
-      args[0] = 'Card > ' + args[0];
-    } else {
-      args.unshift('Card > ');
+
+    var willKill = false;
+
+    if (this.dragDeltas.length > 2) {
+      var dy1 = this.dragDeltas[0];
+      var dy2 = this.dragDeltas[this.dragDeltas.length - 1];
+      // If the newer delta is substantially more negative than the older one,
+      // it's time to kill the card.
+      if (dy2 < dy1 - MIN_SWIPE_DISTANCE) {
+        willKill = true;
+      }
     }
-    console.log.apply(console, args);
+
+    this.activelyDragging = false;
+
+    this.el.dispatchEvent(new CustomEvent('card-dropped', {
+      bubbles: true,
+      detail: { willKill }
+    }));
+
+    if (willKill) {
+      this.setTranslateY('-200%');
+    } else {
+      this.setTranslateY('0px');
+    }
+  },
+
+  dragSwipe(evt) {
+    var currentTouch = evt.targetTouches[0];
+    var dy = (currentTouch.clientY - this.firstTouch.clientY);
+    var dx = (currentTouch.clientX - this.firstTouch.clientX);
+
+    // If they're swiping downward, clamp the card to the bottom.
+    if (dy > 0) {
+      dy = 0;
+    }
+
+    // If we're dragging, track the most recent few swipes so that we can
+    // calculate a rough estimate of velocity, which is important in deciding
+    // if we should swipe up to kill the app or return the app to y=0.
+    if (this.activelyDragging) {
+      this.dragDeltas.push(dy);
+      if (this.dragDeltas.length > MAX_DRAG_DELTA_COUNT) {
+        this.dragDeltas.shift();
+      }
+    }
+    // If we're not actively dragging yet...
+    else {
+      // If we swiped along the X axis, scroll sideways instead.
+      if (Math.abs(dx) > MIN_DISTANCE) {
+        dy = 0;
+        this.prohibitDragging = true;
+      }
+      // If we swiped along the Y axis, check to see if the scrollable container
+      // thinks we should be allowed to swipe up right now. (If the container
+      // has been scrolling recently, it'll tell us to hold off by canceling
+      // the "card-will-drag" event).
+      else if (Math.abs(dy) > MIN_DISTANCE) {
+        if (this.el.dispatchEvent(new CustomEvent('card-will-drag', {
+            bubbles: true,
+            cancelable: true,
+            detail: { firstTouchTimestamp: this.firstTouchTimestamp }}))) {
+          this.activelyDragging = true;
+        }
+        // If the container told us we can't swipe, give up for now.
+        else {
+          dy = 0;
+          this.prohibitDragging = true;
+        }
+      }
+      // If we aren't sure that we should be swiping, clamp 'dy' to zero to
+      // avoid looking janky if we decide to scroll.
+      else if (Math.abs(dy) < MIN_DISTANCE) {
+        dy = 0;
+      }
+    }
+
+    this.setTranslateY(dy + 'px');
+  },
+
+  handleTouchEvent(evt) {
+    evt.stopPropagation();
+
+    // 'touchstart' and 'touchend' events aren't entirely relevant here;
+    // we're touching the element if and only if evt.targetTouches.length > 0.
+    var wasTouching = this.isTouching;
+    this.isTouching = evt.targetTouches.length > 0;
+
+    if (!wasTouching && this.isTouching) {
+      this.beginSwipe(evt);
+    } else if (wasTouching && !this.isTouching) {
+      this.endSwipe(evt);
+    }
+
+    if (this.isTouching && !this.prohibitDragging) {
+      this.dragSwipe(evt);
+    }
   }
-
-  return (exports.Card = Card);
+};
 
 })(window);

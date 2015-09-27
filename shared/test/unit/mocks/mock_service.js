@@ -13,7 +13,7 @@ var MockService = {
   registerState: function() {},
   unregisterState: function() {},
   request: function() {
-    return new Promise(function() {});
+    return Promise.resolve();
   },
   query: function(name) {
     return this.mQueries ? this.mQueries[name] : undefined;

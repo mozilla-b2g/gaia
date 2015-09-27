@@ -76,8 +76,7 @@
 }
 
 .appWindow.from-cardview {
-  animation: openAppFromCardView var(--transition-duration) forwards
-             cubic-bezier(0.7, 0.0, 1.0, 1.0);
+  animation: openAppFromCardView 300ms forwards cubic-bezier(.35,.9,.6,1);
 }
 
 /* Opacity increases start up time then we don't use it anymore for opening */
@@ -190,8 +189,7 @@
 }
 
 .appWindow.to-cardview {
-  animation: closeAppTowardsCardView var(--transition-duration) forwards
-             cubic-bezier(0.7, 0.0, 1.0, 1.0);
+  animation: closeAppTowardsCardView 300ms forwards cubic-bezier(.35,.9,.6,1);
 }
 
 @keyframes closeApp {

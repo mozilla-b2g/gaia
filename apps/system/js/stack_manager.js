@@ -37,6 +37,9 @@
       return this._stack[this.position].getActiveWindow();
     },
     outOfStack: function sm_outOfStack() {
+      if (this.position === -1) {
+        return true;
+      }
       return (this._currentFromStack() !== this.getCurrent());
     },
 
@@ -393,4 +396,3 @@
   };
   exports.StackManager = StackManager;
 }(window));
-

@@ -9,9 +9,10 @@
   overflow-y: hidden;
   -moz-user-select: none;
   background-color: rgb(51, 51, 51);
-  /* Specifies that each child element’s snap coordinate should
-     align with the x-axis center of the scroll container */
-  scroll-snap-destination: 50% 0;
+  /* NOTE: We can't use scroll-snap-destination, even though it's what we want,
+     because it thinks every element is positioned at 0px since everything
+     is positioned using CSS transforms. */
+  scroll-snap-points-x: repeat(calc(50% + 25px));
   /* Requires that scrolling always end at a snap point
      when the operation completes (hard snap). */
   scroll-snap-type: mandatory;
@@ -88,17 +89,14 @@
   display: block;
   position: absolute;
   top: 25%;
-  left: 25vw;
+  left: 0;
   width: 50vw;
   height: 50%;
   transform: translateY(0);
-  /* Defines the center of each card (column) as the
+  transition: transform var(--transition-duration) cubic-bezier(.27,.02,.74,1.14);
+  /* Defines the left of each card (column) as the
      coordinate that should be used for snapping */
-  scroll-snap-coordinate: 50% 50%;
-}
-
-#cards-view .card.sliding {
-  transition: transform var(--transition-duration);
+  scroll-snap-coordinate: 0 0;
 }
 
 #cards-view .card > * {
@@ -171,6 +169,7 @@
   height: 100%;
   background-image: url(../icons/Default.png);
   background-position: center center;
+  background-size: 8rem 8rem;
   background-repeat: no-repeat;
   opacity: 0;
 }
