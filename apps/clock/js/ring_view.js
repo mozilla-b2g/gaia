@@ -2,7 +2,6 @@ define(function(require) {
 'use strict';
 
 var Utils = require('utils');
-var mozL10n = require('l10n');
 var AudioManager = require('audio_manager');
 var PostMessageProxy = require('./panels/alarm/post_message_proxy');
 var ChildWindowManager = require('./panels/alarm/child_window_manager');
@@ -29,9 +28,7 @@ function RingView() {
   PostMessageProxy.receive('ringView', this);
 
   if (window.opener) {
-    mozL10n.once(() => {
-      ChildWindowManager.fireReady();
-    });
+    ChildWindowManager.fireReady();
   }
 }
 

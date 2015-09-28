@@ -81,19 +81,33 @@ define(function(require) {
         delete alarm.snoozeAlarmId;
       }
 
+      var newRepeat = {};
+      var i;
+
       // Map '1111100' string bitmap to a repeat object with day properties.
       if (typeof alarm.repeat === 'string') {
-        var days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday',
-                    'saturday', 'sunday'];
-        var newRepeat = {};
-        for (var i = 0; i < alarm.repeat.length && i < days.length; i++) {
-          if (alarm.repeat[i] === '1') {
-            newRepeat[days[i]] = true;
+        for (i = 0; i < alarm.repeat.length; i++) {
+          if (alarm.repeat[i.toString()] === '1') {
+            newRepeat[i.toString()] = true;
           }
         }
         alarm.repeat = newRepeat;
+      } else if (typeof alarm.repeat === 'object') {
+        var keys = Object.keys(alarm.repeat);
+        if (keys.length !== 0 && Number.isNaN(parseInt(keys[0]))) {
+          var oldKeys = ['sunday', 'monday', 'tuesday', 'wednesday',
+            'thursday', 'friday', 'saturday'];
+
+          for (i = 0; i < keys.length; i++) {
+            var index = oldKeys.indexOf(keys[i]);
+            if (index !== -1) {
+              newRepeat[index] = alarm.repeat[keys[i]];
+            }
+          }
+          alarm.repeat = newRepeat;
+        }
       } else {
-        alarm.repeat = alarm.repeat || {};
+        alarm.repeat = newRepeat;
       }
 
       // Pre-April-2014 code may have stored 'vibrate' and 'sound' as

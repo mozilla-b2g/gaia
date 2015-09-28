@@ -1,4 +1,4 @@
-define(['l10n'], function(mozL10n) {
+define([], function() {
   'use strict';
 
   var tmpl = {
