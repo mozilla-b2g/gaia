@@ -1,4 +1,4 @@
-/* global LockScreenBasicComponent, LockScreenClockWidgetSetup */
+/* global LockScreenBasicComponent, LockScreenClockWidgetSetup, mozIntl */
 'use strict';
 
 /**
@@ -23,14 +23,16 @@
   };
 
   LockScreenClockWidget.prototype.updateFormatters = function() {
-    this.dateFormatter = new Intl.DateTimeFormat(navigator.languages, {
+    this.dateFormatter = Intl.DateTimeFormat(navigator.languages, {
       weekday: 'long',
       month: 'long',
       day: 'numeric'
     });
 
-    this.timeFormatter = new Intl.DateTimeFormat(navigator.languages, {
+    // we're using mozIntl.DateTimeFormat to remove dayperiod
+    this.timeFormatter = mozIntl.DateTimeFormat(navigator.languages, {
       hour12: navigator.mozHour12,
+      dayperiod: false,
       hour: 'numeric',
       minute: 'numeric'
     });
@@ -40,11 +42,7 @@
   function() {
     var now = new Date();
 
-    // this is a non-standard, Gecko only API, but we have
-    // no other way to get the am/pm portion of the date and remove it.
-    var amPm = now.toLocaleFormat('%p');
-
-    var timeText = this.timeFormatter.format(now).replace(amPm, '').trim();
+    var timeText = this.timeFormatter.format(now);
     var dateText = this.dateFormatter.format(now);
 
     this.resources.elements.time.textContent = timeText;
