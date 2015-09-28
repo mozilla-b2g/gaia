@@ -2,6 +2,8 @@
 'use strict';
 
 var TimeManager = {
+  name: 'datetime',
+
   elementIDs: [
     'tz-region',
     'tz-city',
@@ -27,6 +29,8 @@ var TimeManager = {
           setTimeout(input.focus.bind(input), 10);
         });
     });
+    var readyEvent = new CustomEvent('panelready', { detail: this });
+    window.dispatchEvent(readyEvent);
   },
 
   set: function tm_set(date) {

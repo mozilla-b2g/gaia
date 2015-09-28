@@ -162,6 +162,9 @@ var UIManager = {
     );
 
     // Add events to DOM
+    console.log('UIManager init, addin localized listener');
+    window.addEventListener('localized', this);
+
     this.simImportButton.addEventListener('click', this);
     this.sdImportButton.addEventListener('click', this);
     this.skipPinButton.addEventListener('click', this);
@@ -244,7 +247,7 @@ var UIManager = {
         window.close();
       } else {
         // for large devices
-        FinishScreen.init();
+        FinishScreen.show();
       }
     };
 
@@ -345,6 +348,7 @@ var UIManager = {
 
   initTZ: function ui_initTZ() {
     // Initialize the timezone selector, see /shared/js/tz_select.js
+    console.log('UIManager localized event');
     var self = this;
     var tzRegion = document.getElementById('tz-region');
     var tzCity = document.getElementById('tz-city');
@@ -359,6 +363,15 @@ var UIManager = {
   },
 
   handleEvent: function ui_handleEvent(event) {
+    if (event.type === 'localized') {
+      console.log('UIManager localized event');
+      this.initTZ();
+
+      if (!this.mainTitle.hasAttribute('data-l10n-id')) {
+        this.mainTitle.setAttribute('data-l10n-id', 'language');
+      }
+      return;
+    }
     switch (event.target.id) {
       // SIM
       case 'skip-pin-button':

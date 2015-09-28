@@ -3,6 +3,7 @@
 'use strict';
 
 var WifiManager = {
+  name: 'wifi',
   init: function wn_init() {
     this.api = WifiHelper.getWifiManager();
     this.changeStatus();
@@ -19,6 +20,8 @@ var WifiManager = {
       this.api.forget(this.gCurrentNetwork);
       this.gCurrentNetwork = null;
     }
+    var readyEvent = new CustomEvent('panelready', { detail: this });
+    window.dispatchEvent(readyEvent);
   },
 
   getNetworks: function wn_getNetworks(callback) {

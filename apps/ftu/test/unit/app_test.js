@@ -7,6 +7,7 @@ require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 
+requireApp('ftu/js/utils.js');
 requireApp('ftu/test/unit/mock_version_helper.js');
 requireApp('ftu/test/unit/mock_tutorial.js');
 requireApp('ftu/test/unit/mock_sim_manager.js');

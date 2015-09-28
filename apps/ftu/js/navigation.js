@@ -1,5 +1,5 @@
 /* global DataMobile, SimManager, IccHelper,
-          SdManager, UIManager, WifiManager, WifiUI,
+          SdManager, AppManager, UIManager, WifiManager, WifiUI,
           ImportIntegration,
           OperatorVariant */
 /* exported Navigation */
@@ -101,15 +101,6 @@ exports.Navigation = {
     reqSIM.onsuccess = function onSuccess() {
       self.simMandatory = reqSIM.result['ftu.sim.mandatory'] || false;
     };
-
-    navigator.mozApps.getSelf().onsuccess = function(evt) {
-      var app = evt.target.result;
-      app.connect('ftucomms').then(function onConnAccepted(ports) {
-        self.ports = ports;
-      }, function onConnRejected(reason) {
-        console.warn('FTU navigation cannot use IAC: ' + reason);
-      });
-    };
   },
 
   uninit: function() {
@@ -117,7 +108,6 @@ exports.Navigation = {
     this._stepsById = null;
     this.currentStepIndex = 0;
     this.previousStepIndex = 0;
-    this.ports = null;
 
     var forward = document.getElementById('forward');
     var back = document.getElementById('back');
@@ -376,15 +366,10 @@ exports.Navigation = {
    * Posts IAC message about FTU steps passed.
    */
   postStepMessage: function n_postStepMessage(stepIndex) {
-    if (!this.ports) {
-      return;
-    }
     var step = this.stepAt(stepIndex);
-    this.ports.forEach(function(port) {
-      port.postMessage({
-        type: 'step',
-        hash: step.hash
-      });
+    AppManager && AppManager.notify('ftucomms', {
+      type: 'step',
+      hash: step.hash
     });
   },
 

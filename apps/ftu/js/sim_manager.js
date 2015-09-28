@@ -51,6 +51,7 @@ var SimManager = (function() {
                    'ruimServiceProviderLocked'];
 
   return {
+  name: 'simmanager',
   icc0: null,
   icc1: null,
   simSlots: window.navigator.mozMobileConnections ?
@@ -85,6 +86,8 @@ var SimManager = (function() {
                                      this.handleIccState.bind(this));
 
     this.alreadyImported = false;
+    var readyEvent = new CustomEvent('panelready', { detail: this });
+    window.dispatchEvent(readyEvent);
   },
 
   handleUnlockError: function sm_handleUnlockError(lockType, retryCount) {

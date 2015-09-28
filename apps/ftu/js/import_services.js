@@ -1,8 +1,14 @@
-/* global ServicesLauncher */
+/* global ServicesLauncher, LazyLoader */
 /* exported ImportIntegration */
+(function(exports) {
 'use strict';
 
+var gotDependencies = LazyLoader.load([
+  'js/services_launcher.js'
+]);
+
 var ImportIntegration = {
+  name: 'importcontacts',
 
   get liveImportButton() {
     delete this.liveImportButton;
@@ -19,6 +25,13 @@ var ImportIntegration = {
   init: function () {
     this.liveImportButton.addEventListener('click', this);
     this.gmailImportButton.addEventListener('click', this);
+
+    gotDependencies.then(() => {
+      var readyEvent = new CustomEvent('panelready', { detail: this });
+      window.dispatchEvent(readyEvent);
+    }).catch((err) => {
+      console.error(err);
+    });
   },
 
   handleEvent: function (event) {
@@ -46,3 +59,6 @@ var ImportIntegration = {
     }
   }
 };
+exports.ImportIntegration = ImportIntegration;
+
+})(window);

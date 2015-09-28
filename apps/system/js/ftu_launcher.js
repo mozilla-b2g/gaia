@@ -153,6 +153,7 @@
       this._isRunningFirstTime = true;
       this._ftuOrigin = ftu.origin;
       // Open FTU
+      console.log('FtuLauncher: ftu.launch()');
       ftu.launch();
     },
 
