@@ -1,15 +1,14 @@
-/* global ThumbnailItem: true,MockThumbnailItem,MockL10n,MediaUtils,
-  ThumbnailDateGroup */
+/* global ThumbnailItem: true,MockThumbnailItem,MockL10n,
+   ThumbnailDateGroup,MockIntlHelper */
 /*
  *  Thumbnail Date Group tests
  */
 'use strict';
 
 require('/shared/js/sanitizer.js');
-require('/shared/js/l10n.js');
-require('/shared/js/l10n_date.js');
 require('/shared/js/media/media_utils.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_intl_helper.js');
 requireApp('/video/test/unit/mock_thumbnail_item.js');
 requireApp('/video/js/thumbnail_date_group.js');
 requireApp('/video/js/thumbnail_item.js');
@@ -18,16 +17,25 @@ suite('Thumbnail Date Group Unit Tests', function() {
 
   var nativeMozL10n;
   var nativeThumbnailItem;
+  var nativeIntlHelper;
+
   suiteSetup(function() {
     nativeThumbnailItem = ThumbnailItem;
     nativeMozL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
-    MediaUtils._ = MockL10n.get;
+    nativeIntlHelper = window.IntlHelper;
+    window.IntlHelper = MockIntlHelper;
     ThumbnailItem = MockThumbnailItem;
+
+    window.IntlHelper.define('date-group', 'datetime', {
+      month: 'long',
+      year: 'numeric',
+    });
   });
 
   suiteTeardown(function() {
     navigator.mozL10n = nativeMozL10n;
+    window.IntlHelper = nativeIntlHelper;
     ThumbnailItem = nativeThumbnailItem;
   });
 
@@ -79,11 +87,7 @@ suite('Thumbnail Date Group Unit Tests', function() {
     });
 
     test('#normal', function() {
-      // We handle the localization of this element manually because
-      // of the date, so it is hard to actually test that the date gets
-      // gets rendered.
-      assert.equal(domNode.firstElementChild.textContent,
-                   'date-group-header');
+      assert.equal(domNode.firstElementChild.textContent, 'August 2013');
     });
   });
 
