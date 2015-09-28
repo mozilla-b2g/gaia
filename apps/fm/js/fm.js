@@ -158,9 +158,6 @@ var mozFMRadio = navigator.mozFM || navigator.mozFMRadio || {
   aGlobal.SpeakerManager = SpeakerManager;
 })(window);
 
-// the mhzString that will be localized.
-var mhzString = 'MHz-NOTLOCALIZED';
-
 var enabling = false;
 function updatePowerUI() {
   var enabled = mozFMRadio.enabled;
@@ -466,7 +463,9 @@ var frequencyDialer = {
   },
 
   _updateUI: function(frequency, ignoreDialer) {
-    $('frequency').textContent = frequency.toFixed(1);
+    document.l10n.setAttributes($('frequency'), 'frequency-MHz', {
+      value: frequency.toFixed(1)
+    });
     if (true !== ignoreDialer) {
       this._translateX = (this._minFrequency - frequency) * this._space;
       var dialer = $('frequency-dialer');
@@ -625,8 +624,9 @@ var favoritesList = {
 
     var subElem = document.createElement('div');
     subElem.className = 'fav-list-frequency';
-    subElem.textContent = item.frequency.toFixed(1);
-    subElem.dataset.unit = mhzString;
+    document.l10n.setAttributes(subElem, 'fav-frequency-MHz', {
+      value: item.frequency.toFixed(1)
+    });
     elem.appendChild(subElem);
 
     subElem = document.createElement('div');
@@ -883,26 +883,11 @@ function init() {
   });
 }
 
-document.addEventListener('DOMLocalized', function() {
-  // localize MHz
-  document.l10n.formatValue('mhz').then(str => {
-    mhzString = str;
-    $('frequency').dataset.unit = mhzString;
-
-    var nodes = document.querySelectorAll(
-      '#fav-list-container div.fav-list-frequency');
-    for(var i = 0; i < nodes.length; i++) {
-      nodes[i].dataset.unit = mhzString;
-    }
-  });
-});
-
-document.addEventListener('DOMLocalized', function onDOMLocalized(e) {
+document.l10n.ready.then(function() {
   // PERFORMANCE MARKER (1): navigationLoaded
   // Designates that the app's *core* chrome or navigation interface
   // exists in the DOM and is marked as ready to be displayed.
   window.performance.mark('navigationLoaded');
-  document.removeEventListener('DOMLocalized', onDOMLocalized);
 
   AirplaneModeHelper.ready(function() {
     airplaneModeEnabled = AirplaneModeHelper.getStatus() == 'enabled';
