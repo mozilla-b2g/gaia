@@ -5074,6 +5074,7 @@ suite('conversation.js >', function() {
       });
 
       Compose.getContent.returns([body]);
+      this.sinon.stub(Compose, 'clear');
 
       clickButton();
 
@@ -5083,6 +5084,7 @@ suite('conversation.js >', function() {
         content: body,
         serviceId: 0
       });
+      sinon.assert.notCalled(Compose.clear);
 
       var sentMessage = MockMessages.sms({
         body: body,
