@@ -119,6 +119,7 @@
   list-style: none;
   margin-top: 0.4rem;
   -moz-padding-start: 0;
+  -moz-padding-end: 0;
 }
 
 #updates-download-dialog li {
@@ -269,10 +270,6 @@ html[dir="rtl"] #update-manager-toaster > .icon {
 html[dir="rtl"] #update-manager-toaster > .message {
   left: unset;
   right: 5rem;
-}
-
-html[dir="rtl"] #updates-download-dialog label {
-  float: left;
 }
 
 html[dir="rtl"] #updates-download-dialog label.required {
