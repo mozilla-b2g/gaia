@@ -190,11 +190,18 @@ suite('system/BrowserContextMenu', function() {
 
     var stubStopPropagation =
       this.sinon.stub(fakeContextMenuEvent, 'stopPropagation');
+    var stubPreventDefault =
+      this.sinon.stub(fakeContextMenuEvent, 'preventDefault');
 
     md1.handleEvent(fakeContextMenuEvent);
+
+    // Checking that we stop propagation *before* getting
+    // the pinning setting
+    assert.isTrue(stubStopPropagation.called);
+    assert.isTrue(stubPreventDefault.called);
+
     MockNavigatorSettings.mReplyToRequests();
     assert.isTrue(md1.contextMenuView.show.called);
-    assert.isTrue(stubStopPropagation.called);
   });
 
   suite('manually launch menu', function() {
