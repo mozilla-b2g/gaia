@@ -466,6 +466,16 @@
     this.app.element.classList.remove('collapsible');
   };
 
+  /**
+   * Remove pinned state from the browser.
+   */
+  AppChrome.prototype.unpin = function ac_unpin() {
+    this.hidePinDialogCard();
+    this.pinned = false;
+    this.app.element.classList.add('collapsible');
+    this.expand();
+  };
+
   AppChrome.prototype.titleClicked = function ac_titleClicked() {
     var contextMenu = this.app.contextmenu && this.app.contextmenu.isShown();
     var locked = Service && Service.query('locked');
@@ -872,7 +882,6 @@
 
       // Check if this is just a location-change to an anchor tag.
       var anchorChange = false;
-      var firstLocationChange = !this._currentURL;
 
       if (this._currentURL && this.app.config.url) {
         anchorChange =
@@ -927,7 +936,10 @@
           this.expand();
         }
         this.scrollable.scrollTop = 0;
-        this.pinned = firstLocationChange ? this.pinned : false;
+        Service.request('PinsManager:isPinned', this._currentURL)
+          .then(function(isPinned) {
+            isPinned ? this.pin() : this.unpin();
+          }.bind(this));
         if (this.app.config && this.app.config.scrollable) {
           this.app.element.classList.add('collapsible');
         }
