@@ -13,11 +13,12 @@ suite('Contacts Cookies', function() {
   });
 
   function deleteCookie() {
-    document.cookie = COOKIE_NAME + '=; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+    document.cookie = encodeURIComponent(COOKIE_NAME) +
+      '=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
   }
 
   function saveCookie(value) {
-    document.cookie = COOKIE_NAME + '= ' + value;
+    document.cookie = COOKIE_NAME + '= ' + value + '; path=/';
   }
 
   function checkDefaultCookie(cookie) {
