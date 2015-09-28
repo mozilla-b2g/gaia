@@ -1,9 +1,12 @@
 define(function(require) {
 'use strict';
+/* global IntlHelper */
 
 var Tabs = require('tabs');
 var View = require('view');
 var connectionHandler = require('connection/handler');
+
+
 
 /**
  * Global Application event handling and paging
@@ -14,6 +17,10 @@ var App = {
    */
   init: function() {
     connectionHandler.init();
+    IntlHelper.define('digit-nopadding', 'number', {
+      style: 'decimal',
+      useGrouping: false
+    });
     this.tabs = new Tabs(document.getElementById('clock-tabs'));
 
     window.addEventListener('hashchange', this);

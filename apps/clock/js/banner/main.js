@@ -1,9 +1,9 @@
 define(function(require) {
   'use strict';
+  /* global IntlHelper */
 
   var Template = require('template');
   var Utils = require('utils');
-  var mozL10n = require('l10n');
   var html = require('text!banner/banner.html');
 
   function Banner(node) {
@@ -25,7 +25,7 @@ define(function(require) {
     constructor: Banner,
 
     render: function bn_render(alarmTime) {
-      var timeLeft, tl, countdownType, localTimes, unitObj;
+      var timeLeft, tl, countdownType, localTimes;
 
       timeLeft = +alarmTime - Date.now();
       // generate human readable numbers to pass to localization function
@@ -33,47 +33,37 @@ define(function(require) {
         unitsPartial: ['days', 'hours', 'minutes']
       });
 
-      // Match properties to localizations string types
-      // e.g. minutes maps to nMinutes if there are no hours but
-      // nRemainMinutes if hours > 0
+      var numFormatter = IntlHelper.get('digit-nopadding');
+
       if (tl.days) {
-        //countdown-moreThanADay localized only for en-US while 913466 is open
-        countdownType = 'countdown-moreThanADay';
-        localTimes = [
-          ['days', 'nRemainDays', tl.days],
-          ['hours', 'nAndRemainHours', tl.hours]
-        ];
+        countdownType = 'countdown_moreThanADay';
+        localTimes = {
+          'days': numFormatter.format(tl.days),
+          'hours': numFormatter.format(tl.hours)
+        };
       } else if (tl.hours > 0) {
-        countdownType = 'countdown-moreThanAnHour';
-        localTimes = [
-          ['hours', 'nHours', tl.hours],
-          ['minutes', 'nRemainMinutes', tl.minutes]
-        ];
+        countdownType = 'countdown_moreThanAnHour';
+        localTimes = {
+          'hours': numFormatter.format(tl.hours),
+          'minutes': numFormatter.format(tl.minutes)
+        };
       } else {
-        countdownType = 'countdown-lessThanAnHour';
-        localTimes = [
-          ['minutes', 'nMinutes', tl.minutes]
-        ];
+        countdownType = 'countdown_lessThanAnHour';
+        localTimes = {
+          'minutes': numFormatter.format(tl.minutes)
+        };
       }
 
-      // Create an object to pass to mozL10n.get
-      // e.g. {minutes: mozL10n.get('nMinutes', {n: 3})}
-      unitObj = localTimes.reduce(function(lcl, time) {
-        lcl[time[0]] = mozL10n.get(time[1], {n: time[2]});
-        return lcl;
-      }, {});
-
-      // mozL10n.get interpolates the units in unitObj inside the
-      // localization string for countdownType
-      return mozL10n.get(countdownType, unitObj);
+      return {
+        noticeId: countdownType,
+        noticeArgs: JSON.stringify(localTimes)
+      };
     },
 
     show: function bn_show(alarmTime) {
       // Render the Banner notice
       this.notice.innerHTML = this.tmpl.interpolate(
-        {notice: this.render(alarmTime)},
-        // Localization strings contain <strong> tags
-        {safe: ['notice']}
+        this.render(alarmTime)
       );
       // 'visible' class controls the animation
       this.notice.classList.add('visible');
