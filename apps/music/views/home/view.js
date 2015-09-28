@@ -1,4 +1,4 @@
-/* global View */
+/* global View, Sanitizer */
 'use strict';
 
 var HomeView = View.extend(function HomeView() {
@@ -58,11 +58,11 @@ HomeView.prototype.render = function() {
   document.l10n.formatValues(
     'unknownArtist', 'unknownAlbum'
   ).then(([unknownArtist, unknownAlbum]) => {
-    var html = '';
+    var html = [];
 
     this.albums.forEach((album) => {
       var template =
-`<a class="tile"
+Sanitizer.createSafeHTML `<a class="tile"
     href="/player?id=${album.name}"
     data-artist="${album.metadata.artist || unknownArtist}"
     data-album="${album.metadata.album || unknownAlbum}"
@@ -70,10 +70,10 @@ HomeView.prototype.render = function() {
   <img>
 </a>`;
 
-      html += template;
+      html.push(template);
     });
 
-    this.tiles.innerHTML = html;
+    this.tiles.innerHTML = Sanitizer.unwrapSafeHTML(...html);
 
     [].forEach.call(this.tiles.querySelectorAll('.tile'), (tile) => {
       this.getThumbnail(tile.dataset.filePath)
