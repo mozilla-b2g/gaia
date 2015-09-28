@@ -91,7 +91,10 @@
       return mobileMessageClient;
     },
 
-    cleanup() {
+    destroy() {
+      mobileMessageClients.forEach(
+        (client) => client[priv.bridgeClient].destroy()
+      );
       mobileMessageClients.clear();
     }
   });

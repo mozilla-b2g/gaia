@@ -1,6 +1,5 @@
 /*global BridgeServiceMixin,
          Draft,
-         Drafts,
          MozMobileMessageClient
 */
 'use strict';
@@ -89,8 +88,7 @@
       body: thread.body,
       timestamp: thread.timestamp,
       status: { hasUnread: thread.unreadCount > 0, hasNewError: false },
-      lastMessageType: thread.lastMessageType,
-      draft: Drafts.byThreadId(thread.id)
+      lastMessageType: thread.lastMessageType
     };
   }
 
@@ -125,12 +123,7 @@
         return getThreadsStream.cancel(reason);
       };
 
-      var draftsPromise = Drafts.request().then(() => {
-        // Return draft list that is sorted by timestamp in inverse order.
-        return Drafts.getAllThreadless().sort(
-          (draftA, draftB) => draftB.timestamp - draftA.timestamp
-        );
-      });
+      var draftsPromise = Promise.resolve([]);
 
       // Assume that we get the data in an inverse sort order.
       var index = 0;
@@ -219,7 +212,15 @@
      * match an existing conversation from.
      * @returns {Number?} The id of the conversation, or null if not found.
      */
-    findConversationFromAddress(address) {}
+    findConversationFromAddress(address) {},
+
+    /**
+     * Destroys both service instance and internal clients.
+     */
+    destroy() {
+      this.destroyService();
+      MozMobileMessageClient.destroy();
+    }
   };
 
   exports.ConversationService = Object.seal(

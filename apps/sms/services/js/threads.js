@@ -6,27 +6,30 @@
   var threads = new Map();
   var messageMap = new Map();
 
+  function extractSupportedFields(
+    { id, body, timestamp, participants, lastMessageType, status, isDraft }
+  ) {
+    return {
+      id,
+      body,
+      timestamp,
+      participants,
+      lastMessageType,
+      status,
+      isDraft: !!isDraft
+    };
+  }
+
   function Thread(thread) {
-    var length = Thread.FIELDS.length;
-    var key;
-
-    for (var i = 0; i < length; i++) {
-      key = Thread.FIELDS[i];
-      this[key] = thread[key];
-    }
-
     this.messages = new Map();
+
+    Object.assign(this, extractSupportedFields(thread));
   }
 
   Thread.prototype.getDraft = function() {
     return this.isDraft ?
       Drafts.byDraftId(this.id) : Drafts.byThreadId(this.id);
   };
-
-  Thread.FIELDS = [
-    'body', 'id', 'lastMessageSubject', 'lastMessageType',
-    'participants', 'timestamp', 'unreadCount', 'isDraft'
-  ];
 
   Thread.fromMessage = function(record, options) {
     var participants = [];
@@ -45,30 +48,25 @@
       participants: participants,
       body: record.body,
       timestamp: record.timestamp,
-      unreadCount: (options && options.unread) ? 1 : 0,
+      status: { hasUnread: options && options.unread, hasNewError: false },
       lastMessageType: record.type || 'sms',
+      lastMessageSubject: record.subject,
       isDraft: false
     });
   };
 
   Thread.fromDraft = function(draft, options) {
-    var participants = draft.recipients && draft.recipients.length ?
-      draft.recipients : [''];
-
-    var body = draft.content && draft.content.length ?
-      draft.content.find(function(content) {
-        if (typeof content === 'string') {
-          return true;
-        }
-      }) : '';
+    var body = Array.isArray(draft.content) ?
+      draft.content.find((content) => typeof content === 'string') : '';
 
     return new Thread({
       id: draft.threadId || draft.id,
-      participants: participants,
+      participants: Array.isArray(draft.recipients) ? draft.recipients : [],
       body: body,
       timestamp: new Date(draft.timestamp),
-      unreadCount: (options && options.unread) ? 1 : 0,
+      status: { hasUnread: options && options.unread, hasNewError: false },
       lastMessageType: draft.type || 'sms',
+      lastMessageSubject: draft.subject,
       isDraft: true
     });
   };
@@ -103,20 +101,15 @@
       messageMap.delete(id);
     },
     set: function(id, thread) {
-      var old, length, key;
-      id = +id;
-      if (threads.has(id)) {
-        // Updates the reference
-        old = threads.get(id);
-        length = Thread.FIELDS.length;
-        for (var i = 0; i < length; i++) {
-          key = Thread.FIELDS[i];
-          old[key] = thread[key];
-        }
+      var oldThread = threads.get(+id);
 
-        return threads;
+      if (oldThread) {
+        Object.assign(oldThread, extractSupportedFields(thread));
+      } else {
+        threads.set(+id, new Thread(thread));
       }
-      return threads.set(id, new Thread(thread));
+
+      return threads;
     },
     get: function(id) {
       return threads.get(+id);

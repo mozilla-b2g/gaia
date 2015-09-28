@@ -5,6 +5,7 @@
 
 /*global ActivityHandler,
          App,
+         ConversationClient,
          ConversationView,
          InboxView,
          Information,
@@ -69,8 +70,6 @@ var Startup = exports.Startup = {
     '/views/shared/js/notify.js',
     '/views/shared/js/activity_handler.js',
     '/views/shared/js/localization_helper.js',
-    '/lib/bridge/bridge.js',
-    '/services/js/bridge_service_mixin.js',
     '/services/js/activity/activity_shim.js',
     '/services/js/activity/activity_client.js',
     '/services/js/messaging/messaging_client.js',
@@ -120,6 +119,7 @@ var Startup = exports.Startup = {
 
       Utils.initializeShimHost(App.instanceId);
 
+      ConversationClient.init(App.instanceId);
       MessageManager.init();
       InboxView.init();
       Navigation.init();
@@ -132,6 +132,9 @@ var Startup = exports.Startup = {
 
       InboxView.once('visually-loaded', () => {
         window.performance.mark('visuallyLoaded');
+
+        // Now we have time to upgrade client to use SharedWorker based service.
+        ConversationClient.upgrade();
       });
 
       // If initial panel is default one and app isn't run from notification,
