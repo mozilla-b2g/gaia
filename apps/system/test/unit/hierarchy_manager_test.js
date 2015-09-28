@@ -88,15 +88,24 @@ suite('system/HierarchyManager', function() {
   });
 
   suite('Update top most window', function() {
-    test('should update top most window when window is opened', function() {
+    setup(function() {
       this.sinon.stub(subject, 'publish');
       this.sinon.stub(subject, 'getTopMostWindow').returns(new MockAppWindow());
+    });
+
+    test('should update top most window when window is opened', function() {
       window.dispatchEvent(new CustomEvent('windowopened'));
       assert.isTrue(subject.publish.calledWith('topmostwindowchanged'));
-      var oldTop = subject.getTopMostWindow();
-      subject.getTopMostWindow.returns(oldTop);
-      window.dispatchEvent(new CustomEvent('windowopened'));
-      assert.isTrue(subject.publish.calledOnce);
+    });
+
+    test('should update top most window when window is closed', function() {
+      window.dispatchEvent(new CustomEvent('windowclosed'));
+      assert.isTrue(subject.publish.calledWith('topmostwindowchanged'));
+    });
+
+    test('should update top most window when card view is closed', function() {
+      window.dispatchEvent(new CustomEvent('cardviewclosed'));
+      assert.isTrue(subject.publish.calledWith('topmostwindowchanged'));
     });
   });
 
