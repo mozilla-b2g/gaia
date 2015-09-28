@@ -46,7 +46,7 @@ class Settings(Base):
 
     _sound_menu_item_locator = (By.ID, 'menuItem-sound')
     _display_menu_item_locator = (By.ID, 'menuItem-display')
-    _homescreen_menu_item_locator = (By.ID, 'menuItem-homescreen')
+    _homescreen_menu_item_locator = (By.ID, 'menuItem-homescreens')
     _search_menu_item_locator = (By.ID, 'menuItem-search')
     _navigation_menu_item_locator = (By.ID, 'menuItem-navigation')
     _notification_menu_item_locator = (By.ID, 'menuItem-notifications')

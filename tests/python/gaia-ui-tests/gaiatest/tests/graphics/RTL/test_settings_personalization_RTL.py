@@ -59,9 +59,6 @@ class TestSettingsRTLPersonalization(GaiaImageCompareTestCase):
         #################### Display ######################
         display_page = settings.open_display()
         self.take_screenshot('display')
-        display_page.pick_wallpaper()
-        self.take_screenshot('display-wallpaper_pick')
-        display_page.cancel_pick_wallpaper()
         display_page.tap_timeout_selector()
         self.take_screenshot('display-timeout_values')
         display_page.tap_timeout_confirmation()
@@ -70,9 +67,17 @@ class TestSettingsRTLPersonalization(GaiaImageCompareTestCase):
         #################### Homescreen ######################
         homescreen_page = settings.open_homescreen()
         self.take_screenshot('homescreen')
-        homescreen_page.open_select_icon_layout()
-        self.take_screenshot('homescreen-layout')
-        homescreen_page.open_select_icon_layout()
+        homescreen_page.pick_wallpaper()
+        self.take_screenshot('homescreen-wallpaper_pick')
+        homescreen_page.cancel_pick_wallpaper()
+
+        homescreen_page.open_change_home_screen()
+        self.take_screenshot('homescreen-change_homescreen')
+        homescreen_page.open_get_more_home_screen()
+        self.take_screenshot('homescreen-get_more_homescreen')
+        homescreen_page.cancel_get_more_home_screen()
+        settings.return_to_prev_menu(homescreen_page.screen_element,
+                                     homescreen_page.change_homescreen_screen_element)
         settings.return_to_prev_menu(settings.screen_element, homescreen_page.screen_element)
 
         ################### Search ######################
