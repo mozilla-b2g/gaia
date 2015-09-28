@@ -107,6 +107,7 @@ proto.createdCallback = function() {
 
 proto.attachedCallback = function() {
   document.addEventListener('DOMRetranslated', this.onDOMRetranslated);
+  this.onDOMRetranslated();
 };
 
 proto.detachedCallback = function() {

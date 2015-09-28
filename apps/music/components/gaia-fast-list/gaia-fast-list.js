@@ -34,6 +34,7 @@ var debug = 0 ? (...args) => console.log('[GaiaFastList]', ...args) : () => {};
  */
 var keys = {
   internal: Symbol(),
+  first: Symbol(),
   img: Symbol()
 };
 
@@ -223,6 +224,7 @@ var GaiaFastListProto = {
       }
 
       .inner {
+        position: relative;
         height: 100%;
       }
 
@@ -236,8 +238,8 @@ var GaiaFastListProto = {
       }
 
       [picker] .fast-list {
-        right: 26px; /* picker width */
-        padding-right: 12px;
+        offset-inline-end: 26px; /* picker width */
+        padding-inline-end: 12px;
       }
 
       .fast-list.layerize {
@@ -245,25 +247,41 @@ var GaiaFastListProto = {
       }
 
       .fast-list.empty {
+        background-image:
+          linear-gradient(
+            to bottom,
+            var(--border-color),
+            var(--border-color) 2px,
+            var(--background) 2px,
+            var(--background) 10px,
+            var(--background)),
+          linear-gradient(
+            to bottom,
+            var(--border-color),
+            var(--border-color) 1px,
+            transparent 1px,
+            transparent);
 
-        background-position: 0 1px;
+        background-position:
+          17px 29px,
+          17px 40px;
+
+        background-size:
+          calc(100% - 34px) 13px,
+          calc(100% - 34px) 60px;
+
+        background-repeat:
+          no-repeat,
+          repeat-y;
       }
 
       .fast-list ul {
         position: relative;
-        list-style: none;
+
         padding: 0;
         margin: 0;
-      }
 
-      .fast-list.empty:before {
-        content: "";
-        position: sticky;
-        top: 0px;
-        height: 40px;
-        z-index: 100;
-
-        display: block;
+        list-style: none;
       }
 
       ::content .gfl-section {
@@ -287,6 +305,8 @@ var GaiaFastListProto = {
       }
 
       ::content .gfl-item {
+        position: absolute;
+        left: 0; top: 0;
         z-index: 10;
 
         display: flex;
@@ -300,15 +320,21 @@ var GaiaFastListProto = {
         list-style-type: none;
         text-decoration: none;
         will-change: initial !important;
+        border-top: solid 1px var(--border-color, #e7e7e7);
+      }
+
+      ::content .gfl-item.first {
+        border-top: 0;
       }
 
       :host(.layerize) ::content .gfl-item {
         will-change: transform !important;
       }
 
-      ::content .gfl-item .image {
+      ::content .image {
         position: absolute;
-        right: 0; top: 0;
+        top: 0;
+        offset-inline-end: 0;
 
         width: 60px;
         height: 60px;
@@ -347,12 +373,12 @@ var GaiaFastListProto = {
 
       ::content .image ~ h3,
       ::content .image ~ p {
-        padding-right: 60px;
+        padding-inline-end: 60px;
       }
 
       ::content .image.round ~ h3,
       ::content .image.round ~ p {
-        padding-right: 42px;
+        padding-inline-end: 42px;
       }
 
       ::content h3 {
@@ -375,7 +401,7 @@ var GaiaFastListProto = {
 
       [picker] .picker {
         position: absolute;
-        right: 0;
+        offset-inline-end: 0;
         top: 0;
 
         box-sizing: border-box;
@@ -482,18 +508,18 @@ function Internal(el) {
     overlayText: shadow.querySelector('.overlay > .text'),
     container: shadow.querySelector('.fast-list'),
     listContent: shadow.querySelector('.fast-list content'),
-    items: this.injectItemsFromCache(),
     pickerItems: []
   };
 
+  this.injectItemsFromCache();
+
   // define property names for FastList
   this.container = this.els.container;
-  this.items = this.els.items;
   this.list = this.els.list;
   this.itemContainer = el;
 
   this.configureTemplates();
-  this.setEmpty(!this.cacheRendered);
+  this.setEmpty(!this.els.cached);
   this.setupPicker();
 
   debug('internal initialized');
@@ -629,8 +655,8 @@ Internal.prototype = {
       // When a section is not defined, flag
       // first list items and skip logic
       if (!section) {
-        if (i === 0) item.gfl_isFirst = true;
-        else if (item.gfl_isFirst) delete item.gfl_isFirst;
+        if (i === 0) item[keys.first] = true;
+        else if (item[keys.first]) delete item[keys.first];
         continue;
       }
 
@@ -639,13 +665,13 @@ Internal.prototype = {
       // is the first item in the section.
       if (!hash[section]) {
         hash[section] = [];
-        item.gfl_isFirst = true;
+        item[keys.first] = true;
 
       // Make sure that any previously
       // assigned flags are removed as
       // order of items can be changed.
-      } else if (item.gfl_isFirst) {
-        delete item.gfl_isFirst;
+      } else if (item[keys.first]) {
+        delete item[keys.first];
       }
 
       hash[section].push(item);
@@ -670,8 +696,9 @@ Internal.prototype = {
     debug('create list');
     this.fastList = new this.el.FastList(this);
     this.fastList.rendered.then(() => {
-      setTimeout(() => this.layerize(), 360);
+      this.removeCachedRender();
       this.updateCachedHtml();
+      setTimeout(() => this.layerize(), 360);
     });
   },
 
@@ -781,11 +808,21 @@ Internal.prototype = {
       return this.populateItem(replacement, i);
     }
 
-    el.style.borderTop = !record.gfl_isFirst
-      ? 'solid 1px var(--border-color, #e7e7e7)'
-      : '0';
+    el.classList.toggle('first', !!record[keys.first]);
   },
 
+  /**
+   * Populates the list-item image if one is
+   * present in the template and the user
+   * has configured `getItemImageSrc()`.
+   *
+   * .populateItemDetail() is run only when the
+   * list is 'idle' (stopped or slow) so that
+   * we don't harm scrolling performance.
+   *
+   * @param  {HTMLElement} el  list-item node
+   * @param  {Number} i  index
+   */
   populateItemDetail(el, i) {
     if (!this.getItemImageSrc) return;
 
@@ -813,6 +850,13 @@ Internal.prototype = {
       });
   },
 
+  /**
+   * Hides the <img> ready for it to be
+   * recycled for the next item.
+   *
+   * @param  {HTMLElement} el  list-item
+   * @param  {Number} i  index
+   */
   unpopulateItemDetail(el, i) {
     if (!this.getItemImageSrc) return;
     var img = el[keys.img];
@@ -1111,9 +1155,21 @@ Internal.prototype = {
   updateCachedHtml() {
     if (!this.el.caching) return;
     debug('update cached html');
-    var items = this.el.querySelectorAll('.gfl-item, .gfl-section');
-    var html = [].map.call(items, el => el.outerHTML).join('');
-    this.setCache('html', html);
+    var maxViewportHeight = Math.max(window.innerWidth, window.innerHeight);
+    var length = Math.ceil(maxViewportHeight / this.getItemHeight());
+    var items = [].slice.call(this.el.querySelectorAll('.gfl-item'), 0, length);
+
+    // remove any attributes to save bytes
+    var itemsHtml = items.map(el => el.outerHTML)
+      .join('')
+      .replace(/style\=\"[^"]+\"/g, '')
+      .replace(/data-tweak-delta=""/g, '');
+
+    var sections = [].slice.call(this.el.querySelectorAll('.gfl-section'));
+    var sectionsHtml = sections.map(el => el.outerHTML).join('');
+
+    this.setCache('html', itemsHtml + sectionsHtml);
+    debug('cached html', itemsHtml);
   },
 
   updateCachedHeight() {
@@ -1130,11 +1186,30 @@ Internal.prototype = {
     if (height) this.cachedHeight = height;
 
     var html = this.getCache('html');
-    if (html) {
-      this.el.insertAdjacentHTML('beforeend', html);
-      this.cacheRendered = true;
-      return [].slice.call(this.el.querySelectorAll('.gfl-item'));
-    }
+    if (!html) return;
+
+    this.els.cached = document.createElement('div');
+    this.els.cached.innerHTML = html;
+
+    var items = [].slice.call(this.els.cached.querySelectorAll('.gfl-item'));
+    items.forEach((el, i) => {
+      el.style.transform = 'translateY(' + el.dataset.position + 'px)';
+    });
+
+    this.el.appendChild(this.els.cached);
+  },
+
+  /**
+   * Removes the cached render overlay
+   * to reveal the fully functional
+   * list below.
+   *
+   * @private
+   */
+  removeCachedRender() {
+    if (!this.els.cached) return;
+    this.els.cached.remove();
+    delete this.els.cached;
   },
 
   // Default header template overridden by

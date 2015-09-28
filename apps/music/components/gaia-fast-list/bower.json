@@ -30,8 +30,12 @@
     "poplar": "wilsonpage/poplar"
   },
   "devDependencies": {
+    "gaia-header": "gaia-components/gaia-header#~0.8.4",
     "gaia-icons": "gaia-components/gaia-icons#~0.9.2",
     "gaia-theme": "gaia-components/gaia-theme#~0.5.1",
     "test-utils": "gaia-components/test-utils#~0.0.4"
+  },
+  "resolutions": {
+    "gaia-icons": "~0.9.2"
   }
 }
