@@ -1,5 +1,6 @@
 (function(global) {
   'use strict';
+  /* global mozIntl */
 
   /*************************
 
@@ -40,6 +41,38 @@
           return 'hour' in obj.options;
         }
         return false;
+      }
+    },
+    mozdatetime: {
+      create: function(options) {
+        const customOptions = Object.assign({}, options);
+        if (options.hour) {
+          customOptions.hour12 = navigator.mozHour12;
+        }
+        return mozIntl.DateTimeFormat(
+          navigator.languages,
+          customOptions
+        );
+      },
+      isAffected: function(obj, reason) {
+        if (reason === 'languagechange') {
+          return true;
+        }
+        if (reason === 'timeformatchange') {
+          return 'hour' in obj.options;
+        }
+        return false;
+      }
+    },
+    mozduration: {
+      create: function(options) {
+        return mozIntl.DurationFormat(
+          navigator.languages,
+          options
+        );
+      },
+      isAffected: function(obj, reason) {
+        return reason === 'languagechange';
       }
     },
     number: {
@@ -125,9 +158,9 @@
     _fireObservers: function(affectedObjects, ...args) {
       const affectedCallbacks = new Set();
 
-      affectedObjects.forEach((obj, name) => {
-        obj.listeners.forEach(cb => affectedCallbacks.add(cb));
-      });
+      affectedObjects.forEach(obj =>
+        obj.listeners.forEach(cb => affectedCallbacks.add(cb))
+      );
 
       affectedCallbacks.forEach(cb => {
         try {
@@ -140,15 +173,43 @@
     },
 
     handleEvent: function(evt) {
+      // This is a temporary hack to help handling l10n.js' event
       const affectedObjects = resetObjects(evt.type);
 
-      global.IntlHelper._fireObservers(affectedObjects);
+      if (evt.type === 'languagechange' && navigator.mozL10n) {
+        // We will fire observers only on DOMLocalized
+        // We're using DOMLocalized here instead of languagechange because
+        // mozIntl formatters would restart before new language is loaded
+        // which means they'd be using old strings
+        //
+        // Once we switch completely to l20n.js, we will remove this
+        // limitation which will make IntlHelper useful without mozL10n API
+        // We will only have to make sure that mozL10n reacted to
+        // languagechange before we fired our observers here.
+        waitOnDOMLocalized(() =>
+          global.IntlHelper._fireObservers(affectedObjects)
+        );
+      } else {
+        global.IntlHelper._fireObservers(affectedObjects);
+      }
     },
 
     _resetObjectCache: function() {
       helperCache.clear();
     }
   };
+
+  function waitOnDOMLocalized(cb) {
+    const resolver = () => {
+      document.removeEventListener('DOMLocalized', resolver);
+      window.removeEventListener('localized', resolver);
+      cb();
+    };
+    document.addEventListener('DOMLocalized', resolver, false);
+
+    // Support for l10n.js until we can remove it
+    window.addEventListener('localized', resolver, false);
+  }
 
   function resetObjects(reason) {
     const affectedObjects = new Set();

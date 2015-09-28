@@ -5,9 +5,19 @@
 require('/shared/js/intl_helper.js');
 
 suite('IntlHelper', function() {
+  var realMozL10n;
 
   beforeEach(function() {
     IntlHelper._resetObjectCache();
+  });
+
+  setup(function() {
+    realMozL10n = navigator.mozL10n;
+    navigator.mozL10n = undefined;
+  });
+
+  teardown(function() {
+    navigator.mozL10n = realMozL10n;
   });
 
   suite('define', function() {
