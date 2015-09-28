@@ -131,7 +131,7 @@ FxA.prototype = {
           });
       });
 
-      this.client.helper
+      client.helper
         .waitForElement(element)
         .tap();
     },

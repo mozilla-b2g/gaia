@@ -28,6 +28,7 @@ marionette('Firefox Accounts Screen Flow Test (UITest app)', function() {
     Server.create(FxA.SERVER_ARGS, function (err, _server) {
       if (err) {
         console.error(err);
+        throw err;
       }
       server = _server;
       done();
