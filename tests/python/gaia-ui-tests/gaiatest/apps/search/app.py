@@ -10,7 +10,7 @@ class Search(Base):
 
     name = 'Browser'
 
-    _browser_app_locator = (By.CSS_SELECTOR, 'div.browser[transition-state="opened"]')
+    _browser_app_locator = (By.CSS_SELECTOR, 'div[data-manifest-name="Browser"][transition-state="opened"]')
     _url_bar_locator = (By.CSS_SELECTOR, 'div.search-app .urlbar .title')
     _history_item_locator = (By.CSS_SELECTOR, '#history .result')
     _private_window_locator = (By.ID, 'private-window')
@@ -39,9 +39,9 @@ class Search(Base):
         Wait(self.marionette).until(lambda m: len(m.find_elements(*self._history_item_locator)) == number_of_items)
 
     def open_new_private_window(self):
-        self.marionette.find_element(*self._private_window_locator).tap()
+        element = self.marionette.find_element(*self._private_window_locator)
+        Wait(self.marionette).until(expected.element_displayed(element))
+        element.tap()
 
         from gaiatest.apps.search.regions.browser import PrivateWindow
-        private_window = PrivateWindow(self.marionette)
-        private_window.wait_for_page_to_load()
-        return private_window
+        return PrivateWindow(self.marionette)
