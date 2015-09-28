@@ -31,12 +31,14 @@ var ConversationAccessor = require('./views/conversation/accessors');
 
     Report: {
       main: '.panel-ReportView',
-      header: '#information-report-header'
+      header: '#information-report-header',
+      headerActionButton: '.action-button'
     },
 
     Participants: {
       main: '.panel-GroupView',
-      header: '#information-group-header'
+      header: '#information-group-header',
+      headerActionButton: '.action-button'
     }
   });
 
@@ -62,6 +64,12 @@ var ConversationAccessor = require('./views/conversation/accessors');
 
           get header() {
             return client.findElement(SELECTORS.Report.header);
+          },
+
+          get headerActionButton() {
+            return client.findElement(
+              SELECTORS.Report.headerActionButton
+            );
           }
         },
 
@@ -72,6 +80,12 @@ var ConversationAccessor = require('./views/conversation/accessors');
 
           get header() {
             return client.findElement(SELECTORS.Participants.header);
+          },
+
+          get headerActionButton() {
+            return client.findElement(
+              SELECTORS.Participants.headerActionButton
+            );
           }
         },
 
@@ -208,27 +222,21 @@ var ConversationAccessor = require('./views/conversation/accessors');
         },
 
         performHeaderAction: function() {
-          this.Composer.header.scriptWith(function(header) {
-            var event = document.createEvent('HTMLEvents');
-            event.initEvent('action', true, true);
-            header.dispatchEvent(event);
-          });
+          client.switchToShadowRoot(this.Composer.header);
+          this.Composer.headerActionButton.tap();
+          client.switchToShadowRoot();
         },
 
         performReportHeaderAction: function() {
-          this.Report.header.scriptWith(function(header) {
-            var event = document.createEvent('HTMLEvents');
-            event.initEvent('action', true, true);
-            header.dispatchEvent(event);
-          });
+          client.switchToShadowRoot(this.Report.header);
+          this.Report.headerActionButton.tap();
+          client.switchToShadowRoot();
         },
 
         performGroupHeaderAction: function() {
-          this.Participants.header.scriptWith(function(header) {
-            var event = document.createEvent('HTMLEvents');
-            event.initEvent('action', true, true);
-            header.dispatchEvent(event);
-          });
+          client.switchToShadowRoot(this.Participants.header);
+          this.Participants.headerActionButton.tap();
+          client.switchToShadowRoot();
         }
       };
     },

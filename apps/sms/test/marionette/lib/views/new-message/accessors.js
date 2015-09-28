@@ -14,6 +14,7 @@ var SELECTORS = Object.freeze({
   subjectInput: '.subject-composer-input',
   sendButton: '#messages-send-button',
   attachButton: '#messages-attach-button',
+  headerActionButton: '.action-button',
   header: '#messages-header',
   charCounter: '.message-counter',
   moreHeaderButton: '#messages-options-button',
@@ -63,6 +64,10 @@ NewMessageAccessor.prototype = {
     return this.client.helper.waitForElement(SELECTORS.attachButton);
   },
 
+  get headerActionButton() {
+    return this.client.helper.waitForElement(SELECTORS.headerActionButton);
+  },
+  
   get header() {
     return this.client.helper.waitForElement(SELECTORS.header);
   },
