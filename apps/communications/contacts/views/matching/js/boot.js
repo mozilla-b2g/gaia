@@ -15,6 +15,8 @@ window.onload = function() {
     '/contacts/views/matching/js/matching_ui.js'
   ];
 
+  window.screen.mozLockOrientation('portrait-primary');
+
   LazyLoader.load(dependencies).then(function() {
       MatchingUI.init();
   });
