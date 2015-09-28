@@ -10,7 +10,6 @@
   line-height: 16rem;
   overflow: hidden;
 
-  border-radius: 50%;
   text-align: center;
   opacity: 0;
   color: #FFF;
@@ -43,6 +42,7 @@
   width: 100%;
   height: 100%;
   background: #000;
+  border-radius: 50%;
   opacity: 0.12;
   transition: opacity 180ms;
 }
@@ -63,6 +63,7 @@
   left: 0; top: 0;
   width: 100%;
   height: 100%;
+  border-radius: 50%;
   background: rgb(245,50,50);
   opacity: 0;
 }
