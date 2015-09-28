@@ -1,10 +1,12 @@
 {
-  "webide": {
-    "prepackage": {
-      "command": "make",
-      "env": ["APP=music"],
-      "cwd": "../.."
-    },
-    "packageDir": "../../build_stage/music/"
+  "name": "gaia-music",
+  "description": "Gaia Music app for Firefox OS",
+  "version": "2.5.0",
+  "license": "Apache 2.0",
+  "scripts": {
+    "serve": "./node_modules/.bin/nws -d './;../../'"
+  },
+  "devDependencies": {
+    "nws": "^0.6.1"
   }
 }

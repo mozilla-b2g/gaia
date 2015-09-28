@@ -36,9 +36,13 @@ marionette('Music ui tests', function() {
     });
 
     test('Overlay should be shown when storage has no songs', function() {
-      music.launch();
-      music.waitFinishedScanning();
-      music.waitForMessageOverlayShown(true);
+      try {
+        music.launch();
+        music.waitFinishedScanning();
+        music.waitForMessageOverlayShown(true);
+      } catch(e) {
+        assert.ok(false, 'Exception ' + e.stack);
+      }
     });
   });
 
@@ -50,10 +54,14 @@ marionette('Music ui tests', function() {
     });
 
     test('Overlay should be hidden when storage has some songs', function() {
-      music.launch();
-      music.waitFinishedScanning();
-      music.waitForMessageOverlayShown(false);
-      music.waitForFirstTile();
+      try {
+        music.launch();
+        music.waitFinishedScanning();
+        music.waitForFirstTile();
+        music.waitForMessageOverlayShown(false);
+      } catch(e) {
+        assert.ok(false, 'Exception ' + e.stack);
+      }
     });
   });
 
@@ -74,7 +82,9 @@ marionette('Music ui tests', function() {
         music.switchToMe();
         music.waitFinishedScanning();
         music.waitForMessageOverlayShown(true);
-      } catch (e) { assert.ok(false, e.stack); }
+      } catch(e) {
+        assert.ok(false, 'Exception ' + e.stack);
+      }
     });
   });
 
@@ -95,10 +105,13 @@ marionette('Music ui tests', function() {
         activitycaller.tapPickButton();
         activitycaller.selectMusicApp();
 
+
         music.switchToMe();
         music.waitFinishedScanning();
         music.waitForMessageOverlayShown(false);
-      } catch (e) { assert.ok(false, e.stack); }
+      } catch(e) {
+        assert.ok(false, 'Exception ' + e.stack);
+      }
     });
   });
 });

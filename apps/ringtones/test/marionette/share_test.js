@@ -32,35 +32,39 @@ marionette('Share as ringtone', function() {
   suite('Share activity', function() {
 
     test('Create new ringtone', function() {
-      var musicApp = new Music(client);
-      var settingsApp = new Settings(client);
+      try {
+        var musicApp = new Music(client);
+        var settingsApp = new Settings(client);
 
-      musicApp.launch();
-      musicApp.waitForFirstTile();
-      musicApp.switchToSongsView();
-      musicApp.playFirstSong();
-      musicApp.shareWith('Ringtones');
+        musicApp.launch();
+        musicApp.waitForFirstTile();
+        musicApp.switchToSongsView();
+        musicApp.playFirstSong();
+        musicApp.shareWith('Ringtones');
 
-      app.inShare(function(container) {
-        container.waitForSongInfo('Boot To Gecko (B2G)', 'Minute With');
-        container.saveButton.tap();
-      });
+        app.inShare(function(container) {
+          container.waitForSongInfo('Boot To Gecko (B2G)', 'Minute With');
+          container.saveButton.tap();
+        });
 
-      client.switchToFrame();
-      settingsApp.launch();
-      var soundPanel = settingsApp.soundPanel;
+        client.switchToFrame();
+        settingsApp.launch();
+        var soundPanel = settingsApp.soundPanel;
 
-      app.inManager(soundPanel, function(container) {
-        var customSounds = container.soundLists[1];
-        assert.equal(customSounds.sounds.length, 1,
-                     'Custom ringtone list should have one item');
-        assert.equal(customSounds.displayed(), true,
-                     'Custom ringtone list should be displayed');
+        app.inManager(soundPanel, function(container) {
+          var customSounds = container.soundLists[1];
+          assert.equal(customSounds.sounds.length, 1,
+                       'Custom ringtone list should have one item');
+          assert.equal(customSounds.displayed(), true,
+                       'Custom ringtone list should be displayed');
 
-        var myTone = customSounds.sounds[0];
-        assert.equal(myTone.name, 'Boot To Gecko (B2G)');
-        assert.equal(myTone.subtitle, 'Minute With');
-      });
+          var myTone = customSounds.sounds[0];
+          assert.equal(myTone.name, 'Boot To Gecko (B2G)');
+          assert.equal(myTone.subtitle, 'Minute With');
+        });
+      } catch(e) {
+        assert.ok(false, 'Exception ' + e.stack);
+      }
     });
 
   });

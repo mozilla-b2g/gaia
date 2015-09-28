@@ -3,7 +3,6 @@
 
 var assert = require('assert');
 var Music = require('./lib/music.js');
-var ListviewHelper = require('./lib/listviewhelper.js');
 
 function assertStartsWith(start, actual) {
   assert.equal(actual.indexOf(start), 0,
@@ -63,55 +62,82 @@ marionette('Music player metadata', function() {
     });
 
     test('Check album art is displayed. moztrap:8749', function() {
+      try {
 
-      music.launch();
-      music.waitForFirstTile();
+        music.launch();
+        music.waitForFirstTile();
 
-      music.switchToArtistsView();
+        music.switchToArtistsView();
 
-      var bg;
-      var blue, red;
+        music.waitForArtistsView();
 
-      // We test the album art url.
-      // an "app:" URL is the default placeholder.
-      // a "blob:" URL is a blob. Produced from the metadata.
+        var bg;
+        var blue, red;
 
-      bg = ListviewHelper.albumArtForListItem(client, music.listItems[0]);
-      assertStartsWith('app:', bg);
+        // We test the album art url.
+        // an "app:" URL is the default placeholder.
+        // a "blob:" URL is a blob. Produced from the metadata.
 
-      blue = ListviewHelper.albumArtForListItem(client, music.listItems[1]);
-      assertStartsWith('blob:', blue);
+        var listItemsData = music.artistsListItemsData;
 
-      red = ListviewHelper.albumArtForListItem(client, music.listItems[2]);
-      assertStartsWith('blob:', red);
+        bg = listItemsData[0].img;
+        assertStartsWith('blob:app:', bg);
 
-      assert.notEqual(blue, red, 'Red and Blue should be different');
+        blue = listItemsData[1].img;
+        assertStartsWith('blob:app:', blue);
 
-      music.switchToAlbumsView();
+        red = listItemsData[2].img;
+        assertStartsWith('blob:app:', red);
 
-      bg = ListviewHelper.albumArtForListItem(client, music.listItems[0]);
-      assertStartsWith('app:', bg);
+        assert.notEqual(bg, blue, 'Bg and Blue should be different');
+        assert.notEqual(blue, red, 'Red and Blue should be different');
+        assert.notEqual(bg, red, 'Bg and Red should be different');
 
-      bg = ListviewHelper.albumArtForListItem(client, music.listItems[1]);
-      assertStartsWith('blob:', bg);
-      assert.equal(bg, blue, 'Is not the blue art');
+        //
 
-      bg = ListviewHelper.albumArtForListItem(client, music.listItems[2]);
-      assertStartsWith('blob:', bg);
-      assert.equal(bg, red, 'Is not the red art');
+        music.switchToAlbumsView();
 
-      music.switchToSongsView();
+        listItemsData = music.albumsListItemsData;
 
-      bg = ListviewHelper.albumArtForListItem(client, music.listItems[0]);
-      assertStartsWith('blob:', bg);
-      assert.equal(bg, blue, 'Is not the blue art');
+        bg = listItemsData[0].img;
+        assertStartsWith('blob:app:', bg);
 
-      bg = ListviewHelper.albumArtForListItem(client, music.listItems[1]);
-      assertStartsWith('app:', bg);
+        blue = listItemsData[1].img;
+        assertStartsWith('blob:', blue);
+//        assert.equal(bg, blue, 'Is not the blue art');
 
-      bg = ListviewHelper.albumArtForListItem(client, music.listItems[2]);
-      assertStartsWith('blob:', bg);
-      assert.equal(bg, red, 'Is not the red art');
+        red = listItemsData[2].img;
+        assertStartsWith('blob:', red);
+//        assert.equal(bg, red, 'Is not the red art');
+
+
+        assert.notEqual(bg, blue, 'Bg and Blue should be different');
+        assert.notEqual(blue, red, 'Red and Blue should be different');
+        assert.notEqual(bg, red, 'Bg and Red should be different');
+        //
+
+        music.switchToSongsView();
+
+        listItemsData = music.songsListItemsData;
+
+        blue = listItemsData[0].img;
+        assertStartsWith('blob:', blue);
+//        assert.equal(bg, blue, 'Is not the blue art');
+
+        bg = listItemsData[1].img;
+        assertStartsWith('blob:app:', bg);
+
+        red = listItemsData[2].img;
+        assertStartsWith('blob:', red);
+//        assert.equal(bg, red, 'Is not the red art');
+
+        assert.notEqual(bg, blue, 'Bg and Blue should be different');
+        assert.notEqual(blue, red, 'Red and Blue should be different');
+        assert.notEqual(bg, red, 'Bg and Red should be different');
+
+      } catch(e) {
+        assert.ok(false, e.stack);
+      }
     });
 
   });
