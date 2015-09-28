@@ -276,7 +276,14 @@ function getAlbum(filePath) {
     var album = song.metadata.album;
 
     return new Promise((resolve) => {
-      Database.enumerateAll('metadata.album', album, 'next', songs => resolve(songs));
+      Database.enumerateAll('metadata.album', album, 'next', (songs) => {
+        songs.sort((a, b) => {
+          return (a.metadata.discnum - b.metadata.discnum) ||
+                 (a.metadata.tracknum - b.metadata.tracknum);
+        });
+
+        resolve(songs);
+      });
     });
   });
 }
@@ -292,7 +299,17 @@ function getArtist(filePath) {
     var artist = song.metadata.artist;
 
     return new Promise((resolve) => {
-      Database.enumerateAll('metadata.artist', artist, 'next', songs => resolve(songs));
+      Database.enumerateAll('metadata.artist', artist, 'next', (songs) => {
+        songs.sort((a, b) => {
+          var albumSort = a.metadata.album < b.metadata.album ?
+            -1 : (a.metadata.album > b.metadata.album ?  1 : 0);
+
+          return albumSort || (a.metadata.discnum - b.metadata.discnum) ||
+                              (a.metadata.tracknum - b.metadata.tracknum);
+        });
+
+        resolve(songs);
+      });
     });
   });
 }

@@ -10,9 +10,9 @@
     "karma-sinon-chai": "^0.3.0"
   },
   "scripts": {
-    "lint": "./node_modules/jshint/bin/jshint fast-list.js test/*.js",
-    "test": "./node_modules/karma/bin/karma start test/karma.conf --single-run",
-    "test-dev": "./node_modules/karma/bin/karma start test/karma.conf"
+    "lint": "./node_modules/jshint/bin/jshint fast-list.js test/*-test.js",
+    "test": "./node_modules/karma/bin/karma start test/karma.conf.js --single-run",
+    "test-dev": "./node_modules/karma/bin/karma start test/karma.conf.js"
   },
   "repository": {
     "type": "git",

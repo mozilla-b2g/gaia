@@ -6,7 +6,7 @@ var proto = Object.create(HTMLElement.prototype);
 var isTouch = 'ontouchstart' in window;
 
 var template =
-`<style scoped>
+`<style>
   #container {
     background-color: rgba(0, 0, 0, 0.85);
     display: flex;

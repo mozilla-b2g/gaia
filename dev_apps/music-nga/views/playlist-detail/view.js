@@ -40,7 +40,13 @@ PlaylistDetailView.prototype.render = function() {
 };
 
 PlaylistDetailView.prototype.getPlaylist = function() {
-  return this.fetch('/api/playlists/info/' + this.params.id).then(response => response.json());
+  return this.fetch('/api/playlists/info/' + this.params.id)
+    .then(response => response.json())
+    .then(songs => {
+      songs.forEach((song, index) => song.index = index + 1);
+
+      return songs;
+    });
 };
 
 PlaylistDetailView.prototype.queuePlaylist = function(filePath) {

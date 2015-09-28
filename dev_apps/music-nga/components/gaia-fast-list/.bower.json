@@ -33,11 +33,11 @@
     "gaia-theme": "gaia-components/gaia-theme#~0.5.1",
     "test-utils": "gaia-components/test-utils#~0.0.4"
   },
-  "_release": "2faef564b0",
+  "_release": "e5acb5ae61",
   "_resolution": {
     "type": "branch",
     "branch": "master",
-    "commit": "2faef564b04e30b03fb513de5c45f4397f9b38fb"
+    "commit": "e5acb5ae61b2f2e3243b828531197218e4561715"
   },
   "_source": "git://github.com/gaia-components/gaia-fast-list.git",
   "_target": "master",

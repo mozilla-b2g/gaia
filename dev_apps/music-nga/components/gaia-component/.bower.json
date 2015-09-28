@@ -23,6 +23,6 @@
     "commit": "ffe78d70a4721aee7872e0b2584e57d8369b1f14"
   },
   "_source": "git://github.com/gaia-components/gaia-component.git",
-  "_target": "~0.3.8",
+  "_target": "~0.3.9",
   "_originalSource": "gaia-components/gaia-component"
 }

@@ -43,11 +43,40 @@ ArtistDetailView.prototype.render = function() {
 };
 
 ArtistDetailView.prototype.getArtist = function() {
-  return this.fetch('/api/artists/info/' + this.params.id).then(response => response.json());
+  return this.fetch('/api/artists/info/' + this.params.id)
+    .then(response => response.json())
+    .then(songs => {
+      var maxDiscNumber = Math.max(
+        songs[songs.length - 1].metadata.disccount,
+        songs[songs.length - 1].metadata.discnum
+      );
+
+      songs.forEach((song) => {
+        song.index = maxDiscNumber > 1 && song.metadata.tracknum ?
+          song.metadata.discnum + '.' + formatNumber(song.metadata.tracknum, 2) :
+          song.metadata.tracknum;
+      });
+
+      return songs;
+    });
 };
 
 ArtistDetailView.prototype.queueArtist = function(filePath) {
   this.fetch('/api/queue/artist/' + filePath);
 };
+
+function formatNumber(number, size) {
+  if (!number && number !== 0) {
+    return '';
+  }
+
+  number = '' + number;
+
+  while (number.length < size) {
+    number = '0' + number;
+  }
+
+  return number;
+}
 
 window.view = new ArtistDetailView();
