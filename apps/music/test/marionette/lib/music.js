@@ -207,6 +207,10 @@ Music.prototype = {
         var a = elements[i];
         data.filePath = a.dataset.filePath;
         data.href = a.href;
+        var em = elements[i].getElementsByTagName('em');
+        if (em.length) {
+          data.index = em[0].textContent;
+        }
         var h3 = elements[i].getElementsByTagName('h3');
         if (h3.length) {
           data.title = h3[0].textContent;
