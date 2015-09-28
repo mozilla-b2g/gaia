@@ -3,6 +3,8 @@
 /* global module */
 
 var NewMessageAccessor = require('./accessors');
+var ComposerAccessor = require('../shared/composer_accessors');
+var MenuAccessor = require('../shared/menu_accessors');
 
 var appRoot = require('app-root-path');
 // TODO Change the path once requireFromApp becomes its own module
@@ -11,7 +13,10 @@ var fromApp = require(appRoot +
 
 function NewMessageView(client) {
   this.client = client;
+
   this.accessors = new NewMessageAccessor(client);
+  this.composerAccessors = new ComposerAccessor(client);
+  this.menuAccessors = new MenuAccessor(client);
 }
 
 NewMessageView.prototype = {
@@ -31,6 +36,18 @@ NewMessageView.prototype = {
     return this.accessors.recipients.map(function(recipient) {
       return recipient.getAttribute('data-number');
     });
+  },
+
+  get attachments() {
+    return this.composerAccessors.attachments;
+  },
+
+  get messageText() {
+    return this.composerAccessors.messageInput.text().trim();
+  },
+
+  get subject() {
+    return this.composerAccessors.subjectInput.text().trim();
   },
 
   addNewRecipient: function(recipient, separator) {
@@ -62,6 +79,14 @@ NewMessageView.prototype = {
     }
   },
 
+  clearMessage: function() {
+    var messageInput = this.composerAccessors.messageInput;
+    messageInput.tap();
+    while (messageInput.text() !== '') {
+      messageInput.sendKeys(this.KEYS.backspace);
+    }
+  },
+
   containsInvalidRecipients: function() {
     return this.accessors.recipients.some(function(recipient) {
       return recipient.getAttribute('class').indexOf('invalid') > -1;
@@ -77,11 +102,73 @@ NewMessageView.prototype = {
   },
 
   typeMessage: function(message) {
-    this.accessors.messageInput.sendKeys(message);
+    this.composerAccessors.messageInput.sendKeys(message);
+  },
+
+  addAttachment: function() {
+    return this.composerAccessors.addAttachment();
+  },
+
+  typeSubject: function(subject) {
+    this.composerAccessors.subjectInput.sendKeys(subject);
+  },
+
+  showOptions: function() {
+    this.accessors.optionsButton.tap();
+  },
+
+  showSubject: function() {
+    this.showOptions();
+    this.menuAccessors.selectAppMenuOption('Add subject');
+    this.client.helper.waitForElement(this.composerAccessors.subjectInput);
+  },
+
+  hideSubject: function() {
+    this.showOptions();
+    this.menuAccessors.selectAppMenuOption('Remove subject');
+    this.client.helper.waitForElementToDisappear(
+      this.composerAccessors.subjectInput
+    );
+  },
+
+  send: function() {
+    this.composerAccessors.send();
+
+    var ConversationView = require('../conversation/view');
+    var conversationView = new ConversationView(this.client);
+    conversationView.accessors.waitToAppear();
+
+    return conversationView;
+  },
+
+  backToInbox: function() {
+    this.accessors.header.scriptWith(function(header) {
+      var event = document.createEvent('HTMLEvents');
+      event.initEvent('action', true, true);
+      header.dispatchEvent(event);
+    });
+
+    var InboxView = require('../inbox/view');
+    var inboxView = new InboxView(this.client);
+    inboxView.accessors.waitToAppear();
+
+    return inboxView;
   },
 
   isSendButtonEnabled: function() {
-    return this.accessors.sendButton.getAttribute('disabled') !== 'true';
+    var sendButton = this.composerAccessors.sendButton;
+    return sendButton.getAttribute('disabled') !== 'true';
+  },
+
+  isSubjectVisible: function() {
+    var subjectInput = this.composerAccessors.subjectInput;
+    return subjectInput && this.composerAccessors.subjectInput.displayed();
+  },
+
+  isMessageInputFocused: function() {
+    return this.composerAccessors.messageInput.scriptWith(function(el) {
+      return document.activeElement === el;
+    });
   }
 };
 

@@ -1,5 +1,5 @@
-/*global Notify, Compose, MocksHelper, ActivityHandler, Contacts,
-         Attachment, ConversationView,
+/*global Notify, MocksHelper, ActivityHandler, Contacts,
+         Attachment,
          Threads, Navigation, MessageManager,
          MockNavigatormozSetMessageHandler, MockNavigatormozApps,
          MockNavigatorWakeLock,
@@ -26,14 +26,12 @@ requireApp('sms/shared/test/unit/mocks/mock_settings_url.js');
 requireApp('sms/shared/test/unit/mocks/mock_l10n.js');
 
 require('/views/shared/test/unit/mock_attachment.js');
-require('/views/shared/test/unit/mock_compose.js');
 require('/views/shared/test/unit/mock_contacts.js');
 require('/views/shared/test/unit/mock_messages.js');
 require('/services/test/unit/mock_message_manager.js');
 require('/services/test/unit/mock_threads.js');
 require('/services/test/unit/activity/mock_activity_shim.js');
 require('/services/test/unit/activity/mock_activity_client.js');
-require('/views/shared/test/unit/mock_conversation.js');
 require('/views/shared/test/unit/mock_settings.js');
 require('/views/shared/test/unit/mock_notify.js');
 require('/views/shared/test/unit/mock_navigation.js');
@@ -48,7 +46,6 @@ require('/views/shared/js/activity_handler.js');
 
 var mocksHelperForActivityHandler = new MocksHelper([
   'Attachment',
-  'Compose',
   'Contacts',
   'Draft',
   'Drafts',
@@ -60,7 +57,6 @@ var mocksHelperForActivityHandler = new MocksHelper([
   'SilentSms',
   'SMIL',
   'Threads',
-  'ConversationView',
   'Utils',
   'Navigation',
   'ActivityShim',
@@ -273,8 +269,6 @@ suite('ActivityHandler', function() {
 
     test('Should append vcard attachment', function(done) {
       activityData.blobs = [new Blob(['test'], { type: 'text/x-vcard' })];
-
-      this.sinon.spy(Compose, 'append');
 
       ActivityClient.on.withArgs('share-activity-request').yield(
         activityData
@@ -520,25 +514,25 @@ suite('ActivityHandler', function() {
     });
 
     suite('receive class-0 message', function() {
-      setup(function() {
-        this.sinon.stub(Notify, 'ringtone');
-        this.sinon.stub(Notify, 'vibrate');
+      setup(function(done) {
+        var deleteMessagesPromise = Promise.resolve();
+
+        this.sinon.spy(Notify, 'ringtone');
+        this.sinon.spy(Notify, 'vibrate');
+        this.sinon.stub(MessageManager, 'deleteMessages').returns(
+          deleteMessagesPromise
+        );
 
         message = MockMessages.sms({ messageClass: 'class-0' });
         MockNavigatormozSetMessageHandler.mTrigger('sms-received', message);
         MockNavigatormozApps.mTriggerLastRequestSuccess();
+
+        deleteMessagesPromise.then(done, done);
       });
 
-      test('play ringtone', function() {
-        var spied = Notify.ringtone;
-        assert.ok(spied.called);
-        spied = Notify.vibrate;
-        assert.ok(spied.called);
-      });
-
-      test('vibrate', function() {
-        var spied = Notify.vibrate;
-        assert.ok(spied.called);
+      test('play ringtone and vibrate', function() {
+        sinon.assert.calledOnce(Notify.ringtone);
+        sinon.assert.calledOnce(Notify.vibrate);
       });
 
       test('an alert is displayed', function() {
@@ -550,14 +544,23 @@ suite('ActivityHandler', function() {
       });
     });
 
-    suite('receive class-0 message without content', function() {
-      setup(function() {
+    suite('receive class-0 message without content', function(done) {
+      setup(function(done) {
+        var deleteMessagesPromise = Promise.resolve();
+
         message = MockMessages.sms({
           body: null,
           messageClass: 'class-0'
         });
+
+        this.sinon.stub(MessageManager, 'deleteMessages').returns(
+          deleteMessagesPromise
+        );
+
         MockNavigatormozSetMessageHandler.mTrigger('sms-received', message);
         MockNavigatormozApps.mTriggerLastRequestSuccess();
+
+        deleteMessagesPromise.then(done, done);
       });
 
       test('an alert is displayed with empty content', function() {
@@ -689,7 +692,7 @@ suite('ActivityHandler', function() {
       });
 
       test('prefix the contact name with the SIM information', function() {
-        var expected = {  
+        var expected = {
           args: { sender: 'contact', sim: sim },
           id: 'dsds-notification-title-with-sim'
         };
@@ -711,7 +714,7 @@ suite('ActivityHandler', function() {
       });
 
       test('phone in notification title when contact without name', function() {
-        var expected = {  
+        var expected = {
           args: { sender: '+1111111111', sim: sim },
           id: 'dsds-notification-title-with-sim'
         };
@@ -733,7 +736,7 @@ suite('ActivityHandler', function() {
       });
 
       test('email in notification title when contact without name', function() {
-        var expected = {  
+        var expected = {
           args: { sender: 'a@b.com', sim: sim },
           id: 'dsds-notification-title-with-sim'
         };
@@ -1005,15 +1008,11 @@ suite('ActivityHandler', function() {
       message = MockMessages.sms();
       getMessagePromise = Promise.resolve(message);
 
-      this.sinon.stub(Utils, 'confirm');
       this.sinon.stub(Threads, 'has');
       this.sinon.stub(Threads, 'registerMessage');
       this.sinon.stub(MessageManager, 'getMessage').returns(getMessagePromise);
       this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
       this.sinon.stub(Navigation, 'toPanel');
-      this.sinon.stub(Compose, 'clear');
-      this.sinon.stub(Compose, 'isEmpty').returns(true);
-      this.sinon.stub(ConversationView, 'cleanFields');
     });
 
     test('when message belongs to currently active thread', function() {
@@ -1024,63 +1023,7 @@ suite('ActivityHandler', function() {
       ActivityHandler.handleMessageNotification(message);
 
       sinon.assert.notCalled(MessageManager.getMessage);
-      sinon.assert.notCalled(Utils.confirm);
       sinon.assert.notCalled(Navigation.toPanel);
-    });
-
-    suite('When compose is not empty', function() {
-      setup(function() {
-        Compose.isEmpty.returns(false);
-      });
-
-      test('if user does not want to discard draft', function(done) {
-        var confirmPromise = Promise.reject();
-        Utils.confirm.returns(confirmPromise);
-
-        ActivityHandler.handleMessageNotification(message);
-
-        getMessagePromise.then(() => confirmPromise).catch(() => {
-          sinon.assert.notCalled(Compose.clear);
-          sinon.assert.notCalled(ConversationView.cleanFields);
-          sinon.assert.calledWith(
-            Utils.confirm,
-            'discard-new-message',
-            'unsent-message-title',
-            { text: 'unsent-message-option-discard', className: 'danger' }
-          );
-        }).then(done, done);
-      });
-
-      test('if user wants to discard draft', function(done) {
-        var confirmPromise = Promise.resolve();
-        Utils.confirm.returns(confirmPromise);
-
-        ActivityHandler.handleMessageNotification(message);
-
-        getMessagePromise.then(() => confirmPromise).then(() => {
-          sinon.assert.called(ConversationView.cleanFields);
-          sinon.assert.calledWith(
-            Utils.confirm,
-            'discard-new-message',
-            'unsent-message-title',
-            { text: 'unsent-message-option-discard', className: 'danger' }
-          );
-        }).then(done, done);
-      });
-
-      test('if message belongs to currently active thread', function() {
-        Navigation.isCurrentPanel.withArgs(
-          'thread', { id: message.threadId }
-        ).returns(true);
-
-        ActivityHandler.handleMessageNotification(message);
-
-        // It shouldn't matter if message input has any text or not since target
-        // thread is already opened
-        sinon.assert.notCalled(MessageManager.getMessage);
-        sinon.assert.notCalled(Utils.confirm);
-        sinon.assert.notCalled(Navigation.toPanel);
-      });
     });
   });
 });

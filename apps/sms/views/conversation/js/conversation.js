@@ -179,7 +179,7 @@ var ConversationView = {
     );
 
     this.header.addEventListener(
-      'action', this.onHeaderAction.bind(this)
+      'action', this.backOrClose.bind(this)
     );
 
     this.optionsButton.addEventListener(
@@ -302,34 +302,16 @@ var ConversationView = {
     return this._isReady;
   },
 
-  onVisibilityChange: function conv_onVisibilityChange(e) {
-    // If we leave the app and are in a thread or compose window
-    // save a message draft if necessary
-    if (document.hidden) {
-      // Auto-save draft if the user has entered anything
-      // in the composer or into To field (for composer panel only).
-      var isAutoSaveRequired = false;
+  onVisibilityChange: function conv_onVisibilityChange() {
+    // If we leave the app and are in a thread or compose window update a
+    // message draft if necessary.
+    var isDraftUpdateNeeded = document.hidden &&
+      (Navigation.isCurrentPanel('composer') ||
+      Navigation.isCurrentPanel('thread'));
 
-      if (Navigation.isCurrentPanel('composer')) {
-        isAutoSaveRequired = !Compose.isEmpty() ||
-          !!ConversationView.recipients.length;
-      } else if (Navigation.isCurrentPanel('thread')) {
-        isAutoSaveRequired = !Compose.isEmpty();
-      }
-
-      if (isAutoSaveRequired) {
-        ConversationView.saveDraft(true /* preserveDraft */);
-      }
+    if (isDraftUpdateNeeded) {
+      this.updateDraft();
     }
-  },
-
-  /**
-   * Executes when the header 'action' button is tapped.
-   *
-   * @private
-   */
-  onHeaderAction: function conv_onHeaderAction() {
-    this.backOrClose();
   },
 
   /**
@@ -339,11 +321,25 @@ var ConversationView = {
    * @private
    */
   backOrClose: function conv_backOrClose() {
-    var inActivity = ActivityClient.hasPendingRequest();
-    var isComposer = Navigation.isCurrentPanel('composer');
-    var isThread = Navigation.isCurrentPanel('thread');
-    var action = inActivity && (isComposer || isThread) ? 'close' : 'back';
-    this[action]();
+    this.stopRendering();
+
+    var backOrClosePromise;
+    if (ActivityClient.hasPendingRequest()) {
+      backOrClosePromise = this.updateDraft().then(
+        () => ActivityClient.postResult()
+      );
+    } else {
+      // We're waiting for the keyboard to disappear before animating back.
+      backOrClosePromise = this._ensureKeyboardIsHidden().then(
+        () => Navigation.toPanel('thread-list')
+      );
+    }
+
+    return backOrClosePromise.catch((e) => {
+      console.error('Unexpected error while navigating back: ', e);
+
+      return Promise.reject(e);
+    });
   },
 
   // Initialize Recipients list and Recipients.View (DOM)
@@ -671,10 +667,10 @@ var ConversationView = {
         this.draft = Threads.get(threadId).getDraft();
 
         if (this.draft) {
-          this.draft.isEdited = false;
-
           Compose.fromDraft(this.draft);
           Compose.focus();
+
+          this.draft.isEdited = false;
         }
       });
     }
@@ -721,13 +717,24 @@ var ConversationView = {
       Array.from(nodes).forEach((node) => {
         window.URL.revokeObjectURL(node.dataset.thumbnail);
       });
+
+      // If we're leaving conversation view, ensure that the thread object's
+      // unreadCount value is current (set = 0).
+      this.activeThread.unreadCount = 0;
     }
 
     // TODO move most of back() here: Bug 1010223
-    if (this.activeThread &&
+    // We don't want to clean fields, reset active conversation reference or
+    // current draft if user going to report or group view in the scope of the
+    // current conversation.
+    if (!this.activeThread ||
         !this.isConversationPanel(this.activeThread.id, nextPanel)) {
-      // Clean fields when moving out of a conversation.
+      this.updateDraft();
+
+      this.draft = null;
       this.activeThread = null;
+
+      // Clean fields when moving out of a conversation.
       this.cleanFields();
     }
   },
@@ -785,15 +792,16 @@ var ConversationView = {
           }
 
           this.recipients.add(recipient);
+
+          // Since recipient is added from draft, we should not consider it as
+          // edit operation.
+          this.draft.isEdited = false;
         }.bind(this));
       }, this);
 
       // Render draft contents into the composer input area.
       Compose.fromDraft(this.draft);
       this.draft.isEdited = false;
-
-      // Discard this draft object and update the backing store
-      return Drafts.delete(this.draft).store();
     });
   },
 
@@ -1156,31 +1164,6 @@ var ConversationView = {
     this.newMessageNotice.classList.add('hide');
   },
 
-  close: function conv_close() {
-    return this._onNavigatingBack().then(() => {
-      this.cleanFields();
-      return ActivityClient.postResult();
-    }).catch(function(e) {
-      // If we don't have any error that means that action was rejected
-      // intentionally and there is nothing critical to report about.
-      e && console.error('Unexpected error while closing the activity: ', e);
-
-      return Promise.reject(e);
-    });
-  },
-
-  back: function conv_back() {
-    return this._onNavigatingBack().then(function(isDraftSaved) {
-      Navigation.toPanel('thread-list', {
-        notifyAboutSavedDraft: isDraftSaved
-      });
-    }.bind(this)).catch(function(e) {
-      e && console.error('Unexpected error while navigating back: ', e);
-
-      return Promise.reject(e);
-    });
-  },
-
   /**
    * Navigates user to Composer or Thread panel with custom parameters.
    * @param {Object} parameters Navigation parameters. `number` and `messageId`
@@ -1214,78 +1197,16 @@ var ConversationView = {
       );
     };
 
+    var threadExistingPromise = parameters && parameters.number ?
+      // A rejected promise will be returned in case we can't find thread
+      // for the specified number.
+      MessageManager.findThreadFromNumber(parameters.number) :
+      Promise.reject();
 
-    var draftDiscardPromise;
-
-    // We should check if draft is not saved instead, to be fixed in bug 1153940
-    if (Compose.isEmpty()) {
-      draftDiscardPromise = Promise.resolve();
-    } else {
-      draftDiscardPromise = Utils.confirm(
-        'unsent-message-text',
-        'unsent-message-title',
-        { text: 'unsent-message-option-discard', className: 'danger' }
-      ).then(() => this.discardDraft());
-    }
-
-    return draftDiscardPromise.then(() => {
-      var threadExistingPromise = parameters && parameters.number ?
-        // A rejected promise will be returned in case we can't find thread
-        // for the specified number.
-        MessageManager.findThreadFromNumber(parameters.number) :
-        Promise.reject();
-
-      return threadExistingPromise.then(
-        (id) => Navigation.toPanel('thread', { id: id, focusComposer: true }),
-        navigateToComposer
-      );
-    });
-  },
-
-  _onNavigatingBack: function() {
-    this.stopRendering();
-
-    // We're waiting for the keyboard to disappear before animating back
-    return this._ensureKeyboardIsHidden().then(function() {
-      var inConversation = Navigation.isCurrentPanel('thread');
-      // Need to assimilate recipients in order to check if any entered
-      this.assimilateRecipients();
-
-      // If we're leaving a thread's message view,
-      // ensure that the thread object's unreadCount
-      // value is current (set = 0)
-      if (inConversation) {
-        // TODO: Will need to replace with Conversation service method.
-        this.activeThread.unreadCount = 0;
-      }
-
-      // If the composer is empty and we are either
-      // in an active thread or there are no recipients
-      // do not prompt to save a draft and remove saved drafts
-      // as the user deleted them manually
-      if (Compose.isEmpty() &&
-        (inConversation || this.recipients.length === 0)) {
-        this.discardDraft();
-        return;
-      }
-
-      // If there is a draft and the content and recipients
-      // never got edited, re-save if threadless,
-      // then leave without prompting to replace
-      if (this.draft && !this.draft.isEdited) {
-        // Thread-less drafts are orphaned at this point
-        // so they need to be resaved for persistence
-        // Otherwise, clear the draft directly before leaving
-        if (!inConversation) {
-          this.saveDraft();
-        } else {
-          this.draft = null;
-        }
-        return;
-      }
-
-      return this._showMessageSaveOrDiscardPrompt();
-    }.bind(this));
+    return threadExistingPromise.then(
+      (id) => Navigation.toPanel('thread', { id: id, focusComposer: true }),
+      navigateToComposer
+    );
   },
 
   isKeyboardDisplayed: function conv_isKeyboardDisplayed() {
@@ -1308,37 +1229,6 @@ var ConversationView = {
       });
     }
     return Promise.resolve();
-  },
-
-  _showMessageSaveOrDiscardPrompt: function() {
-    var deferred = Utils.Promise.defer();
-
-    var options = {
-      items: [
-        {
-          l10nId: this.draft ? 'replace-draft' : 'save-as-draft',
-          method: () => {
-            this.saveDraft();
-            deferred.resolve(true /* isDraftSaved */);
-          }
-        },
-        {
-          l10nId: 'delete-draft',
-          method: () => {
-            this.discardDraft();
-            deferred.resolve();
-          }
-        },
-        {
-          l10nId: 'cancel',
-          method: deferred.reject
-        }
-      ]
-    };
-
-    new OptionMenu(options).show();
-
-    return deferred.promise;
   },
 
   onSegmentInfoChange: function conv_onSegmentInfoChange() {
@@ -1594,16 +1484,12 @@ var ConversationView = {
   },
 
   // Method for rendering the list of messages using infinite scroll
-  renderMessages: function conv_renderMessages(threadId, callback) {
+  renderMessages: function conv_renderMessages(threadId) {
     // Use taskRunner to make sure message appended in proper order
     var taskQueue = new TaskRunner();
     var onMessagesRendered = (function messagesRendered() {
       if (this.messageIndex < this.CHUNK_SIZE) {
         taskQueue.push(this.showFirstChunk.bind(this));
-      }
-
-      if (callback) {
-        callback();
       }
     }).bind(this);
 
@@ -1662,10 +1548,12 @@ var ConversationView = {
     var dateTimeOptions = {
       weekday: 'long',
       month: 'short',
-      day: '2-digit',
+      day: '2-digit'
     };
-    var formatter = 
-      new Intl.DateTimeFormat(navigator.languages, dateTimeOptions);
+
+    var formatter = new Intl.DateTimeFormat(
+      navigator.languages, dateTimeOptions
+    );
     var expireFormatted = formatter.format(new Date(+message.expiryDate));
 
     var expired = +message.expiryDate < Date.now();
@@ -1977,67 +1865,39 @@ var ConversationView = {
     return this.inEditMode;
   },
 
-  deleteUIMessages: function conv_deleteUIMessages(list, callback) {
-    // Strategy:
-    // - Delete message/s from the DOM
-    // - Update the thread in inbox without re-rendering
-    // the entire list
-    // - move to thread list if needed
+  /**
+   * Removes selected messages from DB and view (DOM), updates conversation in
+   * inbox without re-rendering and moves to the inbox in case all messages were
+   * removed.
+   * @param {Array.<Number>} messageIdList List of message ids to remove.
+   * @returns {Promise}
+   */
+  deleteMessages: function conv_deleteMessages(messageIdList) {
+    return MessageManager.deleteMessages(messageIdList).then(() => {
+      // Removing from DOM all messages to delete
+      messageIdList.forEach((messageId) => {
+        Threads.unregisterMessage(messageId);
+        this.removeMessageDOM(document.getElementById('message-' + messageId));
+      });
 
-    if (!Array.isArray(list)) {
-      list = [list];
-    }
+      // Did we remove all messages of the conversation?
+      if (!this.activeThread.messages.size) {
+        return this.backOrClose();
+      }
 
-    // Removing from DOM all messages to delete
-    for (var i = 0, l = list.length; i < l; i++) {
-      Threads.unregisterMessage(list[i]);
-      ConversationView.removeMessageDOM(
-        document.getElementById('message-' + list[i])
-      );
-    }
-
-    callback = typeof callback === 'function' ? callback : function() {};
-
-    // Do we remove all messages of the Thread?
-    if (!ConversationView.container.firstElementChild) {
-      callback();
-      this.backOrClose();
-    } else {
-      // Retrieve latest message in the UI
-      var lastDateGroup = ConversationView.container.lastElementChild;
+      // Retrieve latest message in the UI.
+      var lastDateGroup = this.container.lastElementChild;
       var lastMessage = lastDateGroup.querySelector('li:last-child');
-      // We need to make thread-list to show the same info
-      var request = MessageManager.getMessage(+lastMessage.dataset.messageId);
-      request.onsuccess = function() {
-        callback();
-        InboxView.updateThread(request.result, { deleted: true });
-      };
-      request.onerror = function() {
-        console.error('Error when updating the list of threads');
-        callback();
-      };
-    }
+
+      // We need to make inbox to show the same info.
+      return MessageManager.getMessage(+lastMessage.dataset.messageId).then(
+        (message) => InboxView.updateThread(message, { deleted: true }),
+        (e) => console.error('Error when updating the list of threads', e)
+      );
+    });
   },
 
   delete: function conv_delete() {
-    function performDeletion() {
-      /* jshint validthis: true */
-
-      WaitingScreen.show();
-      var items = this.selectionHandler.selectedList;
-      var delNumList = items.map(item => +item);
-
-      // Complete deletion in DB and in UI
-      MessageManager.deleteMessages(delNumList,
-        function onDeletionDone() {
-          ConversationView.deleteUIMessages(delNumList, function() {
-            ConversationView.cancelEdit();
-            WaitingScreen.hide();
-          });
-        }
-      );
-    }
-
     return Utils.confirm(
       {
         id: 'deleteMessages-confirmation-message',
@@ -2048,7 +1908,18 @@ var ConversationView = {
         text: 'delete',
         className: 'danger'
       }
-    ).then(performDeletion.bind(this));
+    ).then(() => {
+      WaitingScreen.show();
+
+      var messageIdsToDelete = this.selectionHandler.selectedList.map(
+        (item) => +item
+      );
+
+      return this.deleteMessages(messageIdsToDelete).then(() => {
+        ConversationView.cancelEdit();
+        WaitingScreen.hide();
+      });
+    });
   },
 
   cancelEdit: function conv_cancelEdit() {
@@ -2225,15 +2096,11 @@ var ConversationView = {
           },
           {
             l10nId: 'delete',
-            method: function deleteMessage(messageId) {
+            method: (messageId) => {
               Utils.confirm(
                 'deleteMessage-confirmation', null,
                 { text: 'delete', className: 'danger' }
-              ).then(() => {
-                MessageManager.deleteMessages(
-                  messageId, () => ConversationView.deleteUIMessages(messageId)
-                );
-              });
+              ).then(() => this.deleteMessages([messageId]));
             },
             params: [messageId]
           }
@@ -2329,10 +2196,7 @@ var ConversationView = {
     this.enableConvertNoticeBanners();
 
     // If there was a draft, it just got sent so delete it.
-    if (this.draft) {
-      Drafts.delete(this.draft).store();
-      this.draft = null;
-    }
+    this.updateDraft();
 
     this.updateHeaderData();
 
@@ -2373,7 +2237,7 @@ var ConversationView = {
         this.shouldChangePanelNextEvent = false;
         Navigation.toPanel('thread-list');
         if (ActivityClient.hasPendingRequest()) {
-          setTimeout(this.close.bind(this), this.LEAVE_ACTIVITY_DELAY);
+          setTimeout(this.backOrClose.bind(this), this.LEAVE_ACTIVITY_DELAY);
         }
 
         // Early return to prevent compose focused for multi-recipients sms case
@@ -3002,52 +2866,51 @@ var ConversationView = {
     return defer.promise;
   },
 
-  discardDraft: function conv_discardDraft() {
-    // If we were tracking a draft properly, update the Drafts object entry.
-    if (!this.draft) {
-      return;
+  updateDraft() {
+    var conversation = this.activeThread;
+
+    // Need to assimilate recipients in order to check if any entered.
+    this.assimilateRecipients();
+
+    // If message content is not empty and/or we have _valid_ recipients in
+    // NewMessage view.
+    var hasDraftToSave = !Compose.isEmpty() ||
+      (!conversation && this.recipients.numbers.length);
+
+    // Check if conversation has been just removed, can happen when user selects
+    // all messages in Conversation view and removes all of them, in this case
+    // we don't want to loose draft.
+    var isConversationRemoved = conversation && !conversation.messages.size;
+
+    // If we have active draft, but user cleared it up or removed conversation
+    // this draft belonged to, we should discard it.
+    var isDraftDiscarded = false;
+    if (this.draft && (!hasDraftToSave || isConversationRemoved)) {
+      Drafts.delete(this.draft);
+
+      this.draft = null;
+
+      isDraftDiscarded = true;
     }
 
-    Drafts.delete(this.draft).store();
+    // If we don't have any content to save to draft or existing draft has not
+    // been edited yet, we should not do anything.
+    if (!hasDraftToSave || (this.draft && !this.draft.isEdited)) {
+      return isDraftDiscarded ? Drafts.store() : Promise.resolve();
+    }
 
-    this.draft = null;
-  },
-
-  /**
-   * Saves currently unsent message content and/or recipients into a Draft
-   * object. Preserves currently active draft if specified. Draft preservation
-   * is intended to keep this.draft populated with the currently active draft
-   * when app is hidden, so that when app becomes visible again, it knows there
-   * is a draft to continue to keep track of.
-   *
-   * @param {boolean?} preserveDraft Optional boolean parameter that indicates
-   * whether or not we should preserve draft.
-   */
-  saveDraft: function conv_saveDraft(preserveDraft) {
-    var thread = this.activeThread;
-
-    // Do we need to save participants for thread draft?
-    var recipients = thread ? thread.participants : this.recipients.numbers;
-
-    var draft = new Draft({
+    // Otherwise we should save new draft.
+    this.draft = new Draft({
       id: this.draft && this.draft.id,
-      threadId: thread && thread.id,
-      recipients: recipients,
+      threadId: !isConversationRemoved ? conversation && conversation.id : null,
+      recipients: conversation ?
+        conversation.participants : this.recipients.numbers,
       content: Compose.getContent(),
-      subject: Compose.getSubject(),
+      subject: Compose.isSubjectVisible ? Compose.getSubject() : null,
       type: Compose.type
     });
 
-    Drafts.add(draft).store();
-
-    // Set draft property if it is not already set and meant to be preserved.
-    if (preserveDraft && !this.draft) {
-      this.draft = draft;
-    } else if (!preserveDraft) {
-      // Clear draft property if not explicitly asked to be preserved by draft
-      // replacement case.
-      this.draft = null;
-    }
+    return Drafts.add(this.draft).store();
   },
 
   /**

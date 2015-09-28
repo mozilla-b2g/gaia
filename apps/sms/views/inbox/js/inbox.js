@@ -39,6 +39,11 @@ var InboxView = {
   // Set to |true| when in edit mode
   inEditMode: false,
 
+  /**
+   * Indicates whether user should be notified about newly saved draft.
+   */
+  notifyAboutSavedDraft: false,
+
   init: function inbox_init() {
     this.tmpl = {
       thread: Template('messages-thread-tmpl')
@@ -143,9 +148,10 @@ var InboxView = {
 
   beforeEnter: function inbox_beforeEnter(args = {}) {
     this.editHeader.removeAttribute('no-font-fit');
-    // If user left Conversation or New Message views saving a draft, let's
-    // unobtrusively notify him that draft is successfully saved.
-    if (args.notifyAboutSavedDraft) {
+    // In case user saved draft when Inbox was not the active view, we want to
+    // notify that save operation successfully completed once user returns back
+    // to Inbox view.
+    if (this.notifyAboutSavedDraft) {
       this.showDraftSavedBanner();
     }
   },
@@ -983,6 +989,13 @@ var InboxView = {
   onDraftSaved: function inbox_onDraftSaved(draft) {
     var threadToUpdate = draft.threadId ? Threads.get(draft.threadId) : draft;
     this.updateThread(threadToUpdate);
+
+    // In case user saved draft when Inbox was not the active view, we want to
+    // notify that save operation successfully completed once user returns back
+    // to Inbox view.
+    if (!Navigation.isCurrentPanel('thread-list')) {
+      this.notifyAboutSavedDraft = true;
+    }
   },
 
   showDraftSavedBanner: function() {
@@ -991,9 +1004,12 @@ var InboxView = {
     clearTimeout(this.timeouts.onDraftSaved);
     this.timeouts.onDraftSaved = null;
 
-    this.timeouts.onDraftSaved = setTimeout(function hideDraftSavedBanner() {
-      this.draftSavedBanner.classList.add('hide');
-    }.bind(this), this.DRAFT_SAVED_DURATION);
+    this.timeouts.onDraftSaved = setTimeout(
+      () => this.draftSavedBanner.classList.add('hide'),
+      this.DRAFT_SAVED_DURATION
+    );
+
+    this.notifyAboutSavedDraft = false;
   }
 };
 

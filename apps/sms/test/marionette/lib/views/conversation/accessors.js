@@ -6,6 +6,7 @@ var SELECTORS = Object.freeze({
   main: '.panel-ConversationView',
   message: '.message',
   messageBubble: '.message .bubble',
+  header: '#messages-header',
   headerTitle: '#messages-header-text',
   container: '#messages-container',
   callButton: '#messages-call-number-button',
@@ -15,7 +16,8 @@ var SELECTORS = Object.freeze({
     '[data-l10n-id="createNewContact"]',
   addToExistingContactOption: '.contact-prompt ' +
     '[data-l10n-id="addToExistingContact"]',
-  carrierHeaderPhoneNumber: '#contact-carrier .phone-number'
+  carrierHeaderPhoneNumber: '#contact-carrier .phone-number',
+  optionsButton: '#messages-options-button'
 });
 
 function ConversationAccessor(client) {
@@ -32,6 +34,10 @@ ConversationAccessor.prototype = {
     return this.client.helper.waitForElement(SELECTORS.messageBubble);
   },
 
+  get header() {
+    return this.client.helper.waitForElement(SELECTORS.header);
+  },
+
   get headerTitle() {
     return this.client.helper.waitForElement(SELECTORS.headerTitle);
   },
@@ -44,6 +50,10 @@ ConversationAccessor.prototype = {
 
   get callButton() {
     return this.client.helper.waitForElement(SELECTORS.callButton);
+  },
+
+  get optionsButton() {
+    return this.client.helper.waitForElement(SELECTORS.optionsButton);
   },
 
   get createNewContactOption() {
@@ -65,7 +75,9 @@ ConversationAccessor.prototype = {
   },
 
   findMessage: function(id) {
-    return this.client.findElement('.message[data-message-id="' + id + '"]');
+    return this.client.findElement(
+      '.message[data-message-id="' + id + '"] .bubble'
+    );
   },
 
   scrollUp: function() {
