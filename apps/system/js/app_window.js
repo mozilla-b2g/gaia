@@ -223,14 +223,18 @@
     this.getTopMostWindow()._setActive(enable);
   };
 
-  AppWindow.prototype.inScope = function(scope) {
+  AppWindow.prototype.getScope = function() {
+    var url = new URL(this.config.url);
+    var scope = this.webManifest && this.webManifest.scope;
+    return scope || url.origin;
+  };
+
+  AppWindow.prototype.inScope = function(testScope) {
     if (!this.isBrowser()) {
       return false;
     }
-
-    var url = new URL(this.config.url);
-    var path = url.hostname + url.pathname;
-    return path.indexOf(scope) === 0;
+    var scope = this.getScope();
+    return scope.indexOf(testScope) === 0;
   };
 
   /**

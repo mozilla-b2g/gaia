@@ -7,6 +7,7 @@
   PinsManager.SERVICES = ['isPinned'];
 
   BaseModule.create(PinsManager, {
+    EVENT_PREFIX: 'pins-',
     DEBUG: false,
     name: 'PinsManager',
     _scopes: {},
@@ -20,6 +21,7 @@
     },
 
     isPinned: function(url) {
+      console.log('PinsManager, isPinned? ', url);
       var hostname = new URL(url).hostname;
       var scopes = this._scopes[hostname];
 
@@ -40,6 +42,7 @@
     },
 
     _onChange: function(task) {
+      console.log('PinsManager, _onChnage: ', task);
       switch (task.type) {
         case 'updated':
         case 'added':
@@ -66,10 +69,12 @@
     _addScope: function(data) {
       var url = new URL(data.id);
       var hostname = url.hostname;
+      console.log('PinsManager, _addScope ', data, hostname);
       this._scopes[hostname] = this._scopes[hostname] || {};
 
       var scope = data.scope || data.id.replace(url.pathname, '');
       this._scopes[hostname][scope] = data.id;
+      this.publish('scopechange', { action: 'add', scope: scope });
     },
 
     _removeScope: function(id) {
@@ -77,11 +82,17 @@
       var hostname = url.hostname;
       if (this._scopes[hostname]) {
         var currentHost = this._scopes[hostname];
+        var removedScope;
         Object.keys(currentHost).forEach(function(scope) {
           if (currentHost[scope] === id) {
             delete currentHost[scope];
+            removedScope = scope;
           }
         });
+        if (removedScope) {
+          this.publish('scopechange',
+                      { action: 'remove', scope: removedScope });
+        }
       }
     }
   });
