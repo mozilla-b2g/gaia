@@ -8,6 +8,7 @@
 /* global Service */
 /* global Icon */
 /* global UrlHelper */
+/* global SystemBanner */
 
 'use strict';
 
@@ -228,6 +229,9 @@
     this.title = this.element.querySelector('.chrome-title-container > .title');
     this.urlbar = this.element.querySelector('.urlbar');
     this.siteIcon = this.element.querySelector('.site-icon');
+    LazyLoader.load(['js/system_banner.js']).then(function() {
+      this.systemBanner = new SystemBanner();
+    }.bind(this));
 
     if (this.useCombinedChrome()) {
       this.pinDialog = this.element.querySelector('.pin-dialog');
@@ -423,6 +427,7 @@
       var manifestURL = this.app.webManifestURL;
       var manifestObject = this.app.webManifest;
       var pageUrl = this.app.config.url;
+      var systemBanner = this.systemBanner;
 
       siteObject.type = 'url';
       siteObject.iconable = false;
@@ -455,7 +460,11 @@
       IconsHelper.getIcon(siteObject.url, null,
         {icons: this.app.favicons}, siteObject).then(icon => {
         siteObject.icon = icon;
-        BookmarksDatabase.put(siteObject, siteObject.id).catch(function(error) {
+        BookmarksDatabase.put(siteObject, siteObject.id)
+          .then(function() {
+            systemBanner.show('pinned-to-home-screen-message');
+          })
+          .catch(function(error) {
            console.error('Failed to save site: ' + error);
         });
       });
