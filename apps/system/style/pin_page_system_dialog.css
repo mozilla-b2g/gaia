@@ -165,7 +165,8 @@ button.pin-button::before {
   transform: translateY(4rem);
 }
 
-#pin-site-container.active button[data-action="pin-site"] {
+#pin-site-container.active button[data-action="pin-site"],
+#pin-site-container.active button[data-action="unpin-site"] {
   transform: translateY(7.2rem);
 }
 
