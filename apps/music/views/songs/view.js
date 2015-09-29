@@ -7,7 +7,7 @@ var SongsView = View.extend(function SongsView() {
   this.searchBox = document.getElementById('search');
   this.list = document.getElementById('list');
 
-  var searchHeight = this.searchBox.offsetHeight;
+  var searchHeight = this.searchBox.HEIGHT;
 
   this.searchBox.addEventListener('open', () => window.parent.onSearchOpen());
   this.searchBox.addEventListener('close', () => {
@@ -24,19 +24,16 @@ var SongsView = View.extend(function SongsView() {
     }
   });
 
-  this.searchBox.getItemImageSrc = (item) => {
-    return this.getThumbnail(item.name);
-  };
+  this.searchBox.getItemImageSrc = (item) => this.getThumbnail(item.name);
 
   this.list.scrollTop = searchHeight;
   this.list.minScrollHeight = `calc(100% - ${searchHeight}px)`;
 
   this.list.configure({
-    model: this.getCache(),
-
     getSectionName: (item) => {
       var title = item.metadata.title;
-      return title ? title[0].toUpperCase() : '?';
+      var firstChar = title ? title[0].toLowerCase() : '?';
+      return isNaN(firstChar) ? firstChar : '#';
     },
 
     getItemImageSrc: (item) => {
@@ -52,7 +49,6 @@ var SongsView = View.extend(function SongsView() {
   });
 
   this.client.on('databaseChange', () => this.update());
-
   this.update();
 });
 
@@ -81,7 +77,6 @@ SongsView.prototype.getSongs = function() {
     .then(response => response.json())
     .then(songs => {
       console.timeEnd('getSongs');
-      this.setCache(songs.slice(0, 10));
       return songs;
     });
 };
@@ -90,23 +85,12 @@ SongsView.prototype.queueSong = function(filePath) {
   this.fetch('/api/queue/song/' + filePath);
 };
 
-SongsView.prototype.setCache = function(items) {
-  setTimeout(() => {
-    localStorage.setItem('cache:songs', JSON.stringify(items));
-  });
-};
-
-SongsView.prototype.getCache = function() {
-  return JSON.parse(localStorage.getItem('cache:songs')) || [];
-};
-
 SongsView.prototype.getThumbnail = function(filePath) {
   return this.fetch('/api/artwork/thumbnail/' + filePath)
     .then(response => response.blob())
     .then((blob) => {
       var url = URL.createObjectURL(blob);
       setTimeout(() => URL.revokeObjectURL(url), 1);
-
       return url;
     });
 };

@@ -24,16 +24,15 @@
   <script src="/elements/music-search.js"></script>
 </head>
 <body role="application">
-  <gaia-fast-list id="list" offset="37">
-    <music-search id="search"></music-search>
+  <gaia-fast-list id="list" offset="37" caching picker>
+    <music-search id="search" style="height:37px"></music-search>
+    <a picker-item href="#search" data-icon="search" data-l10n-id="search"></a>
     <template>
-      <li>
-        <a href="/album-detail?id=${name}">
-          <img>
-          <h3>${metadata.album}</h3>
-          <p>${metadata.artist}</p>
-        </a>
-      </li>
+      <a href="/album-detail?id=${name}">
+        <div class="image"><img/></div>
+        <h3>${metadata.album}</h3>
+        <p>${metadata.artist}</p>
+      </a>
     </template>
   </gaia-fast-list>
 

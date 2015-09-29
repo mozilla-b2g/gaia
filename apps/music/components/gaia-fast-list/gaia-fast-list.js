@@ -423,6 +423,10 @@ var GaiaFastListProto = {
         color: inherit;
       }
 
+      ::content [picker-item][data-icon] {
+        font-size: 0; /* hide icon text-label */
+      }
+
       ::content [picker-item]:before {
         font-size: 19px;
         -moz-user-select: none;
@@ -1303,7 +1307,7 @@ Picker.prototype = {
   update(e) {
     debug('update', this.offset);
     var allItems = this.els.allItems;
-    var pageY = e.pageY || e.changedTouches[0].pageY;
+    var pageY = e.changedTouches ? e.changedTouches[0].pageY : e.pageY;
     var y = pageY - this.offset;
     var index = Math.floor(y / this.itemHeight);
 

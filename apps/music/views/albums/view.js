@@ -7,7 +7,7 @@ var AlbumsView = View.extend(function AlbumsView() {
   this.searchBox = document.getElementById('search');
   this.list = document.getElementById('list');
 
-  var searchHeight = this.searchBox.offsetHeight;
+  var searchHeight = this.searchBox.HEIGHT;
 
   this.searchBox.addEventListener('open', () => window.parent.onSearchOpen());
   this.searchBox.addEventListener('close', () => {
@@ -31,8 +31,9 @@ var AlbumsView = View.extend(function AlbumsView() {
 
   this.list.configure({
     getSectionName: (item) => {
-      var album = item.metadata.album;
-      return album ? album[0].toUpperCase() : '?';
+      var title = item.metadata.title;
+      var firstChar = title ? title[0].toLowerCase() : '?';
+      return isNaN(firstChar) ? firstChar : '#';
     },
 
     getItemImageSrc: (item) => {

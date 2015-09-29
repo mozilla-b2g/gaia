@@ -7,7 +7,7 @@ var ArtistsView = View.extend(function ArtistsView() {
   this.searchBox = document.getElementById('search');
   this.list = document.getElementById('list');
 
-  var searchHeight = this.searchBox.offsetHeight;
+  var searchHeight = this.searchBox.HEIGHT;
 
   this.searchBox.addEventListener('open', () => window.parent.onSearchOpen());
   this.searchBox.addEventListener('close', () => {
@@ -31,8 +31,9 @@ var ArtistsView = View.extend(function ArtistsView() {
 
   this.list.configure({
     getSectionName: (item) => {
-      var artist = item.metadata.artist;
-      return artist ? artist[0].toUpperCase() : '?';
+      var title = item.metadata.title;
+      var firstChar = title ? title[0].toLowerCase() : '?';
+      return isNaN(firstChar) ? firstChar : '#';
     },
 
     getItemImageSrc: (item) => {
