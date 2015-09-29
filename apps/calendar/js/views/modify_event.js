@@ -441,7 +441,11 @@ ModifyEvent.prototype = {
    * @private
    */
   _overrideEvent: function(search) {
-    search = search || window.location.search;
+    if (!search) {
+      var hash = window.location.hash;
+      search = hash.split('?')[1];
+    }
+
     if (!search || search.length === 0) {
       return;
     }
