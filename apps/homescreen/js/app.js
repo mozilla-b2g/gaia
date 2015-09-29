@@ -29,7 +29,7 @@ const DIALOG_SHOW_TIMEOUT = 50;
  * The distance at the top and bottom of the icon container that when hovering
  * an icon in will cause scrolling.
  */
-const AUTOSCROLL_DISTANCE = 45;
+const AUTOSCROLL_DISTANCE = 30;
 
 /**
  * The timeout before auto-scrolling a page when hovering at the edges
@@ -132,7 +132,7 @@ const SETTINGS_VERSION = 0;
     this.dragging = false;
     this.draggingRemovable = false;
     this.draggingEditable = false;
-    this.autoScrollTimeout = null;
+    this.autoScrollInterval = null;
     this.autoScrollOverflowTimeout = null;
     this.hoverIcon = null;
 
@@ -725,9 +725,9 @@ const SETTINGS_VERSION = 0;
         this.edit.classList.remove('active');
         this.uninstall.classList.remove('active');
 
-        if (this.autoScrollTimeout !== null) {
-          clearTimeout(this.autoScrollTimeout);
-          this.autoScrollTimeout = null;
+        if (this.autoScrollInterval !== null) {
+          clearInterval(this.autoScrollInterval);
+          this.autoScrollInterval = null;
         }
 
         if (this.autoScrollOverflowTimeout !== null) {
@@ -806,23 +806,24 @@ const SETTINGS_VERSION = 0;
           } else {
             inDelete = true;
           }
-        } else if (e.detail.clientY >
-                   window.innerHeight - DELETE_DISTANCE - AUTOSCROLL_DISTANCE) {
+        }
+
+        if (e.detail.clientY > window.innerHeight - AUTOSCROLL_DISTANCE) {
           // User is dragging in the lower auto-scroll area
           inAutoscroll = true;
-          if (this.autoScrollTimeout === null) {
-            this.autoScrollTimeout = setTimeout(() => {
-              this.autoScrollTimeout = null;
+          if (this.autoScrollInterval === null) {
+            this.autoScrollInterval = setInterval(() => {
               this.snapScrollPosition(1);
+              return true;
             }, AUTOSCROLL_DELAY);
           }
         } else if (e.detail.clientY < AUTOSCROLL_DISTANCE) {
           // User is dragging in the upper auto-scroll area
           inAutoscroll = true;
-          if (this.autoScrollTimeout === null) {
-            this.autoScrollTimeout = setTimeout(() => {
-              this.autoScrollTimeout = null;
+          if (this.autoScrollInterval === null) {
+            this.autoScrollInterval = setInterval(() => {
               this.snapScrollPosition(-1);
+              return true;
             }, AUTOSCROLL_DELAY);
           }
         } else {
@@ -848,9 +849,9 @@ const SETTINGS_VERSION = 0;
           }
         }
 
-        if (!inAutoscroll && this.autoScrollTimeout !== null) {
-          clearTimeout(this.autoScrollTimeout);
-          this.autoScrollTimeout = null;
+        if (!inAutoscroll && this.autoScrollInterval !== null) {
+          clearInterval(this.autoScrollInterval);
+          this.autoScrollInterval = null;
         }
 
         this.uninstall.classList.toggle('active', inDelete);
