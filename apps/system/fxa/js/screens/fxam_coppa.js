@@ -4,7 +4,7 @@
 'use strict';
 
 /**
- * This module allow the user to select her age from a date picker and checks
+ * This module allows the user to select her age from a date picker and checks
  * that she is old enough to create a Firefox account. Otherwise, it shows an
  * error.
  */
