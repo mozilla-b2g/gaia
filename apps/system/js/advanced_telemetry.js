@@ -12,7 +12,9 @@
  * interval desired.
  */
 
-/* global asyncStorage, SettingsListener, uuid, TelemetryRequest */
+/* global asyncStorage, SettingsListener, uuid, TelemetryRequest, Gzip,
+   LazyLoader */
+
 (function(exports) {
   'use strict';
 
@@ -267,6 +269,7 @@
       // If it's a merge request mark it as completed.
       if (self.merge) {
         self.merge = false;
+        self.clearPayload(false);
       }
       // if it's a request to transmit, transmit the merged metrics.
       else if (self.collecting && navigator.onLine) {
@@ -285,10 +288,12 @@
   };
 
   // Signal gecko to clear out the histograms and start fresh.
-  AT.prototype.clearPayload = function clearPayload() {
+  AT.prototype.clearPayload = function clearPayload(resetStorage) {
     // TODO: Add this line below to AdvancedTelemetryHelper as an API.
     console.info('telemetry|MGMT|CLEARMETRICS');
-    asyncStorage.setItem(AT.METRICS_KEY, null);
+    if (resetStorage) {
+      asyncStorage.setItem(AT.METRICS_KEY, null);
+    }
   };
 
   // Start a timer to notify when to send the payload.
@@ -353,14 +358,14 @@
     });
 
     function send(payload, deviceInfoQuery) {
-      var request = new AdvancedTelemetryPing(payload, deviceInfoQuery,
+      self.request = new AdvancedTelemetryPing(payload, deviceInfoQuery,
         self.deviceID);
 
       // We don't actually have to do anything if the data is transmitted
       // successfully. We are already set up to collect the next batch of data.
       function onload() {
         loginfo('Transmitted Successfully.');
-        AdvancedTelemetry.prototype.clearPayload();
+        AdvancedTelemetry.prototype.clearPayload(true);
       }
 
       function retry(e) {
@@ -369,7 +374,7 @@
         self.getPayload();
       }
 
-      request.send({
+      self.request.send({
         timeout: AT.REPORT_TIMEOUT,
         onload: onload,
         onerror: retry,
@@ -481,29 +486,48 @@
   }
 
   AdvancedTelemetryPing.prototype.send = function(xhrAttrs) {
+    var self = this;
+    return new Promise(function(resolve, reject) {
+      self.data = JSON.stringify(self.packet);
+      LazyLoader.load(['/shared/js/gzip/gzip.js'], function() {
+        Gzip.compress(self.data).then(function (gzipData) {
+          return self.post(xhrAttrs, gzipData);
+        }, function (msg) {
+          debug('Error compressing telemetry payload:', msg);
+        }).then(function () {
+          resolve();
+        });
+      });
+    });
+  };
+  AdvancedTelemetryPing.prototype.post = function post(xhrAttrs, gzipData) {
+    var self = this;
     var xhr = new XMLHttpRequest({ mozSystem: true, mozAnon: true });
+    return new Promise(function(resolve, reject) {
 
-    xhr.open('POST', this.url);
+      xhr.open('POST', self.url);
 
-    if (xhrAttrs && xhrAttrs.timeout) {
-      xhr.timeout = xhrAttrs.timeout;
-    }
+      if (xhrAttrs) {
+        xhr.onload = xhrAttrs.onload;
+        xhr.onerror = xhrAttrs.onerror;
+        xhr.onabort = xhrAttrs.onabort;
+        xhr.ontimeout = xhrAttrs.ontimeout;
 
-    xhr.setRequestHeader('Content-type', 'application/json');
-    xhr.responseType = 'text';
+        if (xhrAttrs.timeout) {
+          xhr.timeout = xhrAttrs.timeout;
+        }
+      }
+      xhr.setRequestHeader('Content-type', 'application/json');
 
-    var data = JSON.stringify(this.packet);
-    xhr.send(data);
-    //TODO:  GZIP COMPRESS.
+      try {
+        xhr.setRequestHeader('Transfer-Encoding', 'gzip');
+      } catch (e) {}
 
-    if (xhrAttrs) {
-      xhr.onload = xhrAttrs.onload;
-      xhr.onerror = xhrAttrs.onerror;
-      xhr.onabort = xhrAttrs.onabort;
-      xhr.ontimeout = xhrAttrs.ontimeout;
-    }
+      xhr.responseType = 'text';
 
-    return xhr;
+      xhr.send(gzipData);
+      resolve();
+    });
   };
 
   /*
@@ -542,6 +566,7 @@
     return this.interval;
   };
 
-  // The AdvancedTelemetry constructor is the single value we export.
   exports.AdvancedTelemetry = AdvancedTelemetry;
+  // Exported for unit testing.
+  exports.AdvancedTelemetryPing = AdvancedTelemetryPing;
 }(window));

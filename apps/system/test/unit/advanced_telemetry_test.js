@@ -1,14 +1,17 @@
 'use strict';
 
-/* global AdvancedTelemetry, MockasyncStorage, MockNavigatorSettings  */
+/* global AdvancedTelemetry, MockasyncStorage, MockNavigatorSettings, Gzip,
+   AdvancedTelemetryPing, MockLazyLoader */
 
 require('/shared/js/settings_listener.js');
 require('/shared/js/uuid.js');
 require('/shared/js/telemetry.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+require('/shared/js/gzip/gzip.js');
 requireApp('system/test/unit/mock_asyncStorage.js');
 requireApp('system/js/advanced_telemetry.js');
 requireApp('system/js/app_usage_metrics.js');
+requireApp('system/test/unit/mock_lazy_loader.js');
 
 
 suite('AdvancedTelemetry:', function() {
@@ -267,6 +270,7 @@ suite('AdvancedTelemetry:', function() {
     realMozSettings = navigator.mozSettings;
     navigator.mozSettings = MockNavigatorSettings;
     window.asyncStorage = MockasyncStorage;
+    window.LazyLoader = MockLazyLoader;
 
     realOnLine = Object.getOwnPropertyDescriptor(navigator, 'onLine');
     Object.defineProperty(navigator, 'onLine', {
@@ -390,6 +394,9 @@ suite('AdvancedTelemetry:', function() {
     }
 
     test('advanced telemetry update should call transmit', function() {
+      this.sinon.stub(Gzip, 'compress', function() {
+        return Promise.resolve();
+      });
       at.handleGeckoMessage(payloadNew.payload, function() {
         MockNavigatorSettings.mReplyToRequests();
         assert.equal(transmitSpy.callCount, 1);
@@ -408,8 +415,12 @@ suite('AdvancedTelemetry:', function() {
     });
 
     test('should create the XHR properly', function(done) {
+      this.sinon.stub(Gzip, 'compress', function() {
+        return Promise.resolve();
+      });
+
       isOnLine = true;
-      at.handleGeckoMessage(payloadNew.payload, function() {
+      AdvancedTelemetryPing.prototype.send().then(function() {
         MockNavigatorSettings.mReplyToRequests();
         assert.ok(xhr);
         assert.equal(xhr.method, 'POST');
@@ -417,30 +428,43 @@ suite('AdvancedTelemetry:', function() {
       });
     });
 
-    test('should format the URL properly', function() {
-      at.handleGeckoMessage(wrapper.payload, function() {
+    test('should format the URL properly', function(done) {
+      this.sinon.stub(Gzip, 'compress', function() {
+        return Promise.resolve();
+      });
+      var deviceQuery = {
+        'deviceinfo.platform_version': '43',
+        'app.update.channel': 'default',
+        'deviceinfo.platform_build_id': '34'
+      };
+
+      var atp = new AdvancedTelemetryPing({id: '1234'}, deviceQuery);
+      atp.send().then(function() {
         MockNavigatorSettings.mReplyToRequests();
         // Check that the URL is properly formatted.
         // URLformat:/id/reason/appName/appVersion/appUpdateChannel/appBuildID?v=4
         var baseURL = AdvancedTelemetry.REPORT_URL;
         assert.ok(xhr.url.indexOf(baseURL) === 0);
-
         var path = xhr.url.substring(baseURL.length + 1).split('/');
-        assert.equal(path[0], 'uuid');
+        assert.equal(path[0], '1234');
         assert.equal(path[1], AdvancedTelemetry.REASON);
         assert.equal(path[2], AdvancedTelemetry.TELEMETRY_APP_NAME);
         assert.equal(path[3], '43');
         assert.equal(path[4], 'default');
         let version = path[5].split('?');
-        assert.equal(version[0], 'build');
+        assert.equal(version[0], '34');
         assert.equal(version[1], 'v=4');
+        done();
       });
     });
 
     test('should format the body properly', function(done) {
+      this.sinon.stub(Gzip, 'compress', function() {
+        return Promise.resolve();
+      });
       at.handleGeckoMessage(wrapper.payload, function() {
         MockNavigatorSettings.mReplyToRequests();
-        var req = JSON.parse(xhr.requestBody);
+        var req = JSON.parse(at.request.data);
         assert.ok(req);
 
         assert.equal(req.type, wrapper.type);
@@ -453,11 +477,48 @@ suite('AdvancedTelemetry:', function() {
         assert.deepEqual(req.application, wrapper.application);
         // Verify that the Histograms are intact.
         assert.deepEqual(req.payload, wrapper.payload);
+
         done();
       });
     });
 
-    test('should refresh the payload on a timeout retry', function(done) {
+    test('advanced telemetry should gzip compression payload', function(done) {
+      this.sinon.stub(Gzip, 'compress', function() {
+        return Promise.resolve();
+      });
+
+      this.sinon.stub(AdvancedTelemetryPing.prototype, 'post', function() {
+        return Promise.resolve();
+      });
+
+      AdvancedTelemetryPing.prototype.send().then(function() {
+        MockNavigatorSettings.mReplyToRequests();
+        sinon.assert.calledOnce(AdvancedTelemetryPing.prototype.post);
+        done();
+      });
+    });
+
+    test('advanced telemetry should handle gzip compression failure',
+      function(done) {
+      this.sinon.stub(Gzip, 'compress', function() {
+        return Promise.reject();
+      });
+
+      this.sinon.stub(AdvancedTelemetryPing.prototype, 'post', function() {
+        return Promise.resolve();
+      });
+
+      AdvancedTelemetryPing.prototype.send().then(function() {
+        MockNavigatorSettings.mReplyToRequests();
+        sinon.assert.notCalled(AdvancedTelemetryPing.prototype.post);
+        done();
+      });
+    });
+
+   test('should refresh the payload on a timeout retry', function(done) {
+     this.sinon.stub(Gzip, 'compress', function() {
+       return Promise.resolve();
+     });
       this.sinon.stub(console, 'info').returns(0);
       this.sinon.spy(AdvancedTelemetry.prototype, 'getPayload');
       dispatch({payload: wrapper.payload});
@@ -483,6 +544,10 @@ suite('AdvancedTelemetry:', function() {
 
     test('should clear out the payload after a successful transmit',
     function(done) {
+      this.sinon.stub(Gzip, 'compress', function() {
+        return Promise.resolve();
+      });
+
       this.sinon.spy(AdvancedTelemetry.prototype, 'clearPayload');
       this.sinon.stub(console, 'info').returns(0);
       at.handleGeckoMessage(wrapper.payload, function() {
