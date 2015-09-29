@@ -54,6 +54,10 @@ InboxAccessor.prototype = {
   // TODO: bug 1167103
   navigateToComposer: function() {
     this.createNewMessageButton.tap();
+  },
+
+  doubleTapOnFirstConversation: function() {
+    this.client.loader.getActions().doubleTap(this.firstConversation).perform();
   }
 };
 
