@@ -734,6 +734,114 @@ suite('Homescreen app', () => {
         });
       });
 
+      suite('drag-move', () => {
+        var realInnerHeight, realInnerWidth, setIntervalStub, clearIntervalStub;
+
+        setup(() => {
+          realInnerHeight =
+            Object.getOwnPropertyDescriptor(window, 'innerHeight');
+          Object.defineProperty(window, 'innerHeight', {
+            value: 500,
+            configurable: true
+          });
+
+          realInnerWidth =
+            Object.getOwnPropertyDescriptor(window, 'innerWidth');
+          Object.defineProperty(window, 'innerWidth', {
+            value: 500,
+            configurable: true
+          });
+
+          setIntervalStub = sinon.stub(window, 'setInterval');
+          clearIntervalStub = sinon.stub(window, 'clearInterval');
+
+          app.draggingRemovable = app.draggingEditable = true;
+        });
+
+        teardown(() => {
+          Object.defineProperty(window, 'innerHeight', realInnerHeight);
+          Object.defineProperty(window, 'innerWidth', realInnerWidth);
+          setIntervalStub.restore();
+          clearIntervalStub.restore();
+        });
+
+        test('Hovering at the bottom-left activates the removal icon', () => {
+          app.handleEvent(new CustomEvent('drag-move', { detail: {
+            clientX: 0,
+            clientY: 500
+          }}));
+
+          assert.isTrue(app.uninstall.classList.contains('active'));
+          assert.isFalse(app.edit.classList.contains('active'));
+        });
+
+        test('Hovering at the bottom-right activates the edit icon', () => {
+          app.handleEvent(new CustomEvent('drag-move', { detail: {
+            clientX: 500,
+            clientY: 500
+          }}));
+
+          assert.isFalse(app.uninstall.classList.contains('active'));
+          assert.isTrue(app.edit.classList.contains('active'));
+        });
+
+        test('Hover directions are mirrored in RTL', () => {
+          Object.defineProperty(document.documentElement, 'dir', {
+            value: 'rtl',
+            configurable: true
+          });
+
+          app.handleEvent(new CustomEvent('drag-move', { detail: {
+            clientX: 0,
+            clientY: 500
+          }}));
+
+          assert.isFalse(app.uninstall.classList.contains('active'));
+          assert.isTrue(app.edit.classList.contains('active'));
+
+          app.handleEvent(new CustomEvent('drag-move', { detail: {
+            clientX: 500,
+            clientY: 500
+          }}));
+
+          assert.isTrue(app.uninstall.classList.contains('active'));
+          assert.isFalse(app.edit.classList.contains('active'));
+
+          delete document.documentElement.dir;
+        });
+
+        test('Auto-scroll is activated at the top of the screen', () => {
+          app.handleEvent(new CustomEvent('drag-move', { detail: {
+            clientX: 0,
+            clientY: 0
+          }}));
+
+          assert.isTrue(setIntervalStub.called);
+        });
+
+        test('Auto-scroll is activated at the bottom of the screen', () => {
+          app.handleEvent(new CustomEvent('drag-move', { detail: {
+            clientX: 0,
+            clientY: 500
+          }}));
+
+          assert.isTrue(setIntervalStub.called);
+        });
+
+        test('Auto-scroll is cancelled when not at the top or bottom', () => {
+          app.autoScrollInterval = 'abc';
+          app.icons.getChildFromPoint = () => { return null; };
+
+          app.handleEvent(new CustomEvent('drag-move', { detail: {
+            clientX: 0,
+            clientY: 250
+          }}));
+
+          assert.isTrue(clearIntervalStub.calledWith('abc'));
+          delete app.icons.getChildFromPoint;
+        });
+      });
+
       suite('drag-finish', () => {
         test('auto-scroll interval should be cancelled', () => {
           var clearIntervalStub = sinon.stub(window, 'clearInterval');

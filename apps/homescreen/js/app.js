@@ -800,11 +800,12 @@ const SETTINGS_VERSION = 0;
         if (this.draggingRemovable &&
             e.detail.clientY > window.innerHeight - DELETE_DISTANCE) {
           // User is dragging in the bottom toolbar (delete/edit) area
+          var isRTL = document.documentElement.dir === 'rtl';
           if (this.draggingEditable &&
               e.detail.clientX >= window.innerWidth / 2) {
-            inEdit = true;
+            isRTL ? inDelete = true : inEdit = true;
           } else {
-            inDelete = true;
+            isRTL ? inEdit = true : inDelete = true;
           }
         }
 
