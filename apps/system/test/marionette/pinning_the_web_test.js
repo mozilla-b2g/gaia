@@ -5,7 +5,6 @@ var Rocketbar = require('./lib/rocketbar');
 var PinTheWeb = require('./lib/pinning_the_web');
 var assert = require('assert');
 
-
 marionette('Pinning the Web', function() {
 
   var client = marionette.client({
@@ -98,6 +97,38 @@ marionette('Pinning the Web', function() {
     var popupChrome = client.findElement('.appWindow.popupWindow.active');
     var classes = popupChrome.getAttribute('class');
     assert(classes.indexOf('collapsible') < 0);
+  });
+
+  suite.skip('Unpin site', function() {
+    var url, lastIconId;
+
+    function lastIconMatches(id) {
+      system.tapHome();
+      client.switchToFrame(system.getHomescreenIframe());
+      client.waitFor(function() {
+        var ids = home.getIconIdentifiers();
+        return id == ids[ids.length - 1];
+      });
+    }
+
+    setup(function() {
+      system.tapHome();
+      client.switchToFrame(system.getHomescreenIframe());
+      client.waitFor(function() {
+        var ids = home.getIconIdentifiers();
+        lastIconId = ids[ids.length - 1];
+        return lastIconId;
+      });
+      client.switchToFrame();
+      url = server.url('sample.html');
+      pinTheWeb.openAndPinSite(url);
+      lastIconMatches(url);
+    });
+
+    test('Unpin site', function() {
+      pinTheWeb.openAndUnpinSite(url);
+      lastIconMatches(lastIconId);
+    });
   });
 
 });

@@ -3227,7 +3227,7 @@ suite('system/AppWindow', function() {
 
   suite('inScope', function() {
     test('Same domain is in the scope', function() {
-      var scope = 'domain.com';
+      var scope = 'http://domain.com';
       var appConfig = {
         url: 'http://domain.com/test'
       };
@@ -3237,7 +3237,7 @@ suite('system/AppWindow', function() {
     });
 
     test('Scope with paths are allowed', function() {
-      var scope = 'domain.com/test';
+      var scope = 'http://domain.com/test';
       var appConfig = {
         url: 'http://domain.com/test/page1'
       };
@@ -3247,7 +3247,7 @@ suite('system/AppWindow', function() {
     });
 
     test('Different domain is not in the scope', function() {
-      var scope = 'domain2.com';
+      var scope = 'http://domain2.com';
       var appConfig = {
         url: 'http://domain.com/test'
       };
@@ -3257,7 +3257,17 @@ suite('system/AppWindow', function() {
     });
 
     test('Subdomains are not in the scope', function() {
-      var scope = 'test.domain.com';
+      var scope = 'http://test.domain.com';
+      var appConfig = {
+        url: 'http://domain.com/test'
+      };
+      var app = new AppWindow(appConfig);
+      this.sinon.stub(app, 'isBrowser').returns(true);
+      assert.isFalse(app.inScope(scope));
+    });
+
+    test('Different schemes are not in the scope', function() {
+      var scope = 'https://domain.com';
       var appConfig = {
         url: 'http://domain.com/test'
       };
@@ -3267,7 +3277,7 @@ suite('system/AppWindow', function() {
     });
 
     test('Returns false on non browser windows', function() {
-      var scope = 'domain.com/test';
+      var scope = 'http://domain.com/test';
       var appConfig = {
         url: 'http://domain.com/test/page1'
       };
@@ -3277,7 +3287,7 @@ suite('system/AppWindow', function() {
     });
 
     test('Scope changes on locationchange', function() {
-      var scope = 'test.domain.com';
+      var scope = 'http://test.domain.com';
       var appConfig = {
         url: 'http://domain.com/test'
       };

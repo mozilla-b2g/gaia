@@ -34,11 +34,16 @@ PinningTheWeb.prototype = {
     return this.client.helper.waitForElement(this.Selectors.sitePanelArrow);
   },
 
-  openAndPinSite: function openAndPinSite(url) {
+  _openUrl: function openUrl(url) {
+    // this.system.tapHome();
     this.rocketbar.homescreenFocus();
     this.rocketbar.enterText(url, true);
-    this.system.gotoBrowser(url);
+    this.rocketbar.switchToBrowserFrame(url);
     this.client.switchToFrame();
+  },
+
+  openAndPinSite: function openAndPinSite(url) {
+    this._openUrl(url);
     this.client.scope({ searchTimeout: 100 }).waitFor(function() {
       this.client.switchToFrame();
       try {
@@ -55,10 +60,25 @@ PinningTheWeb.prototype = {
     }.bind(this));
   },
 
+  openAndUnpinSite: function openAndUnpinSite(url) {
+    var client = this.client;
+    var system = this.system;
+    this._openUrl(url);
+    //Twice, one for expanding
+    system.siteIcon.tap();
+    system.siteIcon.tap();
+    client.waitFor(function() {
+      return system.pinButton.displayed();
+    });
+    system.pinButton.tap();
+    client.waitFor(function() {
+      var toast = client.findElement('#screen > gaia-toast');
+      return toast && toast.displayed();
+    });
+  },
+
   openAndPinSiteFromBrowser: function openAndPinSite(url) {
-    this.rocketbar.homescreenFocus();
-    this.rocketbar.enterText(url, true);
-    this.system.gotoBrowser(url);
+    this._openUrl(url);
     this._clickPinContextMenu();
     this.client.waitFor(function() {
       return this.pinDialog.displayed();
@@ -68,9 +88,7 @@ PinningTheWeb.prototype = {
   },
 
   openAndPinPage: function openAndPinSite(url) {
-    this.rocketbar.homescreenFocus();
-    this.rocketbar.enterText(url, true);
-    this.system.gotoBrowser(url);
+    this._openUrl(url);
     this._clickPinContextMenu();
     this.client.waitFor(function() {
       return this.pinDialog.displayed();
