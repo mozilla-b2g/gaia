@@ -58,11 +58,9 @@ PlayerView.prototype.update = function() {
         return;
       }
 
-      Promise.all([
-        document.l10n.formatValue('unknownTitle'),
-        document.l10n.formatValue('unknownArtist'),
-        document.l10n.formatValue('unknownAlbum')
-      ]).then(([unknownTitle, unknownArtist, unknownAlbum]) => {
+      document.l10n.formatValues(
+        'unknownTitle', 'unknownArtist', 'unknownAlbum'
+      ).then(([unknownTitle, unknownArtist, unknownAlbum]) => {
         this.title          = song.metadata.title  || unknownTitle;
         this.artwork.artist = song.metadata.artist || unknownArtist;
         this.artwork.album  = song.metadata.album  || unknownAlbum;

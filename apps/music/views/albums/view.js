@@ -82,10 +82,9 @@ AlbumsView.prototype.getThumbnail = function(filePath) {
 };
 
 AlbumsView.prototype.search = function(query) {
-  return Promise.all([
-    document.l10n.formatValue('unknownAlbum'),
-    document.l10n.formatValue('unknownArtist')
-  ]).then(([unknownAlbum, unknownArtist]) => {
+  return document.l10n.formatValues(
+    'unknownAlbum', 'unknownArtist'
+  ).then(([unknownAlbum, unknownArtist]) => {
     return this.fetch('/api/search/album/' + query)
       .then(response => response.json())
       .then((albums) => {

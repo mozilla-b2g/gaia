@@ -164,21 +164,17 @@ proto.createdCallback = function() {
   this.els.heading.dataset.l10nId = this.getAttribute('heading-l10n-id');
   this.els.message.dataset.l10nId = this.getAttribute('message-l10n-id');
 
-  this.onDOMLocalized = () => {
-    // XXX: Bug 1205799 - view.formatValue errors when called before first
-    // language is resolved
-    document.l10n.ready.then(() => {
-      document.l10n.translateFragment(shadowRoot);
-    });
+  this.onDOMRetranslated = () => {
+    document.l10n.translateFragment(shadowRoot);
   };
 };
 
 proto.attachedCallback = function() {
-  document.addEventListener('DOMLocalized', this.onDOMLocalized);
+  document.addEventListener('DOMRetranslated', this.onDOMRetranslated);
 };
 
 proto.detachedCallback = function() {
-  document.removeEventListener('DOMLocalized', this.onDOMLocalized);
+  document.removeEventListener('DOMRetranslated', this.onDOMRetranslated);
 };
 
 proto.attributeChangedCallback = function(attr, oldVal, newVal) {
@@ -191,11 +187,11 @@ proto.attributeChangedCallback = function(attr, oldVal, newVal) {
       break;
     case 'heading-l10n-id':
       this.els.heading.dataset.l10nId = newVal;
-      this.onDOMLocalized();
+      this.onDOMRetranslated();
       break;
     case 'message-l10n-id':
       this.els.message.dataset.l10nId = newVal;
-      this.onDOMLocalized();
+      this.onDOMRetranslated();
       break;
   }
 };

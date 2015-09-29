@@ -56,7 +56,7 @@ var Database = (function() {
 
   var dbChange = debounce(() => service.broadcast('databaseChange'), 500);
 
-  document.addEventListener('DOMLocalized', dbChange);
+  document.addEventListener('DOMRetranslated', dbChange);
 
   function debounce(fn, ms) {
     var timeout;

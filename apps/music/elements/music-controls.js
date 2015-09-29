@@ -127,21 +127,17 @@ proto.createdCallback = function() {
     }
   });
 
-  this.onDOMLocalized = () => {
-    // XXX: Bug 1205799 - view.formatValue errors when called before first
-    // language is resolved
-    document.l10n.ready.then(() => {
-      document.l10n.translateFragment(shadowRoot);
-    });
+  this.onDOMRetranslated = () => {
+    document.l10n.translateFragment(shadowRoot);
   };
 };
 
 proto.attachedCallback = function() {
-  document.addEventListener('DOMLocalized', this.onDOMLocalized);
+  document.addEventListener('DOMRetranslated', this.onDOMRetranslated);
 };
 
 proto.detachedCallback = function() {
-  document.removeEventListener('DOMLocalized', this.onDOMLocalized);
+  document.removeEventListener('DOMRetranslated', this.onDOMRetranslated);
 };
 
 Object.defineProperty(proto, 'paused', {
@@ -158,7 +154,7 @@ Object.defineProperty(proto, 'paused', {
     this.els.toggle.dataset.icon   = paused ? 'play' : 'pause';
     this.els.toggle.dataset.l10nId = paused ? 'playbackPlay' : 'playbackPause';
 
-    this.onDOMLocalized();
+    this.onDOMRetranslated();
   }
 });
 
