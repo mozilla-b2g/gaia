@@ -54,14 +54,14 @@ module.exports = component.register('gaia-sub-header', {
       font-weight: normal;
 
       color:
-        var(--color-epsilon);
+        var(--title-color);
     }
 
     a,
     button {
       position: relative;
       display: block;
-      padding-right: 16px;
+      -moz-padding-end: 16px;
       font: inherit;
       cursor: pointer;
 
@@ -87,7 +87,7 @@ module.exports = component.register('gaia-sub-header', {
       top: 6px;
       right: 0px;
       border-bottom: 8px solid;
-      border-left: 8px solid transparent;
+      -moz-border-end: 8px solid transparent;
 
       border-bottom-color:
         var(--highlight-color,
