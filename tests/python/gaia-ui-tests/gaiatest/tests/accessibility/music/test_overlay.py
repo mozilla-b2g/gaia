@@ -3,7 +3,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from gaiatest import GaiaTestCase
-from gaiatest.apps.music.app import Music
+from gaiatest.apps.music_oga.app import Music
 
 
 class TestOverlay(GaiaTestCase):

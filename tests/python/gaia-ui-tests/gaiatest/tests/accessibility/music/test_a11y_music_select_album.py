@@ -5,7 +5,7 @@
 from marionette_driver import Wait
 
 from gaiatest import GaiaTestCase
-from gaiatest.apps.music.app import Music
+from gaiatest.apps.music_oga.app import Music
 
 
 class TestAccessibilityMusicSelectAlbum(GaiaTestCase):

@@ -6,7 +6,7 @@ from marionette_driver import expected, By, Wait
 from marionette_driver.marionette import Actions
 
 from gaiatest.apps.base import Base
-from gaiatest.apps.music.regions.player_view import PlayerView
+from gaiatest.apps.music_oga.regions.player_view import PlayerView
 
 
 class SublistView(Base):
