@@ -7,9 +7,7 @@
 
 /*
  * FxModuleServerRequest wraps the functionality exposed by the server,
- * letting our code be shielded against changes in the API of FxA.
- * It also translates the Promises returned by FxAccountsClient to success/error
- * callbacks.
+ * letting our code to be shielded against changes in the API of FxA.
  */
 
 (function(exports) {
@@ -38,8 +36,10 @@
   var FxModuleServerRequest = {
     checkEmail: function fxmsr_checkEmail(email, onsuccess, onerror) {
       _ensureFxaClient(function() {
-        window.parent.FxAccountsClient.queryAccount(email)
-            .then(onsuccess, onerror);
+        window.parent.FxAccountsClient.queryAccount(
+                email,
+                onsuccess,
+                onerror);
       });
     },
     signIn: function fxmsr_signIn(email, password, onsuccess, onerror) {
@@ -58,8 +58,11 @@
       }
 
       _ensureFxaClient(function signIn() {
-        window.parent.FxAccountsClient.signIn(email, password)
-            .then(successHandler, errorHandler);
+        window.parent.FxAccountsClient.signIn(
+                email,
+                password,
+                successHandler,
+                errorHandler);
       });
 
     },
@@ -70,8 +73,11 @@
       }
 
       _ensureFxaClient(function signUp() {
-        window.parent.FxAccountsClient.signUp(email, password)
-            .then(successHandler, onerror);
+         window.parent.FxAccountsClient.signUp(
+                email,
+                password,
+                successHandler,
+                onerror);
       });
     },
     requestPasswordReset:

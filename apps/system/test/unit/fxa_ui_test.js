@@ -80,10 +80,8 @@ suite('system/FxAccountsUI', function() {
     var onerrorReason;
 
     setup(function() {
-      FxAccountsUI.promise = {
-        reject: (reason) => {
-          onerrorReason = reason;
-        }
+      FxAccountsUI.onerrorCb = function(reason) {
+        onerrorReason = reason;
       };
     });
 
@@ -98,7 +96,7 @@ suite('system/FxAccountsUI', function() {
 
       test('onerror should be called on reset with "home" reason', function() {
         assert.equal(onerrorReason, 'DIALOG_CLOSED_BY_USER');
-        assert.isNull(FxAccountsUI.promise);
+        assert.isNull(FxAccountsUI.onerrorCb);
       });
     });
 
@@ -114,7 +112,7 @@ suite('system/FxAccountsUI', function() {
       test('onerror should be called on reset with "holdhome" reason',
         function() {
           assert.equal(onerrorReason, 'DIALOG_CLOSED_BY_USER');
-          assert.isNull(FxAccountsUI.promise);
+          assert.isNull(FxAccountsUI.onerrorCb);
       });
     });
 
@@ -130,7 +128,7 @@ suite('system/FxAccountsUI', function() {
       test('onerror should be called on reset with "whatever" reason',
         function() {
           assert.isNull(onerrorReason);
-          assert.isNull(FxAccountsUI.promise);
+          assert.isNull(FxAccountsUI.onerrorCb);
       });
     });
 

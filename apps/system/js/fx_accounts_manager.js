@@ -55,7 +55,7 @@ var FxAccountsManager = {
   start: function fxa_mgmt_init() {
     // Set up the listener for IAC API connection requests.
     window.addEventListener('iac-fxa-mgmt', this.onPortMessage);
-    // Listen for unsolicited chrome events coming from the implementation of
+    // Listen for unsolicited chrome events coming from the implementation o
     // RP DOM API or the Fx Accounts UI glue.
     window.addEventListener('mozFxAccountsUnsolChromeEvent', this);
   },
@@ -79,44 +79,44 @@ var FxAccountsManager = {
     switch (methodName) {
       case 'getAccount':
       case 'logout':
-        ((methodName) => {
-          LazyLoader.load('js/fx_accounts_client.js').then(() => {
-            FxAccountsClient[methodName]().then(data => {
+        (function(methodName) {
+          LazyLoader.load('js/fx_accounts_client.js', function() {
+            FxAccountsClient[methodName](function(data) {
               self.sendPortMessage({ methodName: methodName, data: data });
-            }, error => {
+            }, function(error) {
               self.sendPortMessage({ methodName: methodName, error: error });
             });
           });
         })(methodName);
         break;
       case 'resendVerificationEmail':
-        ((methodName) => {
+        (function(methodName) {
           var email = event.detail.email;
           if (!email) {
             self.sendPortMessage({ methodName: methodName,
                                    error: 'NO_VALID_EMAIL' });
             return;
           }
-          LazyLoader.load('js/fx_accounts_client.js').then(() => {
-            FxAccountsClient[methodName](email).then(data => {
+          LazyLoader.load('js/fx_accounts_client.js', function() {
+            FxAccountsClient[methodName](email, function(data) {
               self.sendPortMessage({ methodName: methodName, data: data });
-            }, error => {
+            }, function(error) {
               self.sendPortMessage({ methodName: methodName, error: error });
             });
           });
         })(methodName);
         break;
       case 'openFlow':
-        ((methodName) => {
-          FxAccountsUI.login().then(data => {
+        (function(methodName) {
+          FxAccountsUI.login(function(data) {
             self.sendPortMessage({ methodName: methodName, data: data });
-          }, error => {
+          }, function(error) {
             self.sendPortMessage({ methodName: methodName, error: error });
           });
         })(methodName);
         break;
       case 'refreshAuthentication':
-        ((methodName) => {
+        (function(methodName) {
           var email = event.detail.email;
           if (!email) {
             self.sendPortMessage({ methodName: methodName,
@@ -124,9 +124,9 @@ var FxAccountsManager = {
             return;
           }
 
-          FxAccountsUI.refreshAuthentication(email).then(data => {
+          FxAccountsUI.refreshAuthentication(email, function(data) {
             self.sendPortMessage({ methodName: methodName, data: data });
-          }, error => {
+          }, function(error) {
             self.sendPortMessage({ methodName: methodName, error: error });
           });
         })(methodName);
@@ -149,17 +149,17 @@ var FxAccountsManager = {
 
     switch (message.eventName) {
       case 'openFlow':
-        FxAccountsUI.login().then(result => {
+        FxAccountsUI.login(function(result) {
           this._sendContentEvent({
             id: message.id,
             result: result
           });
-        }, error => {
+        }.bind(this), function(error) {
           this._sendContentEvent({
             id: message.id,
             error: error
           });
-        });
+        }.bind(this));
         break;
       case 'refreshAuthentication':
         var email = message.data.email;
@@ -167,17 +167,17 @@ var FxAccountsManager = {
           console.error('No account id specified');
           return;
         }
-        FxAccountsUI.refreshAuthentication(email).then(result => {
+        FxAccountsUI.refreshAuthentication(email, function(result) {
           this._sendContentEvent({
             id: message.id,
             result: result
           });
-        }, error => {
+        }.bind(this), function(error) {
           this._sendContentEvent({
             id: message.id,
             error: error
           });
-        });
+        }.bind(this));
         break;
       case 'onlogin':
       case 'onverified':

@@ -26,20 +26,20 @@ suite('system/FxAccountsClient >', function() {
   var expectedData = 'data';
   var expectedError = 'error';
 
-  var promiseResolved = false;
-  var promiseRejected = false;
+  var successCbCalled = false;
+  var errorCbCalled = false;
 
   var stubAddEventListener;
   var stubRemoveEventListener;
   var stubDispatchEvent;
 
-  function resolve(data) {
-    promiseResolved = true;
+  function successCb(data) {
+    successCbCalled = true;
     result = data;
   }
 
-  function reject(errorMsg) {
-    promiseRejected = true;
+  function errorCb(errorMsg) {
+    errorCbCalled = true;
     error = errorMsg;
   }
 
@@ -73,10 +73,7 @@ suite('system/FxAccountsClient >', function() {
 
   suite('getAccount', function() {
     setup(function() {
-      // This only creates the promise, and does not wait for it to be
-      // resolved or rejected; the sub-suites take care of that part
-      // (same in other setup functions below).
-      FxAccountsClient.getAccount().then(resolve, reject);
+      FxAccountsClient.getAccount(successCb, errorCb);
     });
 
     test('Event dispatched to chrome side', function() {
@@ -91,37 +88,33 @@ suite('system/FxAccountsClient >', function() {
   });
 
   suite('getAccount reply success', function() {
-    setup(function(done) {
+    setup(function() {
       MockEventListener.mozFxAccountsChromeEvent({
         detail: {
           id: MockDispatchedEvents[0].detail.id,
           data: expectedData
         }
       });
-      // Wait for promise to resolve (same in other setup functions below):
-      setTimeout(function() {
-        done();
-      }, 0);
     });
 
     suiteTeardown(function() {
       MockDispatchedEvents = [];
       result = null;
       error = null;
-      promiseResolved = false;
-      promiseRejected = false;
+      successCbCalled = false;
+      errorCbCalled = false;
     });
 
     test('On chrome event', function() {
-      assert.isTrue(promiseResolved);
-      assert.isFalse(promiseRejected);
+      assert.isTrue(successCbCalled);
+      assert.isFalse(errorCbCalled);
       assert.equal(result, expectedData);
     });
   });
 
   suite('getAccount', function() {
     setup(function() {
-      FxAccountsClient.getAccount().then(resolve, reject);
+      FxAccountsClient.getAccount(successCb, errorCb);
     });
 
     test('Event dispatched to chrome side', function() {
@@ -136,36 +129,33 @@ suite('system/FxAccountsClient >', function() {
   });
 
   suite('getAccount reply error', function() {
-    setup(function(done) {
+    setup(function() {
       MockEventListener.mozFxAccountsChromeEvent({
         detail: {
           id: MockDispatchedEvents[0].detail.id,
           error: expectedError
         }
       });
-      // Give eventloop time to do the promise resolution in reaction to this
-      // mock event (same for other setup functions below).
-      setTimeout(done, 0);
     });
 
     suiteTeardown(function() {
       MockDispatchedEvents = [];
       result = null;
       error = null;
-      promiseResolved = false;
-      promiseRejected = false;
+      successCbCalled = false;
+      errorCbCalled = false;
     });
 
     test('On chrome event', function() {
-      assert.isFalse(promiseResolved);
-      assert.isTrue(promiseRejected);
+      assert.isFalse(successCbCalled);
+      assert.isTrue(errorCbCalled);
       assert.equal(error, expectedError);
     });
   });
 
   suite('logout', function() {
     setup(function() {
-      FxAccountsClient.logout().then(resolve, reject);
+      FxAccountsClient.logout(successCb, errorCb);
     });
 
     test('Event dispatched to chrome side', function() {
@@ -185,8 +175,8 @@ suite('system/FxAccountsClient >', function() {
 
   suite('queryAccount/verificationStatus', function() {
     setup(function() {
-      FxAccountsClient.queryAccount('email').then(resolve, reject);
-      FxAccountsClient.verificationStatus('email').then(resolve, reject);
+      FxAccountsClient.queryAccount('email', successCb, errorCb);
+      FxAccountsClient.verificationStatus('email', successCb, errorCb);
     });
 
     test('Event dispatched to chrome side', function() {
@@ -213,8 +203,8 @@ suite('system/FxAccountsClient >', function() {
 
   suite('signIn/signUp', function() {
     setup(function() {
-      FxAccountsClient.signIn('email', 'pass').then(resolve, reject);
-      FxAccountsClient.signUp('email', 'pass').then(resolve, reject);
+      FxAccountsClient.signIn('email', 'pass', successCb, errorCb);
+      FxAccountsClient.signUp('email', 'pass', successCb, errorCb);
     });
 
     test('Event dispatched to chrome side', function() {
@@ -243,7 +233,7 @@ suite('system/FxAccountsClient >', function() {
 
   suite('resendVerificationEmail', function() {
     setup(function() {
-      FxAccountsClient.resendVerificationEmail('email').then(resolve, reject);
+      FxAccountsClient.resendVerificationEmail('email', successCb, errorCb);
     });
 
     test('Event dispatched to chrome side', function() {
@@ -264,7 +254,7 @@ suite('system/FxAccountsClient >', function() {
 
   suite('getKeys', function() {
     setup(function() {
-      FxAccountsClient.getKeys().then(resolve, reject);
+      FxAccountsClient.getKeys(successCb, errorCb);
     });
 
     test('Event dispatched to chrome side', function() {
@@ -279,27 +269,26 @@ suite('system/FxAccountsClient >', function() {
   });
 
   suite('getKeys response', function() {
-    setup(function(done) {
+    setup(function() {
       MockEventListener.mozFxAccountsChromeEvent({
         detail: {
           id: MockDispatchedEvents[0].detail.id,
           data: expectedData
         }
       });
-      setTimeout(done, 0);
     });
 
     suiteTeardown(function() {
       MockDispatchedEvents = [];
       result = null;
       error = null;
-      promiseResolved = false;
-      promiseRejected = false;
+      successCbCalled = false;
+      errorCbCalled = false;
     });
 
     test('On chrome event', function() {
-      assert.isTrue(promiseResolved);
-      assert.isFalse(promiseRejected);
+      assert.isTrue(successCbCalled);
+      assert.isFalse(errorCbCalled);
       assert.equal(result, expectedData);
     });
   });
@@ -309,7 +298,7 @@ suite('system/FxAccountsClient >', function() {
       FxAccountsClient.getAssertion({
         silent: true,
         audience: 'audience'
-      }).then(resolve, reject);
+      }, successCb, errorCb);
     });
 
     teardown(function() {
@@ -331,7 +320,7 @@ suite('system/FxAccountsClient >', function() {
 
   suite('getAssertion - no options', function() {
     setup(function() {
-      FxAccountsClient.getAssertion(null).then(resolve, reject);
+      FxAccountsClient.getAssertion(null, successCb, errorCb);
     });
 
     teardown(function() {
@@ -352,28 +341,27 @@ suite('system/FxAccountsClient >', function() {
   });
 
   suite('getAssertion response', function() {
-    setup(function(done) {
-      FxAccountsClient.getAssertion(null).then(resolve, reject);
+    setup(function() {
+      FxAccountsClient.getAssertion(null, successCb, errorCb);
       MockEventListener.mozFxAccountsChromeEvent({
         detail: {
           id: MockDispatchedEvents[0].detail.id,
           data: expectedData
         }
       });
-      setTimeout(done, 0);
     });
 
     suiteTeardown(function() {
       MockDispatchedEvents = [];
       result = null;
       error = null;
-      promiseResolved = false;
-      promiseRejected = false;
+      successCbCalled = false;
+      errorCbCalled = false;
     });
 
     test('On chrome event', function() {
-      assert.isTrue(promiseResolved);
-      assert.isFalse(promiseRejected);
+      assert.isTrue(successCbCalled);
+      assert.isFalse(errorCbCalled);
       assert.equal(result, expectedData);
     });
   });

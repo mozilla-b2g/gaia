@@ -14,26 +14,22 @@ var MockFxAccountsUI = {
     this._successMsg = null;
   },
 
-  _checkError: function(resolve, reject) {
+  _triggerCallback: function(successCb, errorCb) {
     if (this._errorMsg) {
-      reject(this._errorMsg);
+      errorCb(this._errorMsg);
       return;
     }
-    resolve(this._successMsg);
+    successCb(this._successMsg);
   },
 
-  login: function() {
-    return new Promise((resolve, reject) => {
-      this._call = 'login';
-      this._checkError(resolve, reject);
-    });
+  login: function(successCb, errorCb) {
+    this._call = 'login';
+    this._triggerCallback(successCb, errorCb);
   },
 
-  refreshAuthentication: function(email) {
-    return new Promise((resolve, reject) => {
-      this._call = 'refreshAuthentication';
-      this._email = 'dummy@domain.org';
-      this._checkError(resolve, reject);
-    });
+  refreshAuthentication: function(email, successCb, errorCb) {
+    this._call = 'refreshAuthentication';
+    this._email = 'dummy@domain.org';
+    this._triggerCallback(successCb, errorCb);
   }
 };

@@ -8,7 +8,8 @@
     dialog: null,
     panel: null,
     iframe: null,
-    promise: null,
+    onerrorCb: null,
+    onsuccessCb: null,
 
     start: function() {
       var dialogOptions = {
@@ -36,18 +37,26 @@
     },
 
     // Logout flow.
-    logout: function fxa_ui_logout() {
-      return this.loadFlow('logout');
+    logout: function fxa_ui_logout(onsuccess, onerror) {
+      this.onsuccessCb = onsuccess;
+      this.onerrorCb = onerror;
+      this.loadFlow('logout');
     },
 
     // Delete flow.
-    delete: function fxa_ui_delete() {
-      return this.loadFlow('delete');
+    delete: function fxa_ui_delete(onsuccess, onerror) {
+      this.onsuccessCb = onsuccess;
+      this.onerrorCb = onerror;
+      this.loadFlow('delete');
     },
 
     // Refresh authentication flow.
-    refreshAuthentication: function fxa_ui_refreshAuth(email) {
-      return this.loadFlow('refresh_auth', ['email=' + email]);
+    refreshAuthentication: function fxa_ui_refreshAuth(email,
+                                                       onsuccess,
+                                                       onerror) {
+      this.onsuccessCb = onsuccess;
+      this.onerrorCb = onerror;
+      this.loadFlow('refresh_auth', ['email=' + email]);
     },
 
     // Method which close the dialog.
@@ -67,9 +76,10 @@
       this.panel.removeChild(this.iframe);
       this.dialog.browser = null;
       if (reason == 'home' || reason == 'holdhome') {
-        this.promise && this.promise.reject('DIALOG_CLOSED_BY_USER');
+        this.onerrorCb && this.onerrorCb('DIALOG_CLOSED_BY_USER');
       }
-      this.promise = null;
+      this.onerrorCb = null;
+      this.onsuccessCb = null;
     },
 
     // Method for loading the iframe with the flow required.
@@ -86,20 +96,17 @@
       this.panel.appendChild(this.iframe);
       this.dialog.browser = { element: this.iframe };
       this.dialog.show();
-      return new Promise((resolve, reject) => {
-        this.promise = { resolve, reject };
-      });
     },
 
     // Method for sending the result of the FxAccounts flow to the caller app.
     done: function fxa_ui_done(data) {
       // Proccess data retrieved.
-      this.promise && this.promise.resolve(data);
+      this.onsuccessCb && this.onsuccessCb(data);
       this.close();
     },
 
     error: function fxa_ui_error(error) {
-      this.promise && this.promise.reject(error);
+      this.onerrorCb && this.onerrorCb(error);
       this.close();
     }
   };

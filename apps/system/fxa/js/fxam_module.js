@@ -41,7 +41,7 @@ var FxaModule = (function() {
     },
 
     showErrorResponse: function fxam_showErrorResponse(response) {
-      // special case: if a network error occurs during FTU,
+      // special case: if a network error occurs during FTE,
       // we show a slightly different error message
       var resp = response;
       if (window.location.search.indexOf('isftu') != -1 &&
@@ -65,3 +65,4 @@ var FxaModule = (function() {
   return Module;
 
 }());
+

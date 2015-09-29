@@ -51,15 +51,14 @@ suite('system/FxAccountManager >', function() {
     });
   });
 
-  suite('On getAccount port message, success', function() {
-    setup(function(done) {
+  suite('On getAccount port message, successCb', function() {
+    setup(function() {
       FxAccountsClient._successMsg = 'success';
       FxAccountsManager.onPortMessage({
         'detail': {
           'name': 'getAccount'
         }
       });
-      setTimeout(done, 0);
     });
 
     teardown(function() {
@@ -84,7 +83,7 @@ suite('system/FxAccountManager >', function() {
     });
   });
 
-  suite('On getAccount port message, error', function() {
+  suite('On getAccount port message, errorCb', function() {
     setup(function() {
       FxAccountsClient._errorMsg = 'error';
       FxAccountsManager.onPortMessage({
@@ -116,7 +115,7 @@ suite('system/FxAccountManager >', function() {
     });
   });
 
-  suite('On logout port message, success', function() {
+  suite('On logout port message, successCb', function() {
     setup(function() {
       FxAccountsClient._successMsg = 'success';
       FxAccountsManager.onPortMessage({
@@ -148,7 +147,7 @@ suite('system/FxAccountManager >', function() {
     });
   });
 
-  suite('On logout port message, error', function() {
+  suite('On logout port message, errorCb', function() {
     setup(function() {
       FxAccountsClient._errorMsg = 'error';
       FxAccountsManager.onPortMessage({
@@ -180,7 +179,7 @@ suite('system/FxAccountManager >', function() {
     });
   });
 
-  suite('On openFlow port message, success', function() {
+  suite('On openFlow port message, successCb', function() {
     setup(function() {
       FxAccountsUI._successMsg = 'success';
       FxAccountsManager.onPortMessage({
@@ -212,7 +211,7 @@ suite('system/FxAccountManager >', function() {
     });
   });
 
-  suite('On openFlow port message, error', function() {
+  suite('On openFlow port message, errorCb', function() {
     setup(function() {
       FxAccountsUI._errorMsg = 'error';
       FxAccountsManager.onPortMessage({
@@ -247,7 +246,7 @@ suite('system/FxAccountManager >', function() {
   suite('On openFlow mozFxAccountsRPChromeEvent', function() {
     var id = 123;
     var dispatchEventStub;
-    setup(function(done) {
+    setup(function() {
       dispatchEventStub = this.sinon.stub(window, 'dispatchEvent');
 
       FxAccountsUI._successMsg = 'success';
@@ -257,7 +256,6 @@ suite('system/FxAccountManager >', function() {
           'eventName': 'openFlow'
         }
       });
-      setTimeout(done, 0);
     });
 
     teardown(function() {
@@ -274,7 +272,7 @@ suite('system/FxAccountManager >', function() {
     });
   });
 
-  suite('On refreshAuthentication port message, success', function() {
+  suite('On refreshAuthentication port message, successCb', function() {
     setup(function() {
       FxAccountsUI._successMsg = 'success';
       FxAccountsManager.onPortMessage({
@@ -308,7 +306,7 @@ suite('system/FxAccountManager >', function() {
     });
   });
 
-  suite('On refreshAuthentication port message, error', function() {
+  suite('On refreshAuthentication port message, errorCb', function() {
     setup(function() {
       FxAccountsUI._errorMsg = 'error';
       FxAccountsManager.onPortMessage({
@@ -345,7 +343,7 @@ suite('system/FxAccountManager >', function() {
   suite('On refreshAuthentication mozFxAccountsRPChromeEvent', function() {
     var id = 123;
     var dispatchEventStub;
-    setup(function(done) {
+    setup(function() {
       dispatchEventStub = this.sinon.stub(window, 'dispatchEvent');
 
       FxAccountsUI._successMsg = 'success';
@@ -358,7 +356,6 @@ suite('system/FxAccountManager >', function() {
           }
         }
       });
-      setTimeout(done, 0);
     });
 
     teardown(function() {
@@ -376,7 +373,7 @@ suite('system/FxAccountManager >', function() {
     });
   });
 
-  suite('On resendVerificationEmail port message, success', function() {
+  suite('On resendVerificationEmail port message, successCb', function() {
     setup(function() {
       FxAccountsClient._successMsg = 'success';
       FxAccountsManager.onPortMessage({
@@ -410,7 +407,7 @@ suite('system/FxAccountManager >', function() {
     });
   });
 
-  suite('On resendVerificationEmail port message, error', function() {
+  suite('On resendVerificationEmail port message, errorCb', function() {
     setup(function() {
       FxAccountsClient._errorMsg = 'error';
       FxAccountsManager.onPortMessage({

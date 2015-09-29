@@ -14,32 +14,37 @@ var MockFxAccountsClient = {
     this._email = null;
   },
 
-  _checkError: function() {
+  _triggerCallback: function(successCb, errorCb) {
     if (this._errorMsg) {
-      return Promise.reject(this._errorMsg);
+      errorCb(this._errorMsg);
+      return;
     }
-    return Promise.resolve(this._successMsg);
+    successCb(this._successMsg);
   },
 
-  getAccount: function() {
+  getAccount: function(successCb, errorCb) {
     this._call = 'getAccount';
-    return this._checkError();
+    this._triggerCallback(successCb, errorCb);
   },
 
-  getAssertion: function(options) {
+  getAssertion: function(options, successCb, errorCb) {
     this._call = 'getAssertion';
-    this._successMessage = Date.now(); // fake assertion
-    return this._checkError();
+    if (this._errorMsg) {
+      errorCb(this._errorMsg);
+      return;
+    }
+    successCb(Date.now() /* fake assertion */);
   },
 
-  resendVerificationEmail: function(email) {
+  resendVerificationEmail: function(email, successCb, errorCb) {
     this._email = email;
     this._call = 'resendVerificationEmail';
-    return this._checkError();
+    this._triggerCallback(successCb, errorCb);
   },
 
-  logout: function() {
+  logout: function(successCb, errorCb) {
     this._call = 'logout';
-    return this._checkError();
+    this._triggerCallback(successCb, errorCb);
   }
 };
+
