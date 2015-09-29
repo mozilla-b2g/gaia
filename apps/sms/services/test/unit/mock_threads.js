@@ -18,7 +18,7 @@ MockThreads.Messages = {
 };
 
 function MockThread(thread) {
-  Object.assign(this, thread);
+  Object.assign(this, { messages: new Map() }, thread);
 }
 
 MockThread.prototype.getDraft = () => null;

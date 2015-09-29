@@ -2,15 +2,20 @@
 
 /* global module */
 var InboxAccessor = require('./views/inbox/accessors');
-var ComposerAccessor = require('./views/new-message/accessors');
+var NewMessageAccessor = require('./views/new-message/accessors');
 var NewMessageView = require('./views/new-message/view');
 var ConversationAccessor = require('./views/conversation/accessors');
+var MenuAccessor = require('./views/shared/menu_accessors');
+var ComposerAccessor = require('./views/shared/composer_accessors');
+var ReportAccessor = require('./views/report/accessors');
+var ParticipantsAccessor = require('./views/participants/accessors');
 
 (function(module) {
 
   var ORIGIN_URL = 'app://sms.gaiamobile.org';
   var MANIFEST_URL= ORIGIN_URL + '/manifest.webapp';
 
+  // TODO Move these constants to marionette, see bug 1207516
   var Chars = {
     ENTER: '\ue007',
     BACKSPACE: '\ue003'
@@ -19,32 +24,17 @@ var ConversationAccessor = require('./views/conversation/accessors');
   var SELECTORS = Object.freeze({
     main: '#main-wrapper',
 
-    optionMenu: 'body > form[data-type=action] menu',
-    systemMenu: 'form[data-z-index-level="action-menu"]',
-    contactPromptMenu: '.contact-prompt menu',
-
     Message: {
       content: '.message-content > p:first-child',
       vcardAttachment: '[data-attachment-type="vcard"]',
       fileName: '.file-name'
-    },
-
-    Report: {
-      main: '.panel-ReportView',
-      header: '#information-report-header',
-      headerActionButton: '.action-button'
-    },
-
-    Participants: {
-      main: '.panel-GroupView',
-      header: '#information-group-header',
-      headerActionButton: '.action-button'
     }
   });
 
   module.exports = {
     create: function(client) {
       var actions = client.loader.getActions();
+      var newMessageView = new NewMessageView(client);
 
       return {
         Selectors: SELECTORS,
@@ -53,55 +43,17 @@ var ConversationAccessor = require('./views/conversation/accessors');
 
         Composer: new ComposerAccessor(client),
 
+        NewMessage: new NewMessageAccessor(client),
+
         Conversation: new ConversationAccessor(client),
 
         Inbox: new InboxAccessor(client),
 
-        Report: {
-          get main() {
-            return client.findElement(SELECTORS.Report.main);
-          },
+        Menu: new MenuAccessor(client),
 
-          get header() {
-            return client.findElement(SELECTORS.Report.header);
-          },
+        Report: new ReportAccessor(client),
 
-          get headerActionButton() {
-            return client.findElement(
-              SELECTORS.Report.headerActionButton
-            );
-          }
-        },
-
-        Participants: {
-          get main() {
-            return client.findElement(SELECTORS.Participants.main);
-          },
-
-          get header() {
-            return client.findElement(SELECTORS.Participants.header);
-          },
-
-          get headerActionButton() {
-            return client.findElement(
-              SELECTORS.Participants.headerActionButton
-            );
-          }
-        },
-
-        get systemMenu() {
-          // Switch to the system app first.
-          client.switchToFrame();
-          return client.helper.waitForElement(SELECTORS.systemMenu);
-        },
-
-        get optionMenu() {
-          return client.helper.waitForElement(SELECTORS.optionMenu);
-        },
-
-        get contactPromptMenu() {
-          return client.helper.waitForElement(SELECTORS.contactPromptMenu);
-        },
+        Participants: new ParticipantsAccessor(client),
 
         launch: function() {
           client.switchToFrame();
@@ -156,34 +108,8 @@ var ConversationAccessor = require('./views/conversation/accessors');
           );
         },
 
-        selectAppMenuOption: function(text) {
-          this.selectMenuOption(this.optionMenu, text);
-        },
-
-        selectSystemMenuOption: function(text) {
-          this.selectMenuOption(this.systemMenu, text);
-        },
-
-        selectContactPromptMenuOption: function(text) {
-          this.selectMenuOption(this.contactPromptMenu, text);
-        },
-
-        selectMenuOption: function(menuElement, text) {
-          var menuOptions = menuElement.findElements('button');
-          for (var i = 0; i < menuOptions.length; i++) {
-            var menuOption = menuOptions[i];
-            if (menuOption.text().toLowerCase() === text.toLowerCase()) {
-              // XXX: Workaround util http://bugzil.la/912873 is fixed.
-              // Wait for 750ms to let the element be clickable
-              client.helper.wait(750);
-              menuOption.tap();
-              break;
-            }
-          }
-        },
-
         addRecipient: function(recipient) {
-          new NewMessageView(client).addNewRecipient(recipient);
+          newMessageView.addNewRecipient(recipient);
         },
 
         getRecipient: function(number) {
@@ -193,28 +119,19 @@ var ConversationAccessor = require('./views/conversation/accessors');
         },
 
         clearRecipient: function() {
-          this.Composer.recipientsInput.clear();
+          newMessageView.clearRecipients();
         },
 
         send: function() {
-          // Once send button is enabled, tap on it
-          client.waitFor(function() {
-            return this.Composer.sendButton.enabled();
-          }.bind(this));
-          this.Composer.sendButton.tap();
-
-          // Wait when after send we're redirected to Conversation panel
-          client.helper.waitForElement(this.Conversation.message);
+          newMessageView.send();
         },
 
         showSubject: function() {
-          this.Composer.showOptions();
-          this.selectAppMenuOption('Add subject');
+          newMessageView.showSubject();
         },
 
         hideSubject: function() {
-          this.Composer.showOptions();
-          this.selectAppMenuOption('Remove subject');
+          newMessageView.hideSubject();
         },
 
         contextMenu: function(element) {
@@ -222,8 +139,8 @@ var ConversationAccessor = require('./views/conversation/accessors');
         },
 
         performHeaderAction: function() {
-          client.switchToShadowRoot(this.Composer.header);
-          this.Composer.headerActionButton.tap();
+          client.switchToShadowRoot(this.NewMessage.header);
+          this.NewMessage.headerActionButton.tap();
           client.switchToShadowRoot();
         },
 

@@ -59,55 +59,45 @@ marionette('Messages Composer', function() {
   });
 
   suite('Preserve message input while navigating', function() {
-    var composer, inbox, conversation;
+    var inboxView, conversationView;
     var message = 'test message';
 
-    function waitForInbox() {
-      client.helper.waitForElement(inbox.mmsConversation);
-    }
-
-    function createMMSConversation() {
-      inbox.navigateToComposer();
-      messagesApp.addRecipient('a@b.c');
-      messagesApp.addRecipient('s@p.c');
-      composer.messageInput.sendKeys('MMS thread.');
-      messagesApp.send();
-    }
-
     setup(function() {
-      conversation = messagesApp.Conversation;
-      composer = messagesApp.Composer;
-      inbox = messagesApp.Inbox;
-
       messagesApp.launch();
+
       // Set empty stores.
       storage.setMessagesStorage();
       storage.setContactsStorage();
 
-      createMMSConversation();
-      messagesApp.performHeaderAction();
-      waitForInbox();
-      inbox.mmsConversation.tap();
+      inboxView = new InboxView(client);
 
-      composer.messageInput.tap();
-      composer.messageInput.sendKeys(message);
+      var newMessageView = inboxView.createNewMessage();
+      newMessageView.addNewRecipient('a@b.c');
+      newMessageView.addNewRecipient('s@p.c');
+      newMessageView.typeMessage('MMS thread.');
+
+      conversationView = newMessageView.send();
+      conversationView.typeMessage(message);
     });
 
     test('Message input is preserved when navigating to and from group-view',
     function() {
-      conversation.headerTitle.tap();
-      client.helper.waitForElement(messagesApp.Participants.main);
-      messagesApp.performGroupHeaderAction();
-      assert.equal(composer.messageInput.text(), message);
+      var participantsView = conversationView.openParticipants();
+
+      participantsView.back();
+
+      assert.equal(conversationView.messageText, message);
     });
 
     test('Message input is preserved when navigating to and from ' +
     'message-report', function() {
-      messagesApp.contextMenu(conversation.message);
-      messagesApp.selectAppMenuOption('View message report');
-      client.helper.waitForElement(messagesApp.Report.main);
-      messagesApp.performReportHeaderAction();
-      assert.equal(composer.messageInput.text(), message);
+      var reportView = conversationView.openReport(
+        conversationView.messages[0].id
+      );
+
+      reportView.back();
+
+      assert.equal(conversationView.messageText, message);
     });
   });
 
@@ -226,7 +216,7 @@ marionette('Messages Composer', function() {
         return composer.attachButton.enabled();
       }.bind(this));
       composer.attachButton.tap();
-      messagesApp.selectSystemMenuOption('Messages Activity Caller');
+      messagesApp.Menu.selectSystemMenuOption('Messages Activity Caller');
 
       activityCallerApp.switchTo();
       activityCallerApp.pickImage();
@@ -257,7 +247,7 @@ marionette('Messages Composer', function() {
       // converted to SMS and we should show actual available char counter
       composer.messageInput.sendKeys('ef');
 
-      composer.attachment.scriptWith(function(el) {
+      composer.attachments[0].scriptWith(function(el) {
         el.scrollIntoView(false);
       });
 
@@ -265,8 +255,8 @@ marionette('Messages Composer', function() {
       // "Bug 1046706 - "tap" does not find the element after scrolling in APZC"
       client.helper.wait(600);
 
-      composer.attachment.tap();
-      messagesApp.selectAppMenuOption('Remove image');
+      composer.attachments[0].tap();
+      messagesApp.Menu.selectAppMenuOption('Remove image');
 
       client.helper.waitForElementToDisappear(composer.mmsLabel);
       client.helper.waitForElement(composer.charCounter);

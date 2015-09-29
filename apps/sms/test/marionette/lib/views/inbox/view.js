@@ -11,28 +11,56 @@ function InboxView(client) {
 
 InboxView.prototype = {
   get conversations() {
-    return this.accessors.conversations.map(function(conversation) {
-      return {
-        lastMessageType: conversation.getAttribute('data-last-message-type'),
-        title: this.accessors.getConversationTitle(conversation).text()
-      };
-    }, this);
+    return this.accessors.conversations.reduce(function(list, conversation) {
+      // It's workaround for the case when conversation node reference is stale,
+      // so when we try to access MarionetteElement from the node that's not
+      // attached to the dom we'll get an exception.
+      try {
+        var bodyText = conversation.findElement('.body-text');
+        list.push({
+          id: +conversation.getAttribute('data-thread-id'),
+          lastMessageType: conversation.getAttribute('data-last-message-type'),
+          title: this.accessors.getConversationTitle(conversation).text(),
+          bodyText: bodyText.displayed() ? bodyText.text() : '',
+          isDraft: !!conversation.getAttribute('data-draft-id'),
+          hasDraft: conversation.getAttribute('class').indexOf('draft') !== -1
+        });
+      } catch(e) {
+        console.error('Conversation node is not available', e);
+      }
+
+      return list;
+    }.bind(this), []);
   },
 
-  goToFirstThread: function() {
-    this.accessors.firstConversation.tap();
-    var ConversationView = require('../conversation/view');
-    var conversation = new ConversationView(this.client);
-    conversation.accessors.waitToAppear();
-    return conversation;
+  goToConversation: function(conversationId) {
+    var conversation = this.accessors.findConversation(conversationId);
+
+    conversation.tap();
+
+    return !!conversation.getAttribute('data-draft-id') ?
+      this._createNewMessageView() :
+      this._createConversationView();
   },
 
   createNewMessage: function() {
     this.accessors.createNewMessageButton.tap();
+
+    return this._createNewMessageView();
+  },
+
+  _createNewMessageView: function() {
     var NewMessageView = require('../new-message/view');
-    var newMessage = new NewMessageView(this.client);
-    newMessage.accessors.waitToAppear();
-    return newMessage;
+    var newMessageView = new NewMessageView(this.client);
+    newMessageView.accessors.waitToAppear();
+    return newMessageView;
+  },
+
+  _createConversationView: function() {
+    var ConversationView = require('../conversation/view');
+    var conversationView = new ConversationView(this.client);
+    conversationView.accessors.waitToAppear();
+    return conversationView;
   }
 };
 
