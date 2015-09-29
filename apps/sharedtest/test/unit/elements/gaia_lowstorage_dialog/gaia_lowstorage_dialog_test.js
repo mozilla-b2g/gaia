@@ -10,7 +10,7 @@ suite('<gaia-lowstorage-dialog>', function() {
 
   setup(function() {
     this.sinon.stub(navigator.mozL10n, 'translateFragment');
-    this.sinon.stub(navigator.mozL10n, 'ready');
+    this.sinon.stub(navigator.mozL10n, 'once');
     window.MozActivity = sinon.stub();
 
     container = document.createElement('div');
@@ -30,12 +30,17 @@ suite('<gaia-lowstorage-dialog>', function() {
   });
 
   test('The shadow DOM is properly localized', function() {
-    navigator.mozL10n.ready.yield();
+    navigator.mozL10n.once.yield();
     sinon.assert.calledOnce(navigator.mozL10n.translateFragment);
     sinon.assert.calledWith(
       navigator.mozL10n.translateFragment, element.shadowRoot
     );
-    navigator.mozL10n.ready.yield();
+
+    window.dispatchEvent(new CustomEvent('localized'));
+    sinon.assert.calledTwice(navigator.mozL10n.translateFragment);
+
+    element.remove();
+    window.dispatchEvent(new CustomEvent('localized'));
     sinon.assert.calledTwice(navigator.mozL10n.translateFragment);
   });
 
@@ -57,13 +62,17 @@ suite('<gaia-lowstorage-dialog>', function() {
     assert.isFalse(confirm.hasAttribute('hidden'));
   });
 
-  test('Starts the right activity when clicking on `learn more`', function() {
-    var learnmore = element.shadowRoot.querySelector('button');
-    learnmore.click();
+  test('Starts the right activity when clicking on `Learn More`', function() {
+    var learnmore = element.shadowRoot.querySelector('.learnmore-link');
+    var clickEvt = new MouseEvent('click', { bubbles: true, cancelable: true });
+    var canceled = !learnmore.dispatchEvent(clickEvt);
+
     sinon.assert.calledWith(window.MozActivity, {
       name: 'configure',
       data: { section: 'applicationStorage' }
     });
+
+    assert.isTrue(canceled, 'The event is canceled.');
   });
 
 });

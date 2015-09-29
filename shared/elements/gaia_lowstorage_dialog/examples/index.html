@@ -7,6 +7,7 @@
   <!-- Localization -->
   <meta name="defaultLanguage" content="en-US">
   <meta name="availableLanguages" content="en-US">
+  <link rel="localization" href="../locales/gaia_lowstorage_dialog.{locale}.properties">
   <link rel="localization" href="locales/example.{locale}.properties">
 
   <style type="text/css">
@@ -42,6 +43,10 @@
   var confirm = document.querySelector('gaia-lowstorage-dialog');
   confirm.addEventListener('confirm', function() {
     confirm.setAttribute('hidden', '');
+  });
+
+  confirm.addEventListener('learnmore', function() {
+    console.log('Started the "learnmore" activity');
   });
 
   var button = document.querySelector('button.display-button');

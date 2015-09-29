@@ -2,10 +2,18 @@
 /* global ComponentUtils, MozActivity */
 
 /**
- * The gaia-confirm component displays a dialog in which the user has a
- * choice to confirm or cancel the action. It may be displayed along with a
- * title, description, and image. Buttons may also be configured.
+ * Fired when the user pressed the OK button.
+ * @event GaiaLowstorageDialog#confirm
+ *
+ * Fired when we fire the "Learn More" activity.
+ * @event GaiaLowstorageDialog#learnmore
+ */
+/**
+ * The gaia-lowstorage-dialog component displays a dialog in which the user has
+ * information about the "low storage" device state.
+ *
  * @requires GaiaButtons
+ * @requires GaiaConfirm
  */
 window.GaiaLowstorageDialog = (function(win) {
   // Extend from the HTMLElement prototype
@@ -14,17 +22,6 @@ window.GaiaLowstorageDialog = (function(win) {
   // Allow baseurl to be overridden (used for demo page)
   var baseurl = window.GaiaLowstorageDialogBaseurl ||
     '/shared/elements/gaia_lowstorage_dialog/';
-
-  function learnmore() {
-    var activity = new MozActivity({
-      name: 'configure',
-      data: {
-        section: 'applicationStorage'
-      }
-    });
-
-    return Promise.resolve(activity);
-  }
 
   /**
    * Localize the component manually as l10n attributes are not supported
@@ -37,20 +34,48 @@ window.GaiaLowstorageDialog = (function(win) {
   proto.createdCallback = function() {
     var shadow = this.createShadowRoot();
 
+    /* We need to import the template content into the current document so that
+     * any Custom Elements are properly recognized and instanciated. */
     var node = document.importNode(template.content, true);
     shadow.appendChild(node);
     ComponentUtils.style.call(this, baseurl);
 
-    navigator.mozL10n.ready(this._localizeShadowDom.bind(this));
-
-    var learnmoreLink = shadow.querySelector('.learnmore-button');
-    learnmoreLink.addEventListener('click', learnmore);
+    var learnmoreLink = shadow.querySelector('.learnmore-link');
+    learnmoreLink.addEventListener('click', this._learnmore.bind(this));
 
     var confirm = this.confirm = shadow.querySelector('gaia-confirm');
     confirm.addEventListener('confirm', () => {
       this.dispatchEvent(new CustomEvent('confirm'));
     });
     this._mirrorHiddenAttribute();
+
+    /* will be used in attachedCallback and detachedCallback */
+    this._localizeShadowDom = this._localizeShadowDom.bind(this);
+  };
+
+  proto.attachedCallback = function() {
+    navigator.mozL10n.once(this._localizeShadowDom);
+    window.addEventListener('localized', this._localizeShadowDom);
+  };
+
+  proto.detachedCallback = function() {
+    window.removeEventListener('localized', this._localizeShadowDom);
+  };
+
+  proto._learnmore = function(e) {
+    e.preventDefault();
+
+    if (window.MozActivity) {
+      this.dispatchEvent(new CustomEvent('learnmore'));
+
+      /* jshint nonew: false */
+      new MozActivity({
+        name: 'configure',
+        data: {
+          section: 'applicationStorage'
+        }
+      });
+    }
   };
 
   proto._mirrorHiddenAttribute = function() {
@@ -61,7 +86,7 @@ window.GaiaLowstorageDialog = (function(win) {
     }
   };
 
-  proto.attributeChangedCallback = function(name, _, newVal) {
+  proto.attributeChangedCallback = function(name) {
     if (name !== 'hidden') {
       return;
     }
@@ -79,9 +104,9 @@ window.GaiaLowstorageDialog = (function(win) {
     </p>
     <p data-l10n-id="lowstorage-dialog-generic-text"></p>
     <p>
-      <button type="button"
-              class="button-link-like learnmore-button"
-              data-l10n-id="lowstorage-dialog-learnmore"></button>
+      <a href='#'
+         class="learnmore-link"
+         data-l10n-id="lowstorage-dialog-learnmore"></a>
     </p>
     <gaia-buttons skin="dark">
       <button class="confirm recommend"

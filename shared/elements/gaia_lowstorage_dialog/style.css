@@ -3,31 +3,3 @@ gaia-lowstorage-dialog[hidden] {
    * hide the outer element so that we see the transition */
   display: initial;
 }
-
-.button-link-like {
-  display: inline;
-  -moz-appearance: none;
-  text-align: start;
-
-  padding: 0;
-  border: 0;
-
-  font: inherit;
-  color: #00CAF2;
-  cursor: pointer;
-  text-decoration: underline;
-  background-color: transparent;
-
-  /* workaround for bug 1208113: gaia-buttons styles are leaking */
-  margin-left: 0;
-}
-
-.button-link-like::-moz-focus-inner {
-  /* this is necessary to eliminate a small "padding" inside the button */
-  border: 0;
-  padding: 0;
-}
-
-.button-link-like:focus {
-  outline: 1px dotted currentColor;
-}
