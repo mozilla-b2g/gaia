@@ -31,17 +31,20 @@ var template =
     -moz-user-select: none;
   }
   #container > img {
+    background-color: #000;
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
     object-fit: contain;
+  }
+  #container > img[data-layer="front"] {
     opacity: 0;
     visibility: hidden;
     transition: opacity 150ms linear, visibility 0s linear 150ms;
   }
-  #container > img.active {
+  #container > img[data-layer="front"].active {
     opacity: 1;
     visibility: visible;
     transition-delay: 0s, 0s;
@@ -131,8 +134,8 @@ var template =
   }
 </style>
 <div id="container">
-  <img class="active">
-  <img>
+  <img data-layer="back">
+  <img data-layer="front" class="active">
   <div id="caption">
     <div id="caption-text">
       <h1 id="artist"></h1>
@@ -166,15 +169,17 @@ proto.createdCallback = function() {
   var $ = shadowRoot.querySelector.bind(shadowRoot);
 
   this.els = {
-    container: $('#container'),
-    caption:   $('#caption'),
-    controls:  $('#controls'),
-    artist:    $('#artist'),
-    album:     $('#album'),
-    share:     $('[data-action="share"]'),
-    repeat:    $('[data-action="repeat"]'),
-    shuffle:   $('[data-action="shuffle"]'),
-    rating:    $('#rating')
+    container:  $('#container'),
+    backImage:  $('img[data-layer="back"]'),
+    frontImage: $('img[data-layer="front"]'),
+    caption:    $('#caption'),
+    controls:   $('#controls'),
+    artist:     $('#artist'),
+    album:      $('#album'),
+    share:      $('[data-action="share"]'),
+    repeat:     $('[data-action="repeat"]'),
+    shuffle:    $('[data-action="shuffle"]'),
+    rating:     $('#rating')
   };
 
   var onImageLoad = (evt) => {
