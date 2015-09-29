@@ -6,6 +6,7 @@
 
   var _ = navigator.mozL10n.get;
   const PINNING_PREF = 'dev.gaia.pinning_the_web';
+  const SITE_ICON_SIZE = 72;
 
   /**
    * The ContextMenu of the AppWindow.
@@ -218,7 +219,7 @@
 
       this.app.getScreenshot(function() {
         data.screenshot = this.app._screenshotBlob;
-        this.app.getSiteIconUrl()
+        this.app.getSiteIconUrl(SITE_ICON_SIZE)
         .then(iconObject => {
           if (iconObject) {
             data.icon = iconObject.blob;
