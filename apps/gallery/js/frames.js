@@ -12,7 +12,6 @@
   deleteFile,
   Dialogs,
   editPhotoIfCardNotFull,
-  ensureFileBackedBlob,
   files,
   frames:true,
   fullscreenButtons,
@@ -237,15 +236,13 @@ function shareSingleItem() {
     cropResizeRotate(currentFrame.imageblob, null,
                      maxsize || null, null, metadata,
                      function(error, rotatedBlob) {
+                       Spinner.hide();
+                       button.classList.remove('disabled');
                        if (error) {
                          console.error('Error while rotating image: ', error);
                          rotatedBlob = currentFrame.imageblob;
                        }
-                       ensureFileBackedBlob(rotatedBlob, function(file) {
-                         Spinner.hide();
-                         button.classList.remove('disabled');
-                         share([file], currentFrame.imageblob.name);
-                       });
+                       share([rotatedBlob], currentFrame.imageblob.name);
                      });
   }
 }
