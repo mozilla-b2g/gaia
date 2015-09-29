@@ -29,24 +29,24 @@ if (!utils.misc) {
   utils.misc.FLAG_YEAR_IGNORED = FLAG_YEAR_IGNORED;
 
   utils.misc.formatDate = function(date) {
-    var _ = navigator.mozL10n.get;
-
-    var dateFormat = _('dateFormat') || '%B %e';
-    var f = new navigator.mozL10n.DateTimeFormat();
     var dateString = null;
+
     try {
+      var options = {
+        month: 'short',
+        day: 'numeric'
+      };
+
       var offset = date.getTimezoneOffset() * 60 * 1000;
       var normalizedDate = new Date(date.getTime() + offset);
 
       var year = normalizedDate.getFullYear();
-      if (year === FLAG_YEAR_IGNORED) {
-        year = '';
+      if (year !== FLAG_YEAR_IGNORED) {
+        options.year = 'numeric';
       }
-      var dayMonthString = f.localeFormat(normalizedDate, dateFormat);
-      dateString = _('dateOutput', {
-        dayMonthFormatted: dayMonthString,
-        year: year
-      });
+      var f = new Intl.DateTimeFormat(navigator.languages, options);
+
+      dateString = f.format(date);
     } catch (err) {
       console.error('Error parsing date: ', err);
       throw err;

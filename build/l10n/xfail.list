@@ -126,7 +126,6 @@ dev_apps/geoloc/js/geoloc.js
 shared/elements/gaia_grid/js/items/collection.js
 shared/js/contact2vcard.js
 shared/js/contacts/contacts_buttons.js
-shared/js/contacts/import/utilities/misc.js
 shared/js/dialer/keypad.js
 shared/js/dialer/utils.js
 shared/js/l10n_date.js

@@ -74,23 +74,26 @@ suite('dialer/utils', function() {
     });
 
     test('#headerDate should format 3 days ago as a weekday name', function() {
-      this.sinon.spy(MockL10n.DateTimeFormat.prototype, 'localeFormat');
       var ts = Math.round(new Date().getTime() / 1000);
       var ts3DaysAgo = (ts - (73 * 3600)) * 1000;
-      assert.equal(subject.headerDate(ts3DaysAgo),
-                   JSON.stringify(new Date(ts3DaysAgo)) + '%A');
-      sinon.assert.calledWith(MockL10n.DateTimeFormat.prototype.localeFormat,
-                              new Date(ts3DaysAgo), '%A');
+      var threeDaysAgo = new
+        Date(ts3DaysAgo).toLocaleString(navigator.languages, {
+          weekday: 'long'
+        });
+      assert.equal(subject.headerDate(ts3DaysAgo), threeDaysAgo);
     });
 
     test('#headerDate should format a week ago as a date', function() {
-      this.sinon.spy(MockL10n.DateTimeFormat.prototype, 'localeFormat');
       var ts = Math.round(new Date().getTime() / 1000);
       var tsWeekAgo = (ts - (193 * 3600)) * 1000;
+      var weekAgo = new
+        Date(tsWeekAgo).toLocaleString(navigator.languages, {
+          year: '2-digit',
+          month: '2-digit',
+          day: '2-digit'
+        });
       assert.equal(subject.headerDate(tsWeekAgo),
-                   JSON.stringify(new Date(tsWeekAgo)) + '%x');
-      sinon.assert.calledWith(MockL10n.DateTimeFormat.prototype.localeFormat,
-                              new Date(tsWeekAgo), '%x');
+                   weekAgo);
     });
 
     test('#headerDate should identify incorrect date', function() {
@@ -100,18 +103,26 @@ suite('dialer/utils', function() {
 
     test('#prettyDate should identify 12 hour time', function() {
       var tsToday = Math.round(new Date().getTime());
-      var formatted = JSON.stringify(new Date(tsToday));
       window.navigator.mozHour12 = true;
-      assert.equal(subject.prettyDate(tsToday),
-                   formatted + 'shortTimeFormat12');
+      var hourString = new
+        Date(tsToday).toLocaleString(navigator.languages, {
+          hour12: navigator.mozHour12,
+          hour: 'numeric',
+          minute: 'numeric'
+        });
+      assert.equal(subject.prettyDate(tsToday), hourString);
     });
 
     test('#prettyDate should identify 24 hour time', function() {
       var tsToday = Math.round(new Date().getTime());
-      var formatted = JSON.stringify(new Date(tsToday));
       window.navigator.mozHour12 = false;
-      assert.equal(subject.prettyDate(tsToday),
-                   formatted + 'shortTimeFormat24');
+      var hourString = new
+        Date(tsToday).toLocaleString(navigator.languages, {
+          hour12: navigator.mozHour12,
+          hour: 'numeric',
+          minute: 'numeric'
+        });
+      assert.equal(subject.prettyDate(tsToday), hourString);
     });
   });
 
