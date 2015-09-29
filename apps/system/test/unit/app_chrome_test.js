@@ -1,6 +1,6 @@
 /* global AppWindow, AppChrome, MocksHelper, MockL10n, PopupWindow,
           MockModalDialog, MockService, MockPromise,
-          MockSettingsListener, BookmarksDatabase, Icon,
+          MockSettingsListener, BookmarksDatabase,
           Service, UrlHelper, IconsHelper, process */
 
 /* exported MockBookmarksDatabase */
@@ -8,7 +8,6 @@
 
 require('/shared/js/component_utils.js');
 require('/shared/js/event_safety.js');
-require('/shared/js/homescreens/icon.js');
 require('/shared/elements/gaia_progress/script.js');
 require('/shared/elements/gaia_pin_card/script.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
@@ -175,11 +174,13 @@ suite('system/AppChrome', function() {
 
     test('app location is changed', function() {
       this.sinon.stub(chrome, 'hidePinDialogCard');
+
       var stubHandleLocationChange =
         this.sinon.stub(chrome, 'handleLocationChange');
       chrome.handleEvent(mockEvent({ type: '_locationchange' }));
       assert.isTrue(stubHandleLocationChange.called);
       assert.isTrue(chrome.hidePinDialogCard.called);
+      assert.isTrue(chrome.setSiteIcon.calledWith());
     });
 
     test('app location is changed - private browser landing page', function() {
@@ -1062,7 +1063,6 @@ suite('system/AppChrome', function() {
 
     setup(function() {
       var app = new AppWindow(cloneConfig(fakeWebSite));
-      this.sinon.stub(Icon.prototype, 'render');
       combinedChrome = new AppChrome(app);
       combinedChrome.setSiteIcon.restore();
       getIconPromise = new MockPromise();
@@ -1073,15 +1073,8 @@ suite('system/AppChrome', function() {
     test('asks app for url when no argument is provided', function() {
       assert.ok(combinedChrome.useCombinedChrome());
       combinedChrome.setSiteIcon();
-      getIconPromise.mFulfillToValue({url: fakeIconURI, blob: {}});
+      getIconPromise.mFulfillToValue({originalUrl: fakeIconURI, blob: {}});
       assert.equal(combinedChrome._currentIconUrl, fakeIconURI);
-    });
-
-    test('handles url argument', function() {
-      combinedChrome.setSiteIcon(fakeIconURI);
-      assert.equal(combinedChrome._currentIconUrl, fakeIconURI);
-      assert.isTrue(Icon.prototype.render.called);
-      sinon.assert.notCalled(combinedChrome.app.getSiteIconUrl);
     });
 
     test('failure to get icon', function() {
@@ -1091,7 +1084,7 @@ suite('system/AppChrome', function() {
       combinedChrome.setSiteIcon();
       getIconPromise.mRejectToError();
 
-      assert.isFalse(Icon.prototype.render.called);
+      assert.equal(combinedChrome.siteIcon.style.backgroundImage, '');
     });
 
     test('has no effect for private browsers', function() {
@@ -1296,8 +1289,7 @@ suite('system/AppChrome', function() {
       chrome.handleEvent({ type: '_locationchange' });
 
       assert.isTrue(chrome.setSiteIcon.calledOnce);
-      assert.equal(1, chrome.setSiteIcon.getCall(0).args.length,
-        'setSiteIcon passed 1 argument');
+      assert.equal(0, chrome.setSiteIcon.getCall(0).args.length);
     });
   });
 });

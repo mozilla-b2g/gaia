@@ -6,14 +6,12 @@
 /* global MozActivity */
 /* global SettingsListener */
 /* global Service */
-/* global Icon */
 /* global UrlHelper */
 /* global SystemBanner */
 
 'use strict';
 
 (function(exports) {
-  const DEFAULT_ICON_URL = '/style/chrome/images/default_icon.png';
   const PINNING_PREF = 'dev.gaia.pinning_the_web';
   // 32px + 4px padding added by the Icon renderer
   const ICON_SIZE = 32 + 4;
@@ -932,9 +930,8 @@
       // on the same domain than the previous one.
       // In both cases, we look for the best icon after `mozbrowserloadend`.
       var origin = new URL(this._currentURL).origin;
-
       if (this._currentOrigin !== origin) {
-        this.setSiteIcon(DEFAULT_ICON_URL);
+        this.setSiteIcon();
         this._currentOrigin = origin;
       }
 
@@ -1158,17 +1155,8 @@
    *
    * @param {string?} url
    */
-  AppChrome.prototype.setSiteIcon = function ac_setSiteIcon(url) {
+  AppChrome.prototype.setSiteIcon = function ac_setSiteIcon() {
     if (!this.siteIcon || this.app.isPrivateBrowser()) {
-      return;
-    }
-
-    if (url) {
-      var icon = new Icon(this.siteIcon, url);
-      icon.render({
-        size: ICON_SIZE
-      });
-      this._currentIconUrl = url;
       return;
     }
 
@@ -1176,12 +1164,13 @@
       .then(iconObject => {
         // We compare the original icon URL, otherwise there is a flickering
         // effect because a different object url is created each time.
-        if (this._currentIconUrl !== iconObject.url) {
+        if (this._currentIconUrl !== iconObject.originalUrl) {
           this.siteIcon.style.backgroundImage = iconObject.url;
-          this._currentIconUrl = iconObject.url;
+          this._currentIconUrl = iconObject.originalUrl;
         }
       })
       .catch((err) => {
+        this.siteIcon.style.backgroundImage = '';
         this.app.debug('setSiteIcon, error from getSiteIcon: %s', err);
       });
   };
