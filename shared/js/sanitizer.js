@@ -74,8 +74,11 @@
      * Unwrap safe HTML created by createSafeHTML or a custom replacement that
      * underwent security review.
      */
-    unwrapSafeHTML: function (htmlObject) {
-      return htmlObject.__html;
+    unwrapSafeHTML: function (...htmlObjects) {
+      var markupList = htmlObjects.map(function(obj) {
+        return obj.__html;
+      });
+      return markupList.join('');
     }
   };
 
