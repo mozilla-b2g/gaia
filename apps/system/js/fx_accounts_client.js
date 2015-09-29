@@ -14,28 +14,27 @@ var FxAccountsClient = function FxAccountsClient() {
 
   var listening;
 
-  var callbacks = {};
+  var promises = {};
 
-  var sendMessage = function sendMessage(message, successCb, errorCb) {
-    if (!listening) {
-      window.addEventListener('mozFxAccountsChromeEvent', onChromeEvent);
-      listening = true;
-    }
+  var sendMessage = function sendMessage(message) {
+    return new Promise((resolve, reject) => {
+      if (!listening) {
+        window.addEventListener('mozFxAccountsChromeEvent', onChromeEvent);
+        listening = true;
+      }
 
-    var id = getUUID();
-    callbacks[id] = {
-      successCb: successCb,
-      errorCb: errorCb
-    };
+      var id = getUUID();
+      promises[id] = { resolve, reject };
 
-    var details = {
-      id: id,
-      data: message
-    };
+      var details = {
+        id: id,
+        data: message
+      };
 
-    var event = document.createEvent('CustomEvent');
-    event.initCustomEvent('mozFxAccountsContentEvent', true, true, details);
-    window.dispatchEvent(event);
+      var event = document.createEvent('CustomEvent');
+      event.initCustomEvent('mozFxAccountsContentEvent', true, true, details);
+      window.dispatchEvent(event);
+    });
   };
 
   var onChromeEvent = function onChromeEvent(event) {
@@ -46,13 +45,13 @@ var FxAccountsClient = function FxAccountsClient() {
       return;
     }
 
-    var callback = callbacks[message.id];
-    if (callback && typeof message.data !== 'undefined' && callback.successCb) {
-      callback.successCb(message.data);
-      delete callbacks[message.id];
-    } else if (callback && message.error && callback.errorCb) {
-      callback.errorCb(message.error);
-      delete callbacks[message.id];
+    var promise = promises[message.id];
+    if (promise && typeof message.data !== 'undefined') {
+      promise.resolve(message.data);
+      delete promises[message.id];
+    } else if (promise && message.error) {
+      promise.reject(message.error);
+      delete promises[message.id];
     }
   };
 
@@ -70,69 +69,67 @@ var FxAccountsClient = function FxAccountsClient() {
 
   // === API ===
 
-  var getAccount = function getAccount(successCb, errorCb) {
-    sendMessage({
+  var getAccount = function getAccount() {
+    return sendMessage({
       method: 'getAccount'
-    }, successCb, errorCb);
+    });
   };
 
-  var getAssertion = function getAssertion(options, successCb, errorCb) {
-    sendMessage({
+  var getAssertion = function getAssertion(options) {
+    return sendMessage({
       method: 'getAssertion',
       silent: options ? options.silent : null,
       audience: options ? options.audience : null
-    }, successCb, errorCb);
+    });
   };
 
-  var getKeys = function getKeys(successCb, errorCb) {
-    sendMessage({
+  var getKeys = function getKeys() {
+    return sendMessage({
       method: 'getKeys'
-    }, successCb, errorCb);
+    });
   };
 
-  var logout = function logout(successCb, errorCb) {
-    sendMessage({
+  var logout = function logout() {
+    return sendMessage({
       method: 'logout'
-    }, successCb, errorCb);
+    });
   };
 
-  var queryAccount = function queryAccount(email, successCb, errorCb) {
-    sendMessage({
+  var queryAccount = function queryAccount(email) {
+    return sendMessage({
       method: 'queryAccount',
       email: email
-    }, successCb, errorCb);
+    });
   };
 
-  var resendVerificationEmail = function resendVerificationEmail(email,
-                                                       successCb, errorCb) {
-    sendMessage({
+  var resendVerificationEmail = function resendVerificationEmail(email) {
+    return sendMessage({
       method: 'resendVerificationEmail',
       email: email
-    }, successCb, errorCb);
+    });
   };
 
-  var signIn = function signIn(email, password, successCb, errorCb) {
-    sendMessage({
+  var signIn = function signIn(email, password) {
+    return sendMessage({
       method: 'signIn',
       email: email,
       password: password
-    }, successCb, errorCb);
+    });
   };
 
-  var signUp = function signUp(email, password, successCb, errorCb) {
-    sendMessage({
+  var signUp = function signUp(email, password) {
+    return sendMessage({
       method: 'signUp',
       email: email,
       password: password
-    }, successCb, errorCb);
+    });
   };
 
-  var verificationStatus = function verificationStatus(email, successCb,
-                                                       errorCb) {
-    sendMessage({
+  var verificationStatus = function verificationStatus(email) {
+    return sendMessage({
       method: 'verificationStatus',
       email: email
-    }, successCb, errorCb);
+    });
   };
 
   return {

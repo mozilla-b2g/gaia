@@ -183,9 +183,8 @@ suite('system/SyncManager >', () => {
       getPortStub = this.sinon.stub(IACHandler, 'getPort', () => {
         return port;
       });
-      getAccountStub = this.sinon.stub(FxAccountsClient, 'getAccount',
-                                       successCb => {
-        successCb('account');
+      getAccountStub = this.sinon.stub(FxAccountsClient, 'getAccount', () => {
+        return Promise.resolve('account');
       });
     });
 

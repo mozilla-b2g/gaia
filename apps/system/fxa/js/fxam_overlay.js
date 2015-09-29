@@ -7,8 +7,8 @@
 'use strict';
 
 /*
- * FxaModuleOverlay shows an loading prompt to the user.
- * As params, we can only a message which will be shown with
+ * FxaModuleOverlay shows a loading prompt to the user.
+ * As params, we can only pass a message which will be shown with
  * a spinner of 'loading'.
  */
 

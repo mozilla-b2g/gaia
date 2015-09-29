@@ -420,24 +420,24 @@
 
     getKeys: function() {
       return new Promise((resolve, reject) => {
-        LazyLoader.load('js/fx_accounts_client.js', () => {
-          FxAccountsClient.getKeys(resolve, reject);
+        LazyLoader.load('js/fx_accounts_client.js', function() {
+          FxAccountsClient.getKeys().then(resolve, reject);
         });
       });
     },
 
     getAssertion: function() {
       return new Promise((resolve, reject) => {
-        LazyLoader.load('js/fx_accounts_client.js', () => {
-          FxAccountsClient.getAssertion(null, resolve, reject);
+        LazyLoader.load('js/fx_accounts_client.js', function() {
+          FxAccountsClient.getAssertion(null).then(resolve, reject);
         });
       });
     },
 
     getAccount: function() {
       return new Promise((resolve, reject) => {
-        LazyLoader.load('js/fx_accounts_client.js', () => {
-          FxAccountsClient.getAccount(resolve, reject);
+        LazyLoader.load('js/fx_accounts_client.js', function() {
+          FxAccountsClient.getAccount().then(resolve, reject);
         });
       });
     },
