@@ -735,13 +735,13 @@ suite('Homescreen app', () => {
       });
 
       suite('drag-finish', () => {
-        test('auto-scroll timeout should be cancelled', () => {
-          var clearTimeoutStub = sinon.stub(window, 'clearTimeout');
-          app.autoScrollTimeout = 'abc';
+        test('auto-scroll interval should be cancelled', () => {
+          var clearIntervalStub = sinon.stub(window, 'clearInterval');
+          app.autoScrollInterval = 'abc';
           app.handleEvent(new CustomEvent('drag-finish'));
-          clearTimeoutStub.restore();
+          clearIntervalStub.restore();
 
-          assert.isTrue(clearTimeoutStub.calledWith('abc'));
+          assert.isTrue(clearIntervalStub.calledWith('abc'));
           assert.equal(app.autoScrollTimeout, null);
         });
       });
