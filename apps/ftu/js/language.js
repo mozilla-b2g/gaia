@@ -8,13 +8,34 @@ var LanguageManager = {
   init: function init() {
     this.buildLanguageList();
     document.getElementById('languages').addEventListener('change', this);
-    this.settings.addObserver('language.current',
-      function updateDefaultLayouts(event) {
-        // the 2nd parameter is to reset the current enabled layouts
-        KeyboardHelper.changeDefaultLayouts(event.settingValue, true);
-      });
     window.addEventListener('localized',
       this.localizedEventListener.bind(this));
+
+    var onSettingChange = this._boundHandleSettingChange =
+      this.handleSettingChange.bind(this);
+    this.settings.addObserver('language.current', onSettingChange);
+    this.settings.addObserver('accessibility.screenreader', onSettingChange);
+  },
+
+  uninit: function uninit() {
+    if (this._boundHandleSettingChange) {
+      this.settings.removeObserver('language.current',
+        this._boundHandleSettingChange);
+      this.settings.removeObserver('accessibility.screenreader',
+        this._boundHandleSettingChange);
+    }
+  },
+
+  handleSettingChange: function(evt) {
+    switch (evt.settingName) {
+      case 'accessibility.screenreader':
+        this.buildLanguageList();
+        break;
+      case 'language.current':
+        // the 2nd parameter is to reset the current enabled layouts
+        KeyboardHelper.changeDefaultLayouts(evt.settingValue, true);
+        break;
+    }
   },
 
   handleEvent: function handleEvent(evt) {
