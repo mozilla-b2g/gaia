@@ -29,6 +29,14 @@ var MockBookmarksDatabase = {
   put: function() {}
 };
 
+function mockEvent(data) {
+  data.stopPropagation = sinon.spy();
+  data.stopImmediatePropagation = sinon.spy();
+  data.preventDefault = sinon.spy();
+  data.currentTarget = data.target;
+  return data;
+}
+
 const PINNING_PREF = 'dev.gaia.pinning_the_web';
 
 var mocksForAppChrome = new MocksHelper([
@@ -146,7 +154,7 @@ suite('system/AppChrome', function() {
       var stubShowProgress = this.sinon.stub(chrome, 'show');
       var spyProgressStart = this.sinon.spy(chrome.progress, 'start');
       assert.isFalse(chrome.progress.hasAttribute('animated'));
-      chrome.handleEvent({ type: '_loading' });
+      chrome.handleEvent(mockEvent({ type: '_loading' }));
       assert.equal(chrome.progress.getAttribute('data-l10n-id'),
         'gaia-progress-loading');
       assert.isTrue(stubShowProgress.calledWith(chrome.progress));
@@ -156,7 +164,7 @@ suite('system/AppChrome', function() {
     test('app is loaded', function() {
       var stubHideProgress = this.sinon.stub(chrome, 'hide');
       var spyProgressStop = this.sinon.spy(chrome.progress, 'stop');
-      chrome.handleEvent({ type: '_loaded' });
+      chrome.handleEvent(mockEvent({ type: '_loaded' }));
       assert.equal(chrome.progress.getAttribute('data-l10n-id'),
         'gaia-progress-loaded');
       assert.isTrue(stubHideProgress.calledWith(chrome.progress));
@@ -167,7 +175,7 @@ suite('system/AppChrome', function() {
       this.sinon.stub(chrome, 'hidePinDialogCard');
       var stubHandleLocationChange =
         this.sinon.stub(chrome, 'handleLocationChange');
-      chrome.handleEvent({ type: '_locationchange' });
+      chrome.handleEvent(mockEvent({ type: '_locationchange' }));
       assert.isTrue(stubHandleLocationChange.called);
       assert.isTrue(chrome.hidePinDialogCard.called);
     });
@@ -179,7 +187,7 @@ suite('system/AppChrome', function() {
 
       var chrome = new AppChrome(app);
       this.sinon.stub(chrome, 'hidePinDialogCard');
-      chrome.handleEvent({ type: '_locationchange' });
+      chrome.handleEvent(mockEvent({ type: '_locationchange' }));
       assert.equal(chrome.title.dataset.l10nId, 'search-or-enter-address');
       assert.isTrue(chrome.hidePinDialogCard.called);
     });
@@ -198,7 +206,7 @@ suite('system/AppChrome', function() {
       var chrome = new AppChrome(app);
       var stubHandleSecurityChanged =
         this.sinon.spy(chrome, 'handleSecurityChanged');
-      chrome.handleEvent({ type: '_securitychange' });
+      chrome.handleEvent(mockEvent({ type: '_securitychange' }));
       assert.isTrue(stubHandleSecurityChanged.called);
       assert.equal(chrome.sslIndicator.dataset.ssl, 'broken');
     });
@@ -228,7 +236,8 @@ suite('system/AppChrome', function() {
       var stubBack = this.sinon.stub(app, 'back');
       assert.equal(chrome.backButton.getAttribute('data-l10n-id'),
         'back-button');
-      chrome.handleEvent({ type: 'click', target: chrome.backButton });
+      chrome.handleEvent(
+        mockEvent({ type: 'click', target: chrome.backButton }));
       assert.isTrue(stubBack.called);
     });
 
@@ -236,7 +245,8 @@ suite('system/AppChrome', function() {
       var stubForward = this.sinon.stub(app, 'forward');
       assert.equal(chrome.forwardButton.getAttribute('data-l10n-id'),
         'forward-button');
-      chrome.handleEvent({ type: 'click', target: chrome.forwardButton });
+      chrome.handleEvent(
+        mockEvent({ type: 'click', target: chrome.forwardButton }));
       assert.isTrue(stubForward.called);
     });
 
@@ -244,15 +254,18 @@ suite('system/AppChrome', function() {
       var stubReload = this.sinon.stub(app, 'reload');
       assert.equal(chrome.reloadButton.getAttribute('data-l10n-id'),
         'reload-button');
-      chrome.handleEvent({ type: 'click', target: chrome.reloadButton });
+      var evt = mockEvent({ type: 'click', target: chrome.reloadButton });
+      chrome.handleEvent(evt);
       assert.isTrue(stubReload.called);
+      assert.isTrue(evt.stopPropagation.called);
     });
 
     test('stop', function() {
       var stubStop = this.sinon.stub(app, 'stop');
       assert.equal(chrome.stopButton.getAttribute('data-l10n-id'),
         'stop-button');
-      chrome.handleEvent({ type: 'click', target: chrome.stopButton });
+      chrome.handleEvent(
+        mockEvent({ type: 'click', target: chrome.stopButton }));
       assert.isTrue(stubStop.called);
     });
 
@@ -264,7 +277,8 @@ suite('system/AppChrome', function() {
       window.addEventListener('taskmanagershow', function() {
         done();
       });
-      chrome.handleEvent({ type: 'click', target: chrome.windowsButton });
+      chrome.handleEvent(
+        mockEvent({ type: 'click', target: chrome.windowsButton }));
     });
 
     test('location changed', function() {
@@ -272,7 +286,7 @@ suite('system/AppChrome', function() {
       var stub1 = this.sinon.stub(app, 'canGoForward');
       var stub2 = this.sinon.stub(app, 'canGoBack');
 
-      chrome.handleEvent({ type: '_locationchange' });
+      chrome.handleEvent(mockEvent({ type: '_locationchange' }));
 
       stub1.getCall(0).args[0](true);
       assert.equal(chrome.forwardButton.disabled, false);
@@ -325,14 +339,14 @@ suite('system/AppChrome', function() {
     });
 
     test('loadstart', function() {
-      chrome.handleEvent({ type: 'mozbrowserloadstart' });
+      chrome.handleEvent(mockEvent({ type: 'mozbrowserloadstart' }));
       assert.isTrue(chrome.containerElement.classList.contains('loading'));
       assert.isFalse(chrome.setSiteIcon.calledOnce);
       assert.isTrue(chrome.setPinPreviewIcon.notCalled);
     });
 
     test('loadend', function() {
-      chrome.handleEvent({ type: 'mozbrowserloadend' });
+      chrome.handleEvent(mockEvent({ type: 'mozbrowserloadend' }));
       assert.isFalse(chrome.containerElement.classList.contains('loading'));
       assert.isTrue(chrome.setSiteIcon.calledOnce);
       assert.isTrue(chrome.setPinPreviewIcon.calledOnce);
@@ -343,7 +357,7 @@ suite('system/AppChrome', function() {
     test('namechanged - does not set when we have a fixed title', function() {
       chrome._fixedTitle = true;
       chrome.title.textContent = 'foo';
-      chrome.handleEvent({ type: '_namechanged' });
+      chrome.handleEvent(mockEvent({ type: '_namechanged' }));
       assert.equal(chrome.title.textContent, 'foo');
     });
 
@@ -404,7 +418,7 @@ suite('system/AppChrome', function() {
         scrollTop: 100,
         scrollTopMax: 1
       };
-      chrome.handleEvent({ type: 'scroll'});
+      chrome.handleEvent(mockEvent({ type: 'scroll'}));
       assert.isFalse(chrome.expand.called);
       assert.isFalse(chrome.collapse.called);
     });
@@ -415,7 +429,7 @@ suite('system/AppChrome', function() {
         scrollTop: 100,
         scrollTopMax: 55
       };
-      chrome.handleEvent({ type: 'scroll'});
+      chrome.handleEvent(mockEvent({ type: 'scroll'}));
       assert.isFalse(chrome.expand.called);
       assert.isTrue(chrome.collapse.called);
     });
@@ -426,7 +440,7 @@ suite('system/AppChrome', function() {
         scrollTop: 50,
         scrollTopMax: 55
       };
-      chrome.handleEvent({ type: 'scroll'});
+      chrome.handleEvent(mockEvent({ type: 'scroll'}));
       assert.isTrue(chrome.expand.called);
       assert.isFalse(chrome.collapse.called);
     });
@@ -448,7 +462,7 @@ suite('system/AppChrome', function() {
     test('clicking scrim hides dialog', function() {
       assert.isFalse(chrome.pinDialog.classList.contains('hidden'),
         'pinDialog is shown');
-      chrome.handleEvent({ type: 'click', target: chrome.pinScrim });
+      chrome.handleEvent(mockEvent({ type: 'click', target: chrome.pinScrim }));
       assert.isTrue(chrome.pinDialog.classList.contains('hidden'),
         'pinDialog is hidden');
     });
@@ -486,7 +500,7 @@ suite('system/AppChrome', function() {
       MockService.mockQueryWith('locked', false);
       var stubIsBrowser = this.sinon.stub(app, 'isBrowser').returns(true);
       var stubExpand = this.sinon.stub(chrome, 'expand');
-      chrome.handleEvent({ type: 'click', target: chrome.title });
+      chrome.handleEvent(mockEvent({ type: 'click', target: chrome.title }));
       assert.isTrue(stubExpand.called);
       stubExpand.restore();
       stubIsBrowser.restore();
@@ -496,7 +510,7 @@ suite('system/AppChrome', function() {
       MockService.mockQueryWith('locked', false);
       chrome.maximize();
       var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
-      chrome.handleEvent({ type: 'click', target: chrome.title });
+      chrome.handleEvent(mockEvent({ type: 'click', target: chrome.title }));
       assert.isTrue(stubDispatchEvent.called);
       stubDispatchEvent.restore();
     });
@@ -789,8 +803,8 @@ suite('system/AppChrome', function() {
 
     test('theme resets on navigation', function() {
       chrome.setThemeColor('orange');
-      chrome.handleEvent({type: 'mozbrowserloadstart'});
-      chrome.handleEvent({type: 'mozbrowserloadend'});
+      chrome.handleEvent(mockEvent({type: 'mozbrowserloadstart'}));
+      chrome.handleEvent(mockEvent({type: 'mozbrowserloadend'}));
       assert.equal(chrome.element.style.backgroundColor, '');
     });
 
@@ -903,7 +917,7 @@ suite('system/AppChrome', function() {
     test('When screen is unlocked, dispatch the request.', function() {
       MockService.mockQueryWith('locked', false);
       this.sinon.stub(chrome, 'isMaximized').returns(true);
-      chrome.handleEvent({ type: 'click', target: chrome.title });
+      chrome.handleEvent(mockEvent({ type: 'click', target: chrome.title }));
       assert.isTrue(stubDispatch.called);
     });
 
@@ -911,14 +925,14 @@ suite('system/AppChrome', function() {
       MockService.mockQueryWith('locked', false);
       this.sinon.stub(chrome, 'isMaximized').returns(true);
       this.sinon.stub(chrome.app.contextmenu, 'isShown').returns(true);
-      chrome.handleEvent({ type: 'click', target: chrome.title });
+      chrome.handleEvent(mockEvent({ type: 'click', target: chrome.title }));
       assert.isFalse(stubDispatch.called);
     });
 
     test('When screen is locked, do not dispatch the event.', function() {
       MockService.mockQueryWith('locked', true);
       this.sinon.stub(chrome, 'isMaximized').returns(true);
-      chrome.handleEvent({ type: 'click', target: chrome.title });
+      chrome.handleEvent(mockEvent({ type: 'click', target: chrome.title }));
       assert.isFalse(stubDispatch.called);
     });
   });
@@ -930,7 +944,7 @@ suite('system/AppChrome', function() {
       var appPublishStub = this.sinon.stub(app, 'publish');
       this.sinon.stub(app, 'isActive').returns(true);
 
-      chrome.handleEvent({ type: 'scroll' });
+      chrome.handleEvent(mockEvent({ type: 'scroll' }));
       assert.isTrue(appPublishStub.called);
       assert.isTrue(appPublishStub.calledWith('titlestatechanged'));
     });
@@ -941,7 +955,7 @@ suite('system/AppChrome', function() {
       var appPublishStub = this.sinon.stub(app, 'publish');
       this.sinon.stub(app, 'isActive').returns(false);
 
-      chrome.handleEvent({ type: 'scroll' });
+      chrome.handleEvent(mockEvent({ type: 'scroll' }));
       assert.isTrue(appPublishStub.notCalled);
     });
 
@@ -989,7 +1003,7 @@ suite('system/AppChrome', function() {
       this.sinon.stub(chrome, 'isMaximized').returns(false);
 
       for (var i = 0; i < 10; i++) {
-        chrome.handleEvent({ type: 'scroll' });
+        chrome.handleEvent(mockEvent({ type: 'scroll' }));
       }
     });
 
@@ -1182,7 +1196,8 @@ suite('system/AppChrome', function() {
     test('Browser chrome collapsed and bookmark saved', function() {
       chrome.element.classList.add('maximized');
       chrome.pinDialog.classList.remove('hidden');
-      chrome.handleEvent({ type: 'click', target: chrome.pinButton });
+      chrome.handleEvent(
+        mockEvent({ type: 'click', target: chrome.pinButton }));
       assert.isTrue(IconsHelper.getIcon.called);
       assert.isFalse(chrome.element.classList.contains('maximized'));
       assert.isTrue(chrome.pinDialog.classList.contains('hidden'));
@@ -1225,7 +1240,8 @@ suite('system/AppChrome', function() {
     test('Browser chrome collapsed and bookmark saved', function() {
       chrome.element.classList.add('maximized');
       chrome.pinDialog.classList.remove('hidden');
-      chrome.handleEvent({ type: 'click', target: chrome.pinButton });
+      chrome.handleEvent(
+        mockEvent({ type: 'click', target: chrome.pinButton }));
       assert.isTrue(IconsHelper.getIcon.called);
       assert.isFalse(chrome.element.classList.contains('maximized'));
       assert.isTrue(chrome.pinDialog.classList.contains('hidden'));
@@ -1259,12 +1275,12 @@ suite('system/AppChrome', function() {
       chrome = new AppChrome(app);
 
       chrome.app.config.url = 'http://origin1/';
-      chrome.handleEvent({ type: '_locationchange' });
+      chrome.handleEvent(mockEvent({ type: '_locationchange' }));
       chrome.setSiteIcon.reset();
     });
 
     test('Icon is not set to default when same origin', function() {
-      chrome.handleEvent({ type: '_locationchange' });
+      chrome.handleEvent(mockEvent({ type: '_locationchange' }));
 
       assert.isFalse(chrome.setSiteIcon.called);
     });

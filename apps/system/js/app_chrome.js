@@ -150,6 +150,7 @@
                 <button type="button" class="forward-button"
                         data-l10n-id="forward-button" disabled></button>
                 <div class="urlbar js-chrome-ssl-information">
+                  <div class="urlbar-hit-area"></div>
                   <span class="pb-icon"></span>
                   <div class="site-icon"></div>
                   <div class="chrome-ssl-indicator chrome-title-container">
@@ -225,6 +226,7 @@
     this.menuButton = this.element.querySelector('.menu-button');
     this.windowsButton = this.element.querySelector('.windows-button');
     this.title = this.element.querySelector('.chrome-title-container > .title');
+    this.urlbar = this.element.querySelector('.urlbar');
     this.siteIcon = this.element.querySelector('.site-icon');
 
     if (this.useCombinedChrome()) {
@@ -320,7 +322,9 @@
   };
 
   AppChrome.prototype.handleClickEvent = function ac_handleClickEvent(evt) {
-    switch (evt.target) {
+    evt.stopPropagation(); // We'll handle all clicks here, thanks.
+
+    switch (evt.currentTarget) {
       case this.reloadButton:
         this.app.reload();
         break;
@@ -342,6 +346,7 @@
         this.onClickSiteIcon();
         break;
 
+      case this.urlbar:
       case this.title:
         this.titleClicked();
         break;
@@ -356,7 +361,8 @@
 
       case this.newWindowButton:
         evt.stopImmediatePropagation();
-        this.onNewWindow();
+        // XXX: this isn't a function!
+        // this.onNewWindow();
         break;
 
       case this.newPrivateWinButton:
@@ -605,6 +611,7 @@
       this.reloadButton.addEventListener('click', this);
       this.backButton.addEventListener('click', this);
       this.forwardButton.addEventListener('click', this);
+      this.urlbar.addEventListener('click', this);
       this.title.addEventListener('click', this);
       this.scrollable.addEventListener('scroll', this);
       this.menuButton.addEventListener('click', this);

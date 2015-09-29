@@ -261,7 +261,10 @@ var NotificationScreen = {
       return;
     }
 
+    // Otherwise, we're swiping on a notification, which should only be allowed
+    // when the utility tray is fully open.
     if (evt.touches.length !== 1 ||
+        !Service.query('UtilityTray.shown') ||
         (this._isTap && Math.abs(touchDiffY) >= this.SCROLL_THRESHOLD)) {
       this._touching = false;
       this.cancelSwipe();
@@ -275,6 +278,7 @@ var NotificationScreen = {
     }
     if (!this._isTap) {
       evt.preventDefault();
+      evt.stopPropagation(); // Prevent this event from bubbling up to the tray.
       this._notification.style.transform =
         'translateX(' + this._touchPosX + 'px)';
     }

@@ -1,45 +1,57 @@
 'use strict';
-/* global Service */
+/* global Service, UtilityTrayMotion, TouchForwarder */
 
-window.UtilityTray = {
+(function(exports) {
+
+/**
+ * The utility tray (the draggable drawer at the top of the screen, providing
+ * easy access to notifications and quick settings) is composed of two classes:
+ *
+ * UtilityTrayMotion, managing the scrolling and snapping behavior, and
+ * UtilityTray, representing the state of the UtilityTray.
+ *
+ * NOTE: The UtilityTray and statusbar interact differently in fullscreen modes.
+ * There are two kinds of fullscreen modes:
+ *
+ *   - "fullscreen" FxOS Apps
+ *   - window.requestFullScreen() interactions
+ *
+ * In both of these fullscreen modes, the utility tray does NOT swipe down
+ * immediately. Instead, the first swipe down from the top (via #top-panel)
+ * triggers the AppStatusbar to show; then, a second swipe is handled by
+ * UtilityTrayMotion to show the utility tray.
+ *
+ * The expected behavior of this is illustrated in the following video, where
+ * the following scenarios are tested:
+ *
+ *   https://youtu.be/57v25D94zFY
+ *
+ *   1. No app (first swipe triggers UtilityTray)
+ *   2. Fullscreen Gaia app (first swipe triggers Statusbar, second UtilityTray)
+ *   3. requestFullScreen app (first swipe Statusbar, second UtilityTray)
+ */
+exports.UtilityTray = {
   name: 'UtilityTray',
 
   debug: 0 ? console.log.bind(console, '[UtilityTray]') : () => {},
 
   shown: false,
 
-  // This reflects the target state of
-  // the utility tray during animation.
-  showing: false,
-
-  // Indicates the overlay is mid-transition,
-  // this can be during touch or after when
-  // we transition to fully open/closed.
-  transitioning: false,
-
-  // Indicates touch is active
-  active: false,
-
   overlay: document.getElementById('utility-tray'),
-
+  motionElement: document.getElementById('utility-tray-motion'),
   notifications: document.getElementById('utility-tray-notifications'),
-
   statusbar: document.getElementById('statusbar'),
-
   statusbarIcons: document.getElementById('statusbar-icons'),
-
   topPanel: document.getElementById('top-panel'),
-
   ambientIndicator: document.getElementById('ambient-indicator'),
-
   grippy: document.getElementById('utility-tray-grippy'),
-
+  invisibleGripper: document.getElementById('tray-invisible-gripper'),
   container: document.getElementById('desktop-notifications-container'),
-
+  notificationsContainer: document.getElementById('notifications-container'),
   notificationTitle: document.getElementById('notification-some'),
-
+  footer: document.getElementById('utility-tray-footer'),
+  footerContainer: document.getElementById('tray-footer-container'),
   screen: document.getElementById('screen'),
-
   EVENT_PREFIX: 'utilitytray',
 
   publish: function(evtName) {
@@ -55,25 +67,70 @@ window.UtilityTray = {
   focus: function() {},
   blur: function() {},
 
-  init: function ut_init() {
-    var touchEvents = [
-      'touchstart',
-      'touchmove',
-      'touchend'
-    ];
+  /**
+   * Update the max-height of the notifications container to ensure it doesn't
+   * overlap with the (position: fixed) footer.
+   */
+  recalculateNotificationsContainerHeight() {
+    this.notificationsContainer.style.maxHeight =
+      (this.footerContainer.offsetTop -
+       this.notificationsContainer.offsetTop) + 'px';
+  },
 
-    touchEvents.forEach(function bindEvents(name) {
-      this.overlay.addEventListener(name, this);
-      this.topPanel.addEventListener(name, this);
-    }, this);
+  toggleFooterDisplay() {
+    // If we're nearly fully open, deploy the footer; due to overscroll effects,
+    // waiting until the scrolling has stopped completely makes the footer
+    // appear sluggish.
+    var shouldShow =
+      (this.motion.percentVisible === 1) ||
+      (this.motion.state === 'opening' && this.motion.percentVisible > 0.95);
+    this.footer.classList.toggle('animate-in', shouldShow);
+    this.footer.classList.toggle('animate-out', !shouldShow);
+  },
+
+  init: function ut_init() {
+
+    // Prepare the tray's motion behavior.
+    this.motion = new UtilityTrayMotion(this.motionElement);
+    this.motion.el.addEventListener('tray-motion-state', this);
+    this.motion.el.addEventListener('tray-motion-footer-position', this);
+    this.motion.el.classList.remove('utility-tray-loading');
+
+    // The footer size (containing the media player and cost-control-widget)
+    // is variable and difficult to compute with CSS in a maintainable way,
+    // especially when we account for future addons or other modifications to
+    // the tray. Instead, we calculate the desired height on-the-fly, by
+    // observing when key footer elements change relevant state.
+    // Ideally, we would observe the whole footer for DOM changes, to make it
+    // easier for addon developers, but for now we just observe the relevant
+    // changes to the only two variable elements:
+    var observer = new MutationObserver(
+      this.recalculateNotificationsContainerHeight.bind(this));
+    // MediaPlaybackWidget does not currently emit any events when it changes;
+    // it is assumed here that MediaPlaybackWidget has a fixed height; here we
+    // just listen to the attribute "hidden"'s state.
+    observer.observe(document.getElementById('media-playback-container'), {
+      attributes: true,
+      attributeFilter: ['hidden']
+    });
+    // It's not clear that the cost control widget ever changes or hides
+    // (much of its behavior happens in an iframe), but for completeness:
+    observer.observe(document.getElementById('cost-control-widget'), {
+      subtree: true,
+      childList: true
+    });
+    this.recalculateNotificationsContainerHeight();
 
     // This is required to prevent b2g-desktop from
     // stealing focus from form fields when the
     // #top-panel is touched. Remove this line if/when
     // b2g-desktop stops disptaching mouse events.
     this.topPanel.addEventListener('mousedown', e => e.preventDefault());
+    this.invisibleGripper.addEventListener(
+      'mousedown', e => e.preventDefault());
 
     window.addEventListener('screenchange', this);
+    window.addEventListener('resize', this);
     window.addEventListener('emergencyalert', this);
     window.addEventListener('home', this);
     window.addEventListener('attentionopened', this);
@@ -82,10 +139,8 @@ window.UtilityTray = {
     window.addEventListener('displayapp', this);
     window.addEventListener('appopening', this);
     window.addEventListener('activityopening', this);
-    window.addEventListener('resize', this);
     window.addEventListener('cardviewbeforeshow', this);
     window.addEventListener('sheets-gesture-begin', this);
-    window.addEventListener('sheets-gesture-end', this);
 
     // Listen for screen reader edge gestures
     window.addEventListener('mozChromeEvent', this);
@@ -105,51 +160,20 @@ window.UtilityTray = {
     // Firing when user swipes up with a screen reader when focused on grippy.
     this.grippy.addEventListener('wheel', this);
 
-    this.overlay.addEventListener('transitionend', this);
-
-    window.addEventListener('software-button-enabled', this);
-    window.addEventListener('software-button-disabled', this);
-
-    this.animationTime = this.DEFAULT_ANIMATION_TIME;
+    this.invisibleGripper.addEventListener('click',
+      this._forwardInvisibleGripperClick.bind(this));
 
     Service.request('registerHierarchy', this);
 
     Service.register('makeAmbientIndicatorActive', this);
     Service.register('makeAmbientIndicatorInactive', this);
     Service.register('hide', this);
+    Service.register('show', this);
     Service.register('updateNotificationCount', this);
     Service.registerState('shown', this);
   },
 
-  /*
-   * The time after which we shouldn't use motion events to determine the
-   * speed of the utility tray opening/closing, in milliseconds.
-   */
-  MAX_SWIPE_AGE: 50,
-
-  /*
-   * The minimum transition length for the utility tray animation, in ms.
-   */
-  MINIMUM_ANIMATION_TIME: 50,
-
-  /*
-   * The default length of the utility tray animation, in ms.
-   */
-  DEFAULT_ANIMATION_TIME: 200,
-
-  startY: undefined,
-  lastDelta: 0,
-  lastMove: 0,
-  lastMoveTime: 0,
-  animationTime: 0,
-  isTap: false,
-  screenWidth: 0,
-  screenHeight: 0,
-  grippyHeight: 0,
-  ambientHeight: 0,
-  hideStartCallback: null,
-
-  setFocus: function() {
+  setHierarchy: function() {
     return false;
   },
 
@@ -169,24 +193,111 @@ window.UtilityTray = {
     }
   },
 
+  hide(immediately) {
+    if (this.motion.state === 'open' || this.motion.state === 'opening') {
+      this.motion.close(immediately);
+    }
+  },
+
+  show(immediately) {
+    if (this.motion.state === 'closed' || this.motion.state === 'closing') {
+      this.motion.open(immediately);
+    }
+  },
+
+  /**
+   * Handle the tray changing state, e.g. from "opening" to "open". The possible
+   * states are "closed", "opening", "open", and "closing", as noted in
+   * `utility_tray_motion.js`. We only receive state change notifications if
+   * the state actually changed from one to another.
+   *
+   * For historical reasons, we emit many different events; some could be
+   * condensed in the future if desired.
+   *
+   * @param {string} state
+   * @param {string} previousState
+   */
+  handleTrayStateChange: function(state, previousState) {
+    // Update the state first, so that events receive the proper new state.
+    this.shown = (state === 'open');
+
+    if (state === 'opening') {
+      this.recalculateNotificationsContainerHeight();
+      if (!this.screen.classList.contains('utility-tray')) {
+        setTimeout(() => {
+          // If the active app was tracking touches it won't get any more events
+          // because of the "pointer-events: none" we're adding. Send a
+          // "touchcancel" event accordingly. This happens in a timeout to
+          // prevent interrupting the current event loop, in case we arrive here
+          // from an existing touch handler.
+          var touch = this.motion.currentTouch;
+          var app = Service.query('getTopMostWindow');
+          if (touch && app && app.config && app.config.oop) {
+            app.iframe.sendTouchEvent('touchcancel', [touch.identifier],
+                                      [touch.pageX], [touch.pageY],
+                                      [touch.radiusX], [touch.radiusY],
+                                      [touch.rotationAngle], [touch.force],
+                                      1, 0);
+          }
+        });
+      }
+
+      this.publish('-overlayopening');
+      window.dispatchEvent(new CustomEvent('utilitytraywillshow'));
+    } else if (state === 'closing') {
+      window.dispatchEvent(new CustomEvent('utilitytraywillhide'));
+    } else if (state === 'closed') {
+      window.dispatchEvent(new CustomEvent('utility-tray-overlayclosed'));
+      window.dispatchEvent(new CustomEvent('utilitytrayhide'));
+      this.publish('-deactivated');
+    } else if (state === 'open') {
+      window.dispatchEvent(new CustomEvent('utility-tray-overlayopened'));
+      window.dispatchEvent(new CustomEvent('utilitytrayshow'));
+      this.publish('-activated');
+    }
+
+    // If the screen is locked, the tray should remain invisible.
+    if ((state === 'opening' || state === 'open') &&
+        Service.query('locked')) {
+      this.hide(true);
+    }
+
+    if (state === 'opening' && previousState === 'closing') {
+      window.dispatchEvent(new CustomEvent('utility-tray-abortclose'));
+    } else if (state === 'closing' && previousState === 'opening') {
+      window.dispatchEvent(new CustomEvent('utility-tray-abortopen'));
+    }
+
+    this.screen.classList.toggle('utility-tray', this.shown);
+    this.screen.classList.toggle('utility-tray-in-transition',
+                                 state === 'opening' || state === 'closing');
+  },
+
   handleEvent: function ut_handleEvent(evt) {
     var detail = evt.detail;
 
     switch (evt.type) {
+      case 'resize':
+        this.recalculateNotificationsContainerHeight();
+        break;
+      case 'tray-motion-state':
+        this.handleTrayStateChange(evt.detail.value, evt.detail.previousValue);
+        this.toggleFooterDisplay();
+        break;
+      case 'tray-motion-footer-position':
+        this.toggleFooterDisplay();
+        break;
       case 'cardviewbeforeshow':
         this.hide(true);
         break;
-
-      case 'attentionopened':
-      case 'attentionwill-become-active':
       case 'home':
-        if (this.showing) {
-          this.hide();
-          if (evt.type == 'home') {
-            evt.stopImmediatePropagation();
-          }
+        this.hide();
+        if (evt.type == 'home') {
+          evt.stopImmediatePropagation();
         }
         break;
+      case 'attentionopened':
+      case 'attentionwill-become-active':
       case 'emergencyalert':
       case 'displayapp':
       case 'keyboardchanged':
@@ -194,16 +305,9 @@ window.UtilityTray = {
       case 'simlockshow':
       case 'appopening':
       case 'activityopening':
-        if (this.showing) {
-          this.hide();
-        }
-        break;
-
       case 'sheets-gesture-begin':
-        this.overlay.classList.add('on-edge-gesture');
-        break;
-      case 'sheets-gesture-end':
-        this.overlay.classList.remove('on-edge-gesture');
+      case 'imemenushow':
+        this.hide();
         break;
 
       case 'launchapp':
@@ -222,33 +326,17 @@ window.UtilityTray = {
           return blockedApp === detail.origin;
         });
 
-        if (!isBlockedApp && this.showing) {
+        if (!isBlockedApp) {
           this.hide();
         }
         break;
 
-      case 'imemenushow':
-        this.hide();
-        break;
-
       case 'screenchange':
-        if (this.showing && !this.active && !evt.detail.screenEnabled) {
+        // If the screen goes black, hide the tray.
+        if (!evt.detail.screenEnabled) {
           this.hide(true);
         }
         break;
-
-      case 'touchstart':
-        this.onTouchStart(evt);
-        break;
-
-      case 'touchmove':
-        this.onTouchMove(evt);
-        break;
-
-      case 'touchend':
-        this.onTouchEnd(evt);
-        break;
-
       case 'statusbarwheel':
         this.show(true);
         break;
@@ -260,16 +348,6 @@ window.UtilityTray = {
         }
         break;
 
-      case 'transitionend':
-        this.showing ? this.afterShow() : this.afterHide();
-        this.screen.classList.remove('utility-tray-in-transition');
-        this.transitioning = false;
-        break;
-
-      case 'resize':
-        this.validateCachedSizes(true);
-        break;
-
       case 'mozChromeEvent':
         if (evt.detail.type !== 'accessibility-control') {
           break;
@@ -278,408 +356,49 @@ window.UtilityTray = {
         if (eventType === 'edge-swipe-down' &&
           !Service.query('locked') &&
           !Service.query('isFtuRunning')) {
-          this[this.showing ? 'hide' : 'show'](true);
+          if (this.motion.state === 'open') {
+            this.hide(true);
+          } else {
+            this.show(true);
+          }
         }
         break;
-
-      case 'software-button-enabled':
-      case 'software-button-disabled':
-        this.validateCachedSizes(true);
-        break;
     }
-  },
-
-  validateCachedSizes: function(refresh) {
-    var screenRect;
-    if (refresh || !this.screenHeight || !this.screenWidth) {
-      screenRect = this.overlay.getBoundingClientRect();
-    }
-
-    if (refresh || !this.ambientHeight) {
-      this.ambientHeight = this.ambientIndicator.clientHeight || 0;
-    }
-
-    if (refresh || !this.screenWidth) {
-      this.screenWidth = screenRect.width || 0;
-    }
-
-    if (refresh || !this.screenHeight) {
-      this.screenHeight = (screenRect.height - this.ambientHeight) || 0;
-    }
-
-    if (refresh || !this.grippyHeight) {
-      this.grippyHeight = this.grippy.clientHeight || 0;
-    }
-  },
-
-  onTouchStart: function ut_onTouchStart(evt) {
-    this.debug('touch start', this.active, this.transitioning);
-
-    if (Service.query('locked') || Service.query('isFtuRunning')) {
-      return;
-    }
-
-    // If the tray is transitioning,
-    // don't interupt it
-    if (this.transitioning) {
-      return;
-    }
-
-    if (this.active) {
-      return;
-    }
-
-    // We only initiate the dragging transition
-    // if the touched element is a drag handle.
-    if (!this._isDraggable(evt.target)) {
-      return;
-    }
-
-    // Addresses bug 1150424.
-    evt.preventDefault();
-
-    this.startMove(evt.touches[0]);
-  },
-
-  startMove: function(touch) {
-    this.debug('start move');
-
-    this.startY = touch.pageY;
-    this.active = true;
-    this.isTap = true;
-
-    this.validateCachedSizes();
-    this.cancelActiveAppTouches(touch);
-
-    var event = this.shown ?
-      'utilitytraywillhide':
-      'utilitytraywillshow';
-
-    window.dispatchEvent(new CustomEvent(event));
-  },
-
-  cancelActiveAppTouches: function(touch) {
-    if (!this.screen.classList.contains('utility-tray')) {
-      this.debug('cancelling active touches');
-
-      // If the active app was tracking touches it won't get any more events
-      // because of the pointer-events:none we're adding.
-      // Sending a touchcancel accordingly.
-      var app = Service.query('getTopMostWindow');
-      if (app && app.config && app.config.oop) {
-        app.iframe.sendTouchEvent('touchcancel',
-          [touch.identifier],
-          [touch.pageX],
-          [touch.pageY],
-          [touch.radiusX],
-          [touch.radiusY],
-          [touch.rotationAngle],
-          [touch.force],
-          1,
-          0
-        );
-      }
-    }
-  },
-
-  onTouchMove: function ut_onTouchMove(evt) {
-    if (!this.active) {
-      return;
-    }
-
-    this.move(evt.touches[0], evt.timeStamp);
-  },
-
-  move: function(touch, timestamp) {
-    var screenHeight = this.screenHeight;
-    var y = touch.pageY;
-    var dy = -(this.startY - y);
-    var move = dy - this.lastDelta;
-    var moved = Math.abs(move) > 0;
-
-    this.validateCachedSizes();
-    this.overlay.classList.add('visible');
-
-    if (moved) {
-      this.lastMoveTime = timestamp;
-      this.lastMove = move;
-    }
-
-    this.lastDelta = dy;
-
-    // It is not longer a tap if
-    // the finger moves over 4px.
-    if (Math.abs(dy) > 4 && this.isTap) {
-      this.debug('not a tap');
-      this.publish('-overlayopening');
-      this.isTap = false;
-    }
-
-    // Don't move the tray until we
-    // know the gesture is a swipe.
-    if (this.isTap) {
-      this.debug('still a tap', this.startY, y);
-      return;
-    }
-
-    if (this.shown) {
-      dy += screenHeight;
-    }
-
-    // When the tray has gone beyond it's maximum,
-    // reset the start position so that when the
-    // finger is dragged up, the tray responds.
-    if (this.shown && dy > screenHeight) {
-      this.startY = y;
-    }
-
-    // Clamp the y position within
-    // the vertical screen bounds
-    dy = Math.max(0, dy);
-    dy = Math.min(screenHeight, dy);
-
-    // Stick the tray to the finger
-    var style = this.overlay.style;
-    style.transition = '';
-    style.transform = 'translateY(' + dy + 'px)';
-
-
-    // As the tray moves with the finger, we keep
-    // the actual content of the tray at the same
-    // position on the screen. This means that you
-    // can see the content of the tray without
-    // the tray having to be fully open.
-    this.notifications.style.transition = '';
-    this.notifications.style.transform =
-      'translateY(' + (this.screenHeight - dy) + 'px)';
-
-    // Hides the real status bar and adds a -moz-element
-    // projection of #status-bar into the utility tray
-    this.screen.classList.add('utility-tray-in-transition');
-    this.transitioning = true;
-  },
-
-  onTouchEnd: function ut_onTouchEnd(evt) {
-    this.debug('touch end');
-    evt.stopImmediatePropagation();
-
-    if (!this.active) {
-      return;
-    }
-
-    var touch = evt.changedTouches[0];
-    this._triggerSearchOnTouchEnd(touch);
-    this.endMove(touch, evt.timeStamp);
-  },
-
-  endMove: function(touch, timestamp) {
-    this.debug('end move');
-
-    // Hide utility tray while
-    // the screen is switched off.
-    if (Service.query('locked')) {
-      this.hide(true);
-    } else {
-
-      // We don't do any animation when the tray
-      // is down and the user swipes down.
-      var down = this.lastDelta > 0;
-      var ignore = this.shown && down || this.isTap;
-
-      if (!ignore) {
-        var timeDelta = timestamp - this.lastMoveTime;
-        var action = this.getAction(touch.pageY);
-        this.animationTime = this.getAnimationTime(timeDelta);
-        this[action]();
-      } else {
-        this.debug('no transition', down, this.shown, this.isTap);
-        this.transitioning = false;
-      }
-    }
-
-    this.active = false;
-    this.startY = undefined;
-    this.lastDelta = 0;
-    this.isTap = false;
-  },
-
-  getAction: function(y) {
-    var significant = Math.abs(this.lastDelta) > (this.screenHeight / 6);
-    var down = this.lastMove > 0;
-    if (significant) { return down ? 'show' : 'hide'; }
-    else { return y > (this.screenHeight / 2) ? 'show' : 'hide'; }
-  },
-
-  getAnimationTime: function(timeDelta) {
-    var velocity = timeDelta / Math.abs(this.lastMove);
-    var time = velocity * (this.shown ?
-      this.screenHeight + this.lastDelta :
-      this.screenHeight - this.lastDelta);
-
-    return Math.min(this.DEFAULT_ANIMATION_TIME,
-      Math.max(this.MINIMUM_ANIMATION_TIME, time));
-  },
-
-  hide: function ut_hide(instant = false) {
-    this.debug('hide', instant, this.animationTime);
-
-    if (!this.active) {
-      window.dispatchEvent(new CustomEvent('utilitytraywillhide'));
-
-      // Do nothing if the
-      // utility tray is hidden
-      if (!this.showing) {
-        return;
-      }
-    }
-
-    // If the tray is being closed before
-    // it was even shown, then the 'willopen'
-    // expectation is being aborted'
-    if (!this.shown) {
-      window.dispatchEvent(new CustomEvent('utility-tray-abortopen'));
-
-      // Don't attempt to close if the
-      // tray is not actually visible
-      if (!this.transitioning) {
-        return;
-      }
-    }
-
-    this.validateCachedSizes();
-    var style = this.overlay.style;
-    style.transition = instant ? '' :
-      'transform linear ' + this.animationTime + 'ms';
-    this.notifications.style.transition = style.transition;
-    this.animationTime = this.DEFAULT_ANIMATION_TIME;
-
-    this.showing = false;
-    this.transitioning = !instant;
-
-    if (instant || style.transform === '') {
-      this.afterHide();
-    } else if (this.hideStartCallback === null) {
-      // We want to remove the utility-tray class from the screen at the start
-      // of the animation, but if we do it outside of a timeout, the work will
-      // align with the start of the animation and cause a noticeable delay.
-      this.hideStartCallback = setTimeout(() => {
-        this.hideStartCallback = null;
-        this.screen.classList.remove('utility-tray');
-      }, 20);
-    }
-
-    style.transform = '';
-    var offset = this.grippyHeight - this.ambientHeight;
-    var notifTransform = 'calc(100% + ' + offset + 'px)';
-    this.notifications.style.transform = 'translateY(' + notifTransform + ')';
-  },
-
-  afterHide: function ut_after_hide() {
-    if (this.hideStartCallback) {
-      clearTimeout(this.hideStartCallback);
-      this.hideStartCallback = null;
-    }
-
-    this.screen.classList.remove('utility-tray');
-    this.overlay.classList.remove('visible');
-
-    if (!this.shown) {
-      return;
-    }
-
-    this.shown = false;
-    window.dispatchEvent(new CustomEvent('utility-tray-overlayclosed'));
-
-    var evt = document.createEvent('CustomEvent');
-    evt.initCustomEvent('utilitytrayhide', true, true, null);
-    window.dispatchEvent(evt);
-    this.publish('-deactivated');
-  },
-
-  show: function ut_show(instant = false) {
-    this.debug('show', instant, this.animationTime);
-
-    if (!this.shown) {
-      window.dispatchEvent(new CustomEvent('utilitytraywillshow'));
-    }
-
-    var transition = instant ? '' :
-      'transform linear ' + this.animationTime + 'ms';
-    this.animationTime = this.DEFAULT_ANIMATION_TIME;
-
-    this.transitioning = !instant;
-
-    this.validateCachedSizes();
-    var translate = this.ambientHeight + 'px';
-    var style = this.overlay.style;
-    style.transition = transition;
-    style.transform = 'translateY(calc(100% - ' + translate + '))';
-    this.notifications.style.transition = transition;
-    this.notifications.style.transform = '';
-
-    this.showing = true;
-
-    if (instant) {
-      this.afterShow();
-    }
-
-    if (this.shown) {
-      window.dispatchEvent(new CustomEvent('utility-tray-abortclose'));
-    }
-  },
-
-  afterShow: function ut_after_show() {
-    this.debug('after show');
-
-    this.screen.classList.add('utility-tray');
-    this.overlay.classList.add('visible');
-
-    if (this.shown) {
-      return;
-    }
-
-    this.shown = true;
-    window.dispatchEvent(new CustomEvent('utility-tray-overlayopened'));
-
-    var evt = document.createEvent('CustomEvent');
-    evt.initCustomEvent('utilitytrayshow', true, true, null);
-    window.dispatchEvent(evt);
-    this.publish('-activated');
   },
 
   /**
-   * Trigger search from the left half
-   * of the screen if we're LTR And
-   * trigger from the right half
-   * if we're RTL.
+   * When we receive a click on the transparent gripper, forward the click
+   * to the element below.
    *
-   * @param  {Touch} touch [description]
+   * Normally, when you swipe down from the top of the screen, your finger
+   * latches onto the transparent gripper element resting at the top of the
+   * screen. This initiates a scroll, and pulls the tray down.
+   *
+   * But we only need that element to trigger scrolling, not tapping. We want
+   * clicks to pass through the transparent gripper to the app below.
+   *
+   * NOTE: Ideally, we would want a long-press gesture to also pass through
+   * the element, however we cannot forward the long-press gesture to the
+   * underlying element (HTMLIFrameElement.sendTouchEvent() happens too late
+   * in the pipeline to trigger a long-press, e.g. a copy/paste operation).
+   * See <https://groups.google.com/forum/#!topic/mozilla.dev.fxos/1Kh8RrK7QWI>.
    */
-  _triggerSearchOnTouchEnd: function ut_triggerSearchOnTouchEnd(touch) {
-    var corner;
-
-    if (document.documentElement.dir  == 'rtl') {
-      corner = touch && (touch.target === this.topPanel) &&
-        (touch.pageX > (window.innerWidth / 2));
-    } else {
-      corner = touch && (touch.target === this.topPanel) &&
-        (touch.pageX < (window.innerWidth / 2));
+  _forwardInvisibleGripperClick(evt) {
+    // The most precise way to forward clicks is to use
+    // document.elementFromPoint(), but that causes a reflow.
+    // Instead, just use a static hit test area for now.
+    var app = Service.query('getTopMostWindow');
+    if (!app) {
+      return;
     }
+    var STATUSBAR_HIT_AREA_HEIGHT = 30;
+    var STATUSBAR_HIT_AREA_WIDTH = window.innerWidth / 2;
 
-    if (this.isTap && corner) {
-      this.debug('trigger search');
-
-      if (this.showing) {
-        this.hide();
-      }
-
-      var app = Service.query('getTopMostWindow');
-      var combinedView = app.appChrome && app.appChrome.useCombinedChrome();
-      var isTransitioning = app.isTransitioning();
-
-      if (!isTransitioning && combinedView && !app.appChrome.isMaximized()) {
-        app.appChrome.titleClicked();
-      }
+    if (evt.clientY < STATUSBAR_HIT_AREA_HEIGHT &&
+        evt.clientX < STATUSBAR_HIT_AREA_WIDTH &&
+        app.appChrome.urlbar) {
+      var forwarder = new TouchForwarder(app.appChrome.urlbar);
+      forwarder.forward(evt);
     }
   },
 
@@ -702,26 +421,8 @@ window.UtilityTray = {
     this.ambientIndicator.classList.remove('active');
   },
 
-  /**
-   * Dictates if a touch target
-   * element is draggable.
-   *
-   * EG. We don't want the tray to drag up
-   * while a user is tapping a button
-   * or a notification.
-   *
-   * This only runs on 'touchstart' so
-   * isn't run that frequently.
-   *
-   * @param  {HTMLElement}  target
-   * @return {Boolean}
-   */
-  _isDraggable: function ut_isDraggable(target) {
-    return ![
-      'button',
-      '.notification',
-      '.fake-notification',
-      'li'
-    ].some(selector => target.closest(selector));
-  }
 };
+
+
+
+})(window); // end function wrapper

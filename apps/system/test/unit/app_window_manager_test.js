@@ -40,7 +40,7 @@ var mocksForAppWindowManager = new MocksHelper([
 
 suite('system/AppWindowManager', function() {
   mocksForAppWindowManager.attachTestHelpers();
-  var app1, app2, app3, app4, app5, app6, app7, browser1, home;
+  var app1, app2, app3, app4, app5, app6, app7, appFullScreen, browser1, home;
   var subject;
   var settingsCore, realMozSettings;
 
@@ -78,6 +78,7 @@ suite('system/AppWindowManager', function() {
     app5 = new AppWindow(fakeAppConfig5Background);
     app6 = new AppWindow(fakeAppConfig6Browser);
     app7 = new AppWindow(fakeAppConfig7Activity);
+    appFullScreen = new AppWindow(fakeAppConfig8FullScreen);
     browser1 = new AppWindow(fakeBrowserConfig);
 
     settingsCore = BaseModule.instantiate('SettingsCore');
@@ -156,6 +157,14 @@ suite('system/AppWindowManager', function() {
     origin: 'app://www.fake7',
     isActivity: true,
     parentApp: ''
+  };
+
+  var fakeAppConfig8FullScreen = {
+    url: 'app://www.fake8/index.html',
+    manifest: {},
+    manifestURL: 'app://wwww.fake8/ManifestURL',
+    origin: 'app://www.fake8',
+    fullscreen: true
   };
 
   var fakeActivityConfigInline = {
@@ -755,6 +764,13 @@ suite('system/AppWindowManager', function() {
       assert.equal(spyPublish.firstCall.args[0], 'activeappchanged');
       assert.deepEqual(subject._activeApp, app1);
       assert.isFalse(stubStart.calledOnce);
+    });
+
+    test('sets .fullscreen-app when app.isFullScreen()', function() {
+      injectRunningApps(appFullScreen);
+      subject._activeApp = app2;
+      subject._updateActiveApp(app1.instanceID);
+      assert.isTrue(subject.screen.classList.contains('fullscreen-app'));
     });
 
     test('should not publish activeappchanged if activeApp is the same',

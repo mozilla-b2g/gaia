@@ -16,7 +16,10 @@
 
   LockScreenNotificationSelector.prototype.start =
   function (client) {
-    this.client = client;
+    // XXX: Remove the low searchTimeout when https://bugzil.la/1141519 lands.
+    //      Currently, Marionette can hang during findElements() due to
+    //      uncaught exceptions in other contexts; this works around that.
+    this.client = client.scope({ searchTimeout: 2000 });
     return this;
   };
 

@@ -74,6 +74,7 @@ suite('system/NotificationScreen >', function() {
     return {
       timeStamp: Date.now(),
       preventDefault: function() {},
+      stopPropagation: function() {},
       touches: [{
         target: target,
         pageX: x,
@@ -705,6 +706,7 @@ suite('system/NotificationScreen >', function() {
     });
 
     test('should disable scrolling during a swipe', function() {
+      MockService.mockQueryWith('UtilityTray.shown', true);
       var overflow = NotificationScreen.notificationsContainer.style.overflow;
       assert.equal(overflow, '');
 
@@ -719,6 +721,8 @@ suite('system/NotificationScreen >', function() {
     });
 
     test('should account for speed when dismissing', function() {
+      MockService.mockQueryWith('UtilityTray.shown', true);
+
       // Short but fast swipe
       var close = this.sinon.stub(NotificationScreen, 'swipeCloseNotification');
       NotificationScreen.touchstart(fakeEvt(notificationNode, 1, 1));
@@ -761,7 +765,17 @@ suite('system/NotificationScreen >', function() {
         'mozContentNotificationEvent', contentNotificationEventStub);
     });
 
+    test('tapping on notification disabled when tray not shown', function() {
+      MockService.mockQueryWith('UtilityTray.shown', false);
+      NotificationScreen.touchstart(fakeEvt(notificationNode, 10, 10));
+      NotificationScreen.touchmove(fakeEvt(notificationNode, 10, 10));
+      NotificationScreen.touchend(fakeEvt(notificationNode, 10, 10));
+
+      sinon.assert.notCalled(notifClickedStub);
+    });
+
     test('tapping on the notification', function() {
+      MockService.mockQueryWith('UtilityTray.shown', true);
       NotificationScreen.touchstart(fakeEvt(notificationNode, 10, 10));
       NotificationScreen.touchmove(fakeEvt(notificationNode, 10, 10));
       NotificationScreen.touchend(fakeEvt(notificationNode, 10, 10));

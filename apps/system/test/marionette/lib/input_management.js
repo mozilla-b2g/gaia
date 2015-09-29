@@ -99,19 +99,8 @@ InputManagement.prototype = {
   dragDownUtilityTray: function dragDownUtilityTray() {
     this.client.switchToFrame();
 
-    var topPanel = this.client.findElement('#top-panel');
-    var chain = this.actions.press(topPanel, 100, 0).moveByOffset(100, 300);
-    chain.release().perform();
-
-    var utilityTray = this.client.findElement('#utility-tray');
-    var ambientIndicator = this.client.findElement('#ambient-indicator');
-    var trayHeight = utilityTray.size().height - ambientIndicator.size().height;
-
-    // wait for utility tray to show completely
-    this.client.waitFor(function() {
-      var currentTransform = utilityTray.cssProperty('transform');
-      var expectedTransform = 'matrix(1, 0, 0, 1, 0, ' + trayHeight + ')';
-      return (currentTransform === expectedTransform);
+    this.client.executeScript(function() {
+      window.wrappedJSObject.UtilityTray.show(/* immediately: */ true);
     });
   },
 

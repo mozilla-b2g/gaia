@@ -752,13 +752,13 @@ suite('system/Rocketbar', function() {
       assert.isFalse(closeSearchStub.calledOnce);
     });
 
-    test('With utility tray active', function() {
-      MockUtilityTray.active = true;
+    test('With utility tray shown', function() {
+      MockUtilityTray.shown = true;
       subject.input.value = 'abc';
       subject.results.classList.remove('hidden');
       subject.handleInput();
       assert.ok(closeSearchStub.calledOnce);
-      MockUtilityTray.active = false;
+      MockUtilityTray.shown = false;
     });
 
   });
@@ -989,12 +989,12 @@ suite('system/Rocketbar', function() {
 
   test('calls _closeSearch if the utility tray is active', function(done) {
     subject.active = true;
-    MockUtilityTray.active = true;
+    MockUtilityTray.shown = true;
 
     var stub = this.sinon.stub(subject, '_closeSearch');
     subject.activate().then(() => {
       assert.ok(stub.calledOnce);
-      MockUtilityTray.active = false;
+      MockUtilityTray.shown = false;
       done();
     });
   });
@@ -1069,4 +1069,3 @@ suite('system/Rocketbar', function() {
     });
   });
 });
-

@@ -1,6 +1,7 @@
 'use strict';
 
 var UtilityTray = require('./lib/utility_tray');
+var assert = require('assert');
 
 marionette('Utility Tray - Gestures', function() {
   var client = marionette.client({
@@ -10,6 +11,25 @@ marionette('Utility Tray - Gestures', function() {
   var system;
   var utilityTray;
 
+  function watchEvent(eventType) {
+    client.executeScript(function(eventType) {
+      var win = window.wrappedJSObject;
+      if (!win.TEST_EVENTS_RECEIVED) {
+        win.TEST_EVENTS_RECEIVED = {};
+      }
+      window.addEventListener(eventType, function() {
+        win.TEST_EVENTS_RECEIVED[eventType] = true;
+      });
+    }, [eventType]);
+  }
+
+  function wasEventDispatched(eventType) {
+    return !!client.executeScript(function(eventType) {
+      var win = window.wrappedJSObject;
+      return win.TEST_EVENTS_RECEIVED[eventType];
+    }, [eventType]);
+  }
+
   setup(function() {
     system = client.loader.getAppClass('system');
     utilityTray = new UtilityTray(client);
@@ -18,35 +38,50 @@ marionette('Utility Tray - Gestures', function() {
   });
 
   test('Swiping down when already opened', function() {
-    var topPanel = system.topPanel;
-
-    utilityTray.swipeDown(topPanel);
+    utilityTray.swipeDown();
     utilityTray.waitForOpened();
 
-    utilityTray.swipeDown(topPanel);
+    utilityTray.swipeDown();
     utilityTray.waitForOpened();
   });
 
   test('Swiping down', function() {
-    var topPanel = system.topPanel;
-
-    utilityTray.swipeDown(topPanel);
+    watchEvent('utilitytraywillshow');
+    watchEvent('utilitytrayshow');
+    utilityTray.swipeDown();
     utilityTray.waitForOpened();
+    assert.equal(true, wasEventDispatched('utilitytraywillshow'));
+    assert.equal(true, wasEventDispatched('utilitytrayshow'));
+    assert.equal(true, utilityTray.shown);
+  });
+
+  test('Tapping "settings"', function() {
+    utilityTray.swipeDown();
+    utilityTray.waitForOpened();
+    client.executeScript(function() {
+      document.getElementById('quick-settings-full-app').click();
+    });
+    utilityTray.waitForClosed();
+    assert.equal(false, utilityTray.shown);
   });
 
   test('Swiping up', function() {
-    var grippy = client.findElement(utilityTray.Selectors.grippy);
+    watchEvent('utilitytraywillhide');
+    watchEvent('utilitytrayhide');
 
     utilityTray.open();
-    utilityTray.swipeUp(grippy);
+    utilityTray.swipeUp();
     utilityTray.waitForClosed();
+
+    assert.equal(true, wasEventDispatched('utilitytraywillhide'));
+    assert.equal(true, wasEventDispatched('utilitytrayhide'));
+
+    assert.equal(false, utilityTray.shown);
   });
 
   test('Swiping up in the middle of the tray closes it', function() {
-    var grippy = client.findElement(utilityTray.Selectors.element);
-
     utilityTray.open();
-    utilityTray.swipeUp(grippy);
+    utilityTray.swipeUp();
     utilityTray.waitForClosed();
   });
 });

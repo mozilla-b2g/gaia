@@ -105,6 +105,14 @@
   width: calc(100% - 8rem);
 }
 
+/* Give the urlbar an extra hit target reaching toward the top of the screen. */
+.chrome:not(.maximized) .controls .urlbar-hit-area {
+  position: absolute;
+  width: 100%;
+  height: 3.2rem;
+  top: -0.8rem;
+}
+
 .search-app .chrome .controls .windows-button {
   display: inline;
 }

@@ -202,6 +202,10 @@
 
   <body class="theme-settings" role="application">
     <div id="screen" aria-hidden="true">
+      <div id="windows" data-z-index-level="app">
+        <!-- application windows are added here -->
+      </div>
+
       <div id="os-logo" data-z-index-level="initlogo">
         <div id="carrier-logo"></div>
       </div>
@@ -233,12 +237,8 @@
       </div>
       <div id="rocketbar-results" class="hidden" data-z-index-level="rocketbar-results"></div>
 
-      <div id="windows" data-z-index-level="app">
-        <!-- application windows are added here -->
-      </div>
-
-      <div id="utility-tray" data-z-index-level="utility-tray">
-        <div id="notifications">
+      <div id="utility-tray-motion" data-z-index-level="utility-tray" class="tray utility-tray-loading">
+        <div class="tray-content" id="utility-tray">
           <!-- Notifications -->
           <div id="utility-tray-notifications" data-l10n-id="utilityTray" role="dialog" aria-label="Utility tray" data-z-index-level="utility-tray-notifications">
             <div id="statusbar-tray">
@@ -295,8 +295,10 @@
                 <div class="other-notifications"></div>
               </div>
             </div>
+          </div>
 
-            <div id="utility-tray-footer">
+          <div id="tray-footer-container" class="tray-footer">
+            <div id="utility-tray-footer" class="animate-out">
               <!-- Media playback notification -->
               <div id="media-playback-container" class="media-playback-container fake-notification" hidden>
                 <div class="media-playback-nowplaying">
@@ -311,7 +313,9 @@
               </div>
 
               <!-- Credit module -->
-              <div id="cost-control-widget"></div>
+              <div id="cost-control-widget">
+                <div id="cost-control-touch-overlay"></div>
+              </div>
 
               <!-- Quick settings -->
               <div id="quick-settings" role="toolbar">
@@ -324,14 +328,17 @@
                 </ul>
               </div>
             </div>
+            <div id="utility-tray-grippy"></div>
+            <div class="ambient-indicator" id="ambient-indicator" data-z-index-level="notification-toaster">
+              <div class="handle handle1"></div>
+              <div class="handle handle2"></div>
+            </div>
           </div>
-        </div>
 
-        <div id="utility-tray-grippy"></div>
-        <div class="ambient-indicator" id="ambient-indicator" data-z-index-level="notification-toaster">
-            <div class="handle handle1"></div>
-            <div class="handle handle2"></div>
         </div>
+        <div id="tray-invisible-gripper">
+        </div>
+        <div class="tray-dead-area"></div>
       </div>
 
       <!-- XXX: Before we can make LockScreen as a iframe or app, we need this to split LockScreen and System part in this way (Bug 1057198) -->

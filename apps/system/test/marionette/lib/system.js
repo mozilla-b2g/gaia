@@ -73,6 +73,7 @@ System.Selector = Object.freeze({
   rightPanel: '#right-panel',
   siteIcon: '.appWindow.active .chrome .site-icon',
   utilityTray: '#utility-tray',
+  utilityTrayMotion: '#utility-tray-motion',
   visibleForm: '#action-menu > form.visible',
   cancelActivity: '#action-menu form.visible button[data-action="cancel"]',
   nfcIcon: '.statusbar-nfc',
@@ -300,6 +301,10 @@ System.prototype = {
 
   get utilityTray() {
     return this.client.findElement(System.Selector.utilityTray);
+  },
+
+  get utilityTrayMotion() {
+    return this.client.findElement(System.Selector.utilityTrayMotion);
   },
 
   get topPanel() {

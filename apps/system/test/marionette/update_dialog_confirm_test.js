@@ -76,10 +76,19 @@ marionette('Software Home Button - Update Dialog Confirm', function() {
     var input = client.findElement('#statusbar');
     client.waitFor(input.displayed.bind(input));
     triggerUpdateDownload();
-    client.helper.waitForElement('#dialog-screen');
+
+    client.helper.waitForElement('#dialog-screen').scriptWith(function(el) {
+      el.addEventListener('touchend', function() {
+        el.classList.add('was-tapped');
+      });
+    });
+
+    // Tap on the screen coordinate where the rocketbar lives.
     input.tap(25, 25);
-    // Waiting for the element to disappear is how we assert the element won't
-    // show up since internally marionette will poll for it's appearance.
-    client.helper.waitForElementToDisappear(system.Selector.activeKeyboard);
+
+    // The tap should have been intercepted by the dialog screen, proving that
+    // the dialog was on top of the rocketbar.
+    client.helper.waitForElement('#dialog-screen.was-tapped');
   });
+
 });
