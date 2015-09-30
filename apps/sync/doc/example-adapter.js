@@ -1,6 +1,5 @@
-/* This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+/* Any copyright is dedicated to the Public Domain.
+ * http://creativecommons.org/publicdomain/zero/1.0/ */
 
 /**
  * See ../js/sync-engine/syncengine.js for an explanation of how DataAdapters
@@ -21,6 +20,10 @@
  * from the device needs to be added or changed in the Kinto collection, so that
  * the SyncEngine can propagate these changes to the user's Firefox Sync
  * account on the server.
+ * The update method should return a Promise for `true` if any changes were made
+ * to `kintoCollection` and a Promise for `false` otherwise. That way, the
+ * SyncEngine knows whether it's necessary to sync a second time, to upload such
+ * changes to the FxSync server.
  *
  * Before and after `update` is called, the SyncEngine synchronizes the Kinto
  * collection with the remote server. In both cases, conflicts may occur. If
@@ -34,17 +37,41 @@
 /* exported ExampleAdapter */
 
 var ExampleAdapter = {
+
+  /*
+   * update - Import incoming changes to the appropriate place on the device,
+   *          and (optionally) export outgoing changes to SyncEngine.
+   *
+   * @param {Object} kintoCollection - A Kinto collection, see
+   * http://kintojs.readthedocs.org/en/latest/api/#collections
+   *
+   * @returns {Promise} A promise for a Boolean, indicating whether or not
+   *                    any outgoing changes were made that need to be synced up
+   *                    to FxSync.
+   */
   update: function(kintoCollection) {
+    var kintoCollectionChanged = false;
     kintoCollection.list().then(list => {
       for(var i = 0; i < list.data.length; i++) {
         console.log(`Record ${i}:`, list.data[i].payload);
       }
     });
+    return Promise.resolve(kintoCollectionChanged);
   },
+
+  /*
+   * handleConflict - Decide how to resolve a Kinto conflict.
+   *
+   * @param {Object} conflict - A Kinto conflict, see
+   * http://kintojs.readthedocs.org/en/latest/api/#resolving-conflicts-manually
+   *
+   * @returns {Promise} A Promise for the desired resolution (could be
+   *                    conflict.local, conflict.remote, or a merge of the two).
+   */
   handleConflict: function(conflict) {
     console.log('Example adapter handleConflict function called with:',
                 conflict.local,
                 conflict.remote);
-    return conflict.local;
+    return Promise.resolve(conflict.local);
   }
 };
