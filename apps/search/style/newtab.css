@@ -172,9 +172,9 @@ body.private .private-window-hidden {
 
 /* Private browser dialog */
 #private-window-dialog {
+  min-height: 100%;
   position: absolute;
   top: 0;
-  bottom: 0;
   left: 0;
   right: 0;
   z-index: 2;
@@ -201,11 +201,20 @@ body.private .private-window-hidden {
   color: #fff;
   font-size: 1.3rem;
   line-height: 1.8rem;
-  margin-bottom: 1rem;
+  margin-bottom: 1.2rem;
+}
+
+#private-window-dialog a {
+  color: #00caf2;
+}
+
+#private-window-dialog gaia-checkbox {
+  margin: 10px 0;
 }
 
 #private-window-dialog gaia-checkbox label {
   color: #fff;
+  font-size: 1.3rem;
 }
 
 
