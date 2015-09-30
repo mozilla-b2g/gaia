@@ -2,6 +2,7 @@
 
 var Server = require('../../../../shared/test/integration/server');
 var Rocketbar = require('./lib/rocketbar');
+var PinTheWeb = require('./lib/pinning_the_web');
 var assert = require('assert');
 
 
@@ -20,7 +21,7 @@ marionette('Pinning the Web', function() {
     }
   });
 
-  var rocketbar, server, system, actions, home;
+  var rocketbar, server, system, actions, home, pinTheWeb;
 
   suiteSetup(function(done) {
     Server.create(__dirname + '/fixtures/', function(err, _server) {
@@ -37,6 +38,7 @@ marionette('Pinning the Web', function() {
     system = client.loader.getAppClass('system');
     home = client.loader.getAppClass('verticalhome');
     rocketbar = new Rocketbar(client);
+    pinTheWeb = new PinTheWeb(client);
     system.waitForFullyLoaded();
     actions = client.loader.getActions();
   });
@@ -51,40 +53,15 @@ marionette('Pinning the Web', function() {
       return numIcons > 0;
     });
 
-    // Check that the pin door hanger appears
     var url = server.url('sample.html');
-    client.switchToFrame();
-    rocketbar.homescreenFocus();
-    rocketbar.enterText(url, true);
-    var frame = client.helper.waitForElement(
-      'div[transition-state="opened"] iframe[src="' + url + '"]');
-    client.switchToFrame(frame);
-    client.helper.waitForElement('body');
-    client.switchToFrame();
-    system.siteIcon.click();
-    client.waitFor(function() {
-      return system.pinDialog.displayed();
-    });
-    assert(true, 'Shows the dialog when clicking siteIcon');
+    pinTheWeb.openAndPinSite(url);
 
-    // Check that browser chrome is smaller after pinning
-    var chromeRectBefore = system.appChrome.scriptWith(function(e) {
-      return e.getBoundingClientRect();
-    });
-    system.pinButton.click();
-    var chromeRectAfter = system.appChrome.scriptWith(function(e) {
-      return e.getBoundingClientRect();
-    });
-    assert.ok(chromeRectBefore.height > chromeRectAfter.height,
-      'browser chrome collapses after pinning');
+    assert(pinTheWeb.chromeIsPinned());
 
     // Check that browser chrome expands when tapped
     actions.wait(1).tap(system.appUrlbar).perform();
     client.waitFor(function() {
-      var chromeRectAfterExpand = system.appChrome.scriptWith(function(e) {
-        return e.getBoundingClientRect();
-      });
-      return chromeRectAfterExpand.height == chromeRectBefore.height;
+      return !pinTheWeb.chromeIsPinned();
     });
 
     // Check that browser chrome focuses on second tap
@@ -94,13 +71,31 @@ marionette('Pinning the Web', function() {
     });
     assert(true, 'browser chrome can be manually expanded');
 
-
     // Check that icon was added to homescreen
     system.tapHome();
     client.switchToFrame(system.getHomescreenIframe());
     client.waitFor(function() {
       return home.numIcons == numIcons + 1;
     });
+  });
+
+  test('it does not affect to window.open chrome', function() {
+    var url = server.url('windowopen.html');
+    var url2 = server.url('darkpage.html');
+
+    rocketbar.homescreenFocus();
+    rocketbar.enterText(url, true);
+    system.gotoBrowser(url);
+    client.helper.waitForElement('#trigger3').tap();
+    client.switchToFrame();
+
+    client.waitFor(function() {
+      return client.findElement('iframe[data-url*="' + url2 + '"]');
+    });
+
+    var popupChrome = client.findElement('.appWindow.popupWindow.active');
+    var classes = popupChrome.getAttribute('class');
+    assert(classes.indexOf('collapsible') < 0);
   });
 
 });

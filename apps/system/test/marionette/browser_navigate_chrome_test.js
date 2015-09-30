@@ -71,9 +71,6 @@ marionette('Browser - Chrome on browser navigation',
     rocketbar.enterText(url2, true);
     system.waitForBrowser(url2);
 
-    var classes = system.appChrome.getAttribute('class');
-
-    assert(classes.indexOf('maximized') < 0);
-    assert(classes.indexOf('collapsible') < 0);
+    assert(pinTheWeb.chromeIsPinned());
   });
 });

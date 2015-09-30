@@ -78,6 +78,14 @@ PinningTheWeb.prototype = {
     this.pinPageButton.tap();
   },
 
+  chromeIsPinned: function chromeIsPinned() {
+    var classes = this.system.appChrome.getAttribute('class');
+    var isMinimized = classes.indexOf('maximized') < 0;
+    var notScrollable = classes.indexOf('collapsible') < 0;
+
+    return isMinimized && notScrollable;
+  },
+
   _clickPinContextMenu: function() {
     this.client.switchToFrame();
     this.client.waitFor(function() {
