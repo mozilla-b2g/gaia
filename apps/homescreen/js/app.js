@@ -132,6 +132,7 @@ const SETTINGS_VERSION = 0;
     this.dragging = false;
     this.draggingRemovable = false;
     this.draggingEditable = false;
+    this.draggedIndex = -1;
     this.autoScrollInterval = null;
     this.autoScrollOverflowTimeout = null;
     this.hoverIcon = null;
@@ -584,9 +585,11 @@ const SETTINGS_VERSION = 0;
         }
 
         if (this.dragging) {
+          document.body.classList.add('autoscroll');
           this.autoScrollOverflowTimeout = setTimeout(() => {
             this.autoScrollOverflowTimeout = null;
             this.scrollable.style.overflow = 'hidden';
+            document.body.classList.remove('autoscroll');
             this.scrollable.scrollTop = destination;
           }, AUTOSCROLL_OVERFLOW_DELAY);
         }
@@ -624,6 +627,12 @@ const SETTINGS_VERSION = 0;
         this.indicator.setAttribute('data-l10n-id', this.appsVisible ?
           'apps-panel' : 'pages-panel');
       }
+    },
+
+    getChildIndex: function(child) {
+      // XXX Note, we're taking advantage of gaia-container using
+      //     Array instead of HTMLCollection here.
+      return this.icons.children.indexOf(child);
     },
 
     handleEvent: function(e) {
@@ -710,6 +719,7 @@ const SETTINGS_VERSION = 0;
 
         this.draggingEditable = !!icon.bookmark;
         this.draggingRemovable = this.draggingEditable || !!icon.app.removable;
+        this.draggedIndex = this.getChildIndex(e.detail.target);
         this.bottombar.classList.toggle('editable', this.draggingEditable);
         this.bottombar.classList.toggle('removable', this.draggingRemovable);
         if (this.draggingEditable || this.draggingRemovable) {
@@ -720,6 +730,7 @@ const SETTINGS_VERSION = 0;
       case 'drag-finish':
         this.dragging = false;
         document.body.classList.remove('dragging');
+        document.body.classList.remove('autoscroll');
         this.scrollable.style.overflow = '';
         this.bottombar.classList.remove('active');
         this.edit.classList.remove('active');
@@ -837,12 +848,8 @@ const SETTINGS_VERSION = 0;
             this.hoverIcon = (hoverIcon !== e.detail.target) ? hoverIcon : null;
 
             if (this.hoverIcon) {
-              // XXX Note, we're taking advantage of gaia-container using
-              //     Array instead of HTMLCollection here.
-              var children = this.icons.children;
-              var offset = children.indexOf(e.detail.target) -
-                           children.indexOf(this.hoverIcon);
-
+              var offset = this.draggedIndex -
+                           this.getChildIndex(this.hoverIcon);
               this.hoverIcon.classList.add((offset >= 0) ?
                 'hover-before' : 'hover-after');
             }

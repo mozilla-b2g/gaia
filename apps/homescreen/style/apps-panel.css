@@ -64,6 +64,10 @@ gaia-container.small > .gaia-container-child.dragging > .icon-container > gaia-a
   transform: scale(0.8) translate(-3.2vw, -3.2vw);
 }
 
+.dragging:not(.autoscroll) gaia-container > .gaia-container-child > .icon-container {
+  will-change: transform;
+}
+
 gaia-container > .gaia-container-child > .icon-container.hover-before {
   transform: translateX(3.5rem);
 }
