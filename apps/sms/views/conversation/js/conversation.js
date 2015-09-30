@@ -2911,7 +2911,7 @@ var ConversationView = {
         recipients: conversation ?
           conversation.participants : this.recipients.numbers,
         content: Compose.getContent(),
-        subject: Compose.isSubjectVisible ? Compose.getSubject() : null,
+        subject: Compose.getSubject(),
         type: Compose.type
       });
 

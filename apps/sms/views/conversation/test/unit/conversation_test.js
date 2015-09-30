@@ -5583,8 +5583,6 @@ suite('conversation.js >', function() {
       this.sinon.stub(Compose, 'getContent');
       this.sinon.stub(Compose, 'getSubject');
 
-      Compose.isSubjectVisible = false;
-
       ConversationView.draft = null;
 
       ConversationView.initRecipients();
@@ -5618,6 +5616,7 @@ suite('conversation.js >', function() {
     test('saves draft if at least content is entered', function() {
       Compose.isEmpty.returns(false);
       Compose.getContent.returns(['foo']);
+      Compose.getSubject.returns(null);
 
       ConversationView.updateDraft();
 
@@ -5640,6 +5639,7 @@ suite('conversation.js >', function() {
       ConversationView.recipients.add({
         number: '999'
       });
+      Compose.getSubject.returns(null);
 
       ConversationView.updateDraft();
 
@@ -5656,31 +5656,9 @@ suite('conversation.js >', function() {
       assert.equal(ConversationView.draft, Drafts.add.lastCall.args[0]);
     });
 
-    test('does not save subject if it is not visible', function() {
-      Compose.isEmpty.returns(false);
-      Compose.getContent.returns(['foo']);
-      Compose.isSubjectVisible = false;
-      Compose.getSubject.returns('subject');
-
-      ConversationView.updateDraft();
-
-      sinon.assert.calledWith(Drafts.add, {
-        id: null,
-        recipients: [],
-        content: ['foo'],
-        subject: null,
-        threadId: undefined,
-        type: 'sms'
-      });
-      sinon.assert.callOrder(Drafts.add, Drafts.store);
-      sinon.assert.notCalled(Drafts.delete);
-      assert.equal(ConversationView.draft, Drafts.add.lastCall.args[0]);
-    });
-
     test('saves draft entirely', function() {
       Compose.isEmpty.returns(false);
       Compose.getContent.returns(['foo']);
-      Compose.isSubjectVisible = true;
       Compose.getSubject.returns('subject');
       ConversationView.recipients.add({
         number: '999'
@@ -5704,7 +5682,6 @@ suite('conversation.js >', function() {
     test('saves participants and thread id for the thread draft', function() {
       Compose.isEmpty.returns(false);
       Compose.getContent.returns(['foo']);
-      Compose.isSubjectVisible = true;
       Compose.getSubject.returns('subject');
 
       setActiveThread(100, ['888'], [MockMessages.sms()]);
@@ -5733,6 +5710,7 @@ suite('conversation.js >', function() {
 
       Compose.isEmpty.returns(false);
       Compose.getContent.returns(['bar']);
+      Compose.getSubject.returns(null);
 
       ConversationView.updateDraft();
 
@@ -5762,6 +5740,7 @@ suite('conversation.js >', function() {
 
       Compose.isEmpty.returns(false);
       Compose.getContent.returns(['bar']);
+      Compose.getSubject.returns(null);
 
       ConversationView.updateDraft();
 
@@ -5796,6 +5775,7 @@ suite('conversation.js >', function() {
 
       Compose.isEmpty.returns(false);
       Compose.getContent.returns(['bar']);
+      Compose.getSubject.returns(null);
 
       ConversationView.updateDraft();
 
@@ -5821,6 +5801,7 @@ suite('conversation.js >', function() {
 
       Compose.isEmpty.returns(false);
       Compose.getContent.returns(['bar']);
+      Compose.getSubject.returns(null);
 
       ConversationView.updateDraft();
 
