@@ -124,12 +124,28 @@ e!`);
     }
   });
 
+  const generateXClientState = (kB) => {
+    var kBarray = [];
+    for(var i = 0; i < kB.length; i += 2){
+      kBarray.push(parseInt(kB.substring(i, i + 2), 16));
+    }
+    return window.crypto.subtle.digest({name: 'SHA-256'},
+                                       new Uint8Array(kBarray))
+    .then(hash => {
+      var bytes = new Uint8Array(hash).slice(0, 16);
+      var array = [];
+      bytes.forEach(byte => {
+        array.push((byte < 16 ? '0' : '') + byte.toString(16).toLowerCase());
+      });
+      return array.join('');
+    });
+  };
+
   /**
     * SyncEngine - Constructor.
     * @param {Object} options Should contain the following fields:
     *                         * URL - e.g. 'http://localhost:8000/v1/'
     *                         * assertion - a BrowserID assertion (Base64)
-    *                         * xClientState - xClientState header value
     *                         * kB - kB key from token server (Base64)
     *                         * adapters - object whose keys are collection
     *                                      names, and whose values are
@@ -140,7 +156,7 @@ e!`);
     if (typeof options !== 'object') {
       throw new Error('options should be an Object');
     }
-    ['URL', 'assertion', 'xClientState', 'kB'].forEach(field => {
+    ['URL', 'assertion', 'kB'].forEach(field => {
       if (typeof options[field] !== 'string') {
         throw new Error(`options.${field} should be a String`);
       }
@@ -162,16 +178,14 @@ uld be a Function`);
       });
     }
 
-    this._kB = options.kB;
+    ['kB', 'assertion', 'URL', 'adapters'].forEach(field => {
+      this[`_${field}`] = options[field];
+    });
+
     this._collections = {};
     this._controlCollections = {};
     this._fswc = new FxSyncWebCrypto();
-    this._kinto = this._createKinto({
-       URL: options.URL,
-       assertion: options.assertion,
-       xClientState: options.xClientState
-    });
-    this._adapters = options.adapters;
+    this._kinto = null;
     this._ready = false;
   };
 
@@ -222,9 +236,7 @@ uld be a Function`);
       // http://kintojs.readthedocs.org \
       //     /en/latest/api/#fetching-and-publishing-changes
 
-      return collection.sync().catch(err => {
-        throw err;
-      }).then(syncResults => {
+      return collection.sync().then(syncResults => {
         if (syncResults.ok) {
           return syncResults;
         }
@@ -275,7 +287,15 @@ uld be a Function`);
       if (this._ready) {
         return Promise.resolve();
       }
-      return this._syncCollection('meta').then(() => {
+      return generateXClientState(this._kB).then(xClientState => {
+        this._kinto = this._createKinto({
+           URL: this._URL,
+           assertion: this._assertion,
+           xClientState
+         });
+      }).then(() => {
+        return this._syncCollection('meta');
+      }).then(() => {
         return this._getItem('meta', 'global');
       }).then(metaGlobal => {
         if (!this._storageVersionOK(metaGlobal)) {
