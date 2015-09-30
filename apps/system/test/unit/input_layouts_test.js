@@ -300,7 +300,7 @@ suite('InputLayouts', function() {
     var stubInsertFallbacklayouts =
       this.sinon.stub(inputLayouts, '_insertFallbackLayouts');
 
-    var stubEmitLayoutsCount =
+    var emitLayoutsCountStub =
       this.sinon.stub(inputLayouts, '_setSupportsSwitchingTypes');
 
     var enabledApps = inputLayouts.processLayouts(appLayouts);
@@ -314,7 +314,7 @@ suite('InputLayouts', function() {
       )
     );
 
-    assert.isTrue(stubEmitLayoutsCount.called);
+    assert.isTrue(emitLayoutsCountStub.called);
 
     assert.isTrue(enabledApps.has('app://k.gaiamobile.org/manifest.webapp'));
     assert.equal(enabledApps.size, 1);
