@@ -57,7 +57,7 @@ TcpSync.prototype.waitForSocket = function(options, callback) {
 
   options = options || {};
   var interval = options.interval || 100;
-  var timeout = options.timeout || 30000;
+  var timeout = options.timeout || 300000;
   var socketTimeout = 1000;
 
   var sockit = new sockittome.Sockit();
