@@ -210,9 +210,9 @@ uld be a Function`);
 
     _resolveConflicts: function(collectionName, conflicts) {
       return Promise.all(conflicts.map(conflict => {
-        var resolution = this._adapters[collectionName].handleConflict(
-            conflict);
-        return this._collections[collectionName].resolve(conflict, resolution);
+        return this._adapters[collectionName].handleConflict(conflict)
+          .then(resolution =>
+              this._collections[collectionName].resolve(conflict, resolution));
       }));
     },
 
