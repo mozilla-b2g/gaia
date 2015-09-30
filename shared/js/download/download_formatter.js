@@ -6,8 +6,6 @@
  * The proposed `DownloadFormatter' object provides features for formatting
  * the data retrieved from the new API for Downloads, taking into account
  * the structure defined by the API itself.
- * WARNING: this library relies on the non-standard `toLocaleFormat()' method,
- * which is specific to Firefox -- no other browser is supported.
  */
 
 

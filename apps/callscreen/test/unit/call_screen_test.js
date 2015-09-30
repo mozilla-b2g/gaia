@@ -1,10 +1,11 @@
 /* globals CallScreen, FontSizeManager, l10nAssert, MockCallsHandler,
            MockHandledCall, MockMozActivity, MockNavigatorMozTelephony,
-           MockL10n, MocksHelper, MockSettingsListener, Utils */
+           MockL10n, MocksHelper, MockSettingsListener, Utils, MockMozIntl */
 
 'use strict';
 
 require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_moz_intl.js');
 require('/shared/test/unit/mocks/mock_moz_activity.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
@@ -35,6 +36,7 @@ if (!window.CallScreen) {
 suite('call screen', function() {
   var realMozTelephony;
   var realMozL10n;
+  var realMozIntl;
   var realSettingsListener;
 
   var body;
@@ -70,6 +72,8 @@ suite('call screen', function() {
     window.SettingsListener = MockSettingsListener;
     realMozL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
+    realMozIntl = window.mozIntl;
+    window.mozIntl = MockMozIntl;
   });
 
   suiteTeardown(function() {
@@ -77,6 +81,7 @@ suite('call screen', function() {
     navigator.mozTelephony = realMozTelephony;
     window.SettingsListener = realSettingsListener;
     navigator.mozL10n = realMozL10n;
+    window.mozIntl = realMozIntl;
   });
 
   setup(function(done) {
@@ -896,7 +901,7 @@ suite('call screen', function() {
         minute: 'numeric'
       }).replace(amPm, '').trim();
 
-      assert.equal(clockStr, refStr);
+      assert.isTrue(clockStr.indexOf(refStr) !== -1);
     });
   });
 
