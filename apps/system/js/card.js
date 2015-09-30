@@ -38,7 +38,7 @@ function Card(app, disableScreenshots) {
   el.setAttribute('aria-labelledby', this.titleId);
   el.setAttribute('role', 'presentation'); // The card is not semantic.
 
-  el.innerHTML = this.getHtmlTemplate();
+  el.innerHTML =  Sanitizer.unwrapSafeHTML(this.getHtmlTemplate());
 
   var topMostWindow = app.getTopMostWindow();
   if (topMostWindow && topMostWindow.CLASS_NAME === 'TrustedWindow') {
@@ -106,7 +106,7 @@ Card.prototype = {
   _translateY: '0px',
 
   getHtmlTemplate() {
-    return Sanitizer.escapeHTML `
+    return Sanitizer.createSafeHTML `
     <div class="titles">
       <h1 id="${this.titleId}" dir="auto" class="title">${this.title}</h1>
       <p class="subtitle">
