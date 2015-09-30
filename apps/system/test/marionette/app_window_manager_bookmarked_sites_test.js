@@ -23,11 +23,6 @@ marionette('AppWindowManager - Bookmarked sites',
     server.stop();
   });
 
-  function waitForBrowser(url) {
-    client.helper.waitForElement(
-      'div[transition-state="opened"] iframe[src="' + url + '"]');
-  }
-
   function bookmarkSite(url) {
     bookmark.openAndSave(url);
     var numApps = system.getAppWindows().length;
@@ -68,13 +63,13 @@ marionette('AppWindowManager - Bookmarked sites',
     system.tapHome();
     rocketbar.homescreenFocus();
     rocketbar.enterText(url2, true);
-    waitForBrowser(url2);
+    system.waitForBrowser(url2);
 
     currentNApps = system.getAppWindows().length;
     assert.equal(nApps + 1, currentNApps, 'new window from the rocketbar');
 
     openBookmark(url);
-    waitForBrowser(url2);
+    system.waitForBrowser(url2);
 
     currentNApps = system.getAppWindows().length;
     assert.equal(nApps + 1, currentNApps, 'reuses window from the bookmark');
@@ -87,14 +82,14 @@ marionette('AppWindowManager - Bookmarked sites',
     system.tapHome();
     rocketbar.homescreenFocus();
     rocketbar.enterText(url2, true);
-    waitForBrowser(url2);
+    system.waitForBrowser(url2);
 
 
     currentNApps = system.getAppWindows().length;
     assert.equal(nApps + 1, currentNApps, 'new window from the rocketbar');
 
     openBookmark(url);
-    waitForBrowser(url);
+    system.waitForBrowser(url);
 
     currentNApps = system.getAppWindows().length;
     assert.equal(nApps + 2, currentNApps, 'new window from the bookmark');
@@ -106,26 +101,26 @@ marionette('AppWindowManager - Bookmarked sites',
     system.tapHome();
     rocketbar.homescreenFocus();
     rocketbar.enterText(url2, true);
-    waitForBrowser(url2);
+    system.waitForBrowser(url2);
 
     openBookmark(url);
-    waitForBrowser(url);
+    system.waitForBrowser(url);
 
     system.tapHome();
     // Twice for scrolling to the top
     system.tapHome();
     home.launchApp(search.URL);
-    waitForBrowser(url2);
+    system.waitForBrowser(url2);
   });
 
   test('Tapping the browser opens a new window if no unpinned', function() {
     openBookmark(url);
-    waitForBrowser(url);
+    system.waitForBrowser(url);
 
     system.tapHome();
     // Twice for scrolling to the top
     system.tapHome();
     home.launchApp(search.URL);
-    waitForBrowser(search.NEW_TAB_URL);
+    system.waitForBrowser(search.NEW_TAB_URL);
   });
 });

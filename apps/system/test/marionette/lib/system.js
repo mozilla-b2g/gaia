@@ -519,6 +519,11 @@ System.prototype = {
     });
   },
 
+  waitForBrowser: function waitForBrowser(url) {
+    this.client.helper.waitForElement(
+      'div[transition-state="opened"] iframe[src="' + url + '"]');
+  },
+
   // It looks for an activity menu, and returns the first
   // button element which includes with str
   getActivityOptionMatching: function(str) {
