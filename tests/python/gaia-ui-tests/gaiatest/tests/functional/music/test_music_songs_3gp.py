@@ -4,7 +4,7 @@
 
 import time
 from gaiatest import GaiaTestCase
-from gaiatest.apps.music.app import Music
+from gaiatest.apps.music_oga.app import Music
 
 
 class TestPlay3GPMusic(GaiaTestCase):

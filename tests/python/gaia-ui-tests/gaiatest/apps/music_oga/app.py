@@ -5,12 +5,13 @@
 from marionette_driver import expected, By, Wait
 
 from gaiatest.apps.base import Base
-from gaiatest.apps.music.regions.list_view import ListView
+from gaiatest.apps.music_oga.regions.list_view import ListView
 
 
 class Music(Base):
 
-    name = 'Music'
+    name = 'Music OGA'
+    manifest_url = '{}music-oga{}/manifest.webapp'.format(Base.DEFAULT_PROTOCOL, Base.DEFAULT_APP_HOSTNAME)
 
     _loading_spinner_locator = (By.ID, 'spinner-overlay')
     _music_tiles_locator = (By.CSS_SELECTOR, '#views-tiles-anchor > div')

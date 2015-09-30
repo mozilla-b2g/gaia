@@ -8,7 +8,7 @@ from marionette_driver import By, Wait
 from marionette_driver.marionette import Actions
 
 from gaiatest.gaia_graphics_test import GaiaImageCompareTestCase
-from gaiatest.apps.music.app import Music
+from gaiatest.apps.music_oga.app import Music
 
 
 class TestMusic(GaiaImageCompareTestCase):
