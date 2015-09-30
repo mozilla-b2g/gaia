@@ -25,11 +25,11 @@
   "dependencies": {
     "dom-scheduler": "etiennesegonzac/dom-scheduler"
   },
-  "_release": "cb3de72468",
+  "_release": "be247eecf8",
   "_resolution": {
     "type": "branch",
     "branch": "master",
-    "commit": "cb3de724684a7415c76566a07a38578ab1e824b3"
+    "commit": "be247eecf867b01e402e59348ad277d5635f47ee"
   },
   "_source": "git://github.com/gaia-components/fast-list.git",
   "_target": "master",

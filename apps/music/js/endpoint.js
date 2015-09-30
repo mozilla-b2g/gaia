@@ -419,6 +419,7 @@ function setSongRating(rating, filePath) {
 function search(key, query) {
   return new Promise((resolve) => {
     var results = [];
+
     Database.search(key, query, (result) => {
       if (result === null) {
         resolve(results);

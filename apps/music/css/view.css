@@ -64,10 +64,3 @@ gaia-fast-list img ~ h3,
 gaia-fast-list img ~ p {
   padding-right: 60px;
 }
-
-gaia-fast-list music-search {
-  display: block;
-  position: relative;
-  left: -17px; /* Offset <gaia-fast-list> padding */
-  width: 100vw;
-}

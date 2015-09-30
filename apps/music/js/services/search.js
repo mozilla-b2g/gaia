@@ -12,6 +12,13 @@ var client = bridge.client({
 function SearchService(worker) {
   var stopAfter = ServiceWorkerWare.decorators.stopAfter;
 
+  worker.get('/api/search/:key/', stopAfter((request) => {
+    return new Promise((resolve) => {
+      client.method('search', request.parameters.key, '')
+        .then(songs => resolve(respond(songs)));
+    });
+  }));
+
   worker.get('/api/search/:key/:query', stopAfter((request) => {
     return new Promise((resolve) => {
       client.method('search', request.parameters.key, request.parameters.query)

@@ -381,6 +381,11 @@ var Database = (function() {
    */
   function search(key, query, callback) {
     return enumerable.then(() => {
+      if (!query) {
+        callback(null);
+        return;
+      }
+
       // Convert to lowercase and replace accented characters.
       query = Normalizer.toAscii(query.toLocaleLowerCase());
       var direction = (key === 'title') ? 'next' : 'nextunique';

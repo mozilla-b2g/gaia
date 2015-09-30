@@ -123,7 +123,7 @@ var template =
       <template>
         <li>
           <a href="\${url}" data-file-path="\${name}" data-section="\${section}">
-            <img>
+            <img style="visibility: \${name ? 'visible' : 'hidden'}">
             <h3>\${title}</h3>
             <p>\${subtitle}</p>
           </a>
@@ -204,6 +204,7 @@ proto.createdCallback = function() {
 
 proto.attachedCallback = function() {
   document.addEventListener('DOMRetranslated', this.onDOMRetranslated);
+  this.onDOMRetranslated();
 };
 
 proto.detachedCallback = function() {
@@ -248,6 +249,17 @@ proto.close = function() {
 };
 
 proto.setResults = function(results) {
+  if (this.els.input.value && results.length === 0) {
+    document.l10n.formatValue('search-no-result').then((noResult) => {
+      this.els.list.model = [{
+        title: noResult,
+        subtitle: ''
+      }];
+    });
+
+    return;
+  }
+
   this.els.list.model = results;
 };
 
