@@ -32,17 +32,12 @@
     },
 
     containerClicked: function dsw_containerClicked() {
-      // We redirect the user to the app permissions section of the settings app
-      // so she can uninstall 3rd party apps trying to recover from the low
-      // storage situation. This is not the best solution, but the only one that
-      // we have so far. In the future, we must expose how much storage each app
-      // consumes, so the user has a better idea of which apps are consuming
-      // more (see Bug 862408).
       /* jshint nonew: false */
       new MozActivity({
         name: 'configure',
         data: {
-          section: 'appPermissions'
+          target: 'device',
+          section: 'applicationStorage'
         }
       });
     },
@@ -66,17 +61,17 @@
     },
 
     lowDiskSpaceNotification: function dsw_lowDiskSpaceNotification(space) {
-      var notification = ['low-device-storage'];
+      var notification = ['device-storage-low'];
       if (space && typeof space.size !== 'undefined' && space.unit) {
         notification.push({
-          id: 'free-space',
+          id: 'free-space-remaining',
           args: {
             value: space.size,
             unit: space.unit
           }
         });
       } else {
-        notification.push('unknown-free-space');
+        notification.push('unknown-free-space-remaining');
       }
       LazyLoader.load(['js/system_banner.js']).then(() => {
         var systemBanner = new SystemBanner();
@@ -85,7 +80,7 @@
         console.error(err);
       });
 
-      this._message.setAttribute('data-l10n-id', 'low-device-storage');
+      this._message.setAttribute('data-l10n-id', 'device-storage-low');
       this.updateAvailableSpace(space);
       this.displayNotification();
     },
@@ -94,14 +89,15 @@
       if (space && typeof space.size !== 'undefined' && space.unit) {
         navigator.mozL10n.setAttributes(
           this._availableSpace,
-          'free-space',
+          'free-space-remaining',
           {
             value: space.size,
             unit: space.unit
           }
         );
       } else {
-        this._availableSpace.setAttribute('data-l10n-id', 'unknown-free-space');
+        this._availableSpace.setAttribute('data-l10n-id',
+          'unknown-free-space-remaining');
       }
     },
 

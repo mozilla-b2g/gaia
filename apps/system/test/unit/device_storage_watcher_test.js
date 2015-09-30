@@ -119,8 +119,8 @@ suite('system/DeviceStorageWatcher >', function() {
     test('should show system banner', function() {
 
       assert.equal(1, MockSystemBanner.mShowCount);
-      assert.deepEqual(['low-device-storage', {
-        id: 'free-space',
+      assert.deepEqual(['device-storage-low', {
+        id: 'free-space-remaining',
         args: { value: 0, unit: 'byteUnit-B'}
       }], MockSystemBanner.mMessage);
     });
@@ -128,10 +128,10 @@ suite('system/DeviceStorageWatcher >', function() {
     test('should display the notification', function() {
       assert.isTrue(fakeNotif.classList.contains('displayed'));
       assert.equal(fakeNotif.querySelector('.title-container')
-        .getAttribute('data-l10n-id'), 'low-device-storage');
+        .getAttribute('data-l10n-id'), 'device-storage-low');
       var l10nAttrs = navigator.mozL10n.getAttributes(
         fakeNotif.querySelector('.detail'));
-      assert.equal(l10nAttrs.id, 'free-space');
+      assert.equal(l10nAttrs.id, 'free-space-remaining');
       assert.deepEqual(l10nAttrs.args, {
         value: 0,
         unit: 'byteUnit-B'
@@ -169,17 +169,17 @@ suite('system/DeviceStorageWatcher >', function() {
 
     test('should show system banner with unknown space', function() {
       assert.equal(1, MockSystemBanner.mShowCount);
-      assert.deepEqual(['low-device-storage', 'unknown-free-space'],
+      assert.deepEqual(['device-storage-low', 'unknown-free-space-remaining'],
                    MockSystemBanner.mMessage);
     });
 
     test('should display the notification with unknown space', function() {
       assert.isTrue(fakeNotif.classList.contains('displayed'));
       assert.equal(fakeNotif.querySelector('.title-container').
-        getAttribute('data-l10n-id'), 'low-device-storage');
+        getAttribute('data-l10n-id'), 'device-storage-low');
       assert.equal(
         fakeNotif.querySelector('.detail').getAttribute('data-l10n-id'),
-        'unknown-free-space');
+        'unknown-free-space-remaining');
     });
 
     teardown(function() {
@@ -217,7 +217,7 @@ suite('system/DeviceStorageWatcher >', function() {
     test('should update free space', function() {
       var l10nAttrs = navigator.mozL10n.getAttributes(
         fakeNotif.querySelector('.detail'));
-      assert.equal(l10nAttrs.id, 'free-space');
+      assert.equal(l10nAttrs.id, 'free-space-remaining');
       assert.deepEqual(l10nAttrs.args, {
         value: 1,
         unit: 'byteUnit-KB'

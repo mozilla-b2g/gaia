@@ -6,6 +6,10 @@
   display: block;
 }
 
+#storage-watcher-container > .storage-icon {
+  background-image: url(images/low_storage_icon.png);
+}
+
 #storage-watcher-container > .title-container {
   margin: 1.4rem 0 0 3.7rem;
 }
