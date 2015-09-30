@@ -127,6 +127,7 @@
     <!--<script defer src="shared/js/stk_helper.js"></script>-->
     <!--<script defer src="shared/js/uuid.js"></script>-->
     <!--<script defer src="shared/js/passcode_helper.js"></script>-->
+    <!--<script defer src="shared/js/sync/errors.js"></script>-->
 
     <!-- all non-#root panels will lazy-load their own scripts -->
     <link rel="import" href="/elements/wifi_status.html">
@@ -221,6 +222,9 @@
     <link rel="import" href="/elements/firefox_accounts.html">
     <link rel="import" href="/elements/achievements.html">
     <link rel="import" href="/elements/findmydevice.html">
+    <!--IFDEF_FIREFOX_SYNC
+    <link rel="import" href="/elements/firefox_sync.html">
+    ENDIF_FIREFOX_SYNC-->
     <link rel="import" href="/elements/frame.html">
     <link rel="import" href="/elements/full_developer_mode.html">
     <link rel="import" href="/elements/full_developer_mode_warning.html">
@@ -365,6 +369,11 @@
 
     <!-- Accounts :: Find My Device -->
     <section role="region" is="findmydevice" id="findmydevice"></section>
+
+    <!-- Accounts :: FxSync -->
+    <!--IFDEF_FIREFOX_SYNC
+    <section role="region" is="fxsync" id="fxsync"></section>
+    ENDIF_FIREFOX_SYNC-->
 
     <!-- Security :: Screen Lock :: PIN Input -->
     <section role="region" class="dialog" is="screenLock-passcode" id="screenLock-passcode"></section>

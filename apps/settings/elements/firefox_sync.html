@@ -1,0 +1,90 @@
+<element name="fxsync" extends="section">
+  <template>
+
+    <gaia-header action="back" data-href="#root">
+      <h1 data-l10n-id="fxsync"></h1>
+    </gaia-header>
+
+    <div class="fxsync-logged-out" hidden>
+      <ul role="presentation">
+        <li role="presentation" class="description">
+          <div class="fxsync-intro"></div>
+          <p data-l10n-id="fxsync-overview" id="fxsync-logged-out-description"></p>
+        </li>
+        <li role="presentation">
+          <button class="recommend fxsync-login">
+            <span data-l10n-id="fxsync-get-started"></span>
+          </button>
+        </li>
+      </ul>
+    </div>
+
+    <div class="fxsync-logged-in" hidden>
+      <ul role="presentation">
+        <li role="presentation">
+          <p class="description" data-l10n-id="fxsync-sync-user"></p>
+          <p class="explanation">
+            <span class="fxsync-user"></span>
+          </p>
+        </li>
+        <li role="presentation" class="fxsync-unverified description" hidden>
+          <p class="fxsync-unverified-warning" data-l10n-id="fxa-please-verify"></p>
+        </li>
+        <li role="presentation">
+          <label>
+            <button class="fxsync-logout">
+              <span data-l10n-id="fxsync-disable"></span>
+            </button>
+          </label>
+        </li>
+        <li role="presentation">
+          <button class="fxsync-sync-now" data-l10n-id="fxsync-sync-now"></button>
+          <p class="explanation fxsync-last-sync" hidden>
+            <span data-l10n-id="fxsync-last-synced"></span>
+          </p>
+        </li>
+      </ul>
+
+      <header>
+        <h2 data-l10n-id="fxsync-collections">Collections</h2>
+      </header>
+      <ul role="presentation">
+        <li role="presentation">
+          <gaia-switch class="fxsync-collections-history"
+                       name="sync.collections.history.enabled">
+            <label data-l10n-id="fxsync-collections-history">History</label>
+          </gaia-switch>
+        </li>
+        <li role="presentation">
+          <gaia-switch class="fxsync-collections-passwords"
+                       name="sync.collections.passwords.enabled">
+            <label data-l10n-id="fxsync-collections-passwords">Password</label>
+          </gaia-switch>
+        </li>
+      </ul>
+
+      <header>
+        <h2 data-l10n-id="fxsync-legal"></h2>
+      </header>
+      <ul role="presentation">
+        <li role="presentation">
+          <label>
+            <button class="fxsync-tos">
+              <span data-l10n-id="fxsync-tos"></span>
+            </button>
+          </label>
+        </li>
+        <li role="presentation">
+          <label>
+            <button class="fxsync-privacy">
+              <span data-l10n-id="fxsync-privacy"></span>
+            </button>
+          </label>
+        </li>
+      </ul>
+    </div>
+
+    <panel data-path="panels/firefox_sync/panel"></panel>
+
+  </template>
+</element>
