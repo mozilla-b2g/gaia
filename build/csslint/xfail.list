@@ -43,7 +43,8 @@ apps/homescreen/bower_components/gaia-fonts/style.css 0 1
 apps/homescreen/bower_components/gaia-theme/gaia-theme.css 5 0
 apps/homescreen/style/apps-panel.css 1 0
 apps/homescreen/style/window.css 2 0
-apps/keyboard/style/keyboard.css 1 3
+# keyboard.css: csslint don't parse CSS variables
+apps/keyboard/style/keyboard.css 4 3
 apps/keyboard/style/settings.css 0 1
 apps/music/components/dom-scheduler/bower_components/base/base.css 4 3
 apps/music/components/dom-scheduler/bower_components/fast-list/examples/sections/css/ul.css 1 1

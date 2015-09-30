@@ -3,6 +3,7 @@ Keyboards['dz-BT'] = {
   shortLabel: 'Dz',
   menuLabel: 'རྫོང་ཁ',
   alternateLayoutKey: '༡༢༣',
+  specificCssRule: true,
   basicLayoutKey: 'ཀཁག',
   types: ['text', 'url', 'email'],
   width: 12,
@@ -69,6 +70,7 @@ Keyboards['dz-BT'] = {
   },
   pages: [undefined, {
     needsCommaKey: true,
+    specificCssRule: true,
     alt: {
       '༡': ['1'],
       '༢': ['2'],

@@ -58,6 +58,8 @@ function LatinCandidatePanelView() {
 
 LatinCandidatePanelView.prototype = Object.create(CandidatePanelView.prototype);
 
+LatinCandidatePanelView.prototype.HEIGHT_IN_REM = 3.1;
+
 LatinCandidatePanelView.prototype.render = function render() {
   var candidatePanel = document.createElement('div');
   candidatePanel.setAttribute('role', 'group');

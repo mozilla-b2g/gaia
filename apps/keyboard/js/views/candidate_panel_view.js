@@ -63,7 +63,9 @@ function CandidatePanelView(target, options, viewManager) {
 }
 
 // Default value for how many candidates shown in a row.
-CandidatePanelView.prototype.countPerRow = 8;
+CandidatePanelView.prototype.COUNT_PER_ROW = 8;
+
+CandidatePanelView.prototype.HEIGHT_IN_REM = 3.2;
 
 CandidatePanelView.prototype.render = function render() {
   var candidatePanel = document.createElement('div');
@@ -172,17 +174,17 @@ CandidatePanelView.prototype.renderCandidatePanel = function(rowLimit,
 
     var needBreak = false;
     if (rowCount === 0 && indentFirstRow &&
-        nowUnit >= this.countPerRow && index != candidatesLength - 1) {
+        nowUnit >= this.COUNT_PER_ROW && index != candidatesLength - 1) {
       needBreak = true;
     }
 
-    if (nowUnit > this.countPerRow || needBreak) {
+    if (nowUnit > this.COUNT_PER_ROW || needBreak) {
       if (rowCount === 0 && needBreak) {
         this.toggleButton.show();
         // Create a dummy element to represent the toggle button to occupy
         // the space that should be taken by it.
         dummyEl = document.createElement('span');
-        dummyEl.style.flex = this.countPerRow - (nowUnit - unit);
+        dummyEl.style.flex = this.COUNT_PER_ROW - (nowUnit - unit);
         rowDiv.appendChild(dummyEl);
       }
 
@@ -204,10 +206,10 @@ CandidatePanelView.prototype.renderCandidatePanel = function(rowLimit,
 
   // Insert a dummy element to fill up the flex box to make it look
   // like a grid.
-  if (nowUnit < this.countPerRow &&
+  if (nowUnit < this.COUNT_PER_ROW &&
       typeof this.options.widthUnit === 'undefined') {
     dummyEl = document.createElement('span');
-    dummyEl.style.flex = this.countPerRow - nowUnit;
+    dummyEl.style.flex = this.COUNT_PER_ROW - nowUnit;
     rowDiv.appendChild(dummyEl);
   }
 
@@ -244,6 +246,10 @@ CandidatePanelView.prototype.showMoreCandidates = function(rowLimit,
 CandidatePanelView.prototype.resetScroll = function() {
   this.suggestionsContainer.scrollTop =
     this.suggestionsContainer.scrollLeft = 0;
+};
+
+CandidatePanelView.prototype.getHeight = function() {
+  return this.HEIGHT_IN_REM * this.viewManager.getRemToPx();
 };
 
 exports.CandidatePanelView = CandidatePanelView;
