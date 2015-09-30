@@ -19,7 +19,8 @@
     'launchactivity',
     'mozChromeEvent',
     'windowopened',
-    'windowclosed'
+    'windowclosed',
+    'cardviewclosed'
   ];
   BaseModule.create(HierarchyManager, {
     name: 'HierarchyManager',
@@ -158,6 +159,7 @@
       switch (evt.type) {
         case 'windowopened':
         case 'windowclosed':
+        case 'cardviewclosed':
           this.updateTopMostWindow();
           break;
         case 'mozChromeEvent':
