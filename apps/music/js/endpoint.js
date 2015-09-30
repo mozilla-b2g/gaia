@@ -7,10 +7,11 @@ var audio = document.getElementById('audio');
 
 var loadQueueSettings = PlaybackQueue.loadSettings();
 
-var currentFilePath;
-var currentQueue;
-var isInterrupted = false;
-var isFastSeeking = false;
+var currentFilePath = null;
+var currentQueue    = null;
+var isInterrupted   = false;
+var isFastSeeking   = false;
+var isStopped       = true;
 
 var service = bridge.service('music-service')
   .method('play', play)
@@ -103,6 +104,10 @@ function play(filePath) {
   }
 
   getSongFile(filePath).then((file) => {
+    if (isStopped) {
+      return;
+    }
+
     currentFilePath = filePath;
 
     audio.src = null;
@@ -123,6 +128,20 @@ function play(filePath) {
 
 function pause() {
   audio.pause();
+}
+
+function stop() {
+  isStopped = true;
+
+  audio.pause();
+
+  currentFilePath = null;
+  currentQueue = null;
+
+  audio.src = null;
+  audio.load();
+
+  service.broadcast('stop');
 }
 
 function seek(time) {
@@ -165,7 +184,8 @@ function getPlaybackStatus() {
     duration:      audio.duration,
     elapsedTime:   audio.currentTime,
     isInterrupted: isInterrupted,
-    isFastSeeking: isFastSeeking
+    isFastSeeking: isFastSeeking,
+    stopped:       isStopped
   });
 }
 
@@ -192,7 +212,10 @@ function nextSong(automatic = false) {
     return Promise.reject();
   }
 
-  currentQueue.next(automatic);
+  var hasNextSong = currentQueue.next(automatic);
+  if (!hasNextSong) {
+    return Promise.resolve(stop());
+  }
 
   return currentSong().then(song => play(song.name));
 }
@@ -203,7 +226,10 @@ function queueArtist(filePath) {
       var index = songs.findIndex(song => song.name === filePath);
       currentQueue = new PlaybackQueue.StaticQueue(songs, index);
 
-      return currentSong().then(song => play(song.name));
+      return currentSong().then((song) => {
+        isStopped = false;
+        play(song.name);
+      });
     });
   });
 }
@@ -214,7 +240,10 @@ function queueAlbum(filePath) {
       var index = songs.findIndex(song => song.name === filePath);
       currentQueue = new PlaybackQueue.StaticQueue(songs, index);
 
-      return currentSong().then(song => play(song.name));
+      return currentSong().then((song) => {
+        isStopped = false;
+        play(song.name);
+      });
     });
   });
 }
@@ -229,7 +258,10 @@ function queuePlaylist(id, filePath) {
           (playlist.shuffle ? Math.floor(Math.random() * songs.length) : 0);
         currentQueue = new PlaybackQueue.StaticQueue(songs, index);
 
-        return currentSong().then(song => play(song.name));
+        return currentSong().then((song) => {
+          isStopped = false;
+          play(song.name);
+        });
       });
     });
   });
@@ -241,7 +273,10 @@ function queueSong(filePath) {
       var index = songs.findIndex(song => song.name === filePath);
       currentQueue = new PlaybackQueue.StaticQueue(songs, index);
 
-      return currentSong().then(song => play(song.name));
+      return currentSong().then((song) => {
+        isStopped = false;
+        play(song.name);
+      });
     });
   });
 }
@@ -445,6 +480,7 @@ function open(blob) {
     return AudioMetadata.parse(blob).then((metadata) => {
       var filePath = blob.name;
 
+      isStopped = false;
       play(filePath);
 
       return {

@@ -64,6 +64,18 @@ var client = bridge.client({
 
 client.on('play', () => isPlaying = true);
 
+client.on('stop', () => {
+  isPlaying = false;
+
+  var isPlayerView = viewStack.activeView &&
+    viewStack.activeView.url === VIEWS.PLAYER.URL;
+
+  if (isPlayerView) {
+    viewStack.popView(true);
+    window.history.back();
+  }
+});
+
 client.on('databaseChange', () => updateOverlays());
 
 client.on('databaseUpgrade', () => upgradeOverlay.hidden = false);
@@ -112,7 +124,7 @@ header.addEventListener('action', (evt) => {
   }
 
   var isPlayerView = viewStack.activeView &&
-    viewStack.activeView.frame.src.endsWith(VIEWS.PLAYER.URL);
+    viewStack.activeView.url === VIEWS.PLAYER.URL;
 
   if (viewStack.views.length > 1) {
     // Don't destroy the popped view if it is the "Player" view.
