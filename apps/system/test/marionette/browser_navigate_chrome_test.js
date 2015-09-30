@@ -44,10 +44,7 @@ marionette('Browser - Chrome on browser navigation',
 
     rocketbar.homescreenFocus();
     rocketbar.enterText(url, true);
-
-    client.waitFor(function() {
-      return system.appChrome.displayed();
-    });
+    system.waitForBrowser(url);
 
     var progressBar = system.appChromeProgressBar;
 
@@ -72,10 +69,7 @@ marionette('Browser - Chrome on browser navigation',
     system.appUrlbar.tap();
 
     rocketbar.enterText(url2, true);
-
-    client.waitFor(function() {
-      return system.appChrome.displayed();
-    });
+    system.waitForBrowser(url2);
 
     var classes = system.appChrome.getAttribute('class');
 
