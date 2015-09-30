@@ -39,7 +39,7 @@
       include: [
         'alameda',
         'l10nbase',
-        'l10ndate',
+        'moz_intl',
         'tmpl',
         'text',
         'value_selector',

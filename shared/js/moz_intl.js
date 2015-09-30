@@ -47,7 +47,7 @@ global.mozIntl = {
    *   day: 'numeric',
    *   month: 'long'
    * });
-   * 
+   *
    * f.format(date, {
    *  day: '<strong>$&</strong>',
    * });
@@ -243,14 +243,14 @@ global.mozIntl = {
 
   /**
    * RelativeTime formatter.
-   * Formats an integer with milliseconds into locale specific relative time 
+   * Formats an integer with milliseconds into locale specific relative time
    * string.
    *
    * Currently accepted options:
    *
    * * style - long | short
    *
-   * Defines whether the string will be long "1 minute ago" or short "1 min. 
+   * Defines whether the string will be long "1 minute ago" or short "1 min.
    * ago"
    *
    * * minUnit - (default) millisecond
@@ -283,22 +283,9 @@ global.mozIntl = {
        * and simplified to match current data set in data.properties
        */
       format: function(x) {
-        const ms = x - Date.now();
-        const units = computeTimeUnits(ms);
-
-        const unit = options.unit === 'bestFit' ?
-          getBestMatchUnit(units) : options.unit;
-
-        const v = units[unit];
-
-        // CLDR uses past || future
-        const tl = v < 0 ? '-ago' : '-until';
-        const style = options.style || 'long';
-
-        const entry = unit + 's' + tl + '-' + style;
-
-        return navigator.mozL10n.formatValue(entry, {
-          value: Math.abs(v)
+        const {unit, value} = relativeTimeFormatId(x, options);
+        return navigator.mozL10n.formatValue(unit, {
+          value
         });
       },
     };
@@ -323,11 +310,11 @@ global.mozIntl = {
         month: 'numeric',
         day: 'numeric'
       });
-      const formatter = global.mozIntl.RelativeTimeFormat(locales, {
+      const relativeFmtOptions = {
         unit: 'bestFit',
         style: style,
         minUnit: 'minute',
-      });
+      };
 
       return {
         format: function(time, maxDiff) {
@@ -341,7 +328,27 @@ global.mozIntl = {
             return Promise.resolve(maxFormatter.format(time));
           }
 
-          return formatter.format(time);
+          const {unit, value} = relativeTimeFormatId(time, relativeFmtOptions);
+          return navigator.mozL10n.formatValue(unit, {
+            value
+          });
+        },
+        formatElement: function(element, time, maxDiff) {
+          maxDiff = maxDiff || 86400 * 10; // default = 10 days
+          const secDiff = (Date.now() - time) / 1000;
+          if (isNaN(secDiff)) {
+            element.setAttribute('data-l10n-id', 'incorrectDate');
+          }
+
+          element.removeAttribute('data-l10n-id');
+          if (secDiff > maxDiff) {
+            element.textContent = maxFormatter.format(time);
+          }
+
+          const {unit, value} = relativeTimeFormatId(time, relativeFmtOptions);
+          navigator.mozL10n.setAttributes(element, unit, {
+            value
+          });
         },
       };
     },
@@ -386,7 +393,7 @@ function splitIntoTimeUnits(v, maxUnitIdx, minUnitIdx) {
   for (var i = maxUnitIdx; i <= minUnitIdx; i++) {
     const key = durationFormatOrder[i];
     const {value} = durationFormatElements[key];
-    units[key] = i == minUnitIdx ? 
+    units[key] = i == minUnitIdx ?
       Math.round(input / value) :
       Math.floor(input / value);
     input -= units[key] * value;
@@ -413,7 +420,7 @@ function trimDurationPattern(string, maxUnit, minUnit) {
  * This is necessary because sometimes toLocaleFormat
  * uses different timezone than Intl API
  * which leads to it resolving %p to 'PM' while Intl is in 'AM'
- * 
+ *
  * So what we do here, is we force the same hour in toLocaleFormat API
  * as we use in Intl API, to enforce the same dayperiod to remove it.
  * Remove once bug 1208808 is fixed
@@ -461,6 +468,27 @@ function getBestMatchUnit(units) {
   if (Math.abs(units.month) < 11) { return 'month'; }
   //if (Math.abs(units.quarter) < 4) { return 'quarter'; }
   return 'year';
+}
+
+function relativeTimeFormatId(x, options) {
+  const ms = x - Date.now();
+  const units = computeTimeUnits(ms);
+
+  const unit = options.unit === 'bestFit' ?
+    getBestMatchUnit(units) : options.unit;
+
+  const v = units[unit];
+
+  // CLDR uses past || future
+  const tl = v < 0 ? '-ago' : '-until';
+  const style = options.style || 'long';
+
+  const entry = unit + 's' + tl + '-' + style;
+
+  return {
+    unit: entry,
+    value: Math.abs(v)
+  };
 }
 
 })(this);
