@@ -201,10 +201,8 @@ const SETTINGS_VERSION = 0;
                   return;
                 }
               }
-              this.bookmarks.get(id).then((bookmark) => {
-                this.addAppIcon(bookmark.data);
-                this.refreshGridSize();
-              });
+              this.addAppIcon(bookmark.data);
+              this.refreshGridSize();
             });
           });
 
@@ -396,10 +394,10 @@ const SETTINGS_VERSION = 0;
 
     addAppIcon: function(appOrBookmark, entryPoint) {
       var id;
-      if (appOrBookmark.manifestURL) {
-        id = appOrBookmark.manifestURL + '/' + (entryPoint ? entryPoint : '');
-      } else {
+      if (appOrBookmark.id) {
         id = appOrBookmark.id;
+      } else {
+        id = appOrBookmark.manifestURL + '/' + (entryPoint ? entryPoint : '');
       }
 
       var entry = this.startupMetadata.findIndex((element) => {
@@ -413,7 +411,9 @@ const SETTINGS_VERSION = 0;
         icon.entryPoint = entryPoint;
       }
 
-      if (appOrBookmark.manifestURL) {
+      if (appOrBookmark.id) {
+        icon.bookmark = appOrBookmark;
+      } else {
         icon.app = appOrBookmark;
 
         // Hide/show the icon if the role changes to/from a hidden role
@@ -431,8 +431,6 @@ const SETTINGS_VERSION = 0;
           }.bind(this, icon.app, container));
 
         handleRoleChange(icon.app, container);
-      } else {
-        icon.bookmark = appOrBookmark;
       }
 
       // Load the cached icon
