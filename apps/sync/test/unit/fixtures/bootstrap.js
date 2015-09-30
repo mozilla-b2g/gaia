@@ -13,7 +13,7 @@ var BootstrapFixture = {
       'js/crypto/keyderivation.js',
       'js/crypto/fxsyncwebcrypto.js',
 
-      'js/ext/kinto.dev.js',
+      'js/ext/kinto.min.js',
       'js/sync-engine/syncengine.js'
   ]
 };

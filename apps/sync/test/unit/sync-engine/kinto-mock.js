@@ -9,29 +9,34 @@
 var Kinto = (function() {
   var mockProblem =  null;
 
-  var KintoCollectionMock = function(collectionName, fireConflicts=[]) {
+  var KintoCollectionMock = function(collectionName, options = {}) {
     this.collectionName = collectionName;
-    this._remoteTransformerUsed = null;
     this.data = null;
-    this.fireConflicts = fireConflicts;
+    this.fireConflicts = options.fireConflicts || [];
+    this._idSchemaUsed = options.idSchema; // Not mocking default UUID IdSchema.
+    this._remoteTransformersUsed = options.remoteTransformers;
   };
   KintoCollectionMock.prototype = {
     sync: function() {
       var dataRecordIn = JSON.parse(JSON.stringify(
         SynctoServerFixture.remoteData[this.collectionName]));
       var transformOut = (item) => {
-        if (!this._remoteTransformerUsed) {
+        if (!this._remoteTransformersUsed) {
           return Promise.resolve(item);
         }
-        return this._remoteTransformerUsed.encode(item);
+        // We're only mocking the case where there is just one
+        // remoteTransformer.
+        return this._remoteTransformersUsed[0].encode(item);
       };
 
       var transformIn = () => {
-        if (!this._remoteTransformerUsed) {
+        if (!this._remoteTransformersUsed) {
           return Promise.resolve();
         }
         try {
-          return this._remoteTransformerUsed.decode(dataRecordIn).
+          // We're only mocking the case where there is just one
+          // remoteTransformer.
+          return this._remoteTransformersUsed[0].decode(dataRecordIn).
               then(decoded => {
             dataRecordIn = decoded;
           });
@@ -85,14 +90,6 @@ var Kinto = (function() {
       return Promise.resolve();
     },
 
-    use: function(plugin) {
-      if (plugin.type === 'idschema') {
-        this._idSchemaUsed = plugin;
-      } else {
-        this._remoteTransformerUsed = plugin;
-      }
-    },
-
     list: function() {
       return Promise.resolve(this.listData);
     },
@@ -103,7 +100,7 @@ var Kinto = (function() {
       });
     },
 
-    create: function(payload, options={}) {
+    create: function(payload, options = {}) {
       var obj = {
         payload: payload
       };
@@ -120,7 +117,7 @@ var Kinto = (function() {
     },
 
     update: function(obj) {
-      for (var i=0; i<this.listData.data.length; i++) {
+      for (var i = 0; i < this.listData.data.length; i++) {
         if (this.listData.data[i].id === obj.id) {
           this.listData.data[i] = obj;
           return Promise.resolve();
@@ -130,7 +127,7 @@ var Kinto = (function() {
     },
 
     delete: function(id) {
-      for (var i=0; i<this.listData.data.length; i++) {
+      for (var i = 0; i < this.listData.data.length; i++) {
         if (this.listData.data[i].id === id) {
           this.listData.data.splice(i, 1);
           return Promise.resolve();
@@ -145,7 +142,6 @@ var Kinto = (function() {
     sync() {
       return Promise.reject(new Error());
     },
-    use() {},
     list() {},
     get() {},
     create() {},
@@ -164,7 +160,6 @@ var Kinto = (function() {
       };
       return Promise.reject(err);
     },
-    use() {},
     list() {},
     get() {},
     create() {},
@@ -172,10 +167,10 @@ var Kinto = (function() {
     delete() {},
   };
 
-  var Kinto = function(options) {
-    this.options = options;
 
-    this.collection = function(collectionName) {
+  var Kinto = function(kintoOptions) {
+    this.options = kintoOptions;
+    this.collection = function(collectionName, collectionOptions = {}) {
       var mockProblemCase = () => {
         var httpCode;
         if (mockProblem &&
@@ -183,31 +178,34 @@ var Kinto = (function() {
           httpCode = parseInt(mockProblem.problem);
           if (isNaN(httpCode)) {
             if (mockProblem.problem === 'conflicts') {
-              return new KintoCollectionMock(collectionName, [{
+              collectionOptions.fireConflicts = [{
                 local: { bar: 'local' },
                 remote: SynctoServerFixture.historyEntryDec.payload
-              }]);
+              }];
+              return new KintoCollectionMock(collectionName, collectionOptions);
             }
-            return new KintoCollectionMock(mockProblem.problem);
+            return new KintoCollectionMock(mockProblem.problem,
+                                           collectionOptions);
           }
           return new HttpCodeKintoCollectionMock(httpCode);
         }
       };
 
       var unauthCase = () => {
-        if (options.headers.Authorization !== 'BrowserID test-assertion-mock') {
+        if (kintoOptions.headers.Authorization !==
+            'BrowserID test-assertion-mock') {
           return new HttpCodeKintoCollectionMock(401);
         }
       };
 
       var unreachableCase = () => {
-        if (options.remote !== 'http://localhost:8000/v1/') {
+        if (kintoOptions.remote !== 'http://localhost:8000/v1/') {
           return new UnreachableKintoCollectionMock(collectionName);
         }
       };
 
       var defaultCase = () => {
-        return new KintoCollectionMock(collectionName);
+        return new KintoCollectionMock(collectionName, collectionOptions);
       };
 
       return mockProblemCase() ||
@@ -215,26 +213,6 @@ var Kinto = (function() {
         unreachableCase() ||
         defaultCase();
     };
-  };
-
-  Kinto.createRemoteTransformer = (obj) => {
-    var transformerClass = obj.constructor;
-    transformerClass.prototype = {
-      type: 'remotetransformer',
-      encode: obj.encode,
-      decode: obj.decode
-    };
-    return transformerClass;
-  };
-
-  Kinto.createIdSchema = (obj) => {
-    var schemaClass = obj.constructor;
-    schemaClass.prototype = {
-      type: 'idschema',
-      generate: obj.generate,
-      validate: obj.validate
-    };
-    return schemaClass;
   };
 
   Kinto.setMockProblem = (problem) => {

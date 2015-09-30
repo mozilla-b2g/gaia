@@ -29,8 +29,7 @@ const Bootstrap = (() => {
       'js/crypto/keyderivation.js',
       'js/crypto/fxsyncwebcrypto.js',
 
-      // to be added in https://bugzilla.mozilla.org/show_bug.cgi?id=1206615:
-      'js/ext/kinto.dev.js',
+      'js/ext/kinto.min.js',
       'js/sync-engine/syncengine.js'
     ]);
   };

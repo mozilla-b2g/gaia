@@ -61,68 +61,63 @@
 */
 
 var SyncEngine = (function() {
-  var FxSyncIdSchema = Kinto.createIdSchema({
-    constructor: function(collectionName) {
-      this.collectionName = collectionName;
-    },
-    generate: function() {
-      var bytes = new Uint8Array(9);
-      crypto.getRandomValues(bytes);
-      var binStr = '';
-      for (var i = 0; i < 9; i++) {
-          binStr += String.fromCharCode(bytes[i]);
+  var createFxSyncIdSchema = () => {
+    return {
+      generate: function() {
+        var bytes = new Uint8Array(9);
+        crypto.getRandomValues(bytes);
+        var binStr = '';
+        for (var i = 0; i < 9; i++) {
+            binStr += String.fromCharCode(bytes[i]);
+        }
+        // See https://docs.services.mozilla.com/storage/apis-1.5.html
+        return window.btoa(binStr).replace('+', '-').replace('/', '_');
+      },
+      validate: function(id) {
+        // FxSync id's should be 12 ASCII characters, representing 9 bytes of
+        // data in modified Base64 for URL variants exist, where the '+' and '/'
+        // characters of standard Base64 are respectively replaced by '-' and
+        // '_'. See https://docs.services.mozilla.com/storage/apis-1.5.html
+        return /^[A-Za-z0-9-_]{12}$/.test(id);
       }
-      // See https://docs.services.mozilla.com/storage/apis-1.5.html
-      return window.btoa(binStr).replace('+', '-').replace('/', '_');
-    },
-    validate: function(id) {
-      // FxSync id's should be 12 ASCII characters, representing 9 bytes of data
-      // in modified Base64 for URL variants exist, where the '+' and '/'
-      // characters of standard Base64 are respectively replaced by '-' and '_'
-      // See https://docs.services.mozilla.com/storage/apis-1.5.html
-      return /^[A-Za-z0-9-_]{12}$/.test(id);
-    }
-  });
+    };
+  };
 
-  var ControlCollectionIdSchema = Kinto.createIdSchema({
-    constructor: function(collectionName, keyName) {
-      this.collectionName = collectionName;
-      this.keyName = keyName;
-    },
-    generate: function() {
-      return this.keyName;
-    },
-    validate: function(id) {
-      return (id === this.keyName);
-    }
-  });
-
-  var WebCryptoTransformer = Kinto.createRemoteTransformer({
-    constructor: function(collectionName, fswc) {
-      if (!fswc.bulkKeyBundle) {
-        throw new Error(`Attempt to register Transformer with no bulk key bundl\
-e!`);
+  var createControlCollectionIdSchema = (keyName) => {
+    return {
+      generate: function() {
+        return keyName;
+      },
+      validate: function(id) {
+        return (id === keyName);
       }
-      this.collectionName = collectionName;
-      this.fswc = fswc;
-    },
-    encode: function(record) {
-      return this.fswc.encrypt(record.payload, this.collectionName).then(
-          payloadEnc => {
-        record.payload = JSON.stringify(payloadEnc);
-        return record;
-      });
-    },
-    decode: function(record) {
-      // Allowing JSON.parse errors to bubble up to the errors list in the
-      // syncResults:
-      return this.fswc.decrypt(JSON.parse(record.payload), this.collectionName).
-          then(payloadDec => {
-        record.payload = payloadDec;
-        return record;
-      });
+    };
+  };
+
+  var createWebCryptoTransformer = (collectionName, fswc) => {
+    if (!fswc.bulkKeyBundle) {
+      throw new Error(
+          'Attempt to register Transformer with no bulk key bundle!');
     }
-  });
+    return {
+      encode: function(record) {
+        return fswc.encrypt(record.payload, collectionName).then(
+            payloadEnc => {
+          record.payload = JSON.stringify(payloadEnc);
+          return record;
+        });
+      },
+      decode: function(record) {
+        // Allowing JSON.parse errors to bubble up to the errors list in the
+        // syncResults:
+        return fswc.decrypt(JSON.parse(record.payload), collectionName).
+            then(payloadDec => {
+          record.payload = payloadDec;
+          return record;
+        });
+      }
+    };
+  };
 
   const generateXClientState = (kB) => {
     var kBarray = [];
@@ -202,10 +197,9 @@ uld be a Function`);
         }
       });
       var addControlCollection = (collectionName, keyName) => {
+        var idSchema = createControlCollectionIdSchema(keyName);
         this._controlCollections[collectionName] =
-            kinto.collection(collectionName);
-        this._controlCollections[collectionName].use(
-            new ControlCollectionIdSchema(collectionName, keyName));
+            kinto.collection(collectionName, { idSchema });
       };
       addControlCollection('meta', 'global');
       addControlCollection('crypto', 'keys');
@@ -324,11 +318,12 @@ rse crypto/keys payload as JSON`));
     _createCollections: function() {
       for (var collectionName in this._adapters) {
         this._collections[collectionName] = this._kinto.collection(
-            collectionName);
-        this._collections[collectionName].use(new FxSyncIdSchema(
-            collectionName));
-        this._collections[collectionName].use(new WebCryptoTransformer(
-            collectionName, this._fswc));
+            collectionName, {
+              idSchema: createFxSyncIdSchema(collectionName),
+              remoteTransformers: [
+                createWebCryptoTransformer(collectionName, this._fswc)
+              ]
+            });
       }
     },
 
