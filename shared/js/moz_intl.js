@@ -293,29 +293,34 @@ global.mozIntl = {
     },
 
     // This is an internal Firefox OS function, not part of the future standard
-    relativeDate: function(time, useCompactFormat, maxDiff) {
-      maxDiff = maxDiff || 86400 * 10; // default = 10 days
-      const secDiff = (Date.now() - time) / 1000;
-      if (isNaN(secDiff)) {
-        return navigator.mozL10n.formatValue('incorrectDate');
-      }
-
-      if (secDiff > maxDiff) {
-        const dateString = new Date(time).toLocaleString(navigator.languages, {
-          year: 'numeric',
-          month: 'numeric',
-          day: 'numeric'
-        });
-        return Promise.resolve(dateString);
-      }
-
-      const formatter = global.mozIntl.RelativeTimeFormat(navigator.languages, {
+    RelativeDate: function(locales, options) {
+      const style = options && options.style || 'long';
+      const maxFormatter = Intl.DateTimeFormat(locales, {
+        year: 'numeric',
+        month: 'numeric',
+        day: 'numeric'
+      });
+      const formatter = global.mozIntl.RelativeTimeFormat(locales, {
         unit: 'bestFit',
-        style: useCompactFormat ? 'short' : 'long',
+        style: style,
         minUnit: 'minute',
       });
 
-      return formatter.format(time);
+      return {
+        format: function(time, maxDiff) {
+          maxDiff = maxDiff || 86400 * 10; // default = 10 days
+          const secDiff = (Date.now() - time) / 1000;
+          if (isNaN(secDiff)) {
+            return navigator.mozL10n.formatValue('incorrectDate');
+          }
+
+          if (secDiff > maxDiff) {
+            return Promise.resolve(maxFormatter.format(time));
+          }
+
+          return formatter.format(time);
+        },
+      };
     },
   }
 };

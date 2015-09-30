@@ -13,12 +13,37 @@ global.MockMozIntl = {
       format: formatter.format.bind(formatter)
     };
   },
+  calendarInfo: function(token) {
+    return Promise.resolve(0);
+  },
   DurationFormat: function(locales, options) {
     return Promise.resolve({
       format: function(input) {
         return JSON.stringify({ value: input, options: options });
       }
     });
+  },
+  RelativeTimeFormat: function(locales, options) {
+    return {
+      format: function(value) {
+        return Promise.resolve();
+      }
+    };
+  },
+  _gaia: {
+    relativeParts: function(ms) {
+      return {
+        unit: 'minutes',
+        value: 5
+      };
+    },
+    RelativeDate: function(locales, options) {
+      return {
+        format: function(value) {
+          return Promise.resolve();
+        }
+      };
+    },
   }
 };
 

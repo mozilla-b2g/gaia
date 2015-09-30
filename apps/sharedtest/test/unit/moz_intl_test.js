@@ -1103,14 +1103,18 @@ suite('MozIntl', function() {
 
       test('maxDiff is null', function(done) {
         var time = Date.now() - 86400 * 20 * 1000;
-        mozIntl._gaia.relativeDate(time).then(result => {
+        var formatter = mozIntl._gaia.RelativeDate(navigator.languages);
+        formatter.format(time).then(result => {
           assert.ok(result.indexOf('/') !== -1);
         }).then(done, done);
       });
 
       test('maxDiff is specified', function(done) {
         var time = Date.now() - 86400 * 20 * 1000;
-        mozIntl._gaia.relativeDate(time, false, (86400 * 21)).then(result => {
+        var formatter = mozIntl._gaia.RelativeDate(navigator.languages, {
+          style: 'long'
+        });
+        formatter.format(time, (86400 * 21)).then(result => {
           assert.deepEqual(result, {
             id: 'weeks-ago-long',
             args: {
@@ -1120,9 +1124,10 @@ suite('MozIntl', function() {
         }).then(done, done);
       });
 
-      test('useCompactFormat is null', function(done) {
+      test('default style', function(done) {
         var time = Date.now() - 86400 * 5 * 1000;
-        mozIntl._gaia.relativeDate(time).then(result => {
+        var formatter = mozIntl._gaia.RelativeDate(navigator.languages);
+        formatter.format(time).then(result => {
           assert.deepEqual(result, {
             id: 'days-ago-long',
             args: {
@@ -1132,9 +1137,12 @@ suite('MozIntl', function() {
         }).then(done, done);
       });
 
-      test('useCompactFormat is true', function(done) {
+      test('style is short', function(done) {
         var time = Date.now() - 86400 * 5 * 1000;
-        mozIntl._gaia.relativeDate(time, true).then(result => {
+        var formatter = mozIntl._gaia.RelativeDate(navigator.languages, {
+          style: 'short'
+        });
+        formatter.format(time).then(result => {
           assert.deepEqual(result, {
             id: 'days-ago-short',
             args: {
@@ -1146,7 +1154,8 @@ suite('MozIntl', function() {
 
       test('now', function(done) {
         var time = Date.now() - 29 * 1000;
-        mozIntl._gaia.relativeDate(time).then(result => {
+        var formatter = mozIntl._gaia.RelativeDate(navigator.languages);
+        formatter.format(time).then(result => {
           assert.deepEqual(result, {
             id: 'minutes-until-long',
             args: {
@@ -1159,7 +1168,8 @@ suite('MozIntl', function() {
       test('in a minute', function(done) {
         // pretty date used 35
         var time = Date.now() + 45 * 1000;
-        mozIntl._gaia.relativeDate(time).then(result => {
+        var formatter = mozIntl._gaia.RelativeDate(navigator.languages);
+        formatter.format(time).then(result => {
           assert.deepEqual(result, {
             id: 'minutes-until-long',
             args: {
@@ -1171,7 +1181,8 @@ suite('MozIntl', function() {
 
       test('in two minutes', function(done) {
         var time = Date.now() + 1.8 * 60 * 1000;
-        mozIntl._gaia.relativeDate(time).then(result => {
+        var formatter = mozIntl._gaia.RelativeDate(navigator.languages);
+        formatter.format(time).then(result => {
           assert.deepEqual(result, {
             id: 'minutes-until-long',
             args: {
@@ -1183,7 +1194,8 @@ suite('MozIntl', function() {
 
       test('should discard ms if diff is over 1 minute', function(done) {
         var time = Date.now() + 2 * 60 * 1000 - 500;
-        mozIntl._gaia.relativeDate(time).then(result => {
+        var formatter = mozIntl._gaia.RelativeDate(navigator.languages);
+        formatter.format(time).then(result => {
           assert.deepEqual(result, {
             id: 'minutes-until-long',
             args: {
