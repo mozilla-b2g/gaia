@@ -87,7 +87,7 @@ function View() {
 
   window.addEventListener('viewdestroy', () => this.destroy());
 
-  document.addEventListener('DOMLocalized', () => {
+  document.addEventListener('DOMRetranslated', () => {
     this.title = document.title;
   });
 }

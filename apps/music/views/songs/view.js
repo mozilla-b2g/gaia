@@ -112,10 +112,9 @@ SongsView.prototype.getThumbnail = function(filePath) {
 };
 
 SongsView.prototype.search = function(query) {
-  return Promise.all([
-    document.l10n.formatValue('unknownTitle'),
-    document.l10n.formatValue('unknownArtist')
-  ]).then(([unknownTitle, unknownArtist]) => {
+  return document.l10n.formatValues(
+    'unknownTitle', 'unknownArtist'
+  ).then(([unknownTitle, unknownArtist]) => {
     return this.fetch('/api/search/title/' + query)
       .then(response => response.json())
       .then((songs) => {

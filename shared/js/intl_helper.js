@@ -201,11 +201,11 @@
 
   function waitOnDOMLocalized(cb) {
     const resolver = () => {
-      document.removeEventListener('DOMLocalized', resolver);
+      document.removeEventListener('DOMRetranslated', resolver);
       window.removeEventListener('localized', resolver);
       cb();
     };
-    document.addEventListener('DOMLocalized', resolver, false);
+    document.addEventListener('DOMRetranslated', resolver, false);
 
     // Support for l10n.js until we can remove it
     window.addEventListener('localized', resolver, false);

@@ -55,10 +55,9 @@ HomeView.prototype.destroy = function() {
 HomeView.prototype.render = function() {
   View.prototype.render.call(this); // super();
 
-  Promise.all([
-    document.l10n.formatValue('unknownArtist'),
-    document.l10n.formatValue('unknownAlbum')
-  ]).then(([unknownArtist, unknownAlbum]) => {
+  document.l10n.formatValues(
+    'unknownArtist', 'unknownAlbum'
+  ).then(([unknownArtist, unknownAlbum]) => {
     var html = '';
 
     this.albums.forEach((album) => {
@@ -112,11 +111,9 @@ HomeView.prototype.queueSong = function(filePath) {
 HomeView.prototype.search = function(query) {
   var results = [];
 
-  return Promise.all([
-    document.l10n.formatValue('unknownTitle'),
-    document.l10n.formatValue('unknownArtist'),
-    document.l10n.formatValue('unknownAlbum')
-  ]).then(([unknownTitle, unknownArtist, unknownAlbum]) => {
+  return document.l10n.formatValues(
+    'unknownTitle', 'unknownArtist', 'unknownAlbum'
+  ).then(([unknownTitle, unknownArtist, unknownAlbum]) => {
     var albumResults = this.fetch('/api/search/album/' + query)
       .then(response => response.json())
       .then((albums) => {

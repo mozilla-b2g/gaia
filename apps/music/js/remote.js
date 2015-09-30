@@ -20,11 +20,9 @@ var Remote = (function() {
             }
 
             client.method('getSongThumbnail', status.filePath).then((blob) => {
-              Promise.all([
-                document.l10n.formatValue('unknownTitle'),
-                document.l10n.formatValue('unknownArtist'),
-                document.l10n.formatValue('unknownAlbum')
-              ]).then(([unknownTitle, unknownArtist, unknownAlbum]) => {
+              document.l10n.formatValues(
+                'unknownTitle', 'unknownArtist', 'unknownAlbum'
+              ).then(([unknownTitle, unknownArtist, unknownAlbum]) => {
                 mrc.notifyMetadataChanged({
                   title:  song.metadata.title  || unknownTitle,
                   artist: song.metadata.artist || unknownArtist,

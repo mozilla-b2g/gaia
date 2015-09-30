@@ -44,18 +44,6 @@ if (navigator.mozSetMessageHandler) {
   navigator.mozSetMessageHandler('activity', activity => onActivity(activity));
 }
 
-var unknownArtist;
-var unknownTitle;
-
-document.addEventListener('DOMLocalized', () => {
-  document.l10n.formatValue('unknownArtist').then((value) => {
-    unknownArtist = value;
-  });
-  document.l10n.formatValue('unknownTitle').then((value) => {
-    unknownTitle = value;
-  });
-});
-
 var client = bridge.client({
   service: 'music-service',
   endpoint: window,
@@ -81,10 +69,14 @@ client.on('databaseReady', () => {
 });
 
 client.on('scanProgress', (detail) => {
-  scanProgress.show({
-    value:      detail.count,
-    heading:    detail.artist || unknownArtist,
-    subheading: detail.title  || unknownTitle
+  document.l10n.formatValues(
+    'unknownArtist', 'unknownTitle'
+  ).then(([unknownArtist, unknownTitle]) => {
+    scanProgress.show({
+      value:      detail.count,
+      heading:    detail.artist || unknownArtist,
+      subheading: detail.title  || unknownTitle
+    });
   });
 });
 
