@@ -2444,12 +2444,27 @@
   modules.set('runtime/web/index', function () {
     const { Service } = getModule('runtime/web/service');
     const { View } = getModule('bindings/html/view');
-
     const service = new Service(navigator.languages);
     window.addEventListener('languagechange', service);
     document.addEventListener('additionallanguageschange', service);
-
     document.l10n = new View(service, document);
   });
-  getModule('runtime/web/index');
+  modules.set('runtime/gaia/index', function () {
+    getModule('runtime/web/index');
+
+    //Bug 1204660 - Temporary proxy for shared code. Will be removed once
+    //              l10n.js migration is completed.
+    navigator.mozL10n = {
+      setAttributes: document.l10n.setAttributes,
+      getAttributes: document.l10n.getAttributes,
+      formatValue: (...args) => document.l10n.formatValue(...args),
+      translateFragment: (...args) => document.l10n.translateFragment(...args),
+      once: cb => document.l10n.ready.then(cb),
+      ready: cb => document.l10n.ready.then(() => {
+        document.addEventListener('DOMRetranslated', cb);
+        cb();
+      })
+    };
+  });
+  getModule('runtime/gaia/index');
 })(this);
