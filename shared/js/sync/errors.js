@@ -17,6 +17,8 @@
     ERROR_REQUEST_SYNC_REGISTRATION: 'sync-error-request-sync-registration',
     // Cannot get Firefox Accounts assertion.
     ERROR_GET_FXA_ASSERTION: 'sync-error-get-fxa-assertion',
+    // The request options passed to the Sync app failed basic DataType checks.
+    ERROR_SYNC_INVALID_REQUEST_OPTIONS: 'sync-error-invalid-request-options',
     // Cannot perform sync request.
     ERROR_SYNC_REQUEST: 'sync-error-request-failed'
   };
@@ -24,6 +26,8 @@
   var recoverableErrors = {
     // The app was killed while performing a sync operation.
     ERROR_SYNC_APP_KILLED: 'sync-error-app-killed',
+    // The app is already performing a sync request.
+    ERROR_SYNC_APP_SYNC_IN_PROGRESS: 'sync-error-app-sync-in-progress',
     // Error while trying to sync.
     ERROR_SYNC_APP_GENERIC: 'sync-error-app-generic',
     // The user is logged in with an unverified account.
