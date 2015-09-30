@@ -11,7 +11,7 @@ class SimSettings(Base):
 
     _page_locator = (By.ID, 'carrier-detail')
 
-    _network_op_locator = (By.CSS_SELECTOR, '[data-l10n-id ="networkOperator"]')
+    _network_op_locator = (By.CSS_SELECTOR, '[data-l10n-id ="netOperator"]')
     _network_op_page_locator = (By.ID, 'operator-settings')
     _network_type_selector_locator = (By.CSS_SELECTOR, '.preferred-network-type .button')
     _network_type_confirm_button_locator = (By.CLASS_NAME, 'value-option-confirm')
@@ -28,8 +28,9 @@ class SimSettings(Base):
     _roaming_protocol_locator = (By.CLASS_NAME, 'roaming_protocol')
     _apn_selector_confirm_button_locator = (By.CLASS_NAME, 'value-option-confirm')
 
-    _reset_apn_btn_locator = (By.CSS_SELECTOR, '[data-l10n-id ="reset-apn"]')
-    _cancel_btn_locator = (By.CSS_SELECTOR, '.reset-apn-warning .cancel-btn')
+    _reset_apn_btn_locator = (By.CSS_SELECTOR, '[data-l10n-id="reset-apn"]')
+    _reset_apn_page_locator = (By.CSS_SELECTOR, '#settings-confirm-dialog')
+    _cancel_btn_locator = (By.CSS_SELECTOR, '#settings-confirm-dialog [data-l10n-id="cancel"]')
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
@@ -143,8 +144,11 @@ class SimSettings(Base):
         Wait(self.marionette).until(expected.element_displayed(*self._cancel_btn_locator))
 
     def tap_cancel_reset(self):
+        dialog_view = self.marionette.find_element(*self._reset_apn_page_locator)
         element = self.marionette.find_element(*self._cancel_btn_locator)
         Wait(self.marionette).until(expected.element_displayed(element) and
                                     expected.element_enabled(element))
         element.tap()
+
+        Wait(self.marionette).until(lambda m: 'current' not in dialog_view.get_attribute('class'))
         Wait(self.marionette).until(expected.element_displayed(*self._reset_apn_btn_locator))

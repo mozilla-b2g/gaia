@@ -20,7 +20,6 @@ class TestSettingsRTLPersonalization(GaiaImageCompareTestCase):
                                         screen=sound_page.screen_element)
         self.take_screenshot('sound')
         ringtone_page = sound_page.tap_ring_tone_selector()
-
         self.take_screenshot('sound-ringtones')
         for i in range(0, 5):
             GaiaImageCompareTestCase.scroll(self.marionette, 'down', ringtone_page.screen_element.size['height'],
