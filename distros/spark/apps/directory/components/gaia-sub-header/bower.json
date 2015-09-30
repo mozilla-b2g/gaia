@@ -1,6 +1,6 @@
 {
   "name": "gaia-sub-header",
-  "version": "0.3.1",
+  "version": "0.4.1",
   "homepage": "https://github.com/gaia-components/gaia-subheader",
   "authors": [
     "rnowm <arnau@arnaumarch.com>"
@@ -12,13 +12,17 @@
     "node_modules",
     "bower_components",
     "test",
-    "tests"
+    "tests",
+    "index.html",
+    "package.json",
+    "README.md"
   ],
   "devDependencies": {
-    "gaia-theme": "gaia-components/gaia-theme#v1",
-    "gaia-fonts": "gaia-components/gaia-fonts#~0.2.1"
+    "base": "gaia-components/base",
+    "gaia-theme": "gaia-components/gaia-theme",
+    "gaia-fonts": "gaia-components/gaia-fonts"
   },
   "dependencies": {
-    "gaia-component": "gaia-components/gaia-component#~0.3.0"
+    "gaia-component": "gaia-components/gaia-component#^0.3.8"
   }
 }

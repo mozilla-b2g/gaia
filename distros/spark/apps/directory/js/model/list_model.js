@@ -14,6 +14,10 @@ define(["exports", "components/fxos-mvc/dist/mvc"], function (exports, _componen
   };
 
   var Model = _componentsFxosMvcDistMvc.Model;
+
+
+  var DEBUG = 0;
+
   var ListModel = (function (Model) {
     var ListModel = function ListModel() {
       Model.apply(this, arguments);
@@ -24,15 +28,19 @@ define(["exports", "components/fxos-mvc/dist/mvc"], function (exports, _componen
     ListModel.prototype.getAppList = function () {
       var _this = this;
       return new Promise(function (resolve, reject) {
-        var localApps = _this.loadApps("/apps.json");
-        var remoteApps = _this.loadApps("http://directory.fxosapps.org/apps.json");
+        var localApps = _this.loadApps("/apps-v2.json");
+        var remoteApps = _this.loadApps("http://directory.fxosapps.org/apps-v2.json");
         Promise.all([localApps, remoteApps]).then(function (sources) {
           localApps = sources[0];
           remoteApps = sources[1];
 
           // Try to fetch the remote app list, but if it fails, use the packaged
           // one instead.
-          resolve(Object.keys(remoteApps).length ? remoteApps : localApps);
+          if (DEBUG || Object.keys(remoteApps).length < 1) {
+            resolve(localApps);
+          } else {
+            resolve(remoteApps);
+          }
         });
       });
     };
