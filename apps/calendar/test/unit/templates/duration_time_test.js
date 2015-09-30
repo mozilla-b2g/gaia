@@ -1,12 +1,15 @@
 define(function(require) {
 'use strict';
-
 var DurationTime = require('templates/duration_time');
 
 suite('DurationTime', function() {
   var subject;
 
   suiteSetup(function() {
+    window.IntlHelper.define('shortTimeFormat', 'datetime', {
+      hour: 'numeric',
+      minute: 'numeric'
+    });
     subject = DurationTime;
   });
 
@@ -84,7 +87,7 @@ suite('DurationTime', function() {
       assert.equal(
         durationDescription,
         'All day<br>' +
-        'Sunday, September 08, 1991'
+        'Sunday, September 8, 1991'
       );
     });
 
@@ -99,7 +102,7 @@ suite('DurationTime', function() {
 
       assert.equal(
         durationDescription,
-        'All day from Sunday, September 08, 1991<br>' +
+        'All day from Sunday, September 8, 1991<br>' +
         'to Saturday, September 14, 1991'
       );
     });

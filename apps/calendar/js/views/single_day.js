@@ -1,3 +1,5 @@
+/* global IntlHelper */
+
 define(function(require, exports, module) {
 'use strict';
 
@@ -5,14 +7,19 @@ var Overlap = require('utils/overlap');
 var buildElement = require('utils/dom').buildElement;
 var core = require('core');
 var isSameDate = require('common/calc').isSameDate;
-var localeFormat = require('date_format').localeFormat;
 var relativeDuration = require('common/calc').relativeDuration;
 var relativeOffset = require('common/calc').relativeOffset;
 var spanOfDay = require('common/calc').spanOfDay;
 var template = require('templates/multi_day');
-var timeLabel = require('common/calc').getTimeL10nLabel;
 
 var _id = 0;
+
+IntlHelper.define('longDateFormat', 'datetime', {
+  weekday: 'long',
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric'
+});
 
 function SingleDay(config) {
   this.date = config.date;
@@ -52,11 +59,10 @@ SingleDay.prototype = {
   _updateDayName: function() {
     // we can't use [data-l10n-date-format] because format might change based
     // on locale
-    var format = window.navigator.mozL10n.get('week-day');
-    this._dayName.textContent = localeFormat(
-      this.date,
-      format
-    );
+    this._dayName.textContent = this.date.toLocaleString(navigator.languages, {
+      weekday: 'short',
+      day: 'numeric'
+    });
   },
 
   handleEvent: function(evt) {
@@ -145,14 +151,16 @@ SingleDay.prototype = {
 
     // screen reader should be aware if the event spans multiple dates and also
     // know the event duration without having the open it
-    var _ = navigator.mozL10n.get;
     var labelFormat = isSameDate(startDate, endDate) ? this._oneDayLabelFormat :
       'event-multiple-day-duration';
+
+    var longDateFormat = IntlHelper.get('longDateFormat');
+    var shortTimeFormat = IntlHelper.get('shortTimeFormat');
     var labelFormatArgs = JSON.stringify({
-      startDate: localeFormat(startDate, _('longDateFormat')),
-      startTime: localeFormat(startDate, _(timeLabel('shortTimeFormat'))),
-      endDate: localeFormat(endDate, _('longDateFormat')),
-      endTime: localeFormat(endDate, _(timeLabel('shortTimeFormat')))
+      startDate: longDateFormat.format(startDate),
+      startTime: shortTimeFormat.format(startDate),
+      endDate: longDateFormat.format(endDate),
+      endTime: shortTimeFormat.format(endDate)
     });
 
     return buildElement(template.event.render({

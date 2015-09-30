@@ -1,9 +1,9 @@
 define(function(require, exports, module) {
 'use strict';
 
+var IntlHelper = require('shared/intl_helper');
 var View = require('view');
 var core = require('core');
-var dateFormat = require('date_format');
 var router = require('router');
 
 var SETTINGS = /settings/;
@@ -121,10 +121,11 @@ TimeHeader.prototype = {
   },
 
   _localeFormat: function(date, scale) {
-    return dateFormat.localeFormat(
-      date,
-      navigator.mozL10n.get(this.scales[scale])
-    );
+    if (!this.scales[scale]) {
+      return;
+    }
+    var formatter = IntlHelper.get(this.scales[scale]);
+    return formatter.format(date);
   },
 
   _updateTitle: function() {

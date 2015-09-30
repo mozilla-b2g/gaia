@@ -1,8 +1,8 @@
+/* global mozIntl */
 define(function(require, exports, module) {
 'use strict';
 
 var create = require('template').create;
-var dateFormat = require('date_format');
 
 var MINUTE = 60;
 var HOUR = 3600;
@@ -165,17 +165,13 @@ function getL10n(trigger, layout) {
   }
 
   var affix = trigger > 0 ? 'after' : 'before';
-  var parts = dateFormat.relativeParts(trigger);
-
-  for (var i in parts) {
-    // we only use the first part (biggest value)
-    return {
-      id: i + '-' + affix,
-      data: {
-        value: parts[i]
-      }
-    };
-  }
+  var part = mozIntl._gaia.relativePart(trigger * 1000);
+  return {
+    id: part.unit + '-' + affix,
+    data: {
+      value: part.value
+    }
+  };
 }
 module.exports = Alarm;
 

@@ -1,12 +1,18 @@
 define(function(require) {
 'use strict';
 
+var intl = require('intl');
+
 var MonthDayAgenda = require('templates/month_day_agenda');
 
 suite('templates/month_day_agenda', function() {
   function renderHTML(type, options) {
     return MonthDayAgenda[type].render(options);
   }
+
+  suiteSetup(function() {
+    intl.init();
+  });
 
   suite('#event', function() {
     test('> regular event', function() {
