@@ -40,7 +40,7 @@ global.MockMozIntl = {
     RelativeDate: function(locales, options) {
       return {
         format: function(value) {
-          return Promise.resolve();
+          return Promise.resolve('pretty date');
         }
       };
     },

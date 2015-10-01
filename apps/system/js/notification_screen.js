@@ -1,5 +1,5 @@
 /* global LazyLoader, MediaPlaybackWidget, Service,
-          SettingsListener, SettingsURL, toneUpgrader */
+          SettingsListener, SettingsURL, toneUpgrader, mozIntl */
 
 'use strict';
 
@@ -373,10 +373,12 @@ var NotificationScreen = {
 
   updateTimestamps: function ns_updateTimestamps() {
     var timestamps = [...document.querySelectorAll('.timestamp')];
-    var formatter = navigator.mozL10n.DateTimeFormat();
+    var formatter = mozIntl._gaia.RelativeDate(navigator.languages, {
+      style: 'short'
+    });
 
     timestamps.forEach(timestamp => {
-      formatter.relativeDate(new Date(timestamp.dataset.timestamp)).then(
+      formatter.format(new Date(timestamp.dataset.timestamp)).then(
         str => { timestamp.textContent = str; }
       );
     });
@@ -468,7 +470,10 @@ var NotificationScreen = {
     var timestamp = detail.timestamp ? new Date(detail.timestamp) : new Date();
     time.classList.add('timestamp');
     time.dataset.timestamp = timestamp;
-    navigator.mozL10n.DateTimeFormat().relativeDate(timestamp, true).then(
+    var formatter = mozIntl._gaia.RelativeDate(navigator.languages, {
+      style: 'short'
+    });
+    formatter.format(timestamp).then(
       str => {
         time.textContent = str;
       }

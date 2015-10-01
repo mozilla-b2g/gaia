@@ -1,22 +1,27 @@
-/* global MockL10n, DownloadFormatter, MockDownload */
+/* global MockL10n, DownloadFormatter, MockDownload, MockMozIntl */
 'use strict';
 
 require('/shared/test/unit/mocks/mock_download.js');
 require('/shared/js/download/download_formatter.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_moz_intl.js');
 
 
 suite('DownloadFormatter', function() {
-  var realL10n;
+  var realL10n, realMozIntl;
 
   suiteSetup(function() {
+    realMozIntl = window.mozIntl;
+    window.mozIntl = MockMozIntl;
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
   });
 
   suiteTeardown(function() {
     navigator.mozL10n = realL10n;
+    window.mozIntl = realMozIntl;
     realL10n = null;
+    realMozIntl = null;
   });
 
   test(' getFormattedSize KB', function(done) {
@@ -212,30 +217,13 @@ suite('DownloadFormatter', function() {
 
   test(' getDate', function(done) {
     var now = new Date();
-    var expectedPrettyDate = 'pretty' + now.toString();
-
-    // We can't use MockLazyLoader here because it cannot chain Promises
-    window.LazyLoader = {
-      load: function(imports) {
-        return Promise.resolve();
-      }
-    };
-
-    sinon.stub(navigator.mozL10n, 'DateTimeFormat', function(date) {
-      return {
-        relativeDate: function(date, useCompactFormat) {
-          return Promise.resolve(expectedPrettyDate);
-        }
-      };
-    });
 
     var mockDownload = new MockDownload({
       startTime: now
     });
 
     DownloadFormatter.getDate(mockDownload).then(function(date) {
-      assert.equal(date, expectedPrettyDate);
-      done();
-    });
+      assert.equal(date, 'pretty date');
+    }).then(done, done);
   });
 });
