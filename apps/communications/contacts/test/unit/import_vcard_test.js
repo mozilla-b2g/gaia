@@ -112,7 +112,7 @@ suite('Import from vcard', function() {
     window._ = navigator.mozL10n.get;
 
     realStatus = window.utils.status;
-    realOverlay = window.utils.overlay;
+    realOverlay = window.Overlay;
 
     navigator.mozContacts = MockMozContacts;
     sinon.stub(navigator.mozContacts, 'find', function mockMozContactsFind() {
@@ -134,7 +134,7 @@ suite('Import from vcard', function() {
     realLoader = window.Loader;
     window.Loader = MockLoader;
 
-    window.utils.overlay = {
+    window.Overlay = {
       total: 0,
       show: function() {
         return this;
@@ -157,7 +157,7 @@ suite('Import from vcard', function() {
   });
 
   setup(function() {
-    window.utils.overlay.total = 0;
+    window.Overlay.total = 0;
     navigator.mozContacts.contacts = [];
     mocksHelperForImportVcard.setup();
   });
@@ -167,7 +167,7 @@ suite('Import from vcard', function() {
     window._ = real_;
     window.Matcher = realMatcher;
     window.utils.status = realStatus;
-    window.utils.overlay = realOverlay;
+    window.Overlay = realOverlay;
     window.Loader = realLoader;
     mocksHelperForImportVcard.suiteTeardown();
   });
@@ -175,7 +175,7 @@ suite('Import from vcard', function() {
   test('Import single contact', function(done) {
     utils.importFromVcard(vcardSingle, function(numberOfContacts, id) {
       assert.equal(id, contact1.id, 'return id of the contact imported');
-      assert.equal(window.utils.overlay.total, 1);
+      assert.equal(window.Overlay.total, 1);
       done();
     });
   });
@@ -183,7 +183,7 @@ suite('Import from vcard', function() {
   test('Import multiple contacts', function(done) {
     utils.importFromVcard(vcardMultiple, function(numberOfContacts, id) {
       assert.equal(id, contact1.id, 'returns id of the first contact imported');
-      assert.equal(window.utils.overlay.total, 2);
+      assert.equal(window.Overlay.total, 2);
       done();
     });
   });
@@ -191,7 +191,7 @@ suite('Import from vcard', function() {
   test('Error while importing', function(done) {
     utils.importFromVcard(vcardError, function(numberOfContacts, id) {
       assert.isUndefined(id, 'returns no id as there was an error');
-      assert.equal(window.utils.overlay.total, 0);
+      assert.equal(window.Overlay.total, 0);
       done();
     });
   });

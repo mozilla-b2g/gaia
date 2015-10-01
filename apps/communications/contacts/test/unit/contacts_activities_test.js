@@ -57,7 +57,7 @@ suite('Test Activities', function() {
       window.utils = {};
     }
 
-    window.utils.overlay = {
+    window.Overlay = {
       show: function() {},
       hide: function() {}
     };
