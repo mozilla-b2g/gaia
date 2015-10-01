@@ -47,7 +47,8 @@ ArtistDetailView.prototype.getArtist = function() {
     .then(response => response.json())
     .then(songs => {
       songs.forEach((song) => {
-        song.index = unpaddedIndex.format(song.metadata.tracknum);
+        song.index = song.metadata.tracknum ?
+          unpaddedIndex.format(song.metadata.tracknum) : '';
       });
 
       return songs;
