@@ -216,13 +216,11 @@ global.mozIntl = {
     return navigator.mozL10n.formatValue('durationPattern').then(fmt => ({
       resolvedOptions: function() { return resolvedOptions; },
       format: function(input) {
-        const duration = splitIntoTimeUnits(input, maxUnitIdx, minUnitIdx);
+        // Rounding minUnit to closest visible unit
+        const minValue = durationFormatElements[resolvedOptions.minUnit].value;
+        input = Math.round(input / minValue) * minValue;
 
-        if (duration.hasOwnProperty('millisecond')) {
-          // We round milliseconds to 2-digit
-          duration.millisecond =
-            Math.round(duration.millisecond / 10);
-        }
+        const duration = splitIntoTimeUnits(input, maxUnitIdx, minUnitIdx);
 
         var string = trimDurationPattern(fmt,
           resolvedOptions.maxUnit, resolvedOptions.minUnit);
@@ -359,7 +357,8 @@ const durationFormatElements = {
   'hour': {value: 3600000, token: 'hh'},
   'minute': {value: 60000, token: 'mm'},
   'second': {value: 1000, token: 'ss'},
-  'millisecond': {value: 1, token: 'SS'}
+  // rounding milliseconds to tens
+  'millisecond': {value: 10, token: 'SS'}
 };
 
 /*

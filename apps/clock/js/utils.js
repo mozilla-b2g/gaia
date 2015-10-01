@@ -25,7 +25,7 @@ IntlHelper.define('time-html', 'mozdatetime', {
   minute: 'numeric',
 });
 
-IntlHelper.define('time-text', 'mozdatetime', {
+IntlHelper.define('time-text', 'datetime', {
   hour: 'numeric',
   minute: 'numeric',
 });
@@ -321,18 +321,6 @@ Utils.safeWakeLock = function(opts, fn) {
     unlockFn();
     throw err;
   }
-};
-
-Utils.repeatString = function rep(str, times) {
-  var built = [], cur = str;
-  for (var i = 0, j = 1; j <= times; i++) {
-    if ((times & j) > 0) {
-      built.push(cur);
-    }
-    cur = cur + cur;
-    j = j << 1;
-  }
-  return built.join('');
 };
 
 Utils.async = {

@@ -369,6 +369,34 @@ suite('MozIntl', function() {
           assert.strictEqual(string, '-13:10:21');
         }).then(done, done);
       });
+
+      test('rounding of seconds pushes to a minute', function(done) {
+        // 1 min
+        var ms = 1 * 1000 * 60 - 20;
+
+        mozIntl.DurationFormat(navigator.languages, {
+          maxUnit: 'hour',
+          minUnit: 'second',
+        }).then(formatter => {
+          var string = formatter.format(ms);
+
+          assert.strictEqual(string, '00:01:00');
+        }).then(done, done);
+      });
+
+      test('rounding of seconds pushes to an hour', function(done) {
+        // 1 hour
+        var ms = 1 * 60 * 60 * 1000 - 20;
+
+        mozIntl.DurationFormat(navigator.languages, {
+          maxUnit: 'hour',
+          minUnit: 'second',
+        }).then(formatter => {
+          var string = formatter.format(ms);
+
+          assert.strictEqual(string, '01:00:00');
+        }).then(done, done);
+      });
     });
 
     suite('msS duration', function() {
@@ -453,6 +481,20 @@ suite('MozIntl', function() {
           var string = formatter.format(ms);
 
           assert.strictEqual(string, '-10:21.00');
+        }).then(done, done);
+      });
+
+      test('rounding of ms pushes to seconds', function(done) {
+        // 1 hour
+        var ms = 1 * 1000 - 2;
+
+        mozIntl.DurationFormat(navigator.languages, {
+          maxUnit: 'minute',
+          minUnit: 'millisecond',
+        }).then(formatter => {
+          var string = formatter.format(ms);
+
+          assert.strictEqual(string, '00:01.00');
         }).then(done, done);
       });
     });
