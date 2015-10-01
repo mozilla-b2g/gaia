@@ -16,10 +16,10 @@ function navigationStack(currentView) {
     },
     'right-left': {
       forwards: {
-        next: 'app-go-left-in'
+        next: 'app-go-in'
       },
       backwards: {
-        current: 'app-go-left-back-out'
+        current: 'app-go-back-out'
       }
     },
     'popup': {
@@ -56,12 +56,12 @@ function navigationStack(currentView) {
     },
     'go-deeper-search': {
       forwards: {
-        current: 'move-left-out',
-        next: 'move-left-in'
+        current: 'move-out-from-forward',
+        next: 'move-in-from-forward'
       },
       backwards: {
-        current: 'move-right-out',
-        next: 'move-right-in'
+        current: 'move-out-from-backward',
+        next: 'move-in-from-backward'
       }
     }
   };
