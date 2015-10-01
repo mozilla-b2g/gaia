@@ -476,9 +476,11 @@ MediaFrame.prototype._switchToPreviewImage = function _switchToPreview() {
                      this.previewWidth, this.previewHeight);
 };
 
+// The video and poster image can have different sizes, but they must
+// have the same aspect ratio and rotation. The aspect ratio is the raw
+// media width divided by the raw media height before any rotation is applied.
 MediaFrame.prototype.displayVideo = function displayVideo(videoblob, posterblob,
-                                                          width, height,
-                                                          rotation)
+                                                          aspectRatio, rotation)
 {
   if (!this.video) {
     return;
@@ -500,7 +502,7 @@ MediaFrame.prototype.displayVideo = function displayVideo(videoblob, posterblob,
   // Display them in the video element.
   // The VideoPlayer class takes care of positioning itself, so we
   // don't have to do anything here with computeFit() or setPosition()
-  this.video.load(this.videourl, this.posterurl, width, height, rotation || 0,
+  this.video.load(this.videourl, this.posterurl, aspectRatio, rotation || 0,
                   videoblob.lastModifiedDate);
 
   // Show the player controls
