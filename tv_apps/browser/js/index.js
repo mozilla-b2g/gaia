@@ -142,6 +142,8 @@ var Browser = {
         // init tab setting
         Awesomescreen.isTabSetting();
 
+        // start IAC handler
+        connectionHandler.activate();
       }).bind(this));
     }).bind(this));
 
@@ -1136,8 +1138,7 @@ var Browser = {
         }
       }, 100);
     }
-
- },
+  },
 
   /**
    * location hash change event

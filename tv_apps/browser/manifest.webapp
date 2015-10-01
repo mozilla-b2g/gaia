@@ -45,5 +45,11 @@
         }
       }
     }
+  },
+  "connections": {
+    "webpage-open": {
+      "description": "connection for opening webpage",
+      "rules": {}
+    }
   }
 }

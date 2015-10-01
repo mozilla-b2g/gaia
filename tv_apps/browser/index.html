@@ -29,13 +29,15 @@
     <meta name="availableLanguages" content="en-US">
     <link rel="localization" href="/locales/browser.{locale}.properties">
 
+    <!-- building blocks -->
+    <script defer src="bower_components/evt/index.js"></script>
+    <script defer src="bower_components/smart-button/script.js"></script>
+
     <!-- Shared code -->
     <script defer src="shared/js/url_helper.js"></script>
     <script defer src="shared/js/utilities.js"></script>
     <script defer src="shared/js/fxa_iac_client.js"></script>
-
-    <!-- building blocks -->
-    <script defer src="bower_components/smart-button/script.js"></script>
+    <script defer src="shared/js/smart-screen/connection_manager.js"></script>
 
     <!-- Specific code -->
     <script defer src="js/browser_db.js"></script>
@@ -49,6 +51,10 @@
     <script defer src="js/search_result.js"></script>
     <script defer src="js/settings.js"></script>
     <script defer src="js/firefox_account.js"></script>
+    <script defer src="js/connection_handler.js"></script>
+
+    <!-- IAC Handler (put here because it starts sending event immediately) -->
+    <script defer src="shared/js/iac_handler.js"></script>
   </head>
 
   <body class="page_screen start_page" role="application">
