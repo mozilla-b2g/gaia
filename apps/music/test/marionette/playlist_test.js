@@ -61,6 +61,72 @@ marionette('Music player playlist', function() {
     });
   });
 
+  suite('Test empty metadata', function () {
+    setup(function() {
+      client.fileManager.removeAllFiles();
+      client.fileManager.add([
+        {
+          type: 'music',
+          filePath:
+          'test_media/samples/Music/treasure_island_01-02_stevenson.ogg'
+        },
+        {
+          type: 'music',
+          filePath:
+          'test_media/samples/Music/Salt_Creek.ogg'
+        }
+      ]);
+
+      music.launch();
+      music.waitForFirstTile();
+    });
+
+    // Test for bug 1209798
+    test('Check the lack of track index', function() {
+      music.switchToAlbumsView();
+
+      music.selectAlbum('Treasure Island');
+
+      music.waitForSongs(function(songs) {
+        return songs.length >= 1;
+      });
+
+      var songs = music.songs;
+
+      assert.equal(songs[0].index, '');
+      assert.equal(songs[0].title,
+                   '01 At the Admiral Benbow - ' +
+                   '02 Black Dog Appears and Disappears');
+    });
+
+    test('Check the lack of artist or album', function() {
+      music.switchToAlbumsView();
+
+      var results = music.albumsListItemsData;
+      var unknownAlbumStr = client.executeAsyncScript(function () {
+        window.wrappedJSObject.document.l10n.formatValue('unknownAlbum').
+          then(function(str) {
+            marionetteScriptFinished(str);
+          });
+      });
+      assert.equal(results[0].title, unknownAlbumStr);
+
+
+      music.switchToArtistsView();
+
+      results = music.artistsListItemsData;
+      var unknownArtistStr = client.executeAsyncScript(function () {
+        window.wrappedJSObject.document.l10n.formatValue('unknownArtist').
+          then(function(str) {
+            marionetteScriptFinished(str);
+          });
+      });
+
+      assert.equal(results[0].title, unknownArtistStr);
+    });
+
+  });
+
   suite('Single disc tests', function () {
     setup(function() {
       client.fileManager.removeAllFiles();
@@ -77,18 +143,13 @@ marionette('Music player playlist', function() {
           type: 'music',
           filePath: 'apps/music/test-data/playlists/03.ogg'
         },
-        {
-          type: 'music',
-          filePath:
-          'test_media/samples/Music/treasure_island_01-02_stevenson.ogg'
-        }
       ]);
 
       music.launch();
       music.waitForFirstTile();
     });
 
-    test('Check the sort order #1', function() {
+    test('Check the sort order', function() {
       music.switchToAlbumsView();
 
       music.selectAlbum('Where is Julian Assange?');
@@ -111,23 +172,6 @@ marionette('Music player playlist', function() {
       assert.equal(songs[2].title, 'The Ecuadorian Embassy');
     });
 
-    test('Check the sort order #2', function() {
-      music.switchToAlbumsView();
-
-      music.selectAlbum('Treasure Island');
-
-      music.waitForSongs(function(songs) {
-        return songs.length >= 1;
-      });
-
-      var songs = music.songs;
-
-      assert.equal(songs[0].index, '');
-      assert.equal(songs[0].title,
-                   '01 At the Admiral Benbow - ' +
-                   '02 Black Dog Appears and Disappears');
-    });
-
     test('Check the playlist indexes', function() {
       // this test will check that the index value of each song is the index
       // and not the track number.
@@ -142,7 +186,7 @@ marionette('Music player playlist', function() {
 
       var songs = music.songs;
 
-      assert.equal(songs.length, 4);
+      assert.equal(songs.length, 3);
       assert.equal(songs[0].index, '1');
       assert.equal(songs[1].index, '2');
       assert.equal(songs[2].index, '3');
