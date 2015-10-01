@@ -19,7 +19,7 @@
   display: none;
 }
 
-.appWindow:not(.homescreen):not(.searchWindow).render {
+.appWindow:not(.homescreen):not(.searchWindow):not(.lockScreenInputWindow):not(.globalOverlayWindow).render {
   background-image: none !important;
   background-color: transparent;
 }
