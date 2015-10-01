@@ -1,4 +1,4 @@
-/* global View */
+/* global View, IntlHelper */
 'use strict';
 
 var PlaylistDetailView = View.extend(function PlaylistDetailView() {
@@ -38,10 +38,14 @@ PlaylistDetailView.prototype.render = function() {
 };
 
 PlaylistDetailView.prototype.getPlaylist = function() {
+  var unpaddedIndex = IntlHelper.get('unpaddedIndex');
+
   return this.fetch('/api/playlists/info/' + this.params.id)
     .then(response => response.json())
     .then(songs => {
-      songs.forEach((song, index) => song.index = index + 1);
+      songs.forEach((song, index) => {
+        song.index = unpaddedIndex.format(index + 1);
+      });
 
       return songs;
     });
@@ -50,5 +54,11 @@ PlaylistDetailView.prototype.getPlaylist = function() {
 PlaylistDetailView.prototype.queuePlaylist = function(filePath) {
   this.fetch('/api/queue/playlist/' + this.params.id + '/song/' + filePath);
 };
+
+IntlHelper.define('unpaddedIndex', 'number', {
+  style: 'decimal',
+  useGrouping: false,
+  minimumIntegerDigits: 1
+});
 
 window.view = new PlaylistDetailView();

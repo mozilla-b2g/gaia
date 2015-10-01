@@ -1,4 +1,4 @@
-/* global View */
+/* global View, IntlHelper */
 'use strict';
 
 var ArtistDetailView = View.extend(function ArtistDetailView() {
@@ -41,18 +41,13 @@ ArtistDetailView.prototype.render = function() {
 };
 
 ArtistDetailView.prototype.getArtist = function() {
+  var unpaddedIndex = IntlHelper.get('unpaddedIndex');
+
   return this.fetch('/api/artists/info/' + this.params.id)
     .then(response => response.json())
     .then(songs => {
-      var maxDiscNumber = Math.max(
-        songs[songs.length - 1].metadata.disccount,
-        songs[songs.length - 1].metadata.discnum
-      );
-
       songs.forEach((song) => {
-        song.index = maxDiscNumber > 1 && song.metadata.tracknum ?
-          song.metadata.discnum + '.' + formatNumber(song.metadata.tracknum) :
-          song.metadata.tracknum;
+        song.index = unpaddedIndex.format(song.metadata.tracknum);
       });
 
       return songs;
@@ -63,8 +58,10 @@ ArtistDetailView.prototype.queueArtist = function(filePath) {
   this.fetch('/api/queue/artist/' + filePath);
 };
 
-function formatNumber(number) {
-  return (number < 10 ? '0' : '') + number;
-}
+IntlHelper.define('unpaddedIndex', 'number', {
+  style: 'decimal',
+  useGrouping: false,
+  minimumIntegerDigits: 1
+});
 
 window.view = new ArtistDetailView();
