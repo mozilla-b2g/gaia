@@ -8,8 +8,6 @@
     this.name = options.name;
     this.deckClass = options.deckClass;
     this.group = options.group;
-    this.isFillIcon = options.isFillIcon;
-    this.isEnableWave = options.isEnableWave;
     Card.prototype.constructor.call(this);
   };
 
@@ -21,9 +19,7 @@
         nativeApp: cardEntry.manifestURL &&
           installedApps[cardEntry.manifestURL],
         deckClass: cardEntry.deckClass,
-        group: cardEntry.group,
-        isFillIcon: cardEntry.isFillIcon,
-        isEnableWave: cardEntry.isEnableWave
+        group: cardEntry.group
       });
     }
     return cardInstance;

@@ -459,22 +459,18 @@
           cardButton.setAttribute('app-type', 'tv');
         } else {
           cardButton.setAttribute('app-type', 'app');
+          this._fillCardIcon(cardButton, card);
         }
       } else if (card instanceof Deck) {
         cardButton.setAttribute('app-type', 'deck');
+        if (card.group === 'website') {
+          this._fillCardIcon(cardButton, card);
+        } else {
+          this._createWave(cardButton, card);
+        }
       } else if (card instanceof Folder) {
         cardButton.setAttribute('app-type', 'folder');
         cardButton.dataset.icon = 'folder';
-      }
-
-      // fill application icon when isFillIcon is true
-      if(card.isFillIcon !== undefined && card.isFillIcon === true) {
-        this._fillCardIcon(cardButton, card);
-      }
-
-      // create wave animation when isEnableWave is true
-      if(card.isEnableWave !== undefined && card.isEnableWave === true) {
-        this._createWave(cardButton, card);
       }
 
       // For smart-button, we put card name in pseudo-element :after. However,
