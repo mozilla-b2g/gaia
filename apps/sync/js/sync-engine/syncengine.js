@@ -343,19 +343,22 @@ rse crypto/keys payload as JSON`));
 
     /**
       * syncNow - Syncs collections up and down between device and server.
-      * @param {Array of Strings} collectionNames The names of the collections
-      *                                           to sync.
+      * @param {object} collectionOptions The options per collection. Currently,
+      *                                   only readOnly (defaults to true).
       * @returns {Promise}
       */
-    syncNow: function(collectionNames) {
-      if (!Array.isArray(collectionNames)) {
-        return Promise.reject(new Error('collectionNames should be an Array'));
+    syncNow: function(collectionOptions) {
+      if (typeof collectionOptions !== 'object') {
+        return Promise.reject(new Error(
+            'collectionOptions should be an object'));
       }
       return this._ensureReady().then(() => {
         var promises = [];
-        collectionNames.forEach(collectionName => {
-          promises.push(this._updateCollection(collectionName));
-        });
+        for (var collectionName in collectionOptions) {
+          promises.push(this._updateCollection(collectionName,
+               //TODO: actually use this, see bug 1209934
+               collectionOptions[collectionName]));
+        }
         return Promise.all(promises);
       });
     }
