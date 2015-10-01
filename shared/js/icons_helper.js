@@ -91,7 +91,6 @@
     });
   }
 
-
   /**
    * Same as above except the promise resolves as an object containing the blob
    * of the icon and its size in pixels.
@@ -148,6 +147,32 @@
           });
         });
     });
+  }
+
+  /**
+   * Same as above but set the image as the icon property of a gaia-app-icon
+   * element.
+   *
+   * @param icon {Object?}
+   * @param targetSize {number}
+   * @returns {Promise}
+   */
+  function setElementIcon(icon, targetSize) {
+    getIconBlob(icon.bookmark.url, targetSize, icon.bookmark, icon.bookmark)
+      .then(iconObj => {
+        if (iconObj.blob) {
+          icon.icon = iconObj.blob;
+        } else if (icon.bookmark.icon) {
+          // We fallback to the bookmark.icon property if no icons were found.
+          fetchIconBlob(icon.bookmark.icon)
+            .then(iconBlob => {
+              icon.icon = iconBlob;
+            });
+        }
+      })
+      .catch((e) => {
+        console.error('The icon image could not be set to the element.', e);
+      });
   }
 
   function getBestIconFromWebManifest(webManifest, iconSize) {
@@ -384,6 +409,8 @@
   exports.IconsHelper = {
     getIcon: getIcon,
     getIconBlob: getIconBlob,
+
+    setElementIcon: setElementIcon,
 
     getBestIconFromWebManifest: getBestIconFromWebManifest,
     getBestIconFromMetaTags: getBestIconFromMetaTags,

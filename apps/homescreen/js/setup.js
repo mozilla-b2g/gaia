@@ -1,1 +1,1 @@
-window.GaiaAppIconBaseurl = 'bower_components/gaia-app-icon/';
+window.GaiaAppIconBaseurl = 'shared/elements/gaia-site-icon/';
