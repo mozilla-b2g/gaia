@@ -1,5 +1,5 @@
 'use strict';
-/* global asyncStorage, SettingsListener */
+/* global asyncStorage, MozActivity, SettingsListener */
 
 (function(exports) {
 
@@ -100,6 +100,10 @@
         this.privateBrowserDialogClose = document.getElementById(
           'private-window-hide-dialog');
         this.privateBrowserDialogClose.addEventListener('click', this);
+
+        this.privateBrowserLearnMore = document.getElementById(
+          'private-learn-more');
+        this.privateBrowserLearnMore.addEventListener('click', this);
       });
     },
 
@@ -130,6 +134,9 @@
         case this.privateBrowserDialogClose:
           this.hidePrivateBrowserDialog();
           break;
+        case this.privateBrowserLearnMore:
+          this.learnAboutPrivateBrowsing(e);
+          break;
       }
     },
 
@@ -145,6 +152,23 @@
       if (checkbox.checked) {
         asyncStorage.setItem('shouldSuppressPrivateDialog', true);
       }
+    },
+
+    /**
+     * Opens the learn more dialog.
+     */
+    learnAboutPrivateBrowsing: function(e) {
+      e.preventDefault();
+      navigator.mozL10n.formatValue('private-learn-more-href').then(url => {
+        /* jshint nonew: false */
+        new MozActivity({
+          name: 'view',
+          data: {
+            type: 'url',
+            url: url
+          }
+        });
+      });
     }
   };
 
