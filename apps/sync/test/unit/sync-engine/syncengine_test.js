@@ -117,13 +117,13 @@ ld be a Function`);
    suite('syncNow', function() {
     test('resolves its promise', function(done) {
       var se = new SyncEngine(SynctoServerFixture.syncEngineOptions);
-      expect(se.syncNow([ 'history' ])).to.eventually.deep.
+      expect(se.syncNow({ history: {} })).to.eventually.deep.
           equal([ undefined ]).and.notify(done);
     });
 
     test('initializes the Kinto object', function(done) {
       var se = new SyncEngine(SynctoServerFixture.syncEngineOptions);
-      se.syncNow([ 'history' ]).then(function() {
+      se.syncNow({ history: {} }).then(function() {
         expect(se._kinto).to.be.instanceOf(Kinto);
         done();
       });
@@ -131,7 +131,7 @@ ld be a Function`);
 
     test('generates the correct value for xClientState', function(done) {
       var se = new SyncEngine(SynctoServerFixture.syncEngineOptions);
-      se.syncNow([ 'history' ]).then(function() {
+      se.syncNow({ history: {} }).then(function() {
         expect(se._kinto.options.headers['X-Client-State']).to.equal(
             SynctoServerFixture.xClientState);
         done();
@@ -140,7 +140,7 @@ ld be a Function`);
 
     test('sets xClientState as the dbPrefix', function(done) {
       var se = new SyncEngine(SynctoServerFixture.syncEngineOptions);
-      se.syncNow([ 'history' ]).then(function() {
+      se.syncNow({ history: {} }).then(function() {
         expect(se._kinto.options.dbPrefix).to.equal(
             SynctoServerFixture.xClientState);
         done();
@@ -149,7 +149,7 @@ ld be a Function`);
 
     test('retrieves and decrypts the remote data', function(done) {
       var se = new SyncEngine(SynctoServerFixture.syncEngineOptions);
-      se.syncNow([ 'history' ]).then(() => {
+      se.syncNow({ history: {} }).then(() => {
         expect(se._collections.history).to.be.an('object');
         return se._collections.history.list();
       }).then(list => {
@@ -169,7 +169,7 @@ ld be a Function`);
         { foo: 'bar' }
       ]);
       var se = new SyncEngine(credentials);
-      se.syncNow([ 'history' ]).then(() => {
+      se.syncNow({ history: {} }).then(() => {
         return se._collections.history.list();
       }).then(list => {
         expect(list.data.length).to.equal(2);
@@ -188,8 +188,8 @@ ld be a Function`);
       ]);
 
       var se = new SyncEngine(credentials);
-      expect(se.syncNow([ 'history' ])).to.be.rejectedWith(Error, `Invalid id: \
-wrong`).and.notify(done);
+      expect(se.syncNow({ history: {} })).to.be.rejectedWith(Error, `Invalid id\
+: wrong`).and.notify(done);
     });
 
     test('encrypts and pushes updated records', function(done) {
@@ -200,7 +200,7 @@ wrong`).and.notify(done);
       }]);
 
       var se = new SyncEngine(credentials);
-      se.syncNow([ 'history' ]).then(() => {
+      se.syncNow({ history: {} }).then(() => {
         return se._collections.history.list();
       }).then(list => {
         expect(list.data.length).to.equal(1);
@@ -218,7 +218,7 @@ wrong`).and.notify(done);
       ]);
 
       var se = new SyncEngine(credentials);
-      se.syncNow([ 'history' ]).then(() => {
+      se.syncNow({ history: {} }).then(() => {
         return se._collections.history.list();
       }).then(list => {
         expect(list.data.length).to.equal(0);
@@ -230,7 +230,7 @@ wrong`).and.notify(done);
     test('encrypts and pushes conflict resolutions', function(done) {
       Kinto.setMockProblem({ collectionName: 'history', problem: 'conflicts' });
       var se = new SyncEngine(SynctoServerFixture.syncEngineOptions);
-      se.syncNow([ 'history' ]).then(() => {
+      se.syncNow({ history: {} }).then(() => {
         return se._collections.history.list();
       }).then(list => {
         expect(list.data.length).to.equal(1);
@@ -249,7 +249,7 @@ wrong`).and.notify(done);
       }]);
 
       var se = new SyncEngine(credentials);
-      se.syncNow([ 'history' ]).then(() => {
+      se.syncNow({ 'history': {} }).then(() => {
         return se._collections.history.list();
       }).then(list => {
         expect(list.data.length).to.equal(1);
@@ -258,10 +258,11 @@ wrong`).and.notify(done);
       });
     });
 
-    test(`rejects its promise if collections is not an Array`, function(done) {
+    test(`rejects its promise if collectionOptions is not an object`,
+        function(done) {
       var se = new SyncEngine(SynctoServerFixture.syncEngineOptions);
-      expect(se.syncNow('foo')).to.be.rejectedWith(Error, `collectionNames shou\
-ld be an Array`).and.notify(done);
+      expect(se.syncNow('foo')).to.be.rejectedWith(Error, `collectionOptions sh\
+ould be an object`).and.notify(done);
     });
 
     ['URL', 'assertion', 'kB'].forEach(function(field) {
@@ -272,7 +273,7 @@ ld be an Array`).and.notify(done);
         };
         credentials[field] = 'whoopsie';
         var se = new SyncEngine(credentials);
-        se.syncNow([ 'history' ]).catch(err => {
+        se.syncNow({ history: {} }).catch(err => {
           if (field === 'assertion') {
             expect(err).to.be.instanceOf(SyncEngine.AuthError);
           } else {
@@ -298,7 +299,7 @@ ld be an Array`).and.notify(done);
             function(done) {
           Kinto.setMockProblem({ collectionName, problem });
           var se = new SyncEngine(SynctoServerFixture.syncEngineOptions);
-          se.syncNow([ 'history' ]).catch(err => {
+          se.syncNow({ history: {} }).catch(err => {
             if (problem === '401') {
               expect(err.message).to.equal('unauthorized');
             } else if (['404', '500', '503'].indexOf(problem) !== -1) {
@@ -325,7 +326,7 @@ ld be an Array`).and.notify(done);
         Kinto.setMockProblem({ collectionName:'history', problem });
 
         var se = new SyncEngine(SynctoServerFixture.syncEngineOptions);
-        se.syncNow([ 'history' ]).catch(err => {
+        se.syncNow({ history: {} }).catch(err => {
           if (problem === '401') {
             expect(err.message).to.equal('unauthorized');
           } else if (['404', '500', '503'].indexOf(problem) !== -1) {
