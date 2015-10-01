@@ -41,7 +41,8 @@ suite('Alarm Test', function() {
         label: '',
         sound: 'ac_awake.opus',
         vibrate: true,
-        snooze: 10
+        snooze: 10,
+        duration: 0
       });
     });
 

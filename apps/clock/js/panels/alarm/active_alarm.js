@@ -149,7 +149,16 @@ define(function(require) {
           time: date,
           id: alarm.id
         });
-
+        if(alarm.duration > 0){
+          // This will set up a Timeout to cancel the alarm automatically
+          // if duration (in minutes) is greater than zero
+          this.durationTimeout = setTimeout(() => {
+            if(this.alertWindow.childWindow !== null){
+              // If the alert window still exists, cancel it
+              this.close();
+            }
+          }, alarm.duration * 60 * 1000 );
+        }
         if (type === 'normal') {
           // The alarm instance doesn't yet know that a mozAlarm has
           // fired, so we call .cancel() to wipe this mozAlarm ID from
@@ -196,6 +205,10 @@ define(function(require) {
      * @param {string} alarmId The ID of the alarm.
      */
     snoozeAlarm: function(alarmId) {
+      if(this.durationTimeout !== undefined){
+        // remove timeout for duration if it exists
+        clearTimeout(this.durationTimeout);
+      }
       alarmDatabase.get(alarmId).then((alarm) => {
         alarm.schedule('snooze');
       });
