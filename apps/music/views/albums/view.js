@@ -29,16 +29,21 @@ var AlbumsView = View.extend(function AlbumsView() {
   this.list.scrollTop = searchHeight;
   this.list.minScrollHeight = `calc(100% - ${searchHeight}px)`;
 
-  this.list.configure({
-    getSectionName: (item) => {
-      var title = item.metadata.title;
-      var firstChar = title ? title[0].toLowerCase() : '?';
-      return isNaN(firstChar) ? firstChar : '#';
-    },
+  document.l10n.formatValue('unknown').then((unknown) => {
+    this.list.configure({
+      getSectionName: (item) => {
+        if (item.unknownAlbum) {
+          return unknown;
+        }
 
-    getItemImageSrc: (item) => {
-      return this.getThumbnail(item.name);
-    }
+        var sectionName = item.metadata.album[0].toUpperCase();
+        return isNaN(sectionName) ? sectionName : '#';
+      },
+
+      getItemImageSrc: (item) => {
+        return this.getThumbnail(item.name);
+      }
+    });
   });
 
   this.client.on('databaseChange', () => this.update());
@@ -66,9 +71,21 @@ AlbumsView.prototype.render = function() {
 };
 
 AlbumsView.prototype.getAlbums = function() {
-  return this.fetch('/api/albums/list')
-    .then(response => response.json())
-    .then(albums => clean(albums));
+  return document.l10n.formatValue('unknownAlbum')
+    .then((unknownAlbum) => {
+      return this.fetch('/api/albums/list')
+        .then(response => response.json())
+        .then((albums) => {
+          albums.forEach((album) => {
+            if (!album.metadata.album) {
+              album.metadata.album = unknownAlbum;
+              album.unknownAlbum = true;
+            }
+          });
+
+          return albums;
+        });
+    });
 };
 
 AlbumsView.prototype.getThumbnail = function(filePath) {
@@ -104,13 +121,5 @@ AlbumsView.prototype.search = function(query) {
       });
   });
 };
-
-function clean(items) {
-  console.log('[AlbumsView] clean', items);
-  return items.map(item => {
-    if (!item.metadata.album) item.metadata.album = '?';
-    return item;
-  });
-}
 
 window.view = new AlbumsView();

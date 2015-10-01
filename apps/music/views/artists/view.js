@@ -29,16 +29,21 @@ var ArtistsView = View.extend(function ArtistsView() {
   this.list.scrollTop = searchHeight;
   this.list.minScrollHeight = `calc(100% - ${searchHeight}px)`;
 
-  this.list.configure({
-    getSectionName: (item) => {
-      var title = item.metadata.title;
-      var firstChar = title ? title[0].toLowerCase() : '?';
-      return isNaN(firstChar) ? firstChar : '#';
-    },
+  document.l10n.formatValue('unknown').then((unknown) => {
+    this.list.configure({
+      getSectionName: (item) => {
+        if (item.unknownArtist) {
+          return unknown;
+        }
 
-    getItemImageSrc: (item) => {
-      return this.getThumbnail(item.name);
-    }
+        var sectionName = item.metadata.artist[0].toUpperCase();
+        return isNaN(sectionName) ? sectionName : '#';
+      },
+
+      getItemImageSrc: (item) => {
+        return this.getThumbnail(item.name);
+      }
+    });
   });
 
   this.client.on('databaseChange', () => this.update());
@@ -66,7 +71,21 @@ ArtistsView.prototype.render = function() {
 };
 
 ArtistsView.prototype.getArtists = function() {
-  return this.fetch('/api/artists/list').then(response => response.json());
+  return document.l10n.formatValue('unknownArtist')
+    .then((unknownArtist) => {
+      return this.fetch('/api/artists/list')
+        .then(response => response.json())
+        .then((artists) => {
+          artists.forEach((artist) => {
+            if (!artist.metadata.artist) {
+              artist.metadata.artist = unknownArtist;
+              artist.unknownArtist = true;
+            }
+          });
+
+          return artists;
+        });
+    });
 };
 
 ArtistsView.prototype.getThumbnail = function(filePath) {
