@@ -186,6 +186,7 @@ uld be a Function`);
     this._controlCollections = {};
     this._fswc = new FxSyncWebCrypto();
     this._kinto = null;
+    this._haveUnsyncedConflicts = {};
     this._ready = false;
   };
 
@@ -226,7 +227,8 @@ uld be a Function`);
       return Promise.all(conflicts.map(conflict => {
         return this._adapters[collectionName].handleConflict(conflict)
           .then(resolution =>
-              this._collections[collectionName].resolve(conflict, resolution));
+              this._collections[collectionName].resolve(conflict, resolution))
+          .then(() => this._haveUnsyncedConflicts[collectionName] = true);
       }));
     },
 
@@ -334,8 +336,13 @@ rse crypto/keys payload as JSON`));
       return this._syncCollection(collectionName).then(() => {
         return this._adapters[collectionName].update(
             this._collections[collectionName]);
-      }).then(() => {
-        return this._syncCollection(collectionName);
+      }).then(changed => {
+        if (!changed && !this._haveUnsyncedConflicts[collectionName]) {
+          return Promise.resolve();
+        }
+        return this._syncCollection(collectionName).then(() => {
+          this._haveUnsyncedConflicts[collectionName] = false;
+        });
       });
     },
 

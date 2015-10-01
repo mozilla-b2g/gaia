@@ -210,6 +210,7 @@ wrong`).and.notify(done);
       });
     });
 
+
     test('pushes deletes of records', function(done) {
       var credentials = cloneObject(SynctoServerFixture.syncEngineOptions);
       credentials.adapters.history = AdapterMock('delete', [
@@ -235,6 +236,24 @@ wrong`).and.notify(done);
         expect(list.data.length).to.equal(1);
         expect(list.data[0].bar).to.equal('local');
         expect(se._collections.history.pushData[0].payload).to.equal('{}');
+        Kinto.setMockProblem();
+        done();
+      });
+    });
+
+    test('does not push if nothing changed', function(done) {
+      var credentials = cloneObject(SynctoServerFixture.syncEngineOptions);
+      credentials.adapters.history = AdapterMock('noop', [ {
+        id: SynctoServerFixture.remoteData.history.id,
+        foo: 'bar'
+      }]);
+
+      var se = new SyncEngine(credentials);
+      se.syncNow([ 'history' ]).then(() => {
+        return se._collections.history.list();
+      }).then(list => {
+        expect(list.data.length).to.equal(1);
+        expect(se._collections.history.pushData.length).to.equal(0);
         done();
       });
     });
