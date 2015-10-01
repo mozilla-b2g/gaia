@@ -147,7 +147,6 @@ suite('Homescreen app', () => {
       stub = sinon.stub(HomeMetadata.prototype, 'remove', id => {
         assert.equal(id, 'def/');
         metadataGetAllStub.restore();
-        datastoreGetAllStub.restore();
         done();
       });
       var metadataGetAllStub = sinon.stub(HomeMetadata.prototype, 'getAll',
@@ -157,15 +156,7 @@ suite('Homescreen app', () => {
             { id: 'def/', icon: 'def', order: 1 }
           ]);
         });
-      var datastoreGetAllStub = sinon.stub(Datastore.prototype, 'getAll',
-        () => {
-          return Promise.resolve([
-            { id: 'abc/', data: {} },
-            { id: 'def/', data: {} }
-          ]);
-        });
       MockNavigatormozApps.mApps = [{
-        id: 0,
         manifest: {},
         manifestURL: 'abc',
         order: 0,
@@ -385,7 +376,7 @@ suite('Homescreen app', () => {
     });
 
     test('should be a bookmark', () => {
-      app.addAppIcon({});
+      app.addAppIcon({ id: 'abc', manifestURL: 'def' });
       assert.isNull(gaiaAppIconEl.app);
       assert.isNotNull(gaiaAppIconEl.bookmark);
     });
