@@ -139,24 +139,21 @@
     }, this);
   };
 
-  InputLayouts.prototype._emitLayoutsCount = function il_emitLayoutsCount() {
-    // Let chrome know about how many keyboards we have
-    // need to expose all input type from groupToTypeTable
-    var countLayouts = {};
-    Object.keys(this.layouts).forEach(function(group) {
-      var types = this._groupToTypeTable[group];
+  InputLayouts.prototype._setSupportsSwitchingTypes = function() {
+    // Let chrome know about how many inputTypes should be marked as
+    // supporting swiching.
+    var supportsSwitchingTypes =
+      Object.keys(this.layouts)
+        .reduce((types, group) => {
+          if (this.layouts[group].length) {
+            types = types.concat(this._groupToTypeTable[group]);
+          }
 
-      types.forEach(function(type) {
-        countLayouts[type] = this.layouts[group].length;
-      }, this);
-    }, this);
+          return types;
+        }, /* supportsSwitchingTypes */ []);
 
-    var event = document.createEvent('CustomEvent');
-    event.initCustomEvent('mozContentEvent', true, true, {
-      type: 'inputmethod-update-layouts',
-      layouts: countLayouts
-    });
-    window.dispatchEvent(event);
+    navigator.mozInputMethod
+      .mgmt.setSupportsSwitchingTypes(supportsSwitchingTypes);
   };
 
   InputLayouts.prototype._generateToGroupMapping =
@@ -188,7 +185,7 @@
       this.layouts[group]._activeLayoutIdx = undefined;
     }
 
-    this._emitLayoutsCount();
+    this._setSupportsSwitchingTypes();
 
     return this._enabledApps;
   };
