@@ -631,10 +631,12 @@ section.pin-dialog button[data-action="pin"]::before {
 .appWindow:not(.bar) > .chrome button {
   opacity: 0;
   transition: opacity 0.15s ease-in;
+  pointer-events: none;
 }
 
 .appWindow:not(.bar) > .chrome.maximized button {
   opacity: 1;
+  pointer-events: auto;
 }
 
 
