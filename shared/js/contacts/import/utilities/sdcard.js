@@ -139,31 +139,49 @@ if (!utils.sdcard) {
   };
 
   /**
-   * Extracts and concatenates text from the given array of file objects.
+   * Incrementally extracts vcard text from a file.
    *
-   * @param {Array} fileArray Array of File Objects.
-   * @param {String} contents Accumulated text from the previous recursive call.
-   * @param {Function} cb Function to call when the work is finished.
+   * @param {Object} file File Object.
+   * @param {Function} cb Function to call for each chunk of vcards retrieved
+   *                      from the file.
    */
-  SdCard.getTextFromFiles = function(fileArray, contents, cb) {
-    contents = contents || '';
-    if (!fileArray || !fileArray.length) {
-      return cb && cb(null, contents);
+  SdCard.getTextFromFile = function(file, cb) {
+    if (!file) {
+      return Promise.reject();
     }
+    return new Promise((resolve, reject) => {
+      const END_VCARD = 'end:vcard';
+      const CHUNK_SIZE = 1 * 1024 * 1024; // 1Mb
 
-    var reader = new FileReader();
-    reader.onload = function onloaded() {
-      contents += reader.result + '\n';
-      SdCard.getTextFromFiles(fileArray, contents, cb);
-    };
+      var fileReader = new FileReader();
 
-    try {
-      reader.readAsText(fileArray.shift());
-    }
-    catch (ex) {
-      window.console.error('Problem reading file: ', ex.stack);
-      SdCard.getTextFromFiles(fileArray, contents, cb);
-    }
+      var result = 0;
+
+      (function readChunk(offset, buffer) {
+        if (offset >= file.size) {
+          resolve(result);
+          return;
+        }
+        var chunk = file.slice(offset, offset + CHUNK_SIZE);
+        offset += CHUNK_SIZE;
+        fileReader.readAsText(chunk);
+        fileReader.onload = function() {
+          buffer += fileReader.result;
+          if (!buffer.match(/end:vcard/gi)) {
+            readChunk(offset, buffer);
+            return;
+          }
+          var lastContactInChunk =
+            buffer.toLowerCase().lastIndexOf(END_VCARD) + END_VCARD.length;
+          cb(buffer.substr(0, lastContactInChunk)).then(partialResult => {
+            result += partialResult;
+            readChunk(offset, buffer.substr(lastContactInChunk + 1));
+          }).catch(error => {
+            console.warn(error);
+          });
+        };
+      })(0 /* initial offset */, '' /* initial empty buffer */);
+    });
   };
 
   // Subscribe a callback for sdcard changes. A name is needed

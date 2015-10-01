@@ -1,4 +1,7 @@
 'use strict';
+
+/* global MockVCFReader */
+
 /* exported MockSdCard */
 
 var MockSdCard = function MockSdCard() {
@@ -110,8 +113,9 @@ var MockSdCard = function MockSdCard() {
         }
       ]);
     },
-    'getTextFromFiles': function getTextFromFiles(fileArray, contents, cb) {
+    'getTextFromFile': function getTextFromFile(fileArray, cb) {
       cb(null, mock_sdcard_vcf);
+      return Promise.resolve(MockVCFReader.prototype.numDuplicated);
     },
     'subscribeToChanges': subscribeToChanges,
     'unsubscribeToChanges': unsubscribeToChanges
