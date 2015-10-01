@@ -402,7 +402,7 @@ function trimDurationPattern(string, maxUnit, minUnit) {
   // We currently know of no format that would require reverse order
   // Even RTL languages use LTR duration formatting, so all we care
   // are separators.
-  string = string.substring(
+  string = string.substr(
     string.indexOf(maxToken),
     string.indexOf(minToken) + minToken.length);
   return string;
