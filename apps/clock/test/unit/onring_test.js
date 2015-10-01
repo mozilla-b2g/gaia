@@ -1,10 +1,13 @@
 /* global require, document, require, loadBodyHTML */
+/* global MockIntlHelper, MockMozIntl */
 
 suite('Ring Test', function() {
   'use strict';
 
   var RingView;
   suiteSetup(function(done) {
+    window.IntlHelper = MockIntlHelper;
+    window.mozIntl = MockMozIntl;
     require(['ring_view'],
     function(_RingView) {
       RingView = _RingView;
@@ -38,7 +41,8 @@ suite('Ring Test', function() {
         type: 'alarm',
         vibrate: vibrate,
         label: 'hi',
-        sound: null
+        sound: null,
+        time: new Date(),
       });
       clock.tick(5000); // vibrate starts after a setInterval
       mock.verify();

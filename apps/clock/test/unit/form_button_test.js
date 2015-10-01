@@ -1,8 +1,10 @@
 'use strict';
+/* global MockIntlHelper */
 suite('FormButton', function() {
   var doc, input, formButton, FormButton, Constants, Utils;
 
   suiteSetup(function(done) {
+    window.IntlHelper = MockIntlHelper;
     require([
         'form_button',
         'constants',
@@ -43,10 +45,11 @@ suite('FormButton', function() {
       formButton.button.click();
     });
 
-    test('refresh should update the button text', function() {
+    test('refresh should update the button text', function(done) {
       formButton.input.value = '10:10';
-      formButton.refresh();
-      assert.equal(formButton.button.textContent, '10:10');
+      formButton.refresh().then(() => {
+        assert.equal(formButton.button.textContent, '10:10');
+      }).then(done, done);
     });
 
     test('formatLabel should be overrideable', function() {
@@ -90,10 +93,12 @@ suite('FormButton', function() {
       formButton = new FormButton(input);
     });
 
-    test('the blur event should update the button text', function() {
+    test('the blur event should update the button text', function(done) {
       formButton.input.value = '10:11';
       formButton.input.dispatchEvent(new Event('blur'));
-      assert.equal(formButton.button.textContent, '10:11');
+      Promise.resolve().then(() => {
+        assert.equal(formButton.button.textContent, '10:11');
+      }).then(done, done);
     });
 
     test('getValue should return the current value', function() {
@@ -125,10 +130,12 @@ suite('FormButton', function() {
       formButton = new FormButton(input);
     });
 
-    test('the change event should update the button text', function() {
+    test('the change event should update the button text', function(done) {
       Utils.changeSelectByValue(formButton.input, '0');
       formButton.input.dispatchEvent(new Event('change'));
-      assert.equal(formButton.button.textContent, '0');
+      Promise.resolve().then(() => {
+        assert.equal(formButton.button.textContent, '0');
+      }).then(done, done);
     });
 
     test('getValue should return the current value', function() {
@@ -152,35 +159,40 @@ suite('FormButton', function() {
     setup(function() {
       doc = document.createElement('div');
       doc.innerHTML = ['<select id="repeat-select" multiple="true">',
-                       '<option value="monday">Monday</option>',
-                       '<option value="tuesday">Tuesday</option>',
-                       '<option value="wednesday">Wednesday</option>',
-                       '<option value="thursday">Thursday</option>',
-                       '<option value="friday">Friday</option>',
-                       '<option value="saturday">Saturday</option>',
-                       '<option value="sunday">Sunday</option>',
+                       '<option value="1">Monday</option>',
+                       '<option value="2">Tuesday</option>',
+                       '<option value="3">Wednesday</option>',
+                       '<option value="4">Thursday</option>',
+                       '<option value="5">Friday</option>',
+                       '<option value="6">Saturday</option>',
+                       '<option value="0">Sunday</option>',
                        '</select>'].join('');
       input = doc.querySelector('#repeat-select');
       formButton = new FormButton(input, {
-        selectOptions: Constants.DAYS_STARTING_MONDAY,
-        formatLabel: JSON.stringify
+        formatLabel: function (value) {
+          return {raw: JSON.stringify(value)};
+        }
       });
     });
 
-    test('the change event should update the button text', function() {
-      Utils.changeSelectByValue(formButton.input, 'thursday');
+    test('the change event should update the button text', function(done) {
+      Utils.changeSelectByValue(formButton.input, '5');
       formButton.input.dispatchEvent(new Event('change'));
-      assert.equal(formButton.button.textContent, '{"thursday":true}');
+      Promise.resolve().then(() => {
+        assert.equal(formButton.button.textContent, '{"5":true}');
+      }).then(done, done);
     });
 
-    test('getValue should return the current value', function() {
-      Utils.changeSelectByValue(formButton.input, 'tuesday');
-      assert.deepEqual(formButton.value, { tuesday: true });
+    test('getValue should return the current value', function(done) {
+      Utils.changeSelectByValue(formButton.input, '2');
+      Promise.resolve().then(() => {
+        assert.deepEqual(formButton.value, { '2': true });
+      }).then(done, done);
     });
 
 
     test('setValue should set the current value', function() {
-      formButton.value = {tuesday: true, thursday: true, saturday: true};
+      formButton.value = {'2': true, '4': true, '6': true};
       var options = formButton.input.options;
       assert.isFalse(options[0].selected); // monday
       assert.isTrue(options[1].selected); // tuesday
