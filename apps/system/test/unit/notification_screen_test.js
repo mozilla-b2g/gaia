@@ -333,6 +333,32 @@ suite('system/NotificationScreen >', function() {
       assert.deepEqual(l10nAttrs.args, { n : 1 });
     });
 
+    test('should update timestamps properly', function() {
+      var callCount = 0;
+
+      sinon.stub(navigator.mozL10n, 'DateTimeFormat', function() {
+        return {
+          relativeDate: function() {
+            callCount++;
+            return Promise.resolve();
+          }
+        };
+      });
+
+      var imgpath = 'http://example.com/test.png';
+      var detail = {
+        id: 'my-id',
+        icon: imgpath,
+        title: 'title',
+        detail: 'detail'
+      };
+      NotificationScreen.addNotification(detail);
+
+      callCount = 0;
+      NotificationScreen.updateTimestamps();
+      assert.equal(callCount, 1);
+    });
+
   });
 
   suite('addUnreadNotification', function() {

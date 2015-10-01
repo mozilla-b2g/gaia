@@ -372,16 +372,14 @@ var NotificationScreen = {
   },
 
   updateTimestamps: function ns_updateTimestamps() {
-    var timestamps = document.getElementsByClassName('timestamp');
+    var timestamps = [...document.querySelectorAll('.timestamp')];
     var formatter = navigator.mozL10n.DateTimeFormat();
 
-    for (var i = 0, l = timestamps.length; i < l; i++) {
-      formatter.relativeDate(new Date(timestamps[i].dataset.timestamp)).then(
-        str => {
-          timestamps[i].textContent = str;
-        }
+    timestamps.forEach(timestamp => {
+      formatter.relativeDate(new Date(timestamp.dataset.timestamp)).then(
+        str => { timestamp.textContent = str; }
       );
-    }
+    });
   },
 
   updateToaster: function ns_updateToaster(detail, type, dir) {
