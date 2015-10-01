@@ -142,7 +142,7 @@ Contacts.prototype = {
    */
   launch: function() {
     this.client.apps.launch(Contacts.URL, 'contacts');
-    this.switchToApp();
+    this.switchTo();
     this.client.helper.waitForElement(Contacts.Selectors.bodyReady);
   },
 
@@ -155,20 +155,10 @@ Contacts.prototype = {
     this.client.apps.close(Contacts.URL, 'contacts');
   },
 
-  switchToApp: function() {
+  switchTo: function() {
     this.client.switchToFrame();
     // switchToApp already waits for the app to be displayed
     this.client.apps.switchToApp(Contacts.URL, 'contacts');
-  },
-
-  switchToCreateNewContactActivity: function() {
-    this._switchToActivity('views/form/form.html');
-  },
-
-  _switchToActivity: function(href) {
-    this.client.switchToFrame();
-    // switchToApp already waits for the app to be displayed
-    this.client.apps.switchToActivity(Contacts.URL, '/contacts/' + href);
   },
 
   /**
