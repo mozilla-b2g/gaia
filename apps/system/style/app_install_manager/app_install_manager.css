@@ -11,6 +11,17 @@
   pointer-events: none;
 }
 
+@media (min-width: 768px) {
+#setup-installed-app-dialog,
+#ime-layout-dialog,
+#app-install-dialog,
+#app-install-cancel-dialog,
+#app-download-cancel-dialog {
+    top: calc(50% - 23rem); /* dialog height 46rem */
+    left: calc(50% - 34rem); /* dialog width 68rem */
+  }
+}
+
 /* Shift the bottom of the prompt to account for the height of the
    software home button */
 #screen.software-button-enabled #setup-installed-app-dialog,

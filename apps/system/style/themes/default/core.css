@@ -242,9 +242,4 @@ gaia-toast.banner .button {
     height: 4rem;
   }
 
-  /* XXX need move to shared */
-  form[role="dialog"][data-type="confirm"] {
-    top: calc(50% - 23rem); /* dialog height 46rem */
-    left: calc(50% - 34rem); /* dialog width 68rem */
-  }
 }
