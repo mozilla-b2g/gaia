@@ -19,32 +19,31 @@ var Kinto = (function() {
     sync: function() {
       var dataRecordIn = JSON.parse(JSON.stringify(
         SynctoServerFixture.remoteData[this.collectionName]));
-        var transformOut = (item) => {
-          if (!this._remoteTransformerUsed) {
-            return Promise.resolve(item);
-          }
-          return this._remoteTransformerUsed.encode(item);
-        };
+      var transformOut = (item) => {
+        if (!this._remoteTransformerUsed) {
+          return Promise.resolve(item);
+        }
+        return this._remoteTransformerUsed.encode(item);
+      };
 
-        var transformIn = () => {
-          if (!this._remoteTransformerUsed) {
-            return Promise.resolve();
-          }
-          try {
-            return this._remoteTransformerUsed.decode(dataRecordIn).
-                then(decoded => {
-              dataRecordIn = decoded;
-            });
-          } catch(err) {
-            return Promise.reject(err);
-          }
-        };
+      var transformIn = () => {
+        if (!this._remoteTransformerUsed) {
+          return Promise.resolve();
+        }
+        try {
+          return this._remoteTransformerUsed.decode(dataRecordIn).
+              then(decoded => {
+            dataRecordIn = decoded;
+          });
+        } catch(err) {
+          return Promise.reject(err);
+        }
+      };
 
-        var pushOut = () => {
+      var pushOut = () => {
         if (!this.listData) {
           return Promise.resolve();
         }
-        this.pushData = [];
         return Promise.all(this.listData.data.map(item => {
           var dataRecordOut = JSON.parse(JSON.stringify(item));
           transformOut(dataRecordOut).then(encoded => {
@@ -71,6 +70,8 @@ var Kinto = (function() {
         this.listData = { data: [] };
         return Promise.resolve({ ok: false, conflicts: [], errors: [ error ] });
       };
+
+      this.pushData = [];
 
       return pushOut().
           then(transformIn).
