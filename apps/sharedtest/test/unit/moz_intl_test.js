@@ -243,6 +243,62 @@ suite('MozIntl', function() {
       }).then(done, done);
     });
 
+    test('hh:mm', function(done) {
+      // 2 min, 1 sec
+      var ms = (2 * 1000 * 60) + (1 * 1000);
+
+      mozIntl.DurationFormat(navigator.languages, {
+        maxUnit: 'hour',
+        minUnit: 'minute',
+      }).then(formatter => {
+        var string = formatter.format(ms);
+
+        assert.strictEqual(string, '00:02');
+      }).then(done, done);
+    });
+
+    test('mm:ss', function(done) {
+      // 0 min, 1 sec
+      var ms = (1 * 1000);
+
+      mozIntl.DurationFormat(navigator.languages, {
+        maxUnit: 'minute',
+        minUnit: 'second',
+      }).then(formatter => {
+        var string = formatter.format(ms);
+
+        assert.strictEqual(string, '00:01');
+      }).then(done, done);
+    });
+
+    test('hh:mm:ss', function(done) {
+      // 0 min, 1 sec
+      var ms = (1 * 1000);
+
+      mozIntl.DurationFormat(navigator.languages, {
+        maxUnit: 'hour',
+        minUnit: 'second',
+      }).then(formatter => {
+        var string = formatter.format(ms);
+
+        assert.strictEqual(string, '00:00:01');
+      }).then(done, done);
+    });
+
+    test('hh:mm:ss.SS', function(done) {
+      // 0 min, 1 sec
+      var ms = (1 * 1000);
+
+      mozIntl.DurationFormat(navigator.languages, {
+        maxUnit: 'hour',
+        minUnit: 'millisecond',
+      }).then(formatter => {
+        var string = formatter.format(ms);
+
+        assert.strictEqual(string, '00:00:01.00');
+      }).then(done, done);
+    });
+
     suite('hms duration', function() {
       test('with no hours', function(done) {
         // 2 min, 1 sec
@@ -250,11 +306,11 @@ suite('MozIntl', function() {
 
         mozIntl.DurationFormat(navigator.languages, {
           maxUnit: 'hour',
-          minUnit: 'minute',
+          minUnit: 'second',
         }).then(formatter => {
           var string = formatter.format(ms);
 
-          assert.strictEqual(string, '00:02');
+          assert.strictEqual(string, '00:02:01');
         }).then(done, done);
       });
 
