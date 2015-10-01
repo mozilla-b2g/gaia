@@ -12,7 +12,7 @@ class System(Base):
 
     # status bar
     _status_bar_locator = (By.ID, 'statusbar')
-    _titlebar_locator = (By.CSS_SELECTOR, '.appWindow.active > .titlebar')
+    _gripper_locator = (By.ID, 'tray-invisible-gripper')
     _geoloc_statusbar_locator = (By.CSS_SELECTOR, '#statusbar-minimized-wrapper #statusbar-geolocation')
     _airplane_mode_statusbar_locator = (By.CSS_SELECTOR, '#statusbar-minimized-wrapper #statusbar-flight-mode')
     _utility_tray_locator = (By.ID, 'utility-tray')
@@ -65,13 +65,16 @@ class System(Base):
 
     def open_utility_tray(self):
         body = self.marionette.find_element(By.TAG_NAME, 'body')
-        statusbar = self.marionette.find_element(*self._titlebar_locator)
-        statusbar_x = int(statusbar.size['width']/2)
-        statusbar_y_end = int(body.size['height'])
-        Actions(self.marionette).press(statusbar).move_by_offset(statusbar_x, statusbar_y_end).release().perform()
+        gripper = self.marionette.find_element(*self._gripper_locator)
+        gripper_x = int(gripper.rect['width']/2)
+        gripper_y = int(gripper.rect['y'])
+        gripper_y_end = int(body.rect['height'])
+        Actions(self.marionette).flick(gripper, gripper_x, gripper_y, gripper_x, gripper_y_end).perform()
 
         from gaiatest.apps.system.regions.utility_tray import UtilityTray
-        return UtilityTray(self.marionette)
+        utility_tray = UtilityTray(self.marionette)
+        utility_tray.wait_for_dropped_down()
+        return utility_tray
 
     def tap(self, x=None, y=None):
         self.marionette.switch_to_frame()

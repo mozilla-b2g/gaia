@@ -11,19 +11,17 @@ from gaiatest.apps.system.app import System
 
 
 class UtilityTray(Base):
-    _notifications_locator = (By.ID, 'utility-tray-notifications')
+    _utility_tray_locator = (By.ID, 'utility-tray')
     _desktop_notifications_locator = (By.CSS_SELECTOR, '#desktop-notifications-container .notification')
     _notification_clear_locator = (By.ID, 'notification-clear')
     _quicksettings_app_locator = (By.ID, 'quick-settings-full-app')
     _grippy_locator = (By.ID, 'utility-tray-grippy')
     _quick_settings_full_app_locator = (By.ID, 'quick-settings-full-app')
 
-    def wait_for_notification_container_displayed(self):
-        # Marionette cannot read the displayed state of the notification
-        # container so we wait for the gripper to reach its expanded state
-        utility_tray = self.marionette.find_element(*self._notifications_locator)
+    def wait_for_dropped_down(self):
+        utility_tray = self.marionette.find_element(*self._utility_tray_locator)
         grippy = self.marionette.find_element(*self._grippy_locator)
-        Wait(self.marionette).until(lambda m: grippy.location['y'] == utility_tray.size['height'])
+        Wait(self.marionette).until(lambda m: (grippy.rect['y'] + grippy.rect['height']) == utility_tray.size['height'])
 
     @property
     def notifications(self):
@@ -37,6 +35,7 @@ class UtilityTray(Base):
 
     def clear_all_notifications(self):
         self.marionette.find_element(*self._notification_clear_locator).tap()
+        Wait(self.marionette).until(lambda m: len(self.notifications) == 0)
 
     def a11y_clear_all_notifications(self):
         self.accessibility.click(self.marionette.find_element(*self._notification_clear_locator))
