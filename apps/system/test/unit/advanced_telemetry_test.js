@@ -493,6 +493,19 @@ suite('AdvancedTelemetry:', function() {
         done();
       });
     });
+
+    test('should clear out the payload after a successful merge',
+    function(done) {
+      this.sinon.spy(AdvancedTelemetry.prototype, 'clearPayload');
+      this.sinon.stub(console, 'info').returns(0);
+      at.merge = true;
+      at.handleGeckoMessage(wrapper.payload, function() {
+        sinon.assert.calledOnce(AdvancedTelemetry.prototype.clearPayload);
+        sinon.assert.calledWith(AdvancedTelemetry.prototype.clearPayload,
+          false);
+        done();
+      });
+    });
   });
 
   suite('Enable/disable:', function() {
