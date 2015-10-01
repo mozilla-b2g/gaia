@@ -110,10 +110,12 @@
 
   function showMessage() {
     init().then(function() {
+      var attributes = progressTextId === 'infiniteProgress' ?
+                       { n: counter } :
+                       { current: counter, total: total };
       navigator.mozL10n.setAttributes(progressMsg,
                                       progressTextId,
-                                      { current: counter, total: total }
-      );
+                                      attributes);
     });
   }
 
@@ -253,8 +255,9 @@
     });
   }
 
-  function showActivityBar(messageId, noMenu) {
+  function showActivityBar(messageId, noMenu, progressMsgId) {
     init().then(function() {
+      progressTextId = progressMsgId || 'genericProgress';
       progressElement.classList.add('pack-activity');
       progressMsg.removeAttribute('data-l10n-id');
       menu.classList.toggle('showed', !noMenu);
