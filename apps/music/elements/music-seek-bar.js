@@ -1,3 +1,5 @@
+/* global IntlHelper */
+
 (function(window) {
 'use strict';
 
@@ -223,12 +225,18 @@ Object.defineProperty(proto, 'remainingTime', {
       this._elapsedTime = this._duration - this._remainingTime;
     }
 
-    this.els.remainingTime.textContent = '-' + formatTime(this._remainingTime);
-    this.els.elapsedTime.textContent = formatTime(this._elapsedTime);
-
     if (indeterminate) {
+      this.els.remainingTime.textContent = '---:--';
+      this.els.elapsedTime.textContent = '--:--';
       return;
     }
+
+    IntlHelper.get('duration').then((duration) => {
+      this.els.remainingTime.textContent =
+        duration.format(-this._remainingTime * 1000);
+      this.els.elapsedTime.textContent =
+        duration.format(this._elapsedTime * 1000);
+    });
 
     var percent = this._elapsedTime / this._duration;
     var x = this.els.seekBar.offsetWidth * percent;
@@ -266,31 +274,10 @@ function clamp(min, max, value) {
   return Math.min(Math.max(min, value), max);
 }
 
-function formatTime(secs) {
-  if (isNaN(secs)) {
-    return '--:--';
-  }
-
-  secs = Math.floor(secs);
-
-  var formatedTime;
-  var seconds = secs % 60;
-  var minutes = Math.floor(secs / 60) % 60;
-  var hours = Math.floor(secs / 3600);
-
-  if (hours === 0) {
-    formatedTime =
-      (minutes < 10 ? '0' + minutes : minutes) + ':' +
-      (seconds < 10 ? '0' + seconds : seconds);
-  } else {
-    formatedTime =
-      (hours < 10 ? '0' + hours : hours) + ':' +
-      (minutes < 10 ? '0' + minutes : minutes) + ':' +
-      (seconds < 10 ? '0' + seconds : seconds);
-  }
-
-  return formatedTime;
-}
+IntlHelper.define('duration', 'mozduration', {
+  minUnit: 'second',
+  maxUnit: 'minute'
+});
 
 try {
   window.MusicSeekBar = document.registerElement('music-seek-bar', {
