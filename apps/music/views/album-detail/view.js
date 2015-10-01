@@ -53,10 +53,12 @@ AlbumDetailView.prototype.getAlbum = function() {
       );
 
       songs.forEach((song) => {
-        song.index = maxDiscNumber > 1 && song.metadata.tracknum ?
-          unpaddedIndex.format(song.metadata.discnum) + '.' +
-            paddedIndex.format(song.metadata.tracknum) :
-          unpaddedIndex.format(song.metadata.tracknum);
+        song.index = maxDiscNumber > 1 &&
+          song.metadata.discnum && song.metadata.tracknum ?
+            unpaddedIndex.format(song.metadata.discnum) + '.' +
+              paddedIndex.format(song.metadata.tracknum) :
+            (song.metadata.tracknum ?
+              unpaddedIndex.format(song.metadata.tracknum) : '');
       });
 
       return songs;

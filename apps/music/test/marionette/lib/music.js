@@ -530,6 +530,7 @@ Music.prototype = {
   },
 
   _selectItem: function(name, frame) {
+    assert.ok(frame, 'expected a valid frame');
     this.client.switchToFrame(frame);
 
     var elements = this.client.findElements('#list a');
@@ -538,6 +539,7 @@ Music.prototype = {
     var matching = elements.filter(function (element) {
       return element.findElement('h3').text() === name;
     });
+
     assert.ok(matching.length > 0);
     matching[0].tap();
 
