@@ -62,8 +62,9 @@
 
 var SyncEngine = (function() {
   var FxSyncIdSchema = Kinto.createIdSchema({
-    constructor: function(collectionName) {
+    constructor: function(collectionName, specialRecords) {
       this.collectionName = collectionName;
+      this._specialRecords = specialRecords || [];
     },
     generate: function() {
       var bytes = new Uint8Array(9);
@@ -76,6 +77,10 @@ var SyncEngine = (function() {
       return window.btoa(binStr).replace('+', '-').replace('/', '_');
     },
     validate: function(id) {
+      if (this._specialRecords.indexOf(id) !== -1) {
+        return true;
+      }
+
       // FxSync id's should be 12 ASCII characters, representing 9 bytes of data
       // in modified Base64 for URL variants exist, where the '+' and '/'
       // characters of standard Base64 are respectively replaced by '-' and '_'
@@ -326,7 +331,7 @@ rse crypto/keys payload as JSON`));
         this._collections[collectionName] = this._kinto.collection(
             collectionName);
         this._collections[collectionName].use(new FxSyncIdSchema(
-            collectionName));
+            collectionName, this._adapters[collectionName].specialRecords));
         this._collections[collectionName].use(new WebCryptoTransformer(
             collectionName, this._fswc));
       }
