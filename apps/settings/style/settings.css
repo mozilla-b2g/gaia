@@ -655,23 +655,6 @@ span.passcode-digit[data-dot]::before {
   padding-bottom: 1em;
 }
 
-.apn-list .apn-item .name:active {
-  background-color: #B2F2FF;
-}
-
-.apn-list .apn-item label.name {
-  -moz-padding-end: 1rem;
-}
-
-.apn-list .apn-item label.name::after {
-  content: '';
-  position: absolute;
-  background-color: #E6E6E3;
-  right: 3.5rem;
-  width: 0.1rem;
-  height: calc(100% - 1rem);
-  top: 0.5rem;
-}
 
 /******************************************************************************
  * Internet sharing (Wi-Fi HotSpot)
@@ -1141,17 +1124,6 @@ html[dir="rtl"] section li.password > label > span:after {
 html[dir="rtl"] #mediaStorage .stackedbar-color-label {
   left: unset;
   right: 1.5rem;
-}
-
-html[dir="rtl"] .apn-list .apn-item .name {
-  left: unset;
-  right: -1.5rem;
-}
-
-html[dir="rtl"] .my-home-screens li label.name::after,
-html[dir="rtl"] .apn-list .apn-item label.name::after {
-  left: 3.5rem;
-  right: unset;
 }
 
 html[dir="rtl"] ul li > label.range-icons span:last-child {
