@@ -860,6 +860,21 @@ suite('system/AppChrome', function() {
       }, 0);
     });
 
+    test('popup window should not be collapsible', function() {
+      var popup = new PopupWindow(cloneConfig(fakeAppWithName));
+      this.sinon.stub(popup, 'isBrowser').returns(true);
+      this.sinon.stub(popup, 'getBottomMostWindow').returns(app);
+      var popupChrome = new AppChrome(popup);
+      this.sinon.stub(Service, 'request').returns({
+        then: function(cb) {
+          cb(false);
+        }
+      });
+      popupChrome.handleLocationChange();
+      assert.isFalse(popupChrome.pinned);
+      assert.isFalse(popup.element.classList.contains('collapsible'));
+    });
+
     test('browser scrollable background is black', function() {
       assert.equal(chrome.scrollable.style.backgroundColor, '');
       chrome.setThemeColor('black');
