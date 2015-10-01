@@ -28,6 +28,7 @@
   #screen.software-button-enabled #app-install-cancel-dialog,
   #screen.software-button-enabled #app-download-cancel-dialog {
     bottom: 0;
+    /* BiDi note: the software home button should not be mirrored in RTL. */
     right: var(--software-home-button-height);
   }
 }
@@ -64,7 +65,7 @@
 
 #app-install-dialog dl > dt {
   width: 8rem;
-  margin-right: 1rem;
+  margin-inline-end: 1rem;
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -95,8 +96,14 @@
 }
 
 #install-manager-notification-container .title-container {
-  margin: 1.4rem 0 0 3.7rem;
+  margin: 1.4rem 0 0;
   line-height: 3rem;
+}
+html[dir="ltr"] #install-manager-notification-container .title-container {
+  margin-left: 3.7rem;
+}
+html[dir="rtl"] #install-manager-notification-container .title-container {
+  margin-right: 3.7rem;
 }
 
 #install-manager-notification-container progress {
@@ -116,7 +123,7 @@
 
 /* ... start of keyboard layout */
 ul#ime-list {
-  padding-left: 1.5rem;
+  padding-inline-start: 1.5rem;
 }
 
 ul#ime-list > li {

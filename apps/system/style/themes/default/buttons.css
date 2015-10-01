@@ -15,7 +15,7 @@
   height: 4rem;
   margin: 0 0 1rem;
   padding: 0 0.2rem;
-  -moz-box-sizing: border-box;
+  box-sizing: border-box;
   display: inline-block;
   vertical-align: middle;
   text-overflow: ellipsis;
@@ -104,17 +104,33 @@ button[disabled]::-moz-selection,
 /* Icons in buttons */
 [role="dialog"] button span,
 [role="dialog"] a.bb-button span {
-  float: left;
   width: 2.5rem;
   height: 2.5rem;
-  margin: 0 0.5rem 0 -1rem;
+  margin: 0 0.5rem;
+  margin-inline-start: -1rem;
   background: transparent no-repeat center center;
+}
+html[dir="ltr"] [role="dialog"] button span,
+html[dir="ltr"] [role="dialog"] a.bb-button span {
+  float: left;
+}
+html[dir="rtl"] [role="dialog"] button span,
+html[dir="rtl"] [role="dialog"] a.bb-button span {
+  float: right;
 }
 
 [role="dialog"] button span.end,
 [role="dialog"] a.bb-button span.end {
+  margin: 0.3rem -1.5rem 0;
+  margin-inline-start: 1rem;
+}
+html[dir="ltr"] [role="dialog"] button span.end,
+html[dir="ltr"] [role="dialog"] a.bb-button span.end {
   float: right;
-  margin: 0.3rem -1.5rem 0 1rem;
+}
+html[dir="rtl"] [role="dialog"] button span.end,
+html[dir="rtl"] [role="dialog"] a.bb-button span.end {
+  float: left;
 }
 
 /* Icon base types */
@@ -126,7 +142,14 @@ button[disabled]::-moz-selection,
 [role="dialog"] button span.launch,
 [role="dialog"] a.bb-button span.launch {
   background-image: url(images/icons/launch.png);
-  background-position: 1rem bottom;
+}
+html[dir="ltr"] [role="dialog"] button span.launch,
+html[dir="ltr"] [role="dialog"] a.bb-button span.launch {
+  background-position: left 1rem bottom;
+}
+html[dir="rtl"] [role="dialog"] button span.launch,
+html[dir="rtl"] [role="dialog"] a.bb-button span.launch {
+  background-position: right 1rem bottom;
 }
 
 [role="dialog"] button span.favorite,
@@ -160,7 +183,7 @@ button[disabled]::-moz-selection,
   line-height: 1em;
   text-transform: uppercase;
   display: block;
-  padding-left: 0.5rem;
+  padding-inline-start: 0.5rem;
   margin-bottom: 0.5rem;
 }
 
@@ -169,11 +192,18 @@ button[disabled]::-moz-selection,
 [role="dialog"] .buttons-list a.bb-button {
   background: #e7e7e7;
   border-color: #b6b6b6;
-  text-align: left;
   font-size: 1.4rem;
   line-height: 2.9rem;
   position: relative;
   overflow: visible;
+}
+html[dir="ltr"] [role="dialog"] .buttons-list button,
+html[dir="ltr"] [role="dialog"] .buttons-list a.bb-button {
+  text-align: left;
+}
+html[dir="rtl"] [role="dialog"] .buttons-list button,
+html[dir="rtl"] [role="dialog"] .buttons-list a.bb-button {
+  text-align: right;
 }
 
 [role="dialog"] .buttons-list a.bb-button:after,
@@ -183,10 +213,19 @@ button[disabled]::-moz-selection,
   left: 0;
   right: 0;
   top: 100%;
-  background: url(images/ui/shadow.png) repeat-x left bottom;
+  background-image: url(images/ui/shadow.png);
+  background-repeat: repeat-x;
   height: 0.2rem;
   margin-top: 0.1rem;
   pointer-events: none;
+}
+html[dir="ltr"] [role="dialog"] .buttons-list a.bb-button:after,
+html[dir="ltr"] [role="dialog"] .buttons-list button:after {
+  background-position: left bottom;
+}
+html[dir="rtl"] [role="dialog"] .buttons-list a.bb-button:after,
+html[dir="rtl"] [role="dialog"] .buttons-list button:after {
+  background-position: right bottom;
 }
 
 /* Press */

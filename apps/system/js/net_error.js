@@ -104,11 +104,13 @@
     var url = new URL(uri.replace('about:', 'http://'));
 
     // Set the error attributes.
-    ['e', 'u', 'm', 'c', 'd', 'f'].forEach(
+    ['e', 'm', 'c', 'd', 'f'].forEach(
       function(v) {
         _error[v] = url.searchParams.get(v);
       }
     );
+    // URLs must be displayed in LTR
+    _error.u = '\u202a' + url.searchParams.get('u') + '\u202c';
 
     switch (_error.e) {
       case 'connectionFailure':

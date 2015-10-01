@@ -3,7 +3,6 @@
   top: 0;
   height: calc(var(--statusbar-height) + var(--rocketbar-urlbar-height));
   transform: scaleY(var(--rocketbar-scale)) translateY(calc(var(--statusbar-height) * -1));
-  transform-origin: top left;
   transition: transform var(--transition-duration) ease-in-out,
               background-color var(--transition-duration) ease;
 
@@ -11,6 +10,8 @@
   background-image: linear-gradient(rgba(0,0,0,0.1), rgba(0,0,0,0.1));
   color: white;
 }
+html[dir="ltr"] .appWindow:not(.bar) > .chrome { transform-origin: top left; }
+html[dir="rtl"] .appWindow:not(.bar) > .chrome { transform-origin: top right; }
 
 :not(.browser).appWindow[data-shrinking-state="true"] > .chrome {
   height: calc(var(--statusbar-height) / var(--rocketbar-scale));
@@ -127,7 +128,7 @@
   color: inherit;
   overflow: visible;
   background-color: transparent;
-  -moz-margin-start: .5rem;
+  margin-inline-start: .5rem;
   position: absolute;
 }
 
@@ -154,8 +155,8 @@
 .chrome-combined .chrome-title-container {
   padding-top: 0;
   padding-bottom: 0;
-  -moz-padding-start: 3.85rem;
-  -moz-padding-end: 0.8rem;
+  padding-inline-start: 3.85rem;
+  padding-inline-end: 0.8rem;
   box-sizing: padding-box;
   overflow: hidden;
   float: none;
@@ -163,7 +164,7 @@
   border-radius: 1.8rem;
 }
 .chrome-combined.private .chrome-title-container {
-  -moz-padding-start: 1.45rem;
+  padding-inline-start: 1.45rem;
 }
 
 .chrome-combined .title {
@@ -192,7 +193,7 @@
   width: 2rem;
   height: 100%;
   top: 0;
-  right: 0.8rem;
+  offset-inline-end: 0.8rem;
   position: absolute;
   background-image: url('images/search.png');
   background-repeat: no-repeat;
@@ -210,36 +211,61 @@
 
 .homescreen .chrome-combined .chrome-title-container {
   width: calc(100% - 2rem);
-  -moz-padding-start: 2rem;
+  padding-inline-start: 2rem;
 }
 
 .chrome.maximized .controls .forward-button:not([disabled]) + .urlbar,
 .chrome.maximized .controls .back-button:not([disabled]) + .forward-button[disabled] + .urlbar {
   width: calc(100% - 8rem);
+}
+html[dir="ltr"] .chrome.maximized .controls .forward-button:not([disabled]) + .urlbar,
+html[dir="ltr"] .chrome.maximized .controls .back-button:not([disabled]) + .forward-button[disabled] + .urlbar {
   transform: translateX(3.5rem);
+}
+html[dir="rtl"] .chrome.maximized .controls .forward-button:not([disabled]) + .urlbar,
+html[dir="rtl"] .chrome.maximized .controls .back-button:not([disabled]) + .forward-button[disabled] + .urlbar {
+  transform: translateX(-3.5rem);
 }
 
 .chrome.maximized .controls .back-button:not([disabled]) + .forward-button:not([disabled]) + .urlbar {
   width: calc(100% - 12rem);
+}
+html[dir="ltr"] .chrome.maximized .controls .back-button:not([disabled]) + .forward-button:not([disabled]) + .urlbar {
   transform: translateX(7.5rem);
+}
+html[dir="rtl"] .chrome.maximized .controls .back-button:not([disabled]) + .forward-button:not([disabled]) + .urlbar {
+  transform: translateX(-7.5rem);
 }
 
 .appWindow:not(.browser) .chrome.maximized .controls .forward-button:not([disabled]) + .urlbar,
 .appWindow:not(.browser) .chrome.maximized .controls .back-button:not([disabled]) + .forward-button[disabled] + .urlbar {
   width: calc(100% - 4.5rem);
+}
+html[dir="ltr"] .appWindow:not(.browser) .chrome.maximized .controls .forward-button:not([disabled]) + .urlbar,
+html[dir="ltr"] .appWindow:not(.browser) .chrome.maximized .controls .back-button:not([disabled]) + .forward-button[disabled] + .urlbar {
   transform: translateX(3.5rem);
+}
+html[dir="rtl"] .appWindow:not(.browser) .chrome.maximized .controls .forward-button:not([disabled]) + .urlbar,
+html[dir="rtl"] .appWindow:not(.browser) .chrome.maximized .controls .back-button:not([disabled]) + .forward-button[disabled] + .urlbar {
+  transform: translateX(-3.5rem);
 }
 
 .appWindow:not(.browser) .chrome.maximized .controls .back-button:not([disabled]) + .forward-button:not([disabled]) + .urlbar {
   width: calc(100% - 8.5rem);
+}
+html[dir="ltr"] .appWindow:not(.browser) .chrome.maximized .controls .back-button:not([disabled]) + .forward-button:not([disabled]) + .urlbar {
   transform: translateX(7.5rem);
+}
+html[dir="rtl"] .appWindow:not(.browser) .chrome.maximized .controls .back-button:not([disabled]) + .forward-button:not([disabled]) + .urlbar {
+  transform: translateX(-7.5rem);
 }
 
 .controls .urlbar {
   transform: scaleX(var(--rocketbar-scale)) translateY(0.1rem);
-  transform-origin: top left;
   transition: transform 0.2s ease-in-out;
 }
+html[dir="ltr"] .controls .urlbar { transform-origin: top left; }
+html[dir="rtl"] .controls .urlbar { transform-origin: top right; }
 
 .appWindow.fullscreen-app .chrome.dragged,
 .appWindow.fullscreen-app .chrome.dragging {
@@ -256,8 +282,9 @@
 
 .appWindow.fullscreen-app .chrome:not(.maximized) .controls .urlbar {
   transform: scale(var(--rocketbar-scale)) translateY(-6.1rem);
-  transform-origin: bottom left;
 }
+html[dir="ltr"] .appWindow.fullscreen-app .chrome:not(.maximized) .controls .urlbar { transform-origin: bottom left; }
+html[dir="rtl"] .appWindow.fullscreen-app .chrome:not(.maximized) .controls .urlbar { transform-origin: bottom right; }
 
 .maximized .controls .urlbar {
   transform: scaleX(1);
@@ -268,7 +295,6 @@
 .urlbar::before {
   content: "";
   bottom: -1.5rem;
-  left: 0.35rem;
   height: 1.5rem;
   width: 2.4rem;
   position: absolute;
@@ -277,10 +303,17 @@
   transform: translateY(0) translateX(0) scale(1);
   transition: opacity var(--transition-duration), transform var(--transition-duration);
 }
+html[dir="ltr"] .urlbar::before { left: 0.35rem; }
+html[dir="rtl"] .urlbar::before { right: 0.35rem; }
 
 .pin-dialog.hidden ~ .controls .urlbar::before {
   opacity: 0;
+}
+html[dir="ltr"] .pin-dialog.hidden ~ .controls .urlbar::before {
   transform: translateY(-50%) translateX(-50%) scale(.3);
+}
+html[dir="rtl"] .pin-dialog.hidden ~ .controls .urlbar::before {
+  transform: translateY(-50%) translateX(50%) scale(.3);
 }
 
 section.pin-dialog {
@@ -299,9 +332,14 @@ section.pin-dialog {
 }
 
 section.pin-dialog.hidden {
-  transform: translateY(-50%) translateX(-50%) scale(.3);
   opacity: 0;
   pointer-events: none;
+}
+html[dir="ltr"] section.pin-dialog.hidden {
+  transform: translateY(-50%) translateX(-50%) scale(.3);
+}
+html[dir="rtl"] section.pin-dialog.hidden {
+  transform: translateY(-50%) translateX(50%) scale(.3);
 }
 
 .pin-scrim {
@@ -407,7 +445,7 @@ section.pin-dialog .origin::before {
 }
 
 section.pin-dialog.secure .origin {
-  -moz-padding-start: 1.5rem;
+  padding-inline-start: 1.5rem;
 }
 
 section.pin-dialog.secure .origin::before {
@@ -415,8 +453,8 @@ section.pin-dialog.secure .origin::before {
 }
 
 section.pin-dialog button[data-action="pin"] {
-  -moz-padding-start: 4rem;
-  -moz-padding-end: 2rem;
+  padding-inline-start: 4rem;
+  padding-inline-end: 2rem;
 }
 
 section.pin-dialog button[data-action="pin"]::before {
@@ -425,7 +463,7 @@ section.pin-dialog button[data-action="pin"]::before {
   height: 1.6rem;
   position: absolute;
   top: 1.2rem;
-  left: 2rem;
+  offset-inline-start: 2rem;
   background-size: 1.6rem 1.6rem;
   background-image: url("images/pin.png");
 }
@@ -451,7 +489,7 @@ section.pin-dialog button[data-action="pin"]::before {
 /* Private browser icon in rocketbar */
 .appWindow.private > .chrome-plain.maximized .chrome-title-container,
 .appWindow.private > .chrome-combined.maximized .chrome-title-container {
-  -moz-padding-start: 4rem;
+  padding-inline-start: 4rem;
 }
 
 .appWindow.private > .chrome.maximized .pb-icon {
@@ -462,22 +500,37 @@ section.pin-dialog button[data-action="pin"]::before {
   top: 0.1rem;
   left: 0.3rem;
   right: 0.3rem;
-  background: url("images/pb_rocketbar.png") no-repeat 0.8rem center / 2.5rem;
+  background-image: url("images/pb_rocketbar.png");
+  background-repeat: no-repeat;
+  background-size: 2.5rem;
 }
+html[dir="ltr"] .appWindow.private > .chrome.maximized .pb-icon { background-position: left 0.8rem center; }
+html[dir="rtl"] .appWindow.private > .chrome.maximized .pb-icon { background-position: right 0.8rem center; }
 
 
 /* SSL Lock Icons in rocketbar */
 .chrome-combined.maximized .chrome-has-ssl-indicator .chrome-ssl-indicator {
-  -moz-padding-start: 5.5rem;
+  padding-inline-start: 5.5rem;
 
   background-repeat: no-repeat;
-  background-position: 3rem center;
   background-size: 3rem;
 }
+html[dir="ltr"] .chrome-combined.maximized .chrome-has-ssl-indicator .chrome-ssl-indicator {
+  background-position: left 3rem center;
+}
+html[dir="rtl"] .chrome-combined.maximized .chrome-has-ssl-indicator .chrome-ssl-indicator {
+  background-position: right 3rem center;
+}
+
 
 .private > .chrome-combined.maximized .chrome-has-ssl-indicator .chrome-ssl-indicator {
-  -moz-padding-start: 6.5rem;
-  background-position: 3.7rem 0.1rem;
+  padding-inline-start: 6.5rem;
+}
+html[dir="ltr"] .private > .chrome-combined.maximized .chrome-has-ssl-indicator .chrome-ssl-indicator {
+  background-position: left 3.7rem top 0.1rem;
+}
+html[dir="rtl"] .private > .chrome-combined.maximized .chrome-has-ssl-indicator .chrome-ssl-indicator {
+  background-position: right 3.7rem top 0.1rem;
 }
 
 .chrome-plain .chrome-ssl-indicator {
@@ -521,7 +574,7 @@ section.pin-dialog button[data-action="pin"]::before {
      rounded icon. Reallocating to fit with the url bar
   */
   top: -.1rem;
-  left: -.1rem;
+  offset-inline-start: -.1rem;
 }
 
 .light .site-icon {
@@ -545,7 +598,7 @@ section.pin-dialog button[data-action="pin"]::before {
 
 
 /* Buttons */
-.controls button  {
+.controls button {
   -moz-appearance: none;
   border: none;
   margin: 0;
@@ -559,9 +612,10 @@ section.pin-dialog button[data-action="pin"]::before {
   background-color: transparent;
   background-size: contain;
   opacity: 1;
-  float: left;
   border-radius: 0;
 }
+html[dir="ltr"] .controls button { float: left; }
+html[dir="rtl"] .controls button { float: right; }
 
 /* Remove focus outline from button */
 .controls button::-moz-focus-inner {
@@ -575,7 +629,7 @@ section.pin-dialog button[data-action="pin"]::before {
   background-repeat: no-repeat;
   position: absolute;
   bottom: 0.1rem;
-  right: 0;
+  offset-inline-end: 0;
   padding: 0 0.3rem;
   width: 3rem;
   height: 3rem;
@@ -585,10 +639,10 @@ section.pin-dialog button[data-action="pin"]::before {
 .controls .stop-button::before {
   content: '';
   position: relative;
-  right: 0.2rem;
+  offset-inline-end: 0.2rem;
   display: block;
   height: 2.4rem;
-  border-left: .1rem solid rgba(0,0,0,0.05);
+  border-inline-start: .1rem solid rgba(0,0,0,0.05);
 }
 
 /* Vertically align butons outside of urlbar. */
@@ -639,21 +693,17 @@ section.pin-dialog button[data-action="pin"]::before {
 
 
 /* Default (dark) theme button styles */
-.controls .back-button {
-  background-image: url("images/dark/back.png");
-}
+html[dir="ltr"] .controls .back-button { background-image: url("images/dark/left.png"); }
+html[dir="rtl"] .controls .back-button { background-image: url("images/dark/right.png"); }
 
-.controls .back-button:active {
-  background-image: url("images/dark/back_active.png");
-}
+html[dir="ltr"] .controls .back-button:active { background-image: url("images/dark/left_active.png"); }
+html[dir="rtl"] .controls .back-button:active { background-image: url("images/dark/right_active.png"); }
 
-.controls .forward-button {
-  background-image: url("images/dark/forward.png");
-}
+html[dir="ltr"] .controls .forward-button { background-image: url("images/dark/right.png"); }
+html[dir="rtl"] .controls .forward-button { background-image: url("images/dark/left.png"); }
 
-.controls .forward-button:active {
-  background-image: url("images/dark/forward_active.png");
-}
+html[dir="ltr"] .controls .forward-button:active { background-image: url("images/dark/right_active.png"); }
+html[dir="rtl"] .controls .forward-button:active { background-image: url("images/dark/left_active.png"); }
 
 .controls .menu-button {
   background-image: url("images/dark/options.png");
@@ -692,21 +742,17 @@ section.pin-dialog button[data-action="pin"]::before {
   background-image: url("images/light/overflow_active.png");
 }
 
-.light .controls .back-button {
-  background-image: url("images/light/back.png");
-}
+html[dir="ltr"] .light .controls .back-button { background-image: url("images/light/left.png"); }
+html[dir="rtl"] .light .controls .back-button { background-image: url("images/light/right.png"); }
 
-.light .controls .back-button:active {
-  background-image: url("images/light/back_active.png");
-}
+html[dir="ltr"] .light .controls .back-button:active { background-image: url("images/light/left_active.png"); }
+html[dir="rtl"] .light .controls .back-button:active { background-image: url("images/light/right_active.png"); }
 
-.light .controls .forward-button {
-  background-image: url("images/light/forward.png");
-}
+html[dir="ltr"] .light .controls .forward-button { background-image: url("images/light/right.png"); }
+html[dir="rtl"] .light .controls .forward-button { background-image: url("images/light/left.png"); }
 
-.light .controls .forward-button:active {
-  background-image: url("images/light/forward_active.png");
-}
+html[dir="ltr"] .light .controls .forward-button:active { background-image: url("images/light/right_active.png"); }
+html[dir="rtl"] .light .controls .forward-button:active { background-image: url("images/light/left_active.png"); }
 
 .light .controls .menu-button {
   background-image: url("images/light/options.png");
@@ -774,112 +820,4 @@ gaia-overflow-menu button#share {
 
 .appWindow:not(.collapsible) > .chrome-combined .title {
   width: calc(100%);
-}
-
-/* RTL View */
-html[dir="rtl"] .appWindow:not(.bar) > .chrome {
-  transform-origin: top right;
-}
-
-html[dir="rtl"] .chrome .controls .urlbar {
-  float: right;
-}
-
-html[dir="rtl"] .controls .forward-button:not([disabled]) + .urlbar,
-html[dir="rtl"] .controls .back-button:not([disabled]) + .forward-button[disabled] + .urlbar,
-html[dir="rtl"] .appWindow:not(.browser) .controls .forward-button:not([disabled]) + .urlbar,
-html[dir="rtl"] .appWindow:not(.browser) .controls .back-button:not([disabled]) + .forward-button[disabled] + .urlbar {
-  transform: translateX(-3.5rem);
-}
-
-html[dir="rtl"] .controls .back-button:not([disabled]) + .forward-button:not([disabled]) + .urlbar,
-html[dir="rtl"] .appWindow:not(.browser) .controls .back-button:not([disabled]) + .forward-button:not([disabled]) + .urlbar {
-  transform: translateX(-7.5rem);
-}
-
-html[dir="rtl"] .home-app .chrome.maximized .controls .urlbar:after,
-html[dir="rtl"] .search-app .chrome.maximized .controls .urlbar:after {
-  left: 0.8rem;
-  right: unset;
-}
-
-html[dir="rtl"] .controls .urlbar {
-  transform-origin: top right;
-}
-
-html[dir="rtl"] .appWindow.fullscreen-app .chrome:not(.maximized) .controls .urlbar {
-  transform-origin: bottom right;
-}
-
-html[dir="rtl"] .controls button {
-  float: right;
-}
-
-html[dir="rtl"] .controls .reload-button,
-html[dir="rtl"] .controls .stop-button {
-  left: 0;
-  right: unset;
-}
-
-html[dir="rtl"] .controls .reload-button::before,
-html[dir="rtl"] .controls .stop-button::before {
-  left: 0.2rem;
-  right: unset;
-  border-left: none;
-  border-right: .1rem solid rgba(0,0,0,0.05);
-}
-
-html[dir="rtl"] .controls .back-button {
-  background-image: url("images/dark/forward.png");
-}
-
-html[dir="rtl"] .controls .back-button:active {
-  background-image: url("images/dark/forward_active.png");
-}
-
-html[dir="rtl"] .controls .forward-button {
-  background-image: url("images/dark/back.png");
-}
-
-html[dir="rtl"] .controls .forward-button:active {
-  background-image: url("images/dark/back_active.png");
-}
-
-html[dir="rtl"] .light .controls .back-button {
-  background-image: url("images/light/forward.png");
-}
-
-html[dir="rtl"] .light .controls .back-button:active {
-  background-image: url("images/light/forward_active.png");
-}
-
-html[dir="rtl"] .light .controls .forward-button {
-  background-image: url("images/light/back.png");
-}
-
-html[dir="rtl"] .light .controls .forward-button:active {
-  background-image: url("images/light/back_active.png");
-}
-
-html[dir="rtl"] .chrome-combined.maximized .chrome-has-ssl-indicator .chrome-ssl-indicator {
-  background-position: right 0.1rem top 0.1rem;
-}
-
-html[dir="rtl"] .private > .chrome-combined.maximized .chrome-has-ssl-indicator .chrome-ssl-indicator {
-  background-position: right 3.7rem top 0.1rem;
-}
-
-/*
- * This is for translating the minimized titlebar 12rem to the right,
- * which is what we need. And it's the direct opposite of -12rem in the
- * original selector which moves it 12rem to the left.
- */
-
-html[dir="rtl"] .collapsible .chrome:not(.maximized) .back-button:not([disabled]) + .forward-button:not([disabled]) + .urlbar {
-  transform: scaleX(var(--rocketbar-scale));
-}
-
-html[dir="rtl"] .collapsible .chrome:not(.maximized) .back-button:not([disabled]) + .forward-button[disabled] + .urlbar,
-html[dir="rtl"] .collapsible .chrome:not(.maximized) .forward-button:not([disabled]) + .urlbar {
-  transform: scaleX(var(--rocketbar-scale));
 }

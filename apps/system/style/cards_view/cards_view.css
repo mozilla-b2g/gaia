@@ -16,6 +16,7 @@
   /* Requires that scrolling always end at a snap point
      when the operation completes (hard snap). */
   scroll-snap-type: mandatory;
+  direction: ltr;
 }
 
 @media not all and (-moz-physical-home-button) {
@@ -54,7 +55,6 @@
   display: none;
   position: absolute;
   top: calc(50% - 1rem);
-  left: 3rem;
   width: calc(100% - 6rem);
   height: 2rem;
   text-align: center;
@@ -62,6 +62,8 @@
   font-size: 2rem;
   font-weight: 500;
 }
+html[dir="ltr"] #cards-view .no-recent-apps { left: 3rem; }
+html[dir="rtl"] #cards-view .no-recent-apps { right: 3rem; }
 
 #cards-view.empty .no-recent-apps {
   display: block;
@@ -89,13 +91,13 @@
   display: block;
   position: absolute;
   top: 0;
-  left: 0;
   width: 50vw;
   height: 50%;
   transform: translateY(0);
   /* Defines the left of each card (column) as the
      coordinate that should be used for snapping */
   scroll-snap-coordinate: 0 0;
+  left: 0; /* BiDi proof */
 }
 
 #cards-view.active .card {
@@ -110,15 +112,23 @@
 
 #cards-view .screenshotView {
   background-size: 100% calc(100% - 1.5rem), cover;
-  background-position: left bottom, left top;
   background-repeat: no-repeat;
   width: 100%;
   height: 100%;
   position: relative;
 }
+html[dir="ltr"] #cards-view .screenshotView {
+  background-position: left bottom, left top;
+}
+html[dir="rtl"] #cards-view .screenshotView {
+  background-position: right bottom, right top;
+}
 
-#cards-view .screenshotView.maximized {
+html[dir="ltr"] #cards-view .screenshotView.maximized {
   background-position: left calc(100% + 2.3rem), left top;
+}
+html[dir="rtl"] #cards-view .screenshotView.maximized {
+  background-position: right calc(100% + 2.3rem), right top;
 }
 
 #cards-view .screenshotView.fullscreen {
@@ -235,17 +245,21 @@
 
 #cards-view .card-tray .close-button {
   background-image: url(../task-manager/light/close.png);
-  left: 0;
 }
+html[dir="ltr"] #cards-view .card-tray .close-button { left: 0; }
+html[dir="rtl"] #cards-view .card-tray .close-button { right: 0; }
+
 #cards-view.filtered .card-tray .close-button {
   background-image: url(../task-manager/dark/close.png);
 }
 
 #cards-view .card-tray .favorite-button {
   background-image: url(../task-manager/light/favorite.png);
-  right: 0;
   display: none;
 }
+html[dir="ltr"] #cards-view .card-tray .favorite-button { right: 0; }
+html[dir="rtl"] #cards-view .card-tray .favorite-button { left: 0; }
+
 #cards-view.filtered .card-tray .favorite-button {
   background-image: url(../task-manager/dark/favorite.png);
 }
@@ -267,6 +281,8 @@
   opacity: 1;
   transition: opacity var(--transition-duration);
 }
+html[dir="ltr"] #cards-view .card-tray > button.appIcon { left: calc(50% - 2rem); }
+html[dir="rtl"] #cards-view .card-tray > button.appIcon { right: calc(50% - 2rem); }
 #cards-view .card.browser .card-tray > button.appIcon {
   background-image: url('../../shared/resources/branding/browser_126.png');
 }
@@ -343,12 +359,19 @@
 
 #cards-view .card.show-subtitle[data-ssl="secure"] p.subtitle,
 #cards-view .card.show-subtitle[data-ssl="broken"] p.subtitle {
-  -moz-padding-start: 2rem;
-  -moz-padding-end: 1rem;
+  padding-inline-start: 2rem;
+  padding-inline-end: 1rem;
   min-height: 2rem;
   background-repeat: no-repeat;
-  background-position: left -0.5rem top -1rem;
   background-size: 3rem 3rem;
+}
+html[dir="ltr"] #cards-view .card.show-subtitle[data-ssl="secure"] p.subtitle,
+html[dir="ltr"] #cards-view .card.show-subtitle[data-ssl="broken"] p.subtitle {
+  background-position: left -0.5rem top -1rem;
+}
+html[dir="rtl"] #cards-view .card.show-subtitle[data-ssl="secure"] p.subtitle,
+html[dir="rtl"] #cards-view .card.show-subtitle[data-ssl="broken"] p.subtitle {
+  background-position: right -0.5rem top -1rem;
 }
 
 #cards-view .card.show-subtitle[data-ssl="secure"] p.subtitle {
@@ -363,11 +386,6 @@
 }
 #cards-view .card.show-subtitle[data-ssl="broken"] p.subtitle {
   background-image: url("../chrome/images/light/ssl_broken.png");
-}
-
-html[dir="rtl"] #cards-view .card.show-subtitle[data-ssl="broken"] p.subtitle,
-html[dir="rtl"] #cards-view .card.show-subtitle[data-ssl="secure"] p.subtitle {
-  background-position: right -0.5rem top -1rem;
 }
 
 

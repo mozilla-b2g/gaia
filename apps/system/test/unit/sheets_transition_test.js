@@ -42,6 +42,8 @@ suite('system/SheetsTransition >', function() {
   var getPrevStub, getNextStub;
 
   setup(function() {
+    document.documentElement.dir = 'ltr';
+
     getPrevStub = this.sinon.stub(MockStackManager, 'getPrev');
     getPrevStub.returns(dialer);
     dialerFrame = document.createElement('div');
@@ -248,7 +250,7 @@ suite('system/SheetsTransition >', function() {
     setup(function() {
       SheetsTransition.begin('ltr');
       SheetsTransition.moveInDirection('ltr', 0.7);
-      SheetsTransition.snapBack(0.005);
+      SheetsTransition.snapLeft(0.005);
     });
 
     test('it should set the transition duration on the sheets', function() {
@@ -271,7 +273,7 @@ suite('system/SheetsTransition >', function() {
     function() {
       SheetsTransition.begin('ltr');
       SheetsTransition.moveInDirection('ltr', 0.7);
-      SheetsTransition.snapBack(0.0001);
+      SheetsTransition.snapLeft(0.0001);
 
       var transition = 'transform 60ms linear 0s';
       assert.equal(settingsFrame.style.transition, transition);
@@ -286,7 +288,7 @@ suite('system/SheetsTransition >', function() {
         getPrevStub.returns(null);
         SheetsTransition.begin('ltr');
         SheetsTransition.moveInDirection('ltr', 0.7);
-        SheetsTransition.snapBack(0.005);
+        SheetsTransition.snapLeft(0.005);
       });
 
       test('it should just snapInPlace instead', function() {
@@ -303,7 +305,7 @@ suite('system/SheetsTransition >', function() {
     setup(function() {
       SheetsTransition.begin('rtl');
       SheetsTransition.moveInDirection('rtl', 0.7);
-      SheetsTransition.snapForward(0.005);
+      SheetsTransition.snapRight(0.005);
     });
 
     test('it should set the transition duration on the sheets', function() {
@@ -326,7 +328,7 @@ suite('system/SheetsTransition >', function() {
     function() {
       SheetsTransition.begin('rtl');
       SheetsTransition.moveInDirection('rtl', 0.7);
-      SheetsTransition.snapBack(0.0001);
+      SheetsTransition.snapLeft(0.0001);
 
       var transition = 'transform 60ms linear 0s';
       assert.equal(settingsFrame.style.transition, transition);
@@ -341,7 +343,7 @@ suite('system/SheetsTransition >', function() {
         getNextStub.returns(null);
         SheetsTransition.begin('rtl');
         SheetsTransition.moveInDirection('rtl', 0.7);
-        SheetsTransition.snapForward(0.005);
+        SheetsTransition.snapRight(0.005);
       });
 
       test('it should just snapInPlace instead', function() {

@@ -170,8 +170,7 @@ TaskManager.prototype = {
 
     this.stack.forEach((app, index) => {
       var card = this.appToCardMap.get(app);
-      var offset = (this.cardWidth + this.CARD_GUTTER);
-      var left = (margins / 2) + (offset * index);
+      var left = (margins / 2) + this.indexToOffset(index);
 
       card.translate({ x: left + 'px' });
     });
@@ -330,16 +329,41 @@ TaskManager.prototype = {
   },
 
   /**
+   * LTR/RTL notes:
+   * Given a stack of views [0, 1, 2], cards-list will display:
+   *     [0][1][2] in LTR
+   *     [2][1][0] in RTL
+   * cards-list's direction is forced to LTR, so cards can be positionned using
+   * left and the view centering is done using scrollTo.
+   */
+  mirrorIndexIfRTL(idx) {
+    if (document.documentElement.dir === 'rtl') {
+      return (this.stack.length - 1) - idx;
+    } else {
+      return idx;
+    }
+  },
+
+  indexToOffset(idx) {
+    var index = this.mirrorIndexIfRTL(idx);
+    return (this.cardWidth + this.CARD_GUTTER) * index;
+  },
+
+  /**
    * Perform a user-initiated action on the given card.
    */
   cardAction(card, actionName) {
     switch (actionName) {
       case 'close':
         var index = this.stack.indexOf(card.app);
-        // If this is the last card on the stack, we must scroll to the left
-        // before killing the app; otherwise we can stay where we are.
-        if (this.stack.length > 1 && index === this.stack.length - 1) {
-          this.panToApp(this.stack[this.stack.length - 2]).then(() => {
+        var maxIdx = this.stack.length - 1;
+
+        // If this is the right-most card on the stack, we must scroll to the
+        // left before killing the app otherwise we can stay where we are.
+        if (maxIdx > 0 && this.mirrorIndexIfRTL(index) === maxIdx) {
+          // Select its left neighbour
+          var panToIdx = this.mirrorIndexIfRTL(maxIdx - 1);
+          this.panToApp(this.stack[panToIdx]).then(() => {
             card.app.kill();
           });
         } else {
@@ -377,7 +401,7 @@ TaskManager.prototype = {
       idx = this.stack.length - 1;
     }
     var currentPosition = this.element.scrollLeft;
-    var desiredPosition = (this.cardWidth + this.CARD_GUTTER) * idx;
+    var desiredPosition = this.indexToOffset(idx);
     return new Promise((resolve, reject) => {
       if (currentPosition === desiredPosition) {
         resolve();

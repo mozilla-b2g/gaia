@@ -85,7 +85,7 @@
 
 #statusbar-tray > .sb-start-upper {
   position: absolute;
-  left: 0;
+  offset-inline-start: 0;
   line-height: var(--statusbar-height);
 }
 
@@ -208,6 +208,8 @@ html[dir="rtl"] #statusbar-tray > .sb-start-upper {
   height: 3rem;
   margin: 1.5rem auto;
 }
+html[dir="ltr"] [data-icon] { float: left; }
+html[dir="rtl"] [data-icon] { float: right; }
 
 #utility-tray .utility-tray-notifications [data-icon]:before {
   /* The icons should appear 24 x 24px but each glyph only takes 80% of the space

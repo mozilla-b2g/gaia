@@ -42,7 +42,7 @@
   height: 5rem;
   width: 100%;
   top: 0;
-  left: 0;
+  offset-inline-start: 0;
   position: absolute;
 }
 

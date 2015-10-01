@@ -2,7 +2,7 @@
   position: absolute;
   white-space: pre-wrap;
   top: 6rem;
-  left: 0;
+  offset-inline-start: 0;
   padding: 0 2rem;
   font-size: 3rem;
   height: calc(100% - 16rem);
