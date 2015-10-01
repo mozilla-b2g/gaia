@@ -1,11 +1,11 @@
 'use strict';
 
 /* global AppUpdatable, Service, UpdateManager,
-          MockApp, MockAppUpdatable, MockAppsMgmt, MockChromeEvent,
+          MockApp, MockAppUpdatable, MockAppsMgmt,
           MockCustomDialog, MocksHelper, MockL10n,
           MockNavigatorMozMobileConnections, MockNavigatorSettings,
           MockNavigatorWakeLock, MockNotificationScreen,
-          MockSettingsListener, MockSystemBanner, MockSystemUpdatable */
+          MockSystemBanner, MockSystemUpdatable */
 
 require('/shared/js/component_utils.js');
 require('/shared/elements/gaia_checkbox/script.js');
@@ -18,7 +18,6 @@ requireApp('system/test/unit/mock_apps_mgmt.js');
 requireApp('system/shared/test/unit/mocks/mock_custom_dialog.js');
 requireApp('system/test/unit/mock_utility_tray.js');
 requireApp('system/test/unit/mock_system_banner.js');
-requireApp('system/test/unit/mock_chrome_event.js');
 requireApp('system/test/unit/mock_lazy_loader.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/js/service.js');
@@ -30,7 +29,6 @@ require(
 require('/shared/test/unit/mocks/mock_l10n.js');
 
 requireApp('system/test/unit/mock_asyncStorage.js');
-require('/test/unit/mock_update_manager.js');
 
 var mocksForUpdateManager = new MocksHelper([
   'SystemBanner',
@@ -367,15 +365,16 @@ suite('system/UpdateManager', function() {
     });
 
     suite('system update available', function() {
-      var event;
-
       setup(function() {
         UpdateManager.start();
-        event = new MockChromeEvent({
-          type: 'update-available',
-          size: 42
-        });
-        UpdateManager.handleEvent(event);
+        UpdateManager.systemUpdatable.size = 42;
+        UpdateManager.systemUpdatable.rememberKnownUpdate();
+        UpdateManager.addToUpdatesQueue(UpdateManager.systemUpdatable);
+        UpdateManager.checkStatus();
+      });
+
+      teardown(function() {
+        UpdateManager.updatesQueue = [];
       });
 
       test('should add a system updatable to the updates', function() {
@@ -392,7 +391,7 @@ suite('system/UpdateManager', function() {
       function() {
         var initialLength = UpdateManager.updatesQueue.length;
 
-        UpdateManager.handleEvent(event);
+        UpdateManager.checkStatus();
 
         assert.equal(UpdateManager.updatesQueue.length, initialLength);
         assert.equal(MockSystemUpdatable.mInstancesCount, 1);
@@ -1341,39 +1340,6 @@ suite('system/UpdateManager', function() {
 
       test('should not display prompt while uncompressing', function() {
         assert.isFalse(MockCustomDialog.mShown);
-      });
-    });
-
-    suite('check for updates', function() {
-      setup(function() {
-        UpdateManager.start();
-      });
-
-      test('should observe the setting', function() {
-        assert.equal('gaia.system.checkForUpdates', MockSettingsListener.mName);
-        assert.equal(false, MockSettingsListener.mDefaultValue);
-        assert.equal(UpdateManager.checkForUpdates.name,
-                     MockSettingsListener.mCallback.name);
-      });
-
-      suite('when asked to check', function() {
-        setup(function() {
-          UpdateManager.checkForUpdates(true);
-        });
-
-        test('should dispatch force update event if asked for', function() {
-          assert.equal('force-update-check', lastDispatchedEvent.type);
-        });
-
-        test('should set the setting back to false', function() {
-          var setting = 'gaia.system.checkForUpdates';
-          assert.isFalse(MockNavigatorSettings.mSettings[setting]);
-        });
-      });
-
-      test('should not dispatch force update event if not asked', function() {
-        UpdateManager.checkForUpdates(false);
-        assert.isNull(lastDispatchedEvent);
       });
     });
   });

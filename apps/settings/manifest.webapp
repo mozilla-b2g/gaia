@@ -23,6 +23,7 @@
     "open-remote-window":{},
     "permissions":{},
     "systemXHR": {},
+    "system-update":{},
     "settings":{ "access": "readwrite" },
     "wifi-manage":{},
     "time":{},

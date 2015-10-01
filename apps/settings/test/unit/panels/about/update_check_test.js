@@ -2,29 +2,70 @@
 
 suite('about > update_check', function() {
   var updateCheck;
-  var realNavigatorSettings;
-  var geckoUpdateSetting = 'gecko.updateStatus';
-  var appsUpdateSetting = 'apps.updateStatus';
+  var realL10n;
+  var MockSystemUpdateManager;
+  var MockAppUpdateManager;
 
   var modules = [
-    'shared_mocks/mock_navigator_moz_settings',
+    'shared_mocks/mock_l10n',
     'panels/about/update_check'
   ];
-  var maps = {};
+  var maps = {
+    '*': {
+      'panels/about/system_update_manager': 'MockSystemUpdateManager',
+      'panels/about/app_update_manager': 'MockAppUpdateManager'
+    }
+  };
 
   var elements = {
-    updateStatus: document.createElement('li'),
     checkUpdateNow: document.createElement('button'),
     lastUpdateDate: document.createElement('small'),
-    systemStatus: document.createElement('li'),
-    generalInfo: document.createElement('p')
+    systemUpdateInfoMenuItem: document.createElement('li'),
+    systemUpdateInfo: document.createElement('p')
   };
 
   setup(function(done) {
-    testRequire(modules, maps,
-      function(MockNavigatorSettings, module) {
-        realNavigatorSettings = navigator.mozSettings;
-        navigator.mozSettings = MockNavigatorSettings;
+    // Create a new requirejs context
+    var requireCtx = testRequire([], maps, function() {});
+
+    // Define MockDateTime
+    MockSystemUpdateManager = {
+      isMock: true,
+      UPDATE_STATUS: {
+        CHECKING: 0,
+        UPDATE_AVAILABLE: 1,
+        UPDATE_READY: 2,
+        UPDATE_UNAVAILABLE: 3,
+        ALREADY_LATEST_VERSION: 4,
+        OFFLINE: 5,
+        ERROR: 6,
+        UNKNOWN: -1
+      },
+      status: -1,
+      observe: function() {}
+    };
+    define('MockSystemUpdateManager', function() {
+      return MockSystemUpdateManager;
+    });
+
+    MockAppUpdateManager = {
+      isMock: true,
+      UPDATE_STATUS: {
+        CHECKING: 0,
+        UPDATE_AVAILABLE: 1,
+        UPDATE_UNAVAILABLE: 2,
+        UNKNOWN: -1
+      },
+      status: -1,
+      observe: function() {}
+    };
+    define('MockAppUpdateManager', function() {
+      return MockAppUpdateManager;
+    });
+
+    requireCtx(modules, function(MockL10n, module) {
+        realL10n = navigator.mozL10n;
+        navigator.mozL10n = MockL10n;
 
         updateCheck = module();
         updateCheck._elements = elements;
@@ -33,225 +74,153 @@ suite('about > update_check', function() {
   });
 
   suiteTeardown(function() {
-    navigator.mozSettings = realNavigatorSettings;
-    realNavigatorSettings = null;
+    navigator.mozL10n = realL10n;
+    realL10n = null;
   });
 
   suite('initiation', function() {
     setup(function() {
-      this.sinon.stub(updateCheck, '_loadLastUpdated');
-      this.sinon.stub(updateCheck, '_checkForUpdates');
+      this.sinon.stub(updateCheck, '_updateStatus');
+      this.sinon.stub(updateCheck, '_updateLastUpdateDate');
 
       updateCheck.init(elements);
     });
 
-    test('_loadHardwareInfo and _loadLastUpdated are called while initiate',
+    test('_updateStatus and _updateLastUpdateDate are called while initiate',
       function() {
-        assert.ok(updateCheck._loadLastUpdated.called);
-    });
-
-    test('_checkForUpdates is called when initiate', function() {
-      updateCheck._elements.checkUpdateNow.dispatchEvent(
-        new CustomEvent('click'));
-      assert.ok(updateCheck._checkForUpdates.called);
+        assert.ok(updateCheck._updateStatus.called);
+        assert.ok(updateCheck._updateLastUpdateDate.called);
     });
   });
 
-  suite('checkForUpdates >', function() {
-    setup(function() {
-      this.sinon.stub(updateCheck, '_onUpdateStatus');
-      updateCheck._checkForUpdates();
-    });
+  suite('updateStatus >', function() {
+    test('when SystemUpdateManager status is UNKNOWN, ' +
+      'the message should be hidden', function() {
+      Object.keys(MockSystemUpdateManager.UPDATE_STATUS).forEach(function(key) {
+        console.log('AppUpdateManager status is ' + key);
+        MockSystemUpdateManager.status =
+          MockSystemUpdateManager.UPDATE_STATUS.UNKNOWN;
+        MockAppUpdateManager.status = MockAppUpdateManager.UPDATE_STATUS[key];
+        updateCheck._updateStatus();
 
-    test('triggers the updates', function() {
-      var setting = 'gaia.system.checkForUpdates';
-      assert.isTrue(navigator.mozSettings.mSettings[setting]);
-    });
-
-    test('register handlers', function() {
-      assert.isFunction(updateCheck._checkStatus[geckoUpdateSetting].cb);
-      assert.isFunction(updateCheck._checkStatus[appsUpdateSetting].cb);
-    });
-
-    test('displays the checking updates text', function() {
-      assert.isTrue(updateCheck._elements.updateStatus
-        .classList.contains('checking'));
-      assert.isTrue(updateCheck._elements.updateStatus
-        .classList.contains('visible'));
-      assert.equal(updateCheck._elements.systemStatus.textContent.length, 0);
-    });
-
-    suite('getting response for system update >', function() {
-      suite('successful >', function() {
-        setup(function() {
-          navigator.mozSettings.mTriggerObservers(geckoUpdateSetting, {
-            settingValue: 'check-complete'
-          });
-        });
-
-        test('does not hide the status', function() {
-          assert.isTrue(updateCheck._elements.updateStatus.classList
-            .contains('visible'));
-        });
-
-        test('does not hide the checking updates text', function() {
-          assert.isTrue(updateCheck._elements.updateStatus.classList
-            .contains('checking'));
-        });
+        assert.ok(updateCheck._elements.systemUpdateInfoMenuItem.hidden);
       });
     });
 
-    suite('getting response for app update >', function() {
-      suite('successful >', function() {
-        setup(function() {
-          navigator.mozSettings.mTriggerObservers(appsUpdateSetting, {
-            settingValue: 'check-complete'
-          });
-        });
+    test('when AppUpdateManager status is UNKNOWN, ' +
+      'the message should be hidden', function(){
+      Object.keys(MockAppUpdateManager.UPDATE_STATUS).forEach(function(key) {
+        console.log('SystemUpdateManager status is ' + key);
+        MockSystemUpdateManager.status =
+          MockSystemUpdateManager.UPDATE_STATUS[key];
+        MockAppUpdateManager.status =
+          MockAppUpdateManager.UPDATE_STATUS.UNKNOWN;
+        updateCheck._updateStatus();
 
-        test('does not hide the status', function() {
-          assert.isTrue(updateCheck._elements.updateStatus.classList
-            .contains('visible'));
-        });
-
-        test('does not hide the checking updates text', function() {
-          assert.isTrue(updateCheck._elements.updateStatus.classList
-            .contains('checking'));
-        });
-      });
-    });
-  });
-
-  suite('onUpdateStatus >', function() {
-    setup(function() {
-      this.sinon.stub(updateCheck, '_statusCompleteUpdater');
-    });
-
-    teardown(function() {
-      navigator.mozSettings.mTeardown();
-    });
-
-    test('system update _checkStatus value is updated', function(){
-      updateCheck._onUpdateStatus(geckoUpdateSetting,
-        {settingValue: 'check-complete'});
-
-      assert.equal(updateCheck._checkStatus[geckoUpdateSetting].value,
-        'check-complete');
-    });
-
-    test('app update _checkStatus value is updated', function(){
-      updateCheck._onUpdateStatus(appsUpdateSetting,
-        {settingValue: 'check-complete'});
-
-      assert.equal(updateCheck._checkStatus[appsUpdateSetting].value,
-        'check-complete');
-    });
-
-    test('no-updates', function() {
-      updateCheck._onUpdateStatus(appsUpdateSetting,
-        {settingValue: 'no-updates'});
-
-      assert.equal(updateCheck._elements.systemStatus
-        .getAttribute('data-l10n-id'), 'no-updates');
-    });
-
-    test('already-latest-version', function() {
-      updateCheck._onUpdateStatus(appsUpdateSetting,
-        {settingValue: 'already-latest-version'});
-
-      assert.equal(updateCheck._elements.systemStatus
-        .getAttribute('data-l10n-id'), 'already-latest-version');
-    });
-
-    test('retry-when-online', function() {
-      updateCheck._onUpdateStatus(appsUpdateSetting,
-        {settingValue: 'retry-when-online'});
-
-      assert.equal(updateCheck._elements.systemStatus
-        .getAttribute('data-l10n-id'), 'retry-when-online');
-    });
-
-    test('check-error', function() {
-      var errors = ['check-error-http-200', 'check-error-http-403',
-                    'check-error-http-404', 'check-error-http-500',
-                    'check-error-2152398878'];
-      for (var i = 0; i < errors.length; i++) {
-        updateCheck._onUpdateStatus(appsUpdateSetting,
-          {settingValue: errors[i]});
-
-        assert.equal(updateCheck._elements.systemStatus
-          .getAttribute('data-l10n-id'), 'check-error');
-      }
-    });
-
-    test('remove the system update handler', function() {
-      this.sinon.spy(navigator.mozSettings, 'removeObserver');
-      updateCheck._checkForUpdates();
-      navigator.mozSettings.mTriggerObservers(geckoUpdateSetting, {
-        settingValue: 'check-complete'
-      });
-
-      var removedObserver = navigator.mozSettings
-        .mRemovedObservers[geckoUpdateSetting][0];
-      assert.isFunction(removedObserver);
-      assert.ok(navigator.mozSettings.removeObserver.calledWith(
-        geckoUpdateSetting));
-    });
-  });
-
-  suite('_statusCompleteUpdater >', function() {
-    suite('both successful >', function() {
-      setup(function() {
-        updateCheck._elements.updateStatus.classList
-          .add('checking', 'visible');
-        updateCheck._checkStatus[geckoUpdateSetting].value = 'check-complete';
-        updateCheck._checkStatus[appsUpdateSetting].value = 'check-complete';
-        updateCheck._statusCompleteUpdater();
-      });
-
-      test('hides the status', function() {
-        assert.isFalse(updateCheck._elements.updateStatus.classList
-          .contains('visible'));
-      });
-
-      test('removes the text in the system description', function() {
-        assert.equal(updateCheck._elements.systemStatus.textContent.length, 0);
-      });
-
-      test('hide the checking updates text', function() {
-        assert.isFalse(updateCheck._elements.updateStatus.classList
-          .contains('checking'));
+        assert.ok(updateCheck._elements.systemUpdateInfoMenuItem.hidden);
       });
     });
 
-    suite('not both successful >', function() {
-      setup(function() {
-        updateCheck._elements.updateStatus.classList
-          .add('checking', 'visible');
-        updateCheck._checkStatus[geckoUpdateSetting].value = 'no-updates';
-        updateCheck._checkStatus[appsUpdateSetting].value = 'check-complete';
-        updateCheck._statusCompleteUpdater();
+    test('when SystemUpdateManager status is CHECKING, ' +
+      'the message should be checking-for-update', function(){
+      Object.keys(MockSystemUpdateManager.UPDATE_STATUS).forEach(function(key) {
+        if(key !== 'UNKNOWN') {
+          console.log('AppUpdateManager status is ' + key);
+          MockSystemUpdateManager.status =
+            MockSystemUpdateManager.UPDATE_STATUS.CHECKING;
+          MockAppUpdateManager.status = MockAppUpdateManager.UPDATE_STATUS[key];
+          updateCheck._updateStatus();
+
+          assert.equal(updateCheck._elements.systemUpdateInfo
+            .getAttribute('data-l10n-id'), 'checking-for-update');
+          }
+          assert.isFalse(updateCheck._elements.systemUpdateInfoMenuItem.hidden);
       });
+    });
 
-      test('hide the status', function() {
-        assert.isFalse(updateCheck._elements.updateStatus.classList
-          .contains('visible'));
+    test('when AppUpdateManager status is CHECKING, ' +
+      'the message should be checking-for-update', function(){
+      Object.keys(MockAppUpdateManager.UPDATE_STATUS).forEach(function(key) {
+        if(key !== 'UNKNOWN') {
+          console.log('SystemUpdateManager status is ' + key);
+          MockSystemUpdateManager.status =
+            MockSystemUpdateManager.UPDATE_STATUS[key];
+          MockAppUpdateManager.status =
+            MockAppUpdateManager.UPDATE_STATUS.CHECKING;
+          updateCheck._updateStatus();
+
+          assert.equal(updateCheck._elements.systemUpdateInfo
+            .getAttribute('data-l10n-id'), 'checking-for-update');
+          assert.isFalse(updateCheck._elements.systemUpdateInfoMenuItem.hidden);
+        }
       });
+    });
 
-      test('hide the checking updates text', function() {
-        assert.isFalse(updateCheck._elements.updateStatus.classList
-          .contains('checking'));
+    test('when SystemUpdateManager status is UPDATE_AVAILABLE, ' +
+      'the message should be update-found', function(){
+      Object.keys(MockSystemUpdateManager.UPDATE_STATUS).forEach(function(key) {
+        if(key !== 'UNKNOWN' && key !== 'CHECKING') {
+          console.log('AppUpdateManager status is ' + key);
+          MockSystemUpdateManager.status =
+            MockSystemUpdateManager.UPDATE_STATUS.UPDATE_AVAILABLE;
+          MockAppUpdateManager.status = MockAppUpdateManager.UPDATE_STATUS[key];
+          updateCheck._updateStatus();
+
+          assert.equal(updateCheck._elements.systemUpdateInfo
+            .getAttribute('data-l10n-id'), 'update-found');
+          assert.isFalse(updateCheck._elements.systemUpdateInfoMenuItem.hidden);
+        }
       });
+    });
 
-      suite('starting an update again >', function() {
-        setup(function() {
-          updateCheck._statusCompleteUpdater();
-        });
+    test('when AppUpdateManager status is UPDATE_AVAILABLE, ' +
+      'the message should be update-found', function(){
+      Object.keys(MockAppUpdateManager.UPDATE_STATUS).forEach(function(key) {
+        if(key !== 'UNKNOWN' && key !== 'CHECKING') {
+          console.log('SystemUpdateManager status is ' + key);
+          MockSystemUpdateManager.status =
+            MockSystemUpdateManager.UPDATE_STATUS[key];
+          MockAppUpdateManager.status =
+            MockAppUpdateManager.UPDATE_STATUS.UPDATE_AVAILABLE;
+          updateCheck._updateStatus();
 
-        test('should remove the text', function() {
-          assert.equal(updateCheck._elements.systemStatus
-            .textContent.length, 0);
-        });
+          assert.equal(updateCheck._elements.systemUpdateInfo
+            .getAttribute('data-l10n-id'), 'update-found');
+          assert.isFalse(updateCheck._elements.systemUpdateInfoMenuItem.hidden);
+        }
+      });
+    });
+
+    test('when AppUpdateManager status is UPDATE_UNAVAILABLE, ' +
+      'the message should depends on systemUpdateManager state', function(){
+      var SUMgr = MockSystemUpdateManager;
+      var STATUS_MAP = {
+        [SUMgr.UPDATE_STATUS.CHECKING]: 'checking-for-update',
+        [SUMgr.UPDATE_STATUS.UPDATE_AVAILABLE]: 'update-found',
+        [SUMgr.UPDATE_STATUS.UPDATE_READY]: 'ready-to-update',
+        [SUMgr.UPDATE_STATUS.UPDATE_UNAVAILABLE]: 'no-updates',
+        [SUMgr.UPDATE_STATUS.ALREADY_LATEST_VERSION]: 'already-latest-version',
+        [SUMgr.UPDATE_STATUS.OFFLINE]: 'retry-when-online',
+        [SUMgr.UPDATE_STATUS.ERROR]: 'check-error',
+        [SUMgr.UPDATE_STATUS.UNKNOWN]: null
+      };
+
+      Object.keys(MockAppUpdateManager.UPDATE_STATUS).forEach(function(key) {
+        if(key !== 'UNKNOWN' &&
+           key !== 'CHECKING' &&
+           key !== 'UPDATE_AVAILABLE') {
+          console.log('SystemUpdateManager status is ' + key);
+          MockSystemUpdateManager.status =
+            MockSystemUpdateManager.UPDATE_STATUS[key];
+          MockAppUpdateManager.status =
+            MockAppUpdateManager.UPDATE_STATUS.UPDATE_UNAVAILABLE;
+          updateCheck._updateStatus();
+
+          assert.equal(updateCheck._elements.systemUpdateInfo
+            .getAttribute('data-l10n-id'),
+            STATUS_MAP[MockSystemUpdateManager.UPDATE_STATUS[key]]);
+          assert.isFalse(updateCheck._elements.systemUpdateInfoMenuItem.hidden);
+        }
       });
     });
   });

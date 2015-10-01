@@ -3,8 +3,7 @@
 /* global
    asyncStorage,
    ManifestHelper,
-   Service,
-   UpdateManager
+   Service
  */
 
 /*
@@ -30,7 +29,7 @@ function AppUpdatable(app) {
   this.size = app.downloadSize;
   this.progress = null;
 
-  UpdateManager.addToUpdatableApps(this);
+  Service.request('UpdateManager:addToUpdatableApps', this);
   app.ondownloadavailable = this.availableCallBack.bind(this);
   if (app.downloadAvailable) {
     this.availableCallBack();
@@ -41,7 +40,7 @@ function AppUpdatable(app) {
 }
 
 AppUpdatable.prototype.download = function() {
-  UpdateManager.addToDownloadsQueue(this);
+  Service.request('UpdateManager:addToDownloadsQueue', this);
   this.progress = 0;
 
   this.app.download();
@@ -69,7 +68,7 @@ AppUpdatable.prototype.availableCallBack = function() {
   this.size = this.app.downloadSize;
 
   if (this.app.installState === 'installed') {
-    UpdateManager.addToUpdatesQueue(this);
+    Service.request('UpdateManager:addToUpdatesQueue', this);
 
     // we add these callbacks only now to prevent interfering
     // with other modules (especially the AppInstallManager)
@@ -94,9 +93,9 @@ AppUpdatable.prototype.successCallBack = function() {
     });
   }
 
-  UpdateManager.downloaded(this);
-  UpdateManager.removeFromDownloadsQueue(this);
-  UpdateManager.removeFromUpdatesQueue(this);
+  Service.request('UpdateManager:downloaded', this);
+  Service.request('UpdateManager:removeFromDownloadsQueue', this);
+  Service.request('UpdateManager:removeFromUpdatesQueue', this);
 };
 
 AppUpdatable.prototype.applyUpdate = function() {
@@ -112,10 +111,10 @@ AppUpdatable.prototype.errorCallBack = function(e) {
   var app = e.application;
   var errorName = app.downloadError.name;
   console.info('downloadError event, error code is', errorName);
-  UpdateManager.requestErrorBanner();
-  UpdateManager.removeFromDownloadsQueue(this);
+  Service.request('UpdateManager:requestErrorBanner', this);
+  Service.request('UpdateManager:removeFromDownloadsQueue', this);
   if (!app.downloadAvailable) {
-    UpdateManager.removeFromUpdatesQueue(this);
+    Service.request('UpdateManager:removeFromUpdatesQueue', this);
   }
   this.progress = null;
 };
@@ -123,14 +122,14 @@ AppUpdatable.prototype.errorCallBack = function(e) {
 AppUpdatable.prototype.progressCallBack = function() {
   if (this.progress === null) {
     // this is the first progress
-    UpdateManager.addToDownloadsQueue(this);
+    Service.request('UpdateManager:addToDownloadsQueue', this);
     this.progress = 0;
   }
 
   var delta = this.app.progress - this.progress;
 
   this.progress = this.app.progress;
-  UpdateManager.downloadProgressed(delta);
+  Service.request('UpdateManager:downloadProgressed', delta);
 };
 
 /*
@@ -144,15 +143,73 @@ function SystemUpdatable() {
   this.downloading = false;
   this.paused = false;
   this.showingApplyPrompt = false;
+  this._readyPromise = null;
+  this._idleObserver = null;
+  this._providerInfos = null;
+  this._updateManager = window.navigator.updateManager;
 
+  Service.register('updateCheck', this);
+
+  this._initUpdateProvider();
   // XXX: this state should be kept on the platform side
   // https://bugzilla.mozilla.org/show_bug.cgi?id=827090
-  this.checkKnownUpdate(UpdateManager.checkForUpdates.bind(UpdateManager));
-
-  window.addEventListener('mozChromeEvent', this);
+  this.checkKnownUpdate().then((value) => {
+    if (value) {
+      this.updateCheck();
+    }
+  });
 }
 
 SystemUpdatable.KNOWN_UPDATE_FLAG = 'known-sysupdate';
+SystemUpdatable.APPLY_IDLE_TIMEOUT = 600;
+
+SystemUpdatable.prototype._initUpdateProvider = function() {
+  this._ready().then((provider) => {
+    if (provider) {
+      provider.addEventListener('updateavailable', this);
+      provider.addEventListener('updateready', this);
+      provider.addEventListener('progress', this);
+      provider.addEventListener('error', this);
+    }
+  });
+};
+
+/**
+ * Get active provider before perform other operations.
+ * If can't get active provider from `getActiveProvider` api,
+ * try to choose first provider and set it as the active provider.
+ */
+SystemUpdatable.prototype._ready = function() {
+  if (!this._readyPromise) {
+    this._readyPromise =
+    this._updateManager.getProviders().then((providerInfos) => {
+      this._providerInfos = providerInfos;
+      return this._updateManager.getActiveProvider();
+    }).then((activeProvider) => {
+      if (!activeProvider) {
+        if (this._providerInfos.length > 0) {
+          return this._updateManager.setActiveProvider(
+            this._providerInfos[0].uuid);
+        } else {
+          return Promise.reject();
+        }
+      } else {
+        return activeProvider;
+      }
+    }).catch(() => {
+      this.warn('No update provider.');
+    });
+  }
+  return this._readyPromise;
+},
+
+SystemUpdatable.prototype.updateCheck = function() {
+  this._ready().then((provider) => {
+    if (provider) {
+      provider.checkForUpdate();
+    }
+  });
+};
 
 SystemUpdatable.prototype.download = function() {
   if (this.downloading) {
@@ -161,66 +218,64 @@ SystemUpdatable.prototype.download = function() {
 
   this.downloading = true;
   this.paused = false;
-  UpdateManager.addToDownloadsQueue(this);
+  Service.request('UpdateManager:addToDownloadsQueue', this);
   this.progress = 0;
-  this._dispatchEvent('update-available-result', 'download');
+
+  this._ready().then((provider) => {
+    provider.startDownload();
+  });
 };
 
 SystemUpdatable.prototype.cancelDownload = function() {
-  this._dispatchEvent('update-download-cancel');
+  this._ready().then((provider) => {
+    provider.stopDownload();
+  });
   this.downloading = false;
   this.paused = false;
 };
 
 SystemUpdatable.prototype.uninit = function() {
-  window.removeEventListener('mozChromeEvent', this);
+  this._ready().then((provider) => {
+    if (provider) {
+      provider.removeEventListener('updateavailable', this);
+      provider.removeEventListener('updateready', this);
+      provider.removeEventListener('progress', this);
+      provider.removeEventListener('error', this);
+    }
+  });
 };
 
 SystemUpdatable.prototype.handleEvent = function(evt) {
-  if (evt.type !== 'mozChromeEvent') {
-    return;
-  }
-
-  var detail = evt.detail;
-  if (!detail.type) {
-    return;
-  }
-
-  switch (detail.type) {
-    case 'update-error':
-      this.errorCallBack();
+  switch (evt.type) {
+    case 'updateavailable':
+      var packageInfo = evt.detail.packageInfo;
+      this.size = packageInfo.size;
+      this.rememberKnownUpdate();
+      Service.request('UpdateManager:addToUpdatesQueue', this);
       break;
-    case 'update-download-started':
-      // TODO UpdateManager glue
-      this.paused = false;
+    case 'updateready':
+      this.downloading = false;
+      Service.request('UpdateManager:downloaded', this);
+      this.showApplyPrompt(true);
       break;
-    case 'update-download-progress':
-      var delta = detail.progress - this.progress;
-      this.progress = detail.progress;
+    case 'progress':
+      var delta = evt.loaded - this.progress;
+      this.progress = evt.loaded;
 
-      UpdateManager.downloadProgressed(delta);
-      break;
-    case 'update-download-stopped':
-      // TODO UpdateManager glue
-      this.paused = detail.paused;
-      if (!this.paused) {
-        UpdateManager.startedUncompressing();
+      if (evt.loaded/evt.total === 1) {
+        Service.request('UpdateManager:startedUncompressing');
+      } else {
+        Service.request('UpdateManager:downloadProgressed', delta);
       }
       break;
-    case 'update-downloaded':
-      this.downloading = false;
-      UpdateManager.downloaded(this);
-      this.showApplyPrompt(detail.isOSUpdate);
-      break;
-    case 'update-prompt-apply':
-      this.showApplyPrompt(detail.isOSUpdate);
+    case 'error':
       break;
   }
 };
 
 SystemUpdatable.prototype.errorCallBack = function() {
-  UpdateManager.requestErrorBanner();
-  UpdateManager.removeFromDownloadsQueue(this);
+  Service.request('UpdateManager:requestErrorBanner');
+  Service.request('UpdateManager:removeFromDownloadsQueue', this);
   this.downloading = false;
 };
 
@@ -319,9 +374,17 @@ SystemUpdatable.prototype.showApplyPromptBatteryOk = function() {
 SystemUpdatable.prototype.declineInstall = function(reason) {
   this.showingApplyPrompt = false;
   Service.request('hideCustomDialog');
-  this._dispatchEvent('update-prompt-apply-result', reason);
-
-  UpdateManager.removeFromDownloadsQueue(this);
+  switch(reason) {
+    case 'low-battery':
+      // do nothing
+      break;
+    case 'wait':
+      // register an idle observer and apply the update directly if users are
+      // idle for more than ten minutes.
+      this._registerIdleObserver();
+      break;
+  }
+  Service.request('UpdateManager:removeFromDownloadsQueue', this);
 };
 
 SystemUpdatable.prototype.declineInstallBattery = function() {
@@ -331,7 +394,6 @@ SystemUpdatable.prototype.declineInstallBattery = function() {
 SystemUpdatable.prototype.declineInstallWait = function() {
   this.declineInstall('wait');
 };
-
 
 SystemUpdatable.prototype.acceptInstall = function() {
   Service.request('hideCustomDialog');
@@ -349,20 +411,20 @@ SystemUpdatable.prototype.acceptInstall = function() {
   var screen = document.getElementById('screen');
   screen.appendChild(splash);
 
-  this._dispatchEvent('update-prompt-apply-result', 'restart');
+  this._ready().then((provider) => {
+    provider.applyUpdate();
+  });
 };
 
 SystemUpdatable.prototype.rememberKnownUpdate = function() {
   asyncStorage.setItem(SystemUpdatable.KNOWN_UPDATE_FLAG, true);
 };
 
-SystemUpdatable.prototype.checkKnownUpdate = function(callback) {
-  if (typeof callback !== 'function') {
-    return;
-  }
-
-  asyncStorage.getItem(SystemUpdatable.KNOWN_UPDATE_FLAG, function(value) {
-    callback(!!value);
+SystemUpdatable.prototype.checkKnownUpdate = function() {
+  return new Promise(function(resolve) {
+    asyncStorage.getItem(SystemUpdatable.KNOWN_UPDATE_FLAG, function(value) {
+      resolve(!!value);
+    });
   });
 };
 
@@ -370,13 +432,14 @@ SystemUpdatable.prototype.forgetKnownUpdate = function() {
   asyncStorage.removeItem(SystemUpdatable.KNOWN_UPDATE_FLAG);
 };
 
-SystemUpdatable.prototype._dispatchEvent = function(type, result) {
-  var event = document.createEvent('CustomEvent');
-  var data = { type: type };
-  if (result) {
-    data.result = result;
-  }
-
-  event.initCustomEvent('mozContentEvent', true, true, data);
-  window.dispatchEvent(event);
+SystemUpdatable.prototype._registerIdleObserver = function() {
+  this._idleObserver = {
+    time: SystemUpdatable.APPLY_IDLE_TIMEOUT,
+    onidle: () => {
+      this._ready().then((provider) => {
+        provider.applyUpdate();
+      });
+    }
+  };
+  navigator.addIdleObserver(this._idleObserver);
 };
