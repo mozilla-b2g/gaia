@@ -119,6 +119,7 @@
   list-style: none;
   margin-top: 0.4rem;
   -moz-padding-start: 0;
+  -moz-padding-end: 0;
 }
 
 #updates-download-dialog li {
@@ -138,6 +139,22 @@
   color: #ebebeb;
   font-size: 1.4rem;
   line-height: 1.7rem;
+}
+
+#updates-download-dialog span.font-light {
+  font-weight: 300;
+}
+
+#updates-download-dialog a {
+  font-size: 1.4rem;
+  line-height: 1.7rem;
+  color: #00caf2;
+  display: block;
+  text-decoration: none;
+}
+
+#updates-download-dialog a:active {
+  color: #00aacc;
 }
 
 #updates-download-dialog li .name {
@@ -253,10 +270,6 @@ html[dir="rtl"] #update-manager-toaster > .icon {
 html[dir="rtl"] #update-manager-toaster > .message {
   left: unset;
   right: 5rem;
-}
-
-html[dir="rtl"] #updates-download-dialog label {
-  float: left;
 }
 
 html[dir="rtl"] #updates-download-dialog label.required {
