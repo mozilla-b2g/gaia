@@ -106,6 +106,7 @@ exports.Navigation = {
       var app = evt.target.result;
       app.connect('ftucomms').then(function onConnAccepted(ports) {
         self.ports = ports;
+        ports.forEach(port => port.postMessage('started'));
       }, function onConnRejected(reason) {
         console.warn('FTU navigation cannot use IAC: ' + reason);
       });

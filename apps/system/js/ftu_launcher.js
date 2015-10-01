@@ -184,10 +184,19 @@
 
     '_handle_iac-ftucomms': function(evt) {
       var message = evt.detail;
-      if (message === 'done') {
-        this.setBypassHome(true);
-      } else if (evt.detail.type === 'step') {
-        this.updateStep(evt.detail.hash);
+      switch (message) {
+        case 'started':
+          this.publish('started');
+          break;
+        case 'done':
+          this.setBypassHome(true);
+          break;
+        default:
+          if (message.type === 'step') {
+            this.updateStep(evt.detail.hash);
+            this.publish('step');
+          }
+          break;
       }
     },
 

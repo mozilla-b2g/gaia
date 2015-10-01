@@ -51,6 +51,13 @@
     HINTS_TIMEOUT: 2000,
 
     /**
+     * Default timeout value (in milliseconds) between the launch of the FTU and
+     * the time when screen reader instructions should be spoken.
+     * @type {Number}
+     */
+    FTU_STARTED_TIMEOUT: 15000,
+
+    /**
      * Current counter for button presses in short succession.
      * @type {Number}
      * @memberof Accessibility.prototype
@@ -85,6 +92,7 @@
       'accessibility.screenreader-rate': 0,
       'accessibility.screenreader-captions': false,
       'accessibility.screenreader-shade': false,
+      'accessibility.screenreader-ftu-timeout-seconds': 15,
       'accessibility.colors.enable': false,
       'accessibility.colors.invert': false,
       'accessibility.colors.grayscale': false,
@@ -131,6 +139,7 @@
       window.addEventListener('volumedown', this);
       window.addEventListener('logohidden', this);
       window.addEventListener('screenchange', this);
+      window.addEventListener('ftustarted', this);
 
       // Attach all observers.
       Object.keys(this.settings).forEach(function attach(settingKey) {
@@ -192,6 +201,9 @@
                   }
                   SettingsListener.getSettingsLock().set(gfxSetting);
                 }
+                break;
+              case 'accessibility.screenreader-ftu-timeout-seconds':
+                this.FTU_STARTED_TIMEOUT = 1000 * aValue;
                 break;
             }
           }.bind(this));
@@ -257,6 +269,7 @@
       }
 
       this.reset();
+      this.disableFTUStartedTimeout();
 
       if (!this.isSpeaking && timeStamp > this.expectedCompleteTimeStamp) {
         this.cancelSpeech();
@@ -272,6 +285,47 @@
         'accessibility.screenreader':
           !this.settings['accessibility.screenreader']
       });
+    },
+
+    /**
+     * Announce screen reader FTU_STARTED_TIMEOUT milliseconds after the FTU is
+     * loaded if the user does not proceed beyond the first step.
+     * @param  {Object} aEvent an event object generated from FTU launcher.
+     */
+    handleFTUStarted: function ar_handleFTUStarted(aEvent) {
+      if (this.settings['accessibility.screenreader']) {
+        // Only set the FTU timeout if the screen reader is not enabled.
+        return;
+      }
+
+      window.addEventListener('ftustep', this);
+
+      this.FTUStartedTimeout = setTimeout(() => {
+        this.cancelSpeech();
+        this.reset();
+        this.announceScreenReader(() =>
+          this.resetSpeaking(aEvent.timeStamp +
+            this.REPEAT_BUTTON_PRESS + this.FTU_STARTED_TIMEOUT * 1000));
+      }, this.FTU_STARTED_TIMEOUT);
+    },
+
+    /**
+     * Disable a timeout before the screen reader starts speaking in FTU.
+     */
+    disableFTUStartedTimeout: function ar_disableFTUStartedTimeout() {
+      clearTimeout(this.FTUStartedTimeout);
+    },
+
+    /**
+     * Reset FTU timeout and stop any spoken instructions if the user steps to
+     * the next FTU screen.
+     */
+    handleFTUStep: function ar_handleFTUStep() {
+      this.disableFTUStartedTimeout();
+      this.cancelSpeech();
+      this.reset();
+
+      window.removeEventListener('ftustep', this);
     },
 
     /**
@@ -427,6 +481,12 @@
           break;
         case 'logohidden':
           this.activateScreen();
+          break;
+        case 'ftustarted':
+          this.handleFTUStarted(aEvent);
+          break;
+        case 'ftustep':
+          this.handleFTUStep();
           break;
         case 'mozChromeEvent':
           switch (aEvent.detail.type) {

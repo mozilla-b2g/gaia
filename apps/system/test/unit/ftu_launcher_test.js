@@ -19,6 +19,13 @@ suite('launch ftu >', function() {
   mocksForFtuLauncher.attachTestHelpers();
   var realAsyncStorage, realMozSettings, realFtuPing, subject;
 
+  var mockIACFTUCommsStartedEvent = {
+    detail: 'started'
+  };
+  var mockIACFTUCommsStepEvent = {
+    detail: { type: 'step' }
+  };
+
   suiteSetup(function() {
     realFtuPing = window.FtuPing;
     realAsyncStorage = window.asyncStorage;
@@ -58,6 +65,23 @@ suite('launch ftu >', function() {
       this.sinon.stub(VersionHelper, 'getVersionInfo').returns(fakePromise);
       subject.start();
       assert.ok(subject.getFtuPing().ensurePingCalled);
+    });
+  });
+
+  suite('_handle_iac-ftucomms', function() {
+    var publishStub;
+    setup(function() {
+      publishStub = this.sinon.stub(subject, 'publish');
+    });
+
+    test('handle started event', function() {
+      subject['_handle_iac-ftucomms'](mockIACFTUCommsStartedEvent);
+      assert.isTrue(publishStub.calledWith('started'));
+    });
+
+    test('handle step event', function() {
+      subject['_handle_iac-ftucomms'](mockIACFTUCommsStepEvent);
+      assert.isTrue(publishStub.calledWith('step'));
     });
   });
 
