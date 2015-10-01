@@ -76,13 +76,19 @@ marionette('Music player playlist', function() {
         {
           type: 'music',
           filePath: 'apps/music/test-data/playlists/03.ogg'
+        },
+        {
+          type: 'music',
+          filePath:
+          'test_media/samples/Music/treasure_island_01-02_stevenson.ogg'
         }
       ]);
-    });
 
-    test('Check the sort order', function() {
       music.launch();
       music.waitForFirstTile();
+    });
+
+    test('Check the sort order #1', function() {
       music.switchToAlbumsView();
 
       music.selectAlbum('Where is Julian Assange?');
@@ -105,12 +111,27 @@ marionette('Music player playlist', function() {
       assert.equal(songs[2].title, 'The Ecuadorian Embassy');
     });
 
+    test('Check the sort order #2', function() {
+      music.switchToAlbumsView();
+
+      music.selectAlbum('Treasure Island');
+
+      music.waitForSongs(function(songs) {
+        return songs.length >= 1;
+      });
+
+      var songs = music.songs;
+
+      assert.equal(songs[0].index, '');
+      assert.equal(songs[0].title,
+                   '01 At the Admiral Benbow - ' +
+                   '02 Black Dog Appears and Disappears');
+    });
+
     test('Check the playlist indexes', function() {
       // this test will check that the index value of each song is the index
       // and not the track number.
       // See bug 1129708
-      music.launch();
-      music.waitForFirstTile();
       music.switchToPlaylistsView();
 
       music.selectPlaylist('Recently added');
@@ -121,7 +142,7 @@ marionette('Music player playlist', function() {
 
       var songs = music.songs;
 
-      assert.equal(songs.length, 3);
+      assert.equal(songs.length, 4);
       assert.equal(songs[0].index, '1');
       assert.equal(songs[1].index, '2');
       assert.equal(songs[2].index, '3');
