@@ -71,24 +71,32 @@ global.mozIntl = {
   DateTimeFormat: function(locales, options) {
     const resolvedOptions = Object.assign({}, options);
 
-    if (options.dayperiod) {
-      if (!('hour' in options)) {
+    if (resolvedOptions.dayperiod) {
+      if (resolvedOptions.hour === undefined) {
         resolvedOptions.hour = 'numeric';
       }
     }
 
-    if (resolvedOptions.hour &&
-        !options.hasOwnProperty('hour12')) {
+    if (resolvedOptions.hour !== undefined &&
+        resolvedOptions.hour12 === undefined) {
       resolvedOptions.hour12 = navigator.mozHour12;
+    }
+
+    if (resolvedOptions.dayperiod === undefined &&
+        resolvedOptions.hour12 === true) {
+      resolvedOptions.dayperiod = true;
     }
 
     var intlFormat = new Intl.DateTimeFormat(locales, resolvedOptions);
 
+    resolvedOptions.locale = intlFormat.resolvedOptions().locale;
+    resolvedOptions.hour12 = intlFormat.resolvedOptions().hour12;
+
     // This is needed for a workaround for bug 1208808
     // Remove when that bug is fixed
     var hourFormatter;
-    if (options.dayperiod === true || options.dayperiod === false &&
-        intlFormat.resolvedOptions().hour12 === true) {
+    if (resolvedOptions.dayperiod !== undefined &&
+        resolvedOptions.hour12 === true) {
       hourFormatter = Intl.DateTimeFormat(locales, {
         hour: 'numeric',
         hour12: false
@@ -102,11 +110,11 @@ global.mozIntl = {
 
         var string = intlFormat.format(date);
 
-        if (options.dayperiod === false &&
-            intlFormat.resolvedOptions().hour12 === true) {
+        if (resolvedOptions.dayperiod === false &&
+            resolvedOptions.hour12 === true) {
           dayPeriod = getDayPeriodTokenForDate(date, hourFormatter);
           string = string.replace(dayPeriod, '').trim();
-        } else if (options.dayperiod === true &&
+        } else if (resolvedOptions.dayperiod === true &&
            options.hour === undefined) {
           dayPeriod = getDayPeriodTokenForDate(date, hourFormatter);
           const hour = date.toLocaleString(navigator.languages, {
@@ -118,7 +126,7 @@ global.mozIntl = {
 
         for (var token in tokenFormats) {
           if (token === 'dayperiod' &&
-            intlFormat.resolvedOptions().hour12 === false) {
+            resolvedOptions.hour12 === false) {
             continue;
           }
           const localOptions = {
@@ -162,33 +170,38 @@ global.mozIntl = {
    * because it relies on L20n so it has to be asynchronous.
    * Intl API will probably be synchronous.
    *
-   * Currently accepted tokens:
+   * Currently accepted options:
+   *  - maxUnit
+   *  - minUnit
+   * both can take values hour | minute | second | millisecond
    *
-   * 1) hms - Hours, Minutes, Seconds
+   * Examples:
    *
    * mozIntl.DurationFormat(navigator.languages, {
-   *   type: 'hmS'
+   *   minUnit: 'second',
+   *   maxUnit: 'hour'
    * }).then(formatter =>
    *   formatter.format(milliseconds); // 02:12:34 in en-US
    * );
    *
-   * 2) msS - Minutes, Seconds, Milliseconds
-   *
    * mozIntl.DurationFormat(navigator.languages, {
+   *   minUnit: 'millisecond',
+   *   maxUnit: 'minute'
    * }).then(formatter =>
    *   formatter.format(milliseconds); // 12:34.80 in en-US
    * );
    *
    * @param {Array} An array of languages
-   * @param {Array} Options object with `type`
+   * @param {Array} Options object with `minUnit` and `maxUnit`
    * @returns {Promise} A promise of a formatter
    */
-  DurationFormat: function(locales, options) {
-    const type = options.type;
+  DurationFormat: function(locales = navigator.languages, options = {}) {
 
-    if (!durationFormats.hasOwnProperty(type)) {
-      throw new Error('Unknown formatting type: ' + type);
-    }
+    const resolvedOptions = Object.assign({
+      locale: locales[0],
+      maxUnit: 'hour',
+      minUnit: 'second',
+    }, options);
 
     const numFormatter = Intl.NumberFormat(locales, {
       style: 'decimal',
@@ -196,27 +209,38 @@ global.mozIntl = {
       minimumIntegerDigits: 2
     });
 
-    return navigator.mozL10n.formatValue('timePattern_' + type).then(fmt => {
-      return {
-        format: function(input) {
-          const format = durationFormats[type];
-          const duration = splitIntoTimeUnits(input, format.max, format.min);
+    const maxUnitIdx = getDurationUnitIdx(resolvedOptions.maxUnit, 0);
+    const minUnitIdx = getDurationUnitIdx(resolvedOptions.minUnit,
+      durationFormatOrder.length - 1);
 
-          if (duration.hasOwnProperty('millisecond')) {
-            // We round milliseconds to 2-digit
-            duration.millisecond =
-              Math.round(duration.millisecond / 10);
-          }
+    return navigator.mozL10n.formatValue('durationPattern').then(fmt => ({
+      resolvedOptions: function() { return resolvedOptions; },
+      format: function(input) {
+        const duration = splitIntoTimeUnits(input, maxUnitIdx, minUnitIdx);
 
-          var string = fmt;
-
-          format.tokens.forEach(([token, unit]) =>
-            string = string.replace(token, numFormatter.format(duration[unit]))
-          );
-          return string;
+        if (duration.hasOwnProperty('millisecond')) {
+          // We round milliseconds to 2-digit
+          duration.millisecond =
+            Math.round(duration.millisecond / 10);
         }
-      };
-    });
+
+        var string = trimDurationPattern(fmt,
+          resolvedOptions.maxUnit, resolvedOptions.minUnit);
+
+
+        for (var unit in duration) {
+          const token = durationFormatElements[unit].token;
+
+          string = string.replace(token,
+            numFormatter.format(duration[unit]));
+        }
+
+        if (input < 0) {
+          return '-' + string;
+        }
+        return string;
+      }
+    }));
   },
 
   /**
@@ -253,6 +277,7 @@ global.mozIntl = {
    */
   RelativeTimeFormat: function(locales, options) {
     return {
+      resolvedOptions: function() { return options; },
       /*
        * ECMA 402 rev 3., 1.3.4, FormatRelativeTime
        *
@@ -328,40 +353,13 @@ global.mozIntl = {
 /*
  * This data is used by DurationFormat
  */
-const durationUnits = [
-  ['year', 3600000 * 24 * 365], // 1000 * 60 * 60 * 24 * 365
-  ['month', 3600000 * 24 * 30], // 1000 * 60 * 60 * 24 * 30
-  ['week', 3600000 * 24 * 7], // 1000 * 60 * 60 * 24 * 7
-  ['day', 3600000 * 24], // 1000 * 60 * 60 * 24
-  ['hour', 3600000], // 1000 * 60 * 60
-  ['minute', 60000], // 1000 * 60
-  ['second', 1000],
-  ['millisecond', 1],
-];
-
-/*
- * This data is used by DurationFormat
- */
 /*jshint unused:false*/
-const durationFormats = {
-  'hms': {
-    max: 'hour',
-    min: 'second',
-    tokens: [
-      ['hh', 'hour'],
-      ['mm', 'minute'],
-      ['ss', 'second']
-    ]
-  },
-  'msS': {
-    max: 'minute',
-    min: 'millisecond',
-    tokens: [
-      ['mm', 'minute'],
-      ['ss', 'second'],
-      ['SS', 'millisecond']
-    ]
-  },
+const durationFormatOrder = ['hour', 'minute', 'second', 'millisecond'];
+const durationFormatElements = {
+  'hour': {value: 3600000, token: 'hh'},
+  'minute': {value: 60000, token: 'mm'},
+  'second': {value: 1000, token: 'ss'},
+  'millisecond': {value: 1, token: 'SS'}
 };
 
 /*
@@ -371,13 +369,44 @@ function getDurationUnitIdx(name, defaultValue) {
   if (!name) {
     return defaultValue;
   }
-  const pos = durationUnits.findIndex(unit => unit[0] === name);
+  const pos = durationFormatOrder.indexOf(name);
   if (pos === -1) {
     throw new Error('Unknown unit type: ' + name);
   }
   return pos;
 }
 
+/*
+ * This helper function is used by DurationFormat
+ */
+function splitIntoTimeUnits(v, maxUnitIdx, minUnitIdx) {
+  const units = {};
+  var input = Math.abs(v);
+
+
+  for (var i = maxUnitIdx; i <= minUnitIdx; i++) {
+    const key = durationFormatOrder[i];
+    const {value} = durationFormatElements[key];
+    units[key] = i == minUnitIdx ? 
+      Math.round(input / value) :
+      Math.floor(input / value);
+    input -= units[key] * value;
+  }
+  return units;
+}
+
+function trimDurationPattern(string, maxUnit, minUnit) {
+  const maxToken = durationFormatElements[maxUnit].token;
+  const minToken = durationFormatElements[minUnit].token;
+
+  // We currently know of no format that would require reverse order
+  // Even RTL languages use LTR duration formatting, so all we care
+  // are separators.
+  string = string.substr(
+    string.indexOf(maxToken),
+    string.indexOf(minToken) + minToken.length);
+  return string;
+}
 
 /**
  * This helper function is used by mozIntl.DateTimeFormat
@@ -417,27 +446,6 @@ function computeTimeUnits(v) {
   units.month = Math.round(rawYear * 12);
   units.quarter = Math.round(rawYear * 4);
   units.year = Math.round(rawYear);
-  return units;
-}
-
-/*
- * This helper function is used by DurationFormat
- */
-function splitIntoTimeUnits(v, maximumUnit, minimumUnit) {
-  const units = {};
-  var input = Math.abs(v);
-
-  const maxUnitIdx = getDurationUnitIdx(maximumUnit, 0);
-  const minUnitIdx =
-    getDurationUnitIdx(minimumUnit, durationUnits.length - 1);
-
-  for (var i = maxUnitIdx; i <= minUnitIdx; i++) {
-    const [key, value] = durationUnits[i];
-    units[key] = i == minUnitIdx ? 
-      Math.round(input / value) :
-      Math.floor(input / value);
-    input -= units[key] * value;
-  }
   return units;
 }
 
