@@ -2,7 +2,6 @@ define(function(require) {
 'use strict';
 
 var Utils = require('utils');
-var mozL10n = require('l10n');
 var AudioManager = require('audio_manager');
 var PostMessageProxy = require('./panels/alarm/post_message_proxy');
 var ChildWindowManager = require('./panels/alarm/child_window_manager');
@@ -13,6 +12,23 @@ var ChildWindowManager = require('./panels/alarm/child_window_manager');
  * ideally it would display all events that fire, but currently it
  * only shows the most recent event.
  */
+
+function whenDocumentReady() {
+  return new Promise(function(resolve, reject) {
+    if (document.readyState === 'complete') {
+      resolve();
+    } else {
+      const listener = function() {
+        if (document.readyState === 'complete') {
+          resolve();
+          document.removeEventListener('readystatechange', listener);
+        }
+      };
+      document.addEventListener('readystatechange', listener);
+    }
+  });
+}
+
 function RingView() {
   this.alerts = [];
   this.ringtonePlayer = AudioManager.createAudioPlayer({
@@ -29,7 +45,10 @@ function RingView() {
   PostMessageProxy.receive('ringView', this);
 
   if (window.opener) {
-    mozL10n.once(() => {
+    // We have to wait for the document.readyState to be complete before
+    // we fireReady. Otherwise, when the screen is off, it doesn't get
+    // turned back on at all
+    whenDocumentReady().then(() => {
       ChildWindowManager.fireReady();
     });
   }
@@ -119,7 +138,7 @@ RingView.prototype = {
     this.ringDisplay.dataset.ringType = alert.type;
 
     // Set the time to display.
-    this.time.innerHTML = Utils.getLocalizedTimeHtml(alert.time);
+    this.time.innerHTML = Utils.getLocalizedTimeText(alert.time);
 
     if (alert.sound) {
       this.ringtonePlayer.playRingtone(alert.sound);

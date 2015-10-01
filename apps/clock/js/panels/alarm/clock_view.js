@@ -1,11 +1,17 @@
 define(function(require) {
 'use strict';
+ /* global IntlHelper */
 
 var asyncStorage = require('shared/js/async_storage');
 var Utils = require('utils');
 var SETTINGS_CLOCKMODE = 'settings_clockoptions_mode';
-var mozL10n = require('l10n');
 var viewMode = null;
+
+IntlHelper.define('date-long', 'mozdatetime', {
+  weekday: 'long',
+  month: 'long',
+  day: 'numeric'
+});
 
 // Retrieve stored view mode data as early as possible.
 asyncStorage.getItem(SETTINGS_CLOCKMODE, function(value) {
@@ -89,7 +95,6 @@ var ClockView = {
     this.digital.addEventListener('click', handler, false);
     window.addEventListener('alarm-list-changed',
                             this.resizeAnalogClock.bind(this));
-    window.addEventListener('timeformatchange', this.update.bind(this));
 
     this.hands = {};
     ['second', 'minute', 'hour'].forEach(function(hand) {
@@ -97,6 +102,13 @@ var ClockView = {
     }, this);
     // Kick off the day date display (upper left string)
     this.updateDayDate();
+
+    // This will get fired on language change
+    IntlHelper.observe('date-long', this.updateDayDate.bind(this));
+
+    // Those two will get fired on language and timeformat changes
+    IntlHelper.observe('time-html', this.updateDigitalClock.bind(this));
+    IntlHelper.observe('time-text', this.updateAnalogClock.bind(this));
 
     // If the attempt to request and set the viewMode
     // closure early has failed to respond before the
@@ -116,19 +128,19 @@ var ClockView = {
 
   updateDayDate: function cv_updateDayDate() {
     var d = new Date();
-    var f = new mozL10n.DateTimeFormat();
-    var format = mozL10n.get('dateFormat');
-
-    // If the date of the month is part of the locale format as a
-    // number, insert bold tags to accentuate the number itself. %d
-    // and %e are strings that represent the day of the month (1-31).
-    format = format.replace(/(%d|%e)/g, '<b>$1</b>');
+    var f = IntlHelper.get('date-long');
 
     var remainMillisecond = (24 - d.getHours()) * 3600 * 1000 -
                             d.getMinutes() * 60 * 1000 -
                             d.getMilliseconds();
 
-    this.dayDate.innerHTML = f.localeFormat(d, format);
+    // If the date of the month is part of the locale format as a
+    // number, insert bold tags to accentuate the number itself.
+    var dateString = f.format(d, {
+      day: '<b>$&</b>'
+    });
+
+    this.dayDate.innerHTML = dateString;
 
     this.timeouts.dayDate = setTimeout(
       this.updateDayDate.bind(this), remainMillisecond
@@ -148,6 +160,9 @@ var ClockView = {
   updateDigitalClock: function cv_updateDigitalClock(opts) {
     opts = opts || {};
 
+    // this function may be called manually, reset the timer
+    clearTimeout(this.timeouts.digital);
+
     var d = new Date();
     this.time.innerHTML = Utils.getLocalizedTimeHtml(d);
     this.timeouts.digital = setTimeout(
@@ -157,6 +172,9 @@ var ClockView = {
 
   updateAnalogClock: function cv_updateAnalogClock(opts) {
     opts = opts || {};
+
+    // this function may be called manually, reset the timer
+    clearTimeout(this.timeouts.analog);
 
     if (opts.needsResize) {
       this.resizeAnalogClock();
@@ -217,12 +235,8 @@ var ClockView = {
         } else if (!document.hidden) {
           // Refresh the view when app return to foreground.
           this.updateDayDate();
+          this.update();
 
-          if (this.mode === 'digital') {
-            this.updateDigitalClock();
-          } else if (this.mode === 'analog') {
-            this.updateAnalogClock();
-          }
         }
         break;
 
