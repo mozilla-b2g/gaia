@@ -65,7 +65,7 @@ Music.Selector = Object.freeze({
   searchNoResult: '#views-search-no-result',
 
   tilesView: '#tiles',
-  firstSong: '#list a',
+  listItem: '#list .gfl-item',
   playButton: '#player-controls-play',
   progressBar: '#player-seek-bar-progress',
   shareButton: 'button[data-action="share"]',
@@ -173,7 +173,7 @@ Music.prototype = {
 
   // get the first song from the active frame.
   get firstSong() {
-    return this.client.helper.waitForElement(Music.Selector.firstSong);
+    return this.client.helper.waitForElement(Music.Selector.listItem);
   },
 
   getStarRating: function() {
@@ -234,8 +234,7 @@ Music.prototype = {
 
     var listItems = this.client.executeScript(
       'var parse = ' + this.parseListItemsData.toString() + '\n' +
-      'var list = document.getElementById(\'list\');\n' +
-      'var elements = list.querySelectorAll(\'a\');\n' +
+      'var elements = document.querySelectorAll(\'.gfl-item\');\n' +
       'return parse(elements);\n'
     );
 
@@ -533,7 +532,7 @@ Music.prototype = {
     assert.ok(frame, 'expected a valid frame');
     this.client.switchToFrame(frame);
 
-    var elements = this.client.findElements('#list a');
+    var elements = this.client.findElements('#list .gfl-item');
     assert.ok(elements.length > 0);
 
     var matching = elements.filter(function (element) {

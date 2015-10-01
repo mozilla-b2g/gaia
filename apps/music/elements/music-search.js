@@ -4,6 +4,8 @@
 
 var proto = Object.create(HTMLElement.prototype);
 
+proto.HEIGHT = 37;
+
 var template =
 `<style>
   [data-icon]:before { /* Copied from /components/gaia-icons/gaia-icons.css */
@@ -25,7 +27,7 @@ var template =
     background-color: #202020;
     position: relative;
     width: 100%;
-    height: 3.7rem;
+    height: ${proto.HEIGHT}px;
     overflow: hidden;
   }
   #form > input,
