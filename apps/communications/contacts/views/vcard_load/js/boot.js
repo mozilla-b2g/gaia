@@ -35,7 +35,8 @@ window.addEventListener('load', function() {
       VCardLoadController.setActivity(activity);
       VCardHandler.handle(activity)
       .then(contacts => {
-        var filename = VCardHandler.getFileName(activity.source.data.filename);
+        var data = activity.source.data;
+        var filename = VCardHandler.getFileName(data.filename || data.src);
         // Do Render
         VCardLoadUI.render(contacts, filename);
       });
