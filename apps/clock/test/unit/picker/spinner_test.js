@@ -1,17 +1,12 @@
 suite('Spinner', function() {
   'use strict';
-  /* global MockIntlHelper, IntlHelper */
   
   var Spinner, GestureDetector;
   var _clientHeight;
   var VALUE_ELEMENT_HEIGHT = 20;
 
   suiteSetup(function(done) {
-    window.IntlHelper = MockIntlHelper;
-    IntlHelper.define('digit-nopadding', 'number', {
-      style: 'decimal',
-      useGrouping: false
-    });
+
     // override native clientHeight
     _clientHeight = Object.getOwnPropertyDescriptor(
       Element.prototype, 'clientHeight');

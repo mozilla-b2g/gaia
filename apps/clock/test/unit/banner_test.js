@@ -1,14 +1,8 @@
 suite('Banner', function() {
   'use strict';
-  /* global MockIntlHelper, l10nAssert */
-  var Banner;
+  var Banner, mozL10n;
 
   suiteSetup(function(done) {
-    window.IntlHelper = MockIntlHelper;
-    window.IntlHelper.define('digit-nopadding', 'number', {
-      style: 'decimal',
-      useGrouping: false
-    });
     // The timestamp for "Tue Jul 16 2013 06:00:00" according to the local
     // system's time zone
     this.sixAm = new Date(2013, 5, 16, 6).getTime();
@@ -25,9 +19,10 @@ suite('Banner', function() {
     // Instantiate the Banner once with an element
     this.noteElem = document.createElement('div');
 
-    require(['banner/main'], function(banner) {
+    require(['banner/main', 'l10n'], function(banner, l10n) {
       Banner = banner;
       this.banner = new Banner(this.noteElem);
+      mozL10n = l10n;
       done();
     }.bind(this));
   });
@@ -49,32 +44,56 @@ suite('Banner', function() {
   });
 
   suite('#render', function() {
+    setup(function() {
+      this._ = this.sinon.spy(mozL10n, 'get');
+    });
     test('minutes ahead', function() {
       // build banner
-      this.banner.show(this.minutes);
+      this.banner.render(this.minutes);
 
       // Check l10n arguments
-      l10nAssert(this.banner.notice.querySelector('p'),
-          'countdown_lessThanAnHour',
-          {minutes: 12});
+      assert.deepEqual(this._.args[0], [
+        'nMinutes', {n: 12}
+      ], 'call to get minutes first');
+      assert.deepEqual(this._.args[1], [
+        'countdown-lessThanAnHour', {
+          minutes: 'nMinutes{"n":12}'
+        }
+      ], 'call to get countdown text');
     });
     test('hours ahead', function() {
       // build banner
-      this.banner.show(this.hours);
+      this.banner.render(this.hours);
 
       // Check l10n arguments
-      l10nAssert(this.banner.notice.querySelector('p'),
-          'countdown_moreThanAnHour',
-          {minutes: 12, hour: 10});
+      assert.deepEqual(this._.args[0], [
+        'nHours', {n: 10}
+      ], 'call to get hours first');
+      assert.deepEqual(this._.args[1], [
+        'nRemainMinutes', {n: 12}
+      ], 'call to get minutes second');
+      assert.deepEqual(this._.args[2], [
+        'countdown-moreThanAnHour', {
+          hours: 'nHours{"n":10}', minutes: 'nRemainMinutes{"n":12}'
+        }
+      ], 'call to get countdown text');
     });
     test('days ahead', function() {
       // build banner
-      this.banner.show(this.days);
+      this.banner.render(this.days);
 
       // Check l10n arguments
-      l10nAssert(this.banner.notice.querySelector('p'),
-          'countdown_moreThanADay',
-          {days: 2, hour: 10});
+      assert.deepEqual(this._.args[0], [
+        'nRemainDays', {n: 2}
+      ], 'call to get days first');
+      assert.deepEqual(this._.args[1], [
+        'nAndRemainHours', {n: 10}
+      ], 'call to get hours second');
+      assert.deepEqual(this._.args[2], [
+        'countdown-moreThanADay', {
+          days: 'nRemainDays{"n":2}', hours: 'nAndRemainHours{"n":10}'
+        }
+      ], 'call to get countdown text');
     });
   });
 

@@ -1,10 +1,10 @@
 define(function(require) {
 'use strict';
-/* global IntlHelper */
 
 var Banner = require('banner/main');
 var alarmDatabase = require('alarm_database');
 var Utils = require('utils');
+var _ = require('l10n').get;
 var App = require('app');
 var alarmTemplate = require('tmpl!panels/alarm/list_item.html');
 var AsyncQueue = require('async_queue');
@@ -29,8 +29,7 @@ function AlarmListPanel(element) {
     App.alarmListLoaded();
   });
 
-  // This will be fired on language and timeformat changes
-  IntlHelper.observe('time-html', this.refreshDisplay.bind(this));
+  window.addEventListener('timeformatchange', this.refreshDisplay.bind(this));
 
   window.addEventListener('alarm-changed', (evt) => {
     var alarm = evt.detail.alarm;
@@ -101,25 +100,10 @@ AlarmListPanel.prototype = {
     link.dataset.id = alarm.id;
 
     li.querySelector('.time').innerHTML = Utils.getLocalizedTimeHtml(d);
-    if (alarm.label) {
-      li.querySelector('.label').removeAttribute('data-l10n-id');
-      li.querySelector('.label').textContent = alarm.label;
-    } else {
-      li.querySelector('.label').setAttribute('data-l10n-id', 'alarm');
-    }
-    if (alarm.isRepeating()) {
-      Utils.summarizeDaysOfWeek(alarm.repeat).then(l10nId => {
-        if (typeof l10nId === 'string') {
-          li.querySelector('.repeat').setAttribute('data-l10n-id', l10nId);
-        } else if (l10nId.raw) {
-          li.querySelector('.repeat').removeAttribute('data-l10n-id');
-          li.querySelector('.repeat').textContent = l10nId.raw;
-        }
-      });
-    } else {
-      li.querySelector('.repeat').removeAttribute('data-l10n-id');
-      li.querySelector('.repeat').textContent = '';
-    }
+    li.querySelector('.label').textContent = alarm.label || _('alarm');
+    li.querySelector('.repeat').textContent =
+      (alarm.isRepeating() ? Utils.summarizeDaysOfWeek(alarm.repeat) : '');
+
     return li;
   },
 

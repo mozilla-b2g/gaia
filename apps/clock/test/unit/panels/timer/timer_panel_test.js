@@ -1,5 +1,5 @@
 'use strict';
-/* global asyncStorage, MockL10n, MockMozIntl, MockIntlHelper */
+/* global asyncStorage */
 
 suite('Timer.Panel', function() {
   var clock, activeAlarm;
@@ -7,13 +7,6 @@ suite('Timer.Panel', function() {
   var View, Timer, Utils;
 
   suiteSetup(function(done) {
-    navigator.mozL10n = MockL10n;
-    window.mozIntl = MockMozIntl;
-    window.IntlHelper = MockIntlHelper;
-    window.IntlHelper.define('digit-nopadding', 'number', {
-      style: 'decimal',
-      useGrouping: false
-    });
     isHidden = function(element) {
       return element.className.contains('hidden');
     };
@@ -61,20 +54,26 @@ suite('Timer.Panel', function() {
     assert.isFalse(dialog.visible);
   });
 
-  test('update ', function(done) {
+  test('update ', function() {
     var panel = new Timer.Panel(document.createElement('div'));
 
     // The timer panel should display rounded seconds.
     var timer = { remaining: 10000 };
     panel.timer = timer;
-    panel.update().then(() => {
-      assert.equal(panel.nodes.time.textContent, JSON.stringify({
-        value: 10000,
-        options: {
-          type: 'hms'
-        }
-      }));
-    }).then(done, done);
+    panel.update();
+    assert.equal(panel.nodes.time.textContent, '00:00:10');
+    timer.remaining = 9555;
+    panel.update();
+    assert.equal(panel.nodes.time.textContent, '00:00:10');
+    timer.remaining = 9499;
+    panel.update();
+    assert.equal(panel.nodes.time.textContent, '00:00:09');
+    timer.remaining = 500;
+    panel.update();
+    assert.equal(panel.nodes.time.textContent, '00:00:01');
+    timer.remaining = 0;
+    panel.update();
+    assert.equal(panel.nodes.time.textContent, '00:00:00');
   });
 
   test('toggleButtons ', function() {
@@ -97,7 +96,7 @@ suite('Timer.Panel', function() {
     assert.isFalse(isHidden(pause));
   });
 
-  test('Set timer state (paused)', function(done) {
+  test('Set timer state (paused)', function() {
     var now = Date.now();
     var oneHour = 60 * 60 * 1000;
     var timer = new Timer({
@@ -109,56 +108,36 @@ suite('Timer.Panel', function() {
     panel.timer = timer;
     panel.onvisibilitychange({ detail: { isVisible: true } });
 
-    panel.update().then(() => {
-      assert.equal(panel.nodes.time.textContent, JSON.stringify({
-        value: oneHour,
-        options: {
-          type: 'hms'
-        }
-      }));
-      clock.tick(5000);
-      return panel.update();
-    }).then(() => {
-      assert.equal(panel.nodes.time.textContent, JSON.stringify({
-        value: oneHour - 5000,
-        options: {
-          type: 'hms'
-        }
-      }));
+    panel.update();
+    assert.equal(panel.nodes.time.textContent, '01:00:00');
 
-      panel.onclick({
-        target: panel.nodes.pause
-      });
-      panel.onTimerEvent({ type: 'timer-pause' });
+    clock.tick(5000);
+    panel.update();
 
-      return panel.update();
-    }).then(() => {
-      assert.isTrue(isHidden(panel.nodes.dialog));
-      assert.isTrue(isHidden(panel.nodes.pause));
+    assert.equal(panel.nodes.time.textContent, '00:59:55');
 
-      assert.isFalse(isHidden(panel.nodes.start));
-      assert.isFalse(isHidden(panel.nodes.time));
-      assert.isFalse(isHidden(panel.nodes.cancel));
+    panel.onclick({
+      target: panel.nodes.pause
+    });
+    panel.onTimerEvent({ type: 'timer-pause' });
 
-      assert.equal(panel.nodes.time.textContent, JSON.stringify({
-        value: oneHour - 5000,
-        options: {
-          type: 'hms'
-        }
-      }));
-      clock.tick(5000);
-      return panel.update();
-    }).then(() => {
-      assert.equal(panel.nodes.time.textContent, JSON.stringify({
-        value: oneHour - 5000,
-        options: {
-          type: 'hms'
-        }
-      }));
-    }).then(done, done);
+    panel.update();
+
+    assert.isTrue(isHidden(panel.nodes.dialog));
+    assert.isTrue(isHidden(panel.nodes.pause));
+
+    assert.isFalse(isHidden(panel.nodes.start));
+    assert.isFalse(isHidden(panel.nodes.time));
+    assert.isFalse(isHidden(panel.nodes.cancel));
+
+    assert.equal(panel.nodes.time.textContent, '00:59:55');
+    clock.tick(5000);
+    panel.update();
+    assert.equal(panel.nodes.time.textContent, '00:59:55');
+
   });
 
-  test('Set timer state (started)', function(done) {
+  test('Set timer state (started)', function() {
     var now = Date.now();
     var oneHour = 60 * 60 * 1000;
     var timer = new Timer({
@@ -177,23 +156,10 @@ suite('Timer.Panel', function() {
     assert.isFalse(isHidden(panel.nodes.pause));
     assert.isFalse(isHidden(panel.nodes.cancel));
 
-    Promise.resolve().then(() => {
-      assert.equal(panel.nodes.time.textContent, JSON.stringify({
-        value: oneHour,
-        options: {
-          type: 'hms'
-        }
-      }));
-      clock.tick(5000);
-      return panel.update();
-    }).then(() => {
-      assert.equal(panel.nodes.time.textContent, JSON.stringify({
-        value: oneHour - 5000,
-        options: {
-          type: 'hms'
-        }
-      }));
-    }).then(done, done);
+    assert.equal(panel.nodes.time.textContent, '01:00:00');
+    clock.tick(5000);
+    panel.update();
+    assert.equal(panel.nodes.time.textContent, '00:59:55');
   });
 
   test('Create button is disabled when picker is set to 0:00', function() {
@@ -319,7 +285,7 @@ suite('Timer.Panel', function() {
       assert.ok(timer.plus.called);
     });
 
-    test('blur: sound', function(done) {
+    test('blur: sound', function() {
       var menu = panel.soundButton.button;
       var sound = panel.nodes.sound;
       Utils.changeSelectByValue(sound, 'ac_digicloud.opus');
@@ -327,9 +293,7 @@ suite('Timer.Panel', function() {
         new CustomEvent('blur')
       );
 
-      Promise.resolve().then(() => {
-        assert.equal(menu.getAttribute('data-l10n-id'), 'ac_digicloud_opus');
-      }).then(done, done);
+      assert.equal(menu.textContent, 'ac_digicloud_opus');
     });
 
     test('change: sound', function() {

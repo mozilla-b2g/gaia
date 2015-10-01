@@ -20,17 +20,6 @@
 
     <link rel="stylesheet" type="text/css" href="style/hacks.css">
 
-    <!-- Localization -->
-    <meta name="defaultLanguage" content="en-US">
-    <meta name="availableLanguages" content="en-US">
-    <link rel="localization" href="/shared/locales/date/date.{locale}.properties">
-    <link rel="localization" href="locales/clock.{locale}.properties">
-    <link rel="localization" href="locales/alarms.{locale}.properties">
-    <script defer src="/shared/js/l10n.js"></script>
-    <script defer src="/shared/js/date_time_helper.js"></script>
-    <script defer src="/shared/js/moz_intl.js"></script>
-    <script defer src="/shared/js/intl_helper.js"></script>
-
     <!-- These are lazy loaded. Need to be included here so the build picks them up
     <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css" >
     <link rel="stylesheet" type="text/css" href="shared/style/buttons.css" >
@@ -40,6 +29,8 @@
       The following scripts are lazy loaded but left here to ensure
       they get copied over from shared during the build
     -->
+    <!-- <script defer src="/shared/js/l10n.js"></script> -->
+    <!-- <script defer src="/shared/js/l10n_date.js"></script> -->
     <!-- <script defer src="/shared/js/async_storage.js"></script> -->
     <!-- <script defer src="/shared/js/gesture_detector.js"></script> -->
     <!-- <script defer src="/shared/js/accessibility_helper.js"></script> -->
@@ -55,6 +46,14 @@
 
     <!-- Shared sounds -->
     <link rel="resources" type="directory" href="shared/resources/media/alarms/">
+
+    <!-- Localization -->
+    <meta name="defaultLanguage" content="en-US">
+    <meta name="availableLanguages" content="en-US">
+    <link rel="localization" href="/shared/locales/date/date.{locale}.properties">
+    <link rel="localization" href="locales/clock.{locale}.properties">
+    <link rel="localization" href="locales/alarms.{locale}.properties">
+    <script defer src="/shared/js/date_time_helper.js"></script>
   </head>
 
   <body class="theme-media">

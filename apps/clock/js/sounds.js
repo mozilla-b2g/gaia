@@ -1,6 +1,8 @@
 define(function(require, exports) {
   'use strict';
   
+  var _ = require('l10n').get;
+
   // Sadly, this is needed because when sound l10n ids change, they no
   // longer match up with the sound filename.
   var DEFAULT_SOUND = 'ac_awake.opus';
@@ -38,6 +40,6 @@ define(function(require, exports) {
    */
   exports.formatLabel = function(sound) {
     return (sound === null || sound === '0') ?
-      'noSound' : SOUND_FILE_TO_L10N_ID[sound];
+      _('noSound') : _(SOUND_FILE_TO_L10N_ID[sound]);
   };
 });

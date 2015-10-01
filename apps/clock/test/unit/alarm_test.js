@@ -1,6 +1,4 @@
 'use strict';
-/* global MockIntlHelper */
-
 suite('Alarm Test', function() {
 
   var Alarm;
@@ -8,8 +6,6 @@ suite('Alarm Test', function() {
   var alarmDatabase;
 
   suiteSetup(function(done) {
-    window.IntlHelper = MockIntlHelper;
-
     require(['alarm', 'alarm_database', 'panels/alarm/active_alarm'],
       function(alarm, alarm_database, ActiveAlarm) {
         Alarm = alarm;

@@ -1,8 +1,10 @@
 'use strict';
 
 define('startup_init', function(require) {
-  var App = require('app');
-  App.init();
+
+var App = require('app');
+var mozL10n = require('l10n');
+mozL10n.once(App.init.bind(App));
 });
 
 require(['require_config'], function() {

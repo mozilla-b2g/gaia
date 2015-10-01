@@ -1,5 +1,4 @@
 'use strict';
-/* global MockL10n, MockMozIntl, MockIntlHelper */
 suite('Stopwatch.Panel', function() {
 
   var sevenMinSw, fourSecPausedSw, withLapsSw, runningSw;
@@ -7,11 +6,10 @@ suite('Stopwatch.Panel', function() {
   var panel;
   var clock;
   var Stopwatch;
+  var setAttributes;
+  var mozL10n;
 
   suiteSetup(function(done) {
-    navigator.mozL10n = MockL10n;
-    window.mozIntl = MockMozIntl;
-    window.IntlHelper = MockIntlHelper;
     var threeMin = 3 * 60 * 1000 + 130;
     var sevenMin = 7 * 60 * 1000 + 170;
     var fourSec = 4 * 1000 + 230;
@@ -63,10 +61,11 @@ suite('Stopwatch.Panel', function() {
     };
 
     require([
-      'stopwatch', 'panels/stopwatch/main'
-      ], function(stopwatch, stopwatchPanel) {
+      'stopwatch', 'panels/stopwatch/main', 'l10n'
+      ], function(stopwatch, stopwatchPanel, l10n) {
         Stopwatch = stopwatch;
         Stopwatch.Panel = stopwatchPanel;
+        mozL10n = l10n;
         panel = new Stopwatch.Panel(
           document.createElement('div')
         );
@@ -77,9 +76,11 @@ suite('Stopwatch.Panel', function() {
 
   setup(function() {
     clock = this.sinon.useFakeTimers();
+    setAttributes = this.sinon.spy(mozL10n, 'setAttributes');
   });
 
   test('Default', function() {
+    assert.equal(panel.nodes.time.textContent, '00:00.00');
     assert.isFalse(isHidden(panel.nodes.start));
     assert.isFalse(isHidden(panel.nodes.reset));
 
@@ -88,127 +89,76 @@ suite('Stopwatch.Panel', function() {
     assert.isTrue(isHidden(panel.nodes.resume));
   });
 
-  test('Seven Minute Running', function(done) {
+  test('Seven Minute Running', function() {
     var x = sevenMinSw();
-    panel.setStopwatch(x).then(() => {
-      assert.equal(panel.nodes.time.textContent, JSON.stringify({
-        value: 420170,
-        options: {
-          type: 'msS'
-        }
-      }));
-      assert.isFalse(isHidden(panel.nodes.pause));
-      assert.isFalse(isHidden(panel.nodes.lap));
+    panel.setStopwatch(x);
 
-      assert.isTrue(isHidden(panel.nodes.start));
-      assert.isTrue(isHidden(panel.nodes.reset));
-      assert.isTrue(isHidden(panel.nodes.resume));
-    }).then(() => {
-      clock.tick(3000);
-      // required due to requestAnimationFrame not being called
-      return panel.update();
-    }).then(() => {
-      assert.equal(panel.nodes.time.textContent, JSON.stringify({
-        value: 420170 + 3000,
-        options: {
-          type: 'msS'
-        }
-      }));
-    }).then(done, done);
+    assert.equal(panel.nodes.time.textContent, '07:00.17');
+    assert.isFalse(isHidden(panel.nodes.pause));
+    assert.isFalse(isHidden(panel.nodes.lap));
 
+    assert.isTrue(isHidden(panel.nodes.start));
+    assert.isTrue(isHidden(panel.nodes.reset));
+    assert.isTrue(isHidden(panel.nodes.resume));
+
+    clock.tick(3000);
+    panel.update(); // required due to requestAnimationFrame not being called
+    assert.equal(panel.nodes.time.textContent, '07:03.17');
   });
 
-  test('Pause a stopwatch', function(done) {
+  test('Pause a stopwatch', function() {
     panel.setStopwatch(sevenMinSw());
     panel.nodes.pause.click();
 
     clock.tick(3000);
-    // required due to requestAnimationFrame not being called
-    panel.update().then(() => {
-      assert.equal(panel.nodes.time.textContent, JSON.stringify({
-        value: 420170,
-        options: {
-          type: 'msS'
-        }
-      }));
-    }).then(done, done);
+    panel.update(); // required due to requestAnimationFrame not being called
+    assert.equal(panel.nodes.time.textContent, '07:00.17');
   });
 
-  test('Four Second Paused', function(done) {
+  test('Four Second Paused', function() {
     panel.setStopwatch(fourSecPausedSw());
-    // required due to requestAnimationFrame not being called
-    panel.update().then(() => {
-      assert.equal(panel.nodes.time.textContent, JSON.stringify({
-        value: 4230,
-        options: {
-          type: 'msS'
-        }
-      }));
-      assert.isFalse(isHidden(panel.nodes.resume));
-      assert.isFalse(isHidden(panel.nodes.reset));
+    panel.update(); // required due to requestAnimationFrame not being called
 
-      assert.isTrue(isHidden(panel.nodes.pause));
-      assert.isTrue(isHidden(panel.nodes.start));
-      assert.isTrue(isHidden(panel.nodes.lap));
-      clock.tick(3000);
-      // required due to requestAnimationFrame not being called
-      return panel.update();
-    }).then(() => {
-      assert.equal(panel.nodes.time.textContent, JSON.stringify({
-        value: 4230,
-        options: {
-          type: 'msS'
-        }
-      }));
-    }).then(done, done);
+    assert.equal(panel.nodes.time.textContent, '00:04.23');
+    assert.isFalse(isHidden(panel.nodes.resume));
+    assert.isFalse(isHidden(panel.nodes.reset));
+
+    assert.isTrue(isHidden(panel.nodes.pause));
+    assert.isTrue(isHidden(panel.nodes.start));
+    assert.isTrue(isHidden(panel.nodes.lap));
+
+    clock.tick(3000);
+    panel.update(); // required due to requestAnimationFrame not being called
+    assert.equal(panel.nodes.time.textContent, '00:04.23');
   });
 
-  test('Resume a stopwatch', function(done) {
+  test('Resume a stopwatch', function() {
     panel.setStopwatch(fourSecPausedSw());
     panel.nodes.resume.click();
 
     clock.tick(3000);
-    // required due to requestAnimationFrame not being called
-    panel.update().then(() => {
-      assert.equal(panel.nodes.time.textContent, JSON.stringify({
-        value: 7230,
-        options: {
-          type: 'msS'
-        }
-      }));
-    }).then(done, done);
+    panel.update(); // required due to requestAnimationFrame not being called
+    assert.equal(panel.nodes.time.textContent, '00:07.23');
   });
 
-  test('Pre-existing laps', function(done) {
+  test('Pre-existing laps', function() {
     var tmp = withLapsSw();
-    panel.setStopwatch(tmp).then(() => {
-      var laps = panel.nodes.laps.querySelectorAll('li');
-      assert.equal(laps.length, 3);
+    panel.setStopwatch(tmp); //withLapsSw());
+    var laps = panel.nodes.laps.querySelectorAll('li');
+    assert.equal(laps.length, 3);
+    var lapTime;
 
-      assert.equal(laps[0].children[1].textContent, JSON.stringify({
-        value: 2349120,
-        options: {
-          type: 'msS'
-        }
-      }));
+    lapTime = laps[0].children[1].textContent.trim();
+    assert.equal(lapTime, '39:09.12');
 
-      assert.equal(laps[1].children[1].textContent, JSON.stringify({
-        value: 4230,
-        options: {
-          type: 'msS'
-        }
-      }));
+    lapTime = laps[1].children[1].textContent.trim();
+    assert.equal(lapTime, '00:04.23');
 
-      assert.equal(laps[2].children[1].textContent, JSON.stringify({
-        value: 180130,
-        options: {
-          type: 'msS'
-        }
-      }));
-    }).then(done, done);
+    lapTime = laps[2].children[1].textContent.trim();
+    assert.equal(lapTime, '03:00.13');
   });
 
-  test('Add laps', function(done) {
+  test('Add laps', function() {
 
     function getLapInfo() {
       var laps = panel.nodes.laps.querySelectorAll('li');
@@ -221,111 +171,69 @@ suite('Stopwatch.Panel', function() {
       });
     }
 
-    panel.setStopwatch(runningSw()).then(() => {
-      assert.equal(panel.nodes.time.textContent, JSON.stringify({
-        value: 0,
-        options: {
-          type: 'msS'
-        }
-      }));
-    }).then(() => {
-      //Advance and click the lap button
-      clock.tick(3000);
-      // required due to requestAnimationFrame not being called
-      return panel.update();
-    }).then(() => {
-      assert.equal(panel.nodes.time.textContent, JSON.stringify({
-        value: 3000,
-        options: {
-          type: 'msS'
-        }
-      }));
-      panel.nodes.lap.click();
-    }).then(() => {
-      var laps = getLapInfo();
-      assert.equal(laps.length, 2);
+    panel.setStopwatch(runningSw());
+    assert.equal(panel.nodes.time.textContent, '00:00.00');
 
-      assert.equal(laps[1].lapTime, JSON.stringify({
-        value: 3000,
-        options: {
-          type: 'msS'
-        }
-      }));
+    //Advance and click the lap button
+    clock.tick(3000);
+    panel.update(); // required due to requestAnimationFrame not being called
+    assert.equal(panel.nodes.time.textContent, '00:03.00');
 
-      //Advance and add another lap
-      clock.tick(9000);
-      // required due to requestAnimationFrame not being called
-      return panel.update();
-    }).then(() => {
-      assert.equal(panel.nodes.time.textContent, JSON.stringify({
-        value: 9000 + 3000,
-        options: {
-          type: 'msS'
-        }
-      }));
+    panel.nodes.lap.click();
+    var laps = getLapInfo();
+    assert.equal(laps.length, 2);
 
-      panel.nodes.lap.click();
-    }).then(() => {
-      var laps = getLapInfo();
-      assert.equal(laps.length, 3);
+    assert.equal(laps[1].lapTime, '00:03.00');
 
-      assert.equal(laps[1].lapTime, JSON.stringify({
-        value: 9000,
-        options: {
-          type: 'msS'
-        }
-      }));
-    }).then(done, done);
+    //Advance and add another lap
+    clock.tick(9000);
+    panel.update(); // required due to requestAnimationFrame not being called
+    assert.equal(panel.nodes.time.textContent, '00:12.00');
+
+    panel.nodes.lap.click();
+
+    laps = getLapInfo();
+    assert.equal(laps.length, 3);
+
+    assert.equal(laps[1].lapTime, '00:09.00');
+
   });
 
-  test('Reset stopwatch', function(done) {
+  test('Reset stopwatch', function() {
     var laps;
 
-    panel.setStopwatch(runningSw()).then(() => {
-      assert.equal(panel.nodes.time.textContent, JSON.stringify({
-        value: 0,
-        options: {
-          type: 'msS'
-        }
-      }));
-      //Advance and click the lap button (twice)
-      clock.tick(3000);
-      // required due to requestAnimationFrame not being called
-      panel.update();
-      panel.nodes.lap.click();
-      clock.tick(9000);
-      // required due to requestAnimationFrame not being called
-      panel.update();
-      panel.nodes.lap.click();
-    }).then(() => {
-      laps = panel.nodes.laps.querySelectorAll('li');
-      assert.equal(laps.length, 3);
+    panel.setStopwatch(runningSw());
+    assert.equal(panel.nodes.time.textContent, '00:00.00');
 
-      //Reset
-      panel.nodes.pause.click();
-      panel.nodes.reset.click();
-    }).then(() => {
-      laps = panel.nodes.laps.querySelectorAll('li');
-      assert.equal(laps.length, 0);
-      assert.equal(panel.nodes.time.textContent, JSON.stringify({
-        value: 0,
-        options: {
-          type: 'msS'
-        }
-      }));
-    }).then(done, done);
+    //Advance and click the lap button (twice)
+    clock.tick(3000);
+    panel.update(); // required due to requestAnimationFrame not being called
+    panel.nodes.lap.click();
+    clock.tick(9000);
+    panel.update(); // required due to requestAnimationFrame not being called
+    panel.nodes.lap.click();
+
+    laps = panel.nodes.laps.querySelectorAll('li');
+    assert.equal(laps.length, 3);
+
+    //Reset
+    panel.nodes.pause.click();
+    panel.nodes.reset.click();
+    laps = panel.nodes.laps.querySelectorAll('li');
+    assert.equal(laps.length, 0);
+    assert.equal(panel.nodes.time.textContent, '00:00.00');
+
   });
 
-  test('Stopwatch 100 minutes display', function(done) {
+  test('Stopwatch 100 minutes display', function() {
     panel.setStopwatch(runningSw());
 
     assert.ok(!panel.nodes.time.classList.contains('over-100-minutes'));
 
     clock.tick(1000 * 60 * 105); // over 100 minutes
-    // required due to requestAnimationFrame not being called
-    panel.update().then(() => {
-      assert.ok(panel.nodes.time.classList.contains('over-100-minutes'));
-    }).then(done, done);
+    panel.update(); // required due to requestAnimationFrame not being called
+
+    assert.ok(panel.nodes.time.classList.contains('over-100-minutes'));
   });
 
 });

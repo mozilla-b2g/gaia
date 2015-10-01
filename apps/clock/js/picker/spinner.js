@@ -1,6 +1,5 @@
 define(function(require) {
   'use strict';
-  /* global IntlHelper */
 
   var Template = require('template');
   var GestureDetector = require('shared/js/gesture_detector');
@@ -19,12 +18,6 @@ define(function(require) {
   // number of milliseconds after last motion without leting go
   // we will select whatever is being "hovered" and cancel momentum
   var DRAGGING_TIMEOUT = 200;
-
-  IntlHelper.define('digit-padding', 'number', {
-    style: 'decimal',
-    useGrouping: false,
-    minimumIntegerDigits: 2
-  });
 
   function calculateSpeed(previous, current) {
     /* jshint validthis:true */
@@ -68,7 +61,7 @@ define(function(require) {
           return this.values[this.index];
         },
         set: function(value) {
-          this.select(this.values.indexOf(parseInt(value)));
+          this.select(this.values.indexOf(value));
         }
       },
       unitHeight: {
@@ -95,12 +88,6 @@ define(function(require) {
       },
       textValues: {
         value: setup.textValues || setup.values
-      },
-      isPadded: {
-        value: setup.isPadded || false
-      },
-      l10nId: {
-        value: setup.l10nId || null
       }
     });
 
@@ -116,13 +103,10 @@ define(function(require) {
 
     var html = '';
 
-    var formatter = IntlHelper.get(
-      this.isPadded ? 'digit-padding' : 'digit-nopadding');
-
     for (var i = 0; i < this.length; i++) {
       html += this.template.interpolate({
-        value: this.values[i].toString(),
-        text: formatter.format(this.values[i])
+        // Coerce the number value to a string
+        unit: this.values[i] + ''
       });
     }
 
@@ -135,33 +119,12 @@ define(function(require) {
     this.container.setAttribute('aria-valuemax', this.upper);
     this.container.setAttribute('aria-valuemin', this.lower);
     this.container.setAttribute('aria-valuenow', this.index);
-    if (this.l10nId) {
-      navigator.mozL10n.setAttributes(
-        this.container,
-        this.l10nId,
-        {n: this.values[i]}
-      );
-    }
-
-    IntlHelper.observe(['digit-padding', 'digit-nopadding'],
-      this.resetValues.bind(this));
+    this.container.setAttribute('aria-valuetext', this.textValues[this.index]);
 
     this.reset();
 
     new GestureDetector(this.container).startDetecting();
   }
-
-  Spinner.prototype.resetValues = function() {
-    var formatter = IntlHelper.get(
-      this.isPadded ? 'digit-padding' : 'digit-nopadding');
-
-    var units = [...this.container.querySelectorAll('.picker-unit')];
-
-    units.forEach(unit => {
-      var value = parseInt(unit.dataset.value);
-      unit.textContent = formatter.format(value);
-    });
-  };
 
   Spinner.prototype.reset = function() {
     this.index = 0;
@@ -176,6 +139,7 @@ define(function(require) {
   };
 
   Spinner.prototype.select = function(index) {
+
     index = Math.round(index);
 
     if (index < 0) {

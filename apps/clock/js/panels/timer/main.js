@@ -1,6 +1,5 @@
 define(function(require) {
 'use strict';
-/* global IntlHelper */
 
 var Panel = require('panel');
 var Picker = require('picker/picker');
@@ -25,10 +24,6 @@ function timeFromPicker(value) {
   return ms;
 }
 
-IntlHelper.define('timer-hms', 'mozduration', {
-  type: 'hms'
-});
-
 /**
  * Timer.Panel
  *
@@ -49,12 +44,12 @@ Timer.Panel = function(element) {
     pickers: {
       hours: {
         range: [0, 23],
-        l10nId: 'nSpinnerHours'
+        valueText: 'nSpinnerHours'
       },
       minutes: {
         range: [0, 59],
         isPadded: true,
-        l10nId: 'nSpinnerMinutes'
+        valueText: 'nSpinnerMinutes'
       }
     }
   });
@@ -127,7 +122,6 @@ Timer.Panel = function(element) {
     window.addEventListener('timer-pause', onTimerEvent);
     window.addEventListener('timer-tick', onTimerEvent);
     window.addEventListener('timer-end', onTimerEvent);
-    IntlHelper.observe('timer-hms', this.update.bind(this));
     if (this.visible) {
       // If the timer panel already became visible before we fetched
       // the timer, we must update the display to show the proper
@@ -197,14 +191,13 @@ Timer.Panel.prototype.onTimerEvent = function(event) {
  * countdown.
  */
 Timer.Panel.prototype.update = function() {
-  return IntlHelper.get('timer-hms').then(formatter => {
-    var remaining = this.timer.remaining;
-    var newText = formatter.format(remaining);
-    // Use localized caching here to prevent unnecessary DOM repaints.
-    if (this._cachedTimerText !== newText) {
-      this.nodes.time.textContent = this._cachedTimerText = newText;
-    }
-  });
+  var remaining = this.timer.remaining;
+  var newText = Utils.format.hms(Math.round(remaining / 1000), 'hh:mm:ss');
+  // Use localized caching here to prevent unnecessary DOM repaints.
+  if (this._cachedTimerText !== newText) {
+    this.nodes.time.textContent = this._cachedTimerText = newText;
+  }
+  return this;
 };
 
 Timer.Panel.prototype.toggleButtons = function() {

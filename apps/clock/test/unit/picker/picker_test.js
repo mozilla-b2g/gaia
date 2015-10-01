@@ -1,15 +1,9 @@
 'use strict';
-/* global MockIntlHelper */
 
 suite('Picker', function() {
   var Picker, Spinner;
 
   suiteSetup(function(done) {
-    window.IntlHelper = MockIntlHelper;
-    window.IntlHelper.define('digit-nopadding', 'number', {
-      style: 'decimal',
-      useGrouping: false
-    });
     require(['picker/picker', 'picker/spinner'],
             function(picker, spinner) {
         Picker = picker;
@@ -71,7 +65,7 @@ suite('Picker', function() {
     assert.equal(spinners.minutes.values[59], 59);
     assert.equal(spinners.minutes.values[60], undefined);
 
-    assert.equal(picker.value, '0:0');
+    assert.equal(picker.value, '0:00');
   });
 
   test('get and set value ', function() {

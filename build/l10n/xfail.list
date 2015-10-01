@@ -27,6 +27,10 @@ apps/calendar/test/unit/view_test.js
 apps/calendar/test/unit/views/month_day_agenda_test.js
 apps/calendar/test/unit/views/view_event_test.js
 apps/camera/test/unit/controllers/preview-gallery_test.js
+apps/clock/js/banner/main.js
+apps/clock/js/panels/alarm/clock_view.js
+apps/clock/js/panels/alarm_edit/main.js
+apps/clock/js/utils.js
 apps/collection/js/create_collection.js
 apps/collection/js/objects.js
 apps/collection/js/suggestions.js

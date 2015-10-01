@@ -1,6 +1,8 @@
 define(function(require, exports, module) {
   'use strict';
 
+  var DAYS_STARTING_SUNDAY = require('constants').DAYS_STARTING_SUNDAY;
+
   /**
    * Alarm represents one alarm instance. It tracks any mozAlarms it
    * has registered, its IndexedDB ID, and any other properties
@@ -12,9 +14,7 @@ define(function(require, exports, module) {
     var defaults = {
       id: null,
       registeredAlarms: {}, // keys: ('normal' or 'snooze') => mozAlarmID
-      // Map of weekdays { "0": true, "1": false, ... }
-      // "0" is for Sunday in Gregorian calendar
-      repeat: {},
+      repeat: {}, // Map like { "monday": true, "tuesday": false, ... }
       hour: now.getHours(),
       minute: now.getMinutes(),
       label: '',
@@ -76,7 +76,7 @@ define(function(require, exports, module) {
 
       while (nextFire <= now ||
              (this.isRepeating() &&
-              !this.repeat[nextFire.getDay().toString()])) {
+              !this.repeat[DAYS_STARTING_SUNDAY[nextFire.getDay()]])) {
         nextFire.setDate(nextFire.getDate() + 1);
       }
       return nextFire;

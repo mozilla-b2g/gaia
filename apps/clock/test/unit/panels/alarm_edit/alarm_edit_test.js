@@ -5,7 +5,7 @@
 
 suite('AlarmEditView', function() {
   var Alarm, AlarmEdit, activeAlarm, alarmDatabase,
-      alarmListPanel, alarmEdit, panel;
+      alarmListPanel, alarmEdit, panel, mozL10n;
 
   suiteSetup(function(done) {
     this.slow(25000);
@@ -16,8 +16,9 @@ suite('AlarmEditView', function() {
       'alarm_database',
       'panels/alarm/main',
       'panels/alarm/alarm_list',
+      'l10n'
     ], function(alarm, ActiveAlarm, alarmEdit, alarm_database, AlarmPanel,
-                AlarmListPanel) {
+                AlarmListPanel, l10n) {
       // Instantiate an Alarm Panel to ensure that elements are initialized
       // properly
       var div = document.createElement('div');
@@ -29,6 +30,13 @@ suite('AlarmEditView', function() {
       AlarmEdit = alarmEdit;
       alarmDatabase = alarm_database;
       alarmListPanel = new AlarmListPanel(document.createElement('div'));
+      mozL10n = l10n;
+      mozL10n.setResources('en-US', {
+        'weekStartsOnMonday': '0',
+      });
+      mozL10n.setResources('fr', {
+        'weekStartsOnMonday': '1',
+      });
 
       done();
     });
