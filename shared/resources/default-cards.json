@@ -4,33 +4,25 @@
       "type": "Deck",
       "deckClass": "tv",
       "manifestURL": "app://tv-deck.gaiamobile.org/manifest.webapp",
-      "group": "tv",
-      "isFillIcon": false,
-      "isEnableWave": true
+      "group": "tv"
     },
     {
       "type": "Deck",
       "deckClass": "application",
       "manifestURL": "app://app-deck.gaiamobile.org/manifest.webapp",
-      "group": "application",
-      "isFillIcon": false,
-      "isEnableWave": true
+      "group": "application"
     },
     {
       "type": "Deck",
       "deckClass": "device",
       "manifestURL": "app://device-deck.gaiamobile.org/manifest.webapp",
-      "group": "device",
-      "isFillIcon": false,
-      "isEnableWave": true
+      "group": "device"
     },
     {
       "type": "Deck",
       "deckClass": "browser",
       "manifestURL": "app://browser.gaiamobile.org/manifest.webapp",
-      "group": "website",
-      "isFillIcon": true,
-      "isEnableWave": false
+      "group": "website"
     }
   ]
 }
