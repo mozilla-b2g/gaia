@@ -1,6 +1,5 @@
 define(function(require) {
   'use strict';
-  /* global IntlHelper */
 
   var Template = require('template');
   var Utils = require('utils');
@@ -33,24 +32,22 @@ define(function(require) {
         unitsPartial: ['days', 'hours', 'minutes']
       });
 
-      var numFormatter = IntlHelper.get('digit-nopadding');
-
       if (tl.days) {
         countdownType = 'countdown_moreThanADay';
         localTimes = {
-          'days': numFormatter.format(tl.days),
-          'hours': numFormatter.format(tl.hours)
+          'days': tl.days,
+          'hours': tl.hours
         };
       } else if (tl.hours > 0) {
         countdownType = 'countdown_moreThanAnHour';
         localTimes = {
-          'hours': numFormatter.format(tl.hours),
-          'minutes': numFormatter.format(tl.minutes)
+          'hours': tl.hours,
+          'minutes': tl.minutes
         };
       } else {
         countdownType = 'countdown_lessThanAnHour';
         localTimes = {
-          'minutes': numFormatter.format(tl.minutes)
+          'minutes': tl.minutes
         };
       }
 
