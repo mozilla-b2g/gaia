@@ -71,8 +71,7 @@ suite('Timer.Panel', function() {
       assert.equal(panel.nodes.time.textContent, JSON.stringify({
         value: 10000,
         options: {
-          minUnit: 'second',
-          maxUnit: 'hour'
+          type: 'hms'
         }
       }));
     }).then(done, done);
@@ -114,8 +113,7 @@ suite('Timer.Panel', function() {
       assert.equal(panel.nodes.time.textContent, JSON.stringify({
         value: oneHour,
         options: {
-          minUnit: 'second',
-          maxUnit: 'hour'
+          type: 'hms'
         }
       }));
       clock.tick(5000);
@@ -124,8 +122,7 @@ suite('Timer.Panel', function() {
       assert.equal(panel.nodes.time.textContent, JSON.stringify({
         value: oneHour - 5000,
         options: {
-          minUnit: 'second',
-          maxUnit: 'hour'
+          type: 'hms'
         }
       }));
 
@@ -146,8 +143,7 @@ suite('Timer.Panel', function() {
       assert.equal(panel.nodes.time.textContent, JSON.stringify({
         value: oneHour - 5000,
         options: {
-          minUnit: 'second',
-          maxUnit: 'hour'
+          type: 'hms'
         }
       }));
       clock.tick(5000);
@@ -156,8 +152,7 @@ suite('Timer.Panel', function() {
       assert.equal(panel.nodes.time.textContent, JSON.stringify({
         value: oneHour - 5000,
         options: {
-          minUnit: 'second',
-          maxUnit: 'hour'
+          type: 'hms'
         }
       }));
     }).then(done, done);
@@ -186,8 +181,7 @@ suite('Timer.Panel', function() {
       assert.equal(panel.nodes.time.textContent, JSON.stringify({
         value: oneHour,
         options: {
-          minUnit: 'second',
-          maxUnit: 'hour'
+          type: 'hms'
         }
       }));
       clock.tick(5000);
@@ -196,8 +190,7 @@ suite('Timer.Panel', function() {
       assert.equal(panel.nodes.time.textContent, JSON.stringify({
         value: oneHour - 5000,
         options: {
-          minUnit: 'second',
-          maxUnit: 'hour'
+          type: 'hms'
         }
       }));
     }).then(done, done);

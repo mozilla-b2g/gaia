@@ -26,8 +26,7 @@ function timeFromPicker(value) {
 }
 
 IntlHelper.define('timer-hms', 'mozduration', {
-  minUnit: 'second',
-  maxUnit: 'hour'
+  type: 'hms'
 });
 
 /**

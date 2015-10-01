@@ -15,8 +15,7 @@ define(function(require) {
   var MAX_STOPWATCH_LAPS = 1000;
 
   IntlHelper.define('timer-msS', 'mozduration', {
-    minUnit: 'millisecond',
-    maxUnit: 'minute'
+    type: 'msS'
   });
 
   IntlHelper.define('lap-number', 'number', {

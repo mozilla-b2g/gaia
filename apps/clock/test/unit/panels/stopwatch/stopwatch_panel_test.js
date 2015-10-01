@@ -94,8 +94,7 @@ suite('Stopwatch.Panel', function() {
       assert.equal(panel.nodes.time.textContent, JSON.stringify({
         value: 420170,
         options: {
-          minUnit: 'millisecond',
-          maxUnit: 'minute'
+          type: 'msS'
         }
       }));
       assert.isFalse(isHidden(panel.nodes.pause));
@@ -112,8 +111,7 @@ suite('Stopwatch.Panel', function() {
       assert.equal(panel.nodes.time.textContent, JSON.stringify({
         value: 420170 + 3000,
         options: {
-          minUnit: 'millisecond',
-          maxUnit: 'minute'
+          type: 'msS'
         }
       }));
     }).then(done, done);
@@ -130,8 +128,7 @@ suite('Stopwatch.Panel', function() {
       assert.equal(panel.nodes.time.textContent, JSON.stringify({
         value: 420170,
         options: {
-          minUnit: 'millisecond',
-          maxUnit: 'minute'
+          type: 'msS'
         }
       }));
     }).then(done, done);
@@ -144,8 +141,7 @@ suite('Stopwatch.Panel', function() {
       assert.equal(panel.nodes.time.textContent, JSON.stringify({
         value: 4230,
         options: {
-          minUnit: 'millisecond',
-          maxUnit: 'minute'
+          type: 'msS'
         }
       }));
       assert.isFalse(isHidden(panel.nodes.resume));
@@ -161,8 +157,7 @@ suite('Stopwatch.Panel', function() {
       assert.equal(panel.nodes.time.textContent, JSON.stringify({
         value: 4230,
         options: {
-          minUnit: 'millisecond',
-          maxUnit: 'minute'
+          type: 'msS'
         }
       }));
     }).then(done, done);
@@ -178,8 +173,7 @@ suite('Stopwatch.Panel', function() {
       assert.equal(panel.nodes.time.textContent, JSON.stringify({
         value: 7230,
         options: {
-          minUnit: 'millisecond',
-          maxUnit: 'minute'
+          type: 'msS'
         }
       }));
     }).then(done, done);
@@ -194,24 +188,21 @@ suite('Stopwatch.Panel', function() {
       assert.equal(laps[0].children[1].textContent, JSON.stringify({
         value: 2349120,
         options: {
-          minUnit: 'millisecond',
-          maxUnit: 'minute'
+          type: 'msS'
         }
       }));
 
       assert.equal(laps[1].children[1].textContent, JSON.stringify({
         value: 4230,
         options: {
-          minUnit: 'millisecond',
-          maxUnit: 'minute'
+          type: 'msS'
         }
       }));
 
       assert.equal(laps[2].children[1].textContent, JSON.stringify({
         value: 180130,
         options: {
-          minUnit: 'millisecond',
-          maxUnit: 'minute'
+          type: 'msS'
         }
       }));
     }).then(done, done);
@@ -234,8 +225,7 @@ suite('Stopwatch.Panel', function() {
       assert.equal(panel.nodes.time.textContent, JSON.stringify({
         value: 0,
         options: {
-          minUnit: 'millisecond',
-          maxUnit: 'minute'
+          type: 'msS'
         }
       }));
     }).then(() => {
@@ -247,8 +237,7 @@ suite('Stopwatch.Panel', function() {
       assert.equal(panel.nodes.time.textContent, JSON.stringify({
         value: 3000,
         options: {
-          minUnit: 'millisecond',
-          maxUnit: 'minute'
+          type: 'msS'
         }
       }));
       panel.nodes.lap.click();
@@ -259,8 +248,7 @@ suite('Stopwatch.Panel', function() {
       assert.equal(laps[1].lapTime, JSON.stringify({
         value: 3000,
         options: {
-          minUnit: 'millisecond',
-          maxUnit: 'minute'
+          type: 'msS'
         }
       }));
 
@@ -272,8 +260,7 @@ suite('Stopwatch.Panel', function() {
       assert.equal(panel.nodes.time.textContent, JSON.stringify({
         value: 9000 + 3000,
         options: {
-          minUnit: 'millisecond',
-          maxUnit: 'minute'
+          type: 'msS'
         }
       }));
 
@@ -285,8 +272,7 @@ suite('Stopwatch.Panel', function() {
       assert.equal(laps[1].lapTime, JSON.stringify({
         value: 9000,
         options: {
-          minUnit: 'millisecond',
-          maxUnit: 'minute'
+          type: 'msS'
         }
       }));
     }).then(done, done);
@@ -299,8 +285,7 @@ suite('Stopwatch.Panel', function() {
       assert.equal(panel.nodes.time.textContent, JSON.stringify({
         value: 0,
         options: {
-          minUnit: 'millisecond',
-          maxUnit: 'minute'
+          type: 'msS'
         }
       }));
       //Advance and click the lap button (twice)
@@ -325,8 +310,7 @@ suite('Stopwatch.Panel', function() {
       assert.equal(panel.nodes.time.textContent, JSON.stringify({
         value: 0,
         options: {
-          minUnit: 'millisecond',
-          maxUnit: 'minute'
+          type: 'msS'
         }
       }));
     }).then(done, done);
