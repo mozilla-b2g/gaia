@@ -548,7 +548,7 @@
     doSync: function(assertion, keys, collections) {
       this.debug('Syncing with', JSON.stringify(collections));
       this.iacRequest({
-        url: this._settings['sync.server.url'],
+        URL: this._settings['sync.server.url'],
         assertion: assertion,
         keys: keys,
         collections: collections
