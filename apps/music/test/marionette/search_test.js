@@ -1,4 +1,5 @@
-/* global require, marionette, setup, suite, test, __dirname */
+/* global require, marionette, setup, suite, test, __dirname,
+marionetteScriptFinished */
 'use strict';
 
 var assert = require('assert');
@@ -124,7 +125,6 @@ marionette('Music player search', function() {
 
       // Here we wait 1.5 seconds for the search input hides completely.
       // it will re-show after we scroll the target view.
-      client.helper.wait(1500);
       music.showSearchInput(Music.Selector.tilesView);
     });
 
@@ -147,12 +147,34 @@ marionette('Music player search', function() {
       }
     });
 
-    test.skip('Check empty results', function() {
+    test('Check empty results', function() {
       try {
         music.searchTiles('qwerty');
 
-        var resultsList = testSearchResults(0);
-        assert.equal(resultsList.length, 0);
+        // current implement of empty result is ONE line
+        // with a string indicating nothing was found.
+        var resultsList = testSearchResults(1);
+        assert.equal(resultsList.length, 1);
+
+        client.switchToFrame(music.activeViewFrame);
+
+        var search = client.findElement('music-search');
+        assert.ok(search);
+
+        client.switchToShadowRoot(search);
+
+        // ensure that we get the properly localized string.
+        var noResultString = client.executeAsyncScript(function () {
+          window.wrappedJSObject.document.l10n.formatValue('search-no-result').
+            then(function(noResult) {
+              marionetteScriptFinished(noResult);
+            });
+        });
+
+        client.switchToShadowRoot();
+        music.switchToMe();
+
+        assert.equal(resultsList[0].title, noResultString);
       } catch(e) {
         assert.ok(false, e.stack);
       }
