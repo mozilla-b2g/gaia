@@ -276,6 +276,8 @@ ould be an object`).and.notify(done);
         se.syncNow({ history: {} }).catch(err => {
           if (field === 'assertion') {
             expect(err).to.be.instanceOf(SyncEngine.AuthError);
+          } else if (field === 'URL') {
+            expect(err).to.be.instanceOf(SyncEngine.TryLaterError);
           } else {
             expect(err).to.be.instanceOf(SyncEngine.UnrecoverableError);
           }
