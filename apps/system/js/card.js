@@ -12,15 +12,23 @@
  * also included in this file.
  *
  * @param {AppWindow} app
- * @param {boolean} disableScreenshots
+ * @param {boolean} opts.disableScreenshots
  *   Legacy option. If true, we will use a small icon preview on the card
  *   rather than showing a full screenshot and/or moz-element of the app.
  *   Originally introduced on 128MB Tarako devices to save memory.
+ * @param {boolean} opts.stayInvisible
+ *   If true (because we're just using this card as a placeholder since we're
+ *   immediately launching the app), don't actually render the card.
  */
-function Card(app, disableScreenshots) {
+function Card(app, { disableScreenshots, stayInvisible } = {}) {
   var el = document.createElement('li');
   this.app = app;
   this.element = el;
+
+  if (stayInvisible) {
+    this.element.style.display = 'none';
+    return;
+  }
 
   this.title = (app.isBrowser() && app.title) ? app.title : app.name;
   this.subTitle = TaskManagerUtils.getDisplayUrlForApp(app);

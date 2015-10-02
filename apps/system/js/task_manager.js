@@ -1,5 +1,5 @@
 /* global Card, TaskManagerUtils, LazyLoader, Service, StackManager,
-          eventSafety, SettingsListener */
+          eventSafety, SettingsListener, AppWindow, BrowserConfigHelper */
 'use strict';
 
 (function(exports) {
@@ -49,10 +49,15 @@ TaskManager.prototype = {
    * @return {Promise}
    */
   start() {
-    this.element = document.getElementById('cards-view'),
+    this.element = document.getElementById('task-manager'),
+    this.scrollElement = document.getElementById('cards-view'),
     this.cardsList = document.getElementById('cards-list');
     this.screenElement = document.getElementById('screen');
     this.noRecentWindowsEl = document.getElementById('cards-no-recent-windows');
+    this.newSheetButton =
+      document.getElementById('task-manager-new-sheet-button');
+    this.newPrivateSheetButton =
+      document.getElementById('task-manager-new-private-sheet-button');
 
     window.addEventListener('taskmanagershow', this);
     Service.request('registerHierarchy', this);
@@ -94,11 +99,16 @@ TaskManager.prototype = {
    * Create a new Card representing the given app, and add it to the DOM.
    * (This does not deal with stack order.)
    */
-  _addApp(app) {
-    var card = new Card(app, this.disableScreenshots);
+  _addApp(app, { stayInvisible }) {
+    var card = new Card(app, {
+      disableScreenshots: this.disableScreenshots,
+      stayInvisible: stayInvisible
+    });
+
     this.cardsList.appendChild(card.element);
     this.elementToCardMap.set(card.element, card);
     this.appToCardMap.set(app, card);
+    app.enterTaskManager();
     return card;
   },
 
@@ -112,6 +122,7 @@ TaskManager.prototype = {
       this.appToCardMap.delete(app);
       this.elementToCardMap.delete(card.element);
       this.cardsList.removeChild(card.element);
+      app.leaveTaskManager();
     }
   },
 
@@ -120,7 +131,7 @@ TaskManager.prototype = {
    * Call this whenever we think the stack has changed; this function will
    * take care of updating the layout and card positions.
    */
-  updateStack() {
+  updateStack({ currentlyLaunchingApp } = {}) {
     this.stack = StackManager.snapshot();
 
     if (this._browserOnly) {
@@ -134,6 +145,7 @@ TaskManager.prototype = {
       this._browserOnly ?
         'no-recent-browser-windows' : 'no-recent-app-windows');
     this.element.classList.toggle('filtered', !!this._browserOnly);
+    this.element.classList.toggle('empty', this.stack.length === 0);
 
     var latestAppSet = new Set(this.stack);
 
@@ -146,8 +158,9 @@ TaskManager.prototype = {
     this.stack.forEach((app) => {
       var card = this.appToCardMap.get(app);
       if (!card) {
-        card = this._addApp(app);
-        app.enterTaskManager();
+        card = this._addApp(app, {
+          stayInvisible: (app === currentlyLaunchingApp)
+        });
       }
     });
 
@@ -210,7 +223,7 @@ TaskManager.prototype = {
   getCurrentIndex() {
     return Math.min(
       this.stack.length - 1,
-      Math.floor(this.element.scrollLeft / this.cardWidth));
+      Math.floor(this.scrollElement.scrollLeft / this.cardWidth));
   },
 
   /**
@@ -244,9 +257,9 @@ TaskManager.prototype = {
       window.addEventListener('wheel', this);
       window.addEventListener('resize', this);
       this.element.addEventListener('click', this);
-      this.element.addEventListener('scroll', this);
       this.element.addEventListener('card-will-drag', this);
       this.element.addEventListener('card-dropped', this);
+      this.scrollElement.addEventListener('scroll', this);
 
       this.updateStack();
       this.panToApp(StackManager.getCurrent(), true);
@@ -272,7 +285,7 @@ TaskManager.prototype = {
    * Hide the Task Manager and return to the AppWindow specified, or the
    * homescreen otherwise.
    */
-  hide(newApp) {
+  hide(newApp, animation) {
     if (!this.isShown() || this._isTransitioning) {
       return Promise.resolve();
     }
@@ -286,9 +299,9 @@ TaskManager.prototype = {
     window.removeEventListener('wheel', this);
     window.removeEventListener('resize', this);
     this.element.removeEventListener('click', this);
-    this.element.removeEventListener('scroll', this);
     this.element.removeEventListener('card-will-drag', this);
     this.element.removeEventListener('card-dropped', this);
+    this.scrollElement.removeEventListener('scroll', this);
 
     newApp = newApp ||
       Service.query('AppWindowManager.getActiveWindow') ||
@@ -313,19 +326,18 @@ TaskManager.prototype = {
       this.element.classList.add('to-home');
       newApp.open('home-from-cardview');
     } else {
-      newApp.open('from-cardview');
+      newApp.open(animation || 'from-cardview');
     }
 
     // ... and when the transition has finished, clean up.
-    return eventSafety(newApp.element, '_opened', () => {
+    return eventSafety(newApp.element, 'animationend', (e) => {
       this.setActive(false);
       this.element.classList.remove('to-home');
       this.element.classList.remove('filtered');
       this.stack.forEach((app) => {
         this._removeApp(app);
-        app.leaveTaskManager();
       });
-    }, 400);
+    }, 2000);
   },
 
   /**
@@ -400,13 +412,15 @@ TaskManager.prototype = {
     if (idx === -1) {
       idx = this.stack.length - 1;
     }
-    var currentPosition = this.element.scrollLeft;
+
+    var currentPosition = this.scrollElement.scrollLeft;
     var desiredPosition = this.indexToOffset(idx);
+
     return new Promise((resolve, reject) => {
       if (currentPosition === desiredPosition) {
         resolve();
       } else {
-        this.element.scrollTo({
+        this.scrollElement.scrollTo({
           left: desiredPosition,
           top: 0,
           behavior: immediately ? 'auto' : 'smooth'
@@ -421,14 +435,17 @@ TaskManager.prototype = {
 
     switch (evt.type) {
       case 'click':
-        if (this.element.classList.contains('empty')) {
+        if (evt.target === this.newSheetButton) {
+          this.openNewSheet({ isPrivate: false });
+        } else if (evt.target === this.newPrivateSheetButton) {
+          this.openNewSheet({ isPrivate: true });
+        } else if (this.element.classList.contains('empty')) {
           this.hide(Service.query('getHomescreen', true));
-          return;
-        }
-
-        card = this.elementToCardMap.get(evt.target.closest('.card'));
-        if (card) {
-          this.cardAction(card, evt.target.dataset.buttonAction || 'select');
+        } else {
+          card = this.elementToCardMap.get(evt.target.closest('.card'));
+          if (card) {
+            this.cardAction(card, evt.target.dataset.buttonAction || 'select');
+          }
         }
         break;
 
@@ -437,7 +454,7 @@ TaskManager.prototype = {
         break;
 
       case 'scroll':
-        if (this.element.style.overflowX === 'hidden') {
+        if (this.scrollElement.style.overflowX === 'hidden') {
           // Believe it or not, you will receive scroll events even when
           // overflow is hidden. We don't care about those, because we're
           // dragging a card; the user won't see scroll events.
@@ -457,7 +474,7 @@ TaskManager.prototype = {
         // If we're not going to prevent the drag, we should disable scrolling
         // while the card is dragging; we'll reenable it on "card-dropped".
         else {
-          this.element.style.overflowX = 'hidden';
+          this.scrollElement.style.overflowX = 'hidden';
         }
         break;
 
@@ -465,7 +482,7 @@ TaskManager.prototype = {
         // The user has stopped touching the card; it will either bounce back
         // into position, or we'll need to kill the app if they swiped upward.
         // Regardless, reenable scrolling:
-        this.element.style.overflowX = 'scroll';
+        this.scrollElement.style.overflowX = 'scroll';
         // And kill the app after the swipe-up transition has finished.
         if (evt.detail.willKill) {
           card = this.elementToCardMap.get(evt.target);
@@ -562,8 +579,40 @@ TaskManager.prototype = {
       this.publish('taskmanager-deactivated');
     }
     this.element.classList.toggle('active', active);
-    this.element.classList.toggle('empty', active && this.stack.length === 0);
   },
+
+  /**
+   * Launch a new browser sheet at the end of the stack, pan to its position,
+   * and exit into the new sheet.
+   */
+  openNewSheet({ isPrivate } = {}) {
+    var config;
+
+    if (isPrivate) {
+      config = new BrowserConfigHelper({
+        manifestURL: 'app://search.gaiamobile.org/manifest.webapp',
+        url: 'app://search.gaiamobile.org/newtab.html?private=1',
+      });
+      config.isPrivate = true;
+      config.oop = true;
+    } else {
+      config = new BrowserConfigHelper({
+        manifestURL: 'app://search.gaiamobile.org/manifest.webapp',
+        url: 'app://search.gaiamobile.org/newtab.html'
+      });
+    }
+
+    var appWindow = new AppWindow(config);
+
+    this.updateStack({ currentlyLaunchingApp: appWindow });
+
+    // NOTE: These two actions (panToApp and hide) are triggered simultaneously,
+    // to attempt to give the appWindow some time to load before animating
+    // onscreen. The 'from-new-card' transition includes a bit of dead time
+    // at the beginning of the animation to allow 'panToApp' to complete.
+    this.panToApp(appWindow);
+    this.hide(appWindow, 'from-new-card');
+  }
 
 };
 

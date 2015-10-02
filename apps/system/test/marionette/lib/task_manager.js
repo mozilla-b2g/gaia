@@ -7,7 +7,10 @@
 
   TaskManager.prototype = {
     selectors: {
-      element: '#cards-view',
+      element: '#task-manager',
+      scrollElement: '#cards-view',
+      newSheetButton: '#task-manager-new-sheet-button',
+      newPrivateSheetButton: '#task-manager-new-private-sheet-button',
       cards: '#cards-view li',
       screenshot: '.screenshotView',
       icon: '.appIcon'
@@ -18,6 +21,15 @@
 
     get cards() {
       return this.client.findElements(this.selectors.cards);
+    },
+
+    get newSheetButton() {
+      return this.client.helper.waitForElement(this.selectors.newSheetButton);
+    },
+
+    get newPrivateSheetButton() {
+      return this.client.helper.waitForElement(
+        this.selectors.newPrivateSheetButton);
     },
 
     show: function() {
@@ -43,6 +55,7 @@
         win.dispatchEvent(new CustomEvent('home'));
       });
     },
+
     getIconForCard: function(idx) {
       var card = this.cards[idx];
       this.client.waitFor(card.displayed.bind(card));

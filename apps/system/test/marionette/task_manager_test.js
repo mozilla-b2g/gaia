@@ -179,6 +179,26 @@ marionette('Task Manager', function() {
     });
   });
 
+  suite('new sheet buttons', function() {
+    setup(function() {
+      taskManager.show();
+    });
+
+    test('should open a new sheet', function() {
+      taskManager.newSheetButton.tap();
+      system.waitForBrowser('app://search.gaiamobile.org/newtab.html');
+    });
+
+    test('should open a new private sheet', function() {
+      taskManager.newPrivateSheetButton.tap();
+      var appWindow = system.waitForBrowser(
+        'app://search.gaiamobile.org/newtab.html?private=1');
+      client.waitFor(function() {
+        return appWindow.getAttribute('mozprivatebrowsing') === 'true';
+      });
+    });
+  });
+
   test('swiping then taping should switch app', function() {
     taskManager.show();
 
