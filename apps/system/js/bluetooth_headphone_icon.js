@@ -15,6 +15,7 @@
     return `<div id="statusbar-bluetooth-headphone"
               class="sb-icon sb-icon-bluetooth-headphone"
               role="listitem" hidden
+              aria-live="polite"
               data-l10n-id="statusbarBluetoothHeadphone">
             </div>`;
   };
