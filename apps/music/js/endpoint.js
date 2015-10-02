@@ -316,6 +316,10 @@ function getAlbum(filePath) {
 
     return new Promise((resolve) => {
       Database.enumerateAll('metadata.album', album, 'next', (songs) => {
+        if (!album) {
+          songs = songs.filter(song => !song.metadata.album);
+        }
+
         songs.sort((a, b) => {
           return (a.metadata.discnum - b.metadata.discnum) ||
                  (a.metadata.tracknum - b.metadata.tracknum);
@@ -341,6 +345,10 @@ function getArtist(filePath) {
 
     return new Promise((resolve) => {
       Database.enumerateAll('metadata.artist', artist, 'next', (songs) => {
+        if (!artist) {
+          songs = songs.filter(song => !song.metadata.artist);
+        }
+
         songs.sort((a, b) => {
           var albumSort = a.metadata.album < b.metadata.album ?
             -1 : (a.metadata.album > b.metadata.album ?  1 : 0);
