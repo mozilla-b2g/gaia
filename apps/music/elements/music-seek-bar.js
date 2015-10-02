@@ -238,7 +238,8 @@ Object.defineProperty(proto, 'remainingTime', {
         duration.format(this._elapsedTime * 1000);
     });
 
-    var percent = this._elapsedTime / this._duration;
+    // avoid division by 0, in case. Likely already invalid.
+    var percent = this._duration ? this._elapsedTime / this._duration : 0;
     var x = this.els.seekBar.offsetWidth * percent;
 
     if (document.documentElement.dir === 'rtl') {
