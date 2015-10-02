@@ -153,6 +153,7 @@ proto.initializeView = function(view) {
       view.title = view.frame.contentDocument.title;
 
       resolve(view);
+      this.dispatchEvent(new CustomEvent('loaded'));
     });
 
     view.frame.addEventListener('rendered', () => {
