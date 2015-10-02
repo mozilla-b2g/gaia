@@ -159,15 +159,13 @@
      */
     learnAboutPrivateBrowsing: function(e) {
       e.preventDefault();
-      navigator.mozL10n.formatValue('private-learn-more-href').then(url => {
-        /* jshint nonew: false */
-        new MozActivity({
-          name: 'view',
-          data: {
-            type: 'url',
-            url: url
-          }
-        });
+      /* jshint nonew: false */
+      new MozActivity({
+        name: 'view',
+        data: {
+          type: 'url',
+          url: e.target.href
+        }
       });
     }
   };
