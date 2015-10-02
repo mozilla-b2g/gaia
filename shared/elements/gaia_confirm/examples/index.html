@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html dir="ltr" >
 <head>
   <meta charset="utf-8" />
   <title>GaiaConfirm Demo</title>
@@ -17,6 +17,12 @@
   <script src="../../../js/component_utils.js"></script>
   <script src="../../gaia_buttons/script.js"></script>
   <script src="../script.js"></script>
+  <script>
+    document.documentElement.addEventListener("keypress", function(e) {
+      var dir = document.documentElement.dir;
+      document.documentElement.dir = dir == "ltr" ? "rtl" : "ltr";
+    });
+  </script>
 </head>
 <body role="application">
 
