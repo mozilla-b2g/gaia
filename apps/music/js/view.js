@@ -1,12 +1,12 @@
 /* exported View */
-/* global bridge */
+/* global SERVICE_WORKERS, bridge */
 
 window.View = (function() {
 'use strict';
 
 var debug = 1 ? (...args) => console.log('[View]', ...args) : () => {};
 
-if (!window.parent.SERVICE_WORKERS) (function() {
+if (!SERVICE_WORKERS) (function() {
   window.ROUTES = {
     '/api/activities/share/:filePath': 'share',
 
@@ -109,7 +109,7 @@ View.prototype.render = function() {
   debug('Rendered');
 };
 
-View.prototype.fetch = window.parent.SERVICE_WORKERS ?
+View.prototype.fetch = SERVICE_WORKERS ?
   function(url) {
     return window.fetch(url);
   } :

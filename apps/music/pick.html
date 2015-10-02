@@ -12,16 +12,23 @@
   <meta name="availableLanguages" content="en-US">
   <link rel="localization" href="/locales/music.{locale}.properties">
   <link rel="localization" href="/shared/locales/media/media.{locale}.properties">
-  <script type="application/javascript;version=1.8" src="/shared/js/l20n.js"></script>
   <!-- Stylesheets -->
   <link rel="stylesheet" href="/components/gaia-icons/gaia-icons.css">
   <link rel="stylesheet" href="/components/gaia-theme/gaia-theme.css">
   <link rel="stylesheet" href="/css/app.css">
   <link rel="stylesheet" href="/css/activity.css">
-  <!-- Web Components -->
-  <script src="/components/gaia-header/dist/gaia-header.js"></script>
-  <script src="/elements/music-overlay.js"></script>
-  <script src="/elements/music-view-stack.js"></script>
+  <!-- Deferred Scripts -->
+  <script defer src="/components/bridge/bridge.js"></script>
+  <script defer src="/shared/js/l20n.js" type="application/javascript;version=1.8"></script>
+  <script defer src="/components/gaia-header/dist/gaia-header.js"></script>
+  <script defer src="/elements/music-overlay.js"></script>
+  <script defer src="/elements/music-view-stack.js"></script>
+  <script defer src="/shared/js/lazy_loader.js"></script>
+  <script defer src="/shared/js/mediadb.js"></script>
+  <script defer src="/js/db.js"></script>
+  <script defer src="/js/endpoint.js"></script>
+  <script defer src="/js/config.js"></script>
+  <script defer src="/js/app.js"></script>
 </head>
 <body role="application">
   <gaia-header id="header" no-font-fit>
@@ -69,21 +76,5 @@
   <music-scan-progress id="scan-progress" hidden></music-scan-progress>
 
   <audio id="audio"></audio>
-
-  <script src="/components/bridge/bridge.js"></script>
-
-  <script src="/shared/js/async_storage.js"></script>
-  <script src="/shared/js/image_utils.js"></script>
-  <script src="/shared/js/lazy_loader.js"></script>
-  <script src="/shared/js/mediadb.js"></script>
-  <script src="/shared/js/omadrm/fl.js"></script>
-  <script src="/shared/js/text_normalizer.js"></script>
-  <script src="/js/shims/device-storage.js"></script>
-  <script src="/js/db.js"></script>
-  <script src="/js/queue.js"></script>
-  <script src="/js/endpoint.js"></script>
-
-  <script src="/js/config.js"></script>
-  <script src="/js/app.js"></script>
 </body>
 </html>

@@ -341,8 +341,10 @@ var Database = (function() {
       }
 
       return new Promise(function(resolve, reject) {
-        ForwardLock.getKey(function(secret) {
-          ForwardLock.unlockBlob(secret, blob, resolve, null, reject);
+        LazyLoader.load('/shared/js/omadrm/fl.js').then(() => {
+          ForwardLock.getKey(function(secret) {
+            ForwardLock.unlockBlob(secret, blob, resolve, null, reject);
+          });
         });
       });
     });
@@ -386,20 +388,23 @@ var Database = (function() {
         return;
       }
 
-      // Convert to lowercase and replace accented characters.
-      query = Normalizer.toAscii(query.toLocaleLowerCase());
-      var direction = (key === 'title') ? 'next' : 'nextunique';
+      return LazyLoader.load('/shared/js/text_normalizer.js').then(() => {
+        // Convert to lowercase and replace accented characters.
+        query = Normalizer.toAscii(query.toLocaleLowerCase());
+        var direction = (key === 'title') ? 'next' : 'nextunique';
 
-      return musicdb.enumerate('metadata.' + key, null, direction, (result) => {
-        if (result === null) {
-          callback(result);
-          return;
-        }
+        return musicdb.enumerate('metadata.' + key, null, direction,
+          (result) => {
+            if (result === null) {
+              callback(result);
+              return;
+            }
 
-        var resultLowerCased = result.metadata[key].toLocaleLowerCase();
-        if (Normalizer.toAscii(resultLowerCased).indexOf(query) !== -1) {
-          callback(result);
-        }
+            var resultLowerCased = result.metadata[key].toLocaleLowerCase();
+            if (Normalizer.toAscii(resultLowerCased).indexOf(query) !== -1) {
+              callback(result);
+            }
+          });
       });
     });
   }
