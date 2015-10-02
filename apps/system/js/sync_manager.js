@@ -110,6 +110,7 @@
 
     /** Sync app lifecycle **/
     'killapp',
+    'appterminated'
   ];
 
   SyncManager.SUB_MODULES = [
@@ -371,20 +372,22 @@
       // request. In that case, we need to record an error and notify
       // the state machine about it. Otherwise we could end up on a
       // permanent 'syncing' state.
-      var killedApp = event.detail.origin;
-      navigator.mozApps.getSelf().onsuccess = event => {
-        var app = event.target.result;
-        app.getConnections().then(connections => {
-          connections.forEach(connection => {
-            if (connection.keyword != SYNC_REQUEST_IAC_KEYWORD ||
-                connection.subscriber != killedApp) {
-              return;
-            }
-            Service.request('SyncStateMachine:error', ERROR_SYNC_APP_KILLED);
-          });
+      this.isSyncApp(event.detail ? event.detail.origin : null).then(() => {
+        Service.request('SyncStateMachine:error', ERROR_SYNC_APP_KILLED);
+      });
+    },
 
-        });
-      };
+    _handle_appterminated: function(event) {
+      // If the Sync app is closed, we need to release the reference to
+      // its IAC port, so we can get a new connection on the next sync
+      // request. Unfortunately, the IAC API doesn't take care of
+      // notifying when a port is dead. So we need to do it manually.
+      if (!this._port) {
+        return;
+      }
+      this.isSyncApp(event.detail ? event.detail.origin : null).then(() => {
+        this._port = null;
+      });
     },
 
     /** Helpers **/
@@ -548,6 +551,7 @@
     doSync: function(assertion, keys, collections) {
       this.debug('Syncing with', JSON.stringify(collections));
       this.iacRequest({
+        name: 'sync',
         URL: this._settings['sync.server.url'],
         assertion: assertion,
         keys: keys,
@@ -559,15 +563,58 @@
           Service.request('SyncStateMachine:error', ERROR_SYNC_APP_GENERIC);
           return;
         }
+
         this.debug('Sync succeded');
         this.lastSync = Date.now();
+
+        // It's possible that the user disabled sync while we were syncing and
+        // the Sync app sent us the result of the sync process before we could
+        // cancel it.
+        // In that case we should update the last synced time but should not
+        // trigger success (which would be harmless but would console.warn an
+        // invalid change of state). We should simply bail out.
+        if (this.state !== 'syncing') {
+          return;
+        }
         Service.request('SyncStateMachine:success');
+      });
+    },
+
+    cancelSync: function() {
+      this.iacRequest({
+        name: 'cancel'
       });
     },
 
     cleanup: function() {
       this.unregisterSyncRequest();
       window.removeEventListener(FXA_EVENT, this.fxaEventHandler);
+      // If we disabled Sync while a sync request was in progress, we need to
+      // cancel the request.
+      if (this.state === 'syncing') {
+        this.cancelSync();
+      }
+    },
+
+    isSyncApp: function(origin) {
+      if (!origin) {
+        return Promise.reject();
+      }
+      return new Promise((resolve, reject) => {
+        navigator.mozApps.getSelf().onsuccess = event => {
+          var app = event.target.result;
+          app.getConnections().then(connections => {
+            connections.forEach(connection => {
+              if (connection.keyword != SYNC_REQUEST_IAC_KEYWORD ||
+                  connection.subscriber.indexOf(origin) < 0) {
+                return;
+              }
+              resolve();
+            });
+            reject();
+          });
+        };
+      });
     }
   }, {
     state: {

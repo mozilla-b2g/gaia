@@ -108,16 +108,26 @@ const Bootstrap = (() => {
     }
 
     const request = event.detail;
-    handleSyncRequest(request).then(() => {
-      sendPortMessage({
-        id: request.id
-      });
-    }).catch(error => {
-      sendPortMessage({
-        id: request.id,
-        error: error
-      });
-    });
+    switch (request.name) {
+      case 'sync':
+        handleSyncRequest(request).then(() => {
+          sendPortMessage({
+            id: request.id
+          });
+        }).catch(error => {
+          sendPortMessage({
+            id: request.id,
+            error: error
+          });
+        });
+        break;
+      case 'cancel':
+        console.warn('Closing app');
+        window.close();
+        break;
+      default:
+        console.error('Unknown IAC request');
+    }
   });
 
   // Expose Bootstrap for unit testing:
