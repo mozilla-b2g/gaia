@@ -9,7 +9,8 @@
 
 var AdapterMock = (action, args) => {
   return {
-    update(kintoColl) {
+    update(kintoColl, options) {
+      AdapterMock.options = options;
       if (action === 'noop') {
         // Even if the adapter makes changes, we want to see that
         // SyncEngine does not sync those changes up if the adapter

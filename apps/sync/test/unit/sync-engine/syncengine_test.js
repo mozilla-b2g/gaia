@@ -147,6 +147,14 @@ ld be a Function`);
       });
     });
 
+    test('Passes options to the DataAdapter', function(done) {
+      var se = new SyncEngine(SynctoServerFixture.syncEngineOptions);
+      se.syncNow({ history: { readOnly: true } }).then(function() {
+        expect(AdapterMock.options).to.deep.equal({ readOnly: true });
+        done();
+      });
+    });
+
     test('retrieves and decrypts the remote data', function(done) {
       var se = new SyncEngine(SynctoServerFixture.syncEngineOptions);
       se.syncNow({ history: {} }).then(() => {
