@@ -151,7 +151,6 @@ suite('system/ScreenManager', function() {
 
   suite('handleEvent()', function() {
     suite('Testing devicelight event', function() {
-
       test('if _deviceLightEnabled is false', function() {
         ScreenManager._deviceLightEnabled = false;
         ScreenManager.handleEvent({'type': 'devicelight'});
@@ -445,6 +444,31 @@ suite('system/ScreenManager', function() {
 
         assert.ok(ScreenManager._setIdleTimeout
           .withArgs(ScreenManager.LOCKING_TIMEOUT, true).calledOnce);
+      });
+
+      test('Lockscreen closing, it will check if there is a holding wakeLock',
+      function() {
+        var originalManager = ScreenManager._wakeLockManager;
+        ScreenManager._wakeLockManager = {
+          isHeld: true
+        };
+        var originalSetIdleTimeout = ScreenManager._setIdleTimeout;
+        var stubSetIdleTimeout = this.sinon.stub();
+        ScreenManager._setIdleTimeout = stubSetIdleTimeout;
+        ScreenManager.handleEvent(new CustomEvent('lockscreen-appclosing'));
+        assert.isFalse(stubSetIdleTimeout.called,
+          'it set the timeout even when the wake lock is being held');
+
+        stubSetIdleTimeout = this.sinon.stub();
+        ScreenManager._setIdleTimeout = stubSetIdleTimeout;
+        ScreenManager._wakeLockManager = {
+          isHeld: false
+        };
+        ScreenManager.handleEvent(new CustomEvent('lockscreen-appclosing'));
+        assert.isTrue(stubSetIdleTimeout.called,
+          'it DOESN\'T set the timeout even when there is no wake lock');
+        ScreenManager._wakeLockManager = originalManager;
+        ScreenManager._setIdleTimeout = originalSetIdleTimeout;
       });
 
       test('An app is displayed', function() {
