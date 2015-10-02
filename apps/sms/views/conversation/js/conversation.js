@@ -15,7 +15,8 @@
          SelectionHandler,
          TaskRunner,
          MessagingClient,
-         MozMobileConnectionsClient
+         MozMobileConnectionsClient,
+         DeviceStorageClient
 */
 /*exported ConversationView */
 
@@ -120,7 +121,7 @@ var ConversationView = {
       'new-message-notice', 'edit-mode', 'edit-form', 'header-text',
       'max-length-notice', 'convert-notice', 'resize-notice',
       'new-message-notice', 'subject-max-length-notice', 'sms-counter-notice',
-      'recipient-suggestions'
+      'recipient-suggestions', 'input'
     ].forEach(function(id) {
       this[Utils.camelCase(id)] = document.getElementById('messages-' + id);
     }, this);
@@ -596,7 +597,11 @@ var ConversationView = {
       var emailThread = Settings.supportEmailRecipient &&
         this.activeThread.participants.some(Utils.isEmailAddress);
 
-      Compose.setupLock({ forceType: () => emailThread ? 'mms' : null });
+      Compose.setupLock({
+        forceType: () => emailThread ? 'mms' : null,
+        canSend: () => !DeviceStorageClient.lowDiskSpace,
+        canEdit: () => !DeviceStorageClient.lowDiskSpace
+      });
 
       // If transitioning from the 'new message' view, we don't want to notify
       // about type conversion right now, but only after the type of the thread
@@ -819,7 +824,9 @@ var ConversationView = {
     this.updateComposerHeader();
 
     Compose.setupLock({
-      canSend: () => this.hasValidRecipients(),
+      canSend: () => this.hasValidRecipients() &&
+                     !DeviceStorageClient.lowDiskSpace,
+      canEdit: () => !DeviceStorageClient.lowDiskSpace,
       // Null means that we want to use default type detection strategy.
       forceType: () => this.hasEmailRecipients() ? 'mms' : null
     });
@@ -3015,6 +3022,37 @@ var ConversationView = {
     threadMessagesClass.remove('editable-select-mode');
     node.focus();
     window.getSelection().selectAllChildren(node);
+  },
+
+  initLowStorageHandling: function() {
+    DeviceStorageClient.on('change', this.onStorageChanged);
+
+    if (DeviceStorageClient.lowDiskSpace) {
+      this.lowStorageHandler();
+    } else {
+      this.availableStorageHandler();
+    }
+  },
+
+  onStorageChanged: function(evt) {
+    switch (evt.reason) {
+      case 'low-disk-space':
+        this.lowStorageHandler();
+        break;
+      case 'available-disk-space':
+        this.availableStorageHandler();
+        break;
+    }
+  },
+
+  lowStorageHandler: function() {
+    Compose.refresh();
+    // TODO: this.input.addEventListener('click', showLowStorageDialog);
+  },
+
+  availableStorageHandler: function() {
+    Compose.refresh();
+    // TODO: this.input.removeEventListener('click', showLowStorageDialog);
   }
 };
 

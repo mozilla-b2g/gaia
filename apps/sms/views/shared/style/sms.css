@@ -261,3 +261,8 @@ html[dir="rtl"] .contact-header aside.pack-end {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+/* Only change the opacity low storage disabled element */
+.low-storage-disabled {
+  opacity: 0.4;
+}
