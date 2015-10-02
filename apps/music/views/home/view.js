@@ -92,7 +92,11 @@ HomeView.prototype.getThumbnail = function(filePath) {
   }
 
   return this.fetch('/api/artwork/url/thumbnail/' + filePath)
-    .then(response => response.json());
+    .then((response) => response.json())
+    .then((url) => {
+      this.thumbnailCache[filePath] = url;
+      return url;
+    });
 };
 
 HomeView.prototype.queueAlbum = function(filePath) {
