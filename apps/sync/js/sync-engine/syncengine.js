@@ -327,10 +327,10 @@ rse crypto/keys payload as JSON`));
       }
     },
 
-    _updateCollection: function(collectionName) {
+    _updateCollection: function(collectionName, collectionOptions) {
       return this._syncCollection(collectionName).then(() => {
         return this._adapters[collectionName].update(
-            this._collections[collectionName]);
+            this._collections[collectionName], collectionOptions);
       }).then(changed => {
         if (!changed && !this._haveUnsyncedConflicts[collectionName]) {
           return Promise.resolve();

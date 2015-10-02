@@ -323,7 +323,10 @@ DataAdapters.bookmarks = {
     });
   },
 
-  update(remoteBookmarks) {
+  update(remoteBookmarks, options = { readOnly: true }) {
+    if (!options.readOnly) {
+      console.warn('Two-way sync not implemented yet for bookmarks.');
+    }
     var mtime;
     return LazyLoader.load(['shared/js/async_storage.js'])
     .then(BookmarksHelper.getSyncedCollectionMtime).then(_mtime => {
