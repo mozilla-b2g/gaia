@@ -423,13 +423,13 @@ MediaFrame.prototype.localize = function localize() {
     if (timestamp) {
       if (!this.dtf) {
         // XXX: add localized/timeformatchange event to reset
-        this.dtf = Intl.DateTimeFormatter(navigator.languages, {
+        this.dtf = Intl.DateTimeFormat(navigator.languages, {
           hour12: navigator.mozHour12,
           hour: 'numeric',
           minute: 'numeric',
           day: 'numeric',
           month: 'numeric',
-          year: 'long'
+          year: 'numeric'
         });
       }
 

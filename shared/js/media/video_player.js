@@ -598,20 +598,20 @@ function VideoPlayer(container) {
       if (videotimestamp) {
         if (!self.dtf) {
           // XXX: add localized/timeformatchange event to reset
-          self.dtf = Intl.DateTimeFormatter(navigator.languages, {
+          self.dtf = Intl.DateTimeFormat(navigator.languages, {
             hour12: navigator.mozHour12,
             hour: 'numeric',
             minute: 'numeric',
             day: 'numeric',
             month: 'numeric',
-            year: 'long'
+            year: 'numeric'
           });
         }
 
         var ts = this.dtf.format(new Date(videotimestamp));
 
         navigator.mozL10n.setAttributes(
-          this.image,
+          poster,
           'videoDescription',
           {
             orientation: orientationText,
@@ -620,7 +620,7 @@ function VideoPlayer(container) {
         );
       } else {
         navigator.mozL10n.setAttributes(
-          this.image,
+          poster,
           'videoDescriptionNoTimestamp',
           { orientation: orientationText }
         );

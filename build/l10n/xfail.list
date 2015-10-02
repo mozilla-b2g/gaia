@@ -118,9 +118,6 @@ apps/system/test/unit/settings_migrator_test.js
 apps/system/test/unit/device_storage_watcher_test.js
 apps/system/test/unit/updatable_test.js
 apps/verticalhome/test/marionette/lib/verticalhome.js
-apps/video/js/thumbnail_date_group.js
-apps/video/js/video.js
-apps/video/js/view.js
 dev_apps/feedback/js/feedback.js
 dev_apps/geoloc/js/geoloc.js
 shared/elements/gaia_grid/js/items/collection.js
@@ -129,7 +126,6 @@ shared/js/contacts/contacts_buttons.js
 shared/js/dialer/keypad.js
 shared/js/dialer/utils.js
 shared/js/l10n_date.js
-shared/js/media/media_utils.js
 shared/js/stk_helper.js
 shared/js/tz_select.js
 shared/pages/import/js/curtain_panel.js

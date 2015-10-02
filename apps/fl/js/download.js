@@ -327,9 +327,11 @@ function view(activity) {
     // If the size is too big, just abort now so we don't run out of
     // memory when we download the .dm file later
     if (descriptor.size > MAX_DOWNLOAD_SIZE) {
-      reportError(DOWNLOAD_ERROR, ERR_TOO_BIG,
-                  OMADownloadStatus.INSUFFICIENT_MEMORY,
-                  MediaUtils.formatSize(descriptor.size));
+      MediaUtils.getLocalizedSize(descriptor.size).then((msg) => {
+        reportError(DOWNLOAD_ERROR, ERR_TOO_BIG,
+                    OMADownloadStatus.INSUFFICIENT_MEMORY,
+                    msg);
+      });
       return;
     }
 
@@ -416,8 +418,10 @@ function view(activity) {
     // Display details from the descriptor
     $('download-confirmation-name').textContent = descriptor.name;
     $('download-confirmation-type').textContent = mimeType;
-    $('download-confirmation-size').textContent =
-      MediaUtils.formatSize(descriptor.size);
+    MediaUtils.getLocalizedSizeTokens(descriptor.size).then((args) => {
+      navigator.mozL10n.setAttributes(
+        $('download-confirmation-size'), 'fileSize', args);
+    });
     // XXX: this might be too big to fit on the screen.
     $('download-confirmation-description').textContent = descriptor.description;
 
