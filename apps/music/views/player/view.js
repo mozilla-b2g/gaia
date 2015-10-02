@@ -70,7 +70,7 @@ PlayerView.prototype.update = function() {
     });
 
     this.getSongArtwork(status.filePath)
-      .then(blob => this.artwork.src = URL.createObjectURL(blob));
+      .then((url) => this.artwork.src = url);
 
     this.controls.paused = status.paused;
     this.seekBar.duration = status.duration;
@@ -160,9 +160,10 @@ PlayerView.prototype.getSong = function(filePath) {
 };
 
 PlayerView.prototype.getSongArtwork = function(filePath) {
-  return this.fetch('/api/artwork/original/' + filePath).then((response) => {
-    return response.blob();
-  });
+  return this.fetch('/api/artwork/url/original/' + filePath)
+    .then((response) => {
+      return response.json();
+    });
 };
 
 window.view = new PlayerView();

@@ -46,10 +46,13 @@ var service = bridge.service('music-service')
   .method('getSongCount', getSongCount)
   .method('getSong', getSong)
   .method('getSongFile', getSongFile)
-  .method('getSongArtwork', getSongArtwork)
-  .method('getSongThumbnail', getSongThumbnail)
   .method('setSongRating', setSongRating)
   .method('search', search)
+
+  .method('getSongArtwork', getSongArtwork)
+  .method('getSongThumbnail', getSongThumbnail)
+  .method('getSongArtworkURL', getSongArtworkURL)
+  .method('getSongThumbnailURL', getSongThumbnailURL)
 
   .method('share', share)
   .method('open', open)
@@ -406,6 +409,22 @@ function getSongThumbnail(filePath) {
   return LazyLoader.load('/js/metadata/album_art_cache.js').then(() => {
     return getSong(filePath).then((song) => {
       return AlbumArtCache.getThumbnailBlob(song);
+    });
+  });
+}
+
+function getSongArtworkURL(filePath) {
+  return LazyLoader.load('/js/metadata/album_art_cache.js').then(() => {
+    return getSong(filePath).then((song) => {
+      return AlbumArtCache.getFullSizeURL(song);
+    });
+  });
+}
+
+function getSongThumbnailURL(filePath) {
+  return LazyLoader.load('/js/metadata/album_art_cache.js').then(() => {
+    return getSong(filePath).then((song) => {
+      return AlbumArtCache.getThumbnailURL(song);
     });
   });
 }

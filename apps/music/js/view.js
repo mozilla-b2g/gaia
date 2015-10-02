@@ -18,6 +18,8 @@ if (!window.parent.SERVICE_WORKERS) (function() {
 
     '/api/artwork/original/:filePath': 'getSongArtwork',
     '/api/artwork/thumbnail/:filePath': 'getSongThumbnail',
+    '/api/artwork/url/original/:filePath': 'getSongArtworkURL',
+    '/api/artwork/url/thumbnail/:filePath': 'getSongThumbnailURL',
 
     '/api/audio/play': 'play',
     '/api/audio/pause': 'pause',
