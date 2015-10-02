@@ -236,21 +236,28 @@ uld be a Function`);
         if (syncResults.ok) {
           return syncResults;
         }
-        return Promise.reject(new SyncEngine.UnrecoverableError());
+        return Promise.reject(new SyncEngine.UnrecoverableError('SyncResults',
+            collectionName, syncResults));
       }).then(syncResults => {
         if (syncResults.conflicts.length) {
           return this._resolveConflicts(collectionName, syncResults.conflicts);
         }
       }).catch(err => {
         if (err instanceof TypeError) {
-          throw new SyncEngine.UnrecoverableError();
-        } else if (err instanceof Error && typeof err.request === 'object') {
-          if (err.request.status === 401) {
-            throw new SyncEngine.AuthError();
+          // FIXME: document in which case Kinto.js throws a TypeError
+          throw new SyncEngine.UnrecoverableError(err);
+        } else if (err instanceof Error && typeof err.response === 'object') {
+          if (err.response.status === 401) {
+            throw new SyncEngine.AuthError(err);
           }
-          throw new SyncEngine.TryLaterError();
+          throw new SyncEngine.TryLaterError(err);
+        } else if (err.message === `HTTP 0; TypeError: NetworkError when attemp\
+ting to fetch resource.`) {
+          throw new SyncEngine.TryLaterError('Syncto server unreachable',
+              this._kinto && this._kinto._options &&
+              this._kinto._options.remote);
         }
-        throw new SyncEngine.UnrecoverableError();
+        throw new SyncEngine.UnrecoverableError(err);
       });
     },
 
@@ -273,7 +280,7 @@ uld be a Function`);
       }, err => {
         if (err === 'SyncKeys hmac could not be verified with current main ' +
             'key') {
-          throw new SyncEngine.UnrecoverableError();
+          throw new SyncEngine.UnrecoverableError(err);
         }
         throw err;
       });
@@ -365,16 +372,19 @@ rse crypto/keys payload as JSON`));
   };
 
   SyncEngine.UnrecoverableError = function() {
+    console.error('[SyncEngine Unrecoverable]', arguments);
     this.message = 'unrecoverable';
   };
   SyncEngine.UnrecoverableError.prototype = Object.create(Error.prototype);
 
   SyncEngine.TryLaterError = function() {
+    console.error('[SyncEngine TryLater]', arguments);
     this.message = 'try later';
   };
   SyncEngine.TryLaterError.prototype = Object.create(Error.prototype);
 
   SyncEngine.AuthError = function() {
+    console.error('[SyncEngine Auth]', arguments);
     this.message = 'unauthorized';
   };
   SyncEngine.AuthError.prototype = Object.create(Error.prototype);
