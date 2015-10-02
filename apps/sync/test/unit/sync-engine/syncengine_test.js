@@ -184,12 +184,12 @@ ld be a Function`);
       var credentials = cloneObject(SynctoServerFixture.syncEngineOptions);
       credentials.adapters.history = AdapterMock('create', [
         { foo: 'bar' },
-        { forceId: 'wrong' }
+        { forceId: 8.4 }
       ]);
 
       var se = new SyncEngine(credentials);
       expect(se.syncNow({ history: {} })).to.be.rejectedWith(Error, `Invalid id\
-: wrong`).and.notify(done);
+: 8.4`).and.notify(done);
     });
 
     test('encrypts and pushes updated records', function(done) {

@@ -74,11 +74,12 @@ var SyncEngine = (function() {
         return window.btoa(binStr).replace('+', '-').replace('/', '_');
       },
       validate: function(id) {
-        // FxSync id's should be 12 ASCII characters, representing 9 bytes of
-        // data in modified Base64 for URL variants exist, where the '+' and '/'
+        // FxSync id's "should" be 12 ASCII characters, representing 9 bytes of
+        // data in modified Base64 for URL variants, where the '+' and '/'
         // characters of standard Base64 are respectively replaced by '-' and
         // '_'. See https://docs.services.mozilla.com/storage/apis-1.5.html
-        return /^[A-Za-z0-9-_]{12}$/.test(id);
+        // But in practice, they could be any string, see bug 1209906.
+        return (typeof id === 'string');
       }
     };
   };
