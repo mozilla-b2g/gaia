@@ -12,7 +12,6 @@
 #quick-settings > ul {
   display: flex;
   margin: 0;
-  padding: 0;
 }
 
 #quick-settings li {
