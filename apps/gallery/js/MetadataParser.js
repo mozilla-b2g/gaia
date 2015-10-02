@@ -579,8 +579,9 @@ var metadataParser = (function() {
       offscreenImage.onload = function() {
         URL.revokeObjectURL(url);
 
-        // We store the unrotated size of the poster image, which we
-        // require to have the same size and rotation as the video
+        // We store the unrotated size of the poster image. The video
+        // itself might be larger or smaller than this, but it will
+        // have the same orientation and aspect ratio.
         metadata.width = offscreenImage.width;
         metadata.height = offscreenImage.height;
 

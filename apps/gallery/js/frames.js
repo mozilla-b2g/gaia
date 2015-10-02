@@ -513,8 +513,7 @@ function setupFrameContent(n, frame) {
       // and we still have to fetch the actual video
       getVideoFile(fileinfo.metadata.video, function(videofile) {
         frame.displayVideo(videofile, imagefile,
-                           fileinfo.metadata.width,
-                           fileinfo.metadata.height,
+                           fileinfo.metadata.width / fileinfo.metadata.height,
                            fileinfo.metadata.rotation || 0);
       });
     }
