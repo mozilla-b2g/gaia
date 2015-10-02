@@ -4,6 +4,7 @@
 
 /* global ERROR_UNVERIFIED_ACCOUNT */
 /* global LazyLoader */
+/* global mozIntl */
 
 define(function(require) {
   'use strict';
@@ -228,11 +229,13 @@ define(function(require) {
         this.elements.lastSync.classList.add('hidden');
         return;
       }
-      var l10n = navigator.mozL10n;
-      l10n.DateTimeFormat().relativeDate(time, true).then(relDate => {
+      var formatter = mozIntl._gaia.RelativeDate(navigator.languages, {
+        style: 'short'
+      });
+      formatter.format(time).then(relDate => {
         var selector = 'span[data-l10n-id=fxsync-last-synced]';
         var lastSync = this.elements.lastSync.querySelector(selector);
-        l10n.setAttributes(lastSync, 'fxsync-last-synced', {
+        navigator.mozL10n.setAttributes(lastSync, 'fxsync-last-synced', {
           when: relDate
         });
         this.elements.lastSync.classList.remove('hidden');
