@@ -246,7 +246,16 @@ button {
   font-style: italic;
 }
 
-button:last-child {
+span.gaia-menu-cancel {
+  position: fixed;
+  width: 100%;
+  background: #4d4d4d;
+  height: 7rem;
+  left: 0;
+  bottom: 0;
+}
+
+span.gaia-menu-cancel button {
   position: fixed;
   bottom: 0;
   left: 0;
@@ -258,23 +267,13 @@ button:last-child {
   border-radius: 2rem;
 }
 
-button:last-child:before {
-  content: '';
-  position: fixed;
-  width: 100%;
-  background: #4d4d4d;
-  height: 7rem;
-  left: 0;
-  bottom: 0;
-  z-index: -1;
-}
-
 button:nth-last-child(2) {
   margin-bottom: 1.5rem;
 }
 
 /* Press state */
-button:active {
+button:active,
+span.gaia-menu-cancel button:active {
   background: #00aacc;
   color: #fff;
 }
