@@ -185,7 +185,8 @@ viewStack.addEventListener('titlechange', (evt) => {
   setHeaderTitle(evt.detail);
 });
 
-viewStack.addEventListener('rendered', onVisuallyLoaded);
+viewStack.addEventListener('loaded', onVisuallyLoaded);
+viewStack.addEventListener('rendered', onFullyLoaded);
 
 tabBar.addEventListener('change', (evt) => {
   var tab = evt.detail.selectedElement;
@@ -307,7 +308,7 @@ function onSearchClose() {
 }
 
 function onVisuallyLoaded() {
-  viewStack.removeEventListener('rendered', onVisuallyLoaded);
+  viewStack.removeEventListener('loaded', onVisuallyLoaded);
 
   // PERFORMANCE MARKER (3): visuallyLoaded
   // Designates that the app is visually loaded (e.g.: all of the
@@ -320,6 +321,10 @@ function onVisuallyLoaded() {
   // set of functionality to allow the user to interact with the
   // "above-the-fold" content.
   perfMark('contentInteractive');
+}
+
+function onFullyLoaded() {
+  viewStack.removeEventListener('rendered', onFullyLoaded);
 
   // PERFORMANCE MARKER (5): fullyLoaded
   // Designates that the app is *completely* loaded and all relevant
