@@ -3,7 +3,7 @@
 require('/shared/js/component_utils.js');
 require('/shared/elements/gaia_confirm/script.js');
 
-suite('GaiaSwitch', function() {
+suite('<gaia-confirm>', function() {
   setup(function() {
     this.container = document.createElement('div');
   });

@@ -72,8 +72,11 @@ p {
   word-wrap: break-word;
   margin: 1rem 0 0;
   padding: 1rem 1.5rem;
-  border-top: 0.1rem solid #686868;
   line-height: 3rem;
+}
+
+p:first-of-type {
+  border-top: 0.1rem solid #686868;
 }
 
 p img {
@@ -82,7 +85,7 @@ p img {
 }
 
 p strong {
-  font-weight: 300;
+  font-weight: 500;
 }
 
 p small {
@@ -90,6 +93,32 @@ p small {
   font-weight: normal;
   color: #cbcbcb;
   display: block;
+}
+
+a {
+  color: #00CAF2;
+
+  /* workaround for bug 1208113: gaia-buttons styles are leaking */
+  background: unset !important; /* important to override :active selector as well */
+  border: unset;
+  width: unset;
+  height: unset;
+  text-align: unset;
+  font: unset;
+  padding: unset;
+  border-radius: unset;
+  text-decoration: underline;
+
+  margin: 0 !important; /* important to override more specific RTL selectors */
+}
+
+a:focus {
+  /* workaround for bug 1208113: gaia-buttons styles are leaking */
+  outline: 1px dotted currentColor;
+}
+
+a:active {
+  color: white;
 }
 
 dl {

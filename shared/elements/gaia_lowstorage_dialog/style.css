@@ -1,0 +1,5 @@
+gaia-lowstorage-dialog[hidden] {
+  /* The underlying dialog is controlled by this attribute, but we don't want to
+   * hide the outer element so that we see the transition */
+  display: initial;
+}
