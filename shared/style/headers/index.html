@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html dir="ltr">
 <head>
   <meta charset="utf-8">
   <title>Headers</title>
@@ -26,7 +26,8 @@
       color: #666;
       margin: -0.1rem 0 0;
       background-color: #f5f5f5;
-      padding: 0.4rem 0.4rem 0.4rem 3rem;
+      padding: 0.4rem;
+      padding-inline-start: 3rem;
       border: solid 0.1rem #e8e8e8;
       margin: 3rem 0 1rem;
     }
@@ -36,11 +37,16 @@
       position: relative;
     }
   </style>
+  <script>
+    window.onload = function() {
+      document.getElementById('dir').checked = false;
+    };
+  </script>
 </head>
 <body role="application">
   <p dir="ltr">
     <label>
-      <input type="checkbox"
+      <input type="checkbox" id="dir"
         onchange="document.documentElement.dir = this.checked ? 'rtl' : 'ltr'">
       RTL mode
     </label>
@@ -53,6 +59,16 @@
         <button>done</button>
       </menu>
       <h1>Email</h1>
+    </header>
+  </section>
+
+  <section role="region">
+    <header>
+      <a href="#"></a>
+      <menu type="toolbar">
+        <button><span class="icon icon-send">send</span></button>
+      </menu>
+      <h1>Send message to X</h1>
     </header>
   </section>
 
