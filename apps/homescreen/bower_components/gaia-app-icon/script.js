@@ -247,19 +247,16 @@ window.GaiaAppIcon = (function(exports) {
     if (this.app) {
       this.app.launch(this.entryPoint);
     } else {
-      this.icon.then((blob) => {
-        var features = {
-          name: this.bookmark.name,
-          icon: URL.createObjectURL(blob),
-          remote: true
-        };
+      var features = {
+        name: this.bookmark.name,
+        remote: true
+      };
 
-        window.open(this.bookmark.url, '_blank', Object.keys(features).
-          map(function eachFeature(key) {
-            return encodeURIComponent(key) + '=' +
-              encodeURIComponent(features[key]);
-          }).join(','));
-      });
+      window.open(this.bookmark.url, '_samescope', Object.keys(features).
+        map(function eachFeature(key) {
+          return encodeURIComponent(key) + '=' +
+            encodeURIComponent(features[key]);
+        }).join(','));
     }
   };
 
@@ -584,7 +581,7 @@ window.GaiaAppIcon = (function(exports) {
   template.innerHTML =
     `<style>@import url(${stylesheet});</style>
      <div id='image-container'><div id="spinner"></div></div>
-     <div><div id='subtitle'></div></div>`;
+     <div><div dir='auto' id='subtitle'></div></div>`;
 
   return document.registerElement('gaia-app-icon', { prototype: proto });
 })(window);
