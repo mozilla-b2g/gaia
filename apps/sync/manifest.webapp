@@ -19,5 +19,13 @@
       "readonly": false,
       "description": "Stores data about browsing history."
     }
+  },
+  "connections": {
+    "gaia::sync::request": {
+      "description": "Expose a simple API to be woken up on sync requests",
+      "rules": {
+        "minimumAccessLevel": "certified"
+      }
+    }
   }
 }
