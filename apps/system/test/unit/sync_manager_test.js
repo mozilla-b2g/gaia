@@ -856,6 +856,51 @@ suite('system/SyncManager >', () => {
     });
   });
 
+  suite('FxA getAssertion', () => {
+    var syncManager;
+    var getAssertionStub;
+
+    suiteSetup(() => {
+      syncManager = BaseModule.instantiate('SyncManager');
+      syncManager.start();
+    });
+
+    teardown(() => {
+      syncManager.stop();
+    });
+
+    setup(() => {
+      getAssertionStub = this.sinon.stub(FxAccountsClient, 'getAssertion',
+                                         (options, successCb, errorCb) => {
+        successCb('assertion');
+      });
+    });
+
+    teardown(() => {
+      getAssertionStub.restore();
+    });
+
+    test('No audience', done => {
+      syncManager._settings['sync.fxa.audience'] = null;
+      syncManager.getAssertion().then(result => {
+        assert.equal(result, 'assertion');
+        assert.ok(getAssertionStub.calledOnce);
+        assert.deepEqual(getAssertionStub.args[0][0], { audience: null });
+        done();
+      });
+    });
+
+    test('Audience set', done => {
+      syncManager._settings['sync.fxa.audience'] = 'audience';
+      syncManager.getAssertion().then(result => {
+        assert.equal(result, 'assertion');
+        assert.ok(getAssertionStub.calledOnce);
+        assert.deepEqual(getAssertionStub.args[0][0], { audience: 'audience' });
+        done();
+      });
+    });
+  });
+
   suite('updateState', () => {
     var syncManager;
 
