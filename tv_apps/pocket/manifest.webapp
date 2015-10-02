@@ -1,0 +1,16 @@
+{
+  "name": "Pocket",
+  "description": "Pocket",
+  "launch_path": "/index.html",
+  "type": "certified",
+  "locales": {
+    "en-US": {
+      "name": "Pocket",
+      "description": "Pocket"
+    }
+  },
+  "default_locale": "en-US",
+  "icons": {
+    "336": "/style/icons/pocket_336.png"
+  }
+}
