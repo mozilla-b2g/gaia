@@ -67,6 +67,7 @@ var template =
     width: 2.3rem;
     height: 2.3rem;
     pointer-events: none;
+    will-change: transform;
   }
   #seek-bar-indicator:after {
     content: '';
@@ -78,6 +79,9 @@ var template =
     left: calc(50% - 1.15rem);
     width: 2.1rem;
     height: 2.1rem;
+  }
+  #seek-bar-indicator.highlight {
+    transition: transform 50ms linear;
   }
   #seek-bar-indicator.highlight:before {
     content: '';
@@ -121,7 +125,7 @@ proto.createdCallback = function() {
     this.dispatchEvent(new CustomEvent('seek', {
       detail: { elapsedTime: this.elapsedTime }
     }));
-  }, 100);
+  }, 250);
 
   container.addEventListener(isTouch ? 'touchstart' : 'mousedown', (evt) => {
     container.addEventListener(isTouch ? 'touchmove' : 'mousemove',
@@ -245,7 +249,9 @@ Object.defineProperty(proto, 'remainingTime', {
       x = this.els.seekBar.offsetWidth - x;
     }
 
-    this.els.seekBarIndicator.style.transform = 'translateX(' + x + 'px)';
+    window.requestAnimationFrame(() => {
+      this.els.seekBarIndicator.style.transform = 'translateX(' + x + 'px)';
+    });
   }
 });
 

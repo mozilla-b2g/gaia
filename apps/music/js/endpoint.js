@@ -145,8 +145,7 @@ function stop() {
 }
 
 function seek(time) {
-  time = parseInt(time, 10);
-  audio.currentTime = time;
+  audio.fastSeek(parseInt(time, 10));
 }
 
 function startFastSeek(reverse) {
@@ -160,9 +159,11 @@ function startFastSeek(reverse) {
 
   function fastSeek() {
     if (!isFastSeeking) {
+      audio.volume = 1;
       return;
     }
 
+    audio.volume = 0.5;
     seek(audio.currentTime + (reverse ? -2 : 2));
     setTimeout(fastSeek, 50);
   }
