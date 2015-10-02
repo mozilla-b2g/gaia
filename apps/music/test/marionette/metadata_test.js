@@ -71,8 +71,7 @@ marionette('Music player metadata', function() {
 
         music.waitForArtistsView();
 
-        var bg;
-        var blue, red;
+        var bg, placeholder, blue, red;
 
         // We test the album art url.
         // an "app:" URL is the default placeholder.
@@ -80,18 +79,20 @@ marionette('Music player metadata', function() {
 
         var listItemsData = music.artistsListItemsData;
 
-        bg = listItemsData[0].img;
-        assertStartsWith('blob:app:', bg);
+        placeholder = listItemsData[0].img;
+        assertStartsWith('app:', placeholder);
 
         blue = listItemsData[1].img;
-        assertStartsWith('blob:app:', blue);
+        assertStartsWith('blob:', blue);
 
         red = listItemsData[2].img;
-        assertStartsWith('blob:app:', red);
+        assertStartsWith('blob:', red);
 
-        assert.notEqual(bg, blue, 'Bg and Blue should be different');
+        assert.notEqual(placeholder, blue,
+                        'Placeholder and Blue should be different');
+        assert.notEqual(placeholder, red,
+                        'Placeholder and Red should be different');
         assert.notEqual(blue, red, 'Red and Blue should be different');
-        assert.notEqual(bg, red, 'Bg and Red should be different');
 
         //
 
@@ -100,41 +101,28 @@ marionette('Music player metadata', function() {
         listItemsData = music.albumsListItemsData;
 
         bg = listItemsData[0].img;
-        assertStartsWith('blob:app:', bg);
+        assert.equal(bg, placeholder, 'Is not the placeholder art');
 
-        blue = listItemsData[1].img;
-        assertStartsWith('blob:', blue);
-//        assert.equal(bg, blue, 'Is not the blue art');
+        bg = listItemsData[1].img;
+        assert.equal(bg, blue, 'Is not the blue art');
 
-        red = listItemsData[2].img;
-        assertStartsWith('blob:', red);
-//        assert.equal(bg, red, 'Is not the red art');
+        bg = listItemsData[2].img;
+        assert.equal(bg, red, 'Is not the red art');
 
-
-        assert.notEqual(bg, blue, 'Bg and Blue should be different');
-        assert.notEqual(blue, red, 'Red and Blue should be different');
-        assert.notEqual(bg, red, 'Bg and Red should be different');
         //
 
         music.switchToSongsView();
 
         listItemsData = music.songsListItemsData;
 
-        blue = listItemsData[0].img;
-        assertStartsWith('blob:', blue);
-//        assert.equal(bg, blue, 'Is not the blue art');
+        bg = listItemsData[0].img;
+        assert.equal(bg, blue, 'Is not the blue art');
 
         bg = listItemsData[1].img;
-        assertStartsWith('blob:app:', bg);
+        assert.equal(bg, placeholder, 'Is not the placeholder art');
 
-        red = listItemsData[2].img;
-        assertStartsWith('blob:', red);
-//        assert.equal(bg, red, 'Is not the red art');
-
-        assert.notEqual(bg, blue, 'Bg and Blue should be different');
-        assert.notEqual(blue, red, 'Red and Blue should be different');
-        assert.notEqual(bg, red, 'Bg and Red should be different');
-
+        bg = listItemsData[2].img;
+        assert.equal(bg, red, 'Is not the red art');
       } catch(e) {
         assert.ok(false, e.stack);
       }

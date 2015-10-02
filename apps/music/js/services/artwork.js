@@ -34,6 +34,28 @@ function ArtworkService(worker) {
     });
   }));
 
+  worker.get('/api/artwork/url/original/:filePath', stopAfter((request) => {
+    return new Promise((resolve) => {
+      var filePath = decodeURIComponent(request.parameters.filePath);
+      client.method('getSongArtworkURL', filePath)
+        .then(file => resolve(respond(file)))
+        .catch((error) => {
+          resolve(new Response('', { status: 404 }));
+        });
+    });
+  }));
+
+  worker.get('/api/artwork/url/thumbnail/:filePath', stopAfter((request) => {
+    return new Promise((resolve) => {
+      var filePath = decodeURIComponent(request.parameters.filePath);
+      client.method('getSongThumbnailURL', filePath)
+        .then(file => resolve(respond(file)))
+        .catch((error) => {
+          resolve(new Response('', { status: 404 }));
+        });
+    });
+  }));
+
   function respond(response) {
     return new Response(JSON.stringify(response), {
       headers: { 'Content-Type': response.type || 'application/octet-stream' }
