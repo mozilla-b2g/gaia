@@ -807,21 +807,21 @@ suite('system/TaskManager >', function() {
       var allBrowserApps = [apps.browser1, apps.browser2, apps.search];
       clock.restore();
       this.timeout(20000);
-      var newStackPosition = -1;
+      var newApp;
       tm.hide().then(() => {
         return tm.show({ browserOnly: true });
       }).then(() => {
         assert.equal(tm.stack.length, allBrowserApps.length);
 
         window.addEventListener('cardviewclosed', (evt) => {
-          newStackPosition = evt.detail.newStackPosition;
+          newApp = evt.detail;
         });
 
         return tm.hide(apps.browser1);
       }).then(() => {
         assert.equal(
-          newStackPosition,
-          MockStackManager.mStack.indexOf(apps.browser1)
+          newApp,
+          apps.browser1
         );
       }).then(done, done);
     });
