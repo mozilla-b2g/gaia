@@ -79,6 +79,8 @@ suite('Homescreen app', () => {
         this.style.display = 'none';
       };
     }
+    var icons = document.getElementById('apps');
+    icons.freeze = icons.thaw = () => {};
     app = new App();
   });
 
@@ -113,6 +115,17 @@ suite('Homescreen app', () => {
       restoreCreateElement();
       MockNavigatormozApps.mApps = [];
       stub.restore();
+    });
+
+    test('should call freeze and thaw on icon container', done => {
+      stub = sinon.stub(app.icons, 'freeze', () => {
+        stub.restore();
+        stub = sinon.stub(app.icons, 'thaw', () => {
+          stub.restore();
+          done();
+        });
+      });
+      new App();
     });
 
     test('should initialise the metadata store', done => {

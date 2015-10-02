@@ -165,6 +165,7 @@ const SETTINGS_VERSION = 0;
     this.restoreSettings();
 
     // Populate apps callback
+    this.icons.freeze();
     var populateApps = () => {
       Promise.all([
         // Populate apps
@@ -174,6 +175,7 @@ const SETTINGS_VERSION = 0;
             for (var app of request.result) {
               this.addApp(app);
             }
+            this.icons.thaw();
             resolve();
 
             // We've loaded and displayed all apps - only bookmarks and
@@ -240,6 +242,7 @@ const SETTINGS_VERSION = 0;
             for (var bookmark of bookmarks) {
               this.addAppIcon(bookmark.data);
             }
+            this.icons.thaw();
           }, (e) => {
             console.error('Error getting bookmarks', e);
           });
