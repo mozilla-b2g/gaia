@@ -32,6 +32,7 @@ window.GaiaContainer = (function(exports) {
     var shadow = this.createShadowRoot();
     shadow.appendChild(this._template);
 
+    this._frozen = false;
     this._children = [];
     this._dnd = {
       // Whether drag-and-drop is enabled
@@ -660,6 +661,23 @@ window.GaiaContainer = (function(exports) {
   };
 
   /**
+   * Temporarily disables element position synchronisation. Useful when adding
+   * multiple elements to the container at the same time, or in quick
+   * succession.
+   */
+  proto.freeze = function() {
+    this._frozen = true;
+  };
+
+  /**
+   * Enables element position synchronisation after freeze() has been called.
+   */
+  proto.thaw = function() {
+    this._frozen = false;
+    this.synchronise();
+  };
+
+  /**
    * Synchronise positions between the managed container and all children.
    * This is called automatically when adding/inserting or removing children,
    * but must be called manually if the managed container is manipulated
@@ -667,6 +685,10 @@ window.GaiaContainer = (function(exports) {
    * if it's resized).
    */
   proto.synchronise = function() {
+    if (this._frozen) {
+      return;
+    }
+
     var child;
     for (child of this._children) {
       if (!this._dnd.active || child !== this._dnd.child) {

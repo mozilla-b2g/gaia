@@ -59,6 +59,8 @@ In addition, an extra method, `reorderChild` is provided for convenience, with t
 
 As the container can't always know when to reorganise its children, a `synchronise` method is provided. When called, this method will check what layout the children should receive and updates their transforms to correspond to it. This method is called for the user whenever DOM manipulation happens directly on the container, but a user may need to call it after performing changes outside of the container that would affect its layout.
 
+As adding a child is a potentially expensive operation, two methods, `freeze` and `thaw`, are provided. These temporarily disable the synchronisation of child position. Calling `thaw` automatically causes a synchronisation.
+
 Two utility methods are also provided for convenience, `getChildFromPoint`, which retrieves a container child given client X and Y coordinates, and `getChildOffsetRect` which returns an object of the form `{ top: Y, left: X, width: W, height: H, bottom: Y+H, right: X+W }`.
 
 ## Testing
