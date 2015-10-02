@@ -40,8 +40,7 @@
         this.contactsList =
           document.querySelector('#contacts-list-container > ol');
 
-        this.contactsList.addEventListener('click', this.onClick.bind(this)
-          , true);
+        this.contactsList.addEventListener('click', this.onClick.bind(this));
         this.mergeButton.addEventListener('click', this.onMerge.bind(this));
 
         window.addEventListener('initUI', evt => {
@@ -240,22 +239,18 @@
       },
 
       onClick: function(e) {
-        e.stopPropagation();
-        e.preventDefault();
-
-        var uuid = e.rangeParent.dataset.uuid;
-        var el = e.rangeParent.querySelector('input');
-
+        var el = e.target;
+        if (el.tagName !== 'INPUT') {
+          return;
+        }
+        var uuid = el.parentNode.parentNode.dataset.uuid;
         if (el.checked) {
-          --this.checked;
-          delete this.checkedContacts[uuid];
-        } else {
           ++this.checked;
           this.checkedContacts[uuid] = uuid;
+        } else {
+          --this.checked;
+          delete this.checkedContacts[uuid];
         }
-
-        // Change manually the status as we prevented this
-        el.checked = !el.checked;
 
         this.checkMergeButton();
       },
