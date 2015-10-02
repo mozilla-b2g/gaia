@@ -101,7 +101,7 @@ audio.addEventListener('mozinterruptend', function() {
 });
 
 function play(filePath) {
-  if (!filePath) {
+  if (!filePath || filePath === currentFilePath) {
     audio.play();
     return;
   }
