@@ -79,6 +79,8 @@ suite('Homescreen app', () => {
         this.style.display = 'none';
       };
     }
+    var icons = document.getElementById('apps');
+    icons.freeze = icons.thaw = () => {};
     app = new App();
   });
 
@@ -113,6 +115,17 @@ suite('Homescreen app', () => {
       restoreCreateElement();
       MockNavigatormozApps.mApps = [];
       stub.restore();
+    });
+
+    test('should call freeze and thaw on icon container', done => {
+      stub = sinon.stub(app.icons, 'freeze', () => {
+        stub.restore();
+        stub = sinon.stub(app.icons, 'thaw', () => {
+          stub.restore();
+          done();
+        });
+      });
+      new App();
     });
 
     test('should initialise the metadata store', done => {
@@ -944,13 +957,31 @@ suite('Homescreen app', () => {
   });
 
   suite('hashchange', () => {
+    var realDocumentHidden;
+    setup(() => {
+      realDocumentHidden = Object.getOwnPropertyDescriptor(document, 'hidden');
+      Object.defineProperty(document, 'hidden', {
+        value: false,
+        configurable: true
+      });
+    });
+
+    teardown(() => {
+      if (realDocumentHidden) {
+        Object.defineProperty(document, 'hidden', realDocumentHidden);
+      } else {
+        delete document.hidden;
+      }
+    });
+
     test('should scroll to the top of the page', done => {
       var realScrollable = app.scrollable;
       app.scrollable = {
         scrollTo: (obj) => {
-          assert.equal(obj.top, 0);
-          assert.equal(obj.left, 0);
-          done();
+          done(() => {
+            assert.equal(obj.top, 0);
+            assert.equal(obj.left, 0);
+          });
         },
         scrollLeft: 0,
         parentNode: {

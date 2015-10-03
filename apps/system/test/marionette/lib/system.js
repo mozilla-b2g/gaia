@@ -520,7 +520,7 @@ System.prototype = {
   },
 
   waitForBrowser: function waitForBrowser(url) {
-    this.client.helper.waitForElement(
+    return this.client.helper.waitForElement(
       'div[transition-state="opened"] iframe[src="' + url + '"]');
   },
 

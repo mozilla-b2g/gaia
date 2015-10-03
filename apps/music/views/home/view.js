@@ -91,11 +91,10 @@ HomeView.prototype.getThumbnail = function(filePath) {
     return Promise.resolve(this.thumbnailCache[filePath]);
   }
 
-  return this.fetch('/api/artwork/thumbnail/' + filePath)
-    .then(response => response.blob())
-    .then((blob) => {
-      var url = this.thumbnailCache[filePath] = URL.createObjectURL(blob);
-
+  return this.fetch('/api/artwork/url/thumbnail/' + filePath)
+    .then((response) => response.json())
+    .then((url) => {
+      this.thumbnailCache[filePath] = url;
       return url;
     });
 };

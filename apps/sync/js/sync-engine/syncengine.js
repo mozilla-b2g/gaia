@@ -74,11 +74,12 @@ var SyncEngine = (function() {
         return window.btoa(binStr).replace('+', '-').replace('/', '_');
       },
       validate: function(id) {
-        // FxSync id's should be 12 ASCII characters, representing 9 bytes of
-        // data in modified Base64 for URL variants exist, where the '+' and '/'
+        // FxSync id's "should" be 12 ASCII characters, representing 9 bytes of
+        // data in modified Base64 for URL variants, where the '+' and '/'
         // characters of standard Base64 are respectively replaced by '-' and
         // '_'. See https://docs.services.mozilla.com/storage/apis-1.5.html
-        return /^[A-Za-z0-9-_]{12}$/.test(id);
+        // But in practice, they could be any string, see bug 1209906.
+        return (typeof id === 'string');
       }
     };
   };
@@ -236,21 +237,28 @@ uld be a Function`);
         if (syncResults.ok) {
           return syncResults;
         }
-        return Promise.reject(new SyncEngine.UnrecoverableError());
+        return Promise.reject(new SyncEngine.UnrecoverableError('SyncResults',
+            collectionName, syncResults));
       }).then(syncResults => {
         if (syncResults.conflicts.length) {
           return this._resolveConflicts(collectionName, syncResults.conflicts);
         }
       }).catch(err => {
         if (err instanceof TypeError) {
-          throw new SyncEngine.UnrecoverableError();
-        } else if (err instanceof Error && typeof err.request === 'object') {
-          if (err.request.status === 401) {
-            throw new SyncEngine.AuthError();
+          // FIXME: document in which case Kinto.js throws a TypeError
+          throw new SyncEngine.UnrecoverableError(err);
+        } else if (err instanceof Error && typeof err.response === 'object') {
+          if (err.response.status === 401) {
+            throw new SyncEngine.AuthError(err);
           }
-          throw new SyncEngine.TryLaterError();
+          throw new SyncEngine.TryLaterError(err);
+        } else if (err.message === `HTTP 0; TypeError: NetworkError when attemp\
+ting to fetch resource.`) {
+          throw new SyncEngine.TryLaterError('Syncto server unreachable',
+              this._kinto && this._kinto._options &&
+              this._kinto._options.remote);
         }
-        throw new SyncEngine.UnrecoverableError();
+        throw new SyncEngine.UnrecoverableError(err);
       });
     },
 
@@ -273,7 +281,7 @@ uld be a Function`);
       }, err => {
         if (err === 'SyncKeys hmac could not be verified with current main ' +
             'key') {
-          throw new SyncEngine.UnrecoverableError();
+          throw new SyncEngine.UnrecoverableError(err);
         }
         throw err;
       });
@@ -327,10 +335,10 @@ rse crypto/keys payload as JSON`));
       }
     },
 
-    _updateCollection: function(collectionName) {
+    _updateCollection: function(collectionName, collectionOptions) {
       return this._syncCollection(collectionName).then(() => {
         return this._adapters[collectionName].update(
-            this._collections[collectionName]);
+            this._collections[collectionName], collectionOptions);
       }).then(changed => {
         if (!changed && !this._haveUnsyncedConflicts[collectionName]) {
           return Promise.resolve();
@@ -365,16 +373,19 @@ rse crypto/keys payload as JSON`));
   };
 
   SyncEngine.UnrecoverableError = function() {
+    console.error('[SyncEngine Unrecoverable]', arguments);
     this.message = 'unrecoverable';
   };
   SyncEngine.UnrecoverableError.prototype = Object.create(Error.prototype);
 
   SyncEngine.TryLaterError = function() {
+    console.error('[SyncEngine TryLater]', arguments);
     this.message = 'try later';
   };
   SyncEngine.TryLaterError.prototype = Object.create(Error.prototype);
 
   SyncEngine.AuthError = function() {
+    console.error('[SyncEngine Auth]', arguments);
     this.message = 'unauthorized';
   };
   SyncEngine.AuthError.prototype = Object.create(Error.prototype);

@@ -132,7 +132,7 @@ html[dir="rtl"] #notification-container > div {
 }
 
 #notification-bar [data-icon] {
-  margin: 1.2rem 0;
+  margin: 1.1rem 0;
 }
 
 #notification-bar .title-container {

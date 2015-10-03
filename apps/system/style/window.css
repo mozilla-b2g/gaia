@@ -79,6 +79,17 @@
   animation: openAppFromCardView 300ms forwards cubic-bezier(.35,.9,.6,1);
 }
 
+@keyframes openAppFromNewCard {
+  0% { transform: scale(0.5) translateY(200%); }
+  20% { transform: scale(0.5) translateY(200%); }
+  65% { transform: scale(0.5) translateY(0); }
+  100% { transform: scale(1) translateY(0); }
+}
+
+.appWindow.from-new-card {
+  animation: openAppFromNewCard 1200ms forwards ease-in-out;
+}
+
 /* Opacity increases start up time then we don't use it anymore for opening */
 @keyframes openApp {
   0%   { transform: scale(0.2);}

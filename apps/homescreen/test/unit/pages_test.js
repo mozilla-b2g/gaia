@@ -219,16 +219,35 @@ suite('Pages', () => {
     });
 
     suite('hashchange', () => {
+      var realDocumentHidden;
+      setup(() => {
+        realDocumentHidden =
+          Object.getOwnPropertyDescriptor(document, 'hidden');
+        Object.defineProperty(document, 'hidden', {
+          value: false,
+          configurable: true
+        });
+      });
+
+      teardown(() => {
+        if (realDocumentHidden) {
+          Object.defineProperty(document, 'hidden', realDocumentHidden);
+        } else {
+          delete document.hidden;
+        }
+      });
+
       test('should scroll to the top of the page', done => {
         var realPanels = pages.panels;
         pages.panels = { scrollLeft: 100 };
 
         pages.scrollable = {
           scrollTo: (obj) => {
-            assert.equal(obj.top, 0);
-            assert.equal(obj.left, 0);
-            pages.panels = realPanels;
-            done();
+            done(() => {
+              pages.panels = realPanels;
+              assert.equal(obj.top, 0);
+              assert.equal(obj.left, 0);
+            });
           },
           parentNode: {
             offsetLeft: 100

@@ -121,3 +121,8 @@ html[dir="rtl"] #contacts-list-container label {
 .ui-not-ready section[role="region"] {
   display: none;
 }
+
+/* Bug 1202359: Prevent send two events */
+span::after {
+  pointer-events: none;
+}

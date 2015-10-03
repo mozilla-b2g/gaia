@@ -92,7 +92,9 @@
 
     'sync.server.url',
     'sync.scheduler.interval',
-    'sync.scheduler.wifionly'
+    'sync.scheduler.wifionly',
+
+    'sync.fxa.audience'
   ];
 
   SyncManager.EVENTS = [
@@ -463,7 +465,9 @@
     getAssertion: function() {
       return new Promise((resolve, reject) => {
         LazyLoader.load('js/fx_accounts_client.js', () => {
-          FxAccountsClient.getAssertion(null, resolve, reject);
+          FxAccountsClient.getAssertion({
+            audience: this._settings['sync.fxa.audience']
+          }, resolve, reject);
         });
       });
     },
@@ -544,7 +548,7 @@
     doSync: function(assertion, keys, collections) {
       this.debug('Syncing with', JSON.stringify(collections));
       this.iacRequest({
-        url: this._settings['sync.server.url'],
+        URL: this._settings['sync.server.url'],
         assertion: assertion,
         keys: keys,
         collections: collections

@@ -89,14 +89,8 @@ ArtistsView.prototype.getArtists = function() {
 };
 
 ArtistsView.prototype.getThumbnail = function(filePath) {
-  return this.fetch('/api/artwork/thumbnail/' + filePath)
-    .then(response => response.blob())
-    .then((blob) => {
-      var url = URL.createObjectURL(blob);
-      setTimeout(() => URL.revokeObjectURL(url), 1);
-
-      return url;
-    });
+  return this.fetch('/api/artwork/url/thumbnail/' + filePath)
+    .then(response => response.json());
 };
 
 ArtistsView.prototype.search = function(query) {

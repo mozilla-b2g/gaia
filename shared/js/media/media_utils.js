@@ -7,21 +7,21 @@
  */
 
 var MediaUtils = {
-   _: navigator.mozL10n.get,
-
   //Format Date
   formatDate: function(timestamp) {
      if (!timestamp || timestamp === undefined || isNaN(timestamp)) {
       return;
     }
-    var dtf = new navigator.mozL10n.DateTimeFormat();
-    return dtf.localeFormat(new Date(timestamp), this._('dateTimeFormat_%x'));
+    return new Date(timestamp).toLocaleString(navigator.languages, {
+      'month': 'numeric',
+      'year': 'numeric',
+      'day': 'numeric'
+    });
   },
 
-  // Format Size
-  formatSize: function(size) {
+  getLocalizedSizeTokens: function(size) {
     if (!size || size === undefined || isNaN(size)) {
-      return;
+      return Promise.resolve('');
     }
     var units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
     var i = 0;
@@ -31,7 +31,15 @@ var MediaUtils = {
     }
     var sizeDecimal = i < 2 ? Math.round(size) : Math.round(size * 10) / 10;
 
-    return sizeDecimal + ' ' + this._('byteUnit-' + units[i]);
+    return navigator.mozL10n.formatValue('byteUnit-' + units[i]).then(
+      (unit) => { return { size: sizeDecimal, unit }; }
+    );
+  },
+
+  getLocalizedSize: function(size) {
+    return this.getLocalizedSizeTokens(size).then((args) => {
+      return navigator.mozL10n.formatValue('fileSize', args);
+    });
   },
 
   //Format Duration
@@ -72,7 +80,15 @@ var MediaUtils = {
         var element = document.getElementById(id);
         //fill respective value tag to display value passed in data object
         if (element) {
-          element.textContent = data[id];
+          if (typeof data[id] === 'string') {
+            element.setAttribute('data-l10n-id', data[id]);
+          } else if (data[id].hasOwnProperty('raw')) {
+            element.removeAttribute('data-l10n-id');
+            element.textContent = data[id].raw;
+          } else {
+            navigator.mozL10n.setAttributes(element,
+              data[id].id, data[id].args);
+          }
         }
       }
     }

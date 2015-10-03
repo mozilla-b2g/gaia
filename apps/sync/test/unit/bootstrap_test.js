@@ -11,36 +11,67 @@
   ERROR_SYNC_APP_SYNC_IN_PROGRESS,
   ERROR_SYNC_INVALID_REQUEST_OPTIONS,
   expect,
+  MocksHelper,
+  MockIACPort,
   MockLazyLoader,
   MockSyncEngine,
   require,
   requireApp,
   setup,
+  sinon,
   suite,
+  suiteSetup,
+  suiteTeardown,
+  teardown,
   test
 */
 
 
 require('/shared/js/sync/errors.js');
+requireApp('system/test/unit/mock_iac_handler.js');
 requireApp('sync/test/unit/fixtures/bootstrap.js');
 requireApp('sync/test/unit/improved_mock_lazy_loader.js');
-requireApp('sync/js/bootstrap.js');
 requireApp('sync/test/unit/sync-engine-mock.js');
+
+var mocksForBootstrap = new MocksHelper([
+  'IACHandler',
+  'IACPort',
+  'LazyLoader',
+  'SyncEngine'
+]).init();
 
 suite('Bootstrap', function() {
   this.timeout(100);
-  suite('when script is loaded', () => {
+
+  mocksForBootstrap.attachTestHelpers();
+
+  suite('when script is loaded', function() {
+    var addEventListenerSpy;
+
+    suiteSetup(function(done) {
+      addEventListenerSpy = sinon.spy(window, 'addEventListener');
+      // The other suites rely on this suite running first for bootstrap.js
+      // to be loaded.
+      requireApp('sync/js/bootstrap.js', done);
+    });
+
+    suiteTeardown(function() {
+      addEventListenerSpy.restore();
+    });
+
     test('DataAdapters global is exposed', function() {
       expect(DataAdapters).to.be.an('object');
+    });
+
+    test('IAC event listener is set', function() {
+      expect(addEventListenerSpy.called).to.equal(true);
+      expect(addEventListenerSpy.args[0][0]).to.equal(
+        'iac-gaia::sync::request'
+      );
     });
   });
 
   suite('Bootstrap.handleSyncRequest', function() {
-    setup(function() {
-      window.LazyLoader = MockLazyLoader;
-      window.SyncEngine = MockSyncEngine;
-    });
-
     function run(shouldFail = false) {
       MockSyncEngine.shouldFail = shouldFail;
       return Bootstrap.handleSyncRequest({
@@ -198,6 +229,74 @@ suite('Bootstrap', function() {
         expect(err.message).to.equal('mock sync failure');
         return run();
       }).then(done);
+    });
+  });
+
+  suite('IAC request', () => {
+    const IAC_EVENT = 'iac-gaia::sync::request';
+
+    var consoleErrorSpy;
+    var postMessageSpy;
+
+    setup(function() {
+      consoleErrorSpy = sinon.spy(console, 'error');
+      postMessageSpy = sinon.spy(MockIACPort, 'postMessage');
+    });
+
+    teardown(function() {
+      consoleErrorSpy.restore();
+      postMessageSpy.restore();
+    });
+
+    test('invalid sync request', function() {
+      window.dispatchEvent(new CustomEvent(IAC_EVENT));
+      expect(consoleErrorSpy.called).to.equal(true);
+      expect(consoleErrorSpy.args[0][0]).to.equal('Wrong IAC request');
+      expect(postMessageSpy.called).to.equal(false);
+    });
+
+    test('successful sync request', function(done) {
+      var id = Date.now();
+      window.dispatchEvent(new CustomEvent(IAC_EVENT, {
+        detail: {
+          id: id,
+          URL: 'url',
+          assertion: 'assertion',
+          keys: { kB: 'kB' },
+          collections: { collection: {} }
+        }
+      }));
+      setTimeout(function() {
+        expect(consoleErrorSpy.called).to.equal(false);
+        expect(postMessageSpy.called).to.equal(true);
+        expect(postMessageSpy.args[0][0]).to.deep.equal({
+          id: id
+        });
+        expect(postMessageSpy.args[0][0].error).to.equal(undefined);
+        done();
+      });
+    });
+
+    test('failed sync request', function(done) {
+      var id = Date.now();
+      MockSyncEngine.shouldFail = true;
+      window.dispatchEvent(new CustomEvent(IAC_EVENT, {
+        detail: {
+          id: id,
+          URL: 'url',
+          assertion: 'assertion',
+          keys: { kB: 'kB' },
+          collections: { collection: {} }
+        }
+      }));
+      setTimeout(function() {
+        expect(consoleErrorSpy.called).to.equal(false);
+        expect(postMessageSpy.called).to.equal(true);
+        expect(postMessageSpy.args[0][0].id).to.equal(id);
+        expect(postMessageSpy.args[0][0].error.message)
+          .to.equal('mock sync failure');
+        done();
+      });
     });
   });
 });

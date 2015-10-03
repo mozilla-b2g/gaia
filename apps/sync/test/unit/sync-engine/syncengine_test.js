@@ -147,6 +147,14 @@ ld be a Function`);
       });
     });
 
+    test('Passes options to the DataAdapter', function(done) {
+      var se = new SyncEngine(SynctoServerFixture.syncEngineOptions);
+      se.syncNow({ history: { readOnly: true } }).then(function() {
+        expect(AdapterMock.options).to.deep.equal({ readOnly: true });
+        done();
+      });
+    });
+
     test('retrieves and decrypts the remote data', function(done) {
       var se = new SyncEngine(SynctoServerFixture.syncEngineOptions);
       se.syncNow({ history: {} }).then(() => {
@@ -184,12 +192,12 @@ ld be a Function`);
       var credentials = cloneObject(SynctoServerFixture.syncEngineOptions);
       credentials.adapters.history = AdapterMock('create', [
         { foo: 'bar' },
-        { forceId: 'wrong' }
+        { forceId: 8.4 }
       ]);
 
       var se = new SyncEngine(credentials);
       expect(se.syncNow({ history: {} })).to.be.rejectedWith(Error, `Invalid id\
-: wrong`).and.notify(done);
+: 8.4`).and.notify(done);
     });
 
     test('encrypts and pushes updated records', function(done) {
@@ -276,6 +284,8 @@ ould be an object`).and.notify(done);
         se.syncNow({ history: {} }).catch(err => {
           if (field === 'assertion') {
             expect(err).to.be.instanceOf(SyncEngine.AuthError);
+          } else if (field === 'URL') {
+            expect(err).to.be.instanceOf(SyncEngine.TryLaterError);
           } else {
             expect(err).to.be.instanceOf(SyncEngine.UnrecoverableError);
           }

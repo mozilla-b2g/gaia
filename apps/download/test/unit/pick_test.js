@@ -1,7 +1,7 @@
 'use strict';
 
 /* global MockL10n, loadBodyHTML, DownloadStore, downloadPicker,
-          DownloadFormatter */
+          DownloadFormatter, MockMozIntl */
 /* global require, requireApp, suite, suiteTeardown, suiteSetup, test, assert,
           MocksHelper, sinon */
 
@@ -10,6 +10,7 @@ require('/shared/js/download/download_store.js');
 require('/shared/js/download/download_formatter.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_moz_intl.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 
 var mocksHelperForDownloadPicker = new MocksHelper([
@@ -20,6 +21,7 @@ suite('pick.js >', function() {
 
   var realSetMessageHandler = null;
   var realL10n = null;
+  var realMozIntl = null;
   var downloads = [];
 
   function createSource(name, type) {
@@ -40,6 +42,8 @@ suite('pick.js >', function() {
   suiteSetup(function(done) {
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
+    realMozIntl = window.mozIntl;
+    window.mozIntl = MockMozIntl;
     realSetMessageHandler = navigator.mozSetMessageHandler;
     navigator.mozSetMessageHandler = window.MockNavigatormozSetMessageHandler;
     navigator.mozSetMessageHandler.mSetup();
@@ -66,6 +70,7 @@ suite('pick.js >', function() {
     navigator.mozL10n = realL10n;
     navigator.mozSetMessageHandler.mTeardown();
     navigator.mozSetMessageHandler = realSetMessageHandler;
+    window.mozIntl = realMozIntl;
     DownloadStore.getAll.restore();
   });
 

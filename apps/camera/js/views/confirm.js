@@ -111,8 +111,7 @@ module.exports = View.extend({
     this.mediaFrame.displayVideo(
       video.blob,
       video.poster.blob,
-      video.poster.width,
-      video.poster.height,
+      video.poster.width / video.poster.height,
       video.rotation);
     return this;
   },

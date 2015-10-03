@@ -1,5 +1,5 @@
 /* global ConnectionManager, ConnectionHandler, Browser,
-   URLHelper, Awesomescreen */
+   UrlHelper, Awesomescreen */
 'use strict';
 (function(exports) {
   var ConnectionHandler = function() {};
@@ -34,11 +34,14 @@
 
     openPage: function(url) {
       url = Browser.getUrlFromInput(url);
-      if (Browser.currentInfo.url && URLHelper.isURL(Browser.currentInfo.url)) {
-        Awesomescreen.openNewTab({
-          url: url,
-          frameElement: null
-        });
+      if (Browser.currentInfo.url && UrlHelper.isURL(Browser.currentInfo.url)) {
+        var ev = {
+          detail: {
+            url: url,
+            frameElement: null
+          }
+        };
+        Awesomescreen.openNewTab(ev);
       } else {
         Browser.navigate(url);
       }

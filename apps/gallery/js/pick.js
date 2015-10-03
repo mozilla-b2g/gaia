@@ -319,6 +319,7 @@ var Pick = (function() {
 
                        // Finally, return the blob to the invoking app
                        request.postResult({
+                         name: blob.name || pickedFile.name,
                          type: blob.type,
                          blob: blob
                        });

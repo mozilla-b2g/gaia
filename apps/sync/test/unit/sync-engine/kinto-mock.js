@@ -140,7 +140,8 @@ var Kinto = (function() {
   var UnreachableKintoCollectionMock = function() {};
   UnreachableKintoCollectionMock.prototype = {
     sync() {
-      return Promise.reject(new Error());
+      return Promise.reject(new Error(`HTTP 0; TypeError: NetworkError when att\
+empting to fetch resource.`));
     },
     list() {},
     get() {},
@@ -155,7 +156,7 @@ var Kinto = (function() {
   HttpCodeKintoCollectionMock.prototype = {
     sync() {
       var err = new Error();
-      err.request = {
+      err.response = {
         status: this.status
       };
       return Promise.reject(err);

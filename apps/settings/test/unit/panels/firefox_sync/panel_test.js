@@ -6,6 +6,8 @@
 
 /* global ERROR_UNVERIFIED_ACCOUNT */
 /* global loadBodyHTML */
+/* global MockL10n */
+/* global MockMozIntl */
 /* global MockSettingsListener */
 /* global Panel */
 /* global SyncManagerBridge */
@@ -14,6 +16,8 @@
 
 requireApp('settings/shared/test/unit/load_body_html_helper.js');
 require('/shared/js/sync/errors.js');
+require('/shared/test/unit/mocks/mock_moz_intl.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 
 suite('Firefox Sync panel >', () => {
   var map = {
@@ -23,6 +27,9 @@ suite('Firefox Sync panel >', () => {
       'shared/lazy_loader': 'shared_mocks/mock_lazy_loader'
     }
   };
+
+  var realMozIntl = null;
+  var realMozL10n = null;
 
   const HISTORY   = 'sync.collections.history.enabled';
   const PASSWORDS = 'sync.collections.passwords.enabled';
@@ -135,6 +142,12 @@ suite('Firefox Sync panel >', () => {
       syncStub = this.sinon.stub(SyncManagerBridge, 'sync');
       enableStub = this.sinon.stub(SyncManagerBridge, 'enable');
 
+      realMozIntl = window.mozIntl;
+      window.mozIntl = MockMozIntl;
+
+      realMozL10n = navigator.mozL10n;
+      navigator.mozL10n = MockL10n;
+
       done();
     });
   });
@@ -145,6 +158,8 @@ suite('Firefox Sync panel >', () => {
     getInfoStub.restore();
     observeSpy.restore();
     syncStub.restore();
+    window.mozIntl = realMozIntl;
+    window.mozL10n = realMozL10n;
   });
 
   suite('Initial state', () => {
@@ -645,6 +660,42 @@ suite('Firefox Sync panel >', () => {
       subject.currentScreen = LOGGED_IN_SCREEN;
       subject.showScreen(LOGGED_IN_SCREEN);
       this.sinon.assert.notCalled(loadElementsSpy);
+    });
+  });
+
+  suite('showLastSync', () => {
+    var subject;
+    var setAttributesSpy;
+
+    suiteSetup(() => {
+      subject = suiteSetupCommon();
+      subject.showScreen(LOGGED_IN_SCREEN);
+      setAttributesSpy = this.sinon.spy(navigator.mozL10n, 'setAttributes');
+    });
+
+    suiteTeardown(() => {
+      subject = null;
+      setAttributesSpy.restore();
+    });
+
+    test('Last sync should not be shown', () => {
+      assert.ok(subject.elements.lastSync.classList.contains('hidden'));
+    });
+
+    test('Last sync should be shown', done => {
+      subject.showLastSync(Date.now());
+      setTimeout(() => {
+        assert.ok(!subject.elements.lastSync.classList.contains('hidden'));
+        assert.ok(setAttributesSpy.calledOnce);
+        var selector = 'span[data-l10n-id=fxsync-last-synced]';
+        var span = subject.elements.lastSync.querySelector(selector);
+        assert.equal(setAttributesSpy.args[0][0], span);
+        assert.equal(setAttributesSpy.args[0][1], 'fxsync-last-synced');
+        assert.deepEqual(setAttributesSpy.args[0][2], {
+          when: 'pretty date'
+        });
+        done();
+      });
     });
   });
 });

@@ -101,27 +101,39 @@ function VideoPlayer(container) {
   var videourl;   // the url of the video to play
   var posterurl;  // the url of the poster image to display
   var rotation;   // Do we have to rotate the video? Set by load()
+  var aspectRatio; // Width divided by height (after rotation)
   var videotimestamp;
-  var orientation = 0; // current player orientation
 
-  // These are the raw (unrotated) size of the poster image, which
-  // may have the same size as the video. We may find when we actually
-  // load the video they are different and resize the video element.
-  var videowidth, videoheight;
-  var posterwidth, posterheight;
+  // These are the dimensions at which the poster image and video will
+  // be displayed on the screen. We make them as big as possible while still
+  // fitting on the screen, so small videos get scaled up and large videos
+  // get scaled down. These are the sizes that the user actually sees. So
+  // if the video is rotated 90 or 270 degrees, then the img and video
+  // elements will have these dimension swapped.
+  var playbackWidth, playbackHeight;
 
   var playbackTime;
   var capturedFrame;
 
-  this.load = function(video, posterimage, width, height, rotate, timestamp) {
+  this.load = function(video, posterimage, aspect, rotate, timestamp) {
     this.reset();
     videourl = video;
     posterurl = posterimage;
     rotation = rotate || 0;
-    videowidth = width;
-    videoheight = height;
-    posterwidth = width;
-    posterheight = height;
+
+    // We don't need to know what the actual resolution of the video
+    // or the poster image is. We just need to know its aspect ratio.
+    // Both the video and the poster *must* have the same ratio.  Note
+    // that the aspect ratio passed to load() is raw width/height
+    // without considering rotation. But we take the reciprocal here
+    // if necessary to account for rotation.
+    if (rotation === 0 || rotation === 180) {
+      aspectRatio = aspect;
+    }
+    else {
+      aspectRatio = 1 / aspect;
+    }
+
     videotimestamp = timestamp;
 
     // If a locale is present and ready, go ahead and localize now.
@@ -134,6 +146,10 @@ function VideoPlayer(container) {
   };
 
   this.reset = function() {
+    videourl = null;
+    posterurl = null;
+    rotation = null;
+    aspectRatio = null;
     videotimestamp = 0;
     hidePlayer();
     hidePoster();
@@ -194,9 +210,6 @@ function VideoPlayer(container) {
 
   // Call this when the container size changes
   this.setPlayerSize = setPlayerSize;
-
-  // Call this when phone orientation changes
-  this.setPlayerOrientation = setPlayerOrientation;
 
   this.pause = function pause() {
     // Pause video playback
@@ -279,16 +292,6 @@ function VideoPlayer(container) {
 
   // Set the video duration and size when we get metadata
   player.onloadedmetadata = function() {
-    // Verify that our guess at the video size is correct once we have loaded
-    // the metadata. This will happen if the poster image size differs.
-    if (videowidth != player.videoWidth ||
-        videoheight != player.videoHeight)
-    {
-      videowidth = player.videoWidth;
-      videoheight = player.videoHeight;
-      setPlayerSize(true);
-    }
-
     var formattedTime = formatTime(player.duration);
     durationText.textContent = formattedTime;
     slider.setAttribute('aria-valuemax', player.duration);
@@ -396,111 +399,87 @@ function VideoPlayer(container) {
     }
   }
 
+  // Capture the current frame as an image that we can use as a poster
+  // when the app goes to the background. Note that we capture an
+  // image the size of the screen, not the size of the video. For
+  // really large-format videos this is much more efficient. However,
+  // if the user goes to the background, changes orientation and comes back
+  // it may be that the size we captured is no longer the size to be
+  // displayed on the screen, and the preview image may be upscaled.
+  // Since it is just a preview, this should not be a real problem.
   function captureCurrentFrame(callback) {
+    // If there is no video, then there is nothing to do here
+    if (!player.src) {
+      return;
+    }
+
     var canvas = document.createElement('canvas');
-    canvas.width = videowidth;
-    canvas.height = videoheight;
+    canvas.width = playbackWidth;
+    canvas.height = playbackHeight;
     var context = canvas.getContext('2d');
-    context.drawImage(player, 0, 0);
+    context.drawImage(player, 0, 0, canvas.width, canvas.height);
     canvas.toBlob(callback);
   }
 
-  function createTransform(containerWidth, containerHeight,
-                           givenWidth, givenHeight)
-  {
-    var width, height; // The size the video will appear, after rotation
-    switch (rotation) {
-    case 0:
-    case 180:
-      width = givenWidth;
-      height = givenHeight;
-      break;
-    case 90:
-    case 270:
-      width = givenHeight;
-      height = givenWidth;
+  // Make the poster img element and video element fit the container
+  function setPlayerSize() {
+    // If we don't have an aspectRatio, then the load() method has not
+    // been called yet (or the reset() method has already been called).
+    // There is nothing we can do in that case (but we might still be called
+    // because of a resize event handler)
+    if (!aspectRatio) {
+      return;
     }
 
-    var xscale = containerWidth / width;
-    var yscale = containerHeight / height;
-    var scale = Math.min(xscale, yscale);
-
-    // Scale large videos down, and scale small videos up.
-    // This might reduce image quality for small videos.
-    width *= scale;
-    height *= scale;
-
-    var left = ((containerWidth - width) / 2);
-    var top = ((containerHeight - height) / 2);
-
-    var transform;
-    switch (rotation) {
-    case 0:
-      transform = 'translate(' + left + 'px,' + top + 'px)';
-      break;
-    case 90:
-      transform =
-        'translate(' + (left + width) + 'px,' + top + 'px) ' +
-        'rotate(90deg)';
-      break;
-    case 180:
-      transform =
-        'translate(' + (left + width) + 'px,' + (top + height) + 'px) ' +
-        'rotate(180deg)';
-      break;
-    case 270:
-      transform =
-        'translate(' + left + 'px,' + (top + height) + 'px) ' +
-        'rotate(270deg)';
-      break;
-    }
-
-    transform += ' scale(' + scale + ')';
-    return transform;
-  }
-
-  // Make the video fit the container
-  function setPlayerSize(playerOnly) {
+    // Given the size of the container, and the aspect ratio of the video
+    // (and of its poster image) we need to figure out the largest possible
+    // playback size for the video. (Note that he actual size of the video
+    // and the poster image is does not matter: the img and video elements
+    // will scale them to the playback size for us.)
+    //
+    // If the container aspect ratio is larger than the media aspect ratio
+    // (i.e. if the container is more of a squashed rectangle than the movie
+    // is), then the playback size is constrained by the height of the
+    // container and there will be black bars on the left and right.
+    // Otherwise the video is more squashed than the container, playback
+    // dimensions are constrained by the container width, and there will be
+    // black bars at the top and bottom.
     var containerWidth = container.clientWidth;
     var containerHeight = container.clientHeight;
-
-    // Don't do anything if we don't know our size.
-    // This could happen if we get a resize event before our metadata loads
-    if (!videowidth || !videoheight || !posterwidth || !posterheight) {
-      return;
+    if (containerWidth > aspectRatio * containerHeight) {
+      playbackHeight = containerHeight;
+      playbackWidth = Math.round(playbackHeight * aspectRatio);
+    } else {
+      playbackWidth = containerWidth;
+      playbackHeight = Math.round(playbackWidth / aspectRatio);
     }
-    player.style.transform = createTransform(containerWidth, containerHeight,
-                                             videowidth, videoheight);
-    if (playerOnly) {
-      return;
-    }
-    poster.style.transform = createTransform(containerWidth, containerHeight,
-                                             posterwidth, posterheight);
-  }
 
-  // Update current player orientation
-  function setPlayerOrientation(newOrientation) {
-    orientation = newOrientation;
-  }
-
-  // Compute position based on player orientation
-  function computePosition(panPosition, rect) {
-    var position;
-    switch (orientation) {
-      case 0:
-        position = (panPosition.clientX - rect.left) / rect.width;
-        break;
-      case 90:
-        position = (rect.bottom - panPosition.clientY) / rect.height;
-        break;
-      case 180:
-        position = (rect.right - panPosition.clientX) / rect.width;
-        break;
-      case 270:
-        position = (panPosition.clientY - rect.top) / rect.height;
-        break;
+    // These are the dimensions of the poster and video elements.
+    // If those elements are going to be rotated before being displayed
+    // the we've got to swap width and height.
+    var elementWidth, elementHeight;
+    if (rotation === 0 || rotation === 180) {
+      elementWidth = playbackWidth;
+      elementHeight = playbackHeight;
     }
-    return position;
+    else {
+      elementWidth = playbackHeight;
+      elementHeight = playbackWidth;
+    }
+
+    // Now set the size and position of the video player and poster elements.
+    poster.style.position = player.style.position = 'absolute';
+    player.style.width = poster.style.width = elementWidth + 'px';
+    player.style.height = poster.style.height = elementHeight + 'px';
+    poster.style.left = player.style.left =
+      ((containerWidth - elementWidth) / 2) + 'px';
+    poster.style.top = player.style.top =
+      ((containerHeight - elementHeight) / 2) + 'px';
+
+    // Finally, use a CSS transform to rotate the poster and video as needed
+    poster.style.transformOrigin = player.style.transformOrigin = '50% 50%';
+    poster.style.transform = player.style.transform =
+      'rotate(' + rotation + 'deg)';
   }
 
   // handle drags on the time slider
@@ -520,7 +499,7 @@ function VideoPlayer(container) {
     }
 
     var rect = backgroundBar.getBoundingClientRect();
-    var position = computePosition(e.detail.position, rect);
+    var position = (e.detail.position.clientX - rect.left) / rect.width;
     var pos = Math.min(Math.max(position, 0), 1);
     // Handle pos so that slider moves correct way
     // when user drags it for RTL locales
@@ -586,11 +565,7 @@ function VideoPlayer(container) {
   this.localize = function() {
     // XXX: Ideally, we would add the duration too, but that is not
     // available via fileinfo metadata yet.
-    var portrait = videowidth < videoheight;
-    if (rotation == 90 || rotation == 270) {
-      // If rotated sideways, then width and height are swapped.
-      portrait = !portrait;
-    }
+    var portrait = (aspectRatio < 1);
 
     var orientationL10nId = portrait ? 'orientationPortrait' :
       'orientationLandscape';
@@ -598,20 +573,20 @@ function VideoPlayer(container) {
       if (videotimestamp) {
         if (!self.dtf) {
           // XXX: add localized/timeformatchange event to reset
-          self.dtf = Intl.DateTimeFormatter(navigator.languages, {
+          self.dtf = Intl.DateTimeFormat(navigator.languages, {
             hour12: navigator.mozHour12,
             hour: 'numeric',
             minute: 'numeric',
             day: 'numeric',
             month: 'numeric',
-            year: 'long'
+            year: 'numeric'
           });
         }
 
         var ts = this.dtf.format(new Date(videotimestamp));
 
         navigator.mozL10n.setAttributes(
-          this.image,
+          poster,
           'videoDescription',
           {
             orientation: orientationText,
@@ -620,7 +595,7 @@ function VideoPlayer(container) {
         );
       } else {
         navigator.mozL10n.setAttributes(
-          this.image,
+          poster,
           'videoDescriptionNoTimestamp',
           { orientation: orientationText }
         );

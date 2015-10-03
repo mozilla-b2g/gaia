@@ -274,7 +274,10 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
         // to the invoking app
         saved = filename;
         // And tell the user
-        showBanner(navigator.mozL10n.get('saved', { title: title }));
+        showBanner({
+          id: 'saved',
+          args: { title: title }
+        });
       };
       savereq.onerror = function(e) {
         // XXX we don't report this to the user because it is hard to
@@ -349,13 +352,15 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
           break;
       }
 
-      handleError(navigator.mozL10n.get(errorid));
+      handleError(errorid);
     };
   }
 
-  function handleError(msg) {
-    alert(msg);
-    done();
+  function handleError(l10nId) {
+    navigator.mozL10n.formatValue(l10nId).then((msg) => {
+      alert(msg);
+      done();
+    });
   }
 
   function play() {
@@ -522,8 +527,11 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     }
   }
 
-  function showBanner(msg) {
-    dom.message.textContent = msg;
+  function showBanner(l10n) {
+    navigator.mozL10n.setAttributes(
+      dom.message,
+      l10n.id,
+      l10n.args);
     dom.banner.hidden = false;
     setTimeout(function() {
       dom.banner.hidden = true;

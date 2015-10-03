@@ -1,12 +1,11 @@
 /* exported open */ // Should not be needed, but JSHint complains
 /* global AlbumArtCache, AudioMetadata, Database, LazyLoader, PlaybackQueue,
-          bridge, navigateToURL */
+          Remote, bridge, navigateToURL */
 'use strict';
 
-var audio = document.getElementById('audio');
-
-var loadQueueSettings = PlaybackQueue.loadSettings();
-
+var audio           = null;
+var queueSettings   = null;
+var remote          = null;
 var currentFilePath = null;
 var currentQueue    = null;
 var isInterrupted   = false;
@@ -46,10 +45,13 @@ var service = bridge.service('music-service')
   .method('getSongCount', getSongCount)
   .method('getSong', getSong)
   .method('getSongFile', getSongFile)
-  .method('getSongArtwork', getSongArtwork)
-  .method('getSongThumbnail', getSongThumbnail)
   .method('setSongRating', setSongRating)
   .method('search', search)
+
+  .method('getSongArtwork', getSongArtwork)
+  .method('getSongThumbnail', getSongThumbnail)
+  .method('getSongArtworkURL', getSongArtworkURL)
+  .method('getSongThumbnailURL', getSongThumbnailURL)
 
   .method('share', share)
   .method('open', open)
@@ -61,43 +63,49 @@ var service = bridge.service('music-service')
   .listen()
   .listen(new BroadcastChannel('music-service'));
 
-audio.addEventListener('loadeddata', function() {
-  URL.revokeObjectURL(audio.src);
-});
+document.addEventListener('DOMContentLoaded', function() {
+  audio = document.getElementById('audio');
 
-audio.addEventListener('play', function() {
-  service.broadcast('play');
-});
+  audio.addEventListener('loadeddata', function() {
+    URL.revokeObjectURL(audio.src);
+  });
 
-audio.addEventListener('pause', function() {
-  service.broadcast('pause');
-});
+  audio.addEventListener('play', function() {
+    service.broadcast('play');
+  });
 
-audio.addEventListener('durationchange', function() {
-  service.broadcast('durationChange', audio.duration);
-});
+  audio.addEventListener('pause', function() {
+    service.broadcast('pause');
+  });
 
-audio.addEventListener('timeupdate', function() {
-  service.broadcast('elapsedTimeChange', audio.currentTime);
-});
+  audio.addEventListener('durationchange', function() {
+    service.broadcast('durationChange', audio.duration);
+  });
 
-audio.addEventListener('ended', function() {
-  nextSong(true);
-});
+  audio.addEventListener('timeupdate', function() {
+    service.broadcast('elapsedTimeChange', audio.currentTime);
+  });
 
-audio.addEventListener('mozinterruptbegin', function() {
-  isInterrupted = true;
+  audio.addEventListener('ended', function() {
+    nextSong(true);
+  });
 
-  service.broadcast('interruptBegin');
-});
+  audio.addEventListener('mozinterruptbegin', function() {
+    isInterrupted = true;
 
-audio.addEventListener('mozinterruptend', function() {
-  isInterrupted = false;
+    service.broadcast('interruptBegin');
+  });
 
-  service.broadcast('interruptEnd');
+  audio.addEventListener('mozinterruptend', function() {
+    isInterrupted = false;
+
+    service.broadcast('interruptEnd');
+  });
 });
 
 function play(filePath) {
+  loadRemote();
+
   if (!filePath) {
     audio.play();
     return;
@@ -145,8 +153,7 @@ function stop() {
 }
 
 function seek(time) {
-  time = parseInt(time, 10);
-  audio.currentTime = time;
+  audio.fastSeek(parseInt(time, 10));
 }
 
 function startFastSeek(reverse) {
@@ -160,9 +167,11 @@ function startFastSeek(reverse) {
 
   function fastSeek() {
     if (!isFastSeeking) {
+      audio.volume = 1;
       return;
     }
 
+    audio.volume = 0.5;
     seek(audio.currentTime + (reverse ? -2 : 2));
     setTimeout(fastSeek, 50);
   }
@@ -220,8 +229,28 @@ function nextSong(automatic = false) {
   return currentSong().then(song => play(song.name));
 }
 
+function loadQueueSettings() {
+  if (!queueSettings) {
+    queueSettings = LazyLoader.load('/js/queue.js').then(() => {
+      return PlaybackQueue.loadSettings();
+    });
+  }
+
+  return queueSettings;
+}
+
+function loadRemote() {
+  if (!remote) {
+    remote = LazyLoader.load('/js/remote.js').then(() => {
+      return Remote;
+    });
+  }
+
+  return remote;
+}
+
 function queueArtist(filePath) {
-  return loadQueueSettings.then(() => {
+  return loadQueueSettings().then(() => {
     return getArtist(filePath).then((songs) => {
       var index = songs.findIndex(song => song.name === filePath);
       currentQueue = new PlaybackQueue.StaticQueue(songs, index);
@@ -235,7 +264,7 @@ function queueArtist(filePath) {
 }
 
 function queueAlbum(filePath) {
-  return loadQueueSettings.then(() => {
+  return loadQueueSettings().then(() => {
     return getAlbum(filePath).then((songs) => {
       var index = songs.findIndex(song => song.name === filePath);
       currentQueue = new PlaybackQueue.StaticQueue(songs, index);
@@ -249,7 +278,7 @@ function queueAlbum(filePath) {
 }
 
 function queuePlaylist(id, filePath) {
-  return loadQueueSettings.then(() => {
+  return loadQueueSettings().then(() => {
     return getPlaylist(id).then((songs) => {
       var playlist = Database.playlists.find(playlist => playlist.id === id);
       return setShuffleSetting(playlist.shuffle).then(() => {
@@ -268,7 +297,7 @@ function queuePlaylist(id, filePath) {
 }
 
 function queueSong(filePath) {
-  return loadQueueSettings.then(() => {
+  return loadQueueSettings().then(() => {
     return getSongs().then((songs) => {
       var index = songs.findIndex(song => song.name === filePath);
       currentQueue = new PlaybackQueue.StaticQueue(songs, index);
@@ -282,16 +311,16 @@ function queueSong(filePath) {
 }
 
 function getRepeatSetting() {
-  return loadQueueSettings.then(() => PlaybackQueue.repeat);
+  return loadQueueSettings().then(() => PlaybackQueue.repeat);
 }
 
 function setRepeatSetting(repeat) {
   repeat = parseInt(repeat, 10) || 0;
-  return loadQueueSettings.then(() => PlaybackQueue.repeat = repeat);
+  return loadQueueSettings().then(() => PlaybackQueue.repeat = repeat);
 }
 
 function getShuffleSetting() {
-  return loadQueueSettings.then(() => PlaybackQueue.shuffle ? 1 : 0);
+  return loadQueueSettings().then(() => PlaybackQueue.shuffle ? 1 : 0);
 }
 
 function setShuffleSetting(shuffle) {
@@ -299,7 +328,7 @@ function setShuffleSetting(shuffle) {
     shuffle = shuffle !== 'false' && parseInt(shuffle || 0, 10) !== 0;
   }
 
-  return loadQueueSettings.then(() => PlaybackQueue.shuffle = shuffle);
+  return loadQueueSettings().then(() => PlaybackQueue.shuffle = shuffle);
 }
 
 function getAlbums() {
@@ -405,6 +434,22 @@ function getSongThumbnail(filePath) {
   return LazyLoader.load('/js/metadata/album_art_cache.js').then(() => {
     return getSong(filePath).then((song) => {
       return AlbumArtCache.getThumbnailBlob(song);
+    });
+  });
+}
+
+function getSongArtworkURL(filePath) {
+  return LazyLoader.load('/js/metadata/album_art_cache.js').then(() => {
+    return getSong(filePath).then((song) => {
+      return AlbumArtCache.getFullSizeURL(song);
+    });
+  });
+}
+
+function getSongThumbnailURL(filePath) {
+  return LazyLoader.load('/js/metadata/album_art_cache.js').then(() => {
+    return getSong(filePath).then((song) => {
+      return AlbumArtCache.getThumbnailURL(song);
     });
   });
 }
