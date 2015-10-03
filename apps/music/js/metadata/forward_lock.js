@@ -1,4 +1,4 @@
-/* global AudioMetadata, ForwardLock */
+/* global AudioMetadata, ForwardLock, LazyLoader */
 /* exported ForwardLockMetadata */
 'use strict';
 
@@ -16,35 +16,37 @@ var ForwardLockMetadata = (function() {
    */
   function parse(locked) {
     return new Promise(function(resolve, reject) {
-      ForwardLock.getKey(function(secret) {
-        ForwardLock.unlockBlob(secret, locked.blob, callback, reject);
+      LazyLoader.load('/shared/js/omadrm/fl.js').then(() => {
+        ForwardLock.getKey(function(secret) {
+          ForwardLock.unlockBlob(secret, locked.blob, callback, reject);
 
-        function callback(unlocked, unlockedMetadata) {
-          // Now that we have the unlocked content of the locked file, pass it
-          // back to AudioMetadata.parse to get the metadata. When we're done,
-          // add some extra metadata to indicate that this is locked content (so
-          // it isn't shared) and to specify the vendor that locked it.
-          resolve(AudioMetadata.parse(unlocked).then(function(metadata) {
-            metadata.locked = true;
-            if (unlockedMetadata.vendor) {
-              metadata.vendor = unlockedMetadata.vendor;
-            }
-            if (!metadata.title) {
-              metadata.title = unlockedMetadata.name;
-            }
-            if (metadata.picture && metadata.picture.flavor === 'embedded') {
-              // Grab the slice for the embedded album art while we still have
-              // the decrypted blob to look at!
-              metadata.picture = {
-                flavor: 'unsynced',
-                blob: unlocked.slice(metadata.picture.start,
-                                     metadata.picture.end,
-                                     metadata.picture.type)
-              };
-            }
-            return metadata;
-          }));
-        }
+          function callback(unlocked, unlockedMetadata) {
+            // Now that we have the unlocked content of the locked file, pass it
+            // back to AudioMetadata.parse to get the metadata. When we're done,
+            // add some extra metadata to indicate that this is locked content
+            // (so it isn't shared) and to specify the vendor that locked it.
+            resolve(AudioMetadata.parse(unlocked).then(function(metadata) {
+              metadata.locked = true;
+              if (unlockedMetadata.vendor) {
+                metadata.vendor = unlockedMetadata.vendor;
+              }
+              if (!metadata.title) {
+                metadata.title = unlockedMetadata.name;
+              }
+              if (metadata.picture && metadata.picture.flavor === 'embedded') {
+                // Grab the slice for the embedded album art while we still have
+                // the decrypted blob to look at!
+                metadata.picture = {
+                  flavor: 'unsynced',
+                  blob: unlocked.slice(metadata.picture.start,
+                                       metadata.picture.end,
+                                       metadata.picture.type)
+                };
+              }
+              return metadata;
+            }));
+          }
+        });
       });
     });
   }

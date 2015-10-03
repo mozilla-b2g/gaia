@@ -42,7 +42,9 @@ var AlbumArtCache = (function() {
       // thumbnail blob and store it in the cache. In either case, return the
       // blob.
       var promise = new Promise((resolve, reject) => {
-        asyncStorage.getItem(cacheKey, (blob) => { resolve(blob); });
+        LazyLoader.load('/shared/js/async_storage.js').then(() => {
+          asyncStorage.getItem(cacheKey, (blob) => { resolve(blob); });
+        });
       }).then((cachedBlob) => {
         return cachedBlob || this._makeThumbnail(fileinfo, cacheKey);
       });
@@ -63,9 +65,14 @@ var AlbumArtCache = (function() {
       // We don't have a saved blob yet, so grab it, thumbnailize it, and store
       // it in asyncStorage.
       return getAlbumArtBlob(fileinfo).then((blob) => {
-        return ImageUtils.resizeAndCropToCover(
-          blob, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT
-        );
+        return LazyLoader.load([
+            '/shared/js/async_storage.js',
+            '/shared/js/image_utils.js'
+          ]).then(() => {
+            return ImageUtils.resizeAndCropToCover(
+              blob, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT
+            );
+          });
       }).then((thumbnailBlob) => {
         if (cacheKey) {
           asyncStorage.setItem(cacheKey, thumbnailBlob);
