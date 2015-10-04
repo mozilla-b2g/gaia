@@ -1,6 +1,6 @@
 .sim-default {
   display: none;
-  margin-left: 0.15rem;
+  margin-inline-start: 0.15rem;
   font-style: italic;
 }
 
