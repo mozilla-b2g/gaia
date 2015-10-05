@@ -14,11 +14,7 @@ requireApp('bluetooth/js/vendor/alameda.js', (function() {
       'unit': '../test/unit',
       'shared_mocks': '../shared/test/unit/mocks'
     },
-    shim: {
-      'shared_mocks/mock_bluetooth_helper': {
-        exports: 'MockBluetoothHelper'
-      }
-    },
+    shim: {},
     modules: [
       {
         name: 'main'

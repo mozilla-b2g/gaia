@@ -8,9 +8,6 @@ require.config({
   shim: {
     'shared/async_storage': {
       exports: 'asyncStorage'
-    },
-    'shared/bluetooth_helper': {
-      exports: 'BluetoothHelper'
     }
   }
 });
