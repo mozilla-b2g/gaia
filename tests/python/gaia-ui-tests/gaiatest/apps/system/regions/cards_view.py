@@ -14,7 +14,7 @@ from gaiatest.apps.base import PageRegion
 class CardsView(Base):
 
     # Home/Cards view locators
-    _cards_view_locator = (By.ID, 'cards-view')
+    _task_manager_locator = (By.ID, 'task-manager')
     _cards_locator = (By.CSS_SELECTOR, '#cards-view .card')
     # Check that the origin contains the current app name, origin is in the format:
     # app://clock.gaiamobile.org
@@ -34,12 +34,12 @@ class CardsView(Base):
 
     @property
     def is_cards_view_displayed(self):
-        return self.is_element_displayed(*self._cards_view_locator)
+        return self.is_element_displayed(*self._task_manager_locator)
 
     @property
     def is_cards_view_a11y_hidden(self):
         return self.accessibility.is_hidden(self.marionette.find_element(
-            *self._cards_view_locator))
+            *self._task_manager_locator))
 
     def _card_is_centered(self, card):
         screen_width = int(self.marionette.execute_script('return window.innerWidth'))
@@ -67,7 +67,7 @@ class CardsView(Base):
             *self._app_card_locator(app)))
 
     def a11y_wheel_cards_view(self, direction):
-        self.accessibility.wheel(self.marionette.find_element(*self._cards_view_locator), direction)
+        self.accessibility.wheel(self.marionette.find_element(*self._task_manager_locator), direction)
 
     def is_app_present(self, app):
         return self.is_element_present(*self._app_card_locator(app))
@@ -85,13 +85,13 @@ class CardsView(Base):
             expected.element_not_present(*self._app_card_locator(app)))
 
     def wait_for_cards_view(self):
-        cards_view = self.marionette.find_element(*self._cards_view_locator)
+        cards_view = self.marionette.find_element(*self._task_manager_locator)
         Wait(self.marionette).until(
             lambda m: cards_view.get_attribute('class') == 'active')
 
     def wait_for_cards_view_not_displayed(self):
         Wait(self.marionette).until(
-            expected.element_not_displayed(*self._cards_view_locator))
+            expected.element_not_displayed(*self._task_manager_locator))
 
     def swipe_to_previous_app(self):
         current_frame = self.apps.displayed_app.frame
