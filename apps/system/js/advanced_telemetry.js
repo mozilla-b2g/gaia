@@ -66,6 +66,14 @@
   // packet sending events and is at a higher level then DEBUG.
   AT.LOGINFO = false;
 
+  // Constants for BatchTiming Batch Type
+  AT.NORMAL_BATCH = true;
+  AT.RETRY_BATCH = false;
+
+  //Constants for BatchTiming reset
+  AT.RESET_BATCH = true;
+  AT.EXISTING_BATCH = false;
+
   function debug(...args) {
     if (!AT.DEBUG) {
       return;
@@ -171,7 +179,7 @@
     }
     this.collecting = true;
 
-    this.metrics = new BatchTiming(true);
+    this.metrics = new BatchTiming(AT.RESET_BATCH);
     this.mergeTimeStart = Date.now();
     this.merge = false;
 
@@ -361,16 +369,14 @@
         loginfo('Transmitted Successfully.');
         AdvancedTelemetry.prototype.clearPayload(true);
         // Start a new batch.
-        self.metrics = new BatchTiming(false, false);
-        self.startBatch();
+        self.startNewBatch();
       }
 
       function retry(e) {
         loginfo('Advanced Telemetry metrics transmission failure:', e.type);
         // Start a retry batch.  Don't clear the payload yet.  It will continue
         // to accumulate until the retry interval expires.
-        self.metrics = new BatchTiming(false, true);
-        self.startBatch();
+        self.startRetryBatch();
       }
 
       request.send({
@@ -381,6 +387,16 @@
         ontimeout: retry
       });
     }
+  };
+
+  AT.prototype.startNewBatch = function startNewBatch() {
+    this.metrics = new BatchTiming(AT.EXISTING_BATCH, AT.RETRY_BATCH);
+    this.startBatch();
+  };
+
+  AT.prototype.startRetryBatch = function startRetryBatch() {
+    this.metrics = new BatchTiming(AT.EXISTING_BATCH, AT.NORMAL_BATCH);
+    this.startBatch();
   };
 
   // Check if there are existing metrics that need to be merged, if so,

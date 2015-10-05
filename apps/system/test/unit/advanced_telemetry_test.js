@@ -506,6 +506,32 @@ suite('AdvancedTelemetry:', function() {
         done();
       });
     });
+
+    test('should NOT clear out the payload after a failed transmit',
+    function(done) {
+      this.sinon.spy(AdvancedTelemetry.prototype, 'clearPayload');
+      this.sinon.stub(console, 'info').returns(0);
+      at.handleGeckoMessage(wrapper.payload, function() {
+        // Simulate an error
+        xhr.ontimeout(new CustomEvent('error'));
+        MockNavigatorSettings.mReplyToRequests();
+        sinon.assert.notCalled(AdvancedTelemetry.prototype.clearPayload);
+        done();
+      });
+    });
+
+    test('should NOT clear out the payload after a transmit timeout',
+    function(done) {
+      this.sinon.spy(AdvancedTelemetry.prototype, 'clearPayload');
+      this.sinon.stub(console, 'info').returns(0);
+      at.handleGeckoMessage(wrapper.payload, function() {
+        // Simulate a timeout
+        xhr.ontimeout(new CustomEvent('timeout'));
+        MockNavigatorSettings.mReplyToRequests();
+        sinon.assert.notCalled(AdvancedTelemetry.prototype.clearPayload);
+        done();
+      });
+    });
   });
 
   suite('Enable/disable:', function() {
