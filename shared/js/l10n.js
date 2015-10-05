@@ -2138,4 +2138,56 @@
     whenInteractive(init.bind(navigator.mozL10n, forcePretranslate));
   }
 
+  document.l10n = {
+    setAttributes: navigator.mozL10n.setAttributes,
+    getAttributes: navigator.mozL10n.getAttributes,
+    formatValue: (...args) =>
+      navigator.mozL10n.formatValue(...args),
+    translateFragment: (...args) =>
+      Promise.resolve(navigator.mozL10n.translateFragment(...args)),
+    ready: () =>
+      new Promise(function(resolve, reject) {
+        navigator.mozL10n.once(() =>
+          resolve(navigator.mozL10n.ctx.supportedLocales)
+        );
+      }),
+    formatValues: (...keys) => {
+      const resp = keys.map(key => {
+        if (Array.isArray(key)) {
+          return navigator.mozL10n.formatValue(key[0], key[1]);
+        }
+        return navigator.mozL10n.formatValue(key);
+      });
+
+      return Promise.all(resp);
+    },
+    pseudo: {
+      'qps-ploc': {
+        getName: () =>
+          Promise.resolve(navigator.mozL10n.qps['qps-ploc'].name),
+        processString: (s) =>
+          Promise.resolve(navigator.mozL10n.qps['qps-ploc'].translate(s))
+      },
+      'qps-plocm': {
+        getName: () =>
+          Promise.resolve(navigator.mozL10n.qps['qps-plocm'].name),
+        processString: (s) =>
+          Promise.resolve(navigator.mozL10n.qps['qps-plocm'].translate(s))
+      }
+    },
+  };
+
+  navigator.mozL10n.once(() =>
+    window.addEventListener('localized', () => {
+      document.dispatchEvent(new CustomEvent('DOMRetranslated', {
+        bubbles: false,
+        cancelable: false,
+        detail: {
+          languages: navigator.mozL10n.ctx ? 
+            navigator.mozL10n.ctx.supportedLocales : '',
+        }
+      }));
+    })
+  );
+
 })(this);
