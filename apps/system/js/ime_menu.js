@@ -33,9 +33,9 @@
     initUI: function() {
       var dummy = document.createElement('div');
 
-      dummy.innerHTML = this.imeMenuView({
+      dummy.innerHTML = Sanitizer.unwrapSafeHTML(this.imeMenuView({
         title: this.title
-      });
+      }));
       this.container = dummy.firstElementChild;
 
       // We have a menu with all the options
@@ -78,7 +78,7 @@
      * @memberof ImeMenu.prototype
      */
     imeMenuView: function({title, cancelLabel}) {
-      return Sanitizer.escapeHTML `<form role="dialog"
+      return Sanitizer.createSafeHTML `<form role="dialog"
         data-type="value-selector" class="ime-menu value-selector-container"
         data-z-index-level="action-menu">
         <section>
@@ -99,7 +99,8 @@
      * @memberof ImeMenu.prototype
      */
     menuItemView: function({layoutName, appName, layoutId, selected}) {
-      return Sanitizer.escapeHTML `<li role="option" aria-selected="${selected}"
+      return Sanitizer.createSafeHTML `
+      <li role="option" aria-selected="${selected}"
         data-id="${layoutId}">
         <label role="presentation">
           <span class="item-label">${layoutName}</span>
@@ -113,15 +114,16 @@
      * @memberof ImeMenu.prototype
      */
     buildMenu: function(items) {
-      this.menu.innerHTML = '';
+      var menuList = [];
       items.forEach(function traveseItems(item) {
-        this.menu.innerHTML += this.menuItemView({
+         menuList.push(this.menuItemView({
           layoutName: item.layoutName,
           appName: item.appName,
           layoutId: item.value.toString(),
           selected: item.selected ? 'true' : 'false'
-        });
+        }));
       }, this);
+      this.menu.innerHTML = Sanitizer.unwrapSafeHTML(...menuList);
     },
 
     /**
