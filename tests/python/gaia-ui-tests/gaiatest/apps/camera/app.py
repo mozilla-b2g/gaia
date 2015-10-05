@@ -32,8 +32,6 @@ class Camera(Base):
     _loading_screen_locator = (By.CSS_SELECTOR, '.loading-screen')
     _toggle_flash_button_locator = (By.CSS_SELECTOR, '.test-flash-button')
 
-    _viewfinder_video_locator = (By.CLASS_NAME, 'viewfinder-video')
-
     # ConfirmDialog
     _select_button_locator = (By.CSS_SELECTOR, '.test-confirm-select')
 
@@ -115,8 +113,6 @@ class Camera(Base):
         Wait(self.marionette).until(lambda m: self.current_flash_mode != initial_flash_mode)
 
     def wait_for_capture_ready(self):
-        viewfinder = Wait(self.marionette).until(expected.element_present(*self._viewfinder_video_locator))
-        Wait(self.marionette, timeout=10).until(lambda m: m.execute_script('return arguments[0].readyState;', [viewfinder]) > 0)
         controls = self.marionette.find_element(*self._controls_locator)
         Wait(self.marionette).until(lambda m: controls.get_attribute('data-enabled') == 'true')
         Wait(self.marionette).until(lambda m: controls.is_enabled())
