@@ -1,6 +1,6 @@
 /* exported Database */
-/* global AlbumArt, AudioMetadata, ForwardLock, LazyLoader, MediaDB,
-          Normalizer, service */
+/* global AlbumArt, AudioMetadata, ForwardLock, IDBKeyRange, IntlHelper,
+          LazyLoader, MediaDB, Normalizer, service */
 'use strict';
 
 var Database = (function() {
@@ -356,6 +356,8 @@ var Database = (function() {
     });
   }
 
+  /* [deprecated] Low-level database functions */
+
   function enumerate(...args) {
     return enumerable.then(() => musicdb.enumerate(...args));
   }
@@ -370,6 +372,134 @@ var Database = (function() {
 
   function count(...args) {
     return enumerable.then(() => musicdb.count(...args));
+  }
+
+  function cancelEnumeration(handle) {
+    musicdb.cancelEnumeration(handle);
+  }
+
+  /* Sorting helpers */
+
+  IntlHelper.define('titleSorter', 'collator', {
+    usage: 'sort', sensitivity: 'base', numeric: true, ignorePunctuation: true
+  });
+
+  function _localeSort(collator, a, b) {
+    return collator.compare(a, b);
+  }
+
+  function _sortArtist(collator, a, b) {
+    return _localeSort(collator, a.metadata.artist, b.metadata.artist);
+  }
+
+  function _sortAlbum(collator, a, b) {
+    return _localeSort(collator, a.metadata.album, b.metadata.album);
+  }
+
+  function _sortTitle(collator, a, b) {
+    return _localeSort(collator, a.metadata.title, b.metadata.title);
+  }
+
+  function _sortTrack(collator, a, b) {
+    return (a.metadata.discnum - b.metadata.discnum) ||
+           (a.metadata.tracknum - b.metadata.tracknum) ||
+           _sortTitle(collator, a, b);
+  }
+
+  /* High-level database functions */
+
+  /**
+   * Get the list of artists in the music library.
+   *
+   * @return {Promise} A Promise resolving to an array of artists (represented
+   *   as fileinfos of a song from each artist).
+   */
+  function artists() {
+    return new Promise((resolve) => {
+      enumerateAll('metadata.artist', null, 'nextunique', (artists) => {
+        artists.sort(_sortArtist.bind(null, IntlHelper.get('titleSorter')));
+        resolve(artists);
+      });
+    });
+  }
+
+  /**
+   * Get the list of albums in the music library.
+   *
+   * @return {Promise} A Promise resolving to an array of albums (represented
+   *   as fileinfos of a song from each album).
+   */
+  function albums() {
+    return new Promise((resolve) => {
+      enumerateAll('metadata.album', null, 'nextunique', (albums) => {
+        albums.sort(_sortAlbum.bind(null, IntlHelper.get('titleSorter')));
+        resolve(albums);
+      });
+    });
+  }
+
+  /**
+   * Get the list of songs in the music library.
+   *
+   * @return {Promise} A Promise resolving to an array of songs (represented
+   *   as fileinfos).
+   */
+  function songs() {
+    return new Promise((resolve) => {
+      enumerateAll('metadata.title', null, 'next', (songs) => {
+        songs.sort(_sortTitle.bind(null, IntlHelper.get('titleSorter')));
+        resolve(songs);
+      });
+    });
+  }
+
+  /**
+   * Get the total number of songs in the music library.
+   *
+   * @return {Promise} A Promise resolving to the number of songs in the
+   *   database.
+   */
+  function totalCount() {
+    return new Promise((resolve) => {
+      count('metadata.title', null, (count) => resolve(count));
+    });
+  }
+
+  /**
+   * Get all the songs for a given artist in the music library.
+   *
+   * @param {String} name The name of the artist to look up.
+   * @return {Promise} A Promise resolving to an array of songs for that artist
+   *   (represented as fileinfos).
+   */
+  function artist(name) {
+    return new Promise((resolve) => {
+      var range = IDBKeyRange.only(name);
+      enumerateAll('metadata.artist', range, 'next', (songs) => {
+        var collator = IntlHelper.get('titleSorter');
+        songs.sort((a, b) => {
+          return _sortAlbum(collator, a, b) || _sortTrack(collator, a, b);
+        });
+        resolve(songs);
+      });
+    });
+  }
+
+  /**
+   * Get all the songs for a given album in the music library.
+   *
+   * @param {String} name The name of the album to look up.
+   * @return {Promise} A Promise resolving to an array of songs for that album
+   *   (represented as fileinfos).
+   */
+  function album(name) {
+    return new Promise((resolve) => {
+      var range = IDBKeyRange.only(name);
+      enumerateAll('metadata.album', range, 'next', (songs) => {
+        songs.sort(_sortTrack.bind(null, IntlHelper.get('titleSorter')));
+        resolve(songs);
+      });
+    });
   }
 
   /**
@@ -409,22 +539,28 @@ var Database = (function() {
     });
   }
 
-  function cancelEnumeration(handle) {
-    musicdb.cancelEnumeration(handle);
-  }
-
   return {
     init: init,
     incrementPlayCount: incrementPlayCount,
     setSongRating: setSongRating,
     getFile: getFile,
     getFileInfo: getFileInfo,
+
     enumerate: enumerate,
     enumerateAll: enumerateAll,
     advancedEnumerate: advancedEnumerate,
     count: count,
-    search: search,
     cancelEnumeration: cancelEnumeration,
+
+    artists: artists,
+    albums: albums,
+    songs: songs,
+    totalCount: totalCount,
+
+    artist: artist,
+    album: album,
+
+    search: search,
     playlists: playlists,
     status: status,
 

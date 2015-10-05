@@ -331,59 +331,6 @@ function setShuffleSetting(shuffle) {
   return loadQueueSettings().then(() => PlaybackQueue.shuffle = shuffle);
 }
 
-function getAlbums() {
-  return new Promise((resolve) => {
-    Database.enumerateAll('metadata.album', null, 'nextunique', (albums) => {
-      resolve(albums);
-    });
-  });
-}
-
-function getAlbum(filePath) {
-  return getSong(filePath).then((song) => {
-    var album = song.metadata.album;
-
-    return new Promise((resolve) => {
-      Database.enumerateAll('metadata.album', album, 'next', (songs) => {
-        songs.sort((a, b) => {
-          return (a.metadata.discnum - b.metadata.discnum) ||
-                 (a.metadata.tracknum - b.metadata.tracknum);
-        });
-
-        resolve(songs);
-      });
-    });
-  });
-}
-
-function getArtists() {
-  return new Promise((resolve) => {
-    Database.enumerateAll('metadata.artist', null, 'nextunique', (artists) => {
-      resolve(artists);
-    });
-  });
-}
-
-function getArtist(filePath) {
-  return getSong(filePath).then((song) => {
-    var artist = song.metadata.artist;
-
-    return new Promise((resolve) => {
-      Database.enumerateAll('metadata.artist', artist, 'next', (songs) => {
-        songs.sort((a, b) => {
-          var albumSort = a.metadata.album < b.metadata.album ?
-            -1 : (a.metadata.album > b.metadata.album ?  1 : 0);
-
-          return albumSort || (a.metadata.discnum - b.metadata.discnum) ||
-                              (a.metadata.tracknum - b.metadata.tracknum);
-        });
-
-        resolve(songs);
-      });
-    });
-  });
-}
-
 function getPlaylists() {
   return Promise.resolve(Database.playlists);
 }
@@ -398,17 +345,35 @@ function getPlaylist(id) {
   });
 }
 
-function getSongs() {
+function getArtists() {
   return new Promise((resolve) => {
-    Database.enumerateAll('metadata.title', null, 'next', (songs) => {
-      resolve(songs);
+    Database.enumerateAll('metadata.artist', null, 'nextunique', (artists) => {
+      resolve(artists);
     });
   });
 }
 
+function getAlbums() {
+  return Database.albums();
+}
+
+function getSongs() {
+  return Database.songs();
+}
+
 function getSongCount() {
-  return new Promise((resolve) => {
-    Database.count('metadata.title', null, count => resolve(count));
+  return Database.totalCount();
+}
+
+function getArtist(filePath) {
+  return getSong(filePath).then((song) => {
+    return Database.artist(song.metadata.artist);
+  });
+}
+
+function getAlbum(filePath) {
+  return getSong(filePath).then((song) => {
+    return Database.album(song.metadata.album);
   });
 }
 
