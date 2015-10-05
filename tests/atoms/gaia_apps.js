@@ -277,9 +277,10 @@ var GaiaApps = {
         let result = GaiaApps.getDisplayedApp();
         marionetteScriptFinished(result);
       };
+      console.log('******ll'+entryPoint);
 
       let displayedApp = GaiaApps.getDisplayedApp();
-      if (displayedApp.manifestURL == manifestURL ||
+      if ((displayedApp.manifestURL == manifestURL && displayedApp.entryPoint == entryPoint) ||
           (!displayedApp.manifestURL && displayedApp.origin == origin)) {
         console.log('app with origin \'${displayedApp.origin}\' and ' +
           'manifestURL \'${displayedApp.manifestURL}\' is already running');
@@ -296,8 +297,11 @@ var GaiaApps = {
             function() {
               // wait for the displayed app to have expected manifestURL/origin
               let displayedApp = GaiaApps.getDisplayedApp();
+              console.log('*****n****'+displayedApp.entryPoint);
+              console.log('*******'+displayedApp.manifestURL + '::::' + manifestURL);
+              console.log('*******'+displayedApp.entryPoint + '::::' + entryPoint);
               if (displayedApp.manifestURL) {
-                return displayedApp.manifestURL == manifestURL;
+                return displayedApp.manifestURL == manifestURL && displayedApp.entryPoint == entryPoint;
               } else {
                 return displayedApp.origin == origin;
               }
@@ -362,13 +366,28 @@ var GaiaApps = {
          .query('AppWindowManager.getActiveWindow').getTopMostWindow();
     }
 
+
+    let entryPoints = app.manifest.entry_points;
+    let currentEntryPoint = null;
+    if (entryPoints) {
+        for (let ep in entryPoints) {
+          console.log('entryPoints[ep].launch_path::'+entryPoints[ep].launch_path + ' - app.manifest.launch_pat::' + app.manifest.launch_path);
+          console.log(entryPoints[ep].launch_path == app.manifest.launch_path);
+          if (entryPoints[ep].launch_path == app.manifest.launch_path) {
+              currentEntryPoint = ep;
+              break;
+          }
+        }
+    }
+
     console.log('app with manifestURL \'' + app.manifestURL + '\' displayed');
     let result = {
       frame: (app.browser) ? app.browser.element : app.frame.firstChild,
       src: (app.browser) ? app.browser.element.src : app.iframe.src,
       name: app.name,
       origin: app.origin,
-      manifestURL: app.manifestURL
+      manifestURL: app.manifestURL,
+      entryPoint: currentEntryPoint
     };
     return result;
   },
