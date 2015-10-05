@@ -56,7 +56,7 @@ module.exports =
 
 	var _libPseudo = __webpack_require__(6);
 
-	exports.qps = _libPseudo.qps;
+	exports.pseudo = _libPseudo.pseudo;
 	exports.walkValue = _libPseudo.walkValue;
 
 	function getView(htmloptimizer) {
@@ -205,7 +205,7 @@ module.exports =
 	    var lang = {
 	      code: code,
 	      dir: _bindingsHtmlLangs.getDirection(code),
-	      src: code in _libPseudo.qps ? 'qps' : 'app'
+	      src: code in _libPseudo.pseudo ? 'pseudo' : 'app'
 	    };
 	    return fetchContext(this.ctx, lang).then(function () {
 	      var _ref = _this2.isLegacy ? _legacySerialize.serializeLegacyContext(_this2.ctx, lang) : _serialize.serializeContext(_this2.ctx, lang);
@@ -655,7 +655,7 @@ module.exports =
 	      });
 	    };
 
-	    var tranform = function (val) {
+	    var transform = function (val) {
 	      return replaceChars(charMaps[id], mods[id](val));
 	    };
 
@@ -675,15 +675,15 @@ module.exports =
 	    };
 
 	    return _pseudo = {
-	      translate: function (val) {
-	        return apply(tranform, val);
-	      },
-	      name: tranform(name)
+	      name: transform(name),
+	      process: function (str) {
+	        return apply(transform, str);
+	      }
 	    };
 	  };
 	}
 
-	var qps = Object.defineProperties(Object.create(null), {
+	var pseudo = Object.defineProperties(Object.create(null), {
 	  'qps-ploc': {
 	    enumerable: true,
 	    get: createGetter('qps-ploc', 'Runtime Accented')
@@ -693,7 +693,7 @@ module.exports =
 	    get: createGetter('qps-plocm', 'Runtime Mirrored')
 	  }
 	});
-	exports.qps = qps;
+	exports.pseudo = pseudo;
 
 /***/ },
 /* 7 */
@@ -761,13 +761,13 @@ module.exports =
 	  };
 
 	  Env.prototype._create = function _create(lang, entries) {
-	    if (lang.src !== 'qps') {
+	    if (lang.src !== 'pseudo') {
 	      return entries;
 	    }
 
 	    var pseudoentries = Object.create(null);
 	    for (var key in entries) {
-	      pseudoentries[key] = _pseudo.walkEntry(entries[key], _pseudo.qps[lang.code].translate);
+	      pseudoentries[key] = _pseudo.walkEntry(entries[key], _pseudo.pseudo[lang.code].process);
 	    }
 	    return pseudoentries;
 	  };
@@ -795,7 +795,7 @@ module.exports =
 	      cache[id] = err;
 	    };
 
-	    var langToFetch = lang.src === 'qps' ? { code: this.defaultLang, src: 'app' } : lang;
+	    var langToFetch = lang.src === 'pseudo' ? { code: this.defaultLang, src: 'app' } : lang;
 
 	    return cache[id] = this.fetch(res, langToFetch).then(saveEntries, recover);
 	  };
@@ -2459,7 +2459,7 @@ module.exports =
 
 	LegacyEnv.prototype._create = function (lang, ast) {
 	  var entries = Object.create(null);
-	  var create = lang.src === 'qps' ? createPseudoEntry : _resolver.createEntry;
+	  var create = lang.src === 'pseudo' ? createPseudoEntry : _resolver.createEntry;
 
 	  for (var i = 0, node = undefined; node = ast[i]; i++) {
 	    var id = node.$i;
@@ -2473,7 +2473,7 @@ module.exports =
 	};
 
 	function createPseudoEntry(node, lang) {
-	  return _resolver.createEntry(_pseudo.walkContent(node, _libPseudo.qps[lang.code].translate));
+	  return _resolver.createEntry(_pseudo.walkContent(node, _libPseudo.pseudo[lang.code].process));
 	}
 
 /***/ },
@@ -3069,7 +3069,7 @@ module.exports =
 
 	function negotiateLanguages(fn, appVersion, defaultLang, availableLangs, additionalLangs, prevLangs, requestedLangs) {
 
-	  var allAvailableLangs = Object.keys(availableLangs).concat(additionalLangs || []).concat(Object.keys(_libPseudo.qps));
+	  var allAvailableLangs = Object.keys(availableLangs).concat(additionalLangs || []).concat(Object.keys(_libPseudo.pseudo));
 	  var newLangs = _libIntl.prioritizeLocales(defaultLang, allAvailableLangs, requestedLangs);
 
 	  var langs = newLangs.map(function (code) {
@@ -3114,8 +3114,8 @@ module.exports =
 	    }
 	  }
 
-	  if (code in _libPseudo.qps && !(code in availableLangs)) {
-	    return 'qps';
+	  if (code in _libPseudo.pseudo && !(code in availableLangs)) {
+	    return 'pseudo';
 	  }
 
 	  return 'app';

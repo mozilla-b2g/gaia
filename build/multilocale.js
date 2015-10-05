@@ -322,9 +322,9 @@ function L10nManager(gaiaDir,
 
       if (locale === GAIA_SOURCE_LOCALE) {
         manifestProps = sourceLocaleProps;
-      } else if (locale in l20n.qps) {
+      } else if (locale in l20n.pseudo) {
         manifestProps = l20n.walkValue(
-          sourceLocaleProps, l20n.qps[locale].translate);
+          sourceLocaleProps, l20n.pseudo[locale].process);
       } else {
         manifestProps = getManifestProperties(webapp, locale);
       }
