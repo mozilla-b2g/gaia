@@ -91,6 +91,10 @@ suite('languages >', function() {
       LanguageManager.init();
     });
 
+    teardown(function() {
+      LanguageManager.uninit();
+    });
+
     test('observes settings', function() {
       assert.equal(MockNavigatorSettings.mObservers[langKey].length, 1);
     });
@@ -106,6 +110,33 @@ suite('languages >', function() {
       return Promise.resolve().then(() => {
         assert.equal(MockNavigatorSettings.mSettings['locale.hour12'], false);
       }).then(done, done);
+    });
+  });
+
+  suite('screen reader', function() {
+    suiteSetup(function() {
+      LanguageManager.init();
+    });
+
+    suiteTeardown(function() {
+      LanguageManager.uninit();
+    });
+
+    test('enable screen reader', function(done) {
+      function afterEnabledHandler() {
+        window.removeEventListener('languagelistready', afterEnabledHandler);
+        window.addEventListener('languagelistready', afterDisabledHandler);
+        MockNavigatorSettings.mTriggerObservers('accessibility.screenreader',
+          { settingValue: false });
+      }
+      function afterDisabledHandler() {
+        window.removeEventListener('languagelistready', afterDisabledHandler);
+        done();
+      }
+      window.addEventListener('languagelistready', afterEnabledHandler);
+
+      MockNavigatorSettings.mTriggerObservers('accessibility.screenreader',
+        { settingValue: true });
     });
   });
 });
