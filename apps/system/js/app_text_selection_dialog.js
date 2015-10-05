@@ -450,6 +450,15 @@
         posTop = selectDialogBottom + distanceFromBottom;
       }
 
+      var offset = 0;
+      if (this.app && this.app.appChrome) {
+        offset = this.app.appChrome.isMaximized() ?
+                 this.app.appChrome.height -
+                   this.app.appChrome.scrollable.scrollTop :
+                 Service.query('Statusbar.height');
+      }
+      posTop += offset;
+
       // Put dialog in the center of selected area if it overlap keyboard.
       if (posTop >= (frameHeight - distanceFromBottom - selectOptionHeight)) {
         posTop = (((selectDialogTop >= 0) ? selectDialogTop : 0) +
@@ -467,16 +476,8 @@
           this.DISTANCE_FROM_BOUNDARY;
       }
 
-      var offset = 0;
-      if (this.app && this.app.appChrome) {
-        offset = this.app.appChrome.isMaximized() ?
-                 this.app.appChrome.height -
-                   this.app.appChrome.scrollable.scrollTop :
-                 Service.query('Statusbar.height');
-      }
-
       return {
-        top: posTop + offset,
+        top: posTop,
         left: posLeft
       };
     };
