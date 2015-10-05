@@ -54,6 +54,7 @@ suite('GaiaSwitch', function() {
     });
 
     element.handleClick({
+      target: {},
       preventDefault: function() {},
       stopImmediatePropagation: function() {}
     });
@@ -74,8 +75,24 @@ suite('GaiaSwitch', function() {
     });
 
     element.handleClick({
+      target: {},
       preventDefault: function() {},
       stopImmediatePropagation: function() {}
     });
+  });
+
+  test('Clicking link element does not toggle switch', function() {
+    this.container.innerHTML = `<div id="wrapper">
+      <gaia-switch>
+        <label></label><details></details><a href="#">Clicky</a>
+      </gaia-switch>
+    </div>`;
+    var element = this.container.querySelector('gaia-switch');
+    var details = this.container.querySelector('details');
+    var link = this.container.querySelector('a');
+    details.click();
+    assert.equal(element.checked, true, 'Clicking details toggles the switch');
+    link.click();
+    assert.equal(element.checked, true, 'Clicking link does not toggle switch');
   });
 });
