@@ -26,9 +26,9 @@ define(function(require) {
   var settings = navigator.mozSettings;
 
   var _debug = false;
-  var Debug = function() {};
+  var debug = function() {};
   if (_debug) {
-    Debug = function btc_debug(msg) {
+    debug = function btc_debug(msg) {
       console.log('--> [BluetoothContext]: ' + msg);
     };
   }
@@ -299,7 +299,7 @@ define(function(require) {
     _onAdapterAttributeChanged:
     function btc__onAdapterAttributeChanged(adapter, evt) {
       for (var i in evt.attrs) {
-        Debug('--> _onAdapterAttributeChanged(): ' + evt.attrs[i]);
+        debug('--> _onAdapterAttributeChanged(): ' + evt.attrs[i]);
         switch (evt.attrs[i]) {
           case 'state':
             this._updateStatus(adapter.state);
@@ -340,7 +340,7 @@ define(function(require) {
      */
     _onAdapterDevicepaired:
     function btc__onAdapterDevicepaired(adapter, evt) {
-      Debug('_onAdapterDevicepaired evt = ' + evt);
+      debug('_onAdapterDevicepaired evt = ' + evt);
       // have to get device object in this event handler
       // Ex. evt.device --> device
 
@@ -363,7 +363,7 @@ define(function(require) {
      */
     _onAdapterDeviceunpaired:
     function btc__onAdapterDeviceunpaired(adapter, evt) {
-      Debug('_onAdapterDeviceunpaired evt = ' + evt);
+      debug('_onAdapterDeviceunpaired evt = ' + evt);
       // have to get the device address in this event handler Ex. evt -> address
 
       // Instead of removing the paired device from paired devices list,
@@ -382,8 +382,8 @@ define(function(require) {
      */
     _onDefaultAdapterChanged:
     function btc__onDefaultAdapterChanged(newAdapter, oldAdapter) {
-      Debug('_onDefaultAdapterChanged(): newAdapter = ' + newAdapter);
-      Debug('_onDefaultAdapterChanged(): oldAdapter = ' + oldAdapter);
+      debug('_onDefaultAdapterChanged(): newAdapter = ' + newAdapter);
+      debug('_onDefaultAdapterChanged(): oldAdapter = ' + oldAdapter);
 
       // save default adapter
       this._defaultAdapter = newAdapter;
@@ -420,7 +420,7 @@ define(function(require) {
      */
     _refreshPairedDevicesInfo: function btc__refreshPairedDevicesInfo(adapter) {
       var pairedDevices = adapter.getPairedDevices();
-      Debug('pairedDevices.length = ' + pairedDevices.length);
+      debug('pairedDevices.length = ' + pairedDevices.length);
 
       // reset paired devices list
       this._pairedDevices.reset([]);
@@ -476,11 +476,11 @@ define(function(require) {
 
       // Update state
       this.state = state;
-      Debug('_updateStatus(): set state = ' + state);
+      debug('_updateStatus(): set state = ' + state);
 
       // Update enabled
       this.enabled = enabled;
-      Debug('_updateStatus(): set enabled = ' + enabled);
+      debug('_updateStatus(): set enabled = ' + enabled);
 
       // Sync with settings key
       this._syncWithSettingsKey(enabled);
@@ -512,7 +512,7 @@ define(function(require) {
      * @returns {Promise}
      */
     setEnabled: function btc_setEnabled(enabled) {
-      Debug('setEnabled(): request set enabled = ' + enabled);
+      debug('setEnabled(): request set enabled = ' + enabled);
       if ((this.enabled === enabled) ||
           (this.state === 'enabling') ||
           (this.state === 'disabling')) {
@@ -525,16 +525,16 @@ define(function(require) {
 
       if (enabled) {
         return this._defaultAdapter.enable().then(() => {
-          Debug('setEnabled(): set enable successfully :)');
+          debug('setEnabled(): set enable successfully :)');
         }, (reason) => {
-          Debug('setEnabled(): set enable failed: reason = ' + reason);
+          debug('setEnabled(): set enable failed: reason = ' + reason);
           return Promise.reject(reason);
         });
       } else {
         return this._defaultAdapter.disable().then(() => {
-          Debug('setEnabled(): set disable successfully :)');
+          debug('setEnabled(): set disable successfully :)');
         }, (reason) => {
-          Debug('setEnabled(): set disable failed: reason = ' + reason);
+          debug('setEnabled(): set disable failed: reason = ' + reason);
           return Promise.reject(reason);
         });
       }
@@ -558,10 +558,10 @@ define(function(require) {
       }
 
       return this._defaultAdapter.setDiscoverable(enabled).then(() => {
-        Debug('setDiscoverable(): set discoverable ' +
+        debug('setDiscoverable(): set discoverable ' +
               enabled + ' successfully :)');
       }, (reason) => {
-        Debug('setDiscoverable(): set discoverable failed: ' +
+        debug('setDiscoverable(): set discoverable failed: ' +
               'reason = ' + reason);
         return Promise.reject(reason);
       });
@@ -585,10 +585,10 @@ define(function(require) {
       }
 
       return this._defaultAdapter.setName(name).then(() => {
-        Debug('setName(): set name successfully :) name = ' +
+        debug('setName(): set name successfully :) name = ' +
               this._defaultAdapter.name);
       }, (reason) => {
-        Debug('setName(): set name failed: reason = ' + reason);
+        debug('setName(): set name failed: reason = ' + reason);
         return Promise.reject(reason);
       });
     },
@@ -607,7 +607,7 @@ define(function(require) {
       // the deviceinfo.product_model setting.
       SettingsCache.getSettings((results) => {
         var productModel = results['deviceinfo.product_model'];
-        Debug('setNameByProductModel(): productModel = ' + productModel);
+        debug('setNameByProductModel(): productModel = ' + productModel);
         this.setName(productModel);
       });
     },
@@ -665,12 +665,12 @@ define(function(require) {
       }
 
       return this._defaultAdapter.startDiscovery().then((handle) => {
-        Debug('startDiscovery(): startDiscovery successfully :)');
+        debug('startDiscovery(): startDiscovery successfully :)');
         // Keep reference to handle in order to listen to
         // ondevicefound event handler
         this._setDiscoveryHandler(handle);
       }, (reason) => {
-        Debug('startDiscovery(): startDiscovery failed: ' +
+        debug('startDiscovery(): startDiscovery failed: ' +
               'reason = ' + reason);
         return Promise.reject(reason);
       });
@@ -692,7 +692,7 @@ define(function(require) {
      */
     stopDiscovery: function btc_stopDiscovery() {
       if (this.discovering === false) {
-        Debug('stopDiscovery(): stopDiscovery successfully in same state :)');
+        debug('stopDiscovery(): stopDiscovery successfully in same state :)');
         return Promise.resolve('same state');
       }
 
@@ -705,9 +705,9 @@ define(function(require) {
       }
 
       return this._defaultAdapter.stopDiscovery().then(() => {
-        Debug('stopDiscovery(): stopDiscovery successfully :)');
+        debug('stopDiscovery(): stopDiscovery successfully :)');
       }, (reason) => {
-        Debug('stopDiscovery(): stopDiscovery failed: reason = ' + reason);
+        debug('stopDiscovery(): stopDiscovery failed: reason = ' + reason);
         return Promise.reject(reason);
       });
     },
@@ -721,7 +721,7 @@ define(function(require) {
      * @param {BluetoothDiscoveryHandle} handle
      */
     _setDiscoveryHandler: function btc__setDiscoveryHandler(handle) {
-      Debug('_setDiscoveryHandler(): handle = ' + handle);
+      debug('_setDiscoveryHandler(): handle = ' + handle);
       // make the code base easy to do unit test
       this._discoveryHandler = handle;
       this._discoveryHandler.ondevicefound = this._onDeviceFound.bind(this);
@@ -788,7 +788,7 @@ define(function(require) {
       if (index > -1) {
         // The device is existed, remove it from observable list.
         list.splice(index, 1);
-        Debug('_removeItemFromList(): index = ' + index);
+        debug('_removeItemFromList(): index = ' + index);
       } else {
         // The device is not existed, no need to do any thing here.
       }
@@ -875,9 +875,9 @@ define(function(require) {
       // with pairing failure.
       return this.stopDiscovery().then(() => {
         return this._defaultAdapter.pair(address).then(() => {
-          Debug('pair(): Resolved with void value');
+          debug('pair(): Resolved with void value');
         }, (reason) => {
-          Debug('pair(): Reject with this reason: ' + reason);
+          debug('pair(): Reject with this reason: ' + reason);
           return Promise.reject(reason);
         });
       }, (reason) => {
@@ -899,9 +899,9 @@ define(function(require) {
       }
 
       return this._defaultAdapter.unpair(address).then(() => {
-        Debug('unpair(): Resolved with void value');
+        debug('unpair(): Resolved with void value');
       }, (reason) => {
-        Debug('unpair(): Reject with this reason: ' + reason);
+        debug('unpair(): Reject with this reason: ' + reason);
         return Promise.reject(reason);
       });
     },
@@ -922,9 +922,9 @@ define(function(require) {
       }
 
       return this._defaultAdapter.sendFile(address, blob).then(() => {
-        Debug('sendFile(): Resolved with void value');
+        debug('sendFile(): Resolved with void value');
       }, (reason) => {
-        Debug('sendFile(): Reject with this reason: ' + reason);
+        debug('sendFile(): Reject with this reason: ' + reason);
         return Promise.reject(reason);
       });
     },
@@ -952,7 +952,7 @@ define(function(require) {
         var options = {
           connectionStatus: 'connecting'
         };
-        Debug('_initConnectingDevices(): options = ' + JSON.stringify(options));
+        debug('_initConnectingDevices(): options = ' + JSON.stringify(options));
         existedDevice.updateConnectionInfo(options);
       }
     },
@@ -978,13 +978,13 @@ define(function(require) {
               connectionStatus: 'connected',
               profiles: connectedDevices[address].connectedProfiles
             };
-            Debug('_initConnectedDevices(): address = ' + address +
+            debug('_initConnectedDevices(): address = ' + address +
                   ', options = ' + JSON.stringify(options));
             existedDevice.updateConnectionInfo(options);
           }
         }
       }, (reason) => {
-        Debug('_initConnectedDevices(): getConnectedDevices(): failed, ' +
+        debug('_initConnectedDevices(): getConnectedDevices(): failed, ' +
               'reason = ' + reason);
       });
     },
@@ -1004,7 +1004,7 @@ define(function(require) {
      */
     _updateDeviceConnectionInfo:
     function btc__updateDeviceConnectionInfo(event) {
-      Debug('_updateDeviceConnectionInfo(): event = ' + JSON.stringify(event));
+      debug('_updateDeviceConnectionInfo(): event = ' + JSON.stringify(event));
       var existedDevice =
         this._findDeviceByAddress(
           {paired: true, address: event.detail.address});
@@ -1027,7 +1027,7 @@ define(function(require) {
           default:
             break;
         }
-        Debug('_updateDeviceConnectionInfo(): options = ' +
+        debug('_updateDeviceConnectionInfo(): options = ' +
               JSON.stringify(options));
         existedDevice.updateConnectionInfo(options);
       } else {
