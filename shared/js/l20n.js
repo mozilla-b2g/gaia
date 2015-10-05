@@ -36,11 +36,11 @@
   });
   modules.set('bindings/html/langs', function () {
     const { prioritizeLocales } = getModule('lib/intl');
-    const { qps } = getModule('lib/pseudo');
+    const { pseudo } = getModule('lib/pseudo');
     const rtlList = ['ar', 'he', 'fa', 'ps', 'qps-plocm', 'ur'];
 
     function negotiateLanguages(fn, appVersion, defaultLang, availableLangs, additionalLangs, prevLangs, requestedLangs) {
-      const allAvailableLangs = Object.keys(availableLangs).concat(additionalLangs || []).concat(Object.keys(qps));
+      const allAvailableLangs = Object.keys(availableLangs).concat(additionalLangs || []).concat(Object.keys(pseudo));
       const newLangs = prioritizeLocales(defaultLang, allAvailableLangs, requestedLangs);
       const langs = newLangs.map(code => ({
         code: code,
@@ -82,8 +82,8 @@
         }
       }
 
-      if (code in qps && !(code in availableLangs)) {
-        return 'qps';
+      if (code in pseudo && !(code in availableLangs)) {
+        return 'pseudo';
       }
 
       return 'app';
@@ -422,7 +422,6 @@
     return { documentReady, getResourceLinks, getMeta };
   });
   modules.set('bindings/html/view', function () {
-    const { qps } = getModule('lib/pseudo');
     const { getResourceLinks, documentReady } = getModule('bindings/html/head');
     const { setAttributes, getAttributes, translateFragment, translateMutations } = getModule('bindings/html/dom');
     const observerConfig = {
@@ -437,7 +436,10 @@
     class View {
       constructor(client, doc) {
         this._doc = doc;
-        this.qps = qps;
+        this.pseudo = {
+          'qps-ploc': new Pseudo(this, 'qps-ploc'),
+          'qps-plocm': new Pseudo(this, 'qps-plocm')
+        };
         this._interactive = documentReady().then(() => init(this, client));
         const observer = new MutationObserver(onMutations.bind(this));
 
@@ -469,6 +471,19 @@
 
     View.prototype.setAttributes = setAttributes;
     View.prototype.getAttributes = getAttributes;
+
+    class Pseudo {
+      constructor(view, code) {
+        this.view = view;
+        this.code = code;
+      }
+      getName() {
+        return this.view._interactive.then(client => client.getPseudoName(this.code));
+      }
+      processString(str) {
+        return this.view._interactive.then(client => client.pseudotranslate(this.code, str));
+      }
+    }
 
     function init(view, client) {
       view._observe();
@@ -680,7 +695,7 @@
 
         const replaceChars = (map, val) => val.replace(reAlphas, match => map.charAt(match.charCodeAt(0) - 65));
 
-        const tranform = val => replaceChars(charMaps[id], mods[id](val));
+        const transform = val => replaceChars(charMaps[id], mods[id](val));
 
         const apply = (fn, val) => {
           if (!val) {
@@ -699,13 +714,13 @@
         };
 
         return _pseudo = {
-          translate: val => apply(tranform, val),
-          name: tranform(name)
+          name: transform(name),
+          process: str => apply(transform, str)
         };
       };
     }
 
-    const qps = Object.defineProperties(Object.create(null), {
+    const pseudo = Object.defineProperties(Object.create(null), {
       'qps-ploc': {
         enumerable: true,
         get: createGetter('qps-ploc', 'Runtime Accented')
@@ -715,7 +730,7 @@
         get: createGetter('qps-plocm', 'Runtime Mirrored')
       }
     });
-    return { walkEntry, walkValue, qps };
+    return { walkEntry, walkValue, pseudo };
   });
   modules.set('lib/format/l20n/entries/parser', function () {
     const { L10nError } = getModule('lib/errors');
@@ -2303,7 +2318,7 @@
     const { Context } = getModule('lib/context');
     const PropertiesParser = getModule('lib/format/properties/parser');
     const L20nParser = getModule('lib/format/l20n/entries/parser');
-    const { walkEntry, qps } = getModule('lib/pseudo');
+    const { walkEntry, pseudo } = getModule('lib/pseudo');
     const { emit, addEventListener, removeEventListener } = getModule('lib/events');
     const parsers = {
       properties: PropertiesParser,
@@ -2335,14 +2350,14 @@
         return parser.parse.call(parser, emit, data);
       }
       _create(lang, entries) {
-        if (lang.src !== 'qps') {
+        if (lang.src !== 'pseudo') {
           return entries;
         }
 
         const pseudoentries = Object.create(null);
 
         for (let key in entries) {
-          pseudoentries[key] = walkEntry(entries[key], qps[lang.code].translate);
+          pseudoentries[key] = walkEntry(entries[key], pseudo[lang.code].process);
         }
 
         return pseudoentries;
@@ -2369,7 +2384,7 @@
           cache[id] = err;
         };
 
-        const langToFetch = lang.src === 'qps' ? {
+        const langToFetch = lang.src === 'pseudo' ? {
           code: this.defaultLang,
           src: 'app'
         } : lang;
@@ -2386,6 +2401,7 @@
   });
   modules.set('runtime/web/service', function () {
     const { Env } = getModule('lib/env');
+    const { pseudo } = getModule('lib/pseudo');
     const { fetch } = getModule('runtime/web/io');
     const { translateDocument } = getModule('bindings/html/view');
     const { getMeta, documentReady } = getModule('bindings/html/head');
@@ -2415,6 +2431,12 @@
       }
       requestLanguages(requestedLangs) {
         return changeLanguages.call(this, getAdditionalLanguages(), requestedLangs);
+      }
+      getPseudoName(code) {
+        return pseudo[code].name;
+      }
+      pseudotranslate(code, str) {
+        return pseudo[code].process(str);
       }
       handleEvent(evt) {
         return changeLanguages.call(this, evt.detail || getAdditionalLanguages(), navigator.languages);
