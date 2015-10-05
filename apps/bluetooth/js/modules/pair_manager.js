@@ -329,7 +329,9 @@ define(function(require) {
             var app = evt.target.result;
 
             // launch bluetooth app to foreground for showing the prompt
-            app.launch();
+            if (PairExpiredDialog.isVisible) {
+              app.launch();
+            }
 
             // show an alert with the overdue message
             if (!PairExpiredDialog.isVisible && this._isExpired) {
