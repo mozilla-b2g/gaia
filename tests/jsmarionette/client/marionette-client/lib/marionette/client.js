@@ -2,8 +2,9 @@
 (function(module, ns) {
   'use strict';
 
-  var Element = ns.require('element'),
-      Exception = ns.require('error');
+  var Element = ns.require('element');
+  var Exception = ns.require('error');
+  var message = ns.require('./message');
 
   var DEFAULT_SCRIPT_TIMEOUT = 20000;
   var DEFAULT_SEARCH_TIMEOUT = 20000;
@@ -449,10 +450,10 @@
      *
      * @method send
      * @chainable
-     * @param {Object} cmd to be sent over the wire.
+     * @param {Object} body to be sent over the wire.
      * @param {Function} cb executed when response is sent.
      */
-    send: function send(cmd, cb) {
+    send: function send(body, cb) {
       // first do scoping updates
       if (this._scope && this._bypassScopeChecks !== true) {
         // calling the methods may cause an infinite loop so make sure
@@ -468,34 +469,36 @@
         this._bypassScopeChecks = false;
       }
 
+      var data;
       if (this.protocol == 1) {
-        if (!cmd.to) {
-          cmd.to = this.actor || 'root';
-        }
+        body.to = body.to || this.actor || 'root';
         if (this.sessionId) {
-          cmd.session = cmd.session || this.sessionId;
+          body.session = body.session || this.sessionId;
         }
+        data = body;
+      } else if (this.protocol >= 3) {
+        data = new message.Command(body);
+      } else {
+        data = body;
       }
 
       if (!cb && this.defaultCallback) {
         cb = this.defaultCallback();
       }
 
-      var driverSent = null;
+      var driverSent;
       try {
-        driverSent = this.driver.send(cmd, cb);
-      }
-      catch(e) {
+        driverSent = this.driver.send(body, cb);
+      } catch (e) {
         // !!! HACK HACK HACK !!!
         // single retry when not connected. this should never happen, but
         // currently it does. so here it is.
         if (e && e.message && e.message.indexOf('not connected') !== -1) {
           console.info('Will attempt re-connect and re-send *ONCE*');
           this.driver.connect(function() {
-            this.driver.send(cmd, cb);
+            this.driver.send(body, cb);
           }.bind(this));
-        }
-        else {
+        } else {
           // Unhandled.
           throw e;
         }

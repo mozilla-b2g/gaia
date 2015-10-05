@@ -27,16 +27,27 @@ function Tcp(options) {
 
   Abstract.call(this, options);
 
-  this.connectionId = 0;
   /**
+   * The unique identifier of the current connection.
+   *
+   * @property connectionId
+   * @type Number
+   */
+  this.connectionId = 0;
+
+  /**
+   * The remote hostname.
+   *
    * @property host
    * @type String
    */
   this.host = options.host || 'localhost';
 
   /**
+   * The remote port number.
+   *
    * @property port
-   * @type Numeric
+   * @type Number
    */
   this.port = options.port || 2828;
 }

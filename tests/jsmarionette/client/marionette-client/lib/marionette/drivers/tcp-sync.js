@@ -1,7 +1,11 @@
 'use strict';
+
 var debug = require('debug')('marionette:tcp-sync');
 var wire = require('json-wire-protocol');
 var sockittome = require('sockit-to-me');
+
+var Command = require('../message').Command;
+var Response = require('../message').Response;
 
 var DEFAULT_HOST = 'localhost';
 var DEFAULT_PORT = 2828;
@@ -12,25 +16,21 @@ function TcpSync(options) {
     options = {};
   }
 
-  if ('port' in options) {
-    this.port = options.port;
-  }
-  if ('host' in options) {
-    this.host = options.host;
-  }
-  if ('connectionTimeout' in options) {
-    this.connectionTimeout = options.connectionTimeout;
-  }
+  this.host = options.host || DEFAULT_HOST;
+  this.port = options.port || DEFAULT_PORT;
+  this.connectionTimeout = options.connectionTimeout || 2000;
 
+  this.isSync = true;
+  this.retryInterval = 300;
   this.sockit = new sockittome.Sockit();
   this.sockit.setPollTimeout(this.connectionTimeout + SOCKET_TIMEOUT_EXTRA);
+
+  this._lastId = 0;
 }
 
-TcpSync.prototype.isSync = true;
-TcpSync.prototype.host = DEFAULT_HOST;
-TcpSync.prototype.port = DEFAULT_PORT;
-TcpSync.prototype.connectionTimeout = 2000;
-TcpSync.prototype.retryInterval = 300;
+TcpSync.prototype._createSocketConfig = function() {
+  return {host: this.host, port: this.port};
+};
 
 TcpSync.prototype.setScriptTimeout = function(timeout) {
   this.sockit.setPollTimeout(timeout + SOCKET_TIMEOUT_EXTRA);
@@ -68,20 +68,18 @@ TcpSync.prototype.waitForSocket = function(options, callback) {
   // Use sockittome's built in polling timeout during calls to connect
   // to avoid socket misuse.
   sockit.setPollTimeout(socketTimeout);
-  var socketConfig = { host: this.host, port: this.port };
 
-  function probeSocket() {
+  var probeSocket = function() {
     try {
-      sockit.connect(socketConfig);
-
+      sockit.connect(this._createSocketConfig());
       var s = sockit.read(16).toString();
       sockit.close();
+
       if (s.indexOf(':') != -1) {
         callback();
         return;
       }
-    }
-    catch(e) {
+    } catch (e) {
       // This may seem ridiculous, but we have to keep these errors showing up
       // but, they often repeat like CRAZY, so, quiet them down by only showing
       // each exception we encounter once.
@@ -95,22 +93,21 @@ TcpSync.prototype.waitForSocket = function(options, callback) {
     }
     // timeout. Abort.
     if ((Date.now() - start) > timeout) {
-      console.error('timeout connecting to b2g.');
+      console.error('Timeout connecting to B2G');
       return;
     }
     // interval delay for the next iteration.
     setTimeout(probeSocket.bind(self), interval);
-  }
+  }.bind(this);
 
   debug('probing socket');
   probeSocket();
 };
 
 TcpSync.prototype.connect = function(callback) {
-
   this.waitForSocket(function _connect() {
     try {
-      this.sockit.connect({ host: this.host, port: this.port });
+      this.sockit.connect(this._createSocketConfig());
     } catch(err) {
       if (Date.now() - this._beginConnect >= this.connectionTimeout) {
         callback(err);
@@ -153,7 +150,6 @@ TcpSync.prototype._readResponse = function() {
   var data, error;
 
   stream.on('data', function(parsed) {
-    debug('read', parsed);
     data = parsed;
   });
   stream.on('error', function(err) {
@@ -168,13 +164,65 @@ TcpSync.prototype._readResponse = function() {
     throw error;
   }
 
+  if (this.marionetteProtocol >= 3) {
+    var resp = Response.fromMsg(data);
+    return resp.error || resp.result;
+  }
+
   return data;
 };
 
-TcpSync.prototype.send = function(command, callback) {
-  debug('write', command);
-  this.sockit.write(wire.stringify(command));
-  return callback(this._readResponse());
+/**
+ * Sends a JSON data structure across the wire to the remote end.
+ *
+ * @param {(Object|Command|Response)} obj
+ *     An object that can be dumped into a JSON data structure,
+ *     or a message that can be marshaled.
+ * @param {Function} cb
+ *     Callback to be called when a response for the request is received.
+ *
+ * @return {?}
+ *     The return value from the passed in callback.
+ */
+TcpSync.prototype.send = function(obj, cb) {
+  if (obj instanceof Command || obj instanceof Response) {
+    return this.sendMessage(obj, cb);
+  } else {
+    return this.sendRaw(obj, cb);
+  }
+};
+
+/**
+ * Sends a message across the wire to the remote end.
+ *
+ * @param {(Command|Response)} msg
+ *     The message to send.
+ * @param {Function} cb
+ *     Callback to be called when a response for the command is received.
+ *
+ * @return {?}
+ *     The return value from the passed in callback.
+ */
+TcpSync.prototype.sendMessage = function(msg, cb) {
+  msg.id = ++this._lastId;
+  return this.sendRaw(msg.toMsg(), cb);
+};
+
+/**
+ * Sends a JSON data structure across the wire to the remote end.
+ *
+ * @param {Object} data
+ *     An object that can be marshaled into a JSON data structure.
+ * @param {Function} cb
+ *     Callback to be called when a response for the request is received.
+ *
+ * @return {?}
+ *     The return value from the passed in callback.
+ */
+TcpSync.prototype.sendRaw = function(data, cb) {
+  debug('write', data);
+  this.sockit.write(wire.stringify(data));
+  return cb(this._readResponse());
 };
 
 TcpSync.prototype.close = function() {

@@ -21,10 +21,11 @@
   Abstract.prototype = {
 
     /**
-     * Timeout for commands
+     * Duration in milliseconds to wait before timing out a command
+     * request.
      *
      * @property timeout
-     * @type Numeric
+     * @type Number
      */
     timeout: 10000,
 
@@ -46,29 +47,29 @@
     ready: false,
 
     /**
-     * Connection id for the server.
+     * A unique identifier for the current connection.
      *
      * @property connectionId
-     * @type Numeric
+     * @type Number
      */
     connectionId: null,
 
     /**
-     * We just set the script timeout.
-     * If you need to do something in the driver.
+     * Duration in milliseconds defining when to abort an attempt to
+     * execute script in the remote end.
      *
      * @method setScriptTiemout
-     * @param {Integer} the timeout value.
+     * @param {Number} the timeout value.
      */
     setScriptTimeout: function setScriptTimeout(timeout) {
     },
 
     /**
-     * Sends remote command to server.
-     * Each command will be queued while waiting for
-     * any pending commands. This ensures order of
-     * response is correct.
+     * Sends a command to the remote end.
      *
+     * Each command is queued whilst waiting for any pending commands.
+     * This ensures order of response is correct, but also means the client
+     * implements a synchronous interface for Marionette.
      *
      * @method send
      * @param {Object} command remote command to send to marionette.
@@ -76,11 +77,11 @@
      */
     send: function send(cmd, callback) {
       if (!this.ready) {
-        throw new Error('connection is not ready');
+        throw new Error('Connection is not ready');
       }
 
-      if (typeof(callback) === 'undefined') {
-        throw new Error('callback is required');
+      if (typeof callback == 'undefined') {
+        throw new Error('Callback is required');
       }
 
       this._responseQueue.push(callback);
@@ -92,10 +93,11 @@
     },
 
     /**
-     * Connects to a remote server.
-     * Requires a _connect function to be defined.
+     * Connects to the remote end.
      *
-     *     MyClass.prototype._connect = function _connect(){
+     * Requires the _connect function to be defined in the concrete class.
+     *
+     *     MyConcreteClass.prototype._connect = function _connect(){
      *       // open a socket to marrionete accept response
      *       // you *must* call _onDeviceResponse with the first
      *       // response from Marionette it looks like this:
