@@ -174,7 +174,6 @@ define(function(require) {
      * @param {Object} network
      */
     initializeAuthFields: function(panel, network) {
-      var key = WifiHelper.getKeyManagement(network);
       var ssid = panel.querySelector('input[name=ssid]');
       var identity = panel.querySelector('input[name=identity]');
       var password = panel.querySelector('input[name=password]');
@@ -197,20 +196,14 @@ define(function(require) {
       };
 
       var checkPassword = function() {
-        var isSSIDInvalid = function() {
-          if (ssid) {
-            return (ssid.value.length === 0);
-          } else {
-            return false;
-          }
-        };
-
+        var key = WifiHelper.getKeyManagement(network);
         submitButton.disabled =
           !WifiHelper.isValidInput(key, password.value, identity.value,
-            eap.value) || isSSIDInvalid();
+            eap.value) || !WifiHelper.isSSIDValid(ssid.value);
       };
 
       eap.onchange = function() {
+        var key = WifiHelper.getKeyManagement(network);
         checkPassword();
         WifiUtils.changeDisplay(panel, key);
       };
