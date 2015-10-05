@@ -117,6 +117,7 @@ var SyncEngine = (function() {
             then(payloadDec => {
           return {
             id: record.id,
+            last_modified: record.last_modified,
             payload: payloadDec
           };
         });
