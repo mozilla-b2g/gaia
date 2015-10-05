@@ -267,6 +267,7 @@
       // If it's a merge request mark it as completed.
       if (self.merge) {
         self.merge = false;
+        self.clearPayload(false);
       }
       // if it's a request to transmit, transmit the merged metrics.
       else if (self.collecting && navigator.onLine) {
@@ -285,10 +286,12 @@
   };
 
   // Signal gecko to clear out the histograms and start fresh.
-  AT.prototype.clearPayload = function clearPayload() {
+  AT.prototype.clearPayload = function clearPayload(resetStorage) {
     // TODO: Add this line below to AdvancedTelemetryHelper as an API.
     console.info('telemetry|MGMT|CLEARMETRICS');
-    asyncStorage.setItem(AT.METRICS_KEY, null);
+    if (resetStorage) {
+      asyncStorage.setItem(AT.METRICS_KEY, null);
+    }
   };
 
   // Start a timer to notify when to send the payload.
@@ -360,7 +363,7 @@
       // successfully. We are already set up to collect the next batch of data.
       function onload() {
         loginfo('Transmitted Successfully.');
-        AdvancedTelemetry.prototype.clearPayload();
+        AdvancedTelemetry.prototype.clearPayload(true);
       }
 
       function retry(e) {
