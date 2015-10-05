@@ -460,7 +460,7 @@
       posTop += offset;
 
       // Put dialog in the center of selected area if it overlap keyboard.
-      if (posTop >= (frameHeight - distanceFromBottom - selectOptionHeight)) {
+      if (posTop >= (frameHeight - selectOptionHeight)) {
         posTop = (((selectDialogTop >= 0) ? selectDialogTop : 0) +
           ((selectDialogBottom >= frameHeight) ? frameHeight :
             selectDialogBottom) - selectOptionHeight) / 2;
