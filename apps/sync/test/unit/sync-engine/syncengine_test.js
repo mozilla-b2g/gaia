@@ -164,7 +164,8 @@ ld be a Function`);
         expect(list).to.be.an('object');
         expect(list.data).to.be.instanceOf(Array);
         expect(list.data.length).to.equal(1);
-        expect(list.data[0]).to.be.an('object');
+        expect(Object.keys(list.data[0]).sort())
+          .to.deep.equal(['id', 'last_modified', 'payload']);
         expect(list.data[0].payload).to.be.an('object');
         expect(list.data[0].payload.histUri).to.be.a('string');
         done();
@@ -234,9 +235,8 @@ ld be a Function`);
         return se._collections.history.list();
       }).then(list => {
         expect(list.data.length).to.equal(1);
-        expect(se._collections.history.pushData.length).to.equal(1);
-        expect(se._collections.history.pushData[0].strayField).to.be.an(
-            'undefined');
+        expect(Object.keys(se._collections.history.pushData[0]).sort())
+          .to.deep.equal(['id', 'payload']);
         done();
       });
     });
