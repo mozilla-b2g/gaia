@@ -42,6 +42,8 @@ suite('Ring Test', function() {
         vibrate: vibrate,
         label: 'hi',
         sound: null,
+        hour: 1,
+        minute: 1,
         time: new Date(),
       });
       clock.tick(5000); // vibrate starts after a setInterval
