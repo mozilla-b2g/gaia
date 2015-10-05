@@ -137,7 +137,6 @@ require.config({
         'main',
         'panels/root/low_priority_items',
         'modules/apps_cache',
-        'modules/bluetooth/version_detector',
         'modules/addon_manager'
       ]
     },
@@ -145,12 +144,21 @@ require.config({
       name: 'panels/root/low_priority_items',
       exclude: [
         'main',
-        'modules/bluetooth/version_detector',
         'modules/app_storage',
-        'modules/media_storage',
         'modules/battery',
-        'modules/wifi_context',
-        'modules/sim_security'
+        'modules/bluetooth/bluetooth_context',
+        'modules/media_storage',
+        'modules/sim_security',
+        'modules/wifi_context'
+      ]
+    },
+    {
+      name: 'panels/bluetooth/panel',
+      exclude: [
+        'main',
+        'modules/mvvm/list_view',
+        'modules/dialog_service',
+        'modules/bluetooth/bluetooth_context'
       ]
     },
     {
@@ -369,8 +377,6 @@ require.config({
       name: 'panels/about_more_info/panel',
       exclude: [
         'main',
-        'modules/bluetooth/version_detector',
-        'modules/bluetooth/bluetooth_v1',
         'modules/bluetooth/bluetooth_context'
       ]
     },
