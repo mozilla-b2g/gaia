@@ -61,37 +61,30 @@ var template =
     background-color: #01c5ed;
   }
   #seek-bar-indicator {
+    background-color: transparent;
+    border-radius: 50%;
     position: absolute;
-    top: calc(50% - 1.15rem);
-    left: -1.15rem;
-    width: 2.3rem;
-    height: 2.3rem;
+    top: calc(50% - 3rem);
+    left: -3rem;
+    width: 6rem;
+    height: 6rem;
     pointer-events: none;
+    transition: transform 20ms linear;
     will-change: transform;
   }
   #seek-bar-indicator:after {
     content: '';
     background-color: #fff;
-    border: 0.1rem solid #fff;
+    border: 1px solid #fff;
     border-radius: 50%;
     position: absolute;
-    top: calc(50% - 1.25rem);
-    left: calc(50% - 1.15rem);
+    top: 1.85rem;
+    left: 1.85rem;
     width: 2.1rem;
     height: 2.1rem;
   }
   #seek-bar-indicator.highlight {
-    transition: transform 50ms linear;
-  }
-  #seek-bar-indicator.highlight:before {
-    content: '';
     background-color: #00caf2;
-    border-radius: 50%;
-    position: absolute;
-    top: calc(50% - 3.05rem);
-    left: calc(50% - 3.05rem);
-    width: 6.1rem;
-    height: 6.1rem;
   }
 </style>
 <div id="container">
@@ -121,13 +114,11 @@ proto.createdCallback = function() {
   var container = this.els.container;
   var seekBar = this.els.seekBar;
 
-  var dispatchSeekEvent = throttle(() => {
-    this.dispatchEvent(new CustomEvent('seek', {
-      detail: { elapsedTime: this.elapsedTime }
-    }));
-  }, 250);
+  var seekTimeout = null;
 
   container.addEventListener(isTouch ? 'touchstart' : 'mousedown', (evt) => {
+    clearTimeout(seekTimeout);
+
     container.addEventListener(isTouch ? 'touchmove' : 'mousemove',
       pointerMoveHandler);
     container.addEventListener(isTouch ? 'touchend' : 'mouseup',
@@ -139,7 +130,7 @@ proto.createdCallback = function() {
   });
 
   var pointerMoveHandler = (evt) => {
-    var pointer = isTouch ? evt.touches[0] : evt;
+    var pointer = isTouch ? evt.targetTouches[0] : evt;
     var percent = clamp(0, 1,
       (pointer.clientX - seekBar.offsetLeft) / seekBar.offsetWidth);
 
@@ -152,20 +143,24 @@ proto.createdCallback = function() {
       this.elapsedTime = this._overrideElapsedTime =
         percent * this.duration;
     }
-
-    dispatchSeekEvent();
   };
 
   var pointerEndHandler = (evt) => {
+    this.dispatchEvent(new CustomEvent('seek', {
+      detail: { elapsedTime: this.elapsedTime }
+    }));
+
     container.removeEventListener(isTouch ? 'touchmove' : 'mousemove',
       pointerMoveHandler);
     container.removeEventListener(isTouch ? 'touchend' : 'mouseup',
       pointerEndHandler);
 
-    this._overrideRemainingTime = null;
-    this._overrideElapsedTime = null;
+    seekTimeout = setTimeout(() => {
+      this._overrideRemainingTime = null;
+      this._overrideElapsedTime = null;
 
-    this.els.seekBarIndicator.classList.remove('highlight');
+      this.els.seekBarIndicator.classList.remove('highlight');
+    }, 100);
   };
 
   this._overrideRemainingTime = null;
@@ -229,53 +224,31 @@ Object.defineProperty(proto, 'remainingTime', {
       this._elapsedTime = this._duration - this._remainingTime;
     }
 
-    if (indeterminate) {
-      this.els.remainingTime.textContent = '---:--';
-      this.els.elapsedTime.textContent = '--:--';
-      return;
-    }
-
-    IntlHelper.get('duration').then((duration) => {
-      this.els.remainingTime.textContent =
-        duration.format(-this._remainingTime * 1000);
-      this.els.elapsedTime.textContent =
-        duration.format(this._elapsedTime * 1000);
-    });
-
-    // avoid division by 0, in case. Likely already invalid.
-    var percent = this._duration ? this._elapsedTime / this._duration : 0;
-    var x = this.els.seekBar.offsetWidth * percent;
-
-    if (document.documentElement.dir === 'rtl') {
-      x = this.els.seekBar.offsetWidth - x;
-    }
-
     window.requestAnimationFrame(() => {
+      if (indeterminate) {
+        this.els.remainingTime.textContent = '---:--';
+        this.els.elapsedTime.textContent = '--:--';
+        return;
+      }
+
+      var percent = this._duration ? this._elapsedTime / this._duration : 0;
+      var x = this.els.seekBar.offsetWidth * percent;
+
+      if (document.documentElement.dir === 'rtl') {
+        x = this.els.seekBar.offsetWidth - x;
+      }
+
       this.els.seekBarIndicator.style.transform = 'translateX(' + x + 'px)';
+
+      IntlHelper.get('duration').then((duration) => {
+        this.els.remainingTime.textContent =
+          duration.format(-this._remainingTime * 1000);
+        this.els.elapsedTime.textContent =
+          duration.format(this._elapsedTime * 1000);
+      });
     });
   }
 });
-
-function throttle(fn, ms) {
-  var last = Date.now();
-  var timeout;
-  return () => {
-    var args = arguments;
-    var now = Date.now();
-    if (now < last + ms) {
-      clearTimeout(timeout);
-      timeout = setTimeout(() => {
-        last = now;
-        fn.apply(this, args);
-      }, ms);
-    }
-
-    else {
-      last = now;
-      fn.apply(this, args);
-    }
-  };
-}
 
 function clamp(min, max, value) {
   return Math.min(Math.max(min, value), max);
