@@ -26,6 +26,18 @@ if (typeof TestUrlResolver === 'undefined') {
     shim: {
       l10ndate: ['l10nbase'],
 
+      'shared/js/component_utils': {
+        exports: 'ComponentUtils'
+      },
+
+      'shared/elements/gaia_checkbox/script': {
+        exports: 'GaiaCheckbox'
+      },
+
+      'shared/elements/gaia_switch/script': {
+        exports: 'GaiaSwitch'
+      },
+
       'shared/js/mime_mapper': {
         exports: 'MimeMapper'
       },

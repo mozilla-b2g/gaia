@@ -17,6 +17,9 @@ var mozL10n = require('l10n!'),
     waitingRawActivity, activityCallback;
 
 require('shared/js/font_size_utils');
+require('shared/js/component_utils');
+require('shared/elements/gaia_switch/script');
+require('shared/elements/gaia_checkbox/script');
 require('metrics');
 require('wake_locks');
 
