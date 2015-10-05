@@ -12,13 +12,14 @@
 
 var FxAccountsClient = function FxAccountsClient() {
 
-  var eventCount = 0;
+  var listening;
 
   var callbacks = {};
 
   var sendMessage = function sendMessage(message, successCb, errorCb) {
-    if (!eventCount) {
+    if (!listening) {
       window.addEventListener('mozFxAccountsChromeEvent', onChromeEvent);
+      listening = true;
     }
 
     var id = getUUID();
@@ -35,8 +36,6 @@ var FxAccountsClient = function FxAccountsClient() {
     var event = document.createEvent('CustomEvent');
     event.initCustomEvent('mozFxAccountsContentEvent', true, true, details);
     window.dispatchEvent(event);
-
-    eventCount++;
   };
 
   var onChromeEvent = function onChromeEvent(event) {
@@ -54,11 +53,6 @@ var FxAccountsClient = function FxAccountsClient() {
     } else if (callback && message.error && callback.errorCb) {
       callback.errorCb(message.error);
       delete callbacks[message.id];
-    }
-
-    eventCount--;
-    if (!eventCount) {
-      window.removeEventListener('mozFxAccountsChromeEvent', onChromeEvent);
     }
   };
 
@@ -79,6 +73,20 @@ var FxAccountsClient = function FxAccountsClient() {
   var getAccounts = function getAccounts(successCb, errorCb) {
     sendMessage({
       method: 'getAccounts'
+    }, successCb, errorCb);
+  };
+
+  var getAssertion = function getAssertion(options, successCb, errorCb) {
+    sendMessage({
+      method: 'getAssertion',
+      silent: options ? options.silent : null,
+      audience: options ? options.audience : null
+    }, successCb, errorCb);
+  };
+
+  var getKeys = function getKeys(successCb, errorCb) {
+    sendMessage({
+      method: 'getKeys'
     }, successCb, errorCb);
   };
 
@@ -129,6 +137,8 @@ var FxAccountsClient = function FxAccountsClient() {
 
   return {
     'getAccounts': getAccounts,
+    'getAssertion': getAssertion,
+    'getKeys': getKeys,
     'logout': logout,
     'queryAccount': queryAccount,
     'resendVerificationEmail': resendVerificationEmail,
