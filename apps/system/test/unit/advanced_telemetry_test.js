@@ -457,27 +457,27 @@ suite('AdvancedTelemetry:', function() {
       });
     });
 
-    test('should refresh the payload on a timeout retry', function(done) {
+    test('should retry on a timeout error', function(done) {
+      var retryspy = this.sinon.spy(window, 'setTimeout');
       this.sinon.stub(console, 'info').returns(0);
-      this.sinon.spy(AdvancedTelemetry.prototype, 'getPayload');
       dispatch({payload: wrapper.payload});
 
       // Simulate a timeout
-      sinon.assert.notCalled(AdvancedTelemetry.prototype.getPayload);
       xhr.ontimeout(new CustomEvent('timeout'));
-      sinon.assert.calledOnce(AdvancedTelemetry.prototype.getPayload);
+      assert.equal(retryspy.getCall(0).args[1],
+        AdvancedTelemetry.RETRY_INTERVAL);
       done();
     });
 
-    test('should refresh the payload after failed transmit', function(done) {
-      this.sinon.spy(AdvancedTelemetry.prototype, 'getPayload');
+    test('should retry interval after failed transmit', function(done) {
+      var retryspy = this.sinon.spy(window, 'setTimeout');
       this.sinon.stub(console, 'info').returns(0);
       dispatch({payload: wrapper.payload});
 
       // Simulate a timeout
-      sinon.assert.notCalled(AdvancedTelemetry.prototype.getPayload);
       xhr.ontimeout(new CustomEvent('error'));
-      sinon.assert.calledOnce(AdvancedTelemetry.prototype.getPayload);
+      assert.equal(retryspy.getCall(0).args[1],
+        AdvancedTelemetry.RETRY_INTERVAL);
       done();
     });
 

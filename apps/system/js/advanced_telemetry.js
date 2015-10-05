@@ -317,10 +317,6 @@
       return;
     }
 
-    // But assume that it will succeed and start collecting new metrics now
-    this.metrics = new BatchTiming(false);
-    this.startBatch();
-
     var deviceInfoQuery = {
       'app.update.channel': 'unknown',
       'deviceinfo.platform_version': 'unknown',
@@ -364,12 +360,17 @@
       function onload() {
         loginfo('Transmitted Successfully.');
         AdvancedTelemetry.prototype.clearPayload(true);
+        // Start a new batch.
+        self.metrics = new BatchTiming(false, false);
+        self.startBatch();
       }
 
       function retry(e) {
-        // If the attempt to transmit a batch of data fails, refresh the payload
-        loginfo('App usage metrics transmission failure:', e.type);
-        self.getPayload();
+        loginfo('Advanced Telemetry metrics transmission failure:', e.type);
+        // Start a retry batch.  Don't clear the payload yet.  It will continue
+        // to accumulate until the retry interval expires.
+        self.metrics = new BatchTiming(false, true);
+        self.startBatch();
       }
 
       request.send({
@@ -512,7 +513,7 @@
   /*
    * A helper class that tracks the start time of the current batch.
    */
-  function BatchTiming(startup) {
+  function BatchTiming(startup, retry) {
     var self = this;
     this.start = Date.now();
     if (startup) {
@@ -533,7 +534,11 @@
       });
     } else {
       asyncStorage.setItem(AT.BATCH_KEY, this.start);
-      this.interval = AT.REPORT_INTERVAL;
+      if (retry) {
+        self.interval = AT.RETRY_INTERVAL;
+      } else {
+        self.interval = AT.REPORT_INTERVAL;
+      }
     }
   }
 
