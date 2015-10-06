@@ -87,12 +87,13 @@ class MarketplaceDev(Marketplace):
         enable_addon_button.tap()
 
     def _open_addon(self, addon_name):
-        selector = '//a[text()="%s"]' % addon_name
+        selector = '//a[descendant::*[text()="%s"]]' % addon_name
         addon_locator = (By.XPATH, selector)
 
         addon_link = Wait(self.marionette, timeout=20, interval=1).until(
             expected.element_present(*addon_locator))
         Wait(self.marionette).until(expected.element_displayed(addon_link))
+        self.marionette.execute_script('arguments[0].scrollIntoView(true);', [addon_link])
         addon_link.tap()
         return AddonPage(self.marionette)
 
