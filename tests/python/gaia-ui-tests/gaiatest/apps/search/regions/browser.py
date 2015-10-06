@@ -8,7 +8,7 @@ from marionette_driver import expected, By, Wait
 
 class Browser(Base):
 
-    _browser_app_locator = (By.CSS_SELECTOR, 'div[data-manifest-name="Browser"][transition-state="opened"]')
+    _browser_app_locator = (By.CSS_SELECTOR, 'div[data-manifest-name="Browser"][transition-state="opened"], div.browser[transition-state="opened"]')
     _browser_frame_locator = (By.CSS_SELECTOR, 'iframe.browser')
 
     _menu_button_locator = (By.CSS_SELECTOR, '.menu-button')
