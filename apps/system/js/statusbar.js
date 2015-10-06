@@ -282,6 +282,14 @@
           break;
 
         case 'appopened':
+          var app = evt.detail;
+          if (!app.isFullScreen() && !app.isFullScreenLayout()) {
+            this.element.setAttribute('aria-owns',
+              evt.detail.appChrome.element.id);
+          } else {
+            this.element.removeAttribute('aria-owns');
+          }
+          /* falls through */
         case 'appclosed':
           this.resumeUpdate(evt.type);
           /* falls through */
@@ -315,6 +323,7 @@
           this.element.classList.remove('hidden');
           this.element.classList.remove('fullscreen');
           this.element.classList.remove('fullscreen-layout');
+          this.element.removeAttribute('aria-owns');
           break;
         case 'activitydestroyed':
           this._updateMinimizedStatusbarWidth();
