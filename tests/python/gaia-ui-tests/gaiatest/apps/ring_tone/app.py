@@ -5,11 +5,13 @@
 from marionette_driver import expected, By, Wait
 
 from gaiatest.apps.base import Base, PageRegion
+from gaiatest.form_controls.header import GaiaHeader
 
 
 class RingTone(Base):
     name = 'Ringtones'
     manifest_url = '{}ringtones{}/manifest.webapp'.format(Base.DEFAULT_PROTOCOL, Base.DEFAULT_APP_HOSTNAME)
+
     _page_locator = (By.CLASS_NAME, 'theme-settings')
     _screen_locator = (By.ID, 'list-parent')
     _header_locator = (By.ID, 'header')
@@ -36,7 +38,7 @@ class RingTone(Base):
         save_button.tap()
 
     def tap_exit(self):
-        self.marionette.find_element(*self._header_locator).tap(25, 25)
+        GaiaHeader(self.marionette, self._header_locator).go_back_and_exit(app=self)
 
     def cancel_share(self):
         self.marionette.find_element(*self._actions_cancel_locator).tap()
