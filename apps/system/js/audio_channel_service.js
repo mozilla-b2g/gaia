@@ -126,7 +126,6 @@
       } else {
         this._resetAudioChannel(audioChannel);
         this._resumeAudioChannels();
-        this.publish('audiochannelchanged', { channel: 'none' });
       }
     },
 
@@ -186,12 +185,17 @@
       // FIXME: The `app` param should always have `audioChannels`,
       // then we don't need to check it.
       // Resume the app's audio channels.
-      app && app.audioChannels && app.audioChannels.forEach((audioChannel) => {
-        audioChannel.isActive() && this._manageAudioChannels(audioChannel);
-        if (audioChannel.isPlaying()) {
-          this._deleteAudioChannelFromInterruptedAudioChannels(audioChannel);
-        }
-      });
+      if (app) {
+        app.audioChannels && app.audioChannels.forEach((audioChannel) => {
+          audioChannel.isActive() && this._manageAudioChannels(audioChannel);
+          if (audioChannel.isPlaying()) {
+            this._deleteAudioChannelFromInterruptedAudioChannels(audioChannel);
+            this.publish('audiochannelchanged', { channel: audioChannel.name });
+          }
+        });
+      } else if (this._activeAudioChannels.size === 0) {
+        this.publish('audiochannelchanged', { channel: 'none' });
+      }
       // Resume the latest interrupted audio channel.
       var audioChannel;
       var length = this._interruptedAudioChannels.length;
@@ -199,7 +203,10 @@
         audioChannel = this._interruptedAudioChannels[length - 1];
         audioChannel.setPolicy({ isAllowedToPlay: true });
         this._handleAudioChannel(audioChannel);
-        audioChannel.isPlaying() && this._interruptedAudioChannels.pop();
+        if (audioChannel.isPlaying()) {
+          this._interruptedAudioChannels.pop();
+          this.publish('audiochannelchanged', { channel: audioChannel.name });
+        }
       }
     },
 
