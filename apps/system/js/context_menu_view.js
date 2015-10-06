@@ -81,6 +81,15 @@
       this._injected = true;
     }
 
+    if (this.containerElement &&
+        this.containerElement.classList.contains('browser')) {
+
+      var statusbar = document.getElementById('statusbar');
+      if (statusbar) {
+        statusbar.classList.remove('light');
+      }
+    }
+
     this.buildMenu(menu);
     this.element.classList.add('visible');
     this._requestFocus();
@@ -93,6 +102,16 @@
 
     if (evt) {
       evt.preventDefault();
+    }
+
+    if (this.containerElement &&
+        this.containerElement.classList.contains('browser') &&
+        !this.containerElement.classList.contains('private')) {
+
+      var statusbar = document.getElementById('statusbar');
+      if (statusbar) {
+        statusbar.classList.add('light');
+      }
     }
 
     return new Promise((resolve, reject) => {
