@@ -70,9 +70,9 @@ var FxAccountsClient = function FxAccountsClient() {
 
   // === API ===
 
-  var getAccounts = function getAccounts(successCb, errorCb) {
+  var getAccount = function getAccount(successCb, errorCb) {
     sendMessage({
-      method: 'getAccounts'
+      method: 'getAccount'
     }, successCb, errorCb);
   };
 
@@ -136,7 +136,7 @@ var FxAccountsClient = function FxAccountsClient() {
   };
 
   return {
-    'getAccounts': getAccounts,
+    'getAccount': getAccount,
     'getAssertion': getAssertion,
     'getKeys': getKeys,
     'logout': logout,
