@@ -18,7 +18,7 @@ var ArtistDetailView = View.extend(function ArtistDetailView() {
 
   this.list.configure({
     getSectionName: (item) => {
-      return item.sectionName;
+      return item.section;
     }
   });
 
@@ -54,11 +54,11 @@ ArtistDetailView.prototype.getArtist = function() {
     .then(songs => {
       return songs.map((song) => {
         return {
-          index: song.metadata.tracknum ?
+          index:   song.metadata.tracknum ?
             unpaddedIndex.format(song.metadata.tracknum) : '',
-          name: song.name,
-          title: song.metadata.title,
-          sectionName: song.metadata.album
+          name:    song.name,
+          title:   song.metadata.title,
+          section: song.metadata.album
         };
       });
     });

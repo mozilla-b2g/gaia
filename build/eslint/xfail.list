@@ -135,6 +135,8 @@ apps/music/elements/music-overlay.js # line 138, col 3, Error - Unsafe assignmen
 apps/music/elements/music-rating.js # line 45, col 3, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 apps/music/elements/music-scan-progress.js # line 87, col 3, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 apps/music/elements/music-search.js # line 138, col 3, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
+apps/music/elements/music-search-box.js # line 86, col 3, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
+apps/music/elements/music-search-results.js # line 70, col 3, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 apps/music/elements/music-seek-bar.js # line 102, col 3, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 apps/music/elements/music-tab-bar.js # line 34, col 3, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 apps/music/elements/music-view-stack.js # line 84, col 3, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
