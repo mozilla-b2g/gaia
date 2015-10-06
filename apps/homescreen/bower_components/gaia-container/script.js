@@ -673,8 +673,10 @@ window.GaiaContainer = (function(exports) {
    * Enables element position synchronisation after freeze() has been called.
    */
   proto.thaw = function() {
-    this._frozen = false;
-    this.synchronise();
+    if (this._frozen) {
+      this._frozen = false;
+      this.synchronise();
+    }
   };
 
   /**
