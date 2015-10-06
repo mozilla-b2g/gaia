@@ -41,6 +41,7 @@
      */
     start: function pm_start() {
       // Div over in which the permission UI resides.
+      this.screen = document.getElementById('screen');
       this.overlay = document.getElementById('permission-screen');
       this.dialog = document.getElementById('permission-dialog');
       this.title = document.getElementById('permission-title');
@@ -479,6 +480,7 @@
      * @memberof PermissionManager.prototype
      */
     hidePermissionPrompt: function pm_hidePermissionPrompt() {
+      this.screen.classList.remove('permission-prompt');
       this.overlay.classList.remove('visible');
       this.devices.removeEventListener('click', this);
       this.devices.classList.remove('visible');
@@ -650,6 +652,7 @@
         this.yes.setAttribute('data-l10n-id', 'ok');
       }
       // Make the screen visible
+      this.screen.classList.add('permission-prompt');
       this.overlay.classList.add('visible');
     },
 
