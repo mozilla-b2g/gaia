@@ -22,14 +22,16 @@ var Curtain = (function() {
     parent.document.body.appendChild(curtainFrame);
   }
 
-  var doc = curtainFrame.contentDocument;
+  function getDoc() {
+    return curtainFrame.contentWindow.document;
+  }
 
   var cpuWakeLock, cancelButton, retryButton, okButton, progressElement, form,
       progressTitle;
   var messages = [];
   var elements = ['error', 'timeout', 'wait', 'message', 'progress', 'alert'];
 
-  if (doc.readyState === 'complete') {
+  if (getDoc().readyState === 'complete') {
     init();
   } else {
     // The curtain could not be loaded at this moment
@@ -40,6 +42,7 @@ var Curtain = (function() {
   }
 
   function init() {
+    var doc = getDoc();
     cancelButton = doc.querySelector('#cancel');
     retryButton = doc.querySelector('#retry');
     okButton = doc.querySelector('#ok');
