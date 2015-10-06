@@ -594,6 +594,7 @@ TaskManager.prototype = {
         url: 'app://search.gaiamobile.org/newtab.html?private=1',
       });
       config.isPrivate = true;
+      config.isMockPrivate = true;
       config.oop = true;
     } else {
       config = new BrowserConfigHelper({
