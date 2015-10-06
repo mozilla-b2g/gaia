@@ -81,7 +81,7 @@ var FxAccountsManager = {
       case 'logout':
       case 'resendVerificationEmail':
         (function(methodName) {
-          LazyLoader.load('js/fxa_client.js', function() {
+          LazyLoader.load('js/fx_accounts_client.js', function() {
             FxAccountsClient[methodName](function(data) {
               self.sendPortMessage({ methodName: methodName, data: data });
             }, function(error) {
