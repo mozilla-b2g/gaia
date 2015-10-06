@@ -1095,7 +1095,7 @@ clean:
 
 # clean out build products and tools
 really-clean: clean
-	rm -rf b2g-* .b2g-* b2g_sdk node_modules mulet modules.tar js-marionette-env "$(NODE_MODULES_CACHEDIR)"
+	rm -rf b2g-* .b2g-* b2g_sdk node_modules mulet firefox/ modules.tar js-marionette-env "$(NODE_MODULES_CACHEDIR)"
 
 .git/hooks/pre-commit: tools/pre-commit
 	test -d .git && cp tools/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit || true
