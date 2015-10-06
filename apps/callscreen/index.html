@@ -74,7 +74,8 @@
     <link rel="import" href="/elements/conference_group_details.html">
   </head>
   <body>
-    <article id="call-screen" data-layout class="displayed">
+    <article id="call-screen" data-layout class="displayed"
+             aria-labelledby="call-number-wrapper, group-call-number-wrapper">
       <div id="lockscreen-header">
         <div id="lockscreen-conn-states">
         </div>
@@ -84,7 +85,7 @@
       <article id="calls" data-count="0">
         <section id="handled-call-template" role="dialog" hidden>
           <div class="hangup-button" role="button" data-l10n-id="hangup-a11y-button"></div>
-          <div class="numberWrapper direction-status-bar">
+          <div id="call-number-wrapper" class="numberWrapper direction-status-bar">
             <div class="number font-light"><bdi></bdi></div>
             <span role="button" id="switch-calls-button"></span>
           </div>
@@ -105,7 +106,7 @@
           </div>
         </section>
         <section id="group-call" hidden>
-          <div class="numberWrapper">
+          <div id="group-call-number-wrapper" class="numberWrapper">
             <div id="group-show"></div>
             <div id="group-call-label" class="number font-light"></div>
           </div>

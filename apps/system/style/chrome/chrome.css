@@ -272,6 +272,7 @@ html[dir="rtl"] .controls .urlbar { transform-origin: top right; }
   visibility: visible;
 }
 
+.appWindow.attentionWindow.active .chrome,
 .appWindow.fullscreen-app .chrome {
   visibility: hidden;
 }
