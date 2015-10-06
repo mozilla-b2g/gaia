@@ -8,12 +8,12 @@
   border: 0;
   margin: 0;
   padding: 0;
-  -moz-transition: -moz-transform .6s ease;
+  transition: transform .6s ease;
   background: #f4f4f4;
 }
 
 #match-extension.opening {
-  -moz-transform: translateY(-100%);
+  transform: translateY(-100%);
 }
 
 #match-extension.hidden {
