@@ -11,6 +11,7 @@
     LockScreenBasicComponent.apply(this);
     this.resources.elements.time = 'lockscreen-clock-time';
     this.resources.elements.date = 'lockscreen-date';
+    this.resources.elements.alarm = 'lockscreen-alarm';
     this.timeFormatter = null;
     this.dateFormatter = null;
     this.configs.logger.debug = false;  // turn on this when we're debugging
@@ -49,6 +50,25 @@
     this.resources.elements.date.textContent = dateText;
     this.logger.debug('Clock updated', now);
   };
+
+	LockScreenClockWidget.prototype.updateAlarm =
+	function() {
+    var self = this;
+		// returns alarm info from DataStore
+		navigator.getDataStores('alarms')
+			.then( function(stores){
+				stores[0].getLength().then(function(len){
+          if(len != 0) {
+            stores[0].get(len)
+              .then( function(data) {
+                self.resources.elements.alarm.textContent = data.time;
+                self.logger.debug('Alarm updated', data.time);
+                return data;
+              });
+          }
+				});
+			});
+	};
 
   exports.LockScreenClockWidget = LockScreenClockWidget;
 })(window);

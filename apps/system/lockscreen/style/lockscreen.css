@@ -229,12 +229,19 @@
   font-size: 8.5rem;
 }
 
-#lockscreen-date {
+#lockscreen-date, #lockscreen-alarm {
   font-weight: 300;
   font-size: 1.4rem;
+  display: inline-block;
 }
 
-#lockscreen-clock-time, #lockscreen-date {
+#lockscreen-alarm {
+  border-left: 1px solid;
+  margin-left: 5px;
+  padding-left: 10px;
+}
+
+#lockscreen-clock-time, #lockscreen-date, #lockscreen-alarm {
   color: #fff;
 }
 
