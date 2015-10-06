@@ -1,8 +1,9 @@
 'use strict';
 
-/* global AchievementsService, MockNavigatorSettings */
+/* global AchievementsService, MockNavigatorSettings, MockL10n */
 
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/js/achievements-service.js');
 
 suite('Achievements Service', function() {
@@ -10,18 +11,21 @@ suite('Achievements Service', function() {
   var mockAchievement = {
     criteria: 'achievements/achievement',
     evidence: 'urn:achievement:achieved',
-    name: 'Achievement',
-    description: 'Achievement description',
+    name: 'achievement',
+    description: 'achievement-description',
     image: '/style/icons/Blank.png'
   };
 
-  var achievementsService, realMozSettings, realNotification;
+  var achievementsService, realMozSettings, realNotification, realL10n;
 
   setup(function() {
     achievementsService = new AchievementsService();
 
     realMozSettings = navigator.mozSettings;
     navigator.mozSettings = MockNavigatorSettings;
+
+    realL10n = navigator.mozL10n;
+    navigator.mozL10n = MockL10n;
 
     realNotification = window.Notification;
     window.Notification = sinon.spy();
@@ -36,6 +40,7 @@ suite('Achievements Service', function() {
 
   teardown(function() {
     navigator.mozSettings = realMozSettings;
+    navigator.mozL10n = realL10n;
     window.Notification = realNotification;
   });
 
@@ -47,8 +52,9 @@ suite('Achievements Service', function() {
         'achievements').result.achievements[0];
 
       sinon.assert.calledOnce(window.Notification);
-      assert.isTrue(window.Notification.calledWith(mockAchievement.name));
-      assert.equal(notification.body, mockAchievement.description);
+      assert.isTrue(window.Notification.getCall(0).args[0].indexOf(
+        mockAchievement.name) === 0);
+      assert.equal(notification.bodyL10n, mockAchievement.description);
       assert.ok(issuesOn);
       assert.equal(notification.icon.indexOf('data:image/png'), 0);
 
