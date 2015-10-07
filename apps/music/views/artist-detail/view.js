@@ -43,15 +43,17 @@ ArtistDetailView.prototype.render = function() {
 ArtistDetailView.prototype.getArtist = function() {
   var unpaddedIndex = IntlHelper.get('unpaddedIndex');
 
-  return this.fetch('/api/artists/info/' + this.params.id)
+  return this.fetch('/api/artists/info/' + decodeURIComponent(this.params.id))
     .then(response => response.json())
     .then(songs => {
-      songs.forEach((song) => {
-        song.index = song.metadata.tracknum ?
-          unpaddedIndex.format(song.metadata.tracknum) : '';
+      return songs.map((song) => {
+        return {
+          index: song.metadata.tracknum ?
+            unpaddedIndex.format(song.metadata.tracknum) : '',
+          name: song.name,
+          title: song.metadata.title,
+        };
       });
-
-      return songs;
     });
 };
 

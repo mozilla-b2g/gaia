@@ -44,7 +44,7 @@ AlbumDetailView.prototype.getAlbum = function() {
   var unpaddedIndex = IntlHelper.get('unpaddedIndex');
   var paddedIndex = IntlHelper.get('paddedIndex');
 
-  return this.fetch('/api/albums/info/' + this.params.id)
+  return this.fetch('/api/albums/info/' + decodeURIComponent(this.params.id))
     .then(response => response.json())
     .then(songs => {
       var maxDiscNumber = Math.max(
@@ -52,16 +52,19 @@ AlbumDetailView.prototype.getAlbum = function() {
         songs[songs.length - 1].metadata.discnum
       );
 
-      songs.forEach((song) => {
-        song.index = maxDiscNumber > 1 &&
-          song.metadata.discnum && song.metadata.tracknum ?
-            unpaddedIndex.format(song.metadata.discnum) + '.' +
-              paddedIndex.format(song.metadata.tracknum) :
-            (song.metadata.tracknum ?
-              unpaddedIndex.format(song.metadata.tracknum) : '');
+      return songs.map((song) => {
+        return {
+          index: maxDiscNumber > 1 &&
+            song.metadata.discnum && song.metadata.tracknum ?
+              unpaddedIndex.format(song.metadata.discnum) + '.' +
+                paddedIndex.format(song.metadata.tracknum) :
+              (song.metadata.tracknum ?
+                unpaddedIndex.format(song.metadata.tracknum) : ''),
+          title: song.metadata.title,
+          name: song.name,
+        };
       });
 
-      return songs;
     });
 };
 
