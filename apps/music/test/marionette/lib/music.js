@@ -196,6 +196,29 @@ Music.prototype = {
     return value ? parseInt(value, 10) : 0;
   },
 
+  getShuffleSetting: function() {
+    var frame = this.playerViewFrame;
+    assert.ok(frame);
+
+    this.client.switchToFrame(frame);
+
+    var artwork = this.client.findElement(Music.Selector.playerCover);
+    this.client.switchToShadowRoot(artwork);
+    assert.ok(artwork);
+
+    var shuffleBtn = this.client.findElement(
+      '#controls button[data-action="shuffle"]');
+    assert.ok(shuffleBtn);
+
+    var value = shuffleBtn.getAttribute('data-value');
+    assert.ok(value);
+
+    this.client.switchToShadowRoot();
+    this.switchToMe();
+
+    return value;
+  },
+
   // Helper for the getter.
 
   parseListItemsData: function(elements) {

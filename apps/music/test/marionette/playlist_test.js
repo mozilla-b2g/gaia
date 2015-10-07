@@ -379,8 +379,6 @@ marionette('Music player playlist', function() {
 
     // XXX fixme we can't set the playcount properly it seems....
     test('Most played playlist sort order. moztrap:3676,3677', function() {
-      var p = [];
-
       function incrementPlayCount(filePath, value) {
 
         var result = client.executeAsyncScript(function(filePath, value) {
@@ -389,7 +387,7 @@ marionette('Music player playlist', function() {
 
           w.Database.getFileInfo(filePath).
             then(function(song) {
-              p = [];
+              var p = [];
               for (var i = 0; i < value; i++) {
                 p.push(w.Database.incrementPlayCount(song));
               }
@@ -435,7 +433,7 @@ marionette('Music player playlist', function() {
         songs.forEach(function (e) {
           var c = playCounts[e.title];
           if (c) {
-            p.push(incrementPlayCount(e.filePath, c));
+            incrementPlayCount(e.filePath, c);
           }
         });
 
@@ -478,6 +476,33 @@ marionette('Music player playlist', function() {
         assert.ok(false, 'Exception ' + e.stack);
       }
     });
+
+    test('The "Shuffle all" playlist sets the "Shuffle" button in Player view',
+      function() {
+        try {
+          music.launch();
+          music.waitForFirstTile();
+
+          music.switchToSongsView();
+          music.playFirstSong();
+
+          var shuffle = music.getShuffleSetting();
+          assert.equal(shuffle, 'off');
+
+          music.tapHeaderActionButton();
+
+          music.switchToPlaylistsView();
+          music.selectPlaylist('Shuffle all');
+
+          music.waitForPlayerView();
+
+          shuffle = music.getShuffleSetting();
+          assert.equal(shuffle, 'on');
+        } catch (e) {
+          assert.ok(false, 'Exception ' + e.stack);
+        }
+      }
+    );
 
     test('Shuffle all sort order. moztrap:2357', function() {
       try {

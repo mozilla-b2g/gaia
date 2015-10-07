@@ -27,9 +27,7 @@ var service = bridge.service('music-service')
   .method('queueArtist', queueArtist)
   .method('queuePlaylist', queuePlaylist)
   .method('queueSong', queueSong)
-  .method('getRepeatSetting', getRepeatSetting)
   .method('setRepeatSetting', setRepeatSetting)
-  .method('getShuffleSetting', getShuffleSetting)
   .method('setShuffleSetting', setShuffleSetting)
 
   .method('getAlbums', getAlbums)
@@ -184,17 +182,21 @@ function stopFastSeek() {
 }
 
 function getPlaybackStatus() {
-  return Promise.resolve({
-    queueIndex:    currentQueue ? currentQueue.index    : -1,
-    queueRawIndex: currentQueue ? currentQueue.rawIndex : -1,
-    queueLength:   currentQueue ? currentQueue.length   : -1,
-    filePath:      currentFilePath,
-    paused:        audio.paused,
-    duration:      audio.duration,
-    elapsedTime:   audio.currentTime,
-    isInterrupted: isInterrupted,
-    isFastSeeking: isFastSeeking,
-    stopped:       isStopped
+  return loadQueueSettings().then(() => {
+    return {
+      queueIndex:    currentQueue ? currentQueue.index    : -1,
+      queueRawIndex: currentQueue ? currentQueue.rawIndex : -1,
+      queueLength:   currentQueue ? currentQueue.length   : -1,
+      repeat:        PlaybackQueue.repeat,
+      shuffle:       PlaybackQueue.shuffle ? 1 : 0,
+      filePath:      currentFilePath,
+      stopped:       isStopped,
+      paused:        audio.paused,
+      duration:      audio.duration,
+      elapsedTime:   audio.currentTime,
+      isInterrupted: isInterrupted,
+      isFastSeeking: isFastSeeking
+    };
   });
 }
 
@@ -310,17 +312,9 @@ function queueSong(filePath) {
   });
 }
 
-function getRepeatSetting() {
-  return loadQueueSettings().then(() => PlaybackQueue.repeat);
-}
-
 function setRepeatSetting(repeat) {
   repeat = parseInt(repeat, 10) || 0;
   return loadQueueSettings().then(() => PlaybackQueue.repeat = repeat);
-}
-
-function getShuffleSetting() {
-  return loadQueueSettings().then(() => PlaybackQueue.shuffle ? 1 : 0);
 }
 
 function setShuffleSetting(shuffle) {
