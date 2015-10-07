@@ -1,12 +1,11 @@
 /* jshint nonew: false */
-/* global MockNavigatormozApps, MockMozActivity, MockIconsHelper, IconsHelper,
-          mockLocalStorage, HomeMetadata, Datastore, App */
+/* global MockNavigatormozApps, MockMozActivity, mockLocalStorage, HomeMetadata,
+          Datastore, App */
 'use strict';
 
 require('/shared/test/unit/load_body_html_helper.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 require('/shared/test/unit/mocks/mock_moz_activity.js');
-require('/shared/test/unit/mocks/mock_icons_helper.js');
 require('mocks/mock_localStorage.js');
 require('mocks/mock_metadata.js');
 require('mocks/mock_datastore.js');
@@ -19,29 +18,21 @@ suite('Homescreen app', () => {
   var realNavigatorMozApps;
   var realMozActivity;
   var realLocalStorage;
-  var realIconsHelper;
   var app;
 
   var realCreateElement;
   var createElementStub;
   var gaiaAppIconEl;
 
-  realCreateElement = document.createElement.bind(document);
-
   const SETTINGS = '{"version":0,"small":false}';
 
   var getIcon = manifestURL => {
-    var iconChild = document.createElement('div');
-    iconChild.style.height = '100px';
-    iconChild.style.width = '100px';
+    var container = document.createElement('div');
     var icon = document.createElement('div');
-    icon.style.display = 'block';
+    icon.style.height = '100px';
+    icon.style.width = '100px';
     icon.app = { manifestURL: manifestURL };
     icon.entryPoint = '';
-    icon.bookmark = null;
-    icon.icon = null;
-    icon.appendChild(iconChild);
-    var container = document.createElement('div');
     container.appendChild(icon);
     return container;
   };
@@ -50,14 +41,11 @@ suite('Homescreen app', () => {
     realCreateElement = document.createElement.bind(document);
     createElementStub = sinon.stub(document, 'createElement');
     createElementStub.withArgs('div').returns(realCreateElement('div'));
-    var iconChild = realCreateElement('div');
     gaiaAppIconEl = realCreateElement('div');
-    gaiaAppIconEl.app = null;
     gaiaAppIconEl.entryPoint = null;
+    gaiaAppIconEl.app = null;
     gaiaAppIconEl.bookmark = null;
-    gaiaAppIconEl.icon = null;
     gaiaAppIconEl.refresh = () => {};
-    gaiaAppIconEl.appendChild(iconChild);
     createElementStub.withArgs('gaia-app-icon').returns(gaiaAppIconEl);
   };
 
@@ -72,8 +60,6 @@ suite('Homescreen app', () => {
     navigator.mozApps = MockNavigatormozApps;
     realMozActivity = window.MozActivity;
     window.MozActivity = MockMozActivity;
-    realIconsHelper = window.IconsHelper;
-    window.IconsHelper = MockIconsHelper;
 
     MockMozActivity.mSetup();
     mockLocalStorage.mSetup();
@@ -102,7 +88,6 @@ suite('Homescreen app', () => {
     sandbox.restore();
     navigator.mozApps = realNavigatorMozApps;
     window.MozActivity = realMozActivity;
-    window.IconsHelper = realIconsHelper;
 
     MockNavigatormozApps.mTeardown();
     MockMozActivity.mTeardown();
@@ -233,31 +218,6 @@ suite('Homescreen app', () => {
         });
         new App();
       });
-    });
-  });
-
-  suite('App#iconSize', () => {
-    test('should be 0 by default', () => {
-      assert.equal(app.iconSize, 0);
-    });
-
-    test('should be updated at each call when it equals 0', () => {
-      assert.equal(app.iconSize, 0);
-      app.icons.appendChild(getIcon('abc'));
-      assert.equal(app.iconSize, 100);
-    });
-
-    test('should be the size of the first icon', () => {
-      app.icons.appendChild(getIcon('abc'));
-      assert.equal(app.iconSize, 100);
-    });
-
-    test('should be the size of the first visible icon', () => {
-      app.icons.appendChild(getIcon('abc'));
-      app.icons.appendChild(getIcon('def'));
-      app.icons.firstChild.firstChild.style.display = 'none';
-      app.icons.firstChild.firstChild.firstChild.style.width = '200px';
-      assert.equal(app.iconSize, 100);
     });
   });
 
@@ -432,13 +392,6 @@ suite('Homescreen app', () => {
       app.addAppIcon({ id: 'abc', manifestURL: 'def' });
       assert.isNull(gaiaAppIconEl.app);
       assert.isNotNull(gaiaAppIconEl.bookmark);
-    });
-
-    test('should set the best icon according to the size available', () => {
-      var getIconBlobSpy = sinon.spy(IconsHelper, 'setElementIcon');
-      app.addAppIcon({ id: 'abc', addEventListener: () => {} });
-      assert.isTrue(getIconBlobSpy.called);
-      getIconBlobSpy.restore();
     });
   });
 

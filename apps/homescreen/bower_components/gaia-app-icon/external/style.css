@@ -1,0 +1,7 @@
+/* XXX Bug 1018269
+ *     animation keyframes have to be specified outside of the shadow DOM.
+ */
+@keyframes rotate {
+  from { transform: rotate(1deg); }
+  to { transform: rotate(360deg); }
+}

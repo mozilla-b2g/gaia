@@ -1,31 +1,11 @@
 {
   "name": "gaia-site-icon",
-  "description": "A web component to show an icon for an application or site.",
-  "authors": [
-    "Chris Lord <chrislord.net@gmail.com>"
-  ],
-  "main": "script.js",
-  "keywords": [
-    "app",
-    "icon",
-    "homescreen",
-    "B2G",
-    "Firefox OS"
-  ],
-  "license": "MIT",
-  "ignore": [
-    "**/.*",
-    "node_modules",
-    "bower_components",
-    "test",
-    "tests"
-  ],
   "homepage": "https://github.com/gaia-components/gaia-site-icon",
-  "_release": "2c5b344e05",
+  "_release": "37add4c75c",
   "_resolution": {
     "type": "branch",
     "branch": "master",
-    "commit": "2c5b344e05f3431fe723c33644439b740810269b"
+    "commit": "37add4c75c5c2c261d37a95823a5bb7241dd8a47"
   },
   "_source": "git://github.com/gaia-components/gaia-site-icon.git",
   "_target": "*",
