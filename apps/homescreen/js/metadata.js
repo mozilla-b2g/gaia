@@ -71,38 +71,35 @@
       });
     },
 
-    getAll: function() {
+    getAll: function(onResult) {
       return new Promise((resolve, reject) => {
+        var txn = this.db.transaction([DB_ORDER_STORE, DB_ICON_STORE],
+                                      'readonly');
+        var orderStore = txn.objectStore(DB_ORDER_STORE);
+        var iconStore = txn.objectStore(DB_ICON_STORE);
+        var cursor = orderStore.index('order').openCursor();
         var results = [];
-        var order_txn = this.db.transaction([DB_ORDER_STORE], 'readonly');
-        order_txn.objectStore(DB_ORDER_STORE).openCursor().onsuccess =
-          (event) => {
-            var cursor = event.target.result;
-            if (cursor) {
-              results.push(cursor.value);
-              cursor.continue();
-            }
-          };
-        order_txn.oncomplete = () => {
-          var icon_txn = this.db.transaction([DB_ICON_STORE], 'readonly');
-          icon_txn.objectStore(DB_ICON_STORE).openCursor().onsuccess =
-            (event) => {
-              var cursor = event.target.result;
-              if (cursor) {
-                var index = results.findIndex((element) => {
-                  return (element.id === cursor.value.id);
-                });
-                if (index !== -1) {
-                  results[index].icon = cursor.value.icon;
-                } else {
-                  results.push(cursor.value);
-                }
-                cursor.continue();
+
+        cursor.onsuccess = e => {
+          var cursor = e.target.result;
+          if (cursor) {
+            var result = cursor.value;
+            var iconRequest = iconStore.get(result.id);
+            iconRequest.onsuccess = function(result, e) {
+              if (e.target.result) {
+                result.icon = e.target.result.icon;
               }
-            };
-          icon_txn.oncomplete = () => {
-            resolve(results);
-          };
+              results.push(result);
+              if (onResult) {
+                onResult(result);
+              }
+            }.bind(this, result);
+            cursor.continue();
+          }
+        };
+
+        txn.oncomplete = () => {
+          resolve(results);
         };
       });
     }
