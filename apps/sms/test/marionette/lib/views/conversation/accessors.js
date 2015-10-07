@@ -21,6 +21,11 @@ var SELECTORS = Object.freeze({
   optionsButton: '#messages-options-button'
 });
 
+var EDIT_MODE_SELECTORS = Object.freeze({
+  toggleSelectionButton: '#messages-check-uncheck-all-button',
+  editHeaderTitle: '#messages-edit-mode'  
+});
+
 function ConversationAccessor(client) {
   this.client = client;
   this.actions = client.loader.getActions();
@@ -43,6 +48,12 @@ ConversationAccessor.prototype = {
     return this.client.helper.waitForElement(SELECTORS.headerTitle);
   },
 
+  get editHeaderTitle() {
+    return this.client.helper.waitForElement(
+      EDIT_MODE_SELECTORS.editHeaderTitle
+    );
+  },  
+
   get headerActionButton() {
     return this.client.helper.waitForElement(SELECTORS.headerActionButton);
   },
@@ -59,6 +70,12 @@ ConversationAccessor.prototype = {
 
   get optionsButton() {
     return this.client.helper.waitForElement(SELECTORS.optionsButton);
+  },
+
+  get toggleSelectionButton() {
+    return this.client.helper.waitForElement(
+      EDIT_MODE_SELECTORS.toggleSelectionButton
+    );
   },
 
   get createNewContactOption() {

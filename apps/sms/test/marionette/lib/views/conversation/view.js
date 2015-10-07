@@ -30,6 +30,14 @@ ConversationView.prototype = {
     return this.accessors.headerTitle.text();
   },
 
+  get editHeaderTitle() {
+    return this.accessors.editHeaderTitle.text();
+  },
+
+  get toggleSelectionButtonTitle() {
+    return this.accessors.toggleSelectionButton.text();
+  },   
+
   get messages() {
     return this.accessors.messages.map(function(message) {
       return this.messageAccessors.parse(message);
@@ -173,6 +181,34 @@ ConversationView.prototype = {
       this.composerAccessors.subjectInput
     );
   },
+
+  enterEditMode: function() {
+    this.showOptions();
+    this.menuAccessors.selectAppMenuOption('Select Messages');
+  },
+
+  exitEditMode: function() {
+    this.back();
+  },
+
+  tapOnMessage: function(messageId) {
+    var messageNode = this.messageAccessors.find(messageId);
+    messageNode.scriptWith(function(node) {
+      node.scrollIntoView();
+    });
+    messageNode.tap();
+  },
+
+  toggleMessagesSelection: function() {
+    var header = this.accessors.header;
+    // This is a workaround needed as the screen is moving app is
+    // moving outside the screen on running tapOnMessage().
+    // This is needed to get the header back in the frame
+    header.scriptWith(function(node) {
+      node.scrollIntoView();
+    });
+    this.accessors.toggleSelectionButton.tap();
+  }, 
 
   isSubjectVisible: function() {
     var subjectInput = this.composerAccessors.subjectInput;

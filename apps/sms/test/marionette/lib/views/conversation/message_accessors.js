@@ -26,7 +26,7 @@ MessageAccessor.prototype = {
     // attached to the dom we'll get an exception.
     try {
       var messageClass = messageNode.getAttribute('class');
-
+      var checkbox = messageNode.findElement('input[type=checkbox]');
       // Since most of the messages don't contain any attachments, let's make
       // it much faster.
       var attachments = this.client.scope({ searchTimeout: 50 }).findElements(
@@ -43,7 +43,9 @@ MessageAccessor.prototype = {
           };
         }),
         isDownloaded: messageClass.indexOf('not-downloaded') < 0,
-        isPending: messageClass.indexOf('pending') >= 0
+        isPending: messageClass.indexOf('pending') >= 0,
+        isInEditMode: messageNode.findElement('.pack-checkbox').displayed(),
+        isSelected: checkbox.getAttribute('checked') === 'true'
       };
     } catch(e) {
       console.warn('Message node is not available', e);
