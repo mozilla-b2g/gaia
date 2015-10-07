@@ -146,6 +146,7 @@ suite('Homescreen app', () => {
     test('should initialise the metadata store', done => {
       stub = sinon.stub(HomeMetadata.prototype, 'init', () => {
         done();
+        return Promise.resolve();
       });
       new App();
     });
@@ -153,6 +154,7 @@ suite('Homescreen app', () => {
     test('should initialise the bookmark stores', done => {
       stub = sinon.stub(Datastore.prototype, 'init', () => {
         done();
+        return Promise.resolve();
       });
       new App();
     });
@@ -160,6 +162,7 @@ suite('Homescreen app', () => {
     test('should get the list of installed apps', done => {
       stub = sinon.stub(MockNavigatormozApps.mgmt, 'getAll', () => {
         done();
+        return Promise.resolve();
       });
       new App();
     });
@@ -167,6 +170,7 @@ suite('Homescreen app', () => {
     test('should get the list of bookmarked pages', done => {
       stub = sinon.stub(Datastore.prototype, 'getAll', () => {
         done();
+        return Promise.resolve();
       });
       new App();
     });
@@ -176,13 +180,18 @@ suite('Homescreen app', () => {
         assert.equal(id, 'def/');
         metadataGetAllStub.restore();
         done();
+        return Promise.resolve();
       });
       var metadataGetAllStub = sinon.stub(HomeMetadata.prototype, 'getAll',
-        () => {
-          return Promise.resolve([
+        callback => {
+          var results = [
             { id: 'abc/', icon: 'abc', order: 0 },
             { id: 'def/', icon: 'def', order: 1 }
-          ]);
+          ];
+          for (var result of results) {
+            callback(result);
+          }
+          return Promise.resolve(results);
         });
       MockNavigatormozApps.mApps = [{
         manifest: {},
@@ -190,6 +199,30 @@ suite('Homescreen app', () => {
         order: 0,
         addEventListener: () => {}
       }];
+
+      app = new App();
+    });
+
+    test('should add pending apps that were missed during startup', done => {
+      var metadataGetAllStub = sinon.stub(HomeMetadata.prototype, 'getAll',
+        callback => {
+          var results = [
+            { id: 'abc/', icon: 'abc', order: 0 },
+          ];
+          for (var result of results) {
+            callback(result);
+          }
+
+          stub = sinon.stub(app, 'addAppIcon', icon => {
+            metadataGetAllStub.restore();
+            done(() => {
+              assert.equal(icon, results[0]);
+            });
+          });
+          app.pendingIcons[results[0].id] = [results[0]];
+
+          return Promise.resolve(results);
+        });
 
       app = new App();
     });
@@ -216,6 +249,7 @@ suite('Homescreen app', () => {
       test('should initialise the bookmark stores', done => {
         stub = sinon.stub(Datastore.prototype, 'init', () => {
           done();
+          return Promise.resolve();
         });
         new App();
       });
@@ -223,6 +257,7 @@ suite('Homescreen app', () => {
       test('should get the list of installed apps', done => {
         stub = sinon.stub(MockNavigatormozApps.mgmt, 'getAll', () => {
           done();
+          return Promise.resolve();
         });
         new App();
       });
@@ -230,6 +265,7 @@ suite('Homescreen app', () => {
       test('should get the list of bookmarked pages', done => {
         stub = sinon.stub(Datastore.prototype, 'getAll', () => {
           done();
+          return Promise.resolve();
         });
         new App();
       });
@@ -353,7 +389,7 @@ suite('Homescreen app', () => {
 
       test('should return a HTML element with an order property', () => {
         app.startupMetadata = [{ order: 1 }];
-        var container = app.addIconContainer(0);
+        var container = app.addIconContainer(document.createElement('div'), 0);
 
         assert.isTrue(container instanceof HTMLDivElement);
         assert.isTrue(container instanceof HTMLElement);
@@ -361,15 +397,15 @@ suite('Homescreen app', () => {
       });
 
       test('should call iconAdded() when adding children', () => {
-        app.addIconContainer(-1);
-        app.addIconContainer(-1);
+        app.addIconContainer(document.createElement('div'), -1);
+        app.addIconContainer(document.createElement('div'), -1);
 
         assert.isTrue(appendChildStub.calledTwice);
         assert.isTrue(iconAddedSpy.calledTwice);
       });
 
       test('should call refreshGridSize() when adding visible children', () => {
-        app.addIconContainer(-1);
+        app.addIconContainer(document.createElement('div'), -1);
 
         assert.isTrue(appendChildStub.called);
         assert.isTrue(refreshGridSizeStub.called);
@@ -378,19 +414,19 @@ suite('Homescreen app', () => {
       test('should not call refreshGridSize() when adding ' +
            'invisible children', () => {
         childIsVisible = false;
-        app.addIconContainer(-1);
+        app.addIconContainer(document.createElement('div'), -1);
         assert.isFalse(refreshGridSizeStub.called);
       });
     });
 
     test('should insert a container in the right order', () => {
       app.startupMetadata = [{ order: 1 }, { order: 2 }, { order: 3 }];
-      app.addIconContainer(0);
-      app.addIconContainer(2);
+      app.addIconContainer(document.createElement('div'), 0);
+      app.addIconContainer(document.createElement('div'), 2);
 
       assert.equal(app.icons.children.length, 2);
 
-      app.addIconContainer(1);
+      app.addIconContainer(document.createElement('div'), 1);
 
       assert.equal(app.icons.children.length, 3);
       assert.equal(app.icons.children[0].order, 1);
