@@ -40,13 +40,13 @@ oe0Pv43vM0VvzxrnJDYzZ2a6jm9nbzUn0ldV9sv6vuvGHE6dANnRkZ3wA/q0q8UvjdwpzXBixAw==`,
     },
     historyEntryEnc: {
       payload: {
-        ciphertext: `o/VpkqMj1tlT8t2youwsS2FgvQeonoHxqjGsRTu1+4swfyBq/QsnKfgOOM\
-mDIXZiPC3hOCNUlf/NtQiEe55hzJZEKLBshaLfXotai6KrprwrmykfiXnwn73n+nYNs8BXL5awDHoaJ\
-ToyFgF4PYokl7mwN7YC2xFiPgwO7Z2u/8r5RfnPV9MoafqvlvUkW+Tqs+QHeHS/iuSA0P2h/j5ynt9v\
-4xDWLVfEMce0KOKHQ5Qj7BmEPAieWP1trkkDmTdVi2euWrs+fuG4C6PgY4A2j2DbNLVIloqpDVkqM2f\
-gh0YOM9L2NC/uiKEb1Ynr2Fos`,
-        IV: 'kXL3hb11ltD+Jl0YFk+PlQ==',
-        hmac: 'cb727efe7a3f0307921cecbd1a97c03f06a4d75c42026089494d84fcf92dbff9'
+        ciphertext: `o6aTLJdfhW4nz1hhnE2ZkvPb9N9lP6JEez+oufMGWIVAgQFaEMB3r/Oboc\
+vRti2dwe7yo2qly9d8aILHuOTgerFZuC5Bu5b0KmvHnVBzLxcPcqF20mFY2iQIApEI82Cu2VfwZuX4t\
+nCLMlxfllEzWvQPWai8e5OKmThdzKdHAmaS+sHBj5FjTe5mxuX4U1c8EJUS3a4fSV5NY0EolUkSuMLw\
+9sXu++7Uiu8OJH/JNWis6getxKcE+J61iaHJO/raiPyYIB/tSi3yrIjb0FqLeG8tXCrrZ9VD/2AWPmJ\
+5/6bpt80dSXgke4qvKePNoCYp`,
+        IV: 'pP/NMhj5fwREqes4I9H0tw==',
+        hmac: '97d16085c1bf347cb7530342ccf85647609be4a8f55d2b8fe409b1756240c06b'
       },
       collectionName: 'history'
     },
@@ -55,7 +55,7 @@ gh0YOM9L2NC/uiKEb1Ynr2Fos`,
         id: '_9sCUbahs0ay',
         histUri: `https://developer.mozilla.org/en-US/docs/Web/JavaScript/Refer\
 ence/Global_Objects/Object/proto`,
-        title: 'Object.prototype.__proto__ - JavaScript | MDN',
+        title: 'Object.prototype.__proto__ € - JavaScript | MDN',
         visits:[ { date: 1439366063808983, type:1 } ]
       },
       collectionName: 'history'

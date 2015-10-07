@@ -69,20 +69,20 @@ const KeyDerivation = Object.freeze((() => {
         // Or just finishes the process calling the callback.
         const addToOutput = (digest) => {
           const output = prevOutput +
-              StringConversion.byteArrayToHexString(digest);
+              StringConversion.uint8ArrayToHexString(digest);
 
           if (++roundNumber <= numBlocks) {
             return doHKDFRound(roundNumber, digest, output, hkdfKey);
           }
           return new Promise((resolve, reject) => {
             const truncated = bitSlice(
-                StringConversion.hexStringToByteArray(output), 0, length * 8);
+                StringConversion.hexStringToUint8Array(output), 0, length * 8);
             resolve(truncated);
           });
         };
         const input = concatU8Array(
           concatU8Array(prevDigest, info),
-          StringConversion.rawStringToByteArray(
+          StringConversion.stringToUtf8Uint8Array(
                String.fromCharCode(roundNumber)));
         return doHMAC(input, hkdfKey).then(addToOutput);
       };
