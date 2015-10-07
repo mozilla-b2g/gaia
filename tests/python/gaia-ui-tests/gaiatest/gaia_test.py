@@ -90,7 +90,6 @@ class GaiaApps(object):
 
     def launch(self, name, manifest_url=None, entry_point=None, switch_to_frame=True, launch_timeout=None):
         self.marionette.switch_to_frame()
-        print(json.dumps(entry_point))
         if manifest_url:
             result = self.marionette.execute_async_script("GaiaApps.launchWithManifestURL('%s', %s)"
                                                           % (manifest_url, json.dumps(entry_point)), script_timeout=launch_timeout)

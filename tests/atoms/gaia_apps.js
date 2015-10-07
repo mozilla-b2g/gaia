@@ -277,13 +277,14 @@ var GaiaApps = {
         let result = GaiaApps.getDisplayedApp();
         marionetteScriptFinished(result);
       };
-      console.log('******ll'+entryPoint);
 
       let displayedApp = GaiaApps.getDisplayedApp();
-      if ((displayedApp.manifestURL == manifestURL && displayedApp.entryPoint == entryPoint) ||
+      if ((displayedApp.manifestURL == manifestURL &&
+          displayedApp.entryPoint == entryPoint) ||
           (!displayedApp.manifestURL && displayedApp.origin == origin)) {
         console.log('app with origin \'${displayedApp.origin}\' and ' +
-          'manifestURL \'${displayedApp.manifestURL}\' is already running');
+          'manifestURL \'${displayedApp.manifestURL}\' and ' +
+          'entryPoint \'${displayedApp.entryPoint}\' is already running');
         sendResponse();
       } else {
         window.addEventListener('windowopened', function appOpen() {
@@ -291,15 +292,13 @@ var GaiaApps = {
           waitFor(
             function() {
               console.log('app with origin \'${displayedApp.origin}\' and ' +
-                'manifestURL \'${displayedApp.manifestURL}\' has launched');
+                'manifestURL \'${displayedApp.manifestURL}\' and ' +
+                'entryPoint \'${displayedApp.entryPoint}\' has launched');
               sendResponse();
             },
             function() {
               // wait for the displayed app to have expected manifestURL/origin
               let displayedApp = GaiaApps.getDisplayedApp();
-              console.log('*****n****'+displayedApp.entryPoint);
-              console.log('*******'+displayedApp.manifestURL + '::::' + manifestURL);
-              console.log('*******'+displayedApp.entryPoint + '::::' + entryPoint);
               if (displayedApp.manifestURL) {
                 return displayedApp.manifestURL == manifestURL && displayedApp.entryPoint == entryPoint;
               } else {
@@ -366,21 +365,20 @@ var GaiaApps = {
          .query('AppWindowManager.getActiveWindow').getTopMostWindow();
     }
 
-
-    let entryPoints = app.manifest.entry_points;
     let currentEntryPoint = null;
-    if (entryPoints) {
+    // When browser is on a website, app.manifest is null
+    if (app.manifest) {
+      let entryPoints = app.manifest.entry_points;
+      if (entryPoints) {
         for (let ep in entryPoints) {
-          console.log('entryPoints[ep].launch_path::'+entryPoints[ep].launch_path + ' - app.manifest.launch_pat::' + app.manifest.launch_path);
-          console.log(entryPoints[ep].launch_path == app.manifest.launch_path);
           if (entryPoints[ep].launch_path == app.manifest.launch_path) {
-              currentEntryPoint = ep;
-              break;
+            currentEntryPoint = ep;
+            break;
           }
         }
+      }
     }
 
-    console.log('app with manifestURL \'' + app.manifestURL + '\' displayed');
     let result = {
       frame: (app.browser) ? app.browser.element : app.frame.firstChild,
       src: (app.browser) ? app.browser.element.src : app.iframe.src,
