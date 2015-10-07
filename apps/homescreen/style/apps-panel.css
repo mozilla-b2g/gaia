@@ -46,10 +46,6 @@ gaia-app-icon.launching {
   opacity: 0.8
 }
 
-#apps.loading {
-  visibility: hidden;
-}
-
 gaia-container.small > .gaia-container-child > .icon-container {
   width: 24vw;
   height: calc(24vw + 1.9rem);
