@@ -75,24 +75,6 @@ suite('HomeMetadata', () => {
                 }
                 objectStores[name] = value;
               },
-              get: id => {
-                return {
-                  set onsuccess(cb) {
-                    if (name === 'icon') {
-                      switch(id) {
-                      case 'abc/':
-                        cb({ target: { result: { id: 'abc/', icon: 'abc' } } });
-                        return;
-
-                      case 'def/':
-                        cb({ target: { result: { id: 'def/', icon: 'def' } } });
-                        return;
-                      }
-                    }
-                    cb({ target: {} });
-                  }
-                };
-              },
               delete: value => {
                 if (name !== objectStoreName) {
                   return;
@@ -135,9 +117,6 @@ suite('HomeMetadata', () => {
                     });
                   }
                 };
-              },
-              index: function() {
-                return this;
               }
             };
           },
@@ -235,9 +214,8 @@ suite('HomeMetadata', () => {
         attachDBTransaction('order');
         metadata.remove(id)
           .then(() => {
-            done(() => {
-              assert.deepEqual(deletedValues, [id]);
-            });
+            assert.deepEqual(deletedValues, [id]);
+            done();
           });
       });
 
@@ -245,9 +223,8 @@ suite('HomeMetadata', () => {
         attachDBTransaction('icon');
         metadata.remove(id)
           .then(() => {
-            done(() => {
-              assert.deepEqual(deletedValues, [id]);
-            });
+            assert.deepEqual(deletedValues, [id]);
+            done();
           });
       });
     });
@@ -257,13 +234,10 @@ suite('HomeMetadata', () => {
         attachDBTransaction('order');
         metadata.getAll()
           .then(results => {
-            done(() => {
-              assert.equal(results.length, 2);
-              assert.deepEqual(results[0],
-                               { id: 'abc/', order: 0, icon: 'abc' });
-              assert.deepEqual(results[1],
-                               { id: 'def/', order: 1, icon: 'def' });
-            });
+            assert.equal(results.length, 2);
+            assert.deepEqual(results[0], { id: 'abc/', order: 0, icon: 'abc' });
+            assert.deepEqual(results[1], { id: 'def/', order: 1, icon: 'def' });
+            done();
           });
       });
     });
