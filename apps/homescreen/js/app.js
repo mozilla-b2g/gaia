@@ -164,141 +164,26 @@ const SETTINGS_VERSION = 0;
     // Restore settings
     this.restoreSettings();
 
-    // Populate apps callback
-    this.icons.freeze();
-    var populateApps = () => {
-      Promise.all([
-        // Populate apps
-        new Promise((resolve, reject) => {
-          var request = navigator.mozApps.mgmt.getAll();
-          request.onsuccess = (e) => {
-            for (var app of request.result) {
-              this.addApp(app);
-            }
-            this.icons.thaw();
-            resolve();
-
-            // We've loaded and displayed all apps - only bookmarks and
-            // pinned pages could be left (but they may also already be
-            // loaded, as the sequence is asynchronous).
-            window.performance.mark('visuallyLoaded');
-            window.performance.mark('contentInteractive');
-          };
-          request.onerror = (e) => {
-            console.error('Error calling getAll: ' + request.error.name);
-            resolve();
-          };
-        }),
-
-        // Initialise and populate bookmarks
-        this.bookmarks.init().then(() => {
-          document.addEventListener('bookmarks_store-set', (e) => {
-            var id = e.detail.id;
-            this.bookmarks.get(id).then((bookmark) => {
-              for (var child of this.icons.children) {
-                var icon = child.firstElementChild;
-                if (icon.bookmark && icon.bookmark.id === id) {
-                  icon.bookmark = bookmark.data;
-                  icon.refresh();
-                  return;
-                }
-              }
-              this.addAppIcon(bookmark.data);
-              this.refreshGridSize();
-            });
-          });
-
-          document.addEventListener('bookmarks_store-removed', (e) => {
-            var id = e.detail.id;
-            for (var child of this.icons.children) {
-              var icon = child.firstElementChild;
-              if (icon.bookmark && icon.bookmark.id === id) {
-                this.icons.removeChild(child, () => {
-                  this.storeAppOrder();
-                  this.refreshGridSize();
-                  this.snapScrollPosition();
-                });
-                this.metadata.remove(id);
-                return;
-              }
-            }
-          });
-
-          document.addEventListener('bookmarks_store-cleared', () => {
-            for (var child of this.icons.children) {
-              var icon = child.firstElementChild;
-              if (icon.bookmark) {
-                this.icons.removeChild(child);
-              }
-            }
-            this.storeAppOrder();
-            this.refreshGridSize();
-            this.snapScrollPosition();
-          });
-        }, (e) => {
-          console.error('Error initialising bookmarks', e);
-        }).then(() => {
-          return this.bookmarks.getAll().then((bookmarks) => {
-            for (var bookmark of bookmarks) {
-              this.addAppIcon(bookmark.data);
-            }
-            this.icons.thaw();
-          }, (e) => {
-            console.error('Error getting bookmarks', e);
-          });
-        })
-      ]).then(() => {
-        if (!this.firstRun) {
-          for (var data of this.startupMetadata) {
-            console.log('Removing unknown app metadata entry', data.id);
-            this.metadata.remove(data.id).then(
-              () => {},
-              (e) => {
-                console.error('Error removing unknown app metadata entry', e);
-              });
-          }
-        }
-        this.startupMetadata = [];
-        this.storeAppOrder();
-
-        // All asynchronous loading has finished
-        window.performance.mark('fullyLoaded');
-      });
-    };
-
+    // Populate apps and bookmarks asynchronously
     this.startupMetadata = [];
     this.iconsToRetry = [];
+    this.pendingIcons = {};
     this.metadata = new HomeMetadata();
     this.bookmarks = new Datastore('bookmarks_store');
-    this.pages = new Pages();
 
-    // Load metadata, then populate apps. If metadata loading fails,
-    // populate apps anyway - it means they'll be in the default order
-    // and their order won't save, but it's better than showing a blank
-    // screen.
-    // If this is the first run, get the app order from the first-run script
-    // after initialising the metadata database.
-    new Promise((resolve, reject) => {
-      this.metadata.init().then(() => {
-        if (this.firstRun) {
-          resolve();
-          return;
-        }
+    // Make sure icons isn't doing lots of unnecessary work while we're
+    // loading the first screen of apps.
+    this.visualLoadComplete = false;
+    this.icons.freeze();
+    this.icons.classList.add('loading');
 
-        this.metadata.getAll().then((results) => {
-          this.startupMetadata = results;
-          resolve();
-        },
-        (e) => {
-          console.error('Failed to retrieve metadata entries', e);
-          resolve();
-        });
-      },
-      (e) => {
-        console.error('Failed to initialise metadata db', e);
-        resolve();
-      });
-    }).then(this.firstRun ?
+    Promise.all([
+      // Load app metadata. If metadata loading fails, continue populating apps
+      // anyway - it means they'll be in the default order and their order
+      // won't save, but it's better than showing a blank screen.
+      // If this is the first run, get the app order from the first-run script
+      // after initialising the metadata database.
+      this.metadata.init().then(this.firstRun ?
         LazyLoader.load(['js/firstrun.js'],
           () => {
             FirstRun().then((results) => {
@@ -307,17 +192,154 @@ const SETTINGS_VERSION = 0;
               this.saveSettings();
 
               this.startupMetadata = results.order;
-              populateApps();
+              return Promise.resolve();
             }, (e) => {
               console.error('Error running first-run script', e);
-              populateApps();
+              return Promise.resolve();
             });
           },
           (e) => {
             console.error('Failed to load first-run script');
-            populateApps();
+            return Promise.resolve();
           }) :
-        populateApps);
+        () => {
+          return this.metadata.getAll(result => {
+            // Process results as they come in
+            this.startupMetadata.push(result);
+            if (this.pendingIcons[result.id]) {
+              this.addAppIcon.apply(this, this.pendingIcons[result.id]);
+              delete this.pendingIcons[result.id];
+            }
+          }).then(Promise.resolve(),
+            e => {
+              console.error('Failed to retrieve metadata entries', e);
+              return Promise.resolve();
+            });
+        },
+        (e) => {
+          console.error('Failed to initialise metadata db', e);
+          return Promise.resolve();
+        }),
+
+      // Populate apps
+      new Promise((resolve, reject) => {
+        var request = navigator.mozApps.mgmt.getAll();
+        request.onsuccess = (e) => {
+          for (var app of request.result) {
+            this.addApp(app);
+          }
+          resolve();
+        };
+        request.onerror = (e) => {
+          console.error('Error calling getAll: ' + request.error.name);
+          resolve();
+        };
+      }),
+
+      // Initialise and populate bookmarks
+      this.bookmarks.init().then(() => {
+        document.addEventListener('bookmarks_store-set', (e) => {
+          var id = e.detail.id;
+          this.bookmarks.get(id).then((bookmark) => {
+            for (var child of this.icons.children) {
+              var icon = child.firstElementChild;
+              if (icon.bookmark && icon.bookmark.id === id) {
+                icon.bookmark = bookmark.data;
+                icon.refresh();
+                return;
+              }
+            }
+            this.addAppIcon(bookmark.data);
+            this.storeAppOrder();
+          });
+        });
+
+        document.addEventListener('bookmarks_store-removed', (e) => {
+          var id = e.detail.id;
+          for (var child of this.icons.children) {
+            var icon = child.firstElementChild;
+            if (icon.bookmark && icon.bookmark.id === id) {
+              this.icons.removeChild(child, () => {
+                this.storeAppOrder();
+                this.refreshGridSize();
+                this.snapScrollPosition();
+              });
+              this.metadata.remove(id);
+              return;
+            }
+          }
+        });
+
+        document.addEventListener('bookmarks_store-cleared', () => {
+          for (var child of this.icons.children) {
+            var icon = child.firstElementChild;
+            if (icon.bookmark) {
+              this.icons.removeChild(child);
+            }
+          }
+          this.storeAppOrder();
+          this.refreshGridSize();
+          this.snapScrollPosition();
+        });
+      }, (e) => {
+        console.error('Error initialising bookmarks', e);
+        return Promise.resolve();
+      }).then(() => {
+        return this.bookmarks.getAll().then((bookmarks) => {
+          for (var bookmark of bookmarks) {
+            this.addAppIcon(bookmark.data);
+          }
+        }, (e) => {
+          console.error('Error getting bookmarks', e);
+          return Promise.resolve();
+        });
+      })
+    ]).then(() => {
+      // Add any applications that were missed and are in the startup metadata
+      var id;
+      var pendingIcons = this.pendingIcons;
+      this.pendingIcons = {};
+      for (id in pendingIcons) {
+        this.addAppIcon.apply(this, pendingIcons[id]);
+      }
+
+      // Make sure icons has been thawed
+      if (!this.visualLoadComplete) {
+        this.onVisualLoad();
+      }
+
+      // Remove unknown entries from the startup metadata
+      if (!this.firstRun) {
+        for (var data of this.startupMetadata) {
+          console.log('Removing unknown app metadata entry', data.id);
+          this.metadata.remove(data.id).then(
+            () => {},
+            (e) => {
+              console.error('Error removing unknown app metadata entry', e);
+            });
+        }
+      }
+      this.startupMetadata = null;
+
+      // Add any applications that aren't in the startup metadata
+      var newIcons = false;
+      pendingIcons = this.pendingIcons;
+      for (id in pendingIcons) {
+        this.addAppIcon.apply(this, pendingIcons[id]);
+        newIcons = true;
+      }
+      this.pendingIcons = null;
+
+      // Store app order of new icons
+      if (newIcons) {
+        this.storeAppOrder();
+      }
+
+      // All asynchronous loading has finished
+      window.performance.mark('fullyLoaded');
+    });
+
+    this.pages = new Pages();
 
     // Application has finished initialisation
     window.performance.mark('navigationInteractive');
@@ -347,6 +369,17 @@ const SETTINGS_VERSION = 0;
       this.icons.classList.toggle('small', this.small);
     },
 
+    onVisualLoad: function() {
+      this.visualLoadComplete = true;
+      this.icons.thaw();
+      this.icons.classList.remove('loading');
+
+      // App/bookmark loading happens asynchronously and we call this function
+      // when we've loaded as many apps as necessary to fill the screen.
+      window.performance.mark('visuallyLoaded');
+      window.performance.mark('contentInteractive');
+    },
+
     addApp: function(app) {
       var manifest = app.manifest || app.updateManifest;
       if (!manifest) {
@@ -368,10 +401,11 @@ const SETTINGS_VERSION = 0;
       }
     },
 
-    addIconContainer: function(entry) {
+    addIconContainer: function(icon, entry) {
       var container = document.createElement('div');
       container.classList.add('icon-container');
       container.order = -1;
+      container.appendChild(icon);
 
       // Try to insert the container in the right order
       if (entry !== -1 && this.startupMetadata[entry].order >= 0) {
@@ -395,24 +429,33 @@ const SETTINGS_VERSION = 0;
       return container;
     },
 
-    addAppIcon: function(appOrBookmark, entryPoint) {
-      var id;
+    getIconId: function(appOrBookmark, entryPoint) {
       if (appOrBookmark.id) {
-        id = appOrBookmark.id;
+        return appOrBookmark.id;
       } else {
-        id = appOrBookmark.manifestURL + '/' + (entryPoint ? entryPoint : '');
+        return appOrBookmark.manifestURL + '/' + (entryPoint ? entryPoint : '');
+      }
+    },
+
+    addAppIcon: function(appOrBookmark, entryPoint) {
+      var id = this.getIconId(appOrBookmark, entryPoint);
+      var entry = -1;
+
+      if (this.startupMetadata !== null) {
+        entry = this.startupMetadata.findIndex(data => {
+          return data.id === id;
+        });
+        if (entry === -1) {
+          this.pendingIcons[id] = Array.slice(arguments);
+          return;
+        }
       }
 
-      var entry = this.startupMetadata.findIndex((element) => {
-        return element.id === id;
-      });
-      var container = this.addIconContainer(entry);
-
       var icon = document.createElement('gaia-app-icon');
-      container.appendChild(icon);
       if (entryPoint) {
         icon.entryPoint = entryPoint;
       }
+      var container = this.addIconContainer(icon, entry);
 
       if (appOrBookmark.id) {
         icon.bookmark = appOrBookmark;
@@ -476,12 +519,8 @@ const SETTINGS_VERSION = 0;
       var children = this.icons.children;
       for (var i = 0, iLen = children.length; i < iLen; i++) {
         var appIcon = children[i].firstElementChild;
-        var id;
-        if (appIcon.app) {
-          id = appIcon.app.manifestURL + '/' + appIcon.entryPoint;
-        } else {
-          id = appIcon.bookmark.id;
-        }
+        var id = this.getIconId(appIcon.app ? appIcon.app : appIcon.bookmark,
+                                appIcon.entryPoint);
         storedOrders.push({ id: id, order: i });
       }
       this.metadata.set(storedOrders).then(
@@ -540,6 +579,12 @@ const SETTINGS_VERSION = 0;
 
         this.pageHeight = pageHeight;
         this.pendingGridHeight = gridHeight;
+
+        if (!this.visualLoadComplete &&
+            Math.floor(visibleChildren / (this.small ? 4 : 3)) * iconHeight >=
+              scrollHeight) {
+          this.onVisualLoad();
+        }
       }
 
       // Reset scroll-snap points
@@ -942,6 +987,7 @@ const SETTINGS_VERSION = 0;
       // Add apps installed after startup
       case 'install':
         this.addApp(e.application);
+        this.storeAppOrder();
         break;
 
       // Remove apps uninstalled after startup
@@ -955,8 +1001,7 @@ const SETTINGS_VERSION = 0;
         for (child of this.icons.children) {
           icon = child.firstElementChild;
           if (icon.app && icon.app.manifestURL === e.application.manifestURL) {
-            id = e.application.manifestURL + '/' +
-              (icon.entryPoint ? icon.entryPoint : '');
+            id = this.getIconId(e.application, icon.entryPoint);
             this.metadata.remove(id).then(() => {},
               (e) => {
                 console.error('Error removing uninstalled app', e);
@@ -1003,9 +1048,8 @@ const SETTINGS_VERSION = 0;
         for (var i = 0, iLen = this.iconsToRetry.length; i < iLen; i++) {
           for (child of this.icons.children) {
             icon = child.firstElementChild;
-            id = icon.app ?
-              (icon.app.manifestURL + '/' +
-               (icon.entryPoint ? icon.entryPoint : '')) : icon.bookmark.id;
+            id = this.getIconId(icon.app ? icon.app : icon.bookmark,
+                                icon.entryPoint);
             if (id === this.iconsToRetry[i]) {
               icon.refresh();
               break;
