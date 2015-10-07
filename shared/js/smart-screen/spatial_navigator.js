@@ -78,7 +78,8 @@
     straightOverlapThreshold: 0.5,
 
     /**
-     * Ignore elements with style "display: none" or "visibility: hidden".
+     * Ignore elements with "display: none", "visibility: hidden" or
+     * "aria-hidden=true".
      * @type {Boolean}
      * @default false
      * @memberof SpatialNavigator.prototype
@@ -93,6 +94,17 @@
      * @memberof SpatialNavigator.prototype
      */
     rememberSource: false,
+
+    /**
+     * A callback function that accepcts an element as the first argument will
+     * be triggered everytime when SpatialNavigator tries to traverse every
+     * single candidate. You can ignore arbitrary elements by returning "false"
+     * in this function.
+     * @type {Function}
+     * @default null
+     * @memberof SpatialNavigator.prototype
+     */
+    navigableFilter: null,
 
     /**
      * Rect represents position and dimension of a 2D object.
@@ -122,12 +134,8 @@
     _getRect: function snGetRect(elem) {
       var rect = null;
 
-      if (this.ignoreHiddenElement && elem instanceof HTMLElement) {
-        var computedStyle = window.getComputedStyle(elem);
-        if (computedStyle.getPropertyValue('visibility') == 'hidden' ||
-            computedStyle.getPropertyValue('display') == 'none') {
-          return null;
-        }
+      if (!this._isNavigable(elem)) {
+        return null;
       }
 
       if (elem.getBoundingClientRect) {
@@ -187,6 +195,31 @@
       }, this);
 
       return rects;
+    },
+
+    /**
+     * Check whether a {@link SpatialNavigatorElement} is navigable.
+     *
+     * @param {SpatialNavigatorElement} elem
+     *
+     * @return {Boolean} true if it's navigable.
+     *
+     * @access private
+     * @memberof SpatialNavigator.prototype
+     */
+    _isNavigable: function snIsNavigable(elem) {
+      if (this.ignoreHiddenElement && elem instanceof HTMLElement) {
+        var computedStyle = window.getComputedStyle(elem);
+        if (computedStyle.getPropertyValue('visibility') == 'hidden' ||
+            computedStyle.getPropertyValue('display') == 'none' ||
+            elem.hasAttribute('aria-hidden')) {
+          return false;
+        }
+      }
+      if (this.navigableFilter && !this.navigableFilter(elem)) {
+        return false;
+      }
+      return true;
     },
 
     /**
@@ -522,7 +555,8 @@
      * Move focus to an existing element.
      *
      * @param  {SpatialNavigatorElement} [elem]
-     *         when omitted, it focused the first element.
+     *         when omitted, it focuses the last focused element or the first
+     *         navigable element if no previously-focused element is found.
      *
      * @return {Boolean} true if succeed. false if element doesn't exist.
      *
@@ -531,7 +565,7 @@
      * @memberof SpatialNavigator.prototype
      */
     focus: function snFocus(elem) {
-      if (typeof elem === 'undefined') {
+      if (!elem && this._focus && this._isNavigable(this._focus)) {
         elem = this._focus;
       }
 
@@ -548,7 +582,7 @@
      * used on initializing.
      *
      * @param  {SpatialNavigatorElement} [elem]
-     *         when omitted, it focused the first element.
+     *         when omitted, it focuses the first navigable element.
      *
      * @return {Boolean} true if succeed. false if element doesn't exist.
      *
@@ -560,8 +594,13 @@
       }
 
       if (!elem) {
-        elem = this._collection[0];
-      } else if (this._collection.indexOf(elem) < 0) {
+        var navigableElems = this._collection.filter(this._isNavigable, this);
+        if (!navigableElems.length) {
+          return false;
+        }
+        elem = navigableElems[0];
+      } else if (this._collection.indexOf(elem) < 0 ||
+                 !this._isNavigable(elem)) {
         return false;
       }
 
