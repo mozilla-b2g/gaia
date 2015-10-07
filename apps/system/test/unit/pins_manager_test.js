@@ -58,11 +58,11 @@ suite('Pins Manager', function() {
     };
 
     expectedScopes = {
-      'test.com': {
+      'http://test.com': {
         'http://test.com': 'http://test.com/id',
         'http://test.com/bla': 'http://test.com/bla/url2'
       },
-      'blabla.com': {
+      'http://blabla.com': {
         'http://blabla.com': 'http://blabla.com/id'
       }
     };
