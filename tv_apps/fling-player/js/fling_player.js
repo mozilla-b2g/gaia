@@ -1,8 +1,10 @@
-/* global VideoPlayer, Connector, SimpleKeyNavigation, KeyNavigationAdapter,
-          evt, mDBG
+/* global VideoPlayer, Connector, mDBG, KeyNavigationAdapter,
+          SimpleKeyNavigation
  */
 (function(exports) {
   'use strict';
+
+  // Helping variables, methods
 
   var uiID = {
     player : 'player',
@@ -21,6 +23,14 @@
     return document.getElementById(id);
   }
 
+  // Helping variables, methods end
+  /**
+   * FlingPlayer could be controlled by 2 sources.
+   * The 1st source is remote control device, like Fennec,
+   * which sends command through the Presentation API.
+   * The 2nd source is TV remote controller which sends command through
+   * UI navigation by pressing TV remote controller's key
+   */
   function FlingPlayer(videoPlayer, connector) {
     this._player = videoPlayer;
     this._connector = connector;
@@ -30,7 +40,7 @@
 
   proto.CONTROL_PANEL_HIDE_DELAY_SEC = 3000;
   proto.UPDATE_CONTROL_PANEL_INTERVAL_MS = 1000;
-  proto.SEEK_ON_KEY_PRESS_INTERVAL_MS = 330;
+  proto.SEEK_ON_KEY_PRESS_INTERVAL_MS = 150;
   proto.SEEK_ON_LONG_KEY_PRESS_SEC = 5;
   proto.SEEK_ON_KEY_PRESS_NORMAL_STEP_SEC = 10;
   proto.SEEK_ON_KEY_PRESS_LARGE_STEP_SEC = 30;
@@ -41,7 +51,6 @@
     this._seekOnKeyPressTimer = null;
     this._seekOnKeyPressDirection = null; // 'backward' or 'forward'
     this._seekOnKeyPressStartTime = null; // in ms
-    this._focusedControl = null;
     this._hideControlsTimer = null;
 
     this._loadingUI = $(uiID.loadingUI);
@@ -58,18 +67,25 @@
     this._initPlayer();
 
     this._keyNav = new SimpleKeyNavigation();
-
     this._keyNav.start(
       [this._backwardButton, this._playButton, this._forwardButton],
       SimpleKeyNavigation.DIRECTION.HORIZONTAL
     );
-    this._keyNav.on('focusChanged', this.onFocusChanged.bind(this));
     this._keyNav.focusOn(this._playButton);
 
     this._keyNavAdapter = new KeyNavigationAdapter();
     this._keyNavAdapter.init();
     this._keyNavAdapter.on('enter', this.onKeyEnterDown.bind(this));
     this._keyNavAdapter.on('enter-keyup', this.onKeyEnterUp.bind(this));
+    this._keyNavAdapter.on('esc-keyup',
+      this.onDemandingControlPanel.bind(this)
+    );
+    this._keyNavAdapter.on('move-keyup',
+      this.onDemandingControlPanel.bind(this)
+    );
+    this._keyNavAdapter.on('enter-keyup',
+      this.onDemandingControlPanel.bind(this)
+    );
 
     document.addEventListener('visibilitychange', () => {
       // We don't need to restore the video while visibilityState goes back
@@ -103,6 +119,14 @@
 
   // UI handling
 
+  proto.resetUI = function () {
+    this.moveTimeBar('elapsed', 0);
+    this.moveTimeBar('buffered', 0);
+    this.writeTimeInfo('elapsed', 0);
+    this.writeTimeInfo('duration', 0);
+    this.setPlayButtonState('pause');
+  };
+
   proto.showLoading = function (loading) {
     this._loadingUI.hidden = !loading;
   };
@@ -128,7 +152,7 @@
   };
 
   /**
-   * @param {Boolean} autoHide Auto hide the controls later. Default to false
+   * @param {Boolean} autoHide? Auto hide the controls later. Default to false
    */
   proto.showControlPanel = function (autoHide) {
 
@@ -137,6 +161,7 @@
       this._hideControlsTimer = null;
     }
 
+    this._keyNav.resume();
     this._controlPanel.classList.remove('fade-out');
 
     if (autoHide === true) {
@@ -145,7 +170,7 @@
   };
 
   /**
-   * @param {Boolean} immediate Hide immediately or later. Default to false.
+   * @param {Boolean} immediate? Hide immediately or later. Default to false.
    */
   proto.hideControlPanel = function (immediate) {
 
@@ -157,6 +182,7 @@
     if (immediate === true) {
 
       if (!this.isControlPanelHiding()) {
+        this._keyNav.pause();
         this._controlPanel.classList.add('fade-out');
       }
 
@@ -216,9 +242,11 @@
     }
 
     var t = this._player.parseTime(sec);
-    timeInfo.textContent = (t.hh <= 0) ?
-                            t.mm + ':' + t.ss :
-                            t.hh + ':' + t.mm + ':' + t.ss;
+    t.hh = (t.hh <= 0) ? '' :
+           (t.hh < 10) ? '0' + t.hh + ':' : t.hh + ':';
+    t.mm = (t.mm < 10) ? '0' + t.mm + ':' : t.mm + ':';
+    t.ss = (t.ss < 10) ? '0' + t.ss : t.ss;
+    timeInfo.textContent = t.hh + t.mm + t.ss;
   };
 
   // UI handling end
@@ -383,13 +411,14 @@
 
       case 'error':
         this.showLoading(false);
-        data.error = evt.target.error.code;
+        data.error = e.target.error.code;
         this._connector.reportStatus('error', data);
       break;
     }
   };
 
   proto.onLoadRequest = function (e) {
+    this.resetUI();
     this.showLoading(true);
     // TODO: Diplay 'Starting video cast from ...'
     this._player.load(e.url);
@@ -408,26 +437,25 @@
     this.seek(e.time);
   };
 
-  proto.onFocusChanged = function (elem) {
-    mDBG.log('FlingPlayer#onFocusChanged: elem = ', elem);
-    this._focusedControl = elem;
-  };
-
   proto.onKeyEnterDown = function () {
 
     mDBG.log('FlingPlayer#onKeyEnterDown');
 
-    // TODO: Handle control panel resumes from hinding
+    if (this.isControlPanelHiding()) {
+      mDBG.log('The control panel is hiding so no action is taken.');
+      return;
+    }
 
-    if (this._focusedControl) {
+    var focused = this._keyNav.getFocusedElement();
+    if (focused) {
 
-      mDBG.log('control focused = ', this._focusedControl);
+      mDBG.log('control focused = ', focused);
 
-      switch (this._focusedControl.id) {
+      switch (focused.id) {
 
         case uiID.backwardButton:
         case uiID.forwardButton:
-          if (this._focusedControl === this._backwardButton) {
+          if (focused === this._backwardButton) {
             this._startSeekOnKeyPress('backward');
           } else {
             this._startSeekOnKeyPress('forward');
@@ -440,12 +468,17 @@
   proto.onKeyEnterUp = function () {
     mDBG.log('FlingPlayer#onKeyEnterUp');
 
-    // TODO: Handle control panel resumes from hinding
+    if (this.isControlPanelHiding()) {
+      mDBG.log('The control panel is hiding so no action is taken.');
+      return;
+    }
 
-    if (this._focusedControl) {
-      mDBG.log('control focused = ', this._focusedControl);
+    var focused = this._keyNav.getFocusedElement();
+    if (focused) {
 
-      switch (this._focusedControl.id) {
+      mDBG.log('control focused = ', focused);
+
+      switch (focused.id) {
 
         case uiID.playButton:
           if (this._player.isPlaying()) {
@@ -462,17 +495,24 @@
       }
     }
   };
+
+  proto.onDemandingControlPanel = function () {
+
+    mDBG.log('FlingPlayer#onDemandingControlPanel');
+
+    if (this.isControlPanelHiding()) {
+      mDBG.log('The control panel is hiding so let it show first.');
+      this.showControlPanel(true);
+    }
+  };
+
   // Event handling end
 
-  exports.FlingPlayer = FlingPlayer;
-
-  window.onload = function() {
-
-    var presentation = navigator.presentation;
+  window.addEventListener('load', function() {
 
     window.fp = new FlingPlayer(
       new VideoPlayer($(uiID.player)),
-      new Connector(presentation)
+      new Connector(navigator.presentation)
     );
 
     window.fp.init();
@@ -485,5 +525,8 @@
         }
       };
     }
-  };
+  });
+
+  exports.FlingPlayer = FlingPlayer;
+
 })(window);
