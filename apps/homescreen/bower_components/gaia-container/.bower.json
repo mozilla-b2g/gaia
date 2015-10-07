@@ -1,10 +1,10 @@
 {
   "name": "gaia-container",
-  "_release": "59915823a9",
+  "_release": "c9c41be0b3",
   "_resolution": {
     "type": "branch",
     "branch": "master",
-    "commit": "59915823a96bec97b0c2dc09da73a3f73b24eb92"
+    "commit": "c9c41be0b3b456f25e4ae2e7da5cfd3c0c561445"
   },
   "_source": "https://gitlab.com/Cwiiis/gaia-container.git",
   "_target": "*",
