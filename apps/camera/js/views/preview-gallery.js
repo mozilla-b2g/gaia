@@ -27,8 +27,8 @@ require('gaia-header');
 var SWIPE_DISTANCE_THRESHOLD = window.innerWidth / 3; // pixels
 var SWIPE_VELOCITY_THRESHOLD = 1.0;                   // pixels/ms
 
-var SWIPE_DURATION = 250;   // How long to animate the swipe
-var FADE_IN_DURATION = 500; // How long to animate the fade in after swipe
+var SWIPE_DURATION = 150;   // How long to animate the swipe
+var FADE_IN_DURATION = 450; // How long to animate the fade in after swipe
 
 /**
  * Locals
