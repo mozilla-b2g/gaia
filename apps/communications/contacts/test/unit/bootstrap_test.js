@@ -297,7 +297,13 @@ suite('Bootstrap - empty cache', function() {
 
   suite('No cache', function() {
     setup(function(done) {
-      Cache.apply('firstChunk').then(done);
+      Cache.apply('firstChunk').then(done, done);
+    });
+
+    test('Cache apply promise is rejected', function(done) {
+      Cache.apply('firstChunk').then(() => {
+        throw new Error('Should not resolve');
+      }, done);
     });
 
     test('Cache should not be active', function() {
