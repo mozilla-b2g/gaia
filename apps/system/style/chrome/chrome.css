@@ -318,6 +318,7 @@ html[dir="rtl"] .pin-dialog.hidden ~ .controls .urlbar::before {
 }
 
 section.pin-dialog {
+  visibility: visible;
   display: block;
   position: absolute;
   margin: 0 1rem;
@@ -327,14 +328,13 @@ section.pin-dialog {
   font-size: 1.2rem;
   color: #858585;
   box-shadow: 0 1px 0 0 rgba(0, 0, 0, 0.15);
-  pointer-events: auto;
   transform: translateY(0) translateX(0) scale(1);
-  transition: opacity var(--transition-duration), transform var(--transition-duration);
+  transition: visibility var(--transition-duration), opacity var(--transition-duration), transform var(--transition-duration);
 }
 
 section.pin-dialog.hidden {
   opacity: 0;
-  pointer-events: none;
+  visibility: hidden;
 }
 html[dir="ltr"] section.pin-dialog.hidden {
   transform: translateY(-50%) translateX(-50%) scale(.3);
@@ -362,7 +362,7 @@ html[dir="rtl"] section.pin-dialog.hidden {
 }
 
 section.pin-dialog.hidden + .pin-scrim {
-  pointer-events: none;
+  visibility: hidden;
   opacity: 0;
 }
 
