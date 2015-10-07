@@ -119,7 +119,7 @@ var OptionMenu = function(options) {
   menu.dataset.items = items.length;
 
   // For each option, we append the item and listener
-  items.forEach(function renderOption(item) {
+  items.forEach(function renderOption(item, index) {
     var button = document.createElement('button');
     button.type = 'button';
     if (item.l10nId) {
@@ -130,7 +130,17 @@ var OptionMenu = function(options) {
       // no l10n or name, just empty item, don't add to the menu
       return;
     }
-    menu.appendChild(button);
+
+    // Wrap the last button in a container in order to style it differently.
+    if (index === items.length - 1) {
+      var lastButtonWrapper = document.createElement('span');
+      lastButtonWrapper.className = 'last-button-container';
+      menu.appendChild(lastButtonWrapper);
+      lastButtonWrapper.appendChild(button);
+    } else {
+      menu.appendChild(button);
+    }
+
     // Add a mapping from the button object
     // directly to its options item.
     item.incomplete = item.incomplete || false;
