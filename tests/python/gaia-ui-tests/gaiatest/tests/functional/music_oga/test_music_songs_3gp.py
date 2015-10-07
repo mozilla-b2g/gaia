@@ -4,46 +4,38 @@
 
 import time
 from gaiatest import GaiaTestCase
-from gaiatest.apps.music.app import Music
+from gaiatest.apps.music_oga.app import Music
 
 
-class TestMusic(GaiaTestCase):
+class TestPlay3GPMusic(GaiaTestCase):
 
     def setUp(self):
         GaiaTestCase.setUp(self)
 
-        # add track to storage
-        self.push_resource('MUS_0001.mp3')
+        # add video to storage
+        self.push_resource('MUS_0001.3gp')
 
-    def test_select_album_play(self):
-        """
-        https://moztrap.mozilla.org/manage/case/3755/
-        """
+    def test_select_songs_play_3gp_file(self):
+        """https://moztrap.mozilla.org/manage/case/4031/"""
 
         music_app = Music(self.marionette)
         music_app.launch()
-
         music_app.wait_for_music_tiles_displayed()
 
-        # switch to albums view
-        list_view = music_app.tap_albums_tab()
+        # switch to songs view
+        list_view = music_app.tap_songs_tab()
 
-        # check that albums (at least one) are available
-        albums = list_view.media
-        self.assertGreater(len(albums), 0, 'The mp3 file could not be found')
+        # check that songs (at least one) are available
+        songs = list_view.media
+        self.assertGreater(len(songs), 0, 'The 3gp file could not be found')
 
-        # select an album
-        sublist_view = albums[0].tap_first_album()
-        # select play
-        # This wait is timing out because of bug 862156
-        player_view = sublist_view.tap_first_song()
+        player_view = songs[0].tap_first_song()
 
-        # play for a short duration
         play_time = time.strptime('00:03', '%M:%S')
         self.wait_for_condition(
             lambda m: player_view.player_elapsed_time >= play_time,
             timeout=10,
-            message='Mp3 sample did not start playing')
+            message='3gp sample did not start playing')
 
         # validate playback
         self.assertTrue(player_view.is_player_playing(), 'The player is not playing')
