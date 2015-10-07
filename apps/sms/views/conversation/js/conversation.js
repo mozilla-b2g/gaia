@@ -286,9 +286,13 @@ var ConversationView = {
     return Promise.all([
       MozSettingsClient.mmsSizeLimitation(),
       MozSettingsClient.maxConcatenatedMessages()
-    ]).then((values) => {
-      this.mmsSizeLimitation = values[0];
-      Compose.init('messages-compose-form', ...values);
+    ]).then(([mmsSizeLimitation, maxConcatenatedMessages]) => {
+      this.mmsSizeLimitation = mmsSizeLimitation;
+      Compose.init(
+        'messages-compose-form',
+        mmsSizeLimitation,
+        maxConcatenatedMessages
+      );
 
       // In case of input, we have to resize the input following UX Specs.
       Compose.on('input', this.onMessageContentChange.bind(this));
@@ -319,7 +323,6 @@ var ConversationView = {
       //
       // So we assimilate recipients if user starts to interact with Composer
       Compose.on('interact', this.assimilateRecipients.bind(this));
-      return;
     });
   },
 

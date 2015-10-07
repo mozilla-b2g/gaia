@@ -75,7 +75,7 @@ var ActivityHandler = {
   },
 
   _onShareActivity: function shareHandler(activityData) {
-    var dataPromise;
+    var data;
 
     switch(activityData.type) {
       case ActivityDataType.AUDIO:
@@ -90,59 +90,51 @@ var ActivityHandler = {
           return attachment;
         });
 
-        var size = attachments.reduce(function(size, attachment) {
-          if (attachment.type !== 'img') {
-            size += attachment.size;
-          }
-
-          return size;
-        }, 0);
-
-        dataPromise = MozSettingsClient.mmsSizeLimitation().then((limit) => {
-          if (size > limit) {
-            throw {
-              name: FILE_TOO_LARGE_ID,
-              size: limit
-            };
-          }
-
-          return attachments;
-        });
+        data = attachments;
         break;
       case ActivityDataType.URL:
-        dataPromise = Promise.resolve(activityData.url);
+        data = activityData.url;
         break;
       // As for the moment we only allow to share one vcard we treat this case
       // in an specific block
       case ActivityDataType.VCARD:
-        dataPromise = Promise.resolve(new Attachment(activityData.blobs[0], {
+        data = new Attachment(activityData.blobs[0], {
           name: activityData.filenames[0],
           isDraft: true
-        }));
+        });
         break;
       default:
-        dataPromise = Promise.reject(new Error(
+        return ActivityClient.postError(
           'Unsupported activity data type: ' + activityData.type
-        ));
-        return;
+        );
     }
 
-    return dataPromise.then((data) => {
-      if (!data) {
-        return ActivityClient.postError('No data to share found!');
+    if (!data) {
+      return ActivityClient.postError('No data to share found!');
+    }
+
+    // Treat the non array data (url, vcard) size as 0
+    var size = Array.isArray(data) ? data.reduce(function(size, attachment) {
+      if (attachment.type !== 'img') {
+        size += attachment.size;
+      }
+
+      return size;
+    }, 0) : 0;
+
+    return MozSettingsClient.mmsSizeLimitation().then((limit) => {
+      if (size > limit) {
+        return Utils.alert({
+          id: FILE_TOO_LARGE_ID,
+          args: {
+            n: activityData.blobs.length,
+            mmsSize: (size / 1024).toFixed(0)
+          }
+        }).then(() => ActivityClient.postResult());
       }
 
       return this.toView({ body: data });
-    }, (error) =>
-      error.name === FILE_TOO_LARGE_ID ? Utils.alert({
-        id: FILE_TOO_LARGE_ID,
-        args: {
-          n: activityData.blobs.length,
-          mmsSize: (error.size / 1024).toFixed(0)
-        }
-      }).then(() => ActivityClient.postResult()) :
-      ActivityClient.postError(error)
-    );
+    });
   },
 
   /**

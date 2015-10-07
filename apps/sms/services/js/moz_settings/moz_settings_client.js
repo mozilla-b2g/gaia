@@ -57,8 +57,8 @@ var MozSettingsClient = {
 
   /**
    * Limitation of the MMS size .
-   * @returns {Promise} Promise of shim's method that returned the mms limit
-   *  in Bytes. Default limitation is 295KB.
+   * @returns Promise.<Number> Promise of shim's method that returned the mms
+   *  limit in Bytes. Default limitation is 295KB.
    */
   mmsSizeLimitation() {
     return client.method('get', MMS_SIZE_LIMIT_KEY).then((result) => {
@@ -70,8 +70,8 @@ var MozSettingsClient = {
 
   /**
    * Maximum concatenated number of our SMS.
-   * @returns {Promise} Promise of shim's method that return number of maximum
-   *  concatenated number of our SMS. Default maximum number is 10.
+   * @returns Promise.<Number> Promise of shim's method that return number of
+   *  maximum concatenated number of our SMS. Default maximum number is 10.
    */
   maxConcatenatedMessages() {
     return client.method('get', SMS_MAX_CONCAT_KEY).then((result) => {
@@ -81,18 +81,15 @@ var MozSettingsClient = {
   },
 
   /**
-   * Check if device have mre than 1 active SIM.
+   * Check if device have more than 1 active SIM.
    * @returns {boolean} true if the device has more than 1 SIM port and at least
    *  2 SIMs are inserted.
    */
   hasSeveralSim() {
-    return navigator.mozIccManager &&
-      navigator.mozIccManager.iccIds.length > 1;
+    return navigator.mozIccManager && navigator.mozIccManager.iccIds.length > 1;
   }
 };
 
-exports.MozSettingsClient = Object.freeze(
-  MozSettingsClient
-);
+exports.MozSettingsClient = Object.freeze(MozSettingsClient);
 
 })(window);
