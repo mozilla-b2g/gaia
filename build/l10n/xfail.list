@@ -126,7 +126,6 @@ shared/js/contacts/contacts_buttons.js
 shared/js/dialer/keypad.js
 shared/js/dialer/utils.js
 shared/js/l10n_date.js
-shared/js/stk_helper.js
 shared/js/tz_select.js
 shared/pages/import/js/curtain_panel.js
 tv_apps/smart-home/js/edit.js
