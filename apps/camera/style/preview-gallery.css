@@ -78,6 +78,15 @@
 }
 
 /**
+ * 1. HACK
+ * To revert mirroring applied by button.css
+ * https://bugzilla.mozilla.org/show_bug.cgi?id=1128861
+ */
+html[dir="rtl"] button.preview-share-icon:before {
+  transform: none; /* 1 */
+}
+
+/**
  * [secure-mode=true]
  *
  * 1. !important is required to over-ride
