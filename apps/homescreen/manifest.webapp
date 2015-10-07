@@ -37,8 +37,8 @@
       "description": "View data about browsing history."
     },
     "icons": {
-      "readonly": false,
-      "description": "Store and retrieve cached website icons."
+      "readonly": true,
+      "description": "Retrieve cached website icons."
     }
   },
   "orientation": "default"
