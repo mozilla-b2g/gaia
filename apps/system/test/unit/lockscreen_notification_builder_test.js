@@ -16,6 +16,9 @@ suite('System > LockScreenNotificationBuilder', function() {
   function() {
     var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
     var node = document.createElement('div');
+    var title = document.createElement('div');
+    title.classList.add('title');
+    node.appendChild(title);
     node.dataset.notificationId = 'foobar';
     subject.decorate(node);
     subject.highlight(node);
@@ -37,5 +40,17 @@ suite('System > LockScreenNotificationBuilder', function() {
       return 'lockscreen-notification-request-activate' === evt.type &&
             node.dataset.notificationId === evt.detail.notificationId;
     }), 'after pressing the button, the events did\'nt fire');
+  });
+
+  test('it could decorate the node with corret directory', function() {
+    var method = subject.decorateDirection;
+    var node = document.createElement('div');
+    var title = document.createElement('div');
+    title.classList.add('title');
+    node.appendChild(title);
+    document.documentElement.dir = 'rtl';
+    node = method.call({}, node);
+    assert.equal(node.dir, 'rtl');
+    assert.equal(title.dir, 'rtl');
   });
 });
