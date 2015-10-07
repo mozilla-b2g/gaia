@@ -65,8 +65,7 @@ define(function(require) {
 
         elements.panel.dataset.security = key;
         elements.submitButton.disabled =
-          !WifiHelper.isValidInput(key, password, identity, eap) ||
-          !WifiHelper.isSSIDValid(elements.ssid.value);
+          !WifiHelper.isValidInput(key, password, identity, eap);
 
         WifiHelper.setSecurity(network, [key]);
         WifiUtils.changeDisplay(elements.panel, key);
