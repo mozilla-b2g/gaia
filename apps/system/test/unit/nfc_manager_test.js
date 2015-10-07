@@ -59,6 +59,13 @@ suite('Nfc Manager Functions', function() {
     isPrivate: true
   };
 
+  var fakeBrowserForFullscreen = {
+    url: 'app://browser.gaiamobile.org/',
+    manifest: {},
+    origin: 'http://somevideo',
+    isBrowser: function() { return true; }
+  };
+
   setup(function() {
     window.NfcHandoverManager = MockNfcHandoverManager;
     MockLazyLoader.mLaodRightAway = true;
@@ -1053,6 +1060,32 @@ suite('Nfc Manager Functions', function() {
         'http://mozilla.org';
       nfcManager._checkP2PRegistration();
       assert.isTrue(stubCheckP2P.calledOnce);
+    });
+
+    test('browser with fullscreen', function() {
+      var fakePromise = new MockPromise();
+      var stubCheckP2P = this.sinon.stub(MockNfc, 'checkP2PRegistration',
+                                         () => fakePromise);
+
+      MockService.mockQueryWith('getTopMostWindow',
+        new window.AppWindow(fakeBrowserForFullscreen));
+      Object.defineProperty(document, 'mozFullScreen', {
+        configurable: true,
+        value: true
+      });
+
+      // Should not shrink when it is fullscreen.
+      nfcManager._checkP2PRegistration();
+      assert.isTrue(stubCheckP2P.notCalled);
+
+      this.sinon.stub(MockService.mockQueryWith('getTopMostWindow'),
+        'isBrowser').returns(false);
+      nfcManager._checkP2PRegistration();
+      assert.isTrue(stubCheckP2P.calledOnce);
+      Object.defineProperty(document, 'mozFullScreen', {
+        configurable: true,
+        value: false
+      });
     });
 
   });
