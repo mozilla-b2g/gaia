@@ -24,7 +24,7 @@ apps/clock/js/alameda.js
 apps/clock/js/ext/**
 apps/clock/js/text_builder.js
 shared/js/uuid.js
-shared/js/l20n.js
+shared/js/intl/l20n*.js
 apps/keyboard/js/imes/jspinyin/libpinyin.js
 apps/keyboard/js/imes/jszhuyin/lib/**
 apps/keyboard/js/imes/handwriting/hwr/**
