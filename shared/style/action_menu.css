@@ -272,27 +272,26 @@ html[dir="rtl"] [role="dialog"][data-type="action"] > header > a {
   font-style: italic;
 }
 
-[role="dialog"][data-type="action"] > menu > button:last-child {
-  position: fixed;
-  bottom: 0;
-  offset-inline-start: 0;
-  color: #333;
-  background: #d8d8d8;
-  text-align: center;
-  border: none;
-  margin-bottom: 1.5rem;
-  border-radius: 2rem;
-}
-
-[role="dialog"][data-type="action"] > menu > button:last-child:before {
-  content: '';
+[role="dialog"][data-type="action"] > menu > .last-button-container {
   position: fixed;
   width: 100%;
   background-color: #4d4d4d;
   height: 7rem;
   offset-inline-start: 0;
   bottom: 0;
-  z-index: -1;
+}
+
+[role="dialog"][data-type="action"] > menu > .last-button-container button {
+  width: calc(100% - 3rem);
+  position: fixed;
+  bottom: 0;
+  margin: 0 1.5rem 1.5rem;
+  offset-inline-start: 0;
+  color: #333;
+  background: #d8d8d8;
+  text-align: center;
+  border: none;
+  border-radius: 2rem;
 }
 
 [role="dialog"][data-type="action"] > menu > button:nth-last-child(2) {
@@ -300,7 +299,7 @@ html[dir="rtl"] [role="dialog"][data-type="action"] > header > a {
 }
 
 /* Press state */
-[role="dialog"][data-type="action"] > menu > button:active {
+[role="dialog"][data-type="action"] > menu button:active {
   background: #00aacc;
   color: #fff;
 }
@@ -313,7 +312,7 @@ html[dir="rtl"] [role="dialog"][data-type="action"] > header > a {
   pointer-events: none;
 }
 
-[role="dialog"][data-type="action"] > menu > button[disabled]:last-child {
+[role="dialog"][data-type="action"] > menu > .last-button-container button[disabled] {
   background-color: #e7e7e7;
   color: #a6a6a6;
   opacity: 1;
