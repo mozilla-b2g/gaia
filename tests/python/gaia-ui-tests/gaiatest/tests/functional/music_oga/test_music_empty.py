@@ -3,10 +3,14 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from gaiatest import GaiaTestCase
-from gaiatest.apps.music.app import Music
+from gaiatest.apps.music_oga.app import Music
 
 
 class TestMusicEmpty(GaiaTestCase):
+
+    # Note: Text will need to be updated if/when Bug 834475 is fixed
+    expected_title = 'Add songs to get started'
+    expected_text = 'Load songs on to the memory card.'
 
     def setUp(self):
         GaiaTestCase.setUp(self)
@@ -19,3 +23,7 @@ class TestMusicEmpty(GaiaTestCase):
         music_app.launch()
 
         music_app.wait_for_empty_message_to_load()
+
+        # Verify title & text when no music present
+        self.assertEqual(music_app.empty_music_title, self.expected_title)
+        self.assertEqual(music_app.empty_music_text, self.expected_text)
