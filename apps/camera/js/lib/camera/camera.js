@@ -1003,6 +1003,7 @@ Camera.prototype.stoppedRecording = function(recorded) {
 
   if (recorded) {
     video = mix({}, this.video);
+    video.poster = mix({}, video.poster);
 
     // Re-fetch the blobs from storage
     this.storage.video.get(video.filepath).then(function(blob) {
