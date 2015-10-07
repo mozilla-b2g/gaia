@@ -156,18 +156,6 @@ suite('WifiHelper', function() {
     });
   });
 
-  suite('> isSSIDValid()', function() {
-    test('SSID is valid', function() {
-      assert.isTrue(WifiHelper.isSSIDValid('ssid'));
-    });
-
-    test('SSID is invalid', function() {
-      assert.isFalse(WifiHelper.isSSIDValid());
-      assert.isFalse(WifiHelper.isSSIDValid(''));
-      assert.isFalse(WifiHelper.isSSIDValid(null));
-    });
-  });
-
   suite('> getAvailableAndKnownNetworks()', function() {
     var originalMozWifiManager;
     var triggerCallback = function triggerCallback(which, successOrError) {
