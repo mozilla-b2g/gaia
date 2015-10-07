@@ -79,7 +79,7 @@ const RESOURCES = [
   '/shared/js/bluetooth_helper.js',
   '/shared/js/image_utils.js',
   '/shared/js/intl_helper.js',
-  '/shared/js/l20n.js',
+  '/shared/js/intl/l20n.js',
   '/shared/js/lazy_loader.js',
   '/shared/js/mediadb.js',
   '/shared/js/moz_intl.js',

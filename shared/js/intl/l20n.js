@@ -12,85 +12,6 @@
     return moduleCache.get(id);
   }
 
-  modules.set('lib/intl', function () {
-    function prioritizeLocales(def, availableLangs, requested) {
-      let supportedLocale;
-
-      for (let i = 0; i < requested.length; i++) {
-        const locale = requested[i];
-
-        if (availableLangs.indexOf(locale) !== -1) {
-          supportedLocale = locale;
-          break;
-        }
-      }
-
-      if (!supportedLocale || supportedLocale === def) {
-        return [def];
-      }
-
-      return [supportedLocale, def];
-    }
-
-    return { prioritizeLocales };
-  });
-  modules.set('bindings/html/langs', function () {
-    const { prioritizeLocales } = getModule('lib/intl');
-    const { pseudo } = getModule('lib/pseudo');
-    const rtlList = ['ar', 'he', 'fa', 'ps', 'qps-plocm', 'ur'];
-
-    function negotiateLanguages(fn, appVersion, defaultLang, availableLangs, additionalLangs, prevLangs, requestedLangs) {
-      const allAvailableLangs = Object.keys(availableLangs).concat(additionalLangs || []).concat(Object.keys(pseudo));
-      const newLangs = prioritizeLocales(defaultLang, allAvailableLangs, requestedLangs);
-      const langs = newLangs.map(code => ({
-        code: code,
-        src: getLangSource(appVersion, availableLangs, additionalLangs, code),
-        dir: getDirection(code)
-      }));
-
-      if (!arrEqual(prevLangs, newLangs)) {
-        fn(langs);
-      }
-
-      return langs;
-    }
-
-    function getDirection(code) {
-      return rtlList.indexOf(code) >= 0 ? 'rtl' : 'ltr';
-    }
-
-    function arrEqual(arr1, arr2) {
-      return arr1.length === arr2.length && arr1.every((elem, i) => elem === arr2[i]);
-    }
-
-    function getMatchingLangpack(appVersion, langpacks) {
-      for (let i = 0, langpack; langpack = langpacks[i]; i++) {
-        if (langpack.target === appVersion) {
-          return langpack;
-        }
-      }
-
-      return null;
-    }
-
-    function getLangSource(appVersion, availableLangs, additionalLangs, code) {
-      if (additionalLangs && additionalLangs[code]) {
-        const lp = getMatchingLangpack(appVersion, additionalLangs[code]);
-
-        if (lp && (!(code in availableLangs) || parseInt(lp.revision) > availableLangs[code])) {
-          return 'extra';
-        }
-      }
-
-      if (code in pseudo && !(code in availableLangs)) {
-        return 'pseudo';
-      }
-
-      return 'app';
-    }
-
-    return { negotiateLanguages, getDirection };
-  });
   modules.set('bindings/html/overlay', function () {
     const reOverlay = /<|&#?\w+;/;
     const allowed = {
@@ -260,6 +181,10 @@
       '>': '&gt;'
     };
 
+    function getResourceLinks(head) {
+      return Array.prototype.map.call(head.querySelectorAll('link[rel="localization"]'), el => decodeURI(el.getAttribute('href')));
+    }
+
     function setAttributes(element, id, args) {
       element.setAttribute('data-l10n-id', id);
 
@@ -345,29 +270,138 @@
       view._observe();
     }
 
-    return { setAttributes, getAttributes, translateMutations, translateFragment };
+    return { getResourceLinks, setAttributes, getAttributes, translateMutations, translateFragment };
   });
-  modules.set('bindings/html/head', function () {
-    if (typeof NodeList === 'function' && !NodeList.prototype[Symbol.iterator]) {
-      NodeList.prototype[Symbol.iterator] = Array.prototype[Symbol.iterator];
+  modules.set('bindings/html/view', function () {
+    const { documentReady } = getModule('bindings/html/shims');
+    const { setAttributes, getAttributes, translateFragment, translateMutations, getResourceLinks } = getModule('bindings/html/dom');
+    const observerConfig = {
+      attributes: true,
+      characterData: false,
+      childList: true,
+      subtree: true,
+      attributeFilter: ['data-l10n-id', 'data-l10n-args']
+    };
+    const readiness = new WeakMap();
+
+    class View {
+      constructor(client, doc) {
+        this._doc = doc;
+        this.pseudo = {
+          'qps-ploc': createPseudo(this, 'qps-ploc'),
+          'qps-plocm': createPseudo(this, 'qps-plocm')
+        };
+        this._interactive = documentReady().then(() => init(this, client));
+        const observer = new MutationObserver(onMutations.bind(this));
+
+        this._observe = () => observer.observe(doc, observerConfig);
+
+        this._disconnect = () => observer.disconnect();
+
+        const translateView = langs => translateDocument(this, langs);
+
+        client.on('translateDocument', translateView);
+        this.ready = this.resolvedLanguages().then(translateView);
+      }
+      resolvedLanguages() {
+        return this._interactive.then(client => client.method('resolvedLanguages'));
+      }
+      requestLanguages(langs) {
+        return this._interactive.then(client => client.method('requestLanguages', langs));
+      }
+      _resolveEntities(langs, keys) {
+        return this._interactive.then(client => client.method('resolveEntities', client.id, langs, keys));
+      }
+      formatValue(id, args) {
+        return this._interactive.then(client => client.method('formatValues', client.id, [[id, args]])).then(values => values[0]);
+      }
+      formatValues(...keys) {
+        return this._interactive.then(client => client.method('formatValues', client.id, keys));
+      }
+      translateFragment(frag) {
+        return this.resolvedLanguages().then(langs => translateFragment(this, langs, frag));
+      }
     }
 
-    function documentReady() {
-      if (document.readyState !== 'loading') {
-        return Promise.resolve();
+    View.prototype.setAttributes = setAttributes;
+    View.prototype.getAttributes = getAttributes;
+
+    function createPseudo(view, code) {
+      return {
+        getName: () => view._interactive.then(client => client.method('getName', code)),
+        processString: str => view._interactive.then(client => client.method('processString', code, str))
+      };
+    }
+
+    function init(view, client) {
+      view._observe();
+
+      return client.method('registerView', client.id, getResourceLinks(view._doc.head)).then(() => client);
+    }
+
+    function onMutations(mutations) {
+      return this.resolvedLanguages().then(langs => translateMutations(this, langs, mutations));
+    }
+
+    function translateDocument(view, langs) {
+      const html = view._doc.documentElement;
+
+      if (readiness.has(html)) {
+        return translateFragment(view, langs, html).then(() => setDOMAttrsAndEmit(html, langs)).then(() => langs.map(takeCode));
       }
 
-      return new Promise(resolve => {
-        document.addEventListener('readystatechange', function onrsc() {
-          document.removeEventListener('readystatechange', onrsc);
-          resolve();
-        });
-      });
+      const translated = langs[0].code === html.getAttribute('lang') ? Promise.resolve() : translateFragment(view, langs, html).then(() => setDOMAttrs(html, langs));
+      return translated.then(() => readiness.set(html, true)).then(() => langs.map(takeCode));
     }
 
-    function getResourceLinks(head) {
-      return Array.prototype.map.call(head.querySelectorAll('link[rel="localization"]'), el => decodeURI(el.getAttribute('href')));
+    function setDOMAttrsAndEmit(html, langs) {
+      setDOMAttrs(html, langs);
+      html.parentNode.dispatchEvent(new CustomEvent('DOMRetranslated', {
+        bubbles: false,
+        cancelable: false,
+        detail: {
+          languages: langs.map(takeCode)
+        }
+      }));
     }
+
+    function setDOMAttrs(html, langs) {
+      html.setAttribute('lang', langs[0].code);
+      html.setAttribute('dir', langs[0].dir);
+    }
+
+    function takeCode(lang) {
+      return lang.code;
+    }
+
+    return { View, translateDocument };
+  });
+  modules.set('lib/intl', function () {
+    function prioritizeLocales(def, availableLangs, requested) {
+      let supportedLocale;
+
+      for (let i = 0; i < requested.length; i++) {
+        const locale = requested[i];
+
+        if (availableLangs.indexOf(locale) !== -1) {
+          supportedLocale = locale;
+          break;
+        }
+      }
+
+      if (!supportedLocale || supportedLocale === def) {
+        return [def];
+      }
+
+      return [supportedLocale, def];
+    }
+
+    return { prioritizeLocales };
+  });
+  modules.set('bindings/html/langs', function () {
+    const { prioritizeLocales } = getModule('lib/intl');
+    const { pseudo } = getModule('lib/pseudo');
+    const rtlList = ['ar', 'he', 'fa', 'ps', 'qps-plocm', 'ur'];
 
     function getMeta(head) {
       let availableLangs = Object.create(null);
@@ -419,213 +453,77 @@
       return [lang, parseInt(rev)];
     }
 
-    return { documentReady, getResourceLinks, getMeta };
-  });
-  modules.set('bindings/html/view', function () {
-    const { getResourceLinks, documentReady } = getModule('bindings/html/head');
-    const { setAttributes, getAttributes, translateFragment, translateMutations } = getModule('bindings/html/dom');
-    const observerConfig = {
-      attributes: true,
-      characterData: false,
-      childList: true,
-      subtree: true,
-      attributeFilter: ['data-l10n-id', 'data-l10n-args']
-    };
-    const readiness = new WeakMap();
-
-    class View {
-      constructor(client, doc) {
-        this._doc = doc;
-        this.pseudo = {
-          'qps-ploc': new Pseudo(this, 'qps-ploc'),
-          'qps-plocm': new Pseudo(this, 'qps-plocm')
-        };
-        this._interactive = documentReady().then(() => init(this, client));
-        const observer = new MutationObserver(onMutations.bind(this));
-
-        this._observe = () => observer.observe(doc, observerConfig);
-
-        this._disconnect = () => observer.disconnect();
-
-        this.ready = this.resolvedLanguages().then(langs => translateDocument(this, langs));
-      }
-      resolvedLanguages() {
-        return this._interactive.then(client => client.languages);
-      }
-      requestLanguages(langs) {
-        return this._interactive.then(client => client.requestLanguages(langs));
-      }
-      _resolveEntities(langs, keys) {
-        return this._interactive.then(client => client.resolveEntities(this, langs, keys));
-      }
-      formatValue(id, args) {
-        return this._interactive.then(client => client.formatValues(this, [[id, args]])).then(values => values[0]);
-      }
-      formatValues(...keys) {
-        return this._interactive.then(client => client.formatValues(this, keys));
-      }
-      translateFragment(frag) {
-        return this.resolvedLanguages().then(langs => translateFragment(this, langs, frag));
-      }
-    }
-
-    View.prototype.setAttributes = setAttributes;
-    View.prototype.getAttributes = getAttributes;
-
-    class Pseudo {
-      constructor(view, code) {
-        this.view = view;
-        this.code = code;
-      }
-      getName() {
-        return this.view._interactive.then(client => client.getPseudoName(this.code));
-      }
-      processString(str) {
-        return this.view._interactive.then(client => client.pseudotranslate(this.code, str));
-      }
-    }
-
-    function init(view, client) {
-      view._observe();
-
-      return client.registerView(view, getResourceLinks(view._doc.head)).then(() => client);
-    }
-
-    function onMutations(mutations) {
-      return this.resolvedLanguages().then(langs => translateMutations(this, langs, mutations));
-    }
-
-    function translateDocument(view, langs) {
-      const html = view._doc.documentElement;
-
-      if (readiness.has(html)) {
-        return translateFragment(view, langs, html).then(() => setDOMAttrsAndEmit(html, langs)).then(() => langs.map(takeCode));
-      }
-
-      const translated = langs[0].code === html.getAttribute('lang') ? Promise.resolve() : translateFragment(view, langs, html).then(() => setDOMAttrs(html, langs));
-      return translated.then(() => readiness.set(html, true)).then(() => langs.map(takeCode));
-    }
-
-    function setDOMAttrsAndEmit(html, langs) {
-      setDOMAttrs(html, langs);
-      html.parentNode.dispatchEvent(new CustomEvent('DOMRetranslated', {
-        bubbles: false,
-        cancelable: false,
-        detail: {
-          languages: langs.map(takeCode)
-        }
+    function negotiateLanguages(fn, appVersion, defaultLang, availableLangs, additionalLangs, prevLangs, requestedLangs) {
+      const allAvailableLangs = Object.keys(availableLangs).concat(additionalLangs || []).concat(Object.keys(pseudo));
+      const newLangs = prioritizeLocales(defaultLang, allAvailableLangs, requestedLangs);
+      const langs = newLangs.map(code => ({
+        code: code,
+        src: getLangSource(appVersion, availableLangs, additionalLangs, code),
+        dir: getDirection(code)
       }));
+
+      if (!arrEqual(prevLangs, newLangs)) {
+        fn(langs);
+      }
+
+      return langs;
     }
 
-    function setDOMAttrs(html, langs) {
-      html.setAttribute('lang', langs[0].code);
-      html.setAttribute('dir', langs[0].dir);
+    function getDirection(code) {
+      return rtlList.indexOf(code) >= 0 ? 'rtl' : 'ltr';
     }
 
-    function takeCode(lang) {
-      return lang.code;
+    function arrEqual(arr1, arr2) {
+      return arr1.length === arr2.length && arr1.every((elem, i) => elem === arr2[i]);
     }
 
-    return { View, translateDocument };
+    function getMatchingLangpack(appVersion, langpacks) {
+      for (let i = 0, langpack; langpack = langpacks[i]; i++) {
+        if (langpack.target === appVersion) {
+          return langpack;
+        }
+      }
+
+      return null;
+    }
+
+    function getLangSource(appVersion, availableLangs, additionalLangs, code) {
+      if (additionalLangs && additionalLangs[code]) {
+        const lp = getMatchingLangpack(appVersion, additionalLangs[code]);
+
+        if (lp && (!(code in availableLangs) || parseInt(lp.revision) > availableLangs[code])) {
+          return 'extra';
+        }
+      }
+
+      if (code in pseudo && !(code in availableLangs)) {
+        return 'pseudo';
+      }
+
+      return 'app';
+    }
+
+    return { getMeta, negotiateLanguages, getDirection };
   });
-  modules.set('runtime/web/io', function () {
-    const { L10nError } = getModule('lib/errors');
+  modules.set('bindings/html/shims', function () {
+    if (typeof NodeList === 'function' && !NodeList.prototype[Symbol.iterator]) {
+      NodeList.prototype[Symbol.iterator] = Array.prototype[Symbol.iterator];
+    }
 
-    function load(type, url) {
-      return new Promise(function (resolve, reject) {
-        const xhr = new XMLHttpRequest();
+    function documentReady() {
+      if (document.readyState !== 'loading') {
+        return Promise.resolve();
+      }
 
-        if (xhr.overrideMimeType) {
-          xhr.overrideMimeType(type);
-        }
-
-        xhr.open('GET', url, true);
-
-        if (type === 'application/json') {
-          xhr.responseType = 'json';
-        }
-
-        xhr.addEventListener('load', function io_onload(e) {
-          if (e.target.status === 200 || e.target.status === 0) {
-            resolve(e.target.response || e.target.responseText);
-          } else {
-            reject(new L10nError('Not found: ' + url));
-          }
+      return new Promise(resolve => {
+        document.addEventListener('readystatechange', function onrsc() {
+          document.removeEventListener('readystatechange', onrsc);
+          resolve();
         });
-        xhr.addEventListener('error', reject);
-        xhr.addEventListener('timeout', reject);
-
-        try {
-          xhr.send(null);
-        } catch (e) {
-          if (e.name === 'NS_ERROR_FILE_NOT_FOUND') {
-            reject(new L10nError('Not found: ' + url));
-          } else {
-            throw e;
-          }
-        }
       });
     }
 
-    const io = {
-      extra: function (code, ver, path, type) {
-        return navigator.mozApps.getLocalizationResource(code, ver, path, type);
-      },
-      app: function (code, ver, path, type) {
-        switch (type) {
-          case 'text':
-            return load('text/plain', path);
-
-          case 'json':
-            return load('application/json', path);
-
-          default:
-            throw new L10nError('Unknown file type: ' + type);
-        }
-      }
-    };
-
-    function fetch(ver, res, lang) {
-      const url = res.replace('{locale}', lang.code);
-      const type = res.endsWith('.json') ? 'json' : 'text';
-      return io[lang.src](lang.code, ver, url, type);
-    }
-
-    return { fetch };
-  });
-  modules.set('lib/events', function () {
-    function emit(listeners, ...args) {
-      const type = args.shift();
-
-      if (listeners['*']) {
-        listeners['*'].slice().forEach(listener => listener.apply(this, args));
-      }
-
-      if (listeners[type]) {
-        listeners[type].slice().forEach(listener => listener.apply(this, args));
-      }
-    }
-
-    function addEventListener(listeners, type, listener) {
-      if (!(type in listeners)) {
-        listeners[type] = [];
-      }
-
-      listeners[type].push(listener);
-    }
-
-    function removeEventListener(listeners, type, listener) {
-      const typeListeners = listeners[type];
-      const pos = typeListeners.indexOf(listener);
-
-      if (pos === -1) {
-        return;
-      }
-
-      typeListeners.splice(pos, 1);
-    }
-
-    return { emit, addEventListener, removeEventListener };
+    return { documentReady };
   });
   modules.set('lib/pseudo', function () {
     function walkEntry(entry, fn) {
@@ -2142,27 +2040,14 @@
 
     return { format };
   });
-  modules.set('lib/errors', function () {
-    function L10nError(message, id, lang) {
-      this.name = 'L10nError';
-      this.message = message;
-      this.id = id;
-      this.lang = lang;
-    }
-
-    L10nError.prototype = Object.create(Error.prototype);
-    L10nError.prototype.constructor = L10nError;
-    return { L10nError };
-  });
   modules.set('lib/context', function () {
     const { L10nError } = getModule('lib/errors');
     const { format } = getModule('lib/resolver');
     const { getPluralRule } = getModule('lib/plurals');
 
     class Context {
-      constructor(env, resIds) {
+      constructor(env) {
         this._env = env;
-        this._resIds = resIds;
         this._numberFormatters = null;
       }
       _formatTuple(lang, args, entity, id, key) {
@@ -2207,7 +2092,8 @@
           return Promise.resolve(langs);
         }
 
-        return Promise.all(this._resIds.map(this._env._getResource.bind(this._env, langs[0]))).then(() => langs);
+        const resIds = Array.from(this._env._resLists.get(this));
+        return Promise.all(resIds.map(this._env._getResource.bind(this._env, langs[0]))).then(() => langs);
       }
       _resolve(langs, keys, formatter, prevResolved) {
         const lang = langs[0];
@@ -2249,9 +2135,10 @@
       }
       _getEntity(lang, id) {
         const cache = this._env._resCache;
+        const resIds = Array.from(this._env._resLists.get(this));
 
-        for (let i = 0, resId; resId = this._resIds[i]; i++) {
-          const resource = cache[resId + lang.code + lang.src];
+        for (let i = 0, resId; resId = resIds[i]; i++) {
+          const resource = cache.get(resId + lang.code + lang.src);
 
           if (resource instanceof L10nError) {
             continue;
@@ -2307,7 +2194,7 @@
         };
       });
 
-      this._env.emit('notfounderror', new L10nError('"' + [...missingIds].join(', ') + '"' + ' not found in any language', missingIds), this);
+      this._env.emit('notfounderror', new L10nError('"' + Array.from(missingIds).join(', ') + '"' + ' not found in any language', missingIds), this);
 
       return resolved;
     }
@@ -2329,14 +2216,25 @@
       constructor(defaultLang, fetch) {
         this.defaultLang = defaultLang;
         this.fetch = fetch;
-        this._resCache = Object.create(null);
+        this._resLists = new Map();
+        this._resCache = new Map();
         const listeners = {};
         this.emit = emit.bind(this, listeners);
         this.addEventListener = addEventListener.bind(this, listeners);
         this.removeEventListener = removeEventListener.bind(this, listeners);
       }
       createContext(resIds) {
-        return new Context(this, resIds);
+        const ctx = new Context(this);
+
+        this._resLists.set(ctx, new Set(resIds));
+
+        return ctx;
+      }
+      destroyContext(ctx) {
+        const lists = this._resLists;
+        const resList = lists.get(ctx);
+        lists.delete(ctx);
+        resList.forEach(resId => deleteIfOrphan(this._resCache, lists, resId));
       }
       _parse(syntax, lang, data) {
         const parser = parsers[syntax];
@@ -2366,8 +2264,8 @@
         const cache = this._resCache;
         const id = res + lang.code + lang.src;
 
-        if (cache[id]) {
-          return cache[id];
+        if (cache.has(id)) {
+          return cache.get(id);
         }
 
         const syntax = res.substr(res.lastIndexOf('.') + 1);
@@ -2375,20 +2273,30 @@
         const saveEntries = data => {
           const entries = this._parse(syntax, lang, data);
 
-          cache[id] = this._create(lang, entries);
+          cache.set(id, this._create(lang, entries));
         };
 
         const recover = err => {
           err.lang = lang;
           this.emit('fetcherror', err);
-          cache[id] = err;
+          cache.set(id, err);
         };
 
         const langToFetch = lang.src === 'pseudo' ? {
           code: this.defaultLang,
           src: 'app'
         } : lang;
-        return cache[id] = this.fetch(res, langToFetch).then(saveEntries, recover);
+        const resource = this.fetch(res, langToFetch).then(saveEntries, recover);
+        cache.set(id, resource);
+        return resource;
+      }
+    }
+
+    function deleteIfOrphan(cache, lists, resId) {
+      const isNeeded = Array.from(lists).some(([ctx, resIds]) => resIds.has(resId));
+
+      if (!isNeeded) {
+        cache.forEach((val, key) => key.startsWith(resId) ? cache.delete(key) : null);
       }
     }
 
@@ -2399,16 +2307,16 @@
 
     return { Env, amendError };
   });
-  modules.set('runtime/web/service', function () {
+  modules.set('bindings/html/remote', function () {
     const { Env } = getModule('lib/env');
     const { pseudo } = getModule('lib/pseudo');
-    const { fetch } = getModule('runtime/web/io');
-    const { translateDocument } = getModule('bindings/html/view');
-    const { getMeta, documentReady } = getModule('bindings/html/head');
-    const { negotiateLanguages } = getModule('bindings/html/langs');
+    const { documentReady } = getModule('bindings/html/shims');
+    const { getMeta, negotiateLanguages } = getModule('bindings/html/langs');
 
-    class Service {
-      constructor(requestedLangs) {
+    class Remote {
+      constructor(fetch, broadcast, requestedLangs) {
+        this.fetch = fetch;
+        this.broadcast = broadcast;
         this.ctxs = new Map();
         this.interactive = documentReady().then(() => this.init(requestedLangs));
       }
@@ -2417,11 +2325,17 @@
         this.defaultLanguage = meta.defaultLang;
         this.availableLanguages = meta.availableLangs;
         this.appVersion = meta.appVersion;
-        this.env = new Env(this.defaultLanguage, fetch.bind(null, this.appVersion));
+        this.env = new Env(this.defaultLanguage, (...args) => this.fetch(this.appVersion, ...args));
         return this.requestLanguages(requestedLangs);
       }
       registerView(view, resources) {
-        return this.interactive.then(() => this.ctxs.set(view, this.env.createContext(resources)));
+        return this.interactive.then(() => {
+          this.ctxs.set(view, this.env.createContext(resources));
+          return true;
+        });
+      }
+      unregisterView(view) {
+        return this.ctxs.delete(view);
       }
       resolveEntities(view, langs, keys) {
         return this.ctxs.get(view).resolveEntities(langs, keys);
@@ -2429,13 +2343,16 @@
       formatValues(view, keys) {
         return this.languages.then(langs => this.ctxs.get(view).resolveValues(langs, keys));
       }
+      resolvedLanguages() {
+        return this.languages;
+      }
       requestLanguages(requestedLangs) {
         return changeLanguages.call(this, getAdditionalLanguages(), requestedLangs);
       }
-      getPseudoName(code) {
+      getName(code) {
         return pseudo[code].name;
       }
-      pseudotranslate(code, str) {
+      processString(code, str) {
         return pseudo[code].process(str);
       }
       handleEvent(evt) {
@@ -2451,25 +2368,157 @@
       return Promise.resolve([]);
     }
 
-    function translateViews(langs) {
-      const views = Array.from(this.ctxs.keys());
-      return Promise.all(views.map(view => translateDocument(view, langs)));
-    }
-
     function changeLanguages(additionalLangs, requestedLangs) {
       const prevLangs = this.languages || [];
-      return this.languages = Promise.all([additionalLangs, prevLangs]).then(([additionalLangs, prevLangs]) => negotiateLanguages(translateViews.bind(this), this.appVersion, this.defaultLanguage, this.availableLanguages, additionalLangs, prevLangs, requestedLangs));
+      return this.languages = Promise.all([additionalLangs, prevLangs]).then(([additionalLangs, prevLangs]) => negotiateLanguages(this.broadcast.bind(this, 'translateDocument'), this.appVersion, this.defaultLanguage, this.availableLanguages, additionalLangs, prevLangs, requestedLangs));
     }
 
-    return { Service, getAdditionalLanguages };
+    return { Remote, getAdditionalLanguages };
+  });
+  modules.set('lib/events', function () {
+    function emit(listeners, ...args) {
+      const type = args.shift();
+
+      if (listeners['*']) {
+        listeners['*'].slice().forEach(listener => listener.apply(this, args));
+      }
+
+      if (listeners[type]) {
+        listeners[type].slice().forEach(listener => listener.apply(this, args));
+      }
+    }
+
+    function addEventListener(listeners, type, listener) {
+      if (!(type in listeners)) {
+        listeners[type] = [];
+      }
+
+      listeners[type].push(listener);
+    }
+
+    function removeEventListener(listeners, type, listener) {
+      const typeListeners = listeners[type];
+      const pos = typeListeners.indexOf(listener);
+
+      if (pos === -1) {
+        return;
+      }
+
+      typeListeners.splice(pos, 1);
+    }
+
+    return { emit, addEventListener, removeEventListener };
+  });
+  modules.set('runtime/web/bridge', function () {
+    const { emit, addEventListener } = getModule('lib/events');
+
+    class Client {
+      constructor(remote) {
+        this.id = this;
+        this.remote = remote;
+        const listeners = {};
+
+        this.on = (...args) => addEventListener(listeners, ...args);
+
+        this.emit = (...args) => emit(listeners, ...args);
+      }
+      method(name, ...args) {
+        return this.remote[name](...args);
+      }
+    }
+
+    function broadcast(type, data) {
+      Array.from(this.ctxs.keys()).forEach(client => client.emit(type, data));
+    }
+
+    return { Client, broadcast };
+  });
+  modules.set('lib/errors', function () {
+    function L10nError(message, id, lang) {
+      this.name = 'L10nError';
+      this.message = message;
+      this.id = id;
+      this.lang = lang;
+    }
+
+    L10nError.prototype = Object.create(Error.prototype);
+    L10nError.prototype.constructor = L10nError;
+    return { L10nError };
+  });
+  modules.set('runtime/web/io', function () {
+    const { L10nError } = getModule('lib/errors');
+
+    function load(type, url) {
+      return new Promise(function (resolve, reject) {
+        const xhr = new XMLHttpRequest();
+
+        if (xhr.overrideMimeType) {
+          xhr.overrideMimeType(type);
+        }
+
+        xhr.open('GET', url, true);
+
+        if (type === 'application/json') {
+          xhr.responseType = 'json';
+        }
+
+        xhr.addEventListener('load', function io_onload(e) {
+          if (e.target.status === 200 || e.target.status === 0) {
+            resolve(e.target.response || e.target.responseText);
+          } else {
+            reject(new L10nError('Not found: ' + url));
+          }
+        });
+        xhr.addEventListener('error', reject);
+        xhr.addEventListener('timeout', reject);
+
+        try {
+          xhr.send(null);
+        } catch (e) {
+          if (e.name === 'NS_ERROR_FILE_NOT_FOUND') {
+            reject(new L10nError('Not found: ' + url));
+          } else {
+            throw e;
+          }
+        }
+      });
+    }
+
+    const io = {
+      extra: function (code, ver, path, type) {
+        return navigator.mozApps.getLocalizationResource(code, ver, path, type);
+      },
+      app: function (code, ver, path, type) {
+        switch (type) {
+          case 'text':
+            return load('text/plain', path);
+
+          case 'json':
+            return load('application/json', path);
+
+          default:
+            throw new L10nError('Unknown file type: ' + type);
+        }
+      }
+    };
+
+    function fetch(ver, res, lang) {
+      const url = res.replace('{locale}', lang.code);
+      const type = res.endsWith('.json') ? 'json' : 'text';
+      return io[lang.src](lang.code, ver, url, type);
+    }
+
+    return { fetch };
   });
   modules.set('runtime/web/index', function () {
-    const { Service } = getModule('runtime/web/service');
+    const { fetch } = getModule('runtime/web/io');
+    const { Client, broadcast } = getModule('runtime/web/bridge');
+    const { Remote } = getModule('bindings/html/remote');
     const { View } = getModule('bindings/html/view');
-    const service = new Service(navigator.languages);
-    window.addEventListener('languagechange', service);
-    document.addEventListener('additionallanguageschange', service);
-    document.l10n = new View(service, document);
+    const remote = new Remote(fetch, broadcast, navigator.languages);
+    window.addEventListener('languagechange', remote);
+    document.addEventListener('additionallanguageschange', remote);
+    document.l10n = new View(new Client(remote), document);
   });
   modules.set('runtime/gaia/index', function () {
     getModule('runtime/web/index');
