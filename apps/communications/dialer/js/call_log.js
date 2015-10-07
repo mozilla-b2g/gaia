@@ -168,10 +168,7 @@ var CallLog = {
     var headers = this.callLogContainer.getElementsByTagName('header');
     for (var i = 0, l = headers.length; i < l; i++) {
       var current = headers[i];
-      var parsedInfo = Utils.headerDate(parseInt(current.dataset.timestamp));
-      if (parsedInfo !== current.textContent) {
-        current.textContent = parsedInfo;
-      }
+      Utils.setHeaderDate(current, parseInt(current.dataset.timestamp));
     }
   },
 
@@ -512,7 +509,7 @@ var CallLog = {
       phoneNumberAdditionalInfo =
         Utils.getPhoneNumberAdditionalInfo(contact.matchingTel);
     } else if (voicemail || emergency) {
-      phoneNumberAdditionalInfo = number;
+      phoneNumberAdditionalInfo = {raw: number};
       phoneNumberTypeL10nId =
         voicemail ? 'voiceMail' :
           (emergency ? 'emergencyNumber' : null);
@@ -527,12 +524,13 @@ var CallLog = {
     var typeAndCarrier = document.createElement('span');
     typeAndCarrier.className = 'type-carrier';
     if (phoneNumberAdditionalInfo) {
-      if (typeof(phoneNumberAdditionalInfo) === 'string') {
+      if (phoneNumberAdditionalInfo.raw) {
         typeAndCarrier.removeAttribute('data-l10n-id');
-        typeAndCarrier.textContent = phoneNumberAdditionalInfo;
+        typeAndCarrier.textContent = phoneNumberAdditionalInfo.raw;
       } else {
-        typeAndCarrier.setAttribute('data-l10n-id',
-                                    phoneNumberAdditionalInfo.id);
+        navigator.mozL10n.setAttributes(typeAndCarrier,
+            phoneNumberAdditionalInfo.id,
+            phoneNumberAdditionalInfo.args);
       }
     }
     addInfo.appendChild(typeAndCarrier);
@@ -569,7 +567,7 @@ var CallLog = {
     var groupContainer = document.createElement('section');
     groupContainer.dataset.timestamp = referenceTimestamp;
     var header = document.createElement('header');
-    header.textContent = Utils.headerDate(referenceTimestamp);
+    Utils.setHeaderDate(header, referenceTimestamp);
     header.dataset.timestamp = referenceTimestamp;
     header.id = 'header-' + referenceTimestamp;
     header.dataset.update = true;
@@ -985,9 +983,12 @@ var CallLog = {
 
     var phoneNumberAdditionalInfo =
       Utils.getPhoneNumberAdditionalInfo(matchingTel);
-    if (phoneNumberAdditionalInfo && phoneNumberAdditionalInfo.length) {
-      typeAndCarrier.textContent = phoneNumberAdditionalInfo;
-    }
+
+    navigator.mozL10n.setAttributes(
+      typeAndCarrier,
+      phoneNumberAdditionalInfo.id,
+      phoneNumberAdditionalInfo.args
+    );
 
     if (contact) {
       element.dataset.contactId = contact.id;

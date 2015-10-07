@@ -3,7 +3,7 @@
 /* global CallHandler, CallLog, CallLogDBManager, Contacts, KeypadManager,
           MockL10n, MockNavigatorMozIccManager,
           MocksHelper, MockSimSettingsHelper, Notification,
-          CallGroupMenu, Utils, MockMozContacts, Navigation */
+          CallGroupMenu, Utils, MockMozContacts, Navigation, l10nAssert */
 
 require('/shared/js/dialer/utils.js');
 
@@ -364,23 +364,23 @@ suite('dialer/call_log', function() {
     if (group.contact &&
         (matchingTel = group.contact.matchingTel) && matchingTel.value) {
       assert.ok(addInfo, 'Additional info ok');
-      var expAddInfo;
+      var l10nArgs = {};
       if (matchingTel.type) {
-        expAddInfo = matchingTel.type;
+        l10nArgs.type = matchingTel.type;
       } else {
-        expAddInfo = 'mobile';
+        l10nArgs.type = 'mobile';
       }
       if (matchingTel.carrier) {
-        expAddInfo += ', ' + matchingTel.carrier;
+        l10nArgs.carrier = matchingTel.carrier;
       } else {
-        expAddInfo += ', ' + matchingTel.value;
+        l10nArgs.carrier = matchingTel.value;
       }
-      assert.equal(typeCarrier.innerHTML, expAddInfo);
+
+      l10nAssert(typeCarrier, 'phone_type_custom_and_carrier', l10nArgs);
     } else if (group.voicemail || group.emergency) {
       assert.equal(typeCarrier.innerHTML, group.number);
     } else {
-      assert.equal(typeCarrier.getAttribute('data-l10n-id'), 'unknown',
-                   'No additional info');
+      l10nAssert(typeCarrier, 'unknown');
     }
 
     // Call time.
@@ -431,20 +431,20 @@ suite('dialer/call_log', function() {
     var typeCarrier = addInfo.querySelector('.type-carrier');
     if (contact && contact.matchingTel && contact.matchingTel.value) {
       assert.ok(addInfo, 'Additional info ok');
-      var expTypeCarrier;
+      var l10nArgs = {};
       if (contact.matchingTel.type) {
-        expTypeCarrier = contact.matchingTel.type;
+        l10nArgs.type = contact.matchingTel.type;
       } else {
-        expTypeCarrier = 'mobile';
+        l10nArgs.type = 'mobile';
       }
       if (contact.matchingTel.carrier) {
-        expTypeCarrier += ', ' + contact.matchingTel.carrier;
+        l10nArgs.carrier = contact.matchingTel.carrier;
       } else {
-        expTypeCarrier += ', ' + contact.matchingTel.value;
+        l10nArgs.carrier = contact.matchingTel.value;
       }
-      assert.equal(typeCarrier.innerHTML, expTypeCarrier);
+      l10nAssert(typeCarrier, 'phone_type_custom_and_carrier', l10nArgs);
     } else {
-      assert.equal(typeCarrier.innerHTML, '', 'No additional info');
+      l10nAssert(typeCarrier, 'unknown');
     }
 
     if (callback) {
