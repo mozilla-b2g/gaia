@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
+    <meta charset="utf-8">
+    <title>Remote Control</title>
+    <link rel="stylesheet" type="text/css" href="style/main.css">
+    <script defer src="bower_components/evt/index.js"></script>
+    <script defer src="shared/js/settings_listener.js"></script>
+    <script defer src="shared/js/l10n.js"></script>
+    <script defer src="shared/js/smart-screen/key_navigation_adapter.js"></script>
+    <script defer src="shared/js/smart-screen/spatial_navigator.js"></script>
+    <script defer src="js/settings.js"></script>
+    <script defer src="js/section.js"></script>
+    <script defer src="js/settings_section.js"></script>
+    <script defer src="js/app.js"></script>
+    <script defer src="js/bootstrap.js"></script>
+    <!-- L10n properties -->
+    <meta name="defaultLanguage" content="en-US">
+    <meta name="availableLanguages" content="en-US">
+    <link rel="localization" href="locales/remote-control.{locale}.properties">
+  </head>
+  <body>
+    <section id="main-section">
+      <h1 data-l10n-id="title"></h1>
+      <div id="settings-icon" class="focusable"></div>
+      <div id="instruction">
+        <p data-l10n-id="instruction1"></p>
+        <p data-l10n-id="instruction2"></p>
+      </div>
+      <div id="location">
+        <div id="ip"></div>
+        <div id="qrcode" class="focusable">
+          <div id="qrcode-image"></div>
+        </div>
+      </div>
+      <div id="disabled-message" class="error-message">
+        <div data-l10n-id="disabled-message"></div>
+        <div id="go-to-settings-button" class="lower-right-button focusable" data-l10n-id="go-to-settings"></div>
+      </div>
+      <div id="off-line-message" class="error-message">
+        <div data-l10n-id="off-line-message"></div>
+        <div id="exit-button" class="lower-right-button focusable" data-l10n-id="exit"></div>
+      </div>
+    </section>
+    <section id="big-qrcode">
+      <div id="big-qrcode-container">
+        <div id="big-qrcode-image"></div>
+      </div>
+    </section>
+    <section id="settings-section">
+      <h1 data-l10n-id="settings-title"></h1>
+      <div id="option-list">
+        <div class="option-item">
+          <div id="option-pair-off" class="option-radio focusable"></div>
+          <div class="option-content">
+            <div class="label" data-l10n-id="option-pair-off-label"></div>
+            <div class="description" data-l10n-id="option-pair-off-description"></div>
+          </div>
+        </div>
+        <div class="option-item">
+          <div id="option-pair-on" class="option-radio focusable"></div>
+          <div class="option-content">
+            <div class="label" data-l10n-id="option-pair-on-label"></div>
+            <div class="description" data-l10n-id="option-pair-on-description"></div>
+            <button id="clear-authorized-devices" class="focusable" data-l10n-id="clear-authorized-devices"></button>
+          </div>
+        </div>
+        <div class="option-item">
+          <div id="option-disabled" class="option-radio focusable"></div>
+          <div class="option-content">
+            <div class="label" data-l10n-id="option-disabled"></div>
+          </div>
+        </div>
+      </div>
+      <div id="save-button" class="lower-right-button focusable" data-l10n-id="save"></div>
+    </section>
+  </body>
+</html>
