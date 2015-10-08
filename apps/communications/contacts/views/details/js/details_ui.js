@@ -282,37 +282,34 @@
         return;
       }
 
-      // Load what we need
-      LazyLoader.load('/contacts/js/utilities/mozContact.js', () => {
-        for (var i = 0; i < contact.adr.length; i++) {
-          var currentAddress = contact.adr[i];
-          // Sanity check
-          if (utils.mozContact.haveEmptyFields(currentAddress,
-              ['streetAddress', 'postalCode', 'locality', 'countryName'])) {
-            continue;
-          }
-          var address = currentAddress.streetAddress || '';
-          var escapedStreet = Normalizer.escapeHTML(address, true);
-          var locality = currentAddress.locality;
-          var escapedLocality = Normalizer.escapeHTML(locality, true);
-          var country = currentAddress.countryName || '';
-          var escapedCountry = Normalizer.escapeHTML(country, true);
-          var postalCode = currentAddress.postalCode || '';
-          var escapedPostalCode = Normalizer.escapeHTML(postalCode, true);
-
-          var addressField = {
-            streetAddress: escapedStreet,
-            postalCode: escapedPostalCode,
-            locality: escapedLocality || '',
-            countryName: escapedCountry,
-            'type_l10n_id': currentAddress.type,
-            i: i
-          };
-          var template = utils.templates.render(this.addressesTemplate,
-            addressField);
-          this.listContainer.appendChild(template);
+      for (var i = 0; i < contact.adr.length; i++) {
+        var currentAddress = contact.adr[i];
+        // Sanity check
+        if (utils.mozContact.haveEmptyFields(currentAddress,
+            ['streetAddress', 'postalCode', 'locality', 'countryName'])) {
+          continue;
         }
-      });
+        var address = currentAddress.streetAddress || '';
+        var escapedStreet = Normalizer.escapeHTML(address, true);
+        var locality = currentAddress.locality;
+        var escapedLocality = Normalizer.escapeHTML(locality, true);
+        var country = currentAddress.countryName || '';
+        var escapedCountry = Normalizer.escapeHTML(country, true);
+        var postalCode = currentAddress.postalCode || '';
+        var escapedPostalCode = Normalizer.escapeHTML(postalCode, true);
+
+        var addressField = {
+          streetAddress: escapedStreet,
+          postalCode: escapedPostalCode,
+          locality: escapedLocality || '',
+          countryName: escapedCountry,
+          'type_l10n_id': currentAddress.type,
+          i: i
+        };
+        var template = utils.templates.render(this.addressesTemplate,
+          addressField);
+        this.listContainer.appendChild(template);
+      }
     },
 
     renderDates: function(contact) {

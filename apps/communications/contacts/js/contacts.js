@@ -393,7 +393,8 @@ var Contacts = (function() {
            '/dialer/js/telephony_helper.js',
            '/shared/js/contacts/sms_integration.js',
            '/shared/js/contacts/contacts_buttons.js',
-           '/contacts/js/match_service.js'],
+           '/contacts/js/match_service.js',
+           '/contacts/js/utilities/mozContact.js'],
         function() {
           detailsReady = true;
           contactsDetails = contacts.Details;
