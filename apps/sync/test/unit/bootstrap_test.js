@@ -237,15 +237,18 @@ suite('Bootstrap', function() {
 
     var consoleErrorSpy;
     var postMessageSpy;
+    var closeStub;
 
     setup(function() {
       consoleErrorSpy = sinon.spy(console, 'error');
       postMessageSpy = sinon.spy(MockIACPort, 'postMessage');
+      closeStub = sinon.stub(window, 'close');
     });
 
     teardown(function() {
       consoleErrorSpy.restore();
       postMessageSpy.restore();
+      closeStub.restore();
     });
 
     test('invalid sync request', function() {
@@ -253,6 +256,7 @@ suite('Bootstrap', function() {
       expect(consoleErrorSpy.called).to.equal(true);
       expect(consoleErrorSpy.args[0][0]).to.equal('Wrong IAC request');
       expect(postMessageSpy.called).to.equal(false);
+      expect(closeStub.called).to.equal(true);
     });
 
     test('Unknown IAC request', function() {
@@ -266,6 +270,7 @@ suite('Bootstrap', function() {
       expect(consoleErrorSpy.called).to.equal(true);
       expect(consoleErrorSpy.args[0][0]).to.equal('Unknown IAC request');
       expect(postMessageSpy.called).to.equal(false);
+      expect(closeStub.called).to.equal(true);
     });
 
     test('successful sync request', function(done) {
@@ -287,6 +292,7 @@ suite('Bootstrap', function() {
           id: id
         });
         expect(postMessageSpy.args[0][0].error).to.equal(undefined);
+        expect(closeStub.called).to.equal(true);
         done();
       });
     });
@@ -310,17 +316,12 @@ suite('Bootstrap', function() {
         expect(postMessageSpy.args[0][0].id).to.equal(id);
         expect(postMessageSpy.args[0][0].error.message)
           .to.equal('mock sync failure');
+        expect(closeStub.called).to.equal(true);
         done();
       });
     });
 
     test('Cancel sync request', function() {
-      var closeStub = this.sinon.stub(window, 'close');
-
-      teardown(() => {
-        closeStub.restore();
-      });
-
       var id = Date.now();
       window.dispatchEvent(new CustomEvent(IAC_EVENT, {
         detail: {
