@@ -25,6 +25,7 @@ function ControlsController(app) {
   bindAll(this);
   this.app = app;
   this.activity = app.activity;
+  this.camera = app.camera;
   this.createView();
   this.bindEvents();
   debug('initialized');
@@ -40,7 +41,6 @@ ControlsController.prototype.bindEvents = function() {
   this.app.settings.mode.on('change:options', this.configureMode);
 
   // App
-  this.app.on('change:recording', this.onRecordingChange);
   this.app.on('camera:shutter', this.captureHighlightOff);
   this.app.on('camera:willchange', this.onCameraWillChange);
   this.app.on('camera:configured', this.onCameraConfigured);
@@ -49,11 +49,15 @@ ControlsController.prototype.bindEvents = function() {
   this.app.on('busy', this.onCameraBusy);
   this.app.on('localized', this.view.localize);
 
+  // Camera
+  this.camera.on('change:recording', this.onRecordingChange);
+
   // View
   this.view.on('modechanged', this.onViewModeChanged);
   this.view.on('click:thumbnail', this.app.firer('preview'));
   this.view.on('click:cancel', this.onCancelButtonClick);
   this.view.on('click:capture', this.onCaptureClick);
+  this.view.on('click:pause', this.app.firer('capture:pause'));
 
   // Timer
   this.app.on('countdown:started', this.onCountdownStarted);
@@ -165,14 +169,25 @@ ControlsController.prototype.onCameraConfigured = function() {
  * the view to allow it to style
  * accordingly.
  *
- * @param  {Boolean} recording
+ * @param  {String} state
  * @private
  */
-ControlsController.prototype.onRecordingChange = function(recording) {
-  this.view.set('recording', recording);
-  if (!recording) { this.onRecordingEnd(); }
-  // Update capture button label when recording changes.
-  this.view.setCaptureLabel(recording);
+ControlsController.prototype.onRecordingChange = function(state) {
+  var recording;
+  if (state === 'started' || state === 'stopped') {
+    recording = state === 'started';
+    this.view.set('recording', recording);
+    this.view.set('pause-active', false);
+    this.view.setPauseState(false);
+    if (!recording) { this.onRecordingEnd(); }
+  } else if (state === 'pausing' || state === 'resuming') {
+    this.view.set('pause-active', true);
+  } else if (state === 'paused' || state === 'resumed') {
+    recording = state !== 'resumed';
+    this.view.set('pause-active', false);
+    this.view.set('paused', recording);
+    this.view.setPauseState(recording);
+  }
 };
 
 /**
