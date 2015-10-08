@@ -143,6 +143,7 @@
     };
     var childWindow = new PopupWindow(configObject);
     childWindow.element.addEventListener('_closing', this);
+    childWindow.element.addEventListener('_opened', this);
     childWindow.open();
     return true;
   };
@@ -305,6 +306,7 @@
     var top = this.app.getTopMostWindow();
     var trusted = new TrustedWindow(configuration, top);
     trusted.element.addEventListener('_closing', this);
+    trusted.element.addEventListener('_opened', this);
     trusted.open();
   };
 
