@@ -41,9 +41,7 @@ if (!SERVICE_WORKERS) (function() {
     '/api/queue/playlist/:id/shuffle': 'queuePlaylist',
     '/api/queue/playlist/:id/song/:filePath': 'queuePlaylist',
     '/api/queue/song/:filePath': 'queueSong',
-    '/api/queue/repeat': 'getRepeatSetting',
     '/api/queue/repeat/:repeat': 'setRepeatSetting',
-    '/api/queue/shuffle': 'getShuffleSetting',
     '/api/queue/shuffle/:shuffle': 'setShuffleSetting',
 
     '/api/songs/list': 'getSongs',
