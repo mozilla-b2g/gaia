@@ -104,6 +104,7 @@ const Bootstrap = (() => {
   window.addEventListener('iac-gaia::sync::request', event => {
     if (!event || !event.detail || !event.detail.id) {
       console.error('Wrong IAC request');
+      window.close();
       return;
     }
 
@@ -114,11 +115,13 @@ const Bootstrap = (() => {
           sendPortMessage({
             id: request.id
           });
+          window.close();
         }).catch(error => {
           sendPortMessage({
             id: request.id,
             error: error
           });
+          window.close();
         });
         break;
       case 'cancel':
@@ -127,6 +130,7 @@ const Bootstrap = (() => {
         break;
       default:
         console.error('Unknown IAC request');
+        window.close();
     }
   });
 
