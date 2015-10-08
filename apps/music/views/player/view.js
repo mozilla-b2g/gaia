@@ -50,11 +50,12 @@ var PlayerView = View.extend(function PlayerView() {
 
 PlayerView.prototype.update = function() {
   this.getPlaybackStatus().then((status) => {
-    this.getSong(status.filePath).then((song) => {
-      if (!song) {
-        return;
-      }
+    if (!status.filePath) {
+      this.clear();
+      return;
+    }
 
+    this.getSong(status.filePath).then((song) => {
       document.l10n.formatValues(
         'unknownTitle', 'unknownArtist', 'unknownAlbum'
       ).then(([unknownTitle, unknownArtist, unknownAlbum]) => {
@@ -86,6 +87,16 @@ PlayerView.prototype.destroy = function() {
 
 PlayerView.prototype.render = function() {
   View.prototype.render.call(this); // super();
+};
+
+PlayerView.prototype.clear = function() {
+  this.title = '';
+
+  this.artwork.artist = '';
+  this.artwork.album  = '';
+  this.artwork.src    = '';
+
+  this.artwork.els.rating.value = 0;
 };
 
 PlayerView.prototype.startFastSeek = function(reverse) {

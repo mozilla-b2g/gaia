@@ -123,9 +123,10 @@ View.prototype.fetch = SERVICE_WORKERS ?
           setTimeout(() => {
             var args = [route.method].concat(match.splice(1));
             this.client.method.apply(this.client, args).then((result) => {
+              var resolver = () => Promise.resolve(result);
               resolve({
-                blob: () => Promise.resolve(result),
-                json: () => Promise.resolve(result)
+                blob: resolver,
+                json: resolver
               });
             });
           });

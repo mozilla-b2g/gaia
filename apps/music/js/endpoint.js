@@ -80,9 +80,9 @@ document.addEventListener('DOMContentLoaded', function() {
     service.broadcast('durationChange', audio.duration);
   });
 
-  audio.addEventListener('timeupdate', function() {
+  audio.addEventListener('timeupdate', throttle(function() {
     service.broadcast('elapsedTimeChange', audio.currentTime);
-  });
+  }, 1000));
 
   audio.addEventListener('ended', function() {
     nextSong(true);
@@ -495,6 +495,26 @@ function open(blob) {
       };
     });
   });
+}
+
+function throttle(fn, ms) {
+  var last = Date.now();
+  var timeout;
+  return (...args) => {
+    var now = Date.now();
+    if (now < last + ms) {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => {
+        last = now;
+        fn.apply(this, args);
+      }, ms);
+    }
+
+    else {
+      last = now;
+      fn.apply(this, args);
+    }
+  };
 }
 
 Database.init();
