@@ -1,5 +1,5 @@
 from gaiatest import GaiaTestCase
-from gaiatest.apps.homescreen.regions.confirm_install import ConfirmInstall
+
 from gaiatest.apps.bzlite.app import BugzillaLiteStage
 
 class TestSearchBug(GaiaTestCase):

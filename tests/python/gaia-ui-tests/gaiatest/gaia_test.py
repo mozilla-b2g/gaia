@@ -143,6 +143,14 @@ class GaiaApps(object):
         self.marionette.switch_to_frame()
         self.marionette.execute_async_script("GaiaApps.killAll();")
 
+    def install_app(self, nameApp, urlApp):
+        self.marionette.switch_to_frame()
+        self.marionette.execute_script(
+            'navigator.mozApps.install("%s")' % urlApp)
+        from gaiatest.apps.homescreen.regions.confirm_install import ConfirmInstall
+        confirm_install = ConfirmInstall(self.marionette)
+        confirm_install.tap_confirm()
+
     def uninstall(self, name):
         self.marionette.switch_to_frame()
         data_layer = GaiaData(self.marionette)
