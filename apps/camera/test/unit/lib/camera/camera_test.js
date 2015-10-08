@@ -385,6 +385,94 @@ suite('lib/camera/camera', function() {
     });
   });
 
+  suite('Camera#pauseRecording()', function() {
+    setup(function() {
+      sinon.stub(this.camera, 'get');
+      sinon.stub(this.camera, 'set');
+      this.camera.get.withArgs('recording').returns('started');
+
+      this.camera.mozCamera = {
+        pauseRecording: sinon.stub()
+      };
+    });
+
+    test('Should not do anything if camera is not recording', function() {
+      this.camera.get.withArgs('recording').returns('stopped');
+      this.camera.pauseRecording();
+      sinon.assert.notCalled(this.camera.mozCamera.pauseRecording);
+    });
+
+    test('Should call `mozCamera.pauseRecording`', function() {
+      this.camera.pauseRecording();
+      sinon.assert.called(this.camera.mozCamera.pauseRecording);
+    });
+
+    test('Should set `recording` flag to `pausing`', function() {
+      this.camera.pauseRecording();
+      sinon.assert.called(this.camera.set, 'recording', 'pausing');
+    });
+  });
+
+  suite('Camera#pausedRecording()', function() {
+    setup(function() {
+      sinon.stub(this.camera, 'stopVideoTimer');
+      sinon.stub(this.camera, 'set');
+      this.camera.pausedRecording();
+    });
+
+    test('Should stop the video timer', function() {
+      sinon.assert.called(this.camera.stopVideoTimer);
+    });
+
+    test('Should set `recording` flag to `paused`', function() {
+      sinon.assert.called(this.camera.set, 'recording', 'paused');
+    });
+  });
+
+  suite('Camera#resumeRecording()', function() {
+    setup(function() {
+      sinon.stub(this.camera, 'get');
+      sinon.stub(this.camera, 'set');
+      this.camera.get.withArgs('recording').returns('paused');
+
+      this.camera.mozCamera = {
+        resumeRecording: sinon.stub()
+      };
+    });
+
+    test('Should not do anything if recording is not paused', function() {
+      this.camera.get.withArgs('recording').returns('started');
+      this.camera.resumeRecording();
+      sinon.assert.notCalled(this.camera.mozCamera.resumeRecording);
+    });
+
+    test('Should call `mozCamera.resumeRecording`', function() {
+      this.camera.resumeRecording();
+      sinon.assert.called(this.camera.mozCamera.resumeRecording);
+    });
+
+    test('Should set `recording` flag to `resuming`', function() {
+      this.camera.resumeRecording();
+      sinon.assert.called(this.camera.set, 'recording', 'resuming');
+    });
+  });
+
+  suite('Camera#resumedRecording()', function() {
+    setup(function() {
+      sinon.stub(this.camera, 'startVideoTimer');
+      sinon.stub(this.camera, 'set');
+      this.camera.resumedRecording();
+    });
+
+    test('Should restart the video timer', function() {
+      sinon.assert.called(this.camera.startVideoTimer, true);
+    });
+
+    test('Should set `recording` flag to `resumed`', function() {
+      sinon.assert.called(this.camera.set, 'recording', 'resumed');
+    });
+  });
+
   suite('Camera#stopRecording()', function() {
     setup(function() {
       sinon.spy(this.camera, 'set');
@@ -428,6 +516,8 @@ suite('lib/camera/camera', function() {
     setup(function() {
       sinon.stub(this.camera, 'startedRecording');
       sinon.stub(this.camera, 'stoppedRecording');
+      sinon.stub(this.camera, 'pausedRecording');
+      sinon.stub(this.camera, 'resumedRecording');
       sinon.stub(this.camera, 'onStopRecordingError');
       sinon.stub(this.camera, 'stopRecording');
     });
@@ -456,6 +546,16 @@ suite('lib/camera/camera', function() {
       this.camera.onRecorderStateChange({newState: 'PosterFailed'});
       sinon.assert.called(this.camera.stopRecording);
       assert.isTrue(this.camera.stopRecordError);
+    });
+
+    test('Should call `pausedRecording`', function() {
+      this.camera.onRecorderStateChange({newState: 'Paused'});
+      sinon.assert.calledWith(this.camera.pausedRecording);
+    });
+
+    test('Should call `resumedRecording`', function() {
+      this.camera.onRecorderStateChange({newState: 'Resumed'});
+      sinon.assert.calledWith(this.camera.resumedRecording);
     });
 
     test('Should emit `filesizelimitreached`', function() {
