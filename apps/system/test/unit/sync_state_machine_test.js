@@ -73,7 +73,6 @@ suite('system/SyncStateMachine >', () => {
       from: 'syncing',
       invalidEvents: [
         'enable',
-        'disable',
         'sync'
       ],
       transition: 'error'
@@ -182,6 +181,50 @@ suite('system/SyncStateMachine >', () => {
         'disabled',
         'enabling',
         'errored',
+        'syncing'
+      ]
+    }, {
+      from: 'enabled',
+      to: 'syncing',
+      transition: 'sync',
+      expectedEvent: 'syncing',
+      unexpectedEvents: [
+        'enabled',
+        'enabling',
+        'disabled',
+        'errored'
+      ]
+    }, {
+      from: 'syncing',
+      to: 'disabled',
+      transition: 'disable',
+      expectedEvent: 'disabled',
+      unexpectedEvents: [
+        'enabled',
+        'errored',
+        'enabling',
+        'syncing'
+      ]
+    }, {
+      from: 'disabled',
+      to: 'enabling',
+      transition: 'enable',
+      expectedEvent: 'enabling',
+      unexpectedEvents: [
+        'disabled',
+        'errored',
+        'enabled',
+        'syncing'
+      ]
+    }, {
+      from: 'enabling',
+      to: 'enabled',
+      transition: 'success',
+      expectedEvent: 'enabled',
+      unexpectedEvents: [
+        'enabling',
+        'errored',
+        'disabled',
         'syncing'
       ]
     }, {

@@ -255,10 +255,24 @@ suite('Bootstrap', function() {
       expect(postMessageSpy.called).to.equal(false);
     });
 
+    test('Unknown IAC request', function() {
+      var id = Date.now();
+      window.dispatchEvent(new CustomEvent(IAC_EVENT, {
+        detail: {
+          name: 'whatever',
+          id: id
+        }
+      }));
+      expect(consoleErrorSpy.called).to.equal(true);
+      expect(consoleErrorSpy.args[0][0]).to.equal('Unknown IAC request');
+      expect(postMessageSpy.called).to.equal(false);
+    });
+
     test('successful sync request', function(done) {
       var id = Date.now();
       window.dispatchEvent(new CustomEvent(IAC_EVENT, {
         detail: {
+          name: 'sync',
           id: id,
           URL: 'url',
           assertion: 'assertion',
@@ -282,6 +296,7 @@ suite('Bootstrap', function() {
       MockSyncEngine.shouldFail = true;
       window.dispatchEvent(new CustomEvent(IAC_EVENT, {
         detail: {
+          name: 'sync',
           id: id,
           URL: 'url',
           assertion: 'assertion',
@@ -297,6 +312,24 @@ suite('Bootstrap', function() {
           .to.equal('mock sync failure');
         done();
       });
+    });
+
+    test('Cancel sync request', function() {
+      var closeStub = this.sinon.stub(window, 'close');
+
+      teardown(() => {
+        closeStub.restore();
+      });
+
+      var id = Date.now();
+      window.dispatchEvent(new CustomEvent(IAC_EVENT, {
+        detail: {
+          name: 'cancel',
+          id: id
+        }
+      }));
+      expect(closeStub.called).to.equal(true);
+      expect(postMessageSpy.called).to.equal(false);
     });
   });
 });
