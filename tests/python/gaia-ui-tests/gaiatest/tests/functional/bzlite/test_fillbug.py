@@ -7,11 +7,11 @@ from gaiatest.apps.bzlite.app import BugzillaLiteStage
 class TestFillBug(GaiaTestCase):
     def setUp(self):
         GaiaTestCase.setUp(self)
-        self.push_resource('IMG_0001.jpg') # <= No detail about how to send a file
-        self.connect_to_local_area_network() # <= No detail about how to connect
+        self.push_resource('IMG_0001.jpg')
+        self.connect_to_local_area_network()
         name = 'Bugzilla Lite Stage'
         url = 'http://bzlite-staging.herokuapp.com/manifest.webapp'
-        self.apps.install_app(name, url) # <= No detail about how to install
+        self.apps.install(url)
 
 
     def test_fill_new_bug(self):

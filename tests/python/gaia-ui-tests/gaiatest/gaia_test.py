@@ -143,10 +143,10 @@ class GaiaApps(object):
         self.marionette.switch_to_frame()
         self.marionette.execute_async_script("GaiaApps.killAll();")
 
-    def install_app(self, nameApp, urlApp):
+    def install(self, manifestURL):
         self.marionette.switch_to_frame()
         self.marionette.execute_script(
-            'navigator.mozApps.install("%s")' % urlApp)
+            'navigator.mozApps.install("%s")' % manifestURL)
         from gaiatest.apps.homescreen.regions.confirm_install import ConfirmInstall
         confirm_install = ConfirmInstall(self.marionette)
         confirm_install.tap_confirm()

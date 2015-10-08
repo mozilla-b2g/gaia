@@ -13,12 +13,10 @@ class CreateBug(Base):
 
     def _fill_title(self,title):
         title_element = self.marionette.find_element(*self._title_input)
-        title_element.tap()
         title_element.send_keys(title)
 
     def _fill_description(self,description):
         description_element = self.marionette.find_element(*self._description_input)
-        description_element.tap()
         description_element.send_keys(description)
 
     def _fill_picture(self):

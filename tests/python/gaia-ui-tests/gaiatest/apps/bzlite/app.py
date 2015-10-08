@@ -6,7 +6,6 @@ from gaiatest.apps.base import PageRegion
 
 class BugzillaLite(Base):
 
-
     name = 'Bugzilla Lite'
     manifest_url = "https://www.bzlite.com/manifest.webapp"
     _given_username = (By.CSS_SELECTOR, "#login input[type='email']")
@@ -22,7 +21,7 @@ class BugzillaLite(Base):
     _close_locator = (By.CSS_SELECTOR, '.headerBtn.close')
     _content_locator = (By.ID, 'content')
     _bugpage_locator = (By.CSS_SELECTOR, '.bugPage')
-    _back_locator = (By.CSS_SELECTOR, 'a[href="/"]')
+    _back_locator = (By.CSS_SELECTOR, '.back')
     _filed_bug_locator = (By.CSS_SELECTOR, '#dashboardNav a[href="/dashboard/filed/"]')
     _filed_bug_name = (By.CSS_SELECTOR, '.dashboard ul a')
     _commentsLink_locator = (By.CSS_SELECTOR, '#bugNav .commentsLink')
@@ -72,7 +71,6 @@ class BugzillaLite(Base):
 
 class BugzillaLiteStage(BugzillaLite):
 
-
     name =  'Bugzilla Lite Stage'
     manifest_url = 'http://bzlite-staging.herokuapp.com/manifest.webapp'
 
@@ -88,11 +86,12 @@ class BugzillaLiteStage(BugzillaLite):
     def create_new_bug(self, title, description):
         self.marionette.find_element(*self._create_button).tap()
         from gaiatest.apps.bzlite.regions.create_bug import CreateBug
+        create_bug = CreateBug(self.marionette)
         
-        CreateBug(self.marionette)._fill_title(title)
-        CreateBug(self.marionette)._fill_description(description)
-        CreateBug(self.marionette)._fill_picture()
-        CreateBug(self.marionette)._submit()
+        create_bug._fill_title(title)
+        create_bug._fill_description(description)
+        create_bug._fill_picture()
+        create_bug._submit()
 
         time.sleep(10)
         Wait(self.marionette,timeout=20).until(expected.element_displayed(
