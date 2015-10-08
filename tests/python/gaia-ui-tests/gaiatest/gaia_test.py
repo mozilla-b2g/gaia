@@ -142,6 +142,14 @@ class GaiaApps(object):
         # Now kill the user apps
         self.marionette.switch_to_frame()
         self.marionette.execute_async_script("GaiaApps.killAll();")
+    
+    def install(self, manifestURL):
+        self.marionette.switch_to_frame()
+        data_layer = GaiaData(self.marionette)
+        data_layer.set_bool_pref('dom.mozApps.auto_confirm_install', True)
+        result = self.marionette.execute_async_script('GaiaApps.installWithManifestURL("%s")' % manifestURL)
+        assert (result is True), 'Failed to install app: %s' % result
+        data_layer.set_bool_pref('dom.mozApps.auto_confirm_install', False)
 
     def uninstall(self, name):
         self.marionette.switch_to_frame()
