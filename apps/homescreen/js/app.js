@@ -87,9 +87,7 @@ const SETTINGS_VERSION = 0;
     this.edit = document.getElementById('edit');
     this.cancelDownload = document.getElementById('cancel-download');
     this.resumeDownload = document.getElementById('resume-download');
-    this.settingsDialog = document.getElementById('settings');
-    this.dialogs =
-      [this.cancelDownload, this.resumeDownload, this.settingsDialog];
+    this.dialogs = [this.cancelDownload, this.resumeDownload];
 
     // XXX Working around gaia-components issue #8
     var dialog;
@@ -141,7 +139,6 @@ const SETTINGS_VERSION = 0;
     this.updatePanelIndicator();
 
     // Signal handlers
-    document.body.addEventListener('contextmenu', this);
     this.panels.addEventListener('scroll', this);
     this.scrollable.addEventListener('scroll', this);
     this.icons.addEventListener('activate', this);
@@ -685,25 +682,6 @@ const SETTINGS_VERSION = 0;
       var icon, child, id;
 
       switch (e.type) {
-      // Show the settings menu when the user long-presses and we aren't in
-      // a drag
-      case 'contextmenu':
-        if (!document.body.classList.contains('dragging')) {
-          this.showActionDialog(this.settingsDialog, null,
-            [() => {
-               new MozActivity({
-                 name: 'configure',
-                 data: {
-                   target: 'device',
-                   section: 'homescreens'
-                 }
-               });
-             }]);
-          e.stopImmediatePropagation();
-          e.preventDefault();
-        }
-        break;
-
       // Display the top shadow when scrolling down
       case 'scroll':
         if (e.target === this.panels) {

@@ -252,22 +252,6 @@ Homescreen.prototype = {
   },
 
   /**
-   * Opens the settings menu by long-pressing on the empty space at the bottom
-   * of the icon grid.
-   */
-  openSettingsMenu: function() {
-    var rect = this.appsScrollable.scriptWith(function(el) {
-      el.scrollTop = el.scrollTopMax;
-      return el.getBoundingClientRect();
-    });
-    var actions = this.client.loader.getActions();
-    actions.press(this.appsScrollable, rect.width / 2, rect.height - 1).
-            wait(0.5).
-            release().
-            perform();
-  },
-
-  /**
    * Restart the homescreen then refocus on it.
    */
   restart: function() {
