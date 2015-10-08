@@ -100,6 +100,7 @@ define(function(require) {
       li.dataset.appIndex = index;
 
       var radio = document.createElement('gaia-radio');
+      radio.className = 'split';
       radio.name = 'homescreen';
       radio.value = index;
       radio.checked = (app.manifestURL === this.manifestURL);

@@ -11,6 +11,7 @@ define(function(require) {
 
     // create an <gaia-radio> element
     var radio = document.createElement('gaia-radio');
+    radio.className = 'split';
     radio.checked = item.active;
     radio.name = apnType;
 

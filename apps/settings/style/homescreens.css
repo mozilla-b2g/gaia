@@ -5,24 +5,6 @@
   white-space: nowrap;
 }
 
-.my-home-screens li label.name:active {
-  background-color: #B2F2FF;
-}
-
-.my-home-screens li label.name {
-  -moz-padding-end: 1rem;
-}
-
-.my-home-screens li label.name::after {
-  content: '';
-  position: absolute;
-  background-color: #E6E6E3;
-  right: 3.5rem;
-  width: 0.1rem;
-  height: calc(100% - 1rem);
-  top: 0.5rem;
-}
-
 #homescreen-details .addon-details-info {
   padding-bottom: 0;
   padding-inline-end: 0;
