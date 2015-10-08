@@ -46,6 +46,16 @@
       }
     }
   },
+  "datastores-access": {
+    "places": {
+      "readonly": true,
+      "description": "Read synced browsing history."
+    },
+    "sync_bookmarks_store": {
+      "readonly": true,
+      "description": "Read synced browser bookmarks."
+    }
+  },
   "connections": {
     "webpage-open": {
       "description": "connection for opening webpage",
