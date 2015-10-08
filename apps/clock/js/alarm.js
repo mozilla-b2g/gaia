@@ -156,6 +156,35 @@ define(function(require, exports, module) {
       // Only update the application if this alarm was actually saved
       // (i.e. it has an ID).
       if (this.id) {
+        var alarmDatabase = require('alarm_database');
+        // Updating Alarm info in the DataStore
+        alarmDatabase.getAll().then((alarms) => {
+          var storeAlarms = [];
+          // Logging in a loop to ensure we don't overrun the line buffer:
+          alarms.forEach(function(a) {
+            // Grabbing alarms that are 'normal'
+            if(a.registeredAlarms.normal) {
+              storeAlarms.push(a);
+            }
+          });
+          // TODo - Enable sort
+//          storeAlarms.sort(function(a,b) {
+//            
+//          });
+          //todo - remove the ones that are not closest
+
+          // append info to datastore
+          navigator.getDataStores('alarms')
+          .then( function(stores) {
+            stores[0].add({
+              'data': storeAlarms
+            }).then(function(id){
+              // Successfull Adding of alarms to data store
+              console.log(id);
+            })
+          });
+        });
+        console.log("PJ- Alarm Database 4");
         window.dispatchEvent(
           new CustomEvent(removed ? 'alarm-removed' : 'alarm-changed', {
             detail: { alarm: this }
