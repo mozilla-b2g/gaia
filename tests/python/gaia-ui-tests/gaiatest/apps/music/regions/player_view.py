@@ -9,47 +9,49 @@ from gaiatest.apps.base import Base
 
 
 class PlayerView(Base):
-    _audio_locator = (By.CSS_SELECTOR, '#audio')
+    _audio_locator = (By.ID, 'audio')
     _active_view_locator = (By.CSS_SELECTOR, 'iframe.active[src*="/views/player/index.html"]')
     _player_seek_elapsed_locator = (By.ID, 'elapsed-time')
-    _player_controls_shadow_DOM_locator = (By.ID, 'controls')
+    _player_controls_shadow_dom_locator = (By.ID, 'controls')
     _player_controls_play_locator = (By.ID, 'toggle')
-    _cover_image_shadow_DOM_locator = (By.ID, 'artwork')
-    _seek_bar_shadow_DOM_locator = (By.ID, 'seek-bar')
+    _cover_image_shadow_dom_locator = (By.ID, 'artwork')
+    _seek_bar_shadow_dom_locator = (By.ID, 'seek-bar')
     _cover_share_locator = (By.CSS_SELECTOR, '[data-l10n-id="share-song"]')
-    _rating_view_locator = (By.CSS_SELECTOR, '#rating')
+    _rating_view_locator = (By.ID, 'rating')
+
+    #_rating_view_locator = (By.CSS_SELECTOR, '#rating')
     _stars_on_locator = (By.CSS_SELECTOR, '.rating-star.star-on')
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
         self.marionette.switch_to_frame(self.marionette.find_element(*self._active_view_locator))
-        element = self.marionette.find_element(*self._cover_image_shadow_DOM_locator)
-        Wait(self.marionette).until(lambda m: element.location['x'] == 0)
+        element = self.marionette.find_element(*self._cover_image_shadow_dom_locator)
+        Wait(self.marionette).until(lambda m: element.rect['x'] == 0 and element.is_displayed())
         self.apps.switch_to_displayed_app()
 
     def tap_play(self):
         self.marionette.switch_to_frame(self.marionette.find_element(*self._active_view_locator))
-        self.marionette.switch_to_shadow_root(self.marionette.find_element(*self._player_controls_shadow_DOM_locator))
+        self.marionette.switch_to_shadow_root(self.marionette.find_element(*self._player_controls_shadow_dom_locator))
         self.marionette.find_element(*self._player_controls_play_locator).tap()
         self.apps.switch_to_displayed_app()
 
     def tap_cover_in_player_view(self):
         self.marionette.switch_to_frame(self.marionette.find_element(*self._active_view_locator))
-        self.marionette.switch_to_shadow_root(self.marionette.find_element(*self._cover_image_shadow_DOM_locator))
+        self.marionette.switch_to_shadow_root(self.marionette.find_element(*self._cover_image_shadow_dom_locator))
 
         #wait until the overlay disappears
         Wait(self.marionette).until(expected.element_not_displayed(*self._rating_view_locator))
         self.marionette.switch_to_shadow_root()
 
-        self.marionette.find_element(*self._cover_image_shadow_DOM_locator).tap()
-        self.marionette.switch_to_shadow_root(self.marionette.find_element(*self._cover_image_shadow_DOM_locator))
+        self.marionette.find_element(*self._cover_image_shadow_dom_locator).tap()
+        self.marionette.switch_to_shadow_root(self.marionette.find_element(*self._cover_image_shadow_dom_locator))
         Wait(self.marionette).until(expected.element_displayed(
             Wait(self.marionette).until(expected.element_present(*self._rating_view_locator))))
         self.apps.switch_to_displayed_app()
 
     def tap_share_button(self):
         self.marionette.switch_to_frame(self.marionette.find_element(*self._active_view_locator))
-        self.marionette.switch_to_shadow_root(self.marionette.find_element(*self._cover_image_shadow_DOM_locator))
+        self.marionette.switch_to_shadow_root(self.marionette.find_element(*self._cover_image_shadow_dom_locator))
         self.marionette.find_element(*self._cover_share_locator).tap()
         from gaiatest.apps.system.regions.activities import Activities
         return Activities(self.marionette)
@@ -63,7 +65,7 @@ class PlayerView(Base):
         """
         self.tap_cover_in_player_view()
         self.marionette.switch_to_frame(self.marionette.find_element(*self._active_view_locator))
-        self.marionette.switch_to_shadow_root(self.marionette.find_element(*self._cover_image_shadow_DOM_locator))
+        self.marionette.switch_to_shadow_root(self.marionette.find_element(*self._cover_image_shadow_dom_locator))
         self.marionette.switch_to_shadow_root(self.marionette.find_element(*self._rating_view_locator))
         Wait(self.marionette).until(expected.element_displayed(*self._get_star_locator(rate)))
         self.marionette.find_element(*self._get_star_locator(rate)).tap()
@@ -72,7 +74,7 @@ class PlayerView(Base):
     @property
     def star_rating(self):
         self.marionette.switch_to_frame(self.marionette.find_element(*self._active_view_locator))
-        self.marionette.switch_to_shadow_root(self.marionette.find_element(*self._cover_image_shadow_DOM_locator))
+        self.marionette.switch_to_shadow_root(self.marionette.find_element(*self._cover_image_shadow_dom_locator))
         rating = self.marionette.find_element(*self._rating_view_locator).get_attribute('value')
         self.apps.switch_to_displayed_app()
         return int(rating)
@@ -80,7 +82,7 @@ class PlayerView(Base):
     @property
     def player_elapsed_time(self):
         self.marionette.switch_to_frame(self.marionette.find_element(*self._active_view_locator))
-        self.marionette.switch_to_shadow_root(self.marionette.find_element(*self._seek_bar_shadow_DOM_locator))
+        self.marionette.switch_to_shadow_root(self.marionette.find_element(*self._seek_bar_shadow_dom_locator))
         Wait(self.marionette).until(expected.element_displayed(
             Wait(self.marionette).until(expected.element_present(*self._player_seek_elapsed_locator))))
         elapsed_time = time.strptime(self.marionette.find_element(*self._player_seek_elapsed_locator).text, '%M:%S')

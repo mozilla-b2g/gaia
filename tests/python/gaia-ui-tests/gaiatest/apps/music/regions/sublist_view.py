@@ -10,30 +10,42 @@ from gaiatest.apps.music.regions.player_view import PlayerView
 
 class SublistView(Base):
 
-    _album_sublist_view_locator = (By.CSS_SELECTOR, 'iframe.active[src*="/views/album-detail/index.html"]')
-    _artist_sublist_view_locator = (By.CSS_SELECTOR, 'iframe.active[src*="/views/artist-detail/index.html"]')
-    _album_list_locator = (By.ID, 'list')
+    _list_locator = (By.ID, 'list')
     _first_song_locator = (By.CLASS_NAME, 'gfl-item first')
 
-    def __init__(self, marionette, sublist_type):
-        Base.__init__(self, marionette)
-        if sublist_type == 'album':
-            self._view = self._album_sublist_view_locator
-        elif sublist_type == 'artist':
-            self._view = self._artist_sublist_view_locator
+    def _set_active_view(self, type):
+        self._active_view_locator = (By.CSS_SELECTOR, 'iframe.active[src*="/views/{}-detail/index.html"]'.format(type))
 
-        element = self.marionette.find_element(*self._view)
-        Wait(self.marionette).until(expected.element_displayed(element))
-        self.marionette.switch_to_frame(element)
+    def switch_to_active_view(self):
+        self.marionette.switch_to_frame(self.marionette.find_element(*self._active_view_locator))
 
-        element = self.marionette.find_element(*self._album_list_locator)
-        Wait(self.marionette).until(lambda m: element.location['x'] == 0)
+    def wait_sublist_view_draw(self):
+        active_view = self.marionette.find_element(*self._active_view_locator)
+        Wait(self.marionette).until(expected.element_displayed(active_view))
+        self.marionette.switch_to_frame(active_view)
+
+        element = self.marionette.find_element(*self._list_locator)
+        Wait(self.marionette).until(lambda m: element.rect['x'] == 0 and element.is_displayed())
         self.apps.switch_to_displayed_app()
 
     def tap_first_song(self):
-        self.marionette.switch_to_frame(self.marionette.find_element(*self._view))
-        play = Wait(self.marionette).until(
+        self.switch_to_active_view()
+        song = Wait(self.marionette).until(
             expected.element_present(*self._first_song_locator))
-        play.tap()
+        song.tap()
         self.apps.switch_to_displayed_app()
         return PlayerView(self.marionette)
+
+
+class AlbumSublistView(SublistView):
+    def __init__(self, marionette):
+        Base.__init__(self, marionette)
+        self._set_active_view('album')
+        self.wait_sublist_view_draw()
+
+
+class ArtistSublistView(SublistView):
+    def __init__(self, marionette):
+        Base.__init__(self, marionette)
+        self._set_active_view('artist')
+        self.wait_sublist_view_draw()
