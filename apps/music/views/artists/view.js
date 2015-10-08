@@ -36,7 +36,7 @@ var ArtistsView = View.extend(function ArtistsView() {
           return unknown;
         }
 
-        var sectionName = item.metadata.artist[0].toUpperCase();
+        var sectionName = item.metadata.artist[0].toLowerCase();
         return isNaN(sectionName) ? sectionName : '#';
       },
 
