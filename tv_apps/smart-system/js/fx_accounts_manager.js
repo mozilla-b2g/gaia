@@ -77,12 +77,28 @@ var FxAccountsManager = {
     var methodName = event.detail.name;
 
     switch (methodName) {
-      case 'getAccounts':
+      case 'getAccount':
       case 'logout':
-      case 'resendVerificationEmail':
         (function(methodName) {
           LazyLoader.load('js/fx_accounts_client.js', function() {
             FxAccountsClient[methodName](function(data) {
+              self.sendPortMessage({ methodName: methodName, data: data });
+            }, function(error) {
+              self.sendPortMessage({ methodName: methodName, error: error });
+            });
+          });
+        })(methodName);
+        break;
+      case 'resendVerificationEmail':
+        (function(methodName) {
+          var email = event.detail.email;
+          if (!email) {
+            self.sendPortMessage({ methodName: methodName,
+                                   error: 'NO_VALID_EMAIL' });
+            return;
+          }
+          LazyLoader.load('js/fx_accounts_client.js', function() {
+            FxAccountsClient[methodName](email, function(data) {
               self.sendPortMessage({ methodName: methodName, data: data });
             }, function(error) {
               self.sendPortMessage({ methodName: methodName, error: error });
