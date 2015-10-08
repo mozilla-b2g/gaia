@@ -516,6 +516,7 @@ html[dir="rtl"] .appWindow.private > .chrome.maximized .pb-icon { background-pos
 
   background-repeat: no-repeat;
   background-size: 3rem;
+  height: 3.2rem;
 }
 html[dir="ltr"] .chrome-combined.maximized .chrome-has-ssl-indicator .chrome-ssl-indicator {
   background-position: left 3rem center;

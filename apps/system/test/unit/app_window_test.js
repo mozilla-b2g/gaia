@@ -3311,6 +3311,21 @@ suite('system/AppWindow', function() {
       stubPublish.restore();
     });
 
+    test('application-name with empty string does not update', function() {
+      var browser1 = new AppWindow(fakeWrapperConfig);
+      var stubPublish = this.sinon.stub(browser1, 'publish');
+
+      browser1.handleEvent({
+        type: 'mozbrowsermetachange',
+        detail: {
+          name: '  ',
+          content: 'title1'
+        }
+      });
+      var hostname = new URL(fakeWrapperConfig.url).hostname;
+      assert.equal(browser1.name, hostname);
+      assert.isFalse(stubPublish.calledOnce);
+    });
 
     test('application-name for app window', function() {
       var app1 = new AppWindow(fakeAppConfig1);
