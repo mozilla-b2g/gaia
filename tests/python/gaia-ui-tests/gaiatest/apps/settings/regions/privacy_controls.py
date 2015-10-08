@@ -5,9 +5,13 @@
 from marionette_driver import expected, By, Wait
 
 from gaiatest.apps.base import Base
+from gaiatest.form_controls.header import GaiaHeader, HTMLHeader
 
 
 class PrivacyControls(Base):
+    manifest_url = '{}privacy-panel{}/manifest.webapp'.format(Base.DEFAULT_PROTOCOL,Base.DEFAULT_APP_HOSTNAME)
+
+    _header_locator = (By.CSS_SELECTOR, '.current gaia-header')
     _page_locator = (By.ID, 'root')
     _close_tour_header_locator = (By.CLASS_NAME, 'gt-header')
     _location_accuracy_menu_locator = (By.ID, 'menu-item-ala')
@@ -29,9 +33,7 @@ class PrivacyControls(Base):
         return self.marionette.find_element(*self._about_page_locator)
 
     def tap_close_tour(self):
-        Wait(self.marionette, timeout=15).until(
-            expected.element_displayed(*self._close_tour_header_locator))
-        self.marionette.find_element(*self._close_tour_header_locator).tap(25, 25)
+        HTMLHeader(self.marionette, self._close_tour_header_locator).go_back()
         Wait(self.marionette, timeout=15).until(
             expected.element_displayed(*self._location_accuracy_menu_locator))
 
@@ -40,7 +42,7 @@ class PrivacyControls(Base):
         Wait(self.marionette).until(expected.element_displayed(*self._about_back_header_locator))
 
     def exit_about(self):
-        self.marionette.find_element(*self._about_back_header_locator).tap(25, 25)
+        GaiaHeader(self.marionette, self._about_back_header_locator).go_back()
         Wait(self.marionette).until(expected.element_displayed(*self._location_accuracy_menu_locator))
 
     def tap_loc_accuracy(self):
@@ -54,6 +56,18 @@ class PrivacyControls(Base):
     def tap_trans_control(self):
         self.marionette.find_element(*self._trans_control_locator).tap()
         return self.TransparencyControl(self.marionette)
+
+    def return_to_prev_menu(self, parent_view, exit_view, html_header_locator=None):
+        if html_header_locator:
+            # Used by test_settings_PS_RTL.py
+            HTMLHeader(self.marionette, html_header_locator).go_back()
+        else:
+            GaiaHeader(self.marionette, self._header_locator).go_back()
+
+        Wait(self.marionette).until(lambda m: 'current' not in exit_view.get_attribute('class'))
+        Wait(self.marionette).until(lambda m: parent_view.rect['x'] == 0)
+        Wait(self.marionette).until(lambda m: 'current' in parent_view.get_attribute('class'))
+
 
     class LocationAccuracy(Base):
         _page_locator = (By.ID, 'ala-main')
@@ -160,8 +174,8 @@ class PrivacyControls(Base):
         _access_app_text_locator = (By.CSS_SELECTOR, '[data-l10n-id="tc-apps-accessing-permission"]')
         _app_detail_view_locator = (By.ID, 'tc-appDetails')
         _perm_detail_view_locator = (By.ID, 'tc-permDetails')
-        _app_detail_back_btn_locator = (By.CSS_SELECTOR, '#tc-appDetails .pp-link.back')
-        _app_list_back_btn_locator = (By.CSS_SELECTOR, '#tc-applications .pp-link.back')
+        _app_detail_header_locator = (By.CSS_SELECTOR, '#tc-appDetails header')
+        _app_list_header_locator = (By.CSS_SELECTOR, '#tc-applications header')
 
         def __init__(self, marionette):
             Base.__init__(self, marionette)
@@ -187,14 +201,6 @@ class PrivacyControls(Base):
         @property
         def perm_detail_element(self):
             return self.marionette.find_element(*self._perm_detail_view_locator)
-
-        @property
-        def app_detail_back_btn(self):
-            return self.marionette.find_element(*self._app_detail_back_btn_locator)
-
-        @property
-        def app_list_back_btn(self):
-            return self.marionette.find_element(*self._app_list_back_btn_locator)
 
         def tap_applications(self):
             self.marionette.find_element(*self._app_menu_locator).tap()
