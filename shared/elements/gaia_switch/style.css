@@ -101,3 +101,16 @@ gaia-switch {
   font-style: normal;
   white-space: normal;
 }
+
+/**
+ * A <a> link slow may be specified in addition to the <label> and <details>.
+ * When provided, it will appear under the <details> section.
+ */
+gaia-switch a {
+  position: relative;
+  top: -0.8rem;
+  font-size: 1.7rem;
+  line-height: 2.4rem;
+  font-weight: 400;
+  color: #35679a;
+}
