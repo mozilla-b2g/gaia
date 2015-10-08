@@ -142,7 +142,10 @@
       stayBackground: stayBackground
     };
     var childWindow = new PopupWindow(configObject);
-    childWindow.element.addEventListener('_closing', this);
+    if (!stayBackground) {
+      childWindow.element.addEventListener('_opened', this);
+      childWindow.element.addEventListener('_closing', this);
+    }
     childWindow.open();
     return true;
   };
@@ -304,6 +307,7 @@
     var configuration = evt.detail;
     var top = this.app.getTopMostWindow();
     var trusted = new TrustedWindow(configuration, top);
+    trusted.element.addEventListener('_opened', this);
     trusted.element.addEventListener('_closing', this);
     trusted.open();
   };
