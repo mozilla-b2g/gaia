@@ -9,6 +9,7 @@ var DateTimePanel = require('./regions/date_time');
 var DeviceInfoPanel = require('./regions/device_info');
 var DisplayPanel = require('./regions/display');
 var DoNotTrackPanel = require('./regions/do_not_track');
+var BrowsingPrivacyPanel = require('./regions/browsing_privacy');
 var FeedbackPanel = require('./regions/feedback');
 var HotspotPanel = require('./regions/hotspot');
 var HotspotSettingsPanel = require('./regions/hotspot_settings');
@@ -44,6 +45,7 @@ Settings.Selectors = {
   'menuItemsSection': '#root',
   'bluetoothMenuItem': '.menuItem-bluetooth',
   'doNotTrackMenuItem': '#menuItem-doNotTrack',
+  'browsingPrivacyMenuItem': '#menuItem-browsingPrivacy',
   'hotspotMenuItem': '#menuItem-internetSharing',
   'hotspotPanel': '#hotspot',
   'hotspotSettingsTrigger': '#hotspot-settings-section button',
@@ -89,6 +91,13 @@ Settings.prototype = {
     this._doNotTrackPanel = this._doNotTrackPanel ||
       new DoNotTrackPanel(this.client);
     return this._doNotTrackPanel;
+  },
+
+  get browsingPrivacyPanel() {
+    this.openPanel('browsingPrivacyMenuItem');
+    this._browsingPrivacyPanel = this._browsingPrivacyPanel ||
+      new BrowsingPrivacyPanel(this.client);
+    return this._browsingPrivacyPanel;
   },
 
   get hotspotPanel() {
