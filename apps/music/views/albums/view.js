@@ -36,7 +36,7 @@ var AlbumsView = View.extend(function AlbumsView() {
           return unknown;
         }
 
-        var sectionName = item.metadata.album[0].toUpperCase();
+        var sectionName = item.metadata.album[0].toLowerCase();
         return isNaN(sectionName) ? sectionName : '#';
       },
 
