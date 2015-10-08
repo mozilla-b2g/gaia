@@ -1348,6 +1348,9 @@ Camera.prototype.setSceneMode = function(value){
  * @return {Boolean}
  */
 Camera.prototype.isZoomSupported = function() {
+  if (!this.mozCamera) {
+    return false;
+  }
   return this.mozCamera.capabilities.zoomRatios.length > 1;
 };
 
