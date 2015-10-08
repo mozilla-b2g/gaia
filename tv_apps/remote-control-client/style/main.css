@@ -1,0 +1,128 @@
+html {
+  font-size: 12px;
+  height: 100%;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+body {
+  margin: 0;
+  padding: 10px;
+  background-color: #aaa;
+  height: 100%;
+  width: 100%;
+}
+
+body, section, input, div {
+  box-sizing: border-box;
+}
+
+section {
+  font-size: 0;
+  margin-top: 1rem;
+}
+
+section > * {
+  vertical-align: middle;
+  font-size: 1rem;
+  display: inline-block;
+}
+
+h1 {
+  font-size: 1.6rem;
+  margin-top: 0;
+  font-style: italic;
+}
+
+.button {
+  cursor: pointer;
+  position: relative;
+  left: 0;
+  top: 0;
+  color: #666;
+}
+
+.button:active {
+  left: 2px;
+  top: 2px;
+}
+
+#section-input {
+  height: 34px;
+}
+
+#input-string {
+  width: calc(100% - 65px);
+  height: 100%;
+  font-size: 1.2rem;
+  padding: 0 6px;
+  border: 1px solid #aaa;
+}
+
+#send-string {
+  width: 60px;
+  height: 100%;
+  line-height: 34px;
+  background-color: white;
+  text-align: center;
+  border: 1px solid #aaa;
+  margin-left: 5px;
+}
+
+#section-touch-panel {
+  height: calc(100% - 160px);
+  width: calc(100% + 10px);
+}
+
+.panel {
+  background-color: #ddd;
+  height: 100%;
+  border: 1px solid #aaa;
+  cursor: default;
+}
+
+.panel.touching {
+  background-color: #ccc;
+}
+
+#touch-panel {
+  width: calc(100% - 45px);
+}
+
+#scroll-panel {
+  position: relative;
+  width: 40px;
+  margin-left: 5px;
+}
+
+#scroll-panel-mask {
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 10px;
+  height: 100%;
+  background-color: #aaa;
+  pointer-events: none;
+}
+
+#section-buttons {
+  text-align: center;
+}
+
+#section-buttons .button {
+  width: 55px;
+  height: 55px;
+  line-height: 55px;
+  text-align: center;
+  background-color: white;
+  border-radius: 50%;
+  margin-right: 60px;
+}
+
+#section-buttons .button:last-child {
+  margin-right: 0;
+}
