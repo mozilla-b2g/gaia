@@ -847,7 +847,11 @@ caldav-server-install:
 
 .PHONY: raptor
 raptor: node_modules
+ifneq ($(APP),)
+	RAPTOR=1 PERF_LOGGING=1 DEVICE_DEBUG=1 GAIA_OPTIMIZE=1 NOFTU=1 SCREEN_TIMEOUT=0 APP=$(APP) make install-gaia
+else
 	RAPTOR=1 PERF_LOGGING=1 DEVICE_DEBUG=1 GAIA_OPTIMIZE=1 NOFTU=1 SCREEN_TIMEOUT=0 make reset-gaia
+endif
 
 .PHONY: raptor-transformer
 raptor-transformer: node_modules
