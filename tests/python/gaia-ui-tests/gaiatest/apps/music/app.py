@@ -5,11 +5,7 @@
 from marionette_driver import expected, By, Wait
 
 from gaiatest.apps.base import Base
-<<<<<<< HEAD
 from gaiatest.apps.music.regions.list_view import AlbumsView, ArtistsView, SongsView
-=======
-from gaiatest.apps.music.regions.list_view import ListView
->>>>>>> Bug 1208553 - Convert gaia ui tests for music-nga app
 
 
 class Music(Base):
