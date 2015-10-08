@@ -61,7 +61,7 @@
   const SYNC_REQUEST_IAC_KEYWORD = 'gaia::sync::request';
   const SYNC_MANAGEMENT_API_IAC_KEYWORD = 'gaia-sync-management';
 
-  const COLLECTIONS = ['history', 'passwords'];
+  const COLLECTIONS = ['history', 'passwords', 'bookmarks'];
 
   // Keys of asyncStorage persisted data.
   const SYNC_STATE = 'sync.state';
@@ -82,6 +82,7 @@
     // indicates the user choice per collection.
     'sync.collections.history.enabled',
     'sync.collections.passwords.enabled',
+    'sync.collections.bookmarks.enabled',
 
     // Setting any of these two settings to true will make the synchronization
     // of the collection readonly. That means that we will only be retrieving
@@ -89,6 +90,7 @@
     // modifications to the collections source.
     'sync.collections.history.readonly',
     'sync.collections.passwords.readonly',
+    'sync.collections.bookmarks.readonly',
 
     'sync.server.url',
     'sync.scheduler.interval',
