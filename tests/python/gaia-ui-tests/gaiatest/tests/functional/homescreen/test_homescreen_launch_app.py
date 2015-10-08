@@ -21,16 +21,8 @@ class TestLaunchApp(GaiaTestCase):
 
         self.test_data = {
             'name': 'Mozilla QA WebRT Tester',
-            'url': self.marionette.absolute_url('webapps/mozqa.com/manifest.webapp')}
-        self.logger.info('Test data: %s' % self.test_data)
-
-        # Install app
-        self.marionette.execute_script(
-            'navigator.mozApps.install("%s")' % self.test_data['url'])
-
-        # Confirm the installation and wait for the app icon to be present
-        confirm_install = ConfirmInstall(self.marionette)
-        confirm_install.tap_confirm()
+            'manifest_url': self.marionette.absolute_url('webapps/mozqa.com/manifest.webapp')}
+        self.apps.install(self.test_data['manifest_url'])
 
         # Wait for the notification to disappear
         system = System(self.marionette)
@@ -52,6 +44,6 @@ class TestLaunchApp(GaiaTestCase):
             lambda m: m.title == self.test_data['name'])
 
     def tearDown(self):
-        self.apps.uninstall(self.test_data['name'])
+        self.apps.uninstall(self.test_data['manifest_url'])
 
         GaiaTestCase.tearDown(self)

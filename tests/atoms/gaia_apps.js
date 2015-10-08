@@ -393,25 +393,6 @@ var GaiaApps = {
   },
 
   /**
-   * Uninstalls the app with the specified name.
-   */
-  uninstallWithName: function(name) {
-    GaiaApps.locateWithName(name, function uninstall(app) {
-      if (typeof(app) === 'object') {
-        let req = navigator.mozApps.mgmt.uninstall(app);
-          req.onsuccess = function() {
-          marionetteScriptFinished(true);
-        };
-        req.onerror = function() {
-          marionetteScriptFinished(req.error);
-        };
-      } else {
-        // App was never installed, so nothing to do here
-        marionetteScriptFinished(true);
-      }
-    });
-  },
-  /**
   * Uninstall the app with the specified ManifestURL
   */
   uninstallWithManifestURL: function(manifestURL) {

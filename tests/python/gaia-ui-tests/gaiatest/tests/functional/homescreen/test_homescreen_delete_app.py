@@ -18,10 +18,10 @@ class TestDeleteApp(GaiaTestCase):
 
         self.test_data = {
             'name': 'Mozilla QA WebRT Tester',
-            'url': self.marionette.absolute_url('webapps/mozqa.com/manifest.webapp')}
+            'manifest_url': self.marionette.absolute_url('webapps/mozqa.com/manifest.webapp')}
 
         # Install app so we can delete it
-        self.apps.install(self.test_data['url'])
+        self.apps.install(self.test_data['manifest_url'])
 
         self.apps.switch_to_displayed_app()
         self.homescreen.wait_for_app_icon_present(self.test_data['name'])
@@ -49,6 +49,6 @@ class TestDeleteApp(GaiaTestCase):
             self.apps.launch(self.test_data['name'])
 
     def tearDown(self):
-        self.apps.uninstall(self.test_data['url'])
+        self.apps.uninstall(self.test_data['manifest_url'])
 
         GaiaTestCase.tearDown(self)
