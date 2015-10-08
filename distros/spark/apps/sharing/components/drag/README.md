@@ -1,1 +1,0 @@
-# drag [![](https://travis-ci.org/gaia-components/drag.svg)](https://travis-ci.org/gaia-components/drag)
