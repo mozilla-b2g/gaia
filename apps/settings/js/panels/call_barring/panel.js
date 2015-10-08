@@ -55,8 +55,8 @@ define(function(require) {
      * }
      */
     function _updateCallBarringItem(item, newStatus) {
-      var descText = item.querySelector('small');
-      var input = item.querySelector('input');
+      var descText = item.querySelector('details');
+      var input = item.querySelector('gaia-switch');
 
       // disable the item
       if (typeof newStatus.disabled === 'boolean') {
@@ -127,7 +127,7 @@ define(function(require) {
         };
 
         for (var i in _cbSettings) {
-          _cbSettings[i].querySelector('input').
+          _cbSettings[i].querySelector('gaia-switch').
             addEventListener('click', _callBarringClick);
         }
 
