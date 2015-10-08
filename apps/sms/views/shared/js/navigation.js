@@ -110,6 +110,10 @@ const OA_VIEWS = Object.freeze([
 
 const VIEWS = isUsingOldArchitecture() ? OA_VIEWS : NGA_VIEWS;
 
+const priv = {
+  pendingInit: Symbol('pendingInit')
+};
+
 var currentState;
 var navigationTransition;
 
@@ -760,6 +764,9 @@ var Navigation = {
       );
     }
 
+    // Set pendingInit to false if we start to navigate to other panel.
+    this[priv.pendingInit] = false;
+
     var hash = '#';
     if (view.partOf) {
       hash += '/' + viewName;
@@ -799,6 +806,14 @@ var Navigation = {
 
     attachHistoryListener();
 
+    // Early reject when app is started via notification
+    if (navigator.mozHasPendingMessage('notification')) {
+      this[priv.pendingInit] = true;
+      return Promise.reject();
+    }
+
+    this[priv.pendingInit] = false;
+
     return startNavigationFromCurrentLocation().then(
       // right away as we don't execute anything on the previous panel, and we
       // need a state at startup.
@@ -814,6 +829,12 @@ var Navigation = {
     ).then(
       () => Navigation.emit('navigated')
     ).catch(onNavigationError);
+  },
+
+  [priv.pendingInit]: false,
+
+  hasPendingInit() {
+    return this[priv.pendingInit];
   },
 
   /* will be used by tests */

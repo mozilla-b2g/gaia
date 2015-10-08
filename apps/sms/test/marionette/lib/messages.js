@@ -112,6 +112,12 @@ var ParticipantsAccessor = require('./views/participants/accessors');
           newMessageView.addNewRecipient(recipient);
         },
 
+        getActivePanelName: function() {
+          var cls = client.findElement('.panel-active').getAttribute('class');
+          var matchResult = /\bpanel-([A-Z]\w+)\b/g.exec(cls);
+          return matchResult && matchResult[1];
+        },
+
         getRecipient: function(number) {
           return client.helper.waitForElement(
             '#messages-recipients-list .recipient[data-number="' + number + '"]'

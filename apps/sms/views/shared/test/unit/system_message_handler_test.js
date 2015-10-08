@@ -546,7 +546,7 @@ suite('SystemMessageHandler', function() {
         setup(function(done) {
           this.sinon.stub(MessageManager, 'getMessage').withArgs(
             smsMessage.id
-          ).returns(smsMessage);
+          ).returns(Promise.resolve(smsMessage));
 
           SystemMessageHandler.onSmsReceivedSystemMessage(smsMessage).then(
             () => {
@@ -708,12 +708,14 @@ suite('SystemMessageHandler', function() {
         Promise.resolve(appStub)
       );
 
+      this.sinon.stub(Navigation, 'init');
       this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
       this.sinon.stub(Navigation, 'toPanel').returns(Promise.resolve());
+      this.sinon.stub(Navigation, 'hasPendingInit').returns(false);
 
       this.sinon.stub(MessageManager, 'getMessage').withArgs(
         smsMessage.id
-      ).returns(smsMessage);
+      ).returns(Promise.resolve(smsMessage));
     });
 
     test('nothing is done when notification is removed', function(done) {
@@ -726,6 +728,25 @@ suite('SystemMessageHandler', function() {
 
         sinon.assert.notCalled(Navigation.toPanel);
       }).then(done, done);
+    });
+
+    test('close the app when notification is removed with pending navigation',
+      function(done) {
+
+      Navigation.hasPendingInit.returns(true);
+      this.sinon.stub(window, 'close');
+
+      SystemMessageHandler.onNotificationSystemMessage({
+        // When notification is removed "clicked" property is "false".
+        clicked: false,
+        data: { id: smsMessage.id, threadId: smsMessage.threadId }
+      }).then(
+        () => new Error('Should not enter resolved case'),
+        (error) => {
+          sinon.assert.called(window.close);
+          assert.equal(error.message, 'Notification has been dismissed.');
+        }
+      ).then(done, done);
     });
 
     test('if appropriate conversation is already opened', function(done) {
@@ -769,6 +790,25 @@ suite('SystemMessageHandler', function() {
         sinon.assert.calledWith(Utils.alert, 'deleted-sms');
 
         sinon.assert.notCalled(Navigation.toPanel);
+      }).then(done, done);
+    });
+
+    test('if message has been deleted with pending navigation', function(done) {
+      MessageManager.getMessage.withArgs(smsMessage.id).returns(
+        Promise.reject('deleted')
+      );
+
+      Navigation.hasPendingInit.returns(true);
+
+      SystemMessageHandler.onNotificationSystemMessage({
+        clicked: true,
+        data: { id: smsMessage.id, threadId: smsMessage.threadId }
+      }).then(() => {
+        sinon.assert.called(appStub.launch);
+        sinon.assert.calledWith(Utils.alert, 'deleted-sms');
+
+        sinon.assert.notCalled(Navigation.toPanel);
+        sinon.assert.called(Navigation.init);
       }).then(done, done);
     });
   });
