@@ -15,15 +15,15 @@ class GaiaImageCompareArguments(object):
          {'type': int,
           'default': 15,
           'metavar': int,
-          'help': 'fuzz value supplied to ImageMagick call, in percentage. Default value is %default percent.',
+          'help': 'fuzz value supplied to ImageMagick call, in percentage. Default value is %(default)s percent.',
           }],
         [['--reference-path'],
          {'default': 'reference_images',
-          'help': "Location of reference images, relative to the current location, Default folder is %default",
+          'help': 'Location of reference images, relative to the current location, Default folder is %(default)s',
           }],
         [['--screenshots-path'],
          {'default': 'screenshots',
-          'help': "Path of screenshot images, relative to the current location, Default folder is %default",
+          'help': 'Path of screenshot images, relative to the current location, Default folder is %(default)s',
           }]
     ]
 

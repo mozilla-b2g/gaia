@@ -44,7 +44,7 @@ class TreeherderArguments(object):
         [['--treeherder'],
          {'default': 'https://treeherder.mozilla.org/',
           'dest': 'treeherder_url',
-          'help': '''Location of Treeherder instance (default: %default). You
+          'help': '''Location of Treeherder instance (default: %(default)s). You
               must set the TREEHERDER_KEY and TREEHERDER_SECRET
               environment variables for posting to Treeherder. If you
               want to post attachments you will also need to set the
