@@ -323,8 +323,8 @@ DataAdapters.bookmarks = {
     });
   },
 
-  update(remoteBookmarks, options = { readOnly: true }) {
-    if (!options.readOnly) {
+  update(remoteBookmarks, options = { readonly: true }) {
+    if (!options.readonly) {
       console.warn('Two-way sync not implemented yet for bookmarks.');
     }
     var mtime;
