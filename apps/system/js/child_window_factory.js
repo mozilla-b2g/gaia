@@ -143,7 +143,7 @@
     };
     var childWindow = new PopupWindow(configObject);
     childWindow.element.addEventListener('_closing', this);
-    childWindow.open();
+    childWindow.requestOpen();
     return true;
   };
 

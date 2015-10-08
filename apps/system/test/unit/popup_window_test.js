@@ -36,7 +36,7 @@ suite('system/PopupWindow', function() {
     'url': 'app://popup.gaiamobile.org/popup.html',
     'name': 'Fake Popup',
     'origin': 'app://popup.gaiamobile.org',
-    'rearWindow': app
+    'rearWindow': null
   };
 
   setup(function(done) {
@@ -66,30 +66,38 @@ suite('system/PopupWindow', function() {
   });
 
   teardown(function() {
+    fakePopupConfig.rearWindow = null;
     stubById.restore();
   });
 
   test('should instantiate an app chrome', function() {
     var spy = this.sinon.spy(window, 'AppChrome');
     app = new AppWindow(fakeAppConfig);
+    fakePopupConfig.rearWindow = app;
     popup = new PopupWindow(fakePopupConfig);
     assert.isTrue(spy.calledWithNew());
   });
 
   test('requestOpen should open directly', function() {
     app = new AppWindow(fakeAppConfig);
+    this.sinon.stub(app, 'setVisible');
+    fakePopupConfig.rearWindow = app;
     var popup = new PopupWindow(fakePopupConfig);
     var stubOpen = this.sinon.stub(popup, 'open');
     popup.requestOpen();
     assert.isTrue(stubOpen.called);
+    assert.isTrue(app.setVisible.calledWith(false, true));
   });
 
   test('requestClose should close directly', function() {
     app = new AppWindow(fakeAppConfig);
+    this.sinon.stub(app, 'setVisible');
+    fakePopupConfig.rearWindow = app;
     var popup = new PopupWindow(fakePopupConfig);
     var stubClose = this.sinon.stub(popup, 'close');
     popup.requestClose();
     assert.isTrue(stubClose.called);
+    assert.isTrue(app.setVisible.calledWith(true, true));
   });
 
   test('Theme color should be the one from the parent', function() {
@@ -106,6 +114,7 @@ suite('system/PopupWindow', function() {
   test('Stay in background popup should be hidden', function() {
     var hiddenPopupConfig = Object.assign({}, fakePopupConfig);
     app = new AppWindow(fakeAppConfig);
+    hiddenPopupConfig.rearWindow = app;
     hiddenPopupConfig.stayBackground = true;
     var popup = new PopupWindow(hiddenPopupConfig);
     assert.isTrue(popup.element.classList.contains('alwaysLowered'));

@@ -102,18 +102,21 @@
 
   PopupWindow.prototype.CLASS_NAME = 'PopupWindow';
 
-  /**
-   * We don't need to request to open because:
-   * We are always overlapping above an app window or
-   * another popup window instance which is not sent to
-   * background. This behavior may change later but in
-   * current stage we don't care.
-   */
   PopupWindow.prototype.requestOpen = function() {
+    // Set the rearWindow to be not visible and use doNotPropagate = true
+    // to ensure setVisible() don't ended up setting the popup window to be
+    // invisible.
+    this.config.rearWindow.setVisible(false, true);
+
     this.open();
   };
 
   PopupWindow.prototype.requestClose = function() {
+    // Set the rearWindow to be visible and use doNotPropagate = true
+    // to ensure setVisible() don't ended up setting the popup window to be
+    // visible.
+    this.config.rearWindow.setVisible(true, true);
+
     this.close();
   };
 
