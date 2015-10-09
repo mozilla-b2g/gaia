@@ -12,7 +12,9 @@
  * interval desired.
  */
 
-/* global asyncStorage, SettingsListener, uuid, TelemetryRequest */
+/* global asyncStorage, SettingsListener, uuid, TelemetryRequest, Gzip,
+   LazyLoader */
+
 (function(exports) {
   'use strict';
 
@@ -330,7 +332,7 @@
     };
 
     // Query the settings db for parameters for the URL
-    TelemetryRequest.getSettings(deviceInfoQuery, function(deviceResponse) {
+    TelemetryRequest.getSettings(deviceInfoQuery, (deviceResponse) => {
       // Note that this wrapper is using the new v4 Unified Telemetry format
       var wrapper = {
         type: AT.REASON,
@@ -347,7 +349,7 @@
           xpcomAbi: 'arm-gcc3',
           channel: deviceResponse['app.update.channel']
         },
-        clientId: self.deviceID,
+        clientId: this.deviceID,
         payload: payload
       };
 
@@ -363,7 +365,7 @@
         return;
       }
 
-      var request = new AdvancedTelemetryPing(payload, deviceInfoQuery,
+      self.request = new AdvancedTelemetryPing(payload, deviceInfoQuery,
         self.deviceID);
 
       // We don't actually have to do anything if the data is transmitted
@@ -382,7 +384,7 @@
         self.startRetryBatch();
       }
 
-      request.send({
+      self.request.send({
         timeout: AT.REPORT_TIMEOUT,
         onload: onload,
         onerror: retry,
@@ -503,30 +505,54 @@
     debug('Telemetry URL is: ' + this.url);
   }
 
+  /*
+   * Expose `getData` for unit testing purposes
+   */
+  AdvancedTelemetryPing.prototype.getData = function(packet) {
+    return JSON.stringify(packet);
+  };
+
   AdvancedTelemetryPing.prototype.send = function(xhrAttrs) {
+    return new Promise((resolve, reject) => {
+      this.data = this.getData(this.packet);
+      LazyLoader.load(['/shared/js/gzip/gzip.js']).then(() => {
+        Gzip.compress(this.data).then((gzipData) => {
+          debug('Length of compressed data:', gzipData.length);
+          return this.post(xhrAttrs, gzipData);
+        }, (msg) => {
+          debug('Error compressing telemetry payload:', msg);
+          return this.post(xhrAttrs, this.data);
+        }).then(function () {
+          resolve();
+        });
+      });
+    });
+  };
+
+  AdvancedTelemetryPing.prototype.post = function post(xhrAttrs, gzipData) {
     var xhr = new XMLHttpRequest({ mozSystem: true, mozAnon: true });
+    return new Promise((resolve, reject) => {
 
-    xhr.open('POST', this.url);
+      xhr.open('POST', this.url);
 
-    if (xhrAttrs && xhrAttrs.timeout) {
-      xhr.timeout = xhrAttrs.timeout;
-    }
+      if (xhrAttrs) {
+        xhr.onload = xhrAttrs.onload;
+        xhr.onerror = xhrAttrs.onerror;
+        xhr.onabort = xhrAttrs.onabort;
+        xhr.ontimeout = xhrAttrs.ontimeout;
 
-    xhr.setRequestHeader('Content-type', 'application/json');
-    xhr.responseType = 'text';
+        if (xhrAttrs.timeout) {
+          xhr.timeout = xhrAttrs.timeout;
+        }
+      }
+      xhr.setRequestHeader('Content-type', 'application/json');
+      xhr.setRequestHeader('Content-Encoding', 'gzip');
 
-    var data = JSON.stringify(this.packet);
-    xhr.send(data);
-    //TODO:  GZIP COMPRESS.
+      xhr.responseType = 'text';
 
-    if (xhrAttrs) {
-      xhr.onload = xhrAttrs.onload;
-      xhr.onerror = xhrAttrs.onerror;
-      xhr.onabort = xhrAttrs.onabort;
-      xhr.ontimeout = xhrAttrs.ontimeout;
-    }
-
-    return xhr;
+      xhr.send(gzipData);
+      resolve();
+    });
   };
 
   /*
@@ -569,6 +595,7 @@
     return this.interval;
   };
 
-  // The AdvancedTelemetry constructor is the single value we export.
   exports.AdvancedTelemetry = AdvancedTelemetry;
+  // Exported for unit testing.
+  exports.AdvancedTelemetryPing = AdvancedTelemetryPing;
 }(window));
