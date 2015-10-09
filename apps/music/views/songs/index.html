@@ -32,10 +32,10 @@
     <music-search id="search" style="height:37px"></music-search>
     <a picker-item href="#search" data-icon="search" data-l10n-id="search"></a>
     <template>
-      <a href="/player?id=${name}" data-file-path="${name}">
+      <a href="/player" data-file-path="${name}">
         <div class="image"><img></div>
-        <h3>${metadata.title}</h3>
-        <p>${metadata.artist}</p>
+        <h3>${title}</h3>
+        <p>${artist}</p>
       </a>
     </template>
   </gaia-fast-list>

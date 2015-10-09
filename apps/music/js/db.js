@@ -352,7 +352,13 @@ var Database = (function() {
 
   function getFileInfo(filename) {
     return new Promise(function(resolve, reject) {
-      ready.then(() => musicdb.getFileInfo(filename, resolve, reject));
+      ready
+        .then(() => musicdb.getFileInfo(
+          filename, (r) => {
+            r ? resolve(r) :
+              reject('Undefined result for ' + filename);
+          }, reject))
+        .catch((e) => reject(e));
     });
   }
 

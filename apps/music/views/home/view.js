@@ -63,7 +63,7 @@ HomeView.prototype.render = function() {
     this.albums.forEach((album) => {
       var template =
 Sanitizer.createSafeHTML `<a class="tile"
-    href="/player?id=${album.name}"
+    href="/player"
     data-artist="${album.metadata.artist || unknownArtist}"
     data-album="${album.metadata.album || unknownAlbum}"
     data-file-path="${album.name}">
@@ -122,7 +122,7 @@ HomeView.prototype.search = function(query) {
             title:    album.metadata.album  || unknownAlbum,
             subtitle: album.metadata.artist || unknownArtist,
             section:  'albums',
-            url:      '/album-detail?id=' + album.name
+            url:      '/album-detail?id=' + encodeURIComponent(album.name)
           };
         });
 
@@ -141,7 +141,7 @@ HomeView.prototype.search = function(query) {
             title:    artist.metadata.artist || unknownArtist,
             subtitle: '',
             section:  'artists',
-            url:      '/artist-detail?id=' + artist.name
+            url:      '/artist-detail?id=' + encodeURIComponent(artist.name)
           };
         });
 
@@ -160,7 +160,7 @@ HomeView.prototype.search = function(query) {
             title:    song.metadata.title  || unknownTitle,
             subtitle: song.metadata.artist || unknownArtist,
             section:  'songs',
-            url:      '/player?id=' + song.name
+            url:      '/player'
           };
         });
 
