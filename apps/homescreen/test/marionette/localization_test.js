@@ -37,26 +37,4 @@ marionette('Homescreen - Localization', function() {
       return !!home.getIconByName(newIconName);
     });
   });
-
-  test('Menu option localization', function() {
-    // Change the language to french
-    client.switchToFrame();
-    client.executeAsyncScript(function() {
-      var req = navigator.mozSettings.createLock().set({
-        'language.current': 'qps-ploc'
-      });
-
-      req.onsuccess = function() {
-        marionetteScriptFinished();
-      };
-    });
-    client.switchToFrame(system.getHomescreenIframe());
-
-    home.openSettingsMenu();
-
-    var expected = home.l10n('cancel-action');
-    client.waitFor(function(){
-      return home.settingsDialogButtons.pop().text() === expected;
-    });
-  });
 });

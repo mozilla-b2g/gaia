@@ -299,6 +299,32 @@ suite('system/Updatable', function() {
         assert.isFalse(subject.downloading);
       });
     });
+
+    suite('signal system update ready', function() {
+      var addEventListenerSpy, dispatchEventSpy;
+
+      setup(function() {
+        asyncStorage.setItem(SystemUpdatable.KNOWN_UPDATE_FLAG, true);
+        dispatchEventSpy    = this.sinon.spy(SystemUpdatable.prototype,
+                                             '_dispatchEvent');
+        addEventListenerSpy = this.sinon.spy(window, 'addEventListener');
+        subject = new SystemUpdatable(42);
+      });
+
+      test('should add event listener', function() {
+        sinon.assert.calledOnce(addEventListenerSpy);
+        sinon.assert.calledWith(addEventListenerSpy, 'mozChromeEvent');
+      });
+
+      test('should send ready message', function() {
+        sinon.assert.calledOnce(dispatchEventSpy);
+        sinon.assert.calledWith(dispatchEventSpy, 'update-prompt-ready');
+      });
+
+      test('should have proper ordering', function() {
+        sinon.assert.callOrder(addEventListenerSpy, dispatchEventSpy);
+      });
+    });
   });
 
   suite('events', function() {

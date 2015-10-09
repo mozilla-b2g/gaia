@@ -584,7 +584,7 @@ suite('Homescreen app', () => {
     });
 
     test('should attach events on click', () => {
-      var dialog = app.settingsDialog;
+      var dialog = app.dialogs[0];
       dialog.open = () => {};
       app.showActionDialog(dialog, null, [() => {}]);
       assert.ok(dialog.querySelector('button').onclick);
@@ -666,37 +666,6 @@ suite('Homescreen app', () => {
   });
 
   suite('App#handleEvent()', () => {
-    var showActionDialogStub;
-
-    suite('contextmenu', () => {
-      setup(function() {
-        showActionDialogStub = sinon.stub(app, 'showActionDialog',
-          (dialog, args, callbacks) => {
-            callbacks[0]();
-          });
-        app.settingsDialog = {
-          open: () => {},
-          close: () => {}
-        };
-      });
-
-      teardown(function() {
-        showActionDialogStub.restore();
-      });
-
-      test('should open a dialog', () => {
-        app.handleEvent(new CustomEvent('contextmenu'));
-        assert.isTrue(showActionDialogStub.called);
-      });
-
-      test('should attach a configure web activity to a button click', () => {
-        app.handleEvent(new CustomEvent('contextmenu'));
-        assert.isTrue(showActionDialogStub.called);
-        assert.equal(MockMozActivity.calls.length, 1);
-        assert.equal(MockMozActivity.calls[0].name, 'configure');
-      });
-    });
-
     suite('scroll', () => {
       test('should show and hide the drop shadow accordingly', () => {
         assert.isFalse(app.scrolled);
@@ -745,6 +714,7 @@ suite('Homescreen app', () => {
         assert.isTrue(showActionDialogStub.called);
         var stubCall = showActionDialogStub.getCall(0);
         assert.equal(stubCall.args[0], app.cancelDownload);
+        showActionDialogStub.restore();
       });
 
       suite('error and paused', () => {
@@ -758,6 +728,10 @@ suite('Homescreen app', () => {
           app.handleEvent(new CustomEvent('activate',
             { detail: { target: icon } }));
         };
+
+        teardown(() => {
+          showActionDialogStub.restore();
+        });
 
         test('error app should open a resume download dialog', () => {
           testApp('error');
