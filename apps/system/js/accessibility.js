@@ -379,6 +379,9 @@
           });
           window.dispatchEvent(new CustomEvent('accessibility-action'));
           break;
+        case 'toggle-pause':
+          this.speechSynthesizer.togglePause();
+          break;
         default:
           break;
       }
@@ -648,6 +651,14 @@
       }
     },
 
+    togglePause: function ss_togglePause() {
+      if (this.speech.paused) {
+        this.speech.resume();
+      } else if (this.speech.speaking) {
+        this.speech.pause();
+      }
+    },
+
     /**
      * Utter a message with a speechSynthesizer.
      * @param {?Array} aData A messages array to be localized.
@@ -670,6 +681,10 @@
 
       if (!aOptions.enqueue) {
         this.cancel();
+      }
+
+      if (this.speech.paused) {
+        this.speech.resume();
       }
 
       var sentence = this.buildUtterance(aData);
