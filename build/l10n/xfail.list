@@ -21,10 +21,6 @@ apps/calendar/js/views/view_event.js
 apps/calendar/test/unit/view_test.js
 apps/calendar/test/unit/views/view_event_test.js
 apps/camera/test/unit/controllers/preview-gallery_test.js
-apps/collection/js/create_collection.js
-apps/collection/js/objects.js
-apps/collection/js/suggestions.js
-apps/collection/js/view_apps.js
 apps/communications/contacts/js/export/bt.js
 apps/communications/contacts/js/tag_options.js
 apps/communications/contacts/js/utilities/normalizer.js
@@ -111,7 +107,6 @@ apps/system/test/unit/updatable_test.js
 apps/verticalhome/test/marionette/lib/verticalhome.js
 dev_apps/feedback/js/feedback.js
 dev_apps/geoloc/js/geoloc.js
-shared/elements/gaia_grid/js/items/collection.js
 shared/js/l10n_date.js
 shared/js/tz_select.js
 tv_apps/browser/js/index.js

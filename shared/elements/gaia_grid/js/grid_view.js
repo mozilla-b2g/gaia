@@ -21,8 +21,6 @@
     this.config = config;
     this.clickIcon = this.clickIcon.bind(this);
     this.onVisibilityChange = this.onVisibilityChange.bind(this);
-    this.onCollectionLaunch = this.onCollectionLaunch.bind(this);
-    this.onCollectionClose = this.onCollectionClose.bind(this);
 
     if (config.features.zoom) {
       this.zoom = new GridZoom(this);
@@ -70,11 +68,6 @@
      * We are in the state of launching an app.
      */
     _launchingApp: false,
-
-    /**
-     * A collection is open
-     */
-    _collectionOpen: false,
 
     /**
      * Adds an item into the items array.
@@ -182,19 +175,11 @@
 
     start: function() {
       this.element.addEventListener('click', this.clickIcon);
-      this.element.addEventListener('collection-launch',
-                                    this.onCollectionLaunch);
-      this.element.addEventListener('collection-close',
-                                    this.onCollectionClose);
       window.addEventListener('visibilitychange', this.onVisibilityChange);
     },
 
     stop: function() {
       this.element.removeEventListener('click', this.clickIcon);
-      this.element.removeEventListener('collection-launch',
-                                       this.onCollectionLaunch);
-      this.element.removeEventListener('collection-close',
-                                       this.onCollectionClose);
       window.removeEventListener('visibilitychange', this.onVisibilityChange);
     },
 
@@ -244,14 +229,6 @@
       this._launchingApp = false;
     },
 
-    onCollectionLaunch: function() {
-      this._collectionOpen = true;
-    },
-
-    onCollectionClose: function() {
-      this._collectionOpen = false;
-    },
-
     /**
      * Launches an app.
      */
@@ -272,7 +249,7 @@
       if (action === 'launch') {
         // We do not allow users to launch icons in edit mode
         if (inEditMode && e.target.classList.contains('icon')) {
-          // Check if we're trying to edit a bookmark or collection
+          // Check if we're trying to edit a bookmark
           if (!icon.isEditable()) {
             return;
           }

@@ -638,7 +638,7 @@
 
     /**
      * Updates an icon on the page from a datastore record.
-     * Used for bookmarks and collections.
+     * Used for bookmarks.
      * @param {Object} record The datastore record.
      */
     updateFromDatastore: function(record) {

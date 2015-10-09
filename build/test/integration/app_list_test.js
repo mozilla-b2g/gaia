@@ -20,13 +20,10 @@ suite('Build GAIA from different app list', function() {
       // sms should not exists in Tablet builds
       assert.isFalse(fs.existsSync(zipPath));
 
-      // vertical homescreen and collection should exist in tablet builds
+      // vertical homescreen should exist in tablet builds
       var zipVertHomePath = path.join(process.cwd(), 'profile', 'webapps',
         'verticalhome.gaiamobile.org', 'application.zip');
-      var zipCollectionPath = path.join(process.cwd(), 'profile', 'webapps',
-        'collection.gaiamobile.org', 'application.zip');
       assert.isTrue(fs.existsSync(zipVertHomePath));
-      assert.isTrue(fs.existsSync(zipCollectionPath));
 
       done();
     });
@@ -43,25 +40,16 @@ suite('Build GAIA from different app list', function() {
       // sms should not exists in Tablet builds
       assert.ok(fs.existsSync(zipPath));
 
-      // vertical homescreen and collection should exists
+      // vertical homescreen should exists
       var zipVertHomePath = path.join(process.cwd(), 'profile', 'webapps',
         'verticalhome.gaiamobile.org', 'application.zip');
-      var zipCollectionPath = path.join(process.cwd(), 'profile', 'webapps',
-        'collection.gaiamobile.org', 'application.zip');
       assert.ok(fs.existsSync(zipVertHomePath));
-      assert.ok(fs.existsSync(zipCollectionPath));
 
       // Check init.json
       var initPath = path.join(process.cwd(), 'build_stage',
         'verticalhome', 'js', 'init.json');
       assert.ok(fs.existsSync(initPath),
         'init.json should exist');
-
-      // Check pre_installed_collections.json
-      var collectionPath = path.join(process.cwd(), 'build_stage',
-        'collection', 'js', 'pre_installed_collections.json');
-      assert.ok(fs.existsSync(collectionPath),
-        'pre_installed_collections.json should exist');
 
       done();
     });
@@ -78,13 +66,10 @@ suite('Build GAIA from different app list', function() {
       // smart-home should exist in tv builds
       assert.ok(fs.existsSync(zipPath));
 
-      // vertical homescreen and collection should not exist
+      // vertical homescreen should not exist
       var zipVertHomePath = path.join(process.cwd(), 'profile', 'webapps',
         'verticalhome.gaiamobile.org', 'application.zip');
-      var zipCollectionPath = path.join(process.cwd(), 'profile', 'webapps',
-        'collection.gaiamobile.org', 'application.zip');
       assert.isFalse(fs.existsSync(zipVertHomePath));
-      assert.isFalse(fs.existsSync(zipCollectionPath));
 
       done();
     });

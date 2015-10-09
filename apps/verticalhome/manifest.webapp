@@ -36,10 +36,6 @@
     "bookmarks_store": {
       "readonly": false,
       "description": "Display bookmarks"
-    },
-    "collections_store": {
-      "readonly": false,
-      "description": "Display collections"
     }
   },
   "datastores-owned": {
