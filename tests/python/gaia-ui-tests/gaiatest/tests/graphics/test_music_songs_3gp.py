@@ -52,3 +52,4 @@ class TestPlay3GPMusic(GaiaImageCompareTestCase):
         ff_button = self.marionette.find_element(*self._player_controls_next_locator)
         Actions(self.marionette).tap(ff_button).perform()
         self.take_screenshot()
+   
