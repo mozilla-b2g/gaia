@@ -57,7 +57,6 @@ class GaiaImageCompareTestCase(GaiaTestCase):
         if prewait > 0:
             time.sleep(prewait)
         # if the status bar is visible, crop it off
-        current_frame = self.marionette.get_active_frame()
         self.marionette.switch_to_frame()
 
         _statusbar_locator = (By.ID, 'statusbar')
@@ -69,7 +68,7 @@ class GaiaImageCompareTestCase(GaiaTestCase):
                                    * self.marionette.execute_script('return window.wrappedJSObject.devicePixelRatio;'))
         else:
             self.crop_height = 0
-        self.marionette.switch_to_frame(current_frame)
+        self.apps.switch_to_displayed_app()
 
         # take screenshot
         self.marionette.set_context(self.marionette.CONTEXT_CHROME)
