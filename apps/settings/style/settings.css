@@ -39,7 +39,7 @@ textarea,
 section[role="region"] {
   position: absolute;
   top: 0;
-  left: 0;
+  offset-inline-start: 0;
   width: 100%;
   height: 100%;
   border: 0;
@@ -61,20 +61,24 @@ section[role="region"] {
  * for accessibility purposes. Removing the visibility transition
  * in hidden->visible avoids flashing.
  */
-section[role="region"] {
-  transform: translateX(+100%);
-  visibility: hidden;
-}
 
+section[role="region"],
 section[role="region"].previous {
-  transform: translateX(-100%);
   visibility: hidden;
 }
 
 section[role="region"].current {
-  transform: translateX(0);
   visibility: visible;
 }
+
+html[dir="ltr"] section[role="region"] { transform: translateX(+100%); }
+html[dir="rtl"] section[role="region"] { transform: translateX(-100%); }
+
+html[dir="ltr"] section[role="region"].previous { transform: translateX(-100%); }
+html[dir="rtl"] section[role="region"].previous { transform: translateX(+100%); }
+
+html[dir="ltr"] section[role="region"].current { transform: translateX(0); }
+html[dir="rtl"] section[role="region"].current { transform: translateX(0); }
 
 /**
  * We have to make icon-back as a `x` icon
@@ -159,7 +163,7 @@ ul li > a.menu-item > * {
 #frame iframe {
   position: absolute;
   top: 0;
-  left: 0;
+  offset-inline-start: 0;
   width: 100%;
   height: 100%;
   border: none;
@@ -260,22 +264,19 @@ body[data-filter-by="connectivity"] #root > div [data-category="connectivity"] {
   font-style: normal;
   position: relative;
   margin-top: -2rem;
-  padding-top: 0.5rem;
-  padding-bottom: 1.3rem;
-  -moz-padding-start: 1.5rem;
-  -moz-padding-end: 4rem;
+  padding: 0.5rem 4rem 1.3rem;
+  padding-inline-start: 1.5rem;
   white-space: normal;
 }
 
 .hint > gaia-switch ~ .explanation,
 .hint > label:not([for]) ~ .explanation {
-  -moz-padding-end: 8rem;
+  padding-inline-end: 8rem;
 }
 
 .hint .explanation[hidden] {
   display: none;
 }
-
 
 /******************************************************************************
  * Disabled items
@@ -311,7 +312,7 @@ ul[data-state="ready"] li[data-state="ready"] {
 }
 
 ul[data-state="ready"] li > a {
-  -moz-padding-end: 6.2rem; /* 3rem (initial padding) + 3.2rem (wifi icon width) */
+  padding-inline-end: 6.2rem; /* 3rem (initial padding) + 3.2rem (wifi icon width) */
 }
 
 /**
@@ -343,30 +344,30 @@ section[data-security*="EAP"] li.identity {
 section li.password {
   display: inherit; /*asf*/
   height: 12rem;
-  -moz-padding-end: 0;
+  padding-inline-end: 0;
 }
 
 section li.password > label {
   height: 3rem;
   min-height: 0;
   margin-top: 0.5rem;
-  -moz-margin-start: 0;
+  margin-inline-start: 0;
 }
 
 section li.password > label > span:after {
-  left: 0;
-  right: auto;
-  -moz-margin-start: 0;
+  offset-inline-start: 0;
+  offset-inline-end: auto;
+  margin-inline-start: 0;
 }
 
 
 section li.password > label > span {
-  -moz-padding-start: 3rem;
+  padding-inline-start: 3rem;
   height: 3rem;
   color: #848484;
   font-size: 1.7rem;
   line-height: 3rem;
-  -moz-margin-end: 1.5rem;
+  margin-inline-end: 1.5rem;
 }
 
 section li.password > label:active {
@@ -444,7 +445,7 @@ section ul.operate-certificate {
 #mediaStorage .stackedbar-color-label {
   display: inline-block;
   height: 2rem;
-  left: 1.5rem;
+  offset-inline-start: 1.5rem;
   padding: 0;
   position: absolute;
   top: 2.1rem;
@@ -452,8 +453,9 @@ section ul.operate-certificate {
 }
 
 #mediaStorage .stackedbar-color-label + a {
-  -moz-padding-start: 4rem;
+  padding-inline-start: 4rem;
 }
+
 /******************************************************************************
  * Call settings
  */
@@ -491,7 +493,7 @@ section ul.operate-certificate {
 }
 
 #call .cw-alert .cw-alert-checkbox-label {
-  right: 0;
+  offset-inline-end: 0;
   height: 2.7rem;
   width: 100%;
 }
@@ -529,7 +531,7 @@ section ul.operate-certificate {
 #cb-passcode-def {
   display: block;
   border: 0;
-  -moz-padding-start: 3.5rem;
+  padding-inline-start: 3.5rem;
   line-height: 2rem;
   font-size: 1.4rem;
   font-weight: lighter;
@@ -544,7 +546,7 @@ section ul.operate-certificate {
   clear: both;
   display: none;
   height: 4.2rem;
-  -moz-padding-start: 3rem;
+  padding-inline-start: 3rem;
   color: red;
   font-size: 1.5rem;
   line-height: 4.2rem;
@@ -559,7 +561,7 @@ section ul.operate-certificate {
 }
 
 #call-barring-passcode-change label {
-  -moz-box-sizing: border-box;
+  box-sizing: border-box;
   display: block;
   width: auto;
   height: auto;
@@ -579,14 +581,17 @@ section ul.operate-certificate {
 #call-barring-passcode-change [data-mode] {
   display: none !important; /* 1 */
 }
-#call-barring-passcode-change[data-mode="edit"]    [data-mode*="edit"],
-#call-barring-passcode-change[data-mode="new"]     [data-mode*="new"] {
+
+#call-barring-passcode-change[data-mode="edit"] [data-mode*="edit"],
+#call-barring-passcode-change[data-mode="new"]  [data-mode*="new"] {
   display: block !important; /* 1 */
 }
+
 #call-barring-passcode-change #passcode-confirm {
   opacity: 0.3;
   pointer-events: none;
 }
+
 #call-barring-passcode-change[data-passcode-status="success"] #passcode-confirm {
   opacity: 1;
   pointer-events: auto;
@@ -596,7 +601,7 @@ section ul.operate-certificate {
   z-index: -1;
   position: absolute;
   top: -5rem;
-  left: 0;
+  offset-inline-start: 0;
 }
 
 .passcode-container {
@@ -615,9 +620,9 @@ section ul.operate-certificate {
 }
 
 .passcode-digit {
-  -moz-box-sizing: border-box;
+  box-sizing: border-box;
   position: relative;
-  float: left;
+  float: left; /* BiDi-proof: passcodes are not mirrored */
   width: calc(25% - 1rem);
   height: 4rem;
   margin: 0 0.5rem;
@@ -636,8 +641,8 @@ span.passcode-digit[data-dot]::before {
   background-color: #3e3b39;
   border-radius: 0.75rem;
   top: 50%;
-  left: 50%;
-  margin-left: -0.75rem;
+  left: 50%;             /* BiDi-proof: passcodes are not mirrored in RTL */
+  margin-left: -0.75rem; /* BiDi-proof: passcodes are not mirrored in RTL */
   margin-top: -0.75rem;
 }
 
@@ -652,7 +657,6 @@ span.passcode-digit[data-dot]::before {
 .apnSettings-advanced {
   padding-bottom: 1em;
 }
-
 
 /******************************************************************************
  * Internet sharing (Wi-Fi HotSpot)
@@ -680,14 +684,15 @@ span.passcode-digit[data-dot]::before {
   height: 100%;
   width: 100%;
   top: 0;
-  left: 0;
+  offset-inline-start: 0;
   margin: 0;
   background: none;
 }
 
 .wallpaper .wallpaper-button > span {
   position: absolute;
-  right: 0; bottom: 0;
+  offset-inline-end: 0;
+  bottom: 0;
   width: 4.6rem;
   height: 4.6rem;
   margin: 1.5rem;
@@ -705,7 +710,7 @@ span.passcode-digit[data-dot]::before {
 
 .wallpaper .wallpaper-button > span:before {
   font-size: 40px;
-  -moz-margin-end: -2px;
+  margin-inline-end: -2px;
 }
 
 .wallpaper .wallpaper-preview {
@@ -730,7 +735,7 @@ span.passcode-digit[data-dot]::before {
  */
 
 .manage-tones-button {
-  -moz-padding-start: 3rem;
+  padding-inline-start: 3rem;
 }
 
 /******************************************************************************
@@ -753,7 +758,7 @@ ul li > label.range-icons:before {
 ul li > label.range-icons span {
   position: absolute;
   top: 0;
-  left: 0;
+  offset-inline-start: 0;
   height: 100%;
   padding: 0;
   margin: 0 1.5rem;
@@ -763,8 +768,8 @@ ul li > label.range-icons span {
 }
 
 ul li > label.range-icons span:last-child {
-  left: auto;
-  right: 0;
+  offset-inline-start: auto;
+  offset-inline-end: 0;
 }
 
 ul li > label.range-icons.volume span {
@@ -779,14 +784,14 @@ ul li.brightness-manual > label input[type="range"] {
 li.brightness-manual div {
   position: relative;
   top: calc(50% - 1.5rem);
-  left: 5rem;
+  offset-inline-start: 5rem;
   height: 3rem;
   width: calc(100% - 10.7rem);
 }
 
 ul li > label.range-icons.volume input {
   position: inherit;
-  margin-left: 5.8rem;
+  margin-inline-start: 5.8rem;
   width: calc(100% - 7.5rem);
   opacity: 0;
   transition: opacity .6s ease 0s;
@@ -846,7 +851,7 @@ ul li > label.range-icons.volume input {
   width: 100%;
   height: 100%;
   top: 0;
-  left: 0;
+  offset-inline-start: 0;
   opacity: 0;
 }
 
@@ -885,8 +890,8 @@ ul li > label.range-icons.volume input {
 }
 
 #sendFeedback gaia-checkbox label {
-  left: 3rem;
-  right: auto;
+  offset-inline-start: 3rem;
+  offset-inline-end: auto;
   top: 2rem;
 }
 
@@ -918,13 +923,13 @@ ul li > label.range-icons.volume input {
   height: auto;
 }
 
-#feedback-happy {
-  float: left;
-}
+/* can be replaced by `float: inline-start` when bug 1122918 lands */
+html[dir="ltr"] #feedback-happy { float: left; }
+html[dir="rtl"] #feedback-happy { float: right; }
 
-#feedback-sad {
-  float: right;
-}
+/* can be replaced by `float: inline-end` when bug 1122918 lands */
+html[dir="ltr"] #feedback-sad { float: right; }
+html[dir="rtl"] #feedback-sad { float: left; }
 
 #feedback-happy .feedback-choose-face {
   display: inline-block;
@@ -947,6 +952,7 @@ ul li > label.range-icons.volume input {
 #feedback-send-btn {
   text-align: center;
 }
+
 /******************************************************************************
  * OS License
  */
@@ -957,7 +963,6 @@ ul li > label.range-icons.volume input {
   height: calc(100% - 5rem);
   border: 0;
 }
-
 
 /******************************************************************************
  * Help
@@ -1015,7 +1020,7 @@ ul li > label.range-icons.volume input {
 
 #fxa-unverified-text {
   padding-top: 0.8rem;
-  -moz-margin-start: 6rem;
+  margin-inline-start: 6rem;
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -1038,7 +1043,7 @@ p.fxsync-unverified-warning {
   background-repeat: no-repeat;
   background-size: 2rem;
   background-position: left center;
-  -moz-padding-start: 3rem;
+  padding-inline-start: 3rem;
   padding-top: 1rem;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1057,10 +1062,8 @@ p.fxsync-unverified-warning {
   min-height: 6rem;
   height: auto;
   line-height: 2.3rem;
-  padding-top: 1.9rem;
-  padding-bottom: 1.5rem;
-  -moz-padding-start: 3rem;
-  -moz-padding-end: 4rem;
+  padding: 1.9rem 4rem 1.5rem;
+  padding-inline-start: 3rem;
 }
 
 /* Style components in developer panel to match existing styles. */
@@ -1071,11 +1074,11 @@ p.fxsync-unverified-warning {
 
 #developer ul li > label.pack-switch > span,
 #developer-hud ul li > label.pack-switch > span {
-  -moz-padding-end: 9rem;
+  padding-inline-end: 9rem;
 }
 
 #developer-hud ul li > label > span.color-preview {
-  -moz-padding-start: 5rem;
+  padding-inline-start: 5rem;
 }
 
 #developer-hud ul li.hud-separator {
@@ -1104,70 +1107,4 @@ section[role="status"] {
 
 section[role="status"].toast-visible {
   opacity: 1;
-}
-
-/******************************************************************************
- * Right-To-Left layout
- */
-html[dir="rtl"] .passcode-input {
-  left: unset;
-  right: 0;
-}
-
-html[dir="rtl"] section li.password > label > span:after {
-  left: auto;
-  right: 0;
-}
-
-html[dir="rtl"] #mediaStorage .stackedbar-color-label {
-  left: unset;
-  right: 1.5rem;
-}
-
-html[dir="rtl"] ul li > label.range-icons span:last-child {
-  left: 0;
-  right: auto;
-}
-
-html[dir="rtl"] li.brightness-manual div {
-  left: unset;
-  right: 5rem;
-}
-
-html[dir="rtl"] #dateTime .timezone.disabled select {
-  left: unset;
-  right: 1rem;
-}
-
-html[dir="rtl"] #sendFeedback gaia-checkbox label {
-  left: auto;
-  right: 3rem;
-}
-
-html[dir="rtl"] #feedback-happy {
-  float: right;
-}
-
-html[dir="rtl"] #feedback-sad {
-  float: left;
-}
-
-html[dir="rtl"] #mediaStorage ul li > a span:nth-of-type(2):not(.button),
-html[dir="rtl"] #applicationStorage ul li > a span:nth-of-type(2):not(.button),
-html[dir="rtl"] #battery ul li > a span:nth-of-type(2):not(.button) {
-  left: 0;
-}
-
-html[dir="rtl"] ul li > label.range-icons.volume input {
-  margin-left: unset;
-  margin-right: 5.8rem;
-}
-
-html[dir="rtl"] ul li > label.range-icons span {
-  left: unset;
-  right: 0;
-}
-
-html[dir="rtl"] #fxa-unverified .description {
-  background-position: 100% 1.5rem;
 }
