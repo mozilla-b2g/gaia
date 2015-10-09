@@ -1,5 +1,5 @@
 'use strict';
-/* global Downsample, VideoPlayer */
+/* global VideoPlayer */
 /*
  * media_frame.js:
  *
@@ -27,12 +27,15 @@
  * the MediaFrame will just move the photo within itself, if it can, and
  * return 0.
  *
- * MediaFrame uses the #-moz-samplesize media fragment (via the downsample.js
- * module) to downsample large jpeg images while decoding them when necessary.
- * You can specify a maximum image decode size (in megapixels) when invoking
- * the constructor. The MediaFrame code also includes a runtime check for
- * the amount of RAM available on the device, and may limit the image decode
- * size on low-memory devices.
+ * MediaFrame relies on Gecko to decode images at the size at which they are
+ * displayed, so that the image memory required to display large images is
+ * not too large. You can specify a maximum image decode size (in pixels)
+ * when invoking the constructor. The MediaFrame code also includes a
+ * runtime check for the amount of RAM available on the device, and may
+ * limit the image decode size on low-memory devices. If the decode size is
+ * limited, then MediaFrame will never set the image size to larger than
+ * that number of megapixels, which should prevent gecko from decoding the
+ * image at its full size.
  */
 function MediaFrame(container, includeVideo, maxImageSize) {
   this.clear(); // Set all the properties we'll use to default values
@@ -155,17 +158,30 @@ MediaFrame.prototype.displayImage = function displayImage(blob,
   // but the Gallery app uses it.
   this.imageblob = blob;
 
-  // Figure out if we are going to downsample the image before displaying it
-  // We expose fullSampleSize as part of the public api only for testing.
-  this.fullSampleSize = computeFullSampleSize(blob, width, height);
-  this.fullsizeWidth = this.fullSampleSize.scale(width);
-  this.fullsizeHeight = this.fullSampleSize.scale(height);
+  // Figure out the maximum size that we're willing to decode the image at.
+  // If the image's natural size is larger than what our memory limitations
+  // or our configuration allow, then we need to compute a smaller image size.
+  var maxPixels = MediaFrame.maxImageDecodeSize || 0;
+  if (this.maximumImageSize &&
+      (maxPixels === 0 || this.maximumImageSize < maxPixels)) {
+    maxPixels = this.maximumImageSize;
+  }
+  if (width * height <= maxPixels) {
+    // The image is smaller than the maximum size, so we can just
+    // use its natural size
+    this.maxWidth = width;
+    this.maxHeight = height;
+  }
+  else {
+    // The image too big to decode at full size, so compute the maximum
+    // display size we can use.
+    var downsample = Math.sqrt(maxPixels/(width * height));
+    this.maxWidth = Math.round(downsample * width);
+    this.maxHeight = Math.round(downsample * height);
+  }
 
-  // Create a blob URL for the image and combine it with the media fragment.
-  // imageurl is what we'll call revokeObjectURL on. fullImageURL may
-  // have a media fragment appended, so we need to track both properties.
+  // Create a blob URL for the image.
   this.imageurl = URL.createObjectURL(blob);
-  this.fullImageURL = this.imageurl + this.fullSampleSize;
 
   // Note: There is a default value for orientation/mirrored since some
   // images don't have EXIF data to retrieve this information.
@@ -181,8 +197,35 @@ MediaFrame.prototype.displayImage = function displayImage(blob,
     this.localize();
   }
 
+  console.log("displayImage", blob.name, width, height, this.maxWidth, this.maxHeight);
+
+  // To save time and memory, we want to avoid displaying the image at full
+  // size whenever we can display a smaller preview of it. In general, we
+  // only want to decode the full-size image if the user zooms in on it.
+  // This code determines whether we have a usable preview image and if so,
+  // displays that image instead of the full-size image.
+  if (canUsePreview(preview)) {
+    if (preview.start) {
+      usePreviewImage(blob.slice(preview.start, preview.end, 'image/jpeg'),
+                      preview.width, preview.height);
+    }
+    else {
+      var storage = navigator.getDeviceStorage('pictures');
+      var getreq = storage.get(preview.filename);
+      getreq.onsuccess = function() {
+        usePreviewImage(getreq.result, preview.width, preview.height);
+      };
+      getreq.onerror = function() {
+        useFullImage();
+      };
+    }
+  }
+  else {
+    useFullImage();
+  }
+
   // Determine whether we can use the preview image
-  function usePreview(preview) {
+  function canUsePreview(preview) {
     // If no preview at all, we can't use it.
     if (!preview) {
       return false;
@@ -223,40 +266,20 @@ MediaFrame.prototype.displayImage = function displayImage(blob,
              preview.height >= screenWidth));  // landscape
   }
 
-  // To save memory, we want to avoid displaying the image at full size
-  // whenever we can display a smaller preview of it. In general, we only
-  // want to decode the full-size image if the user zooms in on it.
-  // This code determines whether we have a usable preview image (or whether
-  // we can downsample the full-size image) and if so, displays that image
-  if (usePreview(preview)) {
-    if (preview.start) {
-      gotPreview(blob.slice(preview.start, preview.end, 'image/jpeg'),
-                 preview.width, preview.height);
-    }
-    else {
-      var storage = navigator.getDeviceStorage('pictures');
-      var getreq = storage.get(preview.filename);
-      getreq.onsuccess = function() {
-        gotPreview(getreq.result, preview.width, preview.height);
-      };
-      getreq.onerror = function() {
-        noPreview();
-      };
-    }
-  }
-  else {
-    noPreview();
+  // If we don't have a preview image we can use then we just display
+  // the image at full size
+  function useFullImage() {
+    self.previewurl = null;
+    self.displayingPreview = false;
+    self._displayImage(self.imageurl, self.maxWidth, self.maxHeight);
   }
 
   // If we've got a usable preview blob from EXIF or an external file,
   // this is what we do with it.
-  function gotPreview(previewblob, previewWidth, previewHeight) {
+  function usePreviewImage(previewblob, previewWidth, previewHeight) {
+    console.log("Using preview image");
     // Create a blob URL for the preview
     self.previewurl = URL.createObjectURL(previewblob);
-    // In this case previewImageURL is the same as previewurl. In some other
-    // cases, previewImageURL may have a media fragment appended, so we need
-    // two distinct properties, however.
-    self.previewImageURL = self.previewurl;
 
     // Remember the preview size
     self.previewWidth = previewWidth;
@@ -264,96 +287,7 @@ MediaFrame.prototype.displayImage = function displayImage(blob,
 
     // Start off with the preview image displayed
     self.displayingPreview = true;
-    self._displayImage(self.previewImageURL,
-                       self.previewWidth, self.previewHeight);
-  }
-
-  // If we don't have a preview image we can use this is what we do.
-  function noPreview() {
-    self.previewurl = null;
-    // Figure out whether we can downsample the fullsize image for
-    // use as a preview
-    var previewSampleSize = computePreviewSampleSize(blob, width, height);
-
-    // If we can create a preview by downsampling...
-    if (previewSampleSize !== Downsample.NONE) {
-      // Combine the full image url with the downsample media fragment
-      // to create a url for the downsampled preview.
-      self.previewImageURL = self.imageurl + previewSampleSize;
-      // Compute the preview size based on the downsample amount.
-      self.previewWidth = previewSampleSize.scale(width);
-      self.previewHeight = previewSampleSize.scale(height);
-
-      // Now start off with the downsampled image displayed
-      self.displayingPreview = true;
-      self._displayImage(self.previewImageURL,
-                         self.previewWidth, self.previewHeight);
-    }
-    else {
-      // If we can't (or don't need to) downsample the full image then note
-      // that we don't have a preview and display the image at full size.
-      self.previewImageURL = null;
-      self.displayingPreview = false;
-      self._displayImage(self.fullImageURL,
-                         self.fullsizeWidth, self.fullsizeHeight);
-    }
-  }
-
-  // If the blob is a JPEG then we can use #-moz-samplesize to downsample
-  // it while decoding. If this is a particularly large image then to avoid
-  // OOMs, we may not want to allow it to ever be decoded at full size
-  function computeFullSampleSize(blob, width, height) {
-    if (blob.type !== 'image/jpeg') {
-      // We're not using #-moz-samplesize at all
-      return Downsample.NONE;
-    }
-
-    // Determine the maximum size we will decode the image at, based on
-    // device memory and the maximum size passed to the constructor.
-    var max = MediaFrame.maxImageDecodeSize || 0;
-    if (self.maximumImageSize && (max === 0 || self.maximumImageSize < max)) {
-      max = self.maximumImageSize;
-    }
-
-    if (!max || width * height <= max) {
-      return Downsample.NONE;
-    }
-
-    return Downsample.areaAtLeast(max / (width * height));
-  }
-
-  function computePreviewSampleSize(blob, width, height) {
-    // If the image is not a JPEG we can't use a samplesize
-    if (blob.type !== 'image/jpeg') {
-      return Downsample.NONE;
-    }
-
-    //
-    // Determine how much we can scale the image down and still have it
-    // big enough to fill the screen in at least one dimension.
-    //
-    // For example, suppose we have a 1600x1200 photo and a 320x480 screen
-    //
-    //  portraitScale = Math.min(.2, .4) = 0.2
-    //  landscapeScale = Math.min(.3, .266) = 0.266
-    //  scale = 0.266
-    //
-    var screenWidth = window.innerWidth * window.devicePixelRatio;
-    var screenHeight = window.innerHeight * window.devicePixelRatio;
-
-    // To display the image in portrait orientation, this is how much we
-    // have to scale it down to ensure that both dimensions fit
-    var portraitScale = Math.min(screenWidth / width, screenHeight / height);
-
-    // To display the image in landscape, this is we need to scale it
-    // this much
-    var landscapeScale = Math.min(screenHeight / width, screenWidth / height);
-
-    // We need an image that is big enough in either orientation
-    var scale = Math.max(portraitScale, landscapeScale);
-
-    // Return the largest samplesize that still produces a big enough preview
-    return Downsample.sizeNoMoreThan(scale);
+    self._displayImage(self.previewurl, self.previewWidth, self.previewHeight);
   }
 };
 
@@ -365,6 +299,8 @@ MediaFrame.prototype.displayImage = function displayImage(blob,
 // switching from a preview image to a full-size image (when the user zooms
 // in) without a flash while the full-size image is decoded.
 MediaFrame.prototype._displayImage = function(url, width, height, bg) {
+  console.log("_displayImage", width, height);
+
   // Set the size of the image
   this.image.style.width = width + 'px';
   this.image.style.height = height + 'px';
@@ -408,7 +344,7 @@ MediaFrame.prototype.localize = function localize() {
     return;
   }
 
-  var portrait = this.fullsizeWidth < this.fullsizeHeight;
+  var portrait = this.maxWidth < this.maxHeight;
   if (this.rotation == 90 || this.rotation == 270) {
     // If rotated sideways, the width and height are swapped.
     portrait = !portrait;
@@ -458,22 +394,19 @@ MediaFrame.prototype._switchToFullSizeImage = function _switchToFull() {
     return;
   }
   this.displayingPreview = false;
-  this._displayImage(this.fullImageURL,
-                     this.fullsizeWidth, this.fullsizeHeight,
-                     this.previewImageURL);
+  this._displayImage(this.imageurl, this.maxWidth, this.maxHeight,
+                     this.previewurl);
 };
 
 MediaFrame.prototype._switchToPreviewImage = function _switchToPreview() {
   // If we're not displaying an image or already displaying preview
   // or don't have a preview to display then there is nothing to do.
-  if (!this.displayingImage || this.displayingPreview ||
-      !this.previewImageURL) {
+  if (!this.displayingImage || this.displayingPreview || !this.previewurl) {
     return;
   }
 
   this.displayingPreview = true;
-  this._displayImage(this.previewImageURL,
-                     this.previewWidth, this.previewHeight);
+  this._displayImage(this.previewurl, this.previewWidth, this.previewHeight);
 };
 
 // The video and poster image can have different sizes, but they must
@@ -519,10 +452,7 @@ MediaFrame.prototype.clear = function clear() {
   this.imageblob = null;
   this.videoblob = null;
   this.posterblob = null;
-  this.fullSampleSize = null;
-  this.fullImageURL = null;
-  this.previewImageURL = null;
-  this.fullsizeWidth = this.fullsizeHeight = null;
+  this.maxWidth = this.maxHeight = null;
   this.previewWidth = this.previewHeight = null;
   this.fit = null;
 
@@ -625,8 +555,7 @@ MediaFrame.prototype.computeFit = function computeFit() {
 MediaFrame.prototype.reset = function reset() {
   // If we're not displaying the preview image, but we have one,
   // and it is the right size, then switch to it
-  if (this.displayingImage && !this.displayingPreview &&
-      this.previewImageURL) {
+  if (this.displayingImage && !this.displayingPreview && this.previewurl) {
     this._switchToPreviewImage(); // resets image size and position
     return;
   }
