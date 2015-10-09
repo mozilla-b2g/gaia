@@ -21,6 +21,8 @@ a.menu-item:after {
   line-height: 6rem;
   color: #a5acae;
 }
+html[dir="ltr"] a.menu-item:after { content: "right-light"; }
+html[dir="rtl"] a.menu-item:after { content: "left-light"; }
 
 a.menu-item:active:after {
   color: #91aab0;

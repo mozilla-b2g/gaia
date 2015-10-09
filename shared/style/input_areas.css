@@ -387,17 +387,6 @@ form[role="search"] button[type="submit"].icon {
   background-position: center;
   background-size: 3rem;
 }
-/**
- * We can't mirror the background image alone; so let's put the vertical
- * separator on the left edge, and mirror the whole element (including the
- * image background and the separator).
- */
-form[role="search"] button[type="submit"].icon:after {
-  offset-inline-start: unset;
-  left: -0.1rem; /* BiDi-proof: mirrored with a scaleX(-1) below */
-}
-html[dir="ltr"] form[role="search"] button[type="submit"].icon { transform: scaleX(1); }
-html[dir="rtl"] form[role="search"] button[type="submit"].icon { transform: scaleX(-1); }
 
 form[role="search"] p input + button[type="reset"]{
   height: 3.7rem;

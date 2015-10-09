@@ -30,6 +30,8 @@ apps/camera/bower_components/gaia-component/gaia-component.js # line 199, col 3,
 apps/camera/bower_components/gaia-header/dist/gaia-header.js # line 136, col 5, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 apps/camera/bower_components/gaia-header/dist/gaia-header.js # line 200, col 3, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 apps/camera/bower_components/gaia-header/dist/gaia-header.js # line 280, col 5, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
+apps/camera/bower_components/gaia-header/dist/gaia-header-es5.js # line 215, col 15, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
+apps/camera/bower_components/gaia-header/dist/gaia-header-es5.js # line 501, col 13, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 apps/camera/bower_components/gaia-header/gaia-header.js # line 37, col 5, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 apps/camera/bower_components/gaia-theme/lib/gaia-theme-selector.js # line 12, col 3, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 apps/camera/js/views/confirm.js # line 29, col 5, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
