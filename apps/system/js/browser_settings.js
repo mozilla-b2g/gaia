@@ -35,7 +35,7 @@
     this.addRemoteRequestSetting(
       'clear.browser.history',
       function clearHistory() {
-        Service.request('Places:clear');
+        Service.request('Places:clearHistory');
       }
     );
 
