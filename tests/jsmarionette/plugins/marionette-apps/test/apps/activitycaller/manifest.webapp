@@ -1,0 +1,6 @@
+{
+  "name": "Test Activity Caller App",
+  "description": "Test Activity Caller App",
+  "type": "certified",
+  "launch_path": "/index.html"
+}

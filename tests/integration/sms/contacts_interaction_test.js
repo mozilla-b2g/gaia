@@ -69,30 +69,26 @@ marionette('Contacts', function() {
       conversation = inbox.goToConversation(thread.id);
     });
 
-    // Disabling these tests by now due to we need a way to switch to an
-    // activity instead of switching to an app, due to paths can differ.
-    // More info in [1].
-    // These tests must be recovered once this bug will be landed.
-
-    // [1] https://bugzilla.mozilla.org/show_bug.cgi?id=1140344#c9
-    test.skip('should create a new contact', function() {
-      var newContact = conversation.openCreateNewContact();
-
+    test('should create a new contact', function() {
       // Bug 1175080. Sometimes Marionette looses the connection. Asserting on
       // the throw makes the error message clearer. Otherwise we just have a
       // crahs in the stackwalk.
-      assert.doesNotThrow(function() { newContact.enterContactDetails({
+      assert.doesNotThrow(function() {
+        var newContact = conversation.openCreateNewContact();
+
+        newContact.enterContactDetails({
           givenName: 'Given',
           familyName: 'Family',
         });
-      });
-      messagesApp.switchTo();
 
-      assert.equal(conversation.carrierHeaderPhoneNumber, '+123');
-      assert.equal(conversation.headerTitle, 'Given Family');
+        messagesApp.switchTo();
+
+        assert.equal(conversation.carrierHeaderPhoneNumber, '+123');
+        assert.equal(conversation.headerTitle, 'Given Family');
+      });
     });
 
-    test.skip('should add the phone number to an existing contact', function() {
+    test('should add the phone number to an existing contact', function() {
       var contactPicker = conversation.openAddToExistingContact();
       contactPicker.tapContact(testContact.name);
       contactPicker.tapUpdate();
