@@ -280,9 +280,11 @@ var GaiaApps = {
 
       let displayedApp = GaiaApps.getDisplayedApp();
       if (displayedApp.manifestURL == manifestURL ||
-          (!displayedApp.manifestURL && displayedApp.origin == origin)) {
+          (!displayedApp.manifestURL && displayedApp.origin == origin) || 
+          displayedApp.entryPoint == entryPoint) {
         console.log('app with origin \'${displayedApp.origin}\' and ' +
-          'manifestURL \'${displayedApp.manifestURL}\' is already running');
+          'manifestURL \'${displayedApp.manifestURL}\' is already running' +
+          'entryPoint \'${displayedApp.entryPoint}\' is already running');
         sendResponse();
       } else {
         window.addEventListener('windowopened', function appOpen() {
@@ -297,6 +299,9 @@ var GaiaApps = {
               // wait for the displayed app to have expected manifestURL/origin
               let displayedApp = GaiaApps.getDisplayedApp();
               if (displayedApp.manifestURL) {
+                if(displayedApp.entryPoint){
+                  return displayedApp.entryPoint == entryPoint;
+                }
                 return displayedApp.manifestURL == manifestURL;
               } else {
                 return displayedApp.origin == origin;
