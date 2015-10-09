@@ -88,6 +88,11 @@
    */
   PopupWindow.prototype.openAnimation = 'slide-from-bottom';
 
+  PopupWindow.prototype._handle_mozbrowsertitlechange = function(evt) {
+    this.name = evt.detail;
+    this.publish('namechanged');
+  };
+
   /**
    * Default closing animation.
    *
