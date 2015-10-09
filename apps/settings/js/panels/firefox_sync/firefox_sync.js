@@ -45,6 +45,9 @@ define(function(require) {
     listener: 'openPrivacy'
   }, {
     screen: LOGGED_IN_SCREEN,
+    selector: '.fxsync-collections-bookmarks'
+  }, {
+    screen: LOGGED_IN_SCREEN,
     selector: '.fxsync-collections-history'
   }, {
     screen: LOGGED_IN_SCREEN,
@@ -70,7 +73,8 @@ define(function(require) {
     this.elements = {};
     this.currentScreen = null;
     this.collections = new Map();
-    ['sync.collections.history.enabled',
+    ['sync.collections.bookmarks.enabled',
+     'sync.collections.history.enabled',
      'sync.collections.passwords.enabled'].forEach(setting => {
       SettingsListener.observe(setting, true, enabled => {
         enabled ? this.collections.set(setting, enabled)
@@ -248,6 +252,7 @@ define(function(require) {
 
     disableSyncNowAndCollections(disabled) {
       ['syncNow',
+       'collectionsBookmarks',
        'collectionsHistory',
        'collectionsPasswords'].forEach(name => {
         this.elements[name].disabled = disabled;
