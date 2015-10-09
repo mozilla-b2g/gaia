@@ -1,6 +1,6 @@
 {
   "name": "gaia-header",
-  "version": "0.8.0",
+  "version": "0.9.4",
   "homepage": "https://github.com/gaia-components/gaia-header",
   "authors": [
     "Wilson Page <wilsonpage@me.com>"
@@ -18,8 +18,8 @@
     "README.md"
   ],
   "dependencies": {
-    "gaia-icons": "gaia-components/gaia-icons#~0.7.0",
-    "gaia-component": "gaia-components/gaia-component#~0.3.0",
+    "gaia-icons": "gaia-components/gaia-icons#~0.10.0",
+    "gaia-component": "gaia-components/gaia-component#~0.4.0",
     "font-fit": "gaia-components/font-fit#~0.3.0"
   },
   "devDependencies": {

@@ -1,11 +1,10 @@
-;(function(define){define(function(require,exports,module){
-'use strict';
-
+/* globals define */
+;(function(define){'use strict';define(function(require,exports,module){
 /**
  * Locals
  */
-
-var textContent = Object.getOwnPropertyDescriptor(Node.prototype, 'textContent');
+var textContent = Object.getOwnPropertyDescriptor(Node.prototype,
+    'textContent');
 var innerHTML = Object.getOwnPropertyDescriptor(Element.prototype, 'innerHTML');
 var removeAttribute = Element.prototype.removeAttribute;
 var setAttribute = Element.prototype.setAttribute;
@@ -21,13 +20,26 @@ var noop  = function() {};
  */
 exports.register = function(name, props) {
   var baseProto = getBaseProto(props.extends);
+  var template = props.template || baseProto.templateString;
+
+  // Components are extensible by default but can be declared
+  // as non extensible as an optimization to avoid
+  // storing the template strings
+  var extensible = props.extensible = props.hasOwnProperty('extensible')?
+    props.extensible : true;
 
   // Clean up
   delete props.extends;
 
   // Pull out CSS that needs to be in the light-dom
-  if (props.template) {
-    var output = processCss(props.template, name);
+  if (template) {
+    // Stores the string to be reprocessed when
+    // a new component extends this one
+    if (extensible && props.template) {
+      props.templateString = props.template;
+    }
+
+    var output = processCss(template, name);
 
     props.template = document.createElement('template');
     props.template.innerHTML = output.template;
@@ -44,7 +56,7 @@ exports.register = function(name, props) {
 
   // Merge base getter/setter attributes with the user's,
   // then define the property descriptors on the prototype.
-  var descriptors = Object.assign(props.attrs || {}, base.descriptors);
+  var descriptors = mixin(props.attrs || {}, base.descriptors);
 
   // Store the orginal descriptors somewhere
   // a little more private and delete the original
@@ -75,7 +87,7 @@ var base = {
     created: noop,
 
     createdCallback: function() {
-      if (this.rtl) { addDirObserver(); }
+      if (this.dirObserver) { addDirObserver(); }
       injectLightCss(this);
       this.created();
     },
@@ -105,8 +117,20 @@ var base = {
       this.attributeChanged(name, from, to);
     },
 
-    attachedCallback: function() { this.attached(); },
-    detachedCallback: function() { this.detached(); },
+    attachedCallback: function() {
+      if (this.dirObserver) {
+        this.setInnerDirAttributes = setInnerDirAttributes.bind(null, this);
+        document.addEventListener('dirchanged', this.setInnerDirAttributes);
+      }
+      this.attached();
+    },
+
+    detachedCallback: function() {
+      if (this.dirObserver) {
+        document.removeEventListener('dirchanged', this.setInnerDirAttributes);
+      }
+      this.detached();
+    },
 
     /**
      * A convenient method for setting up
@@ -118,6 +142,7 @@ var base = {
       if (!this.template) { return; }
       var node = document.importNode(this.template.content, true);
       this.createShadowRoot().appendChild(node);
+      if (this.dirObserver) { setInnerDirAttributes(this); }
       return this.shadowRoot;
     },
 
@@ -159,7 +184,9 @@ var base = {
         if (this.lightStyle) { this.appendChild(this.lightStyle); }
       },
 
-      get: textContent.get
+      get: function() {
+        return textContent.get();
+      }
     },
 
     innerHTML: {
@@ -185,34 +212,35 @@ var defaultPrototype = createProto(HTMLElement.prototype, base.properties);
  * Returns a suitable prototype based
  * on the object passed.
  *
+ * @private
  * @param  {HTMLElementPrototype|undefined} proto
  * @return {HTMLElementPrototype}
- * @private
  */
 function getBaseProto(proto) {
   if (!proto) { return defaultPrototype; }
   proto = proto.prototype || proto;
-  return !proto.GaiaComponent
-    ? createProto(proto, base.properties)
-    : proto;
+  return !proto.GaiaComponent ?
+    createProto(proto, base.properties) : proto;
 }
 
 /**
  * Extends the given proto and mixes
  * in the given properties.
  *
+ * @private
  * @param  {Object} proto
  * @param  {Object} props
  * @return {Object}
  */
 function createProto(proto, props) {
-  return Object.assign(Object.create(proto), props);
+  return mixin(Object.create(proto), props);
 }
 
 /**
  * Detects presence of shadow-dom
  * CSS selectors.
  *
+ * @private
  * @return {Boolean}
  */
 var hasShadowCSS = (function() {
@@ -240,6 +268,7 @@ var regex = {
  * them to work from the <style scoped>
  * injected at the root of the component.
  *
+ * @private
  * @return {String}
  */
 function processCss(template, name) {
@@ -281,14 +310,15 @@ function processCss(template, name) {
  * <style> in the head of the
  * document.
  *
+ * @private
  * @param  {String} css
  */
 function injectGlobalCss(css) {
-  if (!css) return;
+  if (!css) {return;}
   var style = document.createElement('style');
   style.innerHTML = css.trim();
-  headReady().then(() => {
-    document.head.appendChild(style)
+  headReady().then(function() {
+    document.head.appendChild(style);
   });
 }
 
@@ -299,7 +329,7 @@ function injectGlobalCss(css) {
  * @private
  */
 function headReady() {
-  return new Promise(resolve => {
+  return new Promise(function(resolve) {
     if (document.head) { return resolve(); }
     window.addEventListener('load', function fn() {
       window.removeEventListener('load', fn);
@@ -325,10 +355,16 @@ function headReady() {
  */
 function injectLightCss(el) {
   if (hasShadowCSS) { return; }
-  el.lightStyle = document.createElement('style');
-  el.lightStyle.setAttribute('scoped', '');
-  el.lightStyle.innerHTML = el.lightCss;
-  el.appendChild(el.lightStyle);
+  var stylesheet = el.querySelector('style');
+
+  if (!stylesheet) {
+    stylesheet = document.createElement('style');
+    stylesheet.setAttribute('scoped', '');
+    stylesheet.appendChild(document.createTextNode(el.lightCss));
+    el.appendChild(stylesheet);
+  }
+
+  el.lightStyle = stylesheet;
 }
 
 /**
@@ -339,7 +375,8 @@ function injectLightCss(el) {
  *
  *   toCamelCase('foo-bar'); //=> 'fooBar'
  *
- * @param  {Sring} string
+ * @private
+ * @param  {String} string
  * @return {String}
  */
 function toCamelCase(string) {
@@ -356,12 +393,33 @@ function toCamelCase(string) {
 var dirObserver;
 
 /**
- * Observes the document `dir` (direction)
- * attribute and dispatches a global event
- * when it changes.
+ * Workaround for bug 1100912: applies a `dir` attribute to all shadowRoot
+ * children so that :-moz-dir() selectors work on shadow DOM elements.
  *
- * Components can listen to this event and
- * make internal changes if need be.
+ * In order to keep decent performances, the `dir` is the component dir if
+ * defined, or the document dir otherwise. This won't work if the component's
+ * direction is defined by CSS or inherited from a parent container.
+ *
+ * This method should be removed when bug 1100912 is fixed.
+ *
+ * @private
+ * @param  {WebComponent}
+ */
+function setInnerDirAttributes(component) {
+  var dir = component.dir || document.dir;
+  Array.from(component.shadowRoot.children).forEach(element => {
+    if (element.nodeName !== 'STYLE') {
+      element.dir = dir;
+    }
+  });
+}
+
+/**
+ * Observes the document `dir` (direction) attribute and when it changes:
+ *  - dispatches a global `dirchanged` event;
+ *  - forces the `dir` attribute of all shadowRoot children.
+ *
+ * Components can listen to this event and make internal changes if needed.
  *
  * @private
  */
@@ -377,6 +435,23 @@ function addDirObserver() {
   function onChanged(mutations) {
     document.dispatchEvent(new Event('dirchanged'));
   }
+}
+
+/**
+ * Copy the values of all properties from
+ * source object `target` to a target object `source`.
+ * It will return the target object.
+ *
+ * @private
+ * @param   {Object} target
+ * @param   {Object} source
+ * @returns {Object}
+ */
+function mixin(target, source) {
+  for (var key in source) {
+    target[key] = source[key];
+  }
+  return target;
 }
 
 });})(typeof define=='function'&&define.amd?define
