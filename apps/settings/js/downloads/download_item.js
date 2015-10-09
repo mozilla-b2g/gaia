@@ -58,6 +58,7 @@ window.DownloadItem = (function DownloadItem() {
 
     var pFileName = document.createElement('p');
     pFileName.classList.add('fileName');
+    pFileName.dir = 'auto';
     pFileName.textContent = DownloadFormatter.getFileName(download);
 
     var pInfo = document.createElement('p');
