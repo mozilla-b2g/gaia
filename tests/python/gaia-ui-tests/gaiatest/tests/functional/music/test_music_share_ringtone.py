@@ -37,6 +37,8 @@ class TestMusicShareRingtone(GaiaTestCase):
         # wait until the player view is shown, then tap the share button
         play_time = time.strptime('00:01', '%M:%S')
         Wait(self.marionette).until(lambda m: player_view.player_elapsed_time >= play_time)
+        #player_view.tap_play()
+        #self.assertFalse(player_view.is_player_playing(), 'The player did not stop playing')
         activities = player_view.tap_share_button()
         ringtone = activities.share_to_ringtones()
         ringtone.tap_save()

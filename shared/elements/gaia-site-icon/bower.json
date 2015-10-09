@@ -1,5 +1,6 @@
 {
   "name": "gaia-site-icon",
+  "version": "0.0.0",
   "description": "A web component to show an icon for an application or site.",
   "authors": [
     "Chris Lord <chrislord.net@gmail.com>"
@@ -19,15 +20,5 @@
     "bower_components",
     "test",
     "tests"
-  ],
-  "homepage": "https://github.com/gaia-components/gaia-site-icon",
-  "_release": "2c5b344e05",
-  "_resolution": {
-    "type": "branch",
-    "branch": "master",
-    "commit": "2c5b344e05f3431fe723c33644439b740810269b"
-  },
-  "_source": "git://github.com/gaia-components/gaia-site-icon.git",
-  "_target": "*",
-  "_originalSource": "gaia-components/gaia-site-icon"
+  ]
 }

@@ -1,7 +1,13 @@
 {
-  "name": "gaia-app-icon",
+  "name": "gaia-site-icon",
   "version": "0.0.0",
-  "description": "A web component to show an icon for an application.",
+  "description": "A web component to show an icon for an application or site.",
+  "author": [
+    {
+      "name": "Chris Lord",
+      "email": "chrislord.net@gmail.com"
+    }
+  ],
   "main": "script.js",
   "directories": {
     "example": "examples"
@@ -12,7 +18,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git@gitlab.com:Cwiiis/gaia-app-icon.git"
+    "url": "git@github.com:gaia-components/gaia-site-icon.git"
   },
   "devDependencies": {
     "karma": "^0.12.37",
