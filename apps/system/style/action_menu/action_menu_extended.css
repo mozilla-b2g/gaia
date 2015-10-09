@@ -43,23 +43,17 @@
 form[role="dialog"][data-type="action"] > menu > button.icon,
 form[role="dialog"][data-type="object"] > menu > button.icon {
   background-repeat: no-repeat;
-  padding-inline-start: 4rem;
-  background-size: 3rem;
-  background-position: 0.5rem center;
-}
-
-form[role="dialog"][data-type="action"] > menu > button.tail-icon,
-form[role="dialog"][data-type="object"] > menu > button.tail-icon {
-  background-repeat: no-repeat;
   background-size: 3rem;
 }
-html[dir="ltr"] form[role="dialog"][data-type="action"] > menu > button.tail-icon,
-html[dir="ltr"] form[role="dialog"][data-type="object"] > menu > button.tail-icon {
-  background-position: right 0.5rem top 0.5rem;
-}
-html[dir="rtl"] form[role="dialog"][data-type="action"] > menu > button.tail-icon,
-html[dir="rtl"] form[role="dialog"][data-type="object"] > menu > button.tail-icon {
+html[dir="ltr"] form[role="dialog"][data-type="action"] > menu > button.icon,
+html[dir="ltr"] form[role="dialog"][data-type="object"] > menu > button.icon {
   background-position: left 0.5rem top 0.5rem;
+  padding-left: 4rem;
+}
+html[dir="rtl"] form[role="dialog"][data-type="action"] > menu > button.icon,
+html[dir="rtl"] form[role="dialog"][data-type="object"] > menu > button.icon {
+  background-position: right 0.5rem top 0.5rem;
+  padding-right: 4rem;
 }
 
 form[role="dialog"][data-type="action"],
@@ -122,6 +116,7 @@ form[role="dialog"][data-type="action"] > menu > gaia-checkbox {
   form[role="dialog"][data-type="action"] > menu,
   form[role="dialog"][data-type="object"] > menu {
     top: calc(50% - 24rem + 7rem);
+    offset-inline-start: calc(50% - 34rem);
     width: 56rem; /* 68 - 12 */
     height: 31rem; /* 38 - 7 */
     padding: 0 6rem;
@@ -129,7 +124,6 @@ form[role="dialog"][data-type="action"] > menu > gaia-checkbox {
     background-color: #4d4d4d;
     border: none;
     z-index:1;
-    offset-inline-start: calc(50% - 34rem);
   }
 
   form[role="dialog"][data-type="action"] > menu > button,
@@ -150,12 +144,12 @@ form[role="dialog"][data-type="action"] > menu > gaia-checkbox {
   form[role="dialog"][data-type="object"] > menu > button:last-child {
     position: absolute;
     margin-top: 1.5rem;
+    margin-inline-start: calc(50% - 9rem);
     font-size: 2.3rem;
     line-height: 2.3rem;
     font-weight: 400;
     width: 18rem;
     height: 4rem;
-    margin-inline-start: calc(50% - 9rem);
   }
 
   form[role="dialog"][data-type="action"] > menu > button:last-child:before,
