@@ -4,7 +4,7 @@
 
 import time
 from gaiatest import GaiaTestCase
-from gaiatest.apps.music.app import Music
+from gaiatest.apps.music_oga.app import Music
 
 
 class TestMusic(GaiaTestCase):
@@ -15,28 +15,28 @@ class TestMusic(GaiaTestCase):
         # add track to storage
         self.push_resource('MUS_0001.mp3')
 
-    def test_select_album_play(self):
+    def test_select_artist_play(self):
         """
-        https://moztrap.mozilla.org/manage/case/3755/
+        https://moztrap.mozilla.org/manage/case/4031/
         """
 
         music_app = Music(self.marionette)
         music_app.launch()
-
         music_app.wait_for_music_tiles_displayed()
 
-        # switch to albums view
-        list_view = music_app.tap_albums_tab()
+        # switch to artists view
+        list_view = music_app.tap_artists_tab()
 
-        # check that albums (at least one) are available
-        albums = list_view.media
-        self.assertGreater(len(albums), 0, 'The mp3 file could not be found')
+        # check that artists (at least one) are available
+        artists = list_view.media
+        self.assertGreater(len(artists), 0, 'The mp3 file could not be found')
 
-        # select an album
-        sublist_view = albums[0].tap_first_album()
+        # select an artist
+        sublist_view = artists[0].tap_first_artist()
+
         # select play
         # This wait is timing out because of bug 862156
-        player_view = sublist_view.tap_first_song()
+        player_view = sublist_view.tap_play()
 
         # play for a short duration
         play_time = time.strptime('00:03', '%M:%S')
