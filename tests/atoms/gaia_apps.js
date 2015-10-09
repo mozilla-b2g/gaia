@@ -375,40 +375,31 @@ var GaiaApps = {
   /**
   * Install the app with the specified ManifestURL
   */
-  installWithManifestURL: function(manifestURL) {
-    GaiaApps.locateWithManifestURL(manifestURL, function install(app) {
-      if (typeof(app) === 'object') {
-        let req = navigator.mozApps.mgmt.install(app);
-          req.onsuccess = function() {
-          marionetteScriptFinished(true);
-        };
-        req.onerror = function() {
-          marionetteScriptFinished(req.error);
-        };
-      } else {
-        // App was never installed, so nothing to do here
-        marionetteScriptFinished(true);
-      }
-    });
-  },
+  installWithManifestUrl: function(manifestUrl) {
+    GaiaApps.handleRequest(navigator.mozApps.mgmt.install, manifestUrl);
 
+  },
   /**
   * Uninstall the app with the specified ManifestURL
   */
-  uninstallWithManifestURL: function(manifestURL) {
-    GaiaApps.locateWithManifestURL(manifestURL, function uninstall(app) {
-      if (typeof(app) === 'object') {
-        let req = navigator.mozApps.mgmt.uninstall(app);
-          req.onsuccess = function() {
-          marionetteScriptFinished(true);
-        };
-        req.onerror = function() {
-          marionetteScriptFinished(req.error);
-        };
-      } else {
-        // App was never installed, so nothing to do here
+  uninstallWithManifestUrl: function(manifestUrl) {
+    GaiaApps.locateWithManifestURL(manifestUrl, function uninstall(app) {
+    if (typeof(app) === 'object') {
+      GaiaApps.handleRequest(navigator.mozApps.mgmt.uninstall, app);
+    } else {
+      // App is already in this state, so nothing to do here
+      marionetteScriptFinished(true);
+     }
+    }); 
+  },
+
+  handleRequest: function(functionArgument, functionThatCreateRequest) {
+    let req = functionThatCreateRequest(functionArgument);
+        req.onsuccess = function() {
         marionetteScriptFinished(true);
-      }
-    });
+      };
+      req.onerror = function() {
+        marionetteScriptFinished(req.error);
+      };
   }
 };

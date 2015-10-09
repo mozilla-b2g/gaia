@@ -19,10 +19,8 @@ class TestLaunchApp(GaiaTestCase):
         self.homescreen = Homescreen(self.marionette)
         self.apps.switch_to_displayed_app()
 
-        self.test_data = {
-            'name': 'Mozilla QA WebRT Tester',
-            'manifest_url': self.marionette.absolute_url('webapps/mozqa.com/manifest.webapp')}
-        self.apps.install(self.test_data['manifest_url'])
+        manifest_url = self.marionette.absolute_url('webapps/mozqa.com/manifest.webapp')
+        self.apps.install(manifest_url)
 
         # Wait for the notification to disappear
         system = System(self.marionette)
