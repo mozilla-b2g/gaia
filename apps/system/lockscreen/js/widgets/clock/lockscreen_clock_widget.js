@@ -59,11 +59,20 @@
 			.then( function(stores){
 				stores[0].getLength().then(function(len){
           if(len != 0) {
-            stores[0].get(len)
+            stores[0].get(1)
               .then( function(data) {
-                self.resources.elements.alarm.textContent = data.time;
-                self.logger.debug('Alarm updated', data.time);
-                return data;
+                if(data.data) {
+                  var type = "AM"
+                  if(data.data.hour > 12) {
+                    type = "PM";
+                    data.data.hour = data.data.hour - 12;
+                  }
+                  var fullAlarmTime = ' | ' + data.data.hour +
+                    ':' + data.data.minute + ' ' + type;
+                  self.resources.elements.alarm.textContent = fullAlarmTime
+                  self.logger.debug('Alarm updated to :', fullAlarmTime);
+                  return data;
+                }
               });
           }
 				});

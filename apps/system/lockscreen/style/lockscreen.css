@@ -235,12 +235,6 @@
   display: inline-block;
 }
 
-#lockscreen-alarm {
-  border-left: 1px solid;
-  margin-left: 5px;
-  padding-left: 10px;
-}
-
 #lockscreen-clock-time, #lockscreen-date, #lockscreen-alarm {
   color: #fff;
 }

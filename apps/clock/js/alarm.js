@@ -156,10 +156,11 @@ define(function(require, exports, module) {
       // Only update the application if this alarm was actually saved
       // (i.e. it has an ID).
       if (this.id) {
-        var alarmDatabase = require('alarm_database');
+        var self = this,
+            alarmDatabase = require('alarm_database');
         // Updating Alarm info in the DataStore
+        var storeAlarms = [];
         alarmDatabase.getAll().then((alarms) => {
-          var storeAlarms = [];
           // Logging in a loop to ensure we don't overrun the line buffer:
           alarms.forEach(function(a) {
             // Grabbing alarms that are 'normal'
@@ -167,24 +168,47 @@ define(function(require, exports, module) {
               storeAlarms.push(a);
             }
           });
-          // TODo - Enable sort
-//          storeAlarms.sort(function(a,b) {
-//            
-//          });
-          //todo - remove the ones that are not closest
+          storeAlarms = self.sortAlarms(storeAlarms);
 
+          console.log(storeAlarms);
           // append info to datastore
           navigator.getDataStores('alarms')
           .then( function(stores) {
-            stores[0].add({
-              'data': storeAlarms
-            }).then(function(id){
-              // Successfull Adding of alarms to data store
-              console.log(id);
-            })
+            if(typeof storeAlarms !== 'undefined') {
+              stores[0].getLength()
+              .then(function(len) {
+                if(len == 0) {
+                  stores[0].add({
+                    'data': storeAlarms
+                  }).then(function(id){
+                    // Successfull Adding of alarms to data store
+                    console.log(id);
+                  })
+                }
+                else {
+                  stores[0].put({
+                    'data': storeAlarms
+                  }, 1)
+                  .then(function(id){
+                    // Successfull Adding of alarms to data store
+                    console.log(id);
+                  })
+                }
+              });
+            }
+            else {
+              stores[0].getLength()
+              .then(function(len) {
+                if(len != 0) {
+                  stores[0].remove(1).then(function(success) {
+                    console.log("Success : ", success);
+                  });
+                }
+              });
+            }
           });
         });
-        console.log("PJ- Alarm Database 4");
+
         window.dispatchEvent(
           new CustomEvent(removed ? 'alarm-removed' : 'alarm-changed', {
             detail: { alarm: this }
@@ -204,6 +228,47 @@ define(function(require, exports, module) {
           this._notifyChanged(/* removed = */ true);
         });
       });
+    },
+
+    /** Sort all the alarms and return the next upcoming
+     *  alarm from the list
+     */
+    sortAlarms: function(storeAlarms) {
+      // TODo - Enable sort
+      storeAlarms.sort(function(a,b) {
+        return new Date('1970/01/01 '+a.hour+':'+a.minute) - new Date('1970/01/01 ' + b.hour+':'+b.minute);
+      });
+      var before = [],
+          after = [],
+          now = new Date();
+      function addZero(i) {
+        if (i < 10) {
+          i = "0" + i;
+        }
+        return i;
+      }
+
+      storeAlarms.forEach(function(alarmInfo,b){
+        if( addZero(now.getHours()) + ':' + addZero(now.getMinutes())
+           <= addZero(alarmInfo.hour) + ':' + addZero(alarmInfo.minute)) {
+          after.push({
+            hour: alarmInfo.hour,
+            minute: alarmInfo.minute
+          });
+        }
+        else {
+          before.push({
+            hour: alarmInfo.hour,
+            minute: alarmInfo.minute
+          });
+        }
+      });
+
+      storeAlarms = after;
+      before.forEach(function(alarmInfo,b) {
+        storeAlarms.push(alarmInfo);
+      });
+      return storeAlarms[0];
     }
 
   };
