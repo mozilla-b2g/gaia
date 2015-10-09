@@ -54,13 +54,14 @@ DEFAULT_PREFS = {
 
 class GaiaApp(object):
 
-    def __init__(self, origin=None, name=None, frame=None, src=None, manifest_url=None):
+    def __init__(self, origin=None, name=None, frame=None, src=None, manifest_url=None, entry_point=None):
         self.frame = frame
         self.frame_id = frame
         self.src = src
         self.name = name
         self.origin = origin
         self.manifest_url = manifest_url
+        self.entry_point = entry_point
 
     def __eq__(self, other):
         return self.__dict__ == other.__dict__
@@ -102,7 +103,8 @@ class GaiaApps(object):
                       src=result.get('src'),
                       name=result.get('name'),
                       origin=result.get('origin'),
-                      manifest_url=result.get('manifestURL'))
+                      manifest_url=result.get('manifestURL'),
+                      entry_point=result.get('entryPoint'))
         if app.frame_id is None:
             raise Exception("App failed to launch; there is no app frame")
         if switch_to_frame:
@@ -117,7 +119,8 @@ class GaiaApps(object):
                        src=result.get('src'),
                        name=result.get('name'),
                        origin=result.get('origin'),
-                       manifest_url=result.get('manifestURL'))
+                       manifest_url=result.get('manifestURL'),
+                       entry_point=result.get('entryPoint'))
 
     def switch_to_displayed_app(self):
         self.marionette.switch_to_default_content()
