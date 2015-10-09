@@ -30,6 +30,10 @@ var CallGroupMenu = (function() {
 
   return {
     show: function(groupPrimaryInfo, phoneNumber, date, type, status) {
+      var header = document.createElement('bdi');
+      header.className = 'ellipsis-dir-fix';
+      header.textContent = groupPrimaryInfo || '';
+
       var params = {
         items: [{
           l10nId: 'callInformation',
@@ -43,7 +47,7 @@ var CallGroupMenu = (function() {
           l10nId: 'cancel',
           incomplete: true
         }],
-        header: groupPrimaryInfo,
+        header: header,
         classes: ['call-group-menu']
       };
 
