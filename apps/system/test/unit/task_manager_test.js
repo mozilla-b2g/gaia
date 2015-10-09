@@ -1,4 +1,4 @@
-/* global MockStackManager, MockService, TaskManagerUtils,
+/* global MockStackManager, MockService,
           TaskManager, AppWindow, WheelEvent, MockAppWindow,
           HomescreenWindow, MockSettingsListener, MocksHelper, MockL10n */
 
@@ -197,20 +197,6 @@ suite('system/TaskManager >', function() {
       clock.tick(TICK_SHOW_HIDE_MS);
     });
 
-    test('Should only emit "cardviewclosed" after !isActive', (done) => {
-      var wasActive;
-      function onclosed() {
-        window.removeEventListener('cardviewclosed', onclosed);
-        wasActive = tm.isActive();
-      }
-      window.addEventListener('cardviewclosed', onclosed);
-
-      tm.hide().then(() => {
-        assert.isFalse(wasActive);
-      }).then(done, done);
-      clock.tick(TICK_SHOW_HIDE_MS);
-    });
-
     test('Should emit "cardviewbeforeshow" and "cardviewshown"', (done) => {
       var spyCardViewBeforeShow = spyEvent(window, 'cardviewbeforeshow');
       var spyCardViewShown = spyEvent(window, 'cardviewshown');
@@ -221,23 +207,6 @@ suite('system/TaskManager >', function() {
         return show;
       }).then(() => {
         assert.isTrue(spyCardViewShown.called);
-      }).then(done, done);
-      clock.tick(TICK_SHOW_HIDE_MS);
-    });
-
-    test('Should hide the overflow during the opening transition', (done) => {
-      sinon.stub(TaskManagerUtils, 'waitForScreenToBeReady')
-        .returns(Promise.resolve());
-
-      tm.hide().then(() => {
-        var show = tm.show();
-        clock.tick(TICK_SHOW_HIDE_MS);
-        return Promise.resolve().then(() => {
-          assert.equal(tm.scrollElement.style.overflowX, 'hidden');
-          return show;
-        });
-      }).then(() => {
-        assert.equal(tm.scrollElement.style.overflowX, 'scroll');
       }).then(done, done);
       clock.tick(TICK_SHOW_HIDE_MS);
     });
@@ -362,7 +331,6 @@ suite('system/TaskManager >', function() {
       MockStackManager.mCurrent = MockStackManager.mStack.length - 1;
 
       tm = new TaskManager();
-      this.sinon.spy(tm, 'getCurrentIndex');
       tm.start().then(() => tm.show()).then(() => { done(); }, done);
       clock.tick(TICK_SHOW_HIDE_MS);
     });
@@ -379,12 +347,6 @@ suite('system/TaskManager >', function() {
       assert.equal(
         MockStackManager.getCurrent(),
         tm.currentCard.app);
-    });
-
-    test('should not query the currentIndex for the initial launch (reflow)',
-    function() {
-      // Called once for the scrollEvent once we set the overflow
-      sinon.assert.calledOnce(tm.getCurrentIndex);
     });
 
     test('Proper accessibility attributes for cards', function() {

@@ -8,14 +8,6 @@ define(function(require) {
   var DateTime = require('modules/date_time');
   var tzSelect = require('shared/tz_select');
 
-  var _debug = false;
-  var debug = function() {};
-  if (_debug) {
-    debug = function btam_debug(msg) {
-      console.log('--> [DateTime]: ' + msg);
-    };
-  }
-
   return function ctor_date_time_panel() {
     var HOUR_12 = 'ampm';
     var HOUR_24 = '24';
@@ -53,7 +45,6 @@ define(function(require) {
         this._boundSetTimezoneInfo = () => {
           // Only display the timezone info when auto time is enabled.
           var info = DateTime.clockAutoEnabled ? DateTime.timezone : '';
-          debug('Timezone: ' + info);
           this._elements.timezoneInfoText.textContent = info;
         };
 
@@ -217,8 +208,6 @@ define(function(require) {
           this._elements.timezonePickers.forEach((picker) => {
             picker.hidden = DateTime.timezoneAutoAvailable;
           });
-          debug('force update timezone string');
-          this._boundSetTimezoneInfo();
           this._elements.timezoneInfo.hidden = !DateTime.timezoneAutoAvailable;
         } else {
           this._elements.timeManual.classList.remove('disabled');

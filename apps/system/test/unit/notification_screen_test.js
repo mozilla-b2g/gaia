@@ -329,8 +329,9 @@ suite('system/NotificationScreen >', function() {
 
       sinon.stub(window.mozIntl._gaia, 'RelativeDate', function() {
         return {
-          formatElement: function() {
+          format: function() {
             callCount++;
+            return Promise.resolve();
           }
         };
       });

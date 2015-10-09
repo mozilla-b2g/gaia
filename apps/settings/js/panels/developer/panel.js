@@ -16,8 +16,7 @@ define(function(require) {
           resetSwitch: panel.querySelector('.reset-devtools'),
           ftuLauncher: panel.querySelector('.ftuLauncher'),
           softwareHomeButton: panel.querySelector('.software-home-button'),
-          homegesture: panel.querySelector('.homegesture'),
-          homescreenPaging: panel.querySelector('.homescreen-paging')
+          homegesture: panel.querySelector('.homegesture')
         };
         developer.init(elements);
       }

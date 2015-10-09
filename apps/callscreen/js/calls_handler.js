@@ -295,18 +295,12 @@ var CallsHandler = (function callsHandler() {
       if (contact && contact.name) {
         CallScreen.incomingInfo.classList.add('additionalInfo');
         CallScreen.incomingNumber.textContent = contact.name;
-
-        var additionalL10n =
+        CallScreen.incomingNumberAdditionalTelType.textContent =
           Utils.getPhoneNumberAdditionalInfo(matchingTel);
-        navigator.mozL10n.setAttributes(
-          CallScreen.incomingNumberAdditionalTelType,
-          additionalL10n.id,
-          additionalL10n.args);
         CallScreen.incomingNumberAdditionalTel.textContent = number;
       } else {
         CallScreen.incomingNumber.textContent = number;
-        CallScreen.incomingNumberAdditionalTelType.removeAttribute(
-          'data-l10n-id');
+        CallScreen.incomingNumberAdditionalTelType.textContent = '';
         CallScreen.incomingNumberAdditionalTel.textContent = '';
       }
 

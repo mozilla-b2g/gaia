@@ -83,8 +83,8 @@
   AppTransitionController.prototype._waitingForLoad = false;
   AppTransitionController.prototype.openAnimation = 'enlarge';
   AppTransitionController.prototype.closeAnimation = 'reduce';
-  AppTransitionController.prototype.OPENING_TRANSITION_TIMEOUT = 1000;
-  AppTransitionController.prototype.CLOSING_TRANSITION_TIMEOUT = 1000;
+  AppTransitionController.prototype.OPENING_TRANSITION_TIMEOUT = 200;
+  AppTransitionController.prototype.CLOSING_TRANSITION_TIMEOUT = 200;
   AppTransitionController.prototype.SLOW_TRANSITION_TIMEOUT = 3500;
   AppTransitionController.prototype._firstTransition = true;
   AppTransitionController.prototype.changeTransitionState =
@@ -136,16 +136,15 @@
 
   AppTransitionController.prototype._do_closing =
     function atc_do_closing() {
-      var slow = Service.query('slowTransition');
-      var timeout = slow ? this.SLOW_TRANSITION_TIMEOUT :
-                           this.CLOSING_TRANSITION_TIMEOUT;
       this.app.debug('timer to ensure closed does occur.');
       this._closingTimeout = window.setTimeout(() => {
         if (!this.app) {
           return;
         }
         this.app.broadcast('closingtimeout');
-      }, timeout);
+      },
+      Service.query('slowTransition') ? this.SLOW_TRANSITION_TIMEOUT :
+                              this.CLOSING_TRANSITION_TIMEOUT);
 
       if (!this.app || !this.app.element) {
         return;
@@ -164,13 +163,12 @@
 
   AppTransitionController.prototype._do_opening =
     function atc_do_opening() {
-      var slow = Service.query('slowTransition');
-      var timeout = slow ? this.SLOW_TRANSITION_TIMEOUT :
-                           this.OPENING_TRANSITION_TIMEOUT;
       this.app.debug('timer to ensure opened does occur.');
-      this._openingTimeout = window.setTimeout(() => {
+      this._openingTimeout = window.setTimeout(function() {
         this.app && this.app.broadcast('openingtimeout');
-      }, timeout);
+      }.bind(this),
+      Service.query('slowTransition') ? this.SLOW_TRANSITION_TIMEOUT :
+                              this.OPENING_TRANSITION_TIMEOUT);
       this._waitingForLoad = false;
       this.app.element.classList.add('transition-opening');
       this.app.element.classList.add(this.getAnimationName('open'));
@@ -378,12 +376,6 @@
           break;
         case 'animationend':
           evt.stopPropagation();
-
-          if (this._transitionState == 'closing') {
-            this.changeTransitionState('complete', evt.type);
-            break;
-          }
-
           // Hide touch-blocker when launching animation is ended.
           this.app.element.classList.remove('transition-opening');
 
@@ -400,9 +392,8 @@
                */
               this.app.focus();
             }
-            break;
+            return;
           }
-
           this.app.debug(evt.animationName + ' has been ENDED!');
           this.changeTransitionState('complete', evt.type);
           break;

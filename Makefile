@@ -582,6 +582,7 @@ export BUILD_CONFIG
 
 # Generate profile/
 $(PROFILE_FOLDER): profile-dir build-app test-agent-config contacts extensions b2g_sdk .git/hooks/pre-commit
+	@echo "[DEBUG_LOG]: LD_LIBRARY_PATH=$(LD_LIBRARY_PATH)"
 ifeq ($(BUILD_APP_NAME),*)
 	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)$(PROFILE_FOLDER)"
 endif

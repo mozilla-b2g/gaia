@@ -4,34 +4,36 @@
 var AlbumsView = View.extend(function AlbumsView() {
   View.call(this); // super();
 
-  this.searchBox = document.getElementById('search-box');
-  this.searchResults = document.getElementById('search-results');
+  this.searchBox = document.getElementById('search');
   this.list = document.getElementById('list');
 
+  var searchHeight = this.searchBox.HEIGHT;
+
+  this.searchBox.addEventListener('open', () => window.parent.onSearchOpen());
+  this.searchBox.addEventListener('close', () => {
+    this.list.scrollTop = searchHeight;
+    window.parent.onSearchClose();
+  });
   this.searchBox.addEventListener('search', (evt) => this.search(evt.detail));
-
-  this.searchResults.addEventListener('open', () => {
-    this.client.method('searchOpen');
-  });
-
-  this.searchResults.addEventListener('close', () => {
-    this.client.method('searchClose');
-    this.list.scrollTop = this.searchBox.HEIGHT;
-  });
-
-  this.searchResults.addEventListener('resultclick', (evt) => {
+  this.searchBox.addEventListener('resultclick', (evt) => {
     var link = evt.detail;
     if (link) {
       this.client.method('navigate', link.getAttribute('href'));
     }
   });
 
-  this.searchResults.getItemImageSrc = (item) => this.getThumbnail(item.name);
+  this.searchBox.getItemImageSrc = (item) => {
+    return this.getThumbnail(item.name);
+  };
 
-  this.list.scrollTop = this.searchBox.HEIGHT;
-  this.list.minScrollHeight = `calc(100% + ${this.searchBox.HEIGHT}px)`;
+  this.list.scrollTop = searchHeight;
+  this.list.minScrollHeight = `calc(100% - ${searchHeight}px)`;
 
   this.list.configure({
+    getSectionName: (item) => {
+      return item.sectionName;
+    },
+
     getItemImageSrc: (item) => {
       return this.getThumbnail(item.name);
     }
@@ -62,19 +64,31 @@ AlbumsView.prototype.render = function() {
 };
 
 AlbumsView.prototype.getAlbums = function() {
-  return document.l10n.formatValues('unknownAlbum', 'unknownArtist')
-    .then(([unknownAlbum, unknownArtist]) => {
+  return document.l10n.formatValues('unknownAlbum', 'unknown')
+    .then(([unknownAlbum, unknown]) => {
       return this.fetch('/api/albums/list')
         .then(response => response.json())
         .then((albums) => {
           return albums.map((album) => {
+            var sectionName, albumText;
+            if (!album.metadata.album) {
+              sectionName = unknown;
+              albumText = unknownAlbum;
+            } else {
+              sectionName = album.metadata.album[0].toLowerCase();
+              sectionName = isNaN(sectionName) ? sectionName : '#';
+              albumText = album.metadata.album;
+            }
+
             return {
-              name:   album.name,
-              url:    '/album-detail?id=' + encodeURIComponent(album.name),
-              album:  album.metadata.album  || unknownAlbum,
-              artist: album.metadata.artist || unknownArtist
+              sectionName: sectionName,
+              name: album.name,
+              url: '/album-detail?id=' + encodeURIComponent(album.name),
+              album:  albumText,
+              artist: album.metadata.artist
             };
           });
+
         });
     });
 };
@@ -85,10 +99,6 @@ AlbumsView.prototype.getThumbnail = function(filePath) {
 };
 
 AlbumsView.prototype.search = function(query) {
-  if (!query) {
-    return Promise.resolve(this.searchResults.clearResults());
-  }
-
   return document.l10n.formatValues(
     'unknownAlbum', 'unknownArtist'
   ).then(([unknownAlbum, unknownArtist]) => {
@@ -105,7 +115,8 @@ AlbumsView.prototype.search = function(query) {
           };
         });
 
-        return this.searchResults.setResults(results);
+        this.searchBox.setResults(results);
+        return results;
       });
   });
 };

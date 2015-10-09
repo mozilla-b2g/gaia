@@ -25,27 +25,6 @@ function objCopy(obj) {
 }
 
 /**
- * Error reporting helper; we will probably eventually want different behaviours
- * under development, under unit test, when in use by QA, advanced users, and
- * normal users, respectively.  By funneling all errors through one spot, we
- * help reduce inadvertent breakage later on.
- */
-function reportError() {
-  var msg = null;
-  for (var i = 0; i < arguments.length; i++) {
-    if (msg)
-      msg += " " + arguments[i];
-    else
-      msg = "" + arguments[i];
-  }
-  // When in tests, this will fail the test; when not in tests, we just log.
-  logic.fail(new Error(msg));
-}
-var unexpectedBridgeDataError = reportError,
-    internalError = reportError,
-    reportClientCodeError = reportError;
-
-/**
  * The number of header wire messages to cache in the recvCache
  */
 var HEADER_CACHE_LIMIT = 8;
@@ -1717,10 +1696,8 @@ BridgedViewSlice.prototype = {
    * some potentially costly growth of the data set should be performed.
    */
   requestGrowth: function(dirMagnitude, userRequestsGrowth) {
-    if (this._growing) {
-      reportError('Already growing in ' + this._growing + ' dir.');
-      return;
-    }
+    if (this._growing)
+      throw new Error('Already growing in ' + this._growing + ' dir.');
     this._growing = dirMagnitude;
     this.pendingRequestCount++;
 
@@ -2079,6 +2056,28 @@ MessageComposition.prototype = {
 };
 
 var LEGAL_CONFIG_KEYS = [];
+
+/**
+ * Error reporting helper; we will probably eventually want different behaviours
+ * under development, under unit test, when in use by QA, advanced users, and
+ * normal users, respectively.  By funneling all errors through one spot, we
+ * help reduce inadvertent breakage later on.
+ */
+function reportError() {
+  var msg = null;
+  for (var i = 0; i < arguments.length; i++) {
+    if (msg)
+      msg += " " + arguments[i];
+    else
+      msg = "" + arguments[i];
+  }
+  // When in tests, this will fail the test; when not in tests, we just log.
+  logic.fail(new Error(msg));
+}
+var unexpectedBridgeDataError = reportError,
+    internalError = reportError,
+    reportClientCodeError = reportError;
+
 
 // Common idioms:
 //

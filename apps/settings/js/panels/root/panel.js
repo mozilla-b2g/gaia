@@ -7,6 +7,7 @@ define(function(require) {
   var AirplaneModeItem = require('panels/root/airplane_mode_item');
   var ThemesItem = require('panels/root/themes_item');
   var AddonsItem = require('panels/root/addons_item');
+  var PrivacyPanelItem = require('panels/root/privacy_panel_item');
   var STKItem = require('panels/root/stk_item');
   var BTAPIVersionDetector = require('modules/bluetooth/version_detector');
   var DsdsSettings = require('dsds_settings');
@@ -40,6 +41,7 @@ define(function(require) {
     var root;
     var airplaneModeItem;
     var themesItem;
+    var privacyPanelItem;
     var addonsItem;
     var stkItem;
 
@@ -76,6 +78,10 @@ define(function(require) {
           ThemesItem(panel.querySelector('.themes-section'));
         addonsItem =
           AddonsItem(panel.querySelector('#addons-section'));
+        privacyPanelItem = PrivacyPanelItem({
+          element: panel.querySelector('.privacy-panel-item'),
+          link: panel.querySelector('.privacy-panel-item a')
+        });
         stkItem = STKItem({
           iccMainHeader: panel.querySelector('#icc-mainheader'),
           iccEntries: panel.querySelector('#icc-entries')
@@ -122,6 +128,7 @@ define(function(require) {
       onShow: function rp_onShow(panel) {
         airplaneModeItem.enabled = true;
         themesItem.enabled = true;
+        privacyPanelItem.enabled = true;
         addonsItem.enabled = true;
 
         if (initLowPriorityItemsPromise) {
@@ -133,6 +140,7 @@ define(function(require) {
       onHide: function rp_onHide() {
         airplaneModeItem.enabled = false;
         themesItem.enabled = false;
+        privacyPanelItem.enabled = false;
         addonsItem.enabled = false;
 
         if (initLowPriorityItemsPromise) {

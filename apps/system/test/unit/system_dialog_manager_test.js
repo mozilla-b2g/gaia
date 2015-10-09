@@ -1,26 +1,20 @@
-/* global MockAppWindow, MockNavigatorSettings, LazyLoader */
+/* global MockAppWindow */
 (function() {
 'use strict';
 
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_system_dialog.js');
-requireApp('system/test/unit/mock_tracking_notice.js');
 requireApp('system/test/unit/mock_system_simcard_dialog.js');
-require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
-require('/shared/test/unit/mocks/mock_lazy_loader.js');
 requireApp('system/js/system_dialog_manager.js');
 requireApp('system/js/service.js');
 
 var mocksForSystemDialogManager = new window.MocksHelper([
   'SystemDialog',
-  'SimPinSystemDialog',
-  'LazyLoader',
-  'TrackingNotice'
+  'SimPinSystemDialog'
 ]).init();
 
 suite('system/SystemDialogManager', function() {
   mocksForSystemDialogManager.attachTestHelpers();
-  var realMozSettings;
   var dialogFake,
       optionsFake = {
         onShow: function() {},
@@ -33,18 +27,7 @@ suite('system/SystemDialogManager', function() {
         }
       };
 
-  suiteSetup(function() {
-    realMozSettings = navigator.mozSettings;
-    navigator.mozSettings = MockNavigatorSettings;
-  });
-
-  suiteTeardown(function() {
-    navigator.mozSettings = realMozSettings;
-  });
-
   setup(function() {
-    MockNavigatorSettings.mSetup();
-    MockNavigatorSettings.mSyncRepliesOnly = true;
     this.sinon.stub(document, 'getElementById').returns(
       document.createElement('div'));
 
@@ -55,7 +38,6 @@ suite('system/SystemDialogManager', function() {
   });
 
   teardown(function() {
-    MockNavigatorSettings.mTeardown();
     window.systemDialogManager.states.activeDialog = null;
   });
 
@@ -87,30 +69,6 @@ suite('system/SystemDialogManager', function() {
       assert.isTrue(window.systemDialogManager.elements.containerElement
                     .classList.contains('fullscreen'));
       assert.isTrue(dialogFake.resize.called);
-    });
-  });
-
-  suite('Tracking Notice', function() {
-    const TRACKING_NOTICE_KEY = 'privacy.trackingprotection.shown';
-    setup(function() {
-      this.sinon.stub(LazyLoader, 'load');
-    });
-
-    test('it includes tracking notice code if not already shown', function() {
-      var settingObj = {};
-      settingObj[TRACKING_NOTICE_KEY] = false;
-      navigator.mozSettings.mSet(settingObj);
-      window.systemDialogManager._initTrackingNotice();
-      navigator.mozSettings.mReplyToRequests();
-      assert.isTrue(LazyLoader.load.called);
-    });
-
-    test('it does not include tracking notice if already shown', function() {
-      var settingObj = {};
-      settingObj[TRACKING_NOTICE_KEY] = true;
-      navigator.mozSettings.mSet(settingObj);
-      window.systemDialogManager._initTrackingNotice();
-      assert.isFalse(LazyLoader.load.called);
     });
   });
 

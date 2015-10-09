@@ -1,11 +1,3 @@
-body {
-  overflow-y: auto;
-}
-
-body[data-search="true"] {
-  overflow: hidden;
-}
-
 .tile {
   border-bottom: solid 1px var(--background);
   box-sizing: border-box;

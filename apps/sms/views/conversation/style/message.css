@@ -142,20 +142,6 @@
   color: #d1eeee;
 }
 
-.message.incoming .late-arrival-notice {
-  color: #026a69;
-}
-
-.message.incoming .late-arrival-icon {
-  margin-inline-start: 1rem;
-  margin-inline-end: 0.1rem;
-  min-width: 1.5rem;
-  height: 2rem;
-
-  background: no-repeat center center / 1.5rem;
-  background-image: url('images/icons/late_clock.png');
-}
-
 .message.incoming.error .message-details {
   color: #ffe0dc;
 }

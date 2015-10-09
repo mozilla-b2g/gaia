@@ -21,8 +21,11 @@
   },
   "permissions": {
     "homescreen-webapps-manage": {},
+    "mobileconnection": {},
     "moz-extremely-unstable-and-will-change-webcomponents": {},
-    "systemXHR": {}
+    "open-remote-window": {},
+    "systemXHR": {},
+    "themeable": {}
   },
   "datastores-access": {
     "bookmarks_store": {
@@ -30,16 +33,12 @@
       "description": "View bookmarks."
     },
     "places": {
-      "readonly": false,
-      "description": "View and modify data about browsing history."
+      "readonly": true,
+      "description": "View data about browsing history."
     },
     "icons": {
-      "readonly": false,
-      "description": "Store and retrieve cached website icons."
-    },
-    "homescreen_settings": {
       "readonly": true,
-      "description": "Read home screen settings."
+      "description": "Retrieve cached website icons."
     }
   },
   "orientation": "default"

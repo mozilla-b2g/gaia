@@ -99,13 +99,13 @@ TaskManager.prototype = {
    * Create a new Card representing the given app, and add it to the DOM.
    * (This does not deal with stack order.)
    */
-  _addApp(app, container, { stayInvisible }) {
+  _addApp(app, { stayInvisible }) {
     var card = new Card(app, {
       disableScreenshots: this.disableScreenshots,
       stayInvisible: stayInvisible
     });
 
-    container.appendChild(card.element);
+    this.cardsList.appendChild(card.element);
     this.elementToCardMap.set(card.element, card);
     this.appToCardMap.set(app, card);
     app.enterTaskManager();
@@ -155,28 +155,23 @@ TaskManager.prototype = {
       }
     });
 
-    var toAdd = this.stack.filter((app) => {
-      return !this.appToCardMap.get(app);
-    });
-
-    if (toAdd.length) {
-      var fragment = document.createDocumentFragment();
-      toAdd.forEach((app) => {
-        this._addApp(app, fragment, {
+    this.stack.forEach((app) => {
+      var card = this.appToCardMap.get(app);
+      if (!card) {
+        card = this._addApp(app, {
           stayInvisible: (app === currentlyLaunchingApp)
         });
-      });
-      this.cardsList.appendChild(fragment);
-    }
+      }
+    });
 
-    this.updateLayout(toAdd.length === this.stack.length);
+    this.updateLayout();
   },
 
   /**
    * Update the card positions and layout.
    * Called in response to window resize and stack changes.
    */
-  updateLayout(initial) {
+  updateLayout() {
     this.cardWidth = window.innerWidth / 2;
     this.cardHeight = window.innerHeight / 2;
 
@@ -195,16 +190,15 @@ TaskManager.prototype = {
 
     this.cardsList.style.width = contentWidth + 'px';
 
-    this.updateScrollPosition(initial);
+    this.updateScrollPosition();
   },
 
   /**
    * Update our bookkeeping for when the scroll position changes, used
    * primarily for updating cards' accessibility attributes.
    */
-  updateScrollPosition(initial) {
-    // Skipping the layout flush inducing getCurrentIndex on the first rendering
-    var index = initial ? StackManager.position : this.getCurrentIndex();
+  updateScrollPosition() {
+    var index = this.getCurrentIndex();
     var currentCard = this.appToCardMap.get(this.stack[index]);
 
     if (this.currentCard !== currentCard) {
@@ -267,10 +261,6 @@ TaskManager.prototype = {
       this.element.addEventListener('card-dropped', this);
       this.scrollElement.addEventListener('scroll', this);
 
-      // We only want to paint to critical viewport for now
-      // not the full APZ pre-rendering window
-      this.scrollElement.style.overflowX = 'hidden';
-
       this.updateStack();
       this.panToApp(StackManager.getCurrent(), true);
       this.setActive(true);
@@ -288,7 +278,6 @@ TaskManager.prototype = {
       this.publish('cardviewshown');
       this.screenElement.classList.add('cards-view');
       this.element.classList.remove('from-home');
-      this.scrollElement.style.overflowX = 'scroll';
     });
   },
 
@@ -330,6 +319,7 @@ TaskManager.prototype = {
     // Remove '.cards-view' now, so that the incoming app animation begins its
     // transition at the proper scale.
     this.screenElement.classList.remove('cards-view');
+    this.publish('cardviewclosed', { detail });
 
     // Set the proper transition...
     if (newApp.isHomescreen) {
@@ -342,7 +332,6 @@ TaskManager.prototype = {
     // ... and when the transition has finished, clean up.
     return eventSafety(newApp.element, 'animationend', (e) => {
       this.setActive(false);
-      this.publish('cardviewclosed', { detail });
       this.element.classList.remove('to-home');
       this.element.classList.remove('filtered');
       this.stack.forEach((app) => {
@@ -424,18 +413,8 @@ TaskManager.prototype = {
       idx = this.stack.length - 1;
     }
 
-    var desiredPosition = this.indexToOffset(idx);
-
-    if (immediately) {
-      this.scrollElement.scrollTo({
-        left: desiredPosition,
-        top: 0,
-        behavior: 'auto'
-      });
-      return Promise.resolve();
-    }
-
     var currentPosition = this.scrollElement.scrollLeft;
+    var desiredPosition = this.indexToOffset(idx);
 
     return new Promise((resolve, reject) => {
       if (currentPosition === desiredPosition) {
@@ -444,7 +423,7 @@ TaskManager.prototype = {
         this.scrollElement.scrollTo({
           left: desiredPosition,
           top: 0,
-          behavior: 'smooth'
+          behavior: immediately ? 'auto' : 'smooth'
         });
         setTimeout(resolve, 200);
       }
@@ -479,10 +458,9 @@ TaskManager.prototype = {
           // Believe it or not, you will receive scroll events even when
           // overflow is hidden. We don't care about those, because we're
           // dragging a card; the user won't see scroll events.
-          break;
+        } else {
+          this._lastScrollTimestamp = Date.now();
         }
-
-        this._lastScrollTimestamp = Date.now();
         this.updateScrollPosition();
         break;
 
@@ -616,7 +594,6 @@ TaskManager.prototype = {
         url: 'app://search.gaiamobile.org/newtab.html?private=1',
       });
       config.isPrivate = true;
-      config.isMockPrivate = true;
       config.oop = true;
     } else {
       config = new BrowserConfigHelper({

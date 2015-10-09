@@ -199,15 +199,6 @@
       Service.register('turnShadeOff', this);
     },
 
-    _getNumOfCalls: function scm_getNumOfCalls() {
-      if (navigator.mozTelephony) {
-        return navigator.mozTelephony.calls.length +
-          (navigator.mozTelephony.conferenceGroup.calls.length ? 1 : 0);
-      } else {
-        return 0;
-      }
-    },
-
     handleEvent: function scm_handleEvent(evt) {
       var telephony = window.navigator.mozTelephony;
       var call;
@@ -229,21 +220,11 @@
           break;
 
         case 'sleep':
-          // If calls are present then the power button will be handled by the
-          // dialer agent.
-          if (this._getNumOfCalls() === 0) {
-            this.turnScreenOff(true, 'powerkey');
-          }
-
+          this.turnScreenOff(true, 'powerkey');
           break;
 
         case 'wake':
-          // If calls are present then the power button will be handled by the
-          // dialer agent.
-          if (this._getNumOfCalls() === 0) {
-            this.turnScreenOn();
-          }
-
+          this.turnScreenOn();
           break;
 
         case 'accessibility-action':
@@ -293,7 +274,11 @@
           break;
 
         case 'callschanged':
-          if (this._getNumOfCalls() === 0) {
+          if (!telephony.calls.length &&
+              !(telephony.conferenceGroup &&
+                telephony.conferenceGroup.calls.length)) {
+
+            this.turnScreenOn();
             this._uninstallProximityListener();
             break;
           }

@@ -126,9 +126,9 @@
      * @access private
      * @memberOf InitialPanelHandler.prototype
      * @param {HTMLInputElement} input
-     * @param {Event} event
+     * @param {Event} event                    
      */
-    _onSettingChange: function iph_onSettingChange(input, event) {
+    _onSettingChange: function uph_onSettingChange(input, event) {
       this._updateInput(input, event.settingValue);
     },
 
@@ -137,9 +137,9 @@
      *
      * @access private
      * @memberOf InitialPanelHandler.prototype
-     * @param {Event} event
+     * @param {Event} event                    
      */
-    _onInputChange: function iph_onInputChange(event) {
+    _onInputChange: function uph_onInputChange(event) {
       var input = event.target;
       var type = input.type;
       var key = input.name;
@@ -191,9 +191,9 @@
      * @access private
      * @memberOf InitialPanelHandler.prototype
      * @param {HTMLInputElement} input
-     * @param {Object} value
+     * @param {Object} value                  
      */
-    _updateInput: function iph_updateInput(input, value) {
+    _updateInput: function uph_updateInput(input, value) {
       var i;
       var count;
 
@@ -226,7 +226,7 @@
      * Add listeners for click and input changes.
      *
      * @access private
-     * @memberOf InitialPanelHandler.prototype
+     * @memberOf InitialPanelHandler.prototype              
      */
     _init: function iph_init() {
       this._addClickListeners();
@@ -237,7 +237,7 @@
      * Release the control from the handler to the panel.
      *
      * @access public
-     * @memberOf InitialPanelHandler.prototype
+     * @memberOf InitialPanelHandler.prototype              
      */
     release: function iph_release() {
       this._removeClickListeners();
@@ -253,7 +253,7 @@
 
 
 /**
- * RootPanelHandler updates UI elements in the root panel.
+ * RootPanelHandler updates UI elements in the root panel. 
  *
  * @module RootPanelHandler
  */
@@ -321,10 +321,10 @@
     },
 
     /**
-     * Process hidden UI elements here.
+     * Process all UI elements here.
      *
      * @access private
-     * @memberOf RootPanelHandler.prototype
+     * @memberOf RootPanelHandler.prototype              
      */
     _init: function rph_init() {
       var nfcItem = this._rootElement.querySelector('.nfc-settings');
@@ -394,7 +394,7 @@
      */
     _showInitialPanel: function as_showInitialPanel(initialPanelId) {
       var initialPanel = document.getElementById(initialPanelId);
-      // Use lazy loader because it handles the case in DEBUG mode.
+      // Use lazy loade because it handles the case in DEBUG mode.
       return LazyLoader.load([initialPanel]).then(() => {
         initialPanel.classList.add('current');
       });

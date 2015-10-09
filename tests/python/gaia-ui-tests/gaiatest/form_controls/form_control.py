@@ -8,5 +8,8 @@ from gaiatest.apps.base import PageRegion
 
 class Widget(PageRegion):
     def __init__(self, marionette, locator):
-        element = Wait(marionette).until(expected.element_present(*locator))
+        if type(locator) is tuple:
+            element = Wait(marionette).until(expected.element_present(*locator))
+        else:
+            element = locator
         PageRegion.__init__(self, marionette, element)

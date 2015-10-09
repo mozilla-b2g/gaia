@@ -17,6 +17,7 @@ window.GaiaAppIcon = (function(exports) {
   const DEFAULT_BACKGROUND_COLOR = 'rgb(228, 234, 238)';
   const CANVAS_PADDING = 2 * window.devicePixelRatio;
   const FAVICON_SCALE = 0.55;
+  const ICON_FETCH_TIMEOUT = 10000;
 
   var proto = Object.create(HTMLElement.prototype);
 
@@ -43,10 +44,6 @@ window.GaiaAppIcon = (function(exports) {
     this._hasIcon = false;
     this._hasUserSetIcon = false;
     this._hasPredefinedIcon = false;
-    this._iconUrl = null;
-    this._pendingIconUrl = null;
-    this._pendingIconRefresh = false;
-    this._lastState = null;
 
     this._predefinedIcons = {};
     for (var key in PREDEFINED_ICONS) {
@@ -226,14 +223,6 @@ window.GaiaAppIcon = (function(exports) {
     enumerable: true
   });
 
-  Object.defineProperty(proto, 'isUserSet', {
-    get: function() {
-      return this._iconUrl === 'user-set';
-    },
-
-    enumerable: true
-  });
-
   proto._cancelIconLoad = function() {
     if (!this._image) {
       return;
@@ -262,16 +251,19 @@ window.GaiaAppIcon = (function(exports) {
     if (this.app) {
       this.app.launch(this.entryPoint);
     } else {
-      var features = {
-        name: this.bookmark.name,
-        remote: true
-      };
+      this.icon.then((blob) => {
+        var features = {
+          name: this.bookmark.name,
+          icon: URL.createObjectURL(blob),
+          remote: true
+        };
 
-      window.open(this.bookmark.url, '_samescope', Object.keys(features)
-        .map(function eachFeature(key) {
-          return encodeURIComponent(key) + '=' +
-            encodeURIComponent(features[key]);
-        }).join(','));
+        window.open(this.bookmark.url, '_blank', Object.keys(features).
+          map(function eachFeature(key) {
+            return encodeURIComponent(key) + '=' +
+              encodeURIComponent(features[key]);
+          }).join(','));
+      });
     }
   };
 
@@ -291,14 +283,14 @@ window.GaiaAppIcon = (function(exports) {
         this._image = null;
         this._hasIcon = true;
 
-        // Set icon URL on dataset, for testing.
-        if (this._pendingIconUrl) {
-          this._iconUrl = this.dataset.testIconUrl = this._pendingIconUrl;
-          this._pendingIconUrl = null;
-        }
-
         if (!this._hasPredefinedIcon) {
           this.dispatchEvent(new CustomEvent('icon-loaded'));
+        }
+
+        // Set icon URL on dataset, for testing.
+        if (this._pendingIconUrl) {
+          this.dataset.testIconUrl = this._pendingIconUrl;
+          this._pendingIconUrl = null;
         }
 
         if (this._pendingIconRefresh) {
@@ -490,6 +482,43 @@ window.GaiaAppIcon = (function(exports) {
     // Handle icon loading for bookmarks, app icon loading is more involved
     // and handled below this block.
     if (this.bookmark) {
+      if (this.bookmark.icon) {
+        // It'd be great to just set the src here, but we need to be able
+        // to read-back the image, so use system XHR.
+        var xhr = new XMLHttpRequest({ mozAnon: true, mozSystem: true });
+
+        xhr.open('GET', this.bookmark.icon, true);
+        xhr.responseType = 'blob';
+        xhr.timeout = ICON_FETCH_TIMEOUT;
+
+        this._pendingIconUrl = this.bookmark.icon;
+
+        xhr.onload = function load(image) {
+          if (!image.onload) {
+            return;
+          }
+
+          if (xhr.status !== 0 && xhr.status !== 200) {
+            image.onerror(xhr.status);
+          } else {
+            image.src = URL.createObjectURL(xhr.response);
+          }
+        }.bind(this, this._image);
+
+        xhr.onerror = function error(image, e) {
+          if (image.onload) {
+            image.onerror(e);
+          }
+        }.bind(this, this._image);
+
+        try {
+          xhr.send();
+          return;
+        } catch(e) {
+          console.error('Error loading bookmark icon', e);
+        }
+      }
+
       // Fallback to the default icon
       if (!this._hasIcon) {
         this._setPredefinedIcon('default');
@@ -555,11 +584,10 @@ window.GaiaAppIcon = (function(exports) {
   };
 
   var template = document.createElement('template');
-  var stylesheet = baseurl + 'style.css';
   template.innerHTML =
-    `<style>@import url(${stylesheet});</style>
+    `<style>@import url(/shared/elements/gaia-site-icon/style.css);</style>
      <div id='image-container'><div id="spinner"></div></div>
-     <div><div dir='auto' id='subtitle'></div></div>`;
+     <div><div id='subtitle'></div></div>`;
 
   return document.registerElement('gaia-app-icon', { prototype: proto });
 })(window);

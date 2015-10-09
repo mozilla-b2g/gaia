@@ -7,7 +7,8 @@ import time
 from marionette_driver import By, Wait
 
 from gaiatest.gaia_graphics_test import GaiaImageCompareTestCase
-from gaiatest.apps.music.app import Music
+from gaiatest.apps.music_oga.regions.tile_view import TileView
+from gaiatest.apps.music_oga.app import Music
 
 
 class TestFullPlayMusic(GaiaImageCompareTestCase):
@@ -27,6 +28,8 @@ class TestFullPlayMusic(GaiaImageCompareTestCase):
         music_app = Music(self.marionette)
         music_app.launch()
         music_app.wait_for_music_tiles_displayed()
+        import time  # need to wait until the scroll bar disappears
+        time.sleep(2)
         self.take_screenshot()
 
         # switch to songs view and play it from there too
@@ -42,7 +45,7 @@ class TestFullPlayMusic(GaiaImageCompareTestCase):
             message='song did not reach the end')
 
         # wait until next song kicks in (elapsed time will reset)
-        Wait(self.marionette, timeout=30).until(
+        Wait(self.marionette, timeout = 30).until(
             lambda m: from_list_player_view.player_elapsed_time < play_time,
             message='next song did not start')
 

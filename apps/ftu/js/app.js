@@ -27,7 +27,6 @@ function notifyCollection() {
 }
 
 var AppManager = {
-  EVENT_PREFIX: 'ftu-',
 
   init: function init(versionInfo) {
     window.performance.mark('initialize');
@@ -41,7 +40,6 @@ var AppManager = {
     // Send message to populate preinstalled collections.
     // This needs to be done for both upgrade and non-upgrade flows.
     notifyCollection();
-    this.publish('setup');
 
     var splashTimeout = 1025;
     var splashScreenHidden = this.whenEvent(UIManager.splashScreen,
@@ -115,14 +113,6 @@ var AppManager = {
     return new Promise((resolve, reject) => {
       eventSafety(target, name, resolve, timeoutMs || 1000);
     });
-  },
-  publish: function(name, detail) {
-    var evt = new CustomEvent(this.EVENT_PREFIX + name,
-    {
-      bubbles: true,
-      detail: detail || this
-    });
-    window.dispatchEvent(evt);
   }
 };
 

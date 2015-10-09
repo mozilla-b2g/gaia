@@ -30,9 +30,6 @@ var CallGroupMenu = (function() {
 
   return {
     show: function(groupPrimaryInfo, phoneNumber, date, type, status) {
-      var p = document.createElement('p');
-      p.dir = 'auto';
-      p.textContent = groupPrimaryInfo;
       var params = {
         items: [{
           l10nId: 'callInformation',
@@ -46,7 +43,7 @@ var CallGroupMenu = (function() {
           l10nId: 'cancel',
           incomplete: true
         }],
-        header: p,
+        header: groupPrimaryInfo,
         classes: ['call-group-menu']
       };
 

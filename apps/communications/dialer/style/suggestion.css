@@ -11,20 +11,17 @@
 .suggestion-count {
   width: 5.5rem;
   box-sizing: border-box;
-  border-inline-start: 1px solid rgba(255,255,255,0.2);
-  padding-inline-end: 2rem;
-  padding-inline-start: 1rem;
+  border-left: 1px solid rgba(255,255,255,0.2);
+  padding-right: 2rem;
+  padding-left: 1rem;
   line-height: 4.5rem;
   text-align: center;
 }
 
 .suggestion-count.more {
-  background-image: url(/dialer/style/images/suggestion/actionicon_dialer_more.png);
-  background-repeat: no-repeat;
+  background: url(/dialer/style/images/suggestion/actionicon_dialer_more.png) no-repeat right 0 bottom 0.8rem;
   background-size: 3rem;
 }
-html[dir="ltr"] .suggestion-count.more { background-position: right 0 bottom 0.8rem; }
-html[dir="rtl"] .suggestion-count.more { background-position: left 0 bottom 0.8rem; }
 
 .suggestion-bar .contact-item:active,
 .suggestion-bar .suggestion-count:active {

@@ -67,6 +67,9 @@ apps/homescreen/test/marionette/lib/homescreen.js
 apps/keyboard/js/settings/layout_item_view.js
 apps/network-alerts/js/attention/attention.js
 apps/pdfjs/content/web/viewer.js
+apps/privacy-panel/js/ala/define_custom_location.js
+apps/privacy-panel/js/app_list.js
+apps/privacy-panel/js/sms/main.js
 apps/ringtones/js/built_in_ringtones.js
 apps/ringtones/js/null_ringtone.js
 apps/ringtones/js/sd_card_ringtones.js
@@ -118,8 +121,13 @@ apps/verticalhome/test/marionette/lib/verticalhome.js
 dev_apps/feedback/js/feedback.js
 dev_apps/geoloc/js/geoloc.js
 shared/elements/gaia_grid/js/items/collection.js
+shared/js/contact2vcard.js
+shared/js/contacts/contacts_buttons.js
+shared/js/dialer/keypad.js
+shared/js/dialer/utils.js
 shared/js/l10n_date.js
 shared/js/tz_select.js
+shared/pages/import/js/curtain_panel.js
 tv_apps/smart-home/js/edit.js
 tv_apps/smart-home/js/home.js
 tv_apps/smart-system/js/accessibility.js

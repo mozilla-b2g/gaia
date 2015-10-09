@@ -1155,27 +1155,27 @@ suite('Utils', function() {
 
   suite('Utils.throttle', function() {
     setup(function() {
-      // Starting fake timers clock at Unix epoch (timestamp of 0) would
-      // prevent Utils.throttle to work properly so init it to 1
+      // Starting fake timers clock at Unix epoch (timestamp of 0) would 
+      // prevent Utils.throttle to work properly so init it to 1 
       this.sinon.useFakeTimers(1);
     });
 
     test('right typeof parameters', function() {
         assert.throw(
-          () => Utils.throttle(null),
-          Error,
+          () => Utils.throttle(null), 
+          Error, 
           'func must be a Function'
         );
-
+        
         assert.throw(
           () => Utils.throttle(() => {}, null),
-          Error,
+          Error, 
           'delay must be a positive number'
         );
-
+        
         assert.throw(
           () => Utils.throttle(() => {}, -1),
-          Error,
+          Error, 
           'delay must be a positive number'
         );
     });
@@ -1190,7 +1190,7 @@ suite('Utils', function() {
       };
 
       var throttlerFunc = Utils.throttle(func, 100);
-
+      
       throttlerFunc(dummyObjectA, dummyObjectB);
     });
 
@@ -1212,13 +1212,13 @@ suite('Utils', function() {
     test('preventing first call', function() {
       var delay = 100;
       var firstCallFuncToExecute = sinon.stub();
-      var firstCallThrottleFuncToExecute =
+      var firstCallThrottleFuncToExecute = 
         Utils.throttle(firstCallFuncToExecute, delay);
-
+      
       var notFirstCallFuncToExecute = sinon.stub();
-      var notFirstCallThrottleFuncToExecute =
+      var notFirstCallThrottleFuncToExecute = 
         Utils.throttle(
-          notFirstCallFuncToExecute,
+          notFirstCallFuncToExecute, 
           delay,
           {
             preventFirstCall: true
@@ -1239,8 +1239,8 @@ suite('Utils', function() {
       var lastCallStub = sinon.stub();
       var notLastCallStub = sinon.stub();
       var notLastCallFuncToExecute = Utils.throttle(
-        notLastCallStub,
-        delay,
+        notLastCallStub, 
+        delay, 
         {
           preventLastCall: true
         }
@@ -1250,7 +1250,7 @@ suite('Utils', function() {
       lastCallFuncToExecute();
       notLastCallFuncToExecute();
       this.sinon.clock.tick(delay);
-
+      
       lastCallFuncToExecute();
       notLastCallFuncToExecute();
       this.sinon.clock.tick(delay / 2);
@@ -1267,7 +1267,7 @@ suite('Utils', function() {
 
       stubOnceThrottler();
       this.sinon.clock.tick(delay - 1);
-      // Under delay these calls will be filtered
+      // Under delay these calls will be filtered 
       stubOnceThrottler();
       stubOnceThrottler();
       stubOnceThrottler();
@@ -1284,7 +1284,7 @@ suite('Utils', function() {
       // This one is called after the delay
       stubTwiceThrottler();
       this.sinon.clock.tick(delay);
-      // But then these calls are filtered
+      // But then these calls are filtered 
       stubTwiceThrottler();
       stubTwiceThrottler();
       sinon.assert.calledTwice(stubTwice);
@@ -1689,49 +1689,6 @@ suite('Utils', function() {
         sinon.assert.calledWith(
           shimHostStub.contentWindow.bootstrap, 'app-instance-id'
         );
-      }).then(done, done);
-    });
-  });
-
-  suite('Utils.onceDocumentIsVisible', function() {
-    var isDocumentHidden, onceDocumentIsVisibleStub;
-
-    setup(function() {
-      isDocumentHidden = false;
-      onceDocumentIsVisibleStub = sinon.stub();
-
-      this.sinon.stub(document, 'addEventListener');
-
-      Object.defineProperty(document, 'hidden', {
-        configurable: true,
-        get() { return isDocumentHidden; }
-      });
-    });
-
-    teardown(function() {
-      delete document.hidden;
-    });
-
-    test('resolves instantly if document is visible', function(done) {
-      Utils.onceDocumentIsVisible().then(onceDocumentIsVisibleStub);
-
-      Promise.resolve().then(() => {
-        sinon.assert.calledOnce(onceDocumentIsVisibleStub);
-      }).then(done, done);
-    });
-
-    test('resolves after `visibilitychange` event if document is not visible',
-    function(done) {
-      isDocumentHidden = true;
-
-      Utils.onceDocumentIsVisible().then(onceDocumentIsVisibleStub);
-
-      Promise.resolve().then(() => {
-        sinon.assert.notCalled(onceDocumentIsVisibleStub);
-
-        document.addEventListener.withArgs('visibilitychange').yield();
-      }).then(() => {
-        sinon.assert.calledOnce(onceDocumentIsVisibleStub);
       }).then(done, done);
     });
   });

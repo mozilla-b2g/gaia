@@ -46,8 +46,8 @@
       titleElt.textContent = group.number;
     }
 
-    Utils.setHeaderDate(
-      document.getElementById('call-info-day'), parseInt(group.date));
+    document.getElementById('call-info-day').textContent =
+      Utils.headerDate(parseInt(group.date));
 
     var classList = document.getElementById('call-info-direction').classList;
     classList.remove('icon-outgoing', 'icon-incoming', 'icon-missed');

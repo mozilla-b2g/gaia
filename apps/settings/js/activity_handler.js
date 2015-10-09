@@ -71,23 +71,19 @@
           targetPanel = document.getElementById(targetPanelId);
         }
 
-        switch(targetPanelId) {
-          case 'root':
-            // Apply the filter
-            document.body.dataset.filterBy =
-              activitySource.data.filterBy || 'all';
-            break;
-          case 'call':
-            var mozMobileConnections = navigator.mozMobileConnections;
-            // If DSDS phone, we have to let users choose simcard
-            if (mozMobileConnections && mozMobileConnections.length > 1) {
-              targetPanelId = 'call-iccs';
-            }
-            break;
-          default:
-            // Mark the desired panel as a dialog
-            targetPanel.dataset.dialog = true;
-            break;
+        if (targetPanelId === 'root') {
+          // Apply the filter
+          document.body.dataset.filterBy =
+            activitySource.data.filterBy || 'all';
+        } else if (targetPanelId === 'call') {
+          var mozMobileConnections = navigator.mozMobileConnections;
+          // If DSDS phone, we have to let users choose simcard
+          if (mozMobileConnections && mozMobileConnections.length > 1) {
+            targetPanelId = 'call-iccs';
+          }
+        } else {
+          // Mark the desired panel as a dialog
+          targetPanel.dataset.dialog = true;
         }
 
         return {
@@ -169,11 +165,12 @@
      */
     ready: function ah_ready() {
       if (!this._readyPromise) {
-        this._readyPromise = new Promise((resolve) => {
-          navigator.mozSetMessageHandler('activity', (activity) => {
-            this._currentActivity = activity;
-            this._handleActivity(this._currentActivity.source);
-            this._registerListener();
+        var that = this;
+        this._readyPromise = new Promise(function(resolve) {
+          navigator.mozSetMessageHandler('activity', function(activity) {
+            that._currentActivity = activity;
+            that._handleActivity(that._currentActivity.source);
+            that._registerListener();
             resolve();
           });
         });
@@ -192,11 +189,11 @@
      * @returns {Promise}
      */
     postResult: function ah_postResult(result) {
-      return this.ready().then(() => {
+      return this.ready().then(function() {
         if (this._currentActivity) {
           this._currentActivity.postResult(result);
         }
-      });
+      }.bind(this));
     }
   };
 

@@ -10,7 +10,6 @@ define(function(require) {
   var AppsCache = require('modules/apps_cache');
   var ScreenLayout = require('shared/screen_layout');
   var SettingsCache = require('modules/settings_cache');
-  var HomescreenSettings = require('shared/homescreens/homescreen_settings');
 
   const DEVTOOLS_UNRESTRICTED_KEY = 'devtools.unrestricted';
 
@@ -57,26 +56,6 @@ define(function(require) {
         // disable button if mozPower is undefined or can't be used
         this._elements.resetSwitch.disabled = true;
       }
-
-      // Listen to home screen paging setting
-      HomescreenSettings.addEventListener('updated', e => {
-        var prop = e.target;
-        if (prop.name === 'grid.paging') {
-          this._homescreenPagingEnabled = prop.value;
-          this._elements.homescreenPaging.checked = prop.value;
-        }
-      });
-
-      // Listen to checked/unchecked
-      this._elements.homescreenPaging.addEventListener('change', () => {
-        this._setHomescreenPaging(this._elements.homescreenPaging.checked);
-      });
-
-      // Set the default value.
-      HomescreenSettings.get('grid.paging').then(value => {
-        this._homescreenPagingEnabled = value;
-        this._elements.homescreenPaging.checked = value;
-      });
     },
 
     /**
@@ -165,13 +144,6 @@ define(function(require) {
         return;
       }
       power.factoryReset(reason);
-    },
-
-    _setHomescreenPaging: function d__setHomescrenPaging(paging) {
-      if (this._homescreenPagingEnabled === paging) {
-        return;
-      }
-      HomescreenSettings.put('grid.paging', paging);
     }
   };
 

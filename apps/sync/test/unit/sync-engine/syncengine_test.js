@@ -9,7 +9,6 @@
   FxSyncWebCrypto,
   Kinto,
   requireApp,
-  setup,
   suite,
   SyncEngine,
   SynctoServerFixture,
@@ -116,10 +115,6 @@ ld be a Function`);
   });
 
    suite('syncNow', function() {
-    setup(function() {
-      Kinto.setMockProblem();
-    });
-
     test('resolves its promise', function(done) {
       var se = new SyncEngine(SynctoServerFixture.syncEngineOptions);
       expect(se.syncNow({ history: {} })).to.eventually.deep.
@@ -154,24 +149,8 @@ ld be a Function`);
 
     test('Passes options to the DataAdapter', function(done) {
       var se = new SyncEngine(SynctoServerFixture.syncEngineOptions);
-      se.syncNow({ history: { readonly: true } }).then(function() {
-        expect(AdapterMock.options).to.deep.equal({ readonly: true });
-        done();
-      });
-    });
-
-    test('Syncs crypto collection only first time', function(done) {
-      var se = new SyncEngine(SynctoServerFixture.syncEngineOptions);
-      se.syncNow({ history: {} }).then(() => {
-        expect(Kinto.syncCount.meta).to.equal(1);
-        expect(Kinto.syncCount.crypto).to.equal(1);
-        expect(Kinto.syncCount.history).to.equal(1);
-        var se2 = new SyncEngine(SynctoServerFixture.syncEngineOptions);
-        return se2.syncNow({ history: {} });
-      }).then(() => {
-        expect(Kinto.syncCount.meta).to.equal(2);
-        expect(Kinto.syncCount.crypto).to.equal(1);
-        expect(Kinto.syncCount.history).to.equal(2);
+      se.syncNow({ history: { readOnly: true } }).then(function() {
+        expect(AdapterMock.options).to.deep.equal({ readOnly: true });
         done();
       });
     });

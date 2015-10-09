@@ -5,7 +5,6 @@ requireApp('settings/shared/test/unit/load_body_html_helper.js');
 
 suite('homescreens > panel', () => {
   var modules = [
-    'shared_mocks/mock_settings_listener',
     'panels/homescreens/panel'
   ];
 
@@ -13,16 +12,13 @@ suite('homescreens > panel', () => {
     '*': {
       'modules/settings_panel': 'MockSettingsPanel',
       'panels/homescreens/wallpaper': 'MockWallpaper',
-      'panels/homescreens/homescreen_cols': 'MockHomescreenCols',
-      'panels/homescreens/homescreen_name': 'MockHomescreenName',
-      'shared/settings_listener': 'shared_mocks/mock_settings_listener'
+      'panels/homescreens/homescreen_name': 'MockHomescreenName'
     }
   };
 
   var panel;
   var mockWallpaper;
   var mockWallpaperSrc;
-  var mockHomescreenCols;
   var mockHomescreenName;
   var mockHomescreenNameName;
 
@@ -54,17 +50,6 @@ suite('homescreens > panel', () => {
       };
     });
 
-    // Define MockHomescreenCols.
-    mockHomescreenCols = {
-      cols: 3,
-      setCols: () => {},
-      observe: () => {},
-      unobserve: () => {}
-    };
-    define('MockHomescreenCols', () => {
-      return () => mockHomescreenCols;
-    });
-
     // Define MockHomescreenName.
     mockHomescreenNameName = 'New Home Screen';
     mockHomescreenName = {
@@ -78,7 +63,7 @@ suite('homescreens > panel', () => {
       };
     });
 
-    testRequire(modules, map, (MockSettingsListener, Panel) => {
+    testRequire(modules, map, Panel => {
       panel = Panel();
       done();
     });
@@ -119,19 +104,5 @@ suite('homescreens > panel', () => {
     this.sinon.stub(mockHomescreenName, 'unobserve');
     panel.beforeHide();
     assert.ok(mockHomescreenName.unobserve.calledWith('name'));
-  });
-
-  test('observe cols when onBeforeShow', () => {
-    panel.init(document.body);
-    this.sinon.stub(mockHomescreenCols, 'observe');
-    panel.beforeShow();
-    assert.ok(mockHomescreenCols.observe.calledWith('cols'));
-  });
-
-  test('unobserve cols when onHide', () => {
-    panel.init(document.body);
-    this.sinon.stub(mockHomescreenCols, 'unobserve');
-    panel.beforeHide();
-    assert.ok(mockHomescreenCols.unobserve.calledWith('cols'));
   });
 });

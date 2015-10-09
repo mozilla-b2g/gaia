@@ -2,7 +2,7 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 /*global ActivityWindowManager, HomescreenLauncher, HomescreenWindowManager,
-         FtuLauncher, ScreenManager, Activities, AppUsageMetrics, RemoteControl,
+         FtuLauncher, ScreenManager, Activities, AppUsageMetrics,
          DeveloperHUD, RemoteDebugger, HomeGesture,
          VisibilityManager, UsbStorage,
          SuspendingAppPriorityManager, TTLView,
@@ -131,9 +131,6 @@ window.addEventListener('load', function startup() {
 
   window.appUsageMetrics = new AppUsageMetrics();
   window.appUsageMetrics.start();
-
-  window.remoteControl = new RemoteControl();
-  window.remoteControl.start();
 
   // We need to be sure to get the focus in order to wake up the screen
   // if the phone goes to sleep before any user interaction.

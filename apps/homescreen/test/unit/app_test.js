@@ -1,16 +1,15 @@
 /* jshint nonew: false */
-/* global MockNavigatormozApps, MockMozActivity, MockIconsHelper, IconsHelper,
-          HomeMetadata, Datastore, Settings, App */
+/* global MockNavigatormozApps, MockMozActivity, mockLocalStorage, HomeMetadata,
+          Datastore, App */
 'use strict';
 
 require('/shared/test/unit/load_body_html_helper.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 require('/shared/test/unit/mocks/mock_moz_activity.js');
-require('/shared/test/unit/mocks/mock_icons_helper.js');
+require('mocks/mock_localStorage.js');
 require('mocks/mock_metadata.js');
 require('mocks/mock_datastore.js');
 require('mocks/mock_pages.js');
-require('mocks/mock_settings.js');
 require('/shared/js/l10n.js');
 require('/js/app.js');
 
@@ -19,27 +18,21 @@ suite('Homescreen app', () => {
   var realNavigatorMozApps;
   var realMozActivity;
   var realLocalStorage;
-  var realIconsHelper;
   var app;
 
   var realCreateElement;
   var createElementStub;
   var gaiaAppIconEl;
 
-  realCreateElement = document.createElement.bind(document);
+  const SETTINGS = '{"version":0,"small":false}';
 
   var getIcon = manifestURL => {
-    var iconChild = document.createElement('div');
-    iconChild.style.height = '100px';
-    iconChild.style.width = '100px';
+    var container = document.createElement('div');
     var icon = document.createElement('div');
-    icon.style.display = 'block';
+    icon.style.height = '100px';
+    icon.style.width = '100px';
     icon.app = { manifestURL: manifestURL };
     icon.entryPoint = '';
-    icon.bookmark = null;
-    icon.icon = null;
-    icon.appendChild(iconChild);
-    var container = document.createElement('div');
     container.appendChild(icon);
     return container;
   };
@@ -48,14 +41,11 @@ suite('Homescreen app', () => {
     realCreateElement = document.createElement.bind(document);
     createElementStub = sinon.stub(document, 'createElement');
     createElementStub.withArgs('div').returns(realCreateElement('div'));
-    var iconChild = realCreateElement('div');
     gaiaAppIconEl = realCreateElement('div');
-    gaiaAppIconEl.app = null;
     gaiaAppIconEl.entryPoint = null;
+    gaiaAppIconEl.app = null;
     gaiaAppIconEl.bookmark = null;
-    gaiaAppIconEl.icon = null;
     gaiaAppIconEl.refresh = () => {};
-    gaiaAppIconEl.appendChild(iconChild);
     createElementStub.withArgs('gaia-app-icon').returns(gaiaAppIconEl);
   };
 
@@ -70,10 +60,17 @@ suite('Homescreen app', () => {
     navigator.mozApps = MockNavigatormozApps;
     realMozActivity = window.MozActivity;
     window.MozActivity = MockMozActivity;
-    realIconsHelper = window.IconsHelper;
-    window.IconsHelper = MockIconsHelper;
 
     MockMozActivity.mSetup();
+    mockLocalStorage.mSetup();
+
+    // Seed the local-storage to bypass first-run behaviour
+    mockLocalStorage.setItem('settings', SETTINGS);
+
+    Object.defineProperty(window, 'localStorage', {
+      configurable: true,
+      get: () => mockLocalStorage
+    });
 
     loadBodyHTML('_index.html');
     document.head.innerHTML = `<meta name="theme-color" content="transparent">`;
@@ -91,7 +88,6 @@ suite('Homescreen app', () => {
     sandbox.restore();
     navigator.mozApps = realNavigatorMozApps;
     window.MozActivity = realMozActivity;
-    window.IconsHelper = realIconsHelper;
 
     MockNavigatormozApps.mTeardown();
     MockMozActivity.mTeardown();
@@ -228,11 +224,11 @@ suite('Homescreen app', () => {
           return Promise.resolve({ order: [], small: false });
         };
 
-        Settings.firstRun = true;
+        mockLocalStorage.setItem('settings', undefined);
       });
 
       teardown(() => {
-        delete Settings.firstRun;
+        mockLocalStorage.setItem('settings', SETTINGS);
       });
 
       test('should initialise the bookmark stores', done => {
@@ -261,28 +257,26 @@ suite('Homescreen app', () => {
     });
   });
 
-  suite('App#iconSize', () => {
-    test('should be 0 by default', () => {
-      assert.equal(app.iconSize, 0);
+  suite('App#saveSettings()', () => {
+    test('should restore data', () => {
+      app.small = true;
+      app.saveSettings();
+      app.small = false;
+      app.restoreSettings();
+
+      assert.equal(app.small, true);
     });
 
-    test('should be updated at each call when it equals 0', () => {
-      assert.equal(app.iconSize, 0);
-      app.icons.appendChild(getIcon('abc'));
-      assert.equal(app.iconSize, 100);
-    });
+    test('should not restore data if version number differs', () => {
+      app.small = true;
+      app.saveSettings();
+      var tmp = JSON.parse(mockLocalStorage.mRawContent.settings);
+      tmp.version = 'UnknownVersionNumber';
+      mockLocalStorage.mRawContent.settings = JSON.stringify(tmp.settings);
+      app.small = false;
+      app.restoreSettings();
 
-    test('should be the size of the first icon', () => {
-      app.icons.appendChild(getIcon('abc'));
-      assert.equal(app.iconSize, 100);
-    });
-
-    test('should be the size of the first visible icon', () => {
-      app.icons.appendChild(getIcon('abc'));
-      app.icons.appendChild(getIcon('def'));
-      app.icons.firstChild.firstChild.style.display = 'none';
-      app.icons.firstChild.firstChild.firstChild.style.width = '200px';
-      assert.equal(app.iconSize, 100);
+      assert.equal(app.small, false);
     });
   });
 
@@ -300,6 +294,9 @@ suite('Homescreen app', () => {
     test('should only accept valid apps', () => {
       app.addApp({});
       assert.isFalse(addAppIconStub.called, 'Empty app objects');
+
+      app.addApp({ origin: 'app://privacy-panel.gaiamobile.org' });
+      assert.isFalse(addAppIconStub.called, 'Blacklisted app');
 
       app.addApp({ manifest: {} });
       assert.isTrue(addAppIconStub.calledOnce);
@@ -432,13 +429,6 @@ suite('Homescreen app', () => {
       assert.isNull(gaiaAppIconEl.app);
       assert.isNotNull(gaiaAppIconEl.bookmark);
     });
-
-    test('should set the best icon according to the size available', () => {
-      var getIconBlobSpy = sinon.spy(IconsHelper, 'setElementIcon');
-      app.addAppIcon({ id: 'abc', addEventListener: () => {} });
-      assert.isTrue(getIconBlobSpy.called);
-      getIconBlobSpy.restore();
-    });
   });
 
   suite('App#storeAppOrder()', () => {
@@ -542,11 +532,9 @@ suite('Homescreen app', () => {
         scrollTo: () => {}
       };
       scrollToSpy = sinon.spy(app.scrollable, 'scrollTo');
-      app.scrollSnapping = true;
     });
 
     teardown(() => {
-      app.scrollSnapping = false;
       app.scrollable = realScrollable;
     });
 
@@ -797,7 +785,7 @@ suite('Homescreen app', () => {
             clientY: 500
           }}));
 
-          assert.isTrue(app.remove.classList.contains('active'));
+          assert.isTrue(app.uninstall.classList.contains('active'));
           assert.isFalse(app.edit.classList.contains('active'));
         });
 
@@ -807,7 +795,7 @@ suite('Homescreen app', () => {
             clientY: 500
           }}));
 
-          assert.isFalse(app.remove.classList.contains('active'));
+          assert.isFalse(app.uninstall.classList.contains('active'));
           assert.isTrue(app.edit.classList.contains('active'));
         });
 
@@ -822,7 +810,7 @@ suite('Homescreen app', () => {
             clientY: 500
           }}));
 
-          assert.isFalse(app.remove.classList.contains('active'));
+          assert.isFalse(app.uninstall.classList.contains('active'));
           assert.isTrue(app.edit.classList.contains('active'));
 
           app.handleEvent(new CustomEvent('drag-move', { detail: {
@@ -830,7 +818,7 @@ suite('Homescreen app', () => {
             clientY: 500
           }}));
 
-          assert.isTrue(app.remove.classList.contains('active'));
+          assert.isTrue(app.uninstall.classList.contains('active'));
           assert.isFalse(app.edit.classList.contains('active'));
 
           delete document.documentElement.dir;

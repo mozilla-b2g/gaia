@@ -91,7 +91,7 @@ var MP4Metadata = (function() {
    */
   function checkMP4Type(blobview, types) {
     // The major brand is the four bytes right after 'ftyp'.
-    var majorbrand = blobview.getBinaryText(8, 4);
+    var majorbrand = blobview.getASCIIText(8, 4);
 
     if (majorbrand in types) {
       return true;
@@ -105,7 +105,7 @@ var MP4Metadata = (function() {
       var size = blobview.getUint32(0);
 
       while (index < size) {
-        var compatiblebrand = blobview.getBinaryText(index, 4);
+        var compatiblebrand = blobview.getASCIIText(index, 4);
         index += 4;
         if (compatiblebrand in types) {
           return true;
@@ -131,7 +131,7 @@ var MP4Metadata = (function() {
     return new Promise(function(resolve, reject) {
       var offset = atom.sliceOffset + atom.viewOffset; // position in blob
       var size = atom.readUnsignedInt();
-      var type = atom.readBinaryText(4);
+      var type = atom.readASCIIText(4);
 
       if (size === 0) {
         // A size of 0 means the rest of the file
@@ -187,7 +187,7 @@ var MP4Metadata = (function() {
     // it when we find a track that is not an mp4 audio codec.
     while (data.index < end) {
       var size = data.readUnsignedInt();
-      var type = data.readBinaryText(4);
+      var type = data.readASCIIText(4);
       var nextindex = data.index + size - 8;
       if (type === 'udta') {         // Metadata is inside here
         parseUdtaAtom(data, end, metadata);
@@ -200,7 +200,7 @@ var MP4Metadata = (function() {
           if (searchChildAtom(data, 'smhd')) {
             if (seekChildAtoms(data, ['stbl', 'stsd'])) {
               data.advance(20);
-              var codec = data.readBinaryText(4);
+              var codec = data.readASCIIText(4);
               if (!(codec in MP4Codecs)) {
                 throw Error('Unsupported format in MP4 container: ' + codec);
               }
@@ -244,7 +244,7 @@ var MP4Metadata = (function() {
 
     while (data.index < start + length) {
       var size = data.readUnsignedInt();
-      var type = data.readBinaryText(4);
+      var type = data.readASCIIText(4);
       if (type === atom) {
         data.advance(-8);
         return true;
@@ -283,7 +283,7 @@ var MP4Metadata = (function() {
     // Find the meta atom within the udta atom
     while (data.index < end) {
       var size = data.readUnsignedInt();
-      var type = data.readBinaryText(4);
+      var type = data.readASCIIText(4);
       if (type === 'meta') {
         parseMetaAtom(data, data.index + size - 8, metadata);
         data.seek(end);
@@ -309,7 +309,7 @@ var MP4Metadata = (function() {
     // Find the ilst atom within the meta atom
     while (data.index < end) {
       var size = data.readUnsignedInt();
-      var type = data.readBinaryText(4);
+      var type = data.readASCIIText(4);
       if (type === 'ilst') {
         parseIlstAtom(data, data.index + size - 8, metadata);
         data.seek(end);
@@ -333,7 +333,7 @@ var MP4Metadata = (function() {
     // we care about
     while (data.index < end) {
       var size = data.readUnsignedInt();
-      var type = data.readBinaryText(4);
+      var type = data.readASCIIText(4);
       var next = data.index + size - 8;
       var propname = MP4ATOMS[type];
       if (propname) {
@@ -368,7 +368,7 @@ var MP4Metadata = (function() {
     // Loop until we find a data atom
     while (data.index < end) {
       var size = data.readUnsignedInt();
-      var type = data.readBinaryText(4);
+      var type = data.readASCIIText(4);
       if (type !== 'data') {
         data.advance(size - 8);
         continue;

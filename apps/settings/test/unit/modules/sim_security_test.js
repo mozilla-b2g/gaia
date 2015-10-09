@@ -47,7 +47,7 @@ suite('SimSecurity', function() {
     });
   });
 
-  ['pin', 'pin2', 'puk2'].forEach(function(lockType) {
+  ['pin', 'pin2'].forEach(function(lockType) {
     var fakeCardIndex = 0;
     var eventName = lockType + '-changed';
 

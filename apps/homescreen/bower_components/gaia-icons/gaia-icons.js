@@ -1,13 +1,13 @@
-/* global define */
-(function(define){'use strict';define(function(require,exports,module){
+(function(define){define(function(require,exports,module){
+/*jshint laxbreak:true*/
 
 /**
  * Exports
  */
 
-var base = window.GAIA_ICONS_BASE_URL ||
-           window.COMPONENTS_BASE_URL ||
-           'bower_components/';
+var base = window.GAIA_ICONS_BASE_URL
+  || window.COMPONENTS_BASE_URL
+  || 'bower_components/';
 
 if (!document.documentElement) {
   window.addEventListener('load', load);
@@ -33,6 +33,6 @@ function isLoaded() {
 }
 
 });})(typeof define=='function'&&define.amd?define
-:(function(n,w){'use strict';return typeof module=='object'?function(c){
+:(function(n,w){return typeof module=='object'?function(c){
 c(require,exports,module);}:function(c){var m={exports:{}};c(function(n){
 return w[n];},m.exports,m);w[n]=m.exports;};})('gaia-icons',this));

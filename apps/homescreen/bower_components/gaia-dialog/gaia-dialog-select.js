@@ -26,20 +26,6 @@ module.exports = component.register('gaia-dialog-select', {
     this.els.list.addEventListener('click', this.onListClick.bind(this));
     this.els.submit.addEventListener('click', this.close.bind(this));
     this.els.cancel.addEventListener('click', this.close.bind(this));
-
-    setTimeout(() => this.makeAccessible());
-  },
-
-  makeAccessible() {
-    this.els.list.setAttribute('role', 'listbox');
-    if (this.multiple) {
-      this.els.list.setAttribute('aria-multiselectable', true);
-    }
-
-    [].forEach.call(this.options, option => {
-      option.setAttribute('role', 'option');
-      option.setAttribute('tabindex', '0');
-    });
   },
 
   open: function(e) {
@@ -48,8 +34,8 @@ module.exports = component.register('gaia-dialog-select', {
   },
 
   close: function() {
-    return this.els.dialog.close()
-      .then(GaiaDialogProto.hide.bind(this));
+    return GaiaDialogProto.show.call(this)
+      .then(() => this.els.dialog.close());
   },
 
   onListClick: function(e) {
@@ -92,11 +78,9 @@ module.exports = component.register('gaia-dialog-select', {
         if (!value) {
           this._multiple = false;
           this.removeAttribute('multiple');
-          this.els.list.removeAttribute('aria-multiselectable');
         } else {
           this._multiple = true;
           this.setAttribute('multiple', '');
-          this.els.list.setAttribute('aria-multiselectable', true);
         }
       }
     },
@@ -184,7 +168,6 @@ module.exports = component.register('gaia-dialog-select', {
       text-align: start;
       -moz-user-select: none;
       cursor: pointer;
-      outline: 0;
     }
 
     ::content li[aria-selected='true'] {

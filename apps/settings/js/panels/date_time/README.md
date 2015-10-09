@@ -4,5 +4,5 @@
 
 We have different SIM card support by carrier
 
-* For SIM card from carriers(ex: CHT) supporting the auto time zone update protocol(NITZ), the timezone is grayed out when you turn on "set automatically".
-* For SIM card from carriers(ex: Taiwan mobile) not supporting auto time zone update, the time zone selection field should not be grayed out when you turn on "set automatically".
+* For SIM card from carriers supporting auto time zone update(ex: CHT), the timezone is grayed out when you turn on "set automatically".
+* For SIM card from carriers not supporting auto time zone update(ex: Taiwan mobile), the time zone should not be grayed out when you turn on "set automatically".

@@ -147,8 +147,6 @@ define(function(require) {
           sound: alarm.sound,
           vibrate: alarm.vibrate,
           time: date,
-          hour: alarm.hour,
-          minute: alarm.minute,
           id: alarm.id
         });
 

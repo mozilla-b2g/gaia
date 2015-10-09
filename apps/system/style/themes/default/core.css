@@ -24,8 +24,7 @@
 #screen.fullscreen-layout-app.software-button-enabled [role="dialog"].generic-dialog,
 #screen.software-button-enabled > #dialog-screen,
 #screen.software-button-enabled > #downloadConfirmUI,
-#screen.software-button-enabled > #dialog-overlay,
-#screen.software-button-enabled > #fullscreen-overlay {
+#screen.software-button-enabled > #dialog-overlay {
   bottom: var(--software-home-button-height);
 }
 
@@ -40,8 +39,7 @@
   #screen.fullscreen-layout-app.software-button-enabled [role="dialog"].generic-dialog,
   #screen.software-button-enabled > #dialog-screen,
   #screen.software-button-enabled > #downloadConfirmUI,
-  #screen.software-button-enabled > #dialog-overlay,
-  #screen.software-button-enabled > #fullscreen-overlay {
+  #screen.software-button-enabled > #dialog-overlay {
     bottom: 0;
   }
 }

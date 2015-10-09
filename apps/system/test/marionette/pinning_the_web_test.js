@@ -43,9 +43,7 @@ marionette('Pinning the Web', function() {
     actions = client.loader.getActions();
   });
 
-  // Skip test since we are disabling pinning door hanger in 2.5
-  // See https://bugzilla.mozilla.org/show_bug.cgi?id=1207710
-  test.skip('Pin site', function() {
+  test('Pin site', function() {
     // Count the current number of site icons
     system.tapHome();
     client.switchToFrame(system.getHomescreenIframe());

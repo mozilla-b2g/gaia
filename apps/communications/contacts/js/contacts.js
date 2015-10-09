@@ -376,8 +376,7 @@ var Contacts = (function() {
           '/contacts/js/utilities/icc_handler.js',
           '/shared/js/contacts/import/utilities/sdcard.js',
           '/shared/elements/gaia_switch/script.js',
-          '/shared/js/date_time_helper.js',
-          '/shared/js/contacts/import/import_status_data.js'], function() {
+          '/shared/js/date_time_helper.js'], function() {
           settingsReady = true;
           contacts.Settings.init();
           callback();
@@ -396,8 +395,7 @@ var Contacts = (function() {
            '/dialer/js/telephony_helper.js',
            '/shared/js/contacts/sms_integration.js',
            '/shared/js/contacts/contacts_buttons.js',
-           '/contacts/js/match_service.js',
-           '/contacts/js/utilities/mozContact.js'],
+           '/contacts/js/match_service.js'],
         function() {
           detailsReady = true;
           contactsDetails = contacts.Details;

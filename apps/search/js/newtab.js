@@ -16,6 +16,10 @@
    * Instantiates places to populate history and top sites.
    */
   function Newtab() {
+    var privateWindow = document.getElementById('private-window');
+    privateWindow.addEventListener('click',
+      this.requestPrivateWindow.bind(this));
+
     // Initialize the parent port connection
     var self = this;
     navigator.mozApps.getSelf().onsuccess = function() {
@@ -58,6 +62,15 @@
       this._port.postMessage({
         'action': 'request-screenshot',
         'url': url
+      });
+    },
+
+    /**
+     * Requests that the system app opens a new private window.
+     */
+    requestPrivateWindow: function() {
+      this._port.postMessage({
+        'action': 'private-window'
       });
     },
 

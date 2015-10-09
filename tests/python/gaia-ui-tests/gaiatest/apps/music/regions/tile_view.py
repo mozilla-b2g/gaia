@@ -10,20 +10,23 @@ from gaiatest.apps.music.regions.player_view import PlayerView
 
 class TileView(Base):
 
-    _active_view_locator = (By.CSS_SELECTOR, 'iframe.active[src*="/views/home/index.html"]')
-    _tile_group_locator = (By.ID, 'tiles')
+    _main_tile_locator = (By.CSS_SELECTOR, '.main-tile')
+    _sub_tile_locator = (By.CSS_SELECTOR, '.sub-tile')
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
 
         # there are two type of tiles - main and sub.  There should be at least one main tile
-        self.marionette.switch_to_frame(self.marionette.find_element(*self._active_view_locator))
-        Wait(self.marionette).until(expected.element_displayed(*self._tile_group_locator))
-        self.apps.switch_to_displayed_app()
+        Wait(self.marionette).until(expected.element_displayed(
+            *self._main_tile_locator))
 
-    def tap_song(self, filename):
-        self.marionette.switch_to_frame(self.marionette.find_element(*self._active_view_locator))
-        _pick_tile_locator = (By.CSS_SELECTOR, '.tile[data-file-path$="{}"]'.format(filename))
-        self.marionette.find_element(*_pick_tile_locator).tap()
-        self.apps.switch_to_displayed_app()
+    def tap_main_song(self):
+        self.marionette.find_element(*self._main_tile_locator).tap()
+        return PlayerView(self.marionette)
+
+    def tap_sub_song(self, order):
+        sub_tiles = Wait(self.marionette).until(
+            expected.elements_present(*self._sub_tile_locator))
+
+        sub_tiles[order].tap()
         return PlayerView(self.marionette)

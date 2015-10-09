@@ -218,7 +218,6 @@ class NewContact(ContactForm):
             from gaiatest.apps.contacts.app import Contacts
             return Contacts(self.marionette)
         else:
-            from gaiatest.apps.contacts.app import Contacts
-            Contacts(self.marionette).wait_to_not_be_displayed()
+            Wait(self.marionette).until(lambda m: self.apps.displayed_app.name != 'Communications')
             # Fall back to the underlying app
             self.apps.switch_to_displayed_app()

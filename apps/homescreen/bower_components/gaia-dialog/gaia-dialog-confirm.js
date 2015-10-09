@@ -31,9 +31,8 @@ module.exports = component.register('gaia-dialog-confirm', {
   },
 
   close: function() {
-    // First close (hide) inner dialog and then the container.
-    return this.els.dialog.close()
-      .then(GaiaDialogProto.hide.bind(this));
+    return GaiaDialogProto.show.call(this)
+      .then(() => this.els.dialog.close());
   },
 
   template: `

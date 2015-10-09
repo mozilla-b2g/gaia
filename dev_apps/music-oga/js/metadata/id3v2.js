@@ -150,11 +150,11 @@ var ID3v2Metadata = (function() {
 
     switch (header.version) {
     case 2:
-      frameid = blobview.readBinaryText(3);
+      frameid = blobview.readASCIIText(3);
       framesize = blobview.readUint24();
       break;
     case 3:
-      frameid = blobview.readBinaryText(4);
+      frameid = blobview.readASCIIText(4);
       framesize = blobview.readUnsignedInt();
       // Ignore the frame status flags, since they only apply when modifying the
       // file/tag.
@@ -164,7 +164,7 @@ var ID3v2Metadata = (function() {
       unsupported_flags = (frame_format_flags !== 0);
       break;
     case 4:
-      frameid = blobview.readBinaryText(4);
+      frameid = blobview.readASCIIText(4);
       framesize = blobview.readID3Uint28BE();
       blobview.readUnsignedByte(); // As above, ignore the frame status flags.
       frame_format_flags = blobview.readUnsignedByte();
@@ -281,9 +281,9 @@ var ID3v2Metadata = (function() {
    * @param {Object} header The header object for this ID3 tag.
    * @param {BlobView} view The audio file being parsed.
    * @param {Number} size The size in bytes of this frame's value.
-   * @param {Number} encoding The encoding for this string (0: latin-1,
-   *   1: utf16, 2: utf16-be, 3: utf-8). If null, determine the encoding from
-   *   the first byte of the value.
+   * @param {Number} encoding The encoding for this string (0: ascii, 1: utf16,
+   *   2: utf16-be, 3: utf-8). If null, determine the encoding from the first
+   *   bytes of the value.
    * @param {String} The value of this frame.
    */
   function readTextFrame(header, view, size, encoding) {
@@ -311,9 +311,9 @@ var ID3v2Metadata = (function() {
    * @param {Object} header The header object for this ID3 tag.
    * @param {BlobView} view The audio file being parsed.
    * @param {Number} size The size in bytes of this frame's value.
-   * @param {Number} encoding The encoding for this string (0: latin-1,
-   *   1: utf16, 2: utf16-be, 3: utf-8). If null, determine the encoding from
-   *   the first byte of the value.
+   * @param {Number} encoding The encoding for this string (0: ascii, 1: utf16,
+   *   2: utf16-be, 3: utf-8). If null, determine the encoding from the first
+   *   bytes of the value.
    * @param {Array} The value of this frame, as two Numbers.
    */
   function readNumericPairFrame(header, view, size, encoding) {
@@ -342,7 +342,7 @@ var ID3v2Metadata = (function() {
     var mimetype;
     // mimetype is different for old PIC frames and new APIC frames
     if (header.version === 2) {
-      mimetype = view.readLatin1Text(3);
+      mimetype = view.readASCIIText(3);
       if (mimetype === 'JPG') {
         mimetype = 'image/jpeg';
       } else if (mimetype === 'PNG') {
@@ -350,14 +350,9 @@ var ID3v2Metadata = (function() {
       }
     } else {
       mimetype = view.readNullTerminatedLatin1Text(size - 1);
-      if (mimetype === '-->') {
-        // XXX: We don't support URLs (the spec recommends against them anyway).
-        console.error('URL for cover art is not supported.');
-        return null;
-      }
     }
 
-    // We ignore these next two fields.
+    // We ignore these next two fields
     view.readUnsignedByte(); // kind
     readEncodedText(view, size - (view.index - start), encoding); // desc
 
@@ -390,16 +385,16 @@ var ID3v2Metadata = (function() {
    *
    * @param {BlobView} view The audio file being parsed.
    * @param {Number} size The size in bytes of this frame's value.
-   * @param {Number} encoding The encoding for this string (0: latin-1,
-   *   1: utf16, 2: utf16-be, 3: utf-8). If null, determine the encoding from
-   *   the first byte of the value.
+   * @param {Number} encoding The encoding for this string (0: ascii, 1: utf16,
+   *   2: utf16-be, 3: utf-8). If null, determine the encoding from the first
+   *   bytes of the value.
    * @param {String} The strings, joined by " / ".
    */
   function readEncodedTextArray(view, size, encoding) {
     var text;
     switch (encoding) {
     case 0:
-      text = view.readLatin1Text(size);
+      text = view.readASCIIText(size);
       break;
     case 1:
       text = view.readUTF16Text(size, undefined);
@@ -425,9 +420,9 @@ var ID3v2Metadata = (function() {
    *
    * @param {BlobView} view The audio file being parsed.
    * @param {Number} size The size in bytes of this frame's value.
-   * @param {Number} encoding The encoding for this string (0: latin-1,
-   *   1: utf16, 2: utf16-be, 3: utf-8). If null, determine the encoding from
-   *   the first byte of the value.
+   * @param {Number} encoding The encoding for this string (0: ascii, 1: utf16,
+   *   2: utf16-be, 3: utf-8). If null, determine the encoding from the first
+   *   bytes of the value.
    * @param {String} The string.
    */
   function readEncodedText(view, size, encoding) {

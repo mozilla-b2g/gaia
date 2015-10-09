@@ -245,15 +245,9 @@ proto.popView = function(destroy) {
     return Promise.reject();
   }
 
-  var oldActiveView = this.activeView;
-
-  this.views.pop();
-  this.activeView = this.views[this.views.length - 1];
-
-  var newActiveView = this.activeView;
-
   return new Promise((resolve) => {
     requestAnimationFrame(() => {
+      var oldActiveView = this.activeView;
       oldActiveView.frame.classList.add('pop', 'out');
       oldActiveView.frame.classList.remove('active');
       oldActiveView.frame.contentWindow.dispatchEvent(
@@ -264,6 +258,10 @@ proto.popView = function(destroy) {
         oldActiveView.frame.classList.add('destroy');
       }
 
+      this.views.pop();
+      this.activeView = this.views[this.views.length - 1];
+
+      var newActiveView = this.activeView;
       newActiveView.frame.classList.add('pop', 'in', 'active');
       newActiveView.frame.contentWindow.dispatchEvent(
         new CustomEvent('viewvisible')

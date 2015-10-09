@@ -119,8 +119,6 @@ var Settings = {
       this.handleClearCookieClick.bind(this));
     this.firefoxAccountSignInButton.addEventListener('mouseup',
       this.handleSignInClick.bind(this));
-    this.firefoxAccountResendButton.addEventListener('mouseup',
-      this.handleResendClick.bind(this));
 
     this.settingsDialogHomepageInput.addEventListener('submit',
       this.handleDialogHomepageInputSubmit.bind(this));
@@ -500,27 +498,8 @@ var Settings = {
     BrowserDialog.createDialog('del_cookie', null);
   },
 
-  handleSignInClick: function settings_handleSignInClick(e) {
-    e.stopPropagation();
-    e.preventDefault();
+  handleSignInClick: function settings_handleSignInClick() {
     this.firefoxAccount.openFlow();
-  },
-
-  handleResendClick: function settings_handleResendClick(e) {
-    e.stopPropagation();
-    e.preventDefault();
-    this.firefoxAccount.resendEmail((email) => {
-      return navigator.mozL10n.formatValue('fxa-resend-alert', {
-        email: email
-      }).then((msg) => {
-        window.alert(msg);
-        // disable link for 60 seconds, then reenable
-        this.firefoxAccountResendButton.setAttribute('disabled', true);
-        setTimeout(() => {
-          this.firefoxAccountResendButton.removeAttribute('disabled');
-        }, 60000);
-      });
-    });
   },
 
   clearCookieFailed: function settings_clearCookieFailed() {

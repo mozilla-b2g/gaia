@@ -10,10 +10,10 @@ client.plugin('apps', require('marionette-apps'));
 
 client.startSession(function() {
   // launch the app
-  client.apps.launch('app://myorigin.com');
+  client.apps.launch('app://myorigin.com'); 
 
   // entrypoint variant
-  client.apps.launch('app://myorigin.com', 'xfoo');
+  client.apps.launch('app://myorigin.com', 'xfoo'); 
 
   // close a running application
   client.apps.close('app://myorigin.com');
@@ -25,12 +25,6 @@ client.startSession(function() {
   client.apps.switchToApp('app://myorigin.com');
   // entrypoint variant
   client.apps.switchToApp('app://myorigin.com', 'xfoo');
-
-  // switch to app that is run as inline activity
-  client.apps.switchToActivity('app://activity.myorigin.com');
-  // entrypoint variant
-  client.apps.switchToActivity('app://activity.myorigin.com', '/views/my-view.html#args');
-
 
   // find all apps
   var apps = client.apps.list();

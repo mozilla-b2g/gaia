@@ -389,7 +389,7 @@ html[dir="rtl"] .appWindow.invoked {
   opacity: 1;
 }
 
-#screen.cards-view .appWindow.in-task-manager.overlay.no-screenshot > .identification-overlay {
+.appWindow.in-task-manager.overlay.no-screenshot > .identification-overlay {
   visibility: visible;
   opacity: 1;
   transition: opacity 0.2s ease-in, visibility 0.2s;

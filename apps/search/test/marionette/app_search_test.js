@@ -3,13 +3,8 @@
 var Rocketbar = require('../../../system/test/marionette/lib/rocketbar.js');
 
 marionette('Search - App search', function() {
-  var profile = require(__dirname + '/client_options.js');
-  // Causing a crash in this test, so disable apz.
-  profile.prefs = {
-    'layers.async-pan-zoom.enabled': false
-  };
   var client = marionette.client({
-    profile: profile
+    profile: require(__dirname + '/client_options.js')
   });
   var home, search, rocketbar, system;
 

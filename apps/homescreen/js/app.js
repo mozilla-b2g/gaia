@@ -1,56 +1,75 @@
-/* global MozActivity, HomeMetadata, Datastore, Pages, LazyLoader, FirstRun,
-          IconsHelper, Settings */
+/* global MozActivity, HomeMetadata, Datastore, Pages, LazyLoader, FirstRun */
 /* jshint nonew: false */
 'use strict';
 
+/**
+ * The distance a pinch gesture has to move before being considered for a
+ * column-layout change.
+ */
+const PINCH_DISTANCE_THRESHOLD = 150;
+
+/**
+ * The minimum distance a pinch gesture has to move before being reflected
+ * visually.
+ */
+const PINCH_FEEDBACK_THRESHOLD = 5;
+
+/**
+ * Timeout before resizing the apps grid after apps change.
+ */
+const RESIZE_TIMEOUT = 500;
+
+/**
+ * Timeout before showing a dialog. Without this, the click that comes through
+ * after an activate event from gaia-container will close the dialog.
+ */
+const DIALOG_SHOW_TIMEOUT = 50;
+
+/**
+ * The distance at the top and bottom of the icon container that when hovering
+ * an icon in will cause scrolling.
+ */
+const AUTOSCROLL_DISTANCE = 30;
+
+/**
+ * The timeout before auto-scrolling a page when hovering at the edges
+ * of the grid.
+ */
+const AUTOSCROLL_DELAY = 750;
+
+/**
+ * The time to wait after setting a scroll-position before disabling
+ * overflow during drag-and-drop.
+ */
+const AUTOSCROLL_OVERFLOW_DELAY = 500;
+
+/**
+ * The height of the delete-app bar at the bottom of the container when
+ * dragging a deletable app.
+ */
+const DELETE_DISTANCE = 60;
+
+/**
+ * App roles that will be skipped on the homescreen.
+ */
+const HIDDEN_ROLES = [
+  'system', 'input', 'homescreen', 'theme', 'addon', 'langpack'
+];
+
+/**
+ * Strings that are matched against to black-list app origins.
+ * TODO: This should not be hard-coded.
+ */
+const BLACKLIST = [
+  'app://privacy-panel.gaiamobile.org'
+];
+
+/**
+ * Stored settings version, for use when changing/refactoring settings storage.
+ */
+const SETTINGS_VERSION = 0;
+
 (function(exports) {
-  /**
-   * Timeout before resizing the apps grid after apps change.
-   */
-  const RESIZE_TIMEOUT = 500;
-
-  /**
-   * Timeout before showing a dialog. Without this, the click that comes through
-   * after an activate event from gaia-container will close the dialog.
-   */
-  const DIALOG_SHOW_TIMEOUT = 50;
-
-  /**
-   * The distance at the top and bottom of the icon container that when hovering
-   * an icon in will cause scrolling.
-   */
-  const AUTOSCROLL_DISTANCE = 30;
-
-  /**
-   * The timeout before auto-scrolling a page when hovering at the edges
-   * of the grid.
-   */
-  const AUTOSCROLL_DELAY = 750;
-
-  /**
-   * The time to wait after setting a scroll-position before disabling
-   * overflow during drag-and-drop.
-   */
-  const AUTOSCROLL_OVERFLOW_DELAY = 500;
-
-  /**
-   * The height of the delete-app bar at the bottom of the container when
-   * dragging a deletable app.
-   */
-  const DELETE_DISTANCE = 60;
-
-  /**
-   * App roles that will be skipped on the homescreen.
-   */
-  const HIDDEN_ROLES = [
-    'system', 'input', 'homescreen', 'theme', 'addon', 'langpack'
-  ];
-
-  /**
-   * Strings that are matched against to black-list app origins.
-   * TODO: This should not be hard-coded.
-   */
-  const BLACKLIST = [];
 
   function App() {
     // Chrome is displayed
@@ -64,7 +83,7 @@
     this.scrollable = document.querySelector('#apps-panel > .scrollable');
     this.icons = document.getElementById('apps');
     this.bottombar = document.getElementById('bottombar');
-    this.remove = document.getElementById('remove');
+    this.uninstall = document.getElementById('uninstall');
     this.edit = document.getElementById('edit');
     this.cancelDownload = document.getElementById('cancel-download');
     this.resumeDownload = document.getElementById('resume-download');
@@ -102,6 +121,11 @@
     this.appsVisible = false;
     this.scrolled = false;
 
+    // Pinch-to-zoom
+    this.small = false;
+    this.wasSmall = false;
+    this.pinchListening = false;
+
     // Drag-and-drop
     this.dragging = false;
     this.draggingRemovable = false;
@@ -110,8 +134,6 @@
     this.autoScrollInterval = null;
     this.autoScrollOverflowTimeout = null;
     this.hoverIcon = null;
-
-    this._iconSize = 0;
 
     // Update the panel indicator
     this.updatePanelIndicator();
@@ -125,17 +147,19 @@
     this.icons.addEventListener('drag-end', this);
     this.icons.addEventListener('drag-rearrange', this);
     this.icons.addEventListener('drag-finish', this);
+    this.icons.addEventListener('touchstart', this);
+    this.icons.addEventListener('touchmove', this);
+    this.icons.addEventListener('touchend', this);
+    this.icons.addEventListener('touchcancel', this);
     navigator.mozApps.mgmt.addEventListener('install', this);
     navigator.mozApps.mgmt.addEventListener('uninstall', this);
     window.addEventListener('hashchange', this, true);
     window.addEventListener('localized', this);
     window.addEventListener('online', this);
     window.addEventListener('resize', this);
-    window.addEventListener('settings-changed', this);
 
-    // Settings
-    this.settings = new Settings();
-    this.icons.classList.toggle('small', this.settings.small);
+    // Restore settings
+    this.restoreSettings();
 
     // Populate apps and bookmarks asynchronously
     this.startupMetadata = [];
@@ -156,13 +180,15 @@
       // won't save, but it's better than showing a blank screen.
       // If this is the first run, get the app order from the first-run script
       // after initialising the metadata database.
-      this.metadata.init().then(this.settings.firstRun ?
+      this.metadata.init().then(this.firstRun ?
         LazyLoader.load(['js/firstrun.js'],
           () => {
             FirstRun().then((results) => {
-              this.toggleSmall(results.small);
+              this.small = results.small;
+              this.icons.classList.toggle('small', this.small);
+              this.saveSettings();
+
               this.startupMetadata = results.order;
-              this.settings.save();
               return Promise.resolve();
             }, (e) => {
               console.error('Error running first-run script', e);
@@ -280,7 +306,7 @@
       }
 
       // Remove unknown entries from the startup metadata
-      if (!this.settings.firstRun) {
+      if (!this.firstRun) {
         for (var data of this.startupMetadata) {
           console.log('Removing unknown app metadata entry', data.id);
           this.metadata.remove(data.id).then(
@@ -317,39 +343,27 @@
   }
 
   App.prototype = {
-    get iconSize() {
-      // If this._iconSize is 0, let's refresh the value.
-      if (!this._iconSize) {
-        for (var i = 0, len = this.icons.childNodes.length; i < len; i++) {
-          var container = this.icons.childNodes[i].firstChild;
-          if (container.style.display !== 'none') {
-            this._iconSize = container.firstChild.clientWidth;
-            break;
-          }
-        }
-      }
-
-      return this._iconSize;
+    saveSettings: function() {
+      localStorage.setItem('settings', JSON.stringify({
+        version: SETTINGS_VERSION,
+        small: this.small
+      }));
     },
 
-    toggleSmall: function(small) {
-      if (this.icons.classList.contains('small') === small) {
+    restoreSettings: function() {
+      var settingsString = localStorage.getItem('settings');
+      if (!settingsString) {
+        this.firstRun = true;
         return;
       }
 
-      this.icons.classList.toggle('small', small);
-      this.icons.synchronise();
-      this.refreshGridSize();
-      this.snapScrollPosition();
-    },
-
-    toggleScrollSnapping: function(scrollSnapping) {
-      if (this.scrollable.classList.contains('snapping') === scrollSnapping) {
+      var settings = JSON.parse(settingsString);
+      if (settings.version !== SETTINGS_VERSION) {
         return;
       }
 
-      this.scrollable.classList.toggle('snapping', this.scrollSnapping);
-      this.snapScrollPosition();
+      this.small = settings.small || false;
+      this.icons.classList.toggle('small', this.small);
     },
 
     onVisualLoad: function() {
@@ -442,7 +456,6 @@
 
       if (appOrBookmark.id) {
         icon.bookmark = appOrBookmark;
-        this.setBookmarkIcon(icon);
       } else {
         icon.app = appOrBookmark;
 
@@ -472,11 +485,6 @@
       // Save the refreshed icon
       this.iconsToRetry.push(id);
       icon.addEventListener('icon-loaded', function(icon, id) {
-        if (icon.isUserSet) {
-          // If the icon was set manually, we don't cache it.
-          return;
-        }
-
         icon.icon.then((blob) => {
           // Remove icon from list of icons to retry when we go online
           var retryIndex = this.iconsToRetry.indexOf(id);
@@ -503,10 +511,6 @@
       icon.refresh();
     },
 
-    setBookmarkIcon: function(icon) {
-      IconsHelper.setElementIcon(icon, this.iconSize);
-    },
-
     storeAppOrder: function() {
       var storedOrders = [];
       var children = this.icons.children;
@@ -521,6 +525,18 @@
         (e) => {
           console.error('Error storing app order', e);
         });
+    },
+
+    stopPinch: function() {
+      if (!this.pinchListening) {
+        return;
+      }
+
+      this.scrollable.addEventListener('transitionend', this);
+      this.pinchListening = false;
+      this.scrollable.style.transition = '';
+      this.scrollable.style.transform = '';
+      this.handleEvent({ type: 'scroll' });
     },
 
     iconAdded: function(container) {
@@ -555,16 +571,14 @@
         var scrollHeight = this.scrollable.clientHeight;
         var pageHeight = Math.floor(scrollHeight / iconHeight) * iconHeight;
         var gridHeight = (Math.ceil((iconHeight *
-          Math.ceil(visibleChildren /
-                    (this.settings.small ? 4 : 3))) / pageHeight) *
+          Math.ceil(visibleChildren / (this.small ? 4 : 3))) / pageHeight) *
           pageHeight) + (scrollHeight - pageHeight);
 
         this.pageHeight = pageHeight;
         this.pendingGridHeight = gridHeight;
 
         if (!this.visualLoadComplete &&
-            Math.floor(visibleChildren /
-                       (this.settings.small ? 4 : 3)) * iconHeight >=
+            Math.floor(visibleChildren / (this.small ? 4 : 3)) * iconHeight >=
               scrollHeight) {
           this.onVisualLoad();
         }
@@ -600,14 +614,8 @@
       var currentScroll = this.scrollable.scrollTop;
       var scrollHeight = this.scrollable.clientHeight;
 
-      var destination;
-      if (this.scrollSnapping) {
-        destination = Math.min(gridHeight - scrollHeight,
-          Math.round(currentScroll / this.pageHeight + bias) * this.pageHeight);
-      } else {
-        destination = Math.min(gridHeight - scrollHeight,
-          currentScroll + (this.pageHeight * bias));
-      }
+      var destination = Math.min(gridHeight - scrollHeight,
+        Math.round(currentScroll / this.pageHeight + bias) * this.pageHeight);
 
       if (Math.abs(destination - currentScroll) > 1) {
         this.scrollable.style.overflow = '';
@@ -750,7 +758,7 @@
         this.scrollable.style.overflow = '';
         this.bottombar.classList.remove('active');
         this.edit.classList.remove('active');
-        this.remove.classList.remove('active');
+        this.uninstall.classList.remove('active');
 
         if (this.autoScrollInterval !== null) {
           clearInterval(this.autoScrollInterval);
@@ -878,8 +886,80 @@
           this.autoScrollInterval = null;
         }
 
-        this.remove.classList.toggle('active', inDelete);
+        this.uninstall.classList.toggle('active', inDelete);
         this.edit.classList.toggle('active', inEdit);
+        break;
+
+      // Pinch-to-zoom
+      case 'touchstart':
+        if (e.touches.length === 2) {
+          this.wasSmall = this.small;
+          this.startDistance =
+            Math.sqrt(Math.pow(e.touches[0].clientX -
+                               e.touches[1].clientX, 2) +
+                      Math.pow(e.touches[0].clientY -
+                               e.touches[1].clientY, 2));
+          this.pinchListening = true;
+          document.body.classList.add('zooming');
+          this.scrollable.style.transition = 'unset';
+        } else {
+          this.stopPinch();
+        }
+        break;
+
+      case 'touchmove':
+        if (!this.pinchListening || e.touches.length !== 2) {
+          return;
+        }
+
+        var distance =
+          (Math.sqrt(Math.pow(e.touches[0].clientX -
+                              e.touches[1].clientX, 2) +
+                     Math.pow(e.touches[0].clientY -
+                              e.touches[1].clientY, 2))) -
+          this.startDistance;
+
+        var newState;
+        if (this.wasSmall) {
+          newState = (distance < PINCH_DISTANCE_THRESHOLD);
+        } else {
+          newState = (distance < -PINCH_DISTANCE_THRESHOLD);
+        }
+
+        if (!this.scrolled && distance > 0) {
+          this.scrolled = true;
+          this.shadow.classList.add('visible');
+        }
+
+        if (this.small !== newState) {
+          this.small = newState;
+          this.icons.style.height = '';
+          this.icons.classList.toggle('small', this.small);
+          this.icons.synchronise();
+          this.stopPinch();
+          this.saveSettings();
+        } else if (Math.abs(distance) > PINCH_FEEDBACK_THRESHOLD) {
+          this.scrollable.style.transform = 'scale(' +
+            ((window.innerWidth + distance / 4) / window.innerWidth) + ')';
+        }
+        break;
+
+      case 'touchend':
+      case 'touchcancel':
+        if (!e.touches || e.touches.length === 0) {
+          this.handleEvent({ type: 'scroll' });
+        }
+
+        this.stopPinch();
+        break;
+
+      case 'transitionend':
+        if (e.target === this.scrollable) {
+          this.scrollable.removeEventListener('transitionend', this);
+          document.body.classList.remove('zooming');
+          this.refreshGridSize();
+          this.snapScrollPosition();
+        }
         break;
 
       // Add apps installed after startup
@@ -949,11 +1029,7 @@
             id = this.getIconId(icon.app ? icon.app : icon.bookmark,
                                 icon.entryPoint);
             if (id === this.iconsToRetry[i]) {
-              if (icon.bookmark) {
-                this.setBookmarkIcon(icon);
-              } else {
-                icon.refresh();
-              }
+              icon.refresh();
               break;
             }
           }
@@ -964,11 +1040,6 @@
         this.icons.synchronise();
         this.refreshGridSize();
         this.snapScrollPosition();
-        break;
-
-      case 'settings-changed':
-        this.toggleSmall(this.settings.small);
-        this.toggleScrollSnapping(this.settings.scrollSnapping);
         break;
       }
     }

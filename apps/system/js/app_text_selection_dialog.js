@@ -469,8 +469,7 @@
       var offset = 0;
       if (this.app && this.app.appChrome) {
         offset = this.app.appChrome.isMaximized() ?
-                 this.app.appChrome.height -
-                   this.app.appChrome.scrollable.scrollTop :
+                 this.app.appChrome.height :
                  Service.query('Statusbar.height');
       }
 

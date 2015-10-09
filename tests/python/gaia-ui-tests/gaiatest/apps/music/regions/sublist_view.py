@@ -17,11 +17,13 @@ class SublistView(Base):
         self._active_view_locator = (By.CSS_SELECTOR, 'iframe.active[src*="/views/{}-detail/index.html"]'.format(type))
 
     def switch_to_active_view(self):
-        Wait(self.marionette).until(expected.element_displayed(*self._active_view_locator))
         self.marionette.switch_to_frame(self.marionette.find_element(*self._active_view_locator))
 
     def wait_sublist_view_draw(self):
-        self.switch_to_active_view()
+        active_view = self.marionette.find_element(*self._active_view_locator)
+        Wait(self.marionette).until(expected.element_displayed(active_view))
+        self.marionette.switch_to_frame(active_view)
+
         element = self.marionette.find_element(*self._list_locator)
         Wait(self.marionette).until(lambda m: element.rect['x'] == 0 and element.is_displayed())
         self.apps.switch_to_displayed_app()

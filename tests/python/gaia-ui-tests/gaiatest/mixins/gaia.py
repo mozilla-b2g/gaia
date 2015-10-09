@@ -18,7 +18,8 @@ class GaiaArguments(object):
           'help': 'restart target instance between tests',
           }],
         [['--locale'],
-         {'default': "undefined",
+         {'action': 'store_true',
+          'default': "undefined",
           'help': 'locale for the device, This value overrides the value from testvars.json file',
           }],
     ]

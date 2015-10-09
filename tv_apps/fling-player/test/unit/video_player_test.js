@@ -1,7 +1,6 @@
-/* global VideoPlayer, MockVideoElement */
+/* global VideoPlayer */
 'use strict';
 
-requireApp('fling-player/test/unit/mock_video_element.js');
 requireApp('fling-player/js/video_player.js');
 
 suite('fling-player/VideoPlayer', function() {
@@ -12,7 +11,7 @@ suite('fling-player/VideoPlayer', function() {
     'app://fling-player.gaiamobile.org/test_media/Movies/elephants-dream.webm';
 
   setup(function () {
-    video = new MockVideoElement();
+    video = document.createElement('video');
     player = new VideoPlayer(video);
     player.init();
   });
@@ -26,6 +25,11 @@ suite('fling-player/VideoPlayer', function() {
   });
 
   test('should return video duration in rounded sec', function () {
+
+    video = {
+      duration : null,
+      addEventListener : function () {}
+    };
 
     video.duration = NaN;
     player = new VideoPlayer(video);
@@ -49,6 +53,11 @@ suite('fling-player/VideoPlayer', function() {
   });
 
   test('should return current video time in rounded sec', function () {
+
+    video = {
+      currentTime : null,
+      addEventListener : function () {}
+    };
 
     video.currentTime = NaN;
     player = new VideoPlayer(video);
@@ -106,14 +115,6 @@ suite('fling-player/VideoPlayer', function() {
     exp.expects('pause').once();
     player.pause();
     exp.verify();
-  });
-
-  test('should seek with loading metadata', function () {
-    var exp = video.currentTime + 10;
-    video.src = videoURL;
-    video.load();
-    player.seek(exp);
-    assert.equal(video.currentTime, exp);
   });
 
   test('should not seek without loading metadata', function () {
