@@ -24,7 +24,7 @@ class Music(Base):
     _albums_tab_locator = (By.CSS_SELECTOR, '[data-l10n-id="albums-tab"]')
     _songs_tab_locator = (By.CSS_SELECTOR, '[data-l10n-id="songs-tab"]')
     _artists_tab_locator = (By.CSS_SELECTOR, '[data-l10n-id="artists-tab"]')
-    _title_locator = (By.ID, 'title-text')
+    _title_locator = (By.ID, 'title-text')aaa
 
     def launch(self):
         Base.launch(self)
