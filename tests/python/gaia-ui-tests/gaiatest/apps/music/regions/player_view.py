@@ -18,8 +18,6 @@ class PlayerView(Base):
     _seek_bar_shadow_dom_locator = (By.ID, 'seek-bar')
     _cover_share_locator = (By.CSS_SELECTOR, '[data-l10n-id="share-song"]')
     _rating_view_locator = (By.ID, 'rating')
-
-    #_rating_view_locator = (By.CSS_SELECTOR, '#rating')
     _stars_on_locator = (By.CSS_SELECTOR, '.rating-star.star-on')
 
     def __init__(self, marionette):
