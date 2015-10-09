@@ -20,9 +20,8 @@ class SublistView(Base):
         self.marionette.switch_to_frame(self.marionette.find_element(*self._active_view_locator))
 
     def wait_sublist_view_draw(self):
-        active_view = self.marionette.find_element(*self._active_view_locator)
-        Wait(self.marionette).until(expected.element_displayed(active_view))
-        self.marionette.switch_to_frame(active_view)
+        Wait(self.marionette).until(expected.element_displayed(*self._active_view_locator))
+        self.marionette.switch_to_frame(self.marionette.find_element(*self._active_view_locator))
 
         element = self.marionette.find_element(*self._list_locator)
         Wait(self.marionette).until(lambda m: element.rect['x'] == 0 and element.is_displayed())

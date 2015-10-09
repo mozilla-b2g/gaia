@@ -22,7 +22,8 @@ class ListView(Base):
         elements = Wait(self.marionette).until(
             expected.elements_present(*self._list_item_locator))
         Wait(self.marionette).until(expected.element_displayed(elements[0]))
-        return [Media(self.marionette, element) for element in elements]
+        self.apps.switch_to_displayed_app()
+        return [Media(self.marionette, element, self._active_view_locator) for element in elements]
 
 
 class AlbumsView(ListView):
@@ -46,22 +47,33 @@ class SongsView(ListView):
 class Media(PageRegion):
     _first_media_link_locator = (By.CLASS_NAME, 'gfl-item first')
 
+    def __init__(self, marionette, element, _active_view_locator):
+        PageRegion.__init__(self, marionette, element)
+        self._active_view_locator = _active_view_locator
+
+    def switch_to_active_view(self):
+        self.marionette.switch_to_frame(self.marionette.find_element(*self._active_view_locator))
+
     def tap_first_album(self):
+        self.switch_to_active_view()
         self.marionette.find_element(*self._first_media_link_locator).tap()
         self.apps.switch_to_displayed_app()
         return AlbumSublistView(self.marionette)
 
     def tap_first_song(self):
+        self.switch_to_active_view()
         self.marionette.find_element(*self._first_media_link_locator).tap()
         self.apps.switch_to_displayed_app()
         return PlayerView(self.marionette)
 
     def tap_first_artist(self):
+        self.switch_to_active_view()
         self.marionette.find_element(*self._first_media_link_locator).tap()
         self.apps.switch_to_displayed_app()
         return ArtistSublistView(self.marionette)
 
     def a11y_click_first_album(self):
+        self.switch_to_active_view()
         self.accessibility.click(
             self.marionette.find_element(*self._first_media_link_locator))
         self.apps.switch_to_displayed_app()
