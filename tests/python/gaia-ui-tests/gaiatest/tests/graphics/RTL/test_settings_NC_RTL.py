@@ -118,8 +118,7 @@ class TestSettingsRTLNC(GaiaImageCompareTestCase):
         cs_page.tap_call_barring_all()
         self.take_screenshot('callBarring-passcode2')
         cs_page.tap_call_barring_all_cancel()
-        settings.return_to_prev_menu(cs_page.cs_screen_element, cs_page.call_barring_screen_element,
-                                     back_button = cs_page.call_barring_back_btn_element)
+        settings.return_to_prev_menu(cs_page.cs_screen_element, cs_page.call_barring_screen_element, html_header=True)
         settings.return_to_prev_menu(cs_page.screen_element, cs_page.cs_screen_element)
         settings.return_to_prev_menu(settings.screen_element, cs_page.screen_element)
 

@@ -5,13 +5,14 @@
 from marionette_driver import expected, By, Wait
 from gaiatest.apps.base import Base
 from gaiatest.form_controls.binarycontrol import InvisibleHtmlBinaryControl
-from gaiatest.form_controls.header import GaiaHeader
+from gaiatest.form_controls.header import HTMLHeader, GaiaHeader
 
 
 class Settings(Base):
     name = 'Settings'
 
     _header_locator = (By.CSS_SELECTOR, '.current gaia-header')
+    _html_header_locator = (By.CSS_SELECTOR, '.current header')
     _page_locator = (By.ID, 'root')
 
     _header_text_locator = (By.CSS_SELECTOR, '#root > gaia-header > h1')
@@ -338,8 +339,11 @@ class Settings(Base):
         checkbox = self.marionette.find_element(by, locator)
         Wait(self.marionette).until(expected.element_enabled(checkbox))
 
-    def return_to_prev_menu(self, parent_view, exit_view):
-        GaiaHeader(self.marionette, self._header_locator).go_back()
+    def return_to_prev_menu(self, parent_view, exit_view, html_header=False):
+        if html_header:
+            HTMLHeader(self.marionette, exit_view.find_element(*self._html_header_locator)).go_back()
+        else:
+            GaiaHeader(self.marionette, exit_view.find_element(*self._header_locator)).go_back()
 
         Wait(self.marionette).until(lambda m: 'current' not in exit_view.get_attribute('class'))
         Wait(self.marionette).until(lambda m: parent_view.rect['x'] == 0)
