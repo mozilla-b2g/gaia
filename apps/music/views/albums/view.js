@@ -30,10 +30,6 @@ var AlbumsView = View.extend(function AlbumsView() {
   this.list.minScrollHeight = `calc(100% - ${searchHeight}px)`;
 
   this.list.configure({
-    getSectionName: (item) => {
-      return item.sectionName;
-    },
-
     getItemImageSrc: (item) => {
       return this.getThumbnail(item.name);
     }
@@ -64,31 +60,19 @@ AlbumsView.prototype.render = function() {
 };
 
 AlbumsView.prototype.getAlbums = function() {
-  return document.l10n.formatValues('unknownAlbum', 'unknown')
-    .then(([unknownAlbum, unknown]) => {
+  return document.l10n.formatValues('unknownAlbum', 'unknownArtist')
+    .then(([unknownAlbum, unknownArtist]) => {
       return this.fetch('/api/albums/list')
         .then(response => response.json())
         .then((albums) => {
           return albums.map((album) => {
-            var sectionName, albumText;
-            if (!album.metadata.album) {
-              sectionName = unknown;
-              albumText = unknownAlbum;
-            } else {
-              sectionName = album.metadata.album[0].toLowerCase();
-              sectionName = isNaN(sectionName) ? sectionName : '#';
-              albumText = album.metadata.album;
-            }
-
             return {
-              sectionName: sectionName,
-              name: album.name,
-              url: '/album-detail?id=' + encodeURIComponent(album.name),
-              album:  albumText,
-              artist: album.metadata.artist
+              name:   album.name,
+              url:    '/album-detail?id=' + encodeURIComponent(album.name),
+              album:  album.metadata.album  || unknownAlbum,
+              artist: album.metadata.artist || unknownArtist
             };
           });
-
         });
     });
 };
