@@ -80,21 +80,19 @@ class BugzillaLiteStage(BugzillaLite):
                 *self._content_locator))))
         self.marionette.find_element(*self._close_locator).tap()
         Wait(self.marionette).until(expected.element_displayed(*self._login_form_locator))
-        import time
-        time.sleep(1)
+        Wait(self.marionette).until(expected.element_not_displayed(*self._content_locator))
 
     def create_new_bug(self, title, description):
         self.marionette.find_element(*self._create_button).tap()
         from gaiatest.apps.bzlite.regions.create_bug import CreateBug
         create_bug = CreateBug(self.marionette)
         
-        create_bug._fill_title(title)
-        create_bug._fill_description(description)
-        create_bug._fill_picture()
+        create_bug.fill_title(title)
+        create_bug.fill_description(description)
+        create_bug.fill_picture_with_first_image_in_gallery()
         create_bug._submit()
 
-        time.sleep(10)
-        Wait(self.marionette,timeout=20).until(expected.element_displayed(
+        Wait(self.marionette,timeout=20,interval=1).until(expected.element_displayed(
             Wait(self.marionette).until(expected.element_present(
                 *self._bugpage_locator))))
 

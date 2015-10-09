@@ -11,15 +11,15 @@ class CreateBug(Base):
     _button_submit = (By.ID, 'submit')
 
 
-    def _fill_title(self,title):
+    def fill_title(self,title):
         title_element = self.marionette.find_element(*self._title_input)
         title_element.send_keys(title)
 
-    def _fill_description(self,description):
+    def fill_description(self,description):
         description_element = self.marionette.find_element(*self._description_input)
         description_element.send_keys(description)
 
-    def _fill_picture(self):
+    def fill_picture_with_first_image_in_gallery(self):
         add_photo_element = self.marionette.find_element(*self._thumbnail_photo_locator)
         add_photo_element.tap()
         from gaiatest.apps.system.regions.activities import Activities

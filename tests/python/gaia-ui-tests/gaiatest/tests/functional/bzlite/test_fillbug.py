@@ -9,7 +9,6 @@ class TestFillBug(GaiaTestCase):
         GaiaTestCase.setUp(self)
         self.push_resource('IMG_0001.jpg')
         self.connect_to_local_area_network()
-        name = 'Bugzilla Lite Stage'
         url = 'http://bzlite-staging.herokuapp.com/manifest.webapp'
         self.apps.install(url)
 
@@ -31,6 +30,3 @@ class TestFillBug(GaiaTestCase):
 
         bugzilla_lite.navigate_filed_bug()
 
-        #self.assertTrue(is_loaded)
-        #self.marionette.find_element(*self._back_locator).tap()
-        #self.wait_for_dashboard_navigator_to_be_displayed()
