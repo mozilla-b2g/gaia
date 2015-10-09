@@ -13,7 +13,7 @@
   updateSelection,setButtonPaused,handleSliderTouchStart,MockMediaDB,
   handleSliderTouchEnd,loadingChecker,MockL10n,VideoUtils,
   updateDialog,LAYOUT_MODE,showPlayer,hidePlayer,MockThumbnailItem,
-  MockThumbnailGroup,MockForwardRewindController,MockIntlHelper */
+  MockThumbnailGroup,MockForwardRewindController,MockIntlHelper,captions */
 'use strict';
 
 require('/shared/js/lazy_loader.js');
@@ -69,6 +69,12 @@ function testOverlayVisibility(expected) {
   assert.equal(dom.overlay.classList.contains('hidden'), !expected);
 }
 
+function MockCaptions(player) {
+  this.player = player;
+  this.remove = sinon.stub();
+  this.findAndDisplay = sinon.stub();
+}
+
 suite('Video App Unit Tests', function() {
   var nativeMozL10n;
   var videoName = 'video name';
@@ -90,6 +96,8 @@ suite('Video App Unit Tests', function() {
     init = sinon.stub();
     initDB = sinon.stub();
     ForwardRewindController = MockForwardRewindController;
+
+    window.Captions = MockCaptions;
 
     // we don't want to trigger once/ready callbacks
     sinon.stub(navigator.mozL10n, 'once');
@@ -1025,6 +1033,27 @@ suite('Video App Unit Tests', function() {
       assert.equal(dom.player.currentTime, 0);
       assert.equal(dom.videoTitle.textContent, selectedVideo.title);
     });
+
+    test('#showPlayer() removes captions and looks for new ones', function() {
+
+      selectedVideo = {
+        'name': 'test-video.webm',
+        'type': 'video\/webm',
+        'size': '19565',
+        'date': '1395088917000',
+        'title': 'test-video1'
+      };
+
+      captions.remove.reset();
+      captions.findAndDisplay.reset();
+
+      showPlayer(selectedVideo, false, false, true);
+
+      assert.ok(captions.remove.calledOnce);
+      assert.ok(captions.findAndDisplay.calledOnce);
+      assert.equal(captions.findAndDisplay.args[0][0], selectedVideo.name);
+    });
+
   });
 
   suite('hidePlayer flows', function() {
@@ -1479,6 +1508,15 @@ suite('Video App Unit Tests', function() {
       assert.isFalse(updatePosterSpy.calledOnce);
       assert.isFalse(setWatchedSpy.calledOnce);
       assert.isFalse(updateMetadataDbSpy.calledOnce);
+    });
+
+    test('#hidePlayer: removes captions', function(done) {
+      playerShowing = true;
+      captions.remove.reset();
+      hidePlayer(false, function() {
+        assert.ok(captions.remove.calledOnce);
+        done();
+      });
     });
   });
 

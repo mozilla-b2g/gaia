@@ -19,7 +19,7 @@ var MockMediaDB = (function() {
   MockMediaDB.prototype = {
 
     getFile: function getFile(filename, callback) {
-
+      this.blob.name = filename;
       callback(this.blob);
     },
 
