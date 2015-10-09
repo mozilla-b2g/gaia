@@ -58,6 +58,10 @@ html[dir="rtl"] [role="dialog"][data-type="action"] button {
   padding: 0 3rem;
   border-bottom: 0.1rem solid #616262;
 }
+[role="dialog"][data-type="action"] > header * {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
 [role="dialog"][data-type="action"] > header h1 {
   font-size: 1.6rem;
