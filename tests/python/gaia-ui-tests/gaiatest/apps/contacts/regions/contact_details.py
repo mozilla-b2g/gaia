@@ -5,6 +5,7 @@
 from marionette_driver import expected, By, Wait
 
 from gaiatest.apps.base import Base
+from gaiatest.form_controls.header import GaiaHeader
 
 
 class ContactDetails(Base):
@@ -73,13 +74,7 @@ class ContactDetails(Base):
         return EditContact(self.marionette)
 
     def tap_back(self):
-        el = self.marionette.find_element(*self._details_header_locator)
-        Wait(self.marionette).until(expected.element_displayed(el))
-        # TODO: remove tap with coordinates after Bug 1061698 is fixed
-        el.tap(25, 25)
-        Wait(self.marionette).until(expected.element_not_displayed(el))
-        from gaiatest.apps.contacts.app import Contacts
-        return Contacts(self.marionette)
+        GaiaHeader(self.marionette, self._details_header_locator).go_back()
 
     def tap_add_remove_favorite(self):
         button = self.marionette.find_element(*self._add_remove_favorite_button_locator)

@@ -377,6 +377,7 @@ section.pin-dialog .pin-site-icon {
   height: 6.4rem;
   margin: 0 auto;
   background-size: 6.4rem;
+  background-image: url('images/loading_icon_white.svg');
 }
 
 section.pin-dialog .pin-site-name {
@@ -578,7 +579,8 @@ html[dir="rtl"] .private > .chrome-combined.maximized .chrome-has-ssl-indicator 
   offset-inline-start: -.1rem;
 }
 
-.light .site-icon {
+.light .site-icon,
+.light section.pin-dialog .pin-site-icon {
   background-image: url('images/loading_icon_dark.svg');
 }
 

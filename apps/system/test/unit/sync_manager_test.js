@@ -12,6 +12,7 @@
 /* global ERROR_SYNC_APP_KILLED */
 /* global ERROR_SYNC_REQUEST */
 /* global ERROR_UNVERIFIED_ACCOUNT */
+/* global expect */
 /* global FxAccountsClient */
 /* global IACHandler */
 /* global MocksHelper */
@@ -556,7 +557,7 @@ suite('system/SyncManager >', () => {
   suite('onsyncsyncing', () => {
     var syncManager;
 
-    var updateStateSpy;
+    var updateStateStub;
     var unregisterSyncStub;
     var requestStub;
     var getAssertionStub;
@@ -619,7 +620,7 @@ suite('system/SyncManager >', () => {
     });
 
     setup(() => {
-      updateStateSpy = this.sinon.spy(syncManager, 'updateState');
+      updateStateStub = this.sinon.stub(syncManager, 'updateState');
       unregisterSyncStub = this.sinon.stub(syncManager,
                                            'unregisterSyncRequest');
       requestStub = this.sinon.stub(MockService, 'request', () => {
@@ -634,10 +635,12 @@ suite('system/SyncManager >', () => {
                             : Promise.resolve(keys);
       });
       portStub = this.sinon.stub(port, 'postMessage');
+
+      syncManager.state = 'syncing';
     });
 
     teardown(() => {
-      updateStateSpy.restore();
+      updateStateStub.restore();
       unregisterSyncStub.restore();
       requestStub.restore();
       getKeysStub.restore();
@@ -655,7 +658,7 @@ suite('system/SyncManager >', () => {
       syncManager._settings['sync.collections.history.readonly'] = true;
       window.dispatchEvent(new CustomEvent('onsyncsyncing'));
       setTimeout(() => {
-        this.sinon.assert.calledOnce(updateStateSpy);
+        this.sinon.assert.calledOnce(updateStateStub);
         this.sinon.assert.calledOnce(unregisterSyncStub);
         this.sinon.assert.calledOnce(getAssertionStub);
         this.sinon.assert.calledOnce(getKeysStub);
@@ -675,13 +678,34 @@ suite('system/SyncManager >', () => {
       });
     });
 
+    test('onsyncsyncing - success - disabled state', done => {
+      id = Date.now();
+      result = {
+        id: id
+      };
+      var previousLastSync = syncManager.lastSync;
+      syncManager.state = 'disabled';
+      syncManager._settings['sync.collections.history.enabled'] = true;
+      syncManager._settings['sync.collections.history.readonly'] = true;
+      window.dispatchEvent(new CustomEvent('onsyncsyncing'));
+      setTimeout(() => {
+        setTimeout(() => {
+          setTimeout(() => {
+            assert.notEqual(syncManager.lastSync, previousLastSync);
+            assert.ok(requestStub.notCalled);
+            done();
+          });
+        });
+      });
+    });
+
     test('onsyncsyncing - no collections selected', done => {
       syncManager._settings['sync.collections.history.enabled'] = false;
       syncManager._settings['sync.collections.passwords.enabled'] = false;
       var previousLastSync = syncManager.lastSync;
       window.dispatchEvent(new CustomEvent('onsyncsyncing'));
       setTimeout(() => {
-        this.sinon.assert.calledOnce(updateStateSpy);
+        this.sinon.assert.calledOnce(updateStateStub);
         this.sinon.assert.calledOnce(unregisterSyncStub);
         this.sinon.assert.notCalled(getAssertionStub);
         this.sinon.assert.notCalled(getKeysStub);
@@ -702,7 +726,7 @@ suite('system/SyncManager >', () => {
       var previousLastSync = syncManager.lastSync;
       window.dispatchEvent(new CustomEvent('onsyncsyncing'));
       setTimeout(() => {
-        this.sinon.assert.calledOnce(updateStateSpy);
+        this.sinon.assert.calledOnce(updateStateStub);
         this.sinon.assert.calledOnce(unregisterSyncStub);
         this.sinon.assert.calledOnce(getAssertionStub);
         this.sinon.assert.notCalled(getKeysStub);
@@ -725,7 +749,7 @@ suite('system/SyncManager >', () => {
       var previousLastSync = syncManager.lastSync;
       window.dispatchEvent(new CustomEvent('onsyncsyncing'));
       setTimeout(() => {
-        this.sinon.assert.calledOnce(updateStateSpy);
+        this.sinon.assert.calledOnce(updateStateStub);
         this.sinon.assert.calledOnce(unregisterSyncStub);
         this.sinon.assert.calledOnce(getAssertionStub);
         this.sinon.assert.calledOnce(getKeysStub);
@@ -750,7 +774,7 @@ suite('system/SyncManager >', () => {
       var previousLastSync = syncManager.lastSync;
       window.dispatchEvent(new CustomEvent('onsyncsyncing'));
       setTimeout(() => {
-        this.sinon.assert.calledOnce(updateStateSpy);
+        this.sinon.assert.calledOnce(updateStateStub);
         this.sinon.assert.calledOnce(unregisterSyncStub);
         this.sinon.assert.calledOnce(getAssertionStub);
         this.sinon.assert.calledOnce(getKeysStub);
@@ -938,6 +962,245 @@ suite('system/SyncManager >', () => {
       assert.equal(syncManager.state, queryStubResult);
       this.sinon.assert.calledOnce(queryStub);
       assert.ok(queryStub.calledWith('SyncStateMachine.state'));
+    });
+  });
+
+  suite('killapp', () => {
+    var syncManager;
+    var isSyncAppStub;
+    var isSyncApp;
+    var requestSpy;
+
+    function killapp() {
+      window.dispatchEvent(new CustomEvent('killapp', {
+        detail: {
+          origin: 'whatever'
+        }
+      }));
+    }
+
+    suiteSetup(() => {
+      syncManager = BaseModule.instantiate('SyncManager');
+      syncManager.start();
+    });
+
+    suiteTeardown(() => {
+      syncManager.stop();
+    });
+
+    setup(() => {
+      isSyncAppStub = this.sinon.stub(syncManager, 'isSyncApp', () => {
+        return isSyncApp ? Promise.resolve() : Promise.reject();
+      });
+      requestSpy = this.sinon.spy(MockService, 'request');
+    });
+
+    teardown(() => {
+      isSyncAppStub.restore();
+      requestSpy.restore();
+    });
+
+    test('Is Sync app', done => {
+      isSyncApp = true;
+      killapp();
+      setTimeout(() => {
+        assert.ok(requestSpy.calledOnce);
+        assert.equal(requestSpy.getCall(0).args[0], 'SyncStateMachine:error');
+        assert.equal(requestSpy.getCall(0).args[1], ERROR_SYNC_APP_KILLED);
+        done();
+      });
+    });
+
+    test('Is not Sync app', done => {
+      isSyncApp = false;
+      killapp();
+      setTimeout(() => {
+        assert.ok(requestSpy.notCalled);
+        done();
+      });
+    });
+  });
+
+  suite('appterminated', () => {
+    var syncManager;
+    var isSyncAppStub;
+    var isSyncApp;
+
+    function appterminated() {
+      window.dispatchEvent(new CustomEvent('appterminated', {
+        detail: {
+          origin: 'whatever'
+        }
+      }));
+    }
+
+    suiteSetup(() => {
+      syncManager = BaseModule.instantiate('SyncManager');
+      syncManager.start();
+    });
+
+    suiteTeardown(() => {
+      syncManager.stop();
+    });
+
+    setup(() => {
+      isSyncAppStub = this.sinon.stub(syncManager, 'isSyncApp', () => {
+        return isSyncApp ? Promise.resolve() : Promise.reject();
+      });
+    });
+
+    teardown(() => {
+      isSyncAppStub.restore();
+    });
+
+    test('No port', done => {
+      syncManager._port = undefined;
+      appterminated();
+      setTimeout(() => {
+        assert.ok(isSyncAppStub.notCalled);
+        done();
+      });
+    });
+
+    test('Is Sync app', done => {
+      isSyncApp = true;
+      syncManager._port = {};
+      appterminated();
+      setTimeout(() => {
+        assert.isNull(syncManager._port);
+        done();
+      });
+    });
+
+    test('Is not Sync app', done => {
+      isSyncApp = false;
+      syncManager._port = {};
+      appterminated();
+      setTimeout(() => {
+        assert.ok(syncManager._port);
+        done();
+      });
+    });
+  });
+
+  suite('isSyncApp', () => {
+    var syncManager;
+    var realMozApps;
+    var connections = [];
+
+    suiteSetup(() => {
+      syncManager = BaseModule.instantiate('SyncManager');
+      syncManager.start();
+
+      realMozApps = navigator.mozApps;
+      var app = {
+        getConnections: function() {
+          return Promise.resolve(connections);
+        }
+      };
+
+      var onsuccess = {
+        set onsuccess(callback) {
+          setTimeout(() => {
+            callback({ target: { result: app } });
+          });
+        }
+      };
+
+      navigator.mozApps = {
+        getSelf: function() {
+          return onsuccess;
+        }
+      };
+    });
+
+    suiteTeardown(() => {
+      syncManager.stop();
+      navigator.mozApps = realMozApps;
+    });
+
+    setup(() => {
+      connections = [];
+    });
+
+    [{
+      test: 'No origin',
+      origin: undefined
+    }, {
+      test: 'No connections',
+      origin: 'origin'
+    }, {
+      test: 'No matching connection',
+      origin: 'origin',
+      connections: [{
+        keyword: 'keyword',
+        origin: 'anotherorigin'
+      }]
+    }].forEach(config => {
+      connections = config.connections;
+      test(config.test, done => {
+        expect(syncManager.isSyncApp(config.origin))
+          .to.be.rejectedWith(undefined).and.notify(done);
+      });
+    });
+
+    test('Matching connection', done => {
+      connections = [{
+        keyword: 'gaia::sync::request',
+        origin: 'origin',
+        subscriber: 'origin'
+      }];
+      syncManager.isSyncApp('origin').then(() => {
+        assert.ok(false, 'Unexpected resolution');
+        done();
+      }).catch(() => {
+        assert.ok(true, 'Expected rejection');
+        done();
+      });
+    });
+  });
+
+  suite('cleanup', () => {
+    var syncManager;
+    var unregisterSyncStub;
+    var removeEventListenerStub;
+    var cancelSyncStub;
+
+    suiteSetup(() => {
+      syncManager = BaseModule.instantiate('SyncManager');
+      syncManager.start();
+    });
+
+    suiteTeardown(() => {
+      syncManager.stop();
+    });
+
+    setup(() => {
+      unregisterSyncStub = this.sinon.stub(syncManager,
+                                           'unregisterSyncRequest');
+      removeEventListenerStub = this.sinon.stub(window, 'removeEventListener');
+      cancelSyncStub = this.sinon.stub(syncManager, 'cancelSync');
+    });
+
+    teardown(() => {
+      unregisterSyncStub.restore();
+      removeEventListenerStub.restore();
+      cancelSyncStub.restore();
+    });
+
+    test('Cleanup', () => {
+      syncManager.cleanup();
+      assert.ok(unregisterSyncStub.calledOnce);
+      assert.ok(removeEventListenerStub.calledOnce);
+      assert.ok(cancelSyncStub.notCalled);
+    });
+
+    test('Cleanup while syncing', () => {
+      syncManager.state = 'syncing';
+      syncManager.cleanup();
+      assert.ok(unregisterSyncStub.calledOnce);
+      assert.ok(removeEventListenerStub.calledOnce);
+      assert.ok(cancelSyncStub.calledOnce);
     });
   });
 });

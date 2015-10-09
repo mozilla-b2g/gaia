@@ -5,6 +5,7 @@
 from marionette_driver import expected, By, Wait
 
 from gaiatest.apps.base import Base
+from gaiatest.form_controls.header import GaiaHeader
 
 
 UI_TESTS = "UI Tests"
@@ -12,6 +13,7 @@ UI_TESTS = "UI Tests"
 
 class UiTests(Base):
     manifest_url = '{}uitest{}/manifest.webapp'.format(Base.DEFAULT_PROTOCOL,Base.DEFAULT_APP_HOSTNAME)
+
     _test_panel_header_locator = (By.CSS_SELECTOR, '#test-panel-header')
     _ui_page_locator = (By.CSS_SELECTOR, 'a[href="#UI"]')
     _api_page_locator = (By.CSS_SELECTOR, 'a[href="#API"]')
@@ -70,9 +72,4 @@ class UiTests(Base):
         return KeyboardPage(self.marionette)
 
     def tap_back_button(self):
-        element = Wait(self.marionette).until(
-            expected.element_present(*self._test_panel_header_locator))
-        Wait(self.marionette).until(expected.element_displayed(element))
-        # TODO: remove tap with coordinates after Bug 1061698 is fixed
-        element.tap(25, 25)
-        Wait(self.marionette).until(expected.element_not_displayed(element))
+        GaiaHeader(self.marionette, self._test_panel_header_locator).go_back()

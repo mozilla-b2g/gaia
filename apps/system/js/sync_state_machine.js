@@ -19,11 +19,11 @@
   +----+---v-+           |   +--------+--------+
   | Disabled |         Error +------->+Enabled +---+
   +----^-----+           |   |        +---+----+   |
-       |                 |   |            |        |
-       |                 | Success       Sync      |
-       |                 |   |            |        |
-       |             +---+---+            |        |
-       |             |Syncing<------------+        |
+       |   ^             |   |            |        |
+       |   |             | Success       Sync      |
+       | Disable         |   |            |        |
+       |   |         +---+---+            |        |
+       |   +--------+|Syncing<------------+        |
        |             +-------+                     |
        |                                           |
        +--------------Disable  --------------------+
@@ -50,7 +50,8 @@
     },
     disable: {
       'enabled': 'disabled',
-      'errored': 'disabled'
+      'errored': 'disabled',
+      'syncing': 'disabled'
     },
     sync: {'enabled': 'syncing'},
     success: {

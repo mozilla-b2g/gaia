@@ -45,7 +45,7 @@ window.EntrySheet = (function invocation() {
   function view() {
     return '<div class="' + EntrySheet.className + '">' +
       '<section role="region" class="skin-organic header">' +
-        '<gaia-header action="close">' +
+        '<gaia-header ignore-dir action="close">' +
           '<h1 class="title">' + '</h1>' +
         '</gaia-header>' +
         '<div class="throbber"></div>' +

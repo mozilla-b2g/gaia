@@ -940,15 +940,14 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
         storage_paths = [self.device.storage_path]
         if self.device.is_android_build:
             # TODO: Remove hard-coded paths once bug 1018079 is resolved
-            storage_paths.extend(['/mnt/sdcard/',
-                                  '/mnt/extsdcard/',
-                                  '/storage/sdcard/',
-                                  '/storage/sdcard0/',
-                                  '/storage/sdcard1/'])
+            storage_paths.extend(['/mnt/sdcard',
+                                  '/mnt/extsdcard',
+                                  '/storage/sdcard',
+                                  '/storage/sdcard0',
+                                  '/storage/sdcard1'])
         for path in storage_paths:
             if self.device.file_manager.dir_exists(path):
-                for item in self.device.file_manager.list_items(path):
-                    self.device.file_manager.remove('/'.join([path, item]))
+                self.device.file_manager.remove(path + '/*')
 
     def cleanup_gaia(self, full_reset=True):
 

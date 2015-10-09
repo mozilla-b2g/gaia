@@ -86,7 +86,6 @@ suite('store/abstract', function() {
     var events;
     var id;
     var object;
-    var addDepsCalled;
 
     function watchEvent(event, done) {
       subject.once(event, function() {
@@ -109,13 +108,10 @@ suite('store/abstract', function() {
     });
 
     setup(function(done) {
-      addDepsCalled = null;
       object = this.testData.object;
       events = {};
 
-      subject._addDependents = function() {
-        addDepsCalled = arguments;
-      };
+      subject._addDependents = function() {};
 
       if (this.testData.persist !== false) {
         subject.persist(object, function(err, key) {
@@ -236,9 +232,7 @@ suite('store/abstract', function() {
         checkEvent('persist', id, object);
       });
 
-      test('db persistance', function(done) {
-        assert.equal(addDepsCalled[0], object);
-
+      test('db persistence', function(done) {
         subject.get(id, function(err, result) {
           if (err) {
             done(err);

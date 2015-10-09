@@ -1,7 +1,7 @@
 <element name="browsingPrivacy" extends="section">
   <template>
 
-    <gaia-header action="back" data-href="#root">
+    <gaia-header ignore-dir action="back" data-href="#root">
       <h1 data-l10n-id="browsingPrivacy-header"></h1>
     </gaia-header>
 
@@ -17,12 +17,18 @@
         </li>
         <li>
           <gaia-switch name="browser.private.default">
-            <label data-l10n-id="privateBrowsingDefault"></label>
-            <details data-l10n-id="privateBrowsingDefaultDetails"></details>
+            <label data-l10n-id="privateBrowsing"></label>
+            <details data-l10n-id="privateBrowsingDetails"></details>
+            <a href="https://support.mozilla.org/kb/private-browsing-firefox-os" data-l10n-id="learn-more"></a>
           </gaia-switch>
-          <span>
-            <a href="https://support.mozilla.org/kb/private-browsing-firefox-os" data-l10n-id="privateBrowsingDefaultLearnMore" class="link-text"></a>
-          </span>
+        </li>
+        <li>
+          <gaia-switch name="privacy.trackingprotection.enabled">
+            <label data-l10n-id="trackingProtection"></label>
+            <details data-l10n-id="trackingProtectionDetails"></details>
+            <a data-l10n-id="learn-more"
+                 href="https://support.mozilla.org/products/firefox-os/privacy-and-security"></a>
+          </gaia-switch>
         </li>
       </ul>
 
