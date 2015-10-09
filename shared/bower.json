@@ -7,10 +7,13 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "gaia-header": "gaia-components/gaia-header#~0.8.0",
+    "gaia-header": "gaia-components/gaia-header#~0.9.0",
     "gaia-theme": "gaia-components/gaia-theme#~0.4.6",
     "gaia-icons": "gaia-components/gaia-icons#~0.9.0",
     "gaia-toast": "gaia-components/gaia-toast",
     "gaia-site-icon": "gaia-components/gaia-site-icon"
+  },
+  "resolutions": {
+    "gaia-component": "~0.4.0"
   }
 }
