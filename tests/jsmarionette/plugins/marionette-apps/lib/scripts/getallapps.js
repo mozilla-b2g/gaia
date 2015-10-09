@@ -13,7 +13,8 @@
       // sync transfer of the entire manifest is slow so for now opt in to the
       // fields we actually need internally.
       manifest: {
-        entry_points: app.manifest.entry_points
+        entry_points: app.manifest.entry_points,
+        activities: app.manifest.activities
       },
       manifestURL: app.manifestURL,
       origin: app.origin,
@@ -34,10 +35,14 @@
       return obj;
     });
 
-    marionetteScriptFinished({ result: apps });
+    marionetteScriptFinished({
+      result: apps
+    });
   };
 
   req.onerror = function(evt) {
-    marionetteScriptFinished({ error: req.error.name });
+    marionetteScriptFinished({
+      error: req.error.name
+    });
   };
 })();
