@@ -11,7 +11,7 @@ from gaiatest.form_controls.header import GaiaHeader, HTMLHeader
 class PrivacyControls(Base):
     manifest_url = '{}privacy-panel{}/manifest.webapp'.format(Base.DEFAULT_PROTOCOL,Base.DEFAULT_APP_HOSTNAME)
 
-    _header_locator = (By.CSS_SELECTOR, '.current gaia-header')
+    _back_locator = (By.CSS_SELECTOR, '.current gaia-header a.back')
     _page_locator = (By.ID, 'root')
     _close_tour_header_locator = (By.CLASS_NAME, 'gt-header')
     _location_accuracy_menu_locator = (By.ID, 'menu-item-ala')
@@ -57,12 +57,13 @@ class PrivacyControls(Base):
         self.marionette.find_element(*self._trans_control_locator).tap()
         return self.TransparencyControl(self.marionette)
 
-    def return_to_prev_menu(self, parent_view, exit_view, html_header_locator=None):
-        if html_header_locator:
-            # Used by test_settings_PS_RTL.py
-            HTMLHeader(self.marionette, html_header_locator).go_back()
-        else:
-            GaiaHeader(self.marionette, self._header_locator).go_back()
+    def return_to_prev_menu(self, parent_view, exit_view, html_header=False):
+        from gaiatest.apps.settings.app import Settings
+        Settings(self.marionette).return_to_prev_menu(parent_view, exit_view, html_header=html_header)
+
+    def return_to_prev_menu2(self, parent_view, exit_view):
+        # Some privacy controls sections still have non-standard way of going back
+        exit_view.find_element(*self._back_locator).tap()
 
         Wait(self.marionette).until(lambda m: 'current' not in exit_view.get_attribute('class'))
         Wait(self.marionette).until(lambda m: parent_view.rect['x'] == 0)
@@ -174,8 +175,6 @@ class PrivacyControls(Base):
         _access_app_text_locator = (By.CSS_SELECTOR, '[data-l10n-id="tc-apps-accessing-permission"]')
         _app_detail_view_locator = (By.ID, 'tc-appDetails')
         _perm_detail_view_locator = (By.ID, 'tc-permDetails')
-        _app_detail_header_locator = (By.CSS_SELECTOR, '#tc-appDetails header')
-        _app_list_header_locator = (By.CSS_SELECTOR, '#tc-applications header')
 
         def __init__(self, marionette):
             Base.__init__(self, marionette)
