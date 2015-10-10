@@ -62,16 +62,22 @@
             stores[0].get(1)
               .then( function(data) {
                 if(data.data) {
-                  var type = "AM"
-                  if(data.data.hour > 12) {
-                    type = "PM";
-                    data.data.hour = data.data.hour - 12;
+                  if(data.data.hour && data.data.minute) {
+                    var type = "AM";
+                    if(data.data.hour > 12) {
+                      type = "PM";
+                      data.data.hour = data.data.hour - 12;
+                    }
+                    var fullAlarmTime = ' | ' + data.data.hour +
+                      ':' + data.data.minute + ' ' + type;
+                    self.resources.elements.alarm.textContent = fullAlarmTime;
+                    self.resources.elements.alarm.classList.remove("no-alarms");
+                    self.logger.debug('Alarm updated to :', fullAlarmTime);
+                    return data;
                   }
-                  var fullAlarmTime = ' | ' + data.data.hour +
-                    ':' + data.data.minute + ' ' + type;
-                  self.resources.elements.alarm.textContent = fullAlarmTime
-                  self.logger.debug('Alarm updated to :', fullAlarmTime);
-                  return data;
+                  else {
+                    self.resources.elements.alarm.classList.add("no-alarms");
+                  }
                 }
               });
           }

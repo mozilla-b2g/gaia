@@ -235,6 +235,22 @@
   display: inline-block;
 }
 
+#lockscreen-alarm::after {
+  content: ' ';
+  top: 3px;
+  left: 5px;
+  background-image: url('./images/alarm_icon.png');
+  background-repeat: no-repeat;
+  background-size: 1.5rem;
+  width: 15px;
+  display: inline-block;
+  height: 15px;
+  position: relative;
+}
+.no-alarms {
+  display: none !important;
+}
+
 #lockscreen-clock-time, #lockscreen-date, #lockscreen-alarm {
   color: #fff;
 }
