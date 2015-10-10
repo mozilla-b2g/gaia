@@ -542,9 +542,11 @@ suite('Homescreen app', () => {
         scrollTo: () => {}
       };
       scrollToSpy = sinon.spy(app.scrollable, 'scrollTo');
+      app.scrollSnapping = true;
     });
 
     teardown(() => {
+      app.scrollSnapping = false;
       app.scrollable = realScrollable;
     });
 
