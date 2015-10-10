@@ -147,7 +147,11 @@
       this.hide();
       this.oncancel();
     }.bind(this));
-    this.menu.appendChild(button);
+
+    var lastButtonWrapper = document.createElement('span');
+    lastButtonWrapper.className = 'last-button-container';
+    this.menu.appendChild(lastButtonWrapper);
+    lastButtonWrapper.appendChild(button);
   };
 
   exports.ActionMenu = ActionMenu;
