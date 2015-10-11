@@ -20,6 +20,9 @@
   var singleVariantApps = {};
   var simPresentOnFirstBoot = true;
 
+  var DEFAULT_PIN_APP_CONF_FILE = "js/pin_apps_default.json";
+  var pinAppsList = null;
+
   function loadSettingSIMPresent(currentMccMnc) {
     var settings = navigator.mozSettings;
     if (!settings) {
@@ -165,6 +168,15 @@
     }
   }
 
+  function onLoadPinAppsJSON(loadedData) {
+    pinAppsList = loadedData.pin_apps_default;
+    window.dispatchEvent(new CustomEvent('configuration-pin-app-ready'));
+  }
+
+  function onErrorPinApps(e) {
+    console.error("Failed Load Pin Apps:" + e);
+  }
+
   function load() {
     conf = {};
 
@@ -188,8 +200,15 @@
     });
   }
 
+  function loadPinApps() {
+    LazyLoader.getJSON(DEFAULT_PIN_APP_CONF_FILE).then(
+      onLoadPinAppsJSON, onErrorPinApps
+    );
+  }
+
   function Configurator() {
     load();
+    loadPinApps();
   }
 
   Configurator.prototype = {
@@ -213,6 +232,10 @@
       });
 
       return items;
+    },
+
+    getPinApps: function() {
+      return pinAppsList;
     },
 
     getSingleVariantApp: function(manifestURL) {

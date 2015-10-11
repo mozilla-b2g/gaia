@@ -43,22 +43,6 @@ gaia-grid {
   transition: opacity 0.5s ease-in;
 }
 
-#edit-header {
-  position: fixed;
-  top: 0;
-  z-index: 4;
-  width: 100%;
-  visibility: hidden;
-  opacity: 0;
-  transition: opacity 0.5s ease-in, visibility 0s linear 0.5s;
-}
-
-.edit-mode #edit-header {
-  visibility: visible;
-  opacity: 1;
-  transition: opacity 0.5s ease-in;
-}
-
 .edit-mode #search {
   visibility: hidden;
 }
@@ -83,4 +67,8 @@ gaia-grid {
    translates the vertical home */
 body.edit-group {
   overflow: hidden;
+}
+
+#main-screen{
+  height:100%;
 }

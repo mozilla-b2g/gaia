@@ -290,6 +290,10 @@
       });
     },
 
+    getAppByURL: function (url) {
+      return this.entriesByManifestUrl[url];
+    },
+
     /**
      * Add a reference to singleVariant app previously installed
      */

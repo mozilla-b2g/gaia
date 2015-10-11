@@ -7,6 +7,7 @@
     <title>FirefoxOS Homescreen</title>
 
     <link rel="stylesheet" href="style/css/app.css">
+    <link rel="stylesheet" href="style/css/pin_apps.css">
     <link rel="stylesheet" href="style/css/search.css">
     <link rel="stylesheet" href="shared/elements/gaia_grid/style/external.css">
     <meta name="defaultLanguage" content="en-US">
@@ -39,6 +40,7 @@
 
     <script defer src="js/app_manager.js"></script>
     <script defer src="js/statusbar.js"></script>
+    <script defer src="js/pin_apps.js"></script>
     <script defer src="shared/js/homescreens/vertical_preferences.js"></script>
     <script defer src="shared/js/bookmarks_database.js"></script>
     <script defer src="shared/js/collections_database.js"></script>
@@ -69,49 +71,79 @@
     <!-- <script defer src="shared/elements/gaia-header/dist/gaia-header.js"></script> -->
 
     <script defer src="js/app.js"></script>
-    <script defer src="js/search.js"></script>
+<!--    <script defer src="js/search.js"></script> -->
     <!-- <script defer src="shared/js/icc_helper.js"></script> -->
     <!-- <script defer src="shared/js/version_helper.js"></script> -->
     <!-- <script defer src="js/configurator.js"></script> -->
   </head>
   <body class="theme-media">
-    <div id="curtain"></div>
+    <section id="main-screen" role="region">
+      <div id="pin-apps-list">
+        <ul>
+          <li>
+            <div data-index='0' class='pin-app-item'>
+              <img class="pin-app-icon"><br></img>
+              <span class="title"></span>
+            </div>
+          </li>
+          <li>
+            <div data-index='1' class='pin-app-item'>
+              <img class="pin-app-icon"><br></img>
+              <span class="title"></span>
+            </div>
+          </li>
+          <li>
+            <div data-index='2' class='pin-app-item'>
+              <img class="pin-app-icon"><br></img>
+              <span class="title"></span>
+            </div>
+          </li>
+          <li>
+            <div data-index='3' class='pin-app-item'>
+              <img class="pin-app-icon"><br></img>
+              <span class="title"></span>
+            </div>
+          </li>
+          <li>
+            <div data-index='4' class='pin-app-item'>
+              <img class="pin-app-icon"><br></img>
+              <span class="title"></span>
+            </div>
+          </li>
+          <li>
+            <div class='pin-app-item'>
+              <input id="moreAppsButton" type="button"/>
+              <span class="title">More Apps</span>
+            </div>
+          </li>
+        </ul>
 
-    <section id="edit-header" role="region">
-      <gaia-header>
-        <h1 data-l10n-id="edit-mode"></h1>
-        <a href="#" data-l10n-id="edit-done" id="exit-edit-mode"></a>
-      </gaia-header>
+      </div>
     </section>
 
-    <div id="search" role="button" aria-labelledby="search-input" aria-haspopup="true">
-      <form id="search-form">
-        <input id="search-input" type="text" x-inputmode="verbatim" role="presentation"
-          placeholder="Search or enter address" data-l10n-id="search-or-enter-address" value="" dir="auto">
-        </input>
-      </form>
-    </div>
+    <section id="more-apps-screen" role="region" hidden="">
+      <gaia-grid id="icons" dragdrop></gaia-grid>
 
-    <gaia-grid id="icons" dragdrop></gaia-grid>
+<!--      <gaia-menu id="contextmenu-dialog" hidden>
+        <button id="homescreen-settings-action" data-l10n-id="homescreen-settings" type="button"></button>
+        <button id="change-wallpaper-action" data-l10n-id="change-wallpaper" type="button"></button>
+        <button id="create-smart-collection" data-l10n-id="add-smart-collections" type="button"></button>
+      </gaia-menu>
 
-    <gaia-menu id="contextmenu-dialog" hidden>
-      <button id="homescreen-settings-action" data-l10n-id="homescreen-settings" type="button"></button>
-      <button id="change-wallpaper-action" data-l10n-id="change-wallpaper" type="button"></button>
-      <button id="create-smart-collection" data-l10n-id="add-smart-collections" type="button"></button>
-    </gaia-menu>
+      <section id="edit-group" role="region" hidden>
+        <gaia-header id="edit-group-header" action="close">
+          <h1 data-l10n-id="edit-group-header"></h1>
+          <button id="edit-group-save" disabled type="button" data-l10n-id="edit-done"></button>
+        </gaia-header>
 
-    <section id="edit-group" role="region" hidden>
-      <gaia-header id="edit-group-header" action="close">
-        <h1 data-l10n-id="edit-group-header"></h1>
-        <button id="edit-group-save" disabled type="button" data-l10n-id="edit-done"></button>
-      </gaia-header>
-
-      <form>
-        <p>
-          <input type="text" id="edit-group-title" x-inputmode="latin-prose" dir="auto"></input>
-          <button id="edit-group-title-clear" type="reset"></button>
-        </p>
-      </form>
+        <form>
+          <p>
+            <input type="text" id="edit-group-title" x-inputmode="latin-prose" dir="auto"></input>
+            <button id="edit-group-title-clear" type="reset"></button>
+          </p>
+        </form>
+      </section>-->
+      <input id="backToMainScreen" type="button" value="Back"/>
     </section>
   </body>
 </html>

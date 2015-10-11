@@ -1,0 +1,33 @@
+{"pin_apps_default":
+[
+  {"entry_point": "dialer",
+    "name": "Phone",
+    "manifestURL": "app://communications.gaiamobile.org/manifest.webapp",
+    "icon":   "app://communications.gaiamobile.org/dialer/style/icons/dialer_84.png",
+    "index": 0
+  },
+  {
+    "name": "Messages",
+    "manifestURL": "app://sms.gaiamobile.org/manifest.webapp",
+    "icon": "app://sms.gaiamobile.org/style/icons/sms_84.png",
+    "index": 1
+  },
+  {
+    "name": "Camera",
+    "manifestURL": "app://camera.gaiamobile.org/manifest.webapp",
+    "icon": "app://camera.gaiamobile.org/style/icons/camera_84.png",
+    "index": 2
+  },
+  {
+    "name": "Settings",
+    "manifestURL": "app://settings.gaiamobile.org/manifest.webapp",
+    "icon": "app://settings.gaiamobile.org/style/icons/settings_84.png",
+    "index": 3
+  },
+  {
+    "name": "Clock",
+    "manifestURL": "app://clock.gaiamobile.org/manifest.webapp",
+    "icon": "app://clock.gaiamobile.org/style/icons/clock_84.png",
+    "index": 4
+  }
+]}

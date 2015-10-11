@@ -29,9 +29,6 @@
     window.addEventListener('gaiagrid-saveitems', this);
     window.addEventListener('online', this.retryFailedIcons.bind(this));
 
-    var editModeDone = document.getElementById('exit-edit-mode');
-    editModeDone.addEventListener('click', this.exitEditMode);
-
     window.addEventListener('gaiagrid-dragdrop-begin', this);
     window.addEventListener('gaiagrid-dragdrop-finish', this);
 
@@ -47,12 +44,22 @@
 
     window.performance.mark('navigationInteractive');
     window.dispatchEvent(new CustomEvent('moz-chrome-interactive'));
+
+    var moreAppsButton = document.getElementById('moreAppsButton');
+    moreAppsButton.addEventListener('click', this.showMoreApps);
+
+    //temp button to back in main screen
+    var backToMainScreen = document.getElementById('backToMainScreen');
+    backToMainScreen.addEventListener('click', this.backToMainScreen);
   }
 
   App.prototype = {
 
     HIDDEN_ROLES: HIDDEN_ROLES,
     EDIT_MODE_TRANSITION_STYLE: EDIT_MODE_TRANSITION_STYLE,
+
+    inMoreApps: false,
+    pinManager: null,
 
     /**
      * Showing the correct icon is ideal but sometimes not possible if the
@@ -126,10 +133,14 @@
             window.dispatchEvent(new CustomEvent('moz-app-loaded'));
           });
       }.bind(this));
+
+      this.pinManager = new PinAppManager();
+      window.addEventListener('pin-app-loaded', function(e) {
+        this.pinManager.init();
+      }.bind(this));
     },
 
     renderGrid: function() {
-      this.grid.setEditHeaderElement(document.getElementById('edit-header'));
       this.grid.render();
     },
 
@@ -139,6 +150,37 @@
 
     stop: function() {
       this.grid.stop();
+    },
+
+    getAppByURL: function(url) {
+      return this.itemStore.getAppByURL(url);
+    },
+
+    getPinAppList: function() {
+      return this.itemStore.getPinAppList();
+    },
+
+    savePinAppItem: function(obj) {
+      this.itemStore.savePinAppItem(obj);
+    },
+
+    savePinApps: function(objs) {
+      this.itemStore.savePinApps(objs);
+    },
+
+    showMoreApps: function() {
+      this.inMoreApps = true;
+      console.log("inMoreApps is : " + this.inMoreApps);
+      document.getElementById("main-screen").setAttribute("hidden","");
+      document.getElementById("more-apps-screen").removeAttribute("hidden");
+      window.scrollTo(0,0);
+    },
+
+    backToMainScreen: function() {
+      this.__proto__.inMoreApps = false;
+      console.log("inMoreApps is : " + this.inMoreApps);
+      document.getElementById("main-screen").removeAttribute("hidden");
+      document.getElementById("more-apps-screen").setAttribute("hidden","");
     },
 
     /**
@@ -161,10 +203,10 @@
      * Called when we press 'Done' to exit edit mode.
      * Fires a custom event to use the same path as pressing the home button.
      */
-    exitEditMode: function(e) {
-      e.preventDefault();
-      window.dispatchEvent(new CustomEvent('hashchange'));
-    },
+//    exitEditMode: function(e) {
+//      e.preventDefault();
+//      window.dispatchEvent(new CustomEvent('hashchange'));
+//    },
 
     /**
      * General event handler.
@@ -356,6 +398,9 @@
 
   // Dummy configurator
   exports.configurator = {
+    getPinApps: function() {
+      return [];
+    },
     getSingleVariantApp: function() {
       return {};
     },

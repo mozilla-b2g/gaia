@@ -1,0 +1,52 @@
+#pin-apps-list {
+  width: 100%;
+  position: fixed;
+  bottom: 0rem;
+  height: 35rem;
+  overflow-y: auto;
+}
+
+#pin-apps-list ul {
+  text-align:center;
+/*  list-style-type:none;*/
+  padding: 1rem;
+}
+
+#pin-apps-list ul li {
+  list-style-type:none;
+  width: 25%;
+  height: 10rem;
+  margin: 0 auto;
+}
+
+#pin-apps-list ul li .pin-app-item {
+  height: 9.5rem;
+}
+
+#pin-apps-list ul li .pin-app-icon,
+#pin-apps-list ul li input[type="button"] {
+  width: 6.4rem;
+  height: 6.4rem;
+}
+
+#pin-apps-list ul li input[type="button"] {
+  border-radius: 4rem;
+}
+
+#pin-apps-list ul li .title {
+  display: inline-block;
+  margin-top: 0.1rem;
+  /* We need this rule in order not to hide the drop shadow */
+  padding: 0 0.2rem 1rem;
+  text-shadow: 0.1rem 0.1rem 0.3rem rgba(0, 0, 0, 0.3),
+               0.2rem 0.4rem 1rem rgba(0, 0, 0, 0.4);
+  font-size: 1.4rem;
+  color: #fff;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  width: calc(100% - 0.4rem);
+  box-sizing: border-box;
+  vertical-align: bottom;
+  transition: opacity 0.5s;
+}

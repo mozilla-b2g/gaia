@@ -14,6 +14,7 @@
 
   const DB_ITEM_STORE = 'items';
   const DB_SV_APP_STORE_NAME = 'svAppsInstalled';
+  const DB_PIN_APP_STORE = 'pinApps';
 
   var db;
 
@@ -194,9 +195,13 @@
 
           objectStore.createIndex('index', 'index', { unique: true });
           isEmpty = true;
+
           var objectSV = db.createObjectStore(DB_SV_APP_STORE_NAME,
             { keyPath: 'manifestURL' });
           objectSV.createIndex('indexSV', 'indexSV', { unique: true });
+
+          var pinAppStore = db.createObjectStore(DB_PIN_APP_STORE, { keyPath: 'index'});
+          pinAppStore.createIndex('index', 'index', { unique: true });
       }
     };
 
@@ -204,6 +209,7 @@
       onsuccess && onsuccess(isEmpty);
       db = request.result;
       var cb = self.fetch.bind(self, self.synchronize.bind(self));
+      var cbPinApp = self.finishLoadPinApp.bind(self);
 
       if (isEmpty) {
         window.addEventListener('configuration-ready', function onReady() {
@@ -211,8 +217,13 @@
           self.gridOrder = configurator.getGrid();
           self.populate(cb);
         });
+        window.addEventListener('configuration-pin-app-ready', function onPinAppReady() {
+          window.removeEventListener('configuration-pin-app-ready', onPinAppReady);
+          self.initPinAppDB(cbPinApp);
+        });
       } else {
         self.initSources(cb);
+        self.loadPinAppDB(cbPinApp);
       }
     };
 
@@ -244,6 +255,14 @@
      */
     nextPosition: 0,
 
+
+    /**
+     * A list that contains applications displaies on the main screen
+     * @type {Array}
+     */
+    _pinAppsList: [],
+
+
     /**
      * Fetches a list of all items in the store.
      */
@@ -254,6 +273,24 @@
       }
 
       success(this._allItems);
+    },
+
+
+    /**
+     * This function helps to get pinAppList
+     * @return {Array} List of pinApps
+     */
+    getPinAppList: function () {
+      return this._pinAppsList;
+    },
+
+    /**
+     * This function helps to get pin app by manifest url
+     * @param  {string} url Manifest url
+     * @return {[obj]}      Application object
+     */
+    getAppByURL: function (url) {
+      return this.applicationSource.getAppByURL(url);
     },
 
     saveTable: function(table, objArr, column, checkPersist, aNext) {
@@ -268,6 +305,83 @@
           aNext();
         }
       });
+    },
+
+
+    /**
+     * This function saves all items to DB
+     * @param  {[Array of objects]} objects [Ojects of applications]
+     * @return {[nothins]}
+     */
+    savePinApps: function (objects) {
+      for (var i = 0; i < objects.length; i++) {
+        this.savePinAppItem(objects[i]);
+      }
+    },
+
+    /**
+     * This function save application (item) to DB
+     * @param  {[object (application)]}   object   [Application's object]
+     * @param  {Function} callback [callback that executes after saving object to DB]
+     * @return {[nothing]}
+     */
+    savePinAppItem: function (object, callback) {
+      // intentional use of == meaning null or undefined.
+      if (object.index == null) {
+        console.error('Attempting to save object without `index`');
+        return;
+      }
+
+      newTxn(
+
+              DB_PIN_APP_STORE,
+              'readwrite',
+              function (txn, store) {
+                var request = store.get(object.index);
+                request.onsuccess = function (req) {
+                  var objFromDB = req.result;
+                  if (objFromDB) {
+                    var DBIndex = objFromDB.index;
+                    objFromDB = object;
+                    objFromDB.index = DBIndex;
+                    store.put(objFromDB);
+                  } else {
+                    store.put(object);
+                  }
+                }
+              },
+              callback);
+
+    },
+
+
+    initPinAppDB: function (callback) {
+      var pList = configurator.getPinApps();
+      for (var i = 0; i < pList.length; i++) {
+        this.savePinAppItem(pList[i]);
+      }
+      this._pinAppsList = pList;
+      if (callback && typeof callback === 'function') {
+        callback();
+      }
+    },
+
+    /**
+     * Loads data to array. It happens when the application is started.
+     * @param  {Function} callback [Executes after the function was exectued]
+     * @return {[nothing]}
+     */
+    loadPinAppDB: function (callback) {
+      var _pList = [];
+      function iterator(value) {
+        _pList[value.index] = value;
+      }
+      loadTable(DB_PIN_APP_STORE, "index", iterator, callback);
+      this._pinAppsList = _pList;
+    },
+
+    finishLoadPinApp: function () {
+      window.dispatchEvent(new CustomEvent('pin-app-loaded'));
     },
 
     /**

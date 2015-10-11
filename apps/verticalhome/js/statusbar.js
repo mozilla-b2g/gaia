@@ -11,7 +11,7 @@
   };
 
   function StatusBar() {
-    this.threshold = document.getElementById('search').clientHeight;
+//    this.threshold = document.getElementById('search').clientHeight;
 
     if (!appManager.app) {
       window.addEventListener('appmanager-ready', function onReady() {
