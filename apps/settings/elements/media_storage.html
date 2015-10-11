@@ -1,7 +1,7 @@
 <element name="mediaStorage" extends="section">
   <template>
 
-    <gaia-header action="back" data-href="#root">
+    <gaia-header ignore-dir action="back" data-href="#root">
       <h1 data-l10n-id="mediaStorage-header"></h1>
     </gaia-header>
 
@@ -9,28 +9,26 @@
       <div id="volume-list">
       </div>
       <header>
-        <h2 data-l10n-id="advanced">Advanced</h2>
+        <h2 data-l10n-id="advanced"></h2>
       </header>
       <ul>
         <li class="default-media-location">
-          <p data-l10n-id="default-media-location">Default Media Location</p>
+          <p data-l10n-id="default-media-location"></p>
           <span class="button icon icon-dialog">
             <select id="defaultMediaLocation" name="device.storage.writable.name">
             </select>
           </span>
         </li>
-        <li data-l10n-id="default-media-location-msg" class="explanation">
-          Choose where photos, videos, music and downloads are stored by default.
-        </li>
+        <li data-l10n-id="default-media-location-msg" class="explanation"></li>
       </ul>
     </div>
     <form data-type="confirm" role="dialog" id="unmount-sdcard-dialog" hidden>
       <section>
-        <p data-l10n-id="unmount-sdcard-confirmation">You will not be able to access content on the SD card after you unmount it. Do you want to proceed?</p>
+        <p data-l10n-id="unmount-sdcard-confirmation"></p>
       </section>
       <menu>
-        <button id="unmount-sdcard-cancel-btn" data-l10n-id="cancel">Cancel</button>
-        <button id="unmount-sdcard-ok-btn" class="recommend" data-l10n-id="ok">Ok</button>
+        <button id="unmount-sdcard-cancel-btn" data-l10n-id="cancel"></button>
+        <button id="unmount-sdcard-ok-btn" class="recommend" data-l10n-id="ok"></button>
       </menu>
     </form>
     <form data-type="confirm" role="dialog" id="format-sdcard-dialog" hidden>

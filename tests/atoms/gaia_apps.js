@@ -279,25 +279,29 @@ var GaiaApps = {
       };
 
       let displayedApp = GaiaApps.getDisplayedApp();
-      if (displayedApp.manifestURL == manifestURL ||
+      if ((displayedApp.manifestURL == manifestURL &&
+          displayedApp.entryPoint == entryPoint) ||
           (!displayedApp.manifestURL && displayedApp.origin == origin)) {
-        console.log('app with origin \'${displayedApp.origin}\' and ' +
-          'manifestURL \'${displayedApp.manifestURL}\' is already running');
+        console.log(`app with origin: ${displayedApp.origin} and
+          manifestURL: ${displayedApp.manifestURL} and
+          entryPoint: ${displayedApp.entryPoint} is already running`);
         sendResponse();
       } else {
         window.addEventListener('windowopened', function appOpen() {
           window.removeEventListener('windowopened', appOpen);
           waitFor(
             function() {
-              console.log('app with origin \'${displayedApp.origin}\' and ' +
-                'manifestURL \'${displayedApp.manifestURL}\' has launched');
+              console.log(`app with origin: ${displayedApp.origin} and
+                manifestURL: ${displayedApp.manifestURL} and
+                entryPoint: ${displayedApp.entryPoint} has launched`);
               sendResponse();
             },
             function() {
               // wait for the displayed app to have expected manifestURL/origin
               let displayedApp = GaiaApps.getDisplayedApp();
               if (displayedApp.manifestURL) {
-                return displayedApp.manifestURL == manifestURL;
+                return displayedApp.manifestURL == manifestURL &&
+                       displayedApp.entryPoint == entryPoint;
               } else {
                 return displayedApp.origin == origin;
               }
@@ -362,13 +366,27 @@ var GaiaApps = {
          .query('AppWindowManager.getActiveWindow').getTopMostWindow();
     }
 
-    console.log('app with manifestURL \'' + app.manifestURL + '\' displayed');
+    let currentEntryPoint = null;
+    // When browser is on a website, app.manifest is null
+    if (app.manifest) {
+      let entryPoints = app.manifest.entry_points;
+      if (entryPoints) {
+        for (let ep in entryPoints) {
+          if (entryPoints[ep].launch_path == app.manifest.launch_path) {
+            currentEntryPoint = ep;
+            break;
+          }
+        }
+      }
+    }
+
     let result = {
       frame: (app.browser) ? app.browser.element : app.frame.firstChild,
       src: (app.browser) ? app.browser.element.src : app.iframe.src,
       name: app.name,
       origin: app.origin,
-      manifestURL: app.manifestURL
+      manifestURL: app.manifestURL,
+      entryPoint: currentEntryPoint
     };
     return result;
   },

@@ -1003,6 +1003,7 @@ Camera.prototype.stoppedRecording = function(recorded) {
 
   if (recorded) {
     video = mix({}, this.video);
+    video.poster = mix({}, video.poster);
 
     // Re-fetch the blobs from storage
     this.storage.video.get(video.filepath).then(function(blob) {
@@ -1347,6 +1348,9 @@ Camera.prototype.setSceneMode = function(value){
  * @return {Boolean}
  */
 Camera.prototype.isZoomSupported = function() {
+  if (!this.mozCamera) {
+    return false;
+  }
   return this.mozCamera.capabilities.zoomRatios.length > 1;
 };
 

@@ -103,7 +103,7 @@ var AlbumArtCache = (function() {
     // If there's no picture info in the metadata, return null or a placeholder.
     if (!fileinfo.metadata.picture) {
       return Promise.resolve(
-        noPlaceholder ? null : getDefaultCoverURL(fileinfo)
+        noPlaceholder ? null : getDefaultCoverURL(fileinfo, 'fullsize')
       );
     }
 
@@ -142,7 +142,7 @@ var AlbumArtCache = (function() {
       if (noPlaceholder) {
         return Promise.resolve(null);
       }
-      return getBlobFromURL(getDefaultCoverURL(fileinfo));
+      return getBlobFromURL(getDefaultCoverURL(fileinfo, 'fullsize'));
     }
 
     // Skip the session cache, since we want to return a blob, not a URL.
@@ -165,7 +165,7 @@ var AlbumArtCache = (function() {
     // If there's no picture info in the metadata, return null or a placeholder.
     if (!fileinfo.metadata.picture) {
       return Promise.resolve(
-        noPlaceholder ? null : getDefaultCoverURL(fileinfo)
+        noPlaceholder ? null : getDefaultCoverURL(fileinfo, 'thumbnail')
       );
     }
 
@@ -204,7 +204,7 @@ var AlbumArtCache = (function() {
       if (noPlaceholder) {
         return Promise.resolve(null);
       }
-      return getBlobFromURL(getDefaultCoverURL(fileinfo));
+      return getBlobFromURL(getDefaultCoverURL(fileinfo, 'thumbnail'));
     }
 
     // Skip the session cache, since we want to return a blob, not a URL.
@@ -212,15 +212,16 @@ var AlbumArtCache = (function() {
     return thumbnailCache.get(fileinfo, makeCacheKey(fileinfo));
   }
 
-  function getDefaultCoverURL(fileinfo) {
+  function getDefaultCoverURL(fileinfo, size) {
     var metadata = fileinfo.metadata;
     // If metadata does not contain both album and artist, then use title
     // instead.
     var infoForHash = (!metadata.album && !metadata.artist) ?
       metadata.title : metadata.album + metadata.artist;
     var hashedNumber = (Math.abs(hash(infoForHash)) % 10) + 1;
+    var dir = '/img/artwork/' + (size === 'thumbnail' ? 'thumbnails/' : '');
 
-    return '/img/artwork/artwork-' + hashedNumber + '.png'; // XXX: CHANGED
+    return dir + 'artwork-' + hashedNumber + '.jpg';
   }
 
   /**

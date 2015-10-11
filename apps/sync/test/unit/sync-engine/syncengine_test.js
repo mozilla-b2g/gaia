@@ -164,7 +164,8 @@ ld be a Function`);
         expect(list).to.be.an('object');
         expect(list.data).to.be.instanceOf(Array);
         expect(list.data.length).to.equal(1);
-        expect(list.data[0]).to.be.an('object');
+        expect(Object.keys(list.data[0]).sort())
+          .to.deep.equal(['id', 'last_modified', 'payload']);
         expect(list.data[0].payload).to.be.an('object');
         expect(list.data[0].payload.histUri).to.be.a('string');
         done();
@@ -174,7 +175,7 @@ ld be a Function`);
     test('encrypts and pushes added records', function(done) {
       var credentials = cloneObject(SynctoServerFixture.syncEngineOptions);
       credentials.adapters.history = AdapterMock('create', [
-        { foo: 'bar' }
+        { payload: 'foo' }
       ]);
       var se = new SyncEngine(credentials);
       se.syncNow({ history: {} }).then(() => {
@@ -183,7 +184,9 @@ ld be a Function`);
         expect(list.data.length).to.equal(2);
         expect(se._collections.history.pushData.length).to.equal(2);
         expect(list.data[0].payload.histUri).to.be.a('string');
-        expect(list.data[1].payload.foo).to.equal('bar');
+        expect(list.data[1].payload).to.equal('foo');
+        expect(se._collections.history.pushData[1].payload).to.equal(
+           '{"mockEncrypted":"\\"foo\\""}');
         done();
       });
     });
@@ -191,7 +194,7 @@ ld be a Function`);
     test('enforces FxSyncIdSchema on added records', function(done) {
       var credentials = cloneObject(SynctoServerFixture.syncEngineOptions);
       credentials.adapters.history = AdapterMock('create', [
-        { foo: 'bar' },
+        { payload: 'foo' },
         { forceId: 8.4 }
       ]);
 
@@ -204,7 +207,27 @@ ld be a Function`);
       var credentials = cloneObject(SynctoServerFixture.syncEngineOptions);
       credentials.adapters.history = AdapterMock('update', [ {
         id: SynctoServerFixture.remoteData.history.id,
-        foo: 'bar'
+        payload: 'foo'
+      }]);
+
+      var se = new SyncEngine(credentials);
+      se.syncNow({ 'history': {} }).then(() => {
+        return se._collections.history.list();
+      }).then(list => {
+        expect(list.data.length).to.equal(1);
+        expect(se._collections.history.pushData.length).to.equal(1);
+        expect(se._collections.history.pushData[0].payload).to.equal(
+            '{"mockEncrypted":"\\"foo\\""}');
+        done();
+      });
+    });
+
+    test('only uploads encrypted payload and id', function(done) {
+      var credentials = cloneObject(SynctoServerFixture.syncEngineOptions);
+      credentials.adapters.history = AdapterMock('update', [ {
+        id: SynctoServerFixture.remoteData.history.id,
+        payload: 'foo',
+        strayField: 'bar'
       }]);
 
       var se = new SyncEngine(credentials);
@@ -212,8 +235,8 @@ ld be a Function`);
         return se._collections.history.list();
       }).then(list => {
         expect(list.data.length).to.equal(1);
-        expect(se._collections.history.pushData.length).to.equal(1);
-        expect(list.data[0].foo).to.be.a('string');
+        expect(Object.keys(se._collections.history.pushData[0]).sort())
+          .to.deep.equal(['id', 'payload']);
         done();
       });
     });

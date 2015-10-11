@@ -1,6 +1,7 @@
 'use strict';
 
-/* global loadBodyHTML, MocksHelper, MockL10n, AppWindow, ValueSelector */
+/* global loadBodyHTML, MocksHelper, MockL10n, AppWindow, ValueSelector,
+ Sanitizer */
 
 require('/shared/test/unit/load_body_html_helper.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
@@ -71,7 +72,7 @@ suite('value selector/value selector', function() {
       vs = new ValueSelector(app);
 
       fragment = document.createElement('div');
-      fragment.innerHTML = vs.view();
+      fragment.innerHTML = Sanitizer.unwrapSafeHTML(vs.view());
       document.body.appendChild(fragment);
 
       done();

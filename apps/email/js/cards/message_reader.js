@@ -919,8 +919,8 @@ return [
       addHeaderEmails('bcc', header.bcc);
 
       var dateNode = domNode.querySelector('.msg-envelope-date');
-      dateNode.dataset.time = header.date.valueOf();
-      dateNode.textContent = date.prettyDate(header.date);
+      var dateTime = dateNode.dataset.time = header.date.valueOf();
+      date.relativeDateElement(dateNode, dateTime);
 
       messageDisplay.subject(domNode.querySelector('.msg-envelope-subject'),
                              header);

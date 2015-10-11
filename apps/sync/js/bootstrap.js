@@ -104,20 +104,34 @@ const Bootstrap = (() => {
   window.addEventListener('iac-gaia::sync::request', event => {
     if (!event || !event.detail || !event.detail.id) {
       console.error('Wrong IAC request');
+      window.close();
       return;
     }
 
     const request = event.detail;
-    handleSyncRequest(request).then(() => {
-      sendPortMessage({
-        id: request.id
-      });
-    }).catch(error => {
-      sendPortMessage({
-        id: request.id,
-        error: error
-      });
-    });
+    switch (request.name) {
+      case 'sync':
+        handleSyncRequest(request).then(() => {
+          sendPortMessage({
+            id: request.id
+          });
+          window.close();
+        }).catch(error => {
+          sendPortMessage({
+            id: request.id,
+            error: error
+          });
+          window.close();
+        });
+        break;
+      case 'cancel':
+        console.warn('Closing app');
+        window.close();
+        break;
+      default:
+        console.error('Unknown IAC request');
+        window.close();
+    }
   });
 
   // Expose Bootstrap for unit testing:

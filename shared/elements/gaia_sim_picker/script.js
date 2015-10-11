@@ -24,6 +24,15 @@ window.GaiaSimPicker = (function(win) {
 
     this._menu = this.shadowRoot.querySelector('gaia-menu');
 
+    /**
+     * Workaround for bug 1100912, to be removed when bug is fixed:
+     * set internal gaia-menu dir, that's enough for directional-specific
+     * CSS to kick in.
+     */
+    window.addEventListener('localized', () => {
+      this._menu.dir = document.dir || 'ltr';
+    });
+
     LazyLoader.load(['/shared/js/component_utils.js'], function() {
       ComponentUtils.style.call(this, baseurl);
     }.bind(this));

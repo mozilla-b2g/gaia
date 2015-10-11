@@ -43,6 +43,8 @@ suite('controllers/camera', function() {
       setItem: sinon.stub()
     };
 
+    this.app.get.withArgs('batteryStatus').returns('healthy');
+
     // Settings
     this.app.settings = sinon.createStubInstance(this.Settings);
     this.app.settings.cameras = sinon.createStubInstance(this.Setting);
@@ -104,6 +106,11 @@ suite('controllers/camera', function() {
 
     test('Should listen to the \'activity:pick\' event', function() {
       sinon.assert.calledWith(this.app.on, 'activity:pick');
+    });
+
+    test('Should query battery status', function() {
+      sinon.assert.calledWith(this.app.get, 'batteryStatus');
+      assert.isFalse(this.controller.lowBattery);
     });
   });
 

@@ -15,7 +15,7 @@
   <link rel="stylesheet" href="/css/view.css">
   <!-- Deferred Scripts -->
   <script defer src="/components/bridge/client.js"></script>
-  <script defer src="/shared/js/l20n.js" type="application/javascript;version=1.8"></script>
+  <script defer src="/shared/js/intl/l20n.js" type="application/javascript;version=1.8"></script>
   <script defer src="/components/dom-scheduler/lib/dom-scheduler.js"></script>
   <script defer src="/components/fast-list/fast-list.js"></script>
   <script defer src="/components/poplar/poplar.js"></script>
@@ -32,9 +32,9 @@
     <music-search id="search" style="height:37px"></music-search>
     <a picker-item href="#search" data-icon="search" data-l10n-id="search"></a>
     <template>
-      <a href="/artist-detail?id=${name}">
+      <a href="${url}">
         <div class="image"><img/></div>
-        <h3>${metadata.artist}</h3>
+        <h3>${artist}</h3>
       </a>
     </template>
   </gaia-fast-list>

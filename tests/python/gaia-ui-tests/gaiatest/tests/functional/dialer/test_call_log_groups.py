@@ -49,8 +49,8 @@ class TestCallLogGroups(GaiaTestCase):
         self.assertEqual(4, len(group_calls))
         self.assertEqual('TODAY', group_calls[0].header_text)
         self.assertEqual('YESTERDAY', group_calls[1].header_text)
-        self.assertEqual('{:%m/%d/%Y}'.format(self.past_date_1), group_calls[2].header_text)
-        self.assertEqual('{:%m/%d/%Y}'.format(self.past_date_2), group_calls[3].header_text)
+        self.assertEqual(u'{:%m/%d/%y}'.format(self.past_date_1), group_calls[2].header_text)
+        self.assertEqual(u'{:%m/%d/%y}'.format(self.past_date_2), group_calls[3].header_text)
 
         today_group_calls = group_calls[0].group_calls
         yesterday_group_calls = group_calls[1].group_calls

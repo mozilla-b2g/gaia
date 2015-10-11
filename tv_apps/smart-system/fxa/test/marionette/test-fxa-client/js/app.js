@@ -30,7 +30,7 @@ var TestFxAClient = function TestFxAClient() {
   var init = function init() {
     resultEl = document.getElementById('result');
     resultTextEl = document.getElementById('result-text');
-    getFxAccountsButton = document.getElementById('getAccounts');
+    getFxAccountsButton = document.getElementById('getAccount');
     launchFxAFlowButton = document.getElementById('openFlow');
     logoutButton = document.getElementById('logout');
     refreshAuthButton = document.getElementById('refreshAuthentication');
@@ -101,7 +101,7 @@ var TestFxAClient = function TestFxAClient() {
       case 'openFlow':
         FxAccountsIACHelper[method](showResponse, showError);
         break;
-      case 'getAccounts':
+      case 'getAccount':
       case 'logout':
         Overlay.show();
         FxAccountsIACHelper[method](showResponse, showError);

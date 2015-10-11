@@ -104,8 +104,10 @@ var SyncEngine = (function() {
       encode: function(record) {
         return fswc.encrypt(record.payload, collectionName).then(
             payloadEnc => {
-          record.payload = JSON.stringify(payloadEnc);
-          return record;
+          return {
+            id: record.id,
+            payload: JSON.stringify(payloadEnc)
+          };
         });
       },
       decode: function(record) {
@@ -113,8 +115,11 @@ var SyncEngine = (function() {
         // syncResults:
         return fswc.decrypt(JSON.parse(record.payload), collectionName).
             then(payloadDec => {
-          record.payload = payloadDec;
-          return record;
+          return {
+            id: record.id,
+            last_modified: record.last_modified,
+            payload: payloadDec
+          };
         });
       }
     };

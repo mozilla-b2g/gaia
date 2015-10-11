@@ -69,7 +69,7 @@ apps/sms/views/inbox/style/inbox.css 0 2
 apps/sms/views/shared/style/common.css 0 1
 apps/sms/views/shared/style/sms.css 0 2
 apps/system/mobile_id/style/mobile_id.css 0 16
-apps/system/style/action_menu/action_menu_extended.css 3 0
+apps/system/style/action_menu/action_menu_extended.css 2 0
 apps/system/style/app_install_manager/app_install_manager.css 2 0
 apps/system/style/bluetooth_transfer/bluetooth_transfer.css 1 0
 apps/system/style/cards_view/cards_view.css 5 0
@@ -104,7 +104,9 @@ apps/wappush/style/wappush.css 0 1
 shared/elements/gaia_checkbox/style.css 5 0
 shared/elements/gaia_confirm/style.css 4 0
 shared/elements/gaia_grid/style.css 0 5
+shared/elements/gaia_menu/style.css 3 0
 shared/elements/gaia_radio/style.css 2 0
+shared/elements/gaia_sim_picker/style.css 1 0
 shared/elements/gaia_switch/style.css 3 0
 shared/elements/gaia-theme/gaia-theme.css 5 0
 shared/pages/import/style/import.css 0 4
@@ -122,4 +124,4 @@ shared/style/object_menu.css 2 0
 shared/style/progress_activity.css 1 0
 shared/style/time_selector.css 1 0
 shared/style/switches.css 1 0
-shared/style/value_selector.css 3 1
+shared/style/value_selector.css 1 1

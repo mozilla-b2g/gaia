@@ -1792,13 +1792,13 @@ var Awesomescreen = {
         }
         if(this.checkBox.classList.contains('true')){
           title = this.inputArea.value;
-          Awesomescreen.getScreenshot(Browser.currentInfo.dom.getScreenshot,Browser.currentInfo.url, this.inputArea.value, null);
+          Awesomescreen.getScreenshot(Browser.currentInfo.dom,Browser.currentInfo.url, this.inputArea.value, null);
           return;
         }
         break;
       case (!this.isDisplayed()) :
         this.showAwesomeLoadingIcon();
-        Awesomescreen.getScreenshot(Browser.currentInfo.dom.getScreenshot,Browser.currentInfo.url, Browser.currentInfo.title, null);
+        Awesomescreen.getScreenshot(Browser.currentInfo.dom,Browser.currentInfo.url, Browser.currentInfo.title, null);
         return;
         break;
       default:
@@ -1809,7 +1809,7 @@ var Awesomescreen = {
   /**
    * Select tabview button.
    */
-  getScreenshot: function awesomescreen_getScreenshot(domGetScreenshot, url, title, calback) {
+  getScreenshot: function awesomescreen_getScreenshot(browserElement, url, title, calback) {
 
     var widthScreenshot = "";
     if(Browser.mainBlock.dataset.sidebar == 'true'){
@@ -1822,8 +1822,8 @@ var Awesomescreen = {
       title = this.pintohomeTitle;
     }
 
-    if( domGetScreenshot ) {
-      domGetScreenshot(
+     if( browserElement ) {
+       browserElement.getScreenshot(
         widthScreenshot, this.PTH_THUMBNAIL_HEIGHT).onsuccess =
       (function(ev) {
         var blob = new Blob([ev.target.result], {type: 'image/jpeg'});
@@ -1853,8 +1853,11 @@ var Awesomescreen = {
     var activity = new MozActivity({
       name: 'pin',
       data: {
-        name: title,
-        type: 'AppBookmark',
+        name: {
+          raw: title,
+        },
+        type: 'Application',
+        group: 'website',
         manifestURL: this.manifestURL ,
         launchURL: launchURL,
         thumbnail: blob
@@ -1888,7 +1891,7 @@ var Awesomescreen = {
       case 'mozbrowserloadend':
         Browser.debug('awesomescreen mozbrowserloadend[' + tab.id + ']');
         evt.preventDefault();
-        Awesomescreen.getScreenshot(tab.dom.getScreenshot, tab.url, tab.title, this.deleteIframe.bind(tab.id));
+        Awesomescreen.getScreenshot(tab.dom, tab.url, tab.title, this.deleteIframe.bind(tab.id));
         break;
       case 'mozbrowsercontextmenu':
         Awesomescreen.hiddenAwesomeLoadingIcon();

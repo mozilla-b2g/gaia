@@ -5,6 +5,7 @@
 
 from gaiatest import GaiaTestCase
 from gaiatest.apps.system.app import System
+from gaiatest.apps.settings.app import Settings
 
 
 class TestQuickSettingsButton(GaiaTestCase):
@@ -12,13 +13,7 @@ class TestQuickSettingsButton(GaiaTestCase):
     def test_quick_settings_button(self):
         system = System(self.marionette)
 
-        # Expand the utility tray
         utility_tray = system.open_utility_tray()
-        utility_tray.wait_for_notification_container_displayed()
-
-        #tap the settings button
         utility_tray.tap_settings_button()
 
-        #wait for and assert that settings app is launched
-        from gaiatest.apps.settings.app import Settings
         Settings(self.marionette).wait_to_be_displayed()

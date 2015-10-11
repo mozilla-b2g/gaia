@@ -1,7 +1,7 @@
 <element name="fxsync" extends="section">
   <template>
 
-    <gaia-header action="back" data-href="#root">
+    <gaia-header ignore-dir action="back" data-href="#root">
       <h1 data-l10n-id="fxsync"></h1>
     </gaia-header>
 
@@ -50,15 +50,21 @@
       </header>
       <ul role="presentation">
         <li role="presentation">
-          <gaia-switch class="fxsync-collections-history"
-                       name="sync.collections.history.enabled">
-            <label data-l10n-id="fxsync-collections-history">History</label>
+          <gaia-switch class="fxsync-collections-bookmarks"
+                       name="sync.collections.bookmarks.enabled">
+            <label data-l10n-id="fxsync-collections-bookmarks"></label>
           </gaia-switch>
         </li>
         <li role="presentation">
+          <gaia-switch class="fxsync-collections-history"
+                       name="sync.collections.history.enabled">
+            <label data-l10n-id="fxsync-collections-history"></label>
+          </gaia-switch>
+        </li>
+        <li role="presentation" hidden>
           <gaia-switch class="fxsync-collections-passwords"
                        name="sync.collections.passwords.enabled">
-            <label data-l10n-id="fxsync-collections-passwords">Password</label>
+            <label data-l10n-id="fxsync-collections-passwords"></label>
           </gaia-switch>
         </li>
       </ul>

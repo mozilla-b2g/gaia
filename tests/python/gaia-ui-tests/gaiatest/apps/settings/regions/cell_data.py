@@ -6,7 +6,7 @@ from marionette_driver import expected, By, Wait
 
 from gaiatest.apps.base import Base
 from gaiatest.apps.settings.regions.cell_data_prompt import CellDataPrompt
-from gaiatest.form_controls.binarycontrol import HtmlBinaryControl
+from gaiatest.form_controls.binarycontrol import GaiaBinaryControl
 from gaiatest.apps.settings.regions.sim_settings import SimSettings
 
 
@@ -15,9 +15,9 @@ class CellData(Base):
 
     _carrier_container_locator = (By.ID, 'carrier')
     _carrier_name_locator = (By.ID, 'dataNetwork-desc')
-    _cell_data_enabled_input_locator = (By.CSS_SELECTOR, '#menuItem-enableDataCall input')
+    _cell_data_enabled_input_locator = (By.CSS_SELECTOR, '#menuItem-enableDataCall gaia-switch')
     _cell_data_enabled_label_locator = (By.CSS_SELECTOR, '#menuItem-enableDataCall label')
-    _data_roaming_enabled_input_locator = (By.CSS_SELECTOR, '#menuItem-enableDataRoaming input')
+    _data_roaming_enabled_input_locator = (By.CSS_SELECTOR, '#menuItem-enableDataRoaming gaia-switch')
     _data_roaming_enabled_label_locator = (By.CSS_SELECTOR, '#menuItem-enableDataRoaming label')
     _sim_1_settings_locator = (By.ID, 'menuItem-carrier-sim1')
 
@@ -66,11 +66,11 @@ class CellData(Base):
 
     @property
     def is_data_toggle_checked(self):
-        return HtmlBinaryControl(self.marionette, self._cell_data_enabled_input_locator).is_checked
+        return GaiaBinaryControl(self.marionette, self._cell_data_enabled_input_locator).is_checked
 
     @property
     def is_roaming_toggle_checked(self):
-        return HtmlBinaryControl(self.marionette, self._data_roaming_enabled_input_locator).is_checked
+        return GaiaBinaryControl(self.marionette, self._data_roaming_enabled_input_locator).is_checked
 
 class CellDataDualSim(CellData):
 

@@ -1,4 +1,5 @@
 {
     "ambientLight": false,
-    "vibration": false
+    "vibration": false,
+    "usbHotProtocolSwitch": false
 }

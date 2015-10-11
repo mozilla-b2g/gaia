@@ -16,7 +16,7 @@ function NotificationsPanel(client) {
 module.exports = NotificationsPanel;
 
 NotificationsPanel.Selectors = {
-  'showOnLockScreenCheckbox': '#notifications gaia-checkbox'
+  'showOnLockScreenCheckbox': '#notifications gaia-switch'
 };
 
 NotificationsPanel.prototype = {

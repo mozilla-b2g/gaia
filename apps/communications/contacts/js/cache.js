@@ -389,14 +389,14 @@
     apply: function(aCacheId) {
 
       if (!CACHE_ENABLED || !_caches.has(aCacheId)) {
-        return Promise.resolve();
+        return Promise.reject();
       }
 
       var _cache = _caches.get(aCacheId);
 
       var cache = localStorage.getItem(aCacheId);
       if (!cache) {
-        return Promise.resolve();
+        return Promise.reject();
       }
 
       try {
@@ -408,11 +408,11 @@
         _cache.updated = new Date(cache.updated);
       } catch(e) {
         console.error(e);
-        return Promise.resolve();
+        return Promise.reject();
       }
 
       if (!_cache.containerId) {
-        return Promise.resolve();
+        return Promise.reject();
       }
 
       if (cache.l10n) {
@@ -438,7 +438,7 @@
       if (!container) {
         console.warning('Could not apply cached content to ' +
                         _cache.containerId);
-        return Promise.resolve();
+        return Promise.reject();
       }
 
       return appendNodesToContainer(container, _cache.content).then(() => {

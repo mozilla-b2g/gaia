@@ -27,9 +27,7 @@ var service = bridge.service('music-service')
   .method('queueArtist', queueArtist)
   .method('queuePlaylist', queuePlaylist)
   .method('queueSong', queueSong)
-  .method('getRepeatSetting', getRepeatSetting)
   .method('setRepeatSetting', setRepeatSetting)
-  .method('getShuffleSetting', getShuffleSetting)
   .method('setShuffleSetting', setShuffleSetting)
 
   .method('getAlbums', getAlbums)
@@ -184,17 +182,21 @@ function stopFastSeek() {
 }
 
 function getPlaybackStatus() {
-  return Promise.resolve({
-    queueIndex:    currentQueue ? currentQueue.index    : -1,
-    queueRawIndex: currentQueue ? currentQueue.rawIndex : -1,
-    queueLength:   currentQueue ? currentQueue.length   : -1,
-    filePath:      currentFilePath,
-    paused:        audio.paused,
-    duration:      audio.duration,
-    elapsedTime:   audio.currentTime,
-    isInterrupted: isInterrupted,
-    isFastSeeking: isFastSeeking,
-    stopped:       isStopped
+  return loadQueueSettings().then(() => {
+    return {
+      queueIndex:    currentQueue ? currentQueue.index    : -1,
+      queueRawIndex: currentQueue ? currentQueue.rawIndex : -1,
+      queueLength:   currentQueue ? currentQueue.length   : -1,
+      repeat:        PlaybackQueue.repeat,
+      shuffle:       PlaybackQueue.shuffle ? 1 : 0,
+      filePath:      currentFilePath,
+      stopped:       isStopped,
+      paused:        audio.paused,
+      duration:      audio.duration,
+      elapsedTime:   audio.currentTime,
+      isInterrupted: isInterrupted,
+      isFastSeeking: isFastSeeking
+    };
   });
 }
 
@@ -310,17 +312,9 @@ function queueSong(filePath) {
   });
 }
 
-function getRepeatSetting() {
-  return loadQueueSettings().then(() => PlaybackQueue.repeat);
-}
-
 function setRepeatSetting(repeat) {
   repeat = parseInt(repeat, 10) || 0;
   return loadQueueSettings().then(() => PlaybackQueue.repeat = repeat);
-}
-
-function getShuffleSetting() {
-  return loadQueueSettings().then(() => PlaybackQueue.shuffle ? 1 : 0);
 }
 
 function setShuffleSetting(shuffle) {
@@ -329,59 +323,6 @@ function setShuffleSetting(shuffle) {
   }
 
   return loadQueueSettings().then(() => PlaybackQueue.shuffle = shuffle);
-}
-
-function getAlbums() {
-  return new Promise((resolve) => {
-    Database.enumerateAll('metadata.album', null, 'nextunique', (albums) => {
-      resolve(albums);
-    });
-  });
-}
-
-function getAlbum(filePath) {
-  return getSong(filePath).then((song) => {
-    var album = song.metadata.album;
-
-    return new Promise((resolve) => {
-      Database.enumerateAll('metadata.album', album, 'next', (songs) => {
-        songs.sort((a, b) => {
-          return (a.metadata.discnum - b.metadata.discnum) ||
-                 (a.metadata.tracknum - b.metadata.tracknum);
-        });
-
-        resolve(songs);
-      });
-    });
-  });
-}
-
-function getArtists() {
-  return new Promise((resolve) => {
-    Database.enumerateAll('metadata.artist', null, 'nextunique', (artists) => {
-      resolve(artists);
-    });
-  });
-}
-
-function getArtist(filePath) {
-  return getSong(filePath).then((song) => {
-    var artist = song.metadata.artist;
-
-    return new Promise((resolve) => {
-      Database.enumerateAll('metadata.artist', artist, 'next', (songs) => {
-        songs.sort((a, b) => {
-          var albumSort = a.metadata.album < b.metadata.album ?
-            -1 : (a.metadata.album > b.metadata.album ?  1 : 0);
-
-          return albumSort || (a.metadata.discnum - b.metadata.discnum) ||
-                              (a.metadata.tracknum - b.metadata.tracknum);
-        });
-
-        resolve(songs);
-      });
-    });
-  });
 }
 
 function getPlaylists() {
@@ -398,17 +339,35 @@ function getPlaylist(id) {
   });
 }
 
-function getSongs() {
+function getArtists() {
   return new Promise((resolve) => {
-    Database.enumerateAll('metadata.title', null, 'next', (songs) => {
-      resolve(songs);
+    Database.enumerateAll('metadata.artist', null, 'nextunique', (artists) => {
+      resolve(artists);
     });
   });
 }
 
+function getAlbums() {
+  return Database.albums();
+}
+
+function getSongs() {
+  return Database.songs();
+}
+
 function getSongCount() {
-  return new Promise((resolve) => {
-    Database.count('metadata.title', null, count => resolve(count));
+  return Database.totalCount();
+}
+
+function getArtist(filePath) {
+  return getSong(filePath).then((song) => {
+    return Database.artist(song.metadata.artist);
+  });
+}
+
+function getAlbum(filePath) {
+  return getSong(filePath).then((song) => {
+    return Database.album(song.metadata.album);
   });
 }
 

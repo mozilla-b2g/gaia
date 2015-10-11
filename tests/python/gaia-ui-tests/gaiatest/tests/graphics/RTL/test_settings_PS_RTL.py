@@ -59,7 +59,7 @@ class TestSettingsRTLPS(GaiaImageCompareTestCase):
         self.take_screenshot('privacy_control')
         privacycontrol_page.tap_about()
         self.take_screenshot('privacy_control-about')
-        settings.return_to_prev_menu(privacycontrol_page.screen_element, privacycontrol_page.about_screen_element)
+        privacycontrol_page.return_to_prev_menu(privacycontrol_page.screen_element, privacycontrol_page.about_screen_element)
         #privacycontrol_page.exit_about()
 
         ################# Location Accuracy
@@ -77,14 +77,14 @@ class TestSettingsRTLPS(GaiaImageCompareTestCase):
         loc_acc_page.tap_global_settings()
         self.take_screenshot('privacy_control-locacc-applist-globalsetting')
         loc_acc_page.tap_global_settings_ok()
-        settings.return_to_prev_menu(loc_acc_page.applist_screen_element, loc_acc_page.appview_screen_element)
-        settings.return_to_prev_menu(loc_acc_page.screen_element, loc_acc_page.applist_screen_element)
-        settings.return_to_prev_menu(privacycontrol_page.screen_element, loc_acc_page.screen_element)
+        privacycontrol_page.return_to_prev_menu(loc_acc_page.applist_screen_element, loc_acc_page.appview_screen_element)
+        privacycontrol_page.return_to_prev_menu(loc_acc_page.screen_element, loc_acc_page.applist_screen_element)
+        privacycontrol_page.return_to_prev_menu(privacycontrol_page.screen_element, loc_acc_page.screen_element)
 
         ################# Remote Protect #################
         rprotect_page = privacycontrol_page.tap_remote_protect()
         self.take_screenshot('privacy_control-remprotect')
-        settings.return_to_prev_menu(privacycontrol_page.screen_element, rprotect_page.screen_element)
+        privacycontrol_page.return_to_prev_menu(privacycontrol_page.screen_element, rprotect_page.screen_element)
 
         # Note: Only the first app and first permission details are opened for format check
         ################# Transparency Controls #################
@@ -98,12 +98,12 @@ class TestSettingsRTLPS(GaiaImageCompareTestCase):
         #tap first app
         transpc_page.tap_first_app_in_list()
         self.take_screenshot('privacy_control-trans_ctrl_first_app')
-        settings.return_to_prev_menu(transpc_page.apps_screen_element,
+        privacycontrol_page.return_to_prev_menu(transpc_page.apps_screen_element,
                                      transpc_page.apps_detail_element,
-                                     transpc_page.app_detail_back_btn)
-        settings.return_to_prev_menu(transpc_page.screen_element,
+                                     html_header_locator=transpc_page._app_detail_header_locator)
+        privacycontrol_page.return_to_prev_menu(transpc_page.screen_element,
                                      transpc_page.apps_screen_element,
-                                     transpc_page.app_list_back_btn)
+                                     html_header_locator=transpc_page._app_list_header_locator)
         transpc_page.tap_permissions()
 
         self.take_screenshot('privacy_control-transp-perm')
@@ -114,4 +114,4 @@ class TestSettingsRTLPS(GaiaImageCompareTestCase):
             self.take_screenshot('privacy_control-transp-perm')
         transpc_page.tap_first_perm_in_list()
         self.take_screenshot('privacy_control-trans_ctrl_first_perm')
-        settings.return_to_prev_menu(transpc_page.perm_screen_element, transpc_page.perm_detail_element)
+        privacycontrol_page.return_to_prev_menu(transpc_page.perm_screen_element, transpc_page.perm_detail_element)

@@ -62,3 +62,19 @@ gaia-radio.inline,
 #radio.checkone.checked span {
   font-weight: 500;
 }
+
+/* 'split' radio label */
+#radio.split .divider {
+  content: '';
+  position: absolute;
+  background-color: #E6E6E3;
+  offset-inline-end: 3.5rem;
+  width: 0.1rem;
+  height: calc(100% - 1rem);
+  top: 0.5rem;
+}
+
+gaia-radio.split label {
+  display: block;
+  width: 100%;
+}

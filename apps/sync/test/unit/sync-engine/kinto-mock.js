@@ -100,10 +100,7 @@ var Kinto = (function() {
       });
     },
 
-    create: function(payload, options = {}) {
-      var obj = {
-        payload: payload
-      };
+    create: function(obj, options = {}) {
       if (options.forceId) {
         if(!this._idSchemaUsed.validate(options.forceId)) {
           return Promise.reject(new Error('Invalid id: ' + options.forceId));

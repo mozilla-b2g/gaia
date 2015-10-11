@@ -439,6 +439,7 @@ suite('Bluetooth app > PairManager ', function() {
         assert.isTrue(mockNotification.close.called);
         MockNavigatormozApps.mTriggerLastRequestSuccess();
         assert.isFalse(PairExpiredDialog.showConfirm.called);
+        assert.isFalse(MockNavigatormozApps.mAppWasLaunched);
       });
 
       test('notification should be close, confirm dialog should be called ' +
@@ -447,6 +448,7 @@ suite('Bluetooth app > PairManager ', function() {
         assert.isTrue(mockNotification.close.called);
         MockNavigatormozApps.mTriggerLastRequestSuccess();
         assert.isTrue(PairExpiredDialog.showConfirm.called);
+        assert.isFalse(MockNavigatormozApps.mAppWasLaunched);
       });
 
       test('notification should be close, confirm dialog should not be called' +
@@ -455,6 +457,7 @@ suite('Bluetooth app > PairManager ', function() {
         assert.isTrue(mockNotification.close.called);
         MockNavigatormozApps.mTriggerLastRequestSuccess();
         assert.isFalse(PairExpiredDialog.showConfirm.called);
+        assert.ok(MockNavigatormozApps.mAppWasLaunched);
       });
     });
   });

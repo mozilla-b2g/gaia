@@ -15,49 +15,67 @@
     this._video.mozAudioChannelType = 'content';
 
     this._isLoaded = false;
-    this._isPlaying = false;
 
     this._video.addEventListener('loadedmetadata', this);
     this._video.addEventListener('playing', this);
-    this._video.addEventListener('pause', this);
-    this._video.addEventListener('ended', this);
+    this._video.addEventListener('seeked', this);
   };
 
   proto.getVideo = function () {
     return this._video;
   };
 
+  /**
+   * @return {Number} The rounded video duration in sec.
+   *                  Please read the video's duration property if
+   *                  require accurate to the decimal place.
+   */
+  proto.getRoundedDuration = function () {
+    var s = Math.round(this._video.duration);
+    return isNaN(s) ? 0 : s;
+  };
+
+  /**
+   * @return {Number} The rounded current video time in sec.
+   *                  Please read the video's currentTime property if
+   *                  require accurate to the decimal place.
+   */
+  proto.getRoundedCurrentTime = function () {
+    var s = Math.round(this._video.currentTime);
+    return isNaN(s) ? 0 : s;
+  };
+
   proto.addEventListener = function (type, handle) {
     return this._video.addEventListener(type, handle);
   };
 
-  proto.show = function vp_show() {
+  proto.show = function () {
     this._video.hidden = false;
   };
 
-  proto.hide = function vp_hide() {
+  proto.hide = function () {
     this._video.hidden = true;
   };
 
-  proto.load = function vp_load(url) {
+  proto.load = function (url) {
     this._video.src = url;
   };
 
-  proto.release = function vp_release() {
+  proto.release = function () {
     this._video.pause();
     this._video.removeAttribute('src');
     this._video.load();
   };
 
-  proto.play = function vp_play() {
+  proto.play = function () {
     this._video.play();
   };
 
-  proto.pause = function vp_pause() {
+  proto.pause = function () {
     this._video.pause();
   };
 
-  proto.seek = function vp_seek(t) {
+  proto.seek = function (t) {
     if (!this._isLoaded) {
       return;
     }
@@ -65,11 +83,11 @@
   };
 
   proto.isPlaying = function () {
-    return this._isPlaying;
+    return !this._video.paused && !this._video.ended;
   };
 
   /**
-   * @param {Integer} The time length in sec
+   * @param {Number} sec The time length in sec
    * @return {Object} One object carrys the pared time value:
    *                  - hh : hour
    *                  - mm : minute
@@ -78,7 +96,7 @@
   proto.parseTime = function (sec) {
 
     var t = {},
-        s = +sec;
+        s = Math.round(sec);
 
     if ((s > 0) === false) {
       s = 0;
@@ -93,7 +111,7 @@
     return t;
   };
 
-  proto.handleEvent = function vp_handleEvent(evt) {
+  proto.handleEvent = function (evt) {
 
     switch(evt.type) {
       case 'loadedmetadata':
@@ -101,20 +119,15 @@
       break;
 
       case 'playing':
-        this._isPlaying = true;
         this.show();
       break;
 
       case 'seeked':
         this.play();
       break;
-
-      case 'ended':
-      case 'pause':
-        this._isPlaying = false;
-      break;
     }
   };
 
   exports.VideoPlayer = VideoPlayer;
+
 })(window);

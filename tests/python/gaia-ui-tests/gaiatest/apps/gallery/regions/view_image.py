@@ -5,6 +5,7 @@
 from marionette_driver import expected, By, Wait
 
 from gaiatest.apps.base import Base
+from gaiatest.form_controls.header import GaiaHeader
 
 
 class ViewImage(Base):
@@ -36,14 +37,8 @@ class ViewImage(Base):
         return element.text
 
     def tap_back_button(self):
-        header = self.marionette.find_element(*self._header_locator)
-        # TODO: replace this condition with tap on the back button, after Bug 1061698 is fixed
-        self.tap_element_from_system_app(header, x=20)
-
-        # wait for the frame to close
-        from gaiatest.apps.gallery.app import Gallery
-        Gallery(self.marionette).wait_to_not_be_displayed()
-
+        GaiaHeader(self.marionette, self._header_locator).go_back_and_exit(
+            app=self, add_statusbar_height=False)
         self.apps.switch_to_displayed_app()
 
     def tap_save_image(self):

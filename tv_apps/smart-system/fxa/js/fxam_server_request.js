@@ -28,7 +28,7 @@
   }
 
   function _ensureFxaClient(callback) {
-    window.parent.LazyLoader.load('../js/fxa_client.js', function() {
+    window.parent.LazyLoader.load('../js/fx_accounts_client.js', function() {
       callback && callback();
     });
   }

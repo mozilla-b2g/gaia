@@ -4,7 +4,7 @@
 
 import time
 from gaiatest import GaiaTestCase
-from gaiatest.apps.music_oga.app import Music
+from gaiatest.apps.music.app import Music
 
 
 class TestMusic(GaiaTestCase):
@@ -22,6 +22,7 @@ class TestMusic(GaiaTestCase):
 
         music_app = Music(self.marionette)
         music_app.launch()
+
         music_app.wait_for_music_tiles_displayed()
 
         # switch to albums view
@@ -33,10 +34,9 @@ class TestMusic(GaiaTestCase):
 
         # select an album
         sublist_view = albums[0].tap_first_album()
-
         # select play
         # This wait is timing out because of bug 862156
-        player_view = sublist_view.tap_play()
+        player_view = sublist_view.tap_first_song()
 
         # play for a short duration
         play_time = time.strptime('00:03', '%M:%S')

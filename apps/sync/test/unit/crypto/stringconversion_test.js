@@ -17,76 +17,106 @@ requireApp('sync/js/crypto/main.js');
 requireApp('sync/test/unit/fixtures/fxsyncwebcrypto.js');
 
 suite('utils', () => {
-  suite('rawStringToByteArray', () => {
-    test('converts a raw string to a ByteArray', () => {
-     const ba = StringConversion.rawStringToByteArray('hi ✓');
+  suite('rawStringToUint8Array', () => {
+    test('converts a ASCII string to a ByteArray', () => {
+     const ba = StringConversion.rawStringToUint8Array('\x00\xEA\x80\xFF');
      expect(ba).to.be.instanceOf(Uint8Array);
      expect(ba.length).to.equal(4);
-     expect(ba[0]).to.equal(104);
-     expect(ba[1]).to.equal(105);
-     expect(ba[2]).to.equal(32);
-     expect(ba[3]).to.equal(19);
+     expect(ba[0]).to.equal(0x00);
+     expect(ba[1]).to.equal(0xEA);
+     expect(ba[2]).to.equal(0x80);
+     expect(ba[3]).to.equal(0xFF);
     });
     test('throws an error when input is not a string', () => {
-      expect(StringConversion.rawStringToByteArray.bind(undefined, 5)).to.
+      expect(StringConversion.rawStringToUint8Array.bind(undefined, 5)).to.
           throw(Error);
     });
   });
-  suite('base64StringToByteArray', () => {
+  suite('stringToUtf8Uint8Array', () => {
+    test('converts a string to a UTF-8 ByteArray', () => {
+     var ba = StringConversion.stringToUtf8Uint8Array('€');
+     expect(ba).to.be.instanceOf(Uint8Array);
+     expect(ba.length).to.equal(3);
+     expect(ba[0]).to.equal(0xe2);
+     expect(ba[1]).to.equal(0x82);
+     expect(ba[2]).to.equal(0xac);
+    });
+    test('throws an error when input is not a string', () => {
+      expect(StringConversion.stringToUtf8Uint8Array.bind(undefined, 5)).to.
+          throw(Error);
+    });
+  });
+  suite('base64StringToUint8Array', () => {
     test('converts a Base64 string to a ByteArray', () => {
-     const ba = StringConversion.base64StringToByteArray('Af9=');
+     const ba = StringConversion.base64StringToUint8Array('Af9=');
      expect(ba).to.be.instanceOf(Uint8Array);
      expect(ba.length).to.equal(2);
      expect(ba[0]).to.equal(1);
      expect(ba[1]).to.equal(255);
     });
     test('throws an error when input is not a Base64 string', () => {
-      expect(StringConversion.base64StringToByteArray.bind(undefined, 'hello')).
-          to.throw(Error);
+      expect(StringConversion.base64StringToUint8Array.
+        bind(undefined, 'hello')).to.throw(Error);
     });
   });
-  suite('hexStringToByteArray', () => {
+  suite('hexStringToUint8Array', () => {
     test('converts a hex string to a ByteArray', () => {
-     const ba = StringConversion.hexStringToByteArray('af93');
+     const ba = StringConversion.hexStringToUint8Array('af93');
      expect(ba).to.be.instanceOf(Uint8Array);
      expect(ba.length).to.equal(2);
      expect(ba[0]).to.equal(175);
      expect(ba[1]).to.equal(147);
     });
     test('throws an error when input is not a hex string', () => {
-      expect(StringConversion.hexStringToByteArray.bind(undefined, 'hello')).
+      expect(StringConversion.hexStringToUint8Array.bind(undefined, 'hello')).
           to.throw(Error);
     });
   });
-  suite('byteArrayToBase64String', () => {
+  suite('uint8ArrayToBase64String', () => {
     test('converts a Uint8Array to a Base64', () => {
-     const ba = StringConversion.hexStringToByteArray('01ff');
-     const str = StringConversion.byteArrayToBase64String(ba);
+     const ba = StringConversion.hexStringToUint8Array('01ff');
+     const str = StringConversion.uint8ArrayToBase64String(ba);
      expect(str).to.be.a('string');
      expect(str).to.equal('Af8=');
     });
     test('throws an error when input is not a Uint8Array', () => {
-      expect(StringConversion.byteArrayToBase64String.bind(undefined,
+      expect(StringConversion.uint8ArrayToBase64String.bind(undefined,
                                                            new ArrayBuffer(2))).
            to.throw(Error);
     });
   });
-  suite('byteArrayToHexString', () => {
+  suite('uint8ArrayToHexString', () => {
     test('converts a Uint8Array to a Base64', () => {
-     const ba = StringConversion.base64StringToByteArray('Af8=');
-     const str = StringConversion.byteArrayToHexString(ba);
+     const ba = StringConversion.base64StringToUint8Array('Af8=');
+     const str = StringConversion.uint8ArrayToHexString(ba);
      expect(str).to.be.a('string');
      expect(str).to.equal('01ff');
     });
     test('throws an error when input is not an Uint8Array', () => {
-      expect(StringConversion.byteArrayToHexString.bind(undefined,
+      expect(StringConversion.uint8ArrayToHexString.bind(undefined,
                                                         new ArrayBuffer(2))).to.
           throw(Error);
     });
   });
+  suite('utf8Uint8ArrayToString', () => {
+    test('converts an UTF-8 Uint8Array to a string', () => {
+      var array = new Uint8Array(3);
+      array[0] = 0xe2;
+      array[1] = 0x82;
+      array[2] = 0xac;
+      var str = StringConversion.utf8Uint8ArrayToString(array);
+      expect(str).to.be.a('string');
+      expect(str).to.equal('€');
+    });
+    test('throws an error when input is not an Uint8Array', () => {
+      expect(StringConversion.utf8Uint8ArrayToString.bind(
+          undefined,
+          new ArrayBuffer(2))).to.throw(Error);
+    });
+  });
   suite('arrayBufferToBase64String', () => {
     test('converts an ArrayBuffer to a Base64', () => {
-     const ba = StringConversion.hexStringToByteArray('01ff');
+     const ba = StringConversion.hexStringToUint8Array('01ff');
      const str = StringConversion.arrayBufferToBase64String(ba.buffer);
      expect(str).to.be.a('string');
      expect(str).to.equal('Af8=');
@@ -99,7 +129,7 @@ suite('utils', () => {
   });
   suite('arrayBufferToHexString', () => {
     test('converts an ArrayBuffer to a Base64', () => {
-     const ba = StringConversion.base64StringToByteArray('Af8=');
+     const ba = StringConversion.base64StringToUint8Array('Af8=');
      const str = StringConversion.arrayBufferToHexString(ba.buffer);
      expect(str).to.be.a('string');
      expect(str).to.equal('01ff');

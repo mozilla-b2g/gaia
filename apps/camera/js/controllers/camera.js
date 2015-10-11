@@ -31,7 +31,7 @@ function CameraController(app) {
 
   // Wait until we get the battery state before turning
   // on the camera
-  this.lowBattery = true;
+  this.lowBattery = this.app.get('batteryStatus') === 'shutdown';
 
   this.configure();
   this.bindEvents();

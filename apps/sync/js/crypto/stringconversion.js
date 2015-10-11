@@ -11,7 +11,7 @@
 const StringConversion = Object.freeze((() => {
 
   return {
-    rawStringToByteArray(str) {
+    rawStringToUint8Array(str) {
       if (typeof str != 'string') {
         throw new Error('Not a string');
       }
@@ -23,15 +23,28 @@ const StringConversion = Object.freeze((() => {
       return byteArray;
     },
 
-    base64StringToByteArray(base64) {
+    stringToUtf8Uint8Array(str) {
+      if (typeof str != 'string') {
+        throw new Error('Not a string');
+      }
+      var string = unescape(encodeURIComponent(str)),
+          charList = string.split(''),
+          uintArray = [];
+      for (var i = 0; i < charList.length; i++) {
+        uintArray.push(charList[i].charCodeAt(0));
+      }
+      return new Uint8Array(uintArray);
+    },
+
+    base64StringToUint8Array(base64) {
       if (typeof base64 != 'string' || base64.length % 4 !== 0) {
         throw new Error(`Number of base64 digits must be a multiple of 4 to con\
 vert to bytes`);
       }
-      return StringConversion.rawStringToByteArray(window.atob(base64));
+      return StringConversion.rawStringToUint8Array(window.atob(base64));
     },
 
-    hexStringToByteArray(hexStr) {
+    hexStringToUint8Array(hexStr) {
       if (typeof hexStr != 'string' || hexStr.length % 2 !== 0) {
         throw new Error(`Must have an even number of hex digits to convert to b\
 ytes`);
@@ -44,7 +57,7 @@ ytes`);
       return byteArray;
     },
 
-    byteArrayToBase64String(bytes) {
+    uint8ArrayToBase64String(bytes) {
       if (!(bytes instanceof Uint8Array)) {
         throw new Error('Not a Uint8Array');
       }
@@ -61,10 +74,18 @@ ytes`);
         throw new Error('Not an ArrayBuffer');
       }
       var bytes = new Uint8Array(buffer);
-      return StringConversion.byteArrayToBase64String(bytes);
+      return StringConversion.uint8ArrayToBase64String(bytes);
     },
 
-    byteArrayToHexString(bytes) {
+    utf8Uint8ArrayToString(array) {
+      if (!(array instanceof Uint8Array)) {
+        throw new Error('Not an Uint8Array');
+      }
+      var utf8_string = String.fromCharCode.apply(null, array);
+      return decodeURIComponent(escape(utf8_string));
+    },
+
+    uint8ArrayToHexString(bytes) {
       if (!(bytes instanceof Uint8Array)) {
         throw new Error('Not a Uint8Array');
       }
@@ -81,7 +102,7 @@ ytes`);
         throw new Error('Not an ArrayBuffer');
       }
       var bytes = new Uint8Array(buffer);
-      return StringConversion.byteArrayToHexString(bytes);
+      return StringConversion.uint8ArrayToHexString(bytes);
     }
   };
 })());

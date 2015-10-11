@@ -5,13 +5,13 @@
 from marionette_driver import expected, By, Wait
 from gaiatest.apps.base import Base
 from gaiatest.form_controls.binarycontrol import InvisibleHtmlBinaryControl
+from gaiatest.form_controls.header import GaiaHeader
 
 
 class Settings(Base):
     name = 'Settings'
 
     _header_locator = (By.CSS_SELECTOR, '.current gaia-header')
-    _non_gaia_header_locator = (By.CSS_SELECTOR, '.current header')
     _page_locator = (By.ID, 'root')
 
     _header_text_locator = (By.CSS_SELECTOR, '#root > gaia-header > h1')
@@ -338,20 +338,8 @@ class Settings(Base):
         checkbox = self.marionette.find_element(by, locator)
         Wait(self.marionette).until(expected.element_enabled(checkbox))
 
-    # this method is a copy of go_back() method in regions/keyboard.py
-    def return_to_prev_menu(self, parent_view, exit_view, back_button = None):
-
-        # TODO: remove tap with coordinates after Bug 1061698 is fixed
-        if back_button is None:
-            # because of th Bug 1061698, we need to locate the
-            # right edge of the header and tap it
-            # if we have the back_button, then tapping anywhere
-            # within it should give the same result
-            back_button = self.marionette.find_element(*self._header_locator)
-
-        Wait(self.marionette).until(expected.element_enabled(back_button) and
-                                    expected.element_displayed(back_button))
-        back_button.tap(25, 25)
+    def return_to_prev_menu(self, parent_view, exit_view):
+        GaiaHeader(self.marionette, self._header_locator).go_back()
 
         Wait(self.marionette).until(lambda m: 'current' not in exit_view.get_attribute('class'))
         Wait(self.marionette).until(lambda m: parent_view.rect['x'] == 0)

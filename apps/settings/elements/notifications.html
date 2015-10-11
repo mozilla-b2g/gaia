@@ -1,21 +1,21 @@
 <element name="notifications" extends="section">
   <template>
 
-    <gaia-header action="back" data-href="#root">
+    <gaia-header ignore-dir action="back" data-href="#root">
       <h1 data-l10n-id="notifications-header"></h1>
     </gaia-header>
 
     <div>
       <ul>
         <li>
-          <gaia-checkbox name="lockscreen.notifications-preview.enabled">
+          <gaia-switch name="lockscreen.notifications-preview.enabled">
             <label data-l10n-id="lockscreen-notifications"></label>
-          </gaia-checkbox>
+          </gaia-switch>
         </li>
         <li>
-          <gaia-checkbox name="notifications.resend">
+          <gaia-switch name="notifications.resend">
             <label data-l10n-id="notifications-resend"></label>
-          </gaia-checkbox>
+          </gaia-switch>
         </li>
       </ul>
     </div>
