@@ -522,6 +522,7 @@
     this.lockScreenClockWidget.stop().destroy();
     delete this.lockScreenClockWidget;
 
+    this.setUnlockSoundEnabled(details.unlockSoundEnabled);
     if (details.unlockSoundEnabled) {
       var unlockAudio = new Audio('/resources/sounds/unlock.opus');
       unlockAudio.play();
@@ -559,6 +560,11 @@
       var now = Date.now();
       this._lastUnlockedInterval = now - this._lastUnlockedTimeStamp;
       this._lastLockedTimeStamp = now;
+
+      if (this.unlockSoundEnabled) {
+        var unlockAudio = new Audio('/resources/sounds/unlock.opus');
+        unlockAudio.play();
+      }
 
       this.overlayLocked();
       // Because 'document.hidden' changes slower than this,
@@ -704,6 +710,19 @@
       this._generateMaskedBackgroundColor();
     }else{
       this._shouldRegenerateMaskedBackgroundColor = true;
+    }
+  };
+
+  /**
+   *  Sets UnlockSoundEnabled to true or false
+   *  when the screen gets unlocked
+   */
+  LockScreen.prototype.setUnlockSoundEnabled =
+  function lockscreen_setUnlockSoundEnabled(isUnlockSoundEnabled) {
+    if(isUnlockSoundEnabled) {
+      this.unlockSoundEnabled = true;
+    } else {
+      this.unlockSoundEnabled = false;
     }
   };
 
