@@ -125,7 +125,8 @@ section[role="region"] > div {
  */
 
 gaia-header a:first-child,
-gaia-header button:first-child {
+gaia-header button:first-child,
+gaia-header [data-icon="close"] {
   color: var(--header-action-button-color) !important;
 }
 
