@@ -21,11 +21,8 @@
   },
   "permissions": {
     "homescreen-webapps-manage": {},
-    "mobileconnection": {},
     "moz-extremely-unstable-and-will-change-webcomponents": {},
-    "open-remote-window": {},
-    "systemXHR": {},
-    "themeable": {}
+    "systemXHR": {}
   },
   "datastores-access": {
     "bookmarks_store": {
