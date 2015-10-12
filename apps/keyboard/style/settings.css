@@ -24,16 +24,18 @@ section[role="region"], section[role="dialog"] {
 section[role="region"] {
   transition: transform var(--transition-duration) ease,
               visibility var(--transition-duration);
-  transform: translateX(100%);
   visibility: hidden;
 }
+html[dir="ltr"] section[role="region"] { transform: translateX(100%); }
+html[dir="rtl"] section[role="region"] { transform: translateX(-100%); }
 
 section[role="region"].prev {
-  transform: translateX(-100%);
   visibility: hidden;
 }
+html[dir="ltr"] section[role="region"].prev { transform: translateX(-100%); }
+html[dir="rtl"] section[role="region"].prev { transform: translateX(100%); }
 
-section[role="region"].current {
+html[dir] section[role="region"].current {
   transform: translateX(0);
   visibility: visible;
 }
@@ -74,7 +76,7 @@ aside.pack-end > label {
 
 /* Temporary styles until being ported to use gaia-list */
 section[data-type="list"] li gaia-checkbox {
-    -moz-margin-start: 1.5rem;
+    margin-inline-start: 1.5rem;
     padding: 1.5rem 0;
     width: calc(100% - 3rem) !important;
 }
@@ -96,7 +98,7 @@ ul {
 }
 
 ul li {
-  -moz-box-sizing: border-box;
+  box-sizing: border-box;
   position: relative;
   min-height: 6rem;
   border-bottom: 0.1rem solid #e6e6e3;
@@ -161,7 +163,7 @@ input[type=range]::-moz-range-thumb {
   border: solid 0.1rem transparent;
   border-radius: 3rem;
   transition: border 0.15s ease;
-  -moz-box-sizing: border-box;
+  box-sizing: border-box;
   background: url(images/range_thumb.png) no-repeat 50% 50%;
   background-size: 2.8rem 2.8rem;
 }
@@ -180,7 +182,7 @@ input:focus {
 }
 
 [data-type="list"] li {
-  -moz-margin-start: 1.5rem;
+  margin-inline-start: 1.5rem;
   width: calc(100% - 1.5rem);
   height: auto;
 }
@@ -205,8 +207,6 @@ input:focus {
 
 [data-type="list"] li > a.menu-item:after {
   font-family: "gaia-icons";
-  left: auto; /* overrides lists.css */
-  right: 1.5rem;
   font-size: 25px;
   line-height: 6rem;
   color: #657073;
@@ -218,9 +218,13 @@ html[dir="rtl"] [data-type="list"] li > a.menu-item:after {
   content: "left-light";
 }
 
-html[dir="rtl"] a.menu-item:after {
+html[dir="ltr"] li > a.menu-item:after {
+  left: auto; /* overrides lists.css */
+  right: 1.5rem;
+}
+html[dir="rtl"] li > a.menu-item:after {
   left: 1.5rem;
-  right: unset;
+  right: auto;
 }
 
 [data-type="list"] li > a.menu-item:active:after {
@@ -292,7 +296,6 @@ html[dir="rtl"] a.menu-item:after {
 html[dir="ltr"] .installable-keyboard-item progress::-moz-progress-bar {
   background: linear-gradient(135deg, #00CAF2 calc(100% - 0.4rem), transparent 0);
 }
-
 html[dir="rtl"] .installable-keyboard-item progress::-moz-progress-bar {
   background: linear-gradient(45deg, transparent 0.4rem, #00CAF2 0);
 }
