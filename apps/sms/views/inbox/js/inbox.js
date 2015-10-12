@@ -40,9 +40,10 @@ var InboxView = {
   inEditMode: false,
 
   /**
-   * Indicates whether user should be notified about newly saved draft.
+   * Indicates that draft with particular id has been saved recently and  user
+   * should be notified about it.
    */
-  notifyAboutSavedDraft: false,
+  notifyAboutSavedDraftWithId: null,
 
   init: function inbox_init() {
     this.tmpl = {
@@ -151,10 +152,10 @@ var InboxView = {
     // In case user saved draft when Inbox was not the active view, we want to
     // notify that save operation successfully completed once user returns back
     // to Inbox view.
-    if (this.notifyAboutSavedDraft) {
+    if (this.notifyAboutSavedDraftWithId) {
       this.showDraftSavedBanner();
 
-      this.notifyAboutSavedDraft = false;
+      this.notifyAboutSavedDraftWithId = null;
     }
   },
 
@@ -986,6 +987,12 @@ var InboxView = {
     } else {
       this.updateThread(thread);
     }
+
+    // If the draft we scheduled notification for has been deleted, we shouldn't
+    // notify user anymore.
+    if (draft.id === this.notifyAboutSavedDraftWithId) {
+      this.notifyAboutSavedDraftWithId = null;
+    }
   },
 
   onDraftSaved: function inbox_onDraftSaved(draft) {
@@ -996,7 +1003,7 @@ var InboxView = {
     // notify that save operation successfully completed once user returns back
     // to Inbox view.
     if (!Navigation.isCurrentPanel('thread-list')) {
-      this.notifyAboutSavedDraft = true;
+      this.notifyAboutSavedDraftWithId = draft.id;
     }
   },
 
