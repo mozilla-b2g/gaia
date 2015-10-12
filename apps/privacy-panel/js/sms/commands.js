@@ -7,10 +7,11 @@
 define([
   'shared/settings_listener',
   'shared/settings_helper',
-  'shared/settings_url'
+  'shared/settings_url',
+  'shared/passcode_helper'
 ],
 
-function(SettingsListener, SettingsHelper, SettingsURL) {
+function(SettingsListener, SettingsHelper, SettingsURL, PasscodeHelper) {
   'use strict';
 
   var Commands = {
@@ -98,13 +99,17 @@ function(SettingsListener, SettingsHelper, SettingsURL) {
           settings['lockscreen.lock-message'] = message;
         }
 
-        if (!this.deviceHasPasscode() && passcode) {
-          settings['lockscreen.passcode-lock.code'] = passcode;
-        }
-
         var request = SettingsListener.getSettingsLock().set(settings);
         request.onsuccess = function() {
-          reply(true);
+          if (!this.deviceHasPasscode() && passcode) {
+            PasscodeHelper.set(passcode).then(() => {
+              reply(true);
+            }).catch(() => {
+              reply(false);
+            });
+          } else {
+            reply(true);
+          }
         };
 
         request.onerror = function() {

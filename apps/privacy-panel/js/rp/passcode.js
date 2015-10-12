@@ -6,10 +6,10 @@
  */
 define([
   'panels',
-  'shared/settings_listener',
+  'shared/passcode_helper'
 ],
 
-function(panels, SettingsListener) {
+function(panels, PasscodeHelper) {
   'use strict';
 
   function PassCodePanel() {}
@@ -163,12 +163,11 @@ function(panels, SettingsListener) {
           settings = navigator.mozSettings;
           lock = settings.createLock();
           lock.set({
-            'lockscreen.passcode-lock.code': passcode
-          });
-          lock.set({
             'lockscreen.passcode-lock.enabled': true
           });
-          this._backToScreenLock();
+          PasscodeHelper.set(passcode).then(() => {
+            this._backToScreenLock();
+          });
           break;
       }
     },
@@ -192,48 +191,47 @@ function(panels, SettingsListener) {
             }
             break;
           case 'confirm':
-            if (this._checkPasscode()) {
+            this._checkPasscode().then((result) => {
+              if (result) {
               settings = navigator.mozSettings;
               lock = settings.createLock();
               lock.set({
                 'lockscreen.passcode-lock.enabled': false
               });
               this._backToScreenLock();
-            } else {
+              } else {
               this._passcodeBuffer = '';
-            }
+              }
+            });
             break;
           case 'confirmLock':
-            if (this._checkPasscode()) {
-              settings = navigator.mozSettings;
-              lock = settings.createLock();
-              lock.set({
-                'lockscreen.enabled': false,
-                'lockscreen.passcode-lock.enabled': false
-              });
-              this._backToScreenLock();
-            } else {
-              this._passcodeBuffer = '';
-            }
+            this._checkPasscode().then((result) => {
+              if (result) {
+                settings = navigator.mozSettings;
+                lock = settings.createLock();
+                lock.set({
+                  'lockscreen.enabled': false,
+                  'lockscreen.passcode-lock.enabled': false
+                });
+                this._backToScreenLock();
+              } else {
+                this._passcodeBuffer = '';
+              }
+            });
             break;
           case 'edit':
-            if (this._checkPasscode()) {
-              this._passcodeBuffer = '';
-              this._updatePassCodeUI();
-              this._showDialogInMode('new');
-            } else {
-              this._passcodeBuffer = '';
-            }
+            this._checkPasscode().then((result) => {
+              if (result) {
+                this._passcodeBuffer = '';
+                this._updatePassCodeUI();
+                this._showDialogInMode('new');
+              } else {
+                this._passcodeBuffer = '';
+              }
+            });
             break;
         }
       }
-    },
-
-    _fetchSettings: function sld_fetchSettings() {
-      SettingsListener.observe('lockscreen.passcode-lock.code', '0000',
-        function(passcode) {
-          this._settings.passcode = passcode;
-      }.bind(this));
     },
 
     _showErrorMessage: function sld_showErrorMessage(message) {
@@ -263,13 +261,16 @@ function(panels, SettingsListener) {
     },
 
     _checkPasscode: function sld_checkPasscode() {
-      if (this._settings.passcode != this._passcodeBuffer) {
+      return PasscodeHelper.check(this._passcodeBuffer).then((result) => {
+        if (result) {
+          this._hideErrorMessage();
+        } else {
+          this._showErrorMessage();
+        }
+        return result;
+      }).catch(() => {
         this._showErrorMessage();
-        return false;
-      } else {
-        this._hideErrorMessage();
-        return true;
-      }
+      });
     },
 
     _backToScreenLock: function sld_backToScreenLock() {

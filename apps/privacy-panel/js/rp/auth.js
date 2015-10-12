@@ -7,15 +7,15 @@
 define([
   'panels',
   'rp/passphrase',
-  'shared/settings_listener'
+  'shared/settings_listener',
+  'shared/passcode_helper'
 ],
 
-function(panels, PassPhrase, SettingsListener) {
+function(panels, PassPhrase, SettingsListener, PasscodeHelper) {
   'use strict';
 
   function AuthPanel() {
     this.passphrase;
-    this.lsPasscode = false;
     this.lsPasscodeEnabled = false;
     this.simcards = null;
   }
@@ -68,12 +68,6 @@ function(panels, PassPhrase, SettingsListener) {
     },
 
     observers: function() {
-      SettingsListener.observe('lockscreen.passcode-lock.code', false,
-        function(value) {
-          this.lsPasscode = value;
-        }.bind(this)
-      );
-
       SettingsListener.observe('lockscreen.passcode-lock.enabled', false,
         function(value) {
           /* global Event */
@@ -352,9 +346,18 @@ function(panels, PassPhrase, SettingsListener) {
     },
 
     verifyPassCode: function(pin) {
-      var status = (pin.length > 4) ? 'passcode-long' :
-                                      this.comparePINs(pin, this.lsPasscode);
-      this.changePIN(status);
+      if (pin.length > 4) {
+        this.changePIN('passcode-long');
+      }
+      else {
+        PasscodeHelper.check(pin).then((result) => {
+          var status = result ? '' : 'pin-different';
+          this.changePIN(status);
+        }).catch(() => {
+          this.changePIN('pin-invalid');
+        });
+
+      }
     },
 
     /**
