@@ -29,7 +29,7 @@ var AlbumsView = View.extend(function AlbumsView() {
   this.searchResults.getItemImageSrc = (item) => this.getThumbnail(item.name);
 
   this.list.scrollTop = this.searchBox.HEIGHT;
-  this.list.minScrollHeight = `calc(100% - ${this.searchBox.HEIGHT}px)`;
+  this.list.minScrollHeight = `calc(100% + ${this.searchBox.HEIGHT}px)`;
 
   this.list.configure({
     getItemImageSrc: (item) => {
