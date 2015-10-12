@@ -60,9 +60,7 @@ const HIDDEN_ROLES = [
  * Strings that are matched against to black-list app origins.
  * TODO: This should not be hard-coded.
  */
-const BLACKLIST = [
-  'app://privacy-panel.gaiamobile.org'
-];
+const BLACKLIST = [];
 
 /**
  * Stored settings version, for use when changing/refactoring settings storage.

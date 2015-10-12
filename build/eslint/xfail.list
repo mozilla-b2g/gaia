@@ -144,7 +144,6 @@ apps/music/elements/music-seek-bar.js # line 102, col 3, Error - Unsafe assignme
 apps/music/elements/music-tab-bar.js # line 34, col 3, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 apps/music/elements/music-view-stack.js # line 84, col 3, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 apps/pdfjs/content/build/pdf.worker.js # line 0, col 0, Error - Maximum call stack size exceeded
-apps/privacy-panel/test/unit/ala/define_custom_location_test.js # line 26, col 7, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 apps/ringtones/js/tone_list.js # line 51, col 5, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 apps/settings/js/modules/messaging.js # line 196, col 13, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 apps/settings/js/panels/frame/panel.js # line 67, col 9, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
