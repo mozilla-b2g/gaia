@@ -154,7 +154,15 @@ function stop() {
   service.broadcast('stop');
 }
 
+var seekTimeout;
+
 function seek(time) {
+  if (audio.seeking) {
+    clearTimeout(seekTimeout);
+    seekTimeout = setTimeout(() => seek(time), 50);
+    return;
+  }
+
   audio.fastSeek(parseInt(time, 10));
 }
 
@@ -174,8 +182,8 @@ function startFastSeek(reverse) {
     }
 
     audio.volume = 0.5;
-    seek(audio.currentTime + (reverse ? -2 : 2));
-    setTimeout(fastSeek, 50);
+    seek(audio.currentTime + (reverse ? -5 : 5));
+    setTimeout(fastSeek, 100);
   }
 
   fastSeek();
