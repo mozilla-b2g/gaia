@@ -1,10 +1,18 @@
 'use strict';
-/* global utils */
-/* global fb */
 /* exported extServices*/
+/* global fb */
+/* global utils */
 
 (function(exports) {
-  var extServices = {};
+  var onContactsImportedCb = null;
+  var extServices = {
+    set onContactsImported(cb) {
+      if (typeof cb !== 'function') {
+        return;
+      }
+      onContactsImportedCb = cb;
+    }
+  };
 
   var extensionFrame = document.querySelector('#iframe_extensions');
   var oauthFrame = document.querySelector('#iframe_oauth');
@@ -134,6 +142,10 @@
             type: 'contacts_loaded',
             data: ''
           }, fb.CONTACTS_APP_ORIGIN);
+        if (onContactsImportedCb) {
+          onContactsImportedCb();
+          onContactsImportedCb = null;
+        }
       break;
 
       case 'sync_finished':

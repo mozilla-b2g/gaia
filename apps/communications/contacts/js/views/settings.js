@@ -21,6 +21,7 @@
 /* global BulkDelete */
 /* global ICE */
 /* global Overlay */
+/* global Telemetry */
 
 var contacts = window.contacts || {};
 
@@ -170,10 +171,12 @@ contacts.Settings = (function() {
 
   function importContactsHandler() {
       // Hide elements for export and transition
-      importSettingsPanel.classList.remove('export');
-      importSettingsPanel.classList.add('import');
-      updateImportTitle('importContactsTitle');
-      navigationHandler.go('import-settings', 'right-left');
+      LazyLoader.load(['/contacts/js/utilities/telemetry.js'], () => {
+        importSettingsPanel.classList.remove('export');
+        importSettingsPanel.classList.add('import');
+        updateImportTitle('importContactsTitle');
+        navigationHandler.go('import-settings', 'right-left');
+      });
   }
 
   function exportContactsHandler() {
@@ -214,6 +217,10 @@ contacts.Settings = (function() {
     return source;
   }
 
+  function logImportUsage(name) {
+    return Telemetry.logImportUsage(name);
+  }
+
   function importOptionsHandler(e) {
     /* jshint validthis:true */
 
@@ -228,9 +235,11 @@ contacts.Settings = (function() {
         window.setTimeout(requireOverlay.bind(this, onSdImport), 0);
         break;
       case 'gmail':
+        ExtServices.onContactsImported = logImportUsage.bind(null, 'gmail');
         ExtServices.importGmail();
         break;
       case 'live':
+        ExtServices.onContactsImported = logImportUsage.bind(null, 'live');
         ExtServices.importLive();
         break;
     }
@@ -514,6 +523,8 @@ contacts.Settings = (function() {
               numDups: numDupsMerged
             }
           });
+        } else {
+          logImportUsage('sim');
         }
 
         typeof done === 'function' && done();
@@ -615,6 +626,8 @@ contacts.Settings = (function() {
                 };
 
                 utils.status.show(msg1, msg2);
+
+                logImportUsage('sd');
 
                 if (typeof cb === 'function') {
                   cb();
