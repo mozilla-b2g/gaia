@@ -1,5 +1,5 @@
 .pin-dialog {
-  -moz-box-sizing: padding-box;
+  box-sizing: padding-box;
   padding: 0 2rem;
   font-size: 1.4em;
 }
@@ -115,31 +115,27 @@
 }
 
 .sim-card-icon {
-  float: left;
   width: 3rem;
   height: 3rem;
   margin: 2.5rem 1rem;
   background-image: url(images/simcards.png);
   background-size: 6rem 6rem;
 }
+/* can be replaced by `float: inline-start` when bug 1122918 lands */
+html[dir="ltr"] .sim-card-icon { float: left; }
+html[dir="rtl"] .sim-card-icon { float: right; }
+
 .sim-card-name {
   display: inline-block;
   font-size: 1.6rem;
   line-height: 1.6rem;
   padding: 0;
 }
+
 .sim-card-number,
 .sim-card-operator {
   font-size: 1.2rem;
   line-height: 1.5rem;
   padding: 0;
   color: #6d7374;
-}
-
-/*
- * Right to Left layout
- */
-
-html[dir="rtl"] .sim-card-icon {
-  float: right;
 }

@@ -1,7 +1,7 @@
 <element name="usbStorage" extends="section">
   <template>
 
-    <gaia-header ignore-dir action="back" data-href="#root">
+    <gaia-header action="back" data-href="#root">
       <h1 data-l10n-id="enableUSBStorage1"></h1>
     </gaia-header>
 
@@ -17,12 +17,12 @@
       </header>
       <li class="description">
         <gaia-radio name="usb.transfer" value="1">
-          <label data-l10n-id="protocol-mtp"></label>
+          <label dir="auto" data-l10n-id="protocol-mtp"></label>
         </gaia-radio>
       </li>
       <li class="description">
         <gaia-radio name="usb.transfer" value="0">
-          <label data-l10n-id="protocol-ums"></label>
+          <label dir="auto" data-l10n-id="protocol-ums"></label>
         </gaia-radio>
       </li>
     </ul>
