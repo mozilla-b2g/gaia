@@ -113,8 +113,8 @@ proto.createdCallback = function() {
     }
   );
 
-  this.els.container.addEventListener('click', (evt) => {
-    var button = evt.target.closest('button');
+  this.els.container.addEventListener('click', throttle((evt) => {
+    var button = evt.originalTarget.closest('button');
     switch (button.id) {
       case 'previous':
       case 'next':
@@ -125,7 +125,7 @@ proto.createdCallback = function() {
         this.dispatchEvent(new CustomEvent(this.paused ? 'pause' : 'play'));
         break;
     }
-  });
+  }, 250));
 
   this.onDOMRetranslated = () => {
     document.l10n.translateFragment(shadowRoot);
@@ -158,6 +158,26 @@ Object.defineProperty(proto, 'paused', {
     this.onDOMRetranslated();
   }
 });
+
+function throttle(fn, ms) {
+  var last = Date.now();
+  var timeout;
+  return (...args) => {
+    var now = Date.now();
+    if (now < last + ms) {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => {
+        last = now;
+        fn.apply(this, args);
+      }, ms);
+    }
+
+    else {
+      last = now;
+      fn.apply(this, args);
+    }
+  };
+}
 
 try {
   window.MusicControls = document.registerElement('music-controls', {
