@@ -362,7 +362,7 @@ rse crypto/keys payload as JSON`));
     /**
       * syncNow - Syncs collections up and down between device and server.
       * @param {object} collectionOptions The options per collection. Currently,
-      *                                   only readOnly (defaults to true).
+      *                                   only readonly (defaults to true).
       * @returns {Promise}
       */
     syncNow: function(collectionOptions) {

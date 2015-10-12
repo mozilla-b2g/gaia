@@ -154,8 +154,8 @@ ld be a Function`);
 
     test('Passes options to the DataAdapter', function(done) {
       var se = new SyncEngine(SynctoServerFixture.syncEngineOptions);
-      se.syncNow({ history: { readOnly: true } }).then(function() {
-        expect(AdapterMock.options).to.deep.equal({ readOnly: true });
+      se.syncNow({ history: { readonly: true } }).then(function() {
+        expect(AdapterMock.options).to.deep.equal({ readonly: true });
         done();
       });
     });
