@@ -30,10 +30,6 @@ var ArtistsView = View.extend(function ArtistsView() {
   this.list.minScrollHeight = `calc(100% - ${searchHeight}px)`;
 
   this.list.configure({
-    getSectionName: (item) => {
-      return item.sectionName;
-    },
-
     getItemImageSrc: (item) => {
       return this.getThumbnail(item.name);
     }
@@ -64,30 +60,16 @@ ArtistsView.prototype.render = function() {
 };
 
 ArtistsView.prototype.getArtists = function() {
-  return document.l10n.formatValues('unknownArtist', 'unknown')
-    .then(([unknownArtist, unknown]) => {
+  return document.l10n.formatValue('unknownArtist')
+    .then((unknownArtist) => {
       return this.fetch('/api/artists/list')
         .then(response => response.json())
         .then((artists) => {
           return artists.map((artist) => {
-            // We create lighter weight objects for the model
-            // With only what we need
-            var sectionName, artistText;
-
-            if (!artist.metadata.artist) {
-              sectionName = unknown;
-              artistText = unknownArtist;
-            } else {
-              sectionName = artist.metadata.artist[0].toLowerCase();
-              sectionName = isNaN(sectionName) ? sectionName : '#';
-              artistText = artist.metadata.artist;
-            }
-
             return {
-              sectionName: sectionName,
-              name: artist.name,
-              url: '/artist-detail?id=' + encodeURIComponent(artist.name),
-              artist: artistText
+              name:   artist.name,
+              url:    '/artist-detail?id=' + encodeURIComponent(artist.name),
+              artist: artist.metadata.artist || unknownArtist
             };
           });
         });
