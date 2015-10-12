@@ -14,6 +14,7 @@
 /* global MockSimContactsImporter */
 /* global MockVCFReader */
 /* global MockMozContacts */
+/* global MockAdvancedTelemetryHelper */
 
 require('/shared/js/lazy_loader.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
@@ -32,6 +33,8 @@ requireApp('communications/contacts/test/unit/mock_l10n.js');
 requireApp('communications/contacts/test/unit/mock_vcard_parser.js');
 requireApp('communications/contacts/test/unit/mock_event_listeners.js');
 requireApp('communications/contacts/test/unit/mock_sim_importer.js');
+requireApp(
+  'communications/contacts/test/unit/mock_advanced_telemetry_helper.js');
 
 require('/shared/test/unit/mocks/mock_confirm_dialog.js');
 require('/shared/test/unit/mocks/mock_mozContacts.js');
@@ -58,7 +61,8 @@ suite('Import contacts >', function() {
       realUtils,
       realWakeLock,
       realMozMobileConnections,
-      realMozContacts;
+      realMozContacts,
+      realATH;
 
   setup(function() {
     this.sinon.spy(window.utils.overlay, 'showMenu');
@@ -110,7 +114,14 @@ suite('Import contacts >', function() {
     document.body.innerHTML = MockContactsIndexHtml;
     contacts.Settings.init();
 
-    LazyLoader.load('/shared/js/contacts/import/utilities/status.js', done);
+    LazyLoader.load(['/shared/js/contacts/import/utilities/status.js',
+      '/shared/js/advanced_telemetry_helper.js'], () => {
+        LazyLoader.load('/contacts/js/utilities/telemetry.js', () => {
+          realATH = window.AdvancedTelemetryHelper;
+          window.AdvancedTelemetryHelper = MockAdvancedTelemetryHelper;
+          done();
+        });
+      });
   });
 
   suiteTeardown(function() {
@@ -120,6 +131,7 @@ suite('Import contacts >', function() {
 
     window.utils = realUtils;
     window._ = real_;
+    window.AdvancedTelemetryHelper = realATH;
 
     mocksHelper.suiteTeardown();
   });
@@ -130,11 +142,21 @@ suite('Import contacts >', function() {
   });
 
   test('SD Import went well', function(done) {
+    sinon.spy(window, 'AdvancedTelemetryHelper');
     contacts.Settings.importFromSDCard(function onImported() {
       assert.isTrue(window.utils.overlay.showMenu.called);
       assert.equal(window.utils.status.show.getCall(0).args.length, 2);
       assert.equal(false, MyLocks.cpu);
-      done();
+      window.TelemetryReady.then(() => {
+        assert.isTrue(window.AdvancedTelemetryHelper.calledWithNew());
+        var counter = window.AdvancedTelemetryHelper.getCall(0).returnValue;
+        assert.equal(counter.name, 'telemetry_gaia_contacts_import_sd');
+        assert.equal(window.AdvancedTelemetryHelper.HISTOGRAM_COUNT,
+          counter.type);
+        window.AdvancedTelemetryHelper.restore();
+        done();
+      });
+      
     });
   });
 
