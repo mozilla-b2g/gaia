@@ -13,7 +13,8 @@
     handleSettingChange);
 
   function handleOpenUrl(url, isPrivate) {
-    var config = new BrowserConfigHelper({url: url});
+    console.log('XXX open...' + url);
+    var config = new BrowserConfigHelper({url: 'file://'+url});
     config.oop = true;
     config.isPrivate = isPrivate;
     var newApp = new AppWindow(config);
@@ -32,6 +33,8 @@
         this.newPrivateWindow.bind(this));
       window.addEventListener('activity-view',
         this.handleActivity.bind(this));
+      window.addEventListener('activity-open',
+        this.handleActivity.bind(this));
     },
 
     handleActivity: function(e) {
@@ -49,6 +52,9 @@
           }).catch(function(err) {
             console.error(err);
           });
+          break;
+        case 'text/html':
+          handleOpenUrl(data.url||data.filename, false);
           break;
       }
     },
