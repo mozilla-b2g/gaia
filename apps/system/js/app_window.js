@@ -270,6 +270,12 @@
         // If this window is not the lockscreen, and the screen is locked,
         // we need to aria-hide the window.
         this._showFrame();
+
+        // Handle any pending scroll-area-changed (this is deferred when an
+        // app isn't visible).
+        if (this.appChrome) {
+          this.appChrome.handleScrollAreaChanged();
+        }
       } else {
         this._hideFrame();
       }

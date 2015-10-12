@@ -1444,6 +1444,20 @@ suite('system/AppWindow', function() {
       assert.isTrue(app1.reviveBrowser.called);
     });
 
+    test('setVisible: true should call handleScrollAreaChanged', function() {
+      var app1 = new AppWindow(fakeChromeConfigWithNavigationBar);
+      app1.element.dispatchEvent(new CustomEvent('_opened'));
+      app1.setVisible(false);
+
+      var handleScrollAreaChangedCalled = false;
+      app1.appChrome.handleScrollAreaChanged = () => {
+        handleScrollAreaChangedCalled = true;
+      };
+
+      app1.setVisible(true);
+      assert.isTrue(handleScrollAreaChangedCalled);
+    });
+
     test('setVisible: true', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       injectFakeMozBrowserAPI(app1.browser.element);
