@@ -17,7 +17,8 @@
     "audio-channel-notification":{},
     "desktop-notification":{},
     "phonenumberservice": {},
-    "moz-extremely-unstable-and-will-change-webcomponents":{}
+    "moz-extremely-unstable-and-will-change-webcomponents":{},
+    "open-hidden-window": {}
   },
   "locales": {
     "ar": {

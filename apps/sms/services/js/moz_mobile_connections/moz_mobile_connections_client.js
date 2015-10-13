@@ -1,5 +1,6 @@
 /* global bridge,
-          BroadcastChannel */
+          finalizeClient
+*/
 
 (function(exports) {
   'use strict';
@@ -16,31 +17,31 @@
    */
   const TIMEOUT = false;
 
-  /**
-   * Reference to active bridge client instance.
-   *
-   * @type {Client}
-   */
-  var client;
+  const priv = {
+    client: Symbol('client'),
+    appInstanceId: Symbol('appInstanceId')
+  };
 
   var MozMobileConnectionsClient = {
+    [priv.client]: null,
+    [priv.appInstanceId]: null,
+
     /**
      * Initializes connection to mozMobileConnectionsShim hosted in iframe.
      * @param {string} appInstanceId Unique identifier of app instance
      * where client resides in.
      */
-    init(appInstanceId) {
+    init(appInstanceId, endpoint) {
       if (!appInstanceId) {
         throw new Error('AppInstanceId is required!');
       }
 
-      var broadcastChannelName = `${SERVICE_NAME}-channel-${appInstanceId}`;
-
-      client = bridge.client({
+      this[priv.appInstanceId] = appInstanceId;
+      this[priv.client] = bridge.client({
         service: SERVICE_NAME,
-        endpoint: new BroadcastChannel(broadcastChannelName),
+        endpoint: endpoint,
         timeout: TIMEOUT
-      });
+      }).plugin(finalizeClient);
     },
 
     /**
@@ -50,12 +51,15 @@
      *  switching is ready or failed.
      */
     switchMmsSimHandler(iccId) {
-      return client.method('switchMmsSimHandler', iccId);
+      return this[priv.client].method(
+        'switchMmsSimHandler', iccId, this[priv.appInstanceId]
+      );
+    },
+
+    destroy() {
+      return this[priv.client].finalize();
     }
   };
 
-  exports.MozMobileConnectionsClient = Object.freeze(
-    MozMobileConnectionsClient
-  );
-
+  exports.MozMobileConnectionsClient = Object.seal(MozMobileConnectionsClient);
 })(window);
