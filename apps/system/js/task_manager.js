@@ -330,7 +330,6 @@ TaskManager.prototype = {
     // Remove '.cards-view' now, so that the incoming app animation begins its
     // transition at the proper scale.
     this.screenElement.classList.remove('cards-view');
-    this.publish('cardviewclosed', { detail });
 
     // Set the proper transition...
     if (newApp.isHomescreen) {
@@ -343,6 +342,7 @@ TaskManager.prototype = {
     // ... and when the transition has finished, clean up.
     return eventSafety(newApp.element, 'animationend', (e) => {
       this.setActive(false);
+      this.publish('cardviewclosed', { detail });
       this.element.classList.remove('to-home');
       this.element.classList.remove('filtered');
       this.stack.forEach((app) => {

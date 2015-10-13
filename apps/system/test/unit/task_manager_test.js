@@ -197,6 +197,20 @@ suite('system/TaskManager >', function() {
       clock.tick(TICK_SHOW_HIDE_MS);
     });
 
+    test('Should only emit "cardviewclosed" after !isActive', (done) => {
+      var wasActive;
+      function onclosed() {
+        window.removeEventListener('cardviewclosed', onclosed);
+        wasActive = tm.isActive();
+      }
+      window.addEventListener('cardviewclosed', onclosed);
+
+      tm.hide().then(() => {
+        assert.isFalse(wasActive);
+      }).then(done, done);
+      clock.tick(TICK_SHOW_HIDE_MS);
+    });
+
     test('Should emit "cardviewbeforeshow" and "cardviewshown"', (done) => {
       var spyCardViewBeforeShow = spyEvent(window, 'cardviewbeforeshow');
       var spyCardViewShown = spyEvent(window, 'cardviewshown');
