@@ -1,6 +1,6 @@
 /* exported open */ // Should not be needed, but JSHint complains
 /* global AlbumArtCache, AudioMetadata, Database, LazyLoader, PlaybackQueue,
-          Remote, bridge, navigateToURL */
+          Remote, bridge, navigateToURL, onSearchOpen, onSearchClose */
 'use strict';
 
 var audio           = null;
@@ -57,6 +57,8 @@ var service = bridge.service('music-service')
   .method('getDatabaseStatus', getDatabaseStatus)
 
   .method('navigate', navigate)
+  .method('searchOpen', searchOpen)
+  .method('searchClose', searchClose)
 
   .listen()
   .listen(new BroadcastChannel('music-service'));
@@ -448,6 +450,14 @@ function getDatabaseStatus() {
 
 function navigate(url) {
   navigateToURL(url);
+}
+
+function searchOpen() {
+  onSearchOpen();
+}
+
+function searchClose() {
+  onSearchClose();
 }
 
 function share(filePath) {

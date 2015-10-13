@@ -22,14 +22,15 @@
   <script defer src="/components/gaia-component/gaia-component.js"></script>
   <script defer src="/components/gaia-fast-list/gaia-fast-list.js"></script>
   <script defer src="/components/gaia-sub-header/gaia-sub-header.js"></script>
-  <script defer src="/elements/music-search.js"></script>
+  <script defer src="/elements/music-search-box.js"></script>
+  <script defer src="/elements/music-search-results.js"></script>
   <script defer src="/js/config.js"></script>
   <script defer src="/js/view.js"></script>
   <script defer src="view.js"></script>
 </head>
 <body role="application">
   <gaia-fast-list id="list" offset="37">
-    <music-search id="search" style="height:37px"></music-search>
+    <music-search-box id="search-box" results="#search-results"></music-search-box>
     <template>
       <a href="${url}">
         <div class="image"><img/></div>
@@ -38,5 +39,6 @@
       </a>
     </template>
   </gaia-fast-list>
+  <music-search-results id="search-results"></music-search-results>
 </body>
 </html>
