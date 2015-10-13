@@ -522,8 +522,8 @@
     this.lockScreenClockWidget.stop().destroy();
     delete this.lockScreenClockWidget;
 
-    this.setUnlockSoundEnabled(details.unlockSoundEnabled);
-    if (details.unlockSoundEnabled) {
+    this.unlockSoundEnabled = !!(details.unlockSoundEnabled);
+    if (this.unlockSoundEnabled) {
       var unlockAudio = new Audio('/resources/sounds/unlock.opus');
       unlockAudio.play();
     }
@@ -710,19 +710,6 @@
       this._generateMaskedBackgroundColor();
     }else{
       this._shouldRegenerateMaskedBackgroundColor = true;
-    }
-  };
-
-  /**
-   *  Sets UnlockSoundEnabled to true or false
-   *  when the screen gets unlocked
-   */
-  LockScreen.prototype.setUnlockSoundEnabled =
-  function lockscreen_setUnlockSoundEnabled(isUnlockSoundEnabled) {
-    if(isUnlockSoundEnabled) {
-      this.unlockSoundEnabled = true;
-    } else {
-      this.unlockSoundEnabled = false;
     }
   };
 
