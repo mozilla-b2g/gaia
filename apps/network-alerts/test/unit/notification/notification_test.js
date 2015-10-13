@@ -34,7 +34,8 @@ suite('Network Alerts - Notification handling', function() {
     var message = {
       title: 'Some title',
       body: 'Some body',
-      clicked: true
+      clicked: true,
+      data: { title: 'Some title' }
     };
 
     var handlerStub = window.navigator.mozSetMessageHandler;
@@ -42,7 +43,7 @@ suite('Network Alerts - Notification handling', function() {
 
     var expectedUrl = [
       'attention.html?',
-      'title=titleID&',
+      'title=Some%20title&',
       'body=Some%20body&',
       'notification=1'
     ].join('');
