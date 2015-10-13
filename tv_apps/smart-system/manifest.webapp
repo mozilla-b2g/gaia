@@ -29,6 +29,7 @@
     "permissions":{},
     "audio-channel-notification":{},
     "audio-channel-content":{},
+    "input": {},
     "input-manage":{},
     "systemXHR":{},
     "feature-detection": {},

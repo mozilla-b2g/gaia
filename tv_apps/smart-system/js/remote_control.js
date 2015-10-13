@@ -1,4 +1,4 @@
-/* global SettingsListener */
+/* global SettingsListener, KeyboardManager */
 'use strict';
 
 (function(exports) {
@@ -74,6 +74,40 @@
           // next "control-mode-changed" event triggered.
           this._fireControlModeChanged(this._isCursorMode, true);
           break;
+        case 'grant-input':
+          // InputFrameManager needs to deactivate the currently-active input
+          // frame first and then the system app can be set an active input
+          // frame by the server. It will be resumed as soon as the input
+          // procedure is finished.
+          KeyboardManager.inputFrameManager.pauseTemporarily(detail.value);
+          break;
+        case 'input-string':
+          this._inputString(detail);
+          break;
+      }
+    },
+
+    _inputString: function(detail) {
+      var mozIM = navigator.mozInputMethod;
+      var inputcontext = mozIM.inputcontext;
+      if (inputcontext) {
+        if (detail.clear) {
+          var lengthBeforeCursor = inputcontext.textBeforeCursor.length;
+          var lengthAfterCursor = inputcontext.textAfterCursor.length;
+          inputcontext.deleteSurroundingText(
+            -1 * lengthBeforeCursor,
+            lengthBeforeCursor + lengthAfterCursor
+          );
+        }
+
+        if (detail.string) {
+          inputcontext.setComposition(detail.string);
+          inputcontext.endComposition(detail.string);
+        }
+
+        if (detail.keycode) {
+          inputcontext.sendKey(detail.keycode);
+        }
       }
     },
 
