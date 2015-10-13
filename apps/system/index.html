@@ -240,7 +240,7 @@
       <div id="rocketbar-results" class="hidden" data-z-index-level="rocketbar-results"></div>
 
       <div id="utility-tray-motion" data-z-index-level="utility-tray" class="tray utility-tray-loading">
-        <div class="tray-content" id="utility-tray">
+        <div class="tray-content" aria-hidden="true" id="utility-tray">
           <!-- Notifications -->
           <div id="utility-tray-notifications" data-l10n-id="utilityTray" role="dialog" aria-label="Utility tray" data-z-index-level="utility-tray-notifications">
             <div id="statusbar-tray">
@@ -331,12 +331,11 @@
               </div>
             </div>
             <div id="utility-tray-grippy"></div>
-            <div class="ambient-indicator" id="ambient-indicator" data-z-index-level="notification-toaster">
-              <div class="handle handle1"></div>
-              <div class="handle handle2"></div>
-            </div>
           </div>
-
+        </div>
+        <div class="ambient-indicator" id="ambient-indicator" data-z-index-level="notification-toaster">
+          <div class="handle handle1"></div>
+          <div class="handle handle2"></div>
         </div>
         <div id="tray-invisible-gripper">
         </div>
