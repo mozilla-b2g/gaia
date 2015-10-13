@@ -59,16 +59,12 @@
   </head>
 
   <body>
-  <div id="page-indicator"><span></span><span></span></div>
+    <div id="page-indicator"><span></span><span></span></div>
     <div id="panels"><!--
     --><div id="apps-panel">
         <div class="shadow"></div>
         <div class="scrollable">
           <gaia-container id="apps" drag-and-drop></gaia-container>
-        </div>
-        <div id="bottombar">
-          <div id="uninstall"></div>
-          <div id="edit"></div>
         </div>
         <gaia-dialog id="cancel-download" class="dialog-action">
           <section>
@@ -88,9 +84,13 @@
    --><div id="pages-panel">
         <div class="shadow"></div>
         <div class="scrollable">
-          <div id="pages"></div>
+          <gaia-container id="pages" drag-and-drop></gaia-container>
         </div>
       </div><!--
  --></div>
+    <div id="bottombar">
+      <div id="remove"></div>
+      <div id="edit"></div>
+    </div>
   </body>
 </html>

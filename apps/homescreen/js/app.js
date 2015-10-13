@@ -3,55 +3,54 @@
 /* jshint nonew: false */
 'use strict';
 
-/**
- * Timeout before resizing the apps grid after apps change.
- */
-const RESIZE_TIMEOUT = 500;
-
-/**
- * Timeout before showing a dialog. Without this, the click that comes through
- * after an activate event from gaia-container will close the dialog.
- */
-const DIALOG_SHOW_TIMEOUT = 50;
-
-/**
- * The distance at the top and bottom of the icon container that when hovering
- * an icon in will cause scrolling.
- */
-const AUTOSCROLL_DISTANCE = 30;
-
-/**
- * The timeout before auto-scrolling a page when hovering at the edges
- * of the grid.
- */
-const AUTOSCROLL_DELAY = 750;
-
-/**
- * The time to wait after setting a scroll-position before disabling
- * overflow during drag-and-drop.
- */
-const AUTOSCROLL_OVERFLOW_DELAY = 500;
-
-/**
- * The height of the delete-app bar at the bottom of the container when
- * dragging a deletable app.
- */
-const DELETE_DISTANCE = 60;
-
-/**
- * App roles that will be skipped on the homescreen.
- */
-const HIDDEN_ROLES = [
-  'system', 'input', 'homescreen', 'theme', 'addon', 'langpack'
-];
-
-/**
- * Strings that are matched against to black-list app origins.
- * TODO: This should not be hard-coded.
- */
-const BLACKLIST = [];
-
 (function(exports) {
+  /**
+   * Timeout before resizing the apps grid after apps change.
+   */
+  const RESIZE_TIMEOUT = 500;
+
+  /**
+   * Timeout before showing a dialog. Without this, the click that comes through
+   * after an activate event from gaia-container will close the dialog.
+   */
+  const DIALOG_SHOW_TIMEOUT = 50;
+
+  /**
+   * The distance at the top and bottom of the icon container that when hovering
+   * an icon in will cause scrolling.
+   */
+  const AUTOSCROLL_DISTANCE = 30;
+
+  /**
+   * The timeout before auto-scrolling a page when hovering at the edges
+   * of the grid.
+   */
+  const AUTOSCROLL_DELAY = 750;
+
+  /**
+   * The time to wait after setting a scroll-position before disabling
+   * overflow during drag-and-drop.
+   */
+  const AUTOSCROLL_OVERFLOW_DELAY = 500;
+
+  /**
+   * The height of the delete-app bar at the bottom of the container when
+   * dragging a deletable app.
+   */
+  const DELETE_DISTANCE = 60;
+
+  /**
+   * App roles that will be skipped on the homescreen.
+   */
+  const HIDDEN_ROLES = [
+    'system', 'input', 'homescreen', 'theme', 'addon', 'langpack'
+  ];
+
+  /**
+   * Strings that are matched against to black-list app origins.
+   * TODO: This should not be hard-coded.
+   */
+  const BLACKLIST = [];
 
   function App() {
     // Chrome is displayed
@@ -65,7 +64,7 @@ const BLACKLIST = [];
     this.scrollable = document.querySelector('#apps-panel > .scrollable');
     this.icons = document.getElementById('apps');
     this.bottombar = document.getElementById('bottombar');
-    this.uninstall = document.getElementById('uninstall');
+    this.remove = document.getElementById('remove');
     this.edit = document.getElementById('edit');
     this.cancelDownload = document.getElementById('cancel-download');
     this.resumeDownload = document.getElementById('resume-download');
@@ -751,7 +750,7 @@ const BLACKLIST = [];
         this.scrollable.style.overflow = '';
         this.bottombar.classList.remove('active');
         this.edit.classList.remove('active');
-        this.uninstall.classList.remove('active');
+        this.remove.classList.remove('active');
 
         if (this.autoScrollInterval !== null) {
           clearInterval(this.autoScrollInterval);
@@ -879,7 +878,7 @@ const BLACKLIST = [];
           this.autoScrollInterval = null;
         }
 
-        this.uninstall.classList.toggle('active', inDelete);
+        this.remove.classList.toggle('active', inDelete);
         this.edit.classList.toggle('active', inEdit);
         break;
 

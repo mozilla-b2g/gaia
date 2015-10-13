@@ -44,95 +44,54 @@ gaia-app-icon.launching {
   visibility: hidden;
 }
 
-gaia-container.small > .gaia-container-child > .icon-container {
+#apps.small > .gaia-container-child > .icon-container {
   width: 24vw;
   height: calc(24vw + 1.9rem);
 }
 
-gaia-container > .gaia-container-child.dragging > .icon-container > gaia-app-icon {
+#apps > .gaia-container-child.dragging > .icon-container > gaia-app-icon {
   transform: scale(1.1);
   opacity: 0.8;
 }
 
-gaia-container.small > .gaia-container-child > .icon-container > gaia-app-icon {
+#apps.small > .gaia-container-child > .icon-container > gaia-app-icon {
   transform: scale(0.75) translate(-4vw, -4vw);
 }
 
-gaia-container.small > .gaia-container-child.dragging > .icon-container > gaia-app-icon {
+#apps.small > .gaia-container-child.dragging > .icon-container > gaia-app-icon {
   transform: scale(0.8) translate(-3.2vw, -3.2vw);
 }
 
-.dragging:not(.autoscroll) gaia-container > .gaia-container-child > .icon-container {
+.dragging:not(.autoscroll) #apps > .gaia-container-child > .icon-container {
   will-change: transform;
 }
 
-gaia-container > .gaia-container-child > .icon-container.hover-before {
+#apps > .gaia-container-child > .icon-container.hover-before {
   transform: translateX(3.5rem);
 }
 
-gaia-container > .gaia-container-child > .icon-container.hover-after {
+#apps > .gaia-container-child > .icon-container.hover-after {
   transform: translateX(-3.5rem);
 }
 
-#bottombar {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 6rem;
-  background: rgba(0, 0, 0, 0.35);
-  transition: transform 0.2s;
-  transform: translateY(6.5rem);
-  font-size: 0;
+#apps > .gaia-container-child.added gaia-app-icon {
+  animation-name: icon-added;
+  animation-duration: 0.4s;
+  z-index: 1;
 }
 
-#bottombar.active {
-  transform: none;
+@keyframes icon-added {
+  0% { opacity: 0; transform: scale(0.5); }
+  100% { opacity: 1; }
 }
 
-#uninstall {
-  display: inline-block;
-  width: 100%;
-  height: 100%;
-  opacity: 0.5;
-  background: no-repeat center center url('images/delete_bottom.svg');
-  background-size: 4.5rem 4.5rem;
-  transition: opacity 0.2s;
+#apps > .gaia-container-child.removed gaia-app-icon {
+  animation-name: icon-removed;
+  animation-duration: 0.4s;
 }
 
-#bottombar.editable #uninstall {
-  width: 50%;
-}
-
-#uninstall::after {
-  display: block;
-  content: '';
-  width: 100%;
-  height: 100%;
-  background: no-repeat center center url('images/delete_lid.svg');
-  background-size: 4.5rem 4.5rem;
-  transform-origin: calc(50% + 1.75rem) calc(50% + 0.8rem);
-  transition: transform 0.2s;
-}
-
-#uninstall.active {
-  opacity: 1;
-}
-
-#uninstall.active:after {
-  transform: rotateZ(30deg);
-}
-
-#edit {
-  display: inline-block;
-  width: 50%;
-  height: 100%;
-  opacity: 0.5;
-  background: no-repeat center center url('images/edit.svg');
-  background-size: 4.5rem 4.5rem;
-  transition: opacity 0.2s;
-}
-
-#edit.active {
-  opacity: 1;
+@keyframes icon-removed {
+  45% { transform: scaleY(0.1); }
+  55% { transform: scaleY(0.1); }
+  100% { transform: scale(0); }
 }
