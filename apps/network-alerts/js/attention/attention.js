@@ -48,7 +48,6 @@ function sendNotification() {
           }
         }
       );
-      console.log(title);
 
       notification.onerror = function onerror() {
         reject(new Error('CMAS: notification API error'));
