@@ -78,6 +78,12 @@
       "description": "Gaia 設定"
     }
   },
+  "datastores-owned": {
+    "homescreen_settings": {
+      "access": "readwrite",
+      "description": "Stores home screen settings"
+    }
+  },
   "datastores-access": {
     "download_store": {
       "readonly": false,

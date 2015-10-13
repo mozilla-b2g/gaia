@@ -39,6 +39,10 @@
     "icons": {
       "readonly": false,
       "description": "Store and retrieve cached website icons."
+    },
+    "homescreen_settings": {
+      "readonly": true,
+      "description": "Read home screen settings."
     }
   },
   "orientation": "default"

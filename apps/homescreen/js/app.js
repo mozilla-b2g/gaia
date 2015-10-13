@@ -1,19 +1,7 @@
 /* global MozActivity, HomeMetadata, Datastore, Pages, LazyLoader, FirstRun,
-          IconsHelper */
+          IconsHelper, Settings */
 /* jshint nonew: false */
 'use strict';
-
-/**
- * The distance a pinch gesture has to move before being considered for a
- * column-layout change.
- */
-const PINCH_DISTANCE_THRESHOLD = 150;
-
-/**
- * The minimum distance a pinch gesture has to move before being reflected
- * visually.
- */
-const PINCH_FEEDBACK_THRESHOLD = 5;
 
 /**
  * Timeout before resizing the apps grid after apps change.
@@ -62,11 +50,6 @@ const HIDDEN_ROLES = [
  * TODO: This should not be hard-coded.
  */
 const BLACKLIST = [];
-
-/**
- * Stored settings version, for use when changing/refactoring settings storage.
- */
-const SETTINGS_VERSION = 0;
 
 (function(exports) {
 
@@ -120,11 +103,6 @@ const SETTINGS_VERSION = 0;
     this.appsVisible = false;
     this.scrolled = false;
 
-    // Pinch-to-zoom
-    this.small = false;
-    this.wasSmall = false;
-    this.pinchListening = false;
-
     // Drag-and-drop
     this.dragging = false;
     this.draggingRemovable = false;
@@ -148,19 +126,17 @@ const SETTINGS_VERSION = 0;
     this.icons.addEventListener('drag-end', this);
     this.icons.addEventListener('drag-rearrange', this);
     this.icons.addEventListener('drag-finish', this);
-    this.icons.addEventListener('touchstart', this);
-    this.icons.addEventListener('touchmove', this);
-    this.icons.addEventListener('touchend', this);
-    this.icons.addEventListener('touchcancel', this);
     navigator.mozApps.mgmt.addEventListener('install', this);
     navigator.mozApps.mgmt.addEventListener('uninstall', this);
     window.addEventListener('hashchange', this, true);
     window.addEventListener('localized', this);
     window.addEventListener('online', this);
     window.addEventListener('resize', this);
+    window.addEventListener('settings-changed', this);
 
-    // Restore settings
-    this.restoreSettings();
+    // Settings
+    this.settings = new Settings();
+    this.icons.classList.toggle('small', this.settings.small);
 
     // Populate apps and bookmarks asynchronously
     this.startupMetadata = [];
@@ -181,15 +157,13 @@ const SETTINGS_VERSION = 0;
       // won't save, but it's better than showing a blank screen.
       // If this is the first run, get the app order from the first-run script
       // after initialising the metadata database.
-      this.metadata.init().then(this.firstRun ?
+      this.metadata.init().then(this.settings.firstRun ?
         LazyLoader.load(['js/firstrun.js'],
           () => {
             FirstRun().then((results) => {
-              this.small = results.small;
-              this.icons.classList.toggle('small', this.small);
-              this.saveSettings();
-
+              this.toggleSmall(results.small);
               this.startupMetadata = results.order;
+              this.settings.save();
               return Promise.resolve();
             }, (e) => {
               console.error('Error running first-run script', e);
@@ -307,7 +281,7 @@ const SETTINGS_VERSION = 0;
       }
 
       // Remove unknown entries from the startup metadata
-      if (!this.firstRun) {
+      if (!this.settings.firstRun) {
         for (var data of this.startupMetadata) {
           console.log('Removing unknown app metadata entry', data.id);
           this.metadata.remove(data.id).then(
@@ -359,27 +333,15 @@ const SETTINGS_VERSION = 0;
       return this._iconSize;
     },
 
-    saveSettings: function() {
-      localStorage.setItem('settings', JSON.stringify({
-        version: SETTINGS_VERSION,
-        small: this.small
-      }));
-    },
-
-    restoreSettings: function() {
-      var settingsString = localStorage.getItem('settings');
-      if (!settingsString) {
-        this.firstRun = true;
+    toggleSmall: function(small) {
+      if (this.icons.classList.contains('small') === small) {
         return;
       }
 
-      var settings = JSON.parse(settingsString);
-      if (settings.version !== SETTINGS_VERSION) {
-        return;
-      }
-
-      this.small = settings.small || false;
-      this.icons.classList.toggle('small', this.small);
+      this.icons.classList.toggle('small', small);
+      this.icons.synchronise();
+      this.refreshGridSize();
+      this.snapScrollPosition();
     },
 
     onVisualLoad: function() {
@@ -553,18 +515,6 @@ const SETTINGS_VERSION = 0;
         });
     },
 
-    stopPinch: function() {
-      if (!this.pinchListening) {
-        return;
-      }
-
-      this.scrollable.addEventListener('transitionend', this);
-      this.pinchListening = false;
-      this.scrollable.style.transition = '';
-      this.scrollable.style.transform = '';
-      this.handleEvent({ type: 'scroll' });
-    },
-
     iconAdded: function(container) {
       // Refresh the grid size if this child is visible
       if (container.style.display === 'none') {
@@ -597,14 +547,16 @@ const SETTINGS_VERSION = 0;
         var scrollHeight = this.scrollable.clientHeight;
         var pageHeight = Math.floor(scrollHeight / iconHeight) * iconHeight;
         var gridHeight = (Math.ceil((iconHeight *
-          Math.ceil(visibleChildren / (this.small ? 4 : 3))) / pageHeight) *
+          Math.ceil(visibleChildren /
+                    (this.settings.small ? 4 : 3))) / pageHeight) *
           pageHeight) + (scrollHeight - pageHeight);
 
         this.pageHeight = pageHeight;
         this.pendingGridHeight = gridHeight;
 
         if (!this.visualLoadComplete &&
-            Math.floor(visibleChildren / (this.small ? 4 : 3)) * iconHeight >=
+            Math.floor(visibleChildren /
+                       (this.settings.small ? 4 : 3)) * iconHeight >=
               scrollHeight) {
           this.onVisualLoad();
         }
@@ -916,78 +868,6 @@ const SETTINGS_VERSION = 0;
         this.edit.classList.toggle('active', inEdit);
         break;
 
-      // Pinch-to-zoom
-      case 'touchstart':
-        if (e.touches.length === 2) {
-          this.wasSmall = this.small;
-          this.startDistance =
-            Math.sqrt(Math.pow(e.touches[0].clientX -
-                               e.touches[1].clientX, 2) +
-                      Math.pow(e.touches[0].clientY -
-                               e.touches[1].clientY, 2));
-          this.pinchListening = true;
-          document.body.classList.add('zooming');
-          this.scrollable.style.transition = 'unset';
-        } else {
-          this.stopPinch();
-        }
-        break;
-
-      case 'touchmove':
-        if (!this.pinchListening || e.touches.length !== 2) {
-          return;
-        }
-
-        var distance =
-          (Math.sqrt(Math.pow(e.touches[0].clientX -
-                              e.touches[1].clientX, 2) +
-                     Math.pow(e.touches[0].clientY -
-                              e.touches[1].clientY, 2))) -
-          this.startDistance;
-
-        var newState;
-        if (this.wasSmall) {
-          newState = (distance < PINCH_DISTANCE_THRESHOLD);
-        } else {
-          newState = (distance < -PINCH_DISTANCE_THRESHOLD);
-        }
-
-        if (!this.scrolled && distance > 0) {
-          this.scrolled = true;
-          this.shadow.classList.add('visible');
-        }
-
-        if (this.small !== newState) {
-          this.small = newState;
-          this.icons.style.height = '';
-          this.icons.classList.toggle('small', this.small);
-          this.icons.synchronise();
-          this.stopPinch();
-          this.saveSettings();
-        } else if (Math.abs(distance) > PINCH_FEEDBACK_THRESHOLD) {
-          this.scrollable.style.transform = 'scale(' +
-            ((window.innerWidth + distance / 4) / window.innerWidth) + ')';
-        }
-        break;
-
-      case 'touchend':
-      case 'touchcancel':
-        if (!e.touches || e.touches.length === 0) {
-          this.handleEvent({ type: 'scroll' });
-        }
-
-        this.stopPinch();
-        break;
-
-      case 'transitionend':
-        if (e.target === this.scrollable) {
-          this.scrollable.removeEventListener('transitionend', this);
-          document.body.classList.remove('zooming');
-          this.refreshGridSize();
-          this.snapScrollPosition();
-        }
-        break;
-
       // Add apps installed after startup
       case 'install':
         this.addApp(e.application);
@@ -1070,6 +950,10 @@ const SETTINGS_VERSION = 0;
         this.icons.synchronise();
         this.refreshGridSize();
         this.snapScrollPosition();
+        break;
+
+      case 'settings-changed':
+        this.toggleSmall(this.settings.small);
         break;
       }
     }
