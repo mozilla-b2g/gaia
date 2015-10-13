@@ -133,7 +133,8 @@ SystemAppBuilder.prototype.inlineDeviceType = function(options) {
 SystemAppBuilder.prototype.enableFirefoxSync = function(options) {
   var fileList = {
     process: [
-      ['js', 'core.js']
+      ['js', 'core.js'],
+      ['js', 'fx_accounts_client.js']
     ],
     remove: [
       ['js', 'sync_manager.js'],
