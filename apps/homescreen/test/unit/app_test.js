@@ -1,16 +1,16 @@
 /* jshint nonew: false */
 /* global MockNavigatormozApps, MockMozActivity, MockIconsHelper, IconsHelper,
-          mockLocalStorage, HomeMetadata, Datastore, App */
+          HomeMetadata, Datastore, Settings, App */
 'use strict';
 
 require('/shared/test/unit/load_body_html_helper.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 require('/shared/test/unit/mocks/mock_moz_activity.js');
 require('/shared/test/unit/mocks/mock_icons_helper.js');
-require('mocks/mock_localStorage.js');
 require('mocks/mock_metadata.js');
 require('mocks/mock_datastore.js');
 require('mocks/mock_pages.js');
+require('mocks/mock_settings.js');
 require('/shared/js/l10n.js');
 require('/js/app.js');
 
@@ -27,8 +27,6 @@ suite('Homescreen app', () => {
   var gaiaAppIconEl;
 
   realCreateElement = document.createElement.bind(document);
-
-  const SETTINGS = '{"version":0,"small":false}';
 
   var getIcon = manifestURL => {
     var iconChild = document.createElement('div');
@@ -76,15 +74,6 @@ suite('Homescreen app', () => {
     window.IconsHelper = MockIconsHelper;
 
     MockMozActivity.mSetup();
-    mockLocalStorage.mSetup();
-
-    // Seed the local-storage to bypass first-run behaviour
-    mockLocalStorage.setItem('settings', SETTINGS);
-
-    Object.defineProperty(window, 'localStorage', {
-      configurable: true,
-      get: () => mockLocalStorage
-    });
 
     loadBodyHTML('_index.html');
     document.head.innerHTML = `<meta name="theme-color" content="transparent">`;
@@ -239,11 +228,11 @@ suite('Homescreen app', () => {
           return Promise.resolve({ order: [], small: false });
         };
 
-        mockLocalStorage.setItem('settings', undefined);
+        Settings.firstRun = true;
       });
 
       teardown(() => {
-        mockLocalStorage.setItem('settings', SETTINGS);
+        delete Settings.firstRun;
       });
 
       test('should initialise the bookmark stores', done => {
@@ -294,29 +283,6 @@ suite('Homescreen app', () => {
       app.icons.firstChild.firstChild.style.display = 'none';
       app.icons.firstChild.firstChild.firstChild.style.width = '200px';
       assert.equal(app.iconSize, 100);
-    });
-  });
-
-  suite('App#saveSettings()', () => {
-    test('should restore data', () => {
-      app.small = true;
-      app.saveSettings();
-      app.small = false;
-      app.restoreSettings();
-
-      assert.equal(app.small, true);
-    });
-
-    test('should not restore data if version number differs', () => {
-      app.small = true;
-      app.saveSettings();
-      var tmp = JSON.parse(mockLocalStorage.mRawContent.settings);
-      tmp.version = 'UnknownVersionNumber';
-      mockLocalStorage.mRawContent.settings = JSON.stringify(tmp.settings);
-      app.small = false;
-      app.restoreSettings();
-
-      assert.equal(app.small, false);
     });
   });
 

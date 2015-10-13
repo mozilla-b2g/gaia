@@ -1,25 +1,25 @@
 'use strict';
 
-suite('Homescreens_details > Homescreen_cols', () => {
+suite('homescreens > homescreen_cols', () => {
   var modules = [
     'modules/mvvm/observable',
-    'MockVerticalPreferences',
-    'panels/homescreen_details/homescreen_cols'
+    'unit/mock_homescreen_settings',
+    'panels/homescreens/homescreen_cols'
   ];
 
   var maps = {
     '*': {
-      'shared/homescreens/vertical_preferences': 'MockVerticalPreferences'
+      'shared/homescreens/homescreen_settings': 'unit/mock_homescreen_settings'
     }
   };
 
   const DEFAULT_SELECTED_OPTION = '3';
 
   var homescreenCols;
-  var mockVerticalPreferences;
+  var mockHomescreenSettings;
 
   setup(done => {
-    define('MockVerticalPreferences', () => {
+    define('MockHomescreenSettings', () => {
       return {
         addEventListener: function(key, callback) {
           if (!this._eventHandlers) {
@@ -31,14 +31,16 @@ suite('Homescreens_details > Homescreen_cols', () => {
         },
         get: () => {
           return Promise.resolve(DEFAULT_SELECTED_OPTION);
-        }
+        },
+        setStoreName: () => {}
       };
     });
 
-    testRequire(modules, maps, (Observable, MockVerticalPreferences,
+    testRequire(modules, maps, (Observable,
+                                MockHomescreenSettings,
                                 HomescreenCols) => {
+      mockHomescreenSettings = MockHomescreenSettings;
       homescreenCols = HomescreenCols();
-      mockVerticalPreferences = MockVerticalPreferences;
       done();
     });
   });
@@ -50,9 +52,9 @@ suite('Homescreens_details > Homescreen_cols', () => {
     });
   });
 
-  test('When VerticalPreferences is updated, cols is updated too', () => {
+  test('When HomescreenSettings is updated, cols is updated too', () => {
     var fakeGridCols = 4;
-    mockVerticalPreferences._eventHandlers.updated({
+    mockHomescreenSettings._eventHandlers.updated({
       target: {
         name: 'grid.cols',
         value: fakeGridCols
@@ -67,7 +69,7 @@ suite('Homescreens_details > Homescreen_cols', () => {
     var promise = new Promise(resolve => {
       resolveFunc = resolve;
     });
-    this.sinon.stub(mockVerticalPreferences, 'put', () => {
+    this.sinon.stub(mockHomescreenSettings, 'put', () => {
       return promise;
     });
 

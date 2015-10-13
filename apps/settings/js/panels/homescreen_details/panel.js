@@ -4,17 +4,11 @@
 define(function(require) {
   'use strict';
 
-  const DEFAULT_MANIFEST = 'app://verticalhome.gaiamobile.org/manifest.webapp';
-
   var SettingsPanel = require('modules/settings_panel');
   var HomescreensDetails =
     require('panels/homescreen_details/homescreen_details');
-  var HomescreenCols = require('panels/homescreen_details/homescreen_cols');
-
-  var gridSelect = null;
 
   return function ctor_homescreen_details_panel() {
-    var homescreenCols = HomescreenCols();
     var homescreensDetails = HomescreensDetails();
 
     return SettingsPanel({
@@ -34,12 +28,6 @@ define(function(require) {
           uninstallButton: panel.querySelector('button.uninstall-homescreen')
         });
 
-        gridSelect = panel.querySelector('[name="grid.layout.cols"]');
-        gridSelect.addEventListener('change', function() {
-          homescreenCols.setCols(this.value);
-        });
-
-        this._updateCols(homescreenCols.cols);
       },
 
       /**
@@ -48,34 +36,6 @@ define(function(require) {
        */
       onBeforeShow: function hdp_onBeforeShow(panel, options) {
         homescreensDetails.onBeforeShow(options);
-
-        homescreenCols.observe('cols', this._updateCols);
-
-        // Hide or show the legacy home screen layout section.
-        var legacyLayout = panel.querySelector('.legacy-homescreen-layout');
-        legacyLayout.classList.toggle('visible',
-          options.app.manifestURL === DEFAULT_MANIFEST);
-      },
-
-      onBeforeHide: function hdp_onBeforeHide() {
-        homescreenCols.unobserve('cols');
-      },
-
-      /**
-       * @param {Number} number The number of columns in the layout.
-       * @private
-       */
-      _updateCols: function hdp_updateCols(number) {
-        if (!number) {
-          return;
-        }
-
-        var option =
-          gridSelect.querySelector('[value="' + number + '"]');
-
-        if (option) {
-          option.selected = true;
-        }
       }
     });
   };

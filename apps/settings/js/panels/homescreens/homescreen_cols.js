@@ -1,11 +1,11 @@
 /**
- * Manage the column layout of the legacy vertical home screen.
+ * Manage the column layout of the home screen.
  */
 define(function(require) {
   'use strict';
 
   var Module = require('modules/base/module');
-  var VerticalPreferences = require('shared/homescreens/vertical_preferences');
+  var HomescreenSettings = require('shared/homescreens/homescreen_settings');
   var Observable = require('modules/mvvm/observable');
 
   var HomescreenCols = Module.create(function HomescreenCols() {
@@ -15,7 +15,7 @@ define(function(require) {
     this._cachedColsValue = null;
 
     // We may update this value somewhere in other apps.
-    VerticalPreferences.addEventListener('updated', e => {
+    HomescreenSettings.addEventListener('updated', e => {
       var prop = e.target;
       if (prop.name === 'grid.cols') {
         this._cols = prop.value;
@@ -23,7 +23,7 @@ define(function(require) {
     });
 
     // Set the default value.
-    VerticalPreferences.get('grid.cols').then(number => {
+    HomescreenSettings.get('grid.cols').then(number => {
       this._cols = number;
     });
   }).extend(Observable);
@@ -39,14 +39,14 @@ define(function(require) {
   });
 
   /**
-   * Change the value of `grid.cols` preference of the vertical homescreen.
+   * Change the value of `grid.cols` preference of the homescreen.
    *
    * @param {Number} value
    */
   HomescreenCols.prototype.setCols = function hc_setCols(value) {
     if (!this._isUpdating) {
       this._isUpdating = true;
-      VerticalPreferences.put('grid.cols', value).then(() => {
+      HomescreenSettings.put('grid.cols', value).then(() => {
         this._cols = value;
         this._isUpdating = false;
         if (this._cachedColsValue) {
@@ -59,6 +59,18 @@ define(function(require) {
       this._cachedColsValue = value;
     }
   };
+
+  Object.defineProperty(HomescreenCols.prototype, 'verticalhomeActive', {
+    set: function(active) {
+      HomescreenSettings.setStoreName(active ?
+        'vertical_preferences_store' : 'homescreen_settings');
+      HomescreenSettings.get('grid.cols').then(number => {
+        this._cols = number;
+      });
+    },
+
+    enumerable: true
+  });
 
   return HomescreenCols;
 });

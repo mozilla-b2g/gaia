@@ -6,15 +6,6 @@
   padding-top: 1.5vw;
 }
 
-.zooming .scrollable {
-  will-change: transform;
-}
-
-.zooming .scrollable {
-  overflow: hidden;
-}
-
-
 /* This weird arrangement of constant sizes, transforms and containers is so
  * the gaia-container can animate fully between small and not-small states.
  * Without this animation, the container would be unnecessary and only the
