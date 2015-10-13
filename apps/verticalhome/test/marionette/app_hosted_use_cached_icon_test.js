@@ -71,8 +71,7 @@ marionette('Vertical Home - Hosted app cached icon fetch', function() {
 
     // check for the cached icon...
     client.waitFor(function() {
-      return iconSrc(icon) ===
-        '/shared/elements/gaia_grid/images/default_icon.png';
+      return iconSrc(icon) === 'blobcache';
     });
 
     // allow the request to succeed
