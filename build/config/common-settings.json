@@ -1,6 +1,7 @@
 {
    "accessibility.invert": false,
    "accessibility.screenreader": false,
+   "accessibility.screenreader-ftu-timeout-seconds": 15,
    "alarm.enabled": false,
    "app-transition.enabled": true,
    "app.cards_view.screenshots.enabled": true,
