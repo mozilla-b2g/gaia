@@ -1,9 +1,13 @@
 <div>
-  <ul>
+  <ul class="apps-storage-status">
     <li>
       <progress class="apps-space-bar" min="0" value="0" max="100"></progress>
+      <div class="apps-low-disk-space">
+        <h2 class="title"></h2>
+        <p class="description"></p>
+      </div>
     </li>
-	<li>
+    <li>
       <a> Total Space
         <span class="apps-total-space"></span>
       </a>
@@ -13,10 +17,16 @@
         <span class="apps-used-space"></span>
       </a>
     </li>
-    <li>
-      <a> Left
+    <li class="apps-free-space-section">
+      <a>
+        <span class="apps-free-space-label"></span>
         <span class="apps-free-space"></span>
       </a>
+    </li>
+    <li class="description two-column-description">
+      <p>
+        <a href="#" class="media-storage"></a>
+      </p>
     </li>
   </ul>
 </div>
