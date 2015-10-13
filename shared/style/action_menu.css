@@ -292,6 +292,11 @@ html[dir="rtl"] [role="dialog"][data-type="action"] > header > a {
   text-align: center;
   border: none;
   border-radius: 2rem;
+  line-height: 4rem;
+  font-size: 1.6rem;
+  height: 4rem;
+  font-family: sans-serif;
+  font-style: italic;
 }
 
 [role="dialog"][data-type="action"] > menu > button:nth-last-child(2) {
