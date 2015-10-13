@@ -31,9 +31,7 @@ marionette('Homescreen - Pin the web', function() {
     home.waitForLaunch();
   });
 
-  // Skip test since we are disabling pinning door hanger in 2.5
-  // See https://bugzilla.mozilla.org/show_bug.cgi?id=1207710
-  test.skip('Pinning a site from the site icon', function() {
+  test('Pinning a site from the site icon', function() {
     var numIcons = home.visibleIcons.length;
     var url = server.url('sample.html');
 
