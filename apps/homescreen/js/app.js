@@ -344,6 +344,15 @@ const BLACKLIST = [];
       this.snapScrollPosition();
     },
 
+    toggleScrollSnapping: function(scrollSnapping) {
+      if (this.scrollable.classList.contains('snapping') === scrollSnapping) {
+        return;
+      }
+
+      this.scrollable.classList.toggle('snapping', this.scrollSnapping);
+      this.snapScrollPosition();
+    },
+
     onVisualLoad: function() {
       this.visualLoadComplete = true;
       this.icons.thaw();
@@ -592,8 +601,14 @@ const BLACKLIST = [];
       var currentScroll = this.scrollable.scrollTop;
       var scrollHeight = this.scrollable.clientHeight;
 
-      var destination = Math.min(gridHeight - scrollHeight,
-        Math.round(currentScroll / this.pageHeight + bias) * this.pageHeight);
+      var destination;
+      if (this.scrollSnapping) {
+        destination = Math.min(gridHeight - scrollHeight,
+          Math.round(currentScroll / this.pageHeight + bias) * this.pageHeight);
+      } else {
+        destination = Math.min(gridHeight - scrollHeight,
+          currentScroll + (this.pageHeight * bias));
+      }
 
       if (Math.abs(destination - currentScroll) > 1) {
         this.scrollable.style.overflow = '';
@@ -954,6 +969,7 @@ const BLACKLIST = [];
 
       case 'settings-changed':
         this.toggleSmall(this.settings.small);
+        this.toggleScrollSnapping(this.settings.scrollSnapping);
         break;
       }
     }

@@ -7,7 +7,7 @@ require('/shared/test/unit/mocks/mock_navigator_datastore.js');
 require('/js/settings.js');
 
 suite('Settings', () => {
-  const DEFAULT_SETTINGS = '{"version":0,"small":false}';
+  const DEFAULT_SETTINGS = '{"version":0,"small":false,"scrollSnapping":false}';
 
   var realLocalStorage;
   var realNavigatorDatastores;
@@ -55,10 +55,13 @@ suite('Settings', () => {
       test('restores settings', () => {
         var settings = new Settings();
         assert.isFalse(settings.small);
+        assert.isFalse(settings.scrollSnapping);
 
-        mockLocalStorage.setItem('settings', '{"version":0,"small":true}');
+        mockLocalStorage.setItem('settings',
+          '{"version":0,"small":true,"scrollSnapping":true}');
         settings = new Settings();
         assert.isTrue(settings.small);
+        assert.isTrue(settings.scrollSnapping);
       });
 
       test('should not restore data if version number differs', () => {
@@ -76,17 +79,37 @@ suite('Settings', () => {
       });
 
       suite('datastore settings', () => {
+        var target;
         var cols;
+        var page;
         var afterGetCall;
         var datastoreGetStub;
 
         setup(() => {
           cols = 3;
+          page = false;
+
           datastoreGetStub = sinon.stub(MockDatastore, 'get', id => {
+            var returnData;
+            var returnObject = {
+              then: callback => {
+                callback(returnData);
+                if (id === target) {
+                  afterGetCall();
+                }
+              }
+            };
+
             switch (id) {
             case 'grid.cols':
-              return { then: callback => { callback(cols); afterGetCall(); } };
+              returnData = cols;
+              break;
+
+            case 'grid.paging':
+              returnData = page;
+              break;
             }
+            return returnObject;
           });
         });
 
@@ -97,6 +120,7 @@ suite('Settings', () => {
         test('restores columns setting', done => {
           var settings;
 
+          target = 'grid.cols';
           afterGetCall = () => {
             try {
               assert.isFalse(settings.small);
@@ -120,6 +144,7 @@ suite('Settings', () => {
         test('responds to columns setting change', done => {
           var settings;
 
+          target = 'grid.cols';
           afterGetCall = () => {
             try {
               assert.isFalse(settings.small);
@@ -139,6 +164,58 @@ suite('Settings', () => {
 
             cols = 4;
             MockDatastore._cb({ id: 'grid.cols' });
+          };
+
+          settings = new Settings();
+        });
+
+        test('restores paging setting', done => {
+          var settings;
+
+          target = 'grid.paging';
+          afterGetCall = () => {
+            try {
+              assert.isFalse(settings.scrollSnapping);
+            } catch(e) {
+              done(e);
+            }
+
+            afterGetCall = () => {
+              done(() => {
+                assert.isTrue(settings.scrollSnapping);
+              });
+            };
+
+            page = true;
+            settings = new Settings();
+          };
+
+          settings = new Settings();
+        });
+
+        test('responds to paging setting change', done => {
+          var settings;
+
+          target = 'grid.paging';
+          afterGetCall = () => {
+            try {
+              assert.isFalse(settings.scrollSnapping);
+            } catch(e) {
+              done(e);
+            }
+
+            var dispatchEventStub = sinon.stub(window, 'dispatchEvent');
+
+            afterGetCall = () => {
+              done(() => {
+                assert.isTrue(dispatchEventStub.called);
+                assert.isTrue(settings.scrollSnapping);
+                dispatchEventStub.restore();
+              });
+            };
+
+            page = true;
+            MockDatastore._cb({ id: 'grid.paging' });
           };
 
           settings = new Settings();

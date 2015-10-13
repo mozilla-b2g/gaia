@@ -18,9 +18,15 @@
    */
   const COLUMNS_SETTING = 'grid.cols';
 
+  /**
+   * Name of the global home screen paging setting.
+   */
+  const PAGING_SETTING = 'grid.paging';
+
   function Settings() {
     // Initialise default settings
     this.small = false;
+    this.scrollSnapping = false;
     this.firstRun = false;
 
     // Listen to external settings changes
@@ -42,15 +48,26 @@
           });
         };
 
+        var syncPagingSetting = () => {
+          stores[0].get(PAGING_SETTING).then(paging => {
+            this.scrollSnapping = paging;
+            signalChange();
+          });
+        };
+
         stores[0].addEventListener('change', e => {
           switch (e.id) {
             case COLUMNS_SETTING:
               syncSmallSetting();
               break;
+            case PAGING_SETTING:
+              syncPagingSetting();
+              break;
           }
         });
 
         syncSmallSetting();
+        syncPagingSetting();
       }, e => {
         console.error('Error retrieving home screen settings datastore:', e);
       });
@@ -71,6 +88,7 @@
     }
 
     this.small = settings.small || false;
+    this.scrollSnapping = settings.scrollSnapping || false;
 
     // Monitor global homescreen settings
     if (!navigator.getDataStores) {
@@ -83,7 +101,8 @@
     save: function() {
       localStorage.setItem('settings', JSON.stringify({
         version: SETTINGS_VERSION,
-        small: this.small
+        small: this.small,
+        scrollSnapping: this.scrollSnapping
       }));
     }
   };

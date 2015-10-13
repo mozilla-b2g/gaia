@@ -1,9 +1,12 @@
 #apps-panel > .scrollable {
   overflow-y: auto;
-  scroll-snap-type-y: mandatory;
   height: 100%;
   transition: transform 0.2s;
   padding-top: 1.5vw;
+}
+
+#apps-panel > .scrollable.snapping {
+  scroll-snap-type-y: mandatory;
 }
 
 /* This weird arrangement of constant sizes, transforms and containers is so
