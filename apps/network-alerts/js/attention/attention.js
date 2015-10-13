@@ -42,9 +42,13 @@ function sendNotification() {
         navigator.mozL10n.get(title), {
           body: body,
           tag: '' + Date.now(), // needs to be unique
-          icon: NotificationHelper.getIconURI(app) + '?titleID=' + title
+          icon: NotificationHelper.getIconURI(app),
+          data: {
+            "title": title
+          }
         }
       );
+      console.log(title);
 
       notification.onerror = function onerror() {
         reject(new Error('CMAS: notification API error'));
