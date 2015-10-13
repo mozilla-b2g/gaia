@@ -149,6 +149,12 @@ window.addEventListener('load', function startup() {
 
   window.core = BaseModule.instantiate('Core');
   window.core && window.core.start();
+
+  window.syncStateMachine = BaseModule.instantiate('SyncStateMachine');
+  window.syncStateMachine && window.syncStateMachine.start();
+
+  window.syncManager = BaseModule.instantiate('SyncManager');
+  window.syncManager && window.syncManager.start();
 });
 
 window.usbStorage = new UsbStorage();
