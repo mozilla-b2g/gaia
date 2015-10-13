@@ -10,6 +10,7 @@ var MenuAccessor = require('../shared/menu_accessors');
 var appRoot = require('app-root-path');
 // TODO Change the path once requireFromApp becomes its own module
 var fromApp = require(appRoot + '/shared/test/integration/require_from_app');
+var Contacts = fromApp('contacts').require('lib/contacts');
 
 function ConversationView(client) {
   this.client = client;
@@ -78,13 +79,15 @@ ConversationView.prototype = {
   openCreateNewContact: function() {
     this.accessors.headerTitle.tap();
     this.accessors.createNewContactOption.tap();
-    return this._switchToContactsPageObject();
+    var contacts = new Contacts(this.client);
+    contacts.switchToCreateNewContactActivity();
+    return contacts;
   },
 
   openAddToExistingContact: function() {
     this.accessors.headerTitle.tap();
     this.accessors.addToExistingContactOption.tap();
-    return this._switchToContactsPageObject();
+    return this._switchToContactsApp();
   },
 
   openParticipants: function() {
@@ -192,10 +195,9 @@ ConversationView.prototype = {
     return inboxView;
   },
 
-  _switchToContactsPageObject: function() {
-    var Contacts = fromApp('contacts').require('lib/contacts');
+  _switchToContactsApp: function() {
     var contacts = new Contacts(this.client);
-    contacts.switchTo();
+    contacts.switchToApp();
     return contacts;
   }
 };
