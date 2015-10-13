@@ -291,14 +291,14 @@ window.GaiaAppIcon = (function(exports) {
         this._image = null;
         this._hasIcon = true;
 
-        if (!this._hasPredefinedIcon) {
-          this.dispatchEvent(new CustomEvent('icon-loaded'));
-        }
-
         // Set icon URL on dataset, for testing.
         if (this._pendingIconUrl) {
           this._iconUrl = this.dataset.testIconUrl = this._pendingIconUrl;
           this._pendingIconUrl = null;
+        }
+
+        if (!this._hasPredefinedIcon) {
+          this.dispatchEvent(new CustomEvent('icon-loaded'));
         }
 
         if (this._pendingIconRefresh) {

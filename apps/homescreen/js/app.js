@@ -935,7 +935,7 @@ const BLACKLIST = [];
             id = this.getIconId(icon.app ? icon.app : icon.bookmark,
                                 icon.entryPoint);
             if (id === this.iconsToRetry[i]) {
-              if (icon.id) {
+              if (icon.bookmark) {
                 this.setBookmarkIcon(icon);
               } else {
                 icon.refresh();
