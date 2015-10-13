@@ -1,4 +1,5 @@
-/* global MozActivity, HomeMetadata, Datastore, Pages, LazyLoader, FirstRun */
+/* global MozActivity, HomeMetadata, Datastore, Pages, LazyLoader, FirstRun,
+          IconsHelper */
 /* jshint nonew: false */
 'use strict';
 
@@ -132,6 +133,8 @@ const SETTINGS_VERSION = 0;
     this.autoScrollInterval = null;
     this.autoScrollOverflowTimeout = null;
     this.hoverIcon = null;
+
+    this._iconSize = 0;
 
     // Update the panel indicator
     this.updatePanelIndicator();
@@ -341,6 +344,21 @@ const SETTINGS_VERSION = 0;
   }
 
   App.prototype = {
+    get iconSize() {
+      // If this._iconSize is 0, let's refresh the value.
+      if (!this._iconSize) {
+        for (var i = 0, len = this.icons.childNodes.length; i < len; i++) {
+          var container = this.icons.childNodes[i].firstChild;
+          if (container.style.display !== 'none') {
+            this._iconSize = container.firstChild.clientWidth;
+            break;
+          }
+        }
+      }
+
+      return this._iconSize;
+    },
+
     saveSettings: function() {
       localStorage.setItem('settings', JSON.stringify({
         version: SETTINGS_VERSION,
@@ -454,6 +472,7 @@ const SETTINGS_VERSION = 0;
 
       if (appOrBookmark.id) {
         icon.bookmark = appOrBookmark;
+        this.setBookmarkIcon(icon);
       } else {
         icon.app = appOrBookmark;
 
@@ -483,6 +502,11 @@ const SETTINGS_VERSION = 0;
       // Save the refreshed icon
       this.iconsToRetry.push(id);
       icon.addEventListener('icon-loaded', function(icon, id) {
+        if (icon.isUserSet) {
+          // If the icon was set manually, we don't cache it.
+          return;
+        }
+
         icon.icon.then((blob) => {
           // Remove icon from list of icons to retry when we go online
           var retryIndex = this.iconsToRetry.indexOf(id);
@@ -507,6 +531,10 @@ const SETTINGS_VERSION = 0;
 
       // Refresh icon data (sets title and refreshes icon)
       icon.refresh();
+    },
+
+    setBookmarkIcon: function(icon) {
+      IconsHelper.setElementIcon(icon, this.iconSize);
     },
 
     storeAppOrder: function() {
@@ -1027,7 +1055,11 @@ const SETTINGS_VERSION = 0;
             id = this.getIconId(icon.app ? icon.app : icon.bookmark,
                                 icon.entryPoint);
             if (id === this.iconsToRetry[i]) {
-              icon.refresh();
+              if (icon.id) {
+                this.setBookmarkIcon(icon);
+              } else {
+                icon.refresh();
+              }
               break;
             }
           }
