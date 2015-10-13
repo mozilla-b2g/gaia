@@ -1105,17 +1105,21 @@ suite('system/AppChrome', function() {
       }.bind(this));
     });
 
-    test('adds listeners when the setting is enabled', function() {
-      MockSettingsListener.mTriggerCallback(PINNING_PREF, true);
-      assert.isTrue(chrome.siteIcon.addEventListener.calledWith('click'));
-      assert.isTrue(chrome.pinScrim.addEventListener.calledWith('click'));
-    });
+    // Skip test since we are disabling pinning door hanger in 2.5
+    // See https://bugzilla.mozilla.org/show_bug.cgi?id=1207710
+    // test('adds listeners when the setting is enabled', function() {
+    //   MockSettingsListener.mTriggerCallback(PINNING_PREF, true);
+    //   assert.isTrue(chrome.siteIcon.addEventListener.calledWith('click'));
+    //   assert.isTrue(chrome.pinScrim.addEventListener.calledWith('click'));
+    // });
 
-    test('removes listeners when the setting is enabled', function() {
-      MockSettingsListener.mTriggerCallback(PINNING_PREF, false);
-      assert.isFalse(chrome.siteIcon.addEventListener.calledWith('click'));
-      assert.isFalse(chrome.pinScrim.addEventListener.calledWith('click'));
-    });
+    // Skip test since we are disabling pinning door hanger in 2.5
+    // See https://bugzilla.mozilla.org/show_bug.cgi?id=1207710
+    // test('removes listeners when the setting is enabled', function() {
+    //   MockSettingsListener.mTriggerCallback(PINNING_PREF, false);
+    //   assert.isFalse(chrome.siteIcon.addEventListener.calledWith('click'));
+    //   assert.isFalse(chrome.pinScrim.addEventListener.calledWith('click'));
+    // });
   });
 
   suite('setSiteIcon', function() {
@@ -1165,23 +1169,23 @@ suite('system/AppChrome', function() {
       assert.ok(!combinedChrome.app.getSiteIconUrl.called);
     });
 
-    test('click and pref disabled', function() {
-      MockSettingsListener.mTriggerCallback(PINNING_PREF, false);
-      this.sinon.stub(combinedChrome, 'setPinDialogCard');
-      this.sinon.stub(combinedChrome.app, 'isBrowser').returns(true);
-      this.sinon.stub(combinedChrome, 'isMaximized').returns(true);
-      combinedChrome.siteIcon.dispatchEvent(new CustomEvent('click'));
-      assert.isFalse(combinedChrome.setPinDialogCard.called);
-    });
+    // test('click and pref disabled', function() {
+    //   MockSettingsListener.mTriggerCallback(PINNING_PREF, false);
+    //   this.sinon.stub(combinedChrome, 'setPinDialogCard');
+    //   this.sinon.stub(combinedChrome.app, 'isBrowser').returns(true);
+    //   this.sinon.stub(combinedChrome, 'isMaximized').returns(true);
+    //   combinedChrome.siteIcon.dispatchEvent(new CustomEvent('click'));
+    //   assert.isFalse(combinedChrome.setPinDialogCard.called);
+    // });
 
-    test('click and pref enabled', function() {
-      MockSettingsListener.mTriggerCallback(PINNING_PREF, true);
-      this.sinon.stub(combinedChrome, 'setPinDialogCard');
-      this.sinon.stub(combinedChrome.app, 'isBrowser').returns(true);
-      this.sinon.stub(combinedChrome, 'isMaximized').returns(true);
-      combinedChrome.siteIcon.dispatchEvent(new CustomEvent('click'));
-      assert.isTrue(combinedChrome.setPinDialogCard.called);
-    });
+    // test('click and pref enabled', function() {
+    //   MockSettingsListener.mTriggerCallback(PINNING_PREF, true);
+    //   this.sinon.stub(combinedChrome, 'setPinDialogCard');
+    //   this.sinon.stub(combinedChrome.app, 'isBrowser').returns(true);
+    //   this.sinon.stub(combinedChrome, 'isMaximized').returns(true);
+    //   combinedChrome.siteIcon.dispatchEvent(new CustomEvent('click'));
+    //   assert.isTrue(combinedChrome.setPinDialogCard.called);
+    // });
 
     test('click, but no browser', function() {
       MockSettingsListener.mTriggerCallback(PINNING_PREF, true);
