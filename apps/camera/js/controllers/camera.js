@@ -140,6 +140,7 @@ CameraController.prototype.onCaptureKey = function(e) {
  */
 CameraController.prototype.onFocusKey = function(e) {
   debug('on focus key', e);
+  if (!this.shouldCapture()) { return; }
   this.camera.focus.focus();
 };
 
@@ -210,6 +211,7 @@ CameraController.prototype.capture = function(options = {}) {
 CameraController.prototype.shouldCapture = function() {
   return !this.app.get('confirmViewVisible') &&
     !this.app.hidden &&
+    !this.app.busy &&
     !this.galleryOpen &&
     !this.lowBattery;
 };
