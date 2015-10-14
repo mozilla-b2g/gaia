@@ -2,35 +2,37 @@
   width: 100%;
   position: fixed;
   bottom: 0rem;
-  height: 100%;
-  overflow-y: auto;
+  /*height: 100%;*/
+  overflow-y: hidden;
   text-align: center;
+  top: 6rem;
+  transition: all 0.5s;
 }
 
-#pin-apps-list .pin-app-item {
-  height: 9.5rem;
-  width: 10rem;
-  margin: 1rem auto;
+#pin-apps-list  .selected.pin-app-item {
+  height: 11rem;
+  width: 11rem;
+  margin: 2rem auto 4.5rem auto;
 }
 
-#pin-apps-list .pin-app-icon,
-#pin-apps-list input[type="button"] {
-  width: 6.4rem;
-  height: 6.4rem;
+#pin-apps-list .selected .pin-app-icon,
+#pin-apps-list .selected input[type="button"] {
+  width: 11rem;
+  height: 11rem;
 }
 
-#pin-apps-list input[type="button"] {
-  border-radius: 4rem;
+#pin-apps-list .selected input[type="button"] {
+  border-radius: 6rem;
 }
 
-#pin-apps-list .title {
+#pin-apps-list .selected .title {
   display: inline-block;
-  margin-top: 0.1rem;
+  margin-top: 1rem;
   /* We need this rule in order not to hide the drop shadow */
   padding: 0 0.2rem 1rem;
   text-shadow: 0.1rem 0.1rem 0.3rem rgba(0, 0, 0, 0.3),
                0.2rem 0.4rem 1rem rgba(0, 0, 0, 0.4);
-  font-size: 1.4rem;
+  font-size: 2rem;
   color: #fff;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -38,5 +40,41 @@
   width: calc(100% - 0.4rem);
   box-sizing: border-box;
   vertical-align: bottom;
-  transition: opacity 0.5s;
+  opacity: 1;
+}
+
+
+#pin-apps-list .pin-app-item {
+  height: 5rem;
+  width: 5rem;
+  margin: 1rem auto 0 auto;
+  transition: all 0.5s;
+}
+
+#pin-apps-list .pin-app-icon,
+#pin-apps-list input[type="button"] {
+  width: 5rem;
+  height: 5rem;
+  transition: all 0.5s;
+}
+
+#pin-apps-list input[type="button"] {
+  border-radius: 5rem;
+}
+
+#pin-apps-list .title {
+  /*display: none;*/
+  opacity: 0;
+  transition: all 0.5s;
+}
+
+
+.removed {
+  margin: 0 auto !important;
+  height: 0 !important;
+}
+
+.out-focus {
+  margin: 0 auto !important;
+  height: 0 !important;
 }
