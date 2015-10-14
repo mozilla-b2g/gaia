@@ -4,7 +4,12 @@ var assert = require('assert');
 marionette('Private Browser Trigger', function() {
 
   var client = marionette.client({
-    desiredCapabilities: { raisesAccessibilityExceptions: true }
+    desiredCapabilities: { raisesAccessibilityExceptions: true },
+    profile: {
+      settings: {
+        'browser.private.default': true
+      }
+    }
   });
 
   var search, system;
@@ -18,17 +23,6 @@ marionette('Private Browser Trigger', function() {
   function launchPrivateWindow() {
     var frame = system.waitForLaunch(search.URL);
     client.switchToFrame(frame);
-
-    client.helper.waitForElement(
-      search.Selectors.privateWindow).click();
-
-    client.switchToFrame();
-
-    var iframe = system.getAppIframe(search.privateBrowserUrl);
-    client.waitFor(function() {
-      return iframe.displayed();
-    });
-    client.switchToFrame(iframe);
   }
 
   test('launches private window', function() {
