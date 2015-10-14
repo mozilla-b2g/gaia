@@ -8,7 +8,10 @@ const SHUFFLE_VALUES = ['off', 'on'];
 
 var proto = Object.create(HTMLElement.prototype);
 
-var template =
+
+proto.createdCallback = function() {
+  var shadowRoot = this.createShadowRoot();
+  shadowRoot.innerHTML =
 `<style>
   [data-icon]:before { /* Copied from /components/gaia-icons/gaia-icons.css */
     font-family: "gaia-icons";
@@ -161,10 +164,6 @@ var template =
     </button>
   </div>
 </div>`;
-
-proto.createdCallback = function() {
-  var shadowRoot = this.createShadowRoot();
-  shadowRoot.innerHTML = template;
 
   var $ = shadowRoot.querySelector.bind(shadowRoot);
 

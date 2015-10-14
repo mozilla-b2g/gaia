@@ -4,7 +4,9 @@
 
 var proto = Object.create(HTMLElement.prototype);
 
-var template =
+proto.createdCallback = function() {
+  var shadowRoot = this.createShadowRoot();
+  shadowRoot.innerHTML =
 `<style>
   [data-icon]:before { /* Copied from /components/gaia-icons/gaia-icons.css */
     font-family: "gaia-icons";
@@ -68,10 +70,6 @@ var template =
     </li>
   </template>
 </gaia-fast-list>`;
-
-proto.createdCallback = function() {
-  var shadowRoot = this.createShadowRoot();
-  shadowRoot.innerHTML = template;
 
   var $id = shadowRoot.getElementById.bind(shadowRoot);
 
