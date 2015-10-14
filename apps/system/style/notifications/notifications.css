@@ -169,6 +169,10 @@ html[dir="rtl"] #notification-bar .title { margin-left: .5rem; }
   font: italic normal 1.3rem/1.3rem auto;
 }
 
+#notification-bar button:active {
+  opacity: 0.5;
+}
+
 #notification-bar button[disabled] {
   color: rgba(255, 255, 255, 0.2);
 }
