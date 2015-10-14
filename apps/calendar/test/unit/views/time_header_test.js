@@ -28,7 +28,7 @@ suite('Views.TimeHeader', function() {
     div.id = 'test';
     div.innerHTML = [
       '<div id="wrapper"></div>',
-      '<gaia-header ignore-dir id="time-header" action="menu">',
+      '<gaia-header id="time-header" action="menu">',
         '<h1></h1>',
       '</gaia-header>'
     ].join('');

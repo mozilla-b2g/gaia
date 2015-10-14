@@ -31,7 +31,8 @@ suite('templates/month_day_agenda', function() {
 
       assert.include(result, 'has-alarms');
       assert.include(result, 'href="/event/show/55/"');
-      assert.include(result, '<h5 role="presentation">Lorem Ipsum</h5>');
+      assert.include(result,
+        '<h5 role="presentation" dir="auto">Lorem Ipsum</h5>');
       assert.include(result, 'Dolor Sit Amet');
       assert.include(result, '12:34');
       assert.include(result, '16:56');
@@ -60,7 +61,8 @@ suite('templates/month_day_agenda', function() {
 
       assert.equal(result.indexOf('has-alarms'), -1, 'no alarm');
       assert.include(result, 'href="/event/show/55/"');
-      assert.include(result, '<h5 role="presentation">Lorem Ipsum</h5>');
+      assert.include(result,
+        '<h5 role="presentation" dir="auto">Lorem Ipsum</h5>');
       assert.include(result, 'Dolor Sit Amet');
       assert.include(result, 'data-l10n-id="hour-allday"');
       assert.include(result, 'role="option"');

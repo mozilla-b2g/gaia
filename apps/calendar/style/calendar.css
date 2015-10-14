@@ -1,5 +1,5 @@
 * {
-  -moz-box-sizing: border-box;
+  box-sizing: border-box;
   /* By default do not allow any user text selection, only enable for certain
   parts on a per-element/region area */
   -moz-user-select: none;
@@ -51,10 +51,5 @@ textarea {
  -moz-user-select: text;
 }
 
-html[dir="ltr"] {
-  text-align: left;
-}
-
-html[dir="rtl"] {
-  text-align: right;
-}
+html[dir="ltr"] { text-align: left; }
+html[dir="rtl"] { text-align: right; }

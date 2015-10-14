@@ -24,7 +24,7 @@
 }
 
 #modify-account-view.in-progress .during-progress > div {
- margin: 16rem 1.5rem 0;
+  margin: 16rem 1.5rem 0;
   padding-top: 1.2rem;
   border-top: 0.1rem solid #bebebe;
 }
@@ -42,7 +42,7 @@
 
 #modify-account-view.in-progress .during-progress > div > progress {
   line-height: normal;
-  -moz-margin-end: 0.5rem;
+  margin-inline-end: 0.5rem;
 }
 
 #modify-account-view.in-progress button,
@@ -78,7 +78,6 @@
 #modify-account-view .oauth2-sign-in {
   display: none;
 }
-
 
 #modify-account-view.auth-oauth2.create .oauth2-sign-in,
 #modify-account-view.auth-oauth2.error .sync-errors,
