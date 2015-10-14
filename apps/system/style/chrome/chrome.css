@@ -236,6 +236,7 @@
   visibility: visible;
 }
 
+.appWindow.attentionWindow.active .chrome,
 .appWindow.fullscreen-app .chrome {
   visibility: hidden;
 }
