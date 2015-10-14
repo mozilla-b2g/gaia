@@ -1202,10 +1202,12 @@
         case 'application-name':
           // Apps have a compulsory name field in their manifest
           // which takes precedence.
-          if (this.manifestURL || this.webManifestURL) {
+          var name = detail.content || '';
+          var emptyString = !(name.trim());
+          if (this.manifestURL || this.webManifestURL || emptyString) {
             return;
           }
-          this.name = detail.content;
+          this.name = name;
           this.publish('namechanged');
           break;
       }
