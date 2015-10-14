@@ -109,16 +109,6 @@ suite('system/AudioChannelService', function() {
       delete window.Service;
     });
 
-    test('Pause normal audio channel when it is in background', function() {
-      this.sinon.spy(subject, '_handleAudioChannel');
-      subject._topMostWindow = app;
-      window.dispatchEvent(event);
-      assert.deepEqual(
-        subject._topMostWindow.audioChannels.get('normal')._policy,
-        { isAllowedToPlay: false }
-      );
-    });
-
     test('Resume all active audio channels in the app', function() {
       this.sinon.spy(subject, '_resumeAudioChannels');
       window.dispatchEvent(event);
