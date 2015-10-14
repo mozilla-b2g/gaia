@@ -27,6 +27,8 @@ suite('LayoutKeyNormalizer', function() {
     'VK_BACK_SPACE': KeyEvent.DOM_VK_BACK_SPACE,
     'VK_CAPS_LOCK': KeyEvent.DOM_VK_CAPS_LOCK,
     'VK_RETURN': KeyEvent.DOM_VK_RETURN,
+    'VK_LEFT': KeyEvent.DOM_VK_LEFT,
+    'VK_RIGHT': KeyEvent.DOM_VK_RIGHT,
     'VK_VK_ALT': KeyEvent.DOM_VK_ALT
   };
 

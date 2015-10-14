@@ -103,6 +103,28 @@ suite('InputMethodGlue', function() {
       assert.equal(returned, p);
     });
 
+    test('KeyEvent.DOM_VK_LEFT', function() {
+      var keyCode = KeyEvent.DOM_VK_LEFT;
+      var isRepeat = false;
+      glue.init(app, 'foo');
+      var returned = glue.sendKey(keyCode, isRepeat);
+
+      assert.isTrue(
+        app.inputContext.sendKey.calledWith(keyCode, 0, 0, isRepeat));
+      assert.equal(returned, p);
+    });
+
+    test('KeyEvent.DOM_VK_RIGHT', function() {
+      var keyCode = KeyEvent.DOM_VK_RIGHT;
+      var isRepeat = false;
+      glue.init(app, 'foo');
+      var returned = glue.sendKey(keyCode, isRepeat);
+
+      assert.isTrue(
+        app.inputContext.sendKey.calledWith(keyCode, 0, 0, isRepeat));
+      assert.equal(returned, p);
+    });
+
     test('99', function() {
       var keyCode = 99;
       var isRepeat = false;

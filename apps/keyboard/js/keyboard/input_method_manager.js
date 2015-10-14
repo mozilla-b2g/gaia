@@ -212,6 +212,8 @@ InputMethodGlue.prototype.sendKey = function(keyCodeOrDict, isRepeat) {
     this.app.console.info('inputContext.sendKey(), code:' + keyCodeOrDict);
     switch (keyCodeOrDict) {
       case KeyEvent.DOM_VK_BACK_SPACE:
+      case KeyEvent.DOM_VK_LEFT:
+      case KeyEvent.DOM_VK_RIGHT:
         promise = this.app.inputContext.sendKey(keyCodeOrDict, 0, 0, isRepeat);
         break;
 

@@ -26,6 +26,8 @@ LayoutKeyNormalizer.prototype._isSpecialKey = function(key) {
     KeyEvent.DOM_VK_BACK_SPACE,
     KeyEvent.DOM_VK_CAPS_LOCK,
     KeyEvent.DOM_VK_RETURN,
+    KeyEvent.DOM_VK_LEFT,
+    KeyEvent.DOM_VK_RIGHT,
     KeyEvent.DOM_VK_ALT
   ];
 
