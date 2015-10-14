@@ -35,7 +35,6 @@ marionette('Homescreen - Pin the web', function() {
   // Skip test since we are disabling pinning door hanger in 2.5
   // See https://bugzilla.mozilla.org/show_bug.cgi?id=1207710
   test.skip('Pinning a site from the site icon', function() {
-    var numIcons = home.visibleIcons.length;
     var url = server.url('sample.html');
 
     client.switchToFrame();
@@ -44,13 +43,10 @@ marionette('Homescreen - Pin the web', function() {
     system.tapHome();
     client.switchToFrame(system.getHomescreenIframe());
 
-    client.waitFor(function() {
-      return numIcons + 1 === home.visibleIcons.length;
-    });
+    home.getIcon(url);
   });
 
   test('Pinning a site from the browser context menu', function() {
-    var numIcons = home.visibleIcons.length;
     var url = server.url('sample.html');
 
     client.switchToFrame();
@@ -58,9 +54,7 @@ marionette('Homescreen - Pin the web', function() {
     system.tapHome();
     client.switchToFrame(system.getHomescreenIframe());
 
-    client.waitFor(function() {
-      return numIcons + 1 === home.visibleIcons.length;
-    });
+    home.getIcon(url);
   });
 
   test('Pinning a page adds a card to the homescreen', function() {
