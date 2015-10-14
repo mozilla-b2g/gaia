@@ -19,45 +19,43 @@ marionette('Music player shuffle', function() {
 
   setup(function() {
     music = new Music(client);
+
+    client.fileManager.removeAllFiles();
+    client.fileManager.add([
+      // "Boot To Gecko (B2G)"
+      {
+        type: 'music',
+        filePath: 'test_media/samples/Music/b2g.ogg'
+      },
+      {
+        // Track 1.01 "Yield to Thread"
+        type: 'music',
+        filePath: 'apps/music/test-data/playlists/y.ogg'
+      },
+      {
+        // Track 1.02 "XOXO"
+        type: 'music',
+        filePath: 'apps/music/test-data/playlists/x.ogg'
+      },
+      {
+        // Track 1.03 "Windows BSOD"
+        type: 'music',
+        filePath: 'apps/music/test-data/playlists/w.ogg'
+      },
+      {
+        // Track 2.01 "Crash"
+        type: 'music',
+        filePath: 'apps/music/test-data/playlists/c.ogg'
+      },
+      {
+        // Track 2.02 "Break"
+        type: 'music',
+        filePath: 'apps/music/test-data/playlists/b.ogg'
+      }
+    ]);
   });
 
-  suite('Default playlists', function() {
-    setup(function() {
-      client.fileManager.removeAllFiles();
-      client.fileManager.add([
-        {
-          // Track 1.01 "Yield to Thread"
-          type: 'music',
-          filePath: 'apps/music/test-data/playlists/y.ogg'
-        },
-        {
-          // Track 1.02 "XOXO"
-          type: 'music',
-          filePath: 'apps/music/test-data/playlists/x.ogg'
-        },
-        {
-          // Track 1.03 "Windows BSOD"
-          type: 'music',
-          filePath: 'apps/music/test-data/playlists/w.ogg'
-        },
-        {
-          // Track 2.01 "Crash"
-          type: 'music',
-          filePath: 'apps/music/test-data/playlists/c.ogg'
-        },
-        {
-          // Track 2.02 "Break"
-          type: 'music',
-          filePath: 'apps/music/test-data/playlists/b.ogg'
-        },
-        {
-          // Track 2.03 "Abort"
-          type: 'music',
-          filePath: 'apps/music/test-data/playlists/a.ogg'
-        },
-      ]);
-    });
-
+  suite('Shuffle tests', function() {
     test('The "Shuffle all" playlist sets the "Shuffle" button in Player view',
       function() {
         try {
@@ -74,8 +72,6 @@ marionette('Music player shuffle', function() {
 
           music.switchToPlaylistsView();
           music.selectPlaylist('Shuffle all');
-
-          music.waitForPlayerView();
 
           shuffle = music.getShuffleSetting();
           assert.equal(shuffle, 'on');
