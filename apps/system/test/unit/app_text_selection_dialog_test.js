@@ -160,6 +160,10 @@ suite('system/AppTextSelectionDialog', function() {
   });
 
   test('_doCommand in app', function() {
+    var stubPreventDefault = this.sinon.stub(fakeTextSelectInAppEvent,
+                                             'preventDefault');
+    var stubStopPropagation = this.sinon.stub(fakeTextSelectInAppEvent,
+                                              'stopPropagation');
     this.sinon.stub(td, 'close');
     td.app = {
       element: true
@@ -173,6 +177,8 @@ suite('system/AppTextSelectionDialog', function() {
       .calledWith('testCommand'));
     assert.isTrue(td.close.calledOnce,
       'should call close when trigger _doCommand');
+    assert.isTrue(stubPreventDefault.calledOnce);
+    assert.isTrue(stubStopPropagation.calledOnce);
   });
 
   test('_doCommand, when _isCommandSendable is false', function() {

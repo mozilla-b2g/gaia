@@ -334,6 +334,7 @@
         this.close();
       }
       evt.preventDefault();
+      evt.stopPropagation();
     };
 
   AppTextSelectionDialog.prototype.copyHandler =
