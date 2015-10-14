@@ -129,6 +129,7 @@ html[dir="rtl"] #notification-container > div {
 
 #notification-bar {
   height: 4.5rem;
+  padding: 0 0 0 1.5rem;
 }
 
 #notification-bar [data-icon] {
@@ -162,13 +163,18 @@ html[dir="rtl"] #notification-bar .title { margin-left: .5rem; }
   flex: initial;
   width: auto;
   height: 4.5rem;
-  padding: 0;
+  padding: 0 1.5rem;
   border: 0;
-  background: none;
+  border-radius: 0;
   color: #008eab;
+  background: none;
   font: italic normal 1.3rem/1.3rem auto;
 }
 
+#notification-bar button:active {
+  background-color: #00caf2;
+  color: #000000;
+}
 #notification-bar button[disabled] {
   color: rgba(255, 255, 255, 0.2);
 }
