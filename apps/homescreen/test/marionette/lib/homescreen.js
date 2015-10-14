@@ -16,11 +16,10 @@ Homescreen.Selectors = {
   apps: '#apps',
   icon: '#apps gaia-app-icon',
   card: '#pages gaia-pin-card',
-  uninstall: '#uninstall',
+  remove: '#remove',
   edit: '#edit',
   cancelDownload: '#cancel-download',
-  resumeDownload: '#resume-download',
-  settingsDialog: '#settings'
+  resumeDownload: '#resume-download'
 };
 
 Homescreen.prototype = {
@@ -60,8 +59,8 @@ Homescreen.prototype = {
     });
   },
 
-  get uninstallTray() {
-    return this.client.findElement(Homescreen.Selectors.uninstall);
+  get removeTray() {
+    return this.client.findElement(Homescreen.Selectors.remove);
   },
 
   get editTray() {
@@ -74,15 +73,6 @@ Homescreen.prototype = {
 
   get resumeDownloadDialog() {
     return this.client.findElement(Homescreen.Selectors.resumeDownload);
-  },
-
-  get settingsDialog() {
-    return this.client.findElement(Homescreen.Selectors.settingsDialog);
-  },
-
-  get settingsDialogButtons() {
-    return this.client.findElements(
-      Homescreen.Selectors.settingsDialog + ' button');
   },
 
   /**

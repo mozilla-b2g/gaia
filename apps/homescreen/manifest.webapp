@@ -30,8 +30,8 @@
       "description": "View bookmarks."
     },
     "places": {
-      "readonly": true,
-      "description": "View data about browsing history."
+      "readonly": false,
+      "description": "View and modify data about browsing history."
     },
     "icons": {
       "readonly": false,

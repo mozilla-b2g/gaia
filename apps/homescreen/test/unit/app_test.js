@@ -797,7 +797,7 @@ suite('Homescreen app', () => {
             clientY: 500
           }}));
 
-          assert.isTrue(app.uninstall.classList.contains('active'));
+          assert.isTrue(app.remove.classList.contains('active'));
           assert.isFalse(app.edit.classList.contains('active'));
         });
 
@@ -807,7 +807,7 @@ suite('Homescreen app', () => {
             clientY: 500
           }}));
 
-          assert.isFalse(app.uninstall.classList.contains('active'));
+          assert.isFalse(app.remove.classList.contains('active'));
           assert.isTrue(app.edit.classList.contains('active'));
         });
 
@@ -822,7 +822,7 @@ suite('Homescreen app', () => {
             clientY: 500
           }}));
 
-          assert.isFalse(app.uninstall.classList.contains('active'));
+          assert.isFalse(app.remove.classList.contains('active'));
           assert.isTrue(app.edit.classList.contains('active'));
 
           app.handleEvent(new CustomEvent('drag-move', { detail: {
@@ -830,7 +830,7 @@ suite('Homescreen app', () => {
             clientY: 500
           }}));
 
-          assert.isTrue(app.uninstall.classList.contains('active'));
+          assert.isTrue(app.remove.classList.contains('active'));
           assert.isFalse(app.edit.classList.contains('active'));
 
           delete document.documentElement.dir;

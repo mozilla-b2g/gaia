@@ -201,6 +201,61 @@ suite('Pages', () => {
       });
     });
 
+    suite('drag-end', () => {
+      var getStub, getReturnValue, realInnerHeight;
+      setup(() => {
+        getStub = sinon.stub(pages.pagesStore, 'get',
+                             () => Promise.resolve(getReturnValue));
+
+        realInnerHeight =
+          Object.getOwnPropertyDescriptor(window, 'innerHeight');
+        Object.defineProperty(window, 'innerHeight', {
+          value: 500,
+          configurable: true
+        });
+      });
+
+      teardown(() => {
+        getStub.restore();
+        Object.defineProperty(window, 'innerHeight', realInnerHeight);
+      });
+
+      test('Ending a drag above the remove tray does nothing', () => {
+        pages.handleEvent(new CustomEvent('drag-end', { detail: {
+          clientY: 0
+        } }));
+        assert.isFalse(getStub.called);
+      });
+
+      test('Ending a drag in the remove tray initiates unpinning', done => {
+        var card = document.createElement('div');
+        card.dataset.id = 'success';
+        Object.defineProperty(card, 'parentNode', {
+          value: { style: { transform: 'scale(2)' } },
+          configurable: true
+        });
+
+        pages.pagesStore.datastore = {
+          put: (data, id) => {
+            done(() => {
+              delete pages.pagesStore.datastore;
+              assert.isTrue(card.classList.contains('unpinning'));
+              assert.equal(card.style.transform, 'scale(2)');
+              assert.equal(id, 'success');
+              assert.isFalse(getReturnValue.data.pinned);
+            });
+            return Promise.resolve();
+          }
+        };
+
+        getReturnValue = { data: { pinned: true } };
+        pages.handleEvent(new CustomEvent('drag-end', { detail: {
+          clientY: 600,
+          target: card
+        } }));
+      });
+    });
+
     suite('scroll', () => {
       test('should show and hide the drop shadow accordingly', () => {
         assert.isFalse(pages.scrolled);
