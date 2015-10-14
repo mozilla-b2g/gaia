@@ -786,7 +786,7 @@ var InboxView = {
     li.innerHTML = this.tmpl.thread.interpolate({
       hash: isDraft ? '#/composer' : '#/thread?id=' + id,
       mode: isDraft ? 'drafts' : 'threads',
-      id: isDraft ? draft.id : id,
+      id: String(isDraft ? draft.id : id),
       timestamp: String(timestamp)
     }, {
       safe: ['id']

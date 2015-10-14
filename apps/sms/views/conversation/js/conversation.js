@@ -1748,7 +1748,7 @@ var ConversationView = {
 
     var lateArrivalInfos = this.computeLateArrivalInfos(message, messageStatus);
     if (lateArrivalInfos) {
-      var lateArrivalNoticeDOM = this.tmpl.lateArrivalNotice.prepare({})
+      var lateArrivalNoticeDOM = this.tmpl.lateArrivalNotice.prepare()
         .toDocumentFragment();
 
       document.l10n.setAttributes(

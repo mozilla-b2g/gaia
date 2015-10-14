@@ -266,8 +266,8 @@
       }
 
       return {
-        type: (found.type && found.type[0]) || null,
-        carrier: hasUniqueCarriers || hasUniqueTypes ? found.carrier : null,
+        type: (found.type && found.type[0]) || '',
+        carrier: hasUniqueCarriers || hasUniqueTypes ? found.carrier : '',
         number: found.value
       };
     },
