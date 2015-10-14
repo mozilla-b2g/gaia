@@ -24,6 +24,8 @@ var FtuLauncher = {
 
   _bypassHomeEvent: false,
 
+  EVENT_PREFIX: 'ftu',
+
   isFtuRunning: function fl_isFtuRunning() {
     return this._isRunningFirstTime;
   },
@@ -109,8 +111,18 @@ var FtuLauncher = {
 
       case 'iac-ftucomms':
         var message = evt.detail;
-        if (message === 'done') {
-          this.setBypassHome(true);
+        switch (message) {
+          case 'started':
+            this.publish('started');
+            break;
+          case 'done':
+            this.setBypassHome(true);
+            break;
+          default:
+            if (message.type === 'step') {
+              this.publish('step');
+            }
+            break;
         }
         break;
 
@@ -120,6 +132,11 @@ var FtuLauncher = {
         }
         break;
     }
+  },
+
+  publish: function(event) {
+    window.dispatchEvent(new CustomEvent(this.EVENT_PREFIX + event,
+      { bubbles: true, detail: this }));
   },
 
   close: function fl_close() {
