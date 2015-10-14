@@ -143,7 +143,7 @@ HomeView.prototype.loadTile = function(tile) {
       img.onload = () => {
         setTimeout(() => {
           requestAnimationFrame(() => {
-            img.classList.add('loaded');
+            tile.classList.add('loaded');
             resolve();
           });
         });
@@ -166,11 +166,12 @@ HomeView.prototype.render = function() {
 
     this.albums.forEach((album) => {
       var template =
-Sanitizer.createSafeHTML `<a class="tile" dir="auto"
-    href="/player"
-    data-artist="${album.metadata.artist || unknownArtist}"
-    data-album="${album.metadata.album || unknownAlbum}"
-    data-file-path="${album.name}">
+Sanitizer.createSafeHTML `
+<a class="${album.metadata.picture ? 'tile' : 'tile show-title'}" dir="auto"
+   href="/player"
+   data-artist="${album.metadata.artist || unknownArtist}"
+   data-album="${album.metadata.album || unknownAlbum}"
+   data-file-path="${album.name}">
   <img>
 </a>`;
 
