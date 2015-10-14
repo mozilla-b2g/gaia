@@ -14,6 +14,7 @@
          LocalizationHelper,
          MessageManager,
          MessagingClient,
+         MessagingService,
          MozMobileConnectionsClient,
          Navigation,
          Settings,
@@ -72,10 +73,14 @@ var Startup = exports.Startup = {
     '/views/shared/js/activity_handler.js',
     '/views/shared/js/system_message_handler.js',
     '/views/shared/js/localization_helper.js',
-    '/lib/bridge/client.js',
+    '/lib/bridge/bridge.js',
+    '/lib/bridge/plugins/stream/client.js',
+    '/services/js/bridge_service_mixin.js',
+    '/services/js/activity/activity_shim.js',
     '/services/js/activity/activity_client.js',
     '/services/js/messaging/messaging_client.js',
-    '/services/js/moz_mobile_connections/moz_mobile_connections_client.js'
+    '/services/js/moz_mobile_connections/moz_mobile_connections_client.js',
+    '/services/js/moz_mobile_message/moz_mobile_message_client.js'
   ],
 
   _lazyLoadStyles: [
@@ -114,16 +119,26 @@ var Startup = exports.Startup = {
       // Init UI Managers
       TimeHeaders.init();
       ConversationView.init();
-      MessagingClient.init(App.instanceId);
+
+      // Fetch mmsSizeLimitation and max concat
+      Settings.init();
+
+      var serviceEndpoint;
+      const servicePath = '/services/js/messaging/messaging_service.js';
+      if (Settings.useSharedWorkerServices) {
+        serviceEndpoint = new SharedWorker(servicePath);
+      } else {
+        serviceEndpoint = exports;
+        LazyLoader.load(servicePath).then(() => MessagingService.init());
+      }
+      MessagingClient.init(App.instanceId, serviceEndpoint);
+
       MozMobileConnectionsClient.init(App.instanceId);
       Information.initDefaultViews();
 
       Navigation.setReady();
 
       window.performance.mark('contentInteractive');
-
-      // Fetch mmsSizeLimitation and max concat
-      Settings.init();
 
       window.performance.mark('objectsInitEnd');
     });
