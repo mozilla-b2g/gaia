@@ -3,7 +3,14 @@
 
 var proto = Object.create(HTMLElement.prototype);
 
-var template =
+proto.createdCallback = function() {
+  var buttons = document.createDocumentFragment();
+  [].forEach.call(this.querySelectorAll('button'), (button) => {
+    buttons.appendChild(button);
+  });
+
+  var shadowRoot = this.createShadowRoot();
+  shadowRoot.innerHTML =
 `<style>
   #heading:empty,
   #message:empty,
@@ -127,15 +134,6 @@ var template =
   </section>
   <menu id="menu"></menu>
 </form>`;
-
-proto.createdCallback = function() {
-  var buttons = document.createDocumentFragment();
-  [].forEach.call(this.querySelectorAll('button'), (button) => {
-    buttons.appendChild(button);
-  });
-
-  var shadowRoot = this.createShadowRoot();
-  shadowRoot.innerHTML = template;
 
   var $id = shadowRoot.getElementById.bind(shadowRoot);
 

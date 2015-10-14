@@ -4,7 +4,9 @@
 
 var proto = Object.create(HTMLElement.prototype);
 
-var template =
+proto.createdCallback = function() {
+  var shadowRoot = this.createShadowRoot();
+  shadowRoot.innerHTML =
 `<style>
   #container {
     display: flex;
@@ -39,10 +41,6 @@ var template =
   <button type="button" value="4" data-l10n-id="rating-star" data-l10n-args='{"n":4}'></button>
   <button type="button" value="5" data-l10n-id="rating-star" data-l10n-args='{"n":5}'></button>
 </div>`;
-
-proto.createdCallback = function() {
-  var shadowRoot = this.createShadowRoot();
-  shadowRoot.innerHTML = template;
 
   var $id = shadowRoot.getElementById.bind(shadowRoot);
 

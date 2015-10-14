@@ -6,7 +6,10 @@ var proto = Object.create(HTMLElement.prototype);
 
 proto.HEIGHT = 37;
 
-var template =
+// #form height attribute is the value of proto.HEIGHT
+proto.createdCallback = function() {
+  var shadowRoot = this.createShadowRoot();
+  shadowRoot.innerHTML =
 `<style>
   [data-icon]:before { /* Copied from /components/gaia-icons/gaia-icons.css */
     font-family: "gaia-icons";
@@ -24,7 +27,7 @@ var template =
     background-color: #202020;
     position: relative;
     width: 100%;
-    height: ${proto.HEIGHT}px;
+    height: 37px;
     overflow: hidden;
   }
   #form > input,
@@ -80,10 +83,6 @@ var template =
   <button type="reset" id="clear" data-icon="search"></button>
   <button type="button" id="close" data-l10n-id="search-close"></button>
 </form>`;
-
-proto.createdCallback = function() {
-  var shadowRoot = this.createShadowRoot();
-  shadowRoot.innerHTML = template;
 
   var $id = shadowRoot.getElementById.bind(shadowRoot);
 
