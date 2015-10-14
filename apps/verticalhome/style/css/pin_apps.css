@@ -2,38 +2,28 @@
   width: 100%;
   position: fixed;
   bottom: 0rem;
-  height: 35rem;
+  height: 100%;
   overflow-y: auto;
+  text-align: center;
 }
 
-#pin-apps-list ul {
-  text-align:center;
-/*  list-style-type:none;*/
-  padding: 1rem;
-}
-
-#pin-apps-list ul li {
-  list-style-type:none;
-  width: 25%;
-  height: 10rem;
-  margin: 0 auto;
-}
-
-#pin-apps-list ul li .pin-app-item {
+#pin-apps-list .pin-app-item {
   height: 9.5rem;
+  width: 10rem;
+  margin: 1rem auto;
 }
 
-#pin-apps-list ul li .pin-app-icon,
-#pin-apps-list ul li input[type="button"] {
+#pin-apps-list .pin-app-icon,
+#pin-apps-list input[type="button"] {
   width: 6.4rem;
   height: 6.4rem;
 }
 
-#pin-apps-list ul li input[type="button"] {
+#pin-apps-list input[type="button"] {
   border-radius: 4rem;
 }
 
-#pin-apps-list ul li .title {
+#pin-apps-list .title {
   display: inline-block;
   margin-top: 0.1rem;
   /* We need this rule in order not to hide the drop shadow */

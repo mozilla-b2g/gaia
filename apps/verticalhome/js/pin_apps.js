@@ -7,7 +7,17 @@
       return false;
     }
     this.index = index;
-    this.element = document.querySelector("div[data-index='" + this.index + "']");
+    //creating pin app element
+    var pinElem = document.createElement('div');
+    pinElem.className = 'pin-app-item';
+    pinElem.setAttribute('data-index', this.index);
+    pinElem.innerHTML = "<img class='pin-app-icon'><br></img>" +
+            "<span class='title'></span>";
+    var pinList = document.getElementById('pin-apps-list');
+    var moreAppsLi = document.getElementById('moreApps');
+    pinList.insertBefore(pinElem, moreAppsLi);
+
+    this.element = pinElem;
     this.icon = this.element.querySelector('.pin-app-icon');
     this.title = this.element.querySelector('.title');
   }
@@ -16,7 +26,7 @@
     entry: null,
 
     bindEntry: function(entry) {
-      if(!entry) {
+      if (!entry){
         return;
       }
       this.clear();
@@ -84,13 +94,12 @@
   };
 
   function PinAppManager() {
-    this.items = new Array();
-    for(var i = 0; i < 5; i++) {
-      this.items[i] = new PinAppItem(i);
-    }
+    //do nothing
   }
 
   PinAppManager.prototype = {
+    items: [],
+
     init: function () {
       this.onLoadSettings();
     },
@@ -98,8 +107,8 @@
     onLoadSettings: function() {
       var pinAppsList = app.getPinAppList();
       for (var i = 0; i < pinAppsList.length; i++) {
-        var entry = pinAppsList[i];
-        this.items[entry.index].bindEntry(entry);
+        this.items[i] = new PinAppItem(i);
+        this.items[i].bindEntry(pinAppsList[i]);
       }
     },
 
