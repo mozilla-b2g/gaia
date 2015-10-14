@@ -58,6 +58,19 @@
     return this._cardsInFolder;
   };
 
+  Folder.prototype.getFilteredCardList =
+  function folder_getFilteredCardList(filterName) {
+    if (typeof this._cardsInFolder !== 'object') {
+      return;
+    }
+    if (filterName === 'all') {
+      return this._cardsInFolder;
+    } else if (filterName) {
+      return this._cardsInFolder.filter(
+        elem => (elem.group === filterName));
+    }
+  };
+
   Folder.prototype.isEmpty = function folder_isEmpty() {
     return this._cardsInFolder.length === 0;
   };
