@@ -15,6 +15,13 @@
 (function(exports) {
 'use strict';
 
+const SECOND = 1000;
+const MINUTE = 60 * SECOND;
+const HOUR = 60 * MINUTE;
+const DAY = 24 * HOUR;
+const MONTH = 30 * DAY;
+const LATENESS_DISPLAY_LOWER_LIMIT = 5 * MINUTE;
+
 /*
   Information view module is a subpanel belongs to TheadUI panel. This
   module provide some default  method for thiw view module:
@@ -339,6 +346,8 @@ var VIEWS = {
           l10nContainsDateSetup(this.receivedTimestamp, message.timestamp);
           l10nContainsDateSetup(this.sentTimestamp, message.sentTimestamp);
           setL10nAttributes(this.sentTitle, 'message-sent');
+          this.renderLateArrivalMsg(message);
+
         } else {
           if (delivery === 'sending' || delivery === 'sent') {
             setL10nAttributes(this.sentTitle, 'message-' + delivery);
@@ -355,6 +364,48 @@ var VIEWS = {
         // report information.
         this.renderContactList(createListWithMsgInfo(message));
       }).bind(this);
+    },
+
+    renderLateArrivalMsg: function report_renderLateArrivalMsg(message) {
+      var latenessBlock = this.panel.querySelector('.lateness-block');
+      var lateness = message.timestamp - message.sentTimestamp;
+      var showLatenessNotice = message.timestamp &&
+        message.sentTimestamp &&
+        lateness >= LATENESS_DISPLAY_LOWER_LIMIT;
+
+      if (showLatenessNotice) {
+        var units = [
+          { unit: 'month', unitVal: MONTH },
+          { unit: 'day', unitVal: DAY },
+          { unit: 'hour', unitVal: HOUR },
+          { unit: 'minute', unitVal: MINUTE },
+          { unit: 'second', unitVal: SECOND }
+        ];
+
+        units.forEach(({unit, unitVal}) => {
+          var output;
+          var unitElement = this.panel.querySelector(`.lateness-${unit}`);
+
+          if (lateness >= unitVal) {
+            // Compute integer value for the current unit output 
+            // and get the rest for the next smaller unit
+            output = Math.floor(lateness / unitVal);
+            lateness = lateness % unitVal;
+            
+            navigator.mozL10n.setAttributes(
+              unitElement,
+              `duration-${unit}-narrow`,
+              { value: output }
+            );
+            unitElement.classList.remove('hide');
+          } else {
+            unitElement.classList.add('hide');
+          }
+        });
+        latenessBlock.classList.remove('hide');
+      } else {
+        latenessBlock.classList.add('hide');
+      }
     },
 
     // Set this flag to true only when resend is triggered.

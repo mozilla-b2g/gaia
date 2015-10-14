@@ -21,6 +21,11 @@
 
 (function(exports) {
 'use strict';
+const SECOND = 1000;
+const MINUTE = 60 * SECOND;
+const HOUR = 60 * MINUTE;
+const DAY = 24 * HOUR;
+const MONTH = 30 * DAY;
 
 var attachmentMap = new WeakMap();
 
@@ -79,6 +84,13 @@ var ConversationView = {
     preventLastCall: false
   },
 
+  LATE_NOTICE_LOWER_LIMITS: {
+    NO_NOTICE: 5 * MINUTE,
+    IN_HOURS: 1 * HOUR,
+    IN_DAYS: 1 * DAY,
+    IN_MONTHS: 1 * MONTH
+  },
+
   draft: null,
   recipients: null,
   // Set to |true| when in edit mode
@@ -105,6 +117,7 @@ var ConversationView = {
       'message',
       'message-sim-information',
       'message-status',
+      'late-arrival-notice',
       'not-downloaded',
       'recipient',
       'date-group',
@@ -1679,6 +1692,7 @@ var ConversationView = {
     var simServiceId = Settings.getServiceIdByIccId(message.iccId);
     var showSimInformation = Settings.hasSeveralSim() && simServiceId !== null;
     var simInformationHTML = '';
+
     if (showSimInformation) {
       simInformationHTML = this.tmpl.messageSimInformation.interpolate({
         simNumberL10nArgs: JSON.stringify({ id: simServiceId + 1 })
@@ -1701,6 +1715,22 @@ var ConversationView = {
     var pElement = messageDOM.querySelector('p');
     if (invalidEmptyContent) {
       pElement.setAttribute('data-l10n-id', 'no-attachment-text');
+    }
+
+    var lateArrivalInfos = this.computeLateArrivalInfos(message, messageStatus);
+    if (lateArrivalInfos) {
+      var lateArrivalNoticeDOM = this.tmpl.lateArrivalNotice.prepare({})
+        .toDocumentFragment();
+
+      navigator.mozL10n.setAttributes(
+        lateArrivalNoticeDOM.querySelector('.late-arrival-notice'), 
+        lateArrivalInfos.l10nId, 
+        lateArrivalInfos.l10nArgs
+      );
+
+      messageDOM
+        .querySelector('.message-details')
+        .appendChild(lateArrivalNoticeDOM);
     }
 
     var result;
@@ -1727,6 +1757,44 @@ var ConversationView = {
       this.tmpl.messageStatus.prepare({
         statusL10nId: 'message-delivery-status-' + status
       }) : '';
+  },
+
+  /**
+   * @param  {Object} A SMS/MMS message
+   * @param  {String} The status of the message
+   * @return {Object|null} An object containing the l10n late notice infos 
+   *  of the message or null if a notice is not required.
+   *  - l10nId : the id of the localized message
+   *  - l10nArgs : the value of the lateness
+   */
+  computeLateArrivalInfos: function(message, messageStatus) {
+    var limits = this.LATE_NOTICE_LOWER_LIMITS;
+    var sent = message.sentTimestamp;
+    var received = message.timestamp;
+    var lateness = received - sent;
+    var doNotDisplayNotice = !sent || !received ||
+      messageStatus === 'error' ||
+      lateness < limits.NO_NOTICE;
+
+    if (doNotDisplayNotice) {
+      return null;
+    }
+    
+    var unit = MONTH;
+    var noticeL10nIds = {
+      [MONTH]:  'late-arrival-notice-in-months',
+      [DAY]:    'late-arrival-notice-in-days',
+      [HOUR]:   'late-arrival-notice-in-hours',
+      [MINUTE]: 'late-arrival-notice-in-minutes'
+    };
+
+    if (lateness < limits.IN_HOURS)       { unit = MINUTE; } 
+    else if (lateness < limits.IN_DAYS)   { unit = HOUR; } 
+    else if (lateness < limits.IN_MONTHS) { unit = DAY; }
+    
+    lateness = Math.floor(lateness / unit);
+    
+    return { l10nId : noticeL10nIds[unit], l10nArgs: { lateness }};
   },
 
   appendMessage: function conv_appendMessage(message, hidden) {
@@ -2009,6 +2077,9 @@ var ConversationView = {
     var bubble;
 
     do {
+      // A Text node does not have a classList property see Bug 1214238
+      if (!node.classList) { continue; }
+
       if (node.classList.contains('bubble')) {
         bubble = node;
       }
