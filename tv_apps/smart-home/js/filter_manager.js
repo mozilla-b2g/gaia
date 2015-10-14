@@ -1,4 +1,4 @@
-/* global CardFilter */
+/* global CardFilter, Folder */
 
 (function(exports) {
   'use strict';
@@ -167,7 +167,7 @@
         window.requestAnimationFrame(this._performBubbleUp.bind(this));
       } else {
         this._cardListElem.style.opacity = 1;
-        this._cardListElem.style.transition = undefined;
+        this._cardListElem.style.transition = '';
         this._cardListElem.removeAttribute('smart-bubbles-direction');
         this._smartBubblesElem.play(
           document.querySelectorAll('#card-list > .card > .app-button'));
@@ -212,10 +212,22 @@
 
       var that = this;
       var filter = this.getFilterByIconName(this._cardFilter.filter);
-      var gotFilteredCardList = function(filteredList) {
+      var gotCardLists = function(results) {
+        // results[0] is the main card list which has been filtered.
+        // results[1] is the main card list.
+        var filteredList = results[0];
+        var cardList = results[1];
+
+        // Get filtered card list for each folder.
+        cardList.filter(elem => elem instanceof Folder).forEach(elem => {
+          filteredList = filteredList.concat(
+                                        elem.getFilteredCardList(filter.name));
+        });
+
         filteredList.forEach(function(card) {
           that._cardScrollable.addNode(that._home.createCardNode(card));
         });
+
         that._filteredCardList =
           (filter.name !== 'all') ? filteredList : undefined;
         that._cardListElem.style.opacity = 0;
@@ -224,8 +236,10 @@
 
       if (this._isBubbleSinking()) {
         this._cardScrollable.clean();
-        this._cardManager.getFilteredCardList(filter.name).then(
-          gotFilteredCardList);
+        Promise.all([
+            this._cardManager.getFilteredCardList(filter.name),
+            this._cardManager.getCardList()
+          ]).then(gotCardLists);
       } else {
         this._isFilterChanging = false;
       }
