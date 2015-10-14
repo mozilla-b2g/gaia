@@ -21,8 +21,7 @@ class TestHomescreenChangeWallpaper(GaiaImageCompareTestCase):
         reusing /functional/homescreen/test_homescreen_change_wallpaper.py script
         """
         # wait until the homescreen is fully drawn
-        time.sleep(3)
-        self.take_screenshot()
+        self.take_screenshot(prewait=3)
         homescreen = Homescreen(self.marionette)
         self.apps.switch_to_displayed_app()
 
@@ -31,9 +30,9 @@ class TestHomescreenChangeWallpaper(GaiaImageCompareTestCase):
         self.take_screenshot()
 
         activities = contextmenu.tap_change_wallpaper()
-        self.take_screenshot()
-
-        # select gallery
+        # it is currently in system frame, but self.apps.switch_to_displayed_app() will return
+        # a different value
+        self.take_screenshot(top_frame=True)
         gallery = activities.tap_gallery()
 
         # go through the crop process
