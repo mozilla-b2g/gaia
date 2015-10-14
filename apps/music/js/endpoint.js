@@ -350,11 +350,7 @@ function getPlaylist(id) {
 }
 
 function getArtists() {
-  return new Promise((resolve) => {
-    Database.enumerateAll('metadata.artist', null, 'nextunique', (artists) => {
-      resolve(artists);
-    });
-  });
+  return Database.artists();
 }
 
 function getAlbums() {
