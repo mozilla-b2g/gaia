@@ -1,5 +1,5 @@
 'use strict';
-/* global SettingsListener, ScreenManager, SettingsHelper */
+/* global SettingsListener, ScreenManager */
 /* global AccessibilityQuicknavMenu */
 
 (function(exports) {
@@ -92,7 +92,6 @@
       'accessibility.screenreader-rate': 0,
       'accessibility.screenreader-captions': false,
       'accessibility.screenreader-shade': false,
-      'accessibility.screenreader-fallback-lang': 'en-US',
       'accessibility.screenreader-ftu-timeout-seconds': 15,
       'accessibility.colors.enable': false,
       'accessibility.colors.invert': false,
@@ -155,7 +154,6 @@
                   SettingsListener.getSettingsLock().set({
                     'accessibility.screenreader-show-settings': true
                   });
-                  this.setToSupportedLanguage();
                 }
                 if (this.settings['accessibility.screenreader-shade']) {
                   this.toggleShade(aValue, !aValue);
@@ -243,24 +241,6 @@
         this.speak({ string: aEnable ? 'shadeToggleOn' : 'shadeToggleOff' },
           null, {enqueue: true});
       }
-    },
-
-    /**
-     * Checks that device language is supported in text to speech, if not
-     * it is set to a predetermined fallback language.
-     * @memberof Accessibility.prototype
-     */
-    setToSupportedLanguage: function ar_setToSupportedLanguage() {
-      var settingsHelper = SettingsHelper('language.current');
-      var voices = this.speechSynthesizer.speech.getVoices();
-      var speechLangs = new Set([for (v of voices) v.lang.split('-')[0]]);
-
-      settingsHelper.get((value) => {
-        if (!speechLangs.has(value.split('-')[0])) {
-          settingsHelper.set(
-            this.settings['accessibility.screenreader-fallback-lang']);
-        }
-      });
     },
 
     /**

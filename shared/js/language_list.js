@@ -81,18 +81,6 @@ exports.LanguageList = {
     return languages;
   },
 
-  _removeWithNoSpeech: function(languages, srEnabled) {
-    if (srEnabled) {
-      var speechLangs = new Set(
-        [for (v of window.speechSynthesis.getVoices()) v.lang.split('-')[0]]);
-      for (var langName in languages) {
-        if (!speechLangs.has(langName.split('-')[0])) {
-          delete languages[langName];
-        }
-      }
-    }
-  },
-
   _parseVersion: function(ver) {
     return ver.split('.').slice(0, 2).join('.');
   },
@@ -103,15 +91,12 @@ exports.LanguageList = {
       this._readSetting('deviceinfo.os'),
       this._readSetting('language.current'),
       this._readSetting('devtools.qps.enabled'),
-      this._readSetting('accessibility.screenreader'),
       navigator.mozApps.getAdditionalLanguages()
-    ]).then(
-      function([langsFromFile, ver, current, qpsEnabled, srEnabled, addl]) {
-        var langs = Object.create(langsFromFile);
-        this._extendPseudo(langs, current, qpsEnabled);
-        this._extendAdditional(langs, this._parseVersion(ver), addl);
-        this._removeWithNoSpeech(langs, srEnabled);
-        return [langs, current];
+    ]).then(function([langsFromFile, ver, current, qpsEnabled, addl]) {
+      var langs = Object.create(langsFromFile);
+      this._extendPseudo(langs, current, qpsEnabled);
+      this._extendAdditional(langs, this._parseVersion(ver), addl);
+      return [langs, current];
     }.bind(this));
 
   },

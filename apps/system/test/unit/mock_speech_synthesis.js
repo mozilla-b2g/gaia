@@ -21,7 +21,7 @@
       }
     },
     getVoices: function() {
-      return [{ lang: 'en-US' }];
+      return new Array(1);
     }
   };
 

@@ -1,11 +1,9 @@
 'use strict';
 /* global MocksHelper, MockSpeechSynthesis, MockSpeechSynthesisUtterance,
-          Accessibility, SettingsListener, MockL10n, ScreenManager,
-          MockSettingsHelper */
+          Accessibility, SettingsListener, MockL10n, ScreenManager */
 
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/test/unit/mock_screen_manager.js');
-requireApp('system/shared/test/unit/mocks/mock_settings_helper.js');
 requireApp('system/test/unit/mock_speech_synthesis.js');
 requireApp('system/js/accessibility.js');
 requireApp('system/js/accessibility_quicknav_menu.js');
@@ -13,8 +11,7 @@ require('/shared/test/unit/mocks/mock_l10n.js');
 
 var mocksForA11y = new MocksHelper([
   'SettingsListener',
-  'ScreenManager',
-  'SettingsHelper'
+  'ScreenManager'
 ]).init();
 
 suite('system/Accessibility', function() {
@@ -123,7 +120,6 @@ suite('system/Accessibility', function() {
     this.sinon.stub(speechSynthesizer, 'speech', MockSpeechSynthesis);
     this.sinon.stub(speechSynthesizer, 'utterance',
       MockSpeechSynthesisUtterance);
-    MockSettingsHelper.instances['language.current'] = { value: 'en-US' };
     navigator.mozL10n = MockL10n;
   });
 
@@ -444,24 +440,6 @@ suite('system/Accessibility', function() {
         assert.isTrue(stubSpeak.called);
       });
 
-    });
-
-    suite('screenreader language support', function() {
-      test('with unsupported language', function() {
-        MockSettingsHelper.instances['language.current'] = { value: 'he-IL' };
-        SettingsListener.mTriggerCallback('accessibility.screenreader', true);
-        assert.equal(MockSettingsHelper.instances['language.current'].value,
-          'en-US');
-        SettingsListener.mTriggerCallback('accessibility.screenreader', false);
-      });
-
-      test('with supported language in different locale', function() {
-        MockSettingsHelper.instances['language.current'] = { value: 'en-GB' };
-        SettingsListener.mTriggerCallback('accessibility.screenreader', true);
-        assert.equal(MockSettingsHelper.instances['language.current'].value,
-          'en-GB');
-        SettingsListener.mTriggerCallback('accessibility.screenreader', false);
-      });
     });
   });
 
