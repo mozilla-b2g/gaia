@@ -1,10 +1,12 @@
-/* global AlbumArtCache, AudioMetadata, Database, LazyLoader, PlaybackQueue,
-          Remote, bridge, navigateToURL, onSearchOpen, onSearchClose */
+/* global AlbumArtCache, AudioMetadata, Database, LazyLoader, NFCShare,
+          PlaybackQueue, Remote, bridge, navigateToURL, onSearchOpen,
+          onSearchClose */
 'use strict';
 
 var audio           = null;
 var queueSettings   = null;
 var remote          = null;
+var nfcShare        = null;
 var currentFilePath = null;
 var currentQueue    = null;
 var isInterrupted   = false;
@@ -53,6 +55,7 @@ var service = bridge.service('music-service')
 
   .method('share', share)
   .method('openExternalFile', openExternalFile)
+  .method('enableNFC', enableNFC)
 
   .method('getDatabaseStatus', getDatabaseStatus)
 
@@ -259,6 +262,16 @@ function loadRemote() {
   }
 
   return remote;
+}
+
+function loadNFCShare() {
+  if (!nfcShare) {
+    nfcShare = LazyLoader.load('/js/nfc_share.js').then(() => {
+      return NFCShare;
+    });
+  }
+
+  return nfcShare;
 }
 
 function queueArtist(filePath) {
@@ -520,6 +533,17 @@ function openExternalFile(file) {
         });
       });
     });
+  });
+}
+
+function enableNFC(enabled) {
+  // This function is a no-op until we enable NFC once.
+  if (!nfcShare && !enabled) {
+    return;
+  }
+
+  loadNFCShare().then(() => {
+    NFCShare.enabled = enabled;
   });
 }
 

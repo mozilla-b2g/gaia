@@ -190,8 +190,11 @@ viewStack.addEventListener('change', (evt) => {
 
   document.body.dataset.activeViewUrl = viewUrl;
 
-  playerButton.hidden = viewUrl === VIEWS.PLAYER.URL || !isPlaying;
-  activityDoneButton.hidden = viewUrl !== VIEWS.PLAYER.URL || !activity;
+  var showingPlayer = viewUrl === VIEWS.PLAYER.URL;
+  playerButton.hidden = showingPlayer || !isPlaying;
+  activityDoneButton.hidden = !showingPlayer || !activity;
+  client.method('enableNFC', showingPlayer);
+
   setBackButtonHidden(!activity && viewStack.views.length < 2);
   setHeaderTitle(evt.detail.title);
 });
