@@ -150,6 +150,10 @@ var WifiHelper = {
     return true;
   },
 
+  isSSIDValid: function(ssid) {
+    return !!ssid && ssid.length > 0;
+  },
+
   isWpsAvailable: function(network) {
     var capabilities = this.getCapabilities(network);
     for (var i = 0; i < capabilities.length; i++) {
