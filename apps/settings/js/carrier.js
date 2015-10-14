@@ -18,6 +18,25 @@ var CarrierSettings = (function() {
   /** Flag */
   var _restartingDataConnection = false;
 
+  var _elements = {
+    detailHeader:
+      document.querySelector('#carrier-detail gaia-header h1'),
+    carrierInfo:
+      document.querySelector('#carrier .carrier-info'),
+    advancedSettings:
+      document.querySelector('#carrier .carrier-advancedSettings'),
+    advancedSettingsList:
+      document.querySelectorAll('#carrier .carrier-advancedSettings li'),
+    simSettings:
+      document.querySelector('#carrier .carrier-simSettings'),
+    dataToggle:
+      document.querySelector('#menuItem-enableDataCall gaia-switch'),
+    dataRoamingToggle:
+      document.querySelector('#menuItem-enableDataRoaming gaia-switch'),
+    desc:
+      document.getElementById('dataNetwork-desc')
+  };
+
   /**
    * Init function.
    */
@@ -60,9 +79,9 @@ var CarrierSettings = (function() {
         cs_showCarrierName();
         return;
       } else if (currentHash === '#carrier-detail') {
-        var detailHeader =
-          document.querySelector('#carrier-detail gaia-header h1');
-        navigator.mozL10n.setAttributes(detailHeader, 'simSettingsWithIndex',
+        navigator.mozL10n.setAttributes(
+          _elements.detailHeader,
+          'simSettingsWithIndex',
           { index: DsdsSettings.getIccCardIndexForCellAndDataSettings() + 1 });
       }
 
@@ -74,11 +93,6 @@ var CarrierSettings = (function() {
 
   function cs_initIccsUI() {
     var isMultiSim = DsdsSettings.getNumberOfIccSlots() > 1;
-    var carrierInfo = document.querySelector('#carrier .carrier-info');
-    var advancedSettings =
-      document.querySelector('#carrier .carrier-advancedSettings');
-    var simSettings = document.querySelector('#carrier .carrier-simSettings');
-
     if (isMultiSim) {
       LazyLoader.load([
         '/js/carrier_iccs.js'
@@ -86,24 +100,19 @@ var CarrierSettings = (function() {
         IccHandlerForCarrierSettings.init();
       });
     }
-    carrierInfo.hidden = isMultiSim;
-    advancedSettings.hidden = isMultiSim;
-    simSettings.hidden = !isMultiSim;
+    _elements.carrierInfo.hidden = isMultiSim;
+    _elements.advancedSettings.hidden = isMultiSim;
+    _elements.simSettings.hidden = !isMultiSim;
   }
 
   function cs_initDataToggles() {
-    var dataToggle = document.querySelector(
-      '#menuItem-enableDataCall gaia-switch');
-    var dataRoamingToggle =
-      document.querySelector('#menuItem-enableDataRoaming gaia-switch');
-
     function updateDataRoamingToggle(dataEnabled) {
       if (dataEnabled) {
-        dataRoamingToggle.disabled = false;
+        _elements.dataRoamingToggle.disabled = false;
       } else {
-        dataRoamingToggle.disabled = true;
-        dataRoamingToggle.checked = false;
-        dataRoamingToggle.dispatchEvent(new Event('change'));
+        _elements.dataRoamingToggle.disabled = true;
+        _elements.dataRoamingToggle.checked = false;
+        _elements.dataRoamingToggle.dispatchEvent(new Event('change'));
       }
     }
 
@@ -127,8 +136,13 @@ var CarrierSettings = (function() {
       }
     );
     if (!isSimCardInserted) {
-      dataToggle.disabled = true;
-      dataRoamingToggle.disabled = true;
+      _elements.dataToggle.disabled = true;
+      _elements.dataRoamingToggle.disabled = true;
+      Array.prototype.forEach.call(_elements.advancedSettingsList,
+        (element) => {
+          element.setAttribute('aria-disabled', true);
+        }
+      );
     }
 
     getDataEnabled().then(function(dataEnabled) {
@@ -137,7 +151,7 @@ var CarrierSettings = (function() {
     });
     // We need to disable data roaming when data connection is disabled.
     _settings.addObserver(DATA_KEY, function observerCb(event) {
-      dataToggle.checked = event.settingValue;
+      _elements.dataToggle.checked = event.settingValue;
       if (_restartingDataConnection) {
         return;
       }
@@ -147,17 +161,15 @@ var CarrierSettings = (function() {
     // Init warnings the user sees before enabling data calls and roaming.
     // The function also registers handlers for the changes of the toggles.
     cs_initWarning(DATA_KEY,
-                   dataToggle,
+                   _elements.dataToggle,
                    isSimCardInserted,
                    'dataConnection-warning-head',
-                   'dataConnection-warning-message',
-                   'dataConnection-expl');
+                   'dataConnection-warning-message');
     cs_initWarning(DATA_ROAMING_KEY,
-                   dataRoamingToggle,
+                   _elements.dataRoamingToggle,
                    isSimCardInserted,
                    'dataRoaming-warning-head',
-                   'dataRoaming-warning-message',
-                   'dataRoaming-expl');
+                   'dataRoaming-warning-message');
   }
 
   /**
@@ -168,10 +180,9 @@ var CarrierSettings = (function() {
       // We don't do anything here when the device support dsds.
       return;
     }
-    var desc = document.getElementById('dataNetwork-desc');
     var iccCard = _iccManager.getIccById(_mobileConnection.iccId);
     var network = _mobileConnection.voice.network;
-    var iccInfo = iccCard.iccInfo;
+    var iccInfo = iccCard && iccCard.iccInfo;
     var carrier = network ? (network.shortName || network.longName) : null;
 
     if (carrier && iccInfo && iccInfo.isDisplaySpnRequired && iccInfo.spn) {
@@ -181,7 +192,11 @@ var CarrierSettings = (function() {
         carrier = iccInfo.spn;
       }
     }
-    desc.textContent = carrier;
+    if (iccCard) {
+      _elements.desc.textContent = carrier;
+    } else {
+      _elements.desc.setAttribute('data-l10n-id', 'noSimCard');
+    }
   }
 
   /**
@@ -193,16 +208,13 @@ var CarrierSettings = (function() {
    * True if there is a SIM card inserted, otherwise.
    * @param {String} l10n id of the title.
    * @param {String} l10n id of the message.
-   * @param {String} explanationItemId The id of the explanation item.
    */
   function cs_initWarning(settingKey,
                           input,
                           isSimCardInserted,
                           titleL10nId,
-                          messageL10nId,
-                          explanationItemId) {
+                          messageL10nId) {
     var warningDialogEnabledKey = settingKey + '.warningDialog.enabled';
-    var explanationItem = document.getElementById(explanationItemId);
 
     /**
      * Figure out whether the warning is enabled or not.
@@ -257,7 +269,6 @@ var CarrierSettings = (function() {
     function onSubmit() {
       setWarningDialogState(false);
       setState(true);
-      explanationItem.removeAttribute('hidden');
       input.checked = true;
     }
 
@@ -298,7 +309,6 @@ var CarrierSettings = (function() {
             }
           } else {
             setState(enabled);
-            explanationItem.removeAttribute('hidden');
           }
         });
       });
@@ -315,11 +325,8 @@ var CarrierSettings = (function() {
           }
           if (enabled) {
             setWarningDialogState(false);
-            explanationItem.removeAttribute('hidden');
           }
         };
-      } else {
-        explanationItem.removeAttribute('hidden');
       }
     });
   }
