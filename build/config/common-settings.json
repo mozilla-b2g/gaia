@@ -59,6 +59,7 @@
    "multiscreen.enabled": false,
    "debug.console.enabled": false,
    "developer.menu.enabled": false,
+   "dev.gaia.pinning_the_web": true,
    "debug.oop.disabled": false,
    "debug.fps.enabled": false,
    "debug.ttl.enabled": false,
