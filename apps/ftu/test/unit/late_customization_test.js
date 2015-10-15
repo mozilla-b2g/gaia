@@ -15,7 +15,8 @@ suite('Late Customization >', function() {
   var realL10n;
   var lcPanel;
   var MockNavigation = {
-    registerStep: function() {}
+    registerStep: function() {},
+    skipStep: function() {}
   };
   var realLazyLoader, realPromise;
   var mockResponse = {
@@ -131,13 +132,65 @@ suite('Late Customization >', function() {
     });
   });
 
-  test('getManifestUrl', function() {
-    var manifestURL = 'http://host.com/api/?carrier=Acme&region=foo';
-    var url = lcPanel.getManifestUrl(manifestURL, {
-      mcc: 42,
-      region: 'bar'
+  test('operatorInfo', function() {
+    var settingsPromise = new MockPromise();
+    this.sinon.stub(lcPanel, 'waitForSettingValues').returns(settingsPromise);
+    this.sinon.stub(lcPanel, 'getInfoFromMobileConnection').returns({
+      operator: 'acme',
+      mcc: '01', mnc: '02'
     });
-    assert.equal(url, 'http://host.com/api/?carrier=Acme&region=bar&mcc=42');
+    lcPanel.start();
+    settingsPromise.mFulfillToValue(['url', { region: 'foo'}]);
+    console.log('lcPanel.operatorInfo', lcPanel.operatorInfo);
+  });
+
+  suite('navigation', function() {
+    setup(function() {
+      this.sinon.stub(window.Navigation, 'registerStep');
+      this.sinon.stub(window.Navigation, 'skipStep');
+      this.sinon.stub(lcPanel, 'onPanelShown');
+      this.sinon.stub(lcPanel, 'render');
+      this.sinon.stub(lcPanel, 'attemptToPopulateAppList');
+      lcPanel.init();
+      switchReadOnlyProperty(lcPanel, 'enabled', true);
+    });
+
+    test('panel is shown when there are apps', function() {
+      var appsMap = new Map([
+        ['http://host/manifest.webapp', mockResponse.objects[0]]
+      ]);
+      lcPanel._appsToInstall = appsMap;
+      lcPanel.handleEvent({ type: 'hashchange', target: {
+        location: {
+          hash: '#late_customization'
+        }
+      }});
+      assert.ok(lcPanel.onPanelShown.calledOnce);
+      assert.isFalse(window.Navigation.skipStep.called);
+    });
+
+    test('panel is not shown when there are no apps', function() {
+      var appsMap = new Map([]);
+      lcPanel._appsToInstall = appsMap;
+      lcPanel.handleEvent({ type: 'hashchange', target: {
+        location: {
+          hash: '#late_customization'
+        }
+      }});
+      assert.ok(!lcPanel.onPanelShown.called);
+      assert.ok(window.Navigation.skipStep.calledOnce);
+    });
+  });
+
+  test('buildManifestUrl', function() {
+    var manifestURL = 'http://host.com/api/?carrier=acme&region=foo';
+    var operatorInfo = {
+      operator: 'meh', mcc: '01', mnc: '02', region: 'bar'
+    };
+    var url = lcPanel.buildManifestUrl(manifestURL, operatorInfo);
+    assert.equal(url,
+      'http://host.com/api/?carrier=acme&region=bar&' +
+      'operator=meh&mcc=01&mnc=02');
   });
 
   suite('fetch manifest', function() {
@@ -148,7 +201,7 @@ suite('Late Customization >', function() {
     setup(function() {
       window.Promise = MockPromise;
       getJSONPromise = new MockPromise();
-      this.sinon.stub(lcPanel, 'getManifestUrl').returns(manifestURL);
+      this.sinon.stub(lcPanel, 'buildManifestUrl').returns(manifestURL);
       this.sinon.stub(window.LazyLoader, 'getJSON').returns(getJSONPromise);
     });
     teardown(function() {
@@ -349,6 +402,5 @@ suite('Late Customization >', function() {
         done();
       }, (err) => { done(err); });
     });
-
   });
 });
