@@ -5,9 +5,10 @@
 import time
 
 from marionette_driver import By, Wait
+from marionette_driver.marionette import Actions
 
 from gaiatest.gaia_graphics_test import GaiaImageCompareTestCase
-from gaiatest.apps.music.app import Music
+from gaiatest.apps.music_oga.app import Music
 
 
 class TestPlay3GPMusic(GaiaImageCompareTestCase):
@@ -48,5 +49,6 @@ class TestPlay3GPMusic(GaiaImageCompareTestCase):
 
         # select stop, then FF to the end of the song
         player_view.tap_play()
-        player_view.tap_forward()
+        ff_button = self.marionette.find_element(*self._player_controls_next_locator)
+        Actions(self.marionette).tap(ff_button).perform()
         self.take_screenshot()

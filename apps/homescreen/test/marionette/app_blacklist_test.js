@@ -30,6 +30,16 @@ marionette('Homescreen - App Blacklist', function() {
   }
 
   test('app does not appear on home screen if in blacklist', function() {
+    // Bug 1106411 - Currently the privacy panel is blacklisted by default.
+    var blacklistedUrl = 'app://privacy-panel.gaiamobile.org/manifest.webapp';
+    var blacklistedIconFound = lookForIcon(blacklistedUrl);
+    assert.equal(blacklistedIconFound, false);
+
+    // Ensure the icon is not there after a restart.
+    home.restart();
+    blacklistedIconFound = lookForIcon(blacklistedUrl);
+    assert.equal(blacklistedIconFound, false);
+
     // Ensure that a normal icon is there.
     var calendarApp = lookForIcon('app://calendar.gaiamobile.org');
     assert.ok(calendarApp);

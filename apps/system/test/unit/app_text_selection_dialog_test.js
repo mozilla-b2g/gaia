@@ -582,9 +582,6 @@ suite('system/AppTextSelectionDialog', function() {
             isMaximized: function() {
               return true;
             },
-            scrollable: {
-              scrollTop: 25
-            },
             height: 40
           }
         };
@@ -600,8 +597,7 @@ suite('system/AppTextSelectionDialog', function() {
           td.calculateDialogPostion(0, 0);
         assert.deepEqual(result, {
           top: positionDetail.rect.bottom * positionDetail.zoomFactor +
-            td.DISTANCE_FROM_SELECTEDAREA_TO_MENUTOP + td.app.appChrome.height -
-            td.app.appChrome.scrollable.scrollTop,
+            td.DISTANCE_FROM_SELECTEDAREA_TO_MENUTOP + td.app.appChrome.height,
           left: ((positionDetail.rect.left + positionDetail.rect.right) *
             positionDetail.zoomFactor -
             td.numOfSelectOptions * td.TEXTDIALOG_WIDTH)/ 2

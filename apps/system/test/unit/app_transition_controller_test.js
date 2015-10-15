@@ -109,21 +109,7 @@ suite('system/AppTransitionController', function() {
       stopPropagation: spy
     });
     assert.isTrue(spy.called);
-    assert.equal(acn1._transitionState, 'opened');
-  });
-
-  test('Animation end event when closing', function() {
-    MockService.mockQueryWith('isBusyLoading', true);
-    var app1 = new MockAppWindow(fakeAppConfig1);
-    var acn1 = new AppTransitionController(app1);
-    var spy = this.sinon.spy();
-    acn1._transitionState = 'closing';
-    acn1.handleEvent({
-      type: 'animationend',
-      stopPropagation: spy
-    });
-    assert.isTrue(spy.called);
-    assert.equal(acn1._transitionState, 'closed');
+    acn1._transitionState = 'opened';
   });
 
   test('Complete on animationend on the Browser when loading', function() {
@@ -138,7 +124,7 @@ suite('system/AppTransitionController', function() {
       stopPropagation: spy
     });
     assert.isTrue(spy.called);
-    assert.equal(acn1._transitionState, 'opened');
+    acn1._transitionState = 'opened';
   });
 
   test('Complete on _loaded event if we discarded the animationend',

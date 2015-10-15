@@ -1,20 +1,19 @@
 /* globals ScreenManager, ScreenBrightnessTransition,
            ScreenWakeLockManager, ScreenAutoBrightness, MockService,
            MockAppWindow, MocksHelper, MockLockScreen, MockMozPower,
-           MockNavigatorMozTelephony, MockSettingsListener, MocksleepMenu */
+           MockSettingsListener, MocksleepMenu */
 
 'use strict';
 
-require('/shared/test/unit/mocks/mock_settings_listener.js');
-require('/shared/test/unit/mocks/mock_navigator_moz_power.js');
-require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
-require('/shared/test/unit/mocks/mock_service.js');
 require('/test/unit/mock_app_window.js');
 require('/test/unit/mock_lazy_loader.js');
 require('/test/unit/mock_lock_screen.js');
-require('/test/unit/mock_navigator_moz_power.js');
-require('/test/unit/mock_sleep_menu.js');
 require('/test/unit/mock_statusbar.js');
+require('/test/unit/mock_navigator_moz_power.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_power.js');
+require('/test/unit/mock_sleep_menu.js');
+require('/shared/test/unit/mocks/mock_settings_listener.js');
+requireApp('system/shared/test/unit/mocks/mock_service.js');
 
 function switchProperty(originObject, prop, stub, reals, useDefineProperty) {
   if (!useDefineProperty) {
@@ -51,20 +50,9 @@ suite('system/ScreenManager', function() {
   var reals = {};
   mocksForScreenManager.attachTestHelpers();
 
-  var realMozTelephony;
   var stubScreenBrightnessTransition;
   var stubScreenWakeLockManager;
   var stubScreenAutoBrightness;
-
-  suiteSetup(function() {
-    realMozTelephony = navigator.mozTelephony;
-    navigator.mozTelephony = MockNavigatorMozTelephony;
-  });
-
-  suiteTeardown(function() {
-    MockNavigatorMozTelephony.mSuiteTeardown();
-    navigator.mozTelephony = realMozTelephony;
-  });
 
   setup(function(done) {
     window.lockScreen = MockLockScreen;
@@ -91,20 +79,27 @@ suite('system/ScreenManager', function() {
   });
 
   teardown(function() {
-    MockNavigatorMozTelephony.mTeardown();
     restoreProperty(navigator, 'mozPower', reals, true);
   });
 
   suite('init()', function() {
     setup(function() {
+      var stubTelephony = {};
       var stubById = this.sinon.stub(document, 'getElementById');
       stubById.withArgs('screen').returns(document.createElement('div'));
 
       this.sinon.stub(MockSettingsListener, 'observe');
+      stubTelephony.addEventListener = this.sinon.stub();
 
       this.sinon.stub(ScreenManager, 'turnScreenOn');
       this.sinon.stub(ScreenManager, '_reconfigScreenTimeout');
       this.sinon.stub(ScreenManager, '_setIdleTimeout');
+
+      switchProperty(navigator, 'mozTelephony', stubTelephony, reals);
+    });
+
+    teardown(function() {
+      restoreProperty(navigator, 'mozTelephony', reals);
     });
 
     test('Event listener adding', function() {
@@ -147,11 +142,10 @@ suite('system/ScreenManager', function() {
     });
 
     test('Testing callback of telephony.addEventListener', function() {
-      this.sinon.spy(navigator.mozTelephony, 'addEventListener');
+      navigator.mozTelephony.addEventListener.reset();
+      navigator.mozTelephony.addEventListener.withArgs('callschanged');
       ScreenManager.start();
-      sinon.assert.calledWith(
-        navigator.mozTelephony.addEventListener, 'callschanged'
-      );
+      assert.isTrue(navigator.mozTelephony.addEventListener.called);
     });
   });
 
@@ -186,29 +180,15 @@ suite('system/ScreenManager', function() {
     });
 
     test('Testing sleep event', function() {
-      this.sinon.spy(ScreenManager, 'turnScreenOff');
+      var stubTurnOff = this.sinon.stub(ScreenManager, 'turnScreenOff');
       ScreenManager.handleEvent({'type': 'sleep'});
-      sinon.assert.calledWith(ScreenManager.turnScreenOff, true, 'powerkey');
-    });
-
-    test('Testing sleep event during a call', function() {
-      MockNavigatorMozTelephony.calls = [{}];
-      this.sinon.spy(ScreenManager, 'turnScreenOff');
-      ScreenManager.handleEvent({'type': 'sleep'});
-      sinon.assert.notCalled(ScreenManager.turnScreenOff);
+      assert.isTrue(stubTurnOff.calledWith(true, 'powerkey'));
     });
 
     test('Testing wake event', function() {
-      this.sinon.spy(ScreenManager, 'turnScreenOn');
+      var stubTurnOn = this.sinon.stub(ScreenManager, 'turnScreenOn');
       ScreenManager.handleEvent({'type': 'wake'});
-      sinon.assert.calledWith(ScreenManager.turnScreenOn);
-    });
-
-    test('Testing wake event during a call', function() {
-      MockNavigatorMozTelephony.calls = [{}];
-      this.sinon.spy(ScreenManager, 'turnScreenOn');
-      ScreenManager.handleEvent({'type': 'wake'});
-      sinon.assert.notCalled(ScreenManager.turnScreenOn);
+      assert.isTrue(stubTurnOn.called);
     });
 
     test('Testing accessibility action event', function() {
@@ -245,11 +225,18 @@ suite('system/ScreenManager', function() {
     });
 
     suite('Testing userproximity event', function() {
-      var stubTurnOn, stubTurnOff;
+      var stubTelephony, stubTurnOn, stubTurnOff;
 
       setup(function() {
+        stubTelephony = {};
         stubTurnOn = this.sinon.stub(ScreenManager, 'turnScreenOn');
         stubTurnOff = this.sinon.stub(ScreenManager, 'turnScreenOff');
+
+        switchProperty(navigator, 'mozTelephony', stubTelephony, reals);
+      });
+
+      teardown(function() {
+        restoreProperty(navigator, 'mozTelephony', reals);
       });
 
       test('if Bluetooth SCO connected', function() {
@@ -262,7 +249,7 @@ suite('system/ScreenManager', function() {
 
       test('if Bluetooth SCO disconnected', function() {
         this.sinon.stub(MockService, 'query').returns(false);
-        MockNavigatorMozTelephony.speakerEnabled = false;
+        stubTelephony.speakerEnabled = false;
         MockService.mockQueryWith('isHeadsetConnected', false);
 
         ScreenManager.handleEvent({'type': 'userproximity'});
@@ -287,27 +274,51 @@ suite('system/ScreenManager', function() {
     });
 
     suite('Testing callschanged event', function() {
-      var stubCpuWakeLock, stubTurnOn, stubRemoveListener;
+      var stubTelephony, stubCpuWakeLock, stubTurnOn, stubRemoveListener;
 
       setup(function() {
+        stubTelephony = {};
         stubCpuWakeLock = {};
         stubTurnOn = this.sinon.stub(ScreenManager, 'turnScreenOn');
         stubRemoveListener = this.sinon.stub(window, 'removeEventListener');
 
         stubCpuWakeLock.unlock = this.sinon.stub();
         ScreenManager._cpuWakeLock = stubCpuWakeLock;
+
+        switchProperty(navigator, 'mozTelephony', stubTelephony, reals);
       });
 
       teardown(function() {
+        restoreProperty(navigator, 'mozTelephony', reals);
         restoreProperty(window, 'dialerAgent', reals);
+      });
+
+      test('screen off by proximity', function() {
+        stubTelephony.calls = [];
+        stubTelephony.conferenceGroup = {calls: []};
+        ScreenManager._screenOffBy = 'proximity';
+        ScreenManager.handleEvent({'type': 'callschanged'});
+        var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
+
+        assert.isTrue(stubTurnOn.called);
+        assert.isNull(ScreenManager._cpuWakeLock);
+        assert.isTrue(stubCpuWakeLock.unlock.called);
+        assert.isFalse(stubDispatchEvent.calledWith('open-callscreen'));
+      });
+
+      test('screen off', function() {
+        stubTelephony.calls = [];
+        stubTelephony.conferenceGroup = {calls: []};
+        ScreenManager._screenOffBy = '';
+        ScreenManager.handleEvent({'type': 'callschanged'});
+        assert.isTrue(stubTurnOn.called);
       });
 
       test('with a call', function() {
         var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
         var stubAddListener = this.sinon.stub();
-        MockNavigatorMozTelephony.calls = [
-          { 'addEventListener': stubAddListener }
-        ];
+        stubTelephony.calls = [{'addEventListener': stubAddListener}];
+        stubTelephony.conferenceGroup = {calls: []};
         ScreenManager.handleEvent({'type': 'callschanged'});
         assert.isFalse(stubDispatchEvent.calledWith('open-callscreen'));
         assert.isFalse(stubAddListener.called);
@@ -316,10 +327,11 @@ suite('system/ScreenManager', function() {
       test('with a conference call', function() {
         var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
         var stubAddListener = this.sinon.stub();
-        MockNavigatorMozTelephony.conferenceGroup.calls = [
-          { 'addEventListener': stubAddListener },
-          { 'addEventListener': stubAddListener }
-        ];
+        stubTelephony.calls = [];
+        stubTelephony.conferenceGroup = {
+          calls: [{'addEventListener': stubAddListener},
+                  {'addEventListener': stubAddListener}]
+        };
         ScreenManager.handleEvent({'type': 'callschanged'});
         assert.isFalse(stubDispatchEvent.calledWith('open-callscreen'));
         assert.isFalse(stubAddListener.called);
@@ -333,10 +345,11 @@ suite('system/ScreenManager', function() {
         test('for an incoming call', function() {
           var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
           var stubAddListener = this.sinon.stub();
-          MockNavigatorMozTelephony.calls = [{
+          stubTelephony.calls = [{
             addEventListener: stubAddListener,
             state: 'incoming'
           }];
+          stubTelephony.conferenceGroup = {calls: []};
           ScreenManager._cpuWakeLock = null;
           ScreenManager.handleEvent({'type': 'callschanged'});
           assert.isFalse(stubDispatchEvent.calledWith('open-callscreen'));
@@ -346,10 +359,11 @@ suite('system/ScreenManager', function() {
         test('for an outgoing call', function() {
           var stubAddListener = this.sinon.stub(window, 'addEventListener');
           var stubStateListener = this.sinon.stub();
-          MockNavigatorMozTelephony.calls = [{
+          stubTelephony.calls = [{
             addEventListener: stubStateListener,
             state: 'dialing'
           }];
+          stubTelephony.conferenceGroup = {calls: []};
           ScreenManager._cpuWakeLock = null;
           ScreenManager.handleEvent({'type': 'callschanged'});
           assert.isTrue(stubStateListener.notCalled);

@@ -1,22 +1,15 @@
-/* globals MmiUI, MocksHelper, MockMmiManager, MockL10n, MockNavigatormozApps */
+/* globals MmiUI, MockL10n, MockNavigatormozApps */
 
 'use strict';
 
 require('/dialer/js/mmi_ui.js');
-require('/dialer/test/unit/mock_mmi_manager.js');
 
 require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 
-var mocksHelperForMmiUi = new MocksHelper([
-  'MmiManager'
-]).init();
-
 suite('dialer/mmi UI', function() {
   var realMozApps;
   var realMozL10n;
-
-  mocksHelperForMmiUi.attachTestHelpers();
 
   suiteSetup(function() {
     realMozApps = navigator.mozApps;
@@ -173,11 +166,8 @@ suite('dialer/mmi UI', function() {
     });
 
     test('Dialer is hidden and response is empty', function() {
-      this.sinon.spy(MockMmiManager, 'cancel');
       MmiUI.closeWindow();
 
-      // Pending USSD session is cancelled.
-      sinon.assert.calledOnce(MockMmiManager.cancel);
       // Message is hidden
       assert.isTrue(MmiUI.mmiScreen.hidden);
       // Response is empty

@@ -9,7 +9,7 @@ from gaiatest.apps.base import Base
 
 class Display(Base):
 
-    _page_locator = (By.ID, 'sound')
+    _page_locator = (By.ID, 'display')
     _timeout_selector_locator = (By.NAME, "screen.timeout")
     _timeout_confirmation_button_locator = (By.CLASS_NAME, "value-option-confirm")
 

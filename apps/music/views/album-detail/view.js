@@ -60,8 +60,8 @@ AlbumDetailView.prototype.getAlbum = function() {
                 paddedIndex.format(song.metadata.tracknum) :
               (song.metadata.tracknum ?
                 unpaddedIndex.format(song.metadata.tracknum) : ''),
-          name:  song.name,
-          title: song.metadata.title
+          title: song.metadata.title,
+          name: song.name,
         };
       });
 

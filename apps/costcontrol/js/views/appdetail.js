@@ -148,8 +148,7 @@ var AppDetailView = (function() {
         _('data-used-since', {
           'amount': formattedMobileDataTotal,
           'start-date':
-            Formatting.getFormattedDate(data.start,
-                Formatting.formatters.longDate)
+            Formatting.getFormattedDate(data.start, _('long-date-format'))
         });
       els.dataUsedThisWeek.textContent =
         _('data-used-this-week', {

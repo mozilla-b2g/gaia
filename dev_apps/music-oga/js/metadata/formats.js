@@ -26,35 +26,35 @@ var MetadataFormats = (function() {
       file: 'js/metadata/forward_lock.js',
       get module() { return ForwardLockMetadata; },
       match: function(header) {
-        return header.getBinaryText(0, 9) === 'LOCKED 1 ';
+        return header.getASCIIText(0, 9) === 'LOCKED 1 ';
       }
     },
     {
       file: 'js/metadata/id3v2.js',
       get module() { return ID3v2Metadata; },
       match: function(header) {
-        return header.getBinaryText(0, 3) === 'ID3';
+        return header.getASCIIText(0, 3) === 'ID3';
       }
     },
     {
       file: 'js/metadata/ogg.js',
       get module() { return OggMetadata; },
       match: function(header) {
-        return header.getBinaryText(0, 4) === 'OggS';
+        return header.getASCIIText(0, 4) === 'OggS';
       }
     },
     {
       file: 'js/metadata/flac.js',
       get module() { return FLACMetadata; },
       match: function(header) {
-        return header.getBinaryText(0, 4) === 'fLaC';
+        return header.getASCIIText(0, 4) === 'fLaC';
       }
     },
     {
       file: 'js/metadata/mp4.js',
       get module() { return MP4Metadata; },
       match: function(header) {
-        return header.getBinaryText(4, 4) === 'ftyp';
+        return header.getASCIIText(4, 4) === 'ftyp';
       }
     },
     {

@@ -15,10 +15,13 @@
     "bower_components"
   ],
   "dependencies": {
-    "base": "gaia-components/base#master",
-    "evt": "gaia-components/evt#master",
     "gaia-container": "https://gitlab.com/Cwiiis/gaia-container.git",
-    "gaia-dialog": "gaia-components/gaia-dialog#master",
-    "pressed": "gaia-components/pressed#master"
+    "gaia-app-icon": "https://gitlab.com/Cwiiis/gaia-app-icon.git",
+    "base": "gaia-components/base#master",
+    "gaia-theme": "gaia-components/gaia-theme#master",
+    "evt": "gaia-components/evt#master",
+    "pressed": "gaia-components/pressed#master",
+    "gaia-component": "gaia-components/gaia-component",
+    "gaia-dialog": "gaia-components/gaia-dialog#master"
   }
 }

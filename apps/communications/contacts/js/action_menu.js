@@ -60,10 +60,7 @@ function ActionMenu(title) {
       self.hide();
     });
 
-    var lastButtonWrapper = document.createElement('span');
-    lastButtonWrapper.className = 'last-button-container';
-    listContainer.appendChild(lastButtonWrapper);
-    lastButtonWrapper.appendChild(btnCancel);
+    listContainer.appendChild(btnCancel);
   }
 
   function emptyList() {

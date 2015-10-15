@@ -249,7 +249,7 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
         self.replacePhoneNumber('withheld-number');
       }
       self.replaceAdditionalContactInfo({ raw: matchingTel.value },
-        Utils.getPhoneNumberAdditionalInfo(matchingTel));
+        Utils.getLocalizedPhoneNumberAdditionalInfo(matchingTel));
 
       var photo = ContactPhotoHelper.getFullResolution(contact);
       if (photo) {
@@ -286,9 +286,14 @@ HandledCall.prototype.replaceAdditionalContactInfo =
     }
 
     if (additionalTelType) {
-      navigator.mozL10n.setAttributes(this.additionalTelTypeNode,
-                                      additionalTelType.id,
-                                      additionalTelType.args);
+      if (typeof(additionalTelType) === 'string') {
+        navigator.mozL10n.setAttributes(this.additionalTelTypeNode,
+                                        additionalTelType);
+      } else if (additionalTelType.id) {
+        navigator.mozL10n.setAttributes(this.additionalTelTypeNode,
+                                        additionalTelType.id,
+                                        additionalTelType.args);
+      }
     }
 
     this.node.classList.add('additionalInfo');
@@ -360,10 +365,12 @@ HandledCall.prototype.updateDirection = function hc_updateDirection() {
   var classList = this.node.classList;
   if (this._initialState === 'incoming') {
     classList.add('incoming');
-    this.node.setAttribute('data-l10n-id', 'incoming_screen_reader');
+    // XXX: This should be replaced with mozL10n.setAttribute whenever possible
+    this.node.setAttribute('aria-label', 'incoming');
   } else {
     classList.add('outgoing');
-    this.node.setAttribute('data-l10n-id', 'outgoing_screen_reader');
+    // XXX: This should be replaced with mozL10n.setAttribute whenever possible
+    this.node.setAttribute('aria-label', 'outgoing');
   }
 
   if (this.call.state === 'connected') {

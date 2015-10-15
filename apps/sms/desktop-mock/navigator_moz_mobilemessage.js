@@ -760,29 +760,9 @@
     message.id = messagesDb.id++;
   });
 
-  const SECOND = 1000;
-  const MINUTE = 60 * SECOND;
-  const HOUR = 60 * MINUTE;
-  const DAY = 24 * HOUR;
-  const MONTH = 30 * DAY;
-
   var i, sender, receivers;
-  var delays = [
-    SECOND,
-    MINUTE - 1,
-    MINUTE,
-    HOUR - 1,
-    HOUR,
-    DAY - 1,
-    DAY,
-    MONTH - 1,
-    MONTH,
-    MONTH * 5,
-    MONTH * 2 + DAY * 3 + HOUR * 8 + MINUTE * 30 + SECOND * 45
-  ];
 
   // Procedurally generate a large amount of messages for a single thread
-  // cycling around different delays 
   for (i = 0; i < 150; i++) {
     messagesDb.messages.push({
       threadId: 5,
@@ -792,8 +772,8 @@
       delivery: 'received',
       id: messagesDb.id++,
       type: 'sms',
-      timestamp: now - 1000 * MINUTE,
-      sentTimestamp: now - 1000 * MINUTE - delays[i % delays.length]
+      timestamp: now - 60000000,
+      sentTimestamp: now - 60100000
     });
   }
 

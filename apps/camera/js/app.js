@@ -364,7 +364,6 @@ App.prototype.localized = function() {
  */
 App.prototype.showSpinner = function(key) {
   debug('show loading type: %s', key);
-  this.busy = true;
 
   var view = this.views.loading;
   if (view) {
@@ -390,7 +389,6 @@ App.prototype.showSpinner = function(key) {
  */
 App.prototype.clearSpinner = function() {
   debug('clear loading');
-  this.busy = false;
   var view = this.views.loading;
   clearTimeout(this.spinnerTimeout);
   if (!view) { return; }
@@ -410,9 +408,23 @@ App.prototype.clearSpinner = function() {
  */
 App.prototype.onBusy = function(type) {
   debug('camera busy, type: %s', type);
-  this.busy = true;
   var delay = this.settings.spinnerTimeouts.get(type);
   if (delay) { this.showSpinner(type); }
+};
+
+/**
+ * Clears the loadings screen, or
+ * any pending loading screen.
+ *
+ * @private
+ */
+App.prototype.onReady = function() {
+  debug('ready');
+  var view = this.views.loading;
+  clearTimeout(this.spinnerTimeout);
+  if (!view) { return; }
+  view.hide(view.destroy);
+  this.views.loading = null;
 };
 
 /**

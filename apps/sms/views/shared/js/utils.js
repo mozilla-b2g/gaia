@@ -715,10 +715,10 @@
      * calls when listening to user input (keypress) or browser events.
      * @params {function} func - The function that should be rate-limited
      * @params {number=300} delay - Min amount of time (ms) between two calls
-     * @params {Object} options - Parameters for managing edge calls.
-     * Attention : when both preventFirstCall and preventLastCall are set to
+     * @params {Object} options - Parameters for managing edge calls. 
+     * Attention : when both preventFirstCall and preventLastCall are set to 
      * true, `func` may never be called.
-     * @param {Boolean=false} options.preventFirstCall - Prevent first
+     * @param {Boolean=false} options.preventFirstCall - Prevent first 
      * call when true.
      * @param {Boolean=false} options.preventLastCall - Prevent last trailing
      * call when true.
@@ -727,7 +727,7 @@
      */
     throttle: function(func, delay = 300, options = {}) {
       var timeout = null;
-      var previous = 0;
+      var previous = 0;      
       var preventFirstCall = !!options.preventFirstCall;
       var preventLastCall = !!options.preventLastCall;
 
@@ -942,27 +942,6 @@
       return promise.then(
         () => shimHostIframe.contentWindow.bootstrap(appInstanceId)
       );
-    },
-
-    /**
-     * Returns Promise instance that is resolved instantly if document is
-     * visible (document.hidden === false), othewise it's resolved only once
-     * `visibilitychange` event is fired.
-     * @returns {Promise.<void>}
-     */
-    onceDocumentIsVisible() {
-      if (!document.hidden) {
-        return Promise.resolve();
-      }
-
-      var defer = this.Promise.defer();
-
-      document.addEventListener('visibilitychange', function waitVisibility() {
-        document.removeEventListener('visibilitychange', waitVisibility);
-        defer.resolve();
-      });
-
-      return defer.promise;
     }
   };
 

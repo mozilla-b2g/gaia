@@ -58,10 +58,8 @@ manifest.appcache
 /build_stage/
 /coverage/
 /local.mk
-/npm-debug.log
-
 /raptor.log
-/metrics.ldjson
+/npm-debug.log
 
 /tools/xpcwindow/vendor/
 

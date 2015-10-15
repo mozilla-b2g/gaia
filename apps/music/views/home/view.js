@@ -6,23 +6,13 @@ var HomeView = View.extend(function HomeView() {
 
   this.thumbnailCache = {};
 
-  this.searchBox = document.getElementById('search-box');
-  this.searchResults = document.getElementById('search-results');
+  this.searchBox = document.getElementById('search');
   this.tiles = document.getElementById('tiles');
 
+  this.searchBox.addEventListener('open', () => window.parent.onSearchOpen());
+  this.searchBox.addEventListener('close', () => window.parent.onSearchClose());
   this.searchBox.addEventListener('search', (evt) => this.search(evt.detail));
-
-  this.searchResults.addEventListener('open', () => {
-    this.client.method('searchOpen');
-    document.body.dataset.search = true;
-  });
-
-  this.searchResults.addEventListener('close', () => {
-    this.client.method('searchClose');
-    document.body.removeAttribute('data-search');
-  });
-
-  this.searchResults.addEventListener('resultclick', (evt) => {
+  this.searchBox.addEventListener('resultclick', (evt) => {
     var link = evt.detail;
     if (link) {
       if (link.dataset.section === 'songs') {
@@ -33,7 +23,9 @@ var HomeView = View.extend(function HomeView() {
     }
   });
 
-  this.searchResults.getItemImageSrc = (item) => this.getThumbnail(item.name);
+  this.searchBox.getItemImageSrc = (item) => {
+    return this.getThumbnail(item.name);
+  };
 
   this.tiles.addEventListener('click', (evt) => {
     var link = evt.target.closest('a[data-file-path]');
@@ -116,10 +108,6 @@ HomeView.prototype.queueSong = function(filePath) {
 };
 
 HomeView.prototype.search = function(query) {
-  if (!query) {
-    return Promise.resolve(this.searchResults.clearResults());
-  }
-
   var results = [];
 
   return document.l10n.formatValues(
@@ -140,7 +128,7 @@ HomeView.prototype.search = function(query) {
 
         results = results.concat(albumResults);
 
-        this.searchResults.setResults(results);
+        this.searchBox.setResults(results);
         return albumResults;
       });
 
@@ -159,7 +147,7 @@ HomeView.prototype.search = function(query) {
 
         results = results.concat(artistResults);
 
-        this.searchResults.setResults(results);
+        this.searchBox.setResults(results);
         return artistResults;
       });
 
@@ -178,7 +166,7 @@ HomeView.prototype.search = function(query) {
 
         results = results.concat(songResults);
 
-        this.searchResults.setResults(results);
+        this.searchBox.setResults(results);
         return songResults;
       });
 

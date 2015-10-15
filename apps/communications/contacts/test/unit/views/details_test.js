@@ -340,13 +340,6 @@ suite('Render contact', function() {
   });
 
   suite('Render addresses', function() {
-    test('in correct position', function() {
-      subject.render(null, TAG_OPTIONS);
-      assert.include(container.innerHTML, 'address-details-template-0');
-      var li = container.querySelector('#address-details-template-0');
-      assert.equal(li.nextSibling.id, 'dates-template-1');
-    });
-
     test('with 1 address', function() {
       subject.render(null, TAG_OPTIONS);
       assert.include(container.innerHTML, 'address-details-template-0');

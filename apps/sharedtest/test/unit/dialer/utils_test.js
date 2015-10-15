@@ -1,4 +1,4 @@
-/* global MockL10n, Utils, l10nAssert */
+/* global MockContacts, MockL10n, Utils */
 
 'use strict';
 
@@ -6,10 +6,12 @@ require('/shared/test/unit/mocks/dialer/mock_contacts.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 
 require('/shared/js/dialer/utils.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 
 suite('dialer/utils', function() {
   var realL10n;
   var subject;
+  var number = '555-555-555-555';
 
   suiteSetup(function() {
     realL10n = navigator.mozL10n;
@@ -22,19 +24,53 @@ suite('dialer/utils', function() {
   });
 
   suite('Utility library', function() {
+    setup(function() {
+      this.sinon.spy(MockL10n, 'get');
+    });
+
+    test('#additional info WITHOUT carrier', function() {
+      MockContacts.mCarrier = null; // No carrier
+      MockContacts.findByNumber(number, function(contact, matchingTel) {
+        var additionalInfo = subject.getPhoneNumberAdditionalInfo(matchingTel);
+        sinon.assert.calledWith(MockL10n.get, MockContacts.mType);
+        assert.equal(MockContacts.mType, additionalInfo);
+      });
+    });
+
+    test('#additional info WITH carrier', function() {
+      MockContacts.mCarrier = 'carrier'; // Carrier value
+      MockContacts.findByNumber(number, function(contact, matchingTel) {
+        var additionalInfo = subject.getPhoneNumberAdditionalInfo(matchingTel);
+        sinon.assert.calledWith(MockL10n.get, MockContacts.mType);
+        assert.equal(MockContacts.mType + ', ' + MockContacts.mCarrier,
+                     additionalInfo);
+      });
+    });
+
+    test('should not translate custom types', function() {
+      var customType = 'totally custom';
+
+      MockContacts.mCarrier = 'carrier';
+      MockContacts.mType = customType;
+
+      MockContacts.findByNumber(number, function(contact, matchingTel) {
+        var additionalInfo = subject.getPhoneNumberAdditionalInfo(matchingTel);
+        sinon.assert.calledWith(MockL10n.get, customType);
+        assert.equal(customType +', ' + MockContacts.mCarrier, additionalInfo);
+      });
+    });
+
     test('#headerDate should identify yesterday as a time range', function() {
       var timestamp = Math.round(new Date().getTime() / 1000);
       var tsYesterday = (timestamp - (25 * 3600)) * 1000;
-      var elem = document.createElement('span');
-      subject.setHeaderDate(elem, tsYesterday);
-      l10nAssert(elem, 'yesterday');
+      assert.equal(subject.headerDate(tsYesterday), 'yesterday');
+      sinon.assert.calledWith(MockL10n.get, 'yesterday');
     });
 
     test('#headerDate should identify today as a time range', function() {
       var tsToday = Math.round(new Date().getTime());
-      var elem = document.createElement('span');
-      subject.setHeaderDate(elem, tsToday);
-      l10nAssert(elem, 'today');
+      assert.equal(subject.headerDate(tsToday), 'today');
+      sinon.assert.calledWith(MockL10n.get, 'today');
     });
 
     test('#headerDate should format 3 days ago as a weekday name', function() {
@@ -44,9 +80,7 @@ suite('dialer/utils', function() {
         Date(ts3DaysAgo).toLocaleString(navigator.languages, {
           weekday: 'long'
         });
-      var elem = document.createElement('span');
-      subject.setHeaderDate(elem, ts3DaysAgo);
-      assert.equal(elem.textContent, threeDaysAgo);
+      assert.equal(subject.headerDate(ts3DaysAgo), threeDaysAgo);
     });
 
     test('#headerDate should format a week ago as a date', function() {
@@ -58,15 +92,13 @@ suite('dialer/utils', function() {
           month: '2-digit',
           day: '2-digit'
         });
-      var elem = document.createElement('span');
-      subject.setHeaderDate(elem, tsWeekAgo);
-      assert.equal(elem.textContent, weekAgo);
+      assert.equal(subject.headerDate(tsWeekAgo),
+                   weekAgo);
     });
 
     test('#headerDate should identify incorrect date', function() {
-      var elem = document.createElement('span');
-      subject.setHeaderDate(elem, 'not-a-date');
-      l10nAssert(elem, 'incorrectDate');
+      assert.equal(subject.headerDate('not-a-date'), 'incorrectDate');
+      sinon.assert.calledWith(MockL10n.get, 'incorrectDate');
     });
 
     test('#prettyDate should identify 12 hour time', function() {
@@ -169,26 +201,26 @@ suite('dialer/utils', function() {
       });
     });
 
-    suite('getPhoneNumberAdditionalInfo()', function() {
+    suite('getLocalizedPhoneNumberAdditionalInfo()', function() {
       var dummyCarrier = 'Dummy carrier';
       var dummyCustomType = 'My custom type';
 
       test('No type, no carrier', function() {
-        var result = Utils.getPhoneNumberAdditionalInfo({});
+        var result = Utils.getLocalizedPhoneNumberAdditionalInfo({});
 
-        assert.deepEqual(result, {id: 'phone_type_mobile', args: null});
+        assert.equal(result, 'phone_type_mobile');
       });
 
       test('Specific type, no carrier', function() {
-        var result = Utils.getPhoneNumberAdditionalInfo({
+        var result = Utils.getLocalizedPhoneNumberAdditionalInfo({
           type: 'work'
         });
 
-        assert.deepEqual(result, {id: 'phone_type_work', args: null});
+        assert.equal(result, 'phone_type_work');
       });
 
       test('Custom type, no carrier', function() {
-        var result = Utils.getPhoneNumberAdditionalInfo({
+        var result = Utils.getLocalizedPhoneNumberAdditionalInfo({
           type: dummyCustomType
         });
 
@@ -197,7 +229,7 @@ suite('dialer/utils', function() {
       });
 
       test('No type with carrier', function() {
-        var result = Utils.getPhoneNumberAdditionalInfo({
+        var result = Utils.getLocalizedPhoneNumberAdditionalInfo({
           carrier: dummyCarrier
         });
 
@@ -206,7 +238,7 @@ suite('dialer/utils', function() {
       });
 
       test('Specific type with carrier', function() {
-        var result = Utils.getPhoneNumberAdditionalInfo({
+        var result = Utils.getLocalizedPhoneNumberAdditionalInfo({
           carrier: dummyCarrier,
           type: 'work'
         });
@@ -216,7 +248,7 @@ suite('dialer/utils', function() {
       });
 
       test('Custom type with carrier', function() {
-        var result = Utils.getPhoneNumberAdditionalInfo({
+        var result = Utils.getLocalizedPhoneNumberAdditionalInfo({
           carrier: dummyCarrier,
           type: dummyCustomType
         });

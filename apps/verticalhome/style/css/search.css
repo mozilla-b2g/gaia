@@ -1,7 +1,6 @@
 #search {
   height: 5rem;
   background-image: linear-gradient(rgba(0,0,0,0.1), rgba(0,0,0,0.1));
-  background-color: transparent;
   position: relative;
   z-index: 5;
   -moz-user-select: none;

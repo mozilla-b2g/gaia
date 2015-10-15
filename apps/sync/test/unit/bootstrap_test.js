@@ -41,6 +41,8 @@ var mocksForBootstrap = new MocksHelper([
 ]).init();
 
 suite('Bootstrap', function() {
+  this.timeout(100);
+
   mocksForBootstrap.attachTestHelpers();
 
   suite('when script is loaded', function() {

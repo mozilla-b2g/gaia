@@ -107,8 +107,8 @@ require.config({
     'shared/airplane_mode_helper': {
       exports: 'AirplaneModeHelper'
     },
-    'shared/homescreens/homescreen_settings': {
-      exports: 'homescreenSettings'
+    'shared/homescreens/vertical_preferences': {
+      exports: 'verticalPreferences'
     },
     'shared/stk_helper': {
       exports: 'STKHelper'

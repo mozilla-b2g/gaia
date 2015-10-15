@@ -12,21 +12,23 @@ var Formatting = (function() {
     return Math.floor((a.getTime() - b.getTime()) / DAY);
   }
 
-  function getFormattedDate(timestamp, formatter) {
-    return formatter.format(timestamp);
+  function getFormattedDate(timestamp, format) {
+    var dateFormatter = new window.navigator.mozL10n.DateTimeFormat();
+    var formatted = dateFormatter.localeFormat(timestamp, format);
+    return formatted;
   }
 
-  function formatTime(timestamp, formatter) {
+  function formatTime(timestamp, format) {
     if (!timestamp) {
       return _('never');
     }
 
     var now = new Date(), then = new Date(timestamp);
-    if (formatter) {
-      return getFormattedDate(then, formatter);
+    if (format) {
+      return getFormattedDate(then, format);
     }
 
-    var date, time;
+    var date, time, timeFormat;
     var daysOfDifference = getDaysOfDifference(now, then);
     if (daysOfDifference === 0) {
       date = _('today');
@@ -35,10 +37,12 @@ var Formatting = (function() {
       date = _('yesterday');
 
     } else {
-      date = getFormattedDate(timestamp, Formatting.formatters.shortWeekday);
+      date = getFormattedDate(timestamp, '%a');
     }
 
-    time = getFormattedDate(timestamp, Formatting.formatters.shortTime);
+    timeFormat = window.navigator.mozHour12 ?
+                 'shortTimeFormat12' : 'shortTimeFormat24';
+    time = getFormattedDate(timestamp, _(timeFormat));
     return _('day-hour-format', {
       day: date,
       time: time
@@ -158,9 +162,7 @@ var Formatting = (function() {
 
     // Interval
     fragment.appendChild(
-      timeElement(
-        Formatting.formatTime(timestampA, Formatting.formatters.shortDate)
-      )
+      timeElement(Formatting.formatTime(timestampA, _('short-date-format')))
     );
     fragment.appendChild(document.createTextNode(' – '));
     fragment.appendChild(timeElement(Formatting.formatTime(timestampB)));
@@ -171,7 +173,6 @@ var Formatting = (function() {
     // Right now the activity for telephony is computed in milliseconds
     return Math.ceil(activity.calltime / 60000);
   }
-  
   return {
     getFormattedDate: getFormattedDate,
     /*
@@ -207,35 +208,6 @@ var Formatting = (function() {
     formatTimeHTML: formatTimeHTML,
 
     // Given the API information compute the human friendly minutes
-    computeTelephonyMinutes: computeTelephonyMinutes,
-
-    formatters: {}
+    computeTelephonyMinutes: computeTelephonyMinutes
   };
-
 }());
-
-
-function setFormatters() {
-  const locales = navigator.languages;
-  Formatting.formatters.longDate = Intl.DateTimeFormat(locales, {
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric'
-  });
-  Formatting.formatters.shortDate = Intl.DateTimeFormat(locales, {
-    month: 'short',
-    day: 'numeric',
-  });
-  Formatting.formatters.shortTime = Intl.DateTimeFormat(locales, {
-    hour12: navigator.mozHour12,
-    hour: 'numeric',
-    minute: 'numeric'
-  });
-  Formatting.formatters.shortWeekday = Intl.DateTimeFormat(locales, {
-    weekday: 'short'
-  });
-}
-
-setFormatters();
-window.addEventListener('languagechange', setFormatters, false);
-window.addEventListener('timeformatchange', setFormatters, false);

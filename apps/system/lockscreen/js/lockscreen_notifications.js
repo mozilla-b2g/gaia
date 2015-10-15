@@ -584,7 +584,9 @@
 
     timestamps.forEach((element) => {
       var date = new Date(element.dataset.timestamp);
-      formatter.formatElement(element, date);
+      formatter.format(date).then(str => {
+        element.textContent = str;
+      });
     });
   };
 

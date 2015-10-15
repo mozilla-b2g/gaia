@@ -270,12 +270,6 @@
         // If this window is not the lockscreen, and the screen is locked,
         // we need to aria-hide the window.
         this._showFrame();
-
-        // Handle any pending scroll-area-changed (this is deferred when an
-        // app isn't visible).
-        if (this.appChrome) {
-          this.appChrome.handleScrollAreaChanged();
-        }
       } else {
         this._hideFrame();
       }
@@ -1202,12 +1196,10 @@
         case 'application-name':
           // Apps have a compulsory name field in their manifest
           // which takes precedence.
-          var name = detail.content || '';
-          var emptyString = !(name.trim());
-          if (this.manifestURL || this.webManifestURL || emptyString) {
+          if (this.manifestURL || this.webManifestURL) {
             return;
           }
-          this.name = name;
+          this.name = detail.content;
           this.publish('namechanged');
           break;
       }

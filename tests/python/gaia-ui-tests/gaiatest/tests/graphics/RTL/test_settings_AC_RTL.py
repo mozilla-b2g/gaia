@@ -31,7 +31,7 @@ class TestSettingsRTLAC(GaiaImageCompareTestCase):
             self.take_screenshot('findmydevice-password')
             fxaccount.enter_password(self.environment.email['gmail']['password'])
             fxaccount.wait_for_successful_login()
-            self.take_screenshot('findmydevice-loginsuccess')
+            self.take_screenshot('findmydevice-loginsuccess',top_frame=True)
             fxaccount.tap_done()
             findmydevice_view.wait_for_enable_switch_to_be_turned_on()
             self.take_screenshot('findmydevice-loggedin')
@@ -49,7 +49,7 @@ class TestSettingsRTLAC(GaiaImageCompareTestCase):
             fxaccount.enter_email(self.environment.email['gmail']['email'])
             fxaccount.enter_password('wrongpassword')
             fxaccount.wait_for_password_error()
-            self.take_screenshot('findmydevice-pwderror')
+            self.take_screenshot('findmydevice-pwderror', top_frame=True)
             fxaccount.close_password_error()
 
         elif option == 'unverified': # use unverified account
@@ -57,7 +57,7 @@ class TestSettingsRTLAC(GaiaImageCompareTestCase):
             fxaccount.enter_email('rtl@unverified')
             fxaccount.enter_password('unverified')
             fxaccount.wait_for_successful_login()
-            self.take_screenshot('findmydevice-verifypending')
+            self.take_screenshot('findmydevice-verifypending', top_frame=True)
             fxaccount.tap_done()
             self.take_screenshot('findmydevice-confirmyouracct')
 

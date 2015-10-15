@@ -15,27 +15,29 @@ var VorbisPictureComment = (function() {
     if (kind != 3) {
       return null;
     }
-    var mime_len = view.readUnsignedInt();
-    var mimetype = view.readLatin1Text(mime_len);
-    if (mimetype === '-->') {
-      // XXX: We don't support URLs (the spec recommends against them anyway).
-      console.error('URL for cover art is not supported.');
+    var len = view.readUnsignedInt();
+    var mimetype = view.readASCIIText(len);
+    if (mimetype == '-->') {
+      // XXX we don't support URL (no recommended by the spec anyway)
+      console.error('URL for cover art is not supported from Vorbis comment.');
       return null;
     }
 
-    // Skip desc, w, h, bpp and indexed colours.
-    var desc_len = view.readUnsignedInt();
-    view.advance(desc_len + 16);
+    // We ignore these next two fields
+    len = view.readUnsignedInt();
+    view.readNullTerminatedUTF8Text(len); // desc
+    // skip w, h, bpp and indexed colours.
+    view.advance(16);
 
-    var pic_len = view.readUnsignedInt();
-    var pic_start = view.sliceOffset + view.viewOffset + view.index;
+    var piclength = view.readUnsignedInt();
+    var picstart = view.sliceOffset + view.viewOffset + view.index;
 
     // Now return an object that specifies where to pull the image from
     // The properties of this object can be passed to blob.slice()
     return {
       flavor: 'embedded',
-      start: pic_start,
-      end: pic_start + pic_len,
+      start: picstart,
+      end: picstart + piclength,
       type: mimetype
     };
   }

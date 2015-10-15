@@ -120,18 +120,18 @@ define(function(require) {
       // shadow DOM from the label currently.
       var labelClicked = false;
 
-      // Register the handler for the click event on the checkbox.
-      radio.addEventListener('click', event => {
+      // Register the handler for the checked change.
+      radio.addEventListener('change', event => {
         if (!labelClicked) {
           this._radioClick(index);
         }
         labelClicked = false;
         event.stopPropagation();
         event.preventDefault();
-      }, true);
+      });
 
-      // Register the handler for the mouseup event on the label.
-      radioLabel.addEventListener('mouseup', () => {
+      // Register the handler for the click event.
+      radioLabel.addEventListener('click', () => {
         labelClicked = true;
         this._labelClick(index);
       });

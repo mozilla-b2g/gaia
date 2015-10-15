@@ -9,8 +9,7 @@ module.exports = {
     'search.marketplace.url': null,
     'ftu.manifestURL': null,
     'lockscreen.enabled': false,
-    'screen.timeout': 0,
-    'privacy.trackingprotection.shown': true
+    'screen.timeout': 0
   },
   prefs: {
     'geo.wifi.uri': 'http://localhost',

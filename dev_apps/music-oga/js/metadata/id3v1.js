@@ -27,7 +27,7 @@ var ID3v1Metadata = (function() {
         }
 
         try {
-          var magic = footer.getBinaryText(0, 3);
+          var magic = footer.getASCIIText(0, 3);
           if (magic === 'TAG') {
             // It's an MP3 file with an ID3v1 tag.
             resolve(parseID3v1Metadata(footer));
@@ -51,9 +51,9 @@ var ID3v1Metadata = (function() {
    */
   function parseID3v1Metadata(footer) {
     footer.seek(3); // Skip the "TAG" prefix.
-    var title = footer.readNullTerminatedLatin1Text(30, true);
-    var artist = footer.readNullTerminatedLatin1Text(30, true);
-    var album = footer.readNullTerminatedLatin1Text(30, true);
+    var title = trimNullTerminator(footer.readASCIIText(30));
+    var artist = trimNullTerminator(footer.readASCIIText(30));
+    var album = trimNullTerminator(footer.readASCIIText(30));
 
     footer.advance(32); // Skip year and comment.
     var zerobyte = footer.readUnsignedByte();
@@ -70,6 +70,17 @@ var ID3v1Metadata = (function() {
     }
 
     return metadata;
+  }
+
+  /**
+   * Trim any trailing null terminators from a string.
+   *
+   * @param {String} str The string to trim.
+   * @return {String} The trimmed string.
+   */
+  function trimNullTerminator(str) {
+    var term = str.indexOf('\0');
+    return (term === -1) ? str : str.substring(0, term);
   }
 
   return {

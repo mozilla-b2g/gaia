@@ -23,7 +23,6 @@ MarionetteApps.ModuleToFunction = {
   launch: 'launch',
   list: 'list',
   switchtoapp: 'switchToApp',
-  switchtoactivity: 'switchToActivity',
   getapp: 'getApp',
   getself: 'getSelf'
 };

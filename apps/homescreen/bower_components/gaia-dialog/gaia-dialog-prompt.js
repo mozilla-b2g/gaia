@@ -43,8 +43,8 @@ module.exports = component.register('gaia-dialog-prompt', {
   },
 
   close: function() {
-    return this.els.dialog.close()
-      .then(GaiaDialogProto.hide.bind(this));
+    return GaiaDialogProto.show.call(this)
+      .then(() => this.els.dialog.close());
   },
 
   template: `

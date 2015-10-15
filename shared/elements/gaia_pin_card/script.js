@@ -92,12 +92,10 @@ window.GaiaPinCard = (function(win) {
         <i></i>
       </div>
       <div class="background"></div>
-      <div class="content">
-        <header></header>
-        <section>
-          <p class="description"></p>
-        </section>
-      </div>
+      <header></header>
+      <section>
+        <p class="description"></p>
+      </section>
     </article>`;
 
   function getColorCodes(color) {

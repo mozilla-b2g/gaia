@@ -94,8 +94,8 @@ WebappZip.prototype.isExcludedFromZip = function(file) {
     },
     function isTest(file) {
       var appPath = options.webapp.buildDirectoryFilePath;
-      var pathElements = file.path.substr(appPath.length + 1).split(/[\\/]/);
-      return pathElements.some(function(path) { return path === 'test'; });
+      var path = file.path.substr(appPath.length + 1).split(/[\\/]/)[0];
+      return path === 'test';
     },
     function isGit(file) {
       var appPath = options.webapp.buildDirectoryFilePath;

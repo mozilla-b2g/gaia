@@ -8,12 +8,6 @@ const PAGES_ICON_SIZE = 30;
 
 (function(exports) {
 
-  /**
-   * The height of the delete-app bar at the bottom of the container when
-   * dragging a deletable app.
-   */
-  const DELETE_DISTANCE = 60;
-
   function Pages() {
     // Element references
     this.panel = document.getElementById('pages-panel');
@@ -21,8 +15,6 @@ const PAGES_ICON_SIZE = 30;
     this.pages = document.getElementById('pages');
     this.shadow = document.querySelector('#pages-panel > .shadow');
     this.scrollable = document.querySelector('#pages-panel > .scrollable');
-    this.bottombar = document.getElementById('bottombar');
-    this.remove = document.getElementById('remove');
 
     // Scroll behaviour
     this.scrolled = false;
@@ -33,10 +25,6 @@ const PAGES_ICON_SIZE = 30;
     // Signal handlers
     this.pages.addEventListener('click', this);
     this.pages.addEventListener('contextmenu', this);
-    this.pages.addEventListener('drag-start', this);
-    this.pages.addEventListener('drag-move', this);
-    this.pages.addEventListener('drag-end', this);
-    this.pages.addEventListener('drag-finish', this);
     this.scrollable.addEventListener('scroll', this);
     window.addEventListener('hashchange', this);
 
@@ -54,6 +42,10 @@ const PAGES_ICON_SIZE = 30;
       document.addEventListener('places-set', (e) => {
         var id = e.detail.id;
         this.pagesStore.get(id).then((page) => {
+          if (!page.data.pinned) {
+            return;
+          }
+
           for (var child of this.pages.children) {
             if (child.dataset.id === id) {
               if (!page.data.pinned) {
@@ -63,10 +55,6 @@ const PAGES_ICON_SIZE = 30;
               }
               return;
             }
-          }
-
-          if (!page.data.pinned) {
-            return;
           }
 
           // A new page was pinned.
@@ -180,53 +168,6 @@ const PAGES_ICON_SIZE = 30;
 
         e.preventDefault();
         e.stopImmediatePropagation();
-        break;
-
-      case 'drag-start':
-        document.body.classList.add('dragging');
-        this.bottombar.classList.toggle('editable', false);
-        this.bottombar.classList.toggle('removable', true);
-        this.bottombar.classList.add('active');
-        break;
-
-      case 'drag-move':
-        this.remove.classList.toggle('active',
-          e.detail.clientY > window.innerHeight - DELETE_DISTANCE);
-        break;
-
-      case 'drag-end':
-        e.preventDefault();
-        if (e.detail.clientY <= window.innerHeight - DELETE_DISTANCE) {
-          return;
-        }
-
-        var card = e.detail.target;
-        var id = card.dataset.id;
-
-        // Take the child out of flow so it doesn't return to its original
-        // position before being removed.
-        card.classList.add('unpinning');
-        card.style.transform = card.parentNode.style.transform;
-
-        this.pagesStore.get(id).then(entry => {
-          entry.data.pinned = false;
-          this.pagesStore.datastore.put(entry.data, id).then(() => {},
-            e => {
-              card.classList.remove('unpinning');
-              card.style.transform = '';
-              console.error('Error unpinning page:', e);
-            });
-        }, e => {
-          card.classList.remove('unpinning');
-          card.style.transform = '';
-          console.error('Error retrieving page to unpin:', e);
-        });
-        break;
-
-      case 'drag-finish':
-        document.body.classList.remove('dragging');
-        this.bottombar.classList.remove('active');
-        this.remove.classList.remove('active');
         break;
 
       case 'scroll':

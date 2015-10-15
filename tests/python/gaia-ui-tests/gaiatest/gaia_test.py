@@ -54,14 +54,13 @@ DEFAULT_PREFS = {
 
 class GaiaApp(object):
 
-    def __init__(self, origin=None, name=None, frame=None, src=None, manifest_url=None, entry_point=None):
+    def __init__(self, origin=None, name=None, frame=None, src=None, manifest_url=None):
         self.frame = frame
         self.frame_id = frame
         self.src = src
         self.name = name
         self.origin = origin
         self.manifest_url = manifest_url
-        self.entry_point = entry_point
 
     def __eq__(self, other):
         return self.__dict__ == other.__dict__
@@ -103,8 +102,7 @@ class GaiaApps(object):
                       src=result.get('src'),
                       name=result.get('name'),
                       origin=result.get('origin'),
-                      manifest_url=result.get('manifestURL'),
-                      entry_point=result.get('entryPoint'))
+                      manifest_url=result.get('manifestURL'))
         if app.frame_id is None:
             raise Exception("App failed to launch; there is no app frame")
         if switch_to_frame:
@@ -119,8 +117,7 @@ class GaiaApps(object):
                        src=result.get('src'),
                        name=result.get('name'),
                        origin=result.get('origin'),
-                       manifest_url=result.get('manifestURL'),
-                       entry_point=result.get('entryPoint'))
+                       manifest_url=result.get('manifestURL'))
 
     def switch_to_displayed_app(self):
         self.marionette.switch_to_default_content()
@@ -943,15 +940,14 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
         storage_paths = [self.device.storage_path]
         if self.device.is_android_build:
             # TODO: Remove hard-coded paths once bug 1018079 is resolved
-            storage_paths.extend(['/mnt/sdcard/',
-                                  '/mnt/extsdcard/',
-                                  '/storage/sdcard/',
-                                  '/storage/sdcard0/',
-                                  '/storage/sdcard1/'])
+            storage_paths.extend(['/mnt/sdcard',
+                                  '/mnt/extsdcard',
+                                  '/storage/sdcard',
+                                  '/storage/sdcard0',
+                                  '/storage/sdcard1'])
         for path in storage_paths:
             if self.device.file_manager.dir_exists(path):
-                for item in self.device.file_manager.list_items(path):
-                    self.device.file_manager.remove('/'.join([path, item]))
+                self.device.file_manager.remove(path + '/*')
 
     def cleanup_gaia(self, full_reset=True):
 

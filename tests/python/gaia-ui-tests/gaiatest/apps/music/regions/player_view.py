@@ -14,7 +14,6 @@ class PlayerView(Base):
     _player_seek_elapsed_locator = (By.ID, 'elapsed-time')
     _player_controls_shadow_dom_locator = (By.ID, 'controls')
     _player_controls_play_locator = (By.ID, 'toggle')
-    _player_controls_forward_locator = (By.ID, 'next')
     _cover_image_shadow_dom_locator = (By.ID, 'artwork')
     _seek_bar_shadow_dom_locator = (By.ID, 'seek-bar')
     _cover_share_locator = (By.CSS_SELECTOR, '[data-l10n-id="share-song"]')
@@ -32,12 +31,6 @@ class PlayerView(Base):
         self.marionette.switch_to_frame(self.marionette.find_element(*self._active_view_locator))
         self.marionette.switch_to_shadow_root(self.marionette.find_element(*self._player_controls_shadow_dom_locator))
         self.marionette.find_element(*self._player_controls_play_locator).tap()
-        self.apps.switch_to_displayed_app()
-
-    def tap_forward(self):
-        self.marionette.switch_to_frame(self.marionette.find_element(*self._active_view_locator))
-        self.marionette.switch_to_shadow_root(self.marionette.find_element(*self._player_controls_shadow_dom_locator))
-        self.marionette.find_element(*self._player_controls_forward_locator).tap()
         self.apps.switch_to_displayed_app()
 
     def tap_cover_in_player_view(self):

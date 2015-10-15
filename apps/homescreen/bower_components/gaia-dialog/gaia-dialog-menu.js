@@ -15,20 +15,8 @@ module.exports = component.register('gaia-dialog-menu', {
   created: function() {
     this.setupShadowRoot();
     this.els = {
-      dialog: this.shadowRoot.querySelector('gaia-dialog'),
-      items: this.shadowRoot.querySelector('.items')
+      dialog: this.shadowRoot.querySelector('gaia-dialog')
     };
-
-    this.els.dialog.addEventListener('closed',
-      GaiaDialogProto.hide.bind(this));
-
-    setTimeout(() => this.makeAccessible());
-  },
-
-  makeAccessible() {
-    this.els.items.setAttribute('role', 'menu');
-    [].forEach.call(this.querySelectorAll('button'),
-      menuitem => menuitem.setAttribute('role', 'menuitem'));
   },
 
   open: function(e) {
@@ -37,8 +25,8 @@ module.exports = component.register('gaia-dialog-menu', {
   },
 
   close: function() {
-    return this.els.dialog.close()
-      .then(GaiaDialogProto.hide.bind(this));
+    return GaiaDialogProto.show.call(this)
+      .then(() => this.els.dialog.close());
   },
 
   template: `

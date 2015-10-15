@@ -32,6 +32,7 @@ class GaiaImageCompareTestCase(GaiaTestCase):
         self.logger = get_default_logger()
         self.picture_index = 0
         self.test_passed = True
+
         self.failcomment = ""
 
         # set up directories
@@ -48,27 +49,27 @@ class GaiaImageCompareTestCase(GaiaTestCase):
         """At the end of test execution, it checks for the errors"""
         self.assertTrue(self.test_passed, msg=self.failcomment)
 
-    # if the status bar is visible, crop it off
-    @property
-    def crop_height(self):
+    def take_screenshot(self, page_name=None, prewait=0):
+        """
+        invokes screen capture event, crops the status bar, and saves to the file
+        page_name: a (optional) name that is given to the screenshot image file
+        """
+        if prewait > 0:
+            time.sleep(prewait)
+        # if the status bar is visible, crop it off
+        current_frame = self.marionette.get_active_frame()
         self.marionette.switch_to_frame()
-        height = 0
+
         _statusbar_locator = (By.ID, 'statusbar')
         if expected.element_displayed(*_statusbar_locator)(self.marionette):
             # get the size of the status bar to crop off
             status_bar = self.marionette.find_element(*System._status_bar_locator)
             # get the size of the status bar, and multiply it by the device pixel ratio to get the exact size on device
-            height = int(status_bar.rect['height']
+            self.crop_height = int(status_bar.rect['height']
                                    * self.marionette.execute_script('return window.wrappedJSObject.devicePixelRatio;'))
-
-        return height
-
-    def take_screenshot(self, page_name=None, prewait=1, top_frame=False):
-        """
-        invokes screen capture event, crops the status bar, and saves to the file
-        page_name: a (optional) name that is given to the screenshot image file
-        """
-        time.sleep(prewait)
+        else:
+            self.crop_height = 0
+        self.marionette.switch_to_frame(current_frame)
 
         # take screenshot
         self.marionette.set_context(self.marionette.CONTEXT_CHROME)
@@ -108,19 +109,24 @@ class GaiaImageCompareTestCase(GaiaTestCase):
                 ref_file_list[i] = os.path.join(self.reference_path, p)
 
             if reference_filename in ref_file_list:
-                self.image_compare(filename, reference_filename,
-                                   "{0}_diff.png".format(filename[0:filename.find(".png")]), self.fuzz_factor)
+
+                error_msg = self.image_compare(filename,
+                                               reference_filename,
+                                               "{0}_diff.png".format(filename[0:filename.find(".png")]),
+                                               self.fuzz_factor)
             else:
-                self.failcomment += "\nRef file not found for: " + filename + '\n'
+                error_msg = "Ref file not found for: " + filename + '\n'
+            if error_msg != "":
+                # self.logger.critical(error_msg)  uncomment for debugging
+                self.failcomment += error_msg
                 self.test_passed = False
 
-        # sometimes the frame should remain at the top level
-        if top_frame is False:
-            self.apps.switch_to_displayed_app()
         self.picture_index += 1
 
     def image_compare(self, target, ref, diff, fuzz_value):
         """do single image compare using the convert console command of ImageMagick"""
+
+        message = ""
 
         p = subprocess.Popen(
             ["compare", "-fuzz", str(fuzz_value) + "%", "-metric", "AE", target, ref, diff],
@@ -128,25 +134,20 @@ class GaiaImageCompareTestCase(GaiaTestCase):
         out, err = p.communicate()
         p.wait()
 
-        if not (err == '0' and out == ''):
-            self.test_passed = False
-
-            # msg should be saved at this point. Otherwise, it will get lost if any of the below line fails
-            if len(err.split()) > 1:
-                self.failcomment += '\n'+err
-            else:
-                self.failcomment += '\nWARNING: ' + err + ' pixels mismatched between ' + target + ' and ' + ref + '\n'
+        if not (err == '0\n' or err == '0'):
+            err = err.replace('\n', '')
+            message = 'WARNING: ' + err + ' pixels mismatched between ' + target + ' and ' + ref + '\n' + \
+                      'This screenshot and diff file will be moved to ' + self.mismatch_path + '\n'
 
             # move the diff image and the target image to a separate folder
             if not os.path.exists(self.mismatch_path):
                 os.makedirs(self.mismatch_path)
             target_image_name = target[target.rfind("/") + 1:]
+            diff_image_name = diff[diff.rfind("/") + 1:]
             os.rename(target, os.path.join(self.mismatch_path, target_image_name))
+            os.rename(diff, os.path.join(self.mismatch_path, diff_image_name))
 
-            # diff may not be generated if the image sizes do not match
-            if os.path.exists(diff):
-                diff_image_name = diff[diff.rfind("/") + 1:]
-                os.rename(diff, os.path.join(self.mismatch_path, diff_image_name))
+        return message
 
     # Make UI action related methods static, so they can be used outside the GaiaImageCompareTestCase object as well.
     @staticmethod

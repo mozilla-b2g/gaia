@@ -26,9 +26,8 @@ form[role="dialog"][data-type="edit"] gaia-header {
 
   /* Those style will affect the bagroundImage: -moz-element. */
   background-repeat: no-repeat;
+  background-position: 1.5rem 0;
 }
-html[dir="ltr"] #sticky { background-position: left 1.5rem top 0; }
-html[dir="rtl"] #sticky { background-position: right 1.5rem top 0; }
 
 #call-log-container[data-type="list"] header {
   background: #fff;
@@ -54,7 +53,7 @@ html[dir="rtl"] #sticky { background-position: right 1.5rem top 0; }
 
 #call-log-container[data-type="list"] li {
   height: 6rem;
-  box-sizing: border-box;
+  -moz-box-sizing: border-box;
 }
 
 /* For preventig active status with withheld number */
@@ -71,15 +70,12 @@ html[dir="rtl"] #sticky { background-position: right 1.5rem top 0; }
   padding: 0;
 }
 
-button[disabled],
-input[type="text"][disabled],
-a.bb-button[disabled],
-a.bb-button[disabled] * {
+button[disabled], input[type="text"][disabled],
+a.bb-button[disabled], a.bb-button[disabled] * {
   pointer-events: none;
 }
 
-input[type="text"][disabled],
-a.bb-button[disabled] {
+input[type="text"][disabled], a.bb-button[disabled] {
   opacity: 0.3;
 }
 
@@ -102,7 +98,7 @@ ol, ul {
 
 .view-body {
   color: black;
-  height: calc(100% - 9.1rem);
+  height: -moz-calc(100% - 9.1rem);
   position: absolute;
   overflow: hidden;
   width: 100%;
@@ -118,11 +114,10 @@ ol, ul {
 }
 
 .icon-container {
+  float: left;
   height: 100%;
   width: 5rem;
 }
-html[dir="ltr"] .icon-container { float: left; }
-html[dir="rtl"] .icon-container { float: right; }
 
 .icon-incoming,
 .icon-outgoing,
@@ -196,7 +191,7 @@ html[dir="rtl"] .icon-container { float: right; }
 }
 
 .log-item .retry-count {
-  margin-inline-start: 0.5rem;
+  -moz-margin-start: 0.5rem;
 }
 
 .log-item .additional-info {
@@ -211,7 +206,7 @@ html[dir="rtl"] .icon-container { float: right; }
 }
 
 .log-item .call-time {
-  margin-inline-start: 0.5rem;
+  -moz-margin-start: 0.5rem;
 }
 
 .log-item .pack-checkbox {
@@ -224,18 +219,14 @@ html[dir="rtl"] .icon-container { float: right; }
   transform: translateY(0);
 }
 
-html[dir="ltr"] .recents-edit .pack-checkbox.call-log-selection {
+.recents-edit .pack-checkbox.call-log-selection {
   transform: translateX(4rem);
-}
-html[dir="rtl"] .recents-edit .pack-checkbox.call-log-selection {
-  transform: translateX(-4rem);
 }
 
 .recents-edit .log-item a {
+  transform: translateX(3rem);
   visibility: hidden;
 }
-html[dir="ltr"] .recents-edit .log-item a { transform: translateX(3rem); }
-html[dir="rtl"] .recents-edit .log-item a { transform: translateX(-3rem); }
 
 .recents-edit .log-item a > aside,
 .recents-edit .log-item a > p {
@@ -295,4 +286,21 @@ html[dir="rtl"] .recents-edit .log-item a { transform: translateX(-3rem); }
 
 .filter .groupFiltered {
   display: none;
+}
+
+/* RTL View */
+html[dir="rtl"] .icon-container {
+  float: right;
+}
+
+html[dir="rtl"] .recents-edit .pack-checkbox.call-log-selection {
+  transform: translateX(-4rem);
+}
+
+html[dir="rtl"] .recents-edit .log-item a {
+  transform: translateX(-3rem);
+}
+
+html[dir="rtl"] #sticky {
+  background-position: calc(100% - 1.5rem) 0;
 }

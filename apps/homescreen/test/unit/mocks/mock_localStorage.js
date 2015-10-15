@@ -10,9 +10,6 @@ var mockLocalStorage = {
   getItem: key => {
     return _rawContent[key];
   },
-  removeItem: key => {
-    delete _rawContent[key];
-  },
 
   set mRawContent(val) {
     _rawContent = val;

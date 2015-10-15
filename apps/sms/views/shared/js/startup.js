@@ -17,7 +17,6 @@
          Navigation,
          Settings,
          SilentSms,
-         SystemMessageHandler,
          TimeHeaders,
          Utils
 */
@@ -69,7 +68,6 @@ var Startup = exports.Startup = {
     '/views/shared/js/smil.js',
     '/views/shared/js/notify.js',
     '/views/shared/js/activity_handler.js',
-    '/views/shared/js/system_message_handler.js',
     '/views/shared/js/localization_helper.js',
     '/lib/bridge/bridge.js',
     '/services/js/bridge_service_mixin.js',
@@ -87,9 +85,7 @@ var Startup = exports.Startup = {
 
       // dispatch contentInteractive when all the modules initialized
       SilentSms.init();
-
       ActivityHandler.init();
-      SystemMessageHandler.init();
 
       // Init UI Managers
       TimeHeaders.init();
