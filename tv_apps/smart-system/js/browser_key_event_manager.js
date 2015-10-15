@@ -37,6 +37,16 @@
       'volumedown': 'volume-down-button'
     }),
     _getLowerCaseKeyName: function bkem_getLowerCaseKeyName(event) {
+      // XXX: workaround bug 1214993.
+      // Currently the event object from Gecko API "sendKeyEvent" doesn't
+      // contain the "key" property, which we needs here to trigger the
+      // corresponding actions by the remote control client.
+      if (event.key == 'Unidentified') {
+        switch (event.keyCode) {
+          case window.KeyEvent.DOM_VK_HOME:
+            return 'home';
+        }
+      }
       return event.key && event.key.toLowerCase();
     },
     _isSystemOnlyKey: function bkem_isSystemOnlyKey(event) {
