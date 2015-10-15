@@ -29,15 +29,25 @@
     _customizationManifestUrl: '',
 
     get enabled() {
-      return Boolean(this._customizationManifestUrl && this._operatorInfo);
+      return Boolean(this._customizationManifestUrl &&
+                     (this._operatorInfo || this._predefinedOperatorInfo));
+    },
+
+    get operatorInfo() {
+      var info = {};
+      Object.assign(info,
+                    this._operatorInfo || this.getInfoFromMobileConnection(),
+                    this._predefinedOperatorInfo);
+      return info;
     },
 
     get carrierName() {
-      return this._operatorInfo && this._operatorInfo.carrier;
+      var info = this.operatorInfo;
+      return info.carrier || info.operator;
     },
 
     get region() {
-      return this._operatorInfo ? this._operatorInfo.region : '';
+      return this.operatorInfo.region || '';
     },
 
     start: function() {
@@ -46,21 +56,17 @@
       window.addEventListener('online', this);
       window.addEventListener('offline', this);
 
+      this._operatorInfo = this.getInfoFromMobileConnection();
       this.waitForSettingValues().then((results) => {
-        var [url, info] = results;
+        var [url, predefinedInfo] = results;
         if (url) {
           this._customizationManifestUrl = url;
         }
-        if (info && info.operator) {
-          this._operatorInfo = info;
-          if (info.operator && !info.carrier) {
-            info.carrier = info.operator;
-          }
+        if (predefinedInfo) {
+          // store operator/params separate from
+          // bona-fide mobileconnection details
+          this._predefinedOperatorInfo = predefinedInfo;
         }
-        // skip waiting for operator info from mobileConnections if we got
-        // it from settings
-        return this._operatorInfo || this.waitForOperatorInfo();
-      }).then((results) => {
         this.debug(
           'start, resolved manifest url: ' + this._customizationManifestUrl,
           ' is enabled? ' + this.enabled,
@@ -71,9 +77,17 @@
           this.init();
         } else {
           this.debug('Not enabled; not initializing');
+          if (!this._operatorInfo) {
+            // keep watching in case we can init later
+            this.waitForOperatorInfo().then((info) => {
+              if (!this._initialized && this.enabled) {
+                this.init();
+              }
+            });
+          }
         }
       }).catch(e => {
-        this.debug('start: didnt init: ', e);
+        this.debug('start: didnt init, error from waitForSettingValues: ', e);
       });
     },
 
@@ -158,7 +172,7 @@
         }
         return (this._appsToInstall = appsMap);
       }, (err) => {
-        console.warn('fetch error: ', err);
+        console.warn('LateCustomization: ', err.message || err);
       });
     },
 
@@ -191,7 +205,7 @@
     },
 
     waitForOperatorInfo: function() {
-      var info = this.getOperatorInfo();
+      var info = this.getInfoFromMobileConnection();
       if (info) {
         this._operatorInfo = info;
         return Promise.resolve(info);
@@ -205,19 +219,18 @@
       });
     },
 
-    getOperatorInfo: function() {
+    getInfoFromMobileConnection: function() {
       var connections = navigator.mozMobileConnections;
-      for (var i=0, conn; i<connections.length; i++) {
-        conn = connections[i];
-        if(conn && conn.voice && conn.voice.connected) {
-          var operatorInfos = MobileOperator.userFacingInfo(conn);
-          if (operatorInfos.operator) {
-            operatorInfos.mcc = conn.voice.network.mcc;
-            operatorInfos.mnc = conn.voice.network.mnc;
-            if (!operatorInfos.carrier) {
-              operatorInfos.carrier = operatorInfos.operator;
+      if (connections) {
+        for (var i=0, conn; i<connections.length; i++) {
+          conn = connections[i];
+          if(conn && conn.voice && conn.voice.connected) {
+            var operatorInfos = MobileOperator.userFacingInfo(conn);
+            if (operatorInfos.operator) {
+              operatorInfos.mcc = conn.voice.network.mcc;
+              operatorInfos.mnc = conn.voice.network.mnc;
+              return operatorInfos;
             }
-            return operatorInfos;
           }
         }
       }
@@ -328,19 +341,21 @@
       console.log.apply(console, args);
     },
 
-    getManifestUrl: function(url, infos={}) {
+    buildManifestUrl: function(url, infos={}) {
       var apiURL = new URL(url);
       var params = new URLSearchParams(apiURL.search.substr(1));
-      Object.keys(infos).forEach(key => {
-        params.set(key, infos[key]);
-      });
+      for(var key in infos) {
+        if (typeof infos[key] !== 'undefined') {
+          params.set(key, infos[key]);
+        }
+      }
       apiURL.search = params.toString();
       return apiURL.href;
     },
 
     fetchManifest: function() {
-      var url = this.getManifestUrl(this._customizationManifestUrl,
-                                    this._operatorInfo);
+      var url = this.buildManifestUrl(this._customizationManifestUrl,
+                                    this.operatorInfo);
       if (!url) {
         return Promise.reject(new Error('No manifest URL available'));
       }
@@ -350,7 +365,7 @@
           if (resp.objects) {
             resolve(resp);
           } else {
-            reject('Empty or error response received');
+            reject('No apps in reponse to: ' + url);
           }
         }).catch(ex => {
           reject(ex);
@@ -378,13 +393,17 @@
       switch (evt.type) {
         case 'hashchange':
           if (this.enabled &&
-              window.location.hash === '#late_customization') {
-            this.onPanelShown();
+              evt.target.location.hash === '#late_customization') {
+            if (this._appsToInstall && this._appsToInstall.size) {
+              this.onPanelShown();
+            } else {
+              Navigation.skipStep();
+            }
           }
           // TODO: is some event I can listen to to know the sim is ready
           // to be asked these questions?
           if (this._operatorInfoRequest) {
-            var info = this.getOperatorInfo();
+            var info = this.getInfoFromMobileConnection();
             if (info) {
               this._operatorInfo = info;
               this._operatorInfoRequest.resolve(info);
