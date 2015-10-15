@@ -110,9 +110,12 @@
           // If we already have a browser and we receive an open request,
           // display it in the current browser frame.
           var activeApp = Service.query('AppWindowManager.getActiveWindow');
+          var isManuallyRegular = activeApp && activeApp.url &&
+            activeApp.url.includes('private=0');
           if (activeApp && (activeApp.isBrowser() || activeApp.isSearch())) {
             activeApp.isPrivate = activeApp.hasOwnProperty('isPrivate') ?
-              activeApp.isPrivate : Browser.privateByDefault;
+              activeApp.isPrivate :
+              (Browser.privateByDefault && !isManuallyRegular);
             activeApp.navigate(url);
             return;
           }

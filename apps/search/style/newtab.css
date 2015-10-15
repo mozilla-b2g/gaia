@@ -184,12 +184,12 @@ body.private {
 }
 
 #private-window-dialog h1 {
-    font-size: 2rem;
-    color: #fff;
-    text-align: center;
-    font-weight: 300;
-    font-style: italic;
-    margin-bottom: 1.5rem;
+  font-size: 2rem;
+  color: #fff;
+  text-align: center;
+  font-weight: 300;
+  font-style: italic;
+  margin-bottom: 1.5rem;
 }
 
 #private-window-dialog a,

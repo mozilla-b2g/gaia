@@ -612,7 +612,7 @@ TaskManager.prototype = {
     } else {
       config = new BrowserConfigHelper({
         manifestURL: 'app://search.gaiamobile.org/manifest.webapp',
-        url: 'app://search.gaiamobile.org/newtab.html'
+        url: 'app://search.gaiamobile.org/newtab.html?private=0'
       });
     }
 
