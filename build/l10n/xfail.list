@@ -120,6 +120,7 @@ dev_apps/geoloc/js/geoloc.js
 shared/elements/gaia_grid/js/items/collection.js
 shared/js/l10n_date.js
 shared/js/tz_select.js
+tv_apps/browser/js/index.js
 tv_apps/smart-home/js/edit.js
 tv_apps/smart-home/js/home.js
 tv_apps/smart-system/js/accessibility.js
