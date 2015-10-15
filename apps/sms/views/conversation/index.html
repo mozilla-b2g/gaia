@@ -201,7 +201,7 @@
           <form id="messages-compose-form" role="search" class="bottom" data-message-type="sms">
             <section class="mms-label-line">
               <section class="subject-composer js-subject-composer hide">
-                <div contentEditable="true" class="subject-composer-input"
+                <div contentEditable="true" class="subject-composer-input support-emojis"
                      role="textbox"
                      aria-multiline="false">
                 </div>
@@ -217,7 +217,7 @@
                 <button id="messages-attach-button" aria-label="Add attachment" data-l10n-id="attach-button" type="button"></button>
               </div>
               <div class="composer-message-input-container">
-                <div id="messages-input" contentEditable="true" name="message"
+                <div id="messages-input" class="support-emojis" contentEditable="true" name="message"
                      x-inputmode="-moz-sms" data-l10n-id="messagesInput"
                      role="textbox" aria-multiline="true">
                 </div>
@@ -270,7 +270,7 @@
           <p class="type"></p>
           <p class="subject">
             <span data-l10n-id="message-subject"></span>
-            <span class="detail"></span>
+            <span class="detail support-emojis"></span>
           </p>
           <p class="sent-block">
             <span class="sent-title"></span>
@@ -429,11 +429,11 @@
       <span></span>
     </label>
     <section class="bubble">
-      <h1 class="message-subject">
+      <h1 class="message-subject support-emojis">
         ${subject}
       </h1>
       <div class="message-content">
-        <p class="message-content-body" tabindex="-1">${bodyHTML}</p>
+        <p class="message-content-body support-emojis" tabindex="-1">${bodyHTML}</p>
         <div class="message-details">
           ${simInformationHTML}
           <time data-time-update="true" data-time-only="true" data-time="${timestamp}"></time>
