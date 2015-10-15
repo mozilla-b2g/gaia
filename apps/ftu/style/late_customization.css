@@ -1,0 +1,39 @@
+/* styles for late customization panel */
+
+#late_customization-applist:first-child {
+  padding-top: 0;
+}
+
+#late_customization > .content > p {
+  color: #000;
+  padding: 0 3rem 1rem;
+  font-size: 1.35rem;
+  line-height: 1.8rem;
+}
+
+#late_customization-applist > li {
+  padding: 0 1.5rem 0.5rem;
+  display: flex;
+  flex-direction: row;
+  box-sizing: padding-box;
+  align-items: center;
+}
+
+#late_customization-applist > li > p {
+  flex: 1 1 auto;
+}
+
+#late_customization-applist > li > .icon {
+  width: 3.2rem;
+  height: 3.2rem;
+  display: inline-block;
+  opacity: 1;
+  transition: opacity 0.3s ease;
+  flex: 0 0 3.2rem;
+  background: url('./images/late_customization/app_installing.svg') no-repeat;
+  background-size: cover;
+  -moz-margin-end: 1.3rem;
+}
+#late_customization-applist > li.pending > .icon {
+  opacity: 0.5;
+}
