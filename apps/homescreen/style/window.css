@@ -24,7 +24,7 @@ body {
   align-content: center;
 }
 
-.pin-the-web #page-indicator {
+#page-indicator {
   display: flex;
 }
 
@@ -69,15 +69,11 @@ body {
 }
 
 #panels {
-  height: 100vh;
+  height: calc(100vh - 1.5rem);
   overflow-y: hidden;
   scroll-snap-type-x: mandatory;
   scroll-snap-points-x: repeat(100vw);
   white-space: nowrap;
-}
-
-.pin-the-web #panels {
-  height: calc(100vh - 1.5rem);
 }
 
 .dragging #panels {

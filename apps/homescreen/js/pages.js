@@ -16,6 +16,7 @@ const PAGES_ICON_SIZE = 30;
 
   function Pages() {
     // Element references
+    this.panel = document.getElementById('pages-panel');
     this.panels = document.getElementById('panels');
     this.pages = document.getElementById('pages');
     this.shadow = document.querySelector('#pages-panel > .shadow');
@@ -26,8 +27,8 @@ const PAGES_ICON_SIZE = 30;
     // Scroll behaviour
     this.scrolled = false;
 
-    // Track when the first pinned page has been added
-    this.firstPinnedPage = true;
+    // Tracking if the list is empty
+    this.empty = true;
 
     // Signal handlers
     this.pages.addEventListener('click', this);
@@ -42,6 +43,13 @@ const PAGES_ICON_SIZE = 30;
     // Initialise and populate pinned pages
     this.pagesStore = new PagesStore('places');
     this.pagesStore.init().then(() => {
+      var checkEmptyCallback = () => {
+        if (!this.empty && this.pages.children.length === 0) {
+          this.empty = true;
+          this.panel.classList.add('empty');
+        }
+      };
+
       // Triggered when pages are added and updated.
       document.addEventListener('places-set', (e) => {
         var id = e.detail.id;
@@ -49,7 +57,7 @@ const PAGES_ICON_SIZE = 30;
           for (var child of this.pages.children) {
             if (child.dataset.id === id) {
               if (!page.data.pinned) {
-                this.pages.removeChild(child);
+                this.pages.removeChild(child, checkEmptyCallback);
               } else {
                 this.updatePinnedPage(child, page.data);
               }
@@ -70,7 +78,7 @@ const PAGES_ICON_SIZE = 30;
         var id = e.detail.id;
         for (var child of this.pages.children) {
           if (child.dataset.id === id) {
-            this.pages.removeChild(child);
+            this.pages.removeChild(child, checkEmptyCallback);
             return;
           }
         }
@@ -80,6 +88,11 @@ const PAGES_ICON_SIZE = 30;
         for (var child of this.pages.children) {
           this.pages.removeChild(child);
         }
+
+        if (!this.empty) {
+          this.empty = true;
+          this.panel.classList.add('empty');
+        }
       });
     },
     (e) => {
@@ -88,6 +101,11 @@ const PAGES_ICON_SIZE = 30;
       return this.pagesStore.getAll().then((pages) => {
         for (var page of pages) {
           this.addPinnedPage(page.data);
+        }
+
+        // If there are no pinned pages, display helpful information.
+        if (this.empty) {
+          this.panel.classList.add('empty');
         }
       }, (e) => {
         console.error('Error getting pinned pages', e);
@@ -129,9 +147,9 @@ const PAGES_ICON_SIZE = 30;
       this.updatePinnedPage(pinCard, page);
       this.pages.appendChild(pinCard);
 
-      if (this.firstPinnedPage) {
-        this.firstPinnedPage = false;
-        document.body.classList.add('pin-the-web');
+      if (this.empty) {
+        this.empty = false;
+        this.panel.classList.remove('empty');
       }
     },
 
