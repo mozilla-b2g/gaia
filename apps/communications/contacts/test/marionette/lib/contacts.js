@@ -161,6 +161,20 @@ Contacts.prototype = {
     this.client.apps.switchToApp(Contacts.URL, 'contacts');
   },
 
+  switchToCreateNewContactActivity: function() {
+    this._switchToActivity('views/form/form.html');
+  },
+
+  switchToMergeInterface: function() {
+    this._switchToActivity('views/matching/matching_contacts.html');
+  },
+
+  _switchToActivity: function(href) {
+    this.client.switchToFrame();
+    // switchToActivity already waits for the app to be displayed
+    this.client.apps.switchToActivity(Contacts.URL, '/contacts/' + href);
+  },
+
   /**
    * Returns a localized string from a properties file.
    * @param {String} file to open.
@@ -291,7 +305,6 @@ Contacts.prototype = {
     }
 
     this.client.findElement(selectors.formSave).click();
-    this.waitForFormTransition();
   },
 
   addContact: function(details) {
@@ -301,6 +314,7 @@ Contacts.prototype = {
     addContact.click();
 
     this.enterContactDetails(details);
+    this.waitForFormTransition();
 
     this.client.helper.waitForElement(selectors.list);
   },
@@ -312,10 +326,9 @@ Contacts.prototype = {
     addContact.click();
 
     this.enterContactDetails(details);
+    this.switchToMergeInterface();
 
     var duplicateFrame = this.client.findElement(selectors.duplicateFrame);
-    this.waitForSlideUp(duplicateFrame);
-    this.client.switchToFrame(duplicateFrame);
 
     var mergeAction =
       this.client.helper.waitForElement(selectors.duplicateMerge);
@@ -333,6 +346,7 @@ Contacts.prototype = {
     this.client.helper.waitForElement(selectors.formAddNewEmail).click();
 
     this.enterContactDetails(details);
+    this.waitForFormTransition();
 
     this.client.helper.waitForElement(selectors.list);
   },

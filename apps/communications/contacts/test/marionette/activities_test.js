@@ -124,7 +124,8 @@ marionette('Contacts > Activities', function() {
 
       subject.enterContactDetails({
         givenName: 'From Dialer Activity'
-      }, true);
+      });
+      this.waitForFormTransition();
 
       client.switchToFrame(client.findElement(selectors.duplicateFrame));
 
