@@ -252,6 +252,40 @@ suite('system/BrowserContextMenu', function() {
     assert.isTrue(!fakeNoItemsContextMenuEvent.defaultPrevented);
   });
 
+  test('System menu with invalid items is not prevented', function() {
+    var app1 = new AppWindow(fakeAppConfig1);
+    var md1 = BaseModule.instantiate('BrowserContextMenu', app1);
+    md1.start();
+
+    app1.isBrowser = function() {
+      return true;
+    };
+
+    var fakeEvent = {
+      type: 'mozbrowsercontextmenu',
+      defaultPrevented: false,
+      preventDefault: function() {
+        this.defaultPrevented = true;
+      },
+      stopPropagation: function() {},
+      detail: {
+        contextmenu: {
+          items: [],
+          customized: false
+        },
+        systemTargets: [{
+          nodeName: 'INPUT',
+          data: {
+            uri: 'http://fake.com'
+          }
+       }]
+      }
+    };
+    md1.handleEvent(fakeEvent);
+    MockNavigatorSettings.mReplyToRequests();
+    assert.isFalse(fakeEvent.defaultPrevented);
+  });
+
 
   test('Check that a system menu without items is prevented', function() {
     var app1 = new AppWindow(fakeAppConfig1);
