@@ -7,6 +7,7 @@
     "browser":{},
     "systemXHR":{},
     "desktop-notification" : {},
+    "settings":{ "access": "readwrite" },
     "firefox-accounts": {},
     "moz-extremely-unstable-and-will-change-webcomponents":{}
   },

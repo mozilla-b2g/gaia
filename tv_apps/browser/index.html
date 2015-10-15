@@ -6,6 +6,7 @@
     <title>web browser</title>
 
     <!-- building blocks -->
+    <link rel="stylesheet" href="bower_components/gaia-icons/gaia-icons.css">
     <link rel="stylesheet" type="text/css" href="bower_components/smart-button/style.css">
 
     <!-- Specific style -->
@@ -17,6 +18,7 @@
     <link rel="stylesheet" type="text/css" href="style/tooltip.css">
     <link rel="stylesheet" type="text/css" href="style/search_result.css">
     <link rel="stylesheet" type="text/css" href="style/settings.css">
+    <link rel="stylesheet" type="text/css" href="style/firefox_account_ui.css">
 
     <!-- Resources -->
     <link rel="resource" type="image/png" href="shared/resources/branding/browser_336.png">
@@ -31,6 +33,7 @@
 
     <!-- building blocks -->
     <script defer src="bower_components/evt/index.js"></script>
+    <script defer src="bower_components/gaia-icons/gaia-icons.js"></script>
     <script defer src="bower_components/smart-button/script.js"></script>
 
     <!-- Shared code -->
@@ -38,6 +41,9 @@
     <script defer src="shared/js/utilities.js"></script>
     <script defer src="shared/js/fxa_iac_client.js"></script>
     <script defer src="shared/js/smart-screen/connection_manager.js"></script>
+
+    <!-- Sync, borrowed from apps/settings -->
+    <script defer src="js/sync_manager_bridge.js"></script>
 
     <!-- Specific code -->
     <script defer src="js/browser_db.js"></script>
@@ -51,6 +57,7 @@
     <script defer src="js/search_result.js"></script>
     <script defer src="js/settings.js"></script>
     <script defer src="js/firefox_account.js"></script>
+    <script defer src="js/firefox_account_ui.js"></script>
     <script defer src="js/connection_handler.js"></script>
 
     <!-- IAC Handler (put here because it starts sending event immediately) -->
@@ -742,6 +749,44 @@
           </div>
         </div>
         <div id="settings-banner-message"></div>
+      </div>
+
+      <!-- Firefox Account welcome page -->
+      <div id="fxa-welcome" class="fxa-welcome ishidden">
+        <div class="settings-container">
+          <h1 id="fxa-welcome-header" class="fxa-header" data-l10n-id="welcome-to-sync"></h1>
+          <p id="fxa-welcome-description" class="fxa-description" data-l10n-id="welcome-to-sync-detail"></p>
+          <ul id="fxa-welcome-list" class="settings-list">
+            <li id="fxa-welcome-bookmarks-item" class="settings-list-item">
+              <input type="radio" value="bookmarks" id="fxa-welcome-bookmarks-button" name="fxa-welcome-sync-options" class="settings-list-radio-button" checked></input>
+              <label for="fxa-welcome-bookmarks-button"></label>
+              <span data-l10n-id="bookmarks-only"></span>
+            </li>
+            <li id="fxa-welcome-all-item" class="settings-list-item">
+              <input type="radio" value="all" id="fxa-welcome-all-button" name="fxa-welcome-sync-options" class="settings-list-radio-button"></input>
+              <label for="fxa-welcome-all-button"></label>
+              <span data-l10n-id="all-information"></span>
+            </li>
+            <li id="fxa-welcome-custom-item" class="settings-list-item">
+              <input type="radio" value="custom" id="fxa-welcome-custom-button" name="fxa-welcome-sync-options" class="settings-list-radio-button"></input>
+              <label for="fxa-welcome-custom-button"></label>
+              <span data-l10n-id="custom"></span>
+            </li>
+          </ul>
+          <ul id="fxa-welcome-custom-list" class="settings-horizontal-list">
+            <li class="settings-horizontal-list-item">
+              <input type="checkbox" value="bookmarks" id="fxa-welcome-custom-bookmarks-button" name="fxa-welcome-custom-options" class="settings-list-checkbox" checked disabled>
+              <label for="fxa-welcome-custom-bookmarks-button"></label>
+              <span data-l10n-id="bookmarks"></span>
+            </li>
+            <li class="settings-horizontal-list-item">
+              <input type="checkbox" value="history" id="fxa-welcome-custom-history-button" name="fxa-welcome-custom-options" class="settings-list-checkbox" disabled>
+              <label for="fxa-welcome-custom-history-button"></label>
+              <span data-l10n-id="history"></span>
+            </li>
+          </ul>
+          <smart-button id="fxa-welcome-done" class="settings-close-button" type="simple-text" data-l10n-id="done"></smart-button>
+        </div>
       </div>
 
       <!-- loading -->

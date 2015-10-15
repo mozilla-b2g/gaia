@@ -5,6 +5,7 @@
 /* global BrowserDB */
 /* global BrowserDialog */
 /* global FirefoxAccount */
+/* global FirefoxAccountUI */
 /* global KeyEvent */
 /* global SearchUtil */
 /* global Toolbar */
@@ -25,6 +26,7 @@ var Settings = {
   focusPos: 0,
 
   firefoxAccount: null,
+  firefoxAccountUI: null,
 
   /** Get all DOM elements when inited. */
   getAllElements: function settings_getAllElements() {
@@ -100,6 +102,9 @@ var Settings = {
       onerror: this.handleFirefoxAccountError.bind(this)
     });
 
+    this.firefoxAccountUI = new FirefoxAccountUI(this.firefoxAccount);
+
+    // XXX: delegate these events
     this.settingsList.addEventListener('mouseup',
       this.handleListClick.bind(this));
     this.settingsListArea.addEventListener('mouseup',
@@ -503,7 +508,11 @@ var Settings = {
   handleSignInClick: function settings_handleSignInClick(e) {
     e.stopPropagation();
     e.preventDefault();
-    this.firefoxAccount.openFlow();
+    this.firefoxAccount.openFlow(() => {
+      if (this.firefoxAccount.VERIFIED) {
+        this.firefoxAccountUI.showWelcome();
+      }
+    });
   },
 
   handleResendClick: function settings_handleResendClick(e) {

@@ -119,6 +119,12 @@
       "rules": {
         "minimumAccessLevel": "certified"
       }
+    },
+    "gaia-sync-management": {
+      "description": "Firefox Sync management API",
+      "rules": {
+        "minimumAccessLevel": "certified"
+      }
     }
   },
   "datastores-owned": {
