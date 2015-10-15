@@ -214,16 +214,18 @@ suite('system/FxAccountsClient >', function() {
       assert.ok(MockDispatchedEvents[1].detail.id);
       assert.ok(MockDispatchedEvents[0].detail.data);
       assert.ok(MockDispatchedEvents[1].detail.data);
-      assert.deepEqual(MockDispatchedEvents[0].detail.data, {
-        method: 'signIn',
-        email: 'email',
-        password: 'pass'
-      });
-      assert.deepEqual(MockDispatchedEvents[1].detail.data, {
-        method: 'signUp',
-        email: 'email',
-        password: 'pass'
-      });
+
+      var signInData = MockDispatchedEvents[0].detail.data;
+      assert.equal(signInData.method, 'signIn');
+      assert.equal(signInData.email, 'email');
+      assert.equal(signInData.password, 'pass');
+      assert.ok(signInData.fetchKeys !== undefined);
+
+      var signUpData = MockDispatchedEvents[1].detail.data;
+      assert.equal(signUpData.method, 'signUp');
+      assert.equal(signUpData.email, 'email');
+      assert.equal(signUpData.password, 'pass');
+      assert.ok(signUpData.fetchKeys !== undefined);
     });
 
     suiteTeardown(function() {

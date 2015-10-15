@@ -112,18 +112,28 @@ var FxAccountsClient = function FxAccountsClient() {
   };
 
   var signIn = function signIn(email, password, successCb, errorCb) {
+    var fetchKeys = false;
+//IFDEF_FIREFOX_SYNC
+    fetchKeys = true;
+//ENDIF_FIREFOX_SYNC
     sendMessage({
       method: 'signIn',
       email: email,
-      password: password
+      password: password,
+      fetchKeys: fetchKeys
     }, successCb, errorCb);
   };
 
   var signUp = function signUp(email, password, successCb, errorCb) {
+    var fetchKeys = false;
+//IFDEF_FIREFOX_SYNC
+    fetchKeys = true;
+//ENDIF_FIREFOX_SYNC
     sendMessage({
       method: 'signUp',
       email: email,
-      password: password
+      password: password,
+      fetchKeys: fetchKeys
     }, successCb, errorCb);
   };
 
