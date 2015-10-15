@@ -1,5 +1,5 @@
 /* global MozActivity, IconsHelper, LazyLoader */
-/* global applications, BaseModule */
+/* global applications, BaseModule, Service */
 
 (function(window) {
   'use strict';
@@ -33,7 +33,9 @@
     handleEvent: function(evt) {
       switch (evt.type) {
         case 'mozbrowsercontextmenu':
-          this.show(evt);
+          if (!Service.query('isFtuRunning')) {
+            this.show(evt);
+          }
           break;
       }
     },
