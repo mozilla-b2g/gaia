@@ -1,8 +1,8 @@
 'use strict';
 
 /* global DialerAgent, MockAppWindow, MocksHelper, MockNavigatorMozTelephony,
-          MockSettingsListener, MockSettingsURL, MockAudio, MockApplications,
-          MockVersionHelper */
+          MockService, MockSettingsListener, MockSettingsURL, MockAudio,
+          MockApplications, MockVersionHelper */
 
 require('/js/dialer_agent.js');
 require('/test/unit/mock_app_window.js');
@@ -14,10 +14,12 @@ require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/test/unit/mocks/mock_settings_url.js');
 require('/shared/test/unit/mocks/mock_audio.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
+require('/shared/test/unit/mocks/mock_service.js');
 
 var mocksForDialerAgent = new MocksHelper([
   'CallscreenWindow',
   'Audio',
+  'Service',
   'SettingsListener',
   'SettingsURL',
   'VersionHelper'
@@ -25,7 +27,7 @@ var mocksForDialerAgent = new MocksHelper([
 
 suite('system/DialerAgent', function() {
   mocksForDialerAgent.attachTestHelpers();
-  var realTelephony, realVibrate, realSystem, realApplications,
+  var realTelephony, realVibrate, realApplications,
       realVersionHelper;
 
   var subject;
@@ -41,18 +43,15 @@ suite('system/DialerAgent', function() {
     realTelephony = navigator.mozTelephony;
     navigator.mozTelephony = MockNavigatorMozTelephony;
     realVibrate = navigator.vibrate;
-    realSystem = window.Service;
-    window.Service = {locked: false};
     realVersionHelper = window.VersionHelper;
     window.VersionHelper = MockVersionHelper(false);
   });
 
   suiteTeardown(function() {
+    MockNavigatorMozTelephony.mSuiteTeardown();
     navigator.mozTelephony = realTelephony;
     navigator.vibrate = realVibrate;
-    window.Service = realSystem;
     window.applications = realApplications;
-    MockNavigatorMozTelephony.mSuiteTeardown();
   });
 
   setup(function() {
@@ -68,6 +67,7 @@ suite('system/DialerAgent', function() {
 
   teardown(function() {
     subject.stop();
+    MockService.mTeardown();
     MockNavigatorMozTelephony.mTeardown();
   });
 
@@ -75,6 +75,7 @@ suite('system/DialerAgent', function() {
     this.state = state;
     this.addEventListener = function() {};
     this.removeEventListener = function() {};
+    this.hangUp = function() {};
   }
 
   suite('Audio element setup', function() {
@@ -159,6 +160,13 @@ suite('system/DialerAgent', function() {
         vibrateSpy.reset();
         this.sinon.clock.tick(600);
         assert.isTrue(vibrateSpy.notCalled);
+      });
+
+      test('it should stop when the user presses the power button', function() {
+        window.dispatchEvent(new CustomEvent('sleep'));
+        vibrateSpy.reset();
+        this.sinon.clock.tick(600);
+        sinon.assert.notCalled(vibrateSpy);
       });
     });
 
@@ -271,6 +279,13 @@ suite('system/DialerAgent', function() {
       test('it should not vibrate', function() {
         assert.isTrue(vibrateSpy.notCalled);
       });
+
+      test('it should stop when the user presses the power button', function() {
+        window.dispatchEvent(new CustomEvent('sleep'));
+        vibrateSpy.reset();
+        this.sinon.clock.tick(600);
+        sinon.assert.notCalled(vibrateSpy);
+      });
     });
 
     suite('even if the ringtone has a volume', function() {
@@ -343,8 +358,10 @@ suite('system/DialerAgent', function() {
   });
 
   test('should not do anything if mozTelephony is unavailable', function() {
-    MockSettingsListener.mCallbacks = {};
+    subject.stop();
     MockAudio.mTeardown();
+
+    MockSettingsListener.mCallbacks = {};
     navigator.mozTelephony = undefined;
 
     subject = new DialerAgent();
@@ -359,8 +376,6 @@ suite('system/DialerAgent', function() {
   suite('handling memory pressure events',
   function() {
     setup(function() {
-      subject = new DialerAgent();
-      subject.start();
       this.sinon.stub(subject._callscreenWindow, 'free');
     });
 
@@ -391,8 +406,57 @@ suite('system/DialerAgent', function() {
     });
   });
 
+  suite('wake events', function() {
+    setup(function() {
+      this.sinon.spy(MockService, 'request');
+    });
+
+    test('during a call should turn on the screen', function() {
+      MockNavigatorMozTelephony.calls = [new MockCall()];
+      window.dispatchEvent(new CustomEvent('wake'));
+      sinon.assert.calledOnce(MockService.request);
+      sinon.assert.calledWith(MockService.request, 'turnScreenOn');
+    });
+
+    test('when not on a call should be ignored', function() {
+      window.dispatchEvent(new CustomEvent('wake'));
+      sinon.assert.notCalled(MockService.request);
+    });
+  });
+
+  suite('sleep events', function() {
+    test('when alerting stop playing the ringtone', function() {
+      var mockAudio = MockAudio.instances[0];
+
+      this.sinon.spy(mockAudio, 'pause');
+      MockNavigatorMozTelephony.calls = [new MockCall('incoming')];
+      MockNavigatorMozTelephony.mTriggerCallsChanged();
+      window.dispatchEvent(new CustomEvent('sleep'));
+      sinon.assert.calledOnce(mockAudio.pause);
+    });
+
+    test('when not alerting hang up all connected calls', function() {
+      var mockCalls = [ new MockCall() , new MockCall() ];
+
+      mockCalls.forEach((mockCall) => this.sinon.spy(mockCall, 'hangUp'));
+      MockNavigatorMozTelephony.calls = mockCalls;
+      window.dispatchEvent(new CustomEvent('sleep'));
+      mockCalls.forEach((mockCall) => sinon.assert.calledOnce(mockCall.hangUp));
+    });
+
+    test('when not alerting hang up the conference call', function() {
+      var mockCalls = [ new MockCall() , new MockCall() ];
+
+      MockNavigatorMozTelephony.conferenceGroup.calls = mockCalls;
+      this.sinon.spy(MockNavigatorMozTelephony.conferenceGroup, 'hangUp');
+      MockNavigatorMozTelephony.calls = mockCalls;
+      window.dispatchEvent(new CustomEvent('sleep'));
+      sinon.assert.calledOnce(MockNavigatorMozTelephony.conferenceGroup.hangUp);
+    });
+  });
 
   test('Make fake notification if application is ready', function() {
+    subject.stop();
     subject = new DialerAgent();
     MockApplications.ready = false;
     var stubMakeFakeNotification =

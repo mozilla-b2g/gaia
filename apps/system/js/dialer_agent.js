@@ -1,7 +1,7 @@
 'use strict';
 
 /* global SettingsListener, SettingsURL, CallscreenWindow, applications */
-/* global VersionHelper, LazyLoader, toneUpgrader */
+/* global VersionHelper, LazyLoader, toneUpgrader, Service */
 /* r=? dialer+system peers for changes in this file. */
 
 (function(exports) {
@@ -114,6 +114,7 @@
     this._telephony.addEventListener('callschanged', this);
 
     window.addEventListener('sleep', this);
+    window.addEventListener('wake', this);
     window.addEventListener('volumedown', this);
     window.addEventListener('mozmemorypressure', this.freeCallscreenWindow);
 
@@ -143,6 +144,7 @@
     this._telephony.removeEventListener('callschanged', this);
 
     window.removeEventListener('sleep', this);
+    window.removeEventListener('wake', this);
     window.removeEventListener('volumedown', this);
     window.removeEventListener('mozmemorypressure', this.freeCallscreenWindow);
 
@@ -152,8 +154,32 @@
   };
 
   DialerAgent.prototype.handleEvent = function da_handleEvent(evt) {
-    if (evt.type === 'sleep' || evt.type === 'volumedown') {
+    var numOpenLines = this._telephony.calls.length +
+      (this._telephony.conferenceGroup.calls.length ? 1 : 0);
+
+    if (evt.type === 'volumedown') {
       this._stopAlerting();
+      return;
+    }
+
+    if ((evt.type === 'sleep') && this._alerting) {
+      this._stopAlerting();
+      return;
+    }
+
+    if ((evt.type === 'sleep') && numOpenLines > 0) {
+      // Hangup all calls
+      this._telephony.calls.forEach(call => call.hangUp());
+
+      if (this._telephony.conferenceGroup.calls.length > 0) {
+        this._telephony.conferenceGroup.hangUp();
+      }
+
+      return;
+    }
+
+    if ((evt.type === 'wake') && (numOpenLines > 0)) {
+      Service.request('turnScreenOn');
       return;
     }
 
@@ -163,6 +189,7 @@
 
     var calls = this._telephony.calls;
     if (calls.length === 0) {
+      Service.request('turnScreenOn');
       return;
     }
 
