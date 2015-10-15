@@ -26,7 +26,7 @@ class TestSettingsRTLNC(GaiaImageCompareTestCase):
         wifi_page.tap_manage_networks()
         wifi_page.tap_join_hidden_network()
         wifi_page.tap_security_selector()
-        self.take_screenshot('wifi-securityType')
+        self.take_screenshot('wifi-securityType', top_frame=True)
         wifi_page.tap_security_ok()
         self.take_screenshot('wifi-joinHidden')
         settings.return_to_prev_menu(wifi_page.manage_network_screen_element,
@@ -69,7 +69,7 @@ class TestSettingsRTLNC(GaiaImageCompareTestCase):
         settings.return_to_prev_menu(cs_page.cs_screen_element, cs_page.vm_screen_element)
 
         cs_page.tap_caller_id_selection()
-        self.take_screenshot('callerID')
+        self.take_screenshot('callerID', top_frame=True)
         cs_page.confirm_caller_id_selection()
 
         cs_page.tap_fixed_dialing()
@@ -118,7 +118,7 @@ class TestSettingsRTLNC(GaiaImageCompareTestCase):
         cs_page.tap_call_barring_all()
         self.take_screenshot('callBarring-passcode2')
         cs_page.tap_call_barring_all_cancel()
-        settings.return_to_prev_menu(cs_page.cs_screen_element, cs_page.call_barring_screen_element, html_header=True)
+        settings.return_to_prev_menu(cs_page.cs_screen_element, cs_page.call_barring_screen_element)
         settings.return_to_prev_menu(cs_page.screen_element, cs_page.cs_screen_element)
         settings.return_to_prev_menu(settings.screen_element, cs_page.screen_element)
 
@@ -130,7 +130,7 @@ class TestSettingsRTLNC(GaiaImageCompareTestCase):
                                         screen = messaging_page.screen_element)
         self.take_screenshot('message')
         messaging_page.tap_auto_retrieve_selector()
-        self.take_screenshot('message-autoretrieve_options')
+        self.take_screenshot('message-autoretrieve_options',top_frame=True)
         messaging_page.close_retrieve_dialog()
         messaging_page.select_sim_1()
         self.take_screenshot('message-sim_1')
@@ -155,7 +155,7 @@ class TestSettingsRTLNC(GaiaImageCompareTestCase):
         sim_settings_page.tap_network_operator()
         self.take_screenshot('network_op')
         sim_settings_page.tap_network_type()
-        self.take_screenshot('cell_network_type')
+        self.take_screenshot('cell_network_type',top_frame=True)
         sim_settings_page.confirm_network_type()
         settings.return_to_prev_menu(sim_settings_page.screen_element,
                                      sim_settings_page.network_op_screen_element)
@@ -174,13 +174,13 @@ class TestSettingsRTLNC(GaiaImageCompareTestCase):
                                             screen = sim_settings_page.apn_editor_screen_element)
             self.take_screenshot('apn_editor')
         sim_settings_page.select_authentication()
-        self.take_screenshot('apn_authentication')
+        self.take_screenshot('apn_authentication', top_frame=True)
         sim_settings_page.confirm_apn_selection()
         sim_settings_page.select_protocol()
-        self.take_screenshot('apn_protocol')
+        self.take_screenshot('apn_protocol', top_frame=True)
         sim_settings_page.confirm_apn_selection()
         sim_settings_page.select_roaming_protocol()
-        self.take_screenshot('apn_roaming')
+        self.take_screenshot('apn_roaming', top_frame=True)
         sim_settings_page.confirm_apn_selection()
 
         settings.return_to_prev_menu(sim_settings_page.data_settings_screen_element,
@@ -214,7 +214,7 @@ class TestSettingsRTLNC(GaiaImageCompareTestCase):
         hotspot_page = internet_settings_page.tap_hotspot_settings()
         self.take_screenshot('internet_sharing-hotspot')
         hotspot_page.tap_security_settings()
-        self.take_screenshot('internet_sharing-hotspot-security')
+        self.take_screenshot('internet_sharing-hotspot-security',top_frame=True)
         hotspot_page.confirm_security_settings()
         settings.return_to_prev_menu(internet_settings_page.screen_element,
                                      hotspot_page.screen_element)
