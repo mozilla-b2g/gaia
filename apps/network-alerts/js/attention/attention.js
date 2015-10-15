@@ -43,9 +43,7 @@ function sendNotification() {
           body: body,
           tag: '' + Date.now(), // needs to be unique
           icon: NotificationHelper.getIconURI(app),
-          data: {
-            "title": title
-          }
+          data: { title }
         }
       );
 
