@@ -48,6 +48,8 @@ exports.UtilityTray = {
   invisibleGripper: document.getElementById('tray-invisible-gripper'),
   container: document.getElementById('desktop-notifications-container'),
   notificationsContainer: document.getElementById('notifications-container'),
+  nestedScrollInterceptor:
+    document.getElementById('notifications-nested-scroll-interceptor'),
   notificationTitle: document.getElementById('notification-some'),
   footer: document.getElementById('utility-tray-footer'),
   footerContainer: document.getElementById('tray-footer-container'),
@@ -75,6 +77,21 @@ exports.UtilityTray = {
     this.notificationsContainer.style.maxHeight =
       (this.footerContainer.offsetTop -
        this.notificationsContainer.offsetTop) + 'px';
+
+    // Nested scroll momentum typically propagates across parent containers.
+    // However, if the notifications container is scrollable, we do *not* want
+    // its scroll momentum to propagate to the Utility Tray itself.
+    //
+    // In Gecko, scroll momentum does *not* propagate through a scrollable
+    // container whose content isn't large enough to require it to actually
+    // scroll. (I'm not sure if this is a feature or a bug.) In any case, we've
+    // inserted `nestedScrollInterceptor` in between the two scrollable areas,
+    // and by setting 'overflow: scroll', we can conditionally interrupt the
+    // scroll momentum when notifications-container is scrollable.
+    // See <https://bugzil.la/1209387>.
+    var notificationsCanScroll = (this.notificationsContainer.scrollTopMax > 0);
+    this.nestedScrollInterceptor.style.overflowY =
+      (notificationsCanScroll ? 'scroll' : 'hidden');
   },
 
   toggleFooterDisplay() {
@@ -116,6 +133,14 @@ exports.UtilityTray = {
     // It's not clear that the cost control widget ever changes or hides
     // (much of its behavior happens in an iframe), but for completeness:
     observer.observe(document.getElementById('cost-control-widget'), {
+      subtree: true,
+      childList: true
+    });
+    // If the notifications container becomes scrollable, we may conditionally
+    // update the behavior of this.nestedScrollInterceptor. (We can't just
+    // intercept a "notification emitted" event, because there isn't a unified
+    // event to listen for.)
+    observer.observe(this.notificationsContainer, {
       subtree: true,
       childList: true
     });
