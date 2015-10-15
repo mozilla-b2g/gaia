@@ -305,6 +305,7 @@ DataAdapters.bookmarks = {
         type: payload.type === 'bookmark' ? 'url' : 'others',
         iconable: false,
         icon: '',
+        last_modified: remoteRecords[i].last_modified,
         fxsyncPayload: payload,
         fxsyncId: payload.id
       });
