@@ -114,8 +114,9 @@ var MockSdCard = function MockSdCard() {
       ]);
     },
     'getTextFromFile': function getTextFromFile(fileArray, cb) {
-      cb(null, mock_sdcard_vcf);
-      return Promise.resolve(MockVCFReader.prototype.numDuplicated);
+      return cb(mock_sdcard_vcf).then(() => {
+        return Promise.resolve(MockVCFReader.prototype.numDuplicated);
+      });
     },
     'subscribeToChanges': subscribeToChanges,
     'unsubscribeToChanges': unsubscribeToChanges
