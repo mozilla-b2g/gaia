@@ -128,7 +128,7 @@ class GaiaImageCompareTestCase(GaiaTestCase):
         out, err = p.communicate()
         p.wait()
 
-        if not (err == '0' and out == ''):
+        if not (err == '0\n' or err == '0'):
             self.test_passed = False
 
             # msg should be saved at this point. Otherwise, it will get lost if any of the below line fails
