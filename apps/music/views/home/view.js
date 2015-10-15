@@ -19,7 +19,8 @@ var HomeView = View.extend(function HomeView() {
 
   this.searchResults.addEventListener('close', () => {
     this.client.method('searchClose');
-    document.body.removeAttribute('data-search');
+    document.body.dataset.search = false;
+    window.scrollTo(0, this.searchBox.HEIGHT);
   });
 
   this.searchResults.addEventListener('resultclick', (evt) => {
@@ -34,6 +35,8 @@ var HomeView = View.extend(function HomeView() {
   });
 
   this.searchResults.getItemImageSrc = (item) => this.getThumbnail(item.name);
+
+  window.scrollTo(0, this.searchBox.HEIGHT);
 
   this.tiles.addEventListener('click', (evt) => {
     var link = evt.target.closest('a[data-file-path]');

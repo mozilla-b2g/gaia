@@ -6,6 +6,10 @@ body[data-search="true"] {
   overflow: hidden;
 }
 
+#tiles {
+  min-height: 100%;
+}
+
 .tile {
   border-bottom: solid 1px var(--background);
   box-sizing: border-box;
