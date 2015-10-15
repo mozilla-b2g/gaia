@@ -148,11 +148,12 @@ var BookmarksHelper = (() => {
     return getDataStoreId(fxsyncId).then(id => {
       if (!id) {
         console.warn('No DataStore ID corresponded to FxSyncID', fxsyncId);
+        return Promise.resolve();
       }
       url = id;
-      return _ensureStore();
-    }).then(store => {
-      return store.remove(url);
+      return _ensureStore().then(store => {
+        return store.remove(url);
+      });
     });
   }
 
