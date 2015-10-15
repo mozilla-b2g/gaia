@@ -307,16 +307,27 @@ suite('Information view', function() {
     }
 
     function generalInfoAssertion(opts) {
-      var type = opts.type,
-          delivery = opts.delivery,
-          subjectHide = opts.subjectHide,
-          subjectContent = opts.subjectContent,
-          sentTitle = opts.sentTitle,
-          contactTitle = opts.contactTitle,
-          sizeHide = opts.sizeHide,
-          sizeContent = opts.sizeContent;
+      var {
+        type,
+        delivery,
+        subjectHide,
+        subjectContent,
+        sentTitle,
+        contactTitle,
+        sizeHide,
+        sizeContent,
+        isIncoming
+      } = opts;
 
       assert.equal(reportView.container.dataset.delivery, delivery);
+
+      assert.equal(
+        reportView.container.classList.contains('incoming-message'), isIncoming
+      );
+      assert.equal(
+        reportView.container.classList.contains('outgoing-message'), !isIncoming
+      );
+
       sinon.assert.calledWith(
         navigator.mozL10n.setAttributes,
         reportView.type,
@@ -377,7 +388,8 @@ suite('Information view', function() {
         subjectHide: true,
         sentTitle: 'message-sending',
         contactTitle: 'report-to-title',
-        sizeHide: true
+        sizeHide: true,
+        isIncoming: false
       });
     });
 
@@ -397,7 +409,8 @@ suite('Information view', function() {
         subjectHide: true,
         sentTitle: 'message-sent',
         contactTitle: 'report-to-title',
-        sizeHide: true
+        sizeHide: true,
+        isIncoming: false
       });
     });
 
@@ -416,7 +429,8 @@ suite('Information view', function() {
         subjectHide: true,
         sentTitle: 'message-error',
         contactTitle: 'report-to-title',
-        sizeHide: true
+        sizeHide: true,
+        isIncoming: false
       });
     });
 
@@ -439,7 +453,8 @@ suite('Information view', function() {
         subjectContent: messageOpts.subject,
         sentTitle: 'message-sent',
         contactTitle: 'report-to-title',
-        sizeHide: true
+        sizeHide: true,
+        isIncoming: false
       });
     });
 
@@ -461,7 +476,8 @@ suite('Information view', function() {
         sentTitle: 'message-sent',
         contactTitle: 'report-to-title',
         sizeHide: false,
-        sizeContent: { n: (testImageBlob.size / 1024).toFixed(1) }
+        sizeContent: { n: (testImageBlob.size / 1024).toFixed(1) },
+        isIncoming: false
       });
     });
 
@@ -477,7 +493,8 @@ suite('Information view', function() {
         subjectHide: true,
         sentTitle: 'message-sent',
         contactTitle: 'report-from-title',
-        sizeHide: true
+        sizeHide: true,
+        isIncoming: true
       });
     });
 
@@ -497,7 +514,8 @@ suite('Information view', function() {
         sentTitle: 'message-sent',
         contactTitle: 'report-from-title',
         sizeHide: false,
-        sizeContent: { n: (testImageBlob.size / 1024).toFixed(1) }
+        sizeContent: { n: (testImageBlob.size / 1024).toFixed(1) },
+        isIncoming: true
       });
     });
 
@@ -515,7 +533,8 @@ suite('Information view', function() {
         subjectHide: true,
         sentTitle: 'message-sent',
         contactTitle: 'report-from-title',
-        sizeHide: true
+        sizeHide: true,
+        isIncoming: true
       });
     });
 
