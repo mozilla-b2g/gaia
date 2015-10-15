@@ -6,6 +6,15 @@ var BlobView = (function() {
     throw Error(msg);
   }
 
+  var decoderCache = {};
+  function getDecoder(encoding) {
+    if (encoding in decoderCache) {
+      return decoderCache[encoding];
+    }
+    var decoder = decoderCache[encoding] = new TextDecoder(encoding);
+    return decoder;
+  }
+
   // This constructor is for internal use only.
   // Use the BlobView.get() factory function or the getMore instance method
   // to obtain a BlobView object.
@@ -253,121 +262,41 @@ var BlobView = (function() {
       return value;
     },
 
-    // There are lots of ways to read strings.
-    // ASCII, UTF-8, UTF-16.
-    // null-terminated, character length, byte length
-    // I'll implement string reading methods as needed
+    // There are lots of ways to read strings. We support binary (raw 8-bit
+    // codepoints), Latin-1, UTF-8, and UTF-16. For the latter three, we also
+    // support null-terminated versions.
 
-    getASCIIText: function(offset, len) {
+    getBinaryText: function(offset, len) {
       var bytes = new Uint8Array(this.buffer, offset + this.viewOffset, len);
       return String.fromCharCode.apply(String, bytes);
     },
 
-    readASCIIText: function(len) {
-      var bytes = new Uint8Array(this.buffer,
-                                 this.index + this.viewOffset,
-                                 len);
+    readBinaryText: function(len) {
+      var s = this.getBinaryText(this.index, len);
       this.index += len;
-      return String.fromCharCode.apply(String, bytes);
-    },
-
-    // Replace this with the StringEncoding API when we've got it.
-    // See https://bugzilla.mozilla.org/show_bug.cgi?id=764234
-    getUTF8Text: function(offset, len) {
-      function fail() { throw new Error('Illegal UTF-8'); }
-
-      var pos = offset;         // Current position in this.view
-      var end = offset + len;   // Last position
-      var charcode;             // Current charcode
-      var s = '';               // Accumulate the string
-      var b1, b2, b3, b4;       // Up to 4 bytes per charcode
-
-      // See http://en.wikipedia.org/wiki/UTF-8
-      while (pos < end) {
-        b1 = this.view.getUint8(pos);
-        if (b1 < 128) {
-          s += String.fromCharCode(b1);
-          pos += 1;
-        }
-        else if (b1 < 194) {
-          // unexpected continuation character...
-          fail();
-        }
-        else if (b1 < 224) {
-          // 2-byte sequence
-          if (pos + 1 >= end) {
-            fail();
-          }
-          b2 = this.view.getUint8(pos + 1);
-          if (b2 < 128 || b2 > 191) {
-            fail();
-          }
-          charcode = ((b1 & 0x1f) << 6) + (b2 & 0x3f);
-          s += String.fromCharCode(charcode);
-          pos += 2;
-        }
-        else if (b1 < 240) {
-          // 3-byte sequence
-          if (pos + 2 >= end) {
-            fail();
-          }
-          b2 = this.view.getUint8(pos + 1);
-          if (b2 < 128 || b2 > 191) {
-            fail();
-          }
-          b3 = this.view.getUint8(pos + 2);
-          if (b3 < 128 || b3 > 191) {
-            fail();
-          }
-          charcode = ((b1 & 0x0f) << 12) + ((b2 & 0x3f) << 6) + (b3 & 0x3f);
-          s += String.fromCharCode(charcode);
-          pos += 3;
-        }
-        else if (b1 < 245) {
-          // 4-byte sequence
-          if (pos + 3 >= end) {
-            fail();
-          }
-          b2 = this.view.getUint8(pos + 1);
-          if (b2 < 128 || b2 > 191) {
-            fail();
-          }
-          b3 = this.view.getUint8(pos + 2);
-          if (b3 < 128 || b3 > 191) {
-            fail();
-          }
-          b4 = this.view.getUint8(pos + 3);
-          if (b4 < 128 || b4 > 191) {
-            fail();
-          }
-          charcode = ((b1 & 0x07) << 18) +
-            ((b2 & 0x3f) << 12) +
-            ((b3 & 0x3f) << 6) +
-            (b4 & 0x3f);
-
-          // Now turn this code point into two surrogate pairs
-          charcode -= 0x10000;
-          s += String.fromCharCode(0xd800 + ((charcode & 0x0FFC00) >>> 10));
-          s += String.fromCharCode(0xdc00 + (charcode & 0x0003FF));
-
-          pos += 4;
-        }
-        else {
-          // Illegal byte
-          fail();
-        }
-      }
-
       return s;
     },
 
+    getLatin1Text: function(offset, len) {
+      var bytes = new Uint8Array(this.buffer, offset + this.viewOffset, len);
+      return getDecoder('latin1').decode(bytes);
+    },
+
+    readLatin1Text: function(len) {
+      var s = this.getLatin1Text(this.index, len);
+      this.index += len;
+      return s;
+    },
+
+    getUTF8Text: function(offset, len) {
+      var bytes = new Uint8Array(this.buffer, offset + this.viewOffset, len);
+      return getDecoder('utf-8').decode(bytes);
+    },
+
     readUTF8Text: function(len) {
-      try {
-        return this.getUTF8Text(this.index, len);
-      }
-      finally {
-        this.index += len;
-      }
+      var s = this.getUTF8Text(this.index, len);
+      this.index += len;
+      return s;
     },
 
     // Get UTF16 text.  If le is not specified, expect a BOM to define
@@ -376,30 +305,31 @@ var BlobView = (function() {
       if (len % 2) {
         fail('len must be a multiple of two');
       }
+
+      var bytes = new Uint8Array(this.buffer, offset + this.viewOffset, len);
+
       if (le === null || le === undefined) {
-        var BOM = this.getUint16(offset);
-        len -= 2;
-        offset += 2;
+        var BOM = (bytes[0] << 8) + bytes[1];
+
         if (BOM === 0xFEFF) {
+          bytes = bytes.subarray(2);
           le = false;
-        }
-        else {
+        } else if (BOM === 0xFFFE) {
+          bytes = bytes.subarray(2);
+          le = true;
+        } else {
           le = true;
         }
       }
 
-      // We need to support unaligned reads, so we can't use a Uint16Array here.
-      var s = '';
-      for (var i = 0; i < len; i += 2) {
-        s += String.fromCharCode(this.getUint16(offset + i, le));
-      }
-      return s;
+      var encoding = le ? 'utf-16le' : 'utf-16be';
+      return getDecoder(encoding).decode(bytes);
     },
 
     readUTF16Text: function(len, le) {
-      var value = this.getUTF16Text(this.index, len, le);
+      var s = this.getUTF16Text(this.index, len, le);
       this.index += len;
-      return value;
+      return s;
     },
 
     // Read 4 bytes, ignore the high bit and combine them into a 28-bit
@@ -420,32 +350,45 @@ var BlobView = (function() {
     },
 
     // Read bytes up to and including a null terminator, but never
-    // more than size bytes.  And return as a Latin1 string
-    readNullTerminatedLatin1Text: function(size) {
-      var s = '';
-      for (var i = 0; i < size; i++) {
-        var charcode = this.view.getUint8(this.index + i);
-        if (charcode === 0) {
-          i++;
-          break;
-        }
-        s += String.fromCharCode(charcode);
+    // more than size bytes.  And return as a Latin1 string.  If advance_by_size
+    // is true, this will always seek ahead by `size` bytes, even if a null
+    // character was found earlier.
+    readNullTerminatedLatin1Text: function(size, advance_by_size = false) {
+      var bytes = new Uint8Array(this.buffer, this.viewOffset + this.index,
+                                 size);
+
+      var nil = bytes.indexOf(0);
+      if (nil !== -1) {
+        bytes = bytes.subarray(0, nil);
       }
-      this.index += i;
+
+      var s = getDecoder('latin1').decode(bytes);
+      if (nil === -1 || advance_by_size) {
+        this.index += size;
+      } else {
+        this.index += nil + 1;
+      }
       return s;
     },
 
     // Read bytes up to and including a null terminator, but never
-    // more than size bytes.  And return as a UTF8 string
-    readNullTerminatedUTF8Text: function(size) {
-      for (var len = 0; len < size; len++) {
-        if (this.view.getUint8(this.index + len) === 0) {
-          break;
-        }
+    // more than size bytes.  And return as a UTF8 string.  If advance_by_size
+    // is true, this will always seek ahead by `size` bytes, even if a null
+    // character was found earlier.
+    readNullTerminatedUTF8Text: function(size, advance_by_size = false) {
+      var bytes = new Uint8Array(this.buffer, this.viewOffset + this.index,
+                                 size);
+
+      var nil = bytes.indexOf(0);
+      if (nil !== -1) {
+        bytes = bytes.subarray(0, nil);
       }
-      var s = this.readUTF8Text(len);
-      if (len < size) {    // skip the null terminator if we found one
-        this.advance(1);
+
+      var s = getDecoder('utf-8').decode(bytes);
+      if (nil === -1 || advance_by_size) {
+        this.index += size;
+      } else {
+        this.index += nil + 1;
       }
       return s;
     },
@@ -453,30 +396,25 @@ var BlobView = (function() {
     // Read UTF16 text.  If le is not specified, expect a BOM to define
     // endianness.  If le is true, read UTF16LE, if false, UTF16BE
     // Read until we find a null-terminator, but never more than size bytes.
-    readNullTerminatedUTF16Text: function(size, le) {
+    // If advance_by_size is true, this will always seek ahead by `size` bytes,
+    // even if a null character was found earlier.
+    readNullTerminatedUTF16Text: function(size, le, advance_by_size = false) {
       if (size % 2) {
         fail('size must be a multiple of two');
       }
-      if (le === null || le === undefined) {
-        var BOM = this.readUnsignedShort();
-        size -= 2;
-        if (BOM === 0xFEFF) {
-          le = false;
-        } else {
-          le = true;
+
+      for (var len = 0; len < size; len += 2) {
+        if (this.getUint16(this.index + len, le) === 0) {
+          break;
         }
       }
 
-      var s = '';
-      for (var i = 0; i < size; i += 2) {
-        var charcode = this.getUint16(this.index + i, le);
-        if (charcode === 0) {
-          i += 2;
-          break;
-        }
-        s += String.fromCharCode(charcode);
+      var s = this.getUTF16Text(this.index, len, le);
+      if (len === size || advance_by_size) {
+        this.index += size;
+      } else {
+        this.index += len + 2;
       }
-      this.index += i;
       return s;
     }
   };

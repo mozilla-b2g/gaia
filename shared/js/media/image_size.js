@@ -29,7 +29,7 @@ function getImageSize(blob, callback, error) {
       error('corrupt image file');
       return;
     }
-    var magic = data.getASCIIText(0, 8);
+    var magic = data.getBinaryText(0, 8);
     if (magic.substring(0, 4) === 'GIF8') {
       try {
         callback({
@@ -55,8 +55,7 @@ function getImageSize(blob, callback, error) {
       }
     }
     else if (magic.substring(0, 2) === 'BM' &&
-             data.getUint32(2, true) === blob.size)
-    {
+             data.getUint32(2, true) === blob.size) {
       // This is a BMP file
       try {
         var width, height;
