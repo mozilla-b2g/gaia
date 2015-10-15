@@ -354,7 +354,7 @@ suite('system/Statusbar', function() {
     setup(function() {
       app = new MockAppWindow({
         appChrome: {
-          element: { id: appChromeElementId },
+          element: { id: appChromeElementId, querySelector: sinon.stub() },
           isMaximized: this.sinon.spy(),
           useLightTheming: this.sinon.spy()
         }
@@ -370,31 +370,31 @@ suite('system/Statusbar', function() {
 
     test('Launch a non-fullscreen app', function() {
       this.sinon.stub(app, 'isFullScreen').returns(false);
-      Statusbar.handleEvent(new CustomEvent('appopened', {detail: app}));
-      assert.isFalse(Statusbar.element.classList.contains('fullscreen'));
-      assert.equal(Statusbar.element.getAttribute('aria-owns'),
+      StatusBar.handleEvent(new CustomEvent('appopened', {detail: app}));
+      assert.isFalse(StatusBar.element.classList.contains('fullscreen'));
+      assert.equal(StatusBar.element.getAttribute('aria-owns'),
         appChromeElementId);
     });
 
     test('Launch a fullscreen app', function() {
       this.sinon.stub(app, 'isFullScreen').returns(true);
-      Statusbar.handleEvent(new CustomEvent('appopened', {detail: app}));
-      assert.isTrue(Statusbar.element.classList.contains('fullscreen'));
-      assert.isFalse(Statusbar.element.hasAttribute('aria-owns'));
+      StatusBar.handleEvent(new CustomEvent('appopened', {detail: app}));
+      assert.isTrue(StatusBar.element.classList.contains('fullscreen'));
+      assert.isFalse(StatusBar.element.hasAttribute('aria-owns'));
     });
 
     test('Launch a fullscreen-layout app', function() {
       this.sinon.stub(app, 'isFullScreenLayout').returns(true);
-      Statusbar.handleEvent(new CustomEvent('appopened', {detail: app}));
-      assert.isTrue(Statusbar.element.classList.contains('fullscreen-layout'));
-      assert.isFalse(Statusbar.element.hasAttribute('aria-owns'));
+      StatusBar.handleEvent(new CustomEvent('appopened', {detail: app}));
+      assert.isTrue(StatusBar.element.classList.contains('fullscreen-layout'));
+      assert.isFalse(StatusBar.element.hasAttribute('aria-owns'));
     });
 
     test('Launch a non-fullscreen-layout app', function() {
       this.sinon.stub(app, 'isFullScreenLayout').returns(false);
-      Statusbar.handleEvent(new CustomEvent('appopened', {detail: app}));
-      assert.isFalse(Statusbar.element.classList.contains('fullscreen-layout'));
-      assert.equal(Statusbar.element.getAttribute('aria-owns'),
+      StatusBar.handleEvent(new CustomEvent('appopened', {detail: app}));
+      assert.isFalse(StatusBar.element.classList.contains('fullscreen-layout'));
+      assert.equal(StatusBar.element.getAttribute('aria-owns'),
         appChromeElementId);
     });
 
@@ -405,9 +405,9 @@ suite('system/Statusbar', function() {
       var home = new MockAppWindow();
       StatusBar.handleEvent(new CustomEvent('homescreenopened',
         { detail: home }));
-      assert.isFalse(Statusbar.element.classList.contains('fullscreen'));
-      assert.isFalse(Statusbar.element.classList.contains('fullscreen-layout'));
-      assert.isFalse(Statusbar.element.hasAttribute('aria-owns'));
+      assert.isFalse(StatusBar.element.classList.contains('fullscreen'));
+      assert.isFalse(StatusBar.element.classList.contains('fullscreen-layout'));
+      assert.isFalse(StatusBar.element.hasAttribute('aria-owns'));
     });
 
     test('Launch a fullscreen activity', function() {
@@ -2274,15 +2274,22 @@ suite('system/Statusbar', function() {
     }
 
     function triggerEvent(event) {
-      var currentApp = new MockAppWindow(config);
+      // XXX: Use MockAppWindow instead
+      var currentApp = {
+        getTopMostWindow: function getTopMostWindow() {
+          return this._topWindow;
+        },
+        isFullScreen: function() {},
+        isFullScreenLayout: function() {}
+      };
       Service.currentApp = currentApp;
       var evt = new CustomEvent(event, {detail: currentApp});
       StatusBar.element.classList.add('hidden');
       StatusBar.handleEvent(evt);
     }
 
-    function testEventThatShows(event, config) {
-      triggerEvent(event, config);
+    function testEventThatShows(event) {
+      triggerEvent(event);
       assert.isTrue(setAppearanceStub.called);
       assert.isFalse(StatusBar.element.classList.contains('hidden'));
     }
@@ -2334,7 +2341,10 @@ suite('system/Statusbar', function() {
     }
 
     setup(function() {
-      app = new MockAppWindow();
+      app = {
+        isFullScreen: function() {},
+        isFullScreenLayout: function() {}
+      };
       MockService.currentApp = app;
       setAppearanceStub = this.sinon.stub(StatusBar, 'setAppearance');
       pauseUpdateStub = this.sinon.stub(StatusBar, 'pauseUpdate');
@@ -2390,25 +2400,7 @@ suite('system/Statusbar', function() {
     });
 
     test('appopened', function() {
-      testEventThatShows.bind(this)('appopened', {
-        appChrome: {
-          element: { id: 'test' },
-          isMaximized: this.sinon.spy(),
-          useLightTheming: this.sinon.spy()
-        }
-      });
-      assert.isTrue(resumeUpdateStub.called);
-    });
-
-    test('appclosed', function() {
-      testEventThatShows.bind(this)('appopened', {
-        appChrome: {
-          element: { id: 'test' },
-          isMaximized: this.sinon.spy(),
-          useLightTheming: this.sinon.spy()
-        }
-      });
-      assert.isTrue(resumeUpdateStub.called);
+      testEventThatShows.bind(this)('appopened');
     });
 
     test('appchromecollapsed', function() {
