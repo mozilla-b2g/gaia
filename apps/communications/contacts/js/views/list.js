@@ -1117,9 +1117,13 @@ contacts.List = (function() {
     }
 
     if (img) {
-      delete img.dataset.group;
-      img.style.backgroundPosition = img.dataset.backgroundPosition || '';
-      setImageURL(img, photo, asClone);
+      // Update only if we are reusing the row for a different user.
+      if (link.dataset.uuid !== id) {
+        delete img.dataset.group;
+        img.style.backgroundPosition = img.dataset.backgroundPosition || '';
+        setImageURL(img, photo, asClone);  
+      }
+      
       return;
     }
 
