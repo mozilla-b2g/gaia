@@ -120,7 +120,9 @@ var BookmarksHelper = (() => {
     }).then(localRecord => {
       if (localRecord) {
         var newBookmark = mergeRecordsToDataStore(localRecord, remoteRecord);
-        return store.put(newBookmark, id, revisionId);
+        return store.put(newBookmark, id, revisionId).then(() => {
+          return setDataStoreId(remoteRecord.fxsyncId, id);
+        });
       }
       return store.add(remoteRecord, id, revisionId).then(() => {
         return setDataStoreId(remoteRecord.fxsyncId, id);

@@ -124,7 +124,9 @@ var HistoryHelper = (() => {
       // code to prevent drifting out of sync from different piece codes.
       if (existedPlace) {
         var newPlace = mergeRecordsToDataStore(existedPlace, place);
-        return placesStore.put(newPlace, id, revisionId);
+        return placesStore.put(newPlace, id, revisionId).then(() => {
+          return setDataStoreId(place.fxsyncId, id);
+        });
       }
       return placesStore.add(place, id, revisionId).then(() => {
         return setDataStoreId(place.fxsyncId, id);
