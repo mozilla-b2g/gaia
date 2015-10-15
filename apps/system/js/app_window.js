@@ -2515,6 +2515,7 @@
       }
       siteObj.manifestUrl = this.manifestURL;
       siteObj.manifest = this.manifest;
+      siteObj.origin = this.origin;
     }
 
     if (this.webManifestURL && !this.webManifest) {
