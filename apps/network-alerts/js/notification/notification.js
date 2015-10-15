@@ -18,12 +18,12 @@ function onNotification(message) {
     return;
   }
 
-  var title = "";
+  var title = null;
   if (message.data) {
     title = message.data.title;
   }
   else {
-    var title = Utils.parseParams(message.imageURL).titleID;
+    title = Utils.parseParams(message.imageURL).titleID;
   }
 
   var url = [
