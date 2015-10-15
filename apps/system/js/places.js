@@ -341,6 +341,11 @@
     clear: function() {
       return this.getStore().then(store => {
         store.clear();
+
+        var evt = new CustomEvent('mozContentEvent',
+                  { bubbles: true, cancelable: false,
+                    detail: { type: 'clear-history' } });
+        window.dispatchEvent(evt);
       });
     },
 
@@ -440,6 +445,11 @@
 
         place = this.addToVisited(place);
         this.checkTopSites(place);
+
+        var evt = new CustomEvent('mozContentEvent',
+                  { bubbles: true, cancelable: false,
+                    detail: { type: 'link-visited', url: url } });
+        window.dispatchEvent(evt);
 
         delete this._placeChanges[url];
         cb(place);
