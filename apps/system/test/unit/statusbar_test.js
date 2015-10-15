@@ -370,31 +370,31 @@ suite('system/Statusbar', function() {
 
     test('Launch a non-fullscreen app', function() {
       this.sinon.stub(app, 'isFullScreen').returns(false);
-      StatusBar.handleEvent(new CustomEvent('appopened', {detail: app}));
-      assert.isFalse(StatusBar.element.classList.contains('fullscreen'));
-      assert.equal(StatusBar.element.getAttribute('aria-owns'),
+      Statusbar.handleEvent(new CustomEvent('appopened', {detail: app}));
+      assert.isFalse(Statusbar.element.classList.contains('fullscreen'));
+      assert.equal(Statusbar.element.getAttribute('aria-owns'),
         appChromeElementId);
     });
 
     test('Launch a fullscreen app', function() {
       this.sinon.stub(app, 'isFullScreen').returns(true);
-      StatusBar.handleEvent(new CustomEvent('appopened', {detail: app}));
-      assert.isTrue(StatusBar.element.classList.contains('fullscreen'));
-      assert.isFalse(StatusBar.element.hasAttribute('aria-owns'));
+      Statusbar.handleEvent(new CustomEvent('appopened', {detail: app}));
+      assert.isTrue(Statusbar.element.classList.contains('fullscreen'));
+      assert.isFalse(Statusbar.element.hasAttribute('aria-owns'));
     });
 
     test('Launch a fullscreen-layout app', function() {
       this.sinon.stub(app, 'isFullScreenLayout').returns(true);
-      StatusBar.handleEvent(new CustomEvent('appopened', {detail: app}));
-      assert.isTrue(StatusBar.element.classList.contains('fullscreen-layout'));
-      assert.isFalse(StatusBar.element.hasAttribute('aria-owns'));
+      Statusbar.handleEvent(new CustomEvent('appopened', {detail: app}));
+      assert.isTrue(Statusbar.element.classList.contains('fullscreen-layout'));
+      assert.isFalse(Statusbar.element.hasAttribute('aria-owns'));
     });
 
     test('Launch a non-fullscreen-layout app', function() {
       this.sinon.stub(app, 'isFullScreenLayout').returns(false);
-      StatusBar.handleEvent(new CustomEvent('appopened', {detail: app}));
-      assert.isFalse(StatusBar.element.classList.contains('fullscreen-layout'));
-      assert.equal(StatusBar.element.getAttribute('aria-owns'),
+      Statusbar.handleEvent(new CustomEvent('appopened', {detail: app}));
+      assert.isFalse(Statusbar.element.classList.contains('fullscreen-layout'));
+      assert.equal(Statusbar.element.getAttribute('aria-owns'),
         appChromeElementId);
     });
 
@@ -405,9 +405,9 @@ suite('system/Statusbar', function() {
       var home = new MockAppWindow();
       StatusBar.handleEvent(new CustomEvent('homescreenopened',
         { detail: home }));
-      assert.isFalse(StatusBar.element.classList.contains('fullscreen'));
-      assert.isFalse(StatusBar.element.classList.contains('fullscreen-layout'));
-      assert.isFalse(StatusBar.element.hasAttribute('aria-owns'));
+      assert.isFalse(Statusbar.element.classList.contains('fullscreen'));
+      assert.isFalse(Statusbar.element.classList.contains('fullscreen-layout'));
+      assert.isFalse(Statusbar.element.hasAttribute('aria-owns'));
     });
 
     test('Launch a fullscreen activity', function() {
@@ -2273,7 +2273,7 @@ suite('system/Statusbar', function() {
       assert.isTrue(StatusBar.element.classList.contains('hidden'));
     }
 
-    function triggerEvent(event, config) {
+    function triggerEvent(event) {
       var currentApp = new MockAppWindow(config);
       Service.currentApp = currentApp;
       var evt = new CustomEvent(event, {detail: currentApp});
