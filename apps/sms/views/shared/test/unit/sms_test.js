@@ -326,6 +326,13 @@ suite('SMS App Unit-Test', function() {
         assertNumberOfElementsInContainerByTag(container, 5, 'input');
       });
 
+      test('Sets up the gaia header for the edit form', function() {
+        var editHeader = document.getElementById('threads-edit-header');
+        assert.isTrue(editHeader.hasAttribute('no-font-fit'));
+        InboxView.startEdit();
+        assert.isFalse(editHeader.hasAttribute('no-font-fit'));
+      });
+
       test('Select all/Deselect All buttons', function() {
         var i;
 
@@ -527,7 +534,6 @@ suite('SMS App Unit-Test', function() {
         this.sinon.stub(InboxView, 'setContact');
 
         ConversationView.activeThread = threadSetup();
-        ConversationView.startEdit();
       });
 
       teardown(function() {
@@ -535,7 +541,15 @@ suite('SMS App Unit-Test', function() {
         ConversationView.cancelEdit();
       });
 
+      test('Sets up the gaia header for the edit form', function() {
+        var editHeader = document.getElementById('messages-edit-header');
+        assert.isTrue(editHeader.hasAttribute('no-font-fit'));
+        ConversationView.startEdit();
+        assert.isFalse(editHeader.hasAttribute('no-font-fit'));
+      });
+
       test('Check edit mode form', function() {
+        ConversationView.startEdit();
         assertNumberOfElementsInContainerByTag(
           ConversationView.container, 5, 'input'
         );
@@ -544,6 +558,8 @@ suite('SMS App Unit-Test', function() {
       test('Select/Deselect all', function() {
         var i;
         var inputs = ConversationView.container.getElementsByTagName('input');
+
+        ConversationView.startEdit();
         // Activate all inputs
         for (i = inputs.length - 1; i >= 0; i--) {
           inputs[i].checked = true;
@@ -591,6 +607,8 @@ suite('SMS App Unit-Test', function() {
         this.sinon.stub(MessageManager, 'getMessage').returns(
           Promise.resolve(incomingMessage)
         );
+
+        ConversationView.startEdit();
 
         ConversationView.activeThread.messages.set(
           incomingMessage.id, incomingMessage

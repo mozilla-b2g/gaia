@@ -1960,13 +1960,6 @@ suite('thread_list_ui', function() {
 
       assert.isFalse(draftSavedBanner.classList.contains('hide'));
     });
-
-    test('Sets up the gaia header for the edit form', function() {
-      var editHeader = document.getElementById('threads-edit-header');
-      assert.isTrue(editHeader.hasAttribute('no-font-fit'));
-      InboxView.beforeEnter();
-      assert.isFalse(editHeader.hasAttribute('no-font-fit'));
-    });
   });
 
   suite('beforeLeave()', function() {

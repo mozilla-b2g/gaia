@@ -128,9 +128,11 @@ suite('navigation >', function() {
     suite('init() >', function() {
       test('display the right panel', function(done) {
         assert.isFalse(elements.InboxView.classList.contains('panel-active'));
+        assert.isTrue(elements.InboxView.classList.contains('panel-hidden'));
         assert.equal(elements.InboxView.getAttribute('aria-hidden'), 'true');
         Navigation.init().then(() => {
-          assert.ok(elements.InboxView.classList.contains('panel-active'));
+          assert.isTrue(elements.InboxView.classList.contains('panel-active'));
+          assert.isFalse(elements.InboxView.classList.contains('panel-hidden'));
           assert.equal(elements.InboxView.getAttribute('aria-hidden'), 'false');
         }).then(done, done);
       });
@@ -275,7 +277,7 @@ suite('navigation >', function() {
 
         Navigation.toPanel('thread', { id: 1 });
         Navigation.toPanel('thread', { id: 1 }).then(() =>
-          Navigation.toPanel('thread-list') 
+          Navigation.toPanel('thread-list')
         ).then(() => {
           sinon.assert.callOrder(
             fakeWindow.ConversationView.beforeEnter,
@@ -609,6 +611,18 @@ suite('navigation >', function() {
           sinon.assert.called(window.setTimeout);
           sinon.assert.calledWith(window.clearTimeout, 42);
         }).then(done, done);
+      });
+    });
+
+    suite('setReady', function() {
+
+      test('Remove hidden class once the navigation is ready', function() {
+
+        assert.lengthOf(document.querySelectorAll('.panel-hidden'), 4);
+
+        Navigation.setReady();
+
+        assert.lengthOf(document.querySelectorAll('.panel-hidden'), 0);
       });
     });
   });

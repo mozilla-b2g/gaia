@@ -79,8 +79,24 @@ var Startup = exports.Startup = {
     '/services/js/moz_mobile_connections/moz_mobile_connections_client.js'
   ],
 
+  _lazyLoadStyles: [
+    '/shared/style/confirm.css',
+    '/shared/style/status.css',
+    '/shared/style/input_areas.css',
+    '/shared/style/progress_activity.css',
+    '/views/shared/style/composer.css',
+    '/views/conversation/style/message.css',
+    '/views/conversation/style/report_view.css',
+    '/views/conversation/style/attachment.css',
+    '/views/conversation/style/conversation.css',
+    '/views/new_message/style/new_message.css',
+    '/views/new_message/style/recipients.css'
+  ],
+
   _lazyLoadInit: function() {
-    var lazyLoadPromise = LazyLoader.load(this._lazyLoadScripts).then(() => {
+    var lazyLoadPromise = LazyLoader.load(
+      [...this._lazyLoadScripts, ...this._lazyLoadStyles]).then(() => {
+
       LocalizationHelper.init();
 
       InterInstanceEventDispatcher.connect();

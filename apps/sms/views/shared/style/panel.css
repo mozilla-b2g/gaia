@@ -23,6 +23,10 @@ html[dir] .panel-active {
   transform: translate(0);
 }
 
+.panel-hidden {
+  display: none;
+}
+
 @keyframes new-slide-left {
   from {
     transform: translateX(100%);

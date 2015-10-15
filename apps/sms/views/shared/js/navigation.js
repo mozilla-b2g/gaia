@@ -623,6 +623,7 @@ function switchPanel() {
     }
 
     newPanelElement.classList.add('panel-active');
+    newPanelElement.classList.remove('panel-hidden');
     newPanelElement.setAttribute('aria-hidden', 'false');
   });
 }
@@ -881,6 +882,10 @@ var Navigation = {
    */
   setReady() {
     debug('setReady()');
+
+    Array.from(document.querySelectorAll('.panel-hidden')).forEach((panel) => {
+      panel.classList.remove('panel-hidden');
+    });
     readyDefer.resolve();
     readyDefer = null;
   }

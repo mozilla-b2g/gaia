@@ -12,21 +12,23 @@
     <link rel="stylesheet" type="text/css" href="shared/style/action_menu.css">
     <link rel="stylesheet" type="text/css" href="shared/style/option_menu.css">
     <link rel="stylesheet" type="text/css" href="shared/style/buttons.css">
-    <link rel="stylesheet" type="text/css" href="shared/style/confirm.css">
-    <link rel="stylesheet" type="text/css" href="shared/style/edit_mode.css">
-    <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css">
-    <link rel="stylesheet" type="text/css" href="shared/style/switches.css">
     <link rel="stylesheet" type="text/css" href="shared/style/lists.css">
-    <link rel="stylesheet" type="text/css" href="shared/style/progress_activity.css">
-    <link rel="stylesheet" type="text/css" href="shared/style/status.css">
-    <link rel="stylesheet" type="text/css" href="shared/style/tabs.css" >
     <link rel="stylesheet" type="text/css" href="shared/elements/gaia-icons/gaia-icons.css">
     <!-- App styles -->
     <link rel="stylesheet" type="text/css" href="views/shared/style/sms.css">
     <link rel="stylesheet" type="text/css" href="views/shared/style/panel.css">
-    <link rel="stylesheet" type="text/css" href="views/shared/style/edit-mode.css">
     <link rel="stylesheet" type="text/css" href="views/shared/style/notification.css">
     <link rel="stylesheet" type="text/css" href="views/shared/style/common.css">
+    <link rel="stylesheet" type="text/css" href="views/inbox/style/inbox.css">
+    <!-- Lazy load styles
+    <link rel="stylesheet" type="text/css" href="shared/style/confirm.css">
+    <link rel="stylesheet" type="text/css" href="shared/style/edit_mode.css">
+    <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css">
+    <link rel="stylesheet" type="text/css" href="shared/style/switches.css">
+    <link rel="stylesheet" type="text/css" href="shared/style/progress_activity.css">
+    <link rel="stylesheet" type="text/css" href="shared/style/status.css">
+    <link rel="stylesheet" type="text/css" href="shared/style/tabs.css" >
+    <link rel="stylesheet" type="text/css" href="views/shared/style/edit-mode.css">
     <link rel="stylesheet" type="text/css" href="views/shared/style/composer.css">
     <link rel="stylesheet" type="text/css" href="views/conversation/style/message.css">
     <link rel="stylesheet" type="text/css" href="views/conversation/style/report_view.css">
@@ -35,8 +37,9 @@
     <link rel="stylesheet" type="text/css" href="views/conversation/style/edit-mode.css">
     <link rel="stylesheet" type="text/css" href="views/new_message/style/new_message.css">
     <link rel="stylesheet" type="text/css" href="views/new_message/style/recipients.css">
-    <link rel="stylesheet" type="text/css" href="views/inbox/style/inbox.css">
     <link rel="stylesheet" type="text/css" href="views/inbox/style/edit-mode.css">
+    -->
+
     <!-- Localization -->
     <meta name="defaultLanguage" content="en-US">
     <meta name="availableLanguages" content="en-US">
@@ -134,7 +137,7 @@
   <body role="application" class="skin-comms theme-communications">
     <iframe src="/views/shared/shim_host.html" class="shim-host" hidden></iframe>
     <article id="main-wrapper" class="wrapper">
-      <section class="panel panel-InboxView" role="region" aria-hidden="true">
+      <section class="panel panel-InboxView panel-hidden" role="region" aria-hidden="true">
         <!-- title-start and title-end indicates the button widths respectively
           at the start and end of the line -->
         <!-- see https://github.com/gaia-components/gaia-header/ for more information -->
@@ -155,7 +158,7 @@
           </div>
         </div>
 
-        <form id="threads-edit-form" role="dialog" data-type="edit">
+        <form id="threads-edit-form" role="dialog" data-type="edit" class="hide">
           <section role="region" class="theme-settings">
             <gaia-header id="threads-edit-header" action="close" no-font-fit>
               <h1 id="threads-edit-mode" data-l10n-id="selectThreads-title"></h1>
@@ -181,7 +184,7 @@
         <div id="sticky"></div>
       </section>
 
-      <section class="panel panel-ConversationView editable-select-mode" role="region" aria-hidden="true">
+      <section class="panel panel-ConversationView panel-hidden editable-select-mode" role="region" aria-hidden="true">
         <gaia-header id="messages-header" class="view-header regular-header" action="back" no-font-fit>
           <h1 id="messages-header-text" aria-hidden="true"></h1>
           <button id="messages-call-number-button" data-icon="call" class="hide" data-l10n-id="callButton"></button>
@@ -290,7 +293,7 @@
             </form>
           </div>
         </article>
-        <form role="dialog" id="messages-edit-form" data-type="edit" >
+        <form role="dialog" id="messages-edit-form" data-type="edit" class="hide">
           <section role="region" class="theme-settings">
             <gaia-header id="messages-edit-header" action="close" no-font-fit>
               <h1 id="messages-edit-mode" data-l10n-id="deleteMessages-title"></h1>
@@ -310,7 +313,7 @@
         </section>
       </section>
 
-      <section class="panel panel-GroupView" role="region" aria-hidden="true">
+      <section class="panel panel-GroupView panel-hidden" role="region" aria-hidden="true">
         <gaia-header id="information-group-header" class="header" action="back" no-font-fit>
           <h1 data-l10n-id="participant" class="header-text"></h1>
         </gaia-header>
@@ -319,7 +322,7 @@
         </article>
       </section>
 
-      <section class="panel panel-ReportView" role="region" aria-hidden="true">
+      <section class="panel panel-ReportView panel-hidden" role="region" aria-hidden="true">
         <gaia-header id="information-report-header" class="header" action="close" no-font-fit>
           <h1 data-l10n-id="message-report"></h1>
         </gaia-header>
@@ -476,7 +479,7 @@
       -->
     </div>
 
-     <div id="messages-date-group-tmpl">
+     <div id="messages-date-group-tmpl" class="hide">
       <!--
       <div id="${id}" class="messages-date-group" data-timestamp="${timestamp}">
         <header
@@ -636,8 +639,7 @@
       -->
     </div>
 
-    <article>
-      <gaia-sim-picker id="sim-picker" tabindex="-1"></gaia-sim-picker>
-    </article>
+    <gaia-sim-picker id="sim-picker" tabindex="-1" class="hide"></gaia-sim-picker>
+
   </body>
 </html>
