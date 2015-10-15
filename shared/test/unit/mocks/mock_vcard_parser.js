@@ -1,5 +1,8 @@
 'use strict';
 
+/* exports MockVcardParser */
+/* exports MockVCFReader */
+
 function MockVcardParser(textToParse) {
   this.text = textToParse;
 }

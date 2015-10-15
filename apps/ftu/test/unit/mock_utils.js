@@ -1,9 +1,15 @@
 'use strict';
+
 /* exported Mockutils */
 
 var Mockutils = {
   overlay: {
-    show: function() {},
+    show: function() {
+      return {
+        update: function() {}
+      };
+    },
+    showMenu: function() {},
     hide: function() {}
   }
 };
