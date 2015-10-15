@@ -12,6 +12,8 @@
   var phoneDetailsElt;
   var emailDetailsElt;
   var listDetailsElt;
+  var showMoreButton;
+  var _showMoreButtonClicked;
 
   function updateViewIfNeeded(evt) {
     if (evt.detail.group.id !== currentGroup.id) {
@@ -22,6 +24,11 @@
   }
 
   function updateView(group) {
+    // Hide or display showMoreButton as per the need.
+    showMoreButton.classList.toggle('hide-show-more',
+      group.calls.length < 10
+    );
+    _showMoreButtonClicked = false;
     currentGroup = group;
     updateGroupInformation(group);
     updateCallDurations(group);
@@ -61,6 +68,7 @@
   }
 
   function updateCallDurations(group) {
+    var groupCalls;
     var callDurationsElt = document.getElementById('call-durations');
     callDurationsElt.innerHTML = '';
 
@@ -69,7 +77,13 @@
       return;
     }
 
-    group.calls.forEach(function(call) {
+    if(!_showMoreButtonClicked) {
+      groupCalls = group.calls.slice(0,9);
+    } else if (_showMoreButtonClicked) {
+      groupCalls = group.calls;
+      showMoreButton.classList.add('hide-show-more');
+    }
+    groupCalls.forEach(function(call) {
       var startTime = document.createElement('p');
       startTime.classList.add('ci__grow');
       startTime.classList.add('js-ci-start-times');
@@ -229,6 +243,11 @@
     createContactButton.addEventListener('click', createNewContact);
     var header = document.getElementById('call-info-gaia-header');
     header.addEventListener('action', close);
+    showMoreButton = document.getElementById('show-more');
+    showMoreButton.addEventListener('click', function() {
+      _showMoreButtonClicked = true;
+      updateCallDurations(currentGroup);
+    });
 
     window.addEventListener('timeformatchange', updateStartTimes);
   }
