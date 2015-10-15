@@ -112,7 +112,7 @@ ViewfinderController.prototype.bindEvents = function() {
   // Tut tut, we shouldn't have direct coupling here.
   // TODO: Camera events should be relayed through the app.
   this.camera.on('zoomconfigured', this.onZoomConfigured);
-  this.camera.on('zoomchanged', this.onZoomChanged);
+  this.camera.on('zoomchanged', this.views.viewfinder.setZoom);
   this.camera.on('preview:started', this.show);
 
   // Camera
@@ -325,12 +325,6 @@ ViewfinderController.prototype.onZoomConfigured = function() {
     return;
   }
 
-  if (this.app.settings.zoom.get('useZoomPreviewAdjustment')) {
-    this.views.viewfinder.enableZoomPreviewAdjustment();
-  } else {
-    this.views.viewfinder.disableZoomPreviewAdjustment();
-  }
-
   var minimumZoom = this.camera.getMinimumZoom();
   var maximumZoom = this.camera.getMaximumZoom();
 
@@ -348,21 +342,6 @@ ViewfinderController.prototype.onPinchChanged = function(deltaPinch) {
     (1 + (deltaPinch / this.sensitivity));
   this.views.viewfinder.setZoom(zoom);
   this.camera.setZoom(zoom);
-};
-
-/**
- * Responds to changes of the `zoom` value on the Camera to update the
- * view's internal state so that the pinch-to-zoom gesture can resume
- * zooming from the updated value. Also, updates the CSS scale transform
- * on the <video/> tag to compensate for zooming beyond the
- * `maxHardwareZoom` value.
- *
- * @param {Number} zoom
- */
-ViewfinderController.prototype.onZoomChanged = function(zoom) {
-  var zoomPreviewAdjustment = this.camera.getZoomPreviewAdjustment();
-  this.views.viewfinder.setZoomPreviewAdjustment(zoomPreviewAdjustment);
-  this.views.viewfinder.setZoom(zoom);
 };
 
 ViewfinderController.prototype.onViewfinderClicked = function(e) {

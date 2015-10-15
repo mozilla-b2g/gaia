@@ -5,7 +5,6 @@ define(function(require, exports, module) {
  * Module Dependencies
  */
 
-var CameraUtils = require('lib/camera-utils');
 var orientation = require('lib/orientation');
 var Focus = require('lib/camera/focus');
 var debug = require('debug')('camera');
@@ -1355,17 +1354,6 @@ Camera.prototype.isZoomSupported = function() {
 };
 
 Camera.prototype.configureZoom = function() {
-  var previewSize = this.previewSize();
-  var maxPreviewSize =
-    CameraUtils.getMaximumPreviewSize(this.previewSizes());
-
-  // Calculate the maximum amount of zoom that the hardware will
-  // perform. This calculation is determined by taking the maximum
-  // supported preview size *width* and dividing by the current preview
-  // size *width*.
-  var maxHardwareZoom = maxPreviewSize.width / previewSize.width;
-  this.set('maxHardwareZoom', maxHardwareZoom);
-
   this.setZoom(this.getMinimumZoom());
   this.emit('zoomconfigured', this.getZoom());
   return this;
@@ -1411,16 +1399,6 @@ Camera.prototype.setZoom = function(zoom) {
 
     self.mozCamera.zoom = self.zoom;
   }, 150);
-};
-
-Camera.prototype.getZoomPreviewAdjustment = function() {
-  var zoom = this.mozCamera.zoom;
-  var maxHardwareZoom = this.get('maxHardwareZoom');
-  if (zoom <= maxHardwareZoom) {
-    return 1.0;
-  }
-
-  return zoom / maxHardwareZoom;
 };
 
 /**

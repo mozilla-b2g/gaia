@@ -125,28 +125,6 @@ module.exports = View.extend({
     this._zoom = clamp(zoom, this._minimumZoom, this._maximumZoom);
   },
 
-  _useZoomPreviewAdjustment: false,
-
-  enableZoomPreviewAdjustment: function() {
-    this._useZoomPreviewAdjustment = true;
-  },
-
-  disableZoomPreviewAdjustment: function() {
-    this._useZoomPreviewAdjustment = false;
-  },
-
-  /**
-   * Adjust the scale of the <video/> tag to compensate for the inability
-   * of the Camera API to zoom the preview stream beyond a certain point.
-   * This gets called when the `Camera` emits a `zoomchanged` event and is
-   * calculated by `Camera.prototype.getZoomPreviewAdjustment()`.
-   */
-  setZoomPreviewAdjustment: function(zoomPreviewAdjustment) {
-    if (this._useZoomPreviewAdjustment) {
-      this.els.video.style.transform = 'scale(' + zoomPreviewAdjustment + ')';
-    }
-  },
-
   stopStream: function() {
     this.els.video.mozSrcObject = null;
   },
