@@ -147,7 +147,10 @@
           this.lifecycleEnabled = false;
           break;
         case 'cardviewclosed':
-          if (e.detail && e.detail.newStackPosition) {
+          var targetApp = e.detail;
+          // Enable the edge gestures if we switched back into any app except
+          // the homescreen.
+          if (!targetApp.isHomescreen) {
             this.lifecycleEnabled = true;
           }
           break;
@@ -460,4 +463,3 @@
   exports.EdgeSwipeDetector = EdgeSwipeDetector;
 
 }(window));
-

@@ -19,6 +19,10 @@
       return this.client.helper.waitForElement(this.selectors.element);
     },
 
+    get scrollElement() {
+      return this.client.helper.waitForElement(this.selectors.scrollElement);
+    },
+
     get cards() {
       return this.client.findElements(this.selectors.cards);
     },
@@ -54,6 +58,16 @@
         });
         win.dispatchEvent(new CustomEvent('home'));
       });
+    },
+
+    waitUntilHidden: function() {
+      this.client.switchToFrame();
+      this.client.waitFor(function() {
+        return this.client.findElement(this.selectors.element)
+          .scriptWith(function(el) {
+            return !el.classList.contains('active');
+          });
+      }.bind(this));
     },
 
     getIconForCard: function(idx) {
