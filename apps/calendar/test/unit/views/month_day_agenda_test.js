@@ -59,7 +59,7 @@ suite('Views.MonthDayAgenda', function() {
         format,
         'should set the currentDate textContent');
 
-      assert.deepEqual(new Date(currentDate.dataset.date), new Date(now));
+      assert.deepEqual(currentDate.dataset.date, now.toString());
       assert.deepEqual(currentDate.dataset.l10nDateFormat, format);
 
       assert.ok(
