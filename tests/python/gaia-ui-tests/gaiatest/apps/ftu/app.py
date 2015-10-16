@@ -53,6 +53,9 @@ class Ftu(Base):
     # Step Firefox Accounts
     _section_firefox_accounts_locator = (By.ID, 'firefox_accounts')
 
+    # Section late customization
+    _section_late_customization_locator = (By.ID, 'late_customization')
+
     # Section Welcome Browser
     _section_welcome_browser_locator = (By.ID, 'welcome_browser')
     _enable_statistic_checkbox_locator = (By.ID, 'form_share_statistics')
@@ -298,6 +301,11 @@ class Ftu(Base):
         self.a11y_click_next()
         Wait(self.marionette).until(
             expected.element_displayed(*self._section_firefox_accounts_locator))
+
+    def tap_next_to_late_customization_section(self):
+        self.tap_next()
+        Wait(self.marionette).until(
+            expected.element_displayed(*self._section_late_customization_locator))
 
     def tap_next_to_welcome_browser_section(self):
         self.tap_next()

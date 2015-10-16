@@ -108,6 +108,7 @@ class TestFtu(GaiaTestCase):
             self.apps.switch_to_displayed_app()
 
         self.ftu.tap_next_to_firefox_accounts_section()
+        self.ftu.tap_next_to_late_customization_section()
         self.ftu.tap_next_to_welcome_browser_section()
 
         # Verify the "Share Data" option matches expected initial state
