@@ -19,20 +19,37 @@
       </header>
       <ul>
         <li>
-          <p class="description">
-            <span data-l10n-id="performanceAndUsageDataInfo"></span>
-            <a href="https://mozilla.org/telemetry" data-l10n-id="learn-more" class="link-text"></a>
-          </p>
-        </li>
-        <li id="menuItem-sharePerformanceData">
-          <gaia-checkbox name="debug.performance_data.shared">
-            <label data-l10n-id="sharePerformanceAndUsageData"></label>
-          </gaia-checkbox>
-        </li>
-        <li>
           <a id="appUsageByRegion" class="menu-item">
             <span data-l10n-id="appUsageByRegion"></span>
           </a>
+        </li>
+        <li>
+          <p class="description">
+            <span data-l10n-id="helpImprove"></span>
+          </p>
+          <p class="description">
+            <span data-l10n-id="learn-more-privacy">
+              <a href="http://www.mozilla.org/privacy/firefox-os" class="link-text"></a>
+            </span>
+          </p>
+        </li>
+        <li>
+          <gaia-radio name="metricsGroup" id="metrics-basic" value="Basic">
+            <label data-l10n-id="basicMetricsRadio"></label>
+            <p data-l10n-id="basicMetricsExplain" class="metrics-explain"></p>
+          </gaia-radio>
+        </li>
+        <li>
+          <gaia-radio name="metricsGroup" id="metrics-enhanced" value="Enhanced">
+            <label data-l10n-id="enhancedMetricsRadio"></label>
+            <p data-l10n-id="enhancedMetricsExplain" class="metrics-explain"></p>
+          </gaia-radio>
+        </li>
+        <li>
+          <gaia-radio name="metricsGroup" id="metrics-none" value="None">
+            <label data-l10n-id="noneMetricsRadio"></label>
+            <p data-l10n-id="noneMetricsExplain" class="metrics-explain"></p>
+          </gaia-radio>
         </li>
       </ul>
 
