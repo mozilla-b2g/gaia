@@ -238,7 +238,6 @@
 #lockscreen-alarm::after {
   content: ' ';
   top: 3px;
-  left: 5px;
   background-image: url('./images/alarm_icon.png');
   background-repeat: no-repeat;
   background-size: 1.5rem;
@@ -247,6 +246,7 @@
   height: 15px;
   position: relative;
 }
+
 .no-alarms {
   display: none !important;
 }
