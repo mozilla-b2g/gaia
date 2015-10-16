@@ -281,6 +281,7 @@ DataAdapters.history = {
       mtime = _mtime;
       return remoteHistory.list();
     }).then(list => {
+      console.log('incoming history', list);
       return this._update(list.data, mtime);
     });
   },

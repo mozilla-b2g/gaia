@@ -333,6 +333,7 @@ DataAdapters.bookmarks = {
       mtime = _mtime;
       return remoteBookmarks.list();
     }).then(list => {
+      console.log('incoming bookmarks', list);
       return this._update(list.data, mtime);
     });
   },
