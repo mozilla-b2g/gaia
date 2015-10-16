@@ -59,6 +59,7 @@
 
   proto.load = function (url) {
     this._video.src = url;
+    this._video.load();
   };
 
   proto.release = function () {
