@@ -13,9 +13,8 @@ function PinningTheWeb(client) {
 PinningTheWeb.prototype = {
   Selectors: {
     pinDialog: '#pin-page-dialog',
-    pinPageButton: '#pin-page-dialog button[data-action="pin"]',
-    pinSiteButton: '#pin-page-dialog button.site-panel-element',
-    sitePanelArrow: '#pin-page-dialog .icon-arrow'
+    pinPageButton: '#pin-page-container button',
+    pinSiteButton: '#pin-site-container button'
   },
 
   get pinDialog() {
@@ -28,10 +27,6 @@ PinningTheWeb.prototype = {
 
   get pinSiteButton() {
     return this.client.helper.waitForElement(this.Selectors.pinSiteButton);
-  },
-
-  get sitePanelArrow() {
-    return this.client.helper.waitForElement(this.Selectors.sitePanelArrow);
   },
 
   _openUrl: function openUrl(url) {
@@ -67,7 +62,6 @@ PinningTheWeb.prototype = {
   openAndPinSiteFromBrowser: function openAndPinSite(url) {
     this._openUrl(url);
     this._clickPinContextMenu();
-    this.sitePanelArrow.tap();
     this.pinSiteButton.tap();
     this.client.helper.waitForElementToDisappear(this.pinDialog);
   },
@@ -85,7 +79,6 @@ PinningTheWeb.prototype = {
     }.bind(this));
 
     this._clickPinContextMenu();
-    this.sitePanelArrow.tap();
     this.pinSiteButton.tap();
     this.client.helper.waitForElementToDisappear(this.pinDialog);
   },

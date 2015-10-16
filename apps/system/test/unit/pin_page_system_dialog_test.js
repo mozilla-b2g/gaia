@@ -89,9 +89,10 @@ suite('Pin Page dialog', function() {
       this.sinon.stub(SystemDialog.prototype, 'show');
     });
 
-    test('updates the url', function() {
+    test('updates the title', function() {
+      data.title = 'title';
       subject.show(data);
-      assert.equal(subject.pinURL.textContent, data.url);
+      assert.equal(subject.pageTitle.textContent, data.title);
     });
 
     test('shows the dialog', function() {
