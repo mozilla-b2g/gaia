@@ -39,7 +39,7 @@ var BookmarksHelper = (() => {
     if (store) {
       return Promise.resolve(store);
     }
-    return navigator.getDataStores('sync_bookmarks_store').then(stores => {
+    return navigator.getDataStores('bookmarks').then(stores => {
       store = stores[0];
       return store;
     });
@@ -86,21 +86,13 @@ var BookmarksHelper = (() => {
       console.error('Inconsistent records', localRecord, remoteRecord);
       throw new Error('Inconsistent records');
     }
-    if (!localRecord.fxsyncId && typeof remoteRecord.fxsyncId === 'string') {
-      /* When a localRecord has no fxsyncId, assign fxsyncId to it from a
-         remoteRecord. This case always happens at first synchronization or
-         merging two records with the same URL. */
-      localRecord.fxsyncId = remoteRecord.fxsyncId;
-    } else if (localRecord.fxsyncId !== remoteRecord.fxsyncId) {
-      // Two records have different fxsyncId but have the same url(id).
-      console.log('Records should have the same Firefox Sync ID',
-        localRecord, remoteRecord);
-      throw new Error('Records should have the same Firefox Sync ID',
-        localRecord, remoteRecord);
-    }
 
     localRecord.name = remoteRecord.name;
-    localRecord.fxsyncPayload = remoteRecord.fxsyncPayload;
+    if (!localRecord.fxsyncRecords) {
+      localRecord.fxsyncRecords = {};
+    }
+    localRecord.fxsyncRecords[remoteRecord.fxsyncId] =
+        remoteRecord.fxsyncPayload;
 
     return localRecord;
   }
@@ -123,10 +115,12 @@ var BookmarksHelper = (() => {
         return store.put(newBookmark, id, revisionId).then(() => {
           return setDataStoreId(remoteRecord.fxsyncId, id);
         });
+        // TODO: deal with race conditions
       }
       return store.add(remoteRecord, id, revisionId).then(() => {
         return setDataStoreId(remoteRecord.fxsyncId, id);
       });
+      // TODO: deal with race conditions
     }).catch(e => {
       console.error(e);
     });
@@ -154,7 +148,16 @@ var BookmarksHelper = (() => {
       }
       url = id;
       return _ensureStore().then(store => {
-        return store.remove(url);
+        var revisionId = store.revisionId;
+        return store.get(id).then(localRecord => {
+          delete localRecord.fxsyncRecords[fxsyncId];
+          if (Object.keys(localRecord.fxsyncRecords).length) {
+            return store.put(localRecord, id, revisionId);
+          } else {
+            return store.remove(id, revisionId);
+          }
+        });
+        // TODO: deal with race conditions
       });
     });
   }
