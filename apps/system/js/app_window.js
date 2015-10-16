@@ -2521,7 +2521,7 @@
       }
       siteObj.manifestUrl = this.manifestURL;
       siteObj.manifest = this.manifest;
-      siteObj.origin = this.origin;
+      siteObj.origin = new URL(this.origin).origin;
     }
 
     if (this.webManifestURL && !this.webManifest) {
