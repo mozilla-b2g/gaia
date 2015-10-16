@@ -51,4 +51,44 @@ marionette('Software Home Button - Fullscreen Request', function() {
         .displayed();
     });
   });
+
+  test('Fullscreen request makes app take up entire viewport', function() {
+    var appUrl = 'app://fullscreen_request.gaiamobile.org';
+    client.apps.launch(appUrl);
+
+    var frame = system.waitForLaunch(appUrl);
+    client.switchToFrame(frame);
+    client.helper.waitForElement('#fullscreen').click();
+    client.switchToFrame();
+
+    // Make sure iframe takes up full viewport.
+    var manifestURL = appUrl + '/manifest.webapp';
+    var appFrame = client.findElement('iframe[mozapp="' + manifestURL + '"]');
+    var winHeight = client.findElement('body').size().height;
+    client.waitFor(function() {
+      var frameHeight = appFrame.scriptWith(function(el) {
+        return el.getBoundingClientRect().height;
+      });
+      return winHeight === frameHeight;
+    });
+
+    // When an app requests fullscreen, Gecko will apply position fixed to the
+    // mozbrowser iframe to make it take up the entire screen. However, if
+    // the iframe has an ancestor that has a transform style, fixed will
+    // be relative to that ancestor (by design). So for this test we walk up
+    // the DOM tree from the mozbrowser frame and make sure no ancestors
+    // have a transform property set.
+    // See https://bugzilla.mozilla.org/show_bug.cgi?id=1212960
+    function hasTransformAncestor(el) {
+      while (el) {
+        if (window.getComputedStyle(el).transform !== 'none') {
+          return true;
+        }
+        el = el.parentElement;
+      }
+      return false;
+    }
+    assert.equal(false, appFrame.scriptWith(hasTransformAncestor),
+      'mozbrowser iframe has no ancestor with tranform style');
+  });
 });
