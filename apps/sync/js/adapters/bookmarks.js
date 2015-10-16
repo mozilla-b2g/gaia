@@ -79,6 +79,7 @@ var BookmarksHelper = (() => {
   }
 
   function mergeRecordsToDataStore(localRecord, remoteRecord) {
+    console.log('checking', localRecord, remoteRecord);
     if (!localRecord || !remoteRecord ||
         localRecord.id !== remoteRecord.id ||
         (remoteRecord.type === 'url' && localRecord.url !== remoteRecord.url)) {
@@ -121,6 +122,7 @@ var BookmarksHelper = (() => {
           // TODO: deal with race conditions
         }
         var newRecord = {
+          id: remoteRecord.url,
           url: remoteRecord.url,
           name: remoteRecord.name,
           fxsyncRecords: {}
