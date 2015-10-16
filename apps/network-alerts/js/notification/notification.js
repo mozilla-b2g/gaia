@@ -18,16 +18,11 @@ function onNotification(message) {
     return;
   }
 
-  var title = null;
-  if (message.data) {
-    title = message.data.title;
-  }
-  else {
-    title = Utils.parseParams(message.imageURL).titleID;
-  }
+  var title = message.data.title;
 
   var url = [
-    'attention.html?',
+    'attention.html?title=',
+    encodeURIComponent(title),
     'body=',
     encodeURIComponent(message.body),
     '&notification=1'

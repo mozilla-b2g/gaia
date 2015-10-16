@@ -107,6 +107,7 @@ suite('Network Alerts - Attention Screen', function() {
 
       assert.equal(MockNotifications[0].title, localizedTitle);
       assert.equal(MockNotifications[0].body, body);
+      assert.ok(MockNotifications[0].data.title !== undefined);
 
       sinon.assert.called(Notify.notify);
     });
