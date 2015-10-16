@@ -111,6 +111,10 @@ class TestSettingsRTLNC(GaiaImageCompareTestCase):
         self.take_screenshot('callBarring-init')
         cs_page.wait_until_call_barring_info_received()
         self.take_screenshot('callBarring')
+        GaiaImageCompareTestCase.scroll(self.marionette, 'down',
+                                        cs_page.call_barring_screen_element.size['height'],
+                                        screen = cs_page.call_barring_screen_element)
+        self.take_screenshot('callBarring')
         cs_page.tap_change_passcode()
         self.take_screenshot('callBarring-passcode')
         settings.return_to_prev_menu(cs_page.call_barring_screen_element,
