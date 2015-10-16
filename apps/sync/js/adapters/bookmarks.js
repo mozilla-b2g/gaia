@@ -79,7 +79,6 @@ var BookmarksHelper = (() => {
   }
 
   function mergeRecordsToDataStore(localRecord, remoteRecord) {
-    console.log('checking', localRecord, remoteRecord);
     if (!localRecord || !remoteRecord ||
         localRecord.id !== remoteRecord.id ||
         (remoteRecord.type === 'url' && localRecord.url !== remoteRecord.url)) {
@@ -94,7 +93,6 @@ var BookmarksHelper = (() => {
     }
     localRecord.fxsyncRecords[remoteRecord.fxsyncId] =
         remoteRecord.fxsyncPayload;
-    console.log('merged', localRecord, remoteRecord);
     return localRecord;
   }
 
@@ -104,18 +102,14 @@ var BookmarksHelper = (() => {
     //     we merge it with the remote one.
     // 2.B Add a new record with RevisionId.
     // 3. Add the DataStore record ID into LocalID <-> RemoteID matching table.
-    console.log('adding', remoteRecord);
 
     var id = remoteRecord.id;
     var revisionId;
     return _ensureStore().then(store => {
-      console.log('store', store);
       revisionId = store.revisionId;
       return store.get(id).then(localRecord => {
-        console.log('adding 2', remoteRecord, localRecord);
         if (localRecord) {
           var newBookmark = mergeRecordsToDataStore(localRecord, remoteRecord);
-          console.log('adding 3', remoteRecord, localRecord, newBookmark);
           return store.put(newBookmark, id, revisionId).then(() => {
             return setDataStoreId(remoteRecord.fxsyncId, id);
           });
@@ -129,7 +123,6 @@ var BookmarksHelper = (() => {
         };
         newRecord.fxsyncRecords[remoteRecord.fxsyncId] =
             remoteRecord.fxsyncPayload;
-        console.log('adding 4', remoteRecord, newRecord);
         return store.add(newRecord, id, revisionId).then(() => {
           return setDataStoreId(remoteRecord.fxsyncId, id);
         });
@@ -155,7 +148,6 @@ var BookmarksHelper = (() => {
   }
 
   function deleteBookmark(fxsyncId) {
-    console.log('delete', fxsyncId);
     var url;
     return getDataStoreId(fxsyncId).then(id => {
       if (!id) {
@@ -166,13 +158,10 @@ var BookmarksHelper = (() => {
       return _ensureStore().then(store => {
         var revisionId = store.revisionId;
         return store.get(id).then(localRecord => {
-          console.log('deleting', fxsyncId, id, localRecord);
           delete localRecord.fxsyncRecords[fxsyncId];
           if (Object.keys(localRecord.fxsyncRecords).length) {
-            console.log('deleting just', fxsyncId, id, localRecord);
             return store.put(localRecord, id, revisionId);
           } else {
-            console.log('deleting entirely', fxsyncId, id, localRecord);
             return store.remove(id, revisionId);
           }
         });
@@ -358,7 +347,6 @@ DataAdapters.bookmarks = {
       mtime = _mtime;
       return remoteBookmarks.list();
     }).then(list => {
-      console.log('incoming bookmarks', list);
       return this._update(list.data, mtime);
     });
   },
