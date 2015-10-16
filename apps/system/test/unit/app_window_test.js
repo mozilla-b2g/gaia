@@ -2604,6 +2604,23 @@ suite('system/AppWindow', function() {
       blobPromise.mFulfillToValue({ url: dataURI });
     });
 
+    test('getSiteIconUrl passes along correct origin', function() {
+      app1.manifestURL = 'https://example.com/webapp.json';
+      app1.origin = 'https://app-origin.com/with#hash';
+      app1.manifest = {
+        origin: origin,
+        icons: {
+          '64': '/test.png'
+        }
+      };
+
+      this.sinon.stub(app1, 'getIconBlob', function (url, size, place, site) {
+        assert.equal(site.origin, 'https://app-origin.com');
+      });
+
+      app1.getSiteIconUrl(SIZE);
+    });
+
     test('getSiteIconUrl uses manifest icons if available', function() {
       app1.manifestURL = 'https://example.com/webapp.json';
       app1.manifest = {
