@@ -35,7 +35,7 @@ suite('Network Alerts - Notification handling', function() {
       title: 'Some title',
       body: 'Some body',
       clicked: true,
-      data: { 'Some title' }
+      data: { title: 'Some title' }
     };
 
     var handlerStub = window.navigator.mozSetMessageHandler;
