@@ -44,6 +44,7 @@ DEFAULT_SETTINGS = {
     'screen.brightness': 0.1,  # reduce screen brightness
     'screen.timeout': 0,  # disable screen timeout
     'vibration.enabled': False,  # disable vibration
+    'privacy.trackingprotection.shown': True
 }
 
 DEFAULT_PREFS = {
