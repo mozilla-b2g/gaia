@@ -154,11 +154,8 @@ exports.UtilityTray = {
     window.addEventListener('keyboardchanged', this);
     window.addEventListener('keyboardchangecanceled', this);
 
-    // Firing when user swipes down with a screen reader when focused on
-    // status bar.
-    window.addEventListener('statusbarwheel', this);
-    // Firing when user swipes up with a screen reader when focused on grippy.
-    this.grippy.addEventListener('wheel', this);
+    this.motion.el.addEventListener('wheel', this);
+    this.statusbar.addEventListener('wheel', this);
 
     this.invisibleGripper.addEventListener('click',
       this._forwardInvisibleGripperClick.bind(this));
@@ -268,6 +265,7 @@ exports.UtilityTray = {
       window.dispatchEvent(new CustomEvent('utility-tray-abortopen'));
     }
 
+    this.overlay.setAttribute('aria-hidden', state !== 'open');
     this.screen.classList.toggle('utility-tray', this.shown);
     this.screen.classList.toggle('utility-tray-in-transition',
                                  state === 'opening' || state === 'closing');
@@ -337,14 +335,17 @@ exports.UtilityTray = {
           this.hide(true);
         }
         break;
-      case 'statusbarwheel':
-        this.show(true);
-        break;
 
       case 'wheel':
-        if (evt.deltaMode === evt.DOM_DELTA_PAGE && evt.deltaY &&
-          evt.deltaY > 0) {
-          this.hide(true);
+        evt.preventDefault();
+        // When the user swipes up/down using the "wheel" accessibility gesture,
+        // open and/or close the tray accordingly. (Two-finger swipe up/down.)
+        if (evt.deltaMode === evt.DOM_DELTA_PAGE && evt.deltaY) {
+          if (this.motion.state === 'open' && evt.deltaY > 0) {
+            this.hide(true);
+          } else if (this.motion.state === 'closed' && evt.deltaY < 0) {
+            this.show(true);
+          }
         }
         break;
 
