@@ -8,16 +8,14 @@
      "name": "The Gaia Team",
      "url": "https://github.com/mozilla-b2g/gaia"
   },
-  "datastores-owned": {
-    "sync_bookmarks_store": {
-      "access": "readwrite",
-      "description": "View and modify the bookmarks from Firefox Sync."
-    }
-  },
   "datastores-access": {
     "places": {
       "readonly": false,
       "description": "Stores data about browsing history."
+    },
+    "bookmarks_store": {
+      "readonly": false,
+      "description": "Stores data about bookmarks."
     }
   },
   "connections": {

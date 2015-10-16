@@ -39,7 +39,7 @@ var BookmarksHelper = (() => {
     if (store) {
       return Promise.resolve(store);
     }
-    return navigator.getDataStores('sync_bookmarks_store').then(stores => {
+    return navigator.getDataStores('bookmarks_store').then(stores => {
       store = stores[0];
       return store;
     });
@@ -86,22 +86,16 @@ var BookmarksHelper = (() => {
       console.error('Inconsistent records', localRecord, remoteRecord);
       throw new Error('Inconsistent records');
     }
-    if (!localRecord.fxsyncId && typeof remoteRecord.fxsyncId === 'string') {
-      /* When a localRecord has no fxsyncId, assign fxsyncId to it from a
-         remoteRecord. This case always happens at first synchronization or
-         merging two records with the same URL. */
-      localRecord.fxsyncId = remoteRecord.fxsyncId;
-    } else if (localRecord.fxsyncId !== remoteRecord.fxsyncId) {
-      // Two records have different fxsyncId but have the same url(id).
-      console.log('Records should have the same Firefox Sync ID',
-        localRecord, remoteRecord);
-      throw new Error('Records should have the same Firefox Sync ID',
-        localRecord, remoteRecord);
-    }
 
     localRecord.name = remoteRecord.name;
-    localRecord.fxsyncPayload = remoteRecord.fxsyncPayload;
-
+    if (!localRecord.fxsyncRecords) {
+      localRecord.fxsyncRecords = {};
+    }
+    localRecord.fxsyncRecords[remoteRecord.fxsyncId] =  {
+        last_modified: remoteRecord.last_modified,
+        payload: remoteRecord.payload
+    };
+    console.log('merged', localRecord);
     return localRecord;
   }
 
@@ -116,17 +110,33 @@ var BookmarksHelper = (() => {
     var revisionId;
     return _ensureStore().then(store => {
       revisionId = store.revisionId;
-      return store.get(id);
-    }).then(localRecord => {
-      if (localRecord) {
-        var newBookmark = mergeRecordsToDataStore(localRecord, remoteRecord);
-        return store.put(newBookmark, id, revisionId);
-      }
-      return store.add(remoteRecord, id, revisionId).then(() => {
-        return setDataStoreId(remoteRecord.fxsyncId, id);
+      return store.get(id).then(localRecord => {
+        if (localRecord) {
+          var newBookmark = mergeRecordsToDataStore(localRecord, remoteRecord);
+          return store.put(newBookmark, id, revisionId).then(() => {
+            return setDataStoreId(remoteRecord.fxsyncId, id);
+          });
+          // TODO: deal with race conditions
+        }
+        var newRecord = {
+          id: remoteRecord.url,
+          url: remoteRecord.url,
+          name: remoteRecord.name,
+          fxsyncRecords: {}
+        };
+        newRecord.fxsyncRecords[remoteRecord.fxsyncId] = {
+          last_modified: remoteRecord.last_modified,
+          payload: remoteRecord.fxsyncPayload
+        };
+
+        return store.add(newRecord, id, revisionId).then(() => {
+          return setDataStoreId(remoteRecord.fxsyncId, id);
+        });
+        // TODO: deal with race conditions
       });
     }).catch(e => {
       console.error(e);
+      throw e;
     });
   }
 
@@ -148,11 +158,21 @@ var BookmarksHelper = (() => {
     return getDataStoreId(fxsyncId).then(id => {
       if (!id) {
         console.warn('No DataStore ID corresponded to FxSyncID', fxsyncId);
+        return Promise.resolve();
       }
       url = id;
-      return _ensureStore();
-    }).then(store => {
-      return store.remove(url);
+      return _ensureStore().then(store => {
+        var revisionId = store.revisionId;
+        return store.get(id).then(localRecord => {
+          delete localRecord.fxsyncRecords[fxsyncId];
+          if (Object.keys(localRecord.fxsyncRecords).length) {
+            return store.put(localRecord, id, revisionId);
+          } else {
+            return store.remove(id, revisionId);
+          }
+        });
+        // TODO: deal with race conditions
+      });
     });
   }
 

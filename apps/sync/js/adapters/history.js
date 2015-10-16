@@ -124,7 +124,9 @@ var HistoryHelper = (() => {
       // code to prevent drifting out of sync from different piece codes.
       if (existedPlace) {
         var newPlace = mergeRecordsToDataStore(existedPlace, place);
-        return placesStore.put(newPlace, id, revisionId);
+        return placesStore.put(newPlace, id, revisionId).then(() => {
+          return setDataStoreId(place.fxsyncId, id);
+        });
       }
       return placesStore.add(place, id, revisionId).then(() => {
         return setDataStoreId(place.fxsyncId, id);
@@ -150,10 +152,14 @@ var HistoryHelper = (() => {
   function deletePlace(fxsyncId) {
     var url;
     return getDataStoreId(fxsyncId).then(id => {
+      if (!id) {
+        console.warn('No DataStore ID corresponded to FxSyncID', fxsyncId);
+        return Promise.resolve();
+      }
       url = id;
-      return _ensureStore();
-    }).then(placesStore => {
-      return placesStore.remove(url);
+      return _ensureStore().then(store => {
+        return store.remove(url);
+      });
     });
   }
 
