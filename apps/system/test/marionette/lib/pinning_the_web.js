@@ -14,7 +14,7 @@ PinningTheWeb.prototype = {
   Selectors: {
     pinDialog: '#pin-page-dialog',
     pinPageButton: '#pin-page-dialog button[data-action="pin"]',
-    pinSiteButton: '#pin-page-dialog button[data-action="pin-site"]',
+    pinSiteButton: '#pin-page-dialog button.site-panel-element',
     sitePanelArrow: '#pin-page-dialog .icon-arrow'
   },
 
@@ -34,6 +34,14 @@ PinningTheWeb.prototype = {
     return this.client.helper.waitForElement(this.Selectors.sitePanelArrow);
   },
 
+  _openUrl: function openUrl(url) {
+    this.rocketbar.homescreenFocus();
+    this.rocketbar.enterText(url, true);
+    this.rocketbar.switchToBrowserFrame(url);
+    this.client.switchToFrame();
+  },
+
+  // Open a URL, tap on the site icon and tap the pin site button.
   openAndPinSite: function openAndPinSite(url) {
     this.rocketbar.homescreenFocus();
     this.rocketbar.enterText(url, true);
@@ -55,20 +63,36 @@ PinningTheWeb.prototype = {
     }.bind(this));
   },
 
+  // Open a URL, open the pin dialog and tap the pin site button.
   openAndPinSiteFromBrowser: function openAndPinSite(url) {
-    this.rocketbar.homescreenFocus();
-    this.rocketbar.enterText(url, true);
-    this.system.gotoBrowser(url);
+    this._openUrl(url);
     this._clickPinContextMenu();
     this.sitePanelArrow.tap();
     this.pinSiteButton.tap();
     this.client.helper.waitForElementToDisappear(this.pinDialog);
   },
 
+  // Open a URL, open the pin dialog and tap the unpin site button.
+  openAndUnpinSiteFromBrowser: function openAndUnpinSiteFromBrowser(url) {
+    this._openUrl(url);
+
+    this.client.switchToFrame();
+
+    // Tap to expand the browser chrome.
+    this.system.appUrlbar.tap();
+    this.client.waitFor(function() {
+      return !this.chromeIsPinned();
+    }.bind(this));
+
+    this._clickPinContextMenu();
+    this.sitePanelArrow.tap();
+    this.pinSiteButton.tap();
+    this.client.helper.waitForElementToDisappear(this.pinDialog);
+  },
+
+  // Open a URL, open the pin dialog and tap the pin/unpin page button.
   openAndPinPage: function openAndPinSite(url) {
-    this.rocketbar.homescreenFocus();
-    this.rocketbar.enterText(url, true);
-    this.system.gotoBrowser(url);
+    this._openUrl(url);
     this._clickPinContextMenu();
     this.pinPageButton.tap();
   },

@@ -19,12 +19,15 @@ var mocksForPinsManager = new MocksHelper([
 suite('Pins Manager', function() {
 
   var realDatastores, subject, mockBookmarks, expectedScopes;
+  var scopeChangeSpy;
 
   mocksForPinsManager.attachTestHelpers();
 
   suiteSetup(function(done) {
     realDatastores = navigator.getDataStores;
     navigator.getDataStores = MockNavigatorDatastore.getDataStores;
+    scopeChangeSpy = sinon.spy();
+    window.addEventListener('pins-scopechange', scopeChangeSpy);
 
     subject = BaseModule.instantiate('PinsManager');
     subject.start().then(done);
@@ -32,6 +35,7 @@ suite('Pins Manager', function() {
 
   suiteTeardown(function() {
     navigator.getDataStores = realDatastores;
+    window.removeEventListener('pins-scopechange', scopeChangeSpy);
   });
 
   setup(function() {
@@ -54,14 +58,18 @@ suite('Pins Manager', function() {
     };
 
     expectedScopes = {
-      'test.com': {
+      'http://test.com': {
         'http://test.com': 'http://test.com/id',
         'http://test.com/bla': 'http://test.com/bla/url2'
       },
-      'blabla.com': {
+      'http://blabla.com': {
         'http://blabla.com': 'http://blabla.com/id'
       }
     };
+  });
+
+  teardown(function() {
+    scopeChangeSpy.reset();
   });
 
   suite('Initialization', function() {
@@ -116,7 +124,7 @@ suite('Pins Manager', function() {
     });
   });
 
-  suite('on Bookmaarks change', function() {
+  suite('on Bookmarks change', function() {
     setup(function() {
       this.sinon.stub(BookmarksDatabase, 'getAll').returns({
         then: function(callback) {
@@ -134,6 +142,7 @@ suite('Pins Manager', function() {
           id: url
         }
       });
+
       Service.request('PinsManager:isPinned', url)
         .then(function(isPinned) {
           assert.isFalse(isPinned);
@@ -142,6 +151,7 @@ suite('Pins Manager', function() {
     });
 
     test('Removing a scope', function(done) {
+      scopeChangeSpy.reset();
       var urlScope1 = 'http://test.com/bla/url2';
       var urlScope2 = 'http://test.com/id';
       subject._onChange({
@@ -150,6 +160,11 @@ suite('Pins Manager', function() {
           id: urlScope1
         }
       });
+
+      assert.isTrue(scopeChangeSpy.calledOnce);
+      var actualEvent = scopeChangeSpy.getCall(0).args[0];
+      assert.equal(actualEvent.detail.scope, 'http://test.com/bla');
+
       Service.request('PinsManager:isPinned', urlScope1)
         .then(function(isPinned) {
           assert.isFalse(isPinned);
@@ -167,6 +182,7 @@ suite('Pins Manager', function() {
       Service.request('PinsManager:isPinned', url)
         .then(function(isPinned) {
           assert.isFalse(isPinned);
+          scopeChangeSpy.reset();
           subject._onChange({
             type: 'added',
             target: {
@@ -175,6 +191,9 @@ suite('Pins Manager', function() {
               scope: url
             }
           });
+          assert.isTrue(scopeChangeSpy.calledOnce);
+          var actualEvent = scopeChangeSpy.getCall(0).args[0];
+          assert.equal(actualEvent.detail.scope, url);
 
           Service.request('PinsManager:isPinned', url)
             .then(function(isPinned) {

@@ -63,7 +63,7 @@ marionette('Browser - Chrome on browser navigation',
     var url = server.url('sample.html');
     var url2 = server.url('darkpage.html');
 
-    pinTheWeb.openAndPinSite(url);
+    pinTheWeb.openAndPinSiteFromDoorhanger(url);
 
     // Double tap, one for unpin and the second one
     // for opening the rocketbar

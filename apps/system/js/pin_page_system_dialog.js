@@ -28,7 +28,7 @@
             this._banner.className = 'banner';
             this._banner.dataset.zIndexLevel = 'system-notification-banner';
             var message = document.createElement('p');
-            var l10nId = 'pinned-to-home-screen-message';
+            var l10nId = 'site-pinned-to-home-screen';
             message.setAttribute('data-l10n-id', l10nId);
             this._banner.appendChild(message);
             this.element.appendChild(this._banner);
@@ -56,7 +56,7 @@
 
   PinPageSystemDialog.prototype.view = function spd_view() {
     return `<div id="${this.instanceID}" role="dialog"
-           class="generic-dialog" data-z-index-level="system-dialog" hidden>
+              class="generic-dialog" data-z-index-level="system-dialog" hidden>
               <section role="region">
                 <gaia-header id="pin-page-header" action="close">
                   <h1 id="pin-page-title" data-l10n-id="pinning-pin-page"></h1>
@@ -65,19 +65,17 @@
                   <div id="pin-card-container"></div>
                   <p id="pin-page-url" class="url" dir="ltr"></p>
                   <button data-l10n-id="pinning-pin" data-action="pin"
-                  class="pin-button">
-                    Pin
-                  </button>
+                    class="pin-button"></button>
                   <p id="pin-page-from" data-l10n-id="from"></p>
-                  <div id='pin-site-container'>
-                    <a class="icon icon-arrow" id="pin-arrow" href='#'></a>
+                  <div id="pin-site-container">
+                    <a class="icon icon-arrow" id="pin-arrow" href="#"></a>
                     <h1 class="site-panel-element"
                       id="pin-site-title" data-l10n-id="pinning-pin-site"></h1>
                     <gaia-app-icon></gaia-app-icon>
                     <p id="site-name"></p>
-                    <p class="origin site-panel-element" dir="ltr" ></p>
+                    <p class="origin site-panel-element" dir="ltr"></p>
                     <button data-l10n-id="pinning-pin" data-action="pin-site"
-                    class="pin-button site-panel-element"></button>
+                      class="pin-button site-panel-element"></button>
                   </div>
                 </div>
               </section>
@@ -91,8 +89,8 @@
 
   PinPageSystemDialog.prototype._registerEvents = function() {
     this.header.addEventListener('action', this.close.bind(this));
-    this.pinButton.addEventListener('click', this.save.bind(this, 'page'));
-    this.pinSiteButton.addEventListener('click', this.save.bind(this, 'site'));
+    this.pinButton.addEventListener('click', this.save.bind(this));
+    this.pinSiteButton.addEventListener('click', this.save.bind(this));
     this.arrow.addEventListener('click', this.toggleSitePanel.bind(this));
   };
 
@@ -131,19 +129,25 @@
     this.pinCardContainer.appendChild(this.card);
   };
 
-  PinPageSystemDialog.prototype.save = function(type) {
+  PinPageSystemDialog.prototype.save = function(evt) {
+    var action = evt.target.dataset.action;
     var activeApp = Service.query('getTopMostWindow');
-    switch (type) {
-      case 'page':
+    switch (action) {
+      case 'pin':
         activeApp.appChrome.pinPage();
+        this._banner.show();
         break;
 
-      case 'site':
+      case 'pin-site':
         activeApp.appChrome.pinSite();
         this.pinSiteContainer.classList.remove('active');
         break;
+
+      case 'unpin-site':
+        activeApp.appChrome.unpinSite();
+        this.pinSiteContainer.classList.remove('active');
+        break;
     }
-    this._banner.show();
 
     // Waiting for the animation. We should migrate this to a
     // hide event when https://github.com/gaia-components/gaia-toast/issues/2
@@ -175,6 +179,17 @@
     siteBadge.icon = data.icon;
     this.origin.textContent = (data.name !== origin) ? origin : '';
     this.siteName.textContent = data.name;
+
+    Service.request('PinsManager:isPinned', data.url)
+      .then((isPinned) => {
+        if (isPinned) {
+          this.pinSiteButton.setAttribute('data-l10n-id', 'pinning-unpin-site');
+          this.pinSiteButton.dataset.action = 'unpin-site';
+        } else {
+          this.pinSiteButton.setAttribute('data-l10n-id', 'pinning-pin');
+          this.pinSiteButton.dataset.action = 'pin-site';
+        }
+      });
   };
 
   PinPageSystemDialog.prototype.hide = function() {
