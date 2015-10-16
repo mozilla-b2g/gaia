@@ -56,7 +56,8 @@ Music.Selector = Object.freeze({
   playerCover: '#artwork',
 
   // search fields
-  searchBox: 'music-search',
+  searchBox: 'music-search-box',
+  searchResults: 'music-search-results',
   searchField: '#input',
   // search results
   searchArtists: '#views-search-artists',

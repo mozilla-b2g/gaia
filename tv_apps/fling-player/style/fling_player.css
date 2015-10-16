@@ -70,11 +70,6 @@ article, section, video {
 
 /* TMP */
 
-.control-panel.fade-out {
-  opacity: 1;
-  visibility: visible;
-}
-
 #video-player-section {
   background-color: #B2FFFF;
 }

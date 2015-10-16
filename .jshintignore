@@ -7,7 +7,6 @@ apps/calendar/build/**
 apps/calendar/js/ext/**
 apps/camera/js/vendor/**
 apps/camera/test/**
-apps/privacy-panel/js/vendor/**
 apps/**/*.esp.js
 apps/system/camera/**
 build/r.js

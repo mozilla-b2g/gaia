@@ -23,6 +23,14 @@ define(function(require) {
     'setCardLock'
   ];
 
+  var _debug = false;
+  var debug = function() {};
+  if (_debug) {
+    debug = function ss_debug(msg) {
+      console.log('--> [SimSecurity]: ' + msg);
+    };
+  }
+
   var SimSecurity = Module.create(function() {
     this.super(EventEmitter).call(this, [
       'pin-enabled',
@@ -32,7 +40,8 @@ define(function(require) {
       'fdn-enabled',
       'fdn-disabled',
       'pin-changed',
-      'pin2-changed'
+      'pin2-changed',
+      'puk2-changed'
     ]);
   }).extend(EventEmitter);
 
@@ -84,6 +93,8 @@ define(function(require) {
             } else {
               status = enabled ? 'enabled' : 'disabled';
             }
+            debug('_emitEvent: ' + lockType + '-' + status +
+                  ' through card ' + cardIndex);
             this._emitEvent(lockType + '-' + status, cardIndex);
           }
           return result;

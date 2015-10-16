@@ -21,6 +21,10 @@ apps/communications/contacts/style/contacts.css 0 6
 apps/communications/contacts/style/matching_contacts.css 0 3
 apps/communications/contacts/style/overlay.css 0 1
 apps/communications/contacts/style/status.css 0 1
+apps/communications/dialer/style/buttons.css 7 0
+apps/communications/dialer/style/call_info.css 1 0
+apps/communications/dialer/style/call_log.css 2 0
+apps/communications/dialer/style/suggestion.css 3 0
 apps/communications/dialer/style/toolbar.css 0 1
 apps/costcontrol/style/app.css 0 3
 apps/costcontrol/style/views/balance.css 0 2
@@ -56,7 +60,6 @@ apps/music/css/app.css 0 2
 apps/music/css/view.css 0 2
 apps/music/node_modules/nws/node_modules/connect/lib/public/style.css 4 10
 apps/pdfjs/content/web/viewer.css 0 1
-apps/privacy-panel/style/lists.css 0 1
 apps/search/style/search.css 0 2
 apps/settings/style/apps.css 0 1
 apps/settings/style/downloads.css 0 6
@@ -65,6 +68,9 @@ apps/settings/style/lists.css 2 1
 apps/settings/style/screen_lock.css 0 2
 apps/settings/style/settings.css 0 9
 apps/settings/style/settings_large.css 1 1
+apps/settings/style/screen_lock.css 0 2
+apps/settings/style/downloads.css 0 6
+apps/sms/views/conversation/style/message.css 2 0
 apps/sms/views/inbox/style/inbox.css 0 2
 apps/sms/views/shared/style/common.css 0 1
 apps/sms/views/shared/style/sms.css 0 2
@@ -117,6 +123,7 @@ shared/style/confirm.css 7 0
 shared/style/contacts/contacts_buttons.css 0 7
 shared/style/date_selector.css 1 0
 shared/style/dialer/dialer.css 0 1
+shared/style/dialer/keypad.css 1 0
 shared/style/edit_mode.css 1 0
 shared/style/input_areas.css 1 0
 shared/style/lists.css 5 0

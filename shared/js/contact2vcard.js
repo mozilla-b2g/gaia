@@ -371,11 +371,13 @@
     out = out || (Array.isArray(theContact.email) && theContact.email[0] &&
                   theContact.email[0].value);
 
-    out = out || navigator.mozL10n.get('noName');
-
     out = Normalizer.toAscii(out).replace(/[\s+@#&?\+\$]/g, '');
 
-    return out + '.vcf';
+    if (out) {
+      return Promise.resolve(out + '.vcf');
+    }
+
+    return navigator.mozL10n.formatValue('noName').then(name => name + '.vcf');
   }
 
   exports.ContactToVcard = ContactToVcard;

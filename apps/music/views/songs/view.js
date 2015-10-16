@@ -4,18 +4,22 @@
 var SongsView = View.extend(function SongsView() {
   View.call(this); // super();
 
-  this.searchBox = document.getElementById('search');
+  this.searchBox = document.getElementById('search-box');
+  this.searchResults = document.getElementById('search-results');
   this.list = document.getElementById('list');
 
-  var searchHeight = this.searchBox.HEIGHT;
-
-  this.searchBox.addEventListener('open', () => window.parent.onSearchOpen());
-  this.searchBox.addEventListener('close', () => {
-    this.list.scrollTop = searchHeight;
-    window.parent.onSearchClose();
-  });
   this.searchBox.addEventListener('search', (evt) => this.search(evt.detail));
-  this.searchBox.addEventListener('resultclick', (evt) => {
+
+  this.searchResults.addEventListener('open', () => {
+    this.client.method('searchOpen');
+  });
+
+  this.searchResults.addEventListener('close', () => {
+    this.client.method('searchClose');
+    this.list.scrollTop = this.searchBox.HEIGHT;
+  });
+
+  this.searchResults.addEventListener('resultclick', (evt) => {
     var link = evt.detail;
     if (link) {
       this.queueSong(link.dataset.filePath);
@@ -24,16 +28,12 @@ var SongsView = View.extend(function SongsView() {
     }
   });
 
-  this.searchBox.getItemImageSrc = (item) => this.getThumbnail(item.name);
+  this.searchResults.getItemImageSrc = (item) => this.getThumbnail(item.name);
 
-  this.list.scrollTop = searchHeight;
-  this.list.minScrollHeight = `calc(100% - ${searchHeight}px)`;
+  this.list.scrollTop = this.searchBox.HEIGHT;
+  this.list.minScrollHeight = `calc(100% + ${this.searchBox.HEIGHT}px)`;
 
   this.list.configure({
-    getSectionName: (item) => {
-      return item.sectionName;
-    },
-
     getItemImageSrc: (item) => {
       return this.getThumbnail(item.name);
     }
@@ -71,24 +71,18 @@ SongsView.prototype.render = function() {
 
 SongsView.prototype.getSongs = function() {
   console.time('getSongs');
-  return document.l10n.formatValue('unknown')
-    .then((unknown) => {
+  return document.l10n.formatValues('unknownTitle', 'unknownArtist')
+    .then(([unknownTitle, unknownArtist]) => {
       return this.fetch('/api/songs/list')
         .then(response => response.json())
         .then((songs) => {
-          var items = songs.map((song) => {
-            var title = song.metadata.title;
-            var sectionName = title ? title[0].toLowerCase() : unknown;
-            sectionName = isNaN(sectionName) ? sectionName : '#';
+          return songs.map((song) => {
             return {
-              sectionName: sectionName,
-              title: title,
-              artist: song.metadata.artist,
-              name: song.name,
+              name:   song.name,
+              title:  song.metadata.title  || unknownTitle,
+              artist: song.metadata.artist || unknownArtist,
             };
           });
-          console.timeEnd('getSongs');
-          return items;
         });
     });
 };
@@ -103,6 +97,10 @@ SongsView.prototype.getThumbnail = function(filePath) {
 };
 
 SongsView.prototype.search = function(query) {
+  if (!query) {
+    return Promise.resolve(this.searchResults.clearResults());
+  }
+
   return document.l10n.formatValues(
     'unknownTitle', 'unknownArtist'
   ).then(([unknownTitle, unknownArtist]) => {
@@ -119,8 +117,7 @@ SongsView.prototype.search = function(query) {
           };
         });
 
-        this.searchBox.setResults(results);
-        return results;
+        return this.searchResults.setResults(results);
       });
   });
 };

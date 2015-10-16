@@ -553,7 +553,7 @@
     this.originElement.appendChild(tld);
   };
 
-  AppChrome.prototype.hidePinDialogCard = function ac_setPinDialogCard(url) {
+  AppChrome.prototype.hidePinDialogCard = function ac_hidePinDialogCard(url) {
     this.pinDialog && this.pinDialog.classList.add('hidden');
   };
 
@@ -599,7 +599,14 @@
   };
 
   AppChrome.prototype._pinningObserver = function ac__pinningObserver(enabled) {
-    var targets = [this.siteIcon, this.pinScrim];
+    // Disable the pinning doorhanger in 2.5 since we have removed all
+    // functionality from it. Beyond 2.5 we will use the doorhanger for
+    // Tracking protection and privacy configuration.
+    // See https://bugzilla.mozilla.org/show_bug.cgi?id=1207710
+    var targets = [
+      // this.siteIcon, * See comment above. *
+      this.pinScrim
+    ];
     var method = enabled ? 'addEventListener' : 'removeEventListener';
     targets.forEach(element => {
       element[method]('click', this);
@@ -730,12 +737,25 @@
       return;
     }
 
-    // We allow the bar to collapse if the page is greater than or equal to
-    // the area of the window with a collapsed bar. Strictly speaking, we'd
-    // allow it to collapse if it was greater than the area of the window with
-    // the expanded bar, but due to prevalent use of -webkit-box-sizing and
-    // plain mistakes, this causes too many false-positives.
-    if (evt.detail.height >= this.containerElement.clientHeight) {
+    // Cache the last given scroll area height so this function can be called
+    // without an event object.
+    if (evt) {
+      this.browserScrollHeight = evt.detail.height;
+    }
+
+    // Don't respond to this event when we aren't visible. The container size
+    // isn't updated in this case, which can ending up incorrectly causing it
+    // to be labelled as scrollable.
+    if (!this.app.isVisible()) {
+      return;
+    }
+
+    // We allow the bar to collapse if the page is greater than the area of the
+    // window with a collapsed bar. Strictly speaking, we'd allow it to
+    // collapse if it was greater than the area of the window with the expanded
+    // bar, but due to prevalent use of -webkit-box-sizing and plain mistakes,
+    // this causes too many false-positives.
+    if (this.browserScrollHeight > this.containerElement.clientHeight) {
       this.containerElement.classList.add('scrollable');
     }
   };

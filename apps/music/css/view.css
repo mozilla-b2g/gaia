@@ -11,6 +11,7 @@ body {
   margin: 0;
   width: 100%;
   height: 100%;
+  overflow: hidden;
   -moz-user-select: none;
 }
 
@@ -44,14 +45,14 @@ gaia-fast-list p {
 gaia-fast-list em {
   position: absolute;
   top: 50%;
-  left: 0;
+  left: 0.9rem;
   width: 2rem;
   line-height: 0.7rem;
 }
 
 gaia-fast-list em ~ h3,
 gaia-fast-list em ~ p {
-  padding-left: 2rem;
+  padding-left: 2.9rem;
 }
 
 gaia-fast-list img {
@@ -63,4 +64,16 @@ gaia-fast-list img {
 gaia-fast-list img ~ h3,
 gaia-fast-list img ~ p {
   padding-right: 60px;
+}
+
+music-search-box {
+  height: 37px;
+}
+
+music-search-results {
+  position: absolute;
+  top: 37px;
+  left: 0;
+  width: 100%;
+  height: calc(100% - 37px);
 }

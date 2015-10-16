@@ -223,6 +223,7 @@ suite('controllers/camera', function() {
 
   suite('CameraController#onCaptureKey', function() {
     setup(function() {
+      this.app.busy = false;
       this.controller.lowBattery = false;
     });
 
@@ -264,10 +265,20 @@ suite('controllers/camera', function() {
       callback(event);
       sinon.assert.notCalled(this.camera.capture);
     });
+
+    test('It doesnt capture if busy', function() {
+      this.app.busy = true;
+      var callback = this.app.on.withArgs('keydown:capture').args[0][1];
+      var event = { preventDefault: sinon.spy() };
+
+      callback(event);
+      sinon.assert.notCalled(this.camera.capture);
+    });
   });
 
   suite('CameraController#onFocusKey', function() {
     setup(function() {
+      this.app.busy = false;
       this.camera.focus = {
         focus: this.sinon.spy()
       };
@@ -279,6 +290,15 @@ suite('controllers/camera', function() {
 
       callback(event);
       sinon.assert.called(this.camera.focus.focus);
+    });
+
+    test('It doesnt focus if busy', function() {
+      this.app.busy = true;
+      var callback = this.app.on.withArgs('keydown:focus').args[0][1];
+      var event = { preventDefault: sinon.spy() };
+
+      callback(event);
+      sinon.assert.notCalled(this.camera.focus.focus);
     });
   });
 

@@ -51,4 +51,25 @@ suite('Ring Test', function() {
       mock.restore();
     });
   });
+
+  test('should silence itself after a timeout', function() {
+    var clock = this.sinon.useFakeTimers();
+    var view = new RingView();
+    view.addAlert({
+      type: 'alarm',
+      vibrate: true,
+      label: 'hi',
+      sound: null,
+      hour: 1,
+      minute: 1,
+      time: new Date(),
+    });
+
+    var silenceSpy = this.sinon.spy(view, 'silence');
+    clock.tick(1000); // Wait one second... the alarm should still be ringing
+    assert.isFalse(silenceSpy.called);
+    clock.tick(10 * 60 * 1000); // After 10 minutes, it should be quiet.
+    assert.isTrue(silenceSpy.called);
+  });
+
 });

@@ -378,9 +378,8 @@ var NotificationScreen = {
     });
 
     timestamps.forEach(timestamp => {
-      formatter.format(new Date(timestamp.dataset.timestamp)).then(
-        str => { timestamp.textContent = str; }
-      );
+      formatter.formatElement(
+        timestamp, new Date(timestamp.dataset.timestamp));
     });
   },
 
@@ -473,11 +472,7 @@ var NotificationScreen = {
     var formatter = mozIntl._gaia.RelativeDate(navigator.languages, {
       style: 'short'
     });
-    formatter.format(timestamp).then(
-      str => {
-        time.textContent = str;
-      }
-    );
+    formatter.formatElement(time, timestamp);
     titleContainer.appendChild(time);
 
     notificationNode.appendChild(titleContainer);

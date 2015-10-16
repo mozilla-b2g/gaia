@@ -45,7 +45,7 @@ var ExampleAdapter = {
    * @param {Object} kintoCollection - A Kinto collection, see
    * http://kintojs.readthedocs.org/en/latest/api/#collections
    *
-   * @param {Object} options - either `{}` or `{ readOnly: true }`
+   * @param {Object} options - either `{}` or `{ readonly: true }`
    *
    * @returns {Promise} A promise for a Boolean, indicating whether or not
    *                    any outgoing changes were made that need to be synced up
@@ -59,7 +59,7 @@ var ExampleAdapter = {
       }
     });
 
-    if (options.readOnly) {
+    if (options.readonly) {
       // TODO: Import data from Kinto collection into the appropriate DataStore
       // or Web API:
       return Promise.resolve(false);

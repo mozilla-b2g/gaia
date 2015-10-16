@@ -42,7 +42,7 @@ global.MockMozIntl = {
         format: function(value) {
           return Promise.resolve('pretty date');
         },
-      formatElement: function(element, time, maxDiff) {}
+        formatElement: function(element, time, maxDiff) {}
       };
     },
   }

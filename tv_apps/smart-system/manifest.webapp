@@ -29,11 +29,13 @@
     "permissions":{},
     "audio-channel-notification":{},
     "audio-channel-content":{},
+    "input": {},
     "input-manage":{},
     "systemXHR":{},
     "feature-detection": {},
     "moz-extremely-unstable-and-will-change-webcomponents":{},
-    "presentation-device-manage": {}
+    "presentation-device-manage": {},
+    "moz-firefox-accounts": {}
   },
   "locales": {
     "ar": {
@@ -81,7 +83,8 @@
      { "bluetooth-opp-receiving-file-confirmation": "/index.html" },
      { "bluetooth-opp-transfer-start": "/index.html" },
      { "bluetooth-pairing-request": "/index.html" },
-     { "notification": "/index.html" }
+     { "notification": "/index.html" },
+     { "request-sync": "/index.html" }
   ],
   "connections": {
     "search-results": {
@@ -116,6 +119,12 @@
     },
     "fxa-mgmt": {
       "description": "Firefox Accounts management API",
+      "rules": {
+        "minimumAccessLevel": "certified"
+      }
+    },
+    "gaia-sync-management": {
+      "description": "Firefox Sync management API",
       "rules": {
         "minimumAccessLevel": "certified"
       }

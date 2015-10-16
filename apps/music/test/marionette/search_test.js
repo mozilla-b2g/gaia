@@ -73,26 +73,23 @@ marionette('Music player search', function() {
   function testSearchResults(expectedCount) {
     client.switchToFrame(music.activeViewFrame);
 
-    var search = client.findElement('music-search');
+    var search = client.findElement('music-search-results');
     assert.ok(search);
 
     client.switchToShadowRoot(search);
 
-    var view = client.helper.waitForElement('#results');
-    assert.ok(view);
+    var results = client.helper.waitForElement('#list');
+    assert.ok(results);
 
     // wait for the results to be displayed.
     // XXX this mostly assume we populate before showing the div.
     client.waitFor(function() {
-      return view.displayed();
+      return results.displayed();
     });
 
     // XXX fix me when this is true
     // since we display the count, just get it.
-    //var count = view.findElement('.search-result-count').text();
-
-    var results = view.findElement('#list');
-    assert.ok(results);
+    //var count = results.findElement('.search-result-count').text();
 
     var resultsList = results.findElements('li');
     assert.ok(resultsList);
@@ -107,7 +104,7 @@ marionette('Music player search', function() {
 
     var resultsData = client.executeScript(
       'var parse = ' + music.parseListItemsData.toString() + '\n' +
-      'var search = document.querySelector(\'music-search\');\n' +
+      'var search = document.querySelector(\'music-search-results\');\n' +
       'var list = search.shadowRoot.getElementById(\'list\');\n' +
       'var elements = list.querySelectorAll(\'a\');\n' +
       'return parse(elements);\n'
@@ -158,7 +155,7 @@ marionette('Music player search', function() {
 
         client.switchToFrame(music.activeViewFrame);
 
-        var search = client.findElement('music-search');
+        var search = client.findElement('music-search-results');
         assert.ok(search);
 
         client.switchToShadowRoot(search);

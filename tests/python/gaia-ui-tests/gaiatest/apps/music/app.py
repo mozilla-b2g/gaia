@@ -14,7 +14,7 @@ class Music(Base):
     manifest_url = '{}music{}/manifest.webapp'.format(Base.DEFAULT_PROTOCOL, Base.DEFAULT_APP_HOSTNAME)
 
     _loading_spinner_locator = (By.ID, 'spinner-overlay')
-    _active_view_locator = (By.CSS_SELECTOR, '.active')
+    _active_view_locator = (By.CSS_SELECTOR, 'iframe.active[src*="/views/home/index.html"]')
     _music_tiles_locator = (By.ID, 'tiles')
     _views_locator = (By.ID, 'views')
     _tabs_locator = (By.ID, 'tabs')
@@ -24,18 +24,16 @@ class Music(Base):
     _albums_tab_locator = (By.CSS_SELECTOR, '[data-l10n-id="albums-tab"]')
     _songs_tab_locator = (By.CSS_SELECTOR, '[data-l10n-id="songs-tab"]')
     _artists_tab_locator = (By.CSS_SELECTOR, '[data-l10n-id="artists-tab"]')
-    _title_locator = (By.ID, 'title-text')
+    _title_locator = (By.ID, 'header-title')
 
     def launch(self):
         Base.launch(self)
         Wait(self.marionette).until(expected.element_not_displayed(
             *self._loading_spinner_locator))
 
-    def switch_to_active_view(self):
-        self.marionette.switch_to_frame(self.marionette.find_element(*self._active_view_locator))
-
     def wait_for_music_tiles_displayed(self):
-        self.switch_to_active_view()
+        Wait(self.marionette).until(expected.element_displayed(*self._active_view_locator))
+        self.marionette.switch_to_frame(self.marionette.find_element(*self._active_view_locator))
         Wait(self.marionette).until(expected.element_displayed(*self._music_tiles_locator))
         self.apps.switch_to_displayed_app()
 
@@ -93,4 +91,3 @@ class Music(Base):
         Wait(self.marionette).until(expected.element_displayed(element))
         self.accessibility.click(element)
         return AlbumsView(self.marionette)
-

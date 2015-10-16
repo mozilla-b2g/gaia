@@ -136,6 +136,25 @@ marionette('Music player tests', function() {
         music.playFirstSong();
         music.waitForPlayerView();
 
+        var frame = music.playerViewFrame;
+        assert.ok(frame);
+        client.switchToFrame(frame);
+
+        // Wait for cover overlay to hide to prevent intermittent fail
+        client.waitFor(function() {
+          var cover = client.findElement(Music.Selector.playerCover);
+          assert.ok(cover);
+          client.switchToShadowRoot(cover);
+          var container = client.findElement('#container');
+          assert.ok(container);
+          var isHidden = (container.getAttribute('class').split(' ').
+                          indexOf('show-overlay') === -1);
+          client.switchToShadowRoot();
+          return isHidden;
+        }.bind(this));
+
+        music.switchToMe();
+
         music.tapHeaderActionButton();
         music.waitForSongsView();
         music.checkPlayerIconShown(true);

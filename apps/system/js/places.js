@@ -20,7 +20,7 @@
     'BrowserSettings'
   ];
   Places.SERVICES = [
-    'clear', 'pin'
+    'clearHistory', 'pin'
   ];
 
   BaseModule.create(Places, {
@@ -246,7 +246,7 @@
 
     /**
      * Pin/un-pin a page.
-     * 
+     *
      * @param {String} url The URL of the page to pin.
      * @param {Boolean} value true for pin, false for un-pin.
      * @returns {Promise} Promise of a response.
@@ -335,12 +335,74 @@
     },
 
     /**
-     * Clear all the visits in the store.
-     * @memberof Places.prototype
+     * Clear all the visits in the store but the pinned pages.
+     *
+     * @return Promise
      */
-    clear: function() {
-      return this.getStore().then(store => {
-        store.clear();
+    clearHistory: function() {
+      return new Promise((resolve, reject) => {
+        return this.getStore().then(store => {
+          store.getLength().then((storeLength) => {
+            if (!storeLength) {
+              return resolve();
+            }
+
+            new Promise((resolveInner, rejectInner) => {
+              var urls = new Map();
+              var cursor = store.sync();
+
+              function cursorResolve(task) {
+                switch (task.operation) {
+                  case 'update':
+                  case 'add':
+                    urls.set(task.id, task.data);
+                    break;
+
+                  case 'remove':
+                    urls.delete(task.id, task.data);
+                    break;
+
+                  case 'clear':
+                    urls.clear();
+                    break;
+
+                  case 'done':
+                    return resolveInner(urls);
+                }
+
+                cursor.next().then(cursorResolve, rejectInner);
+              }
+
+              cursor.next().then(cursorResolve, rejectInner);
+            })
+              .then((urls) => {
+                var promises = [];
+
+                urls.forEach((val, key) => {
+                  if (val.pinned) {
+                    // Clear the visit history of pinned pages.
+                    promises.push(this.editPlace(key, function(place, cb) {
+                      place.visits = [];
+                      cb(place);
+                    }));
+                  } else {
+                    // Remove all other pages from history.
+                    promises.push(store.remove(key));
+                  }
+                });
+
+                Promise.all(promises)
+                  .then(() => {
+                    console.log('Browsing history successfully cleared.');
+                    resolve();
+                  });
+              })
+              .catch((e) => {
+                console.error(`Error trying to clear browsing history: ${e}`);
+                reject(e);
+              });
+          });
+        });
       });
     },
 

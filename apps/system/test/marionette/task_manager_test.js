@@ -194,7 +194,8 @@ marionette('Task Manager', function() {
       var appWindow = system.waitForBrowser(
         'app://search.gaiamobile.org/newtab.html?private=1');
       client.waitFor(function() {
-        return appWindow.getAttribute('mozprivatebrowsing') === 'true';
+        return appWindow.getAttribute('src') ===
+          'app://search.gaiamobile.org/newtab.html?private=1';
       });
     });
   });

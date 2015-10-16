@@ -8,6 +8,7 @@
 
 var Kinto = (function() {
   var mockProblem =  null;
+  var listData = {};
 
   var KintoCollectionMock = function(collectionName, options = {}) {
     this.collectionName = collectionName;
@@ -46,10 +47,10 @@ var Kinto = (function() {
       };
 
       var pushOut = () => {
-        if (!this.listData) {
+        if (!listData[this.collectionName]) {
           return Promise.resolve();
         }
-        return Promise.all(this.listData.data.map(item => {
+        return Promise.all(listData[this.collectionName].data.map(item => {
           var dataRecordOut = JSON.parse(JSON.stringify(item));
           transformOut(dataRecordOut).then(encoded => {
             this.pushData.push(encoded);
@@ -65,14 +66,22 @@ var Kinto = (function() {
       };
 
       var storeListData = () => {
-        if (!this.listData) {
-          this.listData = { data: [ dataRecordIn ] };
+        if (!listData[this.collectionName]) {
+          listData[this.collectionName] = { data: [ dataRecordIn ] };
         }
         return Promise.resolve({ ok: true, conflicts: this.fireConflicts });
       };
 
+      var markSyncCount = (syncResults) => {
+        if (!Kinto.syncCount[this.collectionName]) {
+          Kinto.syncCount[this.collectionName] = 0;
+        }
+        Kinto.syncCount[this.collectionName]++;
+        return Promise.resolve(syncResults);
+      };
+
       var reportError = (error) => {
-        this.listData = { data: [] };
+        listData[this.collectionName] = { data: [] };
         return Promise.resolve({ ok: false, conflicts: [], errors: [ error ] });
       };
 
@@ -82,22 +91,26 @@ var Kinto = (function() {
           then(transformIn).
           then(checkIdSchema).
           then(storeListData).
+          then(markSyncCount).
           catch(reportError);
     },
 
     resolve: function(conflict, resolution) {
-      this.listData = { data: [ resolution ] };
+      listData[this.collectionName] = { data: [ resolution ] };
       return Promise.resolve();
     },
 
     list: function() {
-      return Promise.resolve(this.listData);
+      return Promise.resolve(listData[this.collectionName]);
     },
 
-    get: function() {
-      return Promise.resolve({
-        data: this.listData.data[0]
-      });
+    get: function(id) {
+      if (listData[this.collectionName]) {
+        return Promise.resolve({
+          data: listData[this.collectionName].data[0]
+        });
+      }
+      return Promise.reject(new Error(`Record with id=${id} not found.`));
     },
 
     create: function(obj, options = {}) {
@@ -109,14 +122,14 @@ var Kinto = (function() {
       } else {
         obj.id = this._idSchemaUsed.generate();
       }
-      this.listData.data.push(obj);
+      listData[this.collectionName].data.push(obj);
       return Promise.resolve();
     },
 
     update: function(obj) {
-      for (var i = 0; i < this.listData.data.length; i++) {
-        if (this.listData.data[i].id === obj.id) {
-          this.listData.data[i] = obj;
+      for (var i = 0; i < listData[this.collectionName].data.length; i++) {
+        if (listData[this.collectionName].data[i].id === obj.id) {
+          listData[this.collectionName].data[i] = obj;
           return Promise.resolve();
         }
       }
@@ -124,9 +137,9 @@ var Kinto = (function() {
     },
 
     delete: function(id) {
-      for (var i = 0; i < this.listData.data.length; i++) {
-        if (this.listData.data[i].id === id) {
-          this.listData.data.splice(i, 1);
+      for (var i = 0; i < listData[this.collectionName].data.length; i++) {
+        if (listData[this.collectionName].data[i].id === id) {
+          listData[this.collectionName].data.splice(i, 1);
           return Promise.resolve();
         }
       }
@@ -141,7 +154,9 @@ var Kinto = (function() {
 empting to fetch resource.`));
     },
     list() {},
-    get() {},
+    get(id) {
+      return Promise.reject(new Error(`Record with id=${id} not found.`));
+    },
     create() {},
     update() {},
     delete() {},
@@ -159,7 +174,9 @@ empting to fetch resource.`));
       return Promise.reject(err);
     },
     list() {},
-    get() {},
+    get(id) {
+      return Promise.reject(new Error(`Record with id=${id} not found.`));
+    },
     create() {},
     update() {},
     delete() {},
@@ -213,8 +230,12 @@ empting to fetch resource.`));
     };
   };
 
+  Kinto.syncCount = {};
+
   Kinto.setMockProblem = (problem) => {
     mockProblem = problem;
+    Kinto.syncCount = {};
+    listData = {};
   };
 
   return Kinto;

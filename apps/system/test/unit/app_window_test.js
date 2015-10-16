@@ -1444,6 +1444,20 @@ suite('system/AppWindow', function() {
       assert.isTrue(app1.reviveBrowser.called);
     });
 
+    test('setVisible: true should call handleScrollAreaChanged', function() {
+      var app1 = new AppWindow(fakeChromeConfigWithNavigationBar);
+      app1.element.dispatchEvent(new CustomEvent('_opened'));
+      app1.setVisible(false);
+
+      var handleScrollAreaChangedCalled = false;
+      app1.appChrome.handleScrollAreaChanged = () => {
+        handleScrollAreaChangedCalled = true;
+      };
+
+      app1.setVisible(true);
+      assert.isTrue(handleScrollAreaChangedCalled);
+    });
+
     test('setVisible: true', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       injectFakeMozBrowserAPI(app1.browser.element);
@@ -3297,6 +3311,21 @@ suite('system/AppWindow', function() {
       stubPublish.restore();
     });
 
+    test('application-name with empty string does not update', function() {
+      var browser1 = new AppWindow(fakeWrapperConfig);
+      var stubPublish = this.sinon.stub(browser1, 'publish');
+
+      browser1.handleEvent({
+        type: 'mozbrowsermetachange',
+        detail: {
+          name: '  ',
+          content: 'title1'
+        }
+      });
+      var hostname = new URL(fakeWrapperConfig.url).hostname;
+      assert.equal(browser1.name, hostname);
+      assert.isFalse(stubPublish.calledOnce);
+    });
 
     test('application-name for app window', function() {
       var app1 = new AppWindow(fakeAppConfig1);

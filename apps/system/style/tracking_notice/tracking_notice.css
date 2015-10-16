@@ -1,0 +1,172 @@
+
+#tracking-notice {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: rgba(199, 199, 199, 0.85);
+  padding: 2.2rem 1.5rem;
+  box-sizing: border-box;
+  pointer-events: all;
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 300ms, visibility 0s 300ms;
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+}
+
+#tracking-notice:not(.hidden) {
+  animation-name: gaia-dialog-entrance;
+  animation-duration: 300ms;
+  animation-timing-function: cubic-bezier(0.175, 0.885, 0.320, 1.275);
+  animation-fill-mode: forwards;
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 300ms;
+}
+
+#tracking-notice > div.panel {
+  background-color: #f4f4f4;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 2.5rem 1.5rem 2.2rem;
+  margin-top: -4rem;
+}
+
+#tracking-notice .copy {
+  font-size: 1.7rem;
+  font-style: italic;
+  font-weight: 400;
+  color: #4d4d4d;
+}
+
+#tracking-notice header h1::before {
+  content: "";
+  width: 2.67rem;
+  height: 3.1rem;
+  position: absolute;
+  background-size: contain;
+  background-image: url("images/tp_shield.png");
+  background-repeat: no-repeat;
+  top: -4.2rem;
+  left: calc(50% - 1.33rem);
+}
+
+#tracking-notice header,
+#tracking-notice .panel > p {
+  border-bottom: solid 1px #e7e7e7;
+}
+
+#tracking-notice header h1 {
+  font-size: 1.8rem;
+  color: #858585;
+  font-weight: 500;
+  font-style: italic;
+  text-align: center;
+  line-height: 3.1rem;
+  margin: 4.2rem 0 1.33rem;
+  position: relative;
+}
+
+#tracking-notice .panel > p {
+  padding: 1.93rem 0 2.26rem;
+  margin: 0;
+}
+
+#tracking-notice a {
+  color: #0accf5;
+  text-decoration: underline;
+}
+
+#tracking-notice .setting {
+  position: relative;
+  margin: 1.93rem 0 2.2rem;
+  min-height: 6rem;
+}
+
+#tracking-notice .setting gaia-switch {
+  position: absolute;
+  top: -1.1rem;
+}
+
+#tracking-notice .setting label {
+  position: absolute;
+  font-size: 1.8rem;
+  font-weight: 500;
+  color: #4d4d4d;
+}
+
+#tracking-notice .setting .subtitle {
+  position: absolute;
+  font-size: 1.4rem;
+  font-weight: 400;
+  color: #8e8e8e;
+  width: 70%;
+  top: 1rem;
+}
+
+#tracking-notice .confirm {
+  background-color: white;
+  height: 6rem;
+  width: calc(100% - 3rem);
+  text-align: center;
+  box-shadow: 0 1px 0 0 rgba(0, 0, 0, 0.15);
+  position: absolute;
+}
+
+#tracking-notice .confirm p {
+  color: #0accf5;
+  line-height: 6rem;
+  margin: 0;
+}
+
+@keyframes gaia-dialog-entrance {
+  0% { transform: translateY(100px); }
+  100% { transform: translateY(0px); }
+}
+
+#screen.software-button-enabled #tracking-notice {
+  height: calc(100% - 5rem);
+}
+
+@media all and (orientation:landscape) {
+
+  #screen.software-button-enabled #tracking-notice {
+    height: 100%;
+    padding: 2.86rem  0;
+  }
+
+  #tracking-notice > div.panel {
+    width: 33rem;
+    margin: 0 auto;
+    position: relative;
+    padding: 0 1.5rem;
+  }
+
+  #tracking-notice .confirm {
+    width: 33rem;
+    margin: 0 auto;
+    position: relative;
+  }
+
+  #tracking-notice .panel > p {
+    padding: 2.26rem 0 1.93rem;
+    margin: 0;
+    border: none;
+  }
+
+  #tracking-notice header h1::before {
+    top: 1rem;
+    left: .3rem;
+  }
+
+  #tracking-notice header h1 {
+    top: 0;
+    line-height: 5.2rem;
+    margin: 0;
+    margin-left: 2.67rem;
+  }
+}
+
+

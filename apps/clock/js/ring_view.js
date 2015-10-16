@@ -57,7 +57,7 @@ function RingView() {
 // The time, in milliseconds, to keep the screen awake while showing
 // an alarm. After this time, the screen shuts off and the alarm
 // silences itself.
-const WAKE_DURATION = 600000;
+const WAKE_DURATION = 10 * 60 * 1000;
 
 RingView.prototype = {
 
@@ -83,6 +83,15 @@ RingView.prototype = {
     }
 
     alert.releaseScreenWakeLock = function() { };
+
+    if (this._silenceTimeout) {
+      clearTimeout(this._silenceTimeout);
+      this._silenceTimeout = null;
+    }
+    this._silenceTimeout = setTimeout(() => {
+      this.silence();
+      alert.releaseScreenWakeLock();
+    }, WAKE_DURATION);
 
     // Insert this alert at the front of the stack, so that it
     // overrides any previous alert that was being displayed.
