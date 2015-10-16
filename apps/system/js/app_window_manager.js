@@ -817,13 +817,21 @@
       }
       if (config.stayBackground) {
         return;
-      } else {
-        // Link the window before displaying it to avoid race condition.
-        if (config.isActivity && this._activeApp) {
-          this.linkWindowActivity(config);
-        }
-        this.display(this.getApp(config.origin));
       }
+
+      // Cancel inline activities on webapps-launch to make sure we actually
+      // open on the app and not on an inline activity
+      // (Workaround for bug 1122205)
+      var app = this.getApp(config.origin);
+      if (config.evtType === 'webapps-launch') {
+        app.frontWindow && app.frontWindow.kill();
+      }
+
+      // Link the window before displaying it to avoid race condition.
+      if (config.isActivity && this._activeApp) {
+        this.linkWindowActivity(config);
+      }
+      this.display(app);
     },
 
     linkWindowActivity: function awm_linkWindowActivity(config) {

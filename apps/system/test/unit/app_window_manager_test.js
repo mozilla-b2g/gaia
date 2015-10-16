@@ -1012,6 +1012,25 @@ suite('system/AppWindowManager', function() {
       assert.isTrue(stubDisplay.called);
     });
 
+    test('Cancel inline activities on webapps-launch', function() {
+      injectRunningApps(app1);
+      subject._activeApp = app1;
+
+      app1.frontWindow = app3;
+      this.sinon.stub(app1, 'getTopMostWindow').returns(app3);
+      var stubKill = this.sinon.stub(app3, 'kill');
+
+      var launchConfig = {
+        evtType: 'webapps-launch'
+      };
+      for (var attr in fakeAppConfig1) {
+        launchConfig[attr] = fakeAppConfig1[attr];
+      }
+      subject.launch(launchConfig);
+
+      assert.isTrue(stubKill.called);
+    });
+
     test('Launch background app', function() {
       var stubDisplay = this.sinon.stub(subject, 'display');
       injectRunningApps();
