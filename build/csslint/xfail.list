@@ -60,7 +60,8 @@ apps/music/css/app.css 0 2
 apps/music/css/view.css 0 2
 apps/music/node_modules/nws/node_modules/connect/lib/public/style.css 4 10
 apps/pdfjs/content/web/viewer.css 0 1
-apps/search/style/search.css 0 2
+apps/search/style/newtab.css 3 0
+apps/search/style/search.css 12 2
 apps/settings/style/apps.css 0 1
 apps/settings/style/downloads.css 0 6
 apps/settings/style/homescreens.css 3 0
