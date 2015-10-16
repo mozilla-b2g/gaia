@@ -225,6 +225,15 @@ var ScreenManager = {
     this.setScreenBrightness(clampedBrightness, false);
   },
 
+  _getNumOfCalls: function scm_getNumOfCalls() {
+    if (navigator.mozTelephony) {
+      return navigator.mozTelephony.calls.length +
+        (navigator.mozTelephony.conferenceGroup.calls.length ? 1 : 0);
+    } else {
+      return 0;
+    }
+  },
+
   handleEvent: function scm_handleEvent(evt) {
     var telephony = window.navigator.mozTelephony;
     var call;
@@ -245,11 +254,21 @@ var ScreenManager = {
         break;
 
       case 'sleep':
-        this.turnScreenOff(true, 'powerkey');
+        // If calls are present then the power button will be handled by the
+        // dialer agent.
+        if (this._getNumOfCalls() === 0) {
+          this.turnScreenOff(true, 'powerkey');
+        }
+
         break;
 
       case 'wake':
-        this.turnScreenOn();
+        // If calls are present then the power button will be handled by the
+        // dialer agent.
+        if (this._getNumOfCalls() === 0) {
+          this.turnScreenOn();
+        }
+
         break;
 
       case 'accessibility-action':
@@ -299,12 +318,7 @@ var ScreenManager = {
         break;
 
       case 'callschanged':
-        if (!telephony.calls.length &&
-            !(telephony.conferenceGroup &&
-              telephony.conferenceGroup.calls.length)) {
-
-          this.turnScreenOn();
-
+        if (this._getNumOfCalls() === 0) {
           window.removeEventListener('userproximity', this);
 
           if (this._cpuWakeLock) {
