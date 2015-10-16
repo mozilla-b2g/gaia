@@ -13,3 +13,4 @@ tv_apps/notification-receiver
 tv_apps/weather-widget
 apps/marketplace.firefox.com
 outoftree_apps/*
+apps/sync
