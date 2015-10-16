@@ -380,28 +380,30 @@ marionette('Music player playlist', function() {
     // XXX fixme we can't set the playcount properly it seems....
     test('Most played playlist sort order. moztrap:3676,3677', function() {
       function incrementPlayCount(filePath, value) {
-
         var result = client.executeAsyncScript(function(filePath, value) {
-
           var w = window.wrappedJSObject;
 
-          w.Database.getFileInfo(filePath).
-            then(function(song) {
-              var p = [];
-              for (var i = 0; i < value; i++) {
-                p.push(w.Database.incrementPlayCount(song));
-              }
-              Promise.all(p).
-                then(function() {
-                  marionetteScriptFinished(null);
-                }).
-                catch(function (r) {
-                  marionetteScriptFinished('increment-fail ' + r);
+          w.Database.getFileInfo(filePath)
+            .then(function(song) {
+              var i = 0;
+
+              function nextIncrement() {
+                i++;
+
+                w.Database.incrementPlayCount(song).then(function() {
+                  if (i < value) {
+                    setTimeout(nextIncrement, 100);
+                  } else {
+                    marionetteScriptFinished(null);
+                  }
                 });
-            }).catch(function (r) {
+              }
+
+              nextIncrement();
+            })
+            .catch(function (r) {
               marionetteScriptFinished('get-file-info-fail ' + r);
             });
-
         }, [filePath, value]);
         assert.ok(!result);
       }
@@ -413,6 +415,7 @@ marionette('Music player playlist', function() {
         music.switchToAlbumsView();
 
         music.selectAlbum('We crash computers');
+        music.waitForAlbumDetailView();
 
         var songs = music.songs;
         assert.equal(songs.length, 6);

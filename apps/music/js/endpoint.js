@@ -1,7 +1,13 @@
-/* exported open */ // Should not be needed, but JSHint complains
 /* global AlbumArtCache, AudioMetadata, Database, LazyLoader, PlaybackQueue,
           Remote, bridge, navigateToURL, onSearchOpen, onSearchClose */
 'use strict';
+
+const MEDIA_ERROR_CODES = {
+  ABORTED:           1,
+  NETWORK:           2,
+  DECODE:            3,
+  SRC_NOT_SUPPORTED: 4
+};
 
 var audio           = null;
 var queueSettings   = null;
@@ -52,7 +58,7 @@ var service = bridge.service('music-service')
   .method('getSongThumbnailURL', getSongThumbnailURL)
 
   .method('share', share)
-  .method('open', open)
+  .method('openExternalFile', openExternalFile)
 
   .method('getDatabaseStatus', getDatabaseStatus)
 
@@ -65,6 +71,15 @@ var service = bridge.service('music-service')
 
 document.addEventListener('DOMContentLoaded', function() {
   audio = document.getElementById('audio');
+
+  audio.addEventListener('error', function(evt) {
+    var code = audio.error && audio.error.code;
+    console.log('An error occurred during audio playback', code);
+
+    if (code === MEDIA_ERROR_CODES.DECODE) {
+      nextSong();
+    }
+  });
 
   audio.addEventListener('loadeddata', function() {
     URL.revokeObjectURL(audio.src);
@@ -489,7 +504,7 @@ function share(filePath) {
   });
 }
 
-function open(blob) {
+function openExternalFile(blob) {
   var scripts = [
     '/js/metadata/metadata_scripts.js',
     '/js/metadata/album_art.js'
