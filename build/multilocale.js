@@ -63,11 +63,11 @@ function L10nManager(gaiaDir,
       // if the resource URL is a subject to branding, then
       // add official/unofficial to the path
       if (utils.isSubjectToBranding(utils.dirname(resURL))) {
+        isOfficialBranding = self.official === '1';
+
         realURL = utils.joinPath(utils.dirname(resURL),
-                                 self.official === '1' ?
-                                   'official' : 'unofficial',
-                                 utils.basename(resURL));
-        isOfficialBranding = true;
+          isOfficialBranding ? 'official' : 'unofficial',
+          utils.basename(resURL));
       } else {
         isOfficialBranding = false;
       }
