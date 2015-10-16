@@ -29,3 +29,4 @@ apps/default_theme
 outoftree_apps/*
 dev_apps/test-agent
 dev_apps/uitest
+apps/sync
