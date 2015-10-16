@@ -44,6 +44,7 @@ suite('Keyboard layouts building tests', function() {
                        'bn-Avro',
                        'bn-Probhat',
                        'de',
+                       'de-Neo',
                        'dz-BT',
                        'en',
                        'en-Colemak',

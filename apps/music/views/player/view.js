@@ -45,9 +45,6 @@ var PlayerView = View.extend(function PlayerView() {
     this.seekBar.elapsedTime = elapsedTime;
   });
 
-  this.getRepeatSetting().then(repeat => this.artwork.repeat = repeat);
-  this.getShuffleSetting().then(shuffle => this.artwork.shuffle = shuffle);
-
   this.update();
 });
 
@@ -72,8 +69,10 @@ PlayerView.prototype.update = function() {
     this.getSongArtwork(status.filePath)
       .then((url) => this.artwork.src = url);
 
-    this.controls.paused = status.paused;
-    this.seekBar.duration = status.duration;
+    this.artwork.repeat      = REPEAT_VALUES[status.repeat];
+    this.artwork.shuffle     = SHUFFLE_VALUES[status.shuffle];
+    this.controls.paused     = status.paused;
+    this.seekBar.duration    = status.duration;
     this.seekBar.elapsedTime = status.elapsedTime;
     this.render();
   });
@@ -127,20 +126,8 @@ PlayerView.prototype.getPlaybackStatus = function() {
   return this.fetch('/api/audio/status').then(response => response.json());
 };
 
-PlayerView.prototype.getRepeatSetting = function() {
-  return this.fetch('/api/queue/repeat')
-    .then(response => response.json())
-    .then(index => REPEAT_VALUES[index]);
-};
-
 PlayerView.prototype.setRepeatSetting = function(repeat) {
   this.fetch('/api/queue/repeat/' + REPEAT_VALUES.indexOf(repeat));
-};
-
-PlayerView.prototype.getShuffleSetting = function() {
-  return this.fetch('/api/queue/shuffle')
-    .then(response => response.json())
-    .then(index => SHUFFLE_VALUES[index]);
 };
 
 PlayerView.prototype.setShuffleSetting = function(shuffle) {

@@ -4,7 +4,7 @@
 window.View = (function() {
 'use strict';
 
-var debug = 1 ? (...args) => console.log('[View]', ...args) : () => {};
+var debug = 0 ? (...args) => console.log('[View]', ...args) : () => {};
 
 if (!SERVICE_WORKERS) (function() {
   window.ROUTES = {
@@ -41,9 +41,7 @@ if (!SERVICE_WORKERS) (function() {
     '/api/queue/playlist/:id/shuffle': 'queuePlaylist',
     '/api/queue/playlist/:id/song/:filePath': 'queuePlaylist',
     '/api/queue/song/:filePath': 'queueSong',
-    '/api/queue/repeat': 'getRepeatSetting',
     '/api/queue/repeat/:repeat': 'setRepeatSetting',
-    '/api/queue/shuffle': 'getShuffleSetting',
     '/api/queue/shuffle/:shuffle': 'setShuffleSetting',
 
     '/api/songs/list': 'getSongs',
@@ -111,11 +109,9 @@ View.prototype.render = function() {
 
 View.prototype.fetch = SERVICE_WORKERS ?
   function(url) {
-    return window.fetch(url);
+    return window.fetch(encodeURI(url));
   } :
   function(url) {
-    url = decodeURIComponent(url);
-
     for (var path in window.ROUTES) {
       var route = window.ROUTES[path];
       var match = url.match(route.regexp);

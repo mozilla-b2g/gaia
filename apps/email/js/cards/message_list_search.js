@@ -256,8 +256,8 @@ return [
       }
 
       // date
-      dateNode.dataset.time = message.date.valueOf();
-      dateNode.textContent = date.prettyDate(message.date);
+      var dateTime = dateNode.dataset.time = message.date.valueOf();
+      date.relativeDateElement(dateNode, dateTime);
 
       // subject
       if (matches.subject) {

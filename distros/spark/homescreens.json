@@ -25,7 +25,8 @@
       ["outoftree_apps", "facebook"],
       ["outoftree_apps", "twitter"],
       ["outoftree_apps", "runwhatsapppreview"],
-      ["outoftree_apps", "buddyup"]
+      ["outoftree_apps", "buddyup"],
+      ["outoftree_apps", "foxfooding"]
     ], [
       ["apps", "costcontrol"],
       ["outoftree_apps", "notes"],

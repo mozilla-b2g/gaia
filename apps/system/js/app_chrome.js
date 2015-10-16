@@ -1185,6 +1185,7 @@
       this.pinSiteIcon.style.backgroundImage = iconObject.url;
     }).catch((err) => {
       this.app.debug('setPinPreviewIcon, error from getSiteIcon: %s', err);
+      this.pinSiteIcon.style.backgroundImage = '';
     });
   };
 

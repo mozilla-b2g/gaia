@@ -31,6 +31,7 @@ suite('Firefox Sync panel >', () => {
   var realMozIntl = null;
   var realMozL10n = null;
 
+  const BOOKMARKS = 'sync.collections.bookmarks.enabled';
   const HISTORY   = 'sync.collections.history.enabled';
   const PASSWORDS = 'sync.collections.passwords.enabled';
   const LOGGED_OUT_SCREEN = 'loggedout';
@@ -60,6 +61,8 @@ suite('Firefox Sync panel >', () => {
     name: 'privacy',
     event: 'click',
     listener: 'openPrivacy'
+  }, {
+    name: 'collectionsBookmarks'
   }, {
     name: 'collectionsHistory'
   }, {
@@ -181,9 +184,10 @@ suite('Firefox Sync panel >', () => {
     });
 
     test('Settings should be observed', () => {
-      this.sinon.assert.calledTwice(observeSpy);
-      assert.equal(observeSpy.getCall(0).args[0], HISTORY);
-      assert.equal(observeSpy.getCall(1).args[0], PASSWORDS);
+      this.sinon.assert.calledThrice(observeSpy);
+      assert.equal(observeSpy.getCall(0).args[0], BOOKMARKS);
+      assert.equal(observeSpy.getCall(1).args[0], HISTORY);
+      assert.equal(observeSpy.getCall(2).args[0], PASSWORDS);
     });
   });
 

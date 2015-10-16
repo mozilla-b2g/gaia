@@ -51,7 +51,6 @@
     <script defer src="js/desktop-only/async_storage.js"></script>
 
     <script type="text/javascript" defer src="shared/js/l10n.js"></script>
-    <script type="text/javascript" defer src="shared/js/l10n_date.js"></script>
     <!-- TODO: Lazyly loaded, remove when mozHour12 is part of the platform
     <script type="text/javascript" defer src="shared/js/date_time_helper.js"></script>
     -->
@@ -91,7 +90,7 @@
       <div id="tabpanel">
         <!-- XXX: The order of sections is important (tabs should be place above
              the overlays) and we should distinguish between TABS and OVERLAY VIEWS -->
-        <gaia-header>
+        <gaia-header ignore-dir>
           <h1 data-l10n-id="usage"></h1>
           <button class="settings-button" data-icon="settings" data-l10n-id="settings-button"></button>
         </gaia-header>

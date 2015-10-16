@@ -120,10 +120,10 @@ var HtmlHelper = {
       }
     });
 
-    var highlighted = [];
+    var fragment = document.createDocumentFragment();
     for(var i = 0; i < text.length; i++){
       if (!toHighlight[i]) {
-        highlighted.push(text[i]);
+        fragment.appendChild(document.createTextNode(text[i]));
       } else {
         var term = '';
         while (toHighlight[i]) {
@@ -131,10 +131,13 @@ var HtmlHelper = {
           i++;
         }
         i--;
-        highlighted.push('<mark>', term, '</mark>');
+        var mark = document.createElement('mark');
+        mark.textContent = term;
+
+        fragment.appendChild(mark);
       }
     }
-    return highlighted.join('');
+    return fragment;
   },
 
   escapeHTML: function ut_escapeHTML(str, escapeQuotes) {

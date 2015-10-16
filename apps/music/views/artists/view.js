@@ -29,21 +29,14 @@ var ArtistsView = View.extend(function ArtistsView() {
   this.list.scrollTop = searchHeight;
   this.list.minScrollHeight = `calc(100% - ${searchHeight}px)`;
 
-  document.l10n.formatValue('unknown').then((unknown) => {
-    this.list.configure({
-      getSectionName: (item) => {
-        if (item.unknownArtist) {
-          return unknown;
-        }
+  this.list.configure({
+    getSectionName: (item) => {
+      return item.sectionName;
+    },
 
-        var sectionName = item.metadata.artist[0].toUpperCase();
-        return isNaN(sectionName) ? sectionName : '#';
-      },
-
-      getItemImageSrc: (item) => {
-        return this.getThumbnail(item.name);
-      }
-    });
+    getItemImageSrc: (item) => {
+      return this.getThumbnail(item.name);
+    }
   });
 
   this.client.on('databaseChange', () => this.update());
@@ -71,19 +64,32 @@ ArtistsView.prototype.render = function() {
 };
 
 ArtistsView.prototype.getArtists = function() {
-  return document.l10n.formatValue('unknownArtist')
-    .then((unknownArtist) => {
+  return document.l10n.formatValues('unknownArtist', 'unknown')
+    .then(([unknownArtist, unknown]) => {
       return this.fetch('/api/artists/list')
         .then(response => response.json())
         .then((artists) => {
-          artists.forEach((artist) => {
-            if (!artist.metadata.artist) {
-              artist.metadata.artist = unknownArtist;
-              artist.unknownArtist = true;
-            }
-          });
+          return artists.map((artist) => {
+            // We create lighter weight objects for the model
+            // With only what we need
+            var sectionName, artistText;
 
-          return artists;
+            if (!artist.metadata.artist) {
+              sectionName = unknown;
+              artistText = unknownArtist;
+            } else {
+              sectionName = artist.metadata.artist[0].toLowerCase();
+              sectionName = isNaN(sectionName) ? sectionName : '#';
+              artistText = artist.metadata.artist;
+            }
+
+            return {
+              sectionName: sectionName,
+              name: artist.name,
+              url: '/artist-detail?id=' + encodeURIComponent(artist.name),
+              artist: artistText
+            };
+          });
         });
     });
 };
@@ -104,7 +110,7 @@ ArtistsView.prototype.search = function(query) {
             title:    artist.metadata.artist || unknownArtist,
             subtitle: '',
             section:  'artists',
-            url:      '/artist-detail?id=' + artist.name
+            url:      '/artist-detail?id=' + encodeURIComponent(artist.name)
           };
         });
 

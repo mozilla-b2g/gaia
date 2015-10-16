@@ -1,13 +1,15 @@
 <element name="downloads" extends="section">
   <template>
-    <gaia-header id="downloads-header" action="back" data-href="#root">
+
+    <gaia-header ignore-dir id="downloads-header" action="back" data-href="#root">
       <h1 data-l10n-id="downloads"></h1>
       <button id="downloads-edit-button" data-icon="edit" data-l10n-id="editButton"></button>
     </gaia-header>
-    <gaia-header id="downloads-edit-header" action="close" hidden="hidden">
+    <gaia-header ignore-dir id="downloads-edit-header" action="close" hidden="hidden">
       <h1 id="downloads-title-edit" data-l10n-id="downloads-edit"></h1>
       <button disabled id="downloads-delete-button" data-l10n-id="downloads-delete"></button>
     </gaia-header>
+
     <section id="download-list-empty" hidden="hidden">
       <span id="dle-vertical"></span>
       <span id="dle-text" data-l10n-id="no-downloads"></span>

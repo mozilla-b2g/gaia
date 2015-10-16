@@ -1,6 +1,6 @@
 /**
  * PassCode panel.
- * 
+ *
  * @module PassCodePanel
  * @return {Object}
  */

@@ -8,7 +8,7 @@
     paths: {
       test: '../test',
       l10nbase: '../shared/js/l10n',
-      l10ndate: '../shared/js/l10n_date',
+      moz_intl: '../shared/test/unit/mocks/mock_moz_intl',
       style: '../style',
       shared: '../shared'
     },
@@ -18,8 +18,10 @@
       }
     },
     shim: {
-      l10ndate: ['l10nbase'],
-
+      moz_intl: {
+        deps: ['l10nbase'],
+        exports: 'MockMozIntl'
+      },
       'shared/js/mime_mapper': {
         exports: 'MimeMapper'
       },

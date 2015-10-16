@@ -31,9 +31,7 @@ var SongsView = View.extend(function SongsView() {
 
   this.list.configure({
     getSectionName: (item) => {
-      var title = item.metadata.title;
-      var firstChar = title ? title[0].toLowerCase() : '?';
-      return isNaN(firstChar) ? firstChar : '#';
+      return item.sectionName;
     },
 
     getItemImageSrc: (item) => {
@@ -73,11 +71,25 @@ SongsView.prototype.render = function() {
 
 SongsView.prototype.getSongs = function() {
   console.time('getSongs');
-  return this.fetch('/api/songs/list')
-    .then(response => response.json())
-    .then(songs => {
-      console.timeEnd('getSongs');
-      return songs;
+  return document.l10n.formatValue('unknown')
+    .then((unknown) => {
+      return this.fetch('/api/songs/list')
+        .then(response => response.json())
+        .then((songs) => {
+          var items = songs.map((song) => {
+            var title = song.metadata.title;
+            var sectionName = title ? title[0].toLowerCase() : unknown;
+            sectionName = isNaN(sectionName) ? sectionName : '#';
+            return {
+              sectionName: sectionName,
+              title: title,
+              artist: song.metadata.artist,
+              name: song.name,
+            };
+          });
+          console.timeEnd('getSongs');
+          return items;
+        });
     });
 };
 
@@ -103,7 +115,7 @@ SongsView.prototype.search = function(query) {
             title:    song.metadata.title  || unknownTitle,
             subtitle: song.metadata.artist || unknownArtist,
             section:  'songs',
-            url:      '/player?id=' + song.name
+            url:      '/player'
           };
         });
 

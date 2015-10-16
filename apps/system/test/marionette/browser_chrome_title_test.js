@@ -1,5 +1,7 @@
 'use strict';
 
+var assert = require('assert');
+
 var urlUtility = require('url');
 var Server = require('../../../../shared/test/integration/server');
 var Rocketbar = require('./lib/rocketbar');
@@ -42,7 +44,7 @@ marionette('Browser Chrome - Title content', function() {
     var expectedTitle = 'Calendar';
     var appOrigin = 'app://calendar.gaiamobile.org';
     client.apps.launch(appOrigin);
-
+    assert(!system.pinDialog.displayed(), 'Pin dialog is invisible');
     client.waitFor(function(){
       return system.appUrlbar.text() === expectedTitle;
     });
@@ -53,7 +55,7 @@ marionette('Browser Chrome - Title content', function() {
     var expectedTitle = 'Fake Chrome Navigation';
     var appOrigin = 'app://fakechromenavapp.gaiamobile.org';
     client.apps.launch(appOrigin);
-
+    assert(!system.pinDialog.displayed(), 'Pin dialog is invisible');
     client.waitFor(function(){
       return system.appUrlbar.text() === expectedTitle;
     });

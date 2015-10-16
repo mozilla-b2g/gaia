@@ -1,3 +1,10 @@
+/**
+ * BiDi note: because this stylesheet is 'scoped', instead of:
+ *     html[dir="rtl"] #volume { ... }
+ * we must use:
+ *     #volume:-moz-dir(rtl) { ... }
+ */
+
 #volume {
   text-align: center;
   position: absolute;
@@ -20,8 +27,8 @@
   background-repeat: no-repeat, no-repeat;
   background-position: center, center;
 }
-html[dir="ltr"] #volume > span { float: left; }
-html[dir="rtl"] #volume > span { float: right; }
+#volume:-moz-dir(ltr) > span { float: left; }
+#volume:-moz-dir(rtl) > span { float: right; }
 
 #volume section {
   overflow: hidden;
@@ -38,19 +45,19 @@ html[dir="rtl"] #volume > span { float: right; }
   box-sizing: border-box;
   border-inline-start: solid 0.2rem #3e3e3e;
 }
-html[dir="ltr"] #volume section div { float: left; }
-html[dir="ltr"] #volume section div { float: right; }
+#volume:-moz-dir(ltr) section div { float: left; }
+#volume:-moz-dir(rtl) section div { float: right; }
 
 #volume section div:first-child {
   border: none;
   margin-inline-start: 1%;
 }
-html[dir="ltr"] #volume section div:first-child { border-radius: 0.6rem 0 0 0.6rem; }
-html[dir="rtl"] #volume section div:first-child { border-radius: 0 0.6rem 0.6rem 0; }
+#volume:-moz-dir(ltr) section div:first-child { border-radius: 0.6rem 0 0 0.6rem; }
+#volume:-moz-dir(rtl) section div:first-child { border-radius: 0 0.6rem 0.6rem 0; }
 
 /* Last visible bar */
-html[dir="ltr"] #volume section div:nth-last-child(2) { border-radius: 0 0.6rem 0.6rem 0; }
-html[dir="rtl"] #volume section div:nth-last-child(2) { border-radius: 0.6rem 0 0 0.6rem; }
+#volume:-moz-dir(ltr) section div:nth-last-child(2) { border-radius: 0 0.6rem 0.6rem 0; }
+#volume:-moz-dir(rtl) section div:nth-last-child(2) { border-radius: 0.6rem 0 0 0.6rem; }
 
 #volume section div:last-child {
   display: none;
@@ -69,8 +76,8 @@ html[dir="rtl"] #volume section div:nth-last-child(2) { border-radius: 0.6rem 0 
   width: 3rem;
   margin-inline-start: 0.8rem;
 }
-html[dir="ltr"] #volume span { float: left; }
-html[dir="rtl"] #volume span { float: right; }
+#volume:-moz-dir(ltr) span { float: left; }
+#volume:-moz-dir(rtl) span { float: right; }
 
 /* Icon states */
 #volume span.channel-type {
@@ -88,8 +95,8 @@ html[dir="rtl"] #volume span { float: right; }
 }
 
 /* Last visible bar */
-html[dir="ltr"] #volume[data-channel="telephony"] section div:nth-child(n+6) { border-radius: 0 0.6rem 0.6rem 0; }
-html[dir="rtl"] #volume[data-channel="telephony"] section div:nth-child(n+6) { border-radius: 0.6rem 0 0 0.6rem; }
+#volume[data-channel="telephony"]:-moz-dir(ltr) section div:nth-child(n+6) { border-radius: 0 0.6rem 0.6rem 0; }
+#volume[data-channel="telephony"]:-moz-dir(rtl) section div:nth-child(n+6) { border-radius: 0.6rem 0 0 0.6rem; }
 
 #volume[data-channel="telephony"] section div:nth-child(n+7) {
   display: none;
@@ -118,8 +125,8 @@ html[dir="rtl"] #volume[data-channel="telephony"] section div:nth-child(n+6) { b
 #volume[data-channel="bt_sco"] section div:last-child {
   display: block;
 }
-html[dir="ltr"] #volume[data-channel="bt_sco"] section div:last-child { border-radius: 0 0.6rem 0.6rem 0; }
-html[dir="rtl"] #volume[data-channel="bt_sco"] section div:last-child { border-radius: 0.6rem 0 0 0.6rem; }
+#volume[data-channel="bt_sco"]:-moz-dir(ltr) section div:last-child { border-radius: 0 0.6rem 0.6rem 0; }
+#volume[data-channel="bt_sco"]:-moz-dir(rtl) section div:last-child { border-radius: 0.6rem 0 0 0.6rem; }
 
 #volume[data-channel="bt_sco"] span.channel-type {
   background-image: url('images/telephony_normal.png');

@@ -679,9 +679,9 @@ return [
       listPerson.onchange = updatePeepDom;
       listPerson.onchange(listPerson);
       // date
-      var dateTime = message.date.valueOf();
-      dateNode.dataset.time = dateTime;
-      dateNode.textContent = dateTime ? date.prettyDate(message.date) : '';
+      var dateTime = dateNode.dataset.time = message.date.valueOf();
+      date.relativeDateElement(dateNode, dateTime);
+
       // subject
       messageDisplay.subject(msgNode.querySelector('.msg-header-subject'),
                             message);

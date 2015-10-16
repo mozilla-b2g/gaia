@@ -303,7 +303,17 @@ var metadataParser = (function() {
         // thumbnail and an external preview image. Note that progressive
         // jpegs will have a type 'pjpeg' and will be handled below
         // like png images.
-        if (metadata.type === 'jpeg') {
+
+        // For jpeg images with image sizes more than 5MP, we need
+        // to create preview on sdcard to avoid flash while opening image.
+        // See bug 1181290.
+        // This constraint can be removed when gecko supports downscale during
+        // decode by canvas size for offscreen images. This will
+        // facilitate removing #moz-sample-size and using ddd.
+        // See bug 1206206.
+
+        if (metadata.type === 'jpeg' &&
+            metadata.width * metadata.height < 5 * 1024 * 1024) {
           cropResizeRotate(file, null, thumbnailSize, null, metadata,
                            function gotThumbnail(error, thumbnailBlob) {
                              if (error) {

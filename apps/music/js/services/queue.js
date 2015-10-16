@@ -83,25 +83,11 @@ function QueueService(worker) {
     });
   }));
 
-  worker.get('/api/queue/repeat', stopAfter((request) => {
-    return new Promise((resolve) => {
-      client.method('getRepeatSetting')
-        .then(repeat => resolve(respond(repeat)));
-    });
-  }));
-
   worker.get('/api/queue/repeat/:repeat', stopAfter((request) => {
     return new Promise((resolve) => {
       client.method('setRepeatSetting', request.parameters.repeat)
         .then(() =>  resolve(respond({ success: true  })))
         .catch(() => resolve(respond({ success: false })));
-    });
-  }));
-
-  worker.get('/api/queue/shuffle', stopAfter((request) => {
-    return new Promise((resolve) => {
-      client.method('getShuffleSetting')
-        .then(shuffle => resolve(respond(shuffle)));
     });
   }));
 

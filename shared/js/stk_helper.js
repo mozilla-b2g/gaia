@@ -48,7 +48,7 @@ var STKHelper = {
   // Helper to retrieve text from MozStkTextMessage
   getMessageText: function(stkMessage, defaultMsgL10nId, defaultMsgL10nArgs) {
     if (this.isIconSelfExplanatory(stkMessage)) {
-      return '';
+      return {raw: ''};
     }
     // stk Message could be a specific string
     var text;
@@ -59,11 +59,13 @@ var STKHelper = {
     }
 
     if (!text && defaultMsgL10nId) {
-      var _ = navigator.mozL10n.get;
-      text = _(defaultMsgL10nId, defaultMsgL10nArgs);
+      return {
+        id: defaultMsgL10nId,
+        args: defaultMsgL10nArgs
+      };
     }
 
-    return text;
+    return {raw: text};
   },
 
   isIconSelfExplanatory: function(stkMessage) {

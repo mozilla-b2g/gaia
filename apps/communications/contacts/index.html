@@ -153,7 +153,7 @@
 
       <!-- Contacts List Section -->
       <section id='view-contacts-list' role="region" data-state="active" class="view view-noscroll view-contacts-list">
-        <gaia-header id="contacts-list-header">
+        <gaia-header ignore-dir id="contacts-list-header">
           <h1 id="app-title" data-l10n-id="contacts"></h1>
           <button id="add-contact-button" data-icon="add" data-l10n-id="addButton"></button>
           <button id="settings-button" data-icon="settings" data-l10n-id="settingsButton"></button>
@@ -228,7 +228,7 @@
       </section>
     <form id="selectable-form" role="dialog" data-type="edit" class="hide">
       <section role="region" class="theme-settings">
-        <gaia-header id="selectable-form-header" action="close">
+        <gaia-header ignore-dir id="selectable-form-header" action="close">
           <h1 id="edit-title" data-l10n-id="contacts"></h1>
           <button type="button" id="select-action"></button>
         </gaia-header>
@@ -259,6 +259,5 @@
     <section is="ice-view" id="ice-view" role="region" class="view view-right hidden"></section>
     <section is="multiple-select-view" id="multiple-select-view" role="region" class="view hidden"></section>
     <gaia-sim-picker id="sim-picker" tabindex="-1"></gaia-sim-picker>
-    <iframe id="iframe_curtain" src="/shared/pages/import/curtain.html"></iframe>
   </body>
 </html>

@@ -14,7 +14,7 @@ if (typeof TestUrlResolver === 'undefined') {
     baseUrl: 'js',
     paths: {
       l10nbase: '../shared/js/l10n',
-      l10ndate: '../shared/js/l10n_date',
+      moz_intl: '../shared/js/moz_intl',
       style: '../style',
       shared: '../shared'
     },
@@ -24,8 +24,10 @@ if (typeof TestUrlResolver === 'undefined') {
       }
     },
     shim: {
-      l10ndate: ['l10nbase'],
-
+      moz_intl: {
+        deps: ['l10nbase'],
+        exports: 'mozIntl'
+      },
       'shared/js/mime_mapper': {
         exports: 'MimeMapper'
       },

@@ -15,7 +15,6 @@ require('/shared/test/unit/mocks/dialer/mock_keypad.js');
 require('/shared/test/unit/mocks/dialer/mock_utils.js');
 require('/shared/test/unit/mocks/mock_sim_settings_helper.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
-require('/shared/js/sanitizer.js');
 
 require('/dialer/js/suggestion_bar.js');
 

@@ -1,8 +1,10 @@
 'use strict';
 /* global MocksHelper, MockSpeechSynthesis, MockSpeechSynthesisUtterance,
-          Accessibility, SettingsListener, MockL10n, Service */
+          Accessibility, SettingsListener, MockL10n, Service,
+          MockSettingsHelper */
 
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
+requireApp('system/shared/test/unit/mocks/mock_settings_helper.js');
 requireApp('system/test/unit/mock_speech_synthesis.js');
 requireApp('system/test/unit/mock_lazy_loader.js');
 requireApp('system/js/accessibility.js');
@@ -12,6 +14,7 @@ require('/shared/test/unit/mocks/mock_service.js');
 
 var mocksForA11y = new MocksHelper([
   'SettingsListener',
+  'SettingsHelper',
   'LazyLoader',
   'Service'
 ]).init();
@@ -122,6 +125,7 @@ suite('system/Accessibility', function() {
     this.sinon.stub(speechSynthesizer, 'speech', MockSpeechSynthesis);
     this.sinon.stub(speechSynthesizer, 'utterance',
       MockSpeechSynthesisUtterance);
+    MockSettingsHelper.instances['language.current'] = { value: 'en-US' };
     navigator.mozL10n = MockL10n;
   });
 
@@ -494,6 +498,24 @@ suite('system/Accessibility', function() {
       // We should not get a speak if the screen reader is toggled off before
       // the shade
       assert.isTrue(stubSpeak.calledOnce);
+    });
+  });
+
+  suite('screenreader language support', function() {
+    test('with unsupported language', function() {
+      MockSettingsHelper.instances['language.current'] = { value: 'he-IL' };
+      SettingsListener.mTriggerCallback('accessibility.screenreader', true);
+      assert.equal(MockSettingsHelper.instances['language.current'].value,
+        'en-US');
+      SettingsListener.mTriggerCallback('accessibility.screenreader', false);
+    });
+
+    test('with supported language in different locale', function() {
+      MockSettingsHelper.instances['language.current'] = { value: 'en-GB' };
+      SettingsListener.mTriggerCallback('accessibility.screenreader', true);
+      assert.equal(MockSettingsHelper.instances['language.current'].value,
+        'en-GB');
+      SettingsListener.mTriggerCallback('accessibility.screenreader', false);
     });
   });
 });

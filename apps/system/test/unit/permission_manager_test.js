@@ -92,6 +92,17 @@ suite('system/permission manager', function() {
     assert.isTrue(dispatched);
   });
 
+  test('.permission-promt class added and removed from screen', function() {
+    assert(!permissionManager.screen.classList.contains('permission-prompt'),
+      'screen starts with no permission-prompt class');
+    sendChromeEvent('permission-prompt', 'test');
+    assert(permissionManager.screen.classList.contains('permission-prompt'),
+      'showing permission prompt adds appropriate css class');
+    permissionManager.hidePermissionPrompt();
+    assert(!permissionManager.screen.classList.contains('permission-prompt'),
+      'hiding permission prompt removes css class');
+  });
+
   suite('default value', function() {
     test('default values', function() {
       assert.equal(permissionManager.isFullscreenRequest, false);

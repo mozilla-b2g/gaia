@@ -189,6 +189,7 @@ window.GaiaRadio = (function(win) {
   var template = document.createElement('template');
   template.innerHTML = '<span role="radio" id="radio">' +
       '<span><content select="p,label"></content></span>' +
+      '<div class="divider"></div>' +
     '</span>';
 
   // Register and return the constructor

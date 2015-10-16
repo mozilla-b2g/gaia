@@ -17,5 +17,12 @@
     for (var i = 0; i < showSimPickerButtons.length; i++) {
       showSimPickerButtons[i].addEventListener('click', clickCb);
     }
+
+    // RTL mode checkbox
+    document.getElementById('dirSwitcher').addEventListener('click', e => {
+      document.dir = e.target.checked && 'rtl' || 'ltr';
+      window.dispatchEvent(new CustomEvent('localized'));
+    });
+
   };
 })();

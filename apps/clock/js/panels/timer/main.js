@@ -12,6 +12,7 @@ var Sounds = require('sounds');
 var FormButton = require('form_button');
 var html = require('text!panels/timer/panel.html');
 var AudioManager = require('audio_manager');
+var asyncStorage = require('shared/js/async_storage');
 
 var priv = new WeakMap();
 
@@ -109,17 +110,24 @@ Timer.Panel = function(element) {
   var create = this.nodes.create;
   var picker = this.picker;
 
-  var enableButton = function() {
+  var enableButton = () => {
     if(timeFromPicker(picker.value) === 0) {
       create.setAttribute('disabled', 'true');
     } else {
       create.removeAttribute('disabled');
     }
+    this.saveCurrentSettingsAsDefaults();
   };
 
   // The start button is enable if the value of the timer is not 00:00
   picker.nodes.minutes.addEventListener('transitionend', enableButton);
   picker.nodes.hours.addEventListener('transitionend', enableButton);
+
+  this.restoreDefaults();
+  this.nodes.vibrate.addEventListener(
+    'change', (e) => this.saveCurrentSettingsAsDefaults());
+  this.nodes.sound.addEventListener(
+    'change', (e) => this.saveCurrentSettingsAsDefaults());
 
   Timer.singleton(function(err, timer) {
     this.timer = timer;
@@ -139,6 +147,29 @@ Timer.Panel = function(element) {
 };
 
 Timer.Panel.prototype = Object.create(Panel.prototype);
+
+Timer.Panel.prototype.restoreDefaults = function() {
+  asyncStorage.getItem('timer-defaults', (values) => {
+    values = values || {};
+    if (values.sound != null) {
+      this.soundButton.value = values.sound;
+    }
+    if (values.time != null) {
+      this.picker.value = values.time;
+    }
+    if (values.vibrate != null) {
+      this.nodes.vibrate.checked = values.vibrate;
+    }
+  });
+};
+
+Timer.Panel.prototype.saveCurrentSettingsAsDefaults = function() {
+  asyncStorage.setItem('timer-defaults', {
+    sound: this.soundButton.value,
+    time: this.picker.value,
+    vibrate: this.nodes.vibrate.checked
+  });
+};
 
 Timer.Panel.prototype.onvisibilitychange = function(evt) {
   var isVisible = evt.detail.isVisible;

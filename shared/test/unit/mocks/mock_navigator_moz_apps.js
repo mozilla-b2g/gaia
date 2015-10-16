@@ -56,6 +56,7 @@ var MockNavigatormozApps = {
   },
 
   mLastRequest: null,
+  mAppWasLaunched: false,
 
   _mLaunch: function mnma_launch(entryPoint) {
     this.mAppWasLaunched = true;

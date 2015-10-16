@@ -1,14 +1,31 @@
 'use strict';
 define(function(require) {
-  var mozL10n = require('l10n!');
+  const mozIntl = require('moz_intl');
+  var shortRelativeDateFmt, longRelativeDateFmt;
+
+  function setRelativeDateFormatters() {
+    shortRelativeDateFmt = mozIntl._gaia.RelativeDate(navigator.languages, {
+      style: 'short'
+    });
+    longRelativeDateFmt = mozIntl._gaia.RelativeDate(navigator.languages, {
+      style: 'long'
+    });
+  }
+
+  setRelativeDateFormatters();
+  window.addEventListener('languagechange', setRelativeDateFormatters);
 
   var date = {
     /**
      * Display a human-readable relative timestamp.
      */
-    prettyDate: function(time, useCompactFormat) {
-      var f = new mozL10n.DateTimeFormat();
-      return f.fromNow(time, useCompactFormat);
+    relativeDateElement: function(element, time, useCompactFormat) {
+      if (time) {
+        var f = useCompactFormat ? shortRelativeDateFmt : longRelativeDateFmt;
+        f.formatElement(element, time);
+      } else {
+        element.textContent = '';
+      }
     },
 
     /**
@@ -21,7 +38,7 @@ define(function(require) {
       if (timestamp) {
         node.dataset.time = timestamp.valueOf();
         node.dataset.compactFormat = true;
-        node.textContent = date.prettyDate(timestamp, true);
+        date.relativeDateElement(node, timestamp, true);
       } else {
         node.textContent = '';
         node.removeAttribute('data-time');

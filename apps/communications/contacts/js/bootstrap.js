@@ -70,10 +70,20 @@
     utils.PerformanceHelper.domLoaded();
     window.removeEventListener('DOMContentLoaded', ondomloaded);
 
-    Cache.apply('firstChunk');
+    var firstPaintFired = false;
+
+    Cache.apply('firstChunk').then(() => {
+      // Once the first chunk is applied correctly, display the 
+      // list panel and fire the visually complete event.
+      document.getElementById('view-contacts-list').classList.add('current');
+      utils.PerformanceHelper.visuallyComplete();
+      firstPaintFired = true;
+    });
 
     window.onload = () => {
-      utils.PerformanceHelper.visuallyComplete();
+      if (!firstPaintFired) {
+        utils.PerformanceHelper.visuallyComplete();
+      }
       loadScripts();
     };
   });

@@ -1,4 +1,4 @@
-/* global _, CostControl, ConfigManager, debug,
+/* global CostControl, ConfigManager, debug,
           Formatting, SimManager, Common */
 /*
  * The telephony tab is in charge of show telephony and billing cycle
@@ -113,7 +113,7 @@ var TelephonyTab = (function() {
     } else {
       billingCycle.hidden = false;
       var content = Formatting.getFormattedDate(settings.nextReset,
-        _('short-date-format'));
+          Formatting.formatters.shortDate);
       resetDate.textContent = content;
     }
   }

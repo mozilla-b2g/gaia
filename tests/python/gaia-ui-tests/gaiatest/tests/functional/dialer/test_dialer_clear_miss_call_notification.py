@@ -62,10 +62,8 @@ class TestDialerClearMissCallNotification(GaiaTestCase):
         system.wait_for_notification_toaster_displayed()
         system.wait_for_notification_toaster_not_displayed()
 
-        # Open the notification panel
         system.wait_for_status_bar_displayed()
         utility_tray = system.open_utility_tray()
-        utility_tray.wait_for_notification_container_displayed()
 
         # Verify the user sees the missed call event in the notification center
         notifications = utility_tray.notifications

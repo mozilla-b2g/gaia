@@ -97,8 +97,9 @@ class Base(object):
         self.accessibility.click(self.marionette.find_element(*_close_button_locator))
         self.wait_for_select_closed(*_close_button_locator)
 
-    def tap_element_from_system_app(self, element=None, add_statusbar_height=False, x=None, y=None):        # Workaround for bug 1109213, where tapping on the button inside the app itself
-        # makes Marionette spew out NoSuchWindowException errors
+    def tap_element_from_system_app(self, element=None, add_statusbar_height=False, x=None, y=None):
+        # Workaround for bug 1109213, where tapping on the button inside the app itself
+        # makes Marionette spew out NoSuchWindowException errors, see bug 1164078
         cx = element.rect['x']
         cy = element.rect['y']
         cx += element.rect['width']//2 if x is None else x
@@ -120,10 +121,12 @@ class Base(object):
         return '{}{}{}/manifest.webapp'.format(self.DEFAULT_PROTOCOL, self.__class__.__name__.lower(), self.DEFAULT_APP_HOSTNAME)
 
     def wait_to_be_displayed(self):
-        Wait(self.marionette).until(lambda m: self.apps.displayed_app.manifest_url == self.manifest_url)
+        Wait(self.marionette).until(lambda m: self.apps.displayed_app.manifest_url == self.manifest_url and
+                                              self.apps.displayed_app.entry_point == self.entry_point)
 
     def wait_to_not_be_displayed(self):
-        Wait(self.marionette).until(lambda m: self.apps.displayed_app.manifest_url != self.manifest_url)
+        Wait(self.marionette).until(lambda m: self.apps.displayed_app.manifest_url != self.manifest_url or
+                                              self.apps.displayed_app.entry_point != self.entry_point)
 
 class PageRegion(Base):
     def __init__(self, marionette, element):

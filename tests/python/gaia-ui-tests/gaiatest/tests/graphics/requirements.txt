@@ -2,4 +2,4 @@
 # Imagemagick needs to be installed separately
 
 # Python imaging framework
-Pillow
+Pillow==2.9.0.0
