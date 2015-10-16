@@ -87,11 +87,35 @@ suite('system/CallscreenWindow', function() {
 
   test('Close while window.close() then hide', function() {
     var callscreen = new CallscreenWindow();
+    this.sinon.spy(callscreen, 'requestClose');
     var stubPublish = this.sinon.stub(callscreen, 'publish');
     this.sinon.stub(callscreen, 'isActive').returns(true);
     var stubBlur = this.sinon.stub(callscreen.browser.element, 'blur');
     var stubReloadWindow = this.sinon.stub(callscreen, 'reloadWindow');
     callscreen.element.dispatchEvent(new CustomEvent('mozbrowserclose'));
+    sinon.assert.calledOnce(callscreen.requestClose);
+    assert.isTrue(stubPublish.calledWith('terminated'));
+    assert.isFalse(stubReloadWindow.called);
+    callscreen.element.dispatchEvent(new CustomEvent('_closed'));
+    assert.isTrue(callscreen.isHidden());
+    assert.isTrue(stubReloadWindow.called);
+    if (document.activeElement === callscreen.browser.element) {
+      assert.isTrue(stubBlur.called);
+    }
+  });
+
+  test('When window.close() and requestOpen are racing', function() {
+    var callscreen = new CallscreenWindow();
+    var stubPublish = this.sinon.stub(callscreen, 'publish');
+    this.sinon.spy(callscreen, 'requestClose');
+    this.sinon.stub(callscreen, 'isActive').returns(false);
+    var stubBlur = this.sinon.stub(callscreen.browser.element, 'blur');
+    var stubReloadWindow = this.sinon.stub(callscreen, 'reloadWindow');
+
+    callscreen.requestOpen();
+    callscreen.element.dispatchEvent(new CustomEvent('mozbrowserclose'));
+
+    sinon.assert.calledOnce(callscreen.requestClose);
     assert.isTrue(stubPublish.calledWith('terminated'));
     assert.isFalse(stubReloadWindow.called);
     callscreen.element.dispatchEvent(new CustomEvent('_closed'));
