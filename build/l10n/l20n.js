@@ -24,9 +24,9 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
     function serializeLegacyContext(ctx, lang) {
       var cache = ctx._env._resCache;
       var resIds = Array.from(ctx._env._resLists.get(ctx));
-      return resIds.reduce(function (_ref3, cur) {
-        var errorsSeq = _ref3[0];
-        var entriesSeq = _ref3[1];
+      return resIds.reduce(function (_ref4, cur) {
+        var errorsSeq = _ref4[0];
+        var entriesSeq = _ref4[1];
 
         var sourceRes = cache.get(cur + 'en-USapp');
         var langRes = cache.get(cur + lang.code + lang.src);
@@ -149,9 +149,9 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
     function serializeContext(ctx, lang) {
       var cache = ctx._env._resCache;
       var resIds = Array.from(ctx._env._resLists.get(ctx));
-      return resIds.reduceRight(function (_ref4, cur) {
-        var errorsSeq = _ref4[0];
-        var entriesSeq = _ref4[1];
+      return resIds.reduceRight(function (_ref5, cur) {
+        var errorsSeq = _ref5[0];
+        var entriesSeq = _ref5[1];
 
         var sourceRes = cache.get(cur + 'en-USapp');
         var langRes = cache.get(cur + lang.code + lang.src);
@@ -226,29 +226,168 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
     return { serializeContext: serializeContext };
   });
-  modules.set('bindings/html/shims', function () {
-    if (typeof NodeList === 'function' && !NodeList.prototype[Symbol.iterator]) {
-      NodeList.prototype[Symbol.iterator] = Array.prototype[Symbol.iterator];
-    }
+  modules.set('lib/intl', function () {
+    function prioritizeLocales(def, availableLangs, requested) {
+      var supportedLocale = undefined;
 
-    function documentReady() {
-      if (document.readyState !== 'loading') {
-        return Promise.resolve();
+      for (var i = 0; i < requested.length; i++) {
+        var locale = requested[i];
+
+        if (availableLangs.indexOf(locale) !== -1) {
+          supportedLocale = locale;
+          break;
+        }
       }
 
-      return new Promise(function (resolve) {
-        document.addEventListener('readystatechange', function onrsc() {
-          document.removeEventListener('readystatechange', onrsc);
-          resolve();
-        });
+      if (!supportedLocale || supportedLocale === def) {
+        return [def];
+      }
+
+      return [supportedLocale, def];
+    }
+
+    return { prioritizeLocales: prioritizeLocales };
+  });
+  modules.set('bindings/html/langs', function () {
+    var _getModule3 = getModule('lib/intl');
+
+    var prioritizeLocales = _getModule3.prioritizeLocales;
+
+    var _getModule4 = getModule('lib/pseudo');
+
+    var pseudo = _getModule4.pseudo;
+
+    var rtlList = ['ar', 'he', 'fa', 'ps', 'qps-plocm', 'ur'];
+
+    function getMeta(head) {
+      var availableLangs = Object.create(null);
+      var defaultLang = null;
+      var appVersion = null;
+      var metas = head.querySelectorAll('meta[name="availableLanguages"],' + 'meta[name="defaultLanguage"],' + 'meta[name="appVersion"]');
+
+      for (var _iterator = metas, _isArray = Array.isArray(_iterator), _i = 0, _iterator = _isArray ? _iterator : _iterator[Symbol.iterator]();;) {
+        var _ref;
+
+        if (_isArray) {
+          if (_i >= _iterator.length) break;
+          _ref = _iterator[_i++];
+        } else {
+          _i = _iterator.next();
+          if (_i.done) break;
+          _ref = _i.value;
+        }
+
+        var meta = _ref;
+
+        var _name = meta.getAttribute('name');
+        var content = meta.getAttribute('content').trim();
+
+        switch (_name) {
+          case 'availableLanguages':
+            availableLangs = getLangRevisionMap(availableLangs, content);
+            break;
+
+          case 'defaultLanguage':
+            var _getLangRevisionTuple = getLangRevisionTuple(content),
+                lang = _getLangRevisionTuple[0],
+                rev = _getLangRevisionTuple[1];
+
+            defaultLang = lang;
+
+            if (!(lang in availableLangs)) {
+              availableLangs[lang] = rev;
+            }
+
+            break;
+
+          case 'appVersion':
+            appVersion = content;
+        }
+      }
+
+      return {
+        defaultLang: defaultLang,
+        availableLangs: availableLangs,
+        appVersion: appVersion
+      };
+    }
+
+    function getLangRevisionMap(seq, str) {
+      return str.split(',').reduce(function (seq, cur) {
+        var _getLangRevisionTuple2 = getLangRevisionTuple(cur);
+
+        var lang = _getLangRevisionTuple2[0];
+        var rev = _getLangRevisionTuple2[1];
+
+        seq[lang] = rev;
+        return seq;
+      }, seq);
+    }
+
+    function getLangRevisionTuple(str) {
+      var _str$trim$split = str.trim().split(':');
+
+      var lang = _str$trim$split[0];
+      var rev = _str$trim$split[1];
+
+      return [lang, parseInt(rev)];
+    }
+
+    function negotiateLanguages(fn, appVersion, defaultLang, availableLangs, additionalLangs, prevLangs, requestedLangs) {
+      var allAvailableLangs = Object.keys(availableLangs).concat(additionalLangs || []).concat(Object.keys(pseudo));
+      var newLangs = prioritizeLocales(defaultLang, allAvailableLangs, requestedLangs);
+      var langs = newLangs.map(function (code) {
+        return {
+          code: code,
+          src: getLangSource(appVersion, availableLangs, additionalLangs, code),
+          dir: getDirection(code)
+        };
       });
+
+      if (!arrEqual(prevLangs, newLangs)) {
+        fn(langs);
+      }
+
+      return langs;
     }
 
     function getDirection(code) {
-      return ['ar', 'he', 'fa', 'ps', 'qps-plocm', 'ur'].indexOf(code) >= 0 ? 'rtl' : 'ltr';
+      return rtlList.indexOf(code) >= 0 ? 'rtl' : 'ltr';
     }
 
-    return { documentReady: documentReady, getDirection: getDirection };
+    function arrEqual(arr1, arr2) {
+      return arr1.length === arr2.length && arr1.every(function (elem, i) {
+        return elem === arr2[i];
+      });
+    }
+
+    function getMatchingLangpack(appVersion, langpacks) {
+      for (var i = 0, langpack = undefined; langpack = langpacks[i]; i++) {
+        if (langpack.target === appVersion) {
+          return langpack;
+        }
+      }
+
+      return null;
+    }
+
+    function getLangSource(appVersion, availableLangs, additionalLangs, code) {
+      if (additionalLangs && additionalLangs[code]) {
+        var lp = getMatchingLangpack(appVersion, additionalLangs[code]);
+
+        if (lp && (!(code in availableLangs) || parseInt(lp.revision) > availableLangs[code])) {
+          return 'extra';
+        }
+      }
+
+      if (code in pseudo && !(code in availableLangs)) {
+        return 'pseudo';
+      }
+
+      return 'app';
+    }
+
+    return { getMeta: getMeta, negotiateLanguages: negotiateLanguages, getDirection: getDirection };
   });
   modules.set('bindings/html/overlay', function () {
     var reOverlay = /<|&#?\w+;/;
@@ -412,9 +551,9 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
     return { overlayElement: overlayElement };
   });
   modules.set('bindings/html/dom', function () {
-    var _getModule3 = getModule('bindings/html/overlay');
+    var _getModule5 = getModule('bindings/html/overlay');
 
-    var overlayElement = _getModule3.overlayElement;
+    var overlayElement = _getModule5.overlayElement;
 
     var reHtml = /[&<>]/g;
     var htmlEntities = {
@@ -457,19 +596,19 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
     function translateMutations(view, langs, mutations) {
       var targets = new Set();
 
-      for (var _iterator = mutations, _isArray = Array.isArray(_iterator), _i = 0, _iterator = _isArray ? _iterator : _iterator[Symbol.iterator]();;) {
-        var _ref;
+      for (var _iterator2 = mutations, _isArray2 = Array.isArray(_iterator2), _i2 = 0, _iterator2 = _isArray2 ? _iterator2 : _iterator2[Symbol.iterator]();;) {
+        var _ref2;
 
-        if (_isArray) {
-          if (_i >= _iterator.length) break;
-          _ref = _iterator[_i++];
+        if (_isArray2) {
+          if (_i2 >= _iterator2.length) break;
+          _ref2 = _iterator2[_i2++];
         } else {
-          _i = _iterator.next();
-          if (_i.done) break;
-          _ref = _i.value;
+          _i2 = _iterator2.next();
+          if (_i2.done) break;
+          _ref2 = _i2.value;
         }
 
-        var mutation = _ref;
+        var mutation = _ref2;
 
         switch (mutation.type) {
           case 'attributes':
@@ -477,19 +616,19 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
             break;
 
           case 'childList':
-            for (var _iterator2 = mutation.addedNodes, _isArray2 = Array.isArray(_iterator2), _i2 = 0, _iterator2 = _isArray2 ? _iterator2 : _iterator2[Symbol.iterator]();;) {
-              var _ref2;
+            for (var _iterator3 = mutation.addedNodes, _isArray3 = Array.isArray(_iterator3), _i3 = 0, _iterator3 = _isArray3 ? _iterator3 : _iterator3[Symbol.iterator]();;) {
+              var _ref3;
 
-              if (_isArray2) {
-                if (_i2 >= _iterator2.length) break;
-                _ref2 = _iterator2[_i2++];
+              if (_isArray3) {
+                if (_i3 >= _iterator3.length) break;
+                _ref3 = _iterator3[_i3++];
               } else {
-                _i2 = _iterator2.next();
-                if (_i2.done) break;
-                _ref2 = _i2.value;
+                _i3 = _iterator3.next();
+                if (_i3.done) break;
+                _ref3 = _i3.value;
               }
 
-              var addedNode = _ref2;
+              var addedNode = _ref3;
 
               if (addedNode.nodeType === addedNode.ELEMENT_NODE) {
                 if (addedNode.childElementCount) {
@@ -573,9 +712,9 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
     return { walkContent: walkContent };
   });
   modules.set('bindings/gaiabuild/legacy/parser', function () {
-    var _getModule4 = getModule('lib/errors');
+    var _getModule6 = getModule('lib/errors');
 
-    var L10nError = _getModule4.L10nError;
+    var L10nError = _getModule6.L10nError;
 
     var MAX_PLACEABLES = 100;
     return {
@@ -796,9 +935,9 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
     };
   });
   modules.set('bindings/gaiabuild/legacy/resolver', function () {
-    var _getModule5 = getModule('lib/errors');
+    var _getModule7 = getModule('lib/errors');
 
-    var L10nError = _getModule5.L10nError;
+    var L10nError = _getModule7.L10nError;
 
     var KNOWN_MACROS = ['plural'];
     var MAX_PLACEABLE_LENGTH = 2500;
@@ -926,9 +1065,9 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
     }
 
     function interpolate(locals, ctx, lang, args, arr) {
-      return arr.reduce(function (_ref5, cur) {
-        var localsSeq = _ref5[0];
-        var valueSeq = _ref5[1];
+      return arr.reduce(function (_ref6, cur) {
+        var localsSeq = _ref6[0];
+        var valueSeq = _ref6[1];
 
         if (typeof cur === 'string') {
           return [localsSeq, valueSeq + cur];
@@ -1003,13 +1142,13 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
     return { createEntry: createEntry, format: format };
   });
   modules.set('bindings/gaiabuild/legacy/context', function () {
-    var _getModule6 = getModule('lib/context');
+    var _getModule8 = getModule('lib/context');
 
-    var Context = _getModule6.Context;
+    var Context = _getModule8.Context;
 
-    var _getModule7 = getModule('bindings/gaiabuild/legacy/resolver');
+    var _getModule9 = getModule('bindings/gaiabuild/legacy/resolver');
 
-    var format = _getModule7.format;
+    var format = _getModule9.format;
 
     function LegacyContext(env) {
       Context.call(this, env);
@@ -1035,32 +1174,32 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
     return { LegacyContext: LegacyContext };
   });
   modules.set('bindings/gaiabuild/legacy/env', function () {
-    var _getModule8 = getModule('lib/errors');
+    var _getModule10 = getModule('lib/errors');
 
-    var L10nError = _getModule8.L10nError;
+    var L10nError = _getModule10.L10nError;
 
-    var _getModule9 = getModule('lib/env');
+    var _getModule11 = getModule('lib/env');
 
-    var Env = _getModule9.Env;
-    var amendError = _getModule9.amendError;
+    var Env = _getModule11.Env;
+    var amendError = _getModule11.amendError;
 
-    var _getModule10 = getModule('bindings/gaiabuild/legacy/context');
+    var _getModule12 = getModule('bindings/gaiabuild/legacy/context');
 
-    var LegacyContext = _getModule10.LegacyContext;
+    var LegacyContext = _getModule12.LegacyContext;
 
-    var _getModule11 = getModule('bindings/gaiabuild/legacy/resolver');
+    var _getModule13 = getModule('bindings/gaiabuild/legacy/resolver');
 
-    var createEntry = _getModule11.createEntry;
+    var createEntry = _getModule13.createEntry;
 
     var PropertiesParser = getModule('bindings/gaiabuild/legacy/parser');
 
-    var _getModule12 = getModule('bindings/gaiabuild/legacy/pseudo');
+    var _getModule14 = getModule('bindings/gaiabuild/legacy/pseudo');
 
-    var walkContent = _getModule12.walkContent;
+    var walkContent = _getModule14.walkContent;
 
-    var _getModule13 = getModule('lib/pseudo');
+    var _getModule15 = getModule('lib/pseudo');
 
-    var pseudo = _getModule13.pseudo;
+    var pseudo = _getModule15.pseudo;
 
     function LegacyEnv(defaultLang, fetch) {
       Env.call(this, defaultLang, fetch);
@@ -1154,9 +1293,9 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
     return { emit: emit, addEventListener: addEventListener, removeEventListener: removeEventListener };
   });
   modules.set('lib/format/l20n/entries/parser', function () {
-    var _getModule14 = getModule('lib/errors');
+    var _getModule16 = getModule('lib/errors');
 
-    var L10nError = _getModule14.L10nError;
+    var L10nError = _getModule16.L10nError;
 
     var MAX_PLACEABLES = 100;
     return {
@@ -1683,9 +1822,9 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
     };
   });
   modules.set('lib/format/properties/parser', function () {
-    var _getModule15 = getModule('lib/errors');
+    var _getModule17 = getModule('lib/errors');
 
-    var L10nError = _getModule15.L10nError;
+    var L10nError = _getModule17.L10nError;
 
     var MAX_PLACEABLES = 100;
     return {
@@ -2422,9 +2561,9 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
     return { getPluralRule: getPluralRule };
   });
   modules.set('lib/resolver', function () {
-    var _getModule16 = getModule('lib/errors');
+    var _getModule18 = getModule('lib/errors');
 
-    var L10nError = _getModule16.L10nError;
+    var L10nError = _getModule18.L10nError;
 
     var KNOWN_MACROS = ['plural'];
     var MAX_PLACEABLE_LENGTH = 2500;
@@ -2512,9 +2651,9 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
     }
 
     function interpolate(locals, ctx, lang, args, arr) {
-      return arr.reduce(function (_ref6, cur) {
-        var localsSeq = _ref6[0];
-        var valueSeq = _ref6[1];
+      return arr.reduce(function (_ref7, cur) {
+        var localsSeq = _ref7[0];
+        var valueSeq = _ref7[1];
 
         if (typeof cur === 'string') {
           return [localsSeq, valueSeq + cur];
@@ -2595,17 +2734,17 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
     return { format: format };
   });
   modules.set('lib/context', function () {
-    var _getModule17 = getModule('lib/errors');
+    var _getModule19 = getModule('lib/errors');
 
-    var L10nError = _getModule17.L10nError;
+    var L10nError = _getModule19.L10nError;
 
-    var _getModule18 = getModule('lib/resolver');
+    var _getModule20 = getModule('lib/resolver');
 
-    var format = _getModule18.format;
+    var format = _getModule20.format;
 
-    var _getModule19 = getModule('lib/plurals');
+    var _getModule21 = getModule('lib/plurals');
 
-    var getPluralRule = _getModule19.getPluralRule;
+    var getPluralRule = _getModule21.getPluralRule;
 
     var Context = (function () {
       function Context(env) {
@@ -2685,10 +2824,10 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
             return prevResolved[i];
           }
 
-          var _ref7 = Array.isArray(key) ? key : [key, undefined];
+          var _ref8 = Array.isArray(key) ? key : [key, undefined];
 
-          var id = _ref7[0];
-          var args = _ref7[1];
+          var id = _ref8[0];
+          var args = _ref8[1];
 
           var entity = _this3._getEntity(lang, id);
 
@@ -2801,23 +2940,23 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
     return { Context: Context };
   });
   modules.set('lib/env', function () {
-    var _getModule20 = getModule('lib/context');
+    var _getModule22 = getModule('lib/context');
 
-    var Context = _getModule20.Context;
+    var Context = _getModule22.Context;
 
     var PropertiesParser = getModule('lib/format/properties/parser');
     var L20nParser = getModule('lib/format/l20n/entries/parser');
 
-    var _getModule21 = getModule('lib/pseudo');
+    var _getModule23 = getModule('lib/pseudo');
 
-    var walkEntry = _getModule21.walkEntry;
-    var pseudo = _getModule21.pseudo;
+    var walkEntry = _getModule23.walkEntry;
+    var pseudo = _getModule23.pseudo;
 
-    var _getModule22 = getModule('lib/events');
+    var _getModule24 = getModule('lib/events');
 
-    var emit = _getModule22.emit;
-    var addEventListener = _getModule22.addEventListener;
-    var removeEventListener = _getModule22.removeEventListener;
+    var emit = _getModule24.emit;
+    var addEventListener = _getModule24.addEventListener;
+    var removeEventListener = _getModule24.removeEventListener;
 
     var parsers = {
       properties: PropertiesParser,
@@ -2924,9 +3063,9 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
     })();
 
     function deleteIfOrphan(cache, lists, resId) {
-      var isNeeded = Array.from(lists).some(function (_ref8) {
-        var ctx = _ref8[0];
-        var resIds = _ref8[1];
+      var isNeeded = Array.from(lists).some(function (_ref9) {
+        var ctx = _ref9[0];
+        var resIds = _ref9[1];
         return resIds.has(resId);
       });
 
@@ -3066,34 +3205,34 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
     return { walkEntry: walkEntry, walkValue: walkValue, pseudo: pseudo };
   });
   modules.set('bindings/gaiabuild/view', function () {
-    var _getModule23 = getModule('lib/pseudo');
+    var _getModule25 = getModule('lib/pseudo');
 
-    var pseudo = _getModule23.pseudo;
+    var pseudo = _getModule25.pseudo;
 
-    var _getModule24 = getModule('lib/env');
+    var _getModule26 = getModule('lib/env');
 
-    var Env = _getModule24.Env;
+    var Env = _getModule26.Env;
 
-    var _getModule25 = getModule('bindings/gaiabuild/legacy/env');
+    var _getModule27 = getModule('bindings/gaiabuild/legacy/env');
 
-    var LegacyEnv = _getModule25.LegacyEnv;
+    var LegacyEnv = _getModule27.LegacyEnv;
 
-    var _getModule26 = getModule('bindings/html/dom');
+    var _getModule28 = getModule('bindings/html/dom');
 
-    var getResourceLinks = _getModule26.getResourceLinks;
-    var translateFragment = _getModule26.translateFragment;
+    var getResourceLinks = _getModule28.getResourceLinks;
+    var translateFragment = _getModule28.translateFragment;
 
-    var _getModule27 = getModule('bindings/html/shims');
+    var _getModule29 = getModule('bindings/html/langs');
 
-    var getDirection = _getModule27.getDirection;
+    var getDirection = _getModule29.getDirection;
 
-    var _getModule28 = getModule('bindings/gaiabuild/serialize');
+    var _getModule30 = getModule('bindings/gaiabuild/serialize');
 
-    var serializeContext = _getModule28.serializeContext;
+    var serializeContext = _getModule30.serializeContext;
 
-    var _getModule29 = getModule('bindings/gaiabuild/legacy/serialize');
+    var _getModule31 = getModule('bindings/gaiabuild/legacy/serialize');
 
-    var serializeLegacyContext = _getModule29.serializeLegacyContext;
+    var serializeLegacyContext = _getModule31.serializeLegacyContext;
 
     var View = (function () {
       function View(htmloptimizer, fetch) {
@@ -3136,6 +3275,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
         var dir = getDirection(code);
         var langs = [{
           code: code,
+          dir: dir,
           src: 'app'
         }];
 
@@ -3154,13 +3294,14 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
         var lang = {
           code: code,
+          dir: getDirection(code),
           src: code in pseudo ? 'pseudo' : 'app'
         };
         return fetchContext(this.ctx, lang).then(function () {
-          var _ref9 = _this11.isLegacy ? serializeLegacyContext(_this11.ctx, lang) : serializeContext(_this11.ctx, lang);
+          var _ref10 = _this11.isLegacy ? serializeLegacyContext(_this11.ctx, lang) : serializeContext(_this11.ctx, lang);
 
-          var errors = _ref9[0];
-          var entries = _ref9[1];
+          var errors = _ref10[0];
+          var entries = _ref10[1];
 
           if (errors.length) {
             var notFoundErrors = errors.filter(function (err) {
@@ -3214,6 +3355,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
     function fetchContext(ctx, lang) {
       var sourceLang = {
         code: 'en-US',
+        dir: 'ltr',
         src: 'app'
       };
       return Promise.all([sourceLang, lang].map(function (lang) {
@@ -3236,9 +3378,9 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
     return { L10nError: L10nError };
   });
   modules.set('runtime/gaia/build/io', function () {
-    var _getModule30 = getModule('lib/errors');
+    var _getModule32 = getModule('lib/errors');
 
-    var L10nError = _getModule30.L10nError;
+    var L10nError = _getModule32.L10nError;
 
     return {
       fetch: function (htmloptimizer, res, lang) {
@@ -3259,18 +3401,18 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
     };
   });
   modules.set('runtime/gaia/build/index', function () {
-    var _getModule31 = getModule('runtime/gaia/build/io');
+    var _getModule33 = getModule('runtime/gaia/build/io');
 
-    var fetch = _getModule31.fetch;
+    var fetch = _getModule33.fetch;
 
-    var _getModule32 = getModule('bindings/gaiabuild/view');
+    var _getModule34 = getModule('bindings/gaiabuild/view');
 
-    var View = _getModule32.View;
+    var View = _getModule34.View;
 
-    var _getModule33 = getModule('lib/pseudo');
+    var _getModule35 = getModule('lib/pseudo');
 
-    var pseudo = _getModule33.pseudo;
-    var walkValue = _getModule33.walkValue;
+    var pseudo = _getModule35.pseudo;
+    var walkValue = _getModule35.walkValue;
 
     function getView(htmloptimizer) {
       var htmlFetch = function () {
