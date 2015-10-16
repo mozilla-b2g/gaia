@@ -38,18 +38,14 @@
   color: #000;
 }
 
-/* Default layout (sent message) */
-.report-view .received-block,
+/* Hiding some elements for some states */
 .report-view[data-delivery="error"] .sent-title,
-.report-view[data-delivery="sending"] .sent-timestamp {
+.report-view[data-delivery="sending"] .sent-timestamp,
+.outgoing-message .received-block,
+.outgoing-message .lateness-block {
   display: none;
 }
 
-/* Layout for received message */
-.report-view[data-delivery="received"] .received-block,
-.report-view[data-delivery="not-downloaded"] .received-block {
-  display: block;
-}
 
 /* Hide sent timestamp label if we don't have valid value to display */
 .report-view.no-valid-sent-timestamp .sent-block {

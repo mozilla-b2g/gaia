@@ -329,6 +329,8 @@ var VIEWS = {
           }
         }
         this.container.dataset.delivery = delivery;
+        this.container.classList.toggle('incoming-message', isIncoming);
+        this.container.classList.toggle('outgoing-message', !isIncoming);
 
         // If incoming message is migrated from the database where sentTimestamp
         // hadn't been supported yet then we won't have valid value for it.
@@ -391,7 +393,7 @@ var VIEWS = {
             // and get the rest for the next smaller unit
             output = Math.floor(lateness / unitVal);
             lateness = lateness % unitVal;
-            
+
             navigator.mozL10n.setAttributes(
               unitElement,
               `duration-${unit}-narrow`,
