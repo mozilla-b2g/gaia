@@ -60,11 +60,9 @@ PinningTheWeb.prototype = {
     this.rocketbar.enterText(url, true);
     this.system.gotoBrowser(url);
     this._clickPinContextMenu();
-    this.client.waitFor(function() {
-      return this.pinDialog.displayed();
-    }.bind(this));
     this.sitePanelArrow.tap();
     this.pinSiteButton.tap();
+    this.client.helper.waitForElementToDisappear(this.pinDialog);
   },
 
   openAndPinPage: function openAndPinSite(url) {
@@ -72,9 +70,6 @@ PinningTheWeb.prototype = {
     this.rocketbar.enterText(url, true);
     this.system.gotoBrowser(url);
     this._clickPinContextMenu();
-    this.client.waitFor(function() {
-      return this.pinDialog.displayed();
-    }.bind(this));
     this.pinPageButton.tap();
   },
 
@@ -88,24 +83,11 @@ PinningTheWeb.prototype = {
 
   _clickPinContextMenu: function() {
     this.client.switchToFrame();
-    this.client.waitFor(function() {
-      try {
-        this.system.appChromeContextLink.tap();
-      } catch (e) {
-        return false;
-      }
-      return true;
-    }.bind(this));
-
-    var selector = this.system.Selector.appChromeContextMenuPin;
-    var scopedClient = this.client.scope({searchTimeout: 100});
-    scopedClient.findElement(selector, function(err, element) {
-      if (err) {
-        this.system.appChromeContextMenuCancel.tap();
-        this._clickPinContextMenu();
-      }
-        this.system.appChromeContextMenuPin.tap();
-    }.bind(this));
+    this.system.appChromeContextLink.tap();
+    var menu = this.system.appChromeContextMenu;
+    this.system.appChromeContextMenuPin.tap();
+    this.client.helper.waitForElementToDisappear(menu);
+    this.client.helper.waitForElement(this.pinDialog);
   }
 };
 
