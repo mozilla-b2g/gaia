@@ -227,10 +227,10 @@
     if (!this.isBrowser()) {
       return false;
     }
-
-    var url = new URL(this.config.url);
-    var path = url.hostname + url.pathname;
-    return path.indexOf(scope) === 0;
+    // within-scope per http://www.w3.org/TR/appmanifest/#dfn-within-scope
+    // except we also support paths
+    var target = this.config.url;
+    return scope && target.indexOf(scope) === 0;
   };
 
   /**

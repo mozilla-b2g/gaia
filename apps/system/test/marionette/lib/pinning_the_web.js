@@ -34,11 +34,24 @@ PinningTheWeb.prototype = {
     return this.client.helper.waitForElement(this.Selectors.sitePanelArrow);
   },
 
-  openAndPinSite: function openAndPinSite(url) {
+  _openUrl: function openUrl(url) {
+    console.log('PinTheWeb _openUrl');
+    // this.system.tapHome();
+    console.log('tapped home, next homescreenFocus');
     this.rocketbar.homescreenFocus();
+    console.log('homescreenFocus-ed, next enterText: ' + url);
     this.rocketbar.enterText(url, true);
-    this.system.gotoBrowser(url);
+    console.log('entered test, next switchToBrowserFrame');
+    this.rocketbar.switchToBrowserFrame(url);
+    console.log('switched ToBrowserFrame, switch back to frame');
     this.client.switchToFrame();
+    console.log('/_openUrl');
+  },
+
+  openAndPinSite: function openAndPinSite(url) {
+    console.log('openAndPinSite, calling _openUrl');
+    this._openUrl(url);
+    console.log('openAndPinSite, /_openUrl');
     this.client.scope({ searchTimeout: 100 }).waitFor(function() {
       this.client.switchToFrame();
       try {
@@ -55,10 +68,25 @@ PinningTheWeb.prototype = {
     }.bind(this));
   },
 
+  openAndUnpinSite: function openAndUnpinSite(url) {
+    var client = this.client;
+    var system = this.system;
+    this._openUrl(url);
+    //Twice, one for expanding
+    system.siteIcon.tap();
+    system.siteIcon.tap();
+    client.waitFor(function() {
+      return system.pinButton.displayed();
+    });
+    system.pinButton.tap();
+    client.waitFor(function() {
+      var toast = client.findElement('#screen > gaia-toast');
+      return toast && toast.displayed();
+    });
+  },
+
   openAndPinSiteFromBrowser: function openAndPinSite(url) {
-    this.rocketbar.homescreenFocus();
-    this.rocketbar.enterText(url, true);
-    this.system.gotoBrowser(url);
+    this._openUrl(url);
     this._clickPinContextMenu();
     this.sitePanelArrow.tap();
     this.pinSiteButton.tap();
@@ -66,9 +94,7 @@ PinningTheWeb.prototype = {
   },
 
   openAndPinPage: function openAndPinSite(url) {
-    this.rocketbar.homescreenFocus();
-    this.rocketbar.enterText(url, true);
-    this.system.gotoBrowser(url);
+    this._openUrl(url);
     this._clickPinContextMenu();
     this.pinPageButton.tap();
   },
