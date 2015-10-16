@@ -56,7 +56,7 @@ class TestSettingsRTL(GaiaImageCompareTestCase):
         device_info_page.confirm_reset(False)
 
         device_info_page.tap_update_frequency()
-        self.take_screenshot('dev_info-update-freq')
+        self.take_screenshot('dev_info-update-freq', top_frame=True)
         device_info_page.exit_update_frequency()
         settings.return_to_prev_menu(settings.screen_element, device_info_page.screen_element)
 

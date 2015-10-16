@@ -9,13 +9,19 @@ from gaiatest.form_controls.form_control import Widget
 class GaiaHeader(Widget):
 
     _back_button_locator = (By.CSS_SELECTOR, 'button.action-button')
+    _close_button_locator = (By.CSS_SELECTOR, 'button[type="reset"]')
 
     def go_back(self):
         Wait(self.marionette).until(expected.element_enabled(self.root_element) and
                                     expected.element_displayed(self.root_element))
         self.marionette.switch_to_shadow_root(self.root_element)
-        self.marionette.find_element(*self._back_button_locator).tap()
-        self.marionette.switch_to_shadow_root()
+        element = self.marionette.find_element(*self._back_button_locator)
+        if element.is_displayed():
+            element.tap()
+            self.marionette.switch_to_shadow_root()
+        else: # This header has a close button instead of a back button
+            self.marionette.switch_to_shadow_root()
+            self.root_element.find_element(*self._close_button_locator).tap()
         Wait(self.marionette).until(expected.element_not_displayed(self.root_element))
 
     def go_back_and_exit(self, app=None, add_statusbar_height=True):
@@ -28,7 +34,7 @@ class GaiaHeader(Widget):
 
 class HTMLHeader(Widget):
 
-    _back_button_locator = (By.CSS_SELECTOR, '.back')
+    _back_button_locator = (By.CSS_SELECTOR, '.back, [data-l10n-id="back"]')
 
     def go_back(self):
         back_button = self.root_element.find_element(*self._back_button_locator)
