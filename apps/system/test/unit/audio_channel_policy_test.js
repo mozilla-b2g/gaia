@@ -350,22 +350,6 @@ suite('system/AudioChannelPolicy', function() {
       );
     });
 
-    test('Normal audio channel cannot play in background', function() {
-      var newAudioChannel = new MockAudioChannelController(
-        { instanceID: 'appID' }, { name: 'normal' }
-      );
-      var activeAudioChannels = new Map();
-      subject.applyPolicy(newAudioChannel, activeAudioChannels,
-        { isNewAudioChannelInBackground: true });
-      assert.deepEqual(
-        newAudioChannel._policy,
-        {
-          isAllowedToPlay: false,
-          isNeededToVibrate: false
-        }
-      );
-    });
-
     test('All audio channel except normal audio channel ' +
          'can play in background', function() {
       ['content', 'alarm', 'system', 'ringer', 'telephony',
