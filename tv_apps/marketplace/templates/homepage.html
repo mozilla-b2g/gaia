@@ -1,0 +1,19 @@
+<div class="app-preview"></div>
+
+<div class="app-list">
+  {% defer (url=api('apps'), pluck='objects', as='apps', key='slug') %}
+    <ul class="clearfix">
+      {% for app in this %}
+        <li class="app-list-app focusable" data-slug="{{ app.slug }}">
+          <img src="{{ app.icons['128'] }}"
+               alt="{{ app.name }}" title="{{ app.name }}">
+          <span class="name">{{ app.name }}</span>
+        </li>
+      {% endfor %}
+    </ul>
+  {% placeholder %}
+    <ul>
+      <li>loading...</li>
+    </ul>
+  {% end %}
+</div>

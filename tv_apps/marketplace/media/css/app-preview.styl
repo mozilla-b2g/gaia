@@ -1,0 +1,51 @@
+/**
+ * App preview area styles.
+ */
+
+@import 'lib';
+
+.app-preview {
+    position: absolute;
+    top: 0;
+    left: 0;
+
+    width: 100%;
+    height: 40%;
+    padding: 3em 4em;
+
+    color: $greyscale-white;
+    background-color: $greyscale-black;
+
+    .preview {
+        float: right;
+        width: 40%;
+        height: 100%;
+        margin-left: 3em;
+        overflow: hidden;
+
+        color: $greyscale-dark-grey;
+        background-color: $greyscale-dark-grey;
+    }
+
+    img {
+        width: 100%;
+    }
+
+    .name {
+        margin: 0 0 .25em;
+    }
+
+    .type {
+        float: right;
+    }
+
+    .author {
+
+    }
+
+    .description {
+        height: 13.875em;
+        margin-top: 1.5em;
+        overflow: hidden;
+    }
+}

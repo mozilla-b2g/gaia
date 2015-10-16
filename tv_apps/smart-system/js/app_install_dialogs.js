@@ -11,7 +11,8 @@
     'InstallCancelDialog': 'installcancel',
     'UninstallDialog': 'uninstall',
     'DownloadCancelDialog': 'downloadcancel',
-    'SetupAppDialog': 'setupapp'
+    'SetupAppDialog': 'setupapp',
+    'AddAppDialog': 'add'
   });
 
   AppInstallDialogs.TYPES = TYPES;
@@ -40,6 +41,7 @@
     this._installCancelDialog = null;
     this._uninstallDialog = null;
     this._setupAppDialog = null;
+    this._addAppDialog = null;
 
     this.containerElement.innerHTML = '';
   };
@@ -217,6 +219,45 @@
   };
   // end of uninstall dialog
 
+  // setup add app dialog
+  proto._renderAddAppDialog = function aid__renderUninstallDialog() {
+    if (this._addAppDialog) {
+      return;
+    }
+    this._addAppDialog = new SmartModalDialog(this.containerElement);
+    this._addAppDialog.element.classList.add('add-app-dialog');
+    this._dialogs.push(this._addAppDialog);
+  };
+
+  proto._showAddAppDialog = function aid__showAddAppDialog(options) {
+    return new Promise(function(resolve, reject) {
+      this._renderAddAppDialog();
+
+      this._addAppDialog.open({
+        'onCancel': reject,
+        'message': {
+          'textL10nId': {
+            'id': 'add-app',
+            'args': {
+              'name': options.manifest.name
+            }
+          }
+        },
+        'buttonSettings': [
+          {
+            'textL10nId': 'cancel',
+            'onClick': reject
+          }, {
+            'textL10nId': 'add',
+            'onClick': resolve,
+            'defaultFocus': true
+          }
+        ]
+      });
+    }.bind(this));
+  };
+  // end of add app dialog
+
   proto.show = function aid_show(type, options) {
     switch(type) {
       case TYPES.InstallDialog:
@@ -230,6 +271,8 @@
         return Promise.resolve();
       case TYPES.SetupAppDialog:
         return this._showSetupAppDialog(options);
+      case TYPES.AddAppDialog:
+        return this._showAddAppDialog(options);
       default:
         return Promise.reject();
     }

@@ -1,0 +1,42 @@
+/**
+ * Site-wide styles.
+ */
+
+@import 'lib';
+
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    height: 100%;
+}
+
+body {
+    overflow: hidden;
+
+    background-color: $greyscale-grey;
+}
+
+ul {
+    margin: 0;
+    padding: 0;
+}
+
+.clearfix {
+    &::before,
+    &::after {
+        content: "";
+        display: table;
+    }
+
+    &::after {
+        clear: both;
+    }
+}
+
+main,
+.page {
+    height: 100%;
+}

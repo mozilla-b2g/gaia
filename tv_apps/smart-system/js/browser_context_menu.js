@@ -209,7 +209,7 @@
           type: BUTTON_TYPE,
           textRaw: choice.label,
           menuIcon: that.app.origin + '/' + choice.icon,
-          onClick: function() {
+          onClick: choice.onClick || function() {
             detail.contextMenuItemSelected(choice.id);
           }
         });

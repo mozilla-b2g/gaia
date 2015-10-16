@@ -5,10 +5,11 @@
 /* global LazyLoader */
 /* global ManifestHelper */
 /* global ModalDialog */
-/* global SystemBanner */
 /* global Template */
 /* global focusManager */
 /* global AppInstallDialogs */
+/* global AppWindowManager */
+/* global applications */
 
 'use strict';
 
@@ -31,7 +32,6 @@ var AppInstallManager = {
     this.appInstallDialogs = new AppInstallDialogs(
       document.getElementById('app-install-dialogs'));
     this.appInstallDialogs.start();
-    this.systemBanner = new SystemBanner();
     this.imeLayoutDialog = document.getElementById('ime-layout-dialog');
     this.imeListTemplate = document.getElementById('ime-list-template');
     this.imeList = document.getElementById('ime-list');
@@ -43,14 +43,31 @@ var AppInstallManager = {
     this.appInfos = {};
     this.setupQueue = [];
     this.isSetupInProgress = false;
+    this.marketplaceURLPattern = 'marketplace';
+    this.previewOpened = {};
+    this.openedTimes = 3;
+
     window.addEventListener('mozChromeEvent',
       (function ai_handleChromeEvent(e) {
-      if (e.detail.type == 'webapps-ask-install') {
-        this.handleAppInstallPrompt(e.detail);
-      }
-      if (e.detail.type == 'webapps-ask-uninstall') {
-        this.handleAppUninstallPrompt(e.detail);
-      }
+        var manifestURL = e.detail.app.manifestURL;
+        if (e.detail.type === 'webapps-ask-install') {
+          if (this.isMarketPlaceAppActive()) {
+            this.dispatchResponse(e.detail.id, 'webapps-install-granted');
+            this.addPreviewAppManifestURL(manifestURL);
+          } else {
+            this.handleAppInstallPrompt(e.detail);
+          }
+        }
+        if (e.detail.type === 'webapps-ask-uninstall') {
+          var isPreviewApp =
+            this.getPreviewAppManifestURL().indexOf(manifestURL) !== -1;
+          if (isPreviewApp) {
+            this.dispatchResponse(e.detail.id, 'webapps-uninstall-granted');
+            this.removePreviewAppManifestURL(manifestURL);
+          } else {
+            this.handleAppUninstallPrompt(e.detail);
+          }
+        }
     }).bind(this));
 
     window.addEventListener('applicationinstall',
@@ -79,6 +96,24 @@ var AppInstallManager = {
 
     // TODO: write an integration test for pressing home.
     window.addEventListener('home', this.hideAllDialogs.bind(this));
+
+    window.addEventListener('appopening', (evt) => {
+      if (evt.detail.url.indexOf('app-deck.gaiamobile.org') !== -1) {
+        this.clearPreviewApps();
+      }
+    });
+
+    window.addEventListener('previewterminated', (evt) => {
+      if (this.previewOpened[evt.detail.manifestURL] !== this.openedTimes) {
+        this.clearPreviewApps();
+      }
+    });
+  },
+
+  isMarketPlaceAppActive: function ai_isMarketPlaceAppActive() {
+    var activeApp = AppWindowManager.getActiveApp();
+    return activeApp &&
+      (activeApp.manifestURL.indexOf(this.marketplaceURLPattern) !== -1);
   },
 
   hideAllDialogs: function ai_hideAllDialogs(e) {
@@ -292,6 +327,139 @@ var AppInstallManager = {
     app.onprogress = this.handleProgress;
   },
 
+  previewApp: function ai_previewApp(app) {
+    if (!this.isMarketPlaceAppActive()) {
+      return;
+    }
+
+    var marketplace = AppWindowManager.getActiveApp();
+    var manifestURL = app.manifestURL;
+    var appURL = app.origin + app.manifest.launch_path;
+
+    marketplace.childWindowFactory.createPreviewWindow({
+      detail: {
+        url: appURL,
+        origin: app.origin,
+        manifestURL: manifestURL
+      }
+    });
+
+    marketplace.element.addEventListener('_closed', (evt) => {
+      this.clearPreviewApps();
+    });
+
+    var previewAppWindow = marketplace.getTopMostWindow();
+    var previewContent = previewAppWindow.element;
+    var msg = {
+      title: 'Press OPTION to',
+      text: 'Add to Apps'
+    };
+
+    previewContent.addEventListener('_opened', (evt) => {
+      var TYPE = window.InteractiveNotifications.TYPE;
+      window.interactiveNotifications.showNotification(TYPE.TOAST, msg);
+      this.previewOpened[manifestURL] = ++this.previewOpened[manifestURL] || 1;
+    });
+
+    previewContent.addEventListener('_closing', (evt) => {
+      if (this.previewOpened[manifestURL] === this.openedTimes &&
+        !this.getAppAddedState(manifestURL)) {
+        var options = { 'manifest': app.manifest };
+        var AID_TYPES = AppInstallDialogs.TYPES;
+        // Keep app info in case of it is destroyed by terminated event
+        var cloneApp = {
+          manifestURL: app.manifestURL,
+          manifest: app.manifest,
+          updateManifest: app.updateManifest
+        };
+        this.appInstallDialogs.show(AID_TYPES.AddAppDialog, options).then(
+          this.handleAddApp.bind(this, cloneApp),
+          this.handleAddAppCancel.bind(this)
+        ).catch(function(e) {
+          console.error(e);
+        });
+      }
+    });
+
+    previewContent.addEventListener('mozbrowsercontextmenu', (evt) => {
+      var menuItem;
+      if (!this.getAppAddedState(manifestURL)) {
+        menuItem = {
+          icon: 'style/icons/default.png',
+          id: 'addApp',
+          label: 'Add to Apps',
+          type: 'menuitem',
+          onClick: this.handleAddApp.bind(this, app)
+        };
+      } else {
+        menuItem = {
+          icon: 'style/icons/default.png',
+          id: 'deleteApp',
+          label: 'Delete from Apps',
+          type: 'menuitem',
+          onClick: navigator.mozApps.mgmt.uninstall.bind(navigator, app)
+        };
+      }
+
+      evt.detail.contextmenu = {
+        type: 'menu',
+        customized: true,
+        items: [menuItem]
+      };
+
+      previewAppWindow.contextmenu.show(evt);
+    });
+  },
+
+  getPreviewAppManifestURL: function() {
+    var previewApps = localStorage.getItem('preview-app') || '';
+    return (previewApps === '') ? [] : previewApps.split(',');
+  },
+
+  addPreviewAppManifestURL: function(manifestURL) {
+    var previewApps = this.getPreviewAppManifestURL();
+    if (previewApps.indexOf(manifestURL) === -1) {
+      previewApps.push(manifestURL);
+      localStorage.setItem('preview-app', previewApps.join(','));
+    }
+  },
+
+  removePreviewAppManifestURL: function(manifestURL) {
+    var previewApps = this.getPreviewAppManifestURL();
+    var removeIndex = previewApps.indexOf(manifestURL);
+    if (removeIndex !== -1) {
+      previewApps.splice(removeIndex, 1);
+    }
+    localStorage.setItem('preview-app', previewApps.join(','));
+  },
+
+  clearPreviewApps: function() {
+    this.getPreviewAppManifestURL().forEach((appManifest) => {
+      var app = applications.getByManifestURL(appManifest);
+      if (app) {
+        navigator.mozApps.mgmt.uninstall(app);
+      }
+    });
+  },
+
+  getAppAddedState: function(manifestURL) {
+    var installedApps = Object.keys(applications.installedApps);
+    return this.getPreviewAppManifestURL().indexOf(manifestURL) === -1 &&
+      installedApps.indexOf(manifestURL) !== -1;
+  },
+
+  handleAddApp: function(app) {
+    this.removePreviewAppManifestURL(app.manifestURL);
+    this.showInstallSuccess(app);
+  },
+
+  handleAddAppCancel: function(err) {
+    if (err) {
+      console.error(err);
+    }
+    this.clearPreviewApps();
+  },
+
   handleInstallSuccess: function ai_handleInstallSuccess(app) {
     var manifest = app.manifest || app.updateManifest;
     var role = manifest.role;
@@ -303,7 +471,9 @@ var AppInstallManager = {
       return;
     }
 
-    if (this.configurations[role]) {
+    if (this.isMarketPlaceAppActive()) {
+      this.previewApp(app);
+    } else if (this.configurations[role]) {
       this.setupQueue.push(app);
       this.checkSetupQueue();
     } else {
@@ -323,10 +493,11 @@ var AppInstallManager = {
     var appManifest = new ManifestHelper(manifest);
     var name = appManifest.name;
     var msg = {
-      id: 'app-install-success',
-      args: { appName: name }
+      title: name,
+      text: 'Added to Apps'
     };
-    this.systemBanner.show(msg);
+    var TYPE = window.InteractiveNotifications.TYPE;
+    window.interactiveNotifications.showNotification(TYPE.TOAST, msg);
   },
 
   checkSetupQueue: function ai_checkSetupQueue() {

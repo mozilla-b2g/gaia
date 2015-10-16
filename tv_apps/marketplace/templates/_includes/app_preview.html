@@ -1,0 +1,9 @@
+<div class="preview">
+  <img src="{{ app.previews[0].image_url }}"
+       alt="{{ app.name }}" title="{{ app.name }}">
+</div>
+
+<h1 class="name">{{ app.name }}</h1>
+<span class="type">{{ app.premium_type }}</span>
+<span class="author">By {{ app.author }}</span>
+<article class="description">{{ app.description | safe }}</article>

@@ -109,7 +109,6 @@
       }
 
       this.app.debug(currentState, state, '::', evt);
-
       this.switchTransitionState(state);
       this.resetTransition();
       this['_do_' + state]();

@@ -271,7 +271,6 @@
     if (this.browser.element.classList.contains('hidden')) {
       return;
     }
-
     this._setVisible(false);
     this.browser.element.classList.add('hidden');
   };
@@ -1272,7 +1271,6 @@
                               bubbles: false,
                               detail: detail || this
                             });
-
       this.debug('publishing internal event: ' + event);
       this.element.dispatchEvent(internalEvent);
     }

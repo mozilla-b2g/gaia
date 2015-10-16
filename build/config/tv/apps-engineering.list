@@ -9,6 +9,7 @@ tv_apps/device-deck
 tv_apps/dashboard
 tv_apps/dlna-player
 tv_apps/fling-player
+tv_apps/marketplace
 tv_apps/notification-receiver
 tv_apps/weather-widget
 tv_apps/remote-control

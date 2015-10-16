@@ -1,0 +1,72 @@
+/**
+ * App listing styles.
+ */
+
+@import 'lib';
+
+.app-list {
+    position: absolute;
+    top: 40%;
+    left: 0;
+
+    width: 100%;
+    height: 60%;
+
+    overflow: auto;
+
+    ul {
+        padding: 4em 2em 2em 4em;
+    }
+
+    li {
+        float: left;
+        margin: 0 2em 2em 0;
+
+        list-style: none;
+    }
+}
+
+.app-list-app {
+    position: relative;
+
+    width: 150px;
+    height: 150px;
+    outline: 0;
+    border-radius: 100%;
+    overflow: hidden;
+
+    color: $greyscale-light-grey;
+    background-color: $greyscale-light-grey;
+
+    backface-visibility: hidden;
+
+    transition: border-width .5s,
+                transform .5s;
+
+    &:focus {
+        z-index: 1;
+
+        border: 8px solid $greyscale-white;
+
+        transform: scale(1.5);
+    }
+
+    img {
+        width: 100%;
+    }
+
+    .name {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+
+        width: 100%;
+        padding: .5em .5em 1.5em;
+
+        text-align: center;
+
+        color: $greyscale-white;
+        background-color: $greyscale-dark-grey;
+        background-color: rgba(0, 0, 0, .375);
+    }
+}

@@ -1,0 +1,31 @@
+/**
+ * Site-wide styles.
+ */
+* {
+  -moz-box-sizing: border-box;
+       box-sizing: border-box;
+}
+html,
+body {
+  height: 100%;
+}
+body {
+  overflow: hidden;
+  background-color: #cbcbcb;
+}
+ul {
+  margin: 0;
+  padding: 0;
+}
+.clearfix::before,
+.clearfix::after {
+  content: "";
+  display: table;
+}
+.clearfix::after {
+  clear: both;
+}
+main,
+.page {
+  height: 100%;
+}

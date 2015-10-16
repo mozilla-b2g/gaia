@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no,
+                                   initial-scale=1, maximum-scale=1">
+    <title>Firefox Marketplace App</title>
+
+    {% if compiled %}
+      <link rel="stylesheet" href="/media/css/splash.css">
+      <link rel="stylesheet" href="/media/css/include.css">
+    {% else %}
+      <!--Add stylesheets here.-->
+      <link rel="stylesheet" href="/media/css/normalize.css">
+      <link rel="stylesheet" href="/media/css/site.styl.css">
+      <link rel="stylesheet" href="/media/css/app-preview.styl.css">
+      <link rel="stylesheet" href="/media/css/app-list.styl.css">
+    {% endif %}
+  </head>
+
+  <body class="home" data-media="">
+    <noscript><p>Sorry, you need JavaScript to use this site.</p></noscript>
+
+    <main>
+      <div id="page" class="page" role="main"></div>
+    </main>
+
+    {% if compiled %}
+      <script src="/media/js/include.js" defer></script>
+    {% else %}
+      <script data-main="/media/js/main" src="/media/js/lib/require.js"></script>
+    {% endif %}
+  </body>
+</html>

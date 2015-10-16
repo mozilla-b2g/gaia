@@ -1,0 +1,54 @@
+/**
+ * App listing styles.
+ */
+.app-list {
+  position: absolute;
+  top: 40%;
+  left: 0;
+  width: 100%;
+  height: 60%;
+  overflow: auto;
+}
+.app-list ul {
+  padding: 4em 2em 2em 4em;
+}
+.app-list li {
+  float: left;
+  margin: 0 2em 2em 0;
+  list-style: none;
+}
+.app-list-app {
+  position: relative;
+  width: 150px;
+  height: 150px;
+  outline: 0;
+  border-radius: 100%;
+  overflow: hidden;
+  color: #f1f1f1;
+  background-color: #f1f1f1;
+  -webkit-backface-visibility: hidden;
+          backface-visibility: hidden;
+  -webkit-transition: border-width 0.5s, -webkit-transform 0.5s;
+          transition: border-width 0.5s, transform 0.5s;
+}
+.app-list-app:focus {
+  z-index: 1;
+  border: 8px solid #fff;
+  -webkit-transform: scale(1.5);
+      -ms-transform: scale(1.5);
+          transform: scale(1.5);
+}
+.app-list-app img {
+  width: 100%;
+}
+.app-list-app .name {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding: 0.5em 0.5em 1.5em;
+  text-align: center;
+  color: #fff;
+  background-color: #797979;
+  background-color: rgba(0,0,0,0.375);
+}
