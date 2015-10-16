@@ -44,7 +44,7 @@ class TestSettingsRTLAC(GaiaImageCompareTestCase):
             settings.open_firefox_accounts()
             self.take_screenshot('firefox_accounts')
 
-        elif option == 'password': # provide incorrect password
+        elif option == 'password':  # provide incorrect password
             fxaccount = findmydevice_view.tap_login()
             fxaccount.enter_email(self.environment.email['gmail']['email'])
             fxaccount.enter_password('wrongpassword')
@@ -56,7 +56,7 @@ class TestSettingsRTLAC(GaiaImageCompareTestCase):
             fxaccount = findmydevice_view.tap_login()
             fxaccount.enter_email('rtl@unverified')
             fxaccount.enter_password('unverified')
-            fxaccount.wait_for_successful_login()
+            fxaccount.wait_for_unverified_login()
             self.take_screenshot('findmydevice-verifypending', top_frame=True)
             fxaccount.tap_done()
             self.take_screenshot('findmydevice-confirmyouracct')
