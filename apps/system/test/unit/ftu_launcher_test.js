@@ -85,9 +85,9 @@ suite('launch ftu >', function() {
       publishStub = this.sinon.stub(subject, 'publish');
     });
 
-    test('handle started event', function() {
+    test('dont publish ftustarted on ftucomms started event', function() {
       subject['_handle_iac-ftucomms'](mockIACFTUCommsStartedEvent);
-      assert.isTrue(publishStub.calledWith('started'));
+      assert.isFalse(publishStub.calledWith('started'));
     });
 
     test('handle step event', function() {
