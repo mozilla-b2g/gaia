@@ -228,9 +228,7 @@
       return false;
     }
 
-    var url = new URL(this.config.url);
-    var path = url.hostname + url.pathname;
-    return path.indexOf(scope) === 0;
+    return this.config.url.indexOf(scope) === 0;
   };
 
   /**

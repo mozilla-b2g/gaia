@@ -6,7 +6,6 @@
 /* global MozActivity */
 /* global SettingsListener */
 /* global Service */
-/* global UrlHelper */
 /* global SystemBanner */
 
 'use strict';
@@ -73,6 +72,7 @@
     }
 
     this.pinned = chrome.pinned || false;
+    console.log('AppChrome#'+this.app.instanceID + ', pinned ' + this.pinned);
 
     if (this.isSearchApp()) {
       this._fixedTitle = true;
@@ -119,6 +119,7 @@
   };
 
   AppChrome.prototype.combinedView = function an_combinedView() {
+    console.log('AppChrome#' + this.app.instanceID + ', building combinedView');
     var className = this.CLASS_NAME + this.instanceID;
 
     return `<div class="chrome chrome-combined" id="${className}">
@@ -168,6 +169,7 @@
   };
 
   AppChrome.prototype.view = function an_view() {
+    console.log('AppChrome#' + this.app.instanceID + ', building view');
     var className = this.CLASS_NAME + this.instanceID;
 
     return `<div class="chrome chrome-plain" id="${className}">
@@ -320,6 +322,9 @@
       case 'mozbrowsermetachange':
         this.handleMetaChange(evt);
         break;
+      case 'pins-scopechange':
+        this.handleBookmarksScopeChange(evt);
+        break;
     }
   };
 
@@ -384,7 +389,11 @@
         break;
 
       case this.pinButton:
-        this.pinSite();
+        if (this.pinButton.dataset.action == 'unpin') {
+          this.unpinSite();
+        } else {
+          this.pinSite();
+        }
         break;
 
       case this.pinScrim:
@@ -414,58 +423,78 @@
     });
   };
 
+  AppChrome.prototype.getSiteUrl = function() {
+    var pageUrl = this.app.config.url;
+    var startUrl = this.app.webManifest && this.app.webManifest.start_url;
+    return startUrl ? (new URL(startUrl, pageUrl)).href : pageUrl;
+  };
+
   /**
    * Pin current site in bookmarks database.
    */
   AppChrome.prototype.pinSite = function ac_pinSite() {
-    this.pin();
+    console.log('AppChrome .pinSite, for: ', this.app.config.url);
+    var siteObject = {};
+    var manifestURL = this.app.webManifestURL;
+    var manifestObject = this.app.webManifest;
+    var pageUrl = this.app.config.url;
+    var systemBanner = this.systemBanner;
+    var hostname = (new URL(pageUrl)).hostname;
+    var rootUrl = (new URL('/', pageUrl)).href;
 
-    LazyLoader.load('shared/js/url_helper.js').then(() => {
-      var siteObject = {};
-      var manifestURL = this.app.webManifestURL;
-      var manifestObject = this.app.webManifest;
-      var pageUrl = this.app.config.url;
-      var systemBanner = this.systemBanner;
+    siteObject.type = 'url';
+    siteObject.iconable = false;
+    siteObject.icons = this.app.favicons;
+    siteObject.frecency = 1;
+    siteObject.pinned = true;
+    siteObject.pinnedFrom = pageUrl;
 
-      siteObject.type = 'url';
-      siteObject.iconable = false;
-      siteObject.icons = this.app.favicons;
-      siteObject.frecency = 1;
-      siteObject.pinned = true;
-      siteObject.pinnedFrom = pageUrl;
+    var siteUrl = this.getSiteUrl();
+    siteObject.id = siteUrl;
+    siteObject.url = siteUrl;
 
-      if (manifestURL && manifestObject) {
-        var startUrl =
-        UrlHelper.resolveUrl(manifestObject.start_url, pageUrl) || pageUrl;
-        siteObject.id = startUrl;
-        siteObject.url = startUrl;
-        siteObject.webManifestUrl = manifestURL;
-        siteObject.webManifest = manifestObject;
-        siteObject.name = manifestObject.short_name || manifestObject.name ||
-          UrlHelper.getHostname(pageUrl);
-        siteObject.scope =
-          UrlHelper.resolveUrl(manifestObject.scope, pageUrl) ||
-          UrlHelper.resolveUrl('/', pageUrl);
-      } else {
-        siteObject.id = pageUrl;
-        siteObject.name = this.app.name || UrlHelper.getHostname(pageUrl);
-        siteObject.scope = UrlHelper.resolveUrl('/', pageUrl);
-        siteObject.url = pageUrl;
-      }
+    if (manifestURL && manifestObject) {
+      siteObject.webManifestUrl = manifestURL;
+      siteObject.webManifest = manifestObject;
+      siteObject.name = manifestObject.short_name || manifestObject.name ||
+        hostname;
+      siteObject.scope = manifestObject.scope ?
+        (new URL(manifestObject.scope, pageUrl)).href : rootUrl;
+    } else {
+      siteObject.name = this.app.name || hostname;
+      siteObject.scope = rootUrl;
+    }
 
-      // Set the .icon property before saving for
-      // backwards compatibility with verticalhome
-      IconsHelper.getIcon(siteObject.url, null,
-        {icons: this.app.favicons}, siteObject).then(icon => {
+    // Set the .icon property before saving for
+    // backwards compatibility with verticalhome
+    IconsHelper.getIcon(siteObject.url, null,
+      {icons: this.app.favicons}, siteObject).then(icon => {
         siteObject.icon = icon;
         BookmarksDatabase.put(siteObject, siteObject.id)
-          .then(function() {
-            systemBanner.show('pinned-to-home-screen-message');
-          })
-          .catch(function(error) {
-           console.error('Failed to save site: ' + error);
+        .then(function() {
+          systemBanner.show('pinned-to-home-screen-message');
+        })
+        .catch(function(error) {
+          console.error('Failed to save site: ' + error);
         });
-      });
+    });
+  };
+
+  /**
+   * Un-pin current site from bookmarks database.
+   */
+  AppChrome.prototype.unpinSite = function ac_pinSite() {
+    console.log('AppChrome .unpinSite, for: ', this.app.config.url);
+    if (!this.pinned) {
+      return;
+    }
+    var siteId = this.getSiteUrl();
+    BookmarksDatabase.remove(siteId).then(() => {
+      this.app.debug('unpinSite, unpinned: '+ siteId);
+      this.systemBanner.show('unpinned-site-message');
+      // 'removed' listener will call unpin()
+    }, (evt) => {
+      this.app.debug('unpinSite, remove cancalled for: '+ siteId);
     });
   };
 
@@ -473,6 +502,7 @@
    * Put browser chrome in pinned state.
    */
   AppChrome.prototype.pin = function ac_pin() {
+    console.log('AppChrome .pin, for: ', this.app.config.url);
     this.hidePinDialogCard();
     this.collapse();
     this.pinned = true;
@@ -483,6 +513,7 @@
    * Remove pinned state from the browser.
    */
   AppChrome.prototype.unpin = function ac_unpin() {
+    console.log('AppChrome .pin, for: ', this.app.config.url);
     this.hidePinDialogCard();
     this.pinned = false;
     if (this.app.config && this.app.config.scrollable) {
@@ -524,9 +555,19 @@
   };
 
   AppChrome.prototype.setPinDialogCard = function ac_setPinDialogCard() {
-    navigator.mozL10n.setAttributes(this.pinType, 'pinning-pin-type', {
-      'type': this.app.name
-    });
+    if (this.pinned) {
+      navigator.mozL10n.setAttributes(this.pinType, 'pinning-unpin-type', {
+        'type': this.app.name
+      });
+      this.pinButton.setAttribute('data-l10n-id', 'pinning-unpin-site');
+      this.pinButton.dataset.action = 'unpin';
+    } else {
+      navigator.mozL10n.setAttributes(this.pinType, 'pinning-pin-type', {
+        'type': this.app.name
+      });
+      this.pinButton.setAttribute('data-l10n-id', 'pinning-pin');
+      this.pinButton.dataset.action = 'pin';
+    }
     this.pinSiteName.textContent = this.app.name;
     this.setOrigin();
     this.pinDialog.classList.remove('hidden');
@@ -613,6 +654,22 @@
     });
   };
 
+  AppChrome.prototype.handleBookmarksScopeChange = function (evt) {
+    var scope = evt.detail.scope;
+    console.log('AppChrome handleBookmarksScopeChange:', evt.detail);
+    if (this.app.inScope(scope)) {
+      switch (evt.detail.action) {
+        case 'add':
+        case 'update':
+          this.pin();
+          break;
+        case 'remove':
+          this.unpin();
+          break;
+      }
+    }
+  };
+
   AppChrome.prototype._registerEvents = function ac__registerEvents() {
     if (this.useCombinedChrome()) {
       LazyLoader.load('shared/js/bookmarks_database.js').then(() => {
@@ -622,6 +679,7 @@
       });
       LazyLoader.load('shared/elements/gaia_overflow_menu/script.js');
 
+      window.addEventListener('pins-scopechange', this);
       window.addEventListener('rocketbar-activating', this);
       this.stopButton.addEventListener('click', this);
       this.reloadButton.addEventListener('click', this);
@@ -671,6 +729,7 @@
   AppChrome.prototype._unregisterEvents = function ac__unregisterEvents() {
 
     if (this.useCombinedChrome()) {
+      window.removeEventListener('pins-scopechange', this);
       window.removeEventListener('rocketbar-activating', this);
       this.stopButton.removeEventListener('click', this);
       this.menuButton.removeEventListener('click', this);
@@ -972,9 +1031,12 @@
         }
         this.scrollable.scrollTop = 0;
         Service.request('PinsManager:isPinned', this._currentURL)
-          .then(function(isPinned) {
+          .then((isPinned) => {
             isPinned ? this.pin() : this.unpin();
-          }.bind(this));
+          });
+        if (this.app.config && this.app.config.scrollable) {
+          this.app.element.classList.add('collapsible');
+        }
       }
 
       // Set the title for the private browser landing page.
