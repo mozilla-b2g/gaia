@@ -86,13 +86,15 @@ var BookmarksHelper = (() => {
       console.error('Inconsistent records', localRecord, remoteRecord);
       throw new Error('Inconsistent records');
     }
+    console.log('merging', localRecord, remoteRecord);
 
     localRecord.name = remoteRecord.name;
     if (!localRecord.fxsyncRecords) {
       localRecord.fxsyncRecords = {};
     }
     localRecord.fxsyncRecords[remoteRecord.fxsyncId] =
-        remoteRecord.fxsyncPayload;
+        remoteRecord.fxsyncRecord;
+    console.log('merged', localRecord);
     return localRecord;
   }
 
@@ -122,7 +124,8 @@ var BookmarksHelper = (() => {
           fxsyncRecords: {}
         };
         newRecord.fxsyncRecords[remoteRecord.fxsyncId] =
-            remoteRecord.fxsyncPayload;
+          remoteRecord.fxsyncRecord;
+
         return store.add(newRecord, id, revisionId).then(() => {
           return setDataStoreId(remoteRecord.fxsyncId, id);
         });
@@ -319,7 +322,10 @@ DataAdapters.bookmarks = {
         type: payload.type === 'bookmark' ? 'url' : 'others',
         iconable: false,
         icon: '',
-        fxsyncPayload: payload,
+        fxsyncRecord: {
+          last_modified: remoteRecords[i].last_modified,
+          payload: remoteRecords[i].payload
+        },
         fxsyncId: payload.id
       });
     }
