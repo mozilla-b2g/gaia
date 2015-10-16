@@ -369,9 +369,13 @@ System.prototype = {
     body.tap(screenSize.width / 2, screenSize.height - 10);
   },
 
+  getBrowserSelector: function(url) {
+    return 'div[transition-state="opened"] iframe[src="' + url + '"]';
+  },
+
   gotoBrowser: function(url) {
     var frame = this.client.helper.waitForElement(
-      'div[transition-state="opened"] iframe[src="' + url + '"]');
+      this.getBrowserSelector(url));
     this.client.switchToFrame(frame);
     this.client.helper.waitForElement('body');
   },
@@ -520,8 +524,18 @@ System.prototype = {
   },
 
   waitForBrowser: function waitForBrowser(url) {
-    return this.client.helper.waitForElement(
-      'div[transition-state="opened"] iframe[src="' + url + '"]');
+    return this.client.helper.waitForElement(this.getBrowserSelector(url));
+  },
+
+  browserIsDisplayed: function browserIsDisplayed(url) {
+    // Use short timeout because we want to know right now if browser is there.
+    var client = this.client.scope({ searchTimeout: 10 });
+    try {
+      var browser = client.findElement(this.getBrowserSelector(url));
+      return browser.displayed();
+    } catch (e) {
+      return false;
+    }
   },
 
   // It looks for an activity menu, and returns the first

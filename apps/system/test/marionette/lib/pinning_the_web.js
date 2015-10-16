@@ -34,11 +34,16 @@ PinningTheWeb.prototype = {
     return this.client.helper.waitForElement(this.Selectors.sitePanelArrow);
   },
 
-  openAndPinSite: function openAndPinSite(url) {
+  _openUrl: function openUrl(url) {
+    // this.system.tapHome();
     this.rocketbar.homescreenFocus();
     this.rocketbar.enterText(url, true);
-    this.system.gotoBrowser(url);
+    this.rocketbar.switchToBrowserFrame(url);
     this.client.switchToFrame();
+  },
+
+  openAndPinSite: function openAndPinSite(url) {
+    this._openUrl(url);
     this.client.scope({ searchTimeout: 100 }).waitFor(function() {
       this.client.switchToFrame();
       try {
@@ -55,26 +60,34 @@ PinningTheWeb.prototype = {
     }.bind(this));
   },
 
+  openAndUnpinSite: function openAndUnpinSite(url) {
+    var client = this.client;
+    var system = this.system;
+    this._openUrl(url);
+    //Twice, one for expanding
+    system.siteIcon.tap();
+    system.siteIcon.tap();
+    client.waitFor(function() {
+      return system.pinButton.displayed();
+    });
+    system.pinButton.tap();
+    client.waitFor(function() {
+      var toast = client.findElement('#screen > gaia-toast');
+      return toast && toast.displayed();
+    });
+  },
+
   openAndPinSiteFromBrowser: function openAndPinSite(url) {
-    this.rocketbar.homescreenFocus();
-    this.rocketbar.enterText(url, true);
-    this.system.gotoBrowser(url);
+    this._openUrl(url);
     this._clickPinContextMenu();
-    this.client.waitFor(function() {
-      return this.pinDialog.displayed();
-    }.bind(this));
     this.sitePanelArrow.tap();
     this.pinSiteButton.tap();
+    this.client.helper.waitForElementToDisappear(this.pinDialog);
   },
 
   openAndPinPage: function openAndPinSite(url) {
-    this.rocketbar.homescreenFocus();
-    this.rocketbar.enterText(url, true);
-    this.system.gotoBrowser(url);
+    this._openUrl(url);
     this._clickPinContextMenu();
-    this.client.waitFor(function() {
-      return this.pinDialog.displayed();
-    }.bind(this));
     this.pinPageButton.tap();
   },
 
@@ -88,24 +101,11 @@ PinningTheWeb.prototype = {
 
   _clickPinContextMenu: function() {
     this.client.switchToFrame();
-    this.client.waitFor(function() {
-      try {
-        this.system.appChromeContextLink.tap();
-      } catch (e) {
-        return false;
-      }
-      return true;
-    }.bind(this));
-
-    var selector = this.system.Selector.appChromeContextMenuPin;
-    var scopedClient = this.client.scope({searchTimeout: 100});
-    scopedClient.findElement(selector, function(err, element) {
-      if (err) {
-        this.system.appChromeContextMenuCancel.tap();
-        this._clickPinContextMenu();
-      }
-        this.system.appChromeContextMenuPin.tap();
-    }.bind(this));
+    this.system.appChromeContextLink.tap();
+    var menu = this.system.appChromeContextMenu;
+    this.system.appChromeContextMenuPin.tap();
+    this.client.helper.waitForElementToDisappear(menu);
+    this.client.helper.waitForElement(this.pinDialog);
   }
 };
 

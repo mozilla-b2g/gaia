@@ -91,8 +91,8 @@
 
   PinPageSystemDialog.prototype._registerEvents = function() {
     this.header.addEventListener('action', this.close.bind(this));
-    this.pinButton.addEventListener('click', this.save.bind(this, 'page'));
-    this.pinSiteButton.addEventListener('click', this.save.bind(this, 'site'));
+    this.pinButton.addEventListener('click', this.save.bind(this));
+    this.pinSiteButton.addEventListener('click', this.save.bind(this));
     this.arrow.addEventListener('click', this.toggleSitePanel.bind(this));
   };
 
@@ -131,19 +131,25 @@
     this.pinCardContainer.appendChild(this.card);
   };
 
-  PinPageSystemDialog.prototype.save = function(type) {
+  PinPageSystemDialog.prototype.save = function(evt) {
+    var action = evt.target.dataset.action;
     var activeApp = Service.query('getTopMostWindow');
-    switch (type) {
-      case 'page':
+    switch (action) {
+      case 'pin':
         activeApp.appChrome.pinPage();
+        this._banner.show();
         break;
 
-      case 'site':
+      case 'pin-site':
         activeApp.appChrome.pinSite();
         this.pinSiteContainer.classList.remove('active');
         break;
+
+      case 'unpin-site':
+        activeApp.appChrome.unpinSite();
+        this.pinSiteContainer.classList.remove('active');
+        break;
     }
-    this._banner.show();
 
     // Waiting for the animation. We should migrate this to a
     // hide event when https://github.com/gaia-components/gaia-toast/issues/2
@@ -175,6 +181,17 @@
     siteBadge.icon = data.icon;
     this.origin.textContent = (data.name !== origin) ? origin : '';
     this.siteName.textContent = data.name;
+
+    Service.request('PinsManager:isPinned', data.url)
+      .then((isPinned) => {
+        if (isPinned) {
+          this.pinSiteButton.setAttribute('data-l10n-id', 'pinning-unpin-site');
+          this.pinSiteButton.dataset.action = 'unpin-site';
+        } else {
+          this.pinSiteButton.setAttribute('data-l10n-id', 'pinning-pin');
+          this.pinSiteButton.dataset.action = 'pin-site';
+        }
+      });
   };
 
   PinPageSystemDialog.prototype.hide = function() {
