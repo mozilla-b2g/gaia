@@ -398,6 +398,9 @@ ifdef GAIA_DISTRIBUTION_DIR
   endif
   ifneq ($(wildcard $(DISTRIBUTION_APP_CONFIG)),)
     GAIA_APP_CONFIG := $(DISTRIBUTION_APP_CONFIG)
+    ifeq ($(GAIA_APP_TARGET), engineering)
+      GAIA_APP_CONFIG := $(GAIA_DISTRIBUTION_DIR)$(SEP)apps-engineering.list
+    endif
   endif
   ifneq ($(wildcard $(DISTRIBUTION_VARIANT)),)
     VARIANT_PATH := $(DISTRIBUTION_VARIANT)
