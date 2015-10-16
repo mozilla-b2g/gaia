@@ -13,7 +13,7 @@
       "readonly": false,
       "description": "Stores data about browsing history."
     },
-    "bookmarks": {
+    "bookmarks_store": {
       "readonly": false,
       "description": "Stores data about bookmarks."
     }

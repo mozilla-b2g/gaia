@@ -39,7 +39,7 @@ var BookmarksHelper = (() => {
     if (store) {
       return Promise.resolve(store);
     }
-    return navigator.getDataStores('bookmarks').then(stores => {
+    return navigator.getDataStores('bookmarks_store').then(stores => {
       store = stores[0];
       return store;
     });
@@ -108,6 +108,7 @@ var BookmarksHelper = (() => {
     var id = remoteRecord.id;
     var revisionId;
     return _ensureStore().then(store => {
+      console.log('store', store);
       revisionId = store.revisionId;
       return store.get(id).then(localRecord => {
         console.log('adding 2', remoteRecord, localRecord);
@@ -119,14 +120,22 @@ var BookmarksHelper = (() => {
           });
           // TODO: deal with race conditions
         }
-        console.log('adding 4', remoteRecord, localRecord);
-        return store.add(remoteRecord, id, revisionId).then(() => {
+        var newRecord = {
+          url: remoteRecord.url,
+          name: remoteRecord.name,
+          fxsyncRecords: {}
+        };
+        newRecord.fxsyncRecords[remoteRecord.fxsyncId] =
+            remoteRecord.fxsyncPayload;
+        console.log('adding 4', remoteRecord, newRecord);
+        return store.add(newRecord, id, revisionId).then(() => {
           return setDataStoreId(remoteRecord.fxsyncId, id);
         });
         // TODO: deal with race conditions
       });
     }).catch(e => {
       console.error(e);
+      throw e;
     });
   }
 
