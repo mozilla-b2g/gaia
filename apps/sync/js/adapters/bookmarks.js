@@ -91,8 +91,11 @@ var BookmarksHelper = (() => {
     if (!localRecord.fxsyncRecords) {
       localRecord.fxsyncRecords = {};
     }
-    localRecord.fxsyncRecords[remoteRecord.fxsyncId] =
-        remoteRecord.fxsyncPayload;
+    localRecord.fxsyncRecords[remoteRecord.fxsyncId] =  {
+        last_modified: remoteRecord.last_modified,
+        payload: remoteRecord.payload
+    };
+    console.log('merged', localRecord);
     return localRecord;
   }
 
@@ -121,8 +124,11 @@ var BookmarksHelper = (() => {
           name: remoteRecord.name,
           fxsyncRecords: {}
         };
-        newRecord.fxsyncRecords[remoteRecord.fxsyncId] =
-            remoteRecord.fxsyncPayload;
+        newRecord.fxsyncRecords[remoteRecord.fxsyncId] = {
+          last_modified: remoteRecord.last_modified,
+          payload: remoteRecord.fxsyncPayload
+        };
+
         return store.add(newRecord, id, revisionId).then(() => {
           return setDataStoreId(remoteRecord.fxsyncId, id);
         });
