@@ -1,5 +1,8 @@
 define(function(require) {
 'use strict';
+/* global MockMozIntl */
+
+require('/shared/test/unit/mocks/mock_moz_intl.js');
 
 var Timespan = require('common/timespan');
 var Calc = require('common/calc');
@@ -11,6 +14,7 @@ suite('calendar/calc', function() {
 
   setup(function() {
     subject = Calc;
+    window.mozIntl = MockMozIntl;
   });
 
   teardown(function() {
@@ -199,41 +203,43 @@ suite('calendar/calc', function() {
   });
 
   suite('handle localization events', function() {
-    var reaL10n;
     var firstDayOfTheWeek = 0;
 
     suiteSetup(function() {
-      reaL10n = navigator.mozL10n;
-      navigator.mozL10n = {
-        get: function(name) {
-          if (name === 'firstDayOfTheWeek') {
-            return firstDayOfTheWeek;
-          }
-          return reaL10n.get.apply(this, arguments);
-        }
-      };
+      sinon.stub(window.mozIntl, 'calendarInfo', function(token) {
+        return Promise.resolve(firstDayOfTheWeek);
+      });
     });
 
     suiteTeardown(function() {
-      navigator.mozL10n = reaL10n;
+      window.mozIntl.calendarInfo.restore();
     });
 
-    test('firstDayOfTheWeek = 1', function() {
+    test('firstDayOfTheWeek = 1', function(done) {
       firstDayOfTheWeek = 1;
       window.dispatchEvent(new window.Event('localized'));
-      assert.equal(subject.startDay, 1, 'week starts on Monday');
+      Promise.resolve().then(() => {
+        assert.equal(subject.startDay, 1, 'week starts on Monday');
+        done();
+      });
     });
 
-    test('firstDayOfTheWeek = 6', function() {
+    test('firstDayOfTheWeek = 6', function(done) {
       firstDayOfTheWeek = 6;
       window.dispatchEvent(new window.Event('localized'));
-      assert.equal(subject.startDay, 6, 'week starts on Saturday');
+      Promise.resolve().then(() => {
+        assert.equal(subject.startDay, 6, 'week starts on Saturday');
+        done();
+      });
     });
 
-    test('firstDayOfTheWeek = 0', function() {
+    test('firstDayOfTheWeek = 0', function(done) {
       firstDayOfTheWeek = 0;
       window.dispatchEvent(new window.Event('localized'));
-      assert.equal(subject.startDay, 0, 'week starts on Sunday');
+      Promise.resolve().then(() => {
+        assert.equal(subject.startDay, 0, 'week starts on Sunday');
+        done();
+      });
     });
   });
 

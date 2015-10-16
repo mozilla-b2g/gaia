@@ -3,11 +3,16 @@ define(function(require) {
 
 var MonthDayAgenda = require('views/month_day_agenda');
 var core = require('core');
-var dateFormat = require('date_format');
 var template = require('templates/month_day_agenda');
+var intl = require('intl');
+
 
 suite('Views.MonthDayAgenda', function() {
   var subject;
+
+  suiteSetup(function() {
+    intl.init();
+  });
 
   teardown(function() {
     var el = document.getElementById('test');
@@ -49,10 +54,10 @@ suite('Views.MonthDayAgenda', function() {
       var format = 'months-day-view-header-format';
       subject.changeDate(now);
 
-      assert.deepEqual(currentDate.textContent, dateFormat.localeFormat(
-        now,
-        navigator.mozL10n.get(format)
-      ), 'should set the currentDate textContent');
+      assert.equal(
+        currentDate.getAttribute('data-l10n-date-format'),
+        format,
+        'should set the currentDate textContent');
 
       assert.deepEqual(new Date(currentDate.dataset.date), new Date(now));
       assert.deepEqual(currentDate.dataset.l10nDateFormat, format);
@@ -73,10 +78,10 @@ suite('Views.MonthDayAgenda', function() {
 
       assert.notDeepEqual(subject.date, oldDate, 'date changed');
 
-      assert.deepEqual(currentDate.textContent, dateFormat.localeFormat(
-        subject.date,
-        navigator.mozL10n.get(format)
-      ), 'should set the currentDate textContent');
+      assert.equal(
+        currentDate.getAttribute('data-l10n-date-format'),
+        format,
+        'should set the currentDate textContent');
 
       assert.deepEqual(
         new Date(currentDate.dataset.date),
