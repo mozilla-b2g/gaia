@@ -93,7 +93,7 @@ var BookmarksHelper = (() => {
     }
     localRecord.fxsyncRecords[remoteRecord.fxsyncId] =
         remoteRecord.fxsyncPayload;
-
+    console.log('merged', localRecord, remoteRecord);
     return localRecord;
   }
 
@@ -103,24 +103,28 @@ var BookmarksHelper = (() => {
     //     we merge it with the remote one.
     // 2.B Add a new record with RevisionId.
     // 3. Add the DataStore record ID into LocalID <-> RemoteID matching table.
+    console.log('adding', remoteRecord);
 
     var id = remoteRecord.id;
     var revisionId;
     return _ensureStore().then(store => {
       revisionId = store.revisionId;
-      return store.get(id);
-    }).then(localRecord => {
-      if (localRecord) {
-        var newBookmark = mergeRecordsToDataStore(localRecord, remoteRecord);
-        return store.put(newBookmark, id, revisionId).then(() => {
+      return store.get(id).then(localRecord => {
+        console.log('adding 2', remoteRecord, localRecord);
+        if (localRecord) {
+          var newBookmark = mergeRecordsToDataStore(localRecord, remoteRecord);
+          console.log('adding 3', remoteRecord, localRecord, newBookmark);
+          return store.put(newBookmark, id, revisionId).then(() => {
+            return setDataStoreId(remoteRecord.fxsyncId, id);
+          });
+          // TODO: deal with race conditions
+        }
+        console.log('adding 4', remoteRecord, localRecord);
+        return store.add(remoteRecord, id, revisionId).then(() => {
           return setDataStoreId(remoteRecord.fxsyncId, id);
         });
         // TODO: deal with race conditions
-      }
-      return store.add(remoteRecord, id, revisionId).then(() => {
-        return setDataStoreId(remoteRecord.fxsyncId, id);
       });
-      // TODO: deal with race conditions
     }).catch(e => {
       console.error(e);
     });
@@ -140,6 +144,7 @@ var BookmarksHelper = (() => {
   }
 
   function deleteBookmark(fxsyncId) {
+    console.log('delete', fxsyncId);
     var url;
     return getDataStoreId(fxsyncId).then(id => {
       if (!id) {
@@ -150,10 +155,13 @@ var BookmarksHelper = (() => {
       return _ensureStore().then(store => {
         var revisionId = store.revisionId;
         return store.get(id).then(localRecord => {
+          console.log('deleting', fxsyncId, id, localRecord);
           delete localRecord.fxsyncRecords[fxsyncId];
           if (Object.keys(localRecord.fxsyncRecords).length) {
+            console.log('deleting just', fxsyncId, id, localRecord);
             return store.put(localRecord, id, revisionId);
           } else {
+            console.log('deleting entirely', fxsyncId, id, localRecord);
             return store.remove(id, revisionId);
           }
         });
