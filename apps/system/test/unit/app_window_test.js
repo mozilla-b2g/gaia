@@ -2869,7 +2869,7 @@ suite('system/AppWindow', function() {
         { name: 'normal' }, { name: 'content' }
       ];
       app.installSubComponents();
-      element.dispatchEvent(new CustomEvent('mozbrowserloadend'));
+      element.dispatchEvent(new CustomEvent('mozbrowserloadstart'));
     });
 
     teardown(function() {
