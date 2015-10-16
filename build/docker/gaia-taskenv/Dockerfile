@@ -1,4 +1,4 @@
-from taskcluster/tester:0.3.6
+from taskcluster/tester:0.3.10
 maintainer Aus Lacroix <aus@mozilla.com>
 
 # install our custom git plugin
