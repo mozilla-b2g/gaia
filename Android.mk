@@ -21,6 +21,11 @@ GAIA_PROFILE_INSTALL_PARENT := $(TARGET_OUT_DATA)/local
 GAIA_APP_INSTALL_PARENT := $(GAIA_PROFILE_INSTALL_PARENT)
 CLEAN_PROFILE := 0
 
+# Put the B2G SDK somewhere safe unless we already want it somewhere specific.
+ifeq (,$(XULRUNNER_BASE_DIR))
+GAIA_MAKE_FLAGS += XULRUNNER_BASE_DIR=$(TARGET_COMMON_OUT_ROOT)/b2g_sdk
+endif
+
 # In user (production) builds we put gaia apps in /system/b2g/webapps
 ifneq ($(filter user userdebug, $(TARGET_BUILD_VARIANT)),)
 GAIA_MAKE_FLAGS += PRODUCTION=1
