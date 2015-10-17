@@ -193,7 +193,7 @@ function overrideSettings(settings, config) {
 
 function setHomescreenURL(settings, config) {
   // 'homescreen' as default value of homescreen.appName
-  let appName = 'verticalhome';
+  let appName = 'homescreen';
 
   if (typeof(settings['homescreen.appName']) !== 'undefined') {
     appName = settings['homescreen.appName'];

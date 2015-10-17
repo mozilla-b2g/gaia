@@ -22,11 +22,12 @@ marionette('Private Browser - URL Persistence', function() {
   });
 
   setup(function() {
-    home = client.loader.getAppClass('verticalhome');
+    home = client.loader.getAppClass('homescreen');
     rocketbar = new Rocketbar(client);
     search = client.loader.getAppClass('search');
     system = client.loader.getAppClass('system');
     system.waitForFullyLoaded();
+    home.waitForLaunch();
   });
 
   test('Url is cleared after submitting and pressing home in private window',
