@@ -5,7 +5,7 @@ define(function(require) {
   'use strict';
 
   const MANIFEST_URL_PREF = 'homescreen.manifestURL';
-  const DEFAULT_MANIFEST = 'app://verticalhome.gaiamobile.org/manifest.webapp';
+  const DEFAULT_MANIFEST = 'app://homescreen.gaiamobile.org/manifest.webapp';
 
   var SettingsService = require('modules/settings_service');
   var mozApps = require('modules/navigator/mozApps');

@@ -30,12 +30,13 @@ marionette('Browser - Chrome on browser navigation',
   });
 
   setup(function() {
-    home = client.loader.getAppClass('verticalhome');
+    home = client.loader.getAppClass('homescreen');
     rocketbar = new Rocketbar(client);
     pinTheWeb = new PinTheWeb(client);
     search = client.loader.getAppClass('search');
     system = client.loader.getAppClass('system');
     system.waitForFullyLoaded();
+    home.waitForLaunch();
   });
 
   test('should show the progressbar', function() {

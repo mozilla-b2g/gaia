@@ -22,7 +22,7 @@ marionette('Search - Notice Test', function() {
   });
 
   setup(function() {
-    home = client.loader.getAppClass('verticalhome');
+    home = client.loader.getAppClass('homescreen');
     system = client.loader.getAppClass('system');
     search = client.loader.getAppClass('search');
     rocketbar = new Rocketbar(client);
@@ -47,7 +47,7 @@ marionette('Search - Notice Test', function() {
   test('Search Notice', function() {
 
     home.waitForLaunch();
-    home.focusRocketBar();
+    rocketbar.homescreenFocus();
 
     var confirmSelector = search.Selectors.firstRunConfirm;
     // Notice should not be displayed if we type < 3 characters
@@ -77,8 +77,7 @@ marionette('Search - Notice Test', function() {
     rocketbar.switchToSearchFrame(server.url('sample.html'), searchText);
     client.switchToFrame();
     home.pressHomeButton();
-    client.apps.switchToApp(home.URL);
-    home.focusRocketBar();
+    rocketbar.homescreenFocus();
     search.goToResults();
     assert.ok(!client.findElement(confirmSelector).displayed());
   });

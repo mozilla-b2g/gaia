@@ -93,7 +93,7 @@ Bookmark.prototype = {
     this.rocketbar.homescreenFocus();
     this.rocketbar.enterText(url, true);
 
-    this.client.scope({ searchTimeout: 100 }).waitFor(function() {
+    this.client.waitFor(function() {
       this.client.switchToFrame();
       try {
         this.client.findElement(
@@ -116,7 +116,16 @@ Bookmark.prototype = {
     this.rocketbar.homescreenFocus();
     this.rocketbar.enterText(url, true);
 
-    this.system.appChromeContextLink.click();
+    this.client.waitFor(function() {
+      this.client.switchToFrame();
+      try {
+        this.client.findElement(
+          this.system.Selector.appChromeContextLink).tap();
+      } catch(e) {
+        return false;
+      }
+      return true;
+    }.bind(this));
     this.system.appChromeContextMenuBookmark.click();
 
     this.client.switchToFrame(this.currentTabFrame);
