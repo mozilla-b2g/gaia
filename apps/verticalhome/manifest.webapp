@@ -1,5 +1,5 @@
 {
-  "name": "Default Home Screen",
+  "name": "Legacy Home Screen",
   "description": "Gaia Home Screen.",
   "launch_path": "/index.html",
   "type": "certified",
@@ -19,21 +19,9 @@
   },
   "default_locale": "en-US",
   "locales": {
-    "ar": {
-      "name": "الشاشة الرئيسية",
-      "description": "Gaia الشاشة الرئيسية"
-    },
     "en-US": {
-      "name": "Default Home Screen",
+      "name": "Legacy Home Screen",
       "description": "Gaia Home Screen."
-    },
-    "fr": {
-      "name": "Écran d’accueil",
-      "description": "Écran d’accueil Gaia"
-    },
-    "zh-TW": {
-      "name": "主畫面",
-      "description": "Gaia 主畫面"
     }
   },
   "icons": {

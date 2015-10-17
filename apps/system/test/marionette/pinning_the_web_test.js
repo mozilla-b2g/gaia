@@ -35,7 +35,7 @@ marionette('Pinning the Web', function() {
 
   setup(function() {
     system = client.loader.getAppClass('system');
-    home = client.loader.getAppClass('verticalhome');
+    home = client.loader.getAppClass('homescreen');
     rocketbar = new Rocketbar(client);
     pinTheWeb = new PinTheWeb(client);
     system.waitForFullyLoaded();
@@ -48,7 +48,7 @@ marionette('Pinning the Web', function() {
     client.switchToFrame(system.getHomescreenIframe());
     var numIcons = 0;
     client.waitFor(function() {
-      numIcons = home.numIcons;
+      numIcons = home.visibleIcons.length;
       return numIcons > 0;
     });
 
@@ -74,7 +74,7 @@ marionette('Pinning the Web', function() {
     system.tapHome();
     client.switchToFrame(system.getHomescreenIframe());
     client.waitFor(function() {
-      return home.numIcons == numIcons + 1;
+      return home.visibleIcons.length == numIcons + 1;
     });
   });
 

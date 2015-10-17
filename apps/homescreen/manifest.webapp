@@ -1,6 +1,6 @@
 {
-  "name": "New Home Screen",
-  "description": "Vertical paged home screen.",
+  "name": "Default Home Screen",
+  "description": "Gaia home screen.",
   "launch_path": "/index.html",
   "type": "privileged",
   "role": "homescreen",
@@ -23,6 +23,25 @@
     "homescreen-webapps-manage": {},
     "moz-extremely-unstable-and-will-change-webcomponents": {},
     "systemXHR": {}
+  },
+  "default_locale": "en-US",
+  "locales": {
+    "ar": {
+      "name": "الشاشة الرئيسية",
+      "description": "Gaia الشاشة الرئيسية"
+    },
+    "en-US": {
+      "name": "Default Home Screen",
+      "description": "Gaia Home Screen."
+    },
+    "fr": {
+      "name": "Écran d’accueil",
+      "description": "Écran d’accueil Gaia"
+    },
+    "zh-TW": {
+      "name": "主畫面",
+      "description": "Gaia 主畫面"
+    }
   },
   "datastores-access": {
     "bookmarks_store": {

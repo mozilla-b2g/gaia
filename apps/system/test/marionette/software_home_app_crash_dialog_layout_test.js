@@ -15,7 +15,7 @@ marionette('Software Home Button - App Crash Report Layout', function() {
   var home, system;
 
   setup(function() {
-    home = client.loader.getAppClass('verticalhome');
+    home = client.loader.getAppClass('homescreen');
     system = client.loader.getAppClass('system');
     system.waitForFullyLoaded();
     home.waitForLaunch();
