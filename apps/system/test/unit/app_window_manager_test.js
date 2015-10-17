@@ -343,6 +343,14 @@ suite('system/AppWindowManager', function() {
         assert.isTrue(stubFocus.calledWith('focus'));
       });
 
+    test('When sleep menu is closed, we need to focus the active app',
+      function() {
+        var stubFocus = this.sinon.stub(app1, 'broadcast');
+        subject._activeApp = app1;
+        window.dispatchEvent(new CustomEvent('sleepmenuhide'));
+        assert.isTrue(stubFocus.calledWith('focus'));
+      });
+
     test('If cardview will open, keyboard should be dismissed', function() {
       var stubBlur = this.sinon.stub(app1, 'blur');
       this.sinon.stub(app1, 'getTopMostWindow').returns(app1);
