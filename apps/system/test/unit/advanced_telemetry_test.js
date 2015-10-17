@@ -396,13 +396,14 @@ suite('AdvancedTelemetry:', function() {
       });
     });
 
-    test('should not transmit if not online', function(done) {
+    test('should retry if not online', function(done) {
       isOnLine = false;
-
-      assert.equal(transmitSpy.callCount, 0);
+      this.sinon.spy(AdvancedTelemetry.prototype, 'startRetryBatch');
+      this.sinon.spy(AdvancedTelemetry.prototype, 'clearPayload');
       at.handleGeckoMessage(payloadNew.payload, function() {
         MockNavigatorSettings.mReplyToRequests();
-        assert.equal(transmitSpy.callCount, 0);
+        sinon.assert.calledOnce(AdvancedTelemetry.prototype.startRetryBatch);
+        sinon.assert.notCalled(AdvancedTelemetry.prototype.clearPayload);
         done();
       });
     });
