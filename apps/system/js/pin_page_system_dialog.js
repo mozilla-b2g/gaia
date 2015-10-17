@@ -57,26 +57,22 @@
   PinPageSystemDialog.prototype.view = function spd_view() {
     return `<div id="${this.instanceID}" role="dialog"
               class="generic-dialog" data-z-index-level="system-dialog" hidden>
-              <section role="region">
+              <section role="region" class="container">
                 <gaia-header id="pin-page-header" action="close">
-                  <h1 id="pin-page-title" data-l10n-id="pinning-pin-page"></h1>
+                  <h1 id="pin-page-header" data-l10n-id="pinning-pin"></h1>
                 </gaia-header>
-                <div class="container">
+                <div id="pin-page-container" class="container">
                   <div id="pin-card-container"></div>
-                  <p id="pin-page-url" class="url" dir="ltr"></p>
-                  <button data-l10n-id="pinning-pin" data-action="pin"
+                  <p id="pin-page-title" class="page-title" dir="ltr"></p>
+                  <button data-l10n-id="pinning-pin-page" data-action="pin"
                     class="pin-button"></button>
-                  <p id="pin-page-from" data-l10n-id="from"></p>
-                  <div id="pin-site-container">
-                    <a class="icon icon-arrow" id="pin-arrow" href="#"></a>
-                    <h1 class="site-panel-element"
-                      id="pin-site-title" data-l10n-id="pinning-pin-site"></h1>
-                    <gaia-app-icon></gaia-app-icon>
-                    <p id="site-name"></p>
-                    <p class="origin site-panel-element" dir="ltr"></p>
-                    <button data-l10n-id="pinning-pin" data-action="pin-site"
-                      class="pin-button site-panel-element"></button>
-                  </div>
+                </div>
+                <div class="divider"><span data-l10n-id="or"></span></div>
+                <div id="pin-site-container" class="container">
+                  <gaia-app-icon></gaia-app-icon>
+                  <p id="site-name"></p>
+                  <button data-l10n-id="pinning-pin-site" data-action="pin-site"
+                    class="pin-button"></button>
                 </div>
               </section>
             </div>`;
@@ -91,21 +87,18 @@
     this.header.addEventListener('action', this.close.bind(this));
     this.pinButton.addEventListener('click', this.save.bind(this));
     this.pinSiteButton.addEventListener('click', this.save.bind(this));
-    this.arrow.addEventListener('click', this.toggleSitePanel.bind(this));
   };
 
   PinPageSystemDialog.prototype._fetchElements = function spl_initElements() {
     this.element = document.querySelector('#' + this.instanceID);
-    this.pinURL = this.element.querySelector('#pin-page-url');
+    this.pageTitle = this.element.querySelector('#pin-page-title');
     this.pinCardContainer = this.element.querySelector('#pin-card-container');
     this.header = this.element.querySelector('gaia-header');
     var pinSelector = 'button[data-action="pin"]';
     this.pinButton = this.element.querySelector(pinSelector);
-    this.arrow = this.element.querySelector('#pin-arrow');
     this.pinSiteContainer = this.element.querySelector('#pin-site-container');
     this.siteBadge = this.element.querySelector('gaia-app-icon');
     this.siteName = this.element.querySelector('#site-name');
-    this.origin = this.element.querySelector('.origin');
     pinSelector = 'button[data-action="pin-site"]';
     this.pinSiteButton = this.element.querySelector(pinSelector);
   };
@@ -155,14 +148,10 @@
     setTimeout(this.close.bind(this), this._banner.timeout);
   };
 
-  PinPageSystemDialog.prototype.toggleSitePanel = function() {
-    this.pinSiteContainer.classList.toggle('active');
-  };
-
   PinPageSystemDialog.prototype._visible = false;
 
   PinPageSystemDialog.prototype.show = function(data) {
-    this.pinURL.textContent = data.url;
+    this.pageTitle.textContent = data.title;
     this._renderPinCard(data);
     this._renderSitePanel(data);
     SystemDialog.prototype.show.apply(this);
@@ -171,13 +160,11 @@
 
   PinPageSystemDialog.prototype._renderSitePanel = function(data) {
     var siteBadge = this.siteBadge;
-    var origin = new URL(data.url).hostname;
     siteBadge.addEventListener('icon-loaded', function onLoad() {
       siteBadge.removeEventListener('icon-loaded', onLoad);
       siteBadge.refresh();
     });
     siteBadge.icon = data.icon;
-    this.origin.textContent = (data.name !== origin) ? origin : '';
     this.siteName.textContent = data.name;
 
     Service.request('PinsManager:isPinned', data.url)

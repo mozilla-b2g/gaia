@@ -1,13 +1,51 @@
-#pin-page-dialog section {
+#pin-page-dialog section.container {
   position: absolute;
   top: 0;
   left: 0;
-  display: block;
-  overflow: hidden;
-  width: 100%;
-  height: 100%;
   text-align: center;
   background-color: #f4f4f4;
+  padding: 0 1.5rem;
+  box-sizing: border-box;
+  pointer-events: all;
+}
+
+#pin-page-dialog .container {
+  position: relative;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  overflow: hidden;
+}
+
+#pin-page-dialog #pin-page-container {
+  height: 54%;
+}
+
+#pin-page-dialog #pin-site-container {
+  height: 42%;
+  top: -2.5rem;
+}
+
+#pin-page-dialog .divider {
+  border-top: 0.2rem solid rgba(0, 0, 0, 0.1);
+  color: var(--results-header-color);
+  text-align: center;
+  height: 1rem;
+  top: -3.5rem;
+  position: relative;
+  overflow: visible;
+}
+
+.divider span {
+  font-size: 1.4rem;
+  text-transform: uppercase;
+  position: relative;
+  background-color: #f4f4f4;
+  padding: 0 .66rem;
+  top: -1rem;
+  font-weight: 500;
+  color: #a6a6a6;
 }
 
 #pin-page-dialog section h1 {
@@ -19,18 +57,11 @@
   color: #858585;
 }
 
-#pin-page-dialog section .container {
+#pin-page-dialog section {
   overflow: hidden;
   height: 100%;
   top: 0;
   pointer-events: none;
-}
-
-#pin-page-from {
-  position: absolute;
-  width: 100%;
-  padding: 0;
-  top: calc(80% - 4rem);
 }
 
 #pin-page-dialog button,
@@ -38,11 +69,7 @@
   pointer-events: all;
 }
 
-#pin-page-dialog section .container > .url {
-  font-size: 1.4rem;
-  font-weight: normal;
-  font-style: italic;
-  color: #5f5f5f;
+#pin-page-dialog section .container > .page-title {
   text-overflow: ellipsis;
   width: calc(100% - 8rem);
   margin: 0 auto;
@@ -51,32 +78,38 @@
   padding: 0;
 }
 
+.page-title,
+.site-name {
+  font-size: 1.4rem;
+  font-style: italic;
+  color: #5f5f5f;
+}
+
 #pin-card-container {
   display: block;
   overflow: hidden;
   width: 100%;
-  margin: 8.8rem auto 2.4rem;
+  height: 10rem;
+  margin: 1.13rem auto 2.4rem;
 }
 
 gaia-pin-card {
   display: block;
   width: 13.33rem;
   height: 15rem;
+  transform: scale(.65) translateY(-4rem);
   margin: 0 auto;
 }
 
 button.pin-button {
   position: relative;
-  margin: 3.2rem auto 7rem;
+  margin: 2rem auto;
   width: -moz-fit-content;
   background-color: white;
   display: block;
   float: none;
   font-size: 1.6rem;
   font-style: italic;
-}
-
-button.pin-button {
   padding-inline-start: 4rem;
   padding-inline-end: 2rem;
 }
@@ -92,8 +125,6 @@ button.pin-button::before {
   background-image: url("chrome/images/pin.png");
 }
 
-/* Pin Site */
-
 #pin-page-dialog p {
   font-size: 1.6rem;
   font-weight: normal;
@@ -102,81 +133,48 @@ button.pin-button::before {
   padding: 0;
 }
 
-#pin-site-container {
-  position: absolute;
-  top: 80%;
-  background-color: #e7e7e7;
-  width: 100%;
-  height: 100%;
-  padding-top: 1.5rem;
-  z-index: 2;
-  transition: transform .3s ease;
-}
-
-.site-panel-element {
-  transition: none;
-  opacity: 0;
-  height: 0;
-  margin: 0;
-}
-
-.icon-arrow {
-  width: 2.3rem;
-  height: 1.1rem;
-  display: block;
-  background: url(pin_page/up_arrow.png) transparent;
-  background-size: cover;
-  margin: 0 auto;
-}
-
-.icon-arrow:active {
-  background-image: url(pin_page/up_arrow_pressed.png);
-}
-
 #pin-site-container gaia-app-icon {
-  width: 4rem;
-  height: 4rem;
-  margin: .75rem auto;
+  width: 5.6rem;
+  height: 5.6rem;
+  margin: 8% auto 7%;
   display: block;
   outline: 0 none;
   transition: transform ease .3s, opacity ease .3s;
 }
 
-
-/* Site Panel active */
-
-#pin-site-container.active #pin-site-title {
-  margin-top: 5.8rem;
+#pin-page-dialog gaia-toast {
+  pointer-events: none;
 }
 
-#pin-site-container.active .origin {
-  transform: translateY(4.2rem);
-}
+@media (orientation: landscape) {
 
-#pin-site-container.active {
-  transform: translateY(calc(-80% + 1rem));
-}
+  #pin-page-dialog #pin-page-container,
+  #pin-page-dialog #pin-site-container {
+    width: 49%;
+    height: 100%;
+    float: left;
+  }
 
-#pin-site-container.active .icon-arrow {
-  transform: rotateX(180deg);
-}
+  #pin-page-dialog .divider {
+    border-top: none;
+    border-left: 2px solid rgba(0, 0, 0, 0.1);
+    height: 68%;
+    width: 1%;
+    float: left;
+    margin-top: 3.5rem;
+    left: 1%;
+  }
 
-#pin-site-container.active #site-name {
-  transform: translateY(4rem);
-}
+  #pin-page-dialog .divider span {
+    top: 9rem;
+    left: -1.5rem;
+  }
 
-#pin-site-container.active button[data-action="pin-site"],
-#pin-site-container.active button[data-action="unpin-site"] {
-  transform: translateY(7.2rem);
-}
+  #pin-site-container {
+    float: left;
+  }
 
-#pin-site-container.active gaia-app-icon {
-  transform: scale(1.8) translateY(1rem);
-}
-
-#pin-site-container.active > .site-panel-element {
-  opacity: 1;
-  height: auto;
-  margin: auto;
-  transition: opacity .5s ease .3s;
+  #pin-site-container gaia-app-icon {
+    margin: 5.8rem auto 4.5rem;
+  }
 }
