@@ -2,8 +2,10 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-/* global ERROR_UNVERIFIED_ACCOUNT */
+/* global ERROR_DIALOG_CLOSED_BY_USER */
 /* global ERROR_INVALID_SYNC_ACCOUNT */
+/* global ERROR_OFFLINE */
+/* global ERROR_UNVERIFIED_ACCOUNT */
 /* global LazyLoader */
 /* global mozIntl */
 
@@ -155,9 +157,23 @@ define(function(require) {
               return;
             }
 
+            const IGNORED_ERRORS = [
+              ERROR_DIALOG_CLOSED_BY_USER
+            ];
+
+            if (IGNORED_ERRORS.indexOf(message.error) > -1) {
+              return;
+            }
+
             var errorMsg = 'fxsync-error-unknown';
             var title;
-            if (message.error == ERROR_INVALID_SYNC_ACCOUNT) {
+
+            const KNOWN_ERRORS = [
+              ERROR_INVALID_SYNC_ACCOUNT,
+              ERROR_OFFLINE
+            ];
+
+            if (KNOWN_ERRORS.indexOf(message.error) > -1) {
               title = message.error;
               errorMsg = message.error + '-explanation';
             }

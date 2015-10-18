@@ -5,6 +5,8 @@
 'use strict';
 
 /* global ERROR_INVALID_SYNC_ACCOUNT */
+/* global ERROR_OFFLINE */
+/* global ERROR_DIALOG_CLOSED_BY_USER */
 
 /**
  * These errors are shared by all Firefox Sync related modules. The key should
@@ -14,22 +16,28 @@
 
 (function(exports) {
 
-  var unrecoverableErrors = {
-    // Cannot register sync request.
-    ERROR_REQUEST_SYNC_REGISTRATION: 'fxsync-error-request-fxsync-registration',
+  // Unrecoverable errors will cause the Sync state machine to transition to
+  // the 'disabled' state.
+  const unrecoverableErrors = {
+    // The user closed the FxA dialog during the sync enabling state.
+    ERROR_DIALOG_CLOSED_BY_USER: 'fxsync-error-dialog-closed-by-user',
     // Cannot get Firefox Accounts assertion.
     ERROR_GET_FXA_ASSERTION: 'fxsync-error-get-fxa-assertion',
+    // The user logged in with an invalid account. This is probably because the
+    // account has no crypto keys associated and we are unable to generate them
+    // so far.
+    ERROR_INVALID_SYNC_ACCOUNT: 'fxsync-error-invalid-account',
+    // The device is offline.
+    ERROR_OFFLINE: 'fxsync-error-offline',
+    // Cannot register sync request.
+    ERROR_REQUEST_SYNC_REGISTRATION: 'fxsync-error-request-fxsync-registration',
     // The request options passed to the Sync app failed basic DataType checks.
     ERROR_SYNC_INVALID_REQUEST_OPTIONS: 'fxsync-error-invalid-request-options',
     // Cannot perform sync request.
     ERROR_SYNC_REQUEST: 'fxsync-error-request-failed',
-    // The user logged in with an invalid account. This is probably because the
-    // account has no crypto keys associated and we are unable to generate them
-    // so far.
-    ERROR_INVALID_SYNC_ACCOUNT: 'fxsync-error-invalid-account'
   };
 
-  var recoverableErrors = {
+  const recoverableErrors = {
     // The app was killed while performing a sync operation.
     ERROR_SYNC_APP_KILLED: 'fxsync-error-app-killed',
     // The app is already performing a sync request.
@@ -56,7 +64,9 @@
   exports.SyncErrors = {
     'invalid account': ERROR_INVALID_SYNC_ACCOUNT,
     'UNVERIFIED_ACCOUNT': ERROR_INVALID_SYNC_ACCOUNT,
-    'No keyFetchToken': ERROR_INVALID_SYNC_ACCOUNT
+    'No keyFetchToken': ERROR_INVALID_SYNC_ACCOUNT,
+    'OFFLINE': ERROR_OFFLINE,
+    'UI_ERROR': ERROR_DIALOG_CLOSED_BY_USER
   };
 
 }(window));

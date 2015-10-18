@@ -4,7 +4,9 @@
 /* Any copyright is dedicated to the Public Domain.
  * http://creativecommons.org/publicdomain/zero/1.0/ */
 
+/* global ERROR_DIALOG_CLOSED_BY_USER */
 /* global ERROR_INVALID_SYNC_ACCOUNT */
+/* global ERROR_OFFLINE */
 /* global ERROR_UNVERIFIED_ACCOUNT */
 /* global loadBodyHTML */
 /* global MockL10n */
@@ -68,6 +70,7 @@ suite('Firefox Sync panel >', () => {
   }];
 
   // Global spies and stubs.
+  var alertSpy;
   var disableStub;
   var enableStub;
   var getInfoStub;
@@ -182,6 +185,7 @@ suite('Firefox Sync panel >', () => {
       this.LazyLoader = MockLazyLoader;
       this.FirefoxSyncPanel = FirefoxSyncPanel;
 
+      alertSpy = this.sinon.spy(MockDialogService, 'alert');
       observeSpy = this.sinon.spy(MockSettingsListener, 'observe');
       getInfoStub = this.sinon.stub(SyncManagerBridge, 'getInfo', () => {
         return Promise.resolve();
@@ -201,6 +205,7 @@ suite('Firefox Sync panel >', () => {
   });
 
   suiteTeardown(() => {
+    alertSpy.restore();
     enableStub.restore();
     disableStub.restore();
     getInfoStub.restore();
@@ -208,6 +213,14 @@ suite('Firefox Sync panel >', () => {
     syncStub.restore();
     window.mozIntl = realMozIntl;
     window.mozL10n = realMozL10n;
+  });
+
+  teardown(() => {
+    alertSpy.reset();
+    enableStub.reset();
+    disableStub.reset();
+    getInfoStub.reset();
+    syncStub.reset();
   });
 
   suite('Initial state', () => {
@@ -669,6 +682,69 @@ suite('Firefox Sync panel >', () => {
         disabledElements.indexOf(element.name) > -1 ?
           this.sinon.assert.notCalled(spy) :
           this.sinon.assert.calledOnce(spy);
+      });
+    });
+  });
+
+  suite('onsyncchange "errored" - ignored error', () => {
+    var subject;
+
+    suiteSetup(() => {
+      subject = suiteSetupCommon();
+      setSubjectSpiesAndStubs(subject);
+      subject.onsyncchange({
+        state: 'errored',
+        error: ERROR_DIALOG_CLOSED_BY_USER
+      });
+    });
+
+    suiteTeardown(() => {
+      subject = null;
+      restoreSubjectSpiesAndStubs();
+    });
+
+    test('onsyncchange errored with ERROR_DIALOG_CLOSED_BY_USER '+
+         'should be ignored', () => {
+      this.sinon.assert.notCalled(showScreenSpy);
+    });
+  });
+
+  suite('onsyncchange "errored" - known errors', () => {
+    var subject;
+
+    suiteSetup(() => {
+      subject = suiteSetupCommon();
+      setSubjectSpiesAndStubs(subject);
+    });
+
+    suiteTeardown(() => {
+      subject = null;
+      restoreSubjectSpiesAndStubs();
+    });
+
+    [{
+      error: ERROR_INVALID_SYNC_ACCOUNT,
+      l10n: 'fxsync-error-invalid-account'
+    }, {
+      error: ERROR_OFFLINE,
+      l10n: 'fxsync-error-offline'
+    }].forEach(config => {
+      test('onsyncchange errored with ' + config.error +
+           ' should show alert', done => {
+        subject.onsyncchange({
+          state: 'errored',
+          error: config.error
+        });
+
+        setTimeout(() => {
+          this.sinon.assert.calledOnce(showScreenSpy);
+          this.sinon.assert.calledOnce(cleanSpy);
+          this.sinon.assert.calledOnce(alertSpy);
+          assert.equal(alertSpy.getCall(0).args[0],
+                       config.l10n + '-explanation');
+          assert.equal(alertSpy.getCall(0).args[1].title, config.l10n);
+          done();
+        });
       });
     });
   });
