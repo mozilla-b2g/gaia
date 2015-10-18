@@ -6,8 +6,10 @@ var Server = require('../../../../shared/test/integration/server');
 
 marionette('Homescreen - Bookmark Favicon Failure', function() {
 
+  var options = require(__dirname + '/client_options_bookmarks.js');
+  options.settings['dev.gaia.pinning_the_web'] = false;
   var client = marionette.client({
-    profile: require(__dirname + '/client_options_bookmarks.js')
+    profile: options
   });
   var bookmark, home, server, system;
 
