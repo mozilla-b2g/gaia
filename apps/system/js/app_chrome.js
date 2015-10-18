@@ -407,6 +407,7 @@
     Service && Service.request('Places:setPinned', this.app.config.url, true)
       .then(() => {
       this.app.debug('Succeeding in pinning ' + this.app.config.url);
+      this.systemBanner.show('page-pinned-to-home-screen');
       var screenshotBlob = this.app.getCachedScreenshotBlob();
       if (screenshotBlob) {
         Service.request('Places:saveScreenshot', this.app.config.url,
