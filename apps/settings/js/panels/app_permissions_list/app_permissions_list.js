@@ -184,7 +184,10 @@ define(function(require) {
       var link = document.createElement('a');
       var span = document.createElement('span');
       span.textContent = itemData.name;
-      icon.src = itemData.iconSrc;
+      icon.src = '../style/images/default.png';
+      this._getBestIcon(itemData.app).then(function(blob) {
+        icon.src = URL.createObjectURL(blob);
+      });
       link.dataset.appIndex = itemData.index;
       link.href = '#';
       link.classList.add('menu-item');
@@ -209,7 +212,7 @@ define(function(require) {
         var li = this._genAppItemTemplate({
           name: manifest.displayName,
           index: index,
-          iconSrc: this._getBestIconURL(app, manifest.icons)
+          app: app
         });
         listFragment.appendChild(li);
       }.bind(this));
@@ -312,47 +315,16 @@ define(function(require) {
     },
 
     /**
-     * Get icon URL.
-     *
-     * @memberOf PermissionsList
-     * @param {Object} app
-     * @param {Object} icons
-     * @access private
-     */
-    _getBestIconURL: function pl__getBestIconURL(app, icons) {
-      if (!icons || !Object.keys(icons).length) {
-        return '../style/images/default.png';
-      }
-
-      // The preferred size is 30 by the default. If we use HDPI device, we may
-      // use the image larger than 30 * 1.5 = 45 pixels.
-      var preferredIconSize = 30 * (window.devicePixelRatio || 1);
-      var preferredSize = Number.MAX_VALUE;
-      var max = 0;
-
-      for (var size in icons) {
-        size = parseInt(size, 10);
-        if (size > max) {
-          max = size;
-        }
-
-        if (size >= preferredIconSize && size < preferredSize) {
-          preferredSize = size;
-        }
-      }
-      // If there is an icon matching the preferred size, we return the result,
-      // if there isn't, we will return the maximum available size.
-      if (preferredSize === Number.MAX_VALUE) {
-        preferredSize = max;
-      }
-
-      var url = icons[preferredSize];
-
-      if (url) {
-        return !(/^(http|https|data):/.test(url)) ? app.origin + url : url;
-      } else {
-        return '../style/images/default.png';
-      }
+      * Get icon.
+      *
+      * @memberOf PermissionsList
+      * @param {Object} app
+      * @access private
+      * @returns {Promise} Promise of a response containing a blob of the icon.
+      */
+    _getBestIcon: function pl_getBestIcon(app) {
+      var preferredSize = 30 * (window.devicePixelRatio || 1);
+      return navigator.mozApps.mgmt.getIcon(app, preferredSize);
     }
   };
 
