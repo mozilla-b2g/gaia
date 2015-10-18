@@ -153,12 +153,14 @@ suite('link_helper_test.js', function() {
       test('non ascii prefix', function() {
         testURLMatch('àmozilla.org', 'mozilla.org', true);
       });
+      test('Bug 941763: Add dot as URL prefix', function() {
+        testURLMatch('.website.com', 'website.com', true);
+        testURLMatch('https://.website.com', 'website.com', true);
+        testURLMatch('htt://www.mozilla.org', 'mozilla.org', true);
+      });
     });
 
     suite('Failures', function() {
-      test('Simple invalid URL', function() {
-        testURLNOK('htt://www.mozilla.org');
-      });
       test('Simple invalid URL with slashes', function() {
         testURLNOK('http://www.a/b/d.com');
       });

@@ -58,7 +58,7 @@ function checkDomain(domain) {
 }
 
 // defines things that can match right before to be a "safe" link
-var safeStart = /[\s,:;\(>\u0080-\uFFFF]/;
+var safeStart = /[\s.,:;\(>\u0080-\uFFFF]/;
 
 const MINIMUM_DIGITS_IN_PHONE_NUMBER = 5;
 const LEADING_DIGIT_BREAKPOINT = 7;
@@ -114,7 +114,7 @@ var LINK_TYPES = {
       // {1} match the protocol https?:// or rtsp:// (optional)
       '(https?://|rtsp://)?',
       // {2} match "server name": . must be followed by at least one letter
-      '((?:\\.?[-\\w]){1,256})',
+      '(\\w(?:\\.?[-\\w]){0,255})',
       // {3} match a . followed by one or more domain valid chars
       '(\\.\\w{1,10})',
       // optional :port
