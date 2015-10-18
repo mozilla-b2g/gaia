@@ -1,5 +1,6 @@
 /* exported FirefoxAccount */
 /* global FxAccountsIACHelper */
+/* global SyncManagerBridge */
 
 'use strict';
 
@@ -7,10 +8,11 @@
 
   function FirefoxAccount (options) {
     this.email = '';
+    this.VERIFIED = false;
 
-    this.syncBookmark = options.syncBookmark || true;
+    this.syncBookmarks = options.syncBookmarks || true;
     this.syncHistory = options.syncHistory || false;
-    this.syncPassword = options.syncPassword || false;
+    this.syncPasswords = options.syncPasswords || false;
     this.syncTab = options.syncTab || false;
 
     this.onlogin = options.onlogin && typeof options.onlogin === 'function' ?
@@ -33,9 +35,11 @@
   };
 
   FirefoxAccount.prototype.openFlow =
-    function firefoxAccount_openFlow () {
-      FxAccountsIACHelper.openFlow(this.onStatusChange.bind(this),
-                                   this.onStatusError.bind(this));
+    function firefoxAccount_openFlow (onFinish) {
+      FxAccountsIACHelper.openFlow((e) => {
+        this.onStatusChange(e);
+        onFinish();
+      }, this.onStatusError.bind(this));
   };
 
   FirefoxAccount.prototype.resendEmail =
@@ -57,15 +61,34 @@
   };
 
   FirefoxAccount.prototype.sync = function firefoxAccount_sync () {
-    // XXX: Implement sync
+    return SyncManagerBridge.enable();
   };
 
   FirefoxAccount.prototype.setSyncSettings =
     function firefoxAccount_setSyncSettings (settings) {
-      this.syncbookmark = settings.syncBookmark;
-      this.synchistory = settings.syncHistory;
-      this.syncpassword = settings.syncPassword;
-      this.synctab = settings.syncTab;
+      this.syncBookmarks = settings.syncBookmarks;
+      this.syncHistory = settings.syncHistory;
+      this.syncPasswords = settings.syncPasswords;
+      this.syncTab = settings.syncTab;
+
+      var promise = new Promise((resolve, reject) => {
+        var lock = navigator.mozSettings.createLock();
+        var result = lock.set({
+          'sync.collections.bookmarks.enabled': this.syncBookmarks,
+          'sync.collections.history.enabled': this.syncHistory,
+          'sync.collections.passwords.enabled': this.syncPasswords
+        });
+
+        result.onsuccess = function () {
+          resolve();
+        };
+
+        result.onerror = function () {
+          reject(result.error);
+        };
+      });
+
+      return promise;
   };
 
   FirefoxAccount.prototype.refreshStatus =
@@ -83,14 +106,17 @@
       this.email = e ? e.email : '';
 
       if (!e) {
+        this.VERIFIED = false;
         if (this.onlogout) {
           this.onlogout(e);
         }
       } else if (e.verified) {
+        this.VERIFIED = true;
         if (this.onverified) {
           this.onverified(e);
         }
       } else if (!e.verified) {
+        this.VERIFIED = false;
         if (this.onlogin) {
           this.onlogin(e);
         }
