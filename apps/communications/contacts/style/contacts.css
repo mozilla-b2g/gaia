@@ -312,7 +312,7 @@ form p textarea + button[type="reset"].hide {
 .importContacts {
   font-size: 1.6rem;
   margin-top: 5rem;
-  margin-left: 1.5rem;
+  margin-left: 1.5rem;      /* BiDi-proof */
   width: calc(100% - 6rem); /* 4.5rem = view-jumper width */
 }
 
@@ -323,10 +323,10 @@ form p textarea + button[type="reset"].hide {
   font-size: 1.4rem;
 }
 
-.importContacts span, .importContacts small {
+.importContacts span,
+.importContacts small {
   display: block;
 }
-
 
 /* Social network markers */
 .icon-social {
@@ -372,7 +372,9 @@ form p textarea + button[type="reset"].hide {
   -moz-margin-start: 4rem;
 }
 
-.facebook fieldset, .facebook legend, .facebook input {
+.facebook fieldset,
+.facebook legend,
+.facebook input {
   background-color: transparent;
   color: #ccc;
   pointer-events: none;
@@ -409,12 +411,10 @@ form p textarea + button[type="reset"].hide {
 }
 
 /**
- * 1. Hide label text. !important required
- *    to override high specificity of scoped
- *    stylesheets. When `::content` selector
- *    lands, we won't need this any more.
+ * 1. Hide label text.
+ *    !important required to override high specificity of scoped stylesheets.
+ *    When `::content` selector lands, we won't need this any more.
  */
-
 gaia-header [data-icon] {
   font-size: 0 !important; /* 1 */
 }
@@ -434,6 +434,7 @@ gaia-header [data-icon] {
 #ice-settings .view-body-inner {
   background: #f4f4f4;
 }
+
 #view-contact-form #thumbnail-photo {
   background-color: transparent;
   border-radius: 7rem;
@@ -468,7 +469,9 @@ gaia-header [data-icon] {
 }
 
 #view-settings [data-type="list"] .fb-item {
-  background: url(/contacts/style/images/f_logo.png) no-repeat 0 calc(50% + 0.5rem) / 3rem;
+  background-image: url(/contacts/style/images/f_logo.png);
+  background-repeat: no-repeat;
+  background-size: 3rem;
 }
 
 html[dir=rtl] #view-settings [data-type="list"] .fb-item {
@@ -689,6 +692,7 @@ html[dir=ltr] #view-settings [data-type="list"] .fb-item aside label {
   display: inline-block;
   margin: 0 0 0 0.5rem;
 }
+
 /* Error message */
 #view-settings .view-body-inner .fb-error {
   color: #D1323F;
@@ -830,7 +834,7 @@ form[role="dialog"][data-type="edit"].contacts-select:not(.insearchmode) gaia-he
   transform: translateY(0);
 }
 
-[data-type='list'] .contact-item > aside > span:before {
+[data-type="list"] .contact-item > aside > span:before {
   content: attr(data-group);
   position: absolute;
   top: 0;
@@ -861,6 +865,18 @@ form[role="dialog"][data-type="edit"].contacts-select:not(.insearchmode) gaia-he
 
 #view-contacts-list [data-type="list"] aside span[data-type=img] {
   image-rendering: auto;
+}
+
+/* BiDi note: the scrollbar is always on the right edge */
+html[dir] nav[data-type="scrollbar"] {
+  direction: ltr;
+  offset-inline-end: unset;
+  right: 0;
+}
+
+html[dir] nav[data-type="scrollbar"] p {
+  offset-inline-end: unset;
+  right: 10rem;
 }
 
 nav[data-type="scrollbar"] li .pack-icon-ice {
@@ -1020,7 +1036,7 @@ li button[data-field-type]:active {
 }
 
 /* Ellipsis fix for contact lists */
-/*we hijack the overflow and text-overflow
+/* we hijack the overflow and text-overflow
  * of the shared style to make the ellipsis display always at the end
  * (ie right for LTR string and left for RTL string)
  * while keeping alignment of the current system-wide language */
@@ -1048,51 +1064,6 @@ html[dir="rtl"] #no-contacts .import.icon {
   background-position: 100% 50%;
 }
 
-html[dir="rtl"] #contact-form div.with-overflow button[type="reset"] {
-  left: calc(-0.5rem + -0.3rem);
-  right: unset;
-}
-
-html[dir="rtl"] #view-settings [data-type="list"] .fb-item aside {
-  left: 0;
-  right: unset;
-}
-
-html[dir="rtl"] #view-settings [data-type="list"] .fb-item {
-  background-position: 100% calc(50% + 0.5rem);
-}
-
-html[dir="rtl"] #view-settings [data-type="list"] .fb-item aside label {
-  left: 0;
-  right: unset;
-}
-
-html[dir="rtl"] #view-settings [data-type="list"] li button.icon:before {
-  left: auto;
-  right: 0.5rem;
-}
-
-html[dir="rtl"] .img-delete-button {
-  background-position: 100% 0;
-}
-
-html[dir="rtl"] #import-settings [data-type="list"] li button.icon:before {
-  left: auto;
-  right: 0.5rem;
-}
-
-/* RTL View */
-html[dir="rtl"] nav[data-type="scrollbar"] {
-  direction: ltr;
-  right: 0;
-  left: unset;
-}
-
-html[dir="rtl"] nav[data-type="scrollbar"] p {
-  left: unset;
-  right: 10rem;
-}
-
 /* TODO: Remove this workaround once bug 883884 fixed */
 .ellipsis-dir-fix {
   display: block;
@@ -1116,11 +1087,6 @@ html[dir="rtl"] #custom-tag-reset {
   padding-right: 1.5rem;
 }
 
-/* Force align with system because dir="auto" will ignore text-align: start*/
-.force-align[dir="auto"] {
-  text-align: left;
-}
-
-html[dir="rtl"] .force-align[dir="auto"] {
-  text-align: right;
-}
+/* Force align with system because dir="auto" will ignore text-align: start */
+html[dir="ltr"] .force-align[dir="auto"] { text-align: left; }
+html[dir="rtl"] .force-align[dir="auto"] { text-align: right; }

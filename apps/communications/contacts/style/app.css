@@ -224,11 +224,15 @@ li button.activity > b em {
 #view-contacts-list [data-type="list"] {
   padding: 0;
   padding-top: 2.5rem;
-  padding-right: 2.5rem;
+  padding-inline-end: 2.5rem;
 }
+/* html[dir="ltr"] #view-contacts-list [data-type="list"] { padding-right: 2.5rem; } */
+/* XXX extending +2rem for RTL consistency */
+/* html[dir="rtl"] #view-contacts-list [data-type="list"] { padding-left: 4.5rem; } */
 
 [data-type="list"] gaia-header {
-  padding: 0 0 0 1.5rem;
+  padding: 0;
+  padding-inline-start: 1.5rem;
   position: sticky;
   top: -1.5rem;
   background: #FFF;
@@ -236,7 +240,8 @@ li button.activity > b em {
 }
 
 [data-type="list"].active li:after {
-  right: 0;
+  right: 0; /* XXX */
+  offset-inline-end: 0;
 }
 
 /* JS helper */
@@ -247,7 +252,7 @@ li button.activity > b em {
 
 html[dir="ltr"] [data-type="list"] li aside.pack-end {
   margin: 0;
-  margin-right: 2rem;
+  margin-inline-end: 2rem;
 }
 
 /* Selection tag extended from shared/style/buttons.css */
@@ -415,7 +420,7 @@ li button.icon-find-and-merge:before {
 /* ROW ACTION */
 .fillflow-row-action {
   position: absolute;
-  right: 0;
+  right: 0; /* XXX */
   top: 0;
   width: auto;
   height: auto;

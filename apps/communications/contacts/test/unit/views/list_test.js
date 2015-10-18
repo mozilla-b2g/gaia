@@ -267,7 +267,7 @@ suite('Render contacts list', function() {
     selectSection = document.createElement('form');
     selectSection.id = 'selectable-form';
     selectSection.innerHTML = '<section role="region">' +
-    '<gaia-header ignore-dir id="selectable-form-header" action="close">' +
+    '<gaia-header id="selectable-form-header" action="close">' +
       '<h1 id="edit-title" data-l10n-id="contacts"></h1>' +
       '<button type="button" id="select-action"></button>' +
     '</gaia-header>' +

@@ -6,7 +6,7 @@
       <link rel="localization" href="/shared/locales/import_contacts/import_contacts.{locale}.properties">
         <!-- Contacts List Section -->
       <section id='view-contacts-list' role="region" data-state="active" class="view view-noscroll view-contacts-list">
-        <gaia-header ignore-dir id="activity-header" action="close">
+        <gaia-header id="activity-header" action="close">
           <h1 id="app-title" data-l10n-id="contacts">Contacts</h1>
           <button id="add-contact-button" data-icon="add" data-l10n-id="addButton"></button>
           <button id="settings-button" data-icon="settings" data-l10n-id="settingsButton"></button>
@@ -81,7 +81,7 @@
       </section>    <!-- Search view -->
 
       <section id='view-screenshot' role="region" class="view hide">
-        <gaia-header ignore-dir id="activity-header" action="close">
+        <gaia-header id="activity-header" action="close">
           <h1 id="app-title" data-l10n-id="contacts">Contacts</h1>
           <button id="add-contact-button" data-icon="add" data-l10n-id="addButton"></button>
           <button id="settings-button" data-icon="settings" data-l10n-id="settingsButton"></button>
@@ -92,7 +92,7 @@
 
       <!-- Contact Details Section -->
       <section id='view-contact-details' role="region" class="view view-right view-contact-profile">
-        <gaia-header ignore-dir id='details-view-header' action="back">
+        <gaia-header id='details-view-header' action="back">
           <h1 id='contact-name-title'><bdi></bdi></h1>
           <button id="edit-contact-button" data-icon="edit-contact" data-l10n-id="editButton"></button>
         </gaia-header>
@@ -196,7 +196,7 @@
 
       <!-- Edit Section -->
       <section id='view-contact-form' role="region" class="view view-bottom view-edit-contact">
-        <gaia-header ignore-dir id="contact-form-header" action="close">
+        <gaia-header id="contact-form-header" action="close">
           <h1 id='contact-form-title' data-l10n-id="addContact">Add contact</h1>
           <button id="save-button" data-l10n-id="done">Done</button>
         </gaia-header>
@@ -367,7 +367,7 @@
 
       <!-- Tag selection -->
       <section id="view-select-tag" role="region" class="view view-right view-select-tag">
-        <gaia-header ignore-dir id="settings-header" action="back">
+        <gaia-header id="settings-header" action="back">
           <h1 data-l10n-id="label">Label</h1>
           <button id="settings-done" data-l10n-id="done">Done</button>
         </gaia-header>
@@ -385,7 +385,7 @@
       </section>
 
      <section data-theme="organic" id="view-settings" role="region" class="skin-organic view view-bottom theme-settings">
-      <gaia-header ignore-dir>
+      <gaia-header>
         <h1 data-l10n-id="settings">Settings</h1>
         <button id="settings-close" data-l10n-id="done">Done</button>
       </gaia-header>
@@ -433,7 +433,7 @@
       </article>
     </section>
     <section data-theme="organic" id="import-settings" role="region" class="skin-organic view view-right theme-settings">
-      <gaia-header ignore-dir id="import-settings-header" action="back">
+      <gaia-header id="import-settings-header" action="back">
         <h1 id='import-settings-title'></h1>
       </gaia-header>
       <article class="view-body">
@@ -490,7 +490,7 @@
       </article>
     </section>
     <section data-theme="organic" id="ice-settings" role="region" class="skin-organic view view-right theme-settings">
-      <gaia-header ignore-dir id="ice-settings-header" action="back">
+      <gaia-header id="ice-settings-header" action="back">
         <h1 id='ice-settings-title' data-l10n-id="ICESettingTitle">ICE Contacts</h1>
       </gaia-header>
       <article class="view-body">
