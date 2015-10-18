@@ -27,6 +27,7 @@ var mocksHelperForItemStore = new MocksHelper([
 
 suite('item.js >', function() {
   var mockIndexedDB;
+  var realSetMessageHandler;
 
   var dataStoreItems = {
     '0': {
@@ -91,10 +92,13 @@ suite('item.js >', function() {
 
   setup(function() {
     mocksHelperForItemStore.setup();
+    realSetMessageHandler = navigator.mozSetMessageHandler;
+    navigator.mozSetMessageHandler = () => {};
   });
 
   teardown(function() {
     mocksHelperForItemStore.teardown();
+    navigator.mozSetMessageHandler = realSetMessageHandler;
   });
 
   test('ItemStore new >', function() {

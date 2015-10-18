@@ -626,7 +626,11 @@
       this._apps[evt.detail.instanceID] = evt.detail;
     },
 
-    '_handle_homescreen-changed': function() {
+    '_handle_homescreen-changed': function(evt) {
+      if (this.service.query('isFtuRunning')) {
+        return;
+      }
+
       this.display();
     },
 
