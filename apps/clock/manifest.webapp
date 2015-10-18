@@ -15,6 +15,12 @@
     "audio-channel-alarm":{},
     "moz-extremely-unstable-and-will-change-webcomponents":{}
   },
+  "datastores-owned": {
+    "alarms": {
+      "access" : "readwrite",
+      "description": "The alarms data store for the Data Store API."
+    }
+  },
   "locales": {
     "ar": {
       "name": "الساعة",

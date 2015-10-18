@@ -28,6 +28,7 @@
       .next(this.queryElements.bind(this))
       .next(this.component.updateFormatters.bind(this.component))
       .next(this.component.updateClock.bind(this.component))
+      .next(this.component.updateAlarm.bind(this.component))
       .next(this.transferToTick.bind(this));
   };
 

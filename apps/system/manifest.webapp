@@ -179,6 +179,10 @@
     "bookmarks_store": {
       "readonly": false,
       "description": "View and modify bookmarks"
+    },
+    "alarms": {
+      "readonly": true,
+      "description": "View alarms"
     }
   }
 }

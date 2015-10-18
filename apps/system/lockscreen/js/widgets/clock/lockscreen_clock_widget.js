@@ -11,6 +11,8 @@
     LockScreenBasicComponent.apply(this);
     this.resources.elements.time = 'lockscreen-clock-time';
     this.resources.elements.date = 'lockscreen-date';
+    this.resources.elements.alarm = 'lockscreen-alarm';
+    this.resources.elements.alarmtime = 'lockscreen-alarm-time';
     this.timeFormatter = null;
     this.dateFormatter = null;
     this.configs.logger.debug = false;  // turn on this when we're debugging
@@ -49,6 +51,41 @@
     this.resources.elements.date.textContent = dateText;
     this.logger.debug('Clock updated', now);
   };
+
+	LockScreenClockWidget.prototype.updateAlarm =
+	function() {
+    var self = this;
+		// returns alarm info from DataStore
+		navigator.getDataStores('alarms')
+			.then( function(stores){
+        console.log("stores : ", stores);
+				stores[0].getLength().then(function(len){
+          if(len > 0) {
+            stores[0].get(1)
+              .then( function(data) {
+                if(data.data) {
+                  if(data.data.hour && data.data.minute) {
+                    var type = 'AM';
+                    if(data.data.hour > 12) {
+                      type = 'PM';
+                      data.data.hour = data.data.hour - 12;
+                    }
+                    var fullAlarmTime = data.data.hour +
+                      ':' + data.data.minute + type;
+                    self.resources.elements.alarmtime.textContent = fullAlarmTime;
+                    self.resources.elements.alarm.classList.remove('no-alarms');
+                    self.logger.debug('Alarm updated to :', fullAlarmTime);
+                    return data;
+                  }
+                  else {
+                    self.resources.elements.alarm.classList.add('no-alarms');
+                  }
+                }
+              });
+          }
+				});
+			});
+	};
 
   exports.LockScreenClockWidget = LockScreenClockWidget;
 })(window);
