@@ -68,7 +68,9 @@
                 'simlockrequestfocus',
                 'home',
                 'holdhome',
-                'hierarchytopmostwindowchanged']
+                'hierarchytopmostwindowchanged',
+                'inputfocus',
+                'inputblur']
     }
   };
 
@@ -110,19 +112,21 @@
     return true;
   };
 
-  SystemDialogManager.prototype._handle_mozChromeEvent =
+  SystemDialogManager.prototype._handle_inputfocus =
     function(evt) {
-      if (!this.states.activeDialog || !evt.detail ||
-          evt.detail.type !== 'inputmethod-contextchange') {
+      if (!this.states.activeDialog) {
         return true;
       }
-      var typesToHandle = ['select-one', 'select-multiple', 'date', 'time',
-        'datetime', 'datetime-local', 'blur'];
-      if (typesToHandle.indexOf(evt.detail.inputType) < 0) {
+      this.states.activeDialog.broadcast('inputfocus', evt.detail);
+      return false;
+    };
+
+  SystemDialogManager.prototype._handle_inputblur =
+    function() {
+      if (!this.states.activeDialog) {
         return true;
       }
-      this.states.activeDialog.broadcast('inputmethod-contextchange',
-        evt.detail);
+      this.states.activeDialog.broadcast('inputblur');
       return false;
     };
 

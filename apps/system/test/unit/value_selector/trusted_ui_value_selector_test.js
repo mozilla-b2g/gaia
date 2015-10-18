@@ -1,11 +1,12 @@
 'use strict';
-/* global TrustedUiValueSelector, MocksHelper */
+/* global TrustedUiValueSelector, MocksHelper, MockEventTarget */
 
 requireApp('system/js/service.js');
 requireApp('system/js/base_ui.js');
 requireApp('system/js/value_selector/value_selector.js');
 requireApp('system/js/value_selector/trusted_ui_value_selector.js');
 requireApp('system/shared/test/unit/mocks/mock_lazy_loader.js');
+require('/shared/test/unit/mocks/mock_event_target.js');
 
 var mocksHelperForTrustedUiValueSelector = new MocksHelper([
   'LazyLoader'
@@ -17,20 +18,23 @@ suite('Value Selector for trusted UI', function() {
     element: document.createElement('div')
   };
   var valueSelector;
+  var realMozInputMethod = null;
 
-  var fakeFocusEvent = new CustomEvent('mozChromeEvent', {
+  var fakeFocusEvent = {
+    type: 'inputcontextfocus',
     detail: {
-      type: 'inputmethod-contextchange',
+      type: 'input',
       inputType: 'select-one'
-    }
-  });
+    },
+    stopImmediatePropagation: sinon.stub(),
+    preventDefault: sinon.stub()
+  };
 
-  var fakeBlurEvent = new CustomEvent('mozChromeEvent', {
-    detail: {
-      type: 'inputmethod-contextchange',
-      inputType: 'blur'
-    }
-  });
+  var fakeBlurEvent = {
+    type: 'inputcontextblur',
+    stopImmediatePropagation: sinon.stub(),
+    preventDefault: sinon.stub()
+  };
 
   suiteSetup(function() {
     var dialogOverlay = document.createElement('div');
@@ -38,6 +42,10 @@ suite('Value Selector for trusted UI', function() {
   });
 
   setup(function() {
+    navigator.mozInputMethod = {
+      mgmt: new MockEventTarget()
+    };
+
     valueSelector = new TrustedUiValueSelector(context);
     valueSelector.start();
     this.sinon.spy(valueSelector, 'handleEvent');
@@ -46,18 +54,20 @@ suite('Value Selector for trusted UI', function() {
 
   teardown(function() {
     valueSelector.stop();
+
+    navigator.mozInputMethod = realMozInputMethod;
   });
 
   test('> will broadcast event to show value selector when active', function() {
     valueSelector.screen = document.createElement('div');
     valueSelector.active = true;
 
-    window.dispatchEvent(fakeFocusEvent);
+    navigator.mozInputMethod.mgmt.dispatchEvent(fakeFocusEvent);
 
     assert.isTrue(valueSelector.handleEvent.called);
     assert.isTrue(valueSelector.broadcast.calledOnce);
     assert.isTrue(valueSelector.broadcast.calledWith(
-      'inputmethod-contextchange', fakeFocusEvent.detail));
+      'inputfocus', fakeFocusEvent.detail));
     assert.isTrue(valueSelector.screen.classList.contains('dialog'));
   });
 
@@ -65,12 +75,12 @@ suite('Value Selector for trusted UI', function() {
     valueSelector.screen = document.createElement('div');
     valueSelector.active = true;
 
-    window.dispatchEvent(fakeBlurEvent);
+    navigator.mozInputMethod.mgmt.dispatchEvent(fakeBlurEvent);
 
     assert.isTrue(valueSelector.handleEvent.called);
     assert.isTrue(valueSelector.broadcast.calledOnce);
     assert.isTrue(valueSelector.broadcast.calledWith(
-      'inputmethod-contextchange', fakeBlurEvent.detail));
+      'inputblur', fakeBlurEvent.detail));
     assert.isTrue(valueSelector.broadcast.called);
     assert.isFalse(valueSelector.screen.classList.contains('dialog'));
   });
