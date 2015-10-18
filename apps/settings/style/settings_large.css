@@ -343,6 +343,12 @@
   html[dir="rtl"] section[role="region"]:not([id='root']) ul li .button {
     left: 0;
   }
+
+  html[dir="rtl"] section[role="region"]#root .pack-switch .menu-item,
+  html[dir="rtl"] section[role="region"]#root .pack-split .menu-item {
+    padding-left: unset;
+    padding-right: 5.5rem;
+  }
 }
 
 /*
