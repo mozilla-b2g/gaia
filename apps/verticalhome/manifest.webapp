@@ -46,6 +46,19 @@
     "vertical_preferences_store": {
       "access": "readwrite",
       "description": "Stores preferences"
+    },
+    "verticalhome_items_migration": {
+      "access": "readwrite",
+      "description": "Stores grid item configuration"
+    }
+  },
+  "connections": {
+    "verticalhome-migrate": {
+      "handler_path": "/index.html",
+      "description": "Exports settings and switches home screen",
+      "rules": {
+        "minimumAccessLevel": "certified"
+      }
     }
   }
 }

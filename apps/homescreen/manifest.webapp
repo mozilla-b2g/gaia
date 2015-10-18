@@ -59,6 +59,14 @@
     "homescreen_settings": {
       "readonly": true,
       "description": "Read home screen settings."
+    },
+    "vertical_preferences_store": {
+      "readonly": true,
+      "description": "Import settings from old home screen."
+    },
+    "verticalhome_items_migration": {
+      "readonly": true,
+      "description": "Import settings from old home screen."
     }
   },
   "orientation": "default"
