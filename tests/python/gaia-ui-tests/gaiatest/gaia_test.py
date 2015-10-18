@@ -781,6 +781,9 @@ class GaiaDevice(object):
     def hold_home_button(self):
         self.marionette.switch_to_frame()
         self.marionette.execute_script("window.wrappedJSObject.dispatchEvent(new Event('holdhome'));")
+        # This is for the opacity animation to be finished for the task-manager
+        # Otherwise we get intermittent issues tapping on opening a new browser window
+        time.sleep(0.3)
 
     def hold_sleep_button(self):
         self.marionette.switch_to_frame()

@@ -21,9 +21,24 @@ class CardsView(PageRegion):
     _apps_cards_locator = (By.CSS_SELECTOR, '#cards-view li[data-origin*="%s"]')
     _close_buttons_locator = (By.CSS_SELECTOR, '#cards-view li[data-origin*="%s"] .close-button')
 
+    _new_private_sheet_locator = (By.ID, 'task-manager-new-private-sheet-button')
+    _new_sheet_locator = (By.ID, 'task-manager-new-sheet-button')
+
     def __init__(self, marionette):
         Base.__init__(self, marionette)
         self.root_element = self.marionette.find_element(*self._root_locator)
+
+    def open_new_browser(self):
+        self.root_element.find_element(*self._new_sheet_locator).tap()
+        self.wait_for_cards_view_not_displayed()
+        from gaiatest.apps.search.app import Search
+        return Search(self.marionette)
+
+    def open_new_private_window(self):
+        self.root_element.find_element(*self._new_private_sheet_locator).tap()
+        self.wait_for_cards_view_not_displayed()
+        from gaiatest.apps.search.regions.browser import PrivateWindow
+        return PrivateWindow(self.marionette)
 
     def _app_card_locator(self, app):
         return (self._apps_cards_locator[0], self._apps_cards_locator[1] % app.lower().replace('-', ''))
