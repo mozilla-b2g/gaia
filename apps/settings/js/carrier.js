@@ -171,7 +171,7 @@ var CarrierSettings = (function() {
     var desc = document.getElementById('dataNetwork-desc');
     var iccCard = _iccManager.getIccById(_mobileConnection.iccId);
     var network = _mobileConnection.voice.network;
-    var iccInfo = iccCard.iccInfo;
+    var iccInfo = iccCard ? iccCard.iccInfo : null;
     var carrier = network ? (network.shortName || network.longName) : null;
 
     if (carrier && iccInfo && iccInfo.isDisplaySpnRequired && iccInfo.spn) {
