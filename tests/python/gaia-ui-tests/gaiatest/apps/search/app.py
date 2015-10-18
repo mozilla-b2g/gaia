@@ -4,41 +4,38 @@
 
 from gaiatest.apps.base import Base
 from marionette_driver import expected, By, Wait
+from gaiatest.apps.search.regions.browser import Browser
 
 
 class Search(Base):
 
     name = 'Browser'
 
-    _browser_app_locator = (By.CSS_SELECTOR, 'div[data-manifest-name="Browser"][transition-state="opened"]')
-    _url_bar_locator = (By.CSS_SELECTOR, 'div.search-app .urlbar .title')
     _history_item_locator = (By.CSS_SELECTOR, '#history .result')
     _private_window_locator = (By.ID, 'private-window')
 
-    def go_to_url(self, url):
-        # The URL bar shown is actually in the system app not in this Search app.
-        # We switch back to the system app, then tap the panel, but this will only
-        # work from Search app which embiggens the input bar
-        self.marionette.switch_to_frame()
-        if self.is_element_present(*self._url_bar_locator):
-            self.marionette.find_element(*self._url_bar_locator).tap()
-        else:
-            self._url_bar_locator = (By.CSS_SELECTOR, '.urlbar .title')
-            self._root_element = self.marionette.find_element(*self._browser_app_locator)
-            self._root_element.find_element(*self._url_bar_locator).tap()
+    def launch(self):
+        Base.launch(self)
+        self.set_root_element()
 
-        from gaiatest.apps.homescreen.regions.search_panel import SearchPanel
-        search_panel = SearchPanel(self.marionette)
-        return search_panel.go_to_url(url)
+    def set_root_element(self):
+        self.root_element = Browser(self.marionette)._root_element
+
+    def go_to_url(self, url):
+        return Browser(self.marionette).go_to_url(url)
 
     @property
     def history_items_count(self):
+        Browser(self.marionette).switch_to_content()
         return len(self.marionette.find_elements(*self._history_item_locator))
 
     def wait_for_history_to_load(self, number_of_items=1):
-        Wait(self.marionette).until(lambda m: len(m.find_elements(*self._history_item_locator)) == number_of_items)
+        Browser(self.marionette).switch_to_content()
+        Wait(self.marionette).until(
+            lambda m: len(self.marionette.find_elements(*self._history_item_locator)) == number_of_items)
 
     def open_new_private_window(self):
+        Browser(self.marionette).switch_to_content()
         element = self.marionette.find_element(*self._private_window_locator)
         Wait(self.marionette).until(expected.element_displayed(element))
         element.tap()

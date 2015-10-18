@@ -110,6 +110,33 @@ class Card(PageRegion):
     _close_button_locator = (By.CLASS_NAME, 'close-button')
     _screenshot_view_locator = (By.CLASS_NAME, 'screenshotView')
     _app_icon_locator = (By.CLASS_NAME, 'appIcon')
+    _title_locator = (By.CLASS_NAME, 'title')
+    _subtitle_locator = (By.CLASS_NAME, 'subtitle')
+
+    @property
+    def title(self):
+        return self.root_element.find_element(*self._title_locator).text
+
+    @property
+    def is_centered(self):
+        screen_width = int(self.marionette.execute_script('return window.innerWidth'))
+        left = self.root_element.rect['x']
+        width = self.root_element.rect['width']
+        # center of card should be within 1px of viewport center
+        return 1 >= abs(screen_width / 2 - (left + width / 2))
+
+    def wait_for_centered(self):
+        Wait(self.marionette).until(lambda m: self.is_centered)
+
+        # TODO: Remove sleep when we find a better wait
+        time.sleep(0.2)
+
+    def tap(self):
+        self.root_element.tap()
+
+    @property
+    def subtitle(self):
+        return self.root_element.find_element(*self._subtitle_locator).text
 
     def a11y_click_close_button(self):
         self.accessibility.click(self.root_element.find_element(*self._close_button_locator))
