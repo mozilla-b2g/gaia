@@ -219,8 +219,15 @@ uld be a Function`);
       return this._controlCollections[collectionName];
     },
 
-    _getItem: function(collectionName, itemName) {
-      return this._getCollection(collectionName).get(itemName);
+    _getItem: function(collectionName, itemName, syncIfNeeded) {
+      return this._getCollection(collectionName).get(itemName).catch(err => {
+        if (syncIfNeeded) {
+          return this._syncCollection(collectionName).then(() => {
+            return this._getItem(collectionName, itemName, false);
+          });
+        }
+        throw err;
+      });
     },
 
     _resolveConflicts: function(collectionName, conflicts) {
@@ -311,9 +318,7 @@ ting to fetch resource.`) {
           return Promise.reject(new SyncEngine.UnrecoverableError(`Incompatible\
  storage version or storage version not recognized.`));
         }
-        return this._syncCollection('crypto');
-      }).then(() => {
-        return this._getItem('crypto', 'keys');
+        return this._getItem('crypto', 'keys', true /* syncIfNeeded */);
       }).then((cryptoKeysRecord) => {
         var cryptoKeys;
         try {
@@ -357,7 +362,7 @@ rse crypto/keys payload as JSON`));
     /**
       * syncNow - Syncs collections up and down between device and server.
       * @param {object} collectionOptions The options per collection. Currently,
-      *                                   only readOnly (defaults to true).
+      *                                   only readonly (defaults to true).
       * @returns {Promise}
       */
     syncNow: function(collectionOptions) {

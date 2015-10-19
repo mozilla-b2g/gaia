@@ -307,16 +307,27 @@ suite('Information view', function() {
     }
 
     function generalInfoAssertion(opts) {
-      var type = opts.type,
-          delivery = opts.delivery,
-          subjectHide = opts.subjectHide,
-          subjectContent = opts.subjectContent,
-          sentTitle = opts.sentTitle,
-          contactTitle = opts.contactTitle,
-          sizeHide = opts.sizeHide,
-          sizeContent = opts.sizeContent;
+      var {
+        type,
+        delivery,
+        subjectHide,
+        subjectContent,
+        sentTitle,
+        contactTitle,
+        sizeHide,
+        sizeContent,
+        isIncoming
+      } = opts;
 
       assert.equal(reportView.container.dataset.delivery, delivery);
+
+      assert.equal(
+        reportView.container.classList.contains('incoming-message'), isIncoming
+      );
+      assert.equal(
+        reportView.container.classList.contains('outgoing-message'), !isIncoming
+      );
+
       sinon.assert.calledWith(
         navigator.mozL10n.setAttributes,
         reportView.type,
@@ -377,7 +388,8 @@ suite('Information view', function() {
         subjectHide: true,
         sentTitle: 'message-sending',
         contactTitle: 'report-to-title',
-        sizeHide: true
+        sizeHide: true,
+        isIncoming: false
       });
     });
 
@@ -397,7 +409,8 @@ suite('Information view', function() {
         subjectHide: true,
         sentTitle: 'message-sent',
         contactTitle: 'report-to-title',
-        sizeHide: true
+        sizeHide: true,
+        isIncoming: false
       });
     });
 
@@ -416,7 +429,8 @@ suite('Information view', function() {
         subjectHide: true,
         sentTitle: 'message-error',
         contactTitle: 'report-to-title',
-        sizeHide: true
+        sizeHide: true,
+        isIncoming: false
       });
     });
 
@@ -439,7 +453,8 @@ suite('Information view', function() {
         subjectContent: messageOpts.subject,
         sentTitle: 'message-sent',
         contactTitle: 'report-to-title',
-        sizeHide: true
+        sizeHide: true,
+        isIncoming: false
       });
     });
 
@@ -461,7 +476,8 @@ suite('Information view', function() {
         sentTitle: 'message-sent',
         contactTitle: 'report-to-title',
         sizeHide: false,
-        sizeContent: { n: (testImageBlob.size / 1024).toFixed(1) }
+        sizeContent: { n: (testImageBlob.size / 1024).toFixed(1) },
+        isIncoming: false
       });
     });
 
@@ -477,7 +493,8 @@ suite('Information view', function() {
         subjectHide: true,
         sentTitle: 'message-sent',
         contactTitle: 'report-from-title',
-        sizeHide: true
+        sizeHide: true,
+        isIncoming: true
       });
     });
 
@@ -497,7 +514,8 @@ suite('Information view', function() {
         sentTitle: 'message-sent',
         contactTitle: 'report-from-title',
         sizeHide: false,
-        sizeContent: { n: (testImageBlob.size / 1024).toFixed(1) }
+        sizeContent: { n: (testImageBlob.size / 1024).toFixed(1) },
+        isIncoming: true
       });
     });
 
@@ -515,7 +533,8 @@ suite('Information view', function() {
         subjectHide: true,
         sentTitle: 'message-sent',
         contactTitle: 'report-from-title',
-        sizeHide: true
+        sizeHide: true,
+        isIncoming: true
       });
     });
 
@@ -575,6 +594,104 @@ suite('Information view', function() {
       assert.isTrue(
         reportView.container.classList.contains('no-valid-sent-timestamp')
       );
+    });
+
+    suite('Incoming Message with late arrival >', function() {
+      setup(function() {
+        messageOpts = {
+          delivery: 'received'
+        };
+      });
+
+      const SECOND = 1000;
+      const MINUTE = 60 * SECOND;
+      const HOUR = 60 * MINUTE;
+      const DAY = 24 * HOUR;
+      const MONTH = 30 * DAY;
+
+      var tests = [
+        {
+          name: '1 second',
+          delay: SECOND,
+          expected: {}
+        },
+        {
+          name: 'less than 5 minutes',
+          delay: 5 * MINUTE - 1,
+          expected: {}
+        },
+        {
+          name: '5 minutes',
+          delay: 5 * MINUTE,
+          expected: { minute: 5 }
+        },
+        {
+          name: 'less than an hour',
+          delay: HOUR - 1,
+          expected: { minute: 59, second: 59, }
+        },
+        {
+          name: 'an hour',
+          delay: HOUR,
+          expected: { hour: 1 }
+        },
+        {
+          name: 'less than a day',
+          delay: DAY - 1,
+          expected: { hour: 23, minute: 59, second: 59 }
+        },
+        {
+          name: 'a day',
+          delay: DAY,
+          expected: { day: 1 }
+        },
+        {
+          name: 'less than a month',
+          delay: MONTH - 1,
+          expected: { day: 29, hour: 23, minute: 59, second: 59 }
+        },
+        {
+          name: 'a month',
+          delay: MONTH,
+          expected: { month: 1 }
+        },
+        {
+          name: '5 months',
+          delay: MONTH * 5,
+          expected: { month: 5 }
+        },
+        {
+          name: '2m, 3d, 8h, 30min, 45sec',
+          delay: MONTH * 2 + DAY * 3 + HOUR * 8 + MINUTE * 30 + SECOND * 45,
+          expected: { month: 2, day: 3, hour: 8, minute: 30, second: 45 }
+        }
+      ];
+
+      tests.forEach(({ name, delay, expected }) => {
+        test(`${name} delay`, function() {
+          messageOpts.timestamp = Date.now();
+          messageOpts.sentTimestamp = messageOpts.timestamp - delay;
+
+          reportView.render();
+
+          ['month', 'day', 'hour', 'minute', 'second'].forEach(
+            (unit) => {
+              var className = `.lateness-${unit}`;
+              var elmt = reportView.container.querySelector(className);
+              var elmtL10nArgs = elmt.dataset.l10nArgs;
+              var actualValue = elmtL10nArgs && JSON.parse(elmtL10nArgs).value;
+              var expectedValue = expected[unit];
+
+              // Test l10n value only if the element is not hidden
+              // because it can retain value from previous test
+              if (elmt.classList.contains('hide')) {
+                assert.isUndefined(expectedValue);
+              } else {
+                assert.equal(actualValue, expectedValue);
+              }
+          });
+        });
+      });
     });
 
     suite('Message report with SIM information', function() {

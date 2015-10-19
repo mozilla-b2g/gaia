@@ -1,6 +1,6 @@
 'use strict';
 /* globals applications, VersionHelper, dump, FtuPing, BaseModule,
-           LazyLoader, SettingsMigrator */
+           LazyLoader, SettingsMigrator, FtuLateCustomization */
 /* This module deals with FTU stuff.
    FTU is known as First Time Usage,
    which is the first app the users would use, to configure their phone. */
@@ -20,6 +20,7 @@
   FtuLauncher.STATES = [
     'isFtuUpgrading',
     'isFtuRunning',
+    'isFtuCustomizing',
     'getFtuOrigin',
     'isFinished'
   ];
@@ -29,7 +30,8 @@
     'launch'
   ];
   FtuLauncher.SETTINGS = [
-    'ftu.manifestURL'
+    'ftu.manifestURL',
+    'latecustomization.url'
   ];
   FtuLauncher.SUB_MODULES = [];
   BaseModule.create(FtuLauncher, {
@@ -54,14 +56,32 @@
 
     _isUpgrading: false,
 
+    /* The Late Customization service instance */
+    _lateCustomization: null,
+
+    /* Store that the Late Customization is/not currently underway */
+    _isFtuCustomizing: false,
+
     _bypassHomeEvent: false,
 
     _start: function() {
       this._stepsList = [];
       this._storedStepRequest = [];
-      return LazyLoader.load(['js/ftu_ping.js']).then(() => {
-        this._ftuPing = new FtuPing();
-        this._ftuPing.ensurePing();
+      return Promise.all([
+        this.readSetting('latecustomization.url'),
+        LazyLoader.load(['js/ftu_ping.js', 'js/ftu_late_customization.js'])
+      ]).then((results) => {
+          var [customizationURL] = results;
+          this._ftuPing = new FtuPing();
+          this._ftuPing.ensurePing();
+          if (customizationURL) {
+            this._isFtuCustomizing = true;
+            this._lateCustomization =
+                new FtuLateCustomization();
+            this._lateCustomization.start();
+          }
+      }).catch(err => {
+        console.warn(err);
       });
     },
 
@@ -71,6 +91,10 @@
 
     isFtuUpgrading: function fl_isFtuUpgrading() {
       return this._isUpgrading;
+    },
+
+    isFtuCustomizing: function fl_isFtuCustomizing() {
+      return this._isFtuCustomizing;
     },
 
     getFtuOrigin: function fl_getFtuOrigin() {
@@ -185,9 +209,6 @@
     '_handle_iac-ftucomms': function(evt) {
       var message = evt.detail;
       switch (message) {
-        case 'started':
-          this.publish('started');
-          break;
         case 'done':
           this.setBypassHome(true);
           break;
@@ -235,6 +256,8 @@
 
     finish: function() {
       this.loadWhenIdle(['NewsletterManager']);
+      this._isFtuCustomizing = false;
+      this._lateCustomization && this._lateCustomization.stop();
       this.writeSetting({'gaia.system.checkForUpdates': true});
       // XXX: remove after bug 1109451 is fixed
       LazyLoader.load(['js/migrators/settings_migrator.js']).then(function() {

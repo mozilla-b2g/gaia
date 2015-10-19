@@ -2,13 +2,16 @@
           UIManager,
           utils,
           VCFReader */
+
 /* exported SdManager */
+
 'use strict';
 
 var SdManager = {
   available: function() {
     return utils.sdcard.checkStorageCard();
   },
+
   checkSDButton: function sm_checkSDButton() {
     var sdOption = UIManager.sdImportButton;
     // If there is an unlocked SD we activate import from SD
@@ -22,90 +25,109 @@ var SdManager = {
       }
     }
   },
+
   importContacts: function sm_importContacts() {
-    // Delay for showing feedback to the user after importing
-    var DELAY_FEEDBACK = 200;
     var importedContacts = 0;
 
     UIManager.navBar.setAttribute('aria-disabled', 'true');
 
     var cancelled = false;
     var importer = null;
+    var importButton;
 
     var progress = utils.overlay.show(
-      'memoryCardContacts-reading', 'activityBar');
+      'memoryCardContacts-importing',
+      'activityBar',
+      'infiniteProgress'
+    );
     utils.overlay.showMenu();
-    utils.overlay.oncancel = function() {
-      cancelled = true;
-      if (importer) {
-        importer.finish();
-      } else {
-        UIManager.navBar.removeAttribute('aria-disabled');
-        utils.overlay.hide();
-      }
-    };
 
-    var importButton = UIManager.sdImportButton;
+    return new Promise((resolve, reject) => {
+      utils.overlay.oncancel = () => {
+        cancelled = true;
+        if (importer) {
+          importer.finish();
+        } else {
+          UIManager.navBar.removeAttribute('aria-disabled');
+          utils.overlay.hide();
+        }
+        resolve();
+      };
 
+      importButton = UIManager.sdImportButton;
 
-    utils.sdcard.retrieveFiles([
-      'text/vcard',
-      'text/directory;profile=vCard',
-      'text/directory'
-    ], ['vcf', 'vcard'], function(err, fileArray) {
-      if (err) {
-        return import_error(err);
-      }
-      if (cancelled) {
-        return;
-      }
-      if (fileArray.length) {
-        utils.sdcard.getTextFromFiles(fileArray, '', onFiles);
-      } else {
-        import_error('No contacts were found.');
-      }
-    });
+      utils.sdcard.retrieveFiles([
+        'text/vcard',
+        'text/directory;profile=vCard',
+        'text/directory'
+      ], ['vcf', 'vcard'], (error, fileArray) => {
+        if (!error && !fileArray.length) {
+          error = 'No contacts were found';
+        }
 
-    function onFiles(err, text) {
-      if (err) {
-        return import_error(err);
-      }
-      if (cancelled) {
-        return;
-      }
-      importer = new VCFReader(text);
-      if (!text || !importer) {
-        return import_error('No contacts were found.');
-      }
+        if (error) {
+          reject(error);
+          return import_error(error);
+        }
 
-      importer.onread = import_read;
-      importer.onimported = imported_contact;
-      importer.onerror = import_error;
+        if (cancelled) {
+          resolve();
+          return;
+        }
 
-      importer.process(function import_finish() {
-        window.setTimeout(function onfinish_import() {
+        var promises = [];
+        fileArray.forEach(file => {
+          promises.push(utils.sdcard.getTextFromFile(file, onContacts));
+        });
+
+        Promise.all(promises).then(() => {
           utils.misc.setTimestamp('sd');
           UIManager.navBar.removeAttribute('aria-disabled');
           utils.overlay.hide();
-          if (!cancelled) {
-            SdManager.alreadyImported = true;
-            importButton.setAttribute('disabled', 'disabled');
-            utils.status.show(
-              {
-                id: 'memoryCardContacts-imported3',
-                args: {n: importedContacts}
-              }
-            );
+          if (cancelled) {
+            resolve();
+            return;
           }
-
-        }, DELAY_FEEDBACK);
+          SdManager.alreadyImported = true;
+          importButton.setAttribute('disabled', 'disabled');
+          utils.status.show({
+            id: 'memoryCardContacts-imported3',
+            args: { n: importedContacts }
+          });
+          resolve();
+        }).catch(reject);
       });
-    }
+    });
 
-    function import_read(n) {
-      progress.setClass('progressBar');
-      progress.setHeaderMsg('memoryCardContacts-importing');
-      progress.setTotal(n);
+    function onContacts(text) {
+      if (cancelled) {
+        return Promise.reject();
+      }
+      return new Promise((resolve, reject) => {
+        importer = new VCFReader(text);
+
+        if (!text || !importer) {
+          var error = 'No contacts were found';
+          import_error(error);
+          reject(error);
+          return;
+        }
+
+        importer.onimported = imported_contact;
+        importer.onerror = error => {
+          import_error(error);
+          reject(error);
+        };
+
+        importer.process(() => {
+          if (cancelled) {
+            reject('Cancelled');
+            utils.overlay.hide();
+            return;
+          }
+          resolve();
+        });
+      });
     }
 
     function imported_contact() {

@@ -106,8 +106,13 @@ Card.prototype = {
     // In the metrics of this calculation, that's calc(50% + y).
     // See <https://bugzil.la/1209194>; we can probably relocate the offset
     // when that bug is fixed or when we don't care about Flame any more.
-    this.element.style.transform =
+    var newTransform =
       `translate(${this._translateX}, calc(50% + ${this._translateY}))`;
+
+    // Preventing an extra restyle when the value doesn't need to change
+    if (this.element.style.transform !== newTransform) {
+      this.element.style.transform = newTransform;
+    }
   },
 
   _translateX: '0px',

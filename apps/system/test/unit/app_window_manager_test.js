@@ -274,21 +274,29 @@ suite('system/AppWindowManager', function() {
       assert.isTrue(stub_updateActiveApp.calledWith(home.instanceID));
     });
 
-    test('Topmost app should be notified about inputmethod-contextchange ' +
-      'mozChromeEvent', function() {
-        var stubInputMethodContextChange = this.sinon.stub(app1, 'broadcast');
-        var detail = {
-          type: 'inputmethod-contextchange'
-        };
-        this.sinon.stub(app1, 'getTopMostWindow').returns(app1);
-        subject._activeApp = app1;
-        subject.respondToHierarchyEvent({
-          type: 'mozChromeEvent',
-          detail: detail
-        });
-        assert.isTrue(stubInputMethodContextChange.calledWith(
-          'inputmethod-contextchange', detail));
+    test('Topmost app should be notified about inputfocus', function() {
+      var stubInputMethodContextChange = this.sinon.stub(app1, 'broadcast');
+      var detail = {};
+      this.sinon.stub(app1, 'getTopMostWindow').returns(app1);
+      subject._activeApp = app1;
+      subject.respondToHierarchyEvent({
+        type: 'inputfocus',
+        detail: detail
       });
+      assert.isTrue(stubInputMethodContextChange.calledWith(
+        'inputfocus', detail));
+    });
+
+    test('Topmost app should be notified about inputblur', function() {
+      var stubInputMethodContextChange = this.sinon.stub(app1, 'broadcast');
+      this.sinon.stub(app1, 'getTopMostWindow').returns(app1);
+      subject._activeApp = app1;
+      subject.respondToHierarchyEvent({
+        type: 'inputblur'
+      });
+      assert.isTrue(stubInputMethodContextChange.calledWith(
+        'inputblur'));
+    });
 
     test('When receiving shrinking-start, we need to blur the active app',
       function() {
@@ -332,6 +340,14 @@ suite('system/AppWindowManager', function() {
         var stubFocus = this.sinon.stub(app1, 'broadcast');
         subject._activeApp = app1;
         window.dispatchEvent(new CustomEvent('permissiondialoghide'));
+        assert.isTrue(stubFocus.calledWith('focus'));
+      });
+
+    test('When sleep menu is closed, we need to focus the active app',
+      function() {
+        var stubFocus = this.sinon.stub(app1, 'broadcast');
+        subject._activeApp = app1;
+        window.dispatchEvent(new CustomEvent('sleepmenuhide'));
         assert.isTrue(stubFocus.calledWith('focus'));
       });
 
@@ -528,12 +544,21 @@ suite('system/AppWindowManager', function() {
         subject._apps);
     });
 
-    test('homescreen is changed', function() {
+    test('homescreen is displayed', function() {
       var stubDisplay = this.sinon.stub(subject, 'display');
 
       subject.handleEvent(
         { type: 'homescreen-changed', detail: app1 });
       assert.isTrue(stubDisplay.calledWith());
+    });
+
+    test('homescreen is not displayed when FTU is running', function() {
+      var stubDisplay = this.sinon.stub(subject, 'display');
+      MockService.mockQueryWith('isFtuRunning', true);
+
+      subject.handleEvent(
+        { type: 'homescreen-changed', detail: app1 });
+      assert.isFalse(stubDisplay.calledWith());
     });
 
     test('kill app', function() {
@@ -1010,6 +1035,25 @@ suite('system/AppWindowManager', function() {
       injectRunningApps(app1);
       subject.launch(fakeAppConfig1);
       assert.isTrue(stubDisplay.called);
+    });
+
+    test('Cancel inline activities on webapps-launch', function() {
+      injectRunningApps(app1);
+      subject._activeApp = app1;
+
+      app1.frontWindow = app3;
+      this.sinon.stub(app1, 'getTopMostWindow').returns(app3);
+      var stubKill = this.sinon.stub(app3, 'kill');
+
+      var launchConfig = {
+        evtType: 'webapps-launch'
+      };
+      for (var attr in fakeAppConfig1) {
+        launchConfig[attr] = fakeAppConfig1[attr];
+      }
+      subject.launch(launchConfig);
+
+      assert.isTrue(stubKill.called);
     });
 
     test('Launch background app', function() {

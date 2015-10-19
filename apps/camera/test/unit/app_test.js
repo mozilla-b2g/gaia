@@ -119,7 +119,6 @@ suite('app', function() {
     // methods before any of this happens, so that the
     // spy is always at the root of any call.
     this.sandbox.spy(this.App.prototype, 'boot');
-    this.sandbox.spy(this.App.prototype, 'onReady');
     this.sandbox.spy(this.App.prototype, 'showSpinner');
     this.sandbox.spy(this.App.prototype, 'clearSpinner');
 
@@ -274,7 +273,6 @@ suite('app', function() {
         this.spy = this.app.once.withArgs('viewfinder:visible');
         this.callback = this.spy.args[0][1];
 
-        sinon.stub(this.app, 'onReady');
         sinon.spy(this.app, 'loadLazyControllers');
         sinon.stub(this.app, 'clearSpinner');
 
@@ -451,7 +449,6 @@ suite('app', function() {
     test('Should clear loadingTimeout', function() {
       this.app.views.loading = null;
       this.app.showSpinner();
-      this.app.onReady();
       this.app.clearSpinner();
       sinon.assert.calledWith(window.clearTimeout, '<timeout-id>');
     });

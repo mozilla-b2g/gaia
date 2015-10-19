@@ -3,8 +3,11 @@
 /* global module */
 
 var SELECTORS = Object.freeze({
-  main: 'form[data-type=confirm][data-subtype=menu][role=dialog]',
-  button: 'form[data-type=confirm][role=dialog] button'
+  container: 'form[data-type=confirm][data-subtype=menu][role=dialog]',
+  // The following rules should be scoped by the container.
+  header: 'form h1',
+  body: 'form p',
+  button: 'form button'
 });
 
 function DialogAccessor(client) {
@@ -12,16 +15,27 @@ function DialogAccessor(client) {
 }
 
 DialogAccessor.prototype = {
+  get container() {
+    return this.client.helper.waitForElement(SELECTORS.container);
+  },
+
   get buttons() {
-    return this.client.findElements(SELECTORS.button);
+    return this.container.findElements(SELECTORS.button);
+  },
+
+  get header() {
+    return this.container.findElement(SELECTORS.header);
+  },
+
+  get body() {
+    return this.container.findElement(SELECTORS.body);
   },
 
   waitToAppear: function() {
     this.client.waitFor(function() {
-      var container = this.client.helper.waitForElement(SELECTORS.main);
       var body = this.client.findElement('body');
 
-      return container.getAttribute('class').indexOf('visible') >= 0 &&
+      return this.container.getAttribute('class').indexOf('visible') >= 0 &&
         body.getAttribute('class').indexOf('dialog-animating') < 0;
     }.bind(this));
   }

@@ -15,12 +15,6 @@ marionette('improve b2g', function() {
   });
 
   suite('improve page', function() {
-    test('enable performance data', function() {
-      improvePanel.enableSubmitPerfData();
-      assert.ok(true,
-        'performance data is enabled'
-      );
-    });
 
     test('enable always send report', function() {
       // make sure the item displaying on the screen

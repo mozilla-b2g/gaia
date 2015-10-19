@@ -6,13 +6,59 @@ var HomeView = View.extend(function HomeView() {
 
   this.thumbnailCache = {};
 
-  this.searchBox = document.getElementById('search');
+  this.searchBox = document.getElementById('search-box');
+  this.searchResults = document.getElementById('search-results');
   this.tiles = document.getElementById('tiles');
 
-  this.searchBox.addEventListener('open', () => window.parent.onSearchOpen());
-  this.searchBox.addEventListener('close', () => window.parent.onSearchClose());
+  var loadTile = (tile) => {
+    if (tile.dataset.loaded) {
+      return;
+    }
+
+    this.getThumbnail(tile.dataset.filePath).then((url) => {
+      var img = tile.querySelector('img');
+      img.src = url;
+
+      tile.dataset.loaded = true;
+    });
+  };
+
+  this.onScroll = debounce((scrollTop) => {
+    var scrollBottom = scrollTop + window.innerHeight;
+
+    var tiles = this.tiles.querySelectorAll('.tile');
+    var lastTileVisible = false;
+    var tile, tileOffset;
+    for (var i = 0, length = tiles.length; i < length; i++) {
+      tile = tiles[i];
+      tileOffset = tile.offsetTop;
+
+      if (scrollTop <= tileOffset && tileOffset <= scrollBottom) {
+        lastTileVisible = true;
+
+        loadTile(tile);
+      }
+
+      else if (lastTileVisible) {
+        return;
+      }
+    }
+  }, 500);
+
   this.searchBox.addEventListener('search', (evt) => this.search(evt.detail));
-  this.searchBox.addEventListener('resultclick', (evt) => {
+
+  this.searchResults.addEventListener('open', () => {
+    this.client.method('searchOpen');
+    document.body.dataset.search = true;
+  });
+
+  this.searchResults.addEventListener('close', () => {
+    this.client.method('searchClose');
+    document.body.dataset.search = false;
+    window.scrollTo(0, this.searchBox.HEIGHT);
+  });
+
+  this.searchResults.addEventListener('resultclick', (evt) => {
     var link = evt.detail;
     if (link) {
       if (link.dataset.section === 'songs') {
@@ -23,16 +69,18 @@ var HomeView = View.extend(function HomeView() {
     }
   });
 
-  this.searchBox.getItemImageSrc = (item) => {
-    return this.getThumbnail(item.name);
-  };
-
   this.tiles.addEventListener('click', (evt) => {
     var link = evt.target.closest('a[data-file-path]');
     if (link) {
       this.queueAlbum(link.dataset.filePath);
     }
   });
+
+  window.addEventListener('scroll', evt => this.onScroll(evt.pageY));
+
+  window.scrollTo(0, this.searchBox.HEIGHT);
+
+  this.searchResults.getItemImageSrc = (item) => this.getThumbnail(item.name);
 
   this.client.on('databaseChange', () => this.update());
 
@@ -75,10 +123,7 @@ Sanitizer.createSafeHTML `<a class="tile"
 
     this.tiles.innerHTML = Sanitizer.unwrapSafeHTML(...html);
 
-    [].forEach.call(this.tiles.querySelectorAll('.tile'), (tile) => {
-      this.getThumbnail(tile.dataset.filePath)
-        .then(url => tile.querySelector('img').src = url);
-    });
+    this.onScroll(window.scrollY);
   });
 };
 
@@ -108,6 +153,10 @@ HomeView.prototype.queueSong = function(filePath) {
 };
 
 HomeView.prototype.search = function(query) {
+  if (!query) {
+    return Promise.resolve(this.searchResults.clearResults());
+  }
+
   var results = [];
 
   return document.l10n.formatValues(
@@ -128,7 +177,7 @@ HomeView.prototype.search = function(query) {
 
         results = results.concat(albumResults);
 
-        this.searchBox.setResults(results);
+        this.searchResults.setResults(results);
         return albumResults;
       });
 
@@ -147,7 +196,7 @@ HomeView.prototype.search = function(query) {
 
         results = results.concat(artistResults);
 
-        this.searchBox.setResults(results);
+        this.searchResults.setResults(results);
         return artistResults;
       });
 
@@ -166,7 +215,7 @@ HomeView.prototype.search = function(query) {
 
         results = results.concat(songResults);
 
-        this.searchBox.setResults(results);
+        this.searchResults.setResults(results);
         return songResults;
       });
 
@@ -175,5 +224,13 @@ HomeView.prototype.search = function(query) {
     });
   });
 };
+
+function debounce(fn, ms) {
+  var timeout;
+  return (...args) => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => fn.apply(this, args), ms);
+  };
+}
 
 window.view = new HomeView();

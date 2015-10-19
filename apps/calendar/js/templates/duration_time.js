@@ -4,7 +4,6 @@ define(function(require, exports, module) {
 var Calc = require('common/calc');
 var DateSpan = require('templates/date_span');
 var create = require('template').create;
-var dateFormat = require('date_format');
 
 var l10n = navigator.mozL10n;
 
@@ -38,10 +37,12 @@ module.exports = create({
 });
 
 function formatDate(date) {
-  return dateFormat.localeFormat(
-    date,
-    l10n.get('longDateFormat')
-  );
+  return date.toLocaleString(navigator.languages, {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric'
+  });
 }
 
 function formatTime(time) {

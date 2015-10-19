@@ -1,5 +1,5 @@
 /* global MocksHelper, MockL10n, AppWindow, BaseModule, MockNavigatorSettings,
-          MockMozActivity, MozActivity, MockAppWindowHelper */
+          MockMozActivity, MozActivity, MockAppWindowHelper, MockService */
 
 'use strict';
 
@@ -12,6 +12,7 @@ requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_context_menu_view.js');
 require('/shared/test/unit/mocks/mock_moz_activity.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+require('/shared/test/unit/mocks/mock_service.js');
 require('/js/browser_config_helper.js');
 require('/js/service.js');
 require('/js/base_module.js');
@@ -19,7 +20,8 @@ require('/js/base_module.js');
 const PINNING_PREF = 'dev.gaia.pinning_the_web';
 
 var mocksForAppModalDialog = new MocksHelper([
-  'AppWindow', 'MozActivity', 'LazyLoader', 'IconsHelper', 'ContextMenuView'
+  'AppWindow', 'MozActivity', 'LazyLoader', 'IconsHelper', 'ContextMenuView',
+  'Service'
 ]).init();
 
 suite('system/BrowserContextMenu', function() {
@@ -38,6 +40,7 @@ suite('system/BrowserContextMenu', function() {
   setup(function(done) {
     MockNavigatorSettings.mSetup();
     MockNavigatorSettings.mSyncRepliesOnly = true;
+    MockService.mockQueryWith('isFtuRunning', false);
 
     stubById = this.sinon.stub(document, 'getElementById');
     var e = document.createElement('div');
@@ -214,15 +217,26 @@ suite('system/BrowserContextMenu', function() {
       md1.showDefaultMenu();
     });
 
-    test('Conext Menu is shown', function() {
+    test('Context Menu is shown', function() {
       MockNavigatorSettings.mReplyToRequests();
       assert.isTrue(md1.isShown());
     });
 
-    test('Conext Menu is not shown', function() {
+    test('Context Menu is not shown', function() {
       md1.hide();
       assert.isFalse(md1.isShown());
     });
+  });
+
+  test('Context Menu is not shown during FTU', function() {
+    var app1 = new AppWindow(fakeBrowserConfig);
+    var md1 = BaseModule.instantiate('BrowserContextMenu', app1);
+    md1.start();
+    this.sinon.stub(md1, 'show');
+    MockService.mockQueryWith('isFtuRunning', true);
+
+    md1.handleEvent(fakeSystemContextMenuEvents[0]);
+    assert.isFalse(md1.show.called);
   });
 
   test('Check that a context menu containing items is prevented', function() {
@@ -250,6 +264,40 @@ suite('system/BrowserContextMenu', function() {
 
     md1.handleEvent(fakeNoItemsContextMenuEvent);
     assert.isTrue(!fakeNoItemsContextMenuEvent.defaultPrevented);
+  });
+
+  test('System menu with invalid items is not prevented', function() {
+    var app1 = new AppWindow(fakeAppConfig1);
+    var md1 = BaseModule.instantiate('BrowserContextMenu', app1);
+    md1.start();
+
+    app1.isBrowser = function() {
+      return true;
+    };
+
+    var fakeEvent = {
+      type: 'mozbrowsercontextmenu',
+      defaultPrevented: false,
+      preventDefault: function() {
+        this.defaultPrevented = true;
+      },
+      stopPropagation: function() {},
+      detail: {
+        contextmenu: {
+          items: [],
+          customized: false
+        },
+        systemTargets: [{
+          nodeName: 'INPUT',
+          data: {
+            uri: 'http://fake.com'
+          }
+       }]
+      }
+    };
+    md1.handleEvent(fakeEvent);
+    MockNavigatorSettings.mReplyToRequests();
+    assert.isFalse(fakeEvent.defaultPrevented);
   });
 
 

@@ -24,7 +24,7 @@ module.exports = View.extend({
 
   // It creates the DOM elements that will display circles
   // around the detected faces.
-  configure: function(maxNumberFaces) {
+  createFaces: function(maxNumberFaces) {
     var faceView;
     var i;
     for(i = 0; i < maxNumberFaces; ++i) {
@@ -38,6 +38,9 @@ module.exports = View.extend({
   render: function(faces) {
     var self = this;
     this.hideFaces();
+    if (faces.length > this.faces.length) {
+      this.createFaces(faces.length - this.faces.length);
+    }
     faces.forEach(function(face, index) {
       var faceView = self.faces[index];
       self.renderFace(face, faceView);

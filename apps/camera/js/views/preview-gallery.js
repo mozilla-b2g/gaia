@@ -94,7 +94,7 @@ return View.extend({
 
   template: function() {
     return '<div class="preview-menu js-preview-menu">' +
-        '<gaia-header class="js-header" action="back">' +
+        '<gaia-header class="js-header" action="back" ignore-dir>' +
           '<h1 data-l10n-id="preview">Preview</h1>' +
           '<button class="preview-share-icon js-share"' +
             'name="share" data-icon="share" ' +

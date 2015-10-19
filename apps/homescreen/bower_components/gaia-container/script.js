@@ -537,7 +537,7 @@ window.GaiaContainer = (function(exports) {
           }
         }
       }
-    } else if (this._dnd.timeout) {
+    } else if (this._dnd.timeout !== null) {
       this.dispatchEvent(new CustomEvent('activate',
         { detail: { target: this._dnd.child.element } }));
     }
@@ -636,7 +636,7 @@ window.GaiaContainer = (function(exports) {
 
       case 'touchend':
       case 'mouseup':
-        if (this._dnd.active) {
+        if (this._dnd.active || this._dnd.timeout !== null) {
           event.preventDefault();
           event.stopImmediatePropagation();
         }
@@ -713,11 +713,7 @@ window.GaiaContainer = (function(exports) {
 
   function GaiaContainerChild(element) {
     this._element = element;
-    this._lastElementWidth = 0;
-    this._lastElementHeight = 0;
-    this._lastElementDisplay = 0;
-    this._lastMasterTop = 0;
-    this._lastMasterLeft = 0;
+    this.markDirty();
   }
 
   GaiaContainerChild.prototype = {
@@ -766,6 +762,7 @@ window.GaiaContainer = (function(exports) {
       this._lastElementWidth = null;
       this._lastElementHeight = null;
       this._lastElementDisplay = null;
+      this._lastElementOrder = null;
       this._lastMasterTop = null;
       this._lastMasterLeft = null;
     },
@@ -777,19 +774,24 @@ window.GaiaContainer = (function(exports) {
       var master = this.master;
       var element = this.element;
 
-      var display = window.getComputedStyle(element).display;
+      var style = window.getComputedStyle(element);
+      var display = style.display;
+      var order = style.order;
       var width = element.offsetWidth;
       var height = element.offsetHeight;
       if (this._lastElementWidth !== width ||
           this._lastElementHeight !== height ||
-          this._lastElementDisplay !== display) {
+          this._lastElementDisplay !== display ||
+          this._lastElementOrder !== order) {
         this._lastElementWidth = width;
         this._lastElementHeight = height;
         this._lastElementDisplay = display;
+        this._lastElementOrder = order;
 
         master.style.width = width + 'px';
         master.style.height = height + 'px';
         master.style.display = display;
+        master.style.order = order;
       }
     },
 

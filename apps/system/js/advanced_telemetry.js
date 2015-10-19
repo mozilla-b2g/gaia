@@ -12,7 +12,9 @@
  * interval desired.
  */
 
-/* global asyncStorage, SettingsListener, uuid, TelemetryRequest */
+/* global asyncStorage, SettingsListener, uuid, TelemetryRequest, Gzip,
+   LazyLoader */
+
 (function(exports) {
   'use strict';
 
@@ -66,6 +68,14 @@
   // packet sending events and is at a higher level then DEBUG.
   AT.LOGINFO = false;
 
+  // Constants for BatchTiming Batch Type
+  AT.NORMAL_BATCH = true;
+  AT.RETRY_BATCH = false;
+
+  //Constants for BatchTiming reset
+  AT.RESET_BATCH = true;
+  AT.EXISTING_BATCH = false;
+
   function debug(...args) {
     if (!AT.DEBUG) {
       return;
@@ -106,7 +116,7 @@
   }
 
   // This value is what turns advanced telemetry on/off
-  AT.TELEMETRY_ENABLED_KEY = 'debug.performance_data.advanced_telemetry';
+  AT.TELEMETRY_ENABLED_KEY = 'metrics.selectedMetrics.level';
 
   // Base URL for sending data reports
   // Needs to be formatted as:
@@ -114,7 +124,7 @@
   AT.REPORT_URL = 'https://incoming.telemetry.mozilla.org/submit/telemetry';
   // How often do we try to send the reports
   // Can be overridden with metrics.advancedtelemetry.reportInterval setting.
-  AT.REPORT_INTERVAL = 24 * 60 * 60 * 1000;  // 1 DAY
+  AT.REPORT_INTERVAL = 14 * 24 * 60 * 60 * 1000;  // Two Weeks
 
   // If the telemetry server does not respond within this amount of time
   // just give up and try again later.
@@ -142,7 +152,7 @@
     loginfo('Starting AdvancedTelemetry');
     this.advancedTelemetryEnabledListener =
       function advancedTelemetryEnabledListener(enabled) {
-        if (enabled) {
+        if (enabled === 'Enhanced') {
           loginfo('Start Collecting');
           this.startCollecting();
         }
@@ -171,7 +181,7 @@
     }
     this.collecting = true;
 
-    this.metrics = new BatchTiming(true);
+    this.metrics = new BatchTiming(AT.RESET_BATCH);
     this.mergeTimeStart = Date.now();
     this.merge = false;
 
@@ -270,7 +280,7 @@
         self.clearPayload(false);
       }
       // if it's a request to transmit, transmit the merged metrics.
-      else if (self.collecting && navigator.onLine) {
+      else if (self.collecting) {
         self.transmit(result);
       }
       if (callback) {
@@ -298,9 +308,7 @@
   AT.prototype.startBatch = function startBatch() {
     var self = this;
     this.timer = setTimeout(function() {
-      if (navigator.onLine) {
-        self.getPayload();
-      }
+      self.getPayload();
     }, self.metrics.getInterval());
   };
 
@@ -313,13 +321,9 @@
   // start a fresh batch of metrics.
   AT.prototype.transmit = function transmit(payload) {
     var self = this;
-    if (!this.collecting || !navigator.onLine) {
+    if (!this.collecting) {
       return;
     }
-
-    // But assume that it will succeed and start collecting new metrics now
-    this.metrics = new BatchTiming(false);
-    this.startBatch();
 
     var deviceInfoQuery = {
       'app.update.channel': 'unknown',
@@ -328,7 +332,7 @@
     };
 
     // Query the settings db for parameters for the URL
-    TelemetryRequest.getSettings(deviceInfoQuery, function(deviceResponse) {
+    TelemetryRequest.getSettings(deviceInfoQuery, (deviceResponse) => {
       // Note that this wrapper is using the new v4 Unified Telemetry format
       var wrapper = {
         type: AT.REASON,
@@ -345,7 +349,7 @@
           xpcomAbi: 'arm-gcc3',
           channel: deviceResponse['app.update.channel']
         },
-        clientId: self.deviceID,
+        clientId: this.deviceID,
         payload: payload
       };
 
@@ -356,7 +360,12 @@
     });
 
     function send(payload, deviceInfoQuery) {
-      var request = new AdvancedTelemetryPing(payload, deviceInfoQuery,
+      if (!navigator.onLine) {
+        self.startRetryBatch();
+        return;
+      }
+
+      self.request = new AdvancedTelemetryPing(payload, deviceInfoQuery,
         self.deviceID);
 
       // We don't actually have to do anything if the data is transmitted
@@ -364,15 +373,18 @@
       function onload() {
         loginfo('Transmitted Successfully.');
         AdvancedTelemetry.prototype.clearPayload(true);
+        // Start a new batch.
+        self.startNewBatch();
       }
 
       function retry(e) {
-        // If the attempt to transmit a batch of data fails, refresh the payload
-        loginfo('App usage metrics transmission failure:', e.type);
-        self.getPayload();
+        loginfo('Advanced Telemetry metrics transmission failure:', e.type);
+        // Start a retry batch.  Don't clear the payload yet.  It will continue
+        // to accumulate until the retry interval expires.
+        self.startRetryBatch();
       }
 
-      request.send({
+      self.request.send({
         timeout: AT.REPORT_TIMEOUT,
         onload: onload,
         onerror: retry,
@@ -380,6 +392,16 @@
         ontimeout: retry
       });
     }
+  };
+
+  AT.prototype.startNewBatch = function startNewBatch() {
+    this.metrics = new BatchTiming(AT.EXISTING_BATCH, AT.RETRY_BATCH);
+    this.startBatch();
+  };
+
+  AT.prototype.startRetryBatch = function startRetryBatch() {
+    this.metrics = new BatchTiming(AT.EXISTING_BATCH, AT.NORMAL_BATCH);
+    this.startBatch();
   };
 
   // Check if there are existing metrics that need to be merged, if so,
@@ -483,36 +505,60 @@
     debug('Telemetry URL is: ' + this.url);
   }
 
+  /*
+   * Expose `getData` for unit testing purposes
+   */
+  AdvancedTelemetryPing.prototype.getData = function(packet) {
+    return JSON.stringify(packet);
+  };
+
   AdvancedTelemetryPing.prototype.send = function(xhrAttrs) {
+    return new Promise((resolve, reject) => {
+      this.data = this.getData(this.packet);
+      LazyLoader.load(['/shared/js/gzip/gzip.js']).then(() => {
+        Gzip.compress(this.data).then((gzipData) => {
+          debug('Length of compressed data:', gzipData.length);
+          return this.post(xhrAttrs, gzipData);
+        }, (msg) => {
+          debug('Error compressing telemetry payload:', msg);
+          return this.post(xhrAttrs, this.data);
+        }).then(function () {
+          resolve();
+        });
+      });
+    });
+  };
+
+  AdvancedTelemetryPing.prototype.post = function post(xhrAttrs, gzipData) {
     var xhr = new XMLHttpRequest({ mozSystem: true, mozAnon: true });
+    return new Promise((resolve, reject) => {
 
-    xhr.open('POST', this.url);
+      xhr.open('POST', this.url);
 
-    if (xhrAttrs && xhrAttrs.timeout) {
-      xhr.timeout = xhrAttrs.timeout;
-    }
+      if (xhrAttrs) {
+        xhr.onload = xhrAttrs.onload;
+        xhr.onerror = xhrAttrs.onerror;
+        xhr.onabort = xhrAttrs.onabort;
+        xhr.ontimeout = xhrAttrs.ontimeout;
 
-    xhr.setRequestHeader('Content-type', 'application/json');
-    xhr.responseType = 'text';
+        if (xhrAttrs.timeout) {
+          xhr.timeout = xhrAttrs.timeout;
+        }
+      }
+      xhr.setRequestHeader('Content-type', 'application/json');
+      xhr.setRequestHeader('Content-Encoding', 'gzip');
 
-    var data = JSON.stringify(this.packet);
-    xhr.send(data);
-    //TODO:  GZIP COMPRESS.
+      xhr.responseType = 'text';
 
-    if (xhrAttrs) {
-      xhr.onload = xhrAttrs.onload;
-      xhr.onerror = xhrAttrs.onerror;
-      xhr.onabort = xhrAttrs.onabort;
-      xhr.ontimeout = xhrAttrs.ontimeout;
-    }
-
-    return xhr;
+      xhr.send(gzipData);
+      resolve();
+    });
   };
 
   /*
    * A helper class that tracks the start time of the current batch.
    */
-  function BatchTiming(startup) {
+  function BatchTiming(startup, retry) {
     var self = this;
     this.start = Date.now();
     if (startup) {
@@ -533,7 +579,11 @@
       });
     } else {
       asyncStorage.setItem(AT.BATCH_KEY, this.start);
-      this.interval = AT.REPORT_INTERVAL;
+      if (retry) {
+        self.interval = AT.RETRY_INTERVAL;
+      } else {
+        self.interval = AT.REPORT_INTERVAL;
+      }
     }
   }
 
@@ -545,6 +595,7 @@
     return this.interval;
   };
 
-  // The AdvancedTelemetry constructor is the single value we export.
   exports.AdvancedTelemetry = AdvancedTelemetry;
+  // Exported for unit testing.
+  exports.AdvancedTelemetryPing = AdvancedTelemetryPing;
 }(window));

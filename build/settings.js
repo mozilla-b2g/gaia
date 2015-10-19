@@ -193,7 +193,7 @@ function overrideSettings(settings, config) {
 
 function setHomescreenURL(settings, config) {
   // 'homescreen' as default value of homescreen.appName
-  let appName = 'verticalhome';
+  let appName = 'homescreen';
 
   if (typeof(settings['homescreen.appName']) !== 'undefined') {
     appName = settings['homescreen.appName'];
@@ -256,8 +256,8 @@ function execute(config) {
   // Set the ftu ping URL -- we set this regardless of NOFTU for now
   settings['ftu.pingURL'] = config.FTU_PING_URL;
 
-  // Whether or not performance and usage data are shared by default
-  settings['debug.performance_data.shared'] = config.SHARE_PERF_USAGE === '1';
+  // The selected value for the level of data to share.
+  settings['metrics.selectedMetrics.level'] = 'Basic';
 
   // Set the rocketbar URL
   settings['rocketbar.searchAppURL'] = utils.gaiaOriginURL('search',
@@ -285,6 +285,7 @@ function execute(config) {
   if (config.DOGFOOD === '1') {
     settings['debug.performance_data.dogfooding'] = true;
     settings['metrics.appusage.reportInterval'] = 24 * 60 * 60 * 1000;
+    settings['metrics.selectedMetrics.level'] = 'Enhanced';
   }
 
   settings['language.current'] = config.GAIA_DEFAULT_LOCALE;

@@ -6,9 +6,13 @@
     <title>Fling Player</title>
 
     <!-- stylesheets of building blocks -->
-    <link rel="stylesheet" type="text/css" href="bower_component/smart-icons/smart-icons.css">
+    <link rel="stylesheet" type="text/css" href="bower_components/smart-icons/smart-icons.css">
     <link rel="stylesheet" type="text/css" href="bower_components/smart-button/style.css">
     <link rel="stylesheet" type="text/css" href="style/fling_player.css">
+
+    <!-- For test purpose on phone only -->
+    <script defer src="shared/js/gesture_detector.js"></script>
+    <script defer src="shared/js/smart-screen/init_gesture.js"></script>
 
     <!-- shared libraries -->
     <script defer src="bower_components/evt/index.js"></script>
@@ -35,23 +39,20 @@
       <section role="region" id="video-player-section">
         <video id="player" preload="metadata"></video>
         <nav id="video-control-panel" class="control-panel fade-out">
-          <!-- TMP: Dummy controls. TODO: Update to the real controls -->
-          <div id="video-time-progess">
-            <div id="elapsed-time" class="time-text">hhh:mm:ss</div>
-            <div id="time-progess">
+          <div id="video-control-buttons">
+            <smart-button id="backward-button" data-icon="fling-player-rewind"></smart-button>
+            <smart-button id="play-button" data-icon="fling-player-play"></smart-button>
+            <smart-button id="forward-button" data-icon="fling-player-forward"></smart-button>
+          </div>
+          <div id="video-time-progress">
+            <div id="elapsed-time" class="time-text">00:00:00</div>
+            <div id="time-progress">
               <div id="background-time-bar" class="time-bar"></div>
               <div id="buffered-time-bar" class="time-bar"></div>
               <div id="elapsed-time-bar" class="time-bar"></div>
-              <div id="time-indicator"></div>
             </div>
-            <div id="duration-time" class="time-text">hhh:mm:ss</div>
+            <div id="duration-time" class="time-text">00:00:00</div>
           </div>
-          <div id="video-control-buttons">
-            <smart-button id="backward-button">BW</smart-button>
-            <smart-button id="forward-button">FW</smart-button>
-            <smart-button id="play-button">Play</smart-button>
-          </div>
-          <!-- TMP end -->
         </nav>
       </section>
       <section role="region" id="loading-section">

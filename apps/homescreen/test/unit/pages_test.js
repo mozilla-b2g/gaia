@@ -37,6 +37,19 @@ suite('Pages', () => {
       });
       new Pages();
     });
+
+    test('should mark the pages panel empty if no pages', done => {
+      stub = sinon.stub(PagesStore.prototype, 'getAll', () => {
+        return { then: callback => {
+          callback([]);
+          done(() => {
+            assert.isTrue(document.getElementById('pages-panel').classList.
+                            contains('empty'));
+          });
+        }};
+      });
+      new Pages();
+    });
   });
 
   suite('Pages#addPinnedPage()', () => {
@@ -56,12 +69,13 @@ suite('Pages', () => {
       appendChildStub.restore();
     });
 
-    test('should add pin-the-web to document body', () => {
-      assert.isTrue(pages.firstPinnedPage);
-      assert.isFalse(document.body.classList.contains('pin-the-web'));
+    test('should remove .empty from the pages panel', () => {
+      var pagesPanel = document.getElementById('pages-panel');
+      assert.isTrue(pages.empty);
+      assert.isTrue(pagesPanel.classList.contains('empty'));
       pages.addPinnedPage();
-      assert.isFalse(pages.firstPinnedPage);
-      assert.isTrue(document.body.classList.contains('pin-the-web'));
+      assert.isFalse(pages.empty);
+      assert.isFalse(pagesPanel.classList.contains('empty'));
     });
 
     test('should add a card to the pages list', () => {
@@ -198,6 +212,61 @@ suite('Pages', () => {
 
         assert.isTrue(preventDefaultCalled);
         assert.isTrue(stopImmediatePropagationCalled);
+      });
+    });
+
+    suite('drag-end', () => {
+      var getStub, getReturnValue, realInnerHeight;
+      setup(() => {
+        getStub = sinon.stub(pages.pagesStore, 'get',
+                             () => Promise.resolve(getReturnValue));
+
+        realInnerHeight =
+          Object.getOwnPropertyDescriptor(window, 'innerHeight');
+        Object.defineProperty(window, 'innerHeight', {
+          value: 500,
+          configurable: true
+        });
+      });
+
+      teardown(() => {
+        getStub.restore();
+        Object.defineProperty(window, 'innerHeight', realInnerHeight);
+      });
+
+      test('Ending a drag above the remove tray does nothing', () => {
+        pages.handleEvent(new CustomEvent('drag-end', { detail: {
+          clientY: 0
+        } }));
+        assert.isFalse(getStub.called);
+      });
+
+      test('Ending a drag in the remove tray initiates unpinning', done => {
+        var card = document.createElement('div');
+        card.dataset.id = 'success';
+        Object.defineProperty(card, 'parentNode', {
+          value: { style: { transform: 'scale(2)' } },
+          configurable: true
+        });
+
+        pages.pagesStore.datastore = {
+          put: (data, id) => {
+            done(() => {
+              delete pages.pagesStore.datastore;
+              assert.isTrue(card.classList.contains('unpinning'));
+              assert.equal(card.style.transform, 'scale(2)');
+              assert.equal(id, 'success');
+              assert.isFalse(getReturnValue.data.pinned);
+            });
+            return Promise.resolve();
+          }
+        };
+
+        getReturnValue = { data: { pinned: true } };
+        pages.handleEvent(new CustomEvent('drag-end', { detail: {
+          clientY: 600,
+          target: card
+        } }));
       });
     });
 

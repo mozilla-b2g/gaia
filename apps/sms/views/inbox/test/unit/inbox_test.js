@@ -1884,17 +1884,48 @@ suite('thread_list_ui', function() {
   });
 
   suite('beforeEnter()', function() {
+    var drafts;
+
     setup(function() {
       this.sinon.useFakeTimers();
+      this.sinon.stub(Thread, 'create');
+      this.sinon.stub(Threads, 'get');
+      this.sinon.stub(Drafts, 'byDraftId');
+
+      drafts = [100, 200].map((draftId) => {
+        var draft = new Draft({
+          id: draftId,
+          timestamp: Date.now(),
+          type: 'sms',
+          content: ['content']
+        });
+
+        Drafts.byDraftId.withArgs(draftId).returns(draft);
+
+        var thread = new Thread({
+          id: draft.id,
+          timestamp: draft.timestamp,
+          participants: [],
+          lastMessageType: draft.type,
+          body: draft.content[0],
+          isDraft: true
+        });
+
+        Thread.create.withArgs(draft).returns(thread);
+        Threads.get.withArgs(thread.id).returns(thread);
+        this.sinon.stub(thread, 'getDraft').returns(draft);
+
+        return draft;
+      });
     });
 
     test('Shows draft saved banner only if requested', function() {
-      InboxView.notifyAboutSavedDraft = false;
+      // No one requested "draft saved banner".
       InboxView.beforeEnter();
 
       assert.isTrue(draftSavedBanner.classList.contains('hide'));
 
-      InboxView.notifyAboutSavedDraft = true;
+      Drafts.on.withArgs('saved').yield(drafts[0]);
       InboxView.beforeEnter();
 
       assert.isFalse(draftSavedBanner.classList.contains('hide'));
@@ -1904,7 +1935,30 @@ suite('thread_list_ui', function() {
 
       this.sinon.clock.tick(1);
       assert.isTrue(draftSavedBanner.classList.contains('hide'));
-      assert.isFalse(InboxView.notifyAboutSavedDraft);
+
+      // State should be correctly updated so the next time we visit Inbox we
+      // won't see banner once again.
+      InboxView.beforeEnter();
+      assert.isTrue(draftSavedBanner.classList.contains('hide'));
+    });
+
+    test('Does not show draft saved banner if it has been deleted', function() {
+      Drafts.on.withArgs('saved').yield(drafts[0]);
+      Drafts.on.withArgs('deleted').yield(drafts[0]);
+
+      InboxView.beforeEnter();
+
+      assert.isTrue(draftSavedBanner.classList.contains('hide'));
+    });
+
+    test('Shows draft saved banner if another draft has been deleted',
+    function() {
+      Drafts.on.withArgs('saved').yield(drafts[0]);
+      Drafts.on.withArgs('deleted').yield(drafts[1]);
+
+      InboxView.beforeEnter();
+
+      assert.isFalse(draftSavedBanner.classList.contains('hide'));
     });
 
     test('Sets up the gaia header for the edit form', function() {
@@ -2248,8 +2302,6 @@ suite('thread_list_ui', function() {
           threadNode.dataset.lastMessageType, thread.lastMessageType
         );
       });
-
-      InboxView.notifyAboutSavedDraft = false;
     });
 
     test('updates thread if thread draft is updated', function() {
@@ -2270,7 +2322,6 @@ suite('thread_list_ui', function() {
         threadDraft.content[0]
       );
       assert.equal(threadNode.dataset.lastMessageType, threadDraft.type);
-      assert.isFalse(InboxView.notifyAboutSavedDraft);
     });
 
     test('updates thread-less draft if it is updated', function() {
@@ -2299,25 +2350,6 @@ suite('thread_list_ui', function() {
         newDraft.content[0]
       );
       assert.equal(threadNode.dataset.lastMessageType, newDraft.type);
-      assert.isFalse(InboxView.notifyAboutSavedDraft);
-    });
-
-    test('Requests to shows draft saved banner if Inbox view is not active',
-    function() {
-      Navigation.isCurrentPanel.withArgs('thread-list').returns(false);
-
-      var threadDraft = new Draft({
-        id: 101,
-        threadId: realThread.id,
-        content: ['draft content'],
-        type: 'mms',
-        timestamp: realThread.timestamp + 600
-      });
-      realThread.getDraft.returns(threadDraft);
-
-      Drafts.on.withArgs('saved').yield(threadDraft);
-
-      assert.isTrue(InboxView.notifyAboutSavedDraft);
     });
   });
 

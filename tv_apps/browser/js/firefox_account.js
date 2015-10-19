@@ -26,28 +26,44 @@
     this.init();
   }
 
-  FirefoxAccount.prototype.init = function firefoxAccout_init () {
+  FirefoxAccount.prototype.init = function firefoxAccount_init () {
     this.refreshStatus();
     document.addEventListener('visibilitychange',
       this.onVisibilityChange.bind(this));
   };
 
   FirefoxAccount.prototype.openFlow =
-    function firefoxAccout_openFlow () {
+    function firefoxAccount_openFlow () {
       FxAccountsIACHelper.openFlow(this.onStatusChange.bind(this),
                                    this.onStatusError.bind(this));
   };
 
-  FirefoxAccount.prototype.signOut = function firefoxAccout_signOut () {
-    // XXX: Implement sign out
+  FirefoxAccount.prototype.resendEmail =
+    function firefoxAccount_resendEmail (onResend) {
+      FxAccountsIACHelper.getAccount(function (account) {
+        var email = account && account.email;
+        if (!email) {
+          return this.onStatusChange(account);
+        }
+        FxAccountsIACHelper.resendVerificationEmail(email,
+          function () {
+            onResend(email);
+          }, this.onStatusError.bind(this));
+      }.bind(this), this.onStatusError.bind(this));
   };
 
-  FirefoxAccount.prototype.sync = function firefoxAccout_sync () {
+  FirefoxAccount.prototype.signOut = function firefoxAccount_signOut (cb) {
+    FxAccountsIACHelper.logout(() => {
+      cb();
+    }, this.onStatusError.bind(this));
+  };
+
+  FirefoxAccount.prototype.sync = function firefoxAccount_sync () {
     // XXX: Implement sync
   };
 
   FirefoxAccount.prototype.setSyncSettings =
-    function firefoxAccout_setSyncSettings (settings) {
+    function firefoxAccount_setSyncSettings (settings) {
       this.syncbookmark = settings.syncBookmark;
       this.synchistory = settings.syncHistory;
       this.syncpassword = settings.syncPassword;
@@ -55,7 +71,7 @@
   };
 
   FirefoxAccount.prototype.refreshStatus =
-    function firefoxAccout_refreshStatus () {
+    function firefoxAccount_refreshStatus () {
       FxAccountsIACHelper.getAccount(this.onStatusChange.bind(this),
                                       this.onStatusError.bind(this));
   };
@@ -64,7 +80,7 @@
   // if e.verified, user is logged in & verified.
   // if !e.verified, user is logged in & unverified.
   FirefoxAccount.prototype.onStatusChange =
-    function firefoxAccout_onStatusChange (e) {
+    function firefoxAccount_onStatusChange (e) {
       console.log('On firefox account status change', e);
       this.email = e ? e.email : '';
 
@@ -84,7 +100,7 @@
   };
 
   FirefoxAccount.prototype.onStatusError =
-    function firefoxAccout_onStatusError (e) {
+    function firefoxAccount_onStatusError (e) {
       console.error('Error getting Firefox Account: ', e.error);
       if (this.onerror) {
         this.onerror(e);
@@ -92,7 +108,7 @@
   };
 
   FirefoxAccount.prototype.onVisibilityChange =
-    function firefoxAccout_onVisibilityChange () {
+    function firefoxAccount_onVisibilityChange () {
       if (document.hidden) {
         FxAccountsIACHelper.removeEventListener('onlogin',
           this.refreshStatus.bind(this));

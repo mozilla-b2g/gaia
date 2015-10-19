@@ -2,7 +2,7 @@
 
 /* globals CallInfo, CallLog, CallLogDBManager, MockL10n, MocksHelper, Utils,
            LazyLoader, MockContactsButtons, MockSimplePhoneMatcher,
-           MockSimplePhoneMatcherBestMatches */
+           MockSimplePhoneMatcherBestMatches, l10nAssert */
 
 require('/dialer/test/unit/mock_call_log.js');
 require('/dialer/test/unit/mock_call_log_db_manager.js');
@@ -299,7 +299,9 @@ suite('Call Info', function(argument) {
 
   suite('common', function() {
     setup(function() {
-      this.sinon.stub(Utils, 'headerDate').returns('TADA !');
+      this.sinon.stub(Utils, 'setHeaderDate', function(elem, time) {
+        elem.setAttribute('data-l10n-id', 'TADA');
+      });
       CallInfo.show(fakeNumber, fakeDate, fakeType, fakeStatus);
     });
 
@@ -323,8 +325,7 @@ suite('Call Info', function(argument) {
     });
 
     test('sets day for call list', function() {
-      assert.equal(document.getElementById('call-info-day').textContent,
-                   'TADA !');
+      l10nAssert(document.getElementById('call-info-day'), 'TADA');
     });
 
     test('view title is set', function() {

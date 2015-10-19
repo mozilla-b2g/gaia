@@ -86,13 +86,6 @@ suite('system/EdgeSwipeDetector >', function() {
     }));
   }
 
-  function cardsViewShowCard(position) {
-    var cardClosedEvent =
-      new CustomEvent('cardviewclosed',
-                      { 'detail': { 'newStackPosition': position }});
-    window.dispatchEvent(cardClosedEvent);
-  }
-
   function launchTransitionEnd(config) {
     var evt = document.createEvent('CustomEvent');
     config || (config = dialer);
@@ -135,7 +128,8 @@ suite('system/EdgeSwipeDetector >', function() {
 
     test('after a card was shown from the cards view edges should be enabled',
          function() {
-      cardsViewShowCard(1);
+      window.dispatchEvent(
+        new CustomEvent('cardviewclosed', { detail: dialer }));
       assert.isFalse(subject.leftPanel.classList.contains('disabled'));
       assert.isFalse(subject.rightPanel.classList.contains('disabled'));
     });
@@ -250,6 +244,22 @@ suite('system/EdgeSwipeDetector >', function() {
       MockSettingsListener.mCallbacks['edgesgesture.enabled'](false);
       assert.isTrue(subject.leftPanel.classList.contains('disabled'));
       assert.isTrue(subject.rightPanel.classList.contains('disabled'));
+    });
+
+    test('edges should remain disabled when exiting task manager to homescreen',
+    function() {
+      subject.lifecycleEnabled = false;
+      window.dispatchEvent(
+        new CustomEvent('cardviewclosed', { detail: home }));
+      assert.isFalse(subject.lifecycleEnabled);
+    });
+
+    test('the edges should be enabled when exiting task manager to app',
+    function() {
+      subject.lifecycleEnabled = false;
+      window.dispatchEvent(
+        new CustomEvent('cardviewclosed', { detail: dialer }));
+      assert.isTrue(subject.lifecycleEnabled);
     });
   });
 

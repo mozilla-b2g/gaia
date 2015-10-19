@@ -10,9 +10,10 @@
     "**/.*",
     "node_modules",
     "bower_components",
-    "examples",
     "test",
     "tests",
+    "index.html",
+    "package.json",
     "README.md"
   ],
   "devDependencies": {
@@ -24,14 +25,14 @@
   },
   "dependencies": {
     "gaia-text-input": "gaia-components/gaia-text-input",
-    "gaia-icons": "gaia-components/gaia-icons#^0.8.0",
-    "gaia-component": "gaia-components/gaia-component#^0.3.7"
+    "gaia-icons": "gaia-components/gaia-icons#^0.10.2",
+    "gaia-component": "gaia-components/gaia-component#^0.3.9"
   },
-  "_release": "9ddb3c1d3e",
+  "_release": "0bf523d279",
   "_resolution": {
     "type": "branch",
     "branch": "master",
-    "commit": "9ddb3c1d3e4b52a09ec9ec373eb977536f0c645d"
+    "commit": "0bf523d2791cea3649ac36983699cb5ee410a19a"
   },
   "_source": "git://github.com/gaia-components/gaia-dialog.git",
   "_target": "master",

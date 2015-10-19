@@ -1,6 +1,6 @@
 {
-  "name": "New Home Screen",
-  "description": "Vertical paged home screen.",
+  "name": "Default Home Screen",
+  "description": "Gaia home screen.",
   "launch_path": "/index.html",
   "type": "privileged",
   "role": "homescreen",
@@ -21,11 +21,27 @@
   },
   "permissions": {
     "homescreen-webapps-manage": {},
-    "mobileconnection": {},
     "moz-extremely-unstable-and-will-change-webcomponents": {},
-    "open-remote-window": {},
-    "systemXHR": {},
-    "themeable": {}
+    "systemXHR": {}
+  },
+  "default_locale": "en-US",
+  "locales": {
+    "ar": {
+      "name": "الشاشة الرئيسية",
+      "description": "Gaia الشاشة الرئيسية"
+    },
+    "en-US": {
+      "name": "Default Home Screen",
+      "description": "Gaia Home Screen."
+    },
+    "fr": {
+      "name": "Écran d’accueil",
+      "description": "Écran d’accueil Gaia"
+    },
+    "zh-TW": {
+      "name": "主畫面",
+      "description": "Gaia 主畫面"
+    }
   },
   "datastores-access": {
     "bookmarks_store": {
@@ -33,12 +49,24 @@
       "description": "View bookmarks."
     },
     "places": {
-      "readonly": true,
-      "description": "View data about browsing history."
+      "readonly": false,
+      "description": "View and modify data about browsing history."
     },
     "icons": {
+      "readonly": false,
+      "description": "Store and retrieve cached website icons."
+    },
+    "homescreen_settings": {
       "readonly": true,
-      "description": "Retrieve cached website icons."
+      "description": "Read home screen settings."
+    },
+    "vertical_preferences_store": {
+      "readonly": true,
+      "description": "Import settings from old home screen."
+    },
+    "verticalhome_items_migration": {
+      "readonly": true,
+      "description": "Import settings from old home screen."
     }
   },
   "orientation": "default"

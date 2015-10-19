@@ -12,3 +12,4 @@ user_pref('dom.meta-viewport.enabled', false);
 user_pref('dom.presentation.discoverable', true);
 user_pref('dom.presentation.discovery.enabled', true);
 user_pref('dom.presentation.enabled', true);
+user_pref('devtools.useragent.device_type', 'TV');

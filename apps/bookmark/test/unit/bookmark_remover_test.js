@@ -55,9 +55,10 @@ suite('bookmark_remover.js >', function() {
     BookmarkRemover.init({
       id: bookmark.url
     });
-    assert.isTrue(document.getElementById('title').textContent.contains(name));
-    assert.isTrue(document.getElementById('message').textContent.
-                                                            contains(name));
+    assert.isTrue(document.getElementById('title').dataset.l10nArgs
+      .contains(name));
+    assert.isTrue(document.getElementById('message').dataset.l10nArgs
+      .contains(name));
   });
 
   test('Bookmark does not exist >', function(done) {

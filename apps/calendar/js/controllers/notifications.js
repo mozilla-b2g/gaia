@@ -1,10 +1,10 @@
+/* global mozIntl */
 define(function(require, exports) {
 'use strict';
 
 var calc = require('common/calc');
 var co = require('ext/co');
 var core = require('core');
-var dateFormat = require('date_format');
 var debug = require('common/debug')('controllers/notifications');
 var messageHandler = require('message_handler');
 var notification = require('notification');
@@ -73,7 +73,8 @@ var issueNotification = co.wrap(function *(alarm) {
   }
 
   var begins = calc.dateFromTransport(busytime.start);
-  var distance = dateFormat.fromNow(begins);
+  var formatter = mozIntl._gaia.RelativeDate(navigator.languages);
+  var distance = yield formatter.format(begins);
   var now = new Date();
 
   var alarmType = begins > now ?

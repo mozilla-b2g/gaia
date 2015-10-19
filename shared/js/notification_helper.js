@@ -34,8 +34,8 @@
           if (body) {
             options.body = body;
           }
-          options.dir = navigator.mozL10n.language.direction;
-          options.lang = navigator.mozL10n.language.code;
+          options.lang = document.documentElement.getAttribute('lang');
+          options.dir = document.documentElement.getAttribute('dir');
 
           var notification = new window.Notification(title, options);
 
@@ -56,11 +56,11 @@
       return;
     }
     if (typeof l10nAttrs === 'string') {
-      return navigator.mozL10n.formatValue(l10nAttrs);
+      return document.l10n.formatValue(l10nAttrs);
     }
     if (l10nAttrs.raw) {
       return l10nAttrs.raw;
     }
-    return navigator.mozL10n.formatValue(l10nAttrs.id, l10nAttrs.args);
+    return document.l10n.formatValue(l10nAttrs.id, l10nAttrs.args);
   }
 })(this);

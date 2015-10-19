@@ -827,7 +827,7 @@ html[dir="rtl"] .change {
 }
 
 #welcome_browser #browser_logo_horizontal {
-  margin: 1rem 0;
+  margin: 0 0;
 }
 
 #welcome_browser #browser_logo_horizontal img {
@@ -839,7 +839,7 @@ html[dir="rtl"] .change {
 }
 
 #welcome_browser #browser_os_privacy_links {
-  margin-bottom: 3rem;
+  margin-bottom: 1rem;
   display: block;
   overflow: hidden;
 }
@@ -847,6 +847,56 @@ html[dir="rtl"] .change {
 #welcome_browser #form_share_statistics {
   clear: both;
 }
+
+#form_share_statistics ul {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  list-style: none;
+}
+
+#form_share_statistics ul li {
+  margin: 0;
+  padding: 0;
+  position: relative;
+  border-bottom: 0.1rem solid #e6e6e3;
+  color: #000;
+  font-weight: 500;
+}
+
+#form_share_statistics ul li label{
+  color: #000;
+  font-weight: 500;
+}
+
+#form_share_statistics ul li p{
+  color: #949494;
+  font-weight: 300;
+  margin: 0;
+  padding: 0;
+}
+
+#form_share_statistics ul+ul li:first-child {
+  border-top: 0.1rem solid #e6e6e3;
+}
+
+#form_share_statistics ul li:last-child {
+  border-bottom: none;
+}
+
+/******************************************************************************
+ * Disabled items
+ */
+
+.disabled gaia-checkbox,
+.disabled gaia-radio,
+.disabled gaia-switch,
+gaia-radio[disabled],
+gaia-switch[disabled] {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
 
 /*
   Privacy policies

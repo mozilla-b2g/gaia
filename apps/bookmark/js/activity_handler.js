@@ -10,10 +10,11 @@ var ActivityHandler = {
           window.removeEventListener('status-hidden', hidden);
           activity.postResult(saved ? 'saved' : 'updated');
         });
-        
-        utils.status.show(
-          navigator.mozL10n.get(saved ? 'added-to-home-screen-message' :
-                                        'updated-bookmark'));
+
+        var msg = saved ?
+          'added-to-home-screen-message' : 'updated-pinned-site';
+        navigator.mozL10n.formatValue(msg)
+          .then(msg => utils.status.show(msg));
       },
       oncancelled: function oncancelled() {
         activity.postError('cancelled');

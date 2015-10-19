@@ -125,7 +125,8 @@ section[role="region"] > div {
  */
 
 gaia-header a:first-child,
-gaia-header button:first-child {
+gaia-header button:first-child,
+gaia-header [data-icon="close"] {
   color: var(--header-action-button-color) !important;
 }
 
@@ -1104,6 +1105,17 @@ section[role="status"] {
 
 section[role="status"].toast-visible {
   opacity: 1;
+}
+
+/******************************************************************************
+ * Improve B2G OS
+ */
+ul li p.metrics-explain {
+  font-size: 1.35rem;
+  line-height: 1.8rem;
+  color: #949494;
+  margin: 0;
+  padding: 0;
 }
 
 /******************************************************************************

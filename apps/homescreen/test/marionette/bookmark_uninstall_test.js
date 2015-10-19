@@ -8,8 +8,10 @@ var Server = require('../../../../shared/test/integration/server');
 
 marionette('Homescreen - Bookmark Uninstall', function() {
 
+  var options = require(__dirname + '/client_options_bookmarks.js');
+  options.settings['dev.gaia.pinning_the_web'] = false;
   var client = marionette.client({
-    profile: require(__dirname + '/client_options_bookmarks.js')
+    profile: options
   });
   var actions, bookmark, home, server, system;
 
@@ -50,7 +52,7 @@ marionette('Homescreen - Bookmark Uninstall', function() {
     });
 
     actions.wait(0.5).press(icon).wait(0.5).perform();
-    actions.move(home.uninstallTray).release().perform();
+    actions.move(home.removeTray).release().perform();
 
     client.switchToFrame();
     client.switchToFrame(system.getAppIframe(bookmark.URL));

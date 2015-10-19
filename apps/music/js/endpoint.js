@@ -1,6 +1,6 @@
 /* exported open */ // Should not be needed, but JSHint complains
 /* global AlbumArtCache, AudioMetadata, Database, LazyLoader, PlaybackQueue,
-          Remote, bridge, navigateToURL */
+          Remote, bridge, navigateToURL, onSearchOpen, onSearchClose */
 'use strict';
 
 var audio           = null;
@@ -57,6 +57,8 @@ var service = bridge.service('music-service')
   .method('getDatabaseStatus', getDatabaseStatus)
 
   .method('navigate', navigate)
+  .method('searchOpen', searchOpen)
+  .method('searchClose', searchClose)
 
   .listen()
   .listen(new BroadcastChannel('music-service'));
@@ -150,7 +152,15 @@ function stop() {
   service.broadcast('stop');
 }
 
+var seekTimeout;
+
 function seek(time) {
+  if (audio.seeking) {
+    clearTimeout(seekTimeout);
+    seekTimeout = setTimeout(() => seek(time), 50);
+    return;
+  }
+
   audio.fastSeek(parseInt(time, 10));
 }
 
@@ -170,8 +180,8 @@ function startFastSeek(reverse) {
     }
 
     audio.volume = 0.5;
-    seek(audio.currentTime + (reverse ? -2 : 2));
-    setTimeout(fastSeek, 50);
+    seek(audio.currentTime + (reverse ? -5 : 5));
+    setTimeout(fastSeek, 100);
   }
 
   fastSeek();
@@ -340,11 +350,7 @@ function getPlaylist(id) {
 }
 
 function getArtists() {
-  return new Promise((resolve) => {
-    Database.enumerateAll('metadata.artist', null, 'nextunique', (artists) => {
-      resolve(artists);
-    });
-  });
+  return Database.artists();
 }
 
 function getAlbums() {
@@ -440,6 +446,14 @@ function getDatabaseStatus() {
 
 function navigate(url) {
   navigateToURL(url);
+}
+
+function searchOpen() {
+  onSearchOpen();
+}
+
+function searchClose() {
+  onSearchClose();
 }
 
 function share(filePath) {

@@ -140,7 +140,8 @@
       window.addEventListener('volumedown', this);
       window.addEventListener('logohidden', this);
       window.addEventListener('screenchange', this);
-      window.addEventListener('ftustarted', this);
+      window.addEventListener('iac-ftucomms', this);
+      this.FTUStartedTimeout = null;
 
       // Attach all observers.
       Object.keys(this.settings).forEach(function attach(settingKey) {
@@ -318,8 +319,6 @@
         return;
       }
 
-      window.addEventListener('ftustep', this);
-
       this.FTUStartedTimeout = setTimeout(() => {
         this.cancelSpeech();
         this.reset();
@@ -334,6 +333,7 @@
      */
     disableFTUStartedTimeout: function ar_disableFTUStartedTimeout() {
       clearTimeout(this.FTUStartedTimeout);
+      this.FTUStartedTimeout = null;
     },
 
     /**
@@ -341,11 +341,15 @@
      * the next FTU screen.
      */
     handleFTUStep: function ar_handleFTUStep() {
+      if (!this.FTUStartedTimeout) {
+        // we've not got the started event yet
+        return;
+      }
       this.disableFTUStartedTimeout();
       this.cancelSpeech();
       this.reset();
 
-      window.removeEventListener('ftustep', this);
+      window.removeEventListener('iac-ftucomms', this);
     },
 
     /**
@@ -502,11 +506,12 @@
         case 'logohidden':
           this.activateScreen();
           break;
-        case 'ftustarted':
-          this.handleFTUStarted(aEvent);
-          break;
-        case 'ftustep':
-          this.handleFTUStep();
+        case 'iac-ftucomms':
+          if (aEvent.detail === 'started') {
+            this.handleFTUStarted(aEvent);
+          } else if(aEvent.detail.type == 'step') {
+            this.handleFTUStep();
+          }
           break;
         case 'mozChromeEvent':
           switch (aEvent.detail.type) {

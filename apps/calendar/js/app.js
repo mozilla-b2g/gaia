@@ -15,6 +15,7 @@ var core = require('core');
 var dateL10n = require('date_l10n');
 var dayObserver = require('day_observer');
 var debug = require('common/debug')('app');
+var intl = require('./intl');
 var messageHandler = require('message_handler');
 var nextTick = require('common/next_tick');
 var notificationsController = require('controllers/notifications');
@@ -130,6 +131,8 @@ function setupControllers() {
 }
 
 function setupUI() {
+  intl.init();
+
   return co(function *() {
     // re-localize dates on screen
     dateL10n.init();

@@ -20,6 +20,7 @@
     this.runningLayouts = {};
 
     this._onDebug = false;
+    this._activeFrame = null;
   };
 
   InputFrameManager.prototype._debug = function ifm__debug(msg) {
@@ -63,6 +64,17 @@
     frame.removeEventListener('mozbrowserresize', this, true);
   };
 
+  InputFrameManager.prototype.pauseTemporarily =
+    function ifm_pauseTemporarily(value) {
+    // This method is to deactivate the currently-active input frame for a while
+    // without dismissing the whole keyboard app. It's designed for the remote
+    // control input function to grant system app the ability to become another
+    // input frame temporarily.
+    if (this._activeFrame) {
+      this._activeFrame.setInputMethodActive(!value);
+    }
+  };
+
   InputFrameManager.prototype._setFrameActive =
     function ifm_setFrameActive(frame, active) {
     this._debug('setFrameActive: ' +
@@ -74,6 +86,7 @@
     }
     if (frame.setInputMethodActive) {
       frame.setInputMethodActive(active);
+      this._activeFrame = active ? frame : null;
     }
 
     this._keyboardManager.setHasActiveKeyboard(active);

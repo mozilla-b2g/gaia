@@ -305,6 +305,7 @@ DataAdapters.bookmarks = {
         type: payload.type === 'bookmark' ? 'url' : 'others',
         iconable: false,
         icon: '',
+        last_modified: remoteRecords[i].last_modified,
         fxsyncPayload: payload,
         fxsyncId: payload.id
       });
@@ -323,8 +324,8 @@ DataAdapters.bookmarks = {
     });
   },
 
-  update(remoteBookmarks, options = { readOnly: true }) {
-    if (!options.readOnly) {
+  update(remoteBookmarks, options = { readonly: true }) {
+    if (!options.readonly) {
       console.warn('Two-way sync not implemented yet for bookmarks.');
     }
     var mtime;

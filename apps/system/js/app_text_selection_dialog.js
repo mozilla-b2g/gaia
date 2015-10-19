@@ -334,6 +334,7 @@
         this.close();
       }
       evt.preventDefault();
+      evt.stopPropagation();
     };
 
   AppTextSelectionDialog.prototype.copyHandler =
@@ -469,7 +470,8 @@
       var offset = 0;
       if (this.app && this.app.appChrome) {
         offset = this.app.appChrome.isMaximized() ?
-                 this.app.appChrome.height :
+                 this.app.appChrome.height -
+                   this.app.appChrome.scrollable.scrollTop :
                  Service.query('Statusbar.height');
       }
 

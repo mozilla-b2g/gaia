@@ -389,7 +389,7 @@ html[dir="rtl"] .appWindow.invoked {
   opacity: 1;
 }
 
-.appWindow.in-task-manager.overlay.no-screenshot > .identification-overlay {
+#screen.cards-view .appWindow.in-task-manager.overlay.no-screenshot > .identification-overlay {
   visibility: visible;
   opacity: 1;
   transition: opacity 0.2s ease-in, visibility 0.2s;
@@ -589,6 +589,18 @@ html[dir="rtl"] .appWindow.invoked {
 @keyframes slideToUp {
   0%   { transform: translateY(0); }
   100% { transform: translateY(calc(-100%)); }
+}
+
+/*
+  When a mozbrowser iframe requests fullscreen with SHB enabled,
+  Gecko will make that element fixed and take up the entire viewport.
+  However, due to bug 879443 the transform property will make fixed
+  relative to this ancestor rather than the viewport, so we unset
+  the transform for this case.
+  See: https://bugzilla.mozilla.org/show_bug.cgi?id=1212960
+*/
+#screen:-moz-full-screen-ancestor > #windows > .appWindow:not(.homescreen):not(.lockScreenWindow):not(.attentionWindow):not(.lockScreenInputWindow).active {
+  transform: unset;
 }
 
 /* Edges */

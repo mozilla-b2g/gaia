@@ -123,7 +123,10 @@ Timer.Panel = function(element) {
   picker.nodes.minutes.addEventListener('transitionend', enableButton);
   picker.nodes.hours.addEventListener('transitionend', enableButton);
 
-  this.restoreDefaults();
+  this.restoreDefaults().then(() => {
+    enableButton(); // Update the enabled state to match the new defaults.
+  });
+
   this.nodes.vibrate.addEventListener(
     'change', (e) => this.saveCurrentSettingsAsDefaults());
   this.nodes.sound.addEventListener(
@@ -149,17 +152,20 @@ Timer.Panel = function(element) {
 Timer.Panel.prototype = Object.create(Panel.prototype);
 
 Timer.Panel.prototype.restoreDefaults = function() {
-  asyncStorage.getItem('timer-defaults', (values) => {
-    values = values || {};
-    if (values.sound != null) {
-      this.soundButton.value = values.sound;
-    }
-    if (values.time != null) {
-      this.picker.value = values.time;
-    }
-    if (values.vibrate != null) {
-      this.nodes.vibrate.checked = values.vibrate;
-    }
+  return new Promise((resolve) => {
+    asyncStorage.getItem('timer-defaults', (values) => {
+      values = values || {};
+      if (values.sound != null) {
+        this.soundButton.value = values.sound;
+      }
+      if (values.time != null) {
+        this.picker.value = values.time;
+      }
+      if (values.vibrate != null) {
+        this.nodes.vibrate.checked = values.vibrate;
+      }
+      resolve();
+    });
   });
 };
 

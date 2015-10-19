@@ -141,6 +141,10 @@ suite('webapp-zip.js', function() {
       webappZip.options.webapp.buildDirectoryFilePath = 'testapppath';
       assert.equal(webappZip.isExcludedFromZip(file), true,
         'Ignore test file');
+      file = mockUtils.getFile('testapppath/views/test/file.js');
+      webappZip.options.webapp.buildDirectoryFilePath = 'testapppath';
+      assert.equal(webappZip.isExcludedFromZip(file), true,
+        'Ignore nested test file');
       file = mockUtils.getFile('testapppath/.git');
       assert.equal(webappZip.isExcludedFromZip(file), true,
         'Ignore .git file');

@@ -16,7 +16,8 @@
 }
 
 .ci__calls-wrapper {
-  padding: 0 0.9rem 1.4rem 1.5rem;
+  padding: 0 0.9rem 1.4rem;
+  padding-inline-start: 1.5rem;
   margin-bottom: 1.6rem;
   border-bottom: 1px solid #e7e7e7;
 }
@@ -38,7 +39,7 @@
 }
 
 .cd__duration {
-  text-align: right;
+  text-align: end;
 }
 
 .ci__direction-icon {
@@ -57,4 +58,21 @@
 
 .icon-missed {
   background-image: url(images/call_info/callinfo_ic_missed.png);
+}
+
+/**
+ * As <gaia-header> does not support <h1 dir="auto"> children, a <bdi> element
+ * must be nested and specific ellipsis rules must be applied.
+ *
+ * Horizontal padding must be applied in order to:
+ *  - not overlap the [action="back"] button
+ *  - keep the title centered
+ * (the magic 50px value corresponds to the size of the "back" button).
+ */
+#call-info-title {
+  display: block;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  padding-left: 50px;
+  padding-right: 50px;
 }

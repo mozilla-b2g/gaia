@@ -227,10 +227,10 @@
     if (!this.isBrowser()) {
       return false;
     }
-
-    var url = new URL(this.config.url);
-    var path = url.hostname + url.pathname;
-    return path.indexOf(scope) === 0;
+    // within-scope per http://www.w3.org/TR/appmanifest/#dfn-within-scope
+    // except we also support paths
+    var target = this.config.url;
+    return scope && target.startsWith(scope);
   };
 
   /**
@@ -270,6 +270,12 @@
         // If this window is not the lockscreen, and the screen is locked,
         // we need to aria-hide the window.
         this._showFrame();
+
+        // Handle any pending scroll-area-changed (this is deferred when an
+        // app isn't visible).
+        if (this.appChrome) {
+          this.appChrome.handleScrollAreaChanged();
+        }
       } else {
         this._hideFrame();
       }
@@ -867,10 +873,16 @@
         }
       }
 
-      // Need to wait for mozbrowserloadend to get allowedAudioChannels.
-      this.browser.element.addEventListener('mozbrowserloadend', () => {
-        this._registerAudioChannels();
-      });
+      // Need to wait for mozbrowserloadstart to get allowedAudioChannels.
+      this.browser.element.addEventListener(
+        'mozbrowserloadstart',
+        function onloadstart() {
+          this.browser.element.removeEventListener(
+            'mozbrowserloadstart', onloadstart
+          );
+          this._registerAudioChannels();
+        }.bind(this)
+      );
 
       if (this.isInputMethod) {
         return;
@@ -1196,10 +1208,12 @@
         case 'application-name':
           // Apps have a compulsory name field in their manifest
           // which takes precedence.
-          if (this.manifestURL || this.webManifestURL) {
+          var name = detail.content || '';
+          var emptyString = !(name.trim());
+          if (this.manifestURL || this.webManifestURL || emptyString) {
             return;
           }
-          this.name = detail.content;
+          this.name = name;
           this.publish('namechanged');
           break;
       }
@@ -2507,6 +2521,7 @@
       }
       siteObj.manifestUrl = this.manifestURL;
       siteObj.manifest = this.manifest;
+      siteObj.origin = new URL(this.origin).origin;
     }
 
     if (this.webManifestURL && !this.webManifest) {

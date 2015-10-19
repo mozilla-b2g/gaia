@@ -1444,6 +1444,20 @@ suite('system/AppWindow', function() {
       assert.isTrue(app1.reviveBrowser.called);
     });
 
+    test('setVisible: true should call handleScrollAreaChanged', function() {
+      var app1 = new AppWindow(fakeChromeConfigWithNavigationBar);
+      app1.element.dispatchEvent(new CustomEvent('_opened'));
+      app1.setVisible(false);
+
+      var handleScrollAreaChangedCalled = false;
+      app1.appChrome.handleScrollAreaChanged = () => {
+        handleScrollAreaChangedCalled = true;
+      };
+
+      app1.setVisible(true);
+      assert.isTrue(handleScrollAreaChangedCalled);
+    });
+
     test('setVisible: true', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       injectFakeMozBrowserAPI(app1.browser.element);
@@ -2590,6 +2604,23 @@ suite('system/AppWindow', function() {
       blobPromise.mFulfillToValue({ url: dataURI });
     });
 
+    test('getSiteIconUrl passes along correct origin', function() {
+      app1.manifestURL = 'https://example.com/webapp.json';
+      app1.origin = 'https://app-origin.com/with#hash';
+      app1.manifest = {
+        origin: origin,
+        icons: {
+          '64': '/test.png'
+        }
+      };
+
+      this.sinon.stub(app1, 'getIconBlob', function (url, size, place, site) {
+        assert.equal(site.origin, 'https://app-origin.com');
+      });
+
+      app1.getSiteIconUrl(SIZE);
+    });
+
     test('getSiteIconUrl uses manifest icons if available', function() {
       app1.manifestURL = 'https://example.com/webapp.json';
       app1.manifest = {
@@ -2855,7 +2886,7 @@ suite('system/AppWindow', function() {
         { name: 'normal' }, { name: 'content' }
       ];
       app.installSubComponents();
-      element.dispatchEvent(new CustomEvent('mozbrowserloadend'));
+      element.dispatchEvent(new CustomEvent('mozbrowserloadstart'));
     });
 
     teardown(function() {
@@ -3213,7 +3244,7 @@ suite('system/AppWindow', function() {
 
   suite('inScope', function() {
     test('Same domain is in the scope', function() {
-      var scope = 'domain.com';
+      var scope = 'http://domain.com';
       var appConfig = {
         url: 'http://domain.com/test'
       };
@@ -3223,7 +3254,7 @@ suite('system/AppWindow', function() {
     });
 
     test('Scope with paths are allowed', function() {
-      var scope = 'domain.com/test';
+      var scope = 'http://domain.com/test';
       var appConfig = {
         url: 'http://domain.com/test/page1'
       };
@@ -3233,7 +3264,7 @@ suite('system/AppWindow', function() {
     });
 
     test('Different domain is not in the scope', function() {
-      var scope = 'domain2.com';
+      var scope = 'http://domain2.com';
       var appConfig = {
         url: 'http://domain.com/test'
       };
@@ -3243,7 +3274,17 @@ suite('system/AppWindow', function() {
     });
 
     test('Subdomains are not in the scope', function() {
-      var scope = 'test.domain.com';
+      var scope = 'http://test.domain.com';
+      var appConfig = {
+        url: 'http://domain.com/test'
+      };
+      var app = new AppWindow(appConfig);
+      this.sinon.stub(app, 'isBrowser').returns(true);
+      assert.isFalse(app.inScope(scope));
+    });
+
+    test('Different schemes are not in the scope', function() {
+      var scope = 'https://domain.com';
       var appConfig = {
         url: 'http://domain.com/test'
       };
@@ -3253,7 +3294,7 @@ suite('system/AppWindow', function() {
     });
 
     test('Returns false on non browser windows', function() {
-      var scope = 'domain.com/test';
+      var scope = 'http://domain.com/test';
       var appConfig = {
         url: 'http://domain.com/test/page1'
       };
@@ -3263,7 +3304,7 @@ suite('system/AppWindow', function() {
     });
 
     test('Scope changes on locationchange', function() {
-      var scope = 'test.domain.com';
+      var scope = 'http://test.domain.com';
       var appConfig = {
         url: 'http://domain.com/test'
       };
@@ -3297,6 +3338,21 @@ suite('system/AppWindow', function() {
       stubPublish.restore();
     });
 
+    test('application-name with empty string does not update', function() {
+      var browser1 = new AppWindow(fakeWrapperConfig);
+      var stubPublish = this.sinon.stub(browser1, 'publish');
+
+      browser1.handleEvent({
+        type: 'mozbrowsermetachange',
+        detail: {
+          name: '  ',
+          content: 'title1'
+        }
+      });
+      var hostname = new URL(fakeWrapperConfig.url).hostname;
+      assert.equal(browser1.name, hostname);
+      assert.isFalse(stubPublish.calledOnce);
+    });
 
     test('application-name for app window', function() {
       var app1 = new AppWindow(fakeAppConfig1);

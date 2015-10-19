@@ -16,8 +16,7 @@ class HomescreenSettings(Base):
 
     _wallpaper_preview_locator = (By.CSS_SELECTOR, '.wallpaper-preview')
     _wallpaper_pick_locator = (By.CLASS_NAME, 'wallpaper-button')
-    _pick_cancel_button_locator = (By.CSS_SELECTOR,
-                                   '#action-menu-list > button[data-l10n-id="cancel"]')
+    _pick_cancel_button_locator = (By.CSS_SELECTOR, '#action-menu-list button[data-l10n-id="cancel"]')
 
     @property
     def screen_element(self):

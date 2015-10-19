@@ -866,8 +866,17 @@ suite('AppUsageMetrics:', function() {
       aum.stop();
     });
 
-    test('starts immediately if enabled', function(done) {
-      mockSettings[AppUsageMetrics.TELEMETRY_ENABLED_KEY] = true;
+    test('starts immediately if enabled for Basic', function(done) {
+      mockSettings[AppUsageMetrics.TELEMETRY_ENABLED_KEY] = 'Basic';
+      aum.start();
+      setTimeout(function() {
+        assert.equal(stopspy.callCount, 0);
+        done(assert.ok(startspy.calledOnce));
+      });
+    });
+
+    test('starts immediately if enabled for Enhanced', function(done) {
+      mockSettings[AppUsageMetrics.TELEMETRY_ENABLED_KEY] = 'Enhanced';
       aum.start();
       setTimeout(function() {
         assert.equal(stopspy.callCount, 0);
@@ -876,7 +885,7 @@ suite('AppUsageMetrics:', function() {
     });
 
     test('does not start if not enabled', function(done) {
-      mockSettings[AppUsageMetrics.TELEMETRY_ENABLED_KEY] = false;
+      mockSettings[AppUsageMetrics.TELEMETRY_ENABLED_KEY] = 'None';
       aum.start();
       setTimeout(function() {
         assert.ok(stopspy.calledOnce);
@@ -885,42 +894,41 @@ suite('AppUsageMetrics:', function() {
     });
 
     test('starts when enabled', function(done) {
-      mockSettings[AppUsageMetrics.TELEMETRY_ENABLED_KEY] = false;
+      mockSettings[AppUsageMetrics.TELEMETRY_ENABLED_KEY] = 'None';
       aum.start();
       setTimeout(function() {
         assert.equal(startspy.callCount, 0);
         assert.equal(stopspy.callCount, 1);
 
-        mockSettings[AppUsageMetrics.TELEMETRY_ENABLED_KEY] = true;
+        mockSettings[AppUsageMetrics.TELEMETRY_ENABLED_KEY] = 'Basic';
         MockNavigatorSettings.mTriggerObservers(
-          AppUsageMetrics.TELEMETRY_ENABLED_KEY, { settingValue: true });
+          AppUsageMetrics.TELEMETRY_ENABLED_KEY, { settingValue: 'Basic' });
 
         assert.equal(startspy.callCount, 1);
 
-        mockSettings[AppUsageMetrics.TELEMETRY_ENABLED_KEY] = false;
+        mockSettings[AppUsageMetrics.TELEMETRY_ENABLED_KEY] = 'None';
         MockNavigatorSettings.mTriggerObservers(
-          AppUsageMetrics.TELEMETRY_ENABLED_KEY, { settingValue: false });
-
+          AppUsageMetrics.TELEMETRY_ENABLED_KEY, { settingValue: 'None' });
         done(assert.equal(stopspy.callCount, 2));
       });
     });
 
     test('stops when disabled and starts again', function(done) {
-      mockSettings[AppUsageMetrics.TELEMETRY_ENABLED_KEY] = true;
+      mockSettings[AppUsageMetrics.TELEMETRY_ENABLED_KEY] = 'Basic';
       aum.start();
       setTimeout(function() {
         assert.equal(stopspy.callCount, 0);
         assert.ok(startspy.calledOnce);
 
-        mockSettings[AppUsageMetrics.TELEMETRY_ENABLED_KEY] = false;
+        mockSettings[AppUsageMetrics.TELEMETRY_ENABLED_KEY] = 'None';
         MockNavigatorSettings.mTriggerObservers(
-          AppUsageMetrics.TELEMETRY_ENABLED_KEY, { settingValue: false });
+          AppUsageMetrics.TELEMETRY_ENABLED_KEY, { settingValue: 'None' });
 
         assert.equal(stopspy.callCount, 1);
 
-        mockSettings[AppUsageMetrics.TELEMETRY_ENABLED_KEY] = true;
+        mockSettings[AppUsageMetrics.TELEMETRY_ENABLED_KEY] = 'Basic';
         MockNavigatorSettings.mTriggerObservers(
-          AppUsageMetrics.TELEMETRY_ENABLED_KEY, { settingValue: true });
+          AppUsageMetrics.TELEMETRY_ENABLED_KEY, { settingValue: 'Basic' });
 
         done(assert.ok(startspy.calledTwice));
       });
