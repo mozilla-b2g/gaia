@@ -40,6 +40,7 @@
   var isPausedWhileDragging;
   var sliderRect;
   window.pause = pause;
+  var pendingSeekPosition = null;
 
   //
   // Bug 1088456: when the view activity is launched by the bluetooth transfer
@@ -185,7 +186,7 @@
     });
 
     dom.player.addEventListener('timeupdate', timeUpdated);
-    dom.player.addEventListener('seeked', updateSlider);
+    dom.player.addEventListener('seeked', seekEnded);
 
     // showing + hiding the loading spinner
     dom.player.addEventListener('waiting', showSpinner);
@@ -504,6 +505,22 @@
     }
   }
 
+  function seekEnded() {
+    updateSlider();
+    if (pendingSeekPosition) {
+      requestSeek(pendingSeekPosition);
+      pendingSeekPosition = null;
+    }
+  }
+
+  function requestSeek(target) {
+    if (dom.player.seeking) {
+      pendingSeekPosition = target;
+    } else {
+      dom.player.fastSeek(target);
+    }
+  }
+
   function handleSliderTouchMove(event) {
     if (!dragging) {
       return;
@@ -534,7 +551,7 @@
     dom.playHead.classList.add('active');
     movePlayHead(percent);
     dom.elapsedTime.style.width = percent;
-    dom.player.fastSeek(dom.player.duration * pos);
+    requestSeek(dom.player.duration * pos);
   }
 
   function handleSliderKeypress(event) {
@@ -547,9 +564,9 @@
     // seconds.
     var step = Math.max(dom.player.duration / 20, 2);
     if (event.keyCode === event.DOM_VK_DOWN) {
-      dom.player.fastSeek(dom.player.currentTime - step);
+      requestSeek(dom.player.currentTime - step);
     } else if (event.keyCode === event.DOM_VK_UP) {
-      dom.player.fastSeek(dom.player.currentTime + step);
+      requestSeek(dom.player.currentTime + step);
     }
   }
 

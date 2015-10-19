@@ -108,6 +108,9 @@ var loadingChecker =
   new VideoLoadingChecker(dom.player, dom.inUseOverlay, dom.inUseOverlayTitle,
                           dom.inUseOverlayText);
 
+// Store seek target before previous one is done.
+var pendingSeekPosition = null;
+
 var lastPlayTime = 0;
 
 // Workaround to fix issue reported in Bug 1214157
@@ -272,7 +275,7 @@ function initPlayerControls() {
 
   // handle video player
   dom.player.addEventListener('timeupdate', timeUpdated);
-  dom.player.addEventListener('seeked', updateVideoControlSlider);
+  dom.player.addEventListener('seeked', seekEnded);
   dom.player.addEventListener('ended', playerEnded);
 
   // handle user tapping events
@@ -1311,6 +1314,22 @@ function handleSliderTouchEnd(event) {
   }
 }
 
+function seekEnded() {
+  updateVideoControlSlider();
+  if (pendingSeekPosition) {
+    requestSeek(pendingSeekPosition);
+    pendingSeekPosition = null;
+  }
+}
+
+function requestSeek(target) {
+  if (dom.player.seeking) {
+    pendingSeekPosition = target;
+  } else {
+    dom.player.fastSeek(target);
+  }
+}
+
 function handleSliderTouchMove(event) {
   if (!dragging) {
     return;
@@ -1341,7 +1360,7 @@ function handleSliderTouchMove(event) {
   dom.playHead.classList.add('active');
   movePlayHead(percent);
   dom.elapsedTime.style.width = percent;
-  dom.player.fastSeek(dom.player.duration * pos);
+  requestSeek(dom.player.duration * pos);
 }
 
 function handleSliderKeypress(event) {
@@ -1354,9 +1373,9 @@ function handleSliderKeypress(event) {
   // seconds.
   var step = Math.max(dom.player.duration / 20, 2);
   if (event.keyCode === event.DOM_VK_DOWN) {
-    dom.player.fastSeek(dom.player.currentTime - step);
+    requestSeek(dom.player.currentTime - step);
   } else if (event.keyCode === event.DOM_VK_UP) {
-    dom.player.fastSeek(dom.player.currentTime + step);
+    requestSeek(dom.player.currentTime + step);
   }
 }
 
