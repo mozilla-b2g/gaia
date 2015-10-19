@@ -21,16 +21,12 @@ class TestLaunchApp(GaiaTestCase):
 
         self.test_data = {
             'name': 'packagedapp1',
-            'url': self.marionette.absolute_url('webapps/packaged1/manifest.webapp'),
-            'title': 'Packaged app1'}
+            'manifest_url': self.marionette.absolute_url('webapps/packaged1/manifest.webapp'),
+            'title': 'Packaged app1'
+        }
 
         # Install app
-        self.marionette.execute_script(
-            'navigator.mozApps.installPackage("%s")' % self.test_data['url'])
-
-        # Confirm the installation and wait for the app icon to be present
-        confirm_install = ConfirmInstall(self.marionette)
-        confirm_install.tap_confirm()
+        self.apps.install(self.test_data['manifest_url'])
 
         # Wait for the notification to disappear
         system = System(self.marionette)
@@ -53,6 +49,6 @@ class TestLaunchApp(GaiaTestCase):
             lambda m: m.title == self.test_data['title'])
 
     def tearDown(self):
-        self.apps.uninstall(self.test_data['name'])
+        self.apps.uninstall(self.test_data['manifest_url'])
 
         GaiaTestCase.tearDown(self)
