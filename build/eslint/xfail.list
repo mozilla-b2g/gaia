@@ -305,3 +305,4 @@ tv_apps/smart-system/js/value_selector/value_selector.js # line 126, col 7, Erro
 tv_apps/smart-system/js/value_selector/value_selector.js # line 398, col 9, Error - Unsafe call to insertAdjacentHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 tv_apps/smart-system/js/value_selector/value_selector.js # line 403, col 9, Error - Unsafe call to insertAdjacentHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 tv_apps/weather-widget/web_components/smart-weather.js # line 11, col 3, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
+tv_apps/remote-control/bower_components/qrcodejs/qrcode.js # line 255, col 4, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)

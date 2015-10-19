@@ -1,4 +1,4 @@
-/* global Section, SettingsSection, Settings */
+/* global Section, SettingsSection, Settings, QRCode */
 'use strict';
 
 (function(exports) {
@@ -57,6 +57,26 @@
 
   App.prototype.updateIP = function(ip) {
     document.getElementById('ip').textContent = 'http://' + ip;
+    this.updateQRCode('qrcode-image', ip, 256, 256);
+    this.updateQRCode('big-qrcode-image', ip, 700, 700);
+  };
+
+  App.prototype.updateQRCode = function(elemId, ip, width, height) {
+    // Remove the previous one if it exists.
+    var div = document.getElementById(elemId);
+    while (div.firstChild) {
+      div.removeChild(div.firstChild);
+    }
+
+    /* jshint nonew: false */
+    new QRCode(elemId, {
+      text: 'http://' + ip + '/',
+      width: width,
+      height: height,
+      colorDark : '#000000',
+      colorLight : '#ffffff',
+      correctLevel : QRCode.CorrectLevel.L
+    });
   };
 
   App.prototype.updateStatus = function() {

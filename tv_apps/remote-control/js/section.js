@@ -25,6 +25,7 @@
     this._childSections = {};
     this._activeChildSectionId = '';
     this._defaultFocusElement = undefined;
+    this._focusableElementCount = focusables.length;
   }
 
   Section.prototype = {
@@ -80,6 +81,9 @@
         activeChildSection.handleClick();
       } else if (this._handleClick) {
         this._handleClick();
+      } else if (!this._focusableElementCount) {
+        // If there is no focusable element in this section, just close it.
+        this.backToParent();
       }
     },
 
