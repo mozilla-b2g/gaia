@@ -528,21 +528,12 @@ suite('system/AppWindowManager', function() {
         subject._apps);
     });
 
-    test('homescreen is displayed', function() {
+    test('homescreen is changed', function() {
       var stubDisplay = this.sinon.stub(subject, 'display');
 
       subject.handleEvent(
         { type: 'homescreen-changed', detail: app1 });
       assert.isTrue(stubDisplay.calledWith());
-    });
-
-    test('homescreen is not displayed when FTU is running', function() {
-      var stubDisplay = this.sinon.stub(subject, 'display');
-      MockService.mockQueryWith('isFtuRunning', true);
-
-      subject.handleEvent(
-        { type: 'homescreen-changed', detail: app1 });
-      assert.isFalse(stubDisplay.calledWith());
     });
 
     test('kill app', function() {

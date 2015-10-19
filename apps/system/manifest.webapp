@@ -179,10 +179,6 @@
     "bookmarks_store": {
       "readonly": false,
       "description": "View and modify bookmarks"
-    },
-    "vertical_preferences_store": {
-      "readonly": true,
-      "description": "Check migration status"
     }
   }
 }
