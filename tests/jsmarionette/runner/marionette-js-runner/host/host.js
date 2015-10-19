@@ -31,8 +31,11 @@ function Host(socketPath, process, log) {
 
   var restart = this.restart.bind(this);
   process.stdout.on('data', function(chunk) {
-    if (chunk.toString().indexOf('Exception') !== -1) {
+    var data = chunk.toString();
+    if (data.indexOf('Exception ') !== -1) {
       restart();
+    } else {
+      console.log(data);
     }
   });
 
@@ -166,7 +169,7 @@ function spawnPythonChild() {
   var pythonChild = spawnVirtualEnv(
     'gaia-integration',
     ['--path=' + socketPath],
-    { stdio: ['pipe', 'pipe', 'pipe', 'pipe'] }  // Swallow python stderr
+    { stdio: [0, 'pipe', 'pipe', 1] }  // Swallow python stderr
   );
 
   var failOnChildError = new Promise(function(accept, reject) {
