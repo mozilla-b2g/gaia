@@ -2,7 +2,7 @@
 
 ## From master
 
-You can use [this B2G Desktop build](https://www.dropbox.com/s/c83f50wh0uloyag/syncOct8.zip?dl=00).
+You can use the latest B2G Desktop build from [here](https://www.dropbox.com/sh/wlw1kcbida471qw/AADqlITy328M8QMPxKokVflha?dl=0).
 The steps to run it are:
 
     Extract the zip file.
