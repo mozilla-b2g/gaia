@@ -12,6 +12,8 @@
    * @augments AppWindow
    */
   var PopupWindow = function(configs) {
+    this.isPopupWindow = true;
+
     if (configs && configs.rearWindow) {
       // Render inside its opener.
       this.containerElement = configs.rearWindow.element;
@@ -34,16 +36,13 @@
       this.openAnimation = this.closeAnimation = 'immediate';
     }
 
-    this.themeColor = this.rearWindow.themeColor;
-
     if (this.rearWindow.appChrome) {
-      this.element.classList.toggle('light',
-        this.rearWindow.appChrome.useLightTheming());
-
       // We have to apply the style on the title bar element because the
       // popup appChrome element doesn't overlap. See http://bugzil.la/1132418
-      this.statusbar.titleBar.style.backgroundColor =
-        this.rearWindow.appChrome.element.style.backgroundColor;
+      if (this.statusbar) {
+        this.statusbar.titleBar.style.backgroundColor =
+          this.rearWindow.appChrome.containerElement.style.backgroundColor;
+      }
     }
   };
 

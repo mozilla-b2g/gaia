@@ -21,11 +21,6 @@
   var TRACE = false;
   var _id = 0;
 
-  var themeGroups = [
-    'theme-communications', 'theme-media',
-    'theme-productivity', 'theme-settings'
-  ];
-
   /**
    * AppWindow creates, contains, manages a
    * [mozbrowser](https://developer.mozilla.org/en-US/docs/WebAPI/Browser)
@@ -186,7 +181,8 @@
     if (!this.config.chrome) {
       this.config.chrome = {
         scrollable: this.isBrowser(),
-        maximized: this.isBrowser()
+        maximized: this.isBrowser(),
+        navigation: this.isBrowser()
       };
     } else if (this.config.chrome.navigation) {
       this.config.chrome.scrollable = !this.isFullScreen();
@@ -449,7 +445,6 @@
     this.inError = false;
     this.loading = false;
     this.loaded = false;
-    this.metachangeDetail = null;
     this.suspended = true;
     this.element && this.element.classList.add('suspended');
     this.browserContainer.removeChild(this.browser.element);
@@ -644,6 +639,7 @@
       this.browser = new BrowserFrame(this.browser_config);
     }
     this.element = fragment.getElementById(this.instanceID);
+    this.element.hidden = true;
 
     // For gaiauitest usage.
     this.element.dataset.manifestName = this.manifest ? this.manifest.name : '';
@@ -692,14 +688,14 @@
       this.setVisible(false);
     }
 
+    this.setFrameBackground();
+
     /**
      * Fired after the app window element is appended to the DOM tree.
      * @event AppWindow#apprendered
      */
     this.publish('rendered');
     this._rendered = true;
-
-    setTimeout(this.setFrameBackground.bind(this));
   };
 
   AppWindow.prototype.render = function aw_render() {
@@ -717,7 +713,7 @@
    * @return {Boolean} is the current instance a browsing window.
    */
   AppWindow.prototype.isBrowser = function aw_isbrowser() {
-    return !this.manifestURL;
+    return !this.manifestURL && !this.webManifestURL;
   };
 
   /**
@@ -810,7 +806,7 @@
     ['mozbrowserclose', 'mozbrowsererror', 'mozbrowservisibilitychange',
      'mozbrowserloadend', 'mozbrowseractivitydone', 'mozbrowserloadstart',
      'mozbrowsertitlechange', 'mozbrowserlocationchange',
-     'mozbrowsermetachange', 'mozbrowsericonchange', 'mozbrowserasyncscroll',
+     'mozbrowsericonchange', 'mozbrowserasyncscroll',
      'mozbrowsersecuritychange', 'mozbrowsermanifestchange',
      '_localized', '_swipein', '_swipeout', '_kill_suspended',
      '_orientationchange', '_focus', '_blur',  '_hidewindow', '_sheetdisplayed',
@@ -885,32 +881,14 @@
       );
 
       if (this.isInputMethod) {
+        this.element.hidden = false;
         return;
       }
 
-      if (this.manifest) {
-        var that = this;
-        that.element.addEventListener('_opened', function onOpened() {
-          that.element.removeEventListener('_opened', onOpened);
-          that.appChrome = new AppChrome(that);
-
-          // Some signals that chrome needs to respond to can occur before
-          // chrome has loaded - in those cases, manually call the handlers.
-          if (that.inError) {
-            that.appChrome.handleEvent({type: 'mozbrowsererror'});
-          }
-          if (that.loading) {
-            that.appChrome.handleEvent({type: 'mozbrowserloadstart'});
-            that.appChrome.handleEvent({type: '_loading'});
-          }
-          if (that.metachangeDetail) {
-            that.appChrome.handleEvent({type: 'mozbrowsermetachange',
-                                        detail: that.metachangeDetail});
-          }
-        });
-      } else {
-        this.appChrome = new AppChrome(this);
-      }
+      this.appChrome = new AppChrome(this);
+      this.appChrome.ready.then(() => {
+        this.element.hidden = false;
+      });
     };
 
   AppWindow.prototype.uninstallSubComponents =
@@ -1094,25 +1072,9 @@
       // repo.
       this.browserContainer.classList.add('render');
       // Force removing background image.
-      this.element.style.backgroundImage = 'none';
+      this.browserContainer.style.backgroundImage = 'none';
       this._changeState('loading', false);
       this.publish('loaded');
-      var backgroundColor = evt.detail.backgroundColor;
-      this.debug('bgcolor= ', backgroundColor);
-      /* When rotating the screen, the child may take some time to reflow.
-       * If the child takes longer than layers.orientation.sync.timeout
-       * to respond, gecko will go ahead and draw anyways. This code
-       * uses a simple heuristic to guess the least distracting color
-       * we should draw in the blank space. */
-
-      /* Only allow opaque colors */
-      // TODOEVME - this kept throwing errors when homescreen launched,
-      // bgcolor was null
-      if (backgroundColor && backgroundColor.indexOf('rgb(') != -1 &&
-          !this.isHomescreen) {
-        this.debug('setting background color..');
-        this.browser.element.style.backgroundColor = backgroundColor;
-      }
     };
 
   AppWindow.prototype._handle_mozbrowserlocationchange =
@@ -1163,60 +1125,6 @@
       }
       this.scrollPosition = evt.detail.top;
       this.publish('scroll');
-    };
-
-  AppWindow.prototype._handle_mozbrowsermetachange =
-    function aw__handle_mozbrowsermetachange(evt) {
-
-      var detail = this.metachangeDetail = evt.detail;
-
-      switch (detail.name) {
-        case 'theme-color':
-          if (!detail.type) {
-            return;
-          }
-          // If the theme-color meta is removed, let's reset the color.
-          var color = '';
-
-          // Otherwise, set it to the color that has been asked.
-          if (detail.type !== 'removed') {
-            color = detail.content;
-          }
-          this.themeColor = color;
-
-          this.publish('themecolorchange');
-          break;
-        case 'theme-group':
-          if (!detail.type) {
-            return;
-          }
-
-          if (detail.type === 'removed') {
-            themeGroups.forEach((group) => {
-              this.element.classList.remove(group);
-            });
-          } else {
-            var group = detail.content;
-            if (themeGroups.indexOf(group) !== -1) {
-              this.element.classList.add(group);
-            }
-          }
-
-          this.publish('themecolorchange');
-          break;
-
-        case 'application-name':
-          // Apps have a compulsory name field in their manifest
-          // which takes precedence.
-          var name = detail.content || '';
-          var emptyString = !(name.trim());
-          if (this.manifestURL || this.webManifestURL || emptyString) {
-            return;
-          }
-          this.name = name;
-          this.publish('namechanged');
-          break;
-      }
     };
 
   AppWindow.prototype._handle_mozbrowsermanifestchange =
@@ -1924,27 +1832,28 @@
    */
   AppWindow.prototype.setFrameBackground =
     function aw_setFrameBackground() {
-      if (!this.isHomescreen &&
-          !this.loaded && !this.splashed && this.element) {
+      if (this.isHomescreen || this.loaded || this.splashed) {
+        return;
+      }
 
-        if (this._splash) {
-          this.splashed = true;
-          this.element.style.backgroundImage = 'url("' + this._splash + '")';
+      if (this._splash) {
+        this.splashed = true;
 
-          var iconCSSSize = 2 * (ScreenLayout.getCurrentLayout('tiny') ?
-          this.SPLASH_ICON_SIZE_TINY : this.SPLASH_ICON_SIZE_NOT_TINY);
-          this.element.style.backgroundSize =
-            iconCSSSize + 'px ' + iconCSSSize + 'px';
+        var style = this.browserContainer.style;
+        style.backgroundImage = 'url("' + this._splash + '")';
 
-          if (this.identificationIcon) {
-            this.identificationIcon.style.backgroundImage =
-              'url("' + this._splash + '")';
-          }
+        var iconCSSSize = 2 * (ScreenLayout.getCurrentLayout('tiny') ?
+        this.SPLASH_ICON_SIZE_TINY : this.SPLASH_ICON_SIZE_NOT_TINY);
+        style.backgroundSize = iconCSSSize + 'px ' + iconCSSSize + 'px';
+
+        if (this.identificationIcon) {
+          this.identificationIcon.style.backgroundImage =
+            'url("' + this._splash + '")';
         }
+      }
 
-        if (this.identificationTitle) {
-          this.identificationTitle.textContent = this.name;
-        }
+      if (this.identificationTitle) {
+        this.identificationTitle.textContent = this.name;
       }
     };
 
@@ -2013,7 +1922,8 @@
         (this.screenshotOverlay &&
          this.screenshotOverlay.classList.contains('visible'))) {
       this.debug('loaded yet');
-      setTimeout(callback);
+      this.appChrome ? this.appChrome.ready.then(callback)
+                     : setTimeout(callback);
       return;
     }
 

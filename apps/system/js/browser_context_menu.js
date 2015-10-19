@@ -220,7 +220,7 @@
         url: url,
         iconable: false,
         title: this.app.title,
-        themeColor: this.app.themeColor
+        themeColor: this.app.appChrome.themeColor
       };
 
       this.app.getScreenshot(function() {

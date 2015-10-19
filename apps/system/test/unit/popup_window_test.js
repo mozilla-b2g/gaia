@@ -92,21 +92,11 @@ suite('system/PopupWindow', function() {
     assert.isTrue(stubClose.called);
   });
 
-  test('Theme color should be the one from the parent', function() {
-    app = new AppWindow(fakeAppConfig);
-    app.themeColor = 'black';
-    fakePopupConfig.rearWindow = app;
-    var popup = new PopupWindow(fakePopupConfig);
-    assert.equal(app.themeColor, 'black');
-    assert.equal(popup.themeColor, 'black');
-    assert.equal(popup.element.classList.contains('light'),
-      app.element.classList.contains('light'));
-  });
-
   test('Stay in background popup should be hidden', function() {
     var hiddenPopupConfig = Object.assign({}, fakePopupConfig);
     app = new AppWindow(fakeAppConfig);
     hiddenPopupConfig.stayBackground = true;
+    hiddenPopupConfig.rearWindow = app;
     var popup = new PopupWindow(hiddenPopupConfig);
     assert.isTrue(popup.element.classList.contains('alwaysLowered'));
   });
