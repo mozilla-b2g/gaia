@@ -537,7 +537,7 @@ window.GaiaContainer = (function(exports) {
           }
         }
       }
-    } else if (this._dnd.timeout) {
+    } else if (this._dnd.timeout !== null) {
       this.dispatchEvent(new CustomEvent('activate',
         { detail: { target: this._dnd.child.element } }));
     }
@@ -636,7 +636,7 @@ window.GaiaContainer = (function(exports) {
 
       case 'touchend':
       case 'mouseup':
-        if (this._dnd.active) {
+        if (this._dnd.active || this._dnd.timeout !== null) {
           event.preventDefault();
           event.stopImmediatePropagation();
         }
