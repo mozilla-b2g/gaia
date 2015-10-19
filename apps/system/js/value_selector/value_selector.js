@@ -29,7 +29,8 @@
     app.element.addEventListener('_opening', this);
     app.element.addEventListener('_closing', this);
     app.element.addEventListener('_closed', this);
-    app.element.addEventListener('_inputmethod-contextchange', this);
+    app.element.addEventListener('_inputfocus', this);
+    app.element.addEventListener('_inputblur', this);
     app.element.addEventListener('_localized', this);
     LazyLoader.load(['shared/js/input_parser.js']);
     window.addEventListener('timeformatchange', this);
@@ -100,24 +101,17 @@
           this._timePicker = null;
         }
         break;
-      case '_inputmethod-contextchange':
-        var typesToHandle = ['select-one', 'select-multiple', 'date', 'time',
-          'datetime', 'datetime-local', 'blur'];
-        // handle the <select> element and inputs with type of date/time
-        // in system app for now
-        if (typesToHandle.indexOf(evt.detail.inputType) < 0) {
-          return;
-        }
-
+      case '_inputfocus':
         this._currentDatetimeValue = evt.detail.value;
         this._currentInputType = evt.detail.inputType;
 
-        if (this._currentInputType === 'blur') {
-          this.hide();
-          return;
-        }
-
         this.show(evt.detail);
+        break;
+      case '_inputblur':
+        this._currentDatetimeValue = undefined;
+        this._currentInputType = undefined;
+
+        this.hide();
         break;
       case 'transitionend':
         this.element.classList.remove('transitioning');
@@ -292,10 +286,6 @@
     this.publish('shown');
     var min = detail.min;
     var max = detail.max;
-
-    if (detail.choices) {
-      detail.choices = JSON.parse(detail.choices);
-    }
 
     this.app._setVisibleForScreenReader(false);
     if (this.element.hidden) {

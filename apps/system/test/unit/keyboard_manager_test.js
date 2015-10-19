@@ -1,7 +1,7 @@
 /*global KeyboardManager, sinon, KeyboardHelper, MockKeyboardHelper,
   MocksHelper, MockNavigatorSettings, Applications, MockL10n,
   MockImeMenu, inputWindowManager, TYPE_GROUP_MAPPING,
-  InputLayouts, MockPromise */
+  InputLayouts, MockPromise, MockEventTarget */
 'use strict';
 
 require('/shared/test/unit/mocks/mock_service.js');
@@ -17,7 +17,7 @@ require('/test/unit/mock_ime_menu.js');
 require('/js/input_layouts.js');
 require('/test/unit/mock_input_window_manager.js');
 require('/js/keyboard_manager.js');
-
+require('/shared/test/unit/mocks/mock_event_target.js');
 
 var mocksHelperForKeyboardManager = new MocksHelper([
     'KeyboardHelper',
@@ -33,19 +33,36 @@ var mocksHelperForKeyboardManager = new MocksHelper([
 suite('KeyboardManager', function() {
   var SWITCH_CHANGE_DELAY = 20;
 
-  function inputChangeEvent(inputType) {
-    return new CustomEvent('mozChromeEvent', {
+  function createMockInputContextFocusEvent(inputType) {
+    return {
+      type: 'inputcontextfocus',
       detail: {
-        type: 'inputmethod-contextchange',
+        type: 'input',
         inputType: inputType
+      },
+      defaultPrevented: false,
+      preventDefault: function() {
+        this.defaultPrevented = true;
       }
-    });
+    };
   }
 
-  function simulateInputChangeEvent(inputType) {
+  function simulateInputContextFocusEvent(inputType) {
     // we call the method directly because we can't send a direct event
     // because otherwise in this test, we'll have n mozChromeEvent listeners
-    KeyboardManager._inputFocusChange(inputChangeEvent(inputType));
+    KeyboardManager.handleEvent(createMockInputContextFocusEvent(inputType));
+  }
+
+  function simulateInputContextBlurEvent() {
+    // we call the method directly because we can't send a direct event
+    // because otherwise in this test, we'll have n mozChromeEvent listeners
+    KeyboardManager.handleEvent({
+      type: 'inputcontextblur',
+      defaultPrevented: false,
+      preventDefault: function() {
+        this.defaultPrevented = true;
+      }
+    });
   }
 
   function setupHTML() {
@@ -68,11 +85,6 @@ suite('KeyboardManager', function() {
     navigator.mozSettings = MockNavigatorSettings;
 
     realMozInputMethod = navigator.mozInputMethod;
-    navigator.mozInputMethod = {
-      mgmt: {
-        setSupportsSwitchingTypes: sinon.stub()
-      }
-    };
 
     window.DynamicInputRegistry = function() {};
     window.DynamicInputRegistry.prototype.start = function() {};
@@ -89,6 +101,11 @@ suite('KeyboardManager', function() {
     this.sinon.useFakeTimers();
 
     setupHTML();
+
+    navigator.mozInputMethod = {
+      mgmt: new MockEventTarget()
+    };
+    navigator.mozInputMethod.mgmt.setSupportsSwitchingTypes = this.sinon.stub();
 
     // stub this such that the mocked SettingListener's callback would not
     // trigger out of the blue when sinon fake timer advances
@@ -127,6 +144,8 @@ suite('KeyboardManager', function() {
 
   teardown(function() {
     stubGetGroupCurrentActiveLayoutIndexAsync.restore();
+
+    navigator.mozInputMethod = realMozInputMethod;
   });
 
   suite('Switching keyboard focus', function() {
@@ -135,13 +154,15 @@ suite('KeyboardManager', function() {
       this.sinon.stub(KeyboardManager, '_setKeyboardToShow');
     });
 
-    test('The event triggers inputFocusChange', function() {
-      this.sinon.stub(KeyboardManager, '_inputFocusChange');
+    test('The inputcontextfocus event triggers _handleInputContextFocus',
+    function() {
+      this.sinon.stub(KeyboardManager, '_handleInputContextFocus');
 
-      var event = inputChangeEvent('text');
-      window.dispatchEvent(event);
+      var event = createMockInputContextFocusEvent('text');
+      navigator.mozInputMethod.mgmt.dispatchEvent(event);
 
-      sinon.assert.called(KeyboardManager._inputFocusChange);
+      sinon.assert.called(KeyboardManager._handleInputContextFocus);
+      assert.isTrue(event.defaultPrevented);
     });
 
     suite('Switching inputType', function() {
@@ -163,11 +184,11 @@ suite('KeyboardManager', function() {
       });
       test('Switching from "text" to "number"', function() {
 
-        simulateInputChangeEvent('text');
+        simulateInputContextFocusEvent('text');
 
         p1.then.getCall(0).args[0](undefined);
 
-        simulateInputChangeEvent('number');
+        simulateInputContextFocusEvent('number');
 
         p2.then.getCall(0).args[0](undefined);
 
@@ -176,11 +197,11 @@ suite('KeyboardManager', function() {
       });
 
       test('Switching from "text" to "text"', function() {
-        simulateInputChangeEvent('text');
+        simulateInputContextFocusEvent('text');
 
         p1.then.getCall(0).args[0](undefined);
 
-        simulateInputChangeEvent('text');
+        simulateInputContextFocusEvent('text');
 
         p2.then.getCall(0).args[0](undefined);
 
@@ -188,11 +209,11 @@ suite('KeyboardManager', function() {
       });
 
       test('Switching from "text" to "select-one"', function() {
-        simulateInputChangeEvent('text');
+        simulateInputContextFocusEvent('text');
 
         p1.then.getCall(0).args[0](undefined);
 
-        simulateInputChangeEvent('select-one');
+        simulateInputContextFocusEvent('select-one');
 
         sinon.assert.called(inputWindowManager.hideInputWindow);
       });
@@ -208,7 +229,7 @@ suite('KeyboardManager', function() {
         var p = new MockPromise();
         stubGetGroupCurrentActiveLayoutIndexAsync.returns(p);
 
-        simulateInputChangeEvent('url');
+        simulateInputContextFocusEvent('url');
 
         p.then.getCall(0).args[0](undefined);
       });
@@ -248,7 +269,7 @@ suite('KeyboardManager', function() {
           var p = new MockPromise();
           stubGetGroupCurrentActiveLayoutIndexAsync.returns(p);
 
-          simulateInputChangeEvent('url');
+          simulateInputContextFocusEvent('url');
 
           this.checkDefaults.getCall(0).args[0]();
 
@@ -277,7 +298,7 @@ suite('KeyboardManager', function() {
           var p = new MockPromise();
           stubGetGroupCurrentActiveLayoutIndexAsync.returns(p);
 
-          simulateInputChangeEvent('url');
+          simulateInputContextFocusEvent('url');
 
           p.then.getCall(0).args[0](undefined);
         });
@@ -319,7 +340,7 @@ suite('KeyboardManager', function() {
       });
 
       test('Selection is present', function() {
-        simulateInputChangeEvent('chocola');
+        simulateInputContextFocusEvent('chocola');
 
         p.then.getCall(0).args[0](1);
 
@@ -327,7 +348,7 @@ suite('KeyboardManager', function() {
       });
 
       test('Selection is present, multiple from same manifest', function() {
-        simulateInputChangeEvent('chocola');
+        simulateInputContextFocusEvent('chocola');
 
         p.then.getCall(0).args[0](2);
 
@@ -335,7 +356,7 @@ suite('KeyboardManager', function() {
       });
 
       test('Selection is not present or not set', function() {
-        simulateInputChangeEvent('chocola');
+        simulateInputContextFocusEvent('chocola');
 
         p.then.getCall(0).args[0](undefined);
 
@@ -345,7 +366,7 @@ suite('KeyboardManager', function() {
       });
 
       test('Error should still trigger _setKeyboardToShow', function() {
-        simulateInputChangeEvent('chocola');
+        simulateInputContextFocusEvent('chocola');
 
         p.mGetNextPromise().catch.getCall(0).args[0]('error');
 
@@ -541,7 +562,7 @@ suite('KeyboardManager', function() {
         'should change to second text layout'
       );
 
-      simulateInputChangeEvent('blur');
+      simulateInputContextBlurEvent();
 
       inputWindowManager.showInputWindow.reset();
 
@@ -687,7 +708,7 @@ suite('KeyboardManager', function() {
     });
 
     test('Blur should hide', function() {
-      simulateInputChangeEvent('blur');
+      simulateInputContextBlurEvent();
 
       sinon.assert.callCount(inputWindowManager.hideInputWindow, 1);
       sinon.assert.notCalled(KeyboardManager._setKeyboardToShow);
@@ -696,7 +717,7 @@ suite('KeyboardManager', function() {
     });
 
     test('Focus should show', function() {
-      simulateInputChangeEvent('text');
+      simulateInputContextFocusEvent('text');
 
       sinon.assert.notCalled(inputWindowManager.hideInputWindow);
       sinon.assert.callCount(KeyboardManager._setKeyboardToShow, 1);
