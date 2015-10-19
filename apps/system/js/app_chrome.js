@@ -510,6 +510,7 @@
     this.collapse();
     this.pinned = true;
     this.app.element.classList.remove('collapsible');
+    this.app.element.classList.add('collapsed');
   };
 
   /**
@@ -521,6 +522,7 @@
     if (this.app.config && this.app.config.scrollable) {
       this.app.element.classList.add('collapsible');
     }
+    this.app.element.classList.remove('collapsed');
     this.expand();
   };
 

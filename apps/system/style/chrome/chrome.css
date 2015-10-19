@@ -811,7 +811,8 @@ gaia-overflow-menu button#share {
 }
 
 /* Progress */
-.appWindow:not(.bar).collapsible > .chrome gaia-progress {
+.appWindow:not(.bar).collapsible > .chrome gaia-progress,
+.appWindow:not(.bar).collapsed > .chrome gaia-progress {
   top: 7.3rem;
 }
 
