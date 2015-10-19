@@ -122,7 +122,7 @@
   AT.REPORT_URL = 'https://incoming.telemetry.mozilla.org/submit/telemetry';
   // How often do we try to send the reports
   // Can be overridden with metrics.advancedtelemetry.reportInterval setting.
-  AT.REPORT_INTERVAL = 24 * 60 * 60 * 1000;  // 1 DAY
+  AT.REPORT_INTERVAL = 14 * 24 * 60 * 60 * 1000;  // Two Weeks
 
   // If the telemetry server does not respond within this amount of time
   // just give up and try again later.
@@ -278,7 +278,7 @@
         self.clearPayload(false);
       }
       // if it's a request to transmit, transmit the merged metrics.
-      else if (self.collecting && navigator.onLine) {
+      else if (self.collecting) {
         self.transmit(result);
       }
       if (callback) {
@@ -306,9 +306,7 @@
   AT.prototype.startBatch = function startBatch() {
     var self = this;
     this.timer = setTimeout(function() {
-      if (navigator.onLine) {
-        self.getPayload();
-      }
+      self.getPayload();
     }, self.metrics.getInterval());
   };
 
@@ -321,7 +319,7 @@
   // start a fresh batch of metrics.
   AT.prototype.transmit = function transmit(payload) {
     var self = this;
-    if (!this.collecting || !navigator.onLine) {
+    if (!this.collecting) {
       return;
     }
 
@@ -360,6 +358,11 @@
     });
 
     function send(payload, deviceInfoQuery) {
+      if (!navigator.onLine) {
+        self.startRetryBatch();
+        return;
+      }
+
       var request = new AdvancedTelemetryPing(payload, deviceInfoQuery,
         self.deviceID);
 
