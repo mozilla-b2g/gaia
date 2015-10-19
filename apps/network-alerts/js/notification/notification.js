@@ -1,5 +1,3 @@
-/* global Utils */
-
 'use strict';
 
 (function(exports) {
@@ -23,7 +21,7 @@ function onNotification(message) {
   var url = [
     'attention.html?title=',
     encodeURIComponent(title),
-    'body=',
+    '&body=',
     encodeURIComponent(message.body),
     '&notification=1'
   ].join('');

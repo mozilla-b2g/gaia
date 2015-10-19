@@ -43,7 +43,7 @@ suite('Network Alerts - Notification handling', function() {
 
     var expectedUrl = [
       'attention.html?',
-      'title=titleID&',
+      'title=Some%20title&',
       'body=Some%20body&',
       'notification=1'
     ].join('');
