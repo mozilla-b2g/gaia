@@ -128,7 +128,6 @@
     switch (action) {
       case 'pin':
         activeApp.appChrome.pinPage();
-        this._banner.show();
         break;
 
       case 'pin-site':
@@ -173,7 +172,7 @@
           this.pinSiteButton.setAttribute('data-l10n-id', 'pinning-unpin-site');
           this.pinSiteButton.dataset.action = 'unpin-site';
         } else {
-          this.pinSiteButton.setAttribute('data-l10n-id', 'pinning-pin');
+          this.pinSiteButton.setAttribute('data-l10n-id', 'pinning-pin-site');
           this.pinSiteButton.dataset.action = 'pin-site';
         }
       });

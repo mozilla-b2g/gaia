@@ -146,11 +146,6 @@ suite('Pin Page dialog', function() {
         assert.isTrue(stubPin.called);
       });
 
-      test('shows the banner', function() {
-        subject.pinButton.dispatchEvent(new CustomEvent('click'));
-        assert.isTrue(toastStub.show.called);
-      });
-
       test('saves the pinned site', function() {
         subject.pinSiteButton.dispatchEvent(new CustomEvent('click'));
         assert.isTrue(stubPinSite.called);
