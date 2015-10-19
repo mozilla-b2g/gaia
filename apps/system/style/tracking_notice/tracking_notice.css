@@ -88,22 +88,23 @@
 #tracking-notice .setting gaia-switch {
   position: absolute;
   top: -1.1rem;
+  left: 0;
 }
 
 #tracking-notice .setting label {
-  position: absolute;
+  width: 75%;
+  display: block;
   font-size: 1.8rem;
   font-weight: 500;
   color: #4d4d4d;
 }
 
 #tracking-notice .setting .subtitle {
-  position: absolute;
   font-size: 1.4rem;
   font-weight: 400;
   color: #8e8e8e;
   width: 70%;
-  top: 1rem;
+  margin-top: .5rem;
 }
 
 #tracking-notice .confirm {
