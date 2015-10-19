@@ -94,8 +94,8 @@ marionette('Task Manager - Icons', function() {
                icon.getAttribute('class').indexOf('pending') === -1;
       });
 
-      var expectedColor = '0,255,255,255';
-      var expectedSize = 32;
+      var expectedColor = '255,0,255,255';
+      var expectedSize = 64;
 
       var actualColor = getElementColor(icon);
       var actualSize = iconColorToSize[actualColor];
