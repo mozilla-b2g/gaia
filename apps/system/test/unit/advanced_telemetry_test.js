@@ -373,7 +373,7 @@ suite('AdvancedTelemetry:', function() {
       mockSettings['deviceinfo.platform_build_id'] = 'build';
       mockSettings['deviceinfo.platform_version'] = '43';
       mockSettings['app.update.channel'] = 'default';
-      mockSettings[AdvancedTelemetry.TELEMETRY_ENABLED_KEY] = true;
+      mockSettings[AdvancedTelemetry.TELEMETRY_ENABLED_KEY] = 'Enhanced';
       at = new AdvancedTelemetry();
       at.start();
       at.startCollecting();
@@ -641,7 +641,7 @@ suite('AdvancedTelemetry:', function() {
     });
 
     test('starts immediately if enabled', function(done) {
-      mockSettings[AdvancedTelemetry.TELEMETRY_ENABLED_KEY] = true;
+      mockSettings[AdvancedTelemetry.TELEMETRY_ENABLED_KEY] = 'Enhanced';
       at.start();
       clock.tick();
 
@@ -651,7 +651,7 @@ suite('AdvancedTelemetry:', function() {
     });
 
     test('does not start if not enabled', function(done) {
-      mockSettings[AdvancedTelemetry.TELEMETRY_ENABLED_KEY] = false;
+      mockSettings[AdvancedTelemetry.TELEMETRY_ENABLED_KEY] = 'None';
       at.start();
       clock.tick();
 
@@ -661,22 +661,22 @@ suite('AdvancedTelemetry:', function() {
     });
 
     test('starts when enabled', function(done) {
-      mockSettings[AdvancedTelemetry.TELEMETRY_ENABLED_KEY] = false;
+      mockSettings[AdvancedTelemetry.TELEMETRY_ENABLED_KEY] = 'None';
 
       at.start();
       clock.tick();
       sinon.assert.calledOnce(AdvancedTelemetry.prototype.stopCollecting);
       sinon.assert.notCalled(AdvancedTelemetry.prototype.startCollecting);
 
-      mockSettings[AdvancedTelemetry.TELEMETRY_ENABLED_KEY] = true;
+      mockSettings[AdvancedTelemetry.TELEMETRY_ENABLED_KEY] = 'Enhanced';
       MockNavigatorSettings.mTriggerObservers(
-        AdvancedTelemetry.TELEMETRY_ENABLED_KEY, { settingValue: true });
+        AdvancedTelemetry.TELEMETRY_ENABLED_KEY, { settingValue: 'Enhanced' });
       clock.tick();
       sinon.assert.calledOnce(AdvancedTelemetry.prototype.startCollecting);
 
-      mockSettings[AdvancedTelemetry.TELEMETRY_ENABLED_KEY] = false;
+      mockSettings[AdvancedTelemetry.TELEMETRY_ENABLED_KEY] = 'None';
       MockNavigatorSettings.mTriggerObservers(
-        AdvancedTelemetry.TELEMETRY_ENABLED_KEY, { settingValue: false });
+        AdvancedTelemetry.TELEMETRY_ENABLED_KEY, { settingValue: 'None' });
       clock.tick();
 
       done(sinon.assert.calledTwice(
@@ -684,21 +684,21 @@ suite('AdvancedTelemetry:', function() {
     });
 
     test('stops when disabled and starts again', function(done) {
-      mockSettings[AdvancedTelemetry.TELEMETRY_ENABLED_KEY] = true;
+      mockSettings[AdvancedTelemetry.TELEMETRY_ENABLED_KEY] = 'Enhanced';
       at.start();
       clock.tick();
       sinon.assert.notCalled(AdvancedTelemetry.prototype.stopCollecting);
       sinon.assert.calledOnce(AdvancedTelemetry.prototype.startCollecting);
 
-      mockSettings[AdvancedTelemetry.TELEMETRY_ENABLED_KEY] = false;
+      mockSettings[AdvancedTelemetry.TELEMETRY_ENABLED_KEY] = 'None';
       MockNavigatorSettings.mTriggerObservers(
-        AdvancedTelemetry.TELEMETRY_ENABLED_KEY, { settingValue: false });
+        AdvancedTelemetry.TELEMETRY_ENABLED_KEY, { settingValue: 'None' });
       clock.tick();
       sinon.assert.calledOnce(AdvancedTelemetry.prototype.stopCollecting);
 
-      mockSettings[AdvancedTelemetry.TELEMETRY_ENABLED_KEY] = true;
+      mockSettings[AdvancedTelemetry.TELEMETRY_ENABLED_KEY] = 'Enhanced';
       MockNavigatorSettings.mTriggerObservers(
-        AdvancedTelemetry.TELEMETRY_ENABLED_KEY, { settingValue: true });
+        AdvancedTelemetry.TELEMETRY_ENABLED_KEY, { settingValue: 'Enhanced' });
       clock.tick();
       sinon.assert.calledTwice(AdvancedTelemetry.prototype.startCollecting);
       done();

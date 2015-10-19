@@ -38,7 +38,8 @@ suite('AdvancedTelemetryHelper:', function() {
       this.sinon.stub(console, 'warn');
 
       MockNavigatorSettings.mTriggerObservers(
-        AdvancedTelemetryHelper.TELEMETRY_ENABLED_KEY, { settingValue: true });
+        AdvancedTelemetryHelper.TELEMETRY_LEVEL_KEY,
+        { settingValue: 'Enhanced' });
       done();
     });
 
@@ -79,7 +80,8 @@ suite('AdvancedTelemetryHelper:', function() {
       this.sinon.stub(console, 'warn');
 
       MockNavigatorSettings.mTriggerObservers(
-        AdvancedTelemetryHelper.TELEMETRY_ENABLED_KEY, { settingValue: true });
+        AdvancedTelemetryHelper.TELEMETRY_LEVEL_KEY,
+        { settingValue: 'Enhanced' });
       done();
     });
 
@@ -149,7 +151,8 @@ suite('AdvancedTelemetryHelper:', function() {
       this.sinon.stub(console, 'warn');
 
       MockNavigatorSettings.mTriggerObservers(
-        AdvancedTelemetryHelper.TELEMETRY_ENABLED_KEY, { settingValue: true });
+        AdvancedTelemetryHelper.TELEMETRY_LEVEL_KEY,
+        { settingValue: 'Enhanced' });
       done();
     });
 
@@ -221,7 +224,8 @@ suite('AdvancedTelemetryHelper:', function() {
       this.sinon.stub(console, 'warn');
 
       MockNavigatorSettings.mTriggerObservers(
-        AdvancedTelemetryHelper.TELEMETRY_ENABLED_KEY, { settingValue: true });
+        AdvancedTelemetryHelper.TELEMETRY_LEVEL_KEY,
+        { settingValue: 'Enhanced' });
       done();
     });
 
@@ -333,7 +337,8 @@ suite('AdvancedTelemetryHelper:', function() {
 
     test('should not create a message if telemetry disabled', function(done) {
       MockNavigatorSettings.mTriggerObservers(
-        AdvancedTelemetryHelper.TELEMETRY_ENABLED_KEY, { settingValue: false });
+        AdvancedTelemetryHelper.TELEMETRY_LEVEL_KEY,
+        { settingValue: 'None' });
 
       ath = new AdvancedTelemetryHelper(AdvancedTelemetryHelper.HISTOGRAM_EXP,
         'mymetricexp', 0, 10000, 5);
@@ -343,11 +348,12 @@ suite('AdvancedTelemetryHelper:', function() {
 
     test('should start writing setting enabled at runtime', function(done) {
       // Setting should be disabled by default
-      assert(AdvancedTelemetryHelper.TELEMETRY_ENABLED_KEY, false);
+      assert(AdvancedTelemetryHelper.TELEMETRY_LEVEL_KEY, 'None');
 
       // Enable it
       MockNavigatorSettings.mTriggerObservers(
-        AdvancedTelemetryHelper.TELEMETRY_ENABLED_KEY, { settingValue: true });
+        AdvancedTelemetryHelper.TELEMETRY_LEVEL_KEY,
+        { settingValue: 'Enhanced' });
 
       ath = new AdvancedTelemetryHelper(AdvancedTelemetryHelper.HISTOGRAM_EXP,
         'mymetric', 0, 10000, 5);
@@ -358,7 +364,8 @@ suite('AdvancedTelemetryHelper:', function() {
 
       // Disable it
       MockNavigatorSettings.mTriggerObservers(
-        AdvancedTelemetryHelper.TELEMETRY_ENABLED_KEY, { settingValue: false });
+        AdvancedTelemetryHelper.TELEMETRY_LEVEL_KEY,
+        { settingValue: 'None' });
 
       // Call it once more
       ath.add(5);
