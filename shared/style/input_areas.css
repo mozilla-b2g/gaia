@@ -6,20 +6,20 @@
  * BiDi notes:
  *
  *  - as the <input>, <textarea> and [contentEditable] elements are filled by
- *    the user, they need a `dir="auto"` attribute for their content to be
- *    displayed properly (e.g. LTR content in an RTL document, or vice-versa);
+ *    the user, they need a `unicode-bidi: -moz-plaintext` attribute for their
+ *    content to be displayed properly (e.g. LTR content in an RTL document,
+ *    or vice-versa);
  *
- *  - consequence: *-inline-start/end properties cannot be used on such elements
- *    because the margin/padding/position should not depend on the content
- *    direction;
+ *  - consequence: *-inline-start/end properties can still be used on such
+ *    elements content direction doesn't impact element's direction
  *
  *  - however, the one-line inputs must still be aligned along with the
  *    *document* direction: to the left in LTR, to the right in RTL
  *    -- no matter what the *content* direction is.
  */
 
-html[dir="ltr"] input[dir] { text-align: left; }
-html[dir="rtl"] input[dir] { text-align: right; }
+html[dir="ltr"] input { text-align: left; }
+html[dir="rtl"] input { text-align: right; }
 
 input[type="text"],
 input[type="password"],
