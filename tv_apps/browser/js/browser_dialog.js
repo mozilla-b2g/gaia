@@ -164,6 +164,15 @@ var BrowserDialog = {
         };
         break;
 
+      case 'signout_confirm':
+        opt = {
+          title: null,
+          msg: _('fxa-sign-out-confirm-msg'),
+          bt1: _('LT_CANCEL'),
+          bt2: _('fxa-sign-out')
+        };
+        break;
+
       default:
         return;
     }
@@ -277,6 +286,7 @@ var BrowserDialog = {
       case 'alert':
       case 'prompt':
       case 'confirm':
+      case 'signout_confirm':
         this.dialogButton2End(evt.currentTarget);
         break;
 
@@ -369,6 +379,11 @@ var BrowserDialog = {
         }
         //this.cancelDialog();
         this.dialogButton2End(this.argEvt);
+        break;
+
+      case 'signout_confirm':
+        BrowserDialog.dialogButton2End(BrowserDialog.argEvt);
+        Settings.disconnectAccount();
         break;
 
       default:

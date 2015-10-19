@@ -52,8 +52,10 @@
       }.bind(this), this.onStatusError.bind(this));
   };
 
-  FirefoxAccount.prototype.signOut = function firefoxAccount_signOut () {
-    // XXX: Implement sign out
+  FirefoxAccount.prototype.signOut = function firefoxAccount_signOut (cb) {
+    FxAccountsIACHelper.logout(() => {
+      cb();
+    }, this.onStatusError.bind(this));
   };
 
   FirefoxAccount.prototype.sync = function firefoxAccount_sync () {
