@@ -24,7 +24,7 @@ class TestAddContactToFavorite(GaiaTestCase):
         contact_details.tap_add_remove_favorite()
         self.assertEqual(contact_details.add_remove_text, 'Remove as Favorite')
 
-        contact_details.tap_back()
+        contact_details.go_back()
         self.assertTrue(contacts_app.is_favorites_list_displayed)
 
         # Test that the contact is displayed twice: once under Favorites and once under Contacts.

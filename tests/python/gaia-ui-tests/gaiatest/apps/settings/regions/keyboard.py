@@ -96,7 +96,9 @@ class BuiltInKeyBoard(Base):
         Wait(self.marionette).until(expected.element_displayed(dictionary))
 
     def tap_user_dict_exit(self):
+        # As there are 2 way of going back, the current function names look better
         GaiaHeader(self.marionette, self._user_dict_header_locator).go_back()
 
     def tap_exit(self):
+        # than the generic ones.
         GaiaHeader(self.marionette, self._header_locator).go_back_and_exit(app=self)

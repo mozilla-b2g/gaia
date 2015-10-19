@@ -128,7 +128,28 @@ class Base(object):
         Wait(self.marionette).until(lambda m: self.apps.displayed_app.manifest_url != self.manifest_url or
                                               self.apps.displayed_app.entry_point != self.entry_point)
 
+
 class PageRegion(Base):
     def __init__(self, marionette, element):
         self.root_element = element
         Base.__init__(self, marionette)
+
+
+class PageWithHeader(PageRegion):
+
+    def __init__(self, marionette, _header_locator):
+        Base.__init__(self, marionette)
+        self._header_locator = _header_locator
+
+    def go_back(self):
+        self._header.go_back()
+
+    def go_back_that_exits_from_app(self):
+        self._header.go_back_and_exit(app=self, add_statusbar_height=False)
+        self.wait_to_not_be_displayed()
+        self.apps.switch_to_displayed_app()
+
+    @property
+    def _header(self):
+        from gaiatest.form_controls.header import GaiaHeader
+        return GaiaHeader(self.marionette, self._header_locator)

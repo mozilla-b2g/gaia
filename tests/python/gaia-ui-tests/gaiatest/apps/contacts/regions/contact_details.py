@@ -4,11 +4,11 @@
 
 from marionette_driver import expected, By, Wait
 
-from gaiatest.apps.base import Base
+from gaiatest.apps.base import Base, PageWithHeader
 from gaiatest.form_controls.header import GaiaHeader
 
 
-class ContactDetails(Base):
+class ContactDetails(PageWithHeader):
 
     _contact_name_title_locator = (By.ID, 'contact-name-title')
     _contact_image_locator = (By.ID, 'cover-img')
@@ -21,7 +21,7 @@ class ContactDetails(Base):
     _comments_locator = (By.ID, 'note-details-template-0')
 
     def __init__(self, marionette):
-        Base.__init__(self, marionette)
+        PageWithHeader.__init__(self, marionette, self._details_header_locator)
         el = self.marionette.find_element(*self._details_header_locator)
         Wait(self.marionette).until(lambda m: el.location['x'] == 0 and el.is_displayed())
 
@@ -72,9 +72,6 @@ class ContactDetails(Base):
         self.accessibility.click(edit)
         from gaiatest.apps.contacts.regions.contact_form import EditContact
         return EditContact(self.marionette)
-
-    def tap_back(self):
-        GaiaHeader(self.marionette, self._details_header_locator).go_back()
 
     def tap_add_remove_favorite(self):
         button = self.marionette.find_element(*self._add_remove_favorite_button_locator)

@@ -341,6 +341,7 @@ class Settings(Base):
     def return_to_prev_menu(self, parent_view, exit_view):
         GaiaHeader(self.marionette, exit_view.find_element(*self._header_locator)).go_back()
 
+        # How to make sure we not in the same panel anymore, except with these lines?
         Wait(self.marionette).until(lambda m: 'current' not in exit_view.get_attribute('class'))
         Wait(self.marionette).until(lambda m: parent_view.rect['x'] == 0)
         Wait(self.marionette).until(lambda m: 'current' in parent_view.get_attribute('class'))

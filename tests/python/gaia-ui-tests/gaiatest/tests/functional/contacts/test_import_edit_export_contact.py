@@ -43,7 +43,7 @@ class TestImportEditExportContact(GaiaTestCase):
 
         contact_details = edit_contact.tap_update()
 
-        contact_details.tap_back()
+        contact_details.go_back()
 
         contacts_settings = contacts_app.tap_settings()
         contacts_settings.tap_export_contacts()

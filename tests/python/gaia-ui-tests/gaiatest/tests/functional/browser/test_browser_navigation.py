@@ -28,7 +28,7 @@ class TestBrowserNavigation(GaiaTestCase):
         Wait(self.marionette).until(lambda m: m.title == 'Mozilla Community')
 
         browser.switch_to_chrome()
-        browser.tap_back_button()
+        browser.go_back()
         browser.switch_to_content()
         Wait(self.marionette).until(lambda m: m.title == 'Mozilla')
 

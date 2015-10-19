@@ -151,5 +151,7 @@ class NewMessage(Messages):
 
     def go_back(self):
         GaiaHeader(self.marionette, self._header_locator).go_back()
+        # How to handle the fact that sometimes you return a whole new panel,
+        # except by having these lines?
         from gaiatest.apps.messages.regions.options import DraftOptions
         return DraftOptions(self.marionette)

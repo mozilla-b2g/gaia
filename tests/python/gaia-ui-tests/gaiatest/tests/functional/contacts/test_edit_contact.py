@@ -44,7 +44,7 @@ class TestContacts(GaiaTestCase):
 
         contact_details = edit_contact.tap_update()
 
-        contact_details.tap_back()
+        contact_details.go_back()
 
         self.assertEqual(len(contacts_app.contacts), 1)
         self.assertEqual(contacts_app.contacts[0].name, self.contact['givenName'])

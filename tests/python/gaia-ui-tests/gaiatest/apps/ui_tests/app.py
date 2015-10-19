@@ -72,4 +72,5 @@ class UiTests(Base):
         return KeyboardPage(self.marionette)
 
     def tap_back_button(self):
+        # We're in an app. Inheriting from PageWithHeader doesn't feel right
         GaiaHeader(self.marionette, self._test_panel_header_locator).go_back()

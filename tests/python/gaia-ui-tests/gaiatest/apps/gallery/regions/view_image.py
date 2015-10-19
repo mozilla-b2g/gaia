@@ -4,11 +4,10 @@
 
 from marionette_driver import expected, By, Wait
 
-from gaiatest.apps.base import Base
-from gaiatest.form_controls.header import GaiaHeader
+from gaiatest.apps.base import Base, PageWithHeader
 
 
-class ViewImage(Base):
+class ViewImage(PageWithHeader):
 
     _header_locator = (By.ID, 'header')
     _banner_message_locator = (By.ID, 'message')
@@ -35,11 +34,6 @@ class ViewImage(Base):
             expected.element_present(*self._banner_message_locator))
         Wait(self.marionette).until(expected.element_displayed(element))
         return element.text
-
-    def tap_back_button(self):
-        GaiaHeader(self.marionette, self._header_locator).go_back_and_exit(
-            app=self, add_statusbar_height=False)
-        self.apps.switch_to_displayed_app()
 
     def tap_save_image(self):
         self.marionette.find_element(*self._save_image_button_locator).tap()
