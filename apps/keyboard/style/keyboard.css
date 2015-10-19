@@ -845,6 +845,7 @@ bubble above the key when you tap and hold. */
 .swipe-panel {
   position: relative;
   height: 16.2rem;
+  background-color: #606b6e;
 }
 
 .swipe-section {
