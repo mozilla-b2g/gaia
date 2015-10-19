@@ -23,12 +23,11 @@ marionette('Browser - Launch a URL navigates the same window',
   });
 
   setup(function() {
-    home = client.loader.getAppClass('homescreen');
+    home = client.loader.getAppClass('verticalhome');
     rocketbar = new Rocketbar(client);
     search = client.loader.getAppClass('search');
     system = client.loader.getAppClass('system');
     system.waitForFullyLoaded();
-    home.waitForLaunch();
   });
 
   test('opens a new sheet with window.open()', function() {

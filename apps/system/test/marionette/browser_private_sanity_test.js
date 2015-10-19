@@ -22,12 +22,11 @@ marionette('Private Browser - Basic Sanity Test', function() {
   });
 
   setup(function() {
-    home = client.loader.getAppClass('homescreen');
+    home = client.loader.getAppClass('verticalhome');
     rocketbar = new Rocketbar(client);
     search = client.loader.getAppClass('search');
     system = client.loader.getAppClass('system');
     system.waitForFullyLoaded();
-    home.waitForLaunch();
   });
 
   var STORAGE_KEY = 'foo';

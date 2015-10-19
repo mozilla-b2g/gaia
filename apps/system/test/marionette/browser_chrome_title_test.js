@@ -32,7 +32,7 @@ marionette('Browser Chrome - Title content', function() {
 
   setup(function() {
     actions = client.loader.getActions();
-    home = client.loader.getAppClass('homescreen');
+    home = client.loader.getAppClass('verticalhome');
     rocketbar = new Rocketbar(client);
     search = client.loader.getAppClass('search');
     system = client.loader.getAppClass('system');
@@ -63,7 +63,6 @@ marionette('Browser Chrome - Title content', function() {
 
   test('website without app name should use hostname', function() {
     // Use the home-screen search box to open up the system browser
-    home.waitForLaunch();
     var url = server.url('sample.html');
     var hostname = urlUtility.parse(url).hostname;
     rocketbar.homescreenFocus();
@@ -77,8 +76,8 @@ marionette('Browser Chrome - Title content', function() {
   });
 
   test('Dont persist application-name', function() {
+
     // Use the home-screen search box to open up the system browser
-    home.waitForLaunch();
     var customAppUrl = server.url('app-name.html');
     var sampleUrl = server.url('sample.html');
     var sampleHostname = urlUtility.parse(sampleUrl).hostname;

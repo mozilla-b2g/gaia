@@ -84,18 +84,6 @@ Homescreen.prototype = {
   },
 
   /**
-   * Find and return every id for all the items on the grid... Each element
-   * can be used with `.getIcon` to find the element for a given id.
-   *
-   * @return {Array[String]}
-   */
-  getIconIdentifiers: function() {
-    return this.visibleIcons.map(function(el) {
-      return this.getIconId(el);
-    }, this);
-  },
-
-  /**
    * Fetch an icon element on the homescreen by its identifier.
    * For apps, the identifier is the manifestURL, or its manifestURL,
    * followed by a '/' followed by its entry point. For bookmarks, the
@@ -128,17 +116,6 @@ Homescreen.prototype = {
     }
 
     return null;
-  },
-
-  /**
-   * Returns a homescreen icon element's identifier.
-   *
-   * @param {Marionette.Element} icon A homescreen icon element reference.
-   */
-  getIconId: function(icon) {
-    return icon.scriptWith(function(el) {
-      return el.dataset.identifier;
-    });
   },
 
   /**
@@ -325,17 +302,6 @@ Homescreen.prototype = {
         throw e;
       }
     });
-  },
-
-  /**
-   * Emulates pressing of the hardware home button.
-   */
-  pressHomeButton: function() {
-    this.client.executeScript(function() {
-      var home = new CustomEvent('home');
-      window.dispatchEvent(home);
-    });
-    this.client.apps.switchToApp(Homescreen.URL);
   },
 
   /**

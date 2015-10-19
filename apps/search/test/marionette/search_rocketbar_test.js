@@ -24,7 +24,7 @@ marionette('Search - Rocketbar Test', function() {
   });
 
   setup(function() {
-    home = client.loader.getAppClass('homescreen');
+    home = client.loader.getAppClass('verticalhome');
     system = client.loader.getAppClass('system');
     search = client.loader.getAppClass('search');
     rocketbar = new Rocketbar(client);
@@ -50,7 +50,7 @@ marionette('Search - Rocketbar Test', function() {
 
     // Lauch the rocketbar and trigger its first run notice
     home.waitForLaunch();
-    rocketbar.homescreenFocus();
+    home.focusRocketBar();
     search.triggerFirstRun(rocketbar);
 
     // Clear button shouldnt be visible when no text entered
@@ -66,26 +66,25 @@ marionette('Search - Rocketbar Test', function() {
     client.switchToFrame();
     rocketbar.cancel.click();
     client.apps.switchToApp(home.URL);
-    client.waitFor(function() {
-      return home.visibleIcons.length && home.visibleIcons[0].displayed();
-    });
+    var firstIcon = client.helper.waitForElement(home.Selectors.firstIcon);
+    assert.ok(firstIcon.displayed());
 
     // When we previously pressed close, when rocketbar reopens value
     // should be empty
-    rocketbar.homescreenFocus();
+    home.focusRocketBar();
     assert.equal(rocketbar.input.getAttribute('value'), '');
 
     // Search for an app again, this time press close after searching
     rocketbar.enterText('Phone');
     home.pressHomeButton();
 
-    client.waitFor(function() {
-      return home.visibleIcons.length && home.visibleIcons[0].displayed();
-    });
+    client.apps.switchToApp(home.URL);
+    firstIcon = client.helper.waitForElement(home.Selectors.firstIcon);
+    assert.ok(firstIcon.displayed());
 
     // If we press home button during a search, next time we focus the rocketbar
     // previous result should be displayed
-    rocketbar.homescreenFocus();
+    home.focusRocketBar();
     search.goToResults();
     search.checkResult(phoneIdentifier, 'Phone');
 

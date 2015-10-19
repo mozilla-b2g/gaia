@@ -27,12 +27,11 @@ marionette('Private Browser - Window.open', function() {
   });
 
   setup(function() {
-    home = client.loader.getAppClass('homescreen');
+    home = client.loader.getAppClass('verticalhome');
     rocketbar = new Rocketbar(client);
     search = client.loader.getAppClass('search');
     system = client.loader.getAppClass('system');
     system.waitForFullyLoaded();
-    home.waitForLaunch();
   });
 
   test('Open windows from private browsers are also private', function() {

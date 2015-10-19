@@ -10,7 +10,7 @@ marionette('Search - Home Button Press', function() {
   var home, search, rocketbar, system;
 
   setup(function() {
-    home = client.loader.getAppClass('homescreen');
+    home = client.loader.getAppClass('verticalhome');
     system = client.loader.getAppClass('system');
     search = client.loader.getAppClass('search');
     rocketbar = new Rocketbar(client);
@@ -19,7 +19,7 @@ marionette('Search - Home Button Press', function() {
 
   test('Home button returns to home screen', function() {
     home.waitForLaunch();
-    rocketbar.homescreenFocus();
+    home.focusRocketBar();
     rocketbar.enterText('calendar');
 
     // Ensure search results are displayed.

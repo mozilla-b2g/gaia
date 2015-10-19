@@ -26,7 +26,7 @@ marionette('launch', function() {
   });
 
   suite('switch to running app', function() {
-    var domain = 'homescreen.gaiamobile.org';
+    var domain = 'verticalhome.gaiamobile.org';
     var origin = 'app://' + domain;
     setup(function(done) {
       switchToApp(client.mozApps, origin, done);

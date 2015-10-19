@@ -14,7 +14,7 @@ marionette('Search - App search', function() {
   var home, search, rocketbar, system;
 
   setup(function() {
-    home = client.loader.getAppClass('homescreen');
+    home = client.loader.getAppClass('verticalhome');
     system = client.loader.getAppClass('system');
     search = client.loader.getAppClass('search');
     rocketbar = new Rocketbar(client);
@@ -23,7 +23,7 @@ marionette('Search - App search', function() {
 
   test('Search apps from Rocketbar', function() {
     home.waitForLaunch();
-    rocketbar.homescreenFocus();
+    home.focusRocketBar();
     rocketbar.enterText('calendar');
     search.goToResults();
     var calendarIdentifier = 'app://calendar.gaiamobile.org/manifest.webapp';
@@ -34,7 +34,7 @@ marionette('Search - App search', function() {
 
   test('Search for app with entry point', function() {
     home.waitForLaunch();
-    rocketbar.homescreenFocus();
+    home.focusRocketBar();
     rocketbar.enterText('Phone');
     search.goToResults();
     var phoneIdentifier =

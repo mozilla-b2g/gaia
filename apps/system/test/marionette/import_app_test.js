@@ -30,7 +30,7 @@ marionette('Import App', function() {
 
   setup(function() {
     system = client.loader.getAppClass('system');
-    home = client.loader.getAppClass('homescreen');
+    home = client.loader.getAppClass('verticalhome');
     system.waitForStartup();
     home.waitForLaunch();
   });

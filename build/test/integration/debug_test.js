@@ -24,7 +24,7 @@ suite('Make with DEBUG=1', function() {
         'downloaded.json');
       var expectedSettings = {
         'homescreen.manifestURL':
-          'app://homescreen.gaiamobile.org/manifest.webapp',
+          'app://verticalhome.gaiamobile.org/manifest.webapp',
         'rocketbar.searchAppURL': 'app://search.gaiamobile.org/index.html'
       };
       var expectedUserPrefs = {

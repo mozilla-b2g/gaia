@@ -20,7 +20,7 @@ marionette('Software Home Button - Update Dialog Confirm', function() {
 
   var home, system;
   setup(function() {
-    home = client.loader.getAppClass('homescreen');
+    home = client.loader.getAppClass('verticalhome');
     system = client.loader.getAppClass('system');
     system.waitForFullyLoaded();
     home.waitForLaunch();

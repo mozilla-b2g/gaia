@@ -17,7 +17,7 @@ suite('Homescreens_details > ', () => {
     }
   };
 
-  const DEFAULT_MANIFEST = 'app://homescreen.gaiamobile.org/manifest.webapp';
+  const DEFAULT_MANIFEST = 'app://verticalhome.gaiamobile.org/manifest.webapp';
 
   var elements = {
     icon: document.createElement('img'),

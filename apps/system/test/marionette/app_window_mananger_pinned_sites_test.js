@@ -64,7 +64,6 @@ marionette('AppWindowManager - Pinning sites',
     search = client.loader.getAppClass('search');
     pinning = new Pinning(client);
     system.waitForFullyLoaded();
-    home.waitForLaunch();
     url = server.url('sample.html');
     pinAndKill(url);
     nApps = system.getAppWindows().length;

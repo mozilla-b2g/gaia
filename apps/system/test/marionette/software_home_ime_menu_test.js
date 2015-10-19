@@ -16,7 +16,7 @@ marionette('Software Home Button - IME Menu', function() {
   var home, system;
 
   setup(function() {
-    home = client.loader.getAppClass('homescreen');
+    home = client.loader.getAppClass('verticalhome');
     system = client.loader.getAppClass('system');
     system.waitForFullyLoaded();
     home.waitForLaunch();

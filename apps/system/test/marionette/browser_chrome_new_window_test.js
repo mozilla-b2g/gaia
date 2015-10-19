@@ -23,12 +23,11 @@ marionette('Browser Chrome - Open New Window', function() {
 
   setup(function() {
     actions = client.loader.getActions();
-    home = client.loader.getAppClass('homescreen');
+    home = client.loader.getAppClass('verticalhome');
     rocketbar = new Rocketbar(client);
     search = client.loader.getAppClass('search');
     system = client.loader.getAppClass('system');
     system.waitForFullyLoaded();
-    home.waitForLaunch();
   });
 
   test('open new window', function() {

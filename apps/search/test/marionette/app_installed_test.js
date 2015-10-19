@@ -5,7 +5,7 @@ var AppInstall =
 var Rocketbar =
   require('../../../system/test/marionette/lib/rocketbar.js');
 var createAppServer =
-  require('../../../homescreen/test/marionette/server/parent');
+  require('../../../verticalhome/test/marionette/server/parent');
 
 marionette('Search - Installed Apps Test', function() {
   var clientOptions = require(__dirname + '/client_options.js');
@@ -14,7 +14,7 @@ marionette('Search - Installed Apps Test', function() {
 
   setup(function(done) {
     appInstall = new AppInstall(client);
-    home = client.loader.getAppClass('homescreen');
+    home = client.loader.getAppClass('verticalhome');
     system = client.loader.getAppClass('system');
     search = client.loader.getAppClass('search');
     rocketbar = new Rocketbar(client);
@@ -29,7 +29,7 @@ marionette('Search - Installed Apps Test', function() {
 
   test('app result after install/uninstall', function() {
     home.waitForLaunch();
-    rocketbar.homescreenFocus();
+    home.focusRocketBar();
     rocketbar.enterText('Calendar');
     search.goToResults();
 
@@ -44,7 +44,8 @@ marionette('Search - Installed Apps Test', function() {
     appInstall.installPackage(server.packageManifestURL);
 
     // Search again for the same term.
-    rocketbar.homescreenFocus();
+    client.switchToFrame(system.getHomescreenIframe());
+    home.focusRocketBar();
     rocketbar.enterText('Calendar');
     search.goToResults();
 
@@ -60,7 +61,8 @@ marionette('Search - Installed Apps Test', function() {
     home.confirmDialog('remove');
 
     // Should now contain only a single app.
-    rocketbar.homescreenFocus();
+    client.switchToFrame(system.getHomescreenIframe());
+    home.focusRocketBar();
     rocketbar.enterText('Calendar');
     search.goToResults();
     client.waitFor(function() {

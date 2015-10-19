@@ -26,7 +26,7 @@ marionette('Software Home Button - Fullscreen Layout', function() {
   var home, system, actions, screenSize, shbSize;
 
   setup(function() {
-    home = client.loader.getAppClass('homescreen');
+    home = client.loader.getAppClass('verticalhome');
     system = client.loader.getAppClass('system');
     actions = client.loader.getActions();
     system.waitForFullyLoaded();
