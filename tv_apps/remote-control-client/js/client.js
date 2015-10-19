@@ -5,14 +5,29 @@
   // The .sjs file is located in the Gecko since it needs chrome privilege.
   var AJAX_URL = 'client.sjs';
 
-  function sendMessage(type, detail, success, error) {
+  var enabled = false;
+
+  function sendMessage(type, detail) {
+    if (!enabled) {
+      return;
+    }
+
     var data = {
       type: type,
       detail: (typeof detail === 'object') ? detail : detail.toString()
     };
+
     exports.sendMessage(AJAX_URL, {
       message: JSON.stringify(data)
-    }, success, error);
+    }, function onsuccess(data) {
+      if (!data || !data.verified) {
+        enabled = false;
+        document.l10n.formatValue('session-expired').then(function(value) {
+          alert(value);
+          window.location.reload();
+        });
+      }
+    });
   }
 
   function init() {
@@ -85,10 +100,6 @@
       var key = this.dataset.key;
       if (key) {
         sendMessage('keypress', key);
-      } else if (this.id == 'pin-to-home') {
-        sendMessage('custom', {
-          action: 'pin-to-home'
-        });
       }
     };
 
@@ -96,6 +107,8 @@
     [].slice.call(buttons).forEach(function(elem) {
       elem.addEventListener('click', buttonOnClick);
     });
+
+    enabled = true;
   }
 
   exports.ready(init);
