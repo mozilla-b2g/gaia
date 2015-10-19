@@ -1,12 +1,14 @@
 /* globals CallScreen, FontSizeManager, l10nAssert, MockCallsHandler,
            MockHandledCall, MockMozActivity, MockNavigatorMozTelephony,
-           MockL10n, MocksHelper, MockSettingsListener, Utils, MockMozIntl */
+           MockL10n, MocksHelper, MockSettingsListener, Utils, MockMozIntl,
+           MockNavigatorSettings */
 
 'use strict';
 
 require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_moz_intl.js');
 require('/shared/test/unit/mocks/mock_moz_activity.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/test/unit/mocks/dialer/mock_handled_call.js');
@@ -34,6 +36,7 @@ if (!window.CallScreen) {
 }
 
 suite('call screen', function() {
+  var realMozSettings;
   var realMozTelephony;
   var realMozL10n;
   var realMozIntl;
@@ -66,6 +69,8 @@ suite('call screen', function() {
   mocksHelperForCallScreen.attachTestHelpers();
 
   suiteSetup(function() {
+    realMozSettings = navigator.mozSettings;
+    navigator.mozSettings = MockNavigatorSettings;
     realMozTelephony = navigator.mozTelephony;
     navigator.mozTelephony = MockNavigatorMozTelephony;
     realSettingsListener = window.SettingsListener;
@@ -77,6 +82,7 @@ suite('call screen', function() {
   });
 
   suiteTeardown(function() {
+    navigator.mozSettings = realMozSettings;
     MockNavigatorMozTelephony.mSuiteTeardown();
     navigator.mozTelephony = realMozTelephony;
     window.SettingsListener = realSettingsListener;
@@ -85,6 +91,8 @@ suite('call screen', function() {
   });
 
   setup(function(done) {
+    MockNavigatorSettings.mSetup();
+
     body = document.body;
 
     screen = document.createElement('div');
@@ -200,6 +208,7 @@ suite('call screen', function() {
   });
 
   teardown(function() {
+    MockNavigatorSettings.mTeardown();
     MockNavigatorMozTelephony.mTeardown();
     screen.parentNode.removeChild(screen);
   });
@@ -220,41 +229,13 @@ suite('call screen', function() {
       });
     });
 
-    test('screen init type other than incoming-locked', function() {
+    test('regular screen init', function() {
       CallScreen.init();
       sinon.assert.notCalled(CallScreen.showClock);
       sinon.assert.notCalled(CallScreen.initLockScreenSlide);
       sinon.assert.notCalled(CallScreen.render);
       sinon.assert.notCalled(MockCallsHandler.holdOrResumeSingleCall);
       sinon.assert.notCalled(MockCallsHandler.mergeCalls);
-    });
-
-    suite('incoming-locked screen initialize', function() {
-      var oldHash;
-
-      setup(function() {
-        oldHash = window.location.hash;
-        window.location.hash = '#locked?timestamp=0';
-      });
-
-      teardown(function() {
-        window.location.hash = oldHash;
-      });
-
-      test('incoming-locked screen init without layout set', function() {
-        CallScreen.init();
-        sinon.assert.called(CallScreen.showClock);
-        sinon.assert.called(CallScreen.initLockScreenSlide);
-        sinon.assert.called(CallScreen.render);
-      });
-
-      test('incoming-locked screen init with layout set', function() {
-        CallScreen.screen.dataset.layout = 'incoming-locked';
-        CallScreen.init();
-        sinon.assert.called(CallScreen.showClock);
-        sinon.assert.called(CallScreen.initLockScreenSlide);
-        sinon.assert.notCalled(CallScreen.render);
-      });
     });
 
     suite('button listeners successfully added and notified', function() {
@@ -392,6 +373,40 @@ suite('call screen', function() {
         assert.equal(fakeNode.parentNode, null);
         assert.isTrue(singleLineStub.calledOnce);
       });
+    });
+  });
+
+  suite('lockscreen state', function() {
+    setup(function() {
+      this.sinon.stub(CallScreen, 'initLockScreenConnInfoManager');
+      this.sinon.stub(CallScreen, 'initLockScreenSlide');
+      this.sinon.stub(CallScreen, 'showClock');
+      this.sinon.spy(CallScreen, 'render');
+      CallScreen.init();
+    });
+
+    test('unlocking when an incoming call is present', function() {
+      CallScreen.screen.dataset.layout = 'incoming-locked';
+      MockNavigatorSettings.mTriggerObservers('lockscreen.locked', {
+        settingValue: false
+      });
+      sinon.assert.notCalled(CallScreen.initLockScreenConnInfoManager);
+      sinon.assert.notCalled(CallScreen.initLockScreenSlide);
+      sinon.assert.notCalled(CallScreen.showClock);
+      sinon.assert.calledOnce(CallScreen.render);
+      sinon.assert.calledWith(CallScreen.render, 'incoming');
+    });
+
+    test('locking when an incoming call is present', function() {
+      CallScreen.screen.dataset.layout = 'incoming';
+      MockNavigatorSettings.mTriggerObservers('lockscreen.locked', {
+        settingValue: true
+      });
+      sinon.assert.calledOnce(CallScreen.initLockScreenConnInfoManager);
+      sinon.assert.calledOnce(CallScreen.initLockScreenSlide);
+      sinon.assert.calledOnce(CallScreen.showClock);
+      sinon.assert.calledOnce(CallScreen.render);
+      sinon.assert.calledWith(CallScreen.render, 'incoming-locked');
     });
   });
 
