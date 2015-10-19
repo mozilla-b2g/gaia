@@ -74,6 +74,14 @@
     window.addEventListener('appopened', this);
   };
 
+  TrackingNotice.prototype.updateSwitchToMatchSettings = function() {
+    var settingName = 'privacy.trackingprotection.enabled';
+    var req = this._settings.createLock().get(settingName);
+    req.onsuccess = () => {
+      this.setting.checked = req.result[settingName];
+    };
+  };
+
   TrackingNotice.prototype._fetchElements = function spl_initElements() {
     this.element = document.querySelector('#' + this.instanceID);
     this.confirm = this.element.querySelector('#tracking-notice-confirm');
@@ -98,6 +106,7 @@
   };
 
   TrackingNotice.prototype.show = function(data) {
+    this.updateSwitchToMatchSettings();
     this.element.classList.remove('hidden');
     this.publish('show');
   };
