@@ -43,6 +43,10 @@ marionette('Browser Chrome - Back/Forward button', function() {
     rocketbar.enterText(url, true);
 
     // open url in browser
+    var frame = client.helper.waitForElement(
+      'div[transition-state="opened"] iframe[src="' + url + '"]');
+    client.switchToFrame(frame);
+
     client.switchToFrame();
     system.appChromeContextLink.tap();
     system.appChromeContextNewPrivate.tap();

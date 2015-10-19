@@ -105,6 +105,12 @@ marionette('Task Manager - Icons', function() {
   });
 
   suite('Web Content', function() {
+    var home;
+
+    setup(function() {
+      home = client.loader.getAppClass('homescreen');
+      home.waitForLaunch();
+    });
 
     function loadUrl(url) {
       rocketbar.homescreenFocus();

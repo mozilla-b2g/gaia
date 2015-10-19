@@ -18,7 +18,7 @@ marionette('Software Home Button - Permission Prompt', function() {
   var home, rocketbar, system;
 
   setup(function() {
-    home = client.loader.getAppClass('verticalhome');
+    home = client.loader.getAppClass('homescreen');
     rocketbar = new Rocketbar(client);
     system = client.loader.getAppClass('system');
     system.waitForFullyLoaded();

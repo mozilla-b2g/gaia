@@ -45,7 +45,7 @@ marionette('waitforapp', function() {
   });
 
   suite('waiting for running app', function() {
-    var domain = 'verticalhome.gaiamobile.org';
+    var domain = 'homescreen.gaiamobile.org';
     var element;
 
     setup(function(done) {

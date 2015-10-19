@@ -37,7 +37,7 @@ marionette('Software Home Button - App Install Dialog', function() {
 
   setup(function() {
     appInstall = new AppInstall(client);
-    home = client.loader.getAppClass('verticalhome');
+    home = client.loader.getAppClass('homescreen');
     system = client.loader.getAppClass('system');
     system.waitForFullyLoaded();
     home.waitForLaunch();

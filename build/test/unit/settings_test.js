@@ -208,19 +208,19 @@ suite('settings.js', function() {
       config.GAIA_DOMAIN = 'gaiamobile.com';
       config.GAIA_PORT = ':8080';
       var settings = {};
-      var testResult = mockUtils.gaiaManifestURL('verticalhome',
+      var testResult = mockUtils.gaiaManifestURL('homescreen',
                     config.GAIA_SCHEME, config.GAIA_DOMAIN, config.GAIA_PORT);
       app.setHomescreenURL(settings, config);
       assert.equal(settings['homescreen.manifestURL'], testResult);
     });
 
     test('setHomescreenURL with customizable', function() {
-      config.GAIA_APPDIRS = 'verticalhome system sms';
+      config.GAIA_APPDIRS = 'homescreen system sms';
       config.GAIA_SCHEME = 'app://';
       config.GAIA_DOMAIN = 'gaiamobile.com';
       config.GAIA_PORT = ':8080';
-      var settings = { 'homescreen.appName': 'verticalhome' };
-      var testResult = mockUtils.gaiaManifestURL('verticalhome',
+      var settings = { 'homescreen.appName': 'homescreen' };
+      var testResult = mockUtils.gaiaManifestURL('homescreen',
                     config.GAIA_SCHEME, config.GAIA_DOMAIN, config.GAIA_PORT);
       app.setHomescreenURL(settings, config);
       assert.equal(settings['homescreen.manifestURL'], testResult);
@@ -265,7 +265,7 @@ suite('settings.js', function() {
           'debug.performance_data.shared': false,
           'developer.menu.enabled': true,
           'homescreen.manifestURL': config.GAIA_SCHEME +
-            'verticalhome.' + config.GAIA_DOMAIN + config.GAIA_PORT +
+            'homescreen.' + config.GAIA_DOMAIN + config.GAIA_PORT +
             '/manifest.webapp',
           'rocketbar.newTabAppURL': config.GAIA_SCHEME + 'search.' +
                       config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
@@ -303,7 +303,7 @@ suite('settings.js', function() {
       queue.done(function(result) {
         assert.deepEqual({
           'homescreen.manifestURL': config.GAIA_SCHEME +
-            'verticalhome.' + config.GAIA_DOMAIN + config.GAIA_PORT +
+            'homescreen.' + config.GAIA_DOMAIN + config.GAIA_PORT +
             '/manifest.webapp',
           'rocketbar.newTabAppURL': config.GAIA_SCHEME + 'search.' +
                       config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
@@ -342,7 +342,7 @@ suite('settings.js', function() {
           .indexOf('dom.mozApps.signed_apps_installable_from'), -1);
         assert.deepEqual({
           'homescreen.manifestURL': config.GAIA_SCHEME +
-            'verticalhome.' + config.GAIA_DOMAIN + config.GAIA_PORT +
+            'homescreen.' + config.GAIA_DOMAIN + config.GAIA_PORT +
             '/manifest.webapp',
           'rocketbar.newTabAppURL': config.GAIA_SCHEME + 'search.' +
                       config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
@@ -398,7 +398,7 @@ suite('settings.js', function() {
           .indexOf('dom.mozApps.signed_apps_installable_from'), -1);
         assert.deepEqual({
             'homescreen.manifestURL': config.GAIA_SCHEME +
-              'verticalhome.' + config.GAIA_DOMAIN + config.GAIA_PORT +
+              'homescreen.' + config.GAIA_DOMAIN + config.GAIA_PORT +
               '/manifest.webapp',
             'rocketbar.newTabAppURL': config.GAIA_SCHEME + 'search.' +
               config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
@@ -435,7 +435,7 @@ suite('settings.js', function() {
       queue.done(function(result) {
         assert.deepEqual({
           'homescreen.manifestURL': config.GAIA_SCHEME +
-            'verticalhome.' + config.GAIA_DOMAIN + config.GAIA_PORT +
+            'homescreen.' + config.GAIA_DOMAIN + config.GAIA_PORT +
             '/manifest.webapp',
           'rocketbar.newTabAppURL': config.GAIA_SCHEME + 'search.' +
                       config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
@@ -472,7 +472,7 @@ suite('settings.js', function() {
       queue.done(function(result) {
         assert.deepEqual({
           'homescreen.manifestURL': config.GAIA_SCHEME +
-            'verticalhome.' + config.GAIA_DOMAIN + config.GAIA_PORT +
+            'homescreen.' + config.GAIA_DOMAIN + config.GAIA_PORT +
             '/manifest.webapp',
           'rocketbar.newTabAppURL': config.GAIA_SCHEME + 'search.' +
                       config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',

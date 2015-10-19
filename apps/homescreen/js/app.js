@@ -156,10 +156,10 @@
       // won't save, but it's better than showing a blank screen.
       // If this is the first run, get the app order from the first-run script
       // after initialising the metadata database.
-      this.metadata.init().then(this.settings.firstRun ?
-        LazyLoader.load(['js/firstrun.js'],
+      this.metadata.init().then(this.settings.firstRun ? () => {
+        return LazyLoader.load('js/firstrun.js').then(
           () => {
-            FirstRun().then((results) => {
+            return FirstRun().then((results) => {
               this.toggleSmall(results.small);
               this.startupMetadata = results.order;
               this.settings.save();
@@ -172,7 +172,8 @@
           (e) => {
             console.error('Failed to load first-run script');
             return Promise.resolve();
-          }) :
+          });
+        } :
         () => {
           return this.metadata.getAll(result => {
             // Process results as they come in
