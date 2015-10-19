@@ -35,12 +35,6 @@
 
     ready: Promise.resolve(),
 
-    resolvedLanguages: function() {
-      return Promise.resolve([
-        { code: 'en-US', dir: 'ltr', src: 'app' }
-      ]);
-    },
-
     requestLanguages: function() {
       return Promise.resolve();
     },
