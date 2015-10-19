@@ -1,7 +1,9 @@
-/* global SettingsListener, KeyboardManager */
+/* global SettingsListener, KeyboardManager, InteractiveNotifications */
 'use strict';
 
 (function(exports) {
+  var _ = navigator.mozL10n.get;
+
   var SETTINGS = 'remote-control.enabled';
 
   var WATCHED_EVENTS = [
@@ -15,6 +17,7 @@
 
   function RemoteControl() {
     this._enabled = false;
+    this._activePIN = null;
     this._isCursorMode = null;
     this._settingsObserver = null;
   }
@@ -84,6 +87,12 @@
         case 'input-string':
           this._inputString(detail);
           break;
+        case 'pin-created':
+          this._createPIN(detail.pincode);
+          break;
+        case 'pin-destroyed':
+          this._destroyPIN();
+          break;
       }
     },
 
@@ -111,17 +120,60 @@
       }
     },
 
+    _createPIN: function(pincode) {
+      if (this._activePIN) {
+        this._destroyPIN();
+      }
+      this._activePIN = {
+        title: _('pairing-code-notification-title'),
+        text: pincode,
+        icon: null,
+        timeout: 30000,
+        buttons: [{
+          id: 'dismiss',
+          label: _('dismiss-pairing-code')
+        }],
+        onClosed: (button) => {
+          if (button == 'dismiss') {
+            this._firePINDismissed('manually');
+          } else if (this._activePIN) {
+            this._firePINDismissed('timeout');
+          }
+          this._activePIN = null;
+        }
+      };
+      window.interactiveNotifications.showNotification(
+        InteractiveNotifications.TYPE.ALERT, this._activePIN);
+    },
+
+    _destroyPIN: function() {
+      var activePIN = this._activePIN;
+      this._activePIN = null;
+      window.interactiveNotifications.hideNotification(
+        InteractiveNotifications.TYPE.ALERT, activePIN);
+    },
+
+    _firePINDismissed: function(reason) {
+      this._sendContentEvent('remote-control-pin-dismissed', {
+        reason: reason
+      });
+    },
+
     _fireControlModeChanged: function(isCursorMode, fireAnyway) {
       if (!fireAnyway && isCursorMode === this._isCursorMode) {
         return;
       }
       this._isCursorMode = isCursorMode;
+      this._sendContentEvent('control-mode-changed', {
+        cursor: isCursorMode
+      });
+    },
+
+    _sendContentEvent: function(type, detail) {
       window.dispatchEvent(new CustomEvent('mozContentEvent', {
         detail: {
-          type: 'control-mode-changed',
-          detail: {
-            cursor: isCursorMode
-          }
+          type: type,
+          detail: detail
         }
       }));
     }
