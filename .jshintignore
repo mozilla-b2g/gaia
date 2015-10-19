@@ -62,8 +62,15 @@ apps/bluetooth/js/vendor/alameda.js
 apps/bluetooth/js/settings.js
 apps/homescreen/bower_components/**
 tv_apps/app-deck/bower_components/**
-tv_apps/browser/js/**
-tv_apps/browser/test/**
+tv_apps/browser/js/authentication_dialog.js
+tv_apps/browser/js/awesomescreen.js
+tv_apps/browser/js/browser_db.js
+tv_apps/browser/js/browser_dialog.js
+tv_apps/browser/js/index.js
+tv_apps/browser/js/search_result.js
+tv_apps/browser/js/search_util.js
+tv_apps/browser/js/tooltip.js
+tv_apps/browser/test/unit/browser_db_test.js
 tv_apps/browser/bower_components/**
 tv_apps/dashboard/bower_components/**
 tv_apps/device-deck/bower_components/**

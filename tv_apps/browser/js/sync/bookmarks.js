@@ -70,31 +70,27 @@ var SyncBookmark = (function () {
     });
   }
 
-  function init() {
-    syncDataStore = new SyncDsHelper('sync_bookmarks_store');
-    return syncDataStore.init();
-  }
-
   function start() {
-    if (!syncDataStore) {
-      return Promise.reject('Uninitialized DataStore');
+    if (syncDataStore) {
+      return Promise.resolve();
     }
-    syncDataStore.registerStoreChangeEvent(() => {
-      syncDataStore.dataStoreSync(handleTask);
+    syncDataStore = new SyncDsHelper('sync_bookmarks_store');
+    return syncDataStore.init().then(() => {
+      syncDataStore.registerStoreChangeEvent(() => {
+        syncDataStore.dataStoreSync(handleTask);
+      });
+      return syncDataStore.dataStoreSync(handleTask);
     });
-    return syncDataStore.dataStoreSync(handleTask);
   }
 
   function stop() {
     if (!syncDataStore) {
       return Promise.reject('Uninitialized DataStore');
     }
-    syncDataStore.unregisterStoreChangeEvent();
-    return Promise.resolve();
+    return syncDataStore.unregisterStoreChangeEvent();
   }
 
   return {
-    init: init,
     start: start,
     stop: stop
   };

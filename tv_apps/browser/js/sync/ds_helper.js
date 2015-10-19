@@ -52,7 +52,7 @@ SyncDsHelper.prototype = {
   },
 
   unregisterStoreChangeEvent() {
-    this._ensureStore().then(() => {
+    return this._ensureStore().then(() => {
       this.store.removeEventListener('change', this.dataChangeHandler);
       this.dataChangeHandler = null;
     });
