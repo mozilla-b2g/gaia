@@ -205,12 +205,17 @@ input:focus {
 
 [data-type="list"] li > a.menu-item:after {
   font-family: "gaia-icons";
-  content: "forward-light";
   left: auto; /* overrides lists.css */
   right: 1.5rem;
   font-size: 25px;
   line-height: 6rem;
   color: #657073;
+}
+html[dir="ltr"] [data-type="list"] li > a.menu-item:after {
+  content: "right-light";
+}
+html[dir="rtl"] [data-type="list"] li > a.menu-item:after {
+  content: "left-light";
 }
 
 html[dir="rtl"] a.menu-item:after {

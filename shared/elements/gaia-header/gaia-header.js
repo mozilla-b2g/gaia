@@ -781,8 +781,8 @@ module.exports = component.register('gaia-header', {
   [action=close] .action-button:before { content: 'close' }
   [action=menu] .action-button:before { content: 'menu' }
 
-  [action=back]:-moz-dir(ltr) .action-button:before { content: 'back' }
-  [action=back]:-moz-dir(rtl) .action-button:before { content: 'forward' }
+  [action=back]:-moz-dir(ltr) .action-button:before { content: 'left' }
+  [action=back]:-moz-dir(rtl) .action-button:before { content: 'right' }
 
   /** Action Button Icon
    ---------------------------------------------------------*/
