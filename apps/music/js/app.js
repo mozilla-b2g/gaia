@@ -80,15 +80,14 @@ client.on('databaseReady', () => {
   pluggedInOverlay.hidden = true;
 });
 
+// scanProgress and scanStopped must always act in the order they're received.
+// If you add a Promise to either of these handlers, be careful!
+
 client.on('scanProgress', (detail) => {
-  document.l10n.formatValues(
-    'unknownArtist', 'unknownTitle'
-  ).then(([unknownArtist, unknownTitle]) => {
-    scanProgress.show({
-      value:      detail.count,
-      heading:    detail.artist || unknownArtist,
-      subheading: detail.title  || unknownTitle
-    });
+  scanProgress.show({
+    value:      detail.count,
+    heading:    detail.artist,
+    subheading: detail.title
   });
 });
 
