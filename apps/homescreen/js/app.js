@@ -136,6 +136,7 @@
     // Settings
     this.settings = new Settings();
     this.icons.classList.toggle('small', this.settings.small);
+    this.scrollable.classList.toggle('snapping', this.settings.scrollSnapping);
 
     // Populate apps and bookmarks asynchronously
     this.startupMetadata = [];
@@ -349,7 +350,7 @@
         return;
       }
 
-      this.scrollable.classList.toggle('snapping', this.scrollSnapping);
+      this.scrollable.classList.toggle('snapping', scrollSnapping);
       this.snapScrollPosition();
     },
 
@@ -602,7 +603,7 @@
       var scrollHeight = this.scrollable.clientHeight;
 
       var destination;
-      if (this.scrollSnapping) {
+      if (this.settings.scrollSnapping) {
         destination = Math.min(gridHeight - scrollHeight,
           Math.round(currentScroll / this.pageHeight + bias) * this.pageHeight);
       } else {
