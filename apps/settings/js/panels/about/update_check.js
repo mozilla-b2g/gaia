@@ -83,8 +83,7 @@ define(function(require) {
         );
 
       if (hasAllCheckComplete) {
-        this._elements.updateStatus.classList.remove('visible');
-        this._elements.systemStatus.textContent = '';
+        this._startClearUpdateStatus();
       }
 
       // On no-updates we should also remove the checking class.
@@ -144,6 +143,40 @@ define(function(require) {
 
       this._settings.removeObserver(setting, this._checkStatus[setting].cb);
       this._checkStatus[setting].cb = null;
+    },
+
+    /**
+     * Timer to keep track of displayed update status
+     *
+     * @access private
+     * @memberOf UpdateCheck.prototype
+     */
+    _clearUpdateStatusTimer: null,
+
+    /**
+     * Start timer to hide the update status, ensuring it is displayed
+     * for a certain period of time.
+     *
+     * @access private
+     * @memberOf UpdateCheck.prototype
+     */
+    _startClearUpdateStatus: function uc__clearUpdateStatus() {
+      if (this._clearUpdateStatusTimer) {
+        clearTimeout(this._clearUpdateStatusTimer);
+      }
+      this._clearUpdateStatusTimer =
+        window.setTimeout(this._doClearUpdateStatus.bind(this), 5000);
+    },
+
+    /**
+     * Actually hide the update status
+     *
+     * @access private
+     * @memberOf UpdateCheck.prototype
+     */
+    _doClearUpdateStatus: function uc__clearUpdateStatus() {
+      this._elements.updateStatus.classList.remove('visible');
+      this._elements.systemStatus.textContent = '';
     },
 
     /**
