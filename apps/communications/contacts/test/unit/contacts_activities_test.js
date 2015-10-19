@@ -200,14 +200,12 @@ suite('Test Activities', function() {
       });
 
       vcardActivity.postResult = function(response) {
-        response.name.then(name => {
-          assert.equal(name, contact.givenName[0] + '_' +
-                        contact.familyName[0] + '.vcf');
-          assert.equal(response.blob.type, 'text/vcard');
+        assert.equal(response.name, contact.givenName[0] + '_' +
+                      contact.familyName[0] + '.vcf');
+        assert.equal(response.blob.type, 'text/vcard');
 
-          stub.restore();
-
-        }).then(done, done);
+        stub.restore();
+        done();
       };
 
       ActivityHandler.dataPickHandler(contact);
