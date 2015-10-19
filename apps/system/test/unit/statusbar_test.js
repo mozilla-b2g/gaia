@@ -2280,7 +2280,12 @@ suite('system/Statusbar', function() {
           return this._topWindow;
         },
         isFullScreen: function() {},
-        isFullScreenLayout: function() {}
+        isFullScreenLayout: function() {},
+        appChrome: {
+          element: { id: 'test', querySelector: sinon.stub() },
+          isMaximized: sinon.spy(),
+          useLightTheming: sinon.spy()
+        }
       };
       Service.currentApp = currentApp;
       var evt = new CustomEvent(event, {detail: currentApp});
