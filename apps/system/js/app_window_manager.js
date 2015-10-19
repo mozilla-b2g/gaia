@@ -63,6 +63,7 @@
       // XXX: PermissionDialog is shared so we need AppWindowManager
       // to focus the active app after it's closed.
     'permissiondialoghide',
+    'sleepmenuhide', // We need to focus the active app on this event
     'appopening',
     'localized',
     'launchtrusted',
@@ -576,6 +577,12 @@
 
     // XXX: Remove this once permission dialog is moved into AppWindow.
     '_handle_permissiondialoghide': function() {
+      this._activeApp && this._activeApp.broadcast('focus');
+    },
+
+    // When the sleep menu is hidden we need to re-focus the active app
+    // or key events won't be properly dispatched to it. See bug 1200351.
+    '_handle_sleepmenuhide': function() {
       this._activeApp && this._activeApp.broadcast('focus');
     },
 
