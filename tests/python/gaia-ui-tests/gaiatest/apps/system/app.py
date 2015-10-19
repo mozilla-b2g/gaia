@@ -26,6 +26,8 @@ class System(Base):
     _software_buttons_locator = (By.ID, 'software-buttons')
     _screen_locator = (By.ID, 'screen')
 
+    _search_bar_locator = (By.CSS_SELECTOR, '[data-l10n-id="search-or-enter-address"]')
+
     @property
     def status_bar(self):
         self.marionette.switch_to_frame()
@@ -113,3 +115,10 @@ class System(Base):
         # The wallpaper returns a blob url and a gradient
         screen = self.marionette.find_element(*self._screen_locator)
         return screen.value_of_css_property('background-image')
+
+    def tap_search_bar(self):
+        self.marionette.switch_to_frame()
+        self.marionette.find_element(*self._search_bar_locator).tap()
+
+        from gaiatest.apps.system.regions.search_panel import SearchPanel
+        return SearchPanel(self.marionette)
