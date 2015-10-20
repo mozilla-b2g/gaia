@@ -445,7 +445,7 @@ suite('system/AppChrome', function() {
   });
 
   suite('handleScrollAreaChanged', function() {
-    var app, chrome, appVisible, containerHeight, classListAddSpy;
+    var app, chrome, appVisible, containerHeight, classListAddSpy, event;
 
     setup(function() {
       app = new AppWindow(cloneConfig(fakeWebSite));
@@ -463,30 +463,40 @@ suite('system/AppChrome', function() {
       classListAddSpy =
         this.sinon.spy(chrome.containerElement.classList, 'add');
 
+      event = {
+        target: app.browser.element,
+        detail: { height: 200 }
+      };
       containerHeight = 100;
     });
 
     test('sets scrollable if browser height > container height', function() {
-      chrome.handleScrollAreaChanged({ detail: { height: 200 } });
+      chrome.handleScrollAreaChanged(event);
       assert.isTrue(chrome.containerElement.classList.contains('scrollable'));
     });
 
     test('does nothing if browser height <= container height', function() {
       containerHeight = 200;
-      chrome.handleScrollAreaChanged({ detail: { height: 200 } });
+      chrome.handleScrollAreaChanged(event);
       assert.isFalse(chrome.containerElement.classList.contains('scrollable'));
     });
 
     test('does nothing if container already scrollable', function() {
       chrome.containerElement.classList.add('scrollable');
 
-      chrome.handleScrollAreaChanged({ detail: { height: 200 } });
+      chrome.handleScrollAreaChanged(event);
       assert.isTrue(classListAddSpy.calledOnce);
     });
 
     test('does nothing if app not visible', function() {
       appVisible = false;
-      chrome.handleScrollAreaChanged({ detail: { height: 200 } });
+      chrome.handleScrollAreaChanged(event);
+      assert.isFalse(classListAddSpy.called);
+    });
+
+    test('does nothing if incorrect target', function() {
+      event.target = null;
+      chrome.handleScrollAreaChanged(event);
       assert.isFalse(classListAddSpy.called);
     });
   });
