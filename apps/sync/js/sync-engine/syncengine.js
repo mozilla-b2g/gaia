@@ -226,6 +226,9 @@ uld be a Function`);
             return this._getItem(collectionName, itemName, false);
           });
         }
+        if (err.message === 'Record with id=global not found.') {
+          throw new SyncEngine.InvalidAccountError();
+        }
         throw err;
       });
     },
@@ -399,6 +402,12 @@ rse crypto/keys payload as JSON`));
     this.message = 'unauthorized';
   };
   SyncEngine.AuthError.prototype = Object.create(Error.prototype);
+
+  SyncEngine.InvalidAccountError = function() {
+    console.error('[SyncEngine InvalidAccount]', arguments);
+    this.message = 'invalid account';
+  };
+  SyncEngine.InvalidAccountError.prototype = Object.create(Error.prototype);
 
   return SyncEngine;
 })();

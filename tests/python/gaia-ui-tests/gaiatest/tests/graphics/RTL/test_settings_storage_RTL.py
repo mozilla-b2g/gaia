@@ -10,7 +10,8 @@ from gaiatest.apps.settings.app import Settings
 class TestSettingsRTL(GaiaImageCompareTestCase):
 
     @parameterized("disable_USB_storage", 'disable')
-    @parameterized("enable_USB_storage", 'enable')
+    # disabled for jenkins run, since only manual cable disconnect with disable the USB
+    # @parameterized("enable_USB_storage", 'enable')
     def test_settings_app(self, options):
         settings = Settings(self.marionette)
         settings.launch()
@@ -50,7 +51,7 @@ class TestSettingsRTL(GaiaImageCompareTestCase):
             mediastorage_page.tap_select_media_location()
             self.take_screenshot('media_storage-select_media_loc')
             mediastorage_page.confirm_select_media_location()
-            self.take_screenshot('media_storage-media_locations')
+            self.take_screenshot('media_storage-media_locations', top_frame=True)
             mediastorage_page.pick_media_location('Internal')
             settings.return_to_prev_menu(settings.screen_element, mediastorage_page.screen_element)
 

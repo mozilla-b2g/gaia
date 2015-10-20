@@ -73,22 +73,23 @@
 
   AppTextSelectionDialog.prototype = Object.create(window.BaseUI.prototype);
 
-  AppTextSelectionDialog.prototype.TEXTDIALOG_HEIGHT = 52;
+  AppTextSelectionDialog.prototype.TEXTDIALOG_HEIGHT = 46;
 
-  AppTextSelectionDialog.prototype.TEXTDIALOG_WIDTH = 54;
+  AppTextSelectionDialog.prototype.TEXTDIALOG_WIDTH = 48;
 
   // Distance between selected area and the bottom of menu when menu show on
   // the top of selected area.
-  // By UI spec, 12px from the top of dialog to utility menu.
+  // By UI spec, 12px from the top of selected area to utility menu.
   AppTextSelectionDialog.prototype.DISTANCE_FROM_MENUBOTTOM_TO_SELECTEDAREA =
     12;
 
   // Distance between selected area and the top of menu when menu show on
   // the bottom of selected area.
-  // caret tile height is controlled by gecko, we estimate the height as
-  // 22px. So 22px plus 12px which defined in UI spec, we get 34px from
-  // the bottom of selected area to utility menu.
-  AppTextSelectionDialog.prototype.DISTANCE_FROM_SELECTEDAREA_TO_MENUTOP = 43;
+  // Caret height is 36px which is controlled by gecko (libpref/init/all.js).
+  // Note that 36px includes 28px for caret and 8px for space underneath caret.
+  // So 28px plus 12px which defined in UI spec, we get 40px from the bottom
+  // of selected area to utility menu.
+  AppTextSelectionDialog.prototype.DISTANCE_FROM_SELECTEDAREA_TO_MENUTOP = 40;
 
   // Minimum distance between bubble and boundary.
   AppTextSelectionDialog.prototype.DISTANCE_FROM_BOUNDARY = 5;
@@ -334,6 +335,7 @@
         this.close();
       }
       evt.preventDefault();
+      evt.stopPropagation();
     };
 
   AppTextSelectionDialog.prototype.copyHandler =
@@ -449,8 +451,17 @@
         posTop = selectDialogBottom + distanceFromBottom;
       }
 
+      var offset = 0;
+      if (this.app && this.app.appChrome) {
+        offset = this.app.appChrome.isMaximized() ?
+                 this.app.appChrome.height -
+                   this.app.appChrome.scrollable.scrollTop :
+                 Service.query('Statusbar.height');
+      }
+      posTop += offset;
+
       // Put dialog in the center of selected area if it overlap keyboard.
-      if (posTop >= (frameHeight - distanceFromBottom - selectOptionHeight)) {
+      if (posTop >= (frameHeight - selectOptionHeight)) {
         posTop = (((selectDialogTop >= 0) ? selectDialogTop : 0) +
           ((selectDialogBottom >= frameHeight) ? frameHeight :
             selectDialogBottom) - selectOptionHeight) / 2;
@@ -466,16 +477,8 @@
           this.DISTANCE_FROM_BOUNDARY;
       }
 
-      var offset = 0;
-      if (this.app && this.app.appChrome) {
-        offset = this.app.appChrome.isMaximized() ?
-                 this.app.appChrome.height -
-                   this.app.appChrome.scrollable.scrollTop :
-                 Service.query('Statusbar.height');
-      }
-
       return {
-        top: posTop + offset,
+        top: posTop,
         left: posLeft
       };
     };

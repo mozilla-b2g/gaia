@@ -10,6 +10,41 @@ var HomeView = View.extend(function HomeView() {
   this.searchResults = document.getElementById('search-results');
   this.tiles = document.getElementById('tiles');
 
+  var loadTile = (tile) => {
+    if (tile.dataset.loaded) {
+      return;
+    }
+
+    this.getThumbnail(tile.dataset.filePath).then((url) => {
+      var img = tile.querySelector('img');
+      img.src = url;
+
+      tile.dataset.loaded = true;
+    });
+  };
+
+  this.onScroll = debounce((scrollTop) => {
+    var scrollBottom = scrollTop + window.innerHeight;
+
+    var tiles = this.tiles.querySelectorAll('.tile');
+    var lastTileVisible = false;
+    var tile, tileOffset;
+    for (var i = 0, length = tiles.length; i < length; i++) {
+      tile = tiles[i];
+      tileOffset = tile.offsetTop;
+
+      if (scrollTop <= tileOffset && tileOffset <= scrollBottom) {
+        lastTileVisible = true;
+
+        loadTile(tile);
+      }
+
+      else if (lastTileVisible) {
+        return;
+      }
+    }
+  }, 500);
+
   this.searchBox.addEventListener('search', (evt) => this.search(evt.detail));
 
   this.searchResults.addEventListener('open', () => {
@@ -19,7 +54,8 @@ var HomeView = View.extend(function HomeView() {
 
   this.searchResults.addEventListener('close', () => {
     this.client.method('searchClose');
-    document.body.removeAttribute('data-search');
+    document.body.dataset.search = false;
+    window.scrollTo(0, this.searchBox.HEIGHT);
   });
 
   this.searchResults.addEventListener('resultclick', (evt) => {
@@ -33,14 +69,18 @@ var HomeView = View.extend(function HomeView() {
     }
   });
 
-  this.searchResults.getItemImageSrc = (item) => this.getThumbnail(item.name);
-
   this.tiles.addEventListener('click', (evt) => {
     var link = evt.target.closest('a[data-file-path]');
     if (link) {
       this.queueAlbum(link.dataset.filePath);
     }
   });
+
+  window.addEventListener('scroll', evt => this.onScroll(evt.pageY));
+
+  window.scrollTo(0, this.searchBox.HEIGHT);
+
+  this.searchResults.getItemImageSrc = (item) => this.getThumbnail(item.name);
 
   this.client.on('databaseChange', () => this.update());
 
@@ -83,10 +123,7 @@ Sanitizer.createSafeHTML `<a class="tile"
 
     this.tiles.innerHTML = Sanitizer.unwrapSafeHTML(...html);
 
-    [].forEach.call(this.tiles.querySelectorAll('.tile'), (tile) => {
-      this.getThumbnail(tile.dataset.filePath)
-        .then(url => tile.querySelector('img').src = url);
-    });
+    this.onScroll(window.scrollY);
   });
 };
 
@@ -187,5 +224,13 @@ HomeView.prototype.search = function(query) {
     });
   });
 };
+
+function debounce(fn, ms) {
+  var timeout;
+  return (...args) => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => fn.apply(this, args), ms);
+  };
+}
 
 window.view = new HomeView();

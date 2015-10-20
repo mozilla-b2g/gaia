@@ -69,10 +69,11 @@ marionette('Contacts', function() {
       conversation = inbox.goToConversation(thread.id);
     });
 
-    test('should create a new contact', function() {
-      // Bug 1175080. Sometimes Marionette looses the connection. Asserting on
-      // the throw makes the error message clearer. Otherwise we just have a
-      // crahs in the stackwalk.
+    // Deactivated because of bug 1175080. Sometimes Marionette looses the
+    // connection, which is making some intermittent Gij runs.
+    test.skip('should create a new contact', function() {
+      // Bug 1175080. Asserting on the throw makes the error message clearer.
+      // Otherwise we just have a crash in the stackwalk.
       assert.doesNotThrow(function() {
         var newContact = conversation.openCreateNewContact();
 
@@ -88,14 +89,20 @@ marionette('Contacts', function() {
       });
     });
 
-    test('should add the phone number to an existing contact', function() {
-      var contactPicker = conversation.openAddToExistingContact();
-      contactPicker.tapContact(testContact.name);
-      contactPicker.tapUpdate();
-      messagesApp.switchTo();
+    // Deactivated because of bug 1175080. Sometimes Marionette looses the
+    // connection, which is making some intermittent Gij runs.
+    test.skip('should add the phone number to an existing contact', function() {
+      // Bug 1175080. Asserting on the throw makes the error message clearer.
+      // Otherwise we just have a crash in the stackwalk.
+      assert.doesNotThrow(function() {
+        var contactPicker = conversation.openAddToExistingContact();
+        contactPicker.tapContact(testContact.name);
+        contactPicker.tapUpdate();
+        messagesApp.switchTo();
 
-      assert.equal(conversation.carrierHeaderPhoneNumber, '+123');
-      assert.equal(conversation.headerTitle, testContact.name);
+        assert.equal(conversation.carrierHeaderPhoneNumber, '+123');
+        assert.equal(conversation.headerTitle, testContact.name);
+      });
     });
   });
 

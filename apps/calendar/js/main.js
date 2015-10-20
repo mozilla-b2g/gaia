@@ -17,6 +17,7 @@ require.config({
     'ext/page': { exports: 'page' },
     'shared/gesture_detector': { exports: 'GestureDetector' },
     'shared/input_parser': { exports: 'InputParser' },
+    'shared/intl_helper': { exports: 'IntlHelper' },
     'shared/lazy_loader': { exports: 'LazyLoader' },
     'shared/notification_helper': { exports: 'NotificationHelper' }
   }

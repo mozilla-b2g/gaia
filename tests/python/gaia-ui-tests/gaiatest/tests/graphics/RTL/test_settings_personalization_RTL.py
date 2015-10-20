@@ -59,21 +59,18 @@ class TestSettingsRTLPersonalization(GaiaImageCompareTestCase):
         display_page = settings.open_display()
         self.take_screenshot('display')
         display_page.tap_timeout_selector()
-        self.take_screenshot('display-timeout_values')
+        self.take_screenshot('display-timeout_values', top_frame=True)
         display_page.tap_timeout_confirmation()
         settings.return_to_prev_menu(settings.screen_element, display_page.screen_element)
 
         #################### Homescreen ######################
         homescreen_page = settings.open_homescreen()
         self.take_screenshot('homescreen')
-        homescreen_page.pick_wallpaper()
-        self.take_screenshot('homescreen-wallpaper_pick')
-        homescreen_page.cancel_pick_wallpaper()
 
         homescreen_page.open_change_home_screen()
         self.take_screenshot('homescreen-change_homescreen')
         homescreen_page.open_get_more_home_screen()
-        self.take_screenshot('homescreen-get_more_homescreen')
+        self.take_screenshot('homescreen-get_more_homescreen',top_frame=True)
         homescreen_page.cancel_get_more_home_screen()
         settings.return_to_prev_menu(homescreen_page.screen_element,
                                      homescreen_page.change_homescreen_screen_element)
@@ -106,7 +103,7 @@ class TestSettingsRTLPersonalization(GaiaImageCompareTestCase):
         self.take_screenshot('date_and_time')
         date_time_page.disable_default_format()
         date_time_page.open_time_format()
-        self.take_screenshot('date_and_time-time_format')
+        self.take_screenshot('date_and_time-time_format',top_frame=True)
         date_time_page.close_time_format()
         settings.return_to_prev_menu(settings.screen_element, date_time_page.screen_element)
 
@@ -115,7 +112,7 @@ class TestSettingsRTLPersonalization(GaiaImageCompareTestCase):
         language_page = settings.open_language()
         self.take_screenshot('language')
         language_page.open_select_language()
-        self.take_screenshot('language-select')
+        self.take_screenshot('language-select',top_frame=True)
         language_page.close_select_language()
         settings.return_to_prev_menu(settings.screen_element, language_page.screen_element)
 

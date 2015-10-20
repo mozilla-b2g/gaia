@@ -5,6 +5,7 @@
 
   function Settings() {
     this.small = false;
+    this.scrollSnapping = false;
     this.firstRun = false;
   }
 

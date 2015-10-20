@@ -1,7 +1,15 @@
-/* global getStorageIfAvailable,getVideoRotation,VideoUtils,
-  ForwardRewindController,MimeMapper,getUnusedFilename,MediaUtils,
-  VideoLoadingChecker,MediaError */
 'use strict';
+/* global 
+  getStorageIfAvailable,
+  getVideoRotation,
+  VideoUtils,
+  ForwardRewindController,
+  MimeMapper,
+  getUnusedFilename,
+  MediaUtils,
+  VideoLoadingChecker,
+  MediaError
+*/
 
 /*
  * This is a stripped down version of video.js that handles the view activity
@@ -12,19 +20,20 @@
  * the shared code into a single shared file. If the video player UI changes
  * those changes will have to be made in both video.js and view.js
  */
-navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
+(function init() {
   var dom = {};            // document elements
   var playing = false;
   var controlShowing = false;
   var controlFadeTimeout = null;
   var dragging = false;
-  var data = activity.source.data;
-  var blob = data.blob;
-  var url = data.url;
-  var title = data.title || '';
   var storage;       // A device storage object used by the save button
   var saved = false; // Did we save it?
   var videoRotation = 0;
+  var activity;      // The activity object we're handling
+  var data;          // The data sent by the initiating app
+  var blob;          // The blob we'll be displaying and maybe saving
+  var url;           // URL string representing the blob object
+  var title;         // What we call the video in the titlebar and banner
   // touch start id is the identifier of touch event. we only need to process
   // events related to this id.
   var touchStartID = null;
@@ -47,50 +56,67 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
   //
   localStorage.setItem('view-activity-wants-to-use-hardware', Date.now());
 
-  initUI();
+  // Register a handler to receive the Activity object
+  navigator.mozSetMessageHandler('activity', handleViewActivity);
 
-  // If blob exists, video should be launched by open activity
-  if (blob) {
-    // The title we display for this video may be explicitly specified,
-    // or it might be the specified filename to save to or it might be
-    // the filename of the blob.
-    title = data.title || baseName(data.filename) || baseName(blob.name);
-    url = URL.createObjectURL(blob);
+  function handleViewActivity(request) {
+    activity = request;
+    data = activity.source.data;
+    blob = data.blob;
+    url = data.url;
+    title = data.title || '';
 
-    // If the app that initiated this activity wants us to allow the
-    // user to save this blob as a file, and if device storage is available
-    // and if there is enough free space, then display a save button.
-    if (data.allowSave && data.filename && checkFilename()) {
-      getStorageIfAvailable('videos', blob.size, function(ds) {
-        dom.save.hidden = false;
-
-        // HACK: Cause gaia-header to re-run font-fit logic
-        // now that the 'save' button is visible.
-        dom.videoTitle.textContent = dom.videoTitle.textContent;
-
-        storage = ds;
-      });
+    // Set up the UI, if it is not already set up
+    if (!dom.player) {
+      initUI();
     }
 
-    // to hide player because it shows in the wrong rotation.
-    dom.player.classList.add('hidden');
-    // video rotation is not parsed, parse it.
-    getVideoRotation(blob, function(rotation) {
-      // when error found, fallback to 0
-      if (typeof rotation === 'string') {
-        console.error('get video rotation error: ' + rotation);
-        videoRotation = 0;
-      } else {
-        videoRotation = rotation;
+    // Hide save button
+    dom.save.hidden = true;
+
+    // If blob exists, video should be launched by open activity
+    if (blob) {
+      // The title we display for this video may be explicitly specified,
+      // or it might be the specified filename to save to or it might be
+      // the filename of the blob.
+      title = data.title || baseName(data.filename) || baseName(blob.name);
+      url = URL.createObjectURL(blob);
+
+      // If the app that initiated this activity wants us to allow the
+      // user to save this blob as a file, and if device storage is available
+      // and if there is enough free space, then display a save button.
+      if (data.allowSave && data.filename && checkFilename()) {
+        getStorageIfAvailable('videos', blob.size, function(ds) {
+          dom.save.hidden = false;
+
+          // HACK: Cause gaia-header to re-run font-fit logic
+          // now that the 'save' button is visible.
+          dom.videoTitle.textContent = dom.videoTitle.textContent;
+
+          storage = ds;
+        });
       }
-      // show player when player size and rotation are correct.
-      dom.player.classList.remove('hidden');
-      // start to play the video that showPlayer also calls fitContainer.
+
+      // to hide player because it shows in the wrong rotation.
+      dom.player.classList.add('hidden');
+      // video rotation is not parsed, parse it.
+      getVideoRotation(blob, function(rotation) {
+        // when error found, fallback to 0
+        if (typeof rotation === 'string') {
+          console.error('get video rotation error: ' + rotation);
+          videoRotation = 0;
+        } else {
+          videoRotation = rotation;
+        }
+        // show player when player size and rotation are correct.
+        dom.player.classList.remove('hidden');
+        // start to play the video that showPlayer also calls fitContainer.
+        showPlayer(url, title);
+      });
+    } else {
+      // In the url case, we don't need to calculate the rotation.
       showPlayer(url, title);
-    });
-  } else {
-    // In the url case, we don't need to calculate the rotation.
-    showPlayer(url, title);
+    }
   }
 
   // Terminate video playback when visibility is changed.
@@ -565,4 +591,4 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     dom.spinnerOverlay.classList.add('hidden');
     setDisabled(dom.playerView, false);
   }
-});
+})();

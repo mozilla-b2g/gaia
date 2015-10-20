@@ -63,6 +63,7 @@
       // XXX: PermissionDialog is shared so we need AppWindowManager
       // to focus the active app after it's closed.
     'permissiondialoghide',
+    'sleepmenuhide', // We need to focus the active app on this event
     'appopening',
     'localized',
     'launchtrusted',
@@ -70,7 +71,9 @@
     'hierarchytopmostwindowchanged',
     'cardviewbeforeshow',
     'cardviewclosed',
-    'cardviewshown'
+    'cardviewshown',
+    'inputfocus',
+    'inputblur'
   ];
   AppWindowManager.SUB_MODULES = [
     'FtuLauncher',
@@ -577,6 +580,12 @@
       this._activeApp && this._activeApp.broadcast('focus');
     },
 
+    // When the sleep menu is hidden we need to re-focus the active app
+    // or key events won't be properly dispatched to it. See bug 1200351.
+    '_handle_sleepmenuhide': function() {
+      this._activeApp && this._activeApp.broadcast('focus');
+    },
+
     _handle_orientationchange: function() {
       this.broadcastMessage('orientationchange',
         this.service.query('getTopMostUI') === this);
@@ -626,7 +635,11 @@
       this._apps[evt.detail.instanceID] = evt.detail;
     },
 
-    '_handle_homescreen-changed': function() {
+    '_handle_homescreen-changed': function(evt) {
+      if (this.service.query('isFtuRunning')) {
+        return;
+      }
+
       this.display();
     },
 
@@ -738,14 +751,17 @@
       return true;
     },
 
-    '_handle_mozChromeEvent': function(evt) {
-      if (!evt.detail || evt.detail.type !== 'inputmethod-contextchange') {
-        return true;
-      }
+    '_handle_inputfocus': function(evt) {
       if (this._activeApp) {
-        this._activeApp.getTopMostWindow()
-            .broadcast('inputmethod-contextchange',
-          evt.detail);
+        this._activeApp.getTopMostWindow().broadcast('inputfocus', evt.detail);
+        return false;
+      }
+      return true;
+    },
+
+    '_handle_inputblur': function(evt) {
+      if (this._activeApp) {
+        this._activeApp.getTopMostWindow().broadcast('inputblur');
         return false;
       }
       return true;
@@ -817,13 +833,21 @@
       }
       if (config.stayBackground) {
         return;
-      } else {
-        // Link the window before displaying it to avoid race condition.
-        if (config.isActivity && this._activeApp) {
-          this.linkWindowActivity(config);
-        }
-        this.display(this.getApp(config.origin));
       }
+
+      // Cancel inline activities on webapps-launch to make sure we actually
+      // open on the app and not on an inline activity
+      // (Workaround for bug 1122205)
+      var app = this.getApp(config.origin);
+      if (config.evtType === 'webapps-launch') {
+        app.frontWindow && app.frontWindow.kill();
+      }
+
+      // Link the window before displaying it to avoid race condition.
+      if (config.isActivity && this._activeApp) {
+        this.linkWindowActivity(config);
+      }
+      this.display(app);
     },
 
     linkWindowActivity: function awm_linkWindowActivity(config) {

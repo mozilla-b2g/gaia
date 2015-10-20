@@ -295,6 +295,7 @@ suite('smart-system/SyncManager >', () => {
     var unregisterSyncSpy;
     var updateStateSpy;
     var removeEventListenerSpy;
+    var logoutSpy;
 
     suiteSetup(() => {
       syncManager = new SyncManager();
@@ -309,6 +310,7 @@ suite('smart-system/SyncManager >', () => {
       unregisterSyncSpy = this.sinon.spy(navigator.sync, 'unregister');
       updateStateSpy = this.sinon.spy(syncManager, 'updateState');
       removeEventListenerSpy = this.sinon.spy(window, 'removeEventListener');
+      logoutSpy = this.sinon.spy(FxAccountsClient, 'logout');
     });
 
     suiteTeardown(() => {
@@ -316,6 +318,7 @@ suite('smart-system/SyncManager >', () => {
       unregisterSyncSpy.restore();
       updateStateSpy.restore();
       removeEventListenerSpy.restore();
+      logoutSpy.restore();
       navigator.sync = realNavigatorSync;
     });
 
@@ -329,6 +332,7 @@ suite('smart-system/SyncManager >', () => {
         assert.ok(
           removeEventListenerSpy.calledWith('mozFxAccountsUnsolChromeEvent')
         );
+        this.sinon.assert.calledOnce(logoutSpy);
         done();
       });
     });
@@ -483,9 +487,11 @@ suite('smart-system/SyncManager >', () => {
       setTimeout(() => {
         this.sinon.assert.calledOnce(updateStateSpy);
         this.sinon.assert.calledOnce(getAssertionStub);
-        this.sinon.assert.calledOnce(addEventListenerSpy);
-        this.sinon.assert.calledWith(addEventListenerSpy,
-                                     'mozFxAccountsUnsolChromeEvent');
+        this.sinon.assert.calledTwice(addEventListenerSpy);
+        assert.equal(addEventListenerSpy.getCall(0).args[0],
+                     'mozPrefChromeEvent');
+        assert.equal(addEventListenerSpy.getCall(1).args[0],
+                     'mozFxAccountsUnsolChromeEvent');
         this.sinon.assert.calledOnce(successSpy);
         done();
       });
@@ -501,9 +507,11 @@ suite('smart-system/SyncManager >', () => {
       setTimeout(() => {
         this.sinon.assert.calledOnce(updateStateSpy);
         this.sinon.assert.calledOnce(getAssertionStub);
-        this.sinon.assert.calledOnce(addEventListenerSpy);
-        this.sinon.assert.calledWith(addEventListenerSpy,
-                                     'mozFxAccountsUnsolChromeEvent');
+        this.sinon.assert.calledTwice(addEventListenerSpy);
+        assert.equal(addEventListenerSpy.getCall(0).args[0],
+                     'mozPrefChromeEvent');
+        assert.equal(addEventListenerSpy.getCall(1).args[0],
+                     'mozFxAccountsUnsolChromeEvent');
         this.sinon.assert.calledOnce(errorSpy);
         done();
       });
@@ -523,6 +531,7 @@ suite('smart-system/SyncManager >', () => {
 
     suiteTeardown(() => {
       syncManager.stop();
+      SyncStateMachine.state = 'disabled';
     });
 
     setup(() => {
@@ -536,7 +545,8 @@ suite('smart-system/SyncManager >', () => {
     });
 
     test('onerrored received - recoverable error', done => {
-      SyncStateMachine.onerrored(ERROR_SYNC_APP_KILLED);
+      SyncStateMachine.state = 'enabling';
+      SyncStateMachine.error(ERROR_SYNC_APP_KILLED);
       setTimeout(() => {
         this.sinon.assert.calledOnce(updateStateSpy);
         assert.equal(syncManager.error, ERROR_SYNC_APP_KILLED);
@@ -546,7 +556,8 @@ suite('smart-system/SyncManager >', () => {
     });
 
     test('onerrored received - unrecoverable error', done => {
-      SyncStateMachine.onerrored(ERROR_SYNC_REQUEST);
+      SyncStateMachine.state = 'enabling';
+      SyncStateMachine.error(ERROR_SYNC_REQUEST);
       setTimeout(() => {
         this.sinon.assert.calledOnce(updateStateSpy);
         assert.equal(syncManager.error, ERROR_SYNC_REQUEST);
@@ -1174,6 +1185,78 @@ suite('smart-system/SyncManager >', () => {
       assert.ok(unregisterSyncStub.calledOnce);
       assert.ok(removeEventListenerStub.calledOnce);
       assert.ok(cancelSyncStub.calledOnce);
+    });
+  });
+
+  suite('updateStatePreference', () => {
+    var syncManager;
+    var updateStatePreferenceSpy;
+    var initialSettingValue;
+
+    suiteSetup(() => {
+      syncManager = new SyncManager();
+      syncManager.start();
+      initialSettingValue =
+        MockNavigatorSettings.mSettings['services.sync.enabled'];
+    });
+
+    suiteTeardown(() => {
+      syncManager.stop();
+      MockNavigatorSettings.mSettings['services.sync.enabled'] =
+        initialSettingValue;
+    });
+
+    setup(() => {
+      updateStatePreferenceSpy = this.sinon.spy(syncManager,
+                                                'updateStatePreference');
+    });
+
+    teardown(() => {
+      updateStatePreferenceSpy.restore();
+    });
+
+    ['enabled',
+     'enabling'].forEach(state => {
+      test(state + ' should update setting', done => {
+        MockNavigatorSettings.mSettings['services.sync.enabled'] = false;
+        syncManager.state = state;
+        assert.ok(updateStatePreferenceSpy.calledOnce);
+        assert.ok(MockNavigatorSettings.mSettings['services.sync.enabled']);
+        syncManager.updateStateDeferred.then(done);
+        window.dispatchEvent(new CustomEvent('mozPrefChromeEvent', {
+          detail: {
+            prefName: 'services.sync.enabled',
+            value: true
+          }
+        }));
+      });
+    });
+
+    test('disabled should update setting', done => {
+      MockNavigatorSettings.mSettings['services.sync.enabled'] = true;
+      syncManager.state = 'disabled';
+      assert.ok(updateStatePreferenceSpy.calledOnce);
+      assert.ok(!MockNavigatorSettings.mSettings['services.sync.enabled']);
+      syncManager.updateStateDeferred.then(done);
+      window.dispatchEvent(new CustomEvent('mozPrefChromeEvent', {
+        detail: {
+          prefName: 'services.sync.enabled',
+          value: false
+        }
+      }));
+    });
+
+    ['errored',
+     'success',
+     'syncing'].forEach(state => {
+       test(state + ' should not update setting', () => {
+        var initialValue =
+          MockNavigatorSettings.mSettings['services.sync.enabled'];
+        syncManager.state = state;
+        assert.ok(updateStatePreferenceSpy.notCalled);
+        assert.equal(MockNavigatorSettings.mSettings['services.sync.enabled'],
+                     initialValue);
+      });
     });
   });
 });

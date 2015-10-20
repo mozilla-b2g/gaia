@@ -1,13 +1,18 @@
 define(function(require, exports, module) {
 'use strict';
 
+var IntlHelper = require('shared/intl_helper');
 var View = require('view');
 var createDay = require('common/calc').createDay;
-var dateFormat = require('date_format');
-var getTimeL10nLabel = require('common/calc').getTimeL10nLabel;
 var timeObserver = require('time_observer');
 
 var activeClass = View.ACTIVE;
+
+IntlHelper.define('current-time', 'mozdatetime', {
+  hour: 'numeric',
+  minute: 'numeric',
+  dayperiod: false,
+});
 
 function CurrentTime(options) {
   this._container = options.container;
@@ -103,19 +108,12 @@ CurrentTime.prototype = {
 
   _render: function() {
     var now = new Date();
-    var format = getTimeL10nLabel('current-time');
 
-    this.element.textContent = dateFormat.localeFormat(
-      now,
-      navigator.mozL10n.get('current-time')
-    );
+    var formatter = IntlHelper.get('current-time');
+    this.element.textContent = formatter.format(now);
 
-    this.element.textContent = dateFormat.localeFormat(
-      now,
-      navigator.mozL10n.get(format)
-    );
     this.element.dataset.date = now;
-    this.element.dataset.l10nDateFormat = format;
+    this.element.dataset.l10nDateFormat = 'current-time';
     this.element.id = 'current-time-indicator';
 
     var hour = now.getHours();

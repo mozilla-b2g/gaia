@@ -1,6 +1,6 @@
 {
-  "name": "New Home Screen",
-  "description": "Vertical paged home screen.",
+  "name": "Default Home Screen",
+  "description": "Gaia home screen.",
   "launch_path": "/index.html",
   "type": "privileged",
   "role": "homescreen",
@@ -24,6 +24,25 @@
     "moz-extremely-unstable-and-will-change-webcomponents": {},
     "systemXHR": {}
   },
+  "default_locale": "en-US",
+  "locales": {
+    "ar": {
+      "name": "الشاشة الرئيسية",
+      "description": "Gaia الشاشة الرئيسية"
+    },
+    "en-US": {
+      "name": "Default Home Screen",
+      "description": "Gaia Home Screen."
+    },
+    "fr": {
+      "name": "Écran d’accueil",
+      "description": "Écran d’accueil Gaia"
+    },
+    "zh-TW": {
+      "name": "主畫面",
+      "description": "Gaia 主畫面"
+    }
+  },
   "datastores-access": {
     "bookmarks_store": {
       "readonly": true,
@@ -40,6 +59,14 @@
     "homescreen_settings": {
       "readonly": true,
       "description": "Read home screen settings."
+    },
+    "vertical_preferences_store": {
+      "readonly": true,
+      "description": "Import settings from old home screen."
+    },
+    "verticalhome_items_migration": {
+      "readonly": true,
+      "description": "Import settings from old home screen."
     }
   },
   "orientation": "default"

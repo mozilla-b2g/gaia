@@ -165,8 +165,6 @@
         this.topPanel.addEventListener(name, this.panelHandler.bind(this));
       }, this);
 
-      this.statusbarIcons.addEventListener('wheel', this);
-
       LazyLoader.load([
         'js/utility_tray_motion.js',
         'js/utility_tray.js'
@@ -250,13 +248,6 @@
         case 'cardviewclosed':
           this.resumeUpdate(evt.type);
           this.setAppearance();
-          break;
-
-        case 'wheel':
-          if (evt.deltaMode === evt.DOM_DELTA_PAGE && evt.deltaY &&
-            evt.deltaY < 0 && !this.isLocked()) {
-            window.dispatchEvent(new CustomEvent('statusbarwheel'));
-          }
           break;
 
         case 'system-resize':

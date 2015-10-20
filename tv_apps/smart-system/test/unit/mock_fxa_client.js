@@ -15,11 +15,11 @@ var MockFxAccountsClient = {
   },
 
   _triggerCallback: function(successCb, errorCb) {
-    if (this._errorMsg) {
+    if (this._errorMsg && errorCb) {
       errorCb(this._errorMsg);
       return;
     }
-    successCb(this._successMsg);
+    successCb && successCb(this._successMsg);
   },
 
   getAccount: function(successCb, errorCb) {

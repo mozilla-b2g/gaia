@@ -31,10 +31,10 @@ global.MockMozIntl = {
     };
   },
   _gaia: {
-    relativeParts: function(ms) {
+    relativePart: function(ms) {
       return {
         unit: 'minutes',
-        value: 5
+        value: Math.abs(parseInt(ms / 1000 / 60))
       };
     },
     RelativeDate: function(locales, options) {

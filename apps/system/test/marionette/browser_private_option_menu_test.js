@@ -28,11 +28,12 @@ marionette('Private Browser - option menu', function() {
   });
 
   setup(function() {
-    home = client.loader.getAppClass('verticalhome');
+    home = client.loader.getAppClass('homescreen');
     rocketbar = new Rocketbar(client);
     search = client.loader.getAppClass('search');
     system = client.loader.getAppClass('system');
     system.waitForStartup();
+    home.waitForLaunch();
   });
 
   test('Open option menu from app chrome bar of private browsers', function() {

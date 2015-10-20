@@ -152,13 +152,6 @@ html[dir="rtl"] [data-type="list"] aside.icon {
   color: #333;
 }
 
-html[dir="ltr"] [data-type="list"] [data-icon="forward"]:before {
-  transform: scaleX(1);
-}
-html[dir="rtl"] [data-type="list"] [data-icon="forward"]:before {
-  transform: scaleX(-1);
-}
-
 /* Text content */
 [data-type="list"] li p {
   white-space: nowrap;

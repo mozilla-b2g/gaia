@@ -21,6 +21,13 @@
   will-change: scroll-position;
 }
 
+/* When using a screen reader, disable the invisible gripper.
+   The invisible gripper is useless with the screen reader and
+   interferes with touching the statusbar. */
+#screen.screenreader .tray {
+  --tray-invisible-gripper-height: 0px;
+}
+
 /* NOTE: csslint treats variable-only rules as "empty" errors, per
    <https://github.com/CSSLint/csslint/issues/538>. */
 @media (orientation: portrait) {

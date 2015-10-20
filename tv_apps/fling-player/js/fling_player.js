@@ -38,10 +38,10 @@
 
   var proto = FlingPlayer.prototype;
 
-  proto.CONTROL_PANEL_HIDE_DELAY_SEC = 3000;
+  proto.CONTROL_PANEL_HIDE_DELAY_MS = 3000;
   proto.UPDATE_CONTROL_PANEL_INTERVAL_MS = 1000;
   proto.SEEK_ON_KEY_PRESS_INTERVAL_MS = 150;
-  proto.SEEK_ON_LONG_KEY_PRESS_SEC = 5;
+  proto.SEEK_ON_LONG_KEY_PRESS_MS = 5000;
   proto.SEEK_ON_KEY_PRESS_NORMAL_STEP_SEC = 10;
   proto.SEEK_ON_KEY_PRESS_LARGE_STEP_SEC = 30;
 
@@ -135,14 +135,13 @@
    * @param {String} state 'playing' or 'paused'
    */
   proto.setPlayButtonState = function (state) {
-    // TODO: Update the button style according to the visual spec
     switch (state) {
       case 'playing':
-        this._playButton.textContent = 'Pause';
+        this._playButton.setAttribute('data-icon', 'fling-player-pause');
       break;
 
       case 'paused':
-        this._playButton.textContent = 'Play';
+        this._playButton.setAttribute('data-icon', 'fling-player-play');
       break;
     }
   };
@@ -190,7 +189,7 @@
 
       this._hideControlsTimer = setTimeout(() => {
         this.hideControlPanel(true);
-      }, this.CONTROL_PANEL_HIDE_DELAY_SEC);
+      }, this.CONTROL_PANEL_HIDE_DELAY_MS);
     }
   };
 
@@ -339,7 +338,7 @@
       var time = this._player.getRoundedCurrentTime();
       var factor = (this._seekOnKeyPressDirection == 'backward') ? -1 : 1;
       var seekDuration = (new Date()).getTime() - this._seekOnKeyPressStartTime;
-      var seekStep = (seekDuration > this.SEEK_ON_LONG_KEY_PRESS_SEC) ?
+      var seekStep = (seekDuration > this.SEEK_ON_LONG_KEY_PRESS_MS) ?
                       this.SEEK_ON_KEY_PRESS_LARGE_STEP_SEC :
                       this.SEEK_ON_KEY_PRESS_NORMAL_STEP_SEC;
 
@@ -497,13 +496,8 @@
   };
 
   proto.onDemandingControlPanel = function () {
-
     mDBG.log('FlingPlayer#onDemandingControlPanel');
-
-    if (this.isControlPanelHiding()) {
-      mDBG.log('The control panel is hiding so let it show first.');
-      this.showControlPanel(true);
-    }
+    this.showControlPanel(true);
   };
 
   // Event handling end

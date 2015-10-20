@@ -213,9 +213,6 @@ ViewfinderController.prototype.onFocusConfigured = function(config) {
   this.views.focus.setFocusMode(config.mode);
   this.touchFocusEnabled = config.touchFocus;
   this.views.faces.clear();
-  if (config.maxDetectedFaces > 0) {
-    this.views.faces.configure(config.maxDetectedFaces);
-  }
 };
 
 ViewfinderController.prototype.onFacesDetected = function(faces) {

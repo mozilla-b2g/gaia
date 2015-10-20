@@ -185,9 +185,19 @@
     set state(state) {
       state = state || SyncStateMachine.state;
       this.debug('Setting state', state);
-      asyncStorage.setItem(SYNC_STATE, state, () => {
-        this.store.set(SYNC_STATE, state);
-        this.notifyStateChange();
+      this.updateStateDeferred = new Promise(resolve => {
+        asyncStorage.setItem(SYNC_STATE, state, () => {
+          this.store.set(SYNC_STATE, state);
+          if (state === 'disabled' || state === 'enabled' ||
+              state === 'enabling') {
+            this.updateStatePreference().then(() => {
+              this.notifyStateChange();
+              resolve();
+            });
+            return;
+          }
+          this.notifyStateChange();
+        });
       });
     },
 
@@ -290,6 +300,13 @@
       this.user = null;
       this.lastSync = null;
       this.cleanup();
+      // On TV because the login on Sync is tied to a login on FxA, login out
+      // from Sync means login out from FxA.
+      // Keep logout *after* the cleanup call where we remove the FxA event
+      // listeners.
+      LazyLoader.load('js/fx_accounts_client.js', () => {
+        FxAccountsClient.logout();
+      });
     },
 
     onenabled() {
@@ -330,16 +347,18 @@
       });
     },
 
-    onerrored(error) {
-      this.debug('onerrored observed', error);
-
-      this.updateState();
+    onerrored(from, to, error) {
+      this.debug(`onerrored observed ${error} while transitioning from ${from}
+                 to ${to}`);
 
       if (!error) {
         return;
       }
 
       this.error = error;
+
+      // We don't update the state until we set the error.
+      this.updateState();
 
       if (SyncUnrecoverableErrors.indexOf(error) > -1) {
         this.debug('Unrecoverable error');
@@ -657,6 +676,27 @@
       if (this.state === 'syncing') {
         this.cancelSync();
       }
+    },
+
+    updateStatePreference: function() {
+      // Changing the value of this setting changes the value of
+      // the 'services.sync.enabled' preference as well.
+      // We don't retrieve the Sync keys unless this pref is set to true.
+      const CHROME_EVENT = 'mozPrefChromeEvent';
+      return new Promise((resolve, reject) => {
+        var onprefchange = event => {
+          this.debug('Preference change ', event.detail);
+          if (event.detail.prefName !== 'services.sync.enabled') {
+            return;
+          }
+          window.removeEventListener(CHROME_EVENT, onprefchange);
+          resolve();
+        };
+        window.addEventListener(CHROME_EVENT, onprefchange);
+        navigator.mozSettings.createLock().set({
+          'services.sync.enabled': this.state !== 'disabled'
+        }).onerror = reject;
+      });
     },
 
     debug() {

@@ -97,7 +97,7 @@
           at the start and end of the line -->
         <!-- see https://github.com/gaia-components/gaia-header/ for more information -->
         <!-- WARNING: the actual value depends on the actual CSS being used in gaia-header -->
-        <gaia-header ignore-dir class="view-header regular-header" title-start="0" title-end="100">
+        <gaia-header class="view-header regular-header" title-start="0" title-end="100">
           <h1 data-l10n-id="messages"></h1>
           <a href="#/composer" id="threads-composer-link" data-icon="compose" data-l10n-id="composeLink"></a>
           <a id="threads-options-button" data-icon="more" data-l10n-id="actionsButton"></a>
@@ -115,7 +115,7 @@
 
         <form id="threads-edit-form" role="dialog" data-type="edit">
           <section role="region" class="theme-settings">
-            <gaia-header ignore-dir id="threads-edit-header" action="close" no-font-fit>
+            <gaia-header id="threads-edit-header" action="close" no-font-fit>
               <h1 id="threads-edit-mode" data-l10n-id="selectThreads-title"></h1>
               <button id="threads-check-uncheck-all-button" class="edit-button" data-l10n-id="select-all"></button>
             </gaia-header>

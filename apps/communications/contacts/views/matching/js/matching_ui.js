@@ -70,7 +70,8 @@
                                           'suggestedDuplicatesMessage',
                                           params);
         } else {
-          document.title = this._('duplicatesFoundTitle');
+          navigator.mozL10n.setAttributes(document.querySelector('title'),
+                                        'duplicatesFoundTitle');
           // "xxx duplicates information in the following contacts"
           navigator.mozL10n.setAttributes(this.duplicateMessage,
                                           'foundDuplicatesMessage',

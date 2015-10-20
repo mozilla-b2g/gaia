@@ -72,7 +72,7 @@
   ATH.HISTOGRAM_EXP = 0;
   ATH.HISTOGRAM_LINEAR = 1;
   // This is exposed for unit testing purposes
-  ATH.TELEMETRY_ENABLED_KEY = 'debug.performance_data.advanced_telemetry';
+  ATH.TELEMETRY_LEVEL_KEY = 'metrics.selectedMetrics.level';
   ATH.SETTINGS_INITIALIZED = false;
 
   // API for an exponential histogram entry.  This function creates the
@@ -108,16 +108,20 @@
 
   AdvancedTelemetryHelper.init = function init() {
     ATH.telemetryEnabledListener = function telemetryEnabledListener(enabled) {
-      ATH.TELEMETRY_ENABLED = enabled;
+      if (enabled === 'Enhanced') {
+        ATH.TELEMETRY_LEVEL = true;
+      } else {
+        ATH.TELEMETRY_LEVEL = false;
+      }
     }.bind(this);
 
-    SettingsListener.observe(ATH.TELEMETRY_ENABLED_KEY,
+    SettingsListener.observe(ATH.TELEMETRY_LEVEL_KEY,
       false, ATH.telemetryEnabledListener);
   };
 
   AdvancedTelemetryHelper.prototype.createHistogram =
   function(name, type, min, max, buckets) {
-    if (typeof ATH.TELEMETRY_ENABLED === 'undefined' || ATH.TELEMETRY_ENABLED) {
+    if (typeof ATH.TELEMETRY_LEVEL === 'undefined' || ATH.TELEMETRY_LEVEL) {
       if (typeof this.metricType !== 'undefined') {
         console.warn('Cannot redefine histogram.  Must create a new object');
         return;
@@ -157,7 +161,7 @@
   //    For a counter histogram, this can be empty or 1 can be passed.
   //    For an exponential or linear histogram a valid value > 0 must be passed.
   AdvancedTelemetryHelper.prototype.add = function(value) {
-    if (typeof ATH.TELEMETRY_ENABLED === 'undefined' || ATH.TELEMETRY_ENABLED) {
+    if (typeof ATH.TELEMETRY_LEVEL === 'undefined' || ATH.TELEMETRY_LEVEL) {
       if (this.metricType == ATH.HISTOGRAM_COUNT) {
         value = 1;
       }

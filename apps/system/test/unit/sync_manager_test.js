@@ -9,6 +9,7 @@
 /* global asyncStorage */
 /* global BaseModule */
 /* global ERROR_GET_FXA_ASSERTION */
+/* global ERROR_INVALID_SYNC_ACCOUNT */
 /* global ERROR_SYNC_APP_KILLED */
 /* global ERROR_SYNC_REQUEST */
 /* global ERROR_UNVERIFIED_ACCOUNT */
@@ -427,10 +428,15 @@ suite('system/SyncManager >', () => {
   suite('onsyncenabling', () => {
     var syncManager;
 
-    var updateStateSpy;
+    var updateStateStub;
     var requestStub;
     var getAssertionStub;
     var getAssertionError;
+    var getKeysStub;
+    var getKeysError;
+    var trySyncStub;
+    var trySyncError;
+    var getAccountStub;
     var addEventListenerSpy;
 
     suiteSetup(() => {
@@ -443,7 +449,9 @@ suite('system/SyncManager >', () => {
     });
 
     setup(() => {
-      updateStateSpy = this.sinon.spy(syncManager, 'updateState');
+      updateStateStub = this.sinon.stub(syncManager, 'updateState', () => {
+        syncManager.updateStateDeferred = Promise.resolve();
+      });
       addEventListenerSpy = this.sinon.spy(window, 'addEventListener');
       requestStub = this.sinon.stub(MockService, 'request', () => {
         return Promise.resolve();
@@ -452,20 +460,37 @@ suite('system/SyncManager >', () => {
         return getAssertionError ? Promise.reject(getAssertionError)
                                  : Promise.resolve();
       });
+      getKeysStub = this.sinon.stub(syncManager, 'getKeys', () => {
+        return getKeysError ? Promise.reject(getKeysError)
+                            : Promise.resolve();
+      });
+      trySyncStub = this.sinon.stub(syncManager, 'trySync', () => {
+        return trySyncError ? Promise.reject(trySyncError)
+                            : Promise.resolve();
+      });
+      getAccountStub = this.sinon.stub(syncManager, 'getAccount', () => {
+        return Promise.resolve();
+      });
     });
 
     teardown(() => {
       addEventListenerSpy.restore();
-      updateStateSpy.restore();
+      updateStateStub.restore();
       requestStub.restore();
       getAssertionStub.restore();
+      getKeysStub.restore();
+      trySyncStub.restore();
+      getAccountStub.restore();
     });
 
     test('onsyncenabling received - success', done => {
       window.dispatchEvent(new CustomEvent('onsyncenabling'));
       setTimeout(() => {
-        this.sinon.assert.calledOnce(updateStateSpy);
+        this.sinon.assert.calledOnce(updateStateStub);
         this.sinon.assert.calledOnce(getAssertionStub);
+        this.sinon.assert.calledOnce(getKeysStub);
+        this.sinon.assert.calledOnce(trySyncStub);
+        this.sinon.assert.calledOnce(getAccountStub);
         this.sinon.assert.calledOnce(addEventListenerSpy);
         this.sinon.assert.calledWith(addEventListenerSpy,
                                      'mozFxAccountsUnsolChromeEvent');
@@ -480,19 +505,71 @@ suite('system/SyncManager >', () => {
         getAssertionError = null;
       });
 
-      getAssertionError = 'error';
+      getAssertionError = 'UNVERIFIED_ACCOUNT';
       window.dispatchEvent(new CustomEvent('onsyncenabling'));
       setTimeout(() => {
-        this.sinon.assert.calledOnce(updateStateSpy);
+        this.sinon.assert.calledOnce(updateStateStub);
         this.sinon.assert.calledOnce(getAssertionStub);
+        this.sinon.assert.notCalled(getKeysStub);
+        this.sinon.assert.notCalled(trySyncStub);
+        this.sinon.assert.notCalled(getAccountStub);
         this.sinon.assert.calledOnce(addEventListenerSpy);
         this.sinon.assert.calledWith(addEventListenerSpy,
                                      'mozFxAccountsUnsolChromeEvent');
         this.sinon.assert.calledOnce(requestStub);
-        assert.ok(requestStub.calledWith('SyncStateMachine:error'));
+        assert.equal(requestStub.getCall(0).args[0], 'SyncStateMachine:error');
+        assert.equal(requestStub.getCall(0).args[1],
+                     ERROR_INVALID_SYNC_ACCOUNT);
         done();
       });
     });
+
+    test('onsyncenabling received - getKeys error', done => {
+      teardown(() => {
+        getKeysError = null;
+      });
+
+      getKeysError = Date.now();
+      window.dispatchEvent(new CustomEvent('onsyncenabling'));
+      setTimeout(() => {
+        this.sinon.assert.calledOnce(updateStateStub);
+        this.sinon.assert.calledOnce(getAssertionStub);
+        this.sinon.assert.calledOnce(getKeysStub);
+        this.sinon.assert.notCalled(trySyncStub);
+        this.sinon.assert.notCalled(getAccountStub);
+        this.sinon.assert.calledOnce(addEventListenerSpy);
+        this.sinon.assert.calledWith(addEventListenerSpy,
+                                     'mozFxAccountsUnsolChromeEvent');
+        this.sinon.assert.calledOnce(requestStub);
+        assert.equal(requestStub.getCall(0).args[0], 'SyncStateMachine:error');
+        assert.equal(requestStub.getCall(0).args[1], getKeysError);
+        done();
+      });
+    });
+
+    test('onsyncenabling received - trySync error', done => {
+      teardown(() => {
+        trySyncError = null;
+      });
+
+      trySyncError = Date.now();
+      window.dispatchEvent(new CustomEvent('onsyncenabling'));
+      setTimeout(() => {
+        this.sinon.assert.calledOnce(updateStateStub);
+        this.sinon.assert.calledOnce(getAssertionStub);
+        this.sinon.assert.calledOnce(getKeysStub);
+        this.sinon.assert.calledOnce(trySyncStub);
+        this.sinon.assert.notCalled(getAccountStub);
+        this.sinon.assert.calledOnce(addEventListenerSpy);
+        this.sinon.assert.calledWith(addEventListenerSpy,
+                                     'mozFxAccountsUnsolChromeEvent');
+        this.sinon.assert.calledOnce(requestStub);
+        assert.equal(requestStub.getCall(0).args[0], 'SyncStateMachine:error');
+        assert.equal(requestStub.getCall(0).args[1], trySyncError);
+        done();
+      });
+    });
+
   });
 
   suite('onsyncerrored', () => {
@@ -1270,6 +1347,53 @@ suite('system/SyncManager >', () => {
         assert.ok(updateStatePreferenceSpy.notCalled);
         assert.equal(MockNavigatorSettings.mSettings['services.sync.enabled'],
                      initialValue);
+      });
+    });
+  });
+
+  suite('trySync', () => {
+    var syncManager;
+    var iacRequestStub;
+    var iacRequestError;
+
+    suiteSetup(() => {
+      syncManager = BaseModule.instantiate('SyncManager');
+      syncManager.start();
+    });
+
+    suiteTeardown(() => {
+      syncManager.stop();
+    });
+
+    setup(() => {
+      iacRequestStub = this.sinon.stub(syncManager, 'iacRequest', () => {
+        return Promise.resolve(iacRequestError ? {
+          error: {
+            message: iacRequestError
+          }
+        } : undefined);
+      });
+    });
+
+    teardown(() => {
+      iacRequestStub.restore();
+    });
+
+    test('trySync success', done => {
+      syncManager.trySync().then(done).catch(error => {
+        assert.ok(false, 'Unexpected error ' + error);
+        done();
+      });
+    });
+
+    test('trySync error', done => {
+      iacRequestError = Date.now();
+      syncManager.trySync().then(() => {
+        assert.ok(false, 'Unexpected success');
+        done();
+      }).catch(error => {
+        assert.equal(error, iacRequestError);
+        done();
       });
     });
   });

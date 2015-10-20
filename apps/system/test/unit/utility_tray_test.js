@@ -139,3 +139,42 @@ suite('UtilityTray', function() {
   });
 
 });
+
+
+suite('Notification Scroll Handling: ', function() {
+
+  var tray;
+
+  setup(function() {
+    tray = window.UtilityTray;
+    // Using fake elements here to make it easy to set `offsetTop`.
+    tray.notificationsContainer = {
+      style: document.createElement('div').style,
+    };
+    tray.footerContainer = {
+      style: document.createElement('div').style,
+    };
+    tray.nestedScrollInterceptor = document.createElement('div');
+  });
+
+  test('Notifications max-height adjusts to fit above footer', function() {
+    tray.notificationsContainer.offsetTop = 100;
+    tray.footerContainer.offsetTop = 400;
+    tray.recalculateNotificationsContainerHeight();
+    assert.equal(tray.notificationsContainer.style.maxHeight, '300px');
+  });
+
+  test('Scroll interceptor => overflow:scroll when notifications can scroll',
+  function() {
+    tray.notificationsContainer.scrollTopMax = 100;
+    tray.recalculateNotificationsContainerHeight();
+    assert.equal(tray.nestedScrollInterceptor.style.overflowY, 'scroll');
+  });
+
+  test('Scroll interceptor => overflow:hidden when notifications do not scroll',
+  function() {
+    tray.notificationsContainer.scrollTopMax = 0;
+    tray.recalculateNotificationsContainerHeight();
+    assert.equal(tray.nestedScrollInterceptor.style.overflowY, 'hidden');
+  });
+});

@@ -1,7 +1,9 @@
+/* global mozIntl */
 define(function(require, exports) {
 'use strict';
 
 var Timespan = require('./timespan');
+var co = require('ext/co');
 
 const SECOND = 1000;
 const MINUTE = (SECOND * 60);
@@ -26,12 +28,8 @@ Object.defineProperty(exports, 'today', {
   }
 });
 
-exports.getTimeL10nLabel = function(timeLabel) {
-  return timeLabel + (navigator.mozHour12 ? '12' : '24');
-};
-
 exports.daysInWeek = function() {
-  // XXX: We need to localize this...
+  // XXX: We need to add this to mozIntl.calendarInfo
   return 7;
 };
 
@@ -572,9 +570,9 @@ exports.isAllDay = function(baseDate, startDate, endDate) {
 };
 
 if (typeof(window) !== 'undefined') {
-  window.addEventListener('localized', () => {
-    exports.startDay = parseInt(navigator.mozL10n.get('firstDayOfTheWeek'), 10);
-  });
+  window.addEventListener('localized', co.wrap(function *() {
+    exports.startDay = yield mozIntl.calendarInfo('firstDayOfTheWeek');
+  }));
 }
 
 });

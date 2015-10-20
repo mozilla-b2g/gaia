@@ -121,6 +121,10 @@ var Settings = {
       this.handleSignInClick.bind(this));
     this.firefoxAccountResendButton.addEventListener('mouseup',
       this.handleResendClick.bind(this));
+    this.firefoxAccountForgetButton.addEventListener('mouseup',
+      this.handleForgetClick.bind(this));
+    this.firefoxAccountDisconnectButton.addEventListener('mouseup',
+      this.handleDisconnectClick.bind(this));
 
     this.settingsDialogHomepageInput.addEventListener('submit',
       this.handleDialogHomepageInputSubmit.bind(this));
@@ -504,6 +508,26 @@ var Settings = {
     e.stopPropagation();
     e.preventDefault();
     this.firefoxAccount.openFlow();
+  },
+
+  handleForgetClick: function settings_handleForgetClick(e) {
+    e.stopPropagation();
+    e.preventDefault();
+    this.disconnectAccount();
+  },
+
+  handleDisconnectClick: function settings_handleDisconnectClick(e) {
+    e.stopPropagation();
+    e.preventDefault();
+    BrowserDialog.createDialog('signout_confirm', null);
+  },
+
+  disconnectAccount: function settings_disconnectAccount() {
+    this.firefoxAccount.signOut((email) => {
+      return navigator.mozL10n.formatValue('fxa-sign-out-alert').then((msg) => {
+        window.alert(msg);
+      });
+    });
   },
 
   handleResendClick: function settings_handleResendClick(e) {

@@ -4,7 +4,7 @@
 (function(exports) {
 
   const LEARN_MORE_URL =
-    'https://support.mozilla.org/products/firefox-os/privacy-and-security';
+    'https://support.mozilla.org/kb/tracking-protection-firefox-os';
 
   /**
    * @class TrackingNotice

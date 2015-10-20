@@ -44,6 +44,9 @@
     <script defer src="shared/elements/config.js"></script>
     <script defer src="shared/js/component_utils.js"></script>
     <!-- <script defer src="/shared/js/homescreens/confirm_dialog_helper.js"></script> -->
+    <!-- <script defer src="/shared/js/gzip/gzip.js"></script> -->
+    <!-- <script defer src="/shared/js/gzip/gzip_worker.js"></script> -->
+    <!-- <script defer src="/shared/js/gzip/gzip.min.js"></script> -->
     <!-- <script defer src="/shared/elements/gaia_confirm/script.js"></script> -->
     <!-- <script defer src="/shared/elements/gaia_menu/script.js"></script> -->
     <!-- <script defer src="/shared/elements/gaia_switch/script.js"></script> -->
@@ -240,7 +243,7 @@
       <div id="rocketbar-results" class="hidden" data-z-index-level="rocketbar-results"></div>
 
       <div id="utility-tray-motion" data-z-index-level="utility-tray" class="tray utility-tray-loading">
-        <div class="tray-content" id="utility-tray">
+        <div class="tray-content" aria-hidden="true" id="utility-tray">
           <!-- Notifications -->
           <div id="utility-tray-notifications" data-l10n-id="utilityTray" role="dialog" aria-label="Utility tray" data-z-index-level="utility-tray-notifications">
             <div id="statusbar-tray">
@@ -253,48 +256,50 @@
               </div>
             </div>
 
-            <div id="notifications-container">
-              <!-- Attention Windows -->
-              <div id="attention-window-notifications-container"></div>
-              <!-- Update Manager -->
-              <div id="update-manager-container" class="fake-notification" role="link">
-                <div data-icon="download-circle" aria-hidden="true"></div>
-                <div class="title-container"></div>
-                <progress></progress>
-              </div>
-              <!-- Emergency callback manager -->
-              <div id="emergency-callback-notification" class="fake-notification" hidden role="link">
-                <div data-icon="call-emergency" class="alert" aria-hidden="true"></div>
-                <div class="title-container" data-l10n-id="emergency-callback-mode"></div>
-                <div class="timer detail"></div>
-              </div>
-              <!-- Storage watcher notification -->
-              <div id="storage-watcher-container" class="fake-notification" role="link">
-                <div data-icon="storage-circle" aria-hidden="true"></div>
-                <div class="title-container"></div>
-                <div class="detail"></div>
-              </div>
-              <!-- App install manager notification -->
-              <div id="install-manager-notification-container">
-              </div>
-              <!-- Bluetooth transfer -->
-              <div id="bluetooth-transfer-status-list">
-              </div>
-              <!-- IME list -->
-              <div id="keyboard-show-ime-list">
-                <div class="fake-notification" role="link">
-                  <div data-icon="keyboard-circle" aria-hidden="true"></div>
+            <div id="notifications-nested-scroll-interceptor">
+              <div id="notifications-container">
+                <!-- Attention Windows -->
+                <div id="attention-window-notifications-container"></div>
+                <!-- Update Manager -->
+                <div id="update-manager-container" class="fake-notification" role="link">
+                  <div data-icon="download-circle" aria-hidden="true"></div>
+                  <div class="title-container"></div>
+                  <progress></progress>
+                </div>
+                <!-- Emergency callback manager -->
+                <div id="emergency-callback-notification" class="fake-notification" hidden role="link">
+                  <div data-icon="call-emergency" class="alert" aria-hidden="true"></div>
+                  <div class="title-container" data-l10n-id="emergency-callback-mode"></div>
+                  <div class="timer detail"></div>
+                </div>
+                <!-- Storage watcher notification -->
+                <div id="storage-watcher-container" class="fake-notification" role="link">
+                  <div data-icon="storage-circle" aria-hidden="true"></div>
                   <div class="title-container"></div>
                   <div class="detail"></div>
                 </div>
-              </div>
-              <!-- Media recording status -->
-              <div id="media-recording-status-list" role="list">
-              </div>
-              <!-- Notifications container -->
-              <div id="desktop-notifications-container">
-                <div class="priority-notifications"></div>
-                <div class="other-notifications"></div>
+                <!-- App install manager notification -->
+                <div id="install-manager-notification-container">
+                </div>
+                <!-- Bluetooth transfer -->
+                <div id="bluetooth-transfer-status-list">
+                </div>
+                <!-- IME list -->
+                <div id="keyboard-show-ime-list">
+                  <div class="fake-notification" role="link">
+                    <div data-icon="keyboard-circle" aria-hidden="true"></div>
+                    <div class="title-container"></div>
+                    <div class="detail"></div>
+                  </div>
+                </div>
+                <!-- Media recording status -->
+                <div id="media-recording-status-list" role="list">
+                </div>
+                <!-- Notifications container -->
+                <div id="desktop-notifications-container">
+                  <div class="priority-notifications"></div>
+                  <div class="other-notifications"></div>
+                </div>
               </div>
             </div>
           </div>
@@ -331,12 +336,11 @@
               </div>
             </div>
             <div id="utility-tray-grippy"></div>
-            <div class="ambient-indicator" id="ambient-indicator" data-z-index-level="notification-toaster">
-              <div class="handle handle1"></div>
-              <div class="handle handle2"></div>
-            </div>
           </div>
-
+        </div>
+        <div class="ambient-indicator" id="ambient-indicator" data-z-index-level="notification-toaster">
+          <div class="handle handle1"></div>
+          <div class="handle handle2"></div>
         </div>
         <div id="tray-invisible-gripper">
         </div>

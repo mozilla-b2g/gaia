@@ -60,7 +60,8 @@
     // Then look for an icon in the Firefox manifest.
     if (!iconUrl && siteObj.manifest) {
       iconUrl = getBestIconFromWebManifest({
-        icons: _convertToWebManifestIcons(siteObj.manifest)
+        icons: _convertToWebManifestIcons(siteObj.manifest,
+          siteObj.origin || siteObj.manifest.origin)
       }, iconTargetSize);
       if (DEBUG && iconUrl) {
         console.log('Icon from Firefox App Manifest');
@@ -203,11 +204,11 @@
     return iconURL ? iconURL : null;
   }
 
-  function _convertToWebManifestIcons(manifest) {
+  function _convertToWebManifestIcons(manifest, origin) {
     return Object.keys(manifest.icons).map(function(size) {
       var url = manifest.icons[size];
       var sizes = [size + 'x' + size];
-      url = url.indexOf('http') > -1 ? url : manifest.origin + url;
+      url = url.indexOf('http') > -1 ? url : origin + url;
 
       return {
         src: new URL(url),

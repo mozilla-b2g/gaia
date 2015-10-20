@@ -134,7 +134,7 @@ suite('Views.SingleDay', function() {
         sanitize(alldaysHolder.innerHTML),
         sanitize(`<div class="md__allday" data-date="${d}">
           <h1 class="md__day-name" aria-level="2"
-            id="md__day-name-${subject._instanceID}">Wed 23</h1>
+            id="md__day-name-${subject._instanceID}">23 Wed</h1>
           <div aria-describedby="md__day-name-${subject._instanceID}"
             data-l10n-id="create-all-day-event" role="button"
             class="md__allday-events"></div>
@@ -146,7 +146,7 @@ suite('Views.SingleDay', function() {
   test('#handleEvent', function() {
     subject._dayName = { textContent: 'foo' };
     subject.handleEvent({type: 'localized'});
-    assert.equal(subject._dayName.textContent, 'Wed 23');
+    assert.equal(subject._dayName.textContent, '23 Wed');
   });
 
   test('#destroy', function() {
@@ -303,7 +303,7 @@ suite('Views.SingleDay', function() {
       var dayName = alldaysHolder.querySelector('.md__day-name');
       assert.equal(dayName.getAttribute('aria-level'), '2', '3: day level');
       assert.equal(dayName.id, `md__day-name-${id}`, '3: day id');
-      assert.equal(dayName.textContent.trim(), 'Wed 23', '3: day');
+      assert.equal(dayName.textContent.trim(), '23 Wed', '3: day');
 
       var wrapper = alldaysHolder.querySelector('.md__allday-events');
       assert.equal(

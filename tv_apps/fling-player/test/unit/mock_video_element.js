@@ -8,24 +8,32 @@
   'use strict';
 
   function MockVideoElement(config = {}) {
+    var self = this;
     this.src = config.src || '';
     this.ended = config.ended || false;
     this.paused = config.paused || true;
     this.hidden = config.hidden || false;
     this.duration = config.duration || 0;
     this.currentTime = config.currentTime || 0;
+    this.buffered = {
+      length : 1,
+      start : function () {
+        return 0;
+      },
+      end : function () {
+        return Math.max(self.currentTime + 10, self.duration);
+      }
+    };
 
     this._events = {};
   }
 
   var proto = MockVideoElement.prototype;
 
-  proto.fireEvent = function (type) {
+  proto.fireEvent = function (e) {
 
-    var listeners = this._events[type];
+    var listeners = this._events[e.type];
     if (listeners) {
-
-      var e = { type : type };
 
       listeners.forEach((listener) => {
         if (typeof listener == 'function') {
@@ -54,17 +62,17 @@
   proto.load =  function () {
     this.paused = false;
     this.currentTime = 0;
-    this.fireEvent('loadedmetadata');
+    this.fireEvent(new Event('loadedmetadata'));
   };
 
   proto.play = function () {
     this.paused = false;
-    this.fireEvent('playing');
+    this.fireEvent(new Event('playing'));
   };
 
   proto.pause = function () {
     this.paused = true;
-    this.fireEvent('pause');
+    this.fireEvent(new Event('pause'));
   };
 
   exports.MockVideoElement = MockVideoElement;

@@ -97,6 +97,7 @@
     this.pageHeight = 1;
     this.gridHeight = 1;
     this.pendingGridHeight = 1;
+    this.iconsPerPage = 0;
 
     // Scroll behaviour
     this.appsVisible = false;
@@ -136,8 +137,10 @@
     // Settings
     this.settings = new Settings();
     this.icons.classList.toggle('small', this.settings.small);
+    this.scrollable.classList.toggle('snapping', this.settings.scrollSnapping);
 
     // Populate apps and bookmarks asynchronously
+    this.metadataLoaded = 0;
     this.startupMetadata = [];
     this.iconsToRetry = [];
     this.pendingIcons = {};
@@ -156,10 +159,10 @@
       // won't save, but it's better than showing a blank screen.
       // If this is the first run, get the app order from the first-run script
       // after initialising the metadata database.
-      this.metadata.init().then(this.settings.firstRun ?
-        LazyLoader.load(['js/firstrun.js'],
+      this.metadata.init().then(this.settings.firstRun ? () => {
+        return LazyLoader.load('js/firstrun.js').then(
           () => {
-            FirstRun().then((results) => {
+            return FirstRun().then((results) => {
               this.toggleSmall(results.small);
               this.startupMetadata = results.order;
               this.settings.save();
@@ -172,14 +175,31 @@
           (e) => {
             console.error('Failed to load first-run script');
             return Promise.resolve();
-          }) :
+          });
+        } :
         () => {
           return this.metadata.getAll(result => {
-            // Process results as they come in
             this.startupMetadata.push(result);
-            if (this.pendingIcons[result.id]) {
-              this.addAppIcon.apply(this, this.pendingIcons[result.id]);
-              delete this.pendingIcons[result.id];
+            this.metadataLoaded++;
+
+            // Process results in batches as they come in
+            var processResult = data => {
+              if (this.pendingIcons[data.id]) {
+                this.addAppIcon.apply(this, this.pendingIcons[data.id]);
+                delete this.pendingIcons[data.id];
+              }
+            };
+
+            if (!this.visualLoadComplete) {
+              processResult(result);
+              this.refreshGridSize();
+            } else if ((this.metadataLoaded % this.iconsPerPage) === 0) {
+              this.icons.freeze();
+              for (var entry of this.startupMetadata) {
+                processResult(entry);
+              }
+              this.refreshGridSize();
+              this.icons.thaw();
             }
           }).then(Promise.resolve(),
             e => {
@@ -304,6 +324,11 @@
       // Store app order of new icons
       if (newIcons) {
         this.storeAppOrder();
+      } else {
+        // Grid size is only refreshed in the non-startup path, so unless we
+        // added new icons post-startup, refresh here to make sure it's the
+        // correct size.
+        this.refreshGridSize();
       }
 
       // All asynchronous loading has finished
@@ -348,7 +373,7 @@
         return;
       }
 
-      this.scrollable.classList.toggle('snapping', this.scrollSnapping);
+      this.scrollable.classList.toggle('snapping', scrollSnapping);
       this.snapScrollPosition();
     },
 
@@ -399,14 +424,19 @@
           if (child.order !== -1 && child.order < container.order) {
             continue;
           }
-          this.icons.insertBefore(container, child,
-                                  this.iconAdded.bind(this, container));
+          this.icons.insertBefore(container, child);
+          if (this.startupMetadata === null) {
+            this.iconAdded(container);
+          }
           break;
         }
       }
 
       if (!container.parentNode) {
-        this.icons.appendChild(container, this.iconAdded.bind(this, container));
+        this.icons.appendChild(container);
+        if (this.startupMetadata === null) {
+          this.iconAdded(container);
+        }
       }
 
       return container;
@@ -553,7 +583,8 @@
       } else {
         var iconHeight = Math.round(children[firstVisibleChild].offsetHeight);
         var scrollHeight = this.scrollable.clientHeight;
-        var pageHeight = Math.floor(scrollHeight / iconHeight) * iconHeight;
+        var rowsPerPage = Math.floor(scrollHeight / iconHeight);
+        var pageHeight = rowsPerPage * iconHeight;
         var gridHeight = (Math.ceil((iconHeight *
           Math.ceil(visibleChildren /
                     (this.settings.small ? 4 : 3))) / pageHeight) *
@@ -561,7 +592,10 @@
 
         this.pageHeight = pageHeight;
         this.pendingGridHeight = gridHeight;
+        this.iconsPerPage = rowsPerPage * (this.settings.small ? 4 : 3);
 
+        // When a full screen of apps is visible, we mark that as visual loading
+        // being complete.
         if (!this.visualLoadComplete &&
             Math.floor(visibleChildren /
                        (this.settings.small ? 4 : 3)) * iconHeight >=
@@ -601,7 +635,7 @@
       var scrollHeight = this.scrollable.clientHeight;
 
       var destination;
-      if (this.scrollSnapping) {
+      if (this.settings.scrollSnapping) {
         destination = Math.min(gridHeight - scrollHeight,
           Math.round(currentScroll / this.pageHeight + bias) * this.pageHeight);
       } else {

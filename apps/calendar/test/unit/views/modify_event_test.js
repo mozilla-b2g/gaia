@@ -24,7 +24,6 @@ suite('views/modify_event', function() {
 
   var subject;
   var controller;
-  var fmt;
 
   var provider;
 
@@ -91,8 +90,6 @@ suite('views/modify_event', function() {
     calendarStore = storeFactory.get('Calendar');
     settingStore = storeFactory.get('Setting');
     provider = core.providerFactory.get('Mock');
-
-    fmt = navigator.mozL10n.DateTimeFormat();
 
     controller = core.timeController;
 

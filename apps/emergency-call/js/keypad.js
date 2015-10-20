@@ -291,7 +291,7 @@ var KeypadManager = {
   addEllipsis: function kh_addEllipsis(view, fakeView, currentFontSize) {
     var viewWidth = view.getBoundingClientRect().width;
     fakeView.style.fontSize = currentFontSize + 'px';
-    fakeView.innerHTML = view.value;
+    fakeView.textContent = view.value;
 
     var counter = 1;
     var value = view.value;
@@ -299,7 +299,7 @@ var KeypadManager = {
     var newPhoneNumber;
     while (fakeView.getBoundingClientRect().width > viewWidth) {
       newPhoneNumber = '\u2026' + value.substr(-value.length + counter);
-      fakeView.innerHTML = newPhoneNumber;
+      fakeView.textContent = newPhoneNumber;
       counter++;
     }
 
@@ -312,7 +312,7 @@ var KeypadManager = {
                                                fontSize, initialFontSize) {
     var viewWidth = view.getBoundingClientRect().width;
     fakeView.style.fontSize = fontSize + 'px';
-    fakeView.innerHTML = view.value;
+    fakeView.textContent = view.value;
 
     var rect = fakeView.getBoundingClientRect();
     while ((rect.width > viewWidth) && (fontSize > minFontSize)) {

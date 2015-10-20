@@ -232,7 +232,7 @@ suite('Homescreen app', () => {
       });
 
       teardown(() => {
-        delete Settings.firstRun;
+        Settings.firstRun = false;
       });
 
       test('should initialise the bookmark stores', done => {
@@ -342,7 +342,9 @@ suite('Homescreen app', () => {
           if (!childIsVisible) {
             el.style.display = 'none';
           }
-          cb();
+          if (cb) {
+            cb();
+          }
         });
       });
 
@@ -542,11 +544,11 @@ suite('Homescreen app', () => {
         scrollTo: () => {}
       };
       scrollToSpy = sinon.spy(app.scrollable, 'scrollTo');
-      app.scrollSnapping = true;
+      app.settings.scrollSnapping = true;
     });
 
     teardown(() => {
-      app.scrollSnapping = false;
+      app.settings.scrollSnapping = false;
       app.scrollable = realScrollable;
     });
 
@@ -581,6 +583,16 @@ suite('Homescreen app', () => {
       assert.equal(app.scrollable.style.overflow, '');
       assert.isTrue(scrollToSpy.calledWith(
                       { left: 0, top: 0, behavior: 'smooth' }));
+    });
+
+    test('should do nothing if snapping disabled', () => {
+      app.settings.scrollSnapping = false;
+      app.pendingGridHeight = 500;
+      app.pageHeight = 100;
+      app.scrollable.scrollTop = 10;
+
+      app.snapScrollPosition();
+      assert.isFalse(scrollToSpy.called);
     });
   });
 

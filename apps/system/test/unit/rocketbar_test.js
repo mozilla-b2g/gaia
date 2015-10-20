@@ -615,13 +615,15 @@ suite('system/Rocketbar', function() {
         this.sinon.stub(searchWindow, 'getTopMostWindow').returns(app1);
         this.sinon.stub(app1, 'broadcast');
         var respond =
-          subject.respondToHierarchyEvent(new CustomEvent('mozChromeEvent', {
+          subject.respondToHierarchyEvent({
+            type: 'inputfocus',
             detail: {
-              type: 'inputmethod-contextchange'
+              type: 'input',
+              inputType: 'text'
             }
-          }));
+          });
         assert.isFalse(respond);
-        assert.isTrue(app1.broadcast.calledWith('inputmethod-contextchange'));
+        assert.isTrue(app1.broadcast.calledWith('inputfocus'));
       });
 
     test('Value selector event without front window',
@@ -630,25 +632,29 @@ suite('system/Rocketbar', function() {
         subject.searchWindow = searchWindow;
         this.sinon.stub(searchWindow, 'broadcast');
         var respond =
-          subject.respondToHierarchyEvent(new CustomEvent('mozChromeEvent', {
+          subject.respondToHierarchyEvent({
+            type: 'inputfocus',
             detail: {
-              type: 'inputmethod-contextchange'
+              type: 'input',
+              inputType: 'text'
             }
-          }));
+          });
         assert.isFalse(respond);
         assert.isTrue(
-          searchWindow.broadcast.calledWith('inputmethod-contextchange'));
+          searchWindow.broadcast.calledWith('inputfocus'));
       });
 
     test('Value selector event without search window',
       function() {
         subject.searchWindow = null;
         var respond =
-          subject.respondToHierarchyEvent(new CustomEvent('mozChromeEvent', {
+          subject.respondToHierarchyEvent({
+            type: 'inputfocus',
             detail: {
-              type: 'inputmethod-contextchange'
+              type: 'input',
+              inputType: 'text'
             }
-          }));
+          });
         assert.isTrue(respond);
       });
   });

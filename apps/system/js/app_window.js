@@ -227,10 +227,10 @@
     if (!this.isBrowser()) {
       return false;
     }
-
-    var url = new URL(this.config.url);
-    var path = url.hostname + url.pathname;
-    return path.indexOf(scope) === 0;
+    // within-scope per http://www.w3.org/TR/appmanifest/#dfn-within-scope
+    // except we also support paths
+    var target = this.config.url;
+    return scope && target.startsWith(scope);
   };
 
   /**
@@ -873,10 +873,16 @@
         }
       }
 
-      // Need to wait for mozbrowserloadend to get allowedAudioChannels.
-      this.browser.element.addEventListener('mozbrowserloadend', () => {
-        this._registerAudioChannels();
-      });
+      // Need to wait for mozbrowserloadstart to get allowedAudioChannels.
+      this.browser.element.addEventListener(
+        'mozbrowserloadstart',
+        function onloadstart() {
+          this.browser.element.removeEventListener(
+            'mozbrowserloadstart', onloadstart
+          );
+          this._registerAudioChannels();
+        }.bind(this)
+      );
 
       if (this.isInputMethod) {
         return;
@@ -2515,6 +2521,7 @@
       }
       siteObj.manifestUrl = this.manifestURL;
       siteObj.manifest = this.manifest;
+      siteObj.origin = new URL(this.origin).origin;
     }
 
     if (this.webManifestURL && !this.webManifest) {

@@ -199,8 +199,10 @@ var Database = (function() {
       musicdb.scan();
 
       status.unavailable = false;
+      status.enumerable = true;
       status.ready = true;
 
+      resolveEnumerable();
       resolveReady();
 
       service.broadcast('databaseReady', refreshOnReady);

@@ -37,7 +37,6 @@
   modules.set('bindings/html/langs', function () {
     const { prioritizeLocales } = getModule('lib/intl');
     const { pseudo } = getModule('lib/pseudo');
-    const rtlList = ['ar', 'he', 'fa', 'ps', 'qps-plocm', 'ur'];
 
     function getMeta(head) {
       let availableLangs = Object.create(null);
@@ -94,8 +93,7 @@
       const newLangs = prioritizeLocales(defaultLang, allAvailableLangs, requestedLangs);
       const langs = newLangs.map(code => ({
         code: code,
-        src: getLangSource(appVersion, availableLangs, additionalLangs, code),
-        dir: getDirection(code)
+        src: getLangSource(appVersion, availableLangs, additionalLangs, code)
       }));
 
       if (!arrEqual(prevLangs, newLangs)) {
@@ -103,10 +101,6 @@
       }
 
       return langs;
-    }
-
-    function getDirection(code) {
-      return rtlList.indexOf(code) >= 0 ? 'rtl' : 'ltr';
     }
 
     function arrEqual(arr1, arr2) {
@@ -139,7 +133,7 @@
       return 'app';
     }
 
-    return { getMeta, negotiateLanguages, getDirection };
+    return { getMeta, negotiateLanguages };
   });
   modules.set('bindings/html/shims', function () {
     if (typeof NodeList === 'function' && !NodeList.prototype[Symbol.iterator]) {
@@ -159,7 +153,11 @@
       });
     }
 
-    return { documentReady };
+    function getDirection(code) {
+      return ['ar', 'he', 'fa', 'ps', 'qps-plocm', 'ur'].indexOf(code) >= 0 ? 'rtl' : 'ltr';
+    }
+
+    return { documentReady, getDirection };
   });
   modules.set('lib/events', function () {
     function emit(listeners, ...args) {

@@ -11,16 +11,13 @@ var BookmarkRemover = {
         return;
       }
 
-      var _ = navigator.mozL10n.get;
-
-      var nameObj = {
-        name: bookmark.name
-      };
-
       // Title and message
-      document.getElementById('title').textContent = _('remove-title', nameObj);
-      document.getElementById('message').textContent =
-                                        _('remove-message', nameObj);
+      var ttl = document.getElementById('title');
+      var msg = document.getElementById('message');
+      ttl.setAttribute('data-l10n-id', 'remove-title');
+      ttl.setAttribute('data-l10n-args', `{ "name": "${bookmark.name}" }`);
+      msg.setAttribute('data-l10n-id', 'remove-message');
+      msg.setAttribute('data-l10n-args', `{ "name": "${bookmark.name}" }`);
 
       // Action handlers
       document.getElementById('cancel-action').addEventListener('click',

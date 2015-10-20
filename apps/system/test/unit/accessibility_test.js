@@ -67,13 +67,16 @@ suite('system/Accessibility', function() {
     type: 'logohidden'
   };
 
-  var fakeFTUStarted = {
-    type: 'ftustarted',
+  var fakeFTUCommsStarted = {
+    type: 'iac-ftucomms',
+    detail: 'started',
     timeStamp: Date.now()
   };
 
-  var fakeFTUStep = {
-    type: 'ftustep'
+  var fakeFTUCommsStep = {
+    type: 'iac-ftucomms',
+    detail: { type: 'step', hash: '#foo' },
+    timeStamp: Date.now()
   };
 
   function getAccessFuOutput(aDetails) {
@@ -142,46 +145,47 @@ suite('system/Accessibility', function() {
   });
 
   suite('ftu events', function() {
-    test('ftustarted handler', function() {
+    test('ftucomms started handler', function() {
       var stubHandleFTUStarted = this.sinon.stub(accessibility,
         'handleFTUStarted');
-      accessibility.handleEvent(fakeFTUStarted);
-      assert.isTrue(stubHandleFTUStarted.calledWith(fakeFTUStarted));
+      accessibility.handleEvent(fakeFTUCommsStarted);
+      assert.isTrue(stubHandleFTUStarted.calledWith(fakeFTUCommsStarted));
     });
 
     test('ftustep handler', function() {
       var stubHandleFTUStep = this.sinon.stub(accessibility, 'handleFTUStep');
-      accessibility.handleEvent(fakeFTUStep);
+      accessibility.handleEvent(fakeFTUCommsStep);
       assert.isTrue(stubHandleFTUStep.called);
     });
 
     test('handleFTUStep', function() {
       var stubReset = this.sinon.stub(accessibility, 'reset');
       var stubCancelSpeech = this.sinon.stub(accessibility, 'cancelSpeech');
-      var stubDisableFTUStartedTimeout = this.sinon.stub(accessibility,
+      var spyDisableFTUStartedTimeout = this.sinon.spy(accessibility,
         'disableFTUStartedTimeout');
       var stubRemoveEventListener = this.sinon.stub(window,
         'removeEventListener');
+      accessibility.FTUStartedTimeout = {};
 
       accessibility.handleFTUStep();
+
+      assert.ok(!accessibility.FTUStartedTimeout);
       assert.isTrue(stubReset.called);
       assert.isTrue(stubCancelSpeech.called);
-      assert.isTrue(stubDisableFTUStartedTimeout.called);
-      assert.isTrue(stubRemoveEventListener.calledWith('ftustep',
+      assert.isTrue(spyDisableFTUStartedTimeout.called);
+      assert.isTrue(stubRemoveEventListener.calledWith('iac-ftucomms',
         accessibility));
     });
 
     test('handleFTUStarted screen reader turned off', function(done) {
       var stubReset = this.sinon.stub(accessibility, 'reset');
       var stubCancelSpeech = this.sinon.stub(accessibility, 'cancelSpeech');
-      var stubAddEventListener = this.sinon.stub(window, 'addEventListener');
       var stubAnnounceScreenReader = this.sinon.stub(accessibility,
         'announceScreenReader');
       SettingsListener.mTriggerCallback('accessibility.screenreader', false);
       accessibility.FTU_STARTED_TIMEOUT = 0;
 
       accessibility.handleFTUStarted();
-      assert.isTrue(stubAddEventListener.calledWith('ftustep', accessibility));
       // Wait until the FTU_STARTED_TIMEOUT expires.
       setTimeout(() => {
         assert.isTrue(stubReset.called);
@@ -192,11 +196,12 @@ suite('system/Accessibility', function() {
     });
 
     test('handleFTUStarted screen reader turned on', function() {
-      var stubAddEventListener = this.sinon.stub(window, 'addEventListener');
       SettingsListener.mTriggerCallback('accessibility.screenreader', true);
+      // make sure the timeout starts false and stays false
+      assert.ok(!this.FTUStartedTimeout);
 
       accessibility.handleFTUStarted();
-      assert.isFalse(stubAddEventListener.called);
+      assert.ok(!this.FTUStartedTimeout);
       // Turn the screen reader back off.
       SettingsListener.mTriggerCallback('accessibility.screenreader', false);
     });

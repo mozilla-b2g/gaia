@@ -1108,6 +1108,17 @@ section[role="status"].toast-visible {
 }
 
 /******************************************************************************
+ * Improve B2G OS
+ */
+ul li p.metrics-explain {
+  font-size: 1.35rem;
+  line-height: 1.8rem;
+  color: #949494;
+  margin: 0;
+  padding: 0;
+}
+
+/******************************************************************************
  * Right-To-Left layout
  */
 html[dir="rtl"] .passcode-input {

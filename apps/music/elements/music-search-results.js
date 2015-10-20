@@ -18,20 +18,24 @@ var template =
     font-size: 30px;
     -webkit-font-smoothing: antialiased;
   }
+  music-search-results {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s linear, visibility 0s linear 0.2s;
+    pointer-events: none;
+  }
+  music-search-results[active] {
+    opacity: 1;
+    visibility: visible;
+    transition-delay: 0s, 0s;
+    pointer-events: auto;
+  }
   #list {
     background: var(--background);
     position: relative;
     width: 100%;
     height: 100%;
     z-index: 99999;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.2s linear, visibility 0s linear 0.2s;
-  }
-  #list.active {
-    opacity: 1;
-    visibility: visible;
-    transition-delay: 0s, 0s;
   }
   #list a {
     color: var(--text-color);
@@ -104,7 +108,7 @@ proto.getItemImageSrc = function() {};
 proto.open = function() {
   return new Promise((resolve) => {
     window.requestAnimationFrame(() => {
-      this.els.list.classList.add('active');
+      this.setAttribute('active', true);
       resolve();
     });
 
@@ -115,7 +119,7 @@ proto.open = function() {
 proto.close = function() {
   return new Promise((resolve) => {
     window.requestAnimationFrame(() => {
-      this.els.list.classList.remove('active');
+      this.removeAttribute('active');
       resolve();
     });
 

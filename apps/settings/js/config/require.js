@@ -303,7 +303,10 @@ require.config({
     },
     {
       name: 'panels/browsing_privacy/panel',
-      exclude: ['main']
+      exclude: [
+        'main',
+        'modules/dialog_service'
+      ]
     },
     {
       name: 'panels/search/panel',

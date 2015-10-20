@@ -66,37 +66,46 @@ client.on('stop', () => {
 
 client.on('databaseChange', () => updateOverlays());
 
-client.on('databaseUpgrade', () => upgradeOverlay.hidden = false);
+client.on('databaseUpgrade', () => {
+  if (upgradeOverlay) {
+    upgradeOverlay.hidden = false;
+  }
+});
 
 client.on('databaseUnavailable', (reason) => {
-  noCardOverlay.hidden    = reason !== 'nocard';
-  pluggedInOverlay.hidden = reason !== 'pluggedin';
+  if (noCardOverlay) {
+    noCardOverlay.hidden    = reason !== 'nocard';
+  }
+  if (pluggedInOverlay) {
+    pluggedInOverlay.hidden = reason !== 'pluggedin';
+  }
 });
 
 client.on('databaseEnumerable', () => upgradeOverlay.hidden = true);
 
 client.on('databaseReady', () => {
-  noCardOverlay.hidden    = true;
-  pluggedInOverlay.hidden = true;
+  if (noCardOverlay) {
+    noCardOverlay.hidden    = true;
+  }
+  if (pluggedInOverlay) {
+    pluggedInOverlay.hidden = true;
+  }
 });
 
+// scanProgress and scanStopped must always act in the order they're received.
+// If you add a Promise to either of these handlers, be careful!
+
 client.on('scanProgress', (detail) => {
-  document.l10n.formatValues(
-    'unknownArtist', 'unknownTitle'
-  ).then(([unknownArtist, unknownTitle]) => {
-    scanProgress.show({
-      value:      detail.count,
-      heading:    detail.artist || unknownArtist,
-      subheading: detail.title  || unknownTitle
-    });
+  scanProgress.show({
+    value:      detail.count,
+    heading:    detail.artist,
+    subheading: detail.title
   });
 });
 
 client.on('scanStopped', () => scanProgress.hide());
 
 client.connect();
-
-updateOverlays();
 
 var header             = $id('header');
 var headerTitle        = $id('header-title');
@@ -109,6 +118,8 @@ var noCardOverlay      = $id('no-card-overlay');
 var pluggedInOverlay   = $id('plugged-in-overlay');
 var upgradeOverlay     = $id('upgrade-overlay');
 var scanProgress       = $id('scan-progress');
+
+updateOverlays();
 
 header.addEventListener('action', (evt) => {
   if (evt.detail.type !== 'back') {
@@ -194,10 +205,18 @@ tabBar.addEventListener('change', (evt) => {
   navigateToURL(tab.dataset.url, true);
 });
 
-emptyOverlay.addEventListener('action', () => cancelActivity());
-noCardOverlay.addEventListener('action', () => cancelActivity());
-pluggedInOverlay.addEventListener('action', () => cancelActivity());
-upgradeOverlay.addEventListener('action', () => cancelActivity());
+if (emptyOverlay) {
+  emptyOverlay.addEventListener('action', () => cancelActivity());
+}
+if (noCardOverlay) {
+  noCardOverlay.addEventListener('action', () => cancelActivity());
+}
+if (pluggedInOverlay) {
+  pluggedInOverlay.addEventListener('action', () => cancelActivity());
+}
+if (upgradeOverlay) {
+  upgradeOverlay.addEventListener('action', () => cancelActivity());
+}
 
 if (SERVICE_WORKERS) {
   navigator.serviceWorker.getRegistration().then((registration) => {
@@ -266,15 +285,24 @@ function navigateToURL(url, replaceRoot) {
 }
 
 function updateOverlays() {
-  client.method('getSongCount').then((count) => {
-    emptyOverlay.hidden = count > 0;
-  });
+
+  if (emptyOverlay) {
+    client.method('getSongCount').then((count) => {
+      emptyOverlay.hidden = count > 0;
+    });
+  }
 
   client.method('getDatabaseStatus').then((status) => {
-    noCardOverlay.hidden    = status.unavailable !== 'nocard';
-    pluggedInOverlay.hidden = status.unavailable !== 'pluggedin';
+    if (noCardOverlay) {
+      noCardOverlay.hidden    = status.unavailable !== 'nocard';
+    }
+    if (pluggedInOverlay) {
+      pluggedInOverlay.hidden = status.unavailable !== 'pluggedin';
+    }
 
-    upgradeOverlay.hidden = !status.upgrading;
+    if (upgradeOverlay) {
+      upgradeOverlay.hidden = !status.upgrading;
+    }
   });
 }
 

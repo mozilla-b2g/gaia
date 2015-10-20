@@ -128,14 +128,14 @@ class GaiaImageCompareTestCase(GaiaTestCase):
         out, err = p.communicate()
         p.wait()
 
-        if not (err == '0' and out == ''):
+        if not (err.rstrip('\n') == '0'):
             self.test_passed = False
 
             # msg should be saved at this point. Otherwise, it will get lost if any of the below line fails
             if len(err.split()) > 1:
                 self.failcomment += '\n'+err
             else:
-                self.failcomment += '\nWARNING: ' + err + ' pixels mismatched between ' + target + ' and ' + ref + '\n'
+                self.failcomment += '\nWARNING: ' + err.rstrip('\n') + ' pixels mismatched between ' + target + ' and ' + ref + '\n'
 
             # move the diff image and the target image to a separate folder
             if not os.path.exists(self.mismatch_path):

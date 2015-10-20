@@ -209,9 +209,6 @@
     '_handle_iac-ftucomms': function(evt) {
       var message = evt.detail;
       switch (message) {
-        case 'started':
-          this.publish('started');
-          break;
         case 'done':
           this.setBypassHome(true);
           break;

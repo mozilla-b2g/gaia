@@ -10,6 +10,7 @@ from gaiatest.apps.base import Base
 from gaiatest.apps.base import PageRegion
 
 
+# Bug 1216626 - Regions should inherit from PageRegion, not Base
 class SearchPanel(Base):
 
     _search_results_app_frame_locator = (By.CSS_SELECTOR, '.searchWindow.active iframe')

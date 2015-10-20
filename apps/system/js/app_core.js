@@ -11,7 +11,6 @@
     'js/value_selector/spin_date_picker.js',
     'js/value_selector/value_selector.js',
     'js/search_window.js',
-    'js/value_selector/trusted_ui_value_selector.js',
     'js/browser_context_menu.js',
     'js/child_window_factory.js',
     'js/audio_channel_controller.js',

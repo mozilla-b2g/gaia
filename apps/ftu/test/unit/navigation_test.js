@@ -370,8 +370,11 @@ suite('navigation >', function() {
     });
   });
 
-  suite('Dogfood Settings>', function() {
+  suite('Metrics Settings>', function() {
     const DOGFOODSETTING = 'debug.performance_data.dogfooding';
+    const METRICSSETTING = 'metrics.selectedMetrics.level';
+
+    var basicMetrics, enhancedMetrics, noneMetrics;
     var observerConfig = {
       attributes: true
     };
@@ -379,44 +382,72 @@ suite('navigation >', function() {
     setup(function() {
       // Needed to make sure that there is a DOM change to trigger
       // the MutationObserver.
+      MockNavigatorSettings.mSetup();
       MockNavigatorSettings.mSyncRepliesOnly = true;
+
+      basicMetrics = document.getElementById('metrics-basic');
+      enhancedMetrics = document.getElementById('metrics-enhanced');
+      noneMetrics = document.getElementById('metrics-none');
 
       setStepStateToIndex(1);
     });
 
     teardown(function() {
-      MockNavigatorSettings.mSyncRepliesOnly = false;
+      MockNavigatorSettings.mTeardown();
     });
 
-    test('metrics checkbox should disabled for dogfooders > ', function(done) {
-      navigator.mozSettings.mSettings[DOGFOODSETTING] = true;
-      setStepStateToIndex(7);
+    test('correct default button should be enabled and others disabled > ',
+      function(done) {
+        MockNavigatorSettings.mSettings[METRICSSETTING] = 'Basic';
+        setStepStateToIndex(7);
 
-      var observer = new MutationObserver(function(records) {
-        done(function () {
-          MockNavigatorSettings.mReplyToRequests();
-          observer.disconnect();
-          var sharePerformance = document.getElementById('share-performance');
-          assert.equal(sharePerformance.getAttribute('disabled'), 'true');
+        var observer = new MutationObserver(function(records) {
+          done(function () {
+            MockNavigatorSettings.mReplyToRequests();
+            observer.disconnect();
+            // Only default selection shoudl be enabled.
+            assert.equal(basicMetrics.checked, true);
+            assert.equal(enhancedMetrics.checked, undefined);
+            assert.equal(noneMetrics.checked, undefined);
+          });
         });
+        observer.observe(UIManager.mainTitle, observerConfig);
       });
-      observer.observe(UIManager.mainTitle, observerConfig);
-    });
 
-    test('metrics checkbox should be enabled for non dogfooders > ',
+    test('metrics radio buttons should be disabled for dogfooders > ',
     function(done) {
-      navigator.mozSettings.mSettings[DOGFOODSETTING] = false;
+      MockNavigatorSettings.mSettings[DOGFOODSETTING] = true;
       setStepStateToIndex(7);
 
       var observer = new MutationObserver(function(records) {
         done(function () {
           MockNavigatorSettings.mReplyToRequests();
           observer.disconnect();
-          var sharePerformance = document.getElementById('share-performance');
-          assert.equal(sharePerformance.getAttribute('disabled'), null);
+          // All radio buttons should be disabled.
+          assert.equal(enhancedMetrics.getAttribute('disabled'), 'true');
+          assert.equal(basicMetrics.getAttribute('disabled'), 'true');
+          assert.equal(noneMetrics.getAttribute('disabled'), 'true');
         });
       });
       observer.observe(UIManager.mainTitle, observerConfig);
+    });
+
+    test('metrics radio should be enabled for non dogfooders > ',
+    function(done) {
+      MockNavigatorSettings.mSettings[DOGFOODSETTING] = false;
+      setStepStateToIndex(7);
+
+      var observer = new MutationObserver(function(records) {
+        done(function () {
+          MockNavigatorSettings.mReplyToRequests();
+          observer.disconnect();
+          // All radio buttons should be enabled.
+          assert.equal(enhancedMetrics.getAttribute('disabled'), null);
+          assert.equal(basicMetrics.getAttribute('disabled'), null);
+          assert.equal(noneMetrics.getAttribute('disabled'), null);
+        });
+      });
+     observer.observe(UIManager.mainTitle, observerConfig);
     });
   });
 

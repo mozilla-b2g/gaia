@@ -25,19 +25,19 @@ suite('value selector/value selector', function() {
     name: 'Fake Application'
   };
   var fakeTimeInputMethodContextChangeEvent = {
-    type: '_inputmethod-contextchange',
+    type: '_inputfocus',
     detail: {
       inputType: 'time'
     }
   };
   var fakeDateInputMethodContextChangeEvent = {
-    type: '_inputmethod-contextchange',
+    type: '_inputfocus',
     detail: {
       inputType: 'date'
     }
   };
   var fakeBlurInputMethodContextChangeEvent = {
-    type: '_inputmethod-contextchange',
+    type: '_inputblur',
     detail: {
       inputType: 'blur'
     }

@@ -50,7 +50,7 @@
 
         var syncPagingSetting = () => {
           stores[0].get(PAGING_SETTING).then(paging => {
-            this.scrollSnapping = paging;
+            this.scrollSnapping = paging || false;
             signalChange();
           });
         };
