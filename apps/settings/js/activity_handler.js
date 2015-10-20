@@ -77,13 +77,6 @@
             document.body.dataset.filterBy =
               activitySource.data.filterBy || 'all';
             break;
-          case 'call':
-            var mozMobileConnections = navigator.mozMobileConnections;
-            // If DSDS phone, we have to let users choose simcard
-            if (mozMobileConnections && mozMobileConnections.length > 1) {
-              targetPanelId = 'call-iccs';
-            }
-            break;
           default:
             // Mark the desired panel as a dialog
             targetPanel.dataset.dialog = true;

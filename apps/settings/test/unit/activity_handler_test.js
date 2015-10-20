@@ -190,37 +190,6 @@ suite('ActivityHandler', function() {
         assert.ok(document.body.dataset.filterBy === 'all',
           'body.filterBy should be set');
       });
-
-      test('with mozMobileConnections.length = 1', function() {
-        // we have to make it single sim !
-        navigator.mozMobileConnections = [{}];
-
-        var section = document.createElement('section');
-        section.id = 'call';
-        document.body.appendChild(section);
-
-        var {targetPanelId} = handler({
-          data: {
-            section: 'call'
-          }
-        });
-
-        assert.ok(targetPanelId === 'call', 'should "return call"');
-      });
-
-      test('with mozMobileConnections.length > 1', function() {
-        var section = document.createElement('section');
-        section.id = 'call';
-        document.body.appendChild(section);
-
-        var {targetPanelId} = handler({
-          data: {
-            section: 'call'
-          }
-        });
-
-        assert.ok(targetPanelId === 'call-iccs', 'should "return call-iccs"');
-      });
     });
   });
 });

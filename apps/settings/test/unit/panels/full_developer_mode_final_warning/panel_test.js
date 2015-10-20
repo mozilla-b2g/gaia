@@ -1,7 +1,7 @@
 /* global loadBodyHTML*/
 'use strict';
 
-requireApp('settings/shared/test/unit/load_body_html_helper.js');
+require('/shared/test/unit/load_body_html_helper.js');
 
 suite('Full developer mode final warning > ', function() {
   var FinalWarning;

@@ -1,7 +1,7 @@
 /* globals loadBodyHTML*/
 'use strict';
 
-requireApp('settings/shared/test/unit/load_body_html_helper.js');
+require('/shared/test/unit/load_body_html_helper.js');
 
 suite('Date & Time panel > ', function() {
   var modules = [
@@ -150,7 +150,7 @@ suite('Date & Time panel > ', function() {
       assert.isTrue(timeFormatSwitch.checked);
       assert.equal(timeFormatSelect.value, 'ampm');
     });
-  
+
     test('the UI is properly updated if locale.hour12 is true', function() {
       this.MockDateTime.currentHour12 = true;
       this.panel.beforeShow();
