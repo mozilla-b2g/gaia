@@ -422,6 +422,19 @@
     });
   };
 
+  /**
+   * Unpin current page in places database.
+   */
+  AppChrome.prototype.unpinPage = function ac_unpinPage() {
+    Service && Service.request('Places:setPinned', this.app.config.url, false)
+      .then(() => {
+        this.app.debug('Succeeding in unpinning ' + this.app.config.url);
+        this.systemBanner.show('page-unpinned-from-home-screen');
+      }, () => {
+        console.error('Failed to unpin ' + this.app.config.url);
+      });
+  };
+
   AppChrome.prototype.getSiteUrl = function() {
     var pageUrl = this.app.config.url;
     var webManifest = this.app.webManifest;
@@ -485,7 +498,7 @@
   };
 
   /**
-   * Un-pin current site from bookmarks database.
+   * Unpin current site from bookmarks database.
    */
   AppChrome.prototype.unpinSite = function ac_pinSite() {
     if (!this.pinned) {

@@ -176,7 +176,7 @@ marionette('Pinning the Web', function() {
     });
   });
 
-  test('it does not affect to window.open chrome', function() {
+  test('It does not affect window.open chrome', function() {
     var url = server.url('windowopen.html');
     var url2 = server.url('darkpage.html');
 
@@ -195,7 +195,7 @@ marionette('Pinning the Web', function() {
     assert(classes.indexOf('collapsible') < 0);
   });
 
-  test('navigating away of a pinned site', function() {
+  test('Navigating away from a pinned site', function() {
     var url = server.url('remote_link.html');
     pinTheWeb.openAndPinSiteFromBrowser(url);
     client.switchToFrame();
@@ -211,6 +211,38 @@ marionette('Pinning the Web', function() {
       classes = system.currentWindow.getAttribute('class');
       return classes.indexOf('collapsible') > 0;
     });
+  });
+
+  test('Pin a page', function() {
+    var url = server.url('sample.html');
+
+    client.switchToFrame();
+    pinTheWeb.openAndPinPage(url);
+    system.tapHome();
+    client.switchToFrame(system.getHomescreenIframe());
+
+    client.waitFor(function() {
+      return home.visibleCards.length === 1;
+    });
+  });
+
+  test('Unpin a page', function() {
+    var url = server.url('sample.html');
+
+    client.switchToFrame();
+    pinTheWeb.openAndPinPage(url);
+    system.tapHome();
+    client.switchToFrame(system.getHomescreenIframe());
+
+    client.waitFor(function() {
+      return home.visibleCards.length === 1;
+    });
+
+    pinTheWeb.openAndPinPage(url);
+    system.tapHome();
+    client.switchToFrame(system.getHomescreenIframe());
+
+    assert(home.visibleCards.length === 0, 'There is no pinned pages');
   });
 
 });
