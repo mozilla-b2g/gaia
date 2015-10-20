@@ -5,9 +5,20 @@
 from gaiatest import GaiaTestCase
 from gaiatest.apps.homescreen.app import Homescreen
 from gaiatest.apps.homescreen.regions.confirm_install import ConfirmInstall
+from marionette.marionette_test import parameterized
 
 
 class TestDeleteApp(GaiaTestCase):
+
+    regular_app = {
+        'name': 'Mozilla QA WebRT Tester',
+        'partial_url': 'webapps/mozqa.com/manifest.webapp'
+    }
+    packaged_app = {
+        'name': 'packagedapp1',
+        'partial_url': 'webapps/packaged1/manifest.webapp',
+        'title': 'Packaged app1'
+    }
 
     def setUp(self):
         GaiaTestCase.setUp(self)
@@ -16,44 +27,34 @@ class TestDeleteApp(GaiaTestCase):
         self.homescreen = Homescreen(self.marionette)
         self.apps.switch_to_displayed_app()
 
-        self.test_data = {
-            'name': 'Mozilla QA WebRT Tester',
-            'url': self.marionette.absolute_url('webapps/mozqa.com/manifest.webapp')}
+    def parameterized_set_up(self, app_to_delete, install_method):
+        self.app_to_delete = app_to_delete
+        self.app_to_delete['url'] = self.marionette.absolute_url(self.app_to_delete['partial_url'])
 
-        # Install app so we can delete it
-        self.marionette.execute_script(
-            'navigator.mozApps.install("%s")' % self.test_data['url'])
+        self.marionette.execute_script('navigator.mozApps.{}("{}")'.format(install_method, self.app_to_delete['url']))
 
         # Confirm the installation and wait for the app icon to be present
         confirm_install = ConfirmInstall(self.marionette)
         confirm_install.tap_confirm()
 
         self.apps.switch_to_displayed_app()
-        self.homescreen.wait_for_app_icon_present(self.test_data['name'])
+        self.homescreen.wait_for_app_icon_present(self.app_to_delete['url'])
 
-    def test_delete_app(self):
+    @parameterized('regular_app', regular_app, 'install')
+    @parameterized('packaged_app', packaged_app, 'installPackage')
+    def test_delete(self, app_to_delete, install_method):
+        # We can't pass parameters to the setUp(). Bug # to be filed
+        self.parameterized_set_up(app_to_delete, install_method)
 
-        # Verify that the app is installed i.e. the app icon is visible on one of the homescreen pages
-        self.assertTrue(
-            self.homescreen.is_app_installed(self.test_data['name']),
-            'App %s not found on homescreen' % self.test_data['name'])
-
-        # Activate edit mode
-        self.homescreen.activate_edit_mode()
-
-        # Tap on the (x) to start delete process and tap on the confirm delete button
-        self.homescreen.installed_app(self.test_data['name']).tap_delete_app().tap_confirm()
-
+        self.homescreen.delete_app(self.app_to_delete['url']).tap_confirm()
         self.homescreen.wait_to_be_displayed()
         self.apps.switch_to_displayed_app()
-        self.homescreen.tap_edit_done()
-        self.homescreen.wait_for_app_icon_not_present(self.test_data['name'])
+        self.homescreen.wait_for_app_icon_not_present(self.app_to_delete['url'])
 
         # Check that the app is no longer available
         with self.assertRaises(AssertionError):
-            self.apps.launch(self.test_data['name'])
+            self.apps.launch(self.app_to_delete['url'])
 
     def tearDown(self):
-        self.apps.uninstall(self.test_data['name'])
-
+        self.apps.uninstall(self.app_to_delete['url'])
         GaiaTestCase.tearDown(self)
