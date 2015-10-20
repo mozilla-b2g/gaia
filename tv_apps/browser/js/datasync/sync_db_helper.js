@@ -4,6 +4,7 @@
 /* global Browser */
 /* global Awesomescreen */
 /* global IDBDatabaseException */
+/* global IDBKeyRange */
 
 const DBOS_PLACES = 'sync_places';
 const DBOS_VISITS = 'sync_visits';
@@ -50,6 +51,15 @@ var SyncBrowserDB = {
     this.db.placeMaxCheck(uri, (function() {
       this.db.createPlace(uri, callback);
     }).bind(this));
+  },
+
+  /**
+   * Add a raw history entry to DBOS_PLACES store.
+   * @param {String} history The history to be added
+   * @param {Function} callback Runs when it finishs
+   */
+  updateRawHistory: function browserDB_updateRawPlace(history, callback) {
+    this.db.createRawHistory(history, callback);
   },
 
   /**
@@ -210,6 +220,14 @@ var SyncBrowserDB = {
     this.db.deleteBookmark(id, (function() {
       this.db.deleteIconUrl(id, this.DEFAULT_TYPE_BOOKMARK, callback);
     }).bind(this));
+  },
+
+  /**
+   * Get history by timestamp range at (start < record.timestamp <= end)
+   * @param {Function} callback Runs on success with an array of history
+   */
+  getHistoryByTime: function browserDB_getHistoryByTime(start, end, callback) {
+    this.db.getHistoryByTime(start, end, callback);
   },
 
   /**
@@ -529,6 +547,43 @@ SyncBrowserDB.db = {
     transaction.onerror = function dbTransactionError(e) {
       console.error('Transaction error while trying to save place ' +
         uri);
+    };
+  },
+
+  /**
+   * Create a new raw entry of the history if there's none.
+   * @param {String} history The history to be inserted
+   * @param {Function} callback Runs when the entry exists or a new entry
+   *                            created
+   */
+  createRawHistory: function db_createRawHistory(history, callback) {
+    var transaction = this._db.transaction([DBOS_VISITS], 'readwrite');
+    var objectStore = transaction.objectStore(DBOS_VISITS);
+    var readRequest = objectStore.get(history.uri);
+    readRequest.onsuccess = function onReadSuccess(event) {
+      var existingPlace = event.target.result;
+      var writeRequest;
+      if (existingPlace) {
+        existingPlace.title = history.title;
+        existingPlace.timestamp = history.timestamp;
+        writeRequest = objectStore.put(history);
+      } else {
+        writeRequest = objectStore.add(history);
+      }
+
+      writeRequest.onsuccess = function onWriteSuccess(event) {
+        if (callback) {
+          callback();
+        }
+      };
+
+      writeRequest.onerror = function onError(event) {
+        console.error('error writing history');
+      };
+    };
+
+    transaction.onerror = function dbTransactionError(e) {
+      console.error('Transaction error while trying to save history ', history);
     };
   },
 
@@ -1274,6 +1329,48 @@ SyncBrowserDB.db = {
     };
     transaction.oncomplete = function db_bookmarkTransactionComplete() {
       callback(uris);
+    };
+  },
+
+  /**
+   * Get history by timestamp range at (start < record.timestamp <= end)
+   * @param {Number} start Start timestamp
+   * @param {Number} end End timestamp
+   * @param {Function} callback Runs on complete with an array of history
+   */
+  getHistoryByTime: function db_getHistoryByTime(start, end, callback) {
+    var history = [];
+    var db = this._db;
+
+    function makeVisitProcessor(visit) {
+      return function(e) {
+          var object = e.target.result;
+          if(object){
+            visit.iconUri = object.iconUri;
+          }else{
+            visit.iconUri = Awesomescreen.DEFAULT_FAVICON;
+          }
+          history.push(visit);
+        };
+    }
+
+    var transaction = db.transaction([DBOS_VISITS, DBOS_ICONS]);
+    var visitsStore = transaction.objectStore(DBOS_VISITS);
+    var objectStore = transaction.objectStore(DBOS_ICONS);
+    var visitsIndex = visitsStore.index('timestamp');
+    var keyRange = IDBKeyRange.bound(start, end, true, false);
+
+    visitsIndex.openCursor(keyRange, 'prev').onsuccess =
+      function onSuccess(e) {
+      var cursor = e.target.result;
+      if (cursor) {
+        var visit = cursor.value;
+        objectStore.get(visit.uri).onsuccess = makeVisitProcessor(visit);
+        cursor.continue();
+      }
+    };
+    transaction.oncomplete = function db_historyTransactionComplete() {
+      callback(history);
     };
   },
 
