@@ -295,6 +295,7 @@ suite('smart-system/SyncManager >', () => {
     var unregisterSyncSpy;
     var updateStateSpy;
     var removeEventListenerSpy;
+    var logoutSpy;
 
     suiteSetup(() => {
       syncManager = new SyncManager();
@@ -309,6 +310,7 @@ suite('smart-system/SyncManager >', () => {
       unregisterSyncSpy = this.sinon.spy(navigator.sync, 'unregister');
       updateStateSpy = this.sinon.spy(syncManager, 'updateState');
       removeEventListenerSpy = this.sinon.spy(window, 'removeEventListener');
+      logoutSpy = this.sinon.spy(FxAccountsClient, 'logout');
     });
 
     suiteTeardown(() => {
@@ -316,6 +318,7 @@ suite('smart-system/SyncManager >', () => {
       unregisterSyncSpy.restore();
       updateStateSpy.restore();
       removeEventListenerSpy.restore();
+      logoutSpy.restore();
       navigator.sync = realNavigatorSync;
     });
 
@@ -329,6 +332,7 @@ suite('smart-system/SyncManager >', () => {
         assert.ok(
           removeEventListenerSpy.calledWith('mozFxAccountsUnsolChromeEvent')
         );
+        this.sinon.assert.calledOnce(logoutSpy);
         done();
       });
     });

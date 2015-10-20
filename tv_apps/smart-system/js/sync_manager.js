@@ -300,6 +300,13 @@
       this.user = null;
       this.lastSync = null;
       this.cleanup();
+      // On TV because the login on Sync is tied to a login on FxA, login out
+      // from Sync means login out from FxA.
+      // Keep logout *after* the cleanup call where we remove the FxA event
+      // listeners.
+      LazyLoader.load('js/fx_accounts_client.js', () => {
+        FxAccountsClient.logout();
+      });
     },
 
     onenabled() {
