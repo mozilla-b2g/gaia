@@ -183,7 +183,9 @@ window.GaiaAppIcon = (function(exports) {
     },
 
     set: function(bookmark) {
-      this.app = null;
+      if (!this._bookmark || this._bookmark.id !== bookmark.id) {
+        this.app = null;
+      }
       this._bookmark = bookmark;
     },
 
