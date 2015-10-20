@@ -33,6 +33,7 @@ window.GaiaContainer = (function(exports) {
     shadow.appendChild(this._template);
 
     this._frozen = false;
+    this._pendingStateChanges = [];
     this._children = [];
     this._dnd = {
       // Whether drag-and-drop is enabled
@@ -327,7 +328,21 @@ window.GaiaContainer = (function(exports) {
    * next frame.
    */
   proto.changeState = function(child, state, callback) {
+    // Check that the child is still attached to this parent (can happen if
+    // the child is removed while frozen).
+    if (child.container.parentNode !== this) {
+      return;
+    }
+
+    // Check for a redundant state change.
     if (child.container.classList.contains(state)) {
+      return;
+    }
+
+    // Queue up state change if we're frozen.
+    if (this._frozen) {
+      this._pendingStateChanges.push(
+        this.changeState.bind(this, child, state, callback));
       return;
     }
 
@@ -348,7 +363,6 @@ window.GaiaContainer = (function(exports) {
         if (callback) {
           callback();
         }
-        self.synchronise();
       });
     };
 
@@ -362,7 +376,6 @@ window.GaiaContainer = (function(exports) {
       if (callback) {
         callback();
       }
-      this.synchronise();
     }, STATE_CHANGE_TIMEOUT);
   };
 
@@ -675,6 +688,10 @@ window.GaiaContainer = (function(exports) {
   proto.thaw = function() {
     if (this._frozen) {
       this._frozen = false;
+      for (var callback of this._pendingStateChanges) {
+        callback();
+      }
+      this._pendingStateChanges = [];
       this.synchronise();
     }
   };
