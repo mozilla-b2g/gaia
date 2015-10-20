@@ -117,7 +117,7 @@ suite('Keyboard layouts building tests', function() {
       var inputKeysInManifest = Object.keys(manifest.inputs);
 
       assert.deepEqual(inputKeysInManifest.sort(),
-                       [].concat(layoutIds, 'number').sort());
+                       [].concat(layoutIds, 'number', 'emoji').sort());
 
       // Verify dictionary config
       var dictJSON = JSON.parse(fs.readFileSync(
@@ -220,7 +220,7 @@ suite('Keyboard layouts building tests', function() {
       var inputKeysInManifest = Object.keys(manifest.inputs);
 
       assert.deepEqual(inputKeysInManifest.sort(),
-                       [].concat(layoutIds, 'number').sort());
+                       [].concat(layoutIds, 'number', 'emoji').sort());
 
       // Verify dictionary config
       var dictJSON = JSON.parse(fs.readFileSync(
@@ -293,7 +293,11 @@ suite('Keyboard layouts building tests', function() {
       var zipPath = path.join(process.cwd(), 'profile',
         'webapps', 'keyboard.gaiamobile.org', 'application.zip');
       var appDirPath = config.GAIA_DIR + '/apps/keyboard';
-      var layoutIds = config.GAIA_KEYBOARD_LAYOUTS.split(',').sort();
+      var layoutIds = config.GAIA_KEYBOARD_LAYOUTS.split(',').sort()
+        .filter(function(layoutId) {
+          // Exclude noIncludeInExpandLayoutIdSet layouts
+          return (['emoji'].indexOf(layoutId) === -1);
+        });
 
       var layouts = layoutIds.map(function(layout) {
         return 'js/layouts/' + layout + '.js';
