@@ -753,12 +753,13 @@ class GaiaDevice(object):
         return ret
 
     def touch_home_button(self):
+        from gaiatest.apps.homescreen.app import Homescreen
+        homescreen = Homescreen(self.marionette)
         apps = GaiaApps(self.marionette)
-        if apps.displayed_app.name.lower() != 'default home screen':
+        if homescreen.is_displayed == False:
             # touching home button will return to homescreen
             self._dispatch_home_button_event()
-            Wait(self.marionette).until(
-                lambda m: apps.displayed_app.name.lower() == 'default home screen')
+            homescreen.wait_to_be_displayed()
             apps.switch_to_displayed_app()
         else:
             apps.switch_to_displayed_app()

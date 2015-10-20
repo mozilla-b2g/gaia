@@ -120,13 +120,16 @@ class Base(object):
     def manifest_url(self):
         return '{}{}{}/manifest.webapp'.format(self.DEFAULT_PROTOCOL, self.__class__.__name__.lower(), self.DEFAULT_APP_HOSTNAME)
 
+    @property
+    def is_displayed(self):
+        return (self.apps.displayed_app.manifest_url == self.manifest_url and
+               self.apps.displayed_app.entry_point == self.entry_point)
+
     def wait_to_be_displayed(self):
-        Wait(self.marionette).until(lambda m: self.apps.displayed_app.manifest_url == self.manifest_url and
-                                              self.apps.displayed_app.entry_point == self.entry_point)
+        Wait(self.marionette).until(lambda m: self.is_displayed == True)
 
     def wait_to_not_be_displayed(self):
-        Wait(self.marionette).until(lambda m: self.apps.displayed_app.manifest_url != self.manifest_url or
-                                              self.apps.displayed_app.entry_point != self.entry_point)
+        Wait(self.marionette).until(lambda m: self.is_displayed == False)
 
 class PageRegion(Base):
     def __init__(self, marionette, element):
