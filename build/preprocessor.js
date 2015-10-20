@@ -11,43 +11,66 @@ function removeFiles(stagePath, list) {
   list.forEach((fileName) => {
     fileName.unshift(stagePath);
     var filePath = utils.joinPath.apply(this, fileName);
-    utils.log('PREPROCESSOR', 'remove file:', filePath);
+    utils.log('preprocessor', 'remove file:', filePath);
     utils.deleteFile(filePath);
   });
 }
 
 function processContent(flag, enable, content, type) {
   var replaced;
+  var regexp;
   if (enable) {
     if (type === 'html') {
-      replaced = content.
+      regexp = new RegExp(
+        '<!--IFNDEF_' + flag + '[^]*?ENDIF_' + flag + '-->', 'mg'
+      );
+      replaced = content.replace(regexp, '');
+      replaced = replaced.
         replace('<!--IFDEF_' + flag, '', 'g').
         replace('ENDIF_' + flag + '-->', '', 'g');
     } else if (type === 'js') {
-      replaced = content.
+      regexp = new RegExp(
+        '//IFNDEF_' + flag + '[^]*?//ENDIF_' + flag, 'mg'
+      );
+      replaced = content.replace(regexp, '');
+      replaced = replaced.
         replace('//IFDEF_' + flag, '', 'g').
         replace('//ENDIF_' + flag, '', 'g');
     } else if (type === 'css') {
-      replaced = content.
+      regexp = new RegExp(
+        '/*IFNDEF_' + flag + '[^]*?/*ENDIF_' + flag, 'mg'
+      );
+      replaced = content.replace(regexp, '');
+      replaced = replaced.
         replace('/*IFDEF_' + flag + '*/', '', 'g').
         replace('/*ENDIF_' + flag + '*/', '', 'g');
     }
   } else {
-    var regexp;
     if (type === 'html') {
       regexp = new RegExp(
         '<!--IFDEF_' + flag + '[^]*?ENDIF_' + flag + '-->', 'mg'
       );
+      replaced = content.replace(regexp, '');
+      replaced = replaced.
+        replace('<!--IFNDEF_' + flag, '', 'g').
+        replace('ENDIF_' + flag + '-->', '', 'g');
     } else if (type === 'js') {
       regexp = new RegExp(
         '//IFDEF_' + flag + '[^]*?//ENDIF_' + flag, 'mg'
       );
+      replaced = content.replace(regexp, '');
+      replaced = replaced.
+        replace('//IFNDEF_' + flag, '', 'g').
+        replace('//ENDIF_' + flag, '', 'g');
     } else if (type === 'css') {
       regexp = new RegExp(
         '\/\*IFDEF_' + flag + '\*\/[^]*?\/\*ENDIF_' + flag + '\*\/', 'mg'
       );
+      replaced = content.replace(regexp, '');
+      replaced = replaced.
+        replace('/*IFNDEF_' + flag + '*/', '', 'g').
+        replace('/*ENDIF_' + flag + '*/', '', 'g');
     }
-    replaced = content.replace(regexp, '');
   }
 
   return replaced;
@@ -56,6 +79,7 @@ function processContent(flag, enable, content, type) {
 function processFiles(flag, enable, list, stagePath) {
   list.forEach((fileName) => {
     fileName.unshift(stagePath);
+    utils.log('preprocessor', flag, enable, fileName);
     var file = utils.getFile.apply(this, fileName);
     var fileContent = utils.getFileContent(file);
     var type;
@@ -77,7 +101,8 @@ function processFiles(flag, enable, list, stagePath) {
 
   Here is the file list example:
   var fileList = {
-    process:[ // Process all IFDEF/ENDIF tag for each source code in the array.
+    process:[ // Process all IFDEF/IFNDEF/ENDIF tag for each source code in
+              // the array.
       ['index.html'],
       ['elements', 'root.html']
     ],
@@ -90,7 +115,6 @@ function processFiles(flag, enable, list, stagePath) {
   // Enable:
   // $ EXAMPLE_FLAG=1 make
   preprocessor.execute(options, 'EXAMPLE_FLAG', fileList);
-
 */
 
 exports.execute = function(options, flag, list) {
