@@ -13,14 +13,14 @@ define(function(require) {
 
         this._elements = {
           panel: panel,
-          simFdnDesc: panel.querySelector('.fdn-enabled small'),
+          simFdnDesc: panel.querySelector('.fdn-enabled details'),
           resetPin2Item: panel.querySelector('.fdn-resetPIN2'),
-          simFdnCheckBox: panel.querySelector('.fdn-enabled input'),
+          simFdnCheckBox: panel.querySelector('.fdn-enabled gaia-switch'),
           resetPin2Button: panel.querySelector('.fdn-resetPIN2 button')
         };
 
-        this._elements.simFdnCheckBox.onchange =
-          this._showToggleFdnDialog.bind(this);
+        this._elements.simFdnCheckBox.addEventListener('change',
+          this._showToggleFdnDialog.bind(this));
         this._elements.resetPin2Button.onclick =
           this._showChangePin2Dialog.bind(this);
       },

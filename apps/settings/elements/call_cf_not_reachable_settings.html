@@ -14,11 +14,10 @@
           <input type="tel" id="cf-notreachable-number" data-setting="ril.cf.notreachable.number"/>
         </li>
         <li>
-          <label class="pack-switch">
-            <input type="checkbox" data-setting="ril.cf.notreachable.enabled">
-            <span data-l10n-id="callForwardingForward"></span>
-            <small data-l10n-id="callForwardingNotReachableShort"></small>
-          </label>
+          <gaia-switch data-setting="ril.cf.notreachable.enabled">
+            <label data-l10n-id="callForwardingForward"></label>
+            <details data-l10n-id="callForwardingNotReachableShort"></details>
+          </gaia-switch>
         </li>
       </ul>
     </div>

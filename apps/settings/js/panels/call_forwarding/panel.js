@@ -217,7 +217,8 @@ define(function(require) {
           var item = mapping[cfOptionName];
           var panelId = item.panelId;
           var menuItem = item.menuItem;
-          menuItem.onclick = onclick.bind(null, panelId, cfOptionName);
+          menuItem.addEventListener('click',
+            onclick.bind(null, panelId, cfOptionName));
         }
       },
 

@@ -8,8 +8,7 @@ define(function(require) {
       onInit: function(panel) {
         this._elements = {};
         this._elements.telInput = panel.querySelector('input[type="tel"]');
-        this._elements.checkboxInput =
-          panel.querySelector('input[type="checkbox"]');
+        this._elements.checkboxInput = panel.querySelector('gaia-switch');
       },
       onBeforeShow: function(panel, options) {
         this._elements.telInput.value = options.number || '';
