@@ -526,14 +526,14 @@ suite('system/AppTextSelectionDialog', function() {
     setup(function() {
       windowHeight = MockService.mockQueryWith('LayoutManager.height');
       windowWidth = MockService.mockQueryWith('LayoutManager.width');
-      td.DISTANCE_FROM_SELECTEDAREA_TO_MENUTOP = 12;
-      td.DISTANCE_FROM_MENUBOTTOM_TO_SELECTEDAREA = 43;
+      td.DISTANCE_FROM_SELECTEDAREA_TO_MENUTOP = 40;
+      td.DISTANCE_FROM_MENUBOTTOM_TO_SELECTEDAREA = 12;
       td.DISTANCE_FROM_BOUNDARY = 5;
-      td.TEXTDIALOG_WIDTH = 52;
-      td.TEXTDIALOG_HEIGHT = 48;
+      td.TEXTDIALOG_WIDTH = 48;
+      td.TEXTDIALOG_HEIGHT = 46;
     });
 
-    test('if space is enough', function() {
+    test('if space above is enough', function() {
       var positionDetail = {
         rect: {}
       };
@@ -552,6 +552,51 @@ suite('system/AppTextSelectionDialog', function() {
         left: ((positionDetail.rect.left + positionDetail.rect.right) *
           positionDetail.zoomFactor - td.numOfSelectOptions *
           td.TEXTDIALOG_WIDTH)/ 2
+      });
+    });
+
+    test('if no space above', function() {
+      var positionDetail = {
+        rect: {}
+      };
+      positionDetail.rect.top = 10;
+      positionDetail.rect.bottom = windowHeight - 100;
+      positionDetail.rect.left = windowWidth - 300;
+      positionDetail.rect.right = windowWidth - 100;
+      positionDetail.zoomFactor = 1;
+      td.textualmenuDetail = positionDetail;
+      td.numOfSelectOptions = 3;
+      var result =
+        td.calculateDialogPostion(0, 0);
+      assert.deepEqual(result, {
+        top: positionDetail.rect.bottom * positionDetail.zoomFactor +
+          td.DISTANCE_FROM_SELECTEDAREA_TO_MENUTOP,
+        left: ((positionDetail.rect.left + positionDetail.rect.right) *
+          positionDetail.zoomFactor -
+          td.numOfSelectOptions * td.TEXTDIALOG_WIDTH)/ 2
+      });
+    });
+
+    test('if no space above and underneath', function() {
+      var positionDetail = {
+        rect: {}
+      };
+      positionDetail.rect.top = 10;
+      positionDetail.rect.bottom = windowHeight - 10;
+      positionDetail.rect.left = windowWidth - 10;
+      positionDetail.rect.right = windowWidth;
+      positionDetail.zoomFactor = 1;
+      td.textualmenuDetail = positionDetail;
+      td.numOfSelectOptions = 3;
+      var result =
+        td.calculateDialogPostion(0, 0);
+      assert.deepEqual(result, {
+        top: (positionDetail.rect.top * positionDetail.zoomFactor +
+          positionDetail.rect.bottom * positionDetail.zoomFactor -
+          td.TEXTDIALOG_HEIGHT) / 2,
+        left: windowWidth -
+          td.numOfSelectOptions * td.TEXTDIALOG_WIDTH -
+          td.DISTANCE_FROM_BOUNDARY
       });
     });
 
@@ -595,7 +640,7 @@ suite('system/AppTextSelectionDialog', function() {
           }
         };
         positionDetail.rect.top = 10;
-        positionDetail.rect.bottom = windowHeight - 100;
+        positionDetail.rect.bottom = windowHeight - 150;
         positionDetail.rect.left = windowWidth - 300;
         positionDetail.rect.right = windowWidth - 100;
         positionDetail.zoomFactor = 1;
@@ -628,7 +673,7 @@ suite('system/AppTextSelectionDialog', function() {
           }
         };
         positionDetail.rect.top = 10;
-        positionDetail.rect.bottom = windowHeight - 100;
+        positionDetail.rect.bottom = windowHeight - 150;
         positionDetail.rect.left = windowWidth - 300;
         positionDetail.rect.right = windowWidth - 100;
         positionDetail.zoomFactor = 1;
