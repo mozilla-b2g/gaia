@@ -1121,23 +1121,24 @@
 
   AppWindow.prototype._handle_mozbrowserlocationchange =
     function aw__handle_mozbrowserlocationchange(evt) {
-      this.favicons = {};
-      this.webManifestURL = null;
-      this.webManifest = null;
-      this.config.url = evt.detail;
-      this.title = evt.detail;
       if (!this.manifest) {
         this.name = new URL(evt.detail).hostname;
       }
       // Integration test needs to locate the frame by this attribute.
       this.browser.element.dataset.url = evt.detail;
+      if (this.config.url !== evt.detail) {
+        this.title = evt.detail;
+        this.favicons = {};
+        this.webManifestURL = null;
+        this.webManifest = null;
+        this.config.url = evt.detail;
+      }
       this.publish('locationchange');
     };
 
 
   AppWindow.prototype._handle_mozbrowsericonchange =
     function aw__handle_mozbrowsericonchange(evt) {
-
       var href = evt.detail.href;
       var sizes = evt.detail.sizes;
 
