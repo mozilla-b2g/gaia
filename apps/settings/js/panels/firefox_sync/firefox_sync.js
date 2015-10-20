@@ -3,6 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 /* global ERROR_UNVERIFIED_ACCOUNT */
+/* global ERROR_INVALID_SYNC_ACCOUNT */
 /* global LazyLoader */
 /* global mozIntl */
 
@@ -11,6 +12,7 @@ define(function(require) {
 
   var SettingsListener = require('shared/settings_listener');
   var SyncManagerBridge = require('modules/sync_manager_bridge');
+  var DialogService = require('modules/dialog_service');
 
   const LOGGED_OUT_SCREEN = 'loggedout';
   const LOGGED_IN_SCREEN = 'loggedin';
@@ -152,8 +154,20 @@ define(function(require) {
               this.showUnverified(message.user);
               return;
             }
-            this.showScreen(LOGGED_OUT_SCREEN);
-            this.clean();
+
+            var errorMsg = 'fxsync-error-unknown';
+            var title;
+            if (message.error == ERROR_INVALID_SYNC_ACCOUNT) {
+              title = message.error;
+              errorMsg = message.error + '-explanation';
+            }
+
+            DialogService.alert(errorMsg, {
+              title: title
+            }).then(() => {
+              this.showScreen(LOGGED_OUT_SCREEN);
+              this.clean();
+            });
           });
           break;
       }
