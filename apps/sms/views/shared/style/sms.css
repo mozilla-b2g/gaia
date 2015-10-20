@@ -242,6 +242,10 @@ html {
   -moz-user-select: none;
 }
 
+.support-emojis {
+  font-family: sans-serif, "Firefox Emoji";
+}
+
 .editable-select-mode [contenteditable="true"] {
   -moz-user-select: text;
 }
