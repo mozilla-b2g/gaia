@@ -82,6 +82,23 @@ marionette('Task Manager - Icons', function() {
       firefoxApp.launch();
       system.goHome();
       system.waitUntilScreenshotable(firefoxApp.iframe);
+
+      client.executeScript(function() {
+        var win = window.wrappedJSObject;
+        win._originalDPR =
+          Object.getOwnPropertyDescriptor(win, 'devicePixelRatio');
+        Object.defineProperty(win, 'devicePixelRatio', {
+          configurable: true,
+          get: function() { return 1; }
+        });
+      });
+    });
+
+    teardown(function() {
+      client.executeScript(function() {
+        var win = window.wrappedJSObject;
+        Object.defineProperty(win, 'devicePixelRatio', win._originalDPR);
+      });
     });
 
     test('use icon from app manifest', function() {
@@ -99,8 +116,8 @@ marionette('Task Manager - Icons', function() {
 
       var actualColor = getElementColor(icon);
       var actualSize = iconColorToSize[actualColor];
-      assert(actualColor === expectedColor);
-      assert(actualSize === expectedSize);
+      assert.equal(actualColor, expectedColor);
+      assert.equal(actualSize, expectedSize);
     });
   });
 
