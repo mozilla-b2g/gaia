@@ -151,30 +151,31 @@ module.exports = View.extend({
     this.els.video.mozSrcObject = null;
   },
 
-  fadeOut: function(done) {
+  fadeOut: function() {
     debug('fade-out');
     var self = this;
     this.hide();
     clearTimeout(this.fadeTimeout);
     this.fadeTimeout = setTimeout(function() {
       self.emit('fadedout');
-      if (done) { done(); }
     }, this.fadeTime);
   },
 
-  fadeIn: function(ms, done) {
+  fadeIn: function(ms) {
     debug('fade-in');
     var self = this;
-    if (typeof ms === 'function') { done = ms, ms = null; }
-    ms = ms || this.fadeTime;
-    this.el.style.transitionDuration = ms + 'ms';
-    this.show();
-    clearTimeout(this.fadeTimeout);
-    this.fadeTimeout = setTimeout(function() {
-      self.el.style.transitionDuration = '';
-      self.emit('fadedin');
-      if (done) { done(); }
-    }, ms);
+    if (typeof ms !== 'number') { ms = this.fadeTime; }
+    if (ms) {
+      this.el.style.transitionDuration = ms + 'ms';
+      this.show();
+      this.fadeTimeout = setTimeout(function() {
+        self.el.style.transitionDuration = '';
+        self.emit('fadedin');
+      }, ms);
+    } else {
+      this.show();
+      this.emit('fadedin');
+    }
   },
 
   /**

@@ -183,7 +183,7 @@ ViewfinderController.prototype.onCameraConfigured = function() {
 ViewfinderController.prototype.show = function() {
   debug('show');
   if (!this.app.criticalPathDone) {
-    this.views.viewfinder.fadeIn(1);
+    this.views.viewfinder.fadeIn(0);
     return;
   }
 
