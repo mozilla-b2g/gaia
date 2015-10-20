@@ -13,10 +13,17 @@ var SyncBookmark = (function () {
 
   function handleTask(task) {
     return new Promise(resolve => {
-      var data;
-      if (task.data) {
-        data = task.data.fxsyncPayload;
-        data.timestamp = task.data.last_modified;
+      var data, recordIds;
+      if (task.data && task.data.fxsyncRecords) {
+        recordIds = Object.keys(task.data.fxsyncRecords);
+        if (!recordIds.length) {
+          console.error('Bookmark should have at least one FxSync record');
+        }
+        if (recordIds.length > 1) {
+          console.warn(`TODO: Import duplicate bookmarks for ${task.data.id}`);
+        }
+        data = task.data.fxsyncRecords[recordIds[0]].payload;
+        data.timestamp = task.data.fxsyncRecords[recordIds[0]].last_modified;
       }
       switch(task.operation) {
       case 'update':
@@ -71,7 +78,7 @@ var SyncBookmark = (function () {
   }
 
   function init() {
-    syncDataStore = new SyncDsHelper('sync_bookmarks_store');
+    syncDataStore = new SyncDsHelper('bookmarks_store');
     return syncDataStore.init();
   }
 
