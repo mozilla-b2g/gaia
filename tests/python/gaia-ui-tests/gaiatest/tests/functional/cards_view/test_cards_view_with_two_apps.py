@@ -47,4 +47,5 @@ class TestCardsView(GaiaTestCase):
 
         cards_view.wait_for_cards_view_not_displayed()
 
-        self.assertEqual(self.apps.displayed_app.name, self._test_apps[0])
+        from gaiatest.apps.calendar import Calendar
+        Calendar(self.marionette).wait_to_be_displayed()

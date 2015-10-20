@@ -69,7 +69,7 @@ class TestCardsView(GaiaImageCompareTestCase):
         cards_view.wait_for_cards_view_not_displayed()
         self.take_screenshot() #bug 1151571 will cause blank screen capture
 
-        self.assertEqual(self.apps.displayed_app.name, self._test_apps[0])
+        self.assertEqual(self.apps.displayed_app.manifest_url, Contacts(self.marionette).manifest_url)
 
         # take screenshot and pause, otherwise there will be a collision
     def change_orientation(self, orientation, wait=2):
