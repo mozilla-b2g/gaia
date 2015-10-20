@@ -791,6 +791,12 @@
     };
 
   AppChrome.prototype.handleScrollAreaChanged = function(evt) {
+    // Make sure the scroll-area-changed is coming from the right element.
+    if (evt && (!this.app || !this.app.browser ||
+                evt.target !== this.app.browser.element)) {
+      return;
+    }
+
     // Check if the page has become scrollable and add the scrollable class.
     // We don't check if a page has stopped being scrollable to avoid oddness
     // with a page oscillating between scrollable/non-scrollable states, and
