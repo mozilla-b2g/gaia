@@ -342,7 +342,9 @@ suite('Homescreen app', () => {
           if (!childIsVisible) {
             el.style.display = 'none';
           }
-          cb();
+          if (cb) {
+            cb();
+          }
         });
       });
 
