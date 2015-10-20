@@ -58,8 +58,9 @@ class Ftu(Base):
 
     # Section Welcome Browser
     _section_welcome_browser_locator = (By.ID, 'welcome_browser')
-    _enable_statistic_checkbox_locator = (By.ID, 'form_share_statistics')
-    _statistic_checkbox_locator = (By.ID, 'share-performance')
+    _metrics_basic_locator = (By.ID, 'metrics-basic')
+    _metrics_enhanced_locator = (By.ID, 'metrics-enhanced')
+    _metrics_none_locator = (By.ID, 'metrics-none')
 
     # Section Privacy Choices
     _section_browser_privacy_locator = (By.ID, 'browser_privacy')
@@ -317,22 +318,38 @@ class Ftu(Base):
         Wait(self.marionette).until(
             expected.element_displayed(*self._section_welcome_browser_locator))
 
-    def tap_statistics_checkbox(self):
-        self.marionette.find_element(*self._enable_statistic_checkbox_locator).tap()
+    @property
+    def is_metrics_basic_enabled(self):
+        return self._metrics_basic_radio.is_checked
 
-    def a11y_click_statistics_checkbox(self):
-        self.accessibility.click(self.marionette.find_element(*self._statistic_checkbox_locator))
+    def enable_metrics_basic(self):
+        self._metrics_basic_radio.enable()
 
     @property
-    def is_share_data_enabled(self):
-        return self._share_data_switch.is_checked
-
-    def disable_share_data(self):
-        self._share_data_switch.disable()
+    def _metrics_basic_radio(self):
+        return GaiaBinaryControl(self.marionette, self._metrics_basic_locator)
 
     @property
-    def _share_data_switch(self):
-        return GaiaBinaryControl(self.marionette, self._statistic_checkbox_locator)
+    def is_metrics_enhanced_enabled(self):
+        return self._metrics_enhanced_radio.is_checked
+
+    def enable_metrics_enhanced(self):
+        self._metrics_enhanced_radio.enable()
+
+    @property
+    def _metrics_enhanced_radio(self):
+        return GaiaBinaryControl(self.marionette, self._metrics_enhanced_locator)
+
+    @property
+    def is_metrics_none_enabled(self):
+        return self._metrics_none_radio.is_checked
+
+    def enable_metrics_none(self):
+        self._metrics_none_radio.enable()
+
+    @property
+    def _metrics_none_radio(self):
+        return GaiaBinaryControl(self.marionette, self._metrics_none_locator)
 
     def tap_next_to_privacy_browser_section(self):
         self.tap_next()
