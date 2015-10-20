@@ -1,3 +1,4 @@
 {
- "homescreen.appName": "smart-home"
+ "homescreen.appName": "smart-home",
+  "sync.collections.bookmarks.enabled": true
 }
