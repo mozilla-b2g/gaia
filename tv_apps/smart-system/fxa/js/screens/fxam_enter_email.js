@@ -3,7 +3,7 @@
 
 /* global FxaModuleStates, FxaModuleUI, FxaModule, FxaModuleNavigation,
    FxModuleServerRequest, FxaModuleOverlay, FxaModuleManager, EntrySheet,
-   BrowserFrame */
+   BrowserFrame, KeyEvent */
 /* exported FxaModuleEnterEmail */
 
 'use strict';
@@ -50,6 +50,7 @@ var FxaModuleEnterEmail = (function() {
     // Cache static HTML elements
     this.importElements(
       'fxa-email-input',
+      'fxa-email-clean-btn',
       'fxa-logo',
       'fxa-notice'
     );
@@ -88,19 +89,38 @@ var FxaModuleEnterEmail = (function() {
     this.fxaEmailInput.addEventListener(
       'input',
       function onInput(event) {
+        if(this.fxaEmailInput.value) {
+          this.fxaEmailCleanBtn.classList.add('show');
+        } else {
+          this.fxaEmailCleanBtn.classList.remove('show');
+        }
         _enableNext(event.target);
-      }
+      }.bind(this)
     );
     this.fxaEmailInput.addEventListener(
       'focus',
       function onFocus() {
         this.fxaLogo.setAttribute('hidden', true);
+        if(this.fxaEmailInput.value) {
+          this.fxaEmailCleanBtn.classList.add('show');
+        }
       }.bind(this)
     );
     this.fxaEmailInput.addEventListener(
       'blur',
       function onBlur() {
         this.fxaLogo.removeAttribute('hidden');
+        this.fxaEmailCleanBtn.classList.remove('show');
+      }.bind(this)
+    );
+
+    this.fxaEmailCleanBtn.addEventListener(
+      'click',
+      function onMouseDown(e) {
+        if(e.button === 0 ||
+          (e.keyCode && e.keyCode === KeyEvent.DOM_VK_RETURN)) {
+          this.fxaEmailInput.value = '';
+        }
       }.bind(this)
     );
 
