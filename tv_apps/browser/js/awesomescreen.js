@@ -1,4 +1,6 @@
-/* globals _, Browser, BrowserDB */
+/* globals _, Browser, BrowserDB, Toolbar, Settings, KeyEvent, MozActivity */
+/* globals BrowserDialog, BookmarkList, BookmarkStore*/
+
 
 /* exported Awesomescreen */
 
@@ -57,6 +59,7 @@ var Awesomescreen = {
   clickTopActFlg:false,
   clickTabListFlg:false,
   clickTabActFlg:false,
+  bookmarkList: null,
   /**
    * Initialise Awesomescreen.
    */
@@ -139,6 +142,58 @@ var Awesomescreen = {
     this.privateBrowsingBlock.addEventListener('mouseup',
         this.hidePrivateBrowsingBlock.bind(this));
 
+    //init bookmark list
+    this.bookmarkList = new BookmarkList(this.bookmark);
+
+    this.bookmark.addEventListener('open',
+      this.showAwesomescreen.bind(this)
+    );
+
+    this.bookmark.addEventListener('close', (function(e) {
+      if(!this.isDisplayedTop()) {
+        this.hideAwesomescreen();
+      }
+    }).bind(this));
+
+    this.bookmark.addEventListener('itemUpdated', (function(e){
+      BookmarkStore.updateCache();
+      this.dialogHidden();
+    }).bind(this));
+
+    this.bookmark.addEventListener('itemRemoved', (function(e){
+      BookmarkStore.updateCache();
+      this.dialogHidden();
+    }).bind(this));
+
+    this.bookmark.addEventListener('showSubMenu', (function(e){
+      this.optionDialogOpen(this.DEFAULT_BOOKMARK);
+    }).bind(this));
+
+    this.bookmark.addEventListener('displayWebsite', (function(e){
+      var uri = e.detail;
+      Browser.navigate(uri);
+      Browser.switchCursorMode(true);
+    }).bind(this));
+
+    this.bookmark.addEventListener('loadDataByRange', (function(e){
+      var detail = e.detail;
+      BookmarkStore.getByRange(
+        detail.startAt,
+        detail.number,
+        detail.folderId,
+        detail.callback
+      );
+    }).bind(this));
+
+    this.bookmark.addEventListener('loadDataByIndex', (function(e){
+      var detail = e.detail;
+      BookmarkStore.getByIndex(
+        detail.dataIndex,
+        detail.folderId,
+        this.bookmarkList.addItem.bind(this.bookmarkList, detail.listIndex)
+      );
+    }).bind(this));
+
     //And setting various button events
     this.setEventListener();
 
@@ -150,6 +205,17 @@ var Awesomescreen = {
   },
 
   /**
+   * awesomescreen on/off switch
+   */
+  showAwesomescreen: function awesomescreen_showAwesomescreen() {
+    document.body.classList.add('awesomescreen-screen');
+  },
+
+  hideAwesomescreen: function awesomescreen_hideAwesomescreen() {
+    document.body.classList.remove('awesomescreen-screen');
+  },
+
+  /**
    * awesomescreen displays a confirmation.
    */
   isDisplayed: function awesomescreen_isDisplayed() {
@@ -158,10 +224,6 @@ var Awesomescreen = {
 
   isDisplayedList: function awesomescreen_isDisplayed() {
     return this.awesomescreen.classList.contains('awesomescreen-screen-list');
-  },
-
-  isDisplayedBookmark: function awesomescreen_isDisplayedBookmark() {
-    return this.awesomescreen.classList.contains('awesomescreen-bookmark');
   },
 
   isDisplayedHistory: function awesomescreen_isDisplayedHistory() {
@@ -187,7 +249,7 @@ var Awesomescreen = {
     //The scale switching by the width of the screen
     if(Browser.mainBlock.dataset.sidebar == 'true'){
       setElemnt.classList.remove('scale-standard');
-      setElemnt.classList.add('scale-min')
+      setElemnt.classList.add('scale-min');
     }else{
       setElemnt.classList.remove('scale-min');
       setElemnt.classList.add('scale-standard');
@@ -220,10 +282,18 @@ var Awesomescreen = {
    * close all awesomescreen screen
    */
   allHidden: function awesomescreen_allHidden() {
-    if(this.isDisplayedList()) this.listHidden();
-    if(this.isDisplayedDialog()) this.dialogHidden();
-    if(this.isDisplayedTop()) this.topsiteHidden();
-    if(this.isDisplayedTab()) this.tabviewHidden();
+    if(this.isDisplayedList()){
+      this.listHidden();
+    }
+    if(this.isDisplayedDialog()){
+      this.dialogHidden();
+    }
+    if(this.isDisplayedTop()){
+      this.topsiteHidden();
+    }
+    if(this.isDisplayedTab()){
+      this.tabviewHidden();
+    }
   },
 
   /**
@@ -240,7 +310,7 @@ var Awesomescreen = {
    */
   getAllElements: function toolbar_getAllElements() {
     var elementIDs = [
-    'top-sites', 'bookmarks', 'history', 'topsite-dialog',
+    'top-sites', 'bookmark', 'history', 'topsite-dialog',
     'tab-site-list', 'dialog-area', 'message-title',
     'input-area', 'check-img', 'circle-img',
     'button-area', 'check-box', 'bmtitle-area',
@@ -267,7 +337,7 @@ var Awesomescreen = {
       Awesomescreen.manifestURL = request.result.manifestURL;
     };
     request.onerror = function() {
-      this.debug("getSelf error");
+      this.debug('getSelf error');
     };
   },
 
@@ -276,8 +346,9 @@ var Awesomescreen = {
     var elementIDs = [this.cancelButton, this.checkBox, this.circleImg,
                       this.okButton, this.pinhomeButton, this.removeButton,
                       this.editButton, this.clhistoryButton, this.sethomeButton,
-                      this.removeTopsiteButton, this.removeConfirmButton, this.renameConfirmButton,
-                      this.clearButton, this.removeBookmarkButton];
+                      this.removeTopsiteButton, this.removeConfirmButton,
+                      this.renameConfirmButton,this.clearButton,
+                      this.removeBookmarkButton];
 
     elementIDs.forEach(function createElementStyle(name) {
       name.addEventListener('keyup', this.dialogButtonKeyup.bind(this));
@@ -288,42 +359,54 @@ var Awesomescreen = {
    * handle event
    */
   handleEvent: function awesomescreen_handleEvent(ev) {
+    var state = true;
     switch(ev.button){
       case 0: //left click
         switch(ev.target){
           //I close the dialog screen
           case Browser.sideBlock :
           case this.dialogArea :
-            if(this.isDisplayedDialog() && (this.cancelButton.style.display == 'none') ){
+            if(this.isDisplayedDialog() &&
+              (this.cancelButton.style.display == 'none') ){
               this.dialogHidden();
              }
-            return false;
+            state = false;
+            break;
+          case this.bookmark:
+            if(this.bookmarkList.isDisplay()) {
+              this.bookmarkList.close();
+            }
+            state = false;
             break;
           case this.history :
-          case this.bookmarks :
-            if(this.isDisplayedList()) this.listHidden();
-            return false;
+            if(this.isDisplayedList()) {
+              this.listHidden();
+            }
+            state = false;
             break;
           case this.topSites :
           case this.topPanels :
           case this.tabView :
           case this.tabviewPanels :
-              //tabview be closed when I appear
-              if(this.isDisplayedTab())  this.tabviewHidden();
-            return false;
+            //tabview be closed when I appear
+            if(this.isDisplayedTab()) {
+              this.tabviewHidden();
+            }
+            state = false;
             break;
           default:
             if(this.isDisplayedTab()){
-              if( (ev.target.className) && (ev.target.className.contains('browser-tab')) ){
+              if( (ev.target.className) &&
+                (ev.target.className.contains('browser-tab')) ){
                 this.tabviewHidden();
-                return false;
+                state = false;
               }
               break;
             }
             if(this.isDisplayedList()){
               if( (ev.target.id) && (ev.target.id.contains('list-dialog')) ){
                 this.listHidden();
-                return false;
+                state = false;
               }
               break;
             }
@@ -333,7 +416,7 @@ var Awesomescreen = {
     default:
       break;
     }
-    return true;
+    return state;
   },
 
   /**
@@ -361,7 +444,8 @@ var Awesomescreen = {
     this.privateBrowsingBlock.classList.remove('visible');
     if(Toolbar.isPrivateBrowsing()) {
       this.privateBrowsingBlock.classList.add('visible');
-      var privateBrowsingInfoText = document.getElementById('private-browsing-info-text');
+      var privateBrowsingInfoText =
+        document.getElementById('private-browsing-info-text');
       privateBrowsingInfoText.innerHTML = _('WB_LT_PRIVATE_BROWSING_2');
     }
   },
@@ -372,22 +456,21 @@ var Awesomescreen = {
    * @param {Array} topSites Array of top site data.
    */
   populateTopSites: function awesomescreen_populateTopSites(topSites) {
-    Toolbar.searchInput.value = "";
+    Toolbar.searchInput.value = '';
     //If the top site of 0, display the default page
-    if(topSites.length == 0){
+    if(topSites.length === 0){
       Settings.getDefaultHomepage(this.defaultTopsite.bind(this));
       return;
     }
     this.history.innerHTML = '';
-    this.bookmarks.innerHTML = '';
-    this.topSites.style.opacity = "0";
-    this.topSiteList.innerHTML = "";
+    this.topSites.style.opacity = '0';
+    this.topSiteList.innerHTML = '';
 
-    //Get the "container, ul" element
+    //Get the 'container, ul' element
     var list = this.topSiteList;
     this.objectURLs = [];
     topSites.forEach(function(data,index) {
-      //Add "topsite, tab" the list creation process of the main
+      //Add 'topsite, tab' the list creation process of the main
       list.appendChild(this.createListItemTopsite(data,null,null,index));
     }, this);
 
@@ -400,11 +483,22 @@ var Awesomescreen = {
    */
   defaultTopsite: function awesomescreen_defaultTopsite() {
 
-    BrowserDB.addTopSite(Settings.DEFAULT_HOMEPAGE, Settings.DEFAULT_HOMEPAGE, 1);
-    var topListObject = {id: 'top-list-default', thumbnail: this.DEFAULT_SCREENSHOT};
+    BrowserDB.addTopSite(
+      Settings.DEFAULT_HOMEPAGE,
+      Settings.DEFAULT_HOMEPAGE,
+      1
+    );
+    var topListObject = {
+      id: 'top-list-default',
+      thumbnail: this.DEFAULT_SCREENSHOT
+    };
     this.objectURLs.push(topListObject);
 
-    BrowserDB.getTopSites(this.TOP_SITES_COUNT, null,this.populateTopSites.bind(this));
+    BrowserDB.getTopSites(
+      this.TOP_SITES_COUNT,
+      null,
+      this.populateTopSites.bind(this)
+    );
   },
 
   /**
@@ -412,7 +506,9 @@ var Awesomescreen = {
    */
   //I want to display the URL of the list and click
   clickTopList: function awesomescreen_clickTopList(ev) {
-    if(ev) ev.stopPropagation();
+    if(ev) {
+      ev.stopPropagation();
+    }
     this.clickTopListFlg = true;
     if(this.clickTopActFlg){
       this.clickTopActFlg = false;
@@ -428,7 +524,9 @@ var Awesomescreen = {
             Browser.switchVisibility(Browser.currentInfo, true);
             //To the tab you are currently viewing the final display tab
             Awesomescreen.finalDispTabId = Browser.currentInfo.id;
-            if(Awesomescreen.isDisplayedTab()) Awesomescreen.tabviewHidden();
+            if(Awesomescreen.isDisplayedTab()) {
+              Awesomescreen.tabviewHidden();
+            }
             Awesomescreen.topsiteHidden();
 
             break;
@@ -441,27 +539,33 @@ var Awesomescreen = {
         }
         //undo the outer frame of the thumbnail
         document.getElementById('default-' + ev.target.id).style.opacity = '1';
-        ev.target.childNodes[0].removeEventListener('transitionend', fade_top_action, false);
+        ev.target.childNodes[0]
+          .removeEventListener('transitionend', fade_top_action, false);
       });
 
       // Add fade animantion event
-      ev.target.childNodes[0].addEventListener('transitionend', fade_top_action, false);
+      ev.target.childNodes[0]
+        .addEventListener('transitionend', fade_top_action, false);
       ev.target.classList.remove('active');
     }
   },
 
   clickTopAction: function awesomescreen_clickTopAction(evt) {
-    if( evt ) evt.preventDefault();
+    if( evt ){
+      evt.preventDefault();
+    }
     var click_top_action = (function() {
       Awesomescreen.clickTopActFlg = true;
       if(Awesomescreen.clickTopListFlg){
         Awesomescreen.clickTopList(evt);
       }
-      evt.target.childNodes[0].removeEventListener('transitionend', click_top_action, false);
+      evt.target.childNodes[0]
+        .removeEventListener('transitionend', click_top_action, false);
     });
 
     // Add fade animantion event
-    evt.target.childNodes[0].addEventListener('transitionend', click_top_action, false);
+    evt.target.childNodes[0]
+      .addEventListener('transitionend', click_top_action, false);
     evt.target.classList.add('active');
   },
 
@@ -470,14 +574,14 @@ var Awesomescreen = {
    */
   topsiteShow: function awesomescreen_topsiteShow() {
     if( Browser.currentInfo ) {
-      if(( Browser.currentInfo.url != null ) && ( Browser.currentInfo.url != '' )) {
+      if( Browser.currentInfo.url ) {
         Browser.debug('stopped for TopSites display...');
         this.topsiteHidden(true);
         Browser.switchCursorMode(true);
         return;
       }
     }
-    document.body.classList.add('awesomescreen-screen');
+    this.showAwesomescreen();
     this.awesomescreen.classList.add('awesomescreen-screen-top');
     this.topSites.style.display = 'block';
     this.topSites.style.opacity = '1';
@@ -492,7 +596,9 @@ var Awesomescreen = {
    * topsite hidden.
    */
   topsiteHidden: function awesomescreen_topsiteHidden(type) {
-    if(!this.isDisplayedTab()) document.body.classList.remove('awesomescreen-screen');
+    if(!this.isDisplayedTab()) {
+      this.hideAwesomescreen();
+    }
     this.awesomescreen.classList.remove('awesomescreen-screen-top');
     Awesomescreen.topSites.style.display = 'none';
     this.topSites.style.opacity = '0';
@@ -515,7 +621,6 @@ var Awesomescreen = {
    */
   populateHistory: function awesomescreen_populateHistory(visits) {
     this.history.innerHTML = '';
-    this.bookmarks.innerHTML = '';
     this.bmhisList = {};
     var urls = []; // List of URLs under each heading for de-duplication
     var container = this.listTemplate.cloneNode(true);
@@ -550,36 +655,7 @@ var Awesomescreen = {
    * Select the Bookmarks tab.
    */
   selectBookmarksTab: function awesomescreen_selectBookmarksTab() {
-    BrowserDB.getBookmarks(this.populateBookmarks.bind(this));
-  },
-
-  /**
-   * Show the list of bookmarks.
-   *
-   * @param {Array} bookmarks List of bookmark data objects.
-   */
-  populateBookmarks: function awesomescreen_populateBookmarks(bookmarks) {
-    this.history.innerHTML = '';
-    this.bookmarks.innerHTML = '';
-    this.bmhisList = {};
-    //Get the "container, ul" element
-    var container = this.listTemplate.cloneNode(true);
-    var title = container.childNodes[0];
-    title.innerHTML = _('LT_NET_BOOKMARK');
-    var list = container.childNodes[2].childNodes[0];
-    bookmarks.forEach(function(data,index) {
-    //Add "index" to the parameters of the "createListItem"
-      list.appendChild(this.createListItem(data, null, 'bookmarks',index));
-    }, this);
-    this.bmhisList = list;
-    if(list.childElementCount >= 2){
-      list.firstChild.classList.add('first-pos');
-      list.lastChild.classList.add('last-pos');
-    }
-    //bookmark or History set to ul
-    this.bookmarks.appendChild(container);
-    this.awesomescreen.classList.add('awesomescreen-bookmark');
-    this.listShow();
+    BookmarkStore.updateCache(this.bookmarkList.open.bind(this.bookmarkList));
   },
 
   /**
@@ -588,7 +664,9 @@ var Awesomescreen = {
    * @param {ev} event to mouseup.
    */
   clickBmHisList: function awesomescreen_clickBmHisList(ev) {
-    if(ev)  ev.preventDefault();
+    if(ev){
+      ev.preventDefault();
+    }
     var activeElem = ev.currentTarget;
 
     //select the list that are not shaded only
@@ -599,7 +677,9 @@ var Awesomescreen = {
           Toolbar.urlInput.blur();
           Browser.navigate(uri);
           this.listHidden();
-          if(this.isDisplayedTop()) this.topsiteHidden();
+          if(this.isDisplayedTop()) {
+            this.topsiteHidden();
+          }
           Browser.switchCursorMode(true);
           break;
         case 2:  //right click
@@ -618,9 +698,7 @@ var Awesomescreen = {
    * hidden bookmark,history list.
    */
   listShow: function awesomescreen_listShow() {
-
-
-    document.body.classList.add('awesomescreen-screen');
+    this.showAwesomescreen();
     this.awesomescreen.classList.add('awesomescreen-screen-list');
     this.listDialog.style.display = 'block';
     Awesomescreen.blurFlag = false;
@@ -638,7 +716,7 @@ var Awesomescreen = {
       this.downgradimgArea.classList.add('hidden');
     }
 
-    if(listLength != 0) {
+    if(listLength !== 0) {
         list[0].focus();
         Awesomescreen.focusImgFunc(list[0], null);
       if(listLength == this.LIST_NUM + 1){
@@ -652,22 +730,23 @@ var Awesomescreen = {
    * hidden bookmark,history list.
    */
   listHidden: function awesomescreen_listHidden() {
-    this.pointerImg.style.display = 'none';
+    this.hidePointerImg();
     if(!(Awesomescreen.isDisplayedTop())) {
-      document.body.classList.remove('awesomescreen-screen');
+      this.hideAwesomescreen();
     }
     Awesomescreen.awesomescreen.classList.remove('awesomescreen-screen-list');
-    Awesomescreen.awesomescreen.classList.remove('awesomescreen-bookmark');
     Awesomescreen.awesomescreen.classList.remove('awesomescreen-history');
     document.activeElement.blur();
     // Fade animation end event handler
     var fade_event_list = (function() {
       Awesomescreen.listDialog.style.display = 'none';
       Browser.switchCursorMode(true);
-      Awesomescreen.listDialog.removeEventListener('transitionend', fade_event_list, false);
+      Awesomescreen.listDialog
+        .removeEventListener('transitionend', fade_event_list, false);
     });
 
-    Awesomescreen.listDialog.addEventListener('transitionend', fade_event_list, false);
+    Awesomescreen.listDialog
+      .addEventListener('transitionend', fade_event_list, false);
     this.listDialog.style.opacity = '0';
 
     this.exeflag = true;
@@ -689,10 +768,14 @@ var Awesomescreen = {
         a = primer(a);
         b = primer(b);
       }
-      if (a < b) return reverse * -1;
-      if (a > b) return reverse * 1;
+      if (a < b) {
+        return reverse * -1;
+      }
+      if (a > b) {
+        return reverse * 1;
+      }
       return 0;
-    }
+    };
   },
 
   /**
@@ -709,7 +792,7 @@ var Awesomescreen = {
 
     listArea.id = 'list-area';
     list.setAttribute('role', 'listbox');
-    list.id = "bmhis-list";
+    list.id = 'bmhis-list';
     title.id = 'title-area';
     imgUpArea.id = 'upgradimg-area';
 
@@ -763,9 +846,9 @@ var Awesomescreen = {
   createTopList: function awesomescreen_createTopList() {
     var topPanels = document.createElement('div');
     var list = document.createElement('ul');
-    topPanels.id = "top-panels";
+    topPanels.id = 'top-panels';
     list.setAttribute('role', 'listbox');
-    list.id = "top-site-list";
+    list.id = 'top-site-list';
     topPanels.appendChild(list);
 
     return topPanels;
@@ -776,7 +859,6 @@ var Awesomescreen = {
     var delArea = document.createElement('div');
     var delImg = document.createElement('span');
     var backArea = document.createElement('div');
-    var tabviewThumbnailArea =  backArea.cloneNode(true);
     var tabviewListArea =  backArea.cloneNode(true);
     var tabThumbnail = backArea.cloneNode(true);
     var tabviewTitleArea = backArea.cloneNode(true);
@@ -808,12 +890,11 @@ var Awesomescreen = {
     var delArea = document.createElement('div');
     var delImg = document.createElement('span');
     var backArea = document.createElement('div');
-    var tabviewThumbnailArea =  backArea.cloneNode(true);
     var tabviewListArea =  backArea.cloneNode(true);
     var tabThumbnail = backArea.cloneNode(true);
 
     template.classList.add('tabview-site-item');
-    template.id = "newtab";
+    template.id = 'newtab';
     delArea.classList.add('del-area');
     delImg.classList.add('del-img');
     delImg.classList.add('hidden');
@@ -846,7 +927,7 @@ var Awesomescreen = {
 
     template.classList.add('top-site-item');
     topListArea.classList.add('topList-area');
-    thumbnailArea.classList.add('thumbnail-area')
+    thumbnailArea.classList.add('thumbnail-area');
 
     siteTitleArea.classList.add('site-title-area');
     siteTitle.classList.add('site-title');
@@ -870,8 +951,11 @@ var Awesomescreen = {
    * @param {number} data index.
    * @return {Element} List item element representing result.
    */
-  createListItem: function awesomescreen_createListItem(data, filter,
-    listType, index) {
+  createListItem: function awesomescreen_createListItem(
+    data,
+    filter,
+    listType,
+    index) {
 
     var listItem = null;
     var fromCache = false;
@@ -902,18 +986,17 @@ var Awesomescreen = {
       var title = textArea.childNodes[0];
       var url = textArea.childNodes[1];
 
-      title.textContent = data.title
+      title.textContent = data.title;
       if (data.uri == this.ABOUT_PAGE_URL) {
         url.textContent = 'about:';
       }else{
-        url.textContent = data.uri
+        url.textContent = data.uri;
       }
     }
 
     //Add an element acquisition process of "icon image, title"
     //image.textarea get
     var iconImg = listItem.childNodes[0].childNodes[0].childNodes[0];
-    var backImg = listItem.childNodes[0].childNodes[0];
 
     // Set result icon
     //"Underlay" is deleted because unnecessary
@@ -923,7 +1006,8 @@ var Awesomescreen = {
       iconImg.src = this.DEFAULT_FAVICON;
     }else{
       iconImg.src = data.iconUri;
-      if( (iconImg.naturalWidth > 32) || (data.iconUri == this.DEFAULT_FAVICON)){
+      if( (iconImg.naturalWidth > 32) ||
+        (data.iconUri == this.DEFAULT_FAVICON)){
         iconImg.style.width = '74px';
         iconImg.style.height = '74px';
         iconImg.style.backgroundSize = '74px 74px';
@@ -934,11 +1018,15 @@ var Awesomescreen = {
       }
     }
     //To impart a unique ID to the list that you created
-    if(index == null) index = 0;
+    if(index == null) {
+      index = 0;
+    }
     listItem.id = 'list-' + index;
 
     //List display number determination process
-    if(index <= this.LIST_NUM - 1) listItem.classList.add('visible');
+    if(index <= this.LIST_NUM - 1) {
+      listItem.classList.add('visible');
+    }
     listItem.tabIndex = index + 1;
 
     // Add event listeners(listItem)
@@ -960,8 +1048,8 @@ var Awesomescreen = {
    * @param {number} data index.
    * @return {Element} List item element representing result.
    */
-  createListItemTopsite: function awesomescreen_createListItemTopsite(data, filter,
-    listType, index) {
+  createListItemTopsite: function awesomescreen_createListItemTopsite
+    (data, filter, listType, index) {
 
     var listItem = null;
     var fromCache = false;
@@ -986,7 +1074,8 @@ var Awesomescreen = {
 
     // If the result was cached, nothing left to do so return it
     if (fromCache) {
-      listItem.addEventListener('mouseover', this.mouseOverTopsiteFunc.bind(this));
+      listItem
+        .addEventListener('mouseover', this.mouseOverTopsiteFunc.bind(this));
      return listItem;
     }
 
@@ -997,7 +1086,7 @@ var Awesomescreen = {
 
     //image.textarea get
     var iconImg = listItem.childNodes[0];
-    var imgUrl = "";
+    var imgUrl = '';
     // Set result icon
     if (!data.screenshot) {
       if(data.title == Settings.DEFAULT_HOMEPAGE){
@@ -1018,20 +1107,27 @@ var Awesomescreen = {
         iconImg.style.backgroundRepeat = 'no-repeat';
         iconImg.style.backgroundPosition = 'center';
       }else{
-        var imgUrl = window.URL.createObjectURL(data.screenshot);
+        imgUrl = window.URL.createObjectURL(data.screenshot);
         iconImg.style.backgroundImage = 'url(' + imgUrl + ')';
         iconImg.style.backgroundRepeat = 'no-repeat';
         iconImg.style.backgroundPosition = 'center';
-        var topListObject = {id:'top-list-' + index, thumbnail: data.screenshot};
+        var topListObject = {
+          id:'top-list-' + index,
+          thumbnail: data.screenshot
+        };
         this.objectURLs.push(topListObject);
       }
     }
     listItem.id = 'top-list-' + index;
     // Add event listeners(listItem)
-    listItem.addEventListener('mouseup', this.clickTopList.bind(this));
-    listItem.addEventListener('mousedown', this.clickTopAction.bind(this));
-    listItem.addEventListener('mouseover', this.mouseOverTopsiteFunc.bind(this));
-    listItem.addEventListener('mouseout', this.mouseOutTopsiteFunc.bind(this));
+    listItem
+      .addEventListener('mouseup', this.clickTopList.bind(this));
+    listItem
+      .addEventListener('mousedown', this.clickTopAction.bind(this));
+    listItem
+      .addEventListener('mouseover',this.mouseOverTopsiteFunc.bind(this));
+    listItem
+      .addEventListener('mouseout', this.mouseOutTopsiteFunc.bind(this));
     return listItem;
   },
 
@@ -1045,7 +1141,9 @@ var Awesomescreen = {
    */
   cacheResult: function awesomescreen_cacheResult(uri, listItem) {
     var keys = Object.keys(this.resultCache);
-    if (keys.length >= this.RESULT_CACHE_SIZE) delete this.resultCache[keys[0]];
+    if (keys.length >= this.RESULT_CACHE_SIZE) {
+      delete this.resultCache[keys[0]];
+    }
     this.resultCache[uri] = listItem;
   },
 
@@ -1086,7 +1184,8 @@ var Awesomescreen = {
       //Bookmark maximum number check
       if(bmList.length >= Browser.MAX_BOOKMARK_LIST){
         //TODO This message I want to change later
-        Awesomescreen.dialogBannerMessage.innerHTML = _('WB_LT_BOOKMARK_ERROR_1');
+        Awesomescreen.dialogBannerMessage.innerHTML =
+          _('WB_LT_BOOKMARK_ERROR_1');
         Awesomescreen.showBannerMessage();
       }else{
         Awesomescreen.bmDialogSetting();
@@ -1101,16 +1200,18 @@ var Awesomescreen = {
    */
   bmDialogSetting: function awesomescreen_bmDialogSetting() {
 
-    this.focusList = new Array();
+    this.focusList = [];
     this.blurFlag = false;
     Awesomescreen.messageTitle.innerHTML = _('WB_LT_BOOKMARK_THIS_PAGE');
     Awesomescreen.inputArea.value = Browser.currentInfo.title;
-    var elementIDs = [Awesomescreen.bmtitleArea, Awesomescreen.checkArea, Awesomescreen.okButton,
-                      Awesomescreen.cancelButton, Awesomescreen.messageArea];
+    var elementIDs = [Awesomescreen.bmtitleArea, Awesomescreen.checkArea,
+                      Awesomescreen.okButton, Awesomescreen.cancelButton,
+                      Awesomescreen.messageArea];
     this.elementSetDisplayBlock(elementIDs);
 
-    var elementIDs2 = [Awesomescreen.inputArea, Awesomescreen.circleImg, Awesomescreen.checkBox,
-                      Awesomescreen.okButton, Awesomescreen.cancelButton];
+    var elementIDs2 = [Awesomescreen.inputArea, Awesomescreen.circleImg,
+                      Awesomescreen.checkBox, Awesomescreen.okButton,
+                      Awesomescreen.cancelButton];
 
     this.elementSetTabindex(elementIDs2);
     this.focusList.push(this.okButton);
@@ -1127,10 +1228,14 @@ var Awesomescreen = {
    * AClear input content
    */
   inputClear: function awesomescreen_inputClear(ev) {
-    if(ev) ev.preventDefault();
-    if(ev.button == 2) return;
+    if(ev){
+      ev.preventDefault();
+    }
+    if(ev.button == 2){
+      return;
+    }
     this.inputArea.style.color = '#020202';
-    Awesomescreen.inputArea.value = "";
+    Awesomescreen.inputArea.value = '';
     Awesomescreen.inputArea.style.color = '#fff';
   },
 
@@ -1138,8 +1243,12 @@ var Awesomescreen = {
    * "Pin to home" check processing
    */
   pintohomeCheck: function awesomescreen_pintohomeCheck(ev) {
-    if(ev) ev.preventDefault();
-    if(ev.button == 2) return;
+    if(ev){
+      ev.preventDefault();
+    }
+    if(ev.button == 2){
+      return;
+    }
     if(this.checkBox.classList.contains('true')){
       this.checkBox.className = 'false';
       this.checkImg.style.opacity = '0';
@@ -1153,12 +1262,18 @@ var Awesomescreen = {
    * "Bookmark", "pin to home" registration process
    */
   dialogConfirm: function awesomescreen_dialogConfirm(ev) {
-    if(ev) ev.preventDefault();
-    if(ev.button == 2) return;
+    if(ev){
+      ev.preventDefault();
+    }
+    if(ev.button == 2){
+      return;
+    }
 
     //title is I do check if empty
     var bmTitle = this.inputArea.value;
-    if(bmTitle == "") bmTitle =  Browser.currentInfo.title;
+    if(bmTitle === '') {
+      bmTitle =  Browser.currentInfo.title;
+    }
 
     //Check confirmation of "pin to home"
     if(this.checkBox.classList.contains('true')){
@@ -1171,10 +1286,13 @@ var Awesomescreen = {
     var end_event = (function() {
       target.removeEventListener('transitionend', end_event, false);
       //add a bookmark
-      BrowserDB.addBookmark(Browser.currentInfo.url,
-                          bmTitle,
-                          Awesomescreen.addBookmarkHidden.bind(Awesomescreen));
-      });
+      BrowserDB.addBookmark(
+        Browser.currentInfo.url,
+        bmTitle,
+        Awesomescreen.addBookmarkHidden.bind(Awesomescreen)
+      );
+      }
+    );
     target.addEventListener('transitionend', end_event, false);
   },
 
@@ -1193,19 +1311,17 @@ var Awesomescreen = {
   },
 
   /**
-   * "remove", "rename" dialog determination process
+   * 'remove', 'rename' dialog determination process
    */
   optionDialogOpen: function awesomescreen_optionDialogOpen(type) {
-    this.focusList = new Array();
+    this.focusList = [];
     this.blurFlag = false;
     this.dialogInitialize();
     var elementIDs = [];
     //And determine the type to open the dialog menu
     if(!type){
       if(this.isDisplayedList()){
-        if(this.isDisplayedBookmark()){
-          type = this.DEFAULT_BOOKMARK;
-        }else if(this.isDisplayedHistory()){
+        if(this.isDisplayedHistory()){
           type = this.DEFAULT_HISTORY;
         }
       }else if(this.isDisplayedTop()){
@@ -1215,7 +1331,8 @@ var Awesomescreen = {
 
     switch(type){
       case this.DEFAULT_BOOKMARK:
-        elementIDs = [this.pinhomeButton, this.removeBookmarkButton, this.editButton];
+        elementIDs = [this.pinhomeButton, this.removeBookmarkButton,
+                      this.editButton];
         this.focusList.push(this.pinhomeButton);
         this.focusList.push(this.removeBookmarkButton);
         this.focusList.push(this.editButton);
@@ -1225,7 +1342,8 @@ var Awesomescreen = {
         break;
 
       case this.DEFAULT_HISTORY:
-        elementIDs = [this.pinhomeButton, this.clhistoryButton, this.removeButton];
+        elementIDs = [this.pinhomeButton, this.clhistoryButton,
+                      this.removeButton];
         this.focusList.push(this.pinhomeButton);
         this.focusList.push(this.clhistoryButton);
         this.focusList.push(this.removeButton);
@@ -1235,7 +1353,8 @@ var Awesomescreen = {
         break;
 
       case this.DEFAULT_TOPSITE:
-        elementIDs = [this.pinhomeButton, this.sethomeButton, this.removeTopsiteButton];
+        elementIDs = [this.pinhomeButton, this.sethomeButton,
+                      this.removeTopsiteButton];
         this.elementSetDisplayBlock(elementIDs);
         this.elementSetTabindex(elementIDs);
         this.focusList.push(this.pinhomeButton);
@@ -1246,7 +1365,8 @@ var Awesomescreen = {
 
       case 'rmBookmark':
         this.messageTitle.innerHTML = _('WB_LT_REMOVE_FROM_BOOKMARKS');
-        elementIDs = [this.messageArea, this.messageTitle, this.removeConfirmButton, this.cancelButton];
+        elementIDs = [this.messageArea, this.messageTitle,
+                      this.removeConfirmButton, this.cancelButton];
         this.elementSetDisplayBlock(elementIDs);
         elementIDs = [this.removeConfirmButton, this.cancelButton];
         this.elementSetTabindex(elementIDs);
@@ -1257,7 +1377,8 @@ var Awesomescreen = {
 
       case 'clHistory': // remove One history item
         this.messageTitle.innerHTML = _('WB_LT_REMOVE_HISTORY');
-        elementIDs = [this.messageArea, this.messageTitle, this.removeConfirmButton, this.cancelButton];
+        elementIDs = [this.messageArea, this.messageTitle,
+                      this.removeConfirmButton, this.cancelButton];
         this.elementSetDisplayBlock(elementIDs);
         elementIDs = [this.removeConfirmButton, this.cancelButton];
         this.elementSetTabindex(elementIDs);
@@ -1268,10 +1389,13 @@ var Awesomescreen = {
 
       case 'rnBookmark':
         this.messageTitle.innerHTML = _('WB_LT_RENAME_BOOKMARK');
-        this.inputArea.value = this.selectList.childNodes[1].childNodes[0].textContent;
-        elementIDs = [this.messageArea, this.bmtitleArea, this.messageTitle, this.renameConfirmButton, this.cancelButton];
+        this.inputArea.value =
+          this.bookmarkList.getFocusItemTitle();
+        elementIDs = [this.messageArea, this.bmtitleArea, this.messageTitle,
+                      this.renameConfirmButton, this.cancelButton];
         this.elementSetDisplayBlock(elementIDs);
-        elementIDs = [this.inputArea, this.circleImg, this.renameConfirmButton, this.cancelButton];
+        elementIDs = [this.inputArea, this.circleImg, this.renameConfirmButton,
+                      this.cancelButton];
         this.elementSetTabindex(elementIDs);
         this.focusList.push(this.renameConfirmButton);
         this.focusList.push(this.cancelButton);
@@ -1282,7 +1406,8 @@ var Awesomescreen = {
 
       case 'rmHistory': // remove All history
         this.messageTitle.innerHTML = _('WB_LT_CLEAR_ALL_HISTORY');
-        elementIDs = [this.messageArea, this.messageTitle, this.clearButton, this.cancelButton];
+        elementIDs = [this.messageArea, this.messageTitle, this.clearButton,
+                      this.cancelButton];
         this.elementSetDisplayBlock(elementIDs);
         elementIDs = [this.clearButton, this.cancelButton];
         this.elementSetTabindex(elementIDs);
@@ -1304,19 +1429,23 @@ var Awesomescreen = {
   dialogInitialize: function awesomescreen_dialogInitialize(type) {
     var elementIDs = [
            this.inputArea, this.circleImg, this.checkBox, this.cancelButton,
-           this.okButton, this.clearButton, this.clhistoryButton, this.editButton,
-           this.pinhomeButton, this.removeButton, this.removeConfirmButton, this.removeTopsiteButton,
-           this.renameConfirmButton, this.sethomeButton, this.removeBookmarkButton
+           this.okButton, this.clearButton, this.clhistoryButton,
+           this.editButton, this.pinhomeButton, this.removeButton,
+           this.removeConfirmButton, this.removeTopsiteButton,
+           this.renameConfirmButton, this.sethomeButton,
+           this.removeBookmarkButton
         ];
 
     // Loop and add element with camel style name to Modal Dialog attribute.
     this.elementSetTabindexClear(elementIDs);
 
     var elementIDs2 = [
-           this.messageArea, this.bmtitleArea, this.checkArea, this.cancelButton,
-           this.okButton, this.clearButton, this.clhistoryButton, this.editButton,
-           this.pinhomeButton, this.removeButton, this.removeConfirmButton, this.removeTopsiteButton,
-           this.renameConfirmButton, this.sethomeButton, this.removeBookmarkButton
+           this.messageArea, this.bmtitleArea, this.checkArea,
+           this.cancelButton,this.okButton, this.clearButton,
+           this.clhistoryButton, this.editButton, this.pinhomeButton,
+           this.removeButton, this.removeConfirmButton,
+           this.removeTopsiteButton, this.renameConfirmButton,
+           this.sethomeButton, this.removeBookmarkButton
         ];
 
     // Loop and add element with camel style name to Modal Dialog attribute.
@@ -1329,7 +1458,8 @@ var Awesomescreen = {
     }, this);
   },
 
-  elementSetTabindexClear: function awesomescreen_elementSetTabindexClear(elementIDs) {
+  elementSetTabindexClear:
+    function awesomescreen_elementSetTabindexClear(elementIDs) {
     elementIDs.forEach(function createElementTabIndex(name,index) {
       name.tabIndex = '-1';
     }, this);
@@ -1371,7 +1501,9 @@ var Awesomescreen = {
   },
 
   handleinputAreaFocus: function settings_handleinputAreaFocus(evt) {
-    if( evt ) evt.preventDefault();
+    if( evt ){
+      evt.preventDefault();
+    }
     Awesomescreen.bmtitleArea.classList.add('input');
     Awesomescreen.bmtitleArea.classList.remove('exfocus');
   },
@@ -1384,14 +1516,16 @@ var Awesomescreen = {
     Awesomescreen.bmtitleArea.classList.remove('exfocus');
     Awesomescreen.focusPos = 2;
     Awesomescreen.focusList[Awesomescreen.focusPos].focus();
-    Awesomescreen.pointerImg.style.display = 'none';
+    Awesomescreen.hidePointerImg();
   },
 
   /**
    * input Blur event
    */
-  handleinputAreaBlur: function awesomescreen_handleinputAreaBlur(evt) {
-    if( evt ) evt.preventDefault();
+  handleinputAreaBlur: function awesomescreen_handleinputAreaBlur(ev) {
+    if( ev ){
+      ev.preventDefault();
+    }
     if( Awesomescreen.pointerImg.style.display == 'none' ) {
       Browser.switchCursorMode(true);
       Browser.switchCursorMode(false);
@@ -1400,12 +1534,16 @@ var Awesomescreen = {
     Awesomescreen.focusPos = 2;
     Awesomescreen.bmtitleArea.classList.remove('input');
     Awesomescreen.focusChange(Awesomescreen.focusPos);
-    Awesomescreen.pointerImg.style.display = 'block';
+    Awesomescreen.showPointerImg();
   },
 
   clickEditButton: function awesomescreen_clickEditButton(ev) {
-    if(ev) ev.preventDefault();
-    if(ev.button == 2) return;
+    if( ev ){
+      ev.preventDefault();
+    }
+    if(ev.button == 2){
+      return;
+    }
     // Animation end event
     var target = ev.currentTarget;
     var end_event = (function() {
@@ -1416,8 +1554,12 @@ var Awesomescreen = {
   },
 
   clickPinhomeButton: function awesomescreen_clickPinhomeButton(ev) {
-    if(ev) ev.preventDefault();
-    if(ev.button == 2) return;
+    if( ev ){
+      ev.preventDefault();
+    }
+    if(ev.button == 2){
+      return;
+    }
     // Animation end event
     var target = ev.currentTarget;
     var end_event = (function() {
@@ -1429,14 +1571,23 @@ var Awesomescreen = {
   },
 
   clickRemoveButton: function awesomescreen_clickRemoveButton(ev) {
-    if(ev) ev.preventDefault();
-    if(ev.button == 2) return;
+    if( ev ){
+      ev.preventDefault();
+    }
+    if(ev.button == 2){
+      return;
+    }
     this.optionDialogOpen('rmHistory');
   },
 
-  clickRemoveBookmarkButton: function awesomescreen_clickRemoveBookmarkButton(ev) {
-    if(ev) ev.preventDefault();
-    if(ev.button == 2) return;
+  clickRemoveBookmarkButton:
+    function awesomescreen_clickRemoveBookmarkButton(ev) {
+    if( ev ){
+      ev.preventDefault();
+    }
+    if(ev.button == 2){
+      return;
+    }
     // Animation end event
     var target = ev.currentTarget;
     var end_event = (function() {
@@ -1447,8 +1598,12 @@ var Awesomescreen = {
    },
 
   clickSethomeButton: function awesomescreen_clickSethomeButton(ev) {
-    if(ev) ev.preventDefault();
-    if(ev.button == 2) return;
+    if( ev ){
+      ev.preventDefault();
+    }
+    if(ev.button == 2){
+      return;
+    }
     var url = this.selectList.childNodes[0].childNodes[1].textContent;
     var title = this.selectList.childNodes[1].childNodes[0].textContent;
     Settings.setHomepage(url);
@@ -1475,21 +1630,30 @@ var Awesomescreen = {
   },
 
   clickRmtopsiteButton: function awesomescreen_clickRmtopsiteButton(ev) {
-    if(ev) ev.preventDefault();
-    if(ev.button == 2) return;
+    if( ev ){
+      ev.preventDefault();
+    }
+    if(ev.button == 2){
+      return;
+    }
     var url = this.selectList.childNodes[0].childNodes[1].textContent;
     // Animation end event
     var target = ev.currentTarget;
     var end_event = (function() {
       target.removeEventListener('transitionend', end_event, false);
-      BrowserDB.removeTopsite(url,Awesomescreen.topsiteReload.bind(Awesomescreen));
+      BrowserDB
+        .removeTopsite(url,Awesomescreen.topsiteReload.bind(Awesomescreen));
     });
     target.addEventListener('transitionend', end_event, false);
   },
 
   clickClhistoryButton: function awesomescreen_clickClhistoryButton(ev) {
-    if(ev) ev.preventDefault();
-    if(ev.button == 2) return;
+    if( ev ){
+      ev.preventDefault();
+    }
+    if(ev.button == 2){
+      return;
+    }
     // Animation end event
     var target = ev.currentTarget;
     var end_event = (function() {
@@ -1500,8 +1664,12 @@ var Awesomescreen = {
   },
 
   clickClearButton: function awesomescreen_clickClearButton(ev) {
-    if(ev) ev.preventDefault();
-    if(ev.button == 2) return;
+    if( ev ){
+      ev.preventDefault();
+    }
+    if(ev.button == 2){
+      return;
+    }
     this.historyClearFlg = true;
     // Animation end event
     var target = ev.currentTarget;
@@ -1513,8 +1681,12 @@ var Awesomescreen = {
   },
 
   clickRmconfirmButton: function awesomescreen_clickClearButton(ev) {
-    if(ev) ev.preventDefault();
-    if(ev.button == 2) return;
+    if( ev ){
+      ev.preventDefault();
+    }
+    if(ev.button == 2){
+      return;
+    }
     // Animation end event
     var target = ev.currentTarget;
     var end_event = (function() {
@@ -1525,8 +1697,12 @@ var Awesomescreen = {
   },
 
   clickCancelButton: function awesomescreen_clickCancelButton(ev) {
-    if(ev) ev.preventDefault();
-    if(ev.button == 2) return;
+    if( ev ){
+      ev.preventDefault();
+    }
+    if(ev.button == 2){
+      return;
+    }
     // Animation end event
     var target = ev.currentTarget;
     var end_event = (function() {
@@ -1536,15 +1712,21 @@ var Awesomescreen = {
     target.addEventListener('transitionend', end_event, false);
   },
   /**
-   * "bookmark", "history" title remove processing
+   * 'bookmark', 'history' title remove processing
    */
   titleRemove: function awesomescreen_titleRemove(ev) {
-    if(ev) ev.preventDefault();
-    if(ev.button == 2) return;
-    var listUrl = "";
-    if(Awesomescreen.isDisplayedList()){
+    if( ev ){
+      ev.preventDefault();
+    }
+    if(ev.button == 2){
+      return;
+    }
+    var listUrl = '';
+    if(this.bookmarkList.isDisplay()) {
+      listUrl = this.bookmarkList.getFocusItemUri();
+    } else if(Awesomescreen.isDisplayedList()){
       listUrl = this.selectList.childNodes[1].childNodes[1].textContent;
-    }else{
+    } else {
       listUrl = Browser.currentInfo.url;
     }
 
@@ -1552,12 +1734,18 @@ var Awesomescreen = {
     var target = ev.currentTarget;
     var end_event = (function() {
       target.removeEventListener('transitionend', end_event, false);
-      if(Awesomescreen.isDisplayedHistory()){
-        BrowserDB.removeHistory(listUrl, Awesomescreen.bmlistRemoveFunc.bind(Awesomescreen));
-      }else{
-        BrowserDB.removeBookmark(listUrl, Awesomescreen.bmlistRemoveFunc.bind(Awesomescreen));
+      if(this.bookmarkList.isDisplay()) {
+        BrowserDB.removeBookmark(
+          listUrl,
+          this.bookmarkList.removeFocusItem.bind(this.bookmarkList)
+        );
+      } else if(Awesomescreen.isDisplayedHistory()){
+        BrowserDB.removeHistory(
+          listUrl,
+          Awesomescreen.bmlistRemoveFunc.bind(Awesomescreen)
+        );
       }
-    });
+    }).bind(this);
     target.addEventListener('transitionend', end_event, false);
   },
 
@@ -1565,14 +1753,18 @@ var Awesomescreen = {
    * "Bookmark" title rename processing
    */
   titleRename: function awesomescreen_titleRename(ev) {
-    if(ev) ev.preventDefault();
-    if(ev.button == 2) return;
+    if( ev ){
+      ev.preventDefault();
+    }
+    if(ev.button == 2){
+      return;
+    }
     //title is I do check if empty
-    var bmTitle = "";
-    var listUrl = this.selectList.childNodes[1].childNodes[1].textContent;
-    var listTitle = this.selectList.childNodes[1].childNodes[0].textContent;
+    var bmTitle = '',
+        listUrl = this.bookmarkList.getFocusItemUri(),
+        listTitle = this.bookmarkList.getFocusItemTitle();
 
-    if(this.inputArea.value == ""){
+    if(this.inputArea.value === ''){
       bmTitle =  listTitle;
     }else{
       bmTitle = this.inputArea.value;
@@ -1582,10 +1774,12 @@ var Awesomescreen = {
     var end_event = (function() {
       target.removeEventListener('transitionend', end_event, false);
       //updateBookmark
-      BrowserDB.updateBookmark(listUrl,
-                               bmTitle,
-                               Awesomescreen.allDialogHidden.bind(Awesomescreen, bmTitle));
-    });
+      BrowserDB.updateBookmark(
+        listUrl,
+        bmTitle,
+        this.bookmarkList.updateFocusItemTitle.bind(this.bookmarkList, bmTitle)
+      );
+    }).bind(this);
     target.addEventListener('transitionend', end_event, false);
   },
 
@@ -1598,7 +1792,7 @@ var Awesomescreen = {
      if(!this.isDisplayedList()){
        this.dialogHidden();
        Browser.switchCursorMode(true);
-       this.pointerImg.style.display = 'none';
+       this.hidePointerImg();
        Browser.refreshBrowserParts();
        return;
       }
@@ -1640,14 +1834,14 @@ var Awesomescreen = {
      }else{
         //if the elements of the list of one
        this.dialogHidden();
-       this.pointerImg.style.display = 'none';
+       this.hidePointerImg();
      }
      Browser.refreshBrowserParts();
    },
 
   dialogShow: function awesomescreen_dialogShow(type) {
     Awesomescreen.dialogArea.style.opacity = '1';
-    document.body.classList.add('awesomescreen-screen');
+    this.showAwesomescreen();
     this.awesomescreen.classList.add('awesomescreen-screen-dialog');
     this.dialogArea.style.display = 'block';
     Browser.switchCursorMode(true);
@@ -1659,15 +1853,22 @@ var Awesomescreen = {
   },
 
   dialogHidden: function awesomescreen_dialogHidden(ev) {
-    if(ev) ev.preventDefault();
-    if((ev) && (ev.button == 2)) return;
+    if(ev){
+      ev.preventDefault();
+    }
+    if((ev) && (ev.button == 2)){
+      return;
+    }
     if(Awesomescreen.isDisplayedDialog()){
-      Awesomescreen.awesomescreen.classList.remove('awesomescreen-screen-dialog');
-      Awesomescreen.listDialog.style.backgroundImage = 'url("../style/images/background_black.png")';
+      Awesomescreen
+        .awesomescreen.classList.remove('awesomescreen-screen-dialog');
+      Awesomescreen.listDialog.style.backgroundImage =
+        'url("../style/images/background_black.png")';
       Awesomescreen.dialogArea.style.display = 'none';
     }
-    if( (!(Awesomescreen.isDisplayedList())) && (!Awesomescreen.isDisplayedTop()) ) {
-         document.body.classList.remove('awesomescreen-screen');
+    if( (!(Awesomescreen.isDisplayedList())) &&
+      (!Awesomescreen.isDisplayedTop()) ) {
+         this.hideAwesomescreen();
     }
 
     if(Awesomescreen.checkBox.classList.contains('true')){
@@ -1698,7 +1899,7 @@ var Awesomescreen = {
       this.selectList.focus();
       this.focusImgFunc(this.selectList, null);
     }else{
-      this.pointerImg.style.display = 'none';
+      this.hidePointerImg();
     }
     Awesomescreen.dialogArea.style.display = 'none';
   },
@@ -1710,7 +1911,7 @@ var Awesomescreen = {
     this.dialogHidden();
     Browser.switchCursorMode(true);
 
-    this.pointerImg.style.display = 'none';
+    this.hidePointerImg();
     if(this.isDisplayedList()){
       if(this.history.firstChild){
         if(this.historyClearFlg){
@@ -1724,7 +1925,7 @@ var Awesomescreen = {
         if(bmTitle){
           this.selectList.childNodes[1].childNodes[0].textContent = bmTitle;
            Browser.switchCursorMode(false);
-           this.pointerImg.style.display = 'block';
+           this.showPointerImg();
            this.blurFlag = false;
          }
       }
@@ -1741,7 +1942,9 @@ var Awesomescreen = {
   },
 
   dialogButtonKeyup: function awesomescreen_dialogButtonKeyup(evt) {
-    if( evt ) evt.preventDefault();
+    if( evt ){
+      evt.preventDefault();
+    }
 
     if(Awesomescreen.blurFlag){
       Awesomescreen.blurFlag = false;
@@ -1752,8 +1955,8 @@ var Awesomescreen = {
       case KeyEvent.DOM_VK_RETURN :
         var elm = document.activeElement;
         elm.classList.remove('active');
-        var dEvt = document.createEvent("MouseEvents");
-        dEvt.initMouseEvent("mouseup", true, true, window, 0, 0, 0, 0, 0,
+        var dEvt = document.createEvent('MouseEvents');
+        dEvt.initMouseEvent('mouseup', true, true, window, 0, 0, 0, 0, 0,
             false, false, false, false, 0, elm);
         elm.dispatchEvent( dEvt );
         break;
@@ -1766,23 +1969,23 @@ var Awesomescreen = {
    */
   pinToHome: function awesomescreen_pinToHome() {
 
-    var url = "";
-    var title  = "";
+    var url = '';
+    var title  = '';
 
     switch(true) {
       case this.isDisplayedList() :
         this.showAwesomeLoadingIcon();
         url = this.selectList.childNodes[1].childNodes[1].textContent;
-        this.pintohomeTitle = this.selectList.childNodes[1].childNodes[0].textContent;
+        this.pintohomeTitle =
+          this.selectList.childNodes[1].childNodes[0].textContent;
         this.callAwesomescreenEvents(url);
-        return;
         break;
       case this.isDisplayedTop() :
         this.showAwesomeLoadingIcon();
         url = this.selectList.childNodes[0].childNodes[1].textContent;
-        this.pintohomeTitle = this.selectList.childNodes[1].childNodes[0].textContent;
+        this.pintohomeTitle =
+          this.selectList.childNodes[1].childNodes[0].textContent;
         this.callAwesomescreenEvents(url);
-        return;
         break;
       case this.isDisplayedDialog() :
         if(this.checkBox.classList.contains('true')){
@@ -1792,14 +1995,22 @@ var Awesomescreen = {
         }
         if(this.checkBox.classList.contains('true')){
           title = this.inputArea.value;
-          Awesomescreen.getScreenshot(Browser.currentInfo.dom,Browser.currentInfo.url, this.inputArea.value, null);
-          return;
+          Awesomescreen.getScreenshot(
+            Browser.currentInfo.dom,
+            Browser.currentInfo.url,
+            this.inputArea.value,
+            null
+          );
         }
         break;
       case (!this.isDisplayed()) :
         this.showAwesomeLoadingIcon();
-        Awesomescreen.getScreenshot(Browser.currentInfo.dom,Browser.currentInfo.url, Browser.currentInfo.title, null);
-        return;
+        Awesomescreen.getScreenshot(
+          Browser.currentInfo.dom,
+          Browser.currentInfo.url,
+          Browser.currentInfo.title,
+          null
+        );
         break;
       default:
         break;
@@ -1809,9 +2020,13 @@ var Awesomescreen = {
   /**
    * Select tabview button.
    */
-  getScreenshot: function awesomescreen_getScreenshot(browserElement, url, title, calback) {
+  getScreenshot: function awesomescreen_getScreenshot(
+    browserElement,
+    url,
+    title,
+    calback) {
 
-    var widthScreenshot = "";
+    var widthScreenshot = '';
     if(Browser.mainBlock.dataset.sidebar == 'true'){
       widthScreenshot = this.PTH_THUMBNAIL_WIDTH_SIDE;
     }else{
@@ -1845,11 +2060,14 @@ var Awesomescreen = {
   /**
    * call to pin to home Activity.
    */
-  callMozActivity: function awesomescreen_callMozActivity(url, title, blob, callback) {
+  callMozActivity:
+    function awesomescreen_callMozActivity(url, title, blob, callback) {
     var entryPoint = 'index.html';
     var launchURL = location.origin + '/' + entryPoint + '#' + url;
     this.getManifest();
-    if(!title) title = url;
+    if(!title){
+      title = url;
+    }
     var activity = new MozActivity({
       name: 'pin',
       data: {
@@ -1865,7 +2083,9 @@ var Awesomescreen = {
     });
 
     activity.onsuccess = function() {
-      if(Awesomescreen.isDisplayedDialog()) Awesomescreen.dialogHidden();
+      if(Awesomescreen.isDisplayedDialog()){
+        Awesomescreen.dialogHidden();
+      }
       Awesomescreen.hiddenAwesomeLoadingIcon();
       if(callback){
         callback();
@@ -1875,11 +2095,14 @@ var Awesomescreen = {
     activity.onerror = function() {
       Browser.debug(activity.error.name + ' : pin');
       Awesomescreen.hiddenAwesomeLoadingIcon();
-      if(callback) callback();
+      if(callback){
+        callback();
+      }
     };
   },
 
-  handleAwesomescreenEvent: function awesomescreen_handleAwesomescreenEvent(tab) {
+  handleAwesomescreenEvent:
+    function awesomescreen_handleAwesomescreenEvent(tab) {
     return (function(evt) {
       switch (evt.type) {
       case 'mozbrowserloadstart':
@@ -1891,7 +2114,12 @@ var Awesomescreen = {
       case 'mozbrowserloadend':
         Browser.debug('awesomescreen mozbrowserloadend[' + tab.id + ']');
         evt.preventDefault();
-        Awesomescreen.getScreenshot(tab.dom, tab.url, tab.title, this.deleteIframe.bind(tab.id));
+        Awesomescreen.getScreenshot(
+          tab.dom,
+          tab.url,
+          tab.title,
+          this.deleteIframe.bind(tab.id)
+        );
         break;
       case 'mozbrowsercontextmenu':
         Awesomescreen.hiddenAwesomeLoadingIcon();
@@ -1952,7 +2180,8 @@ var Awesomescreen = {
   /**
    * Add Browser Event (iframe)
    */
-  bindAwesomescreenEvents: function awesomescreen_bindAwesomescreenEvents(iframe, tab) {
+  bindAwesomescreenEvents:
+    function awesomescreen_bindAwesomescreenEvents(iframe, tab) {
     var awesomescreenEvents = ['loadstart', 'loadend', 'contextmenu',
                                'error'];
     awesomescreenEvents.forEach(function attachAwesomescreenEvent(type) {
@@ -1964,7 +2193,8 @@ var Awesomescreen = {
   /**
    * Select tabview button.
    */
-  selectTabviewSitesTab: function awesomescreen_selectTabviewSitesTab(data,count) {
+  selectTabviewSitesTab:
+    function awesomescreen_selectTabviewSitesTab(data,count) {
 
     var id = data.id;
     var url = data.url;
@@ -1981,13 +2211,15 @@ var Awesomescreen = {
    */
   handleNewTab: function browserHandleNewTab(e,type) {
 
-    this.tabSiteList.innerHTML = "";
+    this.tabSiteList.innerHTML = '';
     //I get the information from the "iframe"
     var tabCount = Object.keys(Browser.info).length;
     var tabIds = Object.keys(Browser.info);
 
-    if(tabCount > Awesomescreen.TABLIST_MAX) tabCount = Awesomescreen.TABLIST_MAX - 1;
-    if(tabCount == 0){
+    if(tabCount > Awesomescreen.TABLIST_MAX){
+      tabCount = Awesomescreen.TABLIST_MAX - 1;
+    }
+    if(tabCount === 0){
       Awesomescreen.tabNewCreate(Awesomescreen.tabSiteList,tabCount);
     }else{
       for( var i=0; i < tabCount; i++) {
@@ -2012,21 +2244,29 @@ var Awesomescreen = {
    * tabview show.
    */
   tabviewShow:function awesomescreen_tabviewShow() {
-      this.pointerImg.style.display = 'none';
-      var tabCount = Object.keys(Browser.info).length;
+      this.hidePointerImg();
       Browser.switchCursorMode(false);
       Awesomescreen.blurFlag = false;
       var fade_event_tabview_show = (function() {
         Awesomescreen.awesomescreen.classList.add('awesomescreen-screen-tab');
-        document.body.classList.add('awesomescreen-screen');
-        Awesomescreen.tabList = document.getElementsByClassName('tabview-site-item');
+        Awesomescreen.showAwesomescreen();
+        Awesomescreen.tabList =
+          document.getElementsByClassName('tabview-site-item');
         Awesomescreen.tabList[0].childNodes[1].focus();
         Awesomescreen.focusImgFunc(Awesomescreen.tabList[0].childNodes[1]);
-        Awesomescreen.tabView.removeEventListener('transitionend', fade_event_tabview_show, false);
+        Awesomescreen.tabView.removeEventListener(
+          'transitionend',
+          fade_event_tabview_show,
+          false
+        );
       });
 
       // Add fade animantion event
-      Awesomescreen.tabView.addEventListener('transitionend', fade_event_tabview_show, false);
+      Awesomescreen.tabView.addEventListener(
+        'transitionend',
+        fade_event_tabview_show,
+        false
+      );
       Awesomescreen.tabView.style.transform = 'translateY(0px)';
   },
 
@@ -2034,9 +2274,9 @@ var Awesomescreen = {
    * tabview hidden.
    */
   tabviewHidden:function awesomescreen_tabviewHidden() {
-    this.pointerImg.style.display = 'none';
+    Awesomescreen.hidePointerImg();
     if(!(Awesomescreen.isDisplayedTop())){
-      document.body.classList.remove('awesomescreen-screen');
+      Awesomescreen.hideAwesomescreen();
     }
     Awesomescreen.awesomescreen.classList.remove('awesomescreen-screen-tab');
     document.activeElement.blur();
@@ -2051,9 +2291,17 @@ var Awesomescreen = {
     }
     // Fade animation end event handler
     var fade_event_tabview_hidden = (function() {
-        Awesomescreen.tabView.removeEventListener('transitionend', fade_event_tabview_hidden, false);
+        Awesomescreen.tabView.removeEventListener(
+          'transitionend',
+          fade_event_tabview_hidden,
+          false
+        );
     });
-    Awesomescreen.tabView.addEventListener('transitionend', fade_event_tabview_hidden, false);
+    Awesomescreen.tabView.addEventListener(
+      'transitionend',
+      fade_event_tabview_hidden,
+      false
+    );
     Awesomescreen.tabView.style.transform = 'translateY(-1080px)';
 
   },
@@ -2063,7 +2311,8 @@ var Awesomescreen = {
   updateTabsCount: function awesomescreen_updateTabsCount() {
     var tabsCount = Object.keys(Browser.info).length;
     if(tabsCount >= 0 && tabsCount <= this.TABLIST_MAX){
-      Toolbar.tabsButtonBlock.dataset.tabs = 'tab' +  ('00' + tabsCount).slice(-2);
+      Toolbar.tabsButtonBlock.dataset.tabs =
+        'tab' +  ('00' + tabsCount).slice(-2);
     }
 
     // tabs icon action
@@ -2080,7 +2329,8 @@ var Awesomescreen = {
    * @param {title} Title of the page you are currently viewing.
    * @param {thumbnail} Thumbnail of the page you are currently viewing.
    */
-  creatNewThumbnail: function awesomescreen_creatNewThumbnail(url,title,thumbnail) {
+  creatNewThumbnail:
+    function awesomescreen_creatNewThumbnail(url,title,thumbnail) {
 
     var list = this.tabTemplate.cloneNode(true);
     var tabThumbnail = list.childNodes[1].childNodes[0];
@@ -2093,7 +2343,8 @@ var Awesomescreen = {
         tabThumbnail.style.backgroundRepeat = 'no-repeat';
         tabThumbnail.style.backgroundPosition = 'center';
     }else{
-        tabThumbnail.style.backgroundImage = 'url(' + this.DEFAULT_FAVICON + ')';
+        tabThumbnail.style.backgroundImage =
+          'url(' + this.DEFAULT_FAVICON + ')';
         tabThumbnail.style.backgroundColor = '#5f6267';
         tabThumbnail.style.backgroundSize = 'contain';
         tabThumbnail.style.backgroundRepeat = 'no-repeat';
@@ -2112,8 +2363,11 @@ var Awesomescreen = {
    */
   clickTabEvent: function awesomescreen_clickTabEvent(ev) {
 
-    if( (!(ev.keyCode == KeyEvent.DOM_VK_RETURN)) && (!(ev.button == 0)) ) return;
-    var actionElem = "";
+    if( ev.keyCode !== KeyEvent.DOM_VK_RETURN &&
+      ev.button !== 0 ) {
+      return;
+    }
+    var actionElem = '';
     this.clickTabListFlg = true;
     if(this.clickTabActFlg){
       this.clickTabActFlg = false;
@@ -2156,7 +2410,9 @@ var Awesomescreen = {
    */
   createAddNewTab: function awesomescreen_createAddNewTab() {
       //If you want to create a 13 second tab, delete the oldest tab
-      if(Object.keys(Browser.info).length >= this.TABLIST_MAX) this.oldTabDelete();
+      if(Object.keys(Browser.info).length >= this.TABLIST_MAX){
+        this.oldTabDelete();
+      }
 
       var tabCount = Object.keys(Browser.info).length;
       var tabIds = Object.keys(Browser.info);
@@ -2170,16 +2426,23 @@ var Awesomescreen = {
       Browser.selectInfo(Browser.createIframe());
       Browser.refreshBrowserParts();
       this.updateTabsCount();
-      if(this.isDisplayedTab())  this.tabviewHidden();
+      if(this.isDisplayedTab()){
+        this.tabviewHidden();
+      }
       this.selectTopSites();
   },
 
   openNewTab: function awesomescreen_openNewTab(evt) {
-    if( evt == null ) return;
+    if( evt == null ){
+      return;
+    }
 
     //If you want to create a 13 second tab, delete the oldest tab
-    if(Object.keys(Browser.info).length >= this.TABLIST_MAX) this.oldTabDelete();
-    this.finalDispTabId = Browser.createIframe(evt.detail.url, evt.detail.frameElement);
+    if(Object.keys(Browser.info).length >= this.TABLIST_MAX){
+      this.oldTabDelete();
+    }
+    this.finalDispTabId =
+      Browser.createIframe(evt.detail.url, evt.detail.frameElement);
     Browser.selectInfo(this.finalDispTabId);
     this.updateTabsCount();
   },
@@ -2191,14 +2454,18 @@ var Awesomescreen = {
     var tabDateObj = [];
     //store to tabid,timestamp
     for( var i=0; i < tabCount; i++) {
-      var tabDate = {tabId: Browser.info[tabIds[i]].id, timestamp: Browser.info[tabIds[i]].timestamp}
+      var tabDate = {
+        tabId: Browser.info[tabIds[i]].id,
+        timestamp: Browser.info[tabIds[i]].timestamp
+      };
       tabDateObj.push(tabDate);
     }
     tabDateObj.sort(this.objectSort('timestamp', false, parseInt));
 
     //delete to iframe
     if (Browser.info[tabDateObj[0].tabId].alive) {
-      Browser.info[tabDateObj[0].tabId].dom.parentNode.removeChild(Browser.info[tabDateObj[0].tabId].dom);
+      Browser.info[tabDateObj[0].tabId].dom.parentNode
+        .removeChild(Browser.info[tabDateObj[0].tabId].dom);
       Browser.info[tabDateObj[0].tabId].alive = false;
     }
 
@@ -2224,13 +2491,16 @@ var Awesomescreen = {
       }else{
         //Show the selected tab
         Browser.selectInfo(tabIds[i]);
-        if(( Browser.info[tabIds[i]].url != null ) && ( Browser.info[tabIds[i]].url != '' )) {
+        if(( Browser.info[tabIds[i]].url !== null ) &&
+          ( Browser.info[tabIds[i]].url !== '' )) {
           if(!Browser.info[tabIds[i]].alive){
             Browser.info[tabIds[i]].dom.src = Browser.info[tabIds[i]].url;
           }
           Browser.switchVisibility(Browser.info[tabIds[i]], true);
           this.finalDispTabId = Browser.info[tabIds[i]].id;
-          if(this.isDisplayedTop()) this.topsiteHidden();
+          if(this.isDisplayedTop()){
+            this.topsiteHidden();
+          }
         }else{
           Browser.switchVisibility(Browser.info[tabIds[i]], true);
           this.selectTopSites();
@@ -2239,7 +2509,9 @@ var Awesomescreen = {
 
     }
     Browser.refreshBrowserParts();
-    if(this.isDisplayedTab())  this.tabviewHidden();
+    if(this.isDisplayedTab()){
+      this.tabviewHidden();
+    }
   },
 
   /**
@@ -2249,11 +2521,14 @@ var Awesomescreen = {
    * @param {title} Title of the page you are currently viewing.
    * @param {thumbnail} Thumbnail of the page you are currently viewing.
    */
-  createTabpanel: function awesomescreen_createTabpanel(id,url,title,thumbnail,count) {
+  createTabpanel:
+    function awesomescreen_createTabpanel(id,url,title,thumbnail,count) {
     //I get the number of tab currently displayed
-    var newtab = "";
+    var newtab = '';
 
-    if(this.tabSiteList.lastChild) newtab = this.tabSiteList.lastChild;
+    if(this.tabSiteList.lastChild){
+      newtab = this.tabSiteList.lastChild;
+    }
 
     //Tab displays the newtab If it is less than 12
     if(count < this.TABLIST_MAX ){
@@ -2278,17 +2553,26 @@ var Awesomescreen = {
   },
 
   clickTabAction: function awesomescreen_clickTabAction(ev) {
-    if( ev ) ev.preventDefault();
-    if( (!(ev.keyCode == KeyEvent.DOM_VK_RETURN)) && (!(ev.button == 0)) ) return;
+    if( ev ){
+      ev.preventDefault();
+    }
+    if( ev.keyCode !== KeyEvent.DOM_VK_RETURN &&
+      ev.button !== 0 ){
+      return;
+    }
 
-    var actionElem = "";
+    var actionElem = '';
 
       var click_tab_action = (function() {
         Awesomescreen.clickTabActFlg = true;
         if(Awesomescreen.clickTabListFlg){
           Awesomescreen.clickTabEvent(ev);
         }
-        actionElem.removeEventListener('transitionend', click_tab_action, false);
+        actionElem.removeEventListener(
+          'transitionend',
+          click_tab_action,
+          false
+        );
        });
 
       if(ev.target){
@@ -2311,7 +2595,8 @@ var Awesomescreen = {
    * @param {thumbnail} Thumbnail of the page you are currently viewing.
    * @param {count} now tab count.
    */
-  tabListEdit: function awesomescreen_tabListEdit(id,url,title,thumbnail,count) {
+  tabListEdit:
+    function awesomescreen_tabListEdit(id,url,title,thumbnail,count) {
     var list = null;
 
     list = this.creatNewThumbnail(url,title,thumbnail);
@@ -2320,18 +2605,28 @@ var Awesomescreen = {
     list.childNodes[1].tabIndex = count + 100;
 
     //Events additional Delete button
-    list.childNodes[0].childNodes[0].addEventListener('mouseup',this.clickTabEvent.bind(this));
-    list.childNodes[0].childNodes[0].addEventListener('keyup',this.clickTabEvent.bind(this));
-    list.childNodes[0].childNodes[0].addEventListener('mousedown',this.clickTabAction.bind(this));
-    list.childNodes[0].childNodes[0].addEventListener('mouseover', this.mouseOverFunc.bind(this));
-    list.childNodes[0].childNodes[0].addEventListener('mouseout', this.mouseOutFunc.bind(this));
+    list.childNodes[0].childNodes[0]
+      .addEventListener('mouseup',this.clickTabEvent.bind(this));
+    list.childNodes[0].childNodes[0]
+      .addEventListener('keyup',this.clickTabEvent.bind(this));
+    list.childNodes[0].childNodes[0]
+      .addEventListener('mousedown',this.clickTabAction.bind(this));
+    list.childNodes[0].childNodes[0]
+      .addEventListener('mouseover', this.mouseOverFunc.bind(this));
+    list.childNodes[0].childNodes[0]
+      .addEventListener('mouseout', this.mouseOutFunc.bind(this));
 
     //Events additional thumbnail
-    list.childNodes[1].addEventListener('mouseup',this.clickTabEvent.bind(this));
-    list.childNodes[1].addEventListener('keyup',this.clickTabEvent.bind(this));
-    list.childNodes[1].addEventListener('mousedown',this.clickTabAction.bind(this));
-    list.childNodes[1].addEventListener('mouseover', this.mouseOverFunc.bind(this));
-    list.childNodes[1].addEventListener('mouseout', this.mouseOutFunc.bind(this));
+    list.childNodes[1]
+      .addEventListener('mouseup',this.clickTabEvent.bind(this));
+    list.childNodes[1]
+      .addEventListener('keyup',this.clickTabEvent.bind(this));
+    list.childNodes[1]
+      .addEventListener('mousedown',this.clickTabAction.bind(this));
+    list.childNodes[1]
+      .addEventListener('mouseover', this.mouseOverFunc.bind(this));
+    list.childNodes[1]
+      .addEventListener('mouseout', this.mouseOutFunc.bind(this));
 
     Awesomescreen.isScaleChange(list);
 
@@ -2352,11 +2647,16 @@ var Awesomescreen = {
     if(tabNum < this.TABLIST_MAX){
       tab.appendChild(this.tabListTemplate.cloneNode(true));
       tab.lastChild.childNodes[1].tabIndex = tabNum + 101;
-      tab.lastChild.childNodes[1].addEventListener('mouseup',this.clickTabEvent.bind(this));
-      tab.lastChild.childNodes[1].addEventListener('keyup',this.clickTabEvent.bind(this));
-      tab.lastChild.childNodes[1].addEventListener('mousedown',this.clickTabAction.bind(this));
-      tab.lastChild.childNodes[1].addEventListener('mouseover', this.mouseOverFunc.bind(this));
-      tab.lastChild.childNodes[1].addEventListener('mouseout', this.mouseOutFunc.bind(this));
+      tab.lastChild.childNodes[1]
+        .addEventListener('mouseup',this.clickTabEvent.bind(this));
+      tab.lastChild.childNodes[1]
+        .addEventListener('keyup',this.clickTabEvent.bind(this));
+      tab.lastChild.childNodes[1]
+        .addEventListener('mousedown',this.clickTabAction.bind(this));
+      tab.lastChild.childNodes[1]
+        .addEventListener('mouseover', this.mouseOverFunc.bind(this));
+      tab.lastChild.childNodes[1]
+        .addEventListener('mouseout', this.mouseOutFunc.bind(this));
       tab.lastChild.style.opacity  = '1';
 
        Awesomescreen.isScaleChange(tab.lastChild);
@@ -2384,8 +2684,9 @@ var Awesomescreen = {
     var topsiteViewflg = false;
     var nextElem = list_id.parentNode.nextSibling;
     var prevElem = list_id.parentNode.previousSibling;
-    var focusElem = "";
-    //Only if the current URL as the deleted selected URL matches, to perform the switching of the tab
+    var focusElem = '';
+    //Only if the current URL as the deleted selected URL matches,
+    //to perform the switching of the tab
     if(id != Browser.currentInfo.id ) {
 
       //It is not the focus in the case of click
@@ -2404,30 +2705,38 @@ var Awesomescreen = {
       }
       this.tabDeleteFunc(id, list_id, focusElem);
       tabCount = Object.keys(Browser.info).length;
-      if(tabCount == 1) this.tabviewHidden();
+      if(tabCount == 1){
+        this.tabviewHidden();
+      }
       return;
     }
 
     if (Browser.info[id].dom) {
-      if( Browser.info[id].loading ) Browser.info[id].dom.stop();
+      if( Browser.info[id].loading ){
+        Browser.info[id].dom.stop();
+      }
       //all tab hide
       for( var i=0; i < tabCount; i++) {
         Browser.switchVisibility(Browser.info[tabIds[i]], false);
       }
       //switch between tabs
-      for( var i=0; i < tabCount; i++) {
+      for( i=0; i < tabCount; i++) {
         if(tabIds[i] == id){
-          topsiteViewflg = this.switchCurrentTab(tabIds,i,id,list_id.parentNode,ev);
+          topsiteViewflg =
+            this.switchCurrentTab(tabIds,i,id,list_id.parentNode,ev);
           break;
         }
       }
     }
 
     //Current tab judgment
-    if( (list_id.parentNode.nextSibling) && (!(list_id.parentNode.nextSibling.id.contains('newtab'))) ){
-      Browser.currentInfo = Browser.info[list_id.parentNode.nextSibling.id.slice(5)];
+    if( (list_id.parentNode.nextSibling) &&
+      (!(list_id.parentNode.nextSibling.id.contains('newtab'))) ){
+      Browser.currentInfo =
+        Browser.info[list_id.parentNode.nextSibling.id.slice(5)];
     }else if(list_id.parentNode.previousSibling){
-      Browser.currentInfo = Browser.info[list_id.parentNode.previousSibling.id.slice(5)];
+      Browser.currentInfo =
+        Browser.info[list_id.parentNode.previousSibling.id.slice(5)];
     }
     Toolbar.setPrivateBrowsing(Browser.currentInfo.pvtBrowse);
     this.showPrivateBrowsing();
@@ -2438,21 +2747,26 @@ var Awesomescreen = {
     if(topsiteViewflg){
       this.selectTopSites();
     }else{
-      if(this.isDisplayedTop()) this.topsiteHidden();
+      if(this.isDisplayedTop()) {
+        this.topsiteHidden();
+      }
     }
     //Tab I close the tabview if 1
-    if(tabCount == 1) this.tabviewHidden();
+    if(tabCount == 1) {
+      this.tabviewHidden();
+    }
   },
 
     /**
    * switch between tabs.
    * @param {ev} key event.
    */
-  switchCurrentTab: function awesomescreen_switchCurrentTab(tabIds,array,tabId, list, ev) {
+  switchCurrentTab:
+    function awesomescreen_switchCurrentTab(tabIds,array,tabId, list, ev) {
 
     var topsiteViewflg = false;
-    var focusElem = "";
-    var dispTab = "";
+    var focusElem = '';
+    var dispTab = '';
     if(Browser.info[tabIds[array + 1]]) {
       focusElem = list.nextSibling;
       dispTab = Browser.info[tabIds[array + 1]];
@@ -2467,13 +2781,18 @@ var Awesomescreen = {
     if( (ev.type == 'keydown') || (ev.type == 'keyup') ){
       if(!(focusElem.childNodes[0].childNodes[0].className.contains('hidden'))){
         focusElem.childNodes[0].childNodes[0].focus();
-        this.focusImgFunc(focusElem.childNodes[0].childNodes[0], this.DEFAULT_TABVIEW);
+        this.focusImgFunc(
+          focusElem.childNodes[0].childNodes[0],
+          this.DEFAULT_TABVIEW
+        );
       }else{
         focusElem.childNodes[1].focus();
         this.focusImgFunc(focusElem.childNodes[1], this.DEFAULT_TABVIEW);
       }
     }
-   if(!dispTab.url) topsiteViewflg = true;
+    if(!dispTab.url){
+      topsiteViewflg = true;
+    }
 
     return topsiteViewflg;
   },
@@ -2513,9 +2832,11 @@ var Awesomescreen = {
        default:
          Awesomescreen.tabView.style.height = '1080px';
          break;
-    };
+    }
 
-    if(list.lastChild.id != 'newtab') Awesomescreen.tabNewCreate(list,list.childElementCount);
+    if(list.lastChild.id != 'newtab'){
+      Awesomescreen.tabNewCreate(list,list.childElementCount);
+    }
 
     //Hide iframe related to the selected tab
     delete Browser.info[id];
@@ -2528,13 +2849,17 @@ var Awesomescreen = {
    * @param {ev} key event.
    */
   handleKeyEvent: function awesomescreen_handleKeyEvent(ev) {
-     // in the input area focus (= display keyboard)
+    var state = true;
+    // in the input area focus (= display keyboard)
     if(document.activeElement.nodeName == 'INPUT') {
       return;
     }
-    var hoverElem = document.elementFromPoint(Awesomescreen.onmouseX, Awesomescreen.onmouseY);
+    var hoverElem =
+      document.elementFromPoint(Awesomescreen.onmouseX, Awesomescreen.onmouseY);
     // in the input area focus (= display keyboard)
-    if(document.activeElement == this.inputArea) return true;
+    if(document.activeElement == this.inputArea){
+      return true;
+    }
 
     switch(true){
       case Awesomescreen.isDisplayedDialog():
@@ -2548,7 +2873,7 @@ var Awesomescreen = {
       case Awesomescreen.isDisplayedTab():
         break;
       case Awesomescreen.isDisplayedTop():
-        if(!(ev.type == 'keydown')){
+        if(ev.type !== 'keydown'){
           this.selectList = ev.target;
         }
         break;
@@ -2564,105 +2889,131 @@ var Awesomescreen = {
             // close bookmark.history to dialog
             Awesomescreen.dialogHidden();
             break;
+          case this.bookmarkList.isDisplay():
+            // close bookmark
+            this.bookmarkList.close();
+            Awesomescreen.hidePointerImg();
+            break;
           case Awesomescreen.isDisplayedList() :
-            // close bookmark.history
+            // close history
             Awesomescreen.listHidden();
-             break;
-           case Awesomescreen.isDisplayedTab() :
-             // close tabview
-             Awesomescreen.tabviewHidden();
-             break;
-           case Awesomescreen.isDisplayedTop() :
-             // close topsite
-             this.topsiteReturnFunc();
-             break;
-           default:
-             break;
+            break;
+          case Awesomescreen.isDisplayedTab() :
+            // close tabview
+            Awesomescreen.tabviewHidden();
+            break;
+          case Awesomescreen.isDisplayedTop() :
+            // close topsite
+            this.topsiteReturnFunc();
+            break;
+          default:
+            break;
         }
-        return false;
+        state = false;
         break;
 
-       case KeyEvent.DOM_VK_SUBMENU:
-         switch(true){
-           case this.isDisplayedDialog() :
-             break;
-           case this.isDisplayedList() && !(this.isDisplayedDialog()):
-             if((this.bmhisList.childElementCount > 0) &&
-               (this.selectList.className.contains('history-area')) ){
-               this.optionDialogOpen();
-             }
-             break;
-           case this.isDisplayedTop() && !(this.isDisplayedTab()):
-             if(hoverElem == this.topSites){
-               return true;
-             }
-             if( (this.selectList) && (this.selectList.className.contains('top-site-item')) ) {
-               this.optionDialogOpen();
-               return false;
-             }
-             break;
-           default:
-             break;
-         }
-         return false;
-         break;
-       case KeyEvent.DOM_VK_MYBUTTON:
-         if(!(Awesomescreen.isDisplayed())){
-           Awesomescreen.pinToHome();
-         }
-         return false;
-         break;
-       case KeyEvent.DOM_VK_UP :
-       case KeyEvent.DOM_VK_DOWN :
-       case KeyEvent.DOM_VK_LEFT :
-       case KeyEvent.DOM_VK_RIGHT :
-       case KeyEvent.DOM_VK_RETURN :
+      case KeyEvent.DOM_VK_SUBMENU:
+        switch(true){
+          case this.isDisplayedDialog() :
+            break;
+          case this.isDisplayedList() && !(this.isDisplayedDialog()):
+            if((this.bmhisList.childElementCount > 0) &&
+              (this.selectList.className.contains('history-area')) ){
+              this.optionDialogOpen();
+            }
+            break;
+          case this.isDisplayedTop() && !(this.isDisplayedTab()):
+            if(hoverElem == this.topSites){
+              state = true;
+            } else if( (this.selectList) &&
+              (this.selectList.className.contains('top-site-item')) ) {
+              this.optionDialogOpen();
+              state = false;
+            }
+            break;
+          default:
+            break;
+        }
+        state = false;
+        break;
+      case KeyEvent.DOM_VK_MYBUTTON:
+        if(!(Awesomescreen.isDisplayed())){
+          Awesomescreen.pinToHome();
+        }
+        state = false;
+        break;
+      case KeyEvent.DOM_VK_UP :
+      case KeyEvent.DOM_VK_DOWN :
+      case KeyEvent.DOM_VK_LEFT :
+      case KeyEvent.DOM_VK_RIGHT :
+      case KeyEvent.DOM_VK_RETURN :
 
-         //If the cursor overlaps the element , and calls the cursor switch only once
-         if(this.focusSwitchFlg){
-           this.focusSwitchFlg = false;
-           Browser.switchCursorMode(true);
-           Browser.switchCursorMode(false);
-         }
+        //If the cursor overlaps the element ,
+        //and calls the cursor switch only once
+        if(this.focusSwitchFlg){
+          this.focusSwitchFlg = false;
+          Browser.switchCursorMode(true);
+          Browser.switchCursorMode(false);
+        }
 
-         switch(true){
-           case Awesomescreen.isDisplayedDialog() :
-             Awesomescreen.dialogKeyCont(ev,this.selectMenu);
-             break;
-           case Awesomescreen.isDisplayedList() :
-             if(Awesomescreen.blurFlag){
-               Awesomescreen.blurFlag = false;
-               ev.preventDefault();
-               //After the pointer is released, I to focus on list
-               this.defaultFocusFunc (this.DEFAULT_BOOKMARK, this.bmhisList,'visible', 0);
-             }else{
-               Awesomescreen.listDialogKeyCont(ev,this.selectList);
-               }
-             break;
-           case Awesomescreen.isDisplayedTab() :
-             if(Awesomescreen.blurFlag){
-               Awesomescreen.blurFlag = false;
-               ev.preventDefault();
-               //After the pointer is released, I to focus on list
-               this.defaultFocusFunc(this.DEFAULT_TABVIEW, this.tabSiteList, 'tabview-site-item', 0);
-             }else{
-               Awesomescreen.tabviewKeyCont(ev);
-             }
-             break;
-           default:
-             break;
-         }
-         return false;
-       default:
-         if( (Awesomescreen.isDisplayedList()) || (Awesomescreen.isDisplayedDialog()) ){
-           return false
-         }
-         break;
+        switch(true){
+          case Awesomescreen.isDisplayedDialog() :
+            Awesomescreen.dialogKeyCont(ev,this.selectMenu);
+            break;
+          case this.bookmarkList.isDisplay():
+            this.bookmarkList.focusFirstVisibleItem();
+            ev.preventDefault();
+            break;
+          case Awesomescreen.isDisplayedList() :
+            if(Awesomescreen.blurFlag){
+              Awesomescreen.blurFlag = false;
+              ev.preventDefault();
+              //After the pointer is released, I to focus on list
+              this.defaultFocusFunc(
+                this.DEFAULT_BOOKMARK,
+                this.bmhisList,
+                'visible',
+                0
+              );
+            }else{
+              Awesomescreen.listDialogKeyCont(ev,this.selectList);
+            }
+            break;
+          case Awesomescreen.isDisplayedTab() :
+            if(Awesomescreen.blurFlag){
+              Awesomescreen.blurFlag = false;
+              ev.preventDefault();
+              //After the pointer is released, I to focus on list
+              this.defaultFocusFunc(
+                this.DEFAULT_TABVIEW,
+                this.tabSiteList,
+                'tabview-site-item',
+                0
+              );
+            }else{
+              Awesomescreen.tabviewKeyCont(ev);
+            }
+            break;
+          default:
+            break;
+        }
+        state = false;
+        break;
+      default:
+        if( (Awesomescreen.isDisplayedList()) ||
+          (Awesomescreen.isDisplayedDialog()) ){
+          state = false;
+        }
+        break;
     }
-  return true;
+    return state;
   },
 
-  defaultFocusFunc: function awesomescreen_defaultFocusFunc(type, listObject, listClassName, selectNum) {
+  defaultFocusFunc: function awesomescreen_defaultFocusFunc(
+    type,
+    listObject,
+    listClassName,
+    selectNum) {
     var visiList = listObject.getElementsByClassName(listClassName);
     var focusElem = null;
     //After the pointer is released, I to focus on list
@@ -2690,7 +3041,8 @@ var Awesomescreen = {
    * @param {ev} key event.
    */
   topsiteReturnFunc: function awesomescreen_topsiteReturnFunc() {
-    if((Browser.info[Awesomescreen.finalDispTabId]) && (Browser.info[Awesomescreen.finalDispTabId].url)) {
+    if((Browser.info[Awesomescreen.finalDispTabId]) &&
+      (Browser.info[Awesomescreen.finalDispTabId].url)) {
       var tabCount = Object.keys(Browser.info).length;
       var tabIds = Object.keys(Browser.info);
       //all tab hide
@@ -2699,7 +3051,8 @@ var Awesomescreen = {
       }
 
       if(!Browser.info[Awesomescreen.finalDispTabId].alive){
-          Browser.info[Awesomescreen.finalDispTabId].dom.src = Browser.info[Awesomescreen.finalDispTabId].url;
+        Browser.info[Awesomescreen.finalDispTabId].dom.src =
+          Browser.info[Awesomescreen.finalDispTabId].url;
       }
       Browser.switchVisibility(Browser.info[Awesomescreen.finalDispTabId],true);
       Browser.selectInfo(Awesomescreen.finalDispTabId);
@@ -2717,12 +3070,18 @@ var Awesomescreen = {
   listDialogKeyCont: function awesomescreen_listDialogKeyCont(ev,activeElem) {
     ev.preventDefault();
 
-    if(this.bmhisList.childElementCount < 1) return;
+    if(this.bmhisList.childElementCount < 1){
+      return;
+    }
     if(this.exeflag){
       this.exeflag = false;
-      var currentNum = parseInt(activeElem.id.slice(5), 10);
       var listCount = this.bmhisList.childElementCount;
-      var visiList = this.bmhisList.getElementsByClassName('visible');
+      var visiList = null;
+      if(this.bmhisList.classList.contains('smart-list')) {
+        visiList = this.bmhisList.querySelectorAll('li.visible');
+      } else {
+        visiList = this.bmhisList.getElementsByClassName('visible');
+      }
       switch( ev.keyCode ) {
         case KeyEvent.DOM_VK_UP :
           if(activeElem.previousSibling){
@@ -2736,7 +3095,14 @@ var Awesomescreen = {
                   this.upgradimgArea.classList.remove('hidden');
                 }
               }
-              this.updownControl(visiList, visiList[0].previousSibling, activeElem.previousSibling, 'UP', 'first-pos', 121);
+              this.updownControl(
+                visiList,
+                visiList[0].previousSibling,
+                activeElem.previousSibling,
+                'UP',
+                'first-pos',
+                121
+              );
               return;
             }else{
                this.bmhisList.firstChild.classList.add('visible');
@@ -2756,7 +3122,14 @@ var Awesomescreen = {
                   this.downgradimgArea.classList.remove('hidden');
                 }
               }
-              this.updownControl(visiList, visiList[4].nextSibling, activeElem.nextSibling, 'DOWN', 'last-pos', -121);
+              this.updownControl(
+                visiList,
+                visiList[4].nextSibling,
+                activeElem.nextSibling,
+                'DOWN',
+                'last-pos',
+                -121
+              );
               return;
             }else{
                this.bmhisList.lastChild.classList.add('visible');
@@ -2783,10 +3156,16 @@ var Awesomescreen = {
     * @param {visiList} List that is currently displayed
     * @param {type} UP or Down
     */
-  updownControl: function awesomescreen_updownControl(visiList, visiListFirstElem, activeElem, type, position, scrollNum) {
+  updownControl: function awesomescreen_updownControl(
+    visiList,
+    visiListFirstElem,
+    activeElem,
+    type,
+    position,
+    scrollNum) {
 
-    var strTrancelate = "";
-    var latepx = "";
+    var strTrancelate = '';
+    var latepx = '';
 
     if(activeElem.className.contains(position)){
       activeElem.focus();
@@ -2807,17 +3186,26 @@ var Awesomescreen = {
           activeElem.focus();
           Awesomescreen.visibleDispCheck(visiList,type);
           Awesomescreen.exeflag = true;
-          Awesomescreen.bmhisList.removeEventListener('transitionend', list_scroll_action, false);
-         });
+          Awesomescreen.bmhisList.removeEventListener(
+            'transitionend',
+            list_scroll_action,
+            false
+          );
+        });
 
         // Add fade animantion event
-        Awesomescreen.bmhisList.addEventListener('transitionend', list_scroll_action, false);
+        Awesomescreen.bmhisList.addEventListener(
+          'transitionend',
+          list_scroll_action,
+          false
+        );
         if(!this.bmhisList.style.transform){
           this.bmhisList.style.transform = 'translateY(0px)';
          }
-        strTrancelate = this.bmhisList.style.transform.split("\(");
-        latepx = parseInt(strTrancelate[1].split("px\)"));
-        Awesomescreen.bmhisList.style.transform = 'translateY(' + (latepx + scrollNum) + 'px)';
+        strTrancelate = this.bmhisList.style.transform.split('\(');
+        latepx = parseInt(strTrancelate[1].split('px\)'));
+        Awesomescreen.bmhisList.style.transform =
+          'translateY(' + (latepx + scrollNum) + 'px)';
       }
     }
   },
@@ -2878,10 +3266,14 @@ var Awesomescreen = {
       case KeyEvent.DOM_VK_UP :
         ev.preventDefault();
         if( (Awesomescreen.focusPos == 4) ||
-            ((( Awesomescreen.focusPos == 0 ) || ( Awesomescreen.focusPos == 1 )) && (Awesomescreen.focusList.length == 4)) ) {
+          ((( Awesomescreen.focusPos === 0 ) ||
+          ( Awesomescreen.focusPos == 1 )) &&
+          (Awesomescreen.focusList.length == 4)) ) {
           Awesomescreen.focusPos = 2;
           Awesomescreen.focusChange(Awesomescreen.focusPos);
-        }else if( (( Awesomescreen.focusPos == 0 ) || ( Awesomescreen.focusPos == 1 )) && (Awesomescreen.focusList.length == 5) ) {
+        }else if( (( Awesomescreen.focusPos === 0 ) ||
+          ( Awesomescreen.focusPos == 1 )) &&
+          (Awesomescreen.focusList.length == 5) ) {
           Awesomescreen.focusPos = 4;
           Awesomescreen.focusChange(Awesomescreen.focusPos);
         }
@@ -2896,14 +3288,17 @@ var Awesomescreen = {
             Awesomescreen.focusPos = 0;
             Awesomescreen.focusChange(Awesomescreen.focusPos);
           }
-        }else if( (Awesomescreen.focusPos == 3) || (Awesomescreen.focusPos == 4)) {
-            Awesomescreen.focusPos = 0;
-            Awesomescreen.focusChange(Awesomescreen.focusPos);
+        }else if( (Awesomescreen.focusPos == 3) ||
+          (Awesomescreen.focusPos == 4)) {
+          Awesomescreen.focusPos = 0;
+          Awesomescreen.focusChange(Awesomescreen.focusPos);
         }
         break;
       case KeyEvent.DOM_VK_LEFT :
         ev.preventDefault();
-        if( ( Awesomescreen.focusPos == 1 ) || ( (Awesomescreen.focusPos == 2) && ( Awesomescreen.focusList[2].nodeName != 'INPUT') ) ||
+        if( ( Awesomescreen.focusPos == 1 ) ||
+          ( (Awesomescreen.focusPos == 2) &&
+          ( Awesomescreen.focusList[2].nodeName != 'INPUT') ) ||
             ( Awesomescreen.focusPos == 3 )) {
           Awesomescreen.focusPos --;
           Awesomescreen.focusChange(Awesomescreen.focusPos);
@@ -2911,23 +3306,26 @@ var Awesomescreen = {
         break;
       case KeyEvent.DOM_VK_RIGHT :
         ev.preventDefault();
-        if( Awesomescreen.focusPos == 0 ) {
+        if( Awesomescreen.focusPos === 0 ) {
           Awesomescreen.focusPos ++;
           Awesomescreen.focusChange(Awesomescreen.focusPos);
-        }else if( (Awesomescreen.focusPos == 1 ) && (Awesomescreen.focusList.length == 3) ) {
+        }else if( (Awesomescreen.focusPos == 1 ) &&
+          (Awesomescreen.focusList.length == 3) ) {
           Awesomescreen.focusPos ++;
           Awesomescreen.focusChange(Awesomescreen.focusPos);
-        }else if( ( Awesomescreen.focusPos == 2 ) && ( !(Awesomescreen.focusList.length == 3) )) {
+        }else if( ( Awesomescreen.focusPos == 2 ) &&
+          ( Awesomescreen.focusList.length != 3 )) {
           Awesomescreen.focusPos ++;
           Awesomescreen.focusChange(Awesomescreen.focusPos);
         }
         break;
       case KeyEvent.DOM_VK_RETURN :
         ev.preventDefault();
-        if( (Awesomescreen.focusPos == 2) && ( Awesomescreen.focusList[2].nodeName == 'INPUT') ) {
-          this.pointerImg.style.display = 'none';
+        if( (Awesomescreen.focusPos == 2) &&
+          ( Awesomescreen.focusList[2].nodeName == 'INPUT') ) {
+          Awesomescreen.hidePointerImg();
           Awesomescreen.focusList[2].focus();
-        }else if(!(Awesomescreen.focusPos == -1)) {
+        }else if(Awesomescreen.focusPos != -1) {
           if(!Awesomescreen.blurFlag) {
             document.activeElement.classList.add('active');
           }
@@ -2947,7 +3345,7 @@ var Awesomescreen = {
 
     var activeElem = null;
     var thumbnailFlg = null;
-    var currentPos = "";
+    var currentPos = '';
 
     //Get the current focus element
     if(document.activeElement.className.contains('back-area')){
@@ -3013,7 +3411,6 @@ var Awesomescreen = {
         break;
       case KeyEvent.DOM_VK_RETURN :
         this.clickTabAction(ev);
-        return false;
         break;
       default:
         break;
@@ -3033,7 +3430,10 @@ var Awesomescreen = {
     }else{
     //Move focus to Delete area
       this.tabList[pos].childNodes[0].childNodes[0].focus();
-      this.focusImgFunc(this.tabList[pos].childNodes[0].childNodes[0], this.DEFAULT_TAB_DELETE);
+      this.focusImgFunc(
+        this.tabList[pos].childNodes[0].childNodes[0],
+        this.DEFAULT_TAB_DELETE
+      );
     }
   },
 
@@ -3042,77 +3442,94 @@ var Awesomescreen = {
    * mouse wheel event
    */
   mouseWheelFunc: function awesomescreen_mouseWheelFunc(ev) {
-   ev.preventDefault();
-   if(this.exeflag){
-     this.exeflag = false;
-     var visiList = this.bmhisList.getElementsByClassName('visible');
-     var listLength = this.bmhisList.childElementCount;
-     if(listLength <= this.LIST_NUM + 1){
-       Awesomescreen.exeflag = true;
-       return;
+    ev.preventDefault();
+    if(this.exeflag){
+      this.exeflag = false;
+      var visiList = this.bmhisList.getElementsByClassName('visible');
+      var listLength = this.bmhisList.childElementCount;
+      if(listLength <= this.LIST_NUM + 1){
+        Awesomescreen.exeflag = true;
+        return;
       }
-     //I adjust the 'visible' class by scroll
-     switch(ev.detail){
-       case 3: // dwon to scroll
-         if((visiList[4].nextSibling) && (!visiList[4].nextSibling.className.contains('last-pos')) ){
-           this.mouseWheelScrollFunc(visiList, 'DOWN', -121);
+      //I adjust the 'visible' class by scroll
+      switch(ev.detail){
+        case 3: // dwon to scroll
+          if((visiList[4].nextSibling) &&
+            (!visiList[4].nextSibling.className.contains('last-pos')) ){
+            this.mouseWheelScrollFunc(visiList, 'DOWN', -121);
             return;
           }
-         break;
-       case -3 : //up to scroll
-         if((visiList[0].previousSibling) && (!visiList[0].previousSibling.className.contains('first-pos')) ){
-           this.mouseWheelScrollFunc(visiList, 'UP', 121);
+          break;
+        case -3 : //up to scroll
+          if((visiList[0].previousSibling) &&
+            (!visiList[0].previousSibling.className.contains('first-pos')) ){
+            this.mouseWheelScrollFunc(visiList, 'UP', 121);
             return;
           }
-         break;
-       default:
-         break;
-     }
+          break;
+        default:
+          break;
+      }
 
-     Awesomescreen.exeflag = true;
+      Awesomescreen.exeflag = true;
     }
   },
 
   /**
    * mouse wheel event
    */
-  mouseWheelScrollFunc: function awesomescreen_mouseWheelScrollFunc(visiList, type, scrollNum) {
-    var strTrancelate = "";
-    var latepx = "";
+  mouseWheelScrollFunc:
+    function awesomescreen_mouseWheelScrollFunc(visiList, type, scrollNum) {
+    var strTrancelate = '';
+    var latepx = '';
 
         var list_scroll_action = (function() {
           Awesomescreen.visibleDispCheck(visiList,type);
 
             if(type == 'DOWN'){
-              if((visiList[4]) && (visiList[4].nextSibling.className.contains('last-pos')) ){
+              if((visiList[4]) &&
+                (visiList[4].nextSibling.className.contains('last-pos')) ){
                 Awesomescreen.downgradimgArea.classList.add('hidden');
                 visiList[4].nextSibling.classList.add('visible');
                }
             }else{
-              if((visiList[0].previousSibling) && (visiList[0].previousSibling.className.contains('first-pos')) ){
+              if((visiList[0].previousSibling) &&
+                (visiList[0].previousSibling.className.contains('first-pos')) ){
                 Awesomescreen.upgradimgArea.classList.add('hidden');
                 visiList[0].previousSibling.classList.add('visible');
                }
            }
 
-          var hoverElem = document.elementFromPoint(Awesomescreen.onmouseX, Awesomescreen.onmouseY);
+          var hoverElem =
+            document.elementFromPoint(
+              Awesomescreen.onmouseX,
+              Awesomescreen.onmouseY
+            );
           if(hoverElem.className.contains('history-area')){
             hoverElem.focus();
           }else{
             hoverElem.offsetParent.focus();
           }
           Awesomescreen.exeflag = true;
-          Awesomescreen.bmhisList.removeEventListener('transitionend', list_scroll_action, false);
-         });
+          Awesomescreen.bmhisList.removeEventListener(
+            'transitionend',
+            list_scroll_action,
+            false
+          );
+        });
 
         // Add fade animantion event
-        Awesomescreen.bmhisList.addEventListener('transitionend', list_scroll_action, false);
+        Awesomescreen.bmhisList.addEventListener(
+          'transitionend',
+          list_scroll_action,
+          false);
         if(!this.bmhisList.style.transform){
           this.bmhisList.style.transform = 'translateY(0px)';
-         }
-        strTrancelate = this.bmhisList.style.transform.split("\(");
-        latepx = parseInt(strTrancelate[1].split("px\)"));
-        Awesomescreen.bmhisList.style.transform = 'translateY(' + (latepx + scrollNum) + 'px)';
+        }
+        strTrancelate = this.bmhisList.style.transform.split('\(');
+        latepx = parseInt(strTrancelate[1].split('px\)'));
+        Awesomescreen.bmhisList.style.transform =
+          'translateY(' + (latepx + scrollNum) + 'px)';
   },
 
 
@@ -3121,7 +3538,7 @@ var Awesomescreen = {
    * mouse over event bookmark,history list
    */
   mouseOverFunc: function awesomescreen_mouseOverFunc(ev) {
-    this.pointerImg.style.display = 'none';
+    this.hidePointerImg();
     this.focusSwitchFlg = true;
     ev.currentTarget.focus();
     return;
@@ -3164,11 +3581,11 @@ var Awesomescreen = {
    * get mouse pointer
    */
   mouseMoveFunc: function awesomescreen_mouseMoveFunc() {
-    this.pointerImg.style.display = 'none';
+    this.hidePointerImg();
     window.document.onmousemove = function(e){
       Awesomescreen.onmouseX = e.pageX;
       Awesomescreen.onmouseY = e.pageY;
-    }
+    };
   },
 
   /**
@@ -3180,7 +3597,9 @@ var Awesomescreen = {
    */
   focusImgFunc: function awesomescreen_focusImgFunc(focusElem, type) {
     //get to pointer img
-    if( !focusElem ) return;
+    if( !focusElem ){
+      return;
+    }
     var elemPos = focusElem.getBoundingClientRect();
     var elemBottom = Math.ceil(elemPos.bottom);
     var elemRight = Math.ceil(elemPos.right);
@@ -3199,8 +3618,12 @@ var Awesomescreen = {
     //Type processing
     switch(type){
       case this.DEFAULT_BOOKMARK:
-        if(elemBottom < 375) elemBottom = 375;
-        if(elemBottom > 840) elemBottom = 840;
+        if(elemBottom < 375){
+          elemBottom = 375;
+        }
+        if(elemBottom > 840){
+          elemBottom = 840;
+        }
         break;
       case this.DEFAULT_TABVIEW:
         transposX = elemRight - 25;
@@ -3230,7 +3653,7 @@ var Awesomescreen = {
     //position setting
     this.pointerImg.style.transform =
         'translate(' + transposX + 'px,' + transposY + 'px)';
-    this.pointerImg.style.display = 'block';
+    this.showPointerImg();
 
     // Specialized processing (for authentication text clear element)
     this.fE = focusElem;
@@ -3268,7 +3691,23 @@ var Awesomescreen = {
     }
 
     this.oldFocusElem = focusElem;
+  },
+
+  /**
+   * show pointer image
+   */
+  showPointerImg: function awesomescreen_showPointerImg() {
+    if(Awesomescreen.pointerImg.style.display != 'block') {
+      Awesomescreen.pointerImg.style.display = 'block';
+    }
+  },
+
+  /**
+   * hide pointer image
+   */
+  hidePointerImg: function awesomescreen_hidePointerImg() {
+    if(Awesomescreen.pointerImg.style.display != 'none') {
+      Awesomescreen.pointerImg.style.display = 'none';
+    }
   }
-
 };
-

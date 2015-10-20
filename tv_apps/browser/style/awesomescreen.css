@@ -39,14 +39,12 @@
   -moz-transition: opacity  0.1s cubic-bezier(0.25, 0, 0, 1.0);
 }
 
-#history,
-#bookmarks {
+#history {
   pointer-events : none;
 }
 
-#bookmarks > .container,
 #history > .container {
-  top: 70px;  
+  top: 70px;
   width : 1320px;
   margin : 0px auto;
   display : block;
@@ -55,7 +53,7 @@
   position: relative;
 }
 
-/* -------- Bookmark , history  title -------- */
+/* -------- history  title -------- */
 #title-area {
   position: relative;
   height: 50px;
@@ -70,7 +68,7 @@
   z-index: 3;
 }
 
-/* -------- Bookmark,history List Area -------- */
+/* -------- history List Area -------- */
 
 #list-area {
   width : 1320px;
@@ -434,8 +432,8 @@ li {
   bottom: 0px;
   margin: auto;
   right: calc(50px / 2 - 15px);
-  transition: -moz-transform 0.16s cubic-bezier(0.25, 0, 0, 1) 0s, 
-              background-color 0.16s cubic-bezier(0.25, 0, 0, 1) 0s, 
+  transition: -moz-transform 0.16s cubic-bezier(0.25, 0, 0, 1) 0s,
+              background-color 0.16s cubic-bezier(0.25, 0, 0, 1) 0s,
               color 0.16s cubic-bezier(0.25, 0, 0, 1) 0s;
   pointer-events: auto;
 }
@@ -478,11 +476,11 @@ li {
   animation-duration: 0.35s;
   animation-fill-mode: forwards;
 }
-@-moz-keyframes check-box-animation {     
+@-moz-keyframes check-box-animation {
   0% {-moz-transform: scale(0); opacity: 0.8;}
   65% {-moz-transform: scale(1); opacity: 0.8;}
   100% {opacity: 0; -moz-transform: scale(1);}
-}                                            
+}
 
 #check-img {
   margin-top : -47px;
@@ -1020,34 +1018,34 @@ p {
   height: 100%;
   border-radius: 50%;
   animation-name: awesome-loading-animation;
-  animation-iteration-count: infinite;       
+  animation-iteration-count: infinite;
   animation-timing-function: cubic-bezier(0, 0.64, 0.46, 0.46);
-  animation-duration: 2000ms;                
-  background-color: #00CAF2;                 
-}                                            
-.awesomecircle-2 {                                  
-  animation-delay: 395ms;                    
-}                                            
-@-moz-keyframes awesome-loading-animation {     
+  animation-duration: 2000ms;
+  background-color: #00CAF2;
+}
+.awesomecircle-2 {
+  animation-delay: 395ms;
+}
+@-moz-keyframes awesome-loading-animation {
   0% {-moz-transform: scale(0); opacity: 0.9;}
   40% {-moz-transform: scale(1.4); opacity: 0;}
   100% {-moz-transform: scale(2); opacity: 0;}
-}                                            
+}
 
 #awesome-loading-icon.visible {
   display: table;
 }
 
 #awesome-loading-icon.sideBarPos1{
-  left: 463.5px; 
+  left: 463.5px;
 }
 
 #awesome-loading-icon.bookmarkPos1{
   top: 840px;
-  left: 590.5px; 
+  left: 590.5px;
 }
 
 #awesome-loading-icon.bookmarkPos2{
   top: 840px;
-  left: 790.5px; 
+  left: 790.5px;
 }
