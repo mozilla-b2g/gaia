@@ -17,6 +17,7 @@
          Navigation,
          Settings,
          SilentSms,
+         StartupManager,
          SystemMessageHandler,
          TimeHeaders,
          Utils
@@ -57,7 +58,7 @@ var Startup = exports.Startup = {
     '/views/shared/js/activity_picker.js',
     '/views/conversation/js/information.js',
     '/views/shared/js/shared_components.js',
-    '/views/shared/js/task_runner.js',
+    // '/views/shared/js/task_runner.js',
     '/views/shared/js/silent_sms.js',
     '/views/conversation/js/recipients.js',
     '/views/conversation/js/attachment.js',
@@ -126,7 +127,7 @@ var Startup = exports.Startup = {
 
       MessageManager.init();
       InboxView.init();
-      Navigation.init();
+      StartupManager.init(Navigation.init());
 
       InboxView.once('fully-loaded', () => {
         window.performance.mark('fullyLoaded');

@@ -797,6 +797,10 @@ var Navigation = {
 
     attachHistoryListener();
 
+    if (navigator.mozHasPendingMessage('notification')) {
+      return onNavigationError(new Error('pending-notification'));
+    }
+
     return startNavigationFromCurrentLocation().then(
       // right away as we don't execute anything on the previous panel, and we
       // need a state at startup.

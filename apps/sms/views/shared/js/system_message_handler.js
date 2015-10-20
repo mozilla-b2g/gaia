@@ -7,6 +7,7 @@
          Settings,
          SilentSms,
          SMIL,
+         StartupManager,
          Utils
 */
 /*exported SystemMessageHandler */
@@ -321,19 +322,24 @@
      * @private
      */
     onNotificationSystemMessage(notification) {
-      // When notification is removed from notification tray, notification
-      // system message will still be fired, but "clicked" property will be
-      // equal to false. This should change once bug 1139363 is landed. When
-      // user clicks on notification we'll get two system messages, first to
-      // notify app that notification is clicked and then, once we show
-      // Conversation view to the user, we remove that notification from the
-      // tray that causes the second system message with "clicked" set to false.
-      if (!notification.clicked || !notification.data) {
-        return Promise.resolve();
-      }
+      StartupManager.push((err) => {
+        // When notification is removed from notification tray, notification
+        // system message will still be fired, but "clicked" property will be
+        // equal to false. This should change once bug 1139363 is landed. When
+        // user clicks on notification we'll get two system messages, first to
+        // notify app that notification is clicked and then, once we show
+        // Conversation view to the user, we remove that notification from the
+        // tray that causes the second system message with "clicked" set false.
+        if (!notification.clicked || !notification.data) {
+          if (err instanceof Error && err.message === 'pending-notification') {
+            return Navigation.init();
+          }
+          return Promise.resolve();
+        }
 
-      // At the moment notification.data is { id, threadId }.
-      return this.onNotificationClicked(notification.data);
+        // At the moment notification.data is { id, threadId }.
+        return this.onNotificationClicked(notification.data);
+      });
     }
   };
 
