@@ -518,7 +518,7 @@
   AppChrome.prototype.unpin = function ac_unpin() {
     this.hidePinDialogCard();
     this.pinned = false;
-    if (this.app.config && this.app.config.scrollable) {
+    if (this.app.config && this.app.config.chrome.scrollable) {
       this.app.element.classList.add('collapsible');
     }
     this.expand();
@@ -1038,9 +1038,6 @@
           .then((isPinned) => {
             isPinned ? this.pin() : this.unpin();
           });
-        if (this.app.config && this.app.config.scrollable) {
-          this.app.element.classList.add('collapsible');
-        }
       }
 
       // Set the title for the private browser landing page.
