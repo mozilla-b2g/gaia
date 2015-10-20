@@ -2,10 +2,10 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import time
-
 from gaiatest.gaia_graphics_test import GaiaImageCompareTestCase
+
 from gaiatest.apps.homescreen.app import Homescreen
+from gaiatest.apps.settings.app import Settings
 
 
 class TestHomescreenChangeWallpaper(GaiaImageCompareTestCase):
@@ -26,10 +26,12 @@ class TestHomescreenChangeWallpaper(GaiaImageCompareTestCase):
         self.apps.switch_to_displayed_app()
 
         default_wallpaper_settings = self.data_layer.get_setting('wallpaper.image')
-        contextmenu = homescreen.open_context_menu()
-        self.take_screenshot()
+        # open settings app and choose to change wallpaper, instead of opening context menu
+        settings = Settings(self.marionette)
+        settings.launch()
+        homescreen_page = settings.open_homescreen()
+        activities = homescreen_page.pick_wallpaper()
 
-        activities = contextmenu.tap_change_wallpaper()
         # it is currently in system frame, but self.apps.switch_to_displayed_app() will return
         # a different value
         self.take_screenshot(top_frame=True)
@@ -51,3 +53,6 @@ class TestHomescreenChangeWallpaper(GaiaImageCompareTestCase):
         new_wallpaper_settings = self.data_layer.get_setting('wallpaper.image')
         self.assertNotEqual(default_wallpaper_settings, new_wallpaper_settings)
         self.take_screenshot()
+
+        self.device.touch_home_button()
+        self.take_screenshot(prewait=3)
