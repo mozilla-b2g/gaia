@@ -110,6 +110,8 @@ var loadingChecker =
 
 var lastPlayTime = 0;
 
+init();
+
 // Workaround to fix issue reported in Bug 1214157
 // We would like to pause video playback when interrupted by competing audio.
 // Audio Channel API throws interruptbegin event after play event (Bug 1192748)
@@ -157,26 +159,17 @@ document.addEventListener('visibilitychange', function visibilityChange() {
   }
 });
 
-navigator.mozL10n.once(function() {
-
-  // Tell performance monitors that our chrome is visible
-  window.performance.mark('navigationLoaded');
-
-  // Reformatting eventlistener is handled by ThumbnailList
-  IntlHelper.define('date-group', 'datetime', {
-    month: 'long',
-    year: 'numeric',
+// We get headphoneschange event when the headphones is plugged or unplugged
+var acm = navigator.mozAudioChannelManager;
+if (acm) {
+  acm.addEventListener('headphoneschange', function onheadphoneschange() {
+    if (!acm.headphones && playing) {
+      setVideoPlaying(false);
+    }
   });
+}
 
-  init();
-
-  // Tell performance monitors that our chrome is ready to interact with.
-  window.performance.mark('navigationInteractive');
-});
-
-// we don't need to wait for l10n ready to have correct css layout.
-initLayout();
-initThumbnailSize();
+navigator.mozSetMessageHandler('activity', handleActivityEvents);
 
 if (!isPhone) {
   navigator.mozL10n.ready(function localizeThumbnailListTitle() {
@@ -190,43 +183,59 @@ if (!isPhone) {
 }
 
 function init() {
+
+  // Tell performance monitors that our chrome is visible
+  window.performance.mark('navigationLoaded');
+
+  // Reformatting eventlistener is handled by ThumbnailList
+  IntlHelper.define('date-group', 'datetime', {
+    month: 'long',
+    year: 'numeric',
+  });
+
   thumbnailList = new ThumbnailList(ThumbnailDateGroup, dom.thumbnails);
   ThumbnailItem.titleMaxLines = isPhone ? 2 : (isPortrait ? 4 : 2);
 
+  // Initializing the database does not need to wait for l10n to be ready.
+  // Also, db initialization should start as soon as possible to reduce
+  // the time until the app is 'visuallyLoaded'.
   initDB();
 
-  // if video is not start with activity mode, we need to wire all event
-  // handlers.
-  if (!navigator.mozHasPendingMessage('activity')) {
-    // options button only needed by normal mode. if we are under pick activity,
-    // there is only pick view enabled that is enabled at showPickView();
-    initOptionsButtons();
-  }
+  addUIEventListeners();
+  initLayout();
+  initThumbnailSize();
 
-  initPlayerControls();
-  ForwardRewindController.init(dom.player, dom.seekForward, dom.seekBackward);
+  function addUIEventListeners() {
+    // if video is not start with activity mode, we need to wire all event
+    // handlers.
+    if (!navigator.mozHasPendingMessage('activity')) {
+      // options button only needed by normal mode. if we are under pick
+      // activity, there is only pick view enabled that is enabled at
+      // showPickView();
+      initOptionsButtons();
+    }
 
-  // We get headphoneschange event when the headphones is plugged or unplugged
-  var acm = navigator.mozAudioChannelManager;
-  if (acm) {
-    acm.addEventListener('headphoneschange', function onheadphoneschange() {
-      if (!acm.headphones && playing) {
-        setVideoPlaying(false);
+    // Ensure code that accesses html dir is executed after
+    // `documentElement.dir` is set.
+    navigator.mozL10n.once(function() {
+      initPlayerControls();
+    });
+
+    ForwardRewindController.init(dom.player, dom.seekForward, dom.seekBackward);
+
+    // the overlay action button may be used in both normal mode and activity
+    // mode, we need to wire its event handler here.
+    dom.overlayActionButton.addEventListener('click', function() {
+      if (pendingPick) {
+        cancelPick();
+      } else if (currentOverlay === 'empty') {
+        launchCameraApp();
       }
     });
+
+    // Tell performance monitors that our chrome is ready to interact with.
+    window.performance.mark('navigationInteractive');
   }
-
-  navigator.mozSetMessageHandler('activity', handleActivityEvents);
-
-  // the overlay action button may be used in both normal mode and activity
-  // mode, we need to wire its event handler here.
-  dom.overlayActionButton.addEventListener('click', function() {
-    if (pendingPick) {
-      cancelPick();
-    } else if (currentOverlay === 'empty') {
-      launchCameraApp();
-    }
-  });
 }
 
 function initThumbnailSize() {
@@ -866,7 +875,7 @@ function setControlsVisibility(visible) {
 }
 
 function movePlayHead(percent) {
-  if (navigator.mozL10n.language.direction === 'ltr') {
+  if (document.documentElement.dir === 'ltr') {
     dom.playHead.style.left = percent;
   }
   else {
@@ -1323,7 +1332,7 @@ function handleSliderTouchMove(event) {
   }
 
   function getTouchPos() {
-    return (navigator.mozL10n.language.direction === 'ltr') ?
+    return (document.documentElement.dir === 'ltr') ?
        (touch.clientX - sliderRect.left) :
        (sliderRect.right - touch.clientX);
   }

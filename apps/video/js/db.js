@@ -39,12 +39,6 @@ function initDB() {
     }
   };
 
-  videodb.onready = function() {
-    storageState = false;
-    updateDialog();
-    enumerateDB();
-  };
-
   videodb.onscanend = function() {
     // If this was the first scan after startup, then tell
     // performance monitors that the app is finally fully loaded and stable.
@@ -62,6 +56,22 @@ function initDB() {
   };
   videodb.ondeleted = function(event) {
     event.detail.forEach(videoDeleted);
+  };
+
+  videodb.onenumerable = function() {
+    storageState = false;
+    updateDialog();
+    enumerateDB();
+  };
+
+  // The video app is relying on the mediadb auto-scanning to scan the db
+  // when it becomes ready or when the SD card has been mounted or remounted.
+  // This 'ready' handler is responsible for removing the 'unplug your ...'
+  // overlay (displayed when USB storage is enabled when the device is connected
+  // via USB cable), when the USB cable is unplugged.
+  videodb.onready = function() {
+    storageState = false;
+    updateDialog();
   };
 }
 
@@ -122,6 +132,16 @@ function enumerateDB() {
       // and is ready to interact with.
       window.performance.mark('visuallyLoaded');
       window.performance.mark('contentInteractive');
+
+      // Remove the attribute to trigger gaia header font-fit logic, defer it
+      // until now to postpone the overhead. Also, do this asynchronously to
+      // avoid interrupting the enumerating of the db.
+      setTimeout(function() {
+        var headers = document.querySelectorAll('gaia-header');
+        for (var i = 0; i < headers.length; ++i) {
+          headers[i].removeAttribute('no-font-fit');
+        }
+      });
     }
   }
 }
