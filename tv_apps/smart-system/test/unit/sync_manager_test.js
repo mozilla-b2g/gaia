@@ -527,6 +527,7 @@ suite('smart-system/SyncManager >', () => {
 
     suiteTeardown(() => {
       syncManager.stop();
+      SyncStateMachine.state = 'disabled';
     });
 
     setup(() => {
@@ -540,7 +541,8 @@ suite('smart-system/SyncManager >', () => {
     });
 
     test('onerrored received - recoverable error', done => {
-      SyncStateMachine.onerrored(ERROR_SYNC_APP_KILLED);
+      SyncStateMachine.state = 'enabling';
+      SyncStateMachine.error(ERROR_SYNC_APP_KILLED);
       setTimeout(() => {
         this.sinon.assert.calledOnce(updateStateSpy);
         assert.equal(syncManager.error, ERROR_SYNC_APP_KILLED);
@@ -550,7 +552,8 @@ suite('smart-system/SyncManager >', () => {
     });
 
     test('onerrored received - unrecoverable error', done => {
-      SyncStateMachine.onerrored(ERROR_SYNC_REQUEST);
+      SyncStateMachine.state = 'enabling';
+      SyncStateMachine.error(ERROR_SYNC_REQUEST);
       setTimeout(() => {
         this.sinon.assert.calledOnce(updateStateSpy);
         assert.equal(syncManager.error, ERROR_SYNC_REQUEST);

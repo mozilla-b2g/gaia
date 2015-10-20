@@ -340,16 +340,18 @@
       });
     },
 
-    onerrored(error) {
-      this.debug('onerrored observed', error);
-
-      this.updateState();
+    onerrored(from, to, error) {
+      this.debug(`onerrored observed ${error} while transitioning from ${from}
+                 to ${to}`);
 
       if (!error) {
         return;
       }
 
       this.error = error;
+
+      // We don't update the state until we set the error.
+      this.updateState();
 
       if (SyncUnrecoverableErrors.indexOf(error) > -1) {
         this.debug('Unrecoverable error');
