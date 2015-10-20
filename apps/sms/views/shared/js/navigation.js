@@ -602,10 +602,11 @@ function switchPanel() {
   var animationPromise;
   if (doSlideAnimation) {
 
+    var shouldGoRight = isGoingBack ^ (document.dir === 'rtl');
     newPanelElement.style.animationName =
-      isGoingBack ? 'new-slide-right' : 'new-slide-left';
+      shouldGoRight ? 'new-slide-right' : 'new-slide-left';
     oldPanelElement.style.animationName =
-      isGoingBack ? 'old-slide-right' : 'old-slide-left';
+      shouldGoRight ? 'old-slide-right' : 'old-slide-left';
 
     animationPromise = waitForSlideAnimation(newPanelElement).catch(
       () => {}

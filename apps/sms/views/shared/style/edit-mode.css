@@ -45,29 +45,50 @@ form[role="dialog"][data-type="edit"] .bb-tablist > li {
 }
 
 /* Lists: edit mode */
-.edit [data-type="list"] li > a {
+html[dir="ltr"] .edit [data-type="list"] li > a {
   transform: translateX(-1.5rem);
+}
+html[dir="rtl"] .edit [data-type="list"] li > a {
+  transform: translateX(1.5rem);
 }
 
 .edit [data-type="list"] li > label {
   opacity: 1;
   pointer-events: auto;
+}
+html[dir="ltr"] .edit [data-type="list"] li > label {
   transform: translateX(2rem);
+}
+html[dir="rtl"] .edit [data-type="list"] li > label {
+  transform: translateX(-2rem);
 }
 
 .edit [data-type="list"] li > .pack-checkbox input ~ span:after {
   opacity: 1;
+}
+html[dir="ltr"] .edit [data-type="list"] li > .pack-checkbox input ~ span:after {
   transform: translateX(2.5rem);
+}
+html[dir="rtl"] .edit [data-type="list"] li > .pack-checkbox input ~ span:after {
+  transform: translateX(-2.5rem);
 }
 
 .edit [data-type="list"] li > a > p {
-  transform: translateX(5.0rem);
-  -moz-margin-end: 3.4rem;
+  margin-inline-end: 3.4rem;
+}
+html[dir="ltr"] .edit [data-type="list"] li > a > p {
+  transform: translateX(5rem);
+}
+html[dir="rtl"] .edit [data-type="list"] li > a > p {
+  transform: translateX(-5rem);
 }
 
 /* Currently is used in ConversationView only */
-.edit [data-type="list"] .danger {
+html[dir="ltr"] .edit [data-type="list"] .danger {
   transform: translateX(2.5rem);
+}
+html[dir="rtl"] .edit [data-type="list"] .danger {
+  transform: translateX(-2.5rem);
 }
 
 form[role="dialog"][data-type="edit"] {
@@ -84,25 +105,4 @@ form[role="dialog"][data-type="edit"] {
 
 .edit form[role="dialog"][data-type="edit"] gaia-header {
   transform: translateY(0);
-}
-
-/* RTL View */
-html[dir="rtl"] .edit [data-type="list"] li > a {
-  transform: translateX(1.5rem);
-}
-
-html[dir="rtl"] .edit [data-type="list"] li > label {
-  transform: translateX(-2rem);
-}
-
-html[dir="rtl"] .edit [data-type="list"] li > .pack-checkbox input ~ span:after {
-  transform: translateX(-2.5rem);
-}
-
-html[dir="rtl"] .edit [data-type="list"] li > a > p {
-  transform: translateX(-5rem);
-}
-
-html[dir="rtl"] .edit [data-type="list"] .danger {
-  transform: translateX(-2.5rem);
 }
