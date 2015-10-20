@@ -34,6 +34,7 @@ suite('controllers/preview-gallery', function() {
     this.app = sinon.createStubInstance(this.App);
     this.app.camera = sinon.createStubInstance(this.Camera);
     this.app.settings = sinon.createStubInstance(this.Settings);
+    this.app.require = sinon.stub();
     this.app.activity = {};
     this.app.views = {
       controls: sinon.createStubInstance(this.ControlsView)
@@ -95,11 +96,10 @@ suite('controllers/preview-gallery', function() {
           done(options.blob);
         };
 
-      this.clock = sinon.useFakeTimers();
+      this.app.require.callsArgWith(1,
+        this.previewGalleryController.resizeImageAndSave);
 
-      CustomDialog.show = function(title, msg, cancelCb, deleteCb) {
-        deleteCb.callback();
-      };
+      this.clock = sinon.useFakeTimers();
     });
 
     teardown(function() {
@@ -317,6 +317,26 @@ suite('controllers/preview-gallery', function() {
       assert.ok(this.previewGalleryController.updateThumbnail.called);
       assert.ok(this.previewGalleryController.closePreview.calledAfter(this.previewGalleryController.updateThumbnail));
     });
+  });
+
+  suite('PreviewGalleryController#openPreview()', function() {
+    setup(function() {
+      this.app.require.callsArgWith(1, this.PreviewGalleryView, sinon.stub());
+      sinon.stub(this.controller, 'previewItem');
+      this.controller.settings = {
+        activity: {
+          get: sinon.spy()
+        },
+        previewGallery: {
+          get: sinon.spy()
+        }
+      };
+    });
+
+    test('Should call previewItem', function() {
+      this.controller.openPreview();
+      assert.isTrue(this.controller.previewItem.called);
+    });
 
     // XXX: this is really a view test, but we don't have tests for the view yet
     test('Should lock and unlock orientation when opening and closing view',
@@ -344,25 +364,6 @@ suite('controllers/preview-gallery', function() {
            this.previewGalleryController.closePreview();
            assert.equal(remove.callCount, 1);
          });
-  });
-
-  suite('PreviewGalleryController#openPreview()', function() {
-    setup(function() {
-      sinon.stub(this.controller, 'previewItem');
-      this.controller.settings = {
-        activity: {
-          get: sinon.spy()
-        },
-        previewGallery: {
-          get: sinon.spy()
-        }
-      };
-      this.controller.openPreview();
-    });
-
-    test('Should call previewItem', function() {
-      assert.isTrue(this.controller.previewItem.called);
-    });
   });
 
   suite('PreviewGalleryController#closePreview()', function() {
