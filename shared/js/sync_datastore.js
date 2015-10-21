@@ -86,7 +86,7 @@
             SDS.persistStore.clear(SDS.store.revisionId);
             break;
           case 'remove':
-            var id = task.target.id;
+            var id = task.id;
             SDS.persistStore.remove(id, SDS.store.revisionId);
             break;
           case 'done':
