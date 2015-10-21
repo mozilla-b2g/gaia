@@ -49,6 +49,14 @@ class Marketplace(Base):
         search_box.send_keys(Keys.RETURN)
         return SearchResults(self.marionette)
 
+    def get_current_displayed_result(self):
+        iframe = Wait(self.marionette).until(
+            expected.element_present(*self._marketplace_iframe_locator))
+        Wait(self.marionette).until(expected.element_displayed(iframe))
+        self.marionette.switch_to_frame(iframe)
+
+        return SearchResults(self.marionette)
+
 class SearchResults(Base):
 
     _search_results_loading_locator = (By.CSS_SELECTOR, '.loading')
@@ -69,6 +77,15 @@ class Result(PageRegion):
     def tap_install_button(self):
         self.root_element.find_element(*self._install_button_locator).tap()
         self.marionette.switch_to_frame()
+
+    def tap_open_app_button(self, app_title, _app_locator):
+        button = self.root_element.find_element(*self._install_button_locator)
+        Wait(self.marionette).until(lambda m: button.text == 'Open app')
+        button.tap()
+        self.apps.switch_to_displayed_app()
+        Wait(self.marionette).until(lambda m: m.title == app_title)
+        app_element = self.marionette.find_element(*_app_locator)
+        Wait(self.marionette).until(lambda m: app_element.is_displayed())
 
     def get_app_name(self):
         return self.root_element.find_element(*self._name_locator).text
