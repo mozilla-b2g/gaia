@@ -518,7 +518,7 @@
   AppChrome.prototype.unpin = function ac_unpin() {
     this.hidePinDialogCard();
     this.pinned = false;
-    if (this.app.config && this.app.config.scrollable) {
+    if (this.app.chrome && this.app.chrome.scrollable) {
       this.app.element.classList.add('collapsible');
     }
     this.expand();
