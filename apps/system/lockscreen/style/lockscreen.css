@@ -141,7 +141,8 @@
 [data-panel="passcode"] #notifications-lockscreen-container,
 [data-panel="passcode"] #lockscreen-notification-arrow,
 [data-panel="passcode"] #lockscreen-media-container,
-[data-panel="passcode"] #lockscreen-icon-container {
+[data-panel="passcode"] #lockscreen-icon-container,
+[data-panel="passcode"] #lockscreen-enter-code {
   visibility: hidden;
 }
 
@@ -214,23 +215,24 @@
 }
 
 #lockscreen-clock-time {
-  line-height: 0.9;
-  margin-top: -1.4rem;
-  margin-bottom: 0;
-  -moz-margin-start: -0.4rem;
-  -moz-margin-end: 0;
+  margin-bottom: 0.1rem;
+  margin-inline-start: -0.4rem;
+  margin-inline-end: 0;
+  font-size: 6rem;
+  line-height: 1.0;
+  margin-top: -2.4rem;
   font-weight: 200;
-  font-size: 8.5rem;
+  text-align: center;
 }
 
 #lockscreen-clock-time span { /* optional meridiem */
   font-size: 3rem;
-  display: none;
 }
 
 #lockscreen-date {
   font-weight: 300;
   font-size: 1.4rem;
+  text-align: center;
 }
 
 #lockscreen-clock-time, #lockscreen-date {
@@ -241,6 +243,7 @@
   font-weight: 300;
   font-size: 1.2rem;
   color: white;
+  text-align: center;
 }
 
 #lockscreen-area {
@@ -349,6 +352,7 @@ button::-moz-focus-inner {
   width: 5rem;
   height: 5rem;
   margin-top: 5rem;
+  display: none;
 }
 
 #lockscreen-alt-camera-button {
@@ -455,4 +459,26 @@ button::-moz-focus-inner {
 #lockscreen-message:-moz-dir(rtl) {
   left: unset;
   right: 0;
+}
+#lockscreen-clock-parent{
+  text-align: center;
+  width: 70%;
+  margin: auto;
+}
+#lockscreen-enter-code {
+  width: 100%;
+  margin-top: 2rem;
+  margin-left: 2rem;
+}
+#lockscreen-enter-code p {
+  float: left;
+  width: 90%;
+  line-height: 0;
+  height: 5rem;
+  font-size: 1.6rem;
+  font-style: italic;
+}
+#lockscreen-enter-code-icon {
+  width: 2rem;
+  float: left;
 }

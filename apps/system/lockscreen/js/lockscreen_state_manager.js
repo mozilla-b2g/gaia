@@ -67,7 +67,8 @@
 (function(exports) {
 
   var LockScreenStateManager = function() {};
-
+  var appID = '';
+  var isFromNotification = false;
   LockScreenStateManager.prototype.start =
   function lssm_start(lockScreen) {
     this.lockScreen = lockScreen;
@@ -415,10 +416,52 @@
         this.onUnlockingApp();
         break;
       case 'lockscreenslide-activate-right':
-      case 'lockscreen-notification-request-activate-unlock':
+        isFromNotification = false;
+        appID = '';
         this.onActivateUnlock();
         break;
+      case 'lockscreen-notification-request-activate-unlock':
+        this.onActivateUnlock();
+        isFromNotification = true;
+        appID = detail.id;
+        break;
       case 'lockscreen-request-unlock':
+      // if app is launched from the lockscreen notification screen then it will
+      // find the that app in system and launch it.
+        if (isFromNotification) {
+          isFromNotification = false;
+          var request = navigator.mozApps.mgmt.getAll();
+          if (request) {
+            request.onsuccess = function() {
+              var index = -1;
+              var i;
+              if (appID) {
+                var appManifestURL = appID.split('#');
+                appID = '';
+                if (request.result) {
+                  for (i = 0; i < request.result.length; i++) {
+                    var element = request.result[i];
+                    if (element.manifestURL === appManifestURL[0]) {
+                      index = i;
+                      break;
+                    }
+                  }
+                }
+                if (index != -1) {
+                  setTimeout(function() {
+                    var reqResult = request.result;
+                    reqResult[index].launch();
+                  }, 1000);
+                } else {
+                  throw Error('App not found');
+                }
+              }
+            };
+            request.onerror = function() {
+              throw Error('Error: ' + request.error.name);
+            };
+          }
+        }
         if (detail.forcibly) {
           this.onForciblyUnlock();
         } else {

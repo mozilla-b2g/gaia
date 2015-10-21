@@ -18,7 +18,7 @@
 }
 
 #notifications-lockscreen-container .notification > div.title-container {
-  margin-top: 1rem;
+  margin-top: 2rem;
   font-size: 1.5rem;
   font-weight: 500;
   color: #fff;
@@ -80,7 +80,7 @@
   content: "";
   position: absolute;
   width: 100%;
-  top: -1.1rem;
+  top: 0;
   left: 0;
   height: 6rem;
   background-color: rgba(51, 51, 51, 0.3);
@@ -99,7 +99,7 @@
   content: "";
   position: absolute;
   width: calc(100% - 4.8rem);
-  top: -1.1rem;
+  top: 0;
   left: 0;
   height: 6rem;
   z-index: -1;  /* make this as 'background' */
@@ -134,14 +134,14 @@
   -moz-padding-start: var(--padleft-button);
 
   /* 0.3rem is the magic number to make it (with the border) vertical-align: middle*/
-  top: 0.3rem;
+  top: 0.5rem;
 
   /* 100% - the actionable area + the margin of the actionable area */
   /* The 0.8rem is for alignment of the position of previous timestamp */
   /* The 0.3rem is for centering the vertical bar of the button */
   left: calc(100% - var(--width-actionable-button) + 1.4rem);
   height: 3.5rem;
-  line-height: 3.3rem;  /* to make the lable vertical-align: middle */
+  line-height: 4rem;  /* to make the lable vertical-align: middle */
   transition-property: color, text;
   transition-duration: 0.25s;
   transition-timing-function: linear, ease-in;
@@ -175,7 +175,7 @@
   top: calc(50% - 7.65rem);
   left: 0;
   width: 100%;
-  height: 24.6rem;
+  height: 15rem;
   overflow-x: hidden;
   overflow-y: auto;
 
@@ -275,7 +275,7 @@
 }
 
 #notifications-lockscreen-container .notification > div.detail {
-  margin-top: 0.2rem;
+  margin-top: -0.5rem;
 }
 
 #notifications-lockscreen-container .notification > div.detail .detail-content {
@@ -339,7 +339,7 @@
  * and is empirical values.
  */
 #lockscreen-notification-arrow {
-  top: calc(50% - 7.65rem + 24.6rem - 1.2rem);
+  top: calc(50% - 7.65rem + 17rem - 1.2rem);
 }
 
 #lockscreen-notification-arrow.collapsed {

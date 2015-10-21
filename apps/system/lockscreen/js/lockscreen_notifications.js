@@ -276,7 +276,11 @@
       notificationId: info.notificationId
     };
     window.dispatchEvent(
-      new CustomEvent('lockscreen-notification-request-activate-unlock'));
+        new CustomEvent('lockscreen-notification-request-activate-unlock', {
+          detail: {
+            id: info.notificationId
+          }
+        }));
   };
 
   /**
@@ -295,8 +299,12 @@
           node,
           oldLockScreenNode
         );
-      }
-      else {
+      } else if ((this.container.firstElementChild) && (this.container.firstElementChild.id === node.id)) {
+        this.container.replaceChild(
+          node,
+          this.container.firstElementChild
+        );
+      } else {
         this.container.insertBefore(
           node,
           this.container.firstElementChild

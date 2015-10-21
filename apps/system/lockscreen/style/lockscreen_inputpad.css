@@ -5,26 +5,27 @@
 
 #lockscreen-passcode-code {
   position: absolute;
-  bottom: 20.4rem;
+  bottom: 22rem;
   height: 7rem;
-  width: 100%;
-  background-color: rgba(51, 51, 51, 0.3);
+  width: 95%;
   margin: 0;
   padding: 0 1rem;
-  -moz-box-sizing: border-box;
 }
 
 #lockscreen-passcode-code > span {
   -moz-box-sizing: border-box;
   display: block;
   float: left;
-  width: calc(25% - 1rem);
-  margin: 1.5rem 0.5rem;
-  height: calc(100% - 3rem);
+  width: 19%;
+  margin: 1.3rem 0.5rem;
+  height: 80%;
   text-align: center;
   background-color: rgba(255, 255, 255, 0.8);
-  border-radius: 0.5rem;
+  border-radius: 100%;
   position: relative;
+  font-size: 3rem;
+  line-height: 5.5rem;
+  color: #000;
 }
 
 #lockscreen-passcode-code.error > span {
@@ -52,7 +53,7 @@
 #lockscreen-passcode-pad {
   -moz-box-sizing: border-box;
   position: absolute;
-  bottom: 0;
+  bottom: -6.5rem;
   height: 20.4rem;
   width: 100%;
   background-color: #606b6e;
@@ -230,11 +231,35 @@
 #lockscreen-inputpad-frame .lockscreen-panel {
   position: absolute;
   width: 100%;
-  top: 100%;
+  top: 73%;
   background-size: cover;
   background-repeat: no-repeat;
   background-position: 50% 50%;
   /* while other components on LockScreen should be touchable,
    * this one would capture the event. */
   pointer-events: auto;
+}
+#lockscreen-passcode-lock {
+  position: absolute;
+  height: 3rem;
+  width: 5rem;
+  margin-left: 85%;
+  padding: 0 1rem;
+  box-sizing: border-box;
+  bottom: 23.8rem;
+}
+#lockscreen-pincode-error-message {
+  position: absolute;
+  height: 7rem;
+  width: 100%;
+  margin: 0;
+  padding: 0 1rem;
+  bottom: 13rem;
+  text-align: center;
+  font-size: 1.6rem;
+  color: #ff0000;
+  font-style: italic;
+}
+p.error ~ p#lockscreen-pincode-error-message {
+  display: block;
 }

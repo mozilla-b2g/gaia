@@ -84,7 +84,7 @@ var NotificationScreen = {
     // screen
     this.externalNotificationsCount = 0;
     this.unreadNotifications = [];
-
+    this.availableNotification = [];
     window.addEventListener('utilitytrayshow', this);
     // Since UI expect there is a slight delay for the opened notification.
     window.addEventListener('lockscreen-appclosed', this);
@@ -408,9 +408,13 @@ var NotificationScreen = {
     // timesout, so we skip updating it here, by passing a skip bool
     this.addUnreadNotification(detail.id, true);
 
+    var cIndex = this.availableNotification.indexOf(detail.appName);
+    if (cIndex === -1) {
+    this.availableNotification.push(detail.appName);
     var notificationNode = document.createElement('div');
     notificationNode.classList.add('notification');
     notificationNode.setAttribute('role', 'link');
+    notificationNode.setAttribute('id', detail.appName);
 
     notificationNode.dataset.notificationId = detail.id;
     notificationNode.dataset.noClear = behavior.noclear ? 'true' : 'false';
@@ -426,9 +430,9 @@ var NotificationScreen = {
     notificationNode.dataset.type = type;
     notificationNode.dataset.manifestURL = manifestURL;
 
-    if (detail.icon) {
+    if (detail.appIcon) {
       var icon = document.createElement('img');
-      icon.src = detail.icon;
+      icon.src = detail.appIcon;
       icon.setAttribute('role', 'presentation');
       notificationNode.appendChild(icon);
     }
@@ -460,6 +464,17 @@ var NotificationScreen = {
     messageContent.setAttribute('dir', 'auto');
     message.appendChild(messageContent);
     notificationNode.appendChild(message);
+    var countDiv = document.createElement('div');
+    countDiv.classList.add('detail-count');
+    countDiv.textContent = "1";
+    notificationNode.appendChild(countDiv);
+  } else {
+    var notificationNode = document.querySelector('.notification');
+    var count = document.getElementById(detail.appName).querySelector('.detail-count').textContent;
+    count = parseInt(count);
+    count++;
+    document.getElementById(detail.appName).querySelector('.detail-count').textContent = count;
+  }
 
     var notifSelector = '[data-notification-id="' + detail.id + '"]';
     var oldNotif = notificationContainer.querySelector(notifSelector);

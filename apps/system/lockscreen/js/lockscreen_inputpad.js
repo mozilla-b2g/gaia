@@ -147,7 +147,11 @@
   };
 
   LockScreenInputpad.prototype.updatePassCodeUI =
-  function() {
+  function(keyCode) {
+    // keyCode value is getting captured in handlePassCodeInput() function.
+    // No timeout when 'Backspace' is pressed.    
+    // passcode to be visible for 1 second before changing to dot('.')
+    const CODE_VISIBLE_TIMEOUT = 1000; 
     if (this.states.passCodeEntered) {
       this.passcodePad.classList.add('passcode-entered');
     } else {
@@ -163,7 +167,19 @@
       var span = this.passcodeCode.childNodes[i];
       if (span) {
         if (this.states.passCodeEntered.length > i) {
+        var value = this.states.passCodeEntered.substr(i, this.states.passCodeEntered.length);
+        if ((this.states.passCodeEntered.length - 1 === i) && (keyCode && (keyCode !== 'b'))) {
+          (function(aspan, currentValue) {
+            aspan.textContent = currentValue;
+            setTimeout(function() {
+              aspan.textContent = '';
+              aspan.dataset.dot = true;
+            }, CODE_VISIBLE_TIMEOUT);
+          })(span, value);
+        } else {
+          span.textContent = '';
           span.dataset.dot = true;
+        }
         } else {
           delete span.dataset.dot;
         }
@@ -173,6 +189,8 @@
 
   LockScreenInputpad.prototype.handlePassCodeInput =
   function(key) {
+    // the last passkey should be visible before validation starts
+    const CODE_VALIDATION_TIMEOUT = 1200;
     switch (key) {
       case 'e': // 'E'mergency Call
         this.lockScreen.invokeSecureApp('emergency-call');
@@ -193,7 +211,7 @@
         this.states.passCodeEntered =
           this.states.passCodeEntered.substr(0,
             this.states.passCodeEntered.length - 1);
-        this.updatePassCodeUI();
+        this.updatePassCodeUI('b');
         break;
 
       default:
@@ -202,14 +220,18 @@
         }
 
         this.states.passCodeEntered += key;
-        this.updatePassCodeUI();
+        this.updatePassCodeUI('');
 
         if (this.states.padVibrationEnabled) {
           navigator.vibrate(this.configs.padVibrationDuration);
         }
 
         if (this.states.passCodeEntered.length === 4) {
-          this.lockScreen.checkPassCode(this.states.passCodeEntered);
+          (function(value) {
+            setTimeout(function() {
+              this.lockScreen.checkPassCode(value);
+            }, CODE_VALIDATION_TIMEOUT);
+          })(this.states.passCodeEntered);
         }
         break;
     }
