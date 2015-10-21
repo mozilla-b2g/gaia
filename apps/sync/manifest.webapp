@@ -18,6 +18,10 @@
     "places": {
       "readonly": false,
       "description": "Stores data about browsing history."
+    },
+    "bookmarks_store": {
+      "readonly": false,
+      "description": "Stores data about browsing history."
     }
   },
   "connections": {
