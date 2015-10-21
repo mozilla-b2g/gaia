@@ -216,15 +216,31 @@ CompositeTargetHandler.prototype.commit = function() {
     return;
   }
 
-  var promise = Promise.resolve();
   // Keys with this attribute set send more than a single character
   // Like ".com" or "2nd" or (in Catalan) "l·l".
   var compositeString = this.target.compositeKey;
+
+  var promise;
   var engine = this.app.inputMethodManager.currentIMEngine;
-  for (var i = 0; i < compositeString.length; i++) {
-    var sendKeyPromise =
-      Promise.resolve(engine.click(compositeString.charCodeAt(i)));
-    promise = promise.then(sendKeyPromise, sendKeyPromise);
+  if (engine.handleKey) {
+    // Engine with the new method that could handle a key dict.
+    promise = engine.handleKey({
+      key: compositeString,
+      printable: true
+    });
+  } else {
+    promise = Promise.resolve();
+    // XXX: Split the key into characters and click() on it one by one.
+    compositeString.split('').forEach(function(chr) {
+      promise = promise
+        .then(function() {
+          return engine.click(chr.charCodeAt(0));
+        }, function(e) {
+          console.error(e);
+
+          return engine.click(chr.charCodeAt(0));
+        });
+    });
   }
 
   this.app.visualHighlightManager.hide(this.target);
