@@ -13,29 +13,30 @@
 
     _onMessage: undefined,
     _onStateChange: undefined,
-    _session: undefined,
+    _connection: undefined,
 
     init: function r_init() {
       this._onMessage = this._handleMessage.bind(this);
       this._onStateChange = this._handleStateChange.bind(this);
 
       navigator.presentation &&
-                              navigator.presentation.receiver.getSession().then(
-      function addSession(session) {
-        this._session = session;
-        this._session.addEventListener('message', this._onMessage);
-        this._session.addEventListener('statechange', this._onStateChange);
+                          navigator.presentation.receiver.getConnection().then(
+      function addConnection(connection) {
+        this._connection = connection;
+        this._connection.addEventListener('message', this._onMessage);
+        this._connection.addEventListener('statechange', this._onStateChange);
       }.bind(this),
-      function sessionError() {
-        console.warn('Getting session failed.');
+      function connectionError() {
+        console.warn('Getting connection failed.');
       });
     },
 
     uninit: function r_uninit() {
-      if (this._session) {
-        this._session.removeEventListener('message', this._onMessage);
-        this._session.removeEventListener('statechange', this._onStateChange);
-        this._session = null;
+      if (this._connection) {
+        this._connection.removeEventListener('message', this._onMessage);
+        this._connection.removeEventListener(
+                                            'statechange', this._onStateChange);
+        this._connection = null;
       }
     },
 
@@ -81,20 +82,23 @@
 
     _handleMessage: function r_handleMessage(evt) {
       DEBUG && console.log('Got message:' + evt.data);
-      var message = JSON.parse(evt.data);
-      var renderedMessage = this._renderMessage(message);
+      var rawdata = '[' + evt.data.replace('}{', '},{') + ']';
+      var messages = JSON.parse(rawdata);
+      messages.forEach(message => {
+        var renderedMessage = this._renderMessage(message);
 
-      if (renderedMessage) {
-        new Notification(renderedMessage.title, {
-          body: renderedMessage.body,
-          icon: DEFAULT_ICON_URL
-        });
-      }
+        if (renderedMessage) {
+          new Notification(renderedMessage.title, {
+            body: renderedMessage.body,
+            icon: DEFAULT_ICON_URL
+          });
+        }
+      });
     },
 
     _handleStateChange: function r_handleStateChange() {
-      DEBUG && console.log('session state:' + this._session.state);
-      if(this._session.state !== 'connected') {
+      DEBUG && console.log('connection state:' + this._connection.state);
+      if(this._connection.state !== 'connected') {
         this.uninit();
         window.close();
       }
