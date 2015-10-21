@@ -14,10 +14,11 @@ class TestClockSetAlarm(GaiaTestCase):
         self.clock.launch()
 
     def test_clock_set_alarm(self):
+        # Added a view switching method to app.py for getting a Clock object.
+        alarm = self.clock.switch_view('alarm')
 
-        new_alarm = self.clock.tap_new_alarm()
+        new_alarm = alarm.tap_new_alarm()
 
-        # Ensure repeat has the default value
         self.assertEquals(new_alarm.alarm_repeat, 'Never')
 
         # Set label
@@ -51,11 +52,11 @@ class TestClockSetAlarm(GaiaTestCase):
         self.assertEqual('15 minutes', new_alarm.alarm_snooze)
 
         # Save the alarm
-        new_alarm.tap_done()
-        self.clock.dismiss_banner()
+        alarm_view = new_alarm.tap_done()
+        alarm_view.dismiss_banner()
 
         # Tap to Edit alarm
-        edit_alarm = self.clock.alarms[0].tap()
+        edit_alarm = alarm_view.alarm_items[0].tap()
 
         # Verify selected options
         self.assertEqual('Weekdays', edit_alarm.alarm_repeat)
@@ -63,4 +64,4 @@ class TestClockSetAlarm(GaiaTestCase):
         self.assertEqual('15 minutes', new_alarm.alarm_snooze)
 
         edit_alarm.tap_done()
-        self.clock.dismiss_banner()
+        alarm_view.dismiss_banner()
