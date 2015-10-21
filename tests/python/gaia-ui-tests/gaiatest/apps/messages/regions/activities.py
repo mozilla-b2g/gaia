@@ -19,6 +19,7 @@ class Activities(Base):
     _forward_message_button_locator = (By.CSS_SELECTOR, 'button[data-l10n-id="forward"]')
     _delete_message_button_locator = (By.CSS_SELECTOR, 'form[data-type="action"] button[data-l10n-id="delete"]')
     _confirm_delete_message_locator = (By.CSS_SELECTOR, 'button.danger')
+    _view_message_report_locator = (By.CSS_SELECTOR, 'button[data-l10n-id="view-message-report"]')
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
@@ -27,6 +28,11 @@ class Activities(Base):
                 *self._actions_menu_locator))))
         # TODO Difficult intermittent bug 977052
         time.sleep(1)
+
+    def tap_report(self):
+        self.marionette.find_element(*self._view_message_report_locator).tap()
+        from gaiatest.apps.messages.regions.report import Report
+        return Report(self.marionette)
 
     def tap_settings(self):
         self.marionette.find_element(*self._settings_button_locator).tap()
