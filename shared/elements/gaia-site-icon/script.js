@@ -271,6 +271,7 @@ window.GaiaAppIcon = (function(exports) {
     setTimeout(() => { this.classList.remove('launching'); }, LAUNCH_TIMEOUT);
 
     if (this.app) {
+      window.performance.mark('appLaunch@' + this.app.origin);
       this.app.launch(this.entryPoint);
     } else {
       var features = {
