@@ -1117,8 +1117,9 @@ contacts.List = (function() {
     }
 
     if (img) {
-      // Update only if we are reusing the row for a different user.
-      if (link.dataset.uuid !== id) {
+      // Update only if we are reusing the row for a different user, or
+      // the image has been collected
+      if (link.dataset.uuid !== id || !link.dataset.src) {
         delete img.dataset.group;
         img.style.backgroundPosition = img.dataset.backgroundPosition || '';
         setImageURL(img, photo, asClone);  
