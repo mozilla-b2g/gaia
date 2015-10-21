@@ -44,6 +44,7 @@ Session.prototype = {
     .then(function() {
       delete this.host.sessions[this.id];
       this.id = null;
+      this.host = null;
     }.bind(this));
   }
 };
@@ -60,14 +61,18 @@ Session.create = function(host, profile, options) {
 
   var startSession = resolveBinary(options)
   .then(function(binary) {
-    return host.request('/start_runner', { binary: binary, options: options });
-  })
-  .then(function(result) {
-    var session = new Session(host, result.id, options);
-    host.sessions[result.id] = session;
-    // Session no longer pending.
-    host.pendingSessions.splice(host.pendingSessions.indexOf(startSession), 1);
-    return session;
+    host.request('/start_runner', { binary: binary, options: options })
+      .then(function(result) {
+        var session = new Session(host, result.id, options);
+        host.sessions[result.id] = session;
+        // Session no longer pending.
+        host.pendingSessions.splice(host.pendingSessions.indexOf(startSession),
+                                    1);
+        return session;
+      })
+      .catch(function(error) {
+        console.error(error);
+      });
   });
 
   host.pendingSessions.push(startSession);

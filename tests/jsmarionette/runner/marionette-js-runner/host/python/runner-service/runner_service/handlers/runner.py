@@ -3,7 +3,9 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from abc import ABCMeta, abstractmethod, abstractproperty
+import json
 import os
+import posixpath
 import sys
 
 from mozprofile import Profile
@@ -15,6 +17,59 @@ from mozrunner import (
 
 # We log over a special pipe (fd3) which node knows to hook up.
 GECKO_LOG_FD = 3
+
+class DeviceUtils:
+    def __init__(self, deviceManager):
+        self.dm = deviceManager
+
+    def _purge_data(self):
+        # Clean up data on device.
+        print("cleaning up data on device.")
+        data_paths = ['/cache/*',
+                      '/data/local/debug_info_trigger',
+                      '/data/local/indexedDB',
+                      '/data/local/OfflineCache',
+                      '/data/local/permissions.sqlite',
+                      '/data/local/storage/persistent',
+                      '/data/local/storage/default']
+        for path in data_paths:
+          if self.dm.dirExists(path):
+            self.dm.removeDir(path)
+
+    def _purge_wifi_networks(self):
+        # Remove remembered networks
+        print("removing remembered wifi networks.")
+        self.dm.removeDir('/data/misc/wifi/wpa_supplicant.conf')
+
+    def _purge_storage_data(self):
+        # Clean up storage.
+        print("cleaning up storage on device.")
+        # TODO: Remove hard-coded paths once bug 1018079 is resolved
+        storage_paths = ['/mnt/sdcard/',
+                         '/mnt/extsdcard/',
+                         '/storage/sdcard/',
+                         '/storage/sdcard0/',
+                         '/storage/sdcard1/']
+        for path in storage_paths:
+            if self.dm.dirExists(path):
+                for item in self.dm.listFiles(path):
+                    self.dm.removeDir('/'.join([path, item]))
+
+    def _purge_installed_apps(self):
+        # Clean up apps on device.
+        apps = json.loads(self.dm.pullFile('/data/local/webapps/webapps.json'))
+        system_install_time = apps['system.gaiamobile.org']['installTime']
+        for app in apps.values():
+            if app.get('installTime') > system_install_time:
+                # removing any webapps installed since build time
+                path = posixpath.join(app.get('basePath'), app.get('id'))
+                print('Removing %s' % path)
+                self.dm.removeDir(path)
+
+    def _stop_b2g(self):
+        print("stopping b2g on device before starting runner.")
+        self.dm.shellCheckOutput(['stop', 'b2g'])
+
 
 class MozrunnerHandler(object):
     __metaclass__ = ABCMeta
@@ -130,20 +185,24 @@ class DeviceHandler(MozrunnerHandler):
         self.runner.device.connect()
 
     def start_runner(self, target, options):
+        dm = self.runner.device.dm
+        du = DeviceUtils(dm)
+        device = self.runner.device
         port = options.get('port')
         profile = Profile(profile=options.get('profile'))
 
-        print('---- start runner ----');
-        print(port, profile)
-        self.runner.device.setup_port_forwarding(local_port=port, remote_port=port)
+        device.setup_port_forwarding(local_port=port, remote_port=port)
+
+        du._stop_b2g()
+        du._purge_data()
+        du._purge_wifi_networks()
+        du._purge_storage_data()
 
         self.runner.profile = profile
         self.runner.start()
 
-        self.runner.device.setup_port_forwarding(local_port=port, remote_port=port)
-        if not self.runner.device.wait_for_port(port):
+        if not device.wait_for_port(port=port, timeout=600):
             raise Exception("Wait for port timed out")
 
     def stop_runner(self):
         self.runner.stop()
-
