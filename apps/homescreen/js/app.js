@@ -918,6 +918,21 @@
 
       // Add apps installed after startup
       case 'install':
+        // Check if the app already exists, and if so, update it.
+        // This happens when reinstalling an app via WebIDE.
+        var existing = false;
+        for (child of this.icons.children) {
+          icon = child.firstElementChild;
+          if (icon.app && icon.app.manifestURL === e.application.manifestURL) {
+            icon.app = e.application;
+            icon.refresh();
+            existing = true;
+          }
+        }
+        if (existing) {
+          return;
+        }
+
         this.addApp(e.application);
         this.storeAppOrder();
         break;
