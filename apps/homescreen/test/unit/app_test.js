@@ -719,6 +719,18 @@ suite('Homescreen app', () => {
     });
 
     suite('activate', () => {
+      test('should be preventDefaulted', () => {
+        var icon = getIcon('abc');
+        icon.firstElementChild.launch = () => {};
+        var defaultPrevented = false;
+        app.handleEvent({
+          type: 'activate',
+          preventDefault: () => { defaultPrevented = true; },
+          detail: { target: icon }
+        });
+        assert.isTrue(defaultPrevented);
+      });
+
       test('unrecoverable app should be removed', () => {
         var uninstallStub = sinon.stub(MockNavigatormozApps.mgmt, 'uninstall');
         var icon = getIcon('abc');
