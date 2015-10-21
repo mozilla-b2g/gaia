@@ -728,6 +728,33 @@ suite('system/AppChrome', function() {
       chrome.handleLocationChange();
       assert.isFalse(app.element.classList.contains('collapsible'));
     });
+
+    test('it makes it collapsible again navigating away of a pin', function() {
+      var app, chrome, isPinned;
+      isPinned = true;
+
+      this.sinon.stub(Service, 'request', function() {
+        return {
+          then: function(callback) {
+            callback(isPinned);
+          }
+        };
+      });
+      fakeSearchApp.chrome.pinned = true;
+      fakeSearchApp.chrome.scrollable = true;
+      fakeSearchApp.chrome.url = 'http://aaa.com';
+      app = new AppWindow(fakeSearchApp);
+      this.sinon.stub(app, 'isBrowser').returns(true);
+      chrome = new AppChrome(app);
+      chrome.handleLocationChange();
+      assert.isTrue(chrome.pinned);
+      assert.isFalse(app.element.classList.contains('collapsible'));
+      isPinned = false;
+      app.config.url = 'http://blabla.com';
+      app.config.chrome.scrollable = true;
+      chrome.handleLocationChange();
+      assert.isTrue(app.element.classList.contains('collapsible'));
+    });
   });
 
   suite('Maximized', function() {

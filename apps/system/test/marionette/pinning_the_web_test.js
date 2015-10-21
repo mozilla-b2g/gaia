@@ -195,4 +195,22 @@ marionette('Pinning the Web', function() {
     assert(classes.indexOf('collapsible') < 0);
   });
 
+  test('navigating away of a pinned site', function() {
+    var url = server.url('remote_link.html');
+    pinTheWeb.openAndPinSiteFromBrowser(url);
+    client.switchToFrame();
+
+    var classes = system.currentWindow.getAttribute('class');
+    assert(classes.indexOf('collapsible') < 0);
+
+    system.gotoBrowser(url);
+    var link = client.helper.waitForElement('#remote-link');
+    link.click();
+    client.switchToFrame();
+    client.waitFor(function() {
+      classes = system.currentWindow.getAttribute('class');
+      return classes.indexOf('collapsible') > 0;
+    });
+  });
+
 });
