@@ -125,26 +125,26 @@ var FxaModuleUI = {
 
     from.addEventListener('animationend', function fromAnimEnd() {
       from.removeEventListener('animationend', fromAnimEnd, false);
-      from.classList.remove(back ? 'currentToRight' : 'currentToLeft');
+      from.classList.remove(back ? 'currentToNext' : 'currentToPrev');
       from.classList.remove('current');
       from.classList.remove('back');
     }, false);
 
     to.addEventListener('animationend', function toAnimEnd() {
       to.removeEventListener('animationend', toAnimEnd, false);
-      to.classList.remove(back ? 'leftToCurrent' : 'rightToCurrent');
+      to.classList.remove(back ? 'prevToCurrent' : 'nextToCurrent');
       to.classList.add('current');
       callback && callback();
     }, false);
 
-    from.classList.add(back ? 'currentToRight' : 'currentToLeft');
-    to.classList.add(back ? 'leftToCurrent' : 'rightToCurrent');
+    from.classList.add(back ? 'currentToNext' : 'currentToPrev');
+    to.classList.add(back ? 'prevToCurrent' : 'nextToCurrent');
   },
   _inTransition: function(elem) {
-    return elem.classList.contains('currentToRight') ||
-    elem.classList.contains('currentToLeft') ||
-    elem.classList.contains('rightToCurrent') ||
-    elem.classList.contains('leftToCurrent') || false;
+    return elem.classList.contains('currentToNext') ||
+           elem.classList.contains('currentToPrev') ||
+           elem.classList.contains('nextToCurrent') ||
+           elem.classList.contains('prevToCurrent') || false;
   },
   setProgressBar: function(value) {
     this.fxaProgress.value = 100 * value / this.maxSteps;

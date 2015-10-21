@@ -81,6 +81,7 @@ apps/sms/views/shared/style/common.css 0 1
 apps/sms/views/shared/style/composer.css 5 0
 apps/sms/views/shared/style/edit-mode.css 1 0
 apps/sms/views/shared/style/sms.css 1 2
+apps/system/fxa/style/fxa.css 1 0
 apps/system/mobile_id/style/mobile_id.css 0 16
 apps/system/style/action_menu/action_menu_extended.css 2 0
 apps/system/style/app_install_manager/app_install_manager.css 2 0
