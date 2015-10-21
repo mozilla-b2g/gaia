@@ -11,14 +11,16 @@
     <script type="text/javascript" src="shared/js/l10n.js"></script>
     <script type="text/javascript" defer src="shared/js/url_helper.js"></script>
     <script type="text/javascript" defer src="shared/js/bookmarks_database.js"></script>
-    <script type="text/javascript" defer src="shared/js/font_size_utils.js"></script>
     <script type="text/javascript" defer src="shared/js/web_manifest_helper.js"></script>
     <script type="text/javascript" defer src="shared/js/icons_helper.js"></script>
+    <script type="text/javascript" defer src="/shared/elements/gaia-header/dist/gaia-header.js"></script>
 
     <link rel="stylesheet" type="text/css" href="shared/style/buttons.css">
     <link rel="stylesheet" type="text/css" href="shared/style/headers.css">
     <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css">
     <link rel="stylesheet" type="text/css" href="shared/style/status.css">
+    <link rel="stylesheet" type="text/css" href="/shared/elements/gaia-icons/gaia-icons.css">
+    <link rel="stylesheet" type="text/css" href="app://theme.gaiamobile.org/shared/elements/gaia-theme/gaia-theme.css">
 
     <!-- Link to component just to copy the default_icon here -->
     <!-- <script defer src="shared/elements/gaia_grid/script.js"></script> -->
@@ -34,18 +36,13 @@
     <meta name="availableLanguages" content="en-US">
     <link rel="localization" href="locales/bookmark.{locale}.properties">
   </head>
-  <body>
+  <body class="theme-settings">
     <section id="bookmark-entry-sheet" role="region" class="skin-organic">
-      <header>
-        <button id="cancel-button" type="button">
-          <span class="icon icon-close" data-l10n-id="cancel-action"></span>
-        </button>
-        <menu type="toolbar">
-          <button id="done-button" type="button" role="menuitem" data-l10n-id="add-action"></button>
-        </menu>
+      <gaia-header id="header" action="close">
         <h1 id="add-bookmark-header" data-l10n-id="add-to-home-screen-title"></h1>
         <h1 id="edit-bookmark-header" data-l10n-id="edit-pinned-site-title"></h1>
-      </header>
+        <button id="done-button" data-l10n-id="add-action"></button>
+      </gaia-header>
       <form id="bookmark-form">
         <div id="bookmark-icon"></div>
         <p id="bookmark-url" dir="ltr"></p>

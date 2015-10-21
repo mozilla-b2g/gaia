@@ -22,10 +22,10 @@ navigator.mozL10n.once(function bluetoothSettings() {
     return;
   }
 
-  var backToSettingsBtn = document.getElementById('settings-back');
-  backToSettingsBtn.onclick = function backToSettings() {
+  var header = document.querySelector('gaia-header');
+  header.addEventListener('action', function backToSettings() {
     window.close();
-  };
+  });
 
   var gBluetoothCheckBox = document.querySelector('.bluetooth-status gaia-switch');
 
