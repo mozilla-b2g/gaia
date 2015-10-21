@@ -101,6 +101,6 @@ class PrivateWindow(Browser):
 
     def go_to_url(self, url):
         self._root_element.find_element(*self._url_bar_locator).tap()
-        from gaiatest.apps.homescreen.regions.search_panel import SearchPanel
+        from gaiatest.apps.system.regions.search_panel import SearchPanel
         search_panel = SearchPanel(self.marionette)
         return search_panel.go_to_url(url)

@@ -41,7 +41,7 @@ class Homescreen(Base):
         self.marionette.find_element('id', 'rocketbar-form').tap()
         Wait(self.marionette).until(lambda m: self.keyboard.is_keyboard_displayed)
 
-        from gaiatest.apps.homescreen.regions.search_panel import SearchPanel
+        from gaiatest.apps.system.regions.search_panel import SearchPanel
         return SearchPanel(self.marionette)
 
     def wait_for_app_icon_present(self, app_name):
