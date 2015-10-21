@@ -1,4 +1,5 @@
 {
+ "dom.presentation.discoverable": true,
  "homescreen.appName": "smart-home",
   "sync.collections.bookmarks.enabled": true
 }
