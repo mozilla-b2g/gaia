@@ -2,11 +2,14 @@
   <template>
     <section class="vertical">
       <div id="fxa-logo" class="fxa-logo"></div>
+      <h3 class="fxa-title" data-l10n-id="firefox-accounts-title"></h3>
       <p class="fxa-intro" data-l10n-id="fxa-use-email-to-sign-in">
         Use your email address to create an account or sign in.
       </p>
-      <input id="fxa-email-input" data-l10n-id="fxa-enter-email-input" type="email" placeholder="Enter your email" required="" x-inputmode="verbatim">
-
+      <div id="fxa-email-input-wrapper">
+        <input id="fxa-email-input" data-l10n-id="fxa-enter-email-input" type="email" placeholder="Enter your email" required="" x-inputmode="verbatim">
+        <button id="fxa-email-clean-btn" data-icon="close" aria-hidden="true"></button>
+      </div>
       <p id="fxa-notice" class="fine-print">
         By proceeding, I agree to the <a class="disabled">Terms of Service</a> and <a class="disabled">Privacy Notice</a> of Firefox cloud services.
       </p>
