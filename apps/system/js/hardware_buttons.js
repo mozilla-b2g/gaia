@@ -251,17 +251,13 @@
           break;
       }
     } else {
-      // Figure out if we should process this key event here in the
-      // system app. The browserKeyEventManager returns an event name
-      // (like 'volume-down-button-press') if we should process it and
-      // returns undefined otherwise. Note that the value returned
-      // may depend on whether or not there is already a button pressed.
-      var isButtonPressed = !(this.state instanceof HardwareButtonsBaseState);
-      var buttonEventType =
-        this.browserKeyEventManager.getButtonEventType(evt, isButtonPressed);
-      if (buttonEventType) {
-        this.state.process(buttonEventType);
+      var buttonEventType = this.browserKeyEventManager.getButtonEventType(evt);
+      // having a falsey buttonEventType value means the event should be
+      // ignored by System
+      if (!buttonEventType) {
+        return;
       }
+      this.state.process(buttonEventType);
     }
   };
 
