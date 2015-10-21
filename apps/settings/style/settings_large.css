@@ -47,7 +47,7 @@
   section[role="region"]#root {
     transform: none;
     transition: none;
-    left: 0;
+    offset-inline-start: 0;
     width: 40rem;
     visibility: visible;
   }
@@ -56,7 +56,7 @@
   section[role="region"].previous,
   section[role="region"].current {
     transition: none;
-    left: 40rem;
+    offset-inline-start: 40rem;
     width: calc(100% - 40rem);
   }
 
@@ -65,10 +65,15 @@
   }
 
   section[role="region"]#root header:after {
-    background: url("images/ui/tablet_separator.png") no-repeat right / 0.2rem transparent;
+    background-image: url("images/ui/tablet_separator.png");
+    background-repeat: no-repeat;
+    background-size: 0.2rem;
+    background-color: transparent;
     height: 95%;
     top: 0;
   }
+  html[dir="ltr"] section[role="region"]#root header:after { background-position: right; }
+  html[dir="rtl"] section[role="region"]#root header:after { background-position: left; }
 
   /* no back button at first level */
   section[role="region"]:not([id*='-']) header > a {
@@ -79,7 +84,7 @@
    * lists
    */
   section[role="region"] header h2 {
-    padding-left: 2rem;
+    padding-inline-start: 2rem;
   }
 
   section[role="region"]#root ul li {
@@ -93,36 +98,37 @@
 
   section[role="region"]#root ul li > a.menu-item {
     margin: 0 -3.5rem;
-    padding-left: 7.5rem;
+    padding-inline-start: 7.5rem;
   }
 
   section[role="region"]#root .menu-item::before {
-    left: calc(-2.5rem / 2);
+    offset-inline-start: calc(-2.5rem / 2);
   }
 
   section[role="region"]#root .pack-switch > .menu-item::before {
-    left: 1rem;
+    offset-inline-start: 1rem;
   }
 
   section[role="region"]#root .pack-switch > .menu-item {
-    padding-left: 6rem;
+    padding-inline-start: 6rem;
   }
 
   section[role="region"]#root ul li > label.pack-switch {
-    margin-left: calc(-4.5rem / 2);
+    margin-inline-start: calc(-4.5rem / 2);
   }
 
   section[role="region"]#root ul li > label.pack-switch > small {
-    left: 6.25rem;
-    margin: 0 0 0 4.5rem;
+    offset-inline-start: 6.25rem;
+    margin: 0;
+    margin-inline-start: 4.5rem;
   }
 
   section[role="region"]:not([id='root']) ul li > label.pack-switch > span {
-    padding-left: 1.5rem;
+    padding-inline-start: 1.5rem;
   }
 
   section[role="region"]:not([id='root']) ul li > gaia-checkbox > label {
-    padding-left: 1.5rem;
+    padding-inline-start: 1.5rem;
   }
 
   section[role="region"]:not([id='root']) ul li > a,
@@ -134,7 +140,7 @@
   }
 
   section[role="region"]:not([id='root']) ul li > progress + span:not(.button) {
-    padding-left: 6rem;
+    padding-inline-start: 6rem;
   }
 
   section[role="region"]:not([id='root']) ul:not([class='wifi-availableNetworks']) li > progress {
@@ -142,15 +148,15 @@
   }
 
   section[role="region"]:not([id='root']) ul li > a span {
-    right: 0;
+    offset-inline-end: 0;
   }
 
   section[role="region"]:not([id='root']) ul li > small {
-    left: 0;
+    offset-inline-start: 0;
   }
 
   section[role="region"]:not([id='root']) ul li.hint .explanation {
-    padding-left: 4rem;
+    padding-inline-start: 4rem;
   }
 
   /**
@@ -159,13 +165,13 @@
   section[role="region"]:not([id='root']) ul li button,
   section[role="region"]:not([id='root']) ul li .button {
     width: 29rem;
-    left: calc(100% - 29rem);
+    offset-inline-start: calc(100% - 29rem);
     height: 3.5rem;
   }
 
   section[role="region"]#findmydevice ul li button {
     width: 100%;
-    left: 0;
+    offset-inline-start: 0;
   }
 
   section[role="region"]:not([id='root']) ul li span > select {
@@ -177,7 +183,7 @@
    */
   section[role="region"]#hotspot-wifiSettings ul li.password > label > span,
   section[role="region"]#wifi-auth ul li.password > label > span {
-    padding-left: 3rem;
+    padding-inline-start: 3rem;
   }
 
   /**
@@ -187,9 +193,11 @@
     height: 33.5rem;
   }
 
-  section[role="region"]#display .wallpaper-button {
+  html[dir="ltr"] section[role="region"]#display .wallpaper-button {
     background-position: right 4rem top 2.5rem;
-    /*background-position: 76.5rem 2.5rem;*/
+  }
+  html[dir="rtl"] section[role="region"]#display .wallpaper-button {
+    background-position: left 4rem top 2.5rem;
   }
 
   /**
@@ -201,8 +209,8 @@
 
   ul li > label.range-icons.volume span {
     position: absolute;
-    left: unset;
-    right: 50%;
+    offset-inline-start: unset;
+    offset-inline-end: 50%;
     height: 100%;
     line-height: 6rem;
   }
@@ -212,11 +220,11 @@
   }
 
   ul li > label.range-icons.volume input {
-    margin-left: 0;
+    margin-inline-start: 0;
   }
 
   ul li > label.range-icons.volume p {
-    padding-left: 0;
+    padding-inline-start: 0;
   }
 
   ul li > label.range-icons span {
@@ -236,7 +244,7 @@
   }
 
   section[role="region"]#mediaStorage .stackedbar-color-label {
-    left: 4rem;
+    offset-inline-start: 4rem;
     border-radius: 5rem;
     width: 2.5rem;
     height: 2.5rem;
@@ -244,7 +252,7 @@
   }
 
   section[role="region"]#mediaStorage .stackedbar-color-label + a {
-    padding-left: 8rem;
+    padding-inline-start: 8rem;
   }
 
   section[role="region"]#mediaStorage .color-music.stackedbar-item,
@@ -273,12 +281,12 @@
 
   section[role="region"]#about-yourPrivacy .privacy-menuitem {
     margin: 0 -4rem;
-    padding-left: 8.7rem;
-    padding-right: 4rem;
+    padding-inline-start: 8.7rem;
+    padding-inline-end: 4rem;
   }
 
   section[role="region"]#about-yourPrivacy .privacy-menuitem:before {
-    left: 0;
+    offset-inline-start: 0;
   }
 
   /**
@@ -287,7 +295,7 @@
   section[role="region"] ul li.brightness-manual > label input[type="range"] {
     display: inline;
     width: calc(100% - 8rem);
-    left: 4rem;
+    offset-inline-start: 4rem;
   }
 
   /**
@@ -297,7 +305,7 @@
     top: 0;
     width: 49.5%;
     height: 100%;
-    left: 50%;
+    offset-inline-start: 50%;
     position: absolute;
   }
 
@@ -320,29 +328,6 @@
     color: #6d7374;
   }
 
-
-  /**
-   * RTL
-   */
-  html[dir="rtl"] section[role="region"]#root {
-    left: unset;
-    right: 0;
-  }
-
-  html[dir="rtl"] section[role="region"],
-  html[dir="rtl"] section[role="region"].previous,
-  html[dir="rtl"] section[role="region"].current {
-    left: 0;
-  }
-
-  html[dir="rtl"] .menu-item {
-    padding-right: 7.5rem;
-  }
-
-  html[dir="rtl"] section[role="region"]:not([id='root']) ul li button,
-  html[dir="rtl"] section[role="region"]:not([id='root']) ul li .button {
-    left: 0;
-  }
 }
 
 /*
@@ -376,7 +361,7 @@
   section[role="region"].skin-organic > header:first-child menu[type="toolbar"] button:after  {
     content: "";
     position: absolute;
-    left: 0;
+    offset-inline-start: 0;
     top: 0;
     z-index: -1;
     height: 5rem;

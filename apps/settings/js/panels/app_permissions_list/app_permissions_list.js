@@ -184,6 +184,7 @@ define(function(require) {
       var link = document.createElement('a');
       var span = document.createElement('span');
       span.textContent = itemData.name;
+      span.dir = 'auto';
       icon.src = itemData.iconSrc;
       link.dataset.appIndex = itemData.index;
       link.href = '#';
