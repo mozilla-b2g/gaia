@@ -34,7 +34,7 @@ window.DataAdapters = {};
 
 suite('sync/adapters/history >', () => {
   var realDatastore, realLazyLoader, realAsyncStorage, testCollectionData;
-  var updatePlacesSpy;
+  var updatePlacesSpy, dataStoreRemoveSpy;
   var kintoCollection = {
     list() {
       return Promise.resolve({
@@ -105,11 +105,13 @@ suite('sync/adapters/history >', () => {
   setup(() => {
     navigator.getDataStores = MockNavigatorDatastore.getDataStores;
     updatePlacesSpy = sinon.spy(HistoryHelper, 'updatePlaces');
+    dataStoreRemoveSpy = sinon.spy(MockDatastore, 'remove');
     testCollectionData = [];
   });
 
   teardown(() => {
     updatePlacesSpy.restore();
+    dataStoreRemoveSpy.restore();
     MockDatastore._inError = false;
     MockDatastore._records = Object.create(null);
     window.asyncStorage.mTeardown();
@@ -304,7 +306,8 @@ suite('sync/adapters/history >', () => {
         { readonly: true, userid: 'foo' }).then((result) => {
       assert.equal(result, false);
       assert.equal(asyncStorage.mItems['foo' + HISTORY_COLLECTION_MTIME], 110);
-      assert.equal(updatePlacesSpy.callCount, 1);
+      assert.equal(dataStoreRemoveSpy.callCount, 1);
+      assert.equal(dataStoreRemoveSpy.args[0][0], 'http://example1.com/');
       return Promise.resolve();
     }).then(done, reason => {
       assert.ok(false, reason);

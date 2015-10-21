@@ -149,6 +149,10 @@ var HistoryHelper = (() => {
     return new Promise(resolve => {
       places.reduce((reduced, current) => {
         return reduced.then(() => {
+          if (current.url && Array.isArray(current.visits) &&
+              current.visits.length === 0) {
+            return deleteByDataStoreId(current.url);
+          }
           if (current.deleted) {
             return deletePlace(current.fxsyncId, userid);
           }
@@ -158,13 +162,15 @@ var HistoryHelper = (() => {
     });
   }
 
+  function deleteByDataStoreId(id) {
+    return _ensureStore().then(store => {
+      return store.remove(id);
+    });
+  }
+
   function deletePlace(fxsyncId, userid) {
-    var url;
     return getDataStoreId(fxsyncId, userid).then(id => {
-      url = id;
-      return _ensureStore();
-    }).then(placesStore => {
-      return placesStore.remove(url);
+      return deleteByDataStoreId(id);
     });
   }
 
@@ -249,9 +255,7 @@ DataAdapters.history = {
       if (remoteRecords[i].last_modified <= lastModifiedTime) {
         break;
       }
-      if (payload.deleted ||
-        (payload.histUri && Array.isArray(payload.visits) &&
-          payload.visits.length === 0)) {
+      if (payload.deleted) {
         places.push({
           deleted: true,
           fxsyncId: payload.id
