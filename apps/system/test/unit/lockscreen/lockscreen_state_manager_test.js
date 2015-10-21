@@ -11,6 +11,7 @@ var mocksHelper = new window.MocksHelper([
 suite('system/LockScreenStateManager', function() {
   var subject;
   var mockState, mockLockScreen;
+  var mockMozSettings, mockSettingLock;
   mocksHelper.attachTestHelpers();
   setup(function() {
     var Deferred = function() {
@@ -21,22 +22,35 @@ suite('system/LockScreenStateManager', function() {
       return this;
     };
 
-    navigator.mozSettings = (function() {
-      var SettingLock = function() {};
+    mockSettingLock = function() {
+      this.then = (cb) => {
+        this.deferred = new Deferred();
+        this.deferred.promise = this.deferred.promise.then((r) => {
+          return cb(r);
+        });
+        return this.deferred.promise;
+      };
+    };
+
+    mockMozSettings = function() {
       this._deferredReadings = {};
       this._deferredObservers = {};
       this.__onsuccesses = {};
       this.createLock = () => {
         return (function() {
           this.get = (key) => {
-            var lock = new SettingLock();
+            var lock = new mockSettingLock();
             navigator.mozSettings._deferredReadings[key] = new Deferred();
             navigator.mozSettings._deferredReadings[key].promise =
               navigator.mozSettings._deferredReadings[key].promise
               .then((fetchingResult) => {
                 lock.result = {};
                 lock.result[key] = fetchingResult;
-                lock.onsuccess();
+                if (lock.onsuccess) {
+                  lock.onsuccess();
+                } else if (lock.deferred) {
+                  lock.deferred.resolve(fetchingResult);
+                }
               })
               .catch(console.error.bind(console));
             return lock;
@@ -50,8 +64,8 @@ suite('system/LockScreenStateManager', function() {
           this._deferredObservers[key] = new Deferred();
         }
         this._deferredObservers[key].promise =
-          this._deferredObservers[key].promise.then(() => {
-            cb();
+          this._deferredObservers[key].promise.then((result) => {
+            cb(result);
           })
           .catch(console.error.bind(console));
       };
@@ -60,7 +74,8 @@ suite('system/LockScreenStateManager', function() {
         this._deferredObservers = {};
       };
       return this;
-    }).call({});
+    };
+
     mockState = function() {
       this.start = () => {
         return this; };
@@ -94,6 +109,7 @@ suite('system/LockScreenStateManager', function() {
     window.LockScreenStateSecureAppLaunching = genMock('secureAppLaunching');
 
     window.LockScreenStateLogger = function() {
+      this.configs = {};
       this.start =
       this.stop =
       this.stack =
@@ -111,8 +127,10 @@ suite('system/LockScreenStateManager', function() {
       this.overlay = document.createElement('div');
       this.checkPassCodeTimeout = function() {};
     };
+    navigator.mozSettings = new mockMozSettings();
     subject = (new LockScreenStateManager())
       .start(new mockLockScreen());
+    navigator.mozSettings._reset();
     this.sinon.stub(subject, 'resolveInnerStates', function() {
       return Promise.resolve();
     });
@@ -121,8 +139,45 @@ suite('system/LockScreenStateManager', function() {
   suite('"integration tests"', function() {
     var instance;
     setup(function() {
+      navigator.mozSettings = new mockMozSettings();
       instance = new LockScreenStateManager();
     });
+    teardown(function() {
+      navigator.mozSettings._reset();
+    });
+    test('if we turn on the debug setting, it will create '+
+         'a logger with the option enabled', function(done) {
+      instance.start(new mockLockScreen());
+      navigator.mozSettings._deferredReadings['debug.gaia.enabled'].promise =
+      navigator.mozSettings
+        ._deferredReadings['debug.gaia.enabled'].promise.then(() => {
+        assert.isTrue(instance.logger.configs.debug,
+          'it doesn\'t enable the logger');
+        done();
+      }).catch(done);
+
+      navigator.mozSettings
+        ._deferredReadings['debug.gaia.enabled']
+        .resolve({'debug.gaia.enabled': true});
+     });
+
+    test('if we turn off the debug setting, it will create '+
+         'a logger with the option enabled', function(done) {
+      instance.start(new mockLockScreen());
+      instance.logger.configs.debug = true;
+      var observerPromise = navigator.mozSettings
+        ._deferredObservers['debug.gaia.enabled'].promise;
+      navigator.mozSettings._deferredObservers['debug.gaia.enabled']
+        .promise = observerPromise.then(() => {
+          assert.isFalse(instance.logger.configs.debug,
+            'it doesn\'t disable the logger');
+          done();
+        }).catch(done);
+
+      navigator.mozSettings._deferredObservers['debug.gaia.enabled']
+        .resolve({ 'settingValue': false});
+     });
+
     test('if passcode setting is still reading, do not transfer ' +
          'until it is resolved', function(done) {
       var originalDoTransfer = instance.doTransfer;

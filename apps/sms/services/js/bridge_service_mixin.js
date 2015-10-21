@@ -26,7 +26,12 @@
    * EVENTS, METHODS and STREAMS are all optional.
    */
   var serviceMixin = {
-    initService() {
+    /**
+     * Initialize service to listen on the default context and given endpoint.
+     * @param {(Iframe|Worker|MessagePort|BroadcastChannel|Window)} endpoint
+     *  The context/thread that service could listen for.
+     */
+    initService(endpoint) {
       if (!('bridge' in self)) {
         importScripts('/lib/bridge/bridge.js');
       }
@@ -51,6 +56,8 @@
       }
 
       service.listen();
+
+      endpoint && service.listen(endpoint);
 
       this[priv.service] = service;
     },

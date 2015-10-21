@@ -82,7 +82,6 @@ proto.createdCallback = function() {
     if (classList.contains('pop') &&
         classList.contains('out')) {
       evt.target.contentWindow.dispatchEvent(new CustomEvent('viewdestroy'));
-      this.container.removeChild(evt.target);
     }
 
     classList.remove('fade');

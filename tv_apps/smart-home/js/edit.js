@@ -6,6 +6,11 @@
   const EDIT_MODE_SCALE = 0.57;
   const CARD_TRANSFORM_LATENCY = 500;
 
+  /**
+   * Edit is the controller class when smart-home is in edit mode.
+   *
+   * @class Edit
+   */
   function Edit() {}
 
   Edit.prototype = evt({

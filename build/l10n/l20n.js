@@ -54,7 +54,7 @@ module.exports =
 
 	var _bindingsGaiabuildView = __webpack_require__(3);
 
-	var _libPseudo = __webpack_require__(5);
+	var _libPseudo = __webpack_require__(6);
 
 	exports.qps = _libPseudo.qps;
 	exports.walkValue = _libPseudo.walkValue;
@@ -127,21 +127,21 @@ module.exports =
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-	var _libPseudo = __webpack_require__(5);
+	var _libPseudo = __webpack_require__(6);
 
-	var _libEnv = __webpack_require__(6);
+	var _libEnv = __webpack_require__(7);
 
-	var _legacyEnv = __webpack_require__(13);
+	var _legacyEnv = __webpack_require__(14);
 
-	var _bindingsHtmlHead = __webpack_require__(18);
+	var _bindingsHtmlHead = __webpack_require__(19);
 
 	var _bindingsHtmlDom = __webpack_require__(4);
 
-	var _bindingsHtmlLangs = __webpack_require__(19);
+	var _bindingsHtmlLangs = __webpack_require__(20);
 
-	var _serialize = __webpack_require__(21);
+	var _serialize = __webpack_require__(22);
 
-	var _legacySerialize = __webpack_require__(22);
+	var _legacySerialize = __webpack_require__(23);
 
 	var View = (function () {
 	  function View(htmloptimizer, fetch) {
@@ -274,7 +274,7 @@ module.exports =
 
 /***/ },
 /* 4 */
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
@@ -285,31 +285,13 @@ module.exports =
 	exports.translateFragment = translateFragment;
 	exports.translateElement = translateElement;
 
-	var reOverlay = /<|&#?\w+;/;
+	var _overlay = __webpack_require__(5);
+
 	var reHtml = /[&<>]/g;
 	var htmlEntities = {
 	  '&': '&amp;',
 	  '<': '&lt;',
 	  '>': '&gt;'
-	};
-
-	var allowed = {
-	  elements: ['a', 'em', 'strong', 'small', 's', 'cite', 'q', 'dfn', 'abbr', 'data', 'time', 'code', 'var', 'samp', 'kbd', 'sub', 'sup', 'i', 'b', 'u', 'mark', 'ruby', 'rt', 'rp', 'bdi', 'bdo', 'span', 'br', 'wbr'],
-	  attributes: {
-	    global: ['title', 'aria-label', 'aria-valuetext', 'aria-moz-hint'],
-	    a: ['download'],
-	    area: ['download', 'alt'],
-
-	    input: ['alt', 'placeholder'],
-	    menuitem: ['label'],
-	    menu: ['label'],
-	    optgroup: ['label'],
-	    option: ['label'],
-	    track: ['label'],
-	    img: ['alt'],
-	    textarea: ['placeholder'],
-	    th: ['abbr']
-	  }
 	};
 
 	function setAttributes(element, id, args) {
@@ -327,13 +309,13 @@ module.exports =
 	}
 
 	function getTranslatables(element) {
-	  var nodes = [];
+	  var nodes = Array.from(element.querySelectorAll('[data-l10n-id]'));
 
 	  if (typeof element.hasAttribute === 'function' && element.hasAttribute('data-l10n-id')) {
 	    nodes.push(element);
 	  }
 
-	  return nodes.concat.apply(nodes, element.querySelectorAll('*[data-l10n-id]'));
+	  return nodes;
 	}
 
 	function translateMutations(view, langs, mutations) {
@@ -373,7 +355,11 @@ module.exports =
 	          var addedNode = _ref2;
 
 	          if (addedNode.nodeType === addedNode.ELEMENT_NODE) {
-	            targets.add(addedNode);
+	            if (addedNode.childElementCount) {
+	              getTranslatables(addedNode).forEach(targets.add.bind(targets));
+	            } else {
+	              targets.add(addedNode);
+	            }
 	          }
 	        }
 	        break;
@@ -384,36 +370,11 @@ module.exports =
 	    return;
 	  }
 
-	  var elements = [];
-
-	  targets.forEach(function (target) {
-	    return target.childElementCount ? elements.push.apply(elements, getTranslatables(target)) : elements.push(target);
-	  });
-
-	  Promise.all(elements.map(function (elem) {
-	    return getElementTranslation(view, langs, elem);
-	  })).then(function (translations) {
-	    return applyTranslations(view, elements, translations);
-	  });
+	  translateElements(view, langs, Array.from(targets));
 	}
 
 	function translateFragment(view, langs, frag) {
-	  var elements = getTranslatables(frag);
-	  return Promise.all(elements.map(function (elem) {
-	    return getElementTranslation(view, langs, elem);
-	  })).then(function (translations) {
-	    return applyTranslations(view, elements, translations);
-	  });
-	}
-
-	function camelCaseToDashed(string) {
-	  if (string === 'ariaValueText') {
-	    return 'aria-valuetext';
-	  }
-
-	  return string.replace(/[A-Z]/g, function (match) {
-	    return '-' + match.toLowerCase();
-	  }).replace(/^-/, '');
+	  return translateElements(view, langs, getTranslatables(frag));
 	}
 
 	function getElementTranslation(view, langs, elem) {
@@ -434,6 +395,14 @@ module.exports =
 	  })));
 	}
 
+	function translateElements(view, langs, elements) {
+	  return Promise.all(elements.map(function (elem) {
+	    return getElementTranslation(view, langs, elem);
+	  })).then(function (translations) {
+	    return _overlay.applyTranslations(view, elements, translations);
+	  });
+	}
+
 	function translateElement(view, langs, elem) {
 	  return getElementTranslation(view, langs, elem).then(function (translation) {
 	    if (!translation) {
@@ -441,10 +410,41 @@ module.exports =
 	    }
 
 	    view.disconnect();
-	    applyTranslation(view, elem, translation);
+	    _overlay.applyTranslation(view, elem, translation);
 	    view.observe();
 	  });
 	}
+
+/***/ },
+/* 5 */
+/***/ function(module, exports) {
+
+	'use strict';
+
+	exports.__esModule = true;
+	exports.applyTranslations = applyTranslations;
+	exports.applyTranslation = applyTranslation;
+
+	var reOverlay = /<|&#?\w+;/;
+
+	var allowed = {
+	  elements: ['a', 'em', 'strong', 'small', 's', 'cite', 'q', 'dfn', 'abbr', 'data', 'time', 'code', 'var', 'samp', 'kbd', 'sub', 'sup', 'i', 'b', 'u', 'mark', 'ruby', 'rt', 'rp', 'bdi', 'bdo', 'span', 'br', 'wbr'],
+	  attributes: {
+	    global: ['title', 'aria-label', 'aria-valuetext', 'aria-moz-hint'],
+	    a: ['download'],
+	    area: ['download', 'alt'],
+
+	    input: ['alt', 'placeholder'],
+	    menuitem: ['label'],
+	    menu: ['label'],
+	    optgroup: ['label'],
+	    option: ['label'],
+	    track: ['label'],
+	    img: ['alt'],
+	    textarea: ['placeholder'],
+	    th: ['abbr']
+	  }
+	};
 
 	function applyTranslations(view, elements, translations) {
 	  view.disconnect();
@@ -576,8 +576,18 @@ module.exports =
 	  return index;
 	}
 
+	function camelCaseToDashed(string) {
+	  if (string === 'ariaValueText') {
+	    return 'aria-valuetext';
+	  }
+
+	  return string.replace(/[A-Z]/g, function (match) {
+	    return '-' + match.toLowerCase();
+	  }).replace(/^-/, '');
+	}
+
 /***/ },
-/* 5 */
+/* 6 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -689,7 +699,7 @@ module.exports =
 	exports.qps = qps;
 
 /***/ },
-/* 6 */
+/* 7 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -701,19 +711,19 @@ module.exports =
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-	var _context = __webpack_require__(7);
+	var _context = __webpack_require__(8);
 
-	var _formatPropertiesParser = __webpack_require__(10);
+	var _formatPropertiesParser = __webpack_require__(11);
 
 	var _formatPropertiesParser2 = _interopRequireDefault(_formatPropertiesParser);
 
-	var _formatL20nEntriesParser = __webpack_require__(11);
+	var _formatL20nEntriesParser = __webpack_require__(12);
 
 	var _formatL20nEntriesParser2 = _interopRequireDefault(_formatL20nEntriesParser);
 
-	var _pseudo = __webpack_require__(5);
+	var _pseudo = __webpack_require__(6);
 
-	var _events = __webpack_require__(12);
+	var _events = __webpack_require__(13);
 
 	var parsers = {
 	  properties: _formatPropertiesParser2.default,
@@ -804,7 +814,7 @@ module.exports =
 	}
 
 /***/ },
-/* 7 */
+/* 8 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -815,9 +825,9 @@ module.exports =
 
 	var _errors = __webpack_require__(2);
 
-	var _resolver = __webpack_require__(8);
+	var _resolver = __webpack_require__(9);
 
-	var _plurals = __webpack_require__(9);
+	var _plurals = __webpack_require__(10);
 
 	var Context = (function () {
 	  function Context(env, resIds) {
@@ -925,7 +935,7 @@ module.exports =
 	exports.Context = Context;
 
 /***/ },
-/* 8 */
+/* 9 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -1091,7 +1101,7 @@ module.exports =
 	}
 
 /***/ },
-/* 9 */
+/* 10 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -1541,7 +1551,7 @@ module.exports =
 	}
 
 /***/ },
-/* 10 */
+/* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -1767,7 +1777,7 @@ module.exports =
 	module.exports = exports.default;
 
 /***/ },
-/* 11 */
+/* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -2281,7 +2291,7 @@ module.exports =
 	module.exports = exports.default;
 
 /***/ },
-/* 12 */
+/* 13 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -2331,7 +2341,7 @@ module.exports =
 	}
 
 /***/ },
-/* 13 */
+/* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -2343,19 +2353,19 @@ module.exports =
 
 	var _libErrors = __webpack_require__(2);
 
-	var _libEnv = __webpack_require__(6);
+	var _libEnv = __webpack_require__(7);
 
-	var _context = __webpack_require__(14);
+	var _context = __webpack_require__(15);
 
-	var _resolver = __webpack_require__(15);
+	var _resolver = __webpack_require__(16);
 
-	var _parser = __webpack_require__(16);
+	var _parser = __webpack_require__(17);
 
 	var _parser2 = _interopRequireDefault(_parser);
 
-	var _pseudo = __webpack_require__(17);
+	var _pseudo = __webpack_require__(18);
 
-	var _libPseudo = __webpack_require__(5);
+	var _libPseudo = __webpack_require__(6);
 
 	function LegacyEnv(defaultLang, fetch) {
 	  _libEnv.Env.call(this, defaultLang, fetch);
@@ -2396,7 +2406,7 @@ module.exports =
 	}
 
 /***/ },
-/* 14 */
+/* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -2404,9 +2414,9 @@ module.exports =
 	exports.__esModule = true;
 	exports.LegacyContext = LegacyContext;
 
-	var _libContext = __webpack_require__(7);
+	var _libContext = __webpack_require__(8);
 
-	var _resolver = __webpack_require__(15);
+	var _resolver = __webpack_require__(16);
 
 	function LegacyContext(env, resIds) {
 	  _libContext.Context.call(this, env, resIds);
@@ -2426,7 +2436,7 @@ module.exports =
 	};
 
 /***/ },
-/* 15 */
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -2635,7 +2645,7 @@ module.exports =
 	}
 
 /***/ },
-/* 16 */
+/* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -2837,7 +2847,7 @@ module.exports =
 	module.exports = exports.default;
 
 /***/ },
-/* 17 */
+/* 18 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -2868,7 +2878,7 @@ module.exports =
 	}
 
 /***/ },
-/* 18 */
+/* 19 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -2957,7 +2967,7 @@ module.exports =
 	}
 
 /***/ },
-/* 19 */
+/* 20 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -2966,9 +2976,9 @@ module.exports =
 	exports.negotiateLanguages = negotiateLanguages;
 	exports.getDirection = getDirection;
 
-	var _libIntl = __webpack_require__(20);
+	var _libIntl = __webpack_require__(21);
 
-	var _libPseudo = __webpack_require__(5);
+	var _libPseudo = __webpack_require__(6);
 
 	var rtlList = ['ar', 'he', 'fa', 'ps', 'qps-plocm', 'ur'];
 
@@ -3027,7 +3037,7 @@ module.exports =
 	}
 
 /***/ },
-/* 20 */
+/* 21 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -3053,7 +3063,7 @@ module.exports =
 	}
 
 /***/ },
-/* 21 */
+/* 22 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -3141,7 +3151,7 @@ module.exports =
 	}
 
 /***/ },
-/* 22 */
+/* 23 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';

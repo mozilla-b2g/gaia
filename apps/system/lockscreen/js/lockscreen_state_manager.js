@@ -74,10 +74,7 @@
     this.promiseQueue = Promise.resolve();
     this.lockScreen = lockScreen;
     this.lockScreen.init();
-    this.logger = (new LockScreenStateLogger()).start({
-      debug: true,
-      error: true
-    });
+    this.logger = this.setupLogger();
     this.configs = {
       listenEvents: [
         'click',
@@ -166,6 +163,35 @@
     this.setupRules();
     Service.register('onPasscodeEnabledChanged', this);
     return this;
+  };
+
+  /**
+   * We first setup a default logger with default setting,
+   * and then read the mozSettings in background.
+   * Since we don't want to block the state manager initialization
+   * by a logger.
+   *
+   * So if a developer set 'debug.gaia.enabled' is true,
+   * the state logger will start to produce logs. If it's false,
+   * the logger will stop.
+   */
+  LockScreenStateManager.prototype.setupLogger = function() {
+    var logger = (new LockScreenStateLogger())
+      .start({
+        debug: false,
+        error: true
+      });
+
+    var lock = navigator.mozSettings.createLock();
+    lock.get('debug.gaia.enabled').then((result) => {
+      logger.configs.debug = result['debug.gaia.enabled'];
+    }).catch(console.error.bind(console));
+
+    navigator.mozSettings.addObserver('debug.gaia.enabled', (result) => {
+      var { settingValue } = result;
+      logger.configs.debug = settingValue;
+    });
+    return logger;
   };
 
   /**

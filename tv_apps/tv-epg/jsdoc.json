@@ -1,5 +1,5 @@
 {
-  "name": "EPG",
+  "name": "tv-epg",
   "tags": {
     "dictionaries": ["jsdoc"]
   },

@@ -24,8 +24,6 @@ class ContactForm(Base):
     _add_new_address_locator = (By.ID, 'add-new-address')
     _add_new_note_locator = (By.ID, 'add-new-note')
     _add_new_phone_locator = (By.ID, 'add-new-phone')
-    _screen_locator = (By.ID, 'screen')
-    _statusbar_locator = (By.ID, 'statusbar')
 
     _thumbnail_photo_locator = (By.ID, 'thumbnail-photo')
 
@@ -152,14 +150,13 @@ class EditContact(ContactForm):
     def __init__(self, marionette):
         ContactForm.__init__(self, marionette)
         update = Wait(self.marionette).until(expected.element_present(*self._update_locator))
-        Wait(self.marionette).until(lambda m: update.location['y'] == 0)
+        Wait(self.marionette).until(lambda m: update.location['y'] == 0 and update.is_displayed())
 
     def tap_update(self, return_details=True):
         self.wait_for_update_button_enabled()
         update = self.marionette.find_element(*self._update_locator)
         update.tap()
         if return_details:
-            Wait(self.marionette).until(expected.element_not_displayed(update))
             from gaiatest.apps.contacts.regions.contact_details import ContactDetails
             return ContactDetails(self.marionette)
         else:
@@ -174,6 +171,8 @@ class EditContact(ContactForm):
 
     def tap_delete(self):
         delete_item = self.marionette.find_element(*self._delete_locator)
+        self.marionette.execute_script(
+            'arguments[0].scrollIntoView(true);', [delete_item])
         delete_item.tap()
 
     def tap_cancel_delete(self):
@@ -195,7 +194,7 @@ class EditContact(ContactForm):
 
 class NewContact(ContactForm):
 
-    _src = 'app://communications.gaiamobile.org/contacts/views/form/form.html'
+    _src = 'app://communications.gaiamobile.org/contacts/views/form/form.html?action=new'
     _done_button_locator = (By.ID, 'save-button')
 
     def __init__(self, marionette):
@@ -212,14 +211,8 @@ class NewContact(ContactForm):
         Wait(self.marionette).until(lambda m: done.location['y'] == 0)
 
     def tap_done(self, return_contacts=True):
-        # Workaround for bug 1109213, where tapping on the button inside the app itself
-        # makes Marionette spew out NoSuchWindowException errors
         element = self.marionette.find_element(*self._done_button_locator)
-        x = element.rect['x'] + element.rect['width']//2
-        y = element.rect['y'] + element.rect['height']//2
-        self.marionette.switch_to_frame()
-        statusbar = self.marionette.find_element(*self._statusbar_locator)
-        self.marionette.find_element(*self._screen_locator).tap(x, y + statusbar.rect['height'])
+        self.tap_element_from_system_app(element, add_statusbar_height=True)
 
         return self.wait_for_done(return_contacts)
 

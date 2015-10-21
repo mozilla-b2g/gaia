@@ -19,7 +19,8 @@
     "audio-channel-notification":{},
     "webapps-manage":{},
     "device-storage:apps":{ "access": "readonly" },
-    "systemXHR":{}
+    "systemXHR":{},
+    "moz-extremely-unstable-and-will-change-webcomponents":{}
   },
   "activities": {
     "costcontrol/balance": {

@@ -19,6 +19,7 @@
 /* global ExtServices */
 /* global Loader */
 /* global BulkDelete */
+/* global ICE */
 
 var contacts = window.contacts || {};
 
@@ -193,7 +194,7 @@ contacts.Settings = (function() {
       '/contacts/js/utilities/ice_data.js',
       '/contacts/js/views/ice_settings.js',
       '/shared/js/contacts/utilities/ice_store.js'], function(){
-      contacts.ICE.refresh();
+      ICE.refresh();
       navigationHandler.go('ice-settings', 'right-left');
       if (typeof cb === 'function') {
         cb();

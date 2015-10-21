@@ -61,24 +61,6 @@
   position: absolute;
 }
 
-/* Transitions between the maximized / minimized status bars */
-#statusbar:not(.maximized) ~ #windows > .appWindow > .titlebar .titlebar-maximized {
-  opacity: 0;
-}
-
-#statusbar.maximized ~ #windows > .appWindow > .titlebar .titlebar-maximized {
-  opacity: 1;
-}
-
-#statusbar:not(.maximized) ~ #windows > .appWindow > .titlebar .titlebar-minimized {
-  transform: translateY(calc(var(--statusbar-height) * -1));
-  opacity: 1;
-}
-
-#statusbar.maximized ~ #windows > .appWindow > .titlebar .titlebar-minimized {
-  opacity: 0;
-}
-
 [data-manifest-name="FTU"]:not(.bar) > .chrome + .titlebar .titlebar-minimized,
 .lockScreenWindow:not(.bar) > .chrome + .titlebar .titlebar-minimized,
 .attentionWindow:not(.bar) > .chrome + .titlebar .titlebar-minimized {

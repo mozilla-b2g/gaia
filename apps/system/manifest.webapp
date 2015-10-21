@@ -47,7 +47,8 @@
     "downloads": {},
     "systemXHR": {},
     "feature-detection": {},
-    "before-after-keyboard-event": {}
+    "before-after-keyboard-event": {},
+    "moz-extremely-unstable-and-will-change-webcomponents":{}
   },
   "locales": {
     "ar": {

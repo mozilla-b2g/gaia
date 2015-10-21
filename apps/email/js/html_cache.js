@@ -121,6 +121,19 @@ exports.saveFromNode = function saveFromNode(moduleId, node) {
   cl.remove('after');
   cl.add('center');
 
+  // Also make sure all custom element have their "data-cached" attribute set
+  // on them. Depend on the custom element base.js in email to set this class
+  // name. This performs better than a querySelectorAll('*') approach.
+  var nodes = node.querySelectorAll('.email-ce');
+  for (var i = 0; i < nodes.length; i++) {
+    nodes[i].dataset.cached = 'cached';
+  }
+
+  // If the passed-in node should be cached, be sure to mark it as cached.
+  if (node.classList.contains('email-ce')) {
+    node.dataset.cached = 'cached';
+  }
+
   var html = node.outerHTML;
   exports.save(moduleId, html);
 };

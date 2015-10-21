@@ -73,6 +73,10 @@ class System(Base):
         from gaiatest.apps.system.regions.utility_tray import UtilityTray
         return UtilityTray(self.marionette)
 
+    def tap(self, x=None, y=None):
+        self.marionette.switch_to_frame()
+        self.marionette.find_element(*self._screen_locator).tap(x, y)
+
     # As we have trouble disabling the app update toaster these methods
     # may be used to wait for it when we know it may interfere
     @property

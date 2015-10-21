@@ -117,17 +117,14 @@ KeyView.prototype.render = function render() {
   labelNode.dataset.label = this.outputChar;
   vWrapperNode.appendChild(labelNode);
 
-  // If the |altOutputChar| argument is given, that means we need to insert
-  // another DOM element represents the lowercase label so that container
-  // styling can toggle between two.
-  if (this.altOutputChar) {
-    // Create a lowercase label element
-    labelNode = document.createElement('span');
-    labelNode.innerHTML = this.altOutputChar;
-    labelNode.className = 'key-element lowercase';
-    labelNode.dataset.label = this.altOutputChar;
-    vWrapperNode.appendChild(labelNode);
-  }
+  // We are creating two <span class="key-element"> regardless, for styling
+  // reason, but for the lowercase one the label is set with altOutputChar,
+  // if exists.
+  labelNode = document.createElement('span');
+  labelNode.innerHTML = this.altOutputChar || this.outputChar;
+  labelNode.className = 'key-element lowercase';
+  labelNode.dataset.label = this.altOutputChar || this.outputChar;
+  vWrapperNode.appendChild(labelNode);
 
   // Add uppercase and lowercase pop-up for highlighted key
   labelNode = document.createElement('span');

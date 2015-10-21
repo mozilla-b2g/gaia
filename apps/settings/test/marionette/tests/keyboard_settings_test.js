@@ -21,6 +21,11 @@ marionette('manipulate keyboard settings', function() {
     keyboardPanel.tapBuiltInKeyboardItem();
 
     keyboardApp.switchToSettings();
+
+    // Uncheck the vibration menu item and ensure mozSetting is set.
+    keyboardApp.clickVibrationOption();
+    assert.equal(keyboardApp.vibrationFromMozSettings, false);
+
     keyboardApp.goBackToSettingsApp();
 
     // switch back to settings frame and verify

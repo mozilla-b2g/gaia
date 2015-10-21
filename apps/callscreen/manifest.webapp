@@ -23,7 +23,8 @@
     "audio-channel-system":{},
     "idle":{},
     "device-storage:sdcard": { "access": "readonly" },
-    "phonenumberservice": {}
+    "phonenumberservice": {},
+    "moz-extremely-unstable-and-will-change-webcomponents":{}
   },
   "messages": [
     { "bluetooth-dialer-command": "/index.html" },

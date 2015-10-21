@@ -1,4 +1,5 @@
-/* global threads, View */
+/* global bridge, View */
+'use strict';
 
 var debug = 1 ? (...args) => console.log('[SongsView]', ...args) : () => {};
 
@@ -38,13 +39,13 @@ var SongsView = View.extend(function SongsView() {
   this.list.addEventListener('click', (evt) => {
     var link = evt.target.closest('a[data-file-path]');
     if (link) {
-      this.play(link.dataset.filePath);
+      this.queueSong(link.dataset.filePath);
     }
   });
 
   View.preserveListScrollPosition(this.list);
 
-  this.client = threads.client('music-service', window.parent);
+  this.client = bridge.client({ service: 'music-service', endpoint: window.parent });
   this.client.on('databaseChange', () => this.update());
 
   this.update();
@@ -57,9 +58,11 @@ SongsView.prototype.update = function() {
   });
 };
 
-// SongsView.prototype.destroy = function() {
-//   View.prototype.destroy.call(this); // super(); // Always call *last*
-// };
+SongsView.prototype.destroy = function() {
+  this.client.destroy();
+
+  View.prototype.destroy.call(this); // super(); // Always call *last*
+};
 
 SongsView.prototype.title = 'Songs';
 
@@ -71,7 +74,7 @@ SongsView.prototype.render = function() {
 
 SongsView.prototype.getSongs = function() {
   console.time('getSongs');
-  return fetch('/api/songs')
+  return fetch('/api/songs/list')
     .then(response => response.json())
     .then(songs => {
       console.timeEnd('getSongs');
@@ -80,8 +83,8 @@ SongsView.prototype.getSongs = function() {
     });
 };
 
-SongsView.prototype.play = function(filePath) {
-  fetch('/api/audio/play' + filePath);
+SongsView.prototype.queueSong = function(filePath) {
+  fetch('/api/queue/song' + filePath);
 };
 
 SongsView.prototype.setCache = function(items) {

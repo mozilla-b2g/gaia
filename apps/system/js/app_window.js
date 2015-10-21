@@ -223,6 +223,16 @@
     this.getTopMostWindow()._setActive(enable);
   };
 
+  AppWindow.prototype.inScope = function(scope) {
+    if (!this.isBrowser()) {
+      return false;
+    }
+
+    var url = new URL(this.config.url);
+    var path = url.hostname + url.pathname;
+    return path.indexOf(scope) === 0;
+  };
+
   /**
    * In order to prevent flashing of unpainted frame
    * during switching from one to another,
@@ -1388,6 +1398,12 @@
       // will be null if there is no blob
       var screenshotURL = this.requestScreenshotURL();
 
+      if (!screenshotURL) {
+        this.element.classList.add('no-screenshot');
+        this.screenshotOverlay.style.backgroundImage = 'none';
+        return Promise.resolve();
+      }
+
       //  return promise to make sure the image is ready
       var promise = new Promise((resolve) => {
          var image = document.createElement('img');
@@ -1396,9 +1412,9 @@
           }.bind(this);
           image.src = screenshotURL;
       });
-      this.screenshotOverlay.style.backgroundImage = screenshotURL ?
-          'url(' + screenshotURL + ')' : 'none';
-      this.element.classList.toggle('no-screenshot', !screenshotURL);
+      this.screenshotOverlay.style.backgroundImage =
+        'url(' + screenshotURL + ')';
+      this.element.classList.remove('no-screenshot');
       return promise;
     };
 
@@ -1679,7 +1695,7 @@
     this.debug('request RESIZE...active? ', this.isActive());
     var bottom = this.getBottomMostWindow();
     if (!bottom.shouldResize() || this.isTransitioning()) {
-      return;
+      return Promise.resolve();
     }
     if (this.frontWindow) {
       return Promise.all(
@@ -1974,9 +1990,6 @@
   AppWindow.prototype.ready = function aw_ready(callback) {
     if (!this.element) {
       return;
-    }
-    if (this._screenshotBlob) {
-      this._showScreenshotOverlay();
     }
 
     this.debug('requesting to open');

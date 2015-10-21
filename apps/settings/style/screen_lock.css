@@ -47,10 +47,6 @@
   display: none;
 }
 
-.passcode-change div.passcode-overlay {
-  position: relative;
-}
-
 #screenLock-passcode label {
   -moz-box-sizing: border-box;
   display: block;

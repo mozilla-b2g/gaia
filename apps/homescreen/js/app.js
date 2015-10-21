@@ -51,6 +51,14 @@ const HIDDEN_ROLES = [
 ];
 
 /**
+ * Strings that are matched against to black-list app origins.
+ * TODO: This should not be hard-coded.
+ */
+const BLACKLIST = [
+  'app://privacy-panel.gaiamobile.org'
+];
+
+/**
  * Stored settings version, for use when changing/refactoring settings storage.
  */
 const SETTINGS_VERSION = 0;
@@ -59,6 +67,7 @@ const SETTINGS_VERSION = 0;
 
   function App() {
     // Element references
+    this.meta = document.head.querySelector('meta[name="theme-color"]');
     this.shadow = document.getElementById('shadow');
     this.scrollable = document.getElementById('scrollable');
     this.icons = document.getElementById('apps');
@@ -73,6 +82,23 @@ const SETTINGS_VERSION = 0;
     this.cancelDownload.style.display = 'none';
     this.resumeDownload.style.display = 'none';
     this.settingsDialog.style.display = 'none';
+
+    // Change the colour of the statusbar when showing dialogs
+    var dialogVisibilityCallback = () => {
+      if (this.cancelDownload.style.display !== 'none' ||
+          this.resumeDownload.style.display !== 'none' ||
+          this.settingsDialog.style.display !== 'none') {
+        this.meta.content = 'white';
+      } else {
+        this.meta.content = 'transparent';
+      }
+    };
+    for (var dialog of
+         [this.cancelDownload, this.resumeDownload, this.settingsDialog]) {
+      var observer = new MutationObserver(dialogVisibilityCallback);
+      observer.observe(dialog,
+        { attributes: true, attributeFilter: ['style'] });
+    }
 
     // Scroll behaviour
     this.scrolled = false;
@@ -108,9 +134,10 @@ const SETTINGS_VERSION = 0;
     // Restore settings
     this.restoreSettings();
 
-    // Populate apps
+    // Populate apps callback
     var populateApps = () => {
       Promise.all([
+        // Populate apps
         new Promise((resolve, reject) => {
           var request = navigator.mozApps.mgmt.getAll();
           request.onsuccess = (e) => {
@@ -124,53 +151,8 @@ const SETTINGS_VERSION = 0;
             resolve();
           };
         }),
-        new Promise((resolve, reject) => {
-          this.bookmarks.getAll().then((bookmarks) => {
-            for (var bookmark of bookmarks) {
-              this.addAppIcon(bookmark.data);
-            }
-            resolve();
-          }, (error) => {
-            console.error('Error getting bookmarks', error);
-            resolve();
-          });
-        })
-      ]).then(() => {
-        for (var data of this.startupMetadata) {
-          console.log('Removing unknown app metadata entry', data.id);
-          this.metadata.remove(data.id).then(
-            () => {},
-            (e) => {
-              console.error('Error removing unknown app metadata entry', e);
-            });
-        }
-        this.startupMetadata = [];
-        this.storeAppOrder();
-      });
-    };
 
-    this.startupMetadata = [];
-    this.iconsToRetry = [];
-    this.metadata = new HomeMetadata();
-    this.bookmarks = new Datastore('bookmarks_store');
-    Promise.all([
-      new Promise((resolve, reject) => {
-        this.metadata.init().then(() => {
-          this.metadata.get().then((results) => {
-            this.startupMetadata = results;
-            resolve();
-          },
-          (e) => {
-            console.error('Failed to retrieve metadata entries', e);
-            resolve();
-          });
-        },
-        (e) => {
-          console.error('Failed to initialise metadata db', e);
-          resolve();
-        });
-      }),
-      new Promise((resolve, reject) => {
+        // Initialise and populate bookmarks
         this.bookmarks.init().then(() => {
           document.addEventListener('bookmarks_store-set', (e) => {
             var id = e.detail.id;
@@ -212,15 +194,56 @@ const SETTINGS_VERSION = 0;
             }
             this.storeAppOrder();
           });
-
-          this.bookmarks.synchronise();
-          resolve();
         }, (e) => {
           console.error('Error initialising bookmarks', e);
+        }).then(() => {
+          return this.bookmarks.getAll().then((bookmarks) => {
+            for (var bookmark of bookmarks) {
+              this.addAppIcon(bookmark.data);
+            }
+          }, (e) => {
+            console.error('Error getting bookmarks', e);
+          });
+        })
+      ]).then(() => {
+        for (var data of this.startupMetadata) {
+          console.log('Removing unknown app metadata entry', data.id);
+          this.metadata.remove(data.id).then(
+            () => {},
+            (e) => {
+              console.error('Error removing unknown app metadata entry', e);
+            });
+        }
+        this.startupMetadata = [];
+        this.storeAppOrder();
+      });
+    };
+
+    this.startupMetadata = [];
+    this.iconsToRetry = [];
+    this.metadata = new HomeMetadata();
+    this.bookmarks = new Datastore('bookmarks_store');
+
+    // Load metadata, then populate apps. If metadata loading fails,
+    // populate apps anyway - it means they'll be in the default order
+    // and their order won't save, but it's better than showing a blank
+    // screen.
+    new Promise((resolve, reject) => {
+      this.metadata.init().then(() => {
+        this.metadata.getAll().then((results) => {
+          this.startupMetadata = results;
+          resolve();
+        },
+        (e) => {
+          console.error('Failed to retrieve metadata entries', e);
           resolve();
         });
-      })
-    ]).then(populateApps);
+      },
+      (e) => {
+        console.error('Failed to initialise metadata db', e);
+        resolve();
+      });
+    }).then(populateApps);
   }
 
   App.prototype = {
@@ -253,8 +276,8 @@ const SETTINGS_VERSION = 0;
         return;
       }
 
-      if (manifest.role && HIDDEN_ROLES.indexOf(manifest.role) !== -1) {
-        //console.log('Skipping app with role \'' + manifest.role + '\'', app);
+      // Do not add blacklisted apps
+      if (BLACKLIST.indexOf(app.origin) !== -1) {
         return;
       }
 
@@ -318,6 +341,22 @@ const SETTINGS_VERSION = 0;
 
       if (appOrBookmark.manifestURL) {
         icon.app = appOrBookmark;
+
+        // Hide/show the icon if the role changes to/from a hidden role
+        var handleRoleChange = function(app, container) {
+          var manifest = app.manifest || app.updateManifest;
+          var hidden = (manifest && manifest.role &&
+            HIDDEN_ROLES.indexOf(manifest.role) !== -1);
+          container.style.display = hidden ? 'none' : '';
+        };
+
+        icon.app.addEventListener('downloadapplied',
+          function(app, container) {
+            handleRoleChange(app, container);
+            this.icons.synchronise();
+          }.bind(this, icon.app, container));
+
+        handleRoleChange(icon.app, container);
       } else {
         icon.bookmark = appOrBookmark;
       }
@@ -345,6 +384,13 @@ const SETTINGS_VERSION = 0;
             });
         });
       }.bind(this, icon, id));
+
+      // Override default launch behaviour
+      icon.addEventListener('activated', function(e) {
+        e.preventDefault();
+        this.handleEvent({ type: 'activate',
+                           detail: { target: e.target.parentNode } });
+      });
 
       // Refresh icon data (sets title and refreshes icon)
       icon.refresh();
@@ -384,19 +430,35 @@ const SETTINGS_VERSION = 0;
 
     snapScrollPosition: function(bias) {
       var children = this.icons.children;
-      if (children.length < 1) {
+
+      var visibleChildren = 0;
+      var firstVisibleChild = -1;
+      for (var i = 0, iLen = children.length; i < iLen; i++) {
+        if (children[i].style.display !== 'none') {
+          visibleChildren ++;
+          if (firstVisibleChild === -1) {
+            firstVisibleChild = i;
+          }
+        }
+      }
+
+      if (visibleChildren < 1) {
         return;
       }
 
-      var iconHeight = Math.round(children[0].getBoundingClientRect().height);
+      var iconHeight = Math.round(children[firstVisibleChild].
+        getBoundingClientRect().height);
       var scrollHeight = this.scrollable.clientHeight;
       var pageHeight = Math.floor(scrollHeight / iconHeight) * iconHeight;
       var gridHeight = (Math.ceil((iconHeight *
-        Math.ceil(children.length / (this.small ? 4 : 3))) / pageHeight) *
+        Math.ceil(visibleChildren / (this.small ? 4 : 3))) / pageHeight) *
         pageHeight) + (scrollHeight - pageHeight);
 
       // Reset scroll-snap points
       this.scrollable.style.scrollSnapPointsY = 'repeat(' + pageHeight + 'px)';
+
+      // Set page border background
+      this.icons.style.backgroundSize = '100% ' + (pageHeight * 2) + 'px';
 
       // Make sure the grid is a multiple of the page size. Done in a timeout
       // in case the grid shrinks
@@ -420,10 +482,15 @@ const SETTINGS_VERSION = 0;
         return;
       }
 
+      function executeCallback(dialog, callback) {
+        callback();
+        dialog.close();
+      }
+
       var actions = dialog.getElementsByClassName('action');
       for (var i = 0, iLen = Math.min(actions.length, callbacks.length);
            i < iLen; i++) {
-        actions[i].onclick = callbacks[i];
+        actions[i].onclick = executeCallback.bind(this, dialog, callbacks[i]);
       }
       if (args) {
         dialog.querySelector('.body').setAttribute('data-l10n-args', args);
@@ -448,7 +515,6 @@ const SETTINGS_VERSION = 0;
                    section: 'homescreen'
                  }
                });
-               this.settingsDialog.close();
              }]);
           e.stopImmediatePropagation();
           e.preventDefault();
@@ -479,7 +545,6 @@ const SETTINGS_VERSION = 0;
               JSON.stringify({ name: icon.name }),
               [() => {
                  icon.app.cancelDownload();
-                 this.cancelDownload.close();
                }]);
             break;
 
@@ -489,7 +554,6 @@ const SETTINGS_VERSION = 0;
               JSON.stringify({ name: icon.name }),
               [() => {
                  icon.app.download();
-                 this.resumeDownload.close();
                }]);
             break;
 
@@ -520,6 +584,10 @@ const SETTINGS_VERSION = 0;
         this.bottombar.classList.remove('active');
         this.edit.classList.remove('active');
         this.uninstall.classList.remove('active');
+        if (this.autoScrollTimeout !== null) {
+          clearTimeout(this.autoScrollTimeout);
+          this.autoScrollTimeout = null;
+        }
         break;
 
       // Handle app uninstallation
@@ -534,6 +602,7 @@ const SETTINGS_VERSION = 0;
             var y = e.detail.clientY + this.scrollable.scrollTop;
             if (x < rect.left || y < rect.top ||
                 x >= rect.right || y >= rect.bottom) {
+              e.preventDefault();
               this.icons.reorderChild(e.detail.target, null,
                                       this.storeAppOrder.bind(this));
             }
@@ -547,6 +616,7 @@ const SETTINGS_VERSION = 0;
           e.preventDefault();
           navigator.mozApps.mgmt.uninstall(icon.app);
         } else if (icon.bookmark) {
+          e.preventDefault();
           if (e.detail.clientX >= window.innerWidth / 2) {
             new MozActivity({
               name: 'save-bookmark',
@@ -741,6 +811,6 @@ const SETTINGS_VERSION = 0;
     }
   };
 
-  exports.app = new App();
+  exports.App = App;
 
 }(window));

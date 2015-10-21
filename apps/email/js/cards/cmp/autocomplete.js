@@ -112,12 +112,6 @@ return [
   require('../base')(),
   {
     createdCallback: function() {
-      //TODO: master hack only. In email-model-instance branch, this is not
-      //needed. In the branch, there is a separate 'base' that elements can
-      //mix in that is not assumed to be a card. For now, this is an equivalent
-      //result.
-      this.classList.remove('card');
-
       this.lastTranslateY = 0;
       this.inputAreaTranslated = Promise.resolve();
 

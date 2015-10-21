@@ -4,6 +4,15 @@
 (function(exports) {
   'use strict';
 
+  /**
+   * DeviceDeck is the controller class of device-deck.
+   *
+   * @class DeviceDeck
+   * @requires  BluetoothManager
+   * @requires  KeyNavigationAdapter
+   * @requires  SpatialNavigator
+   * @requires  {@link http://bit.ly/1Ld0WYX|SmartButton}
+   */
   var DeviceDeck = function() {
   };
 
@@ -22,6 +31,18 @@
 
     _bluetoothManager: undefined,
 
+    /**
+     * Initialize DeviceDeck. It means:
+     * 1. initialize BlutoothManager and start discovery immediately
+     * 2. initialize KeyNavigationAdapter
+     * 3. Find all navigable elements and initialize SpatialNavigator
+     *
+     * And when it receives `device-found` event from BluetoothManager, it will
+     * create {@link http://bit.ly/1Ld0WYX|SmartButton} for the device.
+     *
+     * @public
+     * @method  DeviceDeck#init
+     */
     init: function() {
       this._bluetoothManager = new BluetoothManager();
       this._bluetoothManager.init();
@@ -46,6 +67,13 @@
       this._spatialNavigator.focus();
     },
 
+    /**
+     * refresh list of devices in div#connected-devices-list and
+     * div#newly-found-devices-list
+     *
+     * @public
+     * @method DeviceDeck#refreshDevices
+     */
     refreshDevices: function() {
       var that = this;
       this._bluetoothManager.safelyStopDiscovery().then(function() {
@@ -60,6 +88,16 @@
       });
     },
 
+    /**
+     * Create {@link http://bit.ly/1Ld0WYX|SmartButton} for each device found
+     * and append it to div#connected-devices-list or
+     * div#newly-found-devices-list
+     *
+     * @public
+     * @method DeviceDeck#onBluetoothDeviceFound
+     * @param {BluetoothDevice} device - see
+     *                             {@link http://mzl.la/1UQllr3|BluetoothDevice}
+     */
     onBluetoothDeviceFound: function(device) {
       var name = device.name || device.address;
       var paired = device.paired;

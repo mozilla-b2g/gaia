@@ -789,8 +789,6 @@ suite('system/AppWindowManager', function() {
     });
 
     test('app to app', function() {
-      var stub_updateActiveApp = this.sinon.stub(subject,
-        '_updateActiveApp');
       injectRunningApps(app1, app2);
       subject._activeApp = app1;
       var stubSwitchApp = this.sinon.stub(subject, 'switchApp');
@@ -802,7 +800,6 @@ suite('system/AppWindowManager', function() {
       assert.isTrue(stubSwitchApp.called);
       assert.deepEqual(stubSwitchApp.getCall(0).args[0], app1);
       assert.deepEqual(stubSwitchApp.getCall(0).args[1], app2);
-      assert.isTrue(stub_updateActiveApp.called);
     });
 
     test('Continunous app open requests', function() {
@@ -927,12 +924,15 @@ suite('system/AppWindowManager', function() {
       var stubReady = this.sinon.stub(app2, 'ready');
       var stubAppNextOpen = this.sinon.stub(app2, 'open');
       var stubAppCurrentClose = this.sinon.stub(app1, 'close');
+      var stub_updateActiveApp = this.sinon.stub(subject,
+        '_updateActiveApp');
       subject.switchApp(app1, app2, true);
       stubReady.yield();
       assert.isTrue(stubAppNextOpen.called);
       assert.isTrue(stubAppCurrentClose.called);
       assert.isTrue(stubAppNextOpen.calledWith('invoked'));
       assert.isTrue(stubAppCurrentClose.calledWith('invoking'));
+      assert.isTrue(stub_updateActiveApp.called);
     });
 
     test('close app to cardsview', function() {
@@ -1226,6 +1226,77 @@ suite('system/AppWindowManager', function() {
         this.sinon.stub(subject.taskManager, 'isActive').returns(true);
         assert.isFalse(subject.isActive());
       });
+    });
+  });
+
+  suite('getAppInScope', function() {
+
+    test('Returns null if no apps in scope', function() {
+      subject._apps = [{
+        inScope: this.sinon.stub().returns(false)
+      }];
+      var app = subject.getAppInScope();
+      assert.isFalse(!!(app));
+    });
+
+    test('Returns the last launched app in scope', function() {
+      var lastApp = {
+        inScope: this.sinon.stub().returns(true),
+        launchTime: 9999
+      };
+      var noLastApp = {
+        inScope: this.sinon.stub().returns(true),
+        launchTime: 1
+      };
+      subject._apps = [{
+        inScope: this.sinon.stub().returns(false)
+      }, lastApp, noLastApp];
+      var app = subject.getAppInScope();
+      assert.equal(app, lastApp);
+    });
+  });
+
+  suite('getUnpinnedWindows', function() {
+    setup(function() {
+    });
+
+    test('Returns an empty array if no browser windows', function() {
+      subject._apps = [{
+        isBrowser: this.sinon.stub().returns(false)
+      }];
+      var apps = subject.getUnpinnedWindows();
+      assert.equal(apps.length, 0);
+    });
+
+    test('Returns an empty array if no unpinned windows', function() {
+      subject._apps = [{
+        isBrowser: this.sinon.stub().returns(true),
+        appChrome: {
+          pinned: true
+        }
+      }];
+      var apps = subject.getUnpinnedWindows();
+      assert.equal(apps.length, 0);
+    });
+
+    test('Returns an array with unpinned windows', function() {
+      var unpinned = {
+        isBrowser: this.sinon.stub().returns(true),
+        appChrome: {
+          pinned: false
+        }
+      };
+
+      var pinned = {
+        isBrowser: this.sinon.stub().returns(true),
+        appChrome: {
+          pinned: true
+        }
+      };
+      subject._apps = [unpinned, pinned];
+      var apps = subject.getUnpinnedWindows();
+      assert.equal(apps.length, 1);
+      assert.equal(apps[0], unpinned);
     });
   });
 

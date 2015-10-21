@@ -20,7 +20,9 @@ class TestSettingsWifi(GaiaTestCase):
         settings.launch()
         wifi_settings = settings.open_wifi()
 
+        self.assertFalse(wifi_settings.is_wifi_enabled, "WiFi should be disabled")
         wifi_settings.enable_wifi()
+        self.assertTrue(wifi_settings.is_wifi_enabled, "WiFi should be enabled")
         wifi_settings.connect_to_network(self.testvars['wifi'])
 
         # verify that wifi is now on

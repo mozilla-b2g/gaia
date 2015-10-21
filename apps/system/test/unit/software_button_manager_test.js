@@ -273,6 +273,34 @@ suite('enable/disable software home button', function() {
         mSettings['software-button.enabled'], false);
   });
 
+  suite('resizeAndDispatchEvent', function() {
+    var disabled = 'software-button-disabled';
+    var enabled = 'software-button-enabled';
+
+    test('removes the class an raises a disbled event', function(done) {
+      window.addEventListener(disabled, function assertIt() {
+        window.removeEventListener(disabled, assertIt);
+        done();
+      });
+      subject.enabled = false;
+      assert.isFalse(subject.element.classList.contains('visible'));
+      assert.isTrue(subject.screenElement.classList.contains(disabled));
+      assert.isFalse(subject.screenElement.classList.contains(enabled));
+    });
+
+    test('adds the class an raises a enabled event', function(done) {
+      window.addEventListener(enabled, function assertIt() {
+        window.removeEventListener(enabled, assertIt);
+        done();
+      });
+      subject.enabled = true;
+      subject.resizeAndDispatchEvent();
+      assert.isTrue(subject.element.classList.contains('visible'));
+      assert.isFalse(subject.screenElement.classList.contains(disabled));
+      assert.isTrue(subject.screenElement.classList.contains(enabled));
+    });
+  });
+
   suite('Fullscreen layout support', function() {
     var realFullScreen;
     var realFullScreenElem;

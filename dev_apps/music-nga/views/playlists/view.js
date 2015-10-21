@@ -1,4 +1,5 @@
-/* global threads, View */
+/* global bridge, View */
+'use strict';
 
 var debug = 1 ? (...args) => console.log('[PlaylistsView]', ...args) : () => {};
 
@@ -20,8 +21,9 @@ var PlaylistsView = View.extend(function PlaylistsView() {
 
   View.preserveListScrollPosition(this.list);
 
-  this.client = threads.client('music-service', window.parent);
+  this.client = bridge.client({ service: 'music-service', endpoint: window.parent });
   this.client.on('databaseChange', () => this.update());
+
   this.update();
 });
 
@@ -32,9 +34,11 @@ PlaylistsView.prototype.update = function() {
   });
 };
 
-// PlaylistsView.prototype.destroy = function() {
-//   View.prototype.destroy.call(this); // super(); // Always call *last*
-// };
+PlaylistsView.prototype.destroy = function() {
+  this.client.destroy();
+
+  View.prototype.destroy.call(this); // super(); // Always call *last*
+};
 
 PlaylistsView.prototype.title = 'Playlists';
 

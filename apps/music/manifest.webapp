@@ -14,7 +14,8 @@
     "settings":{ "access": "readonly" },
     "bluetooth":{},
     "audio-channel-content":{},
-    "nfc-share":{}
+    "nfc-share":{},
+    "moz-extremely-unstable-and-will-change-webcomponents":{}
   },
   "activities": {
     "pick": {

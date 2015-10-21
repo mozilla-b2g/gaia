@@ -1,3 +1,6 @@
+/* global SERVICE_WORKERS, bridge */
+'use strict';
+
 function perfMark(marker) {
   window.performance.mark(marker);
   perfMark[marker] = Date.now();
@@ -19,33 +22,20 @@ perfMark.log = () => Object.keys(perfMark).forEach((marker) => {
 // exists in the DOM and is marked as ready to be displayed.
 perfMark('navigationLoaded');
 
-navigator.serviceWorker.getRegistration().then((registration) => {
-  if (registration && registration.active) {
-    console.log('ServiceWorker already registered');
-    boot();
-    return;
-  }
-
-  navigator.serviceWorker.register('/sw.js', { scope: '/' })
-    .then(() => {
-      console.log('ServiceWorker registered successfully');
-      window.location.reload();
-    })
-    .catch((error) => {
-      console.error('ServiceWorker registration failed', error);
-    });
-});
-
 var $id = document.getElementById.bind(document);
 
 var views = {};
 var isPlaying = false;
 
-var service = threads.service('*')
+var service = bridge.service('*')
   .on('message', message => message.forward($id('endpoint')))
   .listen();
 
-var client = threads.client('music-service', $id('endpoint'));
+var client = bridge.client({
+  service: 'music-service',
+  endpoint: $id('endpoint'),
+  timeout: false
+});
 client.connect();
 
 client.connected.then(() => {
@@ -91,6 +81,29 @@ tabBar.addEventListener('change', (evt) => {
   navigateToURL(url, true);
 });
 
+if (SERVICE_WORKERS) {
+  navigator.serviceWorker.getRegistration().then((registration) => {
+    if (registration && registration.active) {
+      console.log('ServiceWorker already registered');
+      boot();
+      return;
+    }
+
+    navigator.serviceWorker.register('/sw.js', { scope: '/' })
+      .then(() => {
+        console.log('ServiceWorker registered successfully');
+        window.location.reload();
+      })
+      .catch((error) => {
+        console.error('ServiceWorker registration failed', error);
+      });
+  });
+}
+
+else {
+  boot();
+}
+
 function setHeaderTitle(title) {
   if (viewStack.activeState) {
     viewStack.activeState.params.title = title;
@@ -135,6 +148,10 @@ function navigateToURL(url, replaceRoot) {
 
   else {
     viewStack.pushView(view, params);
+  }
+
+  if (!SERVICE_WORKERS) {
+    url = '#' + url;
   }
 
   window.history.pushState(null, null, url);
@@ -188,7 +205,10 @@ function onVisuallyLoaded() {
 }
 
 function boot() {
-  var url = window.location.href.substring(window.location.origin.length);
+  var url = SERVICE_WORKERS ?
+    window.location.href.substring(window.location.origin.length) :
+    window.location.hash.substring(1) || '/'
+
   if (url === '/' || url === '/index.html') {
     url = '/' + tabBar.firstElementChild.dataset.viewId;
   }

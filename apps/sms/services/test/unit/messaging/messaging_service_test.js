@@ -1,4 +1,5 @@
 /*global bridge,
+         BroadcastChannel,
          MessagingService,
          MocksHelper,
          MockMessages,
@@ -51,7 +52,11 @@ suite('Messaging service >', function() {
   suite('init', function() {
     test('service mixing and client are initialized', function() {
       sinon.assert.calledWith(bridge.service, 'messaging-service');
-      sinon.assert.calledWith(bridge.client, 'mozMobileMessageShim');
+      sinon.assert.calledWith(bridge.client, {
+        service: 'moz-mobile-message-shim',
+        endpoint: sinon.match.instanceOf(BroadcastChannel),
+        timeout: false
+      });
     });
   });
 

@@ -8,8 +8,8 @@
 'use strict';
 
 require('/shared/js/event_dispatcher.js');
-require('/services/js/drafts.js');
 require('/views/shared/js/utils.js');
+require('/services/js/drafts.js');
 
 require('/shared/test/unit/mocks/mock_async_storage.js');
 require('/views/shared/test/unit/mock_inter_instance_event_dispatcher.js');
@@ -383,6 +383,24 @@ suite('Drafts', function() {
 
       // All drafts were examined
       assert.equal(orderedDrafts.length, 0);
+    });
+  });
+
+  suite('getAllThreadless()>', function() {
+    setup(function() {
+      [
+        threadDraft1,
+        draft1,
+        draft2
+      ].forEach(Drafts.add, Drafts);
+    });
+
+    teardown(function() {
+      Drafts.clear();
+    });
+
+    test('getAllThreadless returns only thread less drafts', function() {
+      assert.deepEqual(Drafts.getAllThreadless(), [draft1, draft2]);
     });
   });
 

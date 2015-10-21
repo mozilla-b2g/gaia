@@ -44,7 +44,6 @@
     this.scrollable = app.browserContainer;
     this._currentOrigin = app.origin || '';
     this._currentIconUrl = '';
-    this.pinned = false;
     this.render();
 
     if (this.app.themeColor && this.app.themeColor !== '') {
@@ -72,6 +71,8 @@
     if (!chrome) {
       return;
     }
+
+    this.pinned = chrome.pinned || false;
 
     if (this.isSearchApp()) {
       this._fixedTitle = true;
@@ -777,6 +778,8 @@
 
       // Check if this is just a location-change to an anchor tag.
       var anchorChange = false;
+      var firstLocationChange = !this._currentURL;
+
       if (this._currentURL && this.app.config.url) {
         anchorChange =
           this._currentURL.replace(/#.*/g, '') ===
@@ -830,7 +833,7 @@
           this.expand();
         }
         this.scrollable.scrollTop = 0;
-        this.pinned = false;
+        this.pinned = firstLocationChange ? this.pinned : false;
         this.app.element.classList.add('collapsible');
       }
 

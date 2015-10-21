@@ -25,6 +25,8 @@ navigator.mozL10n.DateTimeFormat = function(locales, options) {
   var _ = navigator.mozL10n.get;
 
   // https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Date/toLocaleFormat
+  //
+  // Deprecated. Please, use Intl API instead
   function localeFormat(d, format) {
     var tokens = format.match(/(%E.|%O.|%.)/g);
 
@@ -120,6 +122,9 @@ navigator.mozL10n.DateTimeFormat = function(locales, options) {
   /**
    * Returns a translated string which respresents the
    * relative time before or after a date.
+   *
+   * Deprecated: Please, use relativeDate for now
+   *
    * @param {String|Date} time before/after the currentDate.
    * @param {String} useCompactFormat whether to use a compact display format.
    * @param {Number} maxDiff returns a formatted date if the diff is greater.
@@ -161,10 +166,58 @@ navigator.mozL10n.DateTimeFormat = function(locales, options) {
     }
   }
 
+  /**
+   * Async clone of prettyDate.
+   * Temporary solution while we're waiting for Intl extension to support
+   * relative dates.
+   */
+  function relativeDate(time, useCompactFormat, maxDiff) {
+    maxDiff = maxDiff || 86400 * 10; // default = 10 days
+
+    switch (time.constructor) {
+      case String: // timestamp
+        time = parseInt(time);
+        break;
+      case Date:
+        time = time.getTime();
+        break;
+    }
+
+    var secDiff = (Date.now() - time) / 1000;
+    if (isNaN(secDiff)) {
+      return navigator.mozL10n.formatValue('incorrectDate');
+    }
+
+    if (Math.abs(secDiff) > 60) {
+      // round milliseconds up if difference is over 1 minute so the result is
+      // closer to what the user would expect (1h59m59s300ms diff should return
+      // "in 2 hours" instead of "in an hour")
+      secDiff = secDiff > 0 ? Math.ceil(secDiff) : Math.floor(secDiff);
+    }
+
+    if (secDiff > maxDiff) {
+      var dateString = new Date(time).toLocaleString(navigator.languages, {
+        year: 'numeric',
+        month: 'numeric',
+        day: 'numeric'
+      });
+      return Promise.resolve(dateString);
+    }
+
+    var f = useCompactFormat ? '-short' : '-long';
+    var parts = relativeParts(secDiff);
+
+    var affix = secDiff >= 0 ? '-ago' : '-until';
+    for (var i in parts) {
+      return navigator.mozL10n.formatValue(i + affix + f, { value: parts[i]});
+    }
+  }
+
   // API
   return {
     localeFormat: localeFormat,
     fromNow: prettyDate,
+    relativeDate: relativeDate,
     relativeParts: relativeParts
   };
 };

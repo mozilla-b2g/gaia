@@ -20,7 +20,8 @@
     "downloads":{},
     "device-storage:sdcard":{ "access": "readcreate" },
     "systemXHR":{},
-    "tcp-socket":{}
+    "tcp-socket":{},
+    "moz-extremely-unstable-and-will-change-webcomponents":{}
   },
   "locales": {
     "ar": {

@@ -26,7 +26,7 @@ class ContactDetails(Base):
     def __init__(self, marionette):
         Base.__init__(self, marionette)
         el = self.marionette.find_element(*self._details_header_locator)
-        Wait(self.marionette).until(lambda m: el.location['x'] == 0)
+        Wait(self.marionette).until(lambda m: el.location['x'] == 0 and el.is_displayed())
 
     @property
     def full_name(self):
@@ -82,7 +82,6 @@ class ContactDetails(Base):
             *self._edit_contact_button_locator))
         Wait(self.marionette).until(expected.element_displayed(edit))
         edit.tap()
-        Wait(self.marionette).until(expected.element_not_displayed(edit))
         from gaiatest.apps.contacts.regions.contact_form import EditContact
         return EditContact(self.marionette)
 

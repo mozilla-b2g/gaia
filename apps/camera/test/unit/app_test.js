@@ -81,7 +81,7 @@ suite('app', function() {
         battery: sinon.spy(),
         overlay: sinon.spy(),
         hud: sinon.spy(),
-        timer: sinon.spy(),
+        countdown: sinon.spy(),
         controls: sinon.spy(),
         viewfinder: sinon.spy(),
         camera: sinon.spy(),

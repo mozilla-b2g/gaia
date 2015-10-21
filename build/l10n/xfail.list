@@ -68,10 +68,6 @@ apps/email/js/model_init.js
 apps/email/js/sync.js
 apps/email/js/toaster.js
 apps/fl/js/utils.js
-apps/ftu/js/external_links.js
-apps/ftu/js/import_services.js
-apps/ftu/js/language.js
-apps/ftu/js/ui.js
 apps/homescreen/test/marionette/lib/homescreen.js
 apps/keyboard/js/settings/layout_item_view.js
 apps/music/js/open.js
@@ -138,10 +134,6 @@ apps/verticalhome/test/marionette/lib/verticalhome.js
 apps/video/js/thumbnail_date_group.js
 apps/video/js/video.js
 apps/video/js/view.js
-apps/wappush/js/cp_screen_helper.js
-apps/wappush/js/si_sl_screen_helper.js
-apps/wappush/js/utils.js
-apps/wappush/js/wappush.js
 dev_apps/feedback/js/feedback.js
 dev_apps/geoloc/js/geoloc.js
 shared/elements/gaia_grid/js/items/collection.js
@@ -156,7 +148,6 @@ shared/js/media/media_utils.js
 shared/js/media/video_player.js
 shared/js/stk_helper.js
 shared/js/tz_select.js
-shared/pages/import/js/curtain.js
 shared/pages/import/js/curtain_panel.js
 tv_apps/smart-home/js/edit.js
 tv_apps/smart-home/js/home.js

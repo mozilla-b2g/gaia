@@ -180,12 +180,14 @@ if (!utils.misc) {
   };
 
   utils.misc.setTimestamp = function(type, callback) {
-    ImportStatusData.put(type + LAST_IMPORT_TIMESTAMP_SUFFIX, Date.now())
+    window.ImportStatusData &&
+      ImportStatusData.put(type + LAST_IMPORT_TIMESTAMP_SUFFIX, Date.now())
         .then(callback);
   };
 
   utils.misc.getTimestamp = function(type, callback) {
-    ImportStatusData.get(type + LAST_IMPORT_TIMESTAMP_SUFFIX)
+    window.ImportStatusData &&
+      ImportStatusData.get(type + LAST_IMPORT_TIMESTAMP_SUFFIX)
         .then(callback);
   };
 }

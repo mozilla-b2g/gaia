@@ -1,6 +1,9 @@
-importScripts('components/threads/client.js');
+importScripts('components/bridge/client.js');
 
-var client = threads.client('music-service', new BroadcastChannel('music-service'));
+var client = bridge.client({
+  service: 'music-service',
+  endpoint: new BroadcastChannel('music-service')
+});
 
 function AudioService(worker) {
   var stopAfter = ServiceWorkerWare.decorators.stopAfter;
@@ -8,24 +11,6 @@ function AudioService(worker) {
   worker.get('/api/audio/play', stopAfter((request) => {
     return new Promise((resolve) => {
       client.method('play')
-        .then(() => {
-          resolve(new Response(JSON.stringify({ success: true }), {
-            headers: { 'Content-Type': 'application/json' }
-          }));
-        })
-        .catch(() => {
-          resolve(new Response(JSON.stringify({ success: false }), {
-            headers: { 'Content-Type': 'application/json' }
-          }));
-        });
-    });
-  }));
-
-  worker.get('/api/audio/play/:filePath', stopAfter((request) => {
-    return new Promise((resolve) => {
-      var filePath = '/' + decodeURIComponent(request.parameters.filePath);
-
-      client.method('play', filePath)
         .then(() => {
           resolve(new Response(JSON.stringify({ success: true }), {
             headers: { 'Content-Type': 'application/json' }

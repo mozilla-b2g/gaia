@@ -13,7 +13,7 @@ task:
 
   payload:
     cache:
-      gaia-misc-caches: /home/tester/caches/
+      gaia-misc-caches: /home/worker/caches/
 
     env:
       REPORTER: 'mocha-tbpl-reporter'

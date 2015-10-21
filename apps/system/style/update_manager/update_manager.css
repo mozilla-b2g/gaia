@@ -123,7 +123,7 @@
 
 #updates-download-dialog li {
   min-height: 5rem;
-  margin: 0 1rem;
+  margin: 0 1rem 0;
   border-top: solid 0.1rem rgba(255, 255, 255, 0.05);
 }
 
@@ -132,12 +132,12 @@
   border-top: 0;
 }
 
-#updates-download-dialog div {
+#updates-download-dialog span {
   display: block;
   font-weight: 500;
   color: #ebebeb;
   font-size: 1.4rem;
-  line-height: 0.6rem;
+  line-height: 1.7rem;
 }
 
 #updates-download-dialog li .name {
@@ -145,7 +145,8 @@
   line-height: 1.7rem;
   color: white;
   font-weight: normal;
-  padding: 0.8rem 0 0.7rem;
+  padding: 0.8rem 0 0;
+  display: block;
 }
 
 #updates-download-dialog li.nosize .name {
@@ -154,7 +155,6 @@
 
 #updates-download-dialog label {
   height: 5rem;
-  float: right;
   color: #ebebeb;
   line-height: 5rem;
   font-weight: 300;

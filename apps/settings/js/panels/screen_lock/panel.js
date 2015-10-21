@@ -9,7 +9,13 @@ define(function(require) {
 
     return SettingsPanel({
       onInit: function(panel) {
-        screenLock.onInit(panel);
+        var elements = {
+          panel: panel,
+          lockscreenEnable: panel.querySelector('.lockscreen-enable'),
+          passcodeEnable: panel.querySelector('.passcode-enable'),
+          passcodeEditButton: panel.querySelector('.passcode-edit')
+        };
+        screenLock.onInit(elements);
       }
     });
   };

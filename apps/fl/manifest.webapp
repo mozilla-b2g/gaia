@@ -52,7 +52,8 @@
     "themeable":{},
     "systemXHR":{},
     "settings":{ "access": "readwrite" },
-    "device-storage:music":{ "access": "readwrite" }
+    "device-storage:music":{ "access": "readwrite" },
+    "moz-extremely-unstable-and-will-change-webcomponents":{}
   },
   "icons": {
     "60": "/style/icons/60/fl.png"

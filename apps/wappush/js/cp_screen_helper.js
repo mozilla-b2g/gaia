@@ -1,6 +1,3 @@
-/* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-
 /* global MessageDB, ParsedProvisioningDoc, ProvisioningAuthentication,
           StoreProvisioning, WapPushManager, Utils */
 
@@ -149,6 +146,16 @@ var CpScreenHelper = (function() {
     headerApnList.addEventListener('action', cpsh_onClose);
     headerDetails.addEventListener('action', cpsh_closeDetails);
     headerPin.addEventListener('action', cpsh_closePin);
+  }
+
+  /**
+   * Hides all the panels.
+   */
+  function cpsh_hide() {
+    cpScreen.hidden = true;
+    finishConfirmDialog.hidden = true;
+    installCfgConfirmDialog.hidden = true;
+    quitAppConfirmDialog.hidden = true;
   }
 
   /**
@@ -516,7 +523,7 @@ var CpScreenHelper = (function() {
 
   return {
     init: cpsh_init,
-    populateScreen: cpsh_populateScreen,
+    hide: cpsh_hide,
     showConfirmInstallationDialog: cpsh_showConfirmInstallationDialog
   };
 })();

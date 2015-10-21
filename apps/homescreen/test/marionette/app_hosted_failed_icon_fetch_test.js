@@ -49,10 +49,7 @@ marionette('Homescreen - Hosted app failed icon fetch', function() {
     var icon = home.getIcon(server.manifestURL);
 
     // ensure the default icon is shown
-    client.waitFor(function() {
-      var src = home.getIconImageUrl(icon);
-      return src && src.indexOf('default') !== -1;
-    });
+    home.waitForIconImageUrl(icon, 'default');
 
     // ensure the icon can be launched!
     home.launchIcon(icon);

@@ -15,7 +15,7 @@ task:
 
   payload:
     cache:
-      gaia-misc-caches: /home/tester/caches/
+      gaia-misc-caches: /home/worker/caches/
     # See: ci/gaia_ui_tests/script for how this ties into the built in
     # chunking functionality for the test scripts...
     env:

@@ -73,8 +73,16 @@ var SiSlScreenHelper = (function() {
     WapPushManager.close();
   }
 
+  /**
+   * Hide the SI/SL screen helper
+   */
+  function sssh_hide() {
+    screen.hidden = true;
+  }
+
   return {
     init: sssh_init,
+    hide: sssh_hide,
     populateScreen: sssh_populateScreen
   };
 })();

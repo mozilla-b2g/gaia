@@ -4,6 +4,7 @@
           LazyLoader,
           LocalizationHelper,
           MessageManager,
+          MessagingClient,
           Navigation,
           Settings,
           Threads,
@@ -15,6 +16,7 @@
   'use strict';
 
   const LAZY_DEPENDENCIES = [
+    '/services/js/messaging/messaging_client.js',
     '/shared/js/settings_listener.js',
     '/shared/js/mime_mapper.js',
     '/shared/js/option_menu.js',
@@ -37,6 +39,7 @@
       TimeHeaders.init();
       Information.initDefaultViews();
       Settings.init();
+      MessagingClient.init();
       Navigation.setReady();
 
       InterInstanceEventDispatcher.connect();

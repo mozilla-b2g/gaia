@@ -1135,18 +1135,6 @@ suite('system/AppWindow', function() {
       this.sinon.clock.tick(0);
       assert.isTrue(callback.calledOnce);
     });
-
-    test('Call _showScreenshotOverlay', function() {
-      app1._screenshotBlob = 'fakeBlob';
-      app1.ready();
-      assert.isTrue(showScreenshotOverlay.calledOnce);
-    });
-
-    test('Do not call _showScreenshotOverlay', function() {
-      app1._screenshotBlob = null;
-      app1.ready();
-      assert.isFalse(showScreenshotOverlay.called);
-    });
   });
 
   suite('Browser Mixin', function() {
@@ -3220,6 +3208,74 @@ suite('system/AppWindow', function() {
 
       assert.isFalse(app1.element.classList.contains('theme-media'));
       assert.isTrue(stubPublish.calledOnce);
+    });
+  });
+
+  suite('inScope', function() {
+    test('Same domain is in the scope', function() {
+      var scope = 'domain.com';
+      var appConfig = {
+        url: 'http://domain.com/test'
+      };
+      var app = new AppWindow(appConfig);
+      this.sinon.stub(app, 'isBrowser').returns(true);
+      assert.isTrue(app.inScope(scope));
+    });
+
+    test('Scope with paths are allowed', function() {
+      var scope = 'domain.com/test';
+      var appConfig = {
+        url: 'http://domain.com/test/page1'
+      };
+      var app = new AppWindow(appConfig);
+      this.sinon.stub(app, 'isBrowser').returns(true);
+      assert.isTrue(app.inScope(scope));
+    });
+
+    test('Different domain is not in the scope', function() {
+      var scope = 'domain2.com';
+      var appConfig = {
+        url: 'http://domain.com/test'
+      };
+      var app = new AppWindow(appConfig);
+      this.sinon.stub(app, 'isBrowser').returns(true);
+      assert.isFalse(app.inScope(scope));
+    });
+
+    test('Subdomains are not in the scope', function() {
+      var scope = 'test.domain.com';
+      var appConfig = {
+        url: 'http://domain.com/test'
+      };
+      var app = new AppWindow(appConfig);
+      this.sinon.stub(app, 'isBrowser').returns(true);
+      assert.isFalse(app.inScope(scope));
+    });
+
+    test('Returns false on non browser windows', function() {
+      var scope = 'domain.com/test';
+      var appConfig = {
+        url: 'http://domain.com/test/page1'
+      };
+      var app = new AppWindow(appConfig);
+      this.sinon.stub(app, 'isBrowser').returns(false);
+      assert.isFalse(app.inScope(scope));
+    });
+
+    test('Scope changes on locationchange', function() {
+      var scope = 'test.domain.com';
+      var appConfig = {
+        url: 'http://domain.com/test'
+      };
+      var app = new AppWindow(appConfig);
+      this.sinon.stub(app, 'isBrowser').returns(true);
+      assert.isFalse(app.inScope(scope));
+
+      app.handleEvent({
+        type: 'mozbrowserlocationchange',
+        detail: 'http://test.domain.com/test'
+      });
+      assert.isTrue(app.inScope(scope));
     });
   });
 

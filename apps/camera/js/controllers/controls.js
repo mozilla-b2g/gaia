@@ -54,9 +54,8 @@ ControlsController.prototype.bindEvents = function() {
   this.view.on('click:capture', this.onCaptureClick);
 
   // Timer
-  this.app.on('timer:started', this.onTimerStarted);
-  this.app.on('timer:cleared', this.onTimerStopped);
-  this.app.on('timer:ended', this.onTimerStopped);
+  this.app.on('countdown:started', this.onCountdownStarted);
+  this.app.on('countdown:ended', this.onCountdownStopped);
 
   // Settings
   this.app.on('settings:opened', this.onSettingsOpened);
@@ -186,26 +185,26 @@ ControlsController.prototype.onNewThumbnail = function(thumbnailBlob) {
 
 /**
  * Forces the capture button to
- * look pressed while the timer is
+ * look pressed while the countdown is
  * counting down and hides controls.
  *
  * @private
  */
-ControlsController.prototype.onTimerStarted = function() {
+ControlsController.prototype.onCountdownStarted = function() {
   this.captureHighlightOn();
-  this.view.set('timer', 'active');
+  this.view.set('countdown', 'active');
 };
 
 /**
  * Forces the capture button to
- * look unpressed when the timer
+ * look unpressed when the countdown
  * stops and shows controls.
  *
  * @private
  */
-ControlsController.prototype.onTimerStopped = function() {
+ControlsController.prototype.onCountdownStopped = function() {
   this.captureHighlightOff();
-  this.view.set('timer', 'inactive');
+  this.view.set('countdown', 'inactive');
 };
 
 /**

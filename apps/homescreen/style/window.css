@@ -36,6 +36,7 @@ body {
   scroll-snap-type-y: mandatory;
   height: 100vh;
   transition: transform 0.2s;
+  padding-top: 1.5vw;
 }
 
 .zooming #scrollable {
@@ -66,6 +67,7 @@ gaia-app-icon {
   box-sizing: border-box;
   border: 0.8rem solid transparent;
   transition: transform 0.2s, opacity 0.2s;
+  outline: 0;
 
   font-size: 1.6rem;
   color: white;

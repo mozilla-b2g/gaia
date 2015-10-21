@@ -114,7 +114,7 @@ suite('SMS App Unit-Test', function() {
     return elements;
   }
 
-  function threadSetupAppend() {
+  function threadSetup() {
     var thread = {
       participants: ['287138'],
       body: 'Recibidas!',
@@ -125,8 +125,8 @@ suite('SMS App Unit-Test', function() {
     };
 
     Threads.set(9999, thread);
-    InboxView.appendThread(thread);
-    Threads.currentId = 9999;
+
+    return Threads.get(9999);
   }
 
   // Previous setup
@@ -435,7 +435,7 @@ suite('SMS App Unit-Test', function() {
           }).length, 'All items should be checked');
 
         // now a new message comes in for a new thread...
-        threadSetupAppend();
+        InboxView.appendThread(threadSetup());
 
         checkboxes =
           InboxView.container.querySelectorAll('input[type=checkbox]');
@@ -457,7 +457,7 @@ suite('SMS App Unit-Test', function() {
         InboxView.startEdit();
         InboxView.updateSelectionStatus = stub();
 
-        threadSetupAppend();
+        InboxView.appendThread(threadSetup());
 
         assert.equal(InboxView.updateSelectionStatus.callCount, 1);
         done();
@@ -468,7 +468,7 @@ suite('SMS App Unit-Test', function() {
         InboxView.cancelEdit();
         InboxView.updateSelectionStatus = stub();
 
-        threadSetupAppend();
+        InboxView.appendThread(threadSetup());
 
         assert.equal(InboxView.updateSelectionStatus.callCount, 0);
         done();
@@ -518,6 +518,7 @@ suite('SMS App Unit-Test', function() {
       setup(function(done) {
         this.sinon.spy(ConversationView, 'updateSelectionStatus');
         this.sinon.stub(InboxView, 'setContact');
+        ConversationView.activeThread = threadSetup();
         ConversationView.renderMessages(1, function() {
           ConversationView.startEdit();
           done();
@@ -526,6 +527,7 @@ suite('SMS App Unit-Test', function() {
       });
 
       teardown(function() {
+        ConversationView.activeThread = null;
         ConversationView.cancelEdit();
       });
 

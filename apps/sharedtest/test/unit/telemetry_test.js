@@ -229,4 +229,26 @@ suite('Telemetry:', function() {
       });
     });
   });
+
+  /*
+   * Test that the getSettings() utility function works as expected.
+   * This is required for proper configuration of the module and for
+   * gathering the settings that are sent along with usage data.
+   */
+  suite('getSettings():', function() {
+    suiteSetup(function() {
+      TelemetryRequest.DEBUG = false; // Shut up console output in test logs
+      TelemetryRequest.getSettings;
+
+      var mockSettings = MockNavigatorSettings.mSettings;
+      mockSettings.x = '1';
+      mockSettings.y = '2';
+    });
+
+    test('getSettings()', function(done) {
+      TelemetryRequest.getSettings({x: '3', y: '4', z: '5'}, function(result) {
+        done(assert.deepEqual(result, {x: '1', y: '2', z: '5'}));
+      });
+    });
+  });
 });

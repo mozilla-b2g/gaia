@@ -94,13 +94,8 @@ var contacts = window.contacts || {};
   var performDelete = function performDelete(promise, done) {
     var self = this;
     requireOverlay(function onOverlay() {
-      utils.overlay.show('preparing-contacts', 'spinner');
       promise.onsuccess = function onSuccess(ids) {
-        Contacts.hideOverlay();
         showConfirm(ids.length).then(self.doDelete.bind(null, ids, done));
-      };
-      promise.onerror = function onError() {
-        Contacts.hideOverlay();
       };
     });
   };

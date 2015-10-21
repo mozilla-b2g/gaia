@@ -1,6 +1,6 @@
 /*jshint node: true, browser: true */
 /* globals MockContactsList, MockMozContacts, Mockfb, MockLoader, utils,
-MocksHelper, contactsRemover, contacts, MockContactsSettings, BulkDelete */
+MocksHelper, contactsRemover, contacts, MockContactsSettings */
 
 'use strict';
 
@@ -35,7 +35,7 @@ var mocksHelperForDelete = new MocksHelper([
   'mozContact'
 ]).init();
 
-var subject, fb, real_, realOverlay, realFb, realContacts, realSettings,
+var subject, fb, real_, realFb, realContacts, realSettings,
     realLoader;
 
 suite('Multiple Contacts Delete', function() {
@@ -48,50 +48,10 @@ suite('Multiple Contacts Delete', function() {
     return result;
   }
 
-  function createSelectPromise() {
-    var promise = {
-      canceled: false,
-      _selected: [],
-      resolved: false,
-      successCb: null,
-      errorCb: null,
-      resolve: function resolve(ids) {
-        var self = this;
-        setTimeout(function onResolve() {
-          if (ids) {
-            self._selected = ids;
-          }
-          self.resolved = true;
-          if (self.successCb) {
-            self.successCb(self._selected);
-          }
-        }, 0);
-      }
-    };
-    return promise;
-  }
-
   suiteSetup(function() {
     if (!window.utils) {
       window.utils = {};
     }
-    realOverlay = window.utils.overlay;
-    window.utils.overlay = {
-      total: 0,
-      shown: false,
-      show: function() {
-        this.shown = true;
-        return this;
-      },
-      hide: function() {},
-      showMenu: function() {},
-      update: function() {},
-      setClass: function() {},
-      setTotal: function(n) {
-        this.total = n;
-      },
-      setHeaderMsg: function() {}
-    };
     realContacts = navigator.mozContacts;
     navigator.mozContacts = MockMozContacts;
     realLoader = window.Loader;
@@ -112,7 +72,6 @@ suite('Multiple Contacts Delete', function() {
     window._ = real_;
     fb = realFb;
     navigator.mozContacts = realContacts;
-    window.utils.overlay = realOverlay;
     window.Loader = realLoader;
     mocksHelperForDelete.suiteTeardown();
     contacts.Settings = realSettings;
@@ -182,14 +141,5 @@ suite('Multiple Contacts Delete', function() {
       done();
     };
     assert.ok(ids, 'No Contact to delete');
-  });
-
-  test('Perform Delete Operation', function(done) {
-    var ids = getContactIds();
-    var promise = createSelectPromise();
-    promise.resolve(ids);
-    BulkDelete.performDelete(promise);
-    assert.ok(window.utils.overlay.shown, 'overlay not displayed');
-    done();
   });
 });

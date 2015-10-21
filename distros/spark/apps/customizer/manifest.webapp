@@ -14,7 +14,8 @@
     "device-storage:sdcard": { "access": "readwrite" },
     "webapps-manage": {},
     "themeable":{},
-    "settings":{ "access": "readonly" }
+    "settings":{ "access": "readonly" },
+    "moz-extremely-unstable-and-will-change-webcomponents":{}
   },
   "package_path": "customizer.zip"
 }

@@ -64,20 +64,17 @@
       return _getFormattedSize(bytes);
     },
     getDate: function(download) {
-      return new Promise(function(resolve, reject) {
-        var date;
+      var date;
 
-        try {
-          date = download.startTime;
-        } catch (ex) {
-          date = new Date();
-          console.error(ex);
-        }
+      try {
+        date = download.startTime;
+      } catch (ex) {
+        date = new Date();
+        console.error(ex);
+      }
 
-        LazyLoader.load(['shared/js/l10n_date.js'], function onload() {
-          var prettyDate = navigator.mozL10n.DateTimeFormat().fromNow(date);
-          resolve(prettyDate);
-        });
+      return LazyLoader.load(['shared/js/l10n_date.js']).then(() => {
+        return navigator.mozL10n.DateTimeFormat().relativeDate(date);
       });
     },
     getUUID: function(download) {

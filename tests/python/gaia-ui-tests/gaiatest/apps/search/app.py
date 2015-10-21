@@ -3,7 +3,6 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from gaiatest.apps.base import Base
-
 from marionette_driver import expected, By, Wait
 
 
@@ -14,6 +13,7 @@ class Search(Base):
 
     _url_bar_locator = (By.CSS_SELECTOR, 'div.search-app .urlbar .title')
     _history_item_locator = (By.CSS_SELECTOR, '#history .result')
+    _private_window_locator = (By.ID, 'private-window')
 
     def go_to_url(self, url):
         # The URL bar shown is actually in the system app not in this Search app.
@@ -36,3 +36,11 @@ class Search(Base):
                 expected.element_not_displayed(*self._history_item_locator))
         else:
             Wait(self.marionette).until(lambda m: len(m.find_elements(*self._history_item_locator)) == number_of_items)
+
+    def open_new_private_window(self):
+        self.marionette.find_element(*self._private_window_locator).tap()
+
+        from gaiatest.apps.search.regions.browser import PrivateWindow
+        private_window = PrivateWindow(self.marionette)
+        private_window.wait_for_page_to_load()
+        return private_window

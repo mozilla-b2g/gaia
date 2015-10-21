@@ -15,7 +15,8 @@
     "audio-channel-content":{},
     "nfc-share": {},
     "nfc": {},
-    "feature-detection": {}
+    "feature-detection": {},
+    "moz-extremely-unstable-and-will-change-webcomponents":{}
   },
   "activities": {
     "browse": {

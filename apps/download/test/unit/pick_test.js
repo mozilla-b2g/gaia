@@ -53,8 +53,8 @@ suite('pick.js >', function() {
     });
     sinon.stub(navigator.mozL10n, 'DateTimeFormat', function(date) {
       return {
-        fromNow: function(date) {
-          return 'pretty' + date.toString();
+        relativeDate: function(date, useCompactFormat) {
+          return Promise.resolve('pretty' + date.toString());
         }
       };
     });

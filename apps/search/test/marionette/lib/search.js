@@ -37,6 +37,7 @@ Search.Selectors = {
 Search.prototype = {
 
   URL: Search.URL,
+  NEW_TAB_URL: Search.URL + '/newtab.html',
   Selectors: Search.Selectors,
 
   /**

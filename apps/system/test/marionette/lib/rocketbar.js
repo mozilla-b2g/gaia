@@ -63,6 +63,20 @@ Rocketbar.prototype = {
    * the homescreen app. If we move it to the system app we can remove this.
    */
   homescreenFocus: function() {
+    // Only verticalhome has a search bar built in, so check to see if the
+    // app one is visible first and use that.
+    var title;
+    try {
+      title = this.client.scope({ searchTimeout: 100 }).
+        findElement(this.selectors.appTitle);
+    } catch(e) { }
+    if (title && title.displayed()) {
+      title.tap();
+      this.client.switchToFrame();
+      return;
+    }
+
+    this.client.switchToFrame();
     var homeLib = this.client.loader.getAppClass('verticalhome');
     homeLib.waitForLaunch();
     homeLib.focusRocketBar();

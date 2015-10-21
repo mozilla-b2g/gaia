@@ -12,7 +12,7 @@ var evt = require('evt'),
     FormNavigation = require('form_navigation');
 
 return [
-  require('./base')(require('template!./setup_account_info.html')),
+  require('./base_card')(require('template!./setup_account_info.html')),
   require('./setup_account_error_mixin'),
   {
     createdCallback: function() {

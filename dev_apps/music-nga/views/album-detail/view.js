@@ -1,4 +1,5 @@
-/* global threads, View */
+/* global bridge, View */
+'use strict';
 
 var debug = 1 ? (...args) => console.log('[AlbumDetailView]', ...args) : () => {};
 
@@ -13,17 +14,14 @@ var AlbumDetailView = View.extend(function AlbumDetailView() {
     // gets proper dynamic <template> input
     populateItem: function(el, i) {
       var data = this.getRecordAt(i);
-      var els = {};
 
-      els.link = el.firstChild;
-      els.div = els.link.firstChild;
-      els.title = els.div.firstChild;
-      els.body = els.title.nextSibling;
+      var link = el.querySelector('a');
+      var title = el.querySelector('h3');
 
-      els.link.href = `/player?id=${data.name}`;
-      els.link.dataset.filePath = data.name;
+      link.href = `/player?id=${data.name}`;
+      link.dataset.filePath = data.name;
 
-      els.title.firstChild.data = data.metadata.title;
+      title.firstChild.data = data.metadata.title;
     }
   });
 
@@ -33,13 +31,13 @@ var AlbumDetailView = View.extend(function AlbumDetailView() {
   this.list.addEventListener('click', (evt) => {
     var link = evt.target.closest('a[data-file-path]');
     if (link) {
-      this.play(link.dataset.filePath);
+      this.queueAlbum(link.dataset.filePath);
     }
   });
 
   View.preserveListScrollPosition(this.list);
 
-  this.client = threads.client('music-service', window.parent);
+  this.client = bridge.client({ service: 'music-service', endpoint: window.parent });
   this.client.on('databaseChange', () => this.update());
 
   this.update();
@@ -52,9 +50,11 @@ AlbumDetailView.prototype.update = function() {
   });
 };
 
-// AlbumDetailView.prototype.destroy = function() {
-//   View.prototype.destroy.call(this); // super(); // Always call *last*
-// };
+AlbumDetailView.prototype.destroy = function() {
+  this.client.destroy();
+
+  View.prototype.destroy.call(this); // super(); // Always call *last*
+};
 
 AlbumDetailView.prototype.title = 'Albums';
 
@@ -69,8 +69,8 @@ AlbumDetailView.prototype.getAlbum = function() {
     .then(response => response.json());
 };
 
-AlbumDetailView.prototype.play = function(filePath) {
-  fetch('/api/audio/play' + filePath);
+AlbumDetailView.prototype.queueAlbum = function(filePath) {
+  fetch('/api/queue/album' + filePath);
 };
 
 window.view = new AlbumDetailView();

@@ -57,6 +57,7 @@
     <script defer src="/shared/js/lazy_loader.js"></script>
     <script defer src="/contacts/js/utilities/performance_helper.js"></script>
     <script defer src='/contacts/views/form/js/boot.js'></script>
+    <!-- <script defer src="/shared/js/confirm.js"></script> -->
 
     <meta name="defaultLanguage" content="en-US">
     <meta name="availableLanguages" content="en-US">
@@ -70,6 +71,7 @@
     <link href="/contacts/views/form/style/overwrite.css" rel="stylesheet">
 
     <!-- Load just the templates needed -->
+    <link rel="import" href="/contacts/elements/confirm.html">
     <link rel="import" href="/contacts/elements/tag.html">
     <link rel="import" href="/contacts/elements/form.html">
 
@@ -88,5 +90,6 @@
       <menu id="value-menu" type="toolbar">
       </menu>
     </form>
+    <form is="confirmation-message" id="confirmation-message" class="hide" role="dialog" data-type="confirm"></form>
   </body>
 </html>

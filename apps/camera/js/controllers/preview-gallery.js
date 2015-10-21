@@ -170,6 +170,7 @@ PreviewGalleryController.prototype.shareCurrentItem = function() {
   var self = this;
 
   this.stopItemDeletedEvent = true;
+  this.app.emit('busy', 'resizingImage');
 
   // Resize the image to the maximum pixel size for share activities.
   // If no maximum is specified (value is `0`), then simply rotate
@@ -181,14 +182,21 @@ PreviewGalleryController.prototype.shareCurrentItem = function() {
   }, function(resizedBlob) {
     // Update the cached preview to reflect the new size of the saved
     // image; it will also rotate the image based on the EXIF data before
-    // saving, so we should forget that
+    // saving, so we should adjust for that
     if (resizedBlob !== item.blob) {
       item.blob = resizedBlob;
-      item.width = maxSize.width;
-      item.height = maxSize.height;
+      if (maxSize && maxSize.width && maxSize.height) {
+        item.width = maxSize.width;
+        item.height = maxSize.height;
+      } else if (item.rotation === 90 || item.rotation === 270) {
+        var tmp = item.width;
+        item.width = item.height;
+        item.height = tmp;
+      }
       delete item.rotation;
     }
     self.stopItemDeletedEvent = false;
+    self.app.emit('ready');
     launchShareActivity(resizedBlob);
   });
 };

@@ -1,12 +1,11 @@
-/* globals AudioCompetingHelper, BluetoothHelper, CallScreen,
+/* globals BluetoothHelper, CallScreen,
            ConferenceGroupHandler, Contacts, HandledCall, KeypadManager,
            SimplePhoneMatcher, TonePlayer, Utils */
 
 'use strict';
 
 /* globals BluetoothHelper, CallScreen, Contacts, FontSizeManager, HandledCall,
-           KeypadManager, SimplePhoneMatcher, TonePlayer, Utils,
-           AudioCompetingHelper */
+           KeypadManager, SimplePhoneMatcher, TonePlayer, Utils */
 
 var CallsHandler = (function callsHandler() {
   // Changing this will probably require markup changes
@@ -75,9 +74,6 @@ var CallsHandler = (function callsHandler() {
 
     navigator.mozSetMessageHandler('headset-button', handleHSCommand);
     navigator.mozSetMessageHandler('bluetooth-dialer-command', handleBTCommand);
-
-    AudioCompetingHelper.clearListeners();
-    AudioCompetingHelper.addListener('mozinterruptbegin', onMozInterrupBegin);
   }
 
   /* === Handled calls === */
@@ -810,29 +806,6 @@ var CallsHandler = (function callsHandler() {
   }
 
   /* === Telephony audio channel competing functions ===*/
-
-  /**
-   * Helper function. Force the callscreen app to win the competion for the use
-   * of the telephony audio channel.
-   */
-  function forceAnAudioCompetitionWin() {
-    AudioCompetingHelper.leaveCompetition();
-    AudioCompetingHelper.compete();
-  }
-
-  /**
-   * onmozinterrupbegin event handler.
-   */
-  function onMozInterrupBegin() {
-    // If there are multiple calls handled by the callscreen app and it is
-    // interrupted by another app which uses the telephony audio channel the
-    // callscreen wins.
-    if (numOpenLines() !== 1) {
-     forceAnAudioCompetitionWin();
-      return;
-    }
-    holdOrResumeSingleCall();
-  }
 
   /**
    * Check if a call is being established.

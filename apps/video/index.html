@@ -69,15 +69,15 @@
 
         <footer id="thumbnails-bottom" class="thumbnails-list">
           <a id="thumbnails-video-button" class="button" data-icon="video"
-             role="button" data-l10n-id="video-button"></a>
+             role="button" data-l10n-id="video-button" tabindex="0"></a>
           <a id="thumbnails-select-button" class="button" data-icon="select"
-             role="button" data-l10n-id="select-button"></a>
+             role="button" data-l10n-id="select-button" tabindex="0"></a>
         </footer>
         <footer id="thumbnails-select-bottom" class="thumbnails-select">
           <a id="thumbnails-delete-button" class="button" data-icon="delete"
-             role="button" data-l10n-id="delete-button"></a>
+             role="button" data-l10n-id="delete-button" tabindex="0"></a>
           <a id="thumbnails-share-button" class="button" data-icon="share"
-             role="button" data-l10n-id="share-button"></a>
+             role="button" data-l10n-id="share-button" tabindex="0"></a>
         </footer>
       </section>
 
@@ -95,7 +95,7 @@
         </gaia-header>
         <!-- In order for the screen reader to be able to activate the container
              to toggle controls, it must have the semantics of the button -->
-        <div id="video-container" role="button">
+        <div id="video-container" role="button" tabindex="0">
           <!-- Hiding the video element from the screen reader since the
                controls are implemented elsewhere. -->
           <video src="about:blank" id="player" aria-hidden="true"></video>
@@ -121,7 +121,7 @@
               <span id="duration-text" aria-hidden="true"></span>
             </div>
             <div id="fullscreen-button" role="button"
-                 data-l10n-id="fullscreen-button"></div>
+                 data-l10n-id="fullscreen-button" tabindex="0"></div>
           </footer>
           <!-- It is simpler and less verbose (for the screen reader) to not
                expose that this block is a footer and consider it part of

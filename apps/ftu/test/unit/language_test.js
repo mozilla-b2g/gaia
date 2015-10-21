@@ -101,9 +101,11 @@ suite('languages >', function() {
       assert.isTrue(KeyboardHelper.changeDefaultLayouts.called);
     });
 
-    test('localize changed', function() {
+    test('localize changed', function(done) {
       dispatchEvent(new CustomEvent('localized'));
-      assert.equal(MockNavigatorSettings.mSettings['locale.hour12'], false);
+      return Promise.resolve().then(() => {
+        assert.equal(MockNavigatorSettings.mSettings['locale.hour12'], false);
+      }).then(done, done);
     });
   });
 });

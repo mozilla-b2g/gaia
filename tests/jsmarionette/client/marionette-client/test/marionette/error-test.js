@@ -8,12 +8,8 @@ suite('marionette/error', function() {
     MarionetteError = obj;
   });
 
-  test('should expose .CODES', function() {
-    assert.operator(Object.keys(MarionetteError.CODES).length, '>', 0);
-  });
-
-  test('should expose .STATUSES', function() {
-    assert.operator(Object.keys(MarionetteError.STATUSES).length, '>', 0);
+  test('should expose .ERRORS', function() {
+    assert.property(MarionetteError, 'ERRORS');
   });
 
   suite('#error', function() {
@@ -36,44 +32,23 @@ suite('marionette/error', function() {
       assert.property(err, 'type');
     });
 
-    test('should recognise known number', function() {
-      var err = new MarionetteError({}, {status: 7});
+    test('should recognise known error code', function() {
+      var err = new MarionetteError({}, {error: 'no such element'});
       assert.property(err, 'type');
       assert.equal(err.type, 'NoSuchElement');
     });
 
-    test('should recognise known string', function() {
-      var err = new MarionetteError({}, {status: 'no such element'});
-      assert.property(err, 'type');
-      assert.equal(err.type, 'NoSuchElement');
-    });
-
-    test('should fall back to GenericError for unknown number', function() {
-      var err = new MarionetteError({}, {status: 666});
+    test('should fall back to GenericError for unknown error code', function() {
+      var err = new MarionetteError({}, {error: 'brunost'});
       assert.property(err, 'type');
       assert.equal(err.type, 'GenericError');
     });
 
-    test('should fall back to GenericError for unknown string', function() {
-      var err = new MarionetteError({}, {status: 'brunost'});
-      assert.property(err, 'type');
-      assert.equal(err.type, 'GenericError');
-    });
-
-    test('should support all error number codes', function() {
-      for (var n in MarionetteError.CODES) {
-        var err = new MarionetteError({}, {status: n});
-        assert.strictEqual(err.type, MarionetteError.CODES[n]);
-        assert.include(err.message, MarionetteError.CODES[n]);
-        assert.instanceOf(err, Error);
-      }
-    });
-
-    test('should support all error status strings', function() {
-      for (var s in MarionetteError.STATUSES) {
-        var err = new MarionetteError({}, {status: s});
-        assert.strictEqual(err.type, MarionetteError.STATUSES[s]);
-        assert.include(err.message, MarionetteError.STATUSES[s]);
+    test('should support all errors', function() {
+      for (var s in MarionetteError.ERRORS) {
+        var err = new MarionetteError({}, {error: s});
+        assert.strictEqual(err.type, MarionetteError.ERRORS[s]);
+        assert.include(err.message, MarionetteError.ERRORS[s]);
         assert.instanceOf(err, Error);
       }
     });
@@ -89,23 +64,15 @@ suite('marionette/error', function() {
       assert.equal(result.client, client);
       assert.strictEqual(
         result.name,
-        MarionetteError.STATUSES['webdriver error']
+        MarionetteError.ERRORS['webdriver error']
       );
     });
 
-    test('should use GenericError when unknown error code', function() {
-      var result = new MarionetteError({}, {status: 7777});
+    test('should use GenericError error when unknown error code', function() {
+      var result = new MarionetteError({}, {error: 'cheese'});
       assert.strictEqual(
         result.name,
-        MarionetteError.STATUSES['webdriver error']
-      );
-    });
-
-    test('should use GenericError error when unknown error status', function() {
-      var result = new MarionetteError({}, {status: 'cheese'});
-      assert.strictEqual(
-        result.name,
-        MarionetteError.STATUSES['webdriver error']
+        MarionetteError.ERRORS['webdriver error']
       );
     });
   });

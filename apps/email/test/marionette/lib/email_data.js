@@ -20,7 +20,7 @@ EmailData.prototype = {
   getCurrentAccount: function() {
     var client = this.client;
     return client.executeAsyncScript(function() {
-      var model = window.wrappedJSObject.require('model');
+      var model = window.wrappedJSObject.require('model_create').defaultModel;
       model.latest('account', function(account) {
         marionetteScriptFinished(account._wireRep);
       });
@@ -38,7 +38,7 @@ EmailData.prototype = {
     return client.executeAsyncScript(function(key, value) {
 
       var account,
-          model = window.wrappedJSObject.require('model'),
+          model = window.wrappedJSObject.require('model_create').defaultModel,
           acctsSlice = model.api.viewAccounts(false);
 
       function checkDone() {

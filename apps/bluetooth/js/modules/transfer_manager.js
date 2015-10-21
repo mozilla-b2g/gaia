@@ -143,7 +143,6 @@ define(function(require) {
     _observeBluetoothEnabled: function bttm__observeBluetoothEnabled() {
       // Observe Bluetooth 'enabled' property from hardware side.
       BtContext.observe('enabled', this._onBluetoothEnabledChanged.bind(this));
-      this._onBluetoothEnabledChanged(BtContext.enabled);
     },
 
     /**

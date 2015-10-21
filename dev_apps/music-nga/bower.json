@@ -16,7 +16,7 @@
     "gaia-fonts": "gaia-components/gaia-fonts#~0.2.1",
     "serviceworkerware": "gaia-components/serviceworkerware#master",
     "sww-raw-cache": "gaia-components/sww-raw-cache#~0.2.1",
-    "threads": "gaia-components/threads#master",
+    "bridge": "gaia-components/bridge#master",
     "dom-scheduler": "etiennesegonzac/dom-scheduler",
     "gaia-component": "gaia-components/gaia-component#~0.3.8",
     "fast-list": "wilsonpage/fast-list#31-gaia-fast-list"

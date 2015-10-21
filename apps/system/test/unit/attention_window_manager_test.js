@@ -344,6 +344,7 @@ suite('system/AttentionWindowManager', function() {
       });
 
     test('AttentionWindow is terminated', function() {
+      this.sinon.stub(attentionWindowManager, 'updateClassState');
       attentionWindowManager._openedInstances = new Map([[att1, att1]]);
       assert.isTrue(attentionWindowManager._openedInstances.has(att1));
       attentionWindowManager.handleEvent(
@@ -351,6 +352,20 @@ suite('system/AttentionWindowManager', function() {
           detail: att1
         }));
       assert.isFalse(attentionWindowManager._openedInstances.has(att1));
+      assert.isFalse(attentionWindowManager.updateClassState.called);
+    });
+
+    test('AttentionWindow is terminated with crash', function() {
+      this.sinon.stub(attentionWindowManager, 'updateClassState');
+      attentionWindowManager._openedInstances = new Map([[att1, att1]]);
+      att1.isCrashed = true;
+      attentionWindowManager.handleEvent(
+        new CustomEvent('attentionterminated', {
+          detail: att1
+        }));
+      assert.isFalse(attentionWindowManager._openedInstances.has(att1));
+      assert.isTrue(attentionWindowManager.updateClassState.called);
+      att1.isCrashed = false;
     });
 
     test('AttentionWindow is requesting to open', function() {
@@ -387,6 +402,19 @@ suite('system/AttentionWindowManager', function() {
           }));
           assert.isTrue(stubDemoteForAtt1.called);
         });
+
+      test('updates the global attention class', function() {
+        var manager = attentionWindowManager;
+        manager._openedInstances = new Map([[att1, att1], [att2, att2]]);
+        window.dispatchEvent(new CustomEvent('attentionclosed', {
+          detail: att1
+        }));
+        assert.isTrue(manager.screen.classList.contains('attention'));
+        window.dispatchEvent(new CustomEvent('attentionclosed', {
+          detail: att2
+        }));
+        assert.isFalse(manager.screen.classList.contains('attention'));
+      });
 
       test('should publish deactivated if no opened instances',
         function() {

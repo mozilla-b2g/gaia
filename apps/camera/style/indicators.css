@@ -66,8 +66,8 @@
 
 .indicators[recording=true] .indicator_hdr,
 .indicators[mode=video] .indicator_hdr,
-.indicators[recording=true] .indicator_timer,
-.indicators[timer=off] .indicator_timer {
+.indicators[recording=true] .indicator_countdown,
+.indicators[countdown=off] .indicator_countdown {
   display: none;
 }
 
@@ -79,14 +79,14 @@ li.indicator_geolocation:before {
   line-height: 1.4;
 }
 
-/** Indicator Timer
+/** Indicator Countdown
  ---------------------------------------------------------*/
 
-.indicators .indicator_timer {
+.indicators .indicator_countdown {
   display: block;
 }
 
-.indicators .indicator_timer:before {
+.indicators .indicator_countdown:before {
   font-size: 1.7rem;
 }
 

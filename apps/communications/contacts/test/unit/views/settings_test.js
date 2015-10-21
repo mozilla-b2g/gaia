@@ -15,6 +15,7 @@
 /* global MockSdCard */
 /* global MockLoader */
 /* global utils */
+/* global ICE */
 
 require('/shared/js/lazy_loader.js');
 require('/shared/js/contacts/import/utilities/misc.js');
@@ -673,7 +674,7 @@ suite('Contacts settings >', function() {
           contacts.Settings.navigation.currentView(),
           'ice-settings'
         );
-        assert.ok(contacts.ICE.initialized);
+        assert.ok(ICE.initialized);
         done();
       });
     });

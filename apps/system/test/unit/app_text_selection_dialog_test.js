@@ -215,10 +215,8 @@ suite('system/AppTextSelectionDialog', function() {
     td.render();
     var stubHide = this.sinon.stub(td, 'hide');
     this.sinon.stub(td.element, 'blur');
-    this.sinon.stub(td, '_resetShortcutTimeout');
     td.close();
     assert.isTrue(stubHide.calledOnce);
-    assert.isTrue(td._resetShortcutTimeout.called);
     assert.isTrue(td.element.blur.called);
   });
 
@@ -242,25 +240,6 @@ suite('system/AppTextSelectionDialog', function() {
 
     clock.tick(td.RESET_CUT_OR_PASTE_TIMEOUT);
     assert.isFalse(td._hasCutOrCopied);
-  });
-
-  test('_resetShortcutTimeout', function() {
-    td._shortcutTimeout = 'timeout';
-    this.sinon.stub(window, 'clearTimeout');
-    td._resetShortcutTimeout();
-    assert.isTrue(window.clearTimeout.calledWith('timeout'));
-    assert.isTrue(td._shortcutTimeout === null);
-  });
-
-  test('_triggerShortcutTimeout', function() {
-    this.sinon.stub(td, '_resetShortcutTimeout');
-    this.sinon.stub(td, 'close');
-    var clock = this.sinon.useFakeTimers();
-
-    td._triggerShortcutTimeout();
-    clock.tick(td.SHORTCUT_TIMEOUT);
-    assert.isTrue(td.close.called);
-    assert.isTrue(td._resetShortcutTimeout.called);
   });
 
   suite('handleEvent caretstatechanged event', function() {
@@ -317,11 +296,9 @@ suite('system/AppTextSelectionDialog', function() {
         testDetail.collapsed = true;
         testDetail.reason = 'taponcaret';
         td._hasCutOrCopied = true;
-        this.sinon.stub(td, '_triggerShortcutTimeout');
         td.handleEvent(fakeTextSelectInAppEvent);
         assert.isTrue(stubShow.calledWith(testDetail));
         assert.isFalse(testDetail.commands.canSelectAll);
-        assert.isTrue(td._triggerShortcutTimeout.calledOnce);
       });
 
     test('should not render when bubble has showed before', function() {
@@ -363,18 +340,6 @@ suite('system/AppTextSelectionDialog', function() {
         td.handleEvent(fakeTextSelectInAppEvent);
         assert.isTrue(stubHide.calledOnce);
       });
-
-    test('should close paste bubble in 3 seconds if user tap on context and' +
-         ' has cut/copied before', function() {
-
-      var fakeTimer = this.sinon.useFakeTimers();
-      testDetail.reason = 'longpressonemptycontent';
-      td._hasCutOrCopied = true;
-      testDetail.collapsed = true;
-      td.handleEvent(fakeTextSelectInAppEvent);
-      fakeTimer.tick(td.SHORTCUT_TIMEOUT);
-      assert.isTrue(stubClose.calledOnce);
-    });
   });
 
   suite('_elementEventHandler', function() {

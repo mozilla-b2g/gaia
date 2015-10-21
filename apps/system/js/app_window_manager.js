@@ -20,8 +20,10 @@
   ];
   AppWindowManager.STATES = [
     'getApp',
+    'getAppInScope',
     'getAppByURL',
     'getApps',
+    'getUnpinnedWindows',
     'slowTransition',
     'getActiveApp',
     'getActiveWindow',
@@ -200,6 +202,40 @@
     },
 
     /**
+     * Match app scope and get the first matching one.
+     * @param  {String} scope The scope to be matched.
+     * @return {AppWindow}        The app window object matched.
+     */
+    getAppInScope: function awm_getAppInScope(scope) {
+      var keys = Object.keys(this._apps);
+      var appInScope;
+      keys.forEach(function(id) {
+        var app = this._apps[id];
+        if (app.inScope(scope)) {
+          var replace = (!appInScope || appInScope.launchTime < app.launchTime);
+          appInScope = replace ? app : appInScope;
+        }
+      }.bind(this));
+
+      return appInScope;
+    },
+
+    /**
+     * Find all not pinned appWindows
+     * @return Array {AppWindow} Array of appWindows
+     */
+    getUnpinnedWindows: function awm_getUnpinnedWindows() {
+      var unpinnedWindows = [];
+      for (var id in this._apps) {
+        var app = this._apps[id];
+        if (app.isBrowser() && !app.appChrome.pinned) {
+          unpinnedWindows.push(app);
+        }
+      }
+      return unpinnedWindows;
+    },
+
+    /**
      * Match app window that is currently at a specific url.
      * @param  {String} url The url to be matched.
      * @return {AppWindow} The app window object matched.
@@ -283,14 +319,12 @@
       var switching = appCurrent && !appCurrent.isHomescreen &&
                       !appNext.isHomescreen;
 
-      this._updateActiveApp(appNext.instanceID);
-
       var that = this;
       if (appCurrent && this.service.query('keyboardEnabled')) {
         this.stopRecording();
 
         // Ask keyboard to hide before we switch the app.
-      window.addEventListener('keyboardhidden', function onhiddenkeyboard() {
+        window.addEventListener('keyboardhidden', function onhiddenkeyboard() {
           window.removeEventListener('keyboardhidden', onhiddenkeyboard);
           that.switchApp(appCurrent, appNext, switching);
         });
@@ -327,7 +361,10 @@
      */
     switchApp: function awm_switchApp(appCurrent, appNext, switching,
                                       openAnimation, closeAnimation) {
+
       this.debug('before ready check' + appCurrent + appNext);
+      this._updateActiveApp(appNext.instanceID);
+
       appNext.ready(function() {
         if (appNext.isDead()) {
           if (!appNext.isHomescreen) {

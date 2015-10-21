@@ -248,7 +248,7 @@
           nextId: this.currentId
         }
       };
-      this.currentId = this.client._sendCommand(cmd, 'value', callback);
+      this.currentId = this.client._sendCommand(cmd, callback, 'value');
       this.actionChain = [];
       return this;
     }

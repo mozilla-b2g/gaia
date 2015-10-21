@@ -38,6 +38,7 @@
     }
   },
   "permissions": {
-    "systemXHR":{}
+    "systemXHR":{},
+    "moz-extremely-unstable-and-will-change-webcomponents":{}
   }
 }

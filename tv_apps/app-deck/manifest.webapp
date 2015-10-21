@@ -22,7 +22,8 @@
   "orientation": "landscape",
   "permissions": {
     "webapps-manage": {},
-    "systemXHR": {}
+    "systemXHR": {},
+    "moz-extremely-unstable-and-will-change-webcomponents":{}
   },
   "datastores-access": {
     "home_cards": {

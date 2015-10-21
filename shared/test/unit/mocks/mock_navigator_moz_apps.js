@@ -3,6 +3,7 @@
 
 var MockNavigatormozApps = {
   mApps: [],
+
   getSelf: function mnma_getSelf() {
     var request = {};
 
@@ -51,9 +52,7 @@ var MockNavigatormozApps = {
       };
     },
     uninstall: function() {},
-    addEventListener: function() {
-
-    }
+    addEventListener: function() {}
   },
 
   mLastRequest: null,
@@ -69,4 +68,3 @@ var MockNavigatormozApps = {
     this.mLastRequest = null;
   }
 };
-

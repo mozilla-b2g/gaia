@@ -64,22 +64,18 @@ var MP4Metadata = (function() {
    * @return {Promise} A Promise returning the parsed metadata object.
    */
   function parse(blobview) {
+    // The MP4 file might be a video or it might be some kind of audio that we
+    // don't support.
     if (!checkMP4Type(blobview, MP4Types)) {
-      // The MP4 file might be a video or it might be some
-      // kind of audio that we don't support. We used to treat
-      // files like these as unknown files and see (in the code below)
-      // whether the <audio> tag could play them. But we never parsed
-      // metadata from them, so even if playable, we didn't have a title.
-      // And, the <audio> tag was treating videos as playable.
       return Promise.reject(new Error('Unknown MP4 file type'));
     }
 
-    var metadata = {};
-    metadata.tag_format = 'mp4';
-    return findMoovAtom(blobview, metadata).then(function(result) {
+    return findMoovAtom(blobview).then((result) => {
+      var metadata = {tag_format: 'mp4'};
       if (!result) {
         return metadata;
       }
+
       return parseMoovAtom(result.atom, result.size, metadata);
     });
   }

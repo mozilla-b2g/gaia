@@ -15,12 +15,14 @@
   'use strict';
 
   var _;
-  var _activity;
+  var _activity, _contact, _comesFromActivity;
   const CONTACTS_APP_ORIGIN = location.origin;
 
   function close() {
     if (_activity) {
       _activity.postResult({});
+    } else if (_comesFromActivity) {
+      window.close();
     } else {
       window.history.back();
     }
@@ -185,6 +187,16 @@
     };
   }
 
+  function doRemove(contact) {
+    listenContactChanges().then(function() {
+      if (_comesFromActivity) {
+        window.close();
+      } else {
+        window.history.go(-2);
+      }
+    });
+    ContactsService.remove(contact);
+  }
 
   /*
    * This function will wait until listen any change in contacts
@@ -234,7 +246,20 @@
 
 
       function saveContactHandler(event) {
-        var contact = utils.misc.toMozContact(event.detail);
+        var contact;
+        var preContact = event.detail;
+        if (_contact) {
+          var readOnly = ['id', 'updated', 'published'];
+          for (var field in _contact) {
+            if (readOnly.indexOf(field) == -1) {
+              _contact[field] = preContact[field];
+            }
+          }
+
+          contact = _contact;
+        } else {
+          contact = utils.misc.toMozContact(preContact);
+        }
         LazyLoader.load(
           [
             '/contacts/style/match_service.css',
@@ -246,13 +271,27 @@
           }
         );
       }
+      
       window.addEventListener(
         'save-contact',
         saveContactHandler
       );
+
+      window.addEventListener(
+        'delete-contact',
+        function() {
+          doRemove(_contact);
+        }
+      );
     },
     setActivity: function(activity) {
       _activity = activity;
+    },
+    setContact: function(contact) {
+      _contact = contact;
+    },
+    set comesFromActivity(value) {
+      _comesFromActivity = value;
     }
   };
 }(window));

@@ -15,7 +15,6 @@ function Forms(client) {
  *                       (when setting multiple values)
  */
 Forms.prototype.fill = function(elem, value, done) {
-
   elem.tagName(function(err, tagName) {
     if (tagName === 'form') {
       setValues(elem, value, done);
@@ -51,15 +50,18 @@ function setValue(elem, value, done) {
 function setValues(form, values, done) {
   var keys = Object.keys(values);
   var setCount = keys.length;
-  function setKey() {
+  var setKey = function() {
     setCount--;
     if (setCount === 0) {
       done && done();
     }
-  }
+  };
 
   keys.forEach(function(key) {
     form.findElement('[name="' + key + '"]', function(err, elem) {
+      if (err) {
+        return;
+      }
       setValue(elem, values[key], setKey);
     });
   });

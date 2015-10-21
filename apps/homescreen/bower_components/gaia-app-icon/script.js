@@ -46,6 +46,28 @@ window.GaiaAppIcon = (function(exports) {
       this._predefinedIcons[key] = baseurl + 'images/' + PREDEFINED_ICONS[key];
     }
 
+    // Make the icon accessible/allow activation
+    this.tabIndex = 0;
+    this.setAttribute('role', 'link');
+
+    var activate = () => {
+      if (!this.dispatchEvent(new CustomEvent('activated',
+                                              { cancelable: true }))) {
+        return;
+      }
+      this.launch();
+    }
+
+    this.addEventListener('keydown', (e) => {
+      switch (e.keyCode) {
+        case 32: // Space
+        case 13: // Enter
+          activate();
+      }
+    });
+    this.addEventListener('click', activate);
+
+    // Refresh now we've created the DOM
     this.refresh();
   };
 
@@ -395,13 +417,25 @@ window.GaiaAppIcon = (function(exports) {
         (shortName) => {
           this._subtitle.textContent = this._localizeString(shortName);
         },
-        this.app.getLocalizedValue.bind(this.app, 'name', userLang, ep)).then(
+        () => {
+          this.app.getLocalizedValue('name', userLang, ep).then(
           (name) => {
             this._subtitle.textContent = this._localizeString(name);
           },
           (e) => {
-            console.error('Error retrieving app name', e);
+            // Try to fall back to manifest app name
+            var manifest = this.app.manifest || this.app.updateManifest;
+            if (manifest) {
+              var nameObject = (manifest.entry_points && this.entryPoint) ?
+                manifest.entry_points[this.entryPoint] : manifest;
+              this._subtitle.textContent =
+                this._localizeString(nameObject.short_name || nameObject.name);
+            } else {
+              console.error('Error retrieving app name', e);
+              this._subtitle.textContent = '';
+            }
           });
+        });
     } else if (this.bookmark) {
       this._subtitle.textContent = this.bookmark.name;
     } else {

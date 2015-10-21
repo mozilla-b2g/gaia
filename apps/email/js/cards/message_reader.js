@@ -17,8 +17,7 @@ var MimeMapper,
     ConfirmDialog = require('confirm_dialog'),
     date = require('date'),
     toaster = require('toaster'),
-    model = require('model'),
-    headerCursor = require('header_cursor').cursor,
+    HeaderCursor = require('header_cursor'),
     evt = require('evt'),
     iframeShims = require('iframe_shims'),
     Marquee = require('marquee'),
@@ -61,7 +60,7 @@ function sendActivity(obj) {
 }
 
 return [
-  require('./base')(require('template!./message_reader.html')),
+  require('./base_card')(require('template!./message_reader.html')),
   {
     createdCallback: function() {
       // The body elements for the (potentially multiple) iframes we created to
@@ -88,16 +87,20 @@ return [
       this.handleBodyChange = this.handleBodyChange.bind(this);
       this.onMessageSuidNotFound = this.onMessageSuidNotFound.bind(this);
       this.onCurrentMessage = this.onCurrentMessage.bind(this);
+    },
+
+    onArgs: function(args) {
+      this.model = args.model;
+      this.messageSuid = args.messageSuid;
+
+      var headerCursor = this.headerCursor = args.headerCursor ||
+                                             new HeaderCursor(this.model);
 
       headerCursor.on('messageSuidNotFound', this.onMessageSuidNotFound);
       headerCursor.latest('currentMessage', this.onCurrentMessage);
 
       // This should handle the case where we jump right into the reader.
       headerCursor.setCurrentMessage(this.header);
-    },
-
-    onArgs: function(args) {
-      this.messageSuid = args.messageSuid;
     },
 
     _contextMenuType: {
@@ -179,7 +182,7 @@ return [
      * @param {Event} event previous arrow click event.
      */
     onPrevious: function(event) {
-      headerCursor.advance('previous');
+      this.headerCursor.advance('previous');
     },
 
     /**
@@ -188,7 +191,7 @@ return [
      * @param {Event} event next arrow click event.
      */
     onNext: function(event) {
-      headerCursor.advance('next');
+      this.headerCursor.advance('next');
     },
 
     onMessageSuidNotFound: function(messageSuid) {
@@ -271,15 +274,21 @@ return [
 
     reply: function() {
       cards.eatEventsUntilNextCard();
-      var composer = this.header.replyToMessage(null, function() {
-        cards.pushCard('compose', 'animate', { composer: composer });
+      var composer = this.header.replyToMessage(null, () => {
+        cards.pushCard('compose', 'animate', {
+          model: this.model,
+          composer: composer
+        });
       });
     },
 
     replyAll: function() {
       cards.eatEventsUntilNextCard();
-      var composer = this.header.replyToMessage('all', function() {
-        cards.pushCard('compose', 'animate', { composer: composer });
+      var composer = this.header.replyToMessage('all', () => {
+        cards.pushCard('compose', 'animate', {
+          model: this.model,
+          composer: composer
+        });
       });
     },
 
@@ -289,8 +298,11 @@ return [
 
       var forwardMessage = (function() {
         cards.eatEventsUntilNextCard();
-        var composer = this.header.forwardMessage('inline', function() {
-          cards.pushCard('compose', 'animate', { composer: composer });
+        var composer = this.header.forwardMessage('inline', () => {
+          cards.pushCard('compose', 'animate', {
+            model: this.model,
+            composer: composer
+          });
         });
       }.bind(this));
 
@@ -318,7 +330,7 @@ return [
     canReplyAll: function() {
       // If any e-mail is listed as 'to' or 'cc' and doesn't match this
       // user's account, 'Reply All' should be enabled.
-      var myAddresses = model.account.identities.map(function(ident) {
+      var myAddresses = this.model.account.identities.map(function(ident) {
         return ident.address;
       });
 
@@ -401,7 +413,7 @@ return [
 
     onMove: function() {
       //TODO: Please verify move functionality after api landed.
-      cards.folderSelector(function(folder) {
+      cards.folderSelector(this.model, function(folder) {
         var op = this.header.moveMessage(folder);
         cards.removeCardAndSuccessors(this, 'animate');
         toaster.toastOperation(op);
@@ -456,6 +468,7 @@ return [
           // and easily undone, so we don't show them as toaster actions.
           case 'msg-contact-menu-new':
             cards.pushCard('compose', 'animate', {
+              model: this.model,
               composerData: {
                 message: this.header,
                 onComposer: function(composer) {
@@ -514,9 +527,11 @@ return [
             break;
           case 'msg-contact-menu-reply':
             //TODO: We need to enter compose view with specific email address.
-            var composer = this.header.replyToMessage(null, function() {
-              cards.pushCard('compose', 'animate',
-                             { composer: composer });
+            var composer = this.header.replyToMessage(null, () => {
+              cards.pushCard('compose', 'animate', {
+                model: this.model,
+                composer: composer
+              });
             });
             break;
         }
@@ -764,18 +779,19 @@ return [
         // clapping?
         var data = queryURI(linkUrl);
         cards.pushCard('compose', 'animate', {
+          model: this.model,
           composerData: {
-            onComposer: function(composer, composeCard) {
+            onComposer: (composer, composeCard) => {
               // Copy the to, cc, bcc, subject, body to the compose.
               // It is OK to do this blind key copy since queryURI
               // explicitly only populates expected fields, does not
               // blindly accept input from the outside, and the queryURI
               // properties match the property names allowed on composer.
-              Object.keys(data).forEach(function(key) {
+              Object.keys(data).forEach((key) => {
                 if (key === 'to' || key === 'cc' || key === 'bcc') {
-                  composer[key] = data[key].map(function(addr) {
-                    return model.api.parseMailbox(addr).address;
-                  }).filter(function(value) {
+                  composer[key] = data[key].map((addr) => {
+                    return this.model.api.parseMailbox(addr).address;
+                  }).filter((value) => {
                     // Filter out nulls if address parsing failed.
                     return value;
                   });
@@ -835,7 +851,7 @@ return [
           node.setAttribute('class', cname);
         }
 
-        var subnodes = model.api.utils.linkifyPlain(rep[i + 1], document);
+        var subnodes = this.model.api.utils.linkifyPlain(rep[i + 1], document);
         for (var iNode = 0; iNode < subnodes.length; iNode++) {
           node.appendChild(subnodes[iNode]);
         }
@@ -1016,7 +1032,7 @@ return [
           var iframe = iframeShim.iframe;
           var bodyNode = iframe.contentDocument.body;
           this.iframeResizeHandler = iframeShim.resizeHandler;
-          model.api.utils.linkifyHTML(iframe.contentDocument);
+          this.model.api.utils.linkifyHTML(iframe.contentDocument);
           this.htmlBodyNodes.push(bodyNode);
 
           if (body.checkForExternalImages(bodyNode)) {
@@ -1161,6 +1177,7 @@ return [
     },
 
     die: function() {
+      var headerCursor = this.headerCursor;
       headerCursor.removeListener('messageSuidNotFound',
                                   this.onMessageSuidNotFound);
       headerCursor.removeListener('currentMessage', this.onCurrentMessage);

@@ -16,7 +16,7 @@ task:
       NODE_MODULES_SRC: npm-cache
 
     cache:
-      gaia-misc-caches: /home/tester/caches/
+      gaia-misc-caches: /home/worker/caches/
 
     command:
       - entrypoint

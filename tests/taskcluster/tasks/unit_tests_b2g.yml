@@ -13,7 +13,7 @@ task:
 
   payload:
     cache:
-      gaia-misc-caches: /home/tester/caches/
+      gaia-misc-caches: /home/worker/caches/
 
     # Chunking logic is handled in ci/unit-tests-in-b2g/script
     env:

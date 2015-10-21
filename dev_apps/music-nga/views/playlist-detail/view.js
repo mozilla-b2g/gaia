@@ -1,4 +1,5 @@
-/* global threads, View */
+/* global bridge, View */
+'use strict';
 
 var debug = 1 ? (...args) => console.log('[PlaylistDetailView]', ...args) : () => {};
 
@@ -7,8 +8,7 @@ var PlaylistDetailView = View.extend(function PlaylistDetailView() {
 
   this.content = document.getElementById('content');
 
-  this.client = threads.client('music-service', window.parent);
-
+  this.client = bridge.client({ service: 'music-service', endpoint: window.parent });
   this.client.on('databaseChange', () => this.update());
 
   this.update();
@@ -21,9 +21,11 @@ PlaylistDetailView.prototype.update = function() {
   });
 };
 
-// PlaylistDetailView.prototype.destroy = function() {
-//   View.prototype.destroy.call(this); // super(); // Always call *last*
-// };
+PlaylistDetailView.prototype.destroy = function() {
+  this.client.destroy();
+
+  View.prototype.destroy.call(this); // super(); // Always call *last*
+};
 
 PlaylistDetailView.prototype.title = 'Playlists';
 
@@ -36,8 +38,7 @@ PlaylistDetailView.prototype.render = function() {
     var template =
 `<a is="music-list-item"
     href="/player?id=${song.name}"
-    title="${song.title}"
-    thumbnail="/api/artwork/thumbnail${song.name}">
+    title="${song.title}">
 </a>`;
 
     html += template;

@@ -4,7 +4,7 @@ homescreen is the primary homescreen implementation for FirefoxOS 2.5, that leve
 
 ## Requirements
 
-homescreen requires a version of FirefoxOS >= 2.5, and that web components are enabled. This can be done by enabling the device preference `dom.webcomponents.enabled`. See Bug 1181555 for tracking the progress of allowing non-certified apps to use web components.
+homescreen requires a version of FirefoxOS >= 2.5, and a version of Gecko that has the patches in Bug 1181555 landed (for usage of web components in a privileged app).
 
 ## Installing and running
 

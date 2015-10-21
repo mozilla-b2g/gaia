@@ -189,7 +189,14 @@
           }
           break;
         case 'home':
-          this.showHomeApp();
+          if (this._underlayApp && !this.landingAppLauncher.hasLandingApp) {
+            // If we don't have landing app, pressing home key should switch
+            // between underlayApp and homescreen.
+            AppWindowManager.display(this._underlayApp);
+          }
+          else {
+            this.showHomeApp();
+          }
           break;
         case 'landing-app-ready':
         case 'homescreen-ready':

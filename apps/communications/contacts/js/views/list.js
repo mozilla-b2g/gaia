@@ -207,6 +207,16 @@ contacts.List = (function() {
       resetDom();
     }
 
+    window.addEventListener('list-shown', function() {
+      if (!loading) {
+        return;
+      }
+      
+      ContactsService.resume(function isRendered(contact) {
+        return !!loadedContacts[contact.id];
+      });
+    });
+
     createPhotoTemplate();
 
     Cache.oneviction = onCacheEvicted;
@@ -1593,14 +1603,9 @@ contacts.List = (function() {
       return;
     }
 
-    // Passed an ID, so look up contact
-    LazyLoader.load([
-     '/contacts/js/fb/fb_init.js',
-     '/contacts/js/fb_loader.js'
-    ], () => {
-      ContactsService.get(idOrContact, function(contact) {
-        refreshContact(contact, null, callback);
-      });
+
+    ContactsService.get(idOrContact, function(contact) {
+      refreshContact(contact, null, callback);
     });
   };
 

@@ -48,8 +48,8 @@ marionette('Vertical Home - Packaged App Resuming Downloads', function() {
   test('failed state then retry and launch', function() {
     client.switchToFrame();
 
-    appInstall.installPackage(server.packageManifestURL);
     server.cork(server.applicationZipUri);
+    appInstall.installPackage(server.packageManifestURL);
 
     client.switchToFrame(system.getHomescreenIframe());
 

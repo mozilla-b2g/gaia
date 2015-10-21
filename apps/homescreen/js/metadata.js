@@ -71,7 +71,7 @@
       });
     },
 
-    get: function() {
+    getAll: function() {
       return new Promise((resolve, reject) => {
         var results = [];
         var order_txn = this.db.transaction([DB_ORDER_STORE], 'readonly');

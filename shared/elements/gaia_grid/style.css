@@ -44,6 +44,7 @@
   text-align: center;
   background: no-repeat top center;
   z-index: 3;
+  outline: 0;
 }
 
 .icon.launching {

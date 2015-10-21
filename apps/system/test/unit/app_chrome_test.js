@@ -577,6 +577,20 @@ suite('system/AppChrome', function() {
       assert.equal(subject.scrollable.scrollTop, 0);
       stubIsBrowser.restore();
     });
+
+    test('pinned attribute changes on locationchange', function() {
+      fakeSearchApp.chrome.pinned = true;
+      fakeSearchApp.chrome.url = 'http://aaa.com';
+      var app = new AppWindow(fakeSearchApp);
+      this.sinon.stub(app, 'isBrowser').returns(true);
+      var chrome = new AppChrome(app);
+      chrome.handleLocationChange();
+      assert.isTrue(chrome.pinned);
+
+      app.config.url = 'http://test.com';
+      chrome.handleLocationChange();
+      assert.isFalse(chrome.pinned);
+    });
   });
 
   suite('Maximized', function() {

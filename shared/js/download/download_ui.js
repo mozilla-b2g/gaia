@@ -121,8 +121,7 @@ var DownloadUI = (function() {
 
   function addConfirm() {
     if (confirm !== null) {
-      confirm.innerHTML = '';
-      return;
+      confirm.parentNode.removeChild(confirm);
     }
 
     confirm = document.createElement('form');
@@ -132,7 +131,9 @@ var DownloadUI = (function() {
     confirm.setAttribute('data-z-index-level', '100');
 
     var screen = document.getElementById('screen');
-    screen.appendChild(confirm);
+    var container = screen || document.body;
+
+    container.appendChild(confirm);
   }
 
   function removeConfirm() {

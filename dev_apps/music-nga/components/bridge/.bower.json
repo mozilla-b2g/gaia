@@ -1,0 +1,28 @@
+{
+  "name": "bridge",
+  "main": "bridge.js",
+  "authors": [
+    "Wilson Page <wilsonpage@me.com>"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "README.md",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests",
+    "docs",
+    "examples"
+  ],
+  "homepage": "https://github.com/gaia-components/bridge",
+  "_release": "215b791a8b",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "215b791a8b409d80047e83da9da510e9a69a8277"
+  },
+  "_source": "git://github.com/gaia-components/bridge.git",
+  "_target": "master",
+  "_originalSource": "gaia-components/bridge"
+}

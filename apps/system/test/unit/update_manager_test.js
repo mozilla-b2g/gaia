@@ -7,6 +7,9 @@
           MockNavigatorWakeLock, MockNotificationScreen,
           MockSettingsListener, MockSystemBanner, MockSystemUpdatable */
 
+require('/shared/js/component_utils.js');
+require('/shared/elements/gaia_checkbox/script.js');
+
 requireApp('system/js/update_manager.js');
 
 requireApp('system/test/unit/mock_app.js');
@@ -1044,11 +1047,11 @@ suite('system/UpdateManager', function() {
       suite('with no checkbox checked', function() {
         setup(function() {
           var dialog = UpdateManager.downloadDialogList;
-          var checkboxes = dialog.querySelectorAll('input[type="checkbox"]');
+          var checkboxes = dialog.querySelectorAll('gaia-checkbox');
           for (var i = 0; i < checkboxes.length; i++) {
             var checkbox = checkboxes[i];
             if (checkbox.checked) {
-              checkbox.click();
+              checkbox.checked = false;
             }
           }
 
@@ -1080,11 +1083,13 @@ suite('system/UpdateManager', function() {
 
           setup(function() {
             dialog = UpdateManager.downloadDialogList;
-            var checkboxes = dialog.querySelectorAll('input[type="checkbox"]');
+            var checkboxes = dialog.querySelectorAll('gaia-checkbox');
             for (var i = 0; i < checkboxes.length; i++) {
               var checkbox = checkboxes[i];
               if (checkbox.checked) {
-                checkboxes[i].click();
+                checkboxes[i].checked = false;
+                // Trigger an onchange event.
+                UpdateManager.updateDownloadButton();
               }
             }
 
@@ -1097,8 +1102,9 @@ suite('system/UpdateManager', function() {
 
           suite('then checking one back', function() {
             setup(function() {
-              var checkbox = dialog.querySelector('input[type="checkbox"]');
-              checkbox.click();
+              var checkbox = dialog.querySelector('gaia-checkbox');
+              checkbox.checked = !checkbox.checked;
+              UpdateManager.updateDownloadButton();
             });
 
             test('should enable the download button back', function() {
@@ -1118,7 +1124,7 @@ suite('system/UpdateManager', function() {
 
             test('should check all checkboxes', function() {
               var checkboxes = dialog.querySelectorAll(
-                'input[type="checkbox"]'
+                'gaia-checkbox'
               );
               for (var i = 0; i < checkboxes.length; i++) {
                 var checkbox = checkboxes[i];
@@ -1255,12 +1261,11 @@ suite('system/UpdateManager', function() {
             var item = UpdateManager.downloadDialogList.children[1];
             assert.include(item.textContent, '413.53 kB');
 
-            var name = item.querySelector('div.name');
+            var name = item.querySelector('span.name');
             assert.equal(name.textContent, 'Angry birds');
             assert.isUndefined(name.dataset.l10nId);
 
-            var checkbox = item.querySelector('input');
-            assert.equal(checkbox.type, 'checkbox');
+            var checkbox = item.querySelector('gaia-checkbox');
             assert.isTrue(checkbox.checked);
             assert.equal(checkbox.dataset.position, '1');
           });
@@ -1269,12 +1274,11 @@ suite('system/UpdateManager', function() {
           function() {
             var item = UpdateManager.downloadDialogList.children[2];
 
-            var name = item.querySelector('div.name');
+            var name = item.querySelector('span.name');
             assert.equal(name.textContent, 'Twitter');
             assert.isUndefined(name.dataset.l10nId);
 
-            var checkbox = item.querySelector('input');
-            assert.equal(checkbox.type, 'checkbox');
+            var checkbox = item.querySelector('gaia-checkbox');
             assert.isTrue(checkbox.checked);
             assert.equal(checkbox.dataset.position, '2');
           });

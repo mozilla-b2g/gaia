@@ -10,8 +10,11 @@ function Bookmark(client) {
   this.system = client.loader.getAppClass('system');
 }
 
+Bookmark.URL = 'app://bookmark.gaiamobile.org';
+
 Bookmark.prototype = {
 
+  URL: Bookmark.URL,
   Selectors: {
     'bookmarkAddButton': '#done-button',
     'bookmarkTitle': '#bookmark-title',
@@ -19,11 +22,12 @@ Bookmark.prototype = {
     'appInstallationSection': '#app-installation',
     'installAppButton': '#install-app-button',
     'appName': '#app-name',
-    'appIcon': '#app-icon'
+    'appIcon': '#app-icon',
+    'removeButton': '#remove-action'
   },
 
   get addButton() {
-    return this.client.findElement(
+    return this.client.helper.waitForElement(
       this.Selectors.bookmarkAddButton);
   },
 
@@ -52,12 +56,29 @@ Bookmark.prototype = {
       this.Selectors.appIcon);
   },
 
+  get removeButton() {
+    return this.client.helper.waitForElement(
+      this.Selectors.removeButton);
+  },
+
   /**
    * Switches to the bookmark activity and adds the current bookmark.
    * Switches back to the system app upon completion.
    */
   add: function() {
     this.client.switchToFrame(this.currentTabFrame);
+
+    var selectors = this.Selectors;
+    var client = this.client.scope({ searchTimeout: 100 });
+    client.waitFor(function() {
+      try {
+        var text = client.findElement(selectors.bookmarkTitle).scriptWith(
+          function(el) { return el.value; });
+        return text.length > 0;
+      } catch(e) {
+        return false;
+      }
+    }.bind(this));
     this.addButton.click();
 
     this.client.switchToFrame();
@@ -72,7 +93,16 @@ Bookmark.prototype = {
     this.rocketbar.homescreenFocus();
     this.rocketbar.enterText(url, true);
 
-    this.system.appChromeContextLink.click();
+    this.client.scope({ searchTimeout: 100 }).waitFor(function() {
+      this.client.switchToFrame();
+      try {
+        this.client.findElement(
+          this.system.Selector.appChromeContextLink).tap();
+      } catch(e) {
+        return false;
+      }
+      return true;
+    }.bind(this));
     this.system.appChromeContextMenuBookmark.click();
 
     this.add();

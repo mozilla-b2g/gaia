@@ -11,8 +11,8 @@ var mozL10n = require('l10n!'),
     activityComposerData = require('activity_composer_data'),
     cards = require('cards'),
     evt = require('evt'),
-    model = require('model'),
-    headerCursor = require('header_cursor').cursor,
+    model = require('model_create').defaultModel,
+    HeaderCursor = require('header_cursor'),
     htmlCache = require('html_cache'),
     waitingRawActivity, activityCallback;
 
@@ -23,7 +23,9 @@ require('wake_locks');
 var started = false;
 
 function pushStartCard(id, addedArgs) {
-  var args = {};
+  var args = {
+    model: model
+  };
 
   // Mix in addedArgs to the args object that is passed to pushCard. Use a new
   // object in case addedArgs is reused again by the caller.
@@ -56,7 +58,8 @@ function pushStartCard(id, addedArgs) {
 // Handles visibility changes: if the app becomes visible after starting up
 // hidden because of a request-sync, start showing some UI.
 document.addEventListener('visibilitychange', function onVisibilityChange() {
-  if (!document.hidden && !started) {
+  if (!document.hidden && !started &&
+      startupData && startupData.entry === 'request-sync') {
     pushStartCard('message_list');
   }
 }, false);
@@ -175,6 +178,7 @@ evt.on('apiBadLogin', function(account, problem, whichSide) {
 // Start init of main view/model modules now that all the registrations for
 // top level events have happened, and before triggering of entry points start.
 cards.init();
+
 // If config could have already started up the model if there was no cache set
 // up, so only trigger init if it is not already started up, for efficiency.
 if (!model.inited) {
@@ -241,10 +245,12 @@ var startupData = globalOnAppMessage({
         if (type === 'message_list') {
           pushStartCard('message_list', {});
         } else if (type === 'message_reader') {
+          var headerCursor = new HeaderCursor(model);
           headerCursor.setCurrentMessageBySuid(data.messageSuid);
 
           pushStartCard(type, {
-              messageSuid: data.messageSuid
+              messageSuid: data.messageSuid,
+              headerCursor: headerCursor
           });
         } else {
           console.error('unhandled notification type: ' + type);

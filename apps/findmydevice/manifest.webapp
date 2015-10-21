@@ -23,7 +23,8 @@
     "power":{},
     "push": {},
     "settings":{ "access": "readwrite" },
-    "systemXHR": {}
+    "systemXHR": {},
+    "moz-extremely-unstable-and-will-change-webcomponents":{}
   },
   "locales": {
     "en-US": {

@@ -2,7 +2,7 @@
 var debug = require('debug')('marionette:tcp-sync-test-server');
 var net = require('net');
 
-var response = '53:{"from":"root","applicationType":"gecko","traits":[]}';
+var response = '54:{"applicationType": "gecko", "marionetteProtocol": 2}';
 
 var server = net.createServer(function(connection) { //'connection' listener
   debug('server connected');

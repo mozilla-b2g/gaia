@@ -28,7 +28,7 @@ Camera.prototype = {
     gridSettings: '.test-grid-setting',
     selfTimerSettings: '.test-self-timer-setting',
     selfTimer2SecondsOption: '.setting-option[data-key=secs2]',
-    selfTimerCountDown : '.timer',
+    selfTimerCountDown : '.countdown',
     notification: '.notification li',
     grid: '.viewfinder-grid',
     zoomBar: '.zoom-bar',

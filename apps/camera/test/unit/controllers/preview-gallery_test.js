@@ -137,6 +137,8 @@ suite('controllers/preview-gallery', function() {
       this.previewGalleryController.currentItemIndex = 0;
       this.previewGalleryController.shareCurrentItem();
 
+      assert.ok(this.app.emit.calledWith('busy', 'resizingImage'));
+
       // Get first argument, of first call
       var arg = window.MozActivity.args[0][0];
 
