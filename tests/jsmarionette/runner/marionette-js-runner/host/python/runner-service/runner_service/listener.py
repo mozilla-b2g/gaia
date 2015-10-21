@@ -128,7 +128,6 @@ class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         handler = runner_handlers[options['buildapp']](**handler_args)
         handler.start_runner(binary, options)
 
-        print "Started runner with id = {0}".format(start_id)
         self.REQUESTS[start_id] = handler
 
         return { 'id': start_id }

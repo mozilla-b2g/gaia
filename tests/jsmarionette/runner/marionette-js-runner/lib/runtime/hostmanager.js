@@ -100,7 +100,7 @@ HostManager.prototype = {
           driverInstance = new driver({
             port: createdProfileConfig.port,
             // XXX: make configurable
-            connectionTimeout: (60 * 1000) * 5 // 5 minutes
+            connectionTimeout: (60 * 1000) * 3 // 3 minutes
           });
 
           return Promise.denodeify(
@@ -144,7 +144,9 @@ HostManager.prototype = {
       }
 
       var deleteSession = Promise.denodeify(client.deleteSession.bind(client));
-      return deleteSession();
+      return deleteSession().then(function() {
+        return session.destroy();
+      });
     });
 
     suiteTeardown(function() {
