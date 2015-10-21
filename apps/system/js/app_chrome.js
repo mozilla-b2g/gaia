@@ -423,11 +423,10 @@
   };
 
   AppChrome.prototype.getSiteUrl = function() {
-    var pageUrl = this.app.config.url;
+    var pageUrl = new URL(this.app.config.url);
     var webManifest = this.app.webManifest;
-    var startURL = (webManifest && this.app.webManifest.start_url) ?
-      new URL(this.app.webManifest.start_url, pageUrl) : null;
-    return startURL ? startURL.href : pageUrl;
+    var startURL = webManifest && webManifest.start_url;
+    return startURL || pageUrl.origin;
   };
 
   /**

@@ -20,7 +20,7 @@ marionette('Pinning the Web', function() {
     }
   });
 
-  var rocketbar, server, system, actions, home, pinTheWeb;
+  var rocketbar, server, system, actions, home, pinTheWeb, origin;
 
   suiteSetup(function(done) {
     Server.create(__dirname + '/fixtures/', function(err, _server) {
@@ -40,7 +40,17 @@ marionette('Pinning the Web', function() {
     pinTheWeb = new PinTheWeb(client);
     system.waitForFullyLoaded();
     actions = client.loader.getActions();
+    origin = 'http://localhost:' + server.port;
   });
+
+  function lastIconMatches(id) {
+    system.tapHome();
+    client.switchToFrame(system.getHomescreenIframe());
+    client.waitFor(function() {
+      var ids = home.getIconIdentifiers();
+      return id == ids[ids.length - 1];
+    });
+  }
 
   test('Pin site', function() {
     // Count the current number of site icons
@@ -81,14 +91,24 @@ marionette('Pinning the Web', function() {
   test('Unpin site', function() {
     var url, lastIconId;
 
-    function lastIconMatches(id) {
-      system.tapHome();
-      client.switchToFrame(system.getHomescreenIframe());
-      client.waitFor(function() {
-        var ids = home.getIconIdentifiers();
-        return id == ids[ids.length - 1];
-      });
-    }
+    system.tapHome();
+    client.switchToFrame(system.getHomescreenIframe());
+    client.waitFor(function() {
+      var ids = home.getIconIdentifiers();
+      lastIconId = ids[ids.length - 1];
+      return lastIconId;
+    });
+    client.switchToFrame();
+    url = server.url('sample.html');
+    pinTheWeb.openAndPinSiteFromBrowser(url);
+    lastIconMatches(origin);
+
+    pinTheWeb.openAndUnpinSiteFromBrowser(url);
+    lastIconMatches(lastIconId);
+  });
+
+  test('Unpin site from different url', function() {
+    var url, url2, lastIconId;
 
     system.tapHome();
     client.switchToFrame(system.getHomescreenIframe());
@@ -100,9 +120,10 @@ marionette('Pinning the Web', function() {
     client.switchToFrame();
     url = server.url('sample.html');
     pinTheWeb.openAndPinSiteFromBrowser(url);
-    lastIconMatches(url);
+    lastIconMatches(origin);
 
-    pinTheWeb.openAndUnpinSiteFromBrowser(url);
+    url2 = server.url('darkpage.html');
+    pinTheWeb.openAndUnpinSiteFromBrowser(url2);
     lastIconMatches(lastIconId);
   });
 
@@ -147,15 +168,6 @@ marionette('Pinning the Web', function() {
   suite.skip('Unpin site from doorhanger', function() {
     var url, lastIconId;
 
-    function lastIconMatches(id) {
-      system.tapHome();
-      client.switchToFrame(system.getHomescreenIframe());
-      client.waitFor(function() {
-        var ids = home.getIconIdentifiers();
-        return id == ids[ids.length - 1];
-      });
-    }
-
     setup(function() {
       system.tapHome();
       client.switchToFrame(system.getHomescreenIframe());
@@ -167,7 +179,7 @@ marionette('Pinning the Web', function() {
       client.switchToFrame();
       url = server.url('sample.html');
       pinTheWeb.openAndPinSite(url);
-      lastIconMatches(url);
+      lastIconMatches(origin);
     });
 
     test('Unpin site', function() {

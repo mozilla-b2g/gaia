@@ -1411,6 +1411,27 @@ suite('system/AppChrome', function() {
     });
   });
 
+  suite('getSiteUrl', function() {
+    var chrome;
+
+    setup(function() {
+      var app = new AppWindow(cloneConfig(fakeWebApp));
+      chrome = new AppChrome(app);
+    });
+
+    test('return start_url if provided', function() {
+      var startUrl = 'startUrl';
+      chrome.app.webManifest.start_url = startUrl;
+      var siteUrl = chrome.getSiteUrl();
+      assert(siteUrl === startUrl);
+    });
+
+    test('return current url origin if not start_url', function() {
+      var siteUrl = chrome.getSiteUrl();
+      assert(siteUrl === new URL(chrome.app.config.url).origin);
+    });
+  });
+
   suite('Default icon', function() {
     var chrome;
     var getIconPromise;
