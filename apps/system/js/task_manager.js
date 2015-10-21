@@ -289,6 +289,7 @@ TaskManager.prototype = {
       this.screenElement.classList.add('cards-view');
       this.element.classList.remove('from-home');
       this.scrollElement.style.overflowX = 'scroll';
+      this._isTransitioning = false;
     });
   },
 
@@ -339,6 +340,7 @@ TaskManager.prototype = {
       this.stack.forEach((app) => {
         this._removeApp(app);
       });
+      this._isTransitioning = false;
     }, 2000);
   },
 
@@ -584,7 +586,6 @@ TaskManager.prototype = {
       return;
     }
 
-    this._isTransitioning = false; // Done opening or closing.
     this._active = active;
     if (active) {
       this.publish('taskmanager-activated');

@@ -242,6 +242,23 @@ suite('system/TaskManager >', function() {
       clock.tick(TICK_SHOW_HIDE_MS);
     });
 
+    test('respondToHierarchyEvent should return true during waitForAppToClose',
+    (done) => {
+      tm.hide().then(() => {
+        var waitForAppToClose = TaskManagerUtils.waitForAppToClose;
+        TaskManagerUtils.waitForAppToClose = function() {
+          TaskManagerUtils.waitForAppToClose = waitForAppToClose;
+          assert.isTrue(tm.respondToHierarchyEvent({ type: 'home' }));
+          return Promise.resolve();
+        };
+
+        var show = tm.show();
+        clock.tick(TICK_SHOW_HIDE_MS);
+        return show;
+      }).then(done, done);
+      clock.tick(TICK_SHOW_HIDE_MS);
+    });
+
     test('Should not show if already showing', (done) => {
       var spyBeforeShow = spyEvent(window, 'cardviewbeforeshow');
       assert.isTrue(tm.isShown()); // (noting that we're already shown)
