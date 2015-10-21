@@ -1,4 +1,4 @@
-/* global MediaUtils,Sanitizer,VideoUtils */
+/* global MediaUtils,VideoUtils */
 /**
  * ThumbnailItem is view object for a single video data. It renders video with
  * ThumbnailItem.view. ThumbnailItem keeps the referenced video data, while
@@ -61,26 +61,6 @@ function ThumbnailItem(videoData) {
 
   render();
 
-  function convertToDOM(htmlText) {
-    // convert as DOM node
-    var dummyDiv = document.createElement('div');
-    dummyDiv.innerHTML = htmlText;
-
-    var domNode = dummyDiv.firstElementChild;
-
-    if (!domNode) {
-      throw new Error('the template does not contain any element');
-    }
-
-    _this.htmlNode = domNode;
-    // This is the element that displays the image blob
-    _this.posterNode = domNode.querySelector('.img');
-    _this.detailNode = domNode.querySelector('.details');
-    _this.titleNode = domNode.querySelector('.title');
-    _this.unwatchedNode = domNode.querySelector('.unwatched');
-    _this.sizeNode = domNode.querySelector('.size-text');
-  }
-
   // the main function to render everything to UI.
   function render() {
     // render title
@@ -96,13 +76,23 @@ function ThumbnailItem(videoData) {
     }
 
     // popular html text
-    var htmlText = ThumbnailItem.view({
+    var domNode = ThumbnailItem.view({
       'title': _this.data.metadata.title,
       'durationText': duration,
       'typeText': videoType
     });
 
-    convertToDOM(htmlText);
+    if (!domNode) {
+      throw new Error('the template does not contain any element');
+    }
+
+    _this.htmlNode = domNode;
+    // This is the element that displays the image blob
+    _this.posterNode = domNode.querySelector('.img');
+    _this.detailNode = domNode.querySelector('.details');
+    _this.titleNode = domNode.querySelector('.title');
+    _this.unwatchedNode = domNode.querySelector('.unwatched');
+    _this.sizeNode = domNode.querySelector('.size-text');
 
     // This  is the image blob we display for the video.
     // If the video is part-way played, we display the bookmark image.
@@ -137,20 +127,73 @@ function ThumbnailItem(videoData) {
 ThumbnailItem.titleMaxLines = 2;
 
 ThumbnailItem.view = function({title, durationText, typeText}) {
-  return Sanitizer.escapeHTML `<li class="thumbnail" role="option">
-      <div class="inner">
-        <div class="unwatched"></div>
-        <img class="img" role="presentation"></img>
-        <div class="details">
-          <span class="title">${title}</span>
-          <span class="duration-text after line-break">${durationText}</span>
-          <span class="size-type-group">
-            <span class="size-text after"></span>
-            <span class="type-text after">${typeText}</span>
-          </span>
-        </div>
-      </div>
-    </li>`;
+  // <li class="thumbnail" role="option">
+  //   <div class="inner">
+  //     <div class="unwatched"></div>
+  //     <img class="img" role="presentation"></img>
+  //     <div class="details">
+  //       <span class="title">${title}</span>
+  //       <span class="duration-text after line-break">${durationText}</span>
+  //       <span class="size-type-group">
+  //         <span class="size-text after"></span>
+  //         <span class="type-text after">${typeText}</span>
+  //       </span>
+  //     </div>
+  //   </div>
+  // </li>
+  var listItem = document.createElement('li');
+  listItem.classList.add('thumbnail');
+  listItem.setAttribute('role', 'option');
+
+  var divInner = document.createElement('div');
+  divInner.classList.add('inner');
+
+  var divUnwatched = document.createElement('div');
+  divUnwatched.classList.add('unwatched');
+
+  var image = document.createElement('img');
+  image.classList.add('img');
+  image.setAttribute('role', 'presentation');
+
+  var divDetails = document.createElement('div');
+  divDetails.classList.add('details');
+
+  var spanTitle = document.createElement('span');
+  spanTitle.classList.add('title');
+  spanTitle.textContent = title;
+
+  var spanDuration = document.createElement('span');
+  spanDuration.classList.add('duration-text');
+  spanDuration.classList.add('after');
+  spanDuration.classList.add('line-break');
+  spanDuration.textContent = durationText;
+
+  var spanSizeType = document.createElement('span');
+  spanSizeType.classList.add('size-type-group');
+
+  var spanSizeText = document.createElement('span');
+  spanSizeText.classList.add('size-text');
+  spanSizeText.classList.add('after');
+
+  var spanTypeText = document.createElement('span');
+  spanTypeText.classList.add('type-text');
+  spanTypeText.classList.add('after');
+  spanTypeText.textContent = typeText;
+
+  spanSizeType.appendChild(spanSizeText);
+  spanSizeType.appendChild(spanTypeText);
+
+  divDetails.appendChild(spanTitle);
+  divDetails.appendChild(spanDuration);
+  divDetails.appendChild(spanSizeType);
+
+  divInner.appendChild(divUnwatched);
+  divInner.appendChild(image);
+  divInner.appendChild(divDetails);
+
+  listItem.appendChild(divInner);
+
+  return listItem;
 };
 
 ThumbnailItem.prototype.addTapListener = function(listener) {
