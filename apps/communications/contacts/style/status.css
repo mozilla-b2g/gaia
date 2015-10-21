@@ -1,12 +1,12 @@
 #statusMsg {
   position: fixed;
-  -moz-transition: -moz-transform .5s ease;
-  -moz-transform: translateY(100%);
+  transition: transform .5s ease;
+  transform: translateY(100%);
   pointer-events: none;
 }
 
 #statusMsg.opening {
-  -moz-transform: translateY(0);
+  transform: translateY(0);
   z-index: 1001 !important;
 }
 
