@@ -1,0 +1,31 @@
+{
+  "name": "FTU",
+  "description": "First Time Experience",
+  "type": "certified",
+  "launch_path": "/index.html",
+  "role": "system",
+
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/mozilla-b2g/gaia"
+  },
+
+  "locales": {
+    "en-US": {
+      "name": "FTU",
+      "description": "First Time Experience"
+    }
+  },
+
+  "default_locale": "en-US",
+
+  "permissions": {
+    "themeable":{},
+    "settings":{ "access": "readwrite" },
+    "systemXHR": {},
+    "moz-extremely-unstable-and-will-change-webcomponents":{}
+  },
+
+  "orientation": "default"
+
+}
