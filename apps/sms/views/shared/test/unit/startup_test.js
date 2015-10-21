@@ -29,6 +29,7 @@ var mocksHelper = new MocksHelper([
 
 suite('Startup >', function() {
   var originalMozHasPendingMessage;
+  var readyState = 'complete';
 
   mocksHelper.attachTestHelpers();
 
@@ -59,30 +60,59 @@ suite('Startup >', function() {
     this.sinon.stub(Navigation, 'isDefaultPanel');
     this.sinon.stub(App, 'setReady');
     this.sinon.spy(Utils, 'initializeShimHost');
+    Object.defineProperty(document, 'readyState', {
+      get: () => readyState, configurable: true, enumerable: true
+    });
   });
 
-  test('if target panel is default one', function() {
-    Navigation.isDefaultPanel.returns(true);
+  teardown(function() {
+    // the "real" document.readyState is in the prototype chain.
+    delete document.readyState;
+  });
 
-    window.addEventListener.withArgs('DOMContentLoaded').yield();
+  suite('if target panel is default one,', function() {
+    setup(function() {
+      Navigation.isDefaultPanel.returns(true);
 
-    sinon.assert.calledWith(Utils.initializeShimHost, App.instanceId);
+      window.addEventListener.withArgs('DOMContentLoaded').yield();
+    });
 
-    // Navigate to Inbox immediately.
-    sinon.assert.callOrder(
-      Utils.initializeShimHost,
-      MessageManager.init,
-      InboxView.init,
-      Navigation.init,
-      InboxView.renderThreads
-    );
-    sinon.assert.notCalled(LazyLoader.load);
+    test('rendering threads right away', function() {
+      sinon.assert.calledWith(Utils.initializeShimHost, App.instanceId);
 
-    // First page of threads loaded
-    InboxView.once.withArgs('visually-loaded').yield();
+      // Navigate to Inbox immediately.
+      sinon.assert.callOrder(
+        Utils.initializeShimHost,
+        MessageManager.init,
+        InboxView.init,
+        Navigation.init,
+        InboxView.renderThreads
+      );
+      sinon.assert.notCalled(LazyLoader.load);
+    });
 
-    // Lazy load the rest of scripts only once first page of threads is loaded
-    sinon.assert.calledOnce(LazyLoader.load);
+    test('`load` event already happened', function() {
+      // First page of threads loaded
+      InboxView.once.withArgs('visually-loaded').yield();
+
+      // Lazy load the rest of scripts only once first page of threads is loaded
+      sinon.assert.calledOnce(LazyLoader.load);
+    });
+
+    test('`load` event didn\'t happen yet', function() {
+      readyState = 'interactive';
+
+      // First page of threads loaded
+      InboxView.once.withArgs('visually-loaded').yield();
+
+      // still not lazy loaded, we wait for the `load` event.
+      sinon.assert.notCalled(LazyLoader.load);
+
+      window.addEventListener.withArgs('load').yield();
+
+      // Lazy load the rest of scripts only once first page of threads is loaded
+      sinon.assert.calledOnce(LazyLoader.load);
+    });
   });
 
   test('if first panel is not default one', function() {
