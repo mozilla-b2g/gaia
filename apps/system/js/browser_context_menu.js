@@ -1,5 +1,5 @@
 /* global MozActivity, IconsHelper, LazyLoader */
-/* global applications, BaseModule, Service */
+/* global BaseModule, Service */
 
 (function(window) {
   'use strict';
@@ -243,12 +243,9 @@
       // For private windows we create an empty private app window.
       if (isPrivate) {
         window.dispatchEvent(new CustomEvent('new-private-window'));
-        return;
+      } else {
+        window.dispatchEvent(new CustomEvent('new-non-private-window'));
       }
-
-      // Else we open up the browser.
-      var newTabApp = applications.getByManifestURL(manifest);
-      newTabApp.launch();
     },
 
     showWindows: function(manifest) {

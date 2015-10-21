@@ -445,7 +445,7 @@ suite('system/AppChrome', function() {
   });
 
   suite('handleScrollAreaChanged', function() {
-    var app, chrome, appVisible, containerHeight, classListAddSpy;
+    var app, chrome, appVisible, containerHeight, classListAddSpy, event;
 
     setup(function() {
       app = new AppWindow(cloneConfig(fakeWebSite));
@@ -463,30 +463,40 @@ suite('system/AppChrome', function() {
       classListAddSpy =
         this.sinon.spy(chrome.containerElement.classList, 'add');
 
+      event = {
+        target: app.browser.element,
+        detail: { height: 200 }
+      };
       containerHeight = 100;
     });
 
     test('sets scrollable if browser height > container height', function() {
-      chrome.handleScrollAreaChanged({ detail: { height: 200 } });
+      chrome.handleScrollAreaChanged(event);
       assert.isTrue(chrome.containerElement.classList.contains('scrollable'));
     });
 
     test('does nothing if browser height <= container height', function() {
       containerHeight = 200;
-      chrome.handleScrollAreaChanged({ detail: { height: 200 } });
+      chrome.handleScrollAreaChanged(event);
       assert.isFalse(chrome.containerElement.classList.contains('scrollable'));
     });
 
     test('does nothing if container already scrollable', function() {
       chrome.containerElement.classList.add('scrollable');
 
-      chrome.handleScrollAreaChanged({ detail: { height: 200 } });
+      chrome.handleScrollAreaChanged(event);
       assert.isTrue(classListAddSpy.calledOnce);
     });
 
     test('does nothing if app not visible', function() {
       appVisible = false;
-      chrome.handleScrollAreaChanged({ detail: { height: 200 } });
+      chrome.handleScrollAreaChanged(event);
+      assert.isFalse(classListAddSpy.called);
+    });
+
+    test('does nothing if incorrect target', function() {
+      event.target = null;
+      chrome.handleScrollAreaChanged(event);
       assert.isFalse(classListAddSpy.called);
     });
   });
@@ -717,6 +727,33 @@ suite('system/AppChrome', function() {
       app.config.url = 'http://test.com';
       chrome.handleLocationChange();
       assert.isFalse(app.element.classList.contains('collapsible'));
+    });
+
+    test('it makes it collapsible again navigating away of a pin', function() {
+      var app, chrome, isPinned;
+      isPinned = true;
+
+      this.sinon.stub(Service, 'request', function() {
+        return {
+          then: function(callback) {
+            callback(isPinned);
+          }
+        };
+      });
+      fakeSearchApp.chrome.pinned = true;
+      fakeSearchApp.chrome.scrollable = true;
+      fakeSearchApp.chrome.url = 'http://aaa.com';
+      app = new AppWindow(fakeSearchApp);
+      this.sinon.stub(app, 'isBrowser').returns(true);
+      chrome = new AppChrome(app);
+      chrome.handleLocationChange();
+      assert.isTrue(chrome.pinned);
+      assert.isFalse(app.element.classList.contains('collapsible'));
+      isPinned = false;
+      app.config.url = 'http://blabla.com';
+      app.config.chrome.scrollable = true;
+      chrome.handleLocationChange();
+      assert.isTrue(app.element.classList.contains('collapsible'));
     });
   });
 

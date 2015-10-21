@@ -13,6 +13,10 @@ html, body {
   height: 0;
 }
 
+/* Default alignment in case a dir attribute is specified. */
+html[dir="ltr"] [dir] { text-align: left; }
+html[dir="rtl"] [dir] { text-align: right; }
+
 /*
   Override BB. Some CSS tweaks for having a better confirm readability
 */
@@ -210,9 +214,10 @@ form[role="dialog"][data-type="action"].contact-prompt > header {
 }
 
 .contact-header aside.pack-end {
-  float: right;
-  -moz-margin-end: -1.5rem; /* compensate the header's 3rem padding */
+  margin-inline-end: -1.5rem; /* compensate the header's 3rem padding */
 }
+html[dir="ltr"] .contact-header aside.pack-end { float: right; }
+html[dir="rtl"] .contact-header aside.pack-end { float: left; }
 
 .suggestion * {
   pointer-events: none;
@@ -244,12 +249,6 @@ html {
 
 .editable-select-mode [contenteditable="true"] {
   -moz-user-select: text;
-}
-
-/* RTL View */
-/* RTL for contact prompt header */
-html[dir="rtl"] .contact-header aside.pack-end {
-  float: left;
 }
 
 /* ellipsis direction hack before bug 883884 fixed */

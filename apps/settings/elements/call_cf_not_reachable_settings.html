@@ -1,7 +1,7 @@
 <element name="call-cf-not-reachable-settings" extends="section">
   <template>
 
-    <gaia-header ignore-dir>
+    <gaia-header>
       <button type="reset"><span data-icon="close" data-l10n-id="closeButton"></span></button>
       <h1 data-l10n-id="callForwarding-header"></h1>
       <button type="submit"><span data-l10n-id="ok"></span></button>
@@ -14,11 +14,10 @@
           <input type="tel" id="cf-notreachable-number" data-setting="ril.cf.notreachable.number"/>
         </li>
         <li>
-          <label class="pack-switch">
-            <input type="checkbox" data-setting="ril.cf.notreachable.enabled">
-            <span data-l10n-id="callForwardingForward"></span>
-            <small data-l10n-id="callForwardingNotReachableShort"></small>
-          </label>
+          <gaia-switch data-setting="ril.cf.notreachable.enabled">
+            <label data-l10n-id="callForwardingForward"></label>
+            <details data-l10n-id="callForwardingNotReachableShort"></details>
+          </gaia-switch>
         </li>
       </ul>
     </div>

@@ -2,6 +2,9 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+/* global ERROR_DIALOG_CLOSED_BY_USER */
+/* global ERROR_INVALID_SYNC_ACCOUNT */
+/* global ERROR_OFFLINE */
 /* global ERROR_UNVERIFIED_ACCOUNT */
 /* global LazyLoader */
 /* global mozIntl */
@@ -11,6 +14,7 @@ define(function(require) {
 
   var SettingsListener = require('shared/settings_listener');
   var SyncManagerBridge = require('modules/sync_manager_bridge');
+  var DialogService = require('modules/dialog_service');
 
   const LOGGED_OUT_SCREEN = 'loggedout';
   const LOGGED_IN_SCREEN = 'loggedin';
@@ -152,8 +156,34 @@ define(function(require) {
               this.showUnverified(message.user);
               return;
             }
-            this.showScreen(LOGGED_OUT_SCREEN);
-            this.clean();
+
+            const IGNORED_ERRORS = [
+              ERROR_DIALOG_CLOSED_BY_USER
+            ];
+
+            if (IGNORED_ERRORS.indexOf(message.error) > -1) {
+              return;
+            }
+
+            var errorMsg = 'fxsync-error-unknown';
+            var title;
+
+            const KNOWN_ERRORS = [
+              ERROR_INVALID_SYNC_ACCOUNT,
+              ERROR_OFFLINE
+            ];
+
+            if (KNOWN_ERRORS.indexOf(message.error) > -1) {
+              title = message.error;
+              errorMsg = message.error + '-explanation';
+            }
+
+            DialogService.alert(errorMsg, {
+              title: title
+            }).then(() => {
+              this.showScreen(LOGGED_OUT_SCREEN);
+              this.clean();
+            });
           });
           break;
       }

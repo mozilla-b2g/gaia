@@ -4,6 +4,9 @@
 /* Any copyright is dedicated to the Public Domain.
  * http://creativecommons.org/publicdomain/zero/1.0/ */
 
+/* global ERROR_DIALOG_CLOSED_BY_USER */
+/* global ERROR_INVALID_SYNC_ACCOUNT */
+/* global ERROR_OFFLINE */
 /* global ERROR_UNVERIFIED_ACCOUNT */
 /* global loadBodyHTML */
 /* global MockL10n */
@@ -20,16 +23,9 @@ require('/shared/test/unit/mocks/mock_moz_intl.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 
 suite('Firefox Sync panel >', () => {
-  var map = {
-    '*': {
-      'modules/settings_panel': 'unit/mock_settings_panel',
-      'shared/settings_listener': 'shared_mocks/mock_settings_listener',
-      'shared/lazy_loader': 'shared_mocks/mock_lazy_loader'
-    }
-  };
-
   var realMozIntl = null;
   var realMozL10n = null;
+  var realAddIdleObserver = null;
 
   const BOOKMARKS = 'sync.collections.bookmarks.enabled';
   const HISTORY   = 'sync.collections.history.enabled';
@@ -74,6 +70,7 @@ suite('Firefox Sync panel >', () => {
   }];
 
   // Global spies and stubs.
+  var alertSpy;
   var disableStub;
   var enableStub;
   var getInfoStub;
@@ -92,6 +89,7 @@ suite('Firefox Sync panel >', () => {
   var showLastSyncSpy;
   var showScreenSpy;
   var showSyncNowSpy;
+  var showUnverifiedSpy;
   var showUserSpy;
 
   function setSubjectSpiesAndStubs(subject) {
@@ -100,6 +98,7 @@ suite('Firefox Sync panel >', () => {
     showLastSyncSpy = sinon.spy(subject, 'showLastSync');
     showScreenSpy = sinon.spy(subject, 'showScreen');
     showSyncNowSpy = sinon.spy(subject, 'showSyncNow');
+    showUnverifiedSpy = sinon.spy(subject, 'showUnverified');
     showUserSpy = sinon.spy(subject, 'showUser');
   }
 
@@ -109,21 +108,70 @@ suite('Firefox Sync panel >', () => {
     showLastSyncSpy.restore();
     showScreenSpy.restore();
     showSyncNowSpy.restore();
+    showUnverifiedSpy.restore();
     showUserSpy.restore();
+  }
+
+  function setListenerSpies(subject, listenerSpies) {
+    LOGGED_IN_SCREEN_ELEMENTS.forEach(element => {
+      if (!element || !element.listener) {
+        return;
+      }
+      var spy = sinon.spy(subject, element.listener);
+      listenerSpies.set(element.name, spy);
+    });
+    LOGGED_OUT_SCREEN_ELEMENTS.forEach(element => {
+      if (!element || !element.listener) {
+        return;
+      }
+      var spy = sinon.spy(subject, element.listener);
+      listenerSpies.set(element.name, spy);
+    });
+  }
+
+  function restoreListenerSpies(listenerSpies) {
+    LOGGED_IN_SCREEN_ELEMENTS.forEach(element => {
+      if (!element || !element.listener) {
+        return;
+      }
+      var spy = listenerSpies.get(element.name);
+      spy.restore();
+      listenerSpies.delete(element.name);
+    });
+    LOGGED_OUT_SCREEN_ELEMENTS.forEach(element => {
+      var spy = listenerSpies.get(element.name);
+      spy.restore();
+      listenerSpies.delete(element.name);
+    });
   }
 
   suiteSetup(done => {
     loadBodyHTML('_firefox_sync.html');
 
+    realAddIdleObserver = navigator.addIdleObserver;
+    navigator.addIdleObserver = function() {};
+
+    var map = {
+      '*': {
+        'modules/dialog_service': 'unit/mock_dialog_service',
+        'modules/settings_panel': 'unit/mock_settings_panel',
+        'shared/settings_listener': 'shared_mocks/mock_settings_listener',
+        'shared/lazy_loader': 'shared_mocks/mock_lazy_loader'
+      }
+    };
+
     testRequire([
+      'modules/dialog_service',
       'modules/settings_panel',
       'shared/settings_listener',
       'modules/sync_manager_bridge',
       'panels/firefox_sync/panel',
       'shared_mocks/mock_lazy_loader',
-      'panels/firefox_sync/firefox_sync'
-    ], map, (MockSettingsPanel, MockSettingsListener,
-             SyncManagerBridge, Panel, MockLazyLoader, FirefoxSyncPanel) => {
+      'panels/firefox_sync/firefox_sync',
+    ], map, (MockDialogService,
+             MockSettingsPanel, MockSettingsListener,
+             SyncManagerBridge, Panel, MockLazyLoader,
+             FirefoxSyncPanel) => {
        MockSettingsPanel.mInnerFunction = (options) => {
         var obj = {};
         for (var key in options) {
@@ -137,6 +185,7 @@ suite('Firefox Sync panel >', () => {
       this.LazyLoader = MockLazyLoader;
       this.FirefoxSyncPanel = FirefoxSyncPanel;
 
+      alertSpy = this.sinon.spy(MockDialogService, 'alert');
       observeSpy = this.sinon.spy(MockSettingsListener, 'observe');
       getInfoStub = this.sinon.stub(SyncManagerBridge, 'getInfo', () => {
         return Promise.resolve();
@@ -156,6 +205,7 @@ suite('Firefox Sync panel >', () => {
   });
 
   suiteTeardown(() => {
+    alertSpy.restore();
     enableStub.restore();
     disableStub.restore();
     getInfoStub.restore();
@@ -163,6 +213,14 @@ suite('Firefox Sync panel >', () => {
     syncStub.restore();
     window.mozIntl = realMozIntl;
     window.mozL10n = realMozL10n;
+  });
+
+  teardown(() => {
+    alertSpy.reset();
+    enableStub.reset();
+    disableStub.reset();
+    getInfoStub.reset();
+    syncStub.reset();
   });
 
   suite('Initial state', () => {
@@ -287,67 +345,124 @@ suite('Firefox Sync panel >', () => {
     });
   });
 
-  ['disabled',
-   'errored'].forEach(state => {
-    suite('onsyncchange "' + state + '"', () => {
-      var subject;
+  suite('onsyncchange "disabled"', () => {
+    var subject;
 
-      var listenerSpies = new Map();
+    var listenerSpies = new Map();
 
-      suiteSetup(() => {
-        subject = suiteSetupCommon();
-        setSubjectSpiesAndStubs(subject);
-        LOGGED_OUT_SCREEN_ELEMENTS.forEach(element => {
-          if (!element || !element.listener) {
-            return;
-          }
-          var spy = this.sinon.spy(subject, element.listener);
-          listenerSpies.set(element.name, spy);
-        });
-        subject.onsyncchange({
-          state: state
-        });
+    suiteSetup(() => {
+      subject = suiteSetupCommon();
+      setSubjectSpiesAndStubs(subject);
+      setListenerSpies(subject, listenerSpies);
+      subject.onsyncchange({
+        state: 'disabled'
       });
+    });
 
-      suiteTeardown(() => {
-        subject = null;
-        restoreSubjectSpiesAndStubs();
-        LOGGED_OUT_SCREEN_ELEMENTS.forEach(element => {
-          var spy = listenerSpies.get(element.name);
-          spy.restore();
-          listenerSpies.delete(element.name);
-        });
+    suiteTeardown(() => {
+      subject = null;
+      restoreSubjectSpiesAndStubs();
+      restoreListenerSpies(listenerSpies);
+    });
+
+    test('onsyncchange disabled should show logged out screen', () => {
+      this.sinon.assert.calledOnce(showScreenSpy);
+      assert.equal(showScreenSpy.getCall(0).args[0], LOGGED_OUT_SCREEN);
+      this.sinon.assert.calledOnce(cleanSpy);
+      assert.ok(!subject.screens.loggedOut.hidden);
+      assert.ok(subject.screens.loggedIn.hidden);
+    });
+
+    test('Logged out screen elements should be defined', () => {
+      LOGGED_OUT_SCREEN_ELEMENTS.forEach(element => {
+        assert.ok(subject.elements[element.name]);
       });
+    });
 
-      test('onsyncchange ' + state + ' should show logged out screen', () => {
+    test('Logged in screen elements should NOT be defined', () => {
+      LOGGED_IN_SCREEN_ELEMENTS.forEach(element => {
+        assert.isNull(subject.elements[element.name]);
+      });
+    });
+
+    LOGGED_OUT_SCREEN_ELEMENTS.forEach(element => {
+      if (!element || !element.event) {
+        return;
+      }
+      test(element.name + ' ' + element.event + ' listener should be set',
+        () => {
+        subject.elements[element.name][element.event]();
+        var spy = listenerSpies.get(element.name);
+        this.sinon.assert.calledOnce(spy);
+      });
+    });
+  });
+
+  suite('onsyncchange "errored"', () => {
+    var subject;
+
+    var listenerSpies = new Map();
+
+    suiteSetup(() => {
+      subject = suiteSetupCommon();
+    });
+
+    suiteTeardown(() => {
+      subject = null;
+    });
+
+    setup(() => {
+      setSubjectSpiesAndStubs(subject);
+      setListenerSpies(subject, listenerSpies);
+    });
+
+    teardown(() => {
+      restoreSubjectSpiesAndStubs();
+      restoreListenerSpies(listenerSpies);
+    });
+
+    test('onsyncchange errored ERROR_INVALID_SYNC_ACCOUNT ' +
+         'should show logged out screen', () => {
+      subject.onsyncchange({
+        state: 'errored',
+        error: ERROR_INVALID_SYNC_ACCOUNT
+      });
+      setTimeout(() => {
         this.sinon.assert.calledOnce(showScreenSpy);
         assert.equal(showScreenSpy.getCall(0).args[0], LOGGED_OUT_SCREEN);
         this.sinon.assert.calledOnce(cleanSpy);
         assert.ok(!subject.screens.loggedOut.hidden);
         assert.ok(subject.screens.loggedIn.hidden);
-      });
-
-      test('Logged out screen elements should be defined', () => {
         LOGGED_OUT_SCREEN_ELEMENTS.forEach(element => {
           assert.ok(subject.elements[element.name]);
+          subject.elements[element.name][element.event]();
+          var spy = listenerSpies.get(element.name);
+          this.sinon.assert.calledOnce(spy);
         });
-      });
-
-      test('Logged in screen elements should NOT be defined', () => {
         LOGGED_IN_SCREEN_ELEMENTS.forEach(element => {
           assert.isNull(subject.elements[element.name]);
         });
       });
+    });
 
-      LOGGED_OUT_SCREEN_ELEMENTS.forEach(element => {
-        if (!element || !element.event) {
-          return;
-        }
-        test(element.name + ' ' + element.event + ' listener should be set',
-             () => {
-          subject.elements[element.name][element.event]();
-          var spy = listenerSpies.get(element.name);
-          this.sinon.assert.calledOnce(spy);
+    test('onsyncchange errored ERROR_UNVERIFIED_ACCOUNT ' +
+         'should show logged in screen', () => {
+      subject.onsyncchange({
+        state: 'errored',
+        error: ERROR_UNVERIFIED_ACCOUNT
+      });
+      setTimeout(() => {
+        this.sinon.assert.calledOnce(showScreenSpy);
+        assert.equal(showScreenSpy.getCall(0).args[0], LOGGED_IN_SCREEN);
+        this.sinon.assert.notCalled(cleanSpy);
+        this.sinon.assert.calledOnce(showUnverifiedSpy);
+        assert.ok(subject.screens.loggedOut.hidden);
+        assert.ok(!subject.screens.loggedIn.hidden);
+        LOGGED_IN_SCREEN_ELEMENTS.forEach(element => {
+          assert.ok(subject.elements[element.name]);
+        });
+        LOGGED_OUT_SCREEN_ELEMENTS.forEach(element => {
+          assert.isNull(subject.elements[element.name]);
         });
       });
     });
@@ -364,13 +479,7 @@ suite('Firefox Sync panel >', () => {
     suiteSetup(() => {
       subject = suiteSetupCommon();
       setSubjectSpiesAndStubs(subject);
-      LOGGED_IN_SCREEN_ELEMENTS.forEach(element => {
-        if (!element || !element.listener) {
-          return;
-        }
-        var spy = this.sinon.spy(subject, element.listener);
-        listenerSpies.set(element.name, spy);
-      });
+      setListenerSpies(subject, listenerSpies);
       subject.onsyncchange({
         state: 'enabled',
         user: email
@@ -380,14 +489,7 @@ suite('Firefox Sync panel >', () => {
     suiteTeardown(() => {
       subject = null;
       restoreSubjectSpiesAndStubs();
-      LOGGED_IN_SCREEN_ELEMENTS.forEach(element => {
-        if (!element || !element.listener) {
-          return;
-        }
-        var spy = listenerSpies.get(element.name);
-        spy.restore();
-        listenerSpies.delete(element.name);
-      });
+      restoreListenerSpies(listenerSpies);
     });
 
     test('onsyncchange enabled should show logged in screen', () => {
@@ -453,13 +555,7 @@ suite('Firefox Sync panel >', () => {
     suiteSetup(() => {
       subject = suiteSetupCommon();
       setSubjectSpiesAndStubs(subject);
-      LOGGED_IN_SCREEN_ELEMENTS.forEach(element => {
-        if (!element || !element.listener) {
-          return;
-        }
-        var spy = this.sinon.spy(subject, element.listener);
-        listenerSpies.set(element.name, spy);
-      });
+      setListenerSpies(subject, listenerSpies);
       subject.onsyncchange({
         state: 'syncing'
       });
@@ -468,14 +564,7 @@ suite('Firefox Sync panel >', () => {
     suiteTeardown(() => {
       subject = null;
       restoreSubjectSpiesAndStubs();
-      LOGGED_IN_SCREEN_ELEMENTS.forEach(element => {
-        if (!element || !element.listener) {
-          return;
-        }
-        var spy = listenerSpies.get(element.name);
-        spy.restore();
-        listenerSpies.delete(element.name);
-      });
+      restoreListenerSpies(listenerSpies);
     });
 
     test('onsyncchange syncing should show logged in screen', () => {
@@ -538,13 +627,7 @@ suite('Firefox Sync panel >', () => {
     suiteSetup(() => {
       subject = suiteSetupCommon();
       setSubjectSpiesAndStubs(subject);
-      LOGGED_IN_SCREEN_ELEMENTS.forEach(element => {
-        if (!element || !element.listener) {
-          return;
-        }
-        var spy = this.sinon.spy(subject, element.listener);
-        listenerSpies.set(element.name, spy);
-      });
+      setListenerSpies(subject, listenerSpies);
       subject.onsyncchange({
         state: 'errored',
         user: email,
@@ -555,14 +638,7 @@ suite('Firefox Sync panel >', () => {
     suiteTeardown(() => {
       subject = null;
       restoreSubjectSpiesAndStubs();
-      LOGGED_IN_SCREEN_ELEMENTS.forEach(element => {
-        if (!element || !element.listener) {
-          return;
-        }
-        var spy = listenerSpies.get(element.name);
-        spy.restore();
-        listenerSpies.delete(element.name);
-      });
+      restoreListenerSpies(listenerSpies);
     });
 
     test('onsyncchange errored with ERROR_UNVERIFIED_ACCOUNT '+
@@ -606,6 +682,69 @@ suite('Firefox Sync panel >', () => {
         disabledElements.indexOf(element.name) > -1 ?
           this.sinon.assert.notCalled(spy) :
           this.sinon.assert.calledOnce(spy);
+      });
+    });
+  });
+
+  suite('onsyncchange "errored" - ignored error', () => {
+    var subject;
+
+    suiteSetup(() => {
+      subject = suiteSetupCommon();
+      setSubjectSpiesAndStubs(subject);
+      subject.onsyncchange({
+        state: 'errored',
+        error: ERROR_DIALOG_CLOSED_BY_USER
+      });
+    });
+
+    suiteTeardown(() => {
+      subject = null;
+      restoreSubjectSpiesAndStubs();
+    });
+
+    test('onsyncchange errored with ERROR_DIALOG_CLOSED_BY_USER '+
+         'should be ignored', () => {
+      this.sinon.assert.notCalled(showScreenSpy);
+    });
+  });
+
+  suite('onsyncchange "errored" - known errors', () => {
+    var subject;
+
+    suiteSetup(() => {
+      subject = suiteSetupCommon();
+      setSubjectSpiesAndStubs(subject);
+    });
+
+    suiteTeardown(() => {
+      subject = null;
+      restoreSubjectSpiesAndStubs();
+    });
+
+    [{
+      error: ERROR_INVALID_SYNC_ACCOUNT,
+      l10n: 'fxsync-error-invalid-account'
+    }, {
+      error: ERROR_OFFLINE,
+      l10n: 'fxsync-error-offline'
+    }].forEach(config => {
+      test('onsyncchange errored with ' + config.error +
+           ' should show alert', done => {
+        subject.onsyncchange({
+          state: 'errored',
+          error: config.error
+        });
+
+        setTimeout(() => {
+          this.sinon.assert.calledOnce(showScreenSpy);
+          this.sinon.assert.calledOnce(cleanSpy);
+          this.sinon.assert.calledOnce(alertSpy);
+          assert.equal(alertSpy.getCall(0).args[0],
+                       config.l10n + '-explanation');
+          assert.equal(alertSpy.getCall(0).args[1].title, config.l10n);
+          done();
+        });
       });
     });
   });

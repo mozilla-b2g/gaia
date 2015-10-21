@@ -139,7 +139,7 @@
           at the start and end of the line -->
         <!-- see https://github.com/gaia-components/gaia-header/ for more information -->
         <!-- WARNING: the actual value depends on the actual CSS being used in gaia-header -->
-        <gaia-header ignore-dir class="view-header regular-header" title-start="0" title-end="100">
+        <gaia-header class="view-header regular-header" title-start="0" title-end="100">
           <h1 data-l10n-id="messages"></h1>
           <a href="#/composer" id="threads-composer-link" data-icon="compose" data-l10n-id="composeLink"></a>
           <a id="threads-options-button" data-icon="more" data-l10n-id="actionsButton"></a>
@@ -157,7 +157,7 @@
 
         <form id="threads-edit-form" role="dialog" data-type="edit">
           <section role="region" class="theme-settings">
-            <gaia-header ignore-dir id="threads-edit-header" action="close" no-font-fit>
+            <gaia-header id="threads-edit-header" action="close" no-font-fit>
               <h1 id="threads-edit-mode" data-l10n-id="selectThreads-title"></h1>
               <button id="threads-check-uncheck-all-button" class="edit-button" data-l10n-id="select-all"></button>
             </gaia-header>
@@ -182,7 +182,7 @@
       </section>
 
       <section class="panel panel-ConversationView editable-select-mode" role="region" aria-hidden="true">
-        <gaia-header ignore-dir id="messages-header" class="view-header regular-header" action="back" no-font-fit>
+        <gaia-header id="messages-header" class="view-header regular-header" action="back" no-font-fit>
           <h1 id="messages-header-text" aria-hidden="true"></h1>
           <button id="messages-call-number-button" data-icon="call" class="hide" data-l10n-id="callButton"></button>
           <button id="messages-options-button" data-icon="more" data-l10n-id="actionsButton"></button>
@@ -245,7 +245,7 @@
                     class="hide">
               <div class="text-container">
                 <div data-l10n-id="new-message-notice-text">You have new messages</div>
-                <div class="contact">Contact</div>
+                <div dir="auto" class="contact">Contact</div>
               </div>
               <div class="button-container">
                 <button class="notice-button" data-l10n-id="new-message-notice-a-text">read it</button>
@@ -292,7 +292,7 @@
         </article>
         <form role="dialog" id="messages-edit-form" data-type="edit" >
           <section role="region" class="theme-settings">
-            <gaia-header ignore-dir id="messages-edit-header" action="close" no-font-fit>
+            <gaia-header id="messages-edit-header" action="close" no-font-fit>
               <h1 id="messages-edit-mode" data-l10n-id="deleteMessages-title"></h1>
               <button id="messages-check-uncheck-all-button" class="edit-button" data-l10n-id="select-all"></button>
             </gaia-header>
@@ -311,7 +311,7 @@
       </section>
 
       <section class="panel panel-GroupView" role="region" aria-hidden="true">
-        <gaia-header ignore-dir id="information-group-header" class="header" action="back" no-font-fit>
+        <gaia-header id="information-group-header" class="header" action="back" no-font-fit>
           <h1 data-l10n-id="participant" class="header-text"></h1>
         </gaia-header>
         <article class="view-body article-list" data-type="list">
@@ -320,7 +320,7 @@
       </section>
 
       <section class="panel panel-ReportView" role="region" aria-hidden="true">
-        <gaia-header ignore-dir id="information-report-header" class="header" action="close" no-font-fit>
+        <gaia-header id="information-report-header" class="header" action="close" no-font-fit>
           <h1 data-l10n-id="message-report"></h1>
         </gaia-header>
         <article class="view-body article-list report-view container" data-type="list">
@@ -578,7 +578,7 @@
         </div>
         <div class="js-size-indicator size-indicator" data-l10n-id="${sizeL10nId}" data-l10n-args="${sizeL10nArgs}"></div>
       </div>
-      <div class="file-name"></div>
+      <div class="file-name" dir="auto"></div>
       -->
     </div>
 
@@ -588,7 +588,7 @@
         <div class="thumbnail"></div>
         <div class="js-size-indicator size-indicator" data-l10n-id="${sizeL10nId}" data-l10n-args="${sizeL10nArgs}"></div>
       </div>
-      <div class="file-name"></div>
+      <div class="file-name" dir="auto"></div>
       -->
     </div>
 

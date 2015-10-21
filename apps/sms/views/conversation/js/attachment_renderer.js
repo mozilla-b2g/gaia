@@ -70,6 +70,8 @@
 
           var contentDocument = attachmentContainer.contentDocument;
           var documentElement = contentDocument.documentElement;
+          documentElement.dir = document.dir;
+          documentElement.lang = document.lang;
           navigator.mozL10n.translateFragment(documentElement);
 
           // Attach click listeners and fire the callback when rendering is

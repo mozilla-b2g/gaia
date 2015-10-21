@@ -1,7 +1,7 @@
 <element name="call-fdnSettings" extends="section">
   <template>
 
-    <gaia-header ignore-dir action="back" data-href="#call">
+    <gaia-header action="back" data-href="#call">
       <h1 data-l10n-id="fdnSettings-header"></h1>
     </gaia-header>
 
@@ -14,11 +14,10 @@
           </p>
         </li>
         <li class="fdn-enabled">
-          <label class="pack-switch">
-            <input type="checkbox" data-ignore>
-            <span data-l10n-id="fdnSettings"></span>
-            <small></small>
-          </label>
+          <gaia-switch data-ignore>
+            <label data-l10n-id="fdnSettings"></label>
+            <details></details>
+          </gaia-switch>
         </li>
         <li>
           <a class="menu-item" href="#call-fdnList">

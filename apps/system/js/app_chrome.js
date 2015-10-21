@@ -518,7 +518,7 @@
   AppChrome.prototype.unpin = function ac_unpin() {
     this.hidePinDialogCard();
     this.pinned = false;
-    if (this.app.config && this.app.config.scrollable) {
+    if (this.app.config && this.app.config.chrome.scrollable) {
       this.app.element.classList.add('collapsible');
     }
     this.expand();
@@ -791,6 +791,12 @@
     };
 
   AppChrome.prototype.handleScrollAreaChanged = function(evt) {
+    // Make sure the scroll-area-changed is coming from the right element.
+    if (evt && (!this.app || !this.app.browser ||
+                evt.target !== this.app.browser.element)) {
+      return;
+    }
+
     // Check if the page has become scrollable and add the scrollable class.
     // We don't check if a page has stopped being scrollable to avoid oddness
     // with a page oscillating between scrollable/non-scrollable states, and
@@ -1038,9 +1044,6 @@
           .then((isPinned) => {
             isPinned ? this.pin() : this.unpin();
           });
-        if (this.app.config && this.app.config.scrollable) {
-          this.app.element.classList.add('collapsible');
-        }
       }
 
       // Set the title for the private browser landing page.

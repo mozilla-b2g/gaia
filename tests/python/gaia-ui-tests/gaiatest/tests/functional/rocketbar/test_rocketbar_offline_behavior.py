@@ -3,7 +3,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from gaiatest import GaiaTestCase
-from gaiatest.apps.homescreen.app import Homescreen
+from gaiatest.apps.system.app import System
 
 
 class TestRocketBarOffline(GaiaTestCase):
@@ -21,10 +21,8 @@ class TestRocketBarOffline(GaiaTestCase):
         self.assertFalse(self.data_layer.is_cell_data_enabled)
 
         test_string = u'Test'
-        homescreen = Homescreen(self.marionette)
-        self.apps.switch_to_displayed_app()
 
-        search_panel = homescreen.tap_search_bar()
+        search_panel = System(self.marionette).tap_search_bar()
         search_panel.type_into_search_box(test_string)
 
         self.assertTrue(search_panel.is_offline_message_visible)

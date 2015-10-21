@@ -97,6 +97,7 @@
     this.pageHeight = 1;
     this.gridHeight = 1;
     this.pendingGridHeight = 1;
+    this.iconsPerPage = 0;
 
     // Scroll behaviour
     this.appsVisible = false;
@@ -139,6 +140,7 @@
     this.scrollable.classList.toggle('snapping', this.settings.scrollSnapping);
 
     // Populate apps and bookmarks asynchronously
+    this.metadataLoaded = 0;
     this.startupMetadata = [];
     this.iconsToRetry = [];
     this.pendingIcons = {};
@@ -177,11 +179,27 @@
         } :
         () => {
           return this.metadata.getAll(result => {
-            // Process results as they come in
             this.startupMetadata.push(result);
-            if (this.pendingIcons[result.id]) {
-              this.addAppIcon.apply(this, this.pendingIcons[result.id]);
-              delete this.pendingIcons[result.id];
+            this.metadataLoaded++;
+
+            // Process results in batches as they come in
+            var processResult = data => {
+              if (this.pendingIcons[data.id]) {
+                this.addAppIcon.apply(this, this.pendingIcons[data.id]);
+                delete this.pendingIcons[data.id];
+              }
+            };
+
+            if (!this.visualLoadComplete) {
+              processResult(result);
+              this.refreshGridSize();
+            } else if ((this.metadataLoaded % this.iconsPerPage) === 0) {
+              this.icons.freeze();
+              for (var entry of this.startupMetadata) {
+                processResult(entry);
+              }
+              this.refreshGridSize();
+              this.icons.thaw();
             }
           }).then(Promise.resolve(),
             e => {
@@ -306,6 +324,11 @@
       // Store app order of new icons
       if (newIcons) {
         this.storeAppOrder();
+      } else {
+        // Grid size is only refreshed in the non-startup path, so unless we
+        // added new icons post-startup, refresh here to make sure it's the
+        // correct size.
+        this.refreshGridSize();
       }
 
       // All asynchronous loading has finished
@@ -401,14 +424,19 @@
           if (child.order !== -1 && child.order < container.order) {
             continue;
           }
-          this.icons.insertBefore(container, child,
-                                  this.iconAdded.bind(this, container));
+          this.icons.insertBefore(container, child);
+          if (this.startupMetadata === null) {
+            this.iconAdded(container);
+          }
           break;
         }
       }
 
       if (!container.parentNode) {
-        this.icons.appendChild(container, this.iconAdded.bind(this, container));
+        this.icons.appendChild(container);
+        if (this.startupMetadata === null) {
+          this.iconAdded(container);
+        }
       }
 
       return container;
@@ -498,7 +526,8 @@
       icon.addEventListener('activated', function(e) {
         e.preventDefault();
         this.handleEvent({ type: 'activate',
-                           detail: { target: e.target.parentNode } });
+                           detail: { target: e.target.parentNode },
+                           preventDefault: () => {}});
       });
 
       // Refresh icon data (sets title and refreshes icon)
@@ -555,7 +584,8 @@
       } else {
         var iconHeight = Math.round(children[firstVisibleChild].offsetHeight);
         var scrollHeight = this.scrollable.clientHeight;
-        var pageHeight = Math.floor(scrollHeight / iconHeight) * iconHeight;
+        var rowsPerPage = Math.floor(scrollHeight / iconHeight);
+        var pageHeight = rowsPerPage * iconHeight;
         var gridHeight = (Math.ceil((iconHeight *
           Math.ceil(visibleChildren /
                     (this.settings.small ? 4 : 3))) / pageHeight) *
@@ -563,7 +593,10 @@
 
         this.pageHeight = pageHeight;
         this.pendingGridHeight = gridHeight;
+        this.iconsPerPage = rowsPerPage * (this.settings.small ? 4 : 3);
 
+        // When a full screen of apps is visible, we mark that as visual loading
+        // being complete.
         if (!this.visualLoadComplete &&
             Math.floor(visibleChildren /
                        (this.settings.small ? 4 : 3)) * iconHeight >=
@@ -693,6 +726,7 @@
 
       // App launching
       case 'activate':
+        e.preventDefault();
         icon = e.detail.target.firstElementChild;
 
         switch (icon.state) {
@@ -886,6 +920,21 @@
 
       // Add apps installed after startup
       case 'install':
+        // Check if the app already exists, and if so, update it.
+        // This happens when reinstalling an app via WebIDE.
+        var existing = false;
+        for (child of this.icons.children) {
+          icon = child.firstElementChild;
+          if (icon.app && icon.app.manifestURL === e.application.manifestURL) {
+            icon.app = e.application;
+            icon.refresh();
+            existing = true;
+          }
+        }
+        if (existing) {
+          return;
+        }
+
         this.addApp(e.application);
         this.storeAppOrder();
         break;

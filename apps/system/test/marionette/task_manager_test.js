@@ -186,17 +186,14 @@ marionette('Task Manager', function() {
 
     test('should open a new sheet', function() {
       taskManager.newSheetButton.tap();
-      system.waitForBrowser('app://search.gaiamobile.org/newtab.html');
+      system.waitForBrowser(
+        'app://search.gaiamobile.org/newtab.html?private=0');
     });
 
     test('should open a new private sheet', function() {
       taskManager.newPrivateSheetButton.tap();
-      var appWindow = system.waitForBrowser(
+      system.waitForBrowser(
         'app://search.gaiamobile.org/newtab.html?private=1');
-      client.waitFor(function() {
-        return appWindow.getAttribute('src') ===
-          'app://search.gaiamobile.org/newtab.html?private=1';
-      });
     });
   });
 

@@ -312,13 +312,38 @@ suite('Homescreen app', () => {
 
     test('should be called on app install', () => {
       var addAppStub = sinon.stub(app, 'addApp');
-      app.handleEvent(new CustomEvent('install', {
-        detail: {
-          application: { manifest: {} }
-        }
-      }));
+      app.handleEvent(new CustomEvent('install'));
       assert.isTrue(addAppStub.calledOnce);
       addAppStub.restore();
+    });
+
+    test('should not be called when installing a pre-existing app', () => {
+      var refreshCalled = false;
+      Object.defineProperty(app.icons, 'children', {
+        value: [{
+          firstElementChild: {
+            app: {
+              manifestURL: 'abc'
+            },
+            refresh: () => {
+              refreshCalled = true;
+            }
+          }
+        }],
+        configurable: true
+      });
+
+      var addAppStub = sinon.stub(app, 'addApp');
+      app.handleEvent({
+        type: 'install',
+        application: { manifestURL: 'abc' }
+      });
+
+      assert.isFalse(addAppStub.called);
+      assert.isTrue(refreshCalled);
+
+      addAppStub.restore();
+      delete app.icons.children;
     });
   });
 
@@ -342,7 +367,9 @@ suite('Homescreen app', () => {
           if (!childIsVisible) {
             el.style.display = 'none';
           }
-          cb();
+          if (cb) {
+            cb();
+          }
         });
       });
 
@@ -717,6 +744,18 @@ suite('Homescreen app', () => {
     });
 
     suite('activate', () => {
+      test('should be preventDefaulted', () => {
+        var icon = getIcon('abc');
+        icon.firstElementChild.launch = () => {};
+        var defaultPrevented = false;
+        app.handleEvent({
+          type: 'activate',
+          preventDefault: () => { defaultPrevented = true; },
+          detail: { target: icon }
+        });
+        assert.isTrue(defaultPrevented);
+      });
+
       test('unrecoverable app should be removed', () => {
         var uninstallStub = sinon.stub(MockNavigatormozApps.mgmt, 'uninstall');
         var icon = getIcon('abc');

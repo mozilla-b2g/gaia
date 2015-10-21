@@ -1,23 +1,13 @@
-#screenLock li.lockscreen-enabled {
-  display: none;
-}
+/**
+ * BiDi note: as a passcode is a number, it should *NOT* be mirrored in RTL.
+ */
 
-#screenLock[data-lockscreen-enabled="true"] li.lockscreen-enabled {
-  display: block;
-}
-
+#screenLock li.lockscreen-enabled,
 #screenLock li.passcode-enabled {
   display: none;
 }
 
-#screenLock[data-lockscreen-enabled="true"][data-passcode-enabled="true"] li.passcode-enabled {
-  display: block;
-}
-
-#screenLock li.passcode-enabled {
-  display: none;
-}
-
+#screenLock[data-lockscreen-enabled="true"] li.lockscreen-enabled,
 #screenLock[data-lockscreen-enabled="true"][data-passcode-enabled="true"] li.passcode-enabled {
   display: block;
 }
@@ -26,7 +16,7 @@
   clear: both;
   display: none;
   height: 4.2rem;
-  -moz-padding-start: 3rem;
+  padding-inline-start: 3rem;
   color: red;
   font-size: 1.5rem;
   line-height: 4.2rem;
@@ -48,7 +38,7 @@
 }
 
 #screenLock-passcode label {
-  -moz-box-sizing: border-box;
+  box-sizing: border-box;
   display: block;
   width: auto;
   height: auto;
@@ -106,7 +96,7 @@
   z-index: -1;
   position: absolute;
   top: -5rem;
-  left: 0;
+  left: 0; /* BiDi-proof: passcodes are not mirrored in RTL */
 }
 
 .passcode-container {
@@ -125,9 +115,9 @@
 }
 
 .passcode-digit {
-  -moz-box-sizing: border-box;
+  box-sizing: border-box;
   position: relative;
-  float: left;
+  float: left; /* BiDi-proof: passcodes are not mirrored in RTL */
   width: calc(25% - 1rem);
   height: 4rem;
   margin: 0 0.5rem;
@@ -146,8 +136,8 @@ span.passcode-digit[data-dot]::before {
   background-color: #3e3b39;
   border-radius: 0.75rem;
   top: 50%;
-  left: 50%;
-  margin-left: -0.75rem;
+  left: 50%;             /* BiDi-proof: passcodes are not mirrored in RTL */
+  margin-left: -0.75rem; /* BiDi-proof: passcodes are not mirrored in RTL */
   margin-top: -0.75rem;
 }
 

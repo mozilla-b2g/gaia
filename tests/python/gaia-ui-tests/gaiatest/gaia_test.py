@@ -753,12 +753,13 @@ class GaiaDevice(object):
         return ret
 
     def touch_home_button(self):
+        from gaiatest.apps.homescreen.app import Homescreen
+        homescreen = Homescreen(self.marionette)
         apps = GaiaApps(self.marionette)
-        if apps.displayed_app.name.lower() != 'default home screen':
+        if homescreen.is_displayed == False:
             # touching home button will return to homescreen
             self._dispatch_home_button_event()
-            Wait(self.marionette).until(
-                lambda m: apps.displayed_app.name.lower() == 'default home screen')
+            homescreen.wait_to_be_displayed()
             apps.switch_to_displayed_app()
         else:
             apps.switch_to_displayed_app()
@@ -781,6 +782,9 @@ class GaiaDevice(object):
     def hold_home_button(self):
         self.marionette.switch_to_frame()
         self.marionette.execute_script("window.wrappedJSObject.dispatchEvent(new Event('holdhome'));")
+        # This is for the opacity animation to be finished for the task-manager
+        # Otherwise we get intermittent issues tapping on opening a new browser window
+        time.sleep(0.3)
 
     def hold_sleep_button(self):
         self.marionette.switch_to_frame()

@@ -6,7 +6,6 @@
 
 /* global asyncStorage */
 /* global BaseModule */
-/* global ERROR_GET_FXA_ASSERTION */
 /* global ERROR_REQUEST_SYNC_REGISTRATION */
 /* global ERROR_SYNC_APP_GENERIC */
 /* global ERROR_SYNC_APP_KILLED */
@@ -16,7 +15,8 @@
 /* global IACHandler */
 /* global LazyLoader */
 /* global Service */
-/* global SyncUnrecoverableErrors */
+/* global SyncErrors */
+/* global SyncRecoverableErrors */
 /* global uuid */
 
 /**
@@ -268,7 +268,26 @@
       this.fxaEventHandler = this._handle_fxaEvent.bind(this);
       window.addEventListener(FXA_EVENT, this.fxaEventHandler);
 
-      this.getAssertion().then(() => {
+      // We need to verify that we have everything that we need to start
+      // synchronizing data. This is: a valid FxA, the ability to obtain
+      // a valid assertion and encryption keys and the remote crypto/keys
+      // record.
+      var args = [];
+      this.updateStateDeferred.then(() => {
+        return this.getAssertion();
+      }).then(assertion =>{
+        args.push(assertion);
+        return this.getKeys();
+      }).then(keys => {
+        args.push(keys);
+        // We request a sync without any collection. This should fetch the
+        // crypto/keys object. If it is available, we will successfully
+        // continue the enabling process. If it is not available, that probably
+        // means that this FxA has never been used before with Sync.
+        // In that case, until we are able to create new Sync user, we need
+        // to disable Sync and let the user know about this situation.
+        return this.trySync.apply(this, args);
+      }).then(() => {
         return this.getAccount();
       }).then(() => {
         Service.request('SyncStateMachine:success');
@@ -276,20 +295,28 @@
         // XXX Bug 1200284 - Normalize all Firefox Accounts error reporting.
         error = error.message || error.name || error.error || error;
         console.error('Could not enable sync', error);
+
+        /**
+         * XXX Until we have a way to create new Sync users, we won't progress
+         *     the UNVERIFIED_ACCOUNT error. Instead, we consider this error
+         *     as the INVALID_SYNC_USER one, so we can present a more sane UX
+         *     to the user.
+         *
         if (error == 'UNVERIFIED_ACCOUNT') {
           this.getAccount().then(() => {
             Service.request('SyncStateMachine:error', ERROR_UNVERIFIED_ACCOUNT);
           });
           return;
-        }
-        Service.request('SyncStateMachine:error', ERROR_GET_FXA_ASSERTION);
+        }*/
+
+        error = SyncErrors[error] || error;
+
+        Service.request('SyncStateMachine:error', error);
       });
     },
 
     _handle_onsyncerrored: function(event) {
       this.debug('onsyncerrored observed');
-
-      this.updateState();
 
       var error = event.detail && Array.isArray(event.detail.args) ?
                   event.detail.args[0] : null;
@@ -299,7 +326,11 @@
 
       this.error = error;
 
-      if (SyncUnrecoverableErrors.indexOf(error) > -1) {
+      // We don't update the state until we set the error.
+      this.updateState();
+
+      // If the error is not recoverable, we disable Sync.
+      if (SyncRecoverableErrors.indexOf(error) <= -1) {
         this.debug('Unrecoverable error');
         Service.request('SyncStateMachine:disable');
       }
@@ -582,6 +613,21 @@
       });
     },
 
+    trySync: function(assertion, keys) {
+      return this.iacRequest({
+        name: 'sync',
+        URL: this._settings['sync.server.url'],
+        assertion: assertion,
+        keys: keys,
+        collections: {}
+      }).then(result => {
+        if (result && result.error) {
+          console.error('Error trying sync', result.error.message);
+          throw result.error.message;
+        }
+      });
+    },
+
     cancelSync: function() {
       this.iacRequest({
         name: 'cancel'
@@ -626,7 +672,7 @@
       const CHROME_EVENT = 'mozPrefChromeEvent';
       return new Promise((resolve, reject) => {
         var onprefchange = event => {
-          this.debug('Preference change ', event.detail);
+          this.debug('Preference change', event.detail);
           if (event.detail.prefName !== 'services.sync.enabled') {
             return;
           }
@@ -669,7 +715,6 @@
       set: function(error) {
         asyncStorage.setItem(SYNC_STATE_ERROR, error, () => {
           this.store.set(SYNC_STATE_ERROR, error);
-          this.notifyStateChange();
         });
       },
       get: function() {
@@ -682,7 +727,6 @@
         var lastSync = now;
         asyncStorage.setItem(SYNC_LAST_TIME, lastSync, () => {
           this.store.set(SYNC_LAST_TIME, lastSync);
-          this.notifyStateChange();
         });
       },
       get: function() {
@@ -694,7 +738,6 @@
       set: function(user) {
         asyncStorage.setItem(SYNC_USER, user, () => {
           this.store.set(SYNC_USER, user);
-          this.notifyStateChange;
         });
       },
       get: function() {

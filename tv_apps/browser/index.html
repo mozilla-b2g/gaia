@@ -7,6 +7,7 @@
 
     <!-- building blocks -->
     <link rel="stylesheet" type="text/css" href="bower_components/smart-button/style.css">
+    <link rel="stylesheet" type="text/css" href="bower_components/smart-icons/smart-icons.css">
 
     <!-- Specific style -->
     <link rel="stylesheet" type="text/css" href="style/index.css">
@@ -17,6 +18,7 @@
     <link rel="stylesheet" type="text/css" href="style/tooltip.css">
     <link rel="stylesheet" type="text/css" href="style/search_result.css">
     <link rel="stylesheet" type="text/css" href="style/settings.css">
+    <link rel="stylesheet" type="text/css" href="style/bookmarkList.css">
 
     <!-- Resources -->
     <link rel="resource" type="image/png" href="shared/resources/branding/browser_336.png">
@@ -55,6 +57,9 @@
     <script defer src="js/datasync/sync_ds_helper.js"></script>
     <script defer src="js/datasync/sync_db_helper.js"></script>
     <script defer src="js/datasync/sync_bookmarks.js"></script>
+    <script defer src="js/datasync/sync_history.js"></script>
+    <script defer src="js/bookmarkList.js"></script>
+    <script defer src="js/bookmarkStore.js"></script>
 
     <!-- IAC Handler (put here because it starts sending event immediately) -->
     <script defer src="shared/js/iac_handler.js"></script>
@@ -532,8 +537,16 @@
           </div>
         </section>
         <!-- awesomescreen bookamrk,history-->
+        <section id="bookmark">
+          <div class="bookmark-container">
+            <h2 class="bookmark-title" data-l10n-id="bookmark"></h2>
+            <div class="bookmark-list-wrap">
+              <ul class="bookmark-list"></ul>
+              <div class="bookmatk-list-mask"></div>
+            </div>
+          </div>
+        </section>
         <div id="list-dialog">
-          <section id="bookmarks"></section>
           <section id="history"></section>
         </div>
         <!-- private window -->

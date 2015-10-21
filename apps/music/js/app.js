@@ -66,18 +66,34 @@ client.on('stop', () => {
 
 client.on('databaseChange', () => updateOverlays());
 
-client.on('databaseUpgrade', () => upgradeOverlay.hidden = false);
-
-client.on('databaseUnavailable', (reason) => {
-  noCardOverlay.hidden    = reason !== 'nocard';
-  pluggedInOverlay.hidden = reason !== 'pluggedin';
+client.on('databaseUpgrade', () => {
+  if (upgradeOverlay) {
+    upgradeOverlay.hidden = false;
+  }
 });
 
-client.on('databaseEnumerable', () => upgradeOverlay.hidden = true);
+client.on('databaseUnavailable', (reason) => {
+  if (noCardOverlay) {
+    noCardOverlay.hidden    = reason !== 'nocard';
+  }
+  if (pluggedInOverlay) {
+    pluggedInOverlay.hidden = reason !== 'pluggedin';
+  }
+});
+
+client.on('databaseEnumerable', () => {
+  if (upgradeOverlay) {
+    upgradeOverlay.hidden = true;
+  }
+});
 
 client.on('databaseReady', () => {
-  noCardOverlay.hidden    = true;
-  pluggedInOverlay.hidden = true;
+  if (noCardOverlay) {
+    noCardOverlay.hidden    = true;
+  }
+  if (pluggedInOverlay) {
+    pluggedInOverlay.hidden = true;
+  }
 });
 
 // scanProgress and scanStopped must always act in the order they're received.
@@ -95,8 +111,6 @@ client.on('scanStopped', () => scanProgress.hide());
 
 client.connect();
 
-updateOverlays();
-
 var header             = $id('header');
 var headerTitle        = $id('header-title');
 var playerButton       = $id('player-button');
@@ -108,6 +122,8 @@ var noCardOverlay      = $id('no-card-overlay');
 var pluggedInOverlay   = $id('plugged-in-overlay');
 var upgradeOverlay     = $id('upgrade-overlay');
 var scanProgress       = $id('scan-progress');
+
+updateOverlays();
 
 header.addEventListener('action', (evt) => {
   if (evt.detail.type !== 'back') {
@@ -193,10 +209,18 @@ tabBar.addEventListener('change', (evt) => {
   navigateToURL(tab.dataset.url, true);
 });
 
-emptyOverlay.addEventListener('action', () => cancelActivity());
-noCardOverlay.addEventListener('action', () => cancelActivity());
-pluggedInOverlay.addEventListener('action', () => cancelActivity());
-upgradeOverlay.addEventListener('action', () => cancelActivity());
+if (emptyOverlay) {
+  emptyOverlay.addEventListener('action', () => cancelActivity());
+}
+if (noCardOverlay) {
+  noCardOverlay.addEventListener('action', () => cancelActivity());
+}
+if (pluggedInOverlay) {
+  pluggedInOverlay.addEventListener('action', () => cancelActivity());
+}
+if (upgradeOverlay) {
+  upgradeOverlay.addEventListener('action', () => cancelActivity());
+}
 
 if (SERVICE_WORKERS) {
   navigator.serviceWorker.getRegistration().then((registration) => {
@@ -265,15 +289,24 @@ function navigateToURL(url, replaceRoot) {
 }
 
 function updateOverlays() {
-  client.method('getSongCount').then((count) => {
-    emptyOverlay.hidden = count > 0;
-  });
+
+  if (emptyOverlay) {
+    client.method('getSongCount').then((count) => {
+      emptyOverlay.hidden = count > 0;
+    });
+  }
 
   client.method('getDatabaseStatus').then((status) => {
-    noCardOverlay.hidden    = status.unavailable !== 'nocard';
-    pluggedInOverlay.hidden = status.unavailable !== 'pluggedin';
+    if (noCardOverlay) {
+      noCardOverlay.hidden    = status.unavailable !== 'nocard';
+    }
+    if (pluggedInOverlay) {
+      pluggedInOverlay.hidden = status.unavailable !== 'pluggedin';
+    }
 
-    upgradeOverlay.hidden = !status.upgrading;
+    if (upgradeOverlay) {
+      upgradeOverlay.hidden = !status.upgrading;
+    }
   });
 }
 
@@ -292,7 +325,7 @@ function onActivity(activity) {
   window.activity = activity;
 
   if (activity.source.name === 'open') {
-    client.method('open', activity.source.data.blob);
+    client.method('openExternalFile', activity.source.data.blob);
   }
 
   setBackButtonHidden(false);

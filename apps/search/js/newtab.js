@@ -3,12 +3,18 @@
 
 (function(exports) {
 
+  var isManuallyPrivate = window.location.search.includes('private=1');
+  var isManuallyRegular = window.location.search.includes('private=0');
+  var isPrivateByDefault = false;
+
   SettingsListener.observe('browser.private.default', false, function (value) {
     if (value) {
-      exports.newtab.pretendToBePrivate();
+      isPrivateByDefault = true;
     } else {
-      exports.newtab.stopPretendingToBePrivate();
+      isPrivateByDefault = false;
     }
+
+    exports.newtab.togglePrivacyMode();
   });
 
   /**
@@ -30,10 +36,7 @@
       });
     };
 
-    if (window.location.search.includes('private=1')) {
-      this.isManuallyPrivate = true;
-      this.pretendToBePrivate();
-    }
+    this.togglePrivacyMode();
   }
 
   Newtab.prototype = {
@@ -62,53 +65,66 @@
     },
 
     /**
-     * Pretends to be a private window.
-     * Makes this window look like a private window by applying the necessary
-     * theme color and background. The window can't be truly private,
-     * otherwise we wouldn't have access to local history and bookmarks.
+     * Requests that the system app opens a new private window.
      */
-    pretendToBePrivate: function() {
-      var themeColor = document.createElement('meta');
-      themeColor.setAttribute('name', 'theme-color');
-      themeColor.setAttribute('content', '#392E54');
-      document.head.appendChild(themeColor);
-      document.body.classList.add('private');
-
-      // Show the private dialog if needed.
-      asyncStorage.getItem('shouldSuppressPrivateDialog', value => {
-        if (value) {
-          return;
-        }
-
-        this.privateBrowserDialog = document.getElementById(
-          'private-window-dialog');
-        this.privateBrowserDialog.removeAttribute('hidden');
-
-        this.privateBrowserDialogClose = document.getElementById(
-          'private-window-hide-dialog');
-        this.privateBrowserDialogClose.addEventListener('click', this);
-
-        this.privateBrowserLearnMore = document.getElementById(
-          'private-learn-more');
-        this.privateBrowserLearnMore.addEventListener('click', this);
+    requestPrivateWindow: function() {
+      this._port.postMessage({
+        'action': 'private-window'
       });
     },
 
     /**
-     * Stops pretending to be a private window.
-     * Removes the theme-color meta tag and private class from body
+     * Toggles the privacy mode.
+     *
+     * When private browsing _IS_ the default and we _ARE NOT_ manually being
+     * regular or when private browsing _IS NOT_ the default and we _ARE_
+     * manually bring private: Makes this window look like a private window by
+     * applying the necessary theme color and background. The window can't be
+     * truly private, otherwise we wouldn't have access to local history and
+     * bookmarks.
+     *
+     * When private browsing _IS_ the default and we _ARE_ manually regular:
+     * Makes this window look normal by removing private theme settings.
      */
-    stopPretendingToBePrivate: function () {
-      var themeColor = document.querySelector('meta[name="theme-color"]');
-      if (themeColor) {
-        document.head.removeChild(themeColor);
+    togglePrivacyMode: function() {
+      var themeMeta = document.querySelector('meta[name="theme-color"]');
+      var themeColor = document.createElement('meta');
+
+      if ((isPrivateByDefault && !isManuallyRegular) ||
+          (!isPrivateByDefault && isManuallyPrivate)) {
+
+        if (themeMeta) {
+          document.head.removeChild(themeMeta);
+        }
+
+        themeColor.setAttribute('name', 'theme-color');
+        themeColor.setAttribute('content', '#392E54');
+        document.head.appendChild(themeColor);
+        document.body.classList.add('private');
+
+        // Show the private dialog if needed.
+        asyncStorage.getItem('shouldSuppressPrivateDialog', value => {
+          if (value) {
+            return;
+          }
+
+          this.privateBrowserDialog = document.getElementById(
+            'private-window-dialog');
+          this.privateBrowserDialog.removeAttribute('hidden');
+
+          this.privateBrowserDialogClose = document.getElementById(
+            'private-window-hide-dialog');
+          this.privateBrowserDialogClose.addEventListener('click', this);
+
+          this.privateBrowserLearnMore = document.getElementById(
+            'private-learn-more');
+          this.privateBrowserLearnMore.addEventListener('click', this);
+        });
       }
 
-      if (!this.isManuallyPrivate) {
-        document.body.classList.remove('private');
-
-        if (this.privateBrowserDialog) {
-          this.privateBrowserDialog.setAttribute('hidden', true);
+      if (isPrivateByDefault && isManuallyRegular) {
+        if (themeMeta) {
+          document.head.removeChild(themeMeta);
         }
       }
     },

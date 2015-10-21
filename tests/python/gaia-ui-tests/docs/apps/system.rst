@@ -38,3 +38,8 @@ Regions
    :members:
    :show-inheritance:
    :undoc-members:
+
+.. automodule:: gaiatest.apps.system.regions.search_panel
+   :members:
+   :show-inheritance:
+   :undoc-members:

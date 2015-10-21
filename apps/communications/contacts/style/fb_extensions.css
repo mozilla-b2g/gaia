@@ -8,12 +8,12 @@
   border: 0;
   margin: 0;
   padding: 0;
-  -moz-transition: -moz-transform .6s ease;
+  transition: transform .6s ease;
   background: #f4f4f4;
 }
 
 #iframe_extensions.opening {
-  -moz-transform: translateY(-100%);
+  transform: translateY(-100%);
 }
 
 #iframe_extensions.hidden {
@@ -47,16 +47,15 @@
 }
 
 .with-photo.facebook {
-  -moz-padding-end: 0;
+  padding-inline-end: 0;
 }
 
-.with-photo.facebook .edit-photo  {
-  right: 0;
-}
-
+/* XXX BiDi warning */
+html[dir="ltr"] .with-photo.facebook .edit-photo  { right: 0; }
+html[dir="rtl"] .with-photo.facebook .edit-photo  { right: -1.5rem; }
 
 #settingsFb li p {
-  -moz-margin-start: 0;
+  margin-inline-start: 0;
 }
 
 #settings-article[data-state="fb-disabled"] #settingsFb,
@@ -83,7 +82,3 @@
   margin-top: 1rem;
 }
 
-/* RTL View */
-html[dir="rtl"] .with-photo.facebook .edit-photo  {
-  right: -1.5rem;
-}

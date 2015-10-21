@@ -21,6 +21,8 @@ suite('about > update_check', function() {
   };
 
   setup(function(done) {
+    this.clock = this.sinon.useFakeTimers();
+
     testRequire(modules, maps,
       function(MockNavigatorSettings, module) {
         realNavigatorSettings = navigator.mozSettings;
@@ -210,6 +212,9 @@ suite('about > update_check', function() {
       });
 
       test('hides the status', function() {
+        assert.isTrue(updateCheck._elements.updateStatus.classList
+          .contains('visible'));
+        this.clock.tick(5001);
         assert.isFalse(updateCheck._elements.updateStatus.classList
           .contains('visible'));
       });
@@ -234,6 +239,9 @@ suite('about > update_check', function() {
       });
 
       test('hide the status', function() {
+        assert.isTrue(updateCheck._elements.updateStatus.classList
+          .contains('visible'));
+        this.clock.tick(5001);
         assert.isFalse(updateCheck._elements.updateStatus.classList
           .contains('visible'));
       });
