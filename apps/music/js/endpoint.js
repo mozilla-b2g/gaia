@@ -1,4 +1,3 @@
-/* exported open */ // Should not be needed, but JSHint complains
 /* global AlbumArtCache, AudioMetadata, Database, LazyLoader, PlaybackQueue,
           Remote, bridge, navigateToURL, onSearchOpen, onSearchClose */
 'use strict';
@@ -11,6 +10,7 @@ var currentQueue    = null;
 var isInterrupted   = false;
 var isFastSeeking   = false;
 var isStopped       = true;
+var externalFile    = null;
 
 var service = bridge.service('music-service')
   .method('play', play)
@@ -52,7 +52,7 @@ var service = bridge.service('music-service')
   .method('getSongThumbnailURL', getSongThumbnailURL)
 
   .method('share', share)
-  .method('open', open)
+  .method('openExternalFile', openExternalFile)
 
   .method('getDatabaseStatus', getDatabaseStatus)
 
@@ -234,7 +234,7 @@ function nextSong(automatic = false) {
   }
 
   var hasNextSong = currentQueue.next(automatic);
-  if (!hasNextSong) {
+  if (!hasNextSong && !externalFile) {
     return Promise.resolve(stop());
   }
 
@@ -378,10 +378,18 @@ function getAlbum(filePath) {
 }
 
 function getSong(filePath) {
+  if (externalFile && filePath === externalFile.name) {
+    return Promise.resolve(externalFile);
+  }
+
   return Database.getFileInfo(filePath);
 }
 
 function getSongFile(filePath) {
+  if (externalFile && filePath === externalFile.name) {
+    return Promise.resolve(externalFile.file);
+  }
+
   return getSong(filePath).then((song) => {
     return Database.getFile(song);
   });
@@ -489,24 +497,28 @@ function share(filePath) {
   });
 }
 
-function open(blob) {
+function openExternalFile(file) {
   var scripts = [
     '/js/metadata/metadata_scripts.js',
     '/js/metadata/album_art.js'
   ];
 
   return LazyLoader.load(scripts).then(() => {
-    return AudioMetadata.parse(blob).then((metadata) => {
-      var filePath = blob.name;
+    return AudioMetadata.parse(file).then((metadata) => {
+      return loadQueueSettings().then(() => {
+        externalFile = {
+          file: file,
+          name: file.name || URL.createObjectURL(file),
+          metadata: metadata
+        };
 
-      isStopped = false;
-      play(filePath);
+        currentQueue = new PlaybackQueue.StaticQueue([externalFile]);
 
-      return {
-        blob: blob,
-        metadata: metadata,
-        name: filePath
-      };
+        return currentSong().then((song) => {
+          isStopped = false;
+          play(song.name);
+        });
+      });
     });
   });
 }

@@ -81,7 +81,11 @@ client.on('databaseUnavailable', (reason) => {
   }
 });
 
-client.on('databaseEnumerable', () => upgradeOverlay.hidden = true);
+client.on('databaseEnumerable', () => {
+  if (upgradeOverlay) {
+    upgradeOverlay.hidden = true;
+  }
+});
 
 client.on('databaseReady', () => {
   if (noCardOverlay) {
@@ -321,7 +325,7 @@ function onActivity(activity) {
   window.activity = activity;
 
   if (activity.source.name === 'open') {
-    client.method('open', activity.source.data.blob);
+    client.method('openExternalFile', activity.source.data.blob);
   }
 
   setBackButtonHidden(false);
