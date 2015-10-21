@@ -811,7 +811,7 @@
             e.detail.clientY <= window.innerHeight - DELETE_DISTANCE) {
           // If the drop target is null, check to see if we're
           // dropping over the icon itself, and if we aren't, we must be
-          // dropping over the end of the container.
+          // dropping over the start or end of the container.
           if (!e.detail.dropTarget) {
             var rect = this.icons.getChildOffsetRect(e.detail.target);
             var x = e.detail.clientX;
@@ -820,7 +820,9 @@
             if (x < rect.left || y < rect.top ||
                 x >= rect.right || y >= rect.bottom) {
               e.preventDefault();
-              this.icons.reorderChild(e.detail.target, null,
+              var bottom = e.detail.clientY < window.innerHeight / 2;
+              this.icons.reorderChild(e.detail.target,
+                                      bottom ? this.icons.firstChild : null,
                                       this.storeAppOrder.bind(this));
             }
           }
