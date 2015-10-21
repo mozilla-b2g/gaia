@@ -15,6 +15,7 @@ var mocksForTrackingNotice = new MocksHelper([
   'LazyLoader'
 ]).init();
 
+const TRACKING_ENABLED = 'privacy.trackingprotection.enabled';
 const TRACKING_SHOWN = 'privacy.trackingprotection.shown';
 
 suite('Tracking notice', function() {
@@ -73,6 +74,16 @@ suite('Tracking notice', function() {
       subject.show();
       assert.isFalse(subject.element.classList.contains('hidden'));
       assert.isTrue(subject.publish.calledWith('show'));
+    });
+
+    test('updates the switch to match the current settings value', function() {
+      assert.isFalse(subject.setting.checked);
+      MockNavigatorSettings.mSet({
+        [TRACKING_ENABLED]: true
+      });
+      subject.show();
+      MockNavigatorSettings.mReplyToRequests();
+      assert.isTrue(subject.setting.checked);
     });
   });
 
