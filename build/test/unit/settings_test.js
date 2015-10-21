@@ -420,6 +420,8 @@ suite('settings.js', function() {
             'notification.ringtone': undefined,
             'ftu.pingURL': config.FTU_PING_URL,
             'debug.performance_data.dogfooding': true,
+            'devtools.overlay': true,
+            'hud.hide': true,
             'metrics.appusage.reportInterval': 86400000,
             'metrics.selectedMetrics.level': 'Enhanced' },
           result);
