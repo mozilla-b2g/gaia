@@ -526,7 +526,8 @@
       icon.addEventListener('activated', function(e) {
         e.preventDefault();
         this.handleEvent({ type: 'activate',
-                           detail: { target: e.target.parentNode } });
+                           detail: { target: e.target.parentNode },
+                           preventDefault: () => {}});
       });
 
       // Refresh icon data (sets title and refreshes icon)
@@ -725,6 +726,7 @@
 
       // App launching
       case 'activate':
+        e.preventDefault();
         icon = e.detail.target.firstElementChild;
 
         switch (icon.state) {

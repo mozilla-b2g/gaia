@@ -495,7 +495,7 @@ window.GaiaContainer = (function(exports) {
     }
   };
 
-  proto.endDrag = function() {
+  proto.endDrag = function(event) {
     if (this._dnd.active) {
       var dropTarget = this.getChildFromPoint(this._dnd.last.clientX,
                                               this._dnd.last.clientY);
@@ -551,8 +551,12 @@ window.GaiaContainer = (function(exports) {
         }
       }
     } else if (this._dnd.timeout !== null) {
-      this.dispatchEvent(new CustomEvent('activate',
-        { detail: { target: this._dnd.child.element } }));
+      var handled = !this.dispatchEvent(new CustomEvent('activate',
+        { cancelable : true, detail: { target: this._dnd.child.element } }));
+      if (handled) {
+        event.stopImmediatePropagation();
+        event.preventDefault();
+      }
     }
 
     this.cancelDrag();
@@ -649,11 +653,11 @@ window.GaiaContainer = (function(exports) {
 
       case 'touchend':
       case 'mouseup':
-        if (this._dnd.active || this._dnd.timeout !== null) {
+        if (this._dnd.active) {
           event.preventDefault();
           event.stopImmediatePropagation();
         }
-        this.endDrag();
+        this.endDrag(event);
         break;
 
       case 'click':
