@@ -26,36 +26,27 @@ class Homescreen(Base):
     _divider_separator_locator = (By.CSS_SELECTOR, 'section.divider .separator > span')
     _exit_edit_mode_locator = (By.ID, 'exit-edit-mode')
 
+
+    _body_dragging_locator = (By.CSS_SELECTOR, 'body.dragging')
+    _apps_locator = (By.ID, 'apps')
+    _app_icon_locator = (By.CSS_SELECTOR, 'gaia-app-icon[data-identifier="%s"]')
+    _remove_locator = (By.ID, 'remove')
+
     def launch(self):
         Base.launch(self)
 
-    def tap_search_bar(self):
-        search_bar = self.marionette.find_element(*self._search_bar_icon_locator)
-        search_bar.tap()
+    def wait_for_app_icon_present(self, app_manifest):
+        Wait(self.marionette, timeout=30).until(lambda m: self.installed_app(app_manifest))
 
-        # TODO These lines are a workaround for bug 1020974
-        import time
-        time.sleep(1)
-        self.marionette.switch_to_frame()
-        Wait(self.marionette).until(lambda m: not self.keyboard.is_keyboard_displayed)
-        self.marionette.find_element('id', 'rocketbar-form').tap()
-        Wait(self.marionette).until(lambda m: self.keyboard.is_keyboard_displayed)
-
-        from gaiatest.apps.homescreen.regions.search_panel import SearchPanel
-        return SearchPanel(self.marionette)
-
-    def wait_for_app_icon_present(self, app_name):
-        Wait(self.marionette, timeout=30).until(lambda m: self.installed_app(app_name))
-
-    def wait_for_app_icon_not_present(self, app_name):
-        Wait(self.marionette).until(lambda m: self.installed_app(app_name) is None)
+    def wait_for_app_icon_not_present(self, app_manifest):
+        Wait(self.marionette).until(lambda m: self.installed_app(app_manifest) is None)
 
     def wait_for_bookmark_icon_not_present(self, bookmark_title):
         Wait(self.marionette).until(lambda m: self.bookmark(bookmark_title) is None)
 
-    def is_app_installed(self, app_name):
+    def is_app_installed(self, app_manifest):
         """Checks whether app is installed"""
-        return self.installed_app(app_name) is not None
+        return self.installed_app(app_manifest) is not None
 
     def activate_edit_mode(self):
         app = self.marionette.find_element(*self._homescreen_all_icons_locator)
@@ -158,11 +149,17 @@ class Homescreen(Base):
     def wait_for_number_of_apps(self, number_of_apps=1):
         Wait(self.marionette).until(lambda m: len(self.app_elements) >= number_of_apps)
 
-    def installed_app(self, app_name):
-        for root_el in self.marionette.find_elements(*self._homescreen_all_icons_locator):
-            if root_el.text == app_name and (root_el.get_attribute('data-app-state') == 'ready' or
-                'bookmark' in root_el.get_attribute('class') or 'collection' in root_el.get_attribute('class')):
-                return self.InstalledApp(self.marionette, root_el)
+    def installed_app(self, app_manifest):
+        apps_container = self.marionette.find_elements(*self._apps_locator)
+        self.marionette.switch_to_shadow_root(apps_container)
+        icon_locator = (
+             self._app_icon_locator[0],
+             self._app_icon_locator[1] % app_manifest
+        )
+        _test_locator = (By.CSS_SELECTOR, 'gaia-app-icon')
+        element = self.marionette.find_element(*_test_locator)
+        app_icon = self.marionette.find_element(*icon_locator)
+        return self.InstalledApp(self.marionette, app_icon)
 
     def bookmark(self, bookmark_title):
         for root_el in self.marionette.find_elements(*self._bookmark_icons_locator):
@@ -177,24 +174,12 @@ class Homescreen(Base):
 
     class InstalledApp(PageRegion):
 
-        _delete_app_locator = (By.CSS_SELECTOR, 'span.remove')
-
         @property
-        def name(self):
-            return self.root_element.text
+        def manifest_url(self):
+            return self.root_element.get_attribute('data-identifier')
 
         def tap_icon(self):
-            expected_name = self.name
-
-            # TODO bug 1043293 introduced a timing/tap race issue here
-            time.sleep(0.5)
-            self.root_element.tap(y=1)
-            Wait(self.marionette).until(lambda m: self.apps.displayed_app.name.lower() == expected_name.lower())
+            expected_manifest_url = self.manifest_url
+            self.root_element.tap()
+            Wait(self.marionette).until(lambda m: self.apps.displayed_app.manifest_url == expected_manifest_url)
             self.apps.switch_to_displayed_app()
-
-        def tap_delete_app(self):
-            """Tap on (x) to delete app"""
-            self.root_element.find_element(*self._delete_app_locator).tap()
-
-            from gaiatest.apps.homescreen.regions.confirm_dialog import ConfirmDialog
-            return ConfirmDialog(self.marionette)
