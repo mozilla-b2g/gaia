@@ -1,0 +1,29 @@
+* {
+  -moz-user-select: none;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  font-size: 10px;
+  font-weight: 400;
+  color: #333;
+}
+
+body {
+  background: #f4f4f4 url(images/background.png) no-repeat 0 calc(100% - 7rem) / 100% auto;
+}
+
+h1 {
+  text-align: center;
+  font-weight: normal;
+  font-size: 2rem;
+}
+
+p {
+  font-size: 1.35rem;
+  margin: 0 1.5rem 1.5rem;
+}

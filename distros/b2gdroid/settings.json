@@ -1,5 +1,5 @@
 {
   "screen.timeout": 0,
   "homescreen.appName": "homescreen",
-  "ftu.manifestURL": null
+  "ftu.manifestURL": "app://ftu.gaiamobile.org/manifest.webapp"
 }
