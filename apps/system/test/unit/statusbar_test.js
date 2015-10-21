@@ -156,7 +156,6 @@ suite('system/Statusbar', function() {
         getTopMostWindow: function() {
           return app;
         },
-
         element: document.createElement('div')
       };
 
@@ -569,11 +568,12 @@ suite('system/Statusbar', function() {
   });
 
   suite('setAppearance', function() {
-    var app;
+    var app, popup;
     setup(function() {
       Statusbar.element.classList.remove('light');
       Statusbar.element.classList.remove('maximized');
       app = getMockApp();
+      popup = getMockPopup();
       MockService.mockQueryWith('getTopMostWindow', app);
     });
 
@@ -594,7 +594,23 @@ suite('system/Statusbar', function() {
       app.isHomescreen = undefined;
       app.isAttentionWindow = undefined;
       app.isLockscreen = undefined;
+      app.isFtu = undefined;
       Statusbar.setAppearance();
+      assert.isFalse(Statusbar.element.classList.contains('maximized'));
+    });
+
+    test('use parent window for PopupWindow', function() {
+      MockService.mockQueryWith('getTopMostWindow', popup);
+
+      this.sinon.stub(popup, 'getBottomMostWindow').returns(app);
+      Statusbar.setAppearance();
+      assert.isTrue(Statusbar.element.classList.contains('maximized'));
+
+      this.sinon.stub(app.appChrome, 'isMaximized').returns(false);
+      this.sinon.stub(popup.appChrome, 'isMaximized').returns(true);
+
+      Statusbar.setAppearance();
+
       assert.isFalse(Statusbar.element.classList.contains('maximized'));
     });
 
@@ -603,6 +619,7 @@ suite('system/Statusbar', function() {
       app.isHomescreen = undefined;
       app.isAttentionWindow = undefined;
       app.isLockscreen = undefined;
+      app.isFtu = undefined;
       UtilityTray.shown = true;
       Statusbar.setAppearance();
       assert.isTrue(Statusbar.element.classList.contains('maximized'));
@@ -621,7 +638,8 @@ suite('system/Statusbar', function() {
           return this;
         },
         isHomescreen: false,
-        isLockscreen: false
+        isLockscreen: false,
+        isFtu: false
       });
       Statusbar.setAppearance();
       assert.isFalse(Statusbar.element.classList.contains('light'));
@@ -631,6 +649,48 @@ suite('system/Statusbar', function() {
     test('setAppearance homescreen', function() {
       MockService.mockQueryWith('getTopMostWindow', {
         isHomescreen: true,
+        isFullScreen: this.sinon.stub().returns(false),
+        isFullScreenLayout: this.sinon.stub().returns(false),
+        getTopMostWindow: function getTopMostWindow() {
+          return this;
+        }
+      });
+      Statusbar.setAppearance();
+      assert.isFalse(Statusbar.element.classList.contains('light'));
+      assert.isTrue(Statusbar.element.classList.contains('maximized'));
+    });
+
+    test('setAppearance attentionWindow', function() {
+      MockService.mockQueryWith('getTopMostWindow', {
+        isAttentionWindow: true,
+        isFullScreen: this.sinon.stub().returns(false),
+        isFullScreenLayout: this.sinon.stub().returns(false),
+        getTopMostWindow: function getTopMostWindow() {
+          return this;
+        }
+      });
+      Statusbar.setAppearance();
+      assert.isFalse(Statusbar.element.classList.contains('light'));
+      assert.isTrue(Statusbar.element.classList.contains('maximized'));
+    });
+
+    test('setAppearance LockScreen', function() {
+      MockService.mockQueryWith('getTopMostWindow', {
+        isLockscreen: true,
+        isFullScreen: this.sinon.stub().returns(false),
+        isFullScreenLayout: this.sinon.stub().returns(false),
+        getTopMostWindow: function getTopMostWindow() {
+          return this;
+        }
+      });
+      Statusbar.setAppearance();
+      assert.isFalse(Statusbar.element.classList.contains('light'));
+      assert.isTrue(Statusbar.element.classList.contains('maximized'));
+    });
+
+    test('setAppearance FTU', function() {
+      MockService.mockQueryWith('getTopMostWindow', {
+        isFtu: true,
         isFullScreen: this.sinon.stub().returns(false),
         isFullScreenLayout: this.sinon.stub().returns(false),
         getTopMostWindow: function getTopMostWindow() {
@@ -1237,6 +1297,29 @@ suite('system/Statusbar', function() {
       });
     });
   });
+
+  function getMockPopup() {
+    return {
+      isPopupWindow: true,
+      appChrome: {
+        isMaximized: function isMaximized() {
+          return false;
+        },
+        useLightTheming: function useLightTheming() {
+          return true;
+        }
+      },
+      getBottomMostWindow: function getBottomMostWindow() {
+        return getMockApp();
+      },
+      isFullScreenLayout: function() {
+        return false;
+      },
+      isFullScreen: function() {
+        return false;
+      }
+    };
+  }
 
   function getMockApp() {
     return {

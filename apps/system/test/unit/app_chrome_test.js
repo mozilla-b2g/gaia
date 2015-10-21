@@ -171,7 +171,7 @@ suite('system/AppChrome', function() {
     'url': 'app://popup.gaiamobile.org/popup.html',
     'name': 'Fake Popup',
     'origin': 'app://popup.gaiamobile.org'
-  }
+  };
 
   var fadeTransitionEndEvent = new CustomEvent('transitionend');
   fadeTransitionEndEvent.propertyName = 'background-color';
@@ -344,7 +344,6 @@ suite('system/AppChrome', function() {
 
     test('location changed - without navigation', function() {
       var app = new AppWindow(fakeAppWithName);
-      var chrome = new AppChrome(app);
       this.sinon.stub(app, 'isBrowser').returns(false);
 
       var evt = new CustomEvent('_locationchange');
@@ -449,7 +448,7 @@ suite('system/AppChrome', function() {
         var evt = new CustomEvent(type);
         app.element.dispatchEvent(evt);
       });
-      assert.equal(chrome.handleEvent.callCount, events.length)
+      assert.equal(chrome.handleEvent.callCount, events.length);
     });
 
     test('Ensure metachange event is dispatched', function() {
@@ -1217,7 +1216,8 @@ suite('system/AppChrome', function() {
       chrome.setThemeColor('black');
 
       app.element.dispatchEvent(new CustomEvent('_loaded'));
-      assert.equal(chrome.containerElement.style.backgroundColor, 'rgb(57, 46, 84)');
+      var container = chrome.containerElement;
+      assert.equal(container.style.backgroundColor, 'rgb(57, 46, 84)');
     });
   });
 
@@ -1231,7 +1231,8 @@ suite('system/AppChrome', function() {
       app.manifest.theme_group = 'theme-communications';
 
       chrome = new AppChrome(app);
-      assert.isTrue(chrome.containerElement.classList.contains('theme-communications'));
+      var container = chrome.containerElement;
+      assert.isTrue(container.classList.contains('theme-communications'));
     });
 
     test('already set for web app', function() {
@@ -1239,7 +1240,8 @@ suite('system/AppChrome', function() {
       app.webManifest.theme_group = 'theme-communications';
 
       chrome = new AppChrome(app);
-      assert.isTrue(chrome.containerElement.classList.contains('theme-communications'));
+      var container = chrome.containerElement;
+      assert.isTrue(container.classList.contains('theme-communications'));
     });
 
 
@@ -1283,7 +1285,8 @@ suite('system/AppChrome', function() {
         }
       });
 
-      assert.isFalse(chrome.containerElement.classList.contains('hidden'));
+      var container = chrome.containerElement;
+      assert.isFalse(container.classList.contains('hidden'));
     });
 
     test('Changed', function() {
@@ -1296,8 +1299,8 @@ suite('system/AppChrome', function() {
           type: 'changed'
         }
       });
-
-      assert.isTrue(chrome.containerElement.classList.contains('theme-settings'));
+      var container = chrome.containerElement;
+      assert.isTrue(container.classList.contains('theme-settings'));
     });
 
     test('Removed', function() {
@@ -1321,7 +1324,8 @@ suite('system/AppChrome', function() {
         }
       });
 
-      assert.isFalse(chrome.containerElement.classList.contains('theme-media'));
+      var container = chrome.containerElement;
+      assert.isFalse(container.classList.contains('theme-media'));
     });
   });
 

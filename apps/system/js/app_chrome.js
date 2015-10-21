@@ -1004,8 +1004,8 @@
 
     // If the chrome is not rendered, let's not try to animate.
     if (this.containerElement.hidden) {
-      var color = this.utils.color.getColorForElement(this.element);
-      var isLight = this.utils.color.isLightColor(color);
+      var colorForElement = this.utils.color.getColorForElement(this.element);
+      var isLight = this.utils.color.isLightColor(colorForElement);
       this.app.element.classList.toggle('light', isLight);
       this.app.publish('titlestatechanged');
       return;

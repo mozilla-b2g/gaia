@@ -110,7 +110,7 @@ apps/system/style/themes/default/core.css 4 5
 apps/system/style/ttlview/ttlview.css 1 0
 apps/system/style/update_manager/update_manager.css 4 0
 apps/system/style/utility_tray/utility_tray.css 4 0
-apps/system/style/window.css 0 3
+apps/system/style/window.css 0 2
 apps/system/style/wrapper/wrapper.css 0 1
 apps/system/style/zindex.css 0 4
 apps/video/style/info.css 0 2

@@ -250,7 +250,7 @@ textarea,
   overflow: hidden;
 }
 
-#windows .appWindow:not(.homescreen):not(.lockScreenInputWindow)::before {
+#windows .appWindow:not(.popupWindow):not(.homescreen):not(.lockScreenInputWindow)::before {
   position: absolute;
   top: 0;
   width: 100%;

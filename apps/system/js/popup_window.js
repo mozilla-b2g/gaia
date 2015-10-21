@@ -35,15 +35,6 @@
       this.element.classList.add('alwaysLowered');
       this.openAnimation = this.closeAnimation = 'immediate';
     }
-
-    if (this.rearWindow.appChrome) {
-      // We have to apply the style on the title bar element because the
-      // popup appChrome element doesn't overlap. See http://bugzil.la/1132418
-      if (this.statusbar) {
-        this.statusbar.titleBar.style.backgroundColor =
-          this.rearWindow.appChrome.containerElement.style.backgroundColor;
-      }
-    }
   };
 
   /**

@@ -13,10 +13,11 @@ requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/test/unit/mock_applications.js');
 requireApp('system/test/unit/mock_screen_layout.js');
 requireApp('system/test/unit/mock_context_menu.js');
+requireApp('system/test/unit/mock_app_chrome.js');
 
 var mocksForSecureWindowManager = new window.MocksHelper([
   'Service', 'Applications', 'SettingsListener',
-  'ManifestHelper', 'ScreenLayout'
+  'ManifestHelper', 'ScreenLayout', 'AppChrome'
 ]).init();
 
 suite('system/SecureWindow', function() {

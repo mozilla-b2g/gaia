@@ -656,7 +656,7 @@ html[dir="rtl"] .appWindow.invoked {
 |
 | AppWindow background color varies based on the content lifecycle, or based
 | on some exposed APIs that let content have more or less control over it.
-| 
+|
 | Content lifecycle:
 |   - Cold-launch
 |     * Before the app is first rendered
@@ -671,6 +671,7 @@ html[dir="rtl"] .appWindow.invoked {
   background-color: black;
 }
 
+.appWindow:not(.searchWindow):not(.lockScreenInputWindow):not(.globalOverlayWindow).browser[loading-state=true],
 .appWindow:not(.homescreen):not(.searchWindow):not(.lockScreenInputWindow):not(.globalOverlayWindow).render {
   background-color: white;
 }
@@ -683,13 +684,21 @@ html[dir="rtl"] .appWindow.invoked {
   background-color: inherit;
 }
 
+/* Ensure PopupWindow inherits the background color of their parents. See bug 1132418#c3 */
+.appWindow:not(.homescreen):not(.searchWindow):not(.lockScreenInputWindow):not(.globalOverlayWindow).render .popupWindow {
+  background-color: transparent;
+}
+
+.appWindow:not(.homescreen):not(.searchWindow):not(.lockScreenInputWindow):not(.globalOverlayWindow).render .popupWindow > div > iframe {
+  background-color: white;
+}
 
 /*****************************************************************************\
 | The background_color field in the manifest, is one of the API that is
 | offered to the content, to alter the default background color.
 | The background_color field allow to alter the default color *before* the app
 | is first rendered.
-\*****************************************************************************/
+\************************:*****************************************************/
 .appWindow:not(.homescreen):not(.searchWindow):not(.lockScreenInputWindow):not(.globalOverlayWindow) > div.browser-container {
   background-color: inherit;
 }
@@ -699,7 +708,7 @@ html[dir="rtl"] .appWindow.invoked {
 }
 
 .appWindow:not(.homescreen):not(.searchWindow):not(.lockScreenInputWindow):not(.globalOverlayWindow).render > div.browser-container > iframe {
-  background-color: inherit; 
+  background-color: inherit;
 }
 
 /* General rules */

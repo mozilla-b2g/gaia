@@ -62,13 +62,13 @@ html[dir="rtl"] .appWindow .titlebar .statusbar-shadow { background-position: bo
   position: absolute;
 }
 
-[data-manifest-name="FTU"]:not(.bar) > .chrome + .titlebar .titlebar-minimized,
+.ftuWindow:not(.bar) > .chrome + .titlebar .titlebar-minimized,
 .lockScreenWindow:not(.bar) > .chrome + .titlebar .titlebar-minimized,
 .attentionWindow:not(.bar) > .chrome + .titlebar .titlebar-minimized {
   opacity: 0;
 }
 
-[data-manifest-name="FTU"]:not(.bar) > .chrome + .titlebar .titlebar-maximized,
+.ftuWindow:not(.bar) > .chrome + .titlebar .titlebar-maximized,
 .lockScreenWindow:not(.bar) > .chrome + .titlebar .titlebar-maximized,
 .attentionWindow:not(.bar) > .chrome + .titlebar .titlebar-maximized {
   opacity: 1;
@@ -76,6 +76,10 @@ html[dir="rtl"] .appWindow .titlebar .statusbar-shadow { background-position: bo
 
 /* Special cases */
 #screen.attention #statusbar-minimized {
+  display: none;
+}
+
+.appWindow .popupWindow .titlebar {
   display: none;
 }
 

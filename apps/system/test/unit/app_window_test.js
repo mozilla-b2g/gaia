@@ -1,7 +1,7 @@
 /* global AppWindow, ScreenLayout, MockService, IconsHelper,
       MocksHelper, BaseModule, MockContextMenu,
       MockAppTransitionController, MockPermissionSettings, DocumentFragment,
-      MockAudioChannelController, AppChrome,
+      MockAudioChannelController,
       MockWebManifestHelper, MockPromise */
 'use strict';
 
@@ -233,6 +233,37 @@ suite('system/AppWindow', function() {
     assert.isTrue(app2._setActive.calledWith(true));
   });
 
+  suite('Splash Background', function() {
+    test('setFrameBackground', function() {
+      ScreenLayout.setDefault({
+        tiny: true
+      });
+
+      var app = new AppWindow(fakeAppConfigWithIcon);
+      var background = app.browserContainer.style.backgroundImage;
+      var backgroundSize = app.browserContainer.style.backgroundSize;
+      var idBackground = app.identificationIcon.style.backgroundImage;
+      assert.isTrue(app.splashed);
+      assert.isDefined(app._splash);
+      assert.equal(background, 'url("' + app._splash + '")');
+      assert.equal(backgroundSize, '120px 120px');
+      assert.equal(idBackground, 'url("' + app._splash + '")');
+    });
+
+    test('clearFrameBackground', function() {
+      var app = new AppWindow(fakeAppConfigWithIcon);
+      var background = app.browserContainer.style.backgroundImage;
+      assert.equal(background, 'url("' + app._splash + '")');
+
+      app.handleEvent({
+        type: 'mozbrowserloadend'
+      });
+
+      background = app.browserContainer.style.backgroundImage;
+      assert.equal(background, 'none');
+    });
+  });
+
   suite('Resize', function() {
     var app1;
     setup(function() {
@@ -338,7 +369,7 @@ suite('system/AppWindow', function() {
 
     test('No navigation setting in manifest - app - appChrome', function() {
       var spy = this.sinon.spy(window, 'AppChrome');
-      var aw = new AppWindow(fakeChromeConfigWithoutNavigation);
+      new AppWindow(fakeChromeConfigWithoutNavigation); // jshint ignore:line
       assert.isTrue(spy.calledWithNew());
     });
 
@@ -976,22 +1007,6 @@ suite('system/AppWindow', function() {
     app1.broadcast('focus');
 
     assert.isTrue(stubFrontFocus.called);
-  });
-
-  test('setFrameBackground', function() {
-    ScreenLayout.setDefault({
-      tiny: true
-    });
-
-    var app = new AppWindow(fakeAppConfigWithIcon);
-    var background = app.browserContainer.style.backgroundImage;
-    var backgroundSize = app.browserContainer.style.backgroundSize;
-    var idBackground = app.identificationIcon.style.backgroundImage;
-    assert.isTrue(app.splashed);
-    assert.isDefined(app._splash);
-    assert.equal(background, 'url("' + app._splash + '")');
-    assert.equal(backgroundSize, '120px 120px');
-    assert.equal(idBackground, 'url("' + app._splash + '")');
   });
 
   test('get Icon Splash with Multi Icons, dppx=1', function() {

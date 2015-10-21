@@ -1071,8 +1071,7 @@
       // class on browser-container until the proper patch on the external
       // repo.
       this.browserContainer.classList.add('render');
-      // Force removing background image.
-      this.browserContainer.style.backgroundImage = 'none';
+      this.clearFrameBackground();
       this._changeState('loading', false);
       this.publish('loaded');
     };
@@ -1855,6 +1854,18 @@
       if (this.identificationTitle) {
         this.identificationTitle.textContent = this.name;
       }
+    };
+
+  /**
+   * Clear the splash set as our inital background.
+   */
+  AppWindow.prototype.clearFrameBackground =
+    function aw_clearFrameBackground() {
+      if (this.isHomescreen || !this.splashed) {
+        return;
+      }
+
+      this.browserContainer.style.backgroundImage = 'none';
     };
 
   /**

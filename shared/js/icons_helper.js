@@ -129,6 +129,9 @@
                         resolve(iconObj);
 
                         iconStore.add(iconObj, iconUrl);
+                      },
+                      onError: function() {
+                        reject(`Failed to fetch icon ${iconUrl}`);
                       }
                     });
                   })

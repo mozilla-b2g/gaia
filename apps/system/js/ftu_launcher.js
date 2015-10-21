@@ -176,7 +176,10 @@
 
       this._isRunningFirstTime = true;
       this._ftuOrigin = ftu.origin;
+
       // Open FTU
+      ftu.isFtu = true;
+      ftu.element.classList.add('ftuWindow');
       ftu.launch();
     },
 
