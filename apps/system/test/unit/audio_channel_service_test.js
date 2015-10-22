@@ -9,22 +9,24 @@ requireApp('system/js/audio_channel_service.js');
 
 suite('system/AudioChannelService', function() {
   var subject;
+  var audioChannels;
 
   setup(function() {
     subject = BaseModule.instantiate('AudioChannelService');
     subject.audioChannelPolicy = {
       applyPolicy: function() {}
     };
-    var audioChannels = new Map();
-    ['normal', 'notification', 'telephony'].forEach(function(name) {
+    audioChannels = new Map();
+    ['normal', 'notification', 'telephony'].forEach((name) => {
       var audioChannel = new MockAudioChannelController(
         { instanceID: 'appID' }, { name: name }
       );
       audioChannels.set(name, audioChannel);
+      this.sinon.spy(audioChannel, 'setPolicy');
+      this.sinon.spy(audioChannel, 'proceedPolicy');
     });
     subject.service = MockService;
     MockService.mockQueryWith('SystemWindow.getAudioChannels', audioChannels);
-    this.sinon.spy(subject, '_sendContentEvent');
     subject.start();
   });
 
@@ -39,16 +41,10 @@ suite('system/AudioChannelService', function() {
   });
 
   test('Set all audio channels belonged to System app as muted', function() {
-    assert.ok(subject._sendContentEvent.calledThrice);
-    ['normal', 'notification', 'telephony'].forEach(function(name , i) {
-      assert.deepEqual(
-        subject._sendContentEvent.args[i][0],
-        {
-          type: 'system-audiochannel-mute',
-          name: name,
-          isMuted: true
-        }
-      );
+    audioChannels.forEach(function(audioChannel) {
+      assert.ok(audioChannel.setPolicy.calledOnce);
+      assert.ok(audioChannel.setPolicy.calledWith({ isAllowedToPlay: false }));
+      assert.ok(audioChannel.proceedPolicy.calledOnce);
     });
   });
 
