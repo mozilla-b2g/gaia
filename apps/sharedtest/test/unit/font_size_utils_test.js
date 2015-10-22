@@ -301,6 +301,22 @@ suite('shared/js/text_utils.js', function() {
 
       assert.ok(Math.abs(getOverflowCount() - overflowCount) < 1);
     });
+
+    test('Successive calls should not recompute the overflow from scratch',
+    function() {
+      var measureTextSpy = this.sinon.spy(
+        CanvasRenderingContext2D.prototype, 'measureText'
+      );
+
+      setupMediumString();
+      measureTextSpy.reset();
+      getOverflowCount();
+      var count = measureTextSpy.callCount;
+      setupMediumPlusString();
+      measureTextSpy.reset();
+      getOverflowCount();
+      assert.equal(measureTextSpy.callCount, count + 1);
+    });
   });
 
   suite('FontSizeUtils._getTextChangeObserver', function() {
