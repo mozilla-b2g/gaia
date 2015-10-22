@@ -155,7 +155,10 @@ ld be a Function`);
     test('Passes options to the DataAdapter', function(done) {
       var se = new SyncEngine(SynctoServerFixture.syncEngineOptions);
       se.syncNow({ history: { readonly: true } }).then(function() {
-        expect(AdapterMock.options).to.deep.equal({ readonly: true });
+        expect(AdapterMock.options).to.deep.equal({
+          readonly: true,
+          userid: SynctoServerFixture.xClientState
+        });
         done();
       });
     });

@@ -117,10 +117,11 @@ suite('sync/adapters/history >', () => {
 
   test('update - empty records', done => {
     var historyAdapter = DataAdapters.history;
-    historyAdapter.update(kintoCollection).then((result) => {
+    historyAdapter.update(kintoCollection, { readonly: true, userid: 'foo' })
+        .then((result) => {
       assert.equal(result, false);
       assert.equal(updatePlacesSpy.callCount, 0);
-      assert.equal(asyncStorage.mItems[HISTORY_COLLECTION_MTIME], null);
+      assert.equal(asyncStorage.mItems['foo' + HISTORY_COLLECTION_MTIME], null);
     }).then(done, reason => {
       assert.ok(false, reason);
     });
@@ -129,10 +130,12 @@ suite('sync/adapters/history >', () => {
   test('update - 1 sync request with 5 new records', done => {
     var historyAdapter = DataAdapters.history;
     testCollectionData = testDataGenerator(1, 1440000000, 5);
-    historyAdapter.update(kintoCollection).then((result) => {
+    historyAdapter.update(kintoCollection, { readonly: true, userid: 'foo' })
+        .then((result) => {
       assert.equal(result, false);
       var mTime = testCollectionData[0].last_modified;
-      assert.equal(asyncStorage.mItems[HISTORY_COLLECTION_MTIME], mTime);
+      assert.equal(asyncStorage.mItems['foo' + HISTORY_COLLECTION_MTIME],
+                   mTime);
       assert.equal(updatePlacesSpy.callCount, 1);
       return Promise.resolve();
     }).then(getPlacesStore).then(placesStore => {
@@ -143,7 +146,8 @@ suite('sync/adapters/history >', () => {
         for (var i = 0; i < ids.length; i++) {
           verifyPlaces(testCollectionData[i], list[i]);
           assert.equal(
-            asyncStorage.mItems[HISTORY_SYNCTOID_PREFIX + list[i].fxsyncId],
+            asyncStorage.mItems[
+                'foo' + HISTORY_SYNCTOID_PREFIX + list[i].fxsyncId],
             list[i].url);
         }
       });
@@ -157,21 +161,25 @@ suite('sync/adapters/history >', () => {
     Promise.resolve().then(() => {
       testCollectionData = testDataGenerator(1, 100, 5)
         .concat(testCollectionData);
-      return historyAdapter.update(kintoCollection);
+      return historyAdapter.update(kintoCollection,
+          { readonly: true, userid: 'foo' });
     }).then((result) => {
       assert.equal(result, false);
       var mTime = testCollectionData[0].last_modified;
-      assert.equal(asyncStorage.mItems[HISTORY_COLLECTION_MTIME], mTime);
+      assert.equal(asyncStorage.mItems['foo' + HISTORY_COLLECTION_MTIME],
+                   mTime);
       assert.equal(updatePlacesSpy.callCount, 1);
       return Promise.resolve();
     }).then(() => {
       testCollectionData = testDataGenerator(6, 500, 5)
         .concat(testCollectionData);
-      return historyAdapter.update(kintoCollection);
+      return historyAdapter.update(kintoCollection,
+          { readonly: true, userid: 'foo' });
     }).then((result) => {
       assert.equal(result, false);
       var mTime = testCollectionData[0].last_modified;
-      assert.equal(asyncStorage.mItems[HISTORY_COLLECTION_MTIME], mTime);
+      assert.equal(asyncStorage.mItems['foo' + HISTORY_COLLECTION_MTIME],
+                   mTime);
       assert.equal(updatePlacesSpy.callCount, 2);
       return Promise.resolve();
     }).then(getPlacesStore).then(placesStore => {
@@ -182,7 +190,8 @@ suite('sync/adapters/history >', () => {
         for (var i = 0; i < ids.length; i++) {
           verifyPlaces(testCollectionData[i], list[i]);
           assert.equal(
-            asyncStorage.mItems[HISTORY_SYNCTOID_PREFIX + list[i].fxsyncId],
+            asyncStorage.mItems[
+                'foo' + HISTORY_SYNCTOID_PREFIX + list[i].fxsyncId],
             list[i].url);
         }
       });
@@ -197,11 +206,13 @@ suite('sync/adapters/history >', () => {
     Promise.resolve().then(() => {
       testCollectionData = testDataGenerator(1, 100, 5)
         .concat(testCollectionData);
-      return historyAdapter.update(kintoCollection);
+      return historyAdapter.update(kintoCollection,
+          { readonly: true, userid: 'foo' });
     }).then((result) => {
       assert.equal(result, false);
       var mTime = testCollectionData[0].last_modified;
-      assert.equal(asyncStorage.mItems[HISTORY_COLLECTION_MTIME], mTime);
+      assert.equal(asyncStorage.mItems['foo' + HISTORY_COLLECTION_MTIME],
+          mTime);
       assert.equal(updatePlacesSpy.callCount, 1);
       return Promise.resolve();
     }).then(() => {
@@ -220,11 +231,13 @@ suite('sync/adapters/history >', () => {
         });
       });
       testCollectionData = deletedRecords.concat(testCollectionData);
-      return historyAdapter.update(kintoCollection);
+      return historyAdapter.update(kintoCollection,
+          { readonly: true, userid: 'foo' });
     }).then((result) => {
       assert.equal(result, false);
       var mTime = testCollectionData[0].last_modified;
-      assert.equal(asyncStorage.mItems[HISTORY_COLLECTION_MTIME], mTime);
+      assert.equal(asyncStorage.mItems['foo' + HISTORY_COLLECTION_MTIME],
+          mTime);
       assert.equal(updatePlacesSpy.callCount, 2);
       return Promise.resolve();
     }).then(getPlacesStore).then(placesStore => {
@@ -237,7 +250,8 @@ suite('sync/adapters/history >', () => {
           if (list[i]) {
             verifyPlaces(testCollectionData[i], list[i]);
             assert.equal(
-              asyncStorage.mItems[HISTORY_SYNCTOID_PREFIX + list[i].fxsyncId],
+              asyncStorage.mItems[
+                  'foo' + HISTORY_SYNCTOID_PREFIX + list[i].fxsyncId],
               list[i].url);
           } else {
             assert.notEqual(deletedQueue.indexOf(testCollectionData[i].id), -1);
@@ -262,9 +276,10 @@ suite('sync/adapters/history >', () => {
         visits: null
       }
     });
-    historyAdapter.update(kintoCollection).then((result) => {
+    historyAdapter.update(kintoCollection,
+        { readonly: true, userid: 'foo' }).then((result) => {
       assert.equal(result, false);
-      assert.equal(asyncStorage.mItems[HISTORY_COLLECTION_MTIME], null);
+      assert.equal(asyncStorage.mItems['foo' + HISTORY_COLLECTION_MTIME], null);
       assert.equal(updatePlacesSpy.callCount, 0);
       return Promise.resolve();
     }).then(done, reason => {
@@ -285,9 +300,10 @@ suite('sync/adapters/history >', () => {
         visits: []
       }
     });
-    historyAdapter.update(kintoCollection).then((result) => {
+    historyAdapter.update(kintoCollection,
+        { readonly: true, userid: 'foo' }).then((result) => {
       assert.equal(result, false);
-      assert.equal(asyncStorage.mItems[HISTORY_COLLECTION_MTIME], 110);
+      assert.equal(asyncStorage.mItems['foo' + HISTORY_COLLECTION_MTIME], 110);
       assert.equal(updatePlacesSpy.callCount, 1);
       return Promise.resolve();
     }).then(done, reason => {
@@ -308,9 +324,10 @@ suite('sync/adapters/history >', () => {
         visits: [10000, 20000]
       }
     });
-    historyAdapter.update(kintoCollection).then((result) => {
+    historyAdapter.update(kintoCollection,
+        { readonly: true, userid: 'foo' }).then((result) => {
       assert.equal(result, false);
-      assert.equal(asyncStorage.mItems[HISTORY_COLLECTION_MTIME], null);
+      assert.equal(asyncStorage.mItems['foo' + HISTORY_COLLECTION_MTIME], null);
       assert.equal(updatePlacesSpy.callCount, 0);
       return Promise.resolve();
     }).then(done, reason => {
@@ -331,9 +348,10 @@ suite('sync/adapters/history >', () => {
         visits: [10000, 20000]
       }
     });
-    historyAdapter.update(kintoCollection).then((result) => {
+    historyAdapter.update(kintoCollection,
+        { readonly: true, userid: 'foo' }).then((result) => {
       assert.equal(result, false);
-      assert.equal(asyncStorage.mItems[HISTORY_COLLECTION_MTIME], null);
+      assert.equal(asyncStorage.mItems['foo' + HISTORY_COLLECTION_MTIME], null);
       assert.equal(updatePlacesSpy.callCount, 0);
       return Promise.resolve();
     }).then(done, reason => {
