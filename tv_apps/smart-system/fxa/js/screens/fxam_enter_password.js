@@ -1,7 +1,7 @@
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/* global FxaModuleStates, FxaModuleUI, FxaModule, FxaModuleNavigation,
+/* global FxaModuleUI, FxaModule, FxaModuleNavigation,
    FxModuleServerRequest, FxaModuleOverlay, FxaModuleManager */
 /* exported FxaModuleEnterPassword */
 
@@ -33,14 +33,6 @@ var FxaModuleEnterPassword = (function() {
     passwordEl.value = '';
     passwordCheck.checked = false;
     passwordEl.setAttribute('type', 'password');
-  }
-
-  function _loadSigninSuccess(done) {
-    done(FxaModuleStates.SIGNIN_SUCCESS);
-  }
-
-  function _notVerifiedUser(done) {
-    done(FxaModuleStates.SIGNUP_SUCCESS);
   }
 
   function _togglePasswordVisibility() {
@@ -139,7 +131,7 @@ var FxaModuleEnterPassword = (function() {
 
   };
 
-  Module.onNext = function onNext(gotoNextStepCallback) {
+  Module.onDone = function onDone(done) {
     FxaModuleOverlay.show('fxa-connecting');
 
     FxaModuleManager.setParam('success', true);
@@ -150,11 +142,10 @@ var FxaModuleEnterPassword = (function() {
         FxaModuleOverlay.hide();
 
         if (!response.authenticated) {
-          _notVerifiedUser(gotoNextStepCallback);
+          // XXX Show inactive sync account. Bug1215463
           return;
         }
-
-        _loadSigninSuccess(gotoNextStepCallback);
+        done();
       }.bind(this),
       function onError(response) {
         _cleanForm(
