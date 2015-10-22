@@ -17,10 +17,11 @@ var Templates = {
   soundItem: function({l10nID, name}) {
     return Sanitizer.escapeHTML `
       <li>
-        <gaia-radio name="sounds">
+        <gaia-radio name="sounds" class="truncate">
           <label class="name">
             <bdi data-l10n-id="${l10nID}">${name}</bdi>
           </label>
+          <details></details>
         </gaia-radio>
       </li>`;
   }
