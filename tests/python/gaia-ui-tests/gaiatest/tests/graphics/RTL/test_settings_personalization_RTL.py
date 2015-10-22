@@ -13,7 +13,7 @@ class TestSettingsRTLPersonalization(GaiaImageCompareTestCase):
         settings = Settings(self.marionette)
         settings.launch()
 
-        #################### Sound ######################
+        ################### Sound ######################
         sound_page = settings.open_sound()
         self.take_screenshot('sound')
         GaiaImageCompareTestCase.scroll(self.marionette, 'down', sound_page.screen_element.size['height'],
@@ -141,11 +141,19 @@ class TestSettingsRTLPersonalization(GaiaImageCompareTestCase):
         ############# Addons ######################
         addons_page = settings.open_addons()
         self.take_screenshot('addons')
-        addons_page.tap_first_item()
+
+        addons_page.tap_item(0)
         self.take_screenshot('addons-addon_enabled')
         addons_page.toggle_addon_status()  # addons are enabled by default
         Wait(self.marionette).until(lambda m: not addons_page.is_addon_enabled)
         self.take_screenshot('addons-addon_disabled')
         addons_page.toggle_addon_status()  # revert to original state
         settings.return_to_prev_menu(addons_page.screen_element, addons_page.details_screen_element)
-        settings.return_to_prev_menu(settings.screen_element, addons_page.screen_element)
+
+        addons_page.tap_item(1)
+        self.take_screenshot('addons-nouse_addon')
+        settings.return_to_prev_menu(addons_page.screen_element, addons_page.details_screen_element)
+
+        addons_page.tap_item(2)
+        self.take_screenshot('addons-obsolete_addon')
+        settings.return_to_prev_menu(addons_page.screen_element, addons_page.details_screen_element)
