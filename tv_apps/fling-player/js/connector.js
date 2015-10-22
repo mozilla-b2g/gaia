@@ -22,7 +22,7 @@
     this._msgSeq = 0; // This sequence of message sent to controller
     this._lastSeq = -1; // The sequence of the last message received
     this._isInit = false;
-    this._isInitSession = false;
+    this._isInitConnection = false;
   }
 
   var proto = evt(Connector.prototype);
@@ -37,42 +37,44 @@
     if (!this._presentation) {
       throw new Error('Init connection without the presentation object.');
     }
+
     this._isInit = true;
 
-    this._presentation.receiver.getSession().then(
-      this._initSession.bind(this)
+    this._presentation.receiver.getConnection().then(
+      this._initConnection.bind(this)
     );
 
-    // TODO: How to do with multi-sessions cases
-    this._presentation.receiver.onsessionavailable = (e) => {
-      this._presentation.receiver.getSession().then(
-        this._initSession.bind(this)
+    this._presentation.receiver.onconnectionavailable = (e) => {
+      this._presentation.receiver.getConnection().then(
+        this._initConnection.bind(this)
       );
     };
   };
 
-  proto._initSession = function (session) {
+  proto._initConnection = function (connection) {
 
-    if (this._isInitSession) {
+    if (this._isInitConnection) {
       return;
     }
 
-    mDBG.log('Connector#_initSession');
+    mDBG.log('Connector#_initConnection');
     if (!this._presentation) {
-      throw new Error('Init session without the presentation object.');
+      throw new Error('Init connection without the presentation object.');
     }
-    this._isInitSession = true;
-    mDBG.log('this._session = ', session);
 
-    this._session = session;
-    this._session.onmessage = this.onSessionMessage.bind(this);
-    this._session.onstatechange = this.onSessionStateChange.bind(this);
+    this._isInitConnection = true;
+
+    mDBG.log('this._connection = ', connection);
+
+    this._connection = connection;
+    this._connection.onmessage = this.onConnectionMessage.bind(this);
+    this._connection.onstatechange = this.onConnectionStateChange.bind(this);
   };
 
   proto.sendMsg = function (msg) {
     mDBG.log('Connector#sendMsg');
     mDBG.log('msg = ', msg);
-    this._session.send(castingMessage.stringify(msg));
+    this._connection.send(castingMessage.stringify(msg));
   };
 
   proto.replyACK = function (msg, error) {
@@ -85,7 +87,7 @@
         };
 
     if (error) {
-      reply.error = error;
+      reply.error = '' + error;
     }
 
     this.sendMsg(reply);
@@ -103,7 +105,7 @@
     };
 
     if (data.error) {
-      msg.error = data.error;
+      msg.error = '' + data.error;
     }
 
     if (data.detail) { // TODO: Discuss should we need this ?
@@ -162,21 +164,23 @@
     this.replyACK(msg, err);
   };
 
-  proto.onSessionMessage = function (e) {
-    mDBG.log('Connector#onSessionMessage');
+  proto.onConnectionMessage = function (e) {
+    mDBG.log('Connector#onConnectionMessage');
 
     var messages = castingMessage.parse(e.data);
+
     mDBG.log('messages = ', messages);
 
     messages.sort((a, b) => { // Make sure message sequence
       return a.seq - b.seq;
     });
+
     messages.forEach(message => this.handleRemoteMessage(message));
   };
 
-  proto.onSessionStateChange = function () {
-    mDBG.log('Connector#onSessionStateChange');
-    mDBG.log('State = ', this._session.state);
+  proto.onConnectionStateChange = function () {
+    mDBG.log('Connector#onConnectionStateChange');
+    mDBG.log('State = ', this._connection.state);
     // TODO: How to do when presentation session is closed or terminated
   };
 
