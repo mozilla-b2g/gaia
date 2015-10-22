@@ -1,5 +1,5 @@
 /* global BaseModule */
-/* global Service, AppWindowManager */
+/* global AppWindowManager */
 'use strict';
 
 (function() {
