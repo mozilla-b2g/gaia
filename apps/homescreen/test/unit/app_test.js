@@ -942,6 +942,7 @@ suite('Homescreen app', () => {
 
           realIcons = app.icons;
           app.icons = {
+            firstChild: 'abc',
             getChildOffsetRect: () => {
               return { left: 0, top: 0, right: 10, bottom: 10 };
             },
@@ -957,11 +958,20 @@ suite('Homescreen app', () => {
           Object.defineProperty(window, 'innerHeight', realInnerHeight);
         });
 
+        test('icon can be dropped at the beginning of the container', () => {
+          app.handleEvent(new CustomEvent('drag-end', {
+            detail:
+              { target: 'def', dropTarget: null, clientX: 0, clientY: -100 }
+          }));
+          assert.isTrue(reorderChildSpy.calledWith('def', 'abc'));
+        });
+
         test('icon can be dropped at the end of the container', () => {
           app.handleEvent(new CustomEvent('drag-end', {
-            detail: { dropTarget: null, clientX: 0, clientY: 20 }
+            detail:
+              { target: 'def', dropTarget: null, clientX: 0, clientY: 600 }
           }));
-          assert.isTrue(reorderChildSpy.called);
+          assert.isTrue(reorderChildSpy.calledWith('def', null));
         });
 
         test('dropping icon on itself does nothing', () => {
