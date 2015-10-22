@@ -8,7 +8,8 @@
     "systemXHR":{},
     "desktop-notification" : {},
     "firefox-accounts": {},
-    "moz-extremely-unstable-and-will-change-webcomponents":{}
+    "moz-extremely-unstable-and-will-change-webcomponents":{},
+    "settings": { "access": "readwrite" }
   },
   "locales": {
     "ar": {

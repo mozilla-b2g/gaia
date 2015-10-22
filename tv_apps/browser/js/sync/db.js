@@ -34,12 +34,9 @@ var SyncBrowserDB = {
 
   /**
    * Initialization. Open a database.
-   * @param {Function} callback The callback to be run on success
    */
-  init: function browserDB_init(callback) {
-    this.db.open(function() {
-      callback();
-    }.bind(this));
+  init: function browserDB_init() {
+    this.db.open();
   },
 
   /**
@@ -447,7 +444,7 @@ SyncBrowserDB.db = {
    * Open a IndexedDB database with name as 'browser' and version as 7.
    * @param {Function} callback The callback to be run on success
    */
-  open: function db_open(callback) {
+  open: function db_open() {
     const DB_VERSION = 7;
     const DB_NAME = 'fxsync_browser';
     var request = idb.open(DB_NAME, DB_VERSION);
@@ -461,7 +458,6 @@ SyncBrowserDB.db = {
 
     request.onsuccess = (function onSuccess(e) {
       this._db = e.target.result;
-      callback();
     }).bind(this);
 
     request.onerror = (function onDatabaseError(e) {
