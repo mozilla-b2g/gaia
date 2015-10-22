@@ -916,8 +916,14 @@ suite('call screen', function() {
 
       timeNode = document.createElement('span');
       durationNode.appendChild(timeNode);
+      timeNode.setAttribute('data-l10n-id', 'connecting');
 
       CallScreen.createTicker(durationNode);
+    });
+
+    test('createTicker should clear the data-l10n-id of the time node',
+    function() {
+      assert.isFalse(timeNode.hasAttribute('data-l10n-id'));
     });
 
     test('createTicker should set a timer on durationNode', function() {

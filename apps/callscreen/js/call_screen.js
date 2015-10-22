@@ -488,6 +488,7 @@ var CallScreen = {
       return false;
     }
 
+    durationChildNode.removeAttribute('data-l10n-id');
     durationChildNode.textContent = '00:00';
     durationNode.classList.add('isTimer');
 
