@@ -238,14 +238,16 @@ DataAdapters.history = {
       if (remoteRecords[i].last_modified <= lastModifiedTime) {
         break;
       }
-      if (payload.deleted) {
+      if (payload.deleted ||
+        (payload.histUri && Array.isArray(payload.visits) &&
+          payload.visits.length === 0)) {
         places.push({
           deleted: true,
           fxsyncId: payload.id
         });
         continue;
       }
-      if (!payload.histUri || !payload.visits || !payload.visits.length) {
+      if (!payload.histUri || !payload.visits) {
         console.warn('Incorrect payload? ', payload);
         continue;
       }

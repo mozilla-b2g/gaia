@@ -249,7 +249,30 @@ suite('sync/adapters/history >', () => {
     });
   });
 
-  test('update - empty visits record', done => {
+  test('update - non-array visits record', done => {
+    var historyAdapter = DataAdapters.history;
+    var i = 1;
+    testCollectionData.unshift({
+      id: 'UNIQUE_ID_' + i,
+      last_modified: 100 + i * 10,
+      payload: {
+        id: 'UNIQUE_ID_' + i,
+        histUri: 'http://example' + i + '.com/',
+        title: 'Example ' + i + ' Title',
+        visits: null
+      }
+    });
+    historyAdapter.update(kintoCollection).then((result) => {
+      assert.equal(result, false);
+      assert.equal(asyncStorage.mItems[HISTORY_COLLECTION_MTIME], null);
+      assert.equal(updatePlacesSpy.callCount, 0);
+      return Promise.resolve();
+    }).then(done, reason => {
+      assert.ok(false, reason);
+    });
+  });
+
+  test('update - empty visits array record', done => {
     var historyAdapter = DataAdapters.history;
     var i = 1;
     testCollectionData.unshift({
@@ -264,8 +287,8 @@ suite('sync/adapters/history >', () => {
     });
     historyAdapter.update(kintoCollection).then((result) => {
       assert.equal(result, false);
-      assert.equal(asyncStorage.mItems[HISTORY_COLLECTION_MTIME], null);
-      assert.equal(updatePlacesSpy.callCount, 0);
+      assert.equal(asyncStorage.mItems[HISTORY_COLLECTION_MTIME], 110);
+      assert.equal(updatePlacesSpy.callCount, 1);
       return Promise.resolve();
     }).then(done, reason => {
       assert.ok(false, reason);
