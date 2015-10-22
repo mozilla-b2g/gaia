@@ -304,9 +304,11 @@ var CallsHandler = (function callsHandler() {
           additionalL10n.args);
         CallScreen.incomingNumberAdditionalTel.textContent = number;
       } else {
+        CallScreen.incomingInfo.classList.remove('additionalInfo');
         CallScreen.incomingNumber.textContent = number;
         CallScreen.incomingNumberAdditionalTelType.removeAttribute(
           'data-l10n-id');
+        CallScreen.incomingNumberAdditionalTelType.textContent = '';
         CallScreen.incomingNumberAdditionalTel.textContent = '';
       }
 

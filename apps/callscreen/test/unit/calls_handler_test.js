@@ -356,12 +356,31 @@ suite('calls handler', function() {
                      '12334');
       });
 
-      test('should show the number of a unknown contact', function() {
+      test('should show the number of an unknown contact', function() {
         // 111 is a special case in MockContacts to return no contact.
         extraCall.id = { number: '111' };
         MockNavigatorMozTelephony.mTriggerCallsChanged();
         assert.equal(MockCallScreen.incomingNumber.textContent,
                      extraCall.id.number);
+        assert.equal(MockCallScreen.incomingNumberAdditionalTelType.textContent,
+                     '');
+        assert.equal(MockCallScreen.incomingNumberAdditionalTel.textContent,
+                     '');
+      });
+
+      test('should clear the additional info when showing the number of an ' +
+           'unknown contact',
+      function() {
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
+        MockNavigatorMozTelephony.calls.pop();
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
+        // 111 is a special case in MockContacts to return no contact.
+        extraCall.id = { number: '111' };
+        telephonyAddCall.call(this, extraCall, { trigger: true });
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
+        assert.isFalse(
+          MockCallScreen.incomingInfo.classList.contains('additionalInfo')
+        );
         assert.equal(MockCallScreen.incomingNumberAdditionalTelType.textContent,
                      '');
         assert.equal(MockCallScreen.incomingNumberAdditionalTel.textContent,
