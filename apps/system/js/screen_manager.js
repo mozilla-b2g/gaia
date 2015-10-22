@@ -338,7 +338,25 @@
         case 'lockpanelchange' :
           window.removeEventListener('lockscreen-appclosing', this);
           window.removeEventListener('lockpanelchange', this);
-          this._setIdleTimeout(this._idleTimeout, false);
+          // Prevent racing: wakeLockManager may broadcast the message
+          // before this event, so one lockscreen event is actually representing
+          // different meanings depends on that.
+          //
+          // This happens partly because this handler doesn't enter the
+          // '_reconfigScreenTimeout' as other handlers may do, but in fact
+          // the centralized design of putting all different timeouts in one
+          // management function is not a good idea, because that fuzzes the
+          // real intention of each branch. So maybe a more complete solution
+          // is to decentralize that function, and make every small timeout
+          // configuring functions more clear.
+          //
+          // Another reason why just to set the timeout is bad because it
+          // depends on the event order heavily without checking any status
+          // at the moment the event comes. To perform such check can prevent
+          // that, too.
+          if (!this._wakeLockManager.isHeld) {
+            this._setIdleTimeout(this._idleTimeout, false);
+          }
           break;
 
         case 'requestshutdown':
