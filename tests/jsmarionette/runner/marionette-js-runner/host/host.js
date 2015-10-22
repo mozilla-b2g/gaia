@@ -30,14 +30,25 @@ function Host(socketPath, process, log) {
   process.on('exit', this.onexit);
 
   var restart = this.restart.bind(this);
+  
+  // XXXDebug Pro Tip: Comment out stdout, stderr data event handlers.
   process.stdout.on('data', function(chunk) {
-    if (chunk.toString().indexOf('Exception') !== -1) {
+    var str = chunk.toString();
+    if (str.indexOf('Exception') !== -1) {
+      console.info('Will restart -- Found error in "', str, '"');
       restart();
     }
   });
 
   process.stderr.on('data', function(chunk) {
-    if (chunk.toString().indexOf('error') !== -1) {
+    var str = chunk.toString();
+
+    // Bad file descriptor is a non-issue. Don't restart when this happens.
+    // It simply means that the file descriptor we use to pipe the logs was
+    // closed pre-maturely. We'll recover from this.
+    if (str.indexOf('error') !== -1 &&
+        str.indexOf('Bad file descriptor') === -1) {
+      console.info('Will restart -- Found error in "', str, '"');
       restart();
     }
   });
@@ -55,12 +66,6 @@ Host.prototype = {
     if (this.pendingSessions.length) {
       return Promise.all(this.pendingSessions).then(this.destroy.bind(this));
     }
-
-    Promise.all(
-      _.map(this.sessions, function(session) {
-        return session.destroy();
-      })
-    );
 
     return Promise.all(
       _.map(this.sessions, function(session) {
@@ -123,7 +128,10 @@ Host.prototype = {
   Issue a request to the hosts underlying python http server.
   */
   request: function(path, options) {
-    if (this.error) return Promise.reject(this.error);
+    if (this.error) {
+      return Promise.reject(this.error);
+    }
+    
     return this.restarting.then(function() {
       this.isRequestInProgress = true;
       return request(this.socketPath, path, options);
@@ -163,6 +171,8 @@ Host.create = function() {
 
 function spawnPythonChild() {
   var socketPath = '/tmp/marionette-socket-host-' + uuid.v1() + '.sock';
+
+  // XXXDebug Pro Tip: set stdio to [0, 1, 2] to get Python output.
   var pythonChild = spawnVirtualEnv(
     'gaia-integration',
     ['--path=' + socketPath],
