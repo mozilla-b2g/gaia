@@ -67,10 +67,18 @@ class TestSettingsRTLPersonalization(GaiaImageCompareTestCase):
         homescreen_page = settings.open_homescreen()
         self.take_screenshot('homescreen')
 
+        homescreen_page.pick_wallpaper()
+        self.take_screenshot('wallpaper')
+        homescreen_page.cancel_pick_wallpaper()
+
+        homescreen_page.select_change_icon_layout()
+        self.take_screenshot('layout',top_frame=True)
+        homescreen_page.confirm_icon_layout()
+
         homescreen_page.open_change_home_screen()
         self.take_screenshot('homescreen-change_homescreen')
         homescreen_page.open_get_more_home_screen()
-        self.take_screenshot('homescreen-get_more_homescreen',top_frame=True)
+        self.take_screenshot('homescreen-get_more_homescreen', top_frame=True)
         homescreen_page.cancel_get_more_home_screen()
         settings.return_to_prev_menu(homescreen_page.screen_element,
                                      homescreen_page.change_homescreen_screen_element)
