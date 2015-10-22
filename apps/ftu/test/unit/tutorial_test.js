@@ -25,8 +25,8 @@ suite('Tutorial >', function() {
     var steps = [];
     for (; stepCount; stepCount--) {
       steps.push({
-        video: '/style/images/tutorial/VerticalScroll.mp4',
-        l10nKey: 'tutorial-vertical-scroll-v2-tiny'
+        video: '/style/images/tutorial/Homescreen.mp4',
+        l10nKey: 'tutorial-homescreen-tiny'
       });
     }
     var config = {
@@ -165,7 +165,7 @@ suite('Tutorial >', function() {
         'default': {
           steps: [{
             video: '/style/images/tutorial/NotThere.mp4',
-            l10nKey: 'tutorial-vertical-scroll-v2-tiny'
+            l10nKey: 'tutorial-homescreen-tiny'
           }]
         }
       };
@@ -254,8 +254,8 @@ suite('Tutorial >', function() {
         var imgSRC = document.querySelector(
                       '#tutorial-step-media > *:not([hidden])'
                      ).src;
-        assert.isTrue(imgSRC.contains('VerticalScroll.mp4'),
-                      'Expected VerticalScroll.mp4 in ' + imgSRC);
+        assert.isTrue(imgSRC.contains('Homescreen.mp4'),
+                      'Expected Homescreen.mp4 in ' + imgSRC);
       }
       Tutorial.next().then(onNextLoaded, onNextLoaded).then(done, done);
     });
