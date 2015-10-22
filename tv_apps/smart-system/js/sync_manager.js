@@ -209,7 +209,6 @@
     set error(error) {
       asyncStorage.setItem(SYNC_STATE_ERROR, error, () => {
         this.store.set(SYNC_STATE_ERROR, error);
-        this.notifyStateChange();
       });
     },
 
@@ -221,7 +220,6 @@
       var lastSync = now;
       asyncStorage.setItem(SYNC_LAST_TIME, lastSync, () => {
         this.store.set(SYNC_LAST_TIME, lastSync);
-        this.notifyStateChange();
       });
     },
 
@@ -232,7 +230,6 @@
     set user(user) {
       asyncStorage.setItem(SYNC_USER, user, () => {
         this.store.set(SYNC_USER, user);
-        this.notifyStateChange;
       });
     },
 
@@ -626,16 +623,6 @@
         }
         this.debug('Sync succeded');
         this.lastSync = Date.now();
-
-        // It's possible that the user disabled sync while we were syncing and
-        // the Sync app sent us the result of the sync process before we could
-        // cancel it.
-        // In that case we should update the last synced time but should not
-        // trigger success (which would be harmless but would console.warn an
-        // invalid change of state). We should simply bail out.
-        if (this.state !== 'syncing') {
-          return;
-        }
 
         SyncStateMachine.success();
       });
