@@ -142,7 +142,7 @@ suite('Pin Page dialog', function() {
       });
 
       test('saves the pinned url', function() {
-        subject.pinButton.dispatchEvent(new CustomEvent('click'));
+        subject.pinPageButton.dispatchEvent(new CustomEvent('click'));
         assert.isTrue(stubPin.called);
       });
 

@@ -20,7 +20,7 @@
     'BrowserSettings'
   ];
   Places.SERVICES = [
-    'clearHistory', 'pin'
+    'clearHistory'
   ];
 
   BaseModule.create(Places, {
@@ -245,10 +245,10 @@
     },
 
     /**
-     * Pin/un-pin a page.
+     * Pin/unpin a page.
      *
      * @param {String} url The URL of the page to pin.
-     * @param {Boolean} value true for pin, false for un-pin.
+     * @param {Boolean} value true for pin, false for unpin.
      * @returns {Promise} Promise of a response.
      */
     setPinned: function(url, value) {
@@ -261,6 +261,28 @@
       });
     },
 
+    /**
+     * Is a page currently pinned?
+     *
+     * @param {String} url The URL of the page to check.
+     * @returns {Promise} Promise of a response.
+     */
+    isPinned: function(url) {
+      return new Promise((resolve, reject) => {
+        return this.getStore()
+          .then(store => {
+            return store.get(url);
+          })
+          .then(place => {
+            return resolve(!!place.pinned);
+          })
+          .catch(e => {
+            console.error(`Error getting the page details: ${e}`);
+            return reject(e);
+          });
+      });
+    },
+
     /*
      * Add a recorded visit to the history, we prune them to the last
      * TRUNCATE_VISITS number of visits and store them in a low enough
@@ -269,7 +291,6 @@
     TRUNCATE_VISITS: 10,
 
     addToVisited: function(place) {
-
       place.visits = place.visits || [];
 
       if (!place.visits.length) {
