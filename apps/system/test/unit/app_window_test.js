@@ -2040,12 +2040,16 @@ suite('system/AppWindow', function() {
                     { type: 'mozbrowsererror',
                       detail: { type: '' } },
                     { type: 'mozbrowsermetachange',
-                      detail: {} }];
+                      detail: {} },
+                    { type: 'mozbrowsermetachange',
+                      detail: {different: 'detail'} }];
       var expected = [{ type: 'mozbrowserloadstart' },
                       { type: '_loading' },
                       { type: 'mozbrowsererror' },
                       { type: 'mozbrowsermetachange',
-                        detail: {} }];
+                        detail: {} },
+                      { type: 'mozbrowsermetachange',
+                        detail: {different: 'detail'} }];
 
       events.forEach(app1.handleEvent, app1);
       assert.isFalse(spy.calledWithNew());
@@ -3095,79 +3099,9 @@ suite('system/AppWindow', function() {
       assert.isFalse(caughtOnParent);
     });
 
-  suite('Theme Color', function() {
-    test('(No type)', function() {
-      var app1 = new AppWindow(fakeAppConfig1);
-      var stubPublish = this.sinon.stub(app1, 'publish');
-
-      app1.handleEvent({
-        type: 'mozbrowsermetachange',
-        detail: {
-          name: 'theme-color',
-          content: 'transparent'
-        }
-      });
-
-      assert.isFalse(!!app1.themeColor);
-      assert.isFalse(stubPublish.calledOnce);
-    });
-
-    test('Added', function() {
-      var app1 = new AppWindow(fakeAppConfig1);
-      var stubPublish = this.sinon.stub(app1, 'publish');
-
-      app1.handleEvent({
-        type: 'mozbrowsermetachange',
-        detail: {
-          name: 'theme-color',
-          content: 'transparent',
-          type: 'added'
-        }
-      });
-
-      assert.equal(app1.themeColor, 'transparent');
-      assert.isTrue(stubPublish.calledOnce);
-    });
-
-    test('Changed', function() {
-      var app1 = new AppWindow(fakeAppConfig1);
-      var stubPublish = this.sinon.stub(app1, 'publish');
-
-      app1.handleEvent({
-        type: 'mozbrowsermetachange',
-        detail: {
-          name: 'theme-color',
-          content: 'pink',
-          type: 'changed'
-        }
-      });
-
-      assert.equal(app1.themeColor, 'pink');
-      assert.isTrue(stubPublish.calledOnce);
-    });
-
-    test('Removed', function() {
-      var app1 = new AppWindow(fakeAppConfig1);
-      var stubPublish = this.sinon.stub(app1, 'publish');
-
-      app1.handleEvent({
-        type: 'mozbrowsermetachange',
-        detail: {
-          name: 'theme-color',
-          content: 'pink',
-          type: 'removed'
-        }
-      });
-
-      assert.equal(app1.themeColor, '');
-      assert.isTrue(stubPublish.calledOnce);
-    });
-  });
-
   suite('Theme Group', function() {
     test('Added', function() {
       var app1 = new AppWindow(fakeAppConfig1);
-      var stubPublish = this.sinon.stub(app1, 'publish');
 
       app1.handleEvent({
         type: 'mozbrowsermetachange',
@@ -3179,7 +3113,6 @@ suite('system/AppWindow', function() {
       });
 
       assert.isTrue(app1.element.classList.contains('theme-media'));
-      assert.isTrue(stubPublish.calledOnce);
     });
 
     test('Sanitazation', function() {
@@ -3199,7 +3132,6 @@ suite('system/AppWindow', function() {
 
     test('Changed', function() {
       var app1 = new AppWindow(fakeAppConfig1);
-      var stubPublish = this.sinon.stub(app1, 'publish');
 
       app1.handleEvent({
         type: 'mozbrowsermetachange',
@@ -3211,7 +3143,6 @@ suite('system/AppWindow', function() {
       });
 
       assert.isTrue(app1.element.classList.contains('theme-settings'));
-      assert.isTrue(stubPublish.calledOnce);
     });
 
     test('Removed', function() {
@@ -3226,8 +3157,6 @@ suite('system/AppWindow', function() {
         }
       });
 
-      var stubPublish = this.sinon.stub(app1, 'publish');
-
       app1.handleEvent({
         type: 'mozbrowsermetachange',
         detail: {
@@ -3238,7 +3167,6 @@ suite('system/AppWindow', function() {
       });
 
       assert.isFalse(app1.element.classList.contains('theme-media'));
-      assert.isTrue(stubPublish.calledOnce);
     });
   });
 
