@@ -27,6 +27,8 @@
     <link rel="import" href="elements/fxa-refresh-auth.html">
     <link rel="import" href="elements/fxa-coppa.html">
 
+    <script defer src="../bower_components/evt/index.js"></script>
+
     <script defer src="../js/service.js"></script>
     <script defer src="../js/browser_frame.js"></script>
     <script defer src="../js/entry_sheet.js"></script>
@@ -34,6 +36,8 @@
     <script defer src="../shared/js/l10n.js"></script>
     <script defer src="../shared/js/settings_helper.js"></script>
     <script defer src="../shared/js/utilities.js"></script>
+    <script defer src="../shared/js/smart-screen/spatial_navigator.js"></script>
+    <script defer src="../shared/js/smart-screen/key_navigation_adapter.js"></script>
 
     <!-- Gaia Components -->
     <script defer src="../shared/elements/config.js"></script>
@@ -47,6 +51,7 @@
     <script defer src="js/fxam_manager.js"></script>
     <script defer src="js/fxam_states.js"></script>
     <script defer src="js/fxam_module.js"></script>
+    <script defer src="js/fxam_key_navigation.js"></script>
 
   </head>
   <body class="theme-settings">
@@ -69,13 +74,13 @@
         <section id="fxa-coppa" is="fxa-coppa" class="screen fxa-coppa"></section>
       </article>
       <nav role="navigation" class="horizontal navigation navigation-single-button" id="fxa-module-navigation">
-        <button id="fxa-module-back" class="left" data-l10n-id="fxa-back">
+        <button id="fxa-module-back" class="left" data-l10n-id="fxa-back" tabindex="-1">
           Back
         </button>
-         <button id="fxa-module-next" class="recommend right" data-l10n-id="fxa-next">
+         <button id="fxa-module-next" class="recommend right" data-l10n-id="fxa-next" tabindex="-1">
           Next
         </button>
-        <button id="fxa-module-done" class="recommend right" data-l10n-id="fxa-done">
+        <button id="fxa-module-done" class="recommend right" data-l10n-id="fxa-done" tabindex="-1">
           Done
         </button>
       </nav>

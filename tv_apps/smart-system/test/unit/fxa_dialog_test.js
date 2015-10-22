@@ -1,10 +1,13 @@
 'use strict';
-/* global MocksHelper, FxAccountsDialog, SystemDialog, LayoutManager */
+/* global MocksHelper, FxAccountsDialog, SystemDialog, LayoutManager,
+          focusManager */
+/* jshint nonew: false */
 
 require('/test/unit/mock_app_window_manager.js');
 require('/test/unit/mock_layout_manager.js');
 require('/test/unit/mock_system_dialog_manager.js');
 require('/test/unit/mock_keyboard_manager.js');
+require('/test/unit/mock_focus_manager.js');
 require('/js/service.js');
 require('/js/base_ui.js');
 require('/js/system_dialog.js');
@@ -14,10 +17,11 @@ var mocksForFxAccountsDialog = new MocksHelper([
   'AppWindowManager',
   'LayoutManager',
   'SystemDialogManager',
-  'KeyboardManager'
+  'KeyboardManager',
+  'focusManager'
 ]).init();
 
-suite('system/FxAccountsDialog', function() {
+suite('smart-system/FxAccountsDialog', function() {
   var stubDispatch, container,
       fakeOptions = {
         onShow: function() {},
@@ -157,6 +161,66 @@ suite('system/FxAccountsDialog', function() {
       fxAccountsDialog.resize();
       assert.isTrue(isCalled);
     });
+  });
+
+  suite('Handle focus', () => {
+    var focusSpy;
+    var addUISpy;
+    var removeUISpy;
+
+    setup(() => {
+      focusSpy = sinon.spy(focusManager, 'focus');
+      addUISpy = sinon.spy(focusManager, 'addUI');
+      removeUISpy = sinon.spy(focusManager, 'removeUI');
+    });
+
+    teardown(() => {
+      focusSpy.restore();
+      addUISpy.restore();
+      removeUISpy.restore();
+    });
+
+    test('The created FxAccountsDialog will be added into focusManager', () => {
+      new FxAccountsDialog(fakeOptions);
+      sinon.assert.calledOnce(addUISpy);
+    });
+
+    test('The destroyed FxAccountsDialog will be removed from focusManager',
+      () => {
+        var fxAccountsDialog = new FxAccountsDialog(fakeOptions);
+        fxAccountsDialog.destroy();
+        sinon.assert.calledOnce(removeUISpy);
+    });
+
+    test('Should be able to get the "#fxa-dialog" element', () => {
+      var fxAccountsDialog = new FxAccountsDialog(fakeOptions);
+      var element = fxAccountsDialog.getElement();
+      assert.equal('fxa-dialog', element.id);
+    });
+
+    test('Should be focusable when the dialog is visible', () => {
+      var fxAccountsDialog = new FxAccountsDialog(fakeOptions);
+      fxAccountsDialog.element.classList.add('visible');
+      assert.isTrue(fxAccountsDialog.isFocusable());
+    });
+
+    test('Should not be focusable when the dialog is not visible', () => {
+      var fxAccountsDialog = new FxAccountsDialog(fakeOptions);
+      assert.isFalse(fxAccountsDialog.isFocusable());
+    });
+
+    test('Should remove focus when the dialog is hidden', () => {
+      var fxAccountsDialog = new FxAccountsDialog(fakeOptions);
+      fxAccountsDialog.hide();
+      sinon.assert.calledOnce(focusSpy);
+    });
+
+    test('Should focus when the dialog is shown', () => {
+      var fxAccountsDialog = new FxAccountsDialog(fakeOptions);
+      fxAccountsDialog.show();
+      sinon.assert.calledOnce(focusSpy);
+    });
+
   });
 });
 

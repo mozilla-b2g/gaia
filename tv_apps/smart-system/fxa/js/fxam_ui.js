@@ -2,7 +2,7 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 /* global HtmlHelper, FxaModule, FxaModuleManager, FxaModuleNavigation,
-   LazyLoader */
+   LazyLoader, KeyEvent */
 /* exported FxaModuleUI */
 
 'use strict';
@@ -30,12 +30,20 @@ var FxaModuleUI = {
       FxaModuleNavigation.back();
     });
 
-    this.fxaModuleNext.addEventListener('mousedown', function() {
-      FxaModuleNavigation.next();
+    this.fxaModuleNext.addEventListener('click', function(e) {
+      // left mouse button or return key
+      if(e.button === 0 ||
+        (e.keyCode && e.keyCode === KeyEvent.DOM_VK_RETURN)) {
+        FxaModuleNavigation.next();
+      }
     });
 
-    this.fxaModuleDone.addEventListener('click', function() {
-      FxaModuleNavigation.done();
+    this.fxaModuleDone.addEventListener('click', function(e) {
+      // left mouse button or return key
+      if(e.button === 0 ||
+        (e.keyCode && e.keyCode === KeyEvent.DOM_VK_RETURN)) {
+        FxaModuleNavigation.done();
+      }
     });
 
     // Give up if the network goes offline for more than 30 seconds straight.
@@ -164,5 +172,9 @@ var FxaModuleUI = {
   },
   enableDoneButton: function() {
     this.fxaModuleDone.removeAttribute('disabled');
+  },
+  focusDoneButton: function() {
+    document.activeElement.blur();
+    this.fxaModuleDone.focus();
   }
 };
