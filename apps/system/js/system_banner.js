@@ -157,6 +157,9 @@
   function setElementL10n(element, l10nAttrs) {
     if (typeof(l10nAttrs) === 'string') {
       element.setAttribute('data-l10n-id', l10nAttrs);
+    } else if (l10nAttrs.hasOwnProperty('raw')) {
+      element.removeAttribute('data-l10n-id');
+      element.textContent = l10nAttrs.raw;
     } else {
       navigator.mozL10n.setAttributes(
         element, l10nAttrs.id, l10nAttrs.args);

@@ -1,23 +1,28 @@
 'use strict';
 
-/* global MocksHelper, MockNavigatorMozIccManager, MockSystemICC, icc_worker,
-          MockNotificationHelper */
+/* global LazyLoader, MocksHelper, MockNavigatorMozIccManager, MockSystemICC,
+          icc_worker,
+          MockNotificationHelper, STKHelper, SystemBanner */
 
+require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
-requireApp('system/test/unit/mock_system_icc.js');
-requireApp('system/shared/test/unit/mocks/mock_service.js');
+require('/test/unit/mock_system_icc.js');
+require('/test/unit/mock_system_banner.js');
+require('/shared/test/unit/mocks/mock_service.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
 require('/shared/test/unit/mocks/mock_notification_helper.js');
 require('/shared/test/unit/mocks/mock_dump.js');
 require('/shared/test/unit/mocks/mock_stk_helper.js');
-requireApp('system/js/icc_worker.js');
+require('/js/icc_worker.js');
 
 var mocksForIcc = new MocksHelper([
   'Service',
   'L10n',
   'Dump',
+  'LazyLoader',
   'NotificationHelper',
-  'STKHelper'
+  'STKHelper',
+  'SystemBanner'
 ]).init();
 
 suite('STK (icc_worker) >', function() {
@@ -142,6 +147,16 @@ suite('STK (icc_worker) >', function() {
              address:'800'
            }
          }
+       },
+
+       STK_CMD_SEND_SMS: {
+        iccId: '1010011010',
+        command: {
+          commandNumber: 1,
+          typeOfCommand: navigator.mozIccManager.STK_CMD_SEND_SMS,
+          commandQualifier: 0,
+          options: {}
+        }
        }
     };
   });
@@ -272,4 +287,56 @@ suite('STK (icc_worker) >', function() {
     launchStkCommand(stkTestCommands.STK_CMD_PLAY_TONE);
   });
 
+  suite('STK_CMD_SEND_SMS', function() {
+    setup(function() {
+      this.sinon.stub(window.icc, 'confirm');
+      this.sinon.stub(SystemBanner.prototype, 'show');
+      this.sinon.stub(LazyLoader, 'load').returns(Promise.resolve());
+      this.sinon.stub(STKHelper, 'getMessageText');
+    });
+
+    test('Without any text', function(done) {
+      launchStkCommand(stkTestCommands.STK_CMD_SEND_SMS).then(() => {
+        sinon.assert.notCalled(SystemBanner.prototype.show);
+        sinon.assert.notCalled(LazyLoader.load);
+      }).then(done, done);
+    });
+
+    test('Using l10nId', function(done) {
+      stkTestCommands.STK_CMD_SEND_SMS.command.options.text = 'test';
+
+      var l10nArgs = { id: 'key', args: { arg: 'arg' }};
+
+      STKHelper.getMessageText.returns(l10nArgs);
+
+      launchStkCommand(stkTestCommands.STK_CMD_SEND_SMS).then(() => {
+        sinon.assert.calledWith(SystemBanner.prototype.show, l10nArgs);
+      }).then(done, done);
+    });
+
+    test('Using a raw text', function(done) {
+      stkTestCommands.STK_CMD_SEND_SMS.command.options.text = 'test';
+
+      var l10nArgs = { raw: 'raw-text' };
+
+      STKHelper.getMessageText.returns(l10nArgs);
+
+      launchStkCommand(stkTestCommands.STK_CMD_SEND_SMS).then(() => {
+        sinon.assert.calledWith(SystemBanner.prototype.show, l10nArgs);
+      }).then(done, done);
+    });
+
+    test('Using an empty raw text', function(done) {
+      stkTestCommands.STK_CMD_SEND_SMS.command.options.text = 'test';
+
+      var l10nArgs = { raw: '' };
+
+      STKHelper.getMessageText.returns(l10nArgs);
+
+      launchStkCommand(stkTestCommands.STK_CMD_SEND_SMS).then(() => {
+        sinon.assert.notCalled(LazyLoader.load);
+        sinon.assert.notCalled(SystemBanner.prototype.show);
+      }).then(done, done);
+    });
+  });
 });
