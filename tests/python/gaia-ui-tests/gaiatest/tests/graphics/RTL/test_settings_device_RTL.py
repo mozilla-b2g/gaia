@@ -89,6 +89,9 @@ class TestSettingsRTL(GaiaImageCompareTestCase):
         GaiaImageCompareTestCase.scroll(self.marionette, 'down', improve_page.screen_element.rect['height'],
                                         screen=improve_page.screen_element)
         self.take_screenshot('improve')
+        improve_page.tap_send_feedback()
+        self.take_screenshot('feedback')
+        settings.return_to_prev_menu(improve_page.screen_element, improve_page.feedback_screen_element)
         settings.return_to_prev_menu(settings.screen_element, improve_page.screen_element)
 
         ###################### Help page ######################
