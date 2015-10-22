@@ -3,10 +3,10 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from gaiatest import GaiaTestCase
-from gaiatest.apps.homescreen.app import Homescreen
+from gaiatest.apps.settings.app import Settings
 
 
-class TestHomescreenChangeWallpaper(GaiaTestCase):
+class TestSettingsChangeWallpaper(GaiaTestCase):
 
     def setUp(self):
         GaiaTestCase.setUp(self)
@@ -14,17 +14,18 @@ class TestHomescreenChangeWallpaper(GaiaTestCase):
         # add photo to storage
         self.push_resource('IMG_0001.jpg')
 
-    def test_homescreen_change_wallpaper_from_gallery(self):
+    def test_settings_change_wallpaper_from_gallery(self):
         """
         https://moztrap.mozilla.org/manage/case/1902/
         """
-
-        homescreen = Homescreen(self.marionette)
         self.apps.switch_to_displayed_app()
-
         default_wallpaper_settings = self.data_layer.get_setting('wallpaper.image')
-        contextmenu = homescreen.open_context_menu()
-        activities = contextmenu.tap_change_wallpaper()
+
+        # open settings app and choose to change wallpaper, instead of opening context menu
+        settings = Settings(self.marionette)
+        settings.launch()
+        homescreen_page = settings.open_homescreen()
+        activities = homescreen_page.pick_wallpaper()
 
         # select gallery
         gallery = activities.tap_gallery()
