@@ -12,7 +12,7 @@
     "themeable":{},
     "settings": { "access": "readwrite" },
     "device-storage:music": { "access": "readwrite" },
-    "audio-channel-ringer": {},
+    "audio-channel-content": {},
     "desktop-notification": {},
     "moz-extremely-unstable-and-will-change-webcomponents":{}
   },

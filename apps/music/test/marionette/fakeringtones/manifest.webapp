@@ -9,6 +9,6 @@
   },
   "permissions": {
     "device-storage:music":{ "access": "readwrite" },
-    "audio-channel-ringer":{}
+    "audio-channel-content":{}
   }
 }

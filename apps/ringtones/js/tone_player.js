@@ -1,4 +1,3 @@
-/* global AudioContext */
 'use strict';
 
 /**
@@ -16,32 +15,31 @@ function TonePlayer() {
   // user leaves the ringtones app, see bug 958470 for details.
   this._player = new Audio();
 
-  this._player.addEventListener('loadedmetadata', function() {
+  this._player.addEventListener('loadedmetadata', () => {
     if (this._player.src) { // Null URLs don't need to be validated here.
       this._isValid = true;
       this._player.dispatchEvent(new CustomEvent(
         'validated', { detail: this._isValid }
       ));
     }
-  }.bind(this));
-  this._player.addEventListener('error', function() {
+  });
+  this._player.addEventListener('error', () => {
     if (this._player.src) { // Null URLs don't need to be validated here.
       this._isValid = false;
       this._player.dispatchEvent(new CustomEvent(
         'validated', { detail: this._isValid }
       ));
     }
-  }.bind(this));
-  this._player.addEventListener('ended', function() {
+  });
+  this._player.addEventListener('ended', () => {
     this._firePlayingCallback(false);
-  }.bind(this));
+  });
 
-  window.addEventListener('visibilitychange', function() {
+  window.addEventListener('visibilitychange', () => {
     if (document.hidden) {
       this.stop();
-      this._setExclusiveMode(false);
     }
-  }.bind(this));
+  });
 }
 
 TonePlayer.prototype = {
@@ -66,9 +64,9 @@ TonePlayer.prototype = {
       if (tone && tone.url) {
         this._isValid = undefined;
         this._player.src = tone.url;
+        this._player.mozAudioChannelType = 'content';
         this._player.play();
         this._firePlayingCallback(true);
-        this._setExclusiveMode(true);
       } else {
         this._isValid = true;
         this._player.removeAttribute('src');
@@ -82,7 +80,6 @@ TonePlayer.prototype = {
         this._player.currentTime = 0;
         this._player.play();
         this._firePlayingCallback(true);
-        this._setExclusiveMode(true);
       } else {
         this._player.pause();
         this._firePlayingCallback(false);
@@ -131,28 +128,4 @@ TonePlayer.prototype = {
       this._playingCallback(playing);
     }
   },
-
-  /**
-   * Creates an AudioContext with "ringer" priority to stop any background audio
-   * from playing once we've started previewing ringtones, or destroys the
-   * context.
-   *
-   * @param {Boolean} exclusive true to create the AudioContext, false to
-   *   destroy.
-   */
-  _setExclusiveMode: function(exclusive) {
-    if (exclusive) {
-      if (!this._source) {
-        this._context = new AudioContext('ringer');
-        this._source = this._context.createMediaElementSource(this._player);
-        this._source.connect(this._context.destination);
-      }
-    } else {
-      if (this._source) {
-        this._source.disconnect();
-        this._context = null;
-        this._source = null;
-      }
-    }
-  }
 };

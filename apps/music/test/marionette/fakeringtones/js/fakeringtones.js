@@ -29,7 +29,7 @@ var FakeRingtones = {
 
   setSource: function(file) {
     var url = window.URL.createObjectURL(file);
-    this.player.mozAudioChannelType = 'ringer';
+    this.player.mozAudioChannelType = 'content';
     this.player.src = url;
   },
 
