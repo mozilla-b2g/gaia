@@ -124,6 +124,17 @@ suite('InputMethodGlue', function() {
         app.inputContext.sendKey.calledWith(0, -99, 0));
       assert.equal(returned, p);
     });
+
+    test('(dict)', function() {
+      glue.init(app, 'foo');
+
+      var dict = {};
+      var returned = glue.sendKey(dict);
+
+      assert.isTrue(
+        app.inputContext.sendKey.firstCall.args[0] === dict);
+      assert.equal(returned, p);
+    });
   });
 
   test('sendString', function() {
