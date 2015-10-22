@@ -1602,6 +1602,26 @@ suite('calls handler', function() {
     });
 
     suite('CallsHandler.updateMergeAndOnHoldStatus', function() {
+      suite('no calls', function() {
+        setup(function() {
+          MockNavigatorMozTelephony.mTriggerCallsChanged();
+          this.sinon.spy(MockCallScreen, 'disableOnHoldButton');
+          this.sinon.spy(MockCallScreen, 'hideOnHoldButton');
+          this.sinon.spy(MockCallScreen, 'hideOnHoldAndMergeContainer');
+        });
+
+        test('should disable the hold button', function() {
+          CallsHandler.updateMergeAndOnHoldStatus();
+          sinon.assert.calledOnce(MockCallScreen.disableOnHoldButton);
+        });
+
+        test('should not hide the hold button', function() {
+          CallsHandler.updateMergeAndOnHoldStatus();
+          sinon.assert.notCalled(MockCallScreen.hideOnHoldButton);
+          sinon.assert.notCalled(MockCallScreen.hideOnHoldAndMergeContainer);
+        });
+      });
+
       suite('1 establishing call', function() {
         var mockCall;
         setup(function() {
