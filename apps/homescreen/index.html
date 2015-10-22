@@ -59,8 +59,12 @@
   </head>
 
   <body>
-    <div id="page-indicator"><span></span><span></span></div>
-    <div id="panels"><!--
+    <header id="page-indicator-header">
+      <div id="page-indicator" role="slider" aria-valuemin="0" aria-valuenow="0" aria-valuemax="1" aria-controls="panels">
+        <span></span><span></span>
+      </div>
+    </header>
+    <div id="panels" role="main"><!--
     --><div id="apps-panel">
         <div class="shadow"></div>
         <div class="scrollable">
