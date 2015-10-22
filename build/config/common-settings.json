@@ -100,7 +100,7 @@
    "geolocation.enabled": true,
    "geolocation.suspended": false,
    "gfx.layerscope.enabled": false,
-   "hud.hide": false,
+   "hud.hide": true,
    "hud.logging": true,
    "hud.warnings": true,
    "hud.errors": true,
