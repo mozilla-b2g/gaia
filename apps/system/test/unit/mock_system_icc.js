@@ -34,6 +34,8 @@ function MockSystemICC(iccManager, mobileConnections) {
       callback(true);   // User accepted the message
     },
 
+    alert: function() {},
+
     hideViews: function() {},
 
     getConnection: function(iccId) {

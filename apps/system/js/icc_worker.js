@@ -128,10 +128,11 @@ var icc_worker = {
     var textL10n;
     if (text) {
       textL10n = STKHelper.getMessageText(options);
-      icc.confirm(message, textL10n, options.icons);
     } else if (text !== undefined) {
       textL10n =
         STKHelper.getMessageText(options, 'icc-alertMessage-send-sms');
+    }
+    if (textL10n) {
       icc.alert(message, textL10n, options.icons);
     }
   },
