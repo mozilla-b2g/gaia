@@ -2904,11 +2904,38 @@ suite('system/AppWindow', function() {
     });
 
     test('uninstallSubComponents', function() {
+      var spy = {};
+      for (let propertyName in AppWindow.SUB_COMPONENTS) {
+        if (app[propertyName] && app[propertyName].destroy) {
+          spy[propertyName] = this.sinon.spy(app[propertyName], 'destroy');
+        }
+      }
+      for (let propertyName in AppWindow.SUB_MODULES) {
+        if (app[propertyName] && app[propertyName].stop) {
+          spy[propertyName] = this.sinon.spy(app[propertyName], 'stop');
+        }
+      }
+
       var normalChannel = app.audioChannels.get('normal');
       var contentChannel = app.audioChannels.get('content');
       this.sinon.spy(normalChannel, 'destroy');
       this.sinon.spy(contentChannel, 'destroy');
+
       app.uninstallSubComponents();
+
+      for (let propertyName in AppWindow.SUB_COMPONENTS) {
+        if (spy[propertyName]) {
+          assert.isTrue(spy[propertyName].calledOnce);
+        }
+        assert.isNull(app[propertyName]);
+      }
+      for (let propertyName in AppWindow.SUB_MODULES) {
+        if (spy[propertyName]) {
+          assert.isTrue(spy[propertyName].calledOnce);
+        }
+        assert.isNull(app[propertyName]);
+      }
+
       assert.ok(normalChannel.destroy.calledOnce);
       assert.ok(contentChannel.destroy.calledOnce);
       assert.deepEqual(app.audioChannels, null);

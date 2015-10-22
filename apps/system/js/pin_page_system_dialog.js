@@ -202,7 +202,12 @@
   };
 
   PinPageSystemDialog.prototype.destroy = function() {
-    this.containerElement.removeChild(this.element);
+    if (this.element) {
+      if (this.element.parentNode) {
+        this.element.parentNode.removeChild(this.element);
+      }
+      this.element = null;
+    }
     pinDialogInstance = null;
     this.publish('destroyed');
   };

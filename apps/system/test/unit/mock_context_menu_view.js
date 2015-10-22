@@ -21,5 +21,8 @@
   MockContextMenuView.prototype.focus = function() {
   };
 
+  MockContextMenuView.prototype.destroy = function() {
+  };
+
   exports.MockContextMenuView = MockContextMenuView;
 })(window);

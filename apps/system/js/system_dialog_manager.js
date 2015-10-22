@@ -56,8 +56,11 @@
      */
     configs: {
       listens: ['system-dialog-created',
+                'system-dialog-destroyed',
                 'simlockcreated',
+                'simlockdestroyed',
                 'actionmenucreated',
+                'actionmenudestroyed',
                 'system-dialog-show',
                 'system-dialog-hide',
                 'simlockshow',
@@ -203,6 +206,13 @@
       case 'system-dialog-hide':
         dialog = evt.detail;
         this.deactivateDialog(dialog);
+        break;
+      case 'simlockdestroyed':
+      case 'actionmenudestroyed':
+      case 'system-dialog-destroyed':
+        dialog = evt.detail;
+        this.deactivateDialog(dialog);
+        this.unregisterDialog(dialog);
         break;
     }
   };
