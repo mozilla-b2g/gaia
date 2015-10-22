@@ -52,7 +52,7 @@
       "readonly": true,
       "description": "Read synced browsing history."
     },
-    "sync_bookmarks_store": {
+    "bookmarks_store": {
       "readonly": true,
       "description": "Read synced browser bookmarks."
     }

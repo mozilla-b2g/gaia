@@ -11,23 +11,32 @@
 var SyncBookmark = (function () {
   var syncDataStore;
 
-  function handleTask(task) {
+  function updateWrapper(data) {
     return new Promise(resolve => {
-      var data;
-      if (task.data) {
-        data = task.data.fxsyncPayload;
-        data.timestamp = task.data.last_modified;
-      }
-      switch(task.operation) {
-      case 'update':
+      if (data.deleted) {
+        SyncBrowserDB.removeBookmark(data.id, () => {
+          resolve();
+        });
+      } else {
         SyncBrowserDB.updateBookmark(data, () => {
           resolve();
         });
-        break;
+      }
+    });
+  }
+
+  function handleTask(task) {
+    return new Promise((resolve, reject) => {
+      var data = [];
+      if (task.data && task.data.fxsyncRecords) {
+        for (var key in task.data.fxsyncRecords) {
+          data.push(task.data.fxsyncRecords[key]);
+        }
+      }
+      switch(task.operation) {
+      case 'update':
       case 'add':
-        SyncBrowserDB.addBookmark(data, () => {
-          resolve();
-        });
+        Promise.all(data.map(updateWrapper)).then(resolve);
         break;
       case 'clear':
         // Ignore clear operation.
@@ -61,9 +70,10 @@ var SyncBookmark = (function () {
         });
         var tmp = dsid.split('|');
         if (isSpecialType && tmp.length === 2) {
-          var fxSyncId = tmp[1];
-          SyncBrowserDB.getBookmark(fxSyncId, callback);
+          var fxsyncId = tmp[1];
+          SyncBrowserDB.getBookmark(fxsyncId, callback);
         } else {
+          console.warn('trying to delete a unknown type?', dsid);
           callback(null);
         }
       }
@@ -74,7 +84,7 @@ var SyncBookmark = (function () {
     if (syncDataStore) {
       return Promise.resolve();
     }
-    syncDataStore = new SyncDsHelper('sync_bookmarks_store');
+    syncDataStore = new SyncDsHelper('bookmarks_store');
     return syncDataStore.init().then(() => {
       syncDataStore.registerStoreChangeEvent(() => {
         syncDataStore.dataStoreSync(handleTask);
