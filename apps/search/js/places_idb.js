@@ -84,12 +84,8 @@
 
     remove: function(id, rev) {
       return new Promise((resolve, reject) => {
-        var stores = [VISITS_STORE, PLACES_STORE];
-        var txn = this.db.transaction(stores, 'readwrite');
-        txn.objectStore(PLACES_STORE).delete(id);
-        // When an element is removed, we assume that the browsing history was
-        // cleared, so we can empty all of the visits store.
-        txn.objectStore(VISITS_STORE).clear();
+        var txn = this.db.transaction([PLACES_STORE], 'readwrite');
+        txn.objectStore(PLACES_STORE).remove(id);
         txn.oncomplete = this.saveAndResolve(rev, resolve);
       });
     },
@@ -112,6 +108,7 @@
     },
 
     readStore: function(store, index, limit, done, filter) {
+
       var results = [];
       var txn = this.db.transaction(store, 'readonly');
       var oStore = txn.objectStore(store);
