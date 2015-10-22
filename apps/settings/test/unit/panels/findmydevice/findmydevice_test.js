@@ -27,7 +27,8 @@ suite('Find My Device panel > ', function() {
   var MockMozId, realMozId;
   var subject;
   var signinSection, settingsSection, trackingSection, login, loginButton,
-      checkbox, unverifiedError;
+      checkbox, unverifiedError, header;
+  var wakeUpFindMyDevice;
 
   mocksForFindMyDevice.attachTestHelpers();
 
@@ -72,19 +73,20 @@ suite('Find My Device panel > ', function() {
     document.head.appendChild(importHook);
     HtmlImports.populate(function onDOMReady() {
       // double-check panel is ready
-      if (document.getElementById('findmydevice-signin') == null) {
+      if (document.querySelector('.findmydevice-signin') == null) {
         throw new Error('failed to load findmydevice panel into page');
       }
 
       // grab pointers to useful elements
-      signinSection = document.getElementById('findmydevice-signin');
-      settingsSection = document.getElementById('findmydevice-settings');
-      trackingSection = document.getElementById('findmydevice-tracking');
-      checkbox = document.querySelector('#findmydevice-enabled gaia-switch');
-      login = document.getElementById('findmydevice-login');
-      loginButton = document.querySelector('#findmydevice-login > button');
-      unverifiedError = document.getElementById(
-        'findmydevice-fxa-unverified-error');
+      header = document.querySelector('#findmydevice gaia-header');
+      signinSection = document.querySelector('.findmydevice-signin');
+      settingsSection = document.querySelector('.findmydevice-settings');
+      trackingSection = document.querySelector('.findmydevice-tracking');
+      checkbox = document.querySelector('.findmydevice-enabled gaia-switch');
+      login = document.querySelector('.findmydevice-login');
+      loginButton = document.querySelector('.findmydevice-login > button');
+      unverifiedError = document.querySelector(
+        '.findmydevice-fxa-unverified-error');
 
       // manually enable the loginButton
       loginButton.removeAttribute('disabled');
@@ -93,7 +95,10 @@ suite('Find My Device panel > ', function() {
       var map = {
         '*': {
           'modules/settings_utils': 'MockSettingsUtils',
-          'shared/settings_listener': 'MockSettingsListener'
+          'shared/settings_listener': 'MockSettingsListener',
+          'shared/findmydevice_iac_api': 'MockWakeUpFindMyDevice',
+          'shared/settings_helper': 'MockSettingsHelper',
+          'shared/lazy_loader': 'MockLazyLoader'
         }
       };
 
@@ -109,19 +114,42 @@ suite('Find My Device panel > ', function() {
         return MockSettingsListener;
       });
 
-      // Create a new require context for defining the mock and requiring.
-      var requireCtx = testRequire([], map, function() {});
+      define('MockWakeUpFindMyDevice', function() {
+        return sinon.stub();
+      });
 
-      require('/js/findmydevice.js', function() {
-        // Use the context to require the module for testing
-        requireCtx(['findmydevice'], function(FindMyDevice) {
-          subject = FindMyDevice;
-          subject.init();
-          // Ensure promise is resolved and FindMyDevice.init()
-          // is finished before tests start
-          MockLazyLoader.getJSON.getCall(0).returnValue.then(
-            function() { done(); });
+      define('MockSettingsHelper', function() {
+        return MockSettingsHelper;
+      });
+
+      define('MockLazyLoader', function() {
+        return MockLazyLoader;
+      });
+
+      var modules = [
+        '/js/panels/findmydevice/findmydevice.js',
+        'MockWakeUpFindMyDevice'
+      ];
+
+      testRequire(modules, map, function(
+        FindMyDevice, MockWakeUpFindMyDevice) {
+        wakeUpFindMyDevice = MockWakeUpFindMyDevice;
+        subject = FindMyDevice();
+        subject.onInit({
+          header: header,
+          login: login,
+          loginButton: loginButton,
+          unverifiedError: unverifiedError,
+          checkbox: checkbox,
+          status: trackingSection,
+          signin: signinSection,
+          settings: settingsSection
         });
+        subject.onBeforeShow();
+        // Ensure promise is resolved and FindMyDevice.init()
+        // is finished before tests start
+        MockLazyLoader.getJSON.getCall(0).returnValue.then(
+          function() { done(); });
       });
     });
   });
@@ -246,18 +274,15 @@ suite('Find My Device panel > ', function() {
   });
 
   test('wake up find my device upon a disable attempt', function() {
-    this.sinon.stub(window, 'wakeUpFindMyDevice');
     checkbox.checked = true;
-
     var event = new CustomEvent('click', {
       bubbles: true,
       cancelable: true
     });
     checkbox.querySelector('label').dispatchEvent(event);
-
-    assert.ok(window.wakeUpFindMyDevice.calledWith(
-        IAC_API_WAKEUP_REASON_TRY_DISABLE));
-    window.wakeUpFindMyDevice.reset();
+    assert.ok(wakeUpFindMyDevice.calledWith(
+      IAC_API_WAKEUP_REASON_TRY_DISABLE));
+    wakeUpFindMyDevice.reset();
   });
 
   test('hide error message for unverified account by default', function() {
@@ -310,7 +335,7 @@ suite('Find My Device panel > ', function() {
       MockMozId.onlogin(true);
       MockSettingsHelper(loggedIn).get(v => {
         assert.isTrue(v);
-	done();
+        done();
       });
     });
 
@@ -318,7 +343,7 @@ suite('Find My Device panel > ', function() {
       MockMozId.onlogout(false);
       MockSettingsHelper(loggedIn).get(v => {
         assert.isFalse(v);
-	done();
+        done();
       });
     });
 
