@@ -16,7 +16,6 @@
   border-left: 2.2rem solid transparent;
   border-right: 2.2rem solid transparent;
   overflow: hidden;
-  pointer-events: none;
 
   color: white;
   font-weight: 400;
@@ -77,6 +76,7 @@ div#boxes > div:nth-child(3) {
 #pages-panel:not(.empty) #empty-pages {
   opacity: 0;
   visibility: hidden;
+  pointer-events: none;
 }
 
 #pages {
