@@ -293,6 +293,7 @@ window.GaiaAppIcon = (function(exports) {
     this._hasPredefinedIcon = false;
     this._hasUserSetIcon = false;
     this._image = document.createElement('img');
+    this._image.setAttribute('role', 'presentation');
 
     this._image.onload = () => {
       // FIXME: Remove once bug 1211266 is fixed
