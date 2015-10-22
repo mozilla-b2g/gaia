@@ -11,6 +11,7 @@
   "permissions": {
     "themeable":{},
     "alarms": {},
+    "system-app-only-audio-channels-in-app": {},
     "browser":{},
     "power":{},
     "webapps-manage":{},
