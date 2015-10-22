@@ -142,34 +142,4 @@ suite('search/places_idb', function() {
     });
   });
 
-  test('Calling .remove() should clear the visits db', function(done) {
-    var clearCalled = false;
-    var transactionStub = sinon.stub(subject.db, 'transaction').returns({
-      objectStore: (store) => {
-        return {
-          put: () => {},
-          add: () => {},
-          delete: () => {},
-          clear: () => {
-            if (store === 'visits') {
-              clearCalled = true;
-            }
-          }
-        };
-      },
-      set oncomplete(cb) {
-        cb();
-      }
-    });
-
-    Promise.all([
-      subject.add('url', place(mozilla, 1, 0, [0])),
-      subject.remove('url', place(mozilla, 1, 0, [0]))
-    ]).then(function() {
-      assert.isTrue(clearCalled);
-      transactionStub.restore();
-      done();
-    });
-  });
-
 });
