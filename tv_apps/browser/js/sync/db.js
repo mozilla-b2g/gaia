@@ -262,6 +262,15 @@ var SyncBrowserDB = {
   },
 
   /**
+   * Add/Update a bookmark in database without updating places.
+   * @param {String} data New bookmark record
+   * @param {Function} callback Runs on success
+   */
+  updateRawBookmark: function browserDB_updateBookmark(data, callback) {
+    this.db.saveBookmark(data, callback);
+  },
+
+  /**
    * Create/Update page title in database.
    * @param {String} uri URI query parameter
    * @param {String} title Page title

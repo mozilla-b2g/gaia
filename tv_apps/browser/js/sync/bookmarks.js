@@ -18,7 +18,7 @@ var SyncBookmark = (function () {
           resolve();
         });
       } else {
-        SyncBrowserDB.updateBookmark(data, () => {
+        SyncBrowserDB.updateRawBookmark(data, () => {
           resolve();
         });
       }
