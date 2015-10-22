@@ -481,7 +481,25 @@
         cb = this.defaultCallback();
       }
 
-      var driverSent = this.driver.send(cmd, cb);
+      var driverSent = null;
+      try {
+        driverSent = this.driver.send(cmd, cb);
+      }
+      catch(e) {
+        // !!! HACK HACK HACK !!!
+        // single retry when not connected. this should never happen, but
+        // currently it does. so here it is.
+        if (e && e.message && e.message.indexOf('not connected') !== -1) {
+          console.info('Will attempt re-connect and re-send *ONCE*');
+          this.driver.connect(function() {
+            this.driver.send(cmd, cb);
+          }.bind(this));
+        }
+        else {
+          // Unhandled.
+          throw e;
+        }
+      }
 
       if (this.isSync) {
         return driverSent;
