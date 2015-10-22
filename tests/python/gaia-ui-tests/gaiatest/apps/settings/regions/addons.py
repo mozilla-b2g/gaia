@@ -42,8 +42,8 @@ class Addons(Base):
     def is_addon_enabled(self):
         return self.marionette.find_element(*self._state_toggle_locator).is_selected()
 
-    def tap_first_item(self):
-        self.items[0].tap()
+    def tap_item(self,item_index):
+        self.items[item_index].tap()
         Wait(self.marionette).until(expected.element_displayed(
             self.marionette.find_element(*self._affected_apps_locator)))
         Wait(self.marionette).until(expected.element_displayed(
