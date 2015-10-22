@@ -13,7 +13,8 @@
     "mobileconnection":{},
     "settings": { "access": "readwrite" },
     "input": {},
-    "moz-extremely-unstable-and-will-change-webcomponents":{}
+    "moz-extremely-unstable-and-will-change-webcomponents":{},
+    "audio-channel-system": {}
   },
   "inputs": {
     "number": {
