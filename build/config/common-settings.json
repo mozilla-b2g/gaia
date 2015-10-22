@@ -135,7 +135,7 @@
    "keyboard.launch-on-boot": true,
    "langpack.channel": "2.5",
    "language.current": "en-US",
-   "latecustomization.url": "https://marketplace.mozilla.org/api/v2/late-customization/",
+   "latecustomization.url": "https://marketplace.firefox.com/api/v2/late-customization/",
    "layers.draw-borders": false,
    "layers.dump": false,
    "layers.enable-tiles": true,
