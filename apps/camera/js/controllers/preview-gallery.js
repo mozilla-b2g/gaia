@@ -5,14 +5,9 @@ define(function(require, exports, module) {
  * Dependencies
  */
 
-var createThumbnailImage = require('lib/create-thumbnail-image');
 var debug = require('debug')('controller:preview-gallery');
-var PreviewGalleryView = require('views/preview-gallery');
-var preparePreview = require('lib/prepare-preview-blob');
-var resizeImageAndSave = require('lib/resize-image-and-save');
 var StringUtils = require('lib/string-utils');
 var bindAll = require('lib/bind-all');
-var dialog = require('CustomDialog');
 
 /**
  * Exports
@@ -24,9 +19,10 @@ module.exports.PreviewGalleryController = PreviewGalleryController;
 function PreviewGalleryController(app) {
   bindAll(this);
   this.app = app;
+  this.require = app.require;
   this.settings = app.settings;
-  this.dialog = app.dialog || dialog; // test hook
-  this.resizeImageAndSave = resizeImageAndSave;
+  this.dialog = app.dialog; // test hook
+  this.resizeImageAndSave = app.resizeImageAndSave;
   this.bindEvents();
   this.configure();
   debug('initialized');
@@ -38,6 +34,20 @@ PreviewGalleryController.prototype.bindEvents = function() {
   this.app.on('preview', this.openPreview);
   this.app.on('newmedia', this.onNewMedia);
   this.app.on('hidden', this.onHidden);
+
+  // Preload libraries we may need after capturing to maintain snappiness
+  var self = this;
+  this.app.once('capture', function() {
+    var lib = ['lib/create-thumbnail-image', 'lib/prepare-preview-blob'];
+    self.require(lib, function() {});
+  });
+
+  this.app.once('newmedia', function() {
+    var lib = ['views/preview-gallery', 'CustomDialog',
+               'lib/resize-image-and-save'];
+    self.require(lib, function() {});
+  });
+
   debug('events bound');
 };
 
@@ -63,28 +73,39 @@ PreviewGalleryController.prototype.openPreview = function() {
     return;
   }
 
+  var self = this;
   var maxPreviewSize = window.CONFIG_MAX_IMAGE_PIXEL_SIZE;
 
-  this.view = new PreviewGalleryView();
-  this.view.maxPreviewSize = maxPreviewSize;
-  this.view.render().appendTo(this.app.el);
+  var lib = ['views/preview-gallery', 'CustomDialog'];
+  this.require(lib, function(view, dialog) {
+    if (!self.dialog) {
+      self.dialog = dialog;
+    }
+    if (self.app.hidden) {
+      return;
+    }
 
-  this.view.on('click:gallery', this.onGalleryButtonClick);
-  this.view.on('click:share', this.shareCurrentItem);
-  this.view.on('click:delete', this.deleteCurrentItem);
-  this.view.on('click:back', this.closePreview);
-  this.view.on('swipe', this.handleSwipe);
-  this.view.on('click:options', this.onOptionsClick);
-  this.view.on('loadingvideo', this.app.firer('busy'));
-  this.view.on('playingvideo', this.app.firer('ready'));
+    self.view = new view();
+    self.view.maxPreviewSize = maxPreviewSize;
+    self.view.render().appendTo(self.app.el);
 
-  // If lockscreen is locked, hide all control buttons
-  var secureMode = this.app.inSecureMode;
-  this.view.set('secure-mode', secureMode);
-  this.view.open();
+    self.view.on('click:gallery', self.onGalleryButtonClick);
+    self.view.on('click:share', self.shareCurrentItem);
+    self.view.on('click:delete', self.deleteCurrentItem);
+    self.view.on('click:back', self.closePreview);
+    self.view.on('swipe', self.handleSwipe);
+    self.view.on('click:options', self.onOptionsClick);
+    self.view.on('loadingvideo', self.app.firer('busy'));
+    self.view.on('playingvideo', self.app.firer('ready'));
 
-  this.previewItem();
-  this.app.emit('previewgallery:opened');
+    // If lockscreen is locked, hide all control buttons
+    var secureMode = self.app.inSecureMode;
+    self.view.set('secure-mode', secureMode);
+    self.view.open();
+
+    self.previewItem();
+    self.app.emit('previewgallery:opened');
+  });
 };
 
 PreviewGalleryController.prototype.closePreview = function() {
@@ -176,28 +197,33 @@ PreviewGalleryController.prototype.shareCurrentItem = function() {
   // If no maximum is specified (value is `0`), then simply rotate
   // (if needed) and re-save the image prior to launching the activity.
   var maxSize = this.settings.activity.get('maxSharePixelSize');
-  this.resizeImageAndSave({
-    blob: item.blob,
-    size: maxSize,
-  }, function(resizedBlob) {
-    // Update the cached preview to reflect the new size of the saved
-    // image; it will also rotate the image based on the EXIF data before
-    // saving, so we should adjust for that
-    if (resizedBlob !== item.blob) {
-      item.blob = resizedBlob;
-      if (maxSize && maxSize.width && maxSize.height) {
-        item.width = maxSize.width;
-        item.height = maxSize.height;
-      } else if (item.rotation === 90 || item.rotation === 270) {
-        var tmp = item.width;
-        item.width = item.height;
-        item.height = tmp;
-      }
-      delete item.rotation;
+  this.require(['lib/resize-image-and-save'], function(resize) {
+    if (!self.resizeImageAndSave) {
+      self.resizeImageAndSave = resize;
     }
-    self.resizingImage = false;
-    self.app.emit('ready');
-    launchShareActivity(resizedBlob);
+    self.resizeImageAndSave({
+      blob: item.blob,
+      size: maxSize,
+    }, function(resizedBlob) {
+      // Update the cached preview to reflect the new size of the saved
+      // image; it will also rotate the image based on the EXIF data before
+      // saving, so we should adjust for that
+      if (resizedBlob !== item.blob) {
+        item.blob = resizedBlob;
+        if (maxSize && maxSize.width && maxSize.height) {
+          item.width = maxSize.width;
+          item.height = maxSize.height;
+        } else if (item.rotation === 90 || item.rotation === 270) {
+          var tmp = item.width;
+          item.width = item.height;
+          item.height = tmp;
+        }
+        delete item.rotation;
+      }
+      self.resizingImage = false;
+      self.app.emit('ready');
+      launchShareActivity(resizedBlob);
+    });
   });
 };
 
@@ -318,10 +344,12 @@ PreviewGalleryController.prototype.onNewMedia = function(item) {
     addNewMedia(item);
   } else {
     // If it is a photo, find its EXIF preview first
-    preparePreview(item.blob, function(metadata) {
-      metadata.blob = item.blob;
-      metadata.filepath = item.filepath;
-      addNewMedia(metadata);
+    this.require(['lib/prepare-preview-blob'], function(preparePreview) {
+      preparePreview(item.blob, function(metadata) {
+        metadata.blob = item.blob;
+        metadata.filepath = item.filepath;
+        addNewMedia(metadata);
+      });
     });
   }
 
@@ -455,8 +483,11 @@ PreviewGalleryController.prototype.updateThumbnail = function() {
     }
   }
 
-  createThumbnailImage(blob, metadata, this.thumbnailSize, (thumbnail) => {
-    this.app.emit('newthumbnail', thumbnail);
+  var self = this;
+  this.require(['lib/create-thumbnail-image'], function(createThumbnailImage) {
+    createThumbnailImage(blob, metadata, self.thumbnailSize, (thumb) => {
+      self.app.emit('newthumbnail', thumb);
+    });
   });
 };
 
