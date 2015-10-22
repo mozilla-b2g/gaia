@@ -694,6 +694,20 @@ suite('Homescreen app', () => {
       assert.equal(app.indicator.getAttribute('data-l10n-id'), 'apps-panel');
     });
 
+    test('should update aria-hidden on both panels', () => {
+      var appPanelSetAttributeStub = sinon.stub(app.panel, 'setAttribute');
+      var pagesPanelSetAttributeStub =
+        sinon.stub(app.pages.panel, 'setAttribute');
+
+      app.appsVisible = false;
+      app.updatePanelIndicator();
+      assert.isTrue(appPanelSetAttributeStub.calledWith('aria-hidden', false));
+      assert.isTrue(pagesPanelSetAttributeStub.calledWith('aria-hidden', true));
+
+      appPanelSetAttributeStub.restore();
+      pagesPanelSetAttributeStub.restore();
+    });
+
     test('should update indicator when pages visible', () => {
       mockPanels.scrollLeft = mockPanels.scrollLeftMax;
       app.updatePanelIndicator();

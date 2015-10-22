@@ -59,6 +59,7 @@
     // Element references
     this.indicator = document.getElementById('page-indicator');
     this.panels = document.getElementById('panels');
+    this.panel = document.getElementById('apps-panel');
     this.meta = document.head.querySelector('meta[name="theme-color"]');
     this.shadow = document.querySelector('#apps-panel > .shadow');
     this.scrollable = document.querySelector('#apps-panel > .scrollable');
@@ -113,9 +114,6 @@
     this.hoverIcon = null;
 
     this._iconSize = 0;
-
-    // Update the panel indicator
-    this.updatePanelIndicator();
 
     // Signal handlers
     this.panels.addEventListener('scroll', this);
@@ -336,6 +334,9 @@
     });
 
     this.pages = new Pages();
+
+    // Update the panel indicator
+    this.updatePanelIndicator();
 
     // Application has finished initialisation
     window.performance.mark('navigationInteractive');
@@ -694,8 +695,10 @@
         this.appsVisible = appsVisible;
         this.indicator.children[0].classList.toggle('active', appsVisible);
         this.indicator.children[1].classList.toggle('active', !appsVisible);
-        this.indicator.setAttribute('data-l10n-id', this.appsVisible ?
+        this.indicator.setAttribute('data-l10n-id', appsVisible ?
           'apps-panel' : 'pages-panel');
+        this.panel.setAttribute('aria-hidden', !appsVisible);
+        this.pages.panel.setAttribute('aria-hidden', appsVisible);
       }
     },
 
