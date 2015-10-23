@@ -40,24 +40,29 @@ suite('eventSafety: callback variant >', function() {
     window.dispatchEvent(new CustomEvent('foobar'));
   });
 
-  test('filters mismatched elements for transitionend events', function() {
-    this.sinon.useFakeTimers();
-    var called = false;
-    var timeoutSpy = this.sinon.spy(window, 'setTimeout');
-    eventSafety(window, 'foobar', function() {
-      called = true;
-    }, 1000);
+  function testBubblingEvent(eventName) {
+    test(`filters mismatched elements for ${eventName} events`, function() {
+      this.sinon.useFakeTimers();
+      var called = false;
+      var timeoutSpy = this.sinon.spy(window, 'setTimeout');
+      eventSafety(window, 'foobar', function() {
+        called = true;
+      }, 1000);
 
-    // Get the private callback and execute with arguments.
-    timeoutSpy.getCall(0).args[0]({
-      type: 'transitionend',
-      target: document.body // (Not what we called the eventSafety method with)
+      // Get the private callback and execute with arguments.
+      timeoutSpy.getCall(0).args[0]({
+        type: eventName,
+        target: document.body // (Not what we called `eventSafety` with)
+      });
+
+      assert.equal(called, false, 'should not call the callback');
+      this.sinon.clock.tick(1000);
+      assert.equal(called, true, 'called after timeout');
     });
+  }
 
-    assert.equal(called, false, 'should not call the callback');
-    this.sinon.clock.tick(1000);
-    assert.equal(called, true, 'called after timeout');
-  });
+  testBubblingEvent('transitionend');
+  testBubblingEvent('animationend');
 
 });
 
@@ -99,27 +104,32 @@ suite('eventSafety: promise variant >', function() {
     window.dispatchEvent(new CustomEvent('foobar'));
   });
 
-  test('filters mismatched elements for transitionend events', function(done) {
-    this.sinon.useFakeTimers();
-    var called = false;
-    var timeoutSpy = this.sinon.spy(window, 'setTimeout');
-    eventSafety(window, 'foobar', 1000).then(function() {
-      called = true;
-    });
+  function testBubblingEvent(eventName) {
+    test(`filters mismatched elements for ${eventName} events`, function(done) {
+      this.sinon.useFakeTimers();
+      var called = false;
+      var timeoutSpy = this.sinon.spy(window, 'setTimeout');
+      eventSafety(window, 'foobar', 1000).then(function() {
+        called = true;
+      });
 
-    // Get the private callback and execute with arguments.
-    timeoutSpy.getCall(0).args[0]({
-      type: 'transitionend',
-      target: document.body // (Not what we called the eventSafety method with)
-    });
+      // Get the private callback and execute with arguments.
+      timeoutSpy.getCall(0).args[0]({
+        type: eventName,
+        target: document.body // (Not what we called `eventSafety` with)
+      });
 
-    assert.equal(called, false, 'should not call the callback');
-    this.sinon.clock.tick(1000);
-    // NOTE: Executing in the next Promise tick so that our Promise callback
-    // has a chance to fire.
-    Promise.resolve().then(() => {
-      assert.equal(called, true, 'called after timeout');
-    }).then(() => { done(); }, done);
-  });
+      assert.equal(called, false, 'should not call the callback');
+      this.sinon.clock.tick(1000);
+      // NOTE: Executing in the next Promise tick so that our Promise callback
+      // has a chance to fire.
+      Promise.resolve().then(() => {
+        assert.equal(called, true, 'called after timeout');
+      }).then(() => { done(); }, done);
+    });
+  }
+
+  testBubblingEvent('transitionend');
+  testBubblingEvent('animationend');
 
 });

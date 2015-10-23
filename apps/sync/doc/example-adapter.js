@@ -45,18 +45,33 @@ var ExampleAdapter = {
    * @param {Object} kintoCollection - A Kinto collection, see
    * http://kintojs.readthedocs.org/en/latest/api/#collections
    *
+   * @param {Object} options - either `{}` or `{ readonly: true }`
+   *
    * @returns {Promise} A promise for a Boolean, indicating whether or not
    *                    any outgoing changes were made that need to be synced up
    *                    to FxSync.
    */
-  update: function(kintoCollection) {
-    var kintoCollectionChanged = false;
+  update: function(kintoCollection, options) {
+    // E.g. read all records from kintoCollection (last modified first):
     kintoCollection.list().then(list => {
       for(var i = 0; i < list.data.length; i++) {
         console.log(`Record ${i}:`, list.data[i].payload);
       }
     });
-    return Promise.resolve(kintoCollectionChanged);
+
+    if (options.readonly) {
+      // TODO: Import data from Kinto collection into the appropriate DataStore
+      // or Web API:
+      return Promise.resolve(false);
+    } else {
+      var kintoCollectionChanged = false;
+      // TODO: Sync changes both ways between Kinto collection and the
+      // appropriate DataStore or Web API.
+      // Whenever you use kintoCollection.add, kintoCollection.update,
+      // kintoCollection.delete, etc., set `kintoCollectionChanged` to true, and
+      // then:
+      return Promise.resolve(kintoCollectionChanged);
+    }
   },
 
   /*

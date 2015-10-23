@@ -111,6 +111,13 @@ window.GaiaRadio = (function(win) {
   };
 
   /**
+   * Helper method to remove the component details.
+   */
+  proto.hideDetails = function() {
+    this.shadowRoot.querySelector('.details').style.display = 'none';
+  };
+
+  /**
    * Proxy className property to the wrapper.
    */
   proto.attributeChangedCallback = function(name, from, to) {
@@ -189,6 +196,8 @@ window.GaiaRadio = (function(win) {
   var template = document.createElement('template');
   template.innerHTML = '<span role="radio" id="radio">' +
       '<span><content select="p,label"></content></span>' +
+      '<div class="details"><content select="details"></content></div>' +
+      '<div class="divider"></div>' +
     '</span>';
 
   // Register and return the constructor

@@ -58,6 +58,11 @@
       });
     },
 
+    get isAriaHidden() {
+      return this.client.findElement(this.Selectors.element)
+        .getAttribute('aria-hidden') === 'true';
+    },
+
     get quickSettings() {
       return this.client.helper.waitForElement(this.Selectors.quickSettings);
     },

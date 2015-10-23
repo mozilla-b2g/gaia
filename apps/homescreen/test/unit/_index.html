@@ -2,18 +2,13 @@
 <html>
 <body>
 
-<div id="page-indicator"><span></span><span></span></div>
+<header id="page-indicator-header"><div id="page-indicator"><span></span><span></span></div></header>
 <div id="panels">
   <div id="apps-panel">
     <div class="shadow"></div>
 
     <div class="scrollable">
       <div id="apps"></div>
-    </div>
-
-    <div id="bottombar">
-      <div id="uninstall"></div>
-      <div id="edit"></div>
     </div>
 
     <div id="cancel-download" class="dialog">
@@ -31,11 +26,6 @@
       <button class="action">resume-download-action</button>
       <button>cancel-action</button>
     </div>
-
-    <div id="settings" class="dialog">
-      <button class="action">homescreen-settings</button>
-      <button>cancel-action</button>
-    </div>
   </div>
 
   <div id="pages-panel">
@@ -44,6 +34,11 @@
     <div class="scrollable">
       <div id="pages"></div>
     </div>
+  </div>
+
+  <div id="bottombar">
+    <div id="remove"></div>
+    <div id="edit"></div>
   </div>
 </div>
 </body>

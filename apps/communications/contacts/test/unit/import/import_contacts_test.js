@@ -17,6 +17,8 @@
 
 require('/shared/js/lazy_loader.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
+require('/shared/test/unit/mocks/mock_sdcard.js');
+require('/shared/test/unit/mocks/mock_vcard_parser.js');
 
 requireApp('communications/contacts/services/contacts.js');
 requireApp('communications/contacts/test/unit/mock_contacts_index.html.js');
@@ -27,9 +29,7 @@ requireApp('communications/contacts/test/unit/mock_contacts.js');
 requireApp('communications/contacts/test/unit/mock_asyncstorage.js');
 requireApp('communications/contacts/test/unit/mock_fb.js');
 requireApp('communications/contacts/test/unit/mock_wakelock.js');
-requireApp('communications/contacts/test/unit/mock_sdcard.js');
 requireApp('communications/contacts/test/unit/mock_l10n.js');
-requireApp('communications/contacts/test/unit/mock_vcard_parser.js');
 requireApp('communications/contacts/test/unit/mock_event_listeners.js');
 requireApp('communications/contacts/test/unit/mock_sim_importer.js');
 
@@ -123,7 +123,6 @@ suite('Import contacts >', function() {
 
     mocksHelper.suiteTeardown();
   });
-
 
   setup(function() {
     this.sinon.spy(window.utils.status, 'show');

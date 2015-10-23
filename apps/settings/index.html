@@ -80,7 +80,7 @@
     <link rel="localization" href="locales/device_type/settings.device.{locale}.properties">
 
     <script src="shared/js/l10n.js"></script>
-    <script src="shared/js/l10n_date.js"></script>
+    <script src="shared/js/moz_intl.js"></script>
     <script defer src="shared/js/date_time_helper.js"></script>
 
     <!-- Lazy loader -->
@@ -123,11 +123,12 @@
     <!--<script defer src="shared/js/sanitizer.js"></script> -->
     <!--<script defer src="shared/js/format.js"></script> -->
     <!--<script defer src="shared/js/search_provider.js"></script> -->
-    <!--<script defer src="shared/js/homescreens/vertical_preferences.js"></script> -->
+    <!--<script defer src="shared/js/homescreens/homescreen_settings.js"></script> -->
     <!--<script defer src="shared/js/stk_helper.js"></script>-->
     <!--<script defer src="shared/js/uuid.js"></script>-->
     <!--<script defer src="shared/js/passcode_helper.js"></script>-->
     <!--<script defer src="shared/js/sync/errors.js"></script>-->
+    <!--<script defer src="shared/js/findmydevice_iac_api.js"></script>-->
 
     <!-- all non-#root panels will lazy-load their own scripts -->
     <link rel="import" href="/elements/wifi_status.html">
@@ -209,6 +210,7 @@
     <link rel="import" href="/elements/accessibility_screenreader.html">
     <link rel="import" href="/elements/accessibility_colors.html">
     <link rel="import" href="/elements/accessibility_audio.html">
+    <link rel="import" href="/elements/accessibility_input.html">
     <link rel="import" href="/elements/developer_hud.html">
     <link rel="import" href="/elements/developer.html">
     <link rel="import" href="/elements/developer_service_workers.html">
@@ -220,7 +222,7 @@
     <link rel="import" href="/elements/icc.html">
     <link rel="import" href="/elements/downloads.html">
     <link rel="import" href="/elements/firefox_accounts.html">
-    <link rel="import" href="/elements/achievements.html">
+    <!-- <link rel="import" href="/elements/achievements.html"> -->
     <link rel="import" href="/elements/findmydevice.html">
     <!--IFDEF_FIREFOX_SYNC
     <link rel="import" href="/elements/firefox_sync.html">
@@ -365,7 +367,7 @@
     <!-- Personalization :: Addons :: details -->
     <section role="region" is="addon-details" id="addon-details"></section>
     <!-- Accounts :: Achievements -->
-    <section role="region" is="achievements" id="achievements"></section>
+    <!-- <section role="region" is="achievements" id="achievements"></section> -->
 
     <!-- Accounts :: Find My Device -->
     <section role="region" is="findmydevice" id="findmydevice"></section>
@@ -422,6 +424,8 @@
     <section role="region" is="accessibility-audio" id="accessibility-audio"></section>
     <!-- Device :: Accessibility :: Screen Reader -->
     <section role="region" is="accessibility-screenreader" id="accessibility-screenreader"></section>
+    <!-- Device :: Accessibility :: Input -->
+    <section role="region" is="accessibility-input" id="accessibility-input"></section>
     <!-- Device :: Accessibility -->
     <section role="region" is="accessibility" id="accessibility"></section>
     <!-- Device :: Developer :: HUD -->

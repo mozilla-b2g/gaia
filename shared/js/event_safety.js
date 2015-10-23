@@ -38,8 +38,10 @@ function eventSafety(obj, event, callback, timeout) {
   return new Promise((resolve) => {
     var finishTimeout;
     function done(e) {
-      // transitionend events bubble by default, so we filter them by element.
-      if (e && e.type === 'transitionend' && e.target !== obj) {
+      // Both "transitionend" and "animationend" events bubble by default;
+      // ignore them here if they're not targeted on the element we care about.
+      if (e && e.target !== obj &&
+          (e.type === 'transitionend' || e.type === 'animationend')) {
         return;
       }
 

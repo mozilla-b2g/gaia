@@ -21,7 +21,7 @@ function getVideoRotation(blob, rotationCallback) {
     // Start off with a 1024 chunk from the start of the blob.
     BlobView.get(blob, 0, Math.min(1024, blob.size), function(data, error) {
       // Make sure that the blob is, in fact, some kind of MP4 file
-      if (data.byteLength <= 8 || data.getASCIIText(4, 4) !== 'ftyp') {
+      if (data.byteLength <= 8 || data.getBinaryText(4, 4) !== 'ftyp') {
         handlers.errorHandler('not an MP4 file');
         return;
       }
@@ -33,7 +33,7 @@ function getVideoRotation(blob, rotationCallback) {
     function parseAtom(data) {
       var offset = data.sliceOffset + data.viewOffset; // atom position in blob
       var size = data.readUnsignedInt();               // atom length
-      var type = data.readASCIIText(4);                // atom type
+      var type = data.readBinaryText(4);               // atom type
       var contentOffset = 8;                           // position of content
 
       if (size === 0) {

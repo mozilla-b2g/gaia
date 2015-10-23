@@ -2,6 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+import re
+
 from marionette_driver import expected, By, Wait
 from marionette_driver.marionette import Actions
 
@@ -81,7 +83,14 @@ class FmRadio(Base):
 
     @property
     def frequency(self):
-        return float(self.marionette.find_element(*self._frequency_display_locator).text)
+        raw_frequency = self.marionette.find_element(*self._frequency_display_locator).text
+        return float(self._crop_trailing_mhz_and_invisible_characters(raw_frequency))
+
+    @staticmethod
+    def _crop_trailing_mhz_and_invisible_characters(raw_frequency):
+        match = re.search(r'\d+\.\d', raw_frequency)
+        frequency = match.group()
+        return frequency
 
     @property
     def favorite_channels(self):

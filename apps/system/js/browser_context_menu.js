@@ -1,5 +1,5 @@
 /* global MozActivity, IconsHelper, LazyLoader */
-/* global applications, BaseModule */
+/* global BaseModule, Service */
 
 (function(window) {
   'use strict';
@@ -33,7 +33,9 @@
     handleEvent: function(evt) {
       switch (evt.type) {
         case 'mozbrowsercontextmenu':
-          this.show(evt);
+          if (!Service.query('isFtuRunning')) {
+            this.show(evt);
+          }
           break;
       }
     },
@@ -58,16 +60,20 @@
         return;
       }
 
+      var items = this._listItems(detail);
+      if (!items.length) {
+        return;
+      }
+
       evt.preventDefault();
       evt.stopPropagation();
 
+      // This temporary check will be removed as soon as
+      // Pinning the Web lands without a Setting. We won't need
+      // the second call to _listItems anymore then.
       this._getPinningEnabled(function(value) {
         this.pinningEnabled = value;
-        var items = this._listItems(detail);
-
-        if (!items.length) {
-          return;
-        }
+        items = this._listItems(detail);
 
         // Notify the embedder we are handling the context menu
         this.contextMenuView.show(items);
@@ -237,12 +243,9 @@
       // For private windows we create an empty private app window.
       if (isPrivate) {
         window.dispatchEvent(new CustomEvent('new-private-window'));
-        return;
+      } else {
+        window.dispatchEvent(new CustomEvent('new-non-private-window'));
       }
-
-      // Else we open up the browser.
-      var newTabApp = applications.getByManifestURL(manifest);
-      newTabApp.launch();
     },
 
     showWindows: function(manifest) {

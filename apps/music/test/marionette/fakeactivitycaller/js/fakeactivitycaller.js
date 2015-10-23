@@ -11,7 +11,18 @@ var FakeActivityCaller = {
   },
 
   openActivity: function() {
-    // NOOP
+    var activity = new MozActivity({
+      name: 'open',
+      data: {
+        type:     'audio/ogg',
+        filename: 'test_media/samples/Music/treasure_island_01-02_stevenson.ogg'
+      }
+    });
+
+    activity.onerror = function(e) {
+      console.warn('open activity error:', activity.error.name);
+    };
+
   },
 
   pickActivity: function() {

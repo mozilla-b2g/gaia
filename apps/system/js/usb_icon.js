@@ -15,6 +15,7 @@
     return `<div id="statusbar-usb"
               class="sb-icon sb-icon-usb"
               hidden role="listitem"
+              aria-live="polite"
               data-l10n-id="statusbarUsb">
             </div>`;
   };

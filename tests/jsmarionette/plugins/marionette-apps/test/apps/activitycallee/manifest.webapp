@@ -1,0 +1,16 @@
+{
+  "name": "Test Activity Callee App",
+  "description": "Test Activity Callee App",
+  "type": "certified",
+  "launch_path": "/index.html",
+  "activities": {
+    "pick": {
+      "filters": {
+        "type": ["x-type/*"]
+       },
+      "disposition": "inline",
+      "returnValue": true,
+      "href": "/index.html#x-activity"
+    }
+  }
+}

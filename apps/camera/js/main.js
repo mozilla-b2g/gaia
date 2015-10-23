@@ -52,6 +52,7 @@ var app = window.app = new App({
     settings: require('controllers/settings'),
     activity: require('controllers/activity'),
     camera: require('controllers/camera'),
+    storage: require('controllers/storage'),
 
     // Lazy loaded controllers
     lazy: [
@@ -59,8 +60,6 @@ var app = window.app = new App({
       'controllers/indicators',
       'controllers/recording-timer',
       'controllers/preview-gallery',
-      'controllers/storage',
-      'controllers/confirm',
       'controllers/sounds',
       'controllers/countdown'
     ]

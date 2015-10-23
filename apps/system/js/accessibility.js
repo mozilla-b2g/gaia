@@ -1,5 +1,5 @@
 'use strict';
-/* global SettingsListener, LazyLoader, Service */
+/* global SettingsListener, LazyLoader, Service, SettingsHelper */
 /* global AccessibilityQuicknavMenu */
 
 (function(exports) {
@@ -93,6 +93,7 @@
       'accessibility.screenreader-captions': false,
       'accessibility.screenreader-shade': false,
       'accessibility.screenreader-ftu-timeout-seconds': 15,
+      'accessibility.screenreader-fallback-lang': 'en-US',
       'accessibility.colors.enable': false,
       'accessibility.colors.invert': false,
       'accessibility.colors.grayscale': false,
@@ -139,7 +140,8 @@
       window.addEventListener('volumedown', this);
       window.addEventListener('logohidden', this);
       window.addEventListener('screenchange', this);
-      window.addEventListener('ftustarted', this);
+      window.addEventListener('iac-ftucomms', this);
+      this.FTUStartedTimeout = null;
 
       // Attach all observers.
       Object.keys(this.settings).forEach(function attach(settingKey) {
@@ -154,6 +156,7 @@
                   SettingsListener.getSettingsLock().set({
                     'accessibility.screenreader-show-settings': true
                   });
+                  this.setToSupportedLanguage();
                 }
                 if (this.settings['accessibility.screenreader-shade']) {
                   this.toggleShade(aValue, !aValue);
@@ -242,6 +245,24 @@
     },
 
     /**
+     * Checks that device language is supported in text to speech, if not
+     * it is set to a predetermined fallback language.
+     * @memberof Accessibility.prototype
+     */
+    setToSupportedLanguage: function ar_setToSupportedLanguage() {
+      var settingsHelper = SettingsHelper('language.current');
+      var voices = this.speechSynthesizer.speech.getVoices();
+      var speechLangs = new Set([for (v of voices) v.lang.split('-')[0]]);
+
+      settingsHelper.get((value) => {
+        if (!speechLangs.has(value.split('-')[0])) {
+          settingsHelper.set(
+            this.settings['accessibility.screenreader-fallback-lang']);
+        }
+      });
+    },
+
+    /**
      * Handle volumeup and volumedown events generated from HardwareButtons.
      * @param  {Object} aEvent a high-level key event object generated from
      * HardwareButtons.
@@ -298,8 +319,6 @@
         return;
       }
 
-      window.addEventListener('ftustep', this);
-
       this.FTUStartedTimeout = setTimeout(() => {
         this.cancelSpeech();
         this.reset();
@@ -314,6 +333,7 @@
      */
     disableFTUStartedTimeout: function ar_disableFTUStartedTimeout() {
       clearTimeout(this.FTUStartedTimeout);
+      this.FTUStartedTimeout = null;
     },
 
     /**
@@ -321,11 +341,15 @@
      * the next FTU screen.
      */
     handleFTUStep: function ar_handleFTUStep() {
+      if (!this.FTUStartedTimeout) {
+        // we've not got the started event yet
+        return;
+      }
       this.disableFTUStartedTimeout();
       this.cancelSpeech();
       this.reset();
 
-      window.removeEventListener('ftustep', this);
+      window.removeEventListener('iac-ftucomms', this);
     },
 
     /**
@@ -482,11 +506,12 @@
         case 'logohidden':
           this.activateScreen();
           break;
-        case 'ftustarted':
-          this.handleFTUStarted(aEvent);
-          break;
-        case 'ftustep':
-          this.handleFTUStep();
+        case 'iac-ftucomms':
+          if (aEvent.detail === 'started') {
+            this.handleFTUStarted(aEvent);
+          } else if(aEvent.detail.type == 'step') {
+            this.handleFTUStep();
+          }
           break;
         case 'mozChromeEvent':
           switch (aEvent.detail.type) {

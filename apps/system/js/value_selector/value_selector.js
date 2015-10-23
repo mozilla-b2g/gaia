@@ -29,7 +29,8 @@
     app.element.addEventListener('_opening', this);
     app.element.addEventListener('_closing', this);
     app.element.addEventListener('_closed', this);
-    app.element.addEventListener('_inputmethod-contextchange', this);
+    app.element.addEventListener('_inputfocus', this);
+    app.element.addEventListener('_inputblur', this);
     app.element.addEventListener('_localized', this);
     LazyLoader.load(['shared/js/input_parser.js']);
     window.addEventListener('timeformatchange', this);
@@ -100,24 +101,17 @@
           this._timePicker = null;
         }
         break;
-      case '_inputmethod-contextchange':
-        var typesToHandle = ['select-one', 'select-multiple', 'date', 'time',
-          'datetime', 'datetime-local', 'blur'];
-        // handle the <select> element and inputs with type of date/time
-        // in system app for now
-        if (typesToHandle.indexOf(evt.detail.inputType) < 0) {
-          return;
-        }
-
+      case '_inputfocus':
         this._currentDatetimeValue = evt.detail.value;
         this._currentInputType = evt.detail.inputType;
 
-        if (this._currentInputType === 'blur') {
-          this.hide();
-          return;
-        }
-
         this.show(evt.detail);
+        break;
+      case '_inputblur':
+        this._currentDatetimeValue = undefined;
+        this._currentInputType = undefined;
+
+        this.hide();
         break;
       case 'transitionend':
         this.element.classList.remove('transitioning');
@@ -127,7 +121,8 @@
 
   ValueSelector.prototype.render = function vs_render(callback) {
     this.publish('willrender');
-    this.containerElement.insertAdjacentHTML('beforeend', this.view());
+    this.containerElement.insertAdjacentHTML('beforeend',
+          Sanitizer.unwrapSafeHTML(this.view()));
     this._fetchElements();
     this._registerEvents();
     this._injected = true;
@@ -155,7 +150,8 @@
   ValueSelector.prototype.view = function vs_view() {
     /* jshint maxlen: false */
     var id = this.CLASS_NAME + this.instanceID;
-    return Sanitizer.escapeHTML `<div data-z-index-level="value-selector" class="value-selector" id="${id}" hidden>
+    return Sanitizer.createSafeHTML `
+    <div data-z-index-level="value-selector" class="value-selector" id="${id}" hidden>
       <form class="value-selector-select-option-popup" role="dialog" data-type="value-selector" hidden>
         <section class="value-selector-container">
           <h1 class="value-selector-options-title" data-l10n-id="choose-option"></h1>
@@ -219,7 +215,8 @@
 
   ValueSelector.prototype.optionView = function(
     {index, checked, labelFor,text}) {
-    return Sanitizer.escapeHTML `<li role="option" data-option-index="${index}"
+    return Sanitizer.createSafeHTML `
+      <li role="option" data-option-index="${index}"
         aria-selected="${checked}" dir="auto">
         <label role="presentation" for="${labelFor}">
           <span>${text}</span>
@@ -228,7 +225,8 @@
   };
 
   ValueSelector.prototype.groupView = function({text}) {
-    return Sanitizer.escapeHTML `<li role="subheader" dir="auto">
+    return Sanitizer.createSafeHTML `
+    <li role="subheader" dir="auto">
         <label role="presentation">
           <span>${text}</span>
         </label>
@@ -288,10 +286,6 @@
     this.publish('shown');
     var min = detail.min;
     var max = detail.max;
-
-    if (detail.choices) {
-      detail.choices = JSON.parse(detail.choices);
-    }
 
     this.app._setVisibleForScreenReader(false);
     if (this.element.hidden) {
@@ -495,17 +489,17 @@
     options.forEach(function(option) {
       if (option.group) {
         this.elements.optionsContainer.insertAdjacentHTML('beforeend',
-          this.groupView({
+          Sanitizer.unwrapSafeHTML(this.groupView({
             text: option.text
-          }));
+          })));
       } else {
         this.elements.optionsContainer.insertAdjacentHTML('beforeend',
-          this.optionView({
+          Sanitizer.unwrapSafeHTML(this.optionView({
             index: option.optionIndex.toString(10),
             checked: option.selected.toString(),
             labelFor: 'gaia-option-' + option.optionIndex,
             text: option.text
-          }));
+          })));
       }
     }, this);
 

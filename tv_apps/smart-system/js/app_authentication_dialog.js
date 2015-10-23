@@ -87,7 +87,7 @@
     return '<section class="authentication-dialog skin-organic" ' +
             'id="' + this.CLASS_NAME + this.instanceID + '"' +
             'role="region">' +
-            '<gaia-header action="close" ' +
+            '<gaia-header ignore-dir action="close" ' +
               'class="authentication-dialog-http-authentication-header">' +
               '<button class="'+
               'authentication-dialog-http-authentication-cancel">' +

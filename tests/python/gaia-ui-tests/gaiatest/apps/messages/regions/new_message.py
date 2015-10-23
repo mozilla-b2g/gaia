@@ -7,6 +7,7 @@ from marionette_driver import expected, By, Wait
 from gaiatest.apps.base import Base
 from gaiatest.apps.contacts.app import Contacts
 from gaiatest.apps.messages.app import Messages
+from gaiatest.form_controls.header import GaiaHeader
 
 
 class NewMessage(Messages):
@@ -149,9 +150,6 @@ class NewMessage(Messages):
         return messages
 
     def go_back(self):
-        el = self.marionette.find_element(*self._header_locator)
-        Wait(self.marionette).until(expected.element_displayed(el))
-        # TODO: remove tap with coordinates after Bug 1061698 is fixed
-        el.tap(25, 25)
+        GaiaHeader(self.marionette, self._header_locator).go_back()
         from gaiatest.apps.messages.regions.options import DraftOptions
         return DraftOptions(self.marionette)

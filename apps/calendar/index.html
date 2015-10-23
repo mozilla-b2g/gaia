@@ -28,8 +28,9 @@
 <link rel="localization" href="locales/calendar.{locale}.properties">
 <link rel="localization" href="/shared/locales/date/date.{locale}.properties">
 <script defer src="/shared/js/date_time_helper.js"></script>
+<script defer src="/shared/js/intl_helper.js"></script>
+<script defer src="/shared/js/moz_intl.js"></script>
 <script defer src="/shared/js/l10n.js"></script>
-<script defer src="/shared/js/l10n_date.js"></script>
 
 <!-- The following scripts are lazy loaded but left here to ensure
      they get copied over from shared during the build -->
@@ -71,7 +72,7 @@
 <section is="settings" id="settings" role="region"></section>
 
 <section id="time-views" role="region">
-  <gaia-header id="time-header" action="menu">
+  <gaia-header ignore-dir id="time-header" action="menu">
     <h1 id="current-month-year" aria-labelledby="current-time-indicator"></h1>
     <a href="/event/add/" data-icon="add" data-l10n-id="new-event-link"></a>
   </gaia-header>

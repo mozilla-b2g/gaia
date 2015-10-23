@@ -1,6 +1,6 @@
 'use strict';
 
-/* global LockScreenNotificationBuilder, LazyLoader */
+/* global LockScreenNotificationBuilder, LazyLoader, mozIntl */
 
 (function(exports) {
   /**
@@ -578,13 +578,13 @@
   LockScreenNotifications.prototype.updateTimestamps =
   function lsn_updateTimestamps() {
     var timestamps = [...document.querySelectorAll('.notification .timestamp')];
-    var formatter = navigator.mozL10n.DateTimeFormat();
+    var formatter = mozIntl._gaia.RelativeDate(navigator.languages, {
+      style: 'short'
+    });
 
     timestamps.forEach((element) => {
       var date = new Date(element.dataset.timestamp);
-      formatter.relativeDate(date, true).then(str => {
-        element.textContent = str;
-      });
+      formatter.formatElement(element, date);
     });
   };
 

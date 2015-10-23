@@ -63,17 +63,17 @@
 .threadlist-item .default-picture > span[data-type=img],
 .threadlist-item .group-picture > span[data-type=img] {
   /* Please keep this image in sync with what is used in js/inbox.js */
-  background: url('images/default_contact_image.png') top left;
+  background: url('images/default_contact_image.png') top left; /* BiDi proof: CSS sprites */
 }
 
 .threadlist-item:nth-child(even) .default-picture > span[data-type=img],
 .threadlist-item:nth-child(even) .group-picture > span[data-type=img] {
-  background-position: bottom right;
+  background-position: bottom right; /* BiDi proof: CSS sprites */
 }
 
 .threadlist-item:nth-child(3n+1) .default-picture > span[data-type=img],
 .threadlist-item:nth-child(3n+1) .group-picture > span[data-type=img] {
-  background-position: top right;
+  background-position: top right; /* BiDi proof: CSS sprites */
 }
 
 .threadlist-item:nth-child(4n+4) .default-picture > span[data-type=img],
@@ -106,7 +106,8 @@
 }
 
 [data-type="list"] .unread aside.icon-unread {
-  background: url("images/unread.png") no-repeat left center / 1rem;
+  background: url("images/unread.png") no-repeat;
+  background-size: 1rem;
   visibility: visible;
 }
 
@@ -119,7 +120,8 @@
 }
 
 [data-type="list"] .draft .icon-draft {
-  background: url("images/draft.png") no-repeat left center / 1.2rem;
+  background: url("images/draft.png") no-repeat;
+  background-size: 1.2rem;
   visibility: visible;
 }
 
@@ -135,7 +137,7 @@
 /* Override time margin for flex layout */
 [data-type="list"] .summary time {
   display: inline-block;
-  -moz-margin-end: 1rem;
+  margin-inline-end: 1rem;
 }
 
 [data-type="list"] .unread .summary time {
@@ -186,10 +188,4 @@
 
 .threadlist-is-empty #threads-no-messages {
   display: block;
-}
-
-/* RTL View */
-html[dir="rtl"] [data-type="list"] .unread aside.icon-unread,
-html[dir="rtl"] [data-type="list"] .draft .icon-draft {
-  background-position: right center;
 }

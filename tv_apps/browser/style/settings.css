@@ -3,6 +3,12 @@ smart-button {
   box-sizing: content-box;
 }
 
+smart-button[type=simple-text] {
+  background-color: #5f6368;
+  border-radius: 4rem;
+  text-align: center;
+}
+
 /* --------------- settings-list --------------- */
 #settings-list {
   box-sizing: border-box;
@@ -15,6 +21,7 @@ smart-button {
   /* height: 980px; */
   height: 1080px;
   background-color: #e0e2e4;
+  color: #4d4d4d;
   z-index: 320;
   transition: 0.5s ease-in-out;
   transform: translateY(100%);
@@ -25,13 +32,13 @@ smart-button {
 }
 
 #settings-list-area,
-#firefox-account-area {
+#fxsync-area {
   width: 1108px;
   margin: 50px auto 0 auto;
 }
 
 #settings-header,
-#firefox-account-header {
+#fxsync-header {
   top: 0;
   left: 0;
   right: 0;
@@ -176,38 +183,39 @@ smart-button {
   border-color: transparent #00aac5 #00aac5 transparent;
 }
 
-/* Firefox Account */
-#firefox-account-sign-in > smart-button {
+/* Firefox Sync */
+
+#fxsync-sign-in > smart-button {
   background-color: #4d4d4d;
   line-height: 4rem;
   height: 4rem;
 }
 
-#firefox-account-sign-in-description,
-#firefox-account-signed-in-as {
+#fxsync-sign-in-to-sync-description,
+#fxsync-signed-in-as {
   color: #4d4d4d;
   padding: 15px;
 }
 
-.firefox-account-disconnected > #firefox-account-signed-in-as,
-.firefox-account-disconnected > #firefox-account-signed-in-email,
-.firefox-account-disconnected > #firefox-account-resend-button,
-.firefox-account-disconnected > #firefox-account-forget-button,
-.firefox-account-disconnected > #firefox-account-disconnect-button,
-.firefox-account-login > #firefox-account-sign-in-button,
-.firefox-account-login > #firefox-account-sign-in-description,
-.firefox-account-login > #firefox-account-disconnect-button,
-.firefox-account-verified > #firefox-account-sign-in-button,
-.firefox-account-verified > #firefox-account-sign-in-description,
-.firefox-account-verified > #firefox-account-resend-button,
-.firefox-account-verified > #firefox-account-forget-button {
-  display: none;
-}
-
+#fxsync-area.hidden,
 #settings-dialog.hidden,
 #settings-dialog-homepage.hidden,
 #settings-dialog-search.hidden {
   display: none;
+}
+
+.settings-horizontal-list {
+  display: flex;
+  margin-top: 2rem;
+  margin-left: 1rem;
+}
+
+.settings-horizontal-list-item {
+  margin-right: 4rem;
+}
+
+.settings-horizontal-list-item.disabled > span {
+  opacity: 0.5;
 }
 
 #settings-dialog {

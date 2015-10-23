@@ -5,6 +5,7 @@
 from marionette_driver import expected, By, Wait
 
 from gaiatest.apps.base import Base
+from gaiatest.apps.base import PageRegion
 
 
 class BrowsingPrivacy(Base):
@@ -12,9 +13,6 @@ class BrowsingPrivacy(Base):
     _page_locator = (By.ID, 'browsingPrivacy')
     _clear_browsing_history_locator = (By.CSS_SELECTOR, 'button.clear-history-button')
     _clear_private_data_locator = (By.CSS_SELECTOR, 'button.clear-private-data-button')
-
-    _clear_button_locator = (By.CSS_SELECTOR, 'button.clear-dialog-ok.danger')
-    _cancel_button_locator = (By.CLASS_NAME, 'clear-dialog-cancel')
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
@@ -26,25 +24,32 @@ class BrowsingPrivacy(Base):
     def screen_element(self):
         return self.marionette.find_element(*self._page_locator)
 
-    def tap_clear_browsing_history(self):
+    def clear_browsing_history(self):
         self.marionette.find_element(*self._clear_browsing_history_locator).tap()
-        Wait(self.marionette).until(expected.element_displayed(
-            self.marionette.find_element(*self._clear_button_locator)))
+        return ClearHistoryDialog(self.marionette)
 
-    def tap_clear_private_data(self):
+    def clear_private_data(self):
         self.marionette.find_element(*self._clear_private_data_locator).tap()
-        Wait(self.marionette).until(expected.element_displayed(
-            self.marionette.find_element(*self._clear_button_locator)))
+        return ClearHistoryDialog(self.marionette)
 
-    def tap_clear(self):
-        clear = Wait(self.marionette).until(
-            expected.element_present(*self._clear_button_locator))
-        Wait(self.marionette).until(expected.element_displayed(clear))
-        clear.tap()
-        Wait(self.marionette).until(expected.element_displayed(
-            self.marionette.find_element(*self._page_locator)))
+
+class ClearHistoryDialog(PageRegion):
+
+    _root_locator = (By.ID, 'settings-confirm-dialog')
+    _cancel_locator = (By.CSS_SELECTOR, '[data-l10n-id="cancel"]')
+    _clear_delete_locator = (By.CSS_SELECTOR, '.danger')
+
+    def __init__(self, marionette):
+        element = marionette.find_element(*self._root_locator)
+        PageRegion.__init__(self, marionette, element)
+        Wait(self.marionette).until(lambda m: element.is_displayed())
+
+    def confirm_clear(self):
+        element = self.root_element.find_element(*self._clear_delete_locator)
+        element.tap()
+        Wait(self.marionette).until(lambda m: not self.root_element.is_displayed())
 
     def cancel_clear(self):
-        self.marionette.find_element(*self._cancel_button_locator).tap()
-        Wait(self.marionette).until(expected.element_displayed(
-            self.marionette.find_element(*self._page_locator)))
+        element = self.root_element.find_element(*self._cancel_locator)
+        element.tap()
+        Wait(self.marionette).until(lambda m: not self.root_element.is_displayed())

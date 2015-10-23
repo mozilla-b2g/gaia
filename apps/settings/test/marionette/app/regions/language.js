@@ -121,7 +121,9 @@ LanguagePanel.prototype = {
     var parentSection = this.waitForElement('languagePanel');
     var bodyWidth = this.findElement('body').size().width;
 
-    this.findElement('header').tap(25, 25);
+    this.client.switchToShadowRoot(this.findElement('header'));
+    this.client.findElement('[action="back"] button').tap();
+    this.client.switchToShadowRoot();
 
     this.client.waitFor(function() {
       var loc = parentSection.location();

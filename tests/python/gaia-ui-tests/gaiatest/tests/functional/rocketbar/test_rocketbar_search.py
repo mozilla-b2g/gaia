@@ -4,7 +4,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from gaiatest import GaiaTestCase
-from gaiatest.apps.homescreen.app import Homescreen
+from gaiatest.apps.system.app import System
 
 
 class TestRocketBarSearch(GaiaTestCase):
@@ -19,10 +19,8 @@ class TestRocketBarSearch(GaiaTestCase):
         # Asserts that the title and shortcuts are listed
 
         test_string = u'News'
-        homescreen = Homescreen(self.marionette)
-        self.apps.switch_to_displayed_app()
 
-        search_panel = homescreen.tap_search_bar()
+        search_panel = System(self.marionette).tap_search_bar()
         search_panel.type_into_search_box(test_string)
 
         search_panel.wait_for_search_results_to_load(3)

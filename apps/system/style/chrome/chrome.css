@@ -272,6 +272,7 @@ html[dir="rtl"] .controls .urlbar { transform-origin: top right; }
   visibility: visible;
 }
 
+.appWindow.attentionWindow.active .chrome,
 .appWindow.fullscreen-app .chrome {
   visibility: hidden;
 }
@@ -317,6 +318,7 @@ html[dir="rtl"] .pin-dialog.hidden ~ .controls .urlbar::before {
 }
 
 section.pin-dialog {
+  visibility: visible;
   display: block;
   position: absolute;
   margin: 0 1rem;
@@ -326,14 +328,13 @@ section.pin-dialog {
   font-size: 1.2rem;
   color: #858585;
   box-shadow: 0 1px 0 0 rgba(0, 0, 0, 0.15);
-  pointer-events: auto;
   transform: translateY(0) translateX(0) scale(1);
-  transition: opacity var(--transition-duration), transform var(--transition-duration);
+  transition: visibility var(--transition-duration), opacity var(--transition-duration), transform var(--transition-duration);
 }
 
 section.pin-dialog.hidden {
   opacity: 0;
-  pointer-events: none;
+  visibility: hidden;
 }
 html[dir="ltr"] section.pin-dialog.hidden {
   transform: translateY(-50%) translateX(-50%) scale(.3);
@@ -361,7 +362,7 @@ html[dir="rtl"] section.pin-dialog.hidden {
 }
 
 section.pin-dialog.hidden + .pin-scrim {
-  pointer-events: none;
+  visibility: hidden;
   opacity: 0;
 }
 
@@ -376,6 +377,7 @@ section.pin-dialog .pin-site-icon {
   height: 6.4rem;
   margin: 0 auto;
   background-size: 6.4rem;
+  background-image: url('images/loading_icon_white.svg');
 }
 
 section.pin-dialog .pin-site-name {
@@ -514,6 +516,7 @@ html[dir="rtl"] .appWindow.private > .chrome.maximized .pb-icon { background-pos
 
   background-repeat: no-repeat;
   background-size: 3rem;
+  height: 3.2rem;
 }
 html[dir="ltr"] .chrome-combined.maximized .chrome-has-ssl-indicator .chrome-ssl-indicator {
   background-position: left 3rem center;
@@ -577,7 +580,8 @@ html[dir="rtl"] .private > .chrome-combined.maximized .chrome-has-ssl-indicator 
   offset-inline-start: -.1rem;
 }
 
-.light .site-icon {
+.light .site-icon,
+.light section.pin-dialog .pin-site-icon {
   background-image: url('images/loading_icon_dark.svg');
 }
 
@@ -685,10 +689,12 @@ html[dir="rtl"] .controls button { float: right; }
 .appWindow:not(.bar) > .chrome button {
   opacity: 0;
   transition: opacity 0.15s ease-in;
+  pointer-events: none;
 }
 
 .appWindow:not(.bar) > .chrome.maximized button {
   opacity: 1;
+  pointer-events: auto;
 }
 
 

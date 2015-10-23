@@ -1,12 +1,12 @@
 /* exported View */
-/* global bridge */
+/* global SERVICE_WORKERS, bridge */
 
 window.View = (function() {
 'use strict';
 
-var debug = 1 ? (...args) => console.log('[View]', ...args) : () => {};
+var debug = 0 ? (...args) => console.log('[View]', ...args) : () => {};
 
-if (!window.parent.SERVICE_WORKERS) (function() {
+if (!SERVICE_WORKERS) (function() {
   window.ROUTES = {
     '/api/activities/share/:filePath': 'share',
 
@@ -18,6 +18,8 @@ if (!window.parent.SERVICE_WORKERS) (function() {
 
     '/api/artwork/original/:filePath': 'getSongArtwork',
     '/api/artwork/thumbnail/:filePath': 'getSongThumbnail',
+    '/api/artwork/url/original/:filePath': 'getSongArtworkURL',
+    '/api/artwork/url/thumbnail/:filePath': 'getSongThumbnailURL',
 
     '/api/audio/play': 'play',
     '/api/audio/pause': 'pause',
@@ -39,9 +41,7 @@ if (!window.parent.SERVICE_WORKERS) (function() {
     '/api/queue/playlist/:id/shuffle': 'queuePlaylist',
     '/api/queue/playlist/:id/song/:filePath': 'queuePlaylist',
     '/api/queue/song/:filePath': 'queueSong',
-    '/api/queue/repeat': 'getRepeatSetting',
     '/api/queue/repeat/:repeat': 'setRepeatSetting',
-    '/api/queue/shuffle': 'getShuffleSetting',
     '/api/queue/shuffle/:shuffle': 'setShuffleSetting',
 
     '/api/songs/list': 'getSongs',
@@ -107,13 +107,11 @@ View.prototype.render = function() {
   debug('Rendered');
 };
 
-View.prototype.fetch = window.parent.SERVICE_WORKERS ?
+View.prototype.fetch = SERVICE_WORKERS ?
   function(url) {
-    return window.fetch(url);
+    return window.fetch(encodeURI(url));
   } :
   function(url) {
-    url = decodeURIComponent(url);
-
     for (var path in window.ROUTES) {
       var route = window.ROUTES[path];
       var match = url.match(route.regexp);

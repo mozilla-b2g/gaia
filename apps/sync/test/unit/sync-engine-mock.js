@@ -7,7 +7,7 @@
   MockSyncEngine
 */
 
-const MockSyncEngine = (() => {
+var MockSyncEngine = (() => {
   var MockSyncEngine = function(options) {
       MockSyncEngine.constructorOptions = options;
   };

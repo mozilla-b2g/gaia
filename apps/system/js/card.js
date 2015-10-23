@@ -12,15 +12,23 @@
  * also included in this file.
  *
  * @param {AppWindow} app
- * @param {boolean} disableScreenshots
+ * @param {boolean} opts.disableScreenshots
  *   Legacy option. If true, we will use a small icon preview on the card
  *   rather than showing a full screenshot and/or moz-element of the app.
  *   Originally introduced on 128MB Tarako devices to save memory.
+ * @param {boolean} opts.stayInvisible
+ *   If true (because we're just using this card as a placeholder since we're
+ *   immediately launching the app), don't actually render the card.
  */
-function Card(app, disableScreenshots) {
+function Card(app, { disableScreenshots, stayInvisible } = {}) {
   var el = document.createElement('li');
   this.app = app;
   this.element = el;
+
+  if (stayInvisible) {
+    this.element.style.display = 'none';
+    return;
+  }
 
   this.title = (app.isBrowser() && app.title) ? app.title : app.name;
   this.subTitle = TaskManagerUtils.getDisplayUrlForApp(app);
@@ -38,7 +46,7 @@ function Card(app, disableScreenshots) {
   el.setAttribute('aria-labelledby', this.titleId);
   el.setAttribute('role', 'presentation'); // The card is not semantic.
 
-  el.innerHTML = this.getHtmlTemplate();
+  el.innerHTML =  Sanitizer.unwrapSafeHTML(this.getHtmlTemplate());
 
   var topMostWindow = app.getTopMostWindow();
   if (topMostWindow && topMostWindow.CLASS_NAME === 'TrustedWindow') {
@@ -98,15 +106,20 @@ Card.prototype = {
     // In the metrics of this calculation, that's calc(50% + y).
     // See <https://bugzil.la/1209194>; we can probably relocate the offset
     // when that bug is fixed or when we don't care about Flame any more.
-    this.element.style.transform =
+    var newTransform =
       `translate(${this._translateX}, calc(50% + ${this._translateY}))`;
+
+    // Preventing an extra restyle when the value doesn't need to change
+    if (this.element.style.transform !== newTransform) {
+      this.element.style.transform = newTransform;
+    }
   },
 
   _translateX: '0px',
   _translateY: '0px',
 
   getHtmlTemplate() {
-    return Sanitizer.escapeHTML `
+    return Sanitizer.createSafeHTML `
     <div class="titles">
       <h1 id="${this.titleId}" dir="auto" class="title">${this.title}</h1>
       <p class="subtitle">

@@ -367,7 +367,7 @@ var Compose = (function() {
     },
 
     getSubject: function() {
-      return subject.getValue();
+      return subject.isVisible() ? subject.getValue() : null;
     },
 
     setSubject: function(value) {

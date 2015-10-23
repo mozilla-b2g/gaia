@@ -51,7 +51,7 @@
   </head>
   <body class="theme-settings">
     <section role="region">
-      <gaia-header id="fxa-module-header" action="close">
+      <gaia-header ignore-dir id="fxa-module-header" action="close">
         <h1 data-l10n-id="firefox-accounts-title"></h1>
       </gaia-header>
       <div class="bb-steps">
@@ -88,8 +88,10 @@
     <!-- Error message overlay -->
     <form role="dialog" data-type="confirm" id="fxa-error-overlay" class="fade-in">
       <section>
-        <h1 id="fxa-error-title">Error message</h1>
-        <p><small id="fxa-error-msg">Error message.</small></p>
+        <p class="fxa-error-msg-container">
+          <span id="fxa-error-title">Error message</span>
+          <span id="fxa-error-msg">Error message.</span>
+        </p>
       </section>
       <menu>
         <button class="full" data-l10n-id="fxa-ok" id="fxa-error-ok">OK</button>

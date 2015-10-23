@@ -1,7 +1,9 @@
 /*
- *  The code is being shared between system/emergency-call/js/keypad.js
- *  and dialer/js/keypad.js. Be sure to update both file when you commit!
+ * The code is being shared between system/emergency-call/js/keypad.js
+ * and dialer/js/keypad.js. Be sure to update both files when you commit!
  *
+ * BiDi note: keypads are always displayed in LTR (hardware legacy).
+ * This stylesheet must *NOT* be mirrored for RTL.
  */
 
 .reset-button {
@@ -33,7 +35,7 @@
 }
 
 #phone-number-view-container.keypad-visible {
-  height: -moz-calc(100% - 34.5rem);
+  height: calc(100% - 34.5rem);
   visibility: hidden;
 }
 
@@ -97,7 +99,7 @@
 .keypad-key {
   display: table-cell;
   padding: 1.3rem 0 0 2rem;
-  -moz-box-sizing: border-box;
+  box-sizing: border-box;
   height: 20%;
   vertical-align: middle;
   color: #333;
@@ -105,6 +107,7 @@
   font-size: 5rem;
   line-height: 1rem;
   overflow: hidden;
+  text-align: left;
 }
 
 .keypad-key span {
@@ -121,6 +124,7 @@
   font-style: normal;
   width: 4.5rem;
   overflow: visible;
+  text-align: left;
 }
 
 .keypad-key.active {
@@ -182,7 +186,7 @@
   width: 100%;
   border-bottom: 0;
   border-left: 0;
-  -moz-box-sizing: border-box;
+  box-sizing: border-box;
 }
 
 .keypad-callbar-button {
@@ -219,7 +223,7 @@
   background-position: center;
   background-size: 4rem 4rem;
   border-radius: 2rem;
-  -moz-margin-start: 1rem;
+  margin-inline-start: 1rem;
   height: 4rem;
 }
 
@@ -279,7 +283,7 @@
 
 #keypad-hidebar {
   border: 0;
-  -moz-box-sizing: border-box;
+  box-sizing: border-box;
   display: flex;
   justify-content: space-around;
   height: 7.5rem;

@@ -61,6 +61,72 @@ marionette('Music player playlist', function() {
     });
   });
 
+  suite('Test empty metadata', function () {
+    setup(function() {
+      client.fileManager.removeAllFiles();
+      client.fileManager.add([
+        {
+          type: 'music',
+          filePath:
+          'test_media/samples/Music/treasure_island_01-02_stevenson.ogg'
+        },
+        {
+          type: 'music',
+          filePath:
+          'test_media/samples/Music/Salt_Creek.ogg'
+        }
+      ]);
+
+      music.launch();
+      music.waitForFirstTile();
+    });
+
+    // Test for bug 1209798
+    test('Check the lack of track index', function() {
+      music.switchToAlbumsView();
+
+      music.selectAlbum('Treasure Island');
+
+      music.waitForSongs(function(songs) {
+        return songs.length >= 1;
+      });
+
+      var songs = music.songs;
+
+      assert.equal(songs[0].index, '');
+      assert.equal(songs[0].title,
+                   '01 At the Admiral Benbow - ' +
+                   '02 Black Dog Appears and Disappears');
+    });
+
+    test('Check the lack of artist or album', function() {
+      music.switchToAlbumsView();
+
+      var results = music.albumsListItemsData;
+      var unknownAlbumStr = client.executeAsyncScript(function () {
+        window.wrappedJSObject.document.l10n.formatValue('unknownAlbum').
+          then(function(str) {
+            marionetteScriptFinished(str);
+          });
+      });
+      assert.equal(results[0].title, unknownAlbumStr);
+
+
+      music.switchToArtistsView();
+
+      results = music.artistsListItemsData;
+      var unknownArtistStr = client.executeAsyncScript(function () {
+        window.wrappedJSObject.document.l10n.formatValue('unknownArtist').
+          then(function(str) {
+            marionetteScriptFinished(str);
+          });
+      });
+
+      assert.equal(results[0].title, unknownArtistStr);
+    });
+
+  });
+
   suite('Single disc tests', function () {
     setup(function() {
       client.fileManager.removeAllFiles();
@@ -77,18 +143,13 @@ marionette('Music player playlist', function() {
           type: 'music',
           filePath: 'apps/music/test-data/playlists/03.ogg'
         },
-        {
-          type: 'music',
-          filePath:
-          'test_media/samples/Music/treasure_island_01-02_stevenson.ogg'
-        }
       ]);
 
       music.launch();
       music.waitForFirstTile();
     });
 
-    test('Check the sort order #1', function() {
+    test('Check the sort order', function() {
       music.switchToAlbumsView();
 
       music.selectAlbum('Where is Julian Assange?');
@@ -111,23 +172,6 @@ marionette('Music player playlist', function() {
       assert.equal(songs[2].title, 'The Ecuadorian Embassy');
     });
 
-    test('Check the sort order #2', function() {
-      music.switchToAlbumsView();
-
-      music.selectAlbum('Treasure Island');
-
-      music.waitForSongs(function(songs) {
-        return songs.length >= 1;
-      });
-
-      var songs = music.songs;
-
-      assert.equal(songs[0].index, '');
-      assert.equal(songs[0].title,
-                   '01 At the Admiral Benbow - ' +
-                   '02 Black Dog Appears and Disappears');
-    });
-
     test('Check the playlist indexes', function() {
       // this test will check that the index value of each song is the index
       // and not the track number.
@@ -142,7 +186,7 @@ marionette('Music player playlist', function() {
 
       var songs = music.songs;
 
-      assert.equal(songs.length, 4);
+      assert.equal(songs.length, 3);
       assert.equal(songs[0].index, '1');
       assert.equal(songs[1].index, '2');
       assert.equal(songs[2].index, '3');
@@ -335,8 +379,6 @@ marionette('Music player playlist', function() {
 
     // XXX fixme we can't set the playcount properly it seems....
     test('Most played playlist sort order. moztrap:3676,3677', function() {
-      var p = [];
-
       function incrementPlayCount(filePath, value) {
 
         var result = client.executeAsyncScript(function(filePath, value) {
@@ -345,7 +387,7 @@ marionette('Music player playlist', function() {
 
           w.Database.getFileInfo(filePath).
             then(function(song) {
-              p = [];
+              var p = [];
               for (var i = 0; i < value; i++) {
                 p.push(w.Database.incrementPlayCount(song));
               }
@@ -391,7 +433,7 @@ marionette('Music player playlist', function() {
         songs.forEach(function (e) {
           var c = playCounts[e.title];
           if (c) {
-            p.push(incrementPlayCount(e.filePath, c));
+            incrementPlayCount(e.filePath, c);
           }
         });
 
@@ -431,76 +473,6 @@ marionette('Music player playlist', function() {
         assert.equal(songs[1].index, '2');
         assert.equal(songs[1].title, 'Yield to thread');
       } catch(e) {
-        assert.ok(false, 'Exception ' + e.stack);
-      }
-    });
-
-    test('Shuffle all sort order. moztrap:2357', function() {
-      try {
-        music.launch();
-        music.waitForFirstTile();
-
-        music.switchToPlaylistsView();
-
-        var notrandom = 0;
-        var lastTitle = '';
-        var loopCount = 10;
-        for (var i = 0; i < loopCount; i++) {
-
-          // selecting the playlist will put us into the player.
-          music.selectPlaylist('Shuffle all');
-
-          // wait for the player.
-          // XXX figure out why this times out.
-          //     still seems to work with it. but ain't liking it.
-          // music.waitForPlayerView();
-
-          var title = music.title.text();
-          if (title === lastTitle) {
-            notrandom++;
-          }
-          lastTitle = title;
-          // tap back
-          music.tapHeaderActionButton();
-        }
-        // the first loop will never be "notrandom".
-        assert.notEqual(notrandom, loopCount - 1, 'we didn\'t randomise');
-      } catch (e) {
-        assert.ok(false, 'Exception ' + e.stack);
-      }
-    });
-
-    // XXX fix when bug 1204664 is fixed.
-    test.skip('Shuffle playlist order. moztrap:2357', function() {
-      try {
-        music.launch();
-        music.waitForFirstTile();
-
-        music.switchToPlaylistsView();
-
-        music.selectPlaylist('Least played');
-
-        var notrandom = 0;
-        var lastTitle = '';
-        var loopCount = 10;
-        for (var i = 0; i < loopCount; i++) {
-
-          // tapping shuffle will put us into the player.
-          music.sublistShuffleButton.tap();
-
-          // wait for the player.
-          music.waitForPlayerView();
-
-          var title = music.title.text();
-          if (title === lastTitle) {
-            notrandom++;
-          }
-          lastTitle = title;
-          // tap back
-          music.tapHeaderActionButton();
-        }
-        assert.notEqual(notrandom, loopCount - 1, 'we didn\'t randomise');
-      } catch (e) {
         assert.ok(false, 'Exception ' + e.stack);
       }
     });

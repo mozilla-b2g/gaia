@@ -1,11 +1,11 @@
 .message.incoming {
-  -moz-padding-start: 1.5rem;
-  -moz-padding-end: 4rem;
+  padding-inline-start: 1.5rem;
+  padding-inline-end: 4rem;
 }
 
 .message.outgoing {
-  -moz-padding-start: 4rem;
-  -moz-padding-end: 1.5rem;
+  padding-inline-start: 4rem;
+  padding-inline-end: 1.5rem;
 }
 
 .message .bubble {
@@ -22,12 +22,17 @@
 }
 
 .message.outgoing .bubble {
-  float: right;
-
-  border-radius: 1.5rem 0 1.5rem 1.5rem;
-
   background: #fff;
 }
+html[dir="ltr"] .message.outgoing .bubble {
+  float: right;
+  border-radius: 1.5rem 0 1.5rem 1.5rem;
+}
+html[dir="rtl"] .message.outgoing .bubble {
+  float: left;
+  border-radius: 0 1.5rem 1.5rem 1.5rem;
+}
+
 
 .message.outgoing .bubble,
 .message.outgoing a:active {
@@ -35,11 +40,15 @@
 }
 
 .message.incoming .bubble {
-  float: left;
-
-  border-radius: 0 1.5rem 1.5rem 1.5rem;
-
   background: #39c3c2;
+}
+html[dir="ltr"] .message.incoming .bubble {
+  float: left;
+  border-radius: 0 1.5rem 1.5rem 1.5rem;
+}
+html[dir="rtl"] .message.incoming .bubble {
+  float: right;
+  border-radius: 1.5rem 0 1.5rem 1.5rem;
 }
 
 .message.incoming .bubble,
@@ -142,12 +151,26 @@
   color: #d1eeee;
 }
 
+.message.incoming .late-arrival-notice {
+  color: #026a69;
+}
+
+.message.incoming .late-arrival-icon {
+  margin-inline-start: 1rem;
+  margin-inline-end: 0.1rem;
+  min-width: 1.5rem;
+  height: 2rem;
+
+  background: no-repeat center center / 1.5rem;
+  background-image: url('images/icons/late_clock.png');
+}
+
 .message.incoming.error .message-details {
   color: #ffe0dc;
 }
 
 .message-sim-information {
-  -moz-margin-end: 0.4rem;
+  margin-inline-end: 0.4rem;
 }
 
 .message-sim-information::after {
@@ -211,17 +234,4 @@
 .message.pending .download {
   border-color: transparent;
   opacity: 0.8;
-}
-
-/* RTL for message bubble float direction and border-radius*/
-.message.outgoing .bubble:-moz-dir(rtl) {
-  float: left;
-
-  border-radius: 0 1.5rem 1.5rem 1.5rem;
-}
-
-.message.incoming .bubble:-moz-dir(rtl) {
-  float: right;
-
-  border-radius: 1.5rem 0 1.5rem 1.5rem;
 }

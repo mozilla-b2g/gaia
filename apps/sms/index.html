@@ -42,6 +42,7 @@
     <meta name="availableLanguages" content="en-US">
     <link rel="localization" href="locales/sms.{locale}.properties">
     <link rel="localization" href="/shared/locales/date/date.{locale}.properties">
+    <link rel="localization" href="/shared/locales/intl/unitformat.{locale}.properties">
     <!-- Firefox Desktop shims -->
     <script defer src="desktop-mock/navigator_moz_has_pending_message.js"></script>
     <script defer src="desktop-mock/navigator_moz_icc_manager.js"></script>
@@ -123,6 +124,7 @@
     <script defer src="services/js/messaging/messaging_client.js"></script>
     <script defer src="services/js/moz_mobile_connections/moz_mobile_connections_client.js"></script>
     <script defer src="views/shared/js/activity_handler.js"></script>
+    <script defer src="views/shared/js/system_message_handler.js"></script>
     <script defer src="views/shared/js/contact_renderer.js"></script>
     <script defer src="views/shared/js/localization_helper.js"></script>
     <script defer src="views/conversation/js/information.js"></script>
@@ -243,7 +245,7 @@
                     class="hide">
               <div class="text-container">
                 <div data-l10n-id="new-message-notice-text">You have new messages</div>
-                <div class="contact">Contact</div>
+                <div dir="auto" class="contact">Contact</div>
               </div>
               <div class="button-container">
                 <button class="notice-button" data-l10n-id="new-message-notice-a-text">read it</button>
@@ -335,6 +337,16 @@
             <p class="received-block">
               <span data-l10n-id="message-received"></span>
               <span class="received-timestamp l10n-contains-date detail"></span>
+            </p>
+            <p class="lateness-block">
+              <span data-l10n-id="message-lateness"></span>
+              <span class="lateness">
+                <span class="lateness-month detail"></span>
+                <span class="lateness-day detail"></span>
+                <span class="lateness-hour detail"></span>
+                <span class="lateness-minute detail"></span>
+                <span class="lateness-second detail"></span>
+              </span>
             </p>
             <p class="size-block">
               <span data-l10n-id="message-size-was"></span>
@@ -518,6 +530,13 @@
       -->
     </div>
 
+    <div id="messages-late-arrival-notice-tmpl" class="hide">
+      <!--
+      <div class="late-arrival-icon" data-l10n-id="late-notice-label" aria-label="Late arrival"></div>
+      <div class="late-arrival-notice"></div>
+      -->
+    </div>
+
     <div id="messages-thread-tmpl" class="hide">
       <!--
       <label class="pack-checkbox negative">
@@ -559,7 +578,7 @@
         </div>
         <div class="js-size-indicator size-indicator" data-l10n-id="${sizeL10nId}" data-l10n-args="${sizeL10nArgs}"></div>
       </div>
-      <div class="file-name"></div>
+      <div class="file-name" dir="auto"></div>
       -->
     </div>
 
@@ -569,7 +588,7 @@
         <div class="thumbnail"></div>
         <div class="js-size-indicator size-indicator" data-l10n-id="${sizeL10nId}" data-l10n-args="${sizeL10nArgs}"></div>
       </div>
-      <div class="file-name"></div>
+      <div class="file-name" dir="auto"></div>
       -->
     </div>
 

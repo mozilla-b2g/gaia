@@ -32,6 +32,9 @@ body {
   padding: 0.5rem 1rem;
 }
 
+html[dir="ltr"] { text-align: left; }
+html[dir="rtl"] { text-align: right; }
+
 h2,
 #history h3:first-child {
   text-align: center;
@@ -61,12 +64,11 @@ h2 span,
 }
 
 #top-sites .top-site:nth-child(2n) {
-  -moz-margin-start: 1rem;
+  margin-inline-start: 1rem;
 }
 
 .top-site {
   display: block;
-  float: left;
   width: calc(50% - 0.5rem);
   height: 9rem;
   background-color: rgba(255, 255, 255, 0.3);
@@ -76,6 +78,8 @@ h2 span,
   border: 0.1rem solid rgba(133,133,133, 0.8);
   box-sizing: border-box;
 }
+html[dir="ltr"] .top-site { float: left; }
+html[dir="rtl"] .top-site { float: right; }
 
 .top-site span {
   box-sizing: border-box;
@@ -83,7 +87,6 @@ h2 span,
   font-style: italic;
   display: block;
   width: 100%;
-  text-align: start;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -120,8 +123,8 @@ h2 span,
 #history .icon {
   margin-top: 0.3rem;
   margin-bottom: 0;
-  -moz-margin-start: 0;
-  -moz-margin-end: 0.8rem;
+  margin-inline-start: 0;
+  margin-inline-end: 0.8rem;
   display: block;
   flex: 0 0 1.6rem;
   width: 1.6rem;
@@ -142,6 +145,7 @@ h2 span,
 #history .meta {
   font-size: 1.2rem;
   color: #5f5f5f;
+  direction: ltr;
 }
 
 #history .title, #history .meta {
@@ -166,10 +170,6 @@ body.private {
   background: var(--primary-background-color);
 }
 
-body.private .private-window-hidden {
-  display: none;
-}
-
 /* Private browser dialog */
 #private-window-dialog {
   min-height: 100%;
@@ -188,12 +188,12 @@ body.private .private-window-hidden {
 }
 
 #private-window-dialog h1 {
-    font-size: 2rem;
-    color: #fff;
-    text-align: center;
-    font-weight: 300;
-    font-style: italic;
-    margin-bottom: 1.5rem;
+  font-size: 2rem;
+  color: #fff;
+  text-align: center;
+  font-weight: 300;
+  font-style: italic;
+  margin-bottom: 1.5rem;
 }
 
 #private-window-dialog a,
@@ -215,18 +215,4 @@ body.private .private-window-hidden {
 #private-window-dialog gaia-checkbox label {
   color: #fff;
   font-size: 1.3rem;
-}
-
-
-/* RTL View */
-html[dir="rtl"] .top-site {
-  float: right;
-}
-
-html[dir="rtl"] #history .description {
-  text-align: right;
-}
-
-html[dir="rtl"] #history .meta {
-  direction: ltr;
 }

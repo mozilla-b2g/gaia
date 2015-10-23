@@ -16,6 +16,12 @@ var ArtistDetailView = View.extend(function ArtistDetailView() {
     }
   });
 
+  this.list.configure({
+    getSectionName: (item) => {
+      return item.section;
+    }
+  });
+
   this.client.on('databaseChange', () => this.update());
 
   this.update();
@@ -43,15 +49,18 @@ ArtistDetailView.prototype.render = function() {
 ArtistDetailView.prototype.getArtist = function() {
   var unpaddedIndex = IntlHelper.get('unpaddedIndex');
 
-  return this.fetch('/api/artists/info/' + this.params.id)
+  return this.fetch('/api/artists/info/' + decodeURIComponent(this.params.id))
     .then(response => response.json())
     .then(songs => {
-      songs.forEach((song) => {
-        song.index = song.metadata.tracknum ?
-          unpaddedIndex.format(song.metadata.tracknum) : '';
+      return songs.map((song) => {
+        return {
+          index:   song.metadata.tracknum ?
+            unpaddedIndex.format(song.metadata.tracknum) : '',
+          name:    song.name,
+          title:   song.metadata.title,
+          section: song.metadata.album
+        };
       });
-
-      return songs;
     });
 };
 

@@ -9,25 +9,31 @@ require.config({
   // timeout in the production build
   waitSeconds: 7,
   // shim global object into AMD format
-  // XXX Bug 1207471 organized in alphabet order
+  // organized in alphabet order
   shim: {
-    'settings': {
-      exports: 'Settings'
-    },
     'dsds_settings': {
       exports: 'DsdsSettings'
     },
-    'simcard_lock': {
-      exports: 'SimPinLock'
+    'settings': {
+      exports: 'Settings'
     },
-    'vendor/jszip': {
-      exports: 'JSZip'
+    'shared/airplane_mode_helper': {
+      exports: 'AirplaneModeHelper'
     },
     'shared/apn_helper': {
       exports: 'ApnHelper'
     },
     'shared/async_storage': {
       exports: 'asyncStorage'
+    },
+    'shared/bluetooth_helper': {
+      exports: 'BluetoothHelper'
+    },
+    'shared/device_storage/enumerate_all': {
+      exports: 'enumerateAll'
+    },
+    'shared/homescreens/homescreen_settings': {
+      exports: 'homescreenSettings'
     },
     'shared/icc_helper': {
       exports: 'IccHelper'
@@ -42,51 +48,38 @@ require.config({
     'shared/lazy_loader': {
       exports: 'LazyLoader'
     },
-    'shared/passcode_helper': {
-      exports: 'PasscodeHelper'
-    },
-    'shared/search_provider': {
-      exports: 'SearchProvider'
-    },
     'shared/manifest_helper': {
       exports: 'ManifestHelper'
     },
-    'shared/screen_layout': {
-      exports: 'ScreenLayout'
-    },
-    'shared/settings_url': {
-      exports: 'SettingsURL'
+    'shared/mobile_operator': {
+      exports: 'MobileOperator'
     },
     'shared/omadrm/fl': {
       exports: 'ForwardLock'
     },
-    'shared/settings_listener': {
-      exports: 'SettingsListener'
-    },
-    'shared/toaster': {
-      exports: 'Toaster'
+    'shared/passcode_helper': {
+      exports: 'PasscodeHelper'
     },
     'shared/sanitizer': {
       exports: 'Sanitizer'
     },
-    'shared/sim_settings_helper': {
-      exports: 'SimSettingsHelper'
+    'shared/screen_layout': {
+      exports: 'ScreenLayout'
+    },
+    'shared/search_provider': {
+      exports: 'SearchProvider'
     },
     'shared/settings_helper': {
       exports: 'SettingsHelper'
     },
-    'shared/tz_select': {
-      exports: 'tzSelect',
-      deps: ['shared/icc_helper']
+    'shared/settings_listener': {
+      exports: 'SettingsListener'
     },
-    'shared/uuid': {
-      exports: 'uuid'
+    'shared/settings_url': {
+      exports: 'SettingsURL'
     },
-    'shared/wifi_helper': {
-      exports: 'WifiHelper'
-    },
-    'shared/bluetooth_helper': {
-      exports: 'BluetoothHelper'
+    'shared/sim_settings_helper': {
+      exports: 'SimSettingsHelper'
     },
     'shared/simslot': {
       exports: 'SIMSlot'
@@ -95,23 +88,30 @@ require.config({
       exports: 'SIMSlotManager',
       deps: ['shared/simslot']
     },
-    'shared/mobile_operator': {
-      exports: 'MobileOperator'
+    'shared/stk_helper': {
+      exports: 'STKHelper'
+    },
+    'shared/toaster': {
+      exports: 'Toaster'
+    },
+    'shared/tz_select': {
+      exports: 'tzSelect',
+      deps: ['shared/icc_helper']
+    },
+    'shared/uuid': {
+      exports: 'uuid'
+    },
+    'shared/findmydevice_iac_api': {
+      exports: 'wakeUpFindMyDevice'
+    },
+    'shared/wifi_helper': {
+      exports: 'WifiHelper'
     },
     'utils': {
       exports: ''
     },
-    'shared/device_storage/enumerate_all': {
-      exports: 'enumerateAll'
-    },
-    'shared/airplane_mode_helper': {
-      exports: 'AirplaneModeHelper'
-    },
-    'shared/homescreens/vertical_preferences': {
-      exports: 'verticalPreferences'
-    },
-    'shared/stk_helper': {
-      exports: 'STKHelper'
+    'vendor/jszip': {
+      exports: 'JSZip'
     }
   },
   // exclude reusable file in modules
@@ -166,6 +166,13 @@ require.config({
         'main',
         'shared/keyboard_helper',
         'modules/date_time'
+      ]
+    },
+    {
+      name: 'panels/findmydevice/panel',
+      exclude: [
+        'main',
+        'modules/settings_utils'
       ]
     },
     {
@@ -303,7 +310,10 @@ require.config({
     },
     {
       name: 'panels/browsing_privacy/panel',
-      exclude: ['main']
+      exclude: [
+        'main',
+        'modules/dialog_service'
+      ]
     },
     {
       name: 'panels/search/panel',

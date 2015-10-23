@@ -17,7 +17,12 @@ window.GaiaAppIcon = (function(exports) {
   const DEFAULT_BACKGROUND_COLOR = 'rgb(228, 234, 238)';
   const CANVAS_PADDING = 2 * window.devicePixelRatio;
   const FAVICON_SCALE = 0.55;
-  const ICON_FETCH_TIMEOUT = 10000;
+
+  // FIXME: Remove once bug 1211266 is fixed.
+  // navigator.mozApps.mgmt.getIcon returns a blob, but requesting the data
+  // for it sometimes fails silently.
+  const ICON_LOAD_TIMEOUT = 5000;
+  const ICON_RETRY_COUNT = 5;
 
   var proto = Object.create(HTMLElement.prototype);
 
@@ -44,6 +49,13 @@ window.GaiaAppIcon = (function(exports) {
     this._hasIcon = false;
     this._hasUserSetIcon = false;
     this._hasPredefinedIcon = false;
+    this._iconUrl = null;
+    this._pendingIconUrl = null;
+    this._pendingIconRefresh = false;
+    this._lastState = null;
+
+    // FIXME: Remove once bug 1211266 is fixed.
+    this._iconFetchTimeout = null;
 
     this._predefinedIcons = {};
     for (var key in PREDEFINED_ICONS) {
@@ -171,7 +183,9 @@ window.GaiaAppIcon = (function(exports) {
     },
 
     set: function(bookmark) {
-      this.app = null;
+      if (!this._bookmark || this._bookmark.id !== bookmark.id) {
+        this.app = null;
+      }
       this._bookmark = bookmark;
     },
 
@@ -223,6 +237,14 @@ window.GaiaAppIcon = (function(exports) {
     enumerable: true
   });
 
+  Object.defineProperty(proto, 'isUserSet', {
+    get: function() {
+      return this._iconUrl === 'user-set';
+    },
+
+    enumerable: true
+  });
+
   proto._cancelIconLoad = function() {
     if (!this._image) {
       return;
@@ -249,21 +271,19 @@ window.GaiaAppIcon = (function(exports) {
     setTimeout(() => { this.classList.remove('launching'); }, LAUNCH_TIMEOUT);
 
     if (this.app) {
+      window.performance.mark('appLaunch@' + this.app.origin);
       this.app.launch(this.entryPoint);
     } else {
-      this.icon.then((blob) => {
-        var features = {
-          name: this.bookmark.name,
-          icon: URL.createObjectURL(blob),
-          remote: true
-        };
+      var features = {
+        name: this.bookmark.name,
+        remote: true
+      };
 
-        window.open(this.bookmark.url, '_blank', Object.keys(features).
-          map(function eachFeature(key) {
-            return encodeURIComponent(key) + '=' +
-              encodeURIComponent(features[key]);
-          }).join(','));
-      });
+      window.open(this.bookmark.url, '_samescope', Object.keys(features)
+        .map(function eachFeature(key) {
+          return encodeURIComponent(key) + '=' +
+            encodeURIComponent(features[key]);
+        }).join(','));
     }
   };
 
@@ -273,8 +293,15 @@ window.GaiaAppIcon = (function(exports) {
     this._hasPredefinedIcon = false;
     this._hasUserSetIcon = false;
     this._image = document.createElement('img');
+    this._image.setAttribute('role', 'presentation');
 
     this._image.onload = () => {
+      // FIXME: Remove once bug 1211266 is fixed
+      if (this._iconFetchTimeout) {
+        clearTimeout(this._iconFetchTimeout);
+        this._iconFetchTimeout = null;
+      }
+
       this._image.onload = () => {
         // Add new icon
         this._removeOldIcon();
@@ -283,14 +310,14 @@ window.GaiaAppIcon = (function(exports) {
         this._image = null;
         this._hasIcon = true;
 
-        if (!this._hasPredefinedIcon) {
-          this.dispatchEvent(new CustomEvent('icon-loaded'));
-        }
-
         // Set icon URL on dataset, for testing.
         if (this._pendingIconUrl) {
-          this.dataset.testIconUrl = this._pendingIconUrl;
+          this._iconUrl = this.dataset.testIconUrl = this._pendingIconUrl;
           this._pendingIconUrl = null;
+        }
+
+        if (!this._hasPredefinedIcon) {
+          this.dispatchEvent(new CustomEvent('icon-loaded'));
         }
 
         if (this._pendingIconRefresh) {
@@ -482,43 +509,6 @@ window.GaiaAppIcon = (function(exports) {
     // Handle icon loading for bookmarks, app icon loading is more involved
     // and handled below this block.
     if (this.bookmark) {
-      if (this.bookmark.icon) {
-        // It'd be great to just set the src here, but we need to be able
-        // to read-back the image, so use system XHR.
-        var xhr = new XMLHttpRequest({ mozAnon: true, mozSystem: true });
-
-        xhr.open('GET', this.bookmark.icon, true);
-        xhr.responseType = 'blob';
-        xhr.timeout = ICON_FETCH_TIMEOUT;
-
-        this._pendingIconUrl = this.bookmark.icon;
-
-        xhr.onload = function load(image) {
-          if (!image.onload) {
-            return;
-          }
-
-          if (xhr.status !== 0 && xhr.status !== 200) {
-            image.onerror(xhr.status);
-          } else {
-            image.src = URL.createObjectURL(xhr.response);
-          }
-        }.bind(this, this._image);
-
-        xhr.onerror = function error(image, e) {
-          if (image.onload) {
-            image.onerror(e);
-          }
-        }.bind(this, this._image);
-
-        try {
-          xhr.send();
-          return;
-        } catch(e) {
-          console.error('Error loading bookmark icon', e);
-        }
-      }
-
       // Fallback to the default icon
       if (!this._hasIcon) {
         this._setPredefinedIcon('default');
@@ -548,21 +538,45 @@ window.GaiaAppIcon = (function(exports) {
         break;
 
       case 'installed':
-        navigator.mozApps.mgmt.getIcon(this.app, this._size, this.entryPoint).
-          then(function(image, blob) {
-            this._pendingIconUrl = 'app-icon';
-            if (image.onload) {
-              image.src = URL.createObjectURL(blob);
-            }
-          }.bind(this, this._image),
-          function(image, e) {
-            console.error('Failed to retrieve icon', e);
-            if (image.onload && !this._hasIcon) {
-              this._setPredefinedIcon('default');
-            } else {
-              this._image = null;
-            }
-          }.bind(this, this._image));
+        // FIXME: Remove once bug 1211266 is fixed.
+        var retryCount = 0;
+        if (this._iconFetchTimeout) {
+          clearTimeout(this._iconFetchTimeout);
+          this._iconFetchTimeout = null;
+        }
+
+        var handleError = function(image, e) {
+          console.error('Failed to retrieve icon', e);
+          if (image.onload && !this._hasIcon) {
+            this._setPredefinedIcon('default');
+          } else {
+            this._image = null;
+          }
+        };
+
+        var getImage = () => {
+          navigator.mozApps.mgmt.getIcon(this.app, this._size, this.entryPoint).
+            then(function(image, blob) {
+              this._pendingIconUrl = 'app-icon';
+              if (image.onload) {
+                image.src = URL.createObjectURL(blob);
+
+                // FIXME: Remove once bug 1211266 is fixed.
+                this._iconFetchTimeout = setTimeout(() => {
+                  this._iconFetchTimeout = null;
+                  if (++retryCount >= ICON_RETRY_COUNT) {
+                    handleError(image, 'Bug 1211266: Icon load timed out');
+                  }
+                  console.debug('Bug 1211266: getIcon retry ' + retryCount +
+                                ' for ' + this.dataset.identifier);
+                  getImage();
+                }, ICON_LOAD_TIMEOUT);
+              }
+            }.bind(this, this._image),
+            handleError.bind(this, this._image));
+        };
+
+        getImage();
         break;
     }
   };
@@ -584,10 +598,11 @@ window.GaiaAppIcon = (function(exports) {
   };
 
   var template = document.createElement('template');
+  var stylesheet = baseurl + 'style.css';
   template.innerHTML =
-    `<style>@import url(/shared/elements/gaia-site-icon/style.css);</style>
+    `<style>@import url(${stylesheet});</style>
      <div id='image-container'><div id="spinner"></div></div>
-     <div><div id='subtitle'></div></div>`;
+     <div><div dir='auto' id='subtitle'></div></div>`;
 
   return document.registerElement('gaia-app-icon', { prototype: proto });
 })(window);

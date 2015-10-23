@@ -28,6 +28,7 @@ marionette('Fullscreen layout status bar visibility >', function() {
   test('Status bar visibility in fullscreen layout app', function() {
     assert(!system.statusbarMaximizedWrapper.displayed(),
       'The status bar maximized wrapper is invisible');
+    assert(!system.pinDialog.displayed(), 'Pin dialog is invisible');
     assert(!system.statusbarMinimizedWrapper.displayed(),
       'The status bar minimized wrapper is invisible');
   });

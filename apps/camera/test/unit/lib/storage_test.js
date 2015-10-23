@@ -49,12 +49,12 @@ suite('lib/storage', function() {
     };
 
     var options = {
-      createFilename: sinon.stub().callsArgWith(2, 'filename.file'),
-      dcf: { init: sinon.spy() }
+      dcf: {
+        init: sinon.spy(),
+        createDCFFilename: sinon.stub().callsArgWith(2, 'filename.file')
+      },
+      require: sinon.stub().callsArg(1)
     };
-
-    // For convenience
-    this.createFilename = options.createFilename;
 
     // The test instance
     this.storage = new this.Storage(options);
@@ -131,7 +131,7 @@ suite('lib/storage', function() {
     });
 
     test('Should create a filename if one not given', function() {
-      assert.isTrue(this.storage.createFilename.calledWith(this.picture, 'image'));
+      assert.isTrue(this.storage.dcf.createDCFFilename.calledWith(this.picture, 'image'));
     });
 
     test('Should add the given blob to picture storage', function() {

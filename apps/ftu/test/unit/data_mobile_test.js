@@ -9,7 +9,7 @@ requireApp('ftu/js/data_mobile.js');
 
 suite('mobile data >', function() {
   var mocksHelperForDataMobile = new MocksHelper([
-      'UIManager'
+    'UIManager'
   ]).init();
 
   var realSettings,

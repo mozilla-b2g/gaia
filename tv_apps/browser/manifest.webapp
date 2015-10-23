@@ -8,7 +8,8 @@
     "systemXHR":{},
     "desktop-notification" : {},
     "firefox-accounts": {},
-    "moz-extremely-unstable-and-will-change-webcomponents":{}
+    "moz-extremely-unstable-and-will-change-webcomponents":{},
+    "settings": { "access": "readwrite" }
   },
   "locales": {
     "ar": {
@@ -44,6 +45,16 @@
           "required":true, "pattern":"https?:.{1,16384}", "patternFlags":"i"
         }
       }
+    }
+  },
+  "datastores-access": {
+    "places": {
+      "readonly": true,
+      "description": "Read synced browsing history."
+    },
+    "bookmarks_store": {
+      "readonly": true,
+      "description": "Read synced browser bookmarks."
     }
   },
   "connections": {

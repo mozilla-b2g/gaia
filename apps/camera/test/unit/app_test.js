@@ -87,11 +87,11 @@ suite('app', function() {
         camera: sinon.spy(),
         settings: sinon.spy(),
         activity: sinon.spy(),
+        storage: sinon.spy(),
 
         // Lazy loaded
         lazy: [
           'controllers/preview-gallery',
-          'controllers/storage',
           'controllers/confirm',
           'controllers/sounds'
         ]
@@ -119,7 +119,6 @@ suite('app', function() {
     // methods before any of this happens, so that the
     // spy is always at the root of any call.
     this.sandbox.spy(this.App.prototype, 'boot');
-    this.sandbox.spy(this.App.prototype, 'onReady');
     this.sandbox.spy(this.App.prototype, 'showSpinner');
     this.sandbox.spy(this.App.prototype, 'clearSpinner');
 
@@ -274,7 +273,6 @@ suite('app', function() {
         this.spy = this.app.once.withArgs('viewfinder:visible');
         this.callback = this.spy.args[0][1];
 
-        sinon.stub(this.app, 'onReady');
         sinon.spy(this.app, 'loadLazyControllers');
         sinon.stub(this.app, 'clearSpinner');
 
@@ -451,7 +449,6 @@ suite('app', function() {
     test('Should clear loadingTimeout', function() {
       this.app.views.loading = null;
       this.app.showSpinner();
-      this.app.onReady();
       this.app.clearSpinner();
       sinon.assert.calledWith(window.clearTimeout, '<timeout-id>');
     });
@@ -472,9 +469,8 @@ suite('app', function() {
 
   suite('App#loadLazyControllers()', function() {
     setup(function() {
-      this.done = sinon.spy();
       this.fakeControllers = [ sinon.spy(), sinon.spy(), sinon.spy() ];
-      this.app.loadLazyControllers(this.done);
+      this.lazyPromise = this.app.loadLazyControllers(this.app.controllers.lazy);
       this.callback = this.app.require.withArgs(this.app.controllers.lazy).args[0][1];
       this.callback.apply(window, this.fakeControllers);
     });
@@ -490,8 +486,8 @@ suite('app', function() {
       });
     });
 
-    test('It calls the callback', function() {
-      sinon.assert.calledOnce(this.done);
+    test('It calls the callback', function(done) {
+      this.lazyPromise.then(done);
     });
   });
 
@@ -508,7 +504,7 @@ suite('app', function() {
       sinon.assert.calledWith(this.app.require, this.app.controllers.lazy);
     });
 
-    test('It fires the \'loaded\' event only when:', function() {
+    test('It fires the \'loaded\' event only when:', function(done) {
       var loadLazyControllersRequireCallback = this.app.require.args[0][1];
 
       // 1. Lazy controllers have loaded
@@ -517,7 +513,7 @@ suite('app', function() {
       // 2. Storage has been checked
       this.app.emit('storage:checked');
 
-      sinon.assert.calledWith(this.app.emit, 'loaded');
+      this.app.once('loaded', done);
     });
   });
 

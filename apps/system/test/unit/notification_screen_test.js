@@ -6,6 +6,7 @@
   NotificationScreen,
   MockNavigatorMozTelephony,
   MockCall,
+  MockMozIntl,
   MockService
  */
 
@@ -23,6 +24,7 @@ require('/shared/test/unit/mocks/mock_settings_url.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/test/unit/mocks/mock_service.js');
 require('/shared/test/unit/mocks/mock_audio.js');
+require('/shared/test/unit/mocks/mock_moz_intl.js');
 
 var mocksForNotificationScreen = new MocksHelper([
   'Audio',
@@ -31,7 +33,7 @@ var mocksForNotificationScreen = new MocksHelper([
   'SettingsListener',
   'SettingsURL',
   'Service',
-  'LazyLoader'
+  'LazyLoader',
 ]).init();
 
 suite('system/NotificationScreen >', function() {
@@ -40,7 +42,7 @@ suite('system/NotificationScreen >', function() {
     fakeToasterDetail, fakeSomeNotifications, fakeAmbientIndicator,
     fakeNotifContainer;
   var fakePriorityNotifContainer, fakeOtherNotifContainer;
-  var realMozL10n;
+  var realMozL10n, realMozIntl;
   var isDocumentHidden;
 
   function sendChromeNotificationEvent(detail) {
@@ -131,21 +133,9 @@ suite('system/NotificationScreen >', function() {
     document.body.appendChild(fakeToasterDetail);
 
     realMozL10n = navigator.mozL10n;
-    MockL10n.DateTimeFormat = function() {
-      return {
-        relativeDate: function(time, compact) {
-          var retval;
-          var delta = new Date().getTime() - time.getTime();
-          if (delta >= 0 && delta < 60 * 1000) {
-            retval = 'now';
-          } else if (delta >= 60 * 1000) {
-            retval = '1m ago';
-          }
-          return Promise.resolve(retval);
-        }
-      };
-    };
+    realMozIntl = window.mozIntl;
     navigator.mozL10n = MockL10n;
+    window.mozIntl = MockMozIntl;
 
     isDocumentHidden = false;
     Object.defineProperty(document, 'hidden', {
@@ -171,6 +161,7 @@ suite('system/NotificationScreen >', function() {
     fakeButton.parentNode.removeChild(fakeButton);
 
     navigator.mozL10n = realMozL10n;
+    window.mozIntl = realMozIntl;
   });
 
   suite('chrome events >', function() {
@@ -336,11 +327,10 @@ suite('system/NotificationScreen >', function() {
     test('should update timestamps properly', function() {
       var callCount = 0;
 
-      sinon.stub(navigator.mozL10n, 'DateTimeFormat', function() {
+      sinon.stub(window.mozIntl._gaia, 'RelativeDate', function() {
         return {
-          relativeDate: function() {
+          formatElement: function() {
             callCount++;
-            return Promise.resolve();
           }
         };
       });

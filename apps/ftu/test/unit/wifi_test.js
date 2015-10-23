@@ -625,6 +625,9 @@ suite('wifi > ', function() {
 
         WifiManager.api.onstatuschange({status: 'disconnected',
           network: previousNetwork});
+        // bug 1179703
+        WifiManager.api.onstatuschange({status: 'connecting',
+          network: previousNetwork});
         WifiManager.api.onstatuschange({status: 'connected',
           network: currentNetwork});
 

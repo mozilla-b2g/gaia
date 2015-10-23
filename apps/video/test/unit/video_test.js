@@ -9,22 +9,20 @@
 /* global handleScreenLayoutChange,HAVE_NOTHING,handleSliderKeypress,
   hideOptionsView,MockLazyLoader,MockVideoPlayer,ThumbnailList,
   toggleVideoControls,showOptionsView,ScreenLayout,MocksHelper,dom,
-  MockThumbnailGroup,MediaUtils,showInfoView,hideInfoView,
+  MockThumbnailGroup,l10nAssert,showInfoView,hideInfoView,
   updateSelection,setButtonPaused,handleSliderTouchStart,MockMediaDB,
   handleSliderTouchEnd,loadingChecker,MockL10n,VideoUtils,
   updateDialog,LAYOUT_MODE,showPlayer,hidePlayer,MockThumbnailItem */
 'use strict';
 
 require('/shared/js/lazy_loader.js');
-require('/shared/js/l10n.js');
-require('/shared/js/l10n_date.js');
 require('/shared/js/media/media_utils.js');
 require('/shared/test/unit/load_body_html_helper.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_screen_layout.js');
 require('/shared/test/unit/mocks/mock_video_stats.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('/video/js/video_utils.js');
-requireApp('/video/test/unit/mock_l10n.js');
 requireApp('/video/test/unit/mock_metadata.js');
 requireApp('/video/test/unit/mock_mediadb.js');
 requireApp('/video/test/unit/mock_thumbnail_group.js');
@@ -75,11 +73,16 @@ suite('Video App Unit Tests', function() {
 
     nativeMozL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
-    MediaUtils._ = MockL10n.get;
+
+    // we don't want to trigger once/ready callbacks
+    sinon.stub(navigator.mozL10n, 'once');
+    sinon.stub(navigator.mozL10n, 'ready');
     requireApp('/video/js/video.js', done);
   });
 
   suiteTeardown(function() {
+    navigator.mozL10n.once.restore();
+    navigator.mozL10n.ready.restore();
     navigator.mozL10n = nativeMozL10n;
   });
 
@@ -98,18 +101,19 @@ suite('Video App Unit Tests', function() {
       };
     });
 
-    test('#Test Video details', function() {
-      showInfoView();
-      assert.equal(document.getElementById('info-name').textContent,
-        'Small webm');
-      assert.equal(document.getElementById('info-length').textContent,
-        '00:06');
-      assert.equal(document.getElementById('info-type').textContent,
-        'webm');
-      assert.equal(document.getElementById('info-date').textContent,
-        '08/07/2013');
-      assert.equal(document.getElementById('info-resolution').textContent,
-        '560x320');
+    test('#Test Video details', function(done) {
+      showInfoView().then(() => {
+        assert.equal(document.getElementById('info-name').textContent,
+          'Small webm');
+        assert.equal(document.getElementById('info-length').textContent,
+          '00:06');
+        assert.equal(document.getElementById('info-type').textContent,
+          'webm');
+        assert.equal(document.getElementById('info-date').textContent,
+          '8/7/2013');
+        assert.equal(document.getElementById('info-resolution').textContent,
+          '560x320');
+      }).then(done, done);
     });
 
     test('#Test show info view', function() {
@@ -141,27 +145,29 @@ suite('Video App Unit Tests', function() {
 
   suite('#Video Format Date', function() {
 
-    test('#Test Video created date', function() {
+    test('#Test Video created date', function(done) {
       currentVideo = {
         metadata: {
           title: 'My test video'
         },
         date: 1376909940000
       };
-      showInfoView();
-      assert.equal(document.getElementById('info-date').textContent,
-        '08/19/2013');
+      showInfoView().then(() => {
+        assert.equal(document.getElementById('info-date').textContent,
+          '8/19/2013');
+      }).then(done, done);
     });
 
-    test('#Test Video date null', function() {
+    test('#Test Video date null', function(done) {
       currentVideo = {
         metadata: {
           title: 'Lorem Ipsum'
         },
         date: null
       };
-      showInfoView();
-      assert.equal(document.getElementById('info-date').textContent, '');
+      showInfoView().then(() => {
+        assert.equal(document.getElementById('info-date').textContent, '');
+      }).then(done, done);
     });
 
     test('#Test Video date empty', function() {
@@ -178,16 +184,20 @@ suite('Video App Unit Tests', function() {
 
   suite('#Video Format Size', function() {
 
-    test('#Test Video size', function() {
+    test('#Test Video size', function(done) {
       currentVideo = {
         metadata: {
           title: 'My test video'
         },
         size: 229455
       };
-      showInfoView();
-      assert.equal(document.getElementById('info-size').textContent,
-        '224 byteUnit-KB');
+      showInfoView().then(() => {
+        l10nAssert(
+          document.getElementById('info-size'),
+          'fileSize',
+          {size: '224', unit: 'KB'}
+        );
+      }).then(done, done);
     });
 
     test('#Test Video size null', function() {
@@ -201,28 +211,36 @@ suite('Video App Unit Tests', function() {
       assert.equal(document.getElementById('info-size').textContent, '');
     });
 
-    test('#Test Video size 3.9MB', function() {
+    test('#Test Video size 3.9MB', function(done) {
       currentVideo = {
         metadata: {
           title: 'Video large size'
         },
         size: 4110000
       };
-      showInfoView();
-      assert.equal(document.getElementById('info-size').textContent,
-        '3.9 byteUnit-MB');
+      showInfoView().then(() => {
+        l10nAssert(
+          document.getElementById('info-size'),
+          'fileSize',
+          {size: '3.9', unit: 'MB'}
+        );
+      }).then(done, done);
     });
 
-    test('#Test Video size 4MB', function() {
+    test('#Test Video size 4MB', function(done) {
       currentVideo = {
         metadata: {
           title: 'Video large size'
         },
         size: 4 * 1024 * 1024
       };
-      showInfoView();
-      assert.equal(document.getElementById('info-size').textContent,
-        '4 byteUnit-MB');
+      showInfoView().then(() => {
+        l10nAssert(
+          document.getElementById('info-size'),
+          'fileSize',
+          {size: '4', unit: 'MB'}
+        );
+      }).then(done, done);
     });
   });
 
@@ -1913,9 +1931,11 @@ suite('Video App Unit Tests', function() {
       thumbnail.htmlNode.setAttribute('aria-selected', false);
 
       updateSelection(videodata);
-      assert.equal(dom.thumbnailsNumberSelected.textContent,
-                   'number-selected2{"n":1}',
-                   'there should be one thumbnail selected');
+      l10nAssert(
+        dom.thumbnailsNumberSelected,
+        'number-selected2',
+        {n: 1}
+      );
       assert.isFalse(containsClass(dom.thumbnailsDeleteButton, 'disabled'),
                      'thumbnail delete button should be enabled');
       assert.isFalse(containsClass(dom.thumbnailsShareButton, 'disabled'),
@@ -1932,9 +1952,11 @@ suite('Video App Unit Tests', function() {
       thumbnail.htmlNode.setAttribute('aria-selected', true);
 
       updateSelection(videodata);
-      assert.equal(dom.thumbnailsNumberSelected.textContent,
-                   'number-selected2{"n":0}',
-                   'there shouldnt be any thumbnails selected');
+      l10nAssert(
+        dom.thumbnailsNumberSelected,
+        'number-selected2',
+        {n: 0}
+      );
       assert.isTrue(containsClass(dom.thumbnailsDeleteButton, 'disabled'),
                     'thumbnail delete button should be disabled');
       assert.isTrue(containsClass(dom.thumbnailsShareButton, 'disabled'),

@@ -1,17 +1,18 @@
-/* exported open */ // Should not be needed, but JSHint complains
-/* global AlbumArtCache, AudioMetadata, Database, LazyLoader, PlaybackQueue,
-          bridge, navigateToURL */
+/* global AlbumArtCache, AudioMetadata, Database, LazyLoader, NFCShare,
+          PlaybackQueue, Remote, bridge, navigateToURL, onSearchOpen,
+          onSearchClose */
 'use strict';
 
-var audio = document.getElementById('audio');
-
-var loadQueueSettings = PlaybackQueue.loadSettings();
-
+var audio           = null;
+var queueSettings   = null;
+var remote          = null;
+var nfcShare        = null;
 var currentFilePath = null;
 var currentQueue    = null;
 var isInterrupted   = false;
 var isFastSeeking   = false;
 var isStopped       = true;
+var externalFile    = null;
 
 var service = bridge.service('music-service')
   .method('play', play)
@@ -28,9 +29,7 @@ var service = bridge.service('music-service')
   .method('queueArtist', queueArtist)
   .method('queuePlaylist', queuePlaylist)
   .method('queueSong', queueSong)
-  .method('getRepeatSetting', getRepeatSetting)
   .method('setRepeatSetting', setRepeatSetting)
-  .method('getShuffleSetting', getShuffleSetting)
   .method('setShuffleSetting', setShuffleSetting)
 
   .method('getAlbums', getAlbums)
@@ -46,58 +45,70 @@ var service = bridge.service('music-service')
   .method('getSongCount', getSongCount)
   .method('getSong', getSong)
   .method('getSongFile', getSongFile)
-  .method('getSongArtwork', getSongArtwork)
-  .method('getSongThumbnail', getSongThumbnail)
   .method('setSongRating', setSongRating)
   .method('search', search)
 
+  .method('getSongArtwork', getSongArtwork)
+  .method('getSongThumbnail', getSongThumbnail)
+  .method('getSongArtworkURL', getSongArtworkURL)
+  .method('getSongThumbnailURL', getSongThumbnailURL)
+
   .method('share', share)
-  .method('open', open)
+  .method('openExternalFile', openExternalFile)
+  .method('enableNFC', enableNFC)
 
   .method('getDatabaseStatus', getDatabaseStatus)
 
   .method('navigate', navigate)
+  .method('searchOpen', searchOpen)
+  .method('searchClose', searchClose)
 
   .listen()
   .listen(new BroadcastChannel('music-service'));
 
-audio.addEventListener('loadeddata', function() {
-  URL.revokeObjectURL(audio.src);
-});
+document.addEventListener('DOMContentLoaded', function() {
+  audio = document.getElementById('audio');
 
-audio.addEventListener('play', function() {
-  service.broadcast('play');
-});
+  audio.addEventListener('loadeddata', function() {
+    URL.revokeObjectURL(audio.src);
+  });
 
-audio.addEventListener('pause', function() {
-  service.broadcast('pause');
-});
+  audio.addEventListener('play', function() {
+    service.broadcast('play');
+  });
 
-audio.addEventListener('durationchange', function() {
-  service.broadcast('durationChange', audio.duration);
-});
+  audio.addEventListener('pause', function() {
+    service.broadcast('pause');
+  });
 
-audio.addEventListener('timeupdate', function() {
-  service.broadcast('elapsedTimeChange', audio.currentTime);
-});
+  audio.addEventListener('durationchange', function() {
+    service.broadcast('durationChange', audio.duration);
+  });
 
-audio.addEventListener('ended', function() {
-  nextSong(true);
-});
+  audio.addEventListener('timeupdate', function() {
+    service.broadcast('elapsedTimeChange', audio.currentTime);
+  });
 
-audio.addEventListener('mozinterruptbegin', function() {
-  isInterrupted = true;
+  audio.addEventListener('ended', function() {
+    nextSong(true);
+  });
 
-  service.broadcast('interruptBegin');
-});
+  audio.addEventListener('mozinterruptbegin', function() {
+    isInterrupted = true;
 
-audio.addEventListener('mozinterruptend', function() {
-  isInterrupted = false;
+    service.broadcast('interruptBegin');
+  });
 
-  service.broadcast('interruptEnd');
+  audio.addEventListener('mozinterruptend', function() {
+    isInterrupted = false;
+
+    service.broadcast('interruptEnd');
+  });
 });
 
 function play(filePath) {
+  loadRemote();
+
   if (!filePath) {
     audio.play();
     return;
@@ -144,9 +155,16 @@ function stop() {
   service.broadcast('stop');
 }
 
+var seekTimeout;
+
 function seek(time) {
-  time = parseInt(time, 10);
-  audio.currentTime = time;
+  if (audio.seeking) {
+    clearTimeout(seekTimeout);
+    seekTimeout = setTimeout(() => seek(time), 50);
+    return;
+  }
+
+  audio.fastSeek(parseInt(time, 10));
 }
 
 function startFastSeek(reverse) {
@@ -160,11 +178,13 @@ function startFastSeek(reverse) {
 
   function fastSeek() {
     if (!isFastSeeking) {
+      audio.volume = 1;
       return;
     }
 
-    seek(audio.currentTime + (reverse ? -2 : 2));
-    setTimeout(fastSeek, 50);
+    audio.volume = 0.5;
+    seek(audio.currentTime + (reverse ? -5 : 5));
+    setTimeout(fastSeek, 100);
   }
 
   fastSeek();
@@ -175,17 +195,21 @@ function stopFastSeek() {
 }
 
 function getPlaybackStatus() {
-  return Promise.resolve({
-    queueIndex:    currentQueue ? currentQueue.index    : -1,
-    queueRawIndex: currentQueue ? currentQueue.rawIndex : -1,
-    queueLength:   currentQueue ? currentQueue.length   : -1,
-    filePath:      currentFilePath,
-    paused:        audio.paused,
-    duration:      audio.duration,
-    elapsedTime:   audio.currentTime,
-    isInterrupted: isInterrupted,
-    isFastSeeking: isFastSeeking,
-    stopped:       isStopped
+  return loadQueueSettings().then(() => {
+    return {
+      queueIndex:    currentQueue ? currentQueue.index    : -1,
+      queueRawIndex: currentQueue ? currentQueue.rawIndex : -1,
+      queueLength:   currentQueue ? currentQueue.length   : -1,
+      repeat:        PlaybackQueue.repeat,
+      shuffle:       PlaybackQueue.shuffle ? 1 : 0,
+      filePath:      currentFilePath,
+      stopped:       isStopped,
+      paused:        audio.paused,
+      duration:      audio.duration,
+      elapsedTime:   audio.currentTime,
+      isInterrupted: isInterrupted,
+      isFastSeeking: isFastSeeking
+    };
   });
 }
 
@@ -213,15 +237,45 @@ function nextSong(automatic = false) {
   }
 
   var hasNextSong = currentQueue.next(automatic);
-  if (!hasNextSong) {
+  if (!hasNextSong && !externalFile) {
     return Promise.resolve(stop());
   }
 
   return currentSong().then(song => play(song.name));
 }
 
+function loadQueueSettings() {
+  if (!queueSettings) {
+    queueSettings = LazyLoader.load('/js/queue.js').then(() => {
+      return PlaybackQueue.loadSettings();
+    });
+  }
+
+  return queueSettings;
+}
+
+function loadRemote() {
+  if (!remote) {
+    remote = LazyLoader.load('/js/remote.js').then(() => {
+      return Remote;
+    });
+  }
+
+  return remote;
+}
+
+function loadNFCShare() {
+  if (!nfcShare) {
+    nfcShare = LazyLoader.load('/js/nfc_share.js').then(() => {
+      return NFCShare;
+    });
+  }
+
+  return nfcShare;
+}
+
 function queueArtist(filePath) {
-  return loadQueueSettings.then(() => {
+  return loadQueueSettings().then(() => {
     return getArtist(filePath).then((songs) => {
       var index = songs.findIndex(song => song.name === filePath);
       currentQueue = new PlaybackQueue.StaticQueue(songs, index);
@@ -235,7 +289,7 @@ function queueArtist(filePath) {
 }
 
 function queueAlbum(filePath) {
-  return loadQueueSettings.then(() => {
+  return loadQueueSettings().then(() => {
     return getAlbum(filePath).then((songs) => {
       var index = songs.findIndex(song => song.name === filePath);
       currentQueue = new PlaybackQueue.StaticQueue(songs, index);
@@ -249,7 +303,7 @@ function queueAlbum(filePath) {
 }
 
 function queuePlaylist(id, filePath) {
-  return loadQueueSettings.then(() => {
+  return loadQueueSettings().then(() => {
     return getPlaylist(id).then((songs) => {
       var playlist = Database.playlists.find(playlist => playlist.id === id);
       return setShuffleSetting(playlist.shuffle).then(() => {
@@ -268,7 +322,7 @@ function queuePlaylist(id, filePath) {
 }
 
 function queueSong(filePath) {
-  return loadQueueSettings.then(() => {
+  return loadQueueSettings().then(() => {
     return getSongs().then((songs) => {
       var index = songs.findIndex(song => song.name === filePath);
       currentQueue = new PlaybackQueue.StaticQueue(songs, index);
@@ -281,17 +335,9 @@ function queueSong(filePath) {
   });
 }
 
-function getRepeatSetting() {
-  return loadQueueSettings.then(() => PlaybackQueue.repeat);
-}
-
 function setRepeatSetting(repeat) {
   repeat = parseInt(repeat, 10) || 0;
-  return loadQueueSettings.then(() => PlaybackQueue.repeat = repeat);
-}
-
-function getShuffleSetting() {
-  return loadQueueSettings.then(() => PlaybackQueue.shuffle ? 1 : 0);
+  return loadQueueSettings().then(() => PlaybackQueue.repeat = repeat);
 }
 
 function setShuffleSetting(shuffle) {
@@ -299,60 +345,7 @@ function setShuffleSetting(shuffle) {
     shuffle = shuffle !== 'false' && parseInt(shuffle || 0, 10) !== 0;
   }
 
-  return loadQueueSettings.then(() => PlaybackQueue.shuffle = shuffle);
-}
-
-function getAlbums() {
-  return new Promise((resolve) => {
-    Database.enumerateAll('metadata.album', null, 'nextunique', (albums) => {
-      resolve(albums);
-    });
-  });
-}
-
-function getAlbum(filePath) {
-  return getSong(filePath).then((song) => {
-    var album = song.metadata.album;
-
-    return new Promise((resolve) => {
-      Database.enumerateAll('metadata.album', album, 'next', (songs) => {
-        songs.sort((a, b) => {
-          return (a.metadata.discnum - b.metadata.discnum) ||
-                 (a.metadata.tracknum - b.metadata.tracknum);
-        });
-
-        resolve(songs);
-      });
-    });
-  });
-}
-
-function getArtists() {
-  return new Promise((resolve) => {
-    Database.enumerateAll('metadata.artist', null, 'nextunique', (artists) => {
-      resolve(artists);
-    });
-  });
-}
-
-function getArtist(filePath) {
-  return getSong(filePath).then((song) => {
-    var artist = song.metadata.artist;
-
-    return new Promise((resolve) => {
-      Database.enumerateAll('metadata.artist', artist, 'next', (songs) => {
-        songs.sort((a, b) => {
-          var albumSort = a.metadata.album < b.metadata.album ?
-            -1 : (a.metadata.album > b.metadata.album ?  1 : 0);
-
-          return albumSort || (a.metadata.discnum - b.metadata.discnum) ||
-                              (a.metadata.tracknum - b.metadata.tracknum);
-        });
-
-        resolve(songs);
-      });
-    });
-  });
+  return loadQueueSettings().then(() => PlaybackQueue.shuffle = shuffle);
 }
 
 function getPlaylists() {
@@ -369,25 +362,47 @@ function getPlaylist(id) {
   });
 }
 
+function getArtists() {
+  return Database.artists();
+}
+
+function getAlbums() {
+  return Database.albums();
+}
+
 function getSongs() {
-  return new Promise((resolve) => {
-    Database.enumerateAll('metadata.title', null, 'next', (songs) => {
-      resolve(songs);
-    });
-  });
+  return Database.songs();
 }
 
 function getSongCount() {
-  return new Promise((resolve) => {
-    Database.count('metadata.title', null, count => resolve(count));
+  return Database.totalCount();
+}
+
+function getArtist(filePath) {
+  return getSong(filePath).then((song) => {
+    return Database.artist(song.metadata.artist);
+  });
+}
+
+function getAlbum(filePath) {
+  return getSong(filePath).then((song) => {
+    return Database.album(song.metadata.album);
   });
 }
 
 function getSong(filePath) {
+  if (externalFile && filePath === externalFile.name) {
+    return Promise.resolve(externalFile);
+  }
+
   return Database.getFileInfo(filePath);
 }
 
 function getSongFile(filePath) {
+  if (externalFile && filePath === externalFile.name) {
+    return Promise.resolve(externalFile.file);
+  }
+
   return getSong(filePath).then((song) => {
     return Database.getFile(song);
   });
@@ -405,6 +420,22 @@ function getSongThumbnail(filePath) {
   return LazyLoader.load('/js/metadata/album_art_cache.js').then(() => {
     return getSong(filePath).then((song) => {
       return AlbumArtCache.getThumbnailBlob(song);
+    });
+  });
+}
+
+function getSongArtworkURL(filePath) {
+  return LazyLoader.load('/js/metadata/album_art_cache.js').then(() => {
+    return getSong(filePath).then((song) => {
+      return AlbumArtCache.getFullSizeURL(song);
+    });
+  });
+}
+
+function getSongThumbnailURL(filePath) {
+  return LazyLoader.load('/js/metadata/album_art_cache.js').then(() => {
+    return getSong(filePath).then((song) => {
+      return AlbumArtCache.getThumbnailURL(song);
     });
   });
 }
@@ -436,6 +467,14 @@ function getDatabaseStatus() {
 
 function navigate(url) {
   navigateToURL(url);
+}
+
+function searchOpen() {
+  onSearchOpen();
+}
+
+function searchClose() {
+  onSearchClose();
 }
 
 function share(filePath) {
@@ -471,25 +510,40 @@ function share(filePath) {
   });
 }
 
-function open(blob) {
+function openExternalFile(file) {
   var scripts = [
     '/js/metadata/metadata_scripts.js',
     '/js/metadata/album_art.js'
   ];
 
   return LazyLoader.load(scripts).then(() => {
-    return AudioMetadata.parse(blob).then((metadata) => {
-      var filePath = blob.name;
+    return AudioMetadata.parse(file).then((metadata) => {
+      return loadQueueSettings().then(() => {
+        externalFile = {
+          file: file,
+          name: file.name || URL.createObjectURL(file),
+          metadata: metadata
+        };
 
-      isStopped = false;
-      play(filePath);
+        currentQueue = new PlaybackQueue.StaticQueue([externalFile]);
 
-      return {
-        blob: blob,
-        metadata: metadata,
-        name: filePath
-      };
+        return currentSong().then((song) => {
+          isStopped = false;
+          play(song.name);
+        });
+      });
     });
+  });
+}
+
+function enableNFC(enabled) {
+  // This function is a no-op until we enable NFC once.
+  if (!nfcShare && !enabled) {
+    return;
+  }
+
+  loadNFCShare().then(() => {
+    NFCShare.enabled = enabled;
   });
 }
 

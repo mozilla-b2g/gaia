@@ -6,9 +6,7 @@ html[dir="ltr"] section[role="status"] [dir] { text-align: left; }
 html[dir="rtl"] section[role="status"] [dir] { text-align: right; }
 
 section[role="status"] {
-  background-color: rgba(64,64,64,1);
-  background-image: url(status/images/ui/pattern.png);
-  background-repeat: repeat;
+  background-color: #4d4d4d;
   overflow: hidden;
   position: absolute;
   z-index: 100;

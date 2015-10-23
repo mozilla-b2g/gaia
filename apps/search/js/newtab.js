@@ -3,12 +3,18 @@
 
 (function(exports) {
 
+  var isManuallyPrivate = window.location.search.includes('private=1');
+  var isManuallyRegular = window.location.search.includes('private=0');
+  var isPrivateByDefault = false;
+
   SettingsListener.observe('browser.private.default', false, function (value) {
     if (value) {
-      exports.newtab.pretendToBePrivate();
+      isPrivateByDefault = true;
     } else {
-      exports.newtab.stopPretendingToBePrivate();
+      isPrivateByDefault = false;
     }
+
+    exports.newtab.togglePrivacyMode();
   });
 
   /**
@@ -16,10 +22,6 @@
    * Instantiates places to populate history and top sites.
    */
   function Newtab() {
-    var privateWindow = document.getElementById('private-window');
-    privateWindow.addEventListener('click',
-      this.requestPrivateWindow.bind(this));
-
     // Initialize the parent port connection
     var self = this;
     navigator.mozApps.getSelf().onsuccess = function() {
@@ -34,10 +36,7 @@
       });
     };
 
-    if (window.location.search.includes('private=1')) {
-      this.isManuallyPrivate = true;
-      this.pretendToBePrivate();
-    }
+    this.togglePrivacyMode();
   }
 
   Newtab.prototype = {
@@ -75,53 +74,57 @@
     },
 
     /**
-     * Pretends to be a private window.
-     * Makes this window look like a private window by applying the necessary
-     * theme color and background. The window can't be truly private,
-     * otherwise we wouldn't have access to local history and bookmarks.
+     * Toggles the privacy mode.
+     *
+     * When private browsing _IS_ the default and we _ARE NOT_ manually being
+     * regular or when private browsing _IS NOT_ the default and we _ARE_
+     * manually bring private: Makes this window look like a private window by
+     * applying the necessary theme color and background. The window can't be
+     * truly private, otherwise we wouldn't have access to local history and
+     * bookmarks.
+     *
+     * When private browsing _IS_ the default and we _ARE_ manually regular:
+     * Makes this window look normal by removing private theme settings.
      */
-    pretendToBePrivate: function() {
+    togglePrivacyMode: function() {
+      var themeMeta = document.querySelector('meta[name="theme-color"]');
       var themeColor = document.createElement('meta');
-      themeColor.setAttribute('name', 'theme-color');
-      themeColor.setAttribute('content', '#392E54');
-      document.head.appendChild(themeColor);
-      document.body.classList.add('private');
 
-      // Show the private dialog if needed.
-      asyncStorage.getItem('shouldSuppressPrivateDialog', value => {
-        if (value) {
-          return;
+      if ((isPrivateByDefault && !isManuallyRegular) ||
+          (!isPrivateByDefault && isManuallyPrivate)) {
+
+        if (themeMeta) {
+          document.head.removeChild(themeMeta);
         }
 
-        this.privateBrowserDialog = document.getElementById(
-          'private-window-dialog');
-        this.privateBrowserDialog.removeAttribute('hidden');
+        themeColor.setAttribute('name', 'theme-color');
+        themeColor.setAttribute('content', '#392E54');
+        document.head.appendChild(themeColor);
+        document.body.classList.add('private');
 
-        this.privateBrowserDialogClose = document.getElementById(
-          'private-window-hide-dialog');
-        this.privateBrowserDialogClose.addEventListener('click', this);
+        // Show the private dialog if needed.
+        asyncStorage.getItem('shouldSuppressPrivateDialog', value => {
+          if (value) {
+            return;
+          }
 
-        this.privateBrowserLearnMore = document.getElementById(
-          'private-learn-more');
-        this.privateBrowserLearnMore.addEventListener('click', this);
-      });
-    },
+          this.privateBrowserDialog = document.getElementById(
+            'private-window-dialog');
+          this.privateBrowserDialog.removeAttribute('hidden');
 
-    /**
-     * Stops pretending to be a private window.
-     * Removes the theme-color meta tag and private class from body
-     */
-    stopPretendingToBePrivate: function () {
-      var themeColor = document.querySelector('meta[name="theme-color"]');
-      if (themeColor) {
-        document.head.removeChild(themeColor);
+          this.privateBrowserDialogClose = document.getElementById(
+            'private-window-hide-dialog');
+          this.privateBrowserDialogClose.addEventListener('click', this);
+
+          this.privateBrowserLearnMore = document.getElementById(
+            'private-learn-more');
+          this.privateBrowserLearnMore.addEventListener('click', this);
+        });
       }
 
-      if (!this.isManuallyPrivate) {
-        document.body.classList.remove('private');
-
-        if (this.privateBrowserDialog) {
-          this.privateBrowserDialog.setAttribute('hidden', true);
+      if (isPrivateByDefault && isManuallyRegular) {
+        if (themeMeta) {
+          document.head.removeChild(themeMeta);
         }
       }
     },
@@ -159,15 +162,13 @@
      */
     learnAboutPrivateBrowsing: function(e) {
       e.preventDefault();
-      navigator.mozL10n.formatValue('private-learn-more-href').then(url => {
-        /* jshint nonew: false */
-        new MozActivity({
-          name: 'view',
-          data: {
-            type: 'url',
-            url: url
-          }
-        });
+      /* jshint nonew: false */
+      new MozActivity({
+        name: 'view',
+        data: {
+          type: 'url',
+          url: e.target.href
+        }
       });
     }
   };

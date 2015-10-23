@@ -196,6 +196,14 @@
     },
 
     /**
+     * Last result of the overflow count computation. Every time we recompute
+     * the overflow count we start from this value; if the string is larger
+     * than the previous one this will cut down the number of computations, if
+     * not we restart from 0.
+     */
+    _overflowCountCache: -1,
+
+    /**
      * Get the amount of characters truncated from overflow ellipses.
      *
      * @param {String} string The string for which to check max font size.
@@ -208,12 +216,25 @@
       var resultWidth;
       var overflowCount = -1;
 
+      // If the new string is longer than the cached result of the previous
+      // call, and if the calculation yields a coherent result then start from
+      // the cached value to speed up the calculation. */
+      if (string.length > this._overflowCountCache) {
+        substring = string.substr(0, string.length - this._overflowCountCache);
+        resultWidth = this.getFontWidth(substring, fontSize, fontFamily);
+
+        if (resultWidth > maxWidth) {
+          overflowCount = this._overflowCountCache;
+        }
+      }
+
       do {
         overflowCount++;
         substring = string.substr(0, string.length - overflowCount);
         resultWidth = this.getFontWidth(substring, fontSize, fontFamily);
       } while (substring.length > 0 && resultWidth > maxWidth);
 
+      this._overflowCountCache = overflowCount;
       return overflowCount;
     },
 

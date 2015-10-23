@@ -74,16 +74,6 @@ button[data-icon]:before,
   offset-inline-end: 1.5rem;
   line-height: 3rem;
 }
-html[dir="ltr"] button[data-icon]:before,
-html[dir="ltr"] .bb-button[data-icon]:before,
-html[dir="ltr"] .button[data-icon]:before {
-  transform: scaleX(1);
-}
-html[dir="rtl"] button[data-icon]:before,
-html[dir="rtl"] .bb-button[data-icon]:before,
-html[dir="rtl"] .button[data-icon]:before {
-  transform: scaleX(-1);
-}
 
 button[data-icon]:active:before,
 .bb-button[data-icon]:active:before,

@@ -21,6 +21,13 @@
   will-change: scroll-position;
 }
 
+/* When using a screen reader, disable the invisible gripper.
+   The invisible gripper is useless with the screen reader and
+   interferes with touching the statusbar. */
+#screen.screenreader .tray {
+  --tray-invisible-gripper-height: 0px;
+}
+
 /* NOTE: csslint treats variable-only rules as "empty" errors, per
    <https://github.com/CSSLint/csslint/issues/538>. */
 @media (orientation: portrait) {
@@ -87,11 +94,6 @@
   position: absolute;
   offset-inline-start: 0;
   line-height: var(--statusbar-height);
-}
-
-html[dir="rtl"] #statusbar-tray > .sb-start-upper {
-  left: unset;
-  right: 0;
 }
 
 /* Notifications indicator */
@@ -208,8 +210,6 @@ html[dir="rtl"] #statusbar-tray > .sb-start-upper {
   height: 3rem;
   margin: 1.5rem auto;
 }
-html[dir="ltr"] [data-icon] { float: left; }
-html[dir="rtl"] [data-icon] { float: right; }
 
 #utility-tray .utility-tray-notifications [data-icon]:before {
   /* The icons should appear 24 x 24px but each glyph only takes 80% of the space

@@ -7,7 +7,6 @@ apps/calendar/build/**
 apps/calendar/js/ext/**
 apps/camera/js/vendor/**
 apps/camera/test/**
-apps/privacy-panel/js/vendor/**
 apps/**/*.esp.js
 apps/system/camera/**
 build/r.js
@@ -24,7 +23,7 @@ apps/clock/js/alameda.js
 apps/clock/js/ext/**
 apps/clock/js/text_builder.js
 shared/js/uuid.js
-shared/js/l20n.js
+shared/js/intl/l20n*.js
 apps/keyboard/js/imes/jspinyin/libpinyin.js
 apps/keyboard/js/imes/jszhuyin/lib/**
 apps/keyboard/js/imes/handwriting/hwr/**
@@ -63,8 +62,15 @@ apps/bluetooth/js/vendor/alameda.js
 apps/bluetooth/js/settings.js
 apps/homescreen/bower_components/**
 tv_apps/app-deck/bower_components/**
-tv_apps/browser/js/**
-tv_apps/browser/test/**
+tv_apps/browser/js/authentication_dialog.js
+tv_apps/browser/js/awesomescreen.js
+tv_apps/browser/js/browser_db.js
+tv_apps/browser/js/browser_dialog.js
+tv_apps/browser/js/index.js
+tv_apps/browser/js/search_result.js
+tv_apps/browser/js/search_util.js
+tv_apps/browser/js/tooltip.js
+tv_apps/browser/test/unit/browser_db_test.js
 tv_apps/browser/bower_components/**
 tv_apps/dashboard/bower_components/**
 tv_apps/device-deck/bower_components/**

@@ -26,7 +26,9 @@ define(function(require) {
                        'shared/elements/gaia_buttons/script.js',
                        'shared/elements/gaia_confirm/script.js',
                        'style/homescreens.css',
-                       'style/achievements.css',
+                       // Bug 1210284 - disabling achievements until they are on
+                       // the roadmap again or completely removed.
+                       // 'style/achievements.css',
                        'style/apps.css',
                        'style/screen_lock.css',
                        'style/simcard.css',

@@ -12,7 +12,7 @@ from gaiatest.form_controls.binarycontrol import GaiaBinaryControl
 class USBStorage(Base):
 
     _page_locator = (By.ID, 'usbStorage')
-    _usb_storage_checkbox_locator = (By.CSS_SELECTOR, '#usbStorage gaia-switch.usb-enabled')
+    _usb_storage_checkbox_locator = (By.CSS_SELECTOR, '#usbStorage gaia-switch.ums-switch')
     _usb_storage_confirm_button_locator = (By.CSS_SELECTOR, 'gaia-confirm button[data-l10n-id="ok"]')
     _usb_storage_cancel_button_locator = (By.CSS_SELECTOR, 'gaia-confirm button[data-l10n-id="cancel"]')
 

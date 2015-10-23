@@ -16,11 +16,10 @@ Homescreen.Selectors = {
   apps: '#apps',
   icon: '#apps gaia-app-icon',
   card: '#pages gaia-pin-card',
-  uninstall: '#uninstall',
+  remove: '#remove',
   edit: '#edit',
   cancelDownload: '#cancel-download',
-  resumeDownload: '#resume-download',
-  settingsDialog: '#settings'
+  resumeDownload: '#resume-download'
 };
 
 Homescreen.prototype = {
@@ -60,8 +59,8 @@ Homescreen.prototype = {
     });
   },
 
-  get uninstallTray() {
-    return this.client.findElement(Homescreen.Selectors.uninstall);
+  get removeTray() {
+    return this.client.findElement(Homescreen.Selectors.remove);
   },
 
   get editTray() {
@@ -76,21 +75,24 @@ Homescreen.prototype = {
     return this.client.findElement(Homescreen.Selectors.resumeDownload);
   },
 
-  get settingsDialog() {
-    return this.client.findElement(Homescreen.Selectors.settingsDialog);
-  },
-
-  get settingsDialogButtons() {
-    return this.client.findElements(
-      Homescreen.Selectors.settingsDialog + ' button');
-  },
-
   /**
    * Waits for the homescreen to launch and switches to the frame.
    */
   waitForLaunch: function() {
     this.client.helper.waitForElement('body');
     this.client.apps.switchToApp(Homescreen.URL);
+  },
+
+  /**
+   * Find and return every id for all the items on the grid... Each element
+   * can be used with `.getIcon` to find the element for a given id.
+   *
+   * @return {Array[String]}
+   */
+  getIconIdentifiers: function() {
+    return this.visibleIcons.map(function(el) {
+      return this.getIconId(el);
+    }, this);
   },
 
   /**
@@ -126,6 +128,17 @@ Homescreen.prototype = {
     }
 
     return null;
+  },
+
+  /**
+   * Returns a homescreen icon element's identifier.
+   *
+   * @param {Marionette.Element} icon A homescreen icon element reference.
+   */
+  getIconId: function(icon) {
+    return icon.scriptWith(function(el) {
+      return el.dataset.identifier;
+    });
   },
 
   /**
@@ -252,22 +265,6 @@ Homescreen.prototype = {
   },
 
   /**
-   * Opens the settings menu by long-pressing on the empty space at the bottom
-   * of the icon grid.
-   */
-  openSettingsMenu: function() {
-    var rect = this.appsScrollable.scriptWith(function(el) {
-      el.scrollTop = el.scrollTopMax;
-      return el.getBoundingClientRect();
-    });
-    var actions = this.client.loader.getActions();
-    actions.press(this.appsScrollable, rect.width / 2, rect.height - 1).
-            wait(0.5).
-            release().
-            perform();
-  },
-
-  /**
    * Restart the homescreen then refocus on it.
    */
   restart: function() {
@@ -328,6 +325,17 @@ Homescreen.prototype = {
         throw e;
       }
     });
+  },
+
+  /**
+   * Emulates pressing of the hardware home button.
+   */
+  pressHomeButton: function() {
+    this.client.executeScript(function() {
+      var home = new CustomEvent('home');
+      window.dispatchEvent(home);
+    });
+    this.client.apps.switchToApp(Homescreen.URL);
   },
 
   /**

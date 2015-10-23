@@ -165,8 +165,6 @@
         this.topPanel.addEventListener(name, this.panelHandler.bind(this));
       }, this);
 
-      this.statusbarIcons.addEventListener('wheel', this);
-
       LazyLoader.load([
         'js/utility_tray_motion.js',
         'js/utility_tray.js'
@@ -252,13 +250,6 @@
           this.setAppearance();
           break;
 
-        case 'wheel':
-          if (evt.deltaMode === evt.DOM_DELTA_PAGE && evt.deltaY &&
-            evt.deltaY < 0 && !this.isLocked()) {
-            window.dispatchEvent(new CustomEvent('statusbarwheel'));
-          }
-          break;
-
         case 'system-resize':
           // Reprioritize icons when:
           // * Screen orientation changes
@@ -282,6 +273,14 @@
           break;
 
         case 'appopened':
+          var app = evt.detail;
+          if (!app.isFullScreen() && !app.isFullScreenLayout()) {
+            this.element.setAttribute('aria-owns',
+              evt.detail.appChrome.element.id);
+          } else {
+            this.element.removeAttribute('aria-owns');
+          }
+          /* falls through */
         case 'appclosed':
           this.resumeUpdate(evt.type);
           /* falls through */
@@ -315,6 +314,7 @@
           this.element.classList.remove('hidden');
           this.element.classList.remove('fullscreen');
           this.element.classList.remove('fullscreen-layout');
+          this.element.removeAttribute('aria-owns');
           break;
         case 'activitydestroyed':
           this._updateMinimizedStatusbarWidth();

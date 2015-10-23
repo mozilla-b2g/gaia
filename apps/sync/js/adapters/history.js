@@ -271,7 +271,10 @@ DataAdapters.history = {
     });
   },
 
-  update(remoteHistory) {
+  update(remoteHistory, options = { readonly: true }) {
+    if (!options.readonly) {
+      console.warn('Two-way sync not implemented yet for bookmarks.');
+    }
     var mtime;
     return LazyLoader.load(['shared/js/async_storage.js'])
     .then(HistoryHelper.getSyncedCollectionMtime).then(_mtime => {

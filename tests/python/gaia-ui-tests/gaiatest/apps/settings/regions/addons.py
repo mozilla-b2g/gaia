@@ -5,12 +5,14 @@
 from marionette_driver import expected, By, Wait
 
 from gaiatest.apps.base import Base
+from gaiatest.apps.base import PageRegion
+from gaiatest.apps.settings.regions.addon_details import AddonDetails
 
 
 class Addons(Base):
 
     _page_locator = (By.ID, 'addons')
-    _first_item_locator = (By.CSS_SELECTOR, '.addon-list > li:nth-child(1) > a:nth-child(1)')
+    _items_locator = (By.CSS_SELECTOR, '.addon-list .menu-item')
 
     _details_page_locator = (By.ID, 'addon-details')
     _affected_apps_locator = (By.CLASS_NAME, 'addon-targets')
@@ -32,11 +34,16 @@ class Addons(Base):
         return self.marionette.find_element(*self._details_page_locator)
 
     @property
+    def items(self):
+        return [Addon(self.marionette, element)
+            for element in self.marionette.find_elements(*self._items_locator)]
+
+    @property
     def is_addon_enabled(self):
         return self.marionette.find_element(*self._state_toggle_locator).is_selected()
 
-    def tap_first_item(self):
-        self.marionette.find_element(*self._first_item_locator).tap()
+    def tap_item(self,item_index):
+        self.items[item_index].tap()
         Wait(self.marionette).until(expected.element_displayed(
             self.marionette.find_element(*self._affected_apps_locator)))
         Wait(self.marionette).until(expected.element_displayed(
@@ -44,3 +51,16 @@ class Addons(Base):
 
     def toggle_addon_status(self):
         self.marionette.find_element(*self._state_toggle_locator).tap()
+
+
+class Addon(PageRegion):
+
+    _name_locator = (By.CSS_SELECTOR, 'span')
+
+    @property
+    def name(self):
+        return self.root_element.find_element(*self._name_locator).text
+
+    def tap(self):
+        self.root_element.tap()
+        return AddonDetails(self.marionette)

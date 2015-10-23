@@ -29,7 +29,9 @@
 
     start: function() {
       window.addEventListener('new-private-window',
-        this.newPrivateWindow.bind(this));
+        this.newWindow.bind(this));
+      window.addEventListener('new-non-private-window',
+        this.newWindow.bind(this));
       window.addEventListener('activity-view',
         this.handleActivity.bind(this));
     },
@@ -54,16 +56,24 @@
     },
 
     /**
-     * Opens a new private window.
+     * Opens a new browser window.
      */
-    newPrivateWindow: function() {
+    newWindow: function(e) {
+      var basePath = 'app://search.gaiamobile.org';
+      var isPrivate = e && e.type === 'new-private-window';
+      var privateFlag = isPrivate ? '1' : '0';
       var config = new BrowserConfigHelper({
-        url: 'app://search.gaiamobile.org/newtab.html?private=1',
-        manifestURL: 'app://search.gaiamobile.org/manifest.webapp'
+        url: basePath + '/newtab.html?private=' + privateFlag,
+        manifestURL: basePath + '/manifest.webapp'
       });
-      config.isMockPrivate = true;
+
+      if (isPrivate) {
+        config.isMockPrivate = true;
+        config.isPrivate = true;
+      }
+
       config.oop = true;
-      config.isPrivate = true;
+
       var newApp = new AppWindow(config);
       newApp.requestOpen();
     }

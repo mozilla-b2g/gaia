@@ -1,0 +1,24 @@
+{
+  "name": "gaia-site-icon",
+  "version": "0.0.0",
+  "description": "A web component to show an icon for an application or site.",
+  "authors": [
+    "Chris Lord <chrislord.net@gmail.com>"
+  ],
+  "main": "script.js",
+  "keywords": [
+    "app",
+    "icon",
+    "homescreen",
+    "B2G",
+    "Firefox OS"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}

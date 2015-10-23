@@ -7,6 +7,7 @@
 /* global
   ERROR_SYNC_APP_SYNC_IN_PROGRESS,
   ERROR_SYNC_INVALID_REQUEST_OPTIONS,
+  IACHandler,
   LazyLoader,
   SyncEngine
 */
@@ -55,16 +56,18 @@ const Bootstrap = (() => {
         (typeof request.assertion !== 'string') ||
         (typeof request.keys !== 'object') ||
         (typeof request.keys.kB !== 'string') ||
-        (typeof request.collections !== 'object') ||
-        (Array.isArray(request.collections))) {
-      return loadErrorConstants().then(() =>
-          Promise.reject(new Error(ERROR_SYNC_INVALID_REQUEST_OPTIONS)));
+        (typeof request.collections !== 'object')) {
+      return loadErrorConstants().then(() => {
+        return Promise.reject(new Error(ERROR_SYNC_INVALID_REQUEST_OPTIONS));
+      });
     }
 
     if (running) {
-      return loadErrorConstants().then(() =>
-          Promise.reject(new Error(ERROR_SYNC_APP_SYNC_IN_PROGRESS)));
+      return loadErrorConstants().then(() => {
+        return Promise.reject(new Error(ERROR_SYNC_APP_SYNC_IN_PROGRESS));
+      });
     }
+
     running = true;
     return loadMainScripts().then(() => {
       const collectionNames = Object.keys(request.collections);
@@ -89,7 +92,47 @@ const Bootstrap = (() => {
     });
   };
 
-  // TODO: Add an IAC handler here that calls handleRequest, see bug 1205220
+  const sendPortMessage = message => {
+    var port = IACHandler.getPort('gaia::sync::request', this);
+    if (port) {
+      port.postMessage(message);
+    } else {
+      console.error('No gaia::sync::request port');
+    }
+  };
+
+  window.addEventListener('iac-gaia::sync::request', event => {
+    if (!event || !event.detail || !event.detail.id) {
+      console.error('Wrong IAC request');
+      window.close();
+      return;
+    }
+
+    const request = event.detail;
+    switch (request.name) {
+      case 'sync':
+        handleSyncRequest(request).then(() => {
+          sendPortMessage({
+            id: request.id
+          });
+          window.close();
+        }).catch(error => {
+          sendPortMessage({
+            id: request.id,
+            error: error
+          });
+          window.close();
+        });
+        break;
+      case 'cancel':
+        console.warn('Closing app');
+        window.close();
+        break;
+      default:
+        console.error('Unknown IAC request');
+        window.close();
+    }
+  });
 
   // Expose Bootstrap for unit testing:
   return { handleSyncRequest };

@@ -938,7 +938,7 @@ html:-moz-dir(rtl) .message-list-topbar[data-state="top"] {
   opacity: .95;
 }
 
-.msg-reply-menu button:before {
+.msg-reply-menu menu > button:before {
   content: "";
   display: block;
   float: left;
@@ -950,7 +950,7 @@ html:-moz-dir(rtl) .message-list-topbar[data-state="top"] {
   background-size: 3rem auto;
 }
 
-html:-moz-dir(rtl) .msg-reply-menu button:before {
+html:-moz-dir(rtl) .msg-reply-menu menu > button:before {
   float: right;
   margin: 0.5rem 0 0 1rem;
 }

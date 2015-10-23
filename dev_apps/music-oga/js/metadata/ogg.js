@@ -86,11 +86,11 @@ var OggMetadata = (function() {
           var valid = false;
           switch (first_byte) {
           case 3:
-            valid = fullpage.readASCIIText(6) === 'vorbis';
+            valid = fullpage.readBinaryText(6) === 'vorbis';
             metadata.tag_format = 'vorbis';
             break;
           case 79:
-            valid = fullpage.readASCIIText(7) === 'pusTags';
+            valid = fullpage.readBinaryText(7) === 'pusTags';
             metadata.tag_format = 'opus';
             break;
           }
@@ -118,7 +118,7 @@ var OggMetadata = (function() {
    * @return {Object} An object containing the page's segment table.
    */
   function readPageHeader(page) {
-    var capture_pattern = page.readASCIIText(4);
+    var capture_pattern = page.readBinaryText(4);
     if (capture_pattern !== 'OggS') {
       throw new Error('malformed ogg page header');
     }

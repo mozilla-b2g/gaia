@@ -10,6 +10,11 @@
   var Core = function() {
   };
 
+  Core.SUB_MODULES = [
+    'AudioChannelService',
+    'SystemWindow'
+  ];
+
   Core.SERVICES = [
     'getAPI'
   ];

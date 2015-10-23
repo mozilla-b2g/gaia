@@ -110,20 +110,17 @@ class TestFtu(GaiaTestCase):
         self.ftu.tap_next_to_firefox_accounts_section()
         self.ftu.tap_next_to_welcome_browser_section()
 
-        # Verify the "Share Data" option matches expected initial state
-        # There's a very small lag on this after the dialog appears.
-        Wait(self.marionette).until(
-            lambda m: self.ftu.is_share_data_enabled == share_data_default,
-            message="Send Data UI state should match initial internal state")
-
-        # Verify that internal state matches UI state
-        self.assertEqual(self.data_layer.get_setting(
-            'debug.performance_data.shared'), self.ftu.is_share_data_enabled,
-            msg='Send Data internal state should match UI state')
-
-        self.ftu.disable_share_data()
-        self.assertEqual(self.data_layer.get_setting(
-            'debug.performance_data.shared'), not share_data_default)
+        self.assertTrue(self.ftu.is_metrics_basic_enabled)
+        self.assertFalse(self.ftu.is_metrics_enhanced_enabled)
+        self.assertFalse(self.ftu.is_metrics_none_enabled)
+        self.ftu.enable_metrics_enhanced()
+        self.assertFalse(self.ftu.is_metrics_basic_enabled)
+        self.assertTrue(self.ftu.is_metrics_enhanced_enabled)
+        self.assertFalse(self.ftu.is_metrics_none_enabled)
+        self.ftu.enable_metrics_none()
+        self.assertFalse(self.ftu.is_metrics_basic_enabled)
+        self.assertFalse(self.ftu.is_metrics_enhanced_enabled)
+        self.assertTrue(self.ftu.is_metrics_none_enabled)
 
         self.ftu.tap_next_to_privacy_browser_section()
 

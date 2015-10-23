@@ -1,5 +1,14 @@
-/* global _, Awesomescreen, Browser, BrowserDB, BrowserDialog */
-/* global SearchResult, SearchUtil, Settings, Tooltip, UrlHelper */
+/* global _ */
+/* global Awesomescreen */
+/* global Browser */
+/* global BrowserDB */
+/* global BrowserDialog */
+/* global LazyLoader */
+/* global SearchResult */
+/* global SearchUtil */
+/* global Settings */
+/* global Tooltip*/
+/* global UrlHelper */
 
 'use strict';
 
@@ -112,8 +121,6 @@ var Toolbar = {
       this.clickPocketListBlock.bind(this));
     this.privateWindowBlock.addEventListener('mouseup',
         Browser.handlePrivateBrowsing.bind(Browser));
-    this.signInBlock.addEventListener('mouseup',
-      Settings.show.bind(Settings));
     this.settingsBlock.addEventListener('mouseup',
         Settings.show.bind(Settings));
 
@@ -133,6 +140,8 @@ var Toolbar = {
     // li = 73px * 3(list) + 20px(hover) + 10px(padding)
     this.menuBlock.style.height = 73 * 3 + 20 + 10 + 'px';
     Tooltip.init();
+
+    LazyLoader.load('js/sync/toolbar.js');
   },
 
   /**
@@ -194,8 +203,8 @@ var Toolbar = {
       'menu-button-block', 'menu-button',
       'menu-block',
       'history-block', 'private-window-block',
-      'sign-in-block', 'settings-block',
-      'history-tab', 'private-window-tab', 'sign-in-tab', 'settings-tab',
+      'settings-block',
+      'history-tab', 'private-window-tab', 'settings-tab',
       'mode-button-block',
       'mode-button-title', 'pan-cursor-button', 'pan-cursor-button-block',
       'pan-cursor-banner-message',

@@ -63,11 +63,11 @@ function L10nManager(gaiaDir,
       // if the resource URL is a subject to branding, then
       // add official/unofficial to the path
       if (utils.isSubjectToBranding(utils.dirname(resURL))) {
+        isOfficialBranding = self.official === '1';
+
         realURL = utils.joinPath(utils.dirname(resURL),
-                                 self.official === '1' ?
-                                   'official' : 'unofficial',
-                                 utils.basename(resURL));
-        isOfficialBranding = true;
+          isOfficialBranding ? 'official' : 'unofficial',
+          utils.basename(resURL));
       } else {
         isOfficialBranding = false;
       }
@@ -322,9 +322,9 @@ function L10nManager(gaiaDir,
 
       if (locale === GAIA_SOURCE_LOCALE) {
         manifestProps = sourceLocaleProps;
-      } else if (locale in l20n.qps) {
+      } else if (locale in l20n.pseudo) {
         manifestProps = l20n.walkValue(
-          sourceLocaleProps, l20n.qps[locale].translate);
+          sourceLocaleProps, l20n.pseudo[locale].process);
       } else {
         manifestProps = getManifestProperties(webapp, locale);
       }

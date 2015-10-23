@@ -5,7 +5,7 @@ define({
       return onload();
     }
 
-    require(['l10nbase', 'l10ndate'], function() {
+    require(['l10nbase'], function() {
       navigator.mozL10n.once(function() {
         // The html cache restore in html_cache_restore could have set the ltr
         // direction incorrectly. If the language goes from an RTL one to a LTR

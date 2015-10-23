@@ -199,6 +199,15 @@
       Service.register('turnShadeOff', this);
     },
 
+    _getNumOfCalls: function scm_getNumOfCalls() {
+      if (navigator.mozTelephony) {
+        return navigator.mozTelephony.calls.length +
+          (navigator.mozTelephony.conferenceGroup.calls.length ? 1 : 0);
+      } else {
+        return 0;
+      }
+    },
+
     handleEvent: function scm_handleEvent(evt) {
       var telephony = window.navigator.mozTelephony;
       var call;
@@ -220,11 +229,21 @@
           break;
 
         case 'sleep':
-          this.turnScreenOff(true, 'powerkey');
+          // If calls are present then the power button will be handled by the
+          // dialer agent.
+          if (this._getNumOfCalls() === 0) {
+            this.turnScreenOff(true, 'powerkey');
+          }
+
           break;
 
         case 'wake':
-          this.turnScreenOn();
+          // If calls are present then the power button will be handled by the
+          // dialer agent.
+          if (this._getNumOfCalls() === 0) {
+            this.turnScreenOn();
+          }
+
           break;
 
         case 'accessibility-action':
@@ -274,11 +293,7 @@
           break;
 
         case 'callschanged':
-          if (!telephony.calls.length &&
-              !(telephony.conferenceGroup &&
-                telephony.conferenceGroup.calls.length)) {
-
-            this.turnScreenOn();
+          if (this._getNumOfCalls() === 0) {
             this._uninstallProximityListener();
             break;
           }
@@ -323,7 +338,25 @@
         case 'lockpanelchange' :
           window.removeEventListener('lockscreen-appclosing', this);
           window.removeEventListener('lockpanelchange', this);
-          this._setIdleTimeout(this._idleTimeout, false);
+          // Prevent racing: wakeLockManager may broadcast the message
+          // before this event, so one lockscreen event is actually representing
+          // different meanings depends on that.
+          //
+          // This happens partly because this handler doesn't enter the
+          // '_reconfigScreenTimeout' as other handlers may do, but in fact
+          // the centralized design of putting all different timeouts in one
+          // management function is not a good idea, because that fuzzes the
+          // real intention of each branch. So maybe a more complete solution
+          // is to decentralize that function, and make every small timeout
+          // configuring functions more clear.
+          //
+          // Another reason why just to set the timeout is bad because it
+          // depends on the event order heavily without checking any status
+          // at the moment the event comes. To perform such check can prevent
+          // that, too.
+          if (!this._wakeLockManager.isHeld) {
+            this._setIdleTimeout(this._idleTimeout, false);
+          }
           break;
 
         case 'requestshutdown':

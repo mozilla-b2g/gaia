@@ -95,7 +95,7 @@ gh0YOM9L2NC/uiKEb1Ynr2Fos`,
       })
     },
     'wrong-id': {
-      id: '825a1b6a-0000-4000-8000-000000000002',
+      id: {},
       last_modified: 1234567890123,
       payload: JSON.stringify({
         ciphertext: `o/VpkqMj1tlT8t2youwsS2FgvQeonoHxqjGsRTu1+4swfyBq/QsnKfgOOM\

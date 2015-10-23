@@ -137,7 +137,7 @@ var Browser = {
         BrowserDB.getBookmarks(this.populateBookmarks.bind(this));
 
         // init create
-        this.selectInfo(this.createIframe());
+        this.selectInfo(this.createIframe(this.start_page_url));
 
         // init tab setting
         Awesomescreen.isTabSetting();
@@ -155,6 +155,8 @@ var Browser = {
 
     // init SearchResult
     SearchResult.init();
+
+    SyncBrowserDB.init();
 
     if (this.waitingActivities.length) {
       this.waitingActivities.forEach(this.handleActivity, this);
@@ -1153,7 +1155,7 @@ var Browser = {
       Browser.debug("new_url=" + new_url);
       Browser.start_page_url = new_url;
       if( !Browser.currentInfo ) {
-        Browser.launch_from = 5;
+        Browser.debug("launching page from start_page_url after tab initialized");
       } else {
         Browser.variousWindowErase();
         if(( Browser.currentInfo.url != null ) && ( Browser.currentInfo.url != '' )) {

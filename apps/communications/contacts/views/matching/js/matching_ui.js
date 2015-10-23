@@ -40,7 +40,8 @@
         this.contactsList =
           document.querySelector('#contacts-list-container > ol');
 
-        this.contactsList.addEventListener('click', this.onClick.bind(this));
+        this.contactsList.addEventListener('click', this.onClick.bind(this)
+          , true);
         this.mergeButton.addEventListener('click', this.onMerge.bind(this));
 
         window.addEventListener('initUI', evt => {
@@ -69,7 +70,8 @@
                                           'suggestedDuplicatesMessage',
                                           params);
         } else {
-          document.title = this._('duplicatesFoundTitle');
+          navigator.mozL10n.setAttributes(document.querySelector('title'),
+                                        'duplicatesFoundTitle');
           // "xxx duplicates information in the following contacts"
           navigator.mozL10n.setAttributes(this.duplicateMessage,
                                           'foundDuplicatesMessage',
@@ -239,18 +241,27 @@
       },
 
       onClick: function(e) {
-        var el = e.target;
-        if (el.tagName !== 'INPUT') {
-          return;
+        e.stopPropagation();
+        e.preventDefault();
+
+        if (e.target.tagName === 'INPUT') {
+          return false;
         }
-        var uuid = el.parentNode.parentNode.dataset.uuid;
+
+        var li = e.target.closest('li');
+        var uuid = li.dataset.uuid;
+        var el = li.querySelector('input');
+
         if (el.checked) {
-          ++this.checked;
-          this.checkedContacts[uuid] = uuid;
-        } else {
           --this.checked;
           delete this.checkedContacts[uuid];
+        } else {
+          ++this.checked;
+          this.checkedContacts[uuid] = uuid;
         }
+
+        // Change manually the status as we prevented this
+        el.checked = !el.checked;
 
         this.checkMergeButton();
       },

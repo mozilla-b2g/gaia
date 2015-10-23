@@ -115,17 +115,28 @@ proto.detachedCallback = function() {
 };
 
 proto.attributeChangedCallback = function(attr, oldVal, newVal) {
-  switch (attr) {
-    case 'value':
-      this.els.value.textContent = newVal;
-      break;
-    case 'heading':
-      this.els.heading.textContent = newVal;
-      break;
-    case 'subheading':
-      this.els.subheading.textContent = newVal;
-      break;
+  var promise;
+  var l10nId = this.getAttribute(attr + '-l10n-id');
+
+  if (!newVal && l10nId) {
+    promise = document.l10n.formatValues(l10nId);
+  } else {
+    promise = Promise.resolve();
   }
+
+  promise.then(() => {
+    switch (attr) {
+      case 'value':
+        this.els.value.textContent = newVal;
+        break;
+      case 'heading':
+        this.els.heading.textContent = newVal;
+        break;
+      case 'subheading':
+        this.els.subheading.textContent = newVal;
+        break;
+    }
+  });
 };
 
 proto.show = function(properties = {}) {

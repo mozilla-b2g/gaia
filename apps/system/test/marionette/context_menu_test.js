@@ -13,6 +13,9 @@ var assert = require('chai').assert;
 marionette('Test Context Menu Events', function() {
 
   var opts = {
+    prefs: {
+      'clipboard.plainTextOnly': false
+    },
     apps: {}
   };
 

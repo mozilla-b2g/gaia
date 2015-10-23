@@ -179,17 +179,53 @@ marionette('Task Manager', function() {
     });
   });
 
-  test('swiping then taping should switch app', function() {
+  suite('new sheet buttons', function() {
+    setup(function() {
+      taskManager.show();
+    });
+
+    test('should open a new sheet', function() {
+      taskManager.newSheetButton.tap();
+      system.waitForBrowser(
+        'app://search.gaiamobile.org/newtab.html?private=0');
+    });
+
+    test('should open a new private sheet', function() {
+      taskManager.newPrivateSheetButton.tap();
+      system.waitForBrowser(
+        'app://search.gaiamobile.org/newtab.html?private=1');
+    });
+  });
+
+  test('swiping+tapping should switch app, then make new app rightmost',
+  function() {
+
+    // Open task manager, focused on secondApp (since that app was most recently
+    // launched). Swipe to make firstApp visible.
     taskManager.show();
 
     var element = taskManager.element;
     actions.flick(element, 30, halfHeight,
-                  halfWidth, halfHeight).perform();
+                  fullWidth, halfHeight).perform();
     element.tap();
 
     client.waitFor(function() {
       return firstApp.iframe.getAttribute('aria-hidden') !== 'true' &&
              secondApp.iframe.getAttribute('aria-hidden') === 'true';
+    });
+
+    taskManager.waitUntilHidden();
+    // Now, go back into task manager, and the firstApp should be rightmost.
+    // Flick left to go back to secondApp, leaving us where we began.
+    taskManager.show();
+
+    actions.flick(element, 30, halfHeight,
+                  fullWidth, halfHeight).perform();
+    element.tap();
+
+    client.waitFor(function() {
+      return firstApp.iframe.getAttribute('aria-hidden') === 'true' &&
+             secondApp.iframe.getAttribute('aria-hidden') !== 'true';
     });
   });
 

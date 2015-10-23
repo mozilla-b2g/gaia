@@ -1,4 +1,5 @@
-/* global require, marionette, setup, suite, test, __dirname */
+/* global require, marionette, setup, suite, test, __dirname,
+marionetteScriptFinished */
 'use strict';
 
 var assert = require('assert');
@@ -72,26 +73,23 @@ marionette('Music player search', function() {
   function testSearchResults(expectedCount) {
     client.switchToFrame(music.activeViewFrame);
 
-    var search = client.findElement('music-search');
+    var search = client.findElement('music-search-results');
     assert.ok(search);
 
     client.switchToShadowRoot(search);
 
-    var view = client.helper.waitForElement('#results');
-    assert.ok(view);
+    var results = client.helper.waitForElement('#list');
+    assert.ok(results);
 
     // wait for the results to be displayed.
     // XXX this mostly assume we populate before showing the div.
     client.waitFor(function() {
-      return view.displayed();
+      return results.displayed();
     });
 
     // XXX fix me when this is true
     // since we display the count, just get it.
-    //var count = view.findElement('.search-result-count').text();
-
-    var results = view.findElement('#list');
-    assert.ok(results);
+    //var count = results.findElement('.search-result-count').text();
 
     var resultsList = results.findElements('li');
     assert.ok(resultsList);
@@ -106,7 +104,7 @@ marionette('Music player search', function() {
 
     var resultsData = client.executeScript(
       'var parse = ' + music.parseListItemsData.toString() + '\n' +
-      'var search = document.querySelector(\'music-search\');\n' +
+      'var search = document.querySelector(\'music-search-results\');\n' +
       'var list = search.shadowRoot.getElementById(\'list\');\n' +
       'var elements = list.querySelectorAll(\'a\');\n' +
       'return parse(elements);\n'
@@ -124,7 +122,6 @@ marionette('Music player search', function() {
 
       // Here we wait 1.5 seconds for the search input hides completely.
       // it will re-show after we scroll the target view.
-      client.helper.wait(1500);
       music.showSearchInput(Music.Selector.tilesView);
     });
 
@@ -147,12 +144,34 @@ marionette('Music player search', function() {
       }
     });
 
-    test.skip('Check empty results', function() {
+    test('Check empty results', function() {
       try {
         music.searchTiles('qwerty');
 
-        var resultsList = testSearchResults(0);
-        assert.equal(resultsList.length, 0);
+        // current implement of empty result is ONE line
+        // with a string indicating nothing was found.
+        var resultsList = testSearchResults(1);
+        assert.equal(resultsList.length, 1);
+
+        client.switchToFrame(music.activeViewFrame);
+
+        var search = client.findElement('music-search-results');
+        assert.ok(search);
+
+        client.switchToShadowRoot(search);
+
+        // ensure that we get the properly localized string.
+        var noResultString = client.executeAsyncScript(function () {
+          window.wrappedJSObject.document.l10n.formatValue('search-no-result').
+            then(function(noResult) {
+              marionetteScriptFinished(noResult);
+            });
+        });
+
+        client.switchToShadowRoot();
+        music.switchToMe();
+
+        assert.equal(resultsList[0].title, noResultString);
       } catch(e) {
         assert.ok(false, e.stack);
       }
@@ -168,11 +187,10 @@ marionette('Music player search', function() {
 
     // Test contextual search
     // XXX fixme: currently make the app *crash*
-    test.skip('Check the context for artists', function() {
+    test('Check the context for artists', function() {
       try {
         music.switchToArtistsView();
 
-        client.helper.wait(1500);
         music.showSearchInput('#list');
         music.searchArtists('the');
 

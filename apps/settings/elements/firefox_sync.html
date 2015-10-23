@@ -49,16 +49,22 @@
         <h2 data-l10n-id="fxsync-collections">Collections</h2>
       </header>
       <ul role="presentation">
-        <li role="presentation">
-          <gaia-switch class="fxsync-collections-history"
-                       name="sync.collections.history.enabled">
-            <label data-l10n-id="fxsync-collections-history">History</label>
+        <li role="presentation" hidden>
+          <gaia-switch class="fxsync-collections-bookmarks"
+                       name="sync.collections.bookmarks.enabled">
+            <label data-l10n-id="fxsync-collections-bookmarks"></label>
           </gaia-switch>
         </li>
         <li role="presentation">
+          <gaia-switch class="fxsync-collections-history"
+                       name="sync.collections.history.enabled">
+            <label data-l10n-id="fxsync-collections-history"></label>
+          </gaia-switch>
+        </li>
+        <li role="presentation" hidden>
           <gaia-switch class="fxsync-collections-passwords"
                        name="sync.collections.passwords.enabled">
-            <label data-l10n-id="fxsync-collections-passwords">Password</label>
+            <label data-l10n-id="fxsync-collections-passwords"></label>
           </gaia-switch>
         </li>
       </ul>

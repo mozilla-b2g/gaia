@@ -43,11 +43,14 @@ PlaylistDetailView.prototype.getPlaylist = function() {
   return this.fetch('/api/playlists/info/' + this.params.id)
     .then(response => response.json())
     .then(songs => {
-      songs.forEach((song, index) => {
-        song.index = unpaddedIndex.format(index + 1);
+      return songs.map((song, index) => {
+        return {
+          index: unpaddedIndex.format(index + 1),
+          name: song.name,
+          title: song.metadata.title,
+          artist: song.metadata.artist
+        };
       });
-
-      return songs;
     });
 };
 

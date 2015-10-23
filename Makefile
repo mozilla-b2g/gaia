@@ -411,7 +411,6 @@ ifdef GAIA_DISTRIBUTION_DIR
   ifneq ($(wildcard $(DISTRIBUTION_EMAIL_SERVICES)),)
     EMAIL_SERVICES_PATH := $(DISTRIBUTION_EMAIL_SERVICES)
   endif
-  EXECUTE_PRELOAD_APP := $(shell $(call run-js-command,preload, GAIA_DIR="$(GAIA_DIR)" GAIA_DISTRIBUTION_DIR="$(GAIA_DISTRIBUTION_DIR)"))
 endif
 
 # Read the file specified in $GAIA_APP_CONFIG and turn them into $GAIA_APPDIRS,
@@ -582,7 +581,6 @@ export BUILD_CONFIG
 
 # Generate profile/
 $(PROFILE_FOLDER): profile-dir build-app test-agent-config contacts extensions b2g_sdk .git/hooks/pre-commit
-	@echo "[DEBUG_LOG]: LD_LIBRARY_PATH=$(LD_LIBRARY_PATH)"
 ifeq ($(BUILD_APP_NAME),*)
 	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)$(PROFILE_FOLDER)"
 endif
@@ -597,7 +595,7 @@ build-app: app
 	@$(call $(BUILD_RUNNER),update-webapps-json)
 
 .PHONY: app
-app: b2g_sdk profile-dir
+app: b2g_sdk preload-app profile-dir
 	@$(call $(BUILD_RUNNER),app)
 
 .PHONY: pre-app
@@ -617,6 +615,10 @@ webapp-optimize: app
 .PHONY: webapp-zip
 webapp-zip: app
 
+.PHONY: preload-app
+preload-app:
+	$(call $(BUILD_RUNNER),preload,GAIA_DIR="$(GAIA_DIR)" GAIA_DISTRIBUTION_DIR="$(GAIA_DISTRIBUTION_DIR)")
+
 # Get additional extensions
 $(STAGE_DIR)/additional-extensions/downloaded.json: build/config/additional-extensions.json $(wildcard .build/config/custom-extensions.json)
 ifeq ($(DESKTOP),1)
@@ -628,8 +630,8 @@ profile-dir:
 ifeq ($(GAIA_DEVICE_TYPE), tv)
 	@test -d $(PROFILE_FOLDER)/dummy || mkdir -p $(PROFILE_FOLDER)/dummy
 	@cp $(GAIA_DIR)/build/config/tv/simulator/settings.json $(PROFILE_FOLDER)/dummy/
-	@cp $(GAIA_DIR)/build/config/tv/simulator/tv1.ogv $(PROFILE_FOLDER)/dummy/
-	@cp $(GAIA_DIR)/build/config/tv/simulator/tv2.ogv $(PROFILE_FOLDER)/dummy/
+	@cp $(GAIA_DIR)/test_media/Movies/gizmo2.mp4 $(PROFILE_FOLDER)/dummy/
+	@cp $(GAIA_DIR)/test_media/Movies/elephants-dream.webm $(PROFILE_FOLDER)/dummy/
 endif
 
 # Copy preload contacts to profile
@@ -847,7 +849,11 @@ caldav-server-install:
 
 .PHONY: raptor
 raptor: node_modules
+ifneq ($(APP),)
+	RAPTOR=1 PERF_LOGGING=1 DEVICE_DEBUG=1 GAIA_OPTIMIZE=1 NOFTU=1 SCREEN_TIMEOUT=0 APP=$(APP) make install-gaia
+else
 	RAPTOR=1 PERF_LOGGING=1 DEVICE_DEBUG=1 GAIA_OPTIMIZE=1 NOFTU=1 SCREEN_TIMEOUT=0 make reset-gaia
+endif
 
 .PHONY: raptor-transformer
 raptor-transformer: node_modules
@@ -1095,7 +1101,7 @@ clean:
 
 # clean out build products and tools
 really-clean: clean
-	rm -rf b2g-* .b2g-* b2g_sdk node_modules mulet modules.tar js-marionette-env "$(NODE_MODULES_CACHEDIR)"
+	rm -rf b2g-* .b2g-* b2g_sdk node_modules mulet firefox/ modules.tar js-marionette-env "$(NODE_MODULES_CACHEDIR)"
 
 .git/hooks/pre-commit: tools/pre-commit
 	test -d .git && cp tools/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit || true

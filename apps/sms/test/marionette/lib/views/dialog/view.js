@@ -7,12 +7,20 @@ var DialogAccessor = require('./accessors');
 function DialogView(client) {
   this.client = client;
   this.accessors = new DialogAccessor(client);
+
+  this.accessors.waitToAppear();
 }
 
 DialogView.prototype = {
-  chooseAction: function(actionName) {
-    this.accessors.waitToAppear();
+  get header() {
+    return this.accessors.header.text();
+  },
 
+  get body() {
+    return this.accessors.body.text();
+  },
+
+  chooseAction: function(actionName) {
     var actionButtons = this.accessors.buttons;
     for (var i = 0; i < actionButtons.length; i++) {
       var actionButton = actionButtons[i];

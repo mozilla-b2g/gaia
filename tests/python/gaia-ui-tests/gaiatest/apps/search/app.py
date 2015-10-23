@@ -12,8 +12,15 @@ class Search(Base):
 
     _browser_app_locator = (By.CSS_SELECTOR, 'div[data-manifest-name="Browser"][transition-state="opened"]')
     _url_bar_locator = (By.CSS_SELECTOR, 'div.search-app .urlbar .title')
+    _history_locator = (By.ID, 'history')
     _history_item_locator = (By.CSS_SELECTOR, '#history .result')
-    _private_window_locator = (By.ID, 'private-window')
+
+    def switch_to_content(self):
+        web_frame = self.marionette.find_element(*self._browser_app_locator)
+        self.marionette.switch_to_frame(web_frame)
+
+    def switch_to_chrome(self):
+        self.marionette.switch_to_frame()
 
     def go_to_url(self, url):
         # The URL bar shown is actually in the system app not in this Search app.
@@ -27,21 +34,14 @@ class Search(Base):
             self._root_element = self.marionette.find_element(*self._browser_app_locator)
             self._root_element.find_element(*self._url_bar_locator).tap()
 
-        from gaiatest.apps.homescreen.regions.search_panel import SearchPanel
+        from gaiatest.apps.system.regions.search_panel import SearchPanel
         search_panel = SearchPanel(self.marionette)
         return search_panel.go_to_url(url)
 
     @property
     def history_items_count(self):
+        Wait(self.marionette).until(expected.element_present(*self._history_locator))
         return len(self.marionette.find_elements(*self._history_item_locator))
 
     def wait_for_history_to_load(self, number_of_items=1):
-        Wait(self.marionette).until(lambda m: len(m.find_elements(*self._history_item_locator)) == number_of_items)
-
-    def open_new_private_window(self):
-        element = self.marionette.find_element(*self._private_window_locator)
-        Wait(self.marionette).until(expected.element_displayed(element))
-        element.tap()
-
-        from gaiatest.apps.search.regions.browser import PrivateWindow
-        return PrivateWindow(self.marionette)
+        Wait(self.marionette).until(lambda m: self.history_items_count == number_of_items)

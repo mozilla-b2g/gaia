@@ -4,6 +4,7 @@
 
 from gaiatest import GaiaTestCase
 from gaiatest.apps.homescreen.app import Homescreen
+from gaiatest.apps.marketplace.app import Marketplace
 from marionette_driver import expected, By, Wait
 
 
@@ -18,14 +19,14 @@ class TestMarketplaceLaunch(GaiaTestCase):
 
     def test_marketplace_launch(self):
 
-        app_name = 'Marketplace'
+        marketplace = Marketplace(self.marionette)
         homescreen = Homescreen(self.marionette)
         self.apps.switch_to_displayed_app()
 
-        self.assertTrue(homescreen.is_app_installed(app_name))
+        self.assertTrue(homescreen.is_app_installed(marketplace.manifest_url))
 
-        marketplace = homescreen.installed_app(app_name)
-        marketplace.tap_icon()
+        marketplace_icon = homescreen.installed_app(marketplace.manifest_url)
+        marketplace_icon.tap_icon()
 
         Wait(self.marionette, timeout=60).until(expected.element_present(*self._marketplace_iframe_locator))
 

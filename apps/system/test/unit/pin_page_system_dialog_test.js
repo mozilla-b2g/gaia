@@ -12,13 +12,15 @@ require('/shared/elements/gaia_pin_card/script.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 
 suite('Pin Page dialog', function() {
-  var subject, container, stubPin, stubPinSite, realLazyLoader, toastStub;
+  var subject, container, stubPin, stubPinSite, stubUnpinSite,
+    realLazyLoader, toastStub;
 
   setup(function() {
     realLazyLoader = window.LazyLoader;
     window.LazyLoader = MockLazyLoader;
     stubPin = this.sinon.stub();
     stubPinSite = this.sinon.stub();
+    stubUnpinSite = this.sinon.stub();
     toastStub = document.createElement('div');
     toastStub.show = this.sinon.stub();
 
@@ -41,7 +43,8 @@ suite('Pin Page dialog', function() {
         return {
           appChrome: {
             pinPage: stubPin,
-            pinSite: stubPinSite
+            pinSite: stubPinSite,
+            unpinSite: stubPinSite
           }
         };
       }
@@ -86,55 +89,68 @@ suite('Pin Page dialog', function() {
       this.sinon.stub(SystemDialog.prototype, 'show');
     });
 
-    test('updates the url', function() {
+    test('updates the title', function() {
+      data.title = 'title';
       subject.show(data);
-      assert.equal(subject.pinURL.textContent, data.url);
+      assert.equal(subject.pageTitle.textContent, data.title);
     });
 
     test('shows the dialog', function() {
       subject.show(data);
       assert.isTrue(SystemDialog.prototype.show.called);
       assert.isTrue(subject._visible);
-    });
-  });
-
-  suite('hide', function() {
-    setup(function() {
-      subject = new PinPageSystemDialog();
-      this.sinon.stub(SystemDialog.prototype, 'hide');
+      assert.equal(subject.pinSiteButton.dataset.action, 'pin-site');
     });
 
-    test('hides the dialog', function() {
-      subject.hide();
-      assert.isTrue(SystemDialog.prototype.hide.called);
-      assert.isFalse(subject._visible);
-    });
-  });
+    suite('show unpin button', function() {
+      var systemStub;
+      setup(function() {
+        systemStub = sinon.stub(Service, 'request').returns({
+          then: (callback) => {
+            callback(true);
+          }
+        });
+      });
 
-  suite('save', function() {
-    setup(function() {
-      subject = new PinPageSystemDialog();
-      this.sinon.stub(subject, 'close');
-    });
+      teardown(function() {
+        systemStub.restore();
+      });
 
-    test('saves the pinned url', function() {
-      subject.pinButton.dispatchEvent(new CustomEvent('click'));
-      assert.isTrue(stubPin.called);
-    });
-
-    test('shows the banner', function() {
-      subject.pinButton.dispatchEvent(new CustomEvent('click'));
-      assert.isTrue(toastStub.show.called);
+      test('unpin the site', function() {
+        subject.show(data);
+        assert.equal(subject.pinSiteButton.dataset.action, 'unpin-site');
+      });
     });
 
-    test('saves the pinned site', function() {
-      subject.pinSiteButton.dispatchEvent(new CustomEvent('click'));
-      assert.isTrue(stubPinSite.called);
+    suite('hide', function() {
+      setup(function() {
+        subject = new PinPageSystemDialog();
+        this.sinon.stub(SystemDialog.prototype, 'hide');
+      });
+
+      test('hides the dialog', function() {
+        subject.hide();
+        assert.isTrue(SystemDialog.prototype.hide.called);
+        assert.isFalse(subject._visible);
+      });
     });
 
-    test('shows the banner', function() {
-      subject.pinSiteButton.dispatchEvent(new CustomEvent('click'));
-      assert.isTrue(toastStub.show.called);
+    suite('save', function() {
+      setup(function() {
+        subject = new PinPageSystemDialog();
+        this.sinon.stub(subject, 'close');
+      });
+
+      test('saves the pinned url', function() {
+        subject.pinPageButton.dispatchEvent(new CustomEvent('click'));
+        assert.isTrue(stubPin.called);
+      });
+
+      test('saves the pinned site', function() {
+        subject.pinSiteButton.dispatchEvent(new CustomEvent('click'));
+        assert.isTrue(stubPinSite.called);
+        assert.isFalse(stubUnpinSite.called);
+      });
     });
   });
 

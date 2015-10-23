@@ -1,5 +1,5 @@
-/* global MockStackManager, MockService,
-          TaskManager, AppWindow, WheelEvent,
+/* global MockStackManager, MockService, TaskManagerUtils,
+          TaskManager, AppWindow, WheelEvent, MockAppWindow,
           HomescreenWindow, MockSettingsListener, MocksHelper, MockL10n */
 
 'use strict';
@@ -21,6 +21,9 @@ var mocksForTaskManager = new MocksHelper([
   'Service',
   'SettingsListener'
 ]).init();
+
+
+var TICK_SHOW_HIDE_MS = 2000;
 
 suite('system/TaskManager >', function() {
 
@@ -57,9 +60,16 @@ suite('system/TaskManager >', function() {
 
     document.body.innerHTML = `
     <div id="screen">
-      <div id="cards-view" data-z-index-level="cards-view">
-        <ul id="cards-list"></ul>
-        <span id="cards-no-recent-windows" class="no-recent-apps"></span>
+      <div id="task-manager" data-z-index-level="cards-view">
+        <div id="cards-view">
+          <ul id="cards-list"></ul>
+          <span id="cards-no-recent-windows" class="no-recent-apps"
+                data-l10n-id="no-recent-app-windows"></span>
+        </div>
+        <div id="task-manager-buttons">
+          <button id="task-manager-new-private-sheet-button"></button>
+          <button id="task-manager-new-sheet-button"></button>
+        </div>
       </div>
     </div>
     `;
@@ -111,7 +121,7 @@ suite('system/TaskManager >', function() {
       assert.isTrue(
         MockService.request.calledWith('unregisterHierarchy', tm));
     }).then(done, done);
-    clock.tick(1000);
+    clock.tick(TICK_SHOW_HIDE_MS);
   });
 
   function spyEvent(obj, name) {
@@ -148,12 +158,12 @@ suite('system/TaskManager >', function() {
 
       tm = new TaskManager();
       tm.start().then(() => tm.show()).then(() => { done(); }, done);
-      clock.tick(1000);
+      clock.tick(TICK_SHOW_HIDE_MS);
     });
 
     teardown(function(done) {
       tm.hide().then(() => tm.stop()).then(() => { done(); }, done);
-      clock.tick(1000);
+      clock.tick(TICK_SHOW_HIDE_MS);
     });
 
     test('Proper state after show and hide', (done) => {
@@ -162,7 +172,7 @@ suite('system/TaskManager >', function() {
       assert.isTrue(
         document.querySelector('#screen').classList.contains('cards-view'));
       assert.isTrue(isActivated);
-      assert.ok(document.querySelector('#cards-view.empty.active'));
+      assert.ok(document.querySelector('#task-manager.empty.active'));
       // We're pretending to be in fullscreen mode.
       assert.isTrue(document.mozCancelFullScreen.calledOnce);
 
@@ -176,7 +186,7 @@ suite('system/TaskManager >', function() {
         assert.equal(document.querySelectorAll('.card').length, 0);
         done();
       });
-      clock.tick(1000);
+      clock.tick(TICK_SHOW_HIDE_MS);
     });
 
     test('Should emit "cardviewclosed" after hiding', (done) => {
@@ -184,7 +194,21 @@ suite('system/TaskManager >', function() {
       tm.hide().then(() => {
         assert.isTrue(spyCardViewClosed.called);
       }).then(done, done);
-      clock.tick(1000);
+      clock.tick(TICK_SHOW_HIDE_MS);
+    });
+
+    test('Should only emit "cardviewclosed" after !isActive', (done) => {
+      var wasActive;
+      function onclosed() {
+        window.removeEventListener('cardviewclosed', onclosed);
+        wasActive = tm.isActive();
+      }
+      window.addEventListener('cardviewclosed', onclosed);
+
+      tm.hide().then(() => {
+        assert.isFalse(wasActive);
+      }).then(done, done);
+      clock.tick(TICK_SHOW_HIDE_MS);
     });
 
     test('Should emit "cardviewbeforeshow" and "cardviewshown"', (done) => {
@@ -193,12 +217,29 @@ suite('system/TaskManager >', function() {
       tm.hide().then(() => {
         var show = tm.show();
         assert.isTrue(spyCardViewBeforeShow.called);
-        clock.tick(1000);
+        clock.tick(TICK_SHOW_HIDE_MS);
         return show;
       }).then(() => {
         assert.isTrue(spyCardViewShown.called);
       }).then(done, done);
-      clock.tick(1000);
+      clock.tick(TICK_SHOW_HIDE_MS);
+    });
+
+    test('Should hide the overflow during the opening transition', (done) => {
+      sinon.stub(TaskManagerUtils, 'waitForScreenToBeReady')
+        .returns(Promise.resolve());
+
+      tm.hide().then(() => {
+        var show = tm.show();
+        clock.tick(TICK_SHOW_HIDE_MS);
+        return Promise.resolve().then(() => {
+          assert.equal(tm.scrollElement.style.overflowX, 'hidden');
+          return show;
+        });
+      }).then(() => {
+        assert.equal(tm.scrollElement.style.overflowX, 'scroll');
+      }).then(done, done);
+      clock.tick(TICK_SHOW_HIDE_MS);
     });
 
     test('Should not show if already showing', (done) => {
@@ -269,7 +310,7 @@ suite('system/TaskManager >', function() {
     test('click when empty takes you home', () => {
       sinon.spy(tm, 'hide');
       tm.element.dispatchEvent(new CustomEvent('click'));
-      clock.tick(1000);
+      clock.tick(TICK_SHOW_HIDE_MS);
       assert.ok(tm.hide.calledOnce);
     });
   });
@@ -321,22 +362,29 @@ suite('system/TaskManager >', function() {
       MockStackManager.mCurrent = MockStackManager.mStack.length - 1;
 
       tm = new TaskManager();
+      this.sinon.spy(tm, 'getCurrentIndex');
       tm.start().then(() => tm.show()).then(() => { done(); }, done);
-      clock.tick(1000);
+      clock.tick(TICK_SHOW_HIDE_MS);
     });
 
     teardown(function(done) {
       tm.hide().then(() => tm.stop()).then(done, done);
-      clock.tick(1000);
+      clock.tick(TICK_SHOW_HIDE_MS);
     });
 
     test('Proper state', () => {
       assert.isTrue(tm.isShown());
-      assert.ok(document.querySelector('#cards-view.active:not(.empty)'));
+      assert.ok(document.querySelector('#task-manager.active:not(.empty)'));
 
       assert.equal(
         MockStackManager.getCurrent(),
         tm.currentCard.app);
+    });
+
+    test('should not query the currentIndex for the initial launch (reflow)',
+    function() {
+      // Called once for the scrollEvent once we set the overflow
+      sinon.assert.calledOnce(tm.getCurrentIndex);
     });
 
     test('Proper accessibility attributes for cards', function() {
@@ -417,21 +465,21 @@ suite('system/TaskManager >', function() {
           assert.ok(spy.called);
         });
       }).then(done, done);
-      clock.tick(1000);
+      clock.tick(TICK_SHOW_HIDE_MS);
     });
 
     test('close and reopen', function(done) {
       tm.hide().then(() => {
         MockStackManager.mCurrent = 0;
         var promise = tm.show();
-        clock.tick(1000);
+        clock.tick(TICK_SHOW_HIDE_MS);
         return promise;
       }).then(() => {
         assert.equal(
           MockStackManager.getCurrent(),
           tm.currentCard.app);
       }).then(done, done);
-      clock.tick(1000);
+      clock.tick(TICK_SHOW_HIDE_MS);
     });
 
     suite('settings > ', function() {
@@ -461,12 +509,12 @@ suite('system/TaskManager >', function() {
         tm.disableScreenshots = true;
         MockStackManager.mCurrent = 0;
         var promise = tm.show();
-        clock.tick(1000);
+        clock.tick(TICK_SHOW_HIDE_MS);
         return promise;
       }).then(() => {
         assert.ok(tm.currentCard.element.classList.contains('appIconPreview'));
       }).then(done, done);
-      clock.tick(1000);
+      clock.tick(TICK_SHOW_HIDE_MS);
     });
 
     test('disableScreenshots = false', function(done) {
@@ -474,12 +522,12 @@ suite('system/TaskManager >', function() {
         tm.disableScreenshots = false;
         MockStackManager.mCurrent = 0;
         var promise = tm.show();
-        clock.tick(1000);
+        clock.tick(TICK_SHOW_HIDE_MS);
         return promise;
       }).then(() => {
         assert.ok(!tm.currentCard.element.classList.contains('appIconPreview'));
       }).then(done, done);
-      clock.tick(1000);
+      clock.tick(TICK_SHOW_HIDE_MS);
     });
 
     function getExpectedCardPlacement(element, position) {
@@ -511,7 +559,7 @@ suite('system/TaskManager >', function() {
         MockStackManager.mStack.length = 3;
         MockStackManager.mCurrent = 2;
         var promise = tm.show();
-        clock.tick(1000);
+        clock.tick(TICK_SHOW_HIDE_MS);
         return promise;
       }).then(() => {
         // current card should be the last in the stack
@@ -519,13 +567,13 @@ suite('system/TaskManager >', function() {
           MockStackManager.getCurrent(),
           tm.currentCard.app);
         var promise = tm.hide(outOfStackApp);
-        clock.tick(1000);
+        clock.tick(TICK_SHOW_HIDE_MS);
         return promise;
       }).then(() => {
         assert.ok(outOfStackApp.open.calledOnce);
         assert.ok(MockStackManager.position, -1);
       }).then(done, done);
-      clock.tick(1000);
+      clock.tick(TICK_SHOW_HIDE_MS);
     });
 
     suite('center apps', function() {
@@ -535,7 +583,7 @@ suite('system/TaskManager >', function() {
           MockStackManager.mCurrent = MockStackManager.mStack.length - 1;
           return tm.show();
         }).then(() => { done(); }, done);
-        clock.tick(1000);
+        clock.tick(TICK_SHOW_HIDE_MS);
       });
 
       test('initial centering', function() {
@@ -570,7 +618,7 @@ suite('system/TaskManager >', function() {
           assert.equal(tm.currentCard.element.style.transform,
                        `translate(${expectedLeft}px, calc(50% + 0px))`);
         }).then(done, done);
-        clock.tick(1000);
+        clock.tick(TICK_SHOW_HIDE_MS);
       });
     });
 
@@ -578,7 +626,7 @@ suite('system/TaskManager >', function() {
       MockStackManager.mStack.length = 0;
       sinon.spy(tm, 'hide');
       window.dispatchEvent(new CustomEvent('appterminated'));
-      clock.tick(1000);
+      clock.tick(TICK_SHOW_HIDE_MS);
       assert.ok(tm.hide.calledOnce);
       done();
     });
@@ -586,7 +634,7 @@ suite('system/TaskManager >', function() {
     test('kill cards and update in response to StackManager', function() {
       MockStackManager.mStack.length = 2;
       window.dispatchEvent(new CustomEvent('appterminated'));
-      clock.tick(1000);
+      clock.tick(TICK_SHOW_HIDE_MS);
       assert.equal(
         document.querySelectorAll('.card').length,
         MockStackManager.mStack.length
@@ -643,7 +691,7 @@ suite('system/TaskManager >', function() {
         done();
       };
       card.element.querySelector('.close-button').click();
-      clock.tick(1000);
+      clock.tick(TICK_SHOW_HIDE_MS);
     });
 
     // These events should trigger an exit:
@@ -655,7 +703,7 @@ suite('system/TaskManager >', function() {
       test(`${NAME} should trigger hide`, function() {
         this.sinon.spy(tm, 'hide');
         window.dispatchEvent(new CustomEvent(NAME));
-        clock.tick(1000);
+        clock.tick(TICK_SHOW_HIDE_MS);
         assert.ok(tm.hide.called);
       });
     });
@@ -691,12 +739,12 @@ suite('system/TaskManager >', function() {
         assert.isFalse(tm.handleEvent.called, 'handleEvent not called');
       }).then(function() { done(); }, done);
       tm.element.dispatchEvent(new CustomEvent('touchstart'));
-      clock.tick(1000);
+      clock.tick(TICK_SHOW_HIDE_MS);
     });
 
     suite('card-will-drag / scroll axis lock', function() {
       test('handling card-will-drag (prevent scrolling)', function() {
-        tm.element.style.overflowX = 'scroll';
+        tm.scrollElement.style.overflowX = 'scroll';
         // In this test, they did not scroll, so the card-will-drag event
         // should be passed through as-is, and we should set 'overflow: hidden'.
         var willDragEvent = new CustomEvent('card-will-drag', {
@@ -707,14 +755,14 @@ suite('system/TaskManager >', function() {
 
         tm.currentCard.element.dispatchEvent(willDragEvent);
         assert.isFalse(willDragEvent.defaultPrevented);
-        assert.equal(tm.element.style.overflowX, 'hidden');
+        assert.equal(tm.scrollElement.style.overflowX, 'hidden');
       });
 
       test('handling card-will-drag (cancel event)', function() {
-        tm.element.style.overflowX = 'scroll';
+        tm.scrollElement.style.overflowX = 'scroll';
         // In this test, they scrolled AFTER the first touch, meaning we
         // should prevent the card-will-drag event.
-        tm.element.dispatchEvent(new CustomEvent('scroll'));
+        tm.scrollElement.dispatchEvent(new CustomEvent('scroll'));
 
         var willDragEvent = new CustomEvent('card-will-drag', {
           detail: { firstTouchTimestamp: Date.now() - 1000 },
@@ -724,23 +772,23 @@ suite('system/TaskManager >', function() {
 
         tm.currentCard.element.dispatchEvent(willDragEvent);
         assert.isTrue(willDragEvent.defaultPrevented);
-        assert.equal(tm.element.style.overflowX, 'scroll');
+        assert.equal(tm.scrollElement.style.overflowX, 'scroll');
       });
     });
 
     test('card-dropped, not killed', function() {
-      tm.element.style.overflowX = 'hidden';
+      tm.scrollElement.style.overflowX = 'hidden';
       var dropEvent = new CustomEvent('card-dropped', {
         detail: { willKill: false },
         bubbles: true
       });
 
       tm.currentCard.element.dispatchEvent(dropEvent);
-      assert.equal(tm.element.style.overflowX, 'scroll');
+      assert.equal(tm.scrollElement.style.overflowX, 'scroll');
     });
 
     test('card-dropped, kill the app', function(done) {
-      tm.element.style.overflowX = 'hidden';
+      tm.scrollElement.style.overflowX = 'hidden';
       var dropEvent = new CustomEvent('card-dropped', {
         detail: { willKill: true },
         bubbles: true
@@ -751,31 +799,85 @@ suite('system/TaskManager >', function() {
       };
 
       tm.currentCard.element.dispatchEvent(dropEvent);
-      assert.equal(tm.element.style.overflowX, 'scroll');
-      clock.tick(1000);
+      assert.equal(tm.scrollElement.style.overflowX, 'scroll');
+      clock.tick(TICK_SHOW_HIDE_MS);
     });
 
     test('browser-only filtering', function(done) {
       var allBrowserApps = [apps.browser1, apps.browser2, apps.search];
       clock.restore();
       this.timeout(20000);
-      var newStackPosition = -1;
+      var newApp;
       tm.hide().then(() => {
         return tm.show({ browserOnly: true });
       }).then(() => {
         assert.equal(tm.stack.length, allBrowserApps.length);
 
         window.addEventListener('cardviewclosed', (evt) => {
-          newStackPosition = evt.detail.newStackPosition;
+          newApp = evt.detail;
         });
 
         return tm.hide(apps.browser1);
       }).then(() => {
         assert.equal(
-          newStackPosition,
-          MockStackManager.mStack.indexOf(apps.browser1)
+          newApp,
+          apps.browser1
         );
       }).then(done, done);
+    });
+
+    suite('new sheet buttons >', function() {
+      var NEW_SHEET_SELECTOR = '#task-manager-new-sheet-button';
+      var NEW_PRIVATE_SHEET_SELECTOR = '#task-manager-new-private-sheet-button';
+      setup(function() {
+        window.AppWindow = function(config) {
+          var app = new MockAppWindow(config);
+          MockStackManager.mStack.push(app);
+          return app;
+        };
+        window.BrowserConfigHelper = function(config) {
+          return config;
+        };
+      });
+
+      function testSheetButton(name, { selector, isPrivate }) {
+        test(name, function() {
+          this.sinon.spy(tm, 'hide');
+          var originalStack = tm.stack.slice();
+
+          tm.element.querySelector(selector).click();
+
+          var newStack = tm.stack.slice();
+          var lastApp = newStack[newStack.length - 1];
+
+          assert.equal(newStack.length, originalStack.length + 1);
+          assert.equal(lastApp.isPrivate ? true : false, isPrivate);
+          assert.equal(tm.currentCard.app, lastApp);
+          assert.ok(tm.hide.calledWith(lastApp, 'from-new-card'));
+        });
+      }
+
+      testSheetButton('open new sheet', {
+        selector: NEW_SHEET_SELECTOR,
+        isPrivate: false
+      });
+
+      testSheetButton('open new private sheet', {
+        selector: NEW_PRIVATE_SHEET_SELECTOR,
+        isPrivate: true
+      });
+
+      test('only opens one sheet, even if called multiple times', function() {
+        this.sinon.spy(tm, 'hide');
+
+        var button = tm.element.querySelector(NEW_SHEET_SELECTOR);
+        button.click();
+        button.click();
+        button.click();
+
+        assert.ok(tm.hide.calledOnce);
+      });
+
     });
 
   });

@@ -48,6 +48,8 @@ exports.UtilityTray = {
   invisibleGripper: document.getElementById('tray-invisible-gripper'),
   container: document.getElementById('desktop-notifications-container'),
   notificationsContainer: document.getElementById('notifications-container'),
+  nestedScrollInterceptor:
+    document.getElementById('notifications-nested-scroll-interceptor'),
   notificationTitle: document.getElementById('notification-some'),
   footer: document.getElementById('utility-tray-footer'),
   footerContainer: document.getElementById('tray-footer-container'),
@@ -75,6 +77,21 @@ exports.UtilityTray = {
     this.notificationsContainer.style.maxHeight =
       (this.footerContainer.offsetTop -
        this.notificationsContainer.offsetTop) + 'px';
+
+    // Nested scroll momentum typically propagates across parent containers.
+    // However, if the notifications container is scrollable, we do *not* want
+    // its scroll momentum to propagate to the Utility Tray itself.
+    //
+    // In Gecko, scroll momentum does *not* propagate through a scrollable
+    // container whose content isn't large enough to require it to actually
+    // scroll. (I'm not sure if this is a feature or a bug.) In any case, we've
+    // inserted `nestedScrollInterceptor` in between the two scrollable areas,
+    // and by setting 'overflow: scroll', we can conditionally interrupt the
+    // scroll momentum when notifications-container is scrollable.
+    // See <https://bugzil.la/1209387>.
+    var notificationsCanScroll = (this.notificationsContainer.scrollTopMax > 0);
+    this.nestedScrollInterceptor.style.overflowY =
+      (notificationsCanScroll ? 'scroll' : 'hidden');
   },
 
   toggleFooterDisplay() {
@@ -119,6 +136,14 @@ exports.UtilityTray = {
       subtree: true,
       childList: true
     });
+    // If the notifications container becomes scrollable, we may conditionally
+    // update the behavior of this.nestedScrollInterceptor. (We can't just
+    // intercept a "notification emitted" event, because there isn't a unified
+    // event to listen for.)
+    observer.observe(this.notificationsContainer, {
+      subtree: true,
+      childList: true
+    });
     this.recalculateNotificationsContainerHeight();
 
     // This is required to prevent b2g-desktop from
@@ -154,11 +179,8 @@ exports.UtilityTray = {
     window.addEventListener('keyboardchanged', this);
     window.addEventListener('keyboardchangecanceled', this);
 
-    // Firing when user swipes down with a screen reader when focused on
-    // status bar.
-    window.addEventListener('statusbarwheel', this);
-    // Firing when user swipes up with a screen reader when focused on grippy.
-    this.grippy.addEventListener('wheel', this);
+    this.motion.el.addEventListener('wheel', this);
+    this.statusbar.addEventListener('wheel', this);
 
     this.invisibleGripper.addEventListener('click',
       this._forwardInvisibleGripperClick.bind(this));
@@ -268,6 +290,7 @@ exports.UtilityTray = {
       window.dispatchEvent(new CustomEvent('utility-tray-abortopen'));
     }
 
+    this.overlay.setAttribute('aria-hidden', state !== 'open');
     this.screen.classList.toggle('utility-tray', this.shown);
     this.screen.classList.toggle('utility-tray-in-transition',
                                  state === 'opening' || state === 'closing');
@@ -337,14 +360,17 @@ exports.UtilityTray = {
           this.hide(true);
         }
         break;
-      case 'statusbarwheel':
-        this.show(true);
-        break;
 
       case 'wheel':
-        if (evt.deltaMode === evt.DOM_DELTA_PAGE && evt.deltaY &&
-          evt.deltaY > 0) {
-          this.hide(true);
+        evt.preventDefault();
+        // When the user swipes up/down using the "wheel" accessibility gesture,
+        // open and/or close the tray accordingly. (Two-finger swipe up/down.)
+        if (evt.deltaMode === evt.DOM_DELTA_PAGE && evt.deltaY) {
+          if (this.motion.state === 'open' && evt.deltaY > 0) {
+            this.hide(true);
+          } else if (this.motion.state === 'closed' && evt.deltaY < 0) {
+            this.show(true);
+          }
         }
         break;
 

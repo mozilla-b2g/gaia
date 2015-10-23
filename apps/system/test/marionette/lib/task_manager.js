@@ -7,7 +7,10 @@
 
   TaskManager.prototype = {
     selectors: {
-      element: '#cards-view',
+      element: '#task-manager',
+      scrollElement: '#cards-view',
+      newSheetButton: '#task-manager-new-sheet-button',
+      newPrivateSheetButton: '#task-manager-new-private-sheet-button',
       cards: '#cards-view li',
       screenshot: '.screenshotView',
       icon: '.appIcon'
@@ -16,8 +19,21 @@
       return this.client.helper.waitForElement(this.selectors.element);
     },
 
+    get scrollElement() {
+      return this.client.helper.waitForElement(this.selectors.scrollElement);
+    },
+
     get cards() {
       return this.client.findElements(this.selectors.cards);
+    },
+
+    get newSheetButton() {
+      return this.client.helper.waitForElement(this.selectors.newSheetButton);
+    },
+
+    get newPrivateSheetButton() {
+      return this.client.helper.waitForElement(
+        this.selectors.newPrivateSheetButton);
     },
 
     show: function() {
@@ -43,6 +59,17 @@
         win.dispatchEvent(new CustomEvent('home'));
       });
     },
+
+    waitUntilHidden: function() {
+      this.client.switchToFrame();
+      this.client.waitFor(function() {
+        return this.client.findElement(this.selectors.element)
+          .scriptWith(function(el) {
+            return !el.classList.contains('active');
+          });
+      }.bind(this));
+    },
+
     getIconForCard: function(idx) {
       var card = this.cards[idx];
       this.client.waitFor(card.displayed.bind(card));

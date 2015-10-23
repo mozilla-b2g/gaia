@@ -76,6 +76,17 @@ suite('system/Card', function() {
   });
 
   suite('render > ', function() {
+
+    test('does nothing when stayInvisible is set', function() {
+      var card = new Card(makeApp({
+        name: 'anyapp',
+        title: 'sometitle'
+      }), { stayInvisible: true });
+
+      assert.equal(card.element.style.display, 'none');
+      assert.equal(card.title, undefined);
+    });
+
     test('adds browser class for browser windows', function(){
       var card = new Card(makeApp({
         name: 'browserapp',

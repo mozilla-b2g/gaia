@@ -45,12 +45,12 @@ var MmiUI = {
   },
 
   closeWindow: function mui_closeWindow() {
+    MmiManager.cancel();
     this.resetResponse();
     this.mmiScreen.hidden = true;
   },
 
   cancel: function mui_cancel() {
-    MmiManager.cancel();
     this.hideLoading();
     this.closeWindow();
   },

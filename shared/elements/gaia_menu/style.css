@@ -2,6 +2,10 @@
  * gaia_menu
  * ---------------------------------- */
 
+/* default alignment follows the UI direction, not the content direction */
+:-moz-dir(ltr) [dir] { text-align: left; }
+:-moz-dir(rtl) [dir] { text-align: right; }
+
 /* Main dialog setup */
 gaia-menu {
   background-color: #2d2d2d;
@@ -35,7 +39,7 @@ gaia-menu:before {
   vertical-align: top;
   width: 0.1rem;
   height: 100%;
-  margin-left: -0.1rem;
+  margin-inline-start: -0.1rem;
 }
 
 header {
@@ -61,7 +65,6 @@ header {
 header h1 {
   font-size: 1.6rem;
   line-height: 4.9rem;
-  text-align: left;
   color: #fff;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -75,16 +78,17 @@ header h1 {
 /* Generic set of actions in toolbar */
 header menu.toolbar {
   height: 100%;
-  float: right;
-  margin: 0 -3rem 0 1rem;
+  margin: 0 -3rem;
+  margin-inline-start: 1rem;
   padding: 0;
 }
+header:-moz-dir(ltr) menu.toolbar { float: right; }
+header:-moz-dir(rtl) menu.toolbar { float: left; }
 
 header menu.toolbar a,
 header menu.toolbar button {
   -moz-box-sizing: border-box;
   position: relative;
-  float: left;
   width: auto;
   min-width: 5rem;
   height: 4.9rem;
@@ -96,6 +100,14 @@ header menu.toolbar button {
   text-align: center;
   text-shadow: none;
   z-index: 5;
+}
+header:-moz-dir(ltr) menu.toolbar a,
+header:-moz-dir(ltr) menu.toolbar button {
+  float: left;
+}
+header:-moz-dir(rtl) menu.toolbar a,
+header:-moz-dir(rtl) menu.toolbar button {
+  float: right;
 }
 
 header a,
@@ -156,13 +168,21 @@ header .icon.icon-back {
 /* Navigation links (back, cancel, etc) */
 header > button,
 header > a {
-  float: left;
   width: 5rem;
   height: 4.9rem;
   background: none;
   overflow: visible;
-  margin: 0 -1rem 0 -3rem;
+  margin: 0 -1rem;
+  margin-inline-start: -3rem;
   position: relative;
+}
+header:-moz-dir(ltr) > button,
+header:-moz-dir(ltr) > a {
+  float: left;
+}
+header:-moz-dir(rtl) > button,
+header:-moz-dir(rtl) > a {
+  float: right;
 }
 
 header > button::-moz-focus-inner {
@@ -185,7 +205,7 @@ header > button .icon:after,
 header > a .icon:after {
   content: "";
   position: absolute;
-  left: 0;
+  offset-inline-start: 0;
   top: 0;
   z-index: -1;
   width: 3rem;
@@ -234,9 +254,8 @@ button {
   outline: none;
   font-size: 1.6rem;
   text-shadow: none;
-  text-align: left;
   padding: 0 1.2rem;
-  margin: 0 1.5rem 1rem 1.5rem;
+  margin: 0 1.5rem 1rem;
   background: rgba(87, 87, 87, 0.8);
   border: none;
   border-radius: 0;
@@ -245,11 +264,22 @@ button {
   font-family: sans-serif;
   font-style: italic;
 }
+button:-moz-dir(ltr) { text-align: left; }
+button:-moz-dir(rtl) { text-align: right; }
 
-button:last-child {
+span.gaia-menu-cancel {
+  position: fixed;
+  width: 100%;
+  background: #4d4d4d;
+  height: 7rem;
+  offset-inline-start: 0;
+  bottom: 0;
+}
+
+span.gaia-menu-cancel button {
   position: fixed;
   bottom: 0;
-  left: 0;
+  offset-inline-start: 0;
   color: #333;
   background: #d8d8d8;
   text-align: center;
@@ -258,23 +288,13 @@ button:last-child {
   border-radius: 2rem;
 }
 
-button:last-child:before {
-  content: '';
-  position: fixed;
-  width: 100%;
-  background: #4d4d4d;
-  height: 7rem;
-  left: 0;
-  bottom: 0;
-  z-index: -1;
-}
-
 button:nth-last-child(2) {
   margin-bottom: 1.5rem;
 }
 
 /* Press state */
-button:active {
+button:active,
+span.gaia-menu-cancel button:active {
   background: #00aacc;
   color: #fff;
 }
@@ -291,9 +311,4 @@ button[disabled]:last-child {
   background-color: #e7e7e7;
   color: #a6a6a6;
   opacity: 1;
-}
-
-/* RTL View */
-button:-moz-dir(rtl) {
-  text-align: right;
 }

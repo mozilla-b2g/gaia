@@ -392,6 +392,27 @@ suite('system/ChildWindowFactory', function() {
     assert.isTrue(app1.setVisible.calledWith(false, true));
   });
 
+  test('opened popups should hide the opener', function() {
+    var app1 = new MockAppWindow(fakeAppConfig1);
+    var spy = this.sinon.spy(window, 'PopupWindow');
+    app1.cwf = new ChildWindowFactory(app1);
+    this.sinon.stub(app1, 'isActive').returns(true);
+    this.sinon.stub(app1, 'isVisible').returns(true);
+    app1.cwf.handleEvent(new CustomEvent('mozbrowseropenwindow',
+      {
+        detail: fakeWindowOpenDetailPopup
+      }));
+
+    this.sinon.stub(app1, 'setVisible');
+
+    spy.getCall(0).returnValue.element
+        .dispatchEvent(new CustomEvent('_opened', {
+          detail: spy.getCall(0).returnValue
+        }));
+
+    assert.isTrue(app1.setVisible.calledWith(false, true));
+  });
+
   test('closing of popup should resume visibility and orientation', function() {
     MockSettingsListener.mCallbacks['in-app-sheet.enabled'](false);
     var app1 = new MockAppWindow(fakeAppConfig1);
@@ -444,6 +465,28 @@ suite('system/ChildWindowFactory', function() {
 
       assert.isTrue(spyCreatePopupWindow.calledOnce);
       assert.isTrue(spyPopupWindow.getCall(0).args[0].stayBackground);
+    });
+
+    test('opened hidden popup should not hide the opener', function() {
+      var app1 = new MockAppWindow(fakeAppConfig1);
+      var spy = this.sinon.spy(window, 'PopupWindow');
+      app1.cwf = new ChildWindowFactory(app1);
+      this.sinon.stub(app1, 'isActive').returns(true);
+      this.sinon.stub(app1, 'isVisible').returns(true);
+      this.sinon.stub(app1, 'hasPermission').returns(true);
+      app1.cwf.handleEvent(new CustomEvent('mozbrowseropenwindow',
+        {
+          detail: fakeWindowOpenDetailHiddenPopup
+        }));
+
+      this.sinon.stub(app1, 'setVisible');
+
+      spy.getCall(0).returnValue.element
+          .dispatchEvent(new CustomEvent('_opened', {
+            detail: spy.getCall(0).returnValue
+          }));
+
+      assert.isFalse(app1.setVisible.calledWith(false, true));
     });
   });
 

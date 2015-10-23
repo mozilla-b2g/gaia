@@ -161,6 +161,9 @@ MediaFrame.prototype.displayImage = function displayImage(blob,
   this.fullsizeWidth = this.fullSampleSize.scale(width);
   this.fullsizeHeight = this.fullSampleSize.scale(height);
 
+  // Valid small EXIF preview used for setting css background image
+  this.tinyPreviewURL = null;
+
   // Create a blob URL for the image and combine it with the media fragment.
   // imageurl is what we'll call revokeObjectURL on. fullImageURL may
   // have a media fragment appended, so we need to track both properties.
@@ -181,8 +184,7 @@ MediaFrame.prototype.displayImage = function displayImage(blob,
     this.localize();
   }
 
-  // Determine whether we can use the preview image
-  function usePreview(preview) {
+  function isValidPreview(preview) {
     // If no preview at all, we can't use it.
     if (!preview) {
       return false;
@@ -203,6 +205,14 @@ MediaFrame.prototype.displayImage = function displayImage(blob,
       return false;
     }
 
+    return true;
+  }
+
+  function isBigEnoughPreview(preview) {
+    // Check if we have preview before continuing with size check
+    if (!preview) {
+      return false;
+    }
     // If setMinimumPreviewSize has been called, then a preview is big
     // enough if it is at least that big.
     if (self.minimumPreviewWidth && self.minimumPreviewHeight) {
@@ -228,7 +238,10 @@ MediaFrame.prototype.displayImage = function displayImage(blob,
   // want to decode the full-size image if the user zooms in on it.
   // This code determines whether we have a usable preview image (or whether
   // we can downsample the full-size image) and if so, displays that image
-  if (usePreview(preview)) {
+  var isValid = isValidPreview(preview);
+  var isBigEnough = isBigEnoughPreview(preview);
+
+  if (isValid && isBigEnough) {
     if (preview.start) {
       gotPreview(blob.slice(preview.start, preview.end, 'image/jpeg'),
                  preview.width, preview.height);
@@ -243,6 +256,17 @@ MediaFrame.prototype.displayImage = function displayImage(blob,
         noPreview();
       };
     }
+  }
+  else if (isValid) {
+    // If we have valid small EXIF preview use it for css background image
+    // This will help to load large downsampled preview images without flash
+    // See bug 1188286
+
+    // Create a blob URL for the tiny preview
+    this.tinyPreviewURL = URL.createObjectURL(
+      blob.slice(preview.start, preview.end, 'image/jpeg'));
+
+    noPreview(this.tinyPreviewURL);
   }
   else {
     noPreview();
@@ -269,7 +293,7 @@ MediaFrame.prototype.displayImage = function displayImage(blob,
   }
 
   // If we don't have a preview image we can use this is what we do.
-  function noPreview() {
+  function noPreview(bgURL) {
     self.previewurl = null;
     // Figure out whether we can downsample the fullsize image for
     // use as a preview
@@ -287,7 +311,7 @@ MediaFrame.prototype.displayImage = function displayImage(blob,
       // Now start off with the downsampled image displayed
       self.displayingPreview = true;
       self._displayImage(self.previewImageURL,
-                         self.previewWidth, self.previewHeight);
+                         self.previewWidth, self.previewHeight, bgURL);
     }
     else {
       // If we can't (or don't need to) downsample the full image then note
@@ -374,13 +398,15 @@ MediaFrame.prototype._displayImage = function(url, width, height, bg) {
   // full-size image is decoding.
   if (bg) {
     this.image.style.backgroundImage = 'url(' + bg + ')';
+    // Wait one frame before loading the main image in this case
+    // to ensure that this background image actually gets displayed
+    requestAnimationFrame(() => { this.image.src = url; });
   }
   else {
     this.image.style.backgroundImage = 'none';
+    // Start loading and decoding the main image
+    this.image.src = url;
   }
-
-  // Start loading and decoding the main image
-  this.image.src = url;
 
   // Remember the width and height, but swap them for rotated images.
   if (this.rotation === 0 || this.rotation === 180) {
@@ -423,13 +449,13 @@ MediaFrame.prototype.localize = function localize() {
     if (timestamp) {
       if (!this.dtf) {
         // XXX: add localized/timeformatchange event to reset
-        this.dtf = Intl.DateTimeFormatter(navigator.languages, {
+        this.dtf = Intl.DateTimeFormat(navigator.languages, {
           hour12: navigator.mozHour12,
           hour: 'numeric',
           minute: 'numeric',
           day: 'numeric',
           month: 'numeric',
-          year: 'long'
+          year: 'numeric'
         });
       }
 
@@ -476,9 +502,11 @@ MediaFrame.prototype._switchToPreviewImage = function _switchToPreview() {
                      this.previewWidth, this.previewHeight);
 };
 
+// The video and poster image can have different sizes, but they must
+// have the same aspect ratio and rotation. The aspect ratio is the raw
+// media width divided by the raw media height before any rotation is applied.
 MediaFrame.prototype.displayVideo = function displayVideo(videoblob, posterblob,
-                                                          width, height,
-                                                          rotation)
+                                                          aspectRatio, rotation)
 {
   if (!this.video) {
     return;
@@ -500,7 +528,7 @@ MediaFrame.prototype.displayVideo = function displayVideo(videoblob, posterblob,
   // Display them in the video element.
   // The VideoPlayer class takes care of positioning itself, so we
   // don't have to do anything here with computeFit() or setPosition()
-  this.video.load(this.videourl, this.posterurl, width, height, rotation || 0,
+  this.video.load(this.videourl, this.posterurl, aspectRatio, rotation || 0,
                   videoblob.lastModifiedDate);
 
   // Show the player controls
@@ -533,6 +561,11 @@ MediaFrame.prototype.clear = function clear() {
     URL.revokeObjectURL(this.previewurl);
   }
   this.previewurl = null;
+
+  if (this.tinyPreviewURL) {
+    URL.revokeObjectURL(this.tinyPreviewURL);
+  }
+  this.tinyPreviewURL = null;
 
   // hide the image and release anything it was displaying
   if (this.image) {

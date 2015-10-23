@@ -44,6 +44,7 @@
 
     <script defer src="js/service.js"></script>
     <script defer src="js/base_ui.js"></script>
+    <script defer src="js/audio_channel_controller.js"></script>
 
     <script defer src="js/orientation_manager.js"></script>
     <!--
@@ -343,14 +344,24 @@
 
     <!-- Firefox Accounts -->
     <link rel="stylesheet" type="text/css" href="style/firefox_account/firefox_account_container.css">
-    <script defer src="js/fxa_ui.js"></script>
-    <script defer src="js/fxa_manager.js"></script>
+    <script defer src="js/fx_accounts_u_i.js"></script>
+    <script defer src="js/fx_accounts_manager.js"></script>
 
     <!-- App Usage Metrics -->
     <script defer src="js/app_usage_metrics.js"></script>
     <!-- AppUsageMetrics lazily loads this script if needed
     <script defer src="shared/js/telemetry.js"></script>
     -->
+
+    <!-- Sync -->
+    <!--IFDEF_FIREFOX_SYNC
+    <script defer src="js/sync_state_machine.js"></script>
+    <script defer src="js/sync_manager.js"></script>
+    ENDIF_FIREFOX_SYNC-->
+    <!-- <script defer src="shared/js/sync/errors.js"></script> -->
+
+    <!-- Remote Control -->
+    <script defer src="js/remote_control.js"></script>
   </head>
 
   <body class="theme-settings" role="application">
@@ -385,7 +396,7 @@
 
           <!-- "Crash Reports" information page -->
           <section role="region">
-            <gaia-header id="crash-reports-header" action="close">
+            <gaia-header ignore-dir id="crash-reports-header" action="close">
               <h1 data-l10n-id="crashReports"></h1>
             </gaia-header>
             <div>
@@ -404,7 +415,7 @@
         <div id="trustedui-container" class="up theme-settings">
           <div id="trustedui-inner">
             <section role="region" class="title-container skin-organic">
-              <gaia-header id="trustedui-header" action="close">
+              <gaia-header ignore-dir id="trustedui-header" action="close">
                 <h1 id="trustedui-title"></h1>
               </gaia-header>
               <div id="trustedui-throbber"></div>

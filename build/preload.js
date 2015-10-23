@@ -5,6 +5,11 @@ var python = new utils.Commander('python');
 
 exports.execute = function(opts) {
   var GAIA_DISTRIBUTION_DIR = utils.getEnv('GAIA_DISTRIBUTION_DIR');
+
+  if (GAIA_DISTRIBUTION_DIR === '') {
+    return;
+  }
+
   var GAIA_DIR = utils.getEnv('GAIA_DIR');
   var remoteList;
   try {

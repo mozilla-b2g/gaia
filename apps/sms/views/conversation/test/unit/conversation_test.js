@@ -2365,6 +2365,93 @@ suite('conversation.js >', function() {
         assert.isTrue(node.classList.contains('read'));
       }).then(done, done);
     });
+
+    const SECOND = 1000;
+    const MINUTE = 60 * SECOND;
+    const HOUR = 60 * MINUTE;
+    const DAY = 24 * HOUR;
+    const MONTH = 30 * DAY;
+
+    var tests = [
+      {
+        delay: SECOND,
+        name: '1 second'
+      },
+      {
+        delay: 5 * MINUTE - 1,
+        name: 'less than 5 minutes'
+      },
+      {
+        delay: 5 * MINUTE,
+        name: '5 minutes',
+        l10nId: 'late-arrival-notice-in-minutes'
+      },
+      {
+        delay: HOUR - 1,
+        name: 'less than an hour',
+        l10nId: 'late-arrival-notice-in-minutes'
+      },
+      {
+        delay: HOUR,
+        name: 'an hour',
+        l10nId: 'late-arrival-notice-in-hours'
+      },
+      {
+        delay: DAY - 1,
+        name: 'less than a day',
+        l10nId: 'late-arrival-notice-in-hours'
+      },
+      {
+        delay: DAY,
+        name: 'a day',
+        l10nId: 'late-arrival-notice-in-days'
+      },
+      {
+        delay: MONTH - 1,
+        name: 'less than a month',
+        l10nId: 'late-arrival-notice-in-days'
+      },
+      {
+        delay: MONTH,
+        name: 'a month',
+        l10nId: 'late-arrival-notice-in-months'
+      },
+      {
+        delay: MONTH * 5,
+        name: '5 months',
+        l10nId: 'late-arrival-notice-in-months'
+      }
+    ];
+
+    tests.forEach(({ delay, name, l10nId }) => {
+      var testTitle = name + ' delay';
+      testTitle += l10nId ? 
+        (' displays ' + l10nId) : ' does not display late notice';
+      
+      test(testTitle, function(done) {
+        this.sinon.clock.tick(10 * MONTH);
+        var now = Date.now();
+
+        var message = MockMessages.sms({
+          delivery: 'received',
+          timestamp: now,
+          sentTimestamp: now - delay
+        });
+
+        ConversationView.buildMessageDOM(message).then((node) => {
+          var noticeNode = node.querySelector('.late-arrival-notice');
+          var iconNode = node.querySelector('.late-arrival-icon');
+          if (l10nId) {
+            assert.isNotNull(noticeNode);
+            assert.isNotNull(iconNode);
+            assert.equal(noticeNode.dataset.l10nId, l10nId);
+          } else {
+            assert.isNull(noticeNode);
+            assert.isNull(iconNode);
+          }
+        }).then(done, done);
+      });
+    });
   });
 
   suite('renderMessages()', function() {
@@ -5583,8 +5670,6 @@ suite('conversation.js >', function() {
       this.sinon.stub(Compose, 'getContent');
       this.sinon.stub(Compose, 'getSubject');
 
-      Compose.isSubjectVisible = false;
-
       ConversationView.draft = null;
 
       ConversationView.initRecipients();
@@ -5618,6 +5703,7 @@ suite('conversation.js >', function() {
     test('saves draft if at least content is entered', function() {
       Compose.isEmpty.returns(false);
       Compose.getContent.returns(['foo']);
+      Compose.getSubject.returns(null);
 
       ConversationView.updateDraft();
 
@@ -5640,6 +5726,7 @@ suite('conversation.js >', function() {
       ConversationView.recipients.add({
         number: '999'
       });
+      Compose.getSubject.returns(null);
 
       ConversationView.updateDraft();
 
@@ -5656,31 +5743,9 @@ suite('conversation.js >', function() {
       assert.equal(ConversationView.draft, Drafts.add.lastCall.args[0]);
     });
 
-    test('does not save subject if it is not visible', function() {
-      Compose.isEmpty.returns(false);
-      Compose.getContent.returns(['foo']);
-      Compose.isSubjectVisible = false;
-      Compose.getSubject.returns('subject');
-
-      ConversationView.updateDraft();
-
-      sinon.assert.calledWith(Drafts.add, {
-        id: null,
-        recipients: [],
-        content: ['foo'],
-        subject: null,
-        threadId: undefined,
-        type: 'sms'
-      });
-      sinon.assert.callOrder(Drafts.add, Drafts.store);
-      sinon.assert.notCalled(Drafts.delete);
-      assert.equal(ConversationView.draft, Drafts.add.lastCall.args[0]);
-    });
-
     test('saves draft entirely', function() {
       Compose.isEmpty.returns(false);
       Compose.getContent.returns(['foo']);
-      Compose.isSubjectVisible = true;
       Compose.getSubject.returns('subject');
       ConversationView.recipients.add({
         number: '999'
@@ -5704,7 +5769,6 @@ suite('conversation.js >', function() {
     test('saves participants and thread id for the thread draft', function() {
       Compose.isEmpty.returns(false);
       Compose.getContent.returns(['foo']);
-      Compose.isSubjectVisible = true;
       Compose.getSubject.returns('subject');
 
       setActiveThread(100, ['888'], [MockMessages.sms()]);
@@ -5733,6 +5797,7 @@ suite('conversation.js >', function() {
 
       Compose.isEmpty.returns(false);
       Compose.getContent.returns(['bar']);
+      Compose.getSubject.returns(null);
 
       ConversationView.updateDraft();
 
@@ -5762,6 +5827,7 @@ suite('conversation.js >', function() {
 
       Compose.isEmpty.returns(false);
       Compose.getContent.returns(['bar']);
+      Compose.getSubject.returns(null);
 
       ConversationView.updateDraft();
 
@@ -5796,6 +5862,7 @@ suite('conversation.js >', function() {
 
       Compose.isEmpty.returns(false);
       Compose.getContent.returns(['bar']);
+      Compose.getSubject.returns(null);
 
       ConversationView.updateDraft();
 
@@ -5821,6 +5888,7 @@ suite('conversation.js >', function() {
 
       Compose.isEmpty.returns(false);
       Compose.getContent.returns(['bar']);
+      Compose.getSubject.returns(null);
 
       ConversationView.updateDraft();
 

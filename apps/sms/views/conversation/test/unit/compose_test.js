@@ -199,8 +199,17 @@ suite('compose_test.js', function() {
       test('Get content from subject field', function() {
         var content = 'Title';
         SubjectComposer.prototype.getValue.returns(content);
+        SubjectComposer.prototype.isVisible.returns(true);
 
         assert.equal(Compose.getSubject(), content);
+      });
+
+      test('Get null from subject field if hidden', function() {
+        var content = 'Title';
+        SubjectComposer.prototype.getValue.returns(content);
+        SubjectComposer.prototype.isVisible.returns(false);
+
+        assert.isNull(Compose.getSubject());
       });
 
       test('Set content to subject field', function() {

@@ -100,6 +100,7 @@ define(function(require) {
       li.dataset.appIndex = index;
 
       var radio = document.createElement('gaia-radio');
+      radio.className = 'split';
       radio.name = 'homescreen';
       radio.value = index;
       radio.checked = (app.manifestURL === this.manifestURL);
@@ -119,18 +120,18 @@ define(function(require) {
       // shadow DOM from the label currently.
       var labelClicked = false;
 
-      // Register the handler for the checked change.
-      radio.addEventListener('change', event => {
+      // Register the handler for the click event on the checkbox.
+      radio.addEventListener('click', event => {
         if (!labelClicked) {
           this._radioClick(index);
         }
         labelClicked = false;
         event.stopPropagation();
         event.preventDefault();
-      });
+      }, true);
 
-      // Register the handler for the click event.
-      radioLabel.addEventListener('click', () => {
+      // Register the handler for the mouseup event on the label.
+      radioLabel.addEventListener('mouseup', () => {
         labelClicked = true;
         this._labelClick(index);
       });

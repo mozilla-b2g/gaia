@@ -45,6 +45,7 @@ Search.prototype = {
   Selectors: Search.Selectors,
 
   privateBrowserUrl: 'app://search.gaiamobile.org/newtab.html?private=1',
+  nonPrivateBrowserUrl: 'app://search.gaiamobile.org/newtab.html?private=0',
 
   /**
    * Navigates to the search results frame.

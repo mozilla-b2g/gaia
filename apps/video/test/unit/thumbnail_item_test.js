@@ -1,10 +1,9 @@
-/* global MockL10n,MediaUtils,ThumbnailItem */
+/* global MockL10n,ThumbnailItem,l10nAssert */
 /*
  * Thumbnail Item tests
  */
 'use strict';
 
-require('/shared/js/l10n.js');
 require('/shared/js/sanitizer.js');
 require('/shared/js/media/media_utils.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
@@ -15,7 +14,6 @@ suite('Thumbnail Item Unit Tests', function() {
   suiteSetup(function() {
     nativeMozL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
-    MediaUtils._ = MockL10n.get;
   });
 
   suiteTeardown(function() {
@@ -102,7 +100,11 @@ suite('Thumbnail Item Unit Tests', function() {
 
     test('#size-text', function() {
       var sizeNode = domNode.querySelector('.size-text');
-      assert.equal(sizeNode.textContent, '224 byteUnit-KB');
+      l10nAssert(
+        sizeNode,
+        'fileSize',
+        {size: 224, unit: 'KB'}
+      );
     });
 
     test('#type-text', function() {

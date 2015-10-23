@@ -66,37 +66,50 @@ client.on('stop', () => {
 
 client.on('databaseChange', () => updateOverlays());
 
-client.on('databaseUpgrade', () => upgradeOverlay.hidden = false);
+client.on('databaseUpgrade', () => {
+  if (upgradeOverlay) {
+    upgradeOverlay.hidden = false;
+  }
+});
 
 client.on('databaseUnavailable', (reason) => {
-  noCardOverlay.hidden    = reason !== 'nocard';
-  pluggedInOverlay.hidden = reason !== 'pluggedin';
+  if (noCardOverlay) {
+    noCardOverlay.hidden    = reason !== 'nocard';
+  }
+  if (pluggedInOverlay) {
+    pluggedInOverlay.hidden = reason !== 'pluggedin';
+  }
 });
 
-client.on('databaseEnumerable', () => upgradeOverlay.hidden = true);
+client.on('databaseEnumerable', () => {
+  if (upgradeOverlay) {
+    upgradeOverlay.hidden = true;
+  }
+});
 
 client.on('databaseReady', () => {
-  noCardOverlay.hidden    = true;
-  pluggedInOverlay.hidden = true;
+  if (noCardOverlay) {
+    noCardOverlay.hidden    = true;
+  }
+  if (pluggedInOverlay) {
+    pluggedInOverlay.hidden = true;
+  }
 });
 
+// scanProgress and scanStopped must always act in the order they're received.
+// If you add a Promise to either of these handlers, be careful!
+
 client.on('scanProgress', (detail) => {
-  document.l10n.formatValues(
-    'unknownArtist', 'unknownTitle'
-  ).then(([unknownArtist, unknownTitle]) => {
-    scanProgress.show({
-      value:      detail.count,
-      heading:    detail.artist || unknownArtist,
-      subheading: detail.title  || unknownTitle
-    });
+  scanProgress.show({
+    value:      detail.count,
+    heading:    detail.artist,
+    subheading: detail.title
   });
 });
 
 client.on('scanStopped', () => scanProgress.hide());
 
 client.connect();
-
-updateOverlays();
 
 var header             = $id('header');
 var headerTitle        = $id('header-title');
@@ -109,6 +122,8 @@ var noCardOverlay      = $id('no-card-overlay');
 var pluggedInOverlay   = $id('plugged-in-overlay');
 var upgradeOverlay     = $id('upgrade-overlay');
 var scanProgress       = $id('scan-progress');
+
+updateOverlays();
 
 header.addEventListener('action', (evt) => {
   if (evt.detail.type !== 'back') {
@@ -175,8 +190,11 @@ viewStack.addEventListener('change', (evt) => {
 
   document.body.dataset.activeViewUrl = viewUrl;
 
-  playerButton.hidden = viewUrl === VIEWS.PLAYER.URL || !isPlaying;
-  activityDoneButton.hidden = viewUrl !== VIEWS.PLAYER.URL || !activity;
+  var showingPlayer = viewUrl === VIEWS.PLAYER.URL;
+  playerButton.hidden = showingPlayer || !isPlaying;
+  activityDoneButton.hidden = !showingPlayer || !activity;
+  client.method('enableNFC', showingPlayer);
+
   setBackButtonHidden(!activity && viewStack.views.length < 2);
   setHeaderTitle(evt.detail.title);
 });
@@ -185,7 +203,8 @@ viewStack.addEventListener('titlechange', (evt) => {
   setHeaderTitle(evt.detail);
 });
 
-viewStack.addEventListener('rendered', onVisuallyLoaded);
+viewStack.addEventListener('loaded', onVisuallyLoaded);
+viewStack.addEventListener('rendered', onFullyLoaded);
 
 tabBar.addEventListener('change', (evt) => {
   var tab = evt.detail.selectedElement;
@@ -193,10 +212,18 @@ tabBar.addEventListener('change', (evt) => {
   navigateToURL(tab.dataset.url, true);
 });
 
-emptyOverlay.addEventListener('action', () => cancelActivity());
-noCardOverlay.addEventListener('action', () => cancelActivity());
-pluggedInOverlay.addEventListener('action', () => cancelActivity());
-upgradeOverlay.addEventListener('action', () => cancelActivity());
+if (emptyOverlay) {
+  emptyOverlay.addEventListener('action', () => cancelActivity());
+}
+if (noCardOverlay) {
+  noCardOverlay.addEventListener('action', () => cancelActivity());
+}
+if (pluggedInOverlay) {
+  pluggedInOverlay.addEventListener('action', () => cancelActivity());
+}
+if (upgradeOverlay) {
+  upgradeOverlay.addEventListener('action', () => cancelActivity());
+}
 
 if (SERVICE_WORKERS) {
   navigator.serviceWorker.getRegistration().then((registration) => {
@@ -265,15 +292,24 @@ function navigateToURL(url, replaceRoot) {
 }
 
 function updateOverlays() {
-  client.method('getSongCount').then((count) => {
-    emptyOverlay.hidden = count > 0;
-  });
+
+  if (emptyOverlay) {
+    client.method('getSongCount').then((count) => {
+      emptyOverlay.hidden = count > 0;
+    });
+  }
 
   client.method('getDatabaseStatus').then((status) => {
-    noCardOverlay.hidden    = status.unavailable !== 'nocard';
-    pluggedInOverlay.hidden = status.unavailable !== 'pluggedin';
+    if (noCardOverlay) {
+      noCardOverlay.hidden    = status.unavailable !== 'nocard';
+    }
+    if (pluggedInOverlay) {
+      pluggedInOverlay.hidden = status.unavailable !== 'pluggedin';
+    }
 
-    upgradeOverlay.hidden = !status.upgrading;
+    if (upgradeOverlay) {
+      upgradeOverlay.hidden = !status.upgrading;
+    }
   });
 }
 
@@ -292,7 +328,7 @@ function onActivity(activity) {
   window.activity = activity;
 
   if (activity.source.name === 'open') {
-    client.method('open', activity.source.data.blob);
+    client.method('openExternalFile', activity.source.data.blob);
   }
 
   setBackButtonHidden(false);
@@ -307,7 +343,7 @@ function onSearchClose() {
 }
 
 function onVisuallyLoaded() {
-  viewStack.removeEventListener('rendered', onVisuallyLoaded);
+  viewStack.removeEventListener('loaded', onVisuallyLoaded);
 
   // PERFORMANCE MARKER (3): visuallyLoaded
   // Designates that the app is visually loaded (e.g.: all of the
@@ -320,6 +356,10 @@ function onVisuallyLoaded() {
   // set of functionality to allow the user to interact with the
   // "above-the-fold" content.
   perfMark('contentInteractive');
+}
+
+function onFullyLoaded() {
+  viewStack.removeEventListener('rendered', onFullyLoaded);
 
   // PERFORMANCE MARKER (5): fullyLoaded
   // Designates that the app is *completely* loaded and all relevant

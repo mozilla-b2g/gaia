@@ -73,18 +73,9 @@
     },
 
     /**
-     * Handle the audio chanel when the app is in foreground or background.
+     * Handle the audio chanel when the app is in foreground.
      */
     _handle_hierarchytopmostwindowchanged: function() {
-      if (this._topMostWindow && this._topMostWindow.audioChannels) {
-        // Normal channel could not play in background.
-        this.debug(this._topMostWindow.name + ' is closed');
-        var audioChannel = this._topMostWindow.audioChannels.get('normal');
-        if (audioChannel && audioChannel.isPlaying()) {
-          audioChannel.setPolicy({ isAllowedToPlay: false });
-          this._handleAudioChannel(audioChannel);
-        }
-      }
       this._topMostWindow = Service.query('getTopMostWindow');
       if (this._topMostWindow) {
         this.debug(this._topMostWindow.name + ' is opened');
@@ -106,27 +97,22 @@
      */
     _manageAudioChannels: function(audioChannel) {
       if (audioChannel.isActive()) {
-        var isBackground = this._isAudioChannelInBackground(audioChannel);
         this.audioChannelPolicy.applyPolicy(
           audioChannel,
-          this._activeAudioChannels,
-          {
-            isNewAudioChannelInBackground: isBackground
-          }
+          this._activeAudioChannels
         );
         this._activeAudioChannels.forEach((audioChannel) => {
           this._handleAudioChannel(audioChannel);
         });
         this._handleAudioChannel(audioChannel);
         var channel = { channel: audioChannel.name };
-        if (!isBackground) {
+        if (!this._isAudioChannelInBackground(audioChannel)) {
           this.publish('visibleaudiochannelchanged', channel);
         }
         this.publish('audiochannelchanged', channel);
       } else {
         this._resetAudioChannel(audioChannel);
         this._resumeAudioChannels();
-        this.publish('audiochannelchanged', { channel: 'none' });
       }
     },
 
@@ -186,12 +172,17 @@
       // FIXME: The `app` param should always have `audioChannels`,
       // then we don't need to check it.
       // Resume the app's audio channels.
-      app && app.audioChannels && app.audioChannels.forEach((audioChannel) => {
-        audioChannel.isActive() && this._manageAudioChannels(audioChannel);
-        if (audioChannel.isPlaying()) {
-          this._deleteAudioChannelFromInterruptedAudioChannels(audioChannel);
-        }
-      });
+      if (app) {
+        app.audioChannels && app.audioChannels.forEach((audioChannel) => {
+          audioChannel.isActive() && this._manageAudioChannels(audioChannel);
+          if (audioChannel.isPlaying()) {
+            this._deleteAudioChannelFromInterruptedAudioChannels(audioChannel);
+            this.publish('audiochannelchanged', { channel: audioChannel.name });
+          }
+        });
+      } else if (this._activeAudioChannels.size === 0) {
+        this.publish('audiochannelchanged', { channel: 'none' });
+      }
       // Resume the latest interrupted audio channel.
       var audioChannel;
       var length = this._interruptedAudioChannels.length;
@@ -199,7 +190,10 @@
         audioChannel = this._interruptedAudioChannels[length - 1];
         audioChannel.setPolicy({ isAllowedToPlay: true });
         this._handleAudioChannel(audioChannel);
-        audioChannel.isPlaying() && this._interruptedAudioChannels.pop();
+        if (audioChannel.isPlaying()) {
+          this._interruptedAudioChannels.pop();
+          this.publish('audiochannelchanged', { channel: audioChannel.name });
+        }
       }
     },
 

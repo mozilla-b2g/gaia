@@ -11,6 +11,14 @@ define(function(require) {
   var DialogService = require('modules/dialog_service');
   var l10n = window.navigator.mozL10n;
 
+  var _debug = false;
+  var debug = function() {};
+  if (_debug) {
+    debug = function spd_debug(msg) {
+      console.log('--> [SimPinDialog]: ' + msg);
+    };
+  }
+
   function SimPinDialog(elements) {
     this._localize = l10n.setAttributes;
     this._elements = elements;
@@ -357,6 +365,7 @@ define(function(require) {
       var lockType = options.lockType;
       var retryCount = error.retryCount;
       var errorName = error.name;
+      debug('_handleCardLockError: ' + errorName);
 
       // expected: 'pin', 'fdn', 'puk'
       if (!lockType) {
@@ -392,6 +401,7 @@ define(function(require) {
     _handleRetryPassword: function(lockType, retryCount) {
       // after three strikes, ask for PUK/PUK2
       if (retryCount <= 0) {
+        debug('_handleRetryPassword lockType:' + lockType);
         if (lockType === 'pin') {
           // we leave this for system app, so let's close the dialog
           return true;
@@ -557,6 +567,7 @@ define(function(require) {
       this._elements.dialogDone.disabled = true;
 
       var lockType = 'pin'; // used to query the number of retries left
+      debug('initUI method: ' + this._method);
       switch (this._method) {
         // get PIN code
         case 'get_pin2':

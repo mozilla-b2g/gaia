@@ -2,14 +2,19 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+/* global ERROR_DIALOG_CLOSED_BY_USER */
+/* global ERROR_INVALID_SYNC_ACCOUNT */
+/* global ERROR_OFFLINE */
 /* global ERROR_UNVERIFIED_ACCOUNT */
 /* global LazyLoader */
+/* global mozIntl */
 
 define(function(require) {
   'use strict';
 
   var SettingsListener = require('shared/settings_listener');
   var SyncManagerBridge = require('modules/sync_manager_bridge');
+  var DialogService = require('modules/dialog_service');
 
   const LOGGED_OUT_SCREEN = 'loggedout';
   const LOGGED_IN_SCREEN = 'loggedin';
@@ -44,6 +49,9 @@ define(function(require) {
     listener: 'openPrivacy'
   }, {
     screen: LOGGED_IN_SCREEN,
+    selector: '.fxsync-collections-bookmarks'
+  }, {
+    screen: LOGGED_IN_SCREEN,
     selector: '.fxsync-collections-history'
   }, {
     screen: LOGGED_IN_SCREEN,
@@ -69,7 +77,8 @@ define(function(require) {
     this.elements = {};
     this.currentScreen = null;
     this.collections = new Map();
-    ['sync.collections.history.enabled',
+    ['sync.collections.bookmarks.enabled',
+     'sync.collections.history.enabled',
      'sync.collections.passwords.enabled'].forEach(setting => {
       SettingsListener.observe(setting, true, enabled => {
         enabled ? this.collections.set(setting, enabled)
@@ -147,8 +156,34 @@ define(function(require) {
               this.showUnverified(message.user);
               return;
             }
-            this.showScreen(LOGGED_OUT_SCREEN);
-            this.clean();
+
+            const IGNORED_ERRORS = [
+              ERROR_DIALOG_CLOSED_BY_USER
+            ];
+
+            if (IGNORED_ERRORS.indexOf(message.error) > -1) {
+              return;
+            }
+
+            var errorMsg = 'fxsync-error-unknown';
+            var title;
+
+            const KNOWN_ERRORS = [
+              ERROR_INVALID_SYNC_ACCOUNT,
+              ERROR_OFFLINE
+            ];
+
+            if (KNOWN_ERRORS.indexOf(message.error) > -1) {
+              title = message.error;
+              errorMsg = message.error + '-explanation';
+            }
+
+            DialogService.alert(errorMsg, {
+              title: title
+            }).then(() => {
+              this.showScreen(LOGGED_OUT_SCREEN);
+              this.clean();
+            });
           });
           break;
       }
@@ -228,11 +263,13 @@ define(function(require) {
         this.elements.lastSync.classList.add('hidden');
         return;
       }
-      var l10n = navigator.mozL10n;
-      l10n.DateTimeFormat().relativeDate(time, true).then(relDate => {
+      var formatter = mozIntl._gaia.RelativeDate(navigator.languages, {
+        style: 'short'
+      });
+      formatter.format(time).then(relDate => {
         var selector = 'span[data-l10n-id=fxsync-last-synced]';
         var lastSync = this.elements.lastSync.querySelector(selector);
-        l10n.setAttributes(lastSync, 'fxsync-last-synced', {
+        navigator.mozL10n.setAttributes(lastSync, 'fxsync-last-synced', {
           when: relDate
         });
         this.elements.lastSync.classList.remove('hidden');
@@ -245,6 +282,7 @@ define(function(require) {
 
     disableSyncNowAndCollections(disabled) {
       ['syncNow',
+       'collectionsBookmarks',
        'collectionsHistory',
        'collectionsPasswords'].forEach(name => {
         this.elements[name].disabled = disabled;

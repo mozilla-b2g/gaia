@@ -1,9 +1,10 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-/* global Service */
+/* global Service, TrackingNotice, LazyLoader */
 'use strict';
 
 (function(exports) {
+  const TRACKING_NOTICE_KEY = 'privacy.trackingprotection.shown';
   var DEBUG = false;
 
   /**
@@ -67,7 +68,9 @@
                 'simlockrequestfocus',
                 'home',
                 'holdhome',
-                'hierarchytopmostwindowchanged']
+                'hierarchytopmostwindowchanged',
+                'inputfocus',
+                'inputblur']
     }
   };
 
@@ -109,19 +112,21 @@
     return true;
   };
 
-  SystemDialogManager.prototype._handle_mozChromeEvent =
+  SystemDialogManager.prototype._handle_inputfocus =
     function(evt) {
-      if (!this.states.activeDialog || !evt.detail ||
-          evt.detail.type !== 'inputmethod-contextchange') {
+      if (!this.states.activeDialog) {
         return true;
       }
-      var typesToHandle = ['select-one', 'select-multiple', 'date', 'time',
-        'datetime', 'datetime-local', 'blur'];
-      if (typesToHandle.indexOf(evt.detail.inputType) < 0) {
+      this.states.activeDialog.broadcast('inputfocus', evt.detail);
+      return false;
+    };
+
+  SystemDialogManager.prototype._handle_inputblur =
+    function() {
+      if (!this.states.activeDialog) {
         return true;
       }
-      this.states.activeDialog.broadcast('inputmethod-contextchange',
-        evt.detail);
+      this.states.activeDialog.broadcast('inputblur');
       return false;
     };
 
@@ -229,6 +234,7 @@
       self.addEventListener(type, this);
     }).bind(this));
     Service.request('registerHierarchy', this);
+    this._initTrackingNotice();
   };
 
   /**
@@ -316,6 +322,26 @@
         '[' + Service.currentTime() + ']' +
         '[' + Array.slice(arguments).concat() + ']');
     }
+  };
+
+  SystemDialogManager.prototype._initTrackingNotice = function() {
+    var req = navigator.mozSettings.createLock().get(TRACKING_NOTICE_KEY);
+    req.onsuccess = () => {
+      var alreadyShown = req.result[TRACKING_NOTICE_KEY];
+      if (!alreadyShown) {
+        this._includeTrackingNotice();
+      }
+    };
+
+    req.onerror = () => {
+      this._includeTrackingNotice();
+    };
+  };
+
+  SystemDialogManager.prototype._includeTrackingNotice = function() {
+    LazyLoader.load('/js/tracking_notice.js').then(()  => {
+      this.trackingNotice = new TrackingNotice(SystemDialogManager);
+    });
   };
 
   exports.SystemDialogManager = SystemDialogManager;

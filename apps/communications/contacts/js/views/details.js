@@ -455,41 +455,37 @@ contacts.Details = (function() {
     if (!contact.adr) {
       return;
     }
-    // Load what we need
-    LazyLoader.load('/contacts/js/utilities/mozContact.js', function() {
-      for (var i = 0; i < contact.adr.length; i++) {
-        var currentAddress = contact.adr[i];
-        // Sanity check
-        if (utils.mozContact.haveEmptyFields(currentAddress,
-            ['streetAddress', 'postalCode', 'locality', 'countryName'])) {
-          continue;
-        }
-        var address = currentAddress.streetAddress || '';
-        var escapedStreet = Normalizer.escapeHTML(address, true);
-        var locality = currentAddress.locality;
-        var escapedLocality = Normalizer.escapeHTML(locality, true);
-        var escapedType = Normalizer.escapeHTML(currentAddress.type, true);
-        var country = currentAddress.countryName || '';
-        var escapedCountry = Normalizer.escapeHTML(country, true);
-        var postalCode = currentAddress.postalCode || '';
-        var escapedPostalCode = Normalizer.escapeHTML(postalCode, true);
-
-        var addressField = {
-          streetAddress: escapedStreet,
-          postalCode: escapedPostalCode,
-          locality: escapedLocality || '',
-          countryName: escapedCountry,
-          type: _(escapedType) || escapedType ||
-                                          TAG_OPTIONS['address-type'][0].value,
-          'type_l10n_id': currentAddress.type,
-          i: i
-        };
-        var template = utils.templates.render(addressesTemplate, addressField);
-        listContainer.appendChild(template);
+    
+    for (var i = 0; i < contact.adr.length; i++) {
+      var currentAddress = contact.adr[i];
+      // Sanity check
+      if (utils.mozContact.haveEmptyFields(currentAddress,
+          ['streetAddress', 'postalCode', 'locality', 'countryName'])) {
+        continue;
       }
-    });
+      var address = currentAddress.streetAddress || '';
+      var escapedStreet = Normalizer.escapeHTML(address, true);
+      var locality = currentAddress.locality;
+      var escapedLocality = Normalizer.escapeHTML(locality, true);
+      var escapedType = Normalizer.escapeHTML(currentAddress.type, true);
+      var country = currentAddress.countryName || '';
+      var escapedCountry = Normalizer.escapeHTML(country, true);
+      var postalCode = currentAddress.postalCode || '';
+      var escapedPostalCode = Normalizer.escapeHTML(postalCode, true);
 
-
+      var addressField = {
+        streetAddress: escapedStreet,
+        postalCode: escapedPostalCode,
+        locality: escapedLocality || '',
+        countryName: escapedCountry,
+        type: _(escapedType) || escapedType ||
+                                        TAG_OPTIONS['address-type'][0].value,
+        'type_l10n_id': currentAddress.type,
+        i: i
+      };
+      var template = utils.templates.render(addressesTemplate, addressField);
+      listContainer.appendChild(template);
+    }
   };
 
   var renderDuplicate = function cd_renderDuplicate(contact) {
@@ -616,17 +612,18 @@ contacts.Details = (function() {
 
     LazyLoader.load(VCARD_DEPS,function vcardLoaded() {
       ContactToVcardBlob([contactData], function blobReady(vcardBlob) {
-        var filename = VcardFilename(contactData);
-        new MozActivity({
-          name: 'share',
-          data: {
-            type: 'text/vcard',
-            number: 1,
-            blobs: [new window.File([vcardBlob], filename, {
-              type: 'text/x-vcard'
-            })],
-            filenames: [filename]
-          }
+        VcardFilename(contactData).then(filename => {
+          new MozActivity({
+            name: 'share',
+            data: {
+              type: 'text/vcard',
+              number: 1,
+              blobs: [new window.File([vcardBlob], filename, {
+                type: 'text/x-vcard'
+              })],
+              filenames: [filename]
+            }
+          });
         });
         // The MIME of the blob should be this for some MMS gateways
       }, { type: 'text/x-vcard'} );

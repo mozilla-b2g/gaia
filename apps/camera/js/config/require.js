@@ -44,6 +44,11 @@ requirejs.config({
       name: 'gaia-component',
       location: '../bower_components/gaia-component',
       main: 'gaia-component'
+    },
+    {
+      name: 'font-fit',
+      location: '../bower_components/font-fit',
+      main: 'font-fit'
     }
   ],
 
@@ -58,7 +63,7 @@ requirejs.config({
       exports: 'getVideoRotation'
     },
     'MediaFrame': {
-      deps: ['format', 'VideoPlayer'],
+      deps: ['format', 'VideoPlayer', 'downsample'],
       exports: 'MediaFrame'
     },
     'BlobView': {

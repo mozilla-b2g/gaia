@@ -1,4 +1,5 @@
 'use strict';
+/* global WheelEvent */
 
 var UtilityTray = require('./lib/utility_tray');
 var assert = require('assert');
@@ -68,8 +69,12 @@ marionette('Utility Tray - Gestures', function() {
   test('Swiping up', function() {
     watchEvent('utilitytraywillhide');
     watchEvent('utilitytrayhide');
+    assert.equal(true, utilityTray.isAriaHidden);
 
     utilityTray.open();
+
+    assert.equal(false, utilityTray.isAriaHidden);
+
     utilityTray.swipeUp();
     utilityTray.waitForClosed();
 
@@ -77,6 +82,41 @@ marionette('Utility Tray - Gestures', function() {
     assert.equal(true, wasEventDispatched('utilitytrayhide'));
 
     assert.equal(false, utilityTray.shown);
+  });
+
+  test('Wheel event from statusbar triggers open and close', function() {
+    function dispatchWheel(deltaY) {
+      client.executeScript(function(deltaY) {
+        var statusbar = document.getElementById('statusbar').wrappedJSObject;
+        statusbar.dispatchEvent(new WheelEvent('wheel', {
+          bubbles: true,
+          deltaMode: 2,
+          deltaY: deltaY
+        }));
+      }, [deltaY]);
+    }
+
+    dispatchWheel(-1);
+    utilityTray.waitForOpened();
+    dispatchWheel(1);
+    utilityTray.waitForClosed();
+  });
+
+
+  test('Wheel event from tray triggers open and close', function() {
+    utilityTray.swipeDown();
+    utilityTray.waitForOpened();
+
+    client.executeScript(function() {
+      var statusbar = document.getElementById('utility-tray').wrappedJSObject;
+      statusbar.dispatchEvent(new WheelEvent('wheel', {
+        bubbles: true,
+        deltaMode: 2,
+        deltaY: 1
+      }));
+    });
+
+    utilityTray.waitForClosed();
   });
 
   test('Swiping up in the middle of the tray closes it', function() {

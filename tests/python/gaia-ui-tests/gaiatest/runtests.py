@@ -5,8 +5,8 @@
 import json
 import os
 
-from marionette import (BaseMarionetteOptions,
-                        HTMLReportingOptionsMixin,
+from marionette import (BaseMarionetteArguments,
+                        HTMLReportingArguments,
                         HTMLReportingTestRunnerMixin,
                         HTMLReportingTestResultMixin,
                         MarionetteTextTestRunner,
@@ -18,23 +18,22 @@ import mozlog
 from gaiatest import __name__
 
 from gaiatest import (GaiaTestCase,
-                      GaiaOptionsMixin,
+                      GaiaArguments,
                       GaiaTestRunnerMixin,
-                      TreeherderOptionsMixin,
+                      TreeherderArguments,
                       TreeherderTestRunnerMixin,
-                      GaiaImageCompareOptionsMixin)
+                      GaiaImageCompareArguments)
 from version import __version__
 
 
-class GaiaTestOptions(BaseMarionetteOptions, GaiaOptionsMixin, HTMLReportingOptionsMixin,
-                      TreeherderOptionsMixin, GaiaImageCompareOptionsMixin):
+class GaiaTestArguments(BaseMarionetteArguments):
 
     def __init__(self, **kwargs):
-        BaseMarionetteOptions.__init__(self, **kwargs)
-        GaiaOptionsMixin.__init__(self, **kwargs)
-        HTMLReportingOptionsMixin.__init__(self, **kwargs)
-        TreeherderOptionsMixin.__init__(self, **kwargs)
-        GaiaImageCompareOptionsMixin.__init__(self, **kwargs)
+        BaseMarionetteArguments.__init__(self, **kwargs)
+        self.register_argument_container(GaiaArguments())
+        self.register_argument_container(HTMLReportingArguments())
+        self.register_argument_container(TreeherderArguments())
+        self.register_argument_container(GaiaImageCompareArguments())
 
 
 class GaiaTestResult(MarionetteTestResult, HTMLReportingTestResultMixin):
@@ -106,4 +105,4 @@ class GaiaTestRunner(BaseMarionetteTestRunner, GaiaTestRunnerMixin,
 
 
 def main():
-    cli(runner_class=GaiaTestRunner, parser_class=GaiaTestOptions)
+    cli(runner_class=GaiaTestRunner, parser_class=GaiaTestArguments)

@@ -500,14 +500,17 @@
      * is the current top most UI by HierarchyManager.
      * @param  {Object} evt Event object
      */
-    '_handle_mozChromeEvent': function(evt) {
-      if (!evt.detail || evt.detail.type !== 'inputmethod-contextchange') {
-        return true;
-      }
+    '_handle_inputfocus': function(evt) {
       if (this.searchWindow) {
         this.searchWindow.getTopMostWindow()
-            .broadcast('inputmethod-contextchange',
-          evt.detail);
+          .broadcast('inputfocus', evt.detail);
+        return false;
+      }
+      return true;
+    },
+    '_handle_inputblur': function(evt) {
+      if (this.searchWindow) {
+        this.searchWindow.getTopMostWindow().broadcast('inputblur');
         return false;
       }
       return true;

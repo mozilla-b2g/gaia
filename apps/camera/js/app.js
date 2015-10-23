@@ -10,7 +10,6 @@ var NotificationView = require('views/notification');
 var LoadingView = require('views/loading-screen');
 var orientation = require('lib/orientation');
 var bindAll = require('lib/bind-all');
-var AllDone = require('lib/all-done');
 var debug = require('debug')('app');
 var Pinch = require('lib/pinch');
 var bind = require('lib/bind');
@@ -110,6 +109,7 @@ App.prototype.runControllers = function() {
   this.controllers.viewfinder(this);
   this.controllers.hud(this);
   this.controllers.controls(this);
+  this.controllers.storage(this);
   debug('controllers run');
 };
 
@@ -118,13 +118,15 @@ App.prototype.runControllers = function() {
  *
  * @param  {Function} done
  */
-App.prototype.loadLazyControllers = function(done) {
+App.prototype.loadLazyControllers = function(controllers) {
   debug('load lazy controllers');
   var self = this;
-  this.require(this.controllers.lazy, function() {
-    [].forEach.call(arguments, function(controller) { controller(self); });
-    debug('controllers loaded');
-    done();
+  return new Promise(function(resolve, reject) {
+    self.require(controllers, function() {
+      [].forEach.call(arguments, function(controller) { controller(self); });
+      debug('controllers loaded');
+      resolve();
+    });
   });
 };
 
@@ -162,6 +164,7 @@ App.prototype.bindEvents = function() {
   this.once('storage:checked:healthy', this.geolocationWatch);
   this.once('viewfinder:visible', this.onCriticalPathDone);
   this.once('camera:error', this.onCriticalPathDone);
+  this.once('activity', this.onActivity);
   this.on('camera:willchange', this.firer('busy'));
   this.on('ready', this.clearSpinner);
   this.on('visible', this.onVisible);
@@ -261,16 +264,30 @@ App.prototype.onCriticalPathDone = function() {
   this.emit('criticalpathdone');
 };
 
+/**
+ * Lazy load activity dependencies.
+ *
+ * @private
+ */
+App.prototype.onActivity = function() {
+  if (!this.criticalPathDone) {
+    this.controllers.lazy.push('controllers/confirm');
+  } else {
+    this.loadLazyControllers(['controllers/confirm']);
+  }
+};
+
 App.prototype.loadLazyModules = function() {
   debug('load lazy modules');
-  var done = AllDone();
   var self = this;
 
-  this.loadLazyControllers(done());
-  this.once('storage:checked', done());
+  var load = this.loadLazyControllers(this.controllers.lazy);
+  var storage = new Promise(function(resolve, reject) {
+    self.once('storage:checked', resolve);
+  });
 
   // All done
-  done(function() {
+  Promise.all([load, storage]).then(function() {
     debug('app fully loaded');
 
     // PERFORMANCE MARKER (4): contentInteractive
@@ -364,6 +381,7 @@ App.prototype.localized = function() {
  */
 App.prototype.showSpinner = function(key) {
   debug('show loading type: %s', key);
+  this.busy = true;
 
   var view = this.views.loading;
   if (view) {
@@ -389,6 +407,7 @@ App.prototype.showSpinner = function(key) {
  */
 App.prototype.clearSpinner = function() {
   debug('clear loading');
+  this.busy = false;
   var view = this.views.loading;
   clearTimeout(this.spinnerTimeout);
   if (!view) { return; }
@@ -408,23 +427,9 @@ App.prototype.clearSpinner = function() {
  */
 App.prototype.onBusy = function(type) {
   debug('camera busy, type: %s', type);
+  this.busy = true;
   var delay = this.settings.spinnerTimeouts.get(type);
   if (delay) { this.showSpinner(type); }
-};
-
-/**
- * Clears the loadings screen, or
- * any pending loading screen.
- *
- * @private
- */
-App.prototype.onReady = function() {
-  debug('ready');
-  var view = this.views.loading;
-  clearTimeout(this.spinnerTimeout);
-  if (!view) { return; }
-  view.hide(view.destroy);
-  this.views.loading = null;
 };
 
 /**

@@ -9,6 +9,5 @@ user_pref('b2g.system_manifest_url',
 user_pref('b2g.neterror.url',
           'app://smart-system.gaiamobile.org/net_error.html');
 user_pref('dom.meta-viewport.enabled', false);
-user_pref('dom.presentation.discoverable', true);
-user_pref('dom.presentation.discovery.enabled', true);
 user_pref('dom.presentation.enabled', true);
+user_pref('devtools.useragent.device_type', 'TV');
