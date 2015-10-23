@@ -87,6 +87,16 @@ suite('system/WrapperFactory', function() {
         assert.isFalse(WrapperFactory.publish.calledWith('launchapp'));
       });
 
+      test('Launching a wrapper that happens to also be pinned and opened',
+      function() {
+        mockApp.windowName = '_samescope';
+        config.detail.name = '_blank';
+        MockService.mockQueryWith('AppWindowManager.getApp', mockApp);
+
+        window.dispatchEvent(new CustomEvent('mozbrowseropenwindow', config));
+        assert(WrapperFactory.publish.calledWith('launchapp'));
+      });
+
       test('uses the scope if passed in features', function() {
         var scope = 'fake.com/test2';
         config.detail.features += ',scope=' + scope;
