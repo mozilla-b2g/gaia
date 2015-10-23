@@ -618,6 +618,7 @@ suite('system/LockScreen >', function() {
     var mockThis = {
       locked: false,
       overlayLocked: stubOverlayLocked,
+      playUnlockSound: function() {},
       mainScreen: document.createElement('div'),
       createClockWidget: function() {},
       dispatchEvent: function() {},
@@ -627,6 +628,24 @@ suite('system/LockScreen >', function() {
     };
     method.call(mockThis);
     assert.isTrue(stubOverlayLocked.called);
+  });
+
+  test('Locks the screen: plays the sound if locked', function() {
+    var method = window.LockScreen.prototype.lock;
+    var stubPlayUnlockedSound = this.sinon.stub();
+    var mockThis = {
+      locked: false,
+      overlayLocked: function() {},
+      playUnlockSound: stubPlayUnlockedSound,
+      mainScreen: document.createElement('div'),
+      createClockWidget: function() {},
+      dispatchEvent: function() {},
+      _checkGenerateMaskedBackgroundColor: function() {
+        return false;
+      }
+    };
+    method.call(mockThis);
+    assert.isTrue(stubPlayUnlockedSound.called);
   });
 
   suite('Wallpaper', function() {
