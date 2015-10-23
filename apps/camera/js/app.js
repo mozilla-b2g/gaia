@@ -41,6 +41,7 @@ function App(options) {
   debug('initialize');
   bindAll(this);
   this.views = {};
+  this.dynamicLazy = {};
   this.el = options.el;
   this.win = options.win;
   this.doc = options.doc;
@@ -114,6 +115,23 @@ App.prototype.runControllers = function() {
 };
 
 /**
+ * Load an extra lazy controller. Used for
+ * controllers only needed based on configuration.
+ *
+ * @param {String} controller
+ */
+App.prototype.loadLazyController = function(controller) {
+  if (!this.criticalPathDone) {
+    this.controllers.lazy.push(controller);
+    return;
+  }
+  if (!this.dynamicLazy[controller]) {
+    this.dynamicLazy[controller] = this.loadLazyControllers([controller]);
+  }
+  return this.dynamicLazy[controller];
+};
+
+/**
  * Load and run all the lazy controllers.
  *
  * @param  {Function} done
@@ -125,6 +143,7 @@ App.prototype.loadLazyControllers = function(controllers) {
     self.require(controllers, function() {
       [].forEach.call(arguments, function(controller) { controller(self); });
       debug('controllers loaded');
+      self.emit('lazyloaded');
       resolve();
     });
   });
@@ -165,12 +184,22 @@ App.prototype.bindEvents = function() {
   this.once('viewfinder:visible', this.onCriticalPathDone);
   this.once('camera:error', this.onCriticalPathDone);
   this.once('activity', this.onActivity);
+  this.once('newthumbnail', this.onNewThumbnail);
+  this.once('preview', this.onPreview);
+  this.once('camera:willchange', this.onWillChange);
   this.on('camera:willchange', this.firer('busy'));
   this.on('ready', this.clearSpinner);
   this.on('visible', this.onVisible);
   this.on('hidden', this.onHidden);
   this.on('reboot', this.onReboot);
   this.on('busy', this.onBusy);
+
+  // Settings
+  if (this.settings.countdown.selected('key') !== 'off') {
+    this.onCountdown();
+  } else {
+    this.settings.countdown.once('change:selected', this.onCountdown);
+  }
 
   // Pinch
   this.pinch.on('changed', this.firer('pinch:changed'));
@@ -270,11 +299,28 @@ App.prototype.onCriticalPathDone = function() {
  * @private
  */
 App.prototype.onActivity = function() {
-  if (!this.criticalPathDone) {
-    this.controllers.lazy.push('controllers/confirm');
-  } else {
-    this.loadLazyControllers(['controllers/confirm']);
-  }
+  this.loadLazyController('controllers/confirm');
+};
+
+App.prototype.onCountdown = function() {
+  this.loadLazyController('controllers/countdown');
+};
+
+App.prototype.onNewThumbnail = function() {
+  this.loadLazyController('controllers/preview-gallery');
+};
+
+App.prototype.onPreview = function() {
+  var self = this;
+  this.emit('busy', 'lazyLoading');
+  this.loadLazyController('controllers/preview-gallery').then(function() {
+    self.emit('preview');
+    self.emit('ready');
+  });
+};
+
+App.prototype.onWillChange = function() {
+  this.loadLazyController('controllers/recording-timer');
 };
 
 App.prototype.loadLazyModules = function() {
@@ -296,23 +342,22 @@ App.prototype.loadLazyModules = function() {
     // "above-the-fold" content.
     window.performance.mark('contentInteractive');
 
+    self.loaded = true;
+    self.emit('loaded');
+    self.perf.loaded = Date.now();
+    self.logPerf();
+
     // PERFORMANCE MARKER (5): fullyLoaded
     // Designates that the app is *completely* loaded and all relevant
     // "below-the-fold" content exists in the DOM, is marked visible,
     // has its events bound and is ready for user interaction. All
     // required startup background processing should be complete.
     window.performance.mark('fullyLoaded');
-    self.perf.loaded = Date.now();
-    self.loaded = true;
-    self.emit('loaded');
-    self.logPerf();
   });
 };
 
 App.prototype.logPerf =function() {
   var timing = window.performance.timing;
-  console.log('domloaded: %s',
-    timing.domComplete - timing.domLoading + 'ms');
   console.log('first module: %s',
     this.perf.firstModule - this.perf.jsStarted + 'ms');
   console.log('critical-path: %s',

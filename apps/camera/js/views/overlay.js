@@ -17,9 +17,12 @@ module.exports = View.extend({
   className: 'overlay',
 
   initialize: function(options) {
+    var data = this.getData(options.type);
+    if (!data) { return; }
+
     this.data('type', options.type);
     this.data('closable', options.closable);
-    this.render(options.data);
+    this.render(data);
   },
 
   render: function(data) {
@@ -37,6 +40,10 @@ module.exports = View.extend({
 
     debug('rendered');
     return this.bindEvents();
+  },
+
+  rendered: function() {
+    return this.el.innerHTML.length > 0;
   },
 
   bindEvents: function() {
@@ -57,6 +64,38 @@ module.exports = View.extend({
         '</button>' +
       '</menu>' +
     '</form>';
+  },
+
+  getData: function(type) {
+    var data = {};
+
+    switch (type) {
+      case 'unavailable':
+        data.title = 'nocard2-title';
+        data.body = 'nocard3-text';
+      break;
+      case 'nospace':
+        data.title = 'nospace2-title';
+        data.body = 'nospace2-text';
+      break;
+      case 'shared':
+        data.title = 'pluggedin2-title';
+        data.body = 'pluggedin2-text';
+      break;
+      case 'shutdown':
+        data.title = 'battery-shutdown-title';
+        data.body = 'battery-shutdown-text';
+      break;
+      case 'request-fail':
+        data.title = 'camera-unavailable-title';
+        data.body = 'camera-unavailable-text';
+      break;
+      default:
+        return false;
+    }
+
+    data.closeButtonText = 'close-button';
+    return data;
   },
 
   data: function(key, value) {

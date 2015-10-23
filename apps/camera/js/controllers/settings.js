@@ -8,7 +8,6 @@ define(function(require, exports, module) {
 var formatRecorderProfiles = require('lib/format-recorder-profiles');
 var formatPictureSizes = require('lib/format-picture-sizes');
 var debug = require('debug')('controller:settings');
-var SettingsView = require('views/settings');
 var bindAll = require('lib/bind-all');
 
 /**
@@ -27,13 +26,14 @@ module.exports.SettingsController = SettingsController;
 function SettingsController(app) {
   bindAll(this);
   this.app = app;
+  this.require = app.require;
   this.settings = app.settings;
   this.activity = app.activity;
   this.notification = app.views.notification;
 
   // Provide test hooks
   this.nav = app.nav || navigator;
-  this.SettingsView = app.SettingsView || SettingsView;
+  this.SettingsView = app.SettingsView;
   this.formatPictureSizes = app.formatPictureSizes || formatPictureSizes;
   this.formatRecorderProfiles = app.formatRecorderProfiles ||
     formatRecorderProfiles;
@@ -164,22 +164,31 @@ SettingsController.prototype.toggleSettings = function() {
  */
 SettingsController.prototype.openSettings = function() {
   debug('open settings');
-  if (this.view) { return; }
+  var self = this;
+  this.app.emit('busy', 'lazyLoading');
+  this.require(['views/settings'], function(SettingsView) {
+    self.app.emit('ready');
 
-  var items = this.menuItems();
-  this.view = new this.SettingsView({ items: items })
-    .render()
-    .appendTo(this.app.el)
-    .on('click:close', this.closeSettings)
-    .on('click:option', this.onOptionTap);
+    if (!self.SettingsView) {
+      self.SettingsView = SettingsView;
+    }
+    if (self.view) { return; }
 
-  // Make sure the view is
-  // hidden before fading in
-  this.view.hide();
-  this.view.fadeIn();
+    var items = self.menuItems();
+    self.view = new self.SettingsView({ items: items })
+      .render()
+      .appendTo(self.app.el)
+      .on('click:close', self.closeSettings)
+      .on('click:option', self.onOptionTap);
 
-  this.app.emit('settings:opened');
-  debug('settings opened');
+    // Make sure the view is
+    // hidden before fading in
+    self.view.hide();
+    self.view.fadeIn();
+
+    self.app.emit('settings:opened');
+    debug('settings opened');
+  });
 };
 
 /**

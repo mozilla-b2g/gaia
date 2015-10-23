@@ -362,9 +362,11 @@ Storage.prototype.deletePicture = function(filepath, done) {
     done(message);
   };
 
-  req.onsuccess = function() {
-    done(null);
-  };
+  if (done) {
+    req.onsuccess = function() {
+      done(null);
+    };
+  }
 };
 
 /**

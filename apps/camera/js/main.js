@@ -58,10 +58,8 @@ var app = window.app = new App({
     lazy: [
       'controllers/zoom-bar',
       'controllers/indicators',
-      'controllers/recording-timer',
-      'controllers/preview-gallery',
-      'controllers/sounds',
-      'controllers/countdown'
+      'controllers/media',
+      'controllers/sounds'
     ]
   }
 });
