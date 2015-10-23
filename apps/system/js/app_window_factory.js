@@ -107,7 +107,7 @@
         }
         return;
       }
-      if (!detail.url && !detail.manifestURL) {
+      if (detail.url == null && !detail.manifestURL) {
         return;
       }
 
@@ -200,7 +200,7 @@
       }
 
       var app = Service.query('getApp', config.origin, config.manifestURL);
-      if (app) {
+      if (app && config.name !== '_blank') {
         if (config.evtType == 'appopenwindow') {
           app.browser.element.src = config.url;
         }
