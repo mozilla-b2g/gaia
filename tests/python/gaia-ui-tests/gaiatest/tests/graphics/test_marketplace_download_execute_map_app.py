@@ -3,10 +3,9 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 import time
 
-from marionette_driver import Wait, By
+from marionette_driver import By
 
 from gaiatest.gaia_graphics_test import GaiaImageCompareTestCase
-from gaiatest.apps.homescreen.app import Homescreen
 from gaiatest.apps.marketplace.app import Marketplace
 from gaiatest.apps.homescreen.regions.confirm_install import ConfirmInstall
 
@@ -17,7 +16,7 @@ class TestSearchMarketplaceAndInstallApp(GaiaImageCompareTestCase):
     """
     app_search = 'Bing Maps :packaged'
     app_title = 'Bing Maps'
-    draw_wait_time = 5
+    draw_wait_time = 10
 
     _map_locator = (By.ID, 'MobileMap')
     _zoom_in_locator = (By.ID, 'zoomin')
@@ -34,62 +33,37 @@ class TestSearchMarketplaceAndInstallApp(GaiaImageCompareTestCase):
 
         results = marketplace.search(self.app_search)
         first_result = results.search_results[0]
-        app_name = first_result.get_app_name()
         first_result.tap_install_button()
-
-        # Confirm the installation and wait for the app icon to be present
         confirm_install = ConfirmInstall(self.marionette)
         confirm_install.tap_confirm()
 
-        self.assertEqual(self.apps.displayed_app.name, 'Marketplace')
+        results = marketplace.get_current_displayed_result()
+        first_result = results.search_results[0]
+        first_result.tap_open_app_button(self.app_title,self._map_locator)
 
-        self.device.touch_home_button()
-
-        # Check that the icon of the app is on the homescreen
-        homescreen = Homescreen(self.marionette)
-        homescreen.wait_for_app_icon_present(app_name)
-
-        installed_app = homescreen.installed_app(app_name)
-        installed_app.tap_icon()
-
-        Wait(self.marionette).until(lambda m: m.title == self.app_title)
-        bingmap = self.marionette.find_element(*self._map_locator)
-        Wait(self.marionette).until(lambda m: bingmap.is_displayed())
-        time.sleep(self.draw_wait_time)
-        self.take_screenshot()
-
-        # once the map is completely loaded, use the UI to render different views
-        # zoom in
+        self.take_screenshot(prewait=self.draw_wait_time)
         self.marionette.find_element(*self._zoom_in_locator).tap()
-        time.sleep(self.draw_wait_time)
-        self.take_screenshot()
+        self.take_screenshot(prewait=self.draw_wait_time)
         self.marionette.find_element(*self._zoom_in_locator).tap()
-        time.sleep(self.draw_wait_time)
-        self.take_screenshot()
+        self.take_screenshot(prewait=self.draw_wait_time)
         self.marionette.find_element(*self._zoom_in_locator).tap()
-        time.sleep(self.draw_wait_time)
-        self.take_screenshot()
+        self.take_screenshot(prewait=self.draw_wait_time)
 
         # move around
         GaiaImageCompareTestCase.scroll(self.marionette, 'right',
                                         100, locator=self._map_locator)
 
-        time.sleep(self.draw_wait_time)
-        self.take_screenshot()
+        self.take_screenshot(prewait=self.draw_wait_time)
         GaiaImageCompareTestCase.scroll(self.marionette, 'down',
                                         100, locator=self._map_locator)
 
-        time.sleep(self.draw_wait_time)
-        self.take_screenshot()
+        self.take_screenshot(prewait=self.draw_wait_time)
 
         # zoom out
         self.marionette.find_element(*self._zoom_out_locator).tap()
-        time.sleep(self.draw_wait_time)
-        self.take_screenshot()
+        self.take_screenshot(prewait=self.draw_wait_time)
         self.marionette.find_element(*self._zoom_out_locator).tap()
-        time.sleep(self.draw_wait_time)
-        self.take_screenshot()
+        self.take_screenshot(prewait=self.draw_wait_time)
         self.marionette.find_element(*self._zoom_out_locator).tap()
-        time.sleep(self.draw_wait_time)
-        self.take_screenshot()
+        self.take_screenshot(prewait=self.draw_wait_time)
 
