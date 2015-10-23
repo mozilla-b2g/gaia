@@ -32,7 +32,7 @@ const PAGES_ICON_SIZE = 30;
 
     // Signal handlers
     this.pages.addEventListener('click', this);
-    this.pages.addEventListener('contextmenu', this);
+    this.pages.addEventListener('keydown', this);
     this.pages.addEventListener('drag-start', this);
     this.pages.addEventListener('drag-move', this);
     this.pages.addEventListener('drag-end', this);
@@ -144,6 +144,11 @@ const PAGES_ICON_SIZE = 30;
 
     addPinnedPage: function(page) {
       var pinCard = document.createElement('gaia-pin-card');
+
+      // Make the card accessible/allow activation
+      pinCard.tabIndex = 0;
+      pinCard.setAttribute('role', 'link');
+
       this.updatePinnedPage(pinCard, page);
       this.pages.appendChild(pinCard);
 
@@ -153,33 +158,38 @@ const PAGES_ICON_SIZE = 30;
       }
     },
 
+    launchCard: function(card) {
+      var features = {
+        name: card.title,
+        icon: card.icon,
+        remote: true
+      };
+
+      window.open(card.dataset.id, '_blank', Object.keys(features).map(
+        key => encodeURIComponent(key) + '=' + encodeURIComponent(features[key])
+      ).join(','));
+    },
+
     handleEvent: function(e) {
       switch (e.type) {
       case 'click':
         if (e.target.nodeName !== 'GAIA-PIN-CARD') {
-          return;
+          break;
         }
 
-        var features = {
-          name: e.target.title,
-          icon: e.target.icon,
-          remote: true
-        };
-
-        window.open(e.target.dataset.id, '_blank', Object.keys(features).
-          map(function eachFeature(key) {
-            return encodeURIComponent(key) + '=' +
-              encodeURIComponent(features[key]);
-          }).join(','));
+        this.launchCard(e.target);
         break;
 
-      case 'contextmenu':
+      case 'keydown':
         if (e.target.nodeName !== 'GAIA-PIN-CARD') {
-          return;
+          break;
         }
 
-        e.preventDefault();
-        e.stopImmediatePropagation();
+        switch (e.keyCode) {
+          case 32: // Space
+          case 13: // Enter
+            this.launchCard(e.target);
+        }
         break;
 
       case 'drag-start':

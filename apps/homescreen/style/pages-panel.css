@@ -91,6 +91,7 @@ div#boxes > div:nth-child(3) {
   width: calc(50vw - 1.5vw - 0.75rem);
   height: 16.5rem;
   padding: 0 0 1.5rem 1.5rem;
+  outline: 0;
 }
 
 #pages gaia-pin-card.unpinning {
