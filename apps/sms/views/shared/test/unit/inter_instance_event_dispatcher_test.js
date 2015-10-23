@@ -73,11 +73,11 @@ suite('InterInstanceEventDispatcher >', function() {
     BroadcastChannel.prototype.postMessage.reset();
 
     var onDraftsChangedStub = sinon.stub();
-    InterInstanceEventDispatcher.on('drafts-changed', onDraftsChangedStub);
+    InterInstanceEventDispatcher.on('draft-saved', onDraftsChangedStub);
 
     BroadcastChannel.prototype.addEventListener.withArgs('message').yield({
       data: {
-        name: 'drafts-changed',
+        name: 'draft-saved',
         parameters: { key: 'value' }
       }
     });
@@ -86,7 +86,7 @@ suite('InterInstanceEventDispatcher >', function() {
 
     BroadcastChannel.prototype.addEventListener.withArgs('message').yield({
       data: {
-        name: 'drafts-changed',
+        name: 'draft-saved',
         parameters: { key: 'value#2' }
       }
     });
@@ -99,7 +99,7 @@ suite('InterInstanceEventDispatcher >', function() {
 
   test('correctly handles outgoing BroadcastChannel messages', function() {
     var onDraftsChangedStub = sinon.stub();
-    InterInstanceEventDispatcher.on('drafts-changed', onDraftsChangedStub);
+    InterInstanceEventDispatcher.on('draft-saved', onDraftsChangedStub);
 
     assert.throws(() => {
       InterInstanceEventDispatcher.emit('something-changed');
@@ -107,13 +107,13 @@ suite('InterInstanceEventDispatcher >', function() {
 
     InterInstanceEventDispatcher.disconnect();
     assert.throws(() => {
-      InterInstanceEventDispatcher.emit('drafts-changed', { key: 'value' });
+      InterInstanceEventDispatcher.emit('draft-saved', { key: 'value' });
     }, 'Channel is not created!');
     InterInstanceEventDispatcher.connect();
 
-    InterInstanceEventDispatcher.emit('drafts-changed', { key: 'value' });
+    InterInstanceEventDispatcher.emit('draft-saved', { key: 'value' });
     sinon.assert.calledWith(BroadcastChannel.prototype.postMessage, {
-      name: 'drafts-changed',
+      name: 'draft-saved',
       parameters: { key: 'value' }
     });
     sinon.assert.notCalled(onDraftsChangedStub, 'Does not broadcast to itself');

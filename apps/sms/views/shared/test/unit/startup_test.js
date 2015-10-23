@@ -1,4 +1,5 @@
 /*global App,
+         Drafts,
          InboxView,
          LazyLoader,
          MessageManager,
@@ -12,6 +13,7 @@
 require('/views/shared/js/app.js');
 
 require('/services/test/unit/mock_message_manager.js');
+require('/services/test/unit/mock_drafts.js');
 require('/views/shared/test/unit/mock_navigation.js');
 require('/views/shared/test/unit/mock_inbox.js');
 require('/views/shared/js/utils.js');
@@ -20,6 +22,7 @@ require('/views/shared/test/unit/mock_utils.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 
 var mocksHelper = new MocksHelper([
+  'Drafts',
   'MessageManager',
   'LazyLoader',
   'Navigation',
@@ -59,6 +62,7 @@ suite('Startup >', function() {
     this.sinon.stub(Navigation, 'isDefaultPanel');
     this.sinon.stub(App, 'setReady');
     this.sinon.spy(Utils, 'initializeShimHost');
+    this.sinon.stub(Drafts, 'init');
   });
 
   test('if target panel is default one', function() {
@@ -72,6 +76,7 @@ suite('Startup >', function() {
     sinon.assert.callOrder(
       Utils.initializeShimHost,
       MessageManager.init,
+      Drafts.init,
       InboxView.init,
       Navigation.init,
       InboxView.renderThreads

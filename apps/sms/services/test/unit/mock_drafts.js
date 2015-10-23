@@ -5,6 +5,7 @@
 'use strict';
 
 var MockDrafts = {
+  init: () => {},
   add: function() { return this; },
   delete: function() { return this; },
   byThreadId: () => null,

@@ -107,12 +107,43 @@ suite('Drafts', function() {
     mocksHelper.suiteTeardown();
   });
 
+  suite('init() >', function() {
+    var savedHandler;
+    var deletedHandler;
+
+    setup(function() {
+      this.sinon.spy(InterInstanceEventDispatcher, 'on');
+      this.sinon.stub(Drafts, 'request').returns(Promise.resolve());
+      this.sinon.stub(Drafts, 'emit');
+      Drafts.init();
+      savedHandler = InterInstanceEventDispatcher.on.firstCall.args[1];
+      deletedHandler = InterInstanceEventDispatcher.on.secondCall.args[1];
+    });
+
+    test('draft-saved will be dispatched as saved', function(done) {
+      sinon.assert.calledWith(InterInstanceEventDispatcher.on, 'draft-saved');
+      savedHandler(threadDraft1).then(() => {
+        sinon.assert.calledWith(Drafts.request, true);
+        sinon.assert.calledWith(Drafts.emit, 'saved', threadDraft1);
+      }).then(done, done);
+    });
+
+    test('draft-deleted will be dispatched as deleted', function(done) {
+      sinon.assert.calledWith(InterInstanceEventDispatcher.on, 'draft-deleted');
+      deletedHandler(threadDraft2).then(() => {
+        sinon.assert.calledWith(Drafts.request, true);
+        sinon.assert.calledWith(Drafts.emit, 'deleted', threadDraft2);
+      }).then(done, done);
+    });
+  });
+
   suite('add() >', function() {
     var onSavedStub;
 
     setup(function() {
       onSavedStub = sinon.stub();
       Drafts.on('saved', onSavedStub);
+      this.sinon.spy(InterInstanceEventDispatcher, 'emit');
     });
 
     teardown(function() {
@@ -127,6 +158,11 @@ suite('Drafts', function() {
 
       sinon.assert.calledOnce(onSavedStub);
       sinon.assert.calledWith(onSavedStub, threadDraft1);
+      sinon.assert.calledWith(
+        InterInstanceEventDispatcher.emit,
+        'draft-saved',
+        threadDraft1
+      );
 
       Drafts.add(threadDraft2);
 
@@ -135,6 +171,11 @@ suite('Drafts', function() {
 
       sinon.assert.calledTwice(onSavedStub);
       sinon.assert.calledWith(onSavedStub, threadDraft2);
+      sinon.assert.calledWith(
+        InterInstanceEventDispatcher.emit,
+        'draft-saved',
+        threadDraft2
+      );
     });
 
     test('correctly adds thread less drafts', function() {
@@ -145,6 +186,11 @@ suite('Drafts', function() {
 
       sinon.assert.calledOnce(onSavedStub);
       sinon.assert.calledWith(onSavedStub, draft1);
+      sinon.assert.calledWith(
+        InterInstanceEventDispatcher.emit,
+        'draft-saved',
+        draft1
+      );
 
       Drafts.add(draft2);
 
@@ -153,6 +199,11 @@ suite('Drafts', function() {
 
       sinon.assert.calledTwice(onSavedStub);
       sinon.assert.calledWith(onSavedStub, draft2);
+      sinon.assert.calledWith(
+        InterInstanceEventDispatcher.emit,
+        'draft-saved',
+        draft2
+      );
     });
 
     test('add draft of same threadId replaces previous', function() {
@@ -163,6 +214,11 @@ suite('Drafts', function() {
 
       sinon.assert.calledOnce(onSavedStub);
       sinon.assert.calledWith(onSavedStub, threadDraft2);
+      sinon.assert.calledWith(
+        InterInstanceEventDispatcher.emit,
+        'draft-saved',
+        threadDraft2
+      );
 
       var updatedDraft = new Draft({
         recipients: ['555'],
@@ -179,6 +235,11 @@ suite('Drafts', function() {
 
       sinon.assert.calledTwice(onSavedStub);
       sinon.assert.calledWith(onSavedStub, updatedDraft);
+      sinon.assert.calledWith(
+        InterInstanceEventDispatcher.emit,
+        'draft-saved',
+        updatedDraft
+      );
     });
 
     test('add threadless draft of same draft.id replaces previous', function() {
@@ -189,6 +250,11 @@ suite('Drafts', function() {
 
       sinon.assert.calledOnce(onSavedStub);
       sinon.assert.calledWith(onSavedStub, draft1);
+      sinon.assert.calledWith(
+        InterInstanceEventDispatcher.emit,
+        'draft-saved',
+        draft1
+      );
 
       var updatedDraft = new Draft({
         recipients: ['555', '444'],
@@ -209,6 +275,11 @@ suite('Drafts', function() {
 
       sinon.assert.calledTwice(onSavedStub);
       sinon.assert.calledWith(onSavedStub, updatedDraft);
+      sinon.assert.calledWith(
+        InterInstanceEventDispatcher.emit,
+        'draft-saved',
+        updatedDraft
+      );
     });
   });
 
@@ -222,6 +293,7 @@ suite('Drafts', function() {
       [threadDraft1, threadDraft2, threadDraft5, draft2].forEach(
         Drafts.add, Drafts
       );
+      this.sinon.spy(InterInstanceEventDispatcher, 'emit');
     });
 
     teardown(function() {
@@ -236,6 +308,11 @@ suite('Drafts', function() {
 
       sinon.assert.calledOnce(onDeletedStub);
       sinon.assert.calledWith(onDeletedStub, threadDraft1);
+      sinon.assert.calledWith(
+        InterInstanceEventDispatcher.emit,
+        'draft-deleted',
+        threadDraft1
+      );
     });
 
     test('Deleting new message drafts', function() {
@@ -250,12 +327,22 @@ suite('Drafts', function() {
 
       sinon.assert.calledOnce(onDeletedStub);
       sinon.assert.calledWith(onDeletedStub, threadDraft5);
+      sinon.assert.calledWith(
+        InterInstanceEventDispatcher.emit,
+        'draft-deleted',
+        threadDraft5
+      );
 
       // The last draft in the thread removes the thread from the index
       assert.isNull(Drafts.delete(draft2).byDraftId(draft2.id));
 
       sinon.assert.calledTwice(onDeletedStub);
       sinon.assert.calledWith(onDeletedStub, draft2);
+      sinon.assert.calledWith(
+        InterInstanceEventDispatcher.emit,
+        'draft-deleted',
+        draft2
+      );
     });
 
     test('delete by non-draft object', function() {
@@ -283,6 +370,11 @@ suite('Drafts', function() {
 
       sinon.assert.calledOnce(onDeletedStub);
       sinon.assert.calledWith(onDeletedStub, draftToDelete);
+      sinon.assert.calledWith(
+        InterInstanceEventDispatcher.emit,
+        'draft-deleted',
+        draftToDelete
+      );
     });
 
     test('does not fire "deleted" event if nothing was deleted', function() {
@@ -290,6 +382,7 @@ suite('Drafts', function() {
       Drafts.delete(draft1);
 
       sinon.assert.notCalled(onDeletedStub);
+      sinon.assert.notCalled(InterInstanceEventDispatcher.emit);
     });
   });
 
@@ -531,24 +624,6 @@ suite('Drafts', function() {
       Drafts.request().then(function() {
         assert.equal(Drafts.size, 0);
       }).then(done, done);
-    });
-
-    test('When drafts are stored', function(done) {
-      this.sinon.spy(InterInstanceEventDispatcher, 'emit');
-      this.sinon.stub(asyncStorage, 'setItem');
-
-      Drafts.store().then(() => {
-        sinon.assert.calledWith(
-          InterInstanceEventDispatcher.emit, 'drafts-changed'
-        );
-      }).then(done, done);
-
-      sinon.assert.notCalled(
-        InterInstanceEventDispatcher.emit,
-        'Should not be called until drafts are really saved'
-      );
-
-      asyncStorage.setItem.yield();
     });
 
     suite('drafts index cache >', function() {

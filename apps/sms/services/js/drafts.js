@@ -40,6 +40,20 @@
     },
 
     /**
+     * Initialize the InterInstanceEventDispatcher and relay the draft
+     * saved/deleted events from another instance.
+     */
+    init() {
+      InterInstanceEventDispatcher.on('draft-saved', (draft) =>
+        this.request(true).then(() => this.emit('saved', draft))
+      );
+
+      InterInstanceEventDispatcher.on('draft-deleted', (draft) =>
+        this.request(true).then(() => this.emit('deleted', draft))
+      );
+    },
+
+    /**
      * Pushes a Draft instance to the Drafts in-memory collection and commits
      * it to the persistent storage.
      * @param  {Draft} draft Draft instance.
@@ -58,6 +72,7 @@
       draftIndex.set(draft.threadId, drafts);
 
       this.emit('saved', draft);
+      InterInstanceEventDispatcher.emit('draft-saved', draft);
 
       return this;
     },
@@ -96,7 +111,10 @@
         }
       }
 
-      isDeleted && this.emit('deleted', draft);
+      if (isDeleted) {
+        this.emit('deleted', draft);
+        InterInstanceEventDispatcher.emit('draft-deleted', draft);
+      }
 
       return this;
     },
@@ -174,7 +192,6 @@
       var defer = Utils.Promise.defer();
 
       asyncStorage.setItem('draft index', [...draftIndex], () => {
-        InterInstanceEventDispatcher.emit('drafts-changed');
         defer.resolve();
       });
 

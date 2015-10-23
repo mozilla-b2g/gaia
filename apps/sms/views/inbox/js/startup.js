@@ -1,5 +1,6 @@
 /* global App,
           ConversationClient,
+          Drafts,
           InboxView,
           InterInstanceEventDispatcher,
           LazyLoader,
@@ -39,6 +40,7 @@
       ConversationClient.init(App.instanceId);
       MessageManager.init();
       Navigation.init();
+      Drafts.init();
       InboxView.init();
 
       InboxView.once('visually-loaded', () => {
