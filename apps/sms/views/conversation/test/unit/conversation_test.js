@@ -2425,9 +2425,9 @@ suite('conversation.js >', function() {
 
     tests.forEach(({ delay, name, l10nId }) => {
       var testTitle = name + ' delay';
-      testTitle += l10nId ? 
+      testTitle += l10nId ?
         (' displays ' + l10nId) : ' does not display late notice';
-      
+
       test(testTitle, function(done) {
         this.sinon.clock.tick(10 * MONTH);
         var now = Date.now();
@@ -6654,11 +6654,11 @@ suite('conversation.js >', function() {
   function beforeEnterGeneralTests(getTransitionArgs) {
     suite('beforeEnter()', function() {
       var transitionArgs;
-      var header, editHeader;
+      var header, simPicker;
 
       setup(function(done) {
         header = document.getElementById('messages-header');
-        editHeader = document.getElementById('messages-edit-header');
+        simPicker = document.getElementById('sim-picker');
 
         transitionArgs = getTransitionArgs();
         this.sinon.spy(MockLazyLoader, 'load');
@@ -6666,7 +6666,9 @@ suite('conversation.js >', function() {
 
         /* make sure that the test for font-fit is meaningful */
         assert.isTrue(header.hasAttribute('no-font-fit'));
-        assert.isTrue(editHeader.hasAttribute('no-font-fit'));
+
+        /* make sure that sim picker element is hidden before enter */
+        assert.isTrue(simPicker.classList.contains('hide'));
         ConversationView.beforeEnter(transitionArgs).then(done, done);
       });
 
@@ -6681,7 +6683,10 @@ suite('conversation.js >', function() {
 
       test('enables the font-fit algorithm in headers', function() {
         assert.isFalse(header.hasAttribute('no-font-fit'));
-        assert.isFalse(editHeader.hasAttribute('no-font-fit'));
+      });
+
+      test('display the sim picker element', function() {
+        assert.isFalse(simPicker.classList.contains('hide'));
       });
 
       test('initializes MultiSimActionButton', function() {

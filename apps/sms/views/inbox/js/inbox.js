@@ -148,7 +148,6 @@ var InboxView = {
   },
 
   beforeEnter: function inbox_beforeEnter(args = {}) {
-    this.editHeader.removeAttribute('no-font-fit');
     // In case user saved draft when Inbox was not the active view, we want to
     // notify that save operation successfully completed once user returns back
     // to Inbox view.
@@ -566,8 +565,17 @@ var InboxView = {
       this.mainWrapper.classList.toggle('edit');
     }
 
+    this.editHeader.removeAttribute('no-font-fit');
+
     if (!this.selectionHandler) {
-      LazyLoader.load('/views/shared/js/selection_handler.js', () => {
+      LazyLoader.load([
+        '/views/shared/js/selection_handler.js',
+        '/shared/style/edit_mode.css',
+        '/shared/style/switches.css',
+        '/views/shared/style/edit-mode.css',
+        '/shared/style/tabs.css',
+        '/views/inbox/style/edit-mode.css'
+        ], () => {
         this.selectionHandler = new SelectionHandler({
           // Elements
           container: this.container,
@@ -578,6 +586,7 @@ var InboxView = {
           getIdIterator: this.getIdIterator.bind(this),
           isInEditMode: this.isInEditMode.bind(this)
         });
+        this.editForm.classList.remove('hide');
         editModeSetup.call(this);
       });
     } else {
