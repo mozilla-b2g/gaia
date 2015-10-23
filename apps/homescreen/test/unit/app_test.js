@@ -466,6 +466,17 @@ suite('Homescreen app', () => {
       assert.isTrue(getIconBlobSpy.called);
       getIconBlobSpy.restore();
     });
+
+    test('icon activated signal should be forwarded', () => {
+      var event;
+      var handleEventStub = sinon.stub(app, 'handleEvent', e => { event = e; });
+      app.addAppIcon({ id: 'abc', manifestURL: 'def' });
+      gaiaAppIconEl.dispatchEvent(new CustomEvent('activated'));
+
+      assert.isTrue(handleEventStub.called);
+      assert.equal(event.type, 'activate');
+      handleEventStub.restore();
+    });
   });
 
   suite('App#storeAppOrder()', () => {
