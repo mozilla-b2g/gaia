@@ -232,19 +232,38 @@ suite('system/launcher', function() {
     test('Should trigger Ftu if we are upgrading now',
       function(done) {
         this.sinon.spy(subject.service, 'request');
-        setLaunchConfig(false, 'ftu', {
-          major: 3,
-          minor: 0
-        }, {
-          major: 2,
-          minor: 2
-        }, 'home', true);
+        setLaunchConfig(false, 'ftu',
+                        '3.0.0-release', '2.2.0-release', 'home', true);
+        this.sinon.spy(subject, 'checkUpgrading');
         subject.start().then(function() {
+          assert.isTrue(subject.checkUpgrading.calledOnce);
+          assert.ok(subject.checkUpgrading.firstCall.returnValue);
           assert.isTrue(
             subject.service.request.calledWith('FtuLauncher:launch', 'ftu'));
           assert.isTrue(subject.justUpgraded());
-          done();
-        });
+        }).then(done, function(ex) { done(ex); });
       });
+  });
+
+  suite('checkUpgrading', function() {
+    test('no previous version', function() {
+      var isUpgrading = subject.checkUpgrading('3.0.0-release', null);
+      assert.isFalse(isUpgrading);
+    });
+    test('sub-point upgrade', function() {
+      var isUpgrading = subject.checkUpgrading(
+        '3.0.1-release', '3.0.0-release');
+      assert.isFalse(isUpgrading);
+    });
+    test('point upgrade', function() {
+      var isUpgrading = subject.checkUpgrading(
+        '3.1.1-release', '3.0.0-release');
+      assert.isTrue(isUpgrading);
+    });
+    test('major version upgrade', function() {
+      var isUpgrading = subject.checkUpgrading(
+        '3.1.1-release', '2.2.0-release');
+      assert.isTrue(isUpgrading);
+    });
   });
 });
