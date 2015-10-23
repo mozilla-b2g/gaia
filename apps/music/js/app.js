@@ -328,7 +328,8 @@ function onActivity(activity) {
   window.activity = activity;
 
   if (activity.source.name === 'open') {
-    client.method('openExternalFile', activity.source.data.blob);
+    client.method('openExternalFile', activity.source.data.blob,
+                  activity.source.data.filename);
   }
 
   setBackButtonHidden(false);
