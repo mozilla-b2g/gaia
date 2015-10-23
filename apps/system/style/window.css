@@ -7,21 +7,8 @@
   pointer-events: none;
 }
 
-.appWindow:not(.homescreen):not(.searchWindow):not(.lockScreenInputWindow):not(.globalOverlayWindow) {
-  background-color: black;
-}
-
-.appWindow.popupWindow {
-  background-color: white;
-}
-
 .appWindow.popupWindow.alwaysLowered {
   display: none;
-}
-
-.appWindow:not(.homescreen):not(.searchWindow).render {
-  background-image: none !important;
-  background-color: transparent;
 }
 
 /* Utility tray needs to be actionable on the attention screen */
@@ -38,10 +25,6 @@
   pointer-events: auto;
 }
 
-.appWindow:not(.homescreen):not(.searchWindow):not(.globalOverlayWindow).light {
-  background-color: #fff;
-}
-
 /* mozbrowser iframe layout */
 
 .appWindow iframe {
@@ -54,16 +37,9 @@
   background-size: auto 0.3rem;
 }
 
-.appWindow:not(.homescreen):not(.searchWindow):not(.globalOverlayWindow).render > div.browser-container {
-  background-color: #fff;
-}
-
-.appWindow:not(.homescreen):not(.searchWindow):not(.globalOverlayWindow).light.render > div.browser-container {
-  background-color: #f2f2f2;
-}
-
-.appWindow:not(.homescreen):not(.searchWindow):not(.globalOverlayWindow).render > div.browser-container > iframe {
-  background-color: #fff;
+.appWindow .browser-container {
+  background-repeat: no-repeat;
+  background-position: center center;
 }
 
 .appWindow.enlarge {
@@ -253,16 +229,11 @@ html[dir="rtl"] .appWindow.invoked {
   transition: transform 0.25s cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
-.appWindow iframe {
-  visibility: visible;
-}
-
 .appWindow[transition-state="closed"]:not(.toaster-mode) > div.browser-container > iframe {
   visibility: hidden;
 }
 
 .appWindow > .fade-overlay {
-  background-color: black;
   visibility: hidden;
   opacity: 0.8;
 }
@@ -352,10 +323,6 @@ html[dir="rtl"] .appWindow.invoked {
 
 .appWindow .screenshot-overlay.visible {
   visibility: visible;
-}
-
-.appWindow.collapsible .screenshot-overlay {
-  background-color: inherit;
 }
 
 /* Bug 1071235: Workaround for bug 1076783 */
@@ -683,3 +650,69 @@ html[dir="rtl"] .appWindow.invoked {
   background: none;
   pointer-events: none;
 }
+
+/*****************************************************************************\
+| Window Background Color
+|
+| AppWindow background color varies based on the content lifecycle, or based
+| on some exposed APIs that let content have more or less control over it.
+|
+| Content lifecycle:
+|   - Cold-launch
+|     * Before the app is first rendered
+|     * After the app is first rendered
+|
+| So far content lifecycle is pretty simple and there is a single rule related
+| to it. Once content has been first rendered, the .render class is used to
+| represent this state.
+|
+\*****************************************************************************/
+.appWindow:not(.homescreen):not(.searchWindow):not(.lockScreenInputWindow):not(.globalOverlayWindow) {
+  background-color: black;
+}
+
+.appWindow:not(.searchWindow):not(.lockScreenInputWindow):not(.globalOverlayWindow).browser[loading-state=true],
+.appWindow:not(.homescreen):not(.searchWindow):not(.lockScreenInputWindow):not(.globalOverlayWindow).render {
+  background-color: white;
+}
+
+.appWindow:not(.homescreen):not(.searchWindow):not(.lockScreenInputWindow):not(.globalOverlayWindow).light.render {
+  background-color: #f2f2f2;
+}
+
+.appWindow.collapsible .screenshot-overlay {
+  background-color: inherit;
+}
+
+/* Ensure PopupWindow inherits the background color of their parents. See bug 1132418#c3 */
+.appWindow:not(.homescreen):not(.searchWindow):not(.lockScreenInputWindow):not(.globalOverlayWindow).render .popupWindow {
+  background-color: transparent;
+}
+
+.appWindow:not(.homescreen):not(.searchWindow):not(.lockScreenInputWindow):not(.globalOverlayWindow).render .popupWindow > div > iframe {
+  background-color: white;
+}
+
+/*****************************************************************************\
+| The background_color field in the manifest, is one of the API that is
+| offered to the content, to alter the default background color.
+| The background_color field allow to alter the default color *before* the app
+| is first rendered.
+\************************:*****************************************************/
+.appWindow:not(.homescreen):not(.searchWindow):not(.lockScreenInputWindow):not(.globalOverlayWindow) > div.browser-container {
+  background-color: inherit;
+}
+
+.appWindow:not(.homescreen):not(.searchWindow):not(.lockScreenInputWindow):not(.globalOverlayWindow) > div.browser-container > iframe {
+  background-color: transparent;
+}
+
+.appWindow:not(.homescreen):not(.searchWindow):not(.lockScreenInputWindow):not(.globalOverlayWindow).render > div.browser-container > iframe {
+  background-color: inherit;
+}
+
+/* General rules */
+.appWindow > .fade-overlay {
+  background-color: black;
+}
+

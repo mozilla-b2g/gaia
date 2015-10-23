@@ -77,8 +77,15 @@ suite('system/AppChrome', function() {
     url: 'http://google.com/index.html',
     origin: 'app://google.com',
     chrome: {
-      scrollable: true
+      scrollable: true,
+      navigation: true
     }
+  };
+
+  var fakeWrapperConfig = {
+    url: 'http://www.fake5/index.html',
+    origin: 'http://www.fake5',
+    title: 'Fakebook'
   };
 
   var fakeWebApp = {
@@ -90,6 +97,28 @@ suite('system/AppChrome', function() {
     },
     chrome: {
       scrollable: true
+    }
+  };
+
+  var fakeStandaloneApp = {
+    url: 'app://communications.gaiamobile.org/dialer/index.html',
+    name: 'Phone',
+    manifest: {name: 'Dialer'},
+    manifestURL: 'app://communications.gaiamobile.org/manifest.webapp',
+    origin: 'app://communications.gaiamobile.org',
+    chrome: {
+      navigation: false,
+      scrollable: false
+    }
+  };
+
+  var fakeStandaloneWebApp = {
+    url: 'http://example.com/index.html',
+    webManifestURL: 'http://example.com/manifest.webmanifest',
+    webManifest: {
+      'name': 'Example Web App',
+      'short_name': 'Example',
+      'display': 'standalone'
     }
   };
 
@@ -136,6 +165,12 @@ suite('system/AppChrome', function() {
     chrome: {
       maximized: true
     }
+  };
+
+  var fakePopupConfig = {
+    'url': 'app://popup.gaiamobile.org/popup.html',
+    'name': 'Fake Popup',
+    'origin': 'app://popup.gaiamobile.org'
   };
 
   var fadeTransitionEndEvent = new CustomEvent('transitionend');
@@ -309,31 +344,118 @@ suite('system/AppChrome', function() {
 
     test('location changed - without navigation', function() {
       var app = new AppWindow(fakeAppWithName);
-      var chrome = new AppChrome(app);
       this.sinon.stub(app, 'isBrowser').returns(false);
-      var stub1 = this.sinon.stub(app, 'canGoForward');
-      var stub2 = this.sinon.stub(app, 'canGoBack');
 
       var evt = new CustomEvent('_locationchange');
       app.element.dispatchEvent(evt);
 
-      stub1.getCall(0).args[0](true);
-      assert.equal(chrome.forwardButton.disabled, true);
-      stub1.getCall(0).args[0](false);
-      assert.equal(chrome.forwardButton.disabled, true);
-
-      stub2.getCall(0).args[0](true);
-      assert.equal(chrome.backButton.disabled, true);
-      stub2.getCall(0).args[0](false);
-      assert.equal(chrome.backButton.disabled, true);
+      var chromeEventSpy = this.sinon.stub(AppChrome.prototype, 'handleEvent');
+      assert.isTrue(chromeEventSpy.notCalled);
     });
   });
 
-
-  suite('Navigation events', function() {
+  suite('Navigation events - Standalone App', function() {
     setup(function() {
+      app = new AppWindow(fakeStandaloneApp);
+      chrome = new AppChrome(app);
+    });
+
+    test('Ensure navigation events are not dispatched', function() {
+      var events = [
+        'mozbrowserloadstart',
+        'mozbrowserloadend',
+        'mozbrowsererror',
+        'mozbrowserscrollareachanged',
+        '_locationchange',
+        '_loading',
+        '_loaded',
+        '_securitychange'
+      ];
+
+      this.sinon.stub(chrome, 'handleEvent');
+      events.forEach(function(type) {
+        var evt = new CustomEvent(type);
+        app.element.dispatchEvent(evt);
+        assert.isTrue(chrome.handleEvent.notCalled);
+      });
+    });
+
+    test('Ensure metachange are handled', function() {
+      this.sinon.stub(chrome, 'handleEvent');
+      var evt = new CustomEvent('mozbrowsermetachange');
+      app.element.dispatchEvent(evt);
+      assert.isTrue(chrome.handleEvent.called);
+    });
+  });
+
+  suite('Navigation events - Standalone Web App', function() {
+    setup(function() {
+      app = new AppWindow(fakeStandaloneWebApp);
+      chrome = new AppChrome(app);
+    });
+
+    test('Ensure navigation events are not dispatched', function() {
+      var events = [
+        'mozbrowserloadstart',
+        'mozbrowserloadend',
+        'mozbrowsererror',
+        'mozbrowserscrollareachanged',
+        '_locationchange',
+        '_loading',
+        '_loaded',
+        '_securitychange'
+      ];
+
+      this.sinon.stub(chrome, 'handleEvent');
+      events.forEach(function(type) {
+        var evt = new CustomEvent(type);
+        app.element.dispatchEvent(evt);
+        assert.isFalse(chrome.handleEvent.called);
+      });
+    });
+
+    test('Ensure metachange event is dispatched', function() {
+      this.sinon.stub(chrome, 'handleEvent');
+      var evt = new CustomEvent('mozbrowsermetachange');
+      app.element.dispatchEvent(evt);
+      assert.isTrue(chrome.handleEvent.called);
+    });
+  });
+
+  suite('Navigation events - Browser', function() {
+    setup(function() {
+      var app = new AppWindow(fakeWebSite);
+      var chrome = new AppChrome(app);
+
       chrome.setSiteIcon.reset();
       chrome.setPinPreviewIcon.reset();
+    });
+
+    test('Ensure navigation events are dispatched', function() {
+      var events = [
+        'mozbrowserloadstart',
+        'mozbrowserloadend',
+        'mozbrowsererror',
+        'mozbrowserscrollareachanged',
+        '_locationchange',
+        '_loading',
+        '_loaded',
+        '_securitychange'
+      ];
+
+      this.sinon.stub(chrome, 'handleEvent');
+      events.forEach(function(type) {
+        var evt = new CustomEvent(type);
+        app.element.dispatchEvent(evt);
+      });
+      assert.equal(chrome.handleEvent.callCount, events.length);
+    });
+
+    test('Ensure metachange event is dispatched', function() {
+      this.sinon.stub(chrome, 'handleEvent');
+      var evt = new CustomEvent('mozbrowsermetachange');
+      app.element.dispatchEvent(evt);
+      assert.isTrue(chrome.handleEvent.called);
     });
 
     test('loadstart', function() {
@@ -583,10 +705,30 @@ suite('system/AppChrome', function() {
       var chrome = new AppChrome(app);
       assert.equal(chrome.title.textContent, 'Phone');
 
-      app.name = 'Phone2';
-      var evt = new CustomEvent('_namechanged');
-      app.element.dispatchEvent(evt);
+      chrome.handleEvent({
+        type: 'mozbrowsermetachange',
+        target: app.iframe,
+        detail: {
+          name: 'application-name',
+          content: 'Phone2'
+        },
+      });
       assert.equal(chrome.title.textContent, 'Phone2');
+    });
+
+    test('application-name with empty string does not update', function() {
+      var app = new AppWindow(fakeWrapperConfig);
+      var chrome = new AppChrome(app);
+      chrome.name = 'Phone';
+
+      chrome.handleEvent({
+        type: 'mozbrowsermetachange',
+        detail: {
+          name: '  ',
+          content: 'title1'
+        }
+      });
+      assert.equal(chrome.name, 'Phone');
     });
 
     test('should not update the name of homescreen on change', function() {
@@ -665,14 +807,16 @@ suite('system/AppChrome', function() {
     });
 
     test('should expand if collapsed', function() {
-      var stubIsBrowser = sinon.stub(subject.app, 'isBrowser', function() {
+      var app = new AppWindow(fakeSearchApp);
+      var chrome = new AppChrome(app);
+      var stubIsBrowser = sinon.stub(chrome.app, 'isBrowser', function() {
         return true;
       });
-      subject.collapse();
+      chrome.collapse();
       var evt = new CustomEvent('_locationchange');
-      subject.app.element.dispatchEvent(evt);
-      assert.isTrue(subject.element.classList.contains('maximized'));
-      assert.equal(subject.scrollable.scrollTop, 0);
+      chrome.app.element.dispatchEvent(evt);
+      assert.isTrue(chrome.element.classList.contains('maximized'));
+      assert.equal(chrome.scrollable.scrollTop, 0);
       stubIsBrowser.restore();
     });
 
@@ -803,7 +947,7 @@ suite('system/AppChrome', function() {
     });
   });
 
-  suite('Theme-Color', function() {
+  suite('Theme Color', function() {
     var app, chrome, stubRequestAnimationFrame, appPublishStub;
 
     setup(function() {
@@ -840,47 +984,114 @@ suite('system/AppChrome', function() {
       window.requestAnimationFrame(done.bind(null, null));
     });
 
-    test('metachange already set', function() {
-      app.themeColor = 'orange';
+    test('already set for app', function() {
+      var app = new AppWindow(fakeStandaloneApp);
+      app.manifest.theme_color = 'orange';
 
       chrome = new AppChrome(app);
       assert.equal(chrome.element.style.backgroundColor, 'orange');
+      assert.equal(chrome.themeColor, 'orange');
+
+      app.element.dispatchEvent(new CustomEvent('_loaded'));
+      assert.equal(chrome.containerElement.style.backgroundColor, 'orange');
+    });
+
+    test('already set for web app', function() {
+      var app = new AppWindow(fakeWebApp);
+      app.webManifest.theme_color = 'orange';
+
+      chrome = new AppChrome(app);
+      assert.equal(chrome.element.style.backgroundColor, 'orange');
+      assert.equal(chrome.themeColor, 'orange');
+
+      app.element.dispatchEvent(new CustomEvent('_loaded'));
+      assert.equal(chrome.containerElement.style.backgroundColor, 'orange');
+    });
+
+    test('should be instant if the app is hidden', function() {
+      var app = new AppWindow(fakeAppWithName);
+      app.manifest.theme_color = 'orange';
+      app.element.hidden = true;
+
+      chrome = new AppChrome(app);
+      assert.isFalse(stubRequestAnimationFrame.called);
+    });
+
+    test('should have an animation if the app is not hidden', function() {
+      var app = new AppWindow(fakeAppWithName);
+      app.manifest.theme_color = 'orange';
+      app.element.hidden = false;
+
+      chrome = new AppChrome(app);
+      assert.isTrue(stubRequestAnimationFrame.called);
+    });
+
+    test('should be the one from the parent', function() {
+      app = new AppWindow(fakeStandaloneApp);
+      var chrome = new AppChrome(app);
+      chrome.themeColor = 'black';
+      app.appChrome = chrome;
+
+      fakePopupConfig.rearWindow = app;
+      var popup = new PopupWindow(fakePopupConfig);
+      this.sinon.stub(popup, 'getBottomMostWindow').returns(app);
+      var popupChrome = new AppChrome(popup);
+      popup.appChrome = popupChrome;
+
+      assert.equal(chrome.themeColor, 'black');
+      assert.equal(popupChrome.themeColor, 'black');
     });
 
     test('metachange added', function() {
       chrome.handleEvent({
         type: 'mozbrowsermetachange',
+        target: app.iframe,
         detail: {
           name: 'theme-color',
           type: 'added',
           content: 'orange'
         }
       });
+      assert.equal(chrome.themeColor, 'orange');
       assert.equal(chrome.element.style.backgroundColor, 'orange');
+
+      app.element.dispatchEvent(new CustomEvent('_loaded'));
+      assert.equal(chrome.containerElement.style.backgroundColor, 'orange');
     });
 
     test('metachange removed', function() {
       chrome.handleEvent({
         type: 'mozbrowsermetachange',
+        target: app.iframe,
         detail: {
           name: 'theme-color',
           type: 'removed'
         }
       });
+      assert.equal(chrome.themeColor, '');
       assert.equal(chrome.element.style.backgroundColor, '');
       assert.isTrue(app.element.classList.contains('light'));
+
+      app.element.dispatchEvent(new CustomEvent('_loaded'));
+      assert.equal(chrome.containerElement.style.backgroundColor, '');
     });
 
     test('metachange changed', function() {
       chrome.handleEvent({
         type: 'mozbrowsermetachange',
+        target: app.iframe,
         detail: {
           name: 'theme-color',
           type: 'changed',
           content: 'red'
         }
       });
+      assert.equal(chrome.themeColor, 'red');
       assert.equal(chrome.element.style.backgroundColor, 'red');
+      assert.isTrue(app.element.classList.contains('light'));
+
+      app.element.dispatchEvent(new CustomEvent('_loaded'));
+      assert.equal(chrome.containerElement.style.backgroundColor, 'red');
     });
 
     test('theme resets on navigation', function() {
@@ -919,19 +1130,20 @@ suite('system/AppChrome', function() {
     });
 
     test('popup window will use rear window color theme', function(done) {
+      var app = new AppWindow(cloneConfig(fakeWebSite));
       var popup = new PopupWindow(cloneConfig(fakeWebSite));
       var popupChrome = new AppChrome(popup);
       this.sinon.stub(popup, 'getBottomMostWindow').returns(app);
-      chrome.setThemeColor('black');
-      popupChrome.setThemeColor('white');
       popup.appChrome = popupChrome;
       app.appChrome = chrome;
+      chrome.setThemeColor('black');
+      popupChrome.setThemeColor('white');
       window.setTimeout(function() {
         chrome.element.dispatchEvent(fadeTransitionEndEvent);
         assert.isTrue(stubRequestAnimationFrame.called);
         assert.equal(chrome.useLightTheming(), popupChrome.useLightTheming());
-        assert.equal(app.themeColor, 'black');
-        assert.equal(popup.themeColor, 'black');
+        assert.equal(chrome.themeColor, 'black');
+        assert.equal(popupChrome.themeColor, 'black');
         sinon.assert.calledOnce(appPublishStub.withArgs('titlestatechanged'));
         // End popup rAF look so it doesn't interfere with other tests
         popupChrome.element.dispatchEvent(fadeTransitionEndEvent);
@@ -954,10 +1166,12 @@ suite('system/AppChrome', function() {
       assert.isFalse(popup.element.classList.contains('collapsible'));
     });
 
-    test('browser scrollable background is black', function() {
-      assert.equal(chrome.scrollable.style.backgroundColor, '');
+    test('browser container background is black', function() {
+      assert.equal(chrome.containerElement.style.backgroundColor, '');
       chrome.setThemeColor('black');
-      assert.equal(chrome.scrollable.style.backgroundColor, 'black');
+
+      app.element.dispatchEvent(new CustomEvent('_loaded'));
+      assert.equal(chrome.containerElement.style.backgroundColor, 'black');
     });
 
     test('should stop requesting frames when transition ends', function(done) {
@@ -998,9 +1212,155 @@ suite('system/AppChrome', function() {
       app = new AppWindow(cloneConfig(fakeWebSite));
       this.sinon.stub(app, 'isPrivateBrowser').returns(true);
       chrome = new AppChrome(app);
-      assert.equal(chrome.scrollable.style.backgroundColor, '');
+      assert.equal(chrome.containerElement.style.backgroundColor, '');
       chrome.setThemeColor('black');
-      assert.equal(chrome.scrollable.style.backgroundColor, 'rgb(57, 46, 84)');
+
+      app.element.dispatchEvent(new CustomEvent('_loaded'));
+      var container = chrome.containerElement;
+      assert.equal(container.style.backgroundColor, 'rgb(57, 46, 84)');
+    });
+  });
+
+  suite('Theme Group', function() {
+    setup(function() {
+      app = new AppWindow(fakeStandaloneApp);
+      chrome = new AppChrome(app);
+    });
+
+    test('already set', function() {
+      app.manifest.theme_group = 'theme-communications';
+
+      chrome = new AppChrome(app);
+      var container = chrome.containerElement;
+      assert.isTrue(container.classList.contains('theme-communications'));
+    });
+
+    test('already set for web app', function() {
+      app = new AppWindow(fakeWebApp);
+      app.webManifest.theme_group = 'theme-communications';
+
+      chrome = new AppChrome(app);
+      var container = chrome.containerElement;
+      assert.isTrue(container.classList.contains('theme-communications'));
+    });
+
+
+    test('should be the one from the parent', function() {
+      app = new AppWindow(fakeStandaloneApp);
+      app.manifest.theme_group = 'theme-media';
+      var chrome = new AppChrome(app);
+      app.appChrome = chrome;
+
+      var popup = new PopupWindow(fakePopupConfig);
+      this.sinon.stub(popup, 'getBottomMostWindow').returns(app);
+      var popupChrome = new AppChrome(popup);
+      popup.appChrome = popupChrome;
+
+      assert.equal(chrome.themeGroup, 'theme-media');
+      assert.equal(popupChrome.themeGroup, 'theme-media');
+    });
+
+    test('Added', function() {
+      chrome.handleEvent({
+        type: 'mozbrowsermetachange',
+        target: app.iframe,
+        detail: {
+          name: 'theme-group',
+          content: 'theme-media',
+          type: 'added'
+        }
+      });
+
+      assert.isTrue(chrome.containerElement.classList.contains('theme-media'));
+    });
+
+    test('Sanitization', function() {
+      chrome.handleEvent({
+        type: 'mozbrowsermetachange',
+        target: app.iframe,
+        detail: {
+          name: 'theme-group',
+          content: 'hidden',
+          type: 'added'
+        }
+      });
+
+      var container = chrome.containerElement;
+      assert.isFalse(container.classList.contains('hidden'));
+    });
+
+    test('Changed', function() {
+      chrome.handleEvent({
+        type: 'mozbrowsermetachange',
+        target: app.iframe,
+        detail: {
+          name: 'theme-group',
+          content: 'theme-settings',
+          type: 'changed'
+        }
+      });
+      var container = chrome.containerElement;
+      assert.isTrue(container.classList.contains('theme-settings'));
+    });
+
+    test('Removed', function() {
+      chrome.handleEvent({
+        type: 'mozbrowsermetachange',
+        target: app.iframe,
+        detail: {
+          name: 'theme-group',
+          content: 'theme-media',
+          type: 'added'
+        }
+      });
+
+      chrome.handleEvent({
+        type: 'mozbrowsermetachange',
+        target: app.iframe,
+        detail: {
+          name: 'theme-group',
+          content: 'theme-media',
+          type: 'removed'
+        }
+      });
+
+      var container = chrome.containerElement;
+      assert.isFalse(container.classList.contains('theme-media'));
+    });
+  });
+
+  suite('Background Color', function() {
+    setup(function() {
+      app = new AppWindow(fakeStandaloneApp);
+      chrome = new AppChrome(app);
+    });
+
+    test('already set', function() {
+      app.manifest.background_color = 'pink';
+
+      chrome = new AppChrome(app);
+      assert.equal(chrome.backgroundColor, 'pink');
+      assert.equal(chrome.containerElement.style.backgroundColor, 'pink');
+    });
+
+    test('already set for web app', function() {
+      app = new AppWindow(fakeWebApp);
+      app.webManifest.background_color = 'pink';
+
+      chrome = new AppChrome(app);
+      assert.equal(chrome.backgroundColor, 'pink');
+      assert.equal(chrome.containerElement.style.backgroundColor, 'pink');
+    });
+
+    test('already set as well as theme_color', function() {
+      app.manifest.theme_color = 'red';
+      app.manifest.background_color = 'pink';
+
+      chrome = new AppChrome(app);
+      assert.equal(chrome.themeColor, 'red');
+      assert.equal(chrome.element.style.backgroundColor, 'red');
+      assert.equal(chrome.backgroundColor, 'pink');
+      assert.equal(chrome.containerElement.style.backgroundColor, 'pink');
     });
   });
 
@@ -1191,7 +1551,7 @@ suite('system/AppChrome', function() {
       var origSiteIcon = siteIcon && siteIcon.style.backgroundImage;
       var origClassName = siteIcon && siteIcon.className;
 
-      combinedChrome.setSiteIcon(fakeIconURI);
+      combinedChrome.setSiteIcon();
 
       var newSiteIcon = siteIcon && siteIcon.style.backgroundImage;
       var newClassName = siteIcon && siteIcon.className;

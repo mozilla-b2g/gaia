@@ -8,9 +8,11 @@ requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/shared/test/unit/mocks/mock_service.js');
 requireApp('system/test/unit/mock_applications.js');
 requireApp('system/test/unit/mock_app_window.js');
+requireApp('system/test/unit/mock_app_chrome.js');
 
 var mocksForHomescreenWindow = new MocksHelper([
-  'Service', 'Applications', 'SettingsListener', 'ManifestHelper'
+  'Service', 'Applications', 'SettingsListener', 'ManifestHelper',
+  'AppChrome'
 ]).init();
 
 suite('system/HomescreenWindow', function() {

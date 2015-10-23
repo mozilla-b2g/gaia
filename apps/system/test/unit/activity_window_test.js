@@ -6,12 +6,13 @@ requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/test/unit/mock_applications.js');
 requireApp('system/shared/test/unit/mocks/mock_service.js');
 requireApp('system/test/unit/mock_context_menu.js');
+requireApp('system/test/unit/mock_app_chrome.js');
 
 requireApp('system/shared/test/unit/mocks/mock_screen_layout.js');
 
 var mocksForActivityWindow = new MocksHelper([
   'Applications', 'SettingsListener',
-  'ManifestHelper', 'Service'
+  'ManifestHelper', 'Service', 'AppChrome'
 ]).init();
 
 suite('system/ActivityWindow', function() {

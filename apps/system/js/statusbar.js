@@ -334,6 +334,10 @@
         return;
       }
 
+      if (app.isPopupWindow && app.getBottomMostWindow()) {
+        app = app.getBottomMostWindow();
+      }
+
       var isFullScreen = app.isFullScreen() || document.mozFullScreen;
 
       this.element.classList.toggle('light',
@@ -349,7 +353,8 @@
       var appsWithoutRocketbar = [
         'isHomescreen',
         'isAttentionWindow',
-        'isLockscreen'
+        'isLockscreen',
+        'isFtu'
       ];
 
       var noRocketbar = appsWithoutRocketbar.some(function(name) {
@@ -374,6 +379,10 @@
 
     _updateMinimizedStatusbarWidth: function() {
       var app = Service.query('getTopMostWindow');
+      if (app && app.isPopupWindow && app.getBottomMostWindow()) {
+        app = app.getBottomMostWindow();
+      }
+
       var appChrome = app && app.appChrome;
 
       // Only calculate the search input width when the chrome is minimized

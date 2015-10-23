@@ -7,6 +7,7 @@
 (function(exports) {
   var MockPopupWindow = function(configs) {
     MockAppWindow.call(this, configs);
+    this.isPopupWindow = true;
   };
   MockPopupWindow.prototype =
     Object.create(window.MockAppWindow.prototype);

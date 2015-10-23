@@ -1,7 +1,7 @@
 /* global AppWindow, ScreenLayout, MockService, IconsHelper,
       MocksHelper, BaseModule, MockContextMenu,
       MockAppTransitionController, MockPermissionSettings, DocumentFragment,
-      MockAudioChannelController, AppChrome,
+      MockAudioChannelController,
       MockWebManifestHelper, MockPromise */
 'use strict';
 
@@ -233,6 +233,37 @@ suite('system/AppWindow', function() {
     assert.isTrue(app2._setActive.calledWith(true));
   });
 
+  suite('Splash Background', function() {
+    test('setFrameBackground', function() {
+      ScreenLayout.setDefault({
+        tiny: true
+      });
+
+      var app = new AppWindow(fakeAppConfigWithIcon);
+      var background = app.browserContainer.style.backgroundImage;
+      var backgroundSize = app.browserContainer.style.backgroundSize;
+      var idBackground = app.identificationIcon.style.backgroundImage;
+      assert.isTrue(app.splashed);
+      assert.isDefined(app._splash);
+      assert.equal(background, 'url("' + app._splash + '")');
+      assert.equal(backgroundSize, '120px 120px');
+      assert.equal(idBackground, 'url("' + app._splash + '")');
+    });
+
+    test('clearFrameBackground', function() {
+      var app = new AppWindow(fakeAppConfigWithIcon);
+      var background = app.browserContainer.style.backgroundImage;
+      assert.equal(background, 'url("' + app._splash + '")');
+
+      app.handleEvent({
+        type: 'mozbrowserloadend'
+      });
+
+      background = app.browserContainer.style.backgroundImage;
+      assert.equal(background, 'none');
+    });
+  });
+
   suite('Resize', function() {
     var app1;
     setup(function() {
@@ -333,14 +364,12 @@ suite('system/AppWindow', function() {
     test('No navigation setting in manifest', function() {
       var spy = this.sinon.spy(window, 'AppChrome');
       new AppWindow(fakeChromeConfigWithoutNavigation); // jshint ignore:line
-      assert.isFalse(spy.calledWithNew());
+      assert.isTrue(spy.calledWithNew());
     });
 
     test('No navigation setting in manifest - app - appChrome', function() {
       var spy = this.sinon.spy(window, 'AppChrome');
-      var aw = new AppWindow(fakeChromeConfigWithoutNavigation);
-      assert.isFalse(spy.calledWithNew());
-      aw.element.dispatchEvent(new CustomEvent('_opened'));
+      new AppWindow(fakeChromeConfigWithoutNavigation); // jshint ignore:line
       assert.isTrue(spy.calledWithNew());
     });
 
@@ -980,23 +1009,6 @@ suite('system/AppWindow', function() {
     assert.isTrue(stubFrontFocus.called);
   });
 
-  test('setFrameBackground', function() {
-    ScreenLayout.setDefault({
-      tiny: true
-    });
-
-    var app = new AppWindow(fakeAppConfigWithIcon);
-    this.sinon.clock.tick(0);
-    var background = app.element.style.backgroundImage;
-    var backgroundSize = app.element.style.backgroundSize;
-    var idBackground = app.identificationIcon.style.backgroundImage;
-    assert.isTrue(app.splashed);
-    assert.isDefined(app._splash);
-    assert.equal(background, 'url("' + app._splash + '")');
-    assert.equal(backgroundSize, '120px 120px');
-    assert.equal(idBackground, 'url("' + app._splash + '")');
-  });
-
   test('get Icon Splash with Multi Icons, dppx=1', function() {
     // Overwrite value for testing dppx
     var _devicePixelRatio = window.devicePixelRatio;
@@ -1011,7 +1023,6 @@ suite('system/AppWindow', function() {
 
     var app = new AppWindow(fakeAppConfigWithMultiIcon);
 
-    this.sinon.clock.tick(0);
     assert.isTrue(
       app._splash.indexOf(fakeAppConfigWithMultiIcon.
         manifest.icons['120']) >= 0);
@@ -1089,8 +1100,9 @@ suite('system/AppWindow', function() {
   }
 
   test('we do not need to wait if there is screenshot layer covered',
-    function() {
+    function(done) {
       var app1 = new AppWindow(fakeAppConfig1);
+
       var callback = this.sinon.spy();
       var stubWaitForNextPaint = this.sinon.stub(app1, 'waitForNextPaint');
       var stubEnsureFullRepaint =
@@ -1099,10 +1111,13 @@ suite('system/AppWindow', function() {
       app1.loaded = true;
       app1.screenshotOverlay.classList.add('visible');
       app1.ready(callback);
-      assert.isFalse(stubEnsureFullRepaint.called);
-      assert.isFalse(stubWaitForNextPaint.called);
-      this.sinon.clock.tick(0);
-      assert.isTrue(callback.calledOnce);
+
+      Promise.resolve().then(function() {
+        assert.isFalse(stubEnsureFullRepaint.called);
+        assert.isFalse(stubWaitForNextPaint.called);
+        assert.isTrue(callback.calledOnce);
+        done();
+      });
     });
 
   suite('ready', function() {
@@ -1134,6 +1149,20 @@ suite('system/AppWindow', function() {
       stubWaitForNextPaint.getCall(0).args[0]();
       this.sinon.clock.tick(0);
       assert.isTrue(callback.calledOnce);
+    });
+
+    test('Hidden until AppChrome is ready', function(done) {
+      assert.isTrue(app1.element.hidden);
+
+      app1.appChrome.ready.then(function() {
+        assert.isFalse(app1.element.hidden);
+        done();
+      });
+    });
+
+    test('Not hidden if InputMethod (no AppChrome)', function() {
+      app1 = new AppWindow(fakeInputAppConfig);
+      assert.isFalse(app1.element.hidden);
     });
   });
 
@@ -2031,31 +2060,6 @@ suite('system/AppWindow', function() {
 
       assert.isTrue(app1.loaded);
       assert.isFalse(app1.loading);
-    });
-
-    test('mozbrowser events before _opened', function() {
-      var spy = this.sinon.spy(window, 'AppChrome');
-      var app1 = new AppWindow(fakeChromeConfigWithNavigationBar);
-      var events = [{ type: 'mozbrowserloadstart' },
-                    { type: 'mozbrowsererror',
-                      detail: { type: '' } },
-                    { type: 'mozbrowsermetachange',
-                      detail: {} }];
-      var expected = [{ type: 'mozbrowserloadstart' },
-                      { type: '_loading' },
-                      { type: 'mozbrowsererror' },
-                      { type: 'mozbrowsermetachange',
-                        detail: {} }];
-
-      events.forEach(app1.handleEvent, app1);
-      assert.isFalse(spy.calledWithNew());
-
-      var chromeEventSpy = this.sinon.stub(AppChrome.prototype, 'handleEvent');
-      app1.element.dispatchEvent(new CustomEvent('_opened'));
-
-      expected.forEach((event) => {
-        sinon.assert.calledWith(chromeEventSpy, event);
-      });
     });
 
     test('Locationchange event', function() {
@@ -3095,153 +3099,6 @@ suite('system/AppWindow', function() {
       assert.isFalse(caughtOnParent);
     });
 
-  suite('Theme Color', function() {
-    test('(No type)', function() {
-      var app1 = new AppWindow(fakeAppConfig1);
-      var stubPublish = this.sinon.stub(app1, 'publish');
-
-      app1.handleEvent({
-        type: 'mozbrowsermetachange',
-        detail: {
-          name: 'theme-color',
-          content: 'transparent'
-        }
-      });
-
-      assert.isFalse(!!app1.themeColor);
-      assert.isFalse(stubPublish.calledOnce);
-    });
-
-    test('Added', function() {
-      var app1 = new AppWindow(fakeAppConfig1);
-      var stubPublish = this.sinon.stub(app1, 'publish');
-
-      app1.handleEvent({
-        type: 'mozbrowsermetachange',
-        detail: {
-          name: 'theme-color',
-          content: 'transparent',
-          type: 'added'
-        }
-      });
-
-      assert.equal(app1.themeColor, 'transparent');
-      assert.isTrue(stubPublish.calledOnce);
-    });
-
-    test('Changed', function() {
-      var app1 = new AppWindow(fakeAppConfig1);
-      var stubPublish = this.sinon.stub(app1, 'publish');
-
-      app1.handleEvent({
-        type: 'mozbrowsermetachange',
-        detail: {
-          name: 'theme-color',
-          content: 'pink',
-          type: 'changed'
-        }
-      });
-
-      assert.equal(app1.themeColor, 'pink');
-      assert.isTrue(stubPublish.calledOnce);
-    });
-
-    test('Removed', function() {
-      var app1 = new AppWindow(fakeAppConfig1);
-      var stubPublish = this.sinon.stub(app1, 'publish');
-
-      app1.handleEvent({
-        type: 'mozbrowsermetachange',
-        detail: {
-          name: 'theme-color',
-          content: 'pink',
-          type: 'removed'
-        }
-      });
-
-      assert.equal(app1.themeColor, '');
-      assert.isTrue(stubPublish.calledOnce);
-    });
-  });
-
-  suite('Theme Group', function() {
-    test('Added', function() {
-      var app1 = new AppWindow(fakeAppConfig1);
-      var stubPublish = this.sinon.stub(app1, 'publish');
-
-      app1.handleEvent({
-        type: 'mozbrowsermetachange',
-        detail: {
-          name: 'theme-group',
-          content: 'theme-media',
-          type: 'added'
-        }
-      });
-
-      assert.isTrue(app1.element.classList.contains('theme-media'));
-      assert.isTrue(stubPublish.calledOnce);
-    });
-
-    test('Sanitazation', function() {
-      var app1 = new AppWindow(fakeAppConfig1);
-
-      app1.handleEvent({
-        type: 'mozbrowsermetachange',
-        detail: {
-          name: 'theme-group',
-          content: 'hidden',
-          type: 'added'
-        }
-      });
-
-      assert.isFalse(app1.element.classList.contains('hidden'));
-    });
-
-    test('Changed', function() {
-      var app1 = new AppWindow(fakeAppConfig1);
-      var stubPublish = this.sinon.stub(app1, 'publish');
-
-      app1.handleEvent({
-        type: 'mozbrowsermetachange',
-        detail: {
-          name: 'theme-group',
-          content: 'theme-settings',
-          type: 'changed'
-        }
-      });
-
-      assert.isTrue(app1.element.classList.contains('theme-settings'));
-      assert.isTrue(stubPublish.calledOnce);
-    });
-
-    test('Removed', function() {
-      var app1 = new AppWindow(fakeAppConfig1);
-
-      app1.handleEvent({
-        type: 'mozbrowsermetachange',
-        detail: {
-          name: 'theme-group',
-          content: 'theme-media',
-          type: 'added'
-        }
-      });
-
-      var stubPublish = this.sinon.stub(app1, 'publish');
-
-      app1.handleEvent({
-        type: 'mozbrowsermetachange',
-        detail: {
-          name: 'theme-group',
-          content: 'theme-media',
-          type: 'removed'
-        }
-      });
-
-      assert.isFalse(app1.element.classList.contains('theme-media'));
-      assert.isTrue(stubPublish.calledOnce);
-    });
-  });
-
   suite('inScope', function() {
     test('Same domain is in the scope', function() {
       var scope = 'http://domain.com';
@@ -3317,58 +3174,6 @@ suite('system/AppWindow', function() {
         detail: 'http://test.domain.com/test'
       });
       assert.isTrue(app.inScope(scope));
-    });
-  });
-
-  suite('application-name', function() {
-    test('application-name for browser window', function() {
-      var browser1 = new AppWindow(fakeWrapperConfig);
-      var stubPublish = this.sinon.stub(browser1, 'publish');
-
-      browser1.handleEvent({
-        type: 'mozbrowsermetachange',
-        detail: {
-          name: 'application-name',
-          content: 'title1'
-        }
-      });
-
-      assert.equal(browser1.name, 'title1');
-      assert.isTrue(stubPublish.calledOnce);
-      stubPublish.restore();
-    });
-
-    test('application-name with empty string does not update', function() {
-      var browser1 = new AppWindow(fakeWrapperConfig);
-      var stubPublish = this.sinon.stub(browser1, 'publish');
-
-      browser1.handleEvent({
-        type: 'mozbrowsermetachange',
-        detail: {
-          name: '  ',
-          content: 'title1'
-        }
-      });
-      var hostname = new URL(fakeWrapperConfig.url).hostname;
-      assert.equal(browser1.name, hostname);
-      assert.isFalse(stubPublish.calledOnce);
-    });
-
-    test('application-name for app window', function() {
-      var app1 = new AppWindow(fakeAppConfig1);
-      var stubPublish = this.sinon.stub(app1, 'publish');
-
-      app1.handleEvent({
-        type: 'mozbrowsermetachange',
-        detail: {
-          name: 'application-name',
-          content: 'title1'
-        }
-      });
-
-      assert.isFalse(app1.name == 'title1');
-      assert.isFalse(stubPublish.calledOnce);
-      stubPublish.restore();
     });
   });
 

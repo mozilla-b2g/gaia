@@ -16,6 +16,11 @@
   const ICON_SIZE = 32 + 4;
   const PREVIEW_ICON_SIZE = 64;
 
+  const kThemeGroups = [
+    'theme-communications', 'theme-media',
+    'theme-productivity', 'theme-settings'
+  ];
+
   var _id = 0;
 
   var newTabManifestURL = null;
@@ -45,16 +50,32 @@
     this._currentIconUrl = '';
     this.render();
 
-    if (this.app.themeColor && this.app.themeColor !== '') {
-      // If titlestatechanged is fired during creation, appChrome won't have
-      // been set yet.
-      app.appChrome = this;
+    var manifest = this.app.manifest || this.app.webManifest;
+    if (manifest) {
+      if (manifest.theme_group) {
+        this.setThemeGroup(manifest.theme_group);
+      }
 
-      this._themeChanged = true;
-      this.setThemeColor(this.app.themeColor);
+      if (manifest.theme_color) {
+        this.setThemeColor(manifest.theme_color);
+        this._themeChanged = true;
+      }
+
+      if (manifest.background_color) {
+        this.setBackgroundColor(manifest.background_color);
+      }
+    }
+
+    // PopupWindow inherits colors from their parent.
+    if (this.app.isPopupWindow) {
+      this.setThemeGroup('');
+      this.setThemeColor('');
     }
 
     this.reConfig();
+    this.ready = new Promise((resolve) => {
+      this.setSiteIcon(resolve);
+    });
   };
 
   AppChrome.prototype = Object.create(window.BaseUI.prototype);
@@ -100,7 +121,7 @@
 
       if (this.app.isPrivateBrowser()) {
         this.element.classList.add('private');
-      } else if (!this.app.themeColor) {
+      } else if (!this.themeColor) {
         this.app.element.classList.add('light');
       }
 
@@ -114,8 +135,6 @@
         this.app.element.classList.add('scrollable');
       }
     }
-
-    this.setSiteIcon();
   };
 
   AppChrome.prototype.combinedView = function an_combinedView() {
@@ -313,13 +332,10 @@
         this.handleSecurityChanged(evt);
         break;
 
-      case '_namechanged':
-        this.handleNameChanged();
-        break;
-
       case 'mozbrowsermetachange':
         this.handleMetaChange(evt);
         break;
+
       case 'pins-scopechange':
         this.handleBookmarksScopeChange(evt);
         break;
@@ -415,7 +431,7 @@
       }
       if (this._themeChanged) {
         Service.request('Places:saveThemeColor', this.app.config.url,
-                        this.app.themeColor, true);
+                        this.themeColor, true);
       }
     }, () => {
       console.error('Failed to pin ' + this.app.config.url);
@@ -719,16 +735,20 @@
       this.header.addEventListener('action', this);
     }
 
-    this.app.element.addEventListener('mozbrowserloadstart', this);
-    this.app.element.addEventListener('mozbrowserloadend', this);
-    this.app.element.addEventListener('mozbrowsererror', this);
     this.app.element.addEventListener('mozbrowsermetachange', this);
-    this.app.element.addEventListener('mozbrowserscrollareachanged', this);
-    this.app.element.addEventListener('_locationchange', this);
-    this.app.element.addEventListener('_namechanged', this);
-    this.app.element.addEventListener('_securitychange', this);
-    this.app.element.addEventListener('_loading', this);
-    this.app.element.addEventListener('_loaded', this);
+
+    // If the window has declared that it will manage its navigation
+    // itself, do not change any states under navigation.
+    if (this.hasNavigation() || this.hasBar()) {
+      this.app.element.addEventListener('mozbrowsererror', this);
+      this.app.element.addEventListener('mozbrowserloadstart', this);
+      this.app.element.addEventListener('mozbrowserloadend', this);
+      this.app.element.addEventListener('mozbrowserscrollareachanged', this);
+      this.app.element.addEventListener('_locationchange', this);
+      this.app.element.addEventListener('_loading', this);
+      this.app.element.addEventListener('_loaded', this);
+      this.app.element.addEventListener('_securitychange', this);
+    }
 
     var element = this.element;
 
@@ -779,23 +799,28 @@
       return;
     }
 
-    this.app.element.removeEventListener('mozbrowserloadstart', this);
-    this.app.element.removeEventListener('mozbrowserloadend', this);
-    this.app.element.removeEventListener('mozbrowsererror', this);
     this.app.element.removeEventListener('mozbrowsermetachange', this);
-    this.app.element.removeEventListener('_locationchange', this);
-    this.app.element.removeEventListener('_namechanged', this);
-    this.app.element.removeEventListener('_loading', this);
-    this.app.element.removeEventListener('_loaded', this);
+
+    if (this.hasNavigation() || this.hasBar()) {
+      this.app.element.removeEventListener('mozbrowserloadstart', this);
+      this.app.element.removeEventListener('mozbrowserloadend', this);
+      this.app.element.removeEventListener('mozbrowsererror', this);
+      this.app.element.removeEventListener('mozbrowserscrollareachanged', this);
+      this.app.element.removeEventListener('_locationchange', this);
+      this.app.element.removeEventListener('_loading', this);
+      this.app.element.removeEventListener('_loaded', this);
+      this.app.element.removeEventListener('_securitychange', this);
+    }
     this.app = null;
   };
 
   // Name has priority over the rest
   AppChrome.prototype.handleNameChanged =
-    function ac_handleNameChanged(evt) {
+    function ac_handleNameChanged() {
       if (this._fixedTitle) {
         return;
       }
+
       if (!this.app.isHomescreen && !this.isSearchApp()) {
         this.title.textContent = this.app.name;
       } else {
@@ -855,28 +880,90 @@
 
   AppChrome.prototype.handleMetaChange =
     function ac__handleMetaChange(evt) {
-      var detail = evt.detail;
-      if (detail.name !== 'theme-color' || !detail.type) {
+      if (evt.target !== this.app.iframe) {
         return;
       }
 
-      // If the theme-color meta is removed, let's reset the color.
-      var color = '';
+      var detail = evt.detail;
+      var type = detail.type;
 
-      // Otherwise, set it to the color that has been asked.
-      if (detail.type !== 'removed') {
-        color = detail.content;
+      switch (detail.name) {
+        case 'theme-color':
+          if (!type) {
+            return;
+          }
+
+          this._themeChanged = true;
+          this.setThemeColor(type === 'removed' ? ''
+                                                : detail.content);
+
+          this.app.publish('themecolorchange');
+          break;
+
+        case 'theme-group':
+          if (!type) {
+            return;
+          }
+
+          this.setThemeGroup(type === 'removed' ? ''
+                                                : detail.content);
+
+          this.app.publish('themecolorchange');
+          break;
+
+        case 'application-name':
+          // Apps have a compulsory name field in their manifest
+          // which takes precedence.
+          var name = detail.content || '';
+          var emptyString = !(name.trim());
+          if (this.app.manifestURL || this.app.webManifestURL || emptyString) {
+            return;
+          }
+
+          this.app.name = name;
+          this.handleNameChanged();
+
+          this.app.publish('namechanged');
+          break;
       }
 
-      this._themeChanged = true;
-      this.setThemeColor(color);
-      if (!this.app.isHomescreen && this.app.config.url) {
-        Service && Service.request('Places:saveThemeColor',
-                                   this.app.config.url, color, true);
-      }
     };
 
-  AppChrome.prototype.setThemeColor = function ac_setThemColor(color) {
+  AppChrome.prototype.setThemeGroup = function ac_setThemeGroup(group) {
+
+    var bottomApp = this.app.getBottomMostWindow();
+    if (this.app.isPopupWindow &&
+      bottomApp &&
+      bottomApp.appChrome &&
+      bottomApp.appChrome.themeGroup) {
+      group = bottomApp.appChrome.themeGroup;
+    }
+
+    // Do not change anything to avoid a restyle if groups is already
+    // present.
+    if (group && this.containerElement.classList.contains(group)) {
+      return;
+    }
+
+    // Otherwise, clear old groups.
+    kThemeGroups.forEach((group) => {
+      this.containerElement.classList.remove(group);
+    });
+
+    // And set the new one.
+    if (kThemeGroups.indexOf(group) !== -1) {
+      this.containerElement.classList.add(group);
+      this.themeGroup = group;
+    }
+  };
+
+  AppChrome.prototype.setBackgroundColor =
+    function ac_setBackgroundColor(color) {
+    this.backgroundColor = color;
+    this.containerElement.style.backgroundColor = color;
+  };
+
+  AppChrome.prototype.setThemeColor = function ac_setThemeColor(color) {
     // Overwrite theme color for private windows and add private class
     if (this.app.isPrivateBrowser()) {
       color = '#392E54';
@@ -885,17 +972,35 @@
 
     var bottomApp = this.app.getBottomMostWindow();
 
-    if (this.app.CLASS_NAME === 'PopupWindow' &&
+    if (this.app.isPopupWindow &&
       bottomApp &&
-      bottomApp.themeColor) {
-      color = bottomApp.themeColor;
+      bottomApp.appChrome &&
+      bottomApp.appChrome.themeColor) {
+      color = bottomApp.appChrome.themeColor;
     }
 
-    this.app.themeColor = color;
+    if (this.themeColor === color) {
+      // No need to do any extra work if this is the same color.
+      return;
+    }
+
+    this.themeColor = color;
     this.element.style.backgroundColor = color;
 
     if (!this.app.isHomescreen) {
-      this.scrollable.style.backgroundColor = color;
+      if (this.app.loaded) {
+        this.setBackgroundColor(color);
+      } else {
+        this.app.element.addEventListener('_loaded', function onrendered(evt) {
+          evt.target.removeEventListener('_loaded', onrendered);
+          evt.target.style.backgroundColor = color;
+        });
+      }
+
+      if (this.app.config.url) {
+        Service && Service.request('Places:saveThemeColor',
+                                   this.app.config.url, color, true);
+      }
     }
 
     if (color === '') {
@@ -906,6 +1011,15 @@
 
     if (color === 'transparent') {
       this.app.element.classList.remove('light');
+      this.app.publish('titlestatechanged');
+      return;
+    }
+
+    // If the chrome is not rendered, let's not try to animate.
+    if (this.containerElement.hidden) {
+      var colorForElement = this.utils.color.getColorForElement(this.element);
+      var isLight = this.utils.color.isLightColor(colorForElement);
+      this.app.element.classList.toggle('light', isLight);
       this.app.publish('titlestatechanged');
       return;
     }
@@ -928,26 +1042,43 @@
         return;
       }
 
-      var computedColor = window.getComputedStyle(self.element).backgroundColor;
-      var colorCodes = /rgb\((\d+), (\d+), (\d+)\)/.exec(computedColor);
-      if (!colorCodes || colorCodes.length === 0) {
+      var color = self.utils.color.getColorForElement(self.element);
+      if (!color) {
         return;
       }
 
-      var r = parseInt(colorCodes[1]);
-      var g = parseInt(colorCodes[2]);
-      var b = parseInt(colorCodes[3]);
-      var brightness =
-        Math.sqrt((r*r) * 0.241 + (g*g) * 0.691 + (b*b) * 0.068);
-
       var wasLight = self.app.element.classList.contains('light');
-      var isLight = brightness > 200;
+      var isLight = self.utils.color.isLightColor(color);
       if (wasLight != isLight) {
         self.app.element.classList.toggle('light', isLight);
         self.app.publish('titlestatechanged');
       }
       window.requestAnimationFrame(updateAppColor);
     });
+  };
+
+  AppChrome.prototype.utils = {
+    color: {
+      getColorForElement: function(element) {
+        var color = getComputedStyle(element).backgroundColor;
+        var rgb = /rgb\((\d+), (\d+), (\d+)\)/.exec(color);
+        if (!rgb || rgb.length === 0) {
+          return null;
+        }
+
+        return rgb;
+      },
+
+      isLightColor: function(rgb) {
+        var r = parseInt(rgb[1]);
+        var g = parseInt(rgb[2]);
+        var b = parseInt(rgb[3]);
+        var brightness =
+          Math.sqrt((r*r) * 0.241 + (g*g) * 0.691 + (b*b) * 0.068);
+
+        return brightness > 200;
+      }
+    }
   };
 
   AppChrome.prototype.render = function() {
@@ -964,7 +1095,7 @@
   AppChrome.prototype.useLightTheming = function ac_useLightTheming() {
     // The rear window should dictate the status bar color when the front
     // window is a popup.
-    if (this.app.CLASS_NAME == 'PopupWindow' &&
+    if (this.app.isPopupWindow &&
         this.app.rearWindow &&
         this.app.rearWindow.appChrome) {
       return this.app.rearWindow.appChrome.useLightTheming();
@@ -1120,9 +1251,13 @@
       this.app.config.manifest.role === 'search';
   };
 
-  AppChrome.prototype.hasNavigation = function ac_hasNavigation(evt) {
+  AppChrome.prototype.hasNavigation = function ac_hasNavigation() {
     return this.app.isBrowser() ||
-      (this.app.config.chrome && this.app.config.chrome.navigation);
+      !!(this.app.config.chrome && this.app.config.chrome.navigation);
+  };
+
+  AppChrome.prototype.hasBar = function ac_hasBar() {
+    return !!(this.app.config.chrome && this.app.config.chrome.bar);
   };
 
   AppChrome.prototype.addBookmark = function ac_addBookmark() {
@@ -1251,13 +1386,11 @@
 
   /**
    * Display the website icon in the URL bar, if any.
-   * If the url parameter is specified, it is loaded immediately. Otherwise,
    * we look for the best possible icon for this website.
-   *
-   * @param {string?} url
    */
-  AppChrome.prototype.setSiteIcon = function ac_setSiteIcon() {
+  AppChrome.prototype.setSiteIcon = function ac_setSiteIcon(callback) {
     if (!this.siteIcon || this.app.isPrivateBrowser()) {
+      callback && callback();
       return;
     }
 
@@ -1269,10 +1402,12 @@
           this.siteIcon.style.backgroundImage = iconObject.url;
           this._currentIconUrl = iconObject.originalUrl;
         }
+        callback && callback();
       })
       .catch((err) => {
         this.siteIcon.style.backgroundImage = '';
         this.app.debug('setSiteIcon, error from getSiteIcon: %s', err);
+        callback && callback();
       });
   };
 
