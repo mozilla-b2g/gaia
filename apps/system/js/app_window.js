@@ -74,6 +74,7 @@
     }
     this.isCrashed = false;
     this.launchTime = Date.now();
+    this.metachangeDetails = [];
 
     return this;
   };
@@ -449,7 +450,7 @@
     this.inError = false;
     this.loading = false;
     this.loaded = false;
-    this.metachangeDetail = null;
+    this.metachangeDetails = [];
     this.suspended = true;
     this.element && this.element.classList.add('suspended');
     this.browserContainer.removeChild(this.browser.element);
@@ -903,9 +904,12 @@
             that.appChrome.handleEvent({type: 'mozbrowserloadstart'});
             that.appChrome.handleEvent({type: '_loading'});
           }
-          if (that.metachangeDetail) {
-            that.appChrome.handleEvent({type: 'mozbrowsermetachange',
-                                        detail: that.metachangeDetail});
+          if (that.metachangeDetails && that.metachangeDetails.length) {
+            that.metachangeDetails.forEach(function(detail) {
+              that.appChrome.handleEvent({type: 'mozbrowsermetachange',
+                                          detail: detail});
+            });
+            that.metachangeDetails = [];
           }
         });
       } else {
@@ -1168,24 +1172,13 @@
   AppWindow.prototype._handle_mozbrowsermetachange =
     function aw__handle_mozbrowsermetachange(evt) {
 
-      var detail = this.metachangeDetail = evt.detail;
+      var detail = evt.detail;
+      if (!this.appChrome) {
+        this.metachangeDetails = this.metachangeDetails || [];
+        this.metachangeDetails.push(detail);
+      }
 
       switch (detail.name) {
-        case 'theme-color':
-          if (!detail.type) {
-            return;
-          }
-          // If the theme-color meta is removed, let's reset the color.
-          var color = '';
-
-          // Otherwise, set it to the color that has been asked.
-          if (detail.type !== 'removed') {
-            color = detail.content;
-          }
-          this.themeColor = color;
-
-          this.publish('themecolorchange');
-          break;
         case 'theme-group':
           if (!detail.type) {
             return;
@@ -1202,7 +1195,6 @@
             }
           }
 
-          this.publish('themecolorchange');
           break;
 
         case 'application-name':
