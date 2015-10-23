@@ -526,7 +526,7 @@
       }.bind(this, icon, id));
 
       // Override default launch behaviour
-      icon.addEventListener('activated', function(e) {
+      icon.addEventListener('activated', e => {
         e.preventDefault();
         this.handleEvent({ type: 'activate',
                            detail: { target: e.target.parentNode },
