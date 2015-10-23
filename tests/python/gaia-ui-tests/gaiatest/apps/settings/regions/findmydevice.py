@@ -11,8 +11,8 @@ from gaiatest.form_controls.binarycontrol import GaiaBinaryControl
 class FindMyDevice(Base):
 
     _page_locator = (By.ID, 'findmydevice')
-    _login_locator = (By.ID, 'findmydevice-login-btn')
-    _checkbox_locator = (By.CSS_SELECTOR, '#findmydevice-enabled gaia-switch')
+    _login_locator = (By.CLASS_NAME, 'findmydevice-login')
+    _checkbox_locator = (By.CSS_SELECTOR, '.findmydevice-enabled gaia-switch')
 
     @property
     def screen_element(self):
