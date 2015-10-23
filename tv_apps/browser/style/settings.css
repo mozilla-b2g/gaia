@@ -9,6 +9,11 @@ smart-button[type=simple-text] {
   text-align: center;
 }
 
+smart-button[type=simple-text].disabled {
+  background-color: rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+}
+
 /* --------------- settings-list --------------- */
 #settings-list {
   box-sizing: border-box;

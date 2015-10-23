@@ -187,7 +187,12 @@ suite('Sync settings >', function() {
         .to.equals('fxsync-signed-in-as');
       expect(subject.elements.signedInAs.getAttribute('data-l10n-args'))
         .to.equals('{"email":"pepito"}');
+    });
 
+    test('should show sync now button', function() {
+      expect(subject.elements.syncNowButton).to.be.an('object');
+      expect(subject.elements.syncNowButton.getAttribute('data-l10n-id'))
+        .to.equals('fxsync-sync-now');
     });
 
     test('should show signout button', function() {
@@ -199,6 +204,27 @@ suite('Sync settings >', function() {
     test('should show collection switches', function() {
       expect(subject.elements.collectionBookmarks).to.be.an('object');
       expect(subject.elements.collectionHistory).to.be.an('object');
+    });
+  });
+
+  suite('Syncing', function() {
+    suiteSetup(function() {
+      onsyncchange({
+        state: 'syncing',
+        user: 'pepito'
+      });
+    });
+
+    test('should show syncing button', function() {
+      expect(subject.elements.syncNowButton.dataset.l10nId)
+        .to.equals('fxsync-syncing');
+    });
+
+    test('should disable sync button and collection switches', function() {
+      expect(subject.elements.syncNowButton.classList.contains('disabled'))
+        .to.equals(true);
+      expect(subject.elements.collectionBookmarks.disabled).to.equal(true);
+      expect(subject.elements.collectionHistory.disabled).to.equal(true);
     });
   });
 
@@ -272,6 +298,27 @@ suite('Sync settings >', function() {
         subject[config.oncheckedFunction]();
         expect(subject.collections.has(config.setting))
           .to.be.equal(config.checked);
+      });
+    });
+
+    test('should enable/disable Sync Now button on setting enabled/disabled',
+         function() {
+      [{
+        setting: HISTORY_SETTING,
+        enabled: true
+      }, {
+        setting: HISTORY_SETTING,
+        enabled: false
+      }, {
+        setting: BOOKMARKS_SETTING,
+        enabled: true
+      }, {
+        setting: BOOKMARKS_SETTING,
+        enabled: true
+      }].forEach(config => {
+        observers[config.setting](config.enabled);
+        expect(subject.elements.syncNowButton.classList.contains('disabled'))
+          .to.equals(!config.enabled);
       });
     });
   });

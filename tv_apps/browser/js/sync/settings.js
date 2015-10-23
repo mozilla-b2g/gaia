@@ -34,6 +34,11 @@
     selector: '#fxsync-signed-in-as'
   }, {
     screen: ENABLED,
+    selector: '#fxsync-sync-now-button',
+    event: 'mouseup',
+    listener: 'sync'
+  }, {
+    screen: ENABLED,
     selector: '#fxsync-sign-out-button',
     event: 'mouseup',
     listener: 'disable'
@@ -82,6 +87,7 @@
             enabled ? this.collections.set(setting.name, enabled)
                     : this.collections.delete(setting.name);
             this[setting.onchange]();
+            this.maybeEnableSyncNow();
           });
         });
       });
@@ -120,6 +126,11 @@
           }
           this.showScreen(ENABLED);
           this.showUser(message.user);
+          this.showSyncNow();
+          break;
+        case 'syncing':
+          this.showScreen(ENABLED);
+          this.showSyncing();
           break;
         case 'errored':
           // XXX Will be done on bug 1215463
@@ -197,7 +208,6 @@
         }
 
         if (!this.listeners.has(name)) {
-          console.warn('We were supposed to have a listener for', name);
           return;
         }
         this.removeListener(this.elements[name],
@@ -226,12 +236,45 @@
       });
     },
 
+    maybeEnableSyncNow() {
+      if (!this.elements.syncNowButton) {
+        return;
+      }
+      (this.collections.size <= 0) ?
+        this.elements.syncNowButton.classList.add('disabled') :
+        this.elements.syncNowButton.classList.remove('disabled');
+    },
+
+    disableSyncNowAndCollections(disabled) {
+      ['collectionBookmarks',
+       'collectionHistory'].forEach(name => {
+        this.elements[name].disabled = disabled;
+      });
+      disabled ? this.elements.syncNowButton.classList.add('disabled')
+               : this.elements.syncNowButton.classList.remove('disabled');
+    },
+
+    showSyncNow() {
+      this.elements.syncNowButton.dataset.l10nId = 'fxsync-sync-now';
+      this.disableSyncNowAndCollections(false);
+      this.maybeEnableSyncNow();
+    },
+
+    showSyncing() {
+      this.elements.syncNowButton.dataset.l10nId = 'fxsync-syncing';
+      this.disableSyncNowAndCollections(true);
+    },
+
     enable() {
       SyncManagerBridge.enable();
     },
 
     disable() {
       SyncManagerBridge.disable();
+    },
+
+    sync() {
+      SyncManagerBridge.sync();
     }
   };
 

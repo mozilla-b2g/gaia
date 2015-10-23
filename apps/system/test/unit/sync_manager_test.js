@@ -753,28 +753,7 @@ suite('system/SyncManager >', () => {
       });
     });
 
-    test('onsyncsyncing - success - disabled state', done => {
-      id = Date.now();
-      result = {
-        id: id
-      };
-      var previousLastSync = syncManager.lastSync;
-      syncManager.state = 'disabled';
-      syncManager._settings['sync.collections.history.enabled'] = true;
-      syncManager._settings['sync.collections.history.readonly'] = true;
-      window.dispatchEvent(new CustomEvent('onsyncsyncing'));
-      setTimeout(() => {
-        setTimeout(() => {
-          setTimeout(() => {
-            assert.notEqual(syncManager.lastSync, previousLastSync);
-            assert.ok(requestStub.notCalled);
-            done();
-          });
-        });
-      });
-    });
-
-    test('onsyncsyncing - no collections selected', done => {
+   test('onsyncsyncing - no collections selected', done => {
       syncManager._settings['sync.collections.history.enabled'] = false;
       syncManager._settings['sync.collections.passwords.enabled'] = false;
       var previousLastSync = syncManager.lastSync;
