@@ -4,6 +4,7 @@
 
 from marionette_driver import expected, By, Wait
 
+from gaiatest.form_controls.binarycontrol import GaiaBinaryControl
 from gaiatest.apps.base import Base
 
 
@@ -23,7 +24,7 @@ class CallSettings(Base):
 
     _fixed_dialing_page_locator = (By.ID, 'call-fdnSettings')
     _fixed_dialing_numbers_locator = (By.ID, 'menuItem-callFdn')
-    _toggle_fixed_dialing_number_locator = (By.CSS_SELECTOR, '.fdn-enabled .pack-switch')
+    _toggle_fixed_dialing_number_locator = (By.CSS_SELECTOR, '.fdn-enabled gaia-switch')
     _sim_pin_page_locator = (By.ID, 'simpin-dialog')
     _sim_pin_area_locator = (By.CLASS_NAME, 'sim-code-area')
     _auth_number_locator = (By.CSS_SELECTOR, '[data-l10n-id = "fdn-authorizedNumbers"]')
@@ -153,10 +154,8 @@ class CallSettings(Base):
             *self._fixed_dialing_page_locator))
 
     def enable_fixed_dialing(self):
-        element = self.marionette.find_element(*self._toggle_fixed_dialing_number_locator)
-        Wait(self.marionette).until(expected.element_displayed(element) and
-                                    expected.element_enabled(element))
-        element.tap()
+        GaiaBinaryControl(self.marionette, self._toggle_fixed_dialing_number_locator).enable()
+
         Wait(self.marionette).until(expected.element_displayed(
             *self._sim_pin_area_locator))
         self.marionette.switch_to_frame()
