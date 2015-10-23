@@ -8,6 +8,8 @@ define(function(require, exports, module) {
 var debug = require('debug')('controller:preview-gallery');
 var StringUtils = require('lib/string-utils');
 var bindAll = require('lib/bind-all');
+var PreviewGalleryView = require('views/preview-gallery');
+var CustomDialog = require('CustomDialog');
 
 /**
  * Exports
@@ -21,101 +23,57 @@ function PreviewGalleryController(app) {
   this.app = app;
   this.require = app.require;
   this.settings = app.settings;
-  this.dialog = app.dialog; // test hook
+  this.dialog = app.dialog || CustomDialog; // test hook
   this.resizeImageAndSave = app.resizeImageAndSave;
+  this.currentItemIndex = 0;
   this.bindEvents();
-  this.configure();
   debug('initialized');
 }
 
 PreviewGalleryController.prototype.bindEvents = function() {
-  this.app.on('storage:itemdeleted', this.onItemDeleted);
-  this.app.on('storage:changed', this.onStorageChanged);
+  this.app.on('media:configured', this.updatePreviewGallery);
+  this.app.on('media:deleted', this.updatePreviewGallery);
   this.app.on('preview', this.openPreview);
-  this.app.on('newmedia', this.onNewMedia);
-  this.app.on('hidden', this.onHidden);
-
-  // Preload libraries we may need after capturing to maintain snappiness
-  var self = this;
-  this.app.once('capture', function() {
-    var lib = ['lib/create-thumbnail-image', 'lib/prepare-preview-blob'];
-    self.require(lib, function() {});
-  });
-
-  this.app.once('newmedia', function() {
-    var lib = ['views/preview-gallery', 'CustomDialog',
-               'lib/resize-image-and-save'];
-    self.require(lib, function() {});
-  });
+  this.app.on('hidden', this.closePreview);
 
   debug('events bound');
 };
 
-PreviewGalleryController.prototype.configure = function() {
-  this.currentItemIndex = 0;
-  this.items = [];            // All the pictures and videos we know about
-  this.thumbnailItem = null;  // The item that currently has a thumbnail
-
-  var dpr = window.devicePixelRatio;
-  this.thumbnailSize = {
-    width: this.settings.previewGallery.get('thumbnailWidth') * dpr,
-    height: this.settings.previewGallery.get('thumbnailHeight') * dpr
-  };
+PreviewGalleryController.prototype.resetPreviewGallery = function(items) {
+  this.items = items;
 };
 
 PreviewGalleryController.prototype.openPreview = function() {
   // If we're handling a pick activity the preview gallery is not used
-  if (this.app.activity.pick) {
+  if (this.app.activity.pick || this.view || this.app.hidden) {
     return;
   }
 
-  if (this.view) {
-    return;
-  }
-
-  var self = this;
   var maxPreviewSize = window.CONFIG_MAX_IMAGE_PIXEL_SIZE;
 
-  var lib = ['views/preview-gallery', 'CustomDialog'];
-  this.require(lib, function(view, dialog) {
-    if (!self.dialog) {
-      self.dialog = dialog;
-    }
-    if (self.app.hidden) {
-      return;
-    }
+  this.view = new PreviewGalleryView();
+  this.view.maxPreviewSize = maxPreviewSize;
+  this.view.render().appendTo(this.app.el);
 
-    self.view = new view();
-    self.view.maxPreviewSize = maxPreviewSize;
-    self.view.render().appendTo(self.app.el);
+  this.view.on('click:gallery', this.onGalleryButtonClick);
+  this.view.on('click:share', this.shareCurrentItem);
+  this.view.on('click:delete', this.deleteCurrentItem);
+  this.view.on('click:back', this.closePreview);
+  this.view.on('swipe', this.handleSwipe);
+  this.view.on('click:options', this.onOptionsClick);
+  this.view.on('loadingvideo', this.app.firer('busy'));
+  this.view.on('playingvideo', this.app.firer('ready'));
 
-    self.view.on('click:gallery', self.onGalleryButtonClick);
-    self.view.on('click:share', self.shareCurrentItem);
-    self.view.on('click:delete', self.deleteCurrentItem);
-    self.view.on('click:back', self.closePreview);
-    self.view.on('swipe', self.handleSwipe);
-    self.view.on('click:options', self.onOptionsClick);
-    self.view.on('loadingvideo', self.app.firer('busy'));
-    self.view.on('playingvideo', self.app.firer('ready'));
+  // If lockscreen is locked, hide all control buttons
+  var secureMode = this.app.inSecureMode;
+  this.view.set('secure-mode', secureMode);
+  this.view.open();
 
-    // If lockscreen is locked, hide all control buttons
-    var secureMode = self.app.inSecureMode;
-    self.view.set('secure-mode', secureMode);
-    self.view.open();
-
-    self.previewItem();
-    self.app.emit('previewgallery:opened');
-  });
+  this.previewItem();
+  this.app.emit('previewgallery:opened');
 };
 
 PreviewGalleryController.prototype.closePreview = function() {
-  // If the item that we have displayed a thumbnail for is no longer the
-  // first item in the array of items, then update the thumbnail. This can
-  // happen if the user deletes items after previewing them.
-  if (this.thumbnailItem !== this.items[0]) {
-    this.updateThumbnail();
-  }
-
   if (this.view) {
     this.currentItemIndex = 0;
     this.view.close();
@@ -158,12 +116,13 @@ PreviewGalleryController.prototype.onOptionsClick = function() {
 };
 
 PreviewGalleryController.prototype.shareCurrentItem = function() {
-  if (this.app.inSecureMode || this.resizingImage) {
+  var index = this.currentItemIndex;
+  var item = this.items[index];
+
+  if (this.app.inSecureMode || !item || item.resizing) {
     return;
   }
 
-  var index = this.currentItemIndex;
-  var item = this.items[index];
   var type = item.isVideo ? 'video/*' : 'image/*';
   var filename = StringUtils.lastPathComponent(item.filepath);
 
@@ -190,7 +149,7 @@ PreviewGalleryController.prototype.shareCurrentItem = function() {
 
   var self = this;
 
-  this.resizingImage = true;
+  item.resizing = true;
   this.app.emit('busy', 'resizingImage');
 
   // Resize the image to the maximum pixel size for share activities.
@@ -220,7 +179,7 @@ PreviewGalleryController.prototype.shareCurrentItem = function() {
         }
         delete item.rotation;
       }
-      self.resizingImage = false;
+      delete item.resizing;
       self.app.emit('ready');
       launchShareActivity(resizedBlob);
     });
@@ -268,8 +227,6 @@ PreviewGalleryController.prototype.deleteCurrentItem = function() {
   function deleteItem() {
     dialog.hide();
 
-    self.updatePreviewGallery(index);
-
     // Actually delete the file
     if (item.isVideo) {
       self.app.emit('previewgallery:deletevideo', filepath);
@@ -285,16 +242,18 @@ PreviewGalleryController.prototype.deleteCurrentItem = function() {
  *
  * @param  {String} index
  */
-PreviewGalleryController.prototype.updatePreviewGallery = function(index) {
+PreviewGalleryController.prototype.updatePreviewGallery = function(items) {
   // Remove the item from the array of items
-  this.items.splice(index, 1);
+  if (items) {
+    this.items = items;
+  }
 
-    // If there are no more items, go back to the camera
+  // If there are no more items, go back to the camera
   if (this.items.length === 0) {
     this.closePreview();
   }
   else {
-    if (index == this.items.length) {
+    if (this.currentItemIndex === this.items.length) {
       this.currentItemIndex = this.items.length - 1;
     }
 
@@ -331,34 +290,6 @@ PreviewGalleryController.prototype.previous = function() {
   }
 };
 
-PreviewGalleryController.prototype.onNewMedia = function(item) {
-  // If we're handling a pick activity the preview gallery is not used
-  if (this.app.activity.pick) {
-    return;
-  }
-
-  var self = this;
-
-  if (item.isVideo) {
-    // If the new media is video, use it as-is
-    addNewMedia(item);
-  } else {
-    // If it is a photo, find its EXIF preview first
-    this.require(['lib/prepare-preview-blob'], function(preparePreview) {
-      preparePreview(item.blob, function(metadata) {
-        metadata.blob = item.blob;
-        metadata.filepath = item.filepath;
-        addNewMedia(metadata);
-      });
-    });
-  }
-
-  function addNewMedia(item) {
-    self.items.unshift(item);
-    self.updateThumbnail();
-  }
-};
-
 PreviewGalleryController.prototype.previewItem = function() {
   var index = this.currentItemIndex;
   var item = this.items[index];
@@ -369,126 +300,6 @@ PreviewGalleryController.prototype.previewItem = function() {
   } else {
     this.view.showImage(item);
   }
-};
-
-/**
- * Delete all items in the preview gallery
- * when storage becomes unavailable.
- *
- * @param  {String} status
- */
-PreviewGalleryController.prototype.onStorageChanged = function(status) {
-  if (status === 'unavailable') {
-    this.configure();
-    this.updateThumbnail();
-  }
-};
-
-/**
- * Delete and update items in the preview gallery
- * when images/videos are deleted by others
- *
- * @param  {Object} filepath
- */
-PreviewGalleryController.prototype.onItemDeleted = function(data) {
-
-  // Check if this event is being stopped such as in the case
-  // of resizing an image for a share activity.
-  if (this.resizingImage) {
-    return;
-  }
-
-  var deleteIdx = -1;
-  var deletedFilepath = data.path;
-
-  // find the item in items
-  for (var n = 0; n < this.items.length; n++) {
-    if (this.items[n].filepath === deletedFilepath) {
-      deleteIdx = n;
-      break;
-    }
-  }
-
-  // Exit when item not found
-  if (n === this.items.length) { return; }
-
-  this.updatePreviewGallery(deleteIdx);
-};
-
-/**
- * As a privacy feature, when the camera app is used from the lockscreen
- * and the lockscreen is actually locked with a passcode, we don't want
- * the camera to retain any state from one use to the next. So if the
- * camera is hidden (i.e. if the phone returns to the lockscreen) we
- * forget our state.  In practice, it appears that the system app actually
- * kills the camera when this happens, so this code is redundant.
- */
-PreviewGalleryController.prototype.onHidden = function() {
-  if (this.app.inSecureMode) {
-    this.configure();          // Forget all stored images
-    this.updateThumbnail();    // Get rid of any thumbnail
-  }
-  this.closePreview();
-};
-
-PreviewGalleryController.prototype.updateThumbnail = function() {
-  // This is the media item that we want to create a thumbnail for.
-  var media = this.thumbnailItem = this.items[0] || null;
-
-  if (media === null) {
-    this.app.emit('newthumbnail', null);
-    return;
-  }
-
-  // To create a thumbanil, we first need to figure out which image
-  // blob to use, and what the size and rotation of that image is.
-  var blob;                    // The image we'll create the thumbnail from.
-  var metadata = {             // The metadata for that image.
-    rotation: media.rotation,
-    mirrored: media.mirrored
-  };
-
-  if (media.isVideo) {
-    // If it is a video we can create a thumbnail from the poster image
-    blob = media.poster.blob;
-    metadata.width = media.poster.width;
-    metadata.height = media.poster.height;
-  } else {
-    // If it is a photo we want to use the EXIF preview rather than
-    // decoding the whole image if we can.
-    if (media.preview) {
-
-      // The Tarako may produce EXIF previews that have the wrong
-      // aspect ratio and are distorted. Check for that, and if the
-      // aspect ratio is not right, then create a thumbnail from the
-      // full size image
-      var fullRatio = media.width / media.height;
-      var previewRatio = media.preview.width / media.preview.height;
-
-      // If aspect ratios match, create thumbnail from EXIF preview
-      if (Math.abs(fullRatio - previewRatio) < 0.01) {
-        blob = media.blob.slice(media.preview.start, media.preview.end,
-                                'image/jpeg');
-        metadata.width = media.preview.width;
-        metadata.height = media.preview.height;
-      }
-    }
-
-    // If a thumbnail couldn't be obtained from the EXIF preview,
-    // use the full image
-    if (!blob) {
-      blob = media.blob;
-      metadata.width = media.width;
-      metadata.height = media.height;
-    }
-  }
-
-  var self = this;
-  this.require(['lib/create-thumbnail-image'], function(createThumbnailImage) {
-    createThumbnailImage(blob, metadata, self.thumbnailSize, (thumb) => {
-      self.app.emit('newthumbnail', thumb);
-    });
-  });
 };
 
 });

@@ -128,7 +128,8 @@ module.exports = {
     takingPicture: 1650,
     requestingCamera: 850,
     loadingVideo: 100,
-    resizingImage: 100
+    resizingImage: 100,
+    lazyLoading: 300
   },
 
   mode: {

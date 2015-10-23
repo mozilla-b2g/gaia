@@ -28,6 +28,8 @@ suite('controllers/settings', function() {
     var self = this;
 
     this.app = sinon.createStubInstance(this.App);
+    this.app.require = sinon.stub();
+    this.app.require.callsArgWith(1, this.SettingsView);
 
     // Settings
     this.app.el = {};
