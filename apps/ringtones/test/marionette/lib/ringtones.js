@@ -141,7 +141,8 @@ PickSound.prototype = Object.create(BaseSound.prototype);
 PickSound.prototype.constructor = PickSound;
 
 PickSound.Selectors = Object.freeze({
-  input: 'gaia-radio'
+  input: 'gaia-radio',
+  subtitle: 'gaia-radio details'
 });
 
 Object.defineProperty(PickSound.prototype, 'selected', {
@@ -152,6 +153,15 @@ Object.defineProperty(PickSound.prototype, 'selected', {
                        }));
   }
 });
+
+
+Object.defineProperty(PickSound.prototype, 'subtitle', {
+  get: function() {
+    var subtitle = this.element.findElement(PickSound.Selectors.subtitle);
+    return subtitle ? subtitle.text() : undefined;
+  }
+});
+
 
 PickSound.prototype.select = function() {
   this.element.tap();

@@ -11,6 +11,7 @@
   "permissions": {
     "themeable":{},
     "alarms": {},
+    "system-app-only-audio-channels-in-app": {},
     "browser":{},
     "power":{},
     "webapps-manage":{},
@@ -135,15 +136,13 @@
       "access": "readwrite",
       "description": "Stores successful downloads"
     },
+    "bookmarks_store": {
+      "access": "readwrite",
+      "description": "Stores data about browsing history."
+    },
     "places": {
       "access": "readwrite",
       "description": "Stores data about browsing history."
-    }
-  },
-  "datastores-access": {
-    "bookmarks_store": {
-      "readonly": false,
-      "description": "View and modify bookmarks"
     }
   }
 }

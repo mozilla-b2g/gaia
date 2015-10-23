@@ -20,12 +20,12 @@ class Homescreen(Base):
     _homescreen_collection_icon = (By.CSS_SELECTOR, 'gaia-grid .collection')
     _edit_mode_locator = (By.CSS_SELECTOR, 'body.edit-mode')
     _search_bar_icon_locator = (By.ID, 'search-input')
-    _landing_page_locator = (By.ID, 'icons')
     _bookmark_icons_locator = (By.CSS_SELECTOR, 'gaia-grid .bookmark')
     _divider_locator = (By.CSS_SELECTOR, 'section.divider')
     _divider_separator_locator = (By.CSS_SELECTOR, 'section.divider .separator > span')
     _exit_edit_mode_locator = (By.ID, 'exit-edit-mode')
 
+    _icons_locator = (By.TAG_NAME, 'gaia-app-icon')
 
     _body_dragging_locator = (By.CSS_SELECTOR, 'body.dragging')
     _apps_locator = (By.ID, 'apps')
@@ -60,16 +60,6 @@ class Homescreen(Base):
         # Ensure that edit mode is active
         Wait(self.marionette).until(expected.element_present(
             *self._edit_mode_locator))
-
-    def open_context_menu(self):
-        test = self.marionette.find_element(*self._landing_page_locator)
-        Actions(self.marionette).\
-            press(test, 0, 0).\
-            wait(3).\
-            release().\
-            perform()
-        from gaiatest.apps.homescreen.regions.context_menu import ContextMenu
-        return ContextMenu(self.marionette)
 
     def move_app_to_position(self, app_position, to_position):
         app_elements = self.app_elements
@@ -125,15 +115,7 @@ class Homescreen(Base):
 
     @property
     def app_elements(self):
-        return self.marionette.execute_script("""
-        var gridItems = window.wrappedJSObject.app.grid.getItems();
-        var appElements = [];
-        for(var i=0; i<gridItems.length; i++){
-        // it must have an app to be a
-        if(gridItems[i].app) appElements.push(gridItems[i].element);
-        }
-        return appElements;
-        """)
+        return self.marionette.find_elements(*self._icons_locator)
 
     @property
     def divider_elements(self):
@@ -168,9 +150,23 @@ class Homescreen(Base):
 
     @property
     def number_of_columns(self):
-        element = self.marionette.find_element(*self._landing_page_locator)
-        Wait(self.marionette).until(lambda m: element.get_attribute('cols') is not None)
-        return int(element.get_attribute('cols'))
+
+        _icon_container_text = 'div.gaia-container-child:nth-child(%s)'
+        #first element is always on the first column
+        _first_icon_locator = (By.CSS_SELECTOR, _icon_container_text % str(1))
+        # wait until the icons are fully drawn
+        Wait(self.marionette).until(lambda m: self.marionette.find_element(*_first_icon_locator).rect['x'] != 0)
+        base_x_axis = self.marionette.find_element(*_first_icon_locator).rect['x']
+        has_row_changed = False
+        column = 1
+        while not has_row_changed:
+            _icon_locator = (By.CSS_SELECTOR, _icon_container_text % str(column+1))
+            if self.marionette.find_element(*_icon_locator).rect['x'] == base_x_axis:
+                has_row_changed = True
+            else:
+                column += 1
+
+        return column
 
     class InstalledApp(PageRegion):
 

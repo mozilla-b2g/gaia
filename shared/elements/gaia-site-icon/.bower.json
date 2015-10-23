@@ -21,11 +21,11 @@
     "tests"
   ],
   "homepage": "https://github.com/gaia-components/gaia-site-icon",
-  "_release": "3d0a5f769e",
+  "_release": "9eeb7b52b7",
   "_resolution": {
     "type": "branch",
     "branch": "master",
-    "commit": "3d0a5f769e8d1c9c4793ffd93d846b2b0dd3a503"
+    "commit": "9eeb7b52b7cb9e094aed940e4724ed5f1e22c1a4"
   },
   "_source": "git://github.com/gaia-components/gaia-site-icon.git",
   "_target": "*",

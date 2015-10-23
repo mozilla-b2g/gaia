@@ -64,7 +64,7 @@
                 <div id="pin-page-container" class="container">
                   <div id="pin-card-container"></div>
                   <p id="pin-page-title" class="page-title" dir="ltr"></p>
-                  <button data-l10n-id="pinning-pin-page" data-action="pin"
+                  <button data-l10n-id="pinning-pin-page" data-action="pin-page"
                     class="pin-button"></button>
                 </div>
                 <div class="divider"><span data-l10n-id="or"></span></div>
@@ -85,7 +85,7 @@
 
   PinPageSystemDialog.prototype._registerEvents = function() {
     this.header.addEventListener('action', this.close.bind(this));
-    this.pinButton.addEventListener('click', this.save.bind(this));
+    this.pinPageButton.addEventListener('click', this.save.bind(this));
     this.pinSiteButton.addEventListener('click', this.save.bind(this));
   };
 
@@ -94,9 +94,8 @@
     this.pageTitle = this.element.querySelector('#pin-page-title');
     this.pinCardContainer = this.element.querySelector('#pin-card-container');
     this.header = this.element.querySelector('gaia-header');
-    var pinSelector = 'button[data-action="pin"]';
-    this.pinButton = this.element.querySelector(pinSelector);
-    this.pinSiteContainer = this.element.querySelector('#pin-site-container');
+    var pinSelector = 'button[data-action="pin-page"]';
+    this.pinPageButton = this.element.querySelector(pinSelector);
     this.siteBadge = this.element.querySelector('gaia-app-icon');
     this.siteName = this.element.querySelector('#site-name');
     pinSelector = 'button[data-action="pin-site"]';
@@ -126,18 +125,20 @@
     var action = evt.target.dataset.action;
     var activeApp = Service.query('getTopMostWindow');
     switch (action) {
-      case 'pin':
+      case 'pin-page':
         activeApp.appChrome.pinPage();
+        break;
+
+      case 'unpin-page':
+        activeApp.appChrome.unpinPage();
         break;
 
       case 'pin-site':
         activeApp.appChrome.pinSite();
-        this.pinSiteContainer.classList.remove('active');
         break;
 
       case 'unpin-site':
         activeApp.appChrome.unpinSite();
-        this.pinSiteContainer.classList.remove('active');
         break;
     }
 
@@ -166,6 +167,17 @@
     siteBadge.icon = data.icon;
     this.siteName.textContent = data.name;
 
+    Service.request('Places:isPinned', data.url)
+      .then((isPinned) => {
+        if (isPinned) {
+          this.pinPageButton.setAttribute('data-l10n-id', 'pinning-unpin-page');
+          this.pinPageButton.dataset.action = 'unpin-page';
+        } else {
+          this.pinPageButton.setAttribute('data-l10n-id', 'pinning-pin-page');
+          this.pinPageButton.dataset.action = 'pin-page';
+        }
+      });
+
     Service.request('PinsManager:isPinned', data.url)
       .then((isPinned) => {
         if (isPinned) {
@@ -180,7 +192,6 @@
 
   PinPageSystemDialog.prototype.hide = function() {
     this._visible = false;
-    this.pinSiteContainer.classList.remove('active');
     SystemDialog.prototype.hide.apply(this);
   };
 

@@ -14,18 +14,19 @@ body {
   -moz-user-select: none;
 }
 
-#page-indicator {
+#page-indicator-header {
   width: 100%;
   height: 1.5rem;
   background-color: rgba(0, 0, 0, 0.1);
-  display: none;
-  justify-content: center;
-  align-items: center;
-  align-content: center;
 }
 
 #page-indicator {
+  width: 100%;
+  height: 100%;
   display: flex;
+  justify-content: center;
+  align-items: center;
+  align-content: center;
 }
 
 #page-indicator span {

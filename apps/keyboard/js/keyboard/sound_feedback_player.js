@@ -26,7 +26,7 @@ SoundFeedbackPlayer.prototype.activate = function() {
   }
 
   // Hold an AudioContext instance implying turing on the audio hardware.
-  this._audioCtx = new AudioContext();
+  this._audioCtx = new AudioContext('system');
 };
 
 SoundFeedbackPlayer.prototype.deactivate = function() {

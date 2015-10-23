@@ -286,6 +286,44 @@ suite('system/Places', function() {
       this.sinon.clock.tick(10000);
     });
 
+    suite('isPinned', function() {
+      setup(function() {
+        MockDatastore.put({
+          url: 'http://example.com/index.html',
+          tile: 'a tile',
+          frecency: 1
+        }, 'http://example.com/index.html');
+
+        MockDatastore.put({
+          url: 'http://example.org',
+          tile: 'a tile',
+          frecency: 1,
+          pinned: true,
+          pinTime: 1444829881365
+        }, 'http://example.org');
+      });
+
+      teardown(function() {
+      });
+
+      test('should return false for unpinned pages', function(done) {
+        subject.isPinned('http://example.com/index.html')
+          .then((isPinned) => {
+            assert.isFalse(isPinned);
+            done();
+          });
+      });
+
+      test('should return true for pinned pages', function(done) {
+        subject.isPinned('http://example.org')
+          .then((isPinned) => {
+            assert.isTrue(isPinned);
+            done();
+          });
+      });
+
+    });
+
     suite('Clear history', function() {
       var syncSpy;
 

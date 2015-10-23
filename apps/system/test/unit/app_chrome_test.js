@@ -1270,6 +1270,27 @@ suite('system/AppChrome', function() {
     });
   });
 
+  suite('Unpin page', function() {
+    var chrome, requestStub;
+
+    setup(function() {
+      var app = new AppWindow(cloneConfig(fakeWebSite));
+      chrome = new AppChrome(app);
+      requestStub = this.sinon.stub(Service, 'request').returns(
+        new Promise(function() {}));
+    });
+
+    teardown(function() {
+      requestStub.restore();
+    });
+
+    test('Unpin page', function() {
+      chrome.unpinPage();
+      assert.isTrue(Service.request.calledWith('Places:setPinned',
+        fakeWebSite.url));
+    });
+  });
+
   suite('getSiteUrl', function() {
     test('no webManifest', function() {
       app = new AppWindow(cloneConfig(fakeWebSite));

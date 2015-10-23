@@ -101,6 +101,9 @@ require.config({
     'shared/uuid': {
       exports: 'uuid'
     },
+    'shared/findmydevice_iac_api': {
+      exports: 'wakeUpFindMyDevice'
+    },
     'shared/wifi_helper': {
       exports: 'WifiHelper'
     },
@@ -163,6 +166,13 @@ require.config({
         'main',
         'shared/keyboard_helper',
         'modules/date_time'
+      ]
+    },
+    {
+      name: 'panels/findmydevice/panel',
+      exclude: [
+        'main',
+        'modules/settings_utils'
       ]
     },
     {

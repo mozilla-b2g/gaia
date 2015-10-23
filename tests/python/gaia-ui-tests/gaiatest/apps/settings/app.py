@@ -169,6 +169,10 @@ class Settings(Base):
     def title(self):
         return self.marionette.find_element(*self._main_title_locator)
 
+    @property
+    def current_view(self):
+        return self.marionette.find_element(By.CLASS_NAME, 'current').get_attribute('id')
+
     def open_wifi(self):
         return self._open_subpage(self._wifi_menu_item_locator, 'wifi', 'Wifi')
 

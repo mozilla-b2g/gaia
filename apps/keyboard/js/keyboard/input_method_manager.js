@@ -126,7 +126,10 @@ InputMethods['default'] = {
     this._glue = glue;
   },
   click: function(keyCode, isRepeat) {
-    this._glue.sendKey(keyCode, isRepeat);
+    return this._glue.sendKey(keyCode, isRepeat);
+  },
+  handleKey: function(dict) {
+    return this._glue.sendKey(dict);
   },
   displaysCandidates: function() {
     return false;
@@ -164,12 +167,13 @@ InputMethodGlue.prototype.setComposition = function(symbols, cursor) {
   }
   cursor = cursor || symbols.length;
   this.app.console.info('inputContext.setComposition()');
-  this.app.inputContext.setComposition(symbols, cursor).catch(function(e) {
-    console.warn('InputMethodGlue: setComposition() rejected with error', e);
-    this.app.console.log(symbols, cursor);
+  return this.app.inputContext.setComposition(symbols, cursor)
+    .catch(function(e) {
+      console.warn('InputMethodGlue: setComposition() rejected with error', e);
+      this.app.console.log(symbols, cursor);
 
-    return Promise.reject(e);
-  }.bind(this));
+      return Promise.reject(e);
+    }.bind(this));
 };
 
 InputMethodGlue.prototype.endComposition = function(text) {
@@ -181,15 +185,16 @@ InputMethodGlue.prototype.endComposition = function(text) {
   }
   text = text || '';
   this.app.console.info('inputContext.endComposition()');
-  return this.app.inputContext.endComposition(text).catch(function(e) {
-    console.warn('InputMethodGlue: endComposition() rejected with error', e);
-    this.app.console.log(text);
+  return this.app.inputContext.endComposition(text)
+    .catch(function(e) {
+      console.warn('InputMethodGlue: endComposition() rejected with error', e);
+      this.app.console.log(text);
 
-    return Promise.reject(e);
-  }.bind(this));
+      return Promise.reject(e);
+    }.bind(this));
 };
 
-InputMethodGlue.prototype.sendKey = function(keyCode, isRepeat) {
+InputMethodGlue.prototype.sendKey = function(keyCodeOrDict, isRepeat) {
   this.app.console.trace();
   if (!this.app.inputContext) {
     console.warn('InputMethodGlue: call sendKey() when ' +
@@ -199,24 +204,30 @@ InputMethodGlue.prototype.sendKey = function(keyCode, isRepeat) {
 
   var promise;
 
-  this.app.console.info('inputContext.sendKey(), code:' + keyCode);
-  switch (keyCode) {
-    case KeyEvent.DOM_VK_BACK_SPACE:
-      promise = this.app.inputContext.sendKey(keyCode, 0, 0, isRepeat);
-      break;
+  if (typeof keyCodeOrDict === 'object') {
+    this.app.console.info('inputContext.sendKey(), dict:', keyCodeOrDict);
 
-    case KeyEvent.DOM_VK_RETURN:
-      promise = this.app.inputContext.sendKey(keyCode, 0, 0);
-      break;
+    promise = this.app.inputContext.sendKey(keyCodeOrDict);
+  } else {
+    this.app.console.info('inputContext.sendKey(), code:' + keyCodeOrDict);
+    switch (keyCodeOrDict) {
+      case KeyEvent.DOM_VK_BACK_SPACE:
+        promise = this.app.inputContext.sendKey(keyCodeOrDict, 0, 0, isRepeat);
+        break;
 
-    default:
-      promise = this.app.inputContext.sendKey(0, keyCode, 0);
-      break;
+      case KeyEvent.DOM_VK_RETURN:
+        promise = this.app.inputContext.sendKey(keyCodeOrDict, 0, 0);
+        break;
+
+      default:
+        promise = this.app.inputContext.sendKey(0, keyCodeOrDict, 0);
+        break;
+    }
   }
 
   return promise.catch(function(e) {
     console.warn('InputMethodGlue: sendKey() rejected with error', e);
-    this.app.console.log(keyCode, isRepeat);
+    this.app.console.log(keyCodeOrDict, isRepeat);
 
     return Promise.reject(e);
   }.bind(this));

@@ -187,11 +187,10 @@ marionette('Music player search', function() {
 
     // Test contextual search
     // XXX fixme: currently make the app *crash*
-    test.skip('Check the context for artists', function() {
+    test('Check the context for artists', function() {
       try {
         music.switchToArtistsView();
 
-        client.helper.wait(1500);
         music.showSearchInput('#list');
         music.searchArtists('the');
 

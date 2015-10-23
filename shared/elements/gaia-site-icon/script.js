@@ -271,6 +271,7 @@ window.GaiaAppIcon = (function(exports) {
     setTimeout(() => { this.classList.remove('launching'); }, LAUNCH_TIMEOUT);
 
     if (this.app) {
+      window.performance.mark('appLaunch@' + this.app.origin);
       this.app.launch(this.entryPoint);
     } else {
       var features = {
@@ -292,6 +293,7 @@ window.GaiaAppIcon = (function(exports) {
     this._hasPredefinedIcon = false;
     this._hasUserSetIcon = false;
     this._image = document.createElement('img');
+    this._image.setAttribute('role', 'presentation');
 
     this._image.onload = () => {
       // FIXME: Remove once bug 1211266 is fixed

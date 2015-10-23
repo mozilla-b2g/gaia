@@ -404,14 +404,15 @@ exports.Navigation = {
   },
 
   skipStep: function n_skipStep() {
-    this.currentStepIndex = this.currentStepIndex +
-                      (this.currentStepIndex - this.previousStepIndex);
-    if (this.currentStepIndex <= 0) {
-      this.previousStepIndex = this.currentStepIndex = 0;
+    var stepIndex = this.currentStepIndex;
+    stepIndex += stepIndex > this.previousStepIndex ? 1 : -1;
+    if (stepIndex <= 0) {
+      this.previousStepIndex = stepIndex = 0;
     }
-    if (this.currentStepIndex > this.stepCount) {
-      this.previousStepIndex = this.currentStepIndex = this.stepCount;
+    if (stepIndex > this.stepCount) {
+      this.previousStepIndex = stepIndex = this.stepCount;
     }
+    this.currentStepIndex = stepIndex;
     this.manageStep();
   },
 

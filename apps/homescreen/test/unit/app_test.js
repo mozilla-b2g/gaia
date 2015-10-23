@@ -691,7 +691,21 @@ suite('Homescreen app', () => {
       app.updatePanelIndicator();
       assert.isTrue(indicatorToggleStubs[0].calledWith('active', true));
       assert.isTrue(indicatorToggleStubs[1].calledWith('active', false));
-      assert.equal(app.indicator.getAttribute('data-l10n-id'), 'apps-panel');
+      assert.equal(app.header.getAttribute('data-l10n-id'), 'apps-panel');
+    });
+
+    test('should update aria-hidden on both panels', () => {
+      var appPanelSetAttributeStub = sinon.stub(app.panel, 'setAttribute');
+      var pagesPanelSetAttributeStub =
+        sinon.stub(app.pages.panel, 'setAttribute');
+
+      app.appsVisible = false;
+      app.updatePanelIndicator();
+      assert.isTrue(appPanelSetAttributeStub.calledWith('aria-hidden', false));
+      assert.isTrue(pagesPanelSetAttributeStub.calledWith('aria-hidden', true));
+
+      appPanelSetAttributeStub.restore();
+      pagesPanelSetAttributeStub.restore();
     });
 
     test('should update indicator when pages visible', () => {
@@ -699,7 +713,7 @@ suite('Homescreen app', () => {
       app.updatePanelIndicator();
       assert.isTrue(indicatorToggleStubs[0].calledWith('active', false));
       assert.isTrue(indicatorToggleStubs[1].calledWith('active', true));
-      assert.equal(app.indicator.getAttribute('data-l10n-id'), 'pages-panel');
+      assert.equal(app.header.getAttribute('data-l10n-id'), 'pages-panel');
     });
 
     test('should do nothing when visibility is unchanged', () => {
@@ -715,6 +729,45 @@ suite('Homescreen app', () => {
   });
 
   suite('App#handleEvent()', () => {
+    suite('keypress', () => {
+      var scrollObject, realPanels;
+      var event = {
+        type: 'keypress',
+        ctrlKey: true,
+        DOM_VK_RIGHT: 'right',
+        DOM_VK_LEFT: 'left'
+      };
+      var mockPanels = {
+        scrollLeftMax: 100,
+        scrollTo: obj => { scrollObject = obj; }
+      };
+
+      setup(() => {
+        realPanels = app.panels;
+        app.panels = mockPanels;
+      });
+
+      teardown(() => {
+        app.panels = realPanels;
+      });
+
+      test('right should display pinned pages', () => {
+        event.keyCode = 'right';
+        app.handleEvent(event);
+        assert.equal(scrollObject.left, app.panels.scrollLeftMax);
+        assert.equal(scrollObject.top, 0);
+        assert.equal(scrollObject.behavior, 'smooth');
+      });
+
+      test('left should display apps', () => {
+        event.keyCode = 'left';
+        app.handleEvent(event);
+        assert.equal(scrollObject.left, 0);
+        assert.equal(scrollObject.top, 0);
+        assert.equal(scrollObject.behavior, 'smooth');
+      });
+    });
+
     suite('scroll', () => {
       test('should show and hide the drop shadow accordingly', () => {
         assert.isFalse(app.scrolled);
@@ -942,6 +995,7 @@ suite('Homescreen app', () => {
 
           realIcons = app.icons;
           app.icons = {
+            firstChild: 'abc',
             getChildOffsetRect: () => {
               return { left: 0, top: 0, right: 10, bottom: 10 };
             },
@@ -957,11 +1011,20 @@ suite('Homescreen app', () => {
           Object.defineProperty(window, 'innerHeight', realInnerHeight);
         });
 
+        test('icon can be dropped at the beginning of the container', () => {
+          app.handleEvent(new CustomEvent('drag-end', {
+            detail:
+              { target: 'def', dropTarget: null, clientX: 0, clientY: -100 }
+          }));
+          assert.isTrue(reorderChildSpy.calledWith('def', 'abc'));
+        });
+
         test('icon can be dropped at the end of the container', () => {
           app.handleEvent(new CustomEvent('drag-end', {
-            detail: { dropTarget: null, clientX: 0, clientY: 20 }
+            detail:
+              { target: 'def', dropTarget: null, clientX: 0, clientY: 600 }
           }));
-          assert.isTrue(reorderChildSpy.called);
+          assert.isTrue(reorderChildSpy.calledWith('def', null));
         });
 
         test('dropping icon on itself does nothing', () => {

@@ -59,8 +59,12 @@
   </head>
 
   <body>
-    <div id="page-indicator"><span></span><span></span></div>
-    <div id="panels"><!--
+    <header id="page-indicator-header">
+      <div id="page-indicator" role="slider" aria-valuemin="0" aria-valuenow="0" aria-valuemax="1" aria-controls="panels">
+        <span></span><span></span>
+      </div>
+    </header>
+    <div id="panels" role="main"><!--
     --><div id="apps-panel">
         <div class="shadow"></div>
         <div class="scrollable">
@@ -86,8 +90,8 @@
         <div id="empty-pages">
           <h1 data-l10n-id="no-pinned-pages-header"></h1>
           <p data-l10n-id="no-pinned-pages-body"></p>
-          <img src="style/images/empty_home_image.png"></img>
-          <div id="boxes">
+          <img src="style/images/empty_home_image.png" role="presentation"></img>
+          <div id="boxes" role="presentation">
             <div></div>
             <div></div>
             <div></div>

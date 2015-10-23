@@ -4,8 +4,8 @@
 /* global Browser */
 /* global BrowserDB */
 /* global BrowserDialog */
-/* global FirefoxAccount */
 /* global KeyEvent */
+/* global LazyLoader */
 /* global SearchUtil */
 /* global Toolbar */
 /* global UrlHelper */
@@ -24,8 +24,6 @@ var Settings = {
   focusList: null,
   focusPos: 0,
 
-  firefoxAccount: null,
-
   /** Get all DOM elements when inited. */
   getAllElements: function settings_getAllElements() {
 
@@ -41,16 +39,6 @@ var Settings = {
       'settings-search-engine', 'settings-search-engine-name',
       'settings-clear-history',
       'settings-clear-cookie',
-
-      'firefox-account-area',
-      'firefox-account-sign-in',
-      'firefox-account-sign-in-button',
-      'firefox-account-sign-in-description',
-      'firefox-account-signed-in-as',
-      'firefox-account-email',
-      'firefox-account-resend-button',
-      'firefox-account-forget-button',
-      'firefox-account-disconnect-button',
 
       'settings-dialog',
 
@@ -93,18 +81,9 @@ var Settings = {
       }
     }).bind(this));
 
-    this.firefoxAccount = new FirefoxAccount({
-      onlogin: this.handleFirefoxAccountLogin.bind(this),
-      onverified: this.handleFirefoxAccountverified.bind(this),
-      onlogout: this.handleFirefoxAccountLogout.bind(this),
-      onerror: this.handleFirefoxAccountError.bind(this)
-    });
-
     this.settingsList.addEventListener('mouseup',
       this.handleListClick.bind(this));
     this.settingsListArea.addEventListener('mouseup',
-      this.handleListAreaClick.bind(this));
-    this.firefoxAccountArea.addEventListener('mouseup',
       this.handleListAreaClick.bind(this));
     this.settingsDialog.addEventListener('mouseup',
       this.handleListAreaClick.bind(this));
@@ -117,14 +96,6 @@ var Settings = {
       this.handleClearHistoryClick.bind(this));
     this.settingsClearCookie.addEventListener('mouseup',
       this.handleClearCookieClick.bind(this));
-    this.firefoxAccountSignInButton.addEventListener('mouseup',
-      this.handleSignInClick.bind(this));
-    this.firefoxAccountResendButton.addEventListener('mouseup',
-      this.handleResendClick.bind(this));
-    this.firefoxAccountForgetButton.addEventListener('mouseup',
-      this.handleForgetClick.bind(this));
-    this.firefoxAccountDisconnectButton.addEventListener('mouseup',
-      this.handleDisconnectClick.bind(this));
 
     this.settingsDialogHomepageInput.addEventListener('submit',
       this.handleDialogHomepageInputSubmit.bind(this));
@@ -162,6 +133,8 @@ var Settings = {
       this.handleDialogSearchCancel.bind(this));
     this.settingsDialogSearchOk.addEventListener('keyup',
       this.handleDialogSearchOk.bind(this));
+
+    LazyLoader.load('js/sync/settings.js');
   },
 
   getDefaultHomepage: function settings_getDefaultHomepage(cb) {
@@ -504,49 +477,6 @@ var Settings = {
     BrowserDialog.createDialog('del_cookie', null);
   },
 
-  handleSignInClick: function settings_handleSignInClick(e) {
-    e.stopPropagation();
-    e.preventDefault();
-    this.firefoxAccount.openFlow();
-  },
-
-  handleForgetClick: function settings_handleForgetClick(e) {
-    e.stopPropagation();
-    e.preventDefault();
-    this.disconnectAccount();
-  },
-
-  handleDisconnectClick: function settings_handleDisconnectClick(e) {
-    e.stopPropagation();
-    e.preventDefault();
-    BrowserDialog.createDialog('signout_confirm', null);
-  },
-
-  disconnectAccount: function settings_disconnectAccount() {
-    this.firefoxAccount.signOut((email) => {
-      return navigator.mozL10n.formatValue('fxa-sign-out-alert').then((msg) => {
-        window.alert(msg);
-      });
-    });
-  },
-
-  handleResendClick: function settings_handleResendClick(e) {
-    e.stopPropagation();
-    e.preventDefault();
-    this.firefoxAccount.resendEmail((email) => {
-      return navigator.mozL10n.formatValue('fxa-resend-alert', {
-        email: email
-      }).then((msg) => {
-        window.alert(msg);
-        // disable link for 60 seconds, then reenable
-        this.firefoxAccountResendButton.setAttribute('disabled', true);
-        setTimeout(() => {
-          this.firefoxAccountResendButton.removeAttribute('disabled');
-        }, 60000);
-      });
-    });
-  },
-
   clearCookieFailed: function settings_clearCookieFailed() {
     // this.settingsBannerMessage.innerHTML =
     //    'Failed to clear cookies and stored data';
@@ -784,33 +714,5 @@ var Settings = {
         return false;
     }
     return true;
-  },
-
-  /* Firefox Account event handlers */
-  handleFirefoxAccountLogin: function settings_handleFirefoxAccountLogin (e) {
-    this.firefoxAccountEmail.textContent = e.email;
-    this.firefoxAccountSignIn.classList.add('firefox-account-login');
-    this.firefoxAccountSignIn.classList.remove('firefox-account-disconnected');
-    this.firefoxAccountSignIn.classList.remove('firefox-account-verified');
-  },
-
-  handleFirefoxAccountverified:
-    function settings_handleFirefoxAccountverified (e) {
-      this.firefoxAccountEmail.textContent = e.email;
-      this.firefoxAccountSignIn.classList.remove('firefox-account-login');
-      this.firefoxAccountSignIn.classList.remove(
-                                                'firefox-account-disconnected');
-      this.firefoxAccountSignIn.classList.add('firefox-account-verified');
-  },
-
-  handleFirefoxAccountLogout: function settings_handleFirefoxAccountLogout (e) {
-    this.firefoxAccountEmail.textContent = '';
-    this.firefoxAccountSignIn.classList.remove('firefox-account-login');
-    this.firefoxAccountSignIn.classList.add('firefox-account-disconnected');
-    this.firefoxAccountSignIn.classList.remove('firefox-account-verified');
-  },
-
-  handleFirefoxAccountError: function settings_handleFirefoxAccountError (e) {
-    console.log('error', e);
   }
 };

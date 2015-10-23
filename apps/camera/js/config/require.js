@@ -63,7 +63,7 @@ requirejs.config({
       exports: 'getVideoRotation'
     },
     'MediaFrame': {
-      deps: ['format', 'VideoPlayer'],
+      deps: ['format', 'VideoPlayer', 'downsample'],
       exports: 'MediaFrame'
     },
     'BlobView': {

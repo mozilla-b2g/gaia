@@ -21,12 +21,20 @@ gaia-radio.inline,
   font-size: 1.9rem;
   color: var(--label-color);
   padding: 1rem 0;
-  padding-inline-end: 2.2rem;
+  padding-inline-end: 2.4rem;
   line-height: 3rem;
   box-sizing: border-box;
   display: block;
   /* Override inheriting nowrap from legacy lists building blocks. */
   white-space: normal;
+  word-wrap: break-word;
+}
+
+/* Users may choose to truncate text instead of it wrapping by adding the "truncate" className */
+#radio.truncate span {
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 #radio span:after {
@@ -77,4 +85,23 @@ gaia-radio.inline,
 gaia-radio.split label {
   display: block;
   width: 100%;
+}
+
+/******************************************************************************
+ * A <details> slot may be specified in addition the the <label>.
+ * When provided, it appears under the <label> and can provide additional context.
+ */
+#radio div.details {
+  position: relative;
+  top: -1.5rem;
+  display: block;
+  margin: 0;
+  padding-top: 0.5rem;
+  -moz-padding-start: 0;
+  -moz-padding-end: 8rem;
+  font-size: 1.4rem;
+  line-height: 1.6rem;
+  color: #505859;
+  font-style: normal;
+  white-space: normal;
 }

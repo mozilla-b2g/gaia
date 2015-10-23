@@ -156,10 +156,7 @@ var Browser = {
     // init SearchResult
     SearchResult.init();
 
-    SyncBrowserDB.init(() => {
-      SyncBookmark.init();
-      SyncHistory.init();
-    });
+    SyncBrowserDB.init();
 
     if (this.waitingActivities.length) {
       this.waitingActivities.forEach(this.handleActivity, this);
