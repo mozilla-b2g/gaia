@@ -43,27 +43,54 @@ suite('Pins Manager', function() {
       'http://test.com/id': {
         id: 'http://test.com/id',
         pinned: true,
-        scope: 'http://test.com'
+        scope: '/'
       },
       'http://test.com/bla/url2': {
         id: 'http://test.com/bla/url2',
         pinned: true,
-        scope: 'http://test.com/bla'
+        scope: '/bla'
+      },
+      'http://test.com/bla/bla/url2': {
+        id: 'http://test.com/bla/bla/url2',
+        pinned: true,
+        scope: '/bla/bla'
       },
       'http://blabla.com/id': {
         id: 'http://blabla.com/id',
         pinned: true,
-        scope: 'http://blabla.com'
+        scope: '/'
+      },
+      'http://noscope.com': {
+        id: 'http://noscope.com/id',
+        pinned: true
       }
     };
 
     expectedScopes = {
       'http://test.com': {
-        'http://test.com': 'http://test.com/id',
-        'http://test.com/bla': 'http://test.com/bla/url2'
+        '/': {
+          id: 'http://test.com/id',
+          scope: '/'
+        },
+        '/bla': {
+          id: 'http://test.com/bla/url2',
+          scope: '/bla'
+        },
+        '/bla/bla': {
+          id: 'http://test.com/bla/bla/url2',
+          scope: '/bla/bla'
+        }
       },
       'http://blabla.com': {
-        'http://blabla.com': 'http://blabla.com/id'
+        '/': {
+          id: 'http://blabla.com/id',
+          scope: '/'
+        }
+      },
+      'http://noscope.com': {
+        '/': {
+          id: 'http://noscope.com/id'
+        }
       }
     };
   });
@@ -85,12 +112,13 @@ suite('Pins Manager', function() {
 
     test('Initializes the scope object', function() {
       assert.isTrue(BookmarksDatabase.getAll.called);
-      assert.deepEqual(subject._scopes, expectedScopes);
+      var actual = JSON.stringify(subject._scopes);
+      var expected = JSON.stringify(expectedScopes);
+      assert.equal(actual, expected);
     });
 
     test('Adds listeners to Bookmarks', function() {
       assert.isTrue(BookmarksDatabase.getAll.called);
-      console.log(subject._scopes, expectedScopes);
       assert(BookmarksDatabase.addEventListener.calledWith('added'));
       assert(BookmarksDatabase.addEventListener.calledWith('removed'));
       assert(BookmarksDatabase.addEventListener.calledWith('updated'));
@@ -121,6 +149,22 @@ suite('Pins Manager', function() {
           assert.isFalse(isPinned);
           done();
         });
+    });
+  });
+
+  suite('getScope', function() {
+    setup(function() {
+
+    });
+
+    test('returns null if no scope', function() {
+      assert(!subject.getScope('http://noscope.com/test'));
+    });
+
+    test('returns the longest scope', function() {
+      var actual = subject.getScope('http://test.com/bla/bla/test');
+      var expected = '/bla/bla';
+      assert.equal(actual, expected);
     });
   });
 
@@ -163,7 +207,7 @@ suite('Pins Manager', function() {
 
       assert.isTrue(scopeChangeSpy.calledOnce);
       var actualEvent = scopeChangeSpy.getCall(0).args[0];
-      assert.equal(actualEvent.detail.scope, 'http://test.com/bla');
+      assert.equal(actualEvent.detail.scope, '/bla');
 
       Service.request('PinsManager:isPinned', urlScope1)
         .then(function(isPinned) {
@@ -178,7 +222,7 @@ suite('Pins Manager', function() {
     });
 
     test('Adding a bookmark', function(done) {
-      var url = 'http://querty.com';
+      var url = 'http://querty.com/test';
       Service.request('PinsManager:isPinned', url)
         .then(function(isPinned) {
           assert.isFalse(isPinned);
@@ -188,12 +232,13 @@ suite('Pins Manager', function() {
             target: {
               id: url,
               pinned: true,
-              scope: url
+              scope: '/'
             }
           });
+
           assert.isTrue(scopeChangeSpy.calledOnce);
           var actualEvent = scopeChangeSpy.getCall(0).args[0];
-          assert.equal(actualEvent.detail.scope, url);
+          assert.equal(actualEvent.detail.scope, '/');
 
           Service.request('PinsManager:isPinned', url)
             .then(function(isPinned) {
