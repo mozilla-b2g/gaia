@@ -29,9 +29,11 @@ window.GaiaSimPicker = (function(win) {
      * set internal gaia-menu dir, that's enough for directional-specific
      * CSS to kick in.
      */
-    window.addEventListener('localized', () => {
+    var updateDir = () => {
       this._menu.dir = document.dir || 'ltr';
-    });
+    };
+    updateDir();
+    window.addEventListener('localized', updateDir);
 
     LazyLoader.load(['/shared/js/component_utils.js'], function() {
       ComponentUtils.style.call(this, baseurl);
