@@ -65,72 +65,147 @@ marionette('AppWindowManager - Pinning sites',
     pinning = new Pinning(client);
     system.waitForFullyLoaded();
     home.waitForLaunch();
-    url = server.url('sample.html');
-    pinAndKill(url);
-    nApps = system.getAppWindows().length;
   });
 
-  test('reuses the same window on window.open() if in the scope', function() {
-    var currentNApps;
-    var url2 = server.url('darkpage.html');
+  suite('Pinning unscoped', function() {
 
-    system.tapHome();
-    rocketbar.homescreenFocus();
-    rocketbar.enterText(url2, true);
-    system.waitForBrowser(url2);
+    setup(function() {
+      url = server.url('sample.html');
+      pinAndKill(url);
+      nApps = system.getAppWindows().length;
+    });
 
-    currentNApps = system.getAppWindows().length;
-    assert.equal(nApps + 1, currentNApps, 'new window from the rocketbar');
+    test('window.open() reuses if !scope and matches origin/name', function() {
+      var currentNApps;
+      var url2 = server.url('darkpage.html');
 
-    openUrl(url);
-    system.waitForBrowser(url2);
+      system.tapHome();
+      rocketbar.homescreenFocus();
+      rocketbar.enterText(url2, true);
+      system.waitForBrowser(url2);
 
-    currentNApps = system.getAppWindows().length;
-    assert.equal(nApps + 1, currentNApps, 'reuses window from the pinned site');
+      currentNApps = system.getAppWindows().length;
+      assert.equal(nApps + 1, currentNApps, 'new window from the rocketbar');
+
+      openUrl(url);
+      system.waitForBrowser(url2);
+
+      currentNApps = system.getAppWindows().length;
+      assert.equal(nApps + 1, currentNApps, 'reuses window');
+    });
+
+    test('window.open() does not reuse if !scope & != origin/name', function() {
+      var currentNApps;
+      var url2 = server.url('app-name.html');
+
+      system.tapHome();
+      rocketbar.homescreenFocus();
+      rocketbar.enterText(url2, true);
+      system.waitForBrowser(url2);
+
+      currentNApps = system.getAppWindows().length;
+      assert.equal(nApps + 1, currentNApps, 'new window from the rocketbar');
+
+      openUrl(url);
+      system.waitForBrowser(url);
+
+      currentNApps = system.getAppWindows().length;
+      assert.equal(nApps + 2, currentNApps, 'new window from the pinned site');
+    });
+
+    test('opens a new window on window.open() if !same origin', function() {
+      var currentNApps;
+      var url2 = 'http://test.test/test';
+
+      system.tapHome();
+      rocketbar.homescreenFocus();
+      rocketbar.enterText(url2, true);
+      system.waitForBrowser(url2);
+
+
+      currentNApps = system.getAppWindows().length;
+      assert.equal(nApps + 1, currentNApps, 'new window from the rocketbar');
+
+      openUrl(url);
+      system.waitForBrowser(url);
+
+      currentNApps = system.getAppWindows().length;
+      assert.equal(nApps + 2, currentNApps, 'new window from the pinned site');
+    });
+
+    test('Tapping the browser opens the last unpinned instance', function() {
+      var url2 = 'http://test.test/test';
+
+      // Open test.test window.
+      system.tapHome();
+      rocketbar.homescreenFocus();
+      rocketbar.enterText(url2, true);
+      system.waitForBrowser(url2);
+
+      // Open pin.
+      openUrl(url);
+      system.waitForBrowser(url);
+
+      openUrl(search.URL);
+      system.waitForBrowser(url2);
+    });
+
+    test('Tapping the browser opens a new window if no unpinned', function() {
+      openUrl(url);
+      system.waitForBrowser(url);
+
+      openUrl(search.URL);
+      system.waitForBrowser(search.NEW_TAB_URL);
+    });
   });
 
-  test('opens a new window on window.open() if not in the scope', function() {
-    var currentNApps;
-    var url2 = 'http://test.test/test';
+  suite('Pinning scoped', function() {
+    var url1;
 
-    system.tapHome();
-    rocketbar.homescreenFocus();
-    rocketbar.enterText(url2, true);
-    system.waitForBrowser(url2);
+    setup(function() {
+      url1 = server.url('scoped/page_1.html');
+      pinAndKill(url1);
+      nApps = system.getAppWindows().length;
+    });
+
+    test('reuses the window if in the scope', function() {
+      var currentNApps;
+      var url2 = server.url('scoped/page_2.html');
+
+      system.tapHome();
+      rocketbar.homescreenFocus();
+      rocketbar.enterText(url2, true);
+      system.waitForBrowser(url2);
 
 
-    currentNApps = system.getAppWindows().length;
-    assert.equal(nApps + 1, currentNApps, 'new window from the rocketbar');
+      currentNApps = system.getAppWindows().length;
+      assert.equal(nApps + 1, currentNApps, 'new window from the rocketbar');
+      openUrl(url1);
+      system.waitForBrowser(url2);
 
-    openUrl(url);
-    system.waitForBrowser(url);
+      currentNApps = system.getAppWindows().length;
+      assert.equal(nApps + 1, currentNApps, 'reuses window from the pisite');
+    });
 
-    currentNApps = system.getAppWindows().length;
-    assert.equal(nApps + 2, currentNApps, 'new window from the pinned site');
-  });
+    test('opens a new window if same origin but not in scope', function() {
+      var currentNApps;
+      var url2 = server.url('darkpage.html');
 
-  test('Tapping the browser opens the last unpinned instance', function() {
-    var url2 = 'http://test.test/test';
+      system.tapHome();
+      rocketbar.homescreenFocus();
+      rocketbar.enterText(url2, true);
+      system.waitForBrowser(url2);
 
-    // Open test.test window.
-    system.tapHome();
-    rocketbar.homescreenFocus();
-    rocketbar.enterText(url2, true);
-    system.waitForBrowser(url2);
 
-    // Open pin.
-    openUrl(url);
-    system.waitForBrowser(url);
+      currentNApps = system.getAppWindows().length;
+      assert.equal(nApps + 1, currentNApps, 'new window from the rocketbar');
+      openUrl(url1);
+      system.waitForBrowser(url1);
 
-    openUrl(search.URL);
-    system.waitForBrowser(url2);
-  });
+      currentNApps = system.getAppWindows().length;
+      assert.equal(nApps + 2, currentNApps, 'reuses window from the pisite');
+    });
+ });
 
-  test('Tapping the browser opens a new window if no unpinned', function() {
-    openUrl(url);
-    system.waitForBrowser(url);
 
-    openUrl(search.URL);
-    system.waitForBrowser(search.NEW_TAB_URL);
-  });
 });

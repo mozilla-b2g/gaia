@@ -1,4 +1,4 @@
-/* global SystemDialog, Service, GaiaPinCard, LazyLoader */
+/* global SystemDialog, Service, GaiaPinCard, LazyLoader, BookmarksDatabase */
 'use strict';
 
 (function(exports) {
@@ -169,25 +169,22 @@
 
     Service.request('Places:isPinned', data.url)
       .then((isPinned) => {
-        if (isPinned) {
-          this.pinPageButton.setAttribute('data-l10n-id', 'pinning-unpin-page');
-          this.pinPageButton.dataset.action = 'unpin-page';
-        } else {
-          this.pinPageButton.setAttribute('data-l10n-id', 'pinning-pin-page');
-          this.pinPageButton.dataset.action = 'pin-page';
-        }
+        var action = isPinned ? 'unpin-page' : 'pin-page';
+        this.pinPageButton.setAttribute('data-l10n-id', 'pinning-' + action);
+        this.pinPageButton.dataset.action = action;
       });
 
-    Service.request('PinsManager:isPinned', data.url)
-      .then((isPinned) => {
-        if (isPinned) {
-          this.pinSiteButton.setAttribute('data-l10n-id', 'pinning-unpin-site');
-          this.pinSiteButton.dataset.action = 'unpin-site';
-        } else {
-          this.pinSiteButton.setAttribute('data-l10n-id', 'pinning-pin-site');
-          this.pinSiteButton.dataset.action = 'pin-site';
+    BookmarksDatabase.get(data.url).then((site) => {
+      var action = site ? 'unpin-site' : 'pin-site';
+      if (!site) {
+        var scope = Service.query('getScope', data.url);
+        if (scope && Service.query('getTopMostWindow').inScope(scope)) {
+          action = 'unpin-site';
         }
-      });
+      }
+      this.pinSiteButton.setAttribute('data-l10n-id', 'pinning-' + action);
+      this.pinSiteButton.dataset.action = action;
+    });
   };
 
   PinPageSystemDialog.prototype.hide = function() {

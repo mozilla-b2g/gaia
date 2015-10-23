@@ -42,6 +42,15 @@ marionette('Pinning the Web', function() {
     actions = client.loader.getActions();
   });
 
+  function lastIconMatches(id) {
+    system.tapHome();
+    client.switchToFrame(system.getHomescreenIframe());
+    client.waitFor(function() {
+      var ids = home.getIconIdentifiers();
+      return id == ids[ids.length - 1];
+    });
+  }
+
   test('Pin site', function() {
     // Count the current number of site icons
     system.tapHome();
@@ -78,17 +87,28 @@ marionette('Pinning the Web', function() {
     });
   });
 
-  test('Unpin site', function() {
-    var url, lastIconId;
+  test('Pin site with start_url', function() {
+    // Count the current number of site icons
+    system.tapHome();
+    client.switchToFrame(system.getHomescreenIframe());
+    var numIcons = 0;
+    client.waitFor(function() {
+      numIcons = home.visibleIcons.length;
+      return numIcons > 0;
+    });
 
-    function lastIconMatches(id) {
-      system.tapHome();
-      client.switchToFrame(system.getHomescreenIframe());
-      client.waitFor(function() {
-        var ids = home.getIconIdentifiers();
-        return id == ids[ids.length - 1];
-      });
-    }
+    var url = server.url('scoped/page_2.html');
+    var start_url = server.url('scoped/page_1.html');
+    pinTheWeb.openAndPinSiteFromBrowser(url);
+
+    // Check that icon was added to homescreen
+    system.tapHome();
+    client.switchToFrame(system.getHomescreenIframe());
+    lastIconMatches(start_url);
+  });
+
+  test('Unpin site from same url', function() {
+    var url, lastIconId;
 
     system.tapHome();
     client.switchToFrame(system.getHomescreenIframe());
@@ -104,6 +124,44 @@ marionette('Pinning the Web', function() {
 
     pinTheWeb.openAndUnpinSiteFromBrowser(url);
     lastIconMatches(lastIconId);
+  });
+
+  test('Unpin site from url in the scope', function() {
+    var url, lastIconId;
+
+    system.tapHome();
+    client.switchToFrame(system.getHomescreenIframe());
+    client.waitFor(function() {
+      var ids = home.getIconIdentifiers();
+      lastIconId = ids[ids.length - 1];
+      return lastIconId;
+    });
+    client.switchToFrame();
+    url = server.url('scoped/page_1.html');
+    pinTheWeb.openAndPinSiteFromBrowser(url);
+    lastIconMatches(url);
+    var url2 = server.url('scoped/page_2.html');
+    pinTheWeb.openAndUnpinSiteFromBrowser(url2);
+    lastIconMatches(lastIconId);
+  });
+
+  test('Pin a site from same origin', function() {
+    var url, lastIconId;
+
+    client.switchToFrame(system.getHomescreenIframe());
+    client.waitFor(function() {
+      var ids = home.getIconIdentifiers();
+      lastIconId = ids[ids.length - 1];
+      return lastIconId;
+    });
+    client.switchToFrame();
+    url = server.url('sample.html');
+    var url2 = server.url('app-name.html');
+    pinTheWeb.openAndPinSiteFromBrowser(url);
+    lastIconMatches(url);
+
+    pinTheWeb.openAndPinSiteFromBrowser(url2);
+    lastIconMatches(url2);
   });
 
   // Skip test since we are disabling pinning door hanger in 2.5
@@ -241,7 +299,6 @@ marionette('Pinning the Web', function() {
     pinTheWeb.openAndPinPage(url);
     system.tapHome();
     client.switchToFrame(system.getHomescreenIframe());
-
     assert(home.visibleCards.length === 0, 'There is no pinned pages');
   });
 

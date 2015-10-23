@@ -276,9 +276,12 @@ window.GaiaAppIcon = (function(exports) {
     } else {
       var features = {
         name: this.bookmark.name,
-        scope: this.bookmark.scope,
         remote: true
       };
+
+      if (this.bookmark.scope) {
+        features.scope = this.bookmark.scope;
+      }
 
       window.open(this.bookmark.url, '_samescope', Object.keys(features)
         .map(function eachFeature(key) {
