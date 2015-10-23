@@ -4,6 +4,9 @@
 /* Any copyright is dedicated to the Public Domain.
  * http://creativecommons.org/publicdomain/zero/1.0/ */
 
+/* global ERROR_DIALOG_CLOSED_BY_USER */
+/* global ERROR_INVALID_SYNC_ACCOUNT */
+/* global ERROR_OFFLINE */
 /* global expect */
 /* global FirefoxSyncSettings */
 /* global MocksHelper */
@@ -19,6 +22,7 @@ require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
+require('/shared/js/sync/errors.js');
 requireApp('browser/test/unit/sync/mocks/mock_manager_bridge.js');
 
 var mocksForSettings = new MocksHelper([
@@ -225,6 +229,65 @@ suite('Sync settings >', function() {
         .to.equals(true);
       expect(subject.elements.collectionBookmarks.disabled).to.equal(true);
       expect(subject.elements.collectionHistory.disabled).to.equal(true);
+    });
+  });
+
+  suite('Errored', function() {
+    var alertStub;
+    var formatValueStub;
+
+    suiteSetup(function() {
+      alertStub = sinon.stub(window, 'alert');
+      formatValueStub = sinon.stub(navigator.mozL10n, 'formatValue', key => {
+        return Promise.resolve(key);
+      });
+    });
+
+    suiteTeardown(function() {
+      alertStub.restore();
+      formatValueStub.restore();
+    });
+
+    teardown(function() {
+      alertStub.reset();
+    });
+
+    test('should ignore ERROR_DIALOG_CLOSED_BY_USER error', function() {
+      onsyncchange({
+        state: 'errored',
+        error: ERROR_DIALOG_CLOSED_BY_USER
+      });
+      expect(alertStub.calledOnce).to.equal(false);
+    });
+
+    test('should show ERROR_INVALID_SYNC_ACCOUNT error', function(done) {
+       onsyncchange({
+        state: 'errored',
+        error: ERROR_INVALID_SYNC_ACCOUNT
+      });
+      setTimeout(() => {
+        expect(alertStub.calledOnce).to.equal(true);
+        expect(alertStub.args[0][0]).to.equal(ERROR_INVALID_SYNC_ACCOUNT +
+                                              '\n' +
+                                              ERROR_INVALID_SYNC_ACCOUNT +
+                                              '-explanation');
+        done();
+      });
+    });
+
+    test('should show ERROR_OFFLINE error', function(done) {
+       onsyncchange({
+        state: 'errored',
+        error: ERROR_OFFLINE
+      });
+      setTimeout(() => {
+        expect(alertStub.calledOnce).to.equal(true);
+        expect(alertStub.args[0][0]).to.equal(ERROR_OFFLINE +
+                                              '\n' +
+                                              ERROR_OFFLINE +
+                                              '-explanation');
+        done();
+      });
     });
   });
 

@@ -6,6 +6,7 @@
 /* global ERROR_INVALID_SYNC_ACCOUNT */
 /* global ERROR_OFFLINE */
 /* global ERROR_UNVERIFIED_ACCOUNT */
+/* global ERROR_UNKNOWN */
 /* global LazyLoader */
 /* global mozIntl */
 
@@ -165,7 +166,7 @@ define(function(require) {
               return;
             }
 
-            var errorMsg = 'fxsync-error-unknown';
+            var errorMsg = ERROR_UNKNOWN;
             var title;
 
             const KNOWN_ERRORS = [

@@ -101,6 +101,13 @@
         console.error(err);
         onerror && onerror(err);
       };
+    },
+    logout: function fxmsr_logout(onsuccess, onerror) {
+      _ensureFxaClient(() => {
+         window.parent.FxAccountsClient.logout(
+                onsuccess,
+                onerror);
+      });
     }
   };
   exports.FxModuleServerRequest = FxModuleServerRequest;
