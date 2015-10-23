@@ -80,7 +80,7 @@ AppInstall.prototype = {
    * @param {boolean} [options.allowInstall=true] If true, allow the
    * installation directly.
    */
-  installPackage: function install(manifestURL, options) {
+  installPackage: function installPackage(manifestURL, options) {
     return this._install('installPackage', manifestURL, options);
   },
 
@@ -186,9 +186,6 @@ AppInstall.prototype = {
    * @param {Marionette.Element} element The dialog element to wait for.
    */
   waitForDialog: function waitForAppInstallDialog(element) {
-    this.client.waitFor(function() {
-      var dialogClass = element.getAttribute('class');
-      return dialogClass.indexOf('visible') != -1;
-    });
+    return this.client.helper.waitForElement(element);
   }
 };
