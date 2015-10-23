@@ -167,10 +167,37 @@
 
     onhistorychecked() {
       var checked = this.elements.collectionHistory.checked;
-      checked ? this.collections.set(HISTORY_SETTING, true)
-              : this.collections.delete(HISTORY_SETTING);
-      navigator.mozSettings.createLock().set({
-        'sync.collections.history.enabled': checked
+      if (!checked) {
+        this.collections.delete(HISTORY_SETTING);
+        navigator.mozSettings.createLock().set({
+          'sync.collections.history.enabled': checked
+        });
+        return;
+      }
+
+      try {
+        navigator.mozId.watch({
+          wantIssuer: 'firefox-accounts',
+          onlogin: () => {
+            this.collections.set(HISTORY_SETTING, true);
+            navigator.mozSettings.createLock().set({
+              'sync.collections.history.enabled': checked
+            });
+          },
+          onlogout: () => {},
+          onready: () => {},
+          onerror: error => {
+            console.error(error);
+          }
+        });
+      } catch(e) {}
+
+      navigator.mozId.request({
+        oncancel: () => {},
+        // We keep authenticated sessions of 5 minutes, if the user clicks on
+        // the history collection switch after the 5 minutes are expired, we
+        // will be asking her to re-enter her fxa password.
+        refreshAuthentication: 5 * 60
       });
     },
 

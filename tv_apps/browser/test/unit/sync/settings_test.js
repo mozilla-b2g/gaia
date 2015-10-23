@@ -229,11 +229,25 @@ suite('Sync settings >', function() {
   });
 
   suite('Collections', function() {
+    var realMozId;
+    var mozIdError = null;
+
     suiteSetup(function() {
       onsyncchange({
         state: 'enabled',
         user: 'pepito'
       });
+
+      realMozId = navigator.mozId;
+      navigator.mozId = {
+        watch(options) {
+          this._onlogin = options.onlogin;
+          this._onerror = options.onerror;
+        },
+        request() {
+          mozIdError ? this._onerror() : this._onlogin();
+        }
+      };
     });
 
     [{
@@ -314,12 +328,23 @@ suite('Sync settings >', function() {
         enabled: true
       }, {
         setting: BOOKMARKS_SETTING,
-        enabled: true
+        enabled: false
       }].forEach(config => {
         observers[config.setting](config.enabled);
         expect(subject.elements.syncNowButton.classList.contains('disabled'))
           .to.equals(!config.enabled);
       });
+    });
+
+    test(`should not enable history sync on collection check if refresh
+          auth failed`, function() {
+      mozIdError = true;
+      expect(subject.collections.has(HISTORY_SETTING))
+        .to.be.equal(false);
+      subject.elements.collectionHistory.checked = true;
+      subject.onhistorychecked();
+      expect(subject.collections.has(HISTORY_SETTING))
+        .to.be.equal(false);
     });
   });
 });
