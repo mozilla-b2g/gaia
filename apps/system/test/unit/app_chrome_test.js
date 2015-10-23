@@ -664,18 +664,6 @@ suite('system/AppChrome', function() {
         'search-or-enter-address');
     });
 
-    test('should expand if collapsed', function() {
-      var stubIsBrowser = sinon.stub(subject.app, 'isBrowser', function() {
-        return true;
-      });
-      subject.collapse();
-      var evt = new CustomEvent('_locationchange');
-      subject.app.element.dispatchEvent(evt);
-      assert.isTrue(subject.element.classList.contains('maximized'));
-      assert.equal(subject.scrollable.scrollTop, 0);
-      stubIsBrowser.restore();
-    });
-
     test('pins the chrome if the new url is in the scope', function() {
       var app, chrome;
       this.sinon.stub(Service, 'request', function() {
@@ -1319,8 +1307,9 @@ suite('system/AppChrome', function() {
         chrome.handleEvent({
           type: 'pins-scopechange',
           detail: {
-            scope: 'http://google.com/',
-            type: 'added'
+            type: 'added',
+            url: 'http://google.com/index.html',
+            name: 'google.com'
           }
         });
         return Promise.resolve();
@@ -1328,6 +1317,7 @@ suite('system/AppChrome', function() {
       this.sinon.stub(chrome.systemBanner, 'show');
       this.sinon.spy(chrome, 'pin');
       this.sinon.stub(chrome.app, 'inScope').returns(true);
+      this.sinon.stub(chrome.app, 'matchesOriginAndName').returns(true);
     });
 
     test('Browser chrome collapsed and bookmark saved', function() {
@@ -1337,24 +1327,17 @@ suite('system/AppChrome', function() {
         mockEvent({ type: 'click', target: chrome.pinButton }));
       assert.isTrue(IconsHelper.getIcon.called);
       process.nextTick(function() {
-        // assert.isTrue(chrome.pin.calledOnce, 'pin was called');
-        // assert.isFalse(chrome.element.classList.contains('maximized'));
-        // assert.isTrue(chrome.pinDialog.classList.contains('hidden'));
-        assert.isTrue(BookmarksDatabase.put.calledWithMatch(
-          {
-            type: 'url',
-            iconable: false,
-            frecency: 1,
-            pinned: true,
-            pinnedFrom: 'http://google.com/index.html',
-            id: 'http://google.com/',
-            name: 'google.com',
-            scope: 'http://google.com/',
-            url: 'http://google.com/',
-            icon: 'http://google.com/favicon.ico'
-          },
-          'http://google.com/'
-        ));
+        assert.isTrue(BookmarksDatabase.put.calledWithMatch({
+          type: 'url',
+          iconable: false,
+          frecency: 1,
+          pinned: true,
+          pinnedFrom: 'http://google.com/index.html',
+          id: 'http://google.com/',
+          name: 'google.com',
+          url: 'http://google.com/',
+          icon: 'http://google.com/favicon.ico'
+        }, 'http://google.com/'));
         assert(chrome.systemBanner.show.called);
       });
     });
@@ -1380,9 +1363,10 @@ suite('system/AppChrome', function() {
       this.sinon.stub(chrome.systemBanner, 'show');
     });
 
-    test('Browser chrome collapsed and bookmark saved', function() {
+    test('Browser chrome collapsed and bookmark saved no scope', function() {
       chrome.element.classList.add('maximized');
       chrome.pinDialog.classList.remove('hidden');
+      this.sinon.stub(chrome.app, 'matchesOriginAndName').returns(true);
 
       chrome.handleEvent(mockEvent({
         type: 'click', target: chrome.pinButton
@@ -1393,30 +1377,27 @@ suite('system/AppChrome', function() {
 
       chrome.handleEvent(mockEvent({
         type: 'pins-scopechange',
-        detail: { action: 'add', scope: 'http://example.com/' }
+        detail: {
+          type: 'added',
+          url: 'http://example.com/index.html',
+          name: 'Example'
+        }
       }));
 
       assert.isTrue(IconsHelper.getIcon.called);
-      assert.isFalse(chrome.element.classList.contains('maximized'));
-
-      assert.isTrue(chrome.pinDialog.classList.contains('hidden'));
-      assert.isTrue(BookmarksDatabase.put.calledWithMatch(
-        {
-            type: 'url',
-            iconable: false,
-            frecency: 1,
-            pinned: true,
-            pinnedFrom: 'http://example.com/index.html',
-            id: 'http://example.com/',
-            url: 'http://example.com/',
-            webManifestUrl: 'http://example.com/manifest.webmanifest',
-            webManifest: { name: 'Example Web App', short_name: 'Example' },
-            name: 'Example',
-            scope: 'http://example.com/',
-            icon: 'http://example.com/favicon.ico'
-        },
-        'http://example.com/'
-      ));
+      assert.isTrue(BookmarksDatabase.put.calledWithMatch({
+        type: 'url',
+        iconable: false,
+        frecency: 1,
+        pinned: true,
+        pinnedFrom: 'http://example.com/index.html',
+        id: 'http://example.com/',
+        url: 'http://example.com/',
+        webManifestUrl: 'http://example.com/manifest.webmanifest',
+        webManifest: { name: 'Example Web App', short_name: 'Example' },
+        name: 'Example',
+        icon: 'http://example.com/favicon.ico'
+      }, 'http://example.com/'));
       assert(chrome.systemBanner.show.called);
     });
   });
@@ -1448,14 +1429,72 @@ suite('system/AppChrome', function() {
       chrome.handleEvent({
         type: 'pins-scopechange',
         detail: {
-          scope: 'http://example.com/',
+          url: 'http://example.com',
+          name: 'Example',
           action: 'remove'
         }
       });
       assert.isTrue(BookmarksDatabase.remove
                     .calledWithMatch('http://example.com'));
       assert.isTrue(chrome.systemBanner.show.calledOnce);
-      assert.isFalse(chrome.pinned);
+    });
+  });
+
+  suite('handleBookmarksScopeChange', function() {
+    var evt, isInScope, matches;
+
+    setup(function() {
+      evt = {
+        detail: {
+          action: 'add',
+          url: 'http://example.com/bla/index.html',
+          scope: '/bla',
+          name: 'Example'
+        }
+      };
+      var app = new AppWindow(cloneConfig(fakeWebApp));
+      chrome = new AppChrome(app);
+      this.sinon.stub(chrome.app, 'inScope', function() {
+        return isInScope;
+      });
+      this.sinon.stub(chrome.app, 'matchesOriginAndName', function() {
+        return matches;
+      });
+      this.sinon.stub(chrome, 'pin');
+      this.sinon.stub(chrome, 'unpin');
+    });
+
+    test('does nothing if scope provided and not in the scope', function() {
+      isInScope = false;
+      chrome.handleBookmarksScopeChange(evt);
+      assert(chrome.pin.notCalled);
+    });
+
+    test('no scope and does not match origin and name', function() {
+      matches = false;
+      evt.detail.scope = false;
+      chrome.handleBookmarksScopeChange(evt);
+      assert(chrome.pin.notCalled);
+    });
+
+    test('pins when scope added and is inScope', function() {
+      isInScope = true;
+      chrome.handleBookmarksScopeChange(evt);
+      assert(chrome.pin.called);
+    });
+
+    test('pins when no inScope but matches origin and name', function() {
+      matches = true;
+      evt.detail.scope = false;
+      chrome.handleBookmarksScopeChange(evt);
+      assert(chrome.pin.called);
+    });
+
+    test('unpins when removed and inScope', function() {
+      isInScope = true;
+      evt.detail.action = 'remove';
+      chrome.handleBookmarksScopeChange(evt);
+      assert(chrome.unpin.called);
     });
   });
 

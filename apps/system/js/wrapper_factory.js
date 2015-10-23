@@ -98,9 +98,13 @@
       var origin = null;
       switch (name) {
         case '_samescope':
-          var scope = features.scope || new URL(url).origin;
+          var scope = features.scope || false;
+          var appName = features.name;
+          var inScopeMethod = 'AppWindowManager.getAppInScope';
+
+          origin = new URL(url).origin;
           features.pinned = true;
-          app = Service.query('AppWindowManager.getAppInScope', scope);
+          app = Service.query(inScopeMethod, scope, origin, appName);
           if (app) {
             app.requestOpen();
             return;
