@@ -13,6 +13,10 @@ class Accessibility(Base):
         By.CSS_SELECTOR, '[href="#accessibility-screenreader"]')
     _accessibility_colors_menu_item_locator = (
         By.CSS_SELECTOR, '[href="#accessibility-colors"]')
+    _accessibility_audio_menu_item_locator = (
+        By.CSS_SELECTOR, '[href="#accessibility-audio"]')
+    _accessibility_input_menu_item_locator = (
+        By.CSS_SELECTOR, '[href="#accessibility-input"]')
     _page_locator = (By.ID, 'accessibility')
 
     @property
@@ -34,6 +38,14 @@ class Accessibility(Base):
     def open_color_settings(self): #non-a11y method
         self.marionette.find_element(*self._accessibility_colors_menu_item_locator).tap()
         return AccessibilityColors(self.marionette)
+
+    def open_audio_settings(self):
+        self.marionette.find_element(*self._accessibility_audio_menu_item_locator).tap()
+        return AccessibilityAudio(self.marionette)
+
+    def open_input_settings(self):
+        self.marionette.find_element(*self._accessibility_input_menu_item_locator).tap()
+        return AccessibilityInput(self.marionette)
 
 class AccessibilityScreenreader(Base):
 
@@ -108,3 +120,39 @@ class AccessibilityColors(Base):
 
     def a11y_toggle_grayscale(self):
         self.a11y_toggle_switch(self.marionette.find_element(*self._grayscale_switch_locator))
+
+
+class AccessibilityAudio(Base):
+
+    _page_locator = (By.ID, 'accessibility-audio')
+
+    @property
+    def screen_element(self):
+        return self.marionette.find_element(*self._page_locator)
+
+
+class AccessibilityInput(Base):
+
+    _page_locator = (By.ID, 'accessibility-input')
+    _delay_locator =(By.CSS_SELECTOR, '[name="ui.click_hold_context_menus.delay"]')
+    _confirm_delay_change_locator =(By.CSS_SELECTOR, 'button[data-l10n-id="ok"]')
+
+    @property
+    def screen_element(self):
+        return self.marionette.find_element(*self._page_locator)
+
+    def tap_change_delay(self):
+        element = Wait(self.marionette).until(
+            expected.element_present(*self._delay_locator))
+        Wait(self.marionette).until(expected.element_displayed(element))
+        element.tap()
+        self.marionette.switch_to_frame()
+        Wait(self.marionette).until(expected.element_displayed(*self._confirm_delay_change_locator))
+
+    def tap_confirm_delay(self):
+        element = Wait(self.marionette).until(
+            expected.element_present(*self._confirm_delay_change_locator))
+        Wait(self.marionette).until(expected.element_displayed(element))
+        element.tap()
+        self.apps.switch_to_displayed_app()
+        Wait(self.marionette).until(expected.element_displayed(*self._delay_locator))

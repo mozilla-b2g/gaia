@@ -80,6 +80,15 @@ class TestSettingsRTL(GaiaImageCompareTestCase):
         self.take_screenshot('accessibility-color')
         color_page.toggle_filters()  # set the filter to the original position
         settings.return_to_prev_menu(access_page.screen_element, color_page.screen_element)
+        audio_page = access_page.open_audio_settings()
+        self.take_screenshot('accessibility-audio')
+        settings.return_to_prev_menu(access_page.screen_element, audio_page.screen_element)
+        input_page = access_page.open_input_settings()
+        self.take_screenshot('accessibility-input')
+        input_page.tap_change_delay()
+        self.take_screenshot('accessibility-input_delay',top_frame=True)
+        input_page.tap_confirm_delay()
+        settings.return_to_prev_menu(access_page.screen_element, input_page.screen_element)
         self.take_screenshot('accessibility')
         settings.return_to_prev_menu(settings.screen_element, access_page.screen_element)
 
