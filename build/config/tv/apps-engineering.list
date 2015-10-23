@@ -12,6 +12,7 @@ tv_apps/fling-player
 tv_apps/notification-receiver
 tv_apps/weather-widget
 tv_apps/pocket
+tv_apps/remote-control
 apps/bluetooth
 apps/calendar
 apps/camera

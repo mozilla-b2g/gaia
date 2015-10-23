@@ -82,6 +82,7 @@ tv_apps/smart-system/bower_components/**
 tv_apps/notification/bower_components/**
 tv_apps/tv-deck/bower_components/**
 tv_apps/tv-epg/bower_components/**
+tv_apps/remote-control/bower_components/**
 tests/atoms/remote_date.js
 tests/atoms/screenshot.js
 tests/jsmarionette/client/marionette-client/docs/**
