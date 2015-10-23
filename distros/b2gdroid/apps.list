@@ -27,3 +27,4 @@ apps/system
 apps/video
 apps/wallpaper
 apps/wappush
+distros/b2gdroid/apps/*
