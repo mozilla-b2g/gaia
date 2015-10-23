@@ -53,12 +53,14 @@ suite('Pages', () => {
   });
 
   suite('Pages#addPinnedPage()', () => {
+    var pinCard;
     var createElementStub;
     var updatePinnedPageStub;
     var appendChildStub;
 
     setup(() => {
-      createElementStub = sinon.stub(document, 'createElement');
+      pinCard = document.createElement('div');
+      createElementStub = sinon.stub(document, 'createElement', () => pinCard);
       updatePinnedPageStub = sinon.stub(pages, 'updatePinnedPage');
       appendChildStub = sinon.stub(pages.pages, 'appendChild');
     });
@@ -83,6 +85,12 @@ suite('Pages', () => {
       assert.isTrue(createElementStub.calledWith('gaia-pin-card'));
       assert.isTrue(updatePinnedPageStub.calledOnce);
       assert.isTrue(appendChildStub.calledOnce);
+    });
+
+    test('should make card accessible', () => {
+      pages.addPinnedPage();
+      assert.equal(pinCard.tabIndex, 0);
+      assert.equal(pinCard.getAttribute('role'), 'link');
     });
   });
 
@@ -191,27 +199,6 @@ suite('Pages', () => {
         pages.handleEvent({ type: 'click', target: mockNotCard });
         assert.isFalse(windowOpenStub.called);
         windowOpenStub.restore();
-      });
-    });
-
-    suite('contextmenu', () => {
-      test('long-pressing a card should do nothing', () => {
-        var preventDefaultCalled = false;
-        var stopImmediatePropagationCalled = false;
-        var event = {
-          type: 'contextmenu',
-          target: mockCard,
-          preventDefault: () => {
-            preventDefaultCalled = true;
-          },
-          stopImmediatePropagation: () => {
-            stopImmediatePropagationCalled = true;
-          }
-        };
-        pages.handleEvent(event);
-
-        assert.isTrue(preventDefaultCalled);
-        assert.isTrue(stopImmediatePropagationCalled);
       });
     });
 
