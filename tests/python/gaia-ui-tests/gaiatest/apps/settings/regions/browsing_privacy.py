@@ -44,6 +44,10 @@ class ClearHistoryDialog(PageRegion):
         PageRegion.__init__(self, marionette, element)
         Wait(self.marionette).until(lambda m: element.is_displayed())
 
+    # workaround for bug 1202246.  Need to call this method after frame switching
+    def refresh_root_element(self):
+        self.root_element = self.marionette.find_element(*self._root_locator)
+
     def confirm_clear(self):
         element = self.root_element.find_element(*self._clear_delete_locator)
         element.tap()

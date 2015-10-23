@@ -325,7 +325,7 @@ class Settings(Base):
     def _wait_for_parent_section_not_displayed(self, menu_item):
         section = menu_item.find_element(By.XPATH, 'ancestor::section')
         Wait(self.marionette).until(
-            lambda m: section.location['x'] + section.size['width'] == 0)
+            lambda m: abs(section.location['x']) == abs(section.size['width']))
 
     def _tap_menu_item(self, menu_item_locator):
         menu_item = self._wait_for_menu_item(menu_item_locator)
