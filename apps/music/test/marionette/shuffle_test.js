@@ -71,6 +71,7 @@ marionette('Music player shuffle', function() {
           assert.equal(shuffle, 'off');
 
           music.tapHeaderActionButton();
+          music.waitForSongsView();
 
           music.switchToPlaylistsView();
           music.selectPlaylist('Shuffle all');

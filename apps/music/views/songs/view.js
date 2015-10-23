@@ -8,6 +8,13 @@ var SongsView = View.extend(function SongsView() {
   this.searchResults = document.getElementById('search-results');
   this.list = document.getElementById('list');
 
+  this.client.on('databaseChange', () => this.update());
+
+  this.configureList();
+  this.update();
+});
+
+SongsView.prototype.configureSearch = function() {
   this.searchBox.addEventListener('search', (evt) => this.search(evt.detail));
 
   this.searchResults.addEventListener('open', () => {
@@ -16,39 +23,44 @@ var SongsView = View.extend(function SongsView() {
 
   this.searchResults.addEventListener('close', () => {
     this.client.method('searchClose');
-    this.list.scrollTop = this.searchBox.HEIGHT;
+    this.this.list.scrollTop = this.searchBox.HEIGHT;
   });
 
   this.searchResults.addEventListener('resultclick', (evt) => {
     var link = evt.detail;
     if (link) {
       this.queueSong(link.dataset.filePath);
-
       this.client.method('navigate', link.getAttribute('href'));
     }
   });
 
   this.searchResults.getItemImageSrc = (item) => this.getThumbnail(item.name);
+};
 
+SongsView.prototype.configureList = function() {
+  var list = this.list;
+
+  // Scroll search out of view, even when
+  // there aren't enough list items to scroll.
   this.list.scrollTop = this.searchBox.HEIGHT;
   this.list.minScrollHeight = `calc(100% + ${this.searchBox.HEIGHT}px)`;
 
   this.list.configure({
-    getItemImageSrc: (item) => {
-      return this.getThumbnail(item.name);
-    }
+    getItemImageSrc: (item) => this.getThumbnail(item.name)
   });
 
-  this.list.addEventListener('click', (evt) => {
+  list.addEventListener('click', (evt) => {
     var link = evt.target.closest('a[data-file-path]');
     if (link) {
       this.queueSong(link.dataset.filePath);
     }
   });
 
-  this.client.on('databaseChange', () => this.update());
-  this.update();
-});
+  // Show the view only when list has something
+  // rendered, this prevents Gecko painting unnecessarily.
+  this.once(this.list, 'rendered', () => document.body.hidden = false);
+};
+
 
 SongsView.prototype.update = function() {
   this.getSongs().then((songs) => {
@@ -67,6 +79,7 @@ SongsView.prototype.render = function() {
   View.prototype.render.call(this); // super();
 
   this.list.model = this.songs;
+  this.list.cache();
 };
 
 SongsView.prototype.getSongs = function() {

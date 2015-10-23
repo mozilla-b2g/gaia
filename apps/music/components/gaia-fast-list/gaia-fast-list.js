@@ -282,6 +282,8 @@ var GaiaFastListProto = {
 
         margin: 0 !important;
         padding-top: 20px;
+        padding-bottom: 1px;
+        margin-bottom: -1px !important;
         width: calc(100% + 1px);
       }
 
@@ -308,7 +310,7 @@ var GaiaFastListProto = {
       }
 
       ::content .gfl-item.first {
-        border-top: 0;
+        border-top-color: transparent;
       }
 
       ::content .image {
@@ -593,7 +595,7 @@ Internal.prototype = {
   sectionize(items) {
     debug('sectionize');
     var sectioned = !!this.getSectionName;
-    var hasSections = false;
+    var count = 0;
     var result = {};
 
     for (var i = 0, l = items.length; i < l; i++) {
@@ -623,11 +625,11 @@ Internal.prototype = {
       }
 
       result[section].push(item);
-      hasSections = true;
+      count++;
     }
 
-    this.hasSections = hasSections;
-    return sectioned && result;
+    this.hasSections = !!count;
+    return this.hasSections && result;
   },
 
   /**

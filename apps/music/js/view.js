@@ -93,6 +93,13 @@ function View() {
   });
 }
 
+View.prototype.once = function(el, name, callback) {
+  el.addEventListener(name, function fn() {
+    el.removeEventListener(name, fn);
+    callback();
+  });
+};
+
 View.prototype.destroy = function() {
   Object.getOwnPropertyNames(this).forEach(prop => this[prop] = null);
 
