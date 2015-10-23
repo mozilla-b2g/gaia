@@ -1376,4 +1376,43 @@ suite('system/SyncManager >', () => {
       });
     });
   });
+
+  suite('Sync after enabled', () => {
+    var syncManager;
+    var registerSyncStub;
+    var requestStub;
+
+    suiteSetup(() => {
+      syncManager = BaseModule.instantiate('SyncManager');
+      syncManager.start();
+    });
+
+    suiteTeardown(() => {
+      syncManager.stop();
+    });
+
+    setup(() => {
+      registerSyncStub = this.sinon.stub(syncManager, 'registerSyncRequest',
+                                        () => {
+        return Promise.resolve();
+      });
+      requestStub = this.sinon.stub(MockService, 'request');
+    });
+
+    teardown(() => {
+      registerSyncStub.restore();
+      requestStub.restore();
+    });
+
+    test('should sync after enabled if coming from enabling', () => {
+      syncManager._handle_onsyncenabled({
+        detail: {
+          from: 'enabling'
+        }
+      });
+      setTimeout(() => {
+        assert.ok(requestStub.calledOnce);
+      });
+    });
+  });
 });

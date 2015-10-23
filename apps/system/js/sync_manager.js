@@ -247,11 +247,17 @@
       this.cleanup();
     },
 
-    _handle_onsyncenabled: function() {
+    _handle_onsyncenabled: function(event) {
       this.debug('onsyncenabled observed');
       this.updateState();
       this.registerSyncRequest().then(() => {
         this.debug('Sync request registered');
+        var from = event.detail && event.detail.from;
+        // After login in with a new account or rebooting the device,
+        // we trigger a sync request.
+        if (from === 'enabling') {
+          Service.request('SyncStateMachine:sync');
+        }
       }).catch(error => {
         console.error('Could not register sync request', error);
         Service.request('SyncStateMachine:error',
