@@ -171,8 +171,6 @@
         config.chrome.scrollable = true;
         this.forgetLastLaunchingWindow();
         this.trackLauchingWindow(config);
-      } else {
-        app.updateName(config.title);
       }
 
       this.publish('launchapp', { origin: config.origin });
