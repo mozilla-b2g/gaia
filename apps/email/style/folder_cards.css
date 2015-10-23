@@ -6,23 +6,25 @@ cards-folder-picker .fld-header-placeholder {
 cards-folder-picker.card .fld-header-placeholder .fld-header-back {
   position: absolute;
   top: 0;
-  /* EVEN FOR RTL this should be left */
-  left: 0;
   width: 5rem;
   height: 5rem;
   background: transparent;
   border: 0;
   font-size: 0;
 }
+html[dir="ltr"] cards-folder-picker.card .fld-header-placeholder .fld-header-back {
+  left: 0;
+}
+html[dir="rtl"] cards-folder-picker.card .fld-header-placeholder .fld-header-back {
+  right: 0;
+}
 
 cards-folder-picker .fld-acct-header {
   position: relative;
   display: flex;
   clear: both;
-  padding-top: 0.6rem;
-  -moz-padding-end: 0;
-  padding-bottom: 0.6rem;
-  -moz-padding-start: 3rem;
+  padding: 0.6rem 0;
+  padding-inline-start: 3rem;
   font-size: 1.7rem;
   line-height: 3.8rem;
   color: #5f5f5f;
@@ -158,11 +160,6 @@ cards-folder-picker.card {
   line-height: 4.5rem;
 }
 
-.fld-arrow {
-  position: absolute;
-  right: 1rem;
-}
-
 .fld-accounts-header-label {
   color: red;
 }
@@ -188,13 +185,14 @@ cards-folder-picker.card {
 }
 
 .fld-account-item {
-  -moz-padding-start: 2rem;
+  padding-inline-start: 2rem;
   border-bottom: 0.1rem solid #dfdfdf;
   color: #5f5f5f;
   background-color: white;
 }
 
 .fld-account-name {
+  direction: ltr;
   font-size: 1.7rem;
   padding: 0 1rem;
 }
@@ -218,6 +216,13 @@ cards-folder-picker.card {
   text-overflow: ellipsis;
 }
 
+/**
+ * this element contains the mail address, which needs to be displayed with a
+ * LTR direction */
+.fld-acct-header-account-label {
+  direction: ltr;
+}
+
 .fld-acct-header .fld-acct-header-account-label,
 .fld-acct-header.closed .fld-acct-header-account-header {
   display: none;
@@ -235,11 +240,12 @@ cards-folder-picker.card {
   border: 0;
   color: #5F5F5F;
   background-repeat: no-repeat;
-  background-position: 50% 50%;
+  background-position: center center;
   background-color: transparent;
   background-size: 2rem auto;
 }
 
+/* TODO these could be added to gaia-icons font */
 .fld-account-switch-arrow {
   background-image: url(images/icons/arrow_up.png);
 }
@@ -264,18 +270,19 @@ cards-folder-picker.card {
 .fld-account-item .selected-indicator {
   position: absolute;
   top: 2rem;
-  left: 1.1rem;
   display: none;
   width: 0.8rem;
   height: 0.8rem;
   border-radius: 0.8rem;
   background-color: #ff8019;
 }
-
-html:-moz-dir(rtl) .fld-folder-item .selected-indicator,
-html:-moz-dir(rtl) .fld-account-item .selected-indicator {
+html[dir="ltr"] .fld-folder-item .selected-indicator,
+html[dir="ltr"] .fld-account-item .selected-indicator {
+  left: 1.1rem;
+}
+html[dir="rtl"] .fld-folder-item .selected-indicator,
+html[dir="rtl"] .fld-account-item .selected-indicator {
   right: 1.1rem;
-  left: auto;
 }
 
 .fld-folder-item.fld-folder-selected .selected-indicator,
@@ -284,25 +291,25 @@ html:-moz-dir(rtl) .fld-account-item .selected-indicator {
 }
 
 .fld-folders-container .fld-folder-depth0 {
-  -moz-padding-start: 3rem;
+  padding-inline-start: 3rem;
 }
 .fld-folders-container .fld-folder-depth1 {
-  -moz-padding-start: 3rem;
+  padding-inline-start: 3rem;
 }
 .fld-folders-container .fld-folder-depth2 {
-  -moz-padding-start: 4.5rem;
+  padding-inline-start: 4.5rem;
 }
 .fld-folders-container .fld-folder-depth3 {
-  -moz-padding-start: 6rem;
+  padding-inline-start: 6rem;
 }
 .fld-folders-container .fld-folder-depth4 {
-  -moz-padding-start: 6.5rem;
+  padding-inline-start: 7.5rem;
 }
 .fld-folders-container .fld-folder-depth5 {
-  -moz-padding-start: 9rem;
+  padding-inline-start: 9rem;
 }
 .fld-folders-container .fld-folder-depthmax {
-  -moz-padding-start: 9.5rem;
+  padding-inline-start: 10.5rem;
 }
 
 .fld-acct-header:active,
@@ -329,16 +336,19 @@ also used in value_selector.
 */
 
 .fld-folder-depthnonzero .fld-folder-name {
-  background: url('images/icons/folder_icon.png') no-repeat center left / 1.6rem auto;
-  /* Explicitly using left, since text is dir=auto, and want to add the spacing
-     based on overall UI direction choice, not specific text item direction, so
-     that the folder icons appear correctly. */
-  padding-left: 2.2rem;
+  background: url('images/icons/folder_icon.png') no-repeat;
+  background-size: 1.6rem auto;
 }
-
-html:-moz-dir(rtl) .fld-folder-depthnonzero .fld-folder-name {
+/**
+ * Explicitly using right/left, since text is dir=auto, and want to add the
+ * spacing based on overall UI direction choice, not specific text item
+ * direction, so that the folder icons appear correctly. */
+html[dir="ltr"] .fld-folder-depthnonzero .fld-folder-name {
+  padding-left: 2.2rem;
+  background-position: left center;
+}
+html[dir="rtl"] .fld-folder-depthnonzero .fld-folder-name {
   padding-right: 2.2rem;
-  padding-left: 0;
   background-position: right center;
 }
 

@@ -15,20 +15,6 @@ needs to be visible for length calcluations.
   overflow: visible;
 }
 
-/*
-Styles to align the text with the UI alignment. This element has dir="auto" set
-on it, but if text dir is different than UI dir, want the text to still be
-aligned with the UI. The dir="auto" ensures the characters in the text will be
-laid out correctly though.
-*/
-#marquee-h-text.ltr-align {
-  text-align: left;
-}
-#marquee-h-text.rtl-align {
-  text-align: right;
-}
-
-
 /* --- Right to left (RTL) marquee styles --- */
 .marquee-rtl-start-linear {
   transform: translateX(0);
