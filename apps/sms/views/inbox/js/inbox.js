@@ -367,7 +367,7 @@ var InboxView = {
     }
     if (selected.selectedCount) {
       this.deleteButton.disabled = false;
-      navigator.mozL10n.setAttributes(this.editMode, 'selected-threads', {
+      document.l10n.setAttributes(this.editMode, 'selected-threads', {
         n: selected.selectedCount
       });
 
@@ -398,7 +398,7 @@ var InboxView = {
     } else {
       this.deleteButton.disabled = true;
       this.readUnreadButton.disabled = true;
-      navigator.mozL10n.setAttributes(this.editMode, 'selectThreads-title');
+      document.l10n.setAttributes(this.editMode, 'selectThreads-title');
     }
   },
 

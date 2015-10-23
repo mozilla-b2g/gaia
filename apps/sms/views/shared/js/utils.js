@@ -126,7 +126,7 @@
 
       if (dayDiff === 0) {
         if (withTime) {
-          navigator.mozL10n.setAttributes(
+          document.l10n.setAttributes(
             element, 'todayWithTime', {
               time: this.getFormattedHour(this.date.shared)
             });
@@ -135,7 +135,7 @@
         }
       } else if (dayDiff === 1) {
         if (withTime) {
-          navigator.mozL10n.setAttributes(
+          document.l10n.setAttributes(
             element, 'yesterdayWithTime', {
               time: this.getFormattedHour(this.date.shared)
             });
@@ -919,7 +919,7 @@
         return Promise.resolve('');
       }
 
-      return navigator.mozL10n.formatValue('sim-id-label', { id: index + 1 });
+      return document.l10n.formatValue('sim-id-label', { id: index + 1 });
     },
 
     /**

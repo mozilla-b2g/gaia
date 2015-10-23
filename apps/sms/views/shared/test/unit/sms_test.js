@@ -16,7 +16,7 @@ require('/shared/js/lazy_loader.js');
 require('/shared/js/gesture_detector.js');
 require('/shared/js/sticky_header.js');
 require('/shared/test/unit/mocks/mock_gesture_detector.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 require('/shared/test/unit/mocks/mock_async_storage.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
@@ -81,17 +81,17 @@ suite('SMS App Unit-Test', function() {
     return nfn;
   }
 
-  var nativeMozL10n = navigator.mozL10n;
+  var nativeMozL10n = document.l10n;
   var realGestureDetector;
 
   suiteSetup(function() {
-    navigator.mozL10n = MockL10n;
+    document.l10n = MockL10n;
     realGestureDetector = window.GestureDetector;
     window.GestureDetector = MockGestureDetector;
   });
 
   suiteTeardown(function() {
-    navigator.mozL10n = nativeMozL10n;
+    document.l10n = nativeMozL10n;
     window.GestureDetector = realGestureDetector;
   });
 

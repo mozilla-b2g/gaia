@@ -2,7 +2,7 @@
 
 'use strict';
 
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 
 require('/views/shared/js/utils.js');
 require('/views/shared/js/time_headers.js');
@@ -12,12 +12,12 @@ suite('TimeHeaders > ', function() {
   var realMozL10n;
 
   suiteSetup(function() {
-    realMozL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    realMozL10n = document.l10n;
+    document.l10n = MockL10n;
   });
 
   suiteTeardown(function() {
-    navigator.mozL10n = realMozL10n;
+    document.l10n = realMozL10n;
     realMozL10n = null;
   });
 
@@ -66,7 +66,7 @@ suite('TimeHeaders > ', function() {
 
       var headers = document.querySelectorAll('header');
       for (var i = 0; i < headers.length; i++) {
-        existingHeaders[i] = navigator.mozL10n.getAttributes(headers[i]);
+        existingHeaders[i] = document.l10n.getAttributes(headers[i]);
       }
 
       var timeElements = document.querySelectorAll('time');
@@ -95,7 +95,7 @@ suite('TimeHeaders > ', function() {
         var headers = document.querySelectorAll('header');
         for (i = 0, l = headers.length; i < l; i++) {
           assert.deepEqual(
-            navigator.mozL10n.getAttributes(headers[i]),
+            document.l10n.getAttributes(headers[i]),
             existingHeaders[i]
           );
         }
@@ -121,7 +121,7 @@ suite('TimeHeaders > ', function() {
         var headers = document.querySelectorAll('header');
         for (i = 0, l = headers.length; i < l; i++) {
           assert.deepEqual(
-            navigator.mozL10n.getAttributes(headers[i]),
+            document.l10n.getAttributes(headers[i]),
             existingHeaders[i]
           );
         }
@@ -146,7 +146,7 @@ suite('TimeHeaders > ', function() {
         var headers = document.querySelectorAll('header');
         for (i = 0, l = headers.length; i < l; i++) {
           assert.notDeepEqual(
-            navigator.mozL10n.getAttributes(headers[i]),
+            document.l10n.getAttributes(headers[i]),
             existingHeaders[i]
           );
         }
@@ -178,7 +178,7 @@ suite('TimeHeaders > ', function() {
         var headers = document.querySelectorAll('header');
         for (i = 0, l = headers.length; i < l; i++) {
           assert.deepEqual(
-            navigator.mozL10n.getAttributes(headers[i]),
+            document.l10n.getAttributes(headers[i]),
             existingHeaders[i]
           );
         }
@@ -206,7 +206,7 @@ suite('TimeHeaders > ', function() {
         var headers = document.querySelectorAll('header');
         for (i = 0, l = headers.length; i < l; i++) {
           assert.deepEqual(
-            navigator.mozL10n.getAttributes(headers[i]),
+            document.l10n.getAttributes(headers[i]),
             existingHeaders[i]
           );
         }
@@ -234,7 +234,7 @@ suite('TimeHeaders > ', function() {
         var headers = document.querySelectorAll('header');
         for (i = 0, l = headers.length; i < l; i++) {
           assert.notDeepEqual(
-            navigator.mozL10n.getAttributes(headers[i]),
+            document.l10n.getAttributes(headers[i]),
             existingHeaders[i]
           );
         }

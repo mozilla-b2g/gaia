@@ -73,7 +73,7 @@
       // file extenion is missing or invalid but mimetype is supported.
 
       var l10nPromise = this.name ? Promise.resolve(this.name) :
-        navigator.mozL10n.formatValue('unnamed-attachment');
+        document.l10n.formatValue('unnamed-attachment');
 
       return l10nPromise.then(name => {
         // Make sure media is openable and savable even if

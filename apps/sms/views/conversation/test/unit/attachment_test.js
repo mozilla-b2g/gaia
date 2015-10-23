@@ -9,7 +9,7 @@ require('/views/conversation/js/attachment.js');
 require('/views/shared/js/utils.js');
 
 require('/views/shared/test/unit/mock_attachment_renderer.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 require('/views/shared/test/unit/mock_utils.js');
 require('/views/shared/test/unit/mock_moz_activity.js');
 require('/views/shared/test/unit/mock_mime_mapper.js');
@@ -28,8 +28,8 @@ suite('attachment_test.js', function() {
 
   suiteSetup(function(done) {
     // this sometimes takes longer because we fetch 4 assets via XHR
-    this.realMozL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    this.realMozL10n = document.l10n;
+    document.l10n = MockL10n;
 
     AssetsHelper.generateImageBlob(1400, 1400, 'image/jpeg', 1).then((blob) => {
       done(() => {
@@ -43,7 +43,7 @@ suite('attachment_test.js', function() {
   });
 
   suiteTeardown(function() {
-    navigator.mozL10n = this.realMozL10n;
+    document.l10n = this.realMozL10n;
   });
 
   test('Name property defaults to a string value', function() {

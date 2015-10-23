@@ -526,7 +526,7 @@ var ConversationView = {
   },
 
   showMaxLengthNotice: function conv_showMaxLengthNotice(opts) {
-    navigator.mozL10n.setAttributes(
+    document.l10n.setAttributes(
       this.maxLengthNotice.querySelector('p'), opts.l10nId, opts.l10nArgs
     );
     this.maxLengthNotice.classList.remove('hide');
@@ -1258,7 +1258,7 @@ var ConversationView = {
         !isStartingFirstSegment) {
       this.previousSegment = currentSegment;
 
-      navigator.mozL10n.setAttributes(
+      document.l10n.setAttributes(
         this.smsCounterNotice.querySelector('p'),
         'sms-counter-notice-label',
         { number: currentSegment }
@@ -1412,9 +1412,10 @@ var ConversationView = {
   /**
    * Updates header content since it's used for different panels and should be
    * carefully handled for every case. In Thread panel header contains HTML
-   * markup to support bidirectional content, but other panels still use it with
-   * mozL10n.setAttributes as it would contain only localizable text. We should
-   * get rid of this method once bug 961572 and bug 1011085 are landed.
+   * markup to support bidirectional content, but other panels still use it
+   * with document.l10n.setAttributes as it would contain only localizable
+   * text. We should get rid of this method once bug 961572 and bug 1011085 are
+   * landed.
    * @param {string|{ html: string }|{id: string, args: Object }} contentL10n
    * Should be either safe HTML string or l10n properties.
    * @public
@@ -1428,7 +1429,7 @@ var ConversationView = {
       // Remove rich HTML content before we set l10n attributes as l10n lib
       // fails in this case
       this.headerText.firstElementChild && (this.headerText.textContent = '');
-      navigator.mozL10n.setAttributes(
+      document.l10n.setAttributes(
         this.headerText, contentL10n.id, contentL10n.args
       );
       return;
@@ -1723,7 +1724,7 @@ var ConversationView = {
       var lateArrivalNoticeDOM = this.tmpl.lateArrivalNotice.prepare({})
         .toDocumentFragment();
 
-      navigator.mozL10n.setAttributes(
+      document.l10n.setAttributes(
         lateArrivalNoticeDOM.querySelector('.late-arrival-notice'), 
         lateArrivalInfos.l10nId, 
         lateArrivalInfos.l10nArgs
@@ -2022,11 +2023,11 @@ var ConversationView = {
 
     if (selected > 0) {
       this.deleteButton.disabled = false;
-      navigator.mozL10n.setAttributes(this.editMode, 'selected-messages',
+      document.l10n.setAttributes(this.editMode, 'selected-messages',
         {n: selected});
     } else {
       this.deleteButton.disabled = true;
-      navigator.mozL10n.setAttributes(this.editMode, 'deleteMessages-title');
+      document.l10n.setAttributes(this.editMode, 'deleteMessages-title');
     }
   },
 
