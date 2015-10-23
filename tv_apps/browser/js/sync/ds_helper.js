@@ -58,6 +58,26 @@ SyncDsHelper.prototype = {
     });
   },
 
+  clear() {
+    localStorage.removeItem(this.dataStoreRevId);
+    return this._ensureStore().then(() => {
+      return this.store.clear();
+    });
+  },
+
+  start(handleTask) {
+    return this.init().then(() => {
+      this.registerStoreChangeEvent(() => {
+        this.dataStoreSync(handleTask);
+      });
+      return this.dataStoreSync(handleTask);
+    });
+  },
+
+  stop() {
+    return this.unregisterStoreChangeEvent().then(this.clear.bind(this));
+  },
+
   dataStoreSync(handle) {
     return this._ensureStore().then(() => {
       var _revId = this.getSyncedRevId();

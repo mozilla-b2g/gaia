@@ -49,11 +49,11 @@
   },
   "datastores-access": {
     "places": {
-      "readonly": true,
+      "readonly": false,
       "description": "Read synced browsing history."
     },
     "bookmarks_store": {
-      "readonly": true,
+      "readonly": false,
       "description": "Read synced browser bookmarks."
     }
   },

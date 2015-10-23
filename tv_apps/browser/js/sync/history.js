@@ -65,10 +65,7 @@ var SyncHistory = (function () {
     }
     syncDataStore = new SyncDsHelper('places');
     return syncDataStore.init().then(() => {
-      syncDataStore.registerStoreChangeEvent(() => {
-        syncDataStore.dataStoreSync(handleTask);
-      });
-      return syncDataStore.dataStoreSync(handleTask);
+      return syncDataStore.start(handleTask);
     });
   }
 
@@ -76,7 +73,10 @@ var SyncHistory = (function () {
     if (!syncDataStore) {
       return Promise.reject('Uninitialized DataStore');
     }
-    return syncDataStore.unregisterStoreChangeEvent();
+    return syncDataStore.stop().then(() => {
+      syncDataStore = null;
+      return SyncBrowserDB.clearHistoryDeep();
+    });
   }
 
   return {
