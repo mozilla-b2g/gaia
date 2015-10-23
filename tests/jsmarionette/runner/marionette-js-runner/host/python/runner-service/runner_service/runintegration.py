@@ -39,7 +39,6 @@ def cli(args=sys.argv[1:]):
             raise
 
     server = Server(args.path, RequestHandler)
-    server.timeout = 300
     server_thread = threading.Thread(target=server.serve_forever)
 
     server_thread.deamon = True

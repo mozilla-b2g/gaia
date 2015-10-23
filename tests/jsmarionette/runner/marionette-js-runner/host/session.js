@@ -68,9 +68,6 @@ Session.create = function(host, profile, options) {
     // Session no longer pending.
     host.pendingSessions.splice(host.pendingSessions.indexOf(startSession), 1);
     return session;
-  })
-  .catch(function(error) {
-    console.error(error);
   });
 
   host.pendingSessions.push(startSession);
