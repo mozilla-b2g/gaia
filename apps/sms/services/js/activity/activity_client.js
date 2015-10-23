@@ -42,7 +42,12 @@
      * Initialized activity service client bridge.
      */
     init() {
-      client = bridge.client(SERVICE_NAME, exports);
+      client = bridge.client({
+        service: SERVICE_NAME,
+        endpoint: exports,
+        // Disable service response timeouts.
+        timeout: false
+      });
       hasPendingRequest = false;
 
       client.on('activity-request', (request) => {

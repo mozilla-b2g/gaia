@@ -38,7 +38,11 @@ suite('ActivityClient >', function() {
 
   test('bridge client is correctly initialized', function() {
     sinon.assert.calledOnce(bridge.client);
-    sinon.assert.calledWith(bridge.client, 'activity-service', window);
+    sinon.assert.calledWith(bridge.client, {
+      service: 'activity-service',
+      endpoint: window,
+      timeout: false
+    });
   });
 
   test('postResult throws if there is no activity request', function(done) {
