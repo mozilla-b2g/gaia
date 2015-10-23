@@ -75,7 +75,7 @@ html[dir="rtl"] .message.incoming .bubble {
 }
 
 .message.sending p:first-of-type {
-  color: #bfbfbf;
+  color: #6e6e6e;
 }
 
 /* End of BB overrides */
@@ -91,10 +91,11 @@ html[dir="rtl"] .message.incoming .bubble {
 .message.sending .bubble,
 .message.sending a,
 .message.sending a:active {
-  color: #bfbfbf;
+  color: #6e6e6e;
 }
 
-.message.sending .attachment-container {
+.message.sending .message-subject,
+.message.sending .message-content-body {
   opacity: 0.5;
 }
 
