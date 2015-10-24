@@ -27,7 +27,7 @@ class TestSettingsChangeTimeFormat(GaiaTestCase):
         """
         status_bar = System(self.marionette).status_bar
 
-        self.assertEqual('10:00', status_bar.maximized.time)
+        self.assertEqual('10:00', status_bar.time)
 
         settings = Settings(self.marionette)
         settings.launch()
@@ -37,7 +37,7 @@ class TestSettingsChangeTimeFormat(GaiaTestCase):
         date_and_time.select_time_format('24-hour')
 
         self.marionette.switch_to_frame()
-        self.assertEqual('22:00', status_bar.minimized.time)
+        self.assertEqual('22:00', status_bar.time)
 
         self.device.lock()
 
