@@ -23,14 +23,17 @@
   const LIST_ITEM_HEIGHT = 12;
 
   /**
-   * BookmarkList constructor
-   * @constructor
-   * @param {Node} el - Target HTML element of BookmarkList.
+   * SmartList constructor
+   * @param {Node} el - Target HTML element of SmartList.
+   * @param {String} l10nTitle - Smart list title string.
    */
-  function BookmarkList(el){
+  function SmartList(el, l10nTitle){
     this.el = el;
 
-    this.listEl = this.el.querySelector('.bookmark-list');
+    this.listEl = null;
+
+    this.l10nTitle = l10nTitle;
+
     /**
      * Number of list item rendered.
      * @type {Number}
@@ -84,25 +87,63 @@
      * @type {Object}
      */
     this.listItemMap = {};
+
+    this.init();
   }
 
-  BookmarkList.prototype = {
-    constructor: BookmarkList,
+  SmartList.prototype = {
+    constructor: SmartList,
 
     /**
-     * Open bookmark list.
-     * @param  {Array} bookmarks - Array of bookmark data.
+     * Create smart list dom tree architecture
+     */
+
+    /**
+     *  <div class="smart-list-container">
+     *    <h2 class="smart-list-title" data-l10n-id={this.l10nTitle}></h2>
+     *    <div class="smart-list-wrap">
+     *      <ul class="smart-list-view"></ul>
+     *      <div class="smart-list-mask"></div>
+     *    </div>
+     *  </div>
+     */
+    init: function() {
+      var container = document.createElement('div'),
+          title = document.createElement('h2'),
+          listWrap = document.createElement('div'),
+          listView = document.createElement('ul'),
+          listMask = document.createElement('div');
+
+      container.classList.add('smart-list-container');
+      title.classList.add('smart-list-title');
+      title.setAttribute('data-l10n-id', this.l10nTitle);
+      listWrap.classList.add('smart-list-wrap');
+      listView.classList.add('smart-list-view');
+      listMask.classList.add('smart-list-mask');
+
+      container.appendChild(title);
+      container.appendChild(listWrap);
+      listWrap.appendChild(listView);
+      listWrap.appendChild(listMask);
+
+      this.el.classList.add('smart-list');
+      this.el.appendChild(container);
+      this.listEl = listView;
+    },
+
+    /**
+     * Open smart list.
      */
     open: function() {
       var eventDetail = {
         startAt: 0,
         number: MAX_VISIBLE_ITEM*2,
         folderId: null,
-        callback: (function(bookmarks) {
+        callback: (function(listData) {
           var event = new Event('open'),
               focusEl = null;
 
-          this.render(bookmarks);
+          this.render(listData);
           this.el.classList.add('show');
           focusEl = this.listItemMap[0];
           if(focusEl) {
@@ -118,7 +159,7 @@
     },
 
     /**
-     * Close bookmark list.
+     * Close smart list.
      */
     close: function() {
       var event = new Event('close');
@@ -129,7 +170,7 @@
     },
 
     /**
-     * Reset bookmark list
+     * Reset smart list
      */
     reset: function(){
       var key = 0;
@@ -151,13 +192,13 @@
     },
 
     /**
-     * Render bookmark list
-     * @param  {Array} bookmarks - Array of bookmark data.
+     * Render smart list
+     * @param  {Array} listData - Array of listData.
      */
-    render: function(bookmarks){
+    render: function(listData){
       var itemEl = null,
           i = 0,
-          length = bookmarks.length;
+          length = listData.length;
 
       for(; i < length; i++) {
         /*
@@ -166,9 +207,9 @@
          */
         if(this.initializedItems.length > 0) {
           itemEl = this.initializedItems.pop();
-          this.updateItem(itemEl, bookmarks[i]);
+          this.updateItem(itemEl, listData[i]);
         } else {
-          itemEl = this.createItem(bookmarks[i]);
+          itemEl = this.createItem(listData[i]);
           this.listEl.appendChild(itemEl);
           this.listItemRenderNum++;
         }
@@ -182,8 +223,8 @@
     },
 
     /**
-     * Is bookmark list opened.
-     * @return {Boolean} - true when boolmark list opened.
+     * Is smart list opened.
+     * @return {Boolean} - true when smart list opened.
      */
     isDisplay: function() {
       return this.el.classList.contains('show');
@@ -192,7 +233,7 @@
     /**
      * Add new list item.
      * @param {Number} index - Index of new list item.
-     * @param {Object} data  - The bookmark data.
+     * @param {Object} data  - The list item data.
      */
     addItem: function(index, data) {
       if(!data) {
@@ -247,7 +288,7 @@
 
     /**
      * Create List Item.
-     * @param  {Object} data - bookmark data object
+     * @param  {Object} data - list item data object
      */
 
     /**
@@ -361,7 +402,7 @@
     /**
      * Update list item element content.
      * @param  {Node} el - HTML list item to update.
-     * @param  {Object} data - Bookmark data object.
+     * @param  {Object} data - list item data object.
      */
     updateItem : function(el, data) {
       var iconImgLeftEl = el.querySelector('.icon-box-left .icon'),
@@ -480,7 +521,7 @@
       var targetEl = null;
 
       // if there is list item rendered and the current active element not in
-      // bookmark list, focus the first visible list item.
+      // smart list, focus the first visible list item.
       if(this.listIndexEndAt !== -1 &&
         Array.prototype.indexOf.call(
           this.listEl.children,
@@ -767,11 +808,11 @@
             startAt: 0,
             number: MAX_VISIBLE_ITEM*2,
             folderId: folderId,
-            callback: (function(bookmarks) {
-              bookmarks
-                .unshift(
-                  this.generateBackButtonData(this.navState.folderTitle));
-              this.render(bookmarks);
+            callback: (function(listData) {
+              listData.unshift(
+                this.generateBackButtonData(this.navState.folderTitle)
+              );
+              this.render(listData);
               if(this.listIndexEndAt !== -1) {
                 var focusEl = this.listItemMap[0];
                 if(focusEl.getAttribute('data-type') === 'button') {
@@ -802,13 +843,13 @@
             startAt: 0,
             number: MAX_VISIBLE_ITEM*2,
             folderId: this.navState ? this.navState.folderId : null,
-            callback: (function(bookmarks) {
+            callback: (function(listData) {
               if(this.navState) {
-                bookmarks
-                  .unshift(
-                    this.generateBackButtonData(this.navState.folderTitle));
+                listData.unshift(
+                  this.generateBackButtonData(this.navState.folderTitle)
+                );
               }
-              this.render(bookmarks);
+              this.render(listData);
               if(this.listIndexEndAt !== -1) {
                 var focusEl = this.listItemMap[0];
                 if(focusEl.getAttribute('data-type') === 'button') {
@@ -858,5 +899,5 @@
     }
   };
 
-  exports.BookmarkList = BookmarkList;
+  exports.SmartList = SmartList;
 })(window);
