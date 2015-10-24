@@ -513,10 +513,109 @@ suite('sync/adapters/bookmarks >', () => {
           },
           fxsyncId: 'UNIQUE_ID_3'
         };
-        assert.equal(
-          asyncStorage.mItems[
-              'foo' + BOOKMARKS_SYNCTOID_PREFIX + item.fxsyncId],
-          item.url);
+        for(var i=1; i <= 3; i++) {
+          assert.equal(
+            asyncStorage.mItems[
+                'foo' + BOOKMARKS_SYNCTOID_PREFIX + 'UNIQUE_ID_' + i],
+                item.url);
+        }
+        assert.deepEqual(item, expectedBookmark);
+      });
+    }).then(done, reason => {
+      done(reason || new Error('Rejected by undefined reason.'));
+    });
+  });
+
+  test('update - Add two records and add one, all with the same URL', done => {
+    var bookmarksAdapter = DataAdapters.bookmarks, store;
+    Promise.resolve().then(() => {
+      for (var i = 1; i <= 2; i++) {
+        testCollectionData.unshift({
+          id: 'UNIQUE_ID_' + i,
+          last_modified: 100 + i * 10,
+          payload: {
+            id: 'UNIQUE_ID_' + i,
+            type: 'bookmark',
+            bmkUri: 'http://example.com/',
+            title: 'Example ' + i + ' Title'
+          }
+        });
+      }
+      return bookmarksAdapter.update(kintoCollection,
+          { readonly: true, userid: 'foo' });
+    }).then(result => {
+      assert.equal(result, false);
+      var mTime = testCollectionData[0].last_modified;
+      assert.equal(asyncStorage.mItems['foo' + BOOKMARKS_COLLECTION_MTIME],
+          mTime);
+      assert.equal(asyncStorage.mItems['foo' + BOOKMARKS_LAST_REVISIONID],
+          'latest-not-cleared');
+      assert.equal(updateBookmarksSpy.callCount, 1);
+      return Promise.resolve();
+    }).then(() => {
+      testCollectionData.unshift({
+        id: 'UNIQUE_ID_3',
+        last_modified: 130,
+        payload: {
+          id: 'UNIQUE_ID_3',
+          type: 'bookmark',
+          bmkUri: 'http://example.com/',
+          title: 'Example 3 Title'
+        }
+      });
+      return bookmarksAdapter.update(kintoCollection,
+          { readonly: true, userid: 'foo' });
+    }).then(result => {
+      assert.equal(result, false);
+      var mTime = testCollectionData[0].last_modified;
+      assert.equal(asyncStorage.mItems['foo' + BOOKMARKS_COLLECTION_MTIME],
+          mTime);
+      assert.equal(asyncStorage.mItems['foo' + BOOKMARKS_LAST_REVISIONID],
+          'latest-not-cleared');
+      assert.equal(updateBookmarksSpy.callCount, 2);
+      return Promise.resolve();
+    }).then(getBookmarksStore).then(bookmarksStore => {
+      store = bookmarksStore;
+      return store.get.apply(store, ['http://example.com/']).then(item => {
+        var expectedBookmark = {
+          id: 'http://example.com/',
+          url: 'http://example.com/',
+          name: 'Example 3 Title',
+          type: 'url',
+          iconable: false,
+          icon: '',
+          syncNeeded: true,
+          fxsyncRecords: {
+            UNIQUE_ID_1: {
+              id: 'UNIQUE_ID_1',
+              type: 'bookmark',
+              bmkUri: 'http://example.com/',
+              title: 'Example 1 Title',
+              timestamp: 110
+            },
+            UNIQUE_ID_2: {
+              id: 'UNIQUE_ID_2',
+              type: 'bookmark',
+              bmkUri: 'http://example.com/',
+              title: 'Example 2 Title',
+              timestamp: 120
+            },
+            UNIQUE_ID_3: {
+              id: 'UNIQUE_ID_3',
+              type: 'bookmark',
+              bmkUri: 'http://example.com/',
+              title: 'Example 3 Title',
+              timestamp: 130
+            }
+          },
+          fxsyncId: 'UNIQUE_ID_2'
+        };
+        for(var i=1; i <= 3; i++) {
+          assert.equal(
+            asyncStorage.mItems[
+                'foo' + BOOKMARKS_SYNCTOID_PREFIX + 'UNIQUE_ID_' + i],
+                item.url);
+        }
         assert.deepEqual(item, expectedBookmark);
       });
     }).then(done, reason => {

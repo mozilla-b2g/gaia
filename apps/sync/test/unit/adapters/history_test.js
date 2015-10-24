@@ -66,7 +66,8 @@ suite('sync/adapters/history >', () => {
       var visits = [];
       var startData = initDate + i * 100;
       for (var j = 0; j < 3; j++) {
-        visits.push({
+        // Visits from FxSync will be in anti-chronological order
+        visits.unshift({
           date: (startData + j * 10) * 1000, type: 3
         });
       }
@@ -237,6 +238,45 @@ suite('sync/adapters/history >', () => {
     testCollectionData = testDataGenerator(1, 1440000000, 5);
     historyAdapter.update(kintoCollection, { readonly: true, userid: 'foo' })
         .then((result) => {
+      assert.equal(result, false);
+      var mTime = testCollectionData[0].last_modified;
+      assert.equal(asyncStorage.mItems['foo' + HISTORY_COLLECTION_MTIME],
+                   mTime);
+      assert.equal(updatePlacesSpy.callCount, 1);
+      return Promise.resolve();
+    }).then(getPlacesStore).then(placesStore => {
+      var ids = testCollectionData.map(item => {
+        return item.payload.histUri;
+      });
+      return placesStore.get.apply(placesStore, ids).then(list => {
+        for (var i = 0; i < ids.length; i++) {
+          verifyPlaces(testCollectionData[i], list[i]);
+          assert.equal(
+            asyncStorage.mItems[
+                'foo' + HISTORY_SYNCTOID_PREFIX + list[i].fxsyncId],
+            list[i].url);
+        }
+      });
+    }).then(done, reason => {
+      assert.ok(false, reason);
+    });
+  });
+
+  test('update - 1 sync request with 5 pre-existing records', done => {
+    var historyAdapter = DataAdapters.history;
+    getPlacesStore().then(store => {
+      for (var i=1; i<=5; i++) {
+        store._records['http://example' + i + '.com/'] = {
+          url: 'http://example' + i + '.com/',
+          title: 'old',
+          visits: []
+        };
+      }
+    }).then(() => {
+      testCollectionData = testDataGenerator(1, 1440000000, 5);
+      return historyAdapter.update(kintoCollection,
+          { readonly: true, userid: 'foo' });
+    }).then((result) => {
       assert.equal(result, false);
       var mTime = testCollectionData[0].last_modified;
       assert.equal(asyncStorage.mItems['foo' + HISTORY_COLLECTION_MTIME],

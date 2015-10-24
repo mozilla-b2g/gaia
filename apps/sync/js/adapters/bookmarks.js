@@ -132,13 +132,11 @@ var BookmarksHelper = (() => {
       return store.get(id).then(localRecord => {
         if (localRecord) {
           var newBookmark = mergeRecordsToDataStore(localRecord, remoteRecord);
-          return store.put(newBookmark, id, revisionId).then(() => {
-            return setDataStoreId(remoteRecord.fxsyncId, id, userid);
-          });
+          return store.put(newBookmark, id, revisionId);
         }
-        return store.add(remoteRecord, id, revisionId).then(() => {
-          return setDataStoreId(remoteRecord.fxsyncId, id, userid);
-        });
+        return store.add(remoteRecord, id, revisionId);
+      }).then(() => {
+        return setDataStoreId(remoteRecord.fxsyncId, id, userid);
       });
     }).catch(e => {
       console.error(e);
