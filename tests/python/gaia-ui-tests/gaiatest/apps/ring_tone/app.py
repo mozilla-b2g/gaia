@@ -38,7 +38,7 @@ class RingTone(Base):
         save_button.tap()
 
     def tap_exit(self):
-        GaiaHeader(self.marionette, self._header_locator).go_back_and_exit(app=self)
+        GaiaHeader(self.marionette, self._header_locator).go_back(app=self,exit_app=True)
 
     def cancel_share(self):
         self.marionette.find_element(*self._actions_cancel_locator).tap()

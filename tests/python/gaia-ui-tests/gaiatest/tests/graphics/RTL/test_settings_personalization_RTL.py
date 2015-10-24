@@ -27,7 +27,6 @@ class TestSettingsRTLPersonalization(GaiaImageCompareTestCase):
             self.take_screenshot('sound-ringtones')
 
         ringtone_page.tap_exit()
-        settings.switch_to_settings_app()
         Wait(self.marionette).until(lambda m: sound_page.ring_tone_selector_visible)
 
         alerts_page = sound_page.tap_alerts_selector()
@@ -37,7 +36,6 @@ class TestSettingsRTLPersonalization(GaiaImageCompareTestCase):
                                             screen=alerts_page.screen_element)
             self.take_screenshot('sound-alerts')
         alerts_page.tap_exit()
-        settings.switch_to_settings_app()
         Wait(self.marionette).until(lambda m: sound_page.ring_tone_selector_visible)
 
         manage_page = sound_page.tap_manage_tones_selector()
@@ -51,7 +49,6 @@ class TestSettingsRTLPersonalization(GaiaImageCompareTestCase):
         self.take_screenshot('sound-manage_tones-share')
         manage_page.cancel_share()
         manage_page.tap_exit()
-        settings.switch_to_settings_app()
         Wait(self.marionette).until(lambda m: sound_page.ring_tone_selector_visible)
         settings.return_to_prev_menu(settings.screen_element, sound_page.screen_element)
 
