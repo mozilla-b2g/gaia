@@ -40,6 +40,7 @@ class System(Base):
 
     # A lot of tests, like mail or call received, need a longer timeout here
     def wait_for_notification_toaster_displayed(self, timeout=30, message=None, for_app=None):
+        self.marionette.switch_to_frame()
         el = self.marionette.find_element(*self._notification_toaster_locator)
         Wait(self.marionette, timeout).until(expected.element_displayed(el), message=message)
         if for_app is not None:
@@ -47,25 +48,31 @@ class System(Base):
                 for_app in el.get_attribute('data-notification-id'), message=message)
 
     def wait_for_notification_toaster_not_displayed(self, timeout=10):
+        self.marionette.switch_to_frame()
         Wait(self.marionette, timeout).until(
             expected.element_not_displayed(*self._notification_toaster_locator))
 
     def wait_for_system_banner_displayed(self):
+        self.marionette.switch_to_frame()
         Wait(self.marionette).until(expected.element_displayed(*self._system_banner_locator))
 
     def wait_for_system_banner_not_displayed(self):
+        self.marionette.switch_to_frame()
         Wait(self.marionette).until(
             expected.element_not_displayed(*self._system_banner_locator))
 
     def wait_for_software_home_button_displayed(self, timeout=10, message=None):
+        self.marionette.switch_to_frame()
         Wait(self.marionette, timeout=timeout).until(
             expected.element_displayed(*self._software_home_button_locator), message)
 
     def wait_for_software_home_button_not_displayed(self, timeout=10):
+        self.marionette.switch_to_frame()
         Wait(self.marionette, timeout=timeout).until(
             expected.element_not_displayed(*self._software_home_button_locator))
 
     def open_utility_tray(self):
+        self.marionette.switch_to_frame()
         body = self.marionette.find_element(By.TAG_NAME, 'body')
         gripper = self.marionette.find_element(*self._gripper_locator)
         gripper_x = int(gripper.rect['width']/2)
@@ -86,17 +93,21 @@ class System(Base):
     # may be used to wait for it when we know it may interfere
     @property
     def is_app_update_notification_displayed(self):
+        self.marionette.switch_to_frame()
         update_manager_toaster = self.marionette.find_element(*self._update_manager_toaster_locator)
         return update_manager_toaster.location['y'] > (0 - update_manager_toaster.size['height'])
 
     def wait_for_app_update_to_clear(self):
+        self.marionette.switch_to_frame()
         element = self.marionette.find_element(*self._update_manager_toaster_locator)
         Wait(self.marionette).until(lambda m: element.location['y'] == (0 - element.size['height']))
 
     def wait_for_geolocation_icon_displayed(self):
+        self.marionette.switch_to_frame()
         Wait(self.marionette, timeout=40000).until(expected.element_displayed(*self._geoloc_statusbar_locator))
 
     def wait_for_airplane_mode_icon_displayed(self):
+        self.marionette.switch_to_frame()
         Wait(self.marionette).until(expected.element_displayed(*self._airplane_mode_statusbar_locator))
 
     @property
@@ -105,6 +116,7 @@ class System(Base):
         Gets the height of the software buttons container on the screen.
         Always returns 0 if software buttons are not displayed.
         """
+        self.marionette.switch_to_frame()
         if 'software-button-enabled' in self.marionette.find_element(*self._screen_locator).get_attribute('class'):
             return self.marionette.find_element(*self._software_buttons_locator).size['height']
         else:
@@ -113,6 +125,7 @@ class System(Base):
     @property
     def wallpaper_properties(self):
         # The wallpaper returns a blob url and a gradient
+        self.marionette.switch_to_frame()
         screen = self.marionette.find_element(*self._screen_locator)
         return screen.value_of_css_property('background-image')
 
