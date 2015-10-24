@@ -18,9 +18,12 @@
       ["apps", "settings"],
       ["apps", "fm"]
     ], [
+      ["hosted_apps", "buddyup"],
       ["hosted_apps", "bugzillalite"],
       ["hosted_apps", "facebook"],
       ["hosted_apps", "twitter"],
+      ["hosted_apps", "notes"],
+      ["hosted_apps", "calculator"],
       ["apps", "costcontrol"]
     ]
   ],
