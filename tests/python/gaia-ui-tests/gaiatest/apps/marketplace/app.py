@@ -125,7 +125,7 @@ class MarketplaceDev(Marketplace):
 
 class AddonPage(Base):
 
-    _addon_install_locator = (By.CSS_SELECTOR, '.addon-install-btn')
+    _addon_install_locator = (By.CSS_SELECTOR, 'button.install')
 
     def install_link(self):
         element = Wait(self.marionette, timeout=20, interval=1).until(
