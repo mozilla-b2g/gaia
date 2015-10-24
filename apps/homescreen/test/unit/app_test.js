@@ -720,10 +720,20 @@ suite('Homescreen app', () => {
     });
 
     test('should update indicator when pages visible', () => {
+      var setAttributeSpy = sinon.spy(app.indicator, 'setAttribute');
+      var spy1 = setAttributeSpy.withArgs('aria-valuenow', 2);
+      var spy2 = setAttributeSpy.withArgs('data-l10n-args', JSON.stringify({
+        currentPage: 2,
+        totalPages: 2
+      }));
+
       mockPanels.scrollLeft = mockPanels.scrollLeftMax;
       app.updatePanelIndicator();
+
       assert.isTrue(indicatorToggleStubs[0].calledWith('active', false));
       assert.isTrue(indicatorToggleStubs[1].calledWith('active', true));
+      assert.isTrue(spy1.called);
+      assert.isTrue(spy2.called);
       assert.equal(app.header.getAttribute('data-l10n-id'), 'pages-panel');
     });
 

@@ -698,9 +698,15 @@
 
         this.header.setAttribute('data-l10n-id', appsVisible ?
           'apps-panel' : 'pages-panel');
-        this.indicator.setAttribute('aria-valuenow', appsVisible ? 0 : 1);
+
         this.indicator.children[0].classList.toggle('active', appsVisible);
         this.indicator.children[1].classList.toggle('active', !appsVisible);
+        this.indicator.setAttribute('aria-valuenow', appsVisible ? 1 : 2);
+        this.indicator.setAttribute('data-l10n-args', JSON.stringify({
+          currentPage: appsVisible ? 1 : 2,
+          totalPages: 2
+        }));
+
         this.panel.setAttribute('aria-hidden', !appsVisible);
         this.pages.panel.setAttribute('aria-hidden', appsVisible);
       }

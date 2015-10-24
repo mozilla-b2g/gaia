@@ -60,12 +60,12 @@
 
   <body>
     <header id="page-indicator-header">
-      <div id="page-indicator" role="slider" aria-valuemin="0" aria-valuenow="0" aria-valuemax="1" aria-controls="panels">
+      <div id="page-indicator" data-l10n-id="page-indicator-text" role="slider" aria-valuemin="1" aria-valuenow="1" aria-valuemax="2" aria-controls="panels">
         <span></span><span></span>
       </div>
     </header>
-    <div id="panels" role="main"><!--
-    --><div id="apps-panel">
+    <div id="panels"><!--
+    --><div id="apps-panel" aria-labelledby="page-indicator-header">
         <div class="shadow"></div>
         <div class="scrollable">
           <gaia-container id="apps" drag-and-drop></gaia-container>
@@ -85,7 +85,7 @@
           <button on-click="close" data-l10n-id="cancel-action"></button>
         </gaia-dialog>
       </div><!--
-   --><div id="pages-panel">
+   --><div id="pages-panel" aria-labelledby="page-indicator-header">
         <div class="shadow"></div>
         <div id="empty-pages">
           <h1 data-l10n-id="no-pinned-pages-header"></h1>
