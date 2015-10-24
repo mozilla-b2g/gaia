@@ -33,7 +33,8 @@ class NewMessage(Messages):
         self.apps.switch_to_displayed_app()
         element = Wait(self.marionette).until(
             expected.element_present(*self._panel_conversationview_locator))
-        Wait(self.marionette).until(lambda m: element.rect['x'] == 0 and element.is_displayed())
+        Wait(self.marionette, interval=1).until(
+            lambda m: element.rect['x'] == 0 and element.is_displayed())
 
     def type_phone_number(self, value):
         # tap on the parent element to activate editable
