@@ -118,14 +118,15 @@ aside.connecting {
  * Call Settings icons
  */
 
-#menuItem-callWaiting .alert-label > span {
+#menuItem-callWaiting span.cw-alert-icon::after {
+  content: '';
   position: absolute;
-  offset-inline-end: 1.5rem;
-  width: 3rem;
+  z-index: 10;
+  top: 1.2rem;
+  offset-inline-end: 0;
+  width: 6rem;
   height: 3rem;
-  background-image: url(images/call_waiting_disabled.png);
-  background-size: 3rem;
-  background-repeat: no-repeat;
+  background: #F4F4F4 url("images/call_waiting_disabled.png") no-repeat center/3rem;
 }
 
 

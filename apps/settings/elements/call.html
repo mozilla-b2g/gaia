@@ -14,19 +14,15 @@
           </a>
         </li>
         <li id="menuItem-voicePrivacyMode" hidden>
-          <label class="pack-switch checkbox-label">
-            <input type="checkbox" data-ignore>
-            <span data-l10n-id="voicePrivacyMode"></span>
-          </label>
+          <gaia-switch data-ignore>
+            <label data-l10n-id="voicePrivacyMode"></label>
+          </gaia-switch>
         </li>
         <li id="menuItem-callWaiting" aria-disabled="true" data-state="off" hidden>
-          <label class="pack-switch checkbox-label">
-            <input type="checkbox" data-ignore>
-            <span data-l10n-id="callWaiting"></span>
-          </label>
-          <label class="alert-label" hidden>
-            <span></span>
-          </label>
+          <gaia-switch data-ignore>
+            <label data-l10n-id="callWaiting"></label>
+          </gaia-switch>
+          <span class="cw-alert-icon" hidden></span>
         </li>
         <li id="menuItem-callerId" aria-disabled="true" hidden>
           <a data-l10n-id="callerId"></a>
@@ -66,10 +62,9 @@
           <strong data-l10n-id="confirmCallWaitingDesc"></strong>
         </p>
         <p class="cw-alert-sub-p">
-          <label class="pack-switch cw-alert-checkbox-label">
-            <input type="checkbox" data-ignore>
-            <span data-l10n-id="callWaiting"></span>
-          </label>
+          <gaia-switch class="cw-alert-checkbox" data-ignore>
+            <label data-l10n-id="callWaiting"></label>
+          </gaia-switch>
         </p>
       </section>
       <menu>
