@@ -883,7 +883,11 @@ var CallsHandler = (function callsHandler() {
   function updateMergeAndOnHoldStatus() {
     var isEstablishing = isEstablishingCall();
 
-    if (numOpenLines() > 1 && !isEstablishing) {
+    if (numOpenLines() === 0) {
+      /* If no calls are currently present just disable the button hold button
+       * but do not hide it.*/
+      CallScreen.disableOnHoldButton();
+    } else if (numOpenLines() > 1 && !isEstablishing) {
       /* If more than one call has been established show only the merge
        * button or no button at all if the calls are not mergeable. */
       CallScreen.hideOnHoldButton();
