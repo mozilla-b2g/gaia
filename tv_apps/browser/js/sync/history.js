@@ -23,16 +23,22 @@ var SyncHistory = (function () {
 
   function handleTask(task) {
     return new Promise(resolve => {
-      var data = {};
-      if (task.data) {
-        data.uri = task.data.url;
-        data.title = task.data.title;
-        data.fxsyncId = task.data.fxsyncId;
-        data.timestamp = task.data.visited;
-      }
       switch(task.operation) {
       case 'update':
       case 'add':
+        var data = {};
+        var syncedData = task.data;
+        if (syncedData && syncedData.url &&
+          Array.isArray(syncedData.visits) && syncedData.visits.length > 0) {
+          data.uri = syncedData.url;
+          data.title = syncedData.title;
+          data.fxsyncId = syncedData.fxsyncId;
+          data.timestamp = syncedData.visits[0];
+        } else {
+          console.warn('Invalid places record:', task);
+          resolve();
+          return;
+        }
         SyncBrowserDB.updateRawHistory(data, () => {
           resolve();
         });
