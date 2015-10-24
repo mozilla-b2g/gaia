@@ -16,9 +16,11 @@
     <link rel="localization" href="/shared/locales/collection_categories/collection_categories.{locale}.properties">
     <link rel="localization" href="/shared/elements/gaia_grid_rs/locales/gaia_grid_rs.{locale}.properties">
     <link rel="localization" href="/shared/elements/gaia_menu/locales/gaia_menu.{locale}.properties">
+    <link rel="localization" href="/shared/locales/date/date.{locale}.properties">
 
     <script defer src="shared/js/performance_testing_helper.js"></script>
     <script defer src="shared/js/l10n.js"></script>
+    <script defer src="shared/js/l10n_date.js"></script>
     <!-- <link rel="stylesheet" href="shared/style/input_areas.css"> -->
 
     <!-- Those libraries are loaded after rendering icons -->
@@ -62,6 +64,8 @@
     <script defer src="shared/elements/gaia_grid_rs/js/items/mozapp.js"></script>
     <script defer src="shared/elements/gaia_grid_rs/js/items/group.js"></script>
     <script defer src="shared/elements/gaia_grid_rs/js/items/placeholder.js"></script>
+    <!-- XXX can be removed while gecko support navigator.mozHour12 API -->
+    <script defer src="shared/js/date_time_helper.js"></script>
 
     <!-- Gaia Components -->
     <script defer src="shared/elements/config.js"></script>
@@ -71,6 +75,7 @@
 
     <script defer src="js/pin_app_navigation.js"></script>
     <script defer src="js/more_apps_navigation.js"></script>
+    <script defer src="js/clock.js"></script>
     <script defer src="js/app.js"></script>
 <!--    <script defer src="js/search.js"></script> -->
     <!-- <script defer src="shared/js/icc_helper.js"></script> -->
@@ -80,6 +85,12 @@
   <body class="theme-media">
     <div id="curtain"></div>
     <section id="main-screen" role="region">
+
+      <div id="clock">
+        <div id="clock-time"></div>
+        <div id="date"></div>
+      </div>
+
       <div id="pin-apps-list">
 
         <div id ='moreApps' data-index='999' class='pin-app-item'>

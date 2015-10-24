@@ -5,7 +5,7 @@
   /*height: 100%;*/
   overflow-y: hidden;
   text-align: center;
-  top: 6rem;
+  top: 8rem;
   transition: all 0.5s;
 }
 
@@ -14,6 +14,8 @@
   width: 11rem;
   margin: 2rem auto 4.5rem auto;
 }
+
+
 
 #pin-apps-list .selected .pin-app-icon,
 #pin-apps-list .selected input[type="button"] {
@@ -67,6 +69,26 @@
   opacity: 0;
   transition: all 0.5s;
 }
+
+
+
+
+#pin-apps-list .selected.middle {
+  width: 7.5rem;
+  height: 7.5rem;
+  margin: 2rem auto 1rem auto;
+}
+
+#pin-apps-list .selected.middle .pin-app-icon {
+  width: 7.5rem;
+  height: 7.5rem;
+}
+
+#pin-apps-list .selected.middle .title {
+  opacity: 0;
+  transition: all 0.5s;
+}
+
 
 
 .removed {

@@ -102,3 +102,28 @@ body.edit-group {
 #main-screen{
   height:100%;
 }
+
+
+#clock {
+  width: 16rem;
+  margin: 0 auto;
+  text-align: center;
+  color: #ffffff;
+  transition: opacity 0.5s;
+}
+
+#clock #clock-time{
+  font-size: 5.5rem;
+  font-family: "Fira Sans";
+  font-weight: 200;
+}
+
+#clock #clock-time span{
+  font-size: 2.5rem;
+}
+
+#clock #date{
+  font-size: 1.4rem;
+  font-family: "Fira Sans";
+  font-weight: 300;
+}

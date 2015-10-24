@@ -34,6 +34,8 @@
     elemList: null,
     prevVerticalKey: null,
 
+    middleElem: false,
+
 
     /**
      * This function reset all pinns to default values.
@@ -62,7 +64,9 @@
       }
 
       this.elements[this.selectedElemIndex].classList.add('selected');
+      this.elements[this.selectedElemIndex].classList.add('middle');
       this.elemList.removeAttribute('style');
+      this.middleElem = true;
 
       var toRemoved = this.elemList.querySelector('.removed');
       var toRemoveOutFocus = this.elemList.querySelector('.out-focus');
@@ -98,6 +102,8 @@
       }
 
       this.elements[this.selectedElemIndex].classList.add('selected');
+        this.elements[this.selectedElemIndex].classList.add('middle');
+        this.middleElem = true;
     },
 
 
@@ -124,21 +130,36 @@
       if (this.preventDef) {
         e.preventDefault();
       }
+      
+      function preVerticalNavigation () {
+        if (this.middleElem) {
+          document.querySelector('.middle').classList.remove('middle');
+          this.middleElem = false;
+        }
 
-      var toRemoved = this.elemList.querySelector('.removed');
-      var toRemoveOutFocus = this.elemList.querySelector('.out-focus');
 
-      if (toRemoved) {
-        this.elemList.removeChild(toRemoved);
-      }
+        var toRemoved = this.elemList.querySelector('.removed');
+        var toRemoveOutFocus = this.elemList.querySelector('.out-focus');
 
-      if (toRemoveOutFocus) {
-        toRemoveOutFocus.classList.remove('out-focus');
+        if (toRemoved) {
+          this.elemList.removeChild(toRemoved);
+        }
+
+        if (toRemoveOutFocus) {
+          toRemoveOutFocus.classList.remove('out-focus');
+        }
+      };
+
+      if (this.preventDef){
+        e.preventDefault();
       }
 
 
       switch(e.key) {
         case 'ArrowUp':
+
+          preVerticalNavigation.call(this);
+          document.getElementById('clock').style.opacity = 0;
 
           if (this.elemList.dataset.scrollup) {
             this.elemList.style.top = this.elemList.dataset.scrollup;
@@ -189,6 +210,9 @@
 
         case 'ArrowDown':
 
+          preVerticalNavigation.call(this);
+          document.getElementById('clock').style.opacity = 0;
+
           this.elements[this.selectedElemIndex].classList.remove('selected');
           if (this.selectedElemIndex == (this.elements.length - 3)) {
             if (!this.elemList.dataset.scrolldown) {
@@ -230,7 +254,12 @@
         case 'Accept':
 
           window.removeEventListener('keydown', this);
-          app.getAppByURL(this.elements[this.selectedElemIndex].dataset.manifesturl).launch();
+
+          if (this.elements[this.selectedElemIndex].getAttribute('id') == "moreApps") {
+            app.showMoreApps();
+          } else {
+            app.getAppByURL(this.elements[this.selectedElemIndex].dataset.manifesturl).launch();
+          }
 
           break;
       }
