@@ -157,75 +157,42 @@ define(function(require, exports, module) {
       // (i.e. it has an ID).
       if (this.id) {
         var self = this,
-            alarmDatabase = require('alarm_database');
-        // Updating Alarm info in the DataStore
-        var storeAlarms = [];
+            alarmDatabase = require('alarm_database'),
+            storeAlarms = [],
+            nextAlarm = {};
+        // Updating Alarm info from the DataStore
         alarmDatabase.getAll().then((alarms) => {
           // Logging in a loop to ensure we don't overrun the line buffer:
-          var now = new Date();
-          function addZero(i) {
-            if(typeof i == "String") {
-              i = parseInt(i);
-            }
-            if (i < 10) {
-              i = "0" + i;
-            }
-            return i + "";
-          }
           alarms.forEach(function(a) {
             // Grabbing alarms that are 'normal'
             if(a.registeredAlarms.normal) {
-              //Check for Repeated Alarms
-              if(Object.keys(a.repeat).length != 0) {
-                var hasToBePushed = false;
-                for (var n in a.repeat) {
-                  var day = n;
-                  if(now.getDay() == 6 && n < 6) {
-                    day = 7 + parseInt(n);
-                  }
-                  if(day == now.getDay() || day == now.getDay() + 1) {
-                    if(day == now.getDay()) {
-                      if(now.getHours() + ":" + now.getMinutes() <
-                         addZero(a.hour) + ":" + addZero(a.minute)) {
-                        hasToBePushed = true;
-                      }
-                    } else {
-                      hasToBePushed = true;
-                    }
-                  }
-                }
-                if(hasToBePushed) {
-                  storeAlarms.push(a);
-                }
-              }
-              else {
-                storeAlarms.push(a);
-              }
+              storeAlarms.push(a.getNextAlarmFireTime());
             }
           });
-          storeAlarms = self.sortAlarms(storeAlarms);
+
+          nextAlarm = self.getNextAlarm(storeAlarms);
 
           // append info to datastore
           navigator.getDataStores('alarms')
           .then( function(stores) {
             stores[0].getLength()
             .then(function(len) {
-              if(len == 0) {
+              if(len === 0) {
                 stores[0].add({
-                  'data': storeAlarms
+                  'data': nextAlarm
                 }).then(function(id){
                   // Successfull Adding of alarms to data store
-                  console.log("[Clock] ======= Added Alarm on LockScreen ======");
-                })
+                  console.log('[Clock] ==== Added Alarm on LockScreen ====');
+                });
               }
               else {
                 stores[0].put({
-                  'data': storeAlarms
+                  'data': nextAlarm
                 }, 1)
                 .then(function(id){
                   // Successfull Updating of alarms to data store
-                  console.log("[Clock] ======= Updated Alarm on LockScreen ======");
-                })
+                  console.log('[Clock] ==== Updated Alarm on LockScreen ====');
+                });
               }
             });
           });
@@ -252,56 +219,44 @@ define(function(require, exports, module) {
       });
     },
 
-    /** Sort all the alarms and return the next upcoming
-     *  alarm from the list
+    /**
+     * Returns the next scheduled alarm within the next 24 hours
+     * @param {Array} type 'Date'
+     * @returns {Object} This is either an empty obj or hour and minute
      */
-    sortAlarms: function(storeAlarms) {
-      storeAlarms.sort(function(a,b) {
-        return new Date('1970/01/01 '+a.hour+':'+a.minute)
-          - new Date('1970/01/01 ' + b.hour+':'+b.minute);
-      });
-      var before = [],
-          after = [],
-          now = new Date();
-      function addZero(i) {
-        if(typeof i == "String") {
-          i = parseInt(i);
-        }
-        if (i < 10) {
-          i = "0" + i;
-        }
-        return i + "";
-      }
+    getNextAlarm: function(storeAlarms) {
+      var alarmIndex = [],
+          nextAlarm = {};
 
-      storeAlarms.forEach(function(alarmInfo,b){
-        if( addZero(now.getHours()) + ':' + addZero(now.getMinutes())
-           <= addZero(alarmInfo.hour) + ':' + addZero(alarmInfo.minute)) {
-          after.push({
-            hour: alarmInfo.hour,
-            minute: alarmInfo.minute
-          });
-        }
-        else {
-          before.push({
-            hour: alarmInfo.hour,
-            minute: alarmInfo.minute
-          });
+      // remove alarms that have more than 24 hrs
+      storeAlarms.forEach( function(val,index) {
+        if((val.getTime() - new Date().getTime()) / 36e5 > 24 ) {
+          alarmIndex.push(index);
         }
       });
 
-      storeAlarms = after;
-      before.forEach(function(alarmInfo,b) {
-        storeAlarms.push(alarmInfo);
+      // remove last index first
+      alarmIndex.sort(function(a,b) {
+        return b - a;
+      });
+      alarmIndex.forEach( function(val) {
+        storeAlarms.splice(val, 1);
+      });
+
+      // sort alarms
+      storeAlarms.sort(function(a,b){
+        return new Date(a.getTime()) - new Date(b.getTime());
       });
 
       if(storeAlarms.length > 0) {
-        return storeAlarms[0];
+        var mins = storeAlarms[0].getMinutes();
+        nextAlarm = {
+          hour : '' + storeAlarms[0].getHours(),
+          minute : mins < 10 ? '0' + mins : '' + mins
+        };
       }
-      else {
-        return {};
-      }
+      return nextAlarm;
     }
-
   };
 
 

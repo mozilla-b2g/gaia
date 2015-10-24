@@ -58,21 +58,24 @@
 		// returns alarm info from DataStore
 		navigator.getDataStores('alarms')
 			.then( function(stores){
-        console.log("stores : ", stores);
-				stores[0].getLength().then(function(len){
+        stores[0].getLength().then(function(len){
           if(len > 0) {
             stores[0].get(1)
               .then( function(data) {
                 if(data.data) {
                   if(data.data.hour && data.data.minute) {
-                    var type = 'AM';
-                    if(data.data.hour > 12) {
+                    var type = 'AM',
+                        hour = parseInt(data.data.hour);
+
+                    // Decide wheter to use AM or PM
+                    if(hour > 12) {
                       type = 'PM';
-                      data.data.hour = data.data.hour - 12;
+                      hour = hour - 12;
                     }
-                    var fullAlarmTime = data.data.hour +
-                      ':' + data.data.minute + type;
-                    self.resources.elements.alarmtime.textContent = fullAlarmTime;
+
+                    var fullAlarmTime = hour + ':' + data.data.minute + type;
+                    self.resources.elements.alarmtime.textContent =
+                      fullAlarmTime;
                     self.resources.elements.alarm.classList.remove('no-alarms');
                     self.logger.debug('Alarm updated to :', fullAlarmTime);
                     return data;
