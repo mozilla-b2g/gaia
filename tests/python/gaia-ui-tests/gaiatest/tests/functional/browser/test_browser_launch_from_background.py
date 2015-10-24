@@ -45,7 +45,7 @@ class TestLaunchViaManifest(GaiaTestCase):
         self.device.hold_home_button()
         cards_view = CardsView(self.marionette)
         cards_view.wait_for_cards_view()
-        cards_view.wait_for_card_ready(search.manifest_url[:-16])
+        cards_view.cards[0].wait_for_centered()
         self.assertEqual(len(cards_view.cards), 1, 'Should have 1 card to display')
-        self.assertTrue(cards_view.is_app_displayed(search.manifest_url[:-16]),
-            'Should have browser in cards view with title hello')
+        self.assertTrue(cards_view.cards[0].is_displayed)
+        self.assertEqual(cards_view.cards[0].title, 'hello')
