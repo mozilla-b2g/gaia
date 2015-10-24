@@ -51,6 +51,7 @@ BrowserAppBuilder.prototype.enableFirefoxSync = function(options) {
       ['index.html'],
       ['js', 'awesomescreen.js'],
       ['js', 'bookmarkStore.js'],
+      ['js', 'historyStore.js'],
       ['js', 'browser_dialog.js'],
       ['js', 'index.js'],
       ['js', 'settings.js'],

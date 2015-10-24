@@ -105,9 +105,6 @@ var Browser = {
     document.addEventListener('keydown', this.keyHook.bind(this), true);
     // mouse move
     document.addEventListener('mousemove', this.mouseMove.bind(this), false);
-    // key press
-    document.addEventListener('keypress', this.keypress.bind(this), true);
-
 
     // init bookmark dialog
     Awesomescreen.init();
@@ -1126,21 +1123,6 @@ var Browser = {
 
     default:
       break;
-    }
-  },
-
-
-  /**
-   * keypress
-   */
-  keypress: function browser_keypress(ev) {
-    if( (Awesomescreen.isDisplayedList()) && (!(Awesomescreen.isDisplayedDialog())) ){
-      ev.preventDefault();
-      setTimeout( function() {
-        if(Awesomescreen.exeflag && (ev.keyCode == KeyEvent.DOM_VK_UP || ev.keyCode == KeyEvent.DOM_VK_DOWN )){
-          Awesomescreen.listDialogKeyCont(ev, ev.target);
-        }
-      }, 100);
     }
   },
 
