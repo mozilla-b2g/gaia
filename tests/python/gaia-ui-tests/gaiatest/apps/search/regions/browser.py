@@ -21,6 +21,8 @@ class Browser(Base):
     _forward_button_locator = (By.CSS_SELECTOR, '.forward-button')
     _reload_button_locator = (By.CSS_SELECTOR, '.reload-button')
 
+    _url_bar_locator = (By.CSS_SELECTOR, '.urlbar .title')
+
     def __init__(self, marionette):
         Base.__init__(self, marionette)
         self.marionette.switch_to_frame()
@@ -35,12 +37,10 @@ class Browser(Base):
 
     @property
     def is_page_loading(self):
-        return "loading" in self._root_element.value_of_css_property('class')
+        return self._root_element.get_attribute('loading-state') == "true"
 
     def wait_for_page_to_load(self, timeout=30):
-        reload_button = self._root_element.find_element(*self._reload_button_locator)
         Wait(self.marionette, timeout).until(lambda m: not self.is_page_loading)
-        Wait(self.marionette, timeout).until(lambda m: reload_button.is_displayed())
 
     def tap_menu_button(self):
         self._root_element.find_element(*self._menu_button_locator).tap()
@@ -87,10 +87,14 @@ class Browser(Base):
         Wait(self.marionette).until(expected.element_displayed(button))
         button.tap()
 
+    def go_to_url(self, url):
+        self._root_element.find_element(*self._url_bar_locator).tap()
+        from gaiatest.apps.system.regions.search_panel import SearchPanel
+        search_panel = SearchPanel(self.marionette)
+        return search_panel.go_to_url(url)
 
 class PrivateWindow(Browser):
     _browser_app_locator = (By.CSS_SELECTOR, 'div.private[data-manifest-name="Browser"][transition-state="opened"]')
-    _url_bar_locator = (By.CSS_SELECTOR, '.urlbar .title')
 
     def __init__(self, marionette):
         Browser.__init__(self, marionette)
@@ -98,9 +102,3 @@ class PrivateWindow(Browser):
         # the private browser is not ready with loading yet
         url_bar = self._root_element.find_element(*self._url_bar_locator)
         Wait(self.marionette).until(lambda m: url_bar.text != 'system.gaiamobile.org')
-
-    def go_to_url(self, url):
-        self._root_element.find_element(*self._url_bar_locator).tap()
-        from gaiatest.apps.system.regions.search_panel import SearchPanel
-        search_panel = SearchPanel(self.marionette)
-        return search_panel.go_to_url(url)
