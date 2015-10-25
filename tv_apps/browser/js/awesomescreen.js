@@ -280,7 +280,7 @@ var Awesomescreen = {
   },
 
   isDisplayedList: function awesomescreen_isDisplayed() {
-    return this.awesomescreen.classList.contains('awesomescreen-screen-list');
+    return this.bookmarkList.isDisplay() || this.historyList.isDisplay();
   },
 
   isDisplayedTab: function awesomescreen_isDisplayed() {
@@ -1532,8 +1532,6 @@ var Awesomescreen = {
       listUrl = this.bookmarkList.getFocusItemUri();
     } else if(this.historyList.isDisplay()) {
       listUrl = this.historyList.getFocusItemUri();
-    } else if(Awesomescreen.isDisplayedList()){
-      listUrl = this.selectList.childNodes[1].childNodes[1].textContent;
     } else {
       listUrl = Browser.currentInfo.url;
     }
@@ -1642,7 +1640,6 @@ var Awesomescreen = {
       if(Awesomescreen.isDisplayedTop() ){
         if(Awesomescreen.isDisplayedList() ){
           Browser.switchCursorMode(false);
-          Awesomescreen.selectList.focus();
         }else{
           Browser.switchCursorMode(true);
         }
@@ -1654,10 +1651,7 @@ var Awesomescreen = {
     } else {
       Browser.switchCursorMode(true);
     }
-    if( Awesomescreen.isDisplayedList()){
-      this.selectList.focus();
-      this.focusImgFunc(this.selectList, null);
-    }else{
+    if( !Awesomescreen.isDisplayedList()){
       this.hidePointerImg();
     }
     Awesomescreen.dialogArea.style.display = 'none';
@@ -1729,13 +1723,6 @@ var Awesomescreen = {
         this.showAwesomeLoadingIcon();
         url = this.historyList.getFocusItemUri();
         this.pintohomeTitle = this.bookmarkList.getFocusItemTitle();
-        this.callAwesomescreenEvents(url);
-        break;
-      case this.isDisplayedList() :
-        this.showAwesomeLoadingIcon();
-        url = this.selectList.childNodes[1].childNodes[1].textContent;
-        this.pintohomeTitle =
-          this.selectList.childNodes[1].childNodes[0].textContent;
         this.callAwesomescreenEvents(url);
         break;
       case this.isDisplayedTop() :
@@ -2622,11 +2609,6 @@ var Awesomescreen = {
     switch(true){
       case Awesomescreen.isDisplayedDialog():
         this.selectMenu = document.activeElement;
-        break;
-      case Awesomescreen.isDisplayedList():
-        if(ev.type == 'keydown'){
-          this.selectList = ev.target;
-        }
         break;
       case Awesomescreen.isDisplayedTab():
         break;
