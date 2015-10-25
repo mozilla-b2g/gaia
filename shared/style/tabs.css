@@ -223,7 +223,7 @@
 }
 
 .bb-tablist[data-type="filter"] > li:first-child {
-  border-left: none;
+  border-inline-start: none;
 }
 
 .bb-tablist[data-type="filter"] > li > a,
@@ -279,12 +279,4 @@
 
 .bb-tablist[data-type="filter"] > li > a:active {
   background-color: transparent;
-}
-
-
-/* RTL View */
-
-/* RTL support in gaia right now keeps buttons in same direction as LTR */
-html[dir="rtl"] .bb-tablist {
-  flex-direction: row-reverse;
 }
