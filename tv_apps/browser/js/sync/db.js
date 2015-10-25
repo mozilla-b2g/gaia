@@ -55,7 +55,7 @@ var SyncBrowserDB = {
    * @param {String} history The history to be added
    * @param {Function} callback Runs when it finishs
    */
-  updateRawHistory: function browserDB_updateRawPlace(history, callback) {
+  updateRawHistory: function browserDB_updateRawHistory(history, callback) {
     this.db.createRawHistory(history, callback);
   },
 
@@ -434,6 +434,20 @@ var SyncBrowserDB = {
     // Get a list of bookmarks
     this.db.clearHistoryExcluding(callback);
 
+  },
+
+  clearBookmarks: function browserDB_clearBookmarks() {
+    return new Promise(resolve => {
+      this.db.clearBookmarks(resolve);
+    });
+  },
+
+  clearHistoryDeep: function browserDB_clearHistoryDeep() {
+    return Promise.all([
+      new Promise(this.db.clearVisits),
+      new Promise(this.db.clearPlaces),
+      new Promise(this.db.clearIcons)
+    ]);
   }
 
 };

@@ -86,10 +86,7 @@ var SyncBookmark = (function () {
     }
     syncDataStore = new SyncDsHelper('bookmarks_store');
     return syncDataStore.init().then(() => {
-      syncDataStore.registerStoreChangeEvent(() => {
-        syncDataStore.dataStoreSync(handleTask);
-      });
-      return syncDataStore.dataStoreSync(handleTask);
+      return syncDataStore.start(handleTask);
     });
   }
 
@@ -97,7 +94,10 @@ var SyncBookmark = (function () {
     if (!syncDataStore) {
       return Promise.reject('Uninitialized DataStore');
     }
-    return syncDataStore.unregisterStoreChangeEvent();
+    return syncDataStore.stop().then(() => {
+      syncDataStore = null;
+      return SyncBrowserDB.clearBookmarks();
+    });
   }
 
   return {
