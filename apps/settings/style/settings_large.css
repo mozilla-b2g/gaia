@@ -105,28 +105,6 @@
     offset-inline-start: calc(-2.5rem / 2);
   }
 
-  section[role="region"]#root .pack-switch > .menu-item::before {
-    offset-inline-start: 1rem;
-  }
-
-  section[role="region"]#root .pack-switch > .menu-item {
-    padding-inline-start: 6rem;
-  }
-
-  section[role="region"]#root ul li > label.pack-switch {
-    margin-inline-start: calc(-4.5rem / 2);
-  }
-
-  section[role="region"]#root ul li > label.pack-switch > small {
-    offset-inline-start: 6.25rem;
-    margin: 0;
-    margin-inline-start: 4.5rem;
-  }
-
-  section[role="region"]:not([id='root']) ul li > label.pack-switch > span {
-    padding-inline-start: 1.5rem;
-  }
-
   section[role="region"]:not([id='root']) ul li > gaia-checkbox > label {
     padding-inline-start: 1.5rem;
   }

@@ -20,7 +20,8 @@ ul li {
 
 /* Provide additional margin around web components to match spacing with legacy components */
 ul li > gaia-radio,
-ul li > gaia-switch,
+/* Switches in the root panel ignore the extra margin due to having icon style applied. */
+section:not(#root) ul li > gaia-switch,
 ul li > gaia-checkbox:not(.inline) {
   margin-inline-start: 1.5rem;
   /* The !important is necessary to override gaia-swtich scoped style. */
@@ -187,10 +188,6 @@ ul li > label ~ input {
   margin-bottom: 1.5rem;
 }
 
-ul li > label.pack-switch > small {
-  offset-inline-end: 9rem;
-}
-
 /* color previews */
 ul li > gaia-checkbox.color-preview:before {
   height: 2rem;
@@ -274,8 +271,7 @@ ul li label {
   text-transform: none;
 }
 
-ul li > label:not([for]),
-ul li > label.pack-switch {
+ul li > label:not([for]) {
   margin-inline-start: -1.5rem;
   margin-inline-end: -1.5rem;
   padding-inline-start: 1.5rem;
@@ -287,21 +283,11 @@ ul li > label.pack-switch {
   display: flex;
 }
 
-ul li > label:not([for]) > span,
-ul li > label.pack-switch > span {
+ul li > label:not([for]) > span {
   line-height: normal;
   height: auto;
 }
 
-ul li > label.pack-switch > input ~ span:after {
-  offset-inline-start: auto;
-  offset-inline-end: 1.5rem;
-}
-
-ul li > label.pack-switch:active {
-  background-color: #b2f2ff;
-  color: #222;
-}
 
 /******************************************************************************
  * Split panel
@@ -327,10 +313,6 @@ ul li.pack-split:after {
 
 ul li.pack-split > span {
   background-color: transparent;
-}
-
-ul li.pack-split > label.pack-switch {
-  position: absolute;
 }
 
 
