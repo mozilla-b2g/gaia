@@ -27,7 +27,6 @@ var Awesomescreen = {
   FIREFOX_SYNC_BOOKMARK: 'Firefox_Sync_Bookmark',
   FIREFOX_SYNC_HISTORY: 'Firefox_Sync_History',
 //ENDIF_FIREFOX_SYNC
-  LIST_NUM: 6,
   TOP_SITES_COUNT: 9,
   RESULT_CACHE_SIZE: 20,
   TABLIST_MAX: 12,
@@ -38,12 +37,9 @@ var Awesomescreen = {
   focusList: null,
   focusPos: 0,
   blurFlag: false,
-  listTemplate: null,
   resultTemplate: null,
   searchTemplate: null,
   resultCache: {},
-  upgradimgArea: null,
-  downgradimgArea: null,
   historyClearFlg: false,
   focusSwitchFlg: null,
   exeflag: true,
@@ -52,7 +48,6 @@ var Awesomescreen = {
   // Keep img object URLs to later clean up img file references
   objectURLs: [],
   tabList: null,
-  bmhisList:{},
   finalDispTabId: null,
   topSiteList: null,
   selectList:null,
@@ -76,7 +71,6 @@ var Awesomescreen = {
 
     // Create template elements
     this.resultTemplate = this.createResultTemplate();
-    this.listTemplate = this.createList();
 
     //Create topsite,tab template elements
     this.topTemplate = this.createtopTemplate();
@@ -347,9 +341,6 @@ var Awesomescreen = {
     if(this.historyList.isDisplay()) {
       this.historyList.close();
     }
-    if(this.isDisplayedList()){
-      this.listHidden();
-    }
     if(this.isDisplayedDialog()){
       this.dialogHidden();
     }
@@ -384,7 +375,7 @@ var Awesomescreen = {
     'remove-button', 'edit-button', 'clhistory-button',
      'sethome-button', 'remove-topsite-button',
     'remove-confirm-button', 'rename-confirm-button', 'clear-button',
-    'list-dialog', 'tab-view', 'pointer-img',
+    'tab-view', 'pointer-img',
     'awesomescreen', 'dialog-banner-message' , 'bmd-dialog',
     'dialog-area', 'tabview-panels', 'top-site-list', 'top-panels',
     'private-browsing-block', 'top-default-list', 'awesome-loading-icon',
@@ -464,13 +455,6 @@ var Awesomescreen = {
               if( (ev.target.className) &&
                 (ev.target.className.contains('browser-tab')) ){
                 this.tabviewHidden();
-                state = false;
-              }
-              break;
-            }
-            if(this.isDisplayedList()){
-              if( (ev.target.id) && (ev.target.id.contains('list-dialog')) ){
-                this.listHidden();
                 state = false;
               }
               break;
@@ -694,100 +678,6 @@ var Awesomescreen = {
   },
 
   /**
-   * display the URL of the list and click.
-   *
-   * @param {ev} event to mouseup.
-   */
-  clickBmHisList: function awesomescreen_clickBmHisList(ev) {
-    if(ev){
-      ev.preventDefault();
-    }
-    var activeElem = ev.currentTarget;
-
-    //select the list that are not shaded only
-    if(activeElem.className.contains('visible')){
-      switch(ev.button){
-        case 0 :  // left click
-          var uri = activeElem.lastChild.childNodes[1].textContent;
-          Toolbar.urlInput.blur();
-          Browser.navigate(uri);
-          this.listHidden();
-          if(this.isDisplayedTop()) {
-            this.topsiteHidden();
-          }
-          Browser.switchCursorMode(true);
-          break;
-        case 2:  //right click
-          this.selectList = activeElem;
-          ev.keyCode = KeyEvent.DOM_VK_SUBMENU;
-          this.handleKeyEvent(ev);
-          break;
-        default:
-          break;
-      }
-    }
-
-  },
-
-  /**
-   * hidden bookmark,history list.
-   */
-  listShow: function awesomescreen_listShow() {
-    this.showAwesomescreen();
-    this.awesomescreen.classList.add('awesomescreen-screen-list');
-    this.listDialog.style.display = 'block';
-    Awesomescreen.blurFlag = false;
-    //I focus to the top of the list
-    var list = document.getElementsByClassName('history-area');
-    var listLength = list.length;
-
-    //Initial setting of the list dim part
-    this.upgradimgArea = document.getElementById('upgradimg-area');
-    this.downgradimgArea = document.getElementById('downgradimg-area');
-    this.upgradimgArea.classList.add('hidden');
-
-    //If the number of the list is more than 9 to dim to 8 Items per page
-    if(listLength <= this.LIST_NUM + 1){
-      this.downgradimgArea.classList.add('hidden');
-    }
-
-    if(listLength !== 0) {
-        list[0].focus();
-        Awesomescreen.focusImgFunc(list[0], null);
-      if(listLength == this.LIST_NUM + 1){
-        list[this.LIST_NUM].classList.add('visible');
-     }
-    }
-    Awesomescreen.listDialog.style.opacity = '0.95';
-    Browser.switchCursorMode(false);
-  },
-  /**
-   * hidden bookmark,history list.
-   */
-  listHidden: function awesomescreen_listHidden() {
-    this.hidePointerImg();
-    if(!(Awesomescreen.isDisplayedTop())) {
-      this.hideAwesomescreen();
-    }
-    Awesomescreen.awesomescreen.classList.remove('awesomescreen-screen-list');
-    Awesomescreen.awesomescreen.classList.remove('awesomescreen-history');
-    document.activeElement.blur();
-    // Fade animation end event handler
-    var fade_event_list = (function() {
-      Awesomescreen.listDialog.style.display = 'none';
-      Browser.switchCursorMode(true);
-      Awesomescreen.listDialog
-        .removeEventListener('transitionend', fade_event_list, false);
-    });
-
-    Awesomescreen.listDialog
-      .addEventListener('transitionend', fade_event_list, false);
-    this.listDialog.style.opacity = '0';
-
-    this.exeflag = true;
-  },
-
-  /**
    * sort by object
    *
    * @return {prop_name} Item name you want to sort.
@@ -811,36 +701,6 @@ var Awesomescreen = {
       }
       return 0;
     };
-  },
-
-  /**
-   * Create a list element to contain results.
-   *
-   * @return {Element} An unordered list element.
-   */
-  createList: function awesomescreen_createList() {
-    var container = document.createElement('div');
-    var title = document.createElement('div');
-    var list = document.createElement('ul');
-    var listArea = document.createElement('div');
-    var imgUpArea = document.createElement('span');
-
-    listArea.id = 'list-area';
-    list.setAttribute('role', 'listbox');
-    list.id = 'bmhis-list';
-    title.id = 'title-area';
-    imgUpArea.id = 'upgradimg-area';
-
-    container.classList.add('container');
-    container.appendChild(title);
-    container.appendChild(imgUpArea);
-    var imgDownArea = imgUpArea.cloneNode(true);
-    imgDownArea.id = 'downgradimg-area';
-    listArea.appendChild(list);
-    container.appendChild(listArea);
-    container.appendChild(imgDownArea);
-
-    return container;
   },
 
   /**
@@ -975,102 +835,6 @@ var Awesomescreen = {
     template.appendChild(thumbnailArea);
     template.appendChild(siteTitleArea);
     return template;
-  },
-
-  /**
-   * Create a list item representing a result.
-   *
-   * @param {Object} data Result data.
-   * @param {string} filter Text to highlight if necessary.
-   * @param {string} listType Type of list being generated e.g. 'bookmarks'.
-   * @param {number} data index.
-   * @return {Element} List item element representing result.
-   */
-  createListItem: function awesomescreen_createListItem(
-    data,
-    filter,
-    listType,
-    index) {
-
-    var listItem = null;
-    var fromCache = false;
-
-    // Clone list item element from the cache or a template
-    if (listType == 'search') {
-      if (this.searchTemplate) {
-        listItem = this.searchTemplate.cloneNode(true);
-        fromCache = true;
-      }else{
-        listItem = this.resultTemplate.cloneNode(true);
-        this.searchTemplate = listItem;
-      }
-    }else if(this.resultCache[data.uri]) {
-      listItem = this.resultTemplate.cloneNode(true);
-    }else{
-      listItem = this.resultTemplate.cloneNode(true);
-      this.cacheResult(data.uri, listItem);
-    }
-
-    //Get the element of "textArea"
-    var textArea = listItem.childNodes[1];
-    // Set text content of non-cached results or those that may need updating
-    if (!fromCache || listType == 'bookmarks' || listType == 'results' ||
-      listType == 'search') {
-
-      //Change acquisition element, such as a "title"
-      var title = textArea.childNodes[0];
-      var url = textArea.childNodes[1];
-
-      title.textContent = data.title;
-      if (data.uri == this.ABOUT_PAGE_URL) {
-        url.textContent = 'about:';
-      }else{
-        url.textContent = data.uri;
-      }
-    }
-
-    //Add an element acquisition process of "icon image, title"
-    //image.textarea get
-    var iconImg = listItem.childNodes[0].childNodes[0].childNodes[0];
-
-    // Set result icon
-    //"Underlay" is deleted because unnecessary
-    if (!data.iconUri) {
-      //Change "link" element to "iconImg" element
-      iconImg.style.backgroundImage = 'url(' + this.DEFAULT_FAVICON + ')';
-      iconImg.src = this.DEFAULT_FAVICON;
-    }else{
-      iconImg.src = data.iconUri;
-      if( (iconImg.naturalWidth > 32) ||
-        (data.iconUri == this.DEFAULT_FAVICON)){
-        iconImg.style.width = '74px';
-        iconImg.style.height = '74px';
-        iconImg.style.backgroundSize = '74px 74px';
-      }else{
-        iconImg.style.width = '42px';
-        iconImg.style.height = '42px';
-        iconImg.style.backgroundSize = '42px 42px';
-      }
-    }
-    //To impart a unique ID to the list that you created
-    if(index == null) {
-      index = 0;
-    }
-    listItem.id = 'list-' + index;
-
-    //List display number determination process
-    if(index <= this.LIST_NUM - 1) {
-      listItem.classList.add('visible');
-    }
-    listItem.tabIndex = index + 1;
-
-    // Add event listeners(listItem)
-    listItem.addEventListener('mouseup', this.clickBmHisList.bind(this));
-    listItem.addEventListener('keyup', this.dialogButtonKeyup.bind(this));
-    listItem.addEventListener('mouseover', this.mouseOverFunc.bind(this));
-    listItem.addEventListener('mouseout', this.mouseOutFunc.bind(this));
-    listItem.addEventListener('DOMMouseScroll', this.mouseWheelFunc.bind(this));
-    return listItem;
   },
 
   //Add "topsite, tab" the list creation process of the main
@@ -1839,62 +1603,6 @@ var Awesomescreen = {
     target.addEventListener('transitionend', end_event, false);
   },
 
-   /**
-    * The name change process of bookmark,history
-    */
-   bmlistRemoveFunc: function awesomescreen_bmlistRemoveFunc() {
-
-     //add bookmark to remove
-     if(!this.isDisplayedList()){
-       this.dialogHidden();
-       Browser.switchCursorMode(true);
-       this.hidePointerImg();
-       Browser.refreshBrowserParts();
-       return;
-      }
-
-     //next to focus element
-     var focusElem = false;
-     if(this.selectList.nextSibling){
-       focusElem = this.selectList.nextSibling;
-     }else if(this.selectList.previousSibling){
-       focusElem = this.selectList.previousSibling;
-     }
-
-     //target element remove
-     this.bmhisList.removeChild(this.selectList);
-
-     //To reacquire the list after deletion
-     var visiList = this.bmhisList.getElementsByClassName('visible');
-     var visiLength = visiList.length;
-     var bmlist = document.getElementsByClassName('history-area');
-     var bmlistLength = bmlist.length;
-
-     //add to visible class
-     if(visiList[visiLength - 1]){
-       if(visiList[visiLength - 1].nextSibling){
-         visiList[visiLength - 1].nextSibling.classList.add('visible');
-       }else if(visiList[0].previousSibling){
-         visiList[0].previousSibling.classList.add('visible');
-       }
-
-      if(bmlistLength <= this.LIST_NUM + 1){
-        this.upgradimgArea.classList.add('hidden');
-        this.downgradimgArea.classList.add('hidden');
-       }
-       this.dialogHidden();
-       Browser.switchCursorMode(false);
-       focusElem.focus();
-       this.focusImgFunc(focusElem);
-       this.blurFlag = false;
-     }else{
-        //if the elements of the list of one
-       this.dialogHidden();
-       this.hidePointerImg();
-     }
-     Browser.refreshBrowserParts();
-   },
-
   dialogShow: function awesomescreen_dialogShow(type) {
     Awesomescreen.dialogArea.style.opacity = '1';
     this.showAwesomescreen();
@@ -1903,9 +1611,6 @@ var Awesomescreen = {
     Browser.switchCursorMode(true);
     Browser.switchCursorMode(false);
     this.focusChange(this.focusPos);
-
-    this.listDialog.style.backgroundImage = 'none';
-
   },
 
   dialogHidden: function awesomescreen_dialogHidden(ev) {
@@ -1918,8 +1623,6 @@ var Awesomescreen = {
     if(Awesomescreen.isDisplayedDialog()){
       Awesomescreen
         .awesomescreen.classList.remove('awesomescreen-screen-dialog');
-      Awesomescreen.listDialog.style.backgroundImage =
-        'url("../style/images/background_black.png")';
       Awesomescreen.dialogArea.style.display = 'none';
     }
     if( (!(Awesomescreen.isDisplayedList())) &&
@@ -1963,28 +1666,15 @@ var Awesomescreen = {
   /**
    * bookmark,history list hidden and dialog menu hidden.
    */
-  allDialogHidden: function awesomescreen_allDialogHidden(bmTitle) {
+  allDialogHidden: function awesomescreen_allDialogHidden() {
     this.dialogHidden();
     Browser.switchCursorMode(true);
 
     this.hidePointerImg();
-    if(this.isDisplayedList()){
-      if(this.history.firstChild){
-        if(this.historyClearFlg){
-          this.historyClearFlg = false;
-          this.listHidden();
-          Settings.getDefaultHomepage(this.defaultTopsite.bind(this));
-        }else{
-          this.selectHistoryTab();
-        }
-      }else{
-        if(bmTitle){
-          this.selectList.childNodes[1].childNodes[0].textContent = bmTitle;
-           Browser.switchCursorMode(false);
-           this.showPointerImg();
-           this.blurFlag = false;
-         }
-      }
+    if(this.bookmarkList.isDisplay()) {
+      this.bookmarkList.close();
+    } else if (this.historyList.isDisplay()) {
+      this.historyList.close();
     }
     Browser.refreshBrowserParts();
   },
@@ -2967,10 +2657,6 @@ var Awesomescreen = {
             this.historyList.close();
             Awesomescreen.hidePointerImg();
             break;
-          case Awesomescreen.isDisplayedList() :
-            // close history
-            Awesomescreen.listHidden();
-            break;
           case Awesomescreen.isDisplayedTab() :
             // close tabview
             Awesomescreen.tabviewHidden();
@@ -2988,12 +2674,6 @@ var Awesomescreen = {
       case KeyEvent.DOM_VK_SUBMENU:
         switch(true){
           case this.isDisplayedDialog() :
-            break;
-          case this.isDisplayedList() && !(this.isDisplayedDialog()):
-            if((this.bmhisList.childElementCount > 0) &&
-              (this.selectList.className.contains('history-area')) ){
-              this.optionDialogOpen();
-            }
             break;
           case this.isDisplayedTop() && !(this.isDisplayedTab()):
             if(hoverElem == this.topSites){
@@ -3040,21 +2720,6 @@ var Awesomescreen = {
           case this.historyList.isDisplay():
             this.historyList.focusFirstVisibleItem();
             ev.preventDefault();
-            break;
-          case Awesomescreen.isDisplayedList() :
-            if(Awesomescreen.blurFlag){
-              Awesomescreen.blurFlag = false;
-              ev.preventDefault();
-              //After the pointer is released, I to focus on list
-              this.defaultFocusFunc(
-                this.DEFAULT_BOOKMARK,
-                this.bmhisList,
-                'visible',
-                0
-              );
-            }else{
-              Awesomescreen.listDialogKeyCont(ev,this.selectList);
-            }
             break;
           case Awesomescreen.isDisplayedTab() :
             if(Awesomescreen.blurFlag){
@@ -3137,191 +2802,6 @@ var Awesomescreen = {
       this.topsiteHidden();
     }else{
       BrowserDialog.createDialog('close_browser', null);
-    }
-  },
-
-   /**
-   * bookmark,history Key Event.
-   * @param {ev} key event.
-   */
-  listDialogKeyCont: function awesomescreen_listDialogKeyCont(ev,activeElem) {
-    ev.preventDefault();
-
-    if(this.bmhisList.childElementCount < 1){
-      return;
-    }
-    if(this.exeflag){
-      this.exeflag = false;
-      var listCount = this.bmhisList.childElementCount;
-      var visiList = null;
-      if(this.bmhisList.classList.contains('smart-list')) {
-        visiList = this.bmhisList.querySelectorAll('li.visible');
-      } else {
-        visiList = this.bmhisList.getElementsByClassName('visible');
-      }
-      switch( ev.keyCode ) {
-        case KeyEvent.DOM_VK_UP :
-          if(activeElem.previousSibling){
-
-            //If the list is greater than or equal to 9 , to dim
-            if(listCount > this.LIST_NUM + 1){
-              if(activeElem.previousSibling.className.contains('first-pos')) {
-                this.upgradimgArea.classList.add('hidden');
-              }else{
-                if( !(this.upgradimgArea.className.contains('hidden'))){
-                  this.upgradimgArea.classList.remove('hidden');
-                }
-              }
-              this.updownControl(
-                visiList,
-                visiList[0].previousSibling,
-                activeElem.previousSibling,
-                'UP',
-                'first-pos',
-                121
-              );
-              return;
-            }else{
-               this.bmhisList.firstChild.classList.add('visible');
-               activeElem.previousSibling.focus();
-               this.focusImgFunc(activeElem.previousSibling, null);
-            }
-          }
-          break;
-        case KeyEvent.DOM_VK_DOWN :
-          if(activeElem.nextSibling){
-            //If the list is greater than or equal to 9 , to dim
-            if(listCount > this.LIST_NUM + 1){
-              if(activeElem.nextSibling.className.contains('last-pos')) {
-                this.downgradimgArea.classList.add('hidden');
-              }else{
-                if( !(this.downgradimgArea.className.contains('hidden'))){
-                  this.downgradimgArea.classList.remove('hidden');
-                }
-              }
-              this.updownControl(
-                visiList,
-                visiList[4].nextSibling,
-                activeElem.nextSibling,
-                'DOWN',
-                'last-pos',
-                -121
-              );
-              return;
-            }else{
-               this.bmhisList.lastChild.classList.add('visible');
-               activeElem.nextSibling.focus();
-               this.focusImgFunc(activeElem.nextSibling, null);
-            }
-         }
-          break;
-        case KeyEvent.DOM_VK_LEFT :
-        case KeyEvent.DOM_VK_RIGHT :
-          break;
-        case KeyEvent.DOM_VK_RETURN :
-          document.activeElement.classList.add('active');
-          break;
-        default:
-          break;
-      }
-     this.exeflag = true;
-    }
-  },
-
-   /**
-    * Visible display processing of list
-    * @param {visiList} List that is currently displayed
-    * @param {type} UP or Down
-    */
-  updownControl: function awesomescreen_updownControl(
-    visiList,
-    visiListFirstElem,
-    activeElem,
-    type,
-    position,
-    scrollNum) {
-
-    var strTrancelate = '';
-    var latepx = '';
-
-    if(activeElem.className.contains(position)){
-      activeElem.focus();
-      this.focusImgFunc(activeElem, null);
-      this.exeflag = true;
-      if(visiListFirstElem){
-        visiListFirstElem.classList.add('visible');
-      }
-    }else{
-      //When focus to the list that is currently displayed
-      if(activeElem.className.contains('visible')){
-        activeElem.focus();
-        this.focusImgFunc(activeElem, this.DEFAULT_BOOKMARK);
-        this.exeflag = true;
-      }else{
-        //If you focus to blackout the element being , to scroll
-        var list_scroll_action = (function() {
-          activeElem.focus();
-          Awesomescreen.visibleDispCheck(visiList,type);
-          Awesomescreen.exeflag = true;
-          Awesomescreen.bmhisList.removeEventListener(
-            'transitionend',
-            list_scroll_action,
-            false
-          );
-        });
-
-        // Add fade animantion event
-        Awesomescreen.bmhisList.addEventListener(
-          'transitionend',
-          list_scroll_action,
-          false
-        );
-        if(!this.bmhisList.style.transform){
-          this.bmhisList.style.transform = 'translateY(0px)';
-         }
-        strTrancelate = this.bmhisList.style.transform.split('\(');
-        latepx = parseInt(strTrancelate[1].split('px\)'));
-        Awesomescreen.bmhisList.style.transform =
-          'translateY(' + (latepx + scrollNum) + 'px)';
-      }
-    }
-  },
-
-   /**
-    * Visible display processing of list
-    * @param {visiList} List that is currently displayed
-    * @param {type} UP or Down
-    */
-  visibleDispCheck: function awesomescreen_visibleDispCheck(visiList,type) {
-    switch(type){
-      case 'DOWN':
-        if(visiList.length >= this.LIST_NUM){
-          if(visiList[5].nextSibling){
-            visiList[5].nextSibling.classList.add('visible');
-            visiList[1].classList.remove('visible');
-            visiList[0].classList.remove('visible');
-            this.upgradimgArea.classList.remove('hidden');
-          }
-        }else{
-          visiList[4].nextSibling.classList.add('visible');
-          visiList[0].classList.remove('visible');
-        }
-        break;
-      case 'UP':
-        if(visiList.length >= this.LIST_NUM){
-          if(visiList[0].previousSibling){
-            visiList[4].classList.remove('visible');
-            visiList[0].previousSibling.classList.add('visible');
-            visiList[5].classList.remove('visible');
-            this.downgradimgArea.classList.remove('hidden');
-          }
-        }else{
-          visiList[4].classList.remove('visible');
-          visiList[0].previousSibling.classList.add('visible');
-        }
-        break;
-      default:
-        break;
     }
   },
 
@@ -3513,103 +2993,6 @@ var Awesomescreen = {
       );
     }
   },
-
-
-  /**
-   * mouse wheel event
-   */
-  mouseWheelFunc: function awesomescreen_mouseWheelFunc(ev) {
-    ev.preventDefault();
-    if(this.exeflag){
-      this.exeflag = false;
-      var visiList = this.bmhisList.getElementsByClassName('visible');
-      var listLength = this.bmhisList.childElementCount;
-      if(listLength <= this.LIST_NUM + 1){
-        Awesomescreen.exeflag = true;
-        return;
-      }
-      //I adjust the 'visible' class by scroll
-      switch(ev.detail){
-        case 3: // dwon to scroll
-          if((visiList[4].nextSibling) &&
-            (!visiList[4].nextSibling.className.contains('last-pos')) ){
-            this.mouseWheelScrollFunc(visiList, 'DOWN', -121);
-            return;
-          }
-          break;
-        case -3 : //up to scroll
-          if((visiList[0].previousSibling) &&
-            (!visiList[0].previousSibling.className.contains('first-pos')) ){
-            this.mouseWheelScrollFunc(visiList, 'UP', 121);
-            return;
-          }
-          break;
-        default:
-          break;
-      }
-
-      Awesomescreen.exeflag = true;
-    }
-  },
-
-  /**
-   * mouse wheel event
-   */
-  mouseWheelScrollFunc:
-    function awesomescreen_mouseWheelScrollFunc(visiList, type, scrollNum) {
-    var strTrancelate = '';
-    var latepx = '';
-
-        var list_scroll_action = (function() {
-          Awesomescreen.visibleDispCheck(visiList,type);
-
-            if(type == 'DOWN'){
-              if((visiList[4]) &&
-                (visiList[4].nextSibling.className.contains('last-pos')) ){
-                Awesomescreen.downgradimgArea.classList.add('hidden');
-                visiList[4].nextSibling.classList.add('visible');
-               }
-            }else{
-              if((visiList[0].previousSibling) &&
-                (visiList[0].previousSibling.className.contains('first-pos')) ){
-                Awesomescreen.upgradimgArea.classList.add('hidden');
-                visiList[0].previousSibling.classList.add('visible');
-               }
-           }
-
-          var hoverElem =
-            document.elementFromPoint(
-              Awesomescreen.onmouseX,
-              Awesomescreen.onmouseY
-            );
-          if(hoverElem.className.contains('history-area')){
-            hoverElem.focus();
-          }else{
-            hoverElem.offsetParent.focus();
-          }
-          Awesomescreen.exeflag = true;
-          Awesomescreen.bmhisList.removeEventListener(
-            'transitionend',
-            list_scroll_action,
-            false
-          );
-        });
-
-        // Add fade animantion event
-        Awesomescreen.bmhisList.addEventListener(
-          'transitionend',
-          list_scroll_action,
-          false);
-        if(!this.bmhisList.style.transform){
-          this.bmhisList.style.transform = 'translateY(0px)';
-        }
-        strTrancelate = this.bmhisList.style.transform.split('\(');
-        latepx = parseInt(strTrancelate[1].split('px\)'));
-        Awesomescreen.bmhisList.style.transform =
-          'translateY(' + (latepx + scrollNum) + 'px)';
-  },
-
-
 
   /**
    * mouse over event bookmark,history list
