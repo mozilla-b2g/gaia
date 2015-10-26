@@ -251,19 +251,5 @@
     this.instanceID = this.app.instanceID + '_' + this.name;
   };
 
-  /**
-   * Send MozContentEvent to control the audio chanenl in System app.
-   *
-   * @param {Object} detail The arguments for passing to Gecko.
-   * @param {Object} detail.type The operation for the audio channel.
-   * @param {Object} detail.isMuted Allow audio channel to play or not.
-   * @param {Object} detail.volume The volume you want to set.
-   */
-  AudioChannelController.prototype._sendContentEvent = function(detail) {
-    detail.name = this.name;
-    var evt = new CustomEvent('mozContentEvent', { detail: detail });
-    window.dispatchEvent(evt);
-  };
-
   exports.AudioChannelController = AudioChannelController;
 }(window));

@@ -256,24 +256,13 @@
     _muteSystemAudioChannels: function() {
       var audioChannels = this.service.query('SystemWindow.getAudioChannels');
       if (!this._isSystemMuted && audioChannels && audioChannels.size) {
-        audioChannels.forEach((audioChannel, name) => {
-          this._sendContentEvent({
-            type: 'system-audiochannel-mute', name: name, isMuted: true
-          });
+        audioChannels.forEach((audioChannel) => {
+          audioChannel
+            .setPolicy({ isAllowedToPlay: false })
+            .proceedPolicy();
         });
         this._isSystemMuted = true;
       }
-    },
-
-    /**
-     * Send MozContentEvent to control the audio chanenl in System app.
-     *
-     * @param {Object} detail The arguments for passing to Gecko.
-     * @param {Object} detail.type The operation for the audio channel.
-     */
-    _sendContentEvent: function(detail) {
-      var evt = new CustomEvent('mozContentEvent', { detail: detail });
-      window.dispatchEvent(evt);
     }
   });
 }());
