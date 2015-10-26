@@ -381,13 +381,6 @@
       this.overlay.dataset.type = this.permissionType;
 
       if (this.isAudio || this.isVideo) {
-        if (!detail.isApp) {
-          // Not show remember my choice option in website
-          this.rememberSection.style.display = 'none';
-        } else {
-          this.rememberSection.style.display = 'block';
-        }
-
         // Set default options
         this.currentPermissions = detail.permissions;
         for (var permission2 in detail.permissions) {
@@ -642,6 +635,14 @@
       this.noHandler = this.clickHandler.bind(this);
       this.no.addEventListener('click', this.noHandler);
       this.no.callback = nocallback;
+
+      if (detail.isApp) {
+        this.rememberSection.style.display = 'block';
+      } else {
+        // Not show remember my choice option in website
+        // Should be changed in bug 1217852
+        this.rememberSection.style.display = 'none';
+      }
 
       // customize camera selector dialog
       if (this.isCamSelector) {
