@@ -111,15 +111,21 @@ suite('smart-system/SyncManager >', () => {
 
     var updateStateSpy;
     var enableSpy;
+    var syncSpy;
     var registerSyncRequestStub;
+    var unregisterSyncRequestStub;
 
     suiteSetup(() => {
       nextState = 'enabling';
+      enableSpy = this.sinon.spy(SyncStateMachine, 'enable');
+      syncSpy = this.sinon.spy(SyncStateMachine, 'sync');
     });
 
     suiteTeardown(() => {
       asyncStorage.setItem(syncState, 'disabled');
       asyncStorage.setItem(syncError, null);
+      enableSpy.restore();
+      syncSpy.restore();
       syncManager.stop();
     });
 
@@ -129,12 +135,14 @@ suite('smart-system/SyncManager >', () => {
         asyncStorage.setItem(syncError, nextError, () => {
           syncManager = new SyncManager();
           updateStateSpy = this.sinon.spy(syncManager, 'updateState');
-          enableSpy = this.sinon.spy(SyncStateMachine, 'enable');
           registerSyncRequestStub = this.sinon.stub(syncManager,
                                                     'registerSyncRequest',
                                                     () => {
             return Promise.resolve();
           });
+          unregisterSyncRequestStub = this.sinon.stub(syncManager,
+                                                      'unregisterSyncRequest',
+                                                      () => {});
           syncManager.start().then(done);
         });
       });
@@ -142,7 +150,9 @@ suite('smart-system/SyncManager >', () => {
 
     teardown(() => {
       updateStateSpy.restore();
-      enableSpy.restore();
+      enableSpy.reset();
+      syncSpy.reset();
+      unregisterSyncRequestStub.restore();
       syncManager.stop();
     });
 
@@ -180,6 +190,13 @@ suite('smart-system/SyncManager >', () => {
         } else {
           this.sinon.assert.calledOnce(enableSpy);
         }
+
+        ((shouldDisable) => {
+          setTimeout(() => {
+            shouldDisable ? this.sinon.assert.notCalled(syncSpy)
+                          : this.sinon.assert.calledOnce(syncSpy);
+          });
+        })(config.shouldDisable);
 
         if (config.nextSyncUnverified) {
           nextError = ERROR_UNVERIFIED_ACCOUNT;

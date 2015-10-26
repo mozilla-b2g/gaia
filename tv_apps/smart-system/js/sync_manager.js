@@ -306,11 +306,16 @@
       });
     },
 
-    onenabled() {
+    onenabled(from) {
       this.debug('onenabled observed');
       this.updateState();
       this.registerSyncRequest().then(() => {
         this.debug('Sync request registered');
+        // After login in with a new account or rebooting the device,
+        // we trigger a sync request.
+        if (from === 'enabling') {
+          SyncStateMachine.sync();
+        }
       }).catch(error => {
         console.error('Could not register sync request', error);
         SyncStateMachine.error(ERROR_REQUEST_SYNC_REGISTRATION);
