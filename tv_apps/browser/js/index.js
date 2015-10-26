@@ -156,7 +156,9 @@ var Browser = {
     // init SearchResult
     SearchResult.init();
 
+//IFDEF_FIREFOX_SYNC
     SyncBrowserDB.init();
+//ENDIF_FIREFOX_SYNC
 
     if (this.waitingActivities.length) {
       this.waitingActivities.forEach(this.handleActivity, this);

@@ -3,11 +3,13 @@
 
 (function(exports){
 
+//IFDEF_FIREFOX_SYNC
   /**
    * The root folder id of synced bookmark data.
    * @type {String}
    */
   const SYNC_BOOKMARK_ROOT_FOLDER_ID = 'places';
+//ENDIF_FIREFOX_SYNC
 
   // TODO: for the live time bookmark data loading task.
   var BookmarkStore = {
@@ -18,13 +20,22 @@
     currentFolder : null,
 
     reset: function(cb) {
+      this.cache = [];
+      this.currentFolder = null;
+
       return new Promise(resolve => {
-        this.cache = [];
-        this.currentFolder = null;
+
+//IFNDEF_FIREFOX_SYNC
+        resolve();
+//ENDIF_FIREFOX_SYNC
+
+//IFDEF_FIREFOX_SYNC
         SyncManagerBridge.getInfo().then(message => {
           this.isSynced = (message.state === 'enabled') ? true : false;
           resolve();
         });
+//ENDIF_FIREFOX_SYNC
+
       });
     },
 
@@ -73,9 +84,9 @@
 
     updateCache: function(){
       this.cache = [];
-      return new Promise( resolve => {
+      return new Promise(resolve => {
         if(!this.isSynced) {
-          // Get bookmark data from origin indexdDB
+          // Get bookmark data from origin indexedDB
           BrowserDB.getBookmarks(bookmarks => {
             this.cache = bookmarks;
             resolve();

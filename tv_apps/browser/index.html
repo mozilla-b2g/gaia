@@ -30,7 +30,9 @@
     <meta name="defaultLanguage" content="en-US">
     <meta name="availableLanguages" content="en-US">
     <link rel="localization" href="/locales/browser.{locale}.properties">
+<!--IFDEF_FIREFOX_SYNC
     <link rel="localization" href="shared/locales/firefox_sync/firefox_sync.{locale}.properties">
+ENDIF_FIREFOX_SYNC-->
 
     <!-- building blocks -->
     <script defer src="bower_components/evt/index.js"></script>
@@ -44,7 +46,9 @@
 
     <!-- Specific code -->
     <script defer src="js/browser_db.js"></script>
+<!--IFDEF_FIREFOX_SYNC
     <script defer src="js/sync/db.js"></script>
+ENDIF_FIREFOX_SYNC-->
     <script defer src="js/index.js"></script>
     <script defer src="js/awesomescreen.js"></script>
     <script defer src="js/search_util.js"></script>
@@ -479,7 +483,9 @@
                   <li id="history-block"><a id="history-tab" href="#" data-l10n-id="LT_SE_HISTORY"></a></li>
                   <li id="pocket-block"><a id="pocket-tab" href="#" data-l10n-id="pocket-list"></a></li>
                   <li id="private-window-block"><a id="private-window-tab" href="#" data-l10n-id="WB_LT_TIPS_NEW_PRIVATE_WINDOW"></a></li>
+<!--IFDEF_FIREFOX_SYNC
                   <li id="fxsync-block"><a id="fxsync-tab" href="#" data-l10n-id="fxsync-sign-in-to-sync"></a></li>
+ENDIF_FIREFOX_SYNC-->
                   <li id="settings-block"><a id="settings-tab" href="#" data-l10n-id="LT_APPS_SETTINGS"></a></li>
                 </div>
               </ul>
@@ -714,6 +720,7 @@
             </div>
           </div>
 
+<!--IFDEF_FIREFOX_SYNC
           <div id="fxsync-area">
             <div id="fxsync-header">
               <p data-l10n-id="fxsync">Firefox Sync</p>
@@ -742,6 +749,7 @@
             </div>
           </div>
         </div>
+ENDIF_FIREFOX_SYNC-->
 
         <div id="settings-dialog" class="hidden">
           <div id="settings-dialog-homepage" class="hidden">

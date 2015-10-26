@@ -166,6 +166,7 @@ var BrowserDialog = {
         };
         break;
 
+//IFDEF_FIREFOX_SYNC
       case 'signout_confirm':
         opt = {
           title: null,
@@ -181,6 +182,7 @@ var BrowserDialog = {
         promise = deferred.promise;
         this.deferredActions.set('signout_confirm', deferred);
         break;
+//ENDIF_FIREFOX_SYNC
 
       default:
         return;

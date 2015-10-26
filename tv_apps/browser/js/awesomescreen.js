@@ -17,7 +17,9 @@ var Awesomescreen = {
   DEFAULT_TAB_ADD: 'style/images/add-tab.svg',
   DEFAULT_SCREENSHOT: 'style/images/mozilla_screenshot.png',
   DEFAULT_BOOKMARK: 'Bookmark',
+//IFDEF_FIREFOX_SYNC
   FIREFOX_SYNC_BOOKMARK: 'Firefox_Sync_Bookmark',
+//ENDIF_FIREFOX_SYNC
   DEFAULT_HISTORY: 'History',
   DEFAULT_TABVIEW: 'Tabview',
   DEFAULT_TAB_DELETE: 'TabDelete',
@@ -165,11 +167,12 @@ var Awesomescreen = {
     }).bind(this));
 
     this.bookmark.addEventListener('showSubMenu', (function(e){
-      if(e.detail.readOnly === 'true') {
-        this.optionDialogOpen(this.FIREFOX_SYNC_BOOKMARK);
-      } else {
-        this.optionDialogOpen(this.DEFAULT_BOOKMARK);
-      }
+      var option = this.DEFAULT_BOOKMARK;
+//IFDEF_FIREFOX_SYNC
+      option = e.detail.readOnly === 'true' ? this.FIREFOX_SYNC_BOOKMARK
+                                            : this.DEFAULT_BOOKMARK;
+//ENDIF_FIREFOX_SYNC
+      this.optionDialogOpen(option);
     }).bind(this));
 
     this.bookmark.addEventListener('displayWebsite', (function(e){

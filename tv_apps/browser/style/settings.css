@@ -36,14 +36,19 @@ smart-button[type=simple-text].disabled {
   transform: translateY(0%);
 }
 
-#settings-list-area,
-#fxsync-area {
+/*IFDEF_FIREFOX_SYNC*/
+#fxsync-area,
+/*ENDIF_FIREFOX_SYNC*/
+#settings-list-area {
   width: 1108px;
   margin: 50px auto 0 auto;
 }
 
-#settings-header,
-#fxsync-header {
+/*IFDEF_FIREFOX_SYNC*/
+#fxsync-header,
+/*ENDIF_FIREFOX_SYNC*/
+#settings-header
+{
   top: 0;
   left: 0;
   right: 0;
@@ -190,6 +195,7 @@ smart-button[type=simple-text].disabled {
 
 /* Firefox Sync */
 
+/*IFDEF_FIREFOX_SYNC
 #fxsync-sign-in > smart-button {
   background-color: #4d4d4d;
   line-height: 4rem;
@@ -203,6 +209,7 @@ smart-button[type=simple-text].disabled {
 }
 
 #fxsync-area.hidden,
+/*ENDIF_FIREFOX_SYNC*/
 #settings-dialog.hidden,
 #settings-dialog-homepage.hidden,
 #settings-dialog-search.hidden {
