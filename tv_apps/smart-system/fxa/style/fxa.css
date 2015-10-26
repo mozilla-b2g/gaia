@@ -133,6 +133,10 @@ gaia-header {
   display: none;
 }
 
+.navigation #fxa-module-next:focus {
+  background-color: #00caf2
+}
+
 #fxa-module-done {
   display: none;
 }
@@ -276,7 +280,7 @@ gaia-header {
 #fxa-email-clean-btn {
   position: absolute;
   top: 1.4rem;
-  right: 0;
+  right: 1rem;
   display: none;
   width: 3rem;
   height: 3rem;
@@ -284,6 +288,12 @@ gaia-header {
   padding: 0;
   color: #ffffff;
   cursor: pointer;
+  transition: transform 0.2s;
+}
+
+#fxa-email-clean-btn:focus {
+  transform: scale(1.3);
+  transform-origin: 50% 50%;
 }
 
 #fxa-email-clean-btn.show {
@@ -584,7 +594,8 @@ html[dir="rtl"] p.fxa-envelope {
 /* checkbox */
 
 input[type="checkbox"].settings-list-checkbox {
-  display: none;
+  position: relative;
+  left: 3rem;
 }
 
 input[type="checkbox"].settings-list-checkbox + label {
@@ -595,11 +606,18 @@ input[type="checkbox"].settings-list-checkbox + label {
   margin-right: 2rem;
   line-height: 5rem;
   text-align: center;
+  background-color: rgb(244,244,244);
+  transition: transform 0.2s;
 }
 
 input[type="checkbox"].settings-list-checkbox:disabled + label,
 input[type="checkbox"].settings-list-checkbox:disabled ~ span {
   opacity: 0.5;
+}
+
+input[type="checkbox"].settings-list-checkbox:focus + label {
+  transform: scale(1.2);
+  transform-origin: 50% 50%;
 }
 
 input[type="checkbox"].settings-list-checkbox:checked + label::after {

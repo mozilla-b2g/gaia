@@ -1,7 +1,7 @@
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/* global HtmlHelper */
+/* global HtmlHelper, KeyEvent, FxaModuleKeyNavigation */
 /* exported FxaModuleErrorOverlay */
 
 'use strict';
@@ -26,6 +26,11 @@ var FxaModuleErrorOverlay = {
     );
 
     this.fxaErrorOk.addEventListener('click', this.hide.bind(this));
+    this.fxaErrorOk.addEventListener('keypress', e => {
+      if (e.keyCode & e.keyCode === KeyEvent.DOM_VK_RETURN) {
+        this.hide();
+      }
+    });
     this.fxaErrorOverlay.addEventListener('submit', this.prevent);
 
     this.initialized = true;
@@ -42,12 +47,16 @@ var FxaModuleErrorOverlay = {
     }
 
     this.fxaErrorOverlay.classList.add('show');
+
+    document.activeElement.blur();
+    this.fxaErrorOk.focus();
   },
 
   hide: function fxam_overlay_hide() {
     this.init();
 
     this.fxaErrorOverlay.classList.remove('show');
+    FxaModuleKeyNavigation.enable();
   },
 
   prevent: function fxam_prevent(event) {

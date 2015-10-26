@@ -7,11 +7,11 @@
         Use your email address to create an account or sign in.
       </p>
       <div id="fxa-email-input-wrapper">
-        <input id="fxa-email-input" data-l10n-id="fxa-enter-email-input" type="email" placeholder="Enter your email" required="" x-inputmode="verbatim">
-        <button id="fxa-email-clean-btn" data-icon="close" aria-hidden="true"></button>
+        <input id="fxa-email-input" data-l10n-id="fxa-enter-email-input" type="email" placeholder="Enter your email" required="" x-inputmode="verbatim" tabIndex="-1">
+        <button id="fxa-email-clean-btn" data-icon="close" aria-hidden="true" tabindex="-1"></button>
       </div>
       <p id="fxa-notice" class="fine-print">
-        By proceeding, I agree to the <a class="disabled">Terms of Service</a> and <a class="disabled">Privacy Notice</a> of Firefox cloud services.
+        By proceeding, I agree to the <a class="disabled" tabindex="-1">Terms of Service</a> and <a class="disabled" tabindex="-1">Privacy Notice</a> of Firefox cloud services.
       </p>
     </section>
     <script src='js/screens/fxam_enter_email.js'></script>
