@@ -124,6 +124,7 @@ tv_apps/smart-system/js/app_modal_dialog.js
 tv_apps/smart-system/js/bluetooth_transfer.js
 tv_apps/smart-system/js/external_storage_monitor.js
 tv_apps/smart-system/js/ime_menu.js
+tv_apps/smart-system/js/remote_control.js
 tv_apps/smart-system/js/update_manager.js
 tv_apps/smart-system/js/value_selector/spin_date_picker.js
 tv_apps/smart-system/js/value_selector/value_selector.js
