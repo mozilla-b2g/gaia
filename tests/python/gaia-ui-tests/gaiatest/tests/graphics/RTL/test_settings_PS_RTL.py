@@ -47,6 +47,10 @@ class TestSettingsRTLPS(GaiaImageCompareTestCase):
         self.take_screenshot('browsing_privacy-history')
         confirm_dialog.refresh_root_element()
         confirm_dialog.cancel_clear()
+        GaiaImageCompareTestCase.scroll(self.marionette, 'down',
+                                        settings.screen_element.size['height'],
+                                        screen = browsingprivacy_page.screen_element)
+        self.take_screenshot('browsing_privacy')
         confirm_dialog = browsingprivacy_page.clear_private_data()
         self.take_screenshot('browsing_privacy-data')
         confirm_dialog.refresh_root_element()

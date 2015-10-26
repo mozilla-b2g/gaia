@@ -25,11 +25,15 @@ class BrowsingPrivacy(Base):
         return self.marionette.find_element(*self._page_locator)
 
     def clear_browsing_history(self):
-        self.marionette.find_element(*self._clear_browsing_history_locator).tap()
+        element = self.marionette.find_element(*self._clear_browsing_history_locator)
+        Wait(self.marionette).until(lambda m: element.is_displayed())
+        element.tap()
         return ClearHistoryDialog(self.marionette)
 
     def clear_private_data(self):
-        self.marionette.find_element(*self._clear_private_data_locator).tap()
+        element = self.marionette.find_element(*self._clear_private_data_locator)
+        Wait(self.marionette).until(lambda m: element.is_displayed())
+        element.tap()
         return ClearHistoryDialog(self.marionette)
 
 
