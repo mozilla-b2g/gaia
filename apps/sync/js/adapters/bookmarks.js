@@ -31,6 +31,7 @@
 */
 
 const BOOKMARKS_COLLECTION_MTIME = '::collections::bookmarks::mtime';
+const BOOKMARKS_LAST_REVISIONID = '::collections::bookmarks::revisionid';
 const BOOKMARKS_SYNCTOID_PREFIX = '::synctoid::bookmarks::';
 
 var BookmarksHelper = (() => {
@@ -51,9 +52,27 @@ var BookmarksHelper = (() => {
     });
   }
 
+  function removeSyncedCollectionMtime(userid) {
+    return new Promise(resolve =>
+      asyncStorage.removeItem(userid + BOOKMARKS_COLLECTION_MTIME, resolve));
+  }
+
   function getSyncedCollectionMtime(userid) {
     return new Promise(resolve => {
       asyncStorage.getItem(userid + BOOKMARKS_COLLECTION_MTIME, resolve);
+    });
+  }
+
+  function getLastRevisionId(userid) {
+    return new Promise(resolve => {
+      asyncStorage.getItem(userid + BOOKMARKS_LAST_REVISIONID, resolve);
+    });
+  }
+
+  function setLastRevisionId(revisionId, userid) {
+    return new Promise(resolve => {
+      asyncStorage.setItem(userid + BOOKMARKS_LAST_REVISIONID, revisionId,
+          resolve);
     });
   }
 
@@ -167,12 +186,79 @@ var BookmarksHelper = (() => {
     });
   }
 
+  function checkIfClearedSince(lastRevisionId, userid) {
+    return _ensureStore().then(store => {
+      if (lastRevisionId === null) {
+        var cursor = store.sync();
+        // Skip first task which is always { id: null, operation: 'clear' }
+        cursor.next().then(() => {
+          return cursor;
+        });
+      }
+      return store.sync(lastRevisionId);
+    }).then(cursor => {
+      var wasCleared = false;
+      return new Promise(resolve => {
+        function runNextTask(cursor) {
+          cursor.next().then(task => {
+            if (task.operation === 'done') {
+              resolve({
+                newRevisionId: task.revisionId,
+                wasCleared
+              });
+            } else {
+              if (task.operation === 'clear') {
+                wasCleared = true;
+              }
+              // Avoid stack overflow:
+              setTimeout(() => {
+                // Will eventually get to a 'done' task:
+                runNextTask(cursor);
+              });
+            }
+          });
+        }
+        runNextTask(cursor);
+      });
+    });
+  }
+
+  /*
+   * handleClear - trigger re-import if DataStore was cleared
+   *
+   * In the future, the bookmarks and history DataAdapters will support
+   * two-way sync, so they will not only import data from the kinto.js
+   * collection into the DataStore, but also check what changes have
+   * been made recently in the DataStore, and reflect these in the kinto.js
+   * collection. Until then, the only thing we check from the DataStore is
+   * whether it has been cleared. If a `clear` operation was executed on the
+   * DataStore since the last time we checked (`lastRevisionId`), then the
+   * lastModifiedTime of the kinto.js collection is removed from asyncStorage,
+   * triggering a full import.
+   */
+  function handleClear(userid) {
+    var newRevisionId;
+    return getLastRevisionId(userid).then(lastRevisionId => {
+      return checkIfClearedSince(lastRevisionId, userid);
+    }).then(result => {
+      newRevisionId = result.newRevisionId;
+      if(result.wasCleared) {
+        // Removing this from asyncStorage will trigger a full re-import.
+        return removeSyncedCollectionMtime(userid);
+      }
+      return Promise.resolve();
+    }).then(() => {
+      return setLastRevisionId(newRevisionId, userid);
+    });
+  }
+
   return {
     mergeRecordsToDataStore: mergeRecordsToDataStore,
     setSyncedCollectionMtime: setSyncedCollectionMtime,
     getSyncedCollectionMtime: getSyncedCollectionMtime,
     updateBookmarks: updateBookmarks,
-    deleteBookmark: deleteBookmark
+    deleteBookmark: deleteBookmark,
+    handleClear: handleClear
   };
 })();
 
@@ -345,12 +431,20 @@ DataAdapters.bookmarks = {
     var mtime;
     return LazyLoader.load(['shared/js/async_storage.js'])
     .then(() => {
+      // FIXME: Decide how readonly DataAdapters should deal with local
+      // deletions on the phone.
+      // https://bugzilla.mozilla.org/show_bug.cgi?id=1219621
+      return BookmarksHelper.handleClear(options.userid);
+    }).then(() => {
       return BookmarksHelper.getSyncedCollectionMtime(options.userid);
     }).then(_mtime => {
       mtime = _mtime;
       return remoteBookmarks.list();
     }).then(list => {
       return this._update(list.data, mtime, options.userid);
+    }).catch(err => {
+      console.error('Bookmarks DataAdapter update error', err);
+      throw err;
     });
   },
 
