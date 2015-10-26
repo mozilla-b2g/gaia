@@ -1,2 +1,3 @@
 mozrunner >= 6.6
 mozprofile >= 0.21
+mozcrash >= 0.16
