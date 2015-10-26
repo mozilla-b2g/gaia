@@ -30,10 +30,14 @@ var AudioMetadata = (function() {
    * Parse the specified blob and return a Promise with the metadata.
    *
    * @param {Blob} blob The audio file to parse.
+   * @param {String} [filename] The name of the file, used as a fallback if
+   *   the metadata has no title field.
    * @return {Promise} A Promise returning the parsed metadata object.
    */
-  function parse(blob) {
-    var filename = blob.name;
+  function parse(blob, filename = null) {
+    if (!filename) {
+      filename = blob.name;
+    }
 
     // If blob.name exists, it should be an audio file from system
     // otherwise it should be an audio blob that probably from network/process

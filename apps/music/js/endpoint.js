@@ -484,55 +484,55 @@ function share(filePath) {
     }
 
     return Promise.all([
-        getSongFile(filePath),
-        getSongThumbnail(filePath)
-      ]).then(([file, thumbnail]) => {
-        var path = song.name;
-        var filename = path.substring(path.lastIndexOf('/') + 1);
+      getSongFile(filePath),
+      getSongThumbnail(filePath)
+    ]).then(([file, thumbnail]) => {
+      var path = song.name;
+      var filename = path.substring(path.lastIndexOf('/') + 1);
 
-        return new window.MozActivity({
-          name: 'share',
-          data: {
-            type: 'audio/*',
-            number: 1,
-            blobs: [file],
-            filenames: [filename],
-            filepaths: [path],
-            metadata: [{
-              title: song.metadata.title,
-              artist: song.metadata.artist,
-              album: song.metadata.album,
-              picture: thumbnail
-            }]
-          }
-        });
+      return new window.MozActivity({
+        name: 'share',
+        data: {
+          type: 'audio/*',
+          number: 1,
+          blobs: [file],
+          filenames: [filename],
+          filepaths: [path],
+          metadata: [{
+            title: song.metadata.title,
+            artist: song.metadata.artist,
+            album: song.metadata.album,
+            picture: thumbnail
+          }]
+        }
       });
+    });
   });
 }
 
-function openExternalFile(file) {
+function openExternalFile(file, filename = null) {
   var scripts = [
     '/js/metadata/metadata_scripts.js',
     '/js/metadata/album_art.js'
   ];
 
-  return LazyLoader.load(scripts).then(() => {
-    return AudioMetadata.parse(file).then((metadata) => {
-      return loadQueueSettings().then(() => {
-        externalFile = {
-          file: file,
-          name: file.name || URL.createObjectURL(file),
-          metadata: metadata
-        };
+  return loadQueueSettings().then(() => {
+    return LazyLoader.load(scripts);
+  }).then(() => {
+    return AudioMetadata.parse(file, filename);
+  }).then((metadata) => {
+    externalFile = {
+      file: file,
+      name: file.name || URL.createObjectURL(file),
+      metadata: metadata
+    };
 
-        currentQueue = new PlaybackQueue.StaticQueue([externalFile]);
+    currentQueue = new PlaybackQueue.StaticQueue([externalFile]);
 
-        return currentSong().then((song) => {
-          isStopped = false;
-          play(song.name);
-        });
-      });
-    });
+    return currentSong();
+  }).then((song) => {
+    isStopped = false;
+    play(song.name);
   });
 }
 
