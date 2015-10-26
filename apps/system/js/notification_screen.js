@@ -383,7 +383,7 @@ var NotificationScreen = {
     });
   },
 
-  updateToaster: function ns_updateToaster(detail, type) {
+  updateToaster: function ns_updateToaster(detail, type, dir) {
     if (detail.icon) {
       this.toasterIcon.src = detail.icon;
       this.toasterIcon.hidden = false;
@@ -394,9 +394,8 @@ var NotificationScreen = {
     this.toaster.dataset.notificationId = detail.id;
     this.toaster.dataset.type = type;
     this.toaster.lang = detail.lang;
+    this.toaster.dir = dir;
 
-    // No need to specify direction: we use dir auto in inner elements,
-    // and alignment is based on the UI direction
     this.toasterTitle.textContent = detail.title;
     this.toasterDetail.textContent = detail.text;
   },
@@ -414,6 +413,17 @@ var NotificationScreen = {
       (isPriorityNotification) ?
       this.container.querySelector('.priority-notifications') :
       this.container.querySelector('.other-notifications');
+
+    /* If dir "auto" was specified by the notification,
+     * use document direction instead because dir="auto"
+     * does not align the notification node according to
+     * the system language direction but instead it aligns
+     * every child element according to its own language
+     * which creates a UI mess we can't control by changing
+     * the system language.
+     */
+    var dir = (detail.dir === 'auto' || typeof detail.dir === 'undefined') ?
+      document.documentElement.dir : detail.dir;
 
     // We need to animate the ambient indicator when the toast
     // timesout, so we skip updating it here, by passing a skip bool
@@ -522,7 +532,7 @@ var NotificationScreen = {
 
     // Notification toaster
     if (notify) {
-      this.updateToaster(detail, type);
+      this.updateToaster(detail, type, dir);
       if (this.lockscreenPreview || !window.Service.query('locked')) {
         this.toaster.classList.add('displayed');
 

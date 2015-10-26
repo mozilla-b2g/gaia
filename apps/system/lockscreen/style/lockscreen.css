@@ -3,13 +3,6 @@
  * callscreen/style/lockscreen.css
  **/
 
-/**
- * BiDi note: because this stylesheet is 'scoped', instead of:
- *     html[dir="rtl"] #volume { ... }
- * we must use:
- *     #volume:-moz-dir(rtl) { ... }
- */
-
 #lockscreen {
   --panel-transition-secs: var(--transition-duration);
   position: absolute;
@@ -179,7 +172,7 @@
   top: 3rem;   /* 3rem = height of status bar */
   left: 0;
   width: 100%;
-  box-sizing: border-box;
+  -moz-box-sizing: border-box;
   padding: 1.5rem 2.4rem 0;
   color: #fff;
   transition: transform 0.2s ease, opacity 0.2s ease;
@@ -213,7 +206,7 @@
 
 #lockscreen-conn-states span:first-child {
   display: inline-block;
-  margin-inline-end: 0.8rem;
+  -moz-margin-end: 0.8rem;
 }
 
 #lockscreen-conn-states span:last-child {
@@ -228,8 +221,10 @@
 
 #lockscreen-clock-time {
   line-height: 0.9;
-  margin: -1.4rem 0 0;
-  margin-inline-start: -0.4rem;
+  margin-top: -1.4rem;
+  margin-bottom: 0;
+  -moz-margin-start: -0.4rem;
+  -moz-margin-end: 0;
   font-weight: 200;
   font-size: 8.5rem;
 }
@@ -298,7 +293,7 @@
   }
 
   #lockscreen-header {
-    padding-inline-start: 6rem;
+    -moz-padding-start: 6rem;
     font-weight: 300;
   }
 
@@ -347,7 +342,8 @@ button::-moz-focus-inner {
 #lockscreen-alt-camera.lockscreen-icon {
   border-radius: 2.5rem;
   background-color: rgba(255, 255, 255, 0.25);
-  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  float: right;
   pointer-events: auto;
   opacity: 0.1;
   transition: opacity var(--panel-transition-secs) ease;
@@ -355,8 +351,6 @@ button::-moz-focus-inner {
   height: 5rem;
   margin-top: 5rem;
 }
-#lockscreen-alt-camera.lockscreen-icon:-moz-dir(ltr) { float: right; }
-#lockscreen-alt-camera.lockscreen-icon:-moz-dir(rtl) { float: left; }
 
 #lockscreen-alt-camera-button {
   width: 100%;
@@ -434,7 +428,7 @@ button::-moz-focus-inner {
 #lockscreen-message {
   position: relative;
   top: 18rem;
-  offset-inline-start: 0;
+  left: 0;
   word-wrap: break-word;
   text-align: center;
   overflow-y: auto;
@@ -451,4 +445,15 @@ button::-moz-focus-inner {
   font-size: 1.4rem;
   font-weight: 700;
   color: black;
+}
+
+/* RTL View */
+
+#lockscreen-alt-camera.lockscreen-icon:-moz-dir(rtl) {
+  float: left;
+}
+
+#lockscreen-message:-moz-dir(rtl) {
+  left: unset;
+  right: 0;
 }

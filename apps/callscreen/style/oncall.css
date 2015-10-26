@@ -11,6 +11,10 @@
     -moz-user-select: none;
   }
 
+  html * {
+    overflow: hidden;
+  }
+
   .font-light {
     font-weight: 300;
   }
@@ -282,7 +286,7 @@
   .co-advanced-option.active-state:not([disabled]):active .icon.icon-on-hold {
     background-position: 0 -8rem;
   }
-
+  
   #callbar {
     display: flex;
     background: rgba(255, 255, 255, 0.85);
@@ -349,7 +353,6 @@
     width: 100%;
     height: 24rem;
     z-index: 500;
-    overflow: hidden;
   }
 
   #calls > section {
@@ -684,7 +687,7 @@
     background-image: url('images/handled_call/actionicon_callscreen_outgoingcall.png');
     background-size: 4rem;
   }
-
+  
   #calls.big-duration .handled-call.held .direction:before,
   #calls.big-duration #group-call.held .direction:before {
     background-image: url('images/handled_call/actionicon_callscreen_pausedcall.png');

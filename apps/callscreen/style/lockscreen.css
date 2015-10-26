@@ -9,8 +9,8 @@
   top: 0;
   left: 0;
   width: 100%;
-  box-sizing: border-box;
-  padding: 1.5rem 2.4rem 0;
+  -moz-box-sizing: border-box;
+  padding: 1.5rem 2.4rem 4.4rem;
   color: #fff;
   opacity: 1;
 }
@@ -21,6 +21,7 @@
   font-weight: 300;
   font-size: 1.4rem;
   padding-bottom: 1.4rem;
+
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -32,7 +33,8 @@
 
 #lockscreen-conn-states span:first-child {
   display: inline-block;
-  margin-inline-end: 0.8rem;
+  -moz-margin-end: 0.8rem;
+  overflow: visible;
 }
 
 #lockscreen-conn-states span:last-child {
@@ -47,8 +49,7 @@
 
 #lockscreen-clock-time {
   line-height: 0.9;
-  margin: -1.4rem 0 0;
-  margin-inline-start: -0.4rem;
+  margin: -1.4rem 0 0 -0.4rem;
   font-weight: 200;
   font-size: 8.5rem;
 }

@@ -1,8 +1,3 @@
-/**
- * BiDi note: media controls are always displayed in LTR (hardware legacy).
- * This stylesheet must *NOT* be mirrored for RTL.
- */
-
 #lockscreen .media-playback-container {
   height: auto;
   padding: 0 1.8rem;

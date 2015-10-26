@@ -8,7 +8,6 @@ apps/calendar/style/modify_event_view.css 0 4
 apps/calendar/style/month.css 0 2
 apps/calendar/style/settings.css 0 1
 apps/calendar/style/ui.css 0 2
-apps/callscreen/style/lockscreen.css 2 0
 apps/callscreen/style/oncall.css 0 1
 apps/camera/bower_components/gaia-theme/gaia-theme.css 5 0
 apps/camera/style/notification.css 1 0
@@ -81,8 +80,10 @@ apps/sms/views/inbox/style/edit-mode.css 1 0
 apps/sms/views/inbox/style/inbox.css 1 2
 apps/sms/views/new_message/style/recipients.css 4 0
 apps/sms/views/shared/style/common.css 0 1
-apps/system/lockscreen/style/lockscreen.css 3 0
-apps/system/lockscreen/style/notifications.css 9 0
+apps/sms/views/shared/style/composer.css 5 0
+apps/sms/views/shared/style/edit-mode.css 1 0
+apps/sms/views/shared/style/sms.css 1 2
+apps/system/fxa/style/fxa.css 1 0
 apps/system/mobile_id/style/mobile_id.css 0 16
 apps/system/style/action_menu/action_menu_extended.css 2 0
 apps/system/style/app_install_manager/app_install_manager.css 2 0
