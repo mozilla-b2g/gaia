@@ -6,9 +6,6 @@ import json
 import os
 
 from marionette import (BaseMarionetteArguments,
-                        HTMLReportingArguments,
-                        HTMLReportingTestRunnerMixin,
-                        HTMLReportingTestResultMixin,
                         MarionetteTextTestRunner,
                         MarionetteTestResult,
                         BaseMarionetteTestRunner)
@@ -31,16 +28,12 @@ class GaiaTestArguments(BaseMarionetteArguments):
     def __init__(self, **kwargs):
         BaseMarionetteArguments.__init__(self, **kwargs)
         self.register_argument_container(GaiaArguments())
-        self.register_argument_container(HTMLReportingArguments())
         self.register_argument_container(TreeherderArguments())
         self.register_argument_container(GaiaImageCompareArguments())
 
 
-class GaiaTestResult(MarionetteTestResult, HTMLReportingTestResultMixin):
-
-    def __init__(self, *args, **kwargs):
-        MarionetteTestResult.__init__(self, *args, **kwargs)
-        HTMLReportingTestResultMixin.__init__(self, *args, **kwargs)
+class GaiaTestResult(MarionetteTestResult):
+    pass
 
 
 class GaiaTextTestRunner(MarionetteTextTestRunner):
@@ -48,8 +41,7 @@ class GaiaTextTestRunner(MarionetteTextTestRunner):
     resultclass = GaiaTestResult
 
 
-class GaiaTestRunner(BaseMarionetteTestRunner, GaiaTestRunnerMixin,
-                     HTMLReportingTestRunnerMixin, TreeherderTestRunnerMixin):
+class GaiaTestRunner(BaseMarionetteTestRunner, GaiaTestRunnerMixin, TreeherderTestRunnerMixin):
 
     textrunnerclass = GaiaTextTestRunner
 
@@ -83,8 +75,6 @@ class GaiaTestRunner(BaseMarionetteTestRunner, GaiaTestRunnerMixin,
 
         BaseMarionetteTestRunner.__init__(self, result_callbacks=[gather_debug], **kwargs)
         GaiaTestRunnerMixin.__init__(self, **kwargs)
-        HTMLReportingTestRunnerMixin.__init__(self, name=__name__,
-                                              version=__version__, **kwargs)
         TreeherderTestRunnerMixin.__init__(self, **kwargs)
         self.test_handlers = [GaiaTestCase]
 
