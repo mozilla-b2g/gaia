@@ -670,9 +670,9 @@ var favoritesList = {
   },
 
   _getElemFreq: function(elem) {
-    var isParentListItem = elem.parentNode.classList.contains('fav-list-item');
-    var listItem = isParentListItem ? elem.parentNode : elem;
-    return parseFloat(listItem.id.substring(listItem.id.indexOf('-') + 1));
+    // ensure we get the closest list-item.
+    elem = elem.closest('.fav-list-item');
+    return parseFloat(elem.id.substring(elem.id.indexOf('-') + 1));
   },
 
   forEach: function(callback) {
