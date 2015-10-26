@@ -974,7 +974,8 @@
 
   AppWindow.prototype._handle__orientationchange = function(evt) {
     if (this.isActive()) {
-      this.frontWindow && this.frontWindow.broadcast('orientationchange');
+      this.frontWindow &&
+        this.frontWindow.broadcast('appwindow-orientationchange');
 
       if (!this.isHomescreen) {
         this._resize(evt.detail);

@@ -65,7 +65,7 @@
       if (value) {
         this._currentOrientation = Service.query('fetchCurrentOrientation');
         window.screen.addEventListener('mozorientationchange', this);
-        window.addEventListener('orientationchange', this);
+        window.addEventListener('appwindow-orientationchange', this);
 
         window.addEventListener('mozfullscreenchange', this);
         window.addEventListener('homegesture-enabled', this);
@@ -77,7 +77,7 @@
         window.addEventListener('hierachychanged', this);
       } else {
         window.screen.removeEventListener('mozorientationchange', this);
-        window.removeEventListener('orientationchange', this);
+        window.removeEventListener('appwindow-orientationchange', this);
 
         window.removeEventListener('mozfullscreenchange', this);
         window.removeEventListener('homegesture-enabled', this);
@@ -332,7 +332,7 @@
           // change after, so this is done to avoid animation of the soft button
           this.element.classList.add('no-transition');
           break;
-        case 'orientationchange':
+        case 'appwindow-orientationchange':
           this.element.classList.remove('no-transition');
           break;
         case 'hierachychanged':

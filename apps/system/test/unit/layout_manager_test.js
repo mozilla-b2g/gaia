@@ -62,7 +62,7 @@ suite('system/LayoutManager >', function() {
           type: 'resize'
         });
         assert.isFalse(stubPublish.calledWith('system-resize'));
-        assert.isTrue(stubPublish.calledWith('orientationchange'));
+        assert.isTrue(stubPublish.calledWith('appwindow-orientationchange'));
       });
 
       test('Publish system-resize if keyboard is showing and' +
@@ -76,7 +76,7 @@ suite('system/LayoutManager >', function() {
           type: 'resize'
         });
         assert.isTrue(stubPublish.calledWith('system-resize'));
-        assert.isTrue(stubPublish.calledWith('orientationchange'));
+        assert.isTrue(stubPublish.calledWith('appwindow-orientationchange'));
       });
 
       test('Publish system-resize if keyboard is not showing', function() {
@@ -89,7 +89,7 @@ suite('system/LayoutManager >', function() {
           type: 'resize'
         });
         assert.isTrue(stubPublish.calledWith('system-resize'));
-        assert.isTrue(stubPublish.calledWith('orientationchange'));
+        assert.isTrue(stubPublish.calledWith('appwindow-orientationchange'));
 
         stubPublish.reset();
 
@@ -98,7 +98,7 @@ suite('system/LayoutManager >', function() {
           type: 'resize'
         });
         assert.isTrue(stubPublish.calledWith('system-resize'));
-        assert.isTrue(stubPublish.calledWith('orientationchange'));
+        assert.isTrue(stubPublish.calledWith('appwindow-orientationchange'));
       });
 
       test('_lastOrientation is correctly remembered', function() {
