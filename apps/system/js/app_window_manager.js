@@ -76,6 +76,7 @@
     'inputblur'
   ];
   AppWindowManager.SUB_MODULES = [
+    'PinPageSystemDialog',
     'FtuLauncher',
     'AppWindowFactory',
     'LockScreenLauncher',

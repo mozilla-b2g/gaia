@@ -161,7 +161,7 @@ suite('system/SystemDialogManager', function() {
 
   suite('Handle events', function() {
     test('Dialog created', function() {
-      window.systemDialogManager.handleEvent({type: 'system-dialog-created',
+      window.systemDialogManager.handleEvent({type: 'system-dialog-started',
         detail: dialogFake});
       assert.isNull(window.systemDialogManager.states.activeDialog,
         'the dialog should not be activated');
@@ -172,8 +172,22 @@ suite('system/SystemDialogManager', function() {
         'the dialog was not registered in the maanger');
     });
 
+    test('Dialog stopped', function() {
+      window.systemDialogManager.handleEvent({type: 'system-dialog-started',
+        detail: dialogFake});
+      window.systemDialogManager.handleEvent({type: 'system-dialog-show',
+        detail: dialogFake});
+      window.systemDialogManager.handleEvent({type: 'system-dialog-stopped',
+        detail: dialogFake});
+      assert.isNull(window.systemDialogManager.states.activeDialog,
+        'the dialog was not deactivated from the manager');
+      assert.isUndefined(
+        window.systemDialogManager.states.runningDialogs[dialogFake.instanceID],
+        'the dialog was not unregistered from the manager');
+    });
+
     test('Dialog request show', function() {
-      window.systemDialogManager.handleEvent({type: 'system-dialog-created',
+      window.systemDialogManager.handleEvent({type: 'system-dialog-started',
         detail: dialogFake});
       window.systemDialogManager.handleEvent({type: 'system-dialog-show',
         detail: dialogFake});
@@ -187,7 +201,7 @@ suite('system/SystemDialogManager', function() {
 
     test('Dialog request hide', function() {
       var stubOnHide = this.sinon.stub(dialogFake, 'onHide');
-      window.systemDialogManager.handleEvent({type: 'system-dialog-created',
+      window.systemDialogManager.handleEvent({type: 'system-dialog-started',
         detail: dialogFake});
       window.systemDialogManager.handleEvent({type: 'system-dialog-show',
         detail: dialogFake});
@@ -203,7 +217,7 @@ suite('system/SystemDialogManager', function() {
     });
 
     test('Resize dialog while received "system-resize" event', function() {
-      window.systemDialogManager.handleEvent({type: 'system-dialog-created',
+      window.systemDialogManager.handleEvent({type: 'system-dialog-started',
         detail: dialogFake});
       window.systemDialogManager.handleEvent({type: 'system-dialog-show',
         detail: dialogFake});
@@ -219,7 +233,7 @@ suite('system/SystemDialogManager', function() {
 
     test('Deactivate dialog while received ' +
          '"home" or "holdhome" event', function() {
-      window.systemDialogManager.handleEvent({type: 'system-dialog-created',
+      window.systemDialogManager.handleEvent({type: 'system-dialog-started',
         detail: dialogFake});
       window.systemDialogManager.handleEvent({type: 'system-dialog-show',
         detail: dialogFake});
@@ -249,12 +263,12 @@ suite('system/SystemDialogManager', function() {
     test('A dialog is active, ' +
          'then another dialog create and request show', function() {
       var stubOnHide = this.sinon.stub(dialogFake, 'onHide');
-      window.systemDialogManager.handleEvent({type: 'system-dialog-created',
+      window.systemDialogManager.handleEvent({type: 'system-dialog-started',
         detail: dialogFake});
       window.systemDialogManager.handleEvent({type: 'system-dialog-show',
         detail: dialogFake});
       var simPinSystemDialogFake = new window.SimPinSystemDialog(optionsFake);
-      window.systemDialogManager.handleEvent({type: 'system-dialog-created',
+      window.systemDialogManager.handleEvent({type: 'system-dialog-started',
         detail: simPinSystemDialogFake});
       window.systemDialogManager.handleEvent({type: 'system-dialog-show',
         detail: simPinSystemDialogFake});
@@ -284,7 +298,7 @@ suite('system/SystemDialogManager', function() {
 
     test('valid inputfocus event', function() {
       var stubBroadcast = this.sinon.stub(dialogFake, 'broadcast');
-      window.systemDialogManager.handleEvent({type: 'system-dialog-created',
+      window.systemDialogManager.handleEvent({type: 'system-dialog-started',
         detail: dialogFake});
       window.systemDialogManager.handleEvent({type: 'system-dialog-show',
         detail: dialogFake});

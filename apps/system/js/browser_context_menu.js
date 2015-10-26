@@ -23,8 +23,7 @@
   }
 
   BrowserContextMenu.SUB_MODULES = [
-    'ContextMenuView',
-    'PinPageSystemDialog'
+    'ContextMenuView'
   ];
 
   BaseModule.create(BrowserContextMenu, {
@@ -230,11 +229,11 @@
           if (iconObject) {
             data.icon = iconObject.blob;
           }
-          this.pinPageSystemDialog.show(data);
+          this.publish('pin-page-dialog-requestopen', data);
         })
         .catch((err) => {
           this.app.debug('bookmarkUrl, error from getSiteIcon: %s', err);
-          this.pinPageSystemDialog.show(data);
+          this.publish('pin-page-dialog-requestopen', data);
         });
       }.bind(this));
     },
@@ -362,6 +361,13 @@
           finish();
         }.bind(this));
       });
+    },
+
+    _stop: function() {
+      this.contextMenuView.destroy();
+      this.app.element.removeEventListener('mozbrowsercontextmenu', this);
+      this.containerElement = null;
+      this.app = null;
     }
   });
 

@@ -71,10 +71,31 @@ suite('Pin Page dialog', function() {
     test('dispatches a created event', function() {
       assert.isTrue(subject.publish.calledWith('created'));
     });
+  });
 
-    test('reuses the same instance on 2 creations', function() {
-      var subject2 = new PinPageSystemDialog();
-      assert.equal(subject, subject2);
+  suite('requestopen', function() {
+    setup(function() {
+      this.sinon.stub(PinPageSystemDialog.prototype, 'publish');
+      this.sinon.stub(SystemDialog.prototype, 'show');
+      subject = new PinPageSystemDialog();
+      subject.start();
+    });
+
+    test('shows the dialog when requestopen', function() {
+      window.dispatchEvent(new CustomEvent('pin-page-dialog-requestopen', {
+        detail: {}
+      }));
+      assert.isTrue(SystemDialog.prototype.show.called);
+      assert.isTrue(subject.publish.calledWith('started'));
+    });
+
+    test('does not show the dialog when requestopen and stopped', function() {
+      subject.stop();
+      window.dispatchEvent(new CustomEvent('pin-page-dialog-requestopen', {
+        detail: {}
+      }));
+      assert.isFalse(SystemDialog.prototype.show.called);
+      assert.isTrue(subject.publish.calledWith('stopped'));
     });
   });
 
@@ -154,16 +175,4 @@ suite('Pin Page dialog', function() {
     });
   });
 
-  suite('destroy', function() {
-    setup(function() {
-      subject = new PinPageSystemDialog();
-    });
-
-    test('removes the element from the container', function() {
-      assert.ok(container.querySelector('#pin-page-dialog'));
-      subject.destroy();
-      assert.isNull(container.querySelector('#pin-page-dialog'));
-      subject = null;
-    });
-  });
 });
