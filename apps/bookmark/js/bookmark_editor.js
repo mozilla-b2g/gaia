@@ -26,7 +26,7 @@ var BookmarkEditor = {
     this.bookmarkTitle = document.getElementById('bookmark-title');
     this.bookmarkURL = document.getElementById('bookmark-url');
     this.bookmarkIcon = document.getElementById('bookmark-icon');
-    this.cancelButton = document.getElementById('cancel-button');
+    this.header = document.getElementById('header');
     this.saveButton = document.getElementById('done-button');
     this.appInstallationSection = document.getElementById('app-installation');
     this.appIcon = document.getElementById('app-icon');
@@ -34,7 +34,7 @@ var BookmarkEditor = {
     this.appNameText = document.getElementById('app-name');
     this.installAppButton = document.getElementById('install-app-button');
 
-    this.cancelButton.addEventListener('click', this.close.bind(this));
+    this.header.addEventListener('action', this.close.bind(this));
     this.saveListener = this.save.bind(this);
     this.saveButton.addEventListener('click', this.saveListener);
 

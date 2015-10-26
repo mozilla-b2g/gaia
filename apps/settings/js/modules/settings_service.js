@@ -139,13 +139,7 @@ define(function(require) {
       } else {
         if (!_loadModulesForSubPanelsPromise) {
           _loadModulesForSubPanelsPromise = new Promise(function(resolve) {
-            require([
-              // XXX: It is assumed that the string for the header of the root
-              //      panel always fits and the font size utils are not
-              //      required.
-              'shared/font_size_utils', // used by all header building blocks
-              'shared/async_storage'
-            ], resolve);
+            require(['shared/async_storage'], resolve);
           });
         }
         return _loadModulesForSubPanelsPromise;
