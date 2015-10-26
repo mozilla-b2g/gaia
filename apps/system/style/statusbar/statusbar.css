@@ -31,7 +31,6 @@
   transform: translateY(0);
 }
 
-.statusbar > div,
 .statusbar > img {
   pointer-events: auto;
 }
