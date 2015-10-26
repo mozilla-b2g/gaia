@@ -274,6 +274,7 @@
         this.installCallback();
       }
       this.installCallback = null;
+      this.installCancelCallback = null;
       this.dialog.classList.remove('visible');
       this.dispatchPromptEvent('hidden');
     },
@@ -763,6 +764,7 @@
       if (this.installCancelCallback) {
         this.installCancelCallback();
       }
+      this.installCallback = null;
       this.installCancelCallback = null;
       this.installCancelDialog.classList.remove('visible');
       this.dispatchPromptEvent('hidden');
