@@ -1,6 +1,6 @@
 {
   "name": "gaia-site-icon",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "A web component to show an icon for an application or site.",
   "author": [
     {
