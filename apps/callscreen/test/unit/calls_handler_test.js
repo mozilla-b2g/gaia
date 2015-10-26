@@ -257,6 +257,8 @@ suite('calls handler', function() {
         MockNavigatorMozTelephony.calls = [];
 
         this.sinon.spy(window, 'close');
+        this.sinon.spy(MockCallScreen, 'disableKeypadButton');
+        this.sinon.spy(MockCallScreen, 'enableKeypadButton');
         MockNavigatorMozTelephony.mTriggerCallsChanged();
       });
 
@@ -274,16 +276,29 @@ suite('calls handler', function() {
         sinon.assert.calledOnce(window.close);
       });
 
+      test('should disable the \'keypad\' button', function() {
+        sinon.assert.calledOnce(MockCallScreen.disableKeypadButton);
+      });
+
       test('should not close the callscreen app if a new call comes',
       function() {
         this.sinon.clock.tick(MockCallScreen.callEndPromptTime/2);
 
         var mockCall = new MockCall('43321', 'incoming');
         telephonyAddCall.call(this, mockCall, {trigger: true});
-        MockNavigatorMozTelephony.mTriggerCallsChanged();
 
         this.sinon.clock.tick(MockCallScreen.callEndPromptTime);
         sinon.assert.notCalled(window.close);
+      });
+
+      test('should enable the \'keypad\' button if a new call comes',
+      function() {
+        this.sinon.clock.tick(MockCallScreen.callEndPromptTime/2);
+
+        var mockCall = new MockCall('43321', 'incoming');
+        telephonyAddCall.call(this, mockCall, {trigger: true});
+
+        sinon.assert.calledOnce(MockCallScreen.enableKeypadButton);
       });
 
       test('should set \'no-handled-calls\' class on `body`', function() {
@@ -296,7 +311,6 @@ suite('calls handler', function() {
 
         var mockCall = new MockCall('43321', 'incoming');
         telephonyAddCall.call(this, mockCall, {trigger: true});
-        MockNavigatorMozTelephony.mTriggerCallsChanged();
 
         this.sinon.clock.tick(MockCallScreen.callEndPromptTime);
         assert.isFalse(document.body.classList.contains('no-handled-calls'));
@@ -377,7 +391,6 @@ suite('calls handler', function() {
         // 111 is a special case in MockContacts to return no contact.
         extraCall.id = { number: '111' };
         telephonyAddCall.call(this, extraCall, { trigger: true });
-        MockNavigatorMozTelephony.mTriggerCallsChanged();
         assert.isFalse(
           MockCallScreen.incomingInfo.classList.contains('additionalInfo')
         );

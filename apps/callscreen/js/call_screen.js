@@ -417,6 +417,14 @@ var CallScreen = {
     this.setCallerContactImage();
   },
 
+  enableKeypadButton: function cs_enableKeypadButton() {
+    this.keypadButton.removeAttribute('disabled');
+  },
+
+  disableKeypadButton: function cs_disableKeypadButton() {
+    this.keypadButton.setAttribute('disabled', 'disabled');
+  },
+
   syncSpeakerEnabled: function cs_syncSpeakerEnabled() {
     if (navigator.mozTelephony.speakerEnabled) {
       this.speakerButton.classList.add('active-state');
