@@ -2,12 +2,8 @@
   "default": {
     "steps": [
       {
-        "video": "/style/images/tutorial/VerticalScroll.mp4",
-        "l10nKey": "tutorial-vertical-scroll-v2-tiny"
-      },
-      {
-        "video": "/style/images/tutorial/AppGrouping.mp4",
-        "l10nKey": "tutorial-app-grouping-tiny"
+        "video": "/style/images/tutorial/Homescreen.mp4",
+        "l10nKey": "tutorial-homescreen-tiny"
       },
       {
         "video": "/style/images/tutorial/Notifications.mp4",
@@ -23,28 +19,12 @@
       }
     ]
   },
-  "2.0..2.2": {
+  "2.1..2.5": {
     "steps": [
-      {
-        "video": "/style/images/tutorial/VerticalScroll.mp4",
-        "l10nKey": "tutorial-bookmarks-migration-tiny"
-      },
-      {
-        "video": "/style/images/tutorial/AppGrouping.mp4",
-        "l10nKey": "tutorial-app-grouping-tiny"
-      },
-      {
-        "video": "/style/images/tutorial/Universal_Search.mp4",
-        "l10nKey": "tutorial-rocketbar-tiny"
-      }
     ]
   },
-  "2.1..2.2": {
+  "2.2..2.5": {
     "steps": [
-      {
-        "video": "/style/images/tutorial/AppGrouping.mp4",
-        "l10nKey": "tutorial-app-grouping-tiny"
-      }
     ]
   }
 }
