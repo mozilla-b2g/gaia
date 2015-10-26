@@ -10,10 +10,6 @@
   top: 1.5rem;
 }
 
-.my-home-screens li img {
-  offset-inline-start: 3rem;
-}
-
 #addon-detail-toggle,
 #appPermissions ul li > a {
   padding-inline-start: 7.4rem;
@@ -31,12 +27,8 @@
   padding-inline-start: 8.4rem;
 }
 
-/**
- * !important required to override scoped the gaia-header styling for addons-add
- * header button.
- */
-#addons .addons-add {
-  color: #858585 !important;
+#addons .get-more-addons {
+  padding-inline-start: 3rem;
 }
 
 .uninstall-app {
@@ -47,13 +39,6 @@
 
 #appPermissions .cb-alert {
   position: fixed;
-}
-
-/**
- * Vertical homescreen panel
- */
-#homescreen [data-type="list"] li:first-child {
-  padding-bottom: 1rem;
 }
 
 /**

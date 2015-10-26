@@ -11,10 +11,10 @@ define(function(require) {
     return SettingsPanel({
       onInit: function(panel) {
         var listElement = panel.querySelector('.addon-list');
-        var addButton = panel.querySelector('.addons-add');
+        var moreLink = panel.querySelector('.get-more-addons');
 
         addonsList = AddonsList(listElement, AddonManager);
-        addButton.addEventListener('click', function() {
+        moreLink.addEventListener('click', function() {
           // The addons list panel will update itself if new addon is installed.
           var activity = new window.MozActivity({
             name: 'marketplace-category',
@@ -22,11 +22,6 @@ define(function(require) {
           });
           // For workaround jshint.
           activity.onsuccess = function() {};
-          // Disable the button for a second so the user can't double click it
-          addButton.disabled = true;
-          setTimeout(function() {
-            addButton.disabled = false;
-          }, 1000);
         });
       },
 
