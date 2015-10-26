@@ -276,6 +276,12 @@ html[dir="rtl"] #notifications-container .notification > div.title-container .ti
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+html[dir="ltr"] #notifications-container .notification > div.detail .detail-content {
+  text-align: left;
+}
+html[dir="rtl"] #notifications-container .notification > div.detail .detail-content {
+  text-align: right;
+}
 
 #notifications-container .notification.snapback,
 .notification-toaster.snapback {

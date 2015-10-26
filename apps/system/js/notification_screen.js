@@ -383,7 +383,7 @@ var NotificationScreen = {
     });
   },
 
-  updateToaster: function ns_updateToaster(detail, type) {
+  updateToaster: function ns_updateToaster(detail, type, dir) {
     if (detail.icon) {
       this.toasterIcon.src = detail.icon;
       this.toasterIcon.hidden = false;
@@ -395,10 +395,10 @@ var NotificationScreen = {
     this.toaster.dataset.type = type;
     this.toaster.lang = detail.lang;
 
-    // No need to specify direction: we use dir auto in inner elements,
-    // and alignment is based on the UI direction
     this.toasterTitle.textContent = detail.title;
+    this.toasterTitle.dir = dir;
     this.toasterDetail.textContent = detail.text;
+    this.toasterDetail.dir = dir;
   },
 
   addNotification: function ns_addNotification(detail) {
@@ -409,6 +409,8 @@ var NotificationScreen = {
     var behavior = detail.mozbehavior || {};
     var isPriorityNotification =
       this.PRIORITY_APPLICATIONS.indexOf(manifestURL) !== -1;
+    var dir = detail.dir === 'ltr' || detail.dir === 'rtl' ?
+        detail.dir : 'auto';
 
     var notificationContainer =
       (isPriorityNotification) ?
@@ -427,7 +429,6 @@ var NotificationScreen = {
     notificationNode.dataset.notificationId = detail.id;
     notificationNode.dataset.noClear = behavior.noclear ? 'true' : 'false';
     notificationNode.lang = detail.lang;
-    notificationNode.dataset.predefinedDir = detail.dir;
 
     notificationNode.dataset.obsoleteAPI = 'false';
     if (typeof detail.id === 'string' &&
@@ -451,7 +452,7 @@ var NotificationScreen = {
     var title = document.createElement('div');
     title.classList.add('title');
     title.textContent = detail.title;
-    title.setAttribute('dir', 'auto');
+    title.dir = dir;
 
     titleContainer.appendChild(title);
 
@@ -472,7 +473,7 @@ var NotificationScreen = {
     var messageContent = document.createElement('div');
     messageContent.classList.add('detail-content');
     messageContent.textContent = detail.text;
-    messageContent.setAttribute('dir', 'auto');
+    messageContent.dir = dir;
     message.appendChild(messageContent);
     notificationNode.appendChild(message);
 
@@ -490,10 +491,9 @@ var NotificationScreen = {
       } else if (oldIcon) {
         oldNotif.removeChild(oldIcon);
       }
-      // but we still need to update type, lang and dir.
+      // but we still need to update type and lang.
       oldNotif.dataset.type = type;
       oldNotif.lang = detail.lang;
-      oldNotif.dataset.predefinedDir = detail.dir;
 
       notificationNode = oldNotif;
     } else {
@@ -522,7 +522,7 @@ var NotificationScreen = {
 
     // Notification toaster
     if (notify) {
-      this.updateToaster(detail, type);
+      this.updateToaster(detail, type, dir);
       if (this.lockscreenPreview || !window.Service.query('locked')) {
         this.toaster.classList.add('displayed');
 
