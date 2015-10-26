@@ -37,9 +37,7 @@
 
         var type = action.replace('-link', '');
 
-        ActivityPicker[type](
-          dataset[type], this.reset, this.reset
-        );
+        ActivityPicker[type](dataset[type]);
       }
 
     }

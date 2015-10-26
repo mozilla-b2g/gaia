@@ -19,15 +19,12 @@ var mocksHelperAP = new MocksHelper([
 ]).init();
 
 suite('ActivityPicker', function() {
-  var realMozL10n, onsuccess, onerror;
+  var realMozL10n;
 
   suiteSetup(function() {
     realMozL10n = document.l10n;
     document.l10n = MockL10n;
     mocksHelperAP.suiteSetup();
-
-    onsuccess = function() {};
-    onerror = function() {};
   });
 
   suiteTeardown(function() {
@@ -53,36 +50,6 @@ suite('ActivityPicker', function() {
         data: { type: 'webtelephony/number', number: '999' }
       });
     });
-
-    test('dial(number, success) ', function() {
-      ActivityPicker.dial('999', onsuccess);
-
-      assert.equal(
-        MozActivity.instances[0].onsuccess, onsuccess
-      );
-
-      assert.deepEqual(MozActivity.calls[0], {
-        name: 'dial',
-        data: { type: 'webtelephony/number', number: '999' }
-      });
-    });
-
-    test('dial(number, success, error) ', function() {
-      ActivityPicker.dial('999', onsuccess, onerror);
-
-      assert.equal(
-        MozActivity.instances[0].onsuccess, onsuccess
-      );
-
-      assert.equal(
-        MozActivity.instances[0].onerror, onerror
-      );
-
-      assert.deepEqual(MozActivity.calls[0], {
-        name: 'dial',
-        data: { type: 'webtelephony/number', number: '999' }
-      });
-    });
   });
 
   suite('email', function() {
@@ -98,84 +65,12 @@ suite('ActivityPicker', function() {
         }
       });
     });
-
-    test('email(email, success) ', function() {
-      ActivityPicker.email('a@b.com', onsuccess);
-
-      assert.equal(
-        MozActivity.instances[0].onsuccess, onsuccess
-      );
-
-      assert.deepEqual(MozActivity.calls[0], {
-        name: 'new',
-        data: {
-          type: 'mail',
-          URI: 'mailto:a@b.com'
-        }
-      });
-    });
-
-    test('email(email, success, error) ', function() {
-      ActivityPicker.email('a@b.com', onsuccess, onerror);
-
-      assert.equal(
-        MozActivity.instances[0].onsuccess, onsuccess
-      );
-
-      assert.equal(
-        MozActivity.instances[0].onerror, onerror
-      );
-
-      assert.deepEqual(MozActivity.calls[0], {
-        name: 'new',
-        data: {
-          type: 'mail',
-          URI: 'mailto:a@b.com'
-        }
-      });
-    });
   });
 
   suite('url', function() {
 
     test('url(url) ', function() {
       ActivityPicker.url('http://mozilla.com');
-
-      assert.deepEqual(MozActivity.calls[0], {
-        name: 'view',
-        data: {
-          type: 'url',
-          url: 'http://mozilla.com'
-        }
-      });
-    });
-
-    test('url(url, success) ', function() {
-      ActivityPicker.url('http://mozilla.com', onsuccess);
-
-      assert.equal(
-        MozActivity.instances[0].onsuccess, onsuccess
-      );
-
-      assert.deepEqual(MozActivity.calls[0], {
-        name: 'view',
-        data: {
-          type: 'url',
-          url: 'http://mozilla.com'
-        }
-      });
-    });
-
-    test('url(url, success, error) ', function() {
-      ActivityPicker.url('http://mozilla.com', onsuccess, onerror);
-
-      assert.equal(
-        MozActivity.instances[0].onsuccess, onsuccess
-      );
-
-      assert.equal(
-        MozActivity.instances[0].onerror, onerror
-      );
 
       assert.deepEqual(MozActivity.calls[0], {
         name: 'view',
@@ -235,21 +130,6 @@ suite('ActivityPicker', function() {
     test('openSettings() ', function() {
       ActivityPicker.openSettings();
 
-      assert.deepEqual(MozActivity.calls[0], params);
-    });
-
-    test('openSettings(success) ', function() {
-      ActivityPicker.openSettings(onsuccess);
-
-      assert.equal(MozActivity.instances[0].onsuccess, onsuccess);
-      assert.deepEqual(MozActivity.calls[0], params);
-    });
-
-    test('openSettings(success, error) ', function() {
-      ActivityPicker.openSettings(onsuccess, onerror);
-
-      assert.equal(MozActivity.instances[0].onsuccess, onsuccess);
-      assert.equal(MozActivity.instances[0].onerror, onerror);
       assert.deepEqual(MozActivity.calls[0], params);
     });
   });
