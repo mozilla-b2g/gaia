@@ -95,6 +95,12 @@ ul li > label:not([for]).addon-details-info {
   offset-inline-start: 1.4rem;
 }
 
+.addon-details-version {
+  font-weight: bold;
+  padding-bottom: 0;
+  color: #858585;
+}
+
 .addon-rename {
   background: none;
   border: none;

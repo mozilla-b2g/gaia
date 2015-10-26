@@ -68,6 +68,11 @@ define(function(require) {
       this._elements.icon.src = '../style/images/default.png';
     });
 
+    // Display the add-on version
+    if (manifest.version) {
+      this._elements.version.textContent = 'v' + manifest.version;
+    }
+
     // Display the add-on description if there is one
     if (manifest.description) {
       // If we have a description, the ManifestHelper class returned the

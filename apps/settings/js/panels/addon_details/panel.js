@@ -19,6 +19,7 @@ define(function(require) {
           enabledState: panel.querySelector('.addon-enabled details'),
           name: panel.querySelector('.addon-details-name'),
           icon: panel.querySelector('.addon-details-icon'),
+          version: panel.querySelector('.addon-details-version'),
           description: panel.querySelector('.addon-description-text'),
           developer: panel.querySelector('.addon-developer'),
           targetsList: panel.querySelector('.addon-targets'),
