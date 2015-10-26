@@ -1916,6 +1916,30 @@ suite('system/AppWindow', function() {
       assert.isTrue(stubKill.called);
     });
 
+    test('Closed while homescreen at bottom', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      app1.isHomescreen = true;
+      app1.loaded = true;
+
+      var app2 = new AppWindow(fakeAppConfig2);
+
+      injectFakeMozBrowserAPI(app1.browser.element);
+      injectFakeMozBrowserAPI(app2.browser.element);
+      var stubScreenshot = this.sinon.stub(app1.browser.element,
+        'getScreenshot');
+      var stubScreenshot2 = this.sinon.stub(app2.browser.element,
+        'getScreenshot');
+
+      app1.handleEvent({
+        type: '_closed'
+      });
+
+      assert.isFalse(stubScreenshot.called,
+                     'should never take screenshot on _closed when homescreen');
+      assert.isFalse(stubScreenshot2.called,
+                     'should never take screenshot on _closed when homescreen');
+    });
+
     test('Closed while system is busy and homescreen at bottom', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       app1.isHomescreen = true;

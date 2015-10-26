@@ -2115,12 +2115,12 @@
 
   AppWindow.prototype._handle__closed = function aw_closed() {
     if (!this.loaded ||
-        (Service.query('isBusyLoading') &&
-          this.getBottomMostWindow().isHomescreen)) {
+        this.getBottomMostWindow().isHomescreen) {
       // We will eventually get screenshot when being requested from
       // task manager.
       return;
     }
+
     // Update screenshot blob here to avoid slowing down closing transitions.
     this.getScreenshot();
   };
