@@ -994,12 +994,18 @@ suite('Homescreen app', () => {
       });
 
       suite('drag-end', () => {
-        var realInnerHeight, realIcons, reorderChildSpy;
+        var realInnerHeight, realInnerWidth, realIcons, reorderChildSpy;
 
         setup(() => {
           realInnerHeight =
             Object.getOwnPropertyDescriptor(window, 'innerHeight');
+          realInnerWidth =
+            Object.getOwnPropertyDescriptor(window, 'innerWidth');
           Object.defineProperty(window, 'innerHeight', {
+            value: 500,
+            configurable: true
+          });
+          Object.defineProperty(window, 'innerWidth', {
             value: 500,
             configurable: true
           });
@@ -1020,6 +1026,7 @@ suite('Homescreen app', () => {
           app.icons = realIcons;
           reorderChildSpy.restore();
           Object.defineProperty(window, 'innerHeight', realInnerHeight);
+          Object.defineProperty(window, 'innerWidth', realInnerWidth);
         });
 
         test('icon can be dropped at the beginning of the container', () => {
@@ -1040,7 +1047,19 @@ suite('Homescreen app', () => {
 
         test('dropping icon on itself does nothing', () => {
           app.handleEvent(new CustomEvent('drag-end', {
-            detail: { dropTarget: null, clientX: 0, clientY: 0 }
+            detail: { dropTarget: 'abc', clientX: 0, clientY: 0 }
+          }));
+          assert.isFalse(reorderChildSpy.called);
+        });
+
+        test('dropping icon to the side does nothing', () => {
+          app.handleEvent(new CustomEvent('drag-end', {
+            detail:
+              { target: 'def', dropTarget: null, clientX: -100, clientY: 0 }
+          }));
+          app.handleEvent(new CustomEvent('drag-end', {
+            detail:
+              { target: 'def', dropTarget: null, clientX: 600, clientY: 0 }
           }));
           assert.isFalse(reorderChildSpy.called);
         });
