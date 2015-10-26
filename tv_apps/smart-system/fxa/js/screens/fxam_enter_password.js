@@ -157,6 +157,12 @@ var FxaModuleEnterPassword = (function() {
     }, 500);
   };
 
+  Module.onBack = function onBack() {
+    FxaModuleKeyNavigation.remove([
+      '#fxa-pw-input', '#fxa-forgot-password',
+      '#fxa-show-pw', '#fxa-module-next']);
+  };
+
   Module.onDone = function onDone(done) {
     FxaModuleOverlay.show('fxa-connecting');
 

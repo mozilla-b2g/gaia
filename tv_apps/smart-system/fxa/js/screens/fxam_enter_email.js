@@ -215,6 +215,11 @@ var FxaModuleEnterEmail = (function() {
     this.initialized = true;
   };
 
+  Module.onAnimate = function onAnimate() {
+    FxaModuleKeyNavigation.add(
+      ['#fxa-email-input', '#fxa-email-clean-btn', '#fxa-module-next']);
+  };
+
   Module.onNext = function onNext(gotoNextStepCallback) {
     FxaModuleOverlay.show('fxa-connecting');
 

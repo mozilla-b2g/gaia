@@ -98,6 +98,7 @@ var FxaModuleUI = {
         if (params.count > 1 && params.count < this.maxSteps) {
           this.fxaModuleNavigation.classList.remove('navigation-single-button');
           this.fxaModuleNavigation.classList.remove('navigation-back-only');
+          this.fxaModuleNavigation.classList.remove('navigation-done');
 
           if (nextScreen.getAttribute('data-navigation') === 'back') {
             this.fxaModuleNavigation.classList.add('navigation-back-only');
@@ -106,6 +107,8 @@ var FxaModuleUI = {
           this.fxaModuleNavigation.classList.add('navigation-single-button');
           if (params.count === this.maxSteps) {
             this.fxaModuleNavigation.classList.add('navigation-done');
+          } else {
+            this.fxaModuleNavigation.classList.remove('navigation-done');
           }
         }
         this.setProgressBar(params.count);
