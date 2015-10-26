@@ -24,5 +24,7 @@ class TestSparkAppsArePresent(GaiaTestCase):
                              {'name': 'Notes', 'manifest': 'https://marketplace.firefox.com/app/dcdaeefc-26f4-4af6-ad22-82eb93beadcd/manifest.webapp'},
                              {'name': 'Calculator', 'manifest': 'https://marketplace.firefox.com/app/9f96ce77-5b2d-42ca-a0d9-10a933dd84c4/manifest.webapp'},
                              {'name': 'SWOOOP', 'manifest': 'https://marketplace.firefox.com/app/be9138a3-9672-4796-9c27-0f27aaced70a/manifest.webapp'},
-                             {'name': 'Firesea IRC', 'manifest': 'http://operatorvariant.fxosapps.org/manifest.webapp'}):
+                             {'name': 'Firesea IRC', 'manifest': 'http://operatorvariant.fxosapps.org/manifest.webapp'},
+                             {'name': 'MozSpeech', 'manifest': 'app://customizer.gaiamobile.org/manifest.webapp'},
+                             {'name': 'Foxfooding', 'manifest': 'https://foxfooding.github.io/manifest.webapp'}):
             homescreen.wait_for_app_icon_present(expected_app['manifest'])
